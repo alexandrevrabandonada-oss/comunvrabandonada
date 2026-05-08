@@ -1,0 +1,21 @@
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { logoutAdmin } from "@/app/actions";
+
+export function AdminShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="min-h-screen bg-comun-paper text-comun-black">
+      <header className="border-b-2 border-comun-black bg-comun-black text-comun-paper">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+          <Link href="/comun/admin" className="font-black uppercase text-comun-yellow">Admin COMUN</Link>
+          <nav className="flex items-center gap-3 text-sm font-black uppercase">
+            <Link href="/comun/admin/relatos">Relatos</Link>
+            <Link href="/comun/admin/pautas">Pautas</Link>
+            <form action={logoutAdmin}><button className="text-comun-paper/70">Sair</button></form>
+          </nav>
+        </div>
+      </header>
+      <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
+    </div>
+  );
+}
