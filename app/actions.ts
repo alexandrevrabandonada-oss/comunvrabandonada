@@ -109,6 +109,14 @@ export async function updateReportReview(formData: FormData) {
   const supabase = createServiceSupabaseClient();
   if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
 
+  const { data: currentReport, error: currentReportError } = await supabase
+    .from("comun_reports")
+    .select("community_slug, issue_slug")
+    .eq("id", id)
+    .single();
+
+  if (currentReportError) throw new Error(currentReportError.message);
+
   const nextStatus =
     intent === "publish"
       ? "published"
@@ -160,5 +168,11 @@ export async function updateReportReview(formData: FormData) {
 
   revalidatePath("/comun/admin");
   revalidatePath(`/comun/admin/relatos/${id}`);
+  revalidatePath("/comun");
+  revalidatePath("/comun/comunidades");
+  revalidatePath(`/comun/c/${currentReport.community_slug}`);
+  revalidatePath(String(formData.get("community_slug") ?? "").trim() ? `/comun/c/${String(formData.get("community_slug") ?? "").trim()}` : "/comun");
+  if (currentReport.issue_slug) revalidatePath(`/comun/pautas/${currentReport.issue_slug}`);
+  if (String(formData.get("issue_slug") ?? "").trim()) revalidatePath(`/comun/pautas/${String(formData.get("issue_slug") ?? "").trim()}`);
   redirect(`/comun/admin/relatos/${id}`);
 }

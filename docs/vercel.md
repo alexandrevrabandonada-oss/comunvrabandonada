@@ -49,6 +49,13 @@ Tambem valide antes do push:
 ```bash
 npm run verify
 npm run smoke:comun
+npm run smoke:admin-auth
+```
+
+Depois de publicar um relato sanitizado real de teste, rode tambem um check HTTP de nao vazamento:
+
+```bash
+npm run smoke:no-leak-http -- --path /comun/pautas/<slug> --required "<public_text>" --forbidden "<texto-sensivel>"
 ```
 
 ## Supabase antes do primeiro deploy
