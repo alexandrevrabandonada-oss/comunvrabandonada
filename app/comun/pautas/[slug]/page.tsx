@@ -1,14 +1,16 @@
 import { notFound } from "next/navigation";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
+import { getCommunity, getIssue } from "@/lib/comun-data";
 import { StatusLabel } from "@/components/status-label";
-import { getCommunity, getIssue } from "@/lib/seed-data";
 import { listPublicReports } from "@/lib/reports";
 
 export default async function IssuePage({ params }: { params: { slug: string } }) {
-  const issue = getIssue(params.slug);
+  const issue = await getIssue(params.slug);
   if (!issue) notFound();
-  const community = getCommunity(issue.communitySlug);
-  const reports = await listPublicReports({ issueSlug: issue.slug });
+  const [community, reports] = await Promise.all([
+    getCommunity(issue.communitySlug),
+    listPublicReports({ issueSlug: issue.slug }),
+  ]);
 
   return (
     <ComunShell>

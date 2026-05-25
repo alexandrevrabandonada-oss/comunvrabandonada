@@ -6,6 +6,12 @@ node_modules/
 out/
 dist/
 coverage/
+.cache/
+.eslintcache
+.npm/
+.pnpm-store/
 *.log
+*.tsbuildinfo
 .vercel/
+supabase/.temp/
 types/supabase.ts

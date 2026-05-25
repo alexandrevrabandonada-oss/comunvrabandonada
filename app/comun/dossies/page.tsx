@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { ComunShell, Section } from "@/components/comun-shell";
-import { dossiers } from "@/lib/seed-data";
+import { listDossiers } from "@/lib/comun-data";
 
-export default function DossiersPage() {
+export default async function DossiersPage() {
+  const dossiers = await listDossiers();
+
   return (
     <ComunShell>
       <Section>

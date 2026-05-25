@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 import { ComunShell, Section } from "@/components/comun-shell";
-import { getDossier } from "@/lib/seed-data";
+import { getDossier } from "@/lib/comun-data";
 
-export default function DossierPage({ params }: { params: { slug: string } }) {
-  const dossier = getDossier(params.slug);
+export default async function DossierPage({ params }: { params: { slug: string } }) {
+  const dossier = await getDossier(params.slug);
   if (!dossier) notFound();
 
   return (

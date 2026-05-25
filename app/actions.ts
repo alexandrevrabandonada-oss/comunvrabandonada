@@ -3,9 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { checkAdminPassword, clearAdminSession, setAdminSession } from "@/lib/admin-auth";
+import { getComunAdminSession, requireComunAdmin } from "@/lib/admin-auth";
+import { logComunAdminAction } from "@/lib/admin-audit";
 import { generateProtocol } from "@/lib/protocol";
-import { createPublicSupabaseClient, createServiceSupabaseClient } from "@/lib/supabase/server";
+import { createPublicSupabaseClient, createServiceSupabaseClient, createSupabaseServerClient } from "@/lib/supabase/server";
 
 const reportSchema = z.object({
   community_slug: z.string().min(1),
@@ -60,20 +61,41 @@ export async function submitReport(_: unknown, formData: FormData) {
 }
 
 export async function loginAdmin(_: unknown, formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
-  if (!checkAdminPassword(password)) {
-    return { ok: false, error: "Senha invalida ou COMUN_ADMIN_PASSWORD ausente." };
+  const redirectTo = String(formData.get("redirectTo") ?? "/comun/admin");
+
+  const supabase = createSupabaseServerClient();
+  if (!supabase) {
+    return { ok: false, error: "Supabase Auth nao configurado." };
   }
-  setAdminSession();
-  redirect("/comun/admin");
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) {
+    return { ok: false, error: "E-mail ou senha invalidos." };
+  }
+
+  const session = await getComunAdminSession();
+  if (!session) {
+    await supabase.auth.signOut();
+    return { ok: false, error: "Usuario autenticado, mas nao autorizado como admin COMUN." };
+  }
+
+  await logComunAdminAction({ session, action: "admin_login_success" });
+  redirect(redirectTo.startsWith("/comun/admin") ? redirectTo : "/comun/admin");
 }
 
 export async function logoutAdmin() {
-  clearAdminSession();
-  redirect("/comun/admin");
+  const session = await getComunAdminSession();
+  await logComunAdminAction({ session, action: "admin_logout" });
+
+  const supabase = createSupabaseServerClient();
+  await supabase?.auth.signOut();
+  redirect("/comun/admin/login");
 }
 
 export async function updateReportReview(formData: FormData) {
+  const session = await requireComunAdmin();
   const id = String(formData.get("id") ?? "");
   const intent = String(formData.get("intent") ?? "save");
   const publicText = String(formData.get("public_text") ?? "").trim();
@@ -112,6 +134,29 @@ export async function updateReportReview(formData: FormData) {
     .eq("id", id);
 
   if (error) throw new Error(error.message);
+
+  const action =
+    intent === "publish"
+      ? "report_published"
+      : intent === "archive"
+        ? "report_archived"
+        : intent === "unpublish"
+          ? "report_unpublished"
+          : "report_sanitized_saved";
+
+  await logComunAdminAction({
+    session,
+    action,
+    targetType: "report",
+    targetId: id,
+    metadata: {
+      status: nextStatus,
+      risk_level: String(formData.get("risk_level") ?? "unknown"),
+      community_slug: String(formData.get("community_slug") ?? ""),
+      issue_slug: String(formData.get("issue_slug") ?? "") || null,
+      public_text_length: publicText.length,
+    },
+  });
 
   revalidatePath("/comun/admin");
   revalidatePath(`/comun/admin/relatos/${id}`);

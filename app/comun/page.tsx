@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { AlertTriangle, Archive, Megaphone, ShieldCheck, type LucideIcon } from "lucide-react";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
+import { listCommunities, listIssues } from "@/lib/comun-data";
 import { StatusLabel } from "@/components/status-label";
-import { communities, issues } from "@/lib/seed-data";
 
-export default function ComunHome() {
+export default async function ComunHome() {
+  const [communities, issues] = await Promise.all([listCommunities(), listIssues()]);
+
   return (
     <ComunShell>
       <Section className="pb-6 pt-10">

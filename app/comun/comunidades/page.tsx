@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { ComunShell, Section } from "@/components/comun-shell";
-import { communities } from "@/lib/seed-data";
+import { listCommunities } from "@/lib/comun-data";
 
-export default function CommunitiesPage() {
+export default async function CommunitiesPage() {
+  const communities = await listCommunities();
+
   return (
     <ComunShell>
       <Section>

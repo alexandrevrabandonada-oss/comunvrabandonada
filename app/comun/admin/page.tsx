@@ -1,14 +1,13 @@
 import Link from "next/link";
-import { AdminLoginForm } from "@/components/admin-login-form";
 import { AdminShell } from "@/components/admin-shell";
-import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { communities } from "@/lib/seed-data";
+import { requireComunAdmin } from "@/lib/admin-auth";
+import { listCommunities } from "@/lib/comun-data";
 import { listAdminReports } from "@/lib/reports";
 
 export default async function AdminPage({ searchParams }: { searchParams: Record<string, string | undefined> }) {
-  if (!isAdminAuthenticated()) return <AdminLoginForm />;
+  const session = await requireComunAdmin();
 
-  const reports = await listAdminReports();
+  const [reports, communities] = await Promise.all([listAdminReports(), listCommunities()]);
   const filtered = reports.filter((report) => {
     if (searchParams.status && report.status !== searchParams.status) return false;
     if (searchParams.comunidade && report.community_slug !== searchParams.comunidade) return false;
@@ -27,7 +26,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Record
   ];
 
   return (
-    <AdminShell>
+    <AdminShell adminEmail={session.admin.email}>
       <h1 className="text-3xl font-black uppercase">Caixa de entrada de relatos</h1>
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {stats.map(([label, value]) => (

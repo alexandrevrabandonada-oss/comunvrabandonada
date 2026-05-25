@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
+import { getCommunity, listIssues } from "@/lib/comun-data";
 import { StatusLabel } from "@/components/status-label";
-import { getCommunity, issues } from "@/lib/seed-data";
 import { listPublicReports } from "@/lib/reports";
 
 export default async function CommunityPage({ params }: { params: { slug: string } }) {
-  const community = getCommunity(params.slug);
+  const community = await getCommunity(params.slug);
   if (!community) notFound();
-  const relatedIssues = issues.filter((issue) => issue.communitySlug === community.slug);
-  const reports = await listPublicReports({ communitySlug: community.slug });
+  const [relatedIssues, reports] = await Promise.all([
+    listIssues({ communitySlug: community.slug }),
+    listPublicReports({ communitySlug: community.slug }),
+  ]);
 
   return (
     <ComunShell>

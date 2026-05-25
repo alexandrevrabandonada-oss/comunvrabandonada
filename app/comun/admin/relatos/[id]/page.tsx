@@ -1,18 +1,29 @@
 import { notFound } from "next/navigation";
 import { updateReportReview } from "@/app/actions";
-import { AdminLoginForm } from "@/components/admin-login-form";
 import { AdminShell } from "@/components/admin-shell";
-import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { communities, issues } from "@/lib/seed-data";
+import { requireComunAdmin } from "@/lib/admin-auth";
+import { logComunAdminAction } from "@/lib/admin-audit";
+import { listCommunities, listIssues } from "@/lib/comun-data";
 import { getAdminReport } from "@/lib/reports";
 
 export default async function ReviewReportPage({ params }: { params: { id: string } }) {
-  if (!isAdminAuthenticated()) return <AdminLoginForm />;
-  const report = await getAdminReport(params.id);
+  const session = await requireComunAdmin();
+  const [report, communities, issues] = await Promise.all([
+    getAdminReport(params.id),
+    listCommunities(),
+    listIssues(),
+  ]);
   if (!report) notFound();
+  await logComunAdminAction({
+    session,
+    action: "report_review_opened",
+    targetType: "report",
+    targetId: report.id,
+    metadata: { protocol: report.protocol, status: report.status },
+  });
 
   return (
-    <AdminShell>
+    <AdminShell adminEmail={session.admin.email}>
       <h1 className="text-3xl font-black uppercase">Revisar relato {report.protocol}</h1>
       <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_1fr]">
         <section className="grid gap-4">

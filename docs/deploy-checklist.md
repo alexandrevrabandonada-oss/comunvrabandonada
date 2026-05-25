@@ -1,0 +1,41 @@
+# Deploy Checklist
+
+## Antes do deploy
+
+- [ ] Supabase migration aplicada
+- [ ] Seeds presentes
+- [ ] `.env.local` local funcionando
+- [ ] `npm run verify` passa
+- [ ] `npm run smoke:comun` passa
+- [ ] `npm run smoke:admin-auth` passa
+- [ ] GitHub sem segredos
+- [ ] Vercel conectado ao GitHub
+
+## Na Vercel
+
+- [ ] importar projeto do GitHub
+- [ ] configurar env vars
+- [ ] criar usuario admin no Supabase Auth
+- [ ] rodar `npm run bootstrap:admin -- --email email@exemplo.com`
+- [ ] confirmar framework Next.js
+- [ ] build command padrao
+- [ ] deploy
+
+## Depois do deploy
+
+- [ ] abrir `/comun`
+- [ ] abrir `/comun/relatar`
+- [ ] enviar relato real de teste
+- [ ] abrir `/comun/admin`
+- [ ] confirmar redirect para `/comun/admin/login` sem sessao
+- [ ] fazer login com usuario da allowlist
+- [ ] revisar relato
+- [ ] criar `public_text` sanitizado
+- [ ] publicar
+- [ ] abrir pagina publica da pauta
+- [ ] confirmar que `public_text` aparece
+- [ ] confirmar que `raw_text`, `private_contact` e `internal_notes` nao aparecem
+- [ ] confirmar evento em `/comun/admin/auditoria`
+- [ ] sair e confirmar que admin volta a exigir login
+- [ ] testar no celular via 4G/5G
+- [ ] testar link vindo do Instagram/WhatsApp
