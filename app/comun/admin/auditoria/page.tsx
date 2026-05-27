@@ -2,6 +2,8 @@ import { AdminShell } from "@/components/admin-shell";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { listComunAdminAuditLog } from "@/lib/admin-audit";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminAuditPage() {
   const session = await requireComunAdmin({ roles: ["admin"] });
   const events = await listComunAdminAuditLog();

@@ -1,4 +1,5 @@
 import { ComunShell, Section } from "@/components/comun-shell";
+import { PrimaryLink } from "@/components/comun-shell";
 
 const items = [
   "Voce pode relatar sem se identificar publicamente.",
@@ -15,11 +16,17 @@ export default function SecurityPage() {
   return (
     <ComunShell>
       <Section>
-        <h1 className="text-4xl font-black uppercase text-comun-yellow">Como o COMUN protege relatos</h1>
+        <h1 className="text-3xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">Como o COMUN protege relatos</h1>
+        <p className="comun-prose mt-4 max-w-3xl text-base text-comun-paper/78 sm:text-lg">
+          O COMUN existe para organizar memoria coletiva com cuidado. Relato nao entra publico automaticamente e dados sensiveis ficam fora da parte aberta.
+        </p>
         <div className="mt-6 grid gap-3">
           {items.map((item) => (
-            <div key={item} className="paper-panel border-2 border-comun-black p-4 font-bold">{item}</div>
+            <div key={item} className="paper-panel comun-prose border-2 border-comun-black p-4 font-bold">{item}</div>
           ))}
+        </div>
+        <div className="mt-6">
+          <PrimaryLink href="/comun/relatar">Enviar relato com seguranca</PrimaryLink>
         </div>
       </Section>
     </ComunShell>

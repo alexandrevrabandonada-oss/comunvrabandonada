@@ -2,50 +2,60 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
 import { StatusLabel } from "@/components/status-label";
-import { communities, dossiers, issues } from "@/lib/seed-data";
+import { getCommunity, getDossier, getIssue } from "@/lib/comun-data";
 
 export const dynamic = "force-dynamic";
 
-export default function DossierPage({ params }: { params: { slug: string } }) {
-  const dossier = dossiers.find((item) => item.slug === params.slug);
+export default async function DossierPage({ params }: { params: { slug: string } }) {
+  const dossier = await getDossier(params.slug);
   if (!dossier) notFound();
-  const issue = dossier.issueSlug ? issues.find((item) => item.slug === dossier.issueSlug) ?? null : null;
-  const community = issue ? communities.find((item) => item.slug === issue.communitySlug) ?? null : null;
+  const issue = dossier.issueSlug ? ((await getIssue(dossier.issueSlug)) ?? null) : null;
+  const community = issue ? ((await getCommunity(issue.communitySlug)) ?? null) : null;
 
   return (
     <ComunShell>
       <Section>
-        <StatusLabel value={dossier.status} />
-        <h1 className="text-4xl font-black uppercase text-comun-yellow">{dossier.title}</h1>
-        <p className="mt-4 max-w-3xl text-lg text-comun-paper/80">{dossier.executiveSummary}</p>
-        <div className="mt-4 grid gap-2 text-sm text-comun-paper/70">
-          {community ? (
-            <p>
-              Comunidade relacionada:{" "}
-              <Link href={`/comun/c/${community.slug}`} className="font-bold text-comun-yellow">
-                {community.name}
-              </Link>
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+          <div>
+            <StatusLabel value={dossier.status} />
+            <h1 className="comun-prose text-2xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">{dossier.title}</h1>
+            <p className="comun-prose mt-4 max-w-3xl text-base text-comun-paper/80 sm:text-lg">{dossier.executiveSummary}</p>
+            <div className="mt-4 grid gap-2 text-sm text-comun-paper/70">
+              {community ? (
+                <p>
+                  Comunidade relacionada:{" "}
+                  <Link href={`/comun/c/${community.slug}`} className="font-bold text-comun-yellow">
+                    {community.name}
+                  </Link>
+                </p>
+              ) : null}
+              {issue ? (
+                <p>
+                  Pauta relacionada:{" "}
+                  <Link href={`/comun/pautas/${issue.slug}`} className="font-bold text-comun-yellow">
+                    {issue.title}
+                  </Link>
+                </p>
+              ) : null}
+            </div>
+            <div className="mt-6">
+              <PrimaryLink href={issue ? `/comun/relatar?comunidade=${issue.communitySlug}&pauta=${issue.slug}` : "/comun/relatar"}>
+                Enviar relato relacionado
+              </PrimaryLink>
+            </div>
+          </div>
+          <aside className="paper-panel border-2 border-comun-black p-4">
+            <h2 className="text-lg font-black uppercase">Por que compartilhar este dossie</h2>
+            <p className="mt-3 text-sm text-comun-asphalt/80">
+              Ele organiza padroes, relatos sanitizados e perguntas em aberto de forma legivel para circulacao publica.
             </p>
-          ) : null}
-          {issue ? (
-            <p>
-              Pauta relacionada:{" "}
-              <Link href={`/comun/pautas/${issue.slug}`} className="font-bold text-comun-yellow">
-                {issue.title}
-              </Link>
-            </p>
-          ) : null}
-        </div>
-        <div className="mt-6">
-          <PrimaryLink href={issue ? `/comun/relatar?comunidade=${issue.communitySlug}&pauta=${issue.slug}` : "/comun/relatar"}>
-            Enviar relato relacionado
-          </PrimaryLink>
+          </aside>
         </div>
       </Section>
       <Section>
         <div className="paper-panel border-2 border-comun-black p-5">
           <h2 className="font-black uppercase">Resumo executivo e contexto</h2>
-          <p className="mt-3 text-comun-asphalt/75">{dossier.contextText}</p>
+          <p className="comun-prose mt-3 text-comun-asphalt/75">{dossier.contextText}</p>
         </div>
       </Section>
       <Section>
@@ -63,8 +73,8 @@ export default function DossierPage({ params }: { params: { slug: string } }) {
             {dossier.relatedReports.map((report) => (
               <article key={report.protocol} className="paper-panel border-2 border-comun-black p-4">
                 <p className="text-xs font-black uppercase">{report.protocol}</p>
-                <h3 className="mt-2 font-black uppercase">{report.title}</h3>
-                <p className="mt-2 text-sm text-comun-asphalt/75">{report.publicText}</p>
+                <h3 className="comun-prose mt-2 font-black uppercase">{report.title}</h3>
+                <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{report.publicText}</p>
               </article>
             ))}
           </div>
@@ -97,7 +107,7 @@ function Panel({ title, items }: { title: string; items: string[] }) {
       {items.length ? (
         <ul className="mt-3 grid gap-2 text-sm text-comun-asphalt/75">
           {items.map((item) => (
-            <li key={item} className="border-l-4 border-comun-yellow pl-3">
+            <li key={item} className="comun-prose border-l-4 border-comun-yellow pl-3">
               {item}
             </li>
           ))}

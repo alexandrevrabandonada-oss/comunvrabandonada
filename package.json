@@ -11,6 +11,7 @@
     "smoke:comun": "node scripts/smoke-comun-flow.mjs",
     "smoke:admin-auth": "node scripts/smoke-comun-admin-auth.mjs",
     "smoke:no-leak-http": "node scripts/smoke-comun-no-leak-http.mjs",
+    "smoke:public-ui": "node scripts/smoke-comun-public-ui.mjs",
     "bootstrap:admin": "node scripts/bootstrap-comun-admin.mjs",
     "verify": "npm run lint && npm run typecheck && npm run build",
     "db:types": "npx supabase gen types typescript --project-id \"$SUPABASE_PROJECT_ID\" > types/supabase.ts",

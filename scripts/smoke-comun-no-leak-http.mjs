@@ -62,13 +62,15 @@ if (!baseUrl) {
 const requiredTexts = argValues("--required");
 const forbiddenTexts = argValues("--forbidden");
 const paths = argValues("--path");
+const resolvedPaths = paths.length ? paths : ["/comun/pautas/trabalho-burnout-volta-redonda"];
+const resolvedRequiredTexts = requiredTexts.length
+  ? requiredTexts
+  : ["Relato aponta pressao no ambiente de trabalho e possivel atraso de direitos."];
+const resolvedForbiddenTexts = forbiddenTexts.length
+  ? forbiddenTexts
+  : ["raw_text", "private_contact", "internal_notes"];
 
-if (!paths.length) {
-  fail("Informe pelo menos um --path para verificar.");
-  process.exit();
-}
-
-for (const currentPath of paths) {
+for (const currentPath of resolvedPaths) {
   const response = await fetch(new URL(currentPath, baseUrl));
   if (!response.ok) {
     fail(`${currentPath} retornou status ${response.status}`);
@@ -78,13 +80,13 @@ for (const currentPath of paths) {
   const html = await response.text();
   const normalizedHtml = normalizeText(html);
 
-  for (const requiredText of requiredTexts) {
+  for (const requiredText of resolvedRequiredTexts) {
     if (!normalizedHtml.includes(normalizeText(requiredText))) {
       fail(`${currentPath} nao contem o texto esperado: ${requiredText}`);
     }
   }
 
-  for (const forbiddenText of forbiddenTexts) {
+  for (const forbiddenText of resolvedForbiddenTexts) {
     if (normalizedHtml.includes(normalizeText(forbiddenText))) {
       fail(`${currentPath} vazou texto proibido: ${forbiddenText}`);
     }

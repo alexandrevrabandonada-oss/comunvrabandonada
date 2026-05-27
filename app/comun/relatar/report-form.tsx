@@ -166,7 +166,7 @@ export function ReportForm({
   }
 
   return (
-    <main className="min-h-screen bg-comun-paper px-4 py-5 text-comun-black">
+    <main className="min-h-screen overflow-x-hidden bg-comun-paper px-4 py-5 text-comun-black">
       <div className="mx-auto max-w-3xl">
         <Link href="/comun" className="text-sm font-black uppercase">
           COMUN VR ABANDONADA
@@ -185,7 +185,7 @@ export function ReportForm({
           </div>
         ) : null}
 
-        <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-5">
+        <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-5">
           {steps.map((label, index) => (
             <button
               key={label}
@@ -193,7 +193,7 @@ export function ReportForm({
               onClick={() => setStep(index)}
               className={`min-h-12 border-2 border-comun-black px-3 text-xs font-black uppercase ${
                 step === index ? "bg-comun-yellow" : "bg-white"
-              }`}
+              } leading-tight`}
               aria-current={step === index ? "step" : undefined}
             >
               {index + 1}. {label}
@@ -231,9 +231,9 @@ export function ReportForm({
                     }}
                     className="mt-1 h-5 w-5"
                   />
-                  <span>
-                    <strong className="block uppercase">{option.label}</strong>
-                    <span className="text-sm text-comun-asphalt/70">{option.description}</span>
+                  <span className="min-w-0">
+                    <strong className="comun-prose block uppercase">{option.label}</strong>
+                    <span className="comun-prose text-sm text-comun-asphalt/70">{option.description}</span>
                   </span>
                 </label>
               ))}
@@ -450,12 +450,12 @@ export function ReportForm({
           </section>
         </form>
 
-        <div className="sticky bottom-0 mt-6 grid grid-cols-2 gap-3 border-t-2 border-comun-black bg-comun-paper py-3">
+        <div className="sticky bottom-0 mt-6 grid grid-cols-1 gap-3 border-t-2 border-comun-black bg-comun-paper py-3 sm:grid-cols-2">
           <button
             type="button"
             onClick={previousStep}
             disabled={step === 0}
-            className="inline-flex min-h-12 items-center justify-center gap-2 border-2 border-comun-black bg-white font-black uppercase disabled:opacity-50"
+            className="inline-flex min-h-12 items-center justify-center gap-2 border-2 border-comun-black bg-white px-3 text-center font-black uppercase disabled:opacity-50"
           >
             <ArrowLeft size={18} />
             Voltar
@@ -464,7 +464,7 @@ export function ReportForm({
             type="button"
             onClick={nextStep}
             disabled={step === steps.length - 1}
-            className="inline-flex min-h-12 items-center justify-center gap-2 border-2 border-comun-black bg-comun-black font-black uppercase text-comun-yellow disabled:opacity-50"
+            className="inline-flex min-h-12 items-center justify-center gap-2 border-2 border-comun-black bg-comun-black px-3 text-center font-black uppercase text-comun-yellow disabled:opacity-50"
           >
             {step === steps.length - 2 ? "Ir para revisao" : "Continuar"}
             <ArrowRight size={18} />
@@ -506,7 +506,7 @@ function Field({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         disabled={disabled}
-        className="min-h-12 border-2 border-comun-black bg-white px-3"
+        className="min-h-12 w-full border-2 border-comun-black bg-white px-3"
       />
     </label>
   );
@@ -535,7 +535,7 @@ function TextArea({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         rows={8}
-        className="border-2 border-comun-black bg-white p-3"
+        className="min-h-[12rem] w-full border-2 border-comun-black bg-white p-3"
       />
     </label>
   );
@@ -576,7 +576,7 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="border-2 border-comun-black bg-white p-4">
       <p className="text-xs font-black uppercase text-comun-asphalt/70">{label}</p>
-      <p className="mt-2 whitespace-pre-wrap text-sm font-medium">{value}</p>
+      <p className="comun-prose mt-2 whitespace-pre-wrap text-sm font-medium">{value}</p>
     </div>
   );
 }

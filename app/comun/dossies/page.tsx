@@ -1,33 +1,42 @@
 import Link from "next/link";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { StatusLabel } from "@/components/status-label";
-import { dossiers } from "@/lib/seed-data";
+import { listDossiers } from "@/lib/comun-data";
 
 export const dynamic = "force-dynamic";
 
-export default function DossiersPage() {
+export default async function DossiersPage() {
+  const dossiers = await listDossiers();
   const publishedDossiers = dossiers.filter((dossier) => dossier.status === "published");
 
   return (
     <ComunShell>
       <Section>
-        <h1 className="text-4xl font-black uppercase text-comun-yellow">Dossies do COMUN</h1>
-        <p className="mt-3 max-w-3xl text-comun-paper/75">
+        <h1 className="text-3xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">Dossies do COMUN</h1>
+        <p className="comun-prose mt-3 max-w-3xl text-comun-paper/75">
           Relatos e pautas organizados em memoria coletiva. Cada dossie reune sinais publicos, padroes e
           encaminhamentos sem expor texto bruto nem contato privado.
         </p>
+        <div className="mt-5 border-2 border-comun-yellow bg-comun-black p-4 text-sm text-comun-paper/78">
+          Um dossie do COMUN transforma relatos sanitizados e pautas recorrentes em memoria coletiva compartilhavel.
+        </div>
         {publishedDossiers.length ? (
-          <div className="mt-6 grid gap-4">
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
             {publishedDossiers.map((dossier) => (
-              <Link key={dossier.slug} href={`/comun/dossies/${dossier.slug}`} className="paper-panel border-2 border-comun-black p-5">
+              <Link
+                key={dossier.slug}
+                href={`/comun/dossies/${dossier.slug}`}
+                className="paper-panel flex min-h-[15rem] flex-col border-2 border-comun-black p-5"
+              >
                 <StatusLabel value={dossier.status} />
-                <h2 className="mt-3 text-xl font-black uppercase">{dossier.title}</h2>
-                <p className="mt-2 text-sm text-comun-asphalt/75">{dossier.executiveSummary}</p>
+                <h2 className="comun-prose mt-3 text-xl font-black uppercase">{dossier.title}</h2>
+                <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{dossier.executiveSummary}</p>
                 <div className="mt-4 flex flex-wrap gap-2 text-xs font-black uppercase text-comun-asphalt/65">
                   <span>{dossier.patterns.length} padroes</span>
                   <span>{dossier.sources.length} fontes</span>
                   <span>{dossier.forwardingLog.length} encaminhamentos</span>
                 </div>
+                <span className="mt-auto pt-5 text-sm font-black uppercase text-comun-rust">Ver dossie</span>
               </Link>
             ))}
           </div>
