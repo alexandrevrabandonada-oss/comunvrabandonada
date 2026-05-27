@@ -30,7 +30,10 @@ type DossierRow = {
   title: string;
   executive_summary: string;
   context_text: string | null;
+  timeline: string[] | null;
   patterns: string[] | null;
+  sources: string[] | null;
+  forwarding_log: string[] | null;
   status: Dossier["status"];
 };
 
@@ -66,7 +69,12 @@ function mapDossier(row: DossierRow): Dossier {
     title: row.title,
     executiveSummary: row.executive_summary,
     contextText: row.context_text ?? "",
+    timeline: row.timeline ?? [],
     patterns: row.patterns ?? [],
+    relatedReports: [],
+    sources: row.sources ?? [],
+    forwardingLog: row.forwarding_log ?? [],
+    openQuestions: [],
     status: row.status,
   };
 }
@@ -141,12 +149,25 @@ export async function listDossiers() {
 
   const { data, error } = await supabase
     .from("comun_dossiers")
-    .select("slug, issue_slug, title, executive_summary, context_text, patterns, status")
+    .select("slug, issue_slug, title, executive_summary, context_text, timeline, patterns, sources, forwarding_log, status")
     .in("status", ["draft", "published"])
     .order("created_at");
 
   if (error || !data) return seedDossiers;
-  return data.map((row) => mapDossier(row as DossierRow));
+
+  const mapped = data.map((row) => mapDossier(row as DossierRow));
+  const published = mapped.filter((dossier) => dossier.status === "published");
+
+  if (!published.length) return seedDossiers;
+
+  const merged = [...published];
+  for (const seedDossier of seedDossiers) {
+    if (!merged.some((item) => item.slug === seedDossier.slug)) {
+      merged.push(seedDossier);
+    }
+  }
+
+  return merged;
 }
 
 export async function getDossier(slug: string) {
@@ -155,12 +176,18 @@ export async function getDossier(slug: string) {
 
   const { data, error } = await supabase
     .from("comun_dossiers")
-    .select("slug, issue_slug, title, executive_summary, context_text, patterns, status")
+    .select("slug, issue_slug, title, executive_summary, context_text, timeline, patterns, sources, forwarding_log, status")
     .eq("slug", slug)
     .single();
 
   if (error || !data) return getSeedDossier(slug);
-  return mapDossier(data as DossierRow);
+
+  const mapped = mapDossier(data as DossierRow);
+  if (mapped.status !== "published") {
+    return getSeedDossier(slug);
+  }
+
+  return mapped;
 }
 
 export async function listAdminIssues() {

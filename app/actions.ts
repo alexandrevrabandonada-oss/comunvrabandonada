@@ -11,6 +11,7 @@ import { createPublicSupabaseClient, createServiceSupabaseClient, createSupabase
 const reportSchema = z.object({
   community_slug: z.string().min(1),
   issue_slug: z.string().optional(),
+  campaign_category: z.string().optional(),
   title: z.string().optional(),
   raw_text: z.string().min(20, "O relato precisa ter pelo menos 20 caracteres."),
   period_text: z.string().optional(),
@@ -42,7 +43,7 @@ export async function submitReport(_: unknown, formData: FormData) {
     ...parsed.data,
     protocol,
     issue_slug: parsed.data.issue_slug || null,
-    title: parsed.data.title || null,
+    title: buildStoredTitle(parsed.data.title, parsed.data.campaign_category),
     period_text: parsed.data.period_text || null,
     approximate_location: parsed.data.approximate_location || null,
     neighborhood: parsed.data.neighborhood || null,
@@ -58,6 +59,41 @@ export async function submitReport(_: unknown, formData: FormData) {
   }
 
   redirect(`/comun/relatar/confirmacao?protocolo=${encodeURIComponent(protocol)}`);
+}
+
+function buildStoredTitle(title: string | undefined, campaignCategory: string | undefined) {
+  const cleanTitle = title?.trim() || "";
+  const cleanCategory = campaignCategory?.trim() || "";
+
+  if (!cleanCategory) {
+    return cleanTitle || null;
+  }
+
+  const categoryLabel = formatCampaignCategory(cleanCategory);
+  if (!cleanTitle) {
+    return `[${categoryLabel}]`;
+  }
+
+  return `[${categoryLabel}] ${cleanTitle}`;
+}
+
+function formatCampaignCategory(value: string) {
+  const labels: Record<string, string> = {
+    "pressao-psicologica": "Pressao psicologica",
+    "assedio-moral": "Assedio moral",
+    burnout: "Burnout",
+    "atraso-salarial": "Atraso salarial",
+    "fgts-atrasado": "FGTS atrasado",
+    terceirizacao: "Terceirizacao",
+    "jornada-abusiva": "Jornada abusiva",
+    "ferias-impostas": "Ferias impostas",
+    "risco-de-acidente": "Risco de acidente",
+    "insalubridade-periculosidade": "Insalubridade/periculosidade",
+    "medo-de-denunciar": "Medo de denunciar",
+    retaliacao: "Retaliacao",
+  };
+
+  return labels[value] ?? value;
 }
 
 export async function loginAdmin(_: unknown, formData: FormData) {

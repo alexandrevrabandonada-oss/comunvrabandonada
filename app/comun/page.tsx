@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { AlertTriangle, Archive, Megaphone, ShieldCheck, type LucideIcon } from "lucide-react";
+import { AlertTriangle, Archive, ArrowRight, Megaphone, Shield, ShieldCheck, type LucideIcon } from "lucide-react";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
 import { listCommunities, listIssues } from "@/lib/comun-data";
 import { StatusLabel } from "@/components/status-label";
+
+export const dynamic = "force-dynamic";
 
 export default async function ComunHome() {
   const [communities, issues] = await Promise.all([listCommunities(), listIssues()]);
@@ -12,7 +14,10 @@ export default async function ComunHome() {
       <Section className="pb-6 pt-10">
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
           <div>
-            <p className="font-black uppercase text-comun-yellow">Relatos, debates e memoria coletiva da cidade.</p>
+            <p className="font-black uppercase tracking-[0.08em] text-comun-yellow">COMUN VR ABANDONADA</p>
+            <p className="mt-3 text-sm font-bold uppercase text-comun-paper/78 sm:text-base">
+              Relatos, debates e memoria coletiva da cidade.
+            </p>
             <h1 className="mt-4 max-w-3xl text-4xl font-black uppercase leading-[0.95] text-comun-paper sm:text-6xl">
               O problema que parece isolado pode ser coletivo.
             </h1>
@@ -69,11 +74,15 @@ export default async function ComunHome() {
       </Section>
 
       <Section>
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">Como funciona</h2>
+          <PrimaryLink href="/comun/relatar">Enviar relato agora</PrimaryLink>
+        </div>
         <div className="grid gap-4 md:grid-cols-3">
           {([
             ["Voce relata", "Conte do seu jeito, sem cadastro obrigatorio.", Megaphone],
             ["A comunidade confirma", "Relatos parecidos ajudam a revelar padroes.", AlertTriangle],
-            ["Vira memoria e acao", "A equipe transforma em pauta, post, dossie ou encaminhamento.", Archive],
+            ["O caso vira pauta, post, dossie ou acao", "A equipe organiza o caso com curadoria antes de qualquer publicacao.", Archive],
           ] satisfies Array<[string, string, LucideIcon]>).map(([title, text, Icon]) => (
             <div key={String(title)} className="border-2 border-comun-yellow bg-comun-black p-5">
               <Icon className="text-comun-yellow" size={28} />
@@ -81,6 +90,38 @@ export default async function ComunHome() {
               <p className="mt-2 text-sm text-comun-paper/75">{text}</p>
             </div>
           ))}
+        </div>
+      </Section>
+
+      <Section>
+        <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div className="industrial-border bg-comun-paper p-5 text-comun-black">
+            <div className="flex items-start gap-3">
+              <Shield className="mt-1 text-comun-rust" size={24} />
+              <div>
+                <h2 className="text-2xl font-black uppercase">Seguranca e anonimato primeiro</h2>
+                <p className="mt-3 max-w-2xl text-sm font-medium text-comun-asphalt/80">
+                  O COMUN nao e um mural aberto. Relatos entram primeiro em fluxo interno, passam por revisao e
+                  so podem aparecer publicamente em versao sanitizada.
+                </p>
+              </div>
+            </div>
+          </div>
+          <Link
+            href="/comun/seguranca"
+            className="inline-flex min-h-12 items-center justify-center gap-2 border-2 border-comun-yellow bg-comun-black px-5 py-3 text-sm font-black uppercase text-comun-yellow"
+          >
+            Como protegemos relatos
+            <ArrowRight size={18} />
+          </Link>
+        </div>
+      </Section>
+
+      <Section className="pt-2">
+        <div className="border-t-2 border-comun-yellow py-6">
+          <p className="text-center text-xl font-black uppercase text-comun-yellow sm:text-2xl">
+            Escutar. Cuidar. Organizar.
+          </p>
         </div>
       </Section>
     </ComunShell>

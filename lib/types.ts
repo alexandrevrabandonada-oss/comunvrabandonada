@@ -25,7 +25,16 @@ export type Dossier = {
   title: string;
   executiveSummary: string;
   contextText: string;
+  timeline: string[];
   patterns: string[];
+  relatedReports: Array<{
+    protocol: string;
+    title: string;
+    publicText: string;
+  }>;
+  sources: string[];
+  forwardingLog: string[];
+  openQuestions: string[];
   status: "draft" | "published";
 };
 

@@ -1,10 +1,10 @@
 const labels: Record<string, string> = {
   received: "Recebido",
-  under_review: "Em revisao",
-  needs_more_info: "Precisa de informacao",
+  under_review: "Em analise",
+  needs_more_info: "Precisa de mais informacoes",
   sanitized: "Sanitizado",
   published: "Publicado",
-  linked_to_issue: "Ligado a pauta",
+  linked_to_issue: "Relacionado a pauta",
   archived: "Arquivado",
   receiving_reports: "Recebendo relatos",
   checking: "Checando",
