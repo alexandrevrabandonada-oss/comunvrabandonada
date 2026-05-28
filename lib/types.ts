@@ -63,3 +63,32 @@ export type AdminReport = PublicReport & {
   private_contact: string | null;
   internal_notes: string | null;
 };
+
+export type PublicProtocolStatus =
+  | "received"
+  | "under_review"
+  | "needs_more_info"
+  | "sanitized"
+  | "published"
+  | "linked_to_issue"
+  | "archived"
+  | "not_found"
+  | "invalid";
+
+export type PublicProtocolReport = {
+  protocol: string;
+  status: PublicProtocolStatus;
+  community_slug: string | null;
+  issue_slug: string | null;
+  title: string | null;
+  public_text: string | null;
+  period_text: string | null;
+  approximate_location: string | null;
+  neighborhood: string | null;
+  created_at: string | null;
+  published_at: string | null;
+  public_message: string;
+  state_label: string;
+  is_publicly_available: boolean;
+  found: boolean;
+};

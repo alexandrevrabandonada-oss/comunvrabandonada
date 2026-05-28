@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Files, LockKeyhole, Newspaper, ShieldCheck } from "lucide-react";
+import { ArrowRight, Files, Newspaper, ShieldCheck } from "lucide-react";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
 import { CopyProtocolButton } from "@/app/comun/relatar/confirmacao/copy-protocol-button";
 
@@ -50,13 +50,15 @@ export default function ConfirmationPage({ searchParams }: { searchParams: { pro
 
               <article className="border-2 border-comun-black bg-white p-4">
                 <div className="flex items-start gap-3">
-                  <LockKeyhole className="mt-0.5 text-comun-rust" size={20} />
+                  <ShieldCheck className="mt-0.5 text-comun-rust" size={20} />
                   <div>
-                    <h2 className="text-lg font-black uppercase">Futuro acompanhamento</h2>
+                    <h2 className="text-lg font-black uppercase">Acompanhamento por protocolo</h2>
                     <p className="mt-3 text-sm text-comun-asphalt/80">
-                      O acompanhamento por protocolo sera liberado em breve. Por enquanto, guarde este numero e
-                      acompanhe as pautas publicas do COMUN.
+                      Use o numero do protocolo COMUN para consultar o andamento publico e seguro deste relato.
                     </p>
+                    <div className="mt-4">
+                      <PrimaryLink href={`/comun/acompanhar/${encodeURIComponent(protocol)}`}>Acompanhar este relato</PrimaryLink>
+                    </div>
                   </div>
                 </div>
               </article>

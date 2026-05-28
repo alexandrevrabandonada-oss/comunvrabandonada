@@ -82,6 +82,14 @@ const checks = [
     path: "/comun/seguranca",
     required: ["Como o COMUN protege relatos", "Enviar relato com seguranca"],
   },
+  {
+    path: "/comun/acompanhar",
+    required: ["Acompanhar relato", "Consultar"],
+  },
+  {
+    path: "/comun/relatar/confirmacao?protocolo=COMUN-TESTE",
+    required: ["Acompanhar este relato", "Copiar protocolo"],
+  },
 ];
 
 const forbidden = ["raw_text", "private_contact", "internal_notes"];
