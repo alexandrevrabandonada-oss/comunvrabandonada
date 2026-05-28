@@ -56,7 +56,9 @@ export default async function FollowReportResultPage({ params }: { params: { pro
                 </article>
               ) : (
                 <article className="border-2 border-comun-black bg-white p-4 text-sm text-comun-asphalt/80">
-                  Nao foi possivel localizar um relato publico com esse protocolo. Confira o numero e tente novamente.
+                  {report.status === "rate_limited"
+                    ? "Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente."
+                    : "Nao foi possivel localizar um relato publico com esse protocolo. Confira o numero e tente novamente."}
                 </article>
               )}
 

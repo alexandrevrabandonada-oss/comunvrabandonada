@@ -9,6 +9,8 @@
 - [ ] `npm run smoke:comun` passa
 - [ ] `npm run smoke:admin-auth` passa
 - [ ] `npm run smoke:no-leak-http -- --path /comun/pautas/<slug> --required "<public_text>" --forbidden "<segredo-ficticio>"` passa
+- [ ] `npm run smoke:protocol-follow` passa
+- [ ] `npm run smoke:protocol-rate-limit` passa
 - [ ] GitHub sem segredos
 - [ ] Vercel conectado ao GitHub
 
@@ -16,6 +18,7 @@
 
 - [ ] importar projeto do GitHub
 - [ ] configurar env vars
+- [ ] configurar `COMUN_LOOKUP_HASH_SALT` com valor sensivel e aleatorio
 - [ ] criar usuario admin no Supabase Auth
 - [ ] rodar `npm run bootstrap:admin -- --email email@exemplo.com`
 - [ ] confirmar framework Next.js
@@ -38,6 +41,7 @@
 - [ ] confirmar que `raw_text`, `private_contact` e `internal_notes` nao aparecem
 - [ ] rodar smoke HTTP de nao vazamento para a pauta publicada
 - [ ] confirmar evento em `/comun/admin/auditoria`
+- [ ] conferir indicadores em `/comun/admin/observabilidade`
 - [ ] sair e confirmar que admin volta a exigir login
 - [ ] testar no celular via 4G/5G
 - [ ] testar link vindo do Instagram/WhatsApp

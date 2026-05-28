@@ -1,4 +1,9 @@
 import { unstable_noStore as noStore } from "next/cache";
+import {
+  checkProtocolLookupRateLimit,
+  logProtocolLookupEvent,
+  type ProtocolLookupResultType,
+} from "@/lib/rate-limit";
 import { createPublicSupabaseClient, createServiceSupabaseClient } from "@/lib/supabase/server";
 import type { AdminReport, PublicProtocolReport, PublicProtocolStatus, PublicReport } from "@/lib/types";
 
@@ -87,6 +92,7 @@ function statusLabel(status: PublicProtocolStatus) {
     archived: "Arquivado",
     not_found: "Nao encontrado",
     invalid: "Protocolo invalido",
+    rate_limited: "Limite temporario",
   };
 
   return labels[status];
@@ -107,6 +113,7 @@ function buildState(
     archived: "Este relato nao esta disponivel para publicacao publica.",
     not_found: "Nao foi possivel localizar um relato publico com esse protocolo.",
     invalid: "Digite um protocolo COMUN valido para consultar o andamento publico do relato.",
+    rate_limited: "Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.",
   };
 
   return {
@@ -124,7 +131,7 @@ function buildState(
     public_message: messages[status],
     state_label: statusLabel(status),
     is_publicly_available: status === "published",
-    found: !["not_found", "invalid"].includes(status),
+    found: !["not_found", "invalid", "rate_limited"].includes(status),
     ...overrides,
   };
 }
@@ -133,11 +140,40 @@ export async function getPublicReportByProtocol(protocol: string): Promise<Publi
   noStore();
   const normalizedProtocol = normalizeProtocol(protocol);
   if (!isValidProtocol(normalizedProtocol)) {
+    const rateLimit = await checkProtocolLookupRateLimit({
+      protocol: normalizedProtocol || protocol,
+      route: "/comun/acompanhar/[protocol]",
+      resultType: "invalid_format",
+    });
+
+    if (!rateLimit.allowed) {
+      return buildState("rate_limited", normalizedProtocol || protocol);
+    }
+
+    await logProtocolLookupEvent({
+      protocol: normalizedProtocol || protocol,
+      route: "/comun/acompanhar/[protocol]",
+      resultType: "invalid_format",
+    });
     return buildState("invalid", normalizedProtocol || protocol);
+  }
+
+  const rateLimit = await checkProtocolLookupRateLimit({
+    protocol: normalizedProtocol,
+    route: "/comun/acompanhar/[protocol]",
+  });
+
+  if (!rateLimit.allowed) {
+    return buildState("rate_limited", normalizedProtocol);
   }
 
   const supabase = createServiceSupabaseClient();
   if (!supabase) {
+    await logProtocolLookupEvent({
+      protocol: normalizedProtocol,
+      route: "/comun/acompanhar/[protocol]",
+      resultType: "not_found",
+    });
     return buildState("not_found", normalizedProtocol);
   }
 
@@ -151,6 +187,7 @@ export async function getPublicReportByProtocol(protocol: string): Promise<Publi
     .maybeSingle();
 
   if (error || !data) {
+    await logLookupResult(normalizedProtocol, "not_found");
     return buildState("not_found", normalizedProtocol);
   }
 
@@ -166,14 +203,18 @@ export async function getPublicReportByProtocol(protocol: string): Promise<Publi
   };
 
   if (!report.can_publish_sanitized) {
+    const state =
+      report.status === "archived" ? "archived" : report.status === "linked_to_issue" ? "linked_to_issue" : "under_review";
+    await logLookupResult(normalizedProtocol, resultTypeForStatus(state));
     return buildState(
-      report.status === "archived" ? "archived" : report.status === "linked_to_issue" ? "linked_to_issue" : "under_review",
+      state,
       normalizedProtocol,
       safeBase,
     );
   }
 
   if (report.status === "published" && report.public_text) {
+    await logLookupResult(normalizedProtocol, "found_published");
     return buildState("published", normalizedProtocol, {
       ...safeBase,
       title: report.title,
@@ -183,24 +224,45 @@ export async function getPublicReportByProtocol(protocol: string): Promise<Publi
   }
 
   if (report.status === "linked_to_issue") {
+    await logLookupResult(normalizedProtocol, "found_under_review");
     return buildState("linked_to_issue", normalizedProtocol, safeBase);
   }
 
   if (report.status === "archived") {
+    await logLookupResult(normalizedProtocol, "found_archived");
     return buildState("archived", normalizedProtocol, safeBase);
   }
 
   if (report.status === "received") {
+    await logLookupResult(normalizedProtocol, "found_received");
     return buildState("received", normalizedProtocol, safeBase);
   }
 
   if (report.status === "needs_more_info") {
+    await logLookupResult(normalizedProtocol, "found_under_review");
     return buildState("needs_more_info", normalizedProtocol, safeBase);
   }
 
   if (report.status === "sanitized") {
+    await logLookupResult(normalizedProtocol, "found_under_review");
     return buildState("sanitized", normalizedProtocol, safeBase);
   }
 
+  await logLookupResult(normalizedProtocol, "found_under_review");
   return buildState("under_review", normalizedProtocol, safeBase);
+}
+
+function resultTypeForStatus(status: PublicProtocolStatus): ProtocolLookupResultType {
+  if (status === "published") return "found_published";
+  if (status === "archived") return "found_archived";
+  if (status === "received") return "found_received";
+  return "found_under_review";
+}
+
+async function logLookupResult(protocol: string, resultType: ProtocolLookupResultType) {
+  await logProtocolLookupEvent({
+    protocol,
+    route: "/comun/acompanhar/[protocol]",
+    resultType,
+  });
 }

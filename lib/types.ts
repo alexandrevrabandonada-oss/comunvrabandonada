@@ -73,7 +73,8 @@ export type PublicProtocolStatus =
   | "linked_to_issue"
   | "archived"
   | "not_found"
-  | "invalid";
+  | "invalid"
+  | "rate_limited";
 
 export type PublicProtocolReport = {
   protocol: string;

@@ -13,6 +13,7 @@ Configure no painel da Vercel:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `NEXT_PUBLIC_SITE_URL`
 - `SUPABASE_PROJECT_ID`
+- `COMUN_LOOKUP_HASH_SALT`
 
 Tratamento esperado:
 
@@ -20,6 +21,7 @@ Tratamento esperado:
 - nao commite segredos no GitHub;
 - `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` podem existir como env publica no app, mas ainda assim devem ser gerenciadas pela Vercel;
 - `SUPABASE_PROJECT_ID` e util para tooling e alinhamento operacional entre local, Supabase CLI e Vercel.
+- `COMUN_LOOKUP_HASH_SALT` protege os hashes da observabilidade publica por protocolo. Gere um valor longo e aleatorio no painel da Vercel.
 
 `COMUN_ADMIN_PASSWORD` esta deprecated e nao deve ser usada em novos deploys. O admin usa Supabase Auth com cookies SSR e allowlist `comun_admin_users`.
 `COMUN_BOOTSTRAP_ADMIN_EMAIL` e opcional, apenas para rodar bootstrap fora do runtime publico.
@@ -50,6 +52,8 @@ Tambem valide antes do push:
 npm run verify
 npm run smoke:comun
 npm run smoke:admin-auth
+npm run smoke:protocol-follow
+npm run smoke:protocol-rate-limit
 ```
 
 Depois de publicar um relato sanitizado real de teste, rode tambem um check HTTP de nao vazamento:

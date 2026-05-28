@@ -8,6 +8,7 @@ Crie `.env.local` a partir de `.env.example`.
 - `COMUN_BOOTSTRAP_ADMIN_EMAIL`: opcional. Usada apenas pelo script local/admin de bootstrap do primeiro admin.
 - `NEXT_PUBLIC_SITE_URL`: URL publica do site.
 - `SUPABASE_PROJECT_ID`: usado apenas para gerar tipos.
+- `COMUN_LOOKUP_HASH_SALT`: recomendado em producao. Salt usado para gerar hashes de IP, user-agent e protocolo nos eventos de consulta publica por protocolo. Nao e exposto ao client.
 
 Deprecated:
 

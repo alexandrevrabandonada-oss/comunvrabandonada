@@ -12,6 +12,7 @@ export function AdminShell({ children, adminEmail }: { children: ReactNode; admi
             <Link href="/comun/admin/relatos">Relatos</Link>
             <Link href="/comun/admin/pautas">Pautas</Link>
             <Link href="/comun/admin/auditoria">Auditoria</Link>
+            <Link href="/comun/admin/observabilidade">Observabilidade</Link>
             <form action={logoutAdmin}><button className="text-comun-paper/70">Sair</button></form>
           </nav>
         </div>
