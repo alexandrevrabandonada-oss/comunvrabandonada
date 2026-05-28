@@ -14,6 +14,8 @@
     "smoke:public-ui": "node scripts/smoke-comun-public-ui.mjs",
     "smoke:protocol-follow": "node scripts/smoke-comun-protocol-follow.mjs",
     "smoke:protocol-rate-limit": "node scripts/smoke-comun-protocol-rate-limit.mjs",
+    "smoke:quick-report": "node scripts/smoke-comun-quick-report.mjs",
+    "storage:setup": "node scripts/setup-comun-storage.mjs",
     "bootstrap:admin": "node scripts/bootstrap-comun-admin.mjs",
     "verify": "npm run lint && npm run typecheck && npm run build",
     "db:types": "npx supabase gen types typescript --project-id \"$SUPABASE_PROJECT_ID\" > types/supabase.ts",

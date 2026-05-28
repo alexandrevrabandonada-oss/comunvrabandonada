@@ -6,14 +6,15 @@ import { StatusLabel } from "@/components/status-label";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { logComunAdminAction } from "@/lib/admin-audit";
 import { listCommunities, listIssues } from "@/lib/comun-data";
-import { getAdminReport } from "@/lib/reports";
+import { getAdminReport, listAdminReportAttachments } from "@/lib/reports";
 
 export default async function ReviewReportPage({ params }: { params: { id: string } }) {
   const session = await requireComunAdmin();
-  const [report, communities, issues] = await Promise.all([
+  const [report, communities, issues, attachments] = await Promise.all([
     getAdminReport(params.id),
     listCommunities(),
     listIssues(),
+    listAdminReportAttachments(params.id),
   ]);
   if (!report) notFound();
   const selectedCommunity = communities.find((community) => community.slug === report.community_slug);
@@ -69,6 +70,9 @@ export default async function ReviewReportPage({ params }: { params: { id: strin
               <MetaRow label="Local aproximado" value={[report.neighborhood, report.approximate_location].filter(Boolean).join(" / ") || "-"} />
               <MetaRow label="Empresa/orgao/servico" value={report.involved_entity ?? "-"} />
               <MetaRow label="Data de envio" value={formatDateTime(report.created_at)} />
+              <MetaRow label="Tipo de envio" value={report.quick_report ? "Relato rapido" : "Relato detalhado"} />
+              <MetaRow label="Canal de origem" value={report.source_channel ?? "-"} />
+              <MetaRow label="Tem anexos" value={report.has_attachments ? `Sim (${report.photo_count})` : "Nao"} />
               <MetaRow label="Autorizacao de publicacao" value={report.can_publish_sanitized ? "Sim" : "Nao"} />
               <MetaRow label="Anonimato" value={report.is_anonymous ? "Anonimo" : "Identificado internamente"} />
               <MetaRow label="Aceita contato" value={report.accepts_contact ? "Sim" : "Nao"} />
@@ -81,6 +85,47 @@ export default async function ReviewReportPage({ params }: { params: { id: strin
               <p className="mt-2 text-sm">
                 {report.accepts_contact ? report.private_contact ?? "Contato nao informado" : "Nao autorizou contato"}
               </p>
+            </div>
+          </Block>
+          <Block title="Localizacao interna">
+            <div className="grid gap-3 text-sm">
+              <MetaRow label="Latitude" value={report.latitude != null ? String(report.latitude) : "-"} />
+              <MetaRow label="Longitude" value={report.longitude != null ? String(report.longitude) : "-"} />
+              <MetaRow
+                label="Precisao aproximada"
+                value={report.location_accuracy != null ? `${Math.round(report.location_accuracy)} m` : "-"}
+              />
+              <MetaRow label="Fonte" value={report.location_source ?? "-"} />
+              <MetaRow label="Nivel publico permitido" value={report.public_location_level} />
+              <p className="border-2 border-comun-black bg-comun-yellow/20 p-3 text-sm font-bold">
+                Localizacao precisa e interna. Publicar apenas local aproximado ou sanitizado.
+              </p>
+            </div>
+          </Block>
+          <Block title="Anexos privados">
+            <div className="grid gap-3">
+              {attachments.map((attachment) => (
+                <div key={attachment.id} className="border-2 border-comun-black bg-comun-paper p-3">
+                  <p className="text-xs font-black uppercase text-comun-red">Anexo privado. Nao publicar sem revisao.</p>
+                  <p className="mt-2 text-sm font-bold">{attachment.original_filename ?? "Arquivo sem nome"}</p>
+                  <p className="mt-1 text-xs text-comun-asphalt/70">
+                    {attachment.mime_type ?? "tipo desconhecido"} / {attachment.size_bytes ?? 0} bytes
+                  </p>
+                  {attachment.signed_url ? (
+                    <a
+                      href={attachment.signed_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-3 inline-flex min-h-10 items-center border-2 border-comun-black bg-white px-3 text-sm font-black uppercase"
+                    >
+                      Abrir imagem privada
+                    </a>
+                  ) : (
+                    <p className="mt-3 text-sm font-bold text-comun-red">Nao foi possivel gerar link temporario.</p>
+                  )}
+                </div>
+              ))}
+              {!attachments.length ? <p className="text-sm text-comun-asphalt/75">Nenhum anexo privado neste relato.</p> : null}
             </div>
           </Block>
         </section>

@@ -9,6 +9,8 @@ const items = [
   "Nem todo relato sera publicado.",
   "Publicacao de relato nao significa confirmacao automatica de todos os fatos.",
   "Evite enviar CPF, telefone, endereco completo ou dados de terceiros.",
+  "Fotos enviadas no relato rapido ficam privadas e nao aparecem publicamente sem curadoria.",
+  "Localizacao precisa fica interna. Quando necessario, a publicacao usa apenas local aproximado ou sanitizado.",
   "O COMUN e uma plataforma comunitaria e nao substitui canais oficiais quando houver risco imediato ou necessidade formal.",
 ];
 

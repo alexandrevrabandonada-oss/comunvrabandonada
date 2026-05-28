@@ -10,6 +10,12 @@ Crie `.env.local` a partir de `.env.example`.
 - `SUPABASE_PROJECT_ID`: usado apenas para gerar tipos.
 - `COMUN_LOOKUP_HASH_SALT`: recomendado em producao. Salt usado para gerar hashes de IP, user-agent e protocolo nos eventos de consulta publica por protocolo. Nao e exposto ao client.
 
+Storage:
+
+- `SUPABASE_SERVICE_ROLE_KEY` tambem e usada no servidor para upload privado no bucket `comun-report-attachments`.
+- Nao ha nova variavel obrigatoria para o modo relato rapido.
+- O bucket deve ser privado e pode ser criado/validado com `npm run storage:setup`.
+
 Deprecated:
 
 - `COMUN_ADMIN_PASSWORD`: senha simples do admin v0. Nao e mais usada no fluxo principal; o admin agora depende de Supabase Auth e da allowlist `comun_admin_users`.

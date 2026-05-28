@@ -5,7 +5,13 @@ import {
   type ProtocolLookupResultType,
 } from "@/lib/rate-limit";
 import { createPublicSupabaseClient, createServiceSupabaseClient } from "@/lib/supabase/server";
-import type { AdminReport, PublicProtocolReport, PublicProtocolStatus, PublicReport } from "@/lib/types";
+import type {
+  AdminReport,
+  AdminReportAttachment,
+  PublicProtocolReport,
+  PublicProtocolStatus,
+  PublicReport,
+} from "@/lib/types";
 
 async function fetchPublicReports(
   client: ReturnType<typeof createPublicSupabaseClient> | ReturnType<typeof createServiceSupabaseClient>,
@@ -54,6 +60,32 @@ export async function getAdminReport(id: string) {
 
   const { data } = await supabase.from("comun_reports").select("*").eq("id", id).single();
   return data as AdminReport | null;
+}
+
+export async function listAdminReportAttachments(reportId: string) {
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) return [] as AdminReportAttachment[];
+
+  const { data } = await supabase
+    .from("comun_report_attachments")
+    .select("*")
+    .eq("report_id", reportId)
+    .order("created_at", { ascending: false });
+
+  const attachments = (data ?? []) as AdminReportAttachment[];
+
+  return Promise.all(
+    attachments.map(async (attachment) => {
+      const signed = await supabase.storage
+        .from(attachment.storage_bucket)
+        .createSignedUrl(attachment.storage_path, 60 * 10);
+
+      return {
+        ...attachment,
+        signed_url: signed.data?.signedUrl ?? null,
+      };
+    }),
+  );
 }
 
 type ProtocolReportRow = {

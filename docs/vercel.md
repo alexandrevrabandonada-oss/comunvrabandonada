@@ -26,6 +26,23 @@ Tratamento esperado:
 `COMUN_ADMIN_PASSWORD` esta deprecated e nao deve ser usada em novos deploys. O admin usa Supabase Auth com cookies SSR e allowlist `comun_admin_users`.
 `COMUN_BOOTSTRAP_ADMIN_EMAIL` e opcional, apenas para rodar bootstrap fora do runtime publico.
 
+## Storage privado do relato rapido
+
+O modo `Relato rapido` usa o bucket privado `comun-report-attachments` para fotos.
+
+Antes ou depois do deploy, valide o bucket:
+
+```bash
+npm run storage:setup
+```
+
+No runtime da Vercel, o upload privado depende de:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+O bucket nao deve ser publico. O admin recebe signed URL temporaria para visualizar anexos.
+
 ## Ambientes
 
 Defina as variaveis conforme necessidade em:
@@ -54,6 +71,7 @@ npm run smoke:comun
 npm run smoke:admin-auth
 npm run smoke:protocol-follow
 npm run smoke:protocol-rate-limit
+npm run smoke:quick-report
 ```
 
 Depois de publicar um relato sanitizado real de teste, rode tambem um check HTTP de nao vazamento:

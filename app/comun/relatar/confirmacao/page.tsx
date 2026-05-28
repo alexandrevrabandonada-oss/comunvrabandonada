@@ -3,8 +3,9 @@ import { ArrowRight, Files, Newspaper, ShieldCheck } from "lucide-react";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
 import { CopyProtocolButton } from "@/app/comun/relatar/confirmacao/copy-protocol-button";
 
-export default function ConfirmationPage({ searchParams }: { searchParams: { protocolo?: string } }) {
+export default function ConfirmationPage({ searchParams }: { searchParams: { protocolo?: string; modo?: string } }) {
   const protocol = searchParams.protocolo ?? "COMUN-LOCAL";
+  const isQuickReport = searchParams.modo === "rapido";
 
   return (
     <ComunShell>
@@ -43,6 +44,11 @@ export default function ConfirmationPage({ searchParams }: { searchParams: { pro
                       <li className="border-l-4 border-comun-yellow pl-3">
                         O relato pode virar pauta, dossie, post ou encaminhamento.
                       </li>
+                      {isQuickReport ? (
+                        <li className="border-l-4 border-comun-yellow pl-3">
+                          Se voce enviou foto ou localizacao, isso fica interno para curadoria.
+                        </li>
+                      ) : null}
                     </ul>
                   </div>
                 </div>

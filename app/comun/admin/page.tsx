@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { AdminShell } from "@/components/admin-shell";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { listCommunities, listIssues } from "@/lib/comun-data";
@@ -36,6 +37,10 @@ export default async function AdminPage({ searchParams }: { searchParams: Record
     if (searchParams.publicacao === "nao" && report.can_publish_sanitized) return false;
     if (searchParams.contato === "sim" && !report.accepts_contact) return false;
     if (searchParams.contato === "nao" && report.accepts_contact) return false;
+    if (searchParams.rapido === "sim" && !report.quick_report) return false;
+    if (searchParams.rapido === "nao" && report.quick_report) return false;
+    if (searchParams.foto === "sim" && !report.has_attachments) return false;
+    if (searchParams.foto === "nao" && report.has_attachments) return false;
     const createdAt = new Date(report.created_at);
     if (createdFrom && createdAt < createdFrom) return false;
     if (createdTo && createdAt > createdTo) return false;
@@ -46,6 +51,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Record
     ["Relatos novos", reports.filter((r) => r.status === "received").length],
     ["Com autorizacao", reports.filter((r) => r.can_publish_sanitized).length],
     ["Pedem contato", reports.filter((r) => r.accepts_contact).length],
+    ["Relatos rapidos", reports.filter((r) => r.quick_report).length],
+    ["Com foto", reports.filter((r) => r.has_attachments).length],
     ["Alto risco", reports.filter((r) => ["high", "critical"].includes(r.risk_level)).length],
     ["Publicados", reports.filter((r) => r.status === "published").length],
   ];
@@ -75,7 +82,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Record
           </p>
         </Link>
       </div>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
         {stats.map(([label, value]) => (
           <div key={label} className="border-2 border-comun-black bg-white p-4">
             <p className="text-xs font-black uppercase text-comun-asphalt/60">{label}</p>
@@ -84,7 +91,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Record
         ))}
       </div>
 
-      <form className="mt-6 grid gap-3 border-2 border-comun-black bg-white p-4 md:grid-cols-8">
+      <form className="mt-6 grid gap-3 border-2 border-comun-black bg-white p-4 md:grid-cols-10">
         <Select
           name="status"
           label="Status"
@@ -114,16 +121,25 @@ export default async function AdminPage({ searchParams }: { searchParams: Record
         <Select name="risco" label="Risco" values={["", "unknown", "low", "medium", "high", "critical"]} defaultValue={searchParams.risco} />
         <Select name="publicacao" label="Autorizacao" values={["", "sim", "nao"]} defaultValue={searchParams.publicacao} />
         <Select name="contato" label="Aceita contato" values={["", "sim", "nao"]} defaultValue={searchParams.contato} />
+        <Select name="rapido" label="Relato rapido" values={["", "sim", "nao"]} defaultValue={searchParams.rapido} />
+        <Select name="foto" label="Foto" values={["", "sim", "nao"]} defaultValue={searchParams.foto} />
         <DateInput name="data_de" label="Data de" defaultValue={searchParams.data_de} />
         <DateInput name="data_ate" label="Data ate" defaultValue={searchParams.data_ate} />
-        <button className="min-h-11 border-2 border-comun-black bg-comun-yellow font-black uppercase md:col-span-8">Filtrar</button>
+        <button className="min-h-11 border-2 border-comun-black bg-comun-yellow font-black uppercase md:col-span-10">Filtrar</button>
       </form>
 
       <div className="mt-6 grid gap-3">
         {filtered.map((report) => (
           <Link key={report.id} href={`/comun/admin/relatos/${report.id}`} className="grid gap-2 border-2 border-comun-black bg-white p-4 md:grid-cols-[1fr_1fr_1fr_1fr_auto] md:items-center">
             <div><p className="text-xs font-black uppercase text-comun-asphalt/60">Protocolo</p><p className="font-black">{report.protocol}</p></div>
-            <div><p className="text-xs font-black uppercase text-comun-asphalt/60">Tema</p><p>{report.community_slug}</p></div>
+            <div>
+              <p className="text-xs font-black uppercase text-comun-asphalt/60">Tema</p>
+              <p>{report.community_slug}</p>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {report.quick_report ? <SmallBadge>Relato rapido</SmallBadge> : null}
+                {report.has_attachments ? <SmallBadge>Com foto</SmallBadge> : null}
+              </div>
+            </div>
             <div>
               <p className="text-xs font-black uppercase text-comun-asphalt/60">Status/risco</p>
               <p>{report.status} / {report.risk_level}</p>
@@ -134,6 +150,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Record
             <div>
               <p className="text-xs font-black uppercase text-comun-asphalt/60">Autorizacao/data</p>
               <p>{report.can_publish_sanitized ? "Publicavel" : "Nao publicavel"} / {report.accepts_contact ? "Aceita contato" : "Sem contato"}</p>
+              {report.latitude && report.longitude ? (
+                <p className="text-xs text-comun-asphalt/70">Local capturado internamente</p>
+              ) : null}
               <p className="text-xs text-comun-asphalt/70">{formatDate(report.created_at)}</p>
             </div>
             <span className="min-h-11 bg-comun-black px-4 py-3 text-center text-sm font-black uppercase text-comun-yellow">Revisar</span>
@@ -143,6 +162,10 @@ export default async function AdminPage({ searchParams }: { searchParams: Record
       </div>
     </AdminShell>
   );
+}
+
+function SmallBadge({ children }: { children: ReactNode }) {
+  return <span className="border border-comun-black bg-comun-yellow px-2 py-0.5 text-[10px] font-black uppercase">{children}</span>;
 }
 
 function Select({ name, label, values, defaultValue }: { name: string; label: string; values: string[]; defaultValue?: string }) {

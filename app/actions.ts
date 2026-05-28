@@ -12,17 +12,27 @@ const reportSchema = z.object({
   community_slug: z.string().min(1),
   issue_slug: z.string().optional(),
   campaign_category: z.string().optional(),
+  quick_category: z.string().optional(),
+  quick_report: z.coerce.boolean().default(false),
   title: z.string().optional(),
-  raw_text: z.string().min(20, "O relato precisa ter pelo menos 20 caracteres."),
+  raw_text: z.string().min(1, "Descreva o que aconteceu."),
   period_text: z.string().optional(),
   approximate_location: z.string().optional(),
   neighborhood: z.string().optional(),
   involved_entity: z.string().optional(),
+  latitude: emptyStringToUndefined(z.coerce.number().optional()),
+  longitude: emptyStringToUndefined(z.coerce.number().optional()),
+  location_accuracy: emptyStringToUndefined(z.coerce.number().optional()),
+  location_source: z.string().optional(),
   is_anonymous: z.coerce.boolean().default(true),
   can_publish_sanitized: z.coerce.boolean().default(false),
   accepts_contact: z.coerce.boolean().default(false),
   private_contact: z.string().optional(),
 });
+
+function emptyStringToUndefined<T extends z.ZodTypeAny>(schema: T) {
+  return z.preprocess((value) => (value === "" ? undefined : value), schema);
+}
 
 export async function submitReport(_: unknown, formData: FormData) {
   const parsed = reportSchema.safeParse(Object.fromEntries(formData));
@@ -30,7 +40,19 @@ export async function submitReport(_: unknown, formData: FormData) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Revise o formulario." };
   }
 
-  const supabase = createPublicSupabaseClient();
+  const rawText = parsed.data.raw_text.trim();
+  const isQuickReport = parsed.data.quick_report;
+  const minimumLength = isQuickReport ? 8 : 20;
+  if (rawText.length < minimumLength) {
+    return {
+      ok: false,
+      error: isQuickReport
+        ? "O relato rapido precisa ter pelo menos 8 caracteres."
+        : "O relato precisa ter pelo menos 20 caracteres.",
+    };
+  }
+
+  const supabase = createServiceSupabaseClient() ?? createPublicSupabaseClient();
   if (!supabase) {
     return {
       ok: false,
@@ -39,31 +61,119 @@ export async function submitReport(_: unknown, formData: FormData) {
   }
 
   const protocol = generateProtocol();
+  const reportPhoto = formData.get("report_photo");
+  const hasPhoto = reportPhoto instanceof File && reportPhoto.size > 0;
   const payload = {
     ...parsed.data,
     protocol,
+    raw_text: rawText,
+    quick_report: isQuickReport,
     issue_slug: parsed.data.issue_slug || null,
-    title: buildStoredTitle(parsed.data.title, parsed.data.campaign_category),
+    title: buildStoredTitle(parsed.data.title, parsed.data.campaign_category, parsed.data.quick_category),
     period_text: parsed.data.period_text || null,
     approximate_location: parsed.data.approximate_location || null,
     neighborhood: parsed.data.neighborhood || null,
     involved_entity: parsed.data.involved_entity || null,
+    latitude: isFiniteCoordinate(parsed.data.latitude, -90, 90) ? parsed.data.latitude : null,
+    longitude: isFiniteCoordinate(parsed.data.longitude, -180, 180) ? parsed.data.longitude : null,
+    location_accuracy: isFiniteCoordinate(parsed.data.location_accuracy, 0, 100000) ? parsed.data.location_accuracy : null,
+    location_source: parsed.data.location_source || null,
+    public_location_level: "approximate",
+    source_channel: isQuickReport ? "quick_report" : "detailed_report",
+    has_attachments: hasPhoto,
+    photo_count: hasPhoto ? 1 : 0,
     private_contact: parsed.data.accepts_contact ? parsed.data.private_contact || null : null,
     status: "received",
     risk_level: "unknown",
   };
 
-  const { error } = await supabase.from("comun_reports").insert(payload);
+  const { data: insertedReport, error } = await supabase.from("comun_reports").insert(payload).select("id").single();
   if (error) {
     return { ok: false, error: error.message };
   }
 
-  redirect(`/comun/relatar/confirmacao?protocolo=${encodeURIComponent(protocol)}`);
+  if (hasPhoto && insertedReport?.id) {
+    const attachmentResult = await storeReportPhoto({
+      reportId: insertedReport.id,
+      protocol,
+      file: reportPhoto,
+    });
+
+    if (!attachmentResult.ok) {
+      await supabase
+        .from("comun_reports")
+        .update({ has_attachments: false, photo_count: 0, internal_notes: attachmentResult.error })
+        .eq("id", insertedReport.id);
+    }
+  }
+
+  const confirmationUrl = isQuickReport
+    ? `/comun/relatar/confirmacao?protocolo=${encodeURIComponent(protocol)}&modo=rapido`
+    : `/comun/relatar/confirmacao?protocolo=${encodeURIComponent(protocol)}`;
+  redirect(confirmationUrl);
 }
 
-function buildStoredTitle(title: string | undefined, campaignCategory: string | undefined) {
+async function storeReportPhoto({ reportId, protocol, file }: { reportId: string; protocol: string; file: File }) {
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) return { ok: false, error: "Service role nao configurada para upload de anexo." };
+
+  if (!file.type.startsWith("image/")) {
+    return { ok: false, error: "Anexo ignorado: o arquivo enviado nao era uma imagem." };
+  }
+
+  const bucket = "comun-report-attachments";
+  const extension = extensionFromFile(file);
+  const storagePath = `${protocol}/${Date.now()}-${crypto.randomUUID()}${extension}`;
+  const bytes = await file.arrayBuffer();
+  const upload = await supabase.storage.from(bucket).upload(storagePath, bytes, {
+    contentType: file.type || "application/octet-stream",
+    upsert: false,
+  });
+
+  if (upload.error) {
+    return { ok: false, error: `Falha no upload privado do anexo: ${upload.error.message}` };
+  }
+
+  const insertAttachment = await supabase.from("comun_report_attachments").insert({
+    report_id: reportId,
+    storage_bucket: bucket,
+    storage_path: storagePath,
+    original_filename: file.name || null,
+    mime_type: file.type || null,
+    size_bytes: file.size || null,
+    attachment_type: "photo",
+    public_approved: false,
+  });
+
+  if (insertAttachment.error) {
+    await supabase.storage.from(bucket).remove([storagePath]);
+    return { ok: false, error: insertAttachment.error.message };
+  }
+
+  return { ok: true };
+}
+
+function extensionFromFile(file: File) {
+  const extension = file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")).toLowerCase() : "";
+  if (/^\.[a-z0-9]{2,5}$/.test(extension)) return extension;
+  if (file.type === "image/png") return ".png";
+  if (file.type === "image/webp") return ".webp";
+  return ".jpg";
+}
+
+function isFiniteCoordinate(value: number | undefined, min: number, max: number) {
+  return typeof value === "number" && Number.isFinite(value) && value >= min && value <= max;
+}
+
+function buildStoredTitle(title: string | undefined, campaignCategory: string | undefined, quickCategory?: string) {
   const cleanTitle = title?.trim() || "";
   const cleanCategory = campaignCategory?.trim() || "";
+  const cleanQuickCategory = quickCategory?.trim() || "";
+
+  if (cleanQuickCategory) {
+    const quickLabel = formatQuickCategory(cleanQuickCategory);
+    return cleanTitle ? `[Rapido: ${quickLabel}] ${cleanTitle}` : `[Rapido: ${quickLabel}]`;
+  }
 
   if (!cleanCategory) {
     return cleanTitle || null;
@@ -91,6 +201,22 @@ function formatCampaignCategory(value: string) {
     "insalubridade-periculosidade": "Insalubridade/periculosidade",
     "medo-de-denunciar": "Medo de denunciar",
     retaliacao: "Retaliacao",
+  };
+
+  return labels[value] ?? value;
+}
+
+function formatQuickCategory(value: string) {
+  const labels: Record<string, string> = {
+    "buraco-calcada": "Buraco ou calcada",
+    "lixo-entulho": "Lixo ou entulho",
+    "poluicao-po-preto": "Poluicao ou po preto",
+    iluminacao: "Iluminacao",
+    transporte: "Transporte",
+    escola: "Escola",
+    saude: "Saude",
+    trabalho: "Trabalho",
+    outro: "Outro",
   };
 
   return labels[value] ?? value;

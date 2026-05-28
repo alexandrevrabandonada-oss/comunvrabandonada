@@ -52,6 +52,9 @@ export type PublicReport = {
   risk_level: string;
   created_at: string;
   published_at: string | null;
+  quick_report?: boolean;
+  has_attachments?: boolean;
+  photo_count?: number;
 };
 
 export type AdminReport = PublicReport & {
@@ -62,6 +65,29 @@ export type AdminReport = PublicReport & {
   accepts_contact: boolean;
   private_contact: string | null;
   internal_notes: string | null;
+  quick_report: boolean;
+  latitude: number | null;
+  longitude: number | null;
+  location_accuracy: number | null;
+  location_source: string | null;
+  public_location_level: string;
+  photo_count: number;
+  has_attachments: boolean;
+  source_channel: string | null;
+};
+
+export type AdminReportAttachment = {
+  id: string;
+  report_id: string;
+  storage_bucket: string;
+  storage_path: string;
+  original_filename: string | null;
+  mime_type: string | null;
+  size_bytes: number | null;
+  attachment_type: string;
+  public_approved: boolean;
+  created_at: string;
+  signed_url?: string | null;
 };
 
 export type PublicProtocolStatus =

@@ -80,7 +80,12 @@ const checks = [
   },
   {
     path: "/comun/seguranca",
-    required: ["Como o COMUN protege relatos", "Enviar relato com seguranca"],
+    required: ["Como o COMUN protege relatos", "Fotos enviadas no relato rapido", "Enviar relato com seguranca"],
+  },
+  {
+    path: "/comun/relatar",
+    required: ["Relato rapido", "Relato detalhado", "Foto opcional", "Usar minha localizacao aproximada"],
+    allowFormFieldNames: true,
   },
   {
     path: "/comun/acompanhar",
@@ -108,9 +113,11 @@ for (const check of checks) {
     }
   }
 
-  for (const forbiddenText of forbidden) {
-    if (html.includes(normalize(forbiddenText))) {
-      fail(`${check.path} vazou texto proibido: ${forbiddenText}`);
+  if (!check.allowFormFieldNames) {
+    for (const forbiddenText of forbidden) {
+      if (html.includes(normalize(forbiddenText))) {
+        fail(`${check.path} vazou texto proibido: ${forbiddenText}`);
+      }
     }
   }
 
