@@ -338,3 +338,159 @@ export async function updateReportReview(formData: FormData) {
   if (String(formData.get("issue_slug") ?? "").trim()) revalidatePath(`/comun/pautas/${String(formData.get("issue_slug") ?? "").trim()}`);
   redirect(`/comun/admin/relatos/${id}`);
 }
+
+export async function updateAttachmentReviewStatus(formData: FormData) {
+  const status = String(formData.get("review_status") ?? "");
+  if (status !== "approved_private") throw new Error("Status de anexo invalido.");
+  await setAttachmentReviewStatus({
+    formData,
+    reviewStatus: "approved_private",
+    publicApproved: false,
+    needsRedaction: false,
+    auditAction: "attachment_review_updated",
+  });
+}
+
+export async function markAttachmentNeedsRedaction(formData: FormData) {
+  const notes = String(formData.get("redaction_notes") ?? "").trim();
+  if (!notes) throw new Error("Informe uma nota de blur/redacao.");
+  await setAttachmentReviewStatus({
+    formData,
+    reviewStatus: "needs_redaction",
+    publicApproved: false,
+    needsRedaction: true,
+    redactionNotes: notes,
+    auditAction: "attachment_marked_needs_redaction",
+  });
+}
+
+export async function rejectAttachment(formData: FormData) {
+  await setAttachmentReviewStatus({
+    formData,
+    reviewStatus: "rejected",
+    publicApproved: false,
+    needsRedaction: false,
+    auditAction: "attachment_rejected",
+  });
+}
+
+async function setAttachmentReviewStatus(input: {
+  formData: FormData;
+  reviewStatus: "approved_private" | "needs_redaction" | "rejected";
+  publicApproved: boolean;
+  needsRedaction: boolean;
+  redactionNotes?: string;
+  auditAction: string;
+}) {
+  const session = await requireComunAdmin();
+  const attachmentId = String(input.formData.get("attachment_id") ?? "");
+  const reportId = String(input.formData.get("report_id") ?? "");
+  if (!attachmentId || !reportId) throw new Error("Anexo sem ID.");
+
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+
+  const { error } = await supabase
+    .from("comun_report_attachments")
+    .update({
+      review_status: input.reviewStatus,
+      public_approved: input.publicApproved,
+      needs_redaction: input.needsRedaction,
+      redaction_notes: input.redactionNotes ?? null,
+      reviewed_by: session.admin.id,
+      reviewed_at: new Date().toISOString(),
+      public_storage_bucket: null,
+      public_storage_path: null,
+      public_mime_type: null,
+      public_size_bytes: null,
+      public_approved_at: null,
+    })
+    .eq("id", attachmentId)
+    .eq("report_id", reportId);
+
+  if (error) throw new Error(error.message);
+
+  await logComunAdminAction({
+    session,
+    action: input.auditAction,
+    targetType: "attachment",
+    targetId: attachmentId,
+    metadata: {
+      attachment_id: attachmentId,
+      report_id: reportId,
+      review_status: input.reviewStatus,
+      has_public_safe_version: false,
+      redaction_notes_length: input.redactionNotes?.length ?? 0,
+    },
+  });
+
+  revalidatePath(`/comun/admin/relatos/${reportId}`);
+  revalidatePath("/comun/admin");
+  redirect(`/comun/admin/relatos/${reportId}`);
+}
+
+export async function uploadPublicSafeAttachment(formData: FormData) {
+  const session = await requireComunAdmin();
+  const attachmentId = String(formData.get("attachment_id") ?? "");
+  const reportId = String(formData.get("report_id") ?? "");
+  const file = formData.get("public_safe_file");
+  if (!attachmentId || !reportId) throw new Error("Anexo sem ID.");
+  if (!(file instanceof File) || file.size <= 0) throw new Error("Envie a versao publica segura.");
+  if (!file.type.startsWith("image/")) throw new Error("A versao publica segura precisa ser imagem.");
+
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+
+  const bucket = "comun-public-safe-attachments";
+  const extension = extensionFromFile(file);
+  const storagePath = `${reportId}/${attachmentId}/${Date.now()}-${crypto.randomUUID()}${extension}`;
+  const bytes = await file.arrayBuffer();
+  const upload = await supabase.storage.from(bucket).upload(storagePath, bytes, {
+    contentType: file.type || "application/octet-stream",
+    upsert: false,
+  });
+
+  if (upload.error) throw new Error(upload.error.message);
+
+  const { error } = await supabase
+    .from("comun_report_attachments")
+    .update({
+      review_status: "public_ready",
+      public_approved: true,
+      public_storage_bucket: bucket,
+      public_storage_path: storagePath,
+      public_mime_type: file.type || null,
+      public_size_bytes: file.size || null,
+      needs_redaction: false,
+      redaction_notes: String(formData.get("redaction_notes") ?? "").trim() || null,
+      reviewed_by: session.admin.id,
+      reviewed_at: new Date().toISOString(),
+      public_approved_at: new Date().toISOString(),
+    })
+    .eq("id", attachmentId)
+    .eq("report_id", reportId);
+
+  if (error) {
+    await supabase.storage.from(bucket).remove([storagePath]);
+    throw new Error(error.message);
+  }
+
+  await logComunAdminAction({
+    session,
+    action: "attachment_public_safe_uploaded",
+    targetType: "attachment",
+    targetId: attachmentId,
+    metadata: {
+      attachment_id: attachmentId,
+      report_id: reportId,
+      review_status: "public_ready",
+      has_public_safe_version: true,
+      public_size_bytes: file.size,
+      public_mime_type: file.type || null,
+    },
+  });
+
+  revalidatePath(`/comun/admin/relatos/${reportId}`);
+  revalidatePath("/comun/admin");
+  redirect(`/comun/admin/relatos/${reportId}`);
+}

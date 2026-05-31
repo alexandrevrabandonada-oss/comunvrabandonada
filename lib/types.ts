@@ -74,6 +74,7 @@ export type AdminReport = PublicReport & {
   photo_count: number;
   has_attachments: boolean;
   source_channel: string | null;
+  pending_attachment_count?: number;
 };
 
 export type AdminReportAttachment = {
@@ -86,8 +87,27 @@ export type AdminReportAttachment = {
   size_bytes: number | null;
   attachment_type: string;
   public_approved: boolean;
+  review_status: "pending" | "approved_private" | "needs_redaction" | "public_ready" | "rejected";
+  public_storage_bucket: string | null;
+  public_storage_path: string | null;
+  public_mime_type: string | null;
+  public_size_bytes: number | null;
+  needs_redaction: boolean;
+  redaction_notes: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  public_approved_at: string | null;
   created_at: string;
   signed_url?: string | null;
+  public_signed_url?: string | null;
+};
+
+export type PublicSafeAttachment = {
+  id: string;
+  report_id: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+  signed_url: string | null;
 };
 
 export type PublicProtocolStatus =

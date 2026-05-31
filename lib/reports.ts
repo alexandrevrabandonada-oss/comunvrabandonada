@@ -8,6 +8,7 @@ import { createPublicSupabaseClient, createServiceSupabaseClient } from "@/lib/s
 import type {
   AdminReport,
   AdminReportAttachment,
+  PublicSafeAttachment,
   PublicProtocolReport,
   PublicProtocolStatus,
   PublicReport,
@@ -45,13 +46,28 @@ export async function listAdminReports() {
   const supabase = createServiceSupabaseClient();
   if (!supabase) return [] as AdminReport[];
 
-  const { data } = await supabase
+  const [{ data }, pending] = await Promise.all([
+    supabase
     .from("comun_reports")
     .select("*")
     .order("created_at", { ascending: false })
-    .limit(100);
+      .limit(100),
+    supabase
+      .from("comun_report_attachments")
+      .select("report_id")
+      .eq("review_status", "pending"),
+  ]);
 
-  return (data ?? []) as AdminReport[];
+  const pendingCounts = new Map<string, number>();
+  for (const attachment of pending.data ?? []) {
+    const reportId = String(attachment.report_id);
+    pendingCounts.set(reportId, (pendingCounts.get(reportId) ?? 0) + 1);
+  }
+
+  return ((data ?? []) as AdminReport[]).map((report) => ({
+    ...report,
+    pending_attachment_count: pendingCounts.get(report.id) ?? 0,
+  }));
 }
 
 export async function getAdminReport(id: string) {
@@ -82,6 +98,51 @@ export async function listAdminReportAttachments(reportId: string) {
 
       return {
         ...attachment,
+        signed_url: signed.data?.signedUrl ?? null,
+        public_signed_url: await createPublicSafeSignedUrl(supabase, attachment),
+      };
+    }),
+  );
+}
+
+async function createPublicSafeSignedUrl(
+  supabase: NonNullable<ReturnType<typeof createServiceSupabaseClient>>,
+  attachment: AdminReportAttachment,
+) {
+  if (!attachment.public_storage_bucket || !attachment.public_storage_path) return null;
+  const signed = await supabase.storage
+    .from(attachment.public_storage_bucket)
+    .createSignedUrl(attachment.public_storage_path, 60 * 10);
+
+  return signed.data?.signedUrl ?? null;
+}
+
+export async function getPublicSafeAttachmentsForReport(reportId: string) {
+  noStore();
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) return [] as PublicSafeAttachment[];
+
+  const { data, error } = await supabase
+    .from("comun_report_attachments")
+    .select("id, report_id, public_storage_bucket, public_storage_path, public_mime_type, public_size_bytes")
+    .eq("report_id", reportId)
+    .eq("public_approved", true)
+    .eq("review_status", "public_ready")
+    .not("public_storage_path", "is", null);
+
+  if (error) return [];
+
+  return Promise.all(
+    (data ?? []).map(async (attachment) => {
+      const signed = await supabase.storage
+        .from(String(attachment.public_storage_bucket))
+        .createSignedUrl(String(attachment.public_storage_path), 60 * 5);
+
+      return {
+        id: String(attachment.id),
+        report_id: String(attachment.report_id),
+        mime_type: attachment.public_mime_type,
+        size_bytes: attachment.public_size_bytes,
         signed_url: signed.data?.signedUrl ?? null,
       };
     }),

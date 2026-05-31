@@ -32,3 +32,15 @@ Na curadoria:
 3. tratar foto como privada ate decisao explicita;
 4. usar localizacao precisa apenas como apoio interno;
 5. publicar somente texto sanitizado e local aproximado quando fizer sentido.
+
+## Curadoria de anexos
+
+Para cada foto recebida:
+
+1. abrir o relato no admin;
+2. ver a miniatura/link temporario do original apenas internamente;
+3. escolher uma decisao: aprovado apenas interno, precisa blur/redacao, reprovado ou versao publica segura;
+4. quando precisar publicar imagem, editar fora do sistema e subir a versao ja redigida/blurada;
+5. confirmar que `public_approved` ficou verdadeiro somente com a versao segura.
+
+O arquivo original permanece no bucket privado `comun-report-attachments`. A versao segura vai para `comun-public-safe-attachments`, que tambem e privado.

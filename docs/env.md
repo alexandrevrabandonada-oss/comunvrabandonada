@@ -12,9 +12,9 @@ Crie `.env.local` a partir de `.env.example`.
 
 Storage:
 
-- `SUPABASE_SERVICE_ROLE_KEY` tambem e usada no servidor para upload privado no bucket `comun-report-attachments`.
-- Nao ha nova variavel obrigatoria para o modo relato rapido.
-- O bucket deve ser privado e pode ser criado/validado com `npm run storage:setup`.
+- `SUPABASE_SERVICE_ROLE_KEY` tambem e usada no servidor para upload privado nos buckets `comun-report-attachments` e `comun-public-safe-attachments`.
+- Nao ha nova variavel obrigatoria para relato rapido ou curadoria de anexos.
+- Os buckets devem ser privados e podem ser criados/validados com `npm run storage:setup`.
 
 Deprecated:
 

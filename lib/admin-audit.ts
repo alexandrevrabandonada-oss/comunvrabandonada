@@ -3,7 +3,16 @@ import type { ComunAdminSession } from "@/lib/admin-auth";
 
 type AuditMetadata = Record<string, unknown>;
 
-const SENSITIVE_KEYS = new Set(["raw_text", "private_contact", "internal_notes", "password", "token"]);
+const SENSITIVE_KEYS = new Set([
+  "raw_text",
+  "private_contact",
+  "internal_notes",
+  "password",
+  "token",
+  "storage_path",
+  "signed_url",
+  "signedUrl",
+]);
 
 function sanitizeMetadata(metadata: AuditMetadata = {}) {
   return Object.fromEntries(

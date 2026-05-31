@@ -1,6 +1,12 @@
 import { notFound } from "next/navigation";
 import { ShieldAlert } from "lucide-react";
-import { updateReportReview } from "@/app/actions";
+import {
+  markAttachmentNeedsRedaction,
+  rejectAttachment,
+  updateAttachmentReviewStatus,
+  updateReportReview,
+  uploadPublicSafeAttachment,
+} from "@/app/actions";
 import { AdminShell } from "@/components/admin-shell";
 import { StatusLabel } from "@/components/status-label";
 import { requireComunAdmin } from "@/lib/admin-auth";
@@ -106,11 +112,28 @@ export default async function ReviewReportPage({ params }: { params: { id: strin
             <div className="grid gap-3">
               {attachments.map((attachment) => (
                 <div key={attachment.id} className="border-2 border-comun-black bg-comun-paper p-3">
-                  <p className="text-xs font-black uppercase text-comun-red">Anexo privado. Nao publicar sem revisao.</p>
-                  <p className="mt-2 text-sm font-bold">{attachment.original_filename ?? "Arquivo sem nome"}</p>
-                  <p className="mt-1 text-xs text-comun-asphalt/70">
-                    {attachment.mime_type ?? "tipo desconhecido"} / {attachment.size_bytes ?? 0} bytes
+                  <p className="text-xs font-black uppercase text-comun-red">
+                    Arquivo original privado. Nao publicar sem versao publica segura.
                   </p>
+                  <div className="mt-3 grid gap-3 md:grid-cols-[120px_1fr]">
+                    <div className="flex min-h-[120px] items-center justify-center border-2 border-comun-black bg-white">
+                      {attachment.signed_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={attachment.signed_url} alt="" className="max-h-28 max-w-full object-contain" />
+                      ) : (
+                        <span className="p-2 text-center text-xs font-bold text-comun-red">Sem miniatura</span>
+                      )}
+                    </div>
+                    <div className="grid gap-2 text-sm">
+                      <MetaRow label="Arquivo" value={attachment.original_filename ?? "Arquivo sem nome"} />
+                      <MetaRow label="Tipo/tamanho" value={`${attachment.mime_type ?? "tipo desconhecido"} / ${attachment.size_bytes ?? 0} bytes`} />
+                      <MetaRow label="Status de revisao" value={reviewStatusLabel(attachment.review_status)} />
+                      <MetaRow label="Public approved" value={attachment.public_approved ? "Sim" : "Nao"} />
+                      <MetaRow label="Precisa blur/redacao" value={attachment.needs_redaction ? "Sim" : "Nao"} />
+                      <MetaRow label="Notas de redacao" value={attachment.redaction_notes ?? "-"} />
+                      <MetaRow label="Versao publica segura" value={attachment.public_storage_path ? "Enviada em bucket privado" : "Nao enviada"} />
+                    </div>
+                  </div>
                   {attachment.signed_url ? (
                     <a
                       href={attachment.signed_url}
@@ -123,6 +146,61 @@ export default async function ReviewReportPage({ params }: { params: { id: strin
                   ) : (
                     <p className="mt-3 text-sm font-bold text-comun-red">Nao foi possivel gerar link temporario.</p>
                   )}
+                  {attachment.public_signed_url ? (
+                    <a
+                      href={attachment.public_signed_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="ml-0 mt-3 inline-flex min-h-10 items-center border-2 border-comun-black bg-comun-yellow px-3 text-sm font-black uppercase md:ml-2"
+                    >
+                      Abrir versao segura
+                    </a>
+                  ) : null}
+                  <div className="mt-4 grid gap-3">
+                    <form action={updateAttachmentReviewStatus}>
+                      <input type="hidden" name="attachment_id" value={attachment.id} />
+                      <input type="hidden" name="report_id" value={report.id} />
+                      <input type="hidden" name="review_status" value="approved_private" />
+                      <button className="min-h-10 border-2 border-comun-black bg-white px-3 text-sm font-black uppercase">
+                        Aprovar apenas para uso interno
+                      </button>
+                    </form>
+                    <form action={markAttachmentNeedsRedaction} className="grid gap-2">
+                      <input type="hidden" name="attachment_id" value={attachment.id} />
+                      <input type="hidden" name="report_id" value={report.id} />
+                      <label className="grid gap-1 text-xs font-black uppercase">
+                        Nota de blur/redacao
+                        <textarea
+                          name="redaction_notes"
+                          defaultValue={attachment.redaction_notes ?? ""}
+                          rows={2}
+                          className="border-2 border-comun-black bg-white p-2 text-sm font-medium normal-case"
+                        />
+                      </label>
+                      <button className="min-h-10 border-2 border-comun-black bg-white px-3 text-sm font-black uppercase">
+                        Marcar precisa de blur/redacao
+                      </button>
+                    </form>
+                    <form action={rejectAttachment}>
+                      <input type="hidden" name="attachment_id" value={attachment.id} />
+                      <input type="hidden" name="report_id" value={report.id} />
+                      <button className="min-h-10 border-2 border-comun-black bg-white px-3 text-sm font-black uppercase text-comun-red">
+                        Reprovar anexo
+                      </button>
+                    </form>
+                    <form action={uploadPublicSafeAttachment} encType="multipart/form-data" className="grid gap-2 border-2 border-comun-black bg-white p-3">
+                      <input type="hidden" name="attachment_id" value={attachment.id} />
+                      <input type="hidden" name="report_id" value={report.id} />
+                      <label className="grid gap-1 text-xs font-black uppercase">
+                        Enviar imagem ja redigida/blurada
+                        <input name="public_safe_file" type="file" accept="image/*" className="border-2 border-comun-black bg-comun-paper p-2 text-sm" />
+                      </label>
+                      <input type="hidden" name="redaction_notes" value={attachment.redaction_notes ?? ""} />
+                      <button className="min-h-10 border-2 border-comun-black bg-comun-yellow px-3 text-sm font-black uppercase">
+                        Enviar versao publica segura
+                      </button>
+                    </form>
+                  </div>
                 </div>
               ))}
               {!attachments.length ? <p className="text-sm text-comun-asphalt/75">Nenhum anexo privado neste relato.</p> : null}
@@ -235,6 +313,17 @@ function MetaRow({ label, value }: { label: string; value: string }) {
       <dd className="mt-1">{value}</dd>
     </div>
   );
+}
+
+function reviewStatusLabel(value: string) {
+  const labels: Record<string, string> = {
+    pending: "Pendente",
+    approved_private: "Aprovado apenas interno",
+    needs_redaction: "Precisa blur/redacao",
+    public_ready: "Versao publica segura pronta",
+    rejected: "Reprovado",
+  };
+  return labels[value] ?? value;
 }
 
 function RiskBadge({ value }: { value: string }) {

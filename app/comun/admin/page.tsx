@@ -41,6 +41,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Record
     if (searchParams.rapido === "nao" && report.quick_report) return false;
     if (searchParams.foto === "sim" && !report.has_attachments) return false;
     if (searchParams.foto === "nao" && report.has_attachments) return false;
+    if (searchParams.anexo_pendente === "sim" && !report.pending_attachment_count) return false;
+    if (searchParams.anexo_pendente === "nao" && report.pending_attachment_count) return false;
     const createdAt = new Date(report.created_at);
     if (createdFrom && createdAt < createdFrom) return false;
     if (createdTo && createdAt > createdTo) return false;
@@ -53,6 +55,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Record
     ["Pedem contato", reports.filter((r) => r.accepts_contact).length],
     ["Relatos rapidos", reports.filter((r) => r.quick_report).length],
     ["Com foto", reports.filter((r) => r.has_attachments).length],
+    ["Fotos pendentes", reports.reduce((total, report) => total + (report.pending_attachment_count ?? 0), 0)],
     ["Alto risco", reports.filter((r) => ["high", "critical"].includes(r.risk_level)).length],
     ["Publicados", reports.filter((r) => r.status === "published").length],
   ];
@@ -82,7 +85,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Record
           </p>
         </Link>
       </div>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-8">
         {stats.map(([label, value]) => (
           <div key={label} className="border-2 border-comun-black bg-white p-4">
             <p className="text-xs font-black uppercase text-comun-asphalt/60">{label}</p>
@@ -91,7 +94,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Record
         ))}
       </div>
 
-      <form className="mt-6 grid gap-3 border-2 border-comun-black bg-white p-4 md:grid-cols-10">
+      <form className="mt-6 grid gap-3 border-2 border-comun-black bg-white p-4 md:grid-cols-11">
         <Select
           name="status"
           label="Status"
@@ -123,9 +126,10 @@ export default async function AdminPage({ searchParams }: { searchParams: Record
         <Select name="contato" label="Aceita contato" values={["", "sim", "nao"]} defaultValue={searchParams.contato} />
         <Select name="rapido" label="Relato rapido" values={["", "sim", "nao"]} defaultValue={searchParams.rapido} />
         <Select name="foto" label="Foto" values={["", "sim", "nao"]} defaultValue={searchParams.foto} />
+        <Select name="anexo_pendente" label="Anexo pendente" values={["", "sim", "nao"]} defaultValue={searchParams.anexo_pendente} />
         <DateInput name="data_de" label="Data de" defaultValue={searchParams.data_de} />
         <DateInput name="data_ate" label="Data ate" defaultValue={searchParams.data_ate} />
-        <button className="min-h-11 border-2 border-comun-black bg-comun-yellow font-black uppercase md:col-span-10">Filtrar</button>
+        <button className="min-h-11 border-2 border-comun-black bg-comun-yellow font-black uppercase md:col-span-11">Filtrar</button>
       </form>
 
       <div className="mt-6 grid gap-3">
@@ -138,6 +142,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Record
               <div className="mt-2 flex flex-wrap gap-1">
                 {report.quick_report ? <SmallBadge>Relato rapido</SmallBadge> : null}
                 {report.has_attachments ? <SmallBadge>Com foto</SmallBadge> : null}
+                {report.pending_attachment_count ? <SmallBadge>Foto pendente</SmallBadge> : null}
               </div>
             </div>
             <div>
