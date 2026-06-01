@@ -57,13 +57,41 @@ export default async function AdminAttachmentsPage({
         </Link>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <StatCard label="Pendentes" value={queue.stats.pending} />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
+        <StatCard label="Pendentes hoje" value={queue.stats.pending_today} />
+        <StatCard label="Pendentes ha mais de 24h" value={queue.stats.pending_over_24h} />
+        <StatCard label="Pendentes ha mais de 72h" value={queue.stats.pending_over_72h} />
         <StatCard label="Precisam de blur/redacao" value={queue.stats.needs_redaction} />
+        <StatCard label="Prontos para versao segura" value={queue.stats.ready_for_safe_version} />
         <StatCard label="Reprovados" value={queue.stats.rejected} />
-        <StatCard label="Prontos para uso publico seguro" value={queue.stats.public_ready} />
-        <StatCard label="Total com foto" value={queue.stats.total_with_photo} />
+        <StatCard label="Public ready" value={queue.stats.public_ready} />
       </div>
+
+      <section className="mt-6 border-2 border-comun-black bg-white p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-black uppercase">Checklist diario de curadoria</h2>
+            <p className="mt-1 text-sm text-comun-asphalt/75">Use esta lista antes de encerrar o turno de revisao.</p>
+          </div>
+          <a
+            href="https://github.com/alexandrevrabandonada-oss/comunvrabandonada/blob/main/docs/curadoria-anexos.md"
+            target="_blank"
+            rel="noreferrer"
+            className="border-2 border-comun-black bg-comun-paper px-3 py-2 text-sm font-black uppercase"
+          >
+            Guia de curadoria
+          </a>
+        </div>
+        <ul className="mt-4 grid gap-2 text-sm font-bold md:grid-cols-2">
+          <ChecklistItem>Revisar anexos pendentes.</ChecklistItem>
+          <ChecklistItem>Marcar fotos sensiveis como precisa de blur/redacao.</ChecklistItem>
+          <ChecklistItem>Reprovar fotos inuteis ou arriscadas.</ChecklistItem>
+          <ChecklistItem>Subir versao publica segura quando houver edicao.</ChecklistItem>
+          <ChecklistItem>Nunca compartilhar signed URL.</ChecklistItem>
+          <ChecklistItem>Nunca publicar original.</ChecklistItem>
+          <ChecklistItem>Verificar auditoria.</ChecklistItem>
+        </ul>
+      </section>
 
       <form className="mt-6 grid gap-3 border-2 border-comun-black bg-white p-4 md:grid-cols-6">
         <label className="grid gap-1 text-sm font-black uppercase">
@@ -88,8 +116,19 @@ export default async function AdminAttachmentsPage({
       <div className="mt-6 grid gap-4">
         {queue.items.map((attachment) => {
           const report = attachment.report;
+          const badges = attachmentBadges(attachment.review_status, attachment.needs_redaction, attachment.created_at);
           return (
             <article key={attachment.id} className="border-2 border-comun-black bg-white p-4">
+              {badges.length ? (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {badges.map((badge) => <PriorityBadge key={badge.label} tone={badge.tone}>{badge.label}</PriorityBadge>)}
+                </div>
+              ) : null}
+              {isPendingOverHours(attachment.created_at, 72, attachment.review_status) ? (
+                <p className="mb-3 border-2 border-comun-black bg-comun-yellow/30 p-3 text-sm font-bold">
+                  Este anexo esta aguardando curadoria ha mais de 72h. Revise, reprove ou marque necessidade de blur/redacao.
+                </p>
+              ) : null}
               <div className="grid gap-4 lg:grid-cols-[160px_1fr_280px]">
                 <div className="flex min-h-[150px] items-center justify-center border-2 border-comun-black bg-comun-paper">
                   {attachment.signed_url ? (
@@ -202,6 +241,41 @@ function StatCard({ label, value }: { label: string; value: number }) {
       <p className="mt-2 text-3xl font-black">{value}</p>
     </div>
   );
+}
+
+function ChecklistItem({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="flex gap-2">
+      <span className="mt-1 h-3 w-3 shrink-0 border-2 border-comun-black bg-comun-yellow" aria-hidden="true" />
+      <span>{children}</span>
+    </li>
+  );
+}
+
+function PriorityBadge({ children, tone }: { children: React.ReactNode; tone: "attention" | "urgent" | "safe" }) {
+  const classes = {
+    attention: "border-comun-black bg-comun-yellow text-comun-black",
+    urgent: "border-comun-red bg-white text-comun-red",
+    safe: "border-comun-black bg-comun-paper text-comun-black",
+  };
+  return <span className={`border-2 px-2 py-1 text-xs font-black uppercase ${classes[tone]}`}>{children}</span>;
+}
+
+function attachmentBadges(reviewStatus: string, needsRedaction: boolean, createdAt: string) {
+  const badges: Array<{ label: string; tone: "attention" | "urgent" | "safe" }> = [];
+  if (isPendingOverHours(createdAt, 72, reviewStatus)) {
+    badges.push({ label: "Urgente", tone: "urgent" });
+  } else if (isPendingOverHours(createdAt, 24, reviewStatus)) {
+    badges.push({ label: "Atencao", tone: "attention" });
+  }
+  if (needsRedaction || reviewStatus === "needs_redaction") badges.push({ label: "Blur/redacao", tone: "attention" });
+  if (reviewStatus === "public_ready") badges.push({ label: "Versao segura pronta", tone: "safe" });
+  return badges;
+}
+
+function isPendingOverHours(createdAt: string, hours: number, reviewStatus: string) {
+  if (reviewStatus !== "pending") return false;
+  return Date.now() - new Date(createdAt).getTime() > hours * 60 * 60 * 1000;
 }
 
 function Select({ name, label, values, defaultValue }: { name: string; label: string; values: Array<[string, string]>; defaultValue?: string }) {

@@ -49,6 +49,23 @@ Fluxo antigo pelo detalhe do relato continua disponivel:
 5. Envie essa nova imagem no bloco `Enviar imagem ja redigida/blurada`.
 6. Confirme que o status ficou `public_ready` e que `public_approved=true`.
 
+## Rotina diaria
+
+1. Abrir `/comun/admin/anexos`.
+2. Filtrar pendentes.
+3. Priorizar pendentes ha mais de 72h.
+4. Marcar blur/redacao quando houver rosto, placa, documento, crianca, cracha, endereco ou dado identificavel.
+5. Reprovar foto inutil ou arriscada.
+6. Subir versao segura apenas apos edicao externa.
+7. Verificar auditoria.
+
+## Rotina semanal
+
+1. Revisar anexos `needs_redaction`.
+2. Conferir se a fila de pendentes nao acumulou itens antigos.
+3. Revisar reprovados antigos somente quando houver politica operacional definida.
+4. Confirmar que nenhum original foi publicado ou compartilhado fora do admin.
+
 ## Observacoes
 
 Use notas curtas e objetivas, sem copiar texto privado, contato, endereco completo ou nome de pessoa. Exemplo: `Borrar rosto no canto esquerdo e placa ao fundo`.

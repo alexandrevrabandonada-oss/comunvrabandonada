@@ -53,3 +53,20 @@ Para cada foto recebida:
 5. confirmar que `public_approved` ficou verdadeiro somente com a versao segura.
 
 O arquivo original permanece no bucket privado `comun-report-attachments`. A versao segura vai para `comun-public-safe-attachments`, que tambem e privado.
+
+### Rotina diaria de anexos
+
+1. Abrir `/comun/admin/anexos`.
+2. Filtrar pendentes.
+3. Priorizar pendentes ha mais de 72h.
+4. Marcar blur/redacao quando houver rosto, placa, documento, crianca, cracha, endereco ou dado identificavel.
+5. Reprovar foto inutil ou arriscada.
+6. Subir versao segura apenas apos edicao externa.
+7. Verificar auditoria.
+
+### Rotina semanal de anexos
+
+1. Revisar anexos `needs_redaction`.
+2. Conferir se ha pendencias acumuladas.
+3. Revisar reprovados antigos somente quando houver politica futura de limpeza.
+4. Confirmar que signed URLs e originais nao foram compartilhados fora do admin.

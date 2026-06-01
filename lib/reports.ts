@@ -187,12 +187,21 @@ async function getAttachmentQueueStats() {
 
   const { data } = await supabase
     .from("comun_report_attachments")
-    .select("review_status, public_storage_path");
+    .select("review_status, public_storage_path, needs_redaction, created_at");
 
   const rows = data ?? [];
+  const now = Date.now();
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const pendingRows = rows.filter((row) => row.review_status === "pending");
   return {
-    pending: rows.filter((row) => row.review_status === "pending").length,
+    pending: pendingRows.length,
+    pending_today: pendingRows.filter((row) => new Date(row.created_at).getTime() >= startOfToday.getTime()).length,
+    pending_over_24h: pendingRows.filter((row) => now - new Date(row.created_at).getTime() > 24 * 60 * 60 * 1000).length,
+    pending_over_72h: pendingRows.filter((row) => now - new Date(row.created_at).getTime() > 72 * 60 * 60 * 1000).length,
     needs_redaction: rows.filter((row) => row.review_status === "needs_redaction").length,
+    attention: rows.filter((row) => row.needs_redaction || row.review_status === "needs_redaction").length,
+    ready_for_safe_version: rows.filter((row) => row.needs_redaction || row.review_status === "needs_redaction").length,
     rejected: rows.filter((row) => row.review_status === "rejected").length,
     public_ready: rows.filter((row) => row.review_status === "public_ready").length,
     total_with_photo: rows.length,
@@ -202,7 +211,12 @@ async function getAttachmentQueueStats() {
 function emptyAttachmentQueueStats() {
   return {
     pending: 0,
+    pending_today: 0,
+    pending_over_24h: 0,
+    pending_over_72h: 0,
     needs_redaction: 0,
+    attention: 0,
+    ready_for_safe_version: 0,
     rejected: 0,
     public_ready: 0,
     total_with_photo: 0,
