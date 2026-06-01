@@ -6,6 +6,7 @@ import {
 } from "@/lib/rate-limit";
 import { createPublicSupabaseClient, createServiceSupabaseClient } from "@/lib/supabase/server";
 import type {
+  AdminAttachmentQueueItem,
   AdminReport,
   AdminReportAttachment,
   PublicSafeAttachment,
@@ -13,6 +14,18 @@ import type {
   PublicProtocolStatus,
   PublicReport,
 } from "@/lib/types";
+
+const attachmentQueueStatuses = ["pending", "needs_redaction", "rejected", "public_ready", "approved_private"] as const;
+
+export type AttachmentQueueFilters = {
+  status?: string;
+  communitySlug?: string;
+  publicSafe?: "with" | "without";
+  createdFrom?: string;
+  createdTo?: string;
+  page?: number;
+  limit?: number;
+};
 
 async function fetchPublicReports(
   client: ReturnType<typeof createPublicSupabaseClient> | ReturnType<typeof createServiceSupabaseClient>,
@@ -103,6 +116,97 @@ export async function listAdminReportAttachments(reportId: string) {
       };
     }),
   );
+}
+
+export async function listAdminAttachmentQueue(filters: AttachmentQueueFilters = {}) {
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) {
+    return {
+      items: [] as AdminAttachmentQueueItem[],
+      total: 0,
+      stats: emptyAttachmentQueueStats(),
+      page: 1,
+      limit: 25,
+      hasNextPage: false,
+    };
+  }
+
+  const page = Math.max(1, Number(filters.page) || 1);
+  const limit = Math.min(50, Math.max(1, Number(filters.limit) || 25));
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  let query = supabase
+    .from("comun_report_attachments")
+    .select(
+      "*, report:comun_reports!inner(id, protocol, community_slug, issue_slug, title, created_at, quick_report)",
+      { count: "exact" },
+    )
+    .order("review_status", { ascending: false })
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (filters.status && attachmentQueueStatuses.includes(filters.status as (typeof attachmentQueueStatuses)[number])) {
+    query = query.eq("review_status", filters.status);
+  }
+  if (filters.communitySlug) query = query.eq("comun_reports.community_slug", filters.communitySlug);
+  if (filters.publicSafe === "with") query = query.not("public_storage_path", "is", null);
+  if (filters.publicSafe === "without") query = query.is("public_storage_path", null);
+  if (filters.createdFrom) query = query.gte("created_at", `${filters.createdFrom}T00:00:00`);
+  if (filters.createdTo) query = query.lte("created_at", `${filters.createdTo}T23:59:59.999`);
+
+  const [{ data, count }, stats] = await Promise.all([query, getAttachmentQueueStats()]);
+  const attachments = (data ?? []) as AdminAttachmentQueueItem[];
+  const items = await Promise.all(
+    attachments.map(async (attachment) => {
+      const signed = await supabase.storage
+        .from(attachment.storage_bucket)
+        .createSignedUrl(attachment.storage_path, 60 * 10);
+
+      return {
+        ...attachment,
+        signed_url: signed.data?.signedUrl ?? null,
+        public_signed_url: await createPublicSafeSignedUrl(supabase, attachment),
+      };
+    }),
+  );
+
+  return {
+    items,
+    total: count ?? 0,
+    stats,
+    page,
+    limit,
+    hasNextPage: from + items.length < (count ?? 0),
+  };
+}
+
+async function getAttachmentQueueStats() {
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) return emptyAttachmentQueueStats();
+
+  const { data } = await supabase
+    .from("comun_report_attachments")
+    .select("review_status, public_storage_path");
+
+  const rows = data ?? [];
+  return {
+    pending: rows.filter((row) => row.review_status === "pending").length,
+    needs_redaction: rows.filter((row) => row.review_status === "needs_redaction").length,
+    rejected: rows.filter((row) => row.review_status === "rejected").length,
+    public_ready: rows.filter((row) => row.review_status === "public_ready").length,
+    total_with_photo: rows.length,
+  };
+}
+
+function emptyAttachmentQueueStats() {
+  return {
+    pending: 0,
+    needs_redaction: 0,
+    rejected: 0,
+    public_ready: 0,
+    total_with_photo: 0,
+  };
 }
 
 async function createPublicSafeSignedUrl(

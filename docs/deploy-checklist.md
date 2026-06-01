@@ -14,6 +14,7 @@
 - [ ] `npm run storage:setup` confirma bucket privado
 - [ ] `npm run smoke:quick-report` passa
 - [ ] `npm run smoke:attachment-curation` passa
+- [ ] `npm run smoke:attachments-queue` passa
 - [ ] GitHub sem segredos
 - [ ] Vercel conectado ao GitHub
 
@@ -51,6 +52,9 @@
 - [ ] confirmar que foto e localizacao aparecem apenas no admin
 - [ ] marcar anexo como precisa de blur/redacao
 - [ ] subir versao publica segura e confirmar que original nao aparece publicamente
+- [ ] abrir `/comun/admin/anexos`
+- [ ] confirmar filtros pending, needs_redaction, rejected, public_ready e approved_private
+- [ ] confirmar que a fila nao mostra `storage_path` completo nem signed URL fora do admin
 - [ ] sair e confirmar que admin volta a exigir login
 - [ ] testar no celular via 4G/5G
 - [ ] testar link vindo do Instagram/WhatsApp

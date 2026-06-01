@@ -102,6 +102,13 @@ export type AdminReportAttachment = {
   public_signed_url?: string | null;
 };
 
+export type AdminAttachmentQueueItem = AdminReportAttachment & {
+  report: Pick<
+    AdminReport,
+    "id" | "protocol" | "community_slug" | "issue_slug" | "title" | "created_at" | "quick_report"
+  > | null;
+};
+
 export type PublicSafeAttachment = {
   id: string;
   report_id: string;

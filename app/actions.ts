@@ -426,7 +426,8 @@ async function setAttachmentReviewStatus(input: {
 
   revalidatePath(`/comun/admin/relatos/${reportId}`);
   revalidatePath("/comun/admin");
-  redirect(`/comun/admin/relatos/${reportId}`);
+  revalidatePath("/comun/admin/anexos");
+  redirect(safeAdminReturnPath(input.formData, reportId));
 }
 
 export async function uploadPublicSafeAttachment(formData: FormData) {
@@ -492,5 +493,13 @@ export async function uploadPublicSafeAttachment(formData: FormData) {
 
   revalidatePath(`/comun/admin/relatos/${reportId}`);
   revalidatePath("/comun/admin");
-  redirect(`/comun/admin/relatos/${reportId}`);
+  revalidatePath("/comun/admin/anexos");
+  redirect(safeAdminReturnPath(formData, reportId));
+}
+
+function safeAdminReturnPath(formData: FormData, reportId: string) {
+  const returnTo = String(formData.get("return_to") ?? "");
+  if (returnTo.startsWith("/comun/admin/anexos")) return returnTo;
+  if (returnTo.startsWith(`/comun/admin/relatos/${reportId}`)) return returnTo;
+  return `/comun/admin/relatos/${reportId}`;
 }

@@ -29,6 +29,19 @@ Marque `needs_redaction` quando a imagem mostrar ou sugerir:
 
 ## Como gerar versao publica segura
 
+1. Abra `/comun/admin/anexos`.
+2. Revise a fila de pendentes ou filtre por status/comunidade/data.
+3. Abra o original por signed URL temporaria no admin.
+4. Marque blur/redacao quando houver rosto, placa, documento, uniforme, cracha, endereco, tela de celular ou crianca.
+5. Reprove quando a imagem for inutil, sensivel demais ou fora de escopo.
+6. Se a imagem puder ser usada publicamente, baixe e edite fora do sistema.
+7. Aplique blur/redacao suficiente para remover identificacao.
+8. Salve uma nova imagem.
+9. Envie essa nova imagem pela acao `Enviar versao publica segura`.
+10. Confirme que o status ficou `public_ready` e que `public_approved=true`.
+
+Fluxo antigo pelo detalhe do relato continua disponivel:
+
 1. Abra o original por signed URL temporaria no admin.
 2. Baixe e edite fora do sistema.
 3. Aplique blur/redacao suficiente para remover identificacao.

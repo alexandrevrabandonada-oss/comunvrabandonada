@@ -16,6 +16,7 @@
     "smoke:protocol-rate-limit": "node scripts/smoke-comun-protocol-rate-limit.mjs",
     "smoke:quick-report": "node scripts/smoke-comun-quick-report.mjs",
     "smoke:attachment-curation": "node scripts/smoke-comun-attachment-curation.mjs",
+    "smoke:attachments-queue": "node scripts/smoke-comun-admin-attachments-queue.mjs",
     "storage:setup": "node scripts/setup-comun-storage.mjs",
     "bootstrap:admin": "node scripts/bootstrap-comun-admin.mjs",
     "verify": "npm run lint && npm run typecheck && npm run build",

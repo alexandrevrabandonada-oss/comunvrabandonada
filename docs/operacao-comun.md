@@ -35,10 +35,19 @@ Na curadoria:
 
 ## Curadoria de anexos
 
+Fila operacional:
+
+1. abrir `/comun/admin/anexos`;
+2. revisar pendentes primeiro;
+3. marcar blur/redacao quando houver rosto, placa, documento, uniforme, cracha, endereco, tela de celular ou crianca;
+4. reprovar quando imagem for inutil, sensivel demais ou fora de escopo;
+5. subir versao publica segura somente depois de edicao externa;
+6. nunca publicar original.
+
 Para cada foto recebida:
 
-1. abrir o relato no admin;
-2. ver a miniatura/link temporario do original apenas internamente;
+1. ver a miniatura/link temporario do original apenas internamente;
+2. conferir protocolo, comunidade, pauta e data de envio;
 3. escolher uma decisao: aprovado apenas interno, precisa blur/redacao, reprovado ou versao publica segura;
 4. quando precisar publicar imagem, editar fora do sistema e subir a versao ja redigida/blurada;
 5. confirmar que `public_approved` ficou verdadeiro somente com a versao segura.
