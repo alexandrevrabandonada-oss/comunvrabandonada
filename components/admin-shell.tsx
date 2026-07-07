@@ -11,6 +11,7 @@ export function AdminShell({ children, adminEmail }: { children: ReactNode; admi
           <nav className="flex items-center gap-3 text-sm font-black uppercase">
             <Link href="/comun/admin/relatos">Relatos</Link>
             <Link href="/comun/admin/pautas">Pautas</Link>
+            <Link href="/comun/admin/pautas/contribuicoes">Contribuicoes</Link>
             <Link href="/comun/admin/anexos">Anexos</Link>
             <Link href="/comun/admin/protocolos-oficiais">Protocolos oficiais</Link>
             <Link href="/comun/admin/auditoria">Auditoria</Link>

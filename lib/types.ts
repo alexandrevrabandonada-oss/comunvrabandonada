@@ -229,6 +229,13 @@ export type PautaContribution = {
   body: string;
   contact_private: string | null;
   status: PautaContributionStatus;
+  risk_level: "normal" | "attention" | "high";
+  risk_reasons: string[];
+  moderation_priority: "normal" | "review_first" | "possible_abuse";
+  submitter_hash: string | null;
+  user_agent_hash: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
   moderator_notes: string | null;
   created_at: string;
   updated_at: string;

@@ -91,14 +91,16 @@ export default async function PautaPage({ params, searchParams }: { params: { sl
 
       <Section>
         <h2 className="text-2xl font-black uppercase text-comun-yellow">Contribuir</h2>
-        {searchParams.contribuicao === "pendente" ? <p className="mt-3 border-2 border-comun-yellow bg-comun-black p-3 text-sm font-bold text-comun-paper">Contribuicao recebida. Ela entra em moderacao antes de aparecer publicamente.</p> : null}
+        {searchParams.contribuicao === "pendente" || searchParams.contribuicao === "recebida" ? <p className="mt-3 border-2 border-comun-yellow bg-comun-black p-3 text-sm font-bold text-comun-paper">Contribuicao recebida. Ela entra em moderacao antes de aparecer publicamente.</p> : null}
         <form action={submitPautaContribution} className="paper-panel mt-4 grid gap-3 border-2 border-comun-black p-4">
           <input type="hidden" name="pauta_id" value={space.id} />
           <input type="hidden" name="slug" value={space.slug} />
+          <label className="hidden">Site da empresa<input name="company_website" tabIndex={-1} autoComplete="off" /></label>
           <label className="grid gap-1 text-sm font-black uppercase">Nome/apelido opcional<input name="author_alias" className="min-h-11 border-2 border-comun-black px-3" /></label>
           <label className="grid gap-1 text-sm font-black uppercase">Tipo<select name="contribution_type" className="min-h-11 border-2 border-comun-black px-3">{contributionTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label className="grid gap-1 text-sm font-black uppercase">Texto<textarea name="body" rows={5} required className="border-2 border-comun-black p-3" /></label>
           <label className="grid gap-1 text-sm font-black uppercase">Contato privado opcional<input name="contact_private" className="min-h-11 border-2 border-comun-black px-3" /></label>
+          <label className="grid gap-1 text-sm font-black uppercase">Confirmacao humana: quanto e 2 + 3?<input name="human_check" required inputMode="numeric" className="min-h-11 border-2 border-comun-black px-3" /></label>
           <p className="text-xs font-bold text-comun-asphalt/70">A contribuicao passa por moderacao. Nao envie CPF, telefone, endereco completo ou dados sensiveis de terceiros.</p>
           <button className="min-h-11 border-2 border-comun-black bg-comun-yellow font-black uppercase">Enviar para moderacao</button>
         </form>

@@ -22,6 +22,7 @@
     "smoke:official-protocols-admin": "node scripts/smoke-comun-official-protocols-admin.mjs",
     "smoke:official-protocols-metrics": "node scripts/smoke-comun-official-protocols-metrics.mjs",
     "smoke:pauta-spaces": "node scripts/smoke-comun-pauta-spaces.mjs",
+    "smoke:pauta-contribution-safety": "node scripts/smoke-comun-pauta-contribution-safety.mjs",
     "storage:setup": "node scripts/setup-comun-storage.mjs",
     "bootstrap:admin": "node scripts/bootstrap-comun-admin.mjs",
     "verify": "npm run lint && npm run typecheck && npm run build",

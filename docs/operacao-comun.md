@@ -136,6 +136,17 @@ Rotina:
 6. Criar tarefas publicas quando houver acao coletiva clara.
 7. Usar a pauta como preparacao para dossie futuro, nao como feed generico.
 
+### Fila global de contribuicoes
+
+1. Abrir `/comun/admin/pautas/contribuicoes`.
+2. Filtrar `pending`.
+3. Priorizar `high` e `possible_abuse`.
+4. Rejeitar ou arquivar contribuicao ofensiva, automatizada, repetida ou com dados pessoais.
+5. Aprovar contribuicao segura e relevante.
+6. Nunca copiar contato privado, hashes ou metadados tecnicos para sintese publica.
+
+O limite de envio excessivo existe para reduzir abuso, mas a moderacao deve preservar participacao legitima e evitar bloqueios agressivos.
+
 Nunca copiar para a pagina publica:
 
 - contato privado de contribuicao;

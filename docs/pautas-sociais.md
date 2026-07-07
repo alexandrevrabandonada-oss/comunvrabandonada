@@ -34,6 +34,37 @@ Tambem e possivel criar pauta social a partir de sinais em `/comun/admin/protoco
 
 Contato privado nunca deve ser copiado para a area publica.
 
+## Fila global de moderacao
+
+A fila global fica em `/comun/admin/pautas/contribuicoes`.
+
+Use a fila para:
+
+- revisar pendentes de todas as pautas;
+- priorizar `risk_level=high` e `moderation_priority=possible_abuse`;
+- filtrar por pauta, tipo, status, risco e periodo;
+- aprovar, rejeitar ou arquivar sem abrir cada pauta.
+
+Os motivos de risco sao internos. Hashes, IP, user-agent e contato privado nao aparecem publicamente.
+
+## Controle de envio excessivo
+
+Contribuicoes publicas usam hash nao reversivel do IP quando disponivel. A regra inicial limita:
+
+- 5 contribuicoes por hora;
+- 20 contribuicoes por dia.
+
+Quando o limite e excedido, a pessoa recebe uma mensagem educada para tentar novamente mais tarde. A leitura publica da pauta nao e bloqueada.
+
+## Desafio leve e triagem
+
+O formulario publico usa:
+
+- honeypot invisivel;
+- pergunta simples de atencao.
+
+A triagem interna marca risco quando ha texto muito curto, repeticao recente, excesso de links, termos ofensivos simples, envios recentes demais, honeypot preenchido ou desafio errado. Nada disso publica a contribuicao automaticamente.
+
 ## Sintese publica
 
 A sintese publica deve:

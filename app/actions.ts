@@ -10,7 +10,7 @@ import {
   createOrUpdateOfficialProtocolDraftForReport,
   getOfficialProtocolReportSurface,
 } from "@/lib/official-protocols";
-import { createPendingPautaContribution, slugifyPauta } from "@/lib/pauta-spaces";
+import { assessPautaContributionSafety, createPendingPautaContribution, slugifyPauta } from "@/lib/pauta-spaces";
 import { generateProtocol } from "@/lib/protocol";
 import { isValidProtocol, normalizeProtocol } from "@/lib/reports";
 import { createPublicSupabaseClient, createServiceSupabaseClient, createSupabaseServerClient } from "@/lib/supabase/server";
@@ -747,12 +747,45 @@ export async function submitPautaContribution(formData: FormData) {
   const authorAlias = String(formData.get("author_alias") ?? "").trim().slice(0, 80);
   const contactPrivate = String(formData.get("contact_private") ?? "").trim().slice(0, 160);
   const body = String(formData.get("body") ?? "").trim();
+  const honeypot = String(formData.get("company_website") ?? "");
+  const challengeAnswer = String(formData.get("human_check") ?? "");
   if (!pautaId || !slug) throw new Error("Pauta sem ID.");
   if (body.length < 10) throw new Error("A contribuicao precisa ter pelo menos 10 caracteres.");
 
-  await createPendingPautaContribution({ pautaId, contributionType, authorAlias, body, contactPrivate });
+  const safety = await assessPautaContributionSafety({ pautaId, body, honeypot, challengeAnswer });
+  if (!safety.allowed && safety.rateLimitReason) {
+    await logComunAdminAction({
+      action: "pauta_contribution_rate_limited",
+      targetType: "pauta_space",
+      targetId: pautaId,
+      metadata: { reason: safety.rateLimitReason, risk_level: safety.risk_level, risk_reasons: safety.risk_reasons },
+    });
+    throw new Error("Recebemos muitas contribuicoes em pouco tempo. Tente novamente mais tarde.");
+  }
+
+  await createPendingPautaContribution({ pautaId, contributionType, authorAlias, body, contactPrivate, safety });
+  await logComunAdminAction({
+    action: "pauta_contribution_created",
+    targetType: "pauta_space",
+    targetId: pautaId,
+    metadata: {
+      status: safety.status,
+      contribution_type: contributionType,
+      risk_level: safety.risk_level,
+      moderation_priority: safety.moderation_priority,
+      risk_reasons: safety.risk_reasons,
+    },
+  });
+  if (safety.risk_level !== "normal") {
+    await logComunAdminAction({
+      action: "pauta_contribution_flagged",
+      targetType: "pauta_space",
+      targetId: pautaId,
+      metadata: { risk_level: safety.risk_level, moderation_priority: safety.moderation_priority, risk_reasons: safety.risk_reasons },
+    });
+  }
   revalidatePath(`/comun/pautas/${slug}`);
-  redirect(`/comun/pautas/${slug}?contribuicao=pendente`);
+  redirect(`/comun/pautas/${slug}?contribuicao=${safety.status === "pending" ? "pendente" : "recebida"}`);
 }
 
 export async function upsertPautaSpaceAction(formData: FormData) {
@@ -844,6 +877,8 @@ export async function moderatePautaContributionAction(formData: FormData) {
   const { error } = await supabase.from("comun_pauta_contributions").update({
     status,
     moderator_notes: notes || null,
+    reviewed_at: new Date().toISOString(),
+    reviewed_by: session.admin.id,
     updated_at: new Date().toISOString(),
   }).eq("id", id).eq("pauta_id", pautaId);
   if (error) throw new Error(error.message);

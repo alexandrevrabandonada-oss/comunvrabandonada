@@ -105,6 +105,9 @@ function ContributionModeration({ item, pautaId }: { item: any; pautaId: string 
     <article className="border-2 border-comun-black bg-white p-4">
       <p className="text-xs font-black uppercase text-comun-asphalt/60">{item.contribution_type} / {item.status} / {item.author_alias || "anonimo"}</p>
       <p className="mt-2 text-sm text-comun-asphalt/80">{item.body}</p>
+      <p className="mt-2 text-xs font-black uppercase text-comun-asphalt/60">
+        Risco: {item.risk_level ?? "normal"} / prioridade: {item.moderation_priority ?? "normal"} / motivos: {item.risk_reasons?.length ? item.risk_reasons.join(", ") : "-"}
+      </p>
       {item.contact_private ? <p className="mt-2 text-xs font-bold text-comun-red">Contato privado registrado internamente.</p> : null}
       <form action={moderatePautaContributionAction} className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_auto]">
         <input type="hidden" name="contribution_id" value={item.id} />

@@ -17,6 +17,8 @@ const items = [
   "Respostas oficiais podem conter dados pessoais e nao sao publicas automaticamente.",
   "Espacos de pauta organizam discussao por problema real, nao por feed global.",
   "Contribuicoes em pautas passam por moderacao antes de aparecer publicamente.",
+  "O envio de contribuicoes de pauta tem limite por janela de tempo para reduzir abuso sem exigir login publico.",
+  "A fila interna pode marcar risco operacional, mas hashes e metadados tecnicos nao aparecem publicamente.",
   "Contato privado enviado em contribuicao de pauta nunca aparece na pagina publica.",
   "Pautas, tarefas e dossies nao substituem canal oficial nem atendimento de urgencia.",
 ];

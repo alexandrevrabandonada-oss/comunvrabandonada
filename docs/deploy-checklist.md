@@ -20,6 +20,7 @@
 - [ ] `npm run smoke:official-protocols-admin` passa
 - [ ] `npm run smoke:official-protocols-metrics` passa
 - [ ] `npm run smoke:pauta-spaces` passa
+- [ ] `npm run smoke:pauta-contribution-safety` passa
 - [ ] GitHub sem segredos
 - [ ] Vercel conectado ao GitHub
 
@@ -74,6 +75,8 @@
 - [ ] abrir `/comun/pautas`
 - [ ] criar pauta social em `/comun/admin/pautas`
 - [ ] enviar contribuicao publica e confirmar que fica pendente
+- [ ] confirmar desafio leve e limite de envio excessivo em contribuicoes de pauta
+- [ ] abrir `/comun/admin/pautas/contribuicoes` e revisar fila global
 - [ ] aprovar contribuicao e confirmar que aparece publicamente
 - [ ] criar tarefa e confirmar que aparece publicamente sem contato privado
 - [ ] testar no celular via 4G/5G
