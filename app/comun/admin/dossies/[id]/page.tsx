@@ -1,19 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { regeneratePautaDossierDraftAction, removePautaDossierEvidenceAction, updatePautaDossierAction } from "@/app/actions";
+import { preparePautaDossierPublicVersionAction, regeneratePautaDossierDraftAction, removePautaDossierEvidenceAction, updatePautaDossierAction, updatePautaDossierWorkflowAction } from "@/app/actions";
 import { AdminShell } from "@/components/admin-shell";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { getAdminPautaDossier } from "@/lib/pauta-dossiers";
 
 const statusOptions = ["draft", "in_review", "ready", "archived"];
 const checklist = [
-  "Nao publicar raw_text.",
-  "Nao publicar private_contact.",
-  "Nao publicar response_text completo.",
-  "Nao publicar internal_notes.",
-  "Usar apenas evidencias approved + public_safe.",
-  "Protocolos oficiais aparecem somente com resumo publico.",
-];
+  ["no_raw_text", "Nao publicar raw_text."],
+  ["no_private_contact", "Nao publicar private_contact."],
+  ["no_response_text", "Nao publicar response_text completo."],
+  ["no_internal_notes", "Nao publicar internal_notes."],
+  ["public_safe_evidence", "Usar apenas evidencias approved + public_safe."],
+  ["protocol_summary_only", "Protocolos oficiais aparecem somente com resumo publico."],
+] as const;
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -27,15 +27,49 @@ export default async function AdminDossierDetailPage({ params }: { params: { id:
     <AdminShell adminEmail={session.admin.email}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-black uppercase text-comun-asphalt/60">Dossie por pauta / {dossier.status}</p>
+          <p className="text-xs font-black uppercase text-comun-asphalt/60">Dossie por pauta / {dossier.review_status}</p>
           <h1 className="text-3xl font-black uppercase">{dossier.title}</h1>
           {dossier.pauta ? <p className="mt-1 text-sm font-bold text-comun-asphalt/70">Pauta: {dossier.pauta.title}</p> : null}
         </div>
         <div className="flex flex-wrap gap-2">
           {dossier.pauta ? <Link href={`/comun/admin/pautas/${dossier.pauta.id}`} className="border-2 border-comun-black bg-white px-3 py-2 text-sm font-black uppercase">Abrir pauta</Link> : null}
           <Link href={`/comun/admin/dossies/${dossier.id}/preview`} className="border-2 border-comun-black bg-comun-yellow px-3 py-2 text-sm font-black uppercase">Preview admin</Link>
+          {dossier.review_status === "published" && dossier.public_slug ? <Link href={`/comun/dossies/${dossier.public_slug}`} className="border-2 border-comun-black bg-white px-3 py-2 text-sm font-black uppercase">Abrir publico</Link> : null}
         </div>
       </div>
+
+      <section className="mt-5 border-2 border-comun-black bg-comun-black p-4 text-comun-paper">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-black uppercase text-comun-yellow">Workflow editorial</h2>
+            <p className="mt-1 text-sm text-comun-paper/70">Status: {dossier.review_status}. Publicacao exige versao publica preparada, aprovada e separada do rascunho interno.</p>
+            {dossier.published_at ? <p className="mt-1 text-xs font-bold uppercase text-comun-paper/60">Publicado em {new Date(dossier.published_at).toLocaleString("pt-BR")}</p> : null}
+          </div>
+          <form action={preparePautaDossierPublicVersionAction}>
+            <input type="hidden" name="dossier_id" value={dossier.id} />
+            <button className="min-h-10 border-2 border-comun-yellow px-3 text-xs font-black uppercase text-comun-yellow">Preparar versao publica a partir do rascunho</button>
+          </form>
+        </div>
+        <form action={updatePautaDossierWorkflowAction} className="mt-4 grid gap-3 border-2 border-comun-yellow p-3">
+          <input type="hidden" name="dossier_id" value={dossier.id} />
+          <div className="grid gap-2 md:grid-cols-2">
+            {checklist.map(([value, item]) => (
+              <label key={value} className="flex items-start gap-2 text-sm font-bold">
+                <input type="checkbox" name="safety_check" value={value} className="mt-1" />
+                <span>{item}</span>
+              </label>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button name="intent" value="send_to_review" className="min-h-10 border-2 border-comun-yellow px-3 text-xs font-black uppercase text-comun-yellow">Enviar para revisao</button>
+            <button name="intent" value="changes_requested" className="min-h-10 border-2 border-comun-yellow px-3 text-xs font-black uppercase text-comun-yellow">Solicitar ajustes</button>
+            <button name="intent" value="approve" className="min-h-10 border-2 border-comun-yellow bg-comun-yellow px-3 text-xs font-black uppercase text-comun-black">Aprovar</button>
+            <button name="intent" value="publish" className="min-h-10 border-2 border-comun-yellow bg-comun-yellow px-3 text-xs font-black uppercase text-comun-black">Publicar</button>
+            <button name="intent" value="unpublish" className="min-h-10 border-2 border-comun-yellow px-3 text-xs font-black uppercase text-comun-yellow">Despublicar</button>
+            <button name="intent" value="archive" className="min-h-10 border-2 border-comun-yellow px-3 text-xs font-black uppercase text-comun-yellow">Arquivar</button>
+          </div>
+        </form>
+      </section>
 
       <form action={updatePautaDossierAction} className="mt-5 grid gap-3 border-2 border-comun-black bg-white p-4 md:grid-cols-2">
         <input type="hidden" name="dossier_id" value={dossier.id} />
@@ -51,6 +85,15 @@ export default async function AdminDossierDetailPage({ params }: { params: { id:
         <Textarea name="next_steps" label="Proximos passos" defaultValue={dossier.next_steps ?? ""} />
         <Textarea name="public_version" label="Versao publica em rascunho" defaultValue={dossier.public_version ?? ""} rows={12} />
         <Textarea name="internal_notes" label="Notas internas" defaultValue={dossier.internal_notes ?? ""} rows={5} />
+        <div className="border-t-2 border-comun-black pt-3 md:col-span-2">
+          <h2 className="text-lg font-black uppercase">Versao publica revisada</h2>
+          <p className="mt-1 text-xs font-bold uppercase text-comun-asphalt/60">A rota publica usa somente estes campos. Edicoes no rascunho interno nao atualizam a publicacao automaticamente.</p>
+        </div>
+        <Input name="public_title" label="Titulo publico" defaultValue={dossier.public_title ?? ""} />
+        <Input name="public_slug" label="Slug publico" defaultValue={dossier.public_slug ?? ""} />
+        <Textarea name="public_summary" label="Resumo publico" defaultValue={dossier.public_summary ?? ""} />
+        <Textarea name="public_body" label="Corpo publico revisado" defaultValue={dossier.public_body ?? ""} rows={12} />
+        <Textarea name="publication_notes" label="Notas de publicacao" defaultValue={dossier.publication_notes ?? ""} rows={3} />
         <button className="min-h-11 border-2 border-comun-black bg-comun-yellow font-black uppercase md:col-span-2">Salvar dossie</button>
       </form>
 
@@ -84,8 +127,8 @@ export default async function AdminDossierDetailPage({ params }: { params: { id:
         <aside className="border-2 border-comun-black bg-comun-black p-4 text-comun-paper">
           <h2 className="font-black uppercase text-comun-yellow">Checklist</h2>
           <div className="mt-3 grid gap-2">
-            {checklist.map((item) => (
-              <label key={item} className="flex items-start gap-2 text-sm font-bold">
+            {checklist.map(([value, item]) => (
+              <label key={value} className="flex items-start gap-2 text-sm font-bold">
                 <input type="checkbox" className="mt-1" />
                 <span>{item}</span>
               </label>

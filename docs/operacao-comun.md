@@ -175,8 +175,13 @@ Nunca copiar para a pagina publica:
 4. Conferir se as evidencias incluidas sao `approved + public_safe`.
 5. Resumir respostas oficiais usando apenas `public_summary`.
 6. Editar sintese executiva, problema, comunidades, demandas e proximos passos.
-7. Abrir o preview admin e procurar vazamentos de `raw_text`, `private_contact`, `response_text`, `internal_notes`, signed URL e `storage_path`.
-8. Marcar como `ready` somente quando o rascunho estiver revisado.
-9. Arquivar dossies sem recorte claro ou com risco editorial alto.
+7. Preparar a versao publica revisada a partir do rascunho.
+8. Editar `public_title`, `public_summary`, `public_body` e `public_slug`.
+9. Abrir o preview admin e procurar vazamentos de `raw_text`, `private_contact`, `response_text`, `internal_notes`, signed URL e `storage_path`.
+10. Enviar para revisao editorial.
+11. Aprovar somente com checklist de seguranca marcado.
+12. Publicar quando o status estiver `approved`.
+13. Despublicar se houver erro, risco ou necessidade de nova revisao.
+14. Arquivar dossies sem recorte claro ou com risco editorial alto.
 
-O dossie por pauta ainda nao tem rota publica final. Ele e uma mesa de edicao interna para preparar material revisado.
+A rota publica usa somente os campos publicos revisados. O rascunho interno, `public_version` antigo e `internal_notes` nao entram na pagina publica.

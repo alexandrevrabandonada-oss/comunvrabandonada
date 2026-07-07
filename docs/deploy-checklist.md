@@ -23,6 +23,7 @@
 - [ ] `npm run smoke:pauta-contribution-safety` passa
 - [ ] `npm run smoke:pauta-editorial-quality` passa
 - [ ] `npm run smoke:pauta-dossier-draft` passa
+- [ ] `npm run smoke:pauta-dossier-publication` passa
 - [ ] GitHub sem segredos
 - [ ] Vercel conectado ao GitHub
 
@@ -88,6 +89,9 @@
 - [ ] criar rascunho em `/comun/admin/pautas/<id>` no bloco `Dossie da pauta`
 - [ ] abrir `/comun/admin/dossies/<id>` e editar sintese, demandas e proximos passos
 - [ ] abrir preview admin e confirmar que notas internas nao aparecem
-- [ ] confirmar que nao existe publicacao automatica do dossie
+- [ ] preparar versao publica revisada do dossie
+- [ ] confirmar que nao existe publicacao automatica antes de aprovar
+- [ ] publicar dossie aprovado e abrir `/comun/dossies/<slug>`
+- [ ] despublicar e confirmar que `/comun/dossies/<slug>` deixa de aparecer
 - [ ] testar no celular via 4G/5G
 - [ ] testar link vindo do Instagram/WhatsApp

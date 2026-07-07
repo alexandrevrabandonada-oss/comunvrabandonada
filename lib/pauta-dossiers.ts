@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import type { PautaDossier, PautaDossierEvidence, PautaEvidenceItem, PautaSpace } from "@/lib/types";
 import {
@@ -8,6 +9,8 @@ import {
   listSafePautaReports,
   slugifyPauta,
 } from "@/lib/pauta-spaces";
+
+const dossierSelect = "id, pauta_id, slug, title, status, review_status, reviewed_by_editor_at, approved_for_publication_at, published_at, unpublished_at, public_slug, public_title, public_body, public_summary, publication_notes, executive_summary, problem_statement, affected_communities, evidence_summary, official_protocols_summary, demands, next_steps, public_version, internal_notes, created_at, updated_at";
 
 export type PautaDossierWithPauta = PautaDossier & {
   pauta: Pick<PautaSpace, "id" | "slug" | "title" | "community" | "category"> | null;
@@ -25,17 +28,18 @@ export type GeneratedPautaDossierDraft = Omit<PautaDossier, "id" | "created_at" 
   evidence_ids: string[];
 };
 
-export async function listAdminPautaDossiers(filters: { pautaId?: string } = {}) {
+export async function listAdminPautaDossiers(filters: { pautaId?: string; reviewStatus?: string } = {}) {
   const supabase = createServiceSupabaseClient();
   if (!supabase) return [] as PautaDossierWithPauta[];
 
   let query = supabase
     .from("comun_pauta_dossiers")
-    .select("id, pauta_id, slug, title, status, executive_summary, problem_statement, affected_communities, evidence_summary, official_protocols_summary, demands, next_steps, public_version, internal_notes, created_at, updated_at, pauta:comun_pauta_spaces(id, slug, title, community, category)")
+    .select(`${dossierSelect}, pauta:comun_pauta_spaces(id, slug, title, community, category)`)
     .order("updated_at", { ascending: false })
     .limit(200);
 
   if (filters.pautaId) query = query.eq("pauta_id", filters.pautaId);
+  if (filters.reviewStatus) query = query.eq("review_status", filters.reviewStatus);
   const { data, error } = await query;
   if (error || !data) return [];
   return data.map(normalizeDossierJoin) as PautaDossierWithPauta[];
@@ -47,7 +51,7 @@ export async function getAdminPautaDossier(id: string) {
 
   const { data, error } = await supabase
     .from("comun_pauta_dossiers")
-    .select("id, pauta_id, slug, title, status, executive_summary, problem_statement, affected_communities, evidence_summary, official_protocols_summary, demands, next_steps, public_version, internal_notes, created_at, updated_at, pauta:comun_pauta_spaces(id, slug, title, community, category), evidence_items:comun_pauta_dossier_evidence(id, dossier_id, evidence_id, position, included_note, created_at, evidence:comun_pauta_evidence_items(id, title, summary, evidence_type, public_note, status, sensitivity))")
+    .select(`${dossierSelect}, pauta:comun_pauta_spaces(id, slug, title, community, category), evidence_items:comun_pauta_dossier_evidence(id, dossier_id, evidence_id, position, included_note, created_at, evidence:comun_pauta_evidence_items(id, title, summary, evidence_type, public_note, status, sensitivity))`)
     .eq("id", id)
     .limit(1)
     .maybeSingle();
@@ -61,6 +65,43 @@ export async function getAdminPautaDossier(id: string) {
     }))
     .sort((a: PautaDossierEvidenceWithItem, b: PautaDossierEvidenceWithItem) => a.position - b.position);
   return normalized;
+}
+
+export async function listPublishedPautaDossiers() {
+  noStore();
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) return [] as PautaDossierWithPauta[];
+
+  const { data, error } = await supabase
+    .from("comun_pauta_dossiers")
+    .select(`${dossierSelect}, pauta:comun_pauta_spaces(id, slug, title, community, category)`)
+    .eq("review_status", "published")
+    .not("published_at", "is", null)
+    .is("unpublished_at", null)
+    .not("public_slug", "is", null)
+    .order("published_at", { ascending: false });
+
+  if (error || !data) return [];
+  return data.map(normalizeDossierJoin) as PautaDossierWithPauta[];
+}
+
+export async function getPublishedPautaDossierBySlug(slug: string) {
+  noStore();
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from("comun_pauta_dossiers")
+    .select(`${dossierSelect}, pauta:comun_pauta_spaces(id, slug, title, community, category)`)
+    .eq("public_slug", slug)
+    .eq("review_status", "published")
+    .not("published_at", "is", null)
+    .is("unpublished_at", null)
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return normalizeDossierJoin(data) as PautaDossierWithPauta;
 }
 
 export async function generatePautaDossierDraft(pautaId: string): Promise<GeneratedPautaDossierDraft> {
@@ -139,6 +180,16 @@ export async function generatePautaDossierDraft(pautaId: string): Promise<Genera
     slug: await nextDossierSlug(space.slug),
     title,
     status: "draft",
+    review_status: "draft",
+    reviewed_by_editor_at: null,
+    approved_for_publication_at: null,
+    published_at: null,
+    unpublished_at: null,
+    public_slug: null,
+    public_title: null,
+    public_body: null,
+    public_summary: null,
+    publication_notes: null,
     executive_summary: executiveSummary,
     problem_statement: problemStatement,
     affected_communities: affectedCommunities,

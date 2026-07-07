@@ -97,9 +97,10 @@ Uma pauta pode virar dossie quando houver volume, evidencias, protocolos, respos
 4. Usar o bloco `Dossie da pauta` para criar ou regenerar rascunho.
 5. Editar em `/comun/admin/dossies/[id]`.
 6. Conferir o preview admin em `/comun/admin/dossies/[id]/preview`.
-7. Manter status `draft` ou `in_review` ate haver revisao humana.
+7. Preparar versao publica revisada nos campos `public_*`.
+8. Enviar para revisao editorial, aprovar e publicar somente depois do checklist de seguranca.
 
-O rascunho nao publica uma pagina final automaticamente.
+O rascunho nao publica uma pagina final automaticamente. A pagina publica usa apenas `public_title`, `public_summary` e `public_body`.
 
 ## Qualidade editorial
 
@@ -134,7 +135,7 @@ Nunca publicar:
 7. Remover evidencia duvidosa.
 8. Escrever demandas e proximos passos.
 9. Usar preview admin para revisar vazamento.
-10. Decidir publicacao somente em fluxo futuro.
+10. Publicar somente pelo workflow editorial do dossie.
 
 O preview e interno. Nunca colocar nele:
 
@@ -144,3 +145,5 @@ O preview e interno. Nunca colocar nele:
 - `internal_notes`;
 - signed URL ou `storage_path`;
 - evidencia `private_only`.
+
+Depois de publicar, alteracoes no rascunho interno nao alteram a pagina publica automaticamente. Edite a versao publica revisada e publique novamente quando necessario.

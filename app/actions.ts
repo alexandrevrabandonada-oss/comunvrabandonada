@@ -10,7 +10,7 @@ import {
   createOrUpdateOfficialProtocolDraftForReport,
   getOfficialProtocolReportSurface,
 } from "@/lib/official-protocols";
-import { createPautaDossierDraft, regeneratePautaDossierDraft } from "@/lib/pauta-dossiers";
+import { createPautaDossierDraft, getAdminPautaDossier, regeneratePautaDossierDraft } from "@/lib/pauta-dossiers";
 import { assessPautaContributionSafety, createPendingPautaContribution, slugifyPauta } from "@/lib/pauta-spaces";
 import { generateProtocol } from "@/lib/protocol";
 import { isValidProtocol, normalizeProtocol } from "@/lib/reports";
@@ -1083,9 +1083,18 @@ export async function updatePautaDossierAction(formData: FormData) {
   const supabase = createServiceSupabaseClient();
   if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
   const status = normalizeDossierStatus(String(formData.get("status") ?? "draft"));
+  const publicSlug = slugifyPauta(String(formData.get("public_slug") ?? "").trim() || String(formData.get("public_title") ?? "").trim() || String(formData.get("title") ?? "").trim());
+  const publicTitle = String(formData.get("public_title") ?? "").trim();
+  const publicSummary = String(formData.get("public_summary") ?? "").trim();
+  const publicBody = String(formData.get("public_body") ?? "").trim();
   const payload = {
     title: String(formData.get("title") ?? "").trim() || "Dossie sem titulo",
     status,
+    public_slug: publicSlug || null,
+    public_title: publicTitle || null,
+    public_summary: publicSummary || null,
+    public_body: publicBody || null,
+    publication_notes: String(formData.get("publication_notes") ?? "").trim() || null,
     executive_summary: String(formData.get("executive_summary") ?? "").trim() || null,
     problem_statement: String(formData.get("problem_statement") ?? "").trim() || null,
     affected_communities: String(formData.get("affected_communities") ?? "").trim() || null,
@@ -1108,12 +1117,140 @@ export async function updatePautaDossierAction(formData: FormData) {
       pauta_id: pautaId || null,
       status,
       public_version_length: payload.public_version?.length ?? 0,
+      public_body_length: payload.public_body?.length ?? 0,
       internal_notes_length: payload.internal_notes?.length ?? 0,
     },
   });
+  if (publicTitle || publicSummary || publicBody || publicSlug) {
+    await logComunAdminAction({
+      session,
+      action: "pauta_dossier_public_version_updated",
+      targetType: "pauta_dossier",
+      targetId: dossierId,
+      metadata: {
+        pauta_id: pautaId || null,
+        public_slug: publicSlug || null,
+        public_title_length: publicTitle.length,
+        public_summary_length: publicSummary.length,
+        public_body_length: publicBody.length,
+      },
+    });
+  }
   revalidatePath(`/comun/admin/dossies/${dossierId}`);
   revalidatePath(`/comun/admin/dossies/${dossierId}/preview`);
+  revalidatePath("/comun/dossies");
+  if (publicSlug) revalidatePath(`/comun/dossies/${publicSlug}`);
   if (pautaId) revalidatePath(`/comun/admin/pautas/${pautaId}`);
+  redirect(`/comun/admin/dossies/${dossierId}`);
+}
+
+export async function preparePautaDossierPublicVersionAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const dossierId = String(formData.get("dossier_id") ?? "");
+  if (!dossierId) throw new Error("Dossie sem ID.");
+  const dossier = await getAdminPautaDossier(dossierId);
+  if (!dossier) throw new Error("Dossie nao encontrado.");
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+  const publicTitle = dossier.public_title || dossier.title;
+  const publicSummary = dossier.public_summary || dossier.executive_summary || dossier.problem_statement || "Dossie em revisao editorial.";
+  const publicBody = dossier.public_body || dossier.public_version || [
+    dossier.executive_summary,
+    dossier.problem_statement,
+    dossier.evidence_summary,
+    dossier.official_protocols_summary,
+    dossier.demands,
+    dossier.next_steps,
+  ].filter(Boolean).join("\n\n");
+  const publicSlug = dossier.public_slug || await nextPublicDossierSlug(publicTitle, dossier.id);
+  const { error } = await supabase.from("comun_pauta_dossiers").update({
+    public_slug: publicSlug,
+    public_title: publicTitle,
+    public_summary: publicSummary,
+    public_body: publicBody,
+    updated_at: new Date().toISOString(),
+  }).eq("id", dossierId);
+  if (error) throw new Error(error.message);
+  await logComunAdminAction({
+    session,
+    action: "pauta_dossier_public_version_prepared",
+    targetType: "pauta_dossier",
+    targetId: dossierId,
+    metadata: { public_slug: publicSlug, public_body_length: publicBody.length },
+  });
+  revalidatePath(`/comun/admin/dossies/${dossierId}`);
+  redirect(`/comun/admin/dossies/${dossierId}`);
+}
+
+export async function updatePautaDossierWorkflowAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const dossierId = String(formData.get("dossier_id") ?? "");
+  const intent = String(formData.get("intent") ?? "");
+  if (!dossierId) throw new Error("Dossie sem ID.");
+  const dossier = await getAdminPautaDossier(dossierId);
+  if (!dossier) throw new Error("Dossie nao encontrado.");
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+  const now = new Date().toISOString();
+  const checked = formData.getAll("safety_check").map((value) => String(value));
+  const allSafetyChecked = checked.length >= 6;
+  const payload: Record<string, unknown> = { updated_at: now };
+  let auditAction = "pauta_dossier_sent_to_review";
+
+  if (intent === "send_to_review") {
+    payload.review_status = "editorial_review";
+    payload.reviewed_by_editor_at = now;
+  } else if (intent === "changes_requested") {
+    payload.review_status = "changes_requested";
+    auditAction = "pauta_dossier_changes_requested";
+  } else if (intent === "approve") {
+    if (!allSafetyChecked) throw new Error("Aprovacao exige checklist de seguranca marcado.");
+    if (!dossier.public_title || !dossier.public_summary || !dossier.public_body || !dossier.public_slug) {
+      throw new Error("Prepare e revise a versao publica antes de aprovar.");
+    }
+    payload.review_status = "approved";
+    payload.approved_for_publication_at = now;
+    auditAction = "pauta_dossier_approved";
+  } else if (intent === "publish") {
+    if (dossier.review_status !== "approved") throw new Error("So e possivel publicar dossie aprovado.");
+    if (!dossier.public_title || !dossier.public_summary || !dossier.public_body || !dossier.public_slug) {
+      throw new Error("Publicacao exige titulo, resumo, corpo e slug publicos.");
+    }
+    payload.review_status = "published";
+    payload.published_at = now;
+    payload.unpublished_at = null;
+    auditAction = "pauta_dossier_published";
+  } else if (intent === "unpublish") {
+    payload.review_status = "unpublished";
+    payload.unpublished_at = now;
+    auditAction = "pauta_dossier_unpublished";
+  } else if (intent === "archive") {
+    payload.review_status = "archived";
+    payload.unpublished_at = dossier.published_at ? now : dossier.unpublished_at;
+    auditAction = "pauta_dossier_archived";
+  } else {
+    throw new Error("Acao editorial invalida.");
+  }
+
+  const { error } = await supabase.from("comun_pauta_dossiers").update(payload).eq("id", dossierId);
+  if (error) throw new Error(error.message);
+  await logComunAdminAction({
+    session,
+    action: auditAction,
+    targetType: "pauta_dossier",
+    targetId: dossierId,
+    metadata: {
+      intent,
+      previous_review_status: dossier.review_status,
+      next_review_status: payload.review_status,
+      public_slug: dossier.public_slug,
+      safety_checked_count: checked.length,
+    },
+  });
+  revalidatePath(`/comun/admin/dossies/${dossierId}`);
+  revalidatePath("/comun/admin/dossies");
+  revalidatePath("/comun/dossies");
+  if (dossier.public_slug) revalidatePath(`/comun/dossies/${dossier.public_slug}`);
   redirect(`/comun/admin/dossies/${dossierId}`);
 }
 
@@ -1223,4 +1360,18 @@ function normalizeEvidenceStatus(value: string) {
 function normalizeDossierStatus(value: string) {
   const valid = ["draft", "in_review", "ready", "archived"];
   return valid.includes(value) ? value : "draft";
+}
+
+async function nextPublicDossierSlug(title: string, currentId: string) {
+  const supabase = createServiceSupabaseClient();
+  const base = slugifyPauta(title || `dossie-${currentId.slice(0, 8)}`);
+  if (!supabase) return `${base}-${Date.now()}`;
+  const { data } = await supabase.from("comun_pauta_dossiers").select("id, public_slug").like("public_slug", `${base}%`);
+  const existing = new Set((data ?? []).filter((row) => row.id !== currentId).map((row) => row.public_slug));
+  if (!existing.has(base)) return base;
+  for (let index = 2; index < 50; index += 1) {
+    const candidate = `${base}-${index}`;
+    if (!existing.has(candidate)) return candidate;
+  }
+  return `${base}-${Date.now()}`;
 }

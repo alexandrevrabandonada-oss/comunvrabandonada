@@ -17,14 +17,15 @@ export default async function AdminDossierPreviewPage({ params }: { params: { id
     <AdminShell adminEmail={session.admin.email}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-black uppercase text-comun-asphalt/60">Preview admin / nao publicado</p>
-          <h1 className="text-3xl font-black uppercase">{dossier.title}</h1>
+          <p className="text-xs font-black uppercase text-comun-asphalt/60">Preview admin / versao publica revisada</p>
+          <h1 className="text-3xl font-black uppercase">{dossier.public_title ?? dossier.title}</h1>
+          {dossier.public_summary ? <p className="mt-3 max-w-3xl text-sm font-bold text-comun-asphalt/70">{dossier.public_summary}</p> : null}
         </div>
         <Link href={`/comun/admin/dossies/${dossier.id}`} className="border-2 border-comun-black bg-white px-3 py-2 text-sm font-black uppercase">Voltar ao editor</Link>
       </div>
 
       <article className="mt-5 border-2 border-comun-black bg-white p-5">
-        <pre className="whitespace-pre-wrap font-sans text-sm leading-6 text-comun-asphalt">{dossier.public_version || "Versao publica ainda nao preenchida."}</pre>
+        <pre className="whitespace-pre-wrap font-sans text-sm leading-6 text-comun-asphalt">{dossier.public_body || "Versao publica revisada ainda nao preenchida."}</pre>
       </article>
 
       <section className="mt-6">

@@ -205,6 +205,7 @@ export type PautaContributionType = "relato" | "evidencia" | "proposta" | "duvid
 export type PautaContributionStatus = "pending" | "approved" | "rejected" | "archived";
 export type PautaTaskStatus = "open" | "in_progress" | "done" | "blocked" | "archived";
 export type PautaDossierStatus = "draft" | "in_review" | "ready" | "archived";
+export type PautaDossierReviewStatus = "draft" | "editorial_review" | "changes_requested" | "approved" | "published" | "unpublished" | "archived";
 
 export type PautaSpace = {
   id: string;
@@ -289,6 +290,16 @@ export type PautaDossier = {
   slug: string;
   title: string;
   status: PautaDossierStatus;
+  review_status: PautaDossierReviewStatus;
+  reviewed_by_editor_at: string | null;
+  approved_for_publication_at: string | null;
+  published_at: string | null;
+  unpublished_at: string | null;
+  public_slug: string | null;
+  public_title: string | null;
+  public_body: string | null;
+  public_summary: string | null;
+  publication_notes: string | null;
   executive_summary: string | null;
   problem_statement: string | null;
   affected_communities: string | null;
