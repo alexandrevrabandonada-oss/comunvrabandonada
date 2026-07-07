@@ -20,6 +20,7 @@
 - Nunca publicar latitude/longitude precisa. Use bairro/local aproximado ou texto sanitizado.
 - Publicacao nao significa confirmacao automatica de todos os fatos.
 - Casos de risco imediato devem ser orientados para canais formais adequados.
+- Protocolo Popular nao substitui Ouvidoria oficial e nao envia demanda automaticamente.
 
 ## Relato rapido
 
@@ -70,3 +71,30 @@ O arquivo original permanece no bucket privado `comun-report-attachments`. A ver
 2. Conferir se ha pendencias acumuladas.
 3. Revisar reprovados antigos somente quando houver politica futura de limpeza.
 4. Confirmar que signed URLs e originais nao foram compartilhados fora do admin.
+
+## Protocolo Popular / Ouvidoria assistida
+
+Rotina publica:
+
+1. A pessoa abre `/comun/acompanhar/[protocolo]/ouvidoria`.
+2. O COMUN gera texto com dados seguros do relato.
+3. A pessoa copia o texto e abre o canal oficial.
+4. A pessoa registra a demanda no canal oficial.
+5. A pessoa informa no COMUN o numero oficial recebido.
+6. A pessoa pode registrar resposta recebida, sabendo que a resposta completa nao aparece publicamente por padrao.
+
+Rotina admin:
+
+1. Abrir o relato no admin.
+2. Revisar a secao `Protocolo oficial`.
+3. Conferir canal, numero oficial, status e datas.
+4. Se houver resposta, manter `response_text` privado.
+5. Escrever `public_summary` apenas com resumo seguro.
+6. Marcar resolvido/nao resolvido quando houver criterio.
+
+Limites:
+
+- COMUN nao e Prefeitura nem Ouvidoria oficial.
+- COMUN nao promete prazo ou resposta oficial.
+- Texto gerado e assistente de redacao, nao protocolo oficial.
+- Dados privados do relato nunca devem entrar no texto gerado.

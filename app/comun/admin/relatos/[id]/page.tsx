@@ -2,8 +2,10 @@ import { notFound } from "next/navigation";
 import { ShieldAlert } from "lucide-react";
 import {
   markAttachmentNeedsRedaction,
+  createOrUpdateOfficialProtocolDraft,
   rejectAttachment,
   updateAttachmentReviewStatus,
+  updateOfficialProtocolAdmin,
   updateReportReview,
   uploadPublicSafeAttachment,
 } from "@/app/actions";
@@ -12,17 +14,20 @@ import { StatusLabel } from "@/components/status-label";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { logComunAdminAction } from "@/lib/admin-audit";
 import { listCommunities, listIssues } from "@/lib/comun-data";
+import { getOfficialProtocolByComunProtocol } from "@/lib/official-protocols";
 import { getAdminReport, listAdminReportAttachments } from "@/lib/reports";
 
 export default async function ReviewReportPage({ params }: { params: { id: string } }) {
   const session = await requireComunAdmin();
-  const [report, communities, issues, attachments] = await Promise.all([
+  const [report, communities, issues, attachments, officialProtocol] = await Promise.all([
     getAdminReport(params.id),
     listCommunities(),
     listIssues(),
     listAdminReportAttachments(params.id),
+    getOfficialProtocolByComunProtocol(params.id),
   ]);
   if (!report) notFound();
+  const official = officialProtocol?.comun_protocol === report.protocol ? officialProtocol : await getOfficialProtocolByComunProtocol(report.protocol);
   const selectedCommunity = communities.find((community) => community.slug === report.community_slug);
   const selectedIssue = issues.find((issue) => issue.slug === report.issue_slug);
   await logComunAdminAction({
@@ -206,6 +211,95 @@ export default async function ReviewReportPage({ params }: { params: { id: strin
               {!attachments.length ? <p className="text-sm text-comun-asphalt/75">Nenhum anexo privado neste relato.</p> : null}
             </div>
           </Block>
+          <Block title="Protocolo oficial">
+            {official ? (
+              <form action={updateOfficialProtocolAdmin} className="grid gap-3 text-sm">
+                <input type="hidden" name="report_id" value={report.id} />
+                <input type="hidden" name="official_protocol_id" value={official.id} />
+                <MetaRow label="Canal" value={official.channel} />
+                <label className="grid gap-1 font-black uppercase">
+                  Agencia/orgao
+                  <input name="agency" defaultValue={official.agency ?? ""} className="min-h-11 border-2 border-comun-black px-3 font-medium normal-case" />
+                </label>
+                <label className="grid gap-1 font-black uppercase">
+                  Numero oficial
+                  <input name="official_protocol_number" defaultValue={official.official_protocol_number ?? ""} className="min-h-11 border-2 border-comun-black px-3 font-medium normal-case" />
+                </label>
+                <Select
+                  name="channel"
+                  label="Canal"
+                  defaultValue={official.channel}
+                  values={[
+                    ["ouvidoria-municipal", "Ouvidoria municipal"],
+                    ["fala-br", "Fala.BR"],
+                  ]}
+                />
+                <Select
+                  name="status"
+                  label="Status"
+                  defaultValue={official.status}
+                  values={[
+                    ["draft", "Rascunho"],
+                    ["text_generated", "Texto gerado"],
+                    ["sent_by_user", "Enviado pelo usuario"],
+                    ["official_protocol_informed", "Protocolo oficial informado"],
+                    ["waiting_response", "Aguardando resposta"],
+                    ["response_received", "Resposta recebida"],
+                    ["satisfactory_response", "Resposta satisfatoria"],
+                    ["unsatisfactory_response", "Resposta insatisfatoria"],
+                    ["overdue", "Prazo vencido"],
+                    ["resolved", "Resolvido"],
+                    ["unresolved", "Nao resolvido"],
+                    ["archived", "Arquivado"],
+                  ]}
+                />
+                <div className="grid gap-3 md:grid-cols-3">
+                  <DateInput name="submitted_at" label="Data de envio" defaultValue={formatDateInput(official.submitted_at)} />
+                  <DateInput name="expected_response_at" label="Prazo esperado" defaultValue={formatDateInput(official.expected_response_at)} />
+                  <DateInput name="response_received_at" label="Resposta recebida" defaultValue={formatDateInput(official.response_received_at)} />
+                </div>
+                <label className="grid gap-1 font-black uppercase">
+                  Resposta recebida
+                  <textarea name="response_text" defaultValue={official.response_text ?? ""} rows={4} className="border-2 border-comun-black p-3 font-medium normal-case" />
+                </label>
+                <Select
+                  name="satisfaction"
+                  label="Avaliacao"
+                  defaultValue={official.satisfaction ?? "unknown"}
+                  values={[
+                    ["unknown", "Nao avaliado"],
+                    ["satisfactory", "Satisfatoria"],
+                    ["partial", "Parcial"],
+                    ["unsatisfactory", "Insatisfatoria"],
+                  ]}
+                />
+                <label className="grid gap-1 font-black uppercase">
+                  Resumo publico da resposta
+                  <textarea name="public_summary" defaultValue={official.public_summary ?? ""} rows={3} className="border-2 border-comun-black p-3 font-medium normal-case" />
+                </label>
+                <label className="grid gap-1 font-black uppercase">
+                  Observacoes internas
+                  <textarea name="internal_notes" defaultValue={official.internal_notes ?? ""} rows={3} className="border-2 border-comun-black p-3 font-medium normal-case" />
+                </label>
+                <p className="border-2 border-comun-black bg-comun-yellow/20 p-3 text-sm font-bold">
+                  `response_text` e `internal_notes` nao aparecem publicamente por padrao. Use `public_summary` para resumo seguro.
+                </p>
+                <button className="min-h-11 border-2 border-comun-black bg-comun-yellow px-3 font-black uppercase">
+                  Salvar protocolo oficial
+                </button>
+              </form>
+            ) : (
+              <div className="grid gap-3 text-sm">
+                <p className="font-bold text-comun-asphalt/80">Ainda nao ha rascunho de protocolo oficial para este relato.</p>
+                <form action={createOrUpdateOfficialProtocolDraft}>
+                  <input type="hidden" name="comun_protocol" value={report.protocol} />
+                  <button className="min-h-11 border-2 border-comun-black bg-comun-yellow px-3 font-black uppercase">
+                    Gerar texto para Ouvidoria
+                  </button>
+                </form>
+              </div>
+            )}
+          </Block>
         </section>
 
         <form action={updateReportReview} className="grid gap-4">
@@ -315,6 +409,15 @@ function MetaRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function DateInput({ name, label, defaultValue }: { name: string; label: string; defaultValue?: string }) {
+  return (
+    <label className="grid gap-1 text-sm font-black uppercase">
+      {label}
+      <input type="date" name={name} defaultValue={defaultValue ?? ""} className="min-h-11 border-2 border-comun-black px-3" />
+    </label>
+  );
+}
+
 function reviewStatusLabel(value: string) {
   const labels: Record<string, string> = {
     pending: "Pendente",
@@ -357,4 +460,9 @@ function formatDateTime(value: string) {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function formatDateInput(value: string | null) {
+  if (!value) return "";
+  return new Date(value).toISOString().slice(0, 10);
 }

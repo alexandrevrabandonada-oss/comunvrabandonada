@@ -15,6 +15,8 @@
 - [ ] `npm run smoke:quick-report` passa
 - [ ] `npm run smoke:attachment-curation` passa
 - [ ] `npm run smoke:attachments-queue` passa
+- [ ] `npm run smoke:attachments-ops` passa
+- [ ] `npm run smoke:official-protocol` passa
 - [ ] GitHub sem segredos
 - [ ] Vercel conectado ao GitHub
 
@@ -55,6 +57,11 @@
 - [ ] abrir `/comun/admin/anexos`
 - [ ] confirmar filtros pending, needs_redaction, rejected, public_ready e approved_private
 - [ ] confirmar que a fila nao mostra `storage_path` completo nem signed URL fora do admin
+- [ ] abrir `/comun/protocolo-popular`
+- [ ] abrir `/comun/acompanhar/<protocolo>/ouvidoria`
+- [ ] confirmar que texto de Ouvidoria nao contem `raw_text`, contato privado ou notas internas
+- [ ] informar protocolo oficial fake e confirmar acompanhamento publico
+- [ ] registrar resposta fake e confirmar que `response_text` nao aparece publicamente
 - [ ] sair e confirmar que admin volta a exigir login
 - [ ] testar no celular via 4G/5G
 - [ ] testar link vindo do Instagram/WhatsApp

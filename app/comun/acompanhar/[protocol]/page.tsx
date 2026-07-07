@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, FileSearch, ShieldCheck } from "lucide-react";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
 import { getCommunity, getIssue } from "@/lib/comun-data";
+import { getPublicOfficialProtocol } from "@/lib/official-protocols";
 import { getPublicReportByProtocol, normalizeProtocol } from "@/lib/reports";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +11,7 @@ export const revalidate = 0;
 export default async function FollowReportResultPage({ params }: { params: { protocol: string } }) {
   const protocol = normalizeProtocol(decodeURIComponent(params.protocol));
   const report = await getPublicReportByProtocol(protocol);
+  const officialProtocol = report.found ? await getPublicOfficialProtocol(protocol) : null;
   const community = report.community_slug ? await getCommunity(report.community_slug) : null;
   const issue = report.issue_slug ? await getIssue(report.issue_slug) : null;
 
@@ -69,6 +71,26 @@ export default async function FollowReportResultPage({ params }: { params: { pro
                   <p className="comun-prose mt-3 text-sm text-comun-asphalt/80">{report.public_text}</p>
                 </article>
               ) : null}
+
+              {report.found ? (
+                <article className="border-2 border-comun-black bg-white p-4">
+                  <p className="text-xs font-black uppercase text-comun-asphalt/70">Protocolo oficial</p>
+                  <h2 className="mt-2 text-xl font-black uppercase">{officialStatusLabel(officialProtocol?.status)}</h2>
+                  <p className="mt-3 text-sm text-comun-asphalt/80">
+                    {officialProtocol?.official_protocol_number
+                      ? `Numero oficial informado: ${officialProtocol.official_protocol_number}.`
+                      : "Voce pode gerar um texto para registrar esta demanda na Ouvidoria oficial."}
+                  </p>
+                  {officialProtocol?.public_summary ? (
+                    <p className="comun-prose mt-3 text-sm text-comun-asphalt/80">{officialProtocol.public_summary}</p>
+                  ) : null}
+                  <div className="mt-4">
+                    <PrimaryLink href={`/comun/acompanhar/${encodeURIComponent(report.protocol)}/ouvidoria`}>
+                      Gerar texto para Ouvidoria
+                    </PrimaryLink>
+                  </div>
+                </article>
+              ) : null}
             </div>
           </div>
 
@@ -120,4 +142,22 @@ function MetaRow({ label, value }: { label: string; value: string }) {
 function formatDate(value: string | null) {
   if (!value) return "-";
   return new Date(value).toLocaleDateString("pt-BR");
+}
+
+function officialStatusLabel(value?: string) {
+  const labels: Record<string, string> = {
+    draft: "Ainda nao gerado",
+    text_generated: "Texto para Ouvidoria disponivel",
+    sent_by_user: "Enviado pelo usuario",
+    official_protocol_informed: "Protocolo oficial informado",
+    waiting_response: "Aguardando resposta",
+    response_received: "Resposta recebida",
+    satisfactory_response: "Resposta satisfatoria",
+    unsatisfactory_response: "Resposta insatisfatoria",
+    overdue: "Prazo vencido",
+    resolved: "Resolvido",
+    unresolved: "Nao resolvido",
+    archived: "Arquivado",
+  };
+  return value ? labels[value] ?? value : "Ainda nao gerado";
 }

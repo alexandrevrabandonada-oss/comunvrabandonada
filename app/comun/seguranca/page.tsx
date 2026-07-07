@@ -12,6 +12,9 @@ const items = [
   "Fotos enviadas no relato rapido ficam privadas e nao aparecem publicamente sem curadoria.",
   "Localizacao precisa fica interna. Quando necessario, a publicacao usa apenas local aproximado ou sanitizado.",
   "O COMUN e uma plataforma comunitaria e nao substitui canais oficiais quando houver risco imediato ou necessidade formal.",
+  "O Protocolo Popular nao substitui Ouvidoria oficial: ele ajuda a redigir um texto, mas nao envia automaticamente para a Prefeitura.",
+  "O numero oficial deve ser informado pelo usuario depois do registro no canal oficial.",
+  "Respostas oficiais podem conter dados pessoais e nao sao publicas automaticamente.",
 ];
 
 export default function SecurityPage() {

@@ -18,6 +18,7 @@
     "smoke:attachment-curation": "node scripts/smoke-comun-attachment-curation.mjs",
     "smoke:attachments-queue": "node scripts/smoke-comun-admin-attachments-queue.mjs",
     "smoke:attachments-ops": "node scripts/smoke-comun-attachments-ops.mjs",
+    "smoke:official-protocol": "node scripts/smoke-comun-official-protocol.mjs",
     "storage:setup": "node scripts/setup-comun-storage.mjs",
     "bootstrap:admin": "node scripts/bootstrap-comun-admin.mjs",
     "verify": "npm run lint && npm run typecheck && npm run build",

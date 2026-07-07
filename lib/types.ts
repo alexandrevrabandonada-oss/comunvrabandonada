@@ -146,3 +146,56 @@ export type PublicProtocolReport = {
   is_publicly_available: boolean;
   found: boolean;
 };
+
+export type OfficialProtocolStatus =
+  | "draft"
+  | "text_generated"
+  | "sent_by_user"
+  | "official_protocol_informed"
+  | "waiting_response"
+  | "response_received"
+  | "satisfactory_response"
+  | "unsatisfactory_response"
+  | "overdue"
+  | "resolved"
+  | "unresolved"
+  | "archived";
+
+export type OfficialProtocol = {
+  id: string;
+  report_id: string;
+  comun_protocol: string;
+  channel: string;
+  agency: string | null;
+  official_protocol_number: string | null;
+  generated_text: string | null;
+  submitted_by_user: boolean;
+  submitted_at: string | null;
+  expected_response_at: string | null;
+  status: OfficialProtocolStatus;
+  response_text: string | null;
+  response_received_at: string | null;
+  satisfaction: "satisfactory" | "unsatisfactory" | "partial" | "unknown" | null;
+  public_summary: string | null;
+  internal_notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PublicOfficialProtocol = Pick<
+  OfficialProtocol,
+  | "comun_protocol"
+  | "channel"
+  | "agency"
+  | "official_protocol_number"
+  | "generated_text"
+  | "submitted_by_user"
+  | "submitted_at"
+  | "expected_response_at"
+  | "status"
+  | "response_received_at"
+  | "satisfaction"
+  | "public_summary"
+  | "created_at"
+  | "updated_at"
+>;

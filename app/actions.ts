@@ -5,7 +5,13 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getComunAdminSession, requireComunAdmin } from "@/lib/admin-auth";
 import { logComunAdminAction } from "@/lib/admin-audit";
+import { checkProtocolLookupRateLimit } from "@/lib/rate-limit";
+import {
+  createOrUpdateOfficialProtocolDraftForReport,
+  getOfficialProtocolReportSurface,
+} from "@/lib/official-protocols";
 import { generateProtocol } from "@/lib/protocol";
+import { isValidProtocol, normalizeProtocol } from "@/lib/reports";
 import { createPublicSupabaseClient, createServiceSupabaseClient, createSupabaseServerClient } from "@/lib/supabase/server";
 
 const reportSchema = z.object({
@@ -502,4 +508,201 @@ function safeAdminReturnPath(formData: FormData, reportId: string) {
   if (returnTo.startsWith("/comun/admin/anexos")) return returnTo;
   if (returnTo.startsWith(`/comun/admin/relatos/${reportId}`)) return returnTo;
   return `/comun/admin/relatos/${reportId}`;
+}
+
+export async function createOrUpdateOfficialProtocolDraft(formData: FormData) {
+  const comunProtocol = normalizeProtocol(String(formData.get("comun_protocol") ?? ""));
+  await assertPublicOfficialProtocolAccess(comunProtocol);
+  const report = await getOfficialProtocolReportSurface(comunProtocol);
+  if (!report) throw new Error("Protocolo COMUN nao encontrado.");
+
+  const protocol = await createOrUpdateOfficialProtocolDraftForReport(report, String(formData.get("channel") ?? "ouvidoria-municipal"));
+  await logComunAdminAction({
+    action: "official_protocol_text_generated",
+    targetType: "official_protocol",
+    targetId: protocol.id,
+    metadata: {
+      comun_protocol: comunProtocol,
+      report_id: report.id,
+      channel: protocol.channel,
+      generated_text_length: protocol.generated_text?.length ?? 0,
+    },
+  });
+
+  revalidatePath(`/comun/acompanhar/${comunProtocol}`);
+  revalidatePath(`/comun/acompanhar/${comunProtocol}/ouvidoria`);
+  redirect(`/comun/acompanhar/${encodeURIComponent(comunProtocol)}/ouvidoria`);
+}
+
+export async function saveOfficialProtocolNumber(formData: FormData) {
+  const comunProtocol = normalizeProtocol(String(formData.get("comun_protocol") ?? ""));
+  await assertPublicOfficialProtocolAccess(comunProtocol);
+  const report = await getOfficialProtocolReportSurface(comunProtocol);
+  if (!report) throw new Error("Protocolo COMUN nao encontrado.");
+
+  const officialNumber = String(formData.get("official_protocol_number") ?? "").trim().slice(0, 120);
+  if (!officialNumber) throw new Error("Informe o numero do protocolo oficial.");
+  const submittedAt = parseOptionalDate(String(formData.get("submitted_at") ?? ""));
+  const protocol = await ensureOfficialProtocolForReport(report);
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+
+  const { error } = await supabase
+    .from("comun_official_protocols")
+    .update({
+      official_protocol_number: officialNumber,
+      submitted_by_user: true,
+      submitted_at: submittedAt,
+      status: "official_protocol_informed",
+    })
+    .eq("id", protocol.id);
+  if (error) throw new Error(error.message);
+
+  await logComunAdminAction({
+    action: "official_protocol_number_saved",
+    targetType: "official_protocol",
+    targetId: protocol.id,
+    metadata: { comun_protocol: comunProtocol, report_id: report.id, status: "official_protocol_informed" },
+  });
+
+  revalidatePath(`/comun/acompanhar/${comunProtocol}`);
+  revalidatePath(`/comun/acompanhar/${comunProtocol}/ouvidoria`);
+  redirect(`/comun/acompanhar/${encodeURIComponent(comunProtocol)}/ouvidoria`);
+}
+
+export async function saveOfficialProtocolResponse(formData: FormData) {
+  const comunProtocol = normalizeProtocol(String(formData.get("comun_protocol") ?? ""));
+  await assertPublicOfficialProtocolAccess(comunProtocol);
+  const report = await getOfficialProtocolReportSurface(comunProtocol);
+  if (!report) throw new Error("Protocolo COMUN nao encontrado.");
+  const responseText = String(formData.get("response_text") ?? "").trim();
+  if (!responseText) throw new Error("Informe a resposta recebida.");
+  const satisfaction = normalizeSatisfaction(String(formData.get("satisfaction") ?? "unknown"));
+  const protocol = await ensureOfficialProtocolForReport(report);
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+
+  const { error } = await supabase
+    .from("comun_official_protocols")
+    .update({
+      response_text: responseText,
+      satisfaction,
+      response_received_at: new Date().toISOString(),
+      status: "response_received",
+    })
+    .eq("id", protocol.id);
+  if (error) throw new Error(error.message);
+
+  await logComunAdminAction({
+    action: "official_protocol_response_saved",
+    targetType: "official_protocol",
+    targetId: protocol.id,
+    metadata: {
+      comun_protocol: comunProtocol,
+      report_id: report.id,
+      status: "response_received",
+      response_text_length: responseText.length,
+      satisfaction,
+    },
+  });
+
+  revalidatePath(`/comun/acompanhar/${comunProtocol}`);
+  revalidatePath(`/comun/acompanhar/${comunProtocol}/ouvidoria`);
+  redirect(`/comun/acompanhar/${encodeURIComponent(comunProtocol)}/ouvidoria`);
+}
+
+export async function updateOfficialProtocolAdmin(formData: FormData) {
+  const session = await requireComunAdmin();
+  const reportId = String(formData.get("report_id") ?? "");
+  const protocolId = String(formData.get("official_protocol_id") ?? "");
+  if (!reportId || !protocolId) throw new Error("Protocolo oficial sem ID.");
+  const status = normalizeOfficialStatus(String(formData.get("status") ?? "draft"));
+  const responseText = String(formData.get("response_text") ?? "").trim();
+  const publicSummary = String(formData.get("public_summary") ?? "").trim();
+  const internalNotes = String(formData.get("internal_notes") ?? "").trim();
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+
+  const { data: protocol, error } = await supabase
+    .from("comun_official_protocols")
+    .update({
+      channel: String(formData.get("channel") ?? "ouvidoria-municipal"),
+      agency: String(formData.get("agency") ?? "").trim() || null,
+      official_protocol_number: String(formData.get("official_protocol_number") ?? "").trim() || null,
+      submitted_at: parseOptionalDate(String(formData.get("submitted_at") ?? "")),
+      expected_response_at: parseOptionalDate(String(formData.get("expected_response_at") ?? "")),
+      status,
+      response_text: responseText || null,
+      response_received_at: parseOptionalDate(String(formData.get("response_received_at") ?? "")),
+      satisfaction: normalizeSatisfaction(String(formData.get("satisfaction") ?? "")),
+      public_summary: publicSummary || null,
+      internal_notes: internalNotes || null,
+    })
+    .eq("id", protocolId)
+    .eq("report_id", reportId)
+    .select("id, comun_protocol")
+    .single();
+  if (error) throw new Error(error.message);
+
+  await logComunAdminAction({
+    session,
+    action: "official_protocol_status_updated",
+    targetType: "official_protocol",
+    targetId: protocolId,
+    metadata: {
+      report_id: reportId,
+      comun_protocol: protocol.comun_protocol,
+      status,
+      public_summary_length: publicSummary.length,
+      response_text_length: responseText.length,
+    },
+  });
+
+  revalidatePath(`/comun/admin/relatos/${reportId}`);
+  revalidatePath(`/comun/acompanhar/${protocol.comun_protocol}`);
+  revalidatePath(`/comun/acompanhar/${protocol.comun_protocol}/ouvidoria`);
+  redirect(`/comun/admin/relatos/${reportId}`);
+}
+
+async function ensureOfficialProtocolForReport(report: Awaited<ReturnType<typeof getOfficialProtocolReportSurface>>) {
+  if (!report) throw new Error("Protocolo COMUN nao encontrado.");
+  return createOrUpdateOfficialProtocolDraftForReport(report);
+}
+
+async function assertPublicOfficialProtocolAccess(comunProtocol: string) {
+  if (!isValidProtocol(comunProtocol)) throw new Error("Protocolo COMUN invalido.");
+  const rateLimit = await checkProtocolLookupRateLimit({
+    protocol: comunProtocol,
+    route: "/comun/acompanhar/[protocol]/ouvidoria",
+  });
+  if (!rateLimit.allowed) throw new Error("Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.");
+}
+
+function parseOptionalDate(value: string) {
+  if (!value) return null;
+  const date = new Date(value.includes("T") ? value : `${value}T12:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function normalizeSatisfaction(value: string) {
+  if (["satisfactory", "unsatisfactory", "partial", "unknown"].includes(value)) return value;
+  return null;
+}
+
+function normalizeOfficialStatus(value: string) {
+  const valid = [
+    "draft",
+    "text_generated",
+    "sent_by_user",
+    "official_protocol_informed",
+    "waiting_response",
+    "response_received",
+    "satisfactory_response",
+    "unsatisfactory_response",
+    "overdue",
+    "resolved",
+    "unresolved",
+    "archived",
+  ];
+  return valid.includes(value) ? value : "draft";
 }

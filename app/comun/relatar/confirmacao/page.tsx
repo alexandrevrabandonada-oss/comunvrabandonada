@@ -68,6 +68,23 @@ export default function ConfirmationPage({ searchParams }: { searchParams: { pro
                   </div>
                 </div>
               </article>
+
+              <article className="border-2 border-comun-black bg-white p-4">
+                <div className="flex items-start gap-3">
+                  <Files className="mt-0.5 text-comun-rust" size={20} />
+                  <div>
+                    <h2 className="text-lg font-black uppercase">Protocolo Popular</h2>
+                    <p className="mt-3 text-sm text-comun-asphalt/80">
+                      O COMUN pode ajudar a gerar um texto para a Ouvidoria oficial. O envio oficial continua sendo feito por voce no canal da Prefeitura.
+                    </p>
+                    <div className="mt-4">
+                      <PrimaryLink href={`/comun/acompanhar/${encodeURIComponent(protocol)}/ouvidoria`}>
+                        Gerar texto para Ouvidoria
+                      </PrimaryLink>
+                    </div>
+                  </div>
+                </div>
+              </article>
             </div>
           </div>
 
