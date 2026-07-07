@@ -178,10 +178,12 @@ Nunca copiar para a pagina publica:
 7. Preparar a versao publica revisada a partir do rascunho.
 8. Editar `public_title`, `public_summary`, `public_body` e `public_slug`.
 9. Abrir o preview admin e procurar vazamentos de `raw_text`, `private_contact`, `response_text`, `internal_notes`, signed URL e `storage_path`.
-10. Enviar para revisao editorial.
-11. Aprovar somente com checklist de seguranca marcado.
-12. Publicar quando o status estiver `approved`.
-13. Despublicar se houver erro, risco ou necessidade de nova revisao.
-14. Arquivar dossies sem recorte claro ou com risco editorial alto.
+10. Registrar revisao factual com checklist.
+11. Registrar revisao editorial com outro revisor.
+12. Pedir ajuste quando qualquer etapa encontrar problema.
+13. Aprovar somente com checklist de seguranca marcado e dupla revisao concluida.
+14. Publicar quando o status estiver `approved`.
+15. Despublicar se houver erro, risco ou necessidade de nova revisao.
+16. Arquivar dossies sem recorte claro ou com risco editorial alto.
 
-A rota publica usa somente os campos publicos revisados. O rascunho interno, `public_version` antigo e `internal_notes` nao entram na pagina publica.
+A rota publica usa somente os campos publicos revisados. O rascunho interno, `public_version` antigo, notas de revisao, checklist de revisao e `internal_notes` nao entram na pagina publica.

@@ -135,6 +135,27 @@ try {
   if (approve.error) throw new Error(approve.error.message);
   ok("dossie enviado para revisao e aprovado");
 
+  const reviews = await service.from("comun_pauta_dossier_reviews").insert([
+    {
+      dossier_id: dossierId,
+      review_stage: "factual_review",
+      reviewer_name: "Revisor Factual Smoke",
+      decision: "approved",
+      checklist: { public_evidence_reviewed: true, no_personal_data: true },
+      notes: "Nota factual interna que nao deve aparecer.",
+    },
+    {
+      dossier_id: dossierId,
+      review_stage: "editorial_review",
+      reviewer_name: "Revisor Editorial Smoke",
+      decision: "approved",
+      checklist: { clear_text: true, objective_language: true },
+      notes: "Nota editorial interna que nao deve aparecer.",
+    },
+  ]);
+  if (reviews.error) throw new Error(reviews.error.message);
+  ok("dupla revisao registrada");
+
   const publish = await service.from("comun_pauta_dossiers").update({ review_status: "published", published_at: new Date().toISOString(), unpublished_at: null }).eq("id", dossierId);
   if (publish.error) throw new Error(publish.error.message);
   ok("dossie publicado");

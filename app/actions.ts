@@ -1216,6 +1216,20 @@ export async function updatePautaDossierWorkflowAction(formData: FormData) {
     if (!dossier.public_title || !dossier.public_summary || !dossier.public_body || !dossier.public_slug) {
       throw new Error("Publicacao exige titulo, resumo, corpo e slug publicos.");
     }
+    if (!dossier.review_state.canPublish) {
+      await logComunAdminAction({
+        session,
+        action: "pauta_dossier_publication_blocked_missing_reviews",
+        targetType: "pauta_dossier",
+        targetId: dossierId,
+        metadata: {
+          missing_reasons: dossier.review_state.missingReasons,
+          factual_reviewer: dossier.review_state.factualReviewer,
+          editorial_reviewer: dossier.review_state.editorialReviewer,
+        },
+      });
+      throw new Error(`Publicacao exige revisao factual e editorial aprovadas por revisores distintos: ${dossier.review_state.missingReasons.join(", ")}`);
+    }
     payload.review_status = "published";
     payload.published_at = now;
     payload.unpublished_at = null;
@@ -1251,6 +1265,55 @@ export async function updatePautaDossierWorkflowAction(formData: FormData) {
   revalidatePath("/comun/admin/dossies");
   revalidatePath("/comun/dossies");
   if (dossier.public_slug) revalidatePath(`/comun/dossies/${dossier.public_slug}`);
+  redirect(`/comun/admin/dossies/${dossierId}`);
+}
+
+export async function createPautaDossierReviewAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const dossierId = String(formData.get("dossier_id") ?? "");
+  const reviewStage = normalizeDossierReviewStage(String(formData.get("review_stage") ?? ""));
+  const decision = normalizeDossierReviewDecision(String(formData.get("decision") ?? "approved"));
+  const reviewerName = String(formData.get("reviewer_name") ?? "").trim();
+  if (!dossierId) throw new Error("Dossie sem ID.");
+  if (!reviewerName) throw new Error("Informe o nome do revisor.");
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+  const checklistValues = formData.getAll("review_checklist").map((value) => String(value));
+  const checklist = Object.fromEntries(checklistValues.map((value) => [value, true]));
+  const { data, error } = await supabase.from("comun_pauta_dossier_reviews").insert({
+    dossier_id: dossierId,
+    review_stage: reviewStage,
+    reviewer_name: reviewerName,
+    reviewer_role: String(formData.get("reviewer_role") ?? "").trim() || null,
+    decision,
+    checklist,
+    notes: String(formData.get("notes") ?? "").trim() || null,
+  }).select("id").single();
+  if (error) throw new Error(error.message);
+
+  const auditAction =
+    decision === "changes_requested"
+      ? "pauta_dossier_review_changes_requested"
+      : decision === "rejected"
+        ? "pauta_dossier_review_rejected"
+        : reviewStage === "factual_review"
+          ? "pauta_dossier_factual_review_created"
+          : "pauta_dossier_editorial_review_created";
+
+  await logComunAdminAction({
+    session,
+    action: auditAction,
+    targetType: "pauta_dossier_review",
+    targetId: data.id,
+    metadata: {
+      dossier_id: dossierId,
+      review_stage: reviewStage,
+      decision,
+      reviewer_name: reviewerName,
+      checklist_count: checklistValues.length,
+    },
+  });
+  revalidatePath(`/comun/admin/dossies/${dossierId}`);
   redirect(`/comun/admin/dossies/${dossierId}`);
 }
 
@@ -1360,6 +1423,15 @@ function normalizeEvidenceStatus(value: string) {
 function normalizeDossierStatus(value: string) {
   const valid = ["draft", "in_review", "ready", "archived"];
   return valid.includes(value) ? value : "draft";
+}
+
+function normalizeDossierReviewStage(value: string) {
+  return value === "editorial_review" ? "editorial_review" : "factual_review";
+}
+
+function normalizeDossierReviewDecision(value: string) {
+  const valid = ["approved", "changes_requested", "rejected"];
+  return valid.includes(value) ? value : "approved";
 }
 
 async function nextPublicDossierSlug(title: string, currentId: string) {

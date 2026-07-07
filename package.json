@@ -26,6 +26,7 @@
     "smoke:pauta-editorial-quality": "node scripts/smoke-comun-pauta-editorial-quality.mjs",
     "smoke:pauta-dossier-draft": "node scripts/smoke-comun-pauta-dossier-draft.mjs",
     "smoke:pauta-dossier-publication": "node scripts/smoke-comun-pauta-dossier-publication.mjs",
+    "smoke:pauta-dossier-double-review": "node scripts/smoke-comun-pauta-dossier-double-review.mjs",
     "storage:setup": "node scripts/setup-comun-storage.mjs",
     "bootstrap:admin": "node scripts/bootstrap-comun-admin.mjs",
     "verify": "npm run lint && npm run typecheck && npm run build",

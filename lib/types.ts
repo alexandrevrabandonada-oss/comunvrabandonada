@@ -206,6 +206,8 @@ export type PautaContributionStatus = "pending" | "approved" | "rejected" | "arc
 export type PautaTaskStatus = "open" | "in_progress" | "done" | "blocked" | "archived";
 export type PautaDossierStatus = "draft" | "in_review" | "ready" | "archived";
 export type PautaDossierReviewStatus = "draft" | "editorial_review" | "changes_requested" | "approved" | "published" | "unpublished" | "archived";
+export type PautaDossierReviewStage = "factual_review" | "editorial_review";
+export type PautaDossierReviewDecision = "approved" | "changes_requested" | "rejected";
 
 export type PautaSpace = {
   id: string;
@@ -319,5 +321,17 @@ export type PautaDossierEvidence = {
   evidence_id: string;
   position: number;
   included_note: string | null;
+  created_at: string;
+};
+
+export type PautaDossierReview = {
+  id: string;
+  dossier_id: string;
+  review_stage: PautaDossierReviewStage;
+  reviewer_name: string;
+  reviewer_role: string | null;
+  decision: PautaDossierReviewDecision;
+  checklist: Record<string, boolean>;
+  notes: string | null;
   created_at: string;
 };

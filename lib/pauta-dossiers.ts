@@ -1,6 +1,6 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
-import type { PautaDossier, PautaDossierEvidence, PautaEvidenceItem, PautaSpace } from "@/lib/types";
+import type { PautaDossier, PautaDossierEvidence, PautaDossierReview, PautaEvidenceItem, PautaSpace } from "@/lib/types";
 import {
   getAdminPautaSpace,
   listAdminPautaTasks,
@@ -22,6 +22,18 @@ export type PautaDossierEvidenceWithItem = PautaDossierEvidence & {
 
 export type PautaDossierDetail = PautaDossierWithPauta & {
   evidence_items: PautaDossierEvidenceWithItem[];
+  reviews: PautaDossierReview[];
+  review_state: PautaDossierReviewState;
+};
+
+export type PautaDossierReviewState = {
+  factualApproved: boolean;
+  editorialApproved: boolean;
+  reviewersDistinct: boolean;
+  factualReviewer: string | null;
+  editorialReviewer: string | null;
+  canPublish: boolean;
+  missingReasons: string[];
 };
 
 export type GeneratedPautaDossierDraft = Omit<PautaDossier, "id" | "created_at" | "updated_at"> & {
@@ -51,7 +63,7 @@ export async function getAdminPautaDossier(id: string) {
 
   const { data, error } = await supabase
     .from("comun_pauta_dossiers")
-    .select(`${dossierSelect}, pauta:comun_pauta_spaces(id, slug, title, community, category), evidence_items:comun_pauta_dossier_evidence(id, dossier_id, evidence_id, position, included_note, created_at, evidence:comun_pauta_evidence_items(id, title, summary, evidence_type, public_note, status, sensitivity))`)
+    .select(`${dossierSelect}, pauta:comun_pauta_spaces(id, slug, title, community, category), evidence_items:comun_pauta_dossier_evidence(id, dossier_id, evidence_id, position, included_note, created_at, evidence:comun_pauta_evidence_items(id, title, summary, evidence_type, public_note, status, sensitivity)), reviews:comun_pauta_dossier_reviews(id, dossier_id, review_stage, reviewer_name, reviewer_role, decision, checklist, notes, created_at)`)
     .eq("id", id)
     .limit(1)
     .maybeSingle();
@@ -64,6 +76,10 @@ export async function getAdminPautaDossier(id: string) {
       evidence: Array.isArray(row.evidence) ? row.evidence[0] ?? null : row.evidence ?? null,
     }))
     .sort((a: PautaDossierEvidenceWithItem, b: PautaDossierEvidenceWithItem) => a.position - b.position);
+  normalized.reviews = ((data as any).reviews ?? [])
+    .map((row: any) => ({ ...row, checklist: row.checklist ?? {} }))
+    .sort((a: PautaDossierReview, b: PautaDossierReview) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  normalized.review_state = getDossierReviewState(normalized.reviews);
   return normalized;
 }
 
@@ -234,6 +250,36 @@ export async function replaceDossierEvidence(dossierId: string, evidenceIds: str
   const rows = evidenceIds.map((evidenceId, index) => ({ dossier_id: dossierId, evidence_id: evidenceId, position: index }));
   const { error } = await supabase.from("comun_pauta_dossier_evidence").insert(rows);
   if (error) throw new Error(error.message);
+}
+
+export function getDossierReviewState(reviews: PautaDossierReview[]): PautaDossierReviewState {
+  const factual = latestApprovedReview(reviews, "factual_review");
+  const editorial = latestApprovedReview(reviews, "editorial_review");
+  const factualName = normalizeReviewerName(factual?.reviewer_name ?? "");
+  const editorialName = normalizeReviewerName(editorial?.reviewer_name ?? "");
+  const missingReasons = [] as string[];
+  if (!factual) missingReasons.push("factual_review_missing");
+  if (!editorial) missingReasons.push("editorial_review_missing");
+  if (factual && editorial && factualName === editorialName) missingReasons.push("reviewers_not_distinct");
+  return {
+    factualApproved: Boolean(factual),
+    editorialApproved: Boolean(editorial),
+    reviewersDistinct: Boolean(factual && editorial && factualName !== editorialName),
+    factualReviewer: factual?.reviewer_name ?? null,
+    editorialReviewer: editorial?.reviewer_name ?? null,
+    canPublish: missingReasons.length === 0,
+    missingReasons,
+  };
+}
+
+function latestApprovedReview(reviews: PautaDossierReview[], stage: "factual_review" | "editorial_review") {
+  return reviews
+    .filter((review) => review.review_stage === stage && review.decision === "approved")
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0] ?? null;
+}
+
+function normalizeReviewerName(value: string) {
+  return value.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 async function nextDossierSlug(pautaSlug: string) {

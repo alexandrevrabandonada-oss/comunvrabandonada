@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { preparePautaDossierPublicVersionAction, regeneratePautaDossierDraftAction, removePautaDossierEvidenceAction, updatePautaDossierAction, updatePautaDossierWorkflowAction } from "@/app/actions";
+import { createPautaDossierReviewAction, preparePautaDossierPublicVersionAction, regeneratePautaDossierDraftAction, removePautaDossierEvidenceAction, updatePautaDossierAction, updatePautaDossierWorkflowAction } from "@/app/actions";
 import { AdminShell } from "@/components/admin-shell";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { getAdminPautaDossier } from "@/lib/pauta-dossiers";
@@ -13,6 +13,24 @@ const checklist = [
   ["no_internal_notes", "Nao publicar internal_notes."],
   ["public_safe_evidence", "Usar apenas evidencias approved + public_safe."],
   ["protocol_summary_only", "Protocolos oficiais aparecem somente com resumo publico."],
+] as const;
+const factualChecklist = [
+  ["public_evidence_reviewed", "Evidencias publicas revisadas"],
+  ["no_personal_data", "Sem dado pessoal"],
+  ["no_private_contact", "Sem contato privado"],
+  ["no_full_response", "Sem resposta oficial completa"],
+  ["no_unsupported_accusation", "Sem acusacao sem base"],
+  ["fact_report_demand_distinction", "Distincao entre fato, relato e demanda"],
+  ["public_names_checked", "Links/nomes publicos conferidos, quando houver"],
+] as const;
+const editorialChecklist = [
+  ["clear_text", "Texto claro"],
+  ["objective_language", "Linguagem objetiva"],
+  ["adequate_title", "Titulo adequado"],
+  ["faithful_summary", "Resumo fiel"],
+  ["clear_demands", "Demandas compreensiveis"],
+  ["clear_next_step", "Proximo passo claro"],
+  ["no_unnecessary_exposure", "Sem exposicao desnecessaria"],
 ] as const;
 
 export const dynamic = "force-dynamic";
@@ -43,6 +61,9 @@ export default async function AdminDossierDetailPage({ params }: { params: { id:
           <div>
             <h2 className="text-xl font-black uppercase text-comun-yellow">Workflow editorial</h2>
             <p className="mt-1 text-sm text-comun-paper/70">Status: {dossier.review_status}. Publicacao exige versao publica preparada, aprovada e separada do rascunho interno.</p>
+            <p className="mt-1 text-xs font-bold uppercase text-comun-paper/60">
+              Revisao factual: {dossier.review_state.factualApproved ? `aprovada por ${dossier.review_state.factualReviewer}` : "pendente"} / revisao editorial: {dossier.review_state.editorialApproved ? `aprovada por ${dossier.review_state.editorialReviewer}` : "pendente"} / revisores distintos: {dossier.review_state.reviewersDistinct ? "sim" : "nao"}
+            </p>
             {dossier.published_at ? <p className="mt-1 text-xs font-bold uppercase text-comun-paper/60">Publicado em {new Date(dossier.published_at).toLocaleString("pt-BR")}</p> : null}
           </div>
           <form action={preparePautaDossierPublicVersionAction}>
@@ -69,6 +90,25 @@ export default async function AdminDossierDetailPage({ params }: { params: { id:
             <button name="intent" value="archive" className="min-h-10 border-2 border-comun-yellow px-3 text-xs font-black uppercase text-comun-yellow">Arquivar</button>
           </div>
         </form>
+      </section>
+
+      <section className="mt-6">
+        <h2 className="text-xl font-black uppercase">Revisoes editoriais</h2>
+        <div className="mt-3 grid gap-4 lg:grid-cols-2">
+          <ReviewForm title="Registrar revisao factual" stage="factual_review" dossierId={dossier.id} checklist={factualChecklist} />
+          <ReviewForm title="Registrar revisao editorial" stage="editorial_review" dossierId={dossier.id} checklist={editorialChecklist} />
+        </div>
+        <div className="mt-4 grid gap-3">
+          {dossier.reviews.map((review) => (
+            <article key={review.id} className="border-2 border-comun-black bg-white p-4">
+              <p className="text-xs font-black uppercase text-comun-asphalt/60">{review.review_stage} / {review.decision} / {new Date(review.created_at).toLocaleString("pt-BR")}</p>
+              <h3 className="mt-1 font-black uppercase">{review.reviewer_name}{review.reviewer_role ? ` - ${review.reviewer_role}` : ""}</h3>
+              {review.notes ? <p className="mt-2 text-sm text-comun-asphalt/75">{review.notes}</p> : null}
+              <p className="mt-2 text-xs font-bold uppercase text-comun-asphalt/60">Checklist: {Object.keys(review.checklist ?? {}).filter((key) => review.checklist[key]).join(", ") || "-"}</p>
+            </article>
+          ))}
+          {!dossier.reviews.length ? <p className="border-2 border-comun-black bg-white p-4">Nenhuma revisao registrada ainda.</p> : null}
+        </div>
       </section>
 
       <form action={updatePautaDossierAction} className="mt-5 grid gap-3 border-2 border-comun-black bg-white p-4 md:grid-cols-2">
@@ -146,4 +186,27 @@ function Input({ name, label, defaultValue = "" }: { name: string; label: string
 
 function Textarea({ name, label, defaultValue = "", rows = 4 }: { name: string; label: string; defaultValue?: string; rows?: number }) {
   return <label className="grid gap-1 text-sm font-black uppercase md:col-span-2">{label}<textarea name={name} defaultValue={defaultValue} rows={rows} className="border-2 border-comun-black p-3" /></label>;
+}
+
+function ReviewForm({ title, stage, dossierId, checklist: items }: { title: string; stage: string; dossierId: string; checklist: readonly (readonly [string, string])[] }) {
+  return (
+    <form action={createPautaDossierReviewAction} className="grid gap-3 border-2 border-comun-black bg-white p-4">
+      <input type="hidden" name="dossier_id" value={dossierId} />
+      <input type="hidden" name="review_stage" value={stage} />
+      <h3 className="font-black uppercase">{title}</h3>
+      <Input name="reviewer_name" label="Revisor" />
+      <Input name="reviewer_role" label="Papel/funcao" />
+      <label className="grid gap-1 text-sm font-black uppercase">Decisao<select name="decision" defaultValue="approved" className="min-h-11 border-2 border-comun-black px-2"><option value="approved">approved</option><option value="changes_requested">changes_requested</option><option value="rejected">rejected</option></select></label>
+      <div className="grid gap-2">
+        {items.map(([value, label]) => (
+          <label key={value} className="flex items-start gap-2 text-sm font-bold">
+            <input type="checkbox" name="review_checklist" value={value} className="mt-1" />
+            <span>{label}</span>
+          </label>
+        ))}
+      </div>
+      <Textarea name="notes" label="Notas da revisao" rows={3} />
+      <button className="min-h-10 border-2 border-comun-black bg-comun-yellow px-3 text-xs font-black uppercase">Registrar revisao</button>
+    </form>
+  );
 }

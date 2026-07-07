@@ -24,6 +24,7 @@
 - [ ] `npm run smoke:pauta-editorial-quality` passa
 - [ ] `npm run smoke:pauta-dossier-draft` passa
 - [ ] `npm run smoke:pauta-dossier-publication` passa
+- [ ] `npm run smoke:pauta-dossier-double-review` passa
 - [ ] GitHub sem segredos
 - [ ] Vercel conectado ao GitHub
 
@@ -91,6 +92,9 @@
 - [ ] abrir preview admin e confirmar que notas internas nao aparecem
 - [ ] preparar versao publica revisada do dossie
 - [ ] confirmar que nao existe publicacao automatica antes de aprovar
+- [ ] registrar revisao factual aprovada
+- [ ] registrar revisao editorial aprovada por revisor diferente
+- [ ] confirmar que publicar sem dupla revisao distinta e bloqueado
 - [ ] publicar dossie aprovado e abrir `/comun/dossies/<slug>`
 - [ ] despublicar e confirmar que `/comun/dossies/<slug>` deixa de aparecer
 - [ ] testar no celular via 4G/5G
