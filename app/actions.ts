@@ -664,6 +664,81 @@ export async function updateOfficialProtocolAdmin(formData: FormData) {
   redirect(`/comun/admin/relatos/${reportId}`);
 }
 
+export async function updateOfficialProtocolQueueAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const protocolId = String(formData.get("official_protocol_id") ?? "");
+  const intent = String(formData.get("intent") ?? "status");
+  const returnTo = String(formData.get("return_to") ?? "/comun/admin/protocolos-oficiais");
+  if (!protocolId) throw new Error("Protocolo oficial sem ID.");
+
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+
+  const statusFromForm = normalizeOfficialStatus(String(formData.get("status") ?? "waiting_response"));
+  const nextStatus =
+    intent === "resolved"
+      ? "resolved"
+      : intent === "unresolved"
+        ? "unresolved"
+        : intent === "archived"
+          ? "archived"
+          : intent === "response"
+            ? "response_received"
+            : statusFromForm;
+  const responseText = String(formData.get("response_text") ?? "").trim();
+  const publicSummary = String(formData.get("public_summary") ?? "").trim();
+  const updatePayload: Record<string, unknown> = {
+    status: nextStatus,
+    public_summary: publicSummary || null,
+  };
+
+  if (intent === "response" && responseText) {
+    updatePayload.response_text = responseText;
+    updatePayload.response_received_at = new Date().toISOString();
+  }
+  if (intent === "summary") updatePayload.public_summary = publicSummary || null;
+
+  const { data: protocol, error } = await supabase
+    .from("comun_official_protocols")
+    .update(updatePayload)
+    .eq("id", protocolId)
+    .select("id, report_id, comun_protocol")
+    .single();
+  if (error) throw new Error(error.message);
+
+  const auditAction =
+    intent === "response"
+      ? "official_protocol_response_saved"
+      : intent === "summary"
+        ? "official_protocol_public_summary_updated"
+        : intent === "resolved"
+          ? "official_protocol_resolved"
+          : intent === "unresolved"
+            ? "official_protocol_unresolved"
+            : intent === "archived"
+              ? "official_protocol_archived"
+              : "official_protocol_status_updated";
+
+  await logComunAdminAction({
+    session,
+    action: auditAction,
+    targetType: "official_protocol",
+    targetId: protocolId,
+    metadata: {
+      report_id: protocol.report_id,
+      comun_protocol: protocol.comun_protocol,
+      status: nextStatus,
+      response_text_length: responseText.length,
+      public_summary_length: publicSummary.length,
+    },
+  });
+
+  revalidatePath("/comun/admin/protocolos-oficiais");
+  revalidatePath(`/comun/admin/relatos/${protocol.report_id}`);
+  revalidatePath(`/comun/acompanhar/${protocol.comun_protocol}`);
+  redirect(returnTo.startsWith("/comun/admin/protocolos-oficiais") ? returnTo : "/comun/admin/protocolos-oficiais");
+}
+
 async function ensureOfficialProtocolForReport(report: Awaited<ReturnType<typeof getOfficialProtocolReportSurface>>) {
   if (!report) throw new Error("Protocolo COMUN nao encontrado.");
   return createOrUpdateOfficialProtocolDraftForReport(report);

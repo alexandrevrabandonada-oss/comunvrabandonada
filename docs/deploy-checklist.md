@@ -17,6 +17,7 @@
 - [ ] `npm run smoke:attachments-queue` passa
 - [ ] `npm run smoke:attachments-ops` passa
 - [ ] `npm run smoke:official-protocol` passa
+- [ ] `npm run smoke:official-protocols-admin` passa
 - [ ] GitHub sem segredos
 - [ ] Vercel conectado ao GitHub
 
@@ -62,6 +63,10 @@
 - [ ] confirmar que texto de Ouvidoria nao contem `raw_text`, contato privado ou notas internas
 - [ ] informar protocolo oficial fake e confirmar acompanhamento publico
 - [ ] registrar resposta fake e confirmar que `response_text` nao aparece publicamente
+- [ ] abrir `/comun/admin/protocolos-oficiais`
+- [ ] confirmar filtros de status, comunidade, pauta, canal, numero, resposta e vencidos
+- [ ] registrar resumo publico seguro e confirmar que aparece no acompanhamento
+- [ ] marcar resolvido/nao resolvido sem expor resposta completa
 - [ ] sair e confirmar que admin volta a exigir login
 - [ ] testar no celular via 4G/5G
 - [ ] testar link vindo do Instagram/WhatsApp

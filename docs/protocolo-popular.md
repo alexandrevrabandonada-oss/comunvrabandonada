@@ -59,3 +59,24 @@ Quando houver protocolo oficial informado, a equipe pode usar isso como evidenci
 - numero oficial, se nao expuser dado pessoal;
 - resumo publico sanitizado;
 - status do encaminhamento.
+
+## Painel admin de protocolos oficiais
+
+A equipe acompanha a fila em `/comun/admin/protocolos-oficiais`.
+
+Rotina semanal:
+
+1. Abrir `/comun/admin/protocolos-oficiais`.
+2. Filtrar vencidos.
+3. Cobrar retorno quando necessario, sempre pelo canal oficial apropriado.
+4. Registrar resposta recebida em campo privado.
+5. Escrever resumo publico seguro quando a resposta puder ser compartilhada.
+6. Marcar resolvido ou nao resolvido.
+7. Identificar pautas recorrentes para dossie.
+
+Cuidados:
+
+- nao publicar `response_text` completo;
+- nao copiar dados pessoais da resposta para `public_summary`;
+- nao prometer prazo ou resultado oficial;
+- usar a fila como controle operacional, nao como envio automatico.

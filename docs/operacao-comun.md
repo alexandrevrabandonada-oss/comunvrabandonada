@@ -98,3 +98,13 @@ Limites:
 - COMUN nao promete prazo ou resposta oficial.
 - Texto gerado e assistente de redacao, nao protocolo oficial.
 - Dados privados do relato nunca devem entrar no texto gerado.
+
+### Rotina semanal de protocolos oficiais
+
+1. Abrir `/comun/admin/protocolos-oficiais`.
+2. Filtrar vencidos.
+3. Cobrar retorno quando necessario, fora do COMUN e pelo canal oficial adequado.
+4. Registrar resposta recebida sem publicar `response_text` completo.
+5. Escrever `public_summary` apenas quando houver resumo seguro.
+6. Marcar resolvido ou nao resolvido.
+7. Identificar pautas recorrentes para dossie.
