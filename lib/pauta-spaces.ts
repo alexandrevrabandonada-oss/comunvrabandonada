@@ -1,5 +1,5 @@
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
-import type { PautaContribution, PautaSpace, PautaTask } from "@/lib/types";
+import type { PautaContribution, PautaEvidenceItem, PautaSpace, PautaSynthesisVersion, PautaTask } from "@/lib/types";
 import { calculateOfficialProtocolTiming } from "@/lib/official-protocols";
 import { getClientFingerprint, hashLookupValue } from "@/lib/rate-limit";
 
@@ -20,6 +20,7 @@ export type PautaSpaceStats = {
 
 export type PublicPautaContribution = Pick<PautaContribution, "id" | "pauta_id" | "contribution_type" | "author_alias" | "body" | "status" | "created_at">;
 export type PublicPautaTask = Pick<PautaTask, "id" | "pauta_id" | "title" | "description" | "status" | "help_needed" | "owner_alias" | "due_at" | "created_at">;
+export type PublicPautaEvidenceItem = Pick<PautaEvidenceItem, "id" | "pauta_id" | "title" | "summary" | "evidence_type" | "sensitivity" | "status" | "public_note" | "created_at">;
 export type PautaContributionSafetyDecision = {
   allowed: boolean;
   status: "pending" | "archived";
@@ -37,7 +38,7 @@ export async function listPublicPautaSpaces() {
 
   const { data, error } = await supabase
     .from("comun_pauta_spaces")
-    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, created_at, updated_at")
+    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, created_at, updated_at")
     .eq("visibility", "public")
     .neq("status", "archived")
     .order("updated_at", { ascending: false });
@@ -52,7 +53,7 @@ export async function getPublicPautaSpaceBySlug(slug: string) {
 
   const { data, error } = await supabase
     .from("comun_pauta_spaces")
-    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, created_at, updated_at")
+    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, created_at, updated_at")
     .eq("slug", slug)
     .eq("visibility", "public")
     .neq("status", "archived")
@@ -69,7 +70,7 @@ export async function listAdminPautaSpaces() {
 
   const { data, error } = await supabase
     .from("comun_pauta_spaces")
-    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, created_at, updated_at")
+    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, created_at, updated_at")
     .order("updated_at", { ascending: false });
 
   if (error || !data) return [];
@@ -82,7 +83,7 @@ export async function getAdminPautaSpace(id: string) {
 
   const { data, error } = await supabase
     .from("comun_pauta_spaces")
-    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, created_at, updated_at")
+    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, created_at, updated_at")
     .eq("id", id)
     .limit(1)
     .maybeSingle();
@@ -166,6 +167,51 @@ export async function listPublicPautaTasks(pautaId: string) {
 
   if (error || !data) return [];
   return data as PublicPautaTask[];
+}
+
+export async function listPublicPautaEvidence(pautaId: string) {
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) return [] as PublicPautaEvidenceItem[];
+
+  const { data, error } = await supabase
+    .from("comun_pauta_evidence_items")
+    .select("id, pauta_id, title, summary, evidence_type, sensitivity, status, public_note, created_at")
+    .eq("pauta_id", pautaId)
+    .eq("status", "approved")
+    .eq("sensitivity", "public_safe")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return [];
+  return data as PublicPautaEvidenceItem[];
+}
+
+export async function listAdminPautaEvidence(pautaId: string) {
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) return [] as PautaEvidenceItem[];
+
+  const { data, error } = await supabase
+    .from("comun_pauta_evidence_items")
+    .select("id, pauta_id, source_type, source_id, title, summary, evidence_type, sensitivity, status, public_note, internal_note, created_at, updated_at")
+    .eq("pauta_id", pautaId)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return [];
+  return data as PautaEvidenceItem[];
+}
+
+export async function listPautaSynthesisVersions(pautaId: string) {
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) return [] as PautaSynthesisVersion[];
+
+  const { data, error } = await supabase
+    .from("comun_pauta_synthesis_versions")
+    .select("id, pauta_id, previous_public_synthesis, new_public_synthesis, previous_next_step, new_next_step, editor_note, created_at")
+    .eq("pauta_id", pautaId)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (error || !data) return [];
+  return data as PautaSynthesisVersion[];
 }
 
 export async function listAdminPautaTasks(pautaId: string) {

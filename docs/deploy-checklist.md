@@ -21,6 +21,7 @@
 - [ ] `npm run smoke:official-protocols-metrics` passa
 - [ ] `npm run smoke:pauta-spaces` passa
 - [ ] `npm run smoke:pauta-contribution-safety` passa
+- [ ] `npm run smoke:pauta-editorial-quality` passa
 - [ ] GitHub sem segredos
 - [ ] Vercel conectado ao GitHub
 
@@ -79,5 +80,9 @@
 - [ ] abrir `/comun/admin/pautas/contribuicoes` e revisar fila global
 - [ ] aprovar contribuicao e confirmar que aparece publicamente
 - [ ] criar tarefa e confirmar que aparece publicamente sem contato privado
+- [ ] editar sintese publica da pauta e confirmar historico de versao
+- [ ] criar evidencia candidate e confirmar que nao aparece publicamente
+- [ ] aprovar evidencia `public_safe` e confirmar que aparece publicamente
+- [ ] criar evidencia `private_only` e confirmar que nao aparece publicamente
 - [ ] testar no celular via 4G/5G
 - [ ] testar link vindo do Instagram/WhatsApp

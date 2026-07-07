@@ -147,6 +147,18 @@ Rotina:
 
 O limite de envio excessivo existe para reduzir abuso, mas a moderacao deve preservar participacao legitima e evitar bloqueios agressivos.
 
+### Qualidade editorial de pauta
+
+Antes de usar uma pauta como base de dossie:
+
+1. Revisar sintese publica e proximo passo.
+2. Conferir historico de versoes.
+3. Preencher checklist editorial.
+4. Criar evidencias a partir de contribuicoes aprovadas, relatos sanitizados, protocolos ou fontes manuais.
+5. Aprovar apenas evidencias `public_safe`.
+6. Manter evidencias `private_only` e notas internas fora da pagina publica.
+7. Conferir se ha distincao entre fato, relato e proposta.
+
 Nunca copiar para a pagina publica:
 
 - contato privado de contribuicao;

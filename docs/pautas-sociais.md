@@ -90,3 +90,34 @@ Nao usar tarefa para expor contato privado.
 ## Caminho para dossie
 
 Uma pauta pode virar dossie quando houver volume, evidencias, protocolos, respostas oficiais e sintese madura. O dossie continua exigindo revisao humana antes de publicacao.
+
+## Qualidade editorial
+
+Antes de uma pauta virar dossie, revisar no admin:
+
+- checklist editorial;
+- historico de versoes da sintese;
+- evidencias aprovadas;
+- sensibilidade de cada evidencia.
+
+Evidencias so aparecem publicamente quando:
+
+- `status='approved'`;
+- `sensitivity='public_safe'`.
+
+Nunca publicar:
+
+- `internal_note`;
+- evidencia `private_only`;
+- evidencia `candidate`, `rejected` ou `archived`;
+- resposta oficial completa sem resumo publico;
+- acusacao sem evidencia revisada.
+
+## Como transformar uma pauta em dossie
+
+1. Moderar contribuicoes.
+2. Aprovar evidencias seguras.
+3. Revisar sintese publica.
+4. Preencher checklist editorial.
+5. Definir proximo passo.
+6. So depois criar dossie.

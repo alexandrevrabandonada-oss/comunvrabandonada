@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { submitPautaContribution } from "@/app/actions";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
 import { getCommunity, getIssue } from "@/lib/comun-data";
-import { getPublicPautaSpaceBySlug, listApprovedPautaContributions, listPublicPautaTasks, listSafePautaOfficialProtocols, listSafePautaReports } from "@/lib/pauta-spaces";
+import { getPublicPautaSpaceBySlug, listApprovedPautaContributions, listPublicPautaEvidence, listPublicPautaTasks, listSafePautaOfficialProtocols, listSafePautaReports } from "@/lib/pauta-spaces";
 import { listPublicReports } from "@/lib/reports";
 
 export const dynamic = "force-dynamic";
@@ -23,11 +23,12 @@ export default async function PautaPage({ params, searchParams }: { params: { sl
   const space = await getPublicPautaSpaceBySlug(params.slug);
   if (!space) return <LegacyIssuePage slug={params.slug} />;
 
-  const [reports, protocols, contributions, tasks, community] = await Promise.all([
+  const [reports, protocols, contributions, tasks, evidence, community] = await Promise.all([
     listSafePautaReports(space),
     listSafePautaOfficialProtocols(space),
     listApprovedPautaContributions(space.id),
     listPublicPautaTasks(space.id),
+    listPublicPautaEvidence(space.id),
     space.community ? getCommunity(space.community) : null,
   ]);
   const grouped = groupContributions(contributions);
@@ -86,6 +87,21 @@ export default async function PautaPage({ params, searchParams }: { params: { sl
               </div>
             </div>
           ))}
+        </div>
+      </Section>
+
+      <Section>
+        <h2 className="text-2xl font-black uppercase text-comun-yellow">Evidencias publicas</h2>
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          {evidence.map((item) => (
+            <article key={item.id} className="paper-panel border-2 border-comun-black p-4">
+              <p className="text-xs font-black uppercase text-comun-asphalt/60">{item.evidence_type}</p>
+              <h3 className="mt-1 font-black uppercase">{item.title}</h3>
+              {item.summary ? <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{item.summary}</p> : null}
+              {item.public_note ? <p className="comun-prose mt-2 border-l-4 border-comun-yellow pl-3 text-sm text-comun-asphalt/75">{item.public_note}</p> : null}
+            </article>
+          ))}
+          {!evidence.length ? <EmptyState text="Ainda nao ha evidencias publicas aprovadas para esta pauta." /> : null}
         </div>
       </Section>
 

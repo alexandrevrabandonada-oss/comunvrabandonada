@@ -217,6 +217,7 @@ export type PautaSpace = {
   public_synthesis: string | null;
   next_step: string | null;
   created_from_signal: string | null;
+  editorial_checklist: string[];
   created_at: string;
   updated_at: string;
 };
@@ -250,6 +251,33 @@ export type PautaTask = {
   help_needed: boolean;
   owner_alias: string | null;
   due_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PautaSynthesisVersion = {
+  id: string;
+  pauta_id: string;
+  previous_public_synthesis: string | null;
+  new_public_synthesis: string | null;
+  previous_next_step: string | null;
+  new_next_step: string | null;
+  editor_note: string | null;
+  created_at: string;
+};
+
+export type PautaEvidenceItem = {
+  id: string;
+  pauta_id: string;
+  source_type: "contribution" | "report" | "official_protocol" | "manual" | "external_reference";
+  source_id: string | null;
+  title: string;
+  summary: string | null;
+  evidence_type: "relato" | "foto_segura" | "protocolo" | "resposta_oficial" | "dado_agregado" | "documento" | "testemunho" | "outro";
+  sensitivity: "public_safe" | "needs_review" | "private_only";
+  status: "candidate" | "approved" | "rejected" | "archived";
+  public_note: string | null;
+  internal_note: string | null;
   created_at: string;
   updated_at: string;
 };

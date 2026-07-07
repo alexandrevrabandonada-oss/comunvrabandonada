@@ -795,6 +795,11 @@ export async function upsertPautaSpaceAction(formData: FormData) {
   if (!title) throw new Error("Informe o titulo da pauta.");
   const supabase = createServiceSupabaseClient();
   if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+  const current = id
+    ? await supabase.from("comun_pauta_spaces").select("public_synthesis, next_step").eq("id", id).maybeSingle()
+    : null;
+  const publicSynthesis = String(formData.get("public_synthesis") ?? "").trim() || null;
+  const nextStep = String(formData.get("next_step") ?? "").trim() || null;
 
   const payload = {
     slug: slugifyPauta(String(formData.get("slug") ?? "").trim() || title),
@@ -804,8 +809,8 @@ export async function upsertPautaSpaceAction(formData: FormData) {
     community: String(formData.get("community") ?? "").trim() || null,
     status: normalizePautaStatus(String(formData.get("status") ?? "observing")),
     visibility: String(formData.get("visibility") ?? "public") === "internal" ? "internal" : "public",
-    public_synthesis: String(formData.get("public_synthesis") ?? "").trim() || null,
-    next_step: String(formData.get("next_step") ?? "").trim() || null,
+    public_synthesis: publicSynthesis,
+    next_step: nextStep,
     updated_at: new Date().toISOString(),
   };
 
@@ -814,6 +819,32 @@ export async function upsertPautaSpaceAction(formData: FormData) {
     : supabase.from("comun_pauta_spaces").insert({ ...payload, created_from_signal: String(formData.get("created_from_signal") ?? "").trim() || null });
   const { data, error } = await query.select("id, slug").single();
   if (error) throw new Error(error.message);
+
+  const previousSynthesis = current?.data?.public_synthesis ?? null;
+  const previousNextStep = current?.data?.next_step ?? null;
+  if (id && (previousSynthesis !== publicSynthesis || previousNextStep !== nextStep)) {
+    const editorNote = String(formData.get("editor_note") ?? "").trim();
+    await supabase.from("comun_pauta_synthesis_versions").insert({
+      pauta_id: data.id,
+      previous_public_synthesis: previousSynthesis,
+      new_public_synthesis: publicSynthesis,
+      previous_next_step: previousNextStep,
+      new_next_step: nextStep,
+      editor_note: editorNote || null,
+    });
+    await logComunAdminAction({
+      session,
+      action: "pauta_synthesis_updated",
+      targetType: "pauta_space",
+      targetId: data.id,
+      metadata: {
+        slug: data.slug,
+        public_synthesis_changed: previousSynthesis !== publicSynthesis,
+        next_step_changed: previousNextStep !== nextStep,
+        editor_note_length: editorNote.length,
+      },
+    });
+  }
 
   await logComunAdminAction({
     session,
@@ -827,6 +858,85 @@ export async function upsertPautaSpaceAction(formData: FormData) {
   revalidatePath(`/comun/pautas/${data.slug}`);
   revalidatePath("/comun/admin/pautas");
   redirect(`/comun/admin/pautas/${data.id}`);
+}
+
+export async function updatePautaEditorialChecklistAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const pautaId = String(formData.get("pauta_id") ?? "");
+  if (!pautaId) throw new Error("Pauta sem ID.");
+  const checklist = formData.getAll("editorial_checklist").map((value) => String(value)).filter(Boolean);
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+
+  const { error } = await supabase.from("comun_pauta_spaces").update({
+    editorial_checklist: checklist,
+    updated_at: new Date().toISOString(),
+  }).eq("id", pautaId);
+  if (error) throw new Error(error.message);
+
+  await logComunAdminAction({
+    session,
+    action: "pauta_editorial_checklist_updated",
+    targetType: "pauta_space",
+    targetId: pautaId,
+    metadata: { checked_count: checklist.length },
+  });
+  revalidatePath(`/comun/admin/pautas/${pautaId}`);
+  redirect(`/comun/admin/pautas/${pautaId}`);
+}
+
+export async function upsertPautaEvidenceAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const pautaId = String(formData.get("pauta_id") ?? "");
+  const evidenceId = String(formData.get("evidence_id") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  if (!pautaId || !title) throw new Error("Evidencia sem pauta ou titulo.");
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+  const status = normalizeEvidenceStatus(String(formData.get("status") ?? "candidate"));
+  const payload = {
+    source_type: normalizeEvidenceSourceType(String(formData.get("source_type") ?? "manual")),
+    source_id: String(formData.get("source_id") ?? "").trim() || null,
+    title,
+    summary: String(formData.get("summary") ?? "").trim() || null,
+    evidence_type: normalizeEvidenceType(String(formData.get("evidence_type") ?? "outro")),
+    sensitivity: normalizeEvidenceSensitivity(String(formData.get("sensitivity") ?? "public_safe")),
+    status,
+    public_note: String(formData.get("public_note") ?? "").trim() || null,
+    internal_note: String(formData.get("internal_note") ?? "").trim() || null,
+    updated_at: new Date().toISOString(),
+  };
+  const query = evidenceId
+    ? supabase.from("comun_pauta_evidence_items").update(payload).eq("id", evidenceId).eq("pauta_id", pautaId)
+    : supabase.from("comun_pauta_evidence_items").insert({ ...payload, pauta_id: pautaId });
+  const { data, error } = await query.select("id").single();
+  if (error) throw new Error(error.message);
+
+  const action = evidenceId
+    ? status === "approved"
+      ? "pauta_evidence_approved"
+      : status === "rejected"
+        ? "pauta_evidence_rejected"
+        : status === "archived"
+          ? "pauta_evidence_archived"
+          : "pauta_evidence_updated"
+    : "pauta_evidence_created";
+  await logComunAdminAction({
+    session,
+    action,
+    targetType: "pauta_evidence",
+    targetId: data.id,
+    metadata: {
+      pauta_id: pautaId,
+      source_type: payload.source_type,
+      evidence_type: payload.evidence_type,
+      sensitivity: payload.sensitivity,
+      status,
+    },
+  });
+  revalidatePath(`/comun/admin/pautas/${pautaId}`);
+  revalidatePath("/comun/pautas");
+  redirect(`/comun/admin/pautas/${pautaId}`);
 }
 
 export async function createPautaFromSignalAction(formData: FormData) {
@@ -990,4 +1100,24 @@ function normalizePautaStatus(value: string) {
 function normalizeTaskStatus(value: string) {
   const valid = ["open", "in_progress", "done", "blocked", "archived"];
   return valid.includes(value) ? value : "open";
+}
+
+function normalizeEvidenceSourceType(value: string) {
+  const valid = ["contribution", "report", "official_protocol", "manual", "external_reference"];
+  return valid.includes(value) ? value : "manual";
+}
+
+function normalizeEvidenceType(value: string) {
+  const valid = ["relato", "foto_segura", "protocolo", "resposta_oficial", "dado_agregado", "documento", "testemunho", "outro"];
+  return valid.includes(value) ? value : "outro";
+}
+
+function normalizeEvidenceSensitivity(value: string) {
+  const valid = ["public_safe", "needs_review", "private_only"];
+  return valid.includes(value) ? value : "public_safe";
+}
+
+function normalizeEvidenceStatus(value: string) {
+  const valid = ["candidate", "approved", "rejected", "archived"];
+  return valid.includes(value) ? value : "candidate";
 }
