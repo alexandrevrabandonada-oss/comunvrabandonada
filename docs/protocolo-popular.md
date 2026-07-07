@@ -94,3 +94,5 @@ A secao `Inteligencia operacional` em `/comun/admin/protocolos-oficiais` calcula
 - acumulados por pauta, comunidade e canal/agencia.
 
 A secao `Possiveis dossies` e apenas um radar interno. Ela sinaliza pautas ou recortes locais com volume, vencimento, resposta insatisfatoria ou nao resolvidos acumulados. Ela nao cria dossie automaticamente e nao publica resposta completa.
+
+Quando um sinal amadurece, o admin pode criar uma pauta social. A pauta organiza discussao, contribuicoes moderadas e tarefas publicas antes de qualquer dossie final.

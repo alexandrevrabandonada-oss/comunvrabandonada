@@ -19,6 +19,7 @@
 - [ ] `npm run smoke:official-protocol` passa
 - [ ] `npm run smoke:official-protocols-admin` passa
 - [ ] `npm run smoke:official-protocols-metrics` passa
+- [ ] `npm run smoke:pauta-spaces` passa
 - [ ] GitHub sem segredos
 - [ ] Vercel conectado ao GitHub
 
@@ -70,5 +71,10 @@
 - [ ] registrar resumo publico seguro e confirmar que aparece no acompanhamento
 - [ ] marcar resolvido/nao resolvido sem expor resposta completa
 - [ ] sair e confirmar que admin volta a exigir login
+- [ ] abrir `/comun/pautas`
+- [ ] criar pauta social em `/comun/admin/pautas`
+- [ ] enviar contribuicao publica e confirmar que fica pendente
+- [ ] aprovar contribuicao e confirmar que aparece publicamente
+- [ ] criar tarefa e confirmar que aparece publicamente sem contato privado
 - [ ] testar no celular via 4G/5G
 - [ ] testar link vindo do Instagram/WhatsApp

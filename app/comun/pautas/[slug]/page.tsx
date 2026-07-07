@@ -1,156 +1,198 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { submitPautaContribution } from "@/app/actions";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
 import { getCommunity, getIssue } from "@/lib/comun-data";
-import { StatusLabel } from "@/components/status-label";
+import { getPublicPautaSpaceBySlug, listApprovedPautaContributions, listPublicPautaTasks, listSafePautaOfficialProtocols, listSafePautaReports } from "@/lib/pauta-spaces";
 import { listPublicReports } from "@/lib/reports";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function IssuePage({ params }: { params: { slug: string } }) {
-  const issue = await getIssue(params.slug);
-  if (!issue) notFound();
-  const [community, communityReports] = await Promise.all([
-    getCommunity(issue.communitySlug),
-    listPublicReports({ communitySlug: issue.communitySlug }),
+const contributionTypes = [
+  ["relato", "Relato"],
+  ["evidencia", "Evidencia"],
+  ["proposta", "Proposta"],
+  ["duvida", "Duvida"],
+  ["contraponto", "Contraponto"],
+  ["encaminhamento", "Encaminhamento"],
+  ["tarefa_oferecida", "Tarefa oferecida"],
+] as const;
+
+export default async function PautaPage({ params, searchParams }: { params: { slug: string }; searchParams: Record<string, string | undefined> }) {
+  const space = await getPublicPautaSpaceBySlug(params.slug);
+  if (!space) return <LegacyIssuePage slug={params.slug} />;
+
+  const [reports, protocols, contributions, tasks, community] = await Promise.all([
+    listSafePautaReports(space),
+    listSafePautaOfficialProtocols(space),
+    listApprovedPautaContributions(space.id),
+    listPublicPautaTasks(space.id),
+    space.community ? getCommunity(space.community) : null,
   ]);
-  const reports = communityReports.filter((report) => report.issue_slug === issue.slug);
-  const isWorkCampaign = issue.slug === "trabalho-burnout-volta-redonda";
+  const grouped = groupContributions(contributions);
 
   return (
     <ComunShell>
       <Section>
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
           <div>
-            <StatusLabel value={issue.status} />
-            <h1 className="comun-prose mt-4 text-2xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">{issue.title}</h1>
-            <p className="comun-prose mt-4 max-w-3xl text-base text-comun-paper/80 sm:text-lg">{issue.summary}</p>
-            {isWorkCampaign ? (
-              <div className="mt-5 grid gap-4">
-                <div className="border-2 border-comun-yellow bg-comun-black p-5">
-                  <p className="comun-prose text-lg font-black uppercase text-comun-yellow min-[390px]:text-2xl sm:text-3xl">
-                    O problema que voce vive no trabalho pode nao ser so seu. Relate com seguranca no COMUN VR ABANDONADA.
-                  </p>
-                  <p className="comun-prose mt-3 max-w-3xl text-sm text-comun-paper/82 sm:text-base">
-                    Voce pode relatar sem se identificar publicamente. Se autorizar publicacao, a equipe pode remover
-                    dados pessoais antes de qualquer divulgacao.
-                  </p>
-                </div>
-                <div className="border-2 border-comun-black bg-white p-4 text-sm text-comun-asphalt/80">
-                  Esta pauta organiza memoria coletiva e acompanhamento publico. Nao substitui denuncia juridica formal
-                  e nao promete solucao individual.
-                </div>
-              </div>
-            ) : null}
-            <p className="mt-3 text-sm text-comun-paper/60">
-              Comunidade relacionada:{" "}
-              {community ? (
-                <Link href={`/comun/c/${community.slug}`} className="font-bold text-comun-yellow">
-                  {community.name}
-                </Link>
-              ) : (
-                "-"
-              )}
-            </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <PrimaryLink href={`/comun/relatar?comunidade=${issue.communitySlug}&pauta=${issue.slug}`}>
-                {isWorkCampaign ? "Relatar situacao de trabalho" : "Enviar relato parecido"}
-              </PrimaryLink>
-              <Link
-                href="/comun/seguranca"
-                className="inline-flex min-h-12 items-center justify-center border-2 border-comun-yellow px-5 py-3 text-center text-sm font-black uppercase text-comun-yellow"
-              >
-                Acompanhar pauta
-              </Link>
-            </div>
+            <p className="text-xs font-black uppercase text-comun-yellow">{statusLabel(space.status)} / {community?.name ?? space.community ?? "comunidade aberta"}</p>
+            <h1 className="comun-prose mt-3 text-3xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">{space.title}</h1>
+            <p className="comun-prose mt-4 max-w-3xl text-comun-paper/78">{space.summary ?? "Pauta em organizacao coletiva."}</p>
+            {space.next_step ? <p className="mt-4 border-2 border-comun-yellow bg-comun-black p-4 text-sm font-bold text-comun-paper">Proximo passo: {space.next_step}</p> : null}
           </div>
           <aside className="paper-panel border-2 border-comun-black p-4">
-            <h2 className="text-lg font-black uppercase">O que acontece depois?</h2>
-            <ul className="mt-3 grid gap-2 text-sm text-comun-asphalt/80">
-              <li className="border-l-4 border-comun-yellow pl-3">O relato entra em revisao interna.</li>
-              <li className="border-l-4 border-comun-yellow pl-3">A equipe cruza sinais parecidos e organiza padroes.</li>
-              <li className="border-l-4 border-comun-yellow pl-3">So a versao sanitizada pode aparecer publicamente.</li>
-            </ul>
+            <h2 className="font-black uppercase">Numeros principais</h2>
+            <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+              <Metric label="Relatos" value={space.stats.reportCount} />
+              <Metric label="Protocolos" value={space.stats.officialProtocolCount} />
+              <Metric label="Vencidos" value={space.stats.overdueProtocolCount} />
+              <Metric label="Tarefas abertas" value={space.stats.openTaskCount} />
+            </dl>
           </aside>
         </div>
       </Section>
-      {isWorkCampaign ? (
-        <Section>
-          <h2 className="text-2xl font-black uppercase text-comun-yellow">Situacoes que queremos mapear</h2>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {workCampaignCategories.map((category) => (
-              <Link
-                key={category.slug}
-                href={`/comun/relatar?comunidade=trabalho&pauta=${issue.slug}&categoria=${category.slug}`}
-                className="border-2 border-comun-black bg-white px-3 py-2 text-sm font-black uppercase text-comun-black"
-              >
-                {category.label}
-              </Link>
-            ))}
-          </div>
-        </Section>
-      ) : null}
+
       <Section>
-        <div className="grid gap-4 md:grid-cols-3">
-          <Panel title="Linha do tempo" items={issue.timeline} />
-          <Panel title="Materiais uteis" items={issue.usefulMaterials} />
-          <div className="paper-panel border-2 border-comun-black p-4 md:col-span-1">
-            <h2 className="font-black uppercase">Proximos passos</h2>
-            <p className="mt-3 text-sm text-comun-asphalt/75">{issue.nextSteps}</p>
-          </div>
+        <h2 className="text-2xl font-black uppercase text-comun-yellow">O que sabemos</h2>
+        <p className="comun-prose mt-3 max-w-4xl text-comun-paper/78">{space.public_synthesis ?? "A sintese publica ainda esta em construcao pela curadoria."}</p>
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          {reports.slice(0, 4).map((report: any) => (
+            <article key={report.id} className="paper-panel border-2 border-comun-black p-4">
+              <p className="text-xs font-black uppercase">{report.protocol}</p>
+              <h3 className="comun-prose mt-2 font-black uppercase">{report.title ?? "Relato sanitizado"}</h3>
+              <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{report.public_text}</p>
+            </article>
+          ))}
+          {!reports.length ? <EmptyState text="Ainda nao ha relatos sanitizados publicados neste recorte." /> : null}
         </div>
       </Section>
+
       <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">Relatos associados</h2>
-        {reports.length ? (
-          <div className="mt-4 grid gap-4">
-            {reports.map((report) => (
-              <article key={report.id} className="paper-panel border-2 border-comun-black p-4">
-                <p className="text-xs font-black uppercase">{report.protocol}</p>
-                <h3 className="comun-prose mt-2 font-black uppercase">{report.title ?? "Relato sanitizado"}</h3>
-                <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{report.public_text}</p>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <EmptyState text="Ainda nao ha relatos publicados nesta pauta." />
-        )}
+        <h2 className="text-2xl font-black uppercase text-comun-yellow">Discussao estruturada</h2>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          {contributionTypes.slice(0, 6).map(([type, label]) => (
+            <div key={type} className="paper-panel border-2 border-comun-black p-4">
+              <h3 className="font-black uppercase">{label}</h3>
+              <div className="mt-3 grid gap-2">
+                {(grouped[type] ?? []).map((item) => (
+                  <article key={item.id} className="border-l-4 border-comun-yellow bg-white p-3 text-sm">
+                    <p className="comun-prose text-comun-asphalt/80">{item.body}</p>
+                    <p className="mt-2 text-xs font-bold uppercase text-comun-asphalt/55">{item.author_alias || "Contribuicao anonima"}</p>
+                  </article>
+                ))}
+                {!(grouped[type] ?? []).length ? <p className="text-sm text-comun-asphalt/65">Sem contribuicoes aprovadas ainda.</p> : null}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section>
+        <h2 className="text-2xl font-black uppercase text-comun-yellow">Contribuir</h2>
+        {searchParams.contribuicao === "pendente" ? <p className="mt-3 border-2 border-comun-yellow bg-comun-black p-3 text-sm font-bold text-comun-paper">Contribuicao recebida. Ela entra em moderacao antes de aparecer publicamente.</p> : null}
+        <form action={submitPautaContribution} className="paper-panel mt-4 grid gap-3 border-2 border-comun-black p-4">
+          <input type="hidden" name="pauta_id" value={space.id} />
+          <input type="hidden" name="slug" value={space.slug} />
+          <label className="grid gap-1 text-sm font-black uppercase">Nome/apelido opcional<input name="author_alias" className="min-h-11 border-2 border-comun-black px-3" /></label>
+          <label className="grid gap-1 text-sm font-black uppercase">Tipo<select name="contribution_type" className="min-h-11 border-2 border-comun-black px-3">{contributionTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label className="grid gap-1 text-sm font-black uppercase">Texto<textarea name="body" rows={5} required className="border-2 border-comun-black p-3" /></label>
+          <label className="grid gap-1 text-sm font-black uppercase">Contato privado opcional<input name="contact_private" className="min-h-11 border-2 border-comun-black px-3" /></label>
+          <p className="text-xs font-bold text-comun-asphalt/70">A contribuicao passa por moderacao. Nao envie CPF, telefone, endereco completo ou dados sensiveis de terceiros.</p>
+          <button className="min-h-11 border-2 border-comun-black bg-comun-yellow font-black uppercase">Enviar para moderacao</button>
+        </form>
+      </Section>
+
+      <Section>
+        <h2 className="text-2xl font-black uppercase text-comun-yellow">Tarefas</h2>
+        <div className="mt-4 grid gap-3">
+          {tasks.map((task) => (
+            <article key={task.id} className="paper-panel border-2 border-comun-black p-4">
+              <p className="text-xs font-black uppercase text-comun-asphalt/60">{task.status}{task.help_needed ? " / precisa de ajuda" : ""}</p>
+              <h3 className="mt-1 font-black uppercase">{task.title}</h3>
+              {task.description ? <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{task.description}</p> : null}
+            </article>
+          ))}
+          {!tasks.length ? <EmptyState text="Ainda nao ha tarefas publicas nesta pauta." /> : null}
+        </div>
+      </Section>
+
+      <Section>
+        <h2 className="text-2xl font-black uppercase text-comun-yellow">Protocolos e cobranca</h2>
+        <div className="mt-4 grid gap-3 md:grid-cols-4">
+          <MetricCard label="Protocolos" value={space.stats.officialProtocolCount} />
+          <MetricCard label="Vencidos" value={space.stats.overdueProtocolCount} />
+          <MetricCard label="Aguardando" value={space.stats.waitingResponseCount} />
+          <MetricCard label="Nao resolvidos" value={space.stats.unresolvedCount} />
+        </div>
+        {protocols.length ? <PrimaryLink href="/comun/protocolo-popular">Usar Protocolo Popular</PrimaryLink> : null}
       </Section>
     </ComunShell>
   );
 }
 
-function Panel({ title, items }: { title: string; items: string[] }) {
+async function LegacyIssuePage({ slug }: { slug: string }) {
+  const issue = await getIssue(slug);
+  if (!issue) notFound();
+  const [community, communityReports] = await Promise.all([getCommunity(issue.communitySlug), listPublicReports({ communitySlug: issue.communitySlug })]);
+  const reports = communityReports.filter((report) => report.issue_slug === issue.slug);
+  const isWorkCampaign = issue.slug === "trabalho-burnout-volta-redonda";
   return (
-    <div className="paper-panel border-2 border-comun-black p-4">
-      <h2 className="font-black uppercase">{title}</h2>
-      {items.length ? (
-        <ul className="mt-3 grid gap-2 text-sm text-comun-asphalt/75">
-          {items.map((item) => <li key={item} className="comun-prose border-l-4 border-comun-yellow pl-3">{item}</li>)}
-        </ul>
-      ) : (
-        <p className="mt-3 text-sm text-comun-asphalt/70">Ainda nao ha conteudo publico organizado para este bloco.</p>
-      )}
-    </div>
+    <ComunShell>
+      <Section>
+        <h1 className="comun-prose text-3xl font-black uppercase text-comun-yellow">{issue.title}</h1>
+        <p className="comun-prose mt-4 max-w-3xl text-comun-paper/80">{issue.summary}</p>
+        <p className="mt-3 text-sm text-comun-paper/60">Comunidade relacionada: {community?.name ?? "-"}</p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <PrimaryLink href={`/comun/relatar?comunidade=${issue.communitySlug}&pauta=${issue.slug}`}>{isWorkCampaign ? "Relatar situacao de trabalho" : "Enviar relato parecido"}</PrimaryLink>
+          <Link href="/comun/pautas" className="inline-flex min-h-12 items-center justify-center border-2 border-comun-yellow px-5 py-3 text-sm font-black uppercase text-comun-yellow">Acompanhar pauta</Link>
+        </div>
+      </Section>
+      <Section>
+        <h2 className="text-2xl font-black uppercase text-comun-yellow">Relatos associados</h2>
+        <div className="mt-4 grid gap-4">
+          {reports.map((report) => (
+            <article key={report.id} className="paper-panel border-2 border-comun-black p-4">
+              <p className="text-xs font-black uppercase">{report.protocol}</p>
+              <h3 className="comun-prose mt-2 font-black uppercase">{report.title ?? "Relato sanitizado"}</h3>
+              <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{report.public_text}</p>
+            </article>
+          ))}
+          {!reports.length ? <EmptyState text="Ainda nao ha relatos publicados nesta pauta." /> : null}
+        </div>
+      </Section>
+    </ComunShell>
   );
 }
 
-function EmptyState({ text }: { text: string }) {
-  return <p className="mt-4 border-2 border-comun-yellow bg-comun-black p-4 text-sm text-comun-paper/75">{text}</p>;
+function groupContributions(items: Awaited<ReturnType<typeof listApprovedPautaContributions>>) {
+  return items.reduce<Record<string, typeof items>>((acc, item) => {
+    acc[item.contribution_type] = [...(acc[item.contribution_type] ?? []), item];
+    return acc;
+  }, {});
 }
 
-const workCampaignCategories = [
-  { slug: "pressao-psicologica", label: "Pressao psicologica" },
-  { slug: "assedio-moral", label: "Assedio moral" },
-  { slug: "burnout", label: "Burnout" },
-  { slug: "atraso-salarial", label: "Atraso salarial" },
-  { slug: "fgts-atrasado", label: "FGTS atrasado" },
-  { slug: "terceirizacao", label: "Terceirizacao" },
-  { slug: "jornada-abusiva", label: "Jornada abusiva" },
-  { slug: "ferias-impostas", label: "Ferias impostas" },
-  { slug: "risco-de-acidente", label: "Risco de acidente" },
-  { slug: "insalubridade-periculosidade", label: "Insalubridade/periculosidade" },
-  { slug: "medo-de-denunciar", label: "Medo de denunciar" },
-  { slug: "retaliacao", label: "Retaliacao" },
-];
+function Metric({ label, value }: { label: string; value: number }) {
+  return <div><dt className="text-xs font-black uppercase text-comun-asphalt/60">{label}</dt><dd className="text-2xl font-black">{value}</dd></div>;
+}
+
+function MetricCard({ label, value }: { label: string; value: number }) {
+  return <div className="paper-panel border-2 border-comun-black p-4"><p className="text-xs font-black uppercase text-comun-asphalt/60">{label}</p><p className="mt-2 text-3xl font-black">{value}</p></div>;
+}
+
+function EmptyState({ text }: { text: string }) {
+  return <p className="border-2 border-comun-yellow bg-comun-black p-4 text-sm text-comun-paper/75">{text}</p>;
+}
+
+function statusLabel(value: string) {
+  const labels: Record<string, string> = {
+    observing: "Observando",
+    organizing: "Organizando",
+    drafting: "Sintetizando",
+    pressuring: "Cobrando",
+    resolved: "Resolvida",
+    unresolved: "Nao resolvida",
+  };
+  return labels[value] ?? value;
+}

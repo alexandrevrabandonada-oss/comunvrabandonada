@@ -10,6 +10,7 @@ import {
   createOrUpdateOfficialProtocolDraftForReport,
   getOfficialProtocolReportSurface,
 } from "@/lib/official-protocols";
+import { createPendingPautaContribution, slugifyPauta } from "@/lib/pauta-spaces";
 import { generateProtocol } from "@/lib/protocol";
 import { isValidProtocol, normalizeProtocol } from "@/lib/reports";
 import { createPublicSupabaseClient, createServiceSupabaseClient, createSupabaseServerClient } from "@/lib/supabase/server";
@@ -739,6 +740,160 @@ export async function updateOfficialProtocolQueueAction(formData: FormData) {
   redirect(returnTo.startsWith("/comun/admin/protocolos-oficiais") ? returnTo : "/comun/admin/protocolos-oficiais");
 }
 
+export async function submitPautaContribution(formData: FormData) {
+  const pautaId = String(formData.get("pauta_id") ?? "");
+  const slug = String(formData.get("slug") ?? "");
+  const contributionType = normalizeContributionType(String(formData.get("contribution_type") ?? "relato"));
+  const authorAlias = String(formData.get("author_alias") ?? "").trim().slice(0, 80);
+  const contactPrivate = String(formData.get("contact_private") ?? "").trim().slice(0, 160);
+  const body = String(formData.get("body") ?? "").trim();
+  if (!pautaId || !slug) throw new Error("Pauta sem ID.");
+  if (body.length < 10) throw new Error("A contribuicao precisa ter pelo menos 10 caracteres.");
+
+  await createPendingPautaContribution({ pautaId, contributionType, authorAlias, body, contactPrivate });
+  revalidatePath(`/comun/pautas/${slug}`);
+  redirect(`/comun/pautas/${slug}?contribuicao=pendente`);
+}
+
+export async function upsertPautaSpaceAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const id = String(formData.get("id") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  if (!title) throw new Error("Informe o titulo da pauta.");
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+
+  const payload = {
+    slug: slugifyPauta(String(formData.get("slug") ?? "").trim() || title),
+    title,
+    summary: String(formData.get("summary") ?? "").trim() || null,
+    category: String(formData.get("category") ?? "").trim() || null,
+    community: String(formData.get("community") ?? "").trim() || null,
+    status: normalizePautaStatus(String(formData.get("status") ?? "observing")),
+    visibility: String(formData.get("visibility") ?? "public") === "internal" ? "internal" : "public",
+    public_synthesis: String(formData.get("public_synthesis") ?? "").trim() || null,
+    next_step: String(formData.get("next_step") ?? "").trim() || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  const query = id
+    ? supabase.from("comun_pauta_spaces").update(payload).eq("id", id)
+    : supabase.from("comun_pauta_spaces").insert({ ...payload, created_from_signal: String(formData.get("created_from_signal") ?? "").trim() || null });
+  const { data, error } = await query.select("id, slug").single();
+  if (error) throw new Error(error.message);
+
+  await logComunAdminAction({
+    session,
+    action: id ? "pauta_space_updated" : "pauta_space_created",
+    targetType: "pauta_space",
+    targetId: data.id,
+    metadata: { slug: data.slug, status: payload.status, visibility: payload.visibility },
+  });
+
+  revalidatePath("/comun/pautas");
+  revalidatePath(`/comun/pautas/${data.slug}`);
+  revalidatePath("/comun/admin/pautas");
+  redirect(`/comun/admin/pautas/${data.id}`);
+}
+
+export async function createPautaFromSignalAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const title = String(formData.get("title") ?? "").trim();
+  if (!title) throw new Error("Sinal sem titulo.");
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+
+  const community = String(formData.get("community") ?? "").trim() || null;
+  const category = String(formData.get("category") ?? "").trim() || null;
+  const slug = slugifyPauta([community, category, title].filter(Boolean).join(" "));
+  const { data, error } = await supabase.from("comun_pauta_spaces").insert({
+    slug,
+    title,
+    summary: "Pauta criada a partir de sinal operacional de protocolos oficiais.",
+    category,
+    community,
+    status: "organizing",
+    visibility: "public",
+    created_from_signal: String(formData.get("created_from_signal") ?? "protocolos-oficiais"),
+  }).select("id, slug").single();
+  if (error) throw new Error(error.message);
+
+  await logComunAdminAction({
+    session,
+    action: "pauta_space_created_from_signal",
+    targetType: "pauta_space",
+    targetId: data.id,
+    metadata: { slug, community, category },
+  });
+
+  revalidatePath("/comun/pautas");
+  revalidatePath("/comun/admin/pautas");
+  redirect(`/comun/admin/pautas/${data.id}`);
+}
+
+export async function moderatePautaContributionAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const id = String(formData.get("contribution_id") ?? "");
+  const pautaId = String(formData.get("pauta_id") ?? "");
+  const status = normalizeContributionStatus(String(formData.get("status") ?? "pending"));
+  const notes = String(formData.get("moderator_notes") ?? "").trim();
+  if (!id || !pautaId) throw new Error("Contribuicao sem ID.");
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+
+  const { error } = await supabase.from("comun_pauta_contributions").update({
+    status,
+    moderator_notes: notes || null,
+    updated_at: new Date().toISOString(),
+  }).eq("id", id).eq("pauta_id", pautaId);
+  if (error) throw new Error(error.message);
+
+  await logComunAdminAction({
+    session,
+    action: status === "approved" ? "pauta_contribution_approved" : status === "rejected" ? "pauta_contribution_rejected" : "pauta_contribution_archived",
+    targetType: "pauta_contribution",
+    targetId: id,
+    metadata: { pauta_id: pautaId, status },
+  });
+  revalidatePath("/comun/pautas");
+  revalidatePath("/comun/admin/pautas");
+  redirect(`/comun/admin/pautas/${pautaId}`);
+}
+
+export async function upsertPautaTaskAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const id = String(formData.get("task_id") ?? "");
+  const pautaId = String(formData.get("pauta_id") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  if (!pautaId || !title) throw new Error("Tarefa sem pauta ou titulo.");
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+  const payload = {
+    title,
+    description: String(formData.get("description") ?? "").trim() || null,
+    status: normalizeTaskStatus(String(formData.get("status") ?? "open")),
+    help_needed: formData.get("help_needed") === "true",
+    owner_alias: String(formData.get("owner_alias") ?? "").trim() || null,
+    due_at: parseOptionalDate(String(formData.get("due_at") ?? "")),
+    updated_at: new Date().toISOString(),
+  };
+  const query = id
+    ? supabase.from("comun_pauta_tasks").update(payload).eq("id", id).eq("pauta_id", pautaId)
+    : supabase.from("comun_pauta_tasks").insert({ ...payload, pauta_id: pautaId });
+  const { data, error } = await query.select("id").single();
+  if (error) throw new Error(error.message);
+
+  await logComunAdminAction({
+    session,
+    action: id ? (payload.status === "archived" ? "pauta_task_archived" : "pauta_task_updated") : "pauta_task_created",
+    targetType: "pauta_task",
+    targetId: data.id,
+    metadata: { pauta_id: pautaId, status: payload.status },
+  });
+  revalidatePath("/comun/pautas");
+  redirect(`/comun/admin/pautas/${pautaId}`);
+}
+
 async function ensureOfficialProtocolForReport(report: Awaited<ReturnType<typeof getOfficialProtocolReportSurface>>) {
   if (!report) throw new Error("Protocolo COMUN nao encontrado.");
   return createOrUpdateOfficialProtocolDraftForReport(report);
@@ -780,4 +935,24 @@ function normalizeOfficialStatus(value: string) {
     "archived",
   ];
   return valid.includes(value) ? value : "draft";
+}
+
+function normalizeContributionType(value: string) {
+  const valid = ["relato", "evidencia", "proposta", "duvida", "contraponto", "encaminhamento", "tarefa_oferecida"];
+  return valid.includes(value) ? value : "relato";
+}
+
+function normalizeContributionStatus(value: string) {
+  const valid = ["pending", "approved", "rejected", "archived"];
+  return valid.includes(value) ? value : "pending";
+}
+
+function normalizePautaStatus(value: string) {
+  const valid = ["observing", "organizing", "drafting", "pressuring", "resolved", "unresolved", "archived"];
+  return valid.includes(value) ? value : "observing";
+}
+
+function normalizeTaskStatus(value: string) {
+  const valid = ["open", "in_progress", "done", "blocked", "archived"];
+  return valid.includes(value) ? value : "open";
 }

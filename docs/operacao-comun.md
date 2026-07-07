@@ -123,3 +123,23 @@ O painel mostra possiveis dossies quando encontra:
 - nao resolvidos acumulados.
 
 Essa leitura e interna. Antes de qualquer publicacao, a equipe ainda precisa revisar evidencias, anonimizar trechos e decidir o recorte editorial.
+
+## Pautas sociais
+
+Rotina:
+
+1. Abrir `/comun/admin/pautas`.
+2. Criar pauta com titulo, comunidade, categoria e resumo.
+3. Escrever sintese publica apenas com dados seguros.
+4. Revisar contribuicoes pendentes em `/comun/admin/pautas/[id]`.
+5. Aprovar somente contribuicoes sem dados pessoais de terceiros.
+6. Criar tarefas publicas quando houver acao coletiva clara.
+7. Usar a pauta como preparacao para dossie futuro, nao como feed generico.
+
+Nunca copiar para a pagina publica:
+
+- contato privado de contribuicao;
+- texto bruto de relato;
+- notas internas;
+- resposta oficial completa;
+- signed URL ou storage path.

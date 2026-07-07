@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { updateOfficialProtocolQueueAction } from "@/app/actions";
+import { createPautaFromSignalAction, updateOfficialProtocolQueueAction } from "@/app/actions";
 import { AdminShell } from "@/components/admin-shell";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { listCommunities, listIssues } from "@/lib/comun-data";
@@ -110,6 +110,15 @@ export default async function AdminOfficialProtocolsPage({
               <Link href={filterHref(searchParams, { pauta: signal.issue, comunidade: signal.community ?? undefined })} className="mt-3 inline-flex min-h-10 items-center border-2 border-comun-black bg-comun-yellow px-3 text-sm font-black uppercase">
                 Ver protocolos filtrados
               </Link>
+              <form action={createPautaFromSignalAction} className="mt-2">
+                <input type="hidden" name="title" value={labelForIssue(signal.issue, issueBySlug)} />
+                <input type="hidden" name="category" value={signal.issue === "sem-pauta" ? "" : signal.issue} />
+                <input type="hidden" name="community" value={signal.community ?? ""} />
+                <input type="hidden" name="created_from_signal" value={`protocolos-oficiais:${signal.reason}`} />
+                <button className="min-h-10 border-2 border-comun-black bg-white px-3 text-sm font-black uppercase">
+                  Criar pauta social
+                </button>
+              </form>
             </div>
           ))}
           {!queue.metrics.dossierSignals.length ? <p className="border-2 border-comun-black bg-white p-4">Ainda nao ha sinais suficientes para preparar dossies.</p> : null}

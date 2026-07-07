@@ -15,6 +15,10 @@ const items = [
   "O Protocolo Popular nao substitui Ouvidoria oficial: ele ajuda a redigir um texto, mas nao envia automaticamente para a Prefeitura.",
   "O numero oficial deve ser informado pelo usuario depois do registro no canal oficial.",
   "Respostas oficiais podem conter dados pessoais e nao sao publicas automaticamente.",
+  "Espacos de pauta organizam discussao por problema real, nao por feed global.",
+  "Contribuicoes em pautas passam por moderacao antes de aparecer publicamente.",
+  "Contato privado enviado em contribuicao de pauta nunca aparece na pagina publica.",
+  "Pautas, tarefas e dossies nao substituem canal oficial nem atendimento de urgencia.",
 ];
 
 export default function SecurityPage() {

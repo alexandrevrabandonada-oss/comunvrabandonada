@@ -199,3 +199,50 @@ export type PublicOfficialProtocol = Pick<
   | "created_at"
   | "updated_at"
 >;
+
+export type PautaSpaceStatus = "observing" | "organizing" | "drafting" | "pressuring" | "resolved" | "unresolved" | "archived";
+export type PautaContributionType = "relato" | "evidencia" | "proposta" | "duvida" | "contraponto" | "encaminhamento" | "tarefa_oferecida";
+export type PautaContributionStatus = "pending" | "approved" | "rejected" | "archived";
+export type PautaTaskStatus = "open" | "in_progress" | "done" | "blocked" | "archived";
+
+export type PautaSpace = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  category: string | null;
+  community: string | null;
+  status: PautaSpaceStatus;
+  visibility: "public" | "internal" | "archived";
+  public_synthesis: string | null;
+  next_step: string | null;
+  created_from_signal: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PautaContribution = {
+  id: string;
+  pauta_id: string;
+  contribution_type: PautaContributionType;
+  author_alias: string | null;
+  body: string;
+  contact_private: string | null;
+  status: PautaContributionStatus;
+  moderator_notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PautaTask = {
+  id: string;
+  pauta_id: string;
+  title: string;
+  description: string | null;
+  status: PautaTaskStatus;
+  help_needed: boolean;
+  owner_alias: string | null;
+  due_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
