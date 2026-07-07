@@ -204,6 +204,7 @@ export type PautaSpaceStatus = "observing" | "organizing" | "drafting" | "pressu
 export type PautaContributionType = "relato" | "evidencia" | "proposta" | "duvida" | "contraponto" | "encaminhamento" | "tarefa_oferecida";
 export type PautaContributionStatus = "pending" | "approved" | "rejected" | "archived";
 export type PautaTaskStatus = "open" | "in_progress" | "done" | "blocked" | "archived";
+export type PautaDossierStatus = "draft" | "in_review" | "ready" | "archived";
 
 export type PautaSpace = {
   id: string;
@@ -280,4 +281,32 @@ export type PautaEvidenceItem = {
   internal_note: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type PautaDossier = {
+  id: string;
+  pauta_id: string;
+  slug: string;
+  title: string;
+  status: PautaDossierStatus;
+  executive_summary: string | null;
+  problem_statement: string | null;
+  affected_communities: string | null;
+  evidence_summary: string | null;
+  official_protocols_summary: string | null;
+  demands: string | null;
+  next_steps: string | null;
+  public_version: string | null;
+  internal_notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PautaDossierEvidence = {
+  id: string;
+  dossier_id: string;
+  evidence_id: string;
+  position: number;
+  included_note: string | null;
+  created_at: string;
 };

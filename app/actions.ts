@@ -10,6 +10,7 @@ import {
   createOrUpdateOfficialProtocolDraftForReport,
   getOfficialProtocolReportSurface,
 } from "@/lib/official-protocols";
+import { createPautaDossierDraft, regeneratePautaDossierDraft } from "@/lib/pauta-dossiers";
 import { assessPautaContributionSafety, createPendingPautaContribution, slugifyPauta } from "@/lib/pauta-spaces";
 import { generateProtocol } from "@/lib/protocol";
 import { isValidProtocol, normalizeProtocol } from "@/lib/reports";
@@ -1039,6 +1040,103 @@ export async function upsertPautaTaskAction(formData: FormData) {
   redirect(`/comun/admin/pautas/${pautaId}`);
 }
 
+export async function createPautaDossierDraftAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const pautaId = String(formData.get("pauta_id") ?? "");
+  if (!pautaId) throw new Error("Pauta sem ID.");
+  const dossierId = await createPautaDossierDraft(pautaId);
+  await logComunAdminAction({
+    session,
+    action: "pauta_dossier_created",
+    targetType: "pauta_dossier",
+    targetId: dossierId,
+    metadata: { pauta_id: pautaId },
+  });
+  revalidatePath(`/comun/admin/pautas/${pautaId}`);
+  revalidatePath("/comun/admin/dossies");
+  redirect(`/comun/admin/dossies/${dossierId}`);
+}
+
+export async function regeneratePautaDossierDraftAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const dossierId = String(formData.get("dossier_id") ?? "");
+  const pautaId = String(formData.get("pauta_id") ?? "");
+  if (!dossierId) throw new Error("Dossie sem ID.");
+  await regeneratePautaDossierDraft(dossierId);
+  await logComunAdminAction({
+    session,
+    action: "pauta_dossier_regenerated",
+    targetType: "pauta_dossier",
+    targetId: dossierId,
+    metadata: { pauta_id: pautaId || null },
+  });
+  revalidatePath(`/comun/admin/dossies/${dossierId}`);
+  if (pautaId) revalidatePath(`/comun/admin/pautas/${pautaId}`);
+  redirect(`/comun/admin/dossies/${dossierId}`);
+}
+
+export async function updatePautaDossierAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const dossierId = String(formData.get("dossier_id") ?? "");
+  const pautaId = String(formData.get("pauta_id") ?? "");
+  if (!dossierId) throw new Error("Dossie sem ID.");
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+  const status = normalizeDossierStatus(String(formData.get("status") ?? "draft"));
+  const payload = {
+    title: String(formData.get("title") ?? "").trim() || "Dossie sem titulo",
+    status,
+    executive_summary: String(formData.get("executive_summary") ?? "").trim() || null,
+    problem_statement: String(formData.get("problem_statement") ?? "").trim() || null,
+    affected_communities: String(formData.get("affected_communities") ?? "").trim() || null,
+    evidence_summary: String(formData.get("evidence_summary") ?? "").trim() || null,
+    official_protocols_summary: String(formData.get("official_protocols_summary") ?? "").trim() || null,
+    demands: String(formData.get("demands") ?? "").trim() || null,
+    next_steps: String(formData.get("next_steps") ?? "").trim() || null,
+    public_version: String(formData.get("public_version") ?? "").trim() || null,
+    internal_notes: String(formData.get("internal_notes") ?? "").trim() || null,
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = await supabase.from("comun_pauta_dossiers").update(payload).eq("id", dossierId);
+  if (error) throw new Error(error.message);
+  await logComunAdminAction({
+    session,
+    action: "pauta_dossier_updated",
+    targetType: "pauta_dossier",
+    targetId: dossierId,
+    metadata: {
+      pauta_id: pautaId || null,
+      status,
+      public_version_length: payload.public_version?.length ?? 0,
+      internal_notes_length: payload.internal_notes?.length ?? 0,
+    },
+  });
+  revalidatePath(`/comun/admin/dossies/${dossierId}`);
+  revalidatePath(`/comun/admin/dossies/${dossierId}/preview`);
+  if (pautaId) revalidatePath(`/comun/admin/pautas/${pautaId}`);
+  redirect(`/comun/admin/dossies/${dossierId}`);
+}
+
+export async function removePautaDossierEvidenceAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const dossierId = String(formData.get("dossier_id") ?? "");
+  const evidenceId = String(formData.get("evidence_id") ?? "");
+  if (!dossierId || !evidenceId) throw new Error("Vinculo de evidencia invalido.");
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+  const { error } = await supabase.from("comun_pauta_dossier_evidence").delete().eq("dossier_id", dossierId).eq("evidence_id", evidenceId);
+  if (error) throw new Error(error.message);
+  await logComunAdminAction({
+    session,
+    action: "pauta_dossier_evidence_removed",
+    targetType: "pauta_dossier",
+    targetId: dossierId,
+    metadata: { evidence_id: evidenceId },
+  });
+  revalidatePath(`/comun/admin/dossies/${dossierId}`);
+  redirect(`/comun/admin/dossies/${dossierId}`);
+}
+
 async function ensureOfficialProtocolForReport(report: Awaited<ReturnType<typeof getOfficialProtocolReportSurface>>) {
   if (!report) throw new Error("Protocolo COMUN nao encontrado.");
   return createOrUpdateOfficialProtocolDraftForReport(report);
@@ -1120,4 +1218,9 @@ function normalizeEvidenceSensitivity(value: string) {
 function normalizeEvidenceStatus(value: string) {
   const valid = ["candidate", "approved", "rejected", "archived"];
   return valid.includes(value) ? value : "candidate";
+}
+
+function normalizeDossierStatus(value: string) {
+  const valid = ["draft", "in_review", "ready", "archived"];
+  return valid.includes(value) ? value : "draft";
 }

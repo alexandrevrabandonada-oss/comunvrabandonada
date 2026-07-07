@@ -12,7 +12,7 @@ Ela nao e feed global, chat, ranking, like ou rede social generica.
 - Pauta: espaco coletivo para discutir e organizar um problema recorrente.
 - Protocolo: acompanhamento de demanda enviada a canal oficial.
 - Tarefa: acao concreta aberta para organizacao comunitaria.
-- Dossie: sintese editorial futura, revisada e publicavel.
+- Dossie: rascunho editorial interno, revisado a partir de evidencias seguras, protocolos e tarefas.
 
 ## Criar pauta
 
@@ -87,9 +87,19 @@ Tarefas sao acoes simples:
 
 Nao usar tarefa para expor contato privado.
 
-## Caminho para dossie
+## Dossie por pauta
 
-Uma pauta pode virar dossie quando houver volume, evidencias, protocolos, respostas oficiais e sintese madura. O dossie continua exigindo revisao humana antes de publicacao.
+Uma pauta pode virar dossie quando houver volume, evidencias, protocolos, respostas oficiais e sintese madura. O primeiro passo e sempre interno:
+
+1. Abrir `/comun/admin/pautas/[id]`.
+2. Revisar checklist editorial.
+3. Aprovar somente evidencias `approved + public_safe`.
+4. Usar o bloco `Dossie da pauta` para criar ou regenerar rascunho.
+5. Editar em `/comun/admin/dossies/[id]`.
+6. Conferir o preview admin em `/comun/admin/dossies/[id]/preview`.
+7. Manter status `draft` ou `in_review` ate haver revisao humana.
+
+O rascunho nao publica uma pagina final automaticamente.
 
 ## Qualidade editorial
 
@@ -120,4 +130,17 @@ Nunca publicar:
 3. Revisar sintese publica.
 4. Preencher checklist editorial.
 5. Definir proximo passo.
-6. So depois criar dossie.
+6. Criar rascunho interno do dossie.
+7. Remover evidencia duvidosa.
+8. Escrever demandas e proximos passos.
+9. Usar preview admin para revisar vazamento.
+10. Decidir publicacao somente em fluxo futuro.
+
+O preview e interno. Nunca colocar nele:
+
+- `raw_text`;
+- `private_contact`;
+- `response_text` completo;
+- `internal_notes`;
+- signed URL ou `storage_path`;
+- evidencia `private_only`.

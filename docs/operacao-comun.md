@@ -166,3 +166,17 @@ Nunca copiar para a pagina publica:
 - notas internas;
 - resposta oficial completa;
 - signed URL ou storage path.
+
+### Rotina semanal de dossies por pauta
+
+1. Abrir `/comun/admin/dossies`.
+2. Abrir dossies em `draft` ou `in_review`.
+3. Voltar para a pauta quando precisar aprovar novas evidencias.
+4. Conferir se as evidencias incluidas sao `approved + public_safe`.
+5. Resumir respostas oficiais usando apenas `public_summary`.
+6. Editar sintese executiva, problema, comunidades, demandas e proximos passos.
+7. Abrir o preview admin e procurar vazamentos de `raw_text`, `private_contact`, `response_text`, `internal_notes`, signed URL e `storage_path`.
+8. Marcar como `ready` somente quando o rascunho estiver revisado.
+9. Arquivar dossies sem recorte claro ou com risco editorial alto.
+
+O dossie por pauta ainda nao tem rota publica final. Ele e uma mesa de edicao interna para preparar material revisado.

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { moderatePautaContributionAction, updatePautaEditorialChecklistAction, upsertPautaEvidenceAction, upsertPautaSpaceAction, upsertPautaTaskAction } from "@/app/actions";
+import { createPautaDossierDraftAction, moderatePautaContributionAction, regeneratePautaDossierDraftAction, updatePautaEditorialChecklistAction, upsertPautaEvidenceAction, upsertPautaSpaceAction, upsertPautaTaskAction } from "@/app/actions";
 import { AdminShell } from "@/components/admin-shell";
 import { requireComunAdmin } from "@/lib/admin-auth";
+import { listAdminPautaDossiers } from "@/lib/pauta-dossiers";
 import { getAdminPautaSpace, listAdminPautaContributions, listAdminPautaEvidence, listAdminPautaTasks, listPautaSynthesisVersions, listSafePautaOfficialProtocols, listSafePautaReports } from "@/lib/pauta-spaces";
 
 const statusOptions = ["observing", "organizing", "drafting", "pressuring", "resolved", "unresolved", "archived"];
@@ -24,13 +25,14 @@ export default async function AdminPautaSpaceDetailPage({ params }: { params: { 
   const session = await requireComunAdmin();
   const space = await getAdminPautaSpace(params.id);
   if (!space) notFound();
-  const [contributions, tasks, reports, protocols, evidence, versions] = await Promise.all([
+  const [contributions, tasks, reports, protocols, evidence, versions, dossiers] = await Promise.all([
     listAdminPautaContributions(space.id),
     listAdminPautaTasks(space.id),
     listSafePautaReports(space),
     listSafePautaOfficialProtocols(space),
     listAdminPautaEvidence(space.id),
     listPautaSynthesisVersions(space.id),
+    listAdminPautaDossiers({ pautaId: space.id }),
   ]);
   const checked = new Set(space.editorial_checklist ?? []);
 
@@ -43,6 +45,41 @@ export default async function AdminPautaSpaceDetailPage({ params }: { params: { 
         </div>
         <Link href={`/comun/pautas/${space.slug}`} className="border-2 border-comun-black bg-white px-3 py-2 text-sm font-black uppercase">Abrir publica</Link>
       </div>
+
+      <section className="mt-5 border-2 border-comun-black bg-comun-black p-4 text-comun-paper">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-black uppercase text-comun-yellow">Dossie da pauta</h2>
+            <p className="mt-1 text-sm text-comun-paper/70">Rascunho interno gerado a partir de evidencias publicas aprovadas, protocolos sanitizados e tarefas abertas.</p>
+          </div>
+          <form action={createPautaDossierDraftAction}>
+            <input type="hidden" name="pauta_id" value={space.id} />
+            <button className="min-h-11 border-2 border-comun-yellow px-3 text-sm font-black uppercase text-comun-yellow">Criar rascunho</button>
+          </form>
+        </div>
+        <div className="mt-4 grid gap-3">
+          {dossiers.map((dossier) => (
+            <article key={dossier.id} className="border-2 border-comun-yellow bg-comun-paper p-3 text-comun-black">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black uppercase text-comun-asphalt/60">{dossier.status}</p>
+                  <h3 className="font-black uppercase">{dossier.title}</h3>
+                  <p className="text-xs font-bold text-comun-asphalt/60">Atualizado em {formatDate(dossier.updated_at)}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Link href={`/comun/admin/dossies/${dossier.id}`} className="border-2 border-comun-black bg-white px-3 py-2 text-xs font-black uppercase">Abrir editor</Link>
+                  <form action={regeneratePautaDossierDraftAction}>
+                    <input type="hidden" name="dossier_id" value={dossier.id} />
+                    <input type="hidden" name="pauta_id" value={space.id} />
+                    <button className="min-h-9 border-2 border-comun-black bg-comun-yellow px-3 text-xs font-black uppercase">Regenerar</button>
+                  </form>
+                </div>
+              </div>
+            </article>
+          ))}
+          {!dossiers.length ? <p className="border-2 border-comun-yellow p-3 text-sm text-comun-paper/70">Nenhum dossie criado para esta pauta.</p> : null}
+        </div>
+      </section>
 
       <section className="mt-5">
         <h2 className="text-xl font-black uppercase">Dados da pauta</h2>
@@ -254,4 +291,8 @@ function VersionBlock({ title, value }: { title: string; value: string | null })
 
 function truncate(value: string, limit: number) {
   return value.length > limit ? `${value.slice(0, limit)}...` : value;
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleString("pt-BR");
 }
