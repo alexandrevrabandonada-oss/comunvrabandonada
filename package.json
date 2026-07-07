@@ -20,6 +20,7 @@
     "smoke:attachments-ops": "node scripts/smoke-comun-attachments-ops.mjs",
     "smoke:official-protocol": "node scripts/smoke-comun-official-protocol.mjs",
     "smoke:official-protocols-admin": "node scripts/smoke-comun-official-protocols-admin.mjs",
+    "smoke:official-protocols-metrics": "node scripts/smoke-comun-official-protocols-metrics.mjs",
     "storage:setup": "node scripts/setup-comun-storage.mjs",
     "bootstrap:admin": "node scripts/bootstrap-comun-admin.mjs",
     "verify": "npm run lint && npm run typecheck && npm run build",

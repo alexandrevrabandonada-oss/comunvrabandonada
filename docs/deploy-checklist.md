@@ -18,6 +18,7 @@
 - [ ] `npm run smoke:attachments-ops` passa
 - [ ] `npm run smoke:official-protocol` passa
 - [ ] `npm run smoke:official-protocols-admin` passa
+- [ ] `npm run smoke:official-protocols-metrics` passa
 - [ ] GitHub sem segredos
 - [ ] Vercel conectado ao GitHub
 
@@ -65,6 +66,7 @@
 - [ ] registrar resposta fake e confirmar que `response_text` nao aparece publicamente
 - [ ] abrir `/comun/admin/protocolos-oficiais`
 - [ ] confirmar filtros de status, comunidade, pauta, canal, numero, resposta e vencidos
+- [ ] confirmar metricas de tempo medio, acumulados por pauta/comunidade/canal e possiveis dossies
 - [ ] registrar resumo publico seguro e confirmar que aparece no acompanhamento
 - [ ] marcar resolvido/nao resolvido sem expor resposta completa
 - [ ] sair e confirmar que admin volta a exigir login

@@ -91,6 +91,7 @@ Rotina admin:
 4. Se houver resposta, manter `response_text` privado.
 5. Escrever `public_summary` apenas com resumo seguro.
 6. Marcar resolvido/nao resolvido quando houver criterio.
+7. Usar as metricas agregadas para identificar acumulados por pauta, comunidade e canal.
 
 Limites:
 
@@ -103,8 +104,22 @@ Limites:
 
 1. Abrir `/comun/admin/protocolos-oficiais`.
 2. Filtrar vencidos.
-3. Cobrar retorno quando necessario, fora do COMUN e pelo canal oficial adequado.
-4. Registrar resposta recebida sem publicar `response_text` completo.
-5. Escrever `public_summary` apenas quando houver resumo seguro.
-6. Marcar resolvido ou nao resolvido.
-7. Identificar pautas recorrentes para dossie.
+3. Olhar pautas recorrentes em `Inteligencia operacional`.
+4. Revisar respostas sem resumo publico.
+5. Cobrar retorno quando necessario, fora do COMUN e pelo canal oficial adequado.
+6. Registrar resposta recebida sem publicar `response_text` completo.
+7. Escrever `public_summary` apenas quando houver resumo seguro.
+8. Marcar resolvido ou nao resolvido.
+9. Selecionar pautas candidatas a dossie.
+
+### Leitura para futuros dossies
+
+O painel mostra possiveis dossies quando encontra:
+
+- pauta com 3 ou mais protocolos;
+- pauta com 2 ou mais vencidos;
+- comunidade com 3 ou mais protocolos na mesma pauta;
+- resposta oficial insatisfatoria;
+- nao resolvidos acumulados.
+
+Essa leitura e interna. Antes de qualquer publicacao, a equipe ainda precisa revisar evidencias, anonimizar trechos e decidir o recorte editorial.

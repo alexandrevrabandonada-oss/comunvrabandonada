@@ -42,6 +42,8 @@ export type OfficialProtocolTiming = {
   isNearDue: boolean;
 };
 
+export type OfficialProtocolMetrics = ReturnType<typeof buildOfficialProtocolMetrics>;
+
 export async function getOfficialProtocolReportSurface(comunProtocol: string) {
   const supabase = createServiceSupabaseClient();
   if (!supabase) return null;
@@ -77,9 +79,11 @@ export async function getOfficialProtocolByComunProtocol(comunProtocol: string) 
 export async function listAdminOfficialProtocols(filters: OfficialProtocolQueueFilters = {}) {
   const supabase = createServiceSupabaseClient();
   if (!supabase) {
+    const items = [] as OfficialProtocolQueueItem[];
     return {
-      items: [] as OfficialProtocolQueueItem[],
+      items,
       stats: emptyOfficialProtocolStats(),
+      metrics: buildOfficialProtocolMetrics(items),
     };
   }
 
@@ -102,7 +106,10 @@ export async function listAdminOfficialProtocols(filters: OfficialProtocolQueueF
   if (filters.createdTo) query = query.lte("created_at", `${filters.createdTo}T23:59:59.999`);
 
   const { data, error } = await query;
-  if (error) return { items: [] as OfficialProtocolQueueItem[], stats: emptyOfficialProtocolStats() };
+  if (error) {
+    const items = [] as OfficialProtocolQueueItem[];
+    return { items, stats: emptyOfficialProtocolStats(), metrics: buildOfficialProtocolMetrics(items) };
+  }
 
   const items = (data ?? [])
     .map((row) => sanitizeOfficialProtocolQueueItem(row))
@@ -112,6 +119,7 @@ export async function listAdminOfficialProtocols(filters: OfficialProtocolQueueF
   return {
     items,
     stats: buildOfficialProtocolStats(items),
+    metrics: buildOfficialProtocolMetrics(items),
   };
 }
 
@@ -167,6 +175,43 @@ function buildOfficialProtocolStats(items: OfficialProtocolQueueItem[]) {
   };
 }
 
+export function buildOfficialProtocolMetrics(items: OfficialProtocolQueueItem[]) {
+  const byStatus = countBy(items, (item) => item.status);
+  const byIssue = buildGroupMetrics(items, (item) => item.report?.issue_slug ?? "sem-pauta");
+  const byCommunity = buildGroupMetrics(items, (item) => item.report?.community_slug ?? "sem-comunidade");
+  const byChannel = buildGroupMetrics(items, (item) => item.channel || item.agency || "sem-canal");
+  const byIssueAndStatus = buildIssueStatusMetrics(items);
+  const dossierSignals = buildDossierSignals(items, byIssue, byCommunity);
+
+  return {
+    byStatus,
+    byIssue,
+    byCommunity,
+    byChannel,
+    byIssueAndStatus,
+    dossierSignals,
+    overdueCount: items.filter((item) => item.timing.isOverdue).length,
+    averageDaysToResponse: averageDays(
+      items
+        .filter((item) => item.submitted_at && item.response_received_at)
+        .map((item) => daysBetween(item.submitted_at, item.response_received_at)),
+    ),
+    averageDaysToResolution: averageDays(
+      items
+        .filter((item) => item.submitted_at && isResolutionStatus(item.status))
+        .map((item) => daysBetween(item.submitted_at, item.response_received_at ?? item.updated_at)),
+    ),
+    waitingResponse: items.filter((item) => item.status === "waiting_response").length,
+    withoutOfficialNumber: items.filter((item) => !item.official_protocol_number).length,
+    responseWithoutPublicSummary: items.filter((item) => item.has_response_text && !item.public_summary).length,
+    topIssue: byIssue[0] ?? null,
+    topCommunity: byCommunity[0] ?? null,
+    topPendingChannel: byChannel
+      .filter((group) => group.waitingResponse || group.overdue)
+      .sort((a, b) => b.waitingResponse + b.overdue - (a.waitingResponse + a.overdue))[0] ?? null,
+  };
+}
+
 function emptyOfficialProtocolStats() {
   return {
     total: 0,
@@ -178,6 +223,112 @@ function emptyOfficialProtocolStats() {
     resolved: 0,
     unresolved: 0,
   };
+}
+
+function countBy<T>(items: T[], keyFor: (item: T) => string) {
+  return items.reduce<Record<string, number>>((acc, item) => {
+    const key = keyFor(item);
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
+}
+
+function buildGroupMetrics(items: OfficialProtocolQueueItem[], keyFor: (item: OfficialProtocolQueueItem) => string) {
+  const groups = new Map<string, OfficialProtocolQueueItem[]>();
+  for (const item of items) {
+    const key = keyFor(item);
+    groups.set(key, [...(groups.get(key) ?? []), item]);
+  }
+
+  return [...groups.entries()]
+    .map(([key, groupItems]) => ({
+      key,
+      total: groupItems.length,
+      overdue: groupItems.filter((item) => item.timing.isOverdue).length,
+      waitingResponse: groupItems.filter((item) => item.status === "waiting_response").length,
+      responseReceived: groupItems.filter((item) => item.response_received_at || item.status === "response_received").length,
+      resolved: groupItems.filter((item) => item.status === "resolved" || item.status === "satisfactory_response").length,
+      unresolved: groupItems.filter((item) => item.status === "unresolved" || item.status === "unsatisfactory_response").length,
+      responseWithoutPublicSummary: groupItems.filter((item) => item.has_response_text && !item.public_summary).length,
+    }))
+    .sort((a, b) => b.total - a.total || b.overdue - a.overdue || a.key.localeCompare(b.key));
+}
+
+function buildIssueStatusMetrics(items: OfficialProtocolQueueItem[]) {
+  return buildGroupMetrics(items, (item) => item.report?.issue_slug ?? "sem-pauta").map((group) => ({
+    ...group,
+    statuses: countBy(
+      items.filter((item) => (item.report?.issue_slug ?? "sem-pauta") === group.key),
+      (item) => item.status,
+    ),
+  }));
+}
+
+function buildDossierSignals(
+  items: OfficialProtocolQueueItem[],
+  byIssue: ReturnType<typeof buildGroupMetrics>,
+  byCommunity: ReturnType<typeof buildGroupMetrics>,
+) {
+  const signals = byIssue
+    .filter((group) => group.total >= 3 || group.overdue >= 2 || group.unresolved > 0)
+    .map((group) => ({
+      type: "pauta" as const,
+      issue: group.key,
+      community: null as string | null,
+      total: group.total,
+      overdue: group.overdue,
+      resolved: group.resolved,
+      unresolved: group.unresolved,
+      reason: group.total >= 3 ? "volume" : group.overdue >= 2 ? "prazo" : "nao_resolvidos",
+    }));
+
+  const communityIssueGroups = buildGroupMetrics(items, (item) => `${item.report?.community_slug ?? "sem-comunidade"}|${item.report?.issue_slug ?? "sem-pauta"}`)
+    .filter((group) => group.total >= 3 || group.unresolved > 0)
+    .map((group) => {
+      const [community, issue] = group.key.split("|");
+      return {
+        type: "comunidade_pauta" as const,
+        issue,
+        community,
+        total: group.total,
+        overdue: group.overdue,
+        resolved: group.resolved,
+        unresolved: group.unresolved,
+        reason: group.total >= 3 ? "volume_local" : "nao_resolvidos",
+      };
+    });
+
+  const unsatisfactory = items
+    .filter((item) => item.satisfaction === "unsatisfactory" || item.status === "unsatisfactory_response")
+    .map((item) => ({
+      type: "resposta" as const,
+      issue: item.report?.issue_slug ?? "sem-pauta",
+      community: item.report?.community_slug ?? null,
+      total: 1,
+      overdue: item.timing.isOverdue ? 1 : 0,
+      resolved: 0,
+      unresolved: 1,
+      reason: "resposta_insatisfatoria",
+    }));
+
+  return [...signals, ...communityIssueGroups, ...unsatisfactory]
+    .sort((a, b) => b.unresolved - a.unresolved || b.overdue - a.overdue || b.total - a.total)
+    .slice(0, 12);
+}
+
+function averageDays(values: Array<number | null>) {
+  const valid = values.filter((value): value is number => typeof value === "number" && Number.isFinite(value));
+  if (!valid.length) return null;
+  return Math.round((valid.reduce((sum, value) => sum + value, 0) / valid.length) * 10) / 10;
+}
+
+function daysBetween(from: string | null, to: string | null) {
+  if (!from || !to) return null;
+  return Math.max(0, (new Date(to).getTime() - new Date(from).getTime()) / (24 * 60 * 60 * 1000));
+}
+
+function isResolutionStatus(status: string) {
+  return ["resolved", "unresolved", "satisfactory_response", "unsatisfactory_response"].includes(status);
 }
 
 function compareOfficialProtocolQueueItems(a: OfficialProtocolQueueItem, b: OfficialProtocolQueueItem) {

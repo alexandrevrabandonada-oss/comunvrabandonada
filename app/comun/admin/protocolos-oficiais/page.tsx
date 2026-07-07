@@ -71,6 +71,51 @@ export default async function AdminOfficialProtocolsPage({
         <StatCard label="Nao resolvidos" value={queue.stats.unresolved} />
       </div>
 
+      <section className="mt-6">
+        <h2 className="text-xl font-black uppercase">Inteligencia operacional</h2>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Tempo medio de resposta" value={formatDaysMetric(queue.metrics.averageDaysToResponse)} />
+          <StatCard label="Tempo medio de resolucao" value={formatDaysMetric(queue.metrics.averageDaysToResolution)} />
+          <MetricLink href={filterHref(searchParams, { vencidos: "sim" })} label="Protocolos vencidos" value={queue.metrics.overdueCount} />
+          <MetricLink href={filterHref(searchParams, { status: "waiting_response" })} label="Aguardando resposta" value={queue.metrics.waitingResponse} />
+          <MetricLink href={filterHref(searchParams, { resposta: "com" })} label="Resposta sem resumo publico" value={queue.metrics.responseWithoutPublicSummary} />
+          <MetricLink href={filterHref(searchParams, { pauta: queue.metrics.topIssue?.key })} label="Pauta mais recorrente" value={labelForIssue(queue.metrics.topIssue?.key, issueBySlug)} detail={queue.metrics.topIssue ? `${queue.metrics.topIssue.total} protocolos` : undefined} />
+          <MetricLink href={filterHref(searchParams, { comunidade: queue.metrics.topCommunity?.key })} label="Comunidade mais recorrente" value={queue.metrics.topCommunity?.key ?? "-"} detail={queue.metrics.topCommunity ? `${queue.metrics.topCommunity.total} protocolos` : undefined} />
+          <MetricLink href={filterHref(searchParams, { canal: queue.metrics.topPendingChannel?.key })} label="Canal/agencia com mais pendencias" value={queue.metrics.topPendingChannel?.key ?? "-"} detail={queue.metrics.topPendingChannel ? `${queue.metrics.topPendingChannel.waitingResponse + queue.metrics.topPendingChannel.overdue} pendencias` : undefined} />
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <MetricTable title="Top pautas por volume" rows={queue.metrics.byIssue.slice(0, 6)} labelFor={(key) => labelForIssue(key, issueBySlug)} filterKey="pauta" searchParams={searchParams} />
+          <MetricTable title="Top comunidades por volume" rows={queue.metrics.byCommunity.slice(0, 6)} filterKey="comunidade" searchParams={searchParams} />
+          <IssueStatusTable rows={queue.metrics.byIssueAndStatus.slice(0, 6)} issueBySlug={issueBySlug} searchParams={searchParams} />
+          <MetricTable title="Vencidos por pauta" rows={queue.metrics.byIssue.filter((row) => row.overdue > 0).slice(0, 6)} labelFor={(key) => labelForIssue(key, issueBySlug)} filterKey="pauta" searchParams={searchParams} primaryField="overdue" />
+          <MetricTable title="Respostas por canal/agencia" rows={queue.metrics.byChannel.slice(0, 6)} filterKey="canal" searchParams={searchParams} primaryField="responseReceived" />
+        </div>
+      </section>
+
+      <section className="mt-6">
+        <h2 className="text-xl font-black uppercase">Possiveis dossies</h2>
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
+          {queue.metrics.dossierSignals.map((signal, index) => (
+            <div key={`${signal.type}-${signal.issue}-${signal.community ?? "geral"}-${index}`} className="border-2 border-comun-black bg-white p-4">
+              <p className="text-xs font-black uppercase text-comun-asphalt/60">{dossierReasonLabel(signal.reason)}</p>
+              <h3 className="mt-1 text-lg font-black uppercase">{labelForIssue(signal.issue, issueBySlug)}</h3>
+              <p className="mt-1 text-sm text-comun-asphalt/75">Comunidade: {signal.community ?? "todas"}</p>
+              <dl className="mt-3 grid grid-cols-4 gap-2 text-sm">
+                <MetaRow label="Protocolos" value={String(signal.total)} />
+                <MetaRow label="Vencidos" value={String(signal.overdue)} />
+                <MetaRow label="Resolvidos" value={String(signal.resolved)} />
+                <MetaRow label="Nao resolvidos" value={String(signal.unresolved)} />
+              </dl>
+              <Link href={filterHref(searchParams, { pauta: signal.issue, comunidade: signal.community ?? undefined })} className="mt-3 inline-flex min-h-10 items-center border-2 border-comun-black bg-comun-yellow px-3 text-sm font-black uppercase">
+                Ver protocolos filtrados
+              </Link>
+            </div>
+          ))}
+          {!queue.metrics.dossierSignals.length ? <p className="border-2 border-comun-black bg-white p-4">Ainda nao ha sinais suficientes para preparar dossies.</p> : null}
+        </div>
+      </section>
+
       <form className="mt-6 grid gap-3 border-2 border-comun-black bg-white p-4 md:grid-cols-5">
         <Select name="status" label="Status" values={statusOptions} defaultValue={searchParams.status} />
         <label className="grid gap-1 text-sm font-black uppercase">
@@ -165,11 +210,80 @@ function QuickActions({ itemId, returnTo, publicSummary }: { itemId: string; ret
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="border-2 border-comun-black bg-white p-4">
       <p className="text-xs font-black uppercase text-comun-asphalt/60">{label}</p>
       <p className="mt-2 text-3xl font-black">{value}</p>
+    </div>
+  );
+}
+
+function MetricLink({ href, label, value, detail }: { href: string; label: string; value: number | string; detail?: string }) {
+  return (
+    <Link href={href} className="border-2 border-comun-black bg-white p-4 hover:bg-comun-yellow">
+      <p className="text-xs font-black uppercase text-comun-asphalt/60">{label}</p>
+      <p className="mt-2 break-words text-2xl font-black">{value}</p>
+      {detail ? <p className="mt-1 text-xs font-bold text-comun-asphalt/70">{detail}</p> : null}
+    </Link>
+  );
+}
+
+type MetricRow = {
+  key: string;
+  total: number;
+  overdue: number;
+  waitingResponse: number;
+  responseReceived: number;
+  responseWithoutPublicSummary: number;
+};
+
+function MetricTable({
+  title,
+  rows,
+  labelFor = (key) => key,
+  filterKey,
+  searchParams,
+  primaryField = "total",
+}: {
+  title: string;
+  rows: MetricRow[];
+  labelFor?: (key: string) => string;
+  filterKey: "pauta" | "comunidade" | "canal";
+  searchParams: Record<string, string | undefined>;
+  primaryField?: keyof Pick<MetricRow, "total" | "overdue" | "responseReceived">;
+}) {
+  return (
+    <div className="border-2 border-comun-black bg-white p-4">
+      <h3 className="font-black uppercase">{title}</h3>
+      <div className="mt-3 grid gap-2">
+        {rows.map((row) => (
+          <Link key={row.key} href={filterHref(searchParams, { [filterKey]: row.key })} className="grid grid-cols-[1fr_auto] gap-3 border border-comun-black p-2 text-sm hover:bg-comun-paper">
+            <span className="font-bold">{labelFor(row.key)}</span>
+            <span className="font-black">{row[primaryField]}</span>
+          </Link>
+        ))}
+        {!rows.length ? <p className="text-sm text-comun-asphalt/70">Sem dados para este recorte.</p> : null}
+      </div>
+    </div>
+  );
+}
+
+function IssueStatusTable({ rows, issueBySlug, searchParams }: { rows: Array<MetricRow & { statuses: Record<string, number> }>; issueBySlug: Map<string, string>; searchParams: Record<string, string | undefined> }) {
+  return (
+    <div className="border-2 border-comun-black bg-white p-4">
+      <h3 className="font-black uppercase">Status por pauta</h3>
+      <div className="mt-3 grid gap-2">
+        {rows.map((row) => (
+          <Link key={row.key} href={filterHref(searchParams, { pauta: row.key })} className="border border-comun-black p-2 text-sm hover:bg-comun-paper">
+            <p className="font-black">{labelForIssue(row.key, issueBySlug)}</p>
+            <p className="mt-1 text-xs text-comun-asphalt/70">
+              Aguardando: {row.statuses.waiting_response ?? 0} | Resposta: {row.statuses.response_received ?? 0} | Resolvidos: {(row.statuses.resolved ?? 0) + (row.statuses.satisfactory_response ?? 0)}
+            </p>
+          </Link>
+        ))}
+        {!rows.length ? <p className="text-sm text-comun-asphalt/70">Sem dados para este recorte.</p> : null}
+      </div>
     </div>
   );
 }
@@ -219,6 +333,40 @@ function buildReturnTo(searchParams: Record<string, string | undefined>) {
   }
   const query = params.toString();
   return query ? `/comun/admin/protocolos-oficiais?${query}` : "/comun/admin/protocolos-oficiais";
+}
+
+function filterHref(searchParams: Record<string, string | undefined>, updates: Record<string, string | undefined | null>) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (value) params.set(key, value);
+  }
+  for (const [key, value] of Object.entries(updates)) {
+    if (value && !value.startsWith("sem-")) params.set(key, value);
+  }
+  const query = params.toString();
+  return query ? `/comun/admin/protocolos-oficiais?${query}` : "/comun/admin/protocolos-oficiais";
+}
+
+function labelForIssue(value: string | undefined, issueBySlug: Map<string, string>) {
+  if (!value) return "-";
+  if (value === "sem-pauta") return "Sem pauta";
+  return issueBySlug.get(value) ?? value;
+}
+
+function formatDaysMetric(value: number | null) {
+  if (value == null) return "-";
+  return `${value} dias`;
+}
+
+function dossierReasonLabel(value: string) {
+  const labels: Record<string, string> = {
+    volume: "Pauta com acumulo",
+    prazo: "Pauta com vencidos",
+    nao_resolvidos: "Nao resolvidos acumulados",
+    volume_local: "Acumulo por comunidade",
+    resposta_insatisfatoria: "Resposta insatisfatoria",
+  };
+  return labels[value] ?? value;
 }
 
 function officialStatusLabel(value: string) {

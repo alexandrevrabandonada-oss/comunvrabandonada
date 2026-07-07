@@ -72,7 +72,8 @@ Rotina semanal:
 4. Registrar resposta recebida em campo privado.
 5. Escrever resumo publico seguro quando a resposta puder ser compartilhada.
 6. Marcar resolvido ou nao resolvido.
-7. Identificar pautas recorrentes para dossie.
+7. Olhar a secao `Inteligencia operacional`.
+8. Revisar pautas/comunidades recorrentes e possiveis dossies.
 
 Cuidados:
 
@@ -80,3 +81,16 @@ Cuidados:
 - nao copiar dados pessoais da resposta para `public_summary`;
 - nao prometer prazo ou resultado oficial;
 - usar a fila como controle operacional, nao como envio automatico.
+
+## Metricas e possiveis dossies
+
+A secao `Inteligencia operacional` em `/comun/admin/protocolos-oficiais` calcula:
+
+- tempo medio ate resposta;
+- tempo medio ate resolucao;
+- vencidos;
+- aguardando resposta;
+- respostas sem resumo publico;
+- acumulados por pauta, comunidade e canal/agencia.
+
+A secao `Possiveis dossies` e apenas um radar interno. Ela sinaliza pautas ou recortes locais com volume, vencimento, resposta insatisfatoria ou nao resolvidos acumulados. Ela nao cria dossie automaticamente e nao publica resposta completa.
