@@ -169,21 +169,25 @@ Nunca copiar para a pagina publica:
 
 ### Rotina semanal de dossies por pauta
 
-1. Abrir `/comun/admin/dossies`.
-2. Abrir dossies em `draft` ou `in_review`.
-3. Voltar para a pauta quando precisar aprovar novas evidencias.
-4. Conferir se as evidencias incluidas sao `approved + public_safe`.
-5. Resumir respostas oficiais usando apenas `public_summary`.
-6. Editar sintese executiva, problema, comunidades, demandas e proximos passos.
-7. Preparar a versao publica revisada a partir do rascunho.
-8. Editar `public_title`, `public_summary`, `public_body` e `public_slug`.
-9. Abrir o preview admin e procurar vazamentos de `raw_text`, `private_contact`, `response_text`, `internal_notes`, signed URL e `storage_path`.
-10. Registrar revisao factual com checklist.
-11. Registrar revisao editorial com outro revisor.
-12. Pedir ajuste quando qualquer etapa encontrar problema.
-13. Aprovar somente com checklist de seguranca marcado e dupla revisao concluida.
-14. Publicar quando o status estiver `approved`.
-15. Despublicar se houver erro, risco ou necessidade de nova revisao.
-16. Arquivar dossies sem recorte claro ou com risco editorial alto.
+1. Abrir `/comun/admin/dossies/revisoes`.
+2. Filtrar pendentes de revisao factual.
+3. Filtrar pendentes de revisao editorial.
+4. Resolver bloqueados por mesmo revisor chamando outro revisor.
+5. Revisar ajustes solicitados e rejeitados.
+6. Abrir dossies prontos para publicacao.
+7. Voltar para a pauta quando precisar aprovar novas evidencias.
+8. Conferir se as evidencias incluidas sao `approved + public_safe`.
+9. Resumir respostas oficiais usando apenas `public_summary`.
+10. Editar sintese executiva, problema, comunidades, demandas e proximos passos.
+11. Preparar a versao publica revisada a partir do rascunho.
+12. Editar `public_title`, `public_summary`, `public_body` e `public_slug`.
+13. Abrir o preview admin e procurar vazamentos de `raw_text`, `private_contact`, `response_text`, `internal_notes`, signed URL e `storage_path`.
+14. Registrar revisao factual com checklist.
+15. Registrar revisao editorial com outro revisor.
+16. Pedir ajuste quando qualquer etapa encontrar problema.
+17. Aprovar somente com checklist de seguranca marcado e dupla revisao concluida.
+18. Publicar quando o status estiver `approved`.
+19. Despublicar se houver erro, risco ou necessidade de nova revisao.
+20. Arquivar dossies sem recorte claro ou com risco editorial alto.
 
 A rota publica usa somente os campos publicos revisados. O rascunho interno, `public_version` antigo, notas de revisao, checklist de revisao e `internal_notes` nao entram na pagina publica.

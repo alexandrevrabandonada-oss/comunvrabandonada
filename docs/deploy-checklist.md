@@ -25,6 +25,7 @@
 - [ ] `npm run smoke:pauta-dossier-draft` passa
 - [ ] `npm run smoke:pauta-dossier-publication` passa
 - [ ] `npm run smoke:pauta-dossier-double-review` passa
+- [ ] `npm run smoke:pauta-dossier-review-queue` passa
 - [ ] GitHub sem segredos
 - [ ] Vercel conectado ao GitHub
 
@@ -95,6 +96,8 @@
 - [ ] registrar revisao factual aprovada
 - [ ] registrar revisao editorial aprovada por revisor diferente
 - [ ] confirmar que publicar sem dupla revisao distinta e bloqueado
+- [ ] abrir `/comun/admin/dossies/revisoes`
+- [ ] confirmar filtros de pendente factual, pendente editorial, bloqueados, ajustes, rejeitados e prontos
 - [ ] publicar dossie aprovado e abrir `/comun/dossies/<slug>`
 - [ ] despublicar e confirmar que `/comun/dossies/<slug>` deixa de aparecer
 - [ ] testar no celular via 4G/5G

@@ -43,6 +43,25 @@ Antes de publicar, o dossie precisa ter duas revisoes aprovadas:
 
 As revisoes precisam ser feitas por revisores com nomes diferentes. A mesma pessoa nao pode aprovar as duas etapas.
 
+## Fila de revisoes
+
+A fila administrativa fica em:
+
+- `/comun/admin/dossies/revisoes`
+
+Ela mostra:
+
+- pendentes de revisao factual;
+- pendentes de revisao editorial;
+- factual aprovado, faltando editorial;
+- editorial aprovado, faltando factual;
+- bloqueados por mesmo revisor;
+- ajustes solicitados;
+- rejeitados;
+- prontos para publicar.
+
+Use a fila no inicio da rotina editorial para decidir qual dossie precisa de acao antes da publicacao.
+
 ### Revisao factual
 
 Confere:

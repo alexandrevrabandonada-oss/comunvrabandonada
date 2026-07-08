@@ -36,6 +36,32 @@ export type PautaDossierReviewState = {
   missingReasons: string[];
 };
 
+export type PautaDossierReviewQueueFilter =
+  | "pending_factual"
+  | "pending_editorial"
+  | "factual_without_editorial"
+  | "editorial_without_factual"
+  | "blocked_same_reviewer"
+  | "changes_requested"
+  | "rejected"
+  | "ready_to_publish";
+
+export type PautaDossierReviewQueueItem = PautaDossierWithPauta & {
+  reviews: PautaDossierReview[];
+  review_state: PautaDossierReviewState;
+  queue_tags: PautaDossierReviewQueueFilter[];
+  pending_stage: string;
+  latest_review: PautaDossierReview | null;
+  age_days: number;
+};
+
+export type PautaDossierReviewQueueSummary = {
+  pendingFactual: number;
+  pendingEditorial: number;
+  blocked: number;
+  readyToPublish: number;
+};
+
 export type GeneratedPautaDossierDraft = Omit<PautaDossier, "id" | "created_at" | "updated_at"> & {
   evidence_ids: string[];
 };
@@ -81,6 +107,24 @@ export async function getAdminPautaDossier(id: string) {
     .sort((a: PautaDossierReview, b: PautaDossierReview) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   normalized.review_state = getDossierReviewState(normalized.reviews);
   return normalized;
+}
+
+export async function listAdminPautaDossierReviewQueue(filter?: string) {
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) return { items: [] as PautaDossierReviewQueueItem[], summary: emptyQueueSummary() };
+
+  const { data, error } = await supabase
+    .from("comun_pauta_dossiers")
+    .select(`${dossierSelect}, pauta:comun_pauta_spaces(id, slug, title, community, category), reviews:comun_pauta_dossier_reviews(id, dossier_id, review_stage, reviewer_name, reviewer_role, decision, checklist, notes, created_at)`)
+    .in("review_status", ["draft", "editorial_review", "changes_requested", "approved", "unpublished"])
+    .order("updated_at", { ascending: false })
+    .limit(250);
+
+  if (error || !data) return { items: [] as PautaDossierReviewQueueItem[], summary: emptyQueueSummary() };
+  const items = data.map(toReviewQueueItem);
+  const selected = normalizeQueueFilter(filter);
+  const filtered = selected ? items.filter((item) => item.queue_tags.includes(selected)) : items;
+  return { items: filtered, summary: summarizeReviewQueue(items) };
 }
 
 export async function listPublishedPautaDossiers() {
@@ -301,4 +345,80 @@ function normalizeDossierJoin(row: any) {
     ...row,
     pauta: Array.isArray(row.pauta) ? row.pauta[0] ?? null : row.pauta ?? null,
   };
+}
+
+function toReviewQueueItem(row: any): PautaDossierReviewQueueItem {
+  const normalized = normalizeDossierJoin(row) as PautaDossierWithPauta;
+  const reviews = ((row.reviews ?? []) as PautaDossierReview[])
+    .map((review: any) => ({ ...review, checklist: review.checklist ?? {} }))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const reviewState = getDossierReviewState(reviews);
+  const latestReview = reviews[0] ?? null;
+  const queueTags = getReviewQueueTags(normalized, reviews, reviewState);
+  return {
+    ...normalized,
+    reviews,
+    review_state: reviewState,
+    queue_tags: queueTags,
+    pending_stage: getPendingStage(queueTags),
+    latest_review: latestReview,
+    age_days: daysSince(normalized.created_at),
+  };
+}
+
+function getReviewQueueTags(dossier: PautaDossierWithPauta, reviews: PautaDossierReview[], state: PautaDossierReviewState) {
+  const tags = [] as PautaDossierReviewQueueFilter[];
+  const hasFactual = state.factualApproved;
+  const hasEditorial = state.editorialApproved;
+  const latestRejected = reviews.some((review) => review.decision === "rejected");
+  const latestChangesRequested = reviews.some((review) => review.decision === "changes_requested");
+
+  if (!hasFactual) tags.push("pending_factual");
+  if (!hasEditorial) tags.push("pending_editorial");
+  if (hasFactual && !hasEditorial) tags.push("factual_without_editorial");
+  if (hasEditorial && !hasFactual) tags.push("editorial_without_factual");
+  if (hasFactual && hasEditorial && !state.reviewersDistinct) tags.push("blocked_same_reviewer");
+  if (latestChangesRequested) tags.push("changes_requested");
+  if (latestRejected) tags.push("rejected");
+  if (state.canPublish && dossier.review_status === "approved" && dossier.public_title && dossier.public_summary && dossier.public_body && dossier.public_slug) {
+    tags.push("ready_to_publish");
+  }
+  return tags;
+}
+
+function getPendingStage(tags: PautaDossierReviewQueueFilter[]) {
+  if (tags.includes("ready_to_publish")) return "Pronto para publicar";
+  if (tags.includes("blocked_same_reviewer")) return "Bloqueado por mesmo revisor";
+  if (tags.includes("rejected")) return "Rejeitado";
+  if (tags.includes("changes_requested")) return "Ajustes solicitados";
+  if (tags.includes("factual_without_editorial")) return "Falta revisao editorial";
+  if (tags.includes("editorial_without_factual")) return "Falta revisao factual";
+  if (tags.includes("pending_factual") && tags.includes("pending_editorial")) return "Faltam revisoes";
+  if (tags.includes("pending_factual")) return "Falta revisao factual";
+  if (tags.includes("pending_editorial")) return "Falta revisao editorial";
+  return "Sem pendencia calculada";
+}
+
+function summarizeReviewQueue(items: PautaDossierReviewQueueItem[]): PautaDossierReviewQueueSummary {
+  return {
+    pendingFactual: items.filter((item) => item.queue_tags.includes("pending_factual")).length,
+    pendingEditorial: items.filter((item) => item.queue_tags.includes("pending_editorial")).length,
+    blocked: items.filter((item) => item.queue_tags.includes("blocked_same_reviewer")).length,
+    readyToPublish: items.filter((item) => item.queue_tags.includes("ready_to_publish")).length,
+  };
+}
+
+function normalizeQueueFilter(value?: string): PautaDossierReviewQueueFilter | "" {
+  const valid = ["pending_factual", "pending_editorial", "factual_without_editorial", "editorial_without_factual", "blocked_same_reviewer", "changes_requested", "rejected", "ready_to_publish"];
+  return valid.includes(value ?? "") ? (value as PautaDossierReviewQueueFilter) : "";
+}
+
+function emptyQueueSummary(): PautaDossierReviewQueueSummary {
+  return { pendingFactual: 0, pendingEditorial: 0, blocked: 0, readyToPublish: 0 };
+}
+
+function daysSince(value: string) {
+  const createdAt = new Date(value).getTime();
+  if (Number.isNaN(createdAt)) return 0;
+  return Math.max(0, Math.floor((Date.now() - createdAt) / (24 * 60 * 60 * 1000)));
 }
