@@ -1,8 +1,8 @@
-# Tijolo 19.2 - verificacao
+# Tijolo 19.2 - verify de auditoria
 
-Data: 2026-07-07
+Data: 2026-07-08
 
-## Verificacao local
+## Comandos executados
 
 Executados e aprovados:
 
@@ -11,48 +11,33 @@ Executados e aprovados:
 - `npm run build`;
 - `npm run verify`.
 
-Build local confirmou nova rota:
+Resultado:
 
-- `/comun/admin/dossies/revisoes`
+- lint sem erros;
+- typecheck sem erros;
+- build passou;
+- build confirmou a rota `/comun/admin/dossies/revisoes`.
 
-## Smokes locais
+## Smokes
 
-Contra build local em `http://127.0.0.1:3019`, executados e aprovados:
+Executados e aprovados contra build atual servida em `http://localhost:3000`:
 
-- `npm run smoke:pauta-dossier-review-queue`;
-- `npm run smoke:pauta-dossier-publication`;
 - `npm run smoke:pauta-dossier-double-review`;
-- `npm run smoke:no-leak-http`;
-- `npm run smoke:public-ui`.
-
-## Deploy
-
-Executado:
-
-- `npx vercel deploy --prod --yes`
-
-Status: passou.
-
-Alias:
-
-- `https://comunvrabandonada.vercel.app`
-
-## Smokes em producao
-
-Com `NEXT_PUBLIC_SITE_URL=https://comunvrabandonada.vercel.app`, executados e aprovados:
-
-- `npm run smoke:pauta-dossier-review-queue`;
-- `npm run smoke:pauta-dossier-publication`;
-- `npm run smoke:pauta-dossier-double-review`;
-- `npm run smoke:no-leak-http`;
-- `npm run smoke:public-ui`.
-
-## Estado git
-
-Feature commit:
-
-- `3165e76 feat: cria fila admin de revisoes de dossies`
+- `npm run smoke:pauta-dossier-review-queue`.
 
 Observacao:
 
-- `backups/` permanece untracked e fora do escopo.
+- `.env.local` define `NEXT_PUBLIC_SITE_URL=http://localhost:3000`; por isso a build atual foi servida localmente nessa porta antes de repetir os smokes.
+
+## Smoke da fila
+
+Confirmou:
+
+- criacao de dossies em estados diferentes;
+- classificacao correta dos filtros;
+- mudanca de categoria apos revisao;
+- rota admin sem sessao nao expoe segredo.
+
+## Status final
+
+Aderencia aprovada. Nenhum ajuste de implementacao foi necessario.

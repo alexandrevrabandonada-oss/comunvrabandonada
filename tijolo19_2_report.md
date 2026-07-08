@@ -1,89 +1,49 @@
-# Tijolo 19.2 - fila administrativa de revisoes de dossies
+# Tijolo 19.2 - report de aderencia
 
-Data: 2026-07-07
+Data: 2026-07-08
 
-## Objetivo
+## Escopo
 
-Criar uma fila administrativa para dossies pendentes de revisao, permitindo identificar rapidamente o que precisa de revisao factual, revisao editorial, desbloqueio por mesmo revisor, ajustes, rejeicao ou publicacao.
+Auditoria da fila administrativa de revisoes de dossies.
 
-## Implementado
+## Resultado
 
-Rota criada:
+A fila descrita nos docs existe no codigo e esta acessivel no admin:
 
 - `/comun/admin/dossies/revisoes`
 
-Menu admin atualizado:
+Nao foi necessario implementar correcao adicional.
 
-- link `Revisoes`.
+## Componentes confirmados
 
-Helper criado em `lib/pauta-dossiers.ts`:
+- rota admin server-side com `requireComunAdmin`;
+- UI de fila densa e escaneavel;
+- indicadores de topo;
+- filtros operacionais;
+- helper de classificacao;
+- comando de smoke no `package.json`;
+- smoke dedicado testando as categorias da fila.
 
-- `listAdminPautaDossierReviewQueue`
-
-Classificacoes da fila:
-
-- `pending_factual`;
-- `pending_editorial`;
-- `factual_without_editorial`;
-- `editorial_without_factual`;
-- `blocked_same_reviewer`;
-- `changes_requested`;
-- `rejected`;
-- `ready_to_publish`.
-
-## Indicadores
-
-Topo da fila mostra:
+## Filtros confirmados
 
 - pendente factual;
 - pendente editorial;
-- bloqueados;
+- factual aprovado, faltando editorial;
+- editorial aprovado, faltando factual;
+- bloqueado por mesmo revisor;
+- ajustes solicitados;
+- rejeitados;
 - prontos para publicar.
-
-## Lista operacional
-
-Cada item mostra:
-
-- titulo interno;
-- slug publico ou slug interno;
-- pauta associada;
-- status editorial;
-- idade do dossie;
-- ultima revisao;
-- etapa pendente;
-- revisores factual/editorial;
-- link para abrir o dossie.
 
 ## Seguranca
 
 Confirmado:
 
-- rota exige `requireComunAdmin`;
-- fila e server-side;
-- sem mudanca na rota publica de dossies;
-- notas internas e checklist de revisao nao sao expostos publicamente;
-- smoke confirma que rota admin sem sessao nao expoe segredo.
+- rota admin exige sessao;
+- rota publica de dossies nao foi alterada;
+- notas internas e checklist de revisao nao aparecem publicamente;
+- deploy checklist nao cita comando inexistente.
 
-## Documentacao
+## Arquivo de auditoria
 
-Atualizados:
-
-- `docs/dossies-por-pauta.md`;
-- `docs/operacao-comun.md`;
-- `docs/deploy-checklist.md`.
-
-## Deploy
-
-Status: passou.
-
-Producao:
-
-- `https://comunvrabandonada.vercel.app`
-
-Deploy Vercel:
-
-- `https://comunvrabandonada-58po9t1sq-alexandrevrabandonada-oss-projects.vercel.app`
-
-## Proximo tijolo recomendado
-
-Adicionar responsavel/atribuição editorial por etapa, com filtros por pessoa e SLA de revisao.
+- `tijolo19_2_auditoria_aderencia.md`
