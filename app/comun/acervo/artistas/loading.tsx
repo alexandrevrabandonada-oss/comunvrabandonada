@@ -1,0 +1,1 @@
+export default function Loading(){return <div className="mx-auto max-w-6xl p-6" role="status" aria-live="polite"><p className="font-black uppercase">Carregando artistas…</p><div className="mt-4 grid gap-4 md:grid-cols-3">{[1,2,3].map(x=><div key={x} className="h-36 animate-pulse border-2 bg-white/20"/>)}</div></div>}

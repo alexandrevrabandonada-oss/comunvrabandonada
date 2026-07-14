@@ -1,0 +1,1 @@
+"use client";export default function ErrorPage({reset}:{reset:()=>void}){return <div className="mx-auto max-w-3xl p-6"><h1 className="text-3xl font-black uppercase">Não foi possível carregar artistas</h1><p className="mt-3">Tente novamente. Nenhum dado enviado foi perdido.</p><button onClick={reset} className="mt-4 border-2 p-3 font-black">Tentar novamente</button></div>}
