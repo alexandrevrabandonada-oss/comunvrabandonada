@@ -1,4 +1,3 @@
-import "server-only";
 import { createHash } from "node:crypto";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 export function alertFingerprint(type: string, id = "global") {
