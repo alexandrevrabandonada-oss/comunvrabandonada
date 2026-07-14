@@ -2,6 +2,8 @@
 
 Metadados, relações, revisão e permissões ficam no Supabase Postgres. Binários ficam no Cloudflare R2, acessado no servidor pela API S3 e AWS SDK v3.
 
+Áudio original, termo e fonte de transcrição usam `private_original`. Áudio público é arquivo editorial separado em `public_safe`, sem promoção automática do original.
+
 - `R2_BUCKET_ORIGINALS`: somente originais privados, prefixo `originals/`.
 - `R2_BUCKET_PUBLIC`: somente versões preparadas para publicação, prefixo `public/`.
 - `R2_PUBLIC_BASE_URL`: domínio público do segundo bucket.

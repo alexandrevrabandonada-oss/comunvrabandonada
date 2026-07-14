@@ -1,5 +1,7 @@
 # Operacao COMUN
 
+História Oral: revisar alertas de consentimento, menores, segmentos sensíveis, embargo, retirada e assets públicos. O fim do embargo não dispensa aprovação manual.
+
 ## Regra local-first
 
 Todo tijolo comum deve rodar localmente por padrao. Deploy e validacao em producao sao etapas de release, nao rotina diaria de desenvolvimento.

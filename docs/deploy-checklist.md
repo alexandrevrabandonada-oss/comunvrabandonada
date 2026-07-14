@@ -2,6 +2,8 @@
 
 Este checklist e uma rotina de release. Ele nao faz parte da rotina diaria de desenvolvimento nem de um tijolo comum.
 
+- História Oral: validar RLS, original e termo privados, gate de consentimento, transcrição pública separada, embargo, retirada e ausência de URLs assinadas no HTML.
+
 Por padrao, tijolos comuns sao local-first:
 
 - nao rodar `vercel deploy`, `npx vercel deploy` ou `npx vercel deploy --prod`;

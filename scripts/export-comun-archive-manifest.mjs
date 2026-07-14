@@ -18,10 +18,20 @@ const tables = {
   comun_archive_submission_assets: "*",
   comun_archive_item_suggestions:
     "id, archive_item_id, suggestion_type, suggestion_text, contributor_alias, source_reference, status, risk_level, created_at, reviewed_at",
+  comun_archive_oral_histories:
+    "archive_item_id, interview_title, interview_date, interview_date_approximate, recording_location_public, interviewer_public, duration_seconds, language, public_summary, editorial_context_public, sensitive_content_level, embargo_until, publication_status, transcript_status, created_at, updated_at",
+  comun_archive_oral_history_participants:
+    "id, oral_history_item_id, participant_role, public_name, preferred_identification, biography_public, participation_status, position, created_at, updated_at",
+  comun_archive_oral_history_consents:
+    "id, oral_history_item_id, participant_id, consent_status, allow_preservation_private, allow_internal_transcription, allow_public_transcript, allow_public_audio_excerpt, allow_public_full_audio, allow_public_image, allow_public_name, allow_educational_use, allow_exhibition_use, allow_social_media_use, allow_download, valid_from, valid_until, withdrawal_requested_at, withdrawal_completed_at, created_at, updated_at",
+  comun_archive_oral_history_transcript_versions:
+    "id, oral_history_item_id, version_number, transcript_type, language, status, source, contains_redactions, created_at",
+  comun_archive_oral_history_segments:
+    "id, oral_history_item_id, transcript_version_id, start_seconds, end_seconds, speaker_label, public_text, sensitivity, publication_status, created_at, updated_at",
 };
 const manifest = {
   exported_at: new Date().toISOString(),
-  schema_version: 2,
+  schema_version: 3,
   storage: {
     provider: "r2",
     originals_bucket: process.env.R2_BUCKET_ORIGINALS ?? null,
