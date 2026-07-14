@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { assertProductionChecksAllowed } from "./production-guard.mjs";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -52,6 +53,7 @@ async function fetchText(pathname) {
 }
 
 loadEnvFile(envPath);
+assertProductionChecksAllowed(process.env.NEXT_PUBLIC_SITE_URL);
 
 const requiredVars = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "NEXT_PUBLIC_SITE_URL"];
 const missingVars = requiredVars.filter((name) => !process.env[name]);
@@ -70,6 +72,7 @@ const publicSlug = `smoke-dupla-revisao-${stamp}`;
 const secret = "DOUBLE-REVIEW-INTERNAL-SECRET";
 let pautaId = null;
 let dossierId = null;
+let snapshotId = null;
 
 try {
   const createPauta = await service.from("comun_pauta_spaces").insert({
@@ -176,6 +179,19 @@ try {
     unpublished_at: null,
   }).eq("id", dossierId);
   if (publish.error) throw new Error(publish.error.message);
+  const snapshot = await service.from("comun_pauta_dossier_publication_snapshots").insert({
+    dossier_id: dossierId,
+    public_slug: publicSlug,
+    public_title: "Dossie dupla revisao smoke",
+    public_summary: "Resumo publico de dupla revisao.",
+    public_body: "Corpo publico revisado sem dados sensiveis.",
+    snapshot_status: "published",
+    public_version_label: "Versao revisada",
+    public_change_note: "Dupla revisao distinta validada por smoke.",
+    public_updated_at: new Date().toISOString(),
+  }).select("id").single();
+  if (snapshot.error || !snapshot.data) throw new Error(`falha ao criar snapshot publico: ${snapshot.error?.message ?? "sem retorno"}`);
+  snapshotId = snapshot.data.id;
   const publicPage = await fetchText(`/comun/dossies/${publicSlug}`);
   if (publicPage.status !== 200 || !publicPage.text.includes("Dossie dupla revisao smoke")) throw new Error("dossie publicado nao apareceu publicamente");
   for (const forbidden of [secret, "review_stage", "reviewer_name", "checklist", "raw_text", "private_contact", "internal_notes", "response_text", "signed_url", "storage_path"]) {
@@ -185,6 +201,12 @@ try {
 
   const unpublish = await service.from("comun_pauta_dossiers").update({ review_status: "unpublished", unpublished_at: new Date().toISOString() }).eq("id", dossierId);
   if (unpublish.error) throw new Error(unpublish.error.message);
+  const unpublishSnapshot = await service.from("comun_pauta_dossier_publication_snapshots").update({
+    snapshot_status: "unpublished",
+    unpublished_at: new Date().toISOString(),
+    unpublish_reason: "Smoke despublicou a versao publica.",
+  }).eq("id", snapshotId);
+  if (unpublishSnapshot.error) throw new Error(unpublishSnapshot.error.message);
   const afterUnpublish = await fetchText(`/comun/dossies/${publicSlug}`);
   if (afterUnpublish.status === 200 && afterUnpublish.text.includes("Dossie dupla revisao smoke")) throw new Error("despublicar nao removeu acesso publico");
   ok("despublicar continua funcionando");

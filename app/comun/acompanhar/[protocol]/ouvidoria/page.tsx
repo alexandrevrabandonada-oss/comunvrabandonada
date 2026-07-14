@@ -18,7 +18,8 @@ import { CopyOfficialTextButton } from "@/app/comun/acompanhar/[protocol]/ouvido
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function OfficialProtocolPage({ params }: { params: { protocol: string } }) {
+export default async function OfficialProtocolPage(props: { params: Promise<{ protocol: string }> }) {
+  const params = await props.params;
   const comunProtocol = normalizeProtocol(decodeURIComponent(params.protocol));
   const report = isValidProtocol(comunProtocol) ? await getOfficialProtocolReportSurface(comunProtocol) : null;
   const officialProtocol = report ? await getPublicOfficialProtocol(comunProtocol) : null;

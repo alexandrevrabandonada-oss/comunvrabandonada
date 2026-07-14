@@ -20,7 +20,28 @@ Campos publicos revisados:
 - `public_body`;
 - `public_slug`.
 
-A rota publica usa somente os campos publicos revisados. Alterar o rascunho interno depois da publicacao nao altera automaticamente a pagina publica.
+A rota publica usa snapshots publicados em `comun_pauta_dossier_publication_snapshots`. Alterar o rascunho interno ou os campos publicos revisados depois da publicacao nao altera automaticamente a pagina publica.
+
+Smokes de publicacao devem criar snapshot ativo para validar rota publica. Apenas mudar `review_status` do rascunho para `published` nao publica pagina publica.
+
+## Publicacao assistida e snapshots
+
+Ao publicar, o admin cria uma copia imutavel dos campos publicos revisados:
+
+- `public_title`;
+- `public_summary`;
+- `public_body`;
+- `public_slug`.
+
+O snapshot registra quem publicou, quando publicou e o status da versao. Uma nova publicacao supersede o snapshot ativo anterior e cria outro snapshot. A pagina publica sempre prefere o snapshot ativo `published` ou `rollback`.
+
+O checklist final de publicacao precisa confirmar:
+
+- titulo, resumo, corpo e slug revisados;
+- ausencia de `raw_text`, `private_contact`, `response_text` completo, `internal_notes`, signed URL e `storage_path`;
+- evidencias `approved + public_safe`;
+- revisores reais distintos vinculados a perfis administrativos;
+- confirmacao do publisher/admin.
 
 ## Workflow editorial
 
@@ -41,7 +62,7 @@ Antes de publicar, o dossie precisa ter duas revisoes aprovadas:
 - revisao factual;
 - revisao editorial.
 
-As revisoes precisam ser feitas por revisores com nomes diferentes. A mesma pessoa nao pode aprovar as duas etapas.
+As revisoes precisam ser feitas por revisores reais distintos vinculados a perfis administrativos. A mesma pessoa/perfil nao pode aprovar as duas etapas.
 
 ## Fila de revisoes
 
@@ -96,8 +117,10 @@ Fluxo:
 6. Registrar revisao factual.
 7. Registrar revisao editorial com outro revisor.
 8. Aprovar para publicacao.
-9. Publicar.
-10. Despublicar se houver erro, risco ou pedido de revisao.
+9. Preencher checklist final de publicacao.
+10. Publicar criando snapshot.
+11. Despublicar se houver erro, risco ou pedido de revisao.
+12. Fazer rollback para snapshot anterior quando uma versao anterior segura precisar voltar ao ar.
 
 ## Criterios para publicar
 
@@ -114,14 +137,25 @@ Antes de publicar:
 
 - precisa haver uma aprovacao factual;
 - precisa haver uma aprovacao editorial;
-- os nomes dos revisores precisam ser diferentes.
+- os revisores reais precisam ser distintos e vinculados a perfis administrativos;
+- o checklist final precisa estar completo.
 
 ## Como despublicar
 
 1. Abrir `/comun/admin/dossies/[id]`.
-2. Usar acao `Despublicar`.
-3. Confirmar que `/comun/dossies/[slug]` nao mostra mais a pagina.
-4. Registrar ajuste no editor antes de publicar novamente.
+2. Preencher motivo de despublicacao.
+3. Usar acao `Despublicar`.
+4. Confirmar que `/comun/dossies/[slug]` nao mostra mais a pagina.
+5. Registrar ajuste no editor antes de publicar novamente.
+
+## Como fazer rollback
+
+1. Abrir `/comun/admin/dossies/[id]`.
+2. Ir em `Historico de publicacao`.
+3. Comparar o rascunho atual com o snapshot ativo quando necessario.
+4. Escolher um snapshot anterior seguro.
+5. Usar `Rollback para este`.
+6. Confirmar que a rota publica voltou a usar a versao selecionada.
 
 ## Nunca publicar
 

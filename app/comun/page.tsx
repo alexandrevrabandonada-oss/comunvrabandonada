@@ -2,12 +2,14 @@ import Link from "next/link";
 import { AlertTriangle, Archive, ArrowRight, Megaphone, Shield, ShieldCheck, type LucideIcon } from "lucide-react";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
 import { listCommunities, listIssues } from "@/lib/comun-data";
+import { listPublicDossierFeatures } from "@/lib/pauta-dossiers";
 import { StatusLabel } from "@/components/status-label";
+import { getArchiveHomeFeatures } from "@/lib/archive";
 
 export const dynamic = "force-dynamic";
 
 export default async function ComunHome() {
-  const [communities, issues] = await Promise.all([listCommunities(), listIssues()]);
+  const [communities, issues, featuredDossiers, archive] = await Promise.all([listCommunities(), listIssues(), listPublicDossierFeatures(), getArchiveHomeFeatures()]);
   const quickLinks = [
     ["Buraco ou calcada", "/comun/relatar?comunidade=cidade"],
     ["Lixo ou entulho", "/comun/relatar?comunidade=cidade"],
@@ -77,6 +79,42 @@ export default async function ComunHome() {
             </div>
           </div>
         </div>
+      </Section>
+
+      <Section>
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+          <div><p className="font-black uppercase text-comun-yellow">Acervo vivo</p><h2 className="mt-1 text-2xl font-black uppercase text-comun-paper">Memoria viva da cidade</h2><p className="mt-2 max-w-2xl text-sm text-comun-paper/72">Fotografias, colecoes e trajetorias locais publicadas com revisao de fonte e direitos.</p></div>
+          <PrimaryLink href="/comun/acervo">Explorar o Acervo</PrimaryLink>
+        </div>
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {archive.photo ? <Link href={`/comun/acervo/${archive.photo.slug}`} className="paper-panel border-2 border-comun-black p-4"><p className="text-xs font-black uppercase text-comun-rust">Fotografia em destaque</p><h3 className="mt-2 font-black uppercase">{archive.photo.title}</h3></Link> : null}
+          {archive.collection ? <Link href={`/comun/acervo/colecoes/${archive.collection.slug}`} className="paper-panel border-2 border-comun-black p-4"><p className="text-xs font-black uppercase text-comun-rust">Colecao</p><h3 className="mt-2 font-black uppercase">{archive.collection.title}</h3></Link> : null}
+          {archive.artist ? <Link href={`/comun/acervo/${archive.artist.slug}`} className="paper-panel border-2 border-comun-black p-4"><p className="text-xs font-black uppercase text-comun-rust">Artista local</p><h3 className="mt-2 font-black uppercase">{archive.artist.title}</h3></Link> : null}
+          {!archive.photo && !archive.collection && !archive.artist ? <p className="border-2 border-comun-yellow bg-comun-black p-4 text-sm text-comun-paper/72 md:col-span-3">O primeiro recorte do acervo esta em preparacao.</p> : null}
+        </div>
+      </Section>
+
+      <Section>
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+          <div>
+            <h2 className="text-2xl font-black uppercase text-comun-yellow">Dossies em destaque</h2>
+            <p className="mt-2 max-w-2xl text-sm text-comun-paper/72">Leituras publicas selecionadas a partir de snapshots ativos.</p>
+          </div>
+          <Link href="/comun/dossies" className="inline-flex min-h-11 items-center justify-center border-2 border-comun-yellow px-4 py-2 text-sm font-black uppercase text-comun-yellow">Ver todos</Link>
+        </div>
+        {featuredDossiers.length ? (
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            {featuredDossiers.slice(0, 3).map((feature) => (
+              <Link key={feature.id} href={`/comun/dossies/${feature.snapshot.public_slug}`} className="paper-panel border-2 border-comun-black p-4">
+                <p className="text-xs font-black uppercase text-comun-rust">{feature.public_label || "Destaque publico"}</p>
+                <h3 className="comun-prose mt-2 font-black uppercase">{feature.snapshot.public_title}</h3>
+                <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{feature.public_note || feature.snapshot.public_summary}</p>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-5 border-2 border-comun-yellow bg-comun-black p-4 text-sm text-comun-paper/72">Ainda nao ha dossies em destaque.</p>
+        )}
       </Section>
 
       <Section>

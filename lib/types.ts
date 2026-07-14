@@ -208,6 +208,20 @@ export type PautaDossierStatus = "draft" | "in_review" | "ready" | "archived";
 export type PautaDossierReviewStatus = "draft" | "editorial_review" | "changes_requested" | "approved" | "published" | "unpublished" | "archived";
 export type PautaDossierReviewStage = "factual_review" | "editorial_review";
 export type PautaDossierReviewDecision = "approved" | "changes_requested" | "rejected";
+export type PautaDossierReviewPriority = "low" | "normal" | "high" | "urgent";
+export type PautaDossierPublicationSnapshotStatus = "published" | "superseded" | "unpublished" | "rollback";
+export type ComunAdminNotificationKind =
+  | "dossier_factual_assigned"
+  | "dossier_editorial_assigned"
+  | "dossier_due_today"
+  | "dossier_overdue"
+  | "dossier_changes_requested"
+  | "dossier_ready_to_publish"
+  | "dossier_blocked_same_reviewer"
+  | "dossier_due_date_changed"
+  | "dossier_priority_high";
+export type ComunAdminNotificationStatus = "unread" | "read" | "archived";
+export type ComunAdminProfileRole = "admin" | "editor" | "factual_reviewer" | "editorial_reviewer" | "publisher" | "viewer";
 
 export type PautaSpace = {
   id: string;
@@ -311,6 +325,15 @@ export type PautaDossier = {
   next_steps: string | null;
   public_version: string | null;
   internal_notes: string | null;
+  factual_reviewer_assigned: string | null;
+  editorial_reviewer_assigned: string | null;
+  review_priority: PautaDossierReviewPriority;
+  review_due_at: string | null;
+  review_notes_internal: string | null;
+  factual_reviewer_assigned_user_id: string | null;
+  editorial_reviewer_assigned_user_id: string | null;
+  final_publication_checklist: Record<string, boolean>;
+  final_publication_notes: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -330,8 +353,68 @@ export type PautaDossierReview = {
   review_stage: PautaDossierReviewStage;
   reviewer_name: string;
   reviewer_role: string | null;
+  reviewer_user_id: string | null;
   decision: PautaDossierReviewDecision;
   checklist: Record<string, boolean>;
   notes: string | null;
   created_at: string;
+};
+
+export type ComunAdminNotification = {
+  id: string;
+  kind: ComunAdminNotificationKind;
+  target_type: string;
+  target_id: string;
+  title: string;
+  body: string | null;
+  priority: PautaDossierReviewPriority;
+  assigned_to: string | null;
+  assigned_to_user_id: string | null;
+  status: ComunAdminNotificationStatus;
+  created_at: string;
+  read_at: string | null;
+};
+
+export type ComunAdminProfile = {
+  id: string;
+  auth_user_id: string | null;
+  display_name: string;
+  email: string;
+  role: ComunAdminProfileRole;
+  active: boolean;
+  operational_note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PautaDossierPublicationSnapshot = {
+  id: string;
+  dossier_id: string;
+  public_title: string;
+  public_summary: string;
+  public_body: string;
+  public_slug: string;
+  published_by_user_id: string | null;
+  published_by_name_snapshot: string | null;
+  published_at: string;
+  unpublished_at: string | null;
+  unpublished_by_user_id: string | null;
+  unpublish_reason: string | null;
+  snapshot_status: PautaDossierPublicationSnapshotStatus;
+  public_change_note: string | null;
+  public_version_label: string;
+  public_updated_at: string | null;
+  created_at: string;
+};
+
+export type PublicDossierFeature = {
+  id: string;
+  snapshot_id: string;
+  slot: string;
+  public_label: string | null;
+  public_note: string | null;
+  priority: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
 };

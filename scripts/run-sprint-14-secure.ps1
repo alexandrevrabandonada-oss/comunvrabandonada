@@ -126,6 +126,10 @@ try {
   git push
 
   if (-not $SkipDeploy) {
+    if ($env:ALLOW_PRODUCTION_CHECKS -ne "1") {
+      throw "Production checks are disabled by default. Set ALLOW_PRODUCTION_CHECKS=1 only for release validation."
+    }
+
     Write-Step "Deploy de producao"
     npx vercel deploy --prod --yes
 

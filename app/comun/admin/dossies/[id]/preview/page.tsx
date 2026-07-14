@@ -7,7 +7,8 @@ import { getAdminPautaDossier } from "@/lib/pauta-dossiers";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function AdminDossierPreviewPage({ params }: { params: { id: string } }) {
+export default async function AdminDossierPreviewPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await requireComunAdmin();
   const dossier = await getAdminPautaDossier(params.id);
   if (!dossier) notFound();

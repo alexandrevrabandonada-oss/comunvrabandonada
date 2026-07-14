@@ -22,11 +22,12 @@ const statusOptions = [
   ["archived", "Arquivado"],
 ] as const;
 
-export default async function AdminOfficialProtocolsPage({
-  searchParams,
-}: {
-  searchParams: Record<string, string | undefined>;
-}) {
+export default async function AdminOfficialProtocolsPage(
+  props: {
+    searchParams: Promise<Record<string, string | undefined>>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const session = await requireComunAdmin();
   const [communities, issues, queue] = await Promise.all([
     listCommunities(),

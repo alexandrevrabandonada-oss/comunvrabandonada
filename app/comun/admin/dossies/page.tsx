@@ -8,7 +8,8 @@ export const revalidate = 0;
 
 const reviewStatuses = ["draft", "editorial_review", "changes_requested", "approved", "published", "unpublished", "archived"];
 
-export default async function AdminDossiesPage({ searchParams }: { searchParams: Record<string, string | undefined> }) {
+export default async function AdminDossiesPage(props: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const searchParams = await props.searchParams;
   const session = await requireComunAdmin();
   const reviewStatus = reviewStatuses.includes(searchParams.status ?? "") ? String(searchParams.status) : "";
   const dossiers = await listAdminPautaDossiers({ reviewStatus });

@@ -6,11 +6,12 @@ import { isValidProtocol, normalizeProtocol } from "@/lib/reports";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default function FollowReportPage({
-  searchParams,
-}: {
-  searchParams: { protocolo?: string };
-}) {
+export default async function FollowReportPage(
+  props: {
+    searchParams: Promise<{ protocolo?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const maybeProtocol = searchParams.protocolo ? normalizeProtocol(searchParams.protocolo) : "";
 
   if (maybeProtocol && isValidProtocol(maybeProtocol)) {

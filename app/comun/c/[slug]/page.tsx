@@ -4,16 +4,19 @@ import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
 import { getCommunity, listIssues } from "@/lib/comun-data";
 import { StatusLabel } from "@/components/status-label";
 import { listPublicReports } from "@/lib/reports";
+import { listPublishedPautaDossiersByCommunity, type PublishedPautaDossierSnapshot } from "@/lib/pauta-dossiers";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function CommunityPage({ params }: { params: { slug: string } }) {
+export default async function CommunityPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const community = await getCommunity(params.slug);
   if (!community) notFound();
-  const [relatedIssues, reports] = await Promise.all([
+  const [relatedIssues, reports, publishedDossiers] = await Promise.all([
     listIssues({ communitySlug: community.slug }),
     listPublicReports({ communitySlug: community.slug }),
+    listPublishedPautaDossiersByCommunity(community.slug),
   ]);
   const usefulMaterials = Array.from(new Set(relatedIssues.flatMap((issue) => issue.usefulMaterials))).slice(0, 5);
 
@@ -37,6 +40,16 @@ export default async function CommunityPage({ params }: { params: { slug: string
             </ul>
           </aside>
         </div>
+      </Section>
+      <Section>
+        <h2 className="text-2xl font-black uppercase text-comun-yellow">Dossies desta comunidade</h2>
+        {publishedDossiers.length ? (
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            {publishedDossiers.map((dossier) => <PublicDossierCard key={dossier.id} dossier={dossier} />)}
+          </div>
+        ) : (
+          <EmptyState text="Ainda nao ha dossies publicados nesta comunidade." />
+        )}
       </Section>
       <Section>
         <h2 className="text-2xl font-black uppercase text-comun-yellow">Pautas relacionadas</h2>
@@ -90,4 +103,14 @@ export default async function CommunityPage({ params }: { params: { slug: string
 
 function EmptyState({ text }: { text: string }) {
   return <p className="mt-4 border-2 border-comun-yellow bg-comun-black p-4 text-sm text-comun-paper/75">{text}</p>;
+}
+
+function PublicDossierCard({ dossier }: { dossier: PublishedPautaDossierSnapshot }) {
+  return (
+    <Link href={`/comun/dossies/${dossier.public_slug}`} className="paper-panel border-2 border-comun-black p-4">
+      <p className="text-xs font-black uppercase text-comun-asphalt/60">{dossier.public_version_label || "Versao revisada"} / {new Date(dossier.public_updated_at ?? dossier.published_at).toLocaleDateString("pt-BR")}</p>
+      <h3 className="comun-prose mt-2 font-black uppercase">{dossier.public_title}</h3>
+      <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{dossier.public_summary}</p>
+    </Link>
+  );
 }

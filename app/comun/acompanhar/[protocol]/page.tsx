@@ -8,7 +8,8 @@ import { getPublicReportByProtocol, normalizeProtocol } from "@/lib/reports";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function FollowReportResultPage({ params }: { params: { protocol: string } }) {
+export default async function FollowReportResultPage(props: { params: Promise<{ protocol: string }> }) {
+  const params = await props.params;
   const protocol = normalizeProtocol(decodeURIComponent(params.protocol));
   const report = await getPublicReportByProtocol(protocol);
   const officialProtocol = report.found ? await getPublicOfficialProtocol(protocol) : null;

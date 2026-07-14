@@ -1,8 +1,10 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { logoutAdmin } from "@/app/actions";
+import { getAdminNotificationSummary } from "@/lib/admin-notifications";
 
-export function AdminShell({ children, adminEmail }: { children: ReactNode; adminEmail: string }) {
+export async function AdminShell({ children, adminEmail }: { children: ReactNode; adminEmail: string }) {
+  const notificationSummary = await getAdminNotificationSummary();
   return (
     <div className="min-h-screen bg-comun-paper text-comun-black">
       <header className="border-b-2 border-comun-black bg-comun-black text-comun-paper">
@@ -13,9 +15,19 @@ export function AdminShell({ children, adminEmail }: { children: ReactNode; admi
             <Link href="/comun/admin/pautas">Pautas</Link>
             <Link href="/comun/admin/pautas/contribuicoes">Contribuicoes</Link>
             <Link href="/comun/admin/dossies">Dossies</Link>
+            <Link href="/comun/admin/acervo">Acervo</Link>
+            <Link href="/comun/admin/acervo/colecoes">Colecoes</Link>
+            <Link href="/comun/dossies">Publicos</Link>
             <Link href="/comun/admin/dossies/revisoes">Revisoes</Link>
+            <Link href="/comun/admin/notificacoes" className="inline-flex items-center gap-1">
+              Notificacoes
+              <span className="border border-comun-yellow px-1 text-[10px] text-comun-yellow">{notificationSummary.unread}</span>
+              {notificationSummary.overdue ? <span className="border border-red-400 px-1 text-[10px] text-red-200">{notificationSummary.overdue}</span> : null}
+              {notificationSummary.urgent ? <span className="border border-orange-300 px-1 text-[10px] text-orange-200">{notificationSummary.urgent}</span> : null}
+            </Link>
             <Link href="/comun/admin/anexos">Anexos</Link>
             <Link href="/comun/admin/protocolos-oficiais">Protocolos oficiais</Link>
+            <Link href="/comun/admin/equipe">Equipe</Link>
             <Link href="/comun/admin/auditoria">Auditoria</Link>
             <Link href="/comun/admin/observabilidade">Observabilidade</Link>
             <form action={logoutAdmin}><button className="text-comun-paper/70">Sair</button></form>

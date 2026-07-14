@@ -1,5 +1,43 @@
 # Operacao COMUN
 
+## Regra local-first
+
+Todo tijolo comum deve rodar localmente por padrao. Deploy e validacao em producao sao etapas de release, nao rotina diaria de desenvolvimento.
+
+Permitido em tijolo comum:
+
+- `npm run lint`;
+- `npm run typecheck`;
+- `npm run build`;
+- `npm run verify`;
+- `npm run verify:local`;
+- servidor local;
+- smokes contra `http://localhost:<porta>` ou `http://127.0.0.1:<porta>`.
+
+Proibido por padrao:
+
+- `vercel deploy`;
+- `npx vercel deploy`;
+- `npx vercel deploy --prod`;
+- smokes com `NEXT_PUBLIC_SITE_URL=https://comunvrabandonada.vercel.app`;
+- qualquer teste contra producao.
+
+Checks em producao exigem pedido explicito e `ALLOW_PRODUCTION_CHECKS=1`. Os smokes HTTP abortam se detectarem a URL de producao sem essa variavel.
+
+Relatorios futuros devem declarar ambiente usado, se houve deploy, se houve check em producao e se o tijolo foi local-only.
+
+## Release candidate local
+
+Use a RC local para validar o COMUN inteiro antes de qualquer deploy:
+
+1. subir Supabase local com Docker;
+2. resetar o banco com `npx supabase db reset --local`;
+3. rodar `npm run storage:setup` para buckets privados locais;
+4. iniciar Next em `http://localhost:3000`;
+5. rodar `npm run verify:rc-local`.
+
+A RC local valida lint, typecheck, build, matriz RLS e os smokes principais. Ela nao envia e-mail, WhatsApp, notificacao externa, deploy ou smoke contra producao.
+
 ## Rotina de curadoria
 
 1. Entrar em `/comun/admin`.
@@ -186,8 +224,30 @@ Nunca copiar para a pagina publica:
 15. Registrar revisao editorial com outro revisor.
 16. Pedir ajuste quando qualquer etapa encontrar problema.
 17. Aprovar somente com checklist de seguranca marcado e dupla revisao concluida.
-18. Publicar quando o status estiver `approved`.
-19. Despublicar se houver erro, risco ou necessidade de nova revisao.
-20. Arquivar dossies sem recorte claro ou com risco editorial alto.
+18. Preencher o checklist final de publicacao.
+19. Publicar quando o status estiver `approved`; isso cria snapshot imutavel.
+20. Comparar rascunho atual com snapshot ativo quando houver duvida.
+21. Despublicar com motivo registrado se houver erro, risco ou necessidade de nova revisao.
+22. Fazer rollback para snapshot anterior quando a versao anterior for a ultima segura.
+23. Arquivar dossies sem recorte claro ou com risco editorial alto.
 
-A rota publica usa somente os campos publicos revisados. O rascunho interno, `public_version` antigo, notas de revisao, checklist de revisao e `internal_notes` nao entram na pagina publica.
+A rota publica usa somente o snapshot publico ativo. O rascunho interno, `public_version` antigo, notas de revisao, checklist de revisao, checklist final e `internal_notes` nao entram na pagina publica.
+
+### Rotina de snapshots de publicacao
+
+1. Abrir `/comun/admin/dossies/[id]`.
+2. Conferir `Versao publica revisada`.
+3. Salvar o checklist final.
+4. Publicar e confirmar o item em `Historico de publicacao`.
+5. Abrir `/comun/dossies/[slug]` localmente.
+6. Editar o rascunho apenas se precisar preparar nova versao.
+7. Publicar de novo para criar novo snapshot; o anterior deve ficar `superseded`.
+8. Despublicar sempre com motivo.
+9. Usar rollback somente para restaurar snapshot anterior seguro.
+# Acervo vivo (Sprint 20)
+
+O módulo `/comun/acervo` usa Supabase para metadados e Cloudflare R2 para binários. A administração fica em `/comun/admin/acervo` e `/comun/admin/acervo/colecoes`.
+
+Fluxo: cadastrar metadados, enviar original privado, enviar versão pública separada, preencher alt text/créditos, aprovar o asset e publicar. Despublicar torna o item privado sem apagar o original. Direitos desconhecidos/restritos e uploads de áudio/vídeo são bloqueados.
+
+Rotina semanal: `npm run backup:archive-manifest`. Consulte `docs/acervo-vivo.md`, `docs/acervo-storage.md`, `docs/acervo-direitos.md` e `docs/acervo-backup-local.md`.

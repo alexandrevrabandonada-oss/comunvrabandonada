@@ -21,7 +21,8 @@ const checklistItems = [
   ["dossier_candidate", "Pauta pode virar dossie futuramente"],
 ] as const;
 
-export default async function AdminPautaSpaceDetailPage({ params }: { params: { id: string } }) {
+export default async function AdminPautaSpaceDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await requireComunAdmin();
   const space = await getAdminPautaSpace(params.id);
   if (!space) notFound();

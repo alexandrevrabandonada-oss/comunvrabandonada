@@ -21,6 +21,9 @@ const items = [
   "A fila interna pode marcar risco operacional, mas hashes e metadados tecnicos nao aparecem publicamente.",
   "Contato privado enviado em contribuicao de pauta nunca aparece na pagina publica.",
   "Pautas, tarefas e dossies nao substituem canal oficial nem atendimento de urgencia.",
+  "No Acervo, originais ficam em bucket privado e nunca se tornam publicos automaticamente.",
+  "A pagina publica usa uma versao separada, aprovada e revisada quanto a direitos, creditos e dados pessoais.",
+  "O Acervo nao hospeda arquivos de musica neste sprint: artistas e lancamentos usam somente links oficiais externos.",
 ];
 
 export default function SecurityPage() {

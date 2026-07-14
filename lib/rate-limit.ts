@@ -64,8 +64,8 @@ function firstForwardedIp(value: string | null) {
   return value?.split(",")[0]?.trim() || "";
 }
 
-export function getClientFingerprint() {
-  const headerStore = headers();
+export async function getClientFingerprint() {
+  const headerStore = await headers();
   const ip =
     firstForwardedIp(headerStore.get("x-forwarded-for")) ||
     headerStore.get("x-real-ip") ||
@@ -110,7 +110,7 @@ export async function logProtocolLookupEvent(input: RateLimitInput) {
   const supabase = createServiceSupabaseClient();
   if (!supabase) return;
 
-  const fingerprint = getClientFingerprint();
+  const fingerprint = await getClientFingerprint();
   const normalizedProtocol = input.protocol.trim().toUpperCase();
 
   await supabase.from("comun_public_lookup_events").insert({
@@ -127,7 +127,7 @@ export async function logProtocolLookupEvent(input: RateLimitInput) {
 
 export async function checkProtocolLookupRateLimit(input: RateLimitInput): Promise<RateLimitDecision> {
   const limits = getLimits();
-  const fingerprint = getClientFingerprint();
+  const fingerprint = await getClientFingerprint();
   const protocolHash = hashLookupValue(input.protocol.trim().toUpperCase());
 
   if (!fingerprint.ip_hash) {

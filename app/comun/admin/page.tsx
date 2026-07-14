@@ -21,7 +21,8 @@ const workCampaignCategories = [
   ["retaliacao", "Retaliacao"],
 ] as const;
 
-export default async function AdminPage({ searchParams }: { searchParams: Record<string, string | undefined> }) {
+export default async function AdminPage(props: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const searchParams = await props.searchParams;
   const session = await requireComunAdmin();
 
   const createdFrom = searchParams.data_de ? new Date(`${searchParams.data_de}T00:00:00`) : null;

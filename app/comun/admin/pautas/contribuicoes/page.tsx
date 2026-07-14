@@ -8,7 +8,8 @@ const statuses = ["", "pending", "approved", "rejected", "archived"] as const;
 const riskLevels = ["", "normal", "attention", "high"] as const;
 const types = ["", "relato", "evidencia", "proposta", "duvida", "contraponto", "encaminhamento", "tarefa_oferecida"] as const;
 
-export default async function AdminPautaContributionsQueuePage({ searchParams }: { searchParams: Record<string, string | undefined> }) {
+export default async function AdminPautaContributionsQueuePage(props: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const searchParams = await props.searchParams;
   const session = await requireComunAdmin();
   const [items, spaces] = await Promise.all([
     listAdminPautaContributionQueue({

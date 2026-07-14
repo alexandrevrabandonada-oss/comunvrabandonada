@@ -32,7 +32,7 @@ export function createServiceSupabaseClient() {
   });
 }
 
-export function createSupabaseServerClient() {
+export async function createSupabaseServerClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -40,7 +40,7 @@ export function createSupabaseServerClient() {
     return null;
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
   return createServerClient(url, anonKey, {
     cookies: {

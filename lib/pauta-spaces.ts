@@ -313,7 +313,7 @@ export async function assessPautaContributionSafety(input: {
   honeypot: string;
   challengeAnswer: string;
 }) {
-  const fingerprint = getClientFingerprint();
+  const fingerprint = await getClientFingerprint();
   const bodyHash = hashLookupValue(input.body.toLowerCase().replace(/\s+/g, " ").slice(0, 500));
   const riskReasons = [] as string[];
   const recentCounts = await getRecentContributionCounts(fingerprint.ip_hash);

@@ -19,11 +19,12 @@ const statusOptions = [
   ["todos", "Todos"],
 ] as const;
 
-export default async function AdminAttachmentsPage({
-  searchParams,
-}: {
-  searchParams: Record<string, string | undefined>;
-}) {
+export default async function AdminAttachmentsPage(
+  props: {
+    searchParams: Promise<Record<string, string | undefined>>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const session = await requireComunAdmin();
   const status = searchParams.status ?? "pending";
   const page = Math.max(1, Number(searchParams.page) || 1);
@@ -56,7 +57,6 @@ export default async function AdminAttachmentsPage({
           Voltar aos relatos
         </Link>
       </div>
-
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
         <StatCard label="Pendentes hoje" value={queue.stats.pending_today} />
         <StatCard label="Pendentes ha mais de 24h" value={queue.stats.pending_over_24h} />
@@ -66,7 +66,6 @@ export default async function AdminAttachmentsPage({
         <StatCard label="Reprovados" value={queue.stats.rejected} />
         <StatCard label="Public ready" value={queue.stats.public_ready} />
       </div>
-
       <section className="mt-6 border-2 border-comun-black bg-white p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -92,7 +91,6 @@ export default async function AdminAttachmentsPage({
           <ChecklistItem>Verificar auditoria.</ChecklistItem>
         </ul>
       </section>
-
       <form className="mt-6 grid gap-3 border-2 border-comun-black bg-white p-4 md:grid-cols-6">
         <label className="grid gap-1 text-sm font-black uppercase">
           Status
@@ -112,7 +110,6 @@ export default async function AdminAttachmentsPage({
         <DateInput name="data_ate" label="Data ate" defaultValue={searchParams.data_ate} />
         <button className="min-h-11 border-2 border-comun-black bg-comun-yellow font-black uppercase">Filtrar</button>
       </form>
-
       <div className="mt-6 grid gap-4">
         {queue.items.map((attachment) => {
           const report = attachment.report;
@@ -133,7 +130,7 @@ export default async function AdminAttachmentsPage({
                 <div className="flex min-h-[150px] items-center justify-center border-2 border-comun-black bg-comun-paper">
                   {attachment.signed_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={attachment.signed_url} alt="" className="max-h-36 max-w-full object-contain" />
+                    (<img src={attachment.signed_url} alt="" className="max-h-36 max-w-full object-contain" />)
                   ) : (
                     <span className="p-3 text-center text-xs font-black uppercase text-comun-red">Sem miniatura</span>
                   )}
@@ -169,7 +166,6 @@ export default async function AdminAttachmentsPage({
           <p className="border-2 border-comun-black bg-white p-4">Nenhum anexo encontrado para os filtros atuais.</p>
         ) : null}
       </div>
-
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-2 border-comun-black bg-white p-4 text-sm font-bold">
         <span>
           Pagina {queue.page} de {Math.max(1, Math.ceil(queue.total / queue.limit))} - {queue.total} anexos

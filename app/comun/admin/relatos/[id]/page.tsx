@@ -17,7 +17,8 @@ import { listCommunities, listIssues } from "@/lib/comun-data";
 import { getOfficialProtocolByComunProtocol } from "@/lib/official-protocols";
 import { getAdminReport, listAdminReportAttachments } from "@/lib/reports";
 
-export default async function ReviewReportPage({ params }: { params: { id: string } }) {
+export default async function ReviewReportPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const session = await requireComunAdmin();
   const [report, communities, issues, attachments, officialProtocol] = await Promise.all([
     getAdminReport(params.id),
@@ -53,7 +54,6 @@ export default async function ReviewReportPage({ params }: { params: { id: strin
           <RiskBadge value={report.risk_level} />
         </div>
       </div>
-
       {isHighRisk ? (
         <div className="mt-5 border-2 border-comun-red bg-white p-4 text-comun-red">
           <div className="flex items-start gap-3">
@@ -67,7 +67,6 @@ export default async function ReviewReportPage({ params }: { params: { id: strin
           </div>
         </div>
       ) : null}
-
       <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_1fr]">
         <section className="grid gap-4">
           <Block title="Relato bruto">
@@ -124,7 +123,7 @@ export default async function ReviewReportPage({ params }: { params: { id: strin
                     <div className="flex min-h-[120px] items-center justify-center border-2 border-comun-black bg-white">
                       {attachment.signed_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={attachment.signed_url} alt="" className="max-h-28 max-w-full object-contain" />
+                        (<img src={attachment.signed_url} alt="" className="max-h-28 max-w-full object-contain" />)
                       ) : (
                         <span className="p-2 text-center text-xs font-bold text-comun-red">Sem miniatura</span>
                       )}

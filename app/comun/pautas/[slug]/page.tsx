@@ -4,6 +4,7 @@ import { submitPautaContribution } from "@/app/actions";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
 import { getCommunity, getIssue } from "@/lib/comun-data";
 import { getPublicPautaSpaceBySlug, listApprovedPautaContributions, listPublicPautaEvidence, listPublicPautaTasks, listSafePautaOfficialProtocols, listSafePautaReports } from "@/lib/pauta-spaces";
+import { listPublicDossierFeatures, listPublishedPautaDossiersByPauta, type PublishedPautaDossierSnapshot } from "@/lib/pauta-dossiers";
 import { listPublicReports } from "@/lib/reports";
 
 export const dynamic = "force-dynamic";
@@ -19,19 +20,25 @@ const contributionTypes = [
   ["tarefa_oferecida", "Tarefa oferecida"],
 ] as const;
 
-export default async function PautaPage({ params, searchParams }: { params: { slug: string }; searchParams: Record<string, string | undefined> }) {
+export default async function PautaPage(
+  props: { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | undefined>> }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const space = await getPublicPautaSpaceBySlug(params.slug);
   if (!space) return <LegacyIssuePage slug={params.slug} />;
 
-  const [reports, protocols, contributions, tasks, evidence, community] = await Promise.all([
+  const [reports, protocols, contributions, tasks, evidence, community, publishedDossiers] = await Promise.all([
     listSafePautaReports(space),
     listSafePautaOfficialProtocols(space),
     listApprovedPautaContributions(space.id),
     listPublicPautaTasks(space.id),
     listPublicPautaEvidence(space.id),
     space.community ? getCommunity(space.community) : null,
+    listPublishedPautaDossiersByPauta(space.id),
   ]);
   const grouped = groupContributions(contributions);
+  const featuredDossiers = (await listPublicDossierFeatures()).filter((feature) => feature.snapshot.pauta?.id === space.id);
 
   return (
     <ComunShell>
@@ -53,6 +60,31 @@ export default async function PautaPage({ params, searchParams }: { params: { sl
             </dl>
           </aside>
         </div>
+      </Section>
+
+      <Section>
+        <h2 className="text-2xl font-black uppercase text-comun-yellow">Dossies publicados desta pauta</h2>
+        {featuredDossiers.length ? (
+          <div className="mb-5 mt-4 border-2 border-comun-yellow bg-comun-black p-4">
+            <h3 className="text-xl font-black uppercase text-comun-yellow">Dossies em destaque</h3>
+            <div className="mt-3 grid gap-3 lg:grid-cols-2">
+              {featuredDossiers.slice(0, 2).map((feature) => (
+                <Link key={feature.id} href={`/comun/dossies/${feature.snapshot.public_slug}`} className="border border-comun-yellow p-3 text-comun-paper">
+                  <p className="text-xs font-black uppercase text-comun-yellow">{feature.public_label || "Destaque publico"}</p>
+                  <h4 className="comun-prose mt-1 font-black uppercase">{feature.snapshot.public_title}</h4>
+                  <p className="comun-prose mt-2 text-sm text-comun-paper/75">{feature.public_note || feature.snapshot.public_summary}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        {publishedDossiers.length ? (
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            {publishedDossiers.map((dossier) => <PublicDossierCard key={dossier.id} dossier={dossier} />)}
+          </div>
+        ) : (
+          <EmptyState text="Ainda nao ha dossies publicados nesta pauta." />
+        )}
       </Section>
 
       <Section>
@@ -197,6 +229,16 @@ function Metric({ label, value }: { label: string; value: number }) {
 
 function MetricCard({ label, value }: { label: string; value: number }) {
   return <div className="paper-panel border-2 border-comun-black p-4"><p className="text-xs font-black uppercase text-comun-asphalt/60">{label}</p><p className="mt-2 text-3xl font-black">{value}</p></div>;
+}
+
+function PublicDossierCard({ dossier }: { dossier: PublishedPautaDossierSnapshot }) {
+  return (
+    <Link href={`/comun/dossies/${dossier.public_slug}`} className="paper-panel border-2 border-comun-black p-4">
+      <p className="text-xs font-black uppercase text-comun-asphalt/60">{dossier.public_version_label || "Versao revisada"} / {new Date(dossier.public_updated_at ?? dossier.published_at).toLocaleDateString("pt-BR")}</p>
+      <h3 className="comun-prose mt-2 font-black uppercase">{dossier.public_title}</h3>
+      <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{dossier.public_summary}</p>
+    </Link>
+  );
 }
 
 function EmptyState({ text }: { text: string }) {

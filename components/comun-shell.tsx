@@ -3,9 +3,10 @@ import type { ReactNode } from "react";
 import { Shield } from "lucide-react";
 
 const nav = [
-  ["Comunidades", "/comun/comunidades"],
+  ["Inicio", "/comun"],
+  ["Pautas", "/comun/pautas"],
+  ["Acervo", "/comun/acervo"],
   ["Dossies", "/comun/dossies"],
-  ["Seguranca", "/comun/seguranca"],
 ];
 
 export function ComunShell({ children }: { children: ReactNode }) {

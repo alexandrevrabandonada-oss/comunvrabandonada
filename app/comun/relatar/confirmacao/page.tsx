@@ -3,7 +3,8 @@ import { ArrowRight, Files, Newspaper, ShieldCheck } from "lucide-react";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
 import { CopyProtocolButton } from "@/app/comun/relatar/confirmacao/copy-protocol-button";
 
-export default function ConfirmationPage({ searchParams }: { searchParams: { protocolo?: string; modo?: string } }) {
+export default async function ConfirmationPage(props: { searchParams: Promise<{ protocolo?: string; modo?: string }> }) {
+  const searchParams = await props.searchParams;
   const protocol = searchParams.protocolo ?? "COMUN-LOCAL";
   const isQuickReport = searchParams.modo === "rapido";
 

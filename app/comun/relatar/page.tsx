@@ -18,11 +18,12 @@ const allowedCampaignCategories = new Set([
   "retaliacao",
 ]);
 
-export default function ReportPage({
-  searchParams,
-}: {
-  searchParams: { comunidade?: string; pauta?: string; categoria?: string };
-}) {
+export default async function ReportPage(
+  props: {
+    searchParams: Promise<{ comunidade?: string; pauta?: string; categoria?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const initialTopicChoice: TopicChoice =
     searchParams.comunidade && allowedTopics.has(searchParams.comunidade)
       ? (searchParams.comunidade as TopicChoice)

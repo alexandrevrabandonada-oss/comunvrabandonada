@@ -1,11 +1,51 @@
 # Deploy Checklist
 
+Este checklist e uma rotina de release. Ele nao faz parte da rotina diaria de desenvolvimento nem de um tijolo comum.
+
+Por padrao, tijolos comuns sao local-first:
+
+- nao rodar `vercel deploy`, `npx vercel deploy` ou `npx vercel deploy --prod`;
+- nao rodar smokes com `NEXT_PUBLIC_SITE_URL=https://comunvrabandonada.vercel.app`;
+- nao executar qualquer teste contra producao sem pedido explicito.
+
+Para desenvolvimento comum, use somente checks locais:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm run build`
+- `npm run verify`
+- `npm run verify:local`
+- servidor local
+- smokes contra `http://localhost:<porta>` ou `http://127.0.0.1:<porta>`
+
+## Release candidate local
+
+Antes de qualquer release real, rode a RC local com Supabase local/Docker:
+
+1. `npx supabase start`
+2. `npx supabase db reset --local`
+3. `npm run storage:setup`
+4. iniciar Next local com `NEXT_PUBLIC_SITE_URL=http://localhost:3000`
+5. `npm run verify:rc-local`
+
+Esse comando e local-only. Ele nao executa deploy, nao usa Vercel e aborta se `NEXT_PUBLIC_SITE_URL` apontar para fora de `localhost` ou `127.0.0.1`.
+
+Validacao de release pode tocar producao somente quando houver autorizacao explicita e `ALLOW_PRODUCTION_CHECKS=1`. Sem essa variavel, os smokes HTTP abortam quando `NEXT_PUBLIC_SITE_URL` aponta para producao.
+
+Todo relatorio novo deve declarar:
+
+- ambiente usado;
+- se houve deploy;
+- se houve check em producao;
+- se o tijolo foi local-only.
+
 ## Antes do deploy
 
 - [ ] Supabase migration aplicada
 - [ ] Seeds presentes
 - [ ] `.env.local` local funcionando
-- [ ] `npm run verify` passa
+- [ ] RC local `npm run verify:rc-local` passa contra `http://localhost:3000`
+- [ ] `npm run verify:local` passa localmente
 - [ ] `npm run smoke:comun` passa
 - [ ] `npm run smoke:admin-auth` passa
 - [ ] `npm run smoke:no-leak-http -- --path /comun/pautas/<slug> --required "<public_text>" --forbidden "<segredo-ficticio>"` passa
@@ -26,6 +66,11 @@
 - [ ] `npm run smoke:pauta-dossier-publication` passa
 - [ ] `npm run smoke:pauta-dossier-double-review` passa
 - [ ] `npm run smoke:pauta-dossier-review-queue` passa
+- [ ] `npm run smoke:pauta-dossier-review-ops` passa
+- [ ] `npm run smoke:admin-notifications` passa
+- [ ] `npm run smoke:reviewer-identity` passa
+- [ ] `npm run smoke:admin-team` passa
+- [ ] `npm run smoke:dossier-publication-snapshots` passa
 - [ ] GitHub sem segredos
 - [ ] Vercel conectado ao GitHub
 
@@ -44,6 +89,9 @@
 
 ## Depois do deploy
 
+- [ ] confirmar que houve autorizacao explicita para validar producao
+- [ ] configurar `ALLOW_PRODUCTION_CHECKS=1` apenas durante a validacao de release
+- [ ] configurar `NEXT_PUBLIC_SITE_URL=https://comunvrabandonada.vercel.app` apenas durante a validacao de release
 - [ ] abrir `/comun`
 - [ ] abrir `/comun/relatar`
 - [ ] enviar relato real de teste
@@ -99,6 +147,20 @@
 - [ ] abrir `/comun/admin/dossies/revisoes`
 - [ ] confirmar filtros de pendente factual, pendente editorial, bloqueados, ajustes, rejeitados e prontos
 - [ ] publicar dossie aprovado e abrir `/comun/dossies/<slug>`
+- [ ] confirmar que a publicacao criou snapshot e que edicao posterior do draft nao muda a rota publica
+- [ ] publicar nova versao e confirmar snapshot anterior `superseded`
+- [ ] despublicar com motivo obrigatorio
+- [ ] fazer rollback para snapshot anterior seguro
 - [ ] despublicar e confirmar que `/comun/dossies/<slug>` deixa de aparecer
 - [ ] testar no celular via 4G/5G
 - [ ] testar link vindo do Instagram/WhatsApp
+# Acervo vivo / R2
+
+- [ ] Criar buckets R2 distintos para originais privados e versões públicas.
+- [ ] Configurar CORS de upload somente para domínios administrativos previstos.
+- [ ] Configurar `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`, `R2_BUCKET_ORIGINALS`, `R2_BUCKET_PUBLIC` e `R2_PUBLIC_BASE_URL` somente no servidor Vercel.
+- [ ] Confirmar que o bucket de originais não tem leitura pública.
+- [ ] Aplicar `20260714144416_archive_foundation.sql` e conferir RLS/grants.
+- [ ] Rodar `npm run smoke:archive-foundation` local e em produção.
+- [ ] Confirmar que HTML público não contém `object_key`, URL assinada, `editorial_notes` ou `permission_reference`.
+- [ ] Rodar `npm run backup:archive-manifest` e copiar o manifest para mídia de backup.

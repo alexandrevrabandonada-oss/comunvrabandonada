@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { assertProductionChecksAllowed } from "./production-guard.mjs";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -53,6 +54,7 @@ async function assertQueueContains(service, attachmentId, filters, message) {
 }
 
 loadEnvFile(envPath);
+assertProductionChecksAllowed(process.env.NEXT_PUBLIC_SITE_URL);
 
 const requiredVars = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "NEXT_PUBLIC_SITE_URL"];
 const missingVars = requiredVars.filter((name) => !process.env[name]);

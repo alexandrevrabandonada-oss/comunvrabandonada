@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { assertProductionChecksAllowed } from "./production-guard.mjs";
 import { loadLocalEnv } from "./env-loader.mjs";
 
 function logOk(message) {
@@ -41,6 +42,7 @@ async function checkHttp(path, expected) {
 }
 
 loadLocalEnv();
+assertProductionChecksAllowed(process.env.NEXT_PUBLIC_SITE_URL);
 
 const requiredVars = [
   "NEXT_PUBLIC_SUPABASE_URL",

@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { assertProductionChecksAllowed } from "./production-guard.mjs";
 import path from "node:path";
 
 const rootDir = process.cwd();
@@ -42,6 +43,7 @@ function normalize(value) {
 }
 
 loadEnvFile(envPath);
+assertProductionChecksAllowed(process.env.NEXT_PUBLIC_SITE_URL);
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
 if (!baseUrl) {
@@ -72,7 +74,7 @@ const checks = [
   },
   {
     path: "/comun/dossies",
-    required: ["Dossies do COMUN", "Ver dossie"],
+    required: ["Dossies publicados", "Filtrar dossies"],
   },
   {
     path: "/comun/dossies/burnout-e-pressao-no-trabalho",
