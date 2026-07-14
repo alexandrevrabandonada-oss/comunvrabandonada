@@ -27,6 +27,10 @@ export async function AdminShell({
             <Link href="/comun/admin/pautas/contribuicoes">Contribuicoes</Link>
             <Link href="/comun/admin/dossies">Dossies</Link>
             <Link href="/comun/admin/acervo">Acervo</Link>
+            <Link href="/comun/admin/acervo/contribuicoes">
+              Fotos recebidas
+            </Link>
+            <Link href="/comun/admin/acervo/sugestoes">Sugestoes</Link>
             <Link href="/comun/admin/acervo/colecoes">Colecoes</Link>
             <Link href="/comun/admin/acervo/storage">Storage</Link>
             <Link href="/comun/dossies">Publicos</Link>

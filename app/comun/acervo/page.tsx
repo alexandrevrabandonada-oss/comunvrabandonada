@@ -11,6 +11,9 @@ export default async function ArchivePage(props: {
     neighborhood?: string;
     from?: string;
     to?: string;
+    place?: string;
+    decade?: string;
+    page?: string;
   }>;
 }) {
   const searchParams = await props.searchParams;
@@ -26,6 +29,18 @@ export default async function ArchivePage(props: {
           Fotografias, documentos, lugares, artistas e coleções publicados com
           revisão de fonte, direitos e privacidade.
         </p>
+        <Link
+          href="/comun/acervo/contribuir"
+          className="mt-5 inline-flex border-2 border-comun-yellow px-4 py-3 font-black uppercase text-comun-yellow"
+        >
+          Enviar fotografia historica
+        </Link>
+        <Link
+          href="/comun/acervo/direitos-e-remocao"
+          className="ml-3 mt-5 inline-flex px-4 py-3 font-black uppercase text-comun-yellow underline"
+        >
+          Direitos e remocao
+        </Link>
         <form className="mt-6 grid gap-2 border-2 border-comun-yellow bg-comun-black p-4 sm:grid-cols-2 lg:grid-cols-4">
           <input
             name="q"
@@ -63,6 +78,20 @@ export default async function ArchivePage(props: {
             name="neighborhood"
             defaultValue={searchParams.neighborhood}
             placeholder="Bairro"
+            className="min-h-11 bg-comun-paper px-3 text-comun-black"
+          />
+          <input
+            name="place"
+            defaultValue={searchParams.place}
+            placeholder="Lugar"
+            className="min-h-11 bg-comun-paper px-3 text-comun-black"
+          />
+          <input
+            name="decade"
+            type="number"
+            step="10"
+            defaultValue={searchParams.decade}
+            placeholder="Decada"
             className="min-h-11 bg-comun-paper px-3 text-comun-black"
           />
           <input
@@ -142,6 +171,14 @@ export default async function ArchivePage(props: {
           <p className="mt-6 border-2 border-comun-yellow p-5 text-comun-paper/75">
             Nenhum item publicado corresponde aos filtros.
           </p>
+        ) : null}
+        {items.length === 24 ? (
+          <Link
+            href={`/comun/acervo?${new URLSearchParams({ ...Object.fromEntries(Object.entries(searchParams).filter(([, v]) => v)), page: String((Number(searchParams.page) || 1) + 1) }).toString()}`}
+            className="mt-8 inline-flex border-2 border-comun-yellow px-4 py-3 font-black uppercase text-comun-yellow"
+          >
+            Carregar mais resultados
+          </Link>
         ) : null}
       </Section>
     </ComunShell>

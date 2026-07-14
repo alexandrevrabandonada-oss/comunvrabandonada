@@ -23,6 +23,9 @@ const items = [
   "Pautas, tarefas e dossies nao substituem canal oficial nem atendimento de urgencia.",
   "No Acervo, originais ficam em bucket privado e nunca se tornam publicos automaticamente.",
   "A pagina publica usa uma versao separada, aprovada e revisada quanto a direitos, creditos e dados pessoais.",
+  "Fotografias comunitarias passam por triagem, pesquisa de fonte, revisao de direitos e geracao de derivados sem EXIF antes da publicacao.",
+  "Sugestoes de data, lugar, autoria ou contexto ficam pendentes ate revisao humana e nunca alteram automaticamente uma memoria publicada.",
+  "Informacoes sobre pessoas recebem revisao reforcada; o COMUN nao usa reconhecimento facial nem identificacao automatica.",
   "O Acervo nao hospeda arquivos de musica neste sprint: artistas e lancamentos usam somente links oficiais externos.",
 ];
 
@@ -30,17 +33,28 @@ export default function SecurityPage() {
   return (
     <ComunShell>
       <Section>
-        <h1 className="text-3xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">Como o COMUN protege relatos</h1>
+        <h1 className="text-3xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">
+          Como o COMUN protege relatos
+        </h1>
         <p className="comun-prose mt-4 max-w-3xl text-base text-comun-paper/78 sm:text-lg">
-          O COMUN existe para organizar memoria coletiva com cuidado. Relato nao entra publico automaticamente e dados sensiveis ficam fora da parte aberta.
+          O COMUN existe para organizar memoria coletiva com cuidado. Relato nao
+          entra publico automaticamente e dados sensiveis ficam fora da parte
+          aberta.
         </p>
         <div className="mt-6 grid gap-3">
           {items.map((item) => (
-            <div key={item} className="paper-panel comun-prose border-2 border-comun-black p-4 font-bold">{item}</div>
+            <div
+              key={item}
+              className="paper-panel comun-prose border-2 border-comun-black p-4 font-bold"
+            >
+              {item}
+            </div>
           ))}
         </div>
         <div className="mt-6">
-          <PrimaryLink href="/comun/relatar">Enviar relato com seguranca</PrimaryLink>
+          <PrimaryLink href="/comun/relatar">
+            Enviar relato com seguranca
+          </PrimaryLink>
         </div>
       </Section>
     </ComunShell>

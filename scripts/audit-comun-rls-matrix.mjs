@@ -57,14 +57,18 @@ const classifications = {
   comun_official_protocols: {
     decision: "service_role_only",
     purpose: "Protocolos oficiais, respostas e operacao de Ouvidoria.",
-    sensitive: "response_text, internal_notes, numero oficial, prazos e vinculo com relato.",
-    expected: "Sem acesso direto anon/authenticated; server-side com service_role.",
+    sensitive:
+      "response_text, internal_notes, numero oficial, prazos e vinculo com relato.",
+    expected:
+      "Sem acesso direto anon/authenticated; server-side com service_role.",
   },
   comun_pauta_contributions: {
     decision: "service_role_only",
     purpose: "Contribuicoes de pauta com moderacao.",
-    sensitive: "contact_private, moderator_notes, hashes e texto original de contribuicao.",
-    expected: "Sem acesso direto anon/authenticated; paginas publicas recebem dados sanitizados via servidor.",
+    sensitive:
+      "contact_private, moderator_notes, hashes e texto original de contribuicao.",
+    expected:
+      "Sem acesso direto anon/authenticated; paginas publicas recebem dados sanitizados via servidor.",
   },
   comun_pauta_dossier_evidence: {
     decision: "service_role_only",
@@ -75,7 +79,8 @@ const classifications = {
   comun_pauta_dossier_publication_snapshots: {
     decision: "service_role_only",
     purpose: "Snapshots imutaveis de publicacao de dossies.",
-    sensitive: "Historico de publicacao, rollback/despublicacao e ids internos.",
+    sensitive:
+      "Historico de publicacao, rollback/despublicacao e ids internos.",
     expected: "Sem acesso direto publico; paginas publicas leem via servidor.",
   },
   comun_pauta_dossier_reviews: {
@@ -87,32 +92,38 @@ const classifications = {
   comun_pauta_dossiers: {
     decision: "admin_only",
     purpose: "Rascunhos e operacao interna de dossies.",
-    sensitive: "internal_notes, review_notes_internal, responsaveis, checklist e rascunho.",
+    sensitive:
+      "internal_notes, review_notes_internal, responsaveis, checklist e rascunho.",
     expected: "Sem acesso direto publico.",
   },
   comun_pauta_evidence_items: {
     decision: "public_read_safe",
     purpose: "Evidencias publicas de pauta.",
-    sensitive: "internal_note existe, mas policy limita a sensitivity=public_safe e status=approved.",
+    sensitive:
+      "internal_note existe, mas policy limita a sensitivity=public_safe e status=approved.",
     expected: "Leitura publica apenas de evidencias public_safe aprovadas.",
   },
   comun_pauta_spaces: {
     decision: "public_read_safe",
     purpose: "Pautas publicas organizadas.",
-    sensitive: "Checklist editorial existe, mas rota publica usa campos seguros.",
+    sensitive:
+      "Checklist editorial existe, mas rota publica usa campos seguros.",
     expected: "Leitura publica apenas visibility=public e nao archived.",
   },
   comun_pauta_synthesis_versions: {
     decision: "admin_only",
     purpose: "Historico editorial de sintese de pauta.",
     sensitive: "editor_note e versoes anteriores podem ser bastidores.",
-    expected: "Sem acesso direto publico; historico exibido apenas no admin via servidor.",
+    expected:
+      "Sem acesso direto publico; historico exibido apenas no admin via servidor.",
   },
   comun_pauta_tasks: {
     decision: "public_read_safe",
     purpose: "Tarefas publicas de pauta.",
-    sensitive: "owner_alias e due_at podem ser publicos quando a tarefa e publica.",
-    expected: "Leitura publica apenas de tarefas nao arquivadas em pautas publicas.",
+    sensitive:
+      "owner_alias e due_at podem ser publicos quando a tarefa e publica.",
+    expected:
+      "Leitura publica apenas de tarefas nao arquivadas em pautas publicas.",
   },
   comun_public_dossier_features: {
     decision: "service_role_only",
@@ -129,19 +140,84 @@ const classifications = {
   comun_report_attachments: {
     decision: "service_role_only",
     purpose: "Anexos, paths de storage e curadoria.",
-    sensitive: "storage_path, public_storage_path, nomes de arquivo e notas de redacao.",
+    sensitive:
+      "storage_path, public_storage_path, nomes de arquivo e notas de redacao.",
     expected: "Sem acesso direto publico.",
   },
   comun_reports: {
     decision: "public_insert_safe",
     purpose: "Relatos brutos e sanitizados.",
-    sensitive: "raw_text, private_contact, internal_notes, localizacao e dados de relato.",
+    sensitive:
+      "raw_text, private_contact, internal_notes, localizacao e dados de relato.",
     expected: "Insercao publica limitada; leitura publica bloqueada.",
+  },
+  comun_archive_items: {
+    decision: "public_read_safe",
+    purpose: "Itens publicados do Acervo Vivo.",
+    sensitive:
+      "Rascunhos e notas editoriais ficam fora das consultas publicas.",
+    expected: "Leitura publica somente de itens publicados e visiveis.",
+  },
+  comun_archive_assets: {
+    decision: "public_read_safe",
+    purpose: "Metadados de originais e derivados.",
+    sensitive: "Chaves privadas e originais nao podem aparecer publicamente.",
+    expected:
+      "Leitura publica somente de derivados aprovados de itens publicados.",
+  },
+  comun_archive_collections: {
+    decision: "public_read_safe",
+    purpose: "Colecoes editoriais do Acervo.",
+    sensitive: "Rascunhos editoriais.",
+    expected: "Leitura publica somente de colecoes publicadas.",
+  },
+  comun_archive_collection_items: {
+    decision: "public_read_safe",
+    purpose: "Vinculos entre colecoes e itens.",
+    sensitive: "Notas editoriais podem ser internas.",
+    expected: "Leitura publica somente de vinculos publicados.",
+  },
+  comun_archive_relations: {
+    decision: "public_read_safe",
+    purpose: "Relacoes editoriais entre memorias.",
+    sensitive: "internal_note e bastidor editorial.",
+    expected:
+      "Leitura publica apenas quando ambos os itens sao publicos e sem nota interna.",
+  },
+  comun_archive_submissions: {
+    decision: "service_role_only",
+    purpose: "Contribuicoes fotograficas em triagem.",
+    sensitive: "Contato privado, procedencia, hashes e moderacao.",
+    expected: "Somente rotas server-side e administradores.",
+  },
+  comun_archive_submission_assets: {
+    decision: "service_role_only",
+    purpose: "Vinculo de contribuicao com original privado.",
+    sensitive: "Identificadores operacionais de upload.",
+    expected: "Sem acesso direto publico.",
+  },
+  comun_archive_item_suggestions: {
+    decision: "service_role_only",
+    purpose: "Sugestoes historicas moderadas.",
+    sensitive: "Contato privado, texto pendente e risco.",
+    expected: "Sem acesso direto publico.",
+  },
+  comun_archive_rights_removal_requests: {
+    decision: "service_role_only",
+    purpose: "Pedidos de correcao, credito e retirada.",
+    sensitive: "Contato e motivo privados.",
+    expected: "Sem acesso direto publico.",
   },
 };
 
 const internalDecisions = new Set(["admin_only", "service_role_only"]);
-const allowedDecisions = new Set(["public_read_safe", "public_insert_safe", "admin_only", "service_role_only", "must_fix"]);
+const allowedDecisions = new Set([
+  "public_read_safe",
+  "public_insert_safe",
+  "admin_only",
+  "service_role_only",
+  "must_fix",
+]);
 
 const tables = queryRows(`
 select
@@ -167,7 +243,10 @@ order by tablename, policyname;
 
 const policiesByTable = new Map();
 for (const policy of policies) {
-  policiesByTable.set(policy.tablename, [...(policiesByTable.get(policy.tablename) ?? []), policy]);
+  policiesByTable.set(policy.tablename, [
+    ...(policiesByTable.get(policy.tablename) ?? []),
+    policy,
+  ]);
 }
 
 const failures = [];
@@ -177,29 +256,62 @@ for (const table of tables) {
     failures.push(`${table.table_name}: tabela sem classificacao`);
     continue;
   }
-  if (!allowedDecisions.has(config.decision)) failures.push(`${table.table_name}: decisao invalida ${config.decision}`);
-  if (config.decision === "must_fix") failures.push(`${table.table_name}: marcado como must_fix`);
-  if (config.decision !== "public_read_safe" && config.decision !== "public_insert_safe" && !table.rls_enabled) {
-    failures.push(`${table.table_name}: RLS desabilitado em tabela sensivel/interna`);
+  if (!allowedDecisions.has(config.decision))
+    failures.push(`${table.table_name}: decisao invalida ${config.decision}`);
+  if (config.decision === "must_fix")
+    failures.push(`${table.table_name}: marcado como must_fix`);
+  if (
+    config.decision !== "public_read_safe" &&
+    config.decision !== "public_insert_safe" &&
+    !table.rls_enabled
+  ) {
+    failures.push(
+      `${table.table_name}: RLS desabilitado em tabela sensivel/interna`,
+    );
   }
-  if (internalDecisions.has(config.decision) && table.anon_select) failures.push(`${table.table_name}: anon com SELECT em tabela interna`);
-  if (internalDecisions.has(config.decision) && table.authenticated_select) failures.push(`${table.table_name}: authenticated com SELECT em tabela interna`);
-  if (internalDecisions.has(config.decision) && hasPublicAllowingPolicy(policiesByTable.get(table.table_name) ?? [])) {
-    failures.push(`${table.table_name}: policy publica permissiva em tabela interna`);
+  if (internalDecisions.has(config.decision) && table.anon_select)
+    failures.push(`${table.table_name}: anon com SELECT em tabela interna`);
+  if (internalDecisions.has(config.decision) && table.authenticated_select)
+    failures.push(
+      `${table.table_name}: authenticated com SELECT em tabela interna`,
+    );
+  if (
+    internalDecisions.has(config.decision) &&
+    hasPublicAllowingPolicy(policiesByTable.get(table.table_name) ?? [])
+  ) {
+    failures.push(
+      `${table.table_name}: policy publica permissiva em tabela interna`,
+    );
   }
-  if (config.decision === "public_read_safe" && (!table.anon_select || !table.authenticated_select)) {
-    failures.push(`${table.table_name}: tabela public_read_safe sem SELECT para anon/authenticated`);
+  if (
+    config.decision === "public_read_safe" &&
+    (!table.anon_select || !table.authenticated_select)
+  ) {
+    failures.push(
+      `${table.table_name}: tabela public_read_safe sem SELECT para anon/authenticated`,
+    );
   }
-  if (config.decision === "public_insert_safe" && (!table.anon_insert || !table.authenticated_insert)) {
-    failures.push(`${table.table_name}: tabela public_insert_safe sem INSERT para anon/authenticated`);
+  if (
+    config.decision === "public_insert_safe" &&
+    (!table.anon_insert || !table.authenticated_insert)
+  ) {
+    failures.push(
+      `${table.table_name}: tabela public_insert_safe sem INSERT para anon/authenticated`,
+    );
   }
-  if (config.decision === "public_insert_safe" && hasPublicSelectPolicy(policiesByTable.get(table.table_name) ?? [])) {
-    failures.push(`${table.table_name}: tabela public_insert_safe possui SELECT publico`);
+  if (
+    config.decision === "public_insert_safe" &&
+    hasPublicSelectPolicy(policiesByTable.get(table.table_name) ?? [])
+  ) {
+    failures.push(
+      `${table.table_name}: tabela public_insert_safe possui SELECT publico`,
+    );
   }
 }
 
 for (const tableName of Object.keys(classifications)) {
-  if (!tables.some((table) => table.table_name === tableName)) failures.push(`${tableName}: classificacao sem tabela existente`);
+  if (!tables.some((table) => table.table_name === tableName))
+    failures.push(`${tableName}: classificacao sem tabela existente`);
 }
 
 const markdown = renderMarkdown(tables, policiesByTable, failures);
@@ -214,19 +326,38 @@ if (failures.length) {
 console.log("RLS_MATRIX_OK");
 
 function queryRows(sql) {
-  const tempFile = path.join(os.tmpdir(), `comun-rls-${Date.now()}-${Math.random().toString(16).slice(2)}.sql`);
+  const tempFile = path.join(
+    os.tmpdir(),
+    `comun-rls-${Date.now()}-${Math.random().toString(16).slice(2)}.sql`,
+  );
   fs.writeFileSync(tempFile, sql);
-  const output = process.platform === "win32"
-    ? execFileSync("powershell", ["-NoProfile", "-Command", `Get-Content -LiteralPath '${tempFile.replaceAll("'", "''")}' | npx supabase db query --local`], {
-      cwd: rootDir,
-      encoding: "utf8",
-      maxBuffer: 10 * 1024 * 1024,
-    })
-    : execFileSync("sh", ["-c", `npx supabase db query --local < '${tempFile.replaceAll("'", "'\\''")}'`], {
-      cwd: rootDir,
-      encoding: "utf8",
-      maxBuffer: 10 * 1024 * 1024,
-    });
+  const output =
+    process.platform === "win32"
+      ? execFileSync(
+          "powershell",
+          [
+            "-NoProfile",
+            "-Command",
+            `Get-Content -LiteralPath '${tempFile.replaceAll("'", "''")}' | npx supabase db query --local`,
+          ],
+          {
+            cwd: rootDir,
+            encoding: "utf8",
+            maxBuffer: 10 * 1024 * 1024,
+          },
+        )
+      : execFileSync(
+          "sh",
+          [
+            "-c",
+            `npx supabase db query --local < '${tempFile.replaceAll("'", "'\\''")}'`,
+          ],
+          {
+            cwd: rootDir,
+            encoding: "utf8",
+            maxBuffer: 10 * 1024 * 1024,
+          },
+        );
   fs.rmSync(tempFile, { force: true });
   const start = output.indexOf("{");
   if (start === -1) throw new Error(`saida sem JSON: ${output}`);
@@ -254,12 +385,25 @@ function queryRows(sql) {
 }
 
 function hasPublicAllowingPolicy(policiesForTable) {
-  return policiesForTable.some((policy) => String(policy.roles).includes("public") || String(policy.roles).includes("anon") || String(policy.roles).includes("authenticated")) &&
-    policiesForTable.some((policy) => policy.cmd === "SELECT" && policy.qual && policy.qual !== "false");
+  return (
+    policiesForTable.some(
+      (policy) =>
+        String(policy.roles).includes("public") ||
+        String(policy.roles).includes("anon") ||
+        String(policy.roles).includes("authenticated"),
+    ) &&
+    policiesForTable.some(
+      (policy) =>
+        policy.cmd === "SELECT" && policy.qual && policy.qual !== "false",
+    )
+  );
 }
 
 function hasPublicSelectPolicy(policiesForTable) {
-  return policiesForTable.some((policy) => policy.cmd === "SELECT" && policy.qual && policy.qual !== "false");
+  return policiesForTable.some(
+    (policy) =>
+      policy.cmd === "SELECT" && policy.qual && policy.qual !== "false",
+  );
 }
 
 function renderMarkdown(rows, policyMap, failures) {
@@ -275,10 +419,13 @@ function renderMarkdown(rows, policyMap, failures) {
   ];
   for (const row of rows) {
     const config = classifications[row.table_name];
-    const policyText = (policyMap.get(row.table_name) ?? [])
-      .map((policy) => `${policy.cmd}:${policy.policyname}`)
-      .join("<br>") || "-";
-    lines.push(`| \`${row.table_name}\` | ${config?.decision ?? "SEM CLASSIFICACAO"} | ${escapeCell(config?.purpose ?? "-")} | ${escapeCell(config?.sensitive ?? "-")} | ${escapeCell(config?.expected ?? "-")} | ${row.rls_enabled ? "on" : "off"} | anon S:${yn(row.anon_select)} I:${yn(row.anon_insert)} / auth S:${yn(row.authenticated_select)} I:${yn(row.authenticated_insert)} / service S:${yn(row.service_role_select)} | ${escapeCell(policyText)} |`);
+    const policyText =
+      (policyMap.get(row.table_name) ?? [])
+        .map((policy) => `${policy.cmd}:${policy.policyname}`)
+        .join("<br>") || "-";
+    lines.push(
+      `| \`${row.table_name}\` | ${config?.decision ?? "SEM CLASSIFICACAO"} | ${escapeCell(config?.purpose ?? "-")} | ${escapeCell(config?.sensitive ?? "-")} | ${escapeCell(config?.expected ?? "-")} | ${row.rls_enabled ? "on" : "off"} | anon S:${yn(row.anon_select)} I:${yn(row.anon_insert)} / auth S:${yn(row.authenticated_select)} I:${yn(row.authenticated_insert)} / service S:${yn(row.service_role_select)} | ${escapeCell(policyText)} |`,
+    );
   }
   lines.push("", "## Falhas");
   if (failures.length) {

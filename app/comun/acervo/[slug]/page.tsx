@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { archiveDate, getPublicArchiveItem } from "@/lib/archive";
+import { MemorySuggestionForm } from "./memory-suggestion-form";
 export const dynamic = "force-dynamic";
 export default async function ArchiveItemPage(props: {
   params: Promise<{ slug: string }>;
@@ -102,6 +103,34 @@ export default async function ArchiveItemPage(props: {
               ))}
             </div>
           </section>
+        ) : null}
+        {item.item_type === "photograph" ? (
+          <>
+            <div className="mt-7 flex flex-wrap gap-3 text-sm font-black uppercase text-comun-yellow">
+              {item.neighborhood ? (
+                <Link
+                  href={`/comun/acervo?type=photograph&neighborhood=${encodeURIComponent(item.neighborhood)}`}
+                >
+                  Ver mais deste bairro
+                </Link>
+              ) : null}
+              {item.year_start ? (
+                <Link
+                  href={`/comun/acervo?type=photograph&decade=${Math.floor(item.year_start / 10) * 10}`}
+                >
+                  Ver mais desta decada
+                </Link>
+              ) : null}
+              {item.place_name ? (
+                <Link
+                  href={`/comun/acervo?type=photograph&place=${encodeURIComponent(item.place_name)}`}
+                >
+                  Ver mais deste lugar
+                </Link>
+              ) : null}
+            </div>
+            <MemorySuggestionForm itemId={item.id} />
+          </>
         ) : null}
       </Section>
     </ComunShell>
