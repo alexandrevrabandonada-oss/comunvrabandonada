@@ -190,6 +190,24 @@ const classifications = {
     sensitive: "Contato privado, procedencia, hashes e moderacao.",
     expected: "Somente rotas server-side e administradores.",
   },
+  comun_archive_processing_jobs: {
+    decision: "service_role_only",
+    purpose: "Fila persistida de derivados.",
+    sensitive: "Erros e identificadores operacionais.",
+    expected: "Somente servidor/admin.",
+  },
+  comun_archive_processing_attempts: {
+    decision: "service_role_only",
+    purpose: "Tentativas e metricas do worker.",
+    sensitive: "Metricas operacionais.",
+    expected: "Somente servidor/admin.",
+  },
+  comun_archive_processing_events: {
+    decision: "service_role_only",
+    purpose: "Eventos sanitizados da fila.",
+    sensitive: "Historico operacional.",
+    expected: "Somente servidor/admin.",
+  },
   comun_archive_submission_assets: {
     decision: "service_role_only",
     purpose: "Vinculo de contribuicao com original privado.",
