@@ -154,6 +154,7 @@ Todo relatorio novo deve declarar:
 - [ ] despublicar e confirmar que `/comun/dossies/<slug>` deixa de aparecer
 - [ ] testar no celular via 4G/5G
 - [ ] testar link vindo do Instagram/WhatsApp
+
 # Acervo vivo / R2
 
 - [ ] Criar buckets R2 distintos para originais privados e versões públicas.
@@ -164,3 +165,14 @@ Todo relatorio novo deve declarar:
 - [ ] Rodar `npm run smoke:archive-foundation` local e em produção.
 - [ ] Confirmar que HTML público não contém `object_key`, URL assinada, `editorial_notes` ou `permission_reference`.
 - [ ] Rodar `npm run backup:archive-manifest` e copiar o manifest para mídia de backup.
+
+# Ativacao R2 (Sprint 20.1)
+
+- [ ] Criar os buckets privado e publico conforme `docs/acervo-r2-configuracao.md`.
+- [ ] Configurar as sete variaveis `R2_*` em Preview e Production na Vercel.
+- [ ] Aplicar CORS restrito aos dominios reais e ao localhost somente em desenvolvimento.
+- [ ] Confirmar que apenas o bucket publico possui dominio publico.
+- [ ] Executar o healthcheck em `/comun/admin/acervo/storage`.
+- [ ] Executar `RUN_REAL_R2_SMOKE=true npm run smoke:r2-real` e confirmar cleanup 404.
+- [ ] Executar `npm run audit:r2-orphans` em dry-run.
+- [ ] Validar CSP report-only e `next/image` em Preview antes da promocao.
