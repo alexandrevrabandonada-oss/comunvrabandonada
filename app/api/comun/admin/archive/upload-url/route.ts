@@ -1,8 +1,136 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { randomUUID } from "crypto";
 import { getComunAdminSession } from "@/lib/admin-auth";
 import { logComunAdminAction } from "@/lib/admin-audit";
 import { getMediaStorage, publicMediaUrl } from "@/lib/media-storage";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
-export async function POST(request:Request){const session=await getComunAdminSession();if(!session||!(["admin","editor"] as string[]).includes(session.admin.role))return NextResponse.json({error:"Não autorizado."},{status:401});try{const body=await request.json() as {archiveItemId:string;filename:string;mimeType:string;sizeBytes:number;role:"original"|"public_version"|"cover"};if(!body.archiveItemId||!body.filename||!body.role)return NextResponse.json({error:"Dados incompletos."},{status:400});if(body.mimeType.startsWith("audio/")||body.mimeType.startsWith("video/"))return NextResponse.json({error:"Upload de áudio e vídeo está bloqueado neste sprint."},{status:400});const ext=body.filename.split(".").pop()?.toLowerCase()??"bin";const scope=body.role==="original"?"private_original":"public_safe" as const;const key=`${scope==="private_original"?"originals":"public"}/${body.archiveItemId}/${body.role}/${randomUUID()}.${ext}`;const signed=await getMediaStorage().createUploadUrl({scope,key,contentType:body.mimeType,sizeBytes:body.sizeBytes});const db=createServiceSupabaseClient();if(!db)throw new Error("Supabase não configurado.");const {data,error}=await db.from("comun_archive_assets").insert({archive_item_id:body.archiveItemId,asset_role:body.role,bucket_scope:scope,object_key:key,public_url:scope==="public_safe"?publicMediaUrl(key):null,original_filename:body.filename,mime_type:body.mimeType,size_bytes:body.sizeBytes,review_status:"pending"}).select("id").single();if(error)throw new Error(error.message);await logComunAdminAction({session,action:scope==="private_original"?"archive_original_uploaded":"archive_public_asset_uploaded",targetType:"archive_asset",targetId:data.id,metadata:{archive_item_id:body.archiveItemId,mime_type:body.mimeType,size_bytes:body.sizeBytes}});return NextResponse.json({assetId:data.id,uploadUrl:signed.url,expiresAt:signed.expiresAt});}catch(error){return NextResponse.json({error:error instanceof Error?error.message:"Falha no upload."},{status:400});}}
+const ROLES = new Set(["original", "public_version", "cover"]);
+const MAX_URLS_PER_10_MINUTES = 20;
+
+export async function POST(request: Request) {
+  const session = await getComunAdminSession();
+  if (
+    !session ||
+    !(["admin", "editor"] as string[]).includes(session.admin.role)
+  )
+    return NextResponse.json({ error: "Nao autorizado." }, { status: 401 });
+  const db = createServiceSupabaseClient();
+  if (!db)
+    return NextResponse.json(
+      { error: "Supabase nao configurado." },
+      { status: 500 },
+    );
+  let assetId: string | null = null;
+  try {
+    const body = (await request.json()) as {
+      archiveItemId: string;
+      filename: string;
+      mimeType: string;
+      sizeBytes: number;
+      role: "original" | "public_version" | "cover";
+    };
+    if (!body.archiveItemId || !body.filename || !ROLES.has(body.role))
+      throw new Error("Dados de upload incompletos.");
+    if (
+      body.mimeType.startsWith("audio/") ||
+      body.mimeType.startsWith("video/")
+    )
+      throw new Error("Upload de audio e video esta bloqueado neste sprint.");
+    const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const { count, error: rateLimitError } = await db
+      .from("comun_admin_audit_log")
+      .select("id", { count: "exact", head: true })
+      .eq("admin_user_id", session.admin.id)
+      .eq("action", "archive_upload_url_created")
+      .gte("created_at", since);
+    if (rateLimitError)
+      throw new Error("Nao foi possivel validar o limite de uploads.");
+    if ((count ?? 0) >= MAX_URLS_PER_10_MINUTES) {
+      await logComunAdminAction({
+        session,
+        action: "archive_upload_rate_limited",
+        targetType: "archive_item",
+        targetId: body.archiveItemId,
+      });
+      return NextResponse.json(
+        {
+          error:
+            "Limite temporario de URLs de upload atingido. Aguarde alguns minutos.",
+        },
+        { status: 429 },
+      );
+    }
+    const { data: item } = await db
+      .from("comun_archive_items")
+      .select("id")
+      .eq("id", body.archiveItemId)
+      .maybeSingle();
+    if (!item) throw new Error("Item do Acervo nao encontrado.");
+    const extension = body.filename.split(".").pop()?.toLowerCase() ?? "";
+    const scope =
+      body.role === "original" ? "private_original" : ("public_safe" as const);
+    const created = await db
+      .from("comun_archive_assets")
+      .insert({
+        archive_item_id: body.archiveItemId,
+        asset_role: body.role,
+        bucket_scope: scope,
+        object_key: `smoke/pending/${randomUUID()}`,
+        public_url: null,
+        original_filename: body.filename,
+        mime_type: body.mimeType,
+        size_bytes: body.sizeBytes,
+        review_status: "pending",
+      })
+      .select("id")
+      .single();
+    if (created.error) throw new Error(created.error.message);
+    assetId = created.data.id;
+    const key =
+      scope === "private_original"
+        ? `originals/${body.archiveItemId}/${randomUUID()}.${extension}`
+        : `public/${body.archiveItemId}/${assetId}/${randomUUID()}.${extension}`;
+    const signed = await getMediaStorage().createUploadUrl({
+      scope,
+      key,
+      contentType: body.mimeType,
+      sizeBytes: body.sizeBytes,
+    });
+    const updated = await db
+      .from("comun_archive_assets")
+      .update({
+        object_key: key,
+        public_url: scope === "public_safe" ? publicMediaUrl(key) : null,
+      })
+      .eq("id", assetId);
+    if (updated.error) throw new Error(updated.error.message);
+    await logComunAdminAction({
+      session,
+      action: "archive_upload_url_created",
+      targetType: "archive_asset",
+      targetId: assetId,
+      metadata: {
+        archive_item_id: body.archiveItemId,
+        mime_type: body.mimeType,
+        size_bytes: body.sizeBytes,
+        bucket_scope: scope,
+      },
+    });
+    return NextResponse.json({
+      assetId,
+      uploadUrl: signed.url,
+      expiresAt: signed.expiresAt,
+    });
+  } catch (error) {
+    if (assetId)
+      await db.from("comun_archive_assets").delete().eq("id", assetId);
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : "Falha ao preparar upload.",
+      },
+      { status: 400 },
+    );
+  }
+}
