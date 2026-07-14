@@ -18,6 +18,7 @@ import { enqueueDueMusicLinkChecks } from "./photo-processing-queue";
 import { checkMusicExternalUrl, persistMusicLinkCheck } from "./music-link-checker";
 import { evaluateMusicEditorialSloAlerts } from "./music-editorial-slo";
 import { evaluateOralHistoryAlerts } from "./oral-history-alerts";
+import { evaluateOralHistoryPilotAlerts } from "./oral-history-pilot-alerts";
 
 async function processMusicExternalLinkCheckJob(job: any) {
   const db = createServiceSupabaseClient();
@@ -235,6 +236,7 @@ export async function runArchiveProcessingBatch(
   await enqueueDueMusicLinkChecks();
   await evaluateMusicEditorialSloAlerts();
   await evaluateOralHistoryAlerts();
+  await evaluateOralHistoryPilotAlerts();
   let claimed = 0,
     completed = 0,
     failed = 0;
