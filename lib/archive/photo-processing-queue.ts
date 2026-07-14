@@ -114,3 +114,10 @@ export async function recordEvent(
     ?.from("comun_archive_processing_events")
     .insert({ job_id: jobId, event_type, sanitized_metadata });
 }
+
+export async function enqueueDueMusicLinkChecks() {
+  const db=createServiceSupabaseClient();if(!db)return 0;
+  const cutoff=new Date(Date.now()-30*86400000).toISOString();
+  const{data:links}=await db.from("comun_archive_external_links").select("id,archive_item_id,checked_at,official_status").in("official_status",["official","authorized"]).or(`checked_at.is.null,checked_at.lt.${cutoff}`).limit(20);
+  let created=0;for(const link of links??[]){const period=new Date().toISOString().slice(0,10),key=`music-link:${link.id}:${period}`;const{error}=await db.from("comun_archive_processing_jobs").insert({job_type:"music_external_link_check",archive_item_id:link.archive_item_id,external_link_id:link.id,idempotency_key:key,status:"queued",priority:150,max_attempts:4});if(!error)created++}return created;
+}
