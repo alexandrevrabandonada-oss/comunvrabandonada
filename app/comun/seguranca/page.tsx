@@ -34,6 +34,8 @@ const items = [
   "Em Historia Oral, audio original, termo de consentimento e transcricao interna permanecem privados.",
   "Entrevistas so aparecem com consentimento granular valido, versao publica separada, revisao editorial e embargo encerrado.",
   "Participantes podem restringir ou retirar consentimento; a retirada remove imediatamente a superficie publica relacionada.",
+  "Consentimento para gravar nao autoriza publicar: a versao editada e cada superficie de uso exigem autorizacao final.",
+  "No piloto de Historia Oral, checksum, backup, dupla revisao, terceiros resolvidos e aprovacao do participante bloqueiam a publicacao quando ausentes.",
   "Participantes menores exigem autorizacao de responsavel e revisao reforcada, sem escola, rotina, contato ou localizacao precisa.",
   "Verificacoes tecnicas usam fixtures descartaveis, exigem acesso administrativo e nunca enviam segredos ou originais privados ao navegador.",
 ];

@@ -2,6 +2,8 @@
 
 História Oral: revisar alertas de consentimento, menores, segmentos sensíveis, embargo, retirada e assets públicos. O fim do embargo não dispensa aprovação manual.
 
+Piloto editorial: usar `/comun/admin/acervo/historias-orais/piloto`; revisar diariamente backup, transcrição, terceiros, dupla revisão e aprovação. Não iniciar entrevistas reais enquanto o gate humano em `docs/historia-oral-piloto.md` estiver fechado.
+
 ## Regra local-first
 
 Todo tijolo comum deve rodar localmente por padrao. Deploy e validacao em producao sao etapas de release, nao rotina diaria de desenvolvimento.

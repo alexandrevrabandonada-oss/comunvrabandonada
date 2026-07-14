@@ -199,3 +199,10 @@ Todo relatorio novo deve declarar:
 - Rodar `smoke:local-music-archive` e verificar que áudio é rejeitado.
 - Conferir listagens e detalhes em desktop e mobile, sem dados privados.
 - Rodar `smoke:music-curation`, validar histórico sanitizado, redirect privado bloqueado e filtros paginados.
+# História Oral — piloto editorial
+
+- [ ] migração aplicada e RLS/revogações confirmadas;
+- [ ] smoke editorial executado somente com fixture e cleanup confirmado;
+- [ ] original privado, checksum e backup validados;
+- [ ] retirada, expiração e renovação validadas;
+- [ ] gate humano registrado separadamente; zero entrevista real declarada sem aprovação completa.
