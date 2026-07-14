@@ -30,6 +30,16 @@ Todas as oito tabelas novas têm RLS habilitada, grants `anon/authenticated` rev
 - ESLint, TypeScript, 57 testes unitários e build Next.js passaram.
 - Testes públicos Playwright/axe de História Oral passaram em 360, 390, 768 e 1366 px durante a implementação; o fechamento completo é registrado após o gate de produção.
 
+## Gate de produção
+
+- Deploy Vercel concluído e alias `https://comunvrabandonada.vercel.app` atualizado.
+- Smoke real criou entrevista, consentimento parcial, original privado no R2, transcrição interna e pública, segmento restrito e áudio público separado; validou bloqueio sem autorização, publicação textual, player autorizado, embargo e retirada.
+- Cleanup confirmado pelo endpoint administrativo: objetos privado/público removidos do R2 e zero assets/fixtures remanescentes no banco.
+- Playwright/axe: 39 cenários passaram nos viewports 360, 390, 768 e 1366 px; um caso administrativo em 360 foi ignorado por projeto, pois a cobertura admin começa em 390 px.
+- Smokes de fundação do Acervo, não vazamento HTTP, autenticação administrativa e UI pública passaram em produção.
+- Scheduler preservado: run agendado `29372993597`, branch `main`, sucesso; heartbeat `passed`, fila sem trabalho, zero retry, zero dead-letter e zero alerta crítico aberto.
+- `npm ci`, verify, build, 57 unitários, matriz RLS, lint remoto e `npm audit --audit-level=high` concluídos. Permanecem duas vulnerabilidades moderadas transitivas do PostCSS/Next; nenhum `--force` foi usado.
+
 ## Custos, riscos e próximo tijolo
 
 Sem fornecedor de transcrição e sem serviço pago novo. O custo incremental é storage R2 dos originais, tráfego dos áudios públicos autorizados e queries administrativas. Riscos principais: consentimento temporal, alegações envolvendo terceiros e decisões de preservação após retirada; todos permanecem sob revisão humana.
