@@ -135,7 +135,7 @@ export default async function SubmissionDetail(props: {
               <input type="hidden" name="id" value={id} />
               <input type="hidden" name="asset_id" value={original.id} />
               <button className="border-2 border-comun-black bg-white px-3 py-2 font-black uppercase">
-                Gerar derivados
+                Solicitar processamento
               </button>
             </form>
           ) : null}

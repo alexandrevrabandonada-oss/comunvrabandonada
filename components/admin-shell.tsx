@@ -33,6 +33,7 @@ export async function AdminShell({
             <Link href="/comun/admin/acervo/sugestoes">Sugestoes</Link>
             <Link href="/comun/admin/acervo/colecoes">Colecoes</Link>
             <Link href="/comun/admin/acervo/storage">Storage</Link>
+            <Link href="/comun/admin/acervo/processamento">Processamento</Link>
             <Link href="/comun/dossies">Publicos</Link>
             <Link href="/comun/admin/dossies/revisoes">Revisoes</Link>
             <Link
