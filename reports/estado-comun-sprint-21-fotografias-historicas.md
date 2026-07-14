@@ -43,7 +43,9 @@ Não houve contratação adicional. A solução usa R2, Supabase e funções já
 
 ## Deploy e smokes
 
-Preencher após o deploy de produção. Os smokes reais exigem `RUN_REAL_R2_SMOKE=true` e credenciais de produção carregadas sem versionamento.
+Deploy de produção concluído e alias estável atualizado em `https://comunvrabandonada.vercel.app`. A build da Vercel passou com Next.js 16.2.10.
+
+Em produção, `smoke:no-leak-http` e `smoke:public-ui` passaram. Os smokes `r2-real`, `historical-photo-flow`, `archive-foundation` e `admin-auth` dependem de segredos diretos no processo local. As variáveis estão marcadas como sensíveis na Vercel e `vercel env pull` devolve valores vazios; portanto esses quatro não foram validados localmente após o deploy. Não houve exposição, rotação ou cópia de credenciais. O fluxo real completo deve ser repetido em um runner autorizado que receba os segredos de produção, ou convertido para um smoke server-side autenticado e descartável.
 
 ## Próximo tijolo recomendado
 
