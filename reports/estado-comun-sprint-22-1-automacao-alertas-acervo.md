@@ -8,4 +8,6 @@ Heartbeats persistem estado, duração e contadores. Saúde real classifica heal
 
 Custos observados: minutos do GitHub Actions, funções Vercel e consultas Supabase de baixa frequência; estimativa operacional, não fatura. Notificação externa não foi ativada; painel interno é obrigatório e suficiente neste sprint.
 
-Resultados de deploy e gate agendado serão registrados após execução manual e observação do schedule.
+Deploy de produção concluído. O workflow manual no branch padrão `main` passou em 7 segundos; a chamada criou heartbeat `passed` com origem `scheduler`, duração server-side de 2.240 ms e fila vazia. Endpoints run/health rejeitam acesso sem Bearer e GET no run continua bloqueado. Lint, TypeScript, build, migration remota, RLS e 18 testes unitários passaram.
+
+Primeira execução estritamente agendada: workflow confirmado `active` no branch padrão, mas o GitHub ainda não materializou o evento `schedule` da primeira janela observada. Execução manual equivalente passou e criou heartbeat real; a confirmação do primeiro heartbeat estritamente agendado permanece pendente por atraso externo do GitHub Actions.
