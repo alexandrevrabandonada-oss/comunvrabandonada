@@ -236,6 +236,7 @@ export async function getArchiveHomeFeatures() {
   return {
     photo: items.find((i) => i.item_type === "photograph") ?? null,
     artist: items.find((i) => i.item_type === "artist") ?? null,
+    release: items.find((i) => i.item_type === "music_release") ?? null,
     collection: collections[0] ?? null,
   };
 }
