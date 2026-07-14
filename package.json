@@ -47,6 +47,7 @@
     "smoke:archive-foundation": "node scripts/smoke-comun-archive-foundation.mjs",
     "smoke:r2-real": "node scripts/smoke-comun-r2-real.mjs",
     "smoke:historical-photo-flow": "node scripts/smoke-comun-historical-photo-flow.mjs",
+    "smoke:production-verification-page": "node scripts/smoke-comun-production-verification-page.mjs",
     "audit:r2-orphans": "node scripts/audit-comun-r2-orphans.mjs",
     "reconcile:archive-missing-assets": "node scripts/reconcile-comun-archive-missing-assets.mjs",
     "generate:photo-derivatives": "node scripts/generate-comun-photo-derivatives.mjs",
