@@ -165,6 +165,14 @@ const classifications = {
     expected:
       "Leitura publica somente de derivados aprovados de itens publicados.",
   },
+  comun_archive_artist_profiles: { decision: "service_role_only", purpose: "Perfis especializados de artistas.", sensitive: "contact_private.", expected: "Servidor sanitiza campos públicos; sem grants anon/auth." },
+  comun_archive_music_releases: { decision: "service_role_only", purpose: "Ficha de lançamentos musicais.", sensitive: "Workflow editorial e direitos.", expected: "Servidor sanitiza lançamentos publicados; sem grants anon/auth." },
+  comun_archive_music_tracks: { decision: "service_role_only", purpose: "Ficha de faixas sem letra ou áudio.", sensitive: "Conteúdo em revisão.", expected: "Servidor expõe somente faixas de lançamentos publicados." },
+  comun_archive_external_links: { decision: "service_role_only", purpose: "Links musicais validados.", sensitive: "Links rejeitados ou não verificados.", expected: "Servidor expõe apenas official/authorized." },
+  comun_archive_artist_memberships: { decision: "service_role_only", purpose: "Integrantes e papéis públicos documentados.", sensitive: "Conteúdo ainda não revisado.", expected: "Servidor expõe somente junto de artista publicado." },
+  comun_archive_music_rights_reviews: { decision: "service_role_only", purpose: "Revisão de direitos musicais.", sensitive: "permission_reference_private e notes_private.", expected: "Exclusivo da moderação." },
+  comun_archive_artist_claims: { decision: "service_role_only", purpose: "Reivindicações de perfil.", sensitive: "Contato e prova de verificação privados.", expected: "Exclusivo da moderação." },
+  comun_archive_artist_submissions: { decision: "service_role_only", purpose: "Contribuições musicais pendentes.", sensitive: "Contato, fontes e texto não moderado.", expected: "Exclusivo de rotas server-side e moderação." },
   comun_archive_collections: {
     decision: "public_read_safe",
     purpose: "Colecoes editoriais do Acervo.",

@@ -35,6 +35,8 @@ export default async function ArchivePage(props: {
         >
           Enviar fotografia historica
         </Link>
+        <Link href="/comun/acervo/artistas" className="ml-3 mt-5 inline-flex border-2 border-comun-yellow px-4 py-3 font-black uppercase text-comun-yellow">Conhecer artistas locais</Link>
+        <div className="mt-6 border-2 border-comun-yellow p-4 text-comun-paper"><h2 className="text-2xl font-black uppercase">Som da nossa região</h2><p className="mt-2 max-w-2xl text-comun-paper/75">Artistas, discografias e coleções editoriais documentados com fontes, direitos e links oficiais.</p><div className="mt-3 flex gap-4"><Link href="/comun/acervo/artistas" className="font-black uppercase text-comun-yellow">Artistas</Link><Link href="/comun/acervo/musica" className="font-black uppercase text-comun-yellow">Lançamentos</Link><Link href="/comun/acervo/colecoes" className="font-black uppercase text-comun-yellow">Coleções</Link></div></div>
         <Link
           href="/comun/acervo/direitos-e-remocao"
           className="ml-3 mt-5 inline-flex px-4 py-3 font-black uppercase text-comun-yellow underline"

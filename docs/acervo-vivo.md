@@ -17,3 +17,6 @@ As rotas públicas selecionam campos explicitamente e nunca retornam notas edito
 # Sprint 21 — fotografias
 
 O Acervo Vivo aceita contribuicoes fotograficas em fluxo separado de relatos urgentes. Originais permanecem privados; a galeria usa derivados revisados e filtros compartilháveis por cidade, bairro, lugar e decada.
+# Memória musical
+
+Artistas e lançamentos reutilizam os itens, relações, ativos e coleções do Acervo. Perfis especializados, discografias, faixas e links ficam conectados ao item principal; nenhuma contribuição é publicada automaticamente.

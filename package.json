@@ -45,6 +45,7 @@
     "smoke:public-dossier-navigation": "node scripts/smoke-comun-public-dossier-navigation.mjs",
     "smoke:public-dossier-features": "node scripts/smoke-comun-public-dossier-features.mjs",
     "smoke:archive-foundation": "node scripts/smoke-comun-archive-foundation.mjs",
+    "smoke:local-music-archive": "node scripts/smoke-comun-local-music-archive.mjs",
     "smoke:r2-real": "node scripts/smoke-comun-r2-real.mjs",
     "smoke:historical-photo-flow": "node scripts/smoke-comun-historical-photo-flow.mjs",
     "smoke:photo-processing-queue": "node scripts/smoke-comun-photo-processing-queue.mjs",

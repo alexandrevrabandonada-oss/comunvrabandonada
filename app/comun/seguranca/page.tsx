@@ -27,6 +27,8 @@ const items = [
   "Sugestoes de data, lugar, autoria ou contexto ficam pendentes ate revisao humana e nunca alteram automaticamente uma memoria publicada.",
   "Informacoes sobre pessoas recebem revisao reforcada; o COMUN nao usa reconhecimento facial nem identificacao automatica.",
   "O Acervo nao hospeda arquivos de musica neste sprint: artistas e lancamentos usam somente links oficiais externos.",
+  "Contribuicoes e reivindicacoes de artistas ficam pendentes; contato, comprovacoes e notas da moderacao nunca aparecem no perfil publico.",
+  "Perfis de artistas menores nao devem expor escola, rotina, localizacao precisa, contato privado ou nome civil nao autorizado.",
   "Verificacoes tecnicas usam fixtures descartaveis, exigem acesso administrativo e nunca enviam segredos ou originais privados ao navegador.",
 ];
 
