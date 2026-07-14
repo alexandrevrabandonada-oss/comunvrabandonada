@@ -4,15 +4,19 @@ Data: 14/07/2026. Branch: `codex/comun-admin-auth-remote`.
 
 ## Parecer do comitê técnico-editorial
 
-Entrega aprovada para produção com uma ressalva externa no Gate 0. A arquitetura mantém `comun_archive_items` como raiz, aplica moderação humana, não cria streaming, não expõe contatos e não amplia a CSP. O risco residual mais importante é operacional: o GitHub ainda não materializou uma execução com `event=schedule`, embora o workflow esteja ativo em `main` e a execução manual tenha passado.
+Entrega aprovada para produção. A arquitetura mantém `comun_archive_items` como raiz, aplica moderação humana, não cria streaming, não expõe contatos e não amplia a CSP. O Gate 0 foi posteriormente encerrado com execuções reais `schedule` e heartbeats saudáveis.
 
 ## Gate 0 — scheduler fotográfico
 
 - Workflow: `.github/workflows/archive-processing-scheduler.yml`, ativo em `main`.
 - Execução manual bem-sucedida: run `29356425759`, `workflow_dispatch`, em 14/07/2026 18:05 UTC.
-- Consulta final da Sprint 23: nenhuma execução `schedule` registrada.
+- Primeira execução `schedule` confirmada: run `29363581308`, concluída com sucesso em `main`, com heartbeat `passed` no Supabase.
 - A agenda já foi deslocada para `7,22,37,52 * * * *` e integrada em `main`; não houve nova reescrita da fila.
-- Classificação: bloqueio externo do scheduler do GitHub, documentado. O monitor `gate-agendado-do-acervo` deve continuar até aparecer uma execução agendada real.
+- Classificação final: Gate 0 encerrado; monitor removido após a confirmação.
+
+### Checagem de regressão posterior
+
+Em 14/07/2026 foi confirmada a continuidade da automação sem qualquer reconfiguração: a execução GitHub Actions `29368585653`, `event=schedule`, branch `main`, concluiu com sucesso às 21:11 UTC e gerou novo heartbeat Supabase `passed`, origem `scheduler`, com 1.900 ms. A saúde calculada permaneceu `healthy`; fila, retries, dead-letter, jobs stale e cleanups pendentes estavam em zero. Não havia alerta aberto ou crítico associado ao processamento do Acervo. Cron, secrets, endpoint e fila não foram alterados.
 
 ## Implementação
 
