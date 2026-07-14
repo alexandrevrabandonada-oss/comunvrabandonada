@@ -1,0 +1,254 @@
+import { createServiceSupabaseClient } from "@/lib/supabase/server";
+
+export type ArchiveItem = {
+  id: string;
+  slug: string;
+  item_type: string;
+  title: string;
+  summary: string | null;
+  description: string | null;
+  city: string | null;
+  neighborhood: string | null;
+  place_name: string | null;
+  approximate_date: string | null;
+  year_start: number | null;
+  year_end: number | null;
+  circa: boolean;
+  source_name: string | null;
+  source_description: string | null;
+  credits: string | null;
+  rights_status: string;
+  license_text: string | null;
+  permission_reference?: string | null;
+  status: string;
+  visibility: string;
+  editorial_notes?: string | null;
+  genre: string | null;
+  members: string | null;
+  official_links: Array<{ label: string; url: string }>;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+export type ArchiveAsset = {
+  id: string;
+  archive_item_id: string;
+  asset_role: string;
+  bucket_scope: string;
+  object_key?: string;
+  public_url: string | null;
+  original_filename: string | null;
+  mime_type: string | null;
+  size_bytes: number | null;
+  alt_text: string | null;
+  credits: string | null;
+  rights_status: string | null;
+  review_status: string;
+  created_at: string;
+};
+export type ArchiveCollection = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  description: string | null;
+  cover_asset_id: string | null;
+  status: string;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+const publicItemFields =
+  "id, slug, item_type, title, summary, description, city, neighborhood, place_name, approximate_date, year_start, year_end, circa, source_name, source_description, credits, rights_status, license_text, status, visibility, genre, members, official_links, published_at, created_at, updated_at";
+const publicAssetFields =
+  "id, archive_item_id, asset_role, bucket_scope, public_url, original_filename, mime_type, size_bytes, alt_text, credits, rights_status, review_status, created_at";
+
+export async function listPublicArchiveItems(
+  filters: Record<string, string | undefined> = {},
+) {
+  const db = createServiceSupabaseClient();
+  if (!db) return [] as Array<ArchiveItem & { assets: ArchiveAsset[] }>;
+  const page = Math.max(1, Number(filters.page) || 1),
+    pageSize = 24;
+  let q = db
+    .from("comun_archive_items")
+    .select(publicItemFields)
+    .eq("status", "published")
+    .eq("visibility", "public")
+    .not("published_at", "is", null)
+    .order("published_at", { ascending: false })
+    .range((page - 1) * pageSize, page * pageSize - 1);
+  if (filters.type) q = q.eq("item_type", filters.type);
+  if (filters.city) q = q.eq("city", filters.city);
+  if (filters.neighborhood) q = q.eq("neighborhood", filters.neighborhood);
+  if (filters.from) q = q.gte("year_end", Number(filters.from));
+  if (filters.to) q = q.lte("year_start", Number(filters.to));
+  if (filters.place) q = q.eq("place_name", filters.place);
+  if (filters.decade) {
+    const decade = Number(filters.decade);
+    if (Number.isInteger(decade))
+      q = q.gte("year_start", decade).lte("year_start", decade + 9);
+  }
+  if (filters.q) {
+    const term = filters.q.replace(/[%_,()]/g, " ").trim();
+    if (term)
+      q = q.or(
+        [
+          "title",
+          "summary",
+          "description",
+          "city",
+          "neighborhood",
+          "place_name",
+          "source_name",
+          "credits",
+          "approximate_date",
+        ]
+          .map((f) => `${f}.ilike.%${term}%`)
+          .join(","),
+      );
+  }
+  const { data } = await q;
+  const items = (data ?? []) as ArchiveItem[];
+  return attachPublicAssets(items);
+}
+async function attachPublicAssets(items: ArchiveItem[]) {
+  const db = createServiceSupabaseClient();
+  if (!db || !items.length) return items.map((i) => ({ ...i, assets: [] }));
+  const { data } = await db
+    .from("comun_archive_assets")
+    .select(publicAssetFields)
+    .in(
+      "archive_item_id",
+      items.map((i) => i.id),
+    )
+    .eq("bucket_scope", "public_safe")
+    .eq("review_status", "approved");
+  return items.map((i) => ({
+    ...i,
+    assets: ((data ?? []) as ArchiveAsset[]).filter(
+      (a) => a.archive_item_id === i.id,
+    ),
+  }));
+}
+export async function getPublicArchiveItem(slug: string) {
+  const db = createServiceSupabaseClient();
+  if (!db) return null;
+  const { data } = await db
+    .from("comun_archive_items")
+    .select(publicItemFields)
+    .eq("slug", slug)
+    .eq("status", "published")
+    .eq("visibility", "public")
+    .not("published_at", "is", null)
+    .maybeSingle();
+  if (!data) return null;
+  return (await attachPublicAssets([data as ArchiveItem]))[0];
+}
+export async function listAdminArchiveItems() {
+  const db = createServiceSupabaseClient();
+  if (!db) return [];
+  const { data } = await db
+    .from("comun_archive_items")
+    .select("*")
+    .order("updated_at", { ascending: false });
+  return (data ?? []) as ArchiveItem[];
+}
+export async function getAdminArchiveItem(id: string) {
+  const db = createServiceSupabaseClient();
+  if (!db) return null;
+  const [{ data: item }, { data: assets }, { data: collections }] =
+    await Promise.all([
+      db.from("comun_archive_items").select("*").eq("id", id).maybeSingle(),
+      db
+        .from("comun_archive_assets")
+        .select("*")
+        .eq("archive_item_id", id)
+        .order("created_at", { ascending: false }),
+      db.from("comun_archive_collections").select("*").order("title"),
+    ]);
+  return item
+    ? {
+        item: item as ArchiveItem,
+        assets: (assets ?? []) as ArchiveAsset[],
+        collections: (collections ?? []) as ArchiveCollection[],
+      }
+    : null;
+}
+export async function listPublicCollections() {
+  const db = createServiceSupabaseClient();
+  if (!db) return [];
+  const { data } = await db
+    .from("comun_archive_collections")
+    .select(
+      "id, slug, title, summary, description, cover_asset_id, status, published_at, created_at, updated_at",
+    )
+    .eq("status", "published")
+    .not("published_at", "is", null)
+    .order("published_at", { ascending: false });
+  return (data ?? []) as ArchiveCollection[];
+}
+export async function getPublicCollection(slug: string) {
+  const db = createServiceSupabaseClient();
+  if (!db) return null;
+  const { data: c } = await db
+    .from("comun_archive_collections")
+    .select(
+      "id, slug, title, summary, description, cover_asset_id, status, published_at, created_at, updated_at",
+    )
+    .eq("slug", slug)
+    .eq("status", "published")
+    .maybeSingle();
+  if (!c) return null;
+  const { data: links } = await db
+    .from("comun_archive_collection_items")
+    .select("archive_item_id, position")
+    .eq("collection_id", c.id)
+    .order("position");
+  const ids = (links ?? []).map((x) => x.archive_item_id);
+  if (!ids.length) return { collection: c as ArchiveCollection, items: [] };
+  const { data: items } = await db
+    .from("comun_archive_items")
+    .select(publicItemFields)
+    .in("id", ids)
+    .eq("status", "published")
+    .eq("visibility", "public");
+  return {
+    collection: c as ArchiveCollection,
+    items: await attachPublicAssets((items ?? []) as ArchiveItem[]),
+  };
+}
+export async function listAdminCollections() {
+  const db = createServiceSupabaseClient();
+  if (!db) return [];
+  const { data } = await db
+    .from("comun_archive_collections")
+    .select("*")
+    .order("updated_at", { ascending: false });
+  return (data ?? []) as ArchiveCollection[];
+}
+export async function getArchiveHomeFeatures() {
+  const [items, collections] = await Promise.all([
+    listPublicArchiveItems(),
+    listPublicCollections(),
+  ]);
+  return {
+    photo: items.find((i) => i.item_type === "photograph") ?? null,
+    artist: items.find((i) => i.item_type === "artist") ?? null,
+    collection: collections[0] ?? null,
+  };
+}
+export function archiveDate(
+  item: Pick<
+    ArchiveItem,
+    "approximate_date" | "year_start" | "year_end" | "circa"
+  >,
+) {
+  if (item.approximate_date) return item.approximate_date;
+  if (item.year_start && item.year_end && item.year_start !== item.year_end)
+    return `${item.circa ? "c. " : ""}${item.year_start}–${item.year_end}`;
+  return item.year_start
+    ? `${item.circa ? "c. " : ""}${item.year_start}`
+    : "Data não informada";
+}

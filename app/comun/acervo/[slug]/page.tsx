@@ -1,0 +1,152 @@
+import Link from "next/link";
+import Image from "next/image";
+import { notFound } from "next/navigation";
+import { ComunShell, Section } from "@/components/comun-shell";
+import { archiveDate, getPublicArchiveItem } from "@/lib/archive";
+import { MemorySuggestionForm } from "./memory-suggestion-form";
+export const dynamic = "force-dynamic";
+export default async function ArchiveItemPage(props: {
+  params: Promise<{ slug: string }>;
+}) {
+  const params = await props.params;
+  const item = await getPublicArchiveItem(params.slug);
+  if (!item) notFound();
+  const asset = item.assets.find((a) => a.public_url);
+  return (
+    <ComunShell>
+      <Section>
+        <Link
+          href="/comun/acervo"
+          className="font-black uppercase text-comun-yellow"
+        >
+          ← Acervo
+        </Link>
+        <article className="mt-5 grid gap-6 lg:grid-cols-[1.15fr_.85fr]">
+          <div>
+            {asset?.public_url && asset.mime_type?.startsWith("image/") ? (
+              <Image
+                src={asset.public_url}
+                alt={asset.alt_text ?? ""}
+                width={1200}
+                height={900}
+                className="h-auto w-full border-2 border-comun-yellow object-contain"
+              />
+            ) : asset?.public_url ? (
+              <a
+                href={asset.public_url}
+                className="inline-flex min-h-12 items-center border-2 border-comun-yellow px-4 font-black uppercase text-comun-yellow"
+              >
+                Abrir documento público
+              </a>
+            ) : null}
+          </div>
+          <div>
+            <p className="font-black uppercase text-comun-yellow">
+              {item.item_type}
+            </p>
+            <h1 className="mt-2 text-4xl font-black uppercase">{item.title}</h1>
+            {item.summary ? (
+              <p className="mt-4 text-lg text-comun-paper/80">{item.summary}</p>
+            ) : null}
+            <dl className="mt-5 grid gap-3 border-y-2 border-comun-yellow py-4 text-sm">
+              <Row label="Data/período" value={archiveDate(item)} />
+              <Row
+                label="Local"
+                value={[item.place_name, item.neighborhood, item.city]
+                  .filter(Boolean)
+                  .join(" · ")}
+              />
+              <Row label="Fonte" value={item.source_name} />
+              <Row label="Créditos" value={item.credits} />
+              <Row
+                label="Direitos"
+                value={item.license_text || item.rights_status}
+              />
+              {item.genre ? <Row label="Gênero" value={item.genre} /> : null}
+              {item.members ? (
+                <Row label="Integrantes" value={item.members} />
+              ) : null}
+            </dl>
+          </div>
+        </article>
+        {item.description ? (
+          <div className="comun-prose mt-8 whitespace-pre-wrap text-comun-paper/85">
+            {item.description}
+          </div>
+        ) : null}
+        {item.source_description ? (
+          <section className="mt-7 border-2 border-comun-yellow p-4">
+            <h2 className="font-black uppercase text-comun-yellow">
+              Sobre a fonte
+            </h2>
+            <p className="mt-2 text-sm text-comun-paper/75">
+              {item.source_description}
+            </p>
+          </section>
+        ) : null}
+        {item.official_links?.length ? (
+          <section className="mt-7">
+            <h2 className="text-xl font-black uppercase text-comun-yellow">
+              Links oficiais
+            </h2>
+            <div className="mt-3 flex flex-wrap gap-3">
+              {item.official_links.map((link) => (
+                <a
+                  key={link.url}
+                  href={link.url}
+                  rel="noreferrer"
+                  target="_blank"
+                  className="border-2 border-comun-yellow px-3 py-2 font-black uppercase text-comun-yellow"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          </section>
+        ) : null}
+        {item.item_type === "photograph" ? (
+          <>
+            <div className="mt-7 flex flex-wrap gap-3 text-sm font-black uppercase text-comun-yellow">
+              {item.neighborhood ? (
+                <Link
+                  href={`/comun/acervo?type=photograph&neighborhood=${encodeURIComponent(item.neighborhood)}`}
+                >
+                  Ver mais deste bairro
+                </Link>
+              ) : null}
+              {item.year_start ? (
+                <Link
+                  href={`/comun/acervo?type=photograph&decade=${Math.floor(item.year_start / 10) * 10}`}
+                >
+                  Ver mais desta decada
+                </Link>
+              ) : null}
+              {item.place_name ? (
+                <Link
+                  href={`/comun/acervo?type=photograph&place=${encodeURIComponent(item.place_name)}`}
+                >
+                  Ver mais deste lugar
+                </Link>
+              ) : null}
+            </div>
+            <MemorySuggestionForm itemId={item.id} />
+          </>
+        ) : null}
+      </Section>
+    </ComunShell>
+  );
+}
+function Row({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | null | undefined;
+}) {
+  return value ? (
+    <div>
+      <dt className="font-black uppercase text-comun-yellow">{label}</dt>
+      <dd className="mt-1 text-comun-paper/80">{value}</dd>
+    </div>
+  ) : null;
+}

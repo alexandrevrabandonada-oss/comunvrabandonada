@@ -108,8 +108,34 @@ export const dossiers: Dossier[] = [
     title: "Mini-dossie: burnout e pressao no trabalho",
     executiveSummary: "Primeiro esqueleto de dossie para organizar relatos sanitizados sobre adoecimento, pressao e jornada abusiva.",
     contextText: "Este dossie comeca como estrutura de memoria coletiva. Ele so deve usar relatos sanitizados e padroes, nunca contato privado ou relato bruto.",
+    timeline: [
+      "Pauta aberta para relatos sobre adoecimento no trabalho",
+      "Primeiros relatos sanitizados publicados na pauta de Trabalho e Burnout",
+      "Padroes iniciais reunidos para acompanhamento publico",
+    ],
     patterns: ["Pressao por metas", "Medo de retalhacao", "Adoecimento emocional"],
-    status: "draft",
+    relatedReports: [
+      {
+        protocol: "COMUN-20260525-979842",
+        title: "Pressao e atraso de direitos em fabrica",
+        publicText: "Relato aponta pressao no ambiente de trabalho e possivel atraso de direitos. A pessoa preferiu nao se identificar. O caso segue em acompanhamento.",
+      },
+    ],
+    sources: [
+      "Relatos sanitizados publicados na pauta Trabalho e Burnout em Volta Redonda",
+      "Memorias de trabalhadores e trabalhadoras enviadas ao COMUN",
+      "Registros guardados de forma interna pela curadoria",
+    ],
+    forwardingLog: [
+      "Organizar recorrencias por setor, turno e tipo de adoecimento",
+      "Avaliar necessidade de transformar o material em pauta recorrente e post publico",
+    ],
+    openQuestions: [
+      "Quais setores concentram mais relatos de pressao e burnout?",
+      "Ha recorrencia de atraso de direitos em empresas terceirizadas?",
+      "Os relatos apontam medo de denunciar por risco de retaliacao?",
+    ],
+    status: "published",
   },
 ];
 

@@ -1,0 +1,69 @@
+{
+  "generated_at": "2026-07-14T16:44:59.355Z",
+  "mode": "confirmed",
+  "summary": {
+    "expected": 5,
+    "found": 5,
+    "smoke": 5,
+    "published_missing": 1,
+    "deleted": 5,
+    "marked_for_review": 0
+  },
+  "entries": [
+    {
+      "asset_id": "fe594919-506a-473e-bdb2-835c6e9d82bb",
+      "item_id": "0b9f639e-3d6e-44c3-9ac1-b9cb102426cb",
+      "item_status": "unpublished",
+      "item_visibility": "private",
+      "key_hash": "d50c52e87107774a5d7c1e3a7f45cba73cd996e9422bb77269db949a672543ec",
+      "smoke": true,
+      "published": false,
+      "decision": "delete_smoke_asset",
+      "applied": "asset_deleted"
+    },
+    {
+      "asset_id": "37c342ff-078d-4238-8757-0db4100aede2",
+      "item_id": "b6fab564-7032-43a2-aa56-e0581e47fd63",
+      "item_status": "unpublished",
+      "item_visibility": "private",
+      "key_hash": "4b96d2f52f5de6022c66dded6958625074b09554e62ead155a942d948e082945",
+      "smoke": true,
+      "published": false,
+      "decision": "delete_smoke_asset",
+      "applied": "asset_deleted"
+    },
+    {
+      "asset_id": "47e854b9-2281-4a03-bd94-b73de490c668",
+      "item_id": "76917778-5c4b-45f8-a72d-e784b9a7324a",
+      "item_status": "unpublished",
+      "item_visibility": "private",
+      "key_hash": "839940b1cc4f8007c43f1c16df1d0253d7c10ad60658aba205a3892c257b9e7c",
+      "smoke": true,
+      "published": false,
+      "decision": "delete_smoke_asset",
+      "applied": "asset_deleted"
+    },
+    {
+      "asset_id": "9b043420-c7ad-4ffd-ba5e-d9134c9b55cf",
+      "item_id": "62a2994f-9fe3-4bcc-95d1-9cbbca37fd36",
+      "item_status": "published",
+      "item_visibility": "public",
+      "key_hash": "aca6dbbd80b2bc7bc5690ab000d7ed22241e2a40cb4d2e8d02b551ca08aeb2ce",
+      "smoke": true,
+      "published": true,
+      "decision": "delete_smoke_asset",
+      "applied": "asset_deleted"
+    },
+    {
+      "asset_id": "763e893a-fa71-4359-a48c-b7b818316cc4",
+      "item_id": "4b6e15d1-e267-46a5-86dd-a61a07c259cc",
+      "item_status": "unpublished",
+      "item_visibility": "private",
+      "key_hash": "0b85adb33b28d403ab037ce6180e9128e3cfcb80c3960ffb9e7751dc50df8763",
+      "smoke": true,
+      "published": false,
+      "decision": "delete_smoke_asset",
+      "applied": "asset_deleted"
+    }
+  ]
+}

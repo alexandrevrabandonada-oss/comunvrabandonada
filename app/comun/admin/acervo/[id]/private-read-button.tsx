@@ -1,0 +1,2 @@
+"use client";
+export function PrivateReadButton({assetId}:{assetId:string}){async function open(){const r=await fetch("/api/comun/admin/archive/private-read",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({assetId})});const data=await r.json();if(r.ok)window.open(data.url,"_blank","noopener,noreferrer");else alert(data.error??"Falha.");}return <button type="button" onClick={open} className="border-2 border-comun-black px-2 py-1 text-xs font-black uppercase">Abrir por 5 min</button>}

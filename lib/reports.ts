@@ -1,11 +1,39 @@
+import { unstable_noStore as noStore } from "next/cache";
+import {
+  checkProtocolLookupRateLimit,
+  logProtocolLookupEvent,
+  type ProtocolLookupResultType,
+} from "@/lib/rate-limit";
 import { createPublicSupabaseClient, createServiceSupabaseClient } from "@/lib/supabase/server";
-import type { AdminReport, PublicReport } from "@/lib/types";
+import type {
+  AdminAttachmentQueueItem,
+  AdminReport,
+  AdminReportAttachment,
+  PublicSafeAttachment,
+  PublicProtocolReport,
+  PublicProtocolStatus,
+  PublicReport,
+} from "@/lib/types";
 
-export async function listPublicReports(filters?: { communitySlug?: string; issueSlug?: string }) {
-  const supabase = createPublicSupabaseClient();
-  if (!supabase) return [] as PublicReport[];
+const attachmentQueueStatuses = ["pending", "needs_redaction", "rejected", "public_ready", "approved_private"] as const;
 
-  let query = supabase
+export type AttachmentQueueFilters = {
+  status?: string;
+  communitySlug?: string;
+  publicSafe?: "with" | "without";
+  createdFrom?: string;
+  createdTo?: string;
+  page?: number;
+  limit?: number;
+};
+
+async function fetchPublicReports(
+  client: ReturnType<typeof createPublicSupabaseClient> | ReturnType<typeof createServiceSupabaseClient>,
+  filters?: { communitySlug?: string; issueSlug?: string },
+) {
+  if (!client) return null;
+
+  let query = client
     .from("comun_public_reports")
     .select("*")
     .order("published_at", { ascending: false, nullsFirst: false })
@@ -14,21 +42,45 @@ export async function listPublicReports(filters?: { communitySlug?: string; issu
   if (filters?.communitySlug) query = query.eq("community_slug", filters.communitySlug);
   if (filters?.issueSlug) query = query.eq("issue_slug", filters.issueSlug);
 
-  const { data } = await query;
+  const { data, error } = await query;
+  if (error) return null;
   return (data ?? []) as PublicReport[];
+}
+
+export async function listPublicReports(filters?: { communitySlug?: string; issueSlug?: string }) {
+  const publicReports = await fetchPublicReports(createPublicSupabaseClient(), filters);
+  if (publicReports) return publicReports;
+
+  const serviceReports = await fetchPublicReports(createServiceSupabaseClient(), filters);
+  return serviceReports ?? ([] as PublicReport[]);
 }
 
 export async function listAdminReports() {
   const supabase = createServiceSupabaseClient();
   if (!supabase) return [] as AdminReport[];
 
-  const { data } = await supabase
+  const [{ data }, pending] = await Promise.all([
+    supabase
     .from("comun_reports")
     .select("*")
     .order("created_at", { ascending: false })
-    .limit(100);
+      .limit(100),
+    supabase
+      .from("comun_report_attachments")
+      .select("report_id")
+      .eq("review_status", "pending"),
+  ]);
 
-  return (data ?? []) as AdminReport[];
+  const pendingCounts = new Map<string, number>();
+  for (const attachment of pending.data ?? []) {
+    const reportId = String(attachment.report_id);
+    pendingCounts.set(reportId, (pendingCounts.get(reportId) ?? 0) + 1);
+  }
+
+  return ((data ?? []) as AdminReport[]).map((report) => ({
+    ...report,
+    pending_attachment_count: pendingCounts.get(report.id) ?? 0,
+  }));
 }
 
 export async function getAdminReport(id: string) {
@@ -37,4 +89,391 @@ export async function getAdminReport(id: string) {
 
   const { data } = await supabase.from("comun_reports").select("*").eq("id", id).single();
   return data as AdminReport | null;
+}
+
+export async function listAdminReportAttachments(reportId: string) {
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) return [] as AdminReportAttachment[];
+
+  const { data } = await supabase
+    .from("comun_report_attachments")
+    .select("*")
+    .eq("report_id", reportId)
+    .order("created_at", { ascending: false });
+
+  const attachments = (data ?? []) as AdminReportAttachment[];
+
+  return Promise.all(
+    attachments.map(async (attachment) => {
+      const signed = await supabase.storage
+        .from(attachment.storage_bucket)
+        .createSignedUrl(attachment.storage_path, 60 * 10);
+
+      return {
+        ...attachment,
+        signed_url: signed.data?.signedUrl ?? null,
+        public_signed_url: await createPublicSafeSignedUrl(supabase, attachment),
+      };
+    }),
+  );
+}
+
+export async function listAdminAttachmentQueue(filters: AttachmentQueueFilters = {}) {
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) {
+    return {
+      items: [] as AdminAttachmentQueueItem[],
+      total: 0,
+      stats: emptyAttachmentQueueStats(),
+      page: 1,
+      limit: 25,
+      hasNextPage: false,
+    };
+  }
+
+  const page = Math.max(1, Number(filters.page) || 1);
+  const limit = Math.min(50, Math.max(1, Number(filters.limit) || 25));
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  let query = supabase
+    .from("comun_report_attachments")
+    .select(
+      "*, report:comun_reports!inner(id, protocol, community_slug, issue_slug, title, created_at, quick_report)",
+      { count: "exact" },
+    )
+    .order("review_status", { ascending: false })
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (filters.status && attachmentQueueStatuses.includes(filters.status as (typeof attachmentQueueStatuses)[number])) {
+    query = query.eq("review_status", filters.status);
+  }
+  if (filters.communitySlug) query = query.eq("comun_reports.community_slug", filters.communitySlug);
+  if (filters.publicSafe === "with") query = query.not("public_storage_path", "is", null);
+  if (filters.publicSafe === "without") query = query.is("public_storage_path", null);
+  if (filters.createdFrom) query = query.gte("created_at", `${filters.createdFrom}T00:00:00`);
+  if (filters.createdTo) query = query.lte("created_at", `${filters.createdTo}T23:59:59.999`);
+
+  const [{ data, count }, stats] = await Promise.all([query, getAttachmentQueueStats()]);
+  const attachments = (data ?? []) as AdminAttachmentQueueItem[];
+  const items = await Promise.all(
+    attachments.map(async (attachment) => {
+      const signed = await supabase.storage
+        .from(attachment.storage_bucket)
+        .createSignedUrl(attachment.storage_path, 60 * 10);
+
+      return {
+        ...attachment,
+        signed_url: signed.data?.signedUrl ?? null,
+        public_signed_url: await createPublicSafeSignedUrl(supabase, attachment),
+      };
+    }),
+  );
+
+  return {
+    items,
+    total: count ?? 0,
+    stats,
+    page,
+    limit,
+    hasNextPage: from + items.length < (count ?? 0),
+  };
+}
+
+async function getAttachmentQueueStats() {
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) return emptyAttachmentQueueStats();
+
+  const { data } = await supabase
+    .from("comun_report_attachments")
+    .select("review_status, public_storage_path, needs_redaction, created_at");
+
+  const rows = data ?? [];
+  const now = Date.now();
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const pendingRows = rows.filter((row) => row.review_status === "pending");
+  return {
+    pending: pendingRows.length,
+    pending_today: pendingRows.filter((row) => new Date(row.created_at).getTime() >= startOfToday.getTime()).length,
+    pending_over_24h: pendingRows.filter((row) => now - new Date(row.created_at).getTime() > 24 * 60 * 60 * 1000).length,
+    pending_over_72h: pendingRows.filter((row) => now - new Date(row.created_at).getTime() > 72 * 60 * 60 * 1000).length,
+    needs_redaction: rows.filter((row) => row.review_status === "needs_redaction").length,
+    attention: rows.filter((row) => row.needs_redaction || row.review_status === "needs_redaction").length,
+    ready_for_safe_version: rows.filter((row) => row.needs_redaction || row.review_status === "needs_redaction").length,
+    rejected: rows.filter((row) => row.review_status === "rejected").length,
+    public_ready: rows.filter((row) => row.review_status === "public_ready").length,
+    total_with_photo: rows.length,
+  };
+}
+
+function emptyAttachmentQueueStats() {
+  return {
+    pending: 0,
+    pending_today: 0,
+    pending_over_24h: 0,
+    pending_over_72h: 0,
+    needs_redaction: 0,
+    attention: 0,
+    ready_for_safe_version: 0,
+    rejected: 0,
+    public_ready: 0,
+    total_with_photo: 0,
+  };
+}
+
+async function createPublicSafeSignedUrl(
+  supabase: NonNullable<ReturnType<typeof createServiceSupabaseClient>>,
+  attachment: AdminReportAttachment,
+) {
+  if (!attachment.public_storage_bucket || !attachment.public_storage_path) return null;
+  const signed = await supabase.storage
+    .from(attachment.public_storage_bucket)
+    .createSignedUrl(attachment.public_storage_path, 60 * 10);
+
+  return signed.data?.signedUrl ?? null;
+}
+
+export async function getPublicSafeAttachmentsForReport(reportId: string) {
+  noStore();
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) return [] as PublicSafeAttachment[];
+
+  const { data, error } = await supabase
+    .from("comun_report_attachments")
+    .select("id, report_id, public_storage_bucket, public_storage_path, public_mime_type, public_size_bytes")
+    .eq("report_id", reportId)
+    .eq("public_approved", true)
+    .eq("review_status", "public_ready")
+    .not("public_storage_path", "is", null);
+
+  if (error) return [];
+
+  return Promise.all(
+    (data ?? []).map(async (attachment) => {
+      const signed = await supabase.storage
+        .from(String(attachment.public_storage_bucket))
+        .createSignedUrl(String(attachment.public_storage_path), 60 * 5);
+
+      return {
+        id: String(attachment.id),
+        report_id: String(attachment.report_id),
+        mime_type: attachment.public_mime_type,
+        size_bytes: attachment.public_size_bytes,
+        signed_url: signed.data?.signedUrl ?? null,
+      };
+    }),
+  );
+}
+
+type ProtocolReportRow = {
+  protocol: string;
+  community_slug: string;
+  issue_slug: string | null;
+  title: string | null;
+  public_text: string | null;
+  period_text: string | null;
+  approximate_location: string | null;
+  neighborhood: string | null;
+  status: string;
+  can_publish_sanitized: boolean;
+  created_at: string;
+  published_at: string | null;
+};
+
+const protocolPattern = /^COMUN-\d{8}-\d{6}$/;
+
+export function normalizeProtocol(value: string) {
+  return value.trim().toUpperCase();
+}
+
+export function isValidProtocol(value: string) {
+  return protocolPattern.test(normalizeProtocol(value));
+}
+
+function statusLabel(status: PublicProtocolStatus) {
+  const labels: Record<PublicProtocolStatus, string> = {
+    received: "Recebido",
+    under_review: "Em analise",
+    needs_more_info: "Em analise",
+    sanitized: "Em analise",
+    published: "Publicado",
+    linked_to_issue: "Relacionado a pauta",
+    archived: "Arquivado",
+    not_found: "Nao encontrado",
+    invalid: "Protocolo invalido",
+    rate_limited: "Limite temporario",
+  };
+
+  return labels[status];
+}
+
+function buildState(
+  status: PublicProtocolStatus,
+  protocol: string,
+  overrides?: Partial<Omit<PublicProtocolReport, "status" | "protocol" | "state_label">>,
+): PublicProtocolReport {
+  const messages: Record<PublicProtocolStatus, string> = {
+    received: "Recebido pelo COMUN. A equipe ainda nao revisou.",
+    under_review: "Em analise pela curadoria.",
+    needs_more_info: "Seu relato foi recebido e esta em analise. Ele ainda nao foi publicado.",
+    sanitized: "Seu relato foi recebido e esta em analise. Ele ainda nao foi publicado.",
+    published: "Uma versao sanitizada foi publicada.",
+    linked_to_issue: "Este relato ajudou a compor uma pauta em acompanhamento.",
+    archived: "Este relato nao esta disponivel para publicacao publica.",
+    not_found: "Nao foi possivel localizar um relato publico com esse protocolo.",
+    invalid: "Digite um protocolo COMUN valido para consultar o andamento publico do relato.",
+    rate_limited: "Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.",
+  };
+
+  return {
+    protocol,
+    status,
+    community_slug: null,
+    issue_slug: null,
+    title: null,
+    public_text: null,
+    period_text: null,
+    approximate_location: null,
+    neighborhood: null,
+    created_at: null,
+    published_at: null,
+    public_message: messages[status],
+    state_label: statusLabel(status),
+    is_publicly_available: status === "published",
+    found: !["not_found", "invalid", "rate_limited"].includes(status),
+    ...overrides,
+  };
+}
+
+export async function getPublicReportByProtocol(protocol: string): Promise<PublicProtocolReport> {
+  noStore();
+  const normalizedProtocol = normalizeProtocol(protocol);
+  if (!isValidProtocol(normalizedProtocol)) {
+    const rateLimit = await checkProtocolLookupRateLimit({
+      protocol: normalizedProtocol || protocol,
+      route: "/comun/acompanhar/[protocol]",
+      resultType: "invalid_format",
+    });
+
+    if (!rateLimit.allowed) {
+      return buildState("rate_limited", normalizedProtocol || protocol);
+    }
+
+    await logProtocolLookupEvent({
+      protocol: normalizedProtocol || protocol,
+      route: "/comun/acompanhar/[protocol]",
+      resultType: "invalid_format",
+    });
+    return buildState("invalid", normalizedProtocol || protocol);
+  }
+
+  const rateLimit = await checkProtocolLookupRateLimit({
+    protocol: normalizedProtocol,
+    route: "/comun/acompanhar/[protocol]",
+  });
+
+  if (!rateLimit.allowed) {
+    return buildState("rate_limited", normalizedProtocol);
+  }
+
+  const supabase = createServiceSupabaseClient();
+  if (!supabase) {
+    await logProtocolLookupEvent({
+      protocol: normalizedProtocol,
+      route: "/comun/acompanhar/[protocol]",
+      resultType: "not_found",
+    });
+    return buildState("not_found", normalizedProtocol);
+  }
+
+  const { data, error } = await supabase
+    .from("comun_reports")
+    .select(
+      "protocol, community_slug, issue_slug, title, public_text, period_text, approximate_location, neighborhood, status, can_publish_sanitized, created_at, published_at",
+    )
+    .eq("protocol", normalizedProtocol)
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) {
+    await logLookupResult(normalizedProtocol, "not_found");
+    return buildState("not_found", normalizedProtocol);
+  }
+
+  const report = data as ProtocolReportRow;
+  const safeBase = {
+    community_slug: report.community_slug,
+    issue_slug: report.issue_slug,
+    period_text: report.period_text,
+    approximate_location: report.approximate_location,
+    neighborhood: report.neighborhood,
+    created_at: report.created_at,
+    published_at: report.published_at,
+  };
+
+  if (!report.can_publish_sanitized) {
+    const state =
+      report.status === "archived" ? "archived" : report.status === "linked_to_issue" ? "linked_to_issue" : "under_review";
+    await logLookupResult(normalizedProtocol, resultTypeForStatus(state));
+    return buildState(
+      state,
+      normalizedProtocol,
+      safeBase,
+    );
+  }
+
+  if (report.status === "published" && report.public_text) {
+    await logLookupResult(normalizedProtocol, "found_published");
+    return buildState("published", normalizedProtocol, {
+      ...safeBase,
+      title: report.title,
+      public_text: report.public_text,
+      is_publicly_available: true,
+    });
+  }
+
+  if (report.status === "linked_to_issue") {
+    await logLookupResult(normalizedProtocol, "found_under_review");
+    return buildState("linked_to_issue", normalizedProtocol, safeBase);
+  }
+
+  if (report.status === "archived") {
+    await logLookupResult(normalizedProtocol, "found_archived");
+    return buildState("archived", normalizedProtocol, safeBase);
+  }
+
+  if (report.status === "received") {
+    await logLookupResult(normalizedProtocol, "found_received");
+    return buildState("received", normalizedProtocol, safeBase);
+  }
+
+  if (report.status === "needs_more_info") {
+    await logLookupResult(normalizedProtocol, "found_under_review");
+    return buildState("needs_more_info", normalizedProtocol, safeBase);
+  }
+
+  if (report.status === "sanitized") {
+    await logLookupResult(normalizedProtocol, "found_under_review");
+    return buildState("sanitized", normalizedProtocol, safeBase);
+  }
+
+  await logLookupResult(normalizedProtocol, "found_under_review");
+  return buildState("under_review", normalizedProtocol, safeBase);
+}
+
+function resultTypeForStatus(status: PublicProtocolStatus): ProtocolLookupResultType {
+  if (status === "published") return "found_published";
+  if (status === "archived") return "found_archived";
+  if (status === "received") return "found_received";
+  return "found_under_review";
+}
+
+async function logLookupResult(protocol: string, resultType: ProtocolLookupResultType) {
+  await logProtocolLookupEvent({
+    protocol,
+    route: "/comun/acompanhar/[protocol]",
+    resultType,
+  });
 }

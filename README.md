@@ -30,7 +30,7 @@ Configure em `.env.local` e na Vercel:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `COMUN_ADMIN_PASSWORD`
+- `COMUN_BOOTSTRAP_ADMIN_EMAIL`, opcional e usado apenas no bootstrap local/admin
 - `NEXT_PUBLIC_SITE_URL`
 - `SUPABASE_PROJECT_ID`, opcional para `db:types`
 
@@ -39,12 +39,19 @@ Nunca commite `.env.local`, `SUPABASE_SERVICE_ROLE_KEY`, token de acesso ou senh
 ## Supabase
 
 A migration inicial esta em `supabase/migrations/202605070001_initial_comun.sql`.
+O admin usa Supabase Auth SSR com allowlist em `comun_admin_users`.
 
 ```bash
 npm run db:push
 ```
 
 Ela cria tabelas, view publica segura, RLS e seeds iniciais.
+
+Para liberar o primeiro admin, crie antes o usuario em Supabase Auth e rode:
+
+```bash
+npm run bootstrap:admin -- --email email@exemplo.com
+```
 
 ## Verificacao
 
@@ -53,6 +60,8 @@ npm run lint
 npm run typecheck
 npm run build
 npm run verify
+npm run smoke:comun
+npm run smoke:admin-auth
 ```
 
 ## Rotas principais
@@ -69,10 +78,9 @@ npm run verify
 ## GitHub
 
 ```bash
-git init
 git add .
-git commit -m "feat: cria MVP inicial do COMUN VR Abandonada"
-git remote add origin https://github.com/alexandrevrabandonada-oss/comunvrabandonada.git
+git commit -m "feat: cria COMUN VR Abandonada v0"
 git branch -M main
+git remote add origin <URL_DO_REPOSITORIO_GITHUB>
 git push -u origin main
 ```
