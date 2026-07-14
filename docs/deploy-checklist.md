@@ -190,3 +190,9 @@ Todo relatorio novo deve declarar:
 - Executar a verificação descartável server-side.
 - Confirmar resultado `passed`, cleanup concluído e ausência de fixtures.
 - Rodar `npm run smoke:production-verification-page`.
+# Gate musical
+
+- Aplicar a migração de artistas e discografias.
+- Confirmar RLS e ausência de grants públicos nas tabelas especializadas.
+- Rodar `smoke:local-music-archive` e verificar que áudio é rejeitado.
+- Conferir listagens e detalhes em desktop e mobile, sem dados privados.

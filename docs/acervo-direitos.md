@@ -9,3 +9,6 @@ Para artistas e discografias, registre biografia, integrantes, gênero, capas au
 # Contribuicoes comunitarias
 
 Declaracao de permissao nao substitui revisao humana. Publicacao exige procedencia, direitos, credito e ausencia de dados pessoais indevidos. Pedidos usam `/comun/acervo/direitos-e-remocao`.
+# Música local
+
+O padrão é `external_link_only`. Biografias, fotos promocionais, capas e links têm revisão própria. Provas de autorização e notas permanecem privadas. Áudio hospedado não está autorizado neste sprint.

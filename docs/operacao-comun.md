@@ -259,3 +259,6 @@ Revisar `/comun/admin/acervo/contribuicoes` e `/comun/admin/acervo/sugestoes`. A
 # Verificação do Acervo
 
 Após mudanças em R2 ou Sharp, um administrador pode executar a fixture descartável em `/comun/admin/acervo/verificacao`. Respeitar o intervalo de uma hora e tratar imediatamente qualquer `cleanup_required`.
+# Operação da memória musical
+
+Moderadores acompanham contribuições e reivindicações em `/comun/admin/acervo/artistas`. Publicar exige checklist; verificar reivindicação não autoriza edição direta. Links quebrados devem ser marcados e retirados da exposição pública.
