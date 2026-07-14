@@ -13,3 +13,7 @@ O Acervo organiza fotografias históricas, documentos, lugares de memória, arti
 Direitos `unknown` e `restricted` bloqueiam publicação. Música aceita somente `external_link_only`; arquivos de áudio e vídeo são bloqueados neste sprint.
 
 As rotas públicas selecionam campos explicitamente e nunca retornam notas editoriais, referência interna de permissão, object keys privados ou dados de contribuidores.
+
+# Sprint 21 — fotografias
+
+O Acervo Vivo aceita contribuicoes fotograficas em fluxo separado de relatos urgentes. Originais permanecem privados; a galeria usa derivados revisados e filtros compartilháveis por cidade, bairro, lugar e decada.

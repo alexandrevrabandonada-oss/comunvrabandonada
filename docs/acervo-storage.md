@@ -11,3 +11,7 @@ Uploads usam URL pré-assinada por no máximo 15 minutos. Leitura de original us
 Tipos aceitos: JPEG, PNG, WebP e PDF. Limites: imagens 25 MB, capas 10 MB e PDF 50 MB. MIME e extensão devem concordar. Áudio e vídeo são recusados.
 
 Configurar CORS no bucket para `PUT` vindo apenas dos domínios administrativos previstos e headers `content-type`; não liberar o bucket de originais para leitura anônima.
+
+# Derivados fotograficos
+
+Originais comunitarios usam `originals/submissions/`. Thumbnails e exibicao usam `public/<item>/<asset>/`, sempre com novas chaves. Checksum SHA-256 detecta duplicidade exata sem reconhecimento visual.

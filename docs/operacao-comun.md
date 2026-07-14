@@ -244,6 +244,7 @@ A rota publica usa somente o snapshot publico ativo. O rascunho interno, `public
 7. Publicar de novo para criar novo snapshot; o anterior deve ficar `superseded`.
 8. Despublicar sempre com motivo.
 9. Usar rollback somente para restaurar snapshot anterior seguro.
+
 # Acervo vivo (Sprint 20)
 
 O módulo `/comun/acervo` usa Supabase para metadados e Cloudflare R2 para binários. A administração fica em `/comun/admin/acervo` e `/comun/admin/acervo/colecoes`.
@@ -251,3 +252,7 @@ O módulo `/comun/acervo` usa Supabase para metadados e Cloudflare R2 para biná
 Fluxo: cadastrar metadados, enviar original privado, enviar versão pública separada, preencher alt text/créditos, aprovar o asset e publicar. Despublicar torna o item privado sem apagar o original. Direitos desconhecidos/restritos e uploads de áudio/vídeo são bloqueados.
 
 Rotina semanal: `npm run backup:archive-manifest`. Consulte `docs/acervo-vivo.md`, `docs/acervo-storage.md`, `docs/acervo-direitos.md` e `docs/acervo-backup-local.md`.
+
+# Rotina fotografica
+
+Revisar `/comun/admin/acervo/contribuicoes` e `/comun/admin/acervo/sugestoes`. Antes de publicar, confirmar checksum, fonte, direitos, credito, alt text, derivado sem EXIF e original privado.

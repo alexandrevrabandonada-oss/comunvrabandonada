@@ -176,3 +176,12 @@ Todo relatorio novo deve declarar:
 - [ ] Executar `RUN_REAL_R2_SMOKE=true npm run smoke:r2-real` e confirmar cleanup 404.
 - [ ] Executar `npm run audit:r2-orphans` em dry-run.
 - [ ] Validar CSP report-only e `next/image` em Preview antes da promocao.
+
+# Fotografias historicas (Sprint 21)
+
+- [ ] migration aplicada e lintada;
+- [ ] testes unitarios e smoke historico real aprovados;
+- [ ] original somente no bucket privado;
+- [ ] derivados WebP sem EXIF confirmados;
+- [ ] sugestao permanece pending e despublicacao retorna 404;
+- [ ] URL `r2.dev` registrada como temporaria ate dominio proprio.
