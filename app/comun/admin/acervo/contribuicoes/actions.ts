@@ -2,7 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { logComunAdminAction } from "@/lib/admin-audit";
-import { generateHistoricalPhotoDerivatives } from "@/lib/photo-derivatives";
+import { enqueueHistoricalPhotoDerivativeJob } from "@/lib/archive/photo-processing-queue";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
 export async function updateSubmissionStatus(formData: FormData) {
@@ -129,11 +129,11 @@ export async function generateSubmissionDerivatives(formData: FormData) {
   await requireComunAdmin({ roles: ["admin", "editor"] });
   const id = String(formData.get("id")),
     assetId = String(formData.get("asset_id"));
-  await generateHistoricalPhotoDerivatives(assetId);
+  await enqueueHistoricalPhotoDerivativeJob(assetId);
   const db = createServiceSupabaseClient();
   await db
     ?.from("comun_archive_submissions")
-    .update({ status: "ready_for_editorial_review" })
+    .update({ status: "derivative_pending" })
     .eq("id", id);
   revalidatePath(`/comun/admin/acervo/contribuicoes/${id}`);
 }
