@@ -20,12 +20,22 @@ const ALLOWED = new Set([
   "image/png",
   "image/webp",
   "application/pdf",
+  "audio/mpeg",
+  "audio/mp4",
+  "audio/x-m4a",
+  "audio/wav",
+  "audio/ogg",
 ]);
 const EXTENSIONS: Record<string, string[]> = {
   "image/jpeg": ["jpg", "jpeg"],
   "image/png": ["png"],
   "image/webp": ["webp"],
   "application/pdf": ["pdf"],
+  "audio/mpeg": ["mp3"],
+  "audio/mp4": ["mp4", "m4a"],
+  "audio/x-m4a": ["m4a"],
+  "audio/wav": ["wav"],
+  "audio/ogg": ["ogg"],
 };
 const PREFIXES = ["originals/", "public/", "smoke/"];
 let client: S3Client | null = null;
@@ -83,7 +93,9 @@ export function validateMediaUpload(input: UploadUrlInput) {
   if (!EXTENSIONS[input.contentType]?.includes(ext))
     throw new Error("Extensao incompativel com o MIME informado.");
   const max =
-    input.contentType === "application/pdf"
+    input.contentType.startsWith("audio/")
+      ? 500 * 1024 * 1024
+      : input.contentType === "application/pdf"
       ? 50 * 1024 * 1024
       : input.key.includes("/cover/")
         ? 10 * 1024 * 1024
