@@ -173,6 +173,8 @@ const classifications = {
   comun_archive_music_rights_reviews: { decision: "service_role_only", purpose: "Revisão de direitos musicais.", sensitive: "permission_reference_private e notes_private.", expected: "Exclusivo da moderação." },
   comun_archive_artist_claims: { decision: "service_role_only", purpose: "Reivindicações de perfil.", sensitive: "Contato e prova de verificação privados.", expected: "Exclusivo da moderação." },
   comun_archive_artist_submissions: { decision: "service_role_only", purpose: "Contribuições musicais pendentes.", sensitive: "Contato, fontes e texto não moderado.", expected: "Exclusivo de rotas server-side e moderação." },
+  comun_archive_music_editorial_versions: { decision: "service_role_only", purpose: "Histórico editorial musical sanitizado.", sensitive: "Identidade editorial e snapshots internos.", expected: "Exclusivo da administração; snapshots sem campos privados." },
+  comun_archive_link_checks: { decision: "service_role_only", purpose: "Resultados técnicos de verificação de links.", sensitive: "Hostnames finais e erros operacionais sanitizados.", expected: "Exclusivo do servidor e da administração." },
   comun_archive_collections: {
     decision: "public_read_safe",
     purpose: "Colecoes editoriais do Acervo.",

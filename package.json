@@ -46,6 +46,8 @@
     "smoke:public-dossier-features": "node scripts/smoke-comun-public-dossier-features.mjs",
     "smoke:archive-foundation": "node scripts/smoke-comun-archive-foundation.mjs",
     "smoke:local-music-archive": "node scripts/smoke-comun-local-music-archive.mjs",
+    "smoke:music-curation": "node scripts/smoke-comun-music-curation.mjs",
+    "prune:music-link-checks": "node scripts/prune-comun-music-link-checks.mjs",
     "smoke:r2-real": "node scripts/smoke-comun-r2-real.mjs",
     "smoke:historical-photo-flow": "node scripts/smoke-comun-historical-photo-flow.mjs",
     "smoke:photo-processing-queue": "node scripts/smoke-comun-photo-processing-queue.mjs",
