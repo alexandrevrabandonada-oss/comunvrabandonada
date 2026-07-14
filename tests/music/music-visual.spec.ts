@@ -43,7 +43,7 @@ test.describe("acervo musical", () => {
 
 test.describe("admin musical", () => {
   test("@visual @a11y observabilidade permanece protegida e responsiva", async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name === "mobile-360", "admin é coberto em 390, 768 e 1366 px");
+    test.skip(testInfo.project.name !== "mobile-360", "login administrativo é exercitado uma vez para respeitar o rate limit");
     const password = process.env.COMUN_ADMIN_PASSWORD;
     test.skip(!password, "credencial administrativa de teste indisponível");
     await page.goto("/comun/admin/login?redirectTo=/comun/admin/acervo/musica/observabilidade");
