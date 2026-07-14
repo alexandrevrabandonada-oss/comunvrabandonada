@@ -8,6 +8,9 @@ import {
 } from "@/lib/media-storage";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { logComunAdminAction } from "@/lib/admin-audit";
+import { enqueueHistoricalPhotoDerivativeJob } from "./photo-processing-queue";
+import { processHistoricalPhotoDerivativeJob } from "./photo-processing-worker";
+import { deterministicDerivativeKey } from "./photo-processing-rules";
 import {
   isVerificationRunStale,
   safeVerificationSummary,
@@ -17,20 +20,24 @@ import {
 
 type Step = { name: string; passed: boolean; durationMs: number };
 export async function runArchiveProductionVerification(
-  options: { initiatedBy?: string } = {},
+  options: {
+    initiatedBy?: string;
+    verificationType?: "archive_production" | "archive_queue_production";
+  } = {},
 ) {
   const db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco server-side indisponivel.");
   const database = db;
   const config = mediaStorageConfiguration();
   if (!config.configured) throw new Error("Storage server-side incompleto.");
+  const verificationType = options.verificationType ?? "archive_production";
   const now = Date.now(),
     runId = randomUUID(),
     steps: Step[] = [];
   const existing = await db
     .from("comun_system_verification_runs")
     .select("id,started_at")
-    .eq("verification_type", "archive_production")
+    .eq("verification_type", verificationType)
     .eq("status", "running")
     .maybeSingle();
   if (existing.data && !isVerificationRunStale(existing.data.started_at))
@@ -47,7 +54,7 @@ export async function runArchiveProductionVerification(
   const recent = await db
     .from("comun_system_verification_runs")
     .select("started_at")
-    .eq("verification_type", "archive_production")
+    .eq("verification_type", verificationType)
     .gte("started_at", new Date(now - 3600000).toISOString())
     .limit(1);
   if (recent.data?.length)
@@ -56,7 +63,7 @@ export async function runArchiveProductionVerification(
     .from("comun_system_verification_runs")
     .insert({
       id: runId,
-      verification_type: "archive_production",
+      verification_type: verificationType,
       status: "running",
       initiated_by: options.initiatedBy ?? null,
     })
@@ -75,6 +82,9 @@ export async function runArchiveProductionVerification(
     displayKey = `${base}/public/display.webp`;
   let itemId: string | undefined,
     submissionId: string | undefined,
+    originalAssetId: string | undefined,
+    queueThumbKey: string | undefined,
+    queueDisplayKey: string | undefined,
     cleanup = false;
   const step = async (name: string, fn: () => Promise<void>) => {
     const t = Date.now();
@@ -214,7 +224,49 @@ export async function runArchiveProductionVerification(
           alt_text: "Fixture tecnica",
         },
       ]);
+      const originalAsset = await db
+        .from("comun_archive_assets")
+        .select("id")
+        .eq("bucket_scope", "private_original")
+        .eq("object_key", originalKey)
+        .single();
+      if (originalAsset.error) throw originalAsset.error;
+      originalAssetId = originalAsset.data.id;
     });
+    if (verificationType === "archive_queue_production")
+      await step("processing_queue", async () => {
+        const first = await enqueueHistoricalPhotoDerivativeJob(
+            originalAssetId!,
+          ),
+          second = await enqueueHistoricalPhotoDerivativeJob(originalAssetId!);
+        if (first.id !== second.id)
+          throw new Error("Idempotencia da fila falhou");
+        const claimed = await db.rpc("claim_next_archive_processing_job", {
+          p_worker_id: `verification-${runId}`,
+        });
+        const job = claimed.data?.[0];
+        if (!job || job.id !== first.id)
+          throw new Error("Claim da fila falhou");
+        const result = await processHistoricalPhotoDerivativeJob(job);
+        if (!result.completed) throw new Error("Worker da fila falhou");
+        const check = await db
+          .from("comun_archive_processing_jobs")
+          .select("status")
+          .eq("id", job.id)
+          .single();
+        if (check.data?.status !== "completed")
+          throw new Error("Completion da fila falhou");
+        queueThumbKey = deterministicDerivativeKey(
+          itemId!,
+          checksum,
+          "thumbnail",
+        );
+        queueDisplayKey = deterministicDerivativeKey(
+          itemId!,
+          checksum,
+          "display",
+        );
+      });
     await step("publication", async () => {
       const draft = await fetch(
         `${process.env.NEXT_PUBLIC_SITE_URL}/comun/acervo/system-test-${runId}`,
@@ -263,6 +315,14 @@ export async function runArchiveProductionVerification(
     try {
       await storage.deleteObject("public_safe", thumbKey).catch(() => {});
       await storage.deleteObject("public_safe", displayKey).catch(() => {});
+      if (queueThumbKey)
+        await storage
+          .deleteObject("public_safe", queueThumbKey)
+          .catch(() => {});
+      if (queueDisplayKey)
+        await storage
+          .deleteObject("public_safe", queueDisplayKey)
+          .catch(() => {});
       await storage
         .deleteObject("private_original", originalKey)
         .catch(() => {});
@@ -271,12 +331,25 @@ export async function runArchiveProductionVerification(
           .from("comun_archive_submissions")
           .delete()
           .eq("id", submissionId);
+      if (originalAssetId)
+        await db
+          .from("comun_archive_processing_jobs")
+          .delete()
+          .eq("archive_asset_id", originalAssetId);
       if (itemId)
         await db.from("comun_archive_items").delete().eq("id", itemId);
       cleanup =
         !(await storage.objectExists("private_original", originalKey)) &&
         !(await storage.objectExists("public_safe", thumbKey)) &&
         !(await storage.objectExists("public_safe", displayKey));
+      if (queueThumbKey)
+        cleanup =
+          cleanup &&
+          !(await storage.objectExists("public_safe", queueThumbKey));
+      if (queueDisplayKey)
+        cleanup =
+          cleanup &&
+          !(await storage.objectExists("public_safe", queueDisplayKey));
       await db
         .from("comun_system_verification_runs")
         .update({

@@ -8,6 +8,9 @@ export async function runArchiveProductionVerificationAction(
   const session = await requireComunAdmin({ roles: ["admin"] });
   if (formData.get("confirmation") !== "confirmed")
     throw new Error("Confirmacao explicita obrigatoria.");
-  await runArchiveProductionVerification({ initiatedBy: session.admin.id });
+  await runArchiveProductionVerification({
+    initiatedBy: session.admin.id,
+    verificationType: "archive_queue_production",
+  });
   revalidatePath("/comun/admin/acervo/verificacao");
 }

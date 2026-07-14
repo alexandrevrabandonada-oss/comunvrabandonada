@@ -59,7 +59,11 @@ export async function processHistoricalPhotoDerivativeJob(job: any) {
         .eq("id", job.id);
       await db
         .from("comun_archive_processing_attempts")
-        .update({ status: "cancelled", finished_at: new Date().toISOString(), duration_ms: Date.now() - start })
+        .update({
+          status: "cancelled",
+          finished_at: new Date().toISOString(),
+          duration_ms: Date.now() - start,
+        })
         .eq("job_id", job.id)
         .eq("attempt_number", job.attempt_count);
       await recordEvent(job.id, "archive_processing_job_cancelled", {});

@@ -13,7 +13,10 @@ export default async function Page() {
         .select(
           "id,status,started_at,finished_at,result_summary,sanitized_error",
         )
-        .eq("verification_type", "archive_production")
+        .in("verification_type", [
+          "archive_production",
+          "archive_queue_production",
+        ])
         .order("started_at", { ascending: false })
         .limit(1)
         .maybeSingle()
