@@ -44,6 +44,8 @@
     "smoke:public-dossier-navigation": "node scripts/smoke-comun-public-dossier-navigation.mjs",
     "smoke:public-dossier-features": "node scripts/smoke-comun-public-dossier-features.mjs",
     "smoke:archive-foundation": "node scripts/smoke-comun-archive-foundation.mjs",
+    "smoke:r2-real": "node scripts/smoke-comun-r2-real.mjs",
+    "audit:r2-orphans": "node scripts/audit-comun-r2-orphans.mjs",
     "backup:archive-manifest": "node scripts/export-comun-archive-manifest.mjs",
     "storage:setup": "node scripts/setup-comun-storage.mjs",
     "bootstrap:admin": "node scripts/bootstrap-comun-admin.mjs",
