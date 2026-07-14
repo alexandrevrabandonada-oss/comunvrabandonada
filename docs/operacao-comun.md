@@ -256,3 +256,6 @@ Rotina semanal: `npm run backup:archive-manifest`. Consulte `docs/acervo-vivo.md
 # Rotina fotografica
 
 Revisar `/comun/admin/acervo/contribuicoes` e `/comun/admin/acervo/sugestoes`. Antes de publicar, confirmar checksum, fonte, direitos, credito, alt text, derivado sem EXIF e original privado.
+# Verificação do Acervo
+
+Após mudanças em R2 ou Sharp, um administrador pode executar a fixture descartável em `/comun/admin/acervo/verificacao`. Respeitar o intervalo de uma hora e tratar imediatamente qualquer `cleanup_required`.

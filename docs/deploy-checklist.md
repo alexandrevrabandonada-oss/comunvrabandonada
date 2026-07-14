@@ -185,3 +185,8 @@ Todo relatorio novo deve declarar:
 - [ ] derivados WebP sem EXIF confirmados;
 - [ ] sugestao permanece pending e despublicacao retorna 404;
 - [ ] URL `r2.dev` registrada como temporaria ate dominio proprio.
+# Gate do Acervo
+
+- Executar a verificação descartável server-side.
+- Confirmar resultado `passed`, cleanup concluído e ausência de fixtures.
+- Rodar `npm run smoke:production-verification-page`.

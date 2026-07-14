@@ -15,3 +15,6 @@ Configurar CORS no bucket para `PUT` vindo apenas dos domínios administrativos 
 # Derivados fotograficos
 
 Originais comunitarios usam `originals/submissions/`. Thumbnails e exibicao usam `public/<item>/<asset>/`, sempre com novas chaves. Checksum SHA-256 detecta duplicidade exata sem reconhecimento visual.
+# Verificação descartável
+
+O painel `/comun/admin/acervo/verificacao` valida storage e derivados no runtime de produção sem exportar credenciais. Consulte `docs/acervo-verificacao-producao.md`.
