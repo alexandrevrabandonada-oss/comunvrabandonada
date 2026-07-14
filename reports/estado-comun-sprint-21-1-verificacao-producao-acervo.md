@@ -29,7 +29,9 @@ Deploy concluído e alias atualizado em `https://comunvrabandonada.vercel.app`.
 
 ## Gate real
 
-Pendente de uma sessão administrativa autenticada no navegador. A rota redirecionou corretamente o visitante não autenticado para login. Após login, executar o botão uma vez e registrar duração, resultado por etapa, cleanup e auditoria de órfãos.
+Aprovado em produção em 2026-07-14. Duração total registrada: 6.528 ms. Etapas: storage privado 440 ms; processamento 6 ms; storage público 432 ms; banco 958 ms; publicação/despublicação 1.499 ms. O resultado final foi `passed` e o painel confirmou cleanup concluído. A confirmação pós-cleanup verificou por HEAD a ausência do original e dos dois derivados; os registros `system_test` foram removidos. Não restaram fixtures conhecidas da execução.
+
+O acesso anônimo foi rejeitado antes do teste. O administrador `alexandrecampos@id.uff.br` foi cadastrado e o login de produção validado. A configuração Supabase da Vercel foi sincronizada com o projeto remoto vinculado sem exportar valores para o navegador ou relatório.
 
 ## Riscos restantes
 

@@ -26,9 +26,23 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSess
 const { data, error } = await supabase.auth.admin.listUsers();
 if (error) fail(`falha ao listar usuarios Auth: ${error.message}`);
 
-const user = data.users.find((candidate) => candidate.email?.toLowerCase() === email);
-if (!user) {
-  fail(`usuario Auth nao encontrado para ${email}. Crie o usuario em Supabase Auth primeiro e rode o bootstrap novamente.`);
+let user = data.users.find((candidate) => candidate.email?.toLowerCase() === email);
+if (!user && process.env.COMUN_BOOTSTRAP_ADMIN_PASSWORD) {
+  const created = await supabase.auth.admin.createUser({
+    email,
+    password: process.env.COMUN_BOOTSTRAP_ADMIN_PASSWORD,
+    email_confirm: true,
+  });
+  if (created.error) fail(`falha ao criar usuario Auth: ${created.error.message}`);
+  user = created.data.user;
+}
+if (!user) fail(`usuario Auth nao encontrado para ${email}.`);
+if (process.env.COMUN_BOOTSTRAP_ADMIN_PASSWORD) {
+  const updated = await supabase.auth.admin.updateUserById(user.id, {
+    password: process.env.COMUN_BOOTSTRAP_ADMIN_PASSWORD,
+    email_confirm: true,
+  });
+  if (updated.error) fail(`falha ao atualizar credencial Auth: ${updated.error.message}`);
 }
 
 const { error: upsertError } = await supabase.from("comun_admin_users").upsert(
@@ -42,5 +56,17 @@ const { error: upsertError } = await supabase.from("comun_admin_users").upsert(
 );
 
 if (upsertError) fail(`falha ao cadastrar admin: ${upsertError.message}`);
+
+const { error: profileError } = await supabase.from("comun_admin_profiles").upsert(
+  { auth_user_id: user.id, display_name: email.split("@")[0], email, role: "admin", active: true },
+  { onConflict: "auth_user_id" },
+);
+if (profileError) fail(`falha ao cadastrar perfil admin: ${profileError.message}`);
+
+if (process.env.COMUN_BOOTSTRAP_ADMIN_PASSWORD) {
+  const loginCheck = await supabase.auth.signInWithPassword({ email, password: process.env.COMUN_BOOTSTRAP_ADMIN_PASSWORD });
+  if (loginCheck.error) fail(`credencial criada, mas validacao de login falhou: ${loginCheck.error.message}`);
+  await supabase.auth.signOut();
+}
 
 console.log(`[ok] admin ativo cadastrado para ${email}`);
