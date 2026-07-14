@@ -12,16 +12,16 @@ export async function AdminShell({
 }) {
   const notificationSummary = await getAdminNotificationSummary();
   return (
-    <div className="min-h-screen bg-comun-paper text-comun-black">
+    <div className="min-h-screen overflow-x-hidden bg-comun-paper text-comun-black">
       <header className="border-b-2 border-comun-black bg-comun-black text-comun-paper">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3">
           <Link
             href="/comun/admin"
             className="font-black uppercase text-comun-yellow"
           >
             Admin COMUN
           </Link>
-          <nav className="flex items-center gap-3 text-sm font-black uppercase">
+          <nav className="flex flex-wrap items-center gap-3 text-sm font-black uppercase">
             <Link href="/comun/admin/relatos">Relatos</Link>
             <Link href="/comun/admin/pautas">Pautas</Link>
             <Link href="/comun/admin/pautas/contribuicoes">Contribuicoes</Link>
