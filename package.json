@@ -11,6 +11,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run",
     "smoke:comun": "node scripts/smoke-comun-flow.mjs",
     "smoke:admin-auth": "node scripts/smoke-comun-admin-auth.mjs",
     "smoke:no-leak-http": "node scripts/smoke-comun-no-leak-http.mjs",
@@ -45,7 +46,10 @@
     "smoke:public-dossier-features": "node scripts/smoke-comun-public-dossier-features.mjs",
     "smoke:archive-foundation": "node scripts/smoke-comun-archive-foundation.mjs",
     "smoke:r2-real": "node scripts/smoke-comun-r2-real.mjs",
+    "smoke:historical-photo-flow": "node scripts/smoke-comun-historical-photo-flow.mjs",
     "audit:r2-orphans": "node scripts/audit-comun-r2-orphans.mjs",
+    "reconcile:archive-missing-assets": "node scripts/reconcile-comun-archive-missing-assets.mjs",
+    "generate:photo-derivatives": "node scripts/generate-comun-photo-derivatives.mjs",
     "backup:archive-manifest": "node scripts/export-comun-archive-manifest.mjs",
     "storage:setup": "node scripts/setup-comun-storage.mjs",
     "bootstrap:admin": "node scripts/bootstrap-comun-admin.mjs",
@@ -67,6 +71,7 @@
     "next": "16.2.10",
     "react": "19.2.7",
     "react-dom": "19.2.7",
+    "sharp": "0.35.3",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -78,6 +83,7 @@
     "eslint-config-next": "16.2.10",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.15",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vitest": "4.1.10"
   }
 }
