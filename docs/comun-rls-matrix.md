@@ -7,6 +7,7 @@ Status: RLS_MATRIX_OK
 | Tabela | Decisao | Finalidade | Sensibilidade | Exposicao esperada | RLS | Grants anon/auth/service | Policies |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `comun_actions` | public_insert_safe | Acoes leves de visitante em relatos/pautas. | visitor_token e note podem ser operacionais. | Insercao publica limitada por policy; sem leitura publica. | on | anon S:N I:Y / auth S:N I:Y / service S:Y | INSERT:Visitors can insert lightweight actions |
+| `comun_admin_alerts` | service_role_only | Alertas administrativos. | Condicoes operacionais. | Somente servidor/admin. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_admin_audit_log` | admin_only | Auditoria administrativa. | E-mails admin, metadata operacional e eventos internos. | Sem acesso direto publico; leitura somente servidor/admin. | on | anon S:N I:N / auth S:N I:N / service S:Y | SELECT:Public cannot read admin audit log |
 | `comun_admin_notifications` | admin_only | Notificacoes internas da equipe. | Responsaveis, prioridades e operacao interna. | Sem acesso direto publico. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_admin_profiles` | admin_only | Perfis reais, papeis e permissoes admin. | E-mails, papeis, auth_user_id e notas operacionais. | Sem acesso direto publico. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
@@ -23,6 +24,7 @@ Status: RLS_MATRIX_OK
 | `comun_archive_rights_removal_requests` | service_role_only | Pedidos de correcao, credito e retirada. | Contato e motivo privados. | Sem acesso direto publico. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_archive_submission_assets` | service_role_only | Vinculo de contribuicao com original privado. | Identificadores operacionais de upload. | Sem acesso direto publico. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_archive_submissions` | service_role_only | Contribuicoes fotograficas em triagem. | Contato privado, procedencia, hashes e moderacao. | Somente rotas server-side e administradores. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_archive_worker_heartbeats` | service_role_only | Heartbeats do worker. | Saude operacional. | Somente servidor/admin. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_communities` | public_read_safe | Comunidades publicas do COMUN. | Sem dado pessoal. | Leitura publica apenas de comunidades ativas. | on | anon S:Y I:N / auth S:Y I:N / service S:Y | SELECT:Public can read active communities |
 | `comun_dossiers` | public_read_safe | Dossies legados publicados. | Deve conter apenas conteudo publicado legado. | Leitura publica apenas quando status=published. | on | anon S:Y I:N / auth S:Y I:N / service S:Y | SELECT:Public can read published dossiers |
 | `comun_issues` | public_read_safe | Pautas/questoes publicas legadas. | Sem dado pessoal. | Leitura publica. | on | anon S:Y I:N / auth S:Y I:N / service S:Y | SELECT:Public can read issues |

@@ -196,6 +196,18 @@ const classifications = {
     sensitive: "Erros e identificadores operacionais.",
     expected: "Somente servidor/admin.",
   },
+  comun_archive_worker_heartbeats: {
+    decision: "service_role_only",
+    purpose: "Heartbeats do worker.",
+    sensitive: "Saude operacional.",
+    expected: "Somente servidor/admin.",
+  },
+  comun_admin_alerts: {
+    decision: "service_role_only",
+    purpose: "Alertas administrativos.",
+    sensitive: "Condicoes operacionais.",
+    expected: "Somente servidor/admin.",
+  },
   comun_archive_processing_attempts: {
     decision: "service_role_only",
     purpose: "Tentativas e metricas do worker.",

@@ -48,6 +48,7 @@
     "smoke:r2-real": "node scripts/smoke-comun-r2-real.mjs",
     "smoke:historical-photo-flow": "node scripts/smoke-comun-historical-photo-flow.mjs",
     "smoke:photo-processing-queue": "node scripts/smoke-comun-photo-processing-queue.mjs",
+    "smoke:archive-scheduler": "node scripts/smoke-comun-archive-scheduler.mjs",
     "audit:incomplete-photo-derivatives": "node scripts/audit-comun-incomplete-photo-derivatives.mjs",
     "smoke:production-verification-page": "node scripts/smoke-comun-production-verification-page.mjs",
     "audit:r2-orphans": "node scripts/audit-comun-r2-orphans.mjs",
