@@ -13,9 +13,16 @@ Data: 14/07/2026
 - Retenção: política existente para checks; alertas abertos preservados; screenshots apenas como evidência de release.
 - Custos: sem serviço pago novo, sem armazenamento de mídia ou conteúdo externo; custo incremental restrito a queries administrativas, checks e CI.
 
-## Verificação
+## Verificação e produção
 
-TypeScript, ESLint, Vitest, build, smokes, Playwright/axe, auditoria RLS, lint do banco, audit de dependências e deploy são registrados no fechamento do gate. A suíte unitária passou com 43 testes durante a implementação.
+- `npm run verify`: passou (ESLint, TypeScript e build Next.js 16.2.10).
+- Vitest: 43 testes passaram.
+- Playwright/axe: 20 testes públicos passaram em 360/390/768/1366 px; painel protegido passou em 390/768/1366 px, sem violações sérias ou críticas no escopo.
+- Smokes `local-music-archive`, `music-curation`, `music-observability`, `no-leak-http`, `admin-auth` e `public-ui`: passaram; fixtures foram limpas.
+- Supabase local e remoto: migration aplicada, matriz `RLS_MATRIX_OK` e `db lint --linked` sem erros.
+- Dependências: `npm audit --audit-level=high` sem vulnerabilidades altas; permanecem 2 moderadas transitivas do PostCSS/Next. Não foi usado `--force`.
+- Scheduler: execução agendada `29372993597`, branch `main`, concluída com sucesso em 14/07/2026 22:26 UTC; regressão saudável e sem reconfiguração.
+- Deploy Vercel: produção concluída e alias `https://comunvrabandonada.vercel.app` atualizado; smokes externos passaram.
 
 ## Riscos e próximo tijolo
 
