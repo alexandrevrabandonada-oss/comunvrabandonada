@@ -31,6 +31,10 @@ const items = [
   "A verificacao de links musicais bloqueia localhost, redes privadas e redirects inseguros; nenhum audio ou corpo de pagina e baixado.",
   "O historico editorial musical usa snapshots sanitizados sem contatos, documentos, tokens, segredos ou URLs assinadas.",
   "Perfis de artistas menores nao devem expor escola, rotina, localizacao precisa, contato privado ou nome civil nao autorizado.",
+  "Em Historia Oral, audio original, termo de consentimento e transcricao interna permanecem privados.",
+  "Entrevistas so aparecem com consentimento granular valido, versao publica separada, revisao editorial e embargo encerrado.",
+  "Participantes podem restringir ou retirar consentimento; a retirada remove imediatamente a superficie publica relacionada.",
+  "Participantes menores exigem autorizacao de responsavel e revisao reforcada, sem escola, rotina, contato ou localizacao precisa.",
   "Verificacoes tecnicas usam fixtures descartaveis, exigem acesso administrativo e nunca enviam segredos ou originais privados ao navegador.",
 ];
 
