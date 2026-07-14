@@ -5,7 +5,9 @@ import { logComunAdminAction } from "@/lib/admin-audit";
 import { getMediaStorage, publicMediaUrl } from "@/lib/media-storage";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
-const ROLES = new Set(["original", "public_version", "cover"]);
+const ROLES = new Set(["original", "public_version", "cover", "oral_history_original_audio", "oral_history_public_audio_excerpt", "oral_history_public_full_audio", "oral_history_consent_document", "oral_history_transcript_source", "oral_history_portrait", "oral_history_attachment"]);
+const ORAL_AUDIO = new Set(["audio/mpeg", "audio/mp4", "audio/x-m4a", "audio/wav", "audio/ogg"]);
+const PRIVATE_ORAL_ROLES = new Set(["oral_history_original_audio", "oral_history_consent_document", "oral_history_transcript_source", "oral_history_attachment"]);
 const MAX_URLS_PER_10_MINUTES = 20;
 
 export async function POST(request: Request) {
@@ -28,15 +30,19 @@ export async function POST(request: Request) {
       filename: string;
       mimeType: string;
       sizeBytes: number;
-      role: "original" | "public_version" | "cover";
+      role: string;
     };
     if (!body.archiveItemId || !body.filename || !ROLES.has(body.role))
       throw new Error("Dados de upload incompletos.");
-    if (
-      body.mimeType.startsWith("audio/") ||
-      body.mimeType.startsWith("video/")
-    )
-      throw new Error("Upload de audio e video esta bloqueado neste sprint.");
+    const { data: typedItem } = await db.from("comun_archive_items").select("id,item_type").eq("id", body.archiveItemId).maybeSingle();
+    if (!typedItem) throw new Error("Item do Acervo nao encontrado.");
+    const oralRole = body.role.startsWith("oral_history_");
+    if (oralRole && typedItem.item_type !== "oral_history") throw new Error("Papel de Historia Oral exige entrevista.");
+    if (body.mimeType.startsWith("video/")) throw new Error("Upload de video permanece bloqueado.");
+    if (body.mimeType.startsWith("audio/") && (!oralRole || !ORAL_AUDIO.has(body.mimeType))) throw new Error("Audio permitido somente para Historia Oral e MIME autorizado.");
+    if (body.role === "oral_history_original_audio" && body.sizeBytes > 500 * 1024 * 1024) throw new Error("Audio excede 500 MB.");
+    if (body.role === "oral_history_consent_document" && body.mimeType !== "application/pdf") throw new Error("Termo deve ser PDF privado.");
+    if (body.role === "oral_history_transcript_source" && !["text/plain", "application/pdf"].includes(body.mimeType)) throw new Error("Fonte de transcricao deve ser TXT ou PDF.");
     const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     const { count, error: rateLimitError } = await db
       .from("comun_admin_audit_log")
@@ -61,15 +67,8 @@ export async function POST(request: Request) {
         { status: 429 },
       );
     }
-    const { data: item } = await db
-      .from("comun_archive_items")
-      .select("id")
-      .eq("id", body.archiveItemId)
-      .maybeSingle();
-    if (!item) throw new Error("Item do Acervo nao encontrado.");
     const extension = body.filename.split(".").pop()?.toLowerCase() ?? "";
-    const scope =
-      body.role === "original" ? "private_original" : ("public_safe" as const);
+    const scope = body.role === "original" || PRIVATE_ORAL_ROLES.has(body.role) ? "private_original" : ("public_safe" as const);
     const created = await db
       .from("comun_archive_assets")
       .insert({

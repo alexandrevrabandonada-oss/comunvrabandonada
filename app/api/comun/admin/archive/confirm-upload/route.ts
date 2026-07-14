@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   const { data: asset } = await db
     .from("comun_archive_assets")
     .select(
-      "id, archive_item_id, bucket_scope, object_key, mime_type, size_bytes",
+      "id, archive_item_id, asset_role, bucket_scope, object_key, mime_type, size_bytes",
     )
     .eq("id", assetId)
     .maybeSingle();
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     if (updated.error) throw new Error(updated.error.message);
     await logComunAdminAction({
       session,
-      action: "archive_upload_confirmed",
+      action: asset.asset_role === "oral_history_original_audio" ? "oral_history_original_uploaded" : "archive_upload_confirmed",
       targetType: "archive_asset",
       targetId: assetId,
       metadata: {
