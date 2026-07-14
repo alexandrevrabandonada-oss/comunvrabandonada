@@ -39,11 +39,15 @@ RLS foi ativado nas novas tabelas, com grants removidos de `anon` e `authenticat
 - testes unitários: 38/38 em sete arquivos.
 - build Next.js 16.2.10: aprovado com todas as novas rotas.
 - smoke `music-curation`: aprovado com fixture e limpeza no Supabase.
+- smoke `local-music-archive`: aprovado novamente em produção.
+- smokes `no-leak-http`, `admin-auth` e `public-ui`: aprovados em produção.
 - `npm audit --audit-level=high`: nenhuma vulnerabilidade alta; duas moderadas transitivas do Next/PostCSS, sem uso de `--force`.
 - A matriz RLS local requer banco local atualizado para reconhecer as tabelas já aplicadas no remoto; o lint remoto e as grants explícitas da migration foram aprovados.
 
 ## Custos, riscos e próximo tijolo
 
 Custos incrementais: linhas pequenas de histórico/checks, HEAD requests periódicos e uso limitado do worker existente. Não há armazenamento ou tráfego de áudio. Riscos: plataformas podem bloquear HEAD e exigir fallback GET mínimo; isso deve ser habilitado por plataforma somente após evidência, sem afrouxar SSRF. Facetas são calculadas server-side e devem migrar para RPC/visão materializada apenas quando volume e métricas justificarem.
+
+Deploy Vercel de produção concluído, com alias `https://comunvrabandonada.vercel.app`. A instalação limpa de dependências encontrou um timeout/lock transitório do Windows após remover pacotes, mas a instalação ficou utilizável e toda a sequência lint, TypeScript, 38 testes, build e smokes passou em seguida.
 
 Próximo tijolo recomendado: Sprint 23.2 de observabilidade da curadoria, com dashboard de latência/taxa de falhas por plataforma, fallback GET controlado, teste visual automatizado em 360/390 px e políticas de SLO editorial.
