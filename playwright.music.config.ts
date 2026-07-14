@@ -4,7 +4,7 @@ import { loadEnvConfig } from "@next/env";
 loadEnvConfig(process.cwd());
 
 export default defineConfig({
-  testDir: "./tests/music",
+  testDir: "./tests",
   timeout: 45_000,
   fullyParallel: false,
   reporter: "line",

@@ -1,0 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';import{expect,test}from'@playwright/test';
+const routes=['/comun/acervo/historias-orais','/comun/acervo/historias-orais/contribuir','/comun/acervo/historias-orais/direitos-e-retirada'];
+for(const route of routes)test(`@visual @a11y História Oral ${route}`,async({page})=>{await page.goto(route);await expect(page.locator('main')).toBeVisible();await expect(page.locator('h1')).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1)).toBe(false);const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(axe.violations.filter(x=>x.impact==='critical'||x.impact==='serious')).toEqual([])});
+test('@a11y rota privada exige login',async({page})=>{await page.goto('/comun/admin/acervo/historias-orais');await expect(page.getByRole('heading',{name:'Admin COMUN'})).toBeVisible()});
