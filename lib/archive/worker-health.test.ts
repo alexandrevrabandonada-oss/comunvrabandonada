@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { alertFingerprint, calculateWorkerState } from "./worker-health";
+import { alertFingerprint, calculateWorkerState } from "./worker-health-rules";
 describe("worker health", () => {
   it("deduplica fingerprint", () =>
     expect(alertFingerprint("x", "1")).toBe(alertFingerprint("x", "1")));

@@ -1,28 +1,5 @@
-import { createHash } from "node:crypto";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
-export function alertFingerprint(type: string, id = "global") {
-  return createHash("sha256").update(`${type}:${id}`).digest("hex");
-}
-export function calculateWorkerState(x: {
-  lastAge: number | null;
-  dead: number;
-  stale: number;
-  queued: number;
-  oldestAge: number;
-  cleanup: number;
-}) {
-  if (
-    x.cleanup > 0 ||
-    x.stale > 0 ||
-    x.dead > 3 ||
-    x.lastAge === null ||
-    x.lastAge > 60
-  )
-    return "critical";
-  if (x.dead > 0 || x.queued > 20 || x.oldestAge > 60 || x.lastAge > 30)
-    return "attention";
-  return "healthy";
-}
+import { alertFingerprint, calculateWorkerState } from "./worker-health-rules";
 export async function getArchiveWorkerHealth() {
   const db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco indisponivel");
@@ -115,16 +92,14 @@ async function upsertAlert(
       })
       .eq("id", existing.data.id);
   else
-    await db
-      .from("comun_admin_alerts")
-      .insert({
-        alert_type: type,
-        severity,
-        title,
-        sanitized_message: message,
-        fingerprint,
-        source_type: "archive_processing",
-      });
+    await db.from("comun_admin_alerts").insert({
+      alert_type: type,
+      severity,
+      title,
+      sanitized_message: message,
+      fingerprint,
+      source_type: "archive_processing",
+    });
 }
 export async function evaluateArchiveOperationalAlerts() {
   const health = await getArchiveWorkerHealth(),
