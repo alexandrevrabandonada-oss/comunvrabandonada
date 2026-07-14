@@ -1,0 +1,20 @@
+name: Archive processing scheduler
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+concurrency:
+  group: archive-processing-scheduler
+  cancel-in-progress: false
+jobs:
+  wake-worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Wake protected worker
+        env:
+          ENDPOINT: ${{ secrets.ARCHIVE_PROCESSING_ENDPOINT }}
+          TOKEN: ${{ secrets.ARCHIVE_PROCESSING_CRON_SECRET }}
+        run: |
+          code=$(curl --silent --show-error --output /dev/null --write-out "%{http_code}" --max-time 50 --retry 1 --request POST "$ENDPOINT" --header "Authorization: Bearer $TOKEN" --header "Content-Type: application/json" --data '{"source":"scheduler","maxJobs":3}')
+          test "$code" -ge 200 -a "$code" -lt 300
