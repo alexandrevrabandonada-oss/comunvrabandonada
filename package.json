@@ -11,7 +11,11 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test:unit": "vitest run",
+    "test:unit": "vitest run --exclude tests/music/**",
+    "test:e2e:music": "playwright test -c playwright.music.config.ts",
+    "test:visual:music": "playwright test -c playwright.music.config.ts --grep @visual",
+    "test:a11y:music": "playwright test -c playwright.music.config.ts --grep @a11y",
+    "smoke:music-observability": "node scripts/smoke-comun-music-observability.mjs",
     "smoke:comun": "node scripts/smoke-comun-flow.mjs",
     "smoke:admin-auth": "node scripts/smoke-comun-admin-auth.mjs",
     "smoke:no-leak-http": "node scripts/smoke-comun-no-leak-http.mjs",
@@ -82,6 +86,8 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
+    "@playwright/test": "1.61.1",
     "@types/node": "^20.17.6",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
