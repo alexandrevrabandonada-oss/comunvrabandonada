@@ -1,0 +1,1 @@
+import Link from"next/link";export default function NotFound(){return <div className="mx-auto max-w-3xl p-6"><h1 className="text-3xl font-black uppercase">Artista não encontrado</h1><Link href="/comun/acervo/artistas" className="mt-4 inline-block underline">Voltar aos artistas</Link></div>}

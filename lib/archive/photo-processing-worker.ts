@@ -14,6 +14,24 @@ import {
   recordEvent,
   recoverStaleArchiveProcessingJobs,
 } from "./photo-processing-queue";
+import { enqueueDueMusicLinkChecks } from "./photo-processing-queue";
+import { checkMusicExternalUrl, persistMusicLinkCheck } from "./music-link-checker";
+
+async function processMusicExternalLinkCheckJob(job: any) {
+  const db = createServiceSupabaseClient();
+  if (!db) throw new Error("Banco indisponivel");
+  const start = Date.now();
+  await db.from("comun_archive_processing_attempts").insert({job_id:job.id,attempt_number:job.attempt_count,status:"processing",worker_id:job.locked_by});
+  const {data:link}=await db.from("comun_archive_external_links").select("id,url").eq("id",job.external_link_id).single();
+  if(!link) throw new Error("Link musical ausente");
+  const hostname=new URL(link.url).hostname,check=await checkMusicExternalUrl(link.url,[hostname]);
+  const state=await persistMusicLinkCheck(link.id,check,"scheduler");
+  if(state.current==="broken") await db.from("comun_admin_alerts").upsert({alert_type:"archive_music_broken_link",severity:"attention",title:"Link musical quebrado",sanitized_message:"Link externo exige revisão.",source_type:"archive_processing",source_id:link.id,fingerprint:`archive_music_broken_link:${link.id}`},{onConflict:"fingerprint"});
+  await db.from("comun_archive_processing_jobs").update({status:"completed",completed_at:new Date().toISOString(),locked_at:null,locked_by:null,result_summary:{status:check.status}}).eq("id",job.id);
+  await db.from("comun_archive_processing_attempts").update({status:"completed",finished_at:new Date().toISOString(),duration_ms:Date.now()-start,metrics:{status:check.status}}).eq("job_id",job.id).eq("attempt_number",job.attempt_count);
+  await recordEvent(job.id,"archive_music_link_check_completed",{status:check.status});
+  return {completed:true};
+}
 export async function processHistoricalPhotoDerivativeJob(job: any) {
   const db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco indisponivel");
@@ -212,6 +230,7 @@ export async function runArchiveProcessingBatch(
     maxJobs = options.maxJobs ?? 3,
     maxMs = options.maxMs ?? 40000;
   const staleRecovered = await recoverStaleArchiveProcessingJobs();
+  await enqueueDueMusicLinkChecks();
   let claimed = 0,
     completed = 0,
     failed = 0;
@@ -219,7 +238,7 @@ export async function runArchiveProcessingBatch(
     const job = await claimNextArchiveProcessingJob(workerId);
     if (!job) break;
     claimed++;
-    const result = await processHistoricalPhotoDerivativeJob(job);
+    const result = job.job_type === "music_external_link_check" ? await processMusicExternalLinkCheckJob(job) : await processHistoricalPhotoDerivativeJob(job);
     result.completed ? completed++ : failed++;
   }
   return {

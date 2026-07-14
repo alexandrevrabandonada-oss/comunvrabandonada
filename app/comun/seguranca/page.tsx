@@ -28,6 +28,8 @@ const items = [
   "Informacoes sobre pessoas recebem revisao reforcada; o COMUN nao usa reconhecimento facial nem identificacao automatica.",
   "O Acervo nao hospeda arquivos de musica neste sprint: artistas e lancamentos usam somente links oficiais externos.",
   "Contribuicoes e reivindicacoes de artistas ficam pendentes; contato, comprovacoes e notas da moderacao nunca aparecem no perfil publico.",
+  "A verificacao de links musicais bloqueia localhost, redes privadas e redirects inseguros; nenhum audio ou corpo de pagina e baixado.",
+  "O historico editorial musical usa snapshots sanitizados sem contatos, documentos, tokens, segredos ou URLs assinadas.",
   "Perfis de artistas menores nao devem expor escola, rotina, localizacao precisa, contato privado ou nome civil nao autorizado.",
   "Verificacoes tecnicas usam fixtures descartaveis, exigem acesso administrativo e nunca enviam segredos ou originais privados ao navegador.",
 ];

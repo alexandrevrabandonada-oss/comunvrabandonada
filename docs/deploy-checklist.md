@@ -196,3 +196,4 @@ Todo relatorio novo deve declarar:
 - Confirmar RLS e ausência de grants públicos nas tabelas especializadas.
 - Rodar `smoke:local-music-archive` e verificar que áudio é rejeitado.
 - Conferir listagens e detalhes em desktop e mobile, sem dados privados.
+- Rodar `smoke:music-curation`, validar histórico sanitizado, redirect privado bloqueado e filtros paginados.
