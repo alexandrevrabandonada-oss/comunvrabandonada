@@ -208,6 +208,12 @@ const classifications = {
     sensitive: "Contato e motivo privados.",
     expected: "Sem acesso direto publico.",
   },
+  comun_system_verification_runs: {
+    decision: "service_role_only",
+    purpose: "Execucoes sanitizadas de verificacao de infraestrutura.",
+    sensitive: "Identidade administrativa e resultado operacional.",
+    expected: "Sem acesso direto publico; somente servidor e admin.",
+  },
 };
 
 const internalDecisions = new Set(["admin_only", "service_role_only"]);

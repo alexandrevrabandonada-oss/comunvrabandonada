@@ -37,6 +37,7 @@ Status: RLS_MATRIX_OK
 | `comun_public_lookup_events` | service_role_only | Eventos/rate limit de consulta publica. | protocol_hash, ip_hash, user_agent_hash e metadata. | Sem acesso direto publico. | on | anon S:N I:N / auth S:N I:N / service S:Y | SELECT:Public cannot read lookup events |
 | `comun_report_attachments` | service_role_only | Anexos, paths de storage e curadoria. | storage_path, public_storage_path, nomes de arquivo e notas de redacao. | Sem acesso direto publico. | on | anon S:N I:N / auth S:N I:N / service S:Y | INSERT:Public cannot insert report attachments<br>SELECT:Public cannot read report attachments |
 | `comun_reports` | public_insert_safe | Relatos brutos e sanitizados. | raw_text, private_contact, internal_notes, localizacao e dados de relato. | Insercao publica limitada; leitura publica bloqueada. | on | anon S:N I:Y / auth S:N I:Y / service S:Y | SELECT:Public cannot read raw reports<br>INSERT:Visitors can insert reports |
+| `comun_system_verification_runs` | service_role_only | Execucoes sanitizadas de verificacao de infraestrutura. | Identidade administrativa e resultado operacional. | Sem acesso direto publico; somente servidor e admin. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 
 ## Falhas
 - Nenhuma falha de matriz.
