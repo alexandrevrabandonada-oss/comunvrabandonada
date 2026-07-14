@@ -20,7 +20,11 @@ Painel, detalhe, dead-letter e botão “Processar fila agora” disponíveis em
 
 ## Cleanup e testes
 
-Auditoria de pares incompletos é dry-run e nunca apaga originais, assets aprovados publicados ou arquivos fora do prefixo. Resultado final de gates, deploy e produção será atualizado após execução.
+Auditoria de pares incompletos é dry-run e nunca apaga originais, assets aprovados publicados ou arquivos fora do prefixo. Lint, TypeScript, build e 16 testes unitários passaram. Migration remota e DB lint passaram; matriz RLS resultou `RLS_MATRIX_OK`.
+
+## Deploy e gate real
+
+Deploy de produção concluído em `https://comunvrabandonada.vercel.app`. O gate server-side `archive_queue_production` passou em 14.651 ms: storage privado 630 ms, Sharp 17 ms, storage público 668 ms, banco 1.454 ms, fila/claim/idempotência/worker/completion 6.169 ms e publicação/despublicação 2.109 ms. Cleanup confirmado para original, derivados base, derivados determinísticos, registros e job. Derivados foram criados `pending` e nenhum item permaneceu publicado.
 
 ## Riscos
 
