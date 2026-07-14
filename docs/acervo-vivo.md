@@ -2,6 +2,8 @@
 
 O Acervo organiza fotografias históricas, documentos, lugares de memória, artistas, lançamentos, histórias orais, cartazes e jornais sem misturá-los ao fluxo urgente de relatos.
 
+História Oral usa originais privados, consentimento granular, transcrição versionada e publicação seletiva. Consulte `docs/acervo-historia-oral.md`.
+
 ## Fluxo editorial
 
 1. O editor cria o item e registra fonte, data, lugar, autoria, créditos e direitos.
