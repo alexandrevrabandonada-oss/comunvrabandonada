@@ -52,6 +52,7 @@ export default async function ArchivePage(props: {
           />
           <select
             name="type"
+            aria-label="Tipo de item do acervo"
             defaultValue={searchParams.type}
             className="min-h-11 bg-comun-paper px-2 text-comun-black"
           >
