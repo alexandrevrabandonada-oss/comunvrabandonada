@@ -51,7 +51,7 @@ try {
       asset_role: "public_version",
       bucket_scope: "public_safe",
       object_key: `public/${itemId}/smoke.png`,
-      public_url: `https://example.invalid/${itemId}.png`,
+      public_url: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
       mime_type: "image/png",
       size_bytes: 68,
       alt_text: "Fixture de uma fotografia",

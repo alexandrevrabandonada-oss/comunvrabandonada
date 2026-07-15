@@ -38,6 +38,9 @@ const items = [
   "No piloto de Historia Oral, checksum, backup, dupla revisao, terceiros resolvidos e aprovacao do participante bloqueiam a publicacao quando ausentes.",
   "Participantes menores exigem autorizacao de responsavel e revisao reforcada, sem escola, rotina, contato ou localizacao precisa.",
   "Verificacoes tecnicas usam fixtures descartaveis, exigem acesso administrativo e nunca enviam segredos ou originais privados ao navegador.",
+  "A busca global consulta somente títulos, resumos e campos públicos aprovados; notas internas, contatos e relatos brutos não são indexados.",
+  "Ações públicas mostram apenas lugar, responsáveis e orientações autorizados; equipe, riscos e localização privada permanecem internos.",
+  "Disponibilidade de voluntariado e contato são privados e nunca formam uma lista pública de participantes.",
 ];
 
 export default function SecurityPage() {

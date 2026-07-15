@@ -20,6 +20,7 @@
     "smoke:music-observability": "node scripts/smoke-comun-music-observability.mjs",
     "smoke:oral-history": "node scripts/smoke-comun-oral-history.mjs",
     "smoke:oral-history-editorial-pilot": "node scripts/smoke-comun-oral-history-editorial-pilot.mjs",
+    "smoke:central-hub": "node scripts/smoke-comun-central-hub.mjs",
     "smoke:comun": "node scripts/smoke-comun-flow.mjs",
     "smoke:admin-auth": "node scripts/smoke-comun-admin-auth.mjs",
     "smoke:no-leak-http": "node scripts/smoke-comun-no-leak-http.mjs",

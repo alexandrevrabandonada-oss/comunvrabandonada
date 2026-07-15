@@ -54,7 +54,7 @@ if (!baseUrl) {
 const checks = [
   {
     path: "/comun",
-    required: ["COMUN VR ABANDONADA", "Enviar relato agora", "Relatar", "Comunidades", "Dossies", "Seguranca"],
+    required: ["COMUN VR ABANDONADA", "O que está acontecendo agora", "Próximas ações", "Participe", "Projetos e frentes", "Resultados recentes", "Territórios", "Acervo Vivo"],
   },
   {
     path: "/comun/comunidades",
