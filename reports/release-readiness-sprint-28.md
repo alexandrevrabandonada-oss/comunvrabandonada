@@ -1,5 +1,5 @@
 # Release readiness — Sprint 28 (RC local)
 
-Status: **RC local condicionado somente ao fechamento de fixtures visuais/autenticadas.**
+Status: **RC local bloqueado por autenticação de usuário comum ausente.**
 
-O código está tipado, passou lint, build, reset local, auditoria RLS, teste SQL e smokes HTTP core/no-leak em localhost. O smoke visual ainda depende de uma fixture editorial que não é recriada pelo reset, e não foi executado um E2E autenticado completo neste fechamento. Não há autorização nem execução de deploy, push ou alteração de infraestrutura remota.
+O código está tipado, passou lint, build, reset local, auditoria RLS, teste SQL e smokes HTTP core/no-leak em localhost. Fixtures determinísticas locais foram adicionadas. O E2E por persona permanece bloqueado: só há login administrativo e Minha Participação redireciona usuários comuns para ele. Não há autorização nem execução de deploy, push ou alteração de infraestrutura remota.
