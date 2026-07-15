@@ -274,3 +274,7 @@ Após mudanças em R2 ou Sharp, um administrador pode executar a fixture descart
 Moderadores acompanham contribuições e reivindicações em `/comun/admin/acervo/artistas`. Publicar exige checklist; verificar reivindicação não autoriza edição direta. Links quebrados devem ser marcados e retirados da exposição pública.
 
 Pendências consolidadas ficam em `/comun/admin/acervo/artistas/pendencias`. A verificação manual de links é segura e a poda de histórico técnico é sempre dry-run por padrão.
+
+# Observatórios Populares
+
+Revisar observações pendentes em `/comun/admin/observatorios`, registrar decisão e evento, gerar snapshots por período e publicar somente após conferir metodologia, amostra, cobertura e limitações. Nunca transformar anomalia em acusação automática.

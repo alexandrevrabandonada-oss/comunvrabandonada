@@ -243,18 +243,21 @@ export async function loginAdmin(_: unknown, formData: FormData) {
     return { ok: false, error: "Supabase Auth nao configurado." };
   }
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
     return { ok: false, error: "E-mail ou senha invalidos." };
   }
 
-  const session = await getComunAdminSession();
-  if (!session) {
+  const service = createServiceSupabaseClient();
+  const { data: admin } = service && authData.user
+    ? await service.from("comun_admin_users").select("id, user_id, email, role, is_active").or(`user_id.eq.${authData.user.id},email.eq.${authData.user.email ?? ""}`).eq("is_active", true).maybeSingle()
+    : { data: null };
+  if (!authData.user || !admin) {
     await supabase.auth.signOut();
     return { ok: false, error: "Usuario autenticado, mas nao autorizado como admin COMUN." };
   }
 
-  await logComunAdminAction({ session, action: "admin_login_success" });
+  await logComunAdminAction({ session: { user: { id: authData.user.id, email: authData.user.email ?? null }, admin, profile: null }, action: "admin_login_success" });
   redirect(redirectTo.startsWith("/comun/admin") ? redirectTo : "/comun/admin");
 }
 

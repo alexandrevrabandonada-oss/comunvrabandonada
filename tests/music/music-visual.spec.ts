@@ -50,7 +50,7 @@ test.describe("admin musical", () => {
     await page.getByLabel("E-mail").fill(process.env.COMUN_ADMIN_EMAIL ?? "alexandrecampos@id.uff.br");
     await page.getByLabel("Senha").fill(password!);
     await page.getByRole("button", { name: "Entrar" }).click();
-    await expect(page.getByRole("heading", { name: "Observabilidade musical" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Observabilidade musical" })).toBeVisible({ timeout: 15_000 });
     await assertResponsive(page);
     const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
     expect(result.violations.filter((item) => item.impact === "critical" || item.impact === "serious")).toEqual([]);

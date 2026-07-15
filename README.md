@@ -76,6 +76,10 @@ npm run smoke:admin-auth
 - `/comun/seguranca`
 - `/comun/dossies`
 - `/comun/admin`
+- `/comun/observatorios`
+- `/comun/transporte`
+
+O motor de Observatórios Populares usa metodologia e formulários versionados, observações privadas moderadas e indicadores agregados aprovados. Rode `npm run smoke:popular-observatory` após alterações.
 
 ## GitHub
 

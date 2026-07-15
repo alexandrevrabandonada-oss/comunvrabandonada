@@ -7,3 +7,5 @@ Fluxo: `relato → triagem → pauta → investigação → evidência → propo
 `comun_pauta_spaces` é a pauta oficial. `comun_issues` permanece apenas por compatibilidade. `comun_actions` continua sendo reação leve de visitante; ação organizada usa `comun_mobilization_actions`. Não há feed infinito, likes, seguidores ou ranking de militantes.
 
 O Mapa Popular é a infraestrutura territorial do Hub: territórios alimentam evidência, pauta, ação, tarefa, necessidade e resultado sem criar workflow concorrente.
+
+Observatórios Populares são a infraestrutura comum de observação e indicadores: dados aceitos podem sustentar evidência, tarefa, ação, protocolo, relatório e resultado somente após revisão humana.

@@ -217,3 +217,12 @@ Todo relatorio novo deve declarar:
 - [ ] busca retorna apenas campos públicos;
 - [ ] Sala de Organização, entrada e calendário exigem admin;
 - [ ] RLS_MATRIX_OK e cleanup sem fixtures.
+
+# Observatórios Populares
+
+- [ ] migration, RLS e grants service-role validados;
+- [ ] payload fora do schema rejeitado e observação nasce pending;
+- [ ] snapshots usam somente accepted, metodologia, período e amostra;
+- [ ] exportações contêm apenas agregados approved_public;
+- [ ] portal, mapa agregado, admin e `smoke:popular-observatory` aprovados;
+- [ ] fixtures e contatos privados removidos no cleanup.
