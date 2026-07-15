@@ -24,6 +24,7 @@ function localServiceConfig() {
 }
 
 export function localServiceClient() { const config = localServiceConfig(); return createClient(config.url, config.serviceKey, { auth: { persistSession: false } }); }
+export function localPublicConfig() { const config = localServiceConfig(); const raw = process.platform === "win32" ? execFileSync("powershell", ["-NoProfile", "-Command", "npx supabase status -o env"], { encoding: "utf8", env: { ...process.env, SUPABASE_DISABLE_TELEMETRY: "1" } }) : ""; const match = raw.match(/^ANON_KEY=\"?([^\"\r\n]+)\"?/m); return { url: config.url, anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || match?.[1] }; }
 
 export async function createLocalAuthFixtures() {
   const db = localServiceClient(); const users = {};
@@ -38,10 +39,11 @@ export async function createLocalAuthFixtures() {
   const adminId = users.admin;
   await db.from("comun_admin_users").upsert({ user_id: adminId, email: localPersonaEmails.admin, role: "admin", is_active: true }, { onConflict: "email" });
   await db.from("comun_admin_profiles").upsert({ auth_user_id: adminId, email: localPersonaEmails.admin, display_name: "Admin local", role: "admin", active: true }, { onConflict: "email" });
+  await db.from("comun_member_profiles").upsert(Object.entries(users).map(([persona, user_id]) => ({ user_id, display_name: `Persona ${persona}`, profile_visibility: "private", participation_visibility: "private", status: "active", onboarding_completed_at: new Date().toISOString(), terms_version: "fixture", terms_accepted_at: new Date().toISOString(), privacy_version: "fixture", privacy_accepted_at: new Date().toISOString() })), { onConflict: "user_id" });
   return users;
 }
 
-export async function createLocalPautaMiniappFixture() {
+export async function createLocalPautaMiniappFixture(existingUsers) {
   const db = localServiceClient(); const tag = `${prefix}${randomUUID().slice(0, 8)}`;
   const { data: pauta, error } = await db.from("comun_pauta_spaces").insert({ slug: tag, title: "Pauta pública de fixture", summary: "Resumo estável para smoke local.", visibility: "public", public_synthesis: "Síntese estável da fixture.", next_step: "Próxima ação de teste." }).select("id,slug").single();
   if (error || !pauta) throw new Error(error?.message ?? "Pauta fixture não criada.");
@@ -53,7 +55,9 @@ export async function createLocalPautaMiniappFixture() {
   await db.from("comun_construction_circles").update({ current_round_id: round.id }).eq("id", circle.id);
   await db.from("comun_circle_contributions").insert({ circle_id: circle.id, round_id: round.id, contribution_type: "testimony", public_body: "Contribuição pública e moderada da fixture.", status: "visible", public_protocol: `RODA-${tag}` });
   await db.from("comun_circle_syntheses").insert({ circle_id: circle.id, round_id: round.id, public_summary: "Síntese publicada da fixture.", agreements: ["Acordo de teste"], disagreements: ["Divergência preservada"], status: "published", published_at: new Date().toISOString() });
-  return { db, pautaId: pauta.id, slug: pauta.slug, tag };
+  const users = existingUsers || await createLocalAuthFixtures();
+  await db.from("comun_pauta_memberships").insert([{ pauta_id: pauta.id, member_user_id: users.facilitator, role: "facilitator", status: "active" }, { pauta_id: pauta.id, member_user_id: users.participant, role: "participant", status: "active" }]);
+  return { db, pautaId: pauta.id, slug: pauta.slug, tag, users };
 }
 
 export async function cleanupLocalComunFixtures() {
@@ -70,6 +74,7 @@ export async function cleanupLocalComunFixtures() {
 
 export async function assertNoComunTestFixtures() {
   const db = localServiceClient(); const { count, error } = await db.from("comun_pauta_spaces").select("id", { count: "exact", head: true }).like("slug", `${prefix}%`);
-  if (error || count) throw new Error(`Fixtures COMUN restantes: ${count ?? "erro"}`);
+  const { data: auth } = await db.auth.admin.listUsers({ page: 1, perPage: 1000 }); const authCount = auth?.users.filter((user) => Object.values(localPersonaEmails).includes(user.email)).length ?? 0;
+  if (error || count || authCount) throw new Error(`Fixtures COMUN restantes: pautas=${count ?? "erro"}, auth=${authCount}`);
   console.log("COMUN_TEST_FIXTURES_CLEAN");
 }
