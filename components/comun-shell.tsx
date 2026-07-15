@@ -8,11 +8,12 @@ const nav = [
   ["Acoes", "/comun/acoes"],
   ["Participar", "/comun/participar"],
   ["Mapa", "/comun/mapa"],
+  ["Observatorios", "/comun/observatorios"],
   ["Territorios", "/comun/territorios"],
   ["Projetos", "/comun/projetos"],
   ["Acervo", "/comun/acervo"],
 ];
-const mobileNav=[nav[0],nav[1],nav[2],nav[4]];
+const mobileNav=[nav[0],nav[1],nav[2],nav[4],nav[5]];
 
 export function ComunShell({ children }: { children: ReactNode }) {
   return (

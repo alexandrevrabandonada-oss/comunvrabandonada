@@ -42,6 +42,9 @@ const items = [
   "A busca global consulta somente títulos, resumos e campos públicos aprovados; notas internas, contatos e relatos brutos não são indexados.",
   "Ações públicas mostram apenas lugar, responsáveis e orientações autorizados; equipe, riscos e localização privada permanecem internos.",
   "Disponibilidade de voluntariado e contato são privados e nunca formam uma lista pública de participantes.",
+  "Observações dos observatórios nascem privadas e pendentes; payload bruto, contato, hash e evidência opcional não aparecem no portal.",
+  "Indicadores comunitários só são publicados de forma agregada, com metodologia, período, amostra, cobertura e limitações.",
+  "O monitoramento de transporte não coleta motorista, passageiro, trajetória pessoal, cartão, documento ou localização contínua.",
 ];
 
 export default function SecurityPage() {
