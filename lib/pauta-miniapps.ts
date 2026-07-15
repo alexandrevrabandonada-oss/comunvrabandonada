@@ -98,10 +98,11 @@ export async function listPublicCircleSurface(pautaId: string) {
 
 export async function listMyParticipation(userId: string) {
   const supabase = createServiceSupabaseClient();
-  if (!supabase) return { memberships: [], contributions: [] };
-  const [memberships, contributions] = await Promise.all([
+  if (!supabase) return { memberships: [], contributions: [], artworkSubmissions: [] };
+  const [memberships, contributions, artworkSubmissions] = await Promise.all([
     supabase.from("comun_pauta_memberships" as never).select("id, role, status, joined_at, pauta:comun_pauta_spaces(title, slug)" as never).eq("member_user_id" as never, userId),
     supabase.from("comun_circle_contributions" as never).select("id, contribution_type, status, public_protocol, created_at, circle:comun_construction_circles(title)" as never).eq("author_member_id" as never, userId),
+    supabase.from("comun_archive_artwork_submissions" as never).select("id,title_suggestion,status,public_protocol,created_at,information_request_public,next_action_public,archive_item:comun_archive_items(slug,status)" as never).eq("member_user_id" as never,userId).order("created_at" as never,{ascending:false}),
   ]);
-  return { memberships: (memberships.data ?? []) as any[], contributions: (contributions.data ?? []) as any[] };
+  return { memberships: (memberships.data ?? []) as any[], contributions: (contributions.data ?? []) as any[], artworkSubmissions:(artworkSubmissions.data??[]) as any[] };
 }
