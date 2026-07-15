@@ -51,6 +51,8 @@ Status: RLS_MATRIX_OK
 | `comun_archive_submission_assets` | service_role_only | Vinculo de contribuicao com original privado. | Identificadores operacionais de upload. | Sem acesso direto publico. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_archive_submissions` | service_role_only | Contribuicoes fotograficas em triagem. | Contato privado, procedencia, hashes e moderacao. | Somente rotas server-side e administradores. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_archive_worker_heartbeats` | service_role_only | Heartbeats do worker. | Saude operacional. | Somente servidor/admin. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_collection_route_materials` | service_role_only | Materiais por rota. | Curadoria operacional. | Servidor sanitiza campos públicos. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_collection_routes` | service_role_only | Rotas e cobertura aproximada. | Operação não confirmada. | Servidor não promete horário exato. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_communities` | public_read_safe | Comunidades publicas do COMUN. | Sem dado pessoal. | Leitura publica apenas de comunidades ativas. | on | anon S:Y I:N / auth S:Y I:N / service S:Y | SELECT:Public can read active communities |
 | `comun_dossiers` | public_read_safe | Dossies legados publicados. | Deve conter apenas conteudo publicado legado. | Leitura publica apenas quando status=published. | on | anon S:Y I:N / auth S:Y I:N / service S:Y | SELECT:Public can read published dossiers |
 | `comun_hub_archive_links` | service_role_only | Relação do Acervo com lutas e territórios. | Nota editorial interna. | Servidor expõe somente vínculos públicos sanitizados. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
@@ -76,9 +78,23 @@ Status: RLS_MATRIX_OK
 | `comun_pauta_timeline_events` | service_role_only | Linha do tempo normalizada da pauta. | Notas internas e fontes restritas. | Servidor expõe apenas eventos públicos. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_public_dossier_features` | service_role_only | Curadoria manual de destaques publicos. | Metadados de curadoria e ids de snapshots. | Sem acesso direto publico; paginas publicas leem via servidor. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_public_lookup_events` | service_role_only | Eventos/rate limit de consulta publica. | protocol_hash, ip_hash, user_agent_hash e metadata. | Sem acesso direto publico. | on | anon S:N I:N / auth S:N I:N / service S:Y | SELECT:Public cannot read lookup events |
+| `comun_recycling_materials` | service_role_only | Catálogo territorial de materiais. | Estado editorial. | Servidor expõe materiais ativos. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_recycling_point_materials` | service_role_only | Aceitação verificada de materiais. | Estado de verificação. | Servidor expõe somente orientação pública. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_recycling_points` | service_role_only | Operação de pontos de reciclagem. | Notas e operador internos. | Servidor expõe campos públicos moderados. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_report_attachments` | service_role_only | Anexos, paths de storage e curadoria. | storage_path, public_storage_path, nomes de arquivo e notas de redacao. | Sem acesso direto publico. | on | anon S:N I:N / auth S:N I:N / service S:Y | INSERT:Public cannot insert report attachments<br>SELECT:Public cannot read report attachments |
 | `comun_reports` | public_insert_safe | Relatos brutos e sanitizados. | raw_text, private_contact, internal_notes, localizacao e dados de relato. | Insercao publica limitada; leitura publica bloqueada. | on | anon S:N I:Y / auth S:N I:Y / service S:Y | SELECT:Public cannot read raw reports<br>INSERT:Visitors can insert reports |
 | `comun_system_verification_runs` | service_role_only | Execucoes sanitizadas de verificacao de infraestrutura. | Identidade administrativa e resultado operacional. | Sem acesso direto publico; somente servidor e admin. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_territorial_contributions` | service_role_only | Contribuições territoriais moderadas. | Contato, detalhes e anexos privados. | Exclusivo do servidor e administração. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_territorial_layers` | service_role_only | Configuração das camadas do mapa. | Filtros e estado editorial. | Servidor expõe somente camadas públicas ativas. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_territorial_need_interests` | service_role_only | Ofertas de ajuda. | Contato e oferta privados. | Exclusivo da administração. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_territorial_needs` | service_role_only | Necessidades territoriais. | Responsável e notas internas. | Servidor expõe necessidades públicas abertas. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_territorial_organization_materials` | service_role_only | Materiais de organizações. | Curadoria operacional. | Servidor sanitiza campos públicos. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_territorial_organizations` | service_role_only | Cooperativas e coletivos. | Contato e notas privadas. | Servidor remove contato privado e não cria ranking. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_territorial_ownership_assertions` | service_role_only | Atribuições de titularidade. | Nota interna e disputa. | Servidor exige fonte e revisão. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_territorial_properties` | service_role_only | Imóveis e áreas de interesse. | Risco e revisão jurídica. | Servidor expõe apenas resumo revisado. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_territorial_social_use_proposals` | service_role_only | Propostas de uso social. | Bastidor interno. | Servidor identifica como proposta, não decisão. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_territorial_sources` | service_role_only | Fontes territoriais. | Nota e documento internos. | Servidor expõe fontes revisadas. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_territory_layers` | service_role_only | Vínculos de territórios com camadas. | Estrutura editorial. | Servidor sanitiza vínculos públicos. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 
 ## Falhas
 - Nenhuma falha de matriz.
