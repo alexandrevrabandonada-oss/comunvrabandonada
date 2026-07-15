@@ -1,5 +1,7 @@
 # Operacao COMUN
 
+O admin territorial em `/comun/admin/territorio` concentra contribuições, verificação, necessidades, fontes e especializações. Publique apenas após conferir fonte, precisão e ausência de dados privados.
+
 ## Hub central
 
 A tela inicial do admin é `/comun/admin/organizacao`. Comece pela caixa de entrada, atribua pauta/responsável/prazo, transforme encaminhamentos em ação e registre resultados sem confundir promessa com conquista. O Acervo permanece congelado e operacional; relacione itens existentes sem duplicá-los.

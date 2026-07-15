@@ -1,5 +1,8 @@
 # Deploy Checklist
 
+- Rodar `npm run smoke:popular-map` e confirmar cleanup.
+- Confirmar RLS das tabelas `comun_territorial_*`, localização privada e atribuições com fonte.
+
 Este checklist e uma rotina de release. Ele nao faz parte da rotina diaria de desenvolvimento nem de um tijolo comum.
 
 - História Oral: validar RLS, original e termo privados, gate de consentimento, transcrição pública separada, embargo, retirada e ausência de URLs assinadas no HTML.

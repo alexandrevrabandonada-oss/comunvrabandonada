@@ -1,5 +1,7 @@
 # COMUN VR ABANDONADA
 
+O Mapa Popular em `/comun/mapa` organiza reciclagem, cooperativas, necessidades e áreas de interesse público na mesma fundação territorial do Hub.
+
 Plataforma comunitaria de relatos, debates e memoria coletiva ligada ao ecossistema VR Abandonada.
 
 Frase-guia: **Relatar. Confirmar. Organizar. Transformar em acao.**  
