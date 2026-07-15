@@ -30,6 +30,7 @@
     "smoke:public-ui": "node scripts/smoke-comun-public-ui.mjs",
     "smoke:core-public-routes": "node scripts/smoke-comun-core-public-routes.mjs",
     "smoke:pauta-miniapp": "node scripts/smoke-comun-pauta-miniapp.mjs",
+    "test:pauta-miniapp-local-db": "node scripts/test-pauta-miniapp-local-db.mjs",
     "smoke:protocol-follow": "node scripts/smoke-comun-protocol-follow.mjs",
     "smoke:protocol-rate-limit": "node scripts/smoke-comun-protocol-rate-limit.mjs",
     "smoke:quick-report": "node scripts/smoke-comun-quick-report.mjs",
