@@ -43,11 +43,10 @@ function normalize(value) {
 }
 
 loadEnvFile(envPath);
-assertProductionChecksAllowed(process.env.NEXT_PUBLIC_SITE_URL);
-
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+const baseUrl = process.env.COMUN_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL;
+assertProductionChecksAllowed(baseUrl);
 if (!baseUrl) {
-  fail("NEXT_PUBLIC_SITE_URL ausente.");
+  fail("COMUN_BASE_URL ou NEXT_PUBLIC_SITE_URL ausente.");
   process.exit();
 }
 
