@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createServiceSupabaseClient, createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireComunAdmin } from "@/lib/admin-auth";
 
 export async function getCommunitySession() {
   const supabase = await createSupabaseServerClient(); if (!supabase) return null;
@@ -9,12 +10,22 @@ export async function getCommunitySession() {
   return { user, profile: profile as any };
 }
 
+export const getOptionalCommunitySession = getCommunitySession;
+
 export async function requireCommunitySession(returnTo = "/comun/minha-participacao") {
   const session = await getCommunitySession();
   if (!session?.user) redirect(`/comun/entrar?returnTo=${encodeURIComponent(returnTo)}`);
-  if (session.profile?.status === "suspended" || session.profile?.status === "deactivated") redirect("/comun/entrar?status=indisponivel");
+  if (["suspended", "deactivation_requested", "deactivated", "archived"].includes(session.profile?.status)) redirect("/comun/entrar?status=indisponivel");
   return session;
 }
+
+export async function requirePautaRole(pautaId: string, roles: string[]) {
+  const result = await requirePautaMembership(pautaId);
+  if (!roles.includes(result.membership.role)) throw new Error("Seu papel nesta pauta não permite esta ação.");
+  return result;
+}
+
+export const requireGlobalAdmin = requireComunAdmin;
 
 export async function requirePautaMembership(pautaId: string) {
   const session = await requireCommunitySession(); const service = createServiceSupabaseClient();
