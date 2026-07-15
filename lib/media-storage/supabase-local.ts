@@ -1,7 +1,7 @@
 import {createClient,type SupabaseClient} from "@supabase/supabase-js";import type{BucketScope,MediaObjectMetadata,MediaObjectSummary,MediaStorageProvider,UploadUrlInput}from"./types";
-const buckets:Record<BucketScope,string>={private_original:"archive-private-originals",public_safe:"archive-public-derivatives"};
+const buckets:Record<BucketScope,string>={private_original:"archive-private-originals",public_safe:"archive-public-derivatives",radio_private_original:"radio-private-originals",radio_public:"radio-public-audio"};
 function localConfig(){const url=process.env.NEXT_PUBLIC_SUPABASE_URL||"",key=process.env.SUPABASE_SERVICE_ROLE_KEY||"";if(!/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(url))throw new Error("SupabaseLocalStorageProvider exige URL localhost.");if(!key)throw new Error("Service role local ausente.");return{url,key}}
-function safeKey(key:string){if(!/^(originals|public|fixtures)\/[a-zA-Z0-9_./-]+$/.test(key)||key.includes("..")||key.includes("//"))throw new Error("Object key local inválida.");return key}
+function safeKey(key:string){if(!/^(originals|public|fixtures|radio-originals|radio-public)\/[a-zA-Z0-9_./-]+$/.test(key)||key.includes("..")||key.includes("//"))throw new Error("Object key local inválida.");return key}
 export class SupabaseLocalStorageProvider implements MediaStorageProvider{private db:SupabaseClient;private url:string;constructor(){const c=localConfig();this.url=c.url;this.db=createClient(c.url,c.key,{auth:{persistSession:false}})}
  async createUploadTarget(input:UploadUrlInput){safeKey(input.key);const{data,error}=await this.db.storage.from(buckets[input.scope]).createSignedUploadUrl(input.key);if(error)throw error;return{url:data.signedUrl,token:data.token,key:input.key,expiresAt:new Date(Date.now()+2*60*60*1000)}}
  async createUploadUrl(input:UploadUrlInput){const x=await this.createUploadTarget(input);return{url:x.url,expiresAt:x.expiresAt}}
@@ -11,7 +11,7 @@ export class SupabaseLocalStorageProvider implements MediaStorageProvider{privat
  async writeDerivative(input:UploadUrlInput&{body:Uint8Array}){await this.putObject(input)}
  async removeObject(scope:BucketScope,key:string){await this.deleteObject(scope,key)}
  async listFixtureScopeForCleanup(prefix:string){return[...(await this.listObjects("private_original",prefix)),...(await this.listObjects("public_safe",prefix))]}
- createPublicDerivativeUrl(key:string){return`${this.url}/storage/v1/object/public/${buckets.public_safe}/${safeKey(key)}`}
+ createPublicDerivativeUrl(key:string){const bucket=key.startsWith("radio-public/")?buckets.radio_public:buckets.public_safe;return`${this.url}/storage/v1/object/public/${bucket}/${safeKey(key)}`}
  async createPrivateReadUrl(key:string,expiresIn=300){const{data,error}=await this.db.storage.from(buckets.private_original).createSignedUrl(safeKey(key),Math.min(expiresIn,900));if(error)throw error;return{url:data.signedUrl,expiresAt:new Date(Date.now()+Math.min(expiresIn,900)*1000)}}
  async putObject(input:UploadUrlInput&{body:Uint8Array}){safeKey(input.key);const{error}=await this.db.storage.from(buckets[input.scope]).upload(input.key,input.body,{contentType:input.contentType,upsert:false});if(error)throw error}
  async deleteObject(scope:BucketScope,key:string){const{error}=await this.db.storage.from(buckets[scope]).remove([safeKey(key)]);if(error)throw error}

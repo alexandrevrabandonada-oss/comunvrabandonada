@@ -37,7 +37,7 @@ const EXTENSIONS: Record<string, string[]> = {
   "audio/wav": ["wav"],
   "audio/ogg": ["ogg"],
 };
-const PREFIXES = ["originals/", "public/", "smoke/"];
+const PREFIXES = ["originals/", "public/", "smoke/", "radio-originals/", "radio-public/"];
 let client: S3Client | null = null;
 
 function config() {
@@ -73,7 +73,7 @@ function getClient() {
 }
 function bucket(scope: BucketScope) {
   const c = config();
-  return scope === "private_original" ? c.originals : c.public;
+  return scope === "private_original" || scope === "radio_private_original" ? c.originals : c.public;
 }
 function safeKey(key: string) {
   if (

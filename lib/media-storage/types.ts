@@ -1,4 +1,4 @@
-export type BucketScope = "private_original" | "public_safe";
+export type BucketScope = "private_original" | "public_safe" | "radio_private_original" | "radio_public";
 export type MediaObjectMetadata = {
   contentType?: string;
   contentLength?: number;
