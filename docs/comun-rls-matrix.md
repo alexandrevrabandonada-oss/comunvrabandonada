@@ -78,6 +78,7 @@ Status: RLS_MATRIX_OK
 | `comun_hub_results` | service_role_only | Resultados e prestação de contas. | Notas e verificação interna. | Servidor expõe apenas resultados públicos. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_hub_territories` | service_role_only | Territórios e notas operacionais. | Notas internas e localização sensível. | Servidor expõe somente campos públicos selecionados. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_issues` | public_read_safe | Pautas/questoes publicas legadas. | Sem dado pessoal. | Leitura publica. | on | anon S:Y I:N / auth S:Y I:N / service S:Y | SELECT:Public can read issues |
+| `comun_member_inbox` | service_role_only | Caixa operacional do membro. | Ações, vínculos e estado de leitura pessoais. | Somente helpers server-side filtrados pelo membro da sessão. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_member_profiles` | service_role_only | Identidade comunitária mínima. | Identidade e preferências de visibilidade. | Sem perfil de influência ou leitura direta ampla. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_metric_definitions` | service_role_only | Definições seguras de métricas. | Configuração editorial. | Sem SQL arbitrário; servidor sanitiza. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_metric_snapshots` | service_role_only | Indicadores por período. | Snapshots internos e em revisão. | Servidor expõe apenas approved_public. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |

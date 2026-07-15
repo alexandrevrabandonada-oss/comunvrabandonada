@@ -330,6 +330,7 @@ const classifications = {
   comun_circle_synthesis_links: { decision: "service_role_only", purpose: "Vínculos de síntese com decisões.", sensitive: "Confirmação e referência editorial.", expected: "Servidor filtra referências revisadas." },
   comun_pauta_updates: { decision: "service_role_only", purpose: "Atualizações estruturadas de pauta.", sensitive: "Rascunhos, autoria e visibilidade.", expected: "Servidor publica somente atualizações públicas." },
   comun_member_profiles: { decision: "service_role_only", purpose: "Identidade comunitária mínima.", sensitive: "Identidade e preferências de visibilidade.", expected: "Sem perfil de influência ou leitura direta ampla." },
+  comun_member_inbox: { decision: "service_role_only", purpose: "Caixa operacional do membro.", sensitive: "Ações, vínculos e estado de leitura pessoais.", expected: "Somente helpers server-side filtrados pelo membro da sessão." },
   comun_pauta_memberships: { decision: "service_role_only", purpose: "Vínculo privado de pessoa e pauta.", sensitive: "Papéis e participação por pauta.", expected: "Exclusivo de helpers server-side." },
   comun_radio_programs: { decision: "service_role_only", purpose: "Programas da radio.", sensitive: "Workflow editorial.", expected: "Servidor expoe apenas publicados." },
   comun_radio_episodes: { decision: "service_role_only", purpose: "Episodios da radio.", sensitive: "Workflow, sensibilidade e relacoes.", expected: "Servidor expoe selecao publicada sanitizada." },
