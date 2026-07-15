@@ -53,7 +53,7 @@
     "test:fixtures:cleanup": "node scripts/fixtures-comun.mjs cleanup",
     "test:fixtures:assert-clean": "node scripts/fixtures-comun.mjs assert-clean",
     "smoke:core-public-routes": "node scripts/smoke-comun-core-public-routes.mjs",
-    "smoke:pauta-miniapp": "node scripts/smoke-comun-pauta-miniapp.mjs",
+    "smoke:pauta-miniapp": "node --experimental-strip-types scripts/smoke-comun-pauta-miniapp.mjs",
     "test:pauta-miniapp-local-db": "node scripts/test-pauta-miniapp-local-db.mjs",
     "smoke:protocol-follow": "node scripts/smoke-comun-protocol-follow.mjs",
     "smoke:protocol-rate-limit": "node scripts/smoke-comun-protocol-rate-limit.mjs",
