@@ -64,7 +64,17 @@ Status: RLS_MATRIX_OK
 | `comun_hub_results` | service_role_only | Resultados e prestação de contas. | Notas e verificação interna. | Servidor expõe apenas resultados públicos. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_hub_territories` | service_role_only | Territórios e notas operacionais. | Notas internas e localização sensível. | Servidor expõe somente campos públicos selecionados. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_issues` | public_read_safe | Pautas/questoes publicas legadas. | Sem dado pessoal. | Leitura publica. | on | anon S:Y I:N / auth S:Y I:N / service S:Y | SELECT:Public can read issues |
+| `comun_metric_definitions` | service_role_only | Definições seguras de métricas. | Configuração editorial. | Sem SQL arbitrário; servidor sanitiza. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_metric_snapshots` | service_role_only | Indicadores por período. | Snapshots internos e em revisão. | Servidor expõe apenas approved_public. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_mobilization_actions` | service_role_only | Ações organizadas de militância. | Equipe, local e riscos privados. | Servidor expõe apenas ações públicas e campos aprovados. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_monitored_entities` | service_role_only | Entidades monitoradas comuns. | Metadados privados. | Servidor seleciona apenas metadados públicos. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_observation_form_versions` | service_role_only | Formulários versionados. | Schemas ainda não publicados. | Servidor valida a versão aprovada. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_observation_verification_events` | service_role_only | Trilha de verificação. | Notas, decisões e identidade editorial. | Exclusivo do servidor/admin. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_observations` | service_role_only | Observações comunitárias brutas. | Payload, contato e hash. | Nunca há leitura pública direta. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_observatories` | service_role_only | Configuração dos observatórios. | Objetivo e responsáveis internos. | Servidor expõe somente observatórios públicos. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_observatory_action_links` | service_role_only | Vínculos revisados com ações. | Decisão editorial. | Servidor expõe vínculos públicos. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_observatory_methodologies` | service_role_only | Metodologias versionadas. | Notas e aprovação internas. | Servidor expõe somente metodologia aprovada. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_observatory_reports` | service_role_only | Relatórios editoriais de período. | Rascunhos e reivindicações. | Servidor expõe somente publicados. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_official_protocols` | service_role_only | Protocolos oficiais, respostas e operacao de Ouvidoria. | response_text, internal_notes, numero oficial, prazos e vinculo com relato. | Sem acesso direto anon/authenticated; server-side com service_role. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_pauta_contributions` | service_role_only | Contribuicoes de pauta com moderacao. | contact_private, moderator_notes, hashes e texto original de contribuicao. | Sem acesso direto anon/authenticated; paginas publicas recebem dados sanitizados via servidor. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_pauta_dossier_evidence` | service_role_only | Vinculo interno entre dossie e evidencias. | Curadoria interna de evidencias. | Sem acesso direto publico. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
@@ -95,6 +105,8 @@ Status: RLS_MATRIX_OK
 | `comun_territorial_social_use_proposals` | service_role_only | Propostas de uso social. | Bastidor interno. | Servidor identifica como proposta, não decisão. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_territorial_sources` | service_role_only | Fontes territoriais. | Nota e documento internos. | Servidor expõe fontes revisadas. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 | `comun_territory_layers` | service_role_only | Vínculos de territórios com camadas. | Estrutura editorial. | Servidor sanitiza vínculos públicos. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_transport_lines` | service_role_only | Linhas de transporte monitoradas. | Estado de curadoria. | Servidor expõe campos públicos. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
+| `comun_transport_stops` | service_role_only | Pontos com localização aproximada. | Estado de curadoria. | Sem posição de observador. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |
 
 ## Falhas
 - Nenhuma falha de matriz.
