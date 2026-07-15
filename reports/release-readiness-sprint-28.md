@@ -1,5 +1,5 @@
 # Release readiness — Sprint 28 (RC local)
 
-Status: **RC local bloqueado por autenticação de usuário comum ausente.**
+Status: **RC local aprovado; publicação remota não autorizada.**
 
-O código está tipado, passou lint, build, reset local, auditoria RLS, teste SQL e smokes HTTP core/no-leak em localhost. Fixtures determinísticas locais foram adicionadas. O E2E por persona permanece bloqueado: só há login administrativo e Minha Participação redireciona usuários comuns para ele. Não há autorização nem execução de deploy, push ou alteração de infraestrutura remota.
+O código passou lint, typecheck, build production-like, reset local e smoke comunitário com cinco personas. Login comunitário e administrativo permanecem separados; Minha Participação, onboarding, conta, recuperação, suspensão e autorização por pauta estão cobertos localmente. Fixtures determinísticas são removidas e verificadas ao fim. Não houve deploy, push ou alteração de infraestrutura remota.
