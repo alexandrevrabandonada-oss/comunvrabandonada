@@ -7,11 +7,12 @@ const nav = [
   ["Pautas", "/comun/pautas"],
   ["Acoes", "/comun/acoes"],
   ["Participar", "/comun/participar"],
+  ["Mapa", "/comun/mapa"],
   ["Territorios", "/comun/territorios"],
   ["Projetos", "/comun/projetos"],
   ["Acervo", "/comun/acervo"],
 ];
-const mobileNav=nav.slice(0,4);
+const mobileNav=[nav[0],nav[1],nav[2],nav[4]];
 
 export function ComunShell({ children }: { children: ReactNode }) {
   return (
@@ -59,7 +60,7 @@ export function ComunShell({ children }: { children: ReactNode }) {
         <div className="mx-auto max-w-6xl">
           <p className="text-xl font-black uppercase text-comun-yellow">COMUN VR ABANDONADA</p>
           <p className="mt-2 text-sm text-comun-paper/75">Escutar. Cuidar. Organizar.</p>
-          <div className="mt-5 flex flex-wrap gap-4 text-sm font-bold"><Link href="/comun/busca">Busca</Link><Link href="/comun/resultados">Resultados</Link><Link href="/comun/territorios">Territorios</Link><Link href="/comun/projetos">Projetos</Link><Link href="/comun/acervo">Acervo</Link></div>
+          <div className="mt-5 flex flex-wrap gap-4 text-sm font-bold"><Link href="/comun/mapa">Mapa Popular</Link><Link href="/comun/reciclagem">Reciclagem</Link><Link href="/comun/cooperativas">Cooperativas</Link><Link href="/comun/territorio-tomado">Território Tomado</Link><Link href="/comun/busca">Busca</Link><Link href="/comun/resultados">Resultados</Link><Link href="/comun/projetos">Projetos</Link><Link href="/comun/acervo">Acervo</Link></div>
         </div>
       </footer>
       <div className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-comun-black bg-comun-paper/95 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur md:hidden">
