@@ -1,4 +1,7 @@
 import { R2MediaStorageProvider } from "./r2";
+import { SupabaseLocalStorageProvider } from "./supabase-local";
+import { FixtureStorageProvider } from "./fixture";
+import type { MediaStorageProvider } from "./types";
 export type {
   BucketScope,
   MediaStorageProvider,
@@ -6,9 +9,10 @@ export type {
   MediaObjectSummary,
   UploadUrlInput,
 } from "./types";
-let storage: R2MediaStorageProvider | null = null;
+let storage: MediaStorageProvider | null = null;
 export function getMediaStorage() {
-  return (storage ??= new R2MediaStorageProvider());
+  if(storage)return storage;const selected=process.env.MEDIA_STORAGE_PROVIDER||(process.env.NODE_ENV==="test"?"fixture":"r2");
+  if(selected==="supabase-local")storage=new SupabaseLocalStorageProvider();else if(selected==="fixture")storage=new FixtureStorageProvider();else storage=new R2MediaStorageProvider();return storage;
 }
 export function publicMediaUrl(key: string) {
   const base = process.env.R2_PUBLIC_BASE_URL;

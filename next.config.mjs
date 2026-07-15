@@ -30,6 +30,7 @@ const cspReportOnly = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: { serverActions: { bodySizeLimit: "31mb" } },
   poweredByHeader: false,
   allowedDevOrigins: ["127.0.0.1"],
   images: { remotePatterns },

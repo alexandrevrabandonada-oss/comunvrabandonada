@@ -21,6 +21,14 @@ export type UploadUrlInput = {
 };
 
 export interface MediaStorageProvider {
+  createUploadTarget(input: UploadUrlInput): Promise<{ url: string; token?: string; key: string; expiresAt: Date }>;
+  confirmUpload(scope: BucketScope, key: string): Promise<MediaObjectMetadata>;
+  headObject(scope: BucketScope, key: string): Promise<MediaObjectMetadata | null>;
+  readObject(scope: BucketScope, key: string): Promise<Uint8Array>;
+  writeDerivative(input: UploadUrlInput & { body: Uint8Array }): Promise<void>;
+  removeObject(scope: BucketScope, key: string): Promise<void>;
+  listFixtureScopeForCleanup(prefix: string): Promise<MediaObjectSummary[]>;
+  createPublicDerivativeUrl(key: string): string;
   createUploadUrl(
     input: UploadUrlInput,
   ): Promise<{ url: string; expiresAt: Date }>;
