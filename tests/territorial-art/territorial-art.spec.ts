@@ -1,0 +1,5 @@
+import {expect,test} from "@playwright/test";import AxeBuilder from "@axe-core/playwright";
+const routes=["/comun/arte","/comun/arte/contribuir","/comun/arte/direitos-e-retirada"];
+for(const route of routes)test(`${route} renderiza sem vazamento @a11y`,async({page})=>{await page.goto(route);await expect(page.locator("h1")).toBeVisible();await expect(page.locator("body")).not.toContainText(/private_contact|member_user_id|object_key|service_role/i);const results=await new AxeBuilder({page}).analyze();expect(results.violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true)});
+test("admin de arte exige login",async({page})=>{await page.goto("/comun/admin/acervo/arte");await expect(page).toHaveURL(/\/comun\/admin\/login/)});
+test("Minha Participação exige sessão comunitária",async({page})=>{await page.goto("/comun/minha-participacao");await expect(page).toHaveURL(/\/comun\/entrar/)});
