@@ -22,3 +22,6 @@ O Acervo Vivo aceita contribuicoes fotograficas em fluxo separado de relatos urg
 # Memória musical
 
 Artistas e lançamentos reutilizam os itens, relações, ativos e coleções do Acervo. Perfis especializados, discografias, faixas e links ficam conectados ao item principal; nenhuma contribuição é publicada automaticamente.
+# Arte dos Territórios
+
+O Acervo inclui obras territoriais contextualizadas, com agents, créditos múltiplos, direitos granulares, original privado, derivadas públicas aprovadas e relações com pautas. Consulte `docs/comun-arte-territorios.md`.

@@ -226,3 +226,7 @@ Todo relatorio novo deve declarar:
 - [ ] exportações contêm apenas agregados approved_public;
 - [ ] portal, mapa agregado, admin e `smoke:popular-observatory` aprovados;
 - [ ] fixtures e contatos privados removidos no cleanup.
+# Arte dos Territórios
+
+- Confirmar reset duplo, RLS, não vazamento, Playwright/axe, storage escolhido e cleanup.
+- Bloquear release se original, termo, contato, localização privada, notes, object key ou Auth ID aparecerem no HTML.

@@ -1,5 +1,7 @@
 # COMUN VR ABANDONADA
 
+O Acervo de Arte dos Territórios vive em `/comun/arte`, com contribuição moderada, curadoria em `/comun/admin/acervo/arte` e integração `art_gallery` nas pautas.
+
 O Mapa Popular em `/comun/mapa` organiza reciclagem, cooperativas, necessidades e áreas de interesse público na mesma fundação territorial do Hub.
 
 Plataforma comunitaria de relatos, debates e memoria coletiva ligada ao ecossistema VR Abandonada.

@@ -14,3 +14,6 @@ Declaracao de permissao nao substitui revisao humana. Publicacao exige procedenc
 # Música local
 
 O padrão é `external_link_only`. Biografias, fotos promocionais, capas e links têm revisão própria. Provas de autorização e notas permanecem privadas. Áudio hospedado não está autorizado neste sprint.
+# Direitos de arte
+
+Arte usa consentimentos independentes para preservação, exibição, redes, impressão, exposição, educação, campanha, crop, derivadas, download e terceiros. Consulte `docs/comun-arte-direitos.md`.

@@ -45,6 +45,9 @@ const items = [
   "Observações dos observatórios nascem privadas e pendentes; payload bruto, contato, hash e evidência opcional não aparecem no portal.",
   "Indicadores comunitários só são publicados de forma agregada, com metodologia, período, amostra, cobertura e limitações.",
   "O monitoramento de transporte não coleta motorista, passageiro, trajetória pessoal, cartão, documento ou localização contínua.",
+  "Na Arte dos Territórios, o original e documentos de direitos permanecem privados; somente derivadas aprovadas podem aparecer.",
+  "Créditos, contexto e autorização de exibição são obrigatórios. O COMUN não presume licença, autoria ou consentimento.",
+  "Obras com menores, pessoas identificáveis ou localização sensível passam por revisão reforçada e não expõem escola, rotina, contato ou local preciso.",
 ];
 
 export default function SecurityPage() {

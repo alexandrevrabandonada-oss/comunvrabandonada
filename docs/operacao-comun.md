@@ -278,3 +278,6 @@ Pendências consolidadas ficam em `/comun/admin/acervo/artistas/pendencias`. A v
 # Observatórios Populares
 
 Revisar observações pendentes em `/comun/admin/observatorios`, registrar decisão e evento, gerar snapshots por período e publicar somente após conferir metodologia, amostra, cobertura e limitações. Nunca transformar anomalia em acusação automática.
+# Operação da arte territorial
+
+Fluxo: rascunho → original privado → créditos → direitos → revisão de sensibilidade → derivadas → relações/coleções → checklist fechado → publicação. Retirada aprovada despublica e arquiva derivados.
