@@ -14,7 +14,8 @@ Data: 2026-07-15
 - `npm run smoke:pauta-miniapp`: aprovado com guardas de localhost.
 - `npm run test:unit`: aprovado (90 testes).
 - `npm run lint`, `npm run typecheck` e `npm run build`: aprovados com valores locais de teste, sem apontar a serviços remotos.
-- `supabase db reset --local`: bloqueado porque Docker Desktop não expôs o engine local nesta sessão; nenhuma ação remota foi tentada.
+- Sprint 28.1: Docker Desktop recuperado; `supabase db reset --local` passou duas vezes, incluindo os guards relacionais finais.
+- Sprint 28.1: `RLS_MATRIX_OK`, gate SQL de constraints/privacidade e smokes HTTP core/no-leak passaram contra localhost em modo produção.
 
 ## Restrições respeitadas
 
