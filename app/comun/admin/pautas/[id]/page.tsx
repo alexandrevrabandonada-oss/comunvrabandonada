@@ -45,7 +45,7 @@ export default async function AdminPautaSpaceDetailPage(props: { params: Promise
           <p className="text-xs font-black uppercase text-comun-asphalt/60">Pauta social</p>
           <h1 className="text-3xl font-black uppercase">{space.title}</h1>
         </div>
-        <Link href={`/comun/pautas/${space.slug}`} className="border-2 border-comun-black bg-white px-3 py-2 text-sm font-black uppercase">Abrir publica</Link>
+        <div className="flex flex-wrap gap-2"><Link href={`/comun/pautas/${space.slug}`} className="border-2 border-comun-black bg-white px-3 py-2 text-sm font-black uppercase">Abrir publica</Link><Link href={`/comun/admin/pautas/${space.id}/aplicativo`} className="border-2 border-comun-black bg-comun-yellow px-3 py-2 text-sm font-black uppercase">Compor aplicativo</Link></div>
       </div>
 
       <section className="mt-5 border-2 border-comun-black bg-comun-black p-4 text-comun-paper">

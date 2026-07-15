@@ -18,6 +18,8 @@ import { assessPautaContributionSafety, createPendingPautaContribution, slugifyP
 import { generateProtocol } from "@/lib/protocol";
 import { isValidProtocol, normalizeProtocol } from "@/lib/reports";
 import { createPublicSupabaseClient, createServiceSupabaseClient, createSupabaseServerClient } from "@/lib/supabase/server";
+import { applyPautaAppTemplate, upsertPautaModule } from "@/lib/pauta-miniapps";
+import { pautaAppTemplates, pautaModuleTypes, type PautaModuleType } from "@/lib/comun/pauta-module-registry";
 
 const reportSchema = z.object({
   community_slug: z.string().min(1),
@@ -793,6 +795,45 @@ export async function submitPautaContribution(formData: FormData) {
   }
   revalidatePath(`/comun/pautas/${slug}`);
   redirect(`/comun/pautas/${slug}?contribuicao=${safety.status === "pending" ? "pendente" : "recebida"}`);
+}
+
+export async function applyPautaAppTemplateAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const pautaId = String(formData.get("pauta_id") ?? "");
+  const template = String(formData.get("template") ?? "") as keyof typeof pautaAppTemplates;
+  if (!pautaId || !(template in pautaAppTemplates)) throw new Error("Modelo de aplicativo inválido.");
+  const result = await applyPautaAppTemplate(pautaId, template, session.user.id);
+  await logComunAdminAction({ session, action: "pauta_app_template_applied", targetType: "pauta_space", targetId: pautaId, metadata: { template, ...result } });
+  revalidatePath(`/comun/admin/pautas/${pautaId}/aplicativo`);
+  redirect(`/comun/admin/pautas/${pautaId}/aplicativo?template=${template}&created=${result.created}`);
+}
+
+export async function submitCircleContributionAction(formData: FormData) {
+  const circleId = String(formData.get("circle_id") ?? ""); const roundId = String(formData.get("round_id") ?? ""); const pautaSlug = String(formData.get("pauta_slug") ?? "");
+  const body = String(formData.get("body") ?? "").trim(); const alias = String(formData.get("author_alias") ?? "").trim().slice(0, 80); const contact = String(formData.get("private_contact") ?? "").trim().slice(0, 160);
+  if (!circleId || !roundId || !pautaSlug || body.length < 24) throw new Error("A contribuição precisa ter pelo menos 24 caracteres.");
+  if (String(formData.get("company_website") ?? "").trim() || String(formData.get("human_check") ?? "") !== "5") throw new Error("Não foi possível validar a contribuição.");
+  const supabase = createServiceSupabaseClient(); if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+  const protocol = `RODA-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+  const { error } = await supabase.from("comun_circle_contributions" as never).insert({ circle_id: circleId, round_id: roundId, contribution_type: String(formData.get("contribution_type") ?? "testimony"), public_body: body, author_display_name: alias || null, private_contact: contact || null, anonymous_publication: formData.get("anonymous") === "on", status: "pending", public_protocol: protocol } as never);
+  if (error) throw new Error(error.message);
+  await logComunAdminAction({ action: "circle_contribution_received", targetType: "construction_circle", targetId: circleId, metadata: { protocol, body_length: body.length } });
+  revalidatePath(`/comun/pautas/${pautaSlug}`); redirect(`/comun/pautas/${pautaSlug}?contribuicao=pendente`);
+}
+
+export async function upsertPautaModuleAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const pautaId = String(formData.get("pauta_id") ?? "");
+  const moduleType = String(formData.get("module_type") ?? "") as PautaModuleType;
+  if (!pautaId || !pautaModuleTypes.includes(moduleType)) throw new Error("Módulo inválido.");
+  await upsertPautaModule({
+    pautaId, moduleType, title: String(formData.get("title") ?? "").trim().slice(0, 120), description: String(formData.get("description") ?? "").trim().slice(0, 500),
+    position: Number.parseInt(String(formData.get("position") ?? "0"), 10) || 0, status: String(formData.get("status") ?? "draft"), visibility: String(formData.get("visibility") ?? "private"),
+    configText: String(formData.get("config") ?? "{}"), createdBy: session.user.id,
+  });
+  await logComunAdminAction({ session, action: "pauta_app_module_upserted", targetType: "pauta_space", targetId: pautaId, metadata: { module_type: moduleType } });
+  revalidatePath(`/comun/admin/pautas/${pautaId}/aplicativo`);
+  redirect(`/comun/admin/pautas/${pautaId}/aplicativo`);
 }
 
 export async function upsertPautaSpaceAction(formData: FormData) {
