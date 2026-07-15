@@ -7,6 +7,13 @@
   background: #0b0b0a;
 }
 
+@layer components {
+  .filter-chip { @apply inline-flex min-h-11 shrink-0 items-center gap-2 border-2 border-comun-black bg-white px-4 font-black uppercase text-comun-black; }
+  .detail-sheet { @apply fixed inset-x-0 bottom-0 z-50 max-h-[70vh] overflow-y-auto border-2 border-comun-black bg-white p-5 text-comun-black md:inset-x-auto md:right-6 md:w-96; }
+  .source-badge { @apply inline-flex border-2 border-comun-black bg-white px-2 py-1 text-xs font-black uppercase text-comun-black; }
+  .need-card { @apply mt-3 border-2 border-comun-black bg-white p-4 text-comun-black; }
+}
+
 * {
   box-sizing: border-box;
 }
