@@ -5,9 +5,13 @@ import { Shield } from "lucide-react";
 const nav = [
   ["Inicio", "/comun"],
   ["Pautas", "/comun/pautas"],
+  ["Acoes", "/comun/acoes"],
+  ["Participar", "/comun/participar"],
+  ["Territorios", "/comun/territorios"],
+  ["Projetos", "/comun/projetos"],
   ["Acervo", "/comun/acervo"],
-  ["Dossies", "/comun/dossies"],
 ];
+const mobileNav=nav.slice(0,4);
 
 export function ComunShell({ children }: { children: ReactNode }) {
   return (
@@ -38,7 +42,7 @@ export function ComunShell({ children }: { children: ReactNode }) {
         <div className="border-t border-comun-paper/10 px-4 py-2 md:hidden">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 text-xs font-bold uppercase text-comun-paper/75">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              {nav.map(([label, href]) => (
+              {mobileNav.map(([label, href]) => (
                 <Link key={href} href={href} className="hover:text-comun-yellow">
                   {label}
                 </Link>
@@ -55,6 +59,7 @@ export function ComunShell({ children }: { children: ReactNode }) {
         <div className="mx-auto max-w-6xl">
           <p className="text-xl font-black uppercase text-comun-yellow">COMUN VR ABANDONADA</p>
           <p className="mt-2 text-sm text-comun-paper/75">Escutar. Cuidar. Organizar.</p>
+          <div className="mt-5 flex flex-wrap gap-4 text-sm font-bold"><Link href="/comun/busca">Busca</Link><Link href="/comun/resultados">Resultados</Link><Link href="/comun/territorios">Territorios</Link><Link href="/comun/projetos">Projetos</Link><Link href="/comun/acervo">Acervo</Link></div>
         </div>
       </footer>
       <div className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-comun-black bg-comun-paper/95 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur md:hidden">
