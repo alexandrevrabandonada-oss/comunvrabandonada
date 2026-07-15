@@ -7,6 +7,8 @@ import { getPublicPautaSpaceBySlug, listApprovedPautaContributions, listPublicPa
 import { listPublicDossierFeatures, listPublishedPautaDossiersByPauta, type PublishedPautaDossierSnapshot } from "@/lib/pauta-dossiers";
 import { listPublicReports } from "@/lib/reports";
 import { getPublicPautaHub } from "@/lib/central-hub";
+import { PautaAppShell } from "@/components/pauta-app-shell";
+import { listPublicCircleSurface, listPublicPautaModules } from "@/lib/pauta-miniapps";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -28,6 +30,12 @@ export default async function PautaPage(
   const params = await props.params;
   const space = await getPublicPautaSpaceBySlug(params.slug);
   if (!space) return <LegacyIssuePage slug={params.slug} />;
+
+  const modules = await listPublicPautaModules(space.id);
+  if (modules.length) {
+    const circles = await listPublicCircleSurface(space.id);
+    return <ComunShell><PautaAppShell space={space} modules={modules} circles={circles} /></ComunShell>;
+  }
 
   const [reports, protocols, contributions, tasks, evidence, community, publishedDossiers] = await Promise.all([
     listSafePautaReports(space),
