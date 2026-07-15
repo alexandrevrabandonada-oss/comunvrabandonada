@@ -20,6 +20,7 @@ import { isValidProtocol, normalizeProtocol } from "@/lib/reports";
 import { createPublicSupabaseClient, createServiceSupabaseClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { applyPautaAppTemplate, upsertPautaModule } from "@/lib/pauta-miniapps";
 import { pautaAppTemplates, pautaModuleTypes, type PautaModuleType } from "@/lib/comun/pauta-module-registry";
+import { getCommunitySession, requireCommunitySession } from "@/lib/community-auth";
 
 const reportSchema = z.object({
   community_slug: z.string().min(1),
@@ -806,6 +807,38 @@ export async function applyPautaAppTemplateAction(formData: FormData) {
   await logComunAdminAction({ session, action: "pauta_app_template_applied", targetType: "pauta_space", targetId: pautaId, metadata: { template, ...result } });
   revalidatePath(`/comun/admin/pautas/${pautaId}/aplicativo`);
   redirect(`/comun/admin/pautas/${pautaId}/aplicativo?template=${template}&created=${result.created}`);
+}
+
+const communityAccountSchema = z.object({ email: z.string().trim().email(), password: z.string().min(10).max(128), display_name: z.string().trim().min(2).max(80), terms: z.literal("on"), privacy: z.literal("on") });
+function safeCommunityReturn(value: string) { return value.startsWith("/comun/") && !value.startsWith("/comun/admin") ? value : "/comun/minha-participacao"; }
+
+export async function createCommunityAccount(_: unknown, formData: FormData) {
+  const parsed = communityAccountSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success || String(formData.get("website") ?? "").trim()) return { ok: false, error: "Não foi possível concluir o cadastro." };
+  if ((process.env.COMMUNITY_REGISTRATION_MODE ?? "open") !== "open") return { ok: false, error: "Cadastros comunitários não estão abertos agora." };
+  const supabase = await createSupabaseServerClient(); if (!supabase) return { ok: false, error: "Cadastro indisponível." };
+  const { data, error } = await supabase.auth.signUp({ email: parsed.data.email.toLowerCase(), password: parsed.data.password });
+  if (error || !data.user) return { ok: false, error: "Não foi possível concluir o cadastro." };
+  const service = createServiceSupabaseClient(); if (!service) return { ok: false, error: "Cadastro indisponível." };
+  const { error: profileError } = await service.from("comun_member_profiles" as never).upsert({ user_id: data.user.id, display_name: parsed.data.display_name, participation_visibility: "private", profile_visibility: "private", terms_version: "2026-07", terms_accepted_at: new Date().toISOString(), privacy_version: "2026-07", privacy_accepted_at: new Date().toISOString(), status: "active" } as never, { onConflict: "user_id" as never });
+  if (profileError) return { ok: false, error: "Conta criada, mas o perfil precisa ser concluído mais tarde." };
+  redirect(safeCommunityReturn(String(formData.get("returnTo") ?? "")));
+}
+
+export async function loginCommunity(_: unknown, formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase(); const password = String(formData.get("password") ?? "");
+  const supabase = await createSupabaseServerClient(); if (!supabase) return { ok: false, error: "Não foi possível entrar." };
+  const { error } = await supabase.auth.signInWithPassword({ email, password }); if (error) return { ok: false, error: "E-mail ou senha inválidos." };
+  redirect(safeCommunityReturn(String(formData.get("returnTo") ?? "")));
+}
+
+export async function logoutCommunity() { const supabase = await createSupabaseServerClient(); await supabase?.auth.signOut(); redirect("/comun/entrar"); }
+
+export async function followPautaAction(formData: FormData) {
+  const session = await requireCommunitySession(); const pautaId = String(formData.get("pauta_id") ?? ""); const slug = String(formData.get("slug") ?? ""); if (!pautaId || !slug) throw new Error("Pauta inválida.");
+  const service = createServiceSupabaseClient(); if (!service) throw new Error("Serviço indisponível.");
+  const { error } = await service.from("comun_pauta_memberships" as never).upsert({ pauta_id: pautaId, member_user_id: session.user.id, role: "participant", status: "active", left_at: null } as never, { onConflict: "pauta_id,member_user_id" as never }); if (error) throw new Error(error.message);
+  revalidatePath(`/comun/pautas/${slug}`); revalidatePath("/comun/minha-participacao"); redirect(`/comun/pautas/${slug}?acompanhando=1`);
 }
 
 export async function submitCircleContributionAction(formData: FormData) {
