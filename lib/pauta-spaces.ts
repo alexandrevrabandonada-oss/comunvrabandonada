@@ -38,7 +38,7 @@ export async function listPublicPautaSpaces() {
 
   const { data, error } = await supabase
     .from("comun_pauta_spaces")
-    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, created_at, updated_at")
+    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, public_status, priority, urgency, risk_level, responsible_public, territory_id, affected_people_public, problem_public, demand_public, proposals_public, participation_public, last_operational_update_at, created_at, updated_at")
     .eq("visibility", "public")
     .neq("status", "archived")
     .order("updated_at", { ascending: false });
@@ -53,7 +53,7 @@ export async function getPublicPautaSpaceBySlug(slug: string) {
 
   const { data, error } = await supabase
     .from("comun_pauta_spaces")
-    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, created_at, updated_at")
+    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, public_status, priority, urgency, risk_level, responsible_public, territory_id, affected_people_public, problem_public, demand_public, proposals_public, participation_public, last_operational_update_at, created_at, updated_at")
     .eq("slug", slug)
     .eq("visibility", "public")
     .neq("status", "archived")
@@ -70,7 +70,7 @@ export async function listAdminPautaSpaces() {
 
   const { data, error } = await supabase
     .from("comun_pauta_spaces")
-    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, created_at, updated_at")
+    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, public_status, priority, urgency, risk_level, responsible_internal, responsible_public, territory_id, affected_people_public, problem_public, demand_public, proposals_public, participation_public, last_operational_update_at, created_at, updated_at")
     .order("updated_at", { ascending: false });
 
   if (error || !data) return [];
@@ -83,7 +83,7 @@ export async function getAdminPautaSpace(id: string) {
 
   const { data, error } = await supabase
     .from("comun_pauta_spaces")
-    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, created_at, updated_at")
+    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, public_status, internal_status, priority, urgency, risk_level, responsible_internal, responsible_public, territory_id, affected_people_public, problem_public, demand_public, proposals_public, participation_public, last_operational_update_at, created_at, updated_at")
     .eq("id", id)
     .limit(1)
     .maybeSingle();
@@ -220,7 +220,7 @@ export async function listAdminPautaTasks(pautaId: string) {
 
   const { data, error } = await supabase
     .from("comun_pauta_tasks")
-    .select("id, pauta_id, title, description, status, help_needed, owner_alias, due_at, created_at, updated_at")
+    .select("id, pauta_id, title, description, status, help_needed, owner_alias, due_at, action_id, project_id, required_skill, priority, visibility, accepts_volunteers, participant_limit, result_public, created_at, updated_at")
     .eq("pauta_id", pautaId)
     .order("created_at", { ascending: false });
 

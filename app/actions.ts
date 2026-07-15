@@ -815,6 +815,19 @@ export async function upsertPautaSpaceAction(formData: FormData) {
     visibility: String(formData.get("visibility") ?? "public") === "internal" ? "internal" : "public",
     public_synthesis: publicSynthesis,
     next_step: nextStep,
+    public_status: String(formData.get("public_status") ?? "received"),
+    internal_status: String(formData.get("internal_status") ?? "triage").trim() || "triage",
+    priority: String(formData.get("priority") ?? "normal"),
+    urgency: String(formData.get("urgency") ?? "normal"),
+    risk_level: String(formData.get("risk_level") ?? "normal"),
+    responsible_internal: String(formData.get("responsible_internal") ?? "").trim() || null,
+    responsible_public: String(formData.get("responsible_public") ?? "").trim() || null,
+    affected_people_public: String(formData.get("affected_people_public") ?? "").trim() || null,
+    problem_public: String(formData.get("problem_public") ?? "").trim() || null,
+    demand_public: String(formData.get("demand_public") ?? "").trim() || null,
+    proposals_public: String(formData.get("proposals_public") ?? "").trim() || null,
+    participation_public: String(formData.get("participation_public") ?? "").trim() || null,
+    last_operational_update_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
 
@@ -1024,6 +1037,12 @@ export async function upsertPautaTaskAction(formData: FormData) {
     help_needed: formData.get("help_needed") === "true",
     owner_alias: String(formData.get("owner_alias") ?? "").trim() || null,
     due_at: parseOptionalDate(String(formData.get("due_at") ?? "")),
+    required_skill: String(formData.get("required_skill") ?? "").trim() || null,
+    priority: String(formData.get("priority") ?? "normal"),
+    visibility: String(formData.get("visibility") ?? "public"),
+    accepts_volunteers: formData.get("accepts_volunteers") === "true",
+    participant_limit: Number(formData.get("participant_limit")) > 0 ? Number(formData.get("participant_limit")) : null,
+    result_public: String(formData.get("result_public") ?? "").trim() || null,
     updated_at: new Date().toISOString(),
   };
   const query = id
@@ -2015,7 +2034,7 @@ function normalizePautaStatus(value: string) {
 }
 
 function normalizeTaskStatus(value: string) {
-  const valid = ["open", "in_progress", "done", "blocked", "archived"];
+  const valid = ["open", "assigned", "in_progress", "done", "blocked", "cancelled", "archived"];
   return valid.includes(value) ? value : "open";
 }
 

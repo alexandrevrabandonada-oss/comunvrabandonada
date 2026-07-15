@@ -8,7 +8,8 @@ import { getAdminPautaSpace, listAdminPautaContributions, listAdminPautaEvidence
 
 const statusOptions = ["observing", "organizing", "drafting", "pressuring", "resolved", "unresolved", "archived"];
 const contributionStatuses = ["approved", "rejected", "archived"] as const;
-const taskStatuses = ["open", "in_progress", "done", "blocked", "archived"] as const;
+const taskStatuses = ["open", "assigned", "in_progress", "done", "blocked", "cancelled", "archived"] as const;
+const publicStatuses = ["received", "triage", "investigating", "collecting_evidence", "building_proposal", "ready_for_action", "active_mobilization", "awaiting_response", "monitoring", "partial_win", "resolved", "no_progress", "archived"] as const;
 const checklistItems = [
   ["no_personal_data", "Sintese nao contem dados pessoais"],
   ["no_private_contact", "Sintese nao expoe contato privado"],
@@ -92,7 +93,19 @@ export default async function AdminPautaSpaceDetailPage(props: { params: Promise
         <Input name="category" label="Pauta/categoria" defaultValue={space.category ?? ""} />
         <label className="grid gap-1 text-sm font-black uppercase">Status<select name="status" defaultValue={space.status} className="min-h-11 border-2 border-comun-black px-2">{statusOptions.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
         <label className="grid gap-1 text-sm font-black uppercase">Visibilidade<select name="visibility" defaultValue={space.visibility} className="min-h-11 border-2 border-comun-black px-2"><option value="public">Publica</option><option value="internal">Interna</option></select></label>
+        <Select name="public_status" label="Status público" values={[...publicStatuses]} defaultValue={space.public_status} />
+        <Input name="internal_status" label="Status operacional interno" defaultValue={space.internal_status} />
+        <Select name="priority" label="Prioridade" values={["low", "normal", "high", "critical"]} defaultValue={space.priority} />
+        <Select name="urgency" label="Urgência" values={["low", "normal", "high", "immediate"]} defaultValue={space.urgency} />
+        <Select name="risk_level" label="Risco" values={["normal", "attention", "high", "critical"]} defaultValue={space.risk_level} />
+        <Input name="responsible_public" label="Responsável público" defaultValue={space.responsible_public ?? ""} />
+        <Input name="responsible_internal" label="Responsável interno" defaultValue={space.responsible_internal ?? ""} />
         <Textarea name="summary" label="Resumo" defaultValue={space.summary ?? ""} />
+        <Textarea name="affected_people_public" label="Pessoas ou grupos afetados" defaultValue={space.affected_people_public ?? ""} />
+        <Textarea name="problem_public" label="Problema público" defaultValue={space.problem_public ?? ""} />
+        <Textarea name="demand_public" label="Demanda pública" defaultValue={space.demand_public ?? ""} />
+        <Textarea name="proposals_public" label="Propostas públicas" defaultValue={space.proposals_public ?? ""} />
+        <Textarea name="participation_public" label="Como participar" defaultValue={space.participation_public ?? ""} />
         <Textarea name="public_synthesis" label="Sintese publica" defaultValue={space.public_synthesis ?? ""} />
         <Textarea name="next_step" label="Proximo passo" defaultValue={space.next_step ?? ""} />
         <Textarea name="editor_note" label="Nota editorial da alteracao" />
@@ -173,8 +186,14 @@ export default async function AdminPautaSpaceDetailPage(props: { params: Promise
           <Input name="title" label="Titulo" />
           <Input name="owner_alias" label="Responsavel/apelido" />
           <Textarea name="description" label="Descricao" />
+          <Input name="required_skill" label="Habilidade necessária" />
+          <Input name="participant_limit" label="Limite de participantes" />
           <label className="grid gap-1 text-sm font-black uppercase">Status<select name="status" className="min-h-11 border-2 border-comun-black px-2">{taskStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+          <Select name="priority" label="Prioridade" values={["low", "normal", "high", "critical"]} />
+          <Select name="visibility" label="Visibilidade" values={["public", "internal", "archived"]} />
+          <Select name="accepts_volunteers" label="Aceita voluntários" values={["true", "false"]} />
           <label className="grid gap-1 text-sm font-black uppercase">Precisa de ajuda<select name="help_needed" className="min-h-11 border-2 border-comun-black px-2"><option value="true">Sim</option><option value="false">Nao</option></select></label>
+          <Textarea name="result_public" label="Resultado público" />
           <button className="min-h-11 border-2 border-comun-black bg-comun-yellow font-black uppercase md:col-span-2">Criar tarefa</button>
         </form>
         <div className="mt-3 grid gap-3">
@@ -185,6 +204,15 @@ export default async function AdminPautaSpaceDetailPage(props: { params: Promise
               <input name="title" defaultValue={task.title} className="min-h-10 border-2 border-comun-black px-2" />
               <input name="description" defaultValue={task.description ?? ""} className="min-h-10 border-2 border-comun-black px-2" />
               <select name="status" defaultValue={task.status} className="min-h-10 border-2 border-comun-black px-2">{taskStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select>
+              <select name="priority" defaultValue={task.priority} className="min-h-10 border-2 border-comun-black px-2">{["low", "normal", "high", "critical"].map((value) => <option key={value}>{value}</option>)}</select>
+              <input type="hidden" name="required_skill" value={task.required_skill ?? ""} />
+              <input type="hidden" name="visibility" value={task.visibility} />
+              <input type="hidden" name="accepts_volunteers" value={String(task.accepts_volunteers)} />
+              <input type="hidden" name="participant_limit" value={task.participant_limit ?? ""} />
+              <input type="hidden" name="result_public" value={task.result_public ?? ""} />
+              <input type="hidden" name="owner_alias" value={task.owner_alias ?? ""} />
+              <input type="hidden" name="due_at" value={task.due_at ?? ""} />
+              <input type="hidden" name="help_needed" value={String(task.help_needed)} />
               <button className="min-h-10 border-2 border-comun-black bg-white px-2 text-xs font-black uppercase">Atualizar tarefa</button>
             </form>
           ))}

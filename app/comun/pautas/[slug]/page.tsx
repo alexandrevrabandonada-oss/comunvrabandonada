@@ -6,6 +6,7 @@ import { getCommunity, getIssue } from "@/lib/comun-data";
 import { getPublicPautaSpaceBySlug, listApprovedPautaContributions, listPublicPautaEvidence, listPublicPautaTasks, listSafePautaOfficialProtocols, listSafePautaReports } from "@/lib/pauta-spaces";
 import { listPublicDossierFeatures, listPublishedPautaDossiersByPauta, type PublishedPautaDossierSnapshot } from "@/lib/pauta-dossiers";
 import { listPublicReports } from "@/lib/reports";
+import { getPublicPautaHub } from "@/lib/central-hub";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -38,14 +39,16 @@ export default async function PautaPage(
     listPublishedPautaDossiersByPauta(space.id),
   ]);
   const grouped = groupContributions(contributions);
-  const featuredDossiers = (await listPublicDossierFeatures()).filter((feature) => feature.snapshot.pauta?.id === space.id);
+  const [allFeatures,hub]=await Promise.all([listPublicDossierFeatures(),getPublicPautaHub(space.id)]);
+  const featuredDossiers = allFeatures.filter((feature) => feature.snapshot.pauta?.id === space.id);
+  const details=space as any;
 
   return (
     <ComunShell>
       <Section>
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
           <div>
-            <p className="text-xs font-black uppercase text-comun-yellow">{statusLabel(space.status)} / {community?.name ?? space.community ?? "comunidade aberta"}</p>
+            <p className="text-xs font-black uppercase text-comun-yellow">{details.public_status??statusLabel(space.status)} / {community?.name ?? space.community ?? "comunidade aberta"}</p>
             <h1 className="comun-prose mt-3 text-3xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">{space.title}</h1>
             <p className="comun-prose mt-4 max-w-3xl text-comun-paper/78">{space.summary ?? "Pauta em organizacao coletiva."}</p>
             {space.next_step ? <p className="mt-4 border-2 border-comun-yellow bg-comun-black p-4 text-sm font-bold text-comun-paper">Proximo passo: {space.next_step}</p> : null}
@@ -61,6 +64,23 @@ export default async function PautaPage(
           </aside>
         </div>
       </Section>
+
+      <Section>
+        <h2 className="text-2xl font-black uppercase text-comun-yellow">O problema e quem é afetado</h2>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2"><div className="paper-panel border-2 p-4"><h3 className="font-black uppercase">O problema</h3><p className="mt-2">{details.problem_public??space.public_synthesis??space.summary}</p></div><div className="paper-panel border-2 p-4"><h3 className="font-black uppercase">Quem é afetado</h3><p className="mt-2">{details.affected_people_public??'O recorte público ainda está em apuração.'}</p></div></div>
+      </Section>
+
+      <Section><h2 className="text-2xl font-black uppercase text-comun-yellow">O que está sendo reivindicado</h2><p className="mt-3 text-comun-paper/80">{details.demand_public??'A reivindicação pública está em construção.'}</p><h3 className="mt-5 text-xl font-black uppercase text-comun-yellow">Propostas</h3><p className="mt-2 text-comun-paper/80">{details.proposals_public??'Propostas ainda em elaboração coletiva.'}</p></Section>
+
+      <Section><h2 className="text-2xl font-black uppercase text-comun-yellow">Linha do tempo</h2><div className="mt-4 grid gap-3">{hub.timeline.map((x:any)=><article className="border-l-4 border-comun-yellow bg-comun-black p-4" key={x.id}><p className="text-xs font-black uppercase text-comun-yellow">{new Date(x.occurred_at).toLocaleDateString('pt-BR')} · {x.event_type}</p><h3 className="mt-1 font-black">{x.title}</h3>{x.public_summary?<p className="mt-2 text-sm text-comun-paper/75">{x.public_summary}</p>:null}</article>)}{!hub.timeline.length?<EmptyState text="A linha do tempo pública começa com o próximo evento verificado."/>:null}</div></Section>
+
+      <Section><h2 className="text-2xl font-black uppercase text-comun-yellow">Ações realizadas e próximas ações</h2><div className="mt-4 grid gap-4 lg:grid-cols-2">{hub.actions.map((x:any)=><Link className="paper-panel border-2 p-4" href={`/comun/acoes/${x.slug}`} key={x.id}><p className="text-xs font-black uppercase">{x.action_type} · {x.status}</p><h3 className="mt-2 font-black uppercase">{x.title}</h3><p className="mt-2 text-sm">{x.objective_public}</p></Link>)}</div>{!hub.actions.length?<EmptyState text="Nenhuma ação pública vinculada ainda."/>:null}</Section>
+
+      <Section><h2 className="text-2xl font-black uppercase text-comun-yellow">Resultados</h2><div className="mt-4 grid gap-4 lg:grid-cols-2">{hub.results.map((x:any)=><article className="paper-panel border-2 p-4" key={x.id}><p className="text-xs font-black uppercase">{x.result_type} · {x.verification_status}</p><h3 className="mt-2 font-black uppercase">{x.title}</h3><p className="mt-2 text-sm">{x.public_summary}</p></article>)}</div>{!hub.results.length?<EmptyState text="Ainda não há resultado público registrado. Promessas não são contadas como conquista."/>:null}</Section>
+
+      <Section><h2 className="text-2xl font-black uppercase text-comun-yellow">Memória relacionada</h2><div className="mt-4 grid gap-4 lg:grid-cols-2">{hub.archive.map((x:any)=><Link className="paper-panel border-2 p-4" href={`/comun/acervo/${x.archive.slug}`} key={`${x.relation_type}-${x.archive.slug}`}><p className="text-xs font-black uppercase">{x.relation_type}</p><h3 className="mt-2 font-black uppercase">{x.archive.title}</h3><p className="mt-2 text-sm">{x.public_note}</p></Link>)}</div>{!hub.archive.length?<EmptyState text="Nenhum item do Acervo relacionado a esta pauta."/>:null}</Section>
+
+      <Section><h2 className="text-2xl font-black uppercase text-comun-yellow">Projetos relacionados</h2><div className="mt-4 flex flex-wrap gap-3">{hub.projects.map((x:any)=><Link className="border-2 border-comun-yellow px-4 py-3 font-black uppercase text-comun-yellow" href={`/comun/projetos/${x.project.slug}`} key={x.project.slug}>{x.project.name}</Link>)}</div>{!hub.projects.length?<EmptyState text="Nenhum projeto relacionado ainda."/>:null}</Section>
 
       <Section>
         <h2 className="text-2xl font-black uppercase text-comun-yellow">Dossies publicados desta pauta</h2>
@@ -176,6 +196,7 @@ export default async function PautaPage(
           <MetricCard label="Aguardando" value={space.stats.waitingResponseCount} />
           <MetricCard label="Nao resolvidos" value={space.stats.unresolvedCount} />
         </div>
+        <div className="mt-4 grid gap-3">{protocols.filter((x:any)=>x.public_summary).map((x:any)=><article className="paper-panel border-2 p-4" key={x.id}><p className="text-xs font-black uppercase">{x.agency??x.channel} · {x.status}</p><p className="mt-2">{x.public_summary}</p></article>)}</div>
         {protocols.length ? <PrimaryLink href="/comun/protocolo-popular">Usar Protocolo Popular</PrimaryLink> : null}
       </Section>
     </ComunShell>
