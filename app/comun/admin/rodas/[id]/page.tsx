@@ -1,0 +1,16 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { AdminShell } from "@/components/admin-shell";
+import { requireComunAdmin } from "@/lib/admin-auth";
+import { createServiceSupabaseClient } from "@/lib/supabase/server";
+
+export default async function RodaFacilitationPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params; const session = await requireComunAdmin(); const supabase = createServiceSupabaseClient(); if (!supabase) notFound();
+  const [{ data: circle }, { data: contributions }, { data: syntheses }] = await Promise.all([
+    supabase.from("comun_construction_circles" as never).select("id, title, public_question, public_context, status, participation_mode, current_round_id, comun_construction_circle_rounds(id, title, round_type, status, position)" as never).eq("id" as never, id).maybeSingle(),
+    supabase.from("comun_circle_contributions" as never).select("id, contribution_type, public_body, author_display_name, anonymous_publication, status, public_protocol, created_at" as never).eq("circle_id" as never, id).order("created_at" as never, { ascending: false }),
+    supabase.from("comun_circle_syntheses" as never).select("id, public_summary, agreements, disagreements, open_questions, status, published_at" as never).eq("circle_id" as never, id).order("created_at" as never, { ascending: false }),
+  ]);
+  if (!circle) notFound();
+  return <AdminShell adminEmail={session.admin.email}><Link href="/comun/admin/rodas" className="text-sm font-black underline">← Rodas</Link><h1 className="mt-4 text-3xl font-black uppercase">{(circle as any).title}</h1><p className="mt-2 max-w-3xl">{(circle as any).public_question}</p><section className="mt-7 grid gap-5 lg:grid-cols-2"><div className="border-2 border-comun-black p-5"><h2 className="text-xl font-black uppercase">Rodadas</h2><ul className="mt-3 space-y-2">{((circle as any).comun_construction_circle_rounds || []).map((round: any) => <li key={round.id} className="border-b border-comun-black/20 pb-2">{round.position}. {round.title} · {round.round_type} · <strong>{round.status}</strong></li>)}</ul><p className="mt-4 text-sm">A mudança de rodada exige confirmação explícita da curadoria e deve preservar o histórico.</p></div><div className="border-2 border-comun-black p-5"><h2 className="text-xl font-black uppercase">Sínteses</h2><ul className="mt-3 space-y-3">{(syntheses as any[] || []).map((item) => <li key={item.id} className="border-b border-comun-black/20 pb-3"><p>{item.public_summary}</p><p className="mt-1 text-sm"><strong>Divergências:</strong> {(item.disagreements || []).join(" · ") || "não registradas"}</p></li>)}</ul></div></section><section className="mt-5 border-2 border-comun-black p-5"><h2 className="text-xl font-black uppercase">Fila de moderação</h2><ul className="mt-3 space-y-3">{(contributions as any[] || []).map((item) => <li key={item.id} className="border-b border-comun-black/20 pb-3"><p className="text-sm font-bold uppercase">{item.status} · {item.contribution_type} · {item.public_protocol}</p><p className="mt-1 whitespace-pre-wrap">{item.public_body}</p><p className="mt-1 text-xs">Assinatura pública: {item.anonymous_publication ? "anônima" : item.author_display_name || "não informada"}</p></li>)}</ul></section></AdminShell>;
+}
