@@ -29,6 +29,7 @@
     "smoke:no-leak-http": "node scripts/smoke-comun-no-leak-http.mjs",
     "smoke:public-ui": "node scripts/smoke-comun-public-ui.mjs",
     "smoke:public-ui:local": "node scripts/smoke-comun-public-ui-local.mjs",
+    "smoke:community-auth:local": "node scripts/smoke-comun-community-auth-local.mjs",
     "test:fixtures:prepare": "node scripts/fixtures-comun.mjs prepare",
     "test:fixtures:cleanup": "node scripts/fixtures-comun.mjs cleanup",
     "test:fixtures:assert-clean": "node scripts/fixtures-comun.mjs assert-clean",
