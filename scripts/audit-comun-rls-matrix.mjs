@@ -310,6 +310,9 @@ const classifications = {
   comun_observation_campaign_field_diaries: { decision: "service_role_only", purpose: "Diário privado de campo.", sensitive: "Notas operacionais da equipe.", expected: "Nunca público." },
   comun_observation_campaign_reports: { decision: "service_role_only", purpose: "Relatórios editoriais de campanha.", sensitive: "Rascunho, aprovação e claims internos.", expected: "Servidor filtra somente published após campanha concluída." },
   comun_observation_campaign_evidence_links: { decision: "service_role_only", purpose: "Vínculo de campanha com evidência agregada.", sensitive: "Fluxo editorial e ids internos.", expected: "Sem leitura direta pública." },
+  comun_observation_campaign_access_grants: { decision: "service_role_only", purpose: "Convites de acesso mínimo ao campo.", sensitive: "Hash de código, validade e escopo de turno.", expected: "Nunca exposto ao navegador ou por leitura direta." },
+  comun_observation_campaign_field_sessions: { decision: "service_role_only", purpose: "Sessões curtas e revogáveis de observador.", sensitive: "Hash de sessão, escopo e tempos operacionais.", expected: "Somente helper server-side." },
+  comun_observation_field_corrections: { decision: "service_role_only", purpose: "Histórico de correções pendentes.", sensitive: "Payload anterior de observação.", expected: "Nunca público." },
   comun_system_verification_runs: {
     decision: "service_role_only",
     purpose: "Execucoes sanitizadas de verificacao de infraestrutura.",
@@ -439,8 +442,9 @@ function queryRows(sql) {
     `comun-rls-${Date.now()}-${Math.random().toString(16).slice(2)}.sql`,
   );
   fs.writeFileSync(tempFile, sql);
-  const output =
-    process.platform === "win32"
+  let output;
+  try {
+    output = process.platform === "win32"
       ? execFileSync(
           "powershell",
           [
@@ -466,6 +470,12 @@ function queryRows(sql) {
             maxBuffer: 10 * 1024 * 1024,
           },
         );
+  } catch (error) {
+    // The CLI may exit non-zero after already printing a complete SQL result
+    // while its analytics client shuts down. Preserve only a parseable query
+    // result; otherwise the audit fails explicitly below.
+    output = error?.output?.[1] ?? "";
+  }
   fs.rmSync(tempFile, { force: true });
   const start = output.indexOf("{");
   if (start === -1) throw new Error(`saida sem JSON: ${output}`);
