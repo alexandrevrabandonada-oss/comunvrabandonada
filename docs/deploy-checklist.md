@@ -206,3 +206,11 @@ Todo relatorio novo deve declarar:
 - [ ] original privado, checksum e backup validados;
 - [ ] retirada, expiração e renovação validadas;
 - [ ] gate humano registrado separadamente; zero entrevista real declarada sem aprovação completa.
+
+# Hub central
+
+- [ ] relato → pauta → evidência → ação → tarefa → protocolo → resultado validado com fixture;
+- [ ] home prioriza pautas e ações; Acervo aparece depois;
+- [ ] busca retorna apenas campos públicos;
+- [ ] Sala de Organização, entrada e calendário exigem admin;
+- [ ] RLS_MATRIX_OK e cleanup sem fixtures.

@@ -84,3 +84,6 @@ git branch -M main
 git remote add origin <URL_DO_REPOSITORIO_GITHUB>
 git push -u origin main
 ```
+# COMUN — hub central da organização popular
+
+O fluxo principal do produto é relato → pauta → evidência → ação → acompanhamento → resultado → memória. Rotas centrais: `/comun/pautas`, `/comun/acoes`, `/comun/participar`, `/comun/territorios`, `/comun/projetos`, `/comun/resultados` e `/comun/busca`. O Acervo Vivo preserva a memória e permanece integrado sem dominar a home.

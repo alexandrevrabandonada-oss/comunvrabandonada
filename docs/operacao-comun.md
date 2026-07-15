@@ -1,5 +1,9 @@
 # Operacao COMUN
 
+## Hub central
+
+A tela inicial do admin é `/comun/admin/organizacao`. Comece pela caixa de entrada, atribua pauta/responsável/prazo, transforme encaminhamentos em ação e registre resultados sem confundir promessa com conquista. O Acervo permanece congelado e operacional; relacione itens existentes sem duplicá-los.
+
 História Oral: revisar alertas de consentimento, menores, segmentos sensíveis, embargo, retirada e assets públicos. O fim do embargo não dispensa aprovação manual.
 
 Piloto editorial: usar `/comun/admin/acervo/historias-orais/piloto`; revisar diariamente backup, transcrição, terceiros, dupla revisão e aprovação. Não iniciar entrevistas reais enquanto o gate humano em `docs/historia-oral-piloto.md` estiver fechado.
