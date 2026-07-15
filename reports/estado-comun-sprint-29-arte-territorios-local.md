@@ -54,4 +54,8 @@ Durante o primeiro uso da CLI local houve uma tentativa automática de telemetri
 - Smoke remoto: NÃO EXECUTADO
 - Custo externo: R$ 0
 
-Status: candidato local funcional, com promoção remota bloqueada pela validação de Storage real e pela conclusão de alertas/auditoria.
+## Fechamento 29.1
+
+O Storage real local, alertas e auditoria foram concluídos na Sprint 29.1. Dois ciclos independentes validaram original privado, derivadas WebP, direitos, cleanup, deduplicação e sanitização. A causa do 502 foi o Kong conservar o upstream anterior depois do restart do Storage; readiness e reinício limitado do gateway compõem o procedimento local.
+
+Status: candidato local aprovado; promoção remota não autorizada.

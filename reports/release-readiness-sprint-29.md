@@ -22,13 +22,13 @@ Data: 15/07/2026.
 | Production-like | PASS | build e `npm run start` local usados pelo Playwright |
 | Reset duplo | PASS | duas reconstruções e duas execuções do smoke territorial |
 | Cleanup | PASS | fixtures removidas e assert-clean aprovado |
-| Storage local real | BLOCKED | incompatibilidade da imagem Storage 1.62.5; provider fixture local usado conforme autorização |
-| Alertas/auditoria completa | BLOCKED | taxonomias dedicadas ainda não totalmente automatizadas |
+| Storage local real | PASS com procedimento | upload/download/Sharp/privacidade/cleanup passaram duas vezes; readiness e restart limitado do Kong corrigem upstream antigo após reset |
+| Alertas/auditoria completa | PASS | fingerprints, resolução automática e payload recursivamente sanitizado |
 | Dependências | PASS com ressalva | zero high/critical; duas moderadas sem `npm audit --force` |
 
 ## Promoção futura
 
-Antes de qualquer ambiente remoto: alinhar Supabase Storage, executar upload/download/derivadas E2E com o provider real local, completar alertas deduplicados e eventos sanitizados de auditoria, repetir toda a suíte e realizar revisão humana de direitos, menores e retirada.
+Antes de qualquer ambiente remoto: corrigir o `.env.local` por gestão explícita de ambiente, manter o readiness do Storage, repetir a suíte e realizar revisão humana de direitos, menores e retirada. O RC local está aprovado; promoção remota continua fora de escopo.
 
 ## Sprint 30 — Rádio Comunitária
 

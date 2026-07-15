@@ -1,5 +1,7 @@
 # Operacao COMUN
 
+Após reset local, execute o readiness do Storage. Se logs comprovarem upstream antigo, reinicie somente o Kong da instância e repita o gate.
+
 O admin territorial em `/comun/admin/territorio` concentra contribuições, verificação, necessidades, fontes e especializações. Publique apenas após conferir fonte, precisão e ausência de dados privados.
 
 ## Hub central

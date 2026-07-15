@@ -1,5 +1,8 @@
 # Deploy Checklist
 
+- [ ] Gates locais sobrescrevem o `.env.local` com URL e chaves de localhost.
+- [ ] Storage real, alertas, auditoria e cleanup aprovados.
+
 - Rodar `npm run smoke:popular-map` e confirmar cleanup.
 - Confirmar RLS das tabelas `comun_territorial_*`, localização privada e atribuições com fonte.
 

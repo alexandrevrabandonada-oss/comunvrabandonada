@@ -1,5 +1,7 @@
 # COMUN VR ABANDONADA
 
+O fluxo local real de mídia usa `MEDIA_STORAGE_PROVIDER=supabase-local`, `npm run wait:storage:local` e `npm run smoke:territorial-art-storage`.
+
 O Acervo de Arte dos Territórios vive em `/comun/arte`, com contribuição moderada, curadoria em `/comun/admin/acervo/arte` e integração `art_gallery` nas pautas.
 
 O Mapa Popular em `/comun/mapa` organiza reciclagem, cooperativas, necessidades e áreas de interesse público na mesma fundação territorial do Hub.
