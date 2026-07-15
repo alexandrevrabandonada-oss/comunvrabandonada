@@ -117,6 +117,16 @@ enabled = true
 # The maximum file size allowed (e.g. "5MB", "500KB").
 file_size_limit = "50MiB"
 
+[storage.buckets.archive-private-originals]
+public = false
+file_size_limit = "30MiB"
+allowed_mime_types = ["image/jpeg", "image/png", "image/webp"]
+
+[storage.buckets.archive-public-derivatives]
+public = true
+file_size_limit = "15MiB"
+allowed_mime_types = ["image/webp"]
+
 # Uncomment to configure local storage buckets
 # [storage.buckets.images]
 # public = false
