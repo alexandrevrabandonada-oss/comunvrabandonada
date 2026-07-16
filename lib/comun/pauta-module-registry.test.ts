@@ -18,7 +18,7 @@ describe('catálogo de pauta', () => {
     
     for (const type of expectedTypes) {
       expect(pautaModuleTypes).toContain(type);
-      expect(pautaModuleRegistry[type as any]).toBeDefined();
+      expect(pautaModuleRegistry[type as keyof typeof pautaModuleRegistry]).toBeDefined();
     }
 
     // Unicidade garantida por Set
@@ -27,8 +27,8 @@ describe('catálogo de pauta', () => {
   });
 
   it('não deve conter tipos futuros antigos ou componentes arbitrários', () => {
-    expect(pautaModuleRegistry['art_gallery_future' as any]).toBeUndefined();
-    expect(pautaModuleRegistry['community_radio_future' as any]).toBeUndefined();
+    expect(pautaModuleRegistry['art_gallery_future' as keyof typeof pautaModuleRegistry]).toBeUndefined();
+    expect(pautaModuleRegistry['community_radio_future' as keyof typeof pautaModuleRegistry]).toBeUndefined();
     expect(pautaModuleTypes).not.toContain('art_gallery_future');
     expect(pautaModuleTypes).not.toContain('community_radio_future');
   });
@@ -42,6 +42,25 @@ describe('catálogo de pauta', () => {
     expect(validatePautaModuleConfig('archive', { limit: 100 }).success).toBe(false); // limit 100 is invalid (max 24)
     expect(validatePautaModuleConfig('art_gallery', { limit: -5 }).success).toBe(false); // limit min 1
     expect(validatePautaModuleConfig('community_radio', { limit: 'invalid' }).success).toBe(false);
+  });
+
+  it('inclui o blueprint do piloto de calçadas', () => {
+    expect(pautaAppTemplates.accessible_sidewalk_mapping).toEqual([
+      'overview',
+      'reports',
+      'map',
+      'observatory',
+      'evidence',
+      'construction_circle',
+      'proposals',
+      'actions',
+      'tasks',
+      'results',
+      'art_gallery',
+      'community_radio',
+      'archive',
+      'participation',
+    ]);
   });
 
   it('templates e módulos são válidos, possuem schemas e componentKey correspondente', () => {

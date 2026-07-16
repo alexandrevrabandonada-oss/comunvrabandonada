@@ -2,6 +2,15 @@ import fs from "node:fs";
 import { assertProductionChecksAllowed } from "./production-guard.mjs";
 import path from "node:path";
 
+async function isLocalMode(baseUrl) {
+  try {
+    const host = new URL(baseUrl).hostname.toLowerCase();
+    return host === "localhost" || host === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
 const rootDir = process.cwd();
 const envPath = path.join(rootDir, ".env.local");
 
@@ -72,6 +81,18 @@ const resolvedForbiddenTexts = forbiddenTexts.length
   ? forbiddenTexts
   : ["raw_text", "private_contact", "internal_notes"];
 
+let fixture = null;
+if (await isLocalMode(baseUrl) && !paths.length && !requiredTexts.length) {
+  const { cleanupLocalComunFixtures, createLocalPautaMiniappFixture } = await import("../tests/fixtures/comun/local-fixtures.mjs");
+  await cleanupLocalComunFixtures();
+  fixture = await createLocalPautaMiniappFixture();
+  resolvedPaths.length = 0;
+  resolvedPaths.push(`/comun/pautas/${fixture.slug}`);
+  resolvedRequiredTexts.length = 0;
+  resolvedRequiredTexts.push("Pauta pública de fixture", "Roda de escuta fixture", "Síntese publicada da fixture");
+}
+
+try {
 for (const currentPath of resolvedPaths) {
   const response = await fetch(new URL(currentPath, baseUrl));
   if (!response.ok) {
@@ -95,4 +116,10 @@ for (const currentPath of resolvedPaths) {
   }
 
   logOk(`${currentPath} passou nas verificacoes de conteudo`);
+}
+} finally {
+  if (fixture) {
+    const { cleanupLocalComunFixtures } = await import("../tests/fixtures/comun/local-fixtures.mjs");
+    await cleanupLocalComunFixtures();
+  }
 }

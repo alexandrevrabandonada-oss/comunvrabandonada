@@ -1,6 +1,6 @@
 # Release readiness — Sprint 31
 
-Status: **candidato local aprovado com ressalva de regressão legada**.
+Status: **candidato local integralmente aprovado**.
 
 | Gate | Resultado |
 | --- | --- |
@@ -10,7 +10,7 @@ Status: **candidato local aprovado com ressalva de regressão legada**.
 | Acessibilidade séria/crítica | passou |
 | Responsividade 360, 390, 768, 1024 e 1366 | passou |
 | Fluxo central e autenticação local | passou |
-| Smoke legado pauta-miniapp | bloqueado por expectativa textual obsoleta |
+| Smoke legado pauta-miniapp | passou (validado semanticamente) |
 | Serviços remotos / custo | não usados / R$ 0 |
 
-Antes de promover, recomenda-se atualizar o smoke legado para validar semanticamente `pautaModuleTypes` e aceitar `community_radio`, executar novamente a suíte integral em produção local e somente então realizar revisão humana de publicação. Nenhuma ação remota foi realizada.
+O smoke legado foi atualizado para validar semanticamente `pautaModuleTypes` e aceitar `community_radio`. A suíte integral foi reexecutada localmente e o release candidate local foi aprovado sem alterações remotas. Nenhuma ação remota foi realizada.

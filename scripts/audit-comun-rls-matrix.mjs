@@ -480,7 +480,7 @@ function queryRows(sql) {
           [
             "-NoProfile",
             "-Command",
-            `Get-Content -LiteralPath '${tempFile.replaceAll("'", "''")}' | npx supabase db query --local`,
+            `Get-Content -LiteralPath '${tempFile.replaceAll("'", "''")}' | npx supabase db query --local --output-format json`,
           ],
           {
             cwd: rootDir,
@@ -492,7 +492,7 @@ function queryRows(sql) {
           "sh",
           [
             "-c",
-            `npx supabase db query --local < '${tempFile.replaceAll("'", "'\\''")}'`,
+            `npx supabase db query --local --output-format json < '${tempFile.replaceAll("'", "'\\''")}'`,
           ],
           {
             cwd: rootDir,
@@ -507,8 +507,31 @@ function queryRows(sql) {
     output = error?.output?.[1] ?? "";
   }
   fs.rmSync(tempFile, { force: true });
-  const start = output.indexOf("{");
+  const start = output.indexOf("[") !== -1 && (output.indexOf("[") < output.indexOf("{") || output.indexOf("{") === -1) ? output.indexOf("[") : output.indexOf("{");
   if (start === -1) throw new Error(`saida sem JSON: ${output}`);
+  if (output[start] === "[") {
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (let index = start; index < output.length; index += 1) {
+      const char = output[index];
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === '"') {
+        inString = !inString;
+      } else if (!inString && char === "[") {
+        depth += 1;
+      } else if (!inString && char === "]") {
+        depth -= 1;
+        if (depth === 0) {
+          return JSON.parse(output.slice(start, index + 1));
+        }
+      }
+    }
+    throw new Error(`JSON incompleto: ${output}`);
+  }
   let depth = 0;
   let inString = false;
   let escaped = false;
