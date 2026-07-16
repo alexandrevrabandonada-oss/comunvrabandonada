@@ -91,7 +91,7 @@ export async function listPublicCircleSurface(pautaId: string) {
   const supabase = createServiceSupabaseClient();
   if (!supabase) return [] as any[];
   const { data } = await supabase.from("comun_construction_circles" as never)
-    .select("id, title, public_question, public_context, status, current_round_id, comun_construction_circle_rounds(id, title, public_prompt, status, position), comun_circle_syntheses(id, public_summary, agreements, disagreements, open_questions, proposed_next_steps, status, published_at)" as never)
+    .select("id, title, public_question, public_context, status, current_round_id, comun_construction_circle_rounds!comun_construction_circle_rounds_circle_id_fkey(id, title, public_prompt, status, position), comun_circle_syntheses(id, public_summary, agreements, disagreements, open_questions, proposed_next_steps, status, published_at)" as never)
     .eq("pauta_id" as never, pautaId).in("status" as never, ["open", "synthesizing", "decision", "action", "completed"]);
   return (data ?? []) as any[];
 }
