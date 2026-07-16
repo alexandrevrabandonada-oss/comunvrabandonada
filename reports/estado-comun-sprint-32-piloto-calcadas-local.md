@@ -1,6 +1,6 @@
-# Sprint 32 — piloto local de Calçadas
+# Sprint 32 — Piloto local de Calçadas
 
-Data: 15/07/2026
+Data: 16/07/2026
 
 ## Escopo
 
@@ -9,24 +9,31 @@ Validação local-first do piloto `Mapa Popular das Calçadas` em ambiente total
 ## Entregas e avanços
 
 - Ambiente local configurado com `supabase` local e `NEXT_PUBLIC_SITE_URL=http://localhost:3000`.
-- Script de smoke específico adicionado: `scripts/smoke-comun-sidewalk-pilot.mjs`.
+- Script de smoke específico concluído: `scripts/smoke-comun-sidewalk-pilot.mjs`.
 - Wrapper de ambiente local validou `ALLOW_LOCAL_TESTS=true`, `COMUN_BASE_URL` em `localhost` e bloqueio de destinos remotos.
-- Ajuste no smoke: correção do helper `one()` e desestruturação de retornos Supabase para evitar falha em `pauta.id`.
-- Identificado e corrigido bug de schema: o smoke agora usa `comun_official_protocols` em vez de `comun_pauta_protocols`.
-- Servidor Next local iniciado corretamente via `node scripts/comun-local-env.mjs run npm run dev -- -p 3000`.
+- Helper `one()` corrigido e desestruturação de retornos Supabase ajustada.
+- Schema de protocolo alinhado: smoke usa exclusivamente `comun_official_protocols`.
+- Correção na consulta pública de rodas: `listPublicCircleSurface` especifica a foreign key correta (`comun_construction_circle_rounds_circle_id_fkey`).
+- Testes E2E, acessibilidade e screenshots do piloto criados e aprovados em 5 viewports.
+- Testes unitários do piloto adicionados em `lib/sidewalk-pilot-rules.test.ts`.
+- Audit RLS corrigido para o formato JSON atual do CLI e aprovado (`RLS_MATRIX_OK`).
+- Smoke `no-leak-http` adaptado para rodar localmente com fixture da pauta piloto.
+- Regressão local aprovada para: sidewalk-pilot, central-experience, pauta-miniapp, community-radio, territorial-art-storage, community-auth:local, public-ui:local, no-leak-http.
+- Reset duplo do banco local executado com sucesso.
+- Build e start (`production-like`) executados; smoke e E2E reexecutados contra `next start`.
 
 ## Estado atual
 
-- Supabase local está disponível em `http://127.0.0.1:55431`.
-- `npx supabase status -o env` retorna as variáveis de ambiente locais corretamente.
-- `scripts/comun-local-env.mjs` gera o ambiente local e demonstra que o processo não aponta para serviços remotos.
-- O smoke de criação de pauta foi ajustado para o fluxo correto e o teste agora está pronto para reexecução.
-
-## Evidências
-
-- `npm run local:env:check` valida a configuração local.
-- `next dev -p 3000` executa o app localmente com `localhost:3000` ativo.
-- Último estado do smoke mostrou `PGRST205` devido a uso de tabela incorreta, corrido agora para `comun_official_protocols`.
+- Supabase local disponível em `http://127.0.0.1:55431`.
+- `npx supabase status -o env` retorna variáveis locais corretas.
+- `scripts/comun-local-env.mjs` garante ambiente local sem destinos remotos.
+- `smoke:sidewalk-pilot` passa integralmente e imprime `COMUN_TEST_FIXTURES_CLEAN`.
+- `test:e2e:sidewalk-pilot` passa em 40 testes (5 viewports × 8 cenários).
+- `test:a11y:sidewalk-pilot` passa com zero serious/critical.
+- `test:visual:sidewalk-pilot` gera 20 screenshots revisados.
+- `audit:rls-matrix` retorna `RLS_MATRIX_OK`.
+- `npx supabase db lint --local` não encontra erros de schema.
+- `npm run verify:local` (lint + typecheck + build) passa.
 
 ## Restrições preservadas
 
@@ -37,7 +44,5 @@ Validação local-first do piloto `Mapa Popular das Calçadas` em ambiente total
 
 ## Próximos passos
 
-- Reexecutar `node scripts/comun-local-env.mjs run npm run smoke:sidewalk-pilot`.
-- Confirmar que a página pública `/comun/pautas/:slug` retorna `200` após a criação da pauta.
-- Validar cleanup e remoção de fixtures geradas pelo smoke.
-- Se passar, documentar conclusão do piloto local em `reports/comun-diagnostico-piloto-calcadas.md`.
+- Manter o piloto local como referência para integração futura.
+- Nenhuma ação remota até nova sprint autorizar.
