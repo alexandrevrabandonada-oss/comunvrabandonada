@@ -8,6 +8,10 @@ O projeto está em uma branch local de trabalho (`codex/comun-admin-auth-remote`
 
 O ambiente local do Supabase está disponível: banco, Auth, Storage, REST e gateway estão ativos. O serviço `vector` está reiniciando continuamente, mas não bloqueou os testes cobertos; deve ser acompanhado antes de qualquer ampliação de escopo. Não há usuários, identities ou perfis de fixture remanescentes no banco local neste checkpoint.
 
+### Vector local
+
+Classificação: **opcional para esta validação**. O log mostra que a fonte `docker_host` do Vector falha ao listar containers com `Network unreachable`; o processo encerra e o Docker o reinicia aproximadamente a cada minuto. Banco, Auth e Storage seguem saudáveis e os gates de sessão, RLS e lint não dependem desse coletor. Não foi alterada a rede nem a configuração do Vector; o loop continua como pendência de observabilidade local antes de qualquer promoção futura.
+
 ## O que está comprovado
 
 | Área | Estado | Evidência |
