@@ -1,0 +1,76 @@
+# Relatório do estado atual — COMUN
+
+Data de referência: 17/07/2026. Escopo: estado técnico local após a Sprint 33.2.1; este relatório não autoriza piloto público, promoção remota, deploy ou push.
+
+## Situação geral
+
+O projeto está em uma branch local de trabalho (`codex/comun-admin-auth-remote`), 112 commits à frente do remoto. Não houve push, deploy, uso de Supabase remoto, R2 real ou serviço externo nesta verificação.
+
+O ambiente local do Supabase está disponível: banco, Auth, Storage, REST e gateway estão ativos. O serviço `vector` está reiniciando continuamente, mas não bloqueou os testes cobertos; deve ser acompanhado antes de qualquer ampliação de escopo. Não há usuários, identities ou perfis de fixture remanescentes no banco local neste checkpoint.
+
+## O que está comprovado
+
+| Área | Estado | Evidência |
+|---|---|---|
+| Cobertura E2E autenticada | PASS | 42/42 após armazenamento tardio e reabertura em contexto novo |
+| Perfis e autorização negativa | PASS | 8 negações cruzadas, visitante e sessão expirada cobertos |
+| Unitários anteriores | PASS | 198/198 na execução atual |
+| Cadeia de storageState | PASS | 10 rodadas consecutivas com login, refresh, contexto novo, Axe simples, logout e cleanup |
+| RLS e lint do banco | PASS | `RLS_MATRIX_OK`; DB lint sem erro no checkpoint anterior |
+| Storage local | PASS | `COMUN_LOCAL_STORAGE_READY` no checkpoint anterior |
+| Cleanup de fixtures | PASS | banco atualmente com 0 usuários Auth, 0 identities e 0 perfis de fixture |
+| Visual | Parcialmente comprovado | 49 capturas existentes; a nova execução isolada está em ajuste |
+
+## Bloqueio técnico atual
+
+O fechamento técnico permanece **NO-GO**. A falha original foi reproduzida no ciclo Auth: as suítes repetiam login pela interface em volume maior que a janela de proteção local e a factory removia/recriava os mesmos e-mails sem validar integralmente identity, sessão e refresh.
+
+Correções locais já iniciadas, ainda não fechadas por todos os gates:
+
+- factory idempotente com `COMUN_TEST_RUN_ID`, e-mails únicos, verificação de identity, perfil, papel, login e refresh;
+- diagnóstico mínimo e `auth:readiness:local` criados;
+- setup/teardown comum para E2E, Axe e visual;
+- storageStates em diretório local ignorado pelo Git;
+- validação posterior mostrou que o storageState era salvo antes de confirmar a navegação pós-login. A correção para aguardar e reabrir o estado salvo está em andamento, mas ainda precisa passar no Axe integral.
+
+Portanto, os itens abaixo seguem pendentes:
+
+1. Axe isolado integral verde nas 21 superfícies/estados.
+2. Visual isolado integral verde e cleanup subsequente.
+3. Reset 1 e Reset 2 completos.
+4. Gate contra `npm run start`, incluindo Axe.
+5. Instrumentação de performance autenticada contra `next start`.
+6. Regressões completas.
+
+## Evidências anteriores que continuam válidas
+
+- Reset 1 anterior: reset, Storage, unitários e E2E passaram; Axe falhou após recriação de Auth.
+- Production-like anterior: build e E2E passaram; Axe falhou; o marcador `COMUN_AUTHENTICATED_PRODUCTION_LIKE_LOCAL_OK` não foi emitido.
+- Performance: mecanismo local-only foi adicionado, mas a tabela completa não foi medida porque o gate anterior falhou.
+
+## Estado humano e remoto
+
+- Readiness humano: `COMUN_PILOT_HUMAN_READINESS_INCOMPLETE`.
+- Piloto público real: NÃO ABERTO.
+- Decisão humana: NO-GO.
+- Decisão de promoção remota: NO-GO / não autorizada.
+
+## Integridade do workspace
+
+Há alterações locais não commitadas, incluindo código de infraestrutura Auth, capturas visuais, fixtures, relatórios e arquivos possivelmente pertencentes a trabalhos paralelos (`.env.example`, `lib/media-storage/*`, `supabase/seed.sql`). Elas foram preservadas e não devem ser descartadas sem revisão específica.
+
+## Próximo passo seguro
+
+Executar Axe e visual de forma independente usando as sessões validadas, e só então repetir resets e `next start`. Até isso ocorrer, a decisão técnica é **NO-GO local**.
+
+## Declarações de escopo
+
+- Vercel deploy: NÃO EXECUTADO
+- Git push: NÃO EXECUTADO
+- Supabase remoto: NÃO ALTERADO
+- R2 real: NÃO UTILIZADO
+- Serviços externos: NÃO UTILIZADOS
+- Dados reais: NÃO UTILIZADOS
+- Protocolos e mensagens reais: NÃO ENVIADOS
+- Smoke remoto: NÃO EXECUTADO
+- Custo externo: R$ 0
