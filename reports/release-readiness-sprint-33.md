@@ -15,3 +15,5 @@ Status: **READY local para ensaio editorial; promoção remota não autorizada**
 | Serviços externos | não usados; R$ 0 |
 
 Antes de qualquer piloto público ainda é necessária autorização própria para promoção, nova verificação semelhante à produção e confirmação humana da escala e dos responsáveis.
+
+Atualização 33.1: pacote técnico local ampliado e aprovado, mas decisão NO-GO mantida por escala/plantão reais, revisão remota e E2E autenticado integral ainda pendentes.

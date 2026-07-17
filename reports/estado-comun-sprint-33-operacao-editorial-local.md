@@ -36,3 +36,7 @@ Data: 16/07/2026. Status: **candidato operacional local implementado e verificad
 - cron e secrets: NÃO ALTERADOS
 - `npm audit --force`: NÃO EXECUTADO
 - custo externo: R$ 0
+
+## Atualização Sprint 33.1
+
+Restore real em banco descartável, reset duplo, build/`next start`, 178 unitários, E2E protegido, Axe, incidentes, capacidade, rehearsal e regressões foram comprovados. A decisão permanece NO-GO para abertura e promoção por gates humanos e cobertura autenticada pendentes. Ver `reports/estado-comun-sprint-33-1-gate-piloto-local.md`.
