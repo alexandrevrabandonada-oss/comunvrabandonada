@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "next dev",
     "local:env:check": "node scripts/comun-local-env.mjs check",
+    "auth:readiness:local": "node scripts/check-comun-auth-readiness.mjs",
+    "auth:diag:local": "node scripts/diag-comun-auth-reset.mjs",
     "local:env:print-safe": "node scripts/comun-local-env.mjs print-safe",
     "local:radio:start": "node scripts/comun-local-env.mjs run npm run start",
     "local:radio:test": "node scripts/comun-local-env.mjs run npm run test:unit",

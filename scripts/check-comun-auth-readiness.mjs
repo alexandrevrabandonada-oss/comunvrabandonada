@@ -1,0 +1,2 @@
+import{assertLocalEnvironment}from"./local-environment.mjs";import{cleanupOperationalPersonas,ensureLocalOperationalPersona,operationalRunId}from"../tests/fixtures/comun/operational-personas.mjs";
+assertLocalEnvironment();try{const result=await ensureLocalOperationalPersona({persona:"operations_admin"});if(!result.session?.access_token||!result.session.refresh_token)throw new Error("tokens locais ausentes");console.log(`COMUN_LOCAL_AUTH_READY run=${operationalRunId}`)}finally{await cleanupOperationalPersonas()}
