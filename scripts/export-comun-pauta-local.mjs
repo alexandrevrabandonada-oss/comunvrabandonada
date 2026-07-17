@@ -1,0 +1,2 @@
+import {readFile,writeFile} from "node:fs/promises";import {resolve} from "node:path";import {exportPauta} from "./comun-operational-backup.mjs";
+if(!process.env.COMUN_LOCAL_ONLY) throw new Error("Exportação permitida somente com COMUN_LOCAL_ONLY=1"); const input=JSON.parse(await readFile(resolve(process.argv[2]),"utf8")); const safe=exportPauta(input.data??input); await writeFile(resolve(process.argv[3]??"comun-pauta-export.local.json"),JSON.stringify(safe,null,2)); console.log("COMUN_PAUTA_EXPORT_LOCAL_OK");
