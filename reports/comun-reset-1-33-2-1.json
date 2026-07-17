@@ -1,0 +1,31 @@
+{
+  "round": "1",
+  "ok": false,
+  "records": [
+    {
+      "label": "reset",
+      "ok": true,
+      "durationMs": 51666
+    },
+    {
+      "label": "storage",
+      "ok": true,
+      "durationMs": 3460
+    },
+    {
+      "label": "unit",
+      "ok": true,
+      "durationMs": 4786
+    },
+    {
+      "label": "e2e",
+      "ok": true,
+      "durationMs": 88393
+    },
+    {
+      "label": "axe",
+      "ok": false,
+      "durationMs": 211015
+    }
+  ]
+}

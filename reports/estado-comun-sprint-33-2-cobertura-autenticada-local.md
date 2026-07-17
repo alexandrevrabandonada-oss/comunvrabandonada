@@ -35,3 +35,6 @@ Screenshots próprios e Axe de todas as superfícies especializadas não foram c
 - Mensagens reais: NÃO ENVIADAS
 - Smoke remoto: NÃO EXECUTADO
 - Custo externo: R$ 0
+# Atualização Sprint 33.2.1
+
+Cobertura expandida para 42/42 e 21 superfícies/estados. O fechamento técnico permanece NO-GO porque o reset pós-recriação de Auth e o gate Axe em `next start` falharam. Ver `estado-comun-sprint-33-2-1-fechamento-tecnico-local.md`.
