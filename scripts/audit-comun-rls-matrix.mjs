@@ -349,6 +349,48 @@ const classifications = {
     sensitive: "Identidade administrativa e resultado operacional.",
     expected: "Sem acesso direto publico; somente servidor e admin.",
   },
+  comun_sidewalk_records: {
+    decision: "service_role_only",
+    purpose: "Registros territoriais publicos de calçada.",
+    sensitive: "Notas privadas, coordenadas, origem da contribuição e estado editorial.",
+    expected: "Servidor expõe somente registros públicos com campos sanitizados.",
+  },
+  comun_sidewalk_record_photos: {
+    decision: "service_role_only",
+    purpose: "Vínculo de fotos revisadas a registros de calçada.",
+    sensitive: "Original privado, notas de revisão e checklist de privacidade.",
+    expected: "Servidor expõe somente derivadas aprovadas e públicas.",
+  },
+  comun_sidewalk_record_links: {
+    decision: "service_role_only",
+    purpose: "Vínculos auditáveis entre registros e ações/tarefas/protocolos/resultados/arte/rádio/memória.",
+    sensitive: "Ids internos e notas de vínculo.",
+    expected: "Servidor expõe somente vínculos de registros públicos.",
+  },
+  comun_sidewalk_cycle_memories: {
+    decision: "service_role_only",
+    purpose: "Memória publicada do ciclo de calçadas.",
+    sensitive: "Rascunhos e notas internas do ciclo.",
+    expected: "Servidor expõe somente memórias publicadas com resumo público.",
+  },
+  comun_sidewalk_priorities: {
+    decision: "service_role_only",
+    purpose: "Decisões humanas de priorização de registros de calçada.",
+    sensitive: "Critérios, divergências e limitações em revisão.",
+    expected: "Servidor expõe somente priorizações aprovadas.",
+  },
+  comun_sidewalk_record_corrections: {
+    decision: "service_role_only",
+    purpose: "Histórico de correções solicitadas em registros de calçada.",
+    sensitive: "Notas de solicitação e valores anteriores.",
+    expected: "Servidor expõe somente correções aprovadas e campos públicos.",
+  },
+  comun_sidewalk_record_withdrawals: {
+    decision: "service_role_only",
+    purpose: "Pedidos de retirada de registros de calçada.",
+    sensitive: "Motivo privado e identidade do solicitante.",
+    expected: "Admin-only; histórico preservado fora das consultas públicas.",
+  },
 };
 
 const internalDecisions = new Set(["admin_only", "service_role_only"]);

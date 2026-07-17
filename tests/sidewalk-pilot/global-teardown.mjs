@@ -10,7 +10,7 @@ export default async function globalTeardown() {
     return;
   }
 
-  const { pautaId } = JSON.parse(fs.readFileSync(slugFile, "utf8"));
+  const { pautaId, territoryId, recordId, memoryId, circleId } = JSON.parse(fs.readFileSync(slugFile, "utf8"));
   const raw = execFileSync("powershell", ["-NoProfile", "-Command", "$env:DO_NOT_TRACK='1'; npx supabase status -o env"], { encoding: "utf8" });
   const env = Object.fromEntries(raw.split(/\r?\n/).filter(Boolean).map((line) => {
     const i = line.indexOf("=");
@@ -18,6 +18,16 @@ export default async function globalTeardown() {
   }));
 
   const db = createClient(env.API_URL, env.SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+  if (memoryId) await db.from("comun_sidewalk_cycle_memories").delete().eq("id", memoryId);
+  if (recordId) await db.from("comun_sidewalk_records").delete().eq("id", recordId);
+  if (territoryId) {
+    await db.from("comun_territory_layers").delete().eq("territory_id", territoryId);
+    await db.from("comun_hub_territories").delete().eq("id", territoryId);
+  }
+  await db.from("comun_circle_contributions").delete().eq("circle_id", circleId);
+  await db.from("comun_circle_syntheses").delete().eq("circle_id", circleId);
+  await db.from("comun_construction_circle_rounds").delete().eq("circle_id", circleId);
+  await db.from("comun_construction_circles").delete().eq("id", circleId);
   await db.from("comun_pauta_modules").delete().eq("pauta_id", pautaId);
   await db.from("comun_pauta_spaces").delete().eq("id", pautaId);
   fs.unlinkSync(slugFile);
