@@ -23,3 +23,6 @@ Status: **candidato local integralmente aprovado — piloto Mapa Popular das Cal
 - Atividade de campo real: NÃO REALIZADA
 - Smoke remoto: NÃO EXECUTADO
 - Custo externo: R$ 0
+# Atualização Sprint 32.1 — 16/07/2026
+
+Status: **RC local aprovado**. Dois resets independentes, build/`next start`, 75/75 E2E, 25/25 Axe, 151 unitários, `RLS_MATRIX_OK`, DB lint, nove regressões e cleanup passaram. Nenhuma operação remota foi realizada; custo R$ 0.

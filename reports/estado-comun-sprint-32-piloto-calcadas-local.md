@@ -46,3 +46,6 @@ Validação local-first do piloto `Mapa Popular das Calçadas` em ambiente total
 
 - Manter o piloto local como referência para integração futura.
 - Nenhuma ação remota até nova sprint autorizar.
+# Atualização Sprint 32.1 — 16/07/2026
+
+A vertical foi fechada como release candidate local: smoke de 32 etapas, 151 unitários, 75/75 E2E, Axe sem violações serious/critical, RLS/DB lint, nove regressões, reset duplo, production-like, performance e cleanup aprovados. Detalhes em `reports/estado-comun-sprint-32-1-vertical-calcadas-local.md`.

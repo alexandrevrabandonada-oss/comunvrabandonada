@@ -158,3 +158,6 @@ Medições locais (curl):
 - Atividade de campo real: NÃO REALIZADA
 - Smoke remoto: NÃO EXECUTADO
 - Custo externo: R$ 0
+# Fechamento Sprint 32.1 — 16/07/2026
+
+O diagnóstico inicial foi encerrado: a vertical conecta fotografia revisada, registro territorial, mapa/lista, observatório/snapshot, deliberação, protocolo/resultado, Arte, Rádio, memória e superfícies pessoais. As cinco falhas E2E eram a ausência da confirmação visual após redirect da contribuição, uma por viewport; correção validada em 75/75. Consulte `reports/comun-diagnostico-e2e-calcadas-32-1.md`.
