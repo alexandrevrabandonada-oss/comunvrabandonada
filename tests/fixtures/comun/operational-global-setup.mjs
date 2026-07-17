@@ -3,6 +3,18 @@ import{randomUUID}from"node:crypto";
 import{mkdir,rm,writeFile}from"node:fs/promises";
 import{chromium}from"@playwright/test";
 import{validateOperationalStorageState}from"./operational-storage-state.mjs";
+import{assertLocalEnvironment}from"../../../scripts/local-environment.mjs";
+
+// O processo global do Playwright é separado do webServer. Inicialize nele o
+// mesmo contrato local antes de tocar em Auth, mantendo a recusa de destinos remotos.
+export function prepareOperationalLocalEnvironment(){
+ process.env.DO_NOT_TRACK="1";
+ process.env.SUPABASE_DISABLE_TELEMETRY="1";
+ process.env.ALLOW_LOCAL_TESTS="true";
+ process.env.COMUN_BASE_URL??="http://127.0.0.1:3000";
+ process.env.MEDIA_STORAGE_PROVIDER??="supabase-local";
+ assertLocalEnvironment();
+}
 
 // Gate obrigatório: o Playwright não inicia sem COMUN_LOCAL_AUTH_READY.
 function requireAuthReadiness(){
@@ -11,6 +23,7 @@ function requireAuthReadiness(){
 }
 
 export async function operationalGlobalSetup({suite="authenticated"}={}){
+ prepareOperationalLocalEnvironment();
  requireAuthReadiness();
  const runId=`${Date.now().toString(36)}-${randomUUID().slice(0,8)}`;
  process.env.COMUN_TEST_RUN_ID=runId;
