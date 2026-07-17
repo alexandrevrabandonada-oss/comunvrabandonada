@@ -23,6 +23,7 @@
     "test:visual:editorial-operation-authenticated": "playwright test -c playwright.editorial-operation-authenticated-visual.config.ts --grep @visual",
     "perf:editorial-operation-authenticated": "node --experimental-strip-types scripts/measure-comun-authenticated-operation.mjs",
     "test:reset:editorial-operation-authenticated": "node scripts/run-comun-authenticated-reset-round.mjs",
+    "verify:editorial-operation-authenticated:start": "node --experimental-strip-types scripts/verify-comun-authenticated-next-start.mjs",
     "test:a11y:editorial-operation": "playwright test -c playwright.editorial-operation.config.ts --grep @a11y",
     "backup:editorial-operation:local": "node scripts/backup-comun-operational-local.mjs",
     "restore:editorial-operation:local": "node scripts/restore-comun-operational-local.mjs",
