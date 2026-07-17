@@ -1,0 +1,5 @@
+-- Seed local intencionalmente vazio.
+--
+-- O esquema do COMUN é definido exclusivamente pelas migrations versionadas.
+-- Não adicionar aqui personas, fixtures, pautas, dados reais ou dependências de teste.
+-- As suítes autenticadas criam e removem suas próprias fixtures por execução.
