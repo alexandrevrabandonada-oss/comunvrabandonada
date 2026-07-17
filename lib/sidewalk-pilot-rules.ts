@@ -36,6 +36,8 @@ export const SIDEWALK_STATUS = [
   "published",
   "rejected",
   "archived",
+  "resolved",
+  "withdrawn",
 ] as const;
 
 export type SidewalkStatus = (typeof SIDEWALK_STATUS)[number];
@@ -142,12 +144,7 @@ const SENSITIVE_PROTOCOL_KEYS = new Set([
 ]);
 
 export function sanitizeProtocolPackage(input: Record<string, unknown>): Record<string, unknown> {
-  const output: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(input)) {
-    if (SENSITIVE_PROTOCOL_KEYS.has(key)) continue;
-    output[key] = value;
-  }
-  return output;
+  return sanitizeRecursively(input, SENSITIVE_PROTOCOL_KEYS) as Record<string, unknown>;
 }
 
 export function isFixtureResponse(response: { is_fixture?: boolean; source?: string }): boolean {
@@ -166,6 +163,21 @@ export function validateResultEvidence(result: {
 }
 
 export function sanitizeObservationPayload(input: Record<string, unknown>): Record<string, unknown> {
-  const { private_contact, internal_notes, raw_details_private, attachment_private_reference, ...safe } = input;
-  return safe;
+  return sanitizeRecursively(input, new Set([
+    "private_contact",
+    "internal_notes",
+    "raw_details_private",
+    "attachment_private_reference",
+  ])) as Record<string, unknown>;
+}
+
+function sanitizeRecursively(value: unknown, sensitiveKeys: Set<string>): unknown {
+  if (Array.isArray(value)) return value.map((item) => sanitizeRecursively(item, sensitiveKeys));
+  if (!value || typeof value !== "object") return value;
+  const output: Record<string, unknown> = {};
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    if (sensitiveKeys.has(key)) continue;
+    output[key] = sanitizeRecursively(child, sensitiveKeys);
+  }
+  return output;
 }
