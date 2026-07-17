@@ -25,5 +25,5 @@ const commands=[
  local("cleanup","npm",["run","test:fixtures:cleanup"]),
  local("assert-clean","npm",["run","test:fixtures:assert-clean"]),
 ];
-for(const[label,command,args]of commands){const started=Date.now();const result=spawnSync(command,args,{cwd:process.cwd(),env,encoding:"utf8",shell:process.platform==="win32",stdio:["ignore","pipe","pipe"]});records.push({label,ok:result.status===0,durationMs:Date.now()-started});if(result.status!==0){await writeFile(`reports/comun-reset-${round}-33-2-1.json`,JSON.stringify({round,ok:false,records},null,2)+"\n");process.stderr.write(result.stderr.slice(-2000));process.exit(result.status??1)}}
+for(const[label,command,args]of commands){const started=Date.now();const result=spawnSync(command,args,{cwd:process.cwd(),env,encoding:"utf8",shell:process.platform==="win32",stdio:["ignore","pipe","pipe"],maxBuffer:64*1024*1024});records.push({label,ok:result.status===0,durationMs:Date.now()-started});if(result.status!==0){await writeFile(`reports/comun-reset-${round}-33-2-1.json`,JSON.stringify({round,ok:false,records},null,2)+"\n");process.stderr.write(result.stderr.slice(-2000));process.exit(result.status??1)}}
 await writeFile(`reports/comun-reset-${round}-33-2-1.json`,JSON.stringify({round,ok:true,records},null,2)+"\n");console.log(`COMUN_RESET_AUTH_ROUND_${round}_OK`);
