@@ -1,6 +1,8 @@
 import{readFile,rm}from"node:fs/promises";
+import{prepareOperationalLocalEnvironment}from"./operational-global-setup.mjs";
 
 export default async function operationalGlobalTeardown(){
+ prepareOperationalLocalEnvironment();
  const fixtures=await import("./operational-personas.mjs");
  const local=await import("./local-fixtures.mjs");
  let manifest=null;
