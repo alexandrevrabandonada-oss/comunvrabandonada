@@ -40,11 +40,15 @@ Correções locais já iniciadas, ainda não fechadas por todos os gates:
 
 Portanto, os itens abaixo seguem pendentes:
 
-1. Repetir Axe isolado após outra suíte para comprovar independência final.
+1. Repetir E2E após o segundo Axe para completar a sequência de independência.
 2. Reset 1 e Reset 2 completos.
 3. Gate contra `npm run start`, incluindo Axe.
 4. Instrumentação de performance autenticada contra `next start`.
 5. Regressões completas.
+
+## Bloqueio de continuidade seguro
+
+Os gates de reset, `next start` e performance não foram executados neste checkpoint: `supabase/seed.sql` não rastreado é carregado pelo reset local e `npm run typecheck` falha em alterações paralelas de `lib/media-storage/*`. Para não executar ou corrigir trabalho fora do escopo Auth, a decisão técnica permanece **NO-GO local** até a separação ou autorização explícita desses diffs.
 
 ## Evidências anteriores que continuam válidas
 
