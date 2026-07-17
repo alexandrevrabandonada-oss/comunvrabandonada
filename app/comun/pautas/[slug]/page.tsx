@@ -9,6 +9,8 @@ import { listPublicReports } from "@/lib/reports";
 import { getPublicPautaHub } from "@/lib/central-hub";
 import { PautaAppShell } from "@/components/pauta-app-shell";
 import { listPublicCircleSurface, listPublicPautaModules } from "@/lib/pauta-miniapps";
+import { listPublicSidewalkSurface, listPublicSidewalkMemories } from "@/lib/sidewalk-pauta";
+import { SidewalkMemorySection } from "@/components/sidewalk-memory-section";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -33,8 +35,13 @@ export default async function PautaPage(
 
   const modules = await listPublicPautaModules(space.id);
   if (modules.length) {
-    const circles = await listPublicCircleSurface(space.id);
-    return <ComunShell><PautaAppShell space={space} modules={modules} circles={circles} /></ComunShell>;
+    const [circles, sidewalks, memories] = await Promise.all([listPublicCircleSurface(space.id), listPublicSidewalkSurface(space.id), listPublicSidewalkMemories(space.id)]);
+    const contributionAck = searchParams.contribuicao === "pendente" || searchParams.contribuicao === "recebida";
+    return <ComunShell>
+      {contributionAck ? <section className="bg-comun-black py-3"><div className="mx-auto max-w-6xl px-4"><p className="border-2 border-comun-yellow bg-comun-black p-3 text-sm font-bold text-comun-paper">Contribuicao recebida. Ela entra em moderacao antes de aparecer publicamente.</p></div></section> : null}
+      <PautaAppShell space={space} modules={modules} circles={circles} sidewalks={sidewalks} />
+      <SidewalkMemorySection pautaSlug={space.slug} memories={memories} />
+    </ComunShell>;
   }
 
   const [reports, protocols, contributions, tasks, evidence, community, publishedDossiers] = await Promise.all([
