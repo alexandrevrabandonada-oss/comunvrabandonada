@@ -18,6 +18,8 @@
     "smoke:first-pilot-rehearsal": "node scripts/smoke-comun-first-pilot-rehearsal.mjs",
     "test:e2e:editorial-operation": "playwright test -c playwright.editorial-operation.config.ts",
     "test:e2e:editorial-operation-authenticated": "playwright test -c playwright.editorial-operation-authenticated.config.ts",
+    "test:a11y:editorial-operation-authenticated": "playwright test -c playwright.editorial-operation-authenticated-visual.config.ts --grep @a11y",
+    "test:visual:editorial-operation-authenticated": "playwright test -c playwright.editorial-operation-authenticated-visual.config.ts --grep @visual",
     "test:a11y:editorial-operation": "playwright test -c playwright.editorial-operation.config.ts --grep @a11y",
     "backup:editorial-operation:local": "node scripts/backup-comun-operational-local.mjs",
     "restore:editorial-operation:local": "node scripts/restore-comun-operational-local.mjs",
