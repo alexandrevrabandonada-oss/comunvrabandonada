@@ -391,6 +391,9 @@ const classifications = {
     sensitive: "Motivo privado e identidade do solicitante.",
     expected: "Admin-only; histórico preservado fora das consultas públicas.",
   },
+  comun_editorial_operation_items: { decision: "service_role_only", purpose: "Fila operacional editorial transversal.", sensitive: "Estado, prioridade, gate e contexto ainda não publicados.", expected: "Exclusivo do servidor e administração." },
+  comun_editorial_operation_assignments: { decision: "service_role_only", purpose: "Atribuições responsáveis por item.", sensitive: "Identidade, papel e histórico operacional.", expected: "Exclusivo do servidor e administração." },
+  comun_editorial_operation_events: { decision: "service_role_only", purpose: "Auditoria sanitizada append-only da operação.", sensitive: "Histórico de decisões internas.", expected: "Exclusivo do servidor e administração." },
 };
 
 const internalDecisions = new Set(["admin_only", "service_role_only"]);
