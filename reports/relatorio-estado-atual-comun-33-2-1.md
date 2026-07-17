@@ -23,7 +23,8 @@ Classificação: **opcional para esta validação**. O log mostra que a fonte `d
 | RLS e lint do banco | PASS | `RLS_MATRIX_OK`; DB lint sem erro no checkpoint anterior |
 | Storage local | PASS | `COMUN_LOCAL_STORAGE_READY` no checkpoint anterior |
 | Cleanup de fixtures | PASS | banco atualmente com 0 usuários Auth, 0 identities e 0 perfis de fixture |
-| Visual | Parcialmente comprovado | 49 capturas existentes; a nova execução isolada está em ajuste |
+| Axe autenticado isolado | PASS | 15/15 testes, zero serious/critical e cleanup próprio |
+| Visual autenticado isolado | PASS | 15/15 testes, viewport do projeto aplicado e cleanup próprio |
 
 ## Bloqueio técnico atual
 
@@ -39,12 +40,11 @@ Correções locais já iniciadas, ainda não fechadas por todos os gates:
 
 Portanto, os itens abaixo seguem pendentes:
 
-1. Axe isolado integral verde nas 21 superfícies/estados.
-2. Visual isolado integral verde e cleanup subsequente.
-3. Reset 1 e Reset 2 completos.
-4. Gate contra `npm run start`, incluindo Axe.
-5. Instrumentação de performance autenticada contra `next start`.
-6. Regressões completas.
+1. Repetir Axe isolado após outra suíte para comprovar independência final.
+2. Reset 1 e Reset 2 completos.
+3. Gate contra `npm run start`, incluindo Axe.
+4. Instrumentação de performance autenticada contra `next start`.
+5. Regressões completas.
 
 ## Evidências anteriores que continuam válidas
 
