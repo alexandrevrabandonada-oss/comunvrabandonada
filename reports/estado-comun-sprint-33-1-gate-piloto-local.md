@@ -54,3 +54,7 @@ Faltam responsáveis e substitutos reais, canal de plantão, revisão do ambient
 - Mensagens reais: NÃO ENVIADAS
 - Smoke remoto: NÃO EXECUTADO
 - Custo externo: R$ 0
+
+## Atualização Sprint 33.2
+
+Foram adicionadas 14 sessões Auth operacionais reais, autorização server-side e E2E 15/15 em duas rodadas. O NO-GO permanece por prontidão humana incompleta e lacunas técnicas registradas no relatório 33.2.
