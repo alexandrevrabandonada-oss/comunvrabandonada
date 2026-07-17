@@ -2,18 +2,17 @@ import AxeBuilder from "@axe-core/playwright";
 import {expect,test,type Page} from "@playwright/test";
 import {OPERATIONAL_SURFACES} from "../../lib/operational-surfaces";
 // @ts-expect-error fixture ESM local.
-import {cleanupOperationalPersonas,createOperationalPersonas,operationalEmail,operationalPassword} from "../fixtures/comun/operational-personas.mjs";
+import {operationalEmail,operationalPassword} from "../fixtures/comun/operational-personas.mjs";
 // @ts-expect-error helper ESM local.
 import {localServiceClient} from "../fixtures/comun/local-fixtures.mjs";
 
 let itemId="";
 test.beforeAll(async()=>{
-  await cleanupOperationalPersonas();await createOperationalPersonas();
   const db=localServiceClient();
   const{data,error}=await db.from("comun_editorial_operation_items").insert({source_type:"contribution",queue:"withdrawals",title:"Retirada urgente sintética",next_action:"Conter publicação",human_gate:"Confirmação humana",fixture_tag:"fixture-s33-2-1"}).select("id").single();
   if(error)throw error;itemId=data.id;
 });
-test.afterAll(async()=>{const db=localServiceClient();await db.from("comun_editorial_operation_items").delete().eq("fixture_tag","fixture-s33-2-1");await cleanupOperationalPersonas()});
+test.afterAll(async()=>{const db=localServiceClient();await db.from("comun_editorial_operation_items").delete().eq("fixture_tag","fixture-s33-2-1")});
 
 async function login(page:Page,persona:string,redirectTo:string){
   await page.context().clearCookies();
@@ -23,6 +22,7 @@ async function login(page:Page,persona:string,redirectTo:string){
   await page.getByRole("button",{name:"Entrar"}).click();
 }
 async function assertAccessible(page:Page){
+  await expect(page.getByLabel("E-mail")).toHaveCount(0);
   const result=await new AxeBuilder({page}).analyze();
   expect(result.violations.filter(({impact})=>impact==="serious"||impact==="critical")).toEqual([]);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

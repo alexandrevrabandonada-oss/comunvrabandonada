@@ -1,10 +1,7 @@
 import {expect,test,type Page} from "@playwright/test";
 import {OPERATIONAL_SURFACES} from "../../lib/operational-surfaces";
 // @ts-expect-error fixture ESM executável local.
-import {cleanupOperationalPersonas,createOperationalPersonas,operationalEmail,operationalPassword,operationalPersonas} from "../fixtures/comun/operational-personas.mjs";
-
-test.beforeAll(async()=>{await cleanupOperationalPersonas();await createOperationalPersonas()});
-test.afterAll(async()=>{await cleanupOperationalPersonas()});
+import {operationalEmail,operationalPassword,operationalPersonas} from "../fixtures/comun/operational-personas.mjs";
 
 async function login(page:Page,persona:string,redirectTo="/comun/admin/operacao"){
   await page.goto(`/comun/admin/login?redirectTo=${encodeURIComponent(redirectTo)}`);

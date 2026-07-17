@@ -1,0 +1,1 @@
+import{rm}from"node:fs/promises";export default async function(){const fixtures=await import("./operational-personas.mjs");await fixtures.cleanupOperationalPersonas();await rm(".local/comun-auth",{recursive:true,force:true});console.log("COMUN_TEST_FIXTURES_CLEAN")}
