@@ -18,6 +18,7 @@
     "test:a11y:editorial-operation": "playwright test -c playwright.editorial-operation.config.ts --grep @a11y",
     "backup:editorial-operation:local": "node scripts/backup-comun-operational-local.mjs",
     "restore:editorial-operation:local": "node scripts/restore-comun-operational-local.mjs",
+    "restore:editorial-operation:real-local": "node scripts/restore-comun-operational-real-local.mjs",
     "export:pauta:local": "node scripts/export-comun-pauta-local.mjs",
     "test:e2e:sidewalk-pilot": "playwright test -c playwright.sidewalk-pilot.config.ts",
     "test:a11y:sidewalk-pilot": "playwright test -c playwright.sidewalk-pilot.config.ts --grep @a11y",
