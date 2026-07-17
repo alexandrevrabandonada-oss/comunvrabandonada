@@ -1,4 +1,5 @@
 import assert from"node:assert/strict";import{createBackup,exportPauta,validateBackup}from"./comun-operational-backup.mjs";
+// O rehearsal autenticado complementar usa sessões Auth locais reais; este fluxo mantém o contrato editorial puro.
 const state={open:false,monitoring:false,items:[],protocols:[],results:[],memory:[],assets:[]};
 state.open=true;state.monitoring=true;state.items.push({id:"fixture-pilot-1",queue:"entry",state:"pending",title:"Calçada sintética",public_reason:"Ensaio",next_action:"Triagem",private_contact:"fixture@example.invalid"});
 state.items[0].state="in_review";state.items[0].state="published";state.protocols.push({public_protocol:"FIXTURE-001"});state.results.push({summary:"Resultado sintético"});state.items.push({id:"fixture-correction",queue:"corrections",state:"resolved",title:"Correção sintética"},{id:"fixture-withdrawal",queue:"withdrawals",state:"withdrawn",title:"Retirada sintética"});

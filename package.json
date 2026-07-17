@@ -16,6 +16,7 @@
     "smoke:editorial-operation": "node --experimental-strip-types scripts/smoke-comun-editorial-operation.mjs",
     "smoke:editorial-incidents": "node --experimental-strip-types scripts/smoke-comun-editorial-incidents.mjs",
     "smoke:first-pilot-rehearsal": "node scripts/smoke-comun-first-pilot-rehearsal.mjs",
+    "smoke:first-pilot-authenticated-rehearsal": "node scripts/smoke-comun-first-pilot-authenticated-rehearsal.mjs",
     "test:e2e:editorial-operation": "playwright test -c playwright.editorial-operation.config.ts",
     "test:e2e:editorial-operation-authenticated": "playwright test -c playwright.editorial-operation-authenticated.config.ts",
     "test:a11y:editorial-operation-authenticated": "playwright test -c playwright.editorial-operation-authenticated-visual.config.ts --grep @a11y",
