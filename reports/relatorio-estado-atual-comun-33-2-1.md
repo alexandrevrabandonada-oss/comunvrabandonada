@@ -25,26 +25,29 @@ Classificação: **opcional para esta validação**. O log mostra que a fonte `d
 | Cleanup de fixtures | PASS | banco atualmente com 0 usuários Auth, 0 identities e 0 perfis de fixture |
 | Axe autenticado isolado | PASS | 15/15 testes, zero serious/critical e cleanup próprio |
 | Visual autenticado isolado | PASS | 15/15 testes, viewport do projeto aplicado e cleanup próprio |
+| Axe autenticado repetido | PASS | 15/15 após a suíte visual, zero serious/critical e cleanup próprio |
+| Independência das suítes | PASS | storageState validado, E2E → Axe → visual → Axe concluídos sem resíduo entre as suítes |
 
 ## Bloqueio técnico atual
 
 O fechamento técnico permanece **NO-GO**. A falha original foi reproduzida no ciclo Auth: as suítes repetiam login pela interface em volume maior que a janela de proteção local e a factory removia/recriava os mesmos e-mails sem validar integralmente identity, sessão e refresh.
 
-Correções locais já iniciadas, ainda não fechadas por todos os gates:
+Correções locais implementadas e comprovadas nos gates isolados:
 
 - factory idempotente com `COMUN_TEST_RUN_ID`, e-mails únicos, verificação de identity, perfil, papel, login e refresh;
 - diagnóstico mínimo e `auth:readiness:local` criados;
 - setup/teardown comum para E2E, Axe e visual;
 - storageStates em diretório local ignorado pelo Git;
-- validação posterior mostrou que o storageState era salvo antes de confirmar a navegação pós-login. A correção para aguardar e reabrir o estado salvo está em andamento, mas ainda precisa passar no Axe integral.
+- validação posterior mostrou que o storageState era salvo antes de confirmar a navegação pós-login. A correção agora aguarda a navegação, valida cookie e identidade e reabre o estado em contexto novo; completou 10 ciclos consecutivos e as suítes isoladas.
 
 Portanto, os itens abaixo seguem pendentes:
 
-1. Repetir E2E após o segundo Axe para completar a sequência de independência.
-2. Reset 1 e Reset 2 completos.
-3. Gate contra `npm run start`, incluindo Axe.
-4. Instrumentação de performance autenticada contra `next start`.
-5. Regressões completas.
+1. Repetir E2E após o segundo Axe para completar a sequência final no worktree limpo.
+2. Isolar o workspace das frentes paralelas de seed e media-storage.
+3. Reset 1 e Reset 2 completos.
+4. Gate contra `npm run start`, incluindo Axe.
+5. Instrumentação de performance autenticada contra `next start`.
+6. Regressões completas.
 
 ## Bloqueio de continuidade seguro
 
@@ -69,7 +72,7 @@ Há alterações locais não commitadas, incluindo código de infraestrutura Aut
 
 ## Próximo passo seguro
 
-Executar Axe e visual de forma independente usando as sessões validadas, e só então repetir resets e `next start`. Até isso ocorrer, a decisão técnica é **NO-GO local**.
+Criar um worktree limpo a partir do commit Auth, tornar o contrato versionado de seed determinístico e então executar a sequência final, resets e `next start`. Até isso ocorrer, a decisão técnica é **NO-GO local**.
 
 ## Declarações de escopo
 
