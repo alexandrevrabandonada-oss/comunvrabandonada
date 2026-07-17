@@ -16,3 +16,4 @@ coverage/
 supabase/.temp/
 types/supabase.ts
 backups/
+.local/

@@ -222,6 +222,7 @@ export type ComunAdminNotificationKind =
   | "dossier_priority_high";
 export type ComunAdminNotificationStatus = "unread" | "read" | "archived";
 export type ComunAdminProfileRole = "admin" | "editor" | "factual_reviewer" | "editorial_reviewer" | "publisher" | "viewer";
+export type ComunOperationalRole = "operations_admin" | "privacy_reviewer" | "rights_reviewer" | "archive_curator" | "coordinator" | "facilitator" | "contribution_reviewer" | "image_reviewer" | "protocol_operator" | "result_editor" | "radio_editor" | "art_editor";
 
 export type PautaSpace = {
   id: string;
@@ -403,6 +404,7 @@ export type ComunAdminProfile = {
   display_name: string;
   email: string;
   role: ComunAdminProfileRole;
+  operational_role?: ComunOperationalRole | null;
   active: boolean;
   operational_note: string | null;
   created_at: string;
