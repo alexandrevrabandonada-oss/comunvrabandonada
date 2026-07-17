@@ -13,7 +13,7 @@ export default async function OperationalSurfacePage({params}:{params:Promise<{s
   const session=await requireComunAdminProfile();
   if(!canAccessOperationalSurface(session.profile,surface.authorization))redirect("/comun/admin?forbidden=operational-surface");
   if(surface.state==="expired")redirect(`/comun/admin/login?redirectTo=/comun/admin/operacao/superficies/${surface.key}&reason=expired`);
-  return <main className="mx-auto min-h-screen max-w-4xl p-4 sm:p-6" data-operational-surface={surface.key}>
+  return <main className="mx-auto min-h-screen max-w-4xl bg-white p-4 text-slate-950 sm:p-6" data-operational-surface={surface.key}>
     <nav aria-label="Navegação operacional"><Link className="underline" href="/comun/admin/operacao">Central operacional</Link></nav>
     <header className="mt-6 rounded-2xl border bg-white p-5 shadow-sm">
       <p className="text-sm font-semibold uppercase tracking-wide">{surface.eyebrow}</p>
