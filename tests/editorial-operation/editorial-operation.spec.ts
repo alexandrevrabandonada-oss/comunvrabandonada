@@ -1,0 +1,4 @@
+import{test,expect}from"@playwright/test";import AxeBuilder from"@axe-core/playwright";
+test("visitante não acessa a central",async({page})=>{await page.goto("/comun/admin/operacao");await expect(page).toHaveURL(/\/comun\/admin\/login/);await expect(page.getByRole("heading",{name:/admin/i})).toBeVisible()});
+test("@a11y login protegido não tem violações sérias ou críticas",async({page})=>{await page.goto("/comun/admin/operacao");const r=await new AxeBuilder({page}).analyze();expect(r.violations.filter(v=>["serious","critical"].includes(v.impact??""))).toEqual([])});
+test("@visual superfície protegida é responsiva",async({page},testInfo)=>{await page.goto("/comun/admin/operacao");await expect(page.locator("body")).toHaveCSS("overflow-x",/visible|auto/);await page.screenshot({path:`reports/screenshots/sprint-33-1-operation-${testInfo.project.name}.png`,fullPage:true})});

@@ -14,6 +14,8 @@
     "smoke:community-radio": "node --experimental-strip-types scripts/smoke-comun-community-radio.mjs",
     "smoke:sidewalk-pilot": "node --experimental-strip-types scripts/smoke-comun-sidewalk-pilot.mjs",
     "smoke:editorial-operation": "node --experimental-strip-types scripts/smoke-comun-editorial-operation.mjs",
+    "test:e2e:editorial-operation": "playwright test -c playwright.editorial-operation.config.ts",
+    "test:a11y:editorial-operation": "playwright test -c playwright.editorial-operation.config.ts --grep @a11y",
     "backup:editorial-operation:local": "node scripts/backup-comun-operational-local.mjs",
     "restore:editorial-operation:local": "node scripts/restore-comun-operational-local.mjs",
     "export:pauta:local": "node scripts/export-comun-pauta-local.mjs",
