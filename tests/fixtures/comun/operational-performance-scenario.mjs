@@ -27,12 +27,14 @@ export async function createOperationalPerformanceScenario({ runId = randomUUID(
   const activePersonas = personas ?? await createOperationalPersonas();
   const { data: pauta, error: pautaError } = await db.from("comun_pauta_spaces").insert({ slug, title: `Carga editorial ${itemCount}`, summary: "Fixture local de performance.", visibility: "public", public_synthesis: "Fixture local sem publicação real.", next_step: "Limpar fixture." }).select("id").single();
   if (pautaError || !pauta) throw new Error(pautaError?.message ?? "pauta de performance ausente");
-  const profileRows = await required(await db.from("comun_admin_profiles").select("id,email").in("email", [operationalEmail("operations_admin"), operationalEmail("contribution_reviewer")]), "perfis de performance");
-  const adminProfile = profileRows.find((profile) => profile.email === operationalEmail("operations_admin"));
-  const reviewerProfile = profileRows.find((profile) => profile.email === operationalEmail("contribution_reviewer"));
+  const operationsEmail = activePersonas.find((persona) => persona.persona === "operations_admin")?.email ?? operationalEmail("operations_admin");
+  const reviewerEmail = activePersonas.find((persona) => persona.persona === "contribution_reviewer")?.email ?? operationalEmail("contribution_reviewer");
+  const profileRows = await required(await db.from("comun_admin_profiles").select("id,email").in("email", [operationsEmail, reviewerEmail]), "perfis de performance");
+  const adminProfile = profileRows.find((profile) => profile.email === operationsEmail);
+  const reviewerProfile = profileRows.find((profile) => profile.email === reviewerEmail);
   if (!adminProfile || !reviewerProfile) throw new Error("perfis de performance ausentes");
   const items = Array.from({ length: itemCount }, (_, index) => ({
-    source_type: "contribution",
+    source_type: ["contribution", "record", "photo", "observation", "protocol"][index % 5],
     pauta_id: pauta.id,
     queue: queue === "all" ? OPERATION_QUEUES[index % OPERATION_QUEUES.length] : queue,
     state: status === "mixed" ? states[index % states.length] : status,
@@ -40,13 +42,15 @@ export async function createOperationalPerformanceScenario({ runId = randomUUID(
     public_reason: "Fixture local sanitizada.",
     next_action: "Revisar fixture.",
     priority: (index % 4) + 1,
+    indicative_due_at: index % 3 === 0 ? new Date(Date.now() - (index + 1) * 60_000).toISOString() : new Date(Date.now() + (index + 1) * 60_000).toISOString(),
     human_gate: "Revisão humana fixture",
     fixture_tag: tag,
   }));
   const inserted = items.length ? await required(await db.from("comun_editorial_operation_items").insert(items).select("id,queue,state,title"), "itens de performance") : [];
   if (inserted.length !== itemCount) throw new Error(`itens inseridos divergentes: ${inserted.length}/${itemCount}`);
   if (inserted.length) {
-    await required(await db.from("comun_editorial_operation_assignments").insert(inserted.map((item, index) => ({ item_id: item.id, assignee_profile_id: index % 2 ? reviewerProfile.id : adminProfile.id, assigned_by_profile_id: adminProfile.id, role_at_assignment: index % 2 ? "editorial_reviewer" : "admin", status: "active" }))), "atribuições de performance");
+    const assignments = inserted.filter((_, index) => index % 5 !== 0).map((item, index) => ({ item_id: item.id, assignee_profile_id: index % 2 ? reviewerProfile.id : adminProfile.id, assigned_by_profile_id: adminProfile.id, role_at_assignment: index % 2 ? "editorial_reviewer" : "admin", status: "active" }));
+    if (assignments.length) await required(await db.from("comun_editorial_operation_assignments").insert(assignments), "atribuições de performance");
     await required(await db.from("comun_editorial_operation_events").insert(inserted.flatMap((item, index) => [
       { item_id: item.id, actor_profile_id: adminProfile.id, event_type: "fixture_created", payload: { index, run_id: runId } },
       { item_id: item.id, actor_profile_id: reviewerProfile.id, event_type: "fixture_assigned", payload: { queue: item.queue } },
