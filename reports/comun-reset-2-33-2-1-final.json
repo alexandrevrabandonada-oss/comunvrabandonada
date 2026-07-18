@@ -1,0 +1,258 @@
+{
+  "runId": "auth-reset-2-20260718005114058",
+  "round": "2",
+  "commit": "c33297b",
+  "startedAt": "2026-07-18T00:51:14.058Z",
+  "finishedAt": "2026-07-18T01:22:44.820Z",
+  "ok": true,
+  "records": [
+    {
+      "label": "reset",
+      "command": "node scripts/comun-local-env.mjs run npx supabase db reset --local",
+      "ok": true,
+      "durationMs": 113450,
+      "exitCode": 1,
+      "classification": "B",
+      "migrations": 52,
+      "expectedMigrations": 52,
+      "recovered": true,
+      "readiness": {
+        "ok": true,
+        "startedAt": "2026-07-18T00:52:25.847Z",
+        "finishedAt": "2026-07-18T00:53:22.713Z",
+        "durationMs": 56866,
+        "attempts": 29,
+        "consecutive": 2,
+        "lastError": "storage=An invalid response was received from the upstream server"
+      },
+      "restart": null,
+      "stdout": "",
+      "stderr": "…[truncado 5767 caracteres]\nction_verification_runs.sql...\nApplying migration 20260714174020_archive_photo_processing_queue.sql...\nApplying migration 20260714175818_archive_scheduler_heartbeats_alerts.sql...\nApplying migration 20260714185438_archive_local_music.sql...\nApplying migration 20260714213123_archive_music_curation.sql...\nApplying migration 20260714220640_archive_music_observability.sql...\nApplying migration 20260714223658_archive_oral_history.sql...\nApplying migration 20260714231050_archive_oral_history_editorial_pilot.sql...\nApplying migration 20260714235034_comun_central_hub.sql...\nApplying migration 20260715002809_comun_popular_map.sql...\nApplying migration 20260715011302_comun_popular_observatories.sql...\nApplying migration 20260715021055_comun_observation_campaigns.sql...\nApplying migration 20260715025948_comun_field_access.sql...\nApplying migration 20260715032613_comun_pauta_miniapps_circles.sql...\nApplying migration 20260715151922_comun_pauta_miniapps_relational_guards.sql...\nApplying migration 20260715155802_comun_community_auth_profiles.sql...\nApplying migration 20260715170058_comun_territorial_art_foundation.sql...\nApplying migration 20260715174723_artwork_storage_operations.sql...\nApplying migration 20260715185344_community_radio_foundation.sql...\nApplying migration 20260715192935_comun_central_experience_inbox.sql...\nApplying migration 20260716000000_comun_sidewalk_vertical.sql...\nNOTICE (00000): constraint \"comun_territorial_layers_slug_check\" of relation \"comun_territorial_layers\" does not exist, skipping\nApplying migration 20260716120000_comun_sidewalk_fk_fix.sql...\nApplying migration 20260717013709_editorial_operation.sql...\nApplying migration 20260717022301_operational_persona_roles.sql...\nSeeding data from supabase/seed.sql...\nRestarting containers...\nError status 502: An invalid response was received from the upstream server\n                                                                           \nTry rerunning the command with --debug to troubleshoot the error.\n"
+    },
+    {
+      "label": "storage",
+      "command": "node scripts/comun-local-env.mjs run npm run storage:readiness",
+      "ok": true,
+      "durationMs": 8321,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 storage:readiness\n> node scripts/wait-comun-local-storage.mjs\n\nCOMUN_LOCAL_STORAGE_READY\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "auth-readiness",
+      "command": "node scripts/comun-local-env.mjs run npm run auth:readiness:local",
+      "ok": true,
+      "durationMs": 18869,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 auth:readiness:local\n> node scripts/comun-local-env.mjs run node scripts/check-comun-auth-readiness.mjs\n\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_LOCAL_AUTH_READY\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "db-lint",
+      "command": "node scripts/comun-local-env.mjs run npx supabase db lint --local",
+      "ok": true,
+      "durationMs": 5998,
+      "exitCode": 0,
+      "stdout": "{\"results\":[],\"message\":\"db lint\"}\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nConnecting to local database...\nLinting schema: extensions\nLinting schema: public\n\nNo schema errors found\n"
+    },
+    {
+      "label": "rls-matrix",
+      "command": "node scripts/comun-local-env.mjs run npm run audit:rls-matrix",
+      "ok": true,
+      "durationMs": 11708,
+      "exitCode": 0,
+      "stdout": "…[truncado 34151 caracteres]\n| Servidor expõe necessidades públicas abertas. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |\n| `comun_territorial_organization_materials` | service_role_only | Materiais de organizações. | Curadoria operacional. | Servidor sanitiza campos públicos. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |\n| `comun_territorial_organizations` | service_role_only | Cooperativas e coletivos. | Contato e notas privadas. | Servidor remove contato privado e não cria ranking. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |\n| `comun_territorial_ownership_assertions` | service_role_only | Atribuições de titularidade. | Nota interna e disputa. | Servidor exige fonte e revisão. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |\n| `comun_territorial_properties` | service_role_only | Imóveis e áreas de interesse. | Risco e revisão jurídica. | Servidor expõe apenas resumo revisado. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |\n| `comun_territorial_social_use_proposals` | service_role_only | Propostas de uso social. | Bastidor interno. | Servidor identifica como proposta, não decisão. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |\n| `comun_territorial_sources` | service_role_only | Fontes territoriais. | Nota e documento internos. | Servidor expõe fontes revisadas. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |\n| `comun_territory_layers` | service_role_only | Vínculos de territórios com camadas. | Estrutura editorial. | Servidor sanitiza vínculos públicos. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |\n| `comun_transport_lines` | service_role_only | Linhas de transporte monitoradas. | Estado de curadoria. | Servidor expõe campos públicos. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |\n| `comun_transport_stops` | service_role_only | Pontos com localização aproximada. | Estado de curadoria. | Sem posição de observador. | on | anon S:N I:N / auth S:N I:N / service S:Y | - |\n\n## Falhas\n- Nenhuma falha de matriz.\n\nRLS_MATRIX_OK\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nConnecting to local database...\nConnecting to local database...\n"
+    },
+    {
+      "label": "unit",
+      "command": "node scripts/comun-local-env.mjs run npm run test:unit",
+      "ok": true,
+      "durationMs": 7195,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 test:unit\n> vitest run --exclude tests/**\n\n\n RUN  v4.1.10 C:/Projetos/comun-auth-closeout-local\n\n\n Test Files  31 passed (31)\n      Tests  199 passed (199)\n   Start at  21:54:12\n   Duration  2.47s (transform 6.22s, setup 0ms, import 8.50s, tests 383ms, environment 5ms)\n\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "e2e",
+      "command": "node scripts/comun-local-env.mjs run npm run test:e2e:editorial-operation-authenticated",
+      "ok": true,
+      "durationMs": 328814,
+      "exitCode": 0,
+      "stdout": "…[truncado 5027 caracteres]\nial-operation-authenticated\\personas.spec.ts:63:7 › operations_admin: sessão é isolada depois do logout local (1.1s)\n  ok 30 tests\\editorial-operation-authenticated\\personas.spec.ts:63:7 › privacy_reviewer: sessão é isolada depois do logout local (1.4s)\n  ok 31 tests\\editorial-operation-authenticated\\personas.spec.ts:63:7 › rights_reviewer: sessão é isolada depois do logout local (1.8s)\n  ok 32 tests\\editorial-operation-authenticated\\personas.spec.ts:63:7 › archive_curator: sessão é isolada depois do logout local (1.7s)\n  ok 33 tests\\editorial-operation-authenticated\\personas.spec.ts:63:7 › coordinator: sessão é isolada depois do logout local (1.9s)\n  ok 34 tests\\editorial-operation-authenticated\\personas.spec.ts:63:7 › facilitator: sessão é isolada depois do logout local (1.2s)\n  ok 35 tests\\editorial-operation-authenticated\\personas.spec.ts:63:7 › contribution_reviewer: sessão é isolada depois do logout local (2.9s)\n  ok 36 tests\\editorial-operation-authenticated\\personas.spec.ts:63:7 › image_reviewer: sessão é isolada depois do logout local (1.3s)\n  ok 37 tests\\editorial-operation-authenticated\\personas.spec.ts:63:7 › protocol_operator: sessão é isolada depois do logout local (1.2s)\n  ok 38 tests\\editorial-operation-authenticated\\personas.spec.ts:63:7 › result_editor: sessão é isolada depois do logout local (1.2s)\n  ok 39 tests\\editorial-operation-authenticated\\personas.spec.ts:63:7 › radio_editor: sessão é isolada depois do logout local (1.3s)\n  ok 40 tests\\editorial-operation-authenticated\\personas.spec.ts:63:7 › art_editor: sessão é isolada depois do logout local (2.6s)\n  ok 41 tests\\editorial-operation-authenticated\\personas.spec.ts:63:7 › participant: sessão é isolada depois do logout local (1.2s)\n  ok 42 tests\\editorial-operation-authenticated\\personas.spec.ts:73:5 › visitante é negado (586ms)\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_TEST_FIXTURES_CLEAN\n\n  42 passed (5.4m)\n",
+      "stderr": "…[truncado 4800 caracteres]\nUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "cleanup-e2e",
+      "command": "node scripts/comun-local-env.mjs run npm run test:fixtures:cleanup",
+      "ok": true,
+      "durationMs": 20766,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 test:fixtures:cleanup\n> node scripts/comun-local-env.mjs run node scripts/fixtures-comun.mjs cleanup\n\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_TEST_FIXTURES_CLEAN\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "axe",
+      "command": "node scripts/comun-local-env.mjs run npm run test:a11y:editorial-operation-authenticated",
+      "ok": true,
+      "durationMs": 403573,
+      "exitCode": 0,
+      "stdout": "…[truncado 1905 caracteres]\nok  4 [390x844] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:17:5 › @a11y central e detalhe em todos os viewports (3.3s)\n  ok  5 [390x844] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:19:5 › @a11y superfícies especializadas com persona correta (1ms)\n  ok  6 [390x844] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:21:5 › @a11y @visual sessão expirada não revela superfície protegida (1ms)\n  ok  7 [768x1024] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:17:5 › @a11y central e detalhe em todos os viewports (3.3s)\n  ok  8 [768x1024] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:19:5 › @a11y superfícies especializadas com persona correta (1ms)\n  ok  9 [768x1024] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:21:5 › @a11y @visual sessão expirada não revela superfície protegida (1ms)\n  ok 10 [1024x768] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:17:5 › @a11y central e detalhe em todos os viewports (2.8s)\n  ok 11 [1024x768] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:19:5 › @a11y superfícies especializadas com persona correta (1ms)\n  ok 12 [1024x768] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:21:5 › @a11y @visual sessão expirada não revela superfície protegida (1ms)\n  ok 13 [1366x768] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:17:5 › @a11y central e detalhe em todos os viewports (3.5s)\n  ok 14 [1366x768] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:19:5 › @a11y superfícies especializadas com persona correta (33.4s)\n  ok 15 [1366x768] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:21:5 › @a11y @visual sessão expirada não revela superfície protegida (2.0s)\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_TEST_FIXTURES_CLEAN\n\n  15 passed (6.6m)\n",
+      "stderr": "…[truncado 4800 caracteres]\nUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "cleanup-axe",
+      "command": "node scripts/comun-local-env.mjs run npm run test:fixtures:cleanup",
+      "ok": true,
+      "durationMs": 15563,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 test:fixtures:cleanup\n> node scripts/comun-local-env.mjs run node scripts/fixtures-comun.mjs cleanup\n\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_TEST_FIXTURES_CLEAN\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "visual",
+      "command": "node scripts/comun-local-env.mjs run npm run test:visual:editorial-operation-authenticated",
+      "ok": true,
+      "durationMs": 414330,
+      "exitCode": 0,
+      "stdout": "…[truncado 1929 caracteres]\n› tests\\editorial-operation-authenticated-visual\\operation.spec.ts:18:5 › @visual central e detalhe em todos os viewports (3.8s)\n  ok  5 [390x844] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:20:5 › @visual superfícies especializadas com persona correta (1ms)\n  ok  6 [390x844] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:21:5 › @a11y @visual sessão expirada não revela superfície protegida (1ms)\n  ok  7 [768x1024] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:18:5 › @visual central e detalhe em todos os viewports (3.6s)\n  ok  8 [768x1024] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:20:5 › @visual superfícies especializadas com persona correta (1ms)\n  ok  9 [768x1024] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:21:5 › @a11y @visual sessão expirada não revela superfície protegida (1ms)\n  ok 10 [1024x768] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:18:5 › @visual central e detalhe em todos os viewports (4.7s)\n  ok 11 [1024x768] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:20:5 › @visual superfícies especializadas com persona correta (1ms)\n  ok 12 [1024x768] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:21:5 › @a11y @visual sessão expirada não revela superfície protegida (1ms)\n  ok 13 [1366x768] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:18:5 › @visual central e detalhe em todos os viewports (3.3s)\n  ok 14 [1366x768] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:20:5 › @visual superfícies especializadas com persona correta (24.7s)\n  ok 15 [1366x768] › tests\\editorial-operation-authenticated-visual\\operation.spec.ts:21:5 › @a11y @visual sessão expirada não revela superfície protegida (1.7s)\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_TEST_FIXTURES_CLEAN\n\n  15 passed (6.8m)\n",
+      "stderr": "…[truncado 4800 caracteres]\nUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "cleanup-visual",
+      "command": "node scripts/comun-local-env.mjs run npm run test:fixtures:cleanup",
+      "ok": true,
+      "durationMs": 18056,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 test:fixtures:cleanup\n> node scripts/comun-local-env.mjs run node scripts/fixtures-comun.mjs cleanup\n\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_TEST_FIXTURES_CLEAN\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "rehearsal-auth",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:first-pilot-authenticated-rehearsal",
+      "ok": true,
+      "durationMs": 255118,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 smoke:first-pilot-authenticated-rehearsal\n> node scripts/smoke-comun-first-pilot-authenticated-rehearsal.mjs\n\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_FIRST_PILOT_AUTHENTICATED_REHEARSAL_LOCAL_OK\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_TEST_FIXTURES_CLEAN\n",
+      "stderr": "…[truncado 4392 caracteres]\nUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "rehearsal",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:first-pilot-rehearsal",
+      "ok": true,
+      "durationMs": 6499,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 smoke:first-pilot-rehearsal\n> node scripts/smoke-comun-first-pilot-rehearsal.mjs\n\nCOMUN_PAUTA_EXPORT_SANITIZED_OK\nCOMUN_FIRST_PILOT_REHEARSAL_LOCAL_OK\nCOMUN_TEST_FIXTURES_CLEAN\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "editorial",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:editorial-operation",
+      "ok": true,
+      "durationMs": 5173,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 smoke:editorial-operation\n> node --experimental-strip-types scripts/smoke-comun-editorial-operation.mjs\n\nPASS 01\nPASS 02\nPASS 03\nPASS 04\nPASS 05\nPASS 06\nPASS 07\nPASS 08\nPASS 09\nPASS 10\nPASS 11\nPASS 12\nPASS 13\nPASS 14\nPASS 15\nPASS 16\nPASS 17\nPASS 18\nPASS 19\nPASS 20\nPASS 21\nPASS 22\nPASS 23\nPASS 24\nPASS 25\nPASS 26\nCOMUN_EDITORIAL_OPERATION_LOCAL_OK\nCOMUN_TEST_FIXTURES_CLEAN\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n(node:13176) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Projetos/comun-auth-closeout-local/lib/editorial-operation.ts is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to C:\\Projetos\\comun-auth-closeout-local\\package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "label": "sidewalk",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:sidewalk-pilot",
+      "ok": true,
+      "durationMs": 14812,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 smoke:sidewalk-pilot\n> node --experimental-strip-types scripts/smoke-comun-sidewalk-pilot.mjs\n\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_SIDEWALK_VERTICAL_LOCAL_OK\nCOMUN_TEST_FIXTURES_CLEAN\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "central",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:central-experience",
+      "ok": true,
+      "durationMs": 18377,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 smoke:central-experience\n> node scripts/smoke-comun-central-experience.mjs\n\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_CENTRAL_EXPERIENCE_LOCAL_OK\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "pauta",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:pauta-miniapp",
+      "ok": true,
+      "durationMs": 12003,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 smoke:pauta-miniapp\n> node --experimental-strip-types scripts/smoke-comun-pauta-miniapp.mjs\n\nLOCAL_ENV_OK base=http://localhost:3000\nsmoke:pauta-miniapp local ok\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "radio",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:community-radio",
+      "ok": true,
+      "durationMs": 13750,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 smoke:community-radio\n> node --experimental-strip-types scripts/smoke-comun-community-radio.mjs\n\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_COMMUNITY_RADIO_LOCAL_OK\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n(node:23904) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Projetos/comun-auth-closeout-local/lib/media-storage/supabase-local.ts is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to C:\\Projetos\\comun-auth-closeout-local\\package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "label": "art-storage",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:territorial-art-storage",
+      "ok": true,
+      "durationMs": 16307,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 smoke:territorial-art-storage\n> node --experimental-strip-types scripts/smoke-comun-territorial-art-storage.mjs\n\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_TERRITORIAL_ART_STORAGE_LOCAL_OK\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n(node:17164) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Projetos/comun-auth-closeout-local/lib/media-storage/supabase-local.ts is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to C:\\Projetos\\comun-auth-closeout-local\\package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "label": "art",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:territorial-art",
+      "ok": true,
+      "durationMs": 35722,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 smoke:territorial-art\n> node --experimental-strip-types scripts/smoke-comun-territorial-art.mjs\n\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_TERRITORIAL_ART_LOCAL_OK\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_TERRITORIAL_ART_CLEAN\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n(node:24440) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Projetos/comun-auth-closeout-local/lib/archive/territorial-art-rules.ts is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to C:\\Projetos\\comun-auth-closeout-local\\package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "community-auth",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:community-auth:local",
+      "ok": true,
+      "durationMs": 39383,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 smoke:community-auth:local\n> node scripts/smoke-comun-community-auth-local.mjs\n\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_COMMUNITY_AUTH_LOCAL_OK\nLOCAL_ENV_OK base=http://localhost:3000\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "public-ui",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:public-ui:local",
+      "ok": true,
+      "durationMs": 27362,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 smoke:public-ui:local\n> node scripts/smoke-comun-public-ui-local.mjs\n\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nsmoke:public-ui:local ok url=http://localhost:3000/comun/pautas/fixture-s28-2-06791504\nLOCAL_ENV_OK base=http://localhost:3000\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "no-leak",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:no-leak-http",
+      "ok": true,
+      "durationMs": 28458,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 smoke:no-leak-http\n> node scripts/smoke-comun-no-leak-http.mjs\n\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\n[ok] /comun/pautas/fixture-s28-2-e13af067 passou nas verificacoes de conteudo\nLOCAL_ENV_OK base=http://localhost:3000\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "cleanup",
+      "command": "node scripts/comun-local-env.mjs run npm run test:fixtures:cleanup",
+      "ok": true,
+      "durationMs": 19782,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 test:fixtures:cleanup\n> node scripts/comun-local-env.mjs run node scripts/fixtures-comun.mjs cleanup\n\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_TEST_FIXTURES_CLEAN\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    },
+    {
+      "label": "assert-clean",
+      "command": "node scripts/comun-local-env.mjs run npm run test:fixtures:assert-clean",
+      "ok": true,
+      "durationMs": 16008,
+      "exitCode": 0,
+      "stdout": "\n> comun-vr-abandonada@0.1.0 test:fixtures:assert-clean\n> node scripts/comun-local-env.mjs run node scripts/fixtures-comun.mjs assert-clean\n\nLOCAL_ENV_OK base=http://localhost:3000\nLOCAL_ENV_OK base=http://localhost:3000\nCOMUN_TEST_FIXTURES_CLEAN\n",
+      "stderr": "Stopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\nStopped services: [supabase_imgproxy_COMUM_VR_ABANDONADA supabase_edge_runtime_COMUM_VR_ABANDONADA supabase_pooler_COMUM_VR_ABANDONADA]\n"
+    }
+  ]
+}

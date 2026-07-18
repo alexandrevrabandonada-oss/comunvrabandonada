@@ -1,0 +1,17 @@
+{
+  "runId": "auth-reset-1-20260717211800",
+  "round": "1",
+  "commit": "b141f4c",
+  "startedAt": "2026-07-17T21:18:00Z",
+  "finishedAt": "2026-07-17T21:46:53Z",
+  "ok": true,
+  "evidenceCapture": "Execução anterior ao formato ampliado; os comandos e durações foram preservados do registro original. DB lint e RLS foram repetidos após a rodada e passaram.",
+  "records": [
+    {"label":"reset","command":"node scripts/comun-local-env.mjs run npx supabase db reset --local","exitCode":1,"classification":"B","migrations":52,"expectedMigrations":52,"recovered":true,"restart":{"service":"kong","reason":"Auth saudável, Kong devolvendo 502 para /auth/v1/health","durationMs":15533,"result":"recovered"}},
+    {"label":"storage","ok":true},{"label":"auth-readiness","ok":true},{"label":"db-lint-post-round","ok":true},{"label":"rls-matrix-post-round","ok":true},
+    {"label":"unit","ok":true,"tests":192},{"label":"e2e","ok":true,"tests":42},{"label":"axe","ok":true,"tests":15},{"label":"visual","ok":true,"tests":15},
+    {"label":"rehearsal-auth","ok":true},{"label":"rehearsal","ok":true},{"label":"editorial","ok":true},{"label":"sidewalk","ok":true},{"label":"central","ok":true},{"label":"pauta","ok":true},{"label":"radio","ok":true},{"label":"art-storage","ok":true},{"label":"art","ok":true},{"label":"community-auth","ok":true},{"label":"public-ui","ok":true},{"label":"no-leak","ok":true},{"label":"cleanup","ok":true},{"label":"assert-clean","ok":true}
+  ],
+  "stdout": "Não capturado no formato estruturado nesta execução; sem segredo exposto.",
+  "stderr": "502 transitório de Auth via Kong, recuperado após uma única reinicialização restrita do Kong."
+}

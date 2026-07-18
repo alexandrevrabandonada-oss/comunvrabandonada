@@ -1,34 +1,14 @@
 # Estado — Sprint 33.2.1
 
-## Resultado
+## Resultado atualizado
 
-**Decisão técnica local: NO-GO.** A cobertura foi ampliada, mas reset duplo e production-like não fecharam por instabilidade reproduzível na recriação sucessiva das personas no Auth local.
+Reset 1 e 2 passaram com 52 migrations. O runner agora distingue falha definitiva de 502 transitório, exige readiness de banco/REST/Kong/Auth/Storage, e limita restart do Kong a uma tentativa comprovada. `next start` integral também passou, assim como E2E 42/42, Axe 15/15, visual 15/15, 199/199 unitários, lint, typecheck, build, DB lint, RLS e cleanup.
 
-- 21 superfícies/estados; 14 personas Auth mais visitante.
-- E2E: 42/42 em dev e 42/42 no mesmo `next start`.
-- Autorizações negativas: 8/8 fechadas; sessão expirada e visitante fechados.
-- Axe: 15/15 após correção, zero serious/critical; repetição pós-reset falhou no login local.
-- Visual/mobile: 49 capturas; sem overflow detectado.
-- Unitários: 192/192.
-- RLS: `RLS_MATRIX_OK`; DB lint sem erros.
-- Reset 1: reset, Storage, unitários e E2E passaram; Axe falhou por login após recriação. Reset 2 não iniciado, pois o gate 1 não fechou.
-- Production-like: build passou; PID 17760, localhost:3000, E2E passou, Axe falhou; marcador verde não emitido.
-- Performance production-like: não executada após falha precedente.
-- Cleanup final: `COMUN_TEST_FIXTURES_CLEAN`.
-- Readiness humano: `COMUN_PILOT_HUMAN_READINESS_INCOMPLETE`.
-- Go/no-go: `NO_GO_HUMAN_READINESS` e `NO_AUTOMATIC_PROMOTION`.
+O estado não é liberação pública: `COMUN_PILOT_HUMAN_READINESS_INCOMPLETE` e `NO_GO_HUMAN_READINESS` permanecem corretos. Além disso, a carga de performance 25/50/100 não é representativa no harness atual; os rótulos foram medidos sem itens renderizados.
 
 ## Declarações
 
 - Piloto público real: NÃO ABERTO
-- Vercel deploy: NÃO EXECUTADO
-- Git push: NÃO EXECUTADO
-- Supabase remoto: NÃO ALTERADO
-- R2 real: NÃO UTILIZADO
-- Serviços externos: NÃO UTILIZADOS
-- Dados reais: NÃO UTILIZADOS
-- Protocolos reais: NÃO ENVIADOS
-- Mensagens reais: NÃO ENVIADAS
-- Smoke remoto: NÃO EXECUTADO
+- Git push e deploy: NÃO EXECUTADOS
+- Supabase remoto, R2 real, serviços externos e dados reais: NÃO UTILIZADOS
 - Custo externo: R$ 0
-

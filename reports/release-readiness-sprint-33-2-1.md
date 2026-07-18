@@ -2,18 +2,15 @@
 
 | Gate | Resultado |
 |---|---|
-| Cobertura autenticada | PASS — 42/42 |
-| Autorização negativa | PASS — 8/8 + visitante/sessão |
-| Axe/visual base | PASS — 15/15 e 49 capturas |
-| Unitários | PASS — 192/192 |
-| Storage/RLS/DB lint | PASS |
-| Reset 1 | FAIL — Auth local após recriação |
-| Reset 2 | BLOCKED pelo reset 1 |
-| `next start` | FAIL — build/E2E passam; Axe não |
-| Performance completa | NOT RUN após falha precedente |
-| Cleanup | PASS |
-| Readiness humano | INCOMPLETE |
-| Promoção remota | NO-GO / não autorizada |
+| Reset duplo, migrations e recovery | PASS — 52/52 nas duas rodadas |
+| Auth/Storage/RLS/DB lint | PASS |
+| E2E / Axe / visual | PASS — 42/42, 15/15, 15/15 por rodada e em `next start` |
+| Unitários / lint / typecheck / build | PASS — 199/199, limpo, PASS, PASS |
+| Production-like | PASS — `COMUN_AUTHENTICATED_PRODUCTION_LIKE_LOCAL_OK` |
+| Regressões e cleanup | PASS — `COMUN_TEST_FIXTURES_CLEAN` |
+| Performance de carga 25/50/100 | PENDENTE — harness não materializou os itens |
+| Vector | PENDÊNCIA para futura promoção remota; opcional nos gates locais |
+| Readiness humana | INCOMPLETE |
+| Promoção remota | NO-GO — sem revisão humana/remota |
 
-Decisões: técnico local **NO-GO**; humano **NO-GO**; remoto **NO-GO**.
-
+Decisão: cobertura técnica funcional local aprovada; **NO-GO técnico para performance de carga representativa**, **NO-GO humano** e **NO-GO remoto**. Não houve promoção automática.
