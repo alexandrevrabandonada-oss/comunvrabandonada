@@ -1,26 +1,62 @@
-import{chromium}from"@playwright/test";
-import{writeFile}from"node:fs/promises";
-import{assertLocalPerformanceTarget,countOriginalAssets,percentile95,requireLocalPerformance,sanitizeLocalPerformance}from"../lib/local-operational-performance.ts";
-import{cleanupOperationalPersonas,createOperationalPersonas,operationalEmail,operationalPassword}from"../tests/fixtures/comun/operational-personas.mjs";
+import { randomUUID } from "node:crypto";
+import { chromium } from "@playwright/test";
+import { writeFile } from "node:fs/promises";
+import { assertLocalPerformanceTarget, countOriginalAssets, percentile95, requireLocalPerformance, sanitizeLocalPerformance } from "../lib/local-operational-performance.ts";
+import { cleanupOperationalPersonas, ensureLocalOperationalPersona, operationalEmail, operationalPassword } from "../tests/fixtures/comun/operational-personas.mjs";
+import { cleanupOperationalPerformanceScenario, createOperationalPerformanceScenario } from "../tests/fixtures/comun/operational-performance-scenario.mjs";
 
 requireLocalPerformance();
-const base=assertLocalPerformanceTarget(process.env.COMUN_BASE_URL??"http://127.0.0.1:3000").origin;
-const scenarios=[
-  ["central-empty","operations_admin","/comun/admin/operacao",0,1],
-  ["central-25","operations_admin","/comun/admin/operacao",25,1],
-  ["central-50","operations_admin","/comun/admin/operacao",50,1],
-  ["central-100","operations_admin","/comun/admin/operacao",100,1],
-  ["queue-filtered","contribution_reviewer","/comun/admin/operacao/superficies/queue",25,0],
-  ["detail-events","operations_admin","/comun/admin/operacao/superficies/withdrawal",1,0],
-  ["assignment","operations_admin","/comun/admin/operacao/superficies/assignment",1,0],
-  ["privacy","privacy_reviewer","/comun/admin/operacao/superficies/privacy",1,0],
-  ["rights","rights_reviewer","/comun/admin/operacao/superficies/art-rights",1,0],
-  ["protocol","protocol_operator","/comun/admin/operacao/superficies/protocol",1,0],
-  ["result","result_editor","/comun/admin/operacao/superficies/result",1,0],
-  ["incidents","operations_admin","/comun/admin/operacao/superficies/incidents",1,0],
-  ["audit-paginated","operations_admin","/comun/admin/operacao/superficies/audit",25,0],
-];
-const rssBefore=process.memoryUsage().rss;const browser=await chromium.launch();const samples=[];
-try{await cleanupOperationalPersonas();await createOperationalPersonas();for(const[surface,persona,path,items,queryCount]of scenarios){const context=await browser.newContext();const page=await context.newPage();await page.goto(`${base}/comun/admin/login?redirectTo=${encodeURIComponent(path)}`);await page.getByLabel("E-mail").fill(operationalEmail(persona));await page.getByLabel("Senha").fill(operationalPassword);await page.getByRole("button",{name:"Entrar"}).click();const started=performance.now();const response=await page.goto(`${base}${path}`,{waitUntil:"networkidle"});const requestMs=performance.now()-started;const body=await response?.body()??Buffer.alloc(0);const metrics=await page.evaluate(()=>({heapUsedBytes:(performance).memory?.usedJSHeapSize??0,renderedItems:document.querySelectorAll("li,article,[data-operational-item]").length,serializedBytes:new Blob([document.documentElement.outerHTML]).size,resources:performance.getEntriesByType("resource").map(x=>x.name)}));const rssAfter=process.memoryUsage().rss;samples.push(sanitizeLocalPerformance({surface,items,httpStatus:response?.status()??0,requestMs,payloadBytes:body.byteLength,queryCount,queryTotalMs:0,largestQueryMs:0,rssBeforeBytes:rssBefore,rssAfterBytes:rssAfter,heapUsedBytes:metrics.heapUsedBytes,renderedItems:metrics.renderedItems,serializedBytes:metrics.serializedBytes,originalAssetsLoaded:countOriginalAssets(metrics.resources)}));await context.close()}}finally{await browser.close();await cleanupOperationalPersonas()}
-const summary={generatedAt:new Date().toISOString(),host:"localhost",telemetry:false,samples:samples.map(x=>({...x,requestMs:Number(x.requestMs.toFixed(2)),rssDeltaBytes:x.rssAfterBytes-x.rssBeforeBytes})),p95LocalMs:percentile95(samples.map(x=>x.requestMs))};
-await writeFile("reports/comun-performance-operacao-autenticada-33-2-1.json",JSON.stringify(summary,null,2)+"\n");console.log("COMUN_LOCAL_AUTHENTICATED_PERFORMANCE_OK");
+const base = assertLocalPerformanceTarget(process.env.COMUN_BASE_URL ?? "http://127.0.0.1:3000").origin;
+const counts = [0, 25, 50, 100];
+const samples = [];
+const browser = await chromium.launch();
+
+async function login(page) {
+  await page.goto(`${base}/comun/admin/login?redirectTo=${encodeURIComponent("/comun/admin/operacao")}`);
+  await page.getByLabel("E-mail").fill(operationalEmail("operations_admin"));
+  await page.getByLabel("Senha").fill(operationalPassword);
+  await Promise.all([page.waitForURL((url) => url.pathname === "/comun/admin/operacao"), page.getByRole("button", { name: "Entrar" }).click()]);
+}
+
+try {
+  await cleanupOperationalPersonas();
+  const personas = await Promise.all([ensureLocalOperationalPersona({ persona: "operations_admin" }), ensureLocalOperationalPersona({ persona: "contribution_reviewer" })]);
+  for (const itemCount of counts) {
+    const runId = `perf-${itemCount}-${randomUUID().slice(0, 8)}`;
+    let scenario;
+    try {
+      scenario = await createOperationalPerformanceScenario({ runId, itemCount, queue: "all", status: "mixed", territoryCount: 0, personas });
+      console.log(`COMUN_PERF_SCENARIO_${itemCount}_READY sql=${scenario.inserted.length}`);
+      for (let iteration = 0; iteration < 3; iteration += 1) {
+        const context = await browser.newContext();
+        const page = await context.newPage();
+        await login(page);
+        const started = performance.now();
+        const response = await page.goto(`${base}/comun/admin/operacao`, { waitUntil: "networkidle" });
+        const requestMs = performance.now() - started;
+        const body = await response?.body() ?? Buffer.alloc(0);
+        const renderedItems = await page.locator('a[href^="/comun/admin/operacao/"]').count();
+        const responseText = await page.content();
+        const expectedTitles = scenario.inserted.map((item) => item.title);
+        const responseItems = expectedTitles.filter((title) => responseText.includes(title)).length;
+        if (renderedItems !== itemCount || responseItems !== itemCount) throw new Error(`materialização divergente em ${itemCount}: sql=${scenario.inserted.length} response=${responseItems} dom=${renderedItems}`);
+        const metrics = await page.evaluate(() => ({ heapUsedBytes: performance.memory?.usedJSHeapSize ?? 0, serializedBytes: new Blob([document.documentElement.outerHTML]).size, resources: performance.getEntriesByType("resource").map((entry) => entry.name) }));
+        samples.push(sanitizeLocalPerformance({ surface: `central-${itemCount}`, items: itemCount, httpStatus: response?.status() ?? 0, requestMs, payloadBytes: body.byteLength, queryCount: 1, queryTotalMs: 0, largestQueryMs: 0, rssBeforeBytes: process.memoryUsage().rss, rssAfterBytes: process.memoryUsage().rss, heapUsedBytes: metrics.heapUsedBytes, renderedItems, serializedBytes: metrics.serializedBytes, originalAssetsLoaded: countOriginalAssets(metrics.resources), iteration }));
+        await context.close();
+      }
+    } finally {
+      await cleanupOperationalPerformanceScenario({ runId });
+    }
+  }
+} finally {
+  await browser.close();
+  await cleanupOperationalPersonas();
+}
+
+const grouped = Object.fromEntries(counts.map((itemCount) => {
+  const values = samples.filter((sample) => sample.items === itemCount).map((sample) => sample.requestMs);
+  return [itemCount, { samples: values.length, averageMs: Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2)), p95LocalMs: Number(percentile95(values).toFixed(2)) }];
+}));
+const summary = { generatedAt: new Date().toISOString(), host: "localhost", telemetry: false, mode: "next-start", samples: samples.map((sample) => ({ ...sample, requestMs: Number(sample.requestMs.toFixed(2)), rssDeltaBytes: sample.rssAfterBytes - sample.rssBeforeBytes })), scenarios: grouped };
+await writeFile("reports/comun-performance-carga-real-33-2-1.json", `${JSON.stringify(summary, null, 2)}\n`);
+console.log("COMUN_AUTHENTICATED_PERFORMANCE_LOCAL_OK");
