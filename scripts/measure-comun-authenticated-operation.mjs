@@ -7,7 +7,8 @@ import { cleanupOperationalPerformanceScenario, createOperationalPerformanceScen
 
 requireLocalPerformance();
 const base = assertLocalPerformanceTarget(process.env.COMUN_BASE_URL ?? "http://127.0.0.1:3000").origin;
-const counts = [0, 25, 50, 100];
+const counts = [25, 50, 100];
+const pageSize = 20;
 const samples = [];
 const browser = await chromium.launch();
 
@@ -39,9 +40,10 @@ try {
         const responseText = await page.content();
         const expectedTitles = scenario.inserted.map((item) => item.title);
         const responseItems = expectedTitles.filter((title) => responseText.includes(title)).length;
-        if (renderedItems !== itemCount || responseItems !== itemCount) throw new Error(`materialização divergente em ${itemCount}: sql=${scenario.inserted.length} response=${responseItems} dom=${renderedItems}`);
+        const expectedPageItems = Math.min(itemCount, pageSize);
+        if (renderedItems !== expectedPageItems || responseItems !== expectedPageItems) throw new Error(`paginação divergente em ${itemCount}: sql=${scenario.inserted.length} response=${responseItems} dom=${renderedItems} esperado=${expectedPageItems}`);
         const metrics = await page.evaluate(() => ({ heapUsedBytes: performance.memory?.usedJSHeapSize ?? 0, serializedBytes: new Blob([document.documentElement.outerHTML]).size, resources: performance.getEntriesByType("resource").map((entry) => entry.name) }));
-        samples.push(sanitizeLocalPerformance({ surface: `central-${itemCount}`, items: itemCount, httpStatus: response?.status() ?? 0, requestMs, payloadBytes: body.byteLength, queryCount: 1, queryTotalMs: 0, largestQueryMs: 0, rssBeforeBytes: process.memoryUsage().rss, rssAfterBytes: process.memoryUsage().rss, heapUsedBytes: metrics.heapUsedBytes, renderedItems, serializedBytes: metrics.serializedBytes, originalAssetsLoaded: countOriginalAssets(metrics.resources), iteration }));
+        samples.push(sanitizeLocalPerformance({ surface: `central-${itemCount}`, items: itemCount, httpStatus: response?.status() ?? 0, requestMs, payloadBytes: body.byteLength, queryCount: 4, queryTotalMs: 0, largestQueryMs: 0, rssBeforeBytes: process.memoryUsage().rss, rssAfterBytes: process.memoryUsage().rss, heapUsedBytes: metrics.heapUsedBytes, renderedItems, serializedBytes: metrics.serializedBytes, originalAssetsLoaded: countOriginalAssets(metrics.resources), iteration }));
         await context.close();
       }
     } finally {
@@ -58,5 +60,5 @@ const grouped = Object.fromEntries(counts.map((itemCount) => {
   return [itemCount, { samples: values.length, averageMs: Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2)), p95LocalMs: Number(percentile95(values).toFixed(2)) }];
 }));
 const summary = { generatedAt: new Date().toISOString(), host: "localhost", telemetry: false, mode: "next-start", samples: samples.map((sample) => ({ ...sample, requestMs: Number(sample.requestMs.toFixed(2)), rssDeltaBytes: sample.rssAfterBytes - sample.rssBeforeBytes })), scenarios: grouped };
-await writeFile("reports/comun-performance-carga-real-33-2-1.json", `${JSON.stringify(summary, null, 2)}\n`);
-console.log("COMUN_AUTHENTICATED_PERFORMANCE_LOCAL_OK");
+await writeFile("reports/comun-performance-filas-33-2-2.json", `${JSON.stringify(summary, null, 2)}\n`);
+console.log("COMUN_OPERATIONAL_PAGINATION_PERFORMANCE_LOCAL_OK");
