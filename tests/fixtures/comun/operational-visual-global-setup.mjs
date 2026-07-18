@@ -1,2 +1,3 @@
 import { operationalGlobalSetup } from "./operational-global-setup.mjs";
-export default () => operationalGlobalSetup({ suite: "visual" });
+const operationalVisualGlobalSetup = () => operationalGlobalSetup({ suite: "visual" });
+export default operationalVisualGlobalSetup;
