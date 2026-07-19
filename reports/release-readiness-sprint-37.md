@@ -14,6 +14,6 @@
 
 Suites históricas de comunidades, PWA, calçadas e participação não foram reexecutadas isoladamente nesta sprint; sua cobertura residual está representada pelo teste integrado e pelas evidências anteriores, sem alegar nova execução.
 
-Status técnico: **NO-GO** até corrigir e repetir o percurso autenticado em `next start`.
+Atualização Sprint 37.1: a causa foi corrigida e o percurso production-like foi repetido. Os 10 cenários autenticados/auth passaram nos cinco viewports e os 5 cenários visitantes passaram após alinhar uma expectativa textual do teste. Status técnico local: **READY**. Status de promoção: **NO-GO** pelo gate humano pendente (0/3).
 
 Declarações: piloto **não aberto**; integração na `main`, push e deploy **não executados**; Supabase remoto **inalterado**; R2 real/dados reais **não utilizados**; custo externo **R$ 0**.

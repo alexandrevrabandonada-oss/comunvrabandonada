@@ -14,6 +14,6 @@ Data: 19/07/2026. A candidata integrada local foi montada em worktree isolado, c
 
 ## Conclusão
 
-A candidata **não está pronta para piloto**. O estado é NO-GO técnico e humano. Os relatórios desta sprint preservam a falha observada e não promovem aprovação por inferência.
+A Sprint 37.1 corrigiu a falha production-like e repetiu o percurso nos cinco viewports. O estado técnico local agora é **APROVADO**; a candidata continua **não pronta para piloto** porque o gate humano obrigatório permanece em 0/3. O NO-GO atual é humano, não uma promoção por inferência.
 
 Declarações obrigatórias: piloto **não aberto**; integração na `main` **não executada**; push **não executado**; deploy **não executado**; Supabase remoto **inalterado**; R2 real **não utilizado**; dados reais **não utilizados**; custo externo **R$ 0**.

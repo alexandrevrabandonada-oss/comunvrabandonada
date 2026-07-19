@@ -55,3 +55,7 @@ O script local oficial injeta `MEDIA_STORAGE_PROVIDER=supabase-local`, mas a exe
 - R2 real: **NÃO UTILIZADO**
 - Dados reais: **NÃO UTILIZADOS**
 - Custo externo: **R$ 0**
+
+## Fechamento técnico
+
+A hipótese funcional foi confirmada: o wrapper local oficial seleciona `supabase-local`, enquanto a execução manual anterior deixava o modo de produção cair no padrão R2. O fluxo foi corrigido e validado em `next start`. Build, lint, tipos, 227 testes unitários, autenticação local, limpeza de fixtures e a matriz production-like equivalente a 15/15 nos cinco viewports passaram. O gate humano permanece deliberadamente em 0/3; por isso não há promoção para piloto.
