@@ -1,116 +1,26 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
+import { RememberJourney } from "@/components/community-journey-memory";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
-import { getCommunity, listIssues } from "@/lib/comun-data";
 import { StatusLabel } from "@/components/status-label";
-import { listPublicReports } from "@/lib/reports";
+import { getCommunity, listIssues } from "@/lib/comun-data";
 import { listPublishedPautaDossiersByCommunity, type PublishedPautaDossierSnapshot } from "@/lib/pauta-dossiers";
+import { listPublicReports } from "@/lib/reports";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function CommunityPage(props: { params: Promise<{ slug: string }> }) {
-  const params = await props.params;
+export default async function CommunityPage({ params: paramsPromise }: { params: Promise<{ slug: string }> }) {
+  const params = await paramsPromise;
   const community = await getCommunity(params.slug);
   if (!community) notFound();
-  const [relatedIssues, reports, publishedDossiers] = await Promise.all([
-    listIssues({ communitySlug: community.slug }),
-    listPublicReports({ communitySlug: community.slug }),
-    listPublishedPautaDossiersByCommunity(community.slug),
-  ]);
-  const usefulMaterials = Array.from(new Set(relatedIssues.flatMap((issue) => issue.usefulMaterials))).slice(0, 5);
-
-  return (
-    <ComunShell>
-      <Section>
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
-          <div>
-            <h1 className="comun-prose text-2xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">{community.name}</h1>
-            <p className="comun-prose mt-4 max-w-3xl text-base text-comun-paper/80 sm:text-lg">{community.fullDescription}</p>
-            <div className="mt-6">
-              <PrimaryLink href={`/comun/relatar?comunidade=${community.slug}`}>Enviar relato nesta comunidade</PrimaryLink>
-            </div>
-          </div>
-          <aside className="paper-panel border-2 border-comun-black p-4">
-            <h2 className="text-lg font-black uppercase">Nesta comunidade voce pode</h2>
-            <ul className="mt-3 grid gap-2 text-sm text-comun-asphalt/80">
-              <li className="border-l-4 border-comun-yellow pl-3">Enviar relato com seguranca</li>
-              <li className="border-l-4 border-comun-yellow pl-3">Acompanhar pautas em organizacao</li>
-              <li className="border-l-4 border-comun-yellow pl-3">Contribuir com memoria coletiva</li>
-            </ul>
-          </aside>
-        </div>
-      </Section>
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">Dossies desta comunidade</h2>
-        {publishedDossiers.length ? (
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            {publishedDossiers.map((dossier) => <PublicDossierCard key={dossier.id} dossier={dossier} />)}
-          </div>
-        ) : (
-          <EmptyState text="Ainda nao ha dossies publicados nesta comunidade." />
-        )}
-      </Section>
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">Pautas relacionadas</h2>
-        {relatedIssues.length ? (
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            {relatedIssues.map((issue) => (
-              <Link key={issue.slug} href={`/comun/pautas/${issue.slug}`} className="paper-panel border-2 border-comun-black p-4">
-                <StatusLabel value={issue.status} />
-                <h3 className="comun-prose mt-3 font-black uppercase">{issue.title}</h3>
-                <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{issue.summary}</p>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <EmptyState text="Ainda nao ha pautas organizadas nesta comunidade. O primeiro passo e receber relatos consistentes." />
-        )}
-      </Section>
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">Relatos publicados</h2>
-        {reports.length ? (
-          <div className="mt-4 grid gap-4">
-            {reports.map((report) => (
-              <article key={report.id} className="paper-panel border-2 border-comun-black p-4">
-                <p className="text-xs font-black uppercase">{report.protocol}</p>
-                <h3 className="comun-prose mt-2 font-black uppercase">{report.title ?? "Relato sanitizado"}</h3>
-                <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{report.public_text}</p>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <EmptyState text="Ainda nao ha relatos publicados nesta comunidade. Voce pode enviar o primeiro relato com seguranca." />
-        )}
-      </Section>
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">Materiais uteis</h2>
-        {usefulMaterials.length ? (
-          <div className="mt-4 grid gap-3">
-            {usefulMaterials.map((item) => (
-              <div key={item} className="paper-panel border-2 border-comun-black p-4 text-sm text-comun-asphalt/80">
-                {item}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <EmptyState text="Ainda nao ha materiais uteis organizados para esta comunidade." />
-        )}
-      </Section>
-    </ComunShell>
-  );
+  const [issues, reports, dossiers] = await Promise.all([listIssues({ communitySlug: community.slug }), listPublicReports({ communitySlug: community.slug }), listPublishedPautaDossiersByCommunity(community.slug)]);
+  const principal = issues[0];
+  return <ComunShell><RememberJourney href={`/comun/c/${community.slug}`} label={`Voltar à comunidade ${community.name}`} context="Comunidade visitada"/><Section><Link href="/comun/comunidades" className="font-black uppercase text-comun-yellow underline">← Comunidades</Link><div className="mt-5 grid gap-6 lg:grid-cols-[1.25fr_.75fr]"><div><p className="text-xs font-black uppercase text-comun-yellow">Comunidade · grupo persistente</p><h1 className="comun-prose mt-2 text-4xl font-black uppercase leading-none text-comun-paper sm:text-6xl">{community.name}</h1><p className="comun-prose mt-5 max-w-3xl text-lg text-comun-paper/80">{community.fullDescription}</p><div className="mt-6"><PrimaryLink href={principal ? `/comun/pautas/${principal.slug}` : `/comun/relatar?comunidade=${community.slug}`}>{principal ? "Abrir pauta principal" : community.mainCta}</PrimaryLink></div></div><aside className="border-2 border-comun-yellow bg-comun-yellow p-5 text-comun-black"><p className="text-xs font-black uppercase">Próxima ação</p><h2 className="mt-2 text-2xl font-black uppercase leading-tight">{principal?.nextSteps || community.mainCta}</h2><p className="mt-3 text-sm">A comunidade permanece; esta pauta avança por etapas até uma ação, resultado e memória.</p></aside></div><div className="mt-8 grid gap-4 border-t-2 border-comun-paper/25 pt-6 md:grid-cols-2"><div><h2 className="font-black uppercase text-comun-yellow">Princípios</h2><ul className="mt-3 grid gap-2 text-sm text-comun-paper/75"><li>Participação com cuidado e consequência explícita.</li><li>Privacidade antes de publicação.</li><li>Decisões, resultados e divergências preservados na memória.</li></ul></div><div><h2 className="font-black uppercase text-comun-yellow">Território ou tema</h2><p className="mt-3 text-comun-paper/75">{community.shortDescription}</p></div></div></Section><Section><Header title="Pautas ativas" intro="Pauta é um processo com objetivo, etapa e próxima ação — não uma publicação."/>{issues.length ? <div className="divide-y-2 divide-comun-black border-2 border-comun-black bg-comun-paper text-comun-black">{issues.map((issue, index) => <Link key={issue.slug} href={`/comun/pautas/${issue.slug}`} className="grid gap-3 p-5 hover:bg-comun-yellow md:grid-cols-[auto_1fr_auto] md:items-center"><StatusLabel value={issue.status}/><div><h3 className="font-black uppercase">{issue.title}</h3><p className="mt-1 text-sm text-comun-asphalt/75">{issue.summary}</p>{index === 0 && issue.nextSteps ? <p className="mt-2 text-sm font-bold">Próxima etapa: {issue.nextSteps}</p> : null}</div><ArrowRight aria-hidden="true"/></Link>)}</div> : <Empty text="Ainda não há pauta organizada. O primeiro passo é receber relatos consistentes." href={`/comun/relatar?comunidade=${community.slug}`} action="Enviar relato com segurança"/>}</Section>{principal?.nextSteps ? <Section><Header title="Próxima roda ou atividade" intro="A atividade serve à etapa atual da pauta principal."/><div className="border-l-8 border-comun-yellow bg-comun-paper p-5 text-comun-black"><h3 className="text-xl font-black uppercase">{principal.nextSteps}</h3><Link className="mt-4 inline-flex min-h-11 items-center bg-comun-black px-4 font-black uppercase text-comun-paper" href={`/comun/pautas/${principal.slug}`}>Ver como participar</Link></div></Section> : null}{dossiers.length ? <Section><Header title="Resultados e aprendizados" intro="Sínteses revisadas do que a comunidade construiu ou documentou."/><div className="grid gap-4 md:grid-cols-2">{dossiers.map((dossier) => <DossierCard dossier={dossier} key={dossier.id}/>)}</div></Section> : null}<Section><Header title="Memória e cultura" intro="Arte, Rádio e Acervo ajudam a compreender a comunidade; não competem com a próxima ação."/><div className="grid gap-3 sm:grid-cols-3"><Tool href="/comun/arte" title="Arte"/><Tool href="/comun/radio" title="Rádio"/><Tool href="/comun/acervo" title="Acervo e memória"/></div>{reports.length ? <div className="mt-6"><h3 className="font-black uppercase text-comun-yellow">Registros públicos relacionados</h3><div className="mt-3 grid gap-3">{reports.slice(0, 3).map((report) => <article className="border-2 border-comun-paper/25 p-4" key={report.id}><p className="text-xs font-black uppercase text-comun-yellow">{report.protocol}</p><h4 className="mt-2 font-black uppercase">{report.title ?? "Relato sanitizado"}</h4><p className="mt-2 text-sm text-comun-paper/70">{report.public_text}</p></article>)}</div></div> : null}</Section></ComunShell>;
 }
 
-function EmptyState({ text }: { text: string }) {
-  return <p className="mt-4 border-2 border-comun-yellow bg-comun-black p-4 text-sm text-comun-paper/75">{text}</p>;
-}
-
-function PublicDossierCard({ dossier }: { dossier: PublishedPautaDossierSnapshot }) {
-  return (
-    <Link href={`/comun/dossies/${dossier.public_slug}`} className="paper-panel border-2 border-comun-black p-4">
-      <p className="text-xs font-black uppercase text-comun-asphalt/60">{dossier.public_version_label || "Versao revisada"} / {new Date(dossier.public_updated_at ?? dossier.published_at).toLocaleDateString("pt-BR")}</p>
-      <h3 className="comun-prose mt-2 font-black uppercase">{dossier.public_title}</h3>
-      <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{dossier.public_summary}</p>
-    </Link>
-  );
-}
+function Header({ title, intro }: { title: string; intro: string }) { return <header className="mb-5 border-b-2 border-comun-yellow pb-4"><h2 className="text-2xl font-black uppercase text-comun-yellow">{title}</h2><p className="mt-2 max-w-3xl text-comun-paper/70">{intro}</p></header>; }
+function Empty({ text, href, action }: { text: string; href: string; action: string }) { return <div className="border-2 border-comun-yellow p-5"><p>{text}</p><Link href={href} className="mt-4 inline-block font-black uppercase text-comun-yellow underline">{action}</Link></div>; }
+function Tool({ href, title }: { href: string; title: string }) { return <Link href={href} className="flex min-h-28 items-end justify-between border-2 border-comun-paper/30 p-4 font-black uppercase hover:border-comun-yellow">{title}<ArrowRight size={18}/></Link>; }
+function DossierCard({ dossier }: { dossier: PublishedPautaDossierSnapshot }) { return <Link href={`/comun/dossies/${dossier.public_slug}`} className="bg-comun-paper p-5 text-comun-black"><p className="text-xs font-black uppercase text-comun-concrete">{dossier.public_version_label || "Versão revisada"}</p><h3 className="mt-2 font-black uppercase">{dossier.public_title}</h3><p className="mt-2 text-sm text-comun-asphalt/75">{dossier.public_summary}</p></Link>; }
