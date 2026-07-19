@@ -37,3 +37,7 @@ O cenário complementar de retorno hostil também passa nos cinco viewports. Est
 - Serviços externos: **NÃO UTILIZADOS**.
 - Dados reais: **NÃO UTILIZADOS**.
 - Custo externo: **R$ 0**.
+
+## Atualização Sprint 35
+
+A jornada aprovada recebeu camada PWA local com manifest, standalone, cache público seguro, fallback offline e rascunhos v2. O gate humano continua pendente; consulte `estado-comun-sprint-35-pwa-app-like-local.md`.

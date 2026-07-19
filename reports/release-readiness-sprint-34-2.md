@@ -21,3 +21,5 @@
 Bloqueios de promoção: revisão humana não executada; cenários complementares de falha ainda sem E2E dedicado; integração principal não autorizada.
 
 Piloto público **NÃO ABERTO**; integração **NÃO EXECUTADA**; push/deploy **NÃO EXECUTADOS**; Supabase remoto **NÃO ALTERADO**; R2 real **NÃO UTILIZADO**; serviços externos/dados reais **NÃO UTILIZADOS**; custo **R$ 0**.
+
+Atualização Sprint 35: a camada PWA foi aprovada tecnicamente para gate humano local, com riscos residuais documentados em `release-readiness-sprint-35.md`. Esta decisão não promove integração ou piloto.

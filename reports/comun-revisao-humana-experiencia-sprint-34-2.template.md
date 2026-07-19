@@ -10,5 +10,11 @@ Revisor(a): ____  Data: ____  Ambiente local: ____
 | enviar contribuição fixture | | | | | |
 | localizar em Minha área e voltar | | | | | |
 | explicar o que acontece depois | | | | | |
+| instalar o COMUN depois de compreender o valor | | | | | |
+| abrir em modo standalone | | | | | |
+| perder e recuperar a conexão | | | | | |
+| encontrar ou descartar um rascunho | | | | | |
+| compreender uma ação pendente | | | | | |
+| adiar e aplicar uma atualização | | | | | |
 
 Decisão humana: **PENDENTE — não preencher automaticamente.**
