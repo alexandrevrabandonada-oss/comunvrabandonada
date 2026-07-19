@@ -99,11 +99,13 @@ export async function listPublicCircleSurface(pautaId: string) {
 export async function listMyParticipation(userId: string) {
   const supabase = createServiceSupabaseClient();
   if (!supabase) return { memberships: [], contributions: [], artworkSubmissions: [], radioContributions: [] };
-  const [memberships, contributions, artworkSubmissions, radioContributions] = await Promise.all([
+  const [memberships, contributions, artworkSubmissions, radioContributions, sidewalkRecords] = await Promise.all([
     supabase.from("comun_pauta_memberships" as never).select("id, role, status, joined_at, pauta:comun_pauta_spaces(title, slug)" as never).eq("member_user_id" as never, userId),
     supabase.from("comun_circle_contributions" as never).select("id, contribution_type, status, public_protocol, created_at, circle:comun_construction_circles(title)" as never).eq("author_member_id" as never, userId),
     supabase.from("comun_archive_artwork_submissions" as never).select("id,title_suggestion,status,public_protocol,created_at,information_request_public,next_action_public,archive_item:comun_archive_items(slug,status)" as never).eq("member_user_id" as never,userId).order("created_at" as never,{ascending:false}),
     supabase.from("comun_radio_contributions" as never).select("id,title_suggestion,contribution_type,status,public_protocol,created_at,information_request_public,next_action_public" as never).eq("member_user_id" as never,userId).order("created_at" as never,{ascending:false}),
+    supabase.from("comun_sidewalk_records" as never).select("id,status,created_at,approximate_location,pauta:comun_pauta_spaces(title,slug)" as never).eq("member_user_id" as never,userId).order("created_at" as never,{ascending:false}),
   ]);
-  return { memberships: (memberships.data ?? []) as any[], contributions: (contributions.data ?? []) as any[], artworkSubmissions:(artworkSubmissions.data??[]) as any[], radioContributions:(radioContributions.data??[]) as any[] };
+  const sidewalk=(sidewalkRecords.data??[] as any[]).map((item:any)=>({...item,title_suggestion:item.pauta?.title??"Pauta das calçadas",next_action_public:`${item.approximate_location??"Local aproximado"} · aguardar revisão. Volte à pauta para acompanhar o processo.`}));
+  return { memberships: (memberships.data ?? []) as any[], contributions: ([...(contributions.data ?? []),...sidewalk]) as any[], artworkSubmissions:(artworkSubmissions.data??[]) as any[], radioContributions:(radioContributions.data??[]) as any[] };
 }
