@@ -31,3 +31,8 @@ A repetição da regressão de calçadas excedeu 120 s e não gerou resultado; o
 Decisão técnica: **APROVADA PARA GATE HUMANO LOCAL COM RISCOS DOCUMENTADOS**. Decisão humana: **PENDENTE**. Decisão remota: **NÃO AUTORIZADA / NÃO EXECUTADA**.
 
 Piloto público: **NÃO ABERTO**. Integração principal: **NÃO EXECUTADA**. Push: **NÃO EXECUTADO**. Deploy: **NÃO EXECUTADO**. Supabase remoto: **NÃO ALTERADO**. R2 real: **NÃO UTILIZADO**. Serviços externos: **NÃO UTILIZADOS**. Dados reais: **NÃO UTILIZADOS**. Custo externo: **R$ 0**.
+# Atualização de regressão — Sprint 36 (19/07/2026)
+
+- PWA repetida após geração de PNG 192/512/maskable e ajuste de contraste: 20/20.
+- Cache público de comunidades foi mantido; rotas privadas e mutações continuam excluídas.
+- Gate humano segue pendente e piloto público não foi aberto.

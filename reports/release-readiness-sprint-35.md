@@ -19,3 +19,6 @@
 Riscos residuais: a suíte PWA cobre os contratos principais, mas não automatiza ainda todos os 20 cenários funcionais individualmente (falhas reais de upload/sessão/troca de usuário exigem infraestrutura local autenticada); ícones são SVG, não PNG nativo; repetição completa de calçadas não concluiu nesta janela.
 
 Piloto público **NÃO ABERTO**; integração principal **NÃO EXECUTADA**; push/deploy **NÃO EXECUTADOS**; Supabase remoto **NÃO ALTERADO**; R2 real **NÃO UTILIZADO**; serviços externos/dados reais **NÃO UTILIZADOS**; custo **R$ 0**.
+# Atualização de regressão — Sprint 36 (19/07/2026)
+
+Regressão PWA aprovada localmente (20/20), com ícones PNG válidos e contraste corrigido. Isso não altera a decisão anterior: gate humano pendente, integração principal e piloto público não executados.
