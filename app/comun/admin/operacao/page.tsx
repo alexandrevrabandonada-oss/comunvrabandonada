@@ -5,6 +5,8 @@ import { canAccessOperationalSurface } from "@/lib/operational-authorization";
 import { OPERATION_QUEUES, QUEUE_LABELS } from "@/lib/editorial-operation";
 import { activeOperationalFilters, listOperationalFilterOptions, listOperationalItems, normalizeOperationalQuery, operationalQueryHref, SOURCE_TYPES, STATES, type OperationalFilterOptions } from "@/lib/operational-queue";
 
+export const dynamic = "force-dynamic";
+
 type SearchParams = Record<string,string|string[]|undefined>;
 const label = (value:string) => value.replaceAll("_"," ");
 const formatDue = (value:string|null) => value ? new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short"}).format(new Date(value)) : "Sem prazo indicativo";

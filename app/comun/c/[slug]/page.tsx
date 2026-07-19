@@ -42,6 +42,11 @@ export default async function CommunityPage({
         >
           ← Comunidades
         </Link>
+        {slug === "cidade" ? (
+          <p className="mt-5 border-2 border-comun-yellow bg-comun-yellow p-3 font-black uppercase text-comun-black" role="note">
+            Demonstração local · conteúdo sintético · não representa atividade ou resultado real
+          </p>
+        ) : null}
         <div className="mt-5 grid gap-6 lg:grid-cols-[1.25fr_.75fr]">
           <div>
             <p className="text-xs font-black uppercase text-comun-yellow">
