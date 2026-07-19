@@ -20,7 +20,7 @@ import { listMyParticipation } from "@/lib/pauta-miniapps";
 export const dynamic = "force-dynamic";
 
 export default async function MinhaAreaPage() {
-  const { user } = await requireCommunitySession("/comun/minha-participacao");
+  const { user, profile } = await requireCommunitySession("/comun/minha-participacao");
   const [center, submissions] = await Promise.all([
     getPersonalCenter(user.id),
     listMyParticipation(user.id),
@@ -57,6 +57,7 @@ export default async function MinhaAreaPage() {
         <h1 className="text-4xl font-black uppercase text-comun-yellow sm:text-6xl">
           Minha área
         </h1>
+        <div className="mt-5 flex items-center gap-4 border-y-2 border-comun-paper/20 py-4"><span className="grid size-12 place-items-center rounded-lg bg-comun-yellow font-black text-comun-black">{String(profile?.display_name??"Pessoa").split(/\s+/).map((x:string)=>x[0]).join("").slice(0,2).toUpperCase()}</span><div><p className="font-black">{profile?.display_name??"Identidade comunitária"}</p><p className="text-sm text-comun-paper/60">Área privada · sem perfil público de popularidade</p></div><Link href="/comun/conta" className="ml-auto text-sm font-bold underline">Configurações</Link></div>
         <p className="mt-3 max-w-3xl text-comun-paper/75">
           Organizada pelo que precisa de resposta e pela próxima ação — não por
           linha do tempo infinita.

@@ -21,11 +21,11 @@ export default async function CommunitiesPage({searchParams}:{searchParams:Promi
       <label className="flex min-h-11 items-center gap-2 md:col-span-4"><input type="checkbox" name="acao" value="aberta" defaultChecked={p.acao==="aberta"}/> Somente comunidades com ação aberta</label>
     </form>
     <p role="status" className="mt-4 text-sm">{filtered.length} comunidades encontradas. A ordem é editorial, sem ranking ou popularidade.</p>
-    <div className="mt-6 grid gap-4 md:grid-cols-2">{filtered.map(experience=>{const community=bySlug.get(experience.slug);if(!community)return null;return <Link key={community.slug} href={`/comun/c/${community.slug}`} className="industrial-border paper-panel flex min-h-[18rem] flex-col p-5">
+    <div className="mt-6 grid gap-4 md:grid-cols-2">{filtered.map(experience=>{const community=bySlug.get(experience.slug);if(!community)return null;return <Link key={community.slug} href={`/comun/c/${community.slug}`} className="paper-panel flex min-h-[18rem] flex-col border-2 border-comun-black border-t-8 border-t-comun-yellow p-5 transition-transform hover:-translate-y-1">
       <div className="flex items-start justify-between gap-3"><span className="grid size-11 place-items-center bg-comun-black text-sm font-black text-comun-yellow">{community.icon}</span><span className="border-2 border-comun-black px-2 py-1 text-xs font-black uppercase">{experience.kind==="territorial"?"Territorial":"Temática"} · {experience.state}</span></div>
-      <h2 className="mt-4 text-2xl font-black uppercase">{community.name}</h2><p className="mt-2 text-sm text-comun-asphalt/75">{experience.purpose}</p>
+      <h2 className="mt-4 text-2xl font-black">{community.name}</h2><p className="mt-2 text-sm text-comun-asphalt/75">{experience.purpose}</p>
       <dl className="mt-4 grid gap-2 text-sm"><div><dt className="font-black uppercase">Território ou tema</dt><dd>{experience.territory} · {experience.themes.join(" · ")}</dd></div><div><dt className="font-black uppercase">Próxima ação</dt><dd>{experience.nextAction}</dd></div>{experience.nextActivity?<div><dt className="font-black uppercase">Atividade próxima</dt><dd>{experience.nextActivity.title} · {experience.nextActivity.dateLabel}</dd></div>:null}</dl>
-      <span className="mt-auto pt-5 font-black uppercase text-comun-rust">Abrir comunidade →</span>
+      <span className="mt-auto pt-5 font-black text-comun-rust">Conhecer comunidade →</span>
     </Link>})}</div>
     {!filtered.length?<div className="mt-6 border-2 border-comun-yellow p-5"><h2 className="font-black uppercase text-comun-yellow">Nenhuma comunidade com esses filtros</h2><p className="mt-2">Limpe um filtro, explore pautas ou conheça formas de participação.</p><div className="mt-4 flex gap-4"><Link href="/comun/comunidades" className="font-black underline">Limpar filtros</Link><Link href="/comun/participar" className="font-black underline">Como participar</Link></div></div>:null}
   </Section></ComunShell>;

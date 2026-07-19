@@ -32,17 +32,18 @@ export default async function Page() {
         <div className="mt-7 grid gap-4">
           {rows.map((x) => (
             <article
-              className={`border-2 p-5 ${x.read_at ? "border-comun-paper/25" : "border-comun-yellow"}`}
+              className={`relative border-b-2 p-5 first:border-t-2 ${x.read_at ? "border-comun-paper/25" : "border-comun-yellow bg-comun-paper/[.04]"}`}
               key={x.id}
             >
               <div className="flex flex-wrap items-center gap-3">
                 <ComunStatus>{x.priority}</ComunStatus>
-                <span className="text-xs font-black uppercase text-comun-paper/60">
+                {!x.read_at?<span className="size-2 rounded-full bg-comun-yellow" aria-label="Não lida"/>:null}<span className="text-xs font-bold text-comun-paper/60">
                   {x.notification_type.replaceAll("_", " ")}
                 </span>
               </div>
               <h2 className="mt-3 text-xl font-black">{x.title}</h2>
               <p className="mt-2 text-comun-paper/75">{x.summary}</p>
+              {x.created_at?<time className="mt-2 block text-xs text-comun-paper/55" dateTime={x.created_at}>{new Date(x.created_at).toLocaleDateString("pt-BR")}</time>:null}
               <div className="mt-4 flex flex-wrap gap-4">
                 <Link
                   className="font-black uppercase text-comun-yellow underline"

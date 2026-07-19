@@ -42,11 +42,6 @@ export default async function CommunityPage({
         >
           ← Comunidades
         </Link>
-        {slug === "cidade" ? (
-          <p className="mt-5 border-2 border-comun-yellow bg-comun-yellow p-3 font-black uppercase text-comun-black" role="note">
-            Demonstração local · conteúdo sintético · não representa atividade ou resultado real
-          </p>
-        ) : null}
         <div className="mt-5 grid gap-6 lg:grid-cols-[1.25fr_.75fr]">
           <div>
             <p className="text-xs font-black uppercase text-comun-yellow">
@@ -54,7 +49,7 @@ export default async function CommunityPage({
               {experience.kind === "territorial" ? "territorial" : "temática"} ·{" "}
               {experience.territory}
             </p>
-            <h1 className="mt-2 text-4xl font-black uppercase leading-none sm:text-6xl">
+            <h1 className="mt-2 text-[clamp(2.25rem,7vw,4.5rem)] font-black uppercase leading-[.95] tracking-[-.04em]">
               {community.name}
             </h1>
             <h2 className="mt-6 text-sm font-black uppercase text-comun-yellow">
@@ -93,8 +88,11 @@ export default async function CommunityPage({
           </aside>
         </div>
       </Section>
+      <nav aria-label="Seções da comunidade" className="mx-auto flex max-w-7xl gap-6 overflow-x-auto border-y-2 border-comun-paper/25 px-4 text-sm font-black">
+        <a href="#visao-geral" className="border-b-4 border-comun-yellow py-4">Visão geral</a><a href="#pautas" className="py-4">Pautas</a><a href="#agenda" className="py-4">Agenda</a><a href="#resultados" className="py-4">Resultados</a><a href="#memoria" className="py-4">Memória</a>
+      </nav>
       {principal ? (
-        <Section>
+        <Section><span id="pautas" className="scroll-mt-28"/>
           <Header
             title="Pauta prioritária"
             intro="A pauta mantém seu próprio objetivo, etapa e histórico."
@@ -117,7 +115,7 @@ export default async function CommunityPage({
         </Section>
       ) : null}
       {experience.nextActivity || experience.circle ? (
-        <Section>
+        <Section><span id="agenda" className="scroll-mt-28"/>
           <Header
             title="Roda e atividade"
             intro="Discussão com pergunta, etapa e consequência — não comentários infinitos."
@@ -216,7 +214,7 @@ export default async function CommunityPage({
         </Header>
       </Section>
       {groups.length ? (
-        <Section>
+        <Section><span id="resultados" className="scroll-mt-28"/>
           <Header
             title="Grupos de trabalho"
             intro="Cada grupo existe por um objetivo e encerra com resultado e memória."
@@ -230,7 +228,7 @@ export default async function CommunityPage({
                   <p className="text-xs font-black uppercase text-comun-yellow">
                     {group.state} · {group.cycle}
                   </p>
-                  <h3 className="mt-2 text-xl font-black uppercase">
+                <h3 className="mt-2 text-xl font-black">
                     {group.name}
                   </h3>
                   <p className="mt-3">{group.objective}</p>
@@ -243,7 +241,7 @@ export default async function CommunityPage({
           </Header>
         </Section>
       ) : null}
-      <Section>
+      <Section><span id="memoria" className="scroll-mt-28"/>
         <Header
           title="Resultados, cultura e memória"
           intro="Atividade não é resultado. Conteúdos culturais apontam para suas fontes originais."
