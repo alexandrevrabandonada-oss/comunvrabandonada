@@ -23,3 +23,7 @@
 3. A integração principal não foi executada e não é autorizada por esta Sprint.
 
 Piloto público **NÃO ABERTO**; push **NÃO**; deploy **NÃO**; Supabase remoto **NÃO**; R2 real **NÃO**; custo externo **R$ 0**.
+
+## Atualização Sprint 34.2
+
+Os bloqueios técnicos de cadastro completo, contribuição autenticada e matriz de cinco viewports foram fechados localmente. O gate humano e cenários complementares de falha permanecem pendentes; não houve promoção. Consulte `release-readiness-sprint-34-2.md`.

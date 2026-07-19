@@ -43,3 +43,7 @@ O aviso de hidratação visto durante a regressão é causado pela injeção de 
 - validar cadastro completo e contribuição autenticada de ponta a ponta em uma candidata de integração;
 - ampliar a matriz autenticada para os cinco viewports;
 - tratar como melhoria posterior a folga inferior do onboarding móvel.
+
+## Atualização Sprint 34.2
+
+Cadastro completo, onboarding mínimo contextual, JPEG/storage local, contribuição autenticada, confirmação, Minha área e retorno à pauta foram comprovados em cinco viewports. A revisão humana continua pendente e o piloto permanece não aberto. Consulte `estado-comun-sprint-34-2-primeira-participacao-local.md`.
