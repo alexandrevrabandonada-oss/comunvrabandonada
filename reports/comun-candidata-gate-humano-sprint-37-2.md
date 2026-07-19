@@ -7,6 +7,7 @@ Data de congelamento: 19/07/2026.
 | Branch | `codex/comun-gate-humano-local` |
 | Base funcional | `e5e8980` |
 | Worktree | `C:\Projetos\comun-gate-humano-local` |
+| URL local | `http://localhost:3037/comun` |
 | Next.js | 16.2.10, build production-like obrigatório antes da sessão |
 | Banco | Supabase local; 55 migrações, última `20260719202300_comun_persistent_communities.sql` |
 | Fixtures | sintéticas, preparadas por `pilot:human-test:local` |

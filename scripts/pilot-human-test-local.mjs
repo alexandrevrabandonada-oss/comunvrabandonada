@@ -8,8 +8,12 @@ import {
   createLocalPautaMiniappFixture,
 } from "../tests/fixtures/comun/local-fixtures.mjs";
 
-const baseUrl = assertLocalEnvironment();
-if (baseUrl !== "http://localhost:3000") throw new Error("O gate humano usa somente http://localhost:3000.");
+assertLocalEnvironment();
+const port = Number(process.env.PILOT_HUMAN_TEST_PORT || "3037");
+if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error("Porta local inválida.");
+const baseUrl = `http://localhost:${port}`;
+process.env.COMUN_BASE_URL = baseUrl;
+process.env.NEXT_PUBLIC_SITE_URL = baseUrl;
 if (process.env.MEDIA_STORAGE_PROVIDER !== "supabase-local") throw new Error("Storage local obrigatório.");
 if (!existsSync(".next/BUILD_ID")) throw new Error("Build ausente. Execute npm run build antes da sessão.");
 
@@ -43,7 +47,7 @@ console.log("Para limpar fixtures depois das sessões: npm run test:fixtures:cle
 
 if (process.env.PILOT_HUMAN_TEST_CHECK_ONLY === "true") process.exit(0);
 
-const child = spawn("npm", ["run", "start"], {
+const child = spawn("npm", ["run", "start", "--", "--port", String(port)], {
   env: process.env,
   stdio: "inherit",
   shell: process.platform === "win32",
