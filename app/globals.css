@@ -79,6 +79,9 @@ a:active { transform: translateY(1px); }
 .comun-sheet { animation: comun-sheet-in 200ms ease-out; }
 @keyframes comun-sheet-in { from { opacity: .7; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
 
+/* Texto auxiliar deve manter contraste AA sobre as superfícies escuras. */
+.text-comun-paper\/45 { color: rgb(244 239 228 / .68); }
+
 :focus-visible {
   outline: 3px solid #f4c400;
   outline-offset: 3px;

@@ -18,7 +18,7 @@ test("visitante percorre território comunidade pauta resultado e memória sem c
   await page.goto("/comun/territorios");
   await expect(page.getByRole("heading", { name: "Territórios" })).toBeVisible();
   await page.goto("/comun/c/cidade");
-  await expect(page.getByText(/Demonstração local · conteúdo sintético/i)).toBeVisible();
+  await expect(page.getByText(/Ambiente de demonstração · conteúdo sintético/i)).toBeVisible();
   await expect(page.getByRole("heading", { name: "Cidade Abandonada" })).toBeVisible();
   await page.getByRole("link", { name: "Abrir pauta prioritária" }).click();
   await expect(page).toHaveURL(/\/comun\/pautas\//);
@@ -27,7 +27,7 @@ test("visitante percorre território comunidade pauta resultado e memória sem c
   await expect(page.locator("#construction_circle")).toBeVisible();
   await expect(page.locator("#memoria")).toBeVisible();
   await assertAccessible(page);
-  await page.screenshot({ path: `reports/screenshots/sprint-37-visitor-${testInfo.project.name}.png`, fullPage: true });
+  await page.screenshot({ path: `reports/screenshots/sprint-37-1-visitor-${testInfo.project.name}.png`, fullPage: true });
 });
 
 test("pessoa nova acompanha contribui consulta inbox e sai", async ({ page }, testInfo) => {
@@ -68,7 +68,7 @@ test("pessoa nova acompanha contribui consulta inbox e sai", async ({ page }, te
   await page.getByRole("button", { name: /Enviar contribuição/ }).click();
   await expect(page.getByRole("heading", { name: /Recebemos seu registro/ })).toBeVisible();
   await expect(page.getByText("Estado: em revisão")).toBeVisible();
-  await page.screenshot({ path: `reports/screenshots/sprint-37-confirmation-${testInfo.project.name}.png`, fullPage: true });
+  await page.screenshot({ path: `reports/screenshots/sprint-37-1-confirmation-${testInfo.project.name}.png`, fullPage: true });
 
   await page.getByRole("link", { name: "Ver em Minha área" }).click();
   await expect(page.getByRole("heading", { name: "Minha área" })).toBeVisible();
@@ -77,7 +77,7 @@ test("pessoa nova acompanha contribui consulta inbox e sai", async ({ page }, te
   await page.goto("/comun/caixa-de-entrada");
   await expect(page.getByText(/Agora você acompanha Cidade Abandonada/)).toBeVisible();
   await assertAccessible(page);
-  await page.screenshot({ path: `reports/screenshots/sprint-37-inbox-${testInfo.project.name}.png`, fullPage: true });
+  await page.screenshot({ path: `reports/screenshots/sprint-37-1-inbox-${testInfo.project.name}.png`, fullPage: true });
 
   await page.goto("/comun/c/cidade");
   await expect(page.getByRole("heading", { name: "Roda e atividade" })).toBeVisible();
@@ -89,7 +89,7 @@ test("pessoa nova acompanha contribui consulta inbox e sai", async ({ page }, te
   await page.getByRole("button", { name: "Retomar" }).click();
   await page.getByRole("button", { name: "Deixar comunidade" }).click();
   await expect(page).toHaveURL(/status=leave/);
-  await page.screenshot({ path: `reports/screenshots/sprint-37-exit-${testInfo.project.name}.png`, fullPage: true });
+  await page.screenshot({ path: `reports/screenshots/sprint-37-1-exit-${testInfo.project.name}.png`, fullPage: true });
 });
 
 test("erros de autenticação preservam contexto e oferecem próxima ação", async ({ page }, testInfo) => {

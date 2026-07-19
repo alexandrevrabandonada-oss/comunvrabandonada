@@ -25,7 +25,7 @@ test("comunidade mostra propósito ação e pauta sem duplicação", async ({
   await expect(
     page.getByRole("heading", { name: "Por que existimos" }),
   ).toBeVisible();
-  await expect(page.getByText(/Registrar um trecho de calçada/)).toBeVisible();
+  await expect(page.getByText(/Registrar um trecho fictício de calçada/)).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Pauta prioritária" }),
   ).toBeVisible();

@@ -37,7 +37,7 @@ export default async function Page() {
             >
               <div className="flex flex-wrap items-center gap-3">
                 <ComunStatus>{x.priority}</ComunStatus>
-                {!x.read_at?<span className="size-2 rounded-full bg-comun-yellow" aria-label="Não lida"/>:null}<span className="text-xs font-bold text-comun-paper/60">
+                {!x.read_at?<><span className="size-2 rounded-full bg-comun-yellow" aria-hidden="true"/><span className="sr-only">Não lida</span></>:null}<span className="text-xs font-bold text-comun-paper/60">
                   {x.notification_type.replaceAll("_", " ")}
                 </span>
               </div>
