@@ -1,7 +1,7 @@
 const VERSION = "comun-pwa-v1";
 const SHELL_CACHE = `${VERSION}-shell`;
 const PUBLIC_CACHE = `${VERSION}-public`;
-const SHELL = ["/comun", "/comun/offline", "/manifest.webmanifest", "/icons/comun-192.svg", "/icons/comun-512.svg", "/icons/comun-maskable.svg"];
+const SHELL = ["/comun", "/comun/offline", "/manifest.webmanifest", "/icons/comun-192.png", "/icons/comun-512.png", "/icons/comun-maskable-512.png"];
 const PUBLIC_PREFIXES = [
   "/comun/territorios", "/comun/comunidades", "/comun/c/", "/comun/pautas", "/comun/resultados",
   "/comun/dossies", "/comun/radio", "/comun/arte", "/comun/acervo", "/comun/observatorios",

@@ -8,12 +8,12 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   applicationName: "COMUN",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "COMUN" },
-  icons: { icon: "/icons/comun-192.svg", apple: "/icons/comun-192.svg" },
+  icons: { icon: "/icons/comun-192.png", apple: "/icons/comun-192.png" },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" data-scroll-behavior="smooth">
       <body>{children}</body>
     </html>
   );

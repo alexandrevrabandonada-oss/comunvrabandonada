@@ -13,9 +13,9 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#0b0b0a",
     orientation: "any",
     icons: [
-      { src: "/icons/comun-192.svg", sizes: "192x192", type: "image/svg+xml" },
-      { src: "/icons/comun-512.svg", sizes: "512x512", type: "image/svg+xml" },
-      { src: "/icons/comun-maskable.svg", sizes: "512x512", type: "image/svg+xml", purpose: "maskable" },
+      { src: "/icons/comun-192.png", sizes: "192x192", type: "image/png" },
+      { src: "/icons/comun-512.png", sizes: "512x512", type: "image/png" },
+      { src: "/icons/comun-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
     shortcuts: [
       { name: "Participar", short_name: "Participar", url: "/comun/participar" },
