@@ -66,7 +66,8 @@ test("pessoa nova acompanha contribui consulta inbox e sai", async ({ page }, te
   await page.getByRole("button", { name: "Continuar" }).click();
   await assertAccessible(page);
   await page.getByRole("button", { name: /Enviar contribuição/ }).click();
-  await expect(page.getByRole("heading", { name: /registro está em revisão/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Recebemos seu registro/ })).toBeVisible();
+  await expect(page.getByText("Estado: em revisão")).toBeVisible();
   await page.screenshot({ path: `reports/screenshots/sprint-37-confirmation-${testInfo.project.name}.png`, fullPage: true });
 
   await page.getByRole("link", { name: "Ver em Minha área" }).click();
