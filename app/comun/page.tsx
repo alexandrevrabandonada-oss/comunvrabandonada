@@ -3,23 +3,32 @@ import { ArrowRight, Check, MapPin, Route } from "lucide-react";
 import { ComunShell, PrimaryLink } from "@/components/comun-shell";
 import { ComunEmptyState, ComunSection, ComunStatus } from "@/components/comun-ui";
 import { HubCard } from "@/components/hub-card";
+import { ResumeJourneySection } from "@/components/community-journey-memory";
 import { getCentralExperience } from "@/lib/central-experience";
 import { listPublicActions, listPublicResults, listPublicTerritories } from "@/lib/central-hub";
 import { listPublicPautaSpaces } from "@/lib/pauta-spaces";
+import { getOptionalCommunitySession } from "@/lib/community-auth";
+import { getPersonalCenter } from "@/lib/personal-center";
 
 export const dynamic = "force-dynamic";
 
 export default async function ComunHomePage() {
-  const [pautas, actions, results, territories, experience] = await Promise.all([
+  const [pautas, actions, results, territories, experience, session] = await Promise.all([
     listPublicPautaSpaces(),
     listPublicActions(6),
     listPublicResults(4),
     listPublicTerritories(),
     getCentralExperience(),
+    getOptionalCommunitySession(),
   ]);
   const activeActions = actions.filter((action: any) => action.status !== "completed").slice(0, 3);
   const featuredTerritory = territories[0];
   const featuredPauta = pautas[0];
+
+  if (session?.user) {
+    const center = await getPersonalCenter(session.user.id);
+    return <AuthenticatedHome center={center} experience={experience} profile={session.profile}/>;
+  }
 
   return <ComunShell>
     <ComunSection className="pb-7 pt-8 sm:pt-12">
@@ -93,6 +102,18 @@ export default async function ComunHomePage() {
     <ComunSection className="pt-0"><div className="border-2 border-comun-yellow bg-comun-yellow p-6 text-comun-black sm:p-8"><Route aria-hidden="true" className="mb-5"/><h2 className="max-w-3xl text-3xl font-black uppercase leading-none sm:text-5xl">Comece pelo que você já sabe: um lugar, uma questão ou uma vontade de ajudar.</h2><p className="mt-4 max-w-2xl">Você consegue explorar o COMUN sem cadastro. A conta só é pedida quando ela protege uma contribuição, uma participação ou o seu acompanhamento pessoal.</p><div className="mt-6 flex flex-wrap gap-3"><Link href="/comun/participar" className="inline-flex min-h-12 items-center border-2 border-comun-black bg-comun-black px-5 font-black uppercase text-comun-paper">Ver formas de participar</Link><Link href="/comun/entrar" className="inline-flex min-h-12 items-center border-2 border-comun-black px-5 font-black uppercase">Entrar na minha área</Link></div></div></ComunSection>
   </ComunShell>;
 }
+
+function AuthenticatedHome({ center, experience, profile }: { center: any; experience: any; profile: any }) {
+  const attention = center.inbox.filter((item: any) => !item.read_at).sort((a: any, b: any) => priority(b.priority) - priority(a.priority));
+  const hasPersonalContent = attention.length || center.memberships.length || center.actions.length || center.results.length;
+  return <ComunShell><ComunSection className="pb-4 pt-8"><h1 className="text-4xl font-black uppercase leading-none text-comun-paper sm:text-6xl">Bom te ver de volta{profile?.display_name ? `, ${profile.display_name}` : ""}.</h1><p className="mt-3 max-w-2xl text-comun-paper/70">Sua área começa pelo que precisa de ação. O restante aparece somente quando ajuda a continuar.</p></ComunSection>{attention.length ? <ComunSection className="py-4"><div className="bg-comun-yellow p-5 text-comun-black sm:flex sm:items-center sm:justify-between sm:gap-6"><div><p className="text-xs font-black uppercase">Precisa da sua atenção</p><h2 className="mt-2 text-2xl font-black uppercase leading-tight">{attention[0].title}</h2><p className="mt-2">{attention[0].summary}</p></div><Link href={attention[0].action_url} className="mt-4 inline-flex min-h-12 shrink-0 items-center bg-comun-black px-5 font-black uppercase text-comun-paper sm:mt-0">Abrir próxima ação</Link></div></ComunSection> : null}<ResumeJourneySection/>{center.memberships.length ? <PriorityRail title="Pautas que acompanha" href="/comun/minha-participacao" action="Ver Minha área" rows={center.memberships.slice(0, 3).map((item: any) => ({ id: item.id, title: item.pauta?.title, text: item.pauta?.next_step ?? item.pauta?.public_synthesis, href: `/comun/pautas/${item.pauta?.slug}` }))}/> : null}{center.actions.length ? <PriorityRail title="Participe agora" href="/comun/participar" action="Ver oportunidades" rows={center.actions.slice(0, 3).map((item: any) => ({ id: item.id, title: item.title, text: item.participation_public, href: `/comun/acoes/${item.slug}` }))}/> : null}{center.results.length ? <PriorityRail title="Resultados" href="/comun/minha-participacao" action="Ver resultados" rows={center.results.slice(0, 3).map((item: any) => ({ id: item.id, title: item.title, text: item.public_summary, href: `/comun/resultados` }))}/> : null}{experience.memory.length ? <PriorityRail title="Memórias" href="/comun/acervo" action="Acessar memórias" rows={experience.memory.slice(0, 3).map((item: any) => ({ id: item.id, title: item.title, text: item.summary, href: `/comun/acervo/${item.slug}` }))}/> : null}{!hasPersonalContent ? <ComunSection><div className="border-2 border-comun-yellow p-6"><h2 className="text-2xl font-black uppercase text-comun-yellow">Comece pelo seu território</h2><p className="mt-3 max-w-2xl text-comun-paper/75">Sua área ainda está vazia. Explore um território, conheça uma comunidade ou acompanhe uma pauta; as próximas ações aparecerão aqui.</p><div className="mt-5 flex flex-wrap gap-3"><PrimaryLink href="/comun/territorios">Escolher território</PrimaryLink><Link className="inline-flex min-h-12 items-center border-2 border-comun-yellow px-4 font-black uppercase text-comun-yellow" href="/comun/comunidades">Ver comunidades</Link><Link className="inline-flex min-h-12 items-center px-3 font-black uppercase underline" href="/comun/pautas">Explorar pautas</Link></div></div></ComunSection> : null}</ComunShell>;
+}
+
+function PriorityRail({ title, rows, href, action }: { title: string; rows: { id: string; title: string; text?: string; href: string }[]; href: string; action: string }) {
+  return <ComunSection className="py-5"><header className="mb-3 flex items-end justify-between gap-4 border-b-2 border-comun-yellow pb-3"><h2 className="text-2xl font-black uppercase text-comun-yellow">{title}</h2><Link className="text-sm font-black uppercase underline" href={href}>{action}</Link></header><div className="divide-y-2 divide-comun-black border-2 border-comun-black bg-comun-paper text-comun-black">{rows.map((row) => <Link href={row.href} className="grid gap-2 p-4 hover:bg-comun-yellow sm:grid-cols-[1fr_2fr_auto] sm:items-center" key={row.id}><strong className="uppercase">{row.title}</strong><span className="text-sm text-comun-asphalt/75">{row.text}</span><ArrowRight size={18} aria-hidden="true"/></Link>)}</div></ComunSection>;
+}
+
+function priority(value: string) { return value === "urgent" ? 4 : value === "attention" ? 3 : value === "normal" ? 2 : 1; }
 
 function HomeSection({ title, intro, children }: { title: string; intro: string; children: React.ReactNode }) {
   return <ComunSection><header className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b-2 border-comun-yellow pb-4"><div><h2 className="text-2xl font-black uppercase text-comun-yellow sm:text-3xl">{title}</h2><p className="mt-2 max-w-3xl text-comun-paper/75">{intro}</p></div><Check aria-hidden="true" className="text-comun-yellow" /></header>{children}</ComunSection>;
