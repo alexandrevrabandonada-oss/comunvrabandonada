@@ -29,3 +29,7 @@
 - serviços externos, Supabase remoto, R2 e Vercel: não utilizados;
 - custos externos: R$ 0;
 - secrets, cron, filas e endpoint de processamento: não alterados.
+
+## Atualização Sprint 34.1
+
+A regressão antes pendente foi executada: experiência central 55/55 e piloto de calçadas 75/75. A candidata local segue **não pronta para promoção**, pois os gates humanos, o cadastro completo e a contribuição autenticada dedicada continuam pendentes. Consulte `release-readiness-sprint-34-1.md`.

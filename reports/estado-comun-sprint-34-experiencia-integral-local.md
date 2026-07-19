@@ -28,3 +28,7 @@ Data: 19/07/2026. Estado: **implementação local verificada, não promovida**.
 - Não houve mudança de scheduler, endpoint, fila ou secrets.
 - O estado de abertura pública permanece sujeito aos gates humanos já documentados nas Sprints 33.1–33.2.1.
 - As duas vulnerabilidades moderadas herdadas do PostCSS não foram tratadas: a sugestão disponível exige `npm audit fix --force`, fora do escopo e potencialmente quebrável.
+
+## Atualização Sprint 34.1
+
+A jornada autenticada local foi implementada e verificada. Retorno seguro, onboarding retomável, home autenticada, Minha área, participação contextual e continuidade das comunidades estão documentados em `estado-comun-sprint-34-1-jornada-autenticada-local.md`. A regressão central passou 55/55 e o piloto de calçadas 75/75. O projeto permanece sem integração, push, deploy ou abertura pública.
