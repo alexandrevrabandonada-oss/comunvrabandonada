@@ -22,6 +22,7 @@ import { applyPautaAppTemplate, upsertPautaModule } from "@/lib/pauta-miniapps";
 import { pautaAppTemplates, pautaModuleTypes, type PautaModuleType } from "@/lib/comun/pauta-module-registry";
 import { getCommunitySession, requireCommunitySession } from "@/lib/community-auth";
 import { communityOnboardingHref, safeCommunityReturn } from "@/lib/community-return";
+import { communityLoginError, communitySignupError } from "@/lib/community-auth-errors";
 
 const reportSchema = z.object({
   community_slug: z.string().min(1),
@@ -821,7 +822,7 @@ export async function createCommunityAccount(_: unknown, formData: FormData) {
   if ((process.env.COMMUNITY_REGISTRATION_MODE ?? "open") !== "open") return { ok: false, error: "Cadastros comunitários não estão abertos agora." };
   const supabase = await createSupabaseServerClient(); if (!supabase) return { ok: false, error: "Cadastro indisponível." };
   const { data, error } = await supabase.auth.signUp({ email: parsed.data.email.toLowerCase(), password: parsed.data.password });
-  if (error || !data.user) return { ok: false, error: "Não foi possível concluir o cadastro." };
+  if (error || !data.user) return { ok: false, error: communitySignupError(error) };
   const service = createServiceSupabaseClient(); if (!service) return { ok: false, error: "Cadastro indisponível." };
   const { error: profileError } = await service.from("comun_member_profiles" as never).upsert({ user_id: data.user.id, display_name: parsed.data.display_name, participation_visibility: "private", profile_visibility: "private", terms_version: "2026-07", terms_accepted_at: new Date().toISOString(), privacy_version: "2026-07", privacy_accepted_at: new Date().toISOString(), status: "active" } as never, { onConflict: "user_id" as never });
   if (profileError) return { ok: false, error: "Conta criada, mas o perfil precisa ser concluído mais tarde." };
@@ -831,7 +832,7 @@ export async function createCommunityAccount(_: unknown, formData: FormData) {
 export async function loginCommunity(_: unknown, formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase(); const password = String(formData.get("password") ?? "");
   const supabase = await createSupabaseServerClient(); if (!supabase) return { ok: false, error: "Não foi possível entrar." };
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password }); if (error || !data.user) return { ok: false, error: "E-mail ou senha inválidos." };
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password }); if (error || !data.user) return { ok: false, error: communityLoginError(error) };
   const service = createServiceSupabaseClient();
   const { data: profile } = service ? await service.from("comun_member_profiles" as never).select("status,onboarding_completed_at" as never).eq("user_id" as never, data.user.id).maybeSingle() : { data: null };
   if (!profile || ["suspended", "deactivation_requested", "deactivated", "archived"].includes((profile as any).status)) { await supabase.auth.signOut(); return { ok: false, error: "Esta conta não está disponível para acesso." }; }

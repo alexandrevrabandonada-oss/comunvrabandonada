@@ -97,7 +97,7 @@ test("erros de autenticação preservam contexto e oferecem próxima ação", as
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Senha").fill("senha-invalida-local");
   await page.getByRole("button", { name: "Entrar" }).click();
-  await expect(page.getByText("Não foi possível entrar.")).toBeVisible();
+  await expect(page.getByText("Não foi possível entrar com essa senha.")).toBeVisible();
   await expect(page.locator('input[name="returnTo"]')).toHaveValue("/comun/c/cidade/participar");
   await assertAccessible(page);
 });

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createServiceSupabaseClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { communityLoginHref, safeCommunityReturn } from "@/lib/community-return";
@@ -15,7 +16,12 @@ export const getOptionalCommunitySession = getCommunitySession;
 
 export async function requireCommunitySession(returnTo = "/comun/minha-participacao") {
   const session = await getCommunitySession();
-  if (!session?.user) redirect(communityLoginHref(safeCommunityReturn(returnTo)));
+  if (!session?.user) {
+    const store = await cookies();
+    const hadAuthCookie = store.getAll().some(({ name }) => name.startsWith("sb-") && name.includes("auth-token"));
+    const href = communityLoginHref(safeCommunityReturn(returnTo));
+    redirect(hadAuthCookie ? `${href}&status=sessao-expirada` : href);
+  }
   if (["suspended", "deactivation_requested", "deactivated", "archived"].includes(session.profile?.status)) redirect("/comun/entrar?status=indisponivel");
   return session;
 }
