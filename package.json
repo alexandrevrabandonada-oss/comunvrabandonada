@@ -71,6 +71,7 @@
     "smoke:public-ui": "node scripts/smoke-comun-public-ui.mjs",
     "smoke:public-ui:local": "node scripts/smoke-comun-public-ui-local.mjs",
     "smoke:community-auth:local": "node scripts/smoke-comun-community-auth-local.mjs",
+    "smoke:community-persistence": "node scripts/smoke-comun-community-persistence.mjs",
     "smoke:territorial-art": "node --experimental-strip-types scripts/smoke-comun-territorial-art.mjs",
     "smoke:territorial-art-storage": "node --experimental-strip-types scripts/smoke-comun-territorial-art-storage.mjs",
     "prune:art-storage": "node --experimental-strip-types scripts/prune-comun-art-storage.mjs",

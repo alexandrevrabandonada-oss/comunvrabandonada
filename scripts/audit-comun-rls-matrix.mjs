@@ -6,6 +6,12 @@ import path from "node:path";
 const rootDir = process.cwd();
 
 const classifications = {
+  comun_community_memberships: { decision: "owner_read", purpose: "Vínculo e preferências da pessoa na comunidade.", sensitive: "Estado, preferências e datas pessoais.", expected: "Somente a própria pessoa lê; mutações ocorrem no servidor." },
+  comun_community_role_assignments: { decision: "owner_read", purpose: "Responsabilidades comunitárias limitadas.", sensitive: "Papel, escopo e concessão.", expected: "Somente membro titular lê papel ativo; escrita server-only." },
+  comun_community_work_groups: { decision: "public_read_safe", purpose: "Grupos temporários com objetivo e encerramento.", sensitive: "Sem lista de membros ou notas privadas.", expected: "Leitura pública apenas de grupos ativos/concluídos." },
+  comun_community_work_group_tasks: { decision: "public_read_safe", purpose: "Relação com tarefas públicas existentes.", sensitive: "Sem cópia da tarefa.", expected: "Leitura quando o grupo é público." },
+  comun_community_work_group_members: { decision: "service_role_only", purpose: "Participação interna em grupos.", sensitive: "Identidade e responsabilidade.", expected: "Sem acesso direto público." },
+  comun_community_audit_log: { decision: "service_role_only", purpose: "Auditoria do ciclo do vínculo.", sensitive: "Identidades, transições e metadata privada.", expected: "Sem acesso direto público." },
   comun_actions: {
     decision: "public_insert_safe",
     purpose: "Acoes leves de visitante em relatos/pautas.",
@@ -402,6 +408,7 @@ const allowedDecisions = new Set([
   "public_insert_safe",
   "admin_only",
   "service_role_only",
+  "owner_read",
   "must_fix",
 ]);
 
@@ -476,6 +483,9 @@ for (const table of tables) {
     failures.push(
       `${table.table_name}: tabela public_read_safe sem SELECT para anon/authenticated`,
     );
+  }
+  if (config.decision === "owner_read" && (table.anon_select || !table.authenticated_select)) {
+    failures.push(`${table.table_name}: owner_read exige SELECT authenticated e bloqueio anon`);
   }
   if (
     config.decision === "public_insert_safe" &&
@@ -605,8 +615,7 @@ function hasPublicAllowingPolicy(policiesForTable) {
     policiesForTable.some(
       (policy) =>
         String(policy.roles).includes("public") ||
-        String(policy.roles).includes("anon") ||
-        String(policy.roles).includes("authenticated"),
+        String(policy.roles).includes("anon"),
     ) &&
     policiesForTable.some(
       (policy) =>
