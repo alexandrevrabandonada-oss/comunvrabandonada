@@ -36,10 +36,7 @@ html {
 body {
   margin: 0;
   overflow-x: clip;
-  background:
-    linear-gradient(90deg, rgba(244, 196, 0, 0.06) 1px, transparent 1px),
-    linear-gradient(#171816, #0b0b0a 420px);
-  background-size: 34px 34px, auto;
+  background: #171816;
   color: #f4efe4;
 }
 
@@ -73,7 +70,14 @@ textarea {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, transform 120ms ease;
 }
+
+button:active,
+a:active { transform: translateY(1px); }
+
+.comun-sheet { animation: comun-sheet-in 200ms ease-out; }
+@keyframes comun-sheet-in { from { opacity: .7; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
 
 :focus-visible {
   outline: 3px solid #f4c400;
