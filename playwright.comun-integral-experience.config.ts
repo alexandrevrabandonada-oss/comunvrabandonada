@@ -2,6 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/comun-integral-experience",
+  globalSetup: "./tests/comun-integral-experience/global-setup.mjs",
+  globalTeardown: "./tests/comun-integral-experience/global-teardown.mjs",
   timeout: 45_000,
   fullyParallel: false,
   workers: 1,
