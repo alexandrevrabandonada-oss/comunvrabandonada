@@ -8,22 +8,354 @@ import { getCommunity, listIssues } from "@/lib/comun-data";
 import { getCommunityExperience } from "@/lib/community-experience";
 import { listPublishedPautaDossiersByCommunity } from "@/lib/pauta-dossiers";
 import { listPublicReports } from "@/lib/reports";
+import { listCommunityWorkGroups } from "@/lib/community-work-groups";
 
-export const dynamic="force-dynamic";
-export default async function CommunityPage({params}:{params:Promise<{slug:string}>}){
- const {slug}=await params,community=await getCommunity(slug),experience=getCommunityExperience(slug);if(!community||!experience)notFound();
- const[issues,reports,dossiers]=await Promise.all([listIssues({communitySlug:slug}),listPublicReports({communitySlug:slug}),listPublishedPautaDossiersByCommunity(slug)]),principal=issues[0];
- return <ComunShell><RememberJourney href={`/comun/c/${slug}`} label={`Voltar à comunidade ${community.name}`} context="Comunidade visitada"/>
- <Section><Link href="/comun/comunidades" className="font-black uppercase text-comun-yellow underline">← Comunidades</Link><div className="mt-5 grid gap-6 lg:grid-cols-[1.25fr_.75fr]"><div><p className="text-xs font-black uppercase text-comun-yellow">Comunidade {experience.kind==="territorial"?"territorial":"temática"} · {experience.territory}</p><h1 className="mt-2 text-4xl font-black uppercase leading-none sm:text-6xl">{community.name}</h1><h2 className="mt-6 text-sm font-black uppercase text-comun-yellow">Por que existimos</h2><p className="mt-2 max-w-3xl text-lg text-comun-paper/80">{experience.purpose}</p><div className="mt-6 flex flex-wrap gap-3"><PrimaryLink href={principal?`/comun/pautas/${principal.slug}`:`/comun/relatar?comunidade=${slug}`}>{principal?"Abrir pauta prioritária":community.mainCta}</PrimaryLink><Link href={`/comun/entrar?returnTo=${encodeURIComponent(`/comun/c/${slug}/participar`)}`} className="inline-flex min-h-12 items-center border-2 border-comun-yellow px-4 font-black uppercase text-comun-yellow">Acompanhar ou colaborar</Link></div></div><aside className="border-2 border-comun-yellow bg-comun-yellow p-5 text-comun-black"><p className="text-xs font-black uppercase">Próxima ação</p><h2 className="mt-2 text-2xl font-black uppercase leading-tight">{experience.nextAction}</h2><p className="mt-3 text-sm">Você pode apenas acompanhar. Escolher uma colaboração é opcional e não concede papel operacional.</p></aside></div></Section>
- {principal?<Section><Header title="Pauta prioritária" intro="A pauta mantém seu próprio objetivo, etapa e histórico."><Link href={`/comun/pautas/${principal.slug}`} className="grid gap-3 bg-comun-paper p-5 text-comun-black md:grid-cols-[auto_1fr_auto] md:items-center"><StatusLabel value={principal.status}/><div><h3 className="font-black uppercase">{principal.title}</h3><p className="mt-1 text-sm">{principal.summary}</p><p className="mt-2 font-bold">Próxima etapa: {principal.nextSteps}</p></div><ArrowRight aria-hidden="true"/></Link></Header></Section>:null}
- {experience.nextActivity||experience.circle?<Section><Header title="Roda e atividade" intro="Discussão com pergunta, etapa e consequência — não comentários infinitos.">{experience.nextActivity?<article className="mb-4 border-l-8 border-comun-yellow bg-comun-paper p-5 text-comun-black"><p className="text-xs font-black uppercase">Atividade próxima · {experience.nextActivity.dateLabel}</p><h3 className="mt-2 text-xl font-black uppercase">{experience.nextActivity.title}</h3><div className="mt-4 flex flex-wrap gap-3"><Link href={principal?`/comun/pautas/${principal.slug}#construction_circle`:`/comun/c/${slug}`} className="inline-flex min-h-11 items-center bg-comun-black px-4 font-black uppercase text-white">Abrir contexto</Link><a download href={`/comun/c/${slug}/agenda`} className="inline-flex min-h-11 items-center gap-2 border-2 border-comun-black px-4 font-black uppercase"><CalendarDays size={18}/> Adicionar ao calendário</a></div></article>:null}{experience.circle?<dl className="grid gap-3 border-2 border-comun-paper/30 p-5 md:grid-cols-2"><Info label="Pergunta" value={experience.circle.question}/><Info label="Etapa e prazo" value={`${experience.circle.stage} · ${experience.circle.deadline}`}/><Info label="Síntese" value={experience.circle.synthesis}/><Info label="Divergências" value={experience.circle.divergences}/><Info label="Decisão e encaminhamento" value={experience.circle.decision}/></dl>:null}</Header></Section>:null}
- <Section><Header title="Como participar" intro="Comece pelo que consegue fazer; interesses e atualizações são opcionais."><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{experience.collaboration.map(x=><article key={x} className="border-t-4 border-comun-yellow bg-comun-paper p-4 text-comun-black"><h3 className="font-black uppercase">{x}</h3><p className="mt-2 text-sm">Responsabilidade concreta, sem pontuação ou prestígio.</p></article>)}</div></Header></Section>
- <Section><Header title="Processos ativos" intro="Pautas com ciclo próprio, sem duplicar seu conteúdo integral."><div className="divide-y-2 divide-comun-black border-2 border-comun-black bg-comun-paper text-comun-black">{issues.map(issue=><Link key={issue.slug} href={`/comun/pautas/${issue.slug}`} className="grid gap-2 p-4 hover:bg-comun-yellow sm:grid-cols-[auto_1fr_auto] sm:items-center"><StatusLabel value={issue.status}/><span><strong className="block uppercase">{issue.title}</strong><small>{issue.nextSteps}</small></span><ArrowRight size={18}/></Link>)}</div></Header></Section>
- {experience.workingGroups.length?<Section><Header title="Grupos de trabalho" intro="Cada grupo existe por um objetivo e encerra com resultado e memória."><div className="grid gap-4 md:grid-cols-2">{experience.workingGroups.map(group=><article key={group.name} className="border-2 border-comun-yellow p-5"><p className="text-xs font-black uppercase text-comun-yellow">{group.state} · {group.cycle}</p><h3 className="mt-2 text-xl font-black uppercase">{group.name}</h3><p className="mt-3">{group.objective}</p><p className="mt-3 text-sm"><strong>Resultado esperado:</strong> {group.result}</p></article>)}</div></Header></Section>:null}
- <Section><Header title="Resultados, cultura e memória" intro="Atividade não é resultado. Conteúdos culturais apontam para suas fontes originais."><div className="grid gap-3 sm:grid-cols-3"><Tool href="/comun/arte" title="Arte"/><Tool href="/comun/radio" title="Rádio"/><Tool href="/comun/acervo" title="Acervo e memória"/></div>{dossiers.length?<div className="mt-5 grid gap-3">{dossiers.map(x=><Link key={x.id} href={`/comun/dossies/${x.public_slug}`} className="bg-comun-paper p-5 text-comun-black"><p className="text-xs font-black uppercase">Resultado revisado · {x.public_version_label}</p><h3 className="mt-2 font-black uppercase">{x.public_title}</h3><p className="mt-2 text-sm">{x.public_summary}</p></Link>)}</div>:<p className="mt-5 border-2 border-comun-paper/30 p-4">Ainda não há resultado comprovado publicado. Atividades realizadas não serão apresentadas como resultado.</p>}{reports.length?<p className="mt-4 text-sm">{reports.length} registros públicos sanitizados relacionados à memória desta comunidade.</p>:null}</Header></Section>
- <Section><Header title="Memória e governança" intro="Como decidimos, assumimos responsabilidade e corrigimos o registro público."><div className="grid gap-5 lg:grid-cols-2"><article className="bg-comun-paper p-5 text-comun-black"><h3 className="font-black uppercase">Como decidimos</h3><p className="mt-3">{experience.governance.decision}</p><ul className="mt-4 list-disc pl-5">{experience.governance.principles.map(x=><li key={x}>{x}</li>)}</ul></article><article className="border-2 border-comun-yellow p-5"><h3 className="font-black uppercase text-comun-yellow">Papéis são responsabilidades</h3><ul className="mt-3 grid gap-2">{experience.governance.roles.map(x=><li key={x}>{x}</li>)}</ul><Link href={experience.governance.correctionHref} className="mt-5 inline-block font-black uppercase text-comun-yellow underline">Contestar decisão, corrigir ou retirar</Link></article></div></Header></Section>
- </ComunShell>;
+export const dynamic = "force-dynamic";
+export default async function CommunityPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params,
+    community = await getCommunity(slug),
+    experience = getCommunityExperience(slug);
+  if (!community || !experience) notFound();
+  const [issues, reports, dossiers, persistentGroups] = await Promise.all([
+      listIssues({ communitySlug: slug }),
+      listPublicReports({ communitySlug: slug }),
+    listPublishedPautaDossiersByCommunity(slug),
+    listCommunityWorkGroups(slug),
+  ]),
+    principal = issues[0],
+    groups = persistentGroups.length ? persistentGroups.map((group:any)=>({name:group.name,state:group.state,cycle:group.cycle_label,objective:group.objective,result:group.result_expected,nextAction:group.next_action})) : experience.workingGroups;
+  return (
+    <ComunShell>
+      <RememberJourney
+        href={`/comun/c/${slug}`}
+        label={`Voltar à comunidade ${community.name}`}
+        context="Comunidade visitada"
+      />
+      <Section>
+        <Link
+          href="/comun/comunidades"
+          className="font-black uppercase text-comun-yellow underline"
+        >
+          ← Comunidades
+        </Link>
+        <div className="mt-5 grid gap-6 lg:grid-cols-[1.25fr_.75fr]">
+          <div>
+            <p className="text-xs font-black uppercase text-comun-yellow">
+              Comunidade{" "}
+              {experience.kind === "territorial" ? "territorial" : "temática"} ·{" "}
+              {experience.territory}
+            </p>
+            <h1 className="mt-2 text-4xl font-black uppercase leading-none sm:text-6xl">
+              {community.name}
+            </h1>
+            <h2 className="mt-6 text-sm font-black uppercase text-comun-yellow">
+              Por que existimos
+            </h2>
+            <p className="mt-2 max-w-3xl text-lg text-comun-paper/80">
+              {experience.purpose}
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <PrimaryLink
+                href={
+                  principal
+                    ? `/comun/pautas/${principal.slug}`
+                    : `/comun/relatar?comunidade=${slug}`
+                }
+              >
+                {principal ? "Abrir pauta prioritária" : community.mainCta}
+              </PrimaryLink>
+              <Link
+                href={`/comun/entrar?returnTo=${encodeURIComponent(`/comun/c/${slug}/participar`)}`}
+                className="inline-flex min-h-12 items-center border-2 border-comun-yellow px-4 font-black uppercase text-comun-yellow"
+              >
+                Acompanhar ou colaborar
+              </Link>
+            </div>
+          </div>
+          <aside className="border-2 border-comun-yellow bg-comun-yellow p-5 text-comun-black">
+            <p className="text-xs font-black uppercase">Próxima ação</p>
+            <h2 className="mt-2 text-2xl font-black uppercase leading-tight">
+              {experience.nextAction}
+            </h2>
+            <p className="mt-3 text-sm">
+              Você pode apenas acompanhar. Escolher uma colaboração é opcional e
+              não concede papel operacional.
+            </p>
+          </aside>
+        </div>
+      </Section>
+      {principal ? (
+        <Section>
+          <Header
+            title="Pauta prioritária"
+            intro="A pauta mantém seu próprio objetivo, etapa e histórico."
+          >
+            <Link
+              href={`/comun/pautas/${principal.slug}`}
+              className="grid gap-3 bg-comun-paper p-5 text-comun-black md:grid-cols-[auto_1fr_auto] md:items-center"
+            >
+              <StatusLabel value={principal.status} />
+              <div>
+                <h3 className="font-black uppercase">{principal.title}</h3>
+                <p className="mt-1 text-sm">{principal.summary}</p>
+                <p className="mt-2 font-bold">
+                  Próxima etapa: {principal.nextSteps}
+                </p>
+              </div>
+              <ArrowRight aria-hidden="true" />
+            </Link>
+          </Header>
+        </Section>
+      ) : null}
+      {experience.nextActivity || experience.circle ? (
+        <Section>
+          <Header
+            title="Roda e atividade"
+            intro="Discussão com pergunta, etapa e consequência — não comentários infinitos."
+          >
+            {experience.nextActivity ? (
+              <article className="mb-4 border-l-8 border-comun-yellow bg-comun-paper p-5 text-comun-black">
+                <p className="text-xs font-black uppercase">
+                  Atividade próxima · {experience.nextActivity.dateLabel}
+                </p>
+                <h3 className="mt-2 text-xl font-black uppercase">
+                  {experience.nextActivity.title}
+                </h3>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <Link
+                    href={
+                      principal
+                        ? `/comun/pautas/${principal.slug}#construction_circle`
+                        : `/comun/c/${slug}`
+                    }
+                    className="inline-flex min-h-11 items-center bg-comun-black px-4 font-black uppercase text-white"
+                  >
+                    Abrir contexto
+                  </Link>
+                  <a
+                    download
+                    href={`/comun/c/${slug}/agenda`}
+                    className="inline-flex min-h-11 items-center gap-2 border-2 border-comun-black px-4 font-black uppercase"
+                  >
+                    <CalendarDays size={18} /> Adicionar ao calendário
+                  </a>
+                </div>
+              </article>
+            ) : null}
+            {experience.circle ? (
+              <dl className="grid gap-3 border-2 border-comun-paper/30 p-5 md:grid-cols-2">
+                <Info label="Pergunta" value={experience.circle.question} />
+                <Info
+                  label="Etapa e prazo"
+                  value={`${experience.circle.stage} · ${experience.circle.deadline}`}
+                />
+                <Info label="Síntese" value={experience.circle.synthesis} />
+                <Info
+                  label="Divergências"
+                  value={experience.circle.divergences}
+                />
+                <Info
+                  label="Decisão e encaminhamento"
+                  value={experience.circle.decision}
+                />
+              </dl>
+            ) : null}
+          </Header>
+        </Section>
+      ) : null}
+      <Section>
+        <Header
+          title="Como participar"
+          intro="Comece pelo que consegue fazer; interesses e atualizações são opcionais."
+        >
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {experience.collaboration.map((x) => (
+              <article
+                key={x}
+                className="border-t-4 border-comun-yellow bg-comun-paper p-4 text-comun-black"
+              >
+                <h3 className="font-black uppercase">{x}</h3>
+                <p className="mt-2 text-sm">
+                  Responsabilidade concreta, sem pontuação ou prestígio.
+                </p>
+              </article>
+            ))}
+          </div>
+        </Header>
+      </Section>
+      <Section>
+        <Header
+          title="Processos ativos"
+          intro="Pautas com ciclo próprio, sem duplicar seu conteúdo integral."
+        >
+          <div className="divide-y-2 divide-comun-black border-2 border-comun-black bg-comun-paper text-comun-black">
+            {issues.map((issue) => (
+              <Link
+                key={issue.slug}
+                href={`/comun/pautas/${issue.slug}`}
+                className="grid gap-2 p-4 hover:bg-comun-yellow sm:grid-cols-[auto_1fr_auto] sm:items-center"
+              >
+                <StatusLabel value={issue.status} />
+                <span>
+                  <strong className="block uppercase">{issue.title}</strong>
+                  <small>{issue.nextSteps}</small>
+                </span>
+                <ArrowRight size={18} />
+              </Link>
+            ))}
+          </div>
+        </Header>
+      </Section>
+      {groups.length ? (
+        <Section>
+          <Header
+            title="Grupos de trabalho"
+            intro="Cada grupo existe por um objetivo e encerra com resultado e memória."
+          >
+            <div className="grid gap-4 md:grid-cols-2">
+              {groups.map((group) => (
+                <article
+                  key={group.name}
+                  className="border-2 border-comun-yellow p-5"
+                >
+                  <p className="text-xs font-black uppercase text-comun-yellow">
+                    {group.state} · {group.cycle}
+                  </p>
+                  <h3 className="mt-2 text-xl font-black uppercase">
+                    {group.name}
+                  </h3>
+                  <p className="mt-3">{group.objective}</p>
+                  <p className="mt-3 text-sm">
+                    <strong>Resultado esperado:</strong> {group.result}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </Header>
+        </Section>
+      ) : null}
+      <Section>
+        <Header
+          title="Resultados, cultura e memória"
+          intro="Atividade não é resultado. Conteúdos culturais apontam para suas fontes originais."
+        >
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Tool href="/comun/arte" title="Arte" />
+            <Tool href="/comun/radio" title="Rádio" />
+            <Tool href="/comun/acervo" title="Acervo e memória" />
+          </div>
+          {dossiers.length ? (
+            <div className="mt-5 grid gap-3">
+              {dossiers.map((x) => (
+                <Link
+                  key={x.id}
+                  href={`/comun/dossies/${x.public_slug}`}
+                  className="bg-comun-paper p-5 text-comun-black"
+                >
+                  <p className="text-xs font-black uppercase">
+                    Resultado revisado · {x.public_version_label}
+                  </p>
+                  <h3 className="mt-2 font-black uppercase">
+                    {x.public_title}
+                  </h3>
+                  <p className="mt-2 text-sm">{x.public_summary}</p>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-5 border-2 border-comun-paper/30 p-4">
+              Ainda não há resultado comprovado publicado. Atividades realizadas
+              não serão apresentadas como resultado.
+            </p>
+          )}
+          {reports.length ? (
+            <p className="mt-4 text-sm">
+              {reports.length} registros públicos sanitizados relacionados à
+              memória desta comunidade.
+            </p>
+          ) : null}
+        </Header>
+      </Section>
+      <Section>
+        <Header
+          title="Memória e governança"
+          intro="Como decidimos, assumimos responsabilidade e corrigimos o registro público."
+        >
+          <div className="grid gap-5 lg:grid-cols-2">
+            <article className="bg-comun-paper p-5 text-comun-black">
+              <h3 className="font-black uppercase">Como decidimos</h3>
+              <p className="mt-3">{experience.governance.decision}</p>
+              <ul className="mt-4 list-disc pl-5">
+                {experience.governance.principles.map((x) => (
+                  <li key={x}>{x}</li>
+                ))}
+              </ul>
+            </article>
+            <article className="border-2 border-comun-yellow p-5">
+              <h3 className="font-black uppercase text-comun-yellow">
+                Papéis são responsabilidades
+              </h3>
+              <ul className="mt-3 grid gap-2">
+                {experience.governance.roles.map((x) => (
+                  <li key={x}>{x}</li>
+                ))}
+              </ul>
+              <Link
+                href={experience.governance.correctionHref}
+                className="mt-5 inline-block font-black uppercase text-comun-yellow underline"
+              >
+                Contestar decisão, corrigir ou retirar
+              </Link>
+            </article>
+          </div>
+        </Header>
+      </Section>
+    </ComunShell>
+  );
 }
-function Header({title,intro,children}:{title:string;intro:string;children:React.ReactNode}){return <div><header className="mb-5 border-b-2 border-comun-yellow pb-4"><h2 className="text-2xl font-black uppercase text-comun-yellow">{title}</h2><p className="mt-2 max-w-3xl text-comun-paper/70">{intro}</p></header>{children}</div>}
-function Info({label,value}:{label:string;value:string}){return <div><dt className="text-xs font-black uppercase text-comun-yellow">{label}</dt><dd className="mt-1">{value}</dd></div>}
-function Tool({href,title}:{href:string;title:string}){return <Link href={href} className="flex min-h-28 items-end justify-between border-2 border-comun-paper/30 p-4 font-black uppercase hover:border-comun-yellow">{title}<ArrowRight size={18}/></Link>}
+function Header({
+  title,
+  intro,
+  children,
+}: {
+  title: string;
+  intro: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <header className="mb-5 border-b-2 border-comun-yellow pb-4">
+        <h2 className="text-2xl font-black uppercase text-comun-yellow">
+          {title}
+        </h2>
+        <p className="mt-2 max-w-3xl text-comun-paper/70">{intro}</p>
+      </header>
+      {children}
+    </div>
+  );
+}
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-xs font-black uppercase text-comun-yellow">
+        {label}
+      </dt>
+      <dd className="mt-1">{value}</dd>
+    </div>
+  );
+}
+function Tool({ href, title }: { href: string; title: string }) {
+  return (
+    <Link
+      href={href}
+      className="flex min-h-28 items-end justify-between border-2 border-comun-paper/30 p-4 font-black uppercase hover:border-comun-yellow"
+    >
+      {title}
+      <ArrowRight size={18} />
+    </Link>
+  );
+}
