@@ -21,11 +21,11 @@ export default async function globalSetup() {
 
   const { data: pauta, error } = await db.from("comun_pauta_spaces").insert({
     slug,
-    title: `Mapa Popular das Calçadas — ${tag}`,
-    summary: "Fixture E2E local do piloto de calçadas.",
+    title: `Mapa Popular das Calçadas — DEMONSTRAÇÃO LOCAL — ${tag}`,
+    summary: "Conteúdo sintético do ensaio local; não representa atividade, protocolo ou resultado real.",
     status: "organizing",
     visibility: "public",
-    public_synthesis: "Diagnóstico comunitário em construção.",
+    public_synthesis: "Síntese demonstrativa em construção com dados inventados.",
     next_step: "Revisar contribuições e publicar síntese.",
   }).select("id").single();
 
@@ -46,10 +46,10 @@ export default async function globalSetup() {
 
   const { data: territory } = await db.from("comun_hub_territories").insert({
     slug: `${tag}-territorio`,
-    name: `Território E2E ${tag}`,
+    name: `Território Demonstração Centro — ${tag}`,
     territory_type: "neighborhood",
     municipality: "Volta Redonda",
-    public_summary: "Território sintético para testes E2E do piloto de calçadas.",
+    public_summary: "DEMONSTRAÇÃO LOCAL: território sintético sem endereço ou atividade de campo real.",
     status: "active",
     visibility: "public",
     verification_status: "verified",
@@ -75,7 +75,7 @@ export default async function globalSetup() {
     status: "published",
     verification_status: "verified",
     visibility: "public",
-    public_summary: "Trecho de calçada com irregularidades no teste E2E.",
+    public_summary: "Trecho inteiramente sintético; nenhuma ocorrência real é afirmada.",
     public_location_level: "approximate",
     approximate_location: "Trecho entre esquinas do território E2E",
   }).select("id, slug").single();
@@ -85,7 +85,7 @@ export default async function globalSetup() {
     record_id: recordLine.id,
     slug: `${tag}-memoria`,
     title: "O que aprendemos sobre as calçadas neste ciclo de teste?",
-    public_summary: "Memória E2E do ciclo de calçadas, relacionando registros e território.",
+    public_summary: "Memória fixture do ensaio local, sem afirmação de ocorrência real.",
     status: "published",
     visibility: "public",
     published_at: new Date().toISOString(),
@@ -95,8 +95,8 @@ export default async function globalSetup() {
     pauta_id: pauta.id,
     module_id: null,
     title: "Roda de construção do Mapa Popular das Calçadas — E2E",
-    public_question: "O que precisamos entender sobre as calçadas deste território?",
-    public_context: "Rodada fixture para testes E2E do piloto de calçadas.",
+    public_question: "Qual barreira de demonstração deve ser priorizada?",
+    public_context: "DEMONSTRAÇÃO LOCAL: rodada fixture sem deliberação ou efeito real.",
     status: "open",
     participation_mode: "moderated_public",
   }).select("id").single();
