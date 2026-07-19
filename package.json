@@ -34,6 +34,7 @@
     "export:pauta:local": "node scripts/export-comun-pauta-local.mjs",
     "pilot:human-readiness:check": "node scripts/check-comun-pilot-human-readiness.mjs",
     "pilot:go-no-go:local": "node scripts/comun-pilot-go-no-go-local.mjs",
+    "pilot:human-test:local": "node scripts/comun-local-env.mjs run node scripts/pilot-human-test-local.mjs",
     "test:e2e:sidewalk-pilot": "playwright test -c playwright.sidewalk-pilot.config.ts",
     "test:a11y:sidewalk-pilot": "playwright test -c playwright.sidewalk-pilot.config.ts --grep @a11y",
     "test:visual:sidewalk-pilot": "playwright test -c playwright.sidewalk-pilot.config.ts --grep @visual",

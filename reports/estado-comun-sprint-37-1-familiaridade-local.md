@@ -23,4 +23,6 @@ A falha production-like da Sprint 37 foi corrigida. A contribuição autenticada
 
 Prontidão técnica local: **APROVADA**. Promoção/piloto: **NO-GO**, exclusivamente porque o gate humano obrigatório segue pendente.
 
+Atualização Sprint 37.2: a candidata foi congelada sobre esta base e o harness/formulários do gate foram preparados. As sessões continuam em 0/3; não houve correção de produto nem mudança da decisão humana.
+
 Piloto público **NÃO ABERTO**; integração principal **NÃO EXECUTADA**; push **NÃO EXECUTADO**; deploy **NÃO EXECUTADO**; Supabase remoto **NÃO ALTERADO**; R2 real **NÃO UTILIZADO**; dados reais **NÃO UTILIZADOS**; custo externo **R$ 0**.

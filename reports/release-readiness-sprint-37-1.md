@@ -15,4 +15,6 @@
 
 Decisão técnica local: **READY**. Decisão de promoção: **NO-GO** enquanto o gate humano não for realizado. Não há autorização implícita para piloto.
 
+Atualização Sprint 37.2: preparação do gate concluída, mas nenhuma das três sessões independentes foi executada. Estado humano: **INCONCLUSIVE_HUMAN_EXPERIENCE**.
+
 Piloto público **NÃO ABERTO**; integração principal **NÃO EXECUTADA**; push **NÃO EXECUTADO**; deploy **NÃO EXECUTADO**; Supabase remoto **NÃO ALTERADO**; R2 real **NÃO UTILIZADO**; dados reais **NÃO UTILIZADOS**; custo externo **R$ 0**.
