@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createServiceSupabaseClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireComunAdmin } from "@/lib/admin-auth";
+import { communityLoginHref, safeCommunityReturn } from "@/lib/community-return";
 
 export async function getCommunitySession() {
   const supabase = await createSupabaseServerClient(); if (!supabase) return null;
@@ -14,7 +15,7 @@ export const getOptionalCommunitySession = getCommunitySession;
 
 export async function requireCommunitySession(returnTo = "/comun/minha-participacao") {
   const session = await getCommunitySession();
-  if (!session?.user) redirect(`/comun/entrar?returnTo=${encodeURIComponent(returnTo)}`);
+  if (!session?.user) redirect(communityLoginHref(safeCommunityReturn(returnTo)));
   if (["suspended", "deactivation_requested", "deactivated", "archived"].includes(session.profile?.status)) redirect("/comun/entrar?status=indisponivel");
   return session;
 }

@@ -21,6 +21,7 @@ import { createPublicSupabaseClient, createServiceSupabaseClient, createSupabase
 import { applyPautaAppTemplate, upsertPautaModule } from "@/lib/pauta-miniapps";
 import { pautaAppTemplates, pautaModuleTypes, type PautaModuleType } from "@/lib/comun/pauta-module-registry";
 import { getCommunitySession, requireCommunitySession } from "@/lib/community-auth";
+import { communityOnboardingHref, safeCommunityReturn } from "@/lib/community-return";
 
 const reportSchema = z.object({
   community_slug: z.string().min(1),
@@ -813,8 +814,6 @@ const communityAccountSchema = z.object({
   email: z.string().trim().email(), password: z.string().min(10).max(128), password_confirmation: z.string().min(10).max(128),
   display_name: z.string().trim().min(2).max(80), terms: z.literal("on"), privacy: z.literal("on"), returnTo: z.string().optional(), website: z.string().max(0).optional(),
 }).strict();
-function safeCommunityReturn(value: string) { return value.startsWith("/comun/") && !value.startsWith("/comun/admin") ? value : "/comun/minha-participacao"; }
-
 export async function createCommunityAccount(_: unknown, formData: FormData) {
   const submitted = Object.fromEntries([...formData].filter(([key]) => !key.startsWith("$ACTION_")));
   const parsed = communityAccountSchema.safeParse(submitted);
@@ -826,7 +825,7 @@ export async function createCommunityAccount(_: unknown, formData: FormData) {
   const service = createServiceSupabaseClient(); if (!service) return { ok: false, error: "Cadastro indisponível." };
   const { error: profileError } = await service.from("comun_member_profiles" as never).upsert({ user_id: data.user.id, display_name: parsed.data.display_name, participation_visibility: "private", profile_visibility: "private", terms_version: "2026-07", terms_accepted_at: new Date().toISOString(), privacy_version: "2026-07", privacy_accepted_at: new Date().toISOString(), status: "active" } as never, { onConflict: "user_id" as never });
   if (profileError) return { ok: false, error: "Conta criada, mas o perfil precisa ser concluído mais tarde." };
-  redirect("/comun/onboarding");
+  redirect(communityOnboardingHref(parsed.data.returnTo ?? "/comun/minha-participacao"));
 }
 
 export async function loginCommunity(_: unknown, formData: FormData) {
@@ -836,8 +835,9 @@ export async function loginCommunity(_: unknown, formData: FormData) {
   const service = createServiceSupabaseClient();
   const { data: profile } = service ? await service.from("comun_member_profiles" as never).select("status,onboarding_completed_at" as never).eq("user_id" as never, data.user.id).maybeSingle() : { data: null };
   if (!profile || ["suspended", "deactivation_requested", "deactivated", "archived"].includes((profile as any).status)) { await supabase.auth.signOut(); return { ok: false, error: "Esta conta não está disponível para acesso." }; }
-  if (!(profile as any).onboarding_completed_at) redirect("/comun/onboarding");
-  redirect(safeCommunityReturn(String(formData.get("returnTo") ?? "")));
+  const returnTo = safeCommunityReturn(formData.get("returnTo"));
+  if (!(profile as any).onboarding_completed_at) redirect(communityOnboardingHref(returnTo));
+  redirect(returnTo);
 }
 
 export async function logoutCommunity() { const supabase = await createSupabaseServerClient(); await supabase?.auth.signOut(); redirect("/comun/entrar"); }
@@ -864,7 +864,7 @@ export async function saveCommunityProfileAction(formData: FormData) {
   if (!displayName || !["private", "pauta_members", "public"].includes(visibility)) throw new Error("Perfil inválido.");
   const service = createServiceSupabaseClient(); if (!service) throw new Error("Serviço indisponível.");
   const { error } = await service.from("comun_member_profiles" as never).update({ display_name: displayName, public_bio: String(formData.get("public_bio") ?? "").trim().slice(0, 280) || null, profile_visibility: visibility, participation_visibility: visibility === "public" ? "public" : visibility === "pauta_members" ? "participants" : "private", onboarding_completed_at: new Date().toISOString(), updated_at: new Date().toISOString() } as never).eq("user_id" as never, session.user.id);
-  if (error) throw new Error(error.message); revalidatePath("/comun/minha-participacao"); redirect("/comun/minha-participacao");
+  if (error) throw new Error(error.message); revalidatePath("/comun/minha-participacao"); redirect(safeCommunityReturn(formData.get("returnTo")));
 }
 
 export async function requestCommunityDeactivationAction() {
