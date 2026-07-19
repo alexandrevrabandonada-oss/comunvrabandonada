@@ -14,10 +14,13 @@ Decisão: **NÃO PRONTA PARA PILOTO PÚBLICO**; pronta apenas para gate humano l
 - [x] Minha área recebe resumo local;
 - [x] offline público seguro, E2E, mobile e Axe;
 - [x] regressão de calçadas concluída por viewport;
-- [ ] home autenticada, inbox e busca integradas;
-- [ ] persistência/autorização completa de membership e papéis;
+- [x] home autenticada, Minha área, inbox e busca integradas;
+- [x] persistência/autorização de membership, preferências e papéis;
+- [ ] solicitação/aprovação moderada, administração de papéis/grupos e publicadores avançados da Inbox;
 - [ ] matriz residual de falhas PWA/autenticação completa;
 - [ ] gate humano executado e aprovado;
 - [ ] integração principal executada.
 
 Não abrir piloto nem integrar à `main` enquanto os itens pendentes não forem decididos e verificados.
+
+Detalhamento atualizado em `reports/release-readiness-sprint-36-1.md`.

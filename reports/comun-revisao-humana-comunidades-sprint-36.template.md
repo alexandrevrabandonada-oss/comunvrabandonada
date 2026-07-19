@@ -14,11 +14,16 @@
 - [ ] Explicou o propósito.
 - [ ] Encontrou a próxima ação.
 - [ ] Acompanhou a comunidade.
+- [ ] Alterou uma preferência e confirmou que ela permaneceu salva.
+- [ ] Encontrou a comunidade na Home autenticada.
+- [ ] Encontrou o evento correspondente na Caixa de entrada.
+- [ ] Explicou a diferença entre acompanhar e ser membro.
 - [ ] Abriu uma pauta.
 - [ ] Participou de uma roda fixture.
 - [ ] Localizou o processo em Minha área.
 - [ ] Encontrou um resultado.
 - [ ] Abriu a memória.
+- [ ] Saiu da comunidade e confirmou que o estado mudou na Home e em Minha área.
 
 ## Registro
 
