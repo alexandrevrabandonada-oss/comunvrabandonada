@@ -39,6 +39,7 @@
     "test:e2e:community-radio": "playwright test -c playwright.community-radio.config.ts",
     "test:a11y:community-radio": "playwright test -c playwright.community-radio.config.ts --grep @a11y",
     "test:e2e:central-experience": "playwright test -c playwright.central-experience.config.ts",
+    "test:e2e:comun-integral-experience": "playwright test -c playwright.comun-integral-experience.config.ts",
     "test:a11y:central-experience": "playwright test -c playwright.central-experience.config.ts --grep @a11y",
     "test:visual:central-experience": "playwright test -c playwright.central-experience.config.ts --grep @visual",
     "smoke:central-experience": "node scripts/smoke-comun-central-experience.mjs",
