@@ -15,6 +15,7 @@ export function SidewalkMapModule({ pautaSlug, surface }: { pautaSlug: string; s
       <p className="mt-3 text-xs text-comun-black/70">
         Os dados representam contribuições recebidas e verificadas pelo projeto e não constituem levantamento completo do território.
       </p>
+      <Link className="mt-4 inline-flex min-h-12 items-center border-2 border-comun-black bg-comun-yellow px-4 font-black uppercase" href={`/comun/mapa/contribuir?origem=calcadas&pauta=${encodeURIComponent(pautaSlug)}&returnTo=${encodeURIComponent(`/comun/pautas/${pautaSlug}`)}`}>Registrar problema</Link>
       <ul className="mt-4 grid gap-2">
         {records.slice(0, 6).map((record: any) => (
           <li key={record.id} className="border-2 border-comun-black p-3">
