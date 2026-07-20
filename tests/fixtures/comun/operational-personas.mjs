@@ -42,7 +42,14 @@ export async function ensureLocalOperationalPersona({persona,runId=operationalRu
  if(login.data.user.id!==user.id||!login.data.session?.access_token||!login.data.session.refresh_token)throw new Error(`sessão inconsistente: ${persona}`);
  const validated=await auth.auth.getUser(login.data.session.access_token);
  await checked(validated.error,`token ${persona}`);
- const refreshed=await auth.auth.refreshSession({refresh_token:login.data.session.refresh_token});
+ let refreshed=await auth.auth.refreshSession({refresh_token:login.data.session.refresh_token});
+ // O Auth local pode rotacionar o token durante uma criação sequencial de fixtures.
+ // Reautenticar uma vez é uma recuperação real do contrato, não uma espera ou bypass.
+ if(refreshed.error){
+  const retried=await auth.auth.signInWithPassword({email,password});
+  await checked(retried.error,`relogin ${persona}`);
+  refreshed=await auth.auth.refreshSession({refresh_token:retried.data.session?.refresh_token});
+ }
  await checked(refreshed.error,`refresh ${persona}`);
  await auth.auth.signOut({scope:"local"});
  return{user,session:refreshed.data.session,email,persona,runId,pautaRole,profileId:user.id,globalRole,createdAt:new Date().toISOString(),sessionValidatedAt:new Date().toISOString()};

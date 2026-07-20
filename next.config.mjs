@@ -1,5 +1,9 @@
 const publicMediaBase = process.env.R2_PUBLIC_BASE_URL;
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const requestedDistDir = process.env.COMUN_NEXT_DIST_DIR;
+if (requestedDistDir && (!/^\.next-[a-z0-9-]+$/i.test(requestedDistDir) || requestedDistDir.includes("..") || requestedDistDir.includes("/") || requestedDistDir.includes("\\"))) {
+  throw new Error("COMUN_NEXT_DIST_DIR deve ser um diretório .next- interno e seguro");
+}
 const remotePatterns = [];
 if (publicMediaBase) {
   try {
@@ -30,6 +34,7 @@ const cspReportOnly = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  distDir: requestedDistDir || ".next",
   experimental: { serverActions: { bodySizeLimit: "31mb" } },
   poweredByHeader: false,
   allowedDevOrigins: ["127.0.0.1"],
