@@ -366,6 +366,18 @@ const classifications = {
     sensitive: "Notas privadas, coordenadas, origem da contribuição e estado editorial.",
     expected: "Servidor expõe somente registros públicos com campos sanitizados.",
   },
+  comun_sidewalk_observations: {
+    decision: "service_role_only",
+    purpose: "Histórico moderado de continuidade, piora ou resolução próxima a um registro.",
+    sensitive: "Vínculo do membro e nota original ainda não revisada.",
+    expected: "Sem acesso direto; servidor expõe somente contagens e eventos aprovados.",
+  },
+  comun_sidewalk_municipal_configs: {
+    decision: "service_role_only",
+    purpose: "Configuração editorial e cartográfica do município piloto.",
+    sensitive: "Limites e responsabilidade ainda podem estar em preparação.",
+    expected: "Servidor seleciona apenas configuração ativa e campos públicos.",
+  },
   comun_sidewalk_record_photos: {
     decision: "service_role_only",
     purpose: "Vínculo de fotos revisadas a registros de calçada.",

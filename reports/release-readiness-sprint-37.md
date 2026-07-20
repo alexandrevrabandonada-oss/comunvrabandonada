@@ -17,3 +17,9 @@ Suites históricas de comunidades, PWA, calçadas e participação não foram re
 Atualização Sprint 37.1: a causa foi corrigida e o percurso production-like foi repetido. Os 10 cenários autenticados/auth passaram nos cinco viewports e os 5 cenários visitantes passaram após alinhar uma expectativa textual do teste. Status técnico local: **READY**. Status de promoção: **NO-GO** pelo gate humano pendente (0/3).
 
 Declarações: piloto **não aberto**; integração na `main`, push e deploy **não executados**; Supabase remoto **inalterado**; R2 real/dados reais **não utilizados**; custo externo **R$ 0**.
+
+## Atualização — Miniapp Mapa Real das Calçadas
+
+O núcleo local da nova rota `/comun/calcadas` passou por lint, typecheck, build, 240 testes unitários, 30 testes E2E em cinco viewports, Axe, `db lint` e `RLS_MATRIX_OK`. A migration foi aplicada em reset local e não usa dados reais ou tiles externos.
+
+**Readiness da vertical:** NO-GO. Permanecem abertos o E2E autenticado editorial completo, proximidade operacional, criação administrativa de prioridades, pacote de pressão, production-like final, regressões históricas e gate humano. Nenhum push ou deploy foi executado.
