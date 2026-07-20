@@ -13,7 +13,7 @@ export class SupabaseLocalStorageProvider implements MediaStorageProvider{privat
  async listFixtureScopeForCleanup(prefix:string){return[...(await this.listObjects("private_original",prefix)),...(await this.listObjects("public_safe",prefix))]}
  createPublicDerivativeUrl(key:string){const bucket=key.startsWith("radio-public/")?buckets.radio_public:buckets.public_safe;return`${this.url}/storage/v1/object/public/${bucket}/${safeKey(key)}`}
  async createPrivateReadUrl(key:string,expiresIn=300){const{data,error}=await this.db.storage.from(buckets.private_original).createSignedUrl(safeKey(key),Math.min(expiresIn,900));if(error)throw error;return{url:data.signedUrl,expiresAt:new Date(Date.now()+Math.min(expiresIn,900)*1000)}}
- async putObject(input:UploadUrlInput&{body:Uint8Array}){safeKey(input.key);const{error}=await this.db.storage.from(buckets[input.scope]).upload(input.key,input.body,{contentType:input.contentType,upsert:false});if(error)throw error}
+ async putObject(input:UploadUrlInput&{body:Uint8Array}){safeKey(input.key);const body=Buffer.from(input.body.buffer,input.body.byteOffset,input.body.byteLength);const{error}=await this.db.storage.from(buckets[input.scope]).upload(input.key,body,{contentType:input.contentType,upsert:false});if(error)throw error}
  async deleteObject(scope:BucketScope,key:string){const{error}=await this.db.storage.from(buckets[scope]).remove([safeKey(key)]);if(error)throw error}
  async copyObject(a:BucketScope,ak:string,b:BucketScope,bk:string){const body=await this.readObject(a,ak);await this.putObject({scope:b,key:bk,contentType:"application/octet-stream",sizeBytes:body.byteLength,body})}
  async objectExists(scope:BucketScope,key:string){return Boolean(await this.getObjectMetadata(scope,key))}
