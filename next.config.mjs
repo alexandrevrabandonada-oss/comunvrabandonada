@@ -18,6 +18,19 @@ if (publicMediaBase) {
     /* build remains safe while R2 is not configured */
   }
 }
+if (supabaseUrl) {
+  try {
+    const url = new URL(supabaseUrl);
+    remotePatterns.push({
+      protocol: url.protocol.replace(":", ""),
+      hostname: url.hostname,
+      port: url.port,
+      pathname: "/storage/v1/object/public/**",
+    });
+  } catch {
+    /* build remains safe while Supabase is not configured */
+  }
+}
 const cspReportOnly = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -26,7 +39,7 @@ const cspReportOnly = [
   "form-action 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: ${publicMediaBase || ""}`.trim(),
+  `img-src 'self' data: blob: ${publicMediaBase || ""} ${supabaseUrl || ""}`.trim(),
   `connect-src 'self' ${supabaseUrl || ""}`.trim(),
   "font-src 'self' data:",
   "media-src 'none'",
