@@ -1,10 +1,13 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { createClient } from "@supabase/supabase-js";
+import { writeFile } from "node:fs/promises";
+import { performance } from "node:perf_hooks";
 const password = "comun-primeira-participacao-34-2",
   adminEmail = "s37-admin@comun.test";
 const personaEmail = (persona: string) =>
   `fixture-s33-2-integral-s37-integral-${persona.replaceAll("_", "-")}@comun.test`;
+const performanceRows: Array<Record<string, unknown>> = [];
 const db = () =>
   createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -32,6 +35,29 @@ async function auditSurface(page: any, name: string, project: string) {
     path: `reports/screenshots/sprint-37-2-${name}-${project}.png`,
     fullPage: true,
   });
+  if (process.env.COMUN_PERFORMANCE_CAPTURE === "1") {
+    const samples: number[] = [];
+    let status = 0;
+    let payloadBytes = 0;
+    for (let index = 0; index < 5; index += 1) {
+      const started = performance.now();
+      const response = await page.request.get(page.url());
+      samples.push(performance.now() - started);
+      status = response.status();
+      payloadBytes = Buffer.byteLength(await response.body());
+    }
+    samples.sort((a, b) => a - b);
+    performanceRows.push({
+      surface: name,
+      status,
+      payloadBytes,
+      samples: samples.length,
+      averageMs: Number(
+        (samples.reduce((sum, value) => sum + value, 0) / samples.length).toFixed(2),
+      ),
+      p95Ms: Number(samples[Math.floor(samples.length * 0.95)].toFixed(2)),
+    });
+  }
 }
 async function login(
   page: any,
@@ -470,6 +496,12 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await auditSurface(page, "erro-vazio", testInfo.project.name);
   console.log("COMUN_SIDEWALK_PERSONAS_MATRIX_LOCAL_OK");
   console.log("COMUN_SIDEWALK_AXE_INTEGRAL_LOCAL_OK");
+  if (process.env.COMUN_PERFORMANCE_CAPTURE === "1")
+    await writeFile(
+      "reports/comun-performance-calcadas-sprint-37-2.json",
+      `${JSON.stringify({ commit: process.env.COMUN_PERFORMANCE_COMMIT, capturedAt: new Date().toISOString(), rows: performanceRows }, null, 2)}\n`,
+    );
+  console.log("COMUN_SIDEWALK_REAL_MAP_LOCAL_OK");
 });
 test("retorno hostil é rejeitado", async ({ page }) => {
   await page.goto("/comun/criar-conta?returnTo=https%3A%2F%2Fevil.example");

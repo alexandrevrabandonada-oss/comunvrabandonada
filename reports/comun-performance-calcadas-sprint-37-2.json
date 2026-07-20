@@ -1,0 +1,174 @@
+{
+  "commit": "70656afa808d85f7c0dd979a48f9a37a5bca7b30",
+  "capturedAt": "2026-07-20T23:11:40.775Z",
+  "rows": [
+    {
+      "surface": "mapa-clusters",
+      "status": 200,
+      "payloadBytes": 62556,
+      "samples": 5,
+      "averageMs": 35.95,
+      "p95Ms": 54.03
+    },
+    {
+      "surface": "lista-filtros",
+      "status": 200,
+      "payloadBytes": 59738,
+      "samples": 5,
+      "averageMs": 30.64,
+      "p95Ms": 32.38
+    },
+    {
+      "surface": "contribuicao-revisao",
+      "status": 200,
+      "payloadBytes": 30497,
+      "samples": 5,
+      "averageMs": 77.04,
+      "p95Ms": 92.22
+    },
+    {
+      "surface": "confirmacao",
+      "status": 200,
+      "payloadBytes": 28607,
+      "samples": 5,
+      "averageMs": 80.5,
+      "p95Ms": 83.42
+    },
+    {
+      "surface": "minha-area-pendente",
+      "status": 200,
+      "payloadBytes": 41754,
+      "samples": 5,
+      "averageMs": 93.91,
+      "p95Ms": 98.12
+    },
+    {
+      "surface": "moderacao-registro",
+      "status": 200,
+      "payloadBytes": 19266,
+      "samples": 5,
+      "averageMs": 207.88,
+      "p95Ms": 240.14
+    },
+    {
+      "surface": "ficha-observacao",
+      "status": 200,
+      "payloadBytes": 20739,
+      "samples": 5,
+      "averageMs": 23.53,
+      "p95Ms": 24.94
+    },
+    {
+      "surface": "prioridade-roda",
+      "status": 200,
+      "payloadBytes": 21218,
+      "samples": 5,
+      "averageMs": 175.76,
+      "p95Ms": 221.36
+    },
+    {
+      "surface": "pacote-mobilizacao",
+      "status": 200,
+      "payloadBytes": 16649,
+      "samples": 5,
+      "averageMs": 28.33,
+      "p95Ms": 33.76
+    },
+    {
+      "surface": "encaminhamento",
+      "status": 200,
+      "payloadBytes": 27768,
+      "samples": 5,
+      "averageMs": 158.37,
+      "p95Ms": 217.7
+    },
+    {
+      "surface": "revisao-operacional",
+      "status": 200,
+      "payloadBytes": 29960,
+      "samples": 5,
+      "averageMs": 175.79,
+      "p95Ms": 222.34
+    },
+    {
+      "surface": "protocolo",
+      "status": 200,
+      "payloadBytes": 26854,
+      "samples": 5,
+      "averageMs": 163.26,
+      "p95Ms": 204.17
+    },
+    {
+      "surface": "resposta",
+      "status": 200,
+      "payloadBytes": 27067,
+      "samples": 5,
+      "averageMs": 144.51,
+      "p95Ms": 154.48
+    },
+    {
+      "surface": "resultado",
+      "status": 200,
+      "payloadBytes": 27421,
+      "samples": 5,
+      "averageMs": 162.95,
+      "p95Ms": 215.76
+    },
+    {
+      "surface": "memoria-draft",
+      "status": 200,
+      "payloadBytes": 27940,
+      "samples": 5,
+      "averageMs": 181.47,
+      "p95Ms": 249.22
+    },
+    {
+      "surface": "memoria-revisao",
+      "status": 200,
+      "payloadBytes": 29506,
+      "samples": 5,
+      "averageMs": 148.69,
+      "p95Ms": 150.3
+    },
+    {
+      "surface": "memoria-publicada",
+      "status": 200,
+      "payloadBytes": 25972,
+      "samples": 5,
+      "averageMs": 153.17,
+      "p95Ms": 158.38
+    },
+    {
+      "surface": "minha-area-fechada",
+      "status": 200,
+      "payloadBytes": 55405,
+      "samples": 5,
+      "averageMs": 90.73,
+      "p95Ms": 97.63
+    },
+    {
+      "surface": "inbox",
+      "status": 200,
+      "payloadBytes": 41669,
+      "samples": 5,
+      "averageMs": 78.74,
+      "p95Ms": 82.8
+    },
+    {
+      "surface": "acesso-negado",
+      "status": 200,
+      "payloadBytes": 26959,
+      "samples": 5,
+      "averageMs": 12.24,
+      "p95Ms": 14.81
+    },
+    {
+      "surface": "erro-vazio",
+      "status": 404,
+      "payloadBytes": 8902,
+      "samples": 5,
+      "averageMs": 16.03,
+      "p95Ms": 18.54
+    }
+  ]
+}
