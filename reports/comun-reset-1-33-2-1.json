@@ -1,31 +1,121 @@
 {
   "round": "1",
-  "ok": false,
+  "ok": true,
   "records": [
     {
       "label": "reset",
       "ok": true,
-      "durationMs": 51666
+      "durationMs": 201654,
+      "exitCode": 1,
+      "migrations": 52,
+      "expectedMigrations": 52,
+      "recovered": true,
+      "recoveryDurationMs": 12755,
+      "restart": {
+        "service": "kong",
+        "reason": "auth saudável e upstream retornando 502",
+        "durationMs": 15533
+      }
     },
     {
       "label": "storage",
       "ok": true,
-      "durationMs": 3460
+      "durationMs": 11112
+    },
+    {
+      "label": "auth-readiness",
+      "ok": true,
+      "durationMs": 21848
     },
     {
       "label": "unit",
       "ok": true,
-      "durationMs": 4786
+      "durationMs": 5956
     },
     {
       "label": "e2e",
       "ok": true,
-      "durationMs": 88393
+      "durationMs": 301671
     },
     {
       "label": "axe",
-      "ok": false,
-      "durationMs": 211015
+      "ok": true,
+      "durationMs": 368921
+    },
+    {
+      "label": "visual",
+      "ok": true,
+      "durationMs": 334904
+    },
+    {
+      "label": "rehearsal-auth",
+      "ok": true,
+      "durationMs": 236219
+    },
+    {
+      "label": "rehearsal",
+      "ok": true,
+      "durationMs": 4395
+    },
+    {
+      "label": "editorial",
+      "ok": true,
+      "durationMs": 4600
+    },
+    {
+      "label": "sidewalk",
+      "ok": true,
+      "durationMs": 16514
+    },
+    {
+      "label": "central",
+      "ok": true,
+      "durationMs": 26390
+    },
+    {
+      "label": "pauta",
+      "ok": true,
+      "durationMs": 14140
+    },
+    {
+      "label": "radio",
+      "ok": true,
+      "durationMs": 14868
+    },
+    {
+      "label": "art-storage",
+      "ok": true,
+      "durationMs": 12402
+    },
+    {
+      "label": "art",
+      "ok": true,
+      "durationMs": 26357
+    },
+    {
+      "label": "community-auth",
+      "ok": true,
+      "durationMs": 27515
+    },
+    {
+      "label": "public-ui",
+      "ok": true,
+      "durationMs": 23236
+    },
+    {
+      "label": "no-leak",
+      "ok": true,
+      "durationMs": 27462
+    },
+    {
+      "label": "cleanup",
+      "ok": true,
+      "durationMs": 19972
+    },
+    {
+      "label": "assert-clean",
+      "ok": true,
+      "durationMs": 13623
     }
   ]
 }

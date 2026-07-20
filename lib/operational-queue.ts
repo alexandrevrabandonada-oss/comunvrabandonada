@@ -38,7 +38,7 @@ export async function listOperationalItems(query:OperationalQuery):Promise<Opera
   const db=createServiceSupabaseClient();
   const fallback:OperationalResult={items:[],pageInfo:{page:1,pageSize:query.pageSize,totalItems:0,totalPages:1,hasPrevious:false,hasNext:false},queueCounts:{},totalGeneral:0,activeFilters:query};
   if(!db)return fallback;
-  const call=db.rpc as unknown as (fn:string,args:Record<string,unknown>)=>Promise<{data:unknown;error:{message:string}|null}>;
+  const call=db.rpc.bind(db) as unknown as (fn:string,args:Record<string,unknown>)=>Promise<{data:unknown;error:{message:string}|null}>;
   const {data,error}=await call("list_comun_operational_items",{p_page:query.page,p_page_size:query.pageSize,p_queue:query.queue??null,p_status:query.status??null,p_priority:query.priority??null,p_assigned_to:query.assignedTo??null,p_unassigned:query.unassigned??false,p_pauta_id:query.pautaId??null,p_territory_id:query.territoryId??null,p_due_state:query.dueState??null,p_source_type:query.sourceType??null,p_search:query.search??null,p_sort:query.sort});
   if(error)throw new Error(`Não foi possível consultar a fila operacional: ${error.message}`);
   const raw=data as Omit<OperationalResult,"activeFilters">;

@@ -33,8 +33,11 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next-s33-2-2-build/types/**/*.ts",
+    ".next-s33-2-2-build/dev/types/**/*.ts",
+    ".next-s33-2-2-pagination/types/**/*.ts",
+    ".next-s33-2-2-pagination/dev/types/**/*.ts",
+    ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

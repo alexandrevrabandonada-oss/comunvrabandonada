@@ -45,7 +45,7 @@ begin
       and (p_due_state is null
         or (p_due_state = 'overdue' and i.indicative_due_at is not null and i.indicative_due_at < now())
         or (p_due_state = 'soon' and i.indicative_due_at is not null and i.indicative_due_at >= now() and i.indicative_due_at <= now() + interval '72 hours'))
-      and (nullif(btrim(p_search), '') is null or concat_ws(' ', i.title, i.public_reason, i.next_action) ilike '%' || replace(replace(replace(btrim(p_search), '\\', '\\\\'), '%', '\\%'), '_', '\\_') || '%' escape '\\')
+      and (nullif(btrim(p_search), '') is null or concat_ws(' ', i.title, i.public_reason, i.next_action) ilike '%' || btrim(p_search) || '%')
   )
   select count(*) into total_items from filtered;
 
@@ -70,7 +70,7 @@ begin
         and (p_due_state is null
           or (p_due_state = 'overdue' and i.indicative_due_at is not null and i.indicative_due_at < now())
           or (p_due_state = 'soon' and i.indicative_due_at is not null and i.indicative_due_at >= now() and i.indicative_due_at <= now() + interval '72 hours'))
-        and (nullif(btrim(p_search), '') is null or concat_ws(' ', i.title, i.public_reason, i.next_action) ilike '%' || replace(replace(replace(btrim(p_search), '\\', '\\\\'), '%', '\\%'), '_', '\\_') || '%' escape '\\')
+        and (nullif(btrim(p_search), '') is null or concat_ws(' ', i.title, i.public_reason, i.next_action) ilike '%' || btrim(p_search) || '%')
     ), ordered as (
       select * from filtered
       order by
