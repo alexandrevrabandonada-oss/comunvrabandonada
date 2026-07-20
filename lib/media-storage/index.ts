@@ -12,12 +12,10 @@ export type {
 let storage: MediaStorageProvider | null = null;
 export function getMediaStorage() {
   if(storage)return storage;const selected=process.env.MEDIA_STORAGE_PROVIDER||(process.env.NODE_ENV==="test"?"fixture":"r2");
-  if(selected==="supabase-local")storage=new SupabaseLocalStorageProvider();else if(selected==="fixture")storage=new FixtureStorageProvider();else storage=new R2MediaStorageProvider();return storage;
+  if(selected==="supabase-local")storage=new SupabaseLocalStorageProvider();else if(selected==="supabase")storage=new SupabaseLocalStorageProvider({allowRemote:true});else if(selected==="fixture")storage=new FixtureStorageProvider();else storage=new R2MediaStorageProvider();return storage;
 }
 export function publicMediaUrl(key: string) {
-  const base = process.env.R2_PUBLIC_BASE_URL;
-  if (!base) throw new Error("R2_PUBLIC_BASE_URL nao configurada.");
-  return `${base.replace(/\/$/, "")}/${key.split("/").map(encodeURIComponent).join("/")}`;
+  return getMediaStorage().createPublicDerivativeUrl(key);
 }
 export function mediaStorageConfiguration() {
   const keys = [
