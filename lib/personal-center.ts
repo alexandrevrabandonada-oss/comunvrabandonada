@@ -1,0 +1,88 @@
+import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { listCommunityMemberships } from "@/lib/community-membership";
+export async function getPersonalCenter(userId: string) {
+  const db = createServiceSupabaseClient();
+  if (!db)
+    return {
+      memberships: [],
+      communities: [],
+      inbox: [],
+      tasks: [],
+      circles: [],
+      actions: [],
+      results: [],
+    };
+  const [{ data: memberships }, communities] = await Promise.all([
+      db
+        .from("comun_pauta_memberships")
+        .select(
+          "id,pauta_id,role,status,joined_at,pauta:comun_pauta_spaces(id,slug,title,public_status,next_step,public_synthesis,updated_at)",
+        )
+        .eq("member_user_id", userId)
+        .eq("status", "active"),
+      listCommunityMemberships(userId),
+    ]),
+    ids = (memberships ?? []).map((x: any) => x.pauta_id);
+  const inboxPromise = db
+    .from("comun_member_inbox")
+    .select("id,pauta_id,title,summary,action_url,priority,read_at")
+    .eq("member_user_id", userId)
+    .is("resolved_at", null)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  if (!ids.length) {
+    const { data: inbox } = await inboxPromise;
+    return {
+      memberships: [],
+      communities,
+      inbox: inbox ?? [],
+      tasks: [],
+      circles: [],
+      actions: [],
+      results: [],
+    };
+  }
+  const [
+    { data: inbox },
+    { data: tasks },
+    { data: circles },
+    { data: actions },
+    { data: results },
+  ] = await Promise.all([
+    inboxPromise,
+    db
+      .from("comun_pauta_tasks")
+      .select("id,pauta_id,title,status,due_at,result_public,owner_alias")
+      .in("pauta_id", ids)
+      .in("status", ["open", "in_progress", "blocked"])
+      .eq("visibility", "public")
+      .limit(20),
+    db
+      .from("comun_construction_circles")
+      .select("id,pauta_id,title,public_question,status")
+      .in("pauta_id", ids)
+      .in("status", ["open", "synthesizing"]),
+    db
+      .from("comun_mobilization_actions")
+      .select("id,pauta_id,slug,title,status,starts_at,participation_public")
+      .in("pauta_id", ids)
+      .eq("visibility", "public")
+      .in("status", ["confirmed", "in_progress"]),
+    db
+      .from("comun_hub_results")
+      .select("id,pauta_id,slug,title,public_summary,occurred_at")
+      .in("pauta_id", ids)
+      .eq("visibility", "public")
+      .order("occurred_at", { ascending: false })
+      .limit(10),
+  ]);
+  return {
+    memberships: memberships ?? [],
+    communities,
+    inbox: inbox ?? [],
+    tasks: tasks ?? [],
+    circles: circles ?? [],
+    actions: actions ?? [],
+    results: results ?? [],
+  };
+}

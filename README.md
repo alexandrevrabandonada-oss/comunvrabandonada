@@ -1,5 +1,11 @@
 # COMUN VR ABANDONADA
 
+O fluxo local real de mídia usa `MEDIA_STORAGE_PROVIDER=supabase-local`, `npm run wait:storage:local` e `npm run smoke:territorial-art-storage`.
+
+O Acervo de Arte dos Territórios vive em `/comun/arte`, com contribuição moderada, curadoria em `/comun/admin/acervo/arte` e integração `art_gallery` nas pautas.
+
+O Mapa Popular em `/comun/mapa` organiza reciclagem, cooperativas, necessidades e áreas de interesse público na mesma fundação territorial do Hub.
+
 Plataforma comunitaria de relatos, debates e memoria coletiva ligada ao ecossistema VR Abandonada.
 
 Frase-guia: **Relatar. Confirmar. Organizar. Transformar em acao.**  
@@ -74,6 +80,10 @@ npm run smoke:admin-auth
 - `/comun/seguranca`
 - `/comun/dossies`
 - `/comun/admin`
+- `/comun/observatorios`
+- `/comun/transporte`
+
+O motor de Observatórios Populares usa metodologia e formulários versionados, observações privadas moderadas e indicadores agregados aprovados. Rode `npm run smoke:popular-observatory` após alterações.
 
 ## GitHub
 
@@ -84,3 +94,6 @@ git branch -M main
 git remote add origin <URL_DO_REPOSITORIO_GITHUB>
 git push -u origin main
 ```
+# COMUN — hub central da organização popular
+
+O fluxo principal do produto é relato → pauta → evidência → ação → acompanhamento → resultado → memória. Rotas centrais: `/comun/pautas`, `/comun/acoes`, `/comun/participar`, `/comun/territorios`, `/comun/projetos`, `/comun/resultados` e `/comun/busca`. O Acervo Vivo preserva a memória e permanece integrado sem dominar a home.

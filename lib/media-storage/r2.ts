@@ -37,7 +37,7 @@ const EXTENSIONS: Record<string, string[]> = {
   "audio/wav": ["wav"],
   "audio/ogg": ["ogg"],
 };
-const PREFIXES = ["originals/", "public/", "smoke/"];
+const PREFIXES = ["originals/", "public/", "smoke/", "radio-originals/", "radio-public/"];
 let client: S3Client | null = null;
 
 function config() {
@@ -73,7 +73,7 @@ function getClient() {
 }
 function bucket(scope: BucketScope) {
   const c = config();
-  return scope === "private_original" ? c.originals : c.public;
+  return scope === "private_original" || scope === "radio_private_original" ? c.originals : c.public;
 }
 function safeKey(key: string) {
   if (
@@ -117,6 +117,14 @@ export function validateMediaUpload(input: UploadUrlInput) {
 }
 
 export class R2MediaStorageProvider implements MediaStorageProvider {
+  async createUploadTarget(input:UploadUrlInput){const x=await this.createUploadUrl(input);return{...x,key:input.key}}
+  async confirmUpload(scope:BucketScope,key:string){const x=await this.getObjectMetadata(scope,key);if(!x)throw new Error("Objeto não encontrado.");return x}
+  async headObject(scope:BucketScope,key:string){return this.getObjectMetadata(scope,key)}
+  async readObject(_scope:BucketScope,_key:string):Promise<Uint8Array>{throw new Error("Leitura binária R2 não habilitada neste fluxo local.")}
+  async writeDerivative(input:UploadUrlInput&{body:Uint8Array}){return this.putObject(input)}
+  async removeObject(scope:BucketScope,key:string){return this.deleteObject(scope,key)}
+  async listFixtureScopeForCleanup(prefix:string){return[...(await this.listObjects("private_original",prefix)),...(await this.listObjects("public_safe",prefix))]}
+  createPublicDerivativeUrl(key:string){const base=process.env.R2_PUBLIC_BASE_URL;if(!base)throw new Error("R2_PUBLIC_BASE_URL nao configurada.");return`${base.replace(/\/$/,"")}/${safeKey(key)}`}
   async createUploadUrl(input: UploadUrlInput) {
     validateMediaUpload(input);
     const expiresIn = Math.min(input.expiresIn ?? 600, 900);

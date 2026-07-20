@@ -1,0 +1,63 @@
+import { spawn, spawnSync } from "node:child_process";
+import { writeFile } from "node:fs/promises";
+import { assertLocalPerformanceTarget } from "../lib/local-operational-performance.ts";
+
+const base = assertLocalPerformanceTarget(process.env.COMUN_BASE_URL ?? "http://127.0.0.1:3000").origin;
+const evidence = {
+  startedAt: new Date().toISOString(),
+  commit: spawnSync("git", ["rev-parse", "--short", "HEAD"], { encoding: "utf8" }).stdout.trim(),
+  branch: spawnSync("git", ["branch", "--show-current"], { encoding: "utf8" }).stdout.trim(),
+  worktree: process.cwd(),
+  node: process.version,
+  base,
+  pid: 0,
+  checks: [],
+};
+const run = (label, command, args, extra = {}) => {
+  const started = Date.now();
+  const result = spawnSync(command, args, { cwd: process.cwd(), env: { ...process.env, ...extra }, encoding: "utf8", shell: process.platform === "win32", stdio: ["ignore", "pipe", "pipe"], maxBuffer: 64 * 1024 * 1024 });
+  evidence.checks.push({ label, command: [command, ...args].join(" "), ok: result.status === 0, exitCode: result.status, durationMs: Date.now() - started });
+  if (result.status !== 0) throw new Error(`${label} failed`);
+};
+
+run("environment", "node", ["scripts/comun-local-env.mjs", "check"]);
+run("build", "npm", ["run", "build"]);
+const server = spawn("node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "start"], { cwd: process.cwd(), env: process.env, stdio: "ignore", shell: process.platform === "win32" });
+evidence.pid = server.pid ?? 0;
+try {
+  const deadline = Date.now() + 120000;
+  let ready = false;
+  while (Date.now() < deadline) {
+    try { if ((await fetch(`${base}/comun`)).ok) { ready = true; break; } } catch {}
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  if (!ready) throw new Error("next start not ready");
+  run("storage", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "storage:readiness"]);
+  run("auth-readiness", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "auth:readiness:local"]);
+  run("rls-matrix", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "audit:rls-matrix"]);
+  run("e2e", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "test:e2e:editorial-operation-authenticated"], { PLAYWRIGHT_SKIP_WEBSERVER: "true" });
+  run("cleanup-e2e", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "test:fixtures:cleanup"]);
+  run("axe", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "test:a11y:editorial-operation-authenticated"], { PLAYWRIGHT_SKIP_WEBSERVER: "true" });
+  run("cleanup-axe", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "test:fixtures:cleanup"]);
+  run("visual", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "test:visual:editorial-operation-authenticated"], { PLAYWRIGHT_SKIP_WEBSERVER: "true" });
+  run("cleanup-visual", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "test:fixtures:cleanup"]);
+  run("rehearsal-auth", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "smoke:first-pilot-authenticated-rehearsal"]);
+  run("rehearsal", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "smoke:first-pilot-rehearsal"]);
+  run("editorial", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "smoke:editorial-operation"]);
+  run("community-auth", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "smoke:community-auth:local"]);
+  run("public-ui", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "smoke:public-ui:local"]);
+  run("no-leak", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "smoke:no-leak-http"]);
+  run("cleanup", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "test:fixtures:cleanup"]);
+  run("assert-clean", "node", ["scripts/comun-local-env.mjs", "run", "npm", "run", "test:fixtures:assert-clean"]);
+  evidence.ok = true;
+  console.log("COMUN_AUTHENTICATED_PRODUCTION_LIKE_LOCAL_OK");
+} catch (error) {
+  evidence.ok = false;
+  evidence.failure = String(error?.message ?? error);
+  process.exitCode = 1;
+} finally {
+  if (process.platform === "win32" && server.pid) spawnSync("taskkill", ["/PID", String(server.pid), "/T", "/F"], { stdio: "ignore" });
+  else server.kill();
+  evidence.finishedAt = new Date().toISOString();
+  await writeFile("reports/comun-production-like-33-2-1-final.json", `${JSON.stringify(evidence, null, 2)}\n`);
+}

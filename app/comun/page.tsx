@@ -1,206 +1,651 @@
 import Link from "next/link";
-import { AlertTriangle, Archive, ArrowRight, Megaphone, Shield, ShieldCheck, type LucideIcon } from "lucide-react";
-import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
-import { listCommunities, listIssues } from "@/lib/comun-data";
-import { listPublicDossierFeatures } from "@/lib/pauta-dossiers";
-import { StatusLabel } from "@/components/status-label";
-import { getArchiveHomeFeatures } from "@/lib/archive";
+import { ArrowRight, Check, MapPin, Route } from "lucide-react";
+import { ComunShell, PrimaryLink } from "@/components/comun-shell";
+import {
+  ComunEmptyState,
+  ComunSection,
+  ComunStatus,
+} from "@/components/comun-ui";
+import { HubCard } from "@/components/hub-card";
+import { ResumeJourneySection } from "@/components/community-journey-memory";
+import { MyCommunitySummary } from "@/components/my-community-summary";
+import { getCentralExperience } from "@/lib/central-experience";
+import {
+  listPublicActions,
+  listPublicResults,
+  listPublicTerritories,
+} from "@/lib/central-hub";
+import { listPublicPautaSpaces } from "@/lib/pauta-spaces";
+import { getOptionalCommunitySession } from "@/lib/community-auth";
+import { getPersonalCenter } from "@/lib/personal-center";
 
 export const dynamic = "force-dynamic";
 
-export default async function ComunHome() {
-  const [communities, issues, featuredDossiers, archive] = await Promise.all([listCommunities(), listIssues(), listPublicDossierFeatures(), getArchiveHomeFeatures()]);
-  const quickLinks = [
-    ["Buraco ou calcada", "/comun/relatar?comunidade=cidade"],
-    ["Lixo ou entulho", "/comun/relatar?comunidade=cidade"],
-    ["Poluicao ou po preto", "/comun/relatar?comunidade=meio-ambiente"],
-    ["Escola", "/comun/relatar?comunidade=escolas"],
-    ["Saude", "/comun/relatar?comunidade=saude"],
-    ["Trabalho", "/comun/relatar?comunidade=trabalho&pauta=trabalho-burnout-volta-redonda"],
-  ] as const;
+export default async function ComunHomePage() {
+  const [pautas, actions, results, territories, experience, session] =
+    await Promise.all([
+      listPublicPautaSpaces(),
+      listPublicActions(6),
+      listPublicResults(4),
+      listPublicTerritories(),
+      getCentralExperience(),
+      getOptionalCommunitySession(),
+    ]);
+  const activeActions = actions
+    .filter((action: any) => action.status !== "completed")
+    .slice(0, 3);
+  const featuredTerritory = territories[0];
+  const featuredPauta = pautas[0];
+
+  if (session?.user) {
+    const center = await getPersonalCenter(session.user.id);
+    return (
+      <AuthenticatedHome
+        center={center}
+        experience={experience}
+        profile={session.profile}
+      />
+    );
+  }
 
   return (
     <ComunShell>
-      <Section className="pb-6 pt-10">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)] lg:items-end">
+      <ComunSection className="pb-7 pt-8 sm:pt-12">
+        <div className="grid gap-8 lg:grid-cols-[1.25fr_.75fr] lg:items-end">
           <div>
-            <p className="font-black uppercase tracking-[0.08em] text-comun-yellow">COMUN VR ABANDONADA</p>
-            <p className="mt-3 text-sm font-bold uppercase text-comun-paper/78 sm:text-base">
-              Relatos, debates e memoria coletiva da cidade.
+            <p className="mb-4 inline-flex border-2 border-comun-yellow px-2 py-1 text-xs font-black uppercase text-comun-yellow">
+              Plataforma comunitária de Volta Redonda
             </p>
-            <h1 className="comun-prose mt-4 max-w-3xl text-2xl font-black uppercase leading-[0.95] text-comun-paper min-[390px]:text-4xl sm:text-6xl">
-              O problema que parece isolado pode ser coletivo.
+            <h1 className="max-w-5xl text-4xl font-black uppercase leading-[.92] tracking-[-.04em] text-comun-paper sm:text-6xl lg:text-7xl">
+              Organize seu território. Construa soluções coletivamente.
             </h1>
-            <p className="comun-prose mt-5 max-w-2xl text-base text-comun-paper/82 sm:text-lg">
-              Relate com seguranca, acompanhe outras denuncias e ajude a organizar a memoria popular de Volta Redonda.
+            <p className="mt-5 max-w-2xl text-lg text-comun-paper/80">
+              Do que acontece na rua à memória que permanece: encontre uma
+              comunidade, acompanhe uma pauta e escolha uma contribuição
+              concreta.
             </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <PrimaryLink href="/comun/relatar">Enviar relato agora</PrimaryLink>
-              <p className="max-w-sm text-sm text-comun-paper/70">
-                Voce pode relatar de forma anonima. Antes de publicar, removemos dados sensiveis.
-              </p>
-            </div>
-          </div>
-          <div className="industrial-border bg-comun-paper p-5 text-comun-black">
-            <p className="text-sm font-black uppercase">Relatar. Confirmar. Organizar. Transformar em acao.</p>
-            <div className="mt-5 grid gap-3">
-              {["Relato bruto fica interno", "Publicacao so com curadoria", "Contato privado nunca e publico"].map((item) => (
-                <div key={item} className="flex items-start gap-3 border-2 border-comun-black bg-white/50 p-3">
-                  <ShieldCheck className="mt-0.5 text-comun-green" size={20} />
-                  <span className="comun-prose text-sm font-bold">{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      <Section>
-        <div className="border-y-2 border-comun-yellow bg-comun-black px-4 py-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 className="text-xl font-black uppercase text-comun-yellow sm:text-2xl">
-                Relate um problema em poucos passos
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm text-comun-paper/72">
-                Escolha um atalho para entrar no formulario com o tema mais proximo do seu caso.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {quickLinks.map(([label, href]) => (
-                <Link
-                  key={label}
-                  href={href}
-                  className="inline-flex min-h-11 items-center justify-center border border-comun-yellow px-3 py-2 text-center text-xs font-black uppercase text-comun-paper transition hover:bg-comun-yellow hover:text-comun-black"
-                >
-                  {label}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      <Section>
-        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-          <div><p className="font-black uppercase text-comun-yellow">Acervo vivo</p><h2 className="mt-1 text-2xl font-black uppercase text-comun-paper">Memoria viva da cidade</h2><p className="mt-2 max-w-2xl text-sm text-comun-paper/72">Fotografias, colecoes e trajetorias locais publicadas com revisao de fonte e direitos.</p></div>
-          <PrimaryLink href="/comun/acervo">Explorar o Acervo</PrimaryLink>
-        </div>
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {archive.photo ? <Link href={`/comun/acervo/${archive.photo.slug}`} className="paper-panel border-2 border-comun-black p-4"><p className="text-xs font-black uppercase text-comun-rust">Fotografia em destaque</p><h3 className="mt-2 font-black uppercase">{archive.photo.title}</h3></Link> : null}
-          {archive.collection ? <Link href={`/comun/acervo/colecoes/${archive.collection.slug}`} className="paper-panel border-2 border-comun-black p-4"><p className="text-xs font-black uppercase text-comun-rust">Colecao</p><h3 className="mt-2 font-black uppercase">{archive.collection.title}</h3></Link> : null}
-          {archive.artist ? <Link href={`/comun/acervo/${archive.artist.slug}`} className="paper-panel border-2 border-comun-black p-4"><p className="text-xs font-black uppercase text-comun-rust">Artista local</p><h3 className="mt-2 font-black uppercase">{archive.artist.title}</h3></Link> : null}
-          {!archive.photo && !archive.collection && !archive.artist ? <p className="border-2 border-comun-yellow bg-comun-black p-4 text-sm text-comun-paper/72 md:col-span-3">O primeiro recorte do acervo esta em preparacao.</p> : null}
-        </div>
-      </Section>
-
-      <Section>
-        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-          <div>
-            <h2 className="text-2xl font-black uppercase text-comun-yellow">Dossies em destaque</h2>
-            <p className="mt-2 max-w-2xl text-sm text-comun-paper/72">Leituras publicas selecionadas a partir de snapshots ativos.</p>
-          </div>
-          <Link href="/comun/dossies" className="inline-flex min-h-11 items-center justify-center border-2 border-comun-yellow px-4 py-2 text-sm font-black uppercase text-comun-yellow">Ver todos</Link>
-        </div>
-        {featuredDossiers.length ? (
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
-            {featuredDossiers.slice(0, 3).map((feature) => (
-              <Link key={feature.id} href={`/comun/dossies/${feature.snapshot.public_slug}`} className="paper-panel border-2 border-comun-black p-4">
-                <p className="text-xs font-black uppercase text-comun-rust">{feature.public_label || "Destaque publico"}</p>
-                <h3 className="comun-prose mt-2 font-black uppercase">{feature.snapshot.public_title}</h3>
-                <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{feature.public_note || feature.snapshot.public_summary}</p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <PrimaryLink href="/comun/territorios">
+                Explorar o território
+              </PrimaryLink>
+              <Link
+                href="/comun/participar"
+                className="inline-flex min-h-12 items-center justify-center border-2 border-comun-yellow px-5 py-3 text-center text-sm font-black uppercase text-comun-yellow"
+              >
+                Participar de uma ação
               </Link>
-            ))}
-          </div>
-        ) : (
-          <p className="mt-5 border-2 border-comun-yellow bg-comun-black p-4 text-sm text-comun-paper/72">Ainda nao ha dossies em destaque.</p>
-        )}
-      </Section>
-
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">Comunidades iniciais</h2>
-        <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-          {communities.map((community) => (
-            <Link
-              key={community.slug}
-              href={`/comun/c/${community.slug}`}
-              className="industrial-border paper-panel flex min-h-[14rem] flex-col p-4"
-            >
-              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center bg-comun-black text-sm font-black text-comun-yellow">
-                {community.icon}
-              </div>
-              <h3 className="comun-prose font-black uppercase leading-tight">{community.name}</h3>
-              <p className="comun-prose mt-3 text-sm text-comun-asphalt/75">{community.shortDescription}</p>
-              <span className="mt-auto pt-5 text-sm font-black uppercase text-comun-rust">Relatar neste tema</span>
-            </Link>
-          ))}
-        </div>
-      </Section>
-
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">Pautas em acompanhamento</h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {issues.map((issue) => (
-            <Link key={issue.slug} href={`/comun/pautas/${issue.slug}`} className="paper-panel block border-2 border-comun-black p-4">
-              <StatusLabel value={issue.status} />
-              <h3 className="comun-prose mt-3 text-xl font-black uppercase">{issue.title}</h3>
-              <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{issue.summary}</p>
-            </Link>
-          ))}
-        </div>
-      </Section>
-
-      <Section>
-        <div className="mb-5 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <h2 className="text-2xl font-black uppercase text-comun-yellow">Como funciona</h2>
-          <PrimaryLink href="/comun/relatar">Enviar relato agora</PrimaryLink>
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          {([
-            ["Voce relata", "Conte do seu jeito, sem cadastro obrigatorio.", Megaphone],
-            ["A comunidade confirma", "Relatos parecidos ajudam a revelar padroes.", AlertTriangle],
-            ["O caso vira pauta, post, dossie ou acao", "A equipe organiza o caso com curadoria antes de qualquer publicacao.", Archive],
-          ] satisfies Array<[string, string, LucideIcon]>).map(([title, text, Icon]) => (
-            <div key={String(title)} className="border-2 border-comun-yellow bg-comun-black p-5">
-              <Icon className="text-comun-yellow" size={28} />
-              <h3 className="mt-4 text-xl font-black uppercase">{title}</h3>
-              <p className="mt-2 text-sm text-comun-paper/75">{text}</p>
+              <Link
+                href="/comun/entrar"
+                className="inline-flex min-h-12 items-center justify-center px-2 text-sm font-black uppercase text-comun-paper underline decoration-2 underline-offset-4"
+              >
+                Entrar ou criar conta
+              </Link>
             </div>
-          ))}
+          </div>
+          <aside className="border-2 border-comun-yellow bg-comun-paper p-5 text-comun-black">
+            <p className="text-xs font-black uppercase text-comun-concrete">
+              Como o COMUN se organiza
+            </p>
+            <ol className="mt-4 grid gap-3 text-sm font-black uppercase">
+              {[
+                ["1", "Território", "onde o assunto acontece"],
+                ["2", "Comunidade", "quem constrói junto"],
+                ["3", "Pauta", "o processo acompanhado"],
+                ["4", "Ação", "o próximo passo possível"],
+                ["5", "Memória", "o que fica público"],
+              ].map(([number, title, description]) => (
+                <li
+                  className="grid grid-cols-[2rem_1fr] gap-3 border-t-2 border-comun-black pt-3 first:border-t-0 first:pt-0"
+                  key={number}
+                >
+                  <span className="grid size-7 place-items-center bg-comun-yellow text-comun-black">
+                    {number}
+                  </span>
+                  <span>
+                    {title}
+                    <small className="ml-2 font-normal normal-case text-comun-concrete">
+                      {description}
+                    </small>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </aside>
         </div>
-      </Section>
+      </ComunSection>
 
-      <Section>
-        <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
-          <div className="industrial-border bg-comun-paper p-5 text-comun-black">
-            <div className="flex items-start gap-3">
-              <Shield className="mt-1 text-comun-rust" size={24} />
+      <ComunSection className="pt-0">
+        <div className="grid border-y-2 border-comun-paper/30 lg:grid-cols-[.9fr_1.1fr]">
+          <section className="border-b-2 border-comun-paper/30 p-5 lg:border-b-0 lg:border-r-2">
+            <p className="text-xs font-black uppercase text-comun-yellow">
+              Seu contexto de partida
+            </p>
+            <div className="mt-4 flex gap-3">
+              <MapPin
+                className="mt-1 shrink-0 text-comun-yellow"
+                aria-hidden="true"
+              />
               <div>
-                <h2 className="text-2xl font-black uppercase">Seguranca e anonimato primeiro</h2>
-                <p className="comun-prose mt-3 max-w-2xl text-sm font-medium text-comun-asphalt/80">
-                  O COMUN nao e um mural aberto. Relatos entram primeiro em fluxo interno, passam por revisao e
-                  so podem aparecer publicamente em versao sanitizada.
+                <h2 className="text-2xl font-black uppercase">
+                  {featuredTerritory?.name ?? "Conheça os territórios"}
+                </h2>
+                <p className="mt-2 text-comun-paper/75">
+                  {featuredTerritory?.public_summary ??
+                    "Escolha um lugar para ver pautas, ações, resultados e memórias conectadas."}
                 </p>
               </div>
             </div>
-          </div>
-          <Link
-            href="/comun/seguranca"
-            className="inline-flex min-h-12 items-center justify-center gap-2 border-2 border-comun-yellow bg-comun-black px-5 py-3 text-sm font-black uppercase text-comun-yellow"
-          >
-            Como protegemos relatos
-            <ArrowRight size={18} />
-          </Link>
+            <Link
+              className="mt-5 inline-flex items-center gap-2 font-black uppercase text-comun-yellow underline decoration-2 underline-offset-4"
+              href={
+                featuredTerritory
+                  ? `/comun/territorios/${featuredTerritory.slug}`
+                  : "/comun/territorios"
+              }
+            >
+              Abrir território <ArrowRight size={17} aria-hidden="true" />
+            </Link>
+          </section>
+          <section className="bg-comun-yellow p-5 text-comun-black">
+            <p className="text-xs font-black uppercase">
+              Próximo passo coletivo
+            </p>
+            <h2 className="mt-3 text-2xl font-black leading-tight">
+              {featuredPauta?.next_step ??
+                "Encontre uma pauta e escolha como participar"}
+            </h2>
+            <p className="mt-2 max-w-2xl">
+              {featuredPauta?.public_synthesis ??
+                featuredPauta?.summary ??
+                "Você pode acompanhar uma pauta, contribuir numa roda ou ajudar numa ação. Não é preciso criar conta para começar a explorar."}
+            </p>
+            <Link
+              className="mt-5 inline-flex min-h-11 items-center bg-comun-black px-4 font-black uppercase text-comun-paper"
+              href={
+                featuredPauta
+                  ? `/comun/pautas/${featuredPauta.slug}`
+                  : "/comun/pautas"
+              }
+            >
+              {featuredPauta
+                ? "Ver pauta e próximos passos"
+                : "Explorar pautas"}
+            </Link>
+          </section>
         </div>
-      </Section>
+      </ComunSection>
 
-      <Section className="pt-2">
-        <div className="border-t-2 border-comun-yellow py-6">
-          <p className="text-center text-xl font-black uppercase text-comun-yellow sm:text-2xl">
-            Escutar. Cuidar. Organizar.
-          </p>
+      <HomeSection
+        title="Encontre seu caminho"
+        intro="Cinco entradas principais. Os outros módulos permanecem disponíveis como ferramentas do processo."
+      >
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <PathCard
+            href="/comun/comunidades"
+            title="Comunidades"
+            text="Conheça coletivos, grupos e vínculos por território."
+          />
+          <PathCard
+            href="/comun/pautas"
+            title="Pautas"
+            text="Acompanhe um problema do debate ao encaminhamento."
+          />
+          <PathCard
+            href="/comun/participar"
+            title="Participar"
+            text="Escolha uma contribuição pelo tempo e consequência."
+          />
+          <PathCard
+            href="/comun/territorios"
+            title="Territórios"
+            text="Veja o que está em movimento em cada lugar."
+          />
+          <PathCard
+            href="/comun/minha-participacao"
+            title="Minha área"
+            text="Retome ações, tarefas, contribuições e resultados."
+          />
+          <PathCard
+            href="/comun/buscar"
+            title="Buscar"
+            text="Localize processos e memórias públicas sem ranking de popularidade."
+          />
         </div>
-      </Section>
+      </HomeSection>
+
+      <HomeSection
+        title="O que está em movimento"
+        intro="Pautas em curso e ações com participação explícita."
+      >
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4">
+            {pautas.slice(0, 2).map((pauta: any) => (
+              <HubCard
+                key={pauta.id}
+                href={`/comun/pautas/${pauta.slug}`}
+                label={`Pauta · ${pauta.public_status ?? pauta.status}`}
+                title={pauta.title}
+                summary={pauta.public_synthesis ?? pauta.summary}
+                meta={
+                  pauta.next_step ? `Próxima etapa: ${pauta.next_step}` : null
+                }
+              />
+            ))}
+          </div>
+          <div className="border-2 border-comun-paper/35 p-5">
+            <p className="text-xs font-black uppercase text-comun-yellow">
+              Ações confirmadas
+            </p>
+            <ul className="mt-4 divide-y-2 divide-comun-paper/20">
+              {activeActions.map((action: any) => (
+                <li className="py-4 first:pt-0" key={action.id}>
+                  <Link
+                    className="font-black uppercase underline decoration-2 underline-offset-4"
+                    href={`/comun/acoes/${action.slug}`}
+                  >
+                    {action.title}
+                  </Link>
+                  <p className="mt-1 text-sm text-comun-paper/70">
+                    {action.participation_public ?? action.objective_public}
+                  </p>
+                  {action.starts_at ? (
+                    <p className="mt-2 text-xs font-bold uppercase text-comun-yellow">
+                      {new Date(action.starts_at).toLocaleString("pt-BR")}
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            {!activeActions.length ? (
+              <ComunEmptyState href="/comun/participar">
+                Não há ações públicas confirmadas agora. Conheça outras formas
+                de contribuir.
+              </ComunEmptyState>
+            ) : null}
+          </div>
+        </div>
+      </HomeSection>
+
+      <HomeSection
+        title="Do território ao resultado"
+        intro="A continuidade torna visível como uma contribuição se conecta a uma mudança e à memória pública."
+      >
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <ProcessStep
+            title="Território"
+            text="Sinais, lugares e necessidades situadas."
+            href="/comun/territorios"
+          />
+          <ProcessStep
+            title="Comunidade e pauta"
+            text="Pessoas se organizam e definem a próxima etapa."
+            href="/comun/pautas"
+          />
+          <ProcessStep
+            title="Ferramenta e ação"
+            text="Roda, mapa, observatório, protocolo ou mutirão."
+            href="/comun/participar"
+          />
+          <ProcessStep
+            title="Resultado e memória"
+            text="O que foi feito, respondido e aprendido permanece acessível."
+            href="/comun/resultados"
+          />
+        </div>
+      </HomeSection>
+
+      <HomeSection
+        title="Resultados e memória recente"
+        intro="Mudanças verificadas e registros que ajudam a comunidade a continuar."
+      >
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4">
+            {results.slice(0, 2).map((result: any) => (
+              <HubCard
+                key={result.id}
+                href={
+                  result.pauta
+                    ? `/comun/pautas/${result.pauta.slug}`
+                    : "/comun/resultados"
+                }
+                label={result.result_type}
+                title={result.title}
+                summary={result.public_summary}
+              />
+            ))}
+            {!results.length ? (
+              <ComunEmptyState href="/comun/resultados">
+                Resultados verificados aparecem aqui quando uma pauta avança.
+              </ComunEmptyState>
+            ) : null}
+          </div>
+          <div className="border-2 border-comun-paper/35 p-5">
+            <p className="text-xs font-black uppercase text-comun-yellow">
+              Memória ligada ao processo
+            </p>
+            <ul className="mt-4 divide-y-2 divide-comun-paper/20">
+              {experience.memory.slice(0, 3).map((item: any) => (
+                <li className="py-4 first:pt-0" key={item.id}>
+                  <Link
+                    className="font-black underline decoration-2 underline-offset-4"
+                    href={`/comun/acervo/${item.slug}`}
+                  >
+                    {item.title}
+                  </Link>
+                  <p className="mt-1 text-sm text-comun-paper/70">
+                    {item.summary}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            {!experience.memory.length ? (
+              <ComunEmptyState href="/comun/acervo">
+                O acervo público receberá memórias revisadas e relacionadas a
+                processos.
+              </ComunEmptyState>
+            ) : null}
+          </div>
+        </div>
+      </HomeSection>
+
+      <ComunSection className="pt-0">
+        <div className="border-2 border-comun-yellow bg-comun-yellow p-6 text-comun-black sm:p-8">
+          <Route aria-hidden="true" className="mb-5" />
+          <h2 className="max-w-3xl text-3xl font-black uppercase leading-none sm:text-5xl">
+            Comece pelo que você já sabe: um lugar, uma questão ou uma vontade
+            de ajudar.
+          </h2>
+          <p className="mt-4 max-w-2xl">
+            Você consegue explorar o COMUN sem cadastro. A conta só é pedida
+            quando ela protege uma contribuição, uma participação ou o seu
+            acompanhamento pessoal.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/comun/participar"
+              className="inline-flex min-h-12 items-center border-2 border-comun-black bg-comun-black px-5 font-black uppercase text-comun-paper"
+            >
+              Ver formas de participar
+            </Link>
+            <Link
+              href="/comun/entrar"
+              className="inline-flex min-h-12 items-center border-2 border-comun-black px-5 font-black uppercase"
+            >
+              Entrar na minha área
+            </Link>
+          </div>
+        </div>
+      </ComunSection>
     </ComunShell>
+  );
+}
+
+function AuthenticatedHome({
+  center,
+  experience,
+  profile,
+}: {
+  center: any;
+  experience: any;
+  profile: any;
+}) {
+  const attention = center.inbox
+    .filter((item: any) => !item.read_at)
+    .sort((a: any, b: any) => priority(b.priority) - priority(a.priority));
+  const hasPersonalContent =
+    attention.length ||
+    center.communities.length ||
+    center.memberships.length ||
+    center.actions.length ||
+    center.results.length;
+  return (
+    <ComunShell>
+      <ComunSection className="pb-4 pt-8">
+        <h1 className="text-4xl font-black uppercase leading-none text-comun-paper sm:text-6xl">
+          Bom te ver de volta
+          {profile?.display_name ? `, ${profile.display_name}` : ""}.
+        </h1>
+        <p className="mt-3 max-w-2xl text-comun-paper/70">
+          Sua área começa pelo que precisa de ação. O restante aparece somente
+          quando ajuda a continuar.
+        </p>
+      </ComunSection>
+      {attention.length ? (
+        <ComunSection className="py-4">
+          <div className="bg-comun-yellow p-5 text-comun-black sm:flex sm:items-center sm:justify-between sm:gap-6">
+            <div>
+              <p className="text-xs font-black uppercase">
+                Precisa da sua atenção
+              </p>
+              <h2 className="mt-2 text-2xl font-black uppercase leading-tight">
+                {attention[0].title}
+              </h2>
+              <p className="mt-2">{attention[0].summary}</p>
+            </div>
+            <Link
+              href={attention[0].action_url}
+              className="mt-4 inline-flex min-h-12 shrink-0 items-center bg-comun-black px-5 font-black uppercase text-comun-paper sm:mt-0"
+            >
+              Abrir próxima ação
+            </Link>
+          </div>
+        </ComunSection>
+      ) : null}
+      <ResumeJourneySection />
+      <MyCommunitySummary compact memberships={center.communities} />
+      {center.memberships.length ? (
+        <PriorityRail
+          title="Pautas que acompanha"
+          href="/comun/minha-participacao"
+          action="Ver Minha área"
+          rows={center.memberships
+            .slice(0, 3)
+            .map((item: any) => ({
+              id: item.id,
+              title: item.pauta?.title,
+              text: item.pauta?.next_step ?? item.pauta?.public_synthesis,
+              href: `/comun/pautas/${item.pauta?.slug}`,
+            }))}
+        />
+      ) : null}
+      {center.actions.length ? (
+        <PriorityRail
+          title="Participe agora"
+          href="/comun/participar"
+          action="Ver oportunidades"
+          rows={center.actions
+            .slice(0, 3)
+            .map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              text: item.participation_public,
+              href: `/comun/acoes/${item.slug}`,
+            }))}
+        />
+      ) : null}
+      {center.results.length ? (
+        <PriorityRail
+          title="Resultados"
+          href="/comun/minha-participacao"
+          action="Ver resultados"
+          rows={center.results
+            .slice(0, 3)
+            .map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              text: item.public_summary,
+              href: `/comun/resultados`,
+            }))}
+        />
+      ) : null}
+      {experience.memory.length ? (
+        <PriorityRail
+          title="Memórias"
+          href="/comun/acervo"
+          action="Acessar memórias"
+          rows={experience.memory
+            .slice(0, 3)
+            .map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              text: item.summary,
+              href: `/comun/acervo/${item.slug}`,
+            }))}
+        />
+      ) : null}
+      {!hasPersonalContent ? (
+        <ComunSection>
+          <div className="border-2 border-comun-yellow p-6">
+            <h2 className="text-2xl font-black uppercase text-comun-yellow">
+              Comece pelo seu território
+            </h2>
+            <p className="mt-3 max-w-2xl text-comun-paper/75">
+              Sua área ainda está vazia. Explore um território, conheça uma
+              comunidade ou acompanhe uma pauta; as próximas ações aparecerão
+              aqui.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <PrimaryLink href="/comun/territorios">
+                Escolher território
+              </PrimaryLink>
+              <Link
+                className="inline-flex min-h-12 items-center border-2 border-comun-yellow px-4 font-black uppercase text-comun-yellow"
+                href="/comun/comunidades"
+              >
+                Ver comunidades
+              </Link>
+              <Link
+                className="inline-flex min-h-12 items-center px-3 font-black uppercase underline"
+                href="/comun/pautas"
+              >
+                Explorar pautas
+              </Link>
+            </div>
+          </div>
+        </ComunSection>
+      ) : null}
+    </ComunShell>
+  );
+}
+
+function PriorityRail({
+  title,
+  rows,
+  href,
+  action,
+}: {
+  title: string;
+  rows: { id: string; title: string; text?: string; href: string }[];
+  href: string;
+  action: string;
+}) {
+  return (
+    <ComunSection className="py-5">
+      <header className="mb-3 flex items-end justify-between gap-4 border-b-2 border-comun-yellow pb-3">
+        <h2 className="text-2xl font-black uppercase text-comun-yellow">
+          {title}
+        </h2>
+        <Link className="text-sm font-black uppercase underline" href={href}>
+          {action}
+        </Link>
+      </header>
+      <div className="divide-y-2 divide-comun-black border-2 border-comun-black bg-comun-paper text-comun-black">
+        {rows.map((row) => (
+          <Link
+            href={row.href}
+            className="grid gap-2 p-4 hover:bg-comun-yellow sm:grid-cols-[1fr_2fr_auto] sm:items-center"
+            key={row.id}
+          >
+            <strong className="uppercase">{row.title}</strong>
+            <span className="text-sm text-comun-asphalt/75">{row.text}</span>
+            <ArrowRight size={18} aria-hidden="true" />
+          </Link>
+        ))}
+      </div>
+    </ComunSection>
+  );
+}
+
+function priority(value: string) {
+  return value === "urgent"
+    ? 4
+    : value === "attention"
+      ? 3
+      : value === "normal"
+        ? 2
+        : 1;
+}
+
+function HomeSection({
+  title,
+  intro,
+  children,
+}: {
+  title: string;
+  intro: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <ComunSection>
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b-2 border-comun-yellow pb-4">
+        <div>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow sm:text-3xl">
+            {title}
+          </h2>
+          <p className="mt-2 max-w-3xl text-comun-paper/75">{intro}</p>
+        </div>
+        <Check aria-hidden="true" className="text-comun-yellow" />
+      </header>
+      {children}
+    </ComunSection>
+  );
+}
+
+function PathCard({
+  href,
+  title,
+  text,
+}: {
+  href: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex min-h-40 flex-col justify-between border-2 border-comun-paper/40 p-4 hover:border-comun-yellow hover:bg-comun-paper hover:text-comun-black"
+    >
+      <span className="text-xl font-black uppercase">{title}</span>
+      <span className="flex items-end justify-between gap-4 text-sm">
+        <span>{text}</span>
+        <ArrowRight
+          className="shrink-0 transition-transform group-hover:translate-x-1"
+          aria-hidden="true"
+        />
+      </span>
+    </Link>
+  );
+}
+
+function ProcessStep({
+  title,
+  text,
+  href,
+}: {
+  title: string;
+  text: string;
+  href: string;
+}) {
+  return (
+    <article className="border-t-4 border-comun-yellow bg-comun-paper p-5 text-comun-black">
+      <ComunStatus>{title}</ComunStatus>
+      <p className="mt-4 min-h-16 text-lg font-bold leading-tight">{text}</p>
+      <Link
+        href={href}
+        className="mt-5 inline-block font-black uppercase underline decoration-2 underline-offset-4"
+      >
+        Abrir
+      </Link>
+    </article>
   );
 }

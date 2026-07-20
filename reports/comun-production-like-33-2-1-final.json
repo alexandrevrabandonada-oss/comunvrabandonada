@@ -1,0 +1,146 @@
+{
+  "startedAt": "2026-07-18T01:24:14.692Z",
+  "commit": "a38e90a",
+  "branch": "codex/comun-auth-closeout-local",
+  "worktree": "C:\\Projetos\\comun-auth-closeout-local",
+  "node": "v22.19.0",
+  "base": "http://localhost:3000",
+  "pid": 20292,
+  "checks": [
+    {
+      "label": "environment",
+      "command": "node scripts/comun-local-env.mjs check",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 9751
+    },
+    {
+      "label": "build",
+      "command": "npm run build",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 61696
+    },
+    {
+      "label": "storage",
+      "command": "node scripts/comun-local-env.mjs run npm run storage:readiness",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 11896
+    },
+    {
+      "label": "auth-readiness",
+      "command": "node scripts/comun-local-env.mjs run npm run auth:readiness:local",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 23081
+    },
+    {
+      "label": "rls-matrix",
+      "command": "node scripts/comun-local-env.mjs run npm run audit:rls-matrix",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 16308
+    },
+    {
+      "label": "e2e",
+      "command": "node scripts/comun-local-env.mjs run npm run test:e2e:editorial-operation-authenticated",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 330173
+    },
+    {
+      "label": "cleanup-e2e",
+      "command": "node scripts/comun-local-env.mjs run npm run test:fixtures:cleanup",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 22406
+    },
+    {
+      "label": "axe",
+      "command": "node scripts/comun-local-env.mjs run npm run test:a11y:editorial-operation-authenticated",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 329030
+    },
+    {
+      "label": "cleanup-axe",
+      "command": "node scripts/comun-local-env.mjs run npm run test:fixtures:cleanup",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 18538
+    },
+    {
+      "label": "visual",
+      "command": "node scripts/comun-local-env.mjs run npm run test:visual:editorial-operation-authenticated",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 371004
+    },
+    {
+      "label": "cleanup-visual",
+      "command": "node scripts/comun-local-env.mjs run npm run test:fixtures:cleanup",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 22127
+    },
+    {
+      "label": "rehearsal-auth",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:first-pilot-authenticated-rehearsal",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 249393
+    },
+    {
+      "label": "rehearsal",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:first-pilot-rehearsal",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 5852
+    },
+    {
+      "label": "editorial",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:editorial-operation",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 4527
+    },
+    {
+      "label": "community-auth",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:community-auth:local",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 40524
+    },
+    {
+      "label": "public-ui",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:public-ui:local",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 33136
+    },
+    {
+      "label": "no-leak",
+      "command": "node scripts/comun-local-env.mjs run npm run smoke:no-leak-http",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 26494
+    },
+    {
+      "label": "cleanup",
+      "command": "node scripts/comun-local-env.mjs run npm run test:fixtures:cleanup",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 18985
+    },
+    {
+      "label": "assert-clean",
+      "command": "node scripts/comun-local-env.mjs run npm run test:fixtures:assert-clean",
+      "ok": true,
+      "exitCode": 0,
+      "durationMs": 18798
+    }
+  ],
+  "ok": true,
+  "finishedAt": "2026-07-18T01:51:16.441Z"
+}

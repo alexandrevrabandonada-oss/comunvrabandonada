@@ -33,7 +33,7 @@ export async function getAdminProfileForUser(input: { authUserId: string; email?
   if (input.email) clauses.push(`email.eq.${input.email}`);
   const { data } = await supabase
     .from("comun_admin_profiles")
-    .select("id, auth_user_id, display_name, email, role, active, operational_note, created_at, updated_at")
+    .select("id, auth_user_id, display_name, email, role, operational_role, active, operational_note, created_at, updated_at")
     .or(clauses.join(","))
     .eq("active", true)
     .maybeSingle();
@@ -45,7 +45,7 @@ export async function listActiveAdminProfiles() {
   if (!supabase) return [] as ComunAdminProfile[];
   const { data } = await supabase
     .from("comun_admin_profiles")
-    .select("id, auth_user_id, display_name, email, role, active, operational_note, created_at, updated_at")
+    .select("id, auth_user_id, display_name, email, role, operational_role, active, operational_note, created_at, updated_at")
     .eq("active", true)
     .order("display_name", { ascending: true });
   return (data ?? []) as ComunAdminProfile[];
@@ -56,7 +56,7 @@ export async function getAdminProfileById(id: string) {
   if (!supabase || !id) return null;
   const { data } = await supabase
     .from("comun_admin_profiles")
-    .select("id, auth_user_id, display_name, email, role, active, operational_note, created_at, updated_at")
+    .select("id, auth_user_id, display_name, email, role, operational_role, active, operational_note, created_at, updated_at")
     .eq("id", id)
     .maybeSingle();
   return (data as ComunAdminProfile | null) ?? null;
@@ -72,7 +72,7 @@ export async function listAdminProfiles(filters: { role?: string; active?: strin
   if (!supabase) return [] as ComunAdminProfile[];
   let query = supabase
     .from("comun_admin_profiles")
-    .select("id, auth_user_id, display_name, email, role, active, operational_note, created_at, updated_at")
+    .select("id, auth_user_id, display_name, email, role, operational_role, active, operational_note, created_at, updated_at")
     .order("updated_at", { ascending: false })
     .limit(300);
   if (filters.role) query = query.eq("role", normalizeAdminProfileRole(filters.role));

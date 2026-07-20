@@ -1,0 +1,7 @@
+import assert from"node:assert/strict";import{createBackup,exportPauta,validateBackup}from"./comun-operational-backup.mjs";
+// O rehearsal autenticado complementar usa sessões Auth locais reais; este fluxo mantém o contrato editorial puro.
+const state={open:false,monitoring:false,items:[],protocols:[],results:[],memory:[],assets:[]};
+state.open=true;state.monitoring=true;state.items.push({id:"fixture-pilot-1",queue:"entry",state:"pending",title:"Calçada sintética",public_reason:"Ensaio",next_action:"Triagem",private_contact:"fixture@example.invalid"});
+state.items[0].state="in_review";state.items[0].state="published";state.protocols.push({public_protocol:"FIXTURE-001"});state.results.push({summary:"Resultado sintético"});state.items.push({id:"fixture-correction",queue:"corrections",state:"resolved",title:"Correção sintética"},{id:"fixture-withdrawal",queue:"withdrawals",state:"withdrawn",title:"Retirada sintética"});
+const backup=createBackup(state.items);assert(validateBackup(backup));const exported=exportPauta(state.items);assert(!JSON.stringify(exported).match(/contact|private|secret|token|original|signed/i));console.log("COMUN_PAUTA_EXPORT_SANITIZED_OK");
+state.open=false;state.memory.push({summary:"Ciclo sintético encerrado"});state.items.length=0;state.protocols.length=0;state.results.length=0;state.memory.length=0;state.assets.length=0;assert.equal(Object.values(state).filter(Array.isArray).flat().length,0);console.log("COMUN_FIRST_PILOT_REHEARSAL_LOCAL_OK");console.log("COMUN_TEST_FIXTURES_CLEAN");

@@ -1,6 +1,16 @@
 # Operacao COMUN
 
+Após reset local, execute o readiness do Storage. Se logs comprovarem upstream antigo, reinicie somente o Kong da instância e repita o gate.
+
+O admin territorial em `/comun/admin/territorio` concentra contribuições, verificação, necessidades, fontes e especializações. Publique apenas após conferir fonte, precisão e ausência de dados privados.
+
+## Hub central
+
+A tela inicial do admin é `/comun/admin/organizacao`. Comece pela caixa de entrada, atribua pauta/responsável/prazo, transforme encaminhamentos em ação e registre resultados sem confundir promessa com conquista. O Acervo permanece congelado e operacional; relacione itens existentes sem duplicá-los.
+
 História Oral: revisar alertas de consentimento, menores, segmentos sensíveis, embargo, retirada e assets públicos. O fim do embargo não dispensa aprovação manual.
+
+Piloto editorial: usar `/comun/admin/acervo/historias-orais/piloto`; revisar diariamente backup, transcrição, terceiros, dupla revisão e aprovação. Não iniciar entrevistas reais enquanto o gate humano em `docs/historia-oral-piloto.md` estiver fechado.
 
 ## Regra local-first
 
@@ -266,3 +276,10 @@ Após mudanças em R2 ou Sharp, um administrador pode executar a fixture descart
 Moderadores acompanham contribuições e reivindicações em `/comun/admin/acervo/artistas`. Publicar exige checklist; verificar reivindicação não autoriza edição direta. Links quebrados devem ser marcados e retirados da exposição pública.
 
 Pendências consolidadas ficam em `/comun/admin/acervo/artistas/pendencias`. A verificação manual de links é segura e a poda de histórico técnico é sempre dry-run por padrão.
+
+# Observatórios Populares
+
+Revisar observações pendentes em `/comun/admin/observatorios`, registrar decisão e evento, gerar snapshots por período e publicar somente após conferir metodologia, amostra, cobertura e limitações. Nunca transformar anomalia em acusação automática.
+# Operação da arte territorial
+
+Fluxo: rascunho → original privado → créditos → direitos → revisão de sensibilidade → derivadas → relações/coleções → checklist fechado → publicação. Retirada aprovada despublica e arquiva derivados.

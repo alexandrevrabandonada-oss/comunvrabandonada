@@ -18,6 +18,11 @@ import { assessPautaContributionSafety, createPendingPautaContribution, slugifyP
 import { generateProtocol } from "@/lib/protocol";
 import { isValidProtocol, normalizeProtocol } from "@/lib/reports";
 import { createPublicSupabaseClient, createServiceSupabaseClient, createSupabaseServerClient } from "@/lib/supabase/server";
+import { applyPautaAppTemplate, upsertPautaModule } from "@/lib/pauta-miniapps";
+import { pautaAppTemplates, pautaModuleTypes, type PautaModuleType } from "@/lib/comun/pauta-module-registry";
+import { getCommunitySession, requireCommunitySession } from "@/lib/community-auth";
+import { communityOnboardingHref, safeCommunityReturn } from "@/lib/community-return";
+import { communityLoginError, communitySignupError } from "@/lib/community-auth-errors";
 
 const reportSchema = z.object({
   community_slug: z.string().min(1),
@@ -243,18 +248,21 @@ export async function loginAdmin(_: unknown, formData: FormData) {
     return { ok: false, error: "Supabase Auth nao configurado." };
   }
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
     return { ok: false, error: "E-mail ou senha invalidos." };
   }
 
-  const session = await getComunAdminSession();
-  if (!session) {
+  const service = createServiceSupabaseClient();
+  const { data: admin } = service && authData.user
+    ? await service.from("comun_admin_users").select("id, user_id, email, role, is_active").or(`user_id.eq.${authData.user.id},email.eq.${authData.user.email ?? ""}`).eq("is_active", true).maybeSingle()
+    : { data: null };
+  if (!authData.user || !admin) {
     await supabase.auth.signOut();
     return { ok: false, error: "Usuario autenticado, mas nao autorizado como admin COMUN." };
   }
 
-  await logComunAdminAction({ session, action: "admin_login_success" });
+  await logComunAdminAction({ session: { user: { id: authData.user.id, email: authData.user.email ?? null }, admin, profile: null }, action: "admin_login_success" });
   redirect(redirectTo.startsWith("/comun/admin") ? redirectTo : "/comun/admin");
 }
 
@@ -792,6 +800,128 @@ export async function submitPautaContribution(formData: FormData) {
   redirect(`/comun/pautas/${slug}?contribuicao=${safety.status === "pending" ? "pendente" : "recebida"}`);
 }
 
+export async function applyPautaAppTemplateAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const pautaId = String(formData.get("pauta_id") ?? "");
+  const template = String(formData.get("template") ?? "") as keyof typeof pautaAppTemplates;
+  if (!pautaId || !(template in pautaAppTemplates)) throw new Error("Modelo de aplicativo inválido.");
+  const result = await applyPautaAppTemplate(pautaId, template, session.user.id);
+  await logComunAdminAction({ session, action: "pauta_app_template_applied", targetType: "pauta_space", targetId: pautaId, metadata: { template, ...result } });
+  revalidatePath(`/comun/admin/pautas/${pautaId}/aplicativo`);
+  redirect(`/comun/admin/pautas/${pautaId}/aplicativo?template=${template}&created=${result.created}`);
+}
+
+const communityAccountSchema = z.object({
+  email: z.string().trim().email(), password: z.string().min(10).max(128), password_confirmation: z.string().min(10).max(128),
+  display_name: z.string().trim().min(2).max(80), terms: z.literal("on"), privacy: z.literal("on"), returnTo: z.string().optional(), website: z.string().max(0).optional(),
+}).strict();
+export async function createCommunityAccount(_: unknown, formData: FormData) {
+  const submitted = Object.fromEntries([...formData].filter(([key]) => !key.startsWith("$ACTION_")));
+  const parsed = communityAccountSchema.safeParse(submitted);
+  if (!parsed.success || parsed.data.password !== parsed.data.password_confirmation) return { ok: false, error: "Não foi possível concluir o cadastro." };
+  if ((process.env.COMMUNITY_REGISTRATION_MODE ?? "open") !== "open") return { ok: false, error: "Cadastros comunitários não estão abertos agora." };
+  const supabase = await createSupabaseServerClient(); if (!supabase) return { ok: false, error: "Cadastro indisponível." };
+  const { data, error } = await supabase.auth.signUp({ email: parsed.data.email.toLowerCase(), password: parsed.data.password });
+  if (error || !data.user) return { ok: false, error: communitySignupError(error) };
+  const service = createServiceSupabaseClient(); if (!service) return { ok: false, error: "Cadastro indisponível." };
+  const { error: profileError } = await service.from("comun_member_profiles" as never).upsert({ user_id: data.user.id, display_name: parsed.data.display_name, participation_visibility: "private", profile_visibility: "private", terms_version: "2026-07", terms_accepted_at: new Date().toISOString(), privacy_version: "2026-07", privacy_accepted_at: new Date().toISOString(), status: "active" } as never, { onConflict: "user_id" as never });
+  if (profileError) return { ok: false, error: "Conta criada, mas o perfil precisa ser concluído mais tarde." };
+  redirect(communityOnboardingHref(parsed.data.returnTo ?? "/comun/minha-participacao"));
+}
+
+export async function loginCommunity(_: unknown, formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase(); const password = String(formData.get("password") ?? "");
+  const supabase = await createSupabaseServerClient(); if (!supabase) return { ok: false, error: "Não foi possível entrar." };
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password }); if (error || !data.user) return { ok: false, error: communityLoginError(error) };
+  const service = createServiceSupabaseClient();
+  const { data: profile } = service ? await service.from("comun_member_profiles" as never).select("status,onboarding_completed_at" as never).eq("user_id" as never, data.user.id).maybeSingle() : { data: null };
+  if (!profile || ["suspended", "deactivation_requested", "deactivated", "archived"].includes((profile as any).status)) { await supabase.auth.signOut(); return { ok: false, error: "Esta conta não está disponível para acesso." }; }
+  const returnTo = safeCommunityReturn(formData.get("returnTo"));
+  if (!(profile as any).onboarding_completed_at) redirect(communityOnboardingHref(returnTo));
+  redirect(returnTo);
+}
+
+export async function logoutCommunity() { const supabase = await createSupabaseServerClient(); await supabase?.auth.signOut(); redirect("/comun/entrar"); }
+
+export async function followPautaAction(formData: FormData) {
+  const pautaId = String(formData.get("pauta_id") ?? ""); const slug = String(formData.get("slug") ?? ""); if (!pautaId || !slug) throw new Error("Pauta inválida.");
+  const session = await requireCommunitySession(`/comun/pautas/${slug}`);
+  const service = createServiceSupabaseClient(); if (!service) throw new Error("Serviço indisponível.");
+  const { data: pauta } = await service.from("comun_pauta_spaces" as never).select("id,slug,visibility" as never).eq("id" as never, pautaId).eq("slug" as never, slug).eq("visibility" as never, "public").maybeSingle();
+  if (!pauta) throw new Error("Pauta pública não encontrada.");
+  const { error } = await service.from("comun_pauta_memberships" as never).upsert({ pauta_id: pautaId, member_user_id: session.user.id, role: "participant", status: "active", left_at: null } as never, { onConflict: "pauta_id,member_user_id" as never }); if (error) throw new Error(error.message);
+  revalidatePath(`/comun/pautas/${slug}`); revalidatePath("/comun/minha-participacao"); redirect(`/comun/pautas/${slug}?acompanhando=1`);
+}
+
+export async function leavePautaAction(formData: FormData) {
+  const session = await requireCommunitySession(); const pautaId = String(formData.get("pauta_id") ?? ""); const slug = String(formData.get("slug") ?? "");
+  const service = createServiceSupabaseClient(); if (!service || !pautaId) throw new Error("Serviço indisponível.");
+  const { error } = await service.from("comun_pauta_memberships" as never).update({ status: "left", left_at: new Date().toISOString() } as never).eq("pauta_id" as never, pautaId).eq("member_user_id" as never, session.user.id);
+  if (error) throw new Error(error.message); revalidatePath(`/comun/pautas/${slug}`); revalidatePath("/comun/minha-participacao"); redirect("/comun/minha-participacao");
+}
+
+export async function saveCommunityProfileAction(formData: FormData) {
+  const session = await requireCommunitySession(); const displayName = String(formData.get("display_name") ?? "").trim().slice(0, 80); const visibility = String(formData.get("profile_visibility") ?? "private");
+  if (!displayName || !["private", "pauta_members", "public"].includes(visibility)) throw new Error("Perfil inválido.");
+  const service = createServiceSupabaseClient(); if (!service) throw new Error("Serviço indisponível.");
+  const { error } = await service.from("comun_member_profiles" as never).update({ display_name: displayName, public_bio: String(formData.get("public_bio") ?? "").trim().slice(0, 280) || null, profile_visibility: visibility, participation_visibility: visibility === "public" ? "public" : visibility === "pauta_members" ? "participants" : "private", onboarding_completed_at: new Date().toISOString(), updated_at: new Date().toISOString() } as never).eq("user_id" as never, session.user.id);
+  if (error) throw new Error(error.message); revalidatePath("/comun/minha-participacao"); redirect(safeCommunityReturn(formData.get("returnTo")));
+}
+
+export async function requestCommunityDeactivationAction() {
+  const session = await requireCommunitySession(); const service = createServiceSupabaseClient(); if (!service) throw new Error("Serviço indisponível.");
+  const now = new Date().toISOString();
+  const { error } = await service.from("comun_member_profiles" as never).update({ status: "deactivation_requested", updated_at: now } as never).eq("user_id" as never, session.user.id);
+  if (error) throw new Error(error.message);
+  await service.from("comun_pauta_memberships" as never).update({ status: "paused" } as never).eq("member_user_id" as never, session.user.id).eq("status" as never, "active");
+  const supabase = await createSupabaseServerClient(); await supabase?.auth.signOut(); redirect("/comun/entrar?status=desativacao-solicitada");
+}
+
+export async function requestCommunityPasswordReset(_: unknown, formData: FormData) {
+  const email = z.string().trim().email().safeParse(formData.get("email")); const generic = { ok: true, message: "Se a conta existir, enviaremos instruções para redefinir o acesso." };
+  if (!email.success) return generic; const supabase = await createSupabaseServerClient(); if (!supabase) return generic;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  await supabase.auth.resetPasswordForEmail(email.data.toLowerCase(), { redirectTo: `${siteUrl}/comun/redefinir-acesso` }); return generic;
+}
+
+export async function resetCommunityPassword(_: unknown, formData: FormData) {
+  const parsed = z.object({ password: z.string().min(10).max(128), password_confirmation: z.string().min(10).max(128) }).safeParse(Object.fromEntries(formData));
+  if (!parsed.success || parsed.data.password !== parsed.data.password_confirmation) return { ok: false, error: "As senhas precisam coincidir e ter ao menos 10 caracteres." };
+  const supabase = await createSupabaseServerClient(); if (!supabase) return { ok: false, error: "Redefinição indisponível." };
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password }); if (error) return { ok: false, error: "O link expirou ou já foi utilizado." };
+  await supabase.auth.signOut(); redirect("/comun/entrar?status=senha-redefinida");
+}
+
+export async function submitCircleContributionAction(formData: FormData) {
+  const circleId = String(formData.get("circle_id") ?? ""); const roundId = String(formData.get("round_id") ?? ""); const pautaSlug = String(formData.get("pauta_slug") ?? "");
+  const body = String(formData.get("body") ?? "").trim(); const alias = String(formData.get("author_alias") ?? "").trim().slice(0, 80); const contact = String(formData.get("private_contact") ?? "").trim().slice(0, 160);
+  if (!circleId || !roundId || !pautaSlug || body.length < 24) throw new Error("A contribuição precisa ter pelo menos 24 caracteres.");
+  if (String(formData.get("company_website") ?? "").trim() || String(formData.get("human_check") ?? "") !== "5") throw new Error("Não foi possível validar a contribuição.");
+  const supabase = createServiceSupabaseClient(); if (!supabase) throw new Error("Supabase service role nao configurado no servidor.");
+  const community = await getCommunitySession();
+  if (community && ["suspended", "deactivation_requested", "deactivated", "archived"].includes(community.profile?.status)) throw new Error("Conta indisponível para contribuir.");
+  const protocol = `RODA-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+  const { error } = await supabase.from("comun_circle_contributions" as never).insert({ circle_id: circleId, round_id: roundId, contribution_type: String(formData.get("contribution_type") ?? "testimony"), public_body: body, author_display_name: alias || null, author_member_id: community?.user.id ?? null, private_contact: contact || null, anonymous_publication: formData.get("anonymous") === "on", status: "pending", public_protocol: protocol } as never);
+  if (error) throw new Error(error.message);
+  await logComunAdminAction({ action: "circle_contribution_received", targetType: "construction_circle", targetId: circleId, metadata: { protocol, body_length: body.length } });
+  revalidatePath(`/comun/pautas/${pautaSlug}`); redirect(`/comun/pautas/${pautaSlug}?contribuicao=pendente`);
+}
+
+export async function upsertPautaModuleAction(formData: FormData) {
+  const session = await requireComunAdmin();
+  const pautaId = String(formData.get("pauta_id") ?? "");
+  const moduleType = String(formData.get("module_type") ?? "") as PautaModuleType;
+  if (!pautaId || !pautaModuleTypes.includes(moduleType)) throw new Error("Módulo inválido.");
+  await upsertPautaModule({
+    pautaId, moduleType, title: String(formData.get("title") ?? "").trim().slice(0, 120), description: String(formData.get("description") ?? "").trim().slice(0, 500),
+    position: Number.parseInt(String(formData.get("position") ?? "0"), 10) || 0, status: String(formData.get("status") ?? "draft"), visibility: String(formData.get("visibility") ?? "private"),
+    configText: String(formData.get("config") ?? "{}"), createdBy: session.user.id,
+  });
+  await logComunAdminAction({ session, action: "pauta_app_module_upserted", targetType: "pauta_space", targetId: pautaId, metadata: { module_type: moduleType } });
+  revalidatePath(`/comun/admin/pautas/${pautaId}/aplicativo`);
+  redirect(`/comun/admin/pautas/${pautaId}/aplicativo`);
+}
+
 export async function upsertPautaSpaceAction(formData: FormData) {
   const session = await requireComunAdmin();
   const id = String(formData.get("id") ?? "");
@@ -815,6 +945,19 @@ export async function upsertPautaSpaceAction(formData: FormData) {
     visibility: String(formData.get("visibility") ?? "public") === "internal" ? "internal" : "public",
     public_synthesis: publicSynthesis,
     next_step: nextStep,
+    public_status: String(formData.get("public_status") ?? "received"),
+    internal_status: String(formData.get("internal_status") ?? "triage").trim() || "triage",
+    priority: String(formData.get("priority") ?? "normal"),
+    urgency: String(formData.get("urgency") ?? "normal"),
+    risk_level: String(formData.get("risk_level") ?? "normal"),
+    responsible_internal: String(formData.get("responsible_internal") ?? "").trim() || null,
+    responsible_public: String(formData.get("responsible_public") ?? "").trim() || null,
+    affected_people_public: String(formData.get("affected_people_public") ?? "").trim() || null,
+    problem_public: String(formData.get("problem_public") ?? "").trim() || null,
+    demand_public: String(formData.get("demand_public") ?? "").trim() || null,
+    proposals_public: String(formData.get("proposals_public") ?? "").trim() || null,
+    participation_public: String(formData.get("participation_public") ?? "").trim() || null,
+    last_operational_update_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
 
@@ -1024,6 +1167,12 @@ export async function upsertPautaTaskAction(formData: FormData) {
     help_needed: formData.get("help_needed") === "true",
     owner_alias: String(formData.get("owner_alias") ?? "").trim() || null,
     due_at: parseOptionalDate(String(formData.get("due_at") ?? "")),
+    required_skill: String(formData.get("required_skill") ?? "").trim() || null,
+    priority: String(formData.get("priority") ?? "normal"),
+    visibility: String(formData.get("visibility") ?? "public"),
+    accepts_volunteers: formData.get("accepts_volunteers") === "true",
+    participant_limit: Number(formData.get("participant_limit")) > 0 ? Number(formData.get("participant_limit")) : null,
+    result_public: String(formData.get("result_public") ?? "").trim() || null,
     updated_at: new Date().toISOString(),
   };
   const query = id
@@ -2015,7 +2164,7 @@ function normalizePautaStatus(value: string) {
 }
 
 function normalizeTaskStatus(value: string) {
-  const valid = ["open", "in_progress", "done", "blocked", "archived"];
+  const valid = ["open", "assigned", "in_progress", "done", "blocked", "cancelled", "archived"];
   return valid.includes(value) ? value : "open";
 }
 

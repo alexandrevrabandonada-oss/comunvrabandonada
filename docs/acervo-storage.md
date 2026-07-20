@@ -1,5 +1,7 @@
 # Storage do Acervo
 
+Arte territorial usa os buckets locais `archive-private-originals` e `archive-public-derivatives`; consulte `comun-storage-local.md` para readiness e recuperação do gateway.
+
 Metadados, relações, revisão e permissões ficam no Supabase Postgres. Binários ficam no Cloudflare R2, acessado no servidor pela API S3 e AWS SDK v3.
 
 Áudio original, termo e fonte de transcrição usam `private_original`. Áudio público é arquivo editorial separado em `public_safe`, sem promoção automática do original.

@@ -1,11 +1,12 @@
 .env
 .env.*
 !.env.example
-.next/
+.next*/
 node_modules/
 out/
 dist/
 coverage/
+test-results/
 .cache/
 .eslintcache
 .npm/
@@ -16,3 +17,5 @@ coverage/
 supabase/.temp/
 types/supabase.ts
 backups/
+.local/
+.vercel

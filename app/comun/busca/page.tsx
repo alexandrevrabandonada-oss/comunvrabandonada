@@ -1,0 +1,1 @@
+import{redirect}from"next/navigation";export default async function Page({searchParams}:{searchParams:Promise<Record<string,string>>}){const p=await searchParams,s=new URLSearchParams(p);redirect(`/comun/buscar${s.size?`?${s}`:""}`)}

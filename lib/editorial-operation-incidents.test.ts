@@ -1,0 +1,1 @@
+import{describe,expect,it}from"vitest";import{canTransition}from"./editorial-operation";describe("recuperação segura",()=>{it("não publica após bloqueio",()=>expect(canTransition("blocked","published")).toBe(false));it("permite voltar a responsável sem apagar história",()=>expect(canTransition("blocked","assigned")).toBe(true))});

@@ -1,0 +1,4 @@
+import type{ComunAdminProfile,ComunOperationalRole}from"./types";
+export type OperationalSurface="central"|"assignment"|"privacy"|"rights"|"archive"|"circle"|"protocol"|"result"|"radio"|"art"|"withdrawal"|"audit";
+const access:Record<ComunOperationalRole,readonly OperationalSurface[]>={operations_admin:["central","assignment","withdrawal","audit"],privacy_reviewer:["privacy"],rights_reviewer:["rights"],archive_curator:["archive"],coordinator:["circle","result"],facilitator:["circle"],contribution_reviewer:["central"],image_reviewer:["privacy"],protocol_operator:["protocol"],result_editor:["result"],radio_editor:["radio"],art_editor:["art"]};
+export function canAccessOperationalSurface(profile:Pick<ComunAdminProfile,"role"|"operational_role"|"active">|null,surface:OperationalSurface){if(!profile?.active)return false;if(profile.role==="admin")return true;return profile.operational_role ? access[profile.operational_role]?.includes(surface)??false : false}

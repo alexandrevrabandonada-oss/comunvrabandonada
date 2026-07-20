@@ -12,17 +12,11 @@ const SENSITIVE_KEYS = new Set([
   "storage_path",
   "signed_url",
   "signedUrl",
+  "object_key", "objectKey", "email", "private_notes", "private_contact", "term", "binary", "secret",
 ]);
 
-function sanitizeMetadata(metadata: AuditMetadata = {}) {
-  return Object.fromEntries(
-    Object.entries(metadata)
-      .filter(([key]) => !SENSITIVE_KEYS.has(key))
-      .map(([key, value]) => {
-        if (typeof value === "string" && value.length > 300) return [key, `${value.slice(0, 300)}...`];
-        return [key, value];
-      }),
-  );
+export function sanitizeAuditMetadata(metadata: AuditMetadata = {}) {
+  const clean=(value:unknown):unknown=>{if(Array.isArray(value))return value.slice(0,50).map(clean);if(value&&typeof value==="object")return Object.fromEntries(Object.entries(value as AuditMetadata).filter(([key])=>!SENSITIVE_KEYS.has(key)).map(([key,item])=>[key,clean(item)]));if(typeof value==="string"){if(/https?:\/\/[^\s?]+\?[^\s]*(token|signature|x-amz)/i.test(value))return"[redacted-url]";return value.slice(0,300)}return value};return clean(metadata) as AuditMetadata;
 }
 
 export async function logComunAdminAction(input: {
@@ -41,7 +35,7 @@ export async function logComunAdminAction(input: {
     action: input.action,
     target_type: input.targetType ?? null,
     target_id: input.targetId ?? null,
-    metadata: sanitizeMetadata(input.metadata),
+    metadata: sanitizeAuditMetadata(input.metadata),
   });
 }
 

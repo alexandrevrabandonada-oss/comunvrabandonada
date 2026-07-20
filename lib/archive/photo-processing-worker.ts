@@ -18,6 +18,7 @@ import { enqueueDueMusicLinkChecks } from "./photo-processing-queue";
 import { checkMusicExternalUrl, persistMusicLinkCheck } from "./music-link-checker";
 import { evaluateMusicEditorialSloAlerts } from "./music-editorial-slo";
 import { evaluateOralHistoryAlerts } from "./oral-history-alerts";
+import { evaluateOralHistoryPilotAlerts } from "./oral-history-pilot-alerts";
 
 async function processMusicExternalLinkCheckJob(job: any) {
   const db = createServiceSupabaseClient();
@@ -55,9 +56,12 @@ export async function processHistoricalPhotoDerivativeJob(job: any) {
     if (!a || a.bucket_scope !== "private_original" || !a.archive_item_id)
       throw new Error("Asset sem vinculo valido");
     const t0 = Date.now(),
-      signed = await getMediaStorage().createPrivateReadUrl(a.object_key, 180),
-      res = await fetch(signed.url, { cache: "no-store" });
-    if (!res.ok) throw new Error("Original ausente");
+      signed = a.storage_provider === "supabase"
+        ? (await db.storage.from("archive-private-originals").createSignedUrl(a.object_key, 180)).data
+        : await getMediaStorage().createPrivateReadUrl(a.object_key, 180),
+      signedUrl = signed && ("signedUrl" in signed ? signed.signedUrl : signed.url),
+      res = signedUrl ? await fetch(signedUrl, { cache: "no-store" }) : null;
+    if (!res?.ok) throw new Error("Original ausente");
     const bytes = new Uint8Array(await res.arrayBuffer());
     metrics.download_ms = Date.now() - t0;
     metrics.original_bytes = bytes.byteLength;
@@ -235,6 +239,7 @@ export async function runArchiveProcessingBatch(
   await enqueueDueMusicLinkChecks();
   await evaluateMusicEditorialSloAlerts();
   await evaluateOralHistoryAlerts();
+  await evaluateOralHistoryPilotAlerts();
   let claimed = 0,
     completed = 0,
     failed = 0;

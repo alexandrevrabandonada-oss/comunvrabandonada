@@ -43,18 +43,17 @@ function normalize(value) {
 }
 
 loadEnvFile(envPath);
-assertProductionChecksAllowed(process.env.NEXT_PUBLIC_SITE_URL);
-
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+const baseUrl = process.env.COMUN_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL;
+assertProductionChecksAllowed(baseUrl);
 if (!baseUrl) {
-  fail("NEXT_PUBLIC_SITE_URL ausente.");
+  fail("COMUN_BASE_URL ou NEXT_PUBLIC_SITE_URL ausente.");
   process.exit();
 }
 
 const checks = [
   {
     path: "/comun",
-    required: ["COMUN VR ABANDONADA", "Enviar relato agora", "Relatar", "Comunidades", "Dossies", "Seguranca"],
+    required: ["COMUN VR ABANDONADA", "O que está acontecendo agora", "Próximas ações", "Participe", "Projetos e frentes", "Resultados recentes", "Territórios", "Acervo Vivo"],
   },
   {
     path: "/comun/comunidades",

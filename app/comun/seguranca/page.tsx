@@ -11,6 +11,7 @@ const items = [
   "Evite enviar CPF, telefone, endereco completo ou dados de terceiros.",
   "Fotos enviadas no relato rapido ficam privadas e nao aparecem publicamente sem curadoria.",
   "Localizacao precisa fica interna. Quando necessario, a publicacao usa apenas local aproximado ou sanitizado.",
+  "No Mapa Popular, matriculas, localizacao privada, geometrias sensiveis e documentos cadastrais restritos permanecem internos.",
   "O COMUN e uma plataforma comunitaria e nao substitui canais oficiais quando houver risco imediato ou necessidade formal.",
   "O Protocolo Popular nao substitui Ouvidoria oficial: ele ajuda a redigir um texto, mas nao envia automaticamente para a Prefeitura.",
   "O numero oficial deve ser informado pelo usuario depois do registro no canal oficial.",
@@ -34,8 +35,20 @@ const items = [
   "Em Historia Oral, audio original, termo de consentimento e transcricao interna permanecem privados.",
   "Entrevistas so aparecem com consentimento granular valido, versao publica separada, revisao editorial e embargo encerrado.",
   "Participantes podem restringir ou retirar consentimento; a retirada remove imediatamente a superficie publica relacionada.",
+  "Consentimento para gravar nao autoriza publicar: a versao editada e cada superficie de uso exigem autorizacao final.",
+  "No piloto de Historia Oral, checksum, backup, dupla revisao, terceiros resolvidos e aprovacao do participante bloqueiam a publicacao quando ausentes.",
   "Participantes menores exigem autorizacao de responsavel e revisao reforcada, sem escola, rotina, contato ou localizacao precisa.",
   "Verificacoes tecnicas usam fixtures descartaveis, exigem acesso administrativo e nunca enviam segredos ou originais privados ao navegador.",
+  "A busca global consulta somente títulos, resumos e campos públicos aprovados; notas internas, contatos e relatos brutos não são indexados.",
+  "Ações públicas mostram apenas lugar, responsáveis e orientações autorizados; equipe, riscos e localização privada permanecem internos.",
+  "Disponibilidade de voluntariado e contato são privados e nunca formam uma lista pública de participantes.",
+  "Observações dos observatórios nascem privadas e pendentes; payload bruto, contato, hash e evidência opcional não aparecem no portal.",
+  "Indicadores comunitários só são publicados de forma agregada, com metodologia, período, amostra, cobertura e limitações.",
+  "O monitoramento de transporte não coleta motorista, passageiro, trajetória pessoal, cartão, documento ou localização contínua.",
+  "Na Arte dos Territórios, o original e documentos de direitos permanecem privados; somente derivadas aprovadas podem aparecer.",
+  "O Storage local bloqueia acesso público ao original e só cria derivadas após autorização explícita de exibição.",
+  "Créditos, contexto e autorização de exibição são obrigatórios. O COMUN não presume licença, autoria ou consentimento.",
+  "Obras com menores, pessoas identificáveis ou localização sensível passam por revisão reforçada e não expõem escola, rotina, contato ou local preciso.",
 ];
 
 export default function SecurityPage() {

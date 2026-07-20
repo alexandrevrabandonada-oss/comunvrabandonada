@@ -40,8 +40,8 @@ export const communities: Community[] = [
   {
     slug: "cidade",
     name: "Cidade Abandonada",
-    shortDescription: "Relatos sobre buracos, lixo, calcadas, iluminacao, transporte, enchentes, obras paradas e abandono dos bairros.",
-    fullDescription: "Espaco para reunir problemas urbanos recorrentes e organizar memoria publica sobre abandono, manutencao e servicos.",
+    shortDescription: "DEMONSTRACAO LOCAL: sinais sinteticos sobre calcadas e servicos urbanos, sem dados ou atividade de campo reais.",
+    fullDescription: "Candidata local para ensaiar o ciclo entre territorio, pauta, contribuicao, resultado e memoria com conteudo inteiramente sintetico.",
     mainCta: "Relatar problema no bairro",
     icon: "CA",
     accent: "yellow",

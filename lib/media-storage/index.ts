@@ -1,4 +1,7 @@
 import { R2MediaStorageProvider } from "./r2";
+import { SupabaseLocalStorageProvider } from "./supabase-local";
+import { FixtureStorageProvider } from "./fixture";
+import type { MediaStorageProvider } from "./types";
 export type {
   BucketScope,
   MediaStorageProvider,
@@ -6,14 +9,25 @@ export type {
   MediaObjectSummary,
   UploadUrlInput,
 } from "./types";
-let storage: R2MediaStorageProvider | null = null;
+let storage: MediaStorageProvider | null = null;
+const VALID_PROVIDERS = ["r2", "supabase", "supabase-local", "fixture"] as const;
+export type MediaStorageProviderName = (typeof VALID_PROVIDERS)[number];
+export function resolveMediaStorageProvider(
+  env: Partial<Pick<NodeJS.ProcessEnv, "MEDIA_STORAGE_PROVIDER" | "NODE_ENV">>,
+): MediaStorageProviderName {
+  const selected = env.MEDIA_STORAGE_PROVIDER || (env.NODE_ENV === "test" ? "fixture" : "r2");
+  if (!VALID_PROVIDERS.includes(selected as MediaStorageProviderName))
+    throw new Error(`MEDIA_STORAGE_PROVIDER inválido: "${selected}". Valores aceitos: ${VALID_PROVIDERS.join(", ")}.`);
+  if (selected === "fixture" && env.NODE_ENV === "production")
+    throw new Error('MEDIA_STORAGE_PROVIDER "fixture" é proibido em produção; use apenas no contrato de testes.');
+  return selected as MediaStorageProviderName;
+}
 export function getMediaStorage() {
-  return (storage ??= new R2MediaStorageProvider());
+  if(storage)return storage;const selected=resolveMediaStorageProvider(process.env);
+  if(selected==="supabase-local")storage=new SupabaseLocalStorageProvider();else if(selected==="supabase")storage=new SupabaseLocalStorageProvider({allowRemote:true});else if(selected==="fixture")storage=new FixtureStorageProvider();else storage=new R2MediaStorageProvider();return storage;
 }
 export function publicMediaUrl(key: string) {
-  const base = process.env.R2_PUBLIC_BASE_URL;
-  if (!base) throw new Error("R2_PUBLIC_BASE_URL nao configurada.");
-  return `${base.replace(/\/$/, "")}/${key.split("/").map(encodeURIComponent).join("/")}`;
+  return getMediaStorage().createPublicDerivativeUrl(key);
 }
 export function mediaStorageConfiguration() {
   const keys = [

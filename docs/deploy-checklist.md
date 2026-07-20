@@ -1,5 +1,11 @@
 # Deploy Checklist
 
+- [ ] Gates locais sobrescrevem o `.env.local` com URL e chaves de localhost.
+- [ ] Storage real, alertas, auditoria e cleanup aprovados.
+
+- Rodar `npm run smoke:popular-map` e confirmar cleanup.
+- Confirmar RLS das tabelas `comun_territorial_*`, localização privada e atribuições com fonte.
+
 Este checklist e uma rotina de release. Ele nao faz parte da rotina diaria de desenvolvimento nem de um tijolo comum.
 
 - História Oral: validar RLS, original e termo privados, gate de consentimento, transcrição pública separada, embargo, retirada e ausência de URLs assinadas no HTML.
@@ -199,3 +205,31 @@ Todo relatorio novo deve declarar:
 - Rodar `smoke:local-music-archive` e verificar que áudio é rejeitado.
 - Conferir listagens e detalhes em desktop e mobile, sem dados privados.
 - Rodar `smoke:music-curation`, validar histórico sanitizado, redirect privado bloqueado e filtros paginados.
+# História Oral — piloto editorial
+
+- [ ] migração aplicada e RLS/revogações confirmadas;
+- [ ] smoke editorial executado somente com fixture e cleanup confirmado;
+- [ ] original privado, checksum e backup validados;
+- [ ] retirada, expiração e renovação validadas;
+- [ ] gate humano registrado separadamente; zero entrevista real declarada sem aprovação completa.
+
+# Hub central
+
+- [ ] relato → pauta → evidência → ação → tarefa → protocolo → resultado validado com fixture;
+- [ ] home prioriza pautas e ações; Acervo aparece depois;
+- [ ] busca retorna apenas campos públicos;
+- [ ] Sala de Organização, entrada e calendário exigem admin;
+- [ ] RLS_MATRIX_OK e cleanup sem fixtures.
+
+# Observatórios Populares
+
+- [ ] migration, RLS e grants service-role validados;
+- [ ] payload fora do schema rejeitado e observação nasce pending;
+- [ ] snapshots usam somente accepted, metodologia, período e amostra;
+- [ ] exportações contêm apenas agregados approved_public;
+- [ ] portal, mapa agregado, admin e `smoke:popular-observatory` aprovados;
+- [ ] fixtures e contatos privados removidos no cleanup.
+# Arte dos Territórios
+
+- Confirmar reset duplo, RLS, não vazamento, Playwright/axe, storage escolhido e cleanup.
+- Bloquear release se original, termo, contato, localização privada, notes, object key ou Auth ID aparecerem no HTML.

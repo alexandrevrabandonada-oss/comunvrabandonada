@@ -1,0 +1,1 @@
+export default function Loading(){return <main className="min-h-screen bg-comun-black p-8 text-comun-paper"><p className="animate-pulse font-black uppercase text-comun-yellow">Carregando memórias…</p></main>}

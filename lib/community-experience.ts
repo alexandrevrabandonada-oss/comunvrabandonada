@@ -1,0 +1,31 @@
+export type CommunityKind = "territorial" | "thematic";
+export type CommunityExperience = {
+  slug: string; kind: CommunityKind; territory: string; themes: string[]; state: "organizing" | "listening" | "monitoring";
+  purpose: string; nextAction: string; nextActivity: { title: string; dateLabel: string; isoDate: string } | null;
+  governance: { decision: string; principles: string[]; roles: string[]; correctionHref: string };
+  collaboration: string[];
+  workingGroups: { name: string; objective: string; cycle: string; state: string; result: string }[];
+  circle: { title: string; question: string; stage: string; deadline: string; synthesis: string; divergences: string; decision: string } | null;
+};
+
+const commonGovernance = {
+  decision: "Escuta pública, evidências, propostas, síntese publicada, decisão justificada e avaliação.",
+  principles: ["Cuidado e privacidade", "Divergências registradas", "Responsabilidade com prazo", "Correção e retirada acessíveis"],
+  roles: ["Facilitação da roda", "Curadoria de evidências", "Coordenação de ação", "Registro de memória"],
+  correctionHref: "/comun/seguranca",
+};
+
+const experiences: Record<string, CommunityExperience> = {
+  trabalho: { slug:"trabalho",kind:"thematic",territory:"Volta Redonda e região",themes:["trabalho","saúde"],state:"listening",purpose:"Organizar relatos seguros sobre condições de trabalho e transformá-los em evidência, proteção e ação coletiva.",nextAction:"Contribuir com evidência sanitizada para a síntese sobre pressão e adoecimento.",nextActivity:{title:"Roda de escuta: trabalho e cuidado",dateLabel:"23 jul · 19h",isoDate:"2026-07-23T19:00:00-03:00"},governance:commonGovernance,collaboration:["Acompanhar pautas","Participar de rodas","Pesquisar fontes","Apoiar comunicação"],workingGroups:[{name:"Síntese de condições de trabalho",objective:"Organizar padrões sem expor pessoas.",cycle:"Julho de 2026",state:"em ciclo",result:"Síntese pública revisada"}],circle:{title:"Roda de escuta protegida",question:"Quais condições precisam de resposta coletiva primeiro?",stage:"evidências",deadline:"23 de julho",synthesis:"Padrões serão agrupados sem identificar participantes.",divergences:"Prioridade entre jornada, saúde e direitos permanece aberta.",decision:"Decisão após síntese e revisão de segurança."}},
+  escolas: { slug:"escolas",kind:"territorial",territory:"Bairros de Volta Redonda",themes:["educação"],state:"organizing",purpose:"Conectar famílias, estudantes e trabalhadores para acompanhar condições concretas das escolas.",nextAction:"Mapear, por bairro, onde a falta de profissionais exige verificação.",nextActivity:{title:"Roda sobre profissionais e estrutura",dateLabel:"25 jul · 18h30",isoDate:"2026-07-25T18:30:00-03:00"},governance:commonGovernance,collaboration:["Acompanhar pautas","Colaborar no território","Participar de rodas","Pesquisar"],workingGroups:[{name:"Mapa escolar por bairro",objective:"Reunir sinais verificáveis por território amplo.",cycle:"Até agosto de 2026",state:"em ciclo",result:"Mapa textual revisado"}],circle:{title:"Roda das escolas",question:"Qual ausência afeta mais a rotina escolar agora?",stage:"escuta",deadline:"25 de julho",synthesis:"Síntese ainda em construção.",divergences:"Nenhuma divergência consolidada.",decision:"Sem decisão antes da roda."}},
+  saude: { slug:"saude",kind:"thematic",territory:"Volta Redonda",themes:["saúde"],state:"listening",purpose:"Transformar experiências seguras sobre acesso à saúde em pautas verificáveis e acompanháveis.",nextAction:"Separar relatos por atendimento e tempo de espera.",nextActivity:null,governance:commonGovernance,collaboration:["Acompanhar pautas","Pesquisar","Apoiar comunicação"],workingGroups:[],circle:null },
+  "meio-ambiente": { slug:"meio-ambiente",kind:"territorial",territory:"Volta Redonda",themes:["meio ambiente","território"],state:"monitoring",purpose:"Documentar impactos ambientais percebidos e organizar monitoramento público responsável.",nextAction:"Registrar período e bairro amplo de uma ocorrência.",nextActivity:{title:"Leitura coletiva do monitoramento",dateLabel:"29 jul · 18h",isoDate:"2026-07-29T18:00:00-03:00"},governance:commonGovernance,collaboration:["Colaborar no território","Pesquisar","Contribuir com Arte"],workingGroups:[{name:"Monitoramento territorial",objective:"Agrupar ocorrências por período e bairro.",cycle:"Ciclo mensal",state:"monitorando",result:"Boletim com limitações explícitas"}],circle:null },
+  cidade: { slug:"cidade",kind:"territorial",territory:"Território Demonstração Centro",themes:["mobilidade","serviços urbanos"],state:"organizing",purpose:"DEMONSTRAÇÃO LOCAL: organizar sinais sintéticos sobre barreiras urbanas em pauta, ação, resultado e memória.",nextAction:"Registrar um trecho fictício de calçada, sem endereço ou dado real.",nextActivity:{title:"Leitura simulada das calçadas",dateLabel:"27 jul · 9h · fixture",isoDate:"2026-07-27T09:00:00-03:00"},governance:commonGovernance,collaboration:["Colaborar no território","Ajudar em ações","Participar de rodas","Contribuir com Rádio"],workingGroups:[{name:"Calçadas em circulação — fixture",objective:"Priorizar barreiras sintéticas e ensaiar encaminhamentos.",cycle:"Ciclo local de demonstração",state:"em ciclo",result:"Síntese demonstrativa, sem efeito no mundo real"}],circle:{title:"Roda de prioridades urbanas — fixture",question:"Qual barreira de demonstração deve ser priorizada?",stage:"propostas",deadline:"27 de julho · fixture",synthesis:"Evidências sintéticas serão ligadas à pauta, sem comentários infinitos.",divergences:"Critérios de urgência serão ensaiados com dados inventados.",decision:"Resultado fixture após a roda; não representa decisão real."}},
+};
+
+export function getCommunityExperience(slug: string) { return experiences[slug] ?? null; }
+export function filterCommunityExperiences(values: CommunityExperience[], query: string, kind: string, theme: string, openAction: boolean) {
+  const q=query.trim().toLocaleLowerCase("pt-BR");
+  return values.filter(x=>(!q||`${x.slug} ${x.purpose} ${x.territory} ${x.themes.join(" ")} ${x.nextAction}`.toLocaleLowerCase("pt-BR").includes(q))&&(!kind||x.kind===kind)&&(!theme||x.themes.includes(theme))&&(!openAction||Boolean(x.nextAction)));
+}
+export function listCommunityExperiences() { return Object.values(experiences); }

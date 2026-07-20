@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     if (updated.error) throw new Error(updated.error.message);
     await logComunAdminAction({
       session,
-      action: asset.asset_role === "oral_history_original_audio" ? "oral_history_original_uploaded" : "archive_upload_confirmed",
+      action: asset.asset_role === "oral_history_original_audio" ? "oral_history_original_uploaded" : asset.asset_role === "radio_private_original" ? "radio_original_uploaded" : "archive_upload_confirmed",
       targetType: "archive_asset",
       targetId: assetId,
       metadata: {

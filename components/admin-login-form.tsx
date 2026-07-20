@@ -1,10 +1,10 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import { loginAdmin } from "@/app/actions";
 
 export function AdminLoginForm({ redirectTo = "/comun/admin" }: { redirectTo?: string }) {
-  const [state, action] = useFormState(loginAdmin, null);
+  const [state, action] = useActionState(loginAdmin, null);
 
   return (
     <form action={action} className="industrial-border mx-auto mt-10 grid max-w-md gap-4 bg-comun-paper p-5 text-comun-black">

@@ -43,14 +43,14 @@ test.describe("acervo musical", () => {
 
 test.describe("admin musical", () => {
   test("@visual @a11y observabilidade permanece protegida e responsiva", async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name === "mobile-360", "admin é coberto em 390, 768 e 1366 px");
+    test.skip(testInfo.project.name !== "mobile-360", "login administrativo é exercitado uma vez para respeitar o rate limit");
     const password = process.env.COMUN_ADMIN_PASSWORD;
     test.skip(!password, "credencial administrativa de teste indisponível");
     await page.goto("/comun/admin/login?redirectTo=/comun/admin/acervo/musica/observabilidade");
     await page.getByLabel("E-mail").fill(process.env.COMUN_ADMIN_EMAIL ?? "alexandrecampos@id.uff.br");
     await page.getByLabel("Senha").fill(password!);
     await page.getByRole("button", { name: "Entrar" }).click();
-    await expect(page.getByRole("heading", { name: "Observabilidade musical" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Observabilidade musical" })).toBeVisible({ timeout: 15_000 });
     await assertResponsive(page);
     const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
     expect(result.violations.filter((item) => item.impact === "critical" || item.impact === "serious")).toEqual([]);

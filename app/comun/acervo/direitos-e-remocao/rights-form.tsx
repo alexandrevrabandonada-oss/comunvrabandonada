@@ -15,7 +15,7 @@ export function RightsForm() {
   }
   return (
     <form action={submit} className="mt-6 grid gap-3 paper-panel p-5">
-      <select name="requestType">
+      <select name="requestType" aria-label="Tipo de solicitação">
         <option value="correction">Correcao</option>
         <option value="credit">Credito</option>
         <option value="removal">Retirada</option>

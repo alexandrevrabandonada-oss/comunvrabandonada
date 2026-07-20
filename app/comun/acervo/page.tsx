@@ -29,6 +29,11 @@ export default async function ArchivePage(props: {
           Fotografias, documentos, lugares, artistas e coleções publicados com
           revisão de fonte, direitos e privacidade.
         </p>
+        <div className="mt-5 border-2 border-comun-yellow bg-comun-yellow p-5 text-comun-black">
+          <h2 className="text-2xl font-black uppercase">Ajude a identificar fotografias antigas</h2>
+          <p className="mt-2 max-w-2xl">Veja memórias ainda sem legenda confirmada e conte o que você reconhece. Toda contribuição passa por revisão.</p>
+          <Link href="/comun/acervo/identificar" className="mt-4 inline-flex min-h-11 items-center bg-comun-black px-4 font-black uppercase text-comun-paper">Abrir memórias em identificação</Link>
+        </div>
         <Link
           href="/comun/acervo/contribuir"
           className="mt-5 inline-flex border-2 border-comun-yellow px-4 py-3 font-black uppercase text-comun-yellow"
@@ -52,6 +57,7 @@ export default async function ArchivePage(props: {
           />
           <select
             name="type"
+            aria-label="Tipo de item do acervo"
             defaultValue={searchParams.type}
             className="min-h-11 bg-comun-paper px-2 text-comun-black"
           >

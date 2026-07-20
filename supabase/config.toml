@@ -115,7 +115,27 @@ port = 55434
 [storage]
 enabled = true
 # The maximum file size allowed (e.g. "5MB", "500KB").
-file_size_limit = "50MiB"
+file_size_limit = "300MiB"
+
+[storage.buckets.archive-private-originals]
+public = false
+file_size_limit = "30MiB"
+allowed_mime_types = ["image/jpeg", "image/png", "image/webp"]
+
+[storage.buckets.archive-public-derivatives]
+public = true
+file_size_limit = "15MiB"
+allowed_mime_types = ["image/webp"]
+
+[storage.buckets.radio-private-originals]
+public = false
+file_size_limit = "250MiB"
+allowed_mime_types = ["audio/wav", "audio/mpeg", "audio/mp4", "audio/ogg", "audio/flac"]
+
+[storage.buckets.radio-public-audio]
+public = true
+file_size_limit = "250MiB"
+allowed_mime_types = ["audio/mpeg", "application/json", "text/vtt", "text/plain"]
 
 # Uncomment to configure local storage buckets
 # [storage.buckets.images]
@@ -204,6 +224,8 @@ anonymous_users = 30
 # Number of sessions that can be refreshed in a 5 minute interval per IP address.
 token_refresh = 150
 # Number of sign up and sign-in requests that can be made in a 5 minute interval per IP address (excludes anonymous users).
+# The authenticated suites budget one UI login per persona and reuse only the
+# validated state inside that suite; keep the normal protection active.
 sign_in_sign_ups = 30
 # Number of OTP / Magic link verifications that can be made in a 5 minute interval per IP address.
 token_verifications = 30

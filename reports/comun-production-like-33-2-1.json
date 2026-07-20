@@ -1,0 +1,26 @@
+{
+  "startedAt": "2026-07-17T04:12:03.251Z",
+  "commit": "2a8a668",
+  "base": "http://localhost:3000",
+  "pid": 17760,
+  "checks": [
+    {
+      "label": "build",
+      "ok": true,
+      "durationMs": 51774
+    },
+    {
+      "label": "e2e",
+      "ok": true,
+      "durationMs": 87528
+    },
+    {
+      "label": "axe",
+      "ok": false,
+      "durationMs": 222947
+    }
+  ],
+  "ok": false,
+  "failure": "axe failed",
+  "finishedAt": "2026-07-17T04:18:14.618Z"
+}

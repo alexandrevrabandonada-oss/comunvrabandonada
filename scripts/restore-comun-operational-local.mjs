@@ -1,0 +1,2 @@
+import {readFile} from "node:fs/promises";import {resolve} from "node:path";import {validateBackup} from "./comun-operational-backup.mjs";
+if(!process.env.COMUN_LOCAL_ONLY) throw new Error("Restore permitido somente com COMUN_LOCAL_ONLY=1"); const backup=JSON.parse(await readFile(resolve(process.argv[2]),"utf8")); if(!validateBackup(backup)) throw new Error("Checksum ou inventário inválido"); console.log(`COMUN_OPERATIONAL_RESTORE_DRY_RUN_OK count=${backup.count}`);

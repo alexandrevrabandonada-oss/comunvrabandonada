@@ -1,0 +1,53 @@
+"use client";
+
+import Link from "next/link";
+import { Search, X } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useEffect, useId, useRef, useState } from "react";
+
+type Way = { title: string; href: string; time: string; account: string; note?: string };
+
+function contextualWays(path: string): Way[] {
+  const generic: Way[] = [
+    { title: "Contar um problema", href: "/comun/relatar", time: "5–10 min", account: "Conta não obrigatória" },
+    { title: "Entrar numa roda", href: "/comun/pautas", time: "10–20 min", account: "Conta recomendada" },
+    { title: "Ajudar numa ação", href: "/comun/acoes", time: "tempo indicado", account: "Conforme a ação" },
+    { title: "Contribuir com memória", href: "/comun/acervo/contribuir", time: "10–30 min", account: "Conta opcional" },
+  ];
+  if (/calcad|\/mapa/.test(path)) return [{ title: "Registrar problema na calçada", href: `/comun/entrar?returnTo=${encodeURIComponent("/comun/mapa/contribuir")}`, time: "5–10 min", account: "Conta necessária", note: "Você volta ao formulário depois do acesso." }, { title: "Contribuir com evidência", href: "/comun/mapa/contribuir", time: "10 min", account: "Conforme o registro" }, ...generic.slice(1, 3)];
+  if (path.includes("/c/")) return [{ title: "Enviar relato nesta comunidade", href: `/comun/relatar?comunidade=${path.split("/")[3] ?? ""}`, time: "5–10 min", account: "Conta não obrigatória" }, { title: "Acompanhar uma pauta", href: "/comun/pautas", time: "2 min", account: "Conta necessária" }, ...generic.slice(2)];
+  if (path.includes("/pautas/")) return [{ title: "Participar da próxima etapa", href: `${path}#construction_circle`, time: "10–20 min", account: "Conforme a etapa" }, { title: "Acompanhar esta pauta", href: `/comun/entrar?returnTo=${encodeURIComponent(path)}`, time: "2 min", account: "Conta necessária", note: "O login devolve você a esta pauta." }, ...generic.slice(2)];
+  if (path.includes("/radio")) return [{ title: "Colaborar com a Rádio", href: "/comun/radio/contribuir", time: "10–20 min", account: "Conta opcional" }, ...generic.slice(0, 3)];
+  return generic;
+}
+
+function Sheet({ title, open, onClose, children }: { title: string; open: boolean; onClose: () => void; children: React.ReactNode }) {
+  const titleId = useId();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    headingRef.current?.focus();
+    const closeOnEscape = (event: KeyboardEvent) => event.key === "Escape" && onClose();
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [open, onClose]);
+  if (!open) return null;
+  return <div className="fixed inset-0 z-[60] flex items-end bg-comun-black/70 p-0 sm:items-center sm:justify-center sm:p-6" role="presentation" onMouseDown={onClose}><section aria-modal="true" aria-labelledby={titleId} role="dialog" className="comun-sheet max-h-[82vh] w-full max-w-xl overflow-y-auto rounded-t-2xl border-2 border-comun-black bg-comun-paper p-5 text-comun-black shadow-mural sm:rounded-2xl" onMouseDown={(event) => event.stopPropagation()}><header className="flex items-start justify-between gap-4 border-b-2 border-comun-black pb-4"><div><p className="text-xs font-black uppercase text-comun-concrete">COMUN</p><h2 id={titleId} ref={headingRef} tabIndex={-1} className="text-2xl font-black leading-none">{title}</h2></div><button type="button" aria-label="Fechar" title="Fechar" onClick={onClose} className="grid size-11 place-items-center rounded-lg border-2 border-comun-black"><X aria-hidden="true" /></button></header>{children}</section></div>;
+}
+
+export function ParticipateSheet() {
+  const path = usePathname();
+  const ways = contextualWays(path);
+  const [open, setOpen] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const close = () => { setOpen(false); setTimeout(() => trigger.current?.focus(), 0); };
+  return <><button ref={trigger} type="button" onClick={() => setOpen(true)} className="hidden min-h-10 border-2 border-comun-yellow px-3 text-xs font-black uppercase text-comun-yellow hover:bg-comun-yellow hover:text-comun-black sm:inline-flex sm:items-center">Participar agora</button><Sheet title="Escolha uma forma de participar" open={open} onClose={close}><p className="mt-4 text-sm">Opções relacionadas ao contexto atual. Cada caminho informa tempo e necessidade de conta.</p><ul className="mt-5 divide-y-2 divide-comun-black">{ways.map((way) => <li key={`${way.title}-${way.href}`}><Link href={way.href} onClick={close} className="block py-4 hover:text-comun-rust"><span className="flex items-center justify-between gap-4 font-black uppercase"><span>{way.title}</span><small className="text-right text-xs normal-case font-bold">{way.time}</small></span><span className="mt-1 block text-xs font-bold text-comun-concrete">{way.account}{way.note ? ` · ${way.note}` : ""}</span></Link></li>)}</ul><Link href="/comun/participar" onClick={close} className="mt-5 inline-flex min-h-11 items-center border-2 border-comun-black bg-comun-yellow px-4 font-black uppercase">Ver todas as formas</Link></Sheet></>;
+}
+
+export function SearchSheet() {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const trigger = useRef<HTMLButtonElement>(null);
+  const close = () => { setOpen(false); setTimeout(() => trigger.current?.focus(), 0); };
+  return <><button ref={trigger} type="button" onClick={() => setOpen(true)} className="grid size-10 place-items-center text-comun-yellow hover:bg-comun-paper hover:text-comun-black" aria-label="Abrir busca"><Search aria-hidden="true" size={19} /></button><Sheet title="Buscar no COMUN" open={open} onClose={close}><form action="/comun/buscar" className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]"><label className="sr-only" htmlFor="comun-search">Termo de busca</label><input id="comun-search" name="q" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Pauta, território, memória…" className="min-h-12 border-2 border-comun-black bg-white px-3"/><button className="min-h-12 border-2 border-comun-black bg-comun-yellow px-4 font-black uppercase">Buscar</button></form><p className="mt-4 text-sm">A busca agrupa resultados públicos por processo, território e memória; não há ranking de popularidade.</p></Sheet></>;
+}
