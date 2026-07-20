@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { archiveDate, listPublicArchiveItems } from "@/lib/archive";
+import { listIdentificationItems } from "@/lib/archive-identification";
 export const dynamic = "force-dynamic";
 export default async function ArchivePage(props: {
   searchParams: Promise<{
@@ -17,7 +18,11 @@ export default async function ArchivePage(props: {
   }>;
 }) {
   const searchParams = await props.searchParams;
-  const items = await listPublicArchiveItems(searchParams);
+  const [items, identification] = await Promise.all([
+    listPublicArchiveItems(searchParams),
+    listIdentificationItems({ page: 1 }),
+  ]);
+  const identificationPreview = identification.items.slice(0, 6);
   return (
     <ComunShell>
       <Section>
@@ -29,11 +34,72 @@ export default async function ArchivePage(props: {
           Fotografias, documentos, lugares, artistas e coleções publicados com
           revisão de fonte, direitos e privacidade.
         </p>
-        <div className="mt-5 border-2 border-comun-yellow bg-comun-yellow p-5 text-comun-black">
-          <h2 className="text-2xl font-black uppercase">Ajude a identificar fotografias antigas</h2>
-          <p className="mt-2 max-w-2xl">Veja memórias ainda sem legenda confirmada e conte o que você reconhece. Toda contribuição passa por revisão.</p>
-          <Link href="/comun/acervo/identificar" className="mt-4 inline-flex min-h-11 items-center bg-comun-black px-4 font-black uppercase text-comun-paper">Abrir memórias em identificação</Link>
-        </div>
+        <section
+          aria-labelledby="memorias-em-identificacao"
+          data-testid="historical-identification-preview"
+          className="mt-6 border-2 border-comun-yellow bg-comun-asphalt/40 p-4 sm:p-6"
+        >
+          <p className="text-xs font-black uppercase tracking-wide text-comun-yellow">
+            Autoria e contexto em identificação
+          </p>
+          <div className="mt-2 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h2
+                id="memorias-em-identificacao"
+                className="text-2xl font-black uppercase text-comun-paper sm:text-3xl"
+              >
+                Fotografias antigas de Volta Redonda
+              </h2>
+              <p className="mt-2 max-w-3xl text-comun-paper/75">
+                {identification.total || 860} memórias aguardam a ajuda da comunidade para identificar lugares,
+                pessoas, datas e acontecimentos. Os títulos são provisórios e toda contribuição passa por revisão.
+              </p>
+            </div>
+            <Link
+              href="/comun/acervo/identificar"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center bg-comun-yellow px-4 font-black uppercase text-comun-black"
+            >
+              Ver as {identification.total || 860} fotografias
+            </Link>
+          </div>
+
+          {identificationPreview.length ? (
+            <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+              {identificationPreview.map((item) => (
+                <Link
+                  href={`/comun/acervo/identificar/${item.public_slug}`}
+                  key={item.id}
+                  aria-label={`Abrir ${item.public_title}`}
+                  className="group overflow-hidden border-2 border-comun-paper/25 bg-comun-black focus:outline-none focus:ring-4 focus:ring-comun-yellow"
+                >
+                  {item.preview_url ? (
+                    <Image
+                      src={item.preview_url}
+                      alt="Fotografia histórica de Volta Redonda em identificação"
+                      width={item.preview_width || 800}
+                      height={item.preview_height || 600}
+                      className="aspect-[4/3] w-full object-cover transition-transform group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="grid aspect-[4/3] place-items-center p-3 text-center text-xs font-black uppercase text-comun-paper/70">
+                      Restauração pendente
+                    </div>
+                  )}
+                  <p className="line-clamp-2 p-2 text-xs font-black uppercase text-comun-paper group-hover:text-comun-yellow">
+                    {item.public_title}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-comun-paper/70">
+              A campanha está temporariamente indisponível. Use o botão acima para consultar seu estado.
+            </p>
+          )}
+          <p className="mt-4 text-xs text-comun-paper/60">
+            Esta campanha colaborativa é separada do acervo editorial: uma contribuição não transforma uma hipótese em fato histórico.
+          </p>
+        </section>
         <Link
           href="/comun/acervo/contribuir"
           className="mt-5 inline-flex border-2 border-comun-yellow px-4 py-3 font-black uppercase text-comun-yellow"
@@ -48,7 +114,13 @@ export default async function ArchivePage(props: {
         >
           Direitos e remocao
         </Link>
-        <form className="mt-6 grid gap-2 border-2 border-comun-yellow bg-comun-black p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <h2 className="mt-10 text-2xl font-black uppercase text-comun-paper">
+          Acervo editorial publicado
+        </h2>
+        <p className="mt-2 max-w-3xl text-sm text-comun-paper/70">
+          Itens formalmente publicados após revisão editorial. Use os filtros para pesquisar este catálogo.
+        </p>
+        <form className="mt-5 grid gap-2 border-2 border-comun-yellow bg-comun-black p-4 sm:grid-cols-2 lg:grid-cols-4">
           <input
             name="q"
             defaultValue={searchParams.q}

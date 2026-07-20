@@ -77,6 +77,7 @@ export async function listPublicArchiveItems(
     .eq("status", "published")
     .eq("visibility", "public")
     .not("published_at", "is", null)
+    .not("slug", "like", "smoke-acervo-%")
     .order("published_at", { ascending: false })
     .range((page - 1) * pageSize, page * pageSize - 1);
   if (filters.type) q = q.eq("item_type", filters.type);
