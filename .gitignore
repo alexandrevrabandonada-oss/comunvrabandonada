@@ -19,3 +19,4 @@ types/supabase.ts
 backups/
 .local/
 .vercel
+.env*.local
