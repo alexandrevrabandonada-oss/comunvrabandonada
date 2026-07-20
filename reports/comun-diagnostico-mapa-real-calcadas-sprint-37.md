@@ -1,5 +1,7 @@
 # Diagnóstico — Mapa Real das Calçadas, Sprint 37
 
+> Atualização 20/07/2026: pan, zoom, clustering, fixture urbana sintética, filtros em URL, fila editorial e observações moderadas foram implementados. Permanecem abertos prioridade, mobilização, pacote de pressão, E2E integral e gate humano.
+
 ## Diagnóstico inicial confirmado
 
 O mapa anterior era ilustrativo: marcadores por índice e coordenada fixa no envio. O diretório territorial também omitia o filtro explícito de visibilidade ao usar o cliente privilegiado.

@@ -1,5 +1,7 @@
 # Performance local — Calçadas, Sprint 37
 
+> Atualização 20/07/2026: clustering agora limita os marcadores renderizados. A medição integral contra `next start`, incluindo queries e RSS por superfície, ainda está pendente.
+
 Medição do núcleo de projeção, recorte e agrupamento em 200 rodadas, sem rede externa:
 
 | Pontos | Payload | P95 | Grupos | Itens máximos renderizados |

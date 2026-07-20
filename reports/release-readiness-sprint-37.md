@@ -23,3 +23,14 @@ Declarações: piloto **não aberto**; integração na `main`, push e deploy **n
 O núcleo local da nova rota `/comun/calcadas` passou por lint, typecheck, build, 240 testes unitários, 30 testes E2E em cinco viewports, Axe, `db lint` e `RLS_MATRIX_OK`. A migration foi aplicada em reset local e não usa dados reais ou tiles externos.
 
 **Readiness da vertical:** NO-GO. Permanecem abertos o E2E autenticado editorial completo, proximidade operacional, criação administrativa de prioridades, pacote de pressão, production-like final, regressões históricas e gate humano. Nenhum push ou deploy foi executado.
+
+## Atualização — continuação integral local (20/07/2026)
+
+Separação canônica de readiness:
+
+- **Candidata integrada anterior:** READY técnico local; promoção ainda condicionada ao gate humano histórico.
+- **Vertical Mapa Real das Calçadas:** **NÚCLEO GEOESPACIAL LOCAL APROVADO; VERTICAL INTEGRAL AINDA NO-GO**.
+
+Evidência nova: cartografia fixture local com limite, vias, bairros e equipamentos sintéticos; pan, zoom, clustering e filtros em URL; fila editorial de registros e observações; publicação com geometria aproximada ou sem imagem; derivada pública revisada; observações posteriores pré-moderadas. Lint, typecheck, build de 91 páginas e 242/242 unitários passaram.
+
+Continuam abertos: E2E autenticado integral sem skip, criação operacional completa de prioridade/mobilização, pacote sanitizado Markdown/JSON/página, dois resets independentes após o fechamento total, production-like integral, regressões históricas e gate humano 0/3. O marcador final não foi emitido.

@@ -44,6 +44,22 @@
 
 Por esses motivos, o marcador `COMUN_SIDEWALK_REAL_MAP_LOCAL_OK` **não é emitido** neste relatório.
 
+## Continuação integral local
+
+Estado canônico: **NÚCLEO GEOESPACIAL LOCAL APROVADO — VERTICAL INTEGRAL AINDA NO-GO**.
+
+Foram acrescentados em commits locais separados:
+
+- cartografia determinística sintética, pan, zoom, clustering e filtros preservados na URL;
+- motor puro e testado de proximidade por raio;
+- fila administrativa dedicada, com geometria privada visível apenas internamente;
+- aprovação com localização arredondada, publicação sem imagem, complemento, rejeição e retirada;
+- derivada WebP pública somente após aprovação, mantendo original privado;
+- observações `continua igual`, `piorou`, `foi resolvido` e `outro problema`, todas pendentes até moderação;
+- atualização da linha do tempo apenas com observações aprovadas.
+
+Validação desta continuação: lint, typecheck, build (91 páginas) e 242/242 testes unitários aprovados. Ainda não foram alegados E2E integral, reset duplo, production-like integral ou gate humano.
+
 ## Declarações obrigatórias
 
 - Piloto público: NÃO ABERTO

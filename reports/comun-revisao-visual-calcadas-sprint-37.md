@@ -1,5 +1,7 @@
 # Revisão visual — Calçadas, Sprint 37
 
+> Atualização 20/07/2026: a base agora contém limite, vias, bairros e equipamentos sintéticos, além de pan e clusters. As capturas anteriores não comprovam essas mudanças; a nova rodada integral permanece pendente.
+
 Foram capturados mapa e lista em 360×800, 390×844, 768×1024, 1024×768 e 1366×768, em `reports/screenshots/sprint-37-calcadas-*`.
 
 ## Resultado
