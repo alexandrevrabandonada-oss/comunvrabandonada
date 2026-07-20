@@ -76,6 +76,7 @@ export default async function ArchivePage(props: {
                     <Image
                       src={item.preview_url}
                       alt="Fotografia histórica de Volta Redonda em identificação"
+                      unoptimized
                       width={item.preview_width || 800}
                       height={item.preview_height || 600}
                       className="aspect-[4/3] w-full object-cover transition-transform group-hover:scale-105"
