@@ -129,6 +129,7 @@
     "generate:photo-derivatives": "node scripts/generate-comun-photo-derivatives.mjs",
     "backup:archive-manifest": "node scripts/export-comun-archive-manifest.mjs",
     "archive:historical-photos": "node scripts/import-comun-historical-photo-batch.mjs",
+    "archive:historical-photo-pilot": "node scripts/create-comun-historical-photo-research-pilot.mjs",
     "storage:setup": "node scripts/setup-comun-storage.mjs",
     "bootstrap:admin": "node scripts/bootstrap-comun-admin.mjs",
     "verify": "npm run verify:local",
