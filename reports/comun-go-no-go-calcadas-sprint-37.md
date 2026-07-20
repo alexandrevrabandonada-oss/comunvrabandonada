@@ -4,7 +4,7 @@
 
 | Dimensão | Decisão | Evidência / bloqueio |
 | --- | --- | --- |
-| Técnica local | NO-GO integral | Núcleo, resets, RLS, build e E2E público passaram; falta E2E autenticado integral e regressões completas. |
+| Técnica local | NO-GO integral | Núcleo, resets, RLS, build, E2E público e jornada autenticada do participante passaram; falta continuar a mesma fixture pela operação até memória e executar regressões completas. |
 | Experiência | NO_GO_HUMAN_EXPERIENCE | Gate humano permanece 0/3. |
 | Operação | NO_GO_OPERATIONAL_READINESS | Fila e prioridade existem, mas a equipe ainda não executou a cadeia completa e o protocolo fixture pela interface. |
 | Cartografia | NO_GO_REAL_BASEMAP_REVIEW | Somente fixture local sintética; provider real e licença não foram escolhidos nem auditados. |

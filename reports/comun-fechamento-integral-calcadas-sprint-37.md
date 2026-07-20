@@ -24,6 +24,12 @@
 - reset duplo, regressões históricas e production-like integral;
 - gate humano com três participantes externos (atual: 0/3).
 
+## Prova autenticada atualizada
+
+A jornada participante foi alinhada ao formulário vigente e passou 10/10 em 360×800, 390×844, 768×1024, 1024×768 e 1366×768: cadastro, onboarding, JPEG fixture, ponto manual, condição Ruim, problema, revisão, envio, confirmação, Minha área e retorno à pauta. Axe e cleanup passaram; `COMUN_TEST_FIXTURES_CLEAN` foi emitido pela suíte.
+
+Ainda falta unir essa jornada à persona editorial e continuar, no mesmo `runId`, até moderação, pacote, protocolo, resultado e memória. Portanto, não é o E2E integral final.
+
 Não emitir `COMUN_SIDEWALK_REAL_MAP_LOCAL_OK` enquanto qualquer item acima permanecer aberto.
 
 ## Declarações

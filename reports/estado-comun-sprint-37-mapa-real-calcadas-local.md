@@ -68,6 +68,8 @@ Validado: 30/30 E2E públicos em cinco viewports antes e depois do segundo reset
 
 Pendente: E2E autenticado único da foto à memória, protocolo/resposta/resultado fixture pela interface, performance integral, regressões históricas completas e gate humano 0/3.
 
+Regressão autenticada atualizada: 10/10 nas cinco larguras para cadastro → foto → ponto manual → condição Ruim → envio → confirmação → Minha área → pauta, com Axe e cleanup. O escopo posterior à pauta permanece pendente no cenário único.
+
 ## Declarações obrigatórias
 
 - Piloto público: NÃO ABERTO

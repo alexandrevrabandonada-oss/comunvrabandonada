@@ -36,3 +36,5 @@ Evidência nova: cartografia fixture local com limite, vias, bairros e equipamen
 Continuam abertos: E2E autenticado integral sem skip, criação operacional completa de prioridade/mobilização, pacote sanitizado Markdown/JSON/página, dois resets independentes após o fechamento total, production-like integral, regressões históricas e gate humano 0/3. O marcador final não foi emitido.
 
 Atualização seguinte: prioridade/mobilização mínima e os três formatos do pacote foram implementados; dois resets, RLS, E2E público 30/30, build e smoke `next start` passaram. A lista anterior deve agora ser lida assim: **implementados**, mas ainda sem E2E integral, estão prioridade/mobilização e pacote; **executados parcialmente**, mas sem marcador integral, estão reset duplo e production-like. O gate humano continua 0/3.
+
+Atualização da prova: a regressão do teste autenticado causada por seletores obsoletos foi corrigida. A jornada participante passou 10/10 nas cinco larguras e confirmou cleanup. O readiness integral continua NO-GO porque a execução ainda termina em Minha área/pauta e não percorre a mesma fixture até memória.
