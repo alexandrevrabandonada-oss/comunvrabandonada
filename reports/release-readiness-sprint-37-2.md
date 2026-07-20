@@ -12,7 +12,7 @@ Data: 20 de julho de 2026.
 | Segurança | Parcialmente validada | `RLS_MATRIX_OK` e DB lint sem erros; personas pendentes |
 | Unitários | Aprovado | 244/244 |
 | Cinco viewports | Aprovado | 10/10, sem skip |
-| Acessibilidade/visual | Pendente | executar gate completo |
+| Acessibilidade/visual | Parcial | contraste e overflow da central corrigidos; superfícies integrais pendentes |
 | Performance | Pendente | medir com `next start` |
 | Reset duplo formal | Pendente | executar após estabilização |
 | Production-like | Pendente | build/start e jornada integral |

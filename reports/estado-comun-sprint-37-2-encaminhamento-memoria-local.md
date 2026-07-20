@@ -41,12 +41,14 @@ O cenário autenticado percorreu fotografia, contribuição, moderação, public
 | `npm run audit:rls-matrix` | `RLS_MATRIX_OK` |
 | `npx supabase db lint --local` | zero erros de schema |
 | Cleanup | `COMUN_TEST_FIXTURES_CLEAN` |
+| Matriz operacional autenticada | 43 testes de personas/autorização aprovados; 2 falhas de Axe diagnosticadas fora da matriz |
+| Paginação operacional após correção | cenário de 100 itens aprovado; Axe móvel aprovado; zero overflow |
 
 ## Gates ainda pendentes
 
 O fechamento técnico integral da Sprint 37.2 ainda não deve ser declarado. Faltam executar e registrar:
 
-- testes comportamentais das oito personas da matriz RLS;
+- completar as ações especializadas das oito personas dentro da mesma fixture do ciclo;
 - Axe e revisão visual completa;
 - performance contra `next start`;
 - duas rodadas formais de reset integral com novos `runId`;
