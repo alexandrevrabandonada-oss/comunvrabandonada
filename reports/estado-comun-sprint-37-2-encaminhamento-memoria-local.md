@@ -43,12 +43,22 @@ O cenário autenticado percorreu fotografia, contribuição, moderação, public
 | Cleanup | `COMUN_TEST_FIXTURES_CLEAN` |
 | Matriz operacional autenticada | 43 testes de personas/autorização aprovados; 2 falhas de Axe diagnosticadas fora da matriz |
 | Paginação operacional após correção | cenário de 100 itens aprovado; Axe móvel aprovado; zero overflow |
+| Matriz especializada no ciclo integral | `COMUN_SIDEWALK_PERSONAS_MATRIX_LOCAL_OK` em cinco viewports; 10/10 |
+
+### Correção comprovada no fechamento definitivo
+
+O gate revelou que prioridade, roda, síntese, ação e tarefa ainda exigiam papel
+global `admin/editor`, apesar de a matriz operacional atribuir essa superfície ao
+facilitador. A autorização foi alinhada ao controle `circle`, já existente. O
+mesmo registro, prioridade e forwarding passaram então por participante,
+facilitador, operador de revisão, operador de protocolo, editor de resultado,
+curador de memória e administrador. A conta suspensa permaneceu na entrada com
+o alerta de indisponibilidade e não retomou o processo.
 
 ## Gates ainda pendentes
 
 O fechamento técnico integral da Sprint 37.2 ainda não deve ser declarado. Faltam executar e registrar:
 
-- completar as ações especializadas das oito personas dentro da mesma fixture do ciclo;
 - Axe e revisão visual completa;
 - performance contra `next start`;
 - duas rodadas formais de reset integral com novos `runId`;

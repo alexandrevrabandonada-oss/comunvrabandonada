@@ -9,9 +9,10 @@ Data: 20 de julho de 2026.
 | Dimensão | Estado | Evidência atual |
 |---|---|---|
 | Produto | Implementado localmente | fluxo pela interface até memória publicada |
-| Segurança | Parcialmente validada | `RLS_MATRIX_OK` e DB lint sem erros; personas pendentes |
+| Segurança | Parcialmente validada | `RLS_MATRIX_OK`, DB lint e matriz especializada no ciclo aprovados |
 | Unitários | Aprovado | 244/244 |
 | Cinco viewports | Aprovado | 10/10, sem skip |
+| Personas do ciclo | Aprovado | marcador `COMUN_SIDEWALK_PERSONAS_MATRIX_LOCAL_OK` nos cinco viewports |
 | Acessibilidade/visual | Parcial | contraste e overflow da central corrigidos; superfícies integrais pendentes |
 | Performance | Pendente | medir com `next start` |
 | Reset duplo formal | Pendente | executar após estabilização |
