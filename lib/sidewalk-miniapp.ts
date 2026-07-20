@@ -19,7 +19,8 @@ export async function getSidewalkMiniapp() {
     db.from("comun_sidewalk_cycle_memories").select("id,slug,title,public_summary,published_at").eq("pauta_id", pauta.id).eq("status", "published").eq("visibility", "public").limit(20),
     db.from("comun_sidewalk_municipal_configs").select("slug,name,center_longitude,center_latitude,default_zoom,neighborhoods,methodology_public,coverage_status").eq("slug", "volta-redonda").eq("is_active", true).maybeSingle(),
   ]);
-  const safeRecords = ((records.data ?? []) as any[]).map((row) => sanitizeRecordForPublic(row) as PublicSidewalkRecord);
+  const ids=(records.data??[]).map((row:any)=>row.id);const {data:photos}=ids.length?await db.from("comun_sidewalk_record_photos").select("record_id,comun_archive_assets!comun_sidewalk_record_photos_derivative_asset_id_fkey(public_url)").in("record_id",ids).eq("is_public",true).eq("review_status","approved"):{data:[]};const urls=new Map((photos??[]).map((photo:any)=>[photo.record_id,(Array.isArray(photo.comun_archive_assets)?photo.comun_archive_assets[0]:photo.comun_archive_assets)?.public_url??null]));
+  const safeRecords = ((records.data ?? []) as any[]).map((row) => ({...sanitizeRecordForPublic(row),public_photo_url:urls.get(row.id)??null}) as PublicSidewalkRecord);
   return { pauta, records: safeRecords, priorities: priorities.data ?? [], actions: actions.data ?? [], results: results.data ?? [], memories: memories.data ?? [], config: config.data };
 }
 

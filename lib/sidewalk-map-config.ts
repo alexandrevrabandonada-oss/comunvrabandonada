@@ -47,6 +47,7 @@ export type PublicSidewalkRecord = {
   neighborhood: string|null;
   last_observed_at: string;
   resolved_at: string|null;
+  public_photo_url?: string|null;
 };
 
 export function pointCoordinates(record: PublicSidewalkRecord): [number,number]|null {
