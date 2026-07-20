@@ -1,2 +1,98 @@
-import {rm} from "node:fs/promises";import {localServiceClient} from "../fixtures/comun/local-fixtures.mjs";import cleanupSidewalk from "../sidewalk-pilot/global-teardown.mjs";
-export default async function cleanup(){const db=localServiceClient(),adminEmail="s37-admin@comun.test";await db.from("comun_hub_results").delete().like("title","Resultado parcial s37-%");const{data:actions}=await db.from("comun_mobilization_actions").select("id").like("slug","rota-acessivel-demo-%");for(const action of actions??[]){await db.from("comun_pauta_tasks").delete().eq("action_id",action.id);await db.from("comun_circle_synthesis_links").delete().eq("target_type","action").eq("target_id",action.id);await db.from("comun_mobilization_actions").delete().eq("id",action.id)}const{data:circles}=await db.from("comun_construction_circles").select("id").like("title","Roda: Rota acessível%");for(const circle of circles??[])await db.from("comun_construction_circles").delete().eq("id",circle.id);await db.from("comun_admin_profiles").delete().eq("email",adminEmail);await db.from("comun_admin_users").delete().eq("email",adminEmail);const{data:users}=await db.auth.admin.listUsers({page:1,perPage:1000});for(const user of users?.users??[]){if(!user.email?.startsWith("s34-2-")&&!user.email?.startsWith("s37-"))continue;const{data:records}=await db.from("comun_sidewalk_records").select("id").eq("member_user_id",user.id);for(const record of records??[]){const{data:photos}=await db.from("comun_sidewalk_record_photos").select("archive_item_id,original:comun_archive_assets!comun_sidewalk_record_photos_original_asset_id_fkey(object_key)").eq("record_id",record.id);for(const photo of photos??[]){const key=photo.original?.object_key;if(key)await db.storage.from("archive-private-originals").remove([key]);if(photo.archive_item_id)await db.from("comun_archive_items").delete().eq("id",photo.archive_item_id)}await db.from("comun_sidewalk_records").delete().eq("id",record.id)}await db.from("comun_community_memberships").delete().eq("member_user_id",user.id);await db.from("comun_member_inbox").delete().eq("member_user_id",user.id);await db.from("comun_pauta_memberships").delete().eq("member_user_id",user.id);await db.from("comun_member_profiles").delete().eq("user_id",user.id);await db.auth.admin.deleteUser(user.id)}await cleanupSidewalk();await rm(".local/comun-integral",{recursive:true,force:true});console.log("COMUN_TEST_FIXTURES_CLEAN")}
+import { rm } from "node:fs/promises";
+import { localServiceClient } from "../fixtures/comun/local-fixtures.mjs";
+import cleanupSidewalk from "../sidewalk-pilot/global-teardown.mjs";
+export default async function cleanup() {
+  const db = localServiceClient(),
+    adminEmail = "s37-admin@comun.test";
+  const { data: flows } = await db
+    .from("comun_sidewalk_forwardings")
+    .select("id,report_id,protocol_id,result_id,memory_id")
+    .eq("created_by", adminEmail);
+  for (const flow of flows ?? []) {
+    await db.from("comun_sidewalk_forwardings").delete().eq("id", flow.id);
+    if (flow.memory_id)
+      await db
+        .from("comun_sidewalk_cycle_memories")
+        .delete()
+        .eq("id", flow.memory_id);
+    if (flow.result_id)
+      await db.from("comun_hub_results").delete().eq("id", flow.result_id);
+    if (flow.protocol_id)
+      await db
+        .from("comun_official_protocols")
+        .delete()
+        .eq("id", flow.protocol_id);
+    if (flow.report_id)
+      await db.from("comun_reports").delete().eq("id", flow.report_id);
+  }
+  await db
+    .from("comun_hub_results")
+    .delete()
+    .like("title", "Resultado parcial s37-%");
+  const { data: actions } = await db
+    .from("comun_mobilization_actions")
+    .select("id")
+    .like("slug", "rota-acessivel-demo-%");
+  for (const action of actions ?? []) {
+    await db.from("comun_pauta_tasks").delete().eq("action_id", action.id);
+    await db
+      .from("comun_circle_synthesis_links")
+      .delete()
+      .eq("target_type", "action")
+      .eq("target_id", action.id);
+    await db.from("comun_mobilization_actions").delete().eq("id", action.id);
+  }
+  const { data: circles } = await db
+    .from("comun_construction_circles")
+    .select("id")
+    .like("title", "Roda: Rota acessível%");
+  for (const circle of circles ?? [])
+    await db.from("comun_construction_circles").delete().eq("id", circle.id);
+  await db.from("comun_admin_profiles").delete().eq("email", adminEmail);
+  await db.from("comun_admin_users").delete().eq("email", adminEmail);
+  const { data: users } = await db.auth.admin.listUsers({
+    page: 1,
+    perPage: 1000,
+  });
+  for (const user of users?.users ?? []) {
+    if (!user.email?.startsWith("s34-2-") && !user.email?.startsWith("s37-"))
+      continue;
+    const { data: records } = await db
+      .from("comun_sidewalk_records")
+      .select("id")
+      .eq("member_user_id", user.id);
+    for (const record of records ?? []) {
+      const { data: photos } = await db
+        .from("comun_sidewalk_record_photos")
+        .select(
+          "archive_item_id,original:comun_archive_assets!comun_sidewalk_record_photos_original_asset_id_fkey(object_key)",
+        )
+        .eq("record_id", record.id);
+      for (const photo of photos ?? []) {
+        const key = photo.original?.object_key;
+        if (key)
+          await db.storage.from("archive-private-originals").remove([key]);
+        if (photo.archive_item_id)
+          await db
+            .from("comun_archive_items")
+            .delete()
+            .eq("id", photo.archive_item_id);
+      }
+      await db.from("comun_sidewalk_records").delete().eq("id", record.id);
+    }
+    await db
+      .from("comun_community_memberships")
+      .delete()
+      .eq("member_user_id", user.id);
+    await db.from("comun_member_inbox").delete().eq("member_user_id", user.id);
+    await db
+      .from("comun_pauta_memberships")
+      .delete()
+      .eq("member_user_id", user.id);
+    await db.from("comun_member_profiles").delete().eq("user_id", user.id);
+    await db.auth.admin.deleteUser(user.id);
+  }
+  await cleanupSidewalk();
+  await rm(".local/comun-integral", { recursive: true, force: true });
+  console.log("COMUN_TEST_FIXTURES_CLEAN");
+}

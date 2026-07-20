@@ -8,7 +8,10 @@ export type SidewalkInboxType =
   | "sidewalk_task_assigned"
   | "sidewalk_protocol_sent"
   | "sidewalk_response_received"
-  | "sidewalk_result_recorded";
+  | "sidewalk_result_recorded"
+  | "sidewalk_forwarding_prepared"
+  | "sidewalk_forwarding_approved"
+  | "sidewalk_memory_published";
 
 export async function insertSidewalkInboxEvent(
   db: SupabaseClient,

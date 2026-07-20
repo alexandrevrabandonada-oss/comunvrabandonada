@@ -396,6 +396,18 @@ const classifications = {
     sensitive: "Rascunhos e notas internas do ciclo.",
     expected: "Servidor expõe somente memórias publicadas com resumo público.",
   },
+  comun_sidewalk_forwardings: {
+    decision: "service_role_only",
+    purpose: "Coordena prioridade, relato, protocolo, resposta, resultado e memória sem duplicar fontes de verdade.",
+    sensitive: "Rascunhos, identidade operacional, IDs relacionados e histórico antes da revisão.",
+    expected: "Sem acesso direto; servidor expõe somente projeções públicas sanitizadas do processo.",
+  },
+  comun_sidewalk_forwarding_events: {
+    decision: "service_role_only",
+    purpose: "Histórico auditável das transições do encaminhamento.",
+    sensitive: "Ator e nota privada de revisão.",
+    expected: "Admin-only; superfícies públicas recebem apenas resumos aprovados.",
+  },
   comun_sidewalk_priorities: {
     decision: "service_role_only",
     purpose: "Decisões humanas de priorização de registros de calçada.",
