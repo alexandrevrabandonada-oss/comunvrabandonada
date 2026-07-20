@@ -25,6 +25,7 @@ export async function AdminShell({
             <Link href="/comun/admin/organizacao">Organizacao</Link>
             <Link href="/comun/admin/territorio">Territorio</Link>
             <Link href="/comun/admin/calcadas">Calcadas</Link>
+            <Link href="/comun/admin/calcadas/prioridade">Prioridade calcadas</Link>
             <Link href="/comun/admin/observatorios">Observatorios</Link>
             <Link href="/comun/admin/organizacao/entrada/vincular">Vincular relato</Link>
             <Link href="/comun/admin/relatos">Relatos</Link>
