@@ -10,8 +10,20 @@ export type {
   UploadUrlInput,
 } from "./types";
 let storage: MediaStorageProvider | null = null;
+const VALID_PROVIDERS = ["r2", "supabase-local", "fixture"] as const;
+export type MediaStorageProviderName = (typeof VALID_PROVIDERS)[number];
+export function resolveMediaStorageProvider(
+  env: Partial<Pick<NodeJS.ProcessEnv, "MEDIA_STORAGE_PROVIDER" | "NODE_ENV">>,
+): MediaStorageProviderName {
+  const selected = env.MEDIA_STORAGE_PROVIDER || (env.NODE_ENV === "test" ? "fixture" : "r2");
+  if (!VALID_PROVIDERS.includes(selected as MediaStorageProviderName))
+    throw new Error(`MEDIA_STORAGE_PROVIDER inválido: "${selected}". Valores aceitos: ${VALID_PROVIDERS.join(", ")}.`);
+  if (selected === "fixture" && env.NODE_ENV === "production")
+    throw new Error('MEDIA_STORAGE_PROVIDER "fixture" é proibido em produção; use apenas no contrato de testes.');
+  return selected as MediaStorageProviderName;
+}
 export function getMediaStorage() {
-  if(storage)return storage;const selected=process.env.MEDIA_STORAGE_PROVIDER||(process.env.NODE_ENV==="test"?"fixture":"r2");
+  if(storage)return storage;const selected=resolveMediaStorageProvider(process.env);
   if(selected==="supabase-local")storage=new SupabaseLocalStorageProvider();else if(selected==="fixture")storage=new FixtureStorageProvider();else storage=new R2MediaStorageProvider();return storage;
 }
 export function publicMediaUrl(key: string) {
