@@ -128,6 +128,7 @@
     "reconcile:archive-missing-assets": "node scripts/reconcile-comun-archive-missing-assets.mjs",
     "generate:photo-derivatives": "node scripts/generate-comun-photo-derivatives.mjs",
     "backup:archive-manifest": "node scripts/export-comun-archive-manifest.mjs",
+    "archive:historical-photos": "node scripts/import-comun-historical-photo-batch.mjs",
     "storage:setup": "node scripts/setup-comun-storage.mjs",
     "bootstrap:admin": "node scripts/bootstrap-comun-admin.mjs",
     "verify": "npm run verify:local",
