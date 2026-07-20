@@ -20,7 +20,7 @@ export function ComunAppShell({ children }: { children: ReactNode }) {
     <footer className="border-t-2 border-comun-black bg-comun-asphalt px-4 py-10 text-comun-paper">
       <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-[1fr_2fr]">
         <div><p className="text-xl font-black text-comun-yellow">COMUN.</p><p className="mt-2 text-sm text-comun-paper/75">Território, comunidade, pauta, ação, resultado e memória.</p></div>
-        <nav aria-label="Navegação complementar" className="flex flex-wrap content-start gap-x-5 gap-y-3 text-sm font-bold"><Link href="/comun/pautas">Pautas</Link><Link href="/comun/acoes">Agenda</Link><Link href="/comun/radio">Rádio</Link><Link href="/comun/arte">Arte</Link><Link href="/comun/acervo">Acervo</Link><Link href="/comun/observatorios">Observatórios</Link><Link href="/comun/buscar">Buscar</Link><Link href="/comun/seguranca">Segurança e privacidade</Link><Link href="/comun/territorio-tomado">Sobre</Link></nav>
+        <nav aria-label="Navegação complementar" className="flex flex-wrap content-start gap-x-5 gap-y-3 text-sm font-bold"><Link href="/comun/pautas">Pautas</Link><Link href="/comun/acoes">Agenda</Link><Link href="/comun/radio">Rádio</Link><Link href="/comun/acervo">Acervo</Link><Link href="/comun/observatorios">Observatórios</Link><Link href="/comun/buscar">Buscar</Link><Link href="/comun/seguranca">Segurança e privacidade</Link><Link href="/comun/territorio-tomado">Sobre</Link></nav>
       </div>
     </footer>
     <ComunMobileNavigation />

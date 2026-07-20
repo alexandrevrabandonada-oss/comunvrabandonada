@@ -59,6 +59,12 @@ export type ArchiveCollection = {
   updated_at: string;
 };
 
+export function archiveItemHref(item: Pick<ArchiveItem, "slug" | "item_type">) {
+  return item.item_type === "territorial_artwork"
+    ? `/comun/acervo/arte/${item.slug}`
+    : `/comun/acervo/${item.slug}`;
+}
+
 const publicItemFields =
   "id, slug, item_type, title, summary, description, city, neighborhood, place_name, approximate_date, year_start, year_end, circa, source_name, source_description, credits, rights_status, license_text, status, visibility, genre, members, official_links, published_at, created_at, updated_at";
 const publicAssetFields =

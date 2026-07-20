@@ -1,8 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ComunShell, Section } from "@/components/comun-shell";
-import { archiveDate, listPublicArchiveItems } from "@/lib/archive";
+import { ArtworkCard } from "@/components/territorial-art";
+import { archiveDate, archiveItemHref, listPublicArchiveItems } from "@/lib/archive";
 import { listIdentificationItems } from "@/lib/archive-identification";
+import { listPublicArtworks } from "@/lib/archive/territorial-art";
 export const dynamic = "force-dynamic";
 export default async function ArchivePage(props: {
   searchParams: Promise<{
@@ -18,9 +20,10 @@ export default async function ArchivePage(props: {
   }>;
 }) {
   const searchParams = await props.searchParams;
-  const [items, identification] = await Promise.all([
+  const [items, identification, artworks] = await Promise.all([
     listPublicArchiveItems(searchParams),
     listIdentificationItems({ page: 1 }),
+    listPublicArtworks({ page: 1, limit: 3 }),
   ]);
   const identificationPreview = identification.items.slice(0, 6);
   return (
@@ -101,6 +104,10 @@ export default async function ArchivePage(props: {
             Esta campanha colaborativa é separada do acervo editorial: uma contribuição não transforma uma hipótese em fato histórico.
           </p>
         </section>
+        <section aria-labelledby="arte-dos-territorios" className="mt-6 border-2 border-comun-yellow p-4 sm:p-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"><div><p className="text-xs font-black uppercase tracking-wide text-comun-yellow">Acervo com autoria, direitos e contexto</p><h2 id="arte-dos-territorios" className="mt-2 text-2xl font-black uppercase text-comun-paper sm:text-3xl">Arte dos Territórios</h2><p className="mt-2 max-w-3xl text-comun-paper/75">Obras vinculadas às pessoas, lutas, lugares e memórias que as produziram.</p></div><div className="flex flex-wrap gap-3"><Link href="/comun/acervo/arte" className="inline-flex min-h-11 items-center border-2 border-comun-yellow px-4 font-black uppercase text-comun-yellow">Explorar arte</Link><Link href="/comun/acervo/arte/contribuir" className="inline-flex min-h-11 items-center bg-comun-yellow px-4 font-black uppercase text-comun-black">Contribuir</Link></div></div>
+          {artworks.items.length?<div className="mt-5 grid gap-5 md:grid-cols-3">{artworks.items.map((item:any)=><ArtworkCard key={item.id} item={item}/>)}</div>:<div className="mt-5 border-l-4 border-comun-yellow bg-comun-asphalt/40 p-4 text-sm text-comun-paper/75"><p className="font-black uppercase text-comun-paper">Acervo aberto à primeira obra</p><p className="mt-1">Nenhuma obra foi publicada neste recorte. Contribuições passam por revisão de autoria, direitos, contexto e segurança.</p></div>}
+        </section>
         <Link
           href="/comun/acervo/contribuir"
           className="mt-5 inline-flex border-2 border-comun-yellow px-4 py-3 font-black uppercase text-comun-yellow"
@@ -136,17 +143,18 @@ export default async function ArchivePage(props: {
           >
             <option value="">Todos os tipos</option>
             {[
-              "photograph",
-              "document",
-              "place",
-              "artist",
-              "music_release",
-              "oral_history",
-              "poster",
-              "newspaper",
-              "other",
-            ].map((x) => (
-              <option key={x}>{x}</option>
+              ["photograph", "Fotografia"],
+              ["document", "Documento"],
+              ["place", "Lugar"],
+              ["artist", "Artista"],
+              ["music_release", "Lançamento musical"],
+              ["oral_history", "História oral"],
+              ["territorial_artwork", "Arte territorial"],
+              ["poster", "Cartaz"],
+              ["newspaper", "Jornal"],
+              ["other", "Outro"],
+            ].map(([value, label]) => (
+              <option value={value} key={value}>{label}</option>
             ))}
           </select>
           <input
@@ -209,7 +217,7 @@ export default async function ArchivePage(props: {
             const asset = item.assets.find((a) => a.public_url);
             return (
               <Link
-                href={`/comun/acervo/${item.slug}`}
+                href={archiveItemHref(item)}
                 key={item.id}
                 className="paper-panel overflow-hidden border-2 border-comun-black"
               >

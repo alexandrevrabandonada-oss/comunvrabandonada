@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { archiveDate, getPublicArchiveItem } from "@/lib/archive";
 import { MemorySuggestionForm } from "./memory-suggestion-form";
@@ -11,6 +11,8 @@ export default async function ArchiveItemPage(props: {
   const params = await props.params;
   const item = await getPublicArchiveItem(params.slug);
   if (!item) notFound();
+  if (item.item_type === "territorial_artwork")
+    permanentRedirect(`/comun/acervo/arte/${item.slug}`);
   const asset = item.assets.find((a) => a.public_url);
   return (
     <ComunShell>

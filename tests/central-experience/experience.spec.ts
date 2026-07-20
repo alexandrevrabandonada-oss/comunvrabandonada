@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-const routes = ["/comun", "/comun/participar", "/comun/buscar?q=territorio", "/comun/territorios", "/comun/radio", "/comun/arte", "/comun/acervo"];
+const routes = ["/comun", "/comun/participar", "/comun/buscar?q=territorio", "/comun/territorios", "/comun/radio", "/comun/acervo/arte", "/comun/acervo"];
 
 for (const route of routes) test(`@a11y ${route}`, async ({ page }) => {
   await page.goto(route);
