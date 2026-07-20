@@ -32,7 +32,7 @@ test("visitante percorre território comunidade pauta resultado e memória sem c
 
 test("pessoa nova acompanha contribui consulta inbox e sai", async ({ page }, testInfo) => {
   const { slug } = JSON.parse(await readFile(".comun-sidewalk-pilot-slug", "utf8"));
-  const email = `s37-${testInfo.project.name}-r${testInfo.retry}@comun.test`;
+  const email = `s37-${testInfo.project.name}@comun.test`;
   await page.goto("/comun/c/cidade");
   await page.getByRole("link", { name: "Acompanhar ou colaborar" }).click();
   await page.getByRole("link", { name: /Criar conta/i }).click();
@@ -59,10 +59,12 @@ test("pessoa nova acompanha contribui consulta inbox e sai", async ({ page }, te
   await page.getByRole("link", { name: "Registrar problema" }).click();
   await page.setInputFiles('input[name="photo"]', ".local/comun-integral/calcada-fixture.jpg");
   await page.getByRole("button", { name: "Continuar" }).click();
+  await page.getByRole("button", { name: "Mapa local para marcar o ponto" }).click({ position: { x: 180, y: 120 } });
   await page.getByLabel("Bairro ou referência pública").fill("Território Demonstração Centro");
   await page.getByRole("button", { name: "Continuar" }).click();
-  await page.getByLabel("Impacto").selectOption("high");
-  await page.getByLabel("Descrição curta").fill("Barreira sintética usada somente no ensaio local da candidata integrada.");
+  await page.getByText("Ruim", { exact: true }).click();
+  await page.getByLabel("Problema principal").selectOption("irregular");
+  await page.getByLabel("Descrição opcional").fill("Barreira sintética usada somente no ensaio local da candidata integrada.");
   await page.getByRole("button", { name: "Continuar" }).click();
   await assertAccessible(page);
   await page.getByRole("button", { name: /Enviar contribuição/ }).click();
