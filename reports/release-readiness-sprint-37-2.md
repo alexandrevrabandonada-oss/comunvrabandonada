@@ -13,7 +13,7 @@ Data: 20 de julho de 2026.
 | Unitários | Aprovado | 244/244 |
 | Cinco viewports | Aprovado | 10/10, sem skip |
 | Personas do ciclo | Aprovado | marcador `COMUN_SIDEWALK_PERSONAS_MATRIX_LOCAL_OK` nos cinco viewports |
-| Acessibilidade/visual | Parcial | contraste e overflow da central corrigidos; superfícies integrais pendentes |
+| Acessibilidade/visual | Aprovado localmente | Axe integral sem serious/critical; 105 capturas inspecionadas |
 | Performance | Pendente | medir com `next start` |
 | Reset duplo formal | Pendente | executar após estabilização |
 | Production-like | Pendente | build/start e jornada integral |

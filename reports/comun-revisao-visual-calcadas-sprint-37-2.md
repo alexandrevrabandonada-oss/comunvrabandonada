@@ -4,8 +4,9 @@ Data: 20 de julho de 2026
 
 ## Estado
 
-**EM EXECUÇÃO.** A evidência abaixo é válida, mas ainda não representa o gate
-visual integral solicitado.
+**APROVADO LOCALMENTE.** A jornada produziu 105 capturas (21 superfícies em
+cinco viewports). As folhas de contato foram inspecionadas após a execução; a
+aprovação não decorre apenas da existência dos arquivos.
 
 ## Viewports reproduzidos
 
@@ -17,10 +18,9 @@ visual integral solicitado.
 | 1024×768 | aprovada | zero serious/critical | zero |
 | 1366×768 | aprovada | zero serious/critical | zero |
 
-As capturas `sprint-37-integral-revisao-*` e
-`sprint-37-integral-pacote-*`, em `reports/screenshots`, foram produzidas pela
-própria jornada Playwright. Elas cobrem revisão da contribuição e pacote público
-sanitizado nos cinco tamanhos.
+As capturas `sprint-37-2-*`, em `reports/screenshots`, foram produzidas pela
+própria jornada Playwright. As cinco folhas `sprint-37-2-contact-sheet-*`
+consolidam a inspeção humana dos artefatos.
 
 ## Verificações já comprovadas
 
@@ -33,15 +33,25 @@ sanitizado nos cinco tamanhos.
 - navegação móvel sem overflow nas paradas Axe;
 - conta suspensa bloqueada antes de retomar a contribuição.
 
-## Cobertura ainda necessária
+## Resultado da inspeção
 
-Ainda faltam capturas e inspeção explícita de todas as superfícies enumeradas no
-roteiro — mapa/clusters, Minha área, Inbox, moderação, roda, mobilização,
-protocolo, resposta, resultado, memória, vazios, erros e acesso negado — em cada
-viewport. Por isso, este relatório não declara o gate visual integral fechado.
+- nenhuma sobreposição ou corte horizontal observado;
+- ação principal preservada nos formulários;
+- contexto, responsável, estado e próxima etapa visíveis;
+- stepper consistente de encaminhamento a memória;
+- navegação inferior móvel preservada;
+- fixtures e ausência de envio externo explicitadas;
+- nenhum documento privado ou original visível;
+- estados vazio/erro e acesso negado legíveis;
+- pacote público mantém evidência, limitações e continuidade.
+
+`COMUN_SIDEWALK_AXE_INTEGRAL_LOCAL_OK`
+
+O Axe foi executado após a confirmação da superfície e da persona em cada
+checkpoint. Resultado: zero violações `serious` e zero `critical`, nos cinco
+viewports, sem contar login como rota protegida.
 
 ## Restrições
 
 Somente fixtures locais foram usadas. Não houve tiles remotos, R2 real, dados ou
 protocolos reais, push ou deploy. Custo externo: **R$ 0**.
-

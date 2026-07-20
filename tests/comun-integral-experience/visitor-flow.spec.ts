@@ -26,6 +26,13 @@ async function noCritical(page: any) {
     ),
   ).toBe(true);
 }
+async function auditSurface(page: any, name: string, project: string) {
+  await noCritical(page);
+  await page.screenshot({
+    path: `reports/screenshots/sprint-37-2-${name}-${project}.png`,
+    fullPage: true,
+  });
+}
 async function login(
   page: any,
   email: string,
@@ -58,6 +65,10 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await expect(
     page.getByRole("heading", { name: "Mapa das Calçadas" }),
   ).toBeVisible();
+  await auditSurface(page, "mapa-clusters", testInfo.project.name);
+  await page.getByRole("button", { name: "Lista", exact: true }).click();
+  await auditSurface(page, "lista-filtros", testInfo.project.name);
+  await page.getByRole("button", { name: "Mapa", exact: true }).click();
   await page.getByRole("link", { name: "Enviar foto e marcar local" }).click();
   await expect(page).toHaveURL(/\/comun\/entrar\?returnTo=/);
   await page.getByRole("link", { name: /Criar conta/i }).click();
@@ -89,7 +100,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     .getByLabel("Descrição opcional")
     .fill(`Trecho sintético ${runId} com piso irregular.`);
   await page.getByRole("button", { name: "Continuar" }).click();
-  await noCritical(page);
+  await auditSurface(page, "contribuicao-revisao", testInfo.project.name);
   await page.screenshot({
     path: `reports/screenshots/sprint-37-integral-revisao-${testInfo.project.name}.png`,
     fullPage: true,
@@ -99,8 +110,10 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await expect(
     page.getByRole("heading", { name: /Recebemos seu registro/ }),
   ).toBeVisible();
+  await auditSurface(page, "confirmacao", testInfo.project.name);
   await page.getByRole("link", { name: "Ver em Minha área" }).click();
   await expect(page.getByText(/em revisão/i).first()).toBeVisible();
+  await auditSurface(page, "minha-area-pendente", testInfo.project.name);
   const service = db(),
     { data: users } = await service.auth.admin.listUsers({
       page: 1,
@@ -122,6 +135,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await login(page, adminEmail, "/comun/admin/calcadas", true);
   const card = page.locator("article").filter({ hasText: location });
   await expect(card).toBeVisible();
+  await auditSurface(page, "moderacao-registro", testInfo.project.name);
   await card
     .getByRole("button", { name: "Aprovar com local aproximado" })
     .click();
@@ -142,6 +156,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await expect(page.getByText(location)).toBeVisible();
   await page.goto(`/comun/calcadas/registros/${published.slug}`);
   await expect(page.getByText(location)).toBeVisible();
+  await auditSurface(page, "ficha-observacao", testInfo.project.name);
   await login(page, email, `/comun/calcadas/registros/${published.slug}`);
   await page
     .getByLabel("Complemento privado opcional")
@@ -198,6 +213,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     true,
     "comun-local-fixture-only",
   );
+  await auditSurface(page, "prioridade-roda", testInfo.project.name);
   await page.locator(`input[name="record_ids"][value="${record.id}"]`).check();
   await page
     .getByRole("button", { name: "Abrir roda e publicar prioridade" })
@@ -227,7 +243,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await expect(
     page.getByRole("heading", { name: /Rota acessível/ }),
   ).toBeVisible();
-  await noCritical(page);
+  await auditSurface(page, "pacote-mobilizacao", testInfo.project.name);
   const json = await page.request.get(
       `/comun/calcadas/pressao/${priority.id}/export?formato=json`,
     ),
@@ -257,7 +273,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await expect(
     page.getByRole("heading", { name: "Preparar encaminhamento" }),
   ).toBeVisible();
-  await noCritical(page);
+  await auditSurface(page, "encaminhamento", testInfo.project.name);
   const { data: flow } = await service
     .from("comun_sidewalk_forwardings")
     .select("id")
@@ -296,6 +312,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await expect(
     page.getByRole("heading", { name: "Revisar encaminhamento" }),
   ).toBeVisible();
+  await auditSurface(page, "revisao-operacional", testInfo.project.name);
   await page.getByRole("button", { name: "Aprovar encaminhamento" }).click();
   await waitState("protocol_pending");
   await login(
@@ -308,6 +325,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await expect(
     page.getByRole("heading", { name: "Registrar protocolo" }),
   ).toBeVisible();
+  await auditSurface(page, "protocolo", testInfo.project.name);
   await page.getByLabel("Instituição").fill("Ouvidoria municipal fixture");
   await page.getByLabel("Número fixture").fill(`FIX-${runId}`);
   await page.getByLabel("Data do registro").fill("2026-07-20T12:00");
@@ -322,6 +340,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await expect(
     page.getByRole("heading", { name: "Registrar resposta" }),
   ).toBeVisible();
+  await auditSurface(page, "resposta", testInfo.project.name);
   await page.getByLabel("Data da resposta").fill("2026-07-21T12:00");
   await page
     .getByLabel("Documento/resposta fixture privada")
@@ -346,6 +365,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await expect(
     page.getByRole("heading", { name: "Registrar resultado" }),
   ).toBeVisible();
+  await auditSurface(page, "resultado", testInfo.project.name);
   await page.getByLabel("Título").fill(resultTitle);
   await page.getByLabel("Estado").selectOption("partial_change");
   await page
@@ -375,6 +395,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await expect(
     page.getByRole("heading", { name: "Preservar memória do ciclo" }),
   ).toBeVisible();
+  await auditSurface(page, "memoria-draft", testInfo.project.name);
   await page.getByLabel("Título").fill(memoryTitle);
   await page
     .getByRole("button", { name: "Criar memória para revisão" })
@@ -383,11 +404,13 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await expect(
     page.getByRole("heading", { name: "Revisar e publicar memória" }),
   ).toBeVisible();
+  await auditSurface(page, "memoria-revisao", testInfo.project.name);
   await page.getByRole("button", { name: "Publicar memória revisada" }).click();
   await waitState("closed");
   await expect(
     page.getByRole("heading", { name: "Ciclo preservado" }),
   ).toBeVisible();
+  await auditSurface(page, "memoria-publicada", testInfo.project.name);
   const { data: closed } = await service
     .from("comun_sidewalk_forwardings")
     .select("id,state,protocol_id,result_id,memory_id,report_id")
@@ -420,6 +443,12 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await expect(
     page.getByText("Memória do ciclo publicada", { exact: true }),
   ).toBeVisible();
+  await auditSurface(page, "minha-area-fechada", testInfo.project.name);
+  await page.goto("/comun/caixa-de-entrada");
+  await expect(
+    page.getByText("Memória do ciclo publicada", { exact: true }),
+  ).toBeVisible();
+  await auditSurface(page, "inbox", testInfo.project.name);
   await page.context().clearCookies();
   await page.goto(
     "/comun/entrar?returnTo=%2Fcomun%2Fmapa%2Fcontribuir%3Forigem%3Dcalcadas",
@@ -435,7 +464,12 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     }),
   ).toBeVisible();
   await expect(page).toHaveURL(/\/comun\/entrar\?returnTo=/);
+  await auditSurface(page, "acesso-negado", testInfo.project.name);
+  await page.goto("/comun/calcadas/registros/fixture-inexistente");
+  await expect(page.getByText(/não encontr|404/i).first()).toBeVisible();
+  await auditSurface(page, "erro-vazio", testInfo.project.name);
   console.log("COMUN_SIDEWALK_PERSONAS_MATRIX_LOCAL_OK");
+  console.log("COMUN_SIDEWALK_AXE_INTEGRAL_LOCAL_OK");
 });
 test("retorno hostil é rejeitado", async ({ page }) => {
   await page.goto("/comun/criar-conta?returnTo=https%3A%2F%2Fevil.example");

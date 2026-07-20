@@ -4,9 +4,10 @@ export default defineConfig({
   testDir: "./tests/comun-integral-experience",
   globalSetup: "./tests/comun-integral-experience/global-setup.mjs",
   globalTeardown: "./tests/comun-integral-experience/global-teardown.mjs",
-  // O fluxo integral alterna cinco sessões operacionais reais; a medição local
-  // comprovada foi 48,8 s. O orçamento de 60 s preserva falha rápida sem retry.
-  timeout: 60_000,
+  // A matriz com cinco sessões levou até 51,4 s. O gate integral acrescenta
+  // auditoria Axe e captura em cada etapa; 120 s é o orçamento medido por fluxo,
+  // sem retry, skip ou espera artificial.
+  timeout: 120_000,
   fullyParallel: false,
   workers: 1,
   use: {
@@ -18,12 +19,20 @@ export default defineConfig({
     { name: "390x844", use: { viewport: { width: 390, height: 844 } } },
     { name: "768x1024", use: { viewport: { width: 768, height: 1024 } } },
     { name: "1024x768", use: { viewport: { width: 1024, height: 768 } } },
-    { name: "1366x768", use: { ...devices["Desktop Chrome"], viewport: { width: 1366, height: 768 } } },
+    {
+      name: "1366x768",
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1366, height: 768 },
+      },
+    },
   ],
-  webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER ? undefined : {
-    command: "node scripts/comun-local-env.mjs run npm run dev",
-    url: `${(process.env.COMUN_BASE_URL ?? "http://127.0.0.1:3000").replace(/\/$/, "")}/comun`,
-    reuseExistingServer: true,
-    timeout: 120_000,
-  },
+  webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
+    ? undefined
+    : {
+        command: "node scripts/comun-local-env.mjs run npm run dev",
+        url: `${(process.env.COMUN_BASE_URL ?? "http://127.0.0.1:3000").replace(/\/$/, "")}/comun`,
+        reuseExistingServer: true,
+        timeout: 120_000,
+      },
 });

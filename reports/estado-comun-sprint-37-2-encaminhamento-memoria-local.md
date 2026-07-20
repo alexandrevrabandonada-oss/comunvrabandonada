@@ -44,6 +44,8 @@ O cenário autenticado percorreu fotografia, contribuição, moderação, public
 | Matriz operacional autenticada | 43 testes de personas/autorização aprovados; 2 falhas de Axe diagnosticadas fora da matriz |
 | Paginação operacional após correção | cenário de 100 itens aprovado; Axe móvel aprovado; zero overflow |
 | Matriz especializada no ciclo integral | `COMUN_SIDEWALK_PERSONAS_MATRIX_LOCAL_OK` em cinco viewports; 10/10 |
+| Axe integral | `COMUN_SIDEWALK_AXE_INTEGRAL_LOCAL_OK`; 21 superfícies × 5 viewports |
+| Revisão visual integral | 105 capturas e cinco folhas de contato inspecionadas; aprovada |
 
 ### Correção comprovada no fechamento definitivo
 
@@ -59,7 +61,6 @@ o alerta de indisponibilidade e não retomou o processo.
 
 O fechamento técnico integral da Sprint 37.2 ainda não deve ser declarado. Faltam executar e registrar:
 
-- Axe e revisão visual completa;
 - performance contra `next start`;
 - duas rodadas formais de reset integral com novos `runId`;
 - jornada production-like;
