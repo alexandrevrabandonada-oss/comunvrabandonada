@@ -166,7 +166,7 @@ export async function unifiedPublicSearch(
       type: "obra",
       title: x.title_public,
       summary: x.description_public,
-      href: `/comun/arte/${x.archive.slug}`,
+      href: `/comun/acervo/arte/${x.archive.slug}`,
       updatedAt: x.updated_at,
       origin: "Arte dos Territórios",
       score: score(x.title_public),

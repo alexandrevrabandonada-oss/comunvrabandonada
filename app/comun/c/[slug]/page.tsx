@@ -247,7 +247,7 @@ export default async function CommunityPage({
           intro="Atividade não é resultado. Conteúdos culturais apontam para suas fontes originais."
         >
           <div className="grid gap-3 sm:grid-cols-3">
-            <Tool href="/comun/arte" title="Arte" />
+            <Tool href="/comun/acervo/arte" title="Arte" />
             <Tool href="/comun/radio" title="Rádio" />
             <Tool href="/comun/acervo" title="Acervo e memória" />
           </div>

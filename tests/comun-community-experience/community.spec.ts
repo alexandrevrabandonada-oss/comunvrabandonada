@@ -49,7 +49,7 @@ test("roda grupo governança e cultura têm consequência", async ({ page }) => 
   await expect(page.getByText(/Decisão após síntese/)).toBeVisible();
   await expect(
     page.locator("#conteudo").getByRole("link", { name: "Arte" }),
-  ).toHaveAttribute("href", "/comun/arte");
+  ).toHaveAttribute("href", "/comun/acervo/arte");
 });
 test("agenda local produz arquivo ICS", async ({ request }) => {
   const response = await request.get("/comun/c/cidade/agenda");
