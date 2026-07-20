@@ -2,6 +2,8 @@
 
 > Atualização 20/07/2026: a base agora contém limite, vias, bairros e equipamentos sintéticos, além de pan e clusters. As capturas anteriores não comprovam essas mudanças; a nova rodada integral permanece pendente.
 
+Nova rodada executada após as mudanças para mapa e lista nas cinco larguras pelo E2E público (30/30). As superfícies autenticadas de moderação, prioridade e pacote ainda não possuem a matriz completa de capturas; a revisão visual integral permanece aberta.
+
 Foram capturados mapa e lista em 360×800, 390×844, 768×1024, 1024×768 e 1366×768, em `reports/screenshots/sprint-37-calcadas-*`.
 
 ## Resultado

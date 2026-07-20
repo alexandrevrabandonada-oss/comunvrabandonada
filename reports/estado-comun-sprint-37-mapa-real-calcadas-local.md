@@ -60,6 +60,14 @@ Foram acrescentados em commits locais separados:
 
 Validação desta continuação: lint, typecheck, build (91 páginas) e 242/242 testes unitários aprovados. Ainda não foram alegados E2E integral, reset duplo, production-like integral ou gate humano.
 
+## Continuação operacional
+
+Implementado: interface de facilitador para selecionar registros públicos e criar prioridade, roda, rodada, síntese, ação e tarefa nas estruturas existentes; pacote de pressão em página, Markdown e JSON sanitizados.
+
+Validado: 30/30 E2E públicos em cinco viewports antes e depois do segundo reset; Axe público sem serious/critical; dois resets do banco; `db lint`; `RLS_MATRIX_OK`; build; smoke HTTP 200 via `next start`.
+
+Pendente: E2E autenticado único da foto à memória, protocolo/resposta/resultado fixture pela interface, performance integral, regressões históricas completas e gate humano 0/3.
+
 ## Declarações obrigatórias
 
 - Piloto público: NÃO ABERTO

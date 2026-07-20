@@ -11,13 +11,15 @@
 - contribuição autenticada já existente, fila editorial e publicação moderada;
 - derivada pública revisada e original privado;
 - observações históricas pré-moderadas;
+- prioridade, roda, síntese, ação e tarefa pela interface de facilitador;
+- pacote sanitizado em página pública local, Markdown e JSON versionado;
 - lint, typecheck, build e 242 testes unitários.
 
 ## Aberto
 
 - E2E único cobrindo toda a cadeia até memória;
-- prioridade e mobilização operadas integralmente pela interface;
-- pacote sanitizado em Markdown, JSON e página pública local;
+- protocolo, resposta, resultado e memória fixture operados integralmente pela interface;
+- E2E do pacote sanitizado com dados gerados pela própria jornada;
 - performance integral contra `next start` com tabela completa;
 - reset duplo, regressões históricas e production-like integral;
 - gate humano com três participantes externos (atual: 0/3).

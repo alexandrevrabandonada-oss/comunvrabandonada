@@ -34,3 +34,5 @@ Separação canônica de readiness:
 Evidência nova: cartografia fixture local com limite, vias, bairros e equipamentos sintéticos; pan, zoom, clustering e filtros em URL; fila editorial de registros e observações; publicação com geometria aproximada ou sem imagem; derivada pública revisada; observações posteriores pré-moderadas. Lint, typecheck, build de 91 páginas e 242/242 unitários passaram.
 
 Continuam abertos: E2E autenticado integral sem skip, criação operacional completa de prioridade/mobilização, pacote sanitizado Markdown/JSON/página, dois resets independentes após o fechamento total, production-like integral, regressões históricas e gate humano 0/3. O marcador final não foi emitido.
+
+Atualização seguinte: prioridade/mobilização mínima e os três formatos do pacote foram implementados; dois resets, RLS, E2E público 30/30, build e smoke `next start` passaram. A lista anterior deve agora ser lida assim: **implementados**, mas ainda sem E2E integral, estão prioridade/mobilização e pacote; **executados parcialmente**, mas sem marcador integral, estão reset duplo e production-like. O gate humano continua 0/3.
