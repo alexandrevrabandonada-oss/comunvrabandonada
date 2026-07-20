@@ -1,6 +1,7 @@
 import { rm } from "node:fs/promises";
 import { localServiceClient } from "../fixtures/comun/local-fixtures.mjs";
 import cleanupSidewalk from "../sidewalk-pilot/global-teardown.mjs";
+import { cleanupOperationalPersonas } from "../fixtures/comun/operational-personas.mjs";
 export default async function cleanup() {
   const db = localServiceClient(),
     adminEmail = "s37-admin@comun.test";
@@ -93,6 +94,7 @@ export default async function cleanup() {
     await db.auth.admin.deleteUser(user.id);
   }
   await cleanupSidewalk();
+  await cleanupOperationalPersonas({ runId: "s37-integral" });
   await rm(".local/comun-integral", { recursive: true, force: true });
   console.log("COMUN_TEST_FIXTURES_CLEAN");
 }

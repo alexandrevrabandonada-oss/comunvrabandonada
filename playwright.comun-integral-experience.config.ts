@@ -4,7 +4,9 @@ export default defineConfig({
   testDir: "./tests/comun-integral-experience",
   globalSetup: "./tests/comun-integral-experience/global-setup.mjs",
   globalTeardown: "./tests/comun-integral-experience/global-teardown.mjs",
-  timeout: 45_000,
+  // O fluxo integral alterna cinco sessões operacionais reais; a medição local
+  // comprovada foi 48,8 s. O orçamento de 60 s preserva falha rápida sem retry.
+  timeout: 60_000,
   fullyParallel: false,
   workers: 1,
   use: {

@@ -1,2 +1,155 @@
-"use server";import {revalidatePath} from "next/cache";import {requireComunAdmin} from "@/lib/admin-auth";import {logComunAdminAction} from "@/lib/admin-audit";import {createServiceSupabaseClient} from "@/lib/supabase/server";
-export async function createSidewalkPriority(form:FormData){const session=await requireComunAdmin({roles:["admin","editor"]}),db=createServiceSupabaseClient();if(!db)throw new Error("Banco local indisponível.");const recordIds=form.getAll("record_ids").map(String),title=String(form.get("title")??"").trim(),problem=String(form.get("problem")??"").trim(),objective=String(form.get("objective")??"").trim(),criteria=String(form.get("criteria")??"").split("\n").map(x=>x.trim()).filter(Boolean),limitations=String(form.get("limitations")??"").trim();if(!recordIds.length||!title||!problem||!objective||!criteria.length)throw new Error("Selecione registros e preencha todos os campos.");const{data:pauta}=await db.from("comun_pauta_spaces").select("id").eq("slug","calcadas-em-circulacao").single();if(!pauta)throw new Error("Pauta indisponível.");const{data:circle,error:circleError}=await db.from("comun_construction_circles").insert({pauta_id:pauta.id,title:`Roda: ${title}`,public_question:`Como realizar ${objective.toLowerCase()}?`,public_context:problem,status:"open",participation_mode:"registered_members",starts_at:new Date().toISOString(),created_by:session.admin.email}).select("id").single();if(circleError)throw new Error(circleError.message);const{data:round,error:roundError}=await db.from("comun_construction_circle_rounds").insert({circle_id:circle.id,round_type:"prioritization",title:"Construção da prioridade",public_prompt:"Analise evidências, critérios e limitações.",public_guidance:"Decisão humana, sem pontuação automática.",position:1,status:"open",opens_at:new Date().toISOString()}).select("id").single();if(roundError)throw new Error(roundError.message);await db.from("comun_construction_circles").update({current_round_id:round.id}).eq("id",circle.id);const{data:synthesis,error:synthesisError}=await db.from("comun_circle_syntheses").insert({circle_id:circle.id,round_id:round.id,public_summary:problem,agreements:[],disagreements:[],open_questions:[],missing_evidence:[],proposed_next_steps:[objective],status:"published",reviewed_by:session.admin.email,published_at:new Date().toISOString()}).select("id").single();if(synthesisError||!synthesis)throw new Error(synthesisError?.message??"Síntese indisponível.");const{data:priorities,error:priorityError}=await db.from("comun_sidewalk_priorities").insert(recordIds.map(record_id=>({pauta_id:pauta.id,synthesis_id:synthesis.id,record_id,decision_public:title,criteria_public:criteria,evidence_summary_public:problem,limitations_public:limitations||null,decided_by:session.admin.email,decided_at:new Date().toISOString(),status:"approved"}))).select("id");if(priorityError)throw new Error(priorityError.message);const{data:action,error:actionError}=await db.from("comun_mobilization_actions").insert({pauta_id:pauta.id,slug:`rota-acessivel-demo-${Date.now().toString().slice(-7)}`,title,action_type:"collective_work",objective_public:objective,status:"planning",responsible_public:"Grupo de trabalho comunitário (fixture)",responsible_internal:session.admin.email,participation_public:"Roda aberta a participantes cadastrados.",guidance_public:"Revisar trechos e preparar pedido público.",expected_result_public:"Rota avaliada e resposta documentada.",visibility:"public"}).select("id").single();if(actionError)throw new Error(actionError.message);await db.from("comun_pauta_tasks").insert({pauta_id:pauta.id,action_id:action.id,title:"Revisar evidências da rota",description:"Conferir registros públicos selecionados e limitações.",status:"open",help_needed:true,owner_alias:"Grupo de trabalho",priority:"high",visibility:"public",accepts_volunteers:true});await db.from("comun_circle_synthesis_links").insert({synthesis_id:synthesis.id,target_type:"action",target_id:action.id,target_label:title,public_note:objective,confirmed_by:session.admin.email,confirmed_at:new Date().toISOString()});await db.from("comun_sidewalk_records").update({forwarding_status:"priority"}).in("id",recordIds);await logComunAdminAction({session,action:"sidewalk_priority_published",targetType:"sidewalk_priority",targetId:priorities?.[0]?.id??circle.id,metadata:{record_count:recordIds.length}});revalidatePath("/comun/calcadas");revalidatePath("/comun/admin/calcadas/prioridade")}
+"use server";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { requireComunAdminProfile } from "@/lib/admin-auth";
+import { logComunAdminAction } from "@/lib/admin-audit";
+import { canAccessOperationalSurface } from "@/lib/operational-authorization";
+import { createServiceSupabaseClient } from "@/lib/supabase/server";
+export async function createSidewalkPriority(form: FormData) {
+  const session = await requireComunAdminProfile();
+  if (!canAccessOperationalSurface(session.profile, "circle"))
+    redirect("/comun/admin?forbidden=sidewalk-priority");
+  const db = createServiceSupabaseClient();
+  if (!db) throw new Error("Banco local indisponível.");
+  const recordIds = form.getAll("record_ids").map(String),
+    title = String(form.get("title") ?? "").trim(),
+    problem = String(form.get("problem") ?? "").trim(),
+    objective = String(form.get("objective") ?? "").trim(),
+    criteria = String(form.get("criteria") ?? "")
+      .split("\n")
+      .map((x) => x.trim())
+      .filter(Boolean),
+    limitations = String(form.get("limitations") ?? "").trim();
+  if (!recordIds.length || !title || !problem || !objective || !criteria.length)
+    throw new Error("Selecione registros e preencha todos os campos.");
+  const { data: pauta } = await db
+    .from("comun_pauta_spaces")
+    .select("id")
+    .eq("slug", "calcadas-em-circulacao")
+    .single();
+  if (!pauta) throw new Error("Pauta indisponível.");
+  const { data: circle, error: circleError } = await db
+    .from("comun_construction_circles")
+    .insert({
+      pauta_id: pauta.id,
+      title: `Roda: ${title}`,
+      public_question: `Como realizar ${objective.toLowerCase()}?`,
+      public_context: problem,
+      status: "open",
+      participation_mode: "registered_members",
+      starts_at: new Date().toISOString(),
+      created_by: session.admin.email,
+    })
+    .select("id")
+    .single();
+  if (circleError) throw new Error(circleError.message);
+  const { data: round, error: roundError } = await db
+    .from("comun_construction_circle_rounds")
+    .insert({
+      circle_id: circle.id,
+      round_type: "prioritization",
+      title: "Construção da prioridade",
+      public_prompt: "Analise evidências, critérios e limitações.",
+      public_guidance: "Decisão humana, sem pontuação automática.",
+      position: 1,
+      status: "open",
+      opens_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+  if (roundError) throw new Error(roundError.message);
+  await db
+    .from("comun_construction_circles")
+    .update({ current_round_id: round.id })
+    .eq("id", circle.id);
+  const { data: synthesis, error: synthesisError } = await db
+    .from("comun_circle_syntheses")
+    .insert({
+      circle_id: circle.id,
+      round_id: round.id,
+      public_summary: problem,
+      agreements: [],
+      disagreements: [],
+      open_questions: [],
+      missing_evidence: [],
+      proposed_next_steps: [objective],
+      status: "published",
+      reviewed_by: session.admin.email,
+      published_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+  if (synthesisError || !synthesis)
+    throw new Error(synthesisError?.message ?? "Síntese indisponível.");
+  const { data: priorities, error: priorityError } = await db
+    .from("comun_sidewalk_priorities")
+    .insert(
+      recordIds.map((record_id) => ({
+        pauta_id: pauta.id,
+        synthesis_id: synthesis.id,
+        record_id,
+        decision_public: title,
+        criteria_public: criteria,
+        evidence_summary_public: problem,
+        limitations_public: limitations || null,
+        decided_by: session.admin.email,
+        decided_at: new Date().toISOString(),
+        status: "approved",
+      })),
+    )
+    .select("id");
+  if (priorityError) throw new Error(priorityError.message);
+  const { data: action, error: actionError } = await db
+    .from("comun_mobilization_actions")
+    .insert({
+      pauta_id: pauta.id,
+      slug: `rota-acessivel-demo-${Date.now().toString().slice(-7)}`,
+      title,
+      action_type: "collective_work",
+      objective_public: objective,
+      status: "planning",
+      responsible_public: "Grupo de trabalho comunitário (fixture)",
+      responsible_internal: session.admin.email,
+      participation_public: "Roda aberta a participantes cadastrados.",
+      guidance_public: "Revisar trechos e preparar pedido público.",
+      expected_result_public: "Rota avaliada e resposta documentada.",
+      visibility: "public",
+    })
+    .select("id")
+    .single();
+  if (actionError) throw new Error(actionError.message);
+  await db.from("comun_pauta_tasks").insert({
+    pauta_id: pauta.id,
+    action_id: action.id,
+    title: "Revisar evidências da rota",
+    description: "Conferir registros públicos selecionados e limitações.",
+    status: "open",
+    help_needed: true,
+    owner_alias: "Grupo de trabalho",
+    priority: "high",
+    visibility: "public",
+    accepts_volunteers: true,
+  });
+  await db.from("comun_circle_synthesis_links").insert({
+    synthesis_id: synthesis.id,
+    target_type: "action",
+    target_id: action.id,
+    target_label: title,
+    public_note: objective,
+    confirmed_by: session.admin.email,
+    confirmed_at: new Date().toISOString(),
+  });
+  await db
+    .from("comun_sidewalk_records")
+    .update({ forwarding_status: "priority" })
+    .in("id", recordIds);
+  await logComunAdminAction({
+    session,
+    action: "sidewalk_priority_published",
+    targetType: "sidewalk_priority",
+    targetId: priorities?.[0]?.id ?? circle.id,
+    metadata: { record_count: recordIds.length },
+  });
+  revalidatePath("/comun/calcadas");
+  revalidatePath("/comun/admin/calcadas/prioridade");
+}

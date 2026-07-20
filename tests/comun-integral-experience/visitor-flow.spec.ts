@@ -3,6 +3,8 @@ import AxeBuilder from "@axe-core/playwright";
 import { createClient } from "@supabase/supabase-js";
 const password = "comun-primeira-participacao-34-2",
   adminEmail = "s37-admin@comun.test";
+const personaEmail = (persona: string) =>
+  `fixture-s33-2-integral-s37-integral-${persona.replaceAll("_", "-")}@comun.test`;
 const db = () =>
   createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,7 +26,13 @@ async function noCritical(page: any) {
     ),
   ).toBe(true);
 }
-async function login(page: any, email: string, path: string, admin = false) {
+async function login(
+  page: any,
+  email: string,
+  path: string,
+  admin = false,
+  loginPassword = password,
+) {
   await page.context().clearCookies();
   await page.goto(
     admin
@@ -32,7 +40,7 @@ async function login(page: any, email: string, path: string, admin = false) {
       : `/comun/entrar?returnTo=${encodeURIComponent(path)}`,
   );
   await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Senha").fill(password);
+  await page.getByLabel("Senha").fill(loginPassword);
   await page.getByRole("button", { name: "Entrar" }).click();
   await expect(page).toHaveURL(
     new RegExp(path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
@@ -183,7 +191,13 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     .toBe("approved");
   await page.goto(`/comun/calcadas/registros/${published.slug}`);
   await expect(page.getByText("Nova observação comunitária")).toBeVisible();
-  await login(page, adminEmail, "/comun/admin/calcadas/prioridade", true);
+  await login(
+    page,
+    personaEmail("facilitator"),
+    "/comun/admin/calcadas/prioridade",
+    true,
+    "comun-local-fixture-only",
+  );
   await page.locator(`input[name="record_ids"][value="${record.id}"]`).check();
   await page
     .getByRole("button", { name: "Abrir roda e publicar prioridade" })
@@ -272,11 +286,25 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     })
     .click();
   await waitState("ready_for_review");
+  await login(
+    page,
+    personaEmail("operations_admin"),
+    `/comun/admin/calcadas/encaminhamentos/${flow.id}`,
+    true,
+    "comun-local-fixture-only",
+  );
   await expect(
     page.getByRole("heading", { name: "Revisar encaminhamento" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Aprovar encaminhamento" }).click();
   await waitState("protocol_pending");
+  await login(
+    page,
+    personaEmail("protocol_operator"),
+    `/comun/admin/calcadas/encaminhamentos/${flow.id}`,
+    true,
+    "comun-local-fixture-only",
+  );
   await expect(
     page.getByRole("heading", { name: "Registrar protocolo" }),
   ).toBeVisible();
@@ -308,6 +336,13 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     .getByRole("button", { name: "Registrar resposta fixture" })
     .click();
   await waitState("response_received");
+  await login(
+    page,
+    personaEmail("result_editor"),
+    `/comun/admin/calcadas/encaminhamentos/${flow.id}`,
+    true,
+    "comun-local-fixture-only",
+  );
   await expect(
     page.getByRole("heading", { name: "Registrar resultado" }),
   ).toBeVisible();
@@ -330,6 +365,13 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     .getByRole("button", { name: "Registrar resultado verificado" })
     .click();
   await waitState("result_recorded");
+  await login(
+    page,
+    personaEmail("archive_curator"),
+    `/comun/admin/calcadas/encaminhamentos/${flow.id}`,
+    true,
+    "comun-local-fixture-only",
+  );
   await expect(
     page.getByRole("heading", { name: "Preservar memória do ciclo" }),
   ).toBeVisible();
@@ -378,6 +420,22 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await expect(
     page.getByText("Memória do ciclo publicada", { exact: true }),
   ).toBeVisible();
+  await page.context().clearCookies();
+  await page.goto(
+    "/comun/entrar?returnTo=%2Fcomun%2Fmapa%2Fcontribuir%3Forigem%3Dcalcadas",
+  );
+  await page
+    .getByLabel("E-mail")
+    .fill("fixture-s33-2-integral-s37-integral-suspended@comun.test");
+  await page.getByLabel("Senha").fill("comun-local-fixture-only");
+  await page.getByRole("button", { name: "Entrar" }).click();
+  await expect(
+    page.getByRole("alert").filter({
+      hasText: "Esta conta não está disponível para acesso.",
+    }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/\/comun\/entrar\?returnTo=/);
+  console.log("COMUN_SIDEWALK_PERSONAS_MATRIX_LOCAL_OK");
 });
 test("retorno hostil é rejeitado", async ({ page }) => {
   await page.goto("/comun/criar-conta?returnTo=https%3A%2F%2Fevil.example");

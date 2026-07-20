@@ -1,3 +1,82 @@
-import {mkdir} from "node:fs/promises";import sharp from "sharp";import {assertLocalEnvironment} from "../../scripts/local-environment.mjs";import {cleanupLocalComunFixtures,localServiceClient} from "../fixtures/comun/local-fixtures.mjs";import setupSidewalk from "../sidewalk-pilot/global-setup.mjs";
-const admin={email:"s37-admin@comun.test",password:"comun-primeira-participacao-34-2"};
-export default async function setup(){process.env.ALLOW_LOCAL_TESTS="true";process.env.COMUN_BASE_URL??="http://127.0.0.1:3000";assertLocalEnvironment();await cleanupLocalComunFixtures();const db=localServiceClient();await db.from("comun_admin_profiles").delete().eq("email",admin.email);await db.from("comun_admin_users").delete().eq("email",admin.email);const{data:list}=await db.auth.admin.listUsers({page:1,perPage:1000}),old=list?.users.find(x=>x.email===admin.email);if(old)await db.auth.admin.deleteUser(old.id);const{data:created,error}=await db.auth.admin.createUser({email:admin.email,password:admin.password,email_confirm:true,user_metadata:{fixture:"s37-integral",persona:"admin"}});if(error||!created.user)throw new Error(error?.message??"Admin fixture não criado");await db.from("comun_admin_users").insert({user_id:created.user.id,email:admin.email,role:"admin",is_active:true});await db.from("comun_admin_profiles").insert({auth_user_id:created.user.id,email:admin.email,display_name:"Admin integral S37",role:"admin",active:true});await setupSidewalk();await mkdir(".local/comun-integral",{recursive:true});const svg='<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#aaa"/><path d="M0 420L800 180" stroke="#222" stroke-width="80"/><rect x="80" y="500" width="640" height="14" fill="#ffd400"/></svg>';await sharp(Buffer.from(svg)).jpeg({quality:84}).toFile(".local/comun-integral/calcada-fixture.jpg")}
+import { mkdir } from "node:fs/promises";
+import sharp from "sharp";
+import { assertLocalEnvironment } from "../../scripts/local-environment.mjs";
+import {
+  cleanupLocalComunFixtures,
+  localServiceClient,
+} from "../fixtures/comun/local-fixtures.mjs";
+import {
+  cleanupOperationalPersonas,
+  ensureLocalOperationalPersona,
+} from "../fixtures/comun/operational-personas.mjs";
+import setupSidewalk from "../sidewalk-pilot/global-setup.mjs";
+const admin = {
+  email: "s37-admin@comun.test",
+  password: "comun-primeira-participacao-34-2",
+};
+export default async function setup() {
+  process.env.ALLOW_LOCAL_TESTS = "true";
+  process.env.COMUN_BASE_URL ??= "http://127.0.0.1:3000";
+  assertLocalEnvironment();
+  await cleanupLocalComunFixtures();
+  await cleanupOperationalPersonas();
+  const db = localServiceClient();
+  await db.from("comun_admin_profiles").delete().eq("email", admin.email);
+  await db.from("comun_admin_users").delete().eq("email", admin.email);
+  const { data: list } = await db.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    }),
+    old = list?.users.find((x) => x.email === admin.email);
+  if (old) await db.auth.admin.deleteUser(old.id);
+  const { data: created, error } = await db.auth.admin.createUser({
+    email: admin.email,
+    password: admin.password,
+    email_confirm: true,
+    user_metadata: { fixture: "s37-integral", persona: "admin" },
+  });
+  if (error || !created.user)
+    throw new Error(error?.message ?? "Admin fixture não criado");
+  await db.from("comun_admin_users").insert({
+    user_id: created.user.id,
+    email: admin.email,
+    role: "admin",
+    is_active: true,
+  });
+  await db.from("comun_admin_profiles").insert({
+    auth_user_id: created.user.id,
+    email: admin.email,
+    display_name: "Admin integral S37",
+    role: "admin",
+    active: true,
+  });
+  for (const persona of [
+    "facilitator",
+    "operations_admin",
+    "protocol_operator",
+    "result_editor",
+    "archive_curator",
+  ])
+    await ensureLocalOperationalPersona({
+      persona,
+      runId: "s37-integral",
+      email: `fixture-s33-2-integral-s37-integral-${persona.replaceAll("_", "-")}@comun.test`,
+      globalRole: "viewer",
+    });
+  const suspended = await ensureLocalOperationalPersona({
+    persona: "participant",
+    runId: "s37-integral",
+    email: "fixture-s33-2-integral-s37-integral-suspended@comun.test",
+  });
+  await db
+    .from("comun_member_profiles")
+    .update({ status: "suspended" })
+    .eq("user_id", suspended.user.id);
+  await setupSidewalk();
+  await mkdir(".local/comun-integral", { recursive: true });
+  const svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#aaa"/><path d="M0 420L800 180" stroke="#222" stroke-width="80"/><rect x="80" y="500" width="640" height="14" fill="#ffd400"/></svg>';
+  await sharp(Buffer.from(svg))
+    .jpeg({ quality: 84 })
+    .toFile(".local/comun-integral/calcada-fixture.jpg");
+}
