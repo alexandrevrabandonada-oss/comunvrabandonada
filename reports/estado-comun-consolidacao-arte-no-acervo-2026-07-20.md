@@ -1,7 +1,7 @@
 # Consolidação da Arte dos Territórios no Acervo
 
 **Data:** 20 de julho de 2026  
-**Estado:** implementação concluída e validada localmente
+**Estado:** implementação concluída, publicada e validada em produção
 
 ## Resultado
 
@@ -57,3 +57,15 @@ Os testes Playwright cobriram as rotas canônicas públicas, contribuição, dir
 ## Estado de conteúdo
 
 O estado vazio da galeria continua correto enquanto não houver obras com publicação editorial concluída. A consolidação não promove obras automaticamente e não cria conteúdo sintético em produção.
+
+## Publicação e smoke de produção
+
+A revisão foi integrada pela PR `#21` e publicada em `https://comunsocial.online` em 20 de julho de 2026. O build remoto concluiu com sucesso, incluindo tipagem e geração das 91 páginas.
+
+O smoke no domínio canônico confirmou:
+
+- `/comun/acervo` e `/comun/acervo/arte` respondendo HTTP 200;
+- seção editorial de Arte dos Territórios presente na entrada do acervo;
+- filtro de território presente na galeria;
+- nenhum link interno do acervo apontando para `/comun/arte`;
+- `/comun/arte?tipo=mural&pagina=2` respondendo HTTP 308 para `/comun/acervo/arte?tipo=mural&pagina=2`.
