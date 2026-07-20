@@ -34,7 +34,17 @@ test("mapa possui alternativa textual em lista", async ({ page }) => {
   const { slug } = pilotSlug();
   await page.goto(`/comun/pautas/${slug}#map`);
   await expect(page.locator("#map")).toBeVisible();
-  await expect(page.locator("[role='list']").or(page.locator("ul")).first()).toBeVisible();
+  await page.getByRole("link", { name: "Abrir Mapa das Calçadas" }).click();
+  await expect(page).toHaveURL(/\/comun\/calcadas/);
+  const listButton = page.getByRole("button", { name: "Lista", exact: true });
+  await listButton.click();
+  await expect(listButton).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page
+      .locator("article")
+      .first()
+      .or(page.getByText("Nenhum registro público corresponde aos filtros.")),
+  ).toBeVisible();
 });
 
 test("detalhe do registro exibe categoria, impacto e aviso de cobertura", async ({ page }) => {
