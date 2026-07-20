@@ -11,7 +11,9 @@ O fluxo mantém uma única linha operacional:
 
 `ORGANIZAR → ENCAMINHAR → COBRAR → REGISTRAR RESULTADO → PRESERVAR MEMÓRIA`
 
-O cenário autenticado de 360×800 percorreu fotografia, contribuição, moderação, publicação, observação, prioridade, mobilização, pacote, encaminhamento, revisão, protocolo, resposta, resultado, memória, Minha área e Inbox. Resultado: **2/2 testes aprovados**, incluindo a rejeição de retorno hostil.
+O cenário autenticado percorreu fotografia, contribuição, moderação, publicação, observação, prioridade, mobilização, pacote, encaminhamento, revisão, protocolo, resposta, resultado, memória, Minha área e Inbox nos cinco viewports previstos. Resultado final: **10/10 testes aprovados**, sem skip, incluindo a rejeição de retorno hostil.
+
+`COMUN_SIDEWALK_REAL_MAP_E2E_LOCAL_OK`
 
 ## Implementado nesta etapa
 
@@ -35,7 +37,7 @@ O cenário autenticado de 360×800 percorreu fotografia, contribuição, modera�
 | `npm run typecheck` | aprovado |
 | `npm run lint` | aprovado |
 | `npm run test:unit` | 244/244 aprovados |
-| Playwright integral 360×800 | 2/2 aprovados |
+| Playwright integral — cinco viewports | 10/10 aprovados |
 | `npm run audit:rls-matrix` | `RLS_MATRIX_OK` |
 | `npx supabase db lint --local` | zero erros de schema |
 | Cleanup | `COMUN_TEST_FIXTURES_CLEAN` |
@@ -44,7 +46,6 @@ O cenário autenticado de 360×800 percorreu fotografia, contribuição, modera�
 
 O fechamento técnico integral da Sprint 37.2 ainda não deve ser declarado. Faltam executar e registrar:
 
-- a matriz completa de cinco viewports;
 - testes comportamentais das oito personas da matriz RLS;
 - Axe e revisão visual completa;
 - performance contra `next start`;

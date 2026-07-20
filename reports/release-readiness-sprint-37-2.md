@@ -4,15 +4,14 @@ Data: 20 de julho de 2026.
 
 ## Situação
 
-**EM VALIDAÇÃO LOCAL.** A vertical de encaminhamento até memória funciona no primeiro viewport móvel validado, mas os gates integrais da Sprint 37.2 ainda não terminaram.
+**EM VALIDAÇÃO LOCAL.** A vertical de encaminhamento até memória funciona nos cinco viewports previstos, mas os demais gates integrais da Sprint 37.2 ainda não terminaram.
 
 | Dimensão | Estado | Evidência atual |
 |---|---|---|
 | Produto | Implementado localmente | fluxo pela interface até memória publicada |
 | Segurança | Parcialmente validada | `RLS_MATRIX_OK` e DB lint sem erros; personas pendentes |
 | Unitários | Aprovado | 244/244 |
-| E2E 360×800 | Aprovado | 2/2 |
-| Cinco viewports | Pendente | executar matriz completa |
+| Cinco viewports | Aprovado | 10/10, sem skip |
 | Acessibilidade/visual | Pendente | executar gate completo |
 | Performance | Pendente | medir com `next start` |
 | Reset duplo formal | Pendente | executar após estabilização |

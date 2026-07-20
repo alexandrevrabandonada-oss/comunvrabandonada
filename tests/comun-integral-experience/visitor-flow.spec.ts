@@ -87,6 +87,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     fullPage: true,
   });
   await page.getByRole("button", { name: /Enviar contribuição/ }).click();
+  await page.waitForURL(/\/comun\/mapa\/contribuir\/confirmacao\?/);
   await expect(
     page.getByRole("heading", { name: /Recebemos seu registro/ }),
   ).toBeVisible();
