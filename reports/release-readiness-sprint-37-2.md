@@ -9,7 +9,7 @@ Data: 20 de julho de 2026.
 | Dimensão | Estado | Evidência atual |
 |---|---|---|
 | Produto | Implementado localmente | fluxo pela interface até memória publicada |
-| Segurança | Parcialmente validada | RLS fechada na migration; auditoria final pendente |
+| Segurança | Parcialmente validada | `RLS_MATRIX_OK` e DB lint sem erros; personas pendentes |
 | Unitários | Aprovado | 244/244 |
 | E2E 360×800 | Aprovado | 2/2 |
 | Cinco viewports | Pendente | executar matriz completa |

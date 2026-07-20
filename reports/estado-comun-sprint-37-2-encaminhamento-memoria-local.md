@@ -1,6 +1,6 @@
 # Estado da Sprint 37.2 — encaminhamento, resposta e memória
 
-Data da checagem: 20 de julho de 2026  
+Data da checagem: 20 de julho de 2026
 Escopo: ambiente local isolado, sem integrações remotas.
 
 ## Resultado atual
@@ -36,6 +36,8 @@ O cenário autenticado de 360×800 percorreu fotografia, contribuição, modera�
 | `npm run lint` | aprovado |
 | `npm run test:unit` | 244/244 aprovados |
 | Playwright integral 360×800 | 2/2 aprovados |
+| `npm run audit:rls-matrix` | `RLS_MATRIX_OK` |
+| `npx supabase db lint --local` | zero erros de schema |
 | Cleanup | `COMUN_TEST_FIXTURES_CLEAN` |
 
 ## Gates ainda pendentes
@@ -43,7 +45,7 @@ O cenário autenticado de 360×800 percorreu fotografia, contribuição, modera�
 O fechamento técnico integral da Sprint 37.2 ainda não deve ser declarado. Faltam executar e registrar:
 
 - a matriz completa de cinco viewports;
-- auditoria RLS e `supabase db lint --local` após a migration final;
+- testes comportamentais das oito personas da matriz RLS;
 - Axe e revisão visual completa;
 - performance contra `next start`;
 - duas rodadas formais de reset integral com novos `runId`;

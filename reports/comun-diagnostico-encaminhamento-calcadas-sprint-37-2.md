@@ -1,6 +1,6 @@
 # Diagnóstico do encaminhamento das calçadas — Sprint 37.2
 
-**Data:** 20/07/2026  
+**Data:** 20/07/2026
 **Escopo:** auditoria local, sem dados ou serviços remotos
 
 ## Conclusão
