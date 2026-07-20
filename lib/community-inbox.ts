@@ -26,6 +26,11 @@ export const inboxTypes = [
   "community_result_published",
   "community_correction_completed",
   "community_withdrawal_completed",
+  "archive_comment_approved",
+  "archive_comment_rejected",
+  "archive_comment_reply",
+  "archive_comment_needs_information",
+  "archive_comment_withdrawn",
 ] as const;
 export async function listMemberInbox(memberUserId: string) {
   const db = createServiceSupabaseClient();

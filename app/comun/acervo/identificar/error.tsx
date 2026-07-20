@@ -1,0 +1,1 @@
+"use client";export default function Error({reset}:{reset:()=>void}){return <main className="min-h-screen bg-comun-black p-8 text-comun-paper"><h1 className="text-3xl font-black uppercase text-comun-yellow">Não foi possível carregar</h1><button onClick={reset} className="mt-5 bg-comun-yellow p-3 font-black uppercase text-comun-black">Tentar novamente</button></main>}

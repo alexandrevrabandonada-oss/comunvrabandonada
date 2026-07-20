@@ -56,9 +56,12 @@ export async function processHistoricalPhotoDerivativeJob(job: any) {
     if (!a || a.bucket_scope !== "private_original" || !a.archive_item_id)
       throw new Error("Asset sem vinculo valido");
     const t0 = Date.now(),
-      signed = await getMediaStorage().createPrivateReadUrl(a.object_key, 180),
-      res = await fetch(signed.url, { cache: "no-store" });
-    if (!res.ok) throw new Error("Original ausente");
+      signed = a.storage_provider === "supabase"
+        ? (await db.storage.from("archive-private-originals").createSignedUrl(a.object_key, 180)).data
+        : await getMediaStorage().createPrivateReadUrl(a.object_key, 180),
+      signedUrl = signed && ("signedUrl" in signed ? signed.signedUrl : signed.url),
+      res = signedUrl ? await fetch(signedUrl, { cache: "no-store" }) : null;
+    if (!res?.ok) throw new Error("Original ausente");
     const bytes = new Uint8Array(await res.arrayBuffer());
     metrics.download_ms = Date.now() - t0;
     metrics.original_bytes = bytes.byteLength;

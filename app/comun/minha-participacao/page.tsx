@@ -16,14 +16,17 @@ import {
 } from "@/lib/community-status";
 import { getPersonalCenter } from "@/lib/personal-center";
 import { listMyParticipation } from "@/lib/pauta-miniapps";
+import { listMyIdentificationContributions } from "@/lib/archive-identification";
+import { withdrawIdentificationComment } from "@/app/comun/acervo/identificar/actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function MinhaAreaPage() {
   const { user, profile } = await requireCommunitySession("/comun/minha-participacao");
-  const [center, submissions] = await Promise.all([
+  const [center, submissions, archiveContributions] = await Promise.all([
     getPersonalCenter(user.id),
     listMyParticipation(user.id),
+    listMyIdentificationContributions(user.id),
   ]);
   const contributions = [
     ...submissions.contributions,
@@ -43,6 +46,7 @@ export default async function MinhaAreaPage() {
   const empty =
     !attention.length &&
     !contributions.length &&
+    !archiveContributions.length &&
     !center.tasks.length &&
     !center.circles.length &&
     !center.memberships.length &&
@@ -139,6 +143,22 @@ export default async function MinhaAreaPage() {
             status={(x: any) => x.status}
             text={(x: any) => x.next_action_public || "Aguardar revisão"}
           />
+        </Area>
+      ) : null}
+      {archiveContributions.length ? (
+        <Area title="Memórias em identificação">
+          <div className="grid gap-3">
+            {archiveContributions.map((x: any) => (
+              <article className="border-2 border-comun-yellow p-4" key={x.id}>
+                <p className="text-xs font-black uppercase text-comun-yellow">{x.suggestion_type} · {x.status}</p>
+                <h3 className="mt-2 font-black">{x.archive_item?.title ?? "Fotografia histórica"}</h3>
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {x.public_slug ? <Link className="font-black underline" href={`/comun/acervo/identificar/${x.public_slug}`}>Ver memória</Link> : null}
+                  {!['withdrawn','archived'].includes(x.status) && x.public_slug ? <form action={withdrawIdentificationComment}><input type="hidden" name="id" value={x.id}/><input type="hidden" name="slug" value={x.public_slug}/><button className="font-black text-red-300 underline">Retirar contribuição</button></form> : null}
+                </div>
+              </article>
+            ))}
+          </div>
         </Area>
       ) : null}
       {center.results.length ? (

@@ -12,6 +12,7 @@ const ways = [
   { title: "Contribuir com Arte", href: "/comun/arte/contribuir", goal: "Preservar uma obra com autoria, contexto e direitos.", time: "10–20 min", account: "Conta opcional", moderation: "Curadoria e direitos", result: "Obra relacionada a território ou pauta." },
   { title: "Contribuir com a Rádio", href: "/comun/radio/contribuir", goal: "Propor programa, pauta, áudio ou correção.", time: "10–20 min", account: "Conta opcional", moderation: "Consentimento e direitos", result: "Proposta acompanhável ou episódio revisado." },
   { title: "Colaborar com documentos", href: "/comun/acervo/contribuir", goal: "Adicionar contexto e fontes à memória coletiva.", time: "10–30 min", account: "Conta opcional", moderation: "Verificação editorial", result: "Documento ou memória relacionados." },
+  { title: "Identificar fotografias antigas", href: "/comun/acervo/identificar", goal: "Reconhecer lugares, pessoas, datas e acontecimentos em fotografias históricas.", time: "5–20 min", account: "Conta necessária para contribuir", moderation: "Aprovação antes da exibição", result: "Comentário comunitário e possível síntese editorial." },
   { title: "Acompanhar uma pauta", href: "/comun/pautas", goal: "Receber próximas ações e acompanhar resultados.", time: "2 min", account: "Conta necessária", moderation: "Sem publicação automática", result: "Resumo pessoal e caixa de entrada." },
 ];
 

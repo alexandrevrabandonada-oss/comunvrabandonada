@@ -223,6 +223,11 @@ const classifications = {
     sensitive: "Contato privado, procedencia, hashes e moderacao.",
     expected: "Somente rotas server-side e administradores.",
   },
+  comun_archive_identification_campaigns: { decision: "service_role_only", purpose: "Campanhas públicas de identificação fotográfica.", sensitive: "Autorização operacional e estado de lançamento.", expected: "Servidor expõe projeção sanitizada; sem acesso direto anon/authenticated." },
+  comun_archive_identification_items: { decision: "service_role_only", purpose: "Fichas sanitizadas da campanha.", sensitive: "Vínculo com item privado e estado editorial.", expected: "Servidor seleciona apenas campos públicos de campanhas abertas." },
+  comun_archive_identification_reports: { decision: "service_role_only", purpose: "Denúncias de comentários comunitários.", sensitive: "Identidade e detalhes privados do denunciante.", expected: "Exclusivo da moderação." },
+  comun_archive_identification_summaries: { decision: "service_role_only", purpose: "Síntese editorial de identificações.", sensitive: "Base editorial privada e identidade revisora.", expected: "Servidor expõe somente texto publicado sanitizado." },
+  comun_archive_identification_editorial_log: { decision: "service_role_only", purpose: "Histórico editorial da campanha.", sensitive: "Ator e metadados operacionais.", expected: "Exclusivo da administração." },
   comun_archive_processing_jobs: {
     decision: "service_role_only",
     purpose: "Fila persistida de derivados.",

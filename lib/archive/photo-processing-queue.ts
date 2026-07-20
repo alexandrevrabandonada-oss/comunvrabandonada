@@ -12,7 +12,7 @@ export async function enqueueHistoricalPhotoDerivativeJob(assetId: string) {
   const { data: a, error } = await db
     .from("comun_archive_assets")
     .select(
-      "id,archive_item_id,bucket_scope,mime_type,checksum_sha256,object_key",
+      "id,archive_item_id,bucket_scope,mime_type,checksum_sha256,object_key,storage_provider",
     )
     .eq("id", assetId)
     .single();
@@ -26,8 +26,10 @@ export async function enqueueHistoricalPhotoDerivativeJob(assetId: string) {
   if (!["image/jpeg", "image/png", "image/webp"].includes(a.mime_type))
     throw new Error("MIME invalido");
   if (!a.checksum_sha256) throw new Error("Checksum ausente");
-  if (!(await getMediaStorage().objectExists("private_original", a.object_key)))
-    throw new Error("Original ausente");
+  if (a.storage_provider === "supabase") {
+    const { data } = await db.storage.from("archive-private-originals").createSignedUrl(a.object_key, 60);
+    if (!data?.signedUrl) throw new Error("Original ausente");
+  } else if (!(await getMediaStorage().objectExists("private_original", a.object_key))) throw new Error("Original ausente");
   const key = buildPhotoDerivativeIdempotencyKey({
     id: a.id,
     checksum_sha256: a.checksum_sha256,

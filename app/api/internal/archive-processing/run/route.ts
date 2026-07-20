@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       !["scheduler", "manual"].includes(body.source ?? "scheduler") ||
       !Number.isInteger(body.maxJobs ?? 3) ||
       body.maxJobs < 1 ||
-      body.maxJobs > 3
+      body.maxJobs > (body.source === "manual" ? 20 : 3)
     )
       return NextResponse.json({ error: "invalid_request" }, { status: 400 });
     heartbeatId = randomUUID();
