@@ -20,7 +20,7 @@ import {
   type PublicSidewalkRecord,
   VOLTA_REDONDA_MAP,
 } from "@/lib/sidewalk-map-config";
-import { resolveSidewalkBasemapProvider } from "@/lib/sidewalk-basemap-provider";
+import type { SidewalkBasemapProvider } from "@/lib/sidewalk-basemap-provider";
 import { SidewalkMapLibreMap } from "@/components/sidewalk-maplibre-map";
 
 const conditions = {
@@ -48,8 +48,10 @@ type Filters = {
 
 export function SidewalkRealMap({
   records,
+  provider,
 }: {
   records: PublicSidewalkRecord[];
+  provider: SidewalkBasemapProvider;
 }) {
   const params = useSearchParams(),
     router = useRouter(),
@@ -145,7 +147,6 @@ export function SidewalkRealMap({
     { label: "Sem calçada", key: "problem", value: "inexistente" },
     { label: "Resolvida", key: "forwarding", value: "resolved" },
   ] as const;
-  const provider = resolveSidewalkBasemapProvider();
   const selectRecord = useCallback(
     (record: PublicSidewalkRecord) => setSelected(record),
     [],

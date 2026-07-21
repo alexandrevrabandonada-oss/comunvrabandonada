@@ -83,10 +83,12 @@ test("rotas locais preservam contexto e deep links", async ({ page }) => {
   ]) {
     await page.goto(path);
     await expect(
-      page.getByRole("heading", { name: "Calçadas de Volta Redonda" }),
+      page.getByRole("navigation", {
+        name: "Navegação do Mapa das Calçadas",
+      }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Acompanhar em Minha área" }),
+      page.getByRole("link", { name: "Minha área", exact: true }),
     ).toBeVisible();
   }
 });

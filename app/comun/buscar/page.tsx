@@ -7,6 +7,7 @@ import {
 } from "@/components/comun-ui";
 import { unifiedPublicSearch } from "@/lib/unified-search";
 const types = [
+  "ferramenta",
   "comunidade",
   "pauta",
   "território",
@@ -31,6 +32,12 @@ export default async function Page({
       type: p.tipo,
       pautaId: p.pauta,
     });
+  const groups = types
+    .map((type) => ({
+      type,
+      rows: results.filter((result) => result.type === type),
+    }))
+    .filter((group) => group.rows.length);
   return (
     <ComunShell>
       <ComunSection>
@@ -75,26 +82,38 @@ export default async function Page({
             ms
           </p>
         ) : null}
-        <div className="mt-6 divide-y-2 divide-comun-paper/20 border-y-2 border-comun-paper/20">
-          {results.map((x, i) => (
-            <article className="py-5" key={`${x.href}-${i}`}>
-              <p className="text-xs font-black uppercase text-comun-yellow">
-                {x.type} · origem: {x.origin}
-              </p>
-              <h2 className="mt-2 text-xl font-black">
-                <Link
-                  className="underline decoration-2 underline-offset-4"
-                  href={x.href}
-                >
-                  {x.title}
-                </Link>
+        <div className="mt-6 grid gap-8">
+          {groups.map((group) => (
+            <section key={group.type} aria-labelledby={`grupo-${group.type}`}>
+              <h2
+                id={`grupo-${group.type}`}
+                className="border-b-2 border-comun-yellow pb-2 text-xl font-black uppercase text-comun-yellow"
+              >
+                {group.type}
               </h2>
-              {x.summary ? (
-                <p className="mt-2 max-w-3xl text-comun-paper/70">
-                  {x.summary}
-                </p>
-              ) : null}
-            </article>
+              <div className="divide-y-2 divide-comun-paper/20">
+                {group.rows.map((x, i) => (
+                  <article className="py-5" key={`${x.href}-${i}`}>
+                    <p className="text-xs font-black uppercase text-comun-yellow">
+                      {x.type} · origem: {x.origin}
+                    </p>
+                    <h2 className="mt-2 text-xl font-black">
+                      <Link
+                        className="underline decoration-2 underline-offset-4"
+                        href={x.href}
+                      >
+                        {x.title}
+                      </Link>
+                    </h2>
+                    {x.summary ? (
+                      <p className="mt-2 max-w-3xl text-comun-paper/70">
+                        {x.summary}
+                      </p>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+            </section>
           ))}
         </div>
         {q.length >= 2 && !results.length ? (

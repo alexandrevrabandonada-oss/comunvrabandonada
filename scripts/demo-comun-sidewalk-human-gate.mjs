@@ -40,6 +40,9 @@ function localEnvironment() {
       NEXT_PUBLIC_SITE_URL: baseUrl,
       NEXT_PUBLIC_SUPABASE_URL: values.API_URL,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: values.ANON_KEY,
+      NEXT_PUBLIC_SIDEWALK_BASEMAP_PROVIDER: "realVoltaRedonda",
+      NEXT_PUBLIC_VOLTA_REDONDA_PMTILES_URL:
+        "/maps/volta-redonda/volta-redonda.pmtiles",
       SUPABASE_SERVICE_ROLE_KEY: values.SERVICE_ROLE_KEY,
       MEDIA_STORAGE_PROVIDER: "supabase-local",
     },
