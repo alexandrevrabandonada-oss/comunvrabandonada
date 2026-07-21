@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-21T16:43:47.389Z",
+  "bounds": [
+    -44.22,
+    -22.6,
+    -43.98,
+    -22.43
+  ],
+  "inputs": {
+    "osm": {
+      "origin": "C:\\Projetos\\comun-gate-humano-local\\.map-build\\volta-redonda\\sources\\openstreetmap-volta-redonda.geojson",
+      "sha256": "031a9f2a5cad258c6d0d8d62a8ebf908ad5039ab35727cd19f2b075d0a4bb342",
+      "license": "ODbL 1.0",
+      "attribution": "© OpenStreetMap contributors"
+    },
+    "ibge": {
+      "origin": "C:\\Projetos\\comun-gate-humano-local\\.map-build\\volta-redonda\\sources\\ibge-volta-redonda-2024.geojson",
+      "sha256": "559c4b48ff519636b71426ff3d552afaadfe2b5a1c1aac6e5f68f277aaa887e4",
+      "license": "Dados públicos IBGE; consultar metadados do produto",
+      "attribution": "IBGE"
+    }
+  },
+  "transform": [
+    "validação GeoJSON",
+    "recorte ao bbox municipal com margem",
+    "tiles vetoriais z10-z16",
+    "empacotamento PMTiles"
+  ],
+  "output": {
+    "file": "volta-redonda.pmtiles",
+    "sizeBytes": 10147678,
+    "sha256": "d0512669d6c01cbffbc513837e30ac926ef124727feeaa12b91d9be04cd635b9",
+    "pmtilesVersion": 3,
+    "versionControl": "artefato ignorado; reproduzível pelo manifesto e toolchain fixa"
+  }
+}

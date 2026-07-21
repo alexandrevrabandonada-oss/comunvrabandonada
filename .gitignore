@@ -8,11 +8,13 @@ dist/
 coverage/
 test-results/
 .cache/
+.map-build/
 .eslintcache
 .npm/
 .pnpm-store/
 *.log
 *.tsbuildinfo
+public/maps/volta-redonda/*.pmtiles
 .vercel/
 supabase/.temp/
 types/supabase.ts

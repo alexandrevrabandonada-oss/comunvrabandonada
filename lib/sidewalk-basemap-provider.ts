@@ -1,34 +1,68 @@
+import { VOLTA_REDONDA_MAP } from "@/lib/sidewalk-map-config";
+
 export type SidewalkBasemapProvider = {
-  id: "localSynthetic" | "realBasemapProvider";
-  kind: "synthetic" | "remote";
+  id: "localSynthetic" | "realVoltaRedonda";
+  kind: "synthetic" | "pmtiles";
   attribution: string;
   cachePolicy: string;
-  style: {background: string; water?: string; styleUrl?: string};
-  fallback: "neutral-grid-and-list" | "localSynthetic";
+  style: {
+    background: string;
+    water?: string;
+    styleUrl?: string;
+    pmtilesUrl?: string;
+  };
+  fallback: "neutral-grid-and-list";
   enabled: boolean;
+  center: [number, number];
+  bounds: [number, number, number, number];
+  minZoom: number;
+  maxZoom: number;
 };
 
 export const localSynthetic: SidewalkBasemapProvider = {
   id: "localSynthetic",
   kind: "synthetic",
-  attribution: "Cartografia sintética local · não representa levantamento viário real",
-  cachePolicy: "Somente arquivos locais versionados; nenhuma requisição de tiles.",
-  style: {background: "#e8ece5", water: "#9fcbd3"},
-  fallback: "neutral-grid-and-list",
   enabled: true,
+  attribution:
+    "Cartografia sintética local · não representa levantamento viário real",
+  cachePolicy:
+    "Somente arquivos locais versionados; nenhuma requisição de tiles.",
+  style: { background: "#e8ece5", water: "#9fcbd3" },
+  fallback: "neutral-grid-and-list",
+  center: VOLTA_REDONDA_MAP.center,
+  bounds: VOLTA_REDONDA_MAP.bounds,
+  minZoom: 10,
+  maxZoom: 18,
 };
 
-export const realBasemapProvider: SidewalkBasemapProvider = {
-  id: "realBasemapProvider",
-  kind: "remote",
-  attribution: "Fornecedor ainda não escolhido",
-  cachePolicy: "Pendente de decisão de fornecedor, licença e privacidade.",
-  style: {background: "#ecebe5"},
-  fallback: "localSynthetic",
-  enabled: false,
-};
+export function getRealVoltaRedondaProvider(): SidewalkBasemapProvider {
+  const pmtilesUrl = process.env.NEXT_PUBLIC_VOLTA_REDONDA_PMTILES_URL?.trim();
+  const styleUrl =
+    process.env.NEXT_PUBLIC_VOLTA_REDONDA_MAP_STYLE_URL?.trim() ||
+    "/maps/volta-redonda/style.json";
+  return {
+    id: "realVoltaRedonda",
+    kind: "pmtiles",
+    enabled: Boolean(pmtilesUrl),
+    attribution: "© OpenStreetMap contributors · limite municipal: IBGE",
+    cachePolicy:
+      "PMTiles público com HTTP Range; artefato versionado por hash e cache imutável.",
+    style: { background: "#ecebe5", styleUrl, pmtilesUrl },
+    fallback: "neutral-grid-and-list",
+    center: VOLTA_REDONDA_MAP.center,
+    bounds: VOLTA_REDONDA_MAP.bounds,
+    minZoom: 10,
+    maxZoom: 18,
+  };
+}
 
-export function resolveSidewalkBasemapProvider(requested?: string) {
-  if (requested === realBasemapProvider.id && realBasemapProvider.enabled) return realBasemapProvider;
+/** Compatibilidade temporária para consumidores da Sprint 38. */
+export const realBasemapProvider = getRealVoltaRedondaProvider();
+
+export function resolveSidewalkBasemapProvider(
+  requested = process.env.NEXT_PUBLIC_SIDEWALK_BASEMAP_PROVIDER,
+) {
+  const real = getRealVoltaRedondaProvider();
+  if (requested === "realVoltaRedonda") return real;
   return localSynthetic;
 }

@@ -7,6 +7,10 @@
   },
   "scripts": {
     "dev": "next dev",
+    "maps:build:volta-redonda": "node scripts/build-volta-redonda-map.mjs",
+    "maps:sources:download:volta-redonda": "node scripts/download-volta-redonda-map-sources.mjs",
+    "maps:toolchain:check": "node scripts/check-map-toolchain.mjs",
+    "cleanup:comun-sidewalk-uploads": "node scripts/comun-local-env.mjs run node scripts/cleanup-comun-sidewalk-uploads.mjs",
     "local:env:check": "node scripts/comun-local-env.mjs check",
     "auth:readiness:local": "node scripts/comun-local-env.mjs run node scripts/check-comun-auth-readiness.mjs",
     "auth:diag:local": "node scripts/diag-comun-auth-reset.mjs",
@@ -155,7 +159,9 @@
     "@supabase/supabase-js": "2.110.5",
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",
+    "maplibre-gl": "^5.14.0",
     "next": "16.2.10",
+    "pmtiles": "^4.3.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "sharp": "0.35.3",
@@ -171,6 +177,7 @@
     "eslint": "9.39.1",
     "eslint-config-next": "16.2.10",
     "postcss": "^8.4.49",
+    "shpjs": "^6.2.0",
     "tailwindcss": "^3.4.15",
     "typescript": "^5.6.3",
     "vitest": "4.1.10"

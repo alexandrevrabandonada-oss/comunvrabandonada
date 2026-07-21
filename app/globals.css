@@ -103,3 +103,13 @@ a:active { transform: translateY(1px); }
 }
 
 .methodology-notice,.metric-card,.limitations,.empty-state,.success-card,.observation-form,.action-connection,.dimension{color:#0b0b0a}
+.sidewalk-map-marker {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 2px solid #0b0b0a;
+  border-radius: 9999px;
+  background: #ffcc00;
+  color: #0b0b0a;
+  font-weight: 900;
+  box-shadow: 2px 2px 0 #0b0b0a;
+}
