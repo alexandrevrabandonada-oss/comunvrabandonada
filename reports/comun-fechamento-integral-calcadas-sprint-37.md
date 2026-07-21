@@ -45,3 +45,7 @@ Não emitir `COMUN_SIDEWALK_REAL_MAP_LOCAL_OK` enquanto qualquer item acima perm
 - Tiles remotos: NÃO UTILIZADOS NOS TESTES
 - Dados reais: NÃO UTILIZADOS
 - Custo externo: R$ 0
+
+## Fechamento superveniente da Sprint 37.2
+
+O bloqueio histórico acima foi resolvido localmente pela implementação canônica já consolidada. A prova atual percorreu encaminhamento, protocolo e resposta fixtures, resultado e memória pela interface, atualizou Minha área e Inbox e emitiu `COMUN_SIDEWALK_REAL_MAP_LOCAL_OK`. Duas rodadas formais independentes passaram e encerraram limpas. Estado atual: `TECHNICAL_LOCAL_READY`; gate humano 0/3 e demais gates externos permanecem NO-GO.

@@ -109,3 +109,7 @@ Esses bloqueios não devem ser contornados com registros desconectados ou inser�
 ## Conclusão
 
 O núcleo local e a maior parte da jornada operacional estão comprovados, incluindo resultado parcial. O projeto permanece tecnicamente **NO-GO integral**, sem emissão de `COMUN_SIDEWALK_REAL_MAP_LOCAL_OK`, até que as lacunas de relacionamento por interface sejam resolvidas em escopo autorizado e os demais gates sejam repetidos integralmente.
+
+## Atualização de fechamento — 20/07/2026
+
+As lacunas locais descritas acima foram fechadas na própria Sprint 37.2. A jornada integral, Axe, revisão visual, performance, production-like e dois resets formais passaram; `COMUN_SIDEWALK_REAL_MAP_LOCAL_OK` e `TECHNICAL_LOCAL_READY` estão comprovados. O gate humano permanece **0/3**, e operação real, mapa-base remoto e revisão remota continuam **NO-GO**. Todas as declarações obrigatórias permanecem válidas, incluindo custo externo R$ 0 e nenhum protocolo real enviado.

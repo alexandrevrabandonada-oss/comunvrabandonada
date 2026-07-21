@@ -28,3 +28,9 @@ Somente declarar `TECHNICAL_LOCAL_READY` após cinco viewports, RLS, Axe, visual
 ## Restrições preservadas
 
 Piloto público não aberto; integração principal, push e deploy não executados; Supabase remoto não alterado; R2 real e dados reais não utilizados; nenhum protocolo real enviado; custo externo R$ 0.
+
+## Atualização definitiva — 20/07/2026
+
+Os gates antes pendentes foram concluídos: performance em `next start`, resets formais 1 e 2, production-like integral, regressões e cleanup passaram. Unitários: **245/245**. Decisão técnica: `TECHNICAL_LOCAL_READY`.
+
+Permanecem `NO_GO_HUMAN_EXPERIENCE` (0/3), `NO_GO_OPERATIONAL_READINESS`, `NO_GO_REAL_BASEMAP_REVIEW` e `NO_GO_REMOTE_REVIEW`.

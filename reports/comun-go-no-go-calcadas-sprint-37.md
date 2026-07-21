@@ -23,3 +23,15 @@
 - Tiles remotos: NÃO UTILIZADOS NOS TESTES
 - Dados reais: NÃO UTILIZADOS
 - Custo externo: R$ 0
+
+## Decisão superveniente da Sprint 37.2 — 20/07/2026
+
+| Gate | Decisão atual |
+| --- | --- |
+| Técnica local | `TECHNICAL_LOCAL_READY` |
+| Experiência | `NO_GO_HUMAN_EXPERIENCE` — 0/3 |
+| Operação | `NO_GO_OPERATIONAL_READINESS` |
+| Cartografia | `NO_GO_REAL_BASEMAP_REVIEW` |
+| Remoto | `NO_GO_REMOTE_REVIEW` |
+
+`COMUN_SIDEWALK_REAL_MAP_LOCAL_OK` foi comprovado em production-like local. Esta atualização não abre piloto público nem autoriza operação remota.
