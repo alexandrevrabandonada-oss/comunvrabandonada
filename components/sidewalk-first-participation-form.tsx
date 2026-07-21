@@ -185,6 +185,7 @@ export function SidewalkFirstParticipationForm({
         type="file"
         accept="image/*"
         capture="environment"
+        aria-label="Fotografia da calçada"
         className="sr-only"
         onChange={(event) => void selectPhoto(event.target.files?.[0])}
       />
@@ -330,7 +331,7 @@ export function SidewalkFirstParticipationForm({
           </section>
           <button
             disabled={!ready || pending}
-            className="sticky bottom-20 min-h-14 w-full border-2 border-comun-black bg-comun-yellow px-5 text-lg font-black uppercase shadow-[3px_3px_0_#0b0b0a] disabled:opacity-50"
+            className="sticky bottom-20 min-h-14 w-full border-2 border-comun-black bg-comun-yellow px-5 text-lg font-black uppercase text-comun-black shadow-[3px_3px_0_#0b0b0a] disabled:opacity-50"
           >
             {pending ? "Enviando…" : "Enviar para revisão"}
           </button>
