@@ -38,7 +38,7 @@ export default async function Page() {
               <div className="flex flex-wrap items-center gap-3">
                 <ComunStatus>{x.priority}</ComunStatus>
                 {!x.read_at?<><span className="size-2 rounded-full bg-comun-yellow" aria-hidden="true"/><span className="sr-only">Não lida</span></>:null}<span className="text-xs font-bold text-comun-paper/60">
-                  {x.notification_type.replaceAll("_", " ")}
+                  {eventOrigin(x.notification_type)} · {x.notification_type.replaceAll("_", " ")}
                 </span>
               </div>
               <h2 className="mt-3 text-xl font-black">{x.title}</h2>
@@ -77,3 +77,5 @@ export default async function Page() {
     </ComunShell>
   );
 }
+
+function eventOrigin(type:string){if(type.includes("sidewalk")||type.includes("calcada"))return "Mapa das Calçadas";if(type.includes("transport"))return "Transporte";if(type.includes("archive")||type.includes("identification"))return "Acervo";return "COMUN"}

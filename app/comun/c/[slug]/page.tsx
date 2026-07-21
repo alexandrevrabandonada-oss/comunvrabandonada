@@ -9,6 +9,7 @@ import { getCommunityExperience } from "@/lib/community-experience";
 import { listPublishedPautaDossiersByCommunity } from "@/lib/pauta-dossiers";
 import { listPublicReports } from "@/lib/reports";
 import { listCommunityWorkGroups } from "@/lib/community-work-groups";
+import { MiniAppContextCard } from "@/components/miniapp-context-card";
 
 export const dynamic = "force-dynamic";
 export default async function CommunityPage({
@@ -91,6 +92,7 @@ export default async function CommunityPage({
       <nav aria-label="Seções da comunidade" className="mx-auto flex max-w-7xl gap-6 overflow-x-auto border-y-2 border-comun-paper/25 px-4 text-sm font-black">
         <a href="#visao-geral" className="border-b-4 border-comun-yellow py-4">Visão geral</a><a href="#pautas" className="py-4">Pautas</a><a href="#agenda" className="py-4">Agenda</a><a href="#resultados" className="py-4">Resultados</a><a href="#memoria" className="py-4">Memória</a>
       </nav>
+      {(slug==="cidade"||issues.some((issue:any)=>issue.slug === "calcadas-em-circulacao")) ? <Section><Header title="Ferramentas que estamos usando" intro="A ferramenta pertence à pauta e mantém o caminho de volta à comunidade."><MiniAppContextCard compact /></Header></Section> : null}
       {principal ? (
         <Section><span id="pautas" className="scroll-mt-28"/>
           <Header

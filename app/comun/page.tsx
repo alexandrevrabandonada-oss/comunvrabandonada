@@ -9,6 +9,7 @@ import {
 import { HubCard } from "@/components/hub-card";
 import { ResumeJourneySection } from "@/components/community-journey-memory";
 import { MyCommunitySummary } from "@/components/my-community-summary";
+import { ContinueMiniappCard, MiniAppContextCard } from "@/components/miniapp-context-card";
 import { getCentralExperience } from "@/lib/central-experience";
 import {
   listPublicActions,
@@ -174,6 +175,10 @@ export default async function ComunHomePage() {
           </section>
         </div>
       </ComunSection>
+
+      <HomeSection title="Ferramentas em atividade" intro="Ferramentas ligadas a pautas e territórios, com ação e acompanhamento claros.">
+        <MiniAppContextCard />
+      </HomeSection>
 
       <HomeSection
         title="Encontre seu caminho"
@@ -432,6 +437,8 @@ function AuthenticatedHome({
         </ComunSection>
       ) : null}
       <ResumeJourneySection />
+      <ComunSection className="py-4"><h2 className="mb-3 text-xl font-black text-comun-yellow">Continue de onde parou</h2><ContinueMiniappCard /></ComunSection>
+      <ComunSection className="py-4"><h2 className="mb-3 text-xl font-black text-comun-yellow">Ferramentas em atividade</h2><MiniAppContextCard compact /></ComunSection>
       <MyCommunitySummary compact memberships={center.communities} />
       {center.memberships.length ? (
         <PriorityRail

@@ -99,7 +99,7 @@ export default async function MinhaAreaPage() {
         </Area>
       ) : null}
       {center.tasks.length ? (
-        <Area title="Responsabilidades e tarefas">
+        <Area title="Minhas tarefas">
           <Rows
             rows={center.tasks}
             title={(x: any) => x.title}
@@ -111,7 +111,7 @@ export default async function MinhaAreaPage() {
         </Area>
       ) : null}
       {center.memberships.length ? (
-        <Area title="Pautas">
+        <Area title="Acompanhando">
           <div className="grid gap-4 md:grid-cols-2">
             {center.memberships.map((x: any) => (
               <article className="border-2 border-comun-yellow p-5" key={x.id}>
@@ -134,7 +134,7 @@ export default async function MinhaAreaPage() {
         </Area>
       ) : null}
       {contributions.length ? (
-        <Area title="Contribuições">
+        <Area title="Minhas contribuições">
           <Rows
             rows={contributions}
             title={(x: any) =>
@@ -162,7 +162,7 @@ export default async function MinhaAreaPage() {
         </Area>
       ) : null}
       {center.results.length ? (
-        <Area title="Resultados e memórias">
+        <Area title="Resultados relacionados">
           <Rows
             rows={center.results}
             title={(x: any) => x.title}

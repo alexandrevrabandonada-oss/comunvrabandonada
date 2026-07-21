@@ -4,16 +4,17 @@ import { createClient } from "@supabase/supabase-js";
 
 test("miniapp abre no mapa e possui lista e filtros", async ({ page }) => {
   await page.goto("/comun/calcadas");
-  await expect(page.locator("h1")).toContainText("Mapa das Calçadas");
+  await expect(page.locator("h1")).toContainText("Calçadas de Volta Redonda");
   await expect(page.getByRole("button", { name: "Mapa", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Lista", exact: true }).click();
   await expect(page.getByRole("group", { name: "Visualização" })).toBeVisible();
-  await expect(page.getByRole("group", { name: "Filtros" })).toBeVisible();
+  await page.getByRole("button", { name: /Mais filtros/ }).click();
+  await expect(page.getByRole("group", { name: "Filtros completos" })).toBeVisible();
 });
 
 test("pauta encaminha para ferramenta canônica", async ({ page }) => {
   await page.goto("/comun/pautas/calcadas-em-circulacao");
-  await expect(page.locator('a[href="/comun/calcadas"]')).toBeVisible();
+  await expect(page.getByRole("link", { name: "Abrir ferramenta" })).toBeVisible();
 });
 
 test("consulta pública não inclui marcadores privados", async ({ page }) => {
@@ -48,9 +49,13 @@ test("território interno não aparece nem abre pela rota direta", async ({ page
   }
 });
 
-test("@visual captura mapa e lista", async ({ page }, testInfo) => {
+test("rotas locais preservam contexto e deep links", async ({page})=>{
+  for(const path of ["/comun/calcadas/prioridades","/comun/calcadas/mobilizacao","/comun/calcadas/resultados"]){await page.goto(path);await expect(page.getByRole("heading",{name:"Calçadas de Volta Redonda"})).toBeVisible();await expect(page.getByRole("link",{name:"Acompanhar em Minha área"})).toBeVisible()}
+});
+
+test("@visual captura experiência integrada", async ({ page }, testInfo) => {
   await page.goto("/comun/calcadas");
-  await page.screenshot({ path: `reports/screenshots/sprint-37-calcadas-mapa-${testInfo.project.name}.png`, fullPage: true });
+  await page.screenshot({ path: `reports/screenshots/sprint-38-calcadas-mapa-${testInfo.project.name}.png`, fullPage: true });
   await page.getByRole("button", { name: "Lista", exact: true }).click();
-  await page.screenshot({ path: `reports/screenshots/sprint-37-calcadas-lista-${testInfo.project.name}.png`, fullPage: true });
+  await page.screenshot({ path: `reports/screenshots/sprint-38-calcadas-lista-${testInfo.project.name}.png`, fullPage: true });
 });
