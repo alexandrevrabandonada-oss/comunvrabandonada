@@ -1,5 +1,17 @@
-# Gate humano das calçadas — Sprint 37
+# Resultado do gate humano — Mapa das Calçadas
 
-Status: **0/3 participantes externos — NÃO APROVADO**.
+Estado: **NÃO EXECUTADO — 0/3 participantes**.
 
-O roteiro permanece em `reports/comun-revisao-humana-calcadas-sprint-37.template.md`. Não houve teste assistido nem aprovação automática. O gate precisa registrar tarefa, conclusão, tempo, dúvida espontânea, abandono, expectativa incorreta e simplificação para cada participante.
+Este arquivo deve ser preenchido manualmente somente após três participantes concluírem a sessão observada. Não inferir aprovação a partir de silêncio ou testes automatizados.
+
+| Participante | Sessão realizada | Observações consolidadas |
+| --- | --- | --- |
+| 1 | não |  |
+| 2 | não |  |
+| 3 | não |  |
+
+## Decisão — não emitir antes de 3/3
+
+**NÃO PREENCHIDA**
+
+Decisões permitidas: `HUMAN_GATE_READY`, `HUMAN_GATE_READY_WITH_MINOR_FIXES` ou `NO_GO_HUMAN_EXPERIENCE`.

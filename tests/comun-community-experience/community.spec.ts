@@ -74,10 +74,12 @@ test("comunidade pública está na allowlist offline e privada não", async ({
   expect(sw).toContain('request.method !== "GET"');
 });
 test("vínculo persiste em home área inbox preferências e saída", async ({page},testInfo) => {
-  const accounts = JSON.parse(
+  const accounts: Array<{ project: string; email: string; password: string }> = JSON.parse(
     await readFile(".local/comun-community/auth.json", "utf8"),
   );
-  const { email, password } = accounts.find(({ project }) => project === testInfo.project.name);
+  const account = accounts.find(({ project }) => project === testInfo.project.name);
+  if (!account) throw new Error(`Conta fixture ausente para ${testInfo.project.name}`);
+  const { email, password } = account;
   await page.goto("/comun/c/cidade");
   await page.getByRole("link", { name: "Acompanhar ou colaborar" }).click();
   await page.getByLabel("E-mail").fill(email);
