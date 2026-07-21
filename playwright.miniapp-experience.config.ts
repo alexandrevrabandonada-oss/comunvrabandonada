@@ -10,6 +10,8 @@ const viewports = [
 
 export default defineConfig({
   testDir: "./tests/miniapp-experience",
+  globalSetup: "./tests/comun-integral-experience/global-setup.mjs",
+  globalTeardown: "./tests/comun-integral-experience/global-teardown.mjs",
   timeout: 60_000,
   fullyParallel: false,
   workers: 1,

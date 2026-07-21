@@ -32,7 +32,7 @@ async function noCritical(page: any) {
 async function auditSurface(page: any, name: string, project: string) {
   await noCritical(page);
   await page.screenshot({
-    path: `reports/screenshots/sprint-37-2-${name}-${project}.png`,
+    path: `test-results/evidence/sprint-37-2-${name}-${project}.png`,
     fullPage: true,
   });
   if (process.env.COMUN_PERFORMANCE_CAPTURE === "1") {
@@ -53,7 +53,9 @@ async function auditSurface(page: any, name: string, project: string) {
       payloadBytes,
       samples: samples.length,
       averageMs: Number(
-        (samples.reduce((sum, value) => sum + value, 0) / samples.length).toFixed(2),
+        (
+          samples.reduce((sum, value) => sum + value, 0) / samples.length
+        ).toFixed(2),
       ),
       p95Ms: Number(samples[Math.floor(samples.length * 0.95)].toFixed(2)),
     });
@@ -84,20 +86,22 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
 }, testInfo) => {
   const runId = `s37-${testInfo.project.name}-${Date.now().toString(36)}`,
     email = `${runId}@comun.test`,
-    location = `Centro, trecho sintético ${runId}`,
     resultTitle = `Resultado parcial ${runId}`,
     memoryTitle = `Memória do ciclo ${runId}`;
   await page.goto("/comun/calcadas");
   await expect(
-    page.getByRole("heading", { name: "Mapa das Calçadas" }),
+    page.getByRole("heading", { name: "Mapa comunitário" }),
   ).toBeVisible();
   await auditSurface(page, "mapa-clusters", testInfo.project.name);
   await page.getByRole("button", { name: "Lista", exact: true }).click();
   await auditSurface(page, "lista-filtros", testInfo.project.name);
   await page.getByRole("button", { name: "Mapa", exact: true }).click();
-  await page.getByRole("link", { name: "Enviar foto e marcar local" }).click();
-  await expect(page).toHaveURL(/\/comun\/entrar\?returnTo=/);
-  await page.getByRole("link", { name: /Criar conta/i }).click();
+  await page.getByRole("link", { name: "Registrar calçada" }).click();
+  await expect(page).toHaveURL(/\/comun\/mapa\/contribuir\?origem=calcadas/);
+  const contributionPath = new URL(page.url()).pathname + new URL(page.url()).search;
+  await page.goto(
+    `/comun/criar-conta?returnTo=${encodeURIComponent(contributionPath)}`,
+  );
   await page.getByLabel("Nome de exibição").fill(`Pessoa ${runId}`);
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Senha", { exact: true }).fill(password);
@@ -114,24 +118,20 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     'input[name="photo"]',
     ".local/comun-integral/calcada-fixture.jpg",
   );
-  await page.getByRole("button", { name: "Continuar" }).click();
   await page
-    .getByRole("button", { name: "Mapa local para marcar o ponto" })
+    .getByRole("button", { name: "Mapa para confirmar ou ajustar o ponto" })
     .click({ position: { x: 180, y: 120 } });
-  await page.getByLabel("Bairro ou referência pública").fill(location);
-  await page.getByRole("button", { name: "Continuar" }).click();
   await page.getByText("Ruim", { exact: true }).click();
-  await page.getByLabel("Problema principal").selectOption("irregular");
+  await page.getByRole("button", { name: "Irregular", exact: true }).click();
   await page
     .getByLabel("Descrição opcional")
     .fill(`Trecho sintético ${runId} com piso irregular.`);
-  await page.getByRole("button", { name: "Continuar" }).click();
   await auditSurface(page, "contribuicao-revisao", testInfo.project.name);
   await page.screenshot({
-    path: `reports/screenshots/sprint-37-integral-revisao-${testInfo.project.name}.png`,
+    path: `test-results/evidence/sprint-37-integral-revisao-${testInfo.project.name}.png`,
     fullPage: true,
   });
-  await page.getByRole("button", { name: /Enviar contribuição/ }).click();
+  await page.getByRole("button", { name: "Enviar para revisão" }).click();
   await page.waitForURL(/\/comun\/mapa\/contribuir\/confirmacao\?/);
   await expect(
     page.getByRole("heading", { name: /Recebemos seu registro/ }),
@@ -159,7 +159,9 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   expect(record.public_geometry_geojson).toBeNull();
   expect(record.visibility).toBe("internal");
   await login(page, adminEmail, "/comun/admin/calcadas", true);
-  const card = page.locator("article").filter({ hasText: location });
+  const card = page
+    .locator("article")
+    .filter({ hasText: `Trecho sintético ${runId}` });
   await expect(card).toBeVisible();
   await auditSurface(page, "moderacao-registro", testInfo.project.name);
   await card
@@ -169,7 +171,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   const { data: published } = await service
     .from("comun_sidewalk_records")
     .select(
-      "slug,private_geometry_geojson,public_geometry_geojson,visibility,status",
+      "slug,name,public_summary,private_geometry_geojson,public_geometry_geojson,visibility,status",
     )
     .eq("id", record.id)
     .single();
@@ -179,9 +181,11 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   expect(published.private_geometry_geojson).toBeTruthy();
   await page.goto("/comun/calcadas");
   await page.getByRole("button", { name: "Lista", exact: true }).click();
-  await expect(page.getByText(location)).toBeVisible();
+  await expect(
+    page.locator(`a[href="/comun/calcadas/registros/${published.slug}"]`),
+  ).toBeVisible();
   await page.goto(`/comun/calcadas/registros/${published.slug}`);
-  await expect(page.getByText(location)).toBeVisible();
+  await expect(page.getByText(published.name, { exact: true })).toBeVisible();
   await auditSurface(page, "ficha-observacao", testInfo.project.name);
   await login(page, email, `/comun/calcadas/registros/${published.slug}`);
   await page
@@ -285,7 +289,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
       /private_geometry|object_key|member_user_id|service_role|originals\//i,
     );
   await page.screenshot({
-    path: `reports/screenshots/sprint-37-integral-pacote-${testInfo.project.name}.png`,
+    path: `test-results/evidence/sprint-37-integral-pacote-${testInfo.project.name}.png`,
     fullPage: true,
   });
   await page.goto("/comun/admin/calcadas/prioridade");

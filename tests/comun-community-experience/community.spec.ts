@@ -25,7 +25,9 @@ test("comunidade mostra propósito ação e pauta sem duplicação", async ({
   await expect(
     page.getByRole("heading", { name: "Por que existimos" }),
   ).toBeVisible();
-  await expect(page.getByText(/Registrar um trecho fictício de calçada/)).toBeVisible();
+  await expect(
+    page.getByText(/Registrar um trecho fictício de calçada/),
+  ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Pauta prioritária" }),
   ).toBeVisible();
@@ -73,12 +75,16 @@ test("comunidade pública está na allowlist offline e privada não", async ({
   expect(sw).toContain('"/comun/minha-participacao"');
   expect(sw).toContain('request.method !== "GET"');
 });
-test("vínculo persiste em home área inbox preferências e saída", async ({page},testInfo) => {
-  const accounts: Array<{ project: string; email: string; password: string }> = JSON.parse(
-    await readFile(".local/comun-community/auth.json", "utf8"),
+test("vínculo persiste em home área inbox preferências e saída", async ({
+  page,
+}, testInfo) => {
+  const accounts: Array<{ project: string; email: string; password: string }> =
+    JSON.parse(await readFile(".local/comun-community/auth.json", "utf8"));
+  const account = accounts.find(
+    ({ project }) => project === testInfo.project.name,
   );
-  const account = accounts.find(({ project }) => project === testInfo.project.name);
-  if (!account) throw new Error(`Conta fixture ausente para ${testInfo.project.name}`);
+  if (!account)
+    throw new Error(`Conta fixture ausente para ${testInfo.project.name}`);
   const { email, password } = account;
   await page.goto("/comun/c/cidade");
   await page.getByRole("link", { name: "Acompanhar ou colaborar" }).click();
@@ -90,16 +96,14 @@ test("vínculo persiste em home área inbox preferências e saída", async ({pag
   await page.getByLabel("Resultado comprovado").check();
   await page.getByRole("button", { name: "Acompanhar", exact: true }).click();
   await expect(page.getByText(/Alteração confirmada/).first()).toBeVisible();
-  await page.goto("/comun");
-  await expect(
-    page.getByRole("heading", { name: "Nas suas comunidades" }),
-  ).toBeVisible();
-  await page.screenshot({path:`reports/screenshots/sprint-36-1-community-home-${testInfo.project.name}.png`,fullPage:true});
-  await page.goto("/comun/minha-participacao");
+  await page.goto("/comun/minha-participacao?secao=acompanhando");
   await expect(
     page.getByRole("heading", { name: "Comunidades acompanhadas" }),
   ).toBeVisible();
-  await page.screenshot({path:`reports/screenshots/sprint-36-1-community-area-${testInfo.project.name}.png`,fullPage:true});
+  await page.screenshot({
+    path: `test-results/evidence/sprint-36-1-community-area-${testInfo.project.name}.png`,
+    fullPage: true,
+  });
   await page.goto("/comun/caixa-de-entrada");
   await expect(
     page.getByText(/Agora você acompanha Cidade Abandonada/),
@@ -108,8 +112,8 @@ test("vínculo persiste em home área inbox preferências e saída", async ({pag
   await expect(page.getByLabel("Participar de rodas")).toBeChecked();
   await page.getByRole("button", { name: "Deixar comunidade" }).click();
   await expect(page).toHaveURL(/status=leave/);
-  await page.goto("/comun");
+  await page.goto("/comun/minha-participacao?secao=acompanhando");
   await expect(
-    page.getByRole("heading", { name: "Nas suas comunidades" }),
+    page.getByRole("heading", { name: "Comunidades acompanhadas" }),
   ).toHaveCount(0);
 });
