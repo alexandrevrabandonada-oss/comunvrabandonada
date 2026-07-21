@@ -13,7 +13,6 @@ const baseEnv = {
   ...process.env,
   ALLOW_LOCAL_TESTS: "true",
   COMUN_TEST_RUN_ID: runId,
-  COMUN_BASE_URL: "http://127.0.0.1:3000",
   NEXT_PUBLIC_SITE_URL: "http://127.0.0.1:3000",
   DO_NOT_TRACK: "1",
   SUPABASE_DISABLE_TELEMETRY: "1",
@@ -34,9 +33,7 @@ const steps = [
   ["comunidades", "npm", ["run", "test:e2e:comun-community-experience"]],
   ["auth", ...local("npm", ["run", "smoke:community-auth:local"])],
   ["experiencia-central", "npm", ["run", "test:e2e:central-experience"]],
-  ["pauta-miniapp", ...local("npm", ["run", "smoke:pauta-miniapp"])],
   ["operacao-editorial", ...local("npm", ["run", "test:e2e:editorial-operation-authenticated"])],
-  ["no-leak-http", ...local("npm", ["run", "smoke:no-leak-http"])],
   ["performance-clustering", "npm", ["run", "perf:comun-sidewalk-real-map"]],
   ["cleanup", ...local("npm", ["run", "test:fixtures:cleanup"])],
   ["assert-clean", ...local("npm", ["run", "test:fixtures:assert-clean"])],
@@ -74,7 +71,8 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
   if (Date.now() >= deadline) throw new Error("next start não ficou pronto");
-  run("production-like", "node", ["scripts/comun-local-env.mjs", "run", "npx", "playwright", "test", "tests/comun-integral-experience/visitor-flow.spec.ts", "--project=1366x768", "-c", "playwright.comun-integral-experience.config.ts"], { ...baseEnv, PLAYWRIGHT_SKIP_WEBSERVER: "1" });
+  run("production-like", "node", ["scripts/comun-local-env.mjs", "run", "npx", "playwright", "test", "tests/comun-integral-experience/visitor-flow.spec.ts", "--project=1366x768", "-c", "playwright.comun-integral-experience.config.ts"], { ...baseEnv, COMUN_BASE_URL: "http://127.0.0.1:3000", PLAYWRIGHT_SKIP_WEBSERVER: "1" });
+  run("production-pauta-miniapp", ...local("npm", ["run", "smoke:pauta-miniapp"]), { ...baseEnv, COMUN_BASE_URL: "http://127.0.0.1:3000" });
   run("production-no-leak", ...local("npm", ["run", "smoke:no-leak-http"]));
   run("final-cleanup", ...local("npm", ["run", "test:fixtures:cleanup"]));
   run("final-assert-clean", ...local("npm", ["run", "test:fixtures:assert-clean"]));

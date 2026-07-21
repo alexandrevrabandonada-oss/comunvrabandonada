@@ -74,9 +74,10 @@ test("comunidade pública está na allowlist offline e privada não", async ({
   expect(sw).toContain('request.method !== "GET"');
 });
 test("vínculo persiste em home área inbox preferências e saída", async ({page},testInfo) => {
-  const { email, password } = JSON.parse(
+  const accounts = JSON.parse(
     await readFile(".local/comun-community/auth.json", "utf8"),
   );
+  const { email, password } = accounts.find(({ project }) => project === testInfo.project.name);
   await page.goto("/comun/c/cidade");
   await page.getByRole("link", { name: "Acompanhar ou colaborar" }).click();
   await page.getByLabel("E-mail").fill(email);
