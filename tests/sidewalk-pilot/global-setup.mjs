@@ -6,6 +6,8 @@ import { createClient } from "@supabase/supabase-js";
 import { assertLocalEnvironment } from "../../scripts/local-environment.mjs";
 
 export default async function globalSetup() {
+  process.env.ALLOW_LOCAL_TESTS = "true";
+  process.env.COMUN_BASE_URL ??= "http://127.0.0.1:3000";
   assertLocalEnvironment();
 
   const slugFile = path.join(process.cwd(), ".comun-sidewalk-pilot-slug");
