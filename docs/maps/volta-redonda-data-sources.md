@@ -10,3 +10,7 @@ Download local realizado em 2026-07-21T16:35:34.197Z por `npm run maps:sources:d
 URLs integrais, consulta Overpass, hashes da resposta e caminhos locais ficam em `.map-build/volta-redonda/sources/download-manifest.json`. Dados de Prefeitura/IPPU não foram incluídos. A composição não é mapa oficial da Prefeitura.
 
 O artefato é reproduzido com Tippecanoe 2.79.0, commit upstream `68ab8dcc229f95b8b25877697d5e8d66783af503`, dentro da imagem local `comun/tippecanoe:2.79.0`.
+
+## Política do artefato PMTiles
+
+Para o primeiro piloto, `public/maps/volta-redonda/volta-redonda.pmtiles` permanece versionado. O arquivo é substituível e deve conservar SHA-256 e atribuições OSM/IBGE no manifesto. O limite de revisão no Git é 25 MiB (26.214.400 bytes); acima dele, a publicação deve migrar para armazenamento por objeto. Fontes brutas, caches e diretórios de construção continuam ignorados.

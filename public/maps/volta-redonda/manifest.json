@@ -9,13 +9,17 @@
   ],
   "inputs": {
     "osm": {
-      "origin": "C:\\Projetos\\comun-gate-humano-local\\.map-build\\volta-redonda\\sources\\openstreetmap-volta-redonda.geojson",
+      "name": "OpenStreetMap — recorte viário de Volta Redonda",
+      "url": "https://overpass.kumi.systems/api/interpreter",
+      "file": ".map-build/volta-redonda/sources/openstreetmap-volta-redonda.geojson",
       "sha256": "031a9f2a5cad258c6d0d8d62a8ebf908ad5039ab35727cd19f2b075d0a4bb342",
       "license": "ODbL 1.0",
       "attribution": "© OpenStreetMap contributors"
     },
     "ibge": {
-      "origin": "C:\\Projetos\\comun-gate-humano-local\\.map-build\\volta-redonda\\sources\\ibge-volta-redonda-2024.geojson",
+      "name": "IBGE — malha municipal 2024, município 3306305",
+      "url": "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2024/UFs/RJ/RJ_Municipios_2024.zip",
+      "file": ".map-build/volta-redonda/sources/ibge-volta-redonda-2024.geojson",
       "sha256": "559c4b48ff519636b71426ff3d552afaadfe2b5a1c1aac6e5f68f277aaa887e4",
       "license": "Dados públicos IBGE; consultar metadados do produto",
       "attribution": "IBGE"
@@ -32,6 +36,7 @@
     "sizeBytes": 10147678,
     "sha256": "d0512669d6c01cbffbc513837e30ac926ef124727feeaa12b91d9be04cd635b9",
     "pmtilesVersion": 3,
-    "versionControl": "artefato ignorado; reproduzível pelo manifesto e toolchain fixa"
+    "versionControl": "versionado excepcionalmente para o primeiro piloto; artefato substituível",
+    "reviewLimitBytes": 26214400
   }
 }

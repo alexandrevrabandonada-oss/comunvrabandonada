@@ -15,7 +15,7 @@
 - Proveniência, hashes dos insumos, transformação e atribuições permanecem documentados no manifesto e nos relatórios cartográficos.
 - A composição OSM + IBGE não é mapa oficial da Prefeitura de Volta Redonda.
 - Os GeoJSON, ZIP, shapefiles e caches de construção não integram o Git.
-- O PMTiles não deve ser incorporado automaticamente à `main`; antes do piloto poderá ser substituído por Blob ou objeto remoto equivalente.
+- Para o primeiro piloto, o PMTiles permanece versionado como artefato substituível. Seu limite de revisão no Git é 25 MiB; acima disso, deve ser publicado em armazenamento por objeto. Hash e atribuições OSM/IBGE são obrigatórios.
 
 ## Limites operacionais
 

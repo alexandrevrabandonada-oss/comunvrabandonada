@@ -92,13 +92,17 @@ const manifest = {
   bounds: [-44.22, -22.6, -43.98, -22.43],
   inputs: {
     osm: {
-      origin: sources.osm,
+      name: "OpenStreetMap — recorte viário de Volta Redonda",
+      url: "https://overpass.kumi.systems/api/interpreter",
+      file: ".map-build/volta-redonda/sources/openstreetmap-volta-redonda.geojson",
       sha256: osm.sha256,
       license: "ODbL 1.0",
       attribution: "© OpenStreetMap contributors",
     },
     ibge: {
-      origin: sources.ibge,
+      name: "IBGE — malha municipal 2024, município 3306305",
+      url: "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2024/UFs/RJ/RJ_Municipios_2024.zip",
+      file: ".map-build/volta-redonda/sources/ibge-volta-redonda-2024.geojson",
       sha256: ibge.sha256,
       license: "Dados públicos IBGE; consultar metadados do produto",
       attribution: "IBGE",
@@ -116,7 +120,8 @@ const manifest = {
     sha256: createHash("sha256").update(built).digest("hex"),
     pmtilesVersion: built[7],
     versionControl:
-      "artefato ignorado; reproduzível pelo manifesto e toolchain fixa",
+      "versionado excepcionalmente para o primeiro piloto; artefato substituível",
+    reviewLimitBytes: 26_214_400,
   },
 };
 await writeFile(
