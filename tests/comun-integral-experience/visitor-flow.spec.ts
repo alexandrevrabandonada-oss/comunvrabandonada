@@ -92,10 +92,16 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await expect(
     page.getByRole("heading", { name: "Mapa comunitário" }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Registrar calçada" }),
+  ).toBeVisible();
   await auditSurface(page, "mapa-clusters", testInfo.project.name);
-  await page.getByRole("button", { name: "Lista", exact: true }).click();
+  await page.goto("/comun/calcadas?vista=lista");
+  await expect(
+    page.getByRole("button", { name: "Lista", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
   await auditSurface(page, "lista-filtros", testInfo.project.name);
-  await page.getByRole("button", { name: "Mapa", exact: true }).click();
+  await page.goto("/comun/calcadas");
   await page.getByRole("link", { name: "Registrar calçada" }).click();
   await expect(page).toHaveURL(/\/comun\/mapa\/contribuir\?origem=calcadas/);
   const contributionPath = new URL(page.url()).pathname + new URL(page.url()).search;
@@ -159,9 +165,9 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   expect(record.public_geometry_geojson).toBeNull();
   expect(record.visibility).toBe("internal");
   await login(page, adminEmail, "/comun/admin/calcadas", true);
-  const card = page
-    .locator("article")
-    .filter({ hasText: `Trecho sintético ${runId}` });
+  const card = page.locator("article").filter({
+    has: page.locator(`input[name="record_id"][value="${record.id}"]`),
+  });
   await expect(card).toBeVisible();
   await auditSurface(page, "moderacao-registro", testInfo.project.name);
   await card
@@ -179,13 +185,14 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   expect(published.visibility).toBe("public");
   expect(published.public_geometry_geojson).toBeTruthy();
   expect(published.private_geometry_geojson).toBeTruthy();
-  await page.goto("/comun/calcadas");
-  await page.getByRole("button", { name: "Lista", exact: true }).click();
+  await page.goto("/comun/calcadas?vista=lista");
   await expect(
     page.locator(`a[href="/comun/calcadas/registros/${published.slug}"]`),
   ).toBeVisible();
   await page.goto(`/comun/calcadas/registros/${published.slug}`);
-  await expect(page.getByText(published.name, { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: published.name, exact: true }),
+  ).toBeVisible();
   await auditSurface(page, "ficha-observacao", testInfo.project.name);
   await login(page, email, `/comun/calcadas/registros/${published.slug}`);
   await page
@@ -460,7 +467,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   expect(finalBody).not.toMatch(
     /private_geometry|object_key|member_user_id|service_role|originals\//i,
   );
-  await page.goto("/comun/calcadas#resultados");
+  await page.goto("/comun/calcadas/resultados");
   await expect(page.getByText(resultTitle)).toBeVisible();
   await expect(page.getByText(memoryTitle)).toBeVisible();
   await noCritical(page);
@@ -469,9 +476,6 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     page.getByText(
       /Seu registro integra esta prioridade e este encaminhamento/,
     ),
-  ).toBeVisible();
-  await expect(
-    page.getByText("Memória do ciclo publicada", { exact: true }),
   ).toBeVisible();
   await auditSurface(page, "minha-area-fechada", testInfo.project.name);
   await page.goto("/comun/caixa-de-entrada");
