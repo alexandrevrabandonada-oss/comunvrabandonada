@@ -30,7 +30,7 @@ Postflight aprovado, hash final idêntico `227c39c855a626ebbe96428701848aded067a
 
 ## HISTÓRICO — SUPERADO PELO PACOTE FORWARD-ONLY
 
-Data: 21 de julho de 2026  
+Data: 21 de julho de 2026
 Método: comparação de existência e fingerprints de colunas, constraints, índices, triggers, RLS, policies e grants dos três baselines.
 
 ## Classificações

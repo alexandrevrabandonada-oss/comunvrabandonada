@@ -30,8 +30,8 @@ Dois ensaios independentes produziram hash bruto idêntico `227c39c855a626ebbe96
 
 ## HISTÓRICO — SUPERADO PELO PACOTE FORWARD-ONLY
 
-Data: 21 de julho de 2026  
-Project ref remoto: `nvmdszymrtacfehdynpg`  
+Data: 21 de julho de 2026
+Project ref remoto: `nvmdszymrtacfehdynpg`
 Escopo: somente schema e histórico técnico; nenhum dado de usuário, object key ou segredo foi incluído.
 
 ## Método
