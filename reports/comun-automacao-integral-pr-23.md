@@ -12,11 +12,14 @@ A automação foi versionada em modo fail-closed. CI e gates locais podem ser ex
 - PR: `#23`
 - Branch única: `codex/sprint-40-1-mobile-preview`
 - HEAD inicial deste lote: `5cbda0bdecb7751d4500f10f3cf5a4ad41338ea1`
+- HEAD técnico validado antes do fechamento documental: `76da8e4203f31af5294d455a2819a5f9ae67a5dd`
+- CI automático da PR: aprovado em `PR23 CI / fast-gate` ([execução 29924917056](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/29924917056)).
+- Preview Vercel do mesmo SHA: aprovado.
 - Environments encontrados: `Preview` e `Production`.
 - Required reviewers nos environments encontrados: zero.
 - Branch protection da `main`: ausente.
 - Environments PR23 necessários: ausentes.
-- Nenhum workflow remoto foi executado neste lote.
+- O CI automático, restrito a validações locais e de leitura, foi executado. Nenhum workflow de escrita remota foi disparado neste lote.
 - Nenhuma credencial foi lida ou alterada.
 
 ## Gates fechados
@@ -39,7 +42,7 @@ A automação foi versionada em modo fail-closed. CI e gates locais podem ser ex
 - cadastrar secrets por Environment;
 - proteger `main` e exigir checks;
 - obter duas aprovações humanas independentes para o SHA atual;
-- executar CI e full local gate no GitHub;
+- executar o full local gate no GitHub;
 - revisar operacionalmente o executor de backup/restore;
 - comprovar restore completo e RTO;
 - executar regressão restored production-like;
@@ -160,7 +163,7 @@ O workflow existe separado, exige frase explícita e Environment, mas termina fa
 
 ## Declarações
 
-- Nenhum workflow remoto foi disparado.
+- O CI automático sem escrita remota foi disparado e aprovado; nenhum workflow de backup, migração, domínio, merge ou rollback foi disparado.
 - Nenhum Supabase remoto foi acessado ou alterado.
 - Nenhum backup foi criado.
 - Nenhum secret foi lido.
