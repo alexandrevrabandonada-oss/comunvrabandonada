@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 
 export function evaluatePromotion(input) {
+  if (!new Set(["pull_request", "workflow_dispatch"]).has(input.eventName)) return { ok: false, reason: "SOLO_EVENT_NOT_ALLOWED" };
   if (input.eventName === "pull_request" && input.label !== "comun:promover") return { ok: false, reason: "SOLO_LABEL_NOT_ALLOWED" };
   if (!new Set(["admin", "maintain"]).has(input.permission)) return { ok: false, reason: "SOLO_OPERATOR_PERMISSION_DENIED" };
   if (!/^\d+$/.test(String(input.pr)) || !/^[0-9a-f]{40}$/.test(input.expectedSha ?? "")) return { ok: false, reason: "SOLO_PROMOTION_INPUT_INVALID" };
