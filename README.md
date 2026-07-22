@@ -97,3 +97,9 @@ git push -u origin main
 # COMUN — hub central da organização popular
 
 O fluxo principal do produto é relato → pauta → evidência → ação → acompanhamento → resultado → memória. Rotas centrais: `/comun/pautas`, `/comun/acoes`, `/comun/participar`, `/comun/territorios`, `/comun/projetos`, `/comun/resultados` e `/comun/busca`. O Acervo Vivo preserva a memória e permanece integrado sem dominar a home.
+
+## Operação solo unificada
+
+O projeto é mantido por uma pessoa e usa três workflows canônicos: `COMUN CI`, `COMUN Promote` e `COMUN Nightly`. Toda PR recebe o gate FAST; candidatas a promoção recebem também o FULL. Push nunca promove produção. Mudanças remotas exigem uma única decisão explícita do operador pela label `comun:promover`, com SHA imutável, CI verde, SQL forward-only e checkpoint sanitizado.
+
+O runbook vigente está em [`docs/COMUN_SOLO_OPERATIONS.md`](docs/COMUN_SOLO_OPERATIONS.md). Evidências antigas de governança da PR #23 permanecem arquivadas e não representam requisitos atuais.
