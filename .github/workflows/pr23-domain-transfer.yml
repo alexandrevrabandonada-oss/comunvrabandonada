@@ -1,0 +1,47 @@
+name: PR23 Domain Transfer
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha: { description: Exact approved SHA, required: true }
+      confirmation: { description: Type TRANSFER PR23 DOMAIN, required: true }
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+
+jobs:
+  protection:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.sha }}" }
+      - run: node scripts/pr23/verify-environment-protection.mjs --environment=pr23-domain-transfer
+        env: { GITHUB_TOKEN: "${{ github.token }}" }
+  transfer:
+    needs: protection
+    environment: pr23-domain-transfer
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.sha }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20.19.4 }
+      - name: Fail-closed domain transfer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+          VERCEL_LEGACY_PROJECT_ID: ${{ secrets.VERCEL_LEGACY_PROJECT_ID }}
+        run: |
+          test '${{ inputs.confirmation }}' = 'TRANSFER PR23 DOMAIN'
+          node scripts/pr23/check-contract.mjs --mode=domain
+          migration=$(gh run list --workflow pr23-controlled-migration.yml --branch codex/sprint-40-1-mobile-preview --commit '${{ inputs.sha }}' --json conclusion --jq 'map(select(.conclusion=="success"))|length')
+          test "$migration" -gt 0
+          node scripts/pr23/transfer-domain.mjs
+      - name: Smoke domain
+        run: |
+          curl --fail --silent --show-error --max-time 30 https://comunsocial.online/comun >/dev/null
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 30 https://www.comunsocial.online/comun)" = "308"

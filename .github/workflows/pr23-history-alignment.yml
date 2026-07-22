@@ -1,0 +1,22 @@
+name: PR23 History Alignment Disabled
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha: { description: Exact approved SHA, required: true }
+      eligibility_report: { description: Type HISTORY_ALIGNMENT_ELIGIBLE, required: true }
+
+permissions:
+  contents: read
+
+jobs:
+  disabled:
+    environment: pr23-remote-migration
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.sha }}" }
+      - run: |
+          test '${{ inputs.eligibility_report }}' = 'HISTORY_ALIGNMENT_ELIGIBLE'
+          echo 'PR23_HISTORY_ALIGNMENT_DISABLED_BY_DEFAULT'
+          exit 1

@@ -6,7 +6,7 @@ const args = new Set(process.argv.slice(2));
 const dbUrlArg = process.argv.find((arg) => arg.startsWith("--db-url="));
 const containerArg = process.argv.find((arg) => arg.startsWith("--container="));
 const allowRefArg = process.argv.find((arg) => arg.startsWith("--allow-project-ref="));
-const dbUrl = dbUrlArg?.slice("--db-url=".length) ?? "postgresql://postgres:postgres@127.0.0.1:56432/postgres";
+const dbUrl = dbUrlArg?.slice("--db-url=".length) ?? process.env.PR23_DATABASE_URL ?? "postgresql://postgres:postgres@127.0.0.1:56432/postgres";
 const hostname = new URL(dbUrl).hostname;
 const local = hostname === "127.0.0.1" || hostname === "localhost" || hostname === "host.docker.internal";
 
