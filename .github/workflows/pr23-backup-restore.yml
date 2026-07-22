@@ -1,0 +1,173 @@
+name: PR23 Backup Restore Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Exact approved PR SHA
+        required: true
+      confirmation:
+        description: Type BACKUP PR23 APPROVED
+        required: true
+      retention_days:
+        description: Retention in days
+        required: true
+      max_rto_minutes:
+        description: Maximum RTO in minutes
+        required: true
+      window_id:
+        description: Sanitized window identifier
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+
+concurrency:
+  group: pr23-backup-${{ inputs.sha }}
+  cancel-in-progress: false
+
+jobs:
+  protection:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.sha }}" }
+      - run: node scripts/pr23/verify-environment-protection.mjs --environment=pr23-backup-gate
+        env: { GITHUB_TOKEN: "${{ github.token }}" }
+  backup-restore:
+    needs: protection
+    environment: pr23-backup-gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.sha }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20.19.4, cache: npm }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.109.1 }
+      - name: Fail-closed preflight
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          PR23_BACKUP_BUCKET: ${{ secrets.PR23_BACKUP_BUCKET }}
+          PR23_BACKUP_ENDPOINT: ${{ secrets.PR23_BACKUP_ENDPOINT }}
+          PR23_BACKUP_ACCESS_KEY_ID: ${{ secrets.PR23_BACKUP_ACCESS_KEY_ID }}
+          PR23_BACKUP_SECRET_ACCESS_KEY: ${{ secrets.PR23_BACKUP_SECRET_ACCESS_KEY }}
+          PR23_BACKUP_ENCRYPTION_RECIPIENT: ${{ secrets.PR23_BACKUP_ENCRYPTION_RECIPIENT }}
+          PR23_BACKUP_DECRYPTION_KEY: ${{ secrets.PR23_BACKUP_DECRYPTION_KEY }}
+        run: |
+          test '${{ inputs.confirmation }}' = 'BACKUP PR23 APPROVED'
+          test "$(git rev-parse HEAD)" = '${{ inputs.sha }}'
+          node scripts/pr23/verify-independent-reviews.mjs
+          node scripts/pr23/check-contract.mjs --mode=backup
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$(git rev-parse origin/main)"
+          ci=$(gh run list --workflow pr23-ci.yml --branch codex/sprint-40-1-mobile-preview --commit '${{ inputs.sha }}' --json conclusion --jq 'map(select(.conclusion=="success"))|length')
+          full=$(gh run list --workflow pr23-full-local-gate.yml --branch codex/sprint-40-1-mobile-preview --commit '${{ inputs.sha }}' --json conclusion --jq 'map(select(.conclusion=="success"))|length')
+          test "$ci" -gt 0
+          test "$full" -gt 0
+      - run: npm ci --ignore-scripts
+      - name: Create, encrypt and remove cleartext backup
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          PR23_BACKUP_ENCRYPTION_RECIPIENT: ${{ secrets.PR23_BACKUP_ENCRYPTION_RECIPIENT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p /tmp/pr23-clear /tmp/pr23-cipher
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
+          supabase db dump --linked --role-only --file /tmp/pr23-clear/roles.sql
+          supabase db dump --linked --schema public,auth,storage --file /tmp/pr23-clear/schema.sql
+          supabase db dump --linked --schema public,auth,storage --data-only --use-copy --file /tmp/pr23-clear/data.sql
+          tar -C /tmp/pr23-clear -cf /tmp/pr23-clear/backup.tar roles.sql schema.sql data.sql
+          docker run --rm -v /tmp/pr23-clear:/clear:ro -v /tmp/pr23-cipher:/cipher ghcr.io/filosottile/age:v1.2.1 -r "$PR23_BACKUP_ENCRYPTION_RECIPIENT" -o /cipher/backup.tar.age /clear/backup.tar
+          find /tmp/pr23-clear -type f -exec shred -u {} +
+          rmdir /tmp/pr23-clear
+          test -s /tmp/pr23-cipher/backup.tar.age
+          sha256sum /tmp/pr23-cipher/backup.tar.age | cut -d' ' -f1 > /tmp/pr23-cipher/checksum.txt
+      - name: Upload encrypted backup to dedicated private vault
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.PR23_BACKUP_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.PR23_BACKUP_SECRET_ACCESS_KEY }}
+          AWS_ENDPOINT_URL: ${{ secrets.PR23_BACKUP_ENDPOINT }}
+          PR23_BACKUP_BUCKET: ${{ secrets.PR23_BACKUP_BUCKET }}
+          WINDOW_ID: ${{ inputs.window_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          object="pr23/${WINDOW_ID}/${{ inputs.sha }}/backup.tar.age"
+          aws s3 cp /tmp/pr23-cipher/backup.tar.age "s3://${PR23_BACKUP_BUCKET}/${object}" --only-show-errors
+          aws s3api head-object --bucket "$PR23_BACKUP_BUCKET" --key "$object" >/dev/null
+      - name: Restore encrypted backup in isolated local Supabase
+        env:
+          PR23_BACKUP_DECRYPTION_KEY: ${{ secrets.PR23_BACKUP_DECRYPTION_KEY }}
+          MAX_RTO_MINUTES: ${{ inputs.max_rto_minutes }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          start=$(date +%s)
+          umask 077
+          printf '%s' "$PR23_BACKUP_DECRYPTION_KEY" > /tmp/pr23-cipher/identity.txt
+          docker run --rm -v /tmp/pr23-cipher:/cipher ghcr.io/filosottile/age:v1.2.1 -d -i /cipher/identity.txt -o /cipher/restored.tar /cipher/backup.tar.age
+          rm -f /tmp/pr23-cipher/identity.txt
+          mkdir /tmp/pr23-restore
+          tar -C /tmp/pr23-restore -xf /tmp/pr23-cipher/restored.tar
+          shred -u /tmp/pr23-cipher/restored.tar
+          supabase start
+          psql postgresql://postgres:postgres@127.0.0.1:55432/postgres -X -v ON_ERROR_STOP=1 -f /tmp/pr23-restore/roles.sql
+          psql postgresql://postgres:postgres@127.0.0.1:55432/postgres -X -v ON_ERROR_STOP=1 -f /tmp/pr23-restore/schema.sql
+          psql postgresql://postgres:postgres@127.0.0.1:55432/postgres -X -v ON_ERROR_STOP=1 -f /tmp/pr23-restore/data.sql
+          find /tmp/pr23-restore -type f -exec shred -u {} +
+          rmdir /tmp/pr23-restore
+          rto=$(( ($(date +%s) - start + 59) / 60 ))
+          test "$rto" -le "$MAX_RTO_MINUTES"
+          echo "RTO_MINUTES=$rto" >> "$GITHUB_ENV"
+      - name: Reconcile and regress restored target
+        shell: bash
+        run: |
+          set -euo pipefail
+          container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          node scripts/run-pr23-reconciliation.mjs --container="$container" --force-reconcile
+          node scripts/run-pr23-reconciliation.mjs --container="$container"
+          supabase db lint --local --schema public --level error --fail-on error
+          npm run audit:rls-matrix
+          npm run typecheck
+          npm run lint
+          npm run test:unit
+          npm run build
+          npm run test:e2e:comun-integral-experience
+          npm run test:e2e:comun-sidewalk-real-map
+          npm run smoke:no-leak-http
+          npm run cleanup:comun-sidewalk-uploads
+          npm run test:fixtures:assert-clean
+      - name: Sanitized gate report
+        if: success()
+        run: |
+          {
+            echo '## COMUN_REMOTE_BACKUP_RESTORE_VERIFIED'
+            echo '## COMUN_PR23_RESTORED_PRODUCTION_LIKE_OK'
+            echo "- SHA: \`${{ inputs.sha }}\`"
+            echo "- encrypted checksum: \`$(cat /tmp/pr23-cipher/checksum.txt)\`"
+            echo "- RTO minutes: \`$RTO_MINUTES\`"
+            echo '- aggregate validation: passed'
+            echo '- cleartext removed: passed'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - if: always()
+        shell: bash
+        run: |
+          find /tmp/pr23-clear /tmp/pr23-restore -type f -exec shred -u {} + 2>/dev/null || true
+          rm -rf /tmp/pr23-clear /tmp/pr23-restore /tmp/pr23-cipher
+          supabase stop --no-backup || true
+      - name: No backup artifact invariant
+        if: always()
+        run: echo 'No backup, dump, object key, or personal data was uploaded as GitHub Artifact.' >> "$GITHUB_STEP_SUMMARY"
