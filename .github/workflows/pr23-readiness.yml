@@ -1,0 +1,43 @@
+name: PR23 Readiness
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha: { description: Exact PR SHA, required: true }
+  workflow_call:
+    inputs:
+      sha: { required: true, type: string }
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+  deployments: read
+
+jobs:
+  readiness:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.sha }}" }
+      - name: Collect sanitized gates
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: ${{ inputs.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          reviews=false
+          node scripts/pr23/verify-independent-reviews.mjs && reviews=true || true
+          ci=$(gh run list --workflow pr23-ci.yml --branch codex/sprint-40-1-mobile-preview --commit "$EXPECTED_SHA" --json conclusion --jq 'map(select(.conclusion=="success"))|length>0')
+          full=$(gh run list --workflow pr23-full-local-gate.yml --branch codex/sprint-40-1-mobile-preview --commit "$EXPECTED_SHA" --json conclusion --jq 'map(select(.conclusion=="success"))|length>0')
+          cat > /tmp/readiness.json <<EOF
+          {"sha":"$EXPECTED_SHA","ci":$ci,"fullLocal":$full,"reviews":$reviews,"environmentProtection":false,"vercelPreview":false,"mainUnchanged":true,"backupRestore":false,"productionLike":false,"migrationEnvironmentApproval":false,"migration":false,"remotePreview":false,"domain":false,"mergeEnvironmentApproval":false}
+          EOF
+          node scripts/pr23/compute-readiness.mjs --fixture=/tmp/readiness.json --output-dir=/tmp/pr23-generated
+      - name: Sanitized readiness artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr23-readiness-${{ inputs.sha }}
+          path: /tmp/pr23-generated/
+          retention-days: 7
