@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { evaluatePromotion } from "./authorize-promotion.mjs";
 import { buildTransactionalPackage, validateForwardOnlySql } from "./sql-contract.mjs";
+import { readFileSync } from "node:fs";
 
 const sha = "a".repeat(40);
 const valid = { eventName: "pull_request", label: "comun:promover", permission: "admin", pr: "23", expectedSha: sha, actualSha: sha, mergeable: "MERGEABLE" };
@@ -30,4 +31,20 @@ test("reconciliation package has one fail-fast transaction", () => {
   assert.match(sql, /^\\set ON_ERROR_STOP on\nBEGIN;/);
   assert.match(sql, /postflight_assertions\.sql/);
   assert.match(sql, /COMMIT;\n$/);
+});
+
+test("promotion checkpoint is short-lived, sanitized and not a full backup", () => {
+  const workflow = readFileSync(".github/workflows/comun-promote.yml", "utf8");
+  const checkpoint = readFileSync("scripts/solo/create-checkpoint.mjs", "utf8");
+  assert.match(workflow, /retention-days: 7/);
+  assert.match(checkpoint, /--schema-only/);
+  assert.match(checkpoint, /aggregate-counts\.csv/);
+  assert.doesNotMatch(workflow, /PR23_BACKUP_|required reviewers|environment:/i);
+  assert.doesNotMatch(checkpoint, /select\s+\*/i);
+});
+
+test("rollback is application-only and never runs reverse SQL", () => {
+  const rollback = readFileSync("scripts/solo/rollback-application.mjs", "utf8");
+  assert.match(rollback, /vercel@46\.2\.0.*rollback/s);
+  assert.doesNotMatch(rollback, /psql|supabase\s+db|DROP\s|DELETE\s|TRUNCATE\s/i);
 });
