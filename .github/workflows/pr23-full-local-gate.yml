@@ -12,6 +12,28 @@ on:
       sha:
         required: true
         type: string
+    outputs:
+      result:
+        description: Sanitized full gate result
+        value: ${{ jobs.full-local.outputs.result }}
+      tested_sha:
+        description: Immutable SHA exercised by the gate
+        value: ${{ jobs.full-local.outputs.tested_sha }}
+      reconciliation_hash:
+        description: Deterministic schema reconciliation hash
+        value: ${{ jobs.full-local.outputs.reconciliation_hash }}
+      unit_tests:
+        description: Sanitized unit-test state
+        value: ${{ jobs.full-local.outputs.unit_tests }}
+      e2e_tests:
+        description: Sanitized E2E state
+        value: ${{ jobs.full-local.outputs.e2e_tests }}
+      cleanup:
+        description: Sanitized cleanup state
+        value: ${{ jobs.full-local.outputs.cleanup }}
+      production_like:
+        description: Sanitized production-like state
+        value: ${{ jobs.full-local.outputs.production_like }}
 
 concurrency:
   group: pr23-full-local-${{ inputs.sha }}
@@ -22,8 +44,17 @@ permissions:
 
 jobs:
   full-local:
+    name: pr23/full-local-gate
     runs-on: ubuntu-24.04
     timeout-minutes: 180
+    outputs:
+      result: ${{ steps.contract.outputs.result }}
+      tested_sha: ${{ steps.contract.outputs.tested_sha }}
+      reconciliation_hash: ${{ steps.contract.outputs.reconciliation_hash }}
+      unit_tests: ${{ steps.contract.outputs.unit_tests }}
+      e2e_tests: ${{ steps.contract.outputs.e2e_tests }}
+      cleanup: ${{ steps.contract.outputs.cleanup }}
+      production_like: ${{ steps.contract.outputs.production_like }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -85,14 +116,25 @@ jobs:
           npm run cleanup:comun-sidewalk-uploads
           npm run test:fixtures:assert-clean
       - name: Sanitized summary
+        id: contract
         if: success()
         run: |
+          hash="$(cat /tmp/pr23-hash-2)"
           {
             echo '## PR23_FULL_LOCAL_GATE_OK'
             echo "- SHA: \`${{ inputs.sha }}\`"
-            echo "- schema hash: \`$(cat /tmp/pr23-hash-2)\`"
+            echo "- schema hash: \`$hash\`"
             echo '- cleanup: dry-run'
             echo '- private artifacts: none'
           } >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo 'result=PR23_FULL_LOCAL_GATE_OK'
+            echo 'tested_sha=${{ inputs.sha }}'
+            echo "reconciliation_hash=$hash"
+            echo 'unit_tests=passed'
+            echo 'e2e_tests=passed'
+            echo 'cleanup=passed'
+            echo 'production_like=passed'
+          } >> "$GITHUB_OUTPUT"
       - if: always()
         run: supabase stop --no-backup || true

@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: pr23-ci-${{ github.head_ref || github.ref_name }}
+  group: pr23-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -16,6 +16,7 @@ permissions:
 
 jobs:
   fast-gate:
+    name: pr23/fast-gate
     if: github.event_name != 'pull_request' || github.event.pull_request.number == 23
     runs-on: ubuntu-24.04
     timeout-minutes: 35
@@ -53,3 +54,68 @@ jobs:
           test -f supabase/migrations/20260722003105_pr23_schema_security_hardening.sql
       - if: always()
         run: supabase stop --no-backup || true
+
+  full-local-gate:
+    needs: fast-gate
+    if: github.event_name != 'pull_request' || github.event.pull_request.number == 23
+    # The called workflow owns the explicit 180-minute timeout.
+    uses: ./.github/workflows/pr23-full-local-gate.yml
+    with:
+      sha: ${{ github.event.pull_request.head.sha || github.sha }}
+    permissions:
+      contents: read
+
+  readiness:
+    needs: full-local-gate
+    if: github.event_name != 'pull_request' || github.event.pull_request.number == 23
+    # The called workflow owns the explicit 10-minute timeout.
+    uses: ./.github/workflows/pr23-readiness.yml
+    with:
+      sha: ${{ github.event.pull_request.head.sha || github.sha }}
+      full_result: ${{ needs.full-local-gate.outputs.result }}
+      full_tested_sha: ${{ needs.full-local-gate.outputs.tested_sha }}
+      reconciliation_hash: ${{ needs.full-local-gate.outputs.reconciliation_hash }}
+      unit_tests: ${{ needs.full-local-gate.outputs.unit_tests }}
+      e2e_tests: ${{ needs.full-local-gate.outputs.e2e_tests }}
+      cleanup: ${{ needs.full-local-gate.outputs.cleanup }}
+      production_like: ${{ needs.full-local-gate.outputs.production_like }}
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: read
+      deployments: read
+
+  publish-local-statuses:
+    name: Publish SHA-bound local gate statuses
+    needs: [fast-gate, full-local-gate, readiness]
+    if: always() && needs.fast-gate.result == 'success' && needs.full-local-gate.result == 'success' && needs.readiness.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0 }
+      - name: Publish sanitized status contexts for this SHA
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          READINESS_DECISION: ${{ needs.readiness.outputs.decision }}
+        shell: bash
+        run: |
+          test "$READINESS_DECISION" = NO_GO_REMOTE_INTEGRATION
+          node scripts/pr23/publish-status.mjs --sha="$SHA" --context=pr23/fast-gate --state=success --description='Fast gate passed for this SHA'
+          node scripts/pr23/publish-status.mjs --sha="$SHA" --context=pr23/full-local-gate --state=success --description='Full local gate passed for this SHA'
+          node scripts/pr23/publish-status.mjs --sha="$SHA" --context=pr23/readiness --state=success --description='Readiness evaluated: NO_GO_REMOTE_INTEGRATION'
+          review_state=pending
+          review_description='Two independent approvals are pending for this SHA'
+          if node scripts/pr23/verify-independent-reviews.mjs; then
+            review_state=success
+            review_description='Two independent approvals verified for this SHA'
+          fi
+          node scripts/pr23/publish-status.mjs --sha="$SHA" --context=pr23/two-person-review --state="$review_state" --description="$review_description"
