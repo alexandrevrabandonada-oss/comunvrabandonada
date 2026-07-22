@@ -1,0 +1,47 @@
+name: PR23 Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Rollback mode
+        required: true
+        type: choice
+        options: [app_only, domain_only, database_restore, full]
+      confirmation: { description: Type ROLLBACK PR23, required: true }
+      backup_id: { description: Sanitized approved backup identifier, required: true }
+      deployment_id: { description: Approved deployment identifier, required: true }
+
+permissions:
+  contents: read
+
+jobs:
+  protection:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: node scripts/pr23/verify-environment-protection.mjs --environment=pr23-remote-migration
+        env: { GITHUB_TOKEN: "${{ github.token }}" }
+  rollback:
+    needs: protection
+    environment: pr23-remote-migration
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preconditions only — rollback deliberately disabled
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          PR23_BACKUP_BUCKET: ${{ secrets.PR23_BACKUP_BUCKET }}
+          PR23_BACKUP_ENDPOINT: ${{ secrets.PR23_BACKUP_ENDPOINT }}
+          PR23_BACKUP_ACCESS_KEY_ID: ${{ secrets.PR23_BACKUP_ACCESS_KEY_ID }}
+          PR23_BACKUP_SECRET_ACCESS_KEY: ${{ secrets.PR23_BACKUP_SECRET_ACCESS_KEY }}
+          PR23_BACKUP_DECRYPTION_KEY: ${{ secrets.PR23_BACKUP_DECRYPTION_KEY }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+          VERCEL_LEGACY_PROJECT_ID: ${{ secrets.VERCEL_LEGACY_PROJECT_ID }}
+        run: |
+          test '${{ inputs.confirmation }}' = 'ROLLBACK PR23'
+          node scripts/pr23/check-contract.mjs --mode=rollback
+          echo 'PR23_ROLLBACK_EXECUTOR_DISABLED'
+          exit 1
