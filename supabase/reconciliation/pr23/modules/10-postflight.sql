@@ -1,0 +1,2 @@
+-- Saída canônica: o runner executa ../postflight_assertions.sql neste ponto.
+-- Arquivo marcador mantido para revisão sequencial 01..10.

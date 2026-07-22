@@ -1,0 +1,16 @@
+-- Índice revisável do domínio; DDL preservado em 02-foundations.sql para não quebrar dependências.
+-- Objetos auditados (14):
+-- - public.comun_archive_agents
+-- - public.comun_archive_items
+-- - public.comun_archive_processing_jobs
+-- - public.comun_community_audit_log
+-- - public.comun_community_memberships
+-- - public.comun_community_role_assignments
+-- - public.comun_community_work_group_members
+-- - public.comun_community_work_group_tasks
+-- - public.comun_community_work_groups
+-- - public.comun_pauta_modules
+-- - public.comun_pauta_spaces
+-- - public.comun_pauta_tasks
+-- - public.comun_radio_contributions
+-- - public.set_updated_at

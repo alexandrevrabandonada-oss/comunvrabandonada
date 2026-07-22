@@ -1,0 +1,2 @@
+-- Entrada canônica: o runner executa ../preflight_assertions.sql neste ponto.
+-- Arquivo marcador mantido para revisão sequencial 01..10.

@@ -1,0 +1,11 @@
+-- Índice revisável do domínio; DDL preservado em 02-foundations.sql para não quebrar dependências.
+-- Objetos auditados (9):
+-- - public.comun_admin_profiles
+-- - public.comun_archive_identification_editorial_log
+-- - public.comun_archive_music_editorial_versions
+-- - public.comun_archive_oral_history_editorial_versions
+-- - public.comun_editorial_operation_assignments
+-- - public.comun_editorial_operation_events
+-- - public.comun_editorial_operation_items
+-- - public.comun_hub_territories
+-- - public.list_comun_operational_items

@@ -1,0 +1,35 @@
+-- Índice revisável do domínio; DDL preservado em 02-foundations.sql para não quebrar dependências.
+-- Objetos auditados (33):
+-- - public.comun_archive_artwork_relations
+-- - public.comun_archive_assets
+-- - public.comun_archive_items
+-- - public.comun_circle_syntheses
+-- - public.comun_communities
+-- - public.comun_construction_circles
+-- - public.comun_hub_results
+-- - public.comun_hub_territories
+-- - public.comun_member_inbox
+-- - public.comun_metric_snapshots
+-- - public.comun_mobilization_actions
+-- - public.comun_monitored_entities
+-- - public.comun_observations
+-- - public.comun_observatory_methodologies
+-- - public.comun_official_protocols
+-- - public.comun_pauta_spaces
+-- - public.comun_radio_episodes
+-- - public.comun_radio_programs
+-- - public.comun_reports
+-- - public.comun_sidewalk_cycle_memories
+-- - public.comun_sidewalk_forwarding_events
+-- - public.comun_sidewalk_forwardings
+-- - public.comun_sidewalk_municipal_configs
+-- - public.comun_sidewalk_observations
+-- - public.comun_sidewalk_priorities
+-- - public.comun_sidewalk_record_corrections
+-- - public.comun_sidewalk_record_links
+-- - public.comun_sidewalk_record_photos
+-- - public.comun_sidewalk_record_withdrawals
+-- - public.comun_sidewalk_records
+-- - public.comun_sidewalk_uploads
+-- - public.comun_territorial_contributions
+-- - public.set_updated_at

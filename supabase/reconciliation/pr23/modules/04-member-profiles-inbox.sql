@@ -1,0 +1,6 @@
+-- Índice revisável do domínio; DDL preservado em 02-foundations.sql para não quebrar dependências.
+-- Objetos auditados (4):
+-- - public.comun_hub_territories
+-- - public.comun_member_inbox
+-- - public.comun_member_profiles
+-- - public.comun_pauta_spaces

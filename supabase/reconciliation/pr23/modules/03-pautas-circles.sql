@@ -1,0 +1,30 @@
+-- Índice revisável do domínio; DDL preservado em 02-foundations.sql para não quebrar dependências.
+-- Objetos auditados (28):
+-- - public.comun_admin_profiles
+-- - public.comun_circle_contributions
+-- - public.comun_circle_syntheses
+-- - public.comun_circle_synthesis_links
+-- - public.comun_construction_circle_rounds
+-- - public.comun_construction_circles
+-- - public.comun_editorial_operation_assignments
+-- - public.comun_editorial_operation_items
+-- - public.comun_guard_circle_contribution_round
+-- - public.comun_guard_circle_synthesis_round
+-- - public.comun_hub_pauta_projects
+-- - public.comun_hub_pauta_reports
+-- - public.comun_hub_territories
+-- - public.comun_metric_snapshots
+-- - public.comun_pauta_contributions
+-- - public.comun_pauta_dossier_evidence
+-- - public.comun_pauta_dossier_publication_snapshots
+-- - public.comun_pauta_dossier_reviews
+-- - public.comun_pauta_dossiers
+-- - public.comun_pauta_evidence_items
+-- - public.comun_pauta_memberships
+-- - public.comun_pauta_modules
+-- - public.comun_pauta_spaces
+-- - public.comun_pauta_synthesis_versions
+-- - public.comun_pauta_tasks
+-- - public.comun_pauta_timeline_events
+-- - public.comun_pauta_updates
+-- - public.list_comun_operational_items

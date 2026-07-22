@@ -1,0 +1,35 @@
+DROP FUNCTION public.handle_new_user();
+DROP TRIGGER comments_updated_at ON public.comments;
+DROP TRIGGER communities_updated_at ON public.communities;
+DROP TRIGGER knowledge_pages_updated_at ON public.knowledge_pages;
+DROP TRIGGER posts_updated_at ON public.posts;
+DROP TRIGGER profiles_updated_at ON public.profiles;
+DROP TRIGGER project_links_updated_at ON public.project_links;
+DROP FUNCTION public.handle_updated_at();
+DROP POLICY "Autor pode editar seu comentário" ON
+DROP POLICY "Comentários de posts visíveis são visíveis"
+DROP POLICY "Usuário autenticado pode comentar" ON public.comments;
+DROP TABLE public.comments;
+DROP POLICY "Comunidades públicas são visíveis a todos"
+DROP POLICY "Fundador pode editar a comunidade" ON
+DROP POLICY "Membros autenticados pode ver comunidades privadas
+DROP POLICY "Usuário autenticado pode criar comunidade" ON
+DROP POLICY "Páginas publicadas são visíveis publicamente" ON
+DROP POLICY "Qualquer autenticado pode editar página publicada"
+DROP POLICY "Usuário autenticado pode criar página" ON
+DROP TABLE public.knowledge_pages;
+DROP POLICY "Autor pode editar seu post" ON
+DROP POLICY "Posts de comunidades públicas são visíveis"
+DROP POLICY "Usuário autenticado pode criar post" ON
+DROP TABLE public.posts;
+DROP POLICY "Perfis são visíveis publicamente" ON public.profiles;
+DROP POLICY "Usuário pode editar seu próprio perfil"
+DROP POLICY "Links aprovados são visíveis publicamente" ON
+DROP POLICY "Usuário autenticado pode submeter link" ON
+DROP TABLE public.project_links;
+DROP TABLE public.communities;
+DROP POLICY "Ações comunitárias são visíveis publicamente" ON
+DROP POLICY "Usuário autenticado pode registrar ação" ON
+DROP POLICY "Usuário pode remover sua própria ação"
+DROP TABLE public.reactions_as_actions;
+DROP TABLE public.profiles;

@@ -1,0 +1,34 @@
+-- Índice revisável do domínio; DDL preservado em 02-foundations.sql para não quebrar dependências.
+-- Objetos auditados (32):
+-- - public.comun_admin_profiles
+-- - public.comun_archive_agents
+-- - public.comun_archive_artist_claims
+-- - public.comun_archive_artist_memberships
+-- - public.comun_archive_artist_profiles
+-- - public.comun_archive_artist_submissions
+-- - public.comun_archive_artwork_credits
+-- - public.comun_archive_artwork_editorial_versions
+-- - public.comun_archive_artwork_relations
+-- - public.comun_archive_artwork_rights
+-- - public.comun_archive_artwork_safety_reviews
+-- - public.comun_archive_artwork_submissions
+-- - public.comun_archive_artworks
+-- - public.comun_archive_assets
+-- - public.comun_archive_items
+-- - public.comun_archive_storage_uploads
+-- - public.comun_hub_territories
+-- - public.comun_mobilization_actions
+-- - public.comun_pauta_spaces
+-- - public.comun_pauta_timeline_events
+-- - public.comun_radio_contributions
+-- - public.comun_radio_credits
+-- - public.comun_radio_editorial_versions
+-- - public.comun_radio_episode_chapters
+-- - public.comun_radio_episodes
+-- - public.comun_radio_music_uses
+-- - public.comun_radio_programs
+-- - public.comun_radio_safety_reviews
+-- - public.comun_radio_schedule_entries
+-- - public.comun_radio_transcript_versions
+-- - public.comun_radio_voice_consents
+-- - public.set_updated_at
