@@ -130,6 +130,10 @@ jobs:
   final-merge:
     needs: preflight
     if: needs.preflight.outputs.operation == 'final-merge'
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
     uses: ./.github/workflows/pr23-final-merge.yml
     with:
       sha: ${{ needs.preflight.outputs.sha }}
