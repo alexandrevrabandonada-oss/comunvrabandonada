@@ -13,8 +13,14 @@ A automação foi versionada em modo fail-closed. CI e gates locais podem ser ex
 - Branch única: `codex/sprint-40-1-mobile-preview`
 - HEAD inicial deste lote: `5cbda0bdecb7751d4500f10f3cf5a4ad41338ea1`
 - HEAD técnico validado antes do fechamento documental: `76da8e4203f31af5294d455a2819a5f9ae67a5dd`
-- CI automático da PR: aprovado em `PR23 CI / fast-gate` ([execução 29924917056](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/29924917056)).
-- Preview Vercel do mesmo SHA: aprovado.
+- HEAD documental e canônico verificado neste fechamento: `74c7e2194279c2541f82d7ac581267b8179c27a4`.
+- Base `main` verificada: `a599d124a84c5542ec3a56052276024b9bd4854a`.
+- PR: aberta, draft e não mesclada.
+- CI automático da PR: aprovado em `PR23 CI / fast-gate` ([execução 29925542862](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/29925542862)).
+- Preview Vercel do mesmo SHA: aprovado ([deployment](https://vercel.com/alexandrevrabandonada-oss-projects/comunvrabandonada/3455hjixXN8zzLXJUsTrWyKpWVui)).
+- Full local gate: não despachado; sem ID. A API do GitHub respondeu `404` porque `pr23-full-local-gate.yml` ainda não existe na branch padrão e, portanto, não está registrado para `workflow_dispatch`.
+- Readiness: não despachado; sem ID, pelo mesmo bloqueio de registro na branch padrão. A avaliação sanitizada permanece `NO_GO_REMOTE_INTEGRATION`.
+- Revisões atuais: zero.
 - Environments encontrados: `Preview` e `Production`.
 - Required reviewers nos environments encontrados: zero.
 - Branch protection da `main`: ausente.
@@ -26,7 +32,7 @@ A automação foi versionada em modo fail-closed. CI e gates locais podem ser ex
 
 - workflows remotos sem trigger `pull_request` ou `push`;
 - CI rápido limitado à PR #23, branch canônica e dispatch;
-- full local gate reproduzível por dispatch ou `workflow_call`;
+- full local gate definido para `workflow_dispatch` ou `workflow_call`, mas ainda não registrado pelo GitHub por estar somente na branch da PR;
 - verificador de duas revisões independentes;
 - verificador de Environment protegido e branch canônica exclusiva;
 - contrato de nomes de secrets com falha por ausência;
@@ -59,8 +65,8 @@ A automação foi versionada em modo fail-closed. CI e gates locais podem ser ex
 | Workflow | Trigger | Escrita remota | Environment | Estado |
 | --- | --- | --- | --- | --- |
 | `pr23-ci.yml` | PR #23, push canônico, dispatch | Não | nenhum | pronto |
-| `pr23-full-local-gate.yml` | dispatch/call | Não | nenhum | pronto |
-| `pr23-readiness.yml` | dispatch/call | Não | nenhum | pronto |
+| `pr23-full-local-gate.yml` | dispatch/call | Não | nenhum | bloqueado até o workflow existir na branch padrão |
+| `pr23-readiness.yml` | dispatch/call | Não | nenhum | bloqueado até o workflow existir na branch padrão |
 | `pr23-backup-restore.yml` | dispatch | cofre privado; leitura do banco | `pr23-backup-gate` | bloqueado por Environment ausente |
 | `pr23-controlled-migration.yml` | dispatch | banco/cleanup dry-run | `pr23-remote-migration` | bloqueado por Environment ausente |
 | `pr23-history-alignment.yml` | dispatch | proibida neste lote | `pr23-remote-migration` | desabilitado por padrão e fail-closed |
