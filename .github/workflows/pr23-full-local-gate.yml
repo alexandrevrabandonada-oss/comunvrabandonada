@@ -36,7 +36,7 @@ jobs:
           test "${{ github.ref_name }}" = "codex/sprint-40-1-mobile-preview" || test "${{ github.event_name }}" = "workflow_call"
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.19.4
+          node-version: 22.18.0
           cache: npm
       - uses: supabase/setup-cli@v1
         with:
