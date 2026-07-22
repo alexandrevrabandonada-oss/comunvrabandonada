@@ -316,11 +316,15 @@ Executar com contribuição marcada como demonstração e removê-la ao final:
 
 Motivos:
 
-1. falha comprovada na segunda migration por drift de schema/histórico;
-2. sequência 19/19 e regressões não concluídas;
-3. PITR desativado e nenhum backup físico listado;
-4. domínio ainda no projeto Vercel antigo;
-5. Auth anônimo e cleanup remoto ainda sem gate operacional.
+1. autorização nominal do backup está incompleta;
+2. backup completo ainda não foi criado nem restaurado em ambiente isolado;
+3. RTO e contagens agregadas do restore ainda não foram medidos;
+4. regressão integral production-like sobre o restore reconciliado está pendente;
+5. revisões independentes estão em 0/2;
+6. runbook está em `DRAFT_NOT_APPROVED` e o rollback completo ainda não foi comprovado;
+7. aplicação remota, domínio e merge continuam sem autorização.
+
+O primeiro ensaio falho permanece apenas como evidência histórica na seção anterior. Ele foi superado pelo pacote forward-only reproduzível e não é o motivo vigente do NO-GO.
 
 ## Declarações
 

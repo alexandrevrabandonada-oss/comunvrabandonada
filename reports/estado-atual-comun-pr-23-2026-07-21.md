@@ -13,7 +13,7 @@ A implementação local e o pacote de reconciliação estão preparados e public
 - Repositório: `alexandrevrabandonada-oss/comunvrabandonada`
 - PR canônica: [#23](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/23)
 - Branch: `codex/sprint-40-1-mobile-preview`
-- HEAD da branch: `d6df2d1b62aae0b961cd0477a5982442e52e5b26`
+- HEAD da branch antes da documentação deste gate: `e71ad7d7cafb58ecaad89d6be3ca72932ff30221`
 - HEAD da `main`: `a599d124a84c5542ec3a56052276024b9bd4854a`
 - Estado da PR: aberta e `MERGEABLE`
 - Preview Vercel: concluído com sucesso
@@ -162,6 +162,22 @@ O SHA remoto da branch foi confirmado como idêntico ao HEAD local. O checkpoint
 8. Reconciliar os projetos Vercel antes de qualquer movimentação de domínio.
 9. Autorizar separadamente o merge da PR #23.
 10. Executar gate humano real com três participantes; estado atual: **0/3**.
+
+## Gate final pré-janela — 21 de julho de 2026
+
+- Autorização de backup: **PENDING_INCOMPLETE**.
+- Backup completo: **NÃO CRIADO**.
+- Restore isolado: **NÃO EXECUTADO**.
+- RTO: **NÃO MEDIDO**.
+- Contagens agregadas do restore: **NÃO DISPONÍVEIS**.
+- Reconciliação sobre restore completo: **NÃO EXECUTADA**.
+- Regressão integral production-like sobre restore: **NÃO EXECUTADA**.
+- Revisão independente 1: **PENDENTE**.
+- Revisão independente 2: **PENDENTE**.
+- Runbook: **DRAFT_NOT_APPROVED**.
+- Rollback: definido conceitualmente, ainda não comprovado em restore completo.
+
+O processo foi interrompido corretamente antes do backup porque responsável, cofre, criptografia, custódia da chave, retenção, descarte, pessoas autorizadas e janela ainda não têm aprovação nominal. Nenhum desses campos foi inferido ou preenchido automaticamente.
 
 ## Riscos atuais
 
