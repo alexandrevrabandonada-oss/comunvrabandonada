@@ -1,0 +1,36 @@
+name: COMUN Nightly
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: comun-nightly-${{ github.event.schedule || 'manual' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  full-local:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '17 3 * * *'
+    uses: ./.github/workflows/comun-ci.yml
+    with:
+      force_full: true
+
+  archive-worker:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '7,22,37,52 * * * *'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Wake protected archive worker
+        env:
+          ENDPOINT: ${{ secrets.ARCHIVE_PROCESSING_ENDPOINT }}
+          TOKEN: ${{ secrets.ARCHIVE_PROCESSING_CRON_SECRET }}
+        run: |
+          test -n "$ENDPOINT"
+          test -n "$TOKEN"
+          code=$(curl --silent --show-error --output /dev/null --write-out "%{http_code}" --max-time 50 --retry 1 --request POST "$ENDPOINT" --header "Authorization: Bearer $TOKEN" --header "Content-Type: application/json" --data '{"source":"scheduler","maxJobs":3}')
+          test "$code" -ge 200 -a "$code" -lt 300

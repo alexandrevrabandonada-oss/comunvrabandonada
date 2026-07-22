@@ -1,0 +1,114 @@
+name: COMUN CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, "codex/**"]
+  workflow_call:
+    inputs:
+      force_full:
+        description: Execute the FULL gate for a promotion candidate
+        required: false
+        default: false
+        type: boolean
+  workflow_dispatch:
+    inputs:
+      force_full:
+        description: Execute the FULL gate
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: comun-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  fast:
+    name: FAST / COMUN_CI_GREEN
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - run: npm ci --ignore-scripts
+      - run: npm run solo:test
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run test:unit
+      - run: npm run build
+      - name: Local database lint and RLS
+        shell: bash
+        run: |
+          supabase start
+          supabase db reset --local --yes
+          supabase db lint --local --schema public --level error --fail-on error
+          npm run audit:rls-matrix
+          npm run test:fixtures:assert-clean
+      - if: always()
+        run: supabase stop --no-backup || true
+
+  full:
+    name: FULL / COMUN_CI_GREEN
+    needs: fast
+    if: >-
+      inputs.force_full == true ||
+      github.event.pull_request.number == 23 ||
+      startsWith(github.head_ref, 'codex/promote-') ||
+      startsWith(github.ref_name, 'codex/promote-')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - run: npm ci --ignore-scripts
+      - name: Two independent reconciliation trials
+        shell: bash
+        run: |
+          supabase start
+          supabase db reset --local --yes
+          container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          node scripts/run-pr23-reconciliation.mjs --container="$container"
+          docker exec "$container" pg_dump -U postgres -d postgres --schema-only --no-owner --no-privileges | sed '/^--/d;/^$/d' | sha256sum | cut -d' ' -f1 > /tmp/comun-hash-1
+          node scripts/run-pr23-reconciliation.mjs --container="$container"
+          supabase stop --no-backup
+          supabase start
+          supabase db reset --local --yes
+          container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          node scripts/run-pr23-reconciliation.mjs --container="$container"
+          docker exec "$container" pg_dump -U postgres -d postgres --schema-only --no-owner --no-privileges | sed '/^--/d;/^$/d' | sha256sum | cut -d' ' -f1 > /tmp/comun-hash-2
+          diff -u /tmp/comun-hash-1 /tmp/comun-hash-2
+          node scripts/run-pr23-reconciliation.mjs --container="$container"
+      - name: Critical product regressions
+        run: |
+          npm run test:e2e:comun-integral-experience
+          npm run test:e2e:editorial-operation-authenticated
+          npm run test:e2e:territorial-art
+          npm run test:e2e:community-radio
+          npm run test:e2e:comun-sidewalk-real-map
+          npm run test:e2e:comun-miniapp-experience
+          npm run test:e2e:comun-mobile-app-shell
+          npm run test:e2e:comun-pwa-experience
+          npm run smoke:no-leak-http
+          npm run cleanup:comun-sidewalk-uploads
+          npm run test:fixtures:assert-clean
+      - if: success()
+        run: echo 'COMUN_CI_GREEN' >> "$GITHUB_STEP_SUMMARY"
+      - if: always()
+        run: supabase stop --no-backup || true
