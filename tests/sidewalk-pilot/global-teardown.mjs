@@ -11,7 +11,9 @@ export default async function globalTeardown() {
   }
 
   const { pautaId, territoryId, recordId, memoryId, circleId } = JSON.parse(fs.readFileSync(slugFile, "utf8"));
-  const raw = execFileSync("powershell", ["-NoProfile", "-Command", "$env:DO_NOT_TRACK='1'; npx supabase status -o env"], { encoding: "utf8" });
+  const raw = process.platform === "win32"
+    ? execFileSync("powershell", ["-NoProfile", "-Command", "$env:DO_NOT_TRACK='1'; npx supabase status -o env"], { encoding: "utf8" })
+    : execFileSync("npx", ["supabase", "status", "-o", "env"], { encoding: "utf8", env: { ...process.env, DO_NOT_TRACK: "1", SUPABASE_DISABLE_TELEMETRY: "1" } });
   const env = Object.fromEntries(raw.split(/\r?\n/).filter(Boolean).map((line) => {
     const i = line.indexOf("=");
     return [line.slice(0, i), line.slice(i + 1).replace(/^\"|\"$/g, "")];
