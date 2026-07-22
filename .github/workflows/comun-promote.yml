@@ -1,0 +1,148 @@
+name: COMUN Promote
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request to promote
+        required: true
+        default: "23"
+      expected_sha:
+        description: Immutable pull request HEAD
+        required: true
+  pull_request:
+    types: [labeled]
+
+concurrency:
+  group: comun-production-promotion
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  authorize:
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'comun:promover'
+    runs-on: ubuntu-24.04
+    outputs:
+      sha: ${{ steps.gate.outputs.sha }}
+      pr: ${{ steps.gate.outputs.pr }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0 }
+      - id: gate
+        name: Authorize solo operator and immutable PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUEST_ACTOR: ${{ github.actor }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_LABEL: ${{ github.event.label.name }}
+          EVENT_PR: ${{ github.event.pull_request.number }}
+          EVENT_SHA: ${{ github.event.pull_request.head.sha }}
+          INPUT_PR: ${{ inputs.pr_number }}
+          INPUT_SHA: ${{ inputs.expected_sha }}
+        run: node scripts/solo/authorize-promotion.mjs
+
+  ci:
+    needs: authorize
+    uses: ./.github/workflows/comun-ci.yml
+    with:
+      force_full: true
+
+  promote:
+    needs: [authorize, ci]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.authorize.outputs.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.109.1 }
+      - run: npm ci --ignore-scripts
+      - name: Reconfirm immutable and mergeable PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ needs.authorize.outputs.pr }}
+          SHA: ${{ needs.authorize.outputs.sha }}
+        run: |
+          test "$(gh pr view "$PR" --json headRefOid --jq .headRefOid)" = "$SHA"
+          test "$(gh pr view "$PR" --json mergeable --jq .mergeable)" = "MERGEABLE"
+      - name: Validate forward-only SQL before any remote access
+        run: npm run solo:sql:validate
+      - name: Create sanitized pre-promotion checkpoint
+        env:
+          APP_SHA: ${{ needs.authorize.outputs.sha }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+        run: node scripts/solo/create-checkpoint.mjs --output=.solo-checkpoint
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-pre-promotion-checkpoint-${{ needs.authorize.outputs.sha }}
+          path: .solo-checkpoint
+          retention-days: 7
+          if-no-files-found: error
+      - name: Apply transactional forward-only package
+        env:
+          PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: node scripts/solo/apply-forward-only.mjs
+      - name: Remote postflight, DB lint, RLS and cleanup dry-run
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          COMUN_SIDEWALK_CLEANUP_ALLOWED_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
+          supabase db lint --linked --schema public --level error --fail-on error
+          node scripts/cleanup-comun-sidewalk-uploads.mjs --allow-non-local --project-ref="$SUPABASE_PROJECT_REF"
+      - name: Validate immutable Vercel preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ needs.authorize.outputs.pr }}
+          SHA: ${{ needs.authorize.outputs.sha }}
+        run: node scripts/solo/verify-preview.mjs
+      - name: Merge by merge commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ needs.authorize.outputs.pr }}
+          SHA: ${{ needs.authorize.outputs.sha }}
+        run: |
+          if test "$(gh pr view "$PR" --json isDraft --jq .isDraft)" = true; then gh pr ready "$PR"; fi
+          gh api -X PUT "repos/${{ github.repository }}/pulls/$PR/merge" -f sha="$SHA" -f merge_method=merge --jq '.merged == true'
+      - name: Wait for main deployment and production smoke
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+          VERCEL_LEGACY_PROJECT_ID: ${{ secrets.VERCEL_LEGACY_PROJECT_ID }}
+          APP_SHA: ${{ needs.authorize.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/solo/monitor-production.mjs --minutes=15 --domain=comunsocial.online
+      - if: success()
+        run: echo 'SOLO_PRODUCTION_GREEN' >> "$GITHUB_STEP_SUMMARY"
+      - if: failure()
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ needs.authorize.outputs.pr }}
+          SHA: ${{ needs.authorize.outputs.sha }}
+        run: node scripts/solo/rollback-application.mjs
