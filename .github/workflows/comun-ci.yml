@@ -109,9 +109,17 @@ jobs:
           npm run test:e2e:comun-miniapp-experience
           npm run test:e2e:comun-mobile-app-shell
           npm run test:e2e:comun-pwa-experience
-          npm run smoke:no-leak-http
-          npm run cleanup:comun-sidewalk-uploads
-          npm run test:fixtures:assert-clean
+          node scripts/comun-local-env.mjs run npm run start > /tmp/comun-next.log 2>&1 &
+          app_pid=$!
+          trap 'kill "$app_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..120}; do
+            curl --fail --silent http://127.0.0.1:3000/comun > /dev/null && break
+            if [ "$attempt" -eq 120 ]; then cat /tmp/comun-next.log; exit 1; fi
+            sleep 1
+          done
+          node scripts/comun-local-env.mjs run npm run smoke:no-leak-http
+          node scripts/comun-local-env.mjs run npm run cleanup:comun-sidewalk-uploads
+          node scripts/comun-local-env.mjs run npm run test:fixtures:assert-clean
       - if: success()
         run: echo 'COMUN_CI_GREEN' >> "$GITHUB_STEP_SUMMARY"
       - if: always()
