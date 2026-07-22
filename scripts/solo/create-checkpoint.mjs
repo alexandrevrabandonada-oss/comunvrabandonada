@@ -51,7 +51,8 @@ declare
   row_count bigint;
 begin
   for item in
-    select * from (values
+    select wanted.name
+    from (values
       ('comun_pautas'),
       ('comun_archive_items'),
       ('comun_sidewalk_reports'),
