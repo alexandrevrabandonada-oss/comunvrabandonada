@@ -1,0 +1,55 @@
+name: PR23 CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [codex/sprint-40-1-mobile-preview]
+  workflow_dispatch:
+
+concurrency:
+  group: pr23-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  fast-gate:
+    if: github.event_name != 'pull_request' || github.event.pull_request.number == 23
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.4
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - run: npm ci --ignore-scripts
+      - name: Repository and secret audit
+        run: node scripts/pr23/audit-repository.mjs
+      - name: Gate script fixtures
+        run: node --test scripts/pr23/gate-scripts.test.mjs
+      - name: Static checks
+        run: |
+          npm run typecheck
+          npm run lint
+          npm run test:unit
+          npm run build
+      - name: Local Supabase gates
+        run: |
+          supabase start
+          supabase db reset --local --yes
+          supabase db lint --local --schema public --level error --fail-on error
+          npm run audit:rls-matrix
+          npm run test:fixtures:assert-clean
+      - name: Manifest contracts
+        run: |
+          npm run maps:toolchain:check
+          test -f supabase/reconciliation/pr23/modules/10-postflight.sql
+          test -f supabase/migrations/20260722003105_pr23_schema_security_hardening.sql
+      - if: always()
+        run: supabase stop --no-backup || true

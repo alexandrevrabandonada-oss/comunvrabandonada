@@ -19,6 +19,7 @@ public/maps/volta-redonda/*.pmtiles
 supabase/.temp/
 types/supabase.ts
 backups/
+reports/generated/
 .local/
 .vercel
 .env*.local

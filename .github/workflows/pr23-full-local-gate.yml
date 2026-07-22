@@ -1,0 +1,98 @@
+name: PR23 Full Local Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Exact PR head SHA
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      sha:
+        required: true
+        type: string
+
+concurrency:
+  group: pr23-full-local-${{ inputs.sha }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  full-local:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+      - name: Verify immutable SHA and canonical branch
+        env:
+          EXPECTED_SHA: ${{ inputs.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test "${{ github.ref_name }}" = "codex/sprint-40-1-mobile-preview" || test "${{ github.event_name }}" = "workflow_call"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.4
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - run: npm ci --ignore-scripts
+      - name: Start clean target and trial 1
+        shell: bash
+        run: |
+          supabase start
+          supabase db reset --local --yes
+          container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          test -n "$container"
+          node scripts/run-pr23-reconciliation.mjs --container="$container"
+          docker exec "$container" pg_dump -U postgres -d postgres --schema-only --no-owner --no-privileges | sed '/^--/d;/^$/d' | sha256sum | cut -d' ' -f1 > /tmp/pr23-hash-1
+          docker exec "$container" psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 -f /tmp/pr23-postflight_assertions.sql 2>/dev/null || node scripts/run-pr23-reconciliation.mjs --container="$container"
+          node scripts/run-pr23-reconciliation.mjs --container="$container"
+          supabase stop --no-backup
+      - name: Trial 2 and compare
+        shell: bash
+        run: |
+          supabase start
+          supabase db reset --local --yes
+          container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          test -n "$container"
+          node scripts/run-pr23-reconciliation.mjs --container="$container"
+          docker exec "$container" pg_dump -U postgres -d postgres --schema-only --no-owner --no-privileges | sed '/^--/d;/^$/d' | sha256sum | cut -d' ' -f1 > /tmp/pr23-hash-2
+          diff -u /tmp/pr23-hash-1 /tmp/pr23-hash-2
+          node scripts/run-pr23-reconciliation.mjs --container="$container"
+      - name: Full application regression
+        run: |
+          npm run typecheck
+          npm run lint
+          npm run test:unit
+          npm run build
+          supabase db lint --local --schema public --level error --fail-on error
+          npm run audit:rls-matrix
+          npm run test:e2e:comun-integral-experience
+          npm run test:e2e:editorial-operation-authenticated
+          npm run test:e2e:territorial-art
+          npm run test:e2e:community-radio
+          npm run test:e2e:comun-sidewalk-real-map
+          npm run test:e2e:comun-miniapp-experience
+          npm run test:e2e:comun-mobile-app-shell
+          npm run test:e2e:comun-pwa-experience
+          npm run smoke:no-leak-http
+          npm run cleanup:comun-sidewalk-uploads
+          npm run test:fixtures:assert-clean
+      - name: Sanitized summary
+        if: success()
+        run: |
+          {
+            echo '## PR23_FULL_LOCAL_GATE_OK'
+            echo "- SHA: \`${{ inputs.sha }}\`"
+            echo "- schema hash: \`$(cat /tmp/pr23-hash-2)\`"
+            echo '- cleanup: dry-run'
+            echo '- private artifacts: none'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - if: always()
+        run: supabase stop --no-backup || true
