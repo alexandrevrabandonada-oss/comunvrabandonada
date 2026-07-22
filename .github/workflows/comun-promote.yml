@@ -45,7 +45,7 @@ jobs:
           EVENT_SHA: ${{ github.event.pull_request.head.sha }}
           INPUT_PR: ${{ inputs.pr_number }}
           INPUT_SHA: ${{ inputs.expected_sha }}
-        run: node scripts/solo/authorize-promotion.mjs
+        run: node scripts/solo/authorize-promotion.mjs >> "$GITHUB_OUTPUT"
 
   ci:
     needs: authorize
@@ -135,6 +135,13 @@ jobs:
           APP_SHA: ${{ needs.authorize.outputs.sha }}
           GH_TOKEN: ${{ github.token }}
         run: node scripts/solo/monitor-production.mjs --minutes=15 --domain=comunsocial.online
+      - name: Reconcile domain only after production is green
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+          VERCEL_LEGACY_PROJECT_ID: ${{ secrets.VERCEL_LEGACY_PROJECT_ID }}
+        run: node scripts/solo/reconcile-domain.mjs
       - if: success()
         run: echo 'SOLO_PRODUCTION_GREEN' >> "$GITHUB_STEP_SUMMARY"
       - if: failure()

@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { evaluatePromotion } from "./authorize-promotion.mjs";
 import { buildTransactionalPackage, validateForwardOnlySql } from "./sql-contract.mjs";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
 const sha = "a".repeat(40);
 const valid = { eventName: "pull_request", label: "comun:promover", permission: "admin", pr: "23", expectedSha: sha, actualSha: sha, mergeable: "MERGEABLE" };
@@ -47,4 +47,20 @@ test("rollback is application-only and never runs reverse SQL", () => {
   const rollback = readFileSync("scripts/solo/rollback-application.mjs", "utf8");
   assert.match(rollback, /vercel@46\.2\.0.*rollback/s);
   assert.doesNotMatch(rollback, /psql|supabase\s+db|DROP\s|DELETE\s|TRUNCATE\s/i);
+});
+
+test("only three canonical workflows remain active", () => {
+  assert.deepEqual(readdirSync(".github/workflows").sort(), ["comun-ci.yml", "comun-nightly.yml", "comun-promote.yml"]);
+  const archived = readdirSync(".github/workflows-disabled/pr23");
+  assert.ok(archived.includes("pr23-protected-orchestrator.yml"));
+  assert.ok(archived.includes("archive-processing-scheduler.yml"));
+});
+
+test("domain reconciliation is promotion-only and restores legacy aliases on failure", () => {
+  const workflow = readFileSync(".github/workflows/comun-promote.yml", "utf8");
+  const domain = readFileSync("scripts/solo/reconcile-domain.mjs", "utf8");
+  assert.match(workflow, /Wait for main deployment[\s\S]*Reconcile domain only after production is green/);
+  assert.match(domain, /COMUN_DOMAIN_ALREADY_CANONICAL/);
+  assert.match(domain, /SOLO_DOMAIN_PRECONDITION_MISMATCH/);
+  assert.match(domain, /\/v10\/projects\/\$\{legacy\}\/domains/);
 });
