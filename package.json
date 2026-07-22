@@ -15,6 +15,7 @@
     "pr23:audit": "node scripts/pr23/audit-repository.mjs",
     "pr23:reviews": "node scripts/pr23/verify-independent-reviews.mjs",
     "pr23:readiness": "node scripts/pr23/compute-readiness.mjs",
+    "pr23:configure-protections": "node scripts/pr23/configure-github-protections.mjs",
     "local:env:check": "node scripts/comun-local-env.mjs check",
     "auth:readiness:local": "node scripts/comun-local-env.mjs run node scripts/check-comun-auth-readiness.mjs",
     "auth:diag:local": "node scripts/diag-comun-auth-reset.mjs",
