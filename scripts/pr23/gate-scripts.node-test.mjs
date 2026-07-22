@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 import { evaluateReviews } from "./verify-independent-reviews.mjs";
 import { evaluateEnvironment } from "./verify-environment-protection.mjs";
 import { compute } from "./compute-readiness.mjs";
+import { evaluateProtectedRequest } from "./verify-protected-request.mjs";
+import { validateStatus } from "./publish-status.mjs";
+import { buildPlan } from "./configure-github-protections.mjs";
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
@@ -50,4 +53,99 @@ test("missing secrets fail closed without exposing values", () => {
   const result = spawnSync(process.execPath, ["scripts/pr23/check-contract.mjs", "--mode=backup"], { encoding: "utf8", env: {} });
   assert.notEqual(result.status, 0);
   assert.match(`${result.stdout}${result.stderr}`, /PR23_MISSING_SECRETS:SUPABASE_ACCESS_TOKEN/);
+});
+
+test("CI calls full local gate and readiness as reusable workflows", () => {
+  const ci = readFileSync(".github/workflows/pr23-ci.yml", "utf8");
+  assert.match(ci, /uses: \.\/\.github\/workflows\/pr23-full-local-gate\.yml/);
+  assert.match(ci, /uses: \.\/\.github\/workflows\/pr23-readiness\.yml/);
+  assert.match(ci, /needs: fast-gate/);
+  assert.match(ci, /needs: full-local-gate/);
+});
+
+test("local and remote workflows keep dispatch and expose workflow_call", () => {
+  const names = [
+    "pr23-full-local-gate.yml",
+    "pr23-readiness.yml",
+    "pr23-backup-restore.yml",
+    "pr23-controlled-migration.yml",
+    "pr23-domain-transfer.yml",
+    "pr23-final-merge.yml",
+    "pr23-rollback.yml",
+  ];
+  for (const name of names) {
+    const yaml = readFileSync(`.github/workflows/${name}`, "utf8");
+    assert.match(yaml, /workflow_dispatch:/);
+    assert.match(yaml, /workflow_call:/);
+    assert.doesNotMatch(yaml, /secrets:\s*inherit/);
+  }
+});
+
+test("protected orchestrator is label-gated and synchronize only invalidates", () => {
+  const yaml = readFileSync(".github/workflows/pr23-protected-orchestrator.yml", "utf8");
+  assert.match(yaml, /types: \[labeled, synchronize, reopened\]/);
+  assert.match(yaml, /cancel-in-progress: true/);
+  assert.match(yaml, /github\.event\.action == 'labeled'/);
+  assert.match(yaml, /github\.event\.action == 'synchronize'/);
+  assert.doesNotMatch(yaml, /secrets:\s*inherit/);
+  assert.match(yaml, /issues\/23\/labels/);
+  assert.match(yaml, /pr23-request:\$SHA:\$LABEL/);
+});
+
+const protectedBase = {
+  label: "pr23:run-backup",
+  expectedSha: sha,
+  actor: "operator",
+  permission: "write",
+  pull,
+  reviews: [review("one"), review("two")],
+  commits: [{ author: { login: "author" } }],
+  statuses: [
+    { context: "pr23/fast-gate", state: "success" },
+    { context: "pr23/full-local-gate", state: "success" },
+    { context: "pr23/readiness", state: "success" },
+  ],
+};
+
+test("unknown label is ignored and known label without reviews fails", () => {
+  assert.equal(evaluateProtectedRequest({ ...protectedBase, label: "unknown" }).reason, "PR23_LABEL_NOT_ALLOWED");
+  assert.notEqual(evaluateProtectedRequest({ ...protectedBase, reviews: [] }).ok, true);
+});
+
+test("changed SHA and stale status cannot authorize an operation", () => {
+  assert.equal(evaluateProtectedRequest({ ...protectedBase, expectedSha: "b".repeat(40) }).reason, "PR23_SHA_CHANGED");
+  const statuses = [
+    { context: "pr23/fast-gate", state: "pending" },
+    { context: "pr23/fast-gate", state: "success" },
+    ...protectedBase.statuses.slice(1),
+  ];
+  assert.match(evaluateProtectedRequest({ ...protectedBase, statuses }).reason, /PR23_PRIOR_CHECKS_MISSING/);
+});
+
+test("valid protected request requires current successful checks", () => {
+  const result = evaluateProtectedRequest(protectedBase);
+  assert.equal(result.ok, true);
+  assert.equal(result.operation, "backup");
+});
+
+test("status publisher validates SHA, context and state without network", () => {
+  assert.equal(validateStatus({ sha, context: "pr23/readiness", state: "success", description: "NO_GO" }).context, "pr23/readiness");
+  assert.throws(() => validateStatus({ sha: "old", context: "pr23/readiness", state: "success", description: "NO_GO" }), /SHA_INVALID/);
+  assert.throws(() => validateStatus({ sha, context: "unknown", state: "success", description: "NO_GO" }), /CONTEXT_INVALID/);
+});
+
+test("GitHub protection defaults to dry-run and never chooses a reviewer", () => {
+  const plan = buildPlan();
+  assert.equal(plan.mode, "dry-run");
+  assert.equal(plan.reviewer, "REQUIRED_BEFORE_APPLY");
+  assert.equal(plan.environments.every((environment) => environment.requiredReviewers.length === 0), true);
+  const result = spawnSync(process.execPath, ["scripts/pr23/configure-github-protections.mjs"], { encoding: "utf8", env: {} });
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /REQUIRED_BEFORE_APPLY/);
+});
+
+test("GitHub protection apply fails closed without reviewer or token", () => {
+  const result = spawnSync(process.execPath, ["scripts/pr23/configure-github-protections.mjs", "--apply"], { encoding: "utf8", env: {} });
+  assert.notEqual(result.status, 0);
+  assert.match(`${result.stdout}${result.stderr}`, /PR23_REQUIRED_REVIEWER_MISSING/);
 });

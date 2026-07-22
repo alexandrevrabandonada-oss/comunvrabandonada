@@ -18,6 +18,24 @@ on:
       window_id:
         description: Sanitized window identifier
         required: true
+  workflow_call:
+    inputs:
+      sha: { required: true, type: string }
+      confirmation: { required: true, type: string }
+      retention_days: { required: true, type: number }
+      max_rto_minutes: { required: true, type: number }
+      window_id: { required: true, type: string }
+    secrets:
+      SUPABASE_ACCESS_TOKEN: { required: true }
+      SUPABASE_PROJECT_REF: { required: true }
+      SUPABASE_DB_URL: { required: true }
+      SUPABASE_DB_PASSWORD: { required: true }
+      PR23_BACKUP_BUCKET: { required: true }
+      PR23_BACKUP_ENDPOINT: { required: true }
+      PR23_BACKUP_ACCESS_KEY_ID: { required: true }
+      PR23_BACKUP_SECRET_ACCESS_KEY: { required: true }
+      PR23_BACKUP_ENCRYPTION_RECIPIENT: { required: true }
+      PR23_BACKUP_DECRYPTION_KEY: { required: true }
 
 permissions:
   contents: read
@@ -35,8 +53,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { ref: "${{ inputs.sha }}" }
-      - run: node scripts/pr23/verify-environment-protection.mjs --environment=pr23-backup-gate
-        env: { GITHUB_TOKEN: "${{ github.token }}" }
+      - run: |
+          test "$(gh pr view 23 --json headRefOid --jq .headRefOid)" = '${{ inputs.sha }}'
+          node scripts/pr23/verify-environment-protection.mjs --environment=pr23-backup-gate
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+          GH_TOKEN: "${{ github.token }}"
   backup-restore:
     needs: protection
     environment: pr23-backup-gate
@@ -66,6 +88,7 @@ jobs:
         run: |
           test '${{ inputs.confirmation }}' = 'BACKUP PR23 APPROVED'
           test "$(git rev-parse HEAD)" = '${{ inputs.sha }}'
+          test "$(gh pr view 23 --json headRefOid --jq .headRefOid)" = '${{ inputs.sha }}'
           node scripts/pr23/verify-independent-reviews.mjs
           node scripts/pr23/check-contract.mjs --mode=backup
           test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$(git rev-parse origin/main)"

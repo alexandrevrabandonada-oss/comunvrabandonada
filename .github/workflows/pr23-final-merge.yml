@@ -5,6 +5,10 @@ on:
     inputs:
       sha: { description: Exact immutable SHA, required: true }
       confirmation: { description: Type MERGE PR23, required: true }
+  workflow_call:
+    inputs:
+      sha: { required: true, type: string }
+      confirmation: { required: true, type: string }
 
 permissions:
   contents: write
@@ -17,8 +21,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { ref: "${{ inputs.sha }}" }
-      - run: node scripts/pr23/verify-environment-protection.mjs --environment=pr23-final-merge
-        env: { GITHUB_TOKEN: "${{ github.token }}" }
+      - run: |
+          test "$(gh pr view 23 --json headRefOid --jq .headRefOid)" = '${{ inputs.sha }}'
+          node scripts/pr23/verify-environment-protection.mjs --environment=pr23-final-merge
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+          GH_TOKEN: "${{ github.token }}"
   merge:
     needs: protection
     environment: pr23-final-merge

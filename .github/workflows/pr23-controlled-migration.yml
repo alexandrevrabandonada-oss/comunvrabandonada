@@ -5,6 +5,16 @@ on:
     inputs:
       sha: { description: Exact approved SHA, required: true }
       confirmation: { description: Type MIGRATE PR23 FORWARD ONLY, required: true }
+  workflow_call:
+    inputs:
+      sha: { required: true, type: string }
+      confirmation: { required: true, type: string }
+    secrets:
+      SUPABASE_ACCESS_TOKEN: { required: true }
+      SUPABASE_PROJECT_REF: { required: true }
+      SUPABASE_DB_URL: { required: true }
+      SUPABASE_DB_PASSWORD: { required: true }
+      SUPABASE_SERVICE_ROLE_KEY: { required: true }
 
 permissions:
   contents: read
@@ -21,8 +31,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { ref: "${{ inputs.sha }}" }
-      - run: node scripts/pr23/verify-environment-protection.mjs --environment=pr23-remote-migration
-        env: { GITHUB_TOKEN: "${{ github.token }}" }
+      - run: |
+          test "$(gh pr view 23 --json headRefOid --jq .headRefOid)" = '${{ inputs.sha }}'
+          node scripts/pr23/verify-environment-protection.mjs --environment=pr23-remote-migration
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+          GH_TOKEN: "${{ github.token }}"
   migrate:
     needs: protection
     environment: pr23-remote-migration
@@ -48,6 +62,7 @@ jobs:
         run: |
           test '${{ inputs.confirmation }}' = 'MIGRATE PR23 FORWARD ONLY'
           test "$(git rev-parse HEAD)" = '${{ inputs.sha }}'
+          test "$(gh pr view 23 --json headRefOid --jq .headRefOid)" = '${{ inputs.sha }}'
           node scripts/pr23/verify-independent-reviews.mjs
           node scripts/pr23/check-contract.mjs --mode=migration
           backup=$(gh run list --workflow pr23-backup-restore.yml --branch codex/sprint-40-1-mobile-preview --commit '${{ inputs.sha }}' --json conclusion --jq 'map(select(.conclusion=="success"))|length')

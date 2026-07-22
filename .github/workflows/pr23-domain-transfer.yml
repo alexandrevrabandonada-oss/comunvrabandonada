@@ -5,6 +5,15 @@ on:
     inputs:
       sha: { description: Exact approved SHA, required: true }
       confirmation: { description: Type TRANSFER PR23 DOMAIN, required: true }
+  workflow_call:
+    inputs:
+      sha: { required: true, type: string }
+      confirmation: { required: true, type: string }
+    secrets:
+      VERCEL_TOKEN: { required: true }
+      VERCEL_TEAM_ID: { required: true }
+      VERCEL_CANONICAL_PROJECT_ID: { required: true }
+      VERCEL_LEGACY_PROJECT_ID: { required: true }
 
 permissions:
   contents: read
@@ -17,8 +26,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { ref: "${{ inputs.sha }}" }
-      - run: node scripts/pr23/verify-environment-protection.mjs --environment=pr23-domain-transfer
-        env: { GITHUB_TOKEN: "${{ github.token }}" }
+      - run: |
+          test "$(gh pr view 23 --json headRefOid --jq .headRefOid)" = '${{ inputs.sha }}'
+          node scripts/pr23/verify-environment-protection.mjs --environment=pr23-domain-transfer
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+          GH_TOKEN: "${{ github.token }}"
   transfer:
     needs: protection
     environment: pr23-domain-transfer
@@ -37,6 +50,8 @@ jobs:
           VERCEL_LEGACY_PROJECT_ID: ${{ secrets.VERCEL_LEGACY_PROJECT_ID }}
         run: |
           test '${{ inputs.confirmation }}' = 'TRANSFER PR23 DOMAIN'
+          test "$(git rev-parse HEAD)" = '${{ inputs.sha }}'
+          test "$(gh pr view 23 --json headRefOid --jq .headRefOid)" = '${{ inputs.sha }}'
           node scripts/pr23/check-contract.mjs --mode=domain
           migration=$(gh run list --workflow pr23-controlled-migration.yml --branch codex/sprint-40-1-mobile-preview --commit '${{ inputs.sha }}' --json conclusion --jq 'map(select(.conclusion=="success"))|length')
           test "$migration" -gt 0
