@@ -36,6 +36,7 @@ jobs:
           EOF
           node scripts/pr23/compute-readiness.mjs --fixture=/tmp/readiness.json --output-dir=/tmp/pr23-generated
       - name: Sanitized readiness artifact
+        # PR23_SANITIZED_ARTIFACT_ONLY: generated JSON/Markdown contain gate booleans and SHA only.
         uses: actions/upload-artifact@v4
         with:
           name: pr23-readiness-${{ inputs.sha }}

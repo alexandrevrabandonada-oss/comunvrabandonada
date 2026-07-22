@@ -32,7 +32,7 @@ jobs:
       - name: Repository and secret audit
         run: node scripts/pr23/audit-repository.mjs
       - name: Gate script fixtures
-        run: node --test scripts/pr23/gate-scripts.test.mjs
+        run: node --test scripts/pr23/gate-scripts.node-test.mjs
       - name: Static checks
         run: |
           npm run typecheck
