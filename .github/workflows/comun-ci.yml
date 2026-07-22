@@ -85,14 +85,14 @@ jobs:
           supabase db reset --local --yes
           container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
           node scripts/run-pr23-reconciliation.mjs --container="$container"
-          docker exec "$container" pg_dump -U postgres -d postgres --schema-only --no-owner --no-privileges | sed '/^--/d;/^$/d' | sha256sum | cut -d' ' -f1 > /tmp/comun-hash-1
+          node scripts/solo/schema-fingerprint.mjs --container="$container" > /tmp/comun-hash-1
           node scripts/run-pr23-reconciliation.mjs --container="$container"
           supabase stop --no-backup
           supabase start
           supabase db reset --local --yes
           container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
           node scripts/run-pr23-reconciliation.mjs --container="$container"
-          docker exec "$container" pg_dump -U postgres -d postgres --schema-only --no-owner --no-privileges | sed '/^--/d;/^$/d' | sha256sum | cut -d' ' -f1 > /tmp/comun-hash-2
+          node scripts/solo/schema-fingerprint.mjs --container="$container" > /tmp/comun-hash-2
           diff -u /tmp/comun-hash-1 /tmp/comun-hash-2
           node scripts/run-pr23-reconciliation.mjs --container="$container"
       - name: Critical product regressions

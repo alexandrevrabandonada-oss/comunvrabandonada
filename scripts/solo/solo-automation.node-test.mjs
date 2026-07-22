@@ -64,3 +64,14 @@ test("domain reconciliation is promotion-only and restores legacy aliases on fai
   assert.match(domain, /SOLO_DOMAIN_PRECONDITION_MISMATCH/);
   assert.match(domain, /\/v10\/projects\/\$\{legacy\}\/domains/);
 });
+
+test("FULL compares deterministic PostgreSQL catalog fingerprints", () => {
+  const workflow = readFileSync(".github/workflows/comun-ci.yml", "utf8");
+  const fingerprint = readFileSync("scripts/solo/schema-fingerprint.mjs", "utf8");
+  assert.equal((workflow.match(/schema-fingerprint\.mjs/g) ?? []).length, 2);
+  assert.match(workflow, /diff -u \/tmp\/comun-hash-1 \/tmp\/comun-hash-2/);
+  assert.match(fingerprint, /information_schema\.columns/);
+  assert.match(fingerprint, /pg_constraint/);
+  assert.match(fingerprint, /pg_policies/);
+  assert.match(fingerprint, /pg_get_functiondef/);
+});
