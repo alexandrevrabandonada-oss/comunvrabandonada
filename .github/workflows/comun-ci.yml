@@ -78,6 +78,8 @@ jobs:
         with:
           version: 2.109.1
       - run: npm ci --ignore-scripts
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
       - name: Two independent reconciliation trials
         shell: bash
         run: |
