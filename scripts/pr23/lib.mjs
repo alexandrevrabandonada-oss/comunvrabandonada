@@ -21,18 +21,22 @@ export function requiredEnv(names) {
   if (missing.length) throw new Error(`PR23_MISSING_SECRETS:${missing.join(",")}`);
 }
 
-export async function github(pathname, token = process.env.GITHUB_TOKEN) {
+export async function github(pathname, token = process.env.GITHUB_TOKEN, init = {}) {
   if (!token) throw new Error("PR23_GITHUB_TOKEN_MISSING");
   const response = await fetch(`https://api.github.com${pathname}`, {
+    ...init,
     headers: {
       accept: "application/vnd.github+json",
       authorization: `Bearer ${token}`,
       "x-github-api-version": "2022-11-28",
       "user-agent": "comun-pr23-gate",
+      ...init.headers,
     },
   });
   if (!response.ok) throw new Error(`PR23_GITHUB_API_${response.status}`);
-  return response.json();
+  if (response.status === 204) return null;
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function writeGenerated(name, json, markdown) {

@@ -1,0 +1,210 @@
+name: PR23 Protected Orchestrator
+
+on:
+  pull_request:
+    branches: [main]
+    types: [labeled, synchronize, reopened]
+
+concurrency:
+  group: pr23-protected-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  statuses: write
+  actions: read
+
+jobs:
+  invalidate-old-operational-gates:
+    name: Invalidate operational gates for the new SHA
+    if: >-
+      github.event.pull_request.number == 23 &&
+      github.event.pull_request.head.ref == 'codex/sprint-40-1-mobile-preview' &&
+      (github.event.action == 'synchronize' || github.event.action == 'reopened')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.event.pull_request.head.sha }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0 }
+      - name: Bind pending operational gates to the new SHA
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          for context in \
+            pr23/two-person-review \
+            pr23/backup-restore \
+            pr23/restored-production-like \
+            pr23/controlled-migration \
+            pr23/remote-preview \
+            pr23/domain-transfer \
+            pr23/final-merge-readiness
+          do
+            node scripts/pr23/publish-status.mjs --sha="$SHA" --context="$context" --state=pending --description='Pending protected gate for this SHA'
+          done
+
+  preflight:
+    name: Validate protected label request
+    if: >-
+      github.event.action == 'labeled' &&
+      github.event.pull_request.number == 23 &&
+      github.event.pull_request.head.ref == 'codex/sprint-40-1-mobile-preview' &&
+      contains(fromJSON('["pr23:run-backup","pr23:run-migration","pr23:run-domain-transfer","pr23:run-final-merge","pr23:run-rollback"]'), github.event.label.name)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      operation: ${{ steps.verify.outputs.operation }}
+      sha: ${{ steps.verify.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.event.pull_request.head.sha }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0 }
+      - id: verify
+        name: Verify requester, reviews, SHA and prior checks
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          LABEL: ${{ github.event.label.name }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          result=$(node scripts/pr23/verify-protected-request.mjs --sha="$SHA" --label="$LABEL" --actor="$ACTOR")
+          operation=$(printf '%s' "$result" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(JSON.parse(s).operation))")
+          echo "operation=$operation" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          node scripts/pr23/publish-status.mjs --sha="$SHA" --context=pr23/two-person-review --state=success --description='Two independent approvals verified for this SHA'
+
+  backup:
+    needs: preflight
+    if: needs.preflight.outputs.operation == 'backup'
+    uses: ./.github/workflows/pr23-backup-restore.yml
+    with:
+      sha: ${{ needs.preflight.outputs.sha }}
+      confirmation: BACKUP PR23 APPROVED
+      retention_days: 7
+      max_rto_minutes: 120
+      window_id: label-${{ github.run_id }}
+    secrets:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PR23_BACKUP_BUCKET: ${{ secrets.PR23_BACKUP_BUCKET }}
+      PR23_BACKUP_ENDPOINT: ${{ secrets.PR23_BACKUP_ENDPOINT }}
+      PR23_BACKUP_ACCESS_KEY_ID: ${{ secrets.PR23_BACKUP_ACCESS_KEY_ID }}
+      PR23_BACKUP_SECRET_ACCESS_KEY: ${{ secrets.PR23_BACKUP_SECRET_ACCESS_KEY }}
+      PR23_BACKUP_ENCRYPTION_RECIPIENT: ${{ secrets.PR23_BACKUP_ENCRYPTION_RECIPIENT }}
+      PR23_BACKUP_DECRYPTION_KEY: ${{ secrets.PR23_BACKUP_DECRYPTION_KEY }}
+
+  migration:
+    needs: preflight
+    if: needs.preflight.outputs.operation == 'migration'
+    uses: ./.github/workflows/pr23-controlled-migration.yml
+    with:
+      sha: ${{ needs.preflight.outputs.sha }}
+      confirmation: MIGRATE PR23 FORWARD ONLY
+    secrets:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+  domain-transfer:
+    needs: preflight
+    if: needs.preflight.outputs.operation == 'domain-transfer'
+    uses: ./.github/workflows/pr23-domain-transfer.yml
+    with:
+      sha: ${{ needs.preflight.outputs.sha }}
+      confirmation: TRANSFER PR23 DOMAIN
+    secrets:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+      VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+      VERCEL_LEGACY_PROJECT_ID: ${{ secrets.VERCEL_LEGACY_PROJECT_ID }}
+
+  final-merge:
+    needs: preflight
+    if: needs.preflight.outputs.operation == 'final-merge'
+    uses: ./.github/workflows/pr23-final-merge.yml
+    with:
+      sha: ${{ needs.preflight.outputs.sha }}
+      confirmation: MERGE PR23
+
+  rollback:
+    needs: preflight
+    if: needs.preflight.outputs.operation == 'rollback'
+    uses: ./.github/workflows/pr23-rollback.yml
+    with:
+      sha: ${{ needs.preflight.outputs.sha }}
+      mode: full
+      confirmation: ROLLBACK PR23
+      backup_id: protected-label-request
+      deployment_id: protected-label-request
+    secrets:
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      PR23_BACKUP_BUCKET: ${{ secrets.PR23_BACKUP_BUCKET }}
+      PR23_BACKUP_ENDPOINT: ${{ secrets.PR23_BACKUP_ENDPOINT }}
+      PR23_BACKUP_ACCESS_KEY_ID: ${{ secrets.PR23_BACKUP_ACCESS_KEY_ID }}
+      PR23_BACKUP_SECRET_ACCESS_KEY: ${{ secrets.PR23_BACKUP_SECRET_ACCESS_KEY }}
+      PR23_BACKUP_DECRYPTION_KEY: ${{ secrets.PR23_BACKUP_DECRYPTION_KEY }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+      VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+      VERCEL_LEGACY_PROJECT_ID: ${{ secrets.VERCEL_LEGACY_PROJECT_ID }}
+
+  finalize-request:
+    name: Remove request label and publish sanitized result
+    if: >-
+      always() &&
+      github.event.action == 'labeled' &&
+      github.event.pull_request.number == 23 &&
+      github.event.pull_request.head.ref == 'codex/sprint-40-1-mobile-preview' &&
+      contains(fromJSON('["pr23:run-backup","pr23:run-migration","pr23:run-domain-transfer","pr23:run-final-merge","pr23:run-rollback"]'), github.event.label.name)
+    needs: [preflight, backup, migration, domain-transfer, final-merge, rollback]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.event.pull_request.head.sha }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0 }
+      - name: Publish operation status, remove label and comment once
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          LABEL: ${{ github.event.label.name }}
+          PREFLIGHT_RESULT: ${{ needs.preflight.result }}
+          BACKUP_RESULT: ${{ needs.backup.result }}
+          MIGRATION_RESULT: ${{ needs.migration.result }}
+          DOMAIN_RESULT: ${{ needs.domain-transfer.result }}
+          MERGE_RESULT: ${{ needs.final-merge.result }}
+          ROLLBACK_RESULT: ${{ needs.rollback.result }}
+        shell: bash
+        run: |
+          case "$LABEL" in
+            pr23:run-backup) result="$BACKUP_RESULT"; contexts='pr23/backup-restore pr23/restored-production-like' ;;
+            pr23:run-migration) result="$MIGRATION_RESULT"; contexts='pr23/controlled-migration' ;;
+            pr23:run-domain-transfer) result="$DOMAIN_RESULT"; contexts='pr23/domain-transfer' ;;
+            pr23:run-final-merge) result="$MERGE_RESULT"; contexts='pr23/final-merge-readiness' ;;
+            pr23:run-rollback) result="$ROLLBACK_RESULT"; contexts='' ;;
+          esac
+          if test "$PREFLIGHT_RESULT" != success; then result=failure; fi
+          state=failure
+          test "$result" = success && state=success
+          for context in $contexts; do
+            node scripts/pr23/publish-status.mjs --sha="$SHA" --context="$context" --state="$state" --description="Protected request finished: $result"
+          done
+          encoded=$(node -e "process.stdout.write(encodeURIComponent(process.argv[1]))" "$LABEL")
+          gh api --method DELETE "repos/${{ github.repository }}/issues/23/labels/$encoded" >/dev/null || true
+          marker="<!-- pr23-request:$SHA:$LABEL -->"
+          count=$(gh api "repos/${{ github.repository }}/issues/23/comments?per_page=100" --jq "[.[] | select(.body | contains(\"$marker\"))] | length")
+          if test "$count" -eq 0; then
+            gh api --method POST "repos/${{ github.repository }}/issues/23/comments" -f body="$marker
+          Pedido protegido processado de forma fail-closed. Label: \`$LABEL\`. SHA: \`$SHA\`. Resultado: \`$result\`."
+          fi
