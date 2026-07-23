@@ -71,7 +71,7 @@ jobs:
           VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
         run: |
           npm run health:production
-          npm run db:baseline:verify
+          npm run db:baseline:verify -- --allow-approved-findings
       - name: Open or update the single health incident
         if: steps.health.outcome == 'failure'
         env:

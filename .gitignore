@@ -8,6 +8,7 @@ dist/
 coverage/
 test-results/
 reports/human-gate/sessions/
+.tmp-baseline*/
 .cache/
 .map-build/
 .eslintcache
