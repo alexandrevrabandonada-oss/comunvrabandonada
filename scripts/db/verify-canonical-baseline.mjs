@@ -189,7 +189,13 @@ export function evaluateSecurity(canonical) {
 export function buildDocuments(raw, capturedAt = new Date().toISOString()) {
   const canonical = normalize(raw.canonical);
   const platform = normalize(raw.platform || {});
-  const managedDefaults = platformDefaultSnapshot(canonical.defaultPrivileges);
+  const capturedManagedDefaults = platformDefaultSnapshot(canonical.defaultPrivileges);
+  const preservedManagedDefaults = platform.managedDefaultPrivileges;
+  const managedDefaults = capturedManagedDefaults.count > 0
+    ? capturedManagedDefaults
+    : preservedManagedDefaults?.owner === "supabase_admin"
+      ? preservedManagedDefaults
+      : capturedManagedDefaults;
   canonical.defaultPrivileges = (canonical.defaultPrivileges || []).filter(
     (item) => item.owner !== "supabase_admin",
   );

@@ -93,3 +93,27 @@ test("supabase_admin defaults are informational and excluded from blocking finge
   assert.equal(result.platformInformationalSnapshot.managedDefaultPrivileges.count, 1);
   assert.equal(result.canonical.defaultPrivileges.length, 0);
 });
+
+test("projecting a compact baseline preserves managed Supabase observations", () => {
+  const raw = fixture();
+  raw.canonical.defaultPrivileges.push({
+    schema: "public",
+    owner: "supabase_admin",
+    objectType: "r",
+    acl: "{anon=arwdDxtm/supabase_admin}",
+  });
+  const source = buildDocuments(raw, "CAPTURED").compact;
+  const projected = buildDocuments(
+    {
+      canonical: source.canonical,
+      platform: source.platformInformationalSnapshot,
+    },
+    "PROJECTED",
+  ).compact;
+
+  assert.deepEqual(
+    projected.platformInformationalSnapshot.managedDefaultPrivileges,
+    source.platformInformationalSnapshot.managedDefaultPrivileges,
+  );
+  assert.deepEqual(projected.security.platformObservations, source.security.platformObservations);
+});
