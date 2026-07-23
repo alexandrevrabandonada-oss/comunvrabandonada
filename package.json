@@ -14,6 +14,7 @@
     "solo:test": "node --test scripts/solo/solo-automation.node-test.mjs",
     "solo:sql:validate": "node scripts/solo/validate-forward-only-sql.mjs",
     "db:baseline:verify": "node scripts/db/verify-canonical-baseline.mjs",
+    "health:production": "node scripts/health/check-production.mjs",
     "local:env:check": "node scripts/comun-local-env.mjs check",
     "auth:readiness:local": "node scripts/comun-local-env.mjs run node scripts/check-comun-auth-readiness.mjs",
     "auth:diag:local": "node scripts/diag-comun-auth-reset.mjs",

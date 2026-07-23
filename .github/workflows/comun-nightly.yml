@@ -42,13 +42,68 @@ jobs:
           retention-days: 7
 
   full-local:
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '17 3 * * *'
+    if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline) || github.event.schedule == '17 3 * * *'
     uses: ./.github/workflows/comun-ci.yml
     with:
       force_full: true
 
+  production-health:
+    if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline) || github.event.schedule == '17 3 * * *'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Verify production and canonical database fingerprint
+        id: health
+        continue-on-error: true
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+        run: |
+          npm run health:production
+          npm run db:baseline:verify
+      - name: Open or update the single health incident
+        if: steps.health.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Saúde canônica da produção"
+          existing=$(gh issue list --state open --search "$title in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+          body="O healthcheck canônico falhou na execução $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Nenhuma correção ou rollback foi executado automaticamente."
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi
+          exit 1
+
+  sidewalk-cleanup-dry-run:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '17 3 * * *'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Observe expired upload tickets without mutation
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          COMUN_SIDEWALK_CLEANUP_ALLOWED_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          node scripts/cleanup-comun-sidewalk-uploads.mjs --allow-non-local --project-ref=${{ secrets.SUPABASE_PROJECT_REF }}
+          echo COMUN_SIDEWALK_CLEANUP_REMOTE_DRY_RUN_OK
+
   archive-worker:
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '7,22,37,52 * * * *'
+    if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline) || github.event.schedule == '7,22,37,52 * * * *'
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     steps:
