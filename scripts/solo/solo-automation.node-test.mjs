@@ -39,8 +39,10 @@ test("promotion checkpoint is short-lived, sanitized and not a full backup", () 
   assert.match(workflow, /retention-days: 7/);
   assert.match(checkpoint, /--schema-only/);
   assert.match(checkpoint, /aggregate-counts\.csv/);
+  assert.match(checkpoint, /static-sanitized-metadata/);
   assert.doesNotMatch(workflow, /PR23_BACKUP_|required reviewers|environment:/i);
   assert.doesNotMatch(checkpoint, /select\s+\*/i);
+  assert.doesNotMatch(checkpoint, /api\.vercel\.com/);
 });
 
 test("remote lint uses the allowlisted database URL without an admin access token", () => {
@@ -49,12 +51,17 @@ test("remote lint uses the allowlisted database URL without an admin access toke
   assert.doesNotMatch(workflow, /SUPABASE_ACCESS_TOKEN/);
 });
 
-test("all Vercel operations use the canonical team scope", () => {
+test("Vercel production validation uses GitHub integration and canonical alias", () => {
   const checkpoint = readFileSync("scripts/solo/create-checkpoint.mjs", "utf8");
   const monitor = readFileSync("scripts/solo/monitor-production.mjs", "utf8");
   const domain = readFileSync("scripts/solo/reconcile-domain.mjs", "utf8");
   const rollback = readFileSync("scripts/solo/rollback-application.mjs", "utf8");
-  for (const source of [checkpoint, monitor, domain]) assert.match(source, /team_LBVwyK8FQMO7tA3hzVXXeumF/);
+  assert.match(checkpoint, /team_LBVwyK8FQMO7tA3hzVXXeumF/);
+  assert.match(monitor, /check-runs/);
+  assert.match(monitor, /comunvrabandonada\.vercel\.app/);
+  assert.doesNotMatch(monitor, /api\.vercel\.com/);
+  assert.match(domain, /team_LBVwyK8FQMO7tA3hzVXXeumF/);
+  assert.match(domain, /COMUN_DOMAIN_TRANSFER_PENDING_TOKEN/);
   assert.match(rollback, /alexandrevrabandonada-oss-projects/);
 });
 
