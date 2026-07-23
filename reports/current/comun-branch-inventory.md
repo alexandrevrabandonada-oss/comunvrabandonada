@@ -8,7 +8,10 @@ apagada.
 | Branch | SHA | PR aberta | Ancestral de `main` | Únicos | Decisão |
 | --- | --- | --- | --- | ---: | --- |
 | `main` | `b2f6733` | não aplicável | sim | 0 | `KEEP_MAIN` |
-| `codex/tijolo-41-baseline-canonico` | `b2f6733` | ainda não | sim | 0 | linha ativa |
+| `codex/tijolo-41-baseline-canonico` | `967e2df` | #30 | não | 16 | `OPEN_PR_REQUIRES_DECISION` |
+
+A PR #30 está aberta, não draft, mesclável, baseada em `main` e é a única PR
+ativa. O SHA será atualizado no fechamento documental deste lote.
 
 ## História única preservada
 

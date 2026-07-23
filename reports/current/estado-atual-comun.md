@@ -1,7 +1,8 @@
 # Estado atual do COMUN
 
-Verificado em 23 de julho de 2026, a partir de
-`b2f6733dacd15ec21601ed6b6837b42213b87d70`.
+Verificado em 23 de julho de 2026. `main` permanece em
+`b2f6733dacd15ec21601ed6b6837b42213b87d70`; o Tijolo 41 está na PR #30,
+branch `codex/tijolo-41-baseline-canonico`.
 
 ## Decisão vigente
 
@@ -36,6 +37,10 @@ Workflows ativos:
   públicas;
 - mudanças de banco continuam exclusivamente forward-only;
 - cleanup remoto das calçadas permanece em dry-run.
+- o baseline v2 separa contrato do COMUN de internals gerenciados pelo
+  Supabase;
+- a auditoria fail-closed encontrou 12 riscos de privilégios, defaults, view e
+  funções; nenhuma correção remota foi executada.
 
 ## Pendências reais
 
@@ -45,6 +50,8 @@ Workflows ativos:
    automático;
 4. executar a rotação controlada das credenciais administrativas;
 5. acompanhar diariamente o fingerprint remoto e a saúde pública.
+6. tratar os achados do baseline em migration forward-only separada antes de
+   declarar o baseline seguro.
 
 ## Evidências
 
@@ -53,6 +60,7 @@ Workflows ativos:
 - [Auditoria do histórico de migrations](comun-migration-history-audit.md)
 - [Inventário de branches](comun-branch-inventory.md)
 - [PMTiles em produção](comun-pmtiles-production.md)
+- [Achados do baseline de segurança](comun-security-baseline-findings.md)
 - [Operação solo](../../docs/COMUN_SOLO_OPERATIONS.md)
 
 Documentos anteriores à promoção da PR #23 são históricos e estão indexados em

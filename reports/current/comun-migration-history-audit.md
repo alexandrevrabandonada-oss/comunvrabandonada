@@ -34,3 +34,9 @@ Essa classificação não altera o histórico remoto e não equivale a executar
 4. Equivalência será comprovada por baseline, fingerprint e postflight.
 5. Qualquer alinhamento formal futuro será explícito, revisado e separado.
 
+## Baseline de segurança v2
+
+O histórico de 41 migrations participa do fingerprint canônico. A auditoria
+v2 encontrou privilégios que exigem uma migration forward-only futura, mas
+nenhuma migration foi criada, aplicada ou marcada como executada neste lote.
+O histórico remoto permaneceu inalterado.

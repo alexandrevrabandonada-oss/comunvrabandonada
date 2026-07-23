@@ -44,3 +44,12 @@ O HTML público inspecionado não contém `service_role`, `object_key`,
 
 Nenhum registro, upload, alteração de banco ou mudança de domínio foi realizado
 por esta verificação.
+
+## Baseline de segurança v2
+
+- captura: execução `30043886656`;
+- fingerprint: `f8834c3a673d66cc35b71a25fa878cc123c8741281273ba7e75a03d051a79793`;
+- Artifact sanitizado: publicado por sete dias;
+- resultado: `COMUN_BASELINE_SECURITY_FINDINGS` (12);
+- produção pública: continua saudável;
+- correção remota: não executada.
