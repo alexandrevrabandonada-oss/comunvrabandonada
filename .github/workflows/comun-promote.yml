@@ -46,15 +46,24 @@ jobs:
           INPUT_PR: ${{ inputs.pr_number }}
           INPUT_SHA: ${{ inputs.expected_sha }}
         run: node scripts/solo/authorize-promotion.mjs >> "$GITHUB_OUTPUT"
-
-  ci:
-    needs: authorize
-    uses: ./.github/workflows/comun-ci.yml
-    with:
-      force_full: true
+      - name: Require green canonical CI for the immutable SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.gate.outputs.sha }}
+        run: |
+          gh api -X GET "repos/${{ github.repository }}/actions/workflows/comun-ci.yml/runs" \
+            -f head_sha="$SHA" -f status=completed -f per_page=20 > /tmp/comun-ci-runs.json
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const body = JSON.parse(fs.readFileSync('/tmp/comun-ci-runs.json', 'utf8'));
+          const sha = process.env.SHA;
+          const green = (body.workflow_runs ?? []).some((run) => run.head_sha === sha && run.conclusion === 'success');
+          if (!green) throw new Error('SOLO_CANONICAL_CI_NOT_GREEN_FOR_SHA');
+          console.log('COMUN_EXISTING_CI_GREEN');
+          NODE
 
   promote:
-    needs: [authorize, ci]
+    needs: authorize
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
@@ -77,17 +86,68 @@ jobs:
         run: |
           test "$(gh pr view "$PR" --json headRefOid --jq .headRefOid)" = "$SHA"
           test "$(gh pr view "$PR" --json mergeable --jq .mergeable)" = "MERGEABLE"
+      - name: Validate required secret contract
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ needs.authorize.outputs.pr }}
+          S_SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          S_SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          S_SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          S_SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          S_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          S_VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          S_VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          S_VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+          S_VERCEL_LEGACY_PROJECT_ID: ${{ secrets.VERCEL_LEGACY_PROJECT_ID }}
+        shell: bash
+        run: |
+          missing=()
+          while IFS='|' read -r name variable; do
+            test -n "${!variable}" || missing+=("$name")
+          done <<'EOF'
+          SUPABASE_ACCESS_TOKEN|S_SUPABASE_ACCESS_TOKEN
+          SUPABASE_PROJECT_REF|S_SUPABASE_PROJECT_REF
+          SUPABASE_DB_URL|S_SUPABASE_DB_URL
+          SUPABASE_DB_PASSWORD|S_SUPABASE_DB_PASSWORD
+          SUPABASE_SERVICE_ROLE_KEY|S_SUPABASE_SERVICE_ROLE_KEY
+          VERCEL_TOKEN|S_VERCEL_TOKEN
+          VERCEL_TEAM_ID|S_VERCEL_TEAM_ID
+          VERCEL_CANONICAL_PROJECT_ID|S_VERCEL_CANONICAL_PROJECT_ID
+          VERCEL_LEGACY_PROJECT_ID|S_VERCEL_LEGACY_PROJECT_ID
+          EOF
+          if ((${#missing[@]})); then
+            names="$(IFS=', '; echo "${missing[*]}")"
+            gh pr comment "$PR" --body "Promoção solo bloqueada antes de qualquer escrita remota. Secrets ausentes: \`$names\`."
+            echo "::error title=COMUN secret contract::Missing repository secrets: $names"
+            exit 1
+          fi
+          echo COMUN_SECRET_CONTRACT_OK
       - name: Validate forward-only SQL before any remote access
         run: npm run solo:sql:validate
       - name: Create sanitized pre-promotion checkpoint
         env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ needs.authorize.outputs.pr }}
           APP_SHA: ${{ needs.authorize.outputs.sha }}
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
           VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
-        run: node scripts/solo/create-checkpoint.mjs --output=.solo-checkpoint
+        shell: bash
+        run: |
+          set +e
+          output="$(node scripts/solo/create-checkpoint.mjs --output=.solo-checkpoint 2>&1)"
+          status=$?
+          set -e
+          if ((status != 0)); then
+            marker="$(printf '%s\n' "$output" | grep -oE 'SOLO_[A-Z0-9_:.-]+' | tail -1 || true)"
+            test -n "$marker" || marker=SOLO_CHECKPOINT_FAILED
+            gh pr comment "$PR" --body "Promoção solo interrompida no checkpoint sanitizado: \`$marker\`. Nenhuma migration ou merge foi executado."
+            echo "::error title=COMUN checkpoint::$marker"
+            exit "$status"
+          fi
+          printf '%s\n' "$output"
       - uses: actions/upload-artifact@v4
         with:
           name: comun-pre-promotion-checkpoint-${{ needs.authorize.outputs.sha }}
@@ -96,10 +156,25 @@ jobs:
           if-no-files-found: error
       - name: Apply transactional forward-only package
         env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ needs.authorize.outputs.pr }}
           PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
           PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-        run: node scripts/solo/apply-forward-only.mjs
+        shell: bash
+        run: |
+          set +e
+          output="$(node scripts/solo/apply-forward-only.mjs 2>&1)"
+          status=$?
+          set -e
+          if ((status != 0)); then
+            marker="$(printf '%s\n' "$output" | grep -oE 'SOLO_[A-Z0-9_:.-]+' | tail -1 || true)"
+            test -n "$marker" || marker=SOLO_FORWARD_ONLY_FAILED
+            gh pr comment "$PR" --body "Promoção solo interrompida na transação forward-only: \`$marker\`. O pacote usa fail-fast e rollback transacional; merge e domínio não foram executados."
+            echo "::error title=COMUN forward-only::$marker"
+            exit "$status"
+          fi
+          printf '%s\n' "$output"
       - name: Remote postflight, DB lint, RLS and cleanup dry-run
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
