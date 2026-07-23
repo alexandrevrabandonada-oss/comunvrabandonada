@@ -99,11 +99,11 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           COMUN_SIDEWALK_CLEANUP_ALLOWED_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
-          node scripts/cleanup-comun-sidewalk-uploads.mjs --allow-non-local --project-ref=${{ secrets.SUPABASE_PROJECT_REF }}
+          node --experimental-strip-types scripts/cleanup-comun-sidewalk-uploads.mjs --allow-non-local --project-ref=${{ secrets.SUPABASE_PROJECT_REF }}
           echo COMUN_SIDEWALK_CLEANUP_REMOTE_DRY_RUN_OK
 
   archive-worker:
-    if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline) || github.event.schedule == '7,22,37,52 * * * *'
+    if: github.event.schedule == '7,22,37,52 * * * *'
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     steps:
