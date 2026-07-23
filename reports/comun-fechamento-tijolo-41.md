@@ -6,6 +6,11 @@ A PR #30 carrega a release `20260723220112-canonical-security-hardening`: 12
 achados antes e zero esperados depois da promoção. O remoto continua no
 fingerprint pré-migration `f8834c3a673d66cc35b71a25fa878cc123c8741281273ba7e75a03d051a79793`.
 
+Decisão: `NO_GO_SECURITY_HARDENING_PROMOTION`. A captura read-only comprovou
+que `postgres` não pode assumir `supabase_admin`, logo cinco defaults desse
+owner não podem ser corrigidos com a credencial atual. O runner bloqueia antes
+da transação; não houve escrita remota.
+
 Atualizado em 23 de julho de 2026.
 
 ## Estado do trabalho

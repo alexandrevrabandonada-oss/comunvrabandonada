@@ -62,6 +62,12 @@ if (releaseFiles.length > 0) {
     }
     throw new Error("SOLO_CANONICAL_PRE_FINGERPRINT_MISMATCH");
   }
+  const roleCapability = postgres(
+    "select pg_catalog.pg_has_role(current_user, 'supabase_admin', 'SET');",
+  );
+  if (roleCapability.status !== 0 || roleCapability.stdout.trim() !== "t") {
+    throw new Error("SOLO_CANONICAL_PROMOTION_ROLE_CANNOT_SET_SUPABASE_ADMIN");
+  }
   const result = postgres(migration);
   if (result.status !== 0) {
     const message = (

@@ -2,10 +2,12 @@
 
 ## Hardening canônico da PR #30
 
-Estado preparado: `COMUN_SECURITY_HARDENING_READY_TO_PROMOTE`. Há uma única
-migration transacional, trigger de onboarding preservado, view pública com RLS
-e grants mínimos, defaults futuros endurecidos e manifesto imutável. Supabase
-remoto, merge, domínio e produção não foram alterados.
+Decisão atual: `NO_GO_SECURITY_HARDENING_PROMOTION`. A conexão remota canônica
+usa `postgres`, mas não pode assumir `supabase_admin`; portanto não pode
+revogar os default privileges pertencentes a esse role. A promoção falha antes
+de qualquer escrita. A migration, o trigger preservado, a view com RLS e o
+manifesto estão preparados, mas não devem ser promovidos até existir um
+mecanismo autorizado para essa revogação.
 
 Verificado em 23 de julho de 2026. `main` permanece em
 `b2f6733dacd15ec21601ed6b6837b42213b87d70`; o Tijolo 41 está na PR #30,

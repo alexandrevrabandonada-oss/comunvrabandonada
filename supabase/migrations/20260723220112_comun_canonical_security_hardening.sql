@@ -106,10 +106,14 @@ alter default privileges for role postgres in schema public
 
 do $defaults$
 begin
-  if exists (select 1 from pg_catalog.pg_roles where rolname = 'supabase_admin') then
+  if exists (select 1 from pg_catalog.pg_roles where rolname = 'supabase_admin')
+     and pg_catalog.pg_has_role(current_user, 'supabase_admin', 'SET')
+  then
     execute 'alter default privileges for role supabase_admin in schema public revoke all on tables from anon, authenticated';
     execute 'alter default privileges for role supabase_admin in schema public revoke all on sequences from anon, authenticated';
     execute 'alter default privileges for role supabase_admin in schema public revoke execute on functions from public, anon, authenticated';
+  else
+    raise notice 'COMUN_HARDENING_SUPABASE_ADMIN_DEFAULTS_REQUIRE_CAPABLE_PROMOTION_ROLE';
   end if;
 end
 $defaults$;
@@ -169,15 +173,15 @@ begin
   ) then
     raise exception 'COMUN_HARDENING_POSTFLIGHT_ARCHIVE_FUNCTION';
   end if;
-  if pg_catalog.to_regprocedure('public.handle_new_user()') is not null
-     and not exists (
-       select 1 from pg_catalog.pg_proc p
-       where p.oid = 'public.handle_new_user()'::pg_catalog.regprocedure
-         and p.prosecdef
-         and p.proconfig = array['search_path=pg_catalog']
-     )
-  then
-    raise exception 'COMUN_HARDENING_POSTFLIGHT_ONBOARDING_FUNCTION';
+  if pg_catalog.to_regprocedure('public.handle_new_user()') is not null then
+    if not exists (
+      select 1 from pg_catalog.pg_proc p
+      where p.oid = pg_catalog.to_regprocedure('public.handle_new_user()')
+        and p.prosecdef
+        and p.proconfig = array['search_path=pg_catalog']
+    ) then
+      raise exception 'COMUN_HARDENING_POSTFLIGHT_ONBOARDING_FUNCTION';
+    end if;
   end if;
 end
 $postflight$;
