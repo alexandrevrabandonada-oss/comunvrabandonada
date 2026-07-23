@@ -1,12 +1,17 @@
-const required = ["VERCEL_TOKEN", "VERCEL_TEAM_ID", "VERCEL_CANONICAL_PROJECT_ID", "VERCEL_LEGACY_PROJECT_ID"];
+const VERCEL_TEAM_ID = "team_LBVwyK8FQMO7tA3hzVXXeumF";
+const required = ["VERCEL_TOKEN", "VERCEL_CANONICAL_PROJECT_ID", "VERCEL_LEGACY_PROJECT_ID"];
 if (required.some((name) => !process.env[name])) {
   console.log("COMUN_DOMAIN_TRANSFER_NOT_CONFIGURED");
   process.exit(0);
 }
-const { VERCEL_TOKEN: token, VERCEL_TEAM_ID: team, VERCEL_CANONICAL_PROJECT_ID: canonical, VERCEL_LEGACY_PROJECT_ID: legacy } = process.env;
+const { VERCEL_TOKEN: token, VERCEL_CANONICAL_PROJECT_ID: canonical, VERCEL_LEGACY_PROJECT_ID: legacy } = process.env;
 const domains = ["comunsocial.online", "www.comunsocial.online"];
 const api = async (method, route, body) => {
-  const response = await fetch(`https://api.vercel.com${route}${route.includes("?") ? "&" : "?"}teamId=${encodeURIComponent(team)}`, { method, headers: { authorization: `Bearer ${token}`, "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+  const response = await fetch(`https://api.vercel.com${route}${route.includes("?") ? "&" : "?"}teamId=${encodeURIComponent(VERCEL_TEAM_ID)}`, {
+    method,
+    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
   if (!response.ok) throw new Error(`SOLO_VERCEL_DOMAIN_${method}_${response.status}`);
   return response.status === 204 ? null : response.json();
 };
