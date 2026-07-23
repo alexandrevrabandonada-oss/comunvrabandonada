@@ -151,6 +151,7 @@ jobs:
           name: comun-pre-promotion-checkpoint-${{ needs.authorize.outputs.sha }}
           path: .solo-checkpoint
           retention-days: 7
+          include-hidden-files: true
           if-no-files-found: error
       - name: Apply transactional forward-only package
         env:
