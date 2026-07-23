@@ -37,6 +37,17 @@ jobs:
           node scripts/db/verify-canonical-baseline.mjs --capture --output=comun-remote-schema-detailed.json --compact-output=comun-remote-schema-baseline-candidate.json
           node scripts/db/capture-security-hardening-preflight.mjs --output=comun-security-hardening-preflight.json
           node --test scripts/db/verify-canonical-baseline.node-test.mjs
+          node scripts/db/project-security-hardening-baseline.mjs \
+            --source=comun-remote-schema-baseline-candidate.json \
+            --baseline-output=/tmp/comun-hardening-post-1.json \
+            --release-output=/tmp/comun-hardening-release-1.json
+          node scripts/db/project-security-hardening-baseline.mjs \
+            --source=comun-remote-schema-baseline-candidate.json \
+            --baseline-output=/tmp/comun-hardening-post-2.json \
+            --release-output=/tmp/comun-hardening-release-2.json
+          diff -u /tmp/comun-hardening-post-1.json /tmp/comun-hardening-post-2.json
+          cp /tmp/comun-hardening-post-1.json comun-security-hardening-expected-post.json
+          echo COMUN_SECURITY_HARDENING_SANITIZED_SNAPSHOT_2X_OK
           test "$(wc -c < comun-remote-schema-baseline-candidate.json)" -le 5242880
       - uses: actions/upload-artifact@v4
         with:
@@ -45,6 +56,7 @@ jobs:
             comun-remote-schema-detailed.json
             comun-remote-schema-baseline-candidate.json
             comun-security-hardening-preflight.json
+            comun-security-hardening-expected-post.json
           if-no-files-found: error
           retention-days: 7
 
