@@ -5,6 +5,12 @@ on:
     - cron: "17 3 * * *"
     - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
+    inputs:
+      capture_baseline:
+        description: Capture a sanitized, read-only remote schema baseline artifact
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: comun-nightly-${{ github.event.schedule || 'manual' }}
@@ -12,8 +18,29 @@ concurrency:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
+  baseline-capture:
+    if: github.event_name == 'workflow_dispatch' && inputs.capture_baseline
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Capture sanitized database metadata
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: node scripts/db/verify-canonical-baseline.mjs --capture --output=comun-remote-schema-baseline.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-remote-schema-baseline
+          path: comun-remote-schema-baseline.json
+          if-no-files-found: error
+          retention-days: 7
+
   full-local:
     if: github.event_name == 'workflow_dispatch' || github.event.schedule == '17 3 * * *'
     uses: ./.github/workflows/comun-ci.yml
