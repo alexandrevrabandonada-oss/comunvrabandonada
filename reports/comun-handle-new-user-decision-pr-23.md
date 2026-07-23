@@ -22,3 +22,6 @@ Nenhum trigger associado foi encontrado em `pg_trigger`. A busca no repositório
 ## Critério de retirada
 
 `RETIRE_SAFELY` somente depois de confirmar, durante a janela, ausência de trigger, chamada de aplicação, webhook, Edge Function ou automação externa. A retirada futura deve remover a função em lote próprio e não integra esta reconciliação.
+> Evidência superada: o baseline canônico posterior identificou o trigger
+> `auth.on_auth_user_created`. A função participa do onboarding e deve ser
+> preservada e endurecida.

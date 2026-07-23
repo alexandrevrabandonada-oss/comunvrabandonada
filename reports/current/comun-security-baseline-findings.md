@@ -1,5 +1,11 @@
 # Achados do baseline de segurança
 
+> Estado preparado em 23/07/2026: os 12 achados abaixo pertencem ao
+> fingerprint pré-migration `f8834c3a…`. A release canônica projeta zero
+> achados e fingerprint pós
+> `152641520c28ce61d0cd441ac03c16d97bad99f000f6067236d555731f1c4d58`.
+> Produção permanece inalterada até `comun:promover`.
+
 Captura read-only: 23 de julho de 2026. Nenhum objeto remoto foi alterado.
 
 Resultado: `COMUN_BASELINE_SECURITY_FINDINGS`
@@ -99,4 +105,3 @@ grants explicitamente justificados, nunca rollback destrutivo ou
 
 Impacto esperado: nenhum dado alterado; permissões futuras ficam deny-by-default
 e a view passa a respeitar RLS das relações subjacentes.
-

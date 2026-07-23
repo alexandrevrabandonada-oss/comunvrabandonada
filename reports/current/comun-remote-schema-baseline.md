@@ -1,5 +1,11 @@
 # Baseline canônico de segurança do schema remoto
 
+> O JSON versionado representa o estado esperado após o hardening. Fingerprint
+> pré: `f8834c3a673d66cc35b71a25fa878cc123c8741281273ba7e75a03d051a79793`.
+> Pós esperado:
+> `152641520c28ce61d0cd441ac03c16d97bad99f000f6067236d555731f1c4d58`.
+> Nenhuma migration remota foi aplicada neste lote.
+
 Captura read-only de 23 de julho de 2026.
 
 ## Escopo bloqueante
@@ -53,4 +59,3 @@ achados persistirem. Nenhuma correção remota foi executada.
 Não há linhas de aplicação, e-mails, telefones, UUIDs de usuários, filenames,
 object keys, coordenadas, tokens ou senhas. Identificadores estruturais de
 colunas e policies permanecem apenas quando necessários à auditoria.
-

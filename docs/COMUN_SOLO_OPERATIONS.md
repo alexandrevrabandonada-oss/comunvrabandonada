@@ -1,5 +1,13 @@
 # Operação solo unificada do COMUN
 
+## Releases canônicas posteriores à PR #23
+
+Quando houver um único manifesto em `supabase/releases`, a promoção valida SHA,
+CI, checksum, ausência de SQL destrutivo e fingerprint pré; executa somente a
+migration declarada; exige postflight, fingerprint pós e zero achados antes de
+preview, merge e produção. Não usa `supabase db push`, migration repair nem
+reaplica o pacote histórico. A decisão manual continua sendo `comun:promover`.
+
 ## Estado vigente
 
 O COMUN é operado por uma pessoa. A decisão manual de release é representada uma única vez pela label `comun:promover` ou pelo disparo manual equivalente. Revisores externos, duas aprovações, GitHub Environments, cofre próprio e restore integral não são requisitos deste projeto.

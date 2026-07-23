@@ -1,8 +1,16 @@
 # Estado atual do COMUN
 
+## Hardening canônico da PR #30
+
+Estado preparado: `COMUN_SECURITY_HARDENING_READY_TO_PROMOTE`. Há uma única
+migration transacional, trigger de onboarding preservado, view pública com RLS
+e grants mínimos, defaults futuros endurecidos e manifesto imutável. Supabase
+remoto, merge, domínio e produção não foram alterados.
+
 Verificado em 23 de julho de 2026. `main` permanece em
 `b2f6733dacd15ec21601ed6b6837b42213b87d70`; o Tijolo 41 está na PR #30,
-branch `codex/tijolo-41-baseline-canonico`.
+branch `codex/tijolo-41-baseline-canonico`, HEAD
+`cb1c2a5e0f84ffdc38eff721cd17f90eaeee98c7`.
 
 ## Decisão vigente
 
@@ -53,6 +61,15 @@ Workflows ativos:
 6. tratar os achados do baseline em migration forward-only separada antes de
    declarar o baseline seguro.
 
+## Fechamento do Tijolo 41
+
+- captura Nightly: `30043886656`;
+- Nightly normal: `30044370056`, tentativa 2, aprovado;
+- FAST e FULL CI: aprovados;
+- cleanup remoto dry-run: 0 removidos;
+- decisão: `COMUN_CANONICAL_BASELINE_SECURITY_REVIEW_REQUIRED`;
+- PR #30 permanece aberta para revisão.
+
 ## Evidências
 
 - [Baseline de produção](comun-production-baseline.md)
@@ -61,6 +78,7 @@ Workflows ativos:
 - [Inventário de branches](comun-branch-inventory.md)
 - [PMTiles em produção](comun-pmtiles-production.md)
 - [Achados do baseline de segurança](comun-security-baseline-findings.md)
+- [Fechamento consolidado do Tijolo 41](../comun-fechamento-tijolo-41.md)
 - [Operação solo](../../docs/COMUN_SOLO_OPERATIONS.md)
 
 Documentos anteriores à promoção da PR #23 são históricos e estão indexados em

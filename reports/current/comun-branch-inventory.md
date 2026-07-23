@@ -1,5 +1,9 @@
 # Inventário de branches do COMUN
 
+> PR #30 continua sendo a única linha de desenvolvimento ativa. A branch
+> `codex/tijolo-41-baseline-canonico` contém o hardening pronto para promoção
+> manual; não houve nova branch, nova PR ou merge neste lote.
+
 Leitura realizada em 23 de julho de 2026. Nenhuma branch com commits únicos foi
 apagada.
 
@@ -8,10 +12,11 @@ apagada.
 | Branch | SHA | PR aberta | Ancestral de `main` | Únicos | Decisão |
 | --- | --- | --- | --- | ---: | --- |
 | `main` | `b2f6733` | não aplicável | sim | 0 | `KEEP_MAIN` |
-| `codex/tijolo-41-baseline-canonico` | `967e2df` | #30 | não | 16 | `OPEN_PR_REQUIRES_DECISION` |
+| `codex/tijolo-41-baseline-canonico` | `cb1c2a5` | #30 | não | 19 | `OPEN_PR_REQUIRES_DECISION` |
 
 A PR #30 está aberta, não draft, mesclável, baseada em `main` e é a única PR
-ativa. O SHA será atualizado no fechamento documental deste lote.
+ativa. A decisão vigente é manter a PR aberta para revisão dos achados de
+segurança.
 
 ## História única preservada
 
