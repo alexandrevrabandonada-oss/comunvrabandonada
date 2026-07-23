@@ -24,6 +24,8 @@ export async function AdminShell({
           <nav className="flex flex-wrap items-center gap-3 text-sm font-black uppercase">
             <Link href="/comun/admin/organizacao">Organizacao</Link>
             <Link href="/comun/admin/territorio">Territorio</Link>
+            <Link href="/comun/admin/calcadas">Calcadas</Link>
+            <Link href="/comun/admin/calcadas/prioridade">Prioridade calcadas</Link>
             <Link href="/comun/admin/observatorios">Observatorios</Link>
             <Link href="/comun/admin/organizacao/entrada/vincular">Vincular relato</Link>
             <Link href="/comun/admin/relatos">Relatos</Link>

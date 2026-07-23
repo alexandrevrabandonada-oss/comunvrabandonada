@@ -1,18 +1,36 @@
 # Release readiness — Sprint 37.2
 
-| Dimensão | Resultado |
-| --- | --- |
-| Candidata local congelada | preparada sobre `e5e8980` |
-| Harness localhost/Supabase/Storage | PASS em modo de checagem; porta isolada 3037 após conflito externo na 3000 |
-| Conteúdo sintético | confirmado |
-| Formulários mínimos | 3/3 preparados |
-| Sessões humanas | 0/3 |
-| Correções recorrentes | nenhuma autorizada |
-| Regressão pós-correção | não aplicável; nenhuma correção humana |
-| Decisão humana | INCONCLUSIVE_HUMAN_EXPERIENCE |
+Data: 20 de julho de 2026.
 
-Não há release nem piloto autorizado. A próxima ação é executar as três sessões independentes na mesma candidata e preencher os arquivos derivados dos templates.
+## Situação
 
-Verificação de preparação: build Next.js 16.2.10, lint, typecheck, 227/227 unitários, criação de fixtures sintéticas e cleanup aprovados. O `next start` real respondeu HTTP 200 em `localhost:3037`; servidor encerrado e fixtures limpas depois da prova. As regressões E2E extensas não foram repetidas porque não houve correção de produto; permanecem as evidências da Sprint 37.1.
+**EM VALIDAÇÃO LOCAL.** A vertical de encaminhamento até memória funciona nos cinco viewports previstos, mas os demais gates integrais da Sprint 37.2 ainda não terminaram.
 
-Piloto público **NÃO ABERTO**; integração principal **NÃO EXECUTADA**; push **NÃO EXECUTADO**; deploy **NÃO EXECUTADO**; Supabase remoto **NÃO ALTERADO**; R2 real **NÃO UTILIZADO**; dados reais **NÃO UTILIZADOS**; custo externo **R$ 0**.
+| Dimensão | Estado | Evidência atual |
+|---|---|---|
+| Produto | Implementado localmente | fluxo pela interface até memória publicada |
+| Segurança | Parcialmente validada | `RLS_MATRIX_OK`, DB lint e matriz especializada no ciclo aprovados |
+| Unitários | Aprovado | 244/244 |
+| Cinco viewports | Aprovado | 10/10, sem skip |
+| Personas do ciclo | Aprovado | marcador `COMUN_SIDEWALK_PERSONAS_MATRIX_LOCAL_OK` nos cinco viewports |
+| Acessibilidade/visual | Aprovado localmente | Axe integral sem serious/critical; 105 capturas inspecionadas |
+| Performance | Pendente | medir com `next start` |
+| Reset duplo formal | Pendente | executar após estabilização |
+| Production-like | Pendente | build/start e jornada integral |
+| Experiência humana | NO-GO | 0/3 |
+| Operação real | NO-GO | não autorizada neste sprint local-first |
+| Remoto | NO-GO | não revisado e não alterado |
+
+## Critério para READY técnico
+
+Somente declarar `TECHNICAL_LOCAL_READY` após cinco viewports, RLS, Axe, visual, performance, reset duplo, production-like, regressões e cleanup aprovados e documentados. Nenhum desses marcadores é antecipado neste relatório.
+
+## Restrições preservadas
+
+Piloto público não aberto; integração principal, push e deploy não executados; Supabase remoto não alterado; R2 real e dados reais não utilizados; nenhum protocolo real enviado; custo externo R$ 0.
+
+## Atualização definitiva — 20/07/2026
+
+Os gates antes pendentes foram concluídos: performance em `next start`, resets formais 1 e 2, production-like integral, regressões e cleanup passaram. Unitários: **245/245**. Decisão técnica: `TECHNICAL_LOCAL_READY`.
+
+Permanecem `NO_GO_HUMAN_EXPERIENCE` (0/3), `NO_GO_OPERATIONAL_READINESS`, `NO_GO_REAL_BASEMAP_REVIEW` e `NO_GO_REMOTE_REVIEW`.

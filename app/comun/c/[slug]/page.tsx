@@ -9,6 +9,8 @@ import { getCommunityExperience } from "@/lib/community-experience";
 import { listPublishedPautaDossiersByCommunity } from "@/lib/pauta-dossiers";
 import { listPublicReports } from "@/lib/reports";
 import { listCommunityWorkGroups } from "@/lib/community-work-groups";
+import { MiniAppContextCard } from "@/components/miniapp-context-card";
+import { ComunContextTrail } from "@/components/comun-context-trail";
 
 export const dynamic = "force-dynamic";
 export default async function CommunityPage({
@@ -23,11 +25,20 @@ export default async function CommunityPage({
   const [issues, reports, dossiers, persistentGroups] = await Promise.all([
       listIssues({ communitySlug: slug }),
       listPublicReports({ communitySlug: slug }),
-    listPublishedPautaDossiersByCommunity(slug),
-    listCommunityWorkGroups(slug),
-  ]),
+      listPublishedPautaDossiersByCommunity(slug),
+      listCommunityWorkGroups(slug),
+    ]),
     principal = issues[0],
-    groups = persistentGroups.length ? persistentGroups.map((group:any)=>({name:group.name,state:group.state,cycle:group.cycle_label,objective:group.objective,result:group.result_expected,nextAction:group.next_action})) : experience.workingGroups;
+    groups = persistentGroups.length
+      ? persistentGroups.map((group: any) => ({
+          name: group.name,
+          state: group.state,
+          cycle: group.cycle_label,
+          objective: group.objective,
+          result: group.result_expected,
+          nextAction: group.next_action,
+        }))
+      : experience.workingGroups;
   return (
     <ComunShell>
       <RememberJourney
@@ -36,12 +47,20 @@ export default async function CommunityPage({
         context="Comunidade visitada"
       />
       <Section>
-        <Link
-          href="/comun/comunidades"
-          className="font-black uppercase text-comun-yellow underline"
-        >
-          ← Comunidades
-        </Link>
+        <ComunContextTrail
+          items={[
+            {
+              kind: "território",
+              label: experience.territory,
+              href: experience.territory
+                .toLocaleLowerCase("pt-BR")
+                .includes("volta redonda")
+                ? "/comun/territorios/volta-redonda"
+                : "/comun/territorios",
+            },
+            { kind: "comunidade", label: community.name },
+          ]}
+        />
         <div className="mt-5 grid gap-6 lg:grid-cols-[1.25fr_.75fr]">
           <div>
             <p className="text-xs font-black uppercase text-comun-yellow">
@@ -88,11 +107,40 @@ export default async function CommunityPage({
           </aside>
         </div>
       </Section>
-      <nav aria-label="Seções da comunidade" className="mx-auto flex max-w-7xl gap-6 overflow-x-auto border-y-2 border-comun-paper/25 px-4 text-sm font-black">
-        <a href="#visao-geral" className="border-b-4 border-comun-yellow py-4">Visão geral</a><a href="#pautas" className="py-4">Pautas</a><a href="#agenda" className="py-4">Agenda</a><a href="#resultados" className="py-4">Resultados</a><a href="#memoria" className="py-4">Memória</a>
+      <nav
+        aria-label="Seções da comunidade"
+        className="mx-auto flex max-w-7xl gap-6 overflow-x-auto border-y-2 border-comun-paper/25 px-4 text-sm font-black"
+      >
+        <a href="#visao-geral" className="border-b-4 border-comun-yellow py-4">
+          Visão geral
+        </a>
+        <a href="#pautas" className="py-4">
+          Pautas
+        </a>
+        <a href="#agenda" className="py-4">
+          Agenda
+        </a>
+        <a href="#resultados" className="py-4">
+          Resultados
+        </a>
+        <a href="#memoria" className="py-4">
+          Memória
+        </a>
       </nav>
+      {slug === "cidade" ||
+      issues.some((issue: any) => issue.slug === "calcadas-em-circulacao") ? (
+        <Section>
+          <Header
+            title="Ferramentas que estamos usando"
+            intro="A ferramenta pertence à pauta e mantém o caminho de volta à comunidade."
+          >
+            <MiniAppContextCard compact />
+          </Header>
+        </Section>
+      ) : null}
       {principal ? (
-        <Section><span id="pautas" className="scroll-mt-28"/>
+        <Section>
+          <span id="pautas" className="scroll-mt-28" />
           <Header
             title="Pauta prioritária"
             intro="A pauta mantém seu próprio objetivo, etapa e histórico."
@@ -115,7 +163,8 @@ export default async function CommunityPage({
         </Section>
       ) : null}
       {experience.nextActivity || experience.circle ? (
-        <Section><span id="agenda" className="scroll-mt-28"/>
+        <Section>
+          <span id="agenda" className="scroll-mt-28" />
           <Header
             title="Roda e atividade"
             intro="Discussão com pergunta, etapa e consequência — não comentários infinitos."
@@ -214,7 +263,8 @@ export default async function CommunityPage({
         </Header>
       </Section>
       {groups.length ? (
-        <Section><span id="resultados" className="scroll-mt-28"/>
+        <Section>
+          <span id="resultados" className="scroll-mt-28" />
           <Header
             title="Grupos de trabalho"
             intro="Cada grupo existe por um objetivo e encerra com resultado e memória."
@@ -228,9 +278,7 @@ export default async function CommunityPage({
                   <p className="text-xs font-black uppercase text-comun-yellow">
                     {group.state} · {group.cycle}
                   </p>
-                <h3 className="mt-2 text-xl font-black">
-                    {group.name}
-                  </h3>
+                  <h3 className="mt-2 text-xl font-black">{group.name}</h3>
                   <p className="mt-3">{group.objective}</p>
                   <p className="mt-3 text-sm">
                     <strong>Resultado esperado:</strong> {group.result}
@@ -241,7 +289,8 @@ export default async function CommunityPage({
           </Header>
         </Section>
       ) : null}
-      <Section><span id="memoria" className="scroll-mt-28"/>
+      <Section>
+        <span id="memoria" className="scroll-mt-28" />
         <Header
           title="Resultados, cultura e memória"
           intro="Atividade não é resultado. Conteúdos culturais apontam para suas fontes originais."

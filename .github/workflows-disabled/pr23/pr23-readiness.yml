@@ -1,0 +1,79 @@
+name: PR23 Readiness
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha: { description: Exact PR SHA, required: true }
+  workflow_call:
+    inputs:
+      sha: { required: true, type: string }
+      full_result: { required: true, type: string }
+      full_tested_sha: { required: true, type: string }
+      reconciliation_hash: { required: true, type: string }
+      unit_tests: { required: true, type: string }
+      e2e_tests: { required: true, type: string }
+      cleanup: { required: true, type: string }
+      production_like: { required: true, type: string }
+    outputs:
+      decision:
+        description: Sanitized readiness decision
+        value: ${{ jobs.readiness.outputs.decision }}
+      tested_sha:
+        description: SHA used by readiness
+        value: ${{ jobs.readiness.outputs.tested_sha }}
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+  deployments: read
+
+jobs:
+  readiness:
+    name: pr23/readiness
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      decision: ${{ steps.collect.outputs.decision }}
+      tested_sha: ${{ steps.collect.outputs.tested_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.sha }}" }
+      - name: Collect sanitized gates
+        id: collect
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: ${{ inputs.sha }}
+          FULL_RESULT: ${{ inputs.full_result }}
+          FULL_TESTED_SHA: ${{ inputs.full_tested_sha }}
+          RECONCILIATION_HASH: ${{ inputs.reconciliation_hash }}
+          UNIT_TESTS: ${{ inputs.unit_tests }}
+          E2E_TESTS: ${{ inputs.e2e_tests }}
+          CLEANUP: ${{ inputs.cleanup }}
+          LOCAL_PRODUCTION_LIKE: ${{ inputs.production_like }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test "$FULL_TESTED_SHA" = "$EXPECTED_SHA"
+          test "$FULL_RESULT" = 'PR23_FULL_LOCAL_GATE_OK'
+          test -n "$RECONCILIATION_HASH"
+          test "$UNIT_TESTS" = passed
+          test "$E2E_TESTS" = passed
+          test "$CLEANUP" = passed
+          test "$LOCAL_PRODUCTION_LIKE" = passed
+          reviews=false
+          node scripts/pr23/verify-independent-reviews.mjs && reviews=true || true
+          cat > /tmp/readiness.json <<EOF
+          {"sha":"$EXPECTED_SHA","ci":true,"fullLocal":true,"reviews":$reviews,"environmentProtection":false,"vercelPreview":false,"mainUnchanged":true,"backupRestore":false,"productionLike":false,"migrationEnvironmentApproval":false,"migration":false,"remotePreview":false,"domain":false,"mergeEnvironmentApproval":false}
+          EOF
+          node scripts/pr23/compute-readiness.mjs --fixture=/tmp/readiness.json --output-dir=/tmp/pr23-generated
+          decision=$(node -e "process.stdout.write(JSON.parse(require('fs').readFileSync('/tmp/pr23-generated/pr23-readiness.json','utf8')).decision)")
+          test "$decision" = NO_GO_REMOTE_INTEGRATION
+          echo "decision=$decision" >> "$GITHUB_OUTPUT"
+          echo "tested_sha=$EXPECTED_SHA" >> "$GITHUB_OUTPUT"
+      - name: Sanitized readiness artifact
+        # PR23_SANITIZED_ARTIFACT_ONLY: generated JSON/Markdown contain gate booleans and SHA only.
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr23-readiness-${{ inputs.sha }}
+          path: /tmp/pr23-generated/
+          retention-days: 7

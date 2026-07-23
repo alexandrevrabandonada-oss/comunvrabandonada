@@ -3,7 +3,6 @@ import { ArrowRight } from "lucide-react";
 import { ComunShell, PrimaryLink } from "@/components/comun-shell";
 import {
   ComunBreadcrumbs,
-  ComunEmptyState,
   ComunSection,
   ComunSectionHeader,
   ComunStatus,
@@ -21,8 +20,23 @@ import { withdrawIdentificationComment } from "@/app/comun/acervo/identificar/ac
 
 export const dynamic = "force-dynamic";
 
-export default async function MinhaAreaPage() {
-  const { user, profile } = await requireCommunitySession("/comun/minha-participacao");
+export default async function MinhaAreaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ secao?: string }>;
+}) {
+  const requested = (await searchParams).secao;
+  const selected = [
+    "contribuicoes",
+    "acompanhando",
+    "tarefas",
+    "resultados",
+  ].includes(requested ?? "")
+    ? requested!
+    : "contribuicoes";
+  const { user, profile } = await requireCommunitySession(
+    "/comun/minha-participacao",
+  );
   const [center, submissions, archiveContributions] = await Promise.all([
     getPersonalCenter(user.id),
     listMyParticipation(user.id),
@@ -43,15 +57,6 @@ export default async function MinhaAreaPage() {
         communityStatusPriority(b.priority) -
         communityStatusPriority(a.priority),
     );
-  const empty =
-    !attention.length &&
-    !contributions.length &&
-    !archiveContributions.length &&
-    !center.tasks.length &&
-    !center.circles.length &&
-    !center.memberships.length &&
-    !center.actions.length &&
-    !center.results.length;
   return (
     <ComunShell>
       <ComunSection>
@@ -61,14 +66,56 @@ export default async function MinhaAreaPage() {
         <h1 className="text-4xl font-black uppercase text-comun-yellow sm:text-6xl">
           Minha área
         </h1>
-        <div className="mt-5 flex items-center gap-4 border-y-2 border-comun-paper/20 py-4"><span className="grid size-12 place-items-center rounded-lg bg-comun-yellow font-black text-comun-black">{String(profile?.display_name??"Pessoa").split(/\s+/).map((x:string)=>x[0]).join("").slice(0,2).toUpperCase()}</span><div><p className="font-black">{profile?.display_name??"Identidade comunitária"}</p><p className="text-sm text-comun-paper/60">Área privada · sem perfil público de popularidade</p></div><Link href="/comun/conta" className="ml-auto text-sm font-bold underline">Configurações</Link></div>
+        <div className="mt-5 flex items-center gap-4 border-y-2 border-comun-paper/20 py-4">
+          <span className="grid size-12 place-items-center rounded-lg bg-comun-yellow font-black text-comun-black">
+            {String(profile?.display_name ?? "Pessoa")
+              .split(/\s+/)
+              .map((x: string) => x[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase()}
+          </span>
+          <div>
+            <p className="font-black">
+              {profile?.display_name ?? "Identidade comunitária"}
+            </p>
+            <p className="text-sm text-comun-paper/60">
+              Área privada · sem perfil público de popularidade
+            </p>
+          </div>
+          <Link
+            href="/comun/conta"
+            className="ml-auto text-sm font-bold underline"
+          >
+            Configurações
+          </Link>
+        </div>
         <p className="mt-3 max-w-3xl text-comun-paper/75">
           Organizada pelo que precisa de resposta e pela próxima ação — não por
           linha do tempo infinita.
         </p>
       </ComunSection>
-      <MyCommunitySummary memberships={center.communities} />
-      {attention.length ? (
+      <nav
+        aria-label="Seções de Minha área"
+        className="mx-auto flex max-w-7xl overflow-x-auto px-4 [scrollbar-width:none]"
+      >
+        <AreaTab
+          value="contribuicoes"
+          label="Contribuições"
+          selected={selected}
+        />
+        <AreaTab
+          value="acompanhando"
+          label="Acompanhando"
+          selected={selected}
+        />
+        <AreaTab value="tarefas" label="Tarefas" selected={selected} />
+        <AreaTab value="resultados" label="Resultados" selected={selected} />
+      </nav>
+      {selected === "acompanhando" ? (
+        <MyCommunitySummary memberships={center.communities} />
+      ) : null}
+      {selected === "tarefas" && attention.length ? (
         <Area title="Precisa da sua atenção">
           <div className="grid gap-3">
             {attention.slice(0, 5).map((x: any) => (
@@ -88,7 +135,7 @@ export default async function MinhaAreaPage() {
           </div>
         </Area>
       ) : null}
-      {center.circles.length ? (
+      {selected === "tarefas" && center.circles.length ? (
         <Area title="Próximas rodas">
           <Rows
             rows={center.circles}
@@ -98,8 +145,8 @@ export default async function MinhaAreaPage() {
           />
         </Area>
       ) : null}
-      {center.tasks.length ? (
-        <Area title="Responsabilidades e tarefas">
+      {selected === "tarefas" && center.tasks.length ? (
+        <Area title="Minhas tarefas">
           <Rows
             rows={center.tasks}
             title={(x: any) => x.title}
@@ -110,8 +157,8 @@ export default async function MinhaAreaPage() {
           />
         </Area>
       ) : null}
-      {center.memberships.length ? (
-        <Area title="Pautas">
+      {selected === "acompanhando" && center.memberships.length ? (
+        <Area title="Acompanhando">
           <div className="grid gap-4 md:grid-cols-2">
             {center.memberships.map((x: any) => (
               <article className="border-2 border-comun-yellow p-5" key={x.id}>
@@ -133,8 +180,8 @@ export default async function MinhaAreaPage() {
           </div>
         </Area>
       ) : null}
-      {contributions.length ? (
-        <Area title="Contribuições">
+      {selected === "contribuicoes" && contributions.length ? (
+        <Area title="Minhas contribuições">
           <Rows
             rows={contributions}
             title={(x: any) =>
@@ -145,24 +192,44 @@ export default async function MinhaAreaPage() {
           />
         </Area>
       ) : null}
-      {archiveContributions.length ? (
+      {selected === "contribuicoes" && archiveContributions.length ? (
         <Area title="Memórias em identificação">
           <div className="grid gap-3">
             {archiveContributions.map((x: any) => (
               <article className="border-2 border-comun-yellow p-4" key={x.id}>
-                <p className="text-xs font-black uppercase text-comun-yellow">{x.suggestion_type} · {x.status}</p>
-                <h3 className="mt-2 font-black">{x.archive_item?.title ?? "Fotografia histórica"}</h3>
+                <p className="text-xs font-black uppercase text-comun-yellow">
+                  {x.suggestion_type} · {x.status}
+                </p>
+                <h3 className="mt-2 font-black">
+                  {x.archive_item?.title ?? "Fotografia histórica"}
+                </h3>
                 <div className="mt-3 flex flex-wrap gap-3">
-                  {x.public_slug ? <Link className="font-black underline" href={`/comun/acervo/identificar/${x.public_slug}`}>Ver memória</Link> : null}
-                  {!['withdrawn','archived'].includes(x.status) && x.public_slug ? <form action={withdrawIdentificationComment}><input type="hidden" name="id" value={x.id}/><input type="hidden" name="slug" value={x.public_slug}/><button className="font-black text-red-300 underline">Retirar contribuição</button></form> : null}
+                  {x.public_slug ? (
+                    <Link
+                      className="font-black underline"
+                      href={`/comun/acervo/identificar/${x.public_slug}`}
+                    >
+                      Ver memória
+                    </Link>
+                  ) : null}
+                  {!["withdrawn", "archived"].includes(x.status) &&
+                  x.public_slug ? (
+                    <form action={withdrawIdentificationComment}>
+                      <input type="hidden" name="id" value={x.id} />
+                      <input type="hidden" name="slug" value={x.public_slug} />
+                      <button className="font-black text-red-300 underline">
+                        Retirar contribuição
+                      </button>
+                    </form>
+                  ) : null}
                 </div>
               </article>
             ))}
           </div>
         </Area>
       ) : null}
-      {center.results.length ? (
-        <Area title="Resultados e memórias">
+      {selected === "resultados" && center.results.length ? (
+        <Area title="Resultados relacionados">
           <Rows
             rows={center.results}
             title={(x: any) => x.title}
@@ -171,37 +238,68 @@ export default async function MinhaAreaPage() {
           />
         </Area>
       ) : null}
-      {empty ? (
-        <ComunSection>
-          <div className="border-2 border-comun-yellow p-6">
-            <h2 className="text-2xl font-black uppercase text-comun-yellow">
-              Sua área está pronta para começar
-            </h2>
-            <p className="mt-3">
-              Conheça uma comunidade ou acompanhe uma pauta. Próximas ações
-              aparecerão aqui.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <PrimaryLink href="/comun/comunidades">
-                Ver comunidades
-              </PrimaryLink>
-              <Link href="/comun/pautas" className="font-black underline">
-                Explorar pautas
-              </Link>
-            </div>
-          </div>
-        </ComunSection>
+      {selected === "contribuicoes" &&
+      !contributions.length &&
+      !archiveContributions.length ? (
+        <SingleEmpty href="/comun/participar" title="Sem contribuições">
+          Registrar primeira contribuição
+        </SingleEmpty>
       ) : null}
-      <ComunSection className="pt-0">
-        <ComunEmptyState
-          href="/comun/caixa-de-entrada"
-          label="Abrir caixa de entrada"
-        >
-          Atualizações significativas ficam na caixa de entrada; ela não é chat
-          nem feed social.
-        </ComunEmptyState>
-      </ComunSection>
+      {selected === "acompanhando" && !center.memberships.length ? (
+        <SingleEmpty href="/comun/explorar" title="Nada acompanhado">
+          Explorar comunidades
+        </SingleEmpty>
+      ) : null}
+      {selected === "tarefas" &&
+      !center.tasks.length &&
+      !center.circles.length ? (
+        <SingleEmpty href="/comun/participar" title="Sem tarefas">
+          Encontrar formas de participar
+        </SingleEmpty>
+      ) : null}
+      {selected === "resultados" && !center.results.length ? (
+        <SingleEmpty href="/comun" title="Sem resultados relacionados">
+          Voltar ao Início
+        </SingleEmpty>
+      ) : null}
     </ComunShell>
+  );
+}
+function AreaTab({
+  value,
+  label,
+  selected,
+}: {
+  value: string;
+  label: string;
+  selected: string;
+}) {
+  return (
+    <Link
+      aria-current={selected === value ? "page" : undefined}
+      href={`/comun/minha-participacao?secao=${value}`}
+      className={`min-h-11 whitespace-nowrap border-b-4 px-4 py-3 text-sm font-black ${selected === value ? "border-comun-yellow text-comun-yellow" : "border-transparent text-comun-paper/70"}`}
+    >
+      {label}
+    </Link>
+  );
+}
+function SingleEmpty({
+  href,
+  title,
+  children,
+}: {
+  href: string;
+  title: string;
+  children: string;
+}) {
+  return (
+    <ComunSection>
+      <div className="border-2 border-comun-yellow p-5">
+        <h2 className="text-xl font-black text-comun-yellow">{title}</h2>
+        <PrimaryLink href={href}>{children}</PrimaryLink>
+      </div>
+    </ComunSection>
   );
 }
 function Area({

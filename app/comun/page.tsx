@@ -9,6 +9,10 @@ import {
 import { HubCard } from "@/components/hub-card";
 import { ResumeJourneySection } from "@/components/community-journey-memory";
 import { MyCommunitySummary } from "@/components/my-community-summary";
+import {
+  ContinueMiniappCard,
+  MiniAppContextCard,
+} from "@/components/miniapp-context-card";
 import { getCentralExperience } from "@/lib/central-experience";
 import {
   listPublicActions,
@@ -176,6 +180,14 @@ export default async function ComunHomePage() {
       </ComunSection>
 
       <HomeSection
+        title="Ferramentas em atividade"
+        intro="Ferramentas ligadas a pautas e territórios, com ação e acompanhamento claros."
+      >
+        <MiniAppContextCard />
+      </HomeSection>
+
+      <HomeSection
+        className="hidden lg:block"
         title="Encontre seu caminho"
         intro="Cinco entradas principais. Os outros módulos permanecem disponíveis como ferramentas do processo."
       >
@@ -267,6 +279,7 @@ export default async function ComunHomePage() {
       </HomeSection>
 
       <HomeSection
+        className="hidden lg:block"
         title="Do território ao resultado"
         intro="A continuidade torna visível como uma contribuição se conecta a uma mudança e à memória pública."
       >
@@ -348,7 +361,7 @@ export default async function ComunHomePage() {
         </div>
       </HomeSection>
 
-      <ComunSection className="pt-0">
+      <ComunSection className="hidden pt-0 lg:block">
         <div className="border-2 border-comun-yellow bg-comun-yellow p-6 text-comun-black sm:p-8">
           <Route aria-hidden="true" className="mb-5" />
           <h2 className="max-w-3xl text-3xl font-black uppercase leading-none sm:text-5xl">
@@ -432,20 +445,33 @@ function AuthenticatedHome({
         </ComunSection>
       ) : null}
       <ResumeJourneySection />
-      <MyCommunitySummary compact memberships={center.communities} />
+      <ComunSection className="py-4">
+        <h2 className="mb-3 text-xl font-black text-comun-yellow">
+          Continue de onde parou
+        </h2>
+        <ContinueMiniappCard />
+      </ComunSection>
+      <ComunSection className="py-4">
+        <h2 className="mb-3 text-xl font-black text-comun-yellow">
+          Ferramentas em atividade
+        </h2>
+        <MiniAppContextCard compact />
+      </ComunSection>
+      <div className="hidden md:block">
+        <MyCommunitySummary compact memberships={center.communities} />
+      </div>
       {center.memberships.length ? (
         <PriorityRail
+          mobileHidden
           title="Pautas que acompanha"
           href="/comun/minha-participacao"
           action="Ver Minha área"
-          rows={center.memberships
-            .slice(0, 3)
-            .map((item: any) => ({
-              id: item.id,
-              title: item.pauta?.title,
-              text: item.pauta?.next_step ?? item.pauta?.public_synthesis,
-              href: `/comun/pautas/${item.pauta?.slug}`,
-            }))}
+          rows={center.memberships.slice(0, 3).map((item: any) => ({
+            id: item.id,
+            title: item.pauta?.title,
+            text: item.pauta?.next_step ?? item.pauta?.public_synthesis,
+            href: `/comun/pautas/${item.pauta?.slug}`,
+          }))}
         />
       ) : null}
       {center.actions.length ? (
@@ -453,14 +479,12 @@ function AuthenticatedHome({
           title="Participe agora"
           href="/comun/participar"
           action="Ver oportunidades"
-          rows={center.actions
-            .slice(0, 3)
-            .map((item: any) => ({
-              id: item.id,
-              title: item.title,
-              text: item.participation_public,
-              href: `/comun/acoes/${item.slug}`,
-            }))}
+          rows={center.actions.slice(0, 3).map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            text: item.participation_public,
+            href: `/comun/acoes/${item.slug}`,
+          }))}
         />
       ) : null}
       {center.results.length ? (
@@ -468,29 +492,26 @@ function AuthenticatedHome({
           title="Resultados"
           href="/comun/minha-participacao"
           action="Ver resultados"
-          rows={center.results
-            .slice(0, 3)
-            .map((item: any) => ({
-              id: item.id,
-              title: item.title,
-              text: item.public_summary,
-              href: `/comun/resultados`,
-            }))}
+          rows={center.results.slice(0, 3).map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            text: item.public_summary,
+            href: `/comun/resultados`,
+          }))}
         />
       ) : null}
       {experience.memory.length ? (
         <PriorityRail
+          mobileHidden
           title="Memórias"
           href="/comun/acervo"
           action="Acessar memórias"
-          rows={experience.memory
-            .slice(0, 3)
-            .map((item: any) => ({
-              id: item.id,
-              title: item.title,
-              text: item.summary,
-              href: `/comun/acervo/${item.slug}`,
-            }))}
+          rows={experience.memory.slice(0, 3).map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            text: item.summary,
+            href: `/comun/acervo/${item.slug}`,
+          }))}
         />
       ) : null}
       {!hasPersonalContent ? (
@@ -504,22 +525,8 @@ function AuthenticatedHome({
               comunidade ou acompanhe uma pauta; as próximas ações aparecerão
               aqui.
             </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <PrimaryLink href="/comun/territorios">
-                Escolher território
-              </PrimaryLink>
-              <Link
-                className="inline-flex min-h-12 items-center border-2 border-comun-yellow px-4 font-black uppercase text-comun-yellow"
-                href="/comun/comunidades"
-              >
-                Ver comunidades
-              </Link>
-              <Link
-                className="inline-flex min-h-12 items-center px-3 font-black uppercase underline"
-                href="/comun/pautas"
-              >
-                Explorar pautas
-              </Link>
+            <div className="mt-5">
+              <PrimaryLink href="/comun/explorar">Explorar</PrimaryLink>
             </div>
           </div>
         </ComunSection>
@@ -533,14 +540,16 @@ function PriorityRail({
   rows,
   href,
   action,
+  mobileHidden = false,
 }: {
   title: string;
   rows: { id: string; title: string; text?: string; href: string }[];
   href: string;
   action: string;
+  mobileHidden?: boolean;
 }) {
   return (
-    <ComunSection className="py-5">
+    <ComunSection className={`py-5 ${mobileHidden ? "hidden md:block" : ""}`}>
       <header className="mb-3 flex items-end justify-between gap-4 border-b-2 border-comun-yellow pb-3">
         <h2 className="text-2xl font-black uppercase text-comun-yellow">
           {title}
@@ -580,13 +589,15 @@ function HomeSection({
   title,
   intro,
   children,
+  className,
 }: {
   title: string;
   intro: string;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <ComunSection>
+    <ComunSection className={className}>
       <header className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b-2 border-comun-yellow pb-4">
         <div>
           <h2 className="text-2xl font-black uppercase text-comun-yellow sm:text-3xl">

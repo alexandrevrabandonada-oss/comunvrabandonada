@@ -7,7 +7,7 @@ export default defineConfig({
   globalSetup: "./tests/comun-integral-experience/global-setup.mjs",
   globalTeardown: "./tests/comun-integral-experience/global-teardown.mjs",
   timeout: 60_000,
-  retries: 1,
+  retries: 0,
   fullyParallel: false,
   workers: 1,
   use: {

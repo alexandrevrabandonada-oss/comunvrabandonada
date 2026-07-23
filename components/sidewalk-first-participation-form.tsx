@@ -1,24 +1,455 @@
 "use client";
-import { useActionState,useEffect,useRef,useState } from "react";
-import { submitAuthenticatedSidewalkRecord } from "@/app/comun/mapa/contribuir/actions";
-import { COMUN_DRAFT_KEY, migrateSidewalkDraft, parseSafeDrafts, type SafeDraft } from "@/lib/comun-pwa";
-type Draft={step:number;category:string;manualMap:boolean};
-const legacyKey="comun:sidewalk-draft:v1",initial:Draft={step:1,category:"calcada_irregular",manualMap:true},labels=["Foto","Local","Problema","Revisar"];
-export function SidewalkFirstParticipationForm({pautaSlug}:{pautaSlug:string}){
- const[draft,setDraft]=useState(initial),[ready,setReady]=useState(false),[hasPhoto,setHasPhoto]=useState(false),[online,setOnline]=useState(true),[submission,submitAction,pending]=useActionState(submitAuthenticatedSidewalkRecord,null);const fileRef=useRef<HTMLInputElement>(null);
- useEffect(()=>{queueMicrotask(()=>{let drafts=parseSafeDrafts(localStorage.getItem(COMUN_DRAFT_KEY));if(!drafts.length){drafts=migrateSidewalkDraft(localStorage.getItem(legacyKey),pautaSlug);if(drafts.length)localStorage.setItem(COMUN_DRAFT_KEY,JSON.stringify(drafts));localStorage.removeItem(legacyKey)}const saved=drafts.find(item=>item.id===`sidewalk:${pautaSlug}`);if(saved)setDraft({step:saved.step,category:saved.category,manualMap:saved.manualMap});setOnline(navigator.onLine);setReady(true)})},[pautaSlug]);
- useEffect(()=>{if(!ready)return;const saved:SafeDraft={id:`sidewalk:${pautaSlug}`,kind:"sidewalk",step:draft.step,category:draft.category,pauta:pautaSlug,manualMap:draft.manualMap,updatedAt:new Date().toISOString(),schemaVersion:2};const others=parseSafeDrafts(localStorage.getItem(COMUN_DRAFT_KEY)).filter(item=>item.id!==saved.id);localStorage.setItem(COMUN_DRAFT_KEY,JSON.stringify([...others,saved]))},[draft,pautaSlug,ready]);
- useEffect(()=>{const up=()=>setOnline(true),down=()=>setOnline(false);window.addEventListener("online",up);window.addEventListener("offline",down);return()=>{window.removeEventListener("online",up);window.removeEventListener("offline",down)}},[]);
- const next=()=>setDraft(v=>({...v,step:Math.min(4,v.step+1)})),back=()=>setDraft(v=>({...v,step:Math.max(1,v.step-1)})),discard=()=>{localStorage.setItem(COMUN_DRAFT_KEY,JSON.stringify(parseSafeDrafts(localStorage.getItem(COMUN_DRAFT_KEY)).filter(item=>item.id!==`sidewalk:${pautaSlug}`)));setDraft(initial);setHasPhoto(false);if(fileRef.current)fileRef.current.value=""};
- return <form action={submitAction} className="mt-6 grid gap-5"><input type="hidden" name="pauta_slug" value={pautaSlug}/><input type="hidden" name="return_to" value={`/comun/pautas/${pautaSlug}`}/><input type="hidden" name="category" value={draft.category}/><input type="hidden" name="geometry_type" value="Point"/>
- {submission?.error?<p role="alert" className="border-l-4 border-comun-yellow bg-comun-paper p-4 text-comun-black"><strong>O registro não foi enviado.</strong> {submission.error}</p>:null}
- {ready&&draft.step>1?<div className="border-l-4 border-comun-yellow bg-comun-paper p-3 text-sm text-comun-black"><strong>Continuar registro de calçada.</strong> Só escolhas não sensíveis foram retomadas. <button type="button" onClick={discard} className="font-black underline">Descartar rascunho</button></div>:null}
- <ol aria-label="Etapas do registro" className="grid grid-cols-4 gap-2">{labels.map((label,index)=><li key={label} aria-current={draft.step===index+1?"step":undefined} className={`border-t-4 pt-2 text-xs font-black uppercase ${index+1<=draft.step?"border-comun-yellow text-comun-paper":"border-comun-paper/30 text-comun-paper/50"}`}>{index+1}. {label}</li>)}</ol>
- <div hidden={draft.step!==1} className="border-2 bg-comun-paper p-5 text-comun-black"><h2 className="text-2xl font-black uppercase">1. Foto</h2><p className="mt-2">Use uma imagem sem rostos, placas ou números de casa. Ela fica privada até revisão.</p><label className="mt-5 grid gap-2 font-black uppercase">JPEG da situação<input ref={fileRef} onChange={e=>setHasPhoto(Boolean(e.target.files?.length))} name="photo" type="file" accept="image/jpeg" className="min-h-12 border-2 p-2"/></label>{hasPhoto?<button type="button" onClick={()=>{if(fileRef.current)fileRef.current.value="";setHasPhoto(false)}} className="mt-3 font-black underline">Remover foto</button>:<p className="mt-3 text-sm">Você pode continuar sem foto.</p>}</div>
- <div hidden={draft.step!==2} className="border-2 bg-comun-paper p-5 text-comun-black"><h2 className="text-2xl font-black uppercase">2. Local</h2><p className="mt-2">Escolha uma referência aproximada. Não pediremos permissão de GPS.</p><label className="mt-5 grid gap-2 font-black uppercase">Bairro ou referência pública<input name="approximate_location" maxLength={120} placeholder="Ex.: Centro, perto da praça" className="min-h-12 border-2 px-3"/></label><label className="mt-4 flex min-h-12 items-center gap-3"><input type="checkbox" checked={draft.manualMap} onChange={e=>setDraft({...draft,manualMap:e.target.checked})}/> Marcar ponto manualmente</label><fieldset className="mt-4"><legend className="font-black uppercase">Alternativa textual ao mapa</legend><label className="mt-2 flex min-h-12 items-center gap-3 border-2 p-3"><input type="radio" name="fixture_point" value="-44.1000,-22.5200" defaultChecked/> Trecho sintético local</label></fieldset></div>
- <div hidden={draft.step!==3} className="border-2 bg-comun-paper p-5 text-comun-black"><h2 className="text-2xl font-black uppercase">3. Problema</h2><label className="mt-4 grid gap-2 font-black uppercase">Categoria<select value={draft.category} onChange={e=>setDraft({...draft,category:e.target.value})} className="min-h-12 border-2 bg-white px-3"><option value="calcada_irregular">Calçada irregular — piso quebrado</option><option value="ausencia_rampa">Ausência de rampa — barreira de acesso</option><option value="obstaculo">Obstáculo — passagem interrompida</option><option value="buraco">Buraco — risco de queda</option></select></label><label className="mt-4 grid gap-2 font-black uppercase">Impacto<select name="impact_level" className="min-h-12 border-2 bg-white px-3"><option value="medium">Dificulta a passagem</option><option value="high">Impede ou oferece risco</option><option value="low">Incômodo pontual</option></select></label><label className="mt-4 grid gap-2 font-black uppercase">Descrição curta<textarea name="description" required minLength={20} maxLength={600} rows={4} className="border-2 p-3" placeholder="Descreva sem dados pessoais."/></label></div>
- <div hidden={draft.step!==4} className="border-2 bg-comun-paper p-5 text-comun-black"><h2 className="text-2xl font-black uppercase">4. Revisar</h2><p className="mt-3">Seu registro entrará como <strong>em revisão</strong>. A localização será aproximada e a foto ficará privada até análise.</p>{!online?<p role="alert" className="mt-4 border-l-4 border-comun-yellow pl-3 font-bold">Esta ação precisa de conexão para ser enviada. O rascunho seguro foi mantido, mas a foto precisará ser selecionada novamente após recarregar.</p>:null}<button disabled={!online||pending} className="mt-6 min-h-12 w-full bg-comun-yellow px-4 font-black uppercase disabled:cursor-not-allowed disabled:opacity-50">{pending?"Enviando para revisão…":online?"Enviar contribuição para revisão":"Aguardando conexão"}</button></div>
- <nav aria-label="Ações do formulário" className="flex justify-between gap-3 pb-24 sm:pb-8">{draft.step>1?<button type="button" onClick={back} className="min-h-12 font-black uppercase text-comun-yellow underline">Voltar</button>:<span/>}{draft.step<4?<button type="button" onClick={next} className="min-h-12 bg-comun-yellow px-5 font-black uppercase">Continuar</button>:null}</nav></form>
+/* eslint-disable @next/next/no-img-element -- preview local de Blob; nunca é URL remota */
+import { useEffect, useRef, useState } from "react";
+import {
+  authorizeSidewalkPhotoUpload,
+  confirmSidewalkPhotoUpload,
+} from "@/app/comun/mapa/contribuir/actions";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  projectMercator,
+  unprojectMercator,
+  VOLTA_REDONDA_MAP,
+} from "@/lib/sidewalk-map-config";
+
+type LocationState =
+  | "idle"
+  | "locating"
+  | "located"
+  | "low_accuracy"
+  | "denied"
+  | "unavailable"
+  | "timeout";
+const conditionOptions = [
+  ["good", "Boa"],
+  ["regular", "Regular"],
+  ["bad", "Ruim"],
+  ["terrible", "Péssima"],
+] as const;
+
+export function SidewalkFirstParticipationForm({
+  pautaSlug,
+}: {
+  pautaSlug: string;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null),
+    [preview, setPreview] = useState<string | null>(null),
+    [condition, setCondition] = useState(""),
+    [categories, setCategories] = useState<string[]>([]),
+    [point, setPoint] = useState<[number, number] | null>(null),
+    [accuracy, setAccuracy] = useState<number | null>(null),
+    [locationState, setLocationState] = useState<LocationState>("idle"),
+    [pointConfirmed, setPointConfirmed] = useState(false),
+    [sessionReady, setSessionReady] = useState(false),
+    [submissionError, setSubmissionError] = useState<string | null>(null),
+    [pending, setPending] = useState(false);
+  useEffect(
+    () => () => {
+      if (preview) URL.revokeObjectURL(preview);
+    },
+    [preview],
+  );
+  const locate = () => {
+    if (!navigator.geolocation) {
+      setLocationState("unavailable");
+      return;
+    }
+    setLocationState("locating");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setPoint([coords.longitude, coords.latitude]);
+        setAccuracy(coords.accuracy);
+        setPointConfirmed(coords.accuracy <= 50);
+        setLocationState(coords.accuracy > 50 ? "low_accuracy" : "located");
+      },
+      (error) =>
+        setLocationState(
+          error.code === 1
+            ? "denied"
+            : error.code === 3
+              ? "timeout"
+              : "unavailable",
+        ),
+      {
+        enableHighAccuracy: true,
+        timeout: Number(
+          process.env.NEXT_PUBLIC_SIDEWALK_GPS_TIMEOUT_MS || 10000,
+        ),
+        maximumAge: 15000,
+      },
+    );
+  };
+  const selectPhoto = async (file?: File) => {
+    if (!file) return;
+    const compressed = await compressPhoto(file);
+    const transfer = new DataTransfer();
+    transfer.items.add(compressed);
+    if (fileRef.current) fileRef.current.files = transfer.files;
+    if (preview) URL.revokeObjectURL(preview);
+    setPreview(URL.createObjectURL(compressed));
+    setPointConfirmed(false);
+    setSessionReady(false);
+    locate();
+    const client = createSupabaseBrowserClient();
+    const { data } = await client.auth.getSession();
+    if (data.session) {
+      setSessionReady(true);
+      return;
+    }
+    const { error } = await client.auth.signInAnonymously();
+    setSessionReady(!error);
+    if (error)
+      setSubmissionError(
+        "Não foi possível criar a sessão privada neste dispositivo. Tente novamente.",
+      );
+  };
+  const remove = () => {
+    if (preview) URL.revokeObjectURL(preview);
+    setPreview(null);
+    setPoint(null);
+    setAccuracy(null);
+    setPointConfirmed(false);
+    setLocationState("idle");
+    if (fileRef.current) fileRef.current.value = "";
+  };
+  const ready = Boolean(
+    preview && point && pointConfirmed && condition && sessionReady,
+  );
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const photo = fileRef.current?.files?.[0];
+    if (!photo || !ready) return;
+    setPending(true);
+    setSubmissionError(null);
+    try {
+      const data = new FormData(event.currentTarget),
+        payload = {
+          pauta_slug: String(data.get("pauta_slug") ?? ""),
+          return_to: String(data.get("return_to") ?? ""),
+          description: String(data.get("description") ?? ""),
+          category: String(data.get("category") ?? ""),
+          problems: String(data.get("problems") ?? ""),
+          condition: String(data.get("condition") ?? ""),
+          longitude: String(data.get("longitude") ?? ""),
+          latitude: String(data.get("latitude") ?? ""),
+          location_accuracy_m: String(data.get("location_accuracy_m") ?? ""),
+          location_source: String(data.get("location_source") ?? ""),
+        },
+        authorization = await authorizeSidewalkPhotoUpload({
+          filename: photo.name,
+          mimeType: photo.type || "image/jpeg",
+          sizeBytes: photo.size,
+          payload,
+        }),
+        client = createSupabaseBrowserClient(),
+        uploaded = await client.storage
+          .from("archive-private-originals")
+          .uploadToSignedUrl(authorization.path, authorization.token, photo, {
+            contentType: photo.type || "image/jpeg",
+            upsert: false,
+          });
+      if (uploaded.error)
+        throw new Error("Falha ao enviar a fotografia privada.");
+      await confirmSidewalkPhotoUpload(authorization.uploadId);
+    } catch (error) {
+      setSubmissionError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível enviar agora. Tente novamente.",
+      );
+      setPending(false);
+    }
+  };
+  return (
+    <form onSubmit={submit} className="mt-6 grid gap-4">
+      <input type="hidden" name="pauta_slug" value={pautaSlug} />
+      <input type="hidden" name="return_to" value="/comun/calcadas" />
+      <input type="hidden" name="condition" value={condition} />
+      <input type="hidden" name="category" value={categories[0] || "outro"} />
+      <input type="hidden" name="problems" value={categories.join(",")} />
+      <input type="hidden" name="longitude" value={point?.[0] ?? "not-set"} />
+      <input type="hidden" name="latitude" value={point?.[1] ?? "not-set"} />
+      <input type="hidden" name="location_accuracy_m" value={accuracy ?? ""} />
+      <input
+        type="hidden"
+        name="location_source"
+        value={
+          locationState === "located" || locationState === "low_accuracy"
+            ? "device"
+            : "manual"
+        }
+      />
+      <input
+        ref={fileRef}
+        name="photo"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        aria-label="Fotografia da calçada"
+        className="sr-only"
+        onChange={(event) => void selectPhoto(event.target.files?.[0])}
+      />
+      {submissionError ? (
+        <p
+          role="alert"
+          className="border-l-4 border-comun-yellow bg-comun-paper p-4 text-comun-black"
+        >
+          {submissionError}
+        </p>
+      ) : null}
+      {!preview ? (
+        <section className="border-2 border-comun-yellow bg-comun-paper p-6 text-comun-black">
+          <h2 className="text-2xl font-black uppercase">Fotografe a calçada</h2>
+          <p className="mt-2">
+            Evite rostos, placas e números de casas. A foto e o ponto exato
+            ficam privados até a moderação.
+          </p>
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="mt-5 min-h-14 w-full bg-comun-yellow px-5 text-lg font-black uppercase"
+          >
+            Abrir câmera
+          </button>
+          <p className="mt-2 text-center text-sm">
+            No computador, o mesmo botão abre a galeria.
+          </p>
+        </section>
+      ) : (
+        <>
+          <section className="grid gap-4 border-2 bg-comun-paper p-4 text-comun-black lg:grid-cols-[18rem_1fr]">
+            <div>
+              <img
+                src={preview}
+                alt="Prévia privada da fotografia selecionada"
+                className="aspect-[4/3] w-full border-2 object-cover"
+              />
+              <div className="mt-2 flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="font-black underline"
+                >
+                  Refazer foto
+                </button>
+                <button
+                  type="button"
+                  onClick={remove}
+                  className="font-black underline"
+                >
+                  Remover
+                </button>
+              </div>
+            </div>
+            <div>
+              <h2 className="text-2xl font-black uppercase">
+                Confirme o local
+              </h2>
+              <p role="status" className="mt-2 text-sm">
+                {locationMessage(locationState, accuracy)}
+              </p>
+              <ManualPointPicker
+                point={point}
+                accuracy={accuracy}
+                onChange={(value) => {
+                  setPoint(value);
+                  setAccuracy(null);
+                  setLocationState("located");
+                  setPointConfirmed(true);
+                }}
+              />
+              {point && !pointConfirmed ? (
+                <label className="mt-3 flex min-h-11 items-center gap-3 font-bold">
+                  <input
+                    type="checkbox"
+                    checked={pointConfirmed}
+                    onChange={(event) =>
+                      setPointConfirmed(event.target.checked)
+                    }
+                    className="size-6"
+                  />
+                  Confirmo este ponto após conferir no mapa
+                </label>
+              ) : null}
+            </div>
+          </section>
+          <fieldset className="border-2 bg-comun-paper p-4 text-comun-black">
+            <legend className="px-2 font-black uppercase">
+              Condição obrigatória
+            </legend>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {conditionOptions.map(([value, label]) => (
+                <button
+                  type="button"
+                  key={value}
+                  aria-pressed={condition === value}
+                  onClick={() => setCondition(value)}
+                  className={`grid min-h-14 place-items-center border-2 p-2 font-black ${condition === value ? "bg-comun-yellow" : "bg-white"}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          <section className="border-2 bg-comun-paper p-4 text-comun-black">
+            <h2 className="font-black uppercase">Problemas opcionais</h2>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {[
+                ["buraco", "Buraco"],
+                ["irregular", "Irregular"],
+                ["sem_rampa", "Sem rampa"],
+                ["obstaculo", "Obstáculo"],
+                ["estreita", "Estreita"],
+                ["inexistente", "Sem calçada"],
+              ].map(([value, label]) => (
+                <button
+                  type="button"
+                  aria-pressed={categories.includes(value)}
+                  key={value}
+                  onClick={() =>
+                    setCategories((all) =>
+                      all.includes(value)
+                        ? all.filter((x) => x !== value)
+                        : [...all, value],
+                    )
+                  }
+                  className={`min-h-11 border-2 px-3 font-bold ${categories.includes(value) ? "bg-comun-yellow" : "bg-white"}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <label className="mt-4 grid gap-1 font-bold">
+              Descrição opcional
+              <textarea
+                name="description"
+                maxLength={600}
+                rows={3}
+                className="border-2 p-3"
+              />
+            </label>
+          </section>
+          <button
+            disabled={!ready || pending}
+            className="sticky bottom-20 min-h-14 w-full border-2 border-comun-black bg-comun-yellow px-5 text-lg font-black uppercase text-comun-black shadow-[3px_3px_0_#0b0b0a] disabled:opacity-50"
+          >
+            {pending ? "Enviando…" : "Enviar para revisão"}
+          </button>
+          <p className="text-sm text-comun-paper/75">
+            Nenhum cadastro é exigido antes do envio. Uma sessão anônima
+            limitada é criada somente após a escolha da foto para permitir
+            confirmação e acompanhamento neste dispositivo.
+          </p>
+        </>
+      )}
+    </form>
+  );
 }
 
-export function SidewalkDraftCleanup({pautaSlug}:{pautaSlug:string}){useEffect(()=>{const remaining=parseSafeDrafts(localStorage.getItem(COMUN_DRAFT_KEY)).filter(item=>item.id!==`sidewalk:${pautaSlug}`);localStorage.setItem(COMUN_DRAFT_KEY,JSON.stringify(remaining))},[pautaSlug]);return null}
+function locationMessage(state: LocationState, accuracy: number | null) {
+  if (state === "locating") return "Obtendo o GPS uma única vez…";
+  if (state === "located")
+    return `Local encontrado${accuracy ? ` · precisão aproximada de ${Math.round(accuracy)} m` : ""}. Você pode ajustar o marcador.`;
+  if (state === "low_accuracy")
+    return `Precisão baixa (${Math.round(accuracy || 0)} m). Ajuste ou confirme o ponto manualmente.`;
+  if (state === "denied")
+    return "Permissão de localização negada. Toque no mapa para marcar manualmente.";
+  if (state === "timeout")
+    return "O GPS demorou demais. Toque no mapa para marcar manualmente.";
+  if (state === "unavailable")
+    return "GPS indisponível. Toque no mapa para marcar manualmente.";
+  return "Aguardando a fotografia.";
+}
+function ManualPointPicker({
+  point,
+  accuracy,
+  onChange,
+}: {
+  point: [number, number] | null;
+  accuracy: number | null;
+  onChange: (point: [number, number]) => void;
+}) {
+  const p = point ? projectMercator(point) : null;
+  return (
+    <button
+      type="button"
+      aria-label="Mapa para confirmar ou ajustar o ponto"
+      onClick={(event) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        onChange(
+          unprojectMercator(
+            (event.clientX - rect.left) / rect.width,
+            (event.clientY - rect.top) / rect.height,
+          ),
+        );
+      }}
+      className="relative mt-3 block h-64 w-full overflow-hidden border-2 bg-[#dfe7df]"
+    >
+      <svg
+        viewBox="0 0 600 300"
+        className="absolute inset-0 size-full"
+        aria-hidden="true"
+      >
+        <path
+          d="M0 190 C100 130 210 230 310 160 S480 90 600 130"
+          fill="none"
+          stroke={VOLTA_REDONDA_MAP.style.water}
+          strokeWidth="22"
+        />
+      </svg>
+      {p ? (
+        <>
+          <span
+            className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-blue-700 bg-blue-300/25"
+            style={{
+              left: `${p.x * 100}%`,
+              top: `${p.y * 100}%`,
+              width: accuracy
+                ? `${Math.min(120, Math.max(30, accuracy))}px`
+                : 30,
+              height: accuracy
+                ? `${Math.min(120, Math.max(30, accuracy))}px`
+                : 30,
+            }}
+          />
+          <span
+            className="absolute grid size-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 bg-comun-yellow"
+            style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}
+          >
+            ●
+          </span>
+        </>
+      ) : null}
+      <span className="absolute bottom-2 left-2 bg-white p-2 text-xs font-bold">
+        Toque para ajustar o marcador
+      </span>
+    </button>
+  );
+}
+async function compressPhoto(file: File) {
+  if (file.size < 1_500_000) return file;
+  const bitmap = await createImageBitmap(file),
+    scale = Math.min(1, 1920 / Math.max(bitmap.width, bitmap.height)),
+    canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const blob = await new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob(
+      (value) =>
+        value
+          ? resolve(value)
+          : reject(new Error("Falha ao comprimir imagem.")),
+      "image/jpeg",
+      0.82,
+    ),
+  );
+  return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", {
+    type: "image/jpeg",
+    lastModified: Date.now(),
+  });
+}
+export function SidewalkDraftCleanup() {
+  return null;
+}

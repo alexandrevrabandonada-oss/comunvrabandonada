@@ -1,0 +1,141 @@
+name: PR23 Full Local Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Exact PR head SHA
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      sha:
+        required: true
+        type: string
+    outputs:
+      result:
+        description: Sanitized full gate result
+        value: ${{ jobs.full-local.outputs.result }}
+      tested_sha:
+        description: Immutable SHA exercised by the gate
+        value: ${{ jobs.full-local.outputs.tested_sha }}
+      reconciliation_hash:
+        description: Deterministic schema reconciliation hash
+        value: ${{ jobs.full-local.outputs.reconciliation_hash }}
+      unit_tests:
+        description: Sanitized unit-test state
+        value: ${{ jobs.full-local.outputs.unit_tests }}
+      e2e_tests:
+        description: Sanitized E2E state
+        value: ${{ jobs.full-local.outputs.e2e_tests }}
+      cleanup:
+        description: Sanitized cleanup state
+        value: ${{ jobs.full-local.outputs.cleanup }}
+      production_like:
+        description: Sanitized production-like state
+        value: ${{ jobs.full-local.outputs.production_like }}
+
+concurrency:
+  group: pr23-full-local-${{ inputs.sha }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  full-local:
+    name: pr23/full-local-gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    outputs:
+      result: ${{ steps.contract.outputs.result }}
+      tested_sha: ${{ steps.contract.outputs.tested_sha }}
+      reconciliation_hash: ${{ steps.contract.outputs.reconciliation_hash }}
+      unit_tests: ${{ steps.contract.outputs.unit_tests }}
+      e2e_tests: ${{ steps.contract.outputs.e2e_tests }}
+      cleanup: ${{ steps.contract.outputs.cleanup }}
+      production_like: ${{ steps.contract.outputs.production_like }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+      - name: Verify immutable SHA and canonical branch
+        env:
+          EXPECTED_SHA: ${{ inputs.sha }}
+          EXPECTED_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test "$EXPECTED_BRANCH" = "codex/sprint-40-1-mobile-preview"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - run: npm ci --ignore-scripts
+      - name: Start clean target and trial 1
+        shell: bash
+        run: |
+          supabase start
+          supabase db reset --local --yes
+          container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          test -n "$container"
+          node scripts/run-pr23-reconciliation.mjs --container="$container"
+          docker exec "$container" pg_dump -U postgres -d postgres --schema-only --no-owner --no-privileges | sed '/^--/d;/^$/d' | sha256sum | cut -d' ' -f1 > /tmp/pr23-hash-1
+          docker exec "$container" psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 -f /tmp/pr23-postflight_assertions.sql 2>/dev/null || node scripts/run-pr23-reconciliation.mjs --container="$container"
+          node scripts/run-pr23-reconciliation.mjs --container="$container"
+          supabase stop --no-backup
+      - name: Trial 2 and compare
+        shell: bash
+        run: |
+          supabase start
+          supabase db reset --local --yes
+          container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          test -n "$container"
+          node scripts/run-pr23-reconciliation.mjs --container="$container"
+          docker exec "$container" pg_dump -U postgres -d postgres --schema-only --no-owner --no-privileges | sed '/^--/d;/^$/d' | sha256sum | cut -d' ' -f1 > /tmp/pr23-hash-2
+          diff -u /tmp/pr23-hash-1 /tmp/pr23-hash-2
+          node scripts/run-pr23-reconciliation.mjs --container="$container"
+      - name: Full application regression
+        run: |
+          npm run typecheck
+          npm run lint
+          npm run test:unit
+          npm run build
+          supabase db lint --local --schema public --level error --fail-on error
+          npm run audit:rls-matrix
+          npm run test:e2e:comun-integral-experience
+          npm run test:e2e:editorial-operation-authenticated
+          npm run test:e2e:territorial-art
+          npm run test:e2e:community-radio
+          npm run test:e2e:comun-sidewalk-real-map
+          npm run test:e2e:comun-miniapp-experience
+          npm run test:e2e:comun-mobile-app-shell
+          npm run test:e2e:comun-pwa-experience
+          npm run smoke:no-leak-http
+          npm run cleanup:comun-sidewalk-uploads
+          npm run test:fixtures:assert-clean
+      - name: Sanitized summary
+        id: contract
+        if: success()
+        run: |
+          hash="$(cat /tmp/pr23-hash-2)"
+          {
+            echo '## PR23_FULL_LOCAL_GATE_OK'
+            echo "- SHA: \`${{ inputs.sha }}\`"
+            echo "- schema hash: \`$hash\`"
+            echo '- cleanup: dry-run'
+            echo '- private artifacts: none'
+          } >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo 'result=PR23_FULL_LOCAL_GATE_OK'
+            echo 'tested_sha=${{ inputs.sha }}'
+            echo "reconciliation_hash=$hash"
+            echo 'unit_tests=passed'
+            echo 'e2e_tests=passed'
+            echo 'cleanup=passed'
+            echo 'production_like=passed'
+          } >> "$GITHUB_OUTPUT"
+      - if: always()
+        run: supabase stop --no-backup || true

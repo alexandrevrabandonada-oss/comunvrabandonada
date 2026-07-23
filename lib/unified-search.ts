@@ -1,5 +1,6 @@
 import { performance } from "node:perf_hooks";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { comunCanonicalRoutes } from "@/lib/comun-canonical-routes";
 export type SearchResult = {
   type: string;
   title: string;
@@ -17,7 +18,24 @@ export async function unifiedPublicSearch(
     q = term.trim().slice(0, 80);
   if (q.length < 2) return { results: [] as SearchResult[], durationMs: 0 };
   const db = createServiceSupabaseClient();
-  if (!db) return { results: [] as SearchResult[], durationMs: 0 };
+  const toolResults: SearchResult[] = /mapa|calçada|calcada/i.test(q)
+    ? [
+        {
+          type: "ferramenta",
+          title: "Mapa das Calçadas",
+          summary:
+            "Registre barreiras, acompanhe prioridades, mobilização, resultados e memória.",
+          href: comunCanonicalRoutes.miniapp(),
+          origin: "Pauta Calçadas em circulação",
+          score: 90,
+        },
+      ]
+    : [];
+  if (!db)
+    return {
+      results: filter?.type && filter.type !== "ferramenta" ? [] : toolResults,
+      durationMs: 0,
+    };
   const clean = q.replace(/[%_,()]/g, " "),
     like = `%${clean}%`;
   const [
@@ -33,7 +51,12 @@ export async function unifiedPublicSearch(
     episodes,
     collections,
   ] = await Promise.all([
-    db.from("comun_communities").select("slug,name,short_description,updated_at").eq("is_active",true).or(`name.ilike.${like},short_description.ilike.${like}`).limit(12),
+    db
+      .from("comun_communities")
+      .select("slug,name,short_description,updated_at")
+      .eq("is_active", true)
+      .or(`name.ilike.${like},short_description.ilike.${like}`)
+      .limit(12),
     db
       .from("comun_pauta_spaces")
       .select("id,slug,title,summary,updated_at")
@@ -107,7 +130,16 @@ export async function unifiedPublicSearch(
           ? 60
           : 40;
   let rows: SearchResult[] = [
-    ...(communities.data ?? []).map((x:any)=>({type:"comunidade",title:x.name,summary:x.short_description,href:`/comun/c/${x.slug}`,updatedAt:x.updated_at,origin:"Comunidade",score:score(x.name)})),
+    ...toolResults,
+    ...(communities.data ?? []).map((x: any) => ({
+      type: "comunidade",
+      title: x.name,
+      summary: x.short_description,
+      href: `/comun/c/${x.slug}`,
+      updatedAt: x.updated_at,
+      origin: "Comunidade",
+      score: score(x.name),
+    })),
     ...(pautas.data ?? []).map((x: any) => ({
       type: "pauta",
       title: x.title,
@@ -139,7 +171,7 @@ export async function unifiedPublicSearch(
       type: "resultado",
       title: x.title,
       summary: x.public_summary,
-      href: "/comun/resultados",
+      href: comunCanonicalRoutes.result(x.slug),
       updatedAt: x.updated_at,
       origin: "Resultado",
       score: score(x.title, x.pauta_id),

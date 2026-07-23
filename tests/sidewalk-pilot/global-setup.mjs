@@ -6,10 +6,14 @@ import { createClient } from "@supabase/supabase-js";
 import { assertLocalEnvironment } from "../../scripts/local-environment.mjs";
 
 export default async function globalSetup() {
+  process.env.ALLOW_LOCAL_TESTS = "true";
+  process.env.COMUN_BASE_URL ??= "http://127.0.0.1:3000";
   assertLocalEnvironment();
 
   const slugFile = path.join(process.cwd(), ".comun-sidewalk-pilot-slug");
-  const raw = execFileSync("powershell", ["-NoProfile", "-Command", "$env:DO_NOT_TRACK='1'; npx supabase status -o env"], { encoding: "utf8" });
+  const raw = process.platform === "win32"
+    ? execFileSync("powershell", ["-NoProfile", "-Command", "$env:DO_NOT_TRACK='1'; npx supabase status -o env"], { encoding: "utf8" })
+    : execFileSync("npx", ["supabase", "status", "-o", "env"], { encoding: "utf8", env: { ...process.env, DO_NOT_TRACK: "1", SUPABASE_DISABLE_TELEMETRY: "1" } });
   const env = Object.fromEntries(raw.split(/\r?\n/).filter(Boolean).map((line) => {
     const i = line.indexOf("=");
     return [line.slice(0, i), line.slice(i + 1).replace(/^\"|\"$/g, "")];

@@ -3,13 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { COMUN_INSTALL_DISMISS_KEY, COMUN_LAST_SAFE_ROUTE_KEY, isSafeComunRoute } from "@/lib/comun-pwa";
+import {
+  COMUN_INSTALL_DISMISS_KEY,
+  COMUN_LAST_SAFE_ROUTE_KEY,
+  isSafeComunRoute,
+} from "@/lib/comun-pwa";
 
-type InstallEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed" }> };
+type InstallEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+};
 type Connection = "online" | "offline" | "reconnecting";
 
 export function ComunPwaRuntime() {
   const path = usePathname();
+  const installSurfaceBlocked =
+    path.startsWith("/comun/calcadas") ||
+    path.startsWith("/comun/mapa/contribuir");
+  const installSurfaceAllowed = path.startsWith("/comun/minha-participacao") || path.startsWith("/comun/conta") || path.includes("/confirmacao");
   const [connection, setConnection] = useState<Connection>("online");
   const [installEvent, setInstallEvent] = useState<InstallEvent | null>(null);
   const [showInstall, setShowInstall] = useState(false);
@@ -20,68 +31,223 @@ export function ComunPwaRuntime() {
   useEffect(() => {
     queueMicrotask(() => {
       setConnection(navigator.onLine ? "online" : "offline");
-      setStandalone(window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true);
+      setStandalone(
+        window.matchMedia("(display-mode: standalone)").matches ||
+          (navigator as Navigator & { standalone?: boolean }).standalone ===
+            true,
+      );
     });
-    if (isSafeComunRoute(path)) sessionStorage.setItem(COMUN_LAST_SAFE_ROUTE_KEY, path);
+    if (isSafeComunRoute(path))
+      sessionStorage.setItem(COMUN_LAST_SAFE_ROUTE_KEY, path);
   }, [path]);
 
   useEffect(() => {
-    const online = () => { setConnection("reconnecting"); window.setTimeout(() => setConnection(navigator.onLine ? "online" : "offline"), 900); };
+    const online = () => {
+      setConnection("reconnecting");
+      window.setTimeout(
+        () => setConnection(navigator.onLine ? "online" : "offline"),
+        900,
+      );
+    };
     const offline = () => setConnection("offline");
-    window.addEventListener("online", online); window.addEventListener("offline", offline);
+    window.addEventListener("online", online);
+    window.addEventListener("offline", offline);
     const beforeInstall = (event: Event) => {
       event.preventDefault();
       setInstallEvent(event as InstallEvent);
-      const dismissedAt = Number(localStorage.getItem(COMUN_INSTALL_DISMISS_KEY) || 0);
-      const valueSeen = Number(sessionStorage.getItem("comun:surfaces-seen") || 0);
-      if (Date.now() - dismissedAt > 7 * 86400000 && valueSeen >= 1) setShowInstall(true);
+      const dismissedAt = Number(
+        localStorage.getItem(COMUN_INSTALL_DISMISS_KEY) || 0,
+      );
+      const valueSeen = Number(
+        sessionStorage.getItem("comun:surfaces-seen") || 0,
+      );
+      if (Date.now() - dismissedAt > 30 * 86400000 && valueSeen >= 1)
+        setShowInstall(true);
     };
     window.addEventListener("beforeinstallprompt", beforeInstall);
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js", { scope: "/comun/" }).then((registration) => {
-        if (registration.waiting) setUpdateWorker(registration.waiting);
-        registration.addEventListener("updatefound", () => {
-          const worker = registration.installing;
-          worker?.addEventListener("statechange", () => { if (worker.state === "installed" && navigator.serviceWorker.controller) setUpdateWorker(worker); });
-        });
-      }).catch(() => setConnection("offline"));
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/comun/" })
+        .then((registration) => {
+          if (registration.waiting) setUpdateWorker(registration.waiting);
+          registration.addEventListener("updatefound", () => {
+            const worker = registration.installing;
+            worker?.addEventListener("statechange", () => {
+              if (
+                worker.state === "installed" &&
+                navigator.serviceWorker.controller
+              )
+                setUpdateWorker(worker);
+            });
+          });
+        })
+        .catch(() => setConnection("offline"));
     }
-    sessionStorage.setItem("comun:surfaces-seen", String(Number(sessionStorage.getItem("comun:surfaces-seen") || 0) + 1));
-    return () => { window.removeEventListener("online", online); window.removeEventListener("offline", offline); window.removeEventListener("beforeinstallprompt", beforeInstall); };
+    sessionStorage.setItem(
+      "comun:surfaces-seen",
+      String(Number(sessionStorage.getItem("comun:surfaces-seen") || 0) + 1),
+    );
+    return () => {
+      window.removeEventListener("online", online);
+      window.removeEventListener("offline", offline);
+      window.removeEventListener("beforeinstallprompt", beforeInstall);
+    };
   }, []);
 
-  const dismissInstall = () => { localStorage.setItem(COMUN_INSTALL_DISMISS_KEY, String(Date.now())); setShowInstall(false); };
-  const install = async () => { if (!installEvent) { setIosHelp(true); return; } await installEvent.prompt(); if ((await installEvent.userChoice).outcome === "accepted") setShowInstall(false); else dismissInstall(); };
-  const update = () => { updateWorker?.postMessage({ type: "SKIP_WAITING" }); window.location.reload(); };
+  const dismissInstall = () => {
+    localStorage.setItem(COMUN_INSTALL_DISMISS_KEY, String(Date.now()));
+    setShowInstall(false);
+  };
+  const install = async () => {
+    if (!installEvent) {
+      setIosHelp(true);
+      return;
+    }
+    await installEvent.prompt();
+    if ((await installEvent.userChoice).outcome === "accepted")
+      setShowInstall(false);
+    else dismissInstall();
+  };
+  const update = () => {
+    updateWorker?.postMessage({ type: "SKIP_WAITING" });
+    window.location.reload();
+  };
 
-  return <>
-    <div data-testid="connection-status" role="status" aria-live="polite" className={`fixed inset-x-0 z-50 mx-auto w-fit max-w-[calc(100%-2rem)] border-2 border-comun-black px-3 py-2 text-center text-xs font-black uppercase shadow-[3px_3px_0_#0b0b0a] ${connection === "online" ? "sr-only" : "top-[4.5rem] bg-comun-yellow text-comun-black"}`}>
-      {connection === "offline" ? "Sem conexão. Conteúdos já disponíveis continuam acessíveis; envios precisam de conexão." : "Conexão restabelecida."}
-    </div>
-    {standalone ? <span className="sr-only" data-testid="standalone-active">Aplicativo aberto em modo instalado</span> : null}
-    {showInstall ? <aside aria-label="Instalar COMUN" className="fixed bottom-20 left-3 right-3 z-40 border-2 border-comun-black bg-comun-paper p-4 text-comun-black shadow-[5px_5px_0_#f4c400] md:bottom-5 md:left-auto md:max-w-sm">
-      <p className="font-black">Instale o COMUN para acessar suas pautas e continuar de onde parou.</p>
-      <div className="mt-3 flex flex-wrap gap-3"><button onClick={install} className="min-h-11 bg-comun-black px-4 font-black uppercase text-comun-paper">Instalar</button><button onClick={dismissInstall} className="min-h-11 font-black underline">Agora não</button><button onClick={() => setIosHelp((value) => !value)} className="min-h-11 font-black underline">Como funciona</button></div>
-      {iosHelp ? <p className="mt-3 text-sm">No iPhone ou iPad, abra Compartilhar e escolha “Adicionar à Tela de Início”.</p> : null}
-    </aside> : null}
-    {updateWorker ? <aside role="status" className="fixed bottom-20 left-3 z-40 border-2 border-comun-black bg-comun-yellow p-4 text-comun-black md:bottom-5"><strong>Atualização disponível.</strong><div className="mt-2 flex gap-3"><button onClick={update} className="min-h-11 bg-comun-black px-3 font-black uppercase text-white">Atualizar agora</button><button onClick={() => setUpdateWorker(null)} className="font-black underline">Depois</button></div></aside> : null}
-    <Link href="/comun/offline" className="sr-only focus:not-sr-only focus:fixed focus:right-3 focus:top-20 focus:z-50 focus:bg-comun-yellow focus:p-3 focus:text-comun-black">Ver ajuda de conexão</Link>
-  </>;
+  return (
+    <>
+      <div
+        data-testid="connection-status"
+        role="status"
+        aria-live="polite"
+        className={`fixed inset-x-0 z-50 mx-auto w-fit max-w-[calc(100%-2rem)] border-2 border-comun-black px-3 py-2 text-center text-xs font-black uppercase shadow-[3px_3px_0_#0b0b0a] ${connection === "online" ? "sr-only" : "top-[4.5rem] bg-comun-yellow text-comun-black"}`}
+      >
+        {connection === "offline"
+          ? "Sem conexão. Conteúdos já disponíveis continuam acessíveis; envios precisam de conexão."
+          : "Conexão restabelecida."}
+      </div>
+      {standalone ? (
+        <span className="sr-only" data-testid="standalone-active">
+          Aplicativo aberto em modo instalado
+        </span>
+      ) : null}
+      {showInstall && installSurfaceAllowed && !installSurfaceBlocked && !updateWorker ? (
+        <aside
+          aria-label="Instalar COMUN"
+          className="relative z-20 border-b-2 border-comun-black bg-comun-paper px-4 py-3 text-comun-black"
+        >
+          <div className="mx-auto max-w-7xl">
+            <p className="font-black">
+              Instale o COMUN para acessar suas pautas e continuar de onde
+              parou.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <button
+                onClick={install}
+                className="min-h-11 bg-comun-black px-4 font-black uppercase text-comun-paper"
+              >
+                Instalar
+              </button>
+              <button
+                onClick={dismissInstall}
+                className="min-h-11 font-black underline"
+              >
+                Agora não
+              </button>
+              <button
+                onClick={() => setIosHelp((value) => !value)}
+                className="min-h-11 font-black underline"
+              >
+                Como funciona
+              </button>
+            </div>
+            {iosHelp ? (
+              <p className="mt-3 text-sm">
+                No iPhone ou iPad, abra Compartilhar e escolha “Adicionar à Tela
+                de Início”.
+              </p>
+            ) : null}
+          </div>
+        </aside>
+      ) : null}
+      {updateWorker ? (
+        <aside
+          role="status"
+          className="relative z-20 border-b-2 border-comun-black bg-comun-yellow px-4 py-3 text-comun-black"
+        >
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3">
+            <strong>Atualização disponível.</strong>
+            <button
+              onClick={update}
+              className="min-h-11 bg-comun-black px-3 font-black uppercase text-white"
+            >
+              Atualizar agora
+            </button>
+            <button
+              onClick={() => setUpdateWorker(null)}
+              className="min-h-11 font-black underline"
+            >
+              Depois
+            </button>
+          </div>
+        </aside>
+      ) : null}
+      <Link
+        href="/comun/offline"
+        className="sr-only focus:not-sr-only focus:fixed focus:right-3 focus:top-20 focus:z-50 focus:bg-comun-yellow focus:p-3 focus:text-comun-black"
+      >
+        Ver ajuda de conexão
+      </Link>
+    </>
+  );
 }
 
 export function ComunShareButton({ title }: { title: string }) {
   const [copied, setCopied] = useState(false);
   const share = async () => {
-    const data = { title, text: `Veja no COMUN: ${title}`, url: window.location.href };
-    if (navigator.share) { try { await navigator.share(data); return; } catch { return; } }
-    await navigator.clipboard.writeText(data.url); setCopied(true); window.setTimeout(() => setCopied(false), 2500);
+    const data = {
+      title,
+      text: `Veja no COMUN: ${title}`,
+      url: window.location.href,
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(data);
+        return;
+      } catch {
+        return;
+      }
+    }
+    await navigator.clipboard.writeText(data.url);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2500);
   };
-  return <button type="button" onClick={share} className="min-h-11 border-2 border-comun-yellow px-3 text-xs font-black uppercase text-comun-yellow">Compartilhar<span className="sr-only" aria-live="polite">{copied ? " Link copiado" : ""}</span></button>;
+  return (
+    <button
+      type="button"
+      onClick={share}
+      className="min-h-11 border-2 border-comun-yellow px-3 text-xs font-black uppercase text-comun-yellow"
+    >
+      Compartilhar
+      <span className="sr-only" aria-live="polite">
+        {copied ? " Link copiado" : ""}
+      </span>
+    </button>
+  );
 }
 
 export function ComunLogoutCleanup() {
-  return <button type="submit" onClick={() => {
-    sessionStorage.removeItem(COMUN_LAST_SAFE_ROUTE_KEY);
-    navigator.serviceWorker?.controller?.postMessage({ type: "CLEAR_PRIVATE" });
-  }} className="mt-5 block min-h-11 border-2 border-comun-yellow px-4 font-black uppercase text-comun-yellow">Sair</button>;
+  return (
+    <button
+      type="submit"
+      onClick={() => {
+        sessionStorage.removeItem(COMUN_LAST_SAFE_ROUTE_KEY);
+        navigator.serviceWorker?.controller?.postMessage({
+          type: "CLEAR_PRIVATE",
+        });
+      }}
+      className="mt-5 block min-h-11 border-2 border-comun-yellow px-4 font-black uppercase text-comun-yellow"
+    >
+      Sair
+    </button>
+  );
 }

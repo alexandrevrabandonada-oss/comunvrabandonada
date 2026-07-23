@@ -1,0 +1,76 @@
+# Operação solo unificada do COMUN
+
+## Estado vigente
+
+O COMUN é operado por uma pessoa. A decisão manual de release é representada uma única vez pela label `comun:promover` ou pelo disparo manual equivalente. Revisores externos, duas aprovações, GitHub Environments, cofre próprio e restore integral não são requisitos deste projeto.
+
+Estados operacionais permitidos:
+
+- `SOLO_LOCAL_GREEN`
+- `SOLO_READY_TO_PROMOTE`
+- `SOLO_PROMOTION_RUNNING`
+- `SOLO_PRODUCTION_GREEN`
+- `SOLO_PROMOTION_FAILED`
+
+`NO_GO_REMOTE_INTEGRATION` só deve ser emitido diante de uma falha técnica concreta, e não como bloqueio permanente de governança.
+
+## Fonte canônica
+
+Até o fechamento da PR #23, a linha única é `codex/sprint-40-1-mobile-preview`. Depois de uma promoção verde, `main` será a fonte canônica. Deve existir apenas uma branch de trabalho e uma PR ativa por vez:
+
+```text
+main -> codex/tijolo-<numero>-<nome> -> PR -> CI -> promoção/merge -> main
+```
+
+Não empilhar PRs, não iniciar tijolo estrutural com CI vermelho e sempre criar migrations novas para mudanças de banco.
+
+## Automação ativa
+
+- `comun-ci.yml`: FAST em toda PR e push; FULL na PR #23, branches de promoção e chamadas explícitas.
+- `comun-promote.yml`: única promoção, autorizada por operador `admin` ou `maintain` e SHA imutável.
+- `comun-nightly.yml`: regressão FULL diária e scheduler já existente do acervo.
+
+O push sozinho nunca promove produção. A label `comun:promover` é a autorização humana única. Labels desconhecidas são ignoradas.
+
+## Gates
+
+FAST executa instalação reproduzível, testes do contrato solo, typecheck, lint, unitários, build, Supabase local, DB lint, RLS e limpeza de fixtures.
+
+FULL executa dois ensaios independentes da reconciliação, compara fingerprints, comprova postflight e idempotência e percorre as jornadas críticas de mapa, captura, comunidades, pautas, acervo, arte, rádio, operação, shell mobile, PWA, no-leak, cleanup e production-like.
+
+O gate verde é `COMUN_CI_GREEN`.
+
+## Promoção
+
+A promoção confirma permissão do operador, PR, branch, SHA, CI e mesclabilidade. Antes da primeira escrita remota, cria o artifact `comun-pre-promotion-checkpoint-<SHA>` por sete dias, contendo somente schema, listas de migrations, fingerprint, contagens agregadas e identificação sanitizada do deployment. Ele não é backup integral e não contém dados pessoais, fotos, coordenadas privadas, object keys ou credenciais.
+
+O SQL é validado e aplicado em uma única transação `BEGIN`/`COMMIT` com falha imediata. São proibidos `DROP TABLE`, `DROP SCHEMA`, `TRUNCATE`, `DELETE` sem `WHERE`, `ALTER TABLE DROP COLUMN`, recriação de tabela com dados, `migration repair` e comandos administrativos fora da allowlist. Qualquer erro antes do commit produz rollback do PostgreSQL e interrompe a promoção.
+
+Depois do banco, o workflow executa postflight, DB lint, RLS, cleanup dry-run, preview e no-leak. Somente então remove o draft, cria merge commit, aguarda o deployment de `main` e monitora produção por 15 minutos. Domínio só pode ser alterado nesse fluxo quando configurado e necessário.
+
+## Rollback
+
+- antes do commit do banco: rollback transacional, sem merge ou domínio;
+- depois da migration e antes do merge: não mesclar; corrigir por migration nova;
+- depois do merge: solicitar rollback para o deployment Vercel anterior, restaurar aliases quando aplicável e abrir issue de incidente;
+- nunca executar SQL reverso destrutivo automaticamente.
+
+## Contrato de secrets
+
+Somente nomes, nunca valores:
+
+- `SUPABASE_ACCESS_TOKEN`
+- `SUPABASE_PROJECT_REF`
+- `SUPABASE_DB_URL`
+- `SUPABASE_DB_PASSWORD`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `VERCEL_TOKEN`
+- `VERCEL_TEAM_ID`
+- `VERCEL_CANONICAL_PROJECT_ID`
+- `VERCEL_LEGACY_PROJECT_ID`
+
+Os antigos secrets `PR23_BACKUP_*` não fazem parte do contrato vigente.
+
+## Ações depois de uma produção verde
+
+Confirmar `SOLO_PRODUCTION_GREEN`, tornar `main` a única fonte, fechar branches históricas, remover worktrees obsoletos e criar a tag `comun-pr23-unified`. Nenhuma dessas ações é antecipada no lote de preparação.

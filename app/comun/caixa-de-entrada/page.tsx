@@ -37,13 +37,30 @@ export default async function Page() {
             >
               <div className="flex flex-wrap items-center gap-3">
                 <ComunStatus>{x.priority}</ComunStatus>
-                {!x.read_at?<><span className="size-2 rounded-full bg-comun-yellow" aria-hidden="true"/><span className="sr-only">Não lida</span></>:null}<span className="text-xs font-bold text-comun-paper/60">
-                  {x.notification_type.replaceAll("_", " ")}
+                {!x.read_at ? (
+                  <>
+                    <span
+                      className="size-2 rounded-full bg-comun-yellow"
+                      aria-hidden="true"
+                    />
+                    <span className="sr-only">Não lida</span>
+                  </>
+                ) : null}
+                <span className="text-xs font-bold text-comun-paper/60">
+                  {x.context.sourceLabel} · {x.context.entityType}
+                  {x.context.entityRef ? ` · ${x.context.entityRef}` : ""}
                 </span>
               </div>
               <h2 className="mt-3 text-xl font-black">{x.title}</h2>
               <p className="mt-2 text-comun-paper/75">{x.summary}</p>
-              {x.created_at?<time className="mt-2 block text-xs text-comun-paper/55" dateTime={x.created_at}>{new Date(x.created_at).toLocaleDateString("pt-BR")}</time>:null}
+              {x.created_at ? (
+                <time
+                  className="mt-2 block text-xs text-comun-paper/55"
+                  dateTime={x.created_at}
+                >
+                  {new Date(x.created_at).toLocaleDateString("pt-BR")}
+                </time>
+              ) : null}
               <div className="mt-4 flex flex-wrap gap-4">
                 <Link
                   className="font-black uppercase text-comun-yellow underline"
@@ -66,8 +83,8 @@ export default async function Page() {
         {!rows.length ? (
           <div className="mt-7">
             <ComunEmptyState
-              href="/comun/minha-participacao"
-              label="Ver sua participação"
+              href="/comun"
+              label="Voltar ao Início"
             >
               Nenhuma ação precisa da sua atenção agora.
             </ComunEmptyState>

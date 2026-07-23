@@ -1,0 +1,102 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import {
+  MiniAppExperienceShell,
+  MiniAppPage,
+} from "@/components/sidewalk-miniapp-shell";
+import { getSidewalkMiniapp } from "@/lib/sidewalk-miniapp";
+export const dynamic = "force-dynamic";
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ prioridade?: string }>;
+}) {
+  const selected = (await searchParams).prioridade;
+  const data = await getSidewalkMiniapp();
+  if (!data) notFound();
+  return (
+    <MiniAppExperienceShell
+      active="prioridades"
+      count={data.records.length}
+      community={data.pauta.community}
+      coverage={data.config?.coverage_status}
+      status={data.pauta.public_status}
+    >
+      <MiniAppPage
+        title="Prioridades comunitárias"
+        intro="Escolhas coletivas justificadas por evidências e limitações públicas. A ordem não é um ranking."
+      >
+        <div className="grid gap-4 lg:grid-cols-2">
+          {data.priorities.map((x: any) => (
+            <article
+              key={x.id}
+              id={`prioridade-${x.id}`}
+              className={`border-2 border-comun-black bg-white p-5 ${selected === x.id ? "outline outline-4 outline-comun-yellow outline-offset-4" : ""}`}
+            >
+              <p className="text-xs font-bold">
+                PRIORIDADE APROVADA · VOLTA REDONDA
+              </p>
+              <h3 className="mt-2 text-xl font-black">{x.decision_public}</h3>
+              <dl className="mt-4 grid gap-3 text-sm">
+                <Row label="Objetivo" value={x.evidence_summary_public} />
+                <Row
+                  label="Registros vinculados"
+                  value={
+                    x.record_id ? "1 registro público" : "Conjunto territorial"
+                  }
+                />
+                <Row label="Etapa atual" value="Decisão comunitária aprovada" />
+                <Row
+                  label="Próxima ação"
+                  value={data.pauta.next_step ?? "Organizar encaminhamento"}
+                />
+                <Row
+                  label="Responsáveis"
+                  value="Facilitação e operação comunitária"
+                />
+                <Row
+                  label="Evidências"
+                  value={x.criteria_public?.join(" · ") || "Em documentação"}
+                />
+                <Row
+                  label="Limitações"
+                  value={
+                    x.limitations_public || "Cobertura comunitária parcial"
+                  }
+                />
+                <Row
+                  label="Resultado esperado"
+                  value="Melhoria verificável e documentada no trecho"
+                />
+              </dl>
+              <Link
+                href="/comun/calcadas/mobilizacao"
+                className="mt-5 inline-flex font-black underline"
+              >
+                Ver próxima mobilização
+              </Link>
+            </article>
+          ))}
+          {!data.priorities.length ? (
+            <Empty text="Nenhuma prioridade pública foi aprovada ainda. Os registros continuam visíveis no mapa." />
+          ) : null}
+        </div>
+      </MiniAppPage>
+    </MiniAppExperienceShell>
+  );
+}
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="font-bold">{label}</dt>
+      <dd className="text-comun-black/70">{value}</dd>
+    </div>
+  );
+}
+function Empty({ text }: { text: string }) {
+  return (
+    <p className="border-2 border-dashed border-comun-black/40 bg-white p-6">
+      {text}
+    </p>
+  );
+}

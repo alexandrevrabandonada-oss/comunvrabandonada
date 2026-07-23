@@ -1,0 +1,64 @@
+name: PR23 Final Merge
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha: { description: Exact immutable SHA, required: true }
+      confirmation: { description: Type MERGE PR23, required: true }
+  workflow_call:
+    inputs:
+      sha: { required: true, type: string }
+      confirmation: { required: true, type: string }
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  protection:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.sha }}" }
+      - run: |
+          test "$(gh pr view 23 --json headRefOid --jq .headRefOid)" = '${{ inputs.sha }}'
+          node scripts/pr23/verify-environment-protection.mjs --environment=pr23-final-merge
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+          GH_TOKEN: "${{ github.token }}"
+  merge:
+    needs: protection
+    environment: pr23-final-merge
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.sha }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0 }
+      - name: Immutable final gate and merge
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test '${{ inputs.confirmation }}' = 'MERGE PR23'
+          test "$(git rev-parse HEAD)" = '${{ inputs.sha }}'
+          node scripts/pr23/verify-independent-reviews.mjs
+          test "$(gh pr view 23 --json headRefOid --jq .headRefOid)" = '${{ inputs.sha }}'
+          for workflow in pr23-ci.yml pr23-full-local-gate.yml pr23-backup-restore.yml pr23-controlled-migration.yml pr23-domain-transfer.yml; do
+            count=$(gh run list --workflow "$workflow" --branch codex/sprint-40-1-mobile-preview --commit '${{ inputs.sha }}' --json conclusion --jq 'map(select(.conclusion=="success"))|length')
+            test "$count" -gt 0
+          done
+          if test "$(gh pr view 23 --json isDraft --jq .isDraft)" = true; then gh pr ready 23; fi
+          gh api -X PUT repos/${{ github.repository }}/pulls/23/merge -f sha='${{ inputs.sha }}' -f merge_method=merge --jq '.merged == true'
+          new_main=$(gh api repos/${{ github.repository }}/git/ref/heads/main --jq .object.sha)
+          test -n "$new_main"
+          echo "MERGED_MAIN_SHA=$new_main" >> "$GITHUB_ENV"
+      - name: Observe production for 60 minutes
+        shell: bash
+        run: |
+          for attempt in $(seq 1 12); do
+            curl --fail --silent --show-error --max-time 30 https://comunsocial.online/comun >/dev/null
+            sleep 300
+          done
+          echo 'PR23_READY_TO_MERGE_AND_MONITOR completed' >> "$GITHUB_STEP_SUMMARY"

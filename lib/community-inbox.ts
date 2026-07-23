@@ -1,4 +1,5 @@
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { projectInboxContext } from "@/lib/member-inbox-context";
 export const inboxTypes = [
   "action_required",
   "contribution_update",
@@ -45,7 +46,10 @@ export async function listMemberInbox(memberUserId: string) {
     .order("priority", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(50);
-  return data ?? [];
+  return (data ?? []).map((item: any) => ({
+    ...item,
+    context: projectInboxContext(item),
+  }));
 }
 export async function upsertMemberInbox(input: {
   memberUserId: string;
@@ -61,23 +65,21 @@ export async function upsertMemberInbox(input: {
 }) {
   const db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco indisponível");
-  const { error } = await db
-    .from("comun_member_inbox")
-    .upsert(
-      {
-        member_user_id: input.memberUserId,
-        pauta_id: input.pautaId ?? null,
-        notification_type: input.type,
-        title: input.title.slice(0, 160),
-        summary: input.summary.slice(0, 500),
-        action_label: input.actionLabel.slice(0, 80),
-        action_url: input.actionUrl,
-        priority: input.priority ?? "normal",
-        dedupe_key: input.dedupeKey,
-        resolved_at: input.resolved ? new Date().toISOString() : null,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "member_user_id,dedupe_key" },
-    );
+  const { error } = await db.from("comun_member_inbox").upsert(
+    {
+      member_user_id: input.memberUserId,
+      pauta_id: input.pautaId ?? null,
+      notification_type: input.type,
+      title: input.title.slice(0, 160),
+      summary: input.summary.slice(0, 500),
+      action_label: input.actionLabel.slice(0, 80),
+      action_url: input.actionUrl,
+      priority: input.priority ?? "normal",
+      dedupe_key: input.dedupeKey,
+      resolved_at: input.resolved ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "member_user_id,dedupe_key" },
+  );
   if (error) throw error;
 }

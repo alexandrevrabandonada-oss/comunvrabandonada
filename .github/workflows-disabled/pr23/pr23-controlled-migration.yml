@@ -1,0 +1,96 @@
+name: PR23 Controlled Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha: { description: Exact approved SHA, required: true }
+      confirmation: { description: Type MIGRATE PR23 FORWARD ONLY, required: true }
+  workflow_call:
+    inputs:
+      sha: { required: true, type: string }
+      confirmation: { required: true, type: string }
+    secrets:
+      SUPABASE_ACCESS_TOKEN: { required: true }
+      SUPABASE_PROJECT_REF: { required: true }
+      SUPABASE_DB_URL: { required: true }
+      SUPABASE_DB_PASSWORD: { required: true }
+      SUPABASE_SERVICE_ROLE_KEY: { required: true }
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+
+concurrency:
+  group: pr23-controlled-migration
+  cancel-in-progress: false
+
+jobs:
+  protection:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.sha }}" }
+      - run: |
+          test "$(gh pr view 23 --json headRefOid --jq .headRefOid)" = '${{ inputs.sha }}'
+          node scripts/pr23/verify-environment-protection.mjs --environment=pr23-remote-migration
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+          GH_TOKEN: "${{ github.token }}"
+  migrate:
+    needs: protection
+    environment: pr23-remote-migration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.sha }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.109.1 }
+      - run: npm ci --ignore-scripts
+      - name: Fail-closed preconditions
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          test '${{ inputs.confirmation }}' = 'MIGRATE PR23 FORWARD ONLY'
+          test "$(git rev-parse HEAD)" = '${{ inputs.sha }}'
+          test "$(gh pr view 23 --json headRefOid --jq .headRefOid)" = '${{ inputs.sha }}'
+          node scripts/pr23/verify-independent-reviews.mjs
+          node scripts/pr23/check-contract.mjs --mode=migration
+          backup=$(gh run list --workflow pr23-backup-restore.yml --branch codex/sprint-40-1-mobile-preview --commit '${{ inputs.sha }}' --json conclusion --jq 'map(select(.conclusion=="success"))|length')
+          full=$(gh run list --workflow pr23-full-local-gate.yml --branch codex/sprint-40-1-mobile-preview --commit '${{ inputs.sha }}' --json conclusion --jq 'map(select(.conclusion=="success"))|length')
+          test "$backup" -gt 0
+          test "$full" -gt 0
+      - name: Apply forward-only package
+        env:
+          PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          node scripts/run-pr23-reconciliation.mjs --allow-non-local --allow-project-ref="$SUPABASE_PROJECT_REF"
+          node scripts/run-pr23-reconciliation.mjs --allow-non-local --allow-project-ref="$SUPABASE_PROJECT_REF"
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
+          supabase db lint --linked --schema public --level error --fail-on error
+      - name: Storage and cleanup dry-run
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          COMUN_SIDEWALK_CLEANUP_ALLOWED_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: node scripts/cleanup-comun-sidewalk-uploads.mjs --allow-non-local --project-ref="$SUPABASE_PROJECT_REF"
+      - name: Sanitized migration result
+        run: |
+          echo '## PR23_CONTROLLED_REMOTE_MIGRATION_OK' >> "$GITHUB_STEP_SUMMARY"
+          echo '- package: forward-only' >> "$GITHUB_STEP_SUMMARY"
+          echo '- history repair: not executed' >> "$GITHUB_STEP_SUMMARY"
+          echo '- cleanup: dry-run' >> "$GITHUB_STEP_SUMMARY"
