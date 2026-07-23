@@ -9,6 +9,10 @@ const query = String.raw`
 select jsonb_build_object(
   'capturedAt', now(),
   'scope', 'COMUN_CANONICAL_SECURITY_HARDENING_PREFLIGHT',
+  'roleCapabilities', jsonb_build_object(
+    'currentRole', current_user,
+    'canSetSupabaseAdmin', pg_has_role(current_user, 'supabase_admin', 'SET')
+  ),
   'view', (
     select jsonb_build_object(
       'schema', n.nspname, 'name', c.relname, 'owner', pg_get_userbyid(c.relowner),
@@ -74,4 +78,3 @@ if (/"(email|phone|user_id|object_key|exact_latitude|exact_longitude)"\s*:/i.tes
 }
 await writeFile(output, serialized);
 console.log("COMUN_SECURITY_HARDENING_PREFLIGHT_CAPTURED");
-
