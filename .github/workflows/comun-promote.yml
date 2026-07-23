@@ -90,7 +90,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ needs.authorize.outputs.pr }}
-          S_SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           S_SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           S_SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           S_SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
@@ -105,7 +104,6 @@ jobs:
           while IFS='|' read -r name variable; do
             test -n "${!variable}" || missing+=("$name")
           done <<'EOF'
-          SUPABASE_ACCESS_TOKEN|S_SUPABASE_ACCESS_TOKEN
           SUPABASE_PROJECT_REF|S_SUPABASE_PROJECT_REF
           SUPABASE_DB_URL|S_SUPABASE_DB_URL
           SUPABASE_DB_PASSWORD|S_SUPABASE_DB_PASSWORD
@@ -177,15 +175,13 @@ jobs:
           printf '%s\n' "$output"
       - name: Remote postflight, DB lint, RLS and cleanup dry-run
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           COMUN_SIDEWALK_CLEANUP_ALLOWED_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
-          supabase link --project-ref "$SUPABASE_PROJECT_REF"
-          supabase db lint --linked --schema public --level error --fail-on error
+          supabase db lint --db-url "$SUPABASE_DB_URL" --schema public --level error --fail-on error
           node scripts/cleanup-comun-sidewalk-uploads.mjs --allow-non-local --project-ref="$SUPABASE_PROJECT_REF"
       - name: Validate immutable Vercel preview
         env:
