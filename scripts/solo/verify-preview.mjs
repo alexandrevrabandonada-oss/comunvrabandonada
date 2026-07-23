@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-const required = ["PR", "SHA", "VERCEL_TOKEN", "VERCEL_TEAM_ID"];
+const required = ["PR", "SHA", "VERCEL_TOKEN", "VERCEL_TEAM_ID", "VERCEL_CANONICAL_PROJECT_ID"];
 if (required.some((name) => !process.env[name])) throw new Error("SOLO_PREVIEW_CONTEXT_MISSING");
 const api = (args) => execFileSync("gh", args, { encoding: "utf8" }).trim();
 const checks = JSON.parse(api(["pr", "checks", process.env.PR, "--json", "name,state,link"]));
@@ -44,7 +44,7 @@ const vercelCurl = (route, { range = false } = {}) => {
     ...(range ? ["--range", "0-127"] : []),
   ];
   const result = spawnSync(
-    "npx",
+    process.platform === "win32" ? "npx.cmd" : "npx",
     [
       "--yes",
       "vercel@50.28.0",
@@ -59,16 +59,32 @@ const vercelCurl = (route, { range = false } = {}) => {
       "--",
       ...curlArgs,
     ],
-    { encoding: "utf8", maxBuffer: 5 * 1024 * 1024 },
+    {
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        VERCEL_ORG_ID: process.env.VERCEL_TEAM_ID,
+        VERCEL_PROJECT_ID: process.env.VERCEL_CANONICAL_PROJECT_ID,
+      },
+      maxBuffer: 5 * 1024 * 1024,
+      shell: process.platform === "win32",
+    },
   );
-  if (result.status !== 0) throw new Error(`SOLO_VERCEL_PREVIEW_CURL_FAILED:${route}`);
+  if (result.status !== 0) {
+    const diagnostic = `${result.error?.message ?? ""} ${result.stderr ?? ""} ${result.stdout ?? ""}`
+      .replaceAll(process.env.VERCEL_TOKEN, "[redacted]")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 500);
+    throw new Error(`SOLO_VERCEL_PREVIEW_CURL_FAILED:${route}:${result.status}:${diagnostic}`);
+  }
   const rawHeaders = readFileSync(headers, "utf8");
   const statuses = [...rawHeaders.matchAll(/^HTTP\/\S+\s+(\d{3})/gim)];
   const status = Number(statuses.at(-1)?.[1]);
   return { status, headers: rawHeaders };
 };
 try {
-  for (const route of ["/comun", "/comun/explorar", "/comun/participar", "/comun/calcadas", "/comun/acervo", "/comun/arte", "/comun/radio", "/comun/minha-area", "/comun/caixa"]) {
+  for (const route of ["/comun", "/comun/explorar", "/comun/participar", "/comun/calcadas", "/comun/acervo", "/comun/arte", "/comun/radio", "/comun/minha-participacao", "/comun/caixa-de-entrada"]) {
     const response = vercelCurl(route);
     if (response.status < 200 || response.status >= 400) {
       throw new Error(`SOLO_VERCEL_PREVIEW_HTTP_${response.status}:${route}`);

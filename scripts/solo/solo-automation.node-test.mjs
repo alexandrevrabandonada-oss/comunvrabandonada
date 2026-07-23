@@ -102,6 +102,8 @@ test("preview and production validate PMTiles Range in the correct domain order"
   assert.match(preview, /deployments\?sha=\$\{process\.env\.SHA\}/);
   assert.match(preview, /deploymentStatuses\.find/);
   assert.doesNotMatch(preview, /api\.vercel\.com/);
+  assert.match(preview, /VERCEL_ORG_ID: process\.env\.VERCEL_TEAM_ID/);
+  assert.match(preview, /VERCEL_PROJECT_ID: process\.env\.VERCEL_CANONICAL_PROJECT_ID/);
   assert.match(preview, /SOLO_PMTILES_PREVIEW_RANGE_INVALID/);
   assert.match(monitor, /SOLO_PRODUCTION_PMTILES_RANGE_INVALID/);
   assert.match(monitor, /SOLO_PUBLIC_WWW_REDIRECT_INVALID/);
