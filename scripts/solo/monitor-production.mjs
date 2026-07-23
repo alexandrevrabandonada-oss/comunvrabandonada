@@ -1,24 +1,59 @@
-const VERCEL_TEAM_ID = "team_LBVwyK8FQMO7tA3hzVXXeumF";
+import { readFileSync } from "node:fs";
+
 const minutes = Number(process.argv.find((arg) => arg.startsWith("--minutes="))?.slice(10) ?? 15);
-const domain = process.argv.find((arg) => arg.startsWith("--domain="))?.slice(9);
-if (!domain || !Number.isInteger(minutes) || minutes < 1 || minutes > 30) throw new Error("SOLO_MONITOR_INPUT_INVALID");
-const params = new URLSearchParams({
-  projectId: process.env.VERCEL_CANONICAL_PROJECT_ID,
-  limit: "20",
-  target: "production",
-  teamId: VERCEL_TEAM_ID,
-});
-const headers = { Authorization: `Bearer ${process.env.VERCEL_TOKEN}` };
-let deployment;
+const requestedDomain = process.argv.find((arg) => arg.startsWith("--domain="))?.slice(9);
+if (!Number.isInteger(minutes) || minutes < 1 || minutes > 30) throw new Error("SOLO_MONITOR_INPUT_INVALID");
+
+const repository = process.env.GITHUB_REPOSITORY;
+const token = process.env.GH_TOKEN;
+if (!repository || !token || !process.env.GITHUB_EVENT_PATH) throw new Error("SOLO_GITHUB_DEPLOYMENT_CONTEXT_MISSING");
+const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, "utf8"));
+const prNumber = event.pull_request?.number;
+if (!prNumber) throw new Error("SOLO_PROMOTION_PR_CONTEXT_MISSING");
+
+const github = async (route) => {
+  const response = await fetch(`https://api.github.com/repos/${repository}${route}`, {
+    headers: {
+      authorization: `Bearer ${token}`,
+      accept: "application/vnd.github+json",
+      "x-github-api-version": "2022-11-28",
+    },
+  });
+  if (!response.ok) throw new Error(`SOLO_GITHUB_DEPLOYMENT_READ_FAILED:${response.status}`);
+  return response.json();
+};
+
+let mergeSha;
+for (let attempt = 0; attempt < 20; attempt += 1) {
+  const pull = await github(`/pulls/${prNumber}`);
+  mergeSha = pull.merge_commit_sha;
+  if (pull.merged && mergeSha) break;
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+}
+if (!mergeSha) throw new Error("SOLO_MERGE_SHA_NOT_FOUND");
+
+let vercelGreen = false;
 for (let attempt = 0; attempt < 40; attempt += 1) {
-  const response = await fetch(`https://api.vercel.com/v6/deployments?${params}`, { headers });
-  if (!response.ok) throw new Error(`SOLO_VERCEL_DEPLOYMENT_READ_FAILED:${response.status}`);
-  const body = await response.json();
-  deployment = body.deployments?.find((item) => item.readyState === "READY" && item.meta?.githubCommitSha === process.env.APP_SHA);
-  if (deployment) break;
+  const [status, checks] = await Promise.all([
+    github(`/commits/${mergeSha}/status`),
+    github(`/commits/${mergeSha}/check-runs?per_page=100`),
+  ]);
+  const statusGreen = (status.statuses ?? []).some((item) => /vercel/i.test(item.context ?? "") && item.state === "success");
+  const checksGreen = (checks.check_runs ?? []).some((item) => /vercel/i.test(item.name ?? "") && item.conclusion === "success");
+  if (statusGreen || checksGreen) {
+    vercelGreen = true;
+    break;
+  }
+  const failed = [
+    ...(status.statuses ?? []).filter((item) => /vercel/i.test(item.context ?? "") && ["failure", "error"].includes(item.state)),
+    ...(checks.check_runs ?? []).filter((item) => /vercel/i.test(item.name ?? "") && ["failure", "cancelled", "timed_out"].includes(item.conclusion)),
+  ];
+  if (failed.length) throw new Error("SOLO_MAIN_VERCEL_DEPLOYMENT_FAILED");
   await new Promise((resolve) => setTimeout(resolve, 15000));
 }
-if (!deployment) throw new Error("SOLO_MAIN_DEPLOYMENT_TIMEOUT");
+if (!vercelGreen) throw new Error("SOLO_MAIN_DEPLOYMENT_TIMEOUT");
+
+const domain = "comunvrabandonada.vercel.app";
 for (let attempt = 0; attempt < minutes; attempt += 1) {
   for (const route of ["/comun", "/comun/calcadas", "/comun/acervo"]) {
     const response = await fetch(`https://${domain}${route}`, { redirect: "follow" });
@@ -26,4 +61,4 @@ for (let attempt = 0; attempt < minutes; attempt += 1) {
   }
   if (attempt + 1 < minutes) await new Promise((resolve) => setTimeout(resolve, 60000));
 }
-console.log("SOLO_PRODUCTION_GREEN");
+console.log(`SOLO_PRODUCTION_GREEN:${domain}:${requestedDomain ?? "no-public-domain-requested"}`);
