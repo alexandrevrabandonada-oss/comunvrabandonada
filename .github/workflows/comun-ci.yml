@@ -104,6 +104,7 @@ jobs:
           npm run test:e2e:comun-integral-experience
           npm run test:e2e:editorial-operation-authenticated
           npm run test:e2e:territorial-art
+          supabase start
           npm run test:e2e:community-radio
           npm run test:e2e:comun-sidewalk-real-map
           npm run test:e2e:comun-miniapp-experience

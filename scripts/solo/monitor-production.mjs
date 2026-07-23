@@ -2,7 +2,12 @@ import { readFileSync } from "node:fs";
 
 const minutes = Number(process.argv.find((arg) => arg.startsWith("--minutes="))?.slice(10) ?? 15);
 const requestedDomain = process.argv.find((arg) => arg.startsWith("--domain="))?.slice(9);
+const publicMode = process.argv.includes("--public");
 if (!Number.isInteger(minutes) || minutes < 1 || minutes > 30) throw new Error("SOLO_MONITOR_INPUT_INVALID");
+if (!new Set(["comunvrabandonada.vercel.app", "comunsocial.online"]).has(requestedDomain)) {
+  throw new Error("SOLO_MONITOR_DOMAIN_NOT_ALLOWLISTED");
+}
+if (publicMode !== (requestedDomain === "comunsocial.online")) throw new Error("SOLO_MONITOR_PHASE_INVALID");
 
 const repository = process.env.GITHUB_REPOSITORY;
 const token = process.env.GH_TOKEN;
@@ -53,12 +58,24 @@ for (let attempt = 0; attempt < 40; attempt += 1) {
 }
 if (!vercelGreen) throw new Error("SOLO_MAIN_DEPLOYMENT_TIMEOUT");
 
-const domain = "comunvrabandonada.vercel.app";
+const domain = requestedDomain;
 for (let attempt = 0; attempt < minutes; attempt += 1) {
   for (const route of ["/comun", "/comun/calcadas", "/comun/acervo"]) {
     const response = await fetch(`https://${domain}${route}`, { redirect: "follow" });
     if (!response.ok) throw new Error(`SOLO_PRODUCTION_SMOKE_HTTP_${response.status}:${route}`);
   }
+  const range = await fetch(`https://${domain}/maps/volta-redonda/volta-redonda.pmtiles`, {
+    headers: { range: "bytes=0-127" },
+  });
+  if (range.status !== 206 || !/^bytes 0-127\/\d+$/.test(range.headers.get("content-range") ?? "")) {
+    throw new Error("SOLO_PRODUCTION_PMTILES_RANGE_INVALID");
+  }
+  if (publicMode) {
+    const www = await fetch("https://www.comunsocial.online", { redirect: "manual" });
+    if (www.status !== 308 || !/^https:\/\/comunsocial\.online(?:\/|$)/.test(www.headers.get("location") ?? "")) {
+      throw new Error("SOLO_PUBLIC_WWW_REDIRECT_INVALID");
+    }
+  }
   if (attempt + 1 < minutes) await new Promise((resolve) => setTimeout(resolve, 60000));
 }
-console.log(`SOLO_PRODUCTION_GREEN:${domain}:${requestedDomain ?? "no-public-domain-requested"}`);
+console.log(`SOLO_PRODUCTION_GREEN:${domain}:${publicMode ? "public" : "canonical"}`);

@@ -2,6 +2,24 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 const VERCEL_TEAM_SLUG = "alexandrevrabandonada-oss-projects";
+let merged = false;
+if (process.env.GH_TOKEN && process.env.PR) {
+  try {
+    merged = Boolean(
+      JSON.parse(
+        execFileSync("gh", ["pr", "view", process.env.PR, "--json", "mergedAt"], {
+          encoding: "utf8",
+        }),
+      ).mergedAt,
+    );
+  } catch {
+    merged = false;
+  }
+}
+if (!merged) {
+  console.log("COMUN_PREMERGE_FAILURE_NO_ROLLBACK");
+  process.exit(0);
+}
 let checkpoint;
 try {
   checkpoint = JSON.parse(readFileSync(".solo-checkpoint/vercel.json", "utf8"));

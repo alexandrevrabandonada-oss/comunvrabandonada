@@ -40,9 +40,10 @@ test("promotion checkpoint is short-lived, sanitized and not a full backup", () 
   assert.match(checkpoint, /--schema-only/);
   assert.match(checkpoint, /aggregate-counts\.csv/);
   assert.match(checkpoint, /static-sanitized-metadata/);
+  assert.match(workflow, /actions\/upload-artifact@v4[\s\S]*continue-on-error: true/);
   assert.doesNotMatch(workflow, /PR23_BACKUP_|required reviewers|environment:/i);
   assert.doesNotMatch(checkpoint, /select\s+\*/i);
-  assert.doesNotMatch(checkpoint, /api\.vercel\.com/);
+  assert.match(checkpoint, /api\.vercel\.com\/v6\/deployments/);
 });
 
 test("remote lint uses the allowlisted database URL without an admin access token", () => {
@@ -61,13 +62,14 @@ test("Vercel production validation uses GitHub integration and canonical alias",
   assert.match(monitor, /comunvrabandonada\.vercel\.app/);
   assert.doesNotMatch(monitor, /api\.vercel\.com/);
   assert.match(domain, /team_LBVwyK8FQMO7tA3hzVXXeumF/);
-  assert.match(domain, /COMUN_DOMAIN_TRANSFER_PENDING_TOKEN/);
+  assert.match(domain, /SOLO_DOMAIN_TOKEN_UNAUTHORIZED/);
   assert.match(rollback, /alexandrevrabandonada-oss-projects/);
 });
 
 test("rollback is application-only and never runs reverse SQL", () => {
   const rollback = readFileSync("scripts/solo/rollback-application.mjs", "utf8");
   assert.match(rollback, /vercel@46\.2\.0.*rollback/s);
+  assert.match(rollback, /COMUN_PREMERGE_FAILURE_NO_ROLLBACK/);
   assert.doesNotMatch(rollback, /psql|supabase\s+db|DROP\s|DELETE\s|TRUNCATE\s/i);
 });
 
@@ -81,10 +83,20 @@ test("only three canonical workflows remain active", () => {
 test("domain reconciliation is promotion-only and restores legacy aliases on failure", () => {
   const workflow = readFileSync(".github/workflows/comun-promote.yml", "utf8");
   const domain = readFileSync("scripts/solo/reconcile-domain.mjs", "utf8");
-  assert.match(workflow, /Wait for main deployment[\s\S]*Reconcile domain only after production is green/);
+  assert.match(workflow, /Wait for main deployment[\s\S]*Reconcile domain only after production is green[\s\S]*Public smoke and observation after domain transfer/);
   assert.match(domain, /COMUN_DOMAIN_ALREADY_CANONICAL/);
   assert.match(domain, /SOLO_DOMAIN_PRECONDITION_MISMATCH/);
   assert.match(domain, /\/v10\/projects\/\$\{canonical\}\/domains/);
+});
+
+test("preview and production validate PMTiles Range in the correct domain order", () => {
+  const workflow = readFileSync(".github/workflows/comun-promote.yml", "utf8");
+  const preview = readFileSync("scripts/solo/verify-preview.mjs", "utf8");
+  const monitor = readFileSync("scripts/solo/monitor-production.mjs", "utf8");
+  assert.match(preview, /SOLO_PMTILES_PREVIEW_RANGE_INVALID/);
+  assert.match(monitor, /SOLO_PRODUCTION_PMTILES_RANGE_INVALID/);
+  assert.match(monitor, /SOLO_PUBLIC_WWW_REDIRECT_INVALID/);
+  assert.match(workflow, /--minutes=1 --domain=comunvrabandonada\.vercel\.app[\s\S]*reconcile-domain\.mjs[\s\S]*--minutes=15 --domain=comunsocial\.online --public/);
 });
 
 test("FULL compares deterministic PostgreSQL catalog fingerprints", () => {

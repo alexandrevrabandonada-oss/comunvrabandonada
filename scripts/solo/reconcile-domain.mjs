@@ -1,8 +1,7 @@
 const VERCEL_TEAM_ID = "team_LBVwyK8FQMO7tA3hzVXXeumF";
 const required = ["VERCEL_TOKEN", "VERCEL_CANONICAL_PROJECT_ID", "VERCEL_LEGACY_PROJECT_ID"];
 if (required.some((name) => !process.env[name])) {
-  console.log("COMUN_DOMAIN_TRANSFER_PENDING_TOKEN");
-  process.exit(0);
+  throw new Error("SOLO_DOMAIN_TRANSFER_CONTEXT_MISSING");
 }
 const { VERCEL_TOKEN: token, VERCEL_CANONICAL_PROJECT_ID: canonical, VERCEL_LEGACY_PROJECT_ID: legacy } = process.env;
 const domains = ["comunsocial.online", "www.comunsocial.online"];
@@ -22,8 +21,7 @@ try {
   canonicalBefore = await projectDomains(canonical);
 } catch (error) {
   if (/SOLO_VERCEL_DOMAIN_GET_(401|403)/.test(String(error?.message))) {
-    console.log("COMUN_DOMAIN_TRANSFER_PENDING_TOKEN");
-    process.exit(0);
+    throw new Error("SOLO_DOMAIN_TOKEN_UNAUTHORIZED");
   }
   throw error;
 }

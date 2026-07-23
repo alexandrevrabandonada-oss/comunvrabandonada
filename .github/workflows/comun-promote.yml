@@ -147,6 +147,7 @@ jobs:
           fi
           printf '%s\n' "$output"
       - uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: comun-pre-promotion-checkpoint-${{ needs.authorize.outputs.sha }}
           path: .solo-checkpoint
@@ -189,6 +190,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ needs.authorize.outputs.pr }}
           SHA: ${{ needs.authorize.outputs.sha }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
         run: node scripts/solo/verify-preview.mjs
       - name: Merge by merge commit
         env:
@@ -198,7 +202,7 @@ jobs:
         run: |
           if test "$(gh pr view "$PR" --json isDraft --jq .isDraft)" = true; then gh pr ready "$PR"; fi
           gh api -X PUT "repos/${{ github.repository }}/pulls/$PR/merge" -f sha="$SHA" -f merge_method=merge --jq '.merged == true'
-      - name: Wait for main deployment and production smoke
+      - name: Wait for main deployment and canonical smoke
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
@@ -206,7 +210,7 @@ jobs:
           VERCEL_LEGACY_PROJECT_ID: ${{ secrets.VERCEL_LEGACY_PROJECT_ID }}
           APP_SHA: ${{ needs.authorize.outputs.sha }}
           GH_TOKEN: ${{ github.token }}
-        run: node scripts/solo/monitor-production.mjs --minutes=15 --domain=comunsocial.online
+        run: node scripts/solo/monitor-production.mjs --minutes=1 --domain=comunvrabandonada.vercel.app
       - name: Reconcile domain only after production is green
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -214,6 +218,11 @@ jobs:
           VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
           VERCEL_LEGACY_PROJECT_ID: ${{ secrets.VERCEL_LEGACY_PROJECT_ID }}
         run: node scripts/solo/reconcile-domain.mjs
+      - name: Public smoke and observation after domain transfer
+        env:
+          APP_SHA: ${{ needs.authorize.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/solo/monitor-production.mjs --minutes=15 --domain=comunsocial.online --public
       - if: success()
         run: echo 'SOLO_PRODUCTION_GREEN' >> "$GITHUB_STEP_SUMMARY"
       - if: failure()

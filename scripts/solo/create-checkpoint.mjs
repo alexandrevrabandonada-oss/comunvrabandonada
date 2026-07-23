@@ -82,6 +82,34 @@ const vercel = {
   aliases: ["comunvrabandonada.vercel.app", "comunvrabandonada-git-main-alexandrevrabandonada-oss-projects.vercel.app"],
   source: "static-sanitized-metadata",
 };
+const vercelToken = process.env.VERCEL_TOKEN;
+const vercelProject = process.env.VERCEL_CANONICAL_PROJECT_ID;
+const vercelTeam = process.env.VERCEL_TEAM_ID;
+if (vercelToken && vercelProject && vercelTeam) {
+  try {
+    const query = new URLSearchParams({
+      projectId: vercelProject,
+      target: "production",
+      state: "READY",
+      limit: "1",
+      teamId: vercelTeam,
+    });
+    const response = await fetch(`https://api.vercel.com/v6/deployments?${query}`, {
+      headers: { authorization: `Bearer ${vercelToken}` },
+    });
+    if (!response.ok) throw new Error(`HTTP_${response.status}`);
+    const deployment = (await response.json()).deployments?.[0];
+    if (deployment?.uid && deployment?.url) {
+      vercel.previousDeployment = {
+        id: deployment.uid,
+        url: `https://${deployment.url}`,
+      };
+      vercel.source = "vercel-api-sanitized-metadata";
+    }
+  } catch {
+    console.warn("SOLO_CHECKPOINT_VERCEL_METADATA_WARNING");
+  }
+}
 writeFileSync(path.join(output, "vercel.json"), `${JSON.stringify(vercel, null, 2)}\n`);
 
 const manifest = {
