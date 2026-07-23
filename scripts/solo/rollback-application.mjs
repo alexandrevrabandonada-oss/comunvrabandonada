@@ -30,7 +30,7 @@ const previous = checkpoint?.previousDeployment?.url;
 if (previous && process.env.VERCEL_TOKEN) {
   execFileSync(
     "npx",
-    ["--yes", "vercel@46.2.0", "rollback", previous, "--yes", `--token=${process.env.VERCEL_TOKEN}`, "--scope", VERCEL_TEAM_SLUG],
+    ["--yes", "vercel@50.28.0", "rollback", previous, "--yes", `--token=${process.env.VERCEL_TOKEN}`, "--scope", VERCEL_TEAM_SLUG],
     { stdio: "inherit" },
   );
 }

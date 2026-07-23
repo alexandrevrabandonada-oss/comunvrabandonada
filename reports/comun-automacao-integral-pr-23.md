@@ -1,14 +1,15 @@
 # Automação integral da PR #23 — modo solo unificado
 
-Atualizado em 22 de julho de 2026.
+Atualizado em 23 de julho de 2026.
 
 ## Estado atual
 
-**SOLO_READY_TO_PROMOTE**, condicionado à conclusão verde dos gates locais e remotos do HEAD publicado.
+**SOLO_PRODUCTION_GREEN**.
 
 - PR canônica: [#23](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/23)
 - Branch única: `codex/sprint-40-1-mobile-preview`
-- HEAD inicial desta consolidação: `5484712555ab11d565e828d8f405f6bbd86b915c`
+- HEAD final promovido: `78ace0a3ec6c4f150abb2039f81a4b6732853045`
+- merge commit em `main`: `37371098e8f78b1effc047e18b6f8504b3a58f31`
 - Operação: uma pessoa, uma decisão manual de promoção
 - Gate humano do produto: 0/3; permanece separado da promoção técnica
 - Piloto público: fechado
@@ -40,16 +41,23 @@ Os workflows PR23 anteriores foram retirados da pasta ativa e preservados em `.g
 
 O contrato usa somente os cinco secrets do Supabase e quatro da Vercel listados em `docs/COMUN_SOLO_OPERATIONS.md`. Nenhum valor é documentado. O contrato `PR23_BACKUP_*` está descontinuado.
 
-## Estado deste lote
+## Resultado do lote
 
-- label `comun:promover`: não aplicada;
-- migration remota: não executada;
-- merge: não executado;
+- CI FAST/FULL e Vercel: aprovados no HEAD final;
+- checkpoint sanitizado: criado;
+- reconciliação Supabase: concluída e idempotente;
+- merge commit: concluído;
+- deployment da `main`: concluído automaticamente;
+- domínio: transferido de `comun-social` para `comunvrabandonada`;
+- smoke público: 19/19 ciclos verdes por mais de 15 minutos;
 - deploy manual: não executado;
-- domínio: não alterado;
-- tag: não criada;
-- escrita no Supabase remoto: nenhuma.
+- SQL reverso: não executado;
+- gate humano: 0/3;
+- piloto público: fechado.
 
-## Próxima ação manual
+## Pendências posteriores
 
-Após confirmar `COMUN_CI_GREEN` no HEAD remoto, o operador aplica uma única vez `comun:promover` na PR #23 ou dispara manualmente `COMUN Promote` informando PR e SHA exatos.
+- alinhar o histórico remoto de migrations sem usar `repair` para ocultar falhas;
+- executar o gate humano com três participantes;
+- rotacionar credenciais administrativas expostas durante a preparação,
+  sem interromper a produção atual.

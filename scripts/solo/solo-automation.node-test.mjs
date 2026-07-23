@@ -72,7 +72,7 @@ test("Vercel production validation uses GitHub integration and canonical alias",
 
 test("rollback is application-only and never runs reverse SQL", () => {
   const rollback = readFileSync("scripts/solo/rollback-application.mjs", "utf8");
-  assert.match(rollback, /vercel@46\.2\.0.*rollback/s);
+  assert.match(rollback, /vercel@50\.28\.0.*rollback/s);
   assert.match(rollback, /COMUN_PREMERGE_FAILURE_NO_ROLLBACK/);
   assert.doesNotMatch(rollback, /psql|supabase\s+db|DROP\s|DELETE\s|TRUNCATE\s/i);
 });
@@ -90,6 +90,7 @@ test("domain reconciliation is promotion-only and restores legacy aliases on fai
   assert.match(workflow, /Wait for main deployment[\s\S]*Reconcile domain only after production is green[\s\S]*Public smoke and observation after domain transfer/);
   assert.match(domain, /COMUN_DOMAIN_ALREADY_CANONICAL/);
   assert.match(domain, /SOLO_DOMAIN_PRECONDITION_MISMATCH/);
+  assert.match(domain, /\[\.\.\.domains\]\.reverse\(\)/);
   assert.match(domain, /\/v10\/projects\/\$\{canonical\}\/domains/);
 });
 

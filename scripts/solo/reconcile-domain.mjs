@@ -33,7 +33,7 @@ const legacyBefore = await projectDomains(legacy);
 if (!domains.every((domain) => legacyBefore.has(domain)) || domains.some((domain) => canonicalBefore.has(domain))) throw new Error("SOLO_DOMAIN_PRECONDITION_MISMATCH");
 const moved = [];
 try {
-  for (const domain of domains) await api("DELETE", `/v9/projects/${legacy}/domains/${encodeURIComponent(domain)}`);
+  for (const domain of [...domains].reverse()) await api("DELETE", `/v9/projects/${legacy}/domains/${encodeURIComponent(domain)}`);
   for (const domain of domains) {
     await api("POST", `/v10/projects/${canonical}/domains`, domain.startsWith("www.") ? { name: domain, redirect: "comunsocial.online", redirectStatusCode: 308 } : { name: domain });
     moved.push(domain);

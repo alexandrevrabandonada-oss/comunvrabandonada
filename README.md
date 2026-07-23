@@ -1,5 +1,14 @@
 # COMUN VR ABANDONADA
 
+## Produção canônica
+
+- Site: https://comunsocial.online
+- Código canônico: branch `main`
+- Vercel: projeto `comunvrabandonada`
+- Supabase remoto: schema reconciliado pela promoção da PR #23
+- Estado técnico: `SOLO_PRODUCTION_GREEN`
+- Gate humano: 0/3; piloto público ainda não aberto
+
 O fluxo local real de mídia usa `MEDIA_STORAGE_PROVIDER=supabase-local`, `npm run wait:storage:local` e `npm run smoke:territorial-art-storage`.
 
 O Acervo de Arte dos Territórios vive em `/comun/arte`, com contribuição moderada, curadoria em `/comun/admin/acervo/arte` e integração `art_gallery` nas pautas.

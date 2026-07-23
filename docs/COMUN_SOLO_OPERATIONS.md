@@ -16,7 +16,8 @@ Estados operacionais permitidos:
 
 ## Fonte canônica
 
-Até o fechamento da PR #23, a linha única é `codex/sprint-40-1-mobile-preview`. Depois de uma promoção verde, `main` será a fonte canônica. Deve existir apenas uma branch de trabalho e uma PR ativa por vez:
+Desde o fechamento verde da PR #23 em 23 de julho de 2026, `main` é a fonte
+canônica. Deve existir apenas uma branch de trabalho e uma PR ativa por vez:
 
 ```text
 main -> codex/tijolo-<numero>-<nome> -> PR -> CI -> promoção/merge -> main
@@ -74,3 +75,14 @@ Os antigos secrets `PR23_BACKUP_*` não fazem parte do contrato vigente.
 ## Ações depois de uma produção verde
 
 Confirmar `SOLO_PRODUCTION_GREEN`, tornar `main` a única fonte, fechar branches históricas, remover worktrees obsoletos e criar a tag `comun-pr23-unified`. Nenhuma dessas ações é antecipada no lote de preparação.
+
+## Fechamento da PR #23
+
+- HEAD promovido: `78ace0a3ec6c4f150abb2039f81a4b6732853045`;
+- merge commit: `37371098e8f78b1effc047e18b6f8504b3a58f31`;
+- Supabase reconciliado por transação forward-only;
+- domínio canônico: `comunsocial.online`;
+- projeto Vercel canônico: `comunvrabandonada`;
+- smoke público: 19/19 ciclos verdes por mais de 15 minutos;
+- gate humano: 0/3;
+- piloto público: fechado.
