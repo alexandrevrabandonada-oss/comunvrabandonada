@@ -1,5 +1,9 @@
 # Fechamento do pacote de reconciliação — PR #23
 
+> Documento histórico. Estado superado pelo fechamento verde da PR #23 em
+> 23 de julho de 2026. Consulte
+> `reports/current/estado-atual-comun.md`.
+
 ## Estado canônico atual
 
 O pacote forward-only está validado localmente e pronto para integrar a PR #23. O Supabase remoto permanece inalterado.

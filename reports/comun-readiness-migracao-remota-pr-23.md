@@ -1,5 +1,9 @@
 # Readiness da migração remota da PR #23
 
+> Documento histórico. Estado superado pelo fechamento verde da PR #23 em
+> 23 de julho de 2026. Consulte
+> `reports/current/estado-atual-comun.md`.
+
 ## Estado canônico atual
 
 O schema forward-only foi reconciliado e reproduzido duas vezes, mas a integração remota não está autorizada.

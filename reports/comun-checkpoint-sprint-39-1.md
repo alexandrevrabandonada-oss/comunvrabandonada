@@ -1,5 +1,9 @@
 # Checkpoint — Sprint 39.1
 
+> Documento histórico. Estado superado pelo fechamento verde da PR #23 em
+> 23 de julho de 2026. Consulte
+> `reports/current/estado-atual-comun.md`.
+
 - Branch: `codex/sprint-39-real-map-quick-capture`
 - HEAD de partida: `1196ba8aa570c0106537dc55a08d70e025ef4e2d`
 - Worktree: alterações intencionais das Sprints 39/39.1, sem commit
