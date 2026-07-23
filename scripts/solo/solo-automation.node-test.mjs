@@ -99,6 +99,9 @@ test("preview and production validate PMTiles Range in the correct domain order"
   const monitor = readFileSync("scripts/solo/monitor-production.mjs", "utf8");
   assert.match(preview, /requiredChecks = \["FAST \/ COMUN_CI_GREEN", "FULL \/ COMUN_CI_GREEN", "Vercel"\]/);
   assert.doesNotMatch(preview, /const failed = checks\.filter/);
+  assert.match(preview, /deployments\?sha=\$\{process\.env\.SHA\}/);
+  assert.match(preview, /deploymentStatuses\.find/);
+  assert.doesNotMatch(preview, /api\.vercel\.com/);
   assert.match(preview, /SOLO_PMTILES_PREVIEW_RANGE_INVALID/);
   assert.match(monitor, /SOLO_PRODUCTION_PMTILES_RANGE_INVALID/);
   assert.match(monitor, /SOLO_PUBLIC_WWW_REDIRECT_INVALID/);

@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-const required = ["PR", "SHA", "VERCEL_TOKEN", "VERCEL_TEAM_ID", "VERCEL_CANONICAL_PROJECT_ID"];
+const required = ["PR", "SHA", "VERCEL_TOKEN", "VERCEL_TEAM_ID"];
 if (required.some((name) => !process.env[name])) throw new Error("SOLO_PREVIEW_CONTEXT_MISSING");
 const api = (args) => execFileSync("gh", args, { encoding: "utf8" }).trim();
 const checks = JSON.parse(api(["pr", "checks", process.env.PR, "--json", "name,state,link"]));
@@ -14,23 +14,22 @@ const missingOrFailed = requiredChecks.filter(
 if (missingOrFailed.length) {
   throw new Error(`SOLO_PREVIEW_CHECKS_NOT_GREEN:${missingOrFailed.join(",")}`);
 }
-const query = new URLSearchParams({
-  projectId: process.env.VERCEL_CANONICAL_PROJECT_ID,
-  teamId: process.env.VERCEL_TEAM_ID,
-  limit: "20",
-});
-const deploymentsResponse = await fetch(`https://api.vercel.com/v6/deployments?${query}`, {
-  headers: { authorization: `Bearer ${process.env.VERCEL_TOKEN}` },
-});
-if (!deploymentsResponse.ok) throw new Error(`SOLO_VERCEL_PREVIEW_API_${deploymentsResponse.status}`);
-const deployments = (await deploymentsResponse.json()).deployments ?? [];
-const deployment = deployments.find(
-  (item) =>
-    item.meta?.githubCommitSha === process.env.SHA &&
-    item.target !== "production" &&
-    item.state === "READY",
+const repository = process.env.GITHUB_REPOSITORY ?? "alexandrevrabandonada-oss/comunvrabandonada";
+const deployments = JSON.parse(
+  api(["api", `repos/${repository}/deployments?sha=${process.env.SHA}&per_page=20`]),
 );
-if (!deployment?.url) throw new Error("SOLO_VERCEL_PREVIEW_NOT_FOUND");
+const deployment = deployments.find(
+  (item) => item.sha === process.env.SHA && item.environment === "Preview",
+);
+if (!deployment?.id) throw new Error("SOLO_VERCEL_PREVIEW_NOT_FOUND");
+const deploymentStatuses = JSON.parse(
+  api(["api", `repos/${repository}/deployments/${deployment.id}/statuses`]),
+);
+const successfulStatus = deploymentStatuses.find(
+  (status) => status.state === "success" && status.environment_url,
+);
+if (!successfulStatus) throw new Error("SOLO_VERCEL_PREVIEW_NOT_READY");
+const deploymentUrl = new URL(successfulStatus.environment_url).host;
 const temp = mkdtempSync(path.join(tmpdir(), "comun-preview-"));
 const vercelCurl = (route, { range = false } = {}) => {
   const body = path.join(temp, "body");
@@ -52,7 +51,7 @@ const vercelCurl = (route, { range = false } = {}) => {
       "curl",
       route,
       "--deployment",
-      deployment.url,
+      deploymentUrl,
       "--token",
       process.env.VERCEL_TOKEN,
       "--scope",
@@ -82,4 +81,4 @@ try {
 } finally {
   rmSync(temp, { recursive: true, force: true });
 }
-console.log(`COMUN_PREVIEW_GREEN:${deployment.uid}`);
+console.log(`COMUN_PREVIEW_GREEN:${deployment.id}`);
