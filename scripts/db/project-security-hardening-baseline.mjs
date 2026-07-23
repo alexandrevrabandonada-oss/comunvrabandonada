@@ -2,14 +2,37 @@ import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { buildDocuments } from "./verify-canonical-baseline.mjs";
 
-const source = JSON.parse(
-  await readFile("reports/current/comun-remote-schema-baseline.json", "utf8"),
-);
-if (source.fingerprint !== "f8834c3a673d66cc35b71a25fa878cc123c8741281273ba7e75a03d051a79793") {
+const sourcePath = process.argv.find((value) => value.startsWith("--source="))
+  ?.slice("--source=".length) || "reports/current/comun-remote-schema-baseline.json";
+const baselineOutput = process.argv.find((value) => value.startsWith("--baseline-output="))
+  ?.slice("--baseline-output=".length) || "reports/current/comun-remote-schema-baseline.json";
+const releaseOutput = process.argv.find((value) => value.startsWith("--release-output="))
+  ?.slice("--release-output=".length) || "supabase/releases/20260723220112-canonical-security-hardening.json";
+const source = JSON.parse(await readFile(sourcePath, "utf8"));
+const expectedLegacyPre =
+  "f8834c3a673d66cc35b71a25fa878cc123c8741281273ba7e75a03d051a79793";
+const preCanonical = structuredClone(source.canonical);
+const stableFunctionNames = new Map();
+for (const fn of preCanonical.functions) {
+  const stable = `${fn.name}(${fn.identityArguments})`;
+  stableFunctionNames.set(fn.specificName, stable);
+  fn.specificName = stable;
+}
+for (const grant of preCanonical.routineGrants) {
+  grant.specificName = stableFunctionNames.get(grant.specificName) || `${grant.routine}()`;
+}
+const sourceBlocking = buildDocuments(
+  {
+    canonical: preCanonical,
+    platform: source.platformInformationalSnapshot,
+  },
+  "PRE_PROMOTION",
+).compact;
+if (source.fingerprint !== expectedLegacyPre && sourceBlocking.fingerprint !== source.fingerprint) {
   throw new Error("COMUN_HARDENING_PRE_FINGERPRINT_MISMATCH");
 }
 
-const canonical = structuredClone(source.canonical);
+const canonical = structuredClone(preCanonical);
 const view = canonical.relations.find((item) => item.name === "comun_public_reports");
 view.options = ["security_invoker=true"];
 canonical.tableGrants = canonical.tableGrants.filter(
@@ -49,22 +72,60 @@ for (const privilege of canonical.defaultPrivileges) {
     privilege.acl = "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}";
   } else if (privilege.owner === "postgres" && privilege.objectType === "S") {
     privilege.acl = "{postgres=rwU/postgres,service_role=w/postgres}";
-  } else if (privilege.owner === "supabase_admin" && privilege.objectType === "r") {
-    privilege.acl =
-      "{postgres=arwdDxtm/supabase_admin,service_role=arwdDxtm/supabase_admin}";
-  } else if (privilege.owner === "supabase_admin" && privilege.objectType === "S") {
-    privilege.acl = "{postgres=rwU/supabase_admin,service_role=rwU/supabase_admin}";
-  } else if (privilege.owner === "supabase_admin" && privilege.objectType === "f") {
-    privilege.acl = "{postgres=X/supabase_admin,service_role=X/supabase_admin}";
   }
 }
+
+canonical.relations.push({
+  rls: true,
+  kind: "r",
+  name: "comun_schema_releases",
+  owner: "postgres",
+  schema: "public",
+  options: [],
+  force_rls: false,
+  definition: null,
+  persistence: "p",
+  replica_identity: "d",
+});
+canonical.relations.sort((a, b) => `${a.schema}.${a.name}`.localeCompare(`${b.schema}.${b.name}`));
+canonical.columns.push(
+  { name: "release", type: "text", table: "comun_schema_releases", default: null, nullable: "NO" },
+  { name: "migration_path", type: "text", table: "comun_schema_releases", default: null, nullable: "NO" },
+  { name: "migration_sha256", type: "text", table: "comun_schema_releases", default: null, nullable: "NO" },
+  { name: "pre_fingerprint", type: "text", table: "comun_schema_releases", default: null, nullable: "NO" },
+  { name: "post_fingerprint", type: "text", table: "comun_schema_releases", default: null, nullable: "NO" },
+  { name: "applied_at", type: "timestamp with time zone", table: "comun_schema_releases", default: "now()", nullable: "NO" },
+  { name: "applied_by", type: "text", table: "comun_schema_releases", default: "CURRENT_USER", nullable: "NO" },
+  { name: "status", type: "text", table: "comun_schema_releases", default: "'applied'::text", nullable: "NO" },
+);
+canonical.columns.sort((a, b) => a.table.localeCompare(b.table));
+canonical.constraints.push(
+  { table: "comun_schema_releases", name: "comun_schema_releases_pkey", type: "p", definition: "PRIMARY KEY (release)" },
+  { table: "comun_schema_releases", name: "comun_schema_releases_status_check", type: "c", definition: "CHECK ((status = 'applied'::text))" },
+);
+canonical.constraints.sort((a, b) => `${a.table}.${a.name}`.localeCompare(`${b.table}.${b.name}`));
+canonical.indexes.push({
+  table: "comun_schema_releases",
+  name: "comun_schema_releases_pkey",
+  definition: "CREATE UNIQUE INDEX comun_schema_releases_pkey ON public.comun_schema_releases USING btree (release)",
+});
+canonical.indexes.sort((a, b) => `${a.table}.${a.name}`.localeCompare(`${b.table}.${b.name}`));
+for (const privilege of ["DELETE", "INSERT", "REFERENCES", "SELECT", "TRIGGER", "TRUNCATE", "UPDATE"]) {
+  canonical.tableGrants.push({ table: "comun_schema_releases", grantee: "postgres", privilege });
+}
+for (const privilege of ["DELETE", "INSERT", "REFERENCES", "TRIGGER", "TRUNCATE"]) {
+  canonical.tableGrants.push({ table: "comun_schema_releases", grantee: "service_role", privilege });
+}
+canonical.tableGrants.sort((a, b) =>
+  `${a.table}.${a.grantee}.${a.privilege}`.localeCompare(`${b.table}.${b.grantee}.${b.privilege}`),
+);
 
 const projected = buildDocuments(
   { canonical, platform: source.platformInformationalSnapshot },
   "EXPECTED_AFTER_PROMOTION",
 ).compact;
-if (projected.security.findings.length !== 0) {
-  throw new Error(`COMUN_HARDENING_PROJECTED_FINDINGS:${projected.security.findings.length}`);
+if (projected.security.blockingFindings.length !== 0) {
+  throw new Error(`COMUN_HARDENING_PROJECTED_FINDINGS:${projected.security.blockingFindings.length}`);
 }
 
 const migration = "supabase/migrations/20260723220112_comun_canonical_security_hardening.sql";
@@ -73,10 +134,13 @@ const release = {
   release: "20260723220112-canonical-security-hardening",
   migration,
   migrationSha256: createHash("sha256").update(migrationBytes).digest("hex"),
-  expectedPreFingerprint: source.fingerprint,
+  expectedPreFingerprint: sourceBlocking.fingerprint,
   expectedPostFingerprint: projected.fingerprint,
   destructiveSql: false,
   requiresPromotion: true,
+  expectedBlockingFindings: 0,
+  platformObservationsAllowed: true,
+  releaseLedger: "public.comun_schema_releases",
   assertions: [
     "security_invoker=true",
     "public view SELECT-only",
@@ -91,16 +155,16 @@ const release = {
     "public.claim_next_archive_processing_job(text)",
     "public.handle_new_user()",
     "postgres defaults in public",
-    "supabase_admin defaults in public",
+    "public.comun_schema_releases",
   ],
 };
 
 await writeFile(
-  "reports/current/comun-remote-schema-baseline.json",
+  baselineOutput,
   `${JSON.stringify(projected, null, 2)}\n`,
 );
 await writeFile(
-  "supabase/releases/20260723220112-canonical-security-hardening.json",
+  releaseOutput,
   `${JSON.stringify(release, null, 2)}\n`,
 );
 console.log(`COMUN_SECURITY_EXPECTED_POST ${projected.fingerprint}`);

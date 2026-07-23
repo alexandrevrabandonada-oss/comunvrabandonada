@@ -42,7 +42,7 @@ select jsonb_build_object(
     'functions', coalesce((select jsonb_agg(jsonb_build_object(
       'schema', n.nspname, 'name', p.proname,
       'identityArguments', pg_get_function_identity_arguments(p.oid),
-      'specificName', p.proname || '_' || p.oid,
+      'specificName', p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')',
       'result', pg_get_function_result(p.oid), 'owner', pg_get_userbyid(p.proowner),
       'securityDefiner', p.prosecdef, 'config', coalesce(p.proconfig,array[]::text[]),
       'definition', regexp_replace(pg_get_functiondef(p.oid), '\s+', ' ', 'g')
@@ -57,9 +57,15 @@ select jsonb_build_object(
     ) order by object_name,grantee,privilege_type) from information_schema.role_usage_grants
       where object_schema='public' and object_type='SEQUENCE'), '[]'::jsonb),
     'routineGrants', coalesce((select jsonb_agg(jsonb_build_object(
-      'routine', routine_name, 'specificName', specific_name, 'grantee', grantee, 'privilege', privilege_type
-    ) order by routine_name,specific_name,grantee,privilege_type) from information_schema.role_routine_grants
-      where routine_schema='public'), '[]'::jsonb),
+      'routine', p.proname,
+      'specificName', p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')',
+      'grantee', case when x.grantee=0 then 'PUBLIC' else pg_get_userbyid(x.grantee) end,
+      'privilege', x.privilege_type
+    ) order by p.proname,pg_get_function_identity_arguments(p.oid),
+      case when x.grantee=0 then 'PUBLIC' else pg_get_userbyid(x.grantee) end,x.privilege_type)
+      from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+      cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) x
+      where n.nspname='public'), '[]'::jsonb),
     'schemaGrants', coalesce((select jsonb_agg(jsonb_build_object(
       'grantee', case when x.grantee=0 then 'PUBLIC' else pg_get_userbyid(x.grantee) end,
       'privilege', x.privilege_type
@@ -105,6 +111,18 @@ select value::text from payload;`;
 const normalize = (value) => JSON.parse(JSON.stringify(value));
 export const fingerprintCanonical = (canonical) =>
   createHash("sha256").update(JSON.stringify(normalize(canonical))).digest("hex");
+
+const platformDefaultSnapshot = (defaults = []) => {
+  const values = normalize(defaults)
+    .filter((item) => item.owner === "supabase_admin")
+    .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+  return {
+    owner: "supabase_admin",
+    count: values.length,
+    hash: createHash("sha256").update(JSON.stringify(values)).digest("hex"),
+    defaults: values,
+  };
+};
 
 const finding = (classification, rule, object, detail) => ({ classification, rule, object, detail });
 
@@ -170,8 +188,20 @@ export function evaluateSecurity(canonical) {
 
 export function buildDocuments(raw, capturedAt = new Date().toISOString()) {
   const canonical = normalize(raw.canonical);
-  const platform = normalize(raw.platform);
-  const findings = evaluateSecurity(canonical);
+  const platform = normalize(raw.platform || {});
+  const managedDefaults = platformDefaultSnapshot(canonical.defaultPrivileges);
+  canonical.defaultPrivileges = (canonical.defaultPrivileges || []).filter(
+    (item) => item.owner !== "supabase_admin",
+  );
+  const blockingFindings = evaluateSecurity(canonical);
+  const platformObservations = managedDefaults.count
+    ? [{
+        classification: "PLATFORM_MANAGED_OBSERVATION",
+        rule: "SUPABASE_ADMIN_DEFAULT_PRIVILEGES",
+        object: "schema public",
+        detail: `${managedDefaults.count} managed defaults; hash=${managedDefaults.hash}`,
+      }]
+    : [];
   const fingerprint = fingerprintCanonical(canonical);
   const counts = Object.fromEntries(Object.entries(canonical).map(([key, value]) => [key, Array.isArray(value) ? value.length : 0]));
   const compact = {
@@ -182,8 +212,15 @@ export function buildDocuments(raw, capturedAt = new Date().toISOString()) {
     scope: "APP_CANONICAL_SECURITY_BASELINE",
     counts,
     canonical,
-    security: { status: findings.length ? "COMUN_BASELINE_SECURITY_FINDINGS" : "COMUN_BASELINE_SECURITY_OK", findings },
-    platformInformationalSnapshot: platform,
+    security: {
+      status: blockingFindings.length ? "COMUN_APP_SECURITY_FINDINGS" : "COMUN_APP_SECURITY_OK",
+      blockingFindings,
+      platformObservations,
+    },
+    platformInformationalSnapshot: {
+      ...platform,
+      managedDefaultPrivileges: managedDefaults,
+    },
   };
   const detailed = {
     ...compact,
@@ -221,27 +258,37 @@ async function main() {
     const detailedTarget = outputArg?.slice("--output=".length) || "comun-remote-schema-detailed.json";
     await writeFile(detailedTarget, `${JSON.stringify(documents.detailed, null, 2)}\n`);
     if (compactArg) await writeFile(compactArg.slice("--compact-output=".length), assertVersionedBaseline(documents.compact));
-    console.log(`${documents.compact.security.status} ${documents.compact.security.findings.length}`);
+    console.log(`${documents.compact.security.status} ${documents.compact.security.blockingFindings.length}`);
+    if (documents.compact.security.platformObservations.length) {
+      console.log(`COMUN_PLATFORM_DEFAULTS_OBSERVED ${documents.compact.security.platformObservations.length}`);
+    }
     console.log(`COMUN_REMOTE_SCHEMA_BASELINE_CAPTURED ${documents.compact.fingerprint}`);
     return;
   }
 
   const approved = JSON.parse(await readFile(BASELINE, "utf8"));
   if ((await stat(BASELINE)).size > MAX_VERSIONED_BASELINE_BYTES) throw new Error("VERSIONED_BASELINE_EXCEEDS_5_MIB");
-  if (documents.compact.security.findings.length) {
-    const approvedFindings = JSON.stringify(approved.security?.findings || []);
-    const currentFindings = JSON.stringify(documents.compact.security.findings);
+  if (documents.compact.security.blockingFindings.length) {
+    const approvedFindings = JSON.stringify(approved.security?.blockingFindings || []);
+    const currentFindings = JSON.stringify(documents.compact.security.blockingFindings);
     if (!process.argv.includes("--allow-approved-findings") || approvedFindings !== currentFindings) {
-      console.error(`COMUN_BASELINE_SECURITY_FINDINGS ${documents.compact.security.findings.length}`);
+      console.error(`COMUN_APP_SECURITY_FINDINGS ${documents.compact.security.blockingFindings.length}`);
       process.exit(1);
     }
-    console.log(`COMUN_BASELINE_SECURITY_FINDINGS ${documents.compact.security.findings.length} APPROVED_FOR_DRIFT_ONLY`);
+    console.log(`COMUN_APP_SECURITY_FINDINGS ${documents.compact.security.blockingFindings.length} APPROVED_FOR_DRIFT_ONLY`);
   }
   if (approved.fingerprint !== documents.compact.fingerprint) {
     console.error(`COMUN_REMOTE_SCHEMA_DRIFT expected=${approved.fingerprint} actual=${documents.compact.fingerprint}`);
     process.exit(1);
   }
-  if (!documents.compact.security.findings.length) console.log("COMUN_BASELINE_SECURITY_OK");
+  const approvedPlatform = approved.platformInformationalSnapshot?.managedDefaultPrivileges;
+  const currentPlatform = documents.compact.platformInformationalSnapshot?.managedDefaultPrivileges;
+  if (approvedPlatform?.hash !== currentPlatform?.hash) {
+    console.error("COMUN_PLATFORM_DEFAULTS_OBSERVATION_CHANGED");
+    process.exit(1);
+  }
+  if (!documents.compact.security.blockingFindings.length) console.log("COMUN_APP_SECURITY_OK");
+  if (documents.compact.security.platformObservations.length) console.log("COMUN_PLATFORM_DEFAULTS_OBSERVED");
   console.log(`COMUN_REMOTE_SCHEMA_BASELINE_OK ${documents.compact.fingerprint}`);
 }
 

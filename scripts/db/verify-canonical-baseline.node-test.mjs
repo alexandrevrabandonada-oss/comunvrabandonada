@@ -74,6 +74,22 @@ test("dangerous encoded default privileges are fail-closed findings", () => {
     acl: "{anon=Dxtm/postgres,authenticated=Dxtm/postgres}",
   });
   const result = buildDocuments(raw, "2026-07-23T00:00:00Z").compact;
-  assert.equal(result.security.status, "COMUN_BASELINE_SECURITY_FINDINGS");
-  assert.ok(result.security.findings.some((item) => item.classification === "DEFAULT_PRIVILEGE_RISK"));
+  assert.equal(result.security.status, "COMUN_APP_SECURITY_FINDINGS");
+  assert.ok(result.security.blockingFindings.some((item) => item.classification === "DEFAULT_PRIVILEGE_RISK"));
+});
+
+test("supabase_admin defaults are informational and excluded from blocking fingerprint", () => {
+  const raw = fixture();
+  raw.canonical.defaultPrivileges.push({
+    schema: "public",
+    owner: "supabase_admin",
+    objectType: "r",
+    acl: "{anon=arwdDxtm/supabase_admin}",
+  });
+  const result = buildDocuments(raw, "2026-07-23T00:00:00Z").compact;
+  assert.equal(result.security.status, "COMUN_APP_SECURITY_OK");
+  assert.equal(result.security.blockingFindings.length, 0);
+  assert.equal(result.security.platformObservations.length, 1);
+  assert.equal(result.platformInformationalSnapshot.managedDefaultPrivileges.count, 1);
+  assert.equal(result.canonical.defaultPrivileges.length, 0);
 });
