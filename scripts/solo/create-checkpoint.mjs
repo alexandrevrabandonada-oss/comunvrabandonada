@@ -3,7 +3,6 @@ import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
-const VERCEL_TEAM_ID = "team_LBVwyK8FQMO7tA3hzVXXeumF";
 const outputArg = process.argv.find((arg) => arg.startsWith("--output="));
 const output = path.resolve(outputArg?.slice(9) ?? ".solo-checkpoint");
 const dbUrl = process.env.SUPABASE_DB_URL;
@@ -74,26 +73,15 @@ select name, count_value from _comun_checkpoint_counts order by name;
 const counts = postgres(["psql", dbUrl, "-XAtq", "-F", ",", "-c", countSql]);
 writeFileSync(path.join(output, "aggregate-counts.csv"), `table,count\n${counts}`);
 
-let vercel = { project: "configured", previousDeployment: null, aliases: [] };
-if (process.env.VERCEL_TOKEN && process.env.VERCEL_CANONICAL_PROJECT_ID) {
-  const params = new URLSearchParams({
-    projectId: process.env.VERCEL_CANONICAL_PROJECT_ID,
-    limit: "10",
-    target: "production",
-    teamId: VERCEL_TEAM_ID,
-  });
-  const response = await fetch(`https://api.vercel.com/v6/deployments?${params}`, {
-    headers: { Authorization: `Bearer ${process.env.VERCEL_TOKEN}` },
-  });
-  if (!response.ok) throw new Error(`SOLO_CHECKPOINT_VERCEL_READ_FAILED:${response.status}`);
-  const body = await response.json();
-  const previous = body.deployments?.find((deployment) => deployment.readyState === "READY");
-  vercel = {
-    project: "canonical",
-    previousDeployment: previous ? { id: previous.uid, url: previous.url } : null,
-    aliases: (previous?.alias ?? []).map((alias) => new URL(`https://${alias}`).hostname),
-  };
-}
+const vercel = {
+  project: "canonical",
+  projectId: process.env.VERCEL_CANONICAL_PROJECT_ID ?? null,
+  teamId: "team_LBVwyK8FQMO7tA3hzVXXeumF",
+  productionAlias: "comunvrabandonada.vercel.app",
+  previousDeployment: null,
+  aliases: ["comunvrabandonada.vercel.app", "comunvrabandonada-git-main-alexandrevrabandonada-oss-projects.vercel.app"],
+  source: "static-sanitized-metadata",
+};
 writeFileSync(path.join(output, "vercel.json"), `${JSON.stringify(vercel, null, 2)}\n`);
 
 const manifest = {
