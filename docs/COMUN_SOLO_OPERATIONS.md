@@ -72,9 +72,12 @@ Somente nomes, nunca valores:
 
 Os antigos secrets `PR23_BACKUP_*` não fazem parte do contrato vigente.
 
-## Ações depois de uma produção verde
+## Ciclo depois da PR #23
 
-Confirmar `SOLO_PRODUCTION_GREEN`, tornar `main` a única fonte, fechar branches históricas, remover worktrees obsoletos e criar a tag `comun-pr23-unified`. Nenhuma dessas ações é antecipada no lote de preparação.
+`main` é a fonte única. Cada novo tijolo nasce de `main`, usa uma branch
+`codex/tijolo-<numero>-<nome>`, uma PR e volta a `main` somente depois do CI.
+Branches históricas só podem ser removidas quando não têm PR aberta, commits
+únicos, tag exclusiva ou worktree ativo.
 
 ## Fechamento da PR #23
 
@@ -86,3 +89,7 @@ Confirmar `SOLO_PRODUCTION_GREEN`, tornar `main` a única fonte, fechar branches
 - smoke público: 19/19 ciclos verdes por mais de 15 minutos;
 - gate humano: 0/3;
 - piloto público: fechado.
+
+O estado atual fica em
+[`reports/current/estado-atual-comun.md`](../reports/current/estado-atual-comun.md).
+Documentos de preparação da PR #23 são históricos.
