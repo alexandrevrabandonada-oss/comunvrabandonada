@@ -181,11 +181,18 @@ const classifications = {
     expected: "Sem acesso direto publico.",
   },
   comun_reports: {
-    decision: "public_insert_safe",
+    decision: "public_insert_sanitized_read",
     purpose: "Relatos brutos e sanitizados.",
     sensitive:
       "raw_text, private_contact, internal_notes, localizacao e dados de relato.",
-    expected: "Insercao publica limitada; leitura publica bloqueada.",
+    expected:
+      "Insercao publica limitada; leitura somente das colunas sanitizadas e de linhas publicadas.",
+  },
+  comun_schema_releases: {
+    decision: "service_role_only",
+    purpose: "Ledger canônico de releases do schema do COMUN.",
+    sensitive: "Checksums e fingerprints operacionais, sem dados pessoais.",
+    expected: "Sem leitura ou escrita por anon/authenticated.",
   },
   comun_archive_items: {
     decision: "public_read_safe",
@@ -1052,6 +1059,7 @@ const internalDecisions = new Set(["admin_only", "service_role_only"]);
 const allowedDecisions = new Set([
   "public_read_safe",
   "public_insert_safe",
+  "public_insert_sanitized_read",
   "admin_only",
   "service_role_only",
   "owner_read",
@@ -1102,6 +1110,7 @@ for (const table of tables) {
   if (
     config.decision !== "public_read_safe" &&
     config.decision !== "public_insert_safe" &&
+    config.decision !== "public_insert_sanitized_read" &&
     !table.rls_enabled
   ) {
     failures.push(
@@ -1144,6 +1153,22 @@ for (const table of tables) {
   ) {
     failures.push(
       `${table.table_name}: tabela public_insert_safe sem INSERT para anon/authenticated`,
+    );
+  }
+  if (
+    config.decision === "public_insert_sanitized_read" &&
+    (!table.anon_insert || !table.authenticated_insert)
+  ) {
+    failures.push(
+      `${table.table_name}: contrato misto sem INSERT para anon/authenticated`,
+    );
+  }
+  if (
+    config.decision === "public_insert_sanitized_read" &&
+    !hasPublicSelectPolicy(policiesByTable.get(table.table_name) ?? [])
+  ) {
+    failures.push(
+      `${table.table_name}: contrato misto sem policy SELECT sanitizada`,
     );
   }
   if (
