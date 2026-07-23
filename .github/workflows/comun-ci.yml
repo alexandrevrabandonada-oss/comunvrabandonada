@@ -46,6 +46,9 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test:unit
+      - run: npm run test:security-hardening
+      - run: npm run test:handle-new-user
+      - run: npm run test:public-reports-view
       - run: npm run build
       - name: Local database lint and RLS
         shell: bash
@@ -64,6 +67,7 @@ jobs:
     if: >-
       inputs.force_full == true ||
       github.event.pull_request.number == 23 ||
+      github.event.pull_request.number == 30 ||
       startsWith(github.head_ref, 'codex/promote-') ||
       startsWith(github.ref_name, 'codex/promote-')
     runs-on: ubuntu-24.04

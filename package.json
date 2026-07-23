@@ -15,6 +15,9 @@
     "solo:sql:validate": "node scripts/solo/validate-forward-only-sql.mjs",
     "db:baseline:verify": "node scripts/db/verify-canonical-baseline.mjs",
     "test:db-baseline": "node --test scripts/db/verify-canonical-baseline.node-test.mjs",
+    "test:security-hardening": "node --test --test-name-pattern=\"security hardening|migration checksum\" scripts/db/canonical-security-hardening.node-test.mjs",
+    "test:handle-new-user": "node --test --test-name-pattern=\"handle_new_user\" scripts/db/canonical-security-hardening.node-test.mjs",
+    "test:public-reports-view": "node --test --test-name-pattern=\"public reports\" scripts/db/canonical-security-hardening.node-test.mjs",
     "health:production": "node scripts/health/check-production.mjs",
     "local:env:check": "node scripts/comun-local-env.mjs check",
     "auth:readiness:local": "node scripts/comun-local-env.mjs run node scripts/check-comun-auth-readiness.mjs",
@@ -166,7 +169,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",
     "maplibre-gl": "^5.14.0",
-    "next": "16.2.10",
+    "next": "16.2.11",
     "pmtiles": "^4.3.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
@@ -181,11 +184,16 @@
     "@types/react-dom": "19.2.3",
     "autoprefixer": "^10.4.20",
     "eslint": "9.39.1",
-    "eslint-config-next": "16.2.10",
-    "postcss": "^8.4.49",
+    "eslint-config-next": "16.2.11",
+    "postcss": "8.5.12",
     "shpjs": "^6.2.0",
     "tailwindcss": "^3.4.15",
     "typescript": "^5.6.3",
     "vitest": "4.1.10"
+  },
+  "overrides": {
+    "brace-expansion": "1.1.16",
+    "postcss": "8.5.12",
+    "sharp": "0.35.3"
   }
 }
