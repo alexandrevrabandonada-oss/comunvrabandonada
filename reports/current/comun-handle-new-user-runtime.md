@@ -18,3 +18,7 @@ Testes obrigatórios na promoção: usuário sintético, disparo do trigger,
 perfil correspondente, contrato de nomes, ausência de autorização derivada de
 metadata, colisão atômica e cleanup sem resíduos.
 
+Ensaio local isolado aprovado: `COMUN_HANDLE_NEW_USER_TRIGGER_OK` e
+`COMUN_HANDLE_NEW_USER_FIXTURE_CLEAN`. A transação de teste cria apenas
+fixtures sintéticas, confirma rollback atômico da colisão e termina sem
+resíduos.

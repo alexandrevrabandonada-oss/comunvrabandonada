@@ -45,11 +45,15 @@ sequences e/ou funções. A migration revoga somente esses defaults no schema
 Nenhuma linha de aplicação, usuário, e-mail, metadata, objeto de Storage ou
 segredo foi consultado ou persistido.
 
-## Bloqueador de promoção
+## Reclassificação final
 
 A segunda captura read-only (`COMUN Nightly` run `30049331224`) comprovou:
 `current_user=postgres` e
-`pg_has_role(postgres, supabase_admin, 'SET')=false`. A credencial atual não
-pode alterar defaults pertencentes a `supabase_admin`. O runner canônico exige
-essa capacidade antes da transação e encerra sem escrita quando ela não existe.
-Decisão atual: `NO_GO_SECURITY_HARDENING_PROMOTION`.
+`pg_has_role(postgres, supabase_admin, 'SET')=false`. Isso confirma que defaults
+cujo owner é `supabase_admin` são internos da plataforma, não objetos
+corrigíveis pelo operador do COMUN.
+
+Eles permanecem íntegros no snapshot informativo, com quantidade e hash, mas
+não entram no fingerprint bloqueante. Defaults cujo owner é `postgres`
+continuam bloqueantes e são corrigidos pela migration. Nenhuma escrita remota
+foi executada.

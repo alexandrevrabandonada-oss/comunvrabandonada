@@ -8,6 +8,17 @@ migration declarada; exige postflight, fingerprint pós e zero achados antes de
 preview, merge e produção. Não usa `supabase db push`, migration repair nem
 reaplica o pacote histórico. A decisão manual continua sendo `comun:promover`.
 
+O fingerprint bloqueante contém somente objetos controláveis pelo COMUN.
+Defaults de `supabase_admin` permanecem em snapshot informativo com hash
+monitorado. Toda migration posterior à PR #23 deve revogar grants implícitos,
+habilitar RLS quando aplicável e declarar allowlists; o FAST e o FULL executam
+`npm run db:privileges:lint`.
+
+Cada release aplicada é registrada em `public.comun_schema_releases` dentro da
+mesma transação. O ledger é privado, não substitui nem altera
+`supabase_migrations.schema_migrations` e recusa checksum ou fingerprints
+divergentes.
+
 ## Estado vigente
 
 O COMUN é operado por uma pessoa. A decisão manual de release é representada uma única vez pela label `comun:promover` ou pelo disparo manual equivalente. Revisores externos, duas aprovações, GitHub Environments, cofre próprio e restore integral não são requisitos deste projeto.

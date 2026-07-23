@@ -1,107 +1,51 @@
 # Achados do baseline de segurança
 
-> Estado preparado em 23/07/2026: os 12 achados abaixo pertencem ao
-> fingerprint pré-migration `f8834c3a…`. A release canônica projeta zero
-> achados e fingerprint pós
-> `152641520c28ce61d0cd441ac03c16d97bad99f000f6067236d555731f1c4d58`.
-> Produção permanece inalterada até `comun:promover`.
+Atualizado em 23 de julho de 2026. Nenhuma escrita remota foi executada.
 
-Captura read-only: 23 de julho de 2026. Nenhum objeto remoto foi alterado.
+## Classificação canônica
 
-Resultado: `COMUN_BASELINE_SECURITY_FINDINGS`
+O baseline agora separa o que o COMUN controla do que pertence à plataforma:
 
-## Resumo
+- `APP_BLOCKING_FINDINGS`: entram no fingerprint bloqueante e impedem promoção;
+- `PLATFORM_MANAGED_OBSERVATIONS`: permanecem no snapshot informativo e geram
+  alerta de drift, mas não exigem privilégios impossíveis do operador.
 
-| Classificação | Quantidade | Objetos |
-| --- | ---: | --- |
-| `EXCESS_PRIVILEGE` | 4 | grants `TRUNCATE` e `TRIGGER` da view `comun_public_reports` para `anon` e `authenticated` |
-| `DEFAULT_PRIVILEGE_RISK` | 5 | defaults de tabelas, sequences e funções para `anon`/`authenticated` |
-| `VIEW_SECURITY_RISK` | 1 | `comun_public_reports` sem `security_invoker=true` |
-| `FUNCTION_SECURITY_RISK` | 2 | funções definer com `search_path=public` |
+Antes do hardening, os achados bloqueantes do COMUN eram:
 
-Não foram encontrados:
+| Grupo | Quantidade | Correção |
+|---|---:|---|
+| grants perigosos na view | 4 | `REVOKE ALL` e somente `SELECT` |
+| defaults pertencentes a `postgres` | 2 | revogação no schema `public` |
+| view sem `security_invoker` | 1 | `security_invoker=true` |
+| funções definer com search path inseguro | 2 | `search_path=pg_catalog` |
 
-- tabelas públicas expostas com RLS desabilitada;
-- `CREATE` em `public` para `PUBLIC`, `anon` ou `authenticated`;
-- bucket privado marcado como público;
-- `EXECUTE` atual das duas funções definer para papéis públicos;
-- policy de Storage expondo localizador privado.
+O contrato também verifica RLS, policy sanitizada, grants de coluna, funções,
+trigger de onboarding, buckets privados e ledger. Resultado esperado após a
+release: `COMUN_APP_SECURITY_OK`, com zero achados bloqueantes.
 
-Os quatro buckets do COMUN foram capturados; os buckets de originais permanecem
-privados. A ausência de policies internas de Storage é informativa neste
-contrato server-side e não concede acesso por si só.
+## Observações gerenciadas pela plataforma
 
-## Achados
+Três default privileges cujo owner é `supabase_admin` permanecem observados:
+tabelas, sequences e funções no schema `public`. O operador `postgres` não pode
+assumir esse papel; a migration do COMUN não tenta alterá-los.
 
-### `comun_public_reports`
+Snapshot informativo:
 
-- `anon`: `TRUNCATE`, `TRIGGER`;
-- `authenticated`: `TRUNCATE`, `TRIGGER`;
-- view exposta sem `security_invoker=true`.
+- owner: `supabase_admin`;
+- quantidade: 3;
+- hash sanitizado:
+  `496707ca590762a609d53e2a592b79bf4307d2a7d4b99e1dbe504464197a610b`;
+- estado: `COMUN_PLATFORM_DEFAULTS_OBSERVED`.
 
-Classificação: `EXCESS_PRIVILEGE` e `VIEW_SECURITY_RISK`.
-Tratamento: `REQUIRES_FORWARD_ONLY_MIGRATION`.
+Mudança inesperada nesse hash continua falhando no verificador de drift. Toda
+migration futura do COMUN, a partir de `20260723220112`, deve neutralizar
+privilégios implícitos no próprio arquivo e passa por
+`npm run db:privileges:lint`.
 
-### Funções definer
+## Resultado esperado
 
-- `public.claim_next_archive_processing_job(text)`: `search_path=public`;
-- `public.handle_new_user()`: `search_path=public`.
-
-O `EXECUTE` atual está restrito a `postgres` e `service_role`, mas o
-`search_path` não satisfaz a assertiva fail-closed.
-
-Classificação: `FUNCTION_SECURITY_RISK`.
-Tratamento: `REQUIRES_FORWARD_ONLY_MIGRATION`.
-
-### Default privileges
-
-Foram observados defaults perigosos de `postgres` e `supabase_admin` no schema
-`public`, incluindo privilégios automáticos de tabelas, sequences e funções
-para `anon` e `authenticated`.
-
-Classificação: `DEFAULT_PRIVILEGE_RISK`.
-Tratamento: `REQUIRES_FORWARD_ONLY_MIGRATION`.
-
-## Plano mínimo para o próximo tijolo
-
-O próximo tijolo deve criar uma migration forward-only, revisada separadamente:
-
-```sql
-alter default privileges for role postgres in schema public
-  revoke all on tables from anon, authenticated;
-alter default privileges for role postgres in schema public
-  revoke all on sequences from anon, authenticated;
-alter default privileges for role postgres in schema public
-  revoke execute on functions from public, anon, authenticated;
-
-alter default privileges for role supabase_admin in schema public
-  revoke all on tables from anon, authenticated;
-alter default privileges for role supabase_admin in schema public
-  revoke all on sequences from anon, authenticated;
-alter default privileges for role supabase_admin in schema public
-  revoke execute on functions from public, anon, authenticated;
-
-revoke all privileges on table public.comun_public_reports
-  from public, anon, authenticated;
-alter view public.comun_public_reports set (security_invoker = true);
-grant select on table public.comun_public_reports to anon, authenticated;
-```
-
-As duas funções devem ter referências qualificadas e `search_path` fixado em
-`pg_catalog`; seus corpos precisam ser revisados antes do SQL definitivo.
-
-Assertions da migration:
-
-- ausência de grants perigosos;
-- defaults sem concessões automáticas;
-- view `security_invoker`;
-- funções definer com `search_path` seguro;
-- RLS preservada;
-- contratos públicos de leitura preservados.
-
-Rollback lógico forward-compatible: nova migration que restaure somente os
-grants explicitamente justificados, nunca rollback destrutivo ou
-`migration repair`.
-
-Impacto esperado: nenhum dado alterado; permissões futuras ficam deny-by-default
-e a view passa a respeitar RLS das relações subjacentes.
+- bloqueantes antes: 9 no escopo controlável atual;
+- bloqueantes depois: 0;
+- observações de plataforma: 3 defaults, documentados e monitorados;
+- dados alterados: nenhum;
+- promoção remota: ainda não executada.
