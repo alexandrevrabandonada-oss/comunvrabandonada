@@ -49,6 +49,15 @@ test("remote lint uses the allowlisted database URL without an admin access toke
   assert.doesNotMatch(workflow, /SUPABASE_ACCESS_TOKEN/);
 });
 
+test("all Vercel operations use the canonical team scope", () => {
+  const checkpoint = readFileSync("scripts/solo/create-checkpoint.mjs", "utf8");
+  const monitor = readFileSync("scripts/solo/monitor-production.mjs", "utf8");
+  const domain = readFileSync("scripts/solo/reconcile-domain.mjs", "utf8");
+  const rollback = readFileSync("scripts/solo/rollback-application.mjs", "utf8");
+  for (const source of [checkpoint, monitor, domain]) assert.match(source, /team_LBVwyK8FQMO7tA3hzVXXeumF/);
+  assert.match(rollback, /alexandrevrabandonada-oss-projects/);
+});
+
 test("rollback is application-only and never runs reverse SQL", () => {
   const rollback = readFileSync("scripts/solo/rollback-application.mjs", "utf8");
   assert.match(rollback, /vercel@46\.2\.0.*rollback/s);
@@ -68,7 +77,7 @@ test("domain reconciliation is promotion-only and restores legacy aliases on fai
   assert.match(workflow, /Wait for main deployment[\s\S]*Reconcile domain only after production is green/);
   assert.match(domain, /COMUN_DOMAIN_ALREADY_CANONICAL/);
   assert.match(domain, /SOLO_DOMAIN_PRECONDITION_MISMATCH/);
-  assert.match(domain, /\/v10\/projects\/\$\{legacy\}\/domains/);
+  assert.match(domain, /\/v10\/projects\/\$\{canonical\}\/domains/);
 });
 
 test("FULL compares deterministic PostgreSQL catalog fingerprints", () => {
