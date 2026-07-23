@@ -184,6 +184,7 @@ jobs:
           COMUN_SIDEWALK_CLEANUP_ALLOWED_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
           supabase db lint --db-url "$SUPABASE_DB_URL" --schema public --level error --fail-on error
+          docker run --rm postgres:17 psql "$SUPABASE_DB_URL" -X -v ON_ERROR_STOP=1 -c "notify pgrst, 'reload schema';"
           node scripts/cleanup-comun-sidewalk-uploads.mjs --allow-non-local --project-ref="$SUPABASE_PROJECT_REF"
       - name: Validate immutable Vercel preview
         env:

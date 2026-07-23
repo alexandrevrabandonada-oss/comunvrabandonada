@@ -19,7 +19,12 @@ const target = assertCleanupTarget({
 });
 const db = createClient(url, key, { auth: { persistSession: false } });
 const now = new Date();
-const query = await db.from("comun_sidewalk_uploads").select("id,object_key,status,expires_at,record_id").lt("expires_at", new Date(now.getTime() - minimumAgeMs).toISOString()).in("status", ["draft", "awaiting_upload", "uploaded", "upload_failed"]).is("record_id", null).order("expires_at").limit(limit);
+let query;
+for (let attempt = 1; attempt <= 12; attempt += 1) {
+  query = await db.from("comun_sidewalk_uploads").select("id,object_key,status,expires_at,record_id").lt("expires_at", new Date(now.getTime() - minimumAgeMs).toISOString()).in("status", ["draft", "awaiting_upload", "uploaded", "upload_failed"]).is("record_id", null).order("expires_at").limit(limit);
+  if (!query.error || query.error.code !== "PGRST205" || attempt === 12) break;
+  await new Promise((resolve) => setTimeout(resolve, 5_000));
+}
 if (query.error) throw query.error;
 const candidates = (query.data ?? []).filter((ticket) => isCleanupEligible(ticket, now, minimumAgeMs));
 let removed = 0, missing = 0, skippedRace = 0;
