@@ -7,8 +7,13 @@ const required = ["PR", "SHA", "VERCEL_TOKEN", "VERCEL_TEAM_ID", "VERCEL_CANONIC
 if (required.some((name) => !process.env[name])) throw new Error("SOLO_PREVIEW_CONTEXT_MISSING");
 const api = (args) => execFileSync("gh", args, { encoding: "utf8" }).trim();
 const checks = JSON.parse(api(["pr", "checks", process.env.PR, "--json", "name,state,link"]));
-const failed = checks.filter((check) => !new Set(["SUCCESS", "SKIPPED", "NEUTRAL"]).has(check.state));
-if (failed.length) throw new Error(`SOLO_PREVIEW_CHECKS_NOT_GREEN:${failed.map((check) => check.name).join(",")}`);
+const requiredChecks = ["FAST / COMUN_CI_GREEN", "FULL / COMUN_CI_GREEN", "Vercel"];
+const missingOrFailed = requiredChecks.filter(
+  (name) => !checks.some((check) => check.name === name && check.state === "SUCCESS"),
+);
+if (missingOrFailed.length) {
+  throw new Error(`SOLO_PREVIEW_CHECKS_NOT_GREEN:${missingOrFailed.join(",")}`);
+}
 const query = new URLSearchParams({
   projectId: process.env.VERCEL_CANONICAL_PROJECT_ID,
   teamId: process.env.VERCEL_TEAM_ID,

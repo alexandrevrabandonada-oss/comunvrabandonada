@@ -97,6 +97,8 @@ test("preview and production validate PMTiles Range in the correct domain order"
   const workflow = readFileSync(".github/workflows/comun-promote.yml", "utf8");
   const preview = readFileSync("scripts/solo/verify-preview.mjs", "utf8");
   const monitor = readFileSync("scripts/solo/monitor-production.mjs", "utf8");
+  assert.match(preview, /requiredChecks = \["FAST \/ COMUN_CI_GREEN", "FULL \/ COMUN_CI_GREEN", "Vercel"\]/);
+  assert.doesNotMatch(preview, /const failed = checks\.filter/);
   assert.match(preview, /SOLO_PMTILES_PREVIEW_RANGE_INVALID/);
   assert.match(monitor, /SOLO_PRODUCTION_PMTILES_RANGE_INVALID/);
   assert.match(monitor, /SOLO_PUBLIC_WWW_REDIRECT_INVALID/);
