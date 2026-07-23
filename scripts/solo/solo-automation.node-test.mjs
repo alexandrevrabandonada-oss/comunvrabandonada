@@ -43,6 +43,12 @@ test("promotion checkpoint is short-lived, sanitized and not a full backup", () 
   assert.doesNotMatch(checkpoint, /select\s+\*/i);
 });
 
+test("remote lint uses the allowlisted database URL without an admin access token", () => {
+  const workflow = readFileSync(".github/workflows/comun-promote.yml", "utf8");
+  assert.match(workflow, /supabase db lint --db-url "\$SUPABASE_DB_URL"/);
+  assert.doesNotMatch(workflow, /SUPABASE_ACCESS_TOKEN/);
+});
+
 test("rollback is application-only and never runs reverse SQL", () => {
   const rollback = readFileSync("scripts/solo/rollback-application.mjs", "utf8");
   assert.match(rollback, /vercel@46\.2\.0.*rollback/s);
