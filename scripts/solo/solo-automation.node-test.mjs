@@ -28,9 +28,12 @@ test("destructive SQL is rejected", () => {
 
 test("reconciliation package has one fail-fast transaction", () => {
   const sql = buildTransactionalPackage();
+  const executor = readFileSync("scripts/solo/apply-forward-only.mjs", "utf8");
   assert.match(sql, /^\\set ON_ERROR_STOP on\nBEGIN;/);
   assert.match(sql, /postflight_assertions\.sql/);
   assert.match(sql, /COMMIT;\n$/);
+  assert.match(executor, /COMUN_FORWARD_ONLY_ALREADY_RECONCILED/);
+  assert.match(executor, /const current = postgres\(postflight\)/);
 });
 
 test("promotion checkpoint is short-lived, sanitized and not a full backup", () => {
