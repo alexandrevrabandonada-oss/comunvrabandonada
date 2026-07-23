@@ -158,7 +158,10 @@ export function evaluateSecurity(canonical) {
     }
   }
   for (const privilege of canonical.defaultPrivileges || []) {
-    if (/(anon|authenticated).*(TRUNCATE|TRIGGER|MAINTAIN|CREATE)/i.test(privilege.acl || "")) {
+    const acl = privilege.acl || "";
+    const dangerousNamed = /(anon|authenticated).*(TRUNCATE|TRIGGER|MAINTAIN|CREATE)/i.test(acl);
+    const dangerousAclLetters = /(?:anon|authenticated)=[^,}]*(?:D|x|t|m)/.test(acl);
+    if (dangerousNamed || dangerousAclLetters) {
       findings.push(finding("DEFAULT_PRIVILEGE_RISK", "DANGEROUS_DEFAULT_PRIVILEGE", `${privilege.schema}:${privilege.objectType}`, privilege.acl));
     }
   }

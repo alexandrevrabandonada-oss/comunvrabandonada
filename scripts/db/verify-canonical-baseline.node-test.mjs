@@ -65,3 +65,15 @@ test("versioned baseline is bounded and contains no data-shaped forbidden fields
   assert.throws(() => assertVersionedBaseline({ ...document, exact_latitude: -22 }), /FORBIDDEN_DATA_FIELD/);
 });
 
+test("dangerous encoded default privileges are fail-closed findings", () => {
+  const raw = fixture();
+  raw.canonical.defaultPrivileges.push({
+    schema: "public",
+    owner: "postgres",
+    objectType: "r",
+    acl: "{anon=Dxtm/postgres,authenticated=Dxtm/postgres}",
+  });
+  const result = buildDocuments(raw, "2026-07-23T00:00:00Z").compact;
+  assert.equal(result.security.status, "COMUN_BASELINE_SECURITY_FINDINGS");
+  assert.ok(result.security.findings.some((item) => item.classification === "DEFAULT_PRIVILEGE_RISK"));
+});
