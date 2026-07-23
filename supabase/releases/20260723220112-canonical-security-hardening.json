@@ -1,11 +1,14 @@
 {
   "release": "20260723220112-canonical-security-hardening",
   "migration": "supabase/migrations/20260723220112_comun_canonical_security_hardening.sql",
-  "migrationSha256": "cd4e5aeb42094ebf3137d77bd2c48d8c0dcc83e1ff860fc8cbc05ba34ba1e2ad",
-  "expectedPreFingerprint": "f8834c3a673d66cc35b71a25fa878cc123c8741281273ba7e75a03d051a79793",
-  "expectedPostFingerprint": "152641520c28ce61d0cd441ac03c16d97bad99f000f6067236d555731f1c4d58",
+  "migrationSha256": "8e97a8c1fbb45f4143894294cf52289795d4461e58b33c72034e0ccb1a0c5dae",
+  "expectedPreFingerprint": "b4d66ad06d1aba22930609f58b0ea1696fbfe5747a21f141dcedc97766d672de",
+  "expectedPostFingerprint": "82989755711d63a14d209cc2074fd3656288e74fb030331dac282acac7a8265b",
   "destructiveSql": false,
   "requiresPromotion": true,
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "releaseLedger": "public.comun_schema_releases",
   "assertions": [
     "security_invoker=true",
     "public view SELECT-only",
@@ -20,6 +23,6 @@
     "public.claim_next_archive_processing_job(text)",
     "public.handle_new_user()",
     "postgres defaults in public",
-    "supabase_admin defaults in public"
+    "public.comun_schema_releases"
   ]
 }

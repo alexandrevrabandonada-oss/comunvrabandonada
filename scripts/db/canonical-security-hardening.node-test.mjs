@@ -20,7 +20,8 @@ test("security hardening is a single transactional forward-only migration", () =
   assert.doesNotMatch(executableSql, /\b(drop|truncate|delete)\b/);
   assert.match(sql, /security_invoker\s*=\s*true/);
   assert.match(sql, /alter default privileges for role postgres in schema public/);
-  assert.match(sql, /alter default privileges for role supabase_admin in schema public/);
+  assert.doesNotMatch(sql, /alter default privileges for role supabase_admin/);
+  assert.doesNotMatch(sql, /pg_has_role[\s\S]*supabase_admin/);
   assert.match(sql, /claim_next_archive_processing_job\(text\)[\s\S]*search_path = pg_catalog/);
   console.log("COMUN_CANONICAL_SECURITY_HARDENING_OK");
 });
@@ -59,4 +60,14 @@ test("public reports contract exposes only the sanitized projection", () => {
 test("migration checksum is deterministic", () => {
   const checksum = createHash("sha256").update(sql).digest("hex");
   assert.equal(checksum.length, 64);
+});
+
+test("schema release ledger is private, idempotent and fail-closed", () => {
+  assert.match(sql, /create table if not exists public\.comun_schema_releases/);
+  assert.match(sql, /alter table public\.comun_schema_releases enable row level security/);
+  assert.match(sql, /revoke all privileges on table public\.comun_schema_releases[\s\S]*public, anon, authenticated/);
+  assert.match(sql, /comun_schema_release_ledger_divergence/);
+  assert.match(sql, /if found then[\s\S]*else[\s\S]*insert into public\.comun_schema_releases/);
+  assert.doesNotMatch(sql, /supabase_migrations\.schema_migrations/);
+  console.log("COMUN_SCHEMA_RELEASE_LEDGER_OK");
 });

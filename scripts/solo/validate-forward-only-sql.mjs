@@ -9,6 +9,11 @@ const releases = existsSync("supabase/releases")
 if (releases.length) {
   if (releases.length !== 1) throw new Error("SOLO_CANONICAL_RELEASE_COUNT_INVALID");
   const release = JSON.parse(readFileSync(path.join("supabase/releases", releases[0]), "utf8"));
+  if (release.expectedBlockingFindings !== 0 ||
+      release.platformObservationsAllowed !== true ||
+      release.releaseLedger !== "public.comun_schema_releases") {
+    throw new Error("SOLO_CANONICAL_RELEASE_SECURITY_CONTRACT_INVALID");
+  }
   const migration = readFileSync(release.migration, "utf8");
   const checksum = createHash("sha256").update(migration).digest("hex");
   if (checksum !== release.migrationSha256) throw new Error("SOLO_CANONICAL_RELEASE_CHECKSUM_MISMATCH");

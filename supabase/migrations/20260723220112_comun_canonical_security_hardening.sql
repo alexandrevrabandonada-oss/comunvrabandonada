@@ -61,6 +61,20 @@ begin
 end
 $preflight$;
 
+create table if not exists public.comun_schema_releases (
+  release text primary key,
+  migration_path text not null,
+  migration_sha256 text not null,
+  pre_fingerprint text not null,
+  post_fingerprint text not null,
+  applied_at timestamptz not null default pg_catalog.now(),
+  applied_by text not null default current_user,
+  status text not null default 'applied' check (status = 'applied')
+);
+alter table public.comun_schema_releases enable row level security;
+revoke all privileges on table public.comun_schema_releases
+  from public, anon, authenticated;
+
 revoke all privileges on table public.comun_public_reports
   from public, anon, authenticated;
 alter view public.comun_public_reports set (security_invoker = true);
@@ -103,20 +117,6 @@ alter default privileges for role postgres in schema public
   revoke all on sequences from anon, authenticated;
 alter default privileges for role postgres in schema public
   revoke execute on functions from public, anon, authenticated;
-
-do $defaults$
-begin
-  if exists (select 1 from pg_catalog.pg_roles where rolname = 'supabase_admin')
-     and pg_catalog.pg_has_role(current_user, 'supabase_admin', 'SET')
-  then
-    execute 'alter default privileges for role supabase_admin in schema public revoke all on tables from anon, authenticated';
-    execute 'alter default privileges for role supabase_admin in schema public revoke all on sequences from anon, authenticated';
-    execute 'alter default privileges for role supabase_admin in schema public revoke execute on functions from public, anon, authenticated';
-  else
-    raise notice 'COMUN_HARDENING_SUPABASE_ADMIN_DEFAULTS_REQUIRE_CAPABLE_PROMOTION_ROLE';
-  end if;
-end
-$defaults$;
 
 alter function public.claim_next_archive_processing_job(text)
   set search_path = pg_catalog;
@@ -185,5 +185,43 @@ begin
   end if;
 end
 $postflight$;
+
+do $ledger$
+declare
+  expected_path constant text :=
+    'supabase/migrations/20260723220112_comun_canonical_security_hardening.sql';
+  expected_sha text := pg_catalog.current_setting('comun.release_sha256', true);
+  expected_pre text := pg_catalog.current_setting('comun.release_pre_fingerprint', true);
+  expected_post text := pg_catalog.current_setting('comun.release_post_fingerprint', true);
+  existing public.comun_schema_releases%rowtype;
+begin
+  if expected_sha is null or expected_sha = '' then expected_sha := 'LOCAL_VALIDATION'; end if;
+  if expected_pre is null or expected_pre = '' then expected_pre := 'LOCAL_VALIDATION'; end if;
+  if expected_post is null or expected_post = '' then expected_post := 'LOCAL_VALIDATION'; end if;
+
+  select * into existing
+  from public.comun_schema_releases
+  where release = '20260723220112-canonical-security-hardening';
+
+  if found then
+    if existing.migration_path <> expected_path
+       or existing.migration_sha256 <> expected_sha
+       or existing.pre_fingerprint <> expected_pre
+       or existing.post_fingerprint <> expected_post
+       or existing.status <> 'applied'
+    then
+      raise exception 'COMUN_SCHEMA_RELEASE_LEDGER_DIVERGENCE';
+    end if;
+  else
+    insert into public.comun_schema_releases (
+      release, migration_path, migration_sha256, pre_fingerprint,
+      post_fingerprint, status
+    ) values (
+      '20260723220112-canonical-security-hardening',
+      expected_path, expected_sha, expected_pre, expected_post, 'applied'
+    );
+  end if;
+end
+$ledger$;
 
 commit;

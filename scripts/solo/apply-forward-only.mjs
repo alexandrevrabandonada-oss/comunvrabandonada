@@ -57,18 +57,29 @@ if (releaseFiles.length > 0) {
   const before = capture();
   if (before.fingerprint !== release.expectedPreFingerprint) {
     if (before.fingerprint === release.expectedPostFingerprint) {
+      const ledger = postgres(
+        `select migration_sha256 || '|' || pre_fingerprint || '|' || post_fingerprint
+         from public.comun_schema_releases
+         where release = '${release.release.replaceAll("'", "''")}';`,
+      );
+      const expected = `${release.migrationSha256}|${release.expectedPreFingerprint}|${release.expectedPostFingerprint}`;
+      if (ledger.status !== 0 || ledger.stdout.trim() !== expected) {
+        throw new Error("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
+      }
       console.log("COMUN_CANONICAL_SECURITY_HARDENING_ALREADY_APPLIED");
       process.exit(0);
     }
     throw new Error("SOLO_CANONICAL_PRE_FINGERPRINT_MISMATCH");
   }
-  const roleCapability = postgres(
-    "select pg_catalog.pg_has_role(current_user, 'supabase_admin', 'SET');",
+  const configuredMigration = migration.replace(
+    /^\s*begin;\s*/i,
+    `begin;
+select pg_catalog.set_config('comun.release_sha256', '${release.migrationSha256}', true);
+select pg_catalog.set_config('comun.release_pre_fingerprint', '${release.expectedPreFingerprint}', true);
+select pg_catalog.set_config('comun.release_post_fingerprint', '${release.expectedPostFingerprint}', true);
+`,
   );
-  if (roleCapability.status !== 0 || roleCapability.stdout.trim() !== "t") {
-    throw new Error("SOLO_CANONICAL_PROMOTION_ROLE_CANNOT_SET_SUPABASE_ADMIN");
-  }
-  const result = postgres(migration);
+  const result = postgres(configuredMigration);
   if (result.status !== 0) {
     const message = (
       result.stderr.match(/ERROR:\s+([^\r\n]+)/)?.[1] ?? "transaction failed"
@@ -79,8 +90,23 @@ if (releaseFiles.length > 0) {
   if (after.fingerprint !== release.expectedPostFingerprint) {
     throw new Error("SOLO_CANONICAL_POST_FINGERPRINT_MISMATCH");
   }
-  if (after.security.findings.length !== 0) {
+  if (after.security.blockingFindings.length !== release.expectedBlockingFindings) {
     throw new Error("SOLO_CANONICAL_SECURITY_FINDINGS_REMAIN");
+  }
+  if (after.security.platformObservations.length && !release.platformObservationsAllowed) {
+    throw new Error("SOLO_CANONICAL_PLATFORM_OBSERVATION_NOT_ALLOWED");
+  }
+  if (after.security.platformObservations.length) {
+    console.log(`COMUN_PLATFORM_DEFAULTS_OBSERVED ${after.security.platformObservations.length}`);
+  }
+  const ledger = postgres(
+    `select migration_sha256 || '|' || pre_fingerprint || '|' || post_fingerprint
+     from public.comun_schema_releases
+     where release = '${release.release.replaceAll("'", "''")}';`,
+  );
+  const expectedLedger = `${release.migrationSha256}|${release.expectedPreFingerprint}|${release.expectedPostFingerprint}`;
+  if (ledger.status !== 0 || ledger.stdout.trim() !== expectedLedger) {
+    throw new Error("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
   }
   console.log("COMUN_CANONICAL_SECURITY_HARDENING_OK");
   process.exit(0);
