@@ -229,14 +229,19 @@ async function main() {
   const approved = JSON.parse(await readFile(BASELINE, "utf8"));
   if ((await stat(BASELINE)).size > MAX_VERSIONED_BASELINE_BYTES) throw new Error("VERSIONED_BASELINE_EXCEEDS_5_MIB");
   if (documents.compact.security.findings.length) {
-    console.error(`COMUN_BASELINE_SECURITY_FINDINGS ${documents.compact.security.findings.length}`);
-    process.exit(1);
+    const approvedFindings = JSON.stringify(approved.security?.findings || []);
+    const currentFindings = JSON.stringify(documents.compact.security.findings);
+    if (!process.argv.includes("--allow-approved-findings") || approvedFindings !== currentFindings) {
+      console.error(`COMUN_BASELINE_SECURITY_FINDINGS ${documents.compact.security.findings.length}`);
+      process.exit(1);
+    }
+    console.log(`COMUN_BASELINE_SECURITY_FINDINGS ${documents.compact.security.findings.length} APPROVED_FOR_DRIFT_ONLY`);
   }
   if (approved.fingerprint !== documents.compact.fingerprint) {
     console.error(`COMUN_REMOTE_SCHEMA_DRIFT expected=${approved.fingerprint} actual=${documents.compact.fingerprint}`);
     process.exit(1);
   }
-  console.log("COMUN_BASELINE_SECURITY_OK");
+  if (!documents.compact.security.findings.length) console.log("COMUN_BASELINE_SECURITY_OK");
   console.log(`COMUN_REMOTE_SCHEMA_BASELINE_OK ${documents.compact.fingerprint}`);
 }
 
