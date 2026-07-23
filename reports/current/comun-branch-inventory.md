@@ -47,6 +47,6 @@ Decisão: `UNKNOWN_DO_NOT_DELETE` até remoção explícita dos worktrees.
 - `codex/sprint-40-1-mobile-preview`.
 
 Todas são ancestrais de `main`, não têm PR aberta e têm zero commit único.
-Decisão proposta: `DELETE_MERGED`. Neste tijolo, somente
-`codex/sprint-40-1-mobile-preview` será removida após confirmar a tag e o merge;
-as demais permanecem como inventário histórico.
+Decisão: `DELETE_MERGED`. Em 23 de julho de 2026,
+`codex/sprint-40-1-mobile-preview` foi removida localmente e do remoto após a
+confirmação do merge e da tag. As demais permanecem como inventário histórico.
