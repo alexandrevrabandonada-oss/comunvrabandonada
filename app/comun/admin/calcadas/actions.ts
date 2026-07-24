@@ -32,20 +32,32 @@ export async function moderateSidewalkRecord(form: FormData) {
     throw new Error("Decisão editorial inválida.");
   const { data: record, error } = await db
     .from("comun_sidewalk_records")
-    .select("id,member_user_id,pauta_id,private_geometry_geojson")
+    .select("id,member_user_id,pauta_id,private_geometry_geojson,private_notes")
     .eq("id", id)
     .single();
   if (error || !record) throw new Error("Registro não encontrado.");
-  if (decision === "needs_information")
-    await db
+  const publicSummary = String(form.get("public_summary") ?? "").trim(),
+    complementRequest = String(form.get("complement_request") ?? "").trim(),
+    complementField = String(form.get("complement_field") ?? "").trim(),
+    complementDueAt = String(form.get("complement_due_at") ?? "").trim();
+  if (["approve_approximate", "publish_without_image"].includes(decision) && !publicSummary)
+    throw new Error("A publicação exige um resumo público sanitizado.");
+  if (decision === "needs_information") {
+    if (!complementRequest || !complementField)
+      throw new Error("Explique o que falta e qual campo ou evidência deve ser complementado.");
+    const updated = await db
       .from("comun_sidewalk_records")
       .update({
         status: "under_review",
         verification_status: "community_report",
+        complement_request_private: complementRequest.slice(0, 1600),
+        complement_field_private: complementField.slice(0, 300),
+        complement_due_at: complementDueAt ? new Date(complementDueAt).toISOString() : null,
       })
       .eq("id", id);
-  else if (decision === "reject")
-    await db
+    if (updated.error) throw new Error("Não foi possível registrar o pedido de complemento.");
+  } else if (decision === "reject") {
+    const updated = await db
       .from("comun_sidewalk_records")
       .update({
         status: "rejected",
@@ -53,20 +65,56 @@ export async function moderateSidewalkRecord(form: FormData) {
         public_geometry_geojson: null,
       })
       .eq("id", id);
-  else if (decision === "withdraw")
-    await db
+    if (updated.error) throw new Error("Não foi possível rejeitar o registro.");
+  } else if (decision === "withdraw") {
+    const updated = await db
       .from("comun_sidewalk_records")
       .update({
         status: "withdrawn",
         visibility: "internal",
         public_geometry_geojson: null,
-      })
+    })
       .eq("id", id);
+    if (updated.error) throw new Error("Não foi possível retirar o registro.");
+  }
   else {
     const publicGeometry = decision === "approve_approximate"
         ? approximate(record.private_geometry_geojson)
         : null;
-    await db
+    if (decision === "approve_approximate" && !publicGeometry)
+      throw new Error("A publicação exige uma geometria pública aproximada.");
+    let publicationRollback: null | {
+      photoId: string;
+      itemId: string;
+      derivativeId: string;
+      derivativeKey: string;
+    } = null;
+    try {
+      if (decision === "approve_approximate") {
+      const { data: photo, error: photoError } = await db
+        .from("comun_sidewalk_record_photos")
+        .select("id,archive_item_id,original_asset_id,comun_archive_assets!comun_sidewalk_record_photos_original_asset_id_fkey(object_key,original_filename)")
+        .eq("record_id", id).eq("review_status", "pending").maybeSingle();
+      if (photoError || !photo) throw new Error("A fotografia privada não está pronta para revisão.");
+      const asset = Array.isArray(photo.comun_archive_assets) ? photo.comun_archive_assets[0] : photo.comun_archive_assets;
+      if (!asset?.object_key) throw new Error("O original privado não está disponível para derivação.");
+      const derivative = await generateSidewalkPhotoDerivative(db, photo.archive_item_id, asset.object_key, asset.original_filename ?? "registro.jpg");
+      const photoUpdate = await db.from("comun_sidewalk_record_photos").update({ derivative_asset_id: derivative.assetId, review_status: "approved", is_public: true, public_alt_text: "Registro comunitário de trecho de calçada, publicado após revisão de privacidade." }).eq("id", photo.id);
+      if (photoUpdate.error) throw new Error("Não foi possível aprovar a derivada pública.");
+      const itemUpdate = await db.from("comun_archive_items").update({ status: "published", visibility: "public", published_at: new Date().toISOString() }).eq("id", photo.archive_item_id);
+      if (itemUpdate.error) throw new Error("Não foi possível publicar a derivada revisada.");
+        publicationRollback = {
+          photoId: photo.id,
+          itemId: photo.archive_item_id,
+          derivativeId: derivative.assetId,
+          derivativeKey: derivative.key,
+        };
+      }
+      if (decision === "publish_without_image") {
+      const photoUpdate = await db.from("comun_sidewalk_record_photos").update({ review_status: "approved_without_image", is_public: false }).eq("record_id", id);
+      if (photoUpdate.error) throw new Error("Não foi possível manter a fotografia privada.");
+      }
+      const published = await db
       .from("comun_sidewalk_records")
       .update({
         status: "published",
@@ -75,55 +123,33 @@ export async function moderateSidewalkRecord(form: FormData) {
         public_geometry_geojson: publicGeometry,
         location_precision: publicGeometry ? "approximate" : "hidden",
         last_observed_at: new Date().toISOString(),
+        public_summary: publicSummary,
       })
       .eq("id", id);
-    if (decision === "publish_without_image")
-      await db
-        .from("comun_sidewalk_record_photos")
-        .update({ review_status: "approved_without_image", is_public: false })
-        .eq("record_id", id);
-    if (decision === "approve_approximate") {
-      const { data: photo } = await db
-        .from("comun_sidewalk_record_photos")
-        .select(
-          "id,archive_item_id,original_asset_id,comun_archive_assets!comun_sidewalk_record_photos_original_asset_id_fkey(object_key,original_filename)",
-        )
-        .eq("record_id", id)
-        .eq("review_status", "pending")
-        .maybeSingle();
-      const asset = Array.isArray(photo?.comun_archive_assets)
-        ? photo.comun_archive_assets[0]
-        : photo?.comun_archive_assets;
-      if (photo && asset?.object_key) {
-        const derivative = await generateSidewalkPhotoDerivative(
-          db,
-          photo.archive_item_id,
-          asset.object_key,
-          asset.original_filename ?? "registro.jpg",
-        );
-        await db
-          .from("comun_sidewalk_record_photos")
-          .update({
-            derivative_asset_id: derivative.assetId,
-            review_status: "approved",
-            is_public: true,
-            public_alt_text:
-              "Registro comunitário de trecho de calçada, publicado após revisão de privacidade.",
-          })
-          .eq("id", photo.id);
-        await db
-          .from("comun_archive_items")
-          .update({
-            status: "published",
-            visibility: "public",
-            published_at: new Date().toISOString(),
-          })
-          .eq("id", photo.archive_item_id);
+      if (published.error) throw new Error("Não foi possível publicar o registro revisado.");
+    } catch (publicationError) {
+      if (publicationRollback) {
+        await db.from("comun_sidewalk_record_photos").update({
+          derivative_asset_id: null,
+          review_status: "pending",
+          is_public: false,
+          public_alt_text: null,
+        }).eq("id", publicationRollback.photoId);
+        await db.from("comun_archive_items").update({
+          status: "draft",
+          visibility: "private",
+          published_at: null,
+        }).eq("id", publicationRollback.itemId);
+        await db.from("comun_archive_assets").delete().eq("id", publicationRollback.derivativeId);
+        await import("@/lib/media-storage").then(({ getMediaStorage }) =>
+          getMediaStorage().removeObject("public_safe", publicationRollback!.derivativeKey),
+        ).catch(() => {});
       }
+      throw publicationError;
     }
   }
-  if (record.member_user_id)
-    await db
+  if (record.member_user_id) {
+    const inbox = await db
       .from("comun_member_inbox")
       .upsert(
         {
@@ -136,16 +162,18 @@ export async function moderateSidewalkRecord(form: FormData) {
           title: "Atualização no registro de calçada",
           summary:
             decision === "needs_information"
-              ? "A equipe solicitou informações complementares."
+              ? `Falta: ${complementField}. ${complementRequest}${complementDueAt ? ` Prazo: ${new Date(complementDueAt).toLocaleDateString("pt-BR")}.` : ""}`
               : decision === "reject"
                 ? "O registro não foi publicado após revisão."
                 : "A decisão editorial foi registrada.",
-          action_url: "/comun/minha-participacao",
+          action_url: `/comun/minha-participacao?registro=${id}&acao=complementar`,
           priority: "normal",
           dedupe_key: `sidewalk-moderation:${id}:${decision}`,
         },
         { onConflict: "member_user_id,dedupe_key" },
       );
+    if (inbox.error) throw new Error("Não foi possível registrar a mensagem de acompanhamento.");
+  }
   await logComunAdminAction({
     session,
     action: `sidewalk_${decision}`,
@@ -214,4 +242,37 @@ export async function moderateSidewalkObservation(form: FormData) {
   revalidatePath("/comun/admin/calcadas");
   revalidatePath("/comun/calcadas");
   if (record?.slug) revalidatePath(`/comun/calcadas/registros/${record.slug}`);
+}
+
+export async function decideSidewalkDuplicate(form: FormData) {
+  const session = await requireComunAdmin({ roles: ["admin", "editor"] }),
+    db = createServiceSupabaseClient();
+  if (!db) throw new Error("Banco local indisponível.");
+  const recordId = String(form.get("record_id") ?? ""),
+    candidateRecordId = String(form.get("candidate_record_id") ?? ""),
+    decision = String(form.get("decision") ?? ""),
+    score = Number(form.get("score") ?? 0),
+    signals = String(form.get("signals") ?? "").split(",").filter(Boolean);
+  if (!recordId || !candidateRecordId || recordId === candidateRecordId)
+    throw new Error("Registros de duplicidade inválidos.");
+  if (!["related", "merged", "distinct"].includes(decision))
+    throw new Error("Decisão de duplicidade inválida.");
+  const saved = await db.from("comun_sidewalk_duplicate_suggestions" as never).upsert({
+    record_id: recordId,
+    candidate_record_id: candidateRecordId,
+    score: Math.max(0, Math.min(100, Math.round(score))),
+    signals,
+    decision,
+    decided_by_private: session.admin.email,
+    decided_at: new Date().toISOString(),
+  } as never, { onConflict: "record_id,candidate_record_id" });
+  if (saved.error) throw new Error("Não foi possível registrar a decisão de duplicidade.");
+  await logComunAdminAction({
+    session,
+    action: `sidewalk_duplicate_${decision}`,
+    targetType: "sidewalk_record",
+    targetId: recordId,
+    metadata: { candidate_record_id: candidateRecordId, score, signals },
+  });
+  revalidatePath("/comun/admin/calcadas");
 }
