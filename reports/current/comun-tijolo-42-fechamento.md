@@ -59,7 +59,7 @@ O Tijolo 43 não foi iniciado. A correção exige uma decisão controlada entre:
 
 Nenhuma dessas ações foi executada durante o fechamento.
 
-## Hotfix 42.1 em validação
+## Hotfix 42.1 concluído
 
 A branch `codex/tijolo-42-1-pauta-canonica` partiu do merge SHA e implementa
 um fallback editorial local, sem registro remoto. O registro público real
@@ -67,8 +67,13 @@ mantém precedência; linha privada, arquivada ou erro de consulta não ativam o
 fallback.
 
 O gate local passou com 263/263 unitários, build, smokes, 14/14 E2E, 8/8 Axe e
-fixtures limpas. A decisão de produção permanece bloqueada até CI, merge e
-smoke público.
+fixtures limpas. A PR
+[#32](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/32)
+foi mesclada normalmente no SHA
+`a989d517cd56d1051176eeb16675b019936e3244`. FULL pré-merge, CI pós-merge e
+deployment Vercel passaram. O smoke no domínio canônico confirmou HTTP 200 na
+pauta, navegação pauta ↔ mapa, redirects autenticados esperados e PMTiles com
+HTTP 206.
 
 ## Declarações
 
@@ -79,5 +84,7 @@ smoke público.
 - domínio: não alterado;
 - promoção remota: não necessária;
 - decisão técnica pré-merge: `COMUN_NUCLEO_VIVO_READY_TO_MERGE`;
-- decisão de produção: `NO_GO_PAUTA_CANONICA_404`;
-- `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN`: não declarado.
+- decisão de produção: `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN`;
+- Tijolo 43: `TIJOLO_43_UNBLOCKED`;
+- gate humano: 0/3;
+- piloto público: fechado.

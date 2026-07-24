@@ -90,3 +90,25 @@ iniciado.
 
 O teste agora exige HTTP 200 na pauta, as seis fases, navegação bidirecional,
 retorno allowlisted e ausência do identificador editorial na interface.
+
+## Fechamento do hotfix 42.1
+
+- PR [#32](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/32):
+  mesclada por merge commit;
+- branch HEAD: `a52c625e2221345311a93d6931491d3887e478cd`;
+- merge SHA: `a989d517cd56d1051176eeb16675b019936e3244`;
+- FULL pré-merge: run `30128663490`, aprovado;
+- CI pós-merge: run `30130058303`, aprovado;
+- Vercel Production deployment `5595972121`: aprovado;
+- pauta canônica: HTTP 200;
+- Home, pautas, mapa e participação: HTTP 200;
+- superfícies autenticadas: HTTP 307 esperado;
+- PMTiles: HTTP 206;
+- pauta ↔ mapa: aprovado;
+- resposta 5xx: nenhuma nas superfícies inspecionadas;
+- vazamento público dos marcadores sensíveis auditados: nenhum.
+
+Decisão final: `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN`.
+
+O Tijolo 43 está `TIJOLO_43_UNBLOCKED`. Isso não altera o gate humano 0/3 nem
+abre o piloto público.

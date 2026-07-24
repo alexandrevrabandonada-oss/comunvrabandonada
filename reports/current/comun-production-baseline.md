@@ -1,5 +1,33 @@
 # Baseline de produção do COMUN
 
+Atualizado em 24 de julho de 2026.
+
+## Baseline vigente
+
+- repositório: `alexandrevrabandonada-oss/comunvrabandonada`;
+- `main`: `a989d517cd56d1051176eeb16675b019936e3244`;
+- PR de fechamento: [#32](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/32);
+- CI pós-merge:
+  [run 30130058303](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30130058303),
+  aprovado;
+- Vercel Production deployment `5595972121`: aprovado;
+- domínio canônico: `https://comunsocial.online`;
+- pauta canônica, Home, pautas, mapa e participação: HTTP 200;
+- Minha Participação e Caixa de entrada: HTTP 307 esperado;
+- PMTiles: HTTP 206, `Content-Range: bytes 0-31/10147678`;
+- navegação pauta ↔ mapa: aprovada;
+- nenhuma resposta 5xx ou marcador sensível encontrado nas superfícies
+  inspecionadas;
+- decisão: `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN`;
+- Tijolo 43: `TIJOLO_43_UNBLOCKED`;
+- gate humano: 0/3;
+- piloto público: fechado.
+
+Nenhuma migration, escrita no Supabase remoto, alteração de domínio ou deploy
+manual foi necessária no hotfix 42.1.
+
+## Baseline histórico
+
 Verificação read-only em 23 de julho de 2026, com confirmação de imutabilidade
 após a tentativa de promoção de 24 de julho de 2026.
 
