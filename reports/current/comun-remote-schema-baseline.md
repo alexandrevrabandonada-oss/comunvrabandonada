@@ -1,6 +1,6 @@
 # Baseline canônico de segurança do schema remoto
 
-Atualizado em 23 de julho de 2026. O JSON versionado representa o estado
+Atualizado em 24 de julho de 2026. O JSON versionado representa o estado
 esperado depois da release, sem afirmar que o remoto já foi alterado.
 
 ## Fingerprints bloqueantes
@@ -10,6 +10,11 @@ esperado depois da release, sem afirmar que o remoto já foi alterado.
 - pós-migration esperado:
   `82989755711d63a14d209cc2074fd3656288e74fb030331dac282acac7a8265b`;
 - algoritmo: `sha256-app-canonical-security-v2`.
+
+A captura read-only do run `30054188587` repetiu a projeção duas vezes e
+produziu hashes idênticos. O pré continha 9 achados bloqueantes e 1 observação
+de plataforma; o pós projetado contém zero bloqueantes e preserva a observação
+dos 3 defaults gerenciados.
 
 O fingerprint inclui somente contratos controláveis pelo COMUN: relações,
 colunas, constraints, índices, RLS, policies, views, funções, triggers, grants,

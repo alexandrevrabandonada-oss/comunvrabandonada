@@ -1,8 +1,8 @@
 # Preflight canônico do hardening de segurança
 
-Captura read-only: 23 de julho de 2026. Fingerprint remoto:
-`f8834c3a673d66cc35b71a25fa878cc123c8741281273ba7e75a03d051a79793`.
-Workflow de evidência: `COMUN Nightly` run `30048525838`.
+Captura read-only final: 23 de julho de 2026. Fingerprint remoto bloqueante:
+`b4d66ad06d1aba22930609f58b0ea1696fbfe5747a21f141dcedc97766d672de`.
+Workflow de evidência determinística: `COMUN Nightly` run `30054188587`.
 
 ## View e dependência
 
@@ -39,8 +39,9 @@ operacionais; trocar somente o `search_path` por `pg_catalog`.
 
 Foram capturados defaults de `postgres` e `supabase_admin` no schema `public`
 que concediam privilégios futuros a `anon` e `authenticated` em tabelas,
-sequences e/ou funções. A migration revoga somente esses defaults no schema
-`public`; `auth`, `storage`, `graphql` e `extensions` ficam fora do escopo.
+sequences e/ou funções. A migration revoga somente os defaults cujo owner é
+`postgres`, no schema `public`. Defaults de `supabase_admin`, assim como
+`auth`, `storage`, `graphql` e `extensions`, ficam fora do escopo mutável.
 
 Nenhuma linha de aplicação, usuário, e-mail, metadata, objeto de Storage ou
 segredo foi consultado ou persistido.
@@ -57,3 +58,14 @@ Eles permanecem íntegros no snapshot informativo, com quantidade e hash, mas
 não entram no fingerprint bloqueante. Defaults cujo owner é `postgres`
 continuam bloqueantes e são corrigidos pela migration. Nenhuma escrita remota
 foi executada.
+
+## Resultado dos gates
+
+- HEAD técnico: `9ea9cc8b2cfaee6303fcd1ee8abe15e65c609107`;
+- pós projetado:
+  `82989755711d63a14d209cc2074fd3656288e74fb030331dac282acac7a8265b`;
+- bloqueantes: 9 antes, 0 depois;
+- observação gerenciada: 1, referente a 3 defaults de `supabase_admin`;
+- FAST e FULL: run `30054740000`, sucesso;
+- Vercel Preview: sucesso;
+- decisão: `COMUN_SECURITY_HARDENING_READY_TO_PROMOTE`.

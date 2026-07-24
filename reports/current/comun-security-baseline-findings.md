@@ -1,6 +1,7 @@
 # Achados do baseline de segurança
 
-Atualizado em 23 de julho de 2026. Nenhuma escrita remota foi executada.
+Atualizado em 24 de julho de 2026. Nenhuma escrita remota de banco ou produção
+foi executada.
 
 ## Classificação canônica
 
@@ -42,10 +43,13 @@ migration futura do COMUN, a partir de `20260723220112`, deve neutralizar
 privilégios implícitos no próprio arquivo e passa por
 `npm run db:privileges:lint`.
 
-## Resultado esperado
+## Resultado comprovado
 
 - bloqueantes antes: 9 no escopo controlável atual;
 - bloqueantes depois: 0;
 - observações de plataforma: 3 defaults, documentados e monitorados;
+- captura sanitizada em dois ensaios: run `30054188587`, hashes coincidentes;
+- FAST e FULL: run `30054740000`, sucesso no HEAD
+  `9ea9cc8b2cfaee6303fcd1ee8abe15e65c609107`;
 - dados alterados: nenhum;
 - promoção remota: ainda não executada.
