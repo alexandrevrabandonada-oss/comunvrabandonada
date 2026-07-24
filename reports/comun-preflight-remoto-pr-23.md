@@ -1,5 +1,9 @@
 # Preflight remoto da PR #23
 
+> Documento histórico. Estado superado pelo fechamento verde da PR #23 em
+> 23 de julho de 2026. Consulte
+> `reports/current/estado-atual-comun.md`.
+
 Data da verificação: 21 de julho de 2026
 Escopo: auditoria somente leitura; nenhuma migration, configuração, contribuição, deploy ou merge foi executado.
 

@@ -1,5 +1,9 @@
 # Inventário final de integração da PR #23
 
+> Documento histórico. Estado superado pelo fechamento verde da PR #23 em
+> 23 de julho de 2026. Consulte
+> `reports/current/estado-atual-comun.md`.
+
 Data: 2026-07-21
 
 PR canônica: https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/23

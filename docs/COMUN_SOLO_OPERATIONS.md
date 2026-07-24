@@ -1,5 +1,40 @@
 # Operação solo unificada do COMUN
 
+## Releases canônicas posteriores à PR #23
+
+Quando houver um único manifesto em `supabase/releases`, a promoção valida SHA,
+CI, checksum, ausência de SQL destrutivo e fingerprint pré; executa somente a
+migration declarada; exige postflight, fingerprint pós e zero achados antes de
+preview, merge e produção. Não usa `supabase db push`, migration repair nem
+reaplica o pacote histórico. A decisão manual continua sendo `comun:promover`.
+
+O fingerprint bloqueante contém somente objetos controláveis pelo COMUN.
+Defaults de `supabase_admin` permanecem em snapshot informativo com hash
+monitorado. Toda migration posterior à PR #23 deve revogar grants implícitos,
+habilitar RLS quando aplicável e declarar allowlists; o FAST e o FULL executam
+`npm run db:privileges:lint`.
+
+Cada release aplicada é registrada em `public.comun_schema_releases` dentro da
+mesma transação. O ledger é privado, não substitui nem altera
+`supabase_migrations.schema_migrations` e recusa checksum ou fingerprints
+divergentes.
+
+### Transporte PostgreSQL do runner
+
+O runner separa três contratos: `executeSql` aplica exclusivamente a transação
+sem interpretar `stdout`; `queryJson` usa `psql --tuples-only --no-align
+--quiet` e exige exatamente um documento JSON; `queryScalar` usa o mesmo
+formato canônico e exige exatamente uma linha não vazia. Todos os comandos usam
+`--no-psqlrc`, `ON_ERROR_STOP=1`, buffer catalogal de 64 MiB e erros
+sanitizados. Cabeçalhos, separadores, contadores `(1 row)`, múltiplas linhas e
+saída vazia são recusados.
+
+O preflight remoto estritamente read-only pode ser disparado manualmente no
+`COMUN Nightly` com `release_preflight=true`. Nesse modo, somente manifesto,
+checksum, lint destrutivo, fingerprint, contagens agregadas, ledger e objetos
+de preflight são lidos. FULL, cleanup, worker, transação, migration, merge e
+domínio não são executados.
+
 ## Estado vigente
 
 O COMUN é operado por uma pessoa. A decisão manual de release é representada uma única vez pela label `comun:promover` ou pelo disparo manual equivalente. Revisores externos, duas aprovações, GitHub Environments, cofre próprio e restore integral não são requisitos deste projeto.
@@ -30,6 +65,8 @@ Não empilhar PRs, não iniciar tijolo estrutural com CI vermelho e sempre criar
 - `comun-ci.yml`: FAST em toda PR e push; FULL na PR #23, branches de promoção e chamadas explícitas.
 - `comun-promote.yml`: única promoção, autorizada por operador `admin` ou `maintain` e SHA imutável.
 - `comun-nightly.yml`: regressão FULL diária e scheduler já existente do acervo.
+- `comun-nightly.yml`, no modo manual `release_preflight=true`: somente
+  preflight remoto read-only da release.
 
 O push sozinho nunca promove produção. A label `comun:promover` é a autorização humana única. Labels desconhecidas são ignoradas.
 
@@ -56,6 +93,21 @@ Depois do banco, o workflow executa postflight, DB lint, RLS, cleanup dry-run, p
 - depois do merge: solicitar rollback para o deployment Vercel anterior, restaurar aliases quando aplicável e abrir issue de incidente;
 - nunca executar SQL reverso destrutivo automaticamente.
 
+O rollback de aplicação/deployment só pode ser solicitado quando o próprio
+workflow tiver confirmado que realizou o merge. Falhas de validação, captura,
+transporte PostgreSQL ou migration anteriores ao merge não podem publicar uma
+mensagem enganosa de rollback de deployment.
+
+Marcadores de transporte esperados incluem
+`SOLO_PSQL_PROCESS_FAILED`, `SOLO_PSQL_OUTPUT_BUFFER_EXCEEDED`,
+`SOLO_CANONICAL_BASELINE_OUTPUT_EMPTY`,
+`SOLO_CANONICAL_BASELINE_OUTPUT_INVALID`,
+`SOLO_CANONICAL_SCALAR_OUTPUT_INVALID`,
+`SOLO_CANONICAL_PREFLIGHT_OBJECTS_INVALID`,
+`SOLO_CANONICAL_DATABASE_QUERY_FAILED` e
+`SOLO_CANONICAL_DATABASE_TRANSACTION_FAILED`. Mensagens nunca incluem URL,
+senha, token, string de conexão ou saída catalogal bruta.
+
 ## Contrato de secrets
 
 Somente nomes, nunca valores:
@@ -72,9 +124,12 @@ Somente nomes, nunca valores:
 
 Os antigos secrets `PR23_BACKUP_*` não fazem parte do contrato vigente.
 
-## Ações depois de uma produção verde
+## Ciclo depois da PR #23
 
-Confirmar `SOLO_PRODUCTION_GREEN`, tornar `main` a única fonte, fechar branches históricas, remover worktrees obsoletos e criar a tag `comun-pr23-unified`. Nenhuma dessas ações é antecipada no lote de preparação.
+`main` é a fonte única. Cada novo tijolo nasce de `main`, usa uma branch
+`codex/tijolo-<numero>-<nome>`, uma PR e volta a `main` somente depois do CI.
+Branches históricas só podem ser removidas quando não têm PR aberta, commits
+únicos, tag exclusiva ou worktree ativo.
 
 ## Fechamento da PR #23
 
@@ -86,3 +141,37 @@ Confirmar `SOLO_PRODUCTION_GREEN`, tornar `main` a única fonte, fechar branches
 - smoke público: 19/19 ciclos verdes por mais de 15 minutos;
 - gate humano: 0/3;
 - piloto público: fechado.
+
+O estado atual fica em
+[`reports/current/estado-atual-comun.md`](../reports/current/estado-atual-comun.md).
+Documentos de preparação da PR #23 são históricos.
+
+## Preview Vercel protegido
+
+A validação imutável usa `vercel@50.28.0`. Nessa versão, a sintaxe comprovada é
+`vercel curl <rota> --deployment <URL HTTPS completa> --token <redacted> --
+<argumentos curl>`; não existe opção `--url`.
+
+O cliente não depende de projeto implícito nem de slug de `--scope`. Antes das
+rotas, ele inspeciona o deployment e exige:
+
+- hostname `*.vercel.app` e protocolo HTTPS;
+- project ID canônico;
+- team ID canônico;
+- SHA exato da PR;
+- estado `READY`;
+- target `preview`.
+
+Depois valida `/comun`, a matriz pública canônica e o Range PMTiles. O
+diagnóstico persistido contém somente SHA, deployment ID, hostname, versão do
+CLI, status sanitizados, tempos e resultado. Tokens, cookies, Authorization,
+corpos e headers privados são proibidos.
+
+Para repetir somente esse gate, use `preview_preflight=true` no `COMUN
+Nightly`. Esse modo não recebe secrets de Supabase e mantém release preflight,
+FULL, cleanup, worker, produção e baseline como `skipped`.
+
+Se o CLI emitir `The token provided via --token argument is not valid`, a
+classe é `VERCEL_CLI_AUTH_FAILED`. Não alterar URL, scope, projeto ou proteção
+para contornar essa falha: substitua `VERCEL_TOKEN` por uma credencial válida
+do time indicado por `VERCEL_TEAM_ID` e repita somente o preflight.

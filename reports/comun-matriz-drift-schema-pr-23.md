@@ -1,5 +1,9 @@
 # Matriz de drift de schema — PR #23
 
+> Documento histórico. Estado superado pelo fechamento verde da PR #23 em
+> 23 de julho de 2026. Consulte
+> `reports/current/estado-atual-comun.md`.
+
 ## Estado canônico atual
 
 As 52 ausências e 15 divergências catalogadas foram cobertas pelo pacote forward-only em dois ensaios. O drift residual legado é preservado deliberadamente.

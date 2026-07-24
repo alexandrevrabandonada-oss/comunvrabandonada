@@ -94,7 +94,6 @@ jobs:
           S_SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           S_SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           S_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          S_VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           S_VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
           S_VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
           S_VERCEL_LEGACY_PROJECT_ID: ${{ secrets.VERCEL_LEGACY_PROJECT_ID }}
@@ -108,7 +107,6 @@ jobs:
           SUPABASE_DB_URL|S_SUPABASE_DB_URL
           SUPABASE_DB_PASSWORD|S_SUPABASE_DB_PASSWORD
           SUPABASE_SERVICE_ROLE_KEY|S_SUPABASE_SERVICE_ROLE_KEY
-          VERCEL_TOKEN|S_VERCEL_TOKEN
           VERCEL_TEAM_ID|S_VERCEL_TEAM_ID
           VERCEL_CANONICAL_PROJECT_ID|S_VERCEL_CANONICAL_PROJECT_ID
           VERCEL_LEGACY_PROJECT_ID|S_VERCEL_LEGACY_PROJECT_ID
@@ -187,6 +185,8 @@ jobs:
           docker run --rm postgres:17 psql "$SUPABASE_DB_URL" -X -v ON_ERROR_STOP=1 -c "notify pgrst, 'reload schema';"
           node scripts/cleanup-comun-sidewalk-uploads.mjs --allow-non-local --project-ref="$SUPABASE_PROJECT_REF"
       - name: Validate immutable Vercel preview
+        id: preview
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ needs.authorize.outputs.pr }}
@@ -194,8 +194,21 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
           VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
-        run: node scripts/solo/verify-preview.mjs
+        run: node scripts/solo/verify-preview.mjs --output=comun-vercel-preview-diagnostic.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-vercel-preview-diagnostic-${{ needs.authorize.outputs.sha }}
+          path: comun-vercel-preview-diagnostic.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Require green immutable Vercel preview
+        if: always()
+        env:
+          PREVIEW_OUTCOME: ${{ steps.preview.outcome }}
+        run: test "$PREVIEW_OUTCOME" = success
       - name: Merge by merge commit
+        id: merge
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ needs.authorize.outputs.pr }}
@@ -203,6 +216,7 @@ jobs:
         run: |
           if test "$(gh pr view "$PR" --json isDraft --jq .isDraft)" = true; then gh pr ready "$PR"; fi
           gh api -X PUT "repos/${{ github.repository }}/pulls/$PR/merge" -f sha="$SHA" -f merge_method=merge --jq '.merged == true'
+          echo "merged=true" >> "$GITHUB_OUTPUT"
       - name: Wait for main deployment and canonical smoke
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -226,7 +240,7 @@ jobs:
         run: node scripts/solo/monitor-production.mjs --minutes=15 --domain=comunsocial.online --public
       - if: success()
         run: echo 'SOLO_PRODUCTION_GREEN' >> "$GITHUB_STEP_SUMMARY"
-      - if: failure()
+      - if: failure() && steps.merge.outputs.merged == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}

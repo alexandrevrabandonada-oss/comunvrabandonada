@@ -1,0 +1,172 @@
+# Estado atual do COMUN
+
+Atualizado em 24 de julho de 2026.
+
+## Linha ativa
+
+- repositório: `alexandrevrabandonada-oss/comunvrabandonada`;
+- branch única: `codex/tijolo-41-baseline-canonico`;
+- PR única: #30, aberta, não draft e mesclável;
+- HEAD de partida deste lote:
+  `10ef55ef82d530954aade4dcffa68e2569ac6090`;
+- HEAD técnico aprovado:
+  `9ea9cc8b2cfaee6303fcd1ee8abe15e65c609107`;
+- base `main`: `b2f6733dacd15ec21601ed6b6837b42213b87d70`.
+
+## Hardening
+
+A release `20260723220112-canonical-security-hardening` ficou executável pelo
+role `postgres` disponível. Ela corrige integralmente o escopo controlável pelo
+COMUN e mantém os defaults de `supabase_admin` como observações gerenciadas.
+
+Foram preparados:
+
+- view pública `security_invoker`, RLS e grants de coluna sanitizados;
+- defaults futuros pertencentes a `postgres` endurecidos;
+- duas funções definer com `search_path=pg_catalog`;
+- trigger `auth.on_auth_user_created` preservado;
+- ledger privado `public.comun_schema_releases`;
+- lint obrigatório de privilégios explícitos;
+- runner de release por manifesto, checksum e fingerprints;
+- CI com diagnóstico separado e repetição única para 502 transitório.
+
+## Decisão histórica
+
+Estado técnico anteriormente comprovado após FAST, FULL e Vercel no mesmo HEAD:
+`COMUN_SECURITY_HARDENING_READY_TO_PROMOTE`.
+
+Evidências:
+
+- captura sanitizada determinística: run `30054188587`;
+- FAST: run `30054740000`, sucesso;
+- FULL: run `30054740000`, sucesso;
+- Vercel Preview: sucesso;
+- fingerprint pré:
+  `b4d66ad06d1aba22930609f58b0ea1696fbfe5747a21f141dcedc97766d672de`;
+- fingerprint pós inicialmente projetado:
+  `82989755711d63a14d209cc2074fd3656288e74fb030331dac282acac7a8265b`.
+
+Não houve migration remota, merge, alteração de domínio ou mudança em
+produção. O gate humano permanece 0/3 e o piloto público fechado.
+
+## Promoção final
+
+O run `30057245879` criou o checkpoint sanitizado `8583227864`, mas interrompeu
+o runner forward-only com `SOLO_FORWARD_ONLY_FAILED`. A captura read-only
+`30057335078` confirmou rollback total: fingerprint pré inalterado, 9
+bloqueantes e ledger ausente. A label foi removida, a PR permanece aberta e a
+main não avançou.
+
+## Correção do runner em validação
+
+A causa exata foi reproduzida com PostgreSQL 17: a consulta JSON era executada
+no formato tabular padrão do `psql`, e o runner aplicava `JSON.parse` sobre
+cabeçalho, separador, documento e contador `(1 row)`. A exceção nativa não
+recebia marcador próprio, contribuindo para o diagnóstico genérico no workflow.
+
+O patch separa `executeSql`, `queryJson` e `queryScalar`, canoniza o transporte,
+sanitiza todas as falhas de processo e adiciona um preflight remoto
+estritamente read-only no `COMUN Nightly`. A migration e seu checksum
+permanecem idênticos.
+
+O primeiro ensaio read-only, run `30061056715`, comprovou que o baseline
+compacto não contém por contrato triggers de `auth`; a validação antiga
+procurava `auth.on_auth_user_created` na projeção errada. O patch passou a
+consultar somente a contagem desse trigger em `pg_catalog`, por `queryScalar`.
+Nenhuma escrita ocorreu nesse diagnóstico.
+
+Evidências do HEAD técnico corrigido
+`12fbb437324086f92d8beefc586d335b5652f8ed`:
+
+- FAST e FULL: run `30061223511`, sucesso;
+- Vercel Preview: sucesso;
+- preflight remoto read-only: run `30062302321`, sucesso;
+- fingerprint remoto:
+  `b4d66ad06d1aba22930609f58b0ea1696fbfe5747a21f141dcedc97766d672de`;
+- bloqueantes: 9; observações de plataforma: 1; ledger: ausente;
+- todos os demais jobs do `COMUN Nightly` foram ignorados.
+
+Essa decisão foi superada pela segunda tentativa controlada.
+
+## Estado canônico após a segunda tentativa
+
+No run `30099519716`, a migration foi confirmada e aplicada dentro da transação,
+mas o pós-check interrompeu a promoção com
+`SOLO_CANONICAL_POST_FINGERPRINT_MISMATCH`. A captura read-only
+`30099668279` confirmou:
+
+- fingerprint real:
+  `a8dc235b2f0a1fa2554a7dd0db9c46372867fc21a5f610b47d008e1c15c46197`;
+- zero achados bloqueantes;
+- uma observação de plataforma e três defaults gerenciados;
+- ledger presente;
+- cleanup dry-run sem objetos elegíveis;
+- `main` ainda em `b2f6733dacd15ec21601ed6b6837b42213b87d70`;
+- nenhum merge e nenhum deployment novo.
+
+A divergência ficou limitada a dois privilégios que o projetor pressupunha,
+mas a migration corretamente não concedeu: `INSERT` e `DELETE` no ledger para
+`service_role`. O contrato local foi reconciliado com o estado remoto mais
+restritivo, mantendo os bytes e o checksum da migration aplicada. A tupla
+histórica do ledger é aceita apenas por valor completo explicitamente
+registrado; qualquer outra divergência continua bloqueante.
+
+## Fechamento da terceira tentativa
+
+O contrato reconciliado foi validado no HEAD
+`7f19aa6b0894a68194f5f20b6236382bf1e8e006`:
+
+- FAST e FULL: run `30102040827`, sucesso;
+- preflight remoto estritamente read-only: run `30103889675`, sucesso;
+- fingerprint remoto:
+  `a8dc235b2f0a1fa2554a7dd0db9c46372867fc21a5f610b47d008e1c15c46197`;
+- zero achados bloqueantes;
+- uma observação de plataforma;
+- ledger presente e aceito pelo contrato histórico exato;
+- nenhum job mutável executado no preflight.
+
+A autorização controlada disparou o run `30104161976`. O runner:
+
+- criou o checkpoint sanitizado `8600891303`;
+- validou manifesto, checksum e SQL;
+- reconheceu `COMUN_CANONICAL_SECURITY_HARDENING_ALREADY_APPLIED`, sem repetir
+  a migration;
+- concluiu DB lint e postflight remoto;
+- executou cleanup somente em dry-run, com zero objetos elegíveis;
+- interrompeu antes do merge em `Validate immutable Vercel preview`, com
+  `SOLO_VERCEL_PREVIEW_CURL_FAILED:/comun:1`.
+
+Como a falha ocorreu antes do merge, os passos de merge, deployment da `main`,
+reconciliação de domínio, smoke público e marcador verde de produção foram
+ignorados. A label `comun:promover` foi removida imediatamente. A PR #30
+permanece aberta e sem merge; a `main` permanece em
+`b2f6733dacd15ec21601ed6b6837b42213b87d70`.
+
+Decisão vigente: `SOLO_PROMOTION_FAILED`. O hardening remoto está aplicado e
+sem achados bloqueantes, mas a promoção da aplicação não foi concluída. O
+próximo trabalho deve diagnosticar a chamada autenticada ao preview da Vercel
+sem repetir a migration. O gate humano permanece 0/3 e o piloto público
+continua fechado.
+
+## Correção isolada do preview protegido
+
+A causa inferior foi confirmada como `VERCEL_SCOPE_FAILED`. O runner combinava
+rota relativa, URL sem protocolo e um slug de escopo que o token do Actions não
+podia acessar. O cliente agora usa a URL HTTPS completa do deployment e não
+depende de slug; o contrato canônico é comprovado pelos IDs de projeto e time,
+SHA, `READY` e target `preview`.
+
+O modo manual `preview_preflight=true` executa somente checkout, Node,
+imutabilidade do SHA, cliente Vercel e artifact sanitizado. Ele não recebe
+secrets de banco e mantém release preflight, FULL local, cleanup, worker,
+health de produção e baseline capture como `skipped`.
+
+No HEAD `7a86cc8585ae81a8b732346220b30dbaa29f8578`, FAST, FULL e
+Vercel passaram. O preflight isolado `30111887097` bloqueou antes das rotas
+porque o CLI rejeitou o valor atual de `VERCEL_TOKEN` como inválido. O
+deployment `dpl_41VBYab1Z6i6cBtr5Y266tJAZPyy` foi confirmado read-only como
+`READY` no projeto e time canônicos por uma identidade Vercel separada.
+
+Decisão vigente: `NO_GO_VERCEL_PREVIEW_CREDENTIAL`. A PR #30 permanece aberta,
+sem merge e sem label de promoção; o gate humano permanece 0/3 e o piloto
+público continua fechado.

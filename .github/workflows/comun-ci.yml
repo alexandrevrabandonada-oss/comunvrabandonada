@@ -43,18 +43,50 @@ jobs:
           version: 2.109.1
       - run: npm ci --ignore-scripts
       - run: npm run solo:test
+      - run: npm run test:promotion-runner
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test:unit
+      - run: npm run test:security-hardening
+      - run: npm run db:privileges:lint
       - run: npm run build
-      - name: Local database lint and RLS
+      - name: Start local Supabase
+        timeout-minutes: 10
+        run: supabase start
+      - name: Reset local database
+        timeout-minutes: 15
         shell: bash
         run: |
-          supabase start
-          supabase db reset --local --yes
-          supabase db lint --local --schema public --level error --fail-on error
-          npm run audit:rls-matrix
-          npm run test:fixtures:assert-clean
+          set +e
+          output="$(supabase db reset --local --yes 2>&1)"
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          if ((status != 0)) && grep -q "Error status 502" <<<"$output"; then
+            echo "COMUN_SUPABASE_LOCAL_502_SINGLE_RETRY"
+            sleep 5
+            supabase db reset --local --yes
+          elif ((status != 0)); then
+            exit "$status"
+          fi
+      - name: Local database lint
+        timeout-minutes: 5
+        run: supabase db lint --local --schema public --level error --fail-on error
+      - name: Schema release ledger
+        timeout-minutes: 5
+        run: npm run test:schema-release-ledger
+      - name: Auth onboarding trigger
+        timeout-minutes: 5
+        run: npm run test:handle-new-user
+      - name: Public reports least privilege
+        timeout-minutes: 5
+        run: npm run test:public-reports-view
+      - name: RLS matrix
+        timeout-minutes: 10
+        run: npm run audit:rls-matrix
+      - name: Fixtures assert-clean
+        timeout-minutes: 5
+        run: npm run test:fixtures:assert-clean
       - if: always()
         run: supabase stop --no-backup || true
 
@@ -64,6 +96,7 @@ jobs:
     if: >-
       inputs.force_full == true ||
       github.event.pull_request.number == 23 ||
+      github.event.pull_request.number == 30 ||
       startsWith(github.head_ref, 'codex/promote-') ||
       startsWith(github.ref_name, 'codex/promote-')
     runs-on: ubuntu-24.04
@@ -78,6 +111,8 @@ jobs:
         with:
           version: 2.109.1
       - run: npm ci --ignore-scripts
+      - run: npm run db:privileges:lint
+      - run: npm run test:promotion-runner
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
       - name: Build application for production-like suites
@@ -89,6 +124,9 @@ jobs:
           supabase db reset --local --yes
           container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
           node scripts/run-pr23-reconciliation.mjs --container="$container"
+          npm run test:schema-release-ledger
+          npm run test:handle-new-user
+          npm run test:public-reports-view
           node scripts/solo/schema-fingerprint.mjs --container="$container" > /tmp/comun-hash-1
           node scripts/run-pr23-reconciliation.mjs --container="$container"
           supabase stop --no-backup

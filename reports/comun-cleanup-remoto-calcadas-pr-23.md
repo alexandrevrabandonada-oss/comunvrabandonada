@@ -1,5 +1,9 @@
 # Projeto de cleanup remoto das calçadas — PR #23
 
+> Documento histórico. Estado superado pelo fechamento verde da PR #23 em
+> 23 de julho de 2026. Consulte
+> `reports/current/estado-atual-comun.md`.
+
 ## Estado canônico atual
 
 O cleanup está implementado e testado apenas para operação local/dry-run. Nenhum agendamento ou execução remota existe.

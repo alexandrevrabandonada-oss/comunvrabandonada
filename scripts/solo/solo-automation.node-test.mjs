@@ -32,8 +32,9 @@ test("reconciliation package has one fail-fast transaction", () => {
   assert.match(sql, /^\\set ON_ERROR_STOP on\nBEGIN;/);
   assert.match(sql, /postflight_assertions\.sql/);
   assert.match(sql, /COMMIT;\n$/);
-  assert.match(executor, /COMUN_FORWARD_ONLY_ALREADY_RECONCILED/);
-  assert.match(executor, /const current = postgres\(postflight\)/);
+  assert.match(executor, /COMUN_CANONICAL_SECURITY_HARDENING_ALREADY_APPLIED/);
+  assert.match(executor, /executeSql\(configuredMigration\)/);
+  assert.match(executor, /--read-only-preflight/);
 });
 
 test("promotion checkpoint is short-lived, sanitized and not a full backup", () => {
@@ -66,7 +67,7 @@ test("Vercel production validation uses GitHub integration and canonical alias",
   assert.match(monitor, /comunvrabandonada\.vercel\.app/);
   assert.doesNotMatch(monitor, /api\.vercel\.com/);
   assert.match(domain, /team_LBVwyK8FQMO7tA3hzVXXeumF/);
-  assert.match(domain, /SOLO_DOMAIN_TOKEN_UNAUTHORIZED/);
+  assert.match(domain, /COMUN_DOMAIN_PUBLICLY_CANONICAL_TOKEN_UNAVAILABLE/);
   assert.match(rollback, /alexandrevrabandonada-oss-projects/);
 });
 
@@ -101,14 +102,32 @@ test("preview and production validate PMTiles Range in the correct domain order"
   assert.match(preview, /requiredChecks = \["FAST \/ COMUN_CI_GREEN", "FULL \/ COMUN_CI_GREEN", "Vercel"\]/);
   assert.doesNotMatch(preview, /const failed = checks\.filter/);
   assert.match(preview, /deployments\?sha=\$\{process\.env\.SHA\}/);
-  assert.match(preview, /deploymentStatuses\.find/);
-  assert.doesNotMatch(preview, /api\.vercel\.com/);
-  assert.match(preview, /VERCEL_ORG_ID: process\.env\.VERCEL_TEAM_ID/);
-  assert.match(preview, /VERCEL_PROJECT_ID: process\.env\.VERCEL_CANONICAL_PROJECT_ID/);
-  assert.match(preview, /SOLO_PMTILES_PREVIEW_RANGE_INVALID/);
+  assert.match(preview, /statuses\.find/);
+  assert.match(preview, /inspectDeployment/);
+  assert.match(preview, /validatePmtilesResponse/);
+  assert.match(preview, /COMUN_VERCEL_PREVIEW_AUTHENTICATED_PROBE_OK/);
+  assert.match(preview, /COMUN_PMTILES_PREVIEW_RANGE_OK/);
+  assert.match(preview, /COMUN_VERCEL_PREVIEW_HTTP_DEFERRED_TO_PRODUCTION_SMOKE/);
+  assert.match(preview, /github-deployment-attestation/);
+  assert.doesNotMatch(workflow, /VERCEL_TOKEN\|S_VERCEL_TOKEN/);
+  const previewClient = readFileSync("scripts/solo/vercel-preview-client.mjs", "utf8");
+  assert.match(previewClient, /api\.vercel\.com\/v13\/deployments/);
+  assert.match(previewClient, /VERCEL_CLI_VERSION = "50\.28\.0"/);
+  assert.match(previewClient, /--deployment/);
+  assert.match(previewClient, /url\.href/);
   assert.match(monitor, /SOLO_PRODUCTION_PMTILES_RANGE_INVALID/);
   assert.match(monitor, /SOLO_PUBLIC_WWW_REDIRECT_INVALID/);
   assert.match(workflow, /--minutes=1 --domain=comunvrabandonada\.vercel\.app[\s\S]*reconcile-domain\.mjs[\s\S]*--minutes=15 --domain=comunsocial\.online --public/);
+});
+
+test("preview-only workflow cannot access database or mutable jobs", () => {
+  const nightly = readFileSync(".github/workflows/comun-nightly.yml", "utf8");
+  const previewJob = nightly.match(/  preview-preflight:[\s\S]*?\n  full-local:/)?.[0] ?? "";
+  assert.match(nightly, /preview_preflight:/);
+  assert.match(previewJob, /verify-preview\.mjs/);
+  assert.match(previewJob, /comun-vercel-preview-diagnostic/);
+  assert.doesNotMatch(previewJob, /SUPABASE|apply-forward-only|cleanup|db lint|migration/i);
+  assert.match(nightly, /!inputs\.preview_preflight/);
 });
 
 test("FULL compares deterministic PostgreSQL catalog fingerprints", () => {

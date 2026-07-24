@@ -5,6 +5,22 @@ on:
     - cron: "17 3 * * *"
     - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
+    inputs:
+      capture_baseline:
+        description: Capture a sanitized, read-only remote schema baseline artifact
+        required: false
+        type: boolean
+        default: false
+      release_preflight:
+        description: Validate the canonical release remotely without writes
+        required: false
+        type: boolean
+        default: false
+      preview_preflight:
+        description: Validate only the immutable Vercel preview without database access
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: comun-nightly-${{ github.event.schedule || 'manual' }}
@@ -12,16 +28,172 @@ concurrency:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
+  baseline-capture:
+    if: github.event_name == 'workflow_dispatch' && inputs.capture_baseline
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Capture sanitized database metadata
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          node scripts/db/verify-canonical-baseline.mjs --capture --output=comun-remote-schema-detailed.json --compact-output=comun-remote-schema-baseline-candidate.json
+          node scripts/db/capture-security-hardening-preflight.mjs --output=comun-security-hardening-preflight.json
+          node --test scripts/db/verify-canonical-baseline.node-test.mjs
+          node scripts/db/project-security-hardening-baseline.mjs \
+            --source=comun-remote-schema-baseline-candidate.json \
+            --baseline-output=/tmp/comun-hardening-post-1.json \
+            --release-output=/tmp/comun-hardening-release-1.json
+          node scripts/db/project-security-hardening-baseline.mjs \
+            --source=comun-remote-schema-baseline-candidate.json \
+            --baseline-output=/tmp/comun-hardening-post-2.json \
+            --release-output=/tmp/comun-hardening-release-2.json
+          diff -u /tmp/comun-hardening-post-1.json /tmp/comun-hardening-post-2.json
+          cp /tmp/comun-hardening-post-1.json comun-security-hardening-expected-post.json
+          echo COMUN_SECURITY_HARDENING_SANITIZED_SNAPSHOT_2X_OK
+          test "$(wc -c < comun-remote-schema-baseline-candidate.json)" -le 5242880
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-remote-schema-baseline
+          path: |
+            comun-remote-schema-detailed.json
+            comun-remote-schema-baseline-candidate.json
+            comun-security-hardening-preflight.json
+            comun-security-hardening-expected-post.json
+          if-no-files-found: error
+          retention-days: 7
+
+  release-preflight:
+    if: github.event_name == 'workflow_dispatch' && inputs.release_preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Canonical release remote read-only preflight
+        env:
+          PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: node scripts/solo/apply-forward-only.mjs --read-only-preflight
+
+  preview-preflight:
+    if: github.event_name == 'workflow_dispatch' && inputs.preview_preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Require the dispatched SHA to remain the PR HEAD
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: "30"
+          SHA: ${{ github.sha }}
+        run: test "$(gh pr view "$PR" --json headRefOid --jq .headRefOid)" = "$SHA"
+      - name: Warm the pinned Vercel CLI
+        run: npx --yes vercel@50.28.0 --version
+      - id: preview
+        name: Validate immutable Vercel preview only
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: "30"
+          SHA: ${{ github.sha }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+        run: node scripts/solo/verify-preview.mjs --output=comun-vercel-preview-diagnostic.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-vercel-preview-diagnostic-${{ github.sha }}
+          path: comun-vercel-preview-diagnostic.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Require green preview
+        if: always()
+        env:
+          PREVIEW_OUTCOME: ${{ steps.preview.outcome }}
+        run: test "$PREVIEW_OUTCOME" = success
+
   full-local:
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '17 3 * * *'
+    if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline && !inputs.release_preflight && !inputs.preview_preflight) || github.event.schedule == '17 3 * * *'
     uses: ./.github/workflows/comun-ci.yml
     with:
       force_full: true
 
+  production-health:
+    if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline && !inputs.release_preflight && !inputs.preview_preflight) || github.event.schedule == '17 3 * * *'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Verify production and canonical database fingerprint
+        id: health
+        continue-on-error: true
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+        run: |
+          npm run health:production
+          npm run db:baseline:verify -- --allow-approved-findings
+      - name: Open or update the single health incident
+        if: steps.health.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Saúde canônica da produção"
+          existing=$(gh issue list --state open --search "$title in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+          body="O healthcheck canônico falhou na execução $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Nenhuma correção ou rollback foi executado automaticamente."
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi
+          exit 1
+
+  sidewalk-cleanup-dry-run:
+    if: (github.event_name == 'workflow_dispatch' && !inputs.release_preflight && !inputs.preview_preflight) || github.event.schedule == '17 3 * * *'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Observe expired upload tickets without mutation
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          COMUN_SIDEWALK_CLEANUP_ALLOWED_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          node --experimental-strip-types scripts/cleanup-comun-sidewalk-uploads.mjs --allow-non-local --project-ref=${{ secrets.SUPABASE_PROJECT_REF }}
+          echo COMUN_SIDEWALK_CLEANUP_REMOTE_DRY_RUN_OK
+
   archive-worker:
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '7,22,37,52 * * * *'
+    if: github.event.schedule == '7,22,37,52 * * * *'
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     steps:

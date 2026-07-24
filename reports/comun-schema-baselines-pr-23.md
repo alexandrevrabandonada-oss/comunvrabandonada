@@ -1,5 +1,9 @@
 # Baselines de schema — PR #23
 
+> Documento histórico. Estado superado pelo fechamento verde da PR #23 em
+> 23 de julho de 2026. Consulte
+> `reports/current/estado-atual-comun.md`.
+
 ## Estado canônico atual
 
 `LOCAL_EXPECTED_HARDENED` é o alvo vigente. O pacote transforma `REMOTE_ACTUAL` nesse alvo sem executar a fila histórica nem apagar objetos legados.

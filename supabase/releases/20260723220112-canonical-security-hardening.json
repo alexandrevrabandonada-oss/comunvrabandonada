@@ -1,0 +1,31 @@
+{
+  "release": "20260723220112-canonical-security-hardening",
+  "migration": "supabase/migrations/20260723220112_comun_canonical_security_hardening.sql",
+  "migrationSha256": "8e97a8c1fbb45f4143894294cf52289795d4461e58b33c72034e0ccb1a0c5dae",
+  "expectedPreFingerprint": "b4d66ad06d1aba22930609f58b0ea1696fbfe5747a21f141dcedc97766d672de",
+  "expectedPostFingerprint": "a8dc235b2f0a1fa2554a7dd0db9c46372867fc21a5f610b47d008e1c15c46197",
+  "acceptedLegacyLedgerValues": [
+    "8e97a8c1fbb45f4143894294cf52289795d4461e58b33c72034e0ccb1a0c5dae|b4d66ad06d1aba22930609f58b0ea1696fbfe5747a21f141dcedc97766d672de|82989755711d63a14d209cc2074fd3656288e74fb030331dac282acac7a8265b"
+  ],
+  "destructiveSql": false,
+  "requiresPromotion": true,
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "releaseLedger": "public.comun_schema_releases",
+  "assertions": [
+    "security_invoker=true",
+    "public view SELECT-only",
+    "default privileges hardened in public",
+    "definer search_path=pg_catalog",
+    "auth trigger preserved",
+    "RLS preserved"
+  ],
+  "changedObjects": [
+    "public.comun_public_reports",
+    "public.comun_reports RLS policy and public projection column grants",
+    "public.claim_next_archive_processing_job(text)",
+    "public.handle_new_user()",
+    "postgres defaults in public",
+    "public.comun_schema_releases"
+  ]
+}

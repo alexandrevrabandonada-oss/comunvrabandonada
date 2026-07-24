@@ -1,115 +1,128 @@
-# COMUN VR ABANDONADA
+# COMUN VR Abandonada
+
+O COMUN é uma plataforma comunitária de Volta Redonda para transformar relatos,
+memórias e evidências em pautas, ação coletiva, acompanhamento, resultado e
+memória pública.
+
+**Relatar. Confirmar. Organizar. Transformar em ação.**
 
 ## Produção canônica
 
-- Site: https://comunsocial.online
-- Código canônico: branch `main`
-- Vercel: projeto `comunvrabandonada`
-- Supabase remoto: schema reconciliado pela promoção da PR #23
-- Estado técnico: `SOLO_PRODUCTION_GREEN`
-- Gate humano: 0/3; piloto público ainda não aberto
+- site: <https://comunsocial.online>;
+- código: branch `main`;
+- Vercel: projeto `comunvrabandonada`;
+- Supabase: Postgres, Auth e Storage;
+- estado técnico: `SOLO_PRODUCTION_GREEN`;
+- gate humano: 0/3;
+- piloto público: fechado.
 
-O fluxo local real de mídia usa `MEDIA_STORAGE_PROVIDER=supabase-local`, `npm run wait:storage:local` e `npm run smoke:territorial-art-storage`.
+## Arquitetura
 
-O Acervo de Arte dos Territórios vive em `/comun/arte`, com contribuição moderada, curadoria em `/comun/admin/acervo/arte` e integração `art_gallery` nas pautas.
+- Next.js App Router, React e TypeScript;
+- Supabase com RLS e operações privilegiadas somente server-side;
+- Vercel com deploy por integração GitHub;
+- PMTiles versionado para a base cartográfica de Volta Redonda;
+- originais privados e projeções públicas sanitizadas.
 
-O Mapa Popular em `/comun/mapa` organiza reciclagem, cooperativas, necessidades e áreas de interesse público na mesma fundação territorial do Hub.
+## Superfícies principais
 
-Plataforma comunitaria de relatos, debates e memoria coletiva ligada ao ecossistema VR Abandonada.
+- Hub: `/comun`;
+- Explorar: `/comun/explorar`;
+- Participar: `/comun/participar`;
+- Comunidades: `/comun/comunidades`;
+- Territórios: `/comun/territorios`;
+- Pautas: `/comun/pautas`;
+- Minha participação: `/comun/minha-participacao`;
+- Caixa de entrada: `/comun/caixa-de-entrada`;
+- Acervo: `/comun/acervo`;
+- Arte dos Territórios: `/comun/acervo/arte`;
+- Rádio: `/comun/radio`;
+- Mapa das Calçadas: `/comun/calcadas`.
 
-Frase-guia: **Relatar. Confirmar. Organizar. Transformar em acao.**  
-Assinatura: **Escutar. Cuidar. Organizar.**
+## Miniapps
 
-## Stack
+Os miniapps compartilham o shell do COMUN e preservam contexto entre pauta,
+território e participação. O Mapa das Calçadas reúne mapa real, captura rápida,
+moderação, prioridades, mobilização, encaminhamento, resultado e memória.
+Acervo, Arte, Rádio e História Oral usam a mesma fundação editorial, sem expor
+originais ou dados privados.
 
-- Next.js App Router
-- TypeScript
-- Tailwind CSS
-- Supabase Postgres e Storage preparado para anexos futuros
-- Vercel como destino de deploy
+## Desenvolvimento local
 
-## Rodar local
+Requisitos: Node compatível com `package.json`, Docker Desktop e Supabase CLI.
 
 ```bash
-npm install
+npm ci
 cp .env.example .env.local
+npx supabase start
 npm run dev
 ```
 
-Abra `http://localhost:3000/comun`.
+Abra <http://localhost:3000/comun>.
 
-## Variaveis
+Nunca commite `.env.local`, tokens, senha do banco, `service_role`, sessões,
+storage states, dumps ou dados reais.
 
-Configure em `.env.local` e na Vercel:
+## Fluxo de um tijolo
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `COMUN_BOOTSTRAP_ADMIN_EMAIL`, opcional e usado apenas no bootstrap local/admin
-- `NEXT_PUBLIC_SITE_URL`
-- `SUPABASE_PROJECT_ID`, opcional para `db:types`
-
-Nunca commite `.env.local`, `SUPABASE_SERVICE_ROLE_KEY`, token de acesso ou senha do banco.
-
-## Supabase
-
-A migration inicial esta em `supabase/migrations/202605070001_initial_comun.sql`.
-O admin usa Supabase Auth SSR com allowlist em `comun_admin_users`.
-
-```bash
-npm run db:push
+```text
+main
+→ codex/tijolo-<numero>-<nome>
+→ PR única
+→ CI
+→ merge
+→ main
 ```
 
-Ela cria tabelas, view publica segura, RLS e seeds iniciais.
+Não empilhe PRs estruturais. Cada mudança de schema futura recebe migration
+nova com timestamp posterior à baseline canônica.
 
-Para liberar o primeiro admin, crie antes o usuario em Supabase Auth e rode:
+## CI e promoção
+
+Há três workflows ativos:
+
+- `COMUN CI`: FAST e FULL;
+- `COMUN Promote`: promoção remota controlada;
+- `COMUN Nightly`: regressão, scheduler do acervo e saúde de produção.
+
+Checks locais usuais:
 
 ```bash
-npm run bootstrap:admin -- --email email@exemplo.com
-```
-
-## Verificacao
-
-```bash
-npm run lint
+npm run solo:test
 npm run typecheck
+npm run lint
+npm run test:unit
 npm run build
-npm run verify
-npm run smoke:comun
-npm run smoke:admin-auth
+npm run test:fixtures:assert-clean
 ```
 
-## Rotas principais
+Mudança remota exige autorização explícita, SHA imutável, gates verdes,
+checkpoint sanitizado e SQL forward-only. Um tijolo documental como o 41 não
+usa a label `comun:promover`.
 
-- `/comun`
-- `/comun/relatar`
-- `/comun/comunidades`
-- `/comun/c/[slug]`
-- `/comun/pautas/[slug]`
-- `/comun/seguranca`
-- `/comun/dossies`
-- `/comun/admin`
-- `/comun/observatorios`
-- `/comun/transporte`
+## Segurança
 
-O motor de Observatórios Populares usa metodologia e formulários versionados, observações privadas moderadas e indicadores agregados aprovados. Rode `npm run smoke:popular-observatory` após alterações.
+- `NEXT_PUBLIC_*` nunca recebe chave privilegiada;
+- `service_role` é exclusivamente server-side;
+- RLS é obrigatória em tabelas expostas;
+- coordenadas precisas, object keys, contatos e originais permanecem privados;
+- limpeza remota permanece dry-run até autorização própria;
+- credenciais são rotacionadas pelo runbook, nunca registradas em relatórios.
 
-## GitHub
+## Documentos vigentes
 
-```bash
-git add .
-git commit -m "feat: cria COMUN VR Abandonada v0"
-git branch -M main
-git remote add origin <URL_DO_REPOSITORIO_GITHUB>
-git push -u origin main
-```
+- [Estado atual](reports/current/estado-atual-comun.md)
+- [Baseline de produção](reports/current/comun-production-baseline.md)
+- [Baseline remoto do schema](reports/current/comun-remote-schema-baseline.md)
+- [Auditoria de migrations](reports/current/comun-migration-history-audit.md)
+- [Operação solo](docs/COMUN_SOLO_OPERATIONS.md)
+- [Gate humano](docs/gates/COMUN_HUMAN_GATE.md)
+- [Rotação de credenciais](docs/security/COMUN_CREDENTIAL_ROTATION.md)
 
-# COMUN — hub central da organização popular
+Relatórios anteriores à PR #23 são evidências históricas e estão indexados em
+[`reports/archive/`](reports/archive/README.md).
 
-O fluxo principal do produto é relato → pauta → evidência → ação → acompanhamento → resultado → memória. Rotas centrais: `/comun/pautas`, `/comun/acoes`, `/comun/participar`, `/comun/territorios`, `/comun/projetos`, `/comun/resultados` e `/comun/busca`. O Acervo Vivo preserva a memória e permanece integrado sem dominar a home.
+## Estado do piloto
 
-## Operação solo unificada
-
-O projeto é mantido por uma pessoa e usa três workflows canônicos: `COMUN CI`, `COMUN Promote` e `COMUN Nightly`. Toda PR recebe o gate FAST; candidatas a promoção recebem também o FULL. Push nunca promove produção. Mudanças remotas exigem uma única decisão explícita do operador pela label `comun:promover`, com SHA imutável, CI verde, SQL forward-only e checkpoint sanitizado.
-
-O runbook vigente está em [`docs/COMUN_SOLO_OPERATIONS.md`](docs/COMUN_SOLO_OPERATIONS.md). Evidências antigas de governança da PR #23 permanecem arquivadas e não representam requisitos atuais.
+A infraestrutura está verde, mas isso não abre o piloto público. A abertura
+depende de três testes humanos reais, ensaio operacional e decisão explícita.

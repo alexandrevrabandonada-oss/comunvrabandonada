@@ -87,7 +87,13 @@ begin
   if exists (
     select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
     where n.nspname='public' and p.prosecdef
-      and (p.proconfig is null or not ('search_path=public'=any(p.proconfig)))
+      and (
+        p.proconfig is null
+        or not (
+          'search_path=public'=any(p.proconfig)
+          or 'search_path=pg_catalog'=any(p.proconfig)
+        )
+      )
   ) then
     raise exception 'PR23_POSTFLIGHT: SECURITY DEFINER sem search_path explícito';
   end if;
