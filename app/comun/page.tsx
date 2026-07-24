@@ -22,6 +22,7 @@ import {
 import { listPublicPautaSpaces } from "@/lib/pauta-spaces";
 import { getOptionalCommunitySession } from "@/lib/community-auth";
 import { getPersonalCenter } from "@/lib/personal-center";
+import { ComunJourneyEvent } from "@/components/comun-journey-event";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,7 @@ export default async function ComunHomePage() {
 
   return (
     <ComunShell>
+      <ComunJourneyEvent event="home_viewed" surface="home:publica" />
       <ComunSection className="pb-7 pt-8 sm:pt-12">
         <div className="grid gap-8 lg:grid-cols-[1.25fr_.75fr] lg:items-end">
           <div>
@@ -61,12 +63,11 @@ export default async function ComunHomePage() {
               Plataforma comunitária de Volta Redonda
             </p>
             <h1 className="max-w-5xl text-4xl font-black uppercase leading-[.92] tracking-[-.04em] text-comun-paper sm:text-6xl lg:text-7xl">
-              Organize seu território. Construa soluções coletivamente.
+              Agora no território.
             </h1>
             <p className="mt-5 max-w-2xl text-lg text-comun-paper/80">
-              Do que acontece na rua à memória que permanece: encontre uma
-              comunidade, acompanhe uma pauta e escolha uma contribuição
-              concreta.
+              Veja as pautas em construção, escolha uma contribuição concreta
+              e acompanhe o que a comunidade fez com ela.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <PrimaryLink href="/comun/territorios">
@@ -180,14 +181,13 @@ export default async function ComunHomePage() {
       </ComunSection>
 
       <HomeSection
-        title="Ferramentas em atividade"
-        intro="Ferramentas ligadas a pautas e territórios, com ação e acompanhamento claros."
+        title="Sua próxima participação"
+        intro="Comece pelo Mapa das Calçadas, ligado à pauta Mobilidade e Acessibilidade. Você pode registrar, conversar ou acompanhar."
       >
         <MiniAppContextCard />
       </HomeSection>
 
       <HomeSection
-        className="hidden lg:block"
         title="Encontre seu caminho"
         intro="Cinco entradas principais. Os outros módulos permanecem disponíveis como ferramentas do processo."
       >
@@ -226,12 +226,12 @@ export default async function ComunHomePage() {
       </HomeSection>
 
       <HomeSection
-        title="O que está em movimento"
-        intro="Pautas em curso e ações com participação explícita."
+        title="Pautas em construção"
+        intro="Até três processos em curso, com etapa atual, próxima ação e participação explícita."
       >
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="grid gap-4">
-            {pautas.slice(0, 2).map((pauta: any) => (
+            {pautas.slice(0, 3).map((pauta: any) => (
               <HubCard
                 key={pauta.id}
                 href={`/comun/pautas/${pauta.slug}`}
@@ -279,7 +279,6 @@ export default async function ComunHomePage() {
       </HomeSection>
 
       <HomeSection
-        className="hidden lg:block"
         title="Do território ao resultado"
         intro="A continuidade torna visível como uma contribuição se conecta a uma mudança e à memória pública."
       >
@@ -308,8 +307,8 @@ export default async function ComunHomePage() {
       </HomeSection>
 
       <HomeSection
-        title="Resultados e memória recente"
-        intro="Mudanças verificadas e registros que ajudam a comunidade a continuar."
+        title="O que a comunidade construiu"
+        intro="Resultados verificados, memória do território e produções culturais ligadas aos processos."
       >
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="grid gap-4">
@@ -361,7 +360,7 @@ export default async function ComunHomePage() {
         </div>
       </HomeSection>
 
-      <ComunSection className="hidden pt-0 lg:block">
+      <ComunSection className="pt-0">
         <div className="border-2 border-comun-yellow bg-comun-yellow p-6 text-comun-black sm:p-8">
           <Route aria-hidden="true" className="mb-5" />
           <h2 className="max-w-3xl text-3xl font-black uppercase leading-none sm:text-5xl">

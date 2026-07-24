@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { MapPinned } from "lucide-react";
 import { ComunContextTrail } from "@/components/comun-context-trail";
+import { ComunJourneyEvent } from "@/components/comun-journey-event";
 
 const localNavigation = [
   { href: "/comun/calcadas", label: "Mapa" },
@@ -38,6 +39,7 @@ export function MiniAppExperienceShell({
         });
   return (
     <div className="min-h-screen bg-[#f4f1e8] text-comun-black">
+      <ComunJourneyEvent event="miniapp_opened" surface={`calcadas:${active}`} />
       <header className="hidden border-b-2 border-comun-black bg-white lg:block">
         <div className="mx-auto grid max-w-7xl gap-4 px-4 py-4 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="flex min-w-0 items-start gap-3">
@@ -102,6 +104,12 @@ export function MiniAppExperienceShell({
                 <strong>Status:</strong> {status}
               </span>
               <Link
+                href="/comun/pautas/calcadas-em-circulacao"
+                className="font-bold underline"
+              >
+                Voltar à pauta Calçadas
+              </Link>
+              <Link
                 href="/comun/minha-participacao"
                 className="ml-auto font-bold underline"
               >
@@ -135,9 +143,9 @@ export function MiniAppExperienceShell({
         </div>
       </nav>
       <div className="grid gap-2 border-b-2 border-comun-black bg-white p-3 lg:hidden">
-        <p className="text-xs font-bold">
-          Volta Redonda · Calçadas em circulação
-        </p>
+        <Link href="/comun/pautas/calcadas-em-circulacao" className="text-xs font-bold underline">
+          ← Voltar à pauta Calçadas em circulação
+        </Link>
         <Link
           href="/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao"
           className="inline-flex min-h-11 items-center justify-center border-2 border-comun-black bg-comun-yellow px-4 font-black"

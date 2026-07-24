@@ -39,6 +39,25 @@ memória pública.
 - Rádio: `/comun/radio`;
 - Mapa das Calçadas: `/comun/calcadas`.
 
+## Núcleo vivo da experiência
+
+A pauta é a unidade canônica de continuidade. Cada pauta organiza a experiência
+em **Entenda → Converse → Contribua → Construa → Acompanhe → Memória**. O Mapa
+das Calçadas é uma ferramenta da pauta `calcadas-em-circulacao`, e não uma
+experiência paralela. Consulte:
+
+- `docs/product/COMUN_PAUTA_MODEL.md`;
+- `docs/product/COMUN_CONVERSATION_MODEL.md`;
+- `docs/product/COMUN_PARTICIPATION_LOOP.md`.
+
+Validação específica:
+
+```bash
+npm run smoke:comun-nucleo-vivo
+npm run test:e2e:comun-nucleo-vivo
+npm run test:a11y:comun-nucleo-vivo
+```
+
 ## Miniapps
 
 Os miniapps compartilham o shell do COMUN e preservam contexto entre pauta,

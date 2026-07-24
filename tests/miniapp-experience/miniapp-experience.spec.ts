@@ -15,7 +15,7 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
   );
   await page.goto("/comun");
   await expect(
-    page.getByText("Ferramentas em atividade", { exact: true }),
+    page.getByText("Sua próxima participação", { exact: true }),
   ).toBeVisible();
   await screenshot(page, "home", testInfo.project.name);
   await page.goto("/comun/pautas/calcadas-em-circulacao");
@@ -45,7 +45,7 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
   ).toBeVisible();
   if ((testInfo.project.use.viewport?.width ?? 1366) < 1024) {
     await expect(
-      page.getByText("Volta Redonda · Calçadas em circulação", { exact: true }),
+      page.getByRole("link", { name: /Voltar à pauta Calçadas em circulação/ }),
     ).toBeVisible();
   }
   await expect(page.getByLabel("Instalar COMUN")).toHaveCount(0);

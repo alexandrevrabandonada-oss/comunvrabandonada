@@ -52,6 +52,9 @@ export default async function Page() {
                 </span>
               </div>
               <h2 className="mt-3 text-xl font-black">{x.title}</h2>
+              <p className="mt-3 text-xs font-black uppercase text-comun-yellow">
+                O que aconteceu
+              </p>
               <p className="mt-2 text-comun-paper/75">{x.summary}</p>
               {x.created_at ? (
                 <time
@@ -62,6 +65,9 @@ export default async function Page() {
                 </time>
               ) : null}
               <div className="mt-4 flex flex-wrap gap-4">
+                <span className="w-full text-xs font-black uppercase text-comun-paper/60">
+                  Próxima ação
+                </span>
                 <Link
                   className="font-black uppercase text-comun-yellow underline"
                   href={x.action_url}
