@@ -1,20 +1,22 @@
 # Baseline canônico de segurança do schema remoto
 
-Atualizado em 24 de julho de 2026. O JSON versionado representa o estado
-esperado depois da release, sem afirmar que o remoto já foi alterado.
+Atualizado em 24 de julho de 2026. O JSON versionado representa o estado remoto
+sanitizado capturado depois da aplicação transacional da release.
 
 ## Fingerprints bloqueantes
 
 - pré-migration:
   `b4d66ad06d1aba22930609f58b0ea1696fbfe5747a21f141dcedc97766d672de`;
-- pós-migration esperado:
-  `82989755711d63a14d209cc2074fd3656288e74fb030331dac282acac7a8265b`;
+- pós-migration comprovado:
+  `a8dc235b2f0a1fa2554a7dd0db9c46372867fc21a5f610b47d008e1c15c46197`;
 - algoritmo: `sha256-app-canonical-security-v2`.
 
-A captura read-only do run `30054188587` repetiu a projeção duas vezes e
-produziu hashes idênticos. O pré continha 9 achados bloqueantes e 1 observação
-de plataforma; o pós projetado contém zero bloqueantes e preserva a observação
-dos 3 defaults gerenciados.
+A captura read-only do run `30099668279` comprovou zero achados bloqueantes,
+uma observação de plataforma, três defaults gerenciados e o ledger presente.
+O fingerprint anteriormente projetado divergia porque o projetor acrescentava
+`INSERT` e `DELETE` para `service_role`, embora a migration nunca concedesse
+esses privilégios. O baseline agora preserva o estado mais restritivo realmente
+aplicado.
 
 O fingerprint inclui somente contratos controláveis pelo COMUN: relações,
 colunas, constraints, índices, RLS, policies, views, funções, triggers, grants,
@@ -39,4 +41,5 @@ Estado esperado:
 
 O arquivo não contém linhas de aplicação, usuários, e-mails, telefones,
 filenames, object keys, coordenadas, tokens, senhas ou connection strings.
-Nenhuma migration remota foi aplicada neste lote.
+A migration remota foi aplicada e confirmada por captura sanitizada. Este lote
+de reconciliação não realizou nova escrita remota.

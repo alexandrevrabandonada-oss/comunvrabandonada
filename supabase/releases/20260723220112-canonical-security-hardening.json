@@ -3,7 +3,10 @@
   "migration": "supabase/migrations/20260723220112_comun_canonical_security_hardening.sql",
   "migrationSha256": "8e97a8c1fbb45f4143894294cf52289795d4461e58b33c72034e0ccb1a0c5dae",
   "expectedPreFingerprint": "b4d66ad06d1aba22930609f58b0ea1696fbfe5747a21f141dcedc97766d672de",
-  "expectedPostFingerprint": "82989755711d63a14d209cc2074fd3656288e74fb030331dac282acac7a8265b",
+  "expectedPostFingerprint": "a8dc235b2f0a1fa2554a7dd0db9c46372867fc21a5f610b47d008e1c15c46197",
+  "acceptedLegacyLedgerValues": [
+    "8e97a8c1fbb45f4143894294cf52289795d4461e58b33c72034e0ccb1a0c5dae|b4d66ad06d1aba22930609f58b0ea1696fbfe5747a21f141dcedc97766d672de|82989755711d63a14d209cc2074fd3656288e74fb030331dac282acac7a8265b"
+  ],
   "destructiveSql": false,
   "requiresPromotion": true,
   "expectedBlockingFindings": 0,

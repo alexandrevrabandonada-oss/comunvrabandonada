@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
   "capturedAt": "EXPECTED_AFTER_PROMOTION",
-  "fingerprint": "82989755711d63a14d209cc2074fd3656288e74fb030331dac282acac7a8265b",
+  "fingerprint": "a8dc235b2f0a1fa2554a7dd0db9c46372867fc21a5f610b47d008e1c15c46197",
   "fingerprintAlgorithm": "sha256-app-canonical-security-v2",
   "scope": "APP_CANONICAL_SECURITY_BASELINE",
   "counts": {
@@ -14,7 +14,7 @@
     "relations": 177,
     "migrations": 41,
     "constraints": 1008,
-    "tableGrants": 2564,
+    "tableGrants": 2562,
     "schemaGrants": 7,
     "routineGrants": 22,
     "sequenceGrants": 0,
@@ -18298,8 +18298,8 @@
         "definition": "CREATE INDEX comun_reports_quick_created_idx ON public.comun_reports USING btree (quick_report, created_at DESC)"
       },
       {
-        "table": "comun_schema_releases",
         "name": "comun_schema_releases_pkey",
+        "table": "comun_schema_releases",
         "definition": "CREATE UNIQUE INDEX comun_schema_releases_pkey ON public.comun_schema_releases USING btree (release)"
       },
       {
@@ -26691,15 +26691,15 @@
         "definition": "CHECK ((status = ANY (ARRAY['received'::text, 'under_review'::text, 'needs_more_info'::text, 'sanitized'::text, 'published'::text, 'linked_to_issue'::text, 'archived'::text])))"
       },
       {
-        "table": "comun_schema_releases",
         "name": "comun_schema_releases_pkey",
         "type": "p",
+        "table": "comun_schema_releases",
         "definition": "PRIMARY KEY (release)"
       },
       {
-        "table": "comun_schema_releases",
         "name": "comun_schema_releases_status_check",
         "type": "c",
+        "table": "comun_schema_releases",
         "definition": "CHECK ((status = 'applied'::text))"
       },
       {
@@ -38281,16 +38281,6 @@
         "table": "comun_schema_releases",
         "grantee": "postgres",
         "privilege": "UPDATE"
-      },
-      {
-        "table": "comun_schema_releases",
-        "grantee": "service_role",
-        "privilege": "DELETE"
-      },
-      {
-        "table": "comun_schema_releases",
-        "grantee": "service_role",
-        "privilege": "INSERT"
       },
       {
         "table": "comun_schema_releases",

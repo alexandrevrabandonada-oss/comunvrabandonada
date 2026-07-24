@@ -30,7 +30,7 @@ Foram preparados:
 - runner de release por manifesto, checksum e fingerprints;
 - CI com diagnóstico separado e repetição única para 502 transitório.
 
-## Decisão
+## Decisão histórica
 
 Estado técnico anteriormente comprovado após FAST, FULL e Vercel no mesmo HEAD:
 `COMUN_SECURITY_HARDENING_READY_TO_PROMOTE`.
@@ -43,7 +43,7 @@ Evidências:
 - Vercel Preview: sucesso;
 - fingerprint pré:
   `b4d66ad06d1aba22930609f58b0ea1696fbfe5747a21f141dcedc97766d672de`;
-- fingerprint pós:
+- fingerprint pós inicialmente projetado:
   `82989755711d63a14d209cc2074fd3656288e74fb030331dac282acac7a8265b`.
 
 Não houve migration remota, merge, alteração de domínio ou mudança em
@@ -86,6 +86,32 @@ Evidências do HEAD técnico corrigido
 - bloqueantes: 9; observações de plataforma: 1; ledger: ausente;
 - todos os demais jobs do `COMUN Nightly` foram ignorados.
 
-Decisão atual: `COMUN_SECURITY_HARDENING_READY_TO_RETRY_PROMOTION`.
-A label `comun:promover` continua ausente; nenhuma migration, merge, domínio ou
-produção foi alterado.
+Essa decisão foi superada pela segunda tentativa controlada.
+
+## Estado canônico após a segunda tentativa
+
+No run `30099519716`, a migration foi confirmada e aplicada dentro da transação,
+mas o pós-check interrompeu a promoção com
+`SOLO_CANONICAL_POST_FINGERPRINT_MISMATCH`. A captura read-only
+`30099668279` confirmou:
+
+- fingerprint real:
+  `a8dc235b2f0a1fa2554a7dd0db9c46372867fc21a5f610b47d008e1c15c46197`;
+- zero achados bloqueantes;
+- uma observação de plataforma e três defaults gerenciados;
+- ledger presente;
+- cleanup dry-run sem objetos elegíveis;
+- `main` ainda em `b2f6733dacd15ec21601ed6b6837b42213b87d70`;
+- nenhum merge e nenhum deployment novo.
+
+A divergência ficou limitada a dois privilégios que o projetor pressupunha,
+mas a migration corretamente não concedeu: `INSERT` e `DELETE` no ledger para
+`service_role`. O contrato local foi reconciliado com o estado remoto mais
+restritivo, mantendo os bytes e o checksum da migration aplicada. A tupla
+histórica do ledger é aceita apenas por valor completo explicitamente
+registrado; qualquer outra divergência continua bloqueante.
+
+Decisão atual: `SOLO_PROMOTION_FAILED`. Antes de qualquer nova autorização, a
+correção precisa passar pelos gates locais e por novo preflight exclusivamente
+read-only. A label `comun:promover` está ausente; o gate humano permanece 0/3 e
+o piloto público continua fechado.

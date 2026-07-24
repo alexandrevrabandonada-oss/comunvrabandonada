@@ -131,6 +131,27 @@ test("post fingerprint with the exact ledger is valid", () => {
   );
 });
 
+test("post fingerprint accepts only an explicitly recorded legacy ledger tuple", () => {
+  const baseline = {
+    fingerprint: "post",
+    canonical: {
+      relations: [{ schema: "public", name: "comun_schema_releases" }],
+    },
+  };
+  const reconciledRelease = {
+    ...releaseFixture,
+    acceptedLegacyLedgerValues: ["sha|pre|legacy-post"],
+  };
+  assert.equal(
+    validateCurrentState(baseline, reconciledRelease, () => "sha|pre|legacy-post"),
+    "POST",
+  );
+  assert.throws(
+    () => validateCurrentState(baseline, reconciledRelease, () => "sha|pre|unknown"),
+    marker("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH"),
+  );
+});
+
 test("preflight validates the auth trigger outside the compact public projection", () => {
   const baseline = {
     canonical: {

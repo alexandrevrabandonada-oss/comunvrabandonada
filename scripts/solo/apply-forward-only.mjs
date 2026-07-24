@@ -128,6 +128,13 @@ function ledgerValue(release) {
   return `${release.migrationSha256}|${release.expectedPreFingerprint}|${release.expectedPostFingerprint}`;
 }
 
+function acceptedLedgerValues(release) {
+  return new Set([
+    ledgerValue(release),
+    ...(release.acceptedLegacyLedgerValues ?? []),
+  ]);
+}
+
 function readLedger(release) {
   return queryScalar(
     `select migration_sha256 || '|' || pre_fingerprint || '|' || post_fingerprint
@@ -179,7 +186,7 @@ export function validateCurrentState(before, release, readLedgerFn = readLedger)
     return "PRE";
   }
   if (before.fingerprint === release.expectedPostFingerprint) {
-    if (!ledgerPresent || readLedgerFn(release) !== ledgerValue(release)) {
+    if (!ledgerPresent || !acceptedLedgerValues(release).has(readLedgerFn(release))) {
       fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
     }
     return "POST";
@@ -228,7 +235,7 @@ select pg_catalog.set_config('comun.release_post_fingerprint', '${release.expect
   if (after.security.platformObservations.length && !release.platformObservationsAllowed) {
     fail("SOLO_CANONICAL_PLATFORM_OBSERVATION_NOT_ALLOWED");
   }
-  if (readLedger(release) !== ledgerValue(release)) {
+  if (!acceptedLedgerValues(release).has(readLedger(release))) {
     fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
   }
   if (after.security.platformObservations.length) {

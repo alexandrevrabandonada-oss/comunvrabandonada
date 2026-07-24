@@ -92,3 +92,31 @@ read-only `30062302321` terminou com:
 
 Todos os jobs mutáveis ou não relacionados foram ignorados. A label continua
 ausente e nenhuma migration remota foi executada.
+
+## Segunda tentativa controlada
+
+O run `30099519716`, no HEAD
+`2956056a255d4e76eba4af86c1e33007a788c2d3`, criou o checkpoint sanitizado
+`8599019682` e aplicou a transação forward-only. A etapa pós-transação falhou
+com `SOLO_CANONICAL_POST_FINGERPRINT_MISMATCH`; portanto, preview pós-migration,
+merge e deployment foram ignorados.
+
+A captura read-only `30099668279` comprovou:
+
+- fingerprint remoto:
+  `a8dc235b2f0a1fa2554a7dd0db9c46372867fc21a5f610b47d008e1c15c46197`;
+- zero achados bloqueantes;
+- uma observação de plataforma;
+- ledger presente;
+- somente 2 grants de diferença em relação à projeção: `INSERT` e `DELETE`
+  para `service_role`, ambos ausentes no remoto.
+
+A causa é um erro do projetor, não uma deficiência do hardening: a migration
+revoga o acesso público ao ledger e nunca concede esses dois privilégios. O
+estado aplicado é intencionalmente mais restritivo. A correção local atualiza
+o fingerprint canônico e aceita explicitamente a tupla histórica já gravada
+no ledger, sem alterar a migration aplicada, conceder privilégios ou repetir
+SQL remoto.
+
+Decisão da tentativa: `SOLO_PROMOTION_FAILED`. A label foi removida, a PR
+permanece aberta, a `main` não avançou e não houve deploy.

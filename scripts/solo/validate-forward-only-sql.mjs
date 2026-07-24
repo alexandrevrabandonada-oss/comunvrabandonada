@@ -14,6 +14,13 @@ if (releases.length) {
       release.releaseLedger !== "public.comun_schema_releases") {
     throw new Error("SOLO_CANONICAL_RELEASE_SECURITY_CONTRACT_INVALID");
   }
+  if (release.acceptedLegacyLedgerValues !== undefined &&
+      (!Array.isArray(release.acceptedLegacyLedgerValues) ||
+       release.acceptedLegacyLedgerValues.some((value) =>
+         typeof value !== "string" ||
+         !/^[a-f0-9]{64}\|[a-f0-9]{64}\|[a-f0-9]{64}$/.test(value)))) {
+    throw new Error("SOLO_CANONICAL_RELEASE_LEGACY_LEDGER_INVALID");
+  }
   const migration = readFileSync(release.migration, "utf8");
   const checksum = createHash("sha256").update(migration).digest("hex");
   if (checksum !== release.migrationSha256) throw new Error("SOLO_CANONICAL_RELEASE_CHECKSUM_MISMATCH");
