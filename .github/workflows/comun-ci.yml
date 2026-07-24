@@ -145,6 +145,10 @@ jobs:
           supabase start
           npm run test:e2e:community-radio
           npm run test:e2e:comun-sidewalk-real-map
+          npm run smoke:comun-calcadas-operacional
+          npm run smoke:comun-calcadas-operacional-runtime
+          npm run test:e2e:comun-calcadas-operacional
+          npm run test:a11y:comun-calcadas-operacional
           npm run test:e2e:comun-miniapp-experience
           npm run test:e2e:comun-mobile-app-shell
           npm run test:e2e:comun-pwa-experience
