@@ -113,3 +113,25 @@ A migration permanece byte a byte idêntica, com checksum
 O novo HEAD só será declarado pronto para nova autorização depois de FAST,
 FULL, Vercel e preflight remoto read-only verdes. Nenhuma nova tentativa de
 promoção faz parte deste lote.
+
+## Validação final do runner
+
+O primeiro preflight read-only (`30061056715`) identificou uma segunda causa
+local: o baseline compacto restringe triggers ao escopo canônico público, mas a
+validação procurava nele o trigger `auth.on_auth_user_created`. A correção usa
+uma consulta escalar separada a `pg_catalog`, exige contagem exatamente `1` e
+mantém a projeção compacta inalterada.
+
+No HEAD técnico `12fbb437324086f92d8beefc586d335b5652f8ed`:
+
+- FAST e FULL: run `30061223511`, sucesso;
+- Vercel Preview: sucesso;
+- preflight read-only: run `30062302321`, sucesso;
+- fingerprint pré: `b4d66ad06d1aba22930609f58b0ea1696fbfe5747a21f141dcedc97766d672de`;
+- 9 bloqueantes, 1 observação de plataforma e ledger ausente;
+- marcador final: `COMUN_CANONICAL_RELEASE_REMOTE_READY`;
+- FULL, cleanup, worker, health de produção e captura foram ignorados no
+  preflight.
+
+Decisão: `COMUN_SECURITY_HARDENING_READY_TO_RETRY_PROMOTION`. Esta decisão não
+autoriza automaticamente a promoção; a label permanece ausente.

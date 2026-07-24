@@ -72,3 +72,23 @@ COMUN_PREMERGE_FAILURE_NO_ROLLBACK
 
 Nenhuma URL, usuário, senha, token, connection string ou conteúdo de secret foi
 registrado.
+
+## Fechamento da correção
+
+O primeiro preflight do patch, run `30061056715`, falhou sem escrita e revelou
+um segundo defeito: a projeção compacta não inclui triggers de `auth`, enquanto
+a validação procurava `on_auth_user_created` nela. A verificação foi movida
+para uma consulta escalar read-only específica a `pg_catalog`.
+
+No HEAD técnico `12fbb437324086f92d8beefc586d335b5652f8ed`, FAST e FULL
+passaram no run `30061223511`, o Vercel Preview passou e o preflight remoto
+read-only `30062302321` terminou com:
+
+- fingerprint pré inalterado;
+- 9 achados bloqueantes;
+- 1 observação de plataforma;
+- ledger ausente;
+- `COMUN_CANONICAL_RELEASE_REMOTE_READY`.
+
+Todos os jobs mutáveis ou não relacionados foram ignorados. A label continua
+ausente e nenhuma migration remota foi executada.

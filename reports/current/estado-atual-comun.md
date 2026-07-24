@@ -69,8 +69,23 @@ sanitiza todas as falhas de processo e adiciona um preflight remoto
 estritamente read-only no `COMUN Nightly`. A migration e seu checksum
 permanecem idênticos.
 
-Decisão corrente até a conclusão dos novos gates:
-`SOLO_PROMOTION_FAILED`. A decisão só poderá avançar para
-`COMUN_SECURITY_HARDENING_READY_TO_RETRY_PROMOTION` depois de FAST, FULL,
-Vercel e preflight remoto read-only verdes no novo HEAD. A label
-`comun:promover` continua ausente.
+O primeiro ensaio read-only, run `30061056715`, comprovou que o baseline
+compacto não contém por contrato triggers de `auth`; a validação antiga
+procurava `auth.on_auth_user_created` na projeção errada. O patch passou a
+consultar somente a contagem desse trigger em `pg_catalog`, por `queryScalar`.
+Nenhuma escrita ocorreu nesse diagnóstico.
+
+Evidências do HEAD técnico corrigido
+`12fbb437324086f92d8beefc586d335b5652f8ed`:
+
+- FAST e FULL: run `30061223511`, sucesso;
+- Vercel Preview: sucesso;
+- preflight remoto read-only: run `30062302321`, sucesso;
+- fingerprint remoto:
+  `b4d66ad06d1aba22930609f58b0ea1696fbfe5747a21f141dcedc97766d672de`;
+- bloqueantes: 9; observações de plataforma: 1; ledger: ausente;
+- todos os demais jobs do `COMUN Nightly` foram ignorados.
+
+Decisão atual: `COMUN_SECURITY_HARDENING_READY_TO_RETRY_PROMOTION`.
+A label `comun:promover` continua ausente; nenhuma migration, merge, domínio ou
+produção foi alterado.
