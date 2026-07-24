@@ -96,6 +96,17 @@ test("exit code 1 receives a specific process class", () => {
   );
 });
 
+test("the real Vercel invalid-token wording is classified as authentication failure", () => {
+  assert.equal(
+    classifyVercelFailure({
+      status: 1,
+      stdout: "",
+      stderr: "Error: The token provided via `--token` argument is not valid.",
+    }),
+    "VERCEL_CLI_AUTH_FAILED",
+  );
+});
+
 test("HTTP 401 is rejected", () => {
   assert.throws(
     () => validatePreviewResponse({ parsed: { status: 401, redirects: [] }, bodyBytes: 10 }),

@@ -37,7 +37,7 @@ export function classifyVercelFailure({ status, signal, error, stdout, stderr })
   const text = `${error?.message ?? ""} ${stderr ?? ""} ${stdout ?? ""}`.toLowerCase();
   if (signal || /timed?\s*out|timeout/.test(text)) return "VERCEL_CURL_BINARY_FAILED";
   if (/enoent|not recognized|command not found/.test(text)) return "VERCEL_CURL_BINARY_FAILED";
-  if (/invalid token|not authorized|unauthorized|authentication failed|log in/.test(text)) {
+  if (/invalid token|token.+not valid|not authorized|unauthorized|authentication failed|log in/.test(text)) {
     return "VERCEL_CLI_AUTH_FAILED";
   }
   if (/deployment.+not found|could not find.+deployment|deployment_not_found/.test(text)) {
