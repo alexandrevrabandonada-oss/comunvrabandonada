@@ -4,9 +4,10 @@ Atualizado em 24 de julho de 2026.
 
 ## Decisão
 
-`COMUN_CALCADAS_OPERATIONAL_READY`
+`COMUN_CALCADAS_OPERATIONAL_REQUIRES_PROMOTION`
 
-O ciclo reutiliza a estrutura existente, sem migration e sem escrita remota:
+O ciclo local usa texto original privado, resumo público produzido em revisão
+humana, confirmação recuperável e sugestão assistida de duplicidade:
 
 `REGISTRO → TRIAGEM → VERIFICAÇÃO → PUBLICAÇÃO SANITIZADA → AGRUPAMENTO → PRIORIDADE → PROPOSTA → AÇÃO/PROTOCOLO → RESPOSTA → RESULTADO → MEMÓRIA`
 
@@ -14,8 +15,8 @@ O ciclo reutiliza a estrutura existente, sem migration e sem escrita remota:
 
 - captura: câmera ou arquivo, GPS ou ponto manual aproximado, condição,
   categoria, impacto de acessibilidade, consentimento e revisão final;
-- upload: original privado, autorização curta, confirmação server-side
-  idempotente e ausência de registro público antes da moderação;
+- upload: original privado, rate limit antes da URL assinada, lock com prazo,
+  confirmação server-side idempotente e compensação de artefatos parciais;
 - moderação: aprovação aproximada ou sem imagem, rejeição, complemento,
   suspensão e decisão editorial;
 - verificação: observações comunitárias preservam estado, evidência e data;
@@ -30,6 +31,7 @@ O ciclo reutiliza a estrutura existente, sem migration e sem escrita remota:
 
 - gate humano: 0/3;
 - piloto público: fechado;
-- nenhuma migration;
+- migration local forward-only pendente de promoção:
+  `20260724233256_comun_sidewalk_operational_hardening.sql`;
 - nenhum Supabase remoto alterado;
 - nenhuma publicação automática.

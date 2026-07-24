@@ -19,8 +19,8 @@ Atualizado em 24 de julho de 2026.
 - decisão vigente: `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN`;
 - hotfix 42.1: concluído pela PR #32;
 - estado local do hotfix: `COMUN_CANONICAL_SIDEWALK_PAUTA_OK`;
-- Tijolo 43: ciclo operacional implementado localmente, sem migration;
-- decisão do Tijolo 43: `COMUN_CALCADAS_OPERATIONAL_READY`;
+- Tijolo 43: ciclo operacional corrigido localmente, com migration pendente de promoção;
+- decisão do Tijolo 43: `COMUN_CALCADAS_OPERATIONAL_REQUIRES_PROMOTION`;
 - gate humano: 0/3;
 - piloto público: fechado.
 
@@ -93,9 +93,10 @@ O novo smoke confirmou Home, Pautas, pauta canônica, Mapa e Participar com HTTP
 sensíveis auditados. Só então foi criada a branch
 `codex/tijolo-43-calcadas-ciclo-operacional`.
 
-O diagnóstico inicial concluiu que o schema existente cobre o ciclo principal.
-Não há migration criada ou escrita no Supabase remoto. O gate humano permanece
-0/3 e o piloto público fechado.
+O diagnóstico inicial foi corrigido: a proteção do texto privado, o lock
+recuperável e a relação durável de duplicidade exigiram a migration local
+`20260724233256_comun_sidewalk_operational_hardening.sql`. Ela não foi aplicada
+remotamente. O gate humano permanece 0/3 e o piloto público fechado.
 
 ## Hardening
 

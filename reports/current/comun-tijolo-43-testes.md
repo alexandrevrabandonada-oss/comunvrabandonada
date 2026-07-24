@@ -7,6 +7,7 @@ Atualizado em 24 de julho de 2026.
 - `npm run test:e2e:comun-calcadas-operacional`
 - `npm run test:a11y:comun-calcadas-operacional`
 - `npm run smoke:comun-calcadas-operacional`
+- `npm run smoke:comun-calcadas-operacional-runtime`
 
 O conjunto cobre mapa e lista, filtros, pauta, captura por câmera/arquivo,
 localização manual após GPS negado, upload privado em duas fases, rotas de
@@ -20,10 +21,16 @@ de marcadores privados.
 - lint: aprovado;
 - unitários: 266/266;
 - smoke operacional: aprovado;
-- E2E operacional: 15/15 em cinco viewports;
-- Axe/overflow: 5/5, sem violações sérias ou críticas.
-- GitHub FAST: aprovado nos runs `30132804352` e `30132816946`;
-- FULL: não executado pela classificação automática de escopo;
-- Vercel Preview: aprovado.
+- smoke runtime: aprovado (`COMUN_CALCADAS_OPERATIONAL_RUNTIME_OK`), com
+  fixture sintética, decisão `DISTINCT`, limpeza e negação de leitura anônima
+  da tabela operacional;
+- E2E operacional: 8 cenários em dois viewports, sem multiplicar a mesma
+  narrativa por cinco telas; inclui localização manual por teclado e no-leak
+  estático da superfície pública;
+- Axe/overflow: 2/2, sem violações sérias ou críticas;
+- RLS matrix: `RLS_MATRIX_OK`;
+- DB lint local: sem erros;
+- FAST, FULL e Vercel: aguardam o SHA final desta correção. O workflow não
+  possui classificação automática de escopo.
 
 Testes humanos não foram preenchidos: gate humano permanece 0/3.
