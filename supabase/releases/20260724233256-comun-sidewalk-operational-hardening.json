@@ -1,0 +1,19 @@
+{
+  "release": "20260724233256-comun-sidewalk-operational-hardening",
+  "migration": "supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql",
+  "migrationSha256": "5fa1ff3da6d6f8e93a460de0012bd0e49ac6185a3300226d2f7d1e310ade7009",
+  "destructiveSql": false,
+  "requiresPromotion": true,
+  "expectedBlockingFindings": 0,
+  "assertions": [
+    "original contribution text remains in private_notes",
+    "public_summary may remain null while internal",
+    "upload confirmation has timestamped recovery lock",
+    "duplicate suggestions are server-side only with RLS"
+  ],
+  "changedObjects": [
+    "public.comun_sidewalk_records",
+    "public.comun_sidewalk_uploads",
+    "public.comun_sidewalk_duplicate_suggestions"
+  ]
+}

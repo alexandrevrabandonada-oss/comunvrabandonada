@@ -21,7 +21,7 @@ const db = createClient(url, key, { auth: { persistSession: false } });
 const now = new Date();
 let query;
 for (let attempt = 1; attempt <= 12; attempt += 1) {
-  query = await db.from("comun_sidewalk_uploads").select("id,object_key,status,expires_at,record_id").lt("expires_at", new Date(now.getTime() - minimumAgeMs).toISOString()).in("status", ["draft", "awaiting_upload", "uploaded", "upload_failed"]).is("record_id", null).order("expires_at").limit(limit);
+  query = await db.from("comun_sidewalk_uploads").select("id,object_key,status,expires_at,record_id").lt("expires_at", new Date(now.getTime() - minimumAgeMs).toISOString()).in("status", ["awaiting_upload", "uploaded", "confirming", "failed_retryable"]).is("record_id", null).order("expires_at").limit(limit);
   if (!query.error || query.error.code !== "PGRST205" || attempt === 12) break;
   await new Promise((resolve) => setTimeout(resolve, 5_000));
 }
@@ -36,7 +36,7 @@ if (execute) for (const ticket of candidates) {
   const removal = await db.storage.from("archive-private-originals").remove([ticket.object_key]);
   if (removal.error && !/not found|does not exist/i.test(removal.error.message)) throw removal.error;
   if (removal.error) missing += 1;
-  const updated = await db.from("comun_sidewalk_uploads").update({ status: "abandoned", failure_code: removal.error ? "expired_cleanup_object_missing" : "expired_cleanup" }).eq("id", ticket.id).is("record_id", null).in("status", ["draft", "awaiting_upload", "uploaded", "upload_failed"]);
+  const updated = await db.from("comun_sidewalk_uploads").update({ status: "abandoned", failure_code: removal.error ? "expired_cleanup_object_missing" : "expired_cleanup", failure_kind: "final", confirmation_locked_at: null }).eq("id", ticket.id).is("record_id", null).in("status", ["awaiting_upload", "uploaded", "confirming", "failed_retryable"]);
   if (updated.error) throw updated.error;
   removed += 1;
 }

@@ -13,6 +13,6 @@ export function assertCleanupTarget(target: CleanupTarget) {
 
 export function isCleanupEligible(ticket: { status: string; expires_at: string; record_id?: string | null }, now: Date, minimumAgeMs: number) {
   if (ticket.record_id) return false;
-  if (!["draft", "awaiting_upload", "uploaded", "upload_failed"].includes(ticket.status)) return false;
+  if (!["awaiting_upload", "uploaded", "confirming", "failed_retryable"].includes(ticket.status)) return false;
   return new Date(ticket.expires_at).getTime() <= now.getTime() - minimumAgeMs;
 }
