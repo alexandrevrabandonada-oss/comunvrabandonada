@@ -4,7 +4,6 @@ import {
   getVercelCliVersion,
   inspectDeployment,
   requestPreview,
-  resolveVercelTeamScope,
   sanitizePreviewArtifact,
   validatePmtilesResponse,
   validatePreviewResponse,
@@ -14,7 +13,6 @@ const required = ["PR", "SHA", "VERCEL_TOKEN", "VERCEL_TEAM_ID", "VERCEL_CANONIC
 if (required.some((name) => !process.env[name])) throw new Error("SOLO_PREVIEW_CONTEXT_MISSING");
 
 const repository = process.env.GITHUB_REPOSITORY ?? "alexandrevrabandonada-oss/comunvrabandonada";
-const configuredTeamScope = process.env.VERCEL_TEAM_SCOPE ?? null;
 const outputArg = process.argv.find((arg) => arg.startsWith("--output="));
 const outputPath = outputArg?.slice("--output=".length) || null;
 const api = (args) => execFileSync("gh", args, { encoding: "utf8" }).trim();
@@ -96,14 +94,8 @@ try {
   if (!successfulStatus) throw new Error("VERCEL_DEPLOYMENT_NOT_FOUND:not-ready");
 
   artifact.cliVersion = getVercelCliVersion();
-  const teamScope = await resolveVercelTeamScope({
-    expectedTeamId: process.env.VERCEL_TEAM_ID,
-    token: process.env.VERCEL_TOKEN,
-  });
-  if (configuredTeamScope && configuredTeamScope !== teamScope) {
-    throw new Error("VERCEL_SCOPE_FAILED:configured-scope-mismatch");
-  }
-  console.log(`COMUN_VERCEL_PREVIEW_SCOPE_RESOLVED:${teamScope}`);
+  const teamScope = null;
+  console.log("COMUN_VERCEL_PREVIEW_SCOPE_RESOLVED:deployment-contract");
   const deployment = await inspectDeployment({
     deploymentUrl: successfulStatus.environment_url,
     expectedSha: process.env.SHA,

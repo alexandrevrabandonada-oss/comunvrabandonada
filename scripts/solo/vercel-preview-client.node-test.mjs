@@ -4,7 +4,6 @@ import {
   classifyVercelFailure,
   inspectDeployment,
   parseResponseHeaders,
-  resolveVercelTeamScope,
   sanitizePreviewArtifact,
   sanitizeVercelDiagnostic,
   validatePmtilesResponse,
@@ -37,7 +36,7 @@ const inspect = (overrides = {}) => inspectDeployment({
   expectedSha: sha,
   expectedProjectId: projectId,
   expectedTeamId: teamId,
-  teamScope: "canonical-team",
+  teamScope: null,
   token: "vercel-test-token",
   runCli: () => ({ status: 0, stdout: JSON.stringify({ ...cli, ...(overrides.cli ?? {}) }), stderr: "" }),
   fetchImpl: async () => ({
@@ -55,36 +54,12 @@ test("invalid hostname is rejected", () => {
   assert.throws(() => validatePreviewUrl("https://example.com"), /VERCEL_URL_FORMAT_FAILED/);
 });
 
-test("team scope is resolved from the immutable team ID", async () => {
-  const scope = await resolveVercelTeamScope({
-    expectedTeamId: teamId,
-    token: "vercel-test-token",
-    fetchImpl: async () => ({
-      ok: true,
-      status: 200,
-      json: async () => ({ id: teamId, slug: "canonical-team" }),
-    }),
-  });
-  assert.equal(scope, "canonical-team");
-});
-
-test("team scope with a divergent ID is rejected", async () => {
-  await assert.rejects(
-    resolveVercelTeamScope({
-      expectedTeamId: teamId,
-      token: "vercel-test-token",
-      fetchImpl: async () => ({
-        ok: true,
-        status: 200,
-        json: async () => ({ id: "team_legacy", slug: "legacy-team" }),
-      }),
-    }),
-    /VERCEL_SCOPE_FAILED:team-contract/,
-  );
-});
-
 test("deployment from another project is rejected", async () => {
   await assert.rejects(inspect({ remote: { projectId: "prj_legacy" } }), /VERCEL_PROJECT_LINK_FAILED:project-id/);
+});
+
+test("deployment from another team is rejected without relying on a scope slug", async () => {
+  await assert.rejects(inspect({ remote: { teamId: "team_legacy" } }), /VERCEL_SCOPE_FAILED:team-id/);
 });
 
 test("deployment with divergent SHA is rejected", async () => {
