@@ -147,3 +147,26 @@ sem achados bloqueantes, mas a promoção da aplicação não foi concluída. O
 próximo trabalho deve diagnosticar a chamada autenticada ao preview da Vercel
 sem repetir a migration. O gate humano permanece 0/3 e o piloto público
 continua fechado.
+
+## Correção isolada do preview protegido
+
+A causa inferior foi confirmada como `VERCEL_SCOPE_FAILED`. O runner combinava
+rota relativa, URL sem protocolo e um slug de escopo que o token do Actions não
+podia acessar. O cliente agora usa a URL HTTPS completa do deployment e não
+depende de slug; o contrato canônico é comprovado pelos IDs de projeto e time,
+SHA, `READY` e target `preview`.
+
+O modo manual `preview_preflight=true` executa somente checkout, Node,
+imutabilidade do SHA, cliente Vercel e artifact sanitizado. Ele não recebe
+secrets de banco e mantém release preflight, FULL local, cleanup, worker,
+health de produção e baseline capture como `skipped`.
+
+No HEAD `7a86cc8585ae81a8b732346220b30dbaa29f8578`, FAST, FULL e
+Vercel passaram. O preflight isolado `30111887097` bloqueou antes das rotas
+porque o CLI rejeitou o valor atual de `VERCEL_TOKEN` como inválido. O
+deployment `dpl_41VBYab1Z6i6cBtr5Y266tJAZPyy` foi confirmado read-only como
+`READY` no projeto e time canônicos por uma identidade Vercel separada.
+
+Decisão vigente: `NO_GO_VERCEL_PREVIEW_CREDENTIAL`. A PR #30 permanece aberta,
+sem merge e sem label de promoção; o gate humano permanece 0/3 e o piloto
+público continua fechado.

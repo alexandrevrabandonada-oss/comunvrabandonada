@@ -145,3 +145,33 @@ Branches históricas só podem ser removidas quando não têm PR aberta, commits
 O estado atual fica em
 [`reports/current/estado-atual-comun.md`](../reports/current/estado-atual-comun.md).
 Documentos de preparação da PR #23 são históricos.
+
+## Preview Vercel protegido
+
+A validação imutável usa `vercel@50.28.0`. Nessa versão, a sintaxe comprovada é
+`vercel curl <rota> --deployment <URL HTTPS completa> --token <redacted> --
+<argumentos curl>`; não existe opção `--url`.
+
+O cliente não depende de projeto implícito nem de slug de `--scope`. Antes das
+rotas, ele inspeciona o deployment e exige:
+
+- hostname `*.vercel.app` e protocolo HTTPS;
+- project ID canônico;
+- team ID canônico;
+- SHA exato da PR;
+- estado `READY`;
+- target `preview`.
+
+Depois valida `/comun`, a matriz pública canônica e o Range PMTiles. O
+diagnóstico persistido contém somente SHA, deployment ID, hostname, versão do
+CLI, status sanitizados, tempos e resultado. Tokens, cookies, Authorization,
+corpos e headers privados são proibidos.
+
+Para repetir somente esse gate, use `preview_preflight=true` no `COMUN
+Nightly`. Esse modo não recebe secrets de Supabase e mantém release preflight,
+FULL, cleanup, worker, produção e baseline como `skipped`.
+
+Se o CLI emitir `The token provided via --token argument is not valid`, a
+classe é `VERCEL_CLI_AUTH_FAILED`. Não alterar URL, scope, projeto ou proteção
+para contornar essa falha: substitua `VERCEL_TOKEN` por uma credencial válida
+do time indicado por `VERCEL_TEAM_ID` e repita somente o preflight.

@@ -166,3 +166,26 @@ e a falha foi registrada no comentário:
 Decisão vigente: `SOLO_PROMOTION_FAILED`. A correção seguinte deve ficar
 restrita à validação imutável do preview e precisa preservar o princípio de não
 reaplicar o hardening já registrado no ledger.
+
+## Diagnóstico isolado do preview
+
+O diagnóstico instrumentado confirmou que a causa inferior do run
+`30104161976` era `VERCEL_SCOPE_FAILED`: o runner fornecia ao CLI um slug de
+escopo inacessível ao token do Actions. A sintaxe comprovada para
+`vercel@50.28.0` é `vercel curl <rota> --deployment <URL HTTPS completa>`,
+seguida dos argumentos nativos do curl depois de `--`.
+
+O cliente corrigido não depende de slug nem de projeto implícito. Ele valida o
+deployment imutável por URL completa e exige project ID, team ID, SHA,
+`READY` e target `preview` antes da probe. O workflow manual
+`preview_preflight=true` não contém credenciais de banco e mantém todos os
+jobs não relacionados como `skipped`.
+
+No HEAD `7a86cc8585ae81a8b732346220b30dbaa29f8578`, FAST, FULL e
+Vercel passaram. O run isolado `30111887097` confirmou que o valor atual de
+`VERCEL_TOKEN` é rejeitado pelo CLI como inválido antes da inspeção. O artifact
+sanitizado é `8603864773`; todos os jobs não relacionados ficaram `skipped`.
+
+Resultado final: `NO_GO_VERCEL_PREVIEW_CREDENTIAL`. Nenhuma nova tentativa de
+promoção é segura antes de substituir o secret por uma credencial válida do
+time canônico e repetir o preflight.

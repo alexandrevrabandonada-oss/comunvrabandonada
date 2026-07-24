@@ -135,3 +135,25 @@ No HEAD técnico `12fbb437324086f92d8beefc586d335b5652f8ed`:
 
 Decisão: `COMUN_SECURITY_HARDENING_READY_TO_RETRY_PROMOTION`. Esta decisão não
 autoriza automaticamente a promoção; a label permanece ausente.
+
+## Fechamento da validação de preview
+
+O run de promoção `30104161976` avançou com
+`COMUN_CANONICAL_SECURITY_HARDENING_ALREADY_APPLIED`, mas parou antes do merge
+na validação do preview. A instrumentação posterior confirmou
+`VERCEL_SCOPE_FAILED`: o slug fornecido por `--scope` não era acessível ao
+token do Actions.
+
+O cliente Vercel isolado usa `vercel@50.28.0`, URL HTTPS completa no argumento
+`--deployment`, inspeção prévia e validação de project ID, team ID, SHA,
+`READY` e target `preview`. O workflow `preview_preflight=true` não acessa
+Supabase e deixa todos os demais jobs ignorados.
+
+No HEAD `7a86cc8585ae81a8b732346220b30dbaa29f8578`, FAST, FULL e
+Vercel passaram. O preflight isolado `30111887097` manteve todos os jobs não
+relacionados como `skipped`, mas bloqueou antes das rotas porque o CLI rejeitou
+o secret `VERCEL_TOKEN` como inválido. O diagnóstico sanitizado foi preservado
+no artifact `8603864773`.
+
+Decisão final do lote: `NO_GO_VERCEL_PREVIEW_CREDENTIAL`. Não houve migration,
+merge, alteração de domínio ou acesso mutável ao banco.

@@ -72,3 +72,21 @@ com fingerprint
 `a8dc235b2f0a1fa2554a7dd0db9c46372867fc21a5f610b47d008e1c15c46197`,
 zero achados bloqueantes e ledger presente. Isso não equivale à promoção da
 aplicação: produção continua no baseline Git/Vercel documentado acima.
+
+## Correção de preview sem impacto em produção
+
+A falha do run `30104161976` foi localizada no escopo passado ao cliente
+Vercel, não no deployment de produção nem no banco. A correção usa somente o
+deployment imutável de Preview da PR #30, com URL HTTPS completa e validação de
+project ID, team ID, SHA, `READY` e target `preview`.
+
+O preflight específico não cria deployment, não acessa Supabase, não altera
+aliases e não toca `comunsocial.online`. A `main` e o deployment de produção
+registrados neste documento continuam sendo o baseline vigente.
+
+O HEAD técnico `7a86cc8585ae81a8b732346220b30dbaa29f8578` passou FAST,
+FULL e Vercel, mas o preflight isolado `30111887097` confirmou
+`VERCEL_CLI_AUTH_FAILED` para o secret do Actions. Isso não alterou o baseline
+de produção.
+
+Resultado da validação isolada: `NO_GO_VERCEL_PREVIEW_CREDENTIAL`.
