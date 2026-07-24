@@ -94,6 +94,15 @@ export default async function MinhaAreaPage({
           Organizada pelo que precisa de resposta e pela próxima ação — não por
           linha do tempo infinita.
         </p>
+        <div className="mt-5 border-l-4 border-comun-yellow bg-comun-paper/5 p-4 text-sm">
+          <p className="font-black uppercase text-comun-yellow">Seu ciclo de participação</p>
+          <p className="mt-1 text-comun-paper/75">
+            Contribuição recebida → revisão → proposta ou prioridade → ação ou encaminhamento → resultado e memória.
+          </p>
+          <Link href="/comun/caixa-de-entrada" className="mt-2 inline-flex font-black underline">
+            Ver retornos na Caixa de entrada
+          </Link>
+        </div>
       </ComunSection>
       <nav
         aria-label="Seções de Minha área"
