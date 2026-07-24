@@ -6,10 +6,13 @@ Atualizado em 24 de julho de 2026.
 
 - repositório: `alexandrevrabandonada-oss/comunvrabandonada`;
 - branch única: `codex/tijolo-42-nucleo-vivo`;
-- PR prevista: `Tijolo 42: cria o núcleo vivo da experiência COMUN`;
+- PR ativa: [#31 — Tijolo 42: cria o núcleo vivo da experiência COMUN](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/31);
 - HEAD de partida e base `main`:
   `7152bb7d946ac4245053ae3cd0e2563a3822ac51`;
+- HEAD técnico validado:
+  `072006b458d04319a983d7823ed814199f8884da`;
 - escopo: composição da experiência existente, sem migration;
+- decisão: `COMUN_NUCLEO_VIVO_READY`;
 - gate humano: 0/3;
 - piloto público: fechado.
 
@@ -23,6 +26,15 @@ cartográfica. A comunidade-piloto é identificada editorialmente como
 
 Nenhum domínio, Supabase remoto ou workflow foi alterado neste tijolo. O
 diagnóstico canônico está em `reports/current/comun-tijolo-42-diagnostico.md`.
+
+Evidência terminal:
+
+- FAST: aprovado;
+- FULL: aprovado no run `30122395558`;
+- Vercel Preview: aprovado;
+- PR aberta e mesclável;
+- worktree técnico entregue limpo;
+- merge ainda não executado.
 
 ## Hardening
 

@@ -25,3 +25,17 @@ Nenhuma migration foi criada. Permanecem canônicas as tabelas de pautas, módul
 - fixtures sintéticas: somente local;
 - Supabase remoto: não alterado;
 - domínio: não alterado.
+
+## Publicação técnica
+
+- branch: `codex/tijolo-42-nucleo-vivo`;
+- HEAD técnico validado: `072006b458d04319a983d7823ed814199f8884da`;
+- PR: [#31 — Tijolo 42: cria o núcleo vivo da experiência COMUN](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/31);
+- estado da PR: aberta e mesclável;
+- FAST, FULL e Vercel Preview: aprovados;
+- merge: não executado;
+- produção: não alterada por esta PR.
+
+## Decisão final
+
+`COMUN_NUCLEO_VIVO_READY`
