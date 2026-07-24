@@ -16,6 +16,11 @@ on:
         required: false
         type: boolean
         default: false
+      preview_preflight:
+        description: Validate only the immutable Vercel preview without database access
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: comun-nightly-${{ github.event.schedule || 'manual' }}
@@ -83,14 +88,57 @@ jobs:
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: node scripts/solo/apply-forward-only.mjs --read-only-preflight
 
+  preview-preflight:
+    if: github.event_name == 'workflow_dispatch' && inputs.preview_preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Require the dispatched SHA to remain the PR HEAD
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: "30"
+          SHA: ${{ github.sha }}
+        run: test "$(gh pr view "$PR" --json headRefOid --jq .headRefOid)" = "$SHA"
+      - name: Warm the pinned Vercel CLI
+        run: npx --yes vercel@50.28.0 --version
+      - id: preview
+        name: Validate immutable Vercel preview only
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: "30"
+          SHA: ${{ github.sha }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+        run: node scripts/solo/verify-preview.mjs --output=comun-vercel-preview-diagnostic.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-vercel-preview-diagnostic-${{ github.sha }}
+          path: comun-vercel-preview-diagnostic.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Require green preview
+        if: always()
+        env:
+          PREVIEW_OUTCOME: ${{ steps.preview.outcome }}
+        run: test "$PREVIEW_OUTCOME" = success
+
   full-local:
-    if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline && !inputs.release_preflight) || github.event.schedule == '17 3 * * *'
+    if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline && !inputs.release_preflight && !inputs.preview_preflight) || github.event.schedule == '17 3 * * *'
     uses: ./.github/workflows/comun-ci.yml
     with:
       force_full: true
 
   production-health:
-    if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline && !inputs.release_preflight) || github.event.schedule == '17 3 * * *'
+    if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline && !inputs.release_preflight && !inputs.preview_preflight) || github.event.schedule == '17 3 * * *'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -125,7 +173,7 @@ jobs:
           exit 1
 
   sidewalk-cleanup-dry-run:
-    if: (github.event_name == 'workflow_dispatch' && !inputs.release_preflight) || github.event.schedule == '17 3 * * *'
+    if: (github.event_name == 'workflow_dispatch' && !inputs.release_preflight && !inputs.preview_preflight) || github.event.schedule == '17 3 * * *'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
