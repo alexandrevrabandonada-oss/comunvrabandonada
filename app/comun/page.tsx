@@ -233,7 +233,7 @@ export default async function ComunHomePage() {
           <div className="grid gap-4">
             {pautas.slice(0, 3).map((pauta: any) => (
               <HubCard
-                key={pauta.id}
+                key={pauta.slug}
                 href={`/comun/pautas/${pauta.slug}`}
                 label={`Pauta · ${pauta.public_status ?? pauta.status}`}
                 title={pauta.title}

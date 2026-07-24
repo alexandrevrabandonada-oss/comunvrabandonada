@@ -19,6 +19,11 @@ const miniapp = await readFile(
   new URL("components/sidewalk-miniapp-shell.tsx", root),
   "utf8",
 );
+const home = await readFile(new URL("app/comun/page.tsx", root), "utf8");
+const listing = await readFile(
+  new URL("app/comun/pautas/page.tsx", root),
+  "utf8",
+);
 
 assert.match(canonical, /editorial:\$\{CANONICAL_SIDEWALK_PAUTA_SLUG\}/);
 assert.match(canonical, /source: "editorial_fallback"/);
@@ -38,8 +43,12 @@ for (const phase of [
 }
 assert.match(shell, /\/comun\/mapa\/contribuir/);
 assert.match(miniapp, /\/comun\/pautas\/calcadas-em-circulacao/);
+assert.match(home, /key=\{pauta\.slug\}/);
+assert.match(listing, /key=\{space\.slug\}/);
+assert.doesNotMatch(home, /key=\{pauta\.id\}/);
+assert.doesNotMatch(listing, /key=\{space\.id\}/);
 assert.doesNotMatch(
-  [canonical, spaces, page, shell, miniapp].join("\n"),
+  [canonical, spaces, page, shell, miniapp, home, listing].join("\n"),
   /SUPABASE_SERVICE_ROLE_KEY|service_role|object_key|exact_latitude|exact_longitude/,
 );
 

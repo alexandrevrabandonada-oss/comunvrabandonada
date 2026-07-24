@@ -17,7 +17,7 @@ export default async function PautaSpacesPage() {
         </p>
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
           {spaces.map((space) => (
-            <Link key={space.id} href={`/comun/pautas/${space.slug}`} className="paper-panel border-2 border-comun-black p-5">
+            <Link key={space.slug} href={`/comun/pautas/${space.slug}`} className="paper-panel border-2 border-comun-black p-5">
               <p className="text-xs font-black uppercase text-comun-asphalt/60">{statusLabel(space.status)} / {space.community ?? "comunidade aberta"}</p>
               <h2 className="comun-prose mt-2 text-xl font-black uppercase">{space.title}</h2>
               <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">{space.summary ?? "Pauta em organizacao coletiva."}</p>
