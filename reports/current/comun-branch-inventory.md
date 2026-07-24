@@ -4,21 +4,18 @@ Atualizado em 24 de julho de 2026.
 
 | Branch | PR | Base | Estado |
 |---|---:|---|---|
-| `main` | — | — | produção canônica em `b2f6733d` |
-| `codex/tijolo-41-baseline-canonico` | #30 | `main` | única linha ativa; correção do runner em validação |
+| `main` | — | — | produção canônica em `a989d517` |
+| `codex/tijolo-42-1-pauta-canonica` | #32 | `41d218fa` | mesclada por merge commit |
+| `codex/tijolo-42-1-relatorios` | — | `a989d517` | atualização documental local |
 
-Não foi criada branch ou PR adicional. A PR #30 continua aberta, não draft,
-mesclável e sem merge. O HEAD inicial do lote de destravamento foi
-`10ef55ef82d530954aade4dcffa68e2569ac6090`. O HEAD técnico aprovado por FAST,
-FULL e Vercel é
-`9ea9cc8b2cfaee6303fcd1ee8abe15e65c609107`.
+## Estado vigente
 
-A promoção `30057245879` falhou antes da migration; o remoto permaneceu no
-fingerprint pré e sem ledger. O mesmo branch recebe agora a correção do
-transporte `psql` e o preflight read-only. Não houve nova branch, nova PR,
-merge, migration remota ou reaplicação da label.
+- PR #31: mesclada no SHA `41d218fa670a24eef8d2a1ce3e3a35a9c5172a47`;
+- PR #32: mesclada no SHA `a989d517cd56d1051176eeb16675b019936e3244`;
+- CI e deployment Vercel da `main`: aprovados;
+- produção: `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN`;
+- Tijolo 43: `TIJOLO_43_UNBLOCKED`;
+- gate humano: 0/3;
+- piloto público: fechado.
 
-O HEAD técnico corrigido
-`12fbb437324086f92d8beefc586d335b5652f8ed` passou FAST e FULL no run
-`30061223511`, Vercel Preview e preflight remoto read-only no run
-`30062302321`. A branch permanece a única linha ativa.
+A branch documental atual não altera aplicação, banco, domínio ou deployment.

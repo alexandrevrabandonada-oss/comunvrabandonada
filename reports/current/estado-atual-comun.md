@@ -5,21 +5,21 @@ Atualizado em 24 de julho de 2026.
 ## Linha ativa
 
 - repositório: `alexandrevrabandonada-oss/comunvrabandonada`;
-- PR #31: mesclada por merge commit;
+- PR #31 e PR #32: mescladas por merge commit;
 - HEAD de partida e base `main`:
   `7152bb7d946ac4245053ae3cd0e2563a3822ac51`;
 - HEAD técnico validado:
   `072006b458d04319a983d7823ed814199f8884da`;
 - HEAD documental:
   `ca40c96b5fd2b4991e4fe987b636a7e8811fdbe1`;
-- `main` após o merge:
-  `41d218fa670a24eef8d2a1ce3e3a35a9c5172a47`;
+- `main` vigente:
+  `a989d517cd56d1051176eeb16675b019936e3244`;
 - escopo: composição da experiência existente, sem migration;
 - CI e Vercel no merge SHA: aprovados;
-- decisão vigente: `NO_GO_PAUTA_CANONICA_404`;
-- hotfix ativo: `codex/tijolo-42-1-pauta-canonica`;
+- decisão vigente: `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN`;
+- hotfix 42.1: concluído pela PR #32;
 - estado local do hotfix: `COMUN_CANONICAL_SIDEWALK_PAUTA_OK`;
-- Tijolo 43: não iniciado;
+- Tijolo 43: `TIJOLO_43_UNBLOCKED`;
 - gate humano: 0/3;
 - piloto público: fechado.
 
@@ -49,15 +49,35 @@ Evidência terminal:
 - nenhuma resposta 5xx;
 - navegação pauta ↔ mapa: reprovada pelo 404.
 
-Não declarar `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN` até a pauta canônica responder
-sem erro e a navegação bidirecional ser revalidada. Nenhuma branch ou PR do
-Tijolo 43 foi criada.
+O bloqueio `NO_GO_PAUTA_CANONICA_404` acima é evidência histórica do primeiro
+smoke do Tijolo 42 e foi encerrado pela PR #32. Nenhuma branch ou PR do Tijolo
+43 foi criada durante esse fechamento.
 
 O Tijolo 42.1 adiciona um fallback editorial honesto e sem fixture remota.
 Registro público real sempre vence; registro privado/arquivado e falha de
 consulta não são convertidos em pauta pública. A validação local passou com
 typecheck, lint, 263/263 unitários, build, dois smokes, 14/14 E2E, 8/8 Axe e
 fixtures limpas.
+
+## Fechamento vigente — Tijolo 42.1
+
+- PR #32 mesclada por merge commit;
+- branch HEAD: `a52c625e2221345311a93d6931491d3887e478cd`;
+- merge SHA: `a989d517cd56d1051176eeb16675b019936e3244`;
+- FULL pré-merge: run `30128663490`, aprovado;
+- CI pós-merge: run `30130058303`, aprovado;
+- Vercel Production deployment `5595972121`: aprovado;
+- pauta canônica, Home, pautas, mapa e participação: HTTP 200;
+- áreas autenticadas: HTTP 307 esperado;
+- PMTiles: HTTP 206;
+- pauta ↔ mapa: aprovada;
+- nenhuma resposta 5xx ou marcador sensível encontrado nas superfícies
+  inspecionadas.
+
+Decisão vigente: `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN`.
+
+O Tijolo 43 está `TIJOLO_43_UNBLOCKED`; o gate humano permanece 0/3 e o piloto
+público permanece fechado.
 
 ## Hardening
 
