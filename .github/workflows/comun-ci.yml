@@ -43,6 +43,7 @@ jobs:
           version: 2.109.1
       - run: npm ci --ignore-scripts
       - run: npm run solo:test
+      - run: npm run test:promotion-runner
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test:unit
@@ -111,6 +112,7 @@ jobs:
           version: 2.109.1
       - run: npm ci --ignore-scripts
       - run: npm run db:privileges:lint
+      - run: npm run test:promotion-runner
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
       - name: Build application for production-like suites

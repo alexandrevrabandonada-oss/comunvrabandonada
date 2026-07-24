@@ -11,6 +11,11 @@ on:
         required: false
         type: boolean
         default: false
+      release_preflight:
+        description: Validate the canonical release remotely without writes
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: comun-nightly-${{ github.event.schedule || 'manual' }}
@@ -60,14 +65,32 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  release-preflight:
+    if: github.event_name == 'workflow_dispatch' && inputs.release_preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Canonical release remote read-only preflight
+        env:
+          PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: node scripts/solo/apply-forward-only.mjs --read-only-preflight
+
   full-local:
-    if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline) || github.event.schedule == '17 3 * * *'
+    if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline && !inputs.release_preflight) || github.event.schedule == '17 3 * * *'
     uses: ./.github/workflows/comun-ci.yml
     with:
       force_full: true
 
   production-health:
-    if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline) || github.event.schedule == '17 3 * * *'
+    if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline && !inputs.release_preflight) || github.event.schedule == '17 3 * * *'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -102,7 +125,7 @@ jobs:
           exit 1
 
   sidewalk-cleanup-dry-run:
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '17 3 * * *'
+    if: (github.event_name == 'workflow_dispatch' && !inputs.release_preflight) || github.event.schedule == '17 3 * * *'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
