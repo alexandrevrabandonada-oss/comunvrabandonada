@@ -196,6 +196,7 @@ jobs:
           VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
         run: node scripts/solo/verify-preview.mjs
       - name: Merge by merge commit
+        id: merge
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ needs.authorize.outputs.pr }}
@@ -203,6 +204,7 @@ jobs:
         run: |
           if test "$(gh pr view "$PR" --json isDraft --jq .isDraft)" = true; then gh pr ready "$PR"; fi
           gh api -X PUT "repos/${{ github.repository }}/pulls/$PR/merge" -f sha="$SHA" -f merge_method=merge --jq '.merged == true'
+          echo "merged=true" >> "$GITHUB_OUTPUT"
       - name: Wait for main deployment and canonical smoke
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -226,7 +228,7 @@ jobs:
         run: node scripts/solo/monitor-production.mjs --minutes=15 --domain=comunsocial.online --public
       - if: success()
         run: echo 'SOLO_PRODUCTION_GREEN' >> "$GITHUB_STEP_SUMMARY"
-      - if: failure()
+      - if: failure() && steps.merge.outputs.merged == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
