@@ -146,6 +146,32 @@ export function getVercelCliVersion({ runCli = defaultRunCli } = {}) {
   return version;
 }
 
+export async function resolveVercelTeamScope({
+  expectedTeamId,
+  token,
+  fetchImpl = fetch,
+}) {
+  const response = await fetchImpl(
+    `https://api.vercel.com/v2/teams/${encodeURIComponent(expectedTeamId)}`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  if (!response.ok) {
+    const failureClass = response.status === 401
+      ? "VERCEL_CLI_AUTH_FAILED"
+      : response.status === 403
+        ? "VERCEL_SCOPE_FAILED"
+        : response.status === 404
+          ? "VERCEL_SCOPE_FAILED"
+          : "VERCEL_UNKNOWN_FAILURE";
+    throw new Error(`${failureClass}:team-api-${response.status}`);
+  }
+  const team = await response.json();
+  if (team.id !== expectedTeamId || !/^[a-z0-9-]+$/i.test(team.slug ?? "")) {
+    throw new Error("VERCEL_SCOPE_FAILED:team-contract");
+  }
+  return team.slug;
+}
+
 export async function inspectDeployment({
   deploymentUrl,
   expectedDeploymentId,

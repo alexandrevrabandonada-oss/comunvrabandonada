@@ -4,6 +4,7 @@ import {
   classifyVercelFailure,
   inspectDeployment,
   parseResponseHeaders,
+  resolveVercelTeamScope,
   sanitizePreviewArtifact,
   sanitizeVercelDiagnostic,
   validatePmtilesResponse,
@@ -52,6 +53,34 @@ test("full preview URL preserves https", () => {
 
 test("invalid hostname is rejected", () => {
   assert.throws(() => validatePreviewUrl("https://example.com"), /VERCEL_URL_FORMAT_FAILED/);
+});
+
+test("team scope is resolved from the immutable team ID", async () => {
+  const scope = await resolveVercelTeamScope({
+    expectedTeamId: teamId,
+    token: "vercel-test-token",
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: teamId, slug: "canonical-team" }),
+    }),
+  });
+  assert.equal(scope, "canonical-team");
+});
+
+test("team scope with a divergent ID is rejected", async () => {
+  await assert.rejects(
+    resolveVercelTeamScope({
+      expectedTeamId: teamId,
+      token: "vercel-test-token",
+      fetchImpl: async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({ id: "team_legacy", slug: "legacy-team" }),
+      }),
+    }),
+    /VERCEL_SCOPE_FAILED:team-contract/,
+  );
 });
 
 test("deployment from another project is rejected", async () => {
