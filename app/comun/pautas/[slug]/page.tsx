@@ -52,13 +52,33 @@ export default async function PautaPage(props: {
   const space = await getPublicPautaSpaceBySlug(params.slug);
   if (!space) return <LegacyIssuePage slug={params.slug} />;
 
-  const modules = await listPublicPautaModules(space.id);
-  if (modules.length) {
-    const [circles, sidewalks, memories] = await Promise.all([
-      listPublicCircleSurface(space.id),
-      listPublicSidewalkSurface(space.id),
-      listPublicSidewalkMemories(space.id),
-    ]);
+  const isEditorialFallback = space.source === "editorial_fallback";
+  const modules = isEditorialFallback
+    ? []
+    : await listPublicPautaModules(space.id);
+  if (modules.length || isEditorialFallback) {
+    const [circles, sidewalks, memories] = isEditorialFallback
+      ? [
+          [],
+          {
+            records: [],
+            count: 0,
+            coverage: {
+              total: 0,
+              verified: 0,
+              highImpact: 0,
+              resolved: 0,
+              territories: 0,
+            },
+            warning: null,
+          },
+          [],
+        ]
+      : await Promise.all([
+          listPublicCircleSurface(space.id),
+          listPublicSidewalkSurface(space.id),
+          listPublicSidewalkMemories(space.id),
+        ]);
     const contributionAck =
       searchParams.contribuicao === "pendente" ||
       searchParams.contribuicao === "recebida";
