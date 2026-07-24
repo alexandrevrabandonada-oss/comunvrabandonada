@@ -120,3 +120,49 @@ SQL remoto.
 
 Decisão da tentativa: `SOLO_PROMOTION_FAILED`. A label foi removida, a PR
 permanece aberta, a `main` não avançou e não houve deploy.
+
+## Terceira tentativa controlada
+
+Após a reconciliação, FAST e FULL passaram no run `30102040827`. O preflight
+remoto read-only `30103889675` confirmou o fingerprint pós-migration, zero
+achados bloqueantes, uma observação de plataforma e ledger presente no HEAD
+`7f19aa6b0894a68194f5f20b6236382bf1e8e006`.
+
+O run de promoção `30104161976` avançou além do ponto das duas falhas
+anteriores:
+
+- autorização: sucesso;
+- contrato de secrets: sucesso;
+- validação do SQL: sucesso;
+- checkpoint sanitizado: artifact `8600891303`;
+- SHA-256 do ZIP do checkpoint:
+  `7385d57cec372d33fb5daa0c90c867dc5f3c7962aee7b25ea74fc55d54f884cf`;
+- pacote forward-only:
+  `COMUN_CANONICAL_SECURITY_HARDENING_ALREADY_APPLIED`;
+- postflight remoto e DB lint: sucesso;
+- cleanup: `COMUN_SIDEWALK_UPLOAD_CLEAN_DRY_RUN`, com zero objetos examinados,
+  elegíveis ou removidos.
+
+A falha ocorreu na etapa `Validate immutable Vercel preview`:
+
+```text
+SOLO_VERCEL_PREVIEW_CURL_FAILED:/comun:1
+```
+
+O marcador identifica falha do comando de acesso ao preview na rota `/comun`.
+O trecho disponível do diagnóstico mostra a invocação de
+`vercel@50.28.0 curl`, mas não contém evidência suficiente para classificar a
+causa inferior como autenticação, configuração do CLI, URL ou resposta da
+aplicação. Essa causa permanece a ser diagnosticada; não deve ser inferida.
+
+O merge e todos os passos posteriores foram ignorados. Não houve novo
+deployment, mudança de domínio ou repetição da migration. A única ação remota
+de banco no postflight, além das leituras, foi a notificação para recarga de
+schema do PostgREST; ela não alterou o schema. A label de promoção foi removida
+e a falha foi registrada no comentário:
+
+`https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/30#issuecomment-5071391557`
+
+Decisão vigente: `SOLO_PROMOTION_FAILED`. A correção seguinte deve ficar
+restrita à validação imutável do preview e precisa preservar o princípio de não
+reaplicar o hardening já registrado no ledger.

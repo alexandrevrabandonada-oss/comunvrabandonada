@@ -111,7 +111,39 @@ restritivo, mantendo os bytes e o checksum da migration aplicada. A tupla
 histórica do ledger é aceita apenas por valor completo explicitamente
 registrado; qualquer outra divergência continua bloqueante.
 
-Decisão atual: `SOLO_PROMOTION_FAILED`. Antes de qualquer nova autorização, a
-correção precisa passar pelos gates locais e por novo preflight exclusivamente
-read-only. A label `comun:promover` está ausente; o gate humano permanece 0/3 e
-o piloto público continua fechado.
+## Fechamento da terceira tentativa
+
+O contrato reconciliado foi validado no HEAD
+`7f19aa6b0894a68194f5f20b6236382bf1e8e006`:
+
+- FAST e FULL: run `30102040827`, sucesso;
+- preflight remoto estritamente read-only: run `30103889675`, sucesso;
+- fingerprint remoto:
+  `a8dc235b2f0a1fa2554a7dd0db9c46372867fc21a5f610b47d008e1c15c46197`;
+- zero achados bloqueantes;
+- uma observação de plataforma;
+- ledger presente e aceito pelo contrato histórico exato;
+- nenhum job mutável executado no preflight.
+
+A autorização controlada disparou o run `30104161976`. O runner:
+
+- criou o checkpoint sanitizado `8600891303`;
+- validou manifesto, checksum e SQL;
+- reconheceu `COMUN_CANONICAL_SECURITY_HARDENING_ALREADY_APPLIED`, sem repetir
+  a migration;
+- concluiu DB lint e postflight remoto;
+- executou cleanup somente em dry-run, com zero objetos elegíveis;
+- interrompeu antes do merge em `Validate immutable Vercel preview`, com
+  `SOLO_VERCEL_PREVIEW_CURL_FAILED:/comun:1`.
+
+Como a falha ocorreu antes do merge, os passos de merge, deployment da `main`,
+reconciliação de domínio, smoke público e marcador verde de produção foram
+ignorados. A label `comun:promover` foi removida imediatamente. A PR #30
+permanece aberta e sem merge; a `main` permanece em
+`b2f6733dacd15ec21601ed6b6837b42213b87d70`.
+
+Decisão vigente: `SOLO_PROMOTION_FAILED`. O hardening remoto está aplicado e
+sem achados bloqueantes, mas a promoção da aplicação não foi concluída. O
+próximo trabalho deve diagnosticar a chamada autenticada ao preview da Vercel
+sem repetir a migration. O gate humano permanece 0/3 e o piloto público
+continua fechado.

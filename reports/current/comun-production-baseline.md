@@ -1,6 +1,7 @@
 # Baseline de produção do COMUN
 
-Verificação read-only em 23 de julho de 2026.
+Verificação read-only em 23 de julho de 2026, com confirmação de imutabilidade
+após a tentativa de promoção de 24 de julho de 2026.
 
 ## GitHub
 
@@ -53,3 +54,21 @@ por esta verificação.
 - resultado: `COMUN_BASELINE_SECURITY_FINDINGS` (12);
 - produção pública: continua saudável;
 - correção remota: não executada.
+
+## Confirmação após a PR #30
+
+O run de promoção `30104161976` foi interrompido antes do merge por
+`SOLO_VERCEL_PREVIEW_CURL_FAILED:/comun:1`. Consequentemente:
+
+- a PR #30 continua aberta e sem merge;
+- a `main` continua em
+  `b2f6733dacd15ec21601ed6b6837b42213b87d70`;
+- o deployment de produção acima não foi substituído por esse run;
+- domínio e aliases não foram reconciliados novamente;
+- smoke público pós-deployment não foi executado, pois não houve deployment.
+
+O banco remoto já contém o hardening canônico aplicado na tentativa anterior,
+com fingerprint
+`a8dc235b2f0a1fa2554a7dd0db9c46372867fc21a5f610b47d008e1c15c46197`,
+zero achados bloqueantes e ledger presente. Isso não equivale à promoção da
+aplicação: produção continua no baseline Git/Vercel documentado acima.
