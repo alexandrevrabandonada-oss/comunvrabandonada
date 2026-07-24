@@ -4,6 +4,7 @@ import { ComunBreadcrumbs, ComunSectionHeader } from "@/components/comun-ui";
 import { safeCommunityReturn } from "@/lib/community-return";
 
 const ways = [
+  { title: "Registrar uma calçada", href: "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao&returnTo=%2Fcomun%2Fpautas%2Fcalcadas-em-circulacao", goal: "Situar uma barreira no mapa e fortalecer a pauta Mobilidade e Acessibilidade.", time: "3–8 min", account: "Sessão protegida no envio", moderation: "Local e imagem passam por revisão", result: "Registro acompanhável, que pode formar prioridade, ação e memória." },
   { title: "Contar um problema", href: "/comun/relatar", goal: "Registrar um sinal com segurança para triagem coletiva.", time: "5–10 min", account: "Conta não obrigatória", moderation: "Triagem privada", result: "Pode originar ou reforçar uma pauta." },
   { title: "Entrar numa roda", href: "/comun/pautas", goal: "Responder a uma pergunta concreta e ajudar na síntese.", time: "10–20 min", account: "Conta recomendada", moderation: "Contribuição moderada", result: "Síntese com acordos e divergências." },
   { title: "Ajudar numa ação", href: "/comun/acoes", goal: "Contribuir com uma mobilização ou atividade confirmada.", time: "Varia por ação", account: "Conforme a ação", moderation: "Orientação da equipe", result: "Entrega ou resultado público registrado." },
