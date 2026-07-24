@@ -5,14 +5,21 @@ Atualizado em 24 de julho de 2026.
 ## Linha ativa
 
 - repositório: `alexandrevrabandonada-oss/comunvrabandonada`;
-- branch única: `codex/tijolo-42-nucleo-vivo`;
-- PR ativa: [#31 — Tijolo 42: cria o núcleo vivo da experiência COMUN](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/31);
+- PR #31: mesclada por merge commit;
 - HEAD de partida e base `main`:
   `7152bb7d946ac4245053ae3cd0e2563a3822ac51`;
 - HEAD técnico validado:
   `072006b458d04319a983d7823ed814199f8884da`;
+- HEAD documental:
+  `ca40c96b5fd2b4991e4fe987b636a7e8811fdbe1`;
+- `main` após o merge:
+  `41d218fa670a24eef8d2a1ce3e3a35a9c5172a47`;
 - escopo: composição da experiência existente, sem migration;
-- decisão: `COMUN_NUCLEO_VIVO_READY`;
+- CI e Vercel no merge SHA: aprovados;
+- decisão vigente: `NO_GO_PAUTA_CANONICA_404`;
+- hotfix ativo: `codex/tijolo-42-1-pauta-canonica`;
+- estado local do hotfix: `COMUN_CANONICAL_SIDEWALK_PAUTA_OK`;
+- Tijolo 43: não iniciado;
 - gate humano: 0/3;
 - piloto público: fechado.
 
@@ -32,9 +39,25 @@ Evidência terminal:
 - FAST: aprovado;
 - FULL: aprovado no run `30122395558`;
 - Vercel Preview: aprovado;
-- PR aberta e mesclável;
-- worktree técnico entregue limpo;
-- merge ainda não executado.
+- PR #31 mesclada normalmente;
+- CI da `main`: aprovado no run `30125728267`;
+- Vercel da `main`: aprovado no merge SHA;
+- `/comun`, `/comun/calcadas` e `/comun/participar`: HTTP 200;
+- Minha Participação e Caixa: HTTP 307 esperado;
+- PMTiles: HTTP 206;
+- `/comun/pautas/calcadas-em-circulacao`: HTTP 404;
+- nenhuma resposta 5xx;
+- navegação pauta ↔ mapa: reprovada pelo 404.
+
+Não declarar `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN` até a pauta canônica responder
+sem erro e a navegação bidirecional ser revalidada. Nenhuma branch ou PR do
+Tijolo 43 foi criada.
+
+O Tijolo 42.1 adiciona um fallback editorial honesto e sem fixture remota.
+Registro público real sempre vence; registro privado/arquivado e falha de
+consulta não são convertidos em pauta pública. A validação local passou com
+typecheck, lint, 263/263 unitários, build, dois smokes, 14/14 E2E, 8/8 Axe e
+fixtures limpas.
 
 ## Hardening
 
