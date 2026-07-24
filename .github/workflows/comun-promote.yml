@@ -187,6 +187,8 @@ jobs:
           docker run --rm postgres:17 psql "$SUPABASE_DB_URL" -X -v ON_ERROR_STOP=1 -c "notify pgrst, 'reload schema';"
           node scripts/cleanup-comun-sidewalk-uploads.mjs --allow-non-local --project-ref="$SUPABASE_PROJECT_REF"
       - name: Validate immutable Vercel preview
+        id: preview
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ needs.authorize.outputs.pr }}
@@ -194,7 +196,19 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
           VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
-        run: node scripts/solo/verify-preview.mjs
+        run: node scripts/solo/verify-preview.mjs --output=comun-vercel-preview-diagnostic.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-vercel-preview-diagnostic-${{ needs.authorize.outputs.sha }}
+          path: comun-vercel-preview-diagnostic.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Require green immutable Vercel preview
+        if: always()
+        env:
+          PREVIEW_OUTCOME: ${{ steps.preview.outcome }}
+        run: test "$PREVIEW_OUTCOME" = success
       - name: Merge by merge commit
         id: merge
         env:
