@@ -5,13 +5,24 @@ Atualizado em 24 de julho de 2026.
 ## Linha ativa
 
 - repositório: `alexandrevrabandonada-oss/comunvrabandonada`;
-- branch única: `codex/tijolo-41-baseline-canonico`;
-- PR única: #30, aberta, não draft e mesclável;
-- HEAD de partida deste lote:
-  `10ef55ef82d530954aade4dcffa68e2569ac6090`;
-- HEAD técnico aprovado:
-  `9ea9cc8b2cfaee6303fcd1ee8abe15e65c609107`;
-- base `main`: `b2f6733dacd15ec21601ed6b6837b42213b87d70`.
+- branch única: `codex/tijolo-42-nucleo-vivo`;
+- PR prevista: `Tijolo 42: cria o núcleo vivo da experiência COMUN`;
+- HEAD de partida e base `main`:
+  `7152bb7d946ac4245053ae3cd0e2563a3822ac51`;
+- escopo: composição da experiência existente, sem migration;
+- gate humano: 0/3;
+- piloto público: fechado.
+
+## Decisão vigente — Tijolo 42
+
+A pauta passa a ser o eixo público entre território, comunidade, conversa,
+contribuição, ação, resultado e memória. A pauta-piloto “Calçadas em
+circulação” apresenta seis etapas fixas e mantém o mapa como sua ferramenta
+cartográfica. A comunidade-piloto é identificada editorialmente como
+“Mobilidade e Acessibilidade”, sem criar fixture ou registro remoto.
+
+Nenhum domínio, Supabase remoto ou workflow foi alterado neste tijolo. O
+diagnóstico canônico está em `reports/current/comun-tijolo-42-diagnostico.md`.
 
 ## Hardening
 
