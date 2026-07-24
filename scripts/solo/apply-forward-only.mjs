@@ -142,7 +142,19 @@ function hasLedgerRelation(baseline) {
   );
 }
 
-function validatePreflightObjects(baseline) {
+function readOnboardingTriggerCount() {
+  return queryScalar(`
+    select pg_catalog.count(*)::text
+    from pg_catalog.pg_trigger trigger
+    join pg_catalog.pg_class relation on relation.oid = trigger.tgrelid
+    join pg_catalog.pg_namespace namespace on namespace.oid = relation.relnamespace
+    where namespace.nspname = 'auth'
+      and relation.relname = 'users'
+      and trigger.tgname = 'on_auth_user_created'
+      and not trigger.tgisinternal;`);
+}
+
+export function validatePreflightObjects(baseline, onboardingTriggerCount) {
   const relation = baseline.canonical.relations.find(
     (item) => item.schema === "public" && item.name === "comun_reports",
   );
@@ -150,11 +162,13 @@ function validatePreflightObjects(baseline) {
     (item) => item.schema === "public" && item.name === "comun_public_reports",
   );
   const functions = new Set(baseline.canonical.functions.map((item) => item.name));
-  const trigger = baseline.canonical.triggers.find(
-    (item) => item.schema === "auth" && item.name === "on_auth_user_created",
-  );
-  if (!relation?.rls || !view || !functions.has("handle_new_user") || !trigger) {
-    fail("SOLO_CANONICAL_DATABASE_QUERY_FAILED");
+  if (
+    !relation?.rls
+    || !view
+    || !functions.has("handle_new_user")
+    || onboardingTriggerCount !== "1"
+  ) {
+    fail("SOLO_CANONICAL_PREFLIGHT_OBJECTS_INVALID");
   }
 }
 
@@ -177,7 +191,7 @@ export async function main(argv = process.argv.slice(2)) {
   validateAllowlist();
   const { release, migration } = loadRelease();
   const before = captureBaseline();
-  validatePreflightObjects(before);
+  validatePreflightObjects(before, readOnboardingTriggerCount());
   const state = validateCurrentState(before, release);
 
   if (argv.includes("--read-only-preflight")) {

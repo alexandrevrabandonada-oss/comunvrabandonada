@@ -9,6 +9,7 @@ import {
   parseScalarOutput,
   queryJson,
   queryScalar,
+  validatePreflightObjects,
   validateCurrentState,
 } from "./apply-forward-only.mjs";
 
@@ -127,6 +128,24 @@ test("post fingerprint with the exact ledger is valid", () => {
   assert.equal(
     validateCurrentState(baseline, releaseFixture, () => "sha|pre|post"),
     "POST",
+  );
+});
+
+test("preflight validates the auth trigger outside the compact public projection", () => {
+  const baseline = {
+    canonical: {
+      relations: [
+        { schema: "public", name: "comun_reports", rls: true },
+        { schema: "public", name: "comun_public_reports", rls: false },
+      ],
+      functions: [{ schema: "public", name: "handle_new_user" }],
+      triggers: [],
+    },
+  };
+  assert.doesNotThrow(() => validatePreflightObjects(baseline, "1"));
+  assert.throws(
+    () => validatePreflightObjects(baseline, "0"),
+    marker("SOLO_CANONICAL_PREFLIGHT_OBJECTS_INVALID"),
   );
 });
 
