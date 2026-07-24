@@ -56,6 +56,7 @@
     "test:e2e:comun-calcadas-operacional": "node scripts/comun-local-env.mjs run playwright test -c playwright.sidewalk-operational.config.ts",
     "test:a11y:comun-calcadas-operacional": "node scripts/comun-local-env.mjs run playwright test -c playwright.sidewalk-operational.config.ts --grep @a11y",
     "smoke:comun-calcadas-operacional": "node scripts/smoke-comun-sidewalk-operational.mjs",
+    "smoke:comun-calcadas-operacional-runtime": "node scripts/comun-local-env.mjs run node scripts/smoke-comun-calcadas-operacional-runtime.mjs",
     "test:e2e:comun-miniapp-experience": "node scripts/comun-local-env.mjs run playwright test -c playwright.miniapp-experience.config.ts",
     "test:e2e:comun-mobile-app-shell": "node scripts/comun-local-env.mjs run playwright test -c playwright.mobile-app-shell.config.ts",
     "perf:comun-sidewalk-real-map": "node scripts/measure-comun-sidewalk-real-map.mjs",

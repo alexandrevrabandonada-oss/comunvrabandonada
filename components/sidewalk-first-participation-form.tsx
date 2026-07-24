@@ -456,10 +456,30 @@ function ManualPointPicker({
 }) {
   const p = point ? projectMercator(point) : null;
   return (
+    <>
     <button
       type="button"
       aria-label="Mapa para confirmar ou ajustar o ponto"
+      aria-describedby="manual-point-help"
+      onKeyDown={(event) => {
+        const current = point ?? VOLTA_REDONDA_MAP.center;
+        const delta = event.shiftKey ? 0.002 : 0.0005;
+        const next: Record<string, [number, number]> = {
+          ArrowLeft: [current[0] - delta, current[1]],
+          ArrowRight: [current[0] + delta, current[1]],
+          ArrowUp: [current[0], current[1] + delta],
+          ArrowDown: [current[0], current[1] - delta],
+        };
+        if (next[event.key]) {
+          event.preventDefault();
+          onChange(next[event.key]);
+        }
+      }}
       onClick={(event) => {
+        if (event.detail === 0) {
+          onChange(point ?? VOLTA_REDONDA_MAP.center);
+          return;
+        }
         const rect = event.currentTarget.getBoundingClientRect();
         onChange(
           unprojectMercator(
@@ -506,9 +526,14 @@ function ManualPointPicker({
         </>
       ) : null}
       <span className="absolute bottom-2 left-2 bg-white p-2 text-xs font-bold">
-        Toque para ajustar o marcador
+        Toque ou use as setas para ajustar o marcador
       </span>
     </button>
+    <p id="manual-point-help" className="mt-2 text-sm">
+      Sem GPS, use Tab para focar o mapa e as setas para mover o marcador. Use
+      Enter ou Espaço para confirmar o ponto.
+    </p>
+    </>
   );
 }
 async function compressPhoto(file: File) {

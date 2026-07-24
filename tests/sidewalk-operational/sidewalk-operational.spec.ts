@@ -23,7 +23,7 @@ test("visitante encontra mapa, filtros operacionais e pauta", async ({
   ).toBeVisible();
 });
 
-test("captura exige privacidade, consentimento e confirmação", async ({
+test("participante sem GPS usa teclado para posicionar e confere privacidade", async ({
   page,
 }) => {
   await page.goto(
@@ -44,6 +44,21 @@ test("captura exige privacidade, consentimento e confirmação", async ({
       name: /Conferi fotografia, local, condição e impacto/,
     }),
   ).not.toBeChecked();
+  const manualMap = page.getByRole("button", {
+    name: /Mapa para confirmar ou ajustar o ponto/,
+  });
+  await manualMap.focus();
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("Enter");
+  await expect(manualMap).toBeFocused();
+  await expect(page.getByText(/Sem GPS, use Tab para focar o mapa/i)).toBeVisible();
+});
+
+test("superfície pública não expõe texto privado ou coordenada exata", async ({ page }) => {
+  await page.goto("/comun/calcadas");
+  await expect(page.locator("body")).not.toContainText("PRIVATE_SIDEWALK_RUNTIME");
+  await expect(page.locator("body")).not.toContainText("-44.104321");
 });
 
 test("@a11y mapa operacional não possui violações sérias", async ({ page }) => {

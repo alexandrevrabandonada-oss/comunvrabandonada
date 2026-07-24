@@ -15,9 +15,17 @@ const [capture, actions, moderation, map, loop, participation] =
 
 assert.match(capture, /consent_publish/);
 assert.match(capture, /Conferi fotografia, local, condição e impacto/);
-assert.match(actions, /\.is\("failure_code", null\)/);
-assert.match(actions, /failure_code: "confirming"/);
+assert.match(actions, /confirmation_locked_at/);
+assert.match(actions, /failed_retryable/);
+assert.match(actions, /compensatePartialSidewalkUpload/);
+assert.match(actions, /removeObject\("private_original", objectKey\)/);
+assert.match(actions, /private_notes: description/);
+assert.match(actions, /public_summary: null/);
+assert.match(capture, /ArrowLeft/);
+assert.match(capture, /manual-point-help/);
 assert.doesNotMatch(moderation, /approve_exact/);
+assert.match(moderation, /resumo público sanitizado/i);
+assert.match(moderation, /complement_request/);
 for (const filter of ["problema", "bairro", "estado", "verificacao", "periodo"])
   assert.match(map, new RegExp(filter));
 assert.match(loop, /duplicateSignalScore/);
