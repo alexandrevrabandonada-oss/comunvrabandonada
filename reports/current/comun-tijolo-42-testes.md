@@ -57,4 +57,36 @@ sem alteração de workflow. Nenhuma dessas ocorrências envolveu Supabase remot
 
 ## Decisão
 
-`COMUN_NUCLEO_VIVO_READY`
+## Validação pós-merge
+
+- merge SHA: `41d218fa670a24eef8d2a1ce3e3a35a9c5172a47`;
+- CI da `main`: aprovado no
+  [run 30125728267](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30125728267);
+- Vercel: aprovado no merge SHA;
+- Home, mapa e participação: HTTP 200;
+- superfícies autenticadas: HTTP 307 esperado;
+- PMTiles: HTTP 206;
+- pauta canônica “Calçadas em circulação”: HTTP 404;
+- respostas 5xx: nenhuma;
+- varredura das páginas públicas inspecionadas: nenhum `service_role`, object
+  key ou coordenada exata encontrado.
+
+Decisão técnica pré-merge: `COMUN_NUCLEO_VIVO_READY_TO_MERGE`.
+
+Decisão vigente do smoke: `NO_GO_PAUTA_CANONICA_404`.
+
+`COMUN_NUCLEO_VIVO_PRODUCTION_GREEN` não foi declarado e o Tijolo 43 não foi
+iniciado.
+
+## Hotfix 42.1
+
+- typecheck, lint e build: aprovados;
+- unitários: 263/263;
+- smoke canônico: `COMUN_CANONICAL_SIDEWALK_PAUTA_OK`;
+- smoke do núcleo vivo: `COMUN_NUCLEO_VIVO_LOCAL_OK`;
+- E2E atualizado: 14/14;
+- Axe atualizado: 8/8;
+- fixtures: `COMUN_TEST_FIXTURES_CLEAN`.
+
+O teste agora exige HTTP 200 na pauta, as seis fases, navegação bidirecional,
+retorno allowlisted e ausência do identificador editorial na interface.

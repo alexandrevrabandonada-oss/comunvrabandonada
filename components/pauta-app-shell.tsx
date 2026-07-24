@@ -152,6 +152,12 @@ export function PautaAppShell({
               Ver continuidade
             </Link>
           </div>
+          {space.source === "editorial_fallback" ? (
+            <p className="mt-6 max-w-3xl border-2 border-comun-black bg-comun-paper p-3 text-sm font-bold">
+              Pauta-piloto editorial em construção. Os registros e resultados
+              aparecem conforme são verificados e publicados.
+            </p>
+          ) : null}
         </div>
       </section>
       {sidewalks ? (
@@ -207,7 +213,13 @@ export function PautaAppShell({
             O que mudou, a consequência e como o processo segue.
           </p>
           <div className="mt-4">
-            <ComunContinuityTimeline pautaId={space.id} />
+            {space.source === "editorial_fallback" ? (
+              <p className="border-l-4 border-comun-yellow p-4">
+                A continuidade pública será registrada conforme a pauta avançar.
+              </p>
+            ) : (
+              <ComunContinuityTimeline pautaId={space.id} />
+            )}
           </div>
         </section>
       </div>

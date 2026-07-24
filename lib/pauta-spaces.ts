@@ -2,9 +2,15 @@ import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import type { PautaContribution, PautaEvidenceItem, PautaSpace, PautaSynthesisVersion, PautaTask } from "@/lib/types";
 import { calculateOfficialProtocolTiming } from "@/lib/official-protocols";
 import { getClientFingerprint, hashLookupValue } from "@/lib/rate-limit";
+import {
+  CANONICAL_SIDEWALK_PAUTA_SLUG,
+  canonicalSidewalkEditorialPauta,
+  shouldUseCanonicalEditorialFallback,
+} from "@/lib/comun/canonical-editorial-pautas";
 
 export type PublicPautaSpace = PautaSpace & {
   stats: PautaSpaceStats;
+  source?: "remote" | "editorial_fallback";
 };
 
 export type PautaSpaceStats = {
@@ -36,20 +42,54 @@ export async function listPublicPautaSpaces() {
   const supabase = createServiceSupabaseClient();
   if (!supabase) return [] as PublicPautaSpace[];
 
-  const { data, error } = await supabase
+  const [{ data, error }, canonical] = await Promise.all([
+    supabase
     .from("comun_pauta_spaces")
     .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, public_status, priority, urgency, risk_level, responsible_public, territory_id, affected_people_public, problem_public, demand_public, proposals_public, participation_public, last_operational_update_at, created_at, updated_at")
     .eq("visibility", "public")
     .neq("status", "archived")
-    .order("updated_at", { ascending: false });
+    .order("updated_at", { ascending: false }),
+    inspectCanonicalPautaRows(supabase),
+  ]);
 
   if (error || !data) return [];
-  return Promise.all((data as PautaSpace[]).map(withPautaStats));
+  const spaces: PublicPautaSpace[] = await Promise.all(
+    (data as PautaSpace[]).map(async (space) => ({
+      ...(await withPautaStats(space)),
+      source: "remote" as const,
+    })),
+  );
+  if (
+    !spaces.some((space) => space.slug === CANONICAL_SIDEWALK_PAUTA_SLUG) &&
+    shouldUseCanonicalEditorialFallback({
+      slug: CANONICAL_SIDEWALK_PAUTA_SLUG,
+      queryFailed: canonical.failed,
+      rows: canonical.rows,
+    })
+  ) {
+    spaces.push(canonicalSidewalkEditorialPauta);
+  }
+  return spaces;
 }
 
 export async function getPublicPautaSpaceBySlug(slug: string) {
   const supabase = createServiceSupabaseClient();
   if (!supabase) return null;
+
+  if (slug === CANONICAL_SIDEWALK_PAUTA_SLUG) {
+    const canonical = await inspectCanonicalPautaRows(supabase);
+    if (canonical.failed) return null;
+    if (!canonical.rows.length) return canonicalSidewalkEditorialPauta;
+    const publicRow = canonical.rows.find(
+      (row) => row.visibility === "public" && row.status !== "archived",
+    );
+    return publicRow
+      ? {
+          ...(await withPautaStats(publicRow as PautaSpace)),
+          source: "remote" as const,
+        }
+      : null;
+  }
 
   const { data, error } = await supabase
     .from("comun_pauta_spaces")
@@ -61,7 +101,24 @@ export async function getPublicPautaSpaceBySlug(slug: string) {
     .maybeSingle();
 
   if (error || !data) return null;
-  return withPautaStats(data as PautaSpace);
+  return {
+    ...(await withPautaStats(data as PautaSpace)),
+    source: "remote" as const,
+  };
+}
+
+async function inspectCanonicalPautaRows(
+  supabase: NonNullable<ReturnType<typeof createServiceSupabaseClient>>,
+) {
+  const { data, error } = await supabase
+    .from("comun_pauta_spaces")
+    .select("id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, public_status, priority, urgency, risk_level, responsible_public, territory_id, affected_people_public, problem_public, demand_public, proposals_public, participation_public, last_operational_update_at, created_at, updated_at")
+    .eq("slug", CANONICAL_SIDEWALK_PAUTA_SLUG);
+  if (error) {
+    console.error("COMUN_CANONICAL_PAUTA_QUERY_FAILED");
+    return { failed: true, rows: [] as PautaSpace[] };
+  }
+  return { failed: false, rows: (data ?? []) as PautaSpace[] };
 }
 
 export async function listAdminPautaSpaces() {
