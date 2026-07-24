@@ -8,7 +8,7 @@ Atualizado em 24 de julho de 2026.
 | `codex/tijolo-42-1-pauta-canonica` | #32 | `41d218fa` | mesclada por merge commit |
 | `codex/tijolo-42-1-relatorios` | #33 | `a989d517` | mesclada por merge commit |
 | `codex/tijolo-42-1-public-id` | #34 | `9b067d83` | mesclada por merge commit |
-| `codex/tijolo-43-calcadas-ciclo-operacional` | — | `4a9e2d4f` | implementação local pronta para validação |
+| `codex/tijolo-43-calcadas-ciclo-operacional` | #35 | `4a9e2d4f` | aberta, CI e Vercel aprovados |
 
 ## Estado vigente
 
@@ -22,5 +22,5 @@ Atualizado em 24 de julho de 2026.
 - gate humano: 0/3;
 - piloto público: fechado.
 
-A branch do Tijolo 43 foi criada somente após o smoke pós-merge verde. Não há
-migration ou escrita remota; a PR será aberta após os gates locais.
+A branch do Tijolo 43 foi criada somente após o smoke pós-merge verde. A PR
+#35 foi aberta após os gates locais. Não há migration ou escrita remota.

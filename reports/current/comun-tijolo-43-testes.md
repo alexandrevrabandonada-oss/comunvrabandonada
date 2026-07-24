@@ -22,5 +22,8 @@ de marcadores privados.
 - smoke operacional: aprovado;
 - E2E operacional: 15/15 em cinco viewports;
 - Axe/overflow: 5/5, sem violações sérias ou críticas.
+- GitHub FAST: aprovado nos runs `30132804352` e `30132816946`;
+- FULL: não executado pela classificação automática de escopo;
+- Vercel Preview: aprovado.
 
 Testes humanos não foram preenchidos: gate humano permanece 0/3.
