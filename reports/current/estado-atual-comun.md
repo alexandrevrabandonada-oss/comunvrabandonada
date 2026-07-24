@@ -13,13 +13,13 @@ Atualizado em 24 de julho de 2026.
 - HEAD documental:
   `ca40c96b5fd2b4991e4fe987b636a7e8811fdbe1`;
 - `main` vigente:
-  `a989d517cd56d1051176eeb16675b019936e3244`;
+  `4a9e2d4f341e755b3a1aa969c26344f4f4334bae`;
 - escopo: composição da experiência existente, sem migration;
 - CI e Vercel no merge SHA: aprovados;
 - decisão vigente: `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN`;
 - hotfix 42.1: concluído pela PR #32;
 - estado local do hotfix: `COMUN_CANONICAL_SIDEWALK_PAUTA_OK`;
-- Tijolo 43: `TIJOLO_43_UNBLOCKED`;
+- Tijolo 43: iniciado em branch limpa, diagnóstico em andamento;
 - gate humano: 0/3;
 - piloto público: fechado.
 
@@ -78,6 +78,23 @@ Decisão vigente: `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN`.
 
 O Tijolo 43 está `TIJOLO_43_UNBLOCKED`; o gate humano permanece 0/3 e o piloto
 público permanece fechado.
+
+## Início controlado do Tijolo 43
+
+A PR documental #33 foi mesclada no SHA
+`9b067d8302eb42e443afb6580b347d8a2cc941ec`. O smoke subsequente encontrou um
+identificador editorial local usado como chave React no payload RSC de Home e
+Pautas. A correção mínima da PR #34 foi mesclada no SHA
+`4a9e2d4f341e755b3a1aa969c26344f4f4334bae`.
+
+O novo smoke confirmou Home, Pautas, pauta canônica, Mapa e Participar com HTTP
+200, PMTiles com HTTP 206, navegação bidirecional e ausência dos marcadores
+sensíveis auditados. Só então foi criada a branch
+`codex/tijolo-43-calcadas-ciclo-operacional`.
+
+O diagnóstico inicial concluiu que o schema existente cobre o ciclo principal.
+Não há migration criada ou escrita no Supabase remoto. O gate humano permanece
+0/3 e o piloto público fechado.
 
 ## Hardening
 
