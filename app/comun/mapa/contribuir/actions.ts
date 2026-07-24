@@ -56,6 +56,8 @@ type DirectUploadPayload = {
   latitude: string;
   location_accuracy_m: string;
   location_source: string;
+  affected_groups: string;
+  consent_publish: string;
 };
 
 export async function authorizeSidewalkPhotoUpload(input: {
@@ -132,6 +134,10 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
     .eq("member_user_id", user.id)
     .single();
   if (ticket.error || !ticket.data) throw new Error("Envio não encontrado.");
+  if (ticket.data.status === "confirmed" && ticket.data.record_id)
+    redirect(
+      `/comun/mapa/contribuir/confirmacao?registro=${ticket.data.record_id}&returnTo=${encodeURIComponent("/comun/calcadas")}`,
+    );
   if (new Date(ticket.data.expires_at).getTime() < Date.now()) {
     await db
       .from("comun_sidewalk_uploads")
@@ -153,10 +159,41 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
   }
   const bytes = new Uint8Array(await downloaded.data.arrayBuffer());
   await validateSidewalkPhotoImage(bytes, ticket.data.original_filename);
-  await db
+  if (ticket.data.status === "awaiting_upload")
+    await db
+      .from("comun_sidewalk_uploads")
+      .update({
+        status: "uploaded",
+        uploaded_at: new Date().toISOString(),
+        failure_code: null,
+      })
+      .eq("id", uploadId)
+      .eq("member_user_id", user.id)
+      .eq("status", "awaiting_upload");
+  const claim = await db
     .from("comun_sidewalk_uploads")
-    .update({ status: "uploaded", uploaded_at: new Date().toISOString() })
-    .eq("id", uploadId);
+    .update({ failure_code: "confirming" })
+    .eq("id", uploadId)
+    .eq("member_user_id", user.id)
+    .eq("status", "uploaded")
+    .is("failure_code", null)
+    .select("id")
+    .maybeSingle();
+  if (!claim.data) {
+    const latest = await db
+      .from("comun_sidewalk_uploads")
+      .select("status,record_id")
+      .eq("id", uploadId)
+      .eq("member_user_id", user.id)
+      .single();
+    if (latest.data?.status === "confirmed" && latest.data.record_id)
+      redirect(
+        `/comun/mapa/contribuir/confirmacao?registro=${latest.data.record_id}&returnTo=${encodeURIComponent("/comun/calcadas")}`,
+      );
+    throw new Error(
+      "Este envio já está sendo confirmado. Aguarde antes de tentar novamente.",
+    );
+  }
   const form = new FormData();
   for (const [key, value] of Object.entries(
     ticket.data.submission_payload as DirectUploadPayload,
@@ -190,6 +227,10 @@ async function persistAuthenticatedSidewalkRecord(
       .split(",")
       .filter(Boolean),
     condition = String(f.get("condition") ?? ""),
+    affectedGroups = String(f.get("affected_groups") ?? "")
+      .split(",")
+      .filter(Boolean),
+    consentPublish = String(f.get("consent_publish") ?? "") === "yes",
     longitude = Number(f.get("longitude")),
     latitude = Number(f.get("latitude")),
     hasPoint =
@@ -205,6 +246,8 @@ async function persistAuthenticatedSidewalkRecord(
   if (!hasPoint) throw new Error("Confirme o ponto no mapa antes de enviar.");
   if (!(photo instanceof File) || !photo.size)
     throw new Error("Escolha uma fotografia antes de enviar.");
+  if (!consentPublish)
+    throw new Error("Confirme o consentimento para a publicação sanitizada.");
   if (description.length > 600)
     throw new Error("A descrição deve ter no máximo 600 caracteres.");
   if (
@@ -286,13 +329,23 @@ async function persistAuthenticatedSidewalkRecord(
     last_observed_at: new Date().toISOString(),
     categories: problems.length ? problems : [category],
     impact_level: impact,
-    affected_groups: [],
+    affected_groups: affectedGroups.filter((value) =>
+      [
+        "wheelchair_users",
+        "visually_impaired",
+        "elderly",
+        "children",
+        "strollers",
+        "temporary_mobility",
+        "general_public",
+      ].includes(value),
+    ),
     status: "under_review",
     verification_status: "community_report",
     visibility: "internal",
     public_summary: description || `Avaliação comunitária: ${condition}.`,
     private_notes: null,
-    public_location_level: hasPoint ? "exact" : "neighborhood",
+    public_location_level: hasPoint ? "approximate" : "neighborhood",
     approximate_location: location,
   });
   if (error) throw new Error("Não foi possível registrar a contribuição.");
@@ -360,6 +413,7 @@ async function persistAuthenticatedSidewalkRecord(
           status: "confirmed",
           confirmed_at: new Date().toISOString(),
           record_id: id,
+          failure_code: null,
         })
         .eq("id", directUpload.uploadId)
         .eq("member_user_id", user.id);
@@ -399,6 +453,8 @@ const safeSubmissionMessages = new Set([
   "Serviço local indisponível.",
   "Confirme o ponto no mapa antes de enviar.",
   "Escolha uma fotografia antes de enviar.",
+  "Confirme o consentimento para a publicação sanitizada.",
+  "Este envio já está sendo confirmado. Aguarde antes de tentar novamente.",
   "Limite temporário de envios atingido. Tente novamente mais tarde.",
   "A descrição deve ter no máximo 600 caracteres.",
   "Classificação inválida.",

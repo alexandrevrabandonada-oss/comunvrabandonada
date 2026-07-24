@@ -6,7 +6,6 @@ import { generateSidewalkPhotoDerivative } from "@/lib/sidewalk-photos";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
 const decisions = new Set([
-  "approve_exact",
   "approve_approximate",
   "publish_without_image",
   "needs_information",
@@ -64,9 +63,7 @@ export async function moderateSidewalkRecord(form: FormData) {
       })
       .eq("id", id);
   else {
-    const publicGeometry = decision === "approve_exact"
-      ? record.private_geometry_geojson
-      : decision === "approve_approximate"
+    const publicGeometry = decision === "approve_approximate"
         ? approximate(record.private_geometry_geojson)
         : null;
     await db
@@ -76,9 +73,7 @@ export async function moderateSidewalkRecord(form: FormData) {
         visibility: "public",
         verification_status: "verified",
         public_geometry_geojson: publicGeometry,
-        location_precision: publicGeometry
-          ? decision === "approve_exact" ? "exact" : "approximate"
-          : "hidden",
+        location_precision: publicGeometry ? "approximate" : "hidden",
         last_observed_at: new Date().toISOString(),
       })
       .eq("id", id);
@@ -87,7 +82,7 @@ export async function moderateSidewalkRecord(form: FormData) {
         .from("comun_sidewalk_record_photos")
         .update({ review_status: "approved_without_image", is_public: false })
         .eq("record_id", id);
-    if (["approve_exact","approve_approximate"].includes(decision)) {
+    if (decision === "approve_approximate") {
       const { data: photo } = await db
         .from("comun_sidewalk_record_photos")
         .select(

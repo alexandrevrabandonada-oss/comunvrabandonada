@@ -64,7 +64,6 @@ export default async function Page() {
             >
               <input type="hidden" name="record_id" value={item.id} />
               {[
-                ["approve_exact", "Publicar ponto exato"],
                 ["approve_approximate", "Aprovar com local aproximado"],
                 ["publish_without_image", "Publicar sem imagem"],
                 ["needs_information", "Solicitar complemento"],

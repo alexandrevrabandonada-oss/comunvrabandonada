@@ -19,7 +19,8 @@ Atualizado em 24 de julho de 2026.
 - decisão vigente: `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN`;
 - hotfix 42.1: concluído pela PR #32;
 - estado local do hotfix: `COMUN_CANONICAL_SIDEWALK_PAUTA_OK`;
-- Tijolo 43: iniciado em branch limpa, diagnóstico em andamento;
+- Tijolo 43: ciclo operacional implementado localmente, sem migration;
+- decisão do Tijolo 43: `COMUN_CALCADAS_OPERATIONAL_READY`;
 - gate humano: 0/3;
 - piloto público: fechado.
 

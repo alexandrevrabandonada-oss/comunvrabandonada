@@ -125,6 +125,12 @@ test("captura rápida aceita câmera, GPS negado e ponto manual", async ({
     .getByRole("button", { name: "Mapa para confirmar ou ajustar o ponto" })
     .click({ position: { x: 150, y: 120 } });
   await page.getByRole("button", { name: "Ruim" }).click();
+  await page
+    .getByRole("checkbox", { name: /Autorizo a publicação sanitizada/ })
+    .check();
+  await page
+    .getByRole("checkbox", { name: /Conferi fotografia, local, condição/ })
+    .check();
   await expect(
     page.getByRole("button", { name: "Enviar para revisão" }),
   ).toBeEnabled();
@@ -167,6 +173,12 @@ test("envio direto privado conclui a confirmação em duas fases", async ({
     .getByRole("button", { name: "Mapa para confirmar ou ajustar o ponto" })
     .click({ position: { x: 150, y: 120 } });
   await page.getByRole("button", { name: "Regular", exact: true }).click();
+  await page
+    .getByRole("checkbox", { name: /Autorizo a publicação sanitizada/ })
+    .check();
+  await page
+    .getByRole("checkbox", { name: /Conferi fotografia, local, condição/ })
+    .check();
   const submit = page.getByRole("button", { name: "Enviar para revisão" });
   await expect(submit).toBeEnabled({ timeout: 15_000 });
   await submit.click();
