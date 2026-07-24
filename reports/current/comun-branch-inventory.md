@@ -6,7 +6,7 @@ Atualizado em 24 de julho de 2026.
 |---|---:|---|---|
 | `main` | — | — | produção canônica em `a989d517` |
 | `codex/tijolo-42-1-pauta-canonica` | #32 | `41d218fa` | mesclada por merge commit |
-| `codex/tijolo-42-1-relatorios` | — | `a989d517` | atualização documental local |
+| `codex/tijolo-42-1-relatorios` | #33 | `a989d517` | aberta, documental, pronta para merge |
 
 ## Estado vigente
 
