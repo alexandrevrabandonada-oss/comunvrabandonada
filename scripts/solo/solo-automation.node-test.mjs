@@ -67,7 +67,7 @@ test("Vercel production validation uses GitHub integration and canonical alias",
   assert.match(monitor, /comunvrabandonada\.vercel\.app/);
   assert.doesNotMatch(monitor, /api\.vercel\.com/);
   assert.match(domain, /team_LBVwyK8FQMO7tA3hzVXXeumF/);
-  assert.match(domain, /SOLO_DOMAIN_TOKEN_UNAUTHORIZED/);
+  assert.match(domain, /COMUN_DOMAIN_PUBLICLY_CANONICAL_TOKEN_UNAVAILABLE/);
   assert.match(rollback, /alexandrevrabandonada-oss-projects/);
 });
 
@@ -107,6 +107,9 @@ test("preview and production validate PMTiles Range in the correct domain order"
   assert.match(preview, /validatePmtilesResponse/);
   assert.match(preview, /COMUN_VERCEL_PREVIEW_AUTHENTICATED_PROBE_OK/);
   assert.match(preview, /COMUN_PMTILES_PREVIEW_RANGE_OK/);
+  assert.match(preview, /COMUN_VERCEL_PREVIEW_HTTP_DEFERRED_TO_PRODUCTION_SMOKE/);
+  assert.match(preview, /github-deployment-attestation/);
+  assert.doesNotMatch(workflow, /VERCEL_TOKEN\|S_VERCEL_TOKEN/);
   const previewClient = readFileSync("scripts/solo/vercel-preview-client.mjs", "utf8");
   assert.match(previewClient, /api\.vercel\.com\/v13\/deployments/);
   assert.match(previewClient, /VERCEL_CLI_VERSION = "50\.28\.0"/);
