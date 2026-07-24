@@ -15,7 +15,7 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
   );
   await page.goto("/comun");
   await expect(
-    page.getByText("Ferramentas em atividade", { exact: true }),
+    page.getByText("Sua próxima participação", { exact: true }),
   ).toBeVisible();
   await screenshot(page, "home", testInfo.project.name);
   await page.goto("/comun/pautas/calcadas-em-circulacao");
