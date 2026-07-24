@@ -32,8 +32,9 @@ test("reconciliation package has one fail-fast transaction", () => {
   assert.match(sql, /^\\set ON_ERROR_STOP on\nBEGIN;/);
   assert.match(sql, /postflight_assertions\.sql/);
   assert.match(sql, /COMMIT;\n$/);
-  assert.match(executor, /COMUN_FORWARD_ONLY_ALREADY_RECONCILED/);
-  assert.match(executor, /const current = postgres\(postflight\)/);
+  assert.match(executor, /COMUN_CANONICAL_SECURITY_HARDENING_ALREADY_APPLIED/);
+  assert.match(executor, /executeSql\(configuredMigration\)/);
+  assert.match(executor, /--read-only-preflight/);
 });
 
 test("promotion checkpoint is short-lived, sanitized and not a full backup", () => {

@@ -18,6 +18,7 @@
     "db:privileges:lint": "node scripts/db/lint-explicit-database-privileges.mjs",
     "test:schema-release-ledger": "node scripts/db/test-schema-release-ledger.mjs",
     "test:security-hardening": "node --test --test-name-pattern=\"security hardening|migration checksum\" scripts/db/canonical-security-hardening.node-test.mjs",
+    "test:promotion-runner": "node --test scripts/solo/apply-forward-only.node-test.mjs",
     "test:handle-new-user": "node scripts/db/test-handle-new-user.mjs",
     "test:public-reports-view": "node scripts/db/test-public-reports-view.mjs",
     "health:production": "node scripts/health/check-production.mjs",
