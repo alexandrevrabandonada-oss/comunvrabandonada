@@ -486,7 +486,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await login(page, email, "/comun/minha-participacao");
   await expect(
     page.getByText(
-      /Seu registro integra esta prioridade e este encaminhamento/,
+      /Acompanhar se a melhoria permanece/,
     ),
   ).toBeVisible();
   await auditSurface(page, "minha-area-fechada", testInfo.project.name);
