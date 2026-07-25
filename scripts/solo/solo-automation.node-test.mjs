@@ -139,6 +139,14 @@ test("preview-only workflow cannot access database or mutable jobs", () => {
   assert.match(nightly, /!inputs\.preview_preflight/);
 });
 
+test("release preflight selects the sidewalk release explicitly and remains read-only", () => {
+  const nightly = readFileSync(".github/workflows/comun-nightly.yml", "utf8");
+  const job = nightly.match(/  release-preflight:[\s\S]*?\n  preview-preflight:/)?.[0] ?? "";
+  assert.match(job, /COMUN_RELEASE_MANIFEST:\s*supabase\/releases\/20260724233256-comun-sidewalk-operational-hardening\.json/);
+  assert.match(job, /apply-forward-only\.mjs --read-only-preflight/);
+  assert.doesNotMatch(job, /apply-forward-only\.mjs(?! --read-only-preflight)|cleanup|full-local|production-health|capture_baseline/i);
+});
+
 test("FULL compares deterministic PostgreSQL catalog fingerprints", () => {
   const workflow = readFileSync(".github/workflows/comun-ci.yml", "utf8");
   const fullJob = workflow.match(/\n  full:[\s\S]*$/)?.[0] ?? "";
