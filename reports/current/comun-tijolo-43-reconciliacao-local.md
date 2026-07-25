@@ -117,3 +117,4 @@ Nesta máquina, a rodada complementar não iniciou porque
 DB lint registraram bloqueio local, sem migration, reset ou escrita remota.
 O FAST e o rehearsal Ubuntu são a próxima evidência exigida; FULL continua
 proibido até ambos passarem no mesmo SHA.
+Adendo da segunda execução Ubuntu: no run 30142369944, FAST passou e o cliente recebeu `db:5432 - accepting connections`. O artefato 8614915448 registra PRE independente igual ao esperado, POST e segunda passagem não alcançados, `remote_writes=none`; a falha foi somente a serialização de tabulação do fingerprint no runner, agora corrigida e protegida por teste 19/19 duas vezes.

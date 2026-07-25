@@ -9,6 +9,7 @@ import {
   parseScalarOutput,
   queryJson,
   queryScalar,
+  schemaFingerprintQuery,
   validatePreflightObjects,
   validateCurrentState,
 } from "./apply-forward-only.mjs";
@@ -43,6 +44,11 @@ test("canonical query flags produce parseable JSON", () => {
   assert.ok(receivedArgs.includes("--no-align"));
   assert.ok(receivedArgs.includes("--quiet"));
   assert.ok(receivedArgs.includes("--no-psqlrc"));
+});
+
+test("runner fingerprint query uses the canonical PostgreSQL tab delimiter", () => {
+  assert.match(schemaFingerprintQuery, /E'\\t'/);
+  assert.doesNotMatch(schemaFingerprintQuery, /E'\\\\t'/);
 });
 
 test("scalar accepts exactly one non-empty line", () => {

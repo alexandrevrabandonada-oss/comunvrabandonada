@@ -11,7 +11,7 @@ const PROCESS_TIMEOUT_MS = 5 * 60 * 1000;
 const QUERY_FLAGS = ["--no-psqlrc", "--tuples-only", "--no-align", "--quiet", "--set=ON_ERROR_STOP=1"];
 const EXECUTE_FLAGS = ["--no-psqlrc", "--set=ON_ERROR_STOP=1"];
 const LEDGER_ABSENT = "__COMUN_RELEASE_LEDGER_ABSENT__";
-const schemaFingerprintQuery = String.raw`
+export const schemaFingerprintQuery = String.raw`
 with objects as (
   select 'column' kind, c.table_name || '.' || c.column_name name,
     concat_ws('|', c.ordinal_position, c.data_type, c.udt_schema, c.udt_name, c.is_nullable, coalesce(c.column_default, '')) definition
@@ -30,7 +30,7 @@ with objects as (
   select 'function', p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')', pg_get_functiondef(p.oid)
   from pg_proc p join pg_namespace ns on ns.oid = p.pronamespace where ns.nspname = 'public'
 )
-select kind || E'\\t' || name || E'\\t' || definition from objects order by kind, name, definition;`;
+select kind || E'\t' || name || E'\t' || definition from objects order by kind, name, definition;`;
 
 export class SoloRunnerError extends Error {
   constructor(marker) {

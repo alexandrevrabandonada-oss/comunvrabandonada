@@ -48,3 +48,4 @@ alias de banco, mantendo URL, credenciais e dados somente no ambiente local.
 O teste do transporte passou 18/18 duas vezes; os checks de runtime/RLS/DB
 lint desta rodada ficaram bloqueados pela ausência da stack Supabase local e
 não autorizam promoção. FAST e rehearsal Ubuntu seguem obrigatórios.
+Adendo: FAST do SHA 5503e02 aprovou a stack Ubuntu e a rota db:5432; o rehearsal expôs apenas uma serialização divergente do fingerprint, já corrigida localmente. FULL continua proibido até a nova execução remota.

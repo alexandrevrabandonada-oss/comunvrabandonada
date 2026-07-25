@@ -28,3 +28,4 @@ promoção; o PRE do rehearsal CI foi confirmado, mas o runner falhou no
 transporte Docker do Ubuntu antes do POST. O patch T43.1 troca loopback entre
 containers por rede interna/alias e ainda aguarda FAST e rehearsal remotos.
 Não houve escrita remota.
+Adendo T43.1: FAST do SHA `5503e02` aprovou; o rehearsal confirmou a nova rota e revelou apenas a serialização de tabulação do fingerprint, já corrigida localmente. PR #35 segue draft, sem FULL ou promoção.

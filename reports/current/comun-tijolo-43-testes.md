@@ -72,3 +72,14 @@ stack Supabase local e a usar `db:5432` nessa rede.
 
 A decisão permanece `COMUN_CALCADAS_FAST_PATCH_REQUIRED` até o FAST e o
 rehearsal no Ubuntu confirmarem o mesmo SHA.
+
+## Segunda evidência remota
+
+No run de PR `30142369944` do SHA `5503e02`, o FAST ficou verde, inclusive
+reset, DB lint e RLS na stack Ubuntu. O handshake de rede do rehearsal também
+passou (`db:5432 - accepting connections`), provando que a correção de
+transporte resolveu o bloqueio inicial. A primeira passagem então revelou
+`SOLO_CANONICAL_PRE_FINGERPRINT_MISMATCH`: o runner serializava o catálogo
+com barra+t literal, diferente do verificador canônico que usa tabulação.
+A serialização foi corrigida e protegida por teste; o runner passou 19/19 em
+duas execuções locais. É necessária uma nova execução Ubuntu antes do FULL.

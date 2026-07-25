@@ -69,3 +69,5 @@ Não houve migration remota, escrita no Supabase remoto, merge, domínio,
 deploy manual, abertura de piloto ou preenchimento do gate humano. O gate
 humano segue 0/3. A promoção controlada da migration e a validação remota
 continuam necessárias antes de qualquer declaração de disponibilidade pública.
+Segundo checkpoint T43.1: FAST verde; rehearsal pendente de nova rodada.
+O FAST da PR no SHA `5503e02` aprovou reset, DB lint e RLS, e o rehearsal alcançou `db:5432`; a falha posterior foi somente a serialização de tabulação no fingerprint do runner. O PRE independente era correto. A correção não toca migration, checksum ou manifesto e segue pendente de novo FAST/rehearsal antes do FULL.
