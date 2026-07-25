@@ -351,8 +351,15 @@ export function startTemporaryPostgres(name, dockerNetwork) {
   removeTemporaryNetwork(dockerNetwork);
   const networkCreated = spawnSync("docker", ["network", "create", dockerNetwork], { encoding: "utf8" });
   if (networkCreated.status !== 0) throw new Error("COMUN_TEST_POSTGRES_NETWORK_START_FAILED");
-  const started = spawnSync("docker", ["run", "-d", "--name", name, "--network", dockerNetwork, "--network-alias", "postgres-test", "-e", "POSTGRES_PASSWORD=local_test_only", "-p", "127.0.0.1::5432", "postgres:17"], { encoding: "utf8" });
-  if (started.status !== 0) {
+  let started;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    started = spawnSync("docker", ["run", "-d", "--name", name, "--network", dockerNetwork, "--network-alias", "postgres-test", "-e", "POSTGRES_PASSWORD=local_test_only", "-p", "127.0.0.1::5432", "postgres:17"], { encoding: "utf8" });
+    if (started.status === 0) break;
+    removeTemporaryPostgres(name);
+    if (attempt === 0)
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1000);
+  }
+  if (started?.status !== 0) {
     removeTemporaryNetwork(dockerNetwork);
     throw new Error("COMUN_TEST_POSTGRES_START_FAILED");
   }
