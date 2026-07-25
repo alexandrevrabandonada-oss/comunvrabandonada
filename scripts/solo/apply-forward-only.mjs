@@ -62,7 +62,11 @@ function safeDiagnosticObject(value) {
   return "redacted-catalog-object";
 }
 
-function safeDiagnosticDetail(rule) {
+function safeDiagnosticDetail(rule, sourceDetail) {
+  if (rule === "DANGEROUS_RELATION_GRANT") {
+    const match = String(sourceDetail ?? "").match(/^(anon|authenticated):(TRUNCATE|TRIGGER|MAINTAIN)$/);
+    if (match) return `role=${match[1]}; privilege=${match[2]}`;
+  }
   const details = {
     RLS_ENABLED: "exposed relation has row-level security disabled",
     DANGEROUS_RELATION_GRANT: "dangerous relation privilege is exposed",
@@ -83,7 +87,7 @@ function sanitizeDiagnosticItem(item) {
     classification: String(item?.classification ?? "UNKNOWN_SECURITY_CLASSIFICATION").replace(/[^A-Z0-9_]/gi, "_").toUpperCase(),
     rule: String(item?.rule ?? "UNKNOWN_SECURITY_RULE").replace(/[^A-Z0-9_]/gi, "_").toUpperCase(),
     object: safeDiagnosticObject(item?.object),
-    detail: safeDiagnosticDetail(item?.rule),
+    detail: safeDiagnosticDetail(item?.rule, item?.detail),
   };
 }
 
@@ -122,7 +126,11 @@ function assertDiagnosticItem(item) {
   if (!/^[A-Z0-9_]+$/.test(item.classification) || !/^[A-Z0-9_]+$/.test(item.rule)) {
     throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
   }
-  if (item.object !== safeDiagnosticObject(item.object) || item.detail !== safeDiagnosticDetail(item.rule)) {
+  const validGrantDetail = item.rule === "DANGEROUS_RELATION_GRANT"
+    && /^role=(?:anon|authenticated); privilege=(?:TRUNCATE|TRIGGER|MAINTAIN)$/.test(item.detail);
+  const validStaticDetail = item.rule !== "DANGEROUS_RELATION_GRANT"
+    && item.detail === safeDiagnosticDetail(item.rule);
+  if (item.object !== safeDiagnosticObject(item.object) || (!validGrantDetail && !validStaticDetail)) {
     throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
   }
 }

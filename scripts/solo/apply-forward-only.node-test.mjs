@@ -60,6 +60,23 @@ test("security diagnostic preserves one finding with a sanitized detail", () => 
   }]);
 });
 
+test("security diagnostic exposes only the safe role and privilege for a dangerous grant", () => {
+  const diagnostic = buildSanitizedSecurityDiagnostic({
+    before: securityBaseline({
+      blockingFindings: [{
+        classification: "EXCESS_PRIVILEGE",
+        rule: "DANGEROUS_RELATION_GRANT",
+        object: "public.comun_records",
+        detail: "authenticated:TRUNCATE",
+      }],
+    }),
+    after: null,
+    beforeLedgerState: "ABSENT",
+    afterLedgerState: "NOT_REACHED",
+  });
+  assert.equal(diagnostic.before.blockingFindings[0].detail, "role=authenticated; privilege=TRUNCATE");
+});
+
 test("security diagnostic sorts multiple findings deterministically", () => {
   const findings = [
     { classification: "VIEW_SECURITY_RISK", rule: "VIEW_SECURITY_INVOKER", object: "public.z_view", detail: "ignored" },
@@ -109,7 +126,7 @@ test("security diagnostic serialization never exposes a database URL", () => {
   const diagnostic = buildSanitizedSecurityDiagnostic({
     before: securityBaseline({ blockingFindings: [{
       classification: "EXCESS_PRIVILEGE",
-      rule: "DANGEROUS_RELATION_GRANT",
+      rule: "RLS_ENABLED",
       object: "public.comun_records",
       detail: "postgresql://person:password@db/postgres",
     }] }),
