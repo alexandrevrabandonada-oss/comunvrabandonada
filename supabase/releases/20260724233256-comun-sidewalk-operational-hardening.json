@@ -1,7 +1,7 @@
 {
   "release": "20260724233256-comun-sidewalk-operational-hardening",
   "migration": "supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql",
-  "migrationSha256": "4157a3f2ce81255217b7dd7df8639770ea352ae890aea1ec69b9def183f821e8",
+  "migrationSha256": "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be",
   "destructiveSql": false,
   "requiresPromotion": true,
   "expectedPreFingerprint": "a6599aa24658c4339c7518d484364699d07ca4fa9cb1db68bb6fed4c20b94a10",
@@ -15,11 +15,24 @@
     "status histórico é preservado",
     "confirmation_state tem lock recuperável",
     "duplicidade privada usa RLS sem leitura anon/authenticated",
+    "grants legados TRIGGER e TRUNCATE são revogados de anon e authenticated",
     "ledger da release é idempotente"
   ],
   "changedObjects": [
     "public.comun_sidewalk_records",
     "public.comun_sidewalk_uploads",
-    "public.comun_sidewalk_duplicate_suggestions"
+    "public.comun_sidewalk_duplicate_suggestions",
+    "public.comun_actions",
+    "public.comun_admin_audit_log",
+    "public.comun_admin_users",
+    "public.comun_communities",
+    "public.comun_dossiers",
+    "public.comun_issues",
+    "public.comun_pauta_evidence_items",
+    "public.comun_pauta_spaces",
+    "public.comun_pauta_tasks",
+    "public.comun_public_lookup_events",
+    "public.comun_report_attachments",
+    "public.comun_reports"
   ]
 }

@@ -59,6 +59,24 @@ alter table public.comun_sidewalk_duplicate_suggestions enable row level securit
 revoke all on table public.comun_sidewalk_duplicate_suggestions from public, anon, authenticated;
 grant select, insert, update on table public.comun_sidewalk_duplicate_suggestions to service_role;
 
+-- Baseline repair: these legacy relations retained only TRIGGER and TRUNCATE
+-- for public application roles. Preserve their explicitly granted read/write
+-- capabilities while removing the two unsafe table-management privileges.
+revoke trigger, truncate on table
+  public.comun_actions,
+  public.comun_admin_audit_log,
+  public.comun_admin_users,
+  public.comun_communities,
+  public.comun_dossiers,
+  public.comun_issues,
+  public.comun_pauta_evidence_items,
+  public.comun_pauta_spaces,
+  public.comun_pauta_tasks,
+  public.comun_public_lookup_events,
+  public.comun_report_attachments,
+  public.comun_reports
+from anon, authenticated;
+
 do $ledger$
 declare
   expected_path constant text := 'supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql';
