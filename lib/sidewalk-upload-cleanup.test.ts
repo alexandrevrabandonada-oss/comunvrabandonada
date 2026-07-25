@@ -13,7 +13,8 @@ describe("sidewalk upload cleanup", () => {
   it("protege referência ativa e respeita idade mínima", () => {
     const now = new Date("2026-07-21T20:00:00Z");
     expect(isCleanupEligible({ status: "uploaded", expires_at: "2026-07-20T18:00:00Z", record_id: "active" }, now, 86_400_000)).toBe(false);
-    expect(isCleanupEligible({ status: "uploaded", expires_at: "2026-07-20T18:00:00Z" }, now, 86_400_000)).toBe(true);
+    expect(isCleanupEligible({ status: "uploaded", confirmation_state: "failed_retryable", expires_at: "2026-07-20T18:00:00Z" }, now, 86_400_000)).toBe(true);
+    expect(isCleanupEligible({ status: "uploaded", confirmation_state: "confirmed", expires_at: "2026-07-20T18:00:00Z" }, now, 86_400_000)).toBe(false);
     expect(isCleanupEligible({ status: "confirmed", expires_at: "2026-07-19T18:00:00Z" }, now, 86_400_000)).toBe(false);
   });
 });

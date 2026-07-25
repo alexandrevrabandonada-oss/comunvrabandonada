@@ -129,7 +129,7 @@ export async function authorizeSidewalkPhotoUpload(input: {
     [hourly, daily, active, declared] = await Promise.all([
       db.from("comun_sidewalk_uploads").select("id", { count: "exact", head: true }).eq("member_user_id", user.id).gte("created_at", hour),
       db.from("comun_sidewalk_uploads").select("id", { count: "exact", head: true }).eq("member_user_id", user.id).gte("created_at", day),
-      db.from("comun_sidewalk_uploads").select("id", { count: "exact", head: true }).eq("member_user_id", user.id).in("status", ["awaiting_upload", "uploaded", "confirming", "failed_retryable"]),
+      db.from("comun_sidewalk_uploads").select("id", { count: "exact", head: true }).eq("member_user_id", user.id).in("status", ["awaiting_upload", "uploaded"]),
       db.from("comun_sidewalk_uploads").select("declared_size_bytes").eq("member_user_id", user.id).gte("created_at", day),
     ]);
   if ([hourly, daily, active, declared].some((query) => query.error))
@@ -172,7 +172,7 @@ export async function authorizeSidewalkPhotoUpload(input: {
   if (signed.error || !signed.data) {
     await db
       .from("comun_sidewalk_uploads")
-      .update({ status: "failed_retryable", failure_code: "signed_url", failure_kind: "transient" })
+      .update({ confirmation_state: "failed_retryable", failure_code: "signed_url", failure_kind: "transient" })
       .eq("id", uploadId);
     throw new Error("Não foi possível autorizar o envio.");
   }
@@ -210,20 +210,20 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
     throw new Error("A autorização expirou. Tente enviar novamente.");
   }
   const staleLock =
-    ticket.data.status === "confirming" &&
+    ticket.data.confirmation_state === "confirming" &&
     ticket.data.confirmation_locked_at &&
     new Date(ticket.data.confirmation_locked_at).getTime() < Date.now() - 5 * 60_000;
   if (staleLock) {
     const recovered = await db.from("comun_sidewalk_uploads").update({
-      status: "failed_retryable",
+      confirmation_state: "failed_retryable",
       failure_code: "confirmation_lock_expired",
       failure_kind: "transient",
       confirmation_locked_at: null,
-    }).eq("id", uploadId).eq("member_user_id", user.id).eq("status", "confirming");
+    }).eq("id", uploadId).eq("member_user_id", user.id).eq("confirmation_state", "confirming");
     if (recovered.error) throw new Error("Não foi possível retomar este envio.");
     return confirmSidewalkPhotoUpload(uploadId);
   }
-  if (!["awaiting_upload", "uploaded", "failed_retryable"].includes(ticket.data.status))
+  if (!["awaiting_upload", "uploaded"].includes(ticket.data.status))
     throw new Error("Este envio não pode mais ser confirmado.");
   const downloaded = await db.storage
     .from("archive-private-originals")
@@ -231,7 +231,7 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
   if (downloaded.error || !downloaded.data) {
     await db
       .from("comun_sidewalk_uploads")
-      .update({ status: "failed_retryable", failure_code: "object_missing", failure_kind: "transient", confirmation_locked_at: null })
+      .update({ confirmation_state: "failed_retryable", failure_code: "object_missing", failure_kind: "transient", confirmation_locked_at: null })
       .eq("id", uploadId);
     throw new Error("A fotografia ainda não chegou ao armazenamento privado.");
   }
@@ -242,6 +242,7 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
       .from("comun_sidewalk_uploads")
       .update({
         status: "uploaded",
+        confirmation_state: "ready",
         uploaded_at: new Date().toISOString(),
         failure_code: null,
       })
@@ -251,7 +252,7 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
   const claim = await db
     .from("comun_sidewalk_uploads")
     .update({
-      status: "confirming",
+      confirmation_state: "confirming",
       confirmation_locked_at: new Date().toISOString(),
       confirmation_attempts: Number(ticket.data.confirmation_attempts ?? 0) + 1,
       failure_code: null,
@@ -259,21 +260,22 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
     })
     .eq("id", uploadId)
     .eq("member_user_id", user.id)
-    .in("status", ["uploaded", "failed_retryable"])
+    .eq("status", "uploaded")
+    .in("confirmation_state", ["ready", "failed_retryable"])
     .select("id")
     .maybeSingle();
   if (!claim.data) {
     const latest = await db
       .from("comun_sidewalk_uploads")
-      .select("status,record_id,confirmation_locked_at")
+      .select("status,confirmation_state,record_id,confirmation_locked_at")
       .eq("id", uploadId)
       .eq("member_user_id", user.id)
       .single();
-    if (latest.data?.status === "confirmed" && latest.data.record_id)
+    if (latest.data?.confirmation_state === "confirmed" && latest.data.record_id)
       redirect(
         `/comun/mapa/contribuir/confirmacao?registro=${latest.data.record_id}&returnTo=${encodeURIComponent("/comun/calcadas")}`,
       );
-    throw new Error(latest.data?.status === "confirming" ? "Este envio já está sendo confirmado. Aguarde antes de tentar novamente." : "Este envio não pode mais ser confirmado.");
+    throw new Error(latest.data?.confirmation_state === "confirming" ? "Este envio já está sendo confirmado. Aguarde antes de tentar novamente." : "Este envio não pode mais ser confirmado.");
   }
   const form = new FormData();
   for (const [key, value] of Object.entries(
@@ -297,11 +299,11 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
     );
     const finalFailure = error instanceof Error && error.message.startsWith("SIDEWALK_PHOTO_");
     const failed = await db.from("comun_sidewalk_uploads").update({
-      status: finalFailure ? "failed_final" : "failed_retryable",
+      confirmation_state: finalFailure ? "failed_final" : "failed_retryable",
       failure_code: finalFailure ? "photo_validation" : "confirmation_failed",
       failure_kind: finalFailure ? "final" : "transient",
       confirmation_locked_at: null,
-    }).eq("id", uploadId).eq("member_user_id", user.id).eq("status", "confirming");
+    }).eq("id", uploadId).eq("member_user_id", user.id).eq("confirmation_state", "confirming");
     if (failed.error) throw new Error("Não foi possível registrar o estado recuperável do envio.");
     throw error;
   }
@@ -538,6 +540,7 @@ async function persistAuthenticatedSidewalkRecord(
       .from("comun_sidewalk_uploads")
       .update({
         status: "confirmed",
+        confirmation_state: "confirmed",
         confirmed_at: new Date().toISOString(),
         record_id: id,
         failure_code: null,
@@ -546,7 +549,7 @@ async function persistAuthenticatedSidewalkRecord(
       })
       .eq("id", directUpload.uploadId)
       .eq("member_user_id", user.id)
-      .eq("status", "confirming");
+      .eq("confirmation_state", "confirming");
     if (confirmed.error) throw new Error("Não foi possível confirmar o envio.");
   }
   redirect(
