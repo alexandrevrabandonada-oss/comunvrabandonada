@@ -528,6 +528,7 @@ async function persistAuthenticatedSidewalkRecord(
       title: "Registro de calçada recebido",
       summary:
         "A equipe revisará contexto, privacidade e localização antes de publicar.",
+      action_label: "Acompanhar envio",
       action_url: `/comun/minha-participacao?registro=${id}`,
       priority: "normal",
       dedupe_key: `sidewalk-received:${id}`,
