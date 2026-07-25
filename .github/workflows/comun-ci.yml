@@ -114,7 +114,20 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: supabase start
       - name: Reset baseline before the selected release
-        run: supabase db reset --local --yes --version 20260723220112
+        shell: bash
+        run: |
+          set +e
+          output="$(supabase db reset --local --yes --version 20260723220112 2>&1)"
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          if ((status != 0)) && grep -q "Error status 502" <<<"$output"; then
+            echo "COMUN_REHEARSAL_BASELINE_RESET_502_SINGLE_RETRY"
+            sleep 5
+            supabase db reset --local --yes --version 20260723220112
+          elif ((status != 0)); then
+            exit "$status"
+          fi
       - name: Assert complete local platform
         run: |
           docker ps --format '{{.Names}} {{.Status}}' | grep -E '^supabase_(auth|storage|rest|db)_'
