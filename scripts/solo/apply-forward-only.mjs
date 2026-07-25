@@ -166,7 +166,7 @@ function readLedger(release) {
   );
 }
 
-function releaseMarker(release, suffix) {
+export function releaseMarker(release, suffix) {
   if (release.release === "20260724233256-comun-sidewalk-operational-hardening") {
     return `COMUN_SIDEWALK_OPERATIONAL_HARDENING_${suffix}`;
   }

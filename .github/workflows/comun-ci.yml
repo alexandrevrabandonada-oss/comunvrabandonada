@@ -97,6 +97,13 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Assert immutable pull request head
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          echo "COMUN_RELEASE_REHEARSAL_HEAD_IMMUTABLE"
       - uses: actions/setup-node@v4
         with:
           node-version: 22.18.0
@@ -113,15 +120,60 @@ jobs:
           docker ps --format '{{.Names}} {{.Status}}' | grep -E '^supabase_(auth|storage|rest|db)_'
           container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
           docker exec "$container" psql -U postgres -d postgres -XAt -c "select to_regclass('auth.users'), to_regclass('storage.buckets'), to_regclass('storage.objects'), to_regclass('public.comun_schema_releases');"
-      - name: Rehearse selected release twice
+          actual_pre="$(node scripts/solo/schema-fingerprint.mjs --container="$container")"
+          [[ "$actual_pre" =~ ^[a-f0-9]{64}$ ]]
+          {
+            echo "COMUN_REHEARSAL_ACTUAL_PRE=$actual_pre"
+            echo "COMUN_REHEARSAL_ACTUAL_POST=NOT_REACHED"
+            echo "COMUN_REHEARSAL_FIRST_STATUS=NOT_REACHED"
+            echo "COMUN_REHEARSAL_FIRST_MARKER=COMUN_RELEASE_REHEARSAL_UNCLASSIFIED_FAILURE"
+            echo "COMUN_REHEARSAL_SECOND_STATUS=NOT_REACHED"
+            echo "COMUN_REHEARSAL_SECOND_MARKER=NOT_REACHED"
+          } >> "$GITHUB_ENV"
+      - name: Rehearse selected release first pass
         env:
           COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
           PR23_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:55432/postgres?application_name=LOCAL_VALIDATION
           SUPABASE_PROJECT_REF: LOCAL_VALIDATION
           PR23_ALLOWED_PROJECT_REFS: LOCAL_VALIDATION
         run: |
-          node scripts/solo/apply-forward-only.mjs
-          node scripts/solo/apply-forward-only.mjs | grep COMUN_SIDEWALK_OPERATIONAL_HARDENING_ALREADY_APPLIED
+          set +e
+          first_output="$(node scripts/solo/apply-forward-only.mjs 2>&1)"
+          first_status=$?
+          set -e
+          printf '%s\n' "$first_output"
+          first_marker="$(printf '%s\n' "$first_output" | grep -oE '(SOLO|COMUN)_[A-Z0-9_:.-]+' | tail -1 || true)"
+          if [[ -z "$first_marker" ]]; then first_marker=COMUN_RELEASE_REHEARSAL_UNCLASSIFIED_FAILURE; fi
+          {
+            echo "COMUN_REHEARSAL_FIRST_STATUS=$first_status"
+            echo "COMUN_REHEARSAL_FIRST_MARKER=$first_marker"
+          } >> "$GITHUB_ENV"
+          if ((first_status != 0)); then exit "$first_status"; fi
+          test "$first_marker" = "COMUN_SIDEWALK_OPERATIONAL_HARDENING_OK"
+      - name: Capture post and rehearse selected release second pass
+        env:
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
+          PR23_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:55432/postgres?application_name=LOCAL_VALIDATION
+          SUPABASE_PROJECT_REF: LOCAL_VALIDATION
+          PR23_ALLOWED_PROJECT_REFS: LOCAL_VALIDATION
+        run: |
+          container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          actual_post="$(node scripts/solo/schema-fingerprint.mjs --container="$container")"
+          [[ "$actual_post" =~ ^[a-f0-9]{64}$ ]]
+          echo "COMUN_REHEARSAL_ACTUAL_POST=$actual_post" >> "$GITHUB_ENV"
+          set +e
+          second_output="$(node scripts/solo/apply-forward-only.mjs 2>&1)"
+          second_status=$?
+          set -e
+          printf '%s\n' "$second_output"
+          second_marker="$(printf '%s\n' "$second_output" | grep -oE '(SOLO|COMUN)_[A-Z0-9_:.-]+' | tail -1 || true)"
+          if [[ -z "$second_marker" ]]; then second_marker=COMUN_RELEASE_REHEARSAL_UNCLASSIFIED_FAILURE; fi
+          {
+            echo "COMUN_REHEARSAL_SECOND_STATUS=$second_status"
+            echo "COMUN_REHEARSAL_SECOND_MARKER=$second_marker"
+          } >> "$GITHUB_ENV"
+          if ((second_status != 0)); then exit "$second_status"; fi
+          test "$second_marker" = "COMUN_SIDEWALK_OPERATIONAL_HARDENING_ALREADY_APPLIED"
       - run: supabase db lint --local --schema public --level error --fail-on error
       - run: npm run audit:rls-matrix
       - run: npm run test:fixtures:assert-clean
@@ -131,8 +183,17 @@ jobs:
           mkdir -p .ci-artifacts
           {
             echo "release_rehearsal=COMUN_RELEASE_REHEARSAL"
-            echo "commit=${GITHUB_SHA}"
+            echo "head_sha=${{ github.event.pull_request.head.sha }}"
+            echo "merge_sha=${{ github.sha }}"
             echo "manifest=20260724233256-comun-sidewalk-operational-hardening"
+            echo "expected_pre=a6599aa24658c4339c7518d484364699d07ca4fa9cb1db68bb6fed4c20b94a10"
+            echo "actual_pre=${COMUN_REHEARSAL_ACTUAL_PRE:-NOT_REACHED}"
+            echo "expected_post=614908b735616fc64d4d36bc05e050ee53a0fb2b1f4e099febe1f327923350c4"
+            echo "actual_post=${COMUN_REHEARSAL_ACTUAL_POST:-NOT_REACHED}"
+            echo "first_status=${COMUN_REHEARSAL_FIRST_STATUS:-NOT_REACHED}"
+            echo "first_marker=${COMUN_REHEARSAL_FIRST_MARKER:-COMUN_RELEASE_REHEARSAL_UNCLASSIFIED_FAILURE}"
+            echo "second_status=${COMUN_REHEARSAL_SECOND_STATUS:-NOT_REACHED}"
+            echo "second_marker=${COMUN_REHEARSAL_SECOND_MARKER:-NOT_REACHED}"
             echo "remote_writes=none"
           } > .ci-artifacts/release-rehearsal.txt
       - name: Upload sanitized rehearsal evidence
@@ -142,8 +203,15 @@ jobs:
           name: comun-release-rehearsal-${{ github.run_id }}
           path: .ci-artifacts/release-rehearsal.txt
           if-no-files-found: error
-      - if: success()
-        run: echo 'COMUN_RELEASE_REHEARSAL_GREEN' >> "$GITHUB_STEP_SUMMARY"
+      - name: Declare release rehearsal green
+        if: success()
+        run: |
+          test "${COMUN_REHEARSAL_FIRST_STATUS}" = "0"
+          test "${COMUN_REHEARSAL_FIRST_MARKER}" = "COMUN_SIDEWALK_OPERATIONAL_HARDENING_OK"
+          test "${COMUN_REHEARSAL_ACTUAL_POST}" = "614908b735616fc64d4d36bc05e050ee53a0fb2b1f4e099febe1f327923350c4"
+          test "${COMUN_REHEARSAL_SECOND_STATUS}" = "0"
+          test "${COMUN_REHEARSAL_SECOND_MARKER}" = "COMUN_SIDEWALK_OPERATIONAL_HARDENING_ALREADY_APPLIED"
+          echo 'COMUN_RELEASE_REHEARSAL_GREEN' >> "$GITHUB_STEP_SUMMARY"
       - if: always()
         run: supabase stop --no-backup || true
 
