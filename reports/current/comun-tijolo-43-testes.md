@@ -83,3 +83,4 @@ transporte resolveu o bloqueio inicial. A primeira passagem então revelou
 com barra+t literal, diferente do verificador canônico que usa tabulação.
 A serialização foi corrigida e protegida por teste; o runner passou 19/19 em
 duas execuções locais. É necessária uma nova execução Ubuntu antes do FULL.
+Resultado final no SHA `5acce3a`: FAST verde; rehearsal falhou no primeiro passe com `SOLO_CANONICAL_SECURITY_FINDINGS_REMAIN`. PRE igual ao esperado, POST/segundo passe `NOT_REACHED`, artifact `8615031023`, `remote_writes=none`; FULL não executado.
