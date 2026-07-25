@@ -180,6 +180,9 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await expect(card).toBeVisible();
   await auditSurface(page, "moderacao-registro", testInfo.project.name);
   await card
+    .getByLabel("Resumo público sanitizado")
+    .fill("Trecho com piso irregular, localizado aproximadamente e revisado pela equipe.");
+  await card
     .getByRole("button", { name: "Aprovar com local aproximado" })
     .click();
   await expect(card).toHaveCount(0);

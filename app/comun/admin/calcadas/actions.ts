@@ -166,6 +166,7 @@ export async function moderateSidewalkRecord(form: FormData) {
               : decision === "reject"
                 ? "O registro não foi publicado após revisão."
                 : "A decisão editorial foi registrada.",
+          action_label: "Acompanhar registro",
           action_url: `/comun/minha-participacao?registro=${id}&acao=complementar`,
           priority: "normal",
           dedupe_key: `sidewalk-moderation:${id}:${decision}`,
