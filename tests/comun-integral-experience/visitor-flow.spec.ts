@@ -132,6 +132,15 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await page
     .getByLabel("Descrição opcional")
     .fill(`Trecho sintético ${runId} com piso irregular.`);
+  await page
+    .getByRole("checkbox", { name: /Autorizo a publicação sanitizada/ })
+    .check();
+  await page
+    .getByRole("checkbox", { name: /Conferi fotografia, local, condição/ })
+    .check();
+  await expect(
+    page.getByRole("button", { name: "Enviar para revisão" }),
+  ).toBeEnabled();
   await auditSurface(page, "contribuicao-revisao", testInfo.project.name);
   await page.screenshot({
     path: `test-results/evidence/sprint-37-integral-revisao-${testInfo.project.name}.png`,
