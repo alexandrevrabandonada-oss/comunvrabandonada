@@ -264,7 +264,7 @@ export async function decideSidewalkDuplicate(form: FormData) {
     score: Math.max(0, Math.min(100, Math.round(score))),
     signals,
     decision,
-    decided_by_private: session.admin.email,
+    decided_by_admin_id: session.admin.id,
     decided_at: new Date().toISOString(),
   } as never, { onConflict: "record_id,candidate_record_id" });
   if (saved.error) throw new Error("Não foi possível registrar a decisão de duplicidade.");

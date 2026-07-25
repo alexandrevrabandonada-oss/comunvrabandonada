@@ -12,7 +12,7 @@ if (!anonKey || !serviceKey) throw new Error("Credenciais locais ausentes.");
 const service = createClient(url, serviceKey, { auth: { persistSession: false } }),
   anon = createClient(url, anonKey, { auth: { persistSession: false } }),
   stamp = `runtime-${randomUUID().slice(0, 8)}`;
-let firstId, secondId;
+let firstId, secondId, duplicateRecordId, duplicateCandidateId;
 
 try {
   const pauta = await service.from("comun_pauta_spaces").select("id").eq("slug", "calcadas-em-circulacao").single();
@@ -37,9 +37,10 @@ try {
   assert.equal(internal.data.private_notes.includes("RUNTIME-PRIVATE-SENSITIVE"), true);
   assert.equal(internal.data.public_summary, null);
 
-  const suggestion = await service.from("comun_sidewalk_duplicate_suggestions").insert({ record_id: firstId, candidate_record_id: secondId, score: 60, signals: ["proximidade_territorial", "mesma_categoria"], decision: "possible_duplicate" });
+  [duplicateRecordId, duplicateCandidateId] = [firstId, secondId].sort();
+  const suggestion = await service.from("comun_sidewalk_duplicate_suggestions").insert({ record_id: duplicateRecordId, candidate_record_id: duplicateCandidateId, score: 60, signals: ["proximidade_territorial", "mesma_categoria"], decision: "possible_duplicate" });
   assert.equal(suggestion.error, null, suggestion.error?.message);
-  const decision = await service.from("comun_sidewalk_duplicate_suggestions").update({ decision: "distinct", decided_at: new Date().toISOString(), decided_by_private: "runtime" }).eq("record_id", firstId).eq("candidate_record_id", secondId);
+  const decision = await service.from("comun_sidewalk_duplicate_suggestions").update({ decision: "distinct", decided_at: new Date().toISOString() }).eq("record_id", duplicateRecordId).eq("candidate_record_id", duplicateCandidateId);
   assert.equal(decision.error, null, decision.error?.message);
 
   const published = await service.from("comun_sidewalk_records").update({ public_summary: "Resumo público sanitizado de fixture.", public_geometry_geojson: { type: "Point", coordinates: [-44.104, -22.52] }, location_precision: "approximate", visibility: "public", status: "published", verification_status: "verified" }).eq("id", firstId);
@@ -49,5 +50,7 @@ try {
   assert.equal(publicRow.error?.code, "42501", "anon não pode consultar a tabela operacional");
   console.log("COMUN_CALCADAS_OPERATIONAL_RUNTIME_OK");
 } finally {
+  if (duplicateRecordId && duplicateCandidateId)
+    await service.from("comun_sidewalk_duplicate_suggestions").delete().eq("record_id", duplicateRecordId).eq("candidate_record_id", duplicateCandidateId);
   if (firstId || secondId) await service.from("comun_sidewalk_records").delete().in("id", [firstId, secondId].filter(Boolean));
 }
