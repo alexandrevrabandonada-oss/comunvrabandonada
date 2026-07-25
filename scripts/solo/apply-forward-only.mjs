@@ -125,7 +125,7 @@ function validateAllowlist() {
   const ref = process.env.SUPABASE_PROJECT_REF;
   const allowed = (process.env.PR23_ALLOWED_PROJECT_REFS ?? "").split(",").filter(Boolean);
   if (ref === "LOCAL_VALIDATION") {
-    const localDatabase = /^postgres(?:ql)?:\/\/[^@]+@host\.docker\.internal:55432\/postgres(?:[/?]|$)/.test(url ?? "");
+    const localDatabase = /^postgres(?:ql)?:\/\/[^@]+@(?:127\.0\.0\.1|localhost|host\.docker\.internal):55432\/postgres(?:[/?]|$)/.test(url ?? "");
     if (!localDatabase || !allowed.includes(ref)) fail("SOLO_REMOTE_DATABASE_NOT_ALLOWLISTED");
     return;
   }

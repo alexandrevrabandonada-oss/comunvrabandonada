@@ -4,7 +4,7 @@ Atualizado em 24 de julho de 2026.
 
 ## Decisão
 
-`COMUN_CALCADAS_OPERATIONAL_REQUIRES_PROMOTION`
+`COMUN_CALCADAS_RELEASE_REHEARSAL_PENDING`
 
 O lote corrige a diferença entre o contrato declarado e a implementação local.
 O texto original passou a `private_notes`; `public_summary` começa nulo e só é
@@ -25,6 +25,22 @@ e preservar decisões de duplicidade. Seu manifesto está em
 - pedido de complemento contém campo, orientação, prazo e URL acionável;
 - duplicidade é apenas sugerida e decidida por editor autorizado;
 - mapa manual tem foco, setas e confirmação por Enter/Espaço.
+
+## Reconciliação local posterior
+
+As duas rodadas estruturais independentes produziram fingerprints PRE iguais e
+fingerprints POST iguais. O checksum final e o validator SQL foram validados.
+O teste do runner passou duas vezes, 18/18 em cada rodada, após trocar a porta
+fixa por uma porta Docker efêmera validada e removida com o container temporal.
+A execução da migration pelo runner real ainda não foi concluída: a pilha
+Supabase local ficou incompleta em Windows e a aplicação incremental encontrou
+`storage.buckets` indisponível. O job Ubuntu
+`RELEASE / COMUN_RELEASE_REHEARSAL` foi acrescentado para executar esse
+rehearsal sem tocar no remoto. Não há ledger definitivo nem resultado
+`ALREADY_APPLIED` a declarar.
+
+Ver `reports/current/comun-tijolo-43-reconciliacao-local.md` para a evidência
+sanitizada completa.
 
 ## Limites honestos
 

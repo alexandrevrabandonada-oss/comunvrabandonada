@@ -30,7 +30,17 @@ de marcadores privados.
 - Axe/overflow: 2/2, sem violações sérias ou críticas;
 - RLS matrix: `RLS_MATRIX_OK`;
 - DB lint local: sem erros;
-- FAST, FULL e Vercel: aguardam o SHA final desta correção. O workflow não
-  possui classificação automática de escopo.
+- reconciliação SQL: duas rodadas locais de fingerprint equivalentes;
+- validator SQL: aprovado; teste do runner: 18/18 em duas execuções
+  consecutivas, usando porta Docker efêmera, com JSON, escalar e ledger;
+- rehearsal da migration pelo runner real: pendente no job Ubuntu
+  `RELEASE / COMUN_RELEASE_REHEARSAL`; portanto ainda não há ledger definitivo
+  ou `ALREADY_APPLIED` a declarar;
+- ambiente WSL preparado com Node, npm e Supabase CLI nativos; `npm ci` ainda
+  concluiu nos dois worktrees, com typecheck verde e lockfiles intactos;
+- tentativa de stack WSL bloqueada antes do reset: apenas o banco iniciou,
+  enquanto Auth, Storage e PostgREST permaneceram parados;
+- FAST, rehearsal e Vercel: aguardam o SHA final deste checkpoint. FULL não
+  será disparado antes da análise do rehearsal.
 
 Testes humanos não foram preenchidos: gate humano permanece 0/3.

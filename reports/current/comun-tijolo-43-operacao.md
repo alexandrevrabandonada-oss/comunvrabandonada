@@ -4,7 +4,7 @@ Atualizado em 24 de julho de 2026.
 
 ## Decisão
 
-`COMUN_CALCADAS_OPERATIONAL_REQUIRES_PROMOTION`
+`COMUN_CALCADAS_RELEASE_REHEARSAL_PENDING`
 
 O ciclo local usa texto original privado, resumo público produzido em revisão
 humana, confirmação recuperável e sugestão assistida de duplicidade:
@@ -33,5 +33,8 @@ humana, confirmação recuperável e sugestão assistida de duplicidade:
 - piloto público: fechado;
 - migration local forward-only pendente de promoção:
   `20260724233256_comun_sidewalk_operational_hardening.sql`;
+- reconciliação estrutural local concluída em duas rodadas equivalentes; o
+  teste do runner passou 18/18 duas vezes com porta Docker efêmera. A execução
+  final idempotente pelo runner continua pendente no rehearsal isolado do CI;
 - nenhum Supabase remoto alterado;
 - nenhuma publicação automática.

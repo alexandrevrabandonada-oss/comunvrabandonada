@@ -90,6 +90,63 @@ jobs:
       - if: always()
         run: supabase stop --no-backup || true
 
+  release-rehearsal:
+    name: RELEASE / COMUN_RELEASE_REHEARSAL
+    if: github.event.pull_request.number == 35
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - run: npm ci --ignore-scripts
+      - run: supabase start
+      - name: Reset baseline before the selected release
+        run: supabase db reset --local --yes --version 20260723220112
+      - name: Assert complete local platform
+        run: |
+          docker ps --format '{{.Names}} {{.Status}}' | grep -E '^supabase_(auth|storage|rest|db)_'
+          container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          docker exec "$container" psql -U postgres -d postgres -XAt -c "select to_regclass('auth.users'), to_regclass('storage.buckets'), to_regclass('storage.objects'), to_regclass('public.comun_schema_releases');"
+      - name: Rehearse selected release twice
+        env:
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
+          PR23_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:55432/postgres?application_name=LOCAL_VALIDATION
+          SUPABASE_PROJECT_REF: LOCAL_VALIDATION
+          PR23_ALLOWED_PROJECT_REFS: LOCAL_VALIDATION
+        run: |
+          node scripts/solo/apply-forward-only.mjs
+          node scripts/solo/apply-forward-only.mjs | grep COMUN_SIDEWALK_OPERATIONAL_HARDENING_ALREADY_APPLIED
+      - run: supabase db lint --local --schema public --level error --fail-on error
+      - run: npm run audit:rls-matrix
+      - run: npm run test:fixtures:assert-clean
+      - name: Prepare sanitized rehearsal evidence
+        if: always()
+        run: |
+          mkdir -p .ci-artifacts
+          {
+            echo "release_rehearsal=COMUN_RELEASE_REHEARSAL"
+            echo "commit=${GITHUB_SHA}"
+            echo "manifest=20260724233256-comun-sidewalk-operational-hardening"
+            echo "remote_writes=none"
+          } > .ci-artifacts/release-rehearsal.txt
+      - name: Upload sanitized rehearsal evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-release-rehearsal-${{ github.run_id }}
+          path: .ci-artifacts/release-rehearsal.txt
+          if-no-files-found: error
+      - if: success()
+        run: echo 'COMUN_RELEASE_REHEARSAL_GREEN' >> "$GITHUB_STEP_SUMMARY"
+      - if: always()
+        run: supabase stop --no-backup || true
+
   full:
     name: FULL / COMUN_CI_GREEN
     needs: fast

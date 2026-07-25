@@ -17,6 +17,12 @@ const marker = (expected) => (error) =>
   error instanceof SoloRunnerError && error.marker === expected;
 
 test("legacy tabular psql output is rejected as JSON", () => {
+  assert.equal(parseDockerMappedPort("127.0.0.1:49152\n"), 49152);
+  assert.equal(parseDockerMappedPort("0.0.0.0:49153\n"), 49153);
+  assert.equal(parseDockerMappedPort("[::]:49154\n"), 49154);
+  for (const invalid of ["", "127.0.0.1:0\n", "127.0.0.1:49152\n0.0.0.0:49152\n"]) {
+    assert.throws(() => parseDockerMappedPort(invalid), /COMUN_TEST_POSTGRES_PORT_INVALID/);
+  }
   assert.throws(
     () => parseJsonOutput(" jsonb_build_object\n--------------------\n {\"ok\": true}\n(1 row)\n"),
     marker("SOLO_CANONICAL_BASELINE_OUTPUT_INVALID"),
@@ -115,7 +121,7 @@ test("pre fingerprint with absent ledger is valid", () => {
     fingerprint: "pre",
     canonical: { relations: [] },
   };
-  assert.equal(validateCurrentState(baseline, releaseFixture), "PRE");
+  assert.equal(validateCurrentState(baseline, releaseFixture, () => "__COMUN_RELEASE_LEDGER_ABSENT__"), "PRE");
 });
 
 test("post fingerprint with the exact ledger is valid", () => {
@@ -170,27 +176,63 @@ test("preflight validates the auth trigger outside the compact public projection
   );
 });
 
+test("preflight accepts a baseline without the optional legacy onboarding trigger", () => {
+  const baseline = {
+    canonical: {
+      relations: [
+        { schema: "public", name: "comun_reports", rls: true },
+        { schema: "public", name: "comun_public_reports", rls: false },
+      ],
+      functions: [],
+    },
+  };
+  assert.doesNotThrow(() => validatePreflightObjects(baseline, "0"));
+});
+
 const container = `comun-promotion-runner-pg17-${randomUUID().slice(0, 8)}`;
-const port = "55441";
-const localUrl = `postgresql://postgres:local_test_only@host.docker.internal:${port}/postgres`;
+let localUrl;
+
+export function parseDockerMappedPort(output) {
+  const lines = output.trim().split(/\r?\n/).filter(Boolean);
+  if (lines.length !== 1) throw new Error("COMUN_TEST_POSTGRES_PORT_INVALID");
+  const match = lines[0].match(/^(?:127\.0\.0\.1|0\.0\.0\.0|\[::\]):(\d{1,5})$/);
+  const port = Number(match?.[1]);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("COMUN_TEST_POSTGRES_PORT_INVALID");
+  return port;
+}
+
+export function removeTemporaryPostgres(name) {
+  spawnSync("docker", ["rm", "-f", name], { encoding: "utf8" });
+}
+
+export function startTemporaryPostgres(name) {
+  removeTemporaryPostgres(name);
+  const started = spawnSync("docker", ["run", "-d", "--name", name, "-e", "POSTGRES_PASSWORD=local_test_only", "-p", "127.0.0.1::5432", "postgres:17"], { encoding: "utf8" });
+  if (started.status !== 0) throw new Error("COMUN_TEST_POSTGRES_START_FAILED");
+  try {
+    const mapped = spawnSync("docker", ["port", name, "5432/tcp"], { encoding: "utf8" });
+    if (mapped.status !== 0) throw new Error("COMUN_TEST_POSTGRES_PORT_INVALID");
+    return parseDockerMappedPort(mapped.stdout);
+  } catch (error) {
+    removeTemporaryPostgres(name);
+    throw error;
+  }
+}
 
 before(() => {
-  const started = spawnSync(
-    "docker",
-    ["run", "-d", "--name", container, "-e", "POSTGRES_PASSWORD=local_test_only", "-p", `${port}:5432`, "postgres:17"],
-    { encoding: "utf8" },
-  );
-  assert.equal(started.status, 0, started.stderr);
+  const port = startTemporaryPostgres(container);
+  localUrl = `postgresql://postgres:local_test_only@host.docker.internal:${port}/postgres`;
   for (let attempt = 0; attempt < 45; attempt += 1) {
     const ready = spawnSync("docker", ["exec", container, "pg_isready", "-U", "postgres"]);
     if (ready.status === 0) return;
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1000);
   }
-  assert.fail("PostgreSQL 17 did not become ready");
+  removeTemporaryPostgres(container);
+  assert.fail("COMUN_TEST_POSTGRES_NOT_READY");
 });
 
 after(() => {
-  spawnSync("docker", ["rm", "-f", container]);
+  removeTemporaryPostgres(container);
 });
 
 test("PostgreSQL 17 returns canonical JSON transport", () => {
