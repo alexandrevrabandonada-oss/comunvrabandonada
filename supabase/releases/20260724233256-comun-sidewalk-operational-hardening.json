@@ -1,15 +1,21 @@
 {
   "release": "20260724233256-comun-sidewalk-operational-hardening",
   "migration": "supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql",
-  "migrationSha256": "5fa1ff3da6d6f8e93a460de0012bd0e49ac6185a3300226d2f7d1e310ade7009",
+  "migrationSha256": "4157a3f2ce81255217b7dd7df8639770ea352ae890aea1ec69b9def183f821e8",
   "destructiveSql": false,
   "requiresPromotion": true,
+  "expectedPreFingerprint": "a6599aa24658c4339c7518d484364699d07ca4fa9cb1db68bb6fed4c20b94a10",
+  "expectedPostFingerprint": "614908b735616fc64d4d36bc05e050ee53a0fb2b1f4e099febe1f327923350c4",
   "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "releaseLedger": "public.comun_schema_releases",
   "assertions": [
     "original contribution text remains in private_notes",
     "public_summary may remain null while internal",
-    "upload confirmation has timestamped recovery lock",
-    "duplicate suggestions are server-side only with RLS"
+    "status histórico é preservado",
+    "confirmation_state tem lock recuperável",
+    "duplicidade privada usa RLS sem leitura anon/authenticated",
+    "ledger da release é idempotente"
   ],
   "changedObjects": [
     "public.comun_sidewalk_records",
