@@ -345,7 +345,7 @@ function Rows({
             <h3 className="font-black uppercase">{title(x)}</h3>
             <p className="mt-1 text-sm text-comun-asphalt/75">{text(x)}</p>
             {x.last_changed_at ? (
-              <p className="mt-1 text-xs text-comun-asphalt/60">
+              <p className="mt-1 text-xs text-comun-asphalt/75">
                 Última mudança:{" "}
                 {new Date(x.last_changed_at).toLocaleDateString("pt-BR")}
               </p>
