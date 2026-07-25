@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { buildTransactionalPackage } from "./sql-contract.mjs";
@@ -11,6 +12,9 @@ const PROCESS_TIMEOUT_MS = 5 * 60 * 1000;
 const QUERY_FLAGS = ["--no-psqlrc", "--tuples-only", "--no-align", "--quiet", "--set=ON_ERROR_STOP=1"];
 const EXECUTE_FLAGS = ["--no-psqlrc", "--set=ON_ERROR_STOP=1"];
 const LEDGER_ABSENT = "__COMUN_RELEASE_LEDGER_ABSENT__";
+const SECURITY_DIAGNOSTIC_PREFIX = "COMUN_RELEASE_SECURITY_DIAGNOSTIC ";
+const DIAGNOSTIC_FORBIDDEN_KEY = /(?:email|phone|user.?id|object_key|exact_latitude|exact_longitude|file(?:name)?|content|notes?|password|token|dsn)/i;
+const DIAGNOSTIC_FORBIDDEN_VALUE = /(?:postgres(?:ql)?:\/\/|\b(?:password|token|secret|dsn)\b|\b(?:email|phone|user_id|object_key|exact_latitude|exact_longitude)\b|[-+]?\d{1,3}\.\d{4,}\s*,\s*[-+]?\d{1,3}\.\d{4,})/i;
 export const schemaFingerprintQuery = String.raw`
 with objects as (
   select 'column' kind, c.table_name || '.' || c.column_name name,
@@ -42,6 +46,138 @@ export class SoloRunnerError extends Error {
 
 function fail(marker) {
   throw new SoloRunnerError(marker);
+}
+
+function stableSort(items) {
+  return [...items].sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+}
+
+function safeDiagnosticObject(value) {
+  const object = String(value ?? "");
+  if (object === "schema public") return object;
+  if (/^(?:public|storage)\.[a-z_][a-z0-9_-]*(?:\.[a-z_][a-z0-9_-]*)?(?:\([a-z0-9_, ]*\))?$/i.test(object)) {
+    return object;
+  }
+  if (/^(?:public|\*):[a-z]$/i.test(object)) return object;
+  return "redacted-catalog-object";
+}
+
+function safeDiagnosticDetail(rule) {
+  const details = {
+    RLS_ENABLED: "exposed relation has row-level security disabled",
+    DANGEROUS_RELATION_GRANT: "dangerous relation privilege is exposed",
+    PUBLIC_SCHEMA_CREATE: "public schema create privilege is exposed",
+    DEFINER_SEARCH_PATH: "security definer search path is not fixed",
+    DEFINER_EXECUTE: "security definer execute privilege is exposed",
+    VIEW_SECURITY_INVOKER: "exposed view is not security invoker",
+    PRIVATE_BUCKET: "private or original bucket is public",
+    STORAGE_POLICY_EXPOSURE: "exposed storage policy references a sensitive locator",
+    DANGEROUS_DEFAULT_PRIVILEGE: "dangerous default privilege is exposed",
+    SUPABASE_ADMIN_DEFAULT_PRIVILEGES: "managed platform default privileges observed",
+  };
+  return details[rule] ?? "security rule violation";
+}
+
+function sanitizeDiagnosticItem(item) {
+  return {
+    classification: String(item?.classification ?? "UNKNOWN_SECURITY_CLASSIFICATION").replace(/[^A-Z0-9_]/gi, "_").toUpperCase(),
+    rule: String(item?.rule ?? "UNKNOWN_SECURITY_RULE").replace(/[^A-Z0-9_]/gi, "_").toUpperCase(),
+    object: safeDiagnosticObject(item?.object),
+    detail: safeDiagnosticDetail(item?.rule),
+  };
+}
+
+function securityDiagnosticSnapshot(baseline, ledgerState) {
+  const security = baseline?.security ?? {};
+  const blockingFindings = stableSort((security.blockingFindings ?? []).map(sanitizeDiagnosticItem));
+  const platformObservations = stableSort((security.platformObservations ?? []).map(sanitizeDiagnosticItem));
+  return {
+    fingerprint: baseline?.fingerprint ?? "NOT_REACHED",
+    blockingFindingsCount: blockingFindings.length,
+    blockingFindings,
+    platformObservationsCount: platformObservations.length,
+    platformObservations,
+    ledgerState,
+  };
+}
+
+export function buildSanitizedSecurityDiagnostic({ before, after, beforeLedgerState, afterLedgerState }) {
+  return {
+    formatVersion: 1,
+    scope: "COMUN_RELEASE_SECURITY_DIAGNOSTIC",
+    before: securityDiagnosticSnapshot(before, beforeLedgerState),
+    after: securityDiagnosticSnapshot(after, afterLedgerState),
+  };
+}
+
+function assertExactKeys(value, expected) {
+  const keys = Object.keys(value || {}).sort();
+  if (JSON.stringify(keys) !== JSON.stringify([...expected].sort())) {
+    throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
+  }
+}
+
+function assertDiagnosticItem(item) {
+  assertExactKeys(item, ["classification", "rule", "object", "detail"]);
+  if (!/^[A-Z0-9_]+$/.test(item.classification) || !/^[A-Z0-9_]+$/.test(item.rule)) {
+    throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
+  }
+  if (item.object !== safeDiagnosticObject(item.object) || item.detail !== safeDiagnosticDetail(item.rule)) {
+    throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
+  }
+}
+
+function assertDiagnosticSnapshot(snapshot) {
+  assertExactKeys(snapshot, ["fingerprint", "blockingFindingsCount", "blockingFindings", "platformObservationsCount", "platformObservations", "ledgerState"]);
+  if (!/^(?:[a-f0-9]{64}|NOT_REACHED)$/.test(snapshot.fingerprint)
+    || !["ABSENT", "PRESENT_ACCEPTED", "PRESENT_MISMATCH", "NOT_REACHED"].includes(snapshot.ledgerState)
+    || snapshot.blockingFindingsCount !== snapshot.blockingFindings.length
+    || snapshot.platformObservationsCount !== snapshot.platformObservations.length) {
+    throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
+  }
+  snapshot.blockingFindings.forEach(assertDiagnosticItem);
+  snapshot.platformObservations.forEach(assertDiagnosticItem);
+}
+
+function assertNoForbiddenDiagnosticData(value) {
+  if (Array.isArray(value)) return value.forEach(assertNoForbiddenDiagnosticData);
+  if (value && typeof value === "object") {
+    for (const [key, nested] of Object.entries(value)) {
+      if (DIAGNOSTIC_FORBIDDEN_KEY.test(key)) throw new Error("SOLO_SECURITY_DIAGNOSTIC_FORBIDDEN_FIELD");
+      assertNoForbiddenDiagnosticData(nested);
+    }
+    return;
+  }
+  if (typeof value === "string" && DIAGNOSTIC_FORBIDDEN_VALUE.test(value)) throw new Error("SOLO_SECURITY_DIAGNOSTIC_FORBIDDEN_VALUE");
+}
+
+export function serializeSanitizedSecurityDiagnostic(diagnostic) {
+  assertExactKeys(diagnostic, ["formatVersion", "scope", "before", "after"]);
+  if (diagnostic.formatVersion !== 1 || diagnostic.scope !== "COMUN_RELEASE_SECURITY_DIAGNOSTIC") {
+    throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
+  }
+  assertDiagnosticSnapshot(diagnostic.before);
+  assertDiagnosticSnapshot(diagnostic.after);
+  assertNoForbiddenDiagnosticData(diagnostic);
+  return `${JSON.stringify(diagnostic)}\n`;
+}
+
+function securityDiagnosticOutputPath(argv) {
+  const value = argv.find((argument) => argument.startsWith("--security-diagnostic-output="))?.slice(29);
+  if (!value) return null;
+  const artifactRoot = `${path.resolve(".ci-artifacts")}${path.sep}`;
+  const target = path.resolve(value);
+  if (!target.startsWith(artifactRoot)) fail("SOLO_SECURITY_DIAGNOSTIC_OUTPUT_INVALID");
+  return target;
+}
+
+async function emitSecurityDiagnostic(diagnostic, outputPath) {
+  const serialized = serializeSanitizedSecurityDiagnostic(diagnostic);
+  console.log(`${SECURITY_DIAGNOSTIC_PREFIX}${serialized.trimEnd()}`);
+  if (outputPath) {
+    await mkdir(path.dirname(outputPath), { recursive: true });
+    await writeFile(outputPath, serialized, "utf8");
+  }
 }
 
 function dockerNetworkArgs(dockerNetwork) {
@@ -178,6 +314,12 @@ function readLedger(release) {
   );
 }
 
+function summarizeLedgerState(release) {
+  const value = readLedger(release);
+  if (value === LEDGER_ABSENT) return "ABSENT";
+  return acceptedLedgerValues(release).has(value) ? "PRESENT_ACCEPTED" : "PRESENT_MISMATCH";
+}
+
 export function releaseMarker(release, suffix) {
   if (release.release === "20260724233256-comun-sidewalk-operational-hardening") {
     return `COMUN_SIDEWALK_OPERATIONAL_HARDENING_${suffix}`;
@@ -229,14 +371,31 @@ export function validateCurrentState(before, release, readLedgerFn = readLedger)
   fail("SOLO_CANONICAL_PRE_FINGERPRINT_MISMATCH");
 }
 
+export function validateBlockingFindings(baseline, expectedBlockingFindings) {
+  if (baseline.security.blockingFindings.length !== expectedBlockingFindings) {
+    fail("SOLO_CANONICAL_SECURITY_FINDINGS_REMAIN");
+  }
+}
+
 export async function main(argv = process.argv.slice(2)) {
   validateAllowlist();
   const { release, migration } = loadRelease(argv);
+  const diagnosticOutput = securityDiagnosticOutputPath(argv);
   const before = captureBaseline();
   validatePreflightObjects(before, readOnboardingTriggerCount());
   const state = validateCurrentState(before, release);
+  const beforeLedgerState = summarizeLedgerState(release);
 
   if (argv.includes("--read-only-preflight")) {
+    await emitSecurityDiagnostic(
+      buildSanitizedSecurityDiagnostic({
+        before,
+        after: null,
+        beforeLedgerState,
+        afterLedgerState: "NOT_REACHED",
+      }),
+      diagnosticOutput,
+    );
     console.log(`COMUN_CANONICAL_RELEASE_FINGERPRINT ${before.fingerprint}`);
     console.log(`COMUN_CANONICAL_RELEASE_BLOCKING_FINDINGS ${before.security.blockingFindings.length}`);
     console.log(`COMUN_CANONICAL_RELEASE_PLATFORM_OBSERVATIONS ${before.security.platformObservations.length}`);
@@ -246,6 +405,15 @@ export async function main(argv = process.argv.slice(2)) {
   }
 
   if (state === "POST") {
+    await emitSecurityDiagnostic(
+      buildSanitizedSecurityDiagnostic({
+        before,
+        after: before,
+        beforeLedgerState,
+        afterLedgerState: beforeLedgerState,
+      }),
+      diagnosticOutput,
+    );
     console.log(releaseMarker(release, "ALREADY_APPLIED"));
     return;
   }
@@ -261,12 +429,18 @@ select pg_catalog.set_config('comun.release_post_fingerprint', '${release.expect
   executeSql(configuredMigration);
 
   const after = captureBaseline();
+  const afterLedgerState = summarizeLedgerState(release);
+  const diagnostic = buildSanitizedSecurityDiagnostic({
+    before,
+    after,
+    beforeLedgerState,
+    afterLedgerState,
+  });
+  await emitSecurityDiagnostic(diagnostic, diagnosticOutput);
   if (after.fingerprint !== release.expectedPostFingerprint) {
     fail("SOLO_CANONICAL_POST_FINGERPRINT_MISMATCH");
   }
-  if (after.security.blockingFindings.length !== release.expectedBlockingFindings) {
-    fail("SOLO_CANONICAL_SECURITY_FINDINGS_REMAIN");
-  }
+  validateBlockingFindings(after, release.expectedBlockingFindings);
   if (after.security.platformObservations.length && !release.platformObservationsAllowed) {
     fail("SOLO_CANONICAL_PLATFORM_OBSERVATION_NOT_ALLOWED");
   }

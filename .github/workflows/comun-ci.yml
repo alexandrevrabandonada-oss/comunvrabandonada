@@ -142,7 +142,7 @@ jobs:
           PR23_ALLOWED_PROJECT_REFS: LOCAL_VALIDATION
         run: |
           set +e
-          first_output="$(node scripts/solo/apply-forward-only.mjs 2>&1)"
+          first_output="$(node scripts/solo/apply-forward-only.mjs --security-diagnostic-output=.ci-artifacts/release-security-diagnostic.json 2>&1)"
           first_status=$?
           set -e
           printf '%s\n' "$first_output"
@@ -166,7 +166,7 @@ jobs:
           [[ "$actual_post" =~ ^[a-f0-9]{64}$ ]]
           echo "COMUN_REHEARSAL_ACTUAL_POST=$actual_post" >> "$GITHUB_ENV"
           set +e
-          second_output="$(node scripts/solo/apply-forward-only.mjs 2>&1)"
+          second_output="$(node scripts/solo/apply-forward-only.mjs --security-diagnostic-output=.ci-artifacts/release-security-diagnostic.json 2>&1)"
           second_status=$?
           set -e
           printf '%s\n' "$second_output"
@@ -185,6 +185,8 @@ jobs:
         if: always()
         run: |
           mkdir -p .ci-artifacts
+          test -f .ci-artifacts/release-security-diagnostic.json
+          node scripts/solo/assert-sanitized-security-diagnostic.mjs --input=.ci-artifacts/release-security-diagnostic.json
           {
             echo "release_rehearsal=COMUN_RELEASE_REHEARSAL"
             echo "head_sha=${{ github.event.pull_request.head.sha }}"
@@ -205,7 +207,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: comun-release-rehearsal-${{ github.run_id }}
-          path: .ci-artifacts/release-rehearsal.txt
+          path: .ci-artifacts/
           if-no-files-found: error
       - name: Declare release rehearsal green
         if: success()

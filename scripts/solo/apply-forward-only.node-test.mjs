@@ -4,18 +4,130 @@ import { randomUUID } from "node:crypto";
 import { after, before, test } from "node:test";
 import {
   SoloRunnerError,
+  buildSanitizedSecurityDiagnostic,
   executeSql,
   parseJsonOutput,
   parseScalarOutput,
   queryJson,
   queryScalar,
   schemaFingerprintQuery,
+  serializeSanitizedSecurityDiagnostic,
+  validateBlockingFindings,
   validatePreflightObjects,
   validateCurrentState,
 } from "./apply-forward-only.mjs";
 
 const marker = (expected) => (error) =>
   error instanceof SoloRunnerError && error.marker === expected;
+
+const securityBaseline = ({ fingerprint = "a".repeat(64), blockingFindings = [], platformObservations = [] } = {}) => ({
+  fingerprint,
+  security: { blockingFindings, platformObservations },
+});
+
+test("security diagnostic records zero findings without database details", () => {
+  const diagnostic = buildSanitizedSecurityDiagnostic({
+    before: securityBaseline({ fingerprint: "pre" }),
+    after: securityBaseline({ fingerprint: "post" }),
+    beforeLedgerState: "ABSENT",
+    afterLedgerState: "PRESENT_ACCEPTED",
+  });
+  assert.equal(diagnostic.before.blockingFindingsCount, 0);
+  assert.equal(diagnostic.after.blockingFindingsCount, 0);
+  assert.equal(diagnostic.after.fingerprint, "post");
+  assert.equal(diagnostic.after.ledgerState, "PRESENT_ACCEPTED");
+});
+
+test("security diagnostic preserves one finding with a sanitized detail", () => {
+  const diagnostic = buildSanitizedSecurityDiagnostic({
+    before: securityBaseline(),
+    after: securityBaseline({
+      blockingFindings: [{
+        classification: "FUNCTION_SECURITY_RISK",
+        rule: "DEFINER_EXECUTE",
+        object: "public.comun_safe_function(uuid)",
+        detail: "postgresql://user:password@database/private-note",
+      }],
+    }),
+    beforeLedgerState: "ABSENT",
+    afterLedgerState: "PRESENT_ACCEPTED",
+  });
+  assert.deepEqual(diagnostic.after.blockingFindings, [{
+    classification: "FUNCTION_SECURITY_RISK",
+    rule: "DEFINER_EXECUTE",
+    object: "public.comun_safe_function(uuid)",
+    detail: "security definer execute privilege is exposed",
+  }]);
+});
+
+test("security diagnostic sorts multiple findings deterministically", () => {
+  const findings = [
+    { classification: "VIEW_SECURITY_RISK", rule: "VIEW_SECURITY_INVOKER", object: "public.z_view", detail: "ignored" },
+    { classification: "EXCESS_PRIVILEGE", rule: "RLS_ENABLED", object: "public.a_table", detail: "ignored" },
+  ];
+  const first = buildSanitizedSecurityDiagnostic({
+    before: securityBaseline({ blockingFindings: findings }), after: null, beforeLedgerState: "ABSENT", afterLedgerState: "NOT_REACHED",
+  });
+  const second = buildSanitizedSecurityDiagnostic({
+    before: securityBaseline({ blockingFindings: [...findings].reverse() }), after: null, beforeLedgerState: "ABSENT", afterLedgerState: "NOT_REACHED",
+  });
+  assert.deepEqual(first, second);
+  assert.equal(first.before.blockingFindingsCount, 2);
+});
+
+test("platform observations remain separate from blocking findings", () => {
+  const diagnostic = buildSanitizedSecurityDiagnostic({
+    before: securityBaseline({
+      platformObservations: [{
+        classification: "PLATFORM_MANAGED_OBSERVATION",
+        rule: "SUPABASE_ADMIN_DEFAULT_PRIVILEGES",
+        object: "schema public",
+        detail: "unsafe raw platform default hash=secret",
+      }],
+    }),
+    after: null,
+    beforeLedgerState: "ABSENT",
+    afterLedgerState: "NOT_REACHED",
+  });
+  assert.equal(diagnostic.before.blockingFindingsCount, 0);
+  assert.equal(diagnostic.before.platformObservationsCount, 1);
+  assert.equal(diagnostic.before.platformObservations[0].detail, "managed platform default privileges observed");
+});
+
+test("security diagnostic rejects prohibited values and table content", () => {
+  assert.throws(
+    () => serializeSanitizedSecurityDiagnostic({ formatVersion: 1, tableContent: "private note", after: {} }),
+    /SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID/,
+  );
+  assert.throws(
+    () => serializeSanitizedSecurityDiagnostic({ formatVersion: 1, after: { detail: "postgresql://user:password@db/postgres" } }),
+    /SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID/,
+  );
+});
+
+test("security diagnostic serialization never exposes a database URL", () => {
+  const diagnostic = buildSanitizedSecurityDiagnostic({
+    before: securityBaseline({ blockingFindings: [{
+      classification: "EXCESS_PRIVILEGE",
+      rule: "DANGEROUS_RELATION_GRANT",
+      object: "public.comun_records",
+      detail: "postgresql://person:password@db/postgres",
+    }] }),
+    after: null,
+    beforeLedgerState: "ABSENT",
+    afterLedgerState: "NOT_REACHED",
+  });
+  const serialized = serializeSanitizedSecurityDiagnostic(diagnostic);
+  assert.doesNotMatch(serialized, /postgres(?:ql)?:\/\//i);
+  assert.doesNotMatch(serialized, /password/i);
+});
+
+test("security finding error preserves the canonical runner marker", () => {
+  assert.throws(
+    () => validateBlockingFindings(securityBaseline({ blockingFindings: [{ rule: "RLS_ENABLED" }] }), 0),
+    marker("SOLO_CANONICAL_SECURITY_FINDINGS_REMAIN"),
+  );
+});
 
 test("legacy tabular psql output is rejected as JSON", () => {
   assert.equal(parseDockerMappedPort("127.0.0.1:49152\n"), 49152);
