@@ -1,15 +1,36 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { buildTransactionalPackage } from "./sql-contract.mjs";
 import { buildDocuments, query } from "../db/verify-canonical-baseline.mjs";
+import { selectReleaseManifest, validateReleaseSql } from "./validate-forward-only-sql.mjs";
 
 const MAX_CAPTURE_BUFFER = 64 * 1024 * 1024;
 const PROCESS_TIMEOUT_MS = 5 * 60 * 1000;
 const QUERY_FLAGS = ["--no-psqlrc", "--tuples-only", "--no-align", "--quiet", "--set=ON_ERROR_STOP=1"];
 const EXECUTE_FLAGS = ["--no-psqlrc", "--set=ON_ERROR_STOP=1"];
+const LEDGER_ABSENT = "__COMUN_RELEASE_LEDGER_ABSENT__";
+const schemaFingerprintQuery = String.raw`
+with objects as (
+  select 'column' kind, c.table_name || '.' || c.column_name name,
+    concat_ws('|', c.ordinal_position, c.data_type, c.udt_schema, c.udt_name, c.is_nullable, coalesce(c.column_default, '')) definition
+  from information_schema.columns c where c.table_schema = 'public'
+  union all
+  select 'constraint', cls.relname || '.' || con.conname, pg_get_constraintdef(con.oid, true)
+  from pg_constraint con join pg_class cls on cls.oid = con.conrelid join pg_namespace ns on ns.oid = cls.relnamespace
+  where ns.nspname = 'public'
+  union all
+  select 'index', tablename || '.' || indexname, indexdef from pg_indexes where schemaname = 'public'
+  union all
+  select 'policy', tablename || '.' || policyname,
+    concat_ws('|', permissive, array_to_string(roles, ','), cmd, coalesce(qual, ''), coalesce(with_check, ''))
+  from pg_policies where schemaname = 'public'
+  union all
+  select 'function', p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')', pg_get_functiondef(p.oid)
+  from pg_proc p join pg_namespace ns on ns.oid = p.pronamespace where ns.nspname = 'public'
+)
+select kind || E'\\t' || name || E'\\t' || definition from objects order by kind, name, definition;`;
 
 export class SoloRunnerError extends Error {
   constructor(marker) {
@@ -88,40 +109,40 @@ export function parseScalarOutput(stdout) {
   return lines[0];
 }
 
-function loadRelease() {
-  const releaseFiles = readdirSync(path.resolve("supabase/releases"), {
-    withFileTypes: true,
-  })
-    .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
-    .map((entry) => entry.name);
-  if (releaseFiles.length !== 1) fail("SOLO_CANONICAL_RELEASE_COUNT_INVALID");
-  const release = JSON.parse(
-    readFileSync(path.resolve("supabase/releases", releaseFiles[0]), "utf8"),
-  );
-  const migration = readFileSync(path.resolve(release.migration), "utf8");
-  const checksum = createHash("sha256").update(migration).digest("hex");
-  if (checksum !== release.migrationSha256) fail("SOLO_CANONICAL_RELEASE_CHECKSUM_MISMATCH");
-  const executable = migration
-    .replace(/--.*$/gm, "")
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/'(?:''|[^'])*'/g, "''");
-  if (/\b(drop|truncate|delete)\b/i.test(executable) || release.destructiveSql !== false) {
-    fail("SOLO_CANONICAL_RELEASE_DESTRUCTIVE_SQL");
+function loadRelease(argv = []) {
+  try {
+    const explicit = argv.find((value) => value.startsWith("--release-manifest="))?.slice(19);
+    const selected = selectReleaseManifest(explicit ?? process.env.COMUN_RELEASE_MANIFEST);
+    return validateReleaseSql(selected);
+  } catch (error) {
+    const marker = error instanceof Error ? error.message : "SOLO_RELEASE_MANIFEST_NOT_SELECTED";
+    fail(marker.startsWith("SOLO_") ? marker : "SOLO_RELEASE_MANIFEST_NOT_SELECTED");
   }
-  return { release, migration };
 }
 
 function validateAllowlist() {
   const url = process.env.PR23_DATABASE_URL;
   const ref = process.env.SUPABASE_PROJECT_REF;
   const allowed = (process.env.PR23_ALLOWED_PROJECT_REFS ?? "").split(",").filter(Boolean);
+  if (ref === "LOCAL_VALIDATION") {
+    const localDatabase = /^postgres(?:ql)?:\/\/[^@]+@host\.docker\.internal:55432\/postgres(?:[/?]|$)/.test(url ?? "");
+    if (!localDatabase || !allowed.includes(ref)) fail("SOLO_REMOTE_DATABASE_NOT_ALLOWLISTED");
+    return;
+  }
   if (!url || !ref || !allowed.includes(ref) || !url.includes(ref)) {
     fail("SOLO_REMOTE_DATABASE_NOT_ALLOWLISTED");
   }
 }
 
 function captureBaseline() {
-  return buildDocuments(queryJson(query)).compact;
+  const document = buildDocuments(queryJson(query)).compact;
+  const normalized = queryOutput(schemaFingerprintQuery).replace(/\r\n/g, "\n").trimEnd();
+  if (!normalized) fail("SOLO_SCHEMA_FINGERPRINT_EMPTY");
+  return {
+    ...document,
+    fingerprint: createHash("sha256").update(normalized).digest("hex"),
+    fingerprintAlgorithm: "sha256-postgres-public-catalog-v1",
+  };
 }
 
 function ledgerValue(release) {
@@ -137,16 +158,19 @@ function acceptedLedgerValues(release) {
 
 function readLedger(release) {
   return queryScalar(
-    `select migration_sha256 || '|' || pre_fingerprint || '|' || post_fingerprint
-     from public.comun_schema_releases
-     where release = '${release.release.replaceAll("'", "''")}';`,
+    `select coalesce((
+       select migration_sha256 || '|' || pre_fingerprint || '|' || post_fingerprint
+       from public.comun_schema_releases
+       where release = '${release.release.replaceAll("'", "''")}'
+     ), '${LEDGER_ABSENT}');`,
   );
 }
 
-function hasLedgerRelation(baseline) {
-  return baseline.canonical.relations.some(
-    (relation) => relation.schema === "public" && relation.name === "comun_schema_releases",
-  );
+function releaseMarker(release, suffix) {
+  if (release.release === "20260724233256-comun-sidewalk-operational-hardening") {
+    return `COMUN_SIDEWALK_OPERATIONAL_HARDENING_${suffix}`;
+  }
+  return `COMUN_CANONICAL_SECURITY_HARDENING_${suffix}`;
 }
 
 function readOnboardingTriggerCount() {
@@ -169,24 +193,23 @@ export function validatePreflightObjects(baseline, onboardingTriggerCount) {
     (item) => item.schema === "public" && item.name === "comun_public_reports",
   );
   const functions = new Set(baseline.canonical.functions.map((item) => item.name));
-  if (
-    !relation?.rls
-    || !view
-    || !functions.has("handle_new_user")
-    || onboardingTriggerCount !== "1"
-  ) {
+  const hasOnboardingFunction = functions.has("handle_new_user");
+  const validOnboardingState = hasOnboardingFunction
+    ? onboardingTriggerCount === "1"
+    : onboardingTriggerCount === "0";
+  if (!relation?.rls || !view || !validOnboardingState) {
     fail("SOLO_CANONICAL_PREFLIGHT_OBJECTS_INVALID");
   }
 }
 
 export function validateCurrentState(before, release, readLedgerFn = readLedger) {
-  const ledgerPresent = hasLedgerRelation(before);
+  const ledgerValueForRelease = readLedgerFn(release);
   if (before.fingerprint === release.expectedPreFingerprint) {
-    if (ledgerPresent) fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
+    if (ledgerValueForRelease !== LEDGER_ABSENT) fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
     return "PRE";
   }
   if (before.fingerprint === release.expectedPostFingerprint) {
-    if (!ledgerPresent || !acceptedLedgerValues(release).has(readLedgerFn(release))) {
+    if (!acceptedLedgerValues(release).has(ledgerValueForRelease)) {
       fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
     }
     return "POST";
@@ -196,7 +219,7 @@ export function validateCurrentState(before, release, readLedgerFn = readLedger)
 
 export async function main(argv = process.argv.slice(2)) {
   validateAllowlist();
-  const { release, migration } = loadRelease();
+  const { release, migration } = loadRelease(argv);
   const before = captureBaseline();
   validatePreflightObjects(before, readOnboardingTriggerCount());
   const state = validateCurrentState(before, release);
@@ -211,7 +234,7 @@ export async function main(argv = process.argv.slice(2)) {
   }
 
   if (state === "POST") {
-    console.log("COMUN_CANONICAL_SECURITY_HARDENING_ALREADY_APPLIED");
+    console.log(releaseMarker(release, "ALREADY_APPLIED"));
     return;
   }
 
@@ -241,7 +264,7 @@ select pg_catalog.set_config('comun.release_post_fingerprint', '${release.expect
   if (after.security.platformObservations.length) {
     console.log(`COMUN_PLATFORM_DEFAULTS_OBSERVED ${after.security.platformObservations.length}`);
   }
-  console.log("COMUN_CANONICAL_SECURITY_HARDENING_OK");
+  console.log(releaseMarker(release, "OK"));
 }
 
 const isDirect = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
