@@ -119,7 +119,10 @@ jobs:
         run: |
           docker ps --format '{{.Names}} {{.Status}}' | grep -E '^supabase_(auth|storage|rest|db)_'
           container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          network="$(docker inspect -f '{{range $name, $_ := .NetworkSettings.Networks}}{{$name}}{{end}}' "$container")"
+          test -n "$network"
           docker exec "$container" psql -U postgres -d postgres -XAt -c "select to_regclass('auth.users'), to_regclass('storage.buckets'), to_regclass('storage.objects'), to_regclass('public.comun_schema_releases');"
+          docker run --rm --network "$network" postgres:17 pg_isready -h db -p 5432 -U postgres
           actual_pre="$(node scripts/solo/schema-fingerprint.mjs --container="$container")"
           [[ "$actual_pre" =~ ^[a-f0-9]{64}$ ]]
           {
@@ -129,11 +132,12 @@ jobs:
             echo "COMUN_REHEARSAL_FIRST_MARKER=COMUN_RELEASE_REHEARSAL_UNCLASSIFIED_FAILURE"
             echo "COMUN_REHEARSAL_SECOND_STATUS=NOT_REACHED"
             echo "COMUN_REHEARSAL_SECOND_MARKER=NOT_REACHED"
+            echo "PR23_DOCKER_NETWORK=$network"
           } >> "$GITHUB_ENV"
       - name: Rehearse selected release first pass
         env:
           COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
-          PR23_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:55432/postgres?application_name=LOCAL_VALIDATION
+          PR23_DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres?application_name=LOCAL_VALIDATION
           SUPABASE_PROJECT_REF: LOCAL_VALIDATION
           PR23_ALLOWED_PROJECT_REFS: LOCAL_VALIDATION
         run: |
@@ -153,7 +157,7 @@ jobs:
       - name: Capture post and rehearse selected release second pass
         env:
           COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
-          PR23_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:55432/postgres?application_name=LOCAL_VALIDATION
+          PR23_DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres?application_name=LOCAL_VALIDATION
           SUPABASE_PROJECT_REF: LOCAL_VALIDATION
           PR23_ALLOWED_PROJECT_REFS: LOCAL_VALIDATION
         run: |

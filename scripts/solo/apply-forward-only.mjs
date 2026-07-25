@@ -44,8 +44,17 @@ function fail(marker) {
   throw new SoloRunnerError(marker);
 }
 
+function dockerNetworkArgs(dockerNetwork) {
+  if (!dockerNetwork) return ["--add-host=host.docker.internal:host-gateway"];
+  if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(dockerNetwork)) {
+    fail("SOLO_PSQL_CLIENT_NETWORK_INVALID");
+  }
+  return ["--network", dockerNetwork];
+}
+
 function runPsql(sql, flags, {
   databaseUrl = process.env.PR23_DATABASE_URL,
+  dockerNetwork = process.env.PR23_DOCKER_NETWORK,
   spawn = spawnSync,
   maxBuffer = MAX_CAPTURE_BUFFER,
 } = {}) {
@@ -53,7 +62,7 @@ function runPsql(sql, flags, {
     "docker",
     [
       "run", "--rm", "-i",
-      "--add-host=host.docker.internal:host-gateway",
+      ...dockerNetworkArgs(dockerNetwork),
       "postgres:17", "psql", databaseUrl, ...flags,
     ],
     {
@@ -125,7 +134,10 @@ function validateAllowlist() {
   const ref = process.env.SUPABASE_PROJECT_REF;
   const allowed = (process.env.PR23_ALLOWED_PROJECT_REFS ?? "").split(",").filter(Boolean);
   if (ref === "LOCAL_VALIDATION") {
-    const localDatabase = /^postgres(?:ql)?:\/\/[^@]+@(?:127\.0\.0\.1|localhost|host\.docker\.internal):55432\/postgres(?:[/?]|$)/.test(url ?? "");
+    const localHostDatabase = /^postgres(?:ql)?:\/\/[^@]+@(?:127\.0\.0\.1|localhost|host\.docker\.internal):55432\/postgres(?:[/?]|$)/.test(url ?? "");
+    const localNetworkDatabase = /^postgres(?:ql)?:\/\/[^@]+@db:5432\/postgres(?:[/?]|$)/.test(url ?? "")
+      && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(process.env.PR23_DOCKER_NETWORK ?? "");
+    const localDatabase = localHostDatabase || localNetworkDatabase;
     if (!localDatabase || !allowed.includes(ref)) fail("SOLO_REMOTE_DATABASE_NOT_ALLOWLISTED");
     return;
   }

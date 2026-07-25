@@ -1,10 +1,10 @@
 # Tijolo 43 — operação do Mapa das Calçadas
 
-Atualizado em 24 de julho de 2026.
+Atualizado em 25 de julho de 2026.
 
 ## Decisão
 
-`COMUN_CALCADAS_RELEASE_REHEARSAL_PENDING`
+`COMUN_CALCADAS_FAST_PATCH_REQUIRED`
 
 O ciclo local usa texto original privado, resumo público produzido em revisão
 humana, confirmação recuperável e sugestão assistida de duplicidade:
@@ -35,6 +35,16 @@ humana, confirmação recuperável e sugestão assistida de duplicidade:
   `20260724233256_comun_sidewalk_operational_hardening.sql`;
 - reconciliação estrutural local concluída em duas rodadas equivalentes; o
   teste do runner passou 18/18 duas vezes com porta Docker efêmera. A execução
-  final idempotente pelo runner continua pendente no rehearsal isolado do CI;
+  final idempotente pelo runner falhou no transporte Docker do CI Ubuntu antes
+  do POST; o PRE real foi confirmado e nenhuma migration remota foi aplicada;
 - nenhum Supabase remoto alterado;
 - nenhuma publicação automática.
+
+## Checkpoint T43.1
+
+O runner de promoção local deixa de depender de loopback publicado para
+conversar entre containers. A conexão interna usa uma rede Docker nomeada e
+alias de banco, mantendo URL, credenciais e dados somente no ambiente local.
+O teste do transporte passou 18/18 duas vezes; os checks de runtime/RLS/DB
+lint desta rodada ficaram bloqueados pela ausência da stack Supabase local e
+não autorizam promoção. FAST e rehearsal Ubuntu seguem obrigatórios.

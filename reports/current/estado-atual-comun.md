@@ -1,6 +1,6 @@
 # Estado atual do COMUN
 
-Atualizado em 24 de julho de 2026.
+Atualizado em 25 de julho de 2026.
 
 ## Linha ativa
 
@@ -20,7 +20,8 @@ Atualizado em 24 de julho de 2026.
 - hotfix 42.1: concluído pela PR #32;
 - estado local do hotfix: `COMUN_CANONICAL_SIDEWALK_PAUTA_OK`;
 - Tijolo 43: ciclo operacional corrigido localmente, com migration pendente de promoção;
-- decisão do Tijolo 43: `COMUN_CALCADAS_OPERATIONAL_REQUIRES_PROMOTION`;
+- PR #35 (draft): HEAD `4ca09221f4d4720ac0da6cca1dab871ecdda8e46`;
+- decisão do Tijolo 43: `COMUN_CALCADAS_FAST_PATCH_REQUIRED`;
 - gate humano: 0/3;
 - piloto público: fechado.
 
@@ -97,6 +98,37 @@ O diagnóstico inicial foi corrigido: a proteção do texto privado, o lock
 recuperável e a relação durável de duplicidade exigiram a migration local
 `20260724233256_comun_sidewalk_operational_hardening.sql`. Ela não foi aplicada
 remotamente. O gate humano permanece 0/3 e o piloto público fechado.
+
+## Checkpoint CI do Tijolo 43
+
+O SHA anterior corrigiu o teste frágil de marcadores e tornou o rehearsal
+diagnosticável por checkout imutável e artifact sanitizado. No run
+`30141194406`, o PRE real coincidiu com o contrato, mas a primeira passagem
+falhou com `SOLO_CANONICAL_DATABASE_QUERY_FAILED`; POST e segunda passagem não
+foram alcançados. FAST falhou nos três testes de transporte Docker do
+PostgreSQL temporário no Ubuntu, enquanto os gates locais seguem verdes.
+Vercel Preview passou; FULL foi pulado e não foi disparado manualmente.
+
+Não houve Supabase remoto, migration remota, merge, deploy manual, domínio ou
+promoção. A correção da conectividade Docker no CI é o próximo bloqueio antes
+de qualquer promoção.
+
+## Patch T43.1 — transporte PostgreSQL no Ubuntu
+
+O diagnóstico confirmou que o cliente `psql` e o banco são containers irmãos:
+no GitHub Ubuntu, a porta publicada em loopback não é uma rota entre eles. O
+patch usa uma rede Docker explícita e alias interno (`postgres-test` nos
+testes; `db` no rehearsal), sem ampliar a allowlist local nem alterar a
+migration ou o manifesto congelado. Os 18 testes do runner passaram em duas
+execuções locais consecutivas; typecheck, lint, 266 unitários, validator SQL,
+`solo:test` e smoke operacional passaram.
+
+Na mesma rodada, a stack Supabase local não estava iniciada: faltava
+`supabase_db_nvmdszymrtacfehdynpg`. Portanto runtime smoke, matriz RLS e DB
+lint não têm novo resultado verde e a decisão continua
+`COMUN_CALCADAS_FAST_PATCH_REQUIRED`. O FAST e o rehearsal no GitHub devem
+passar no mesmo SHA antes de qualquer FULL. Gate humano permanece 0/3 e piloto
+público fechado.
 
 ## Hardening
 

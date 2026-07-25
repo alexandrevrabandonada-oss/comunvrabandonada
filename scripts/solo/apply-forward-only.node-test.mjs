@@ -190,7 +190,9 @@ test("preflight accepts a baseline without the optional legacy onboarding trigge
 });
 
 const container = `comun-promotion-runner-pg17-${randomUUID().slice(0, 8)}`;
+const network = `comun-promotion-runner-net-${randomUUID().slice(0, 8)}`;
 let localUrl;
+let localConnection;
 
 export function parseDockerMappedPort(output) {
   const lines = output.trim().split(/\r?\n/).filter(Boolean);
@@ -205,46 +207,65 @@ export function removeTemporaryPostgres(name) {
   spawnSync("docker", ["rm", "-f", name], { encoding: "utf8" });
 }
 
-export function startTemporaryPostgres(name) {
+export function removeTemporaryNetwork(name) {
+  spawnSync("docker", ["network", "rm", name], { encoding: "utf8" });
+}
+
+export function startTemporaryPostgres(name, dockerNetwork) {
   removeTemporaryPostgres(name);
-  const started = spawnSync("docker", ["run", "-d", "--name", name, "-e", "POSTGRES_PASSWORD=local_test_only", "-p", "127.0.0.1::5432", "postgres:17"], { encoding: "utf8" });
-  if (started.status !== 0) throw new Error("COMUN_TEST_POSTGRES_START_FAILED");
+  removeTemporaryNetwork(dockerNetwork);
+  const networkCreated = spawnSync("docker", ["network", "create", dockerNetwork], { encoding: "utf8" });
+  if (networkCreated.status !== 0) throw new Error("COMUN_TEST_POSTGRES_NETWORK_START_FAILED");
+  const started = spawnSync("docker", ["run", "-d", "--name", name, "--network", dockerNetwork, "--network-alias", "postgres-test", "-e", "POSTGRES_PASSWORD=local_test_only", "-p", "127.0.0.1::5432", "postgres:17"], { encoding: "utf8" });
+  if (started.status !== 0) {
+    removeTemporaryNetwork(dockerNetwork);
+    throw new Error("COMUN_TEST_POSTGRES_START_FAILED");
+  }
   try {
     const mapped = spawnSync("docker", ["port", name, "5432/tcp"], { encoding: "utf8" });
     if (mapped.status !== 0) throw new Error("COMUN_TEST_POSTGRES_PORT_INVALID");
     return parseDockerMappedPort(mapped.stdout);
   } catch (error) {
     removeTemporaryPostgres(name);
+    removeTemporaryNetwork(dockerNetwork);
     throw error;
   }
 }
 
 before(() => {
-  const port = startTemporaryPostgres(container);
-  localUrl = `postgresql://postgres:local_test_only@host.docker.internal:${port}/postgres`;
+  const mappedPort = startTemporaryPostgres(container, network);
+  assert.ok(mappedPort >= 1 && mappedPort <= 65535);
+  localUrl = "postgresql://postgres:local_test_only@postgres-test:5432/postgres";
+  localConnection = { databaseUrl: localUrl, dockerNetwork: network };
   for (let attempt = 0; attempt < 45; attempt += 1) {
-    const ready = spawnSync("docker", ["exec", container, "pg_isready", "-U", "postgres"]);
-    if (ready.status === 0) return;
+    try {
+      queryScalar("select 'ready';", localConnection);
+      return;
+    } catch (error) {
+      if (!(error instanceof SoloRunnerError)) throw error;
+    }
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1000);
   }
   removeTemporaryPostgres(container);
-  assert.fail("COMUN_TEST_POSTGRES_NOT_READY");
+  removeTemporaryNetwork(network);
+  assert.fail("COMUN_TEST_POSTGRES_NETWORK_NOT_READY");
 });
 
 after(() => {
   removeTemporaryPostgres(container);
+  removeTemporaryNetwork(network);
 });
 
 test("PostgreSQL 17 returns canonical JSON transport", () => {
   assert.deepEqual(
-    queryJson("select jsonb_build_object('ok', true)::text;", { databaseUrl: localUrl }),
+    queryJson("select jsonb_build_object('ok', true)::text;", localConnection),
     { ok: true },
   );
   console.log("COMUN_PSQL_JSON_TRANSPORT_OK");
 });
 
 test("PostgreSQL 17 returns canonical scalar transport", () => {
-  assert.equal(queryScalar("select 'one-value';", { databaseUrl: localUrl }), "one-value");
+  assert.equal(queryScalar("select 'one-value';", localConnection), "one-value");
   console.log("COMUN_PSQL_SCALAR_TRANSPORT_OK");
 });
 
@@ -261,12 +282,12 @@ test("PostgreSQL 17 ledger transaction is readable and idempotent", () => {
     on conflict (release) do nothing;
     commit;
   `;
-  executeSql(sql, { databaseUrl: localUrl });
-  executeSql(sql, { databaseUrl: localUrl });
+  executeSql(sql, localConnection);
+  executeSql(sql, localConnection);
   assert.equal(
     queryScalar(
       "select migration_sha256 || '|' || pre_fingerprint || '|' || post_fingerprint from public.comun_schema_releases where release='release';",
-      { databaseUrl: localUrl },
+      localConnection,
     ),
     "sha|pre|post",
   );
