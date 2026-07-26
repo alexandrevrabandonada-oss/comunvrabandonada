@@ -183,12 +183,18 @@ export function SidewalkMapLibreMap({
     return (
       <div
         role="status"
+        data-testid="sidewalk-real-map-fallback"
         className="grid min-h-[58vh] place-items-center bg-[#ecebe5] p-8 text-center"
+        style={{
+          backgroundImage:
+            "linear-gradient(#d2d8d1 1px, transparent 1px), linear-gradient(90deg, #d2d8d1 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
       >
-        <div>
+        <div className="max-w-sm border-2 border-comun-black bg-white p-5 shadow-[3px_3px_0_#0b0b0a]">
           <strong>Mapa-base indisponível.</strong>
           <p className="mt-2 text-sm">
-            Os registros e a lista continuam disponíveis. Tente novamente mais
+            A lista de registros continua disponível. Tente novamente mais
             tarde.
           </p>
         </div>
@@ -200,6 +206,7 @@ export function SidewalkMapLibreMap({
       role="region"
       className="min-h-[58vh] w-full lg:min-h-[64vh]"
       aria-label="Mapa real de Volta Redonda com registros públicos de calçadas"
+      data-map-provider={provider.id}
     />
   );
 }

@@ -1,5 +1,8 @@
 import { VOLTA_REDONDA_MAP } from "@/lib/sidewalk-map-config";
 
+export const VOLTA_REDONDA_CANONICAL_PMTILES_URL =
+  "/maps/volta-redonda/volta-redonda.pmtiles";
+
 export type SidewalkBasemapProvider = {
   id: "localSynthetic" | "realVoltaRedonda";
   kind: "synthetic" | "pmtiles";
@@ -36,14 +39,16 @@ export const localSynthetic: SidewalkBasemapProvider = {
 };
 
 export function getRealVoltaRedondaProvider(): SidewalkBasemapProvider {
-  const pmtilesUrl = process.env.NEXT_PUBLIC_VOLTA_REDONDA_PMTILES_URL?.trim();
+  const pmtilesUrl =
+    process.env.NEXT_PUBLIC_VOLTA_REDONDA_PMTILES_URL?.trim() ||
+    VOLTA_REDONDA_CANONICAL_PMTILES_URL;
   const styleUrl =
     process.env.NEXT_PUBLIC_VOLTA_REDONDA_MAP_STYLE_URL?.trim() ||
     "/maps/volta-redonda/style.json";
   return {
     id: "realVoltaRedonda",
     kind: "pmtiles",
-    enabled: Boolean(pmtilesUrl),
+    enabled: true,
     attribution: "© OpenStreetMap contributors · limite municipal: IBGE",
     cachePolicy:
       "PMTiles público com HTTP Range; artefato versionado por hash e cache imutável.",
@@ -62,7 +67,6 @@ export const realBasemapProvider = getRealVoltaRedondaProvider();
 export function resolveSidewalkBasemapProvider(
   requested = process.env.NEXT_PUBLIC_SIDEWALK_BASEMAP_PROVIDER,
 ) {
-  const real = getRealVoltaRedondaProvider();
-  if (requested === "realVoltaRedonda") return real;
-  return localSynthetic;
+  if (requested === "localSynthetic") return localSynthetic;
+  return getRealVoltaRedondaProvider();
 }

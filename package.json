@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "next dev",
     "maps:build:volta-redonda": "node scripts/build-volta-redonda-map.mjs",
+    "test:map-base": "node --test scripts/verify-volta-redonda-pmtiles.node-test.mjs",
+    "test:e2e:tijolo-45-real-map": "playwright test -c playwright.tijolo-45-real-map.config.ts",
     "maps:sources:download:volta-redonda": "node scripts/download-volta-redonda-map-sources.mjs",
     "maps:toolchain:check": "node scripts/check-map-toolchain.mjs",
     "cleanup:comun-sidewalk-uploads": "node scripts/comun-local-env.mjs run node scripts/cleanup-comun-sidewalk-uploads.mjs",
