@@ -458,6 +458,34 @@ jobs:
           cache: npm
       - run: node --test scripts/process/evaluate-comun-checkpoint.node-test.mjs
 
+  process-checkpoint:
+    name: PROCESS / COMUN_PROCESS_CHECKPOINT_GREEN
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      contains(github.event.pull_request.labels.*.name, 'comun:process')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Validate process contract
+        run: |
+          node --test scripts/process/evaluate-comun-checkpoint.node-test.mjs
+          node --test scripts/ci/comun-central.node-test.mjs
+          npx eslint scripts/process/evaluate-comun-checkpoint.mjs scripts/process/evaluate-comun-checkpoint.node-test.mjs scripts/ci/update-comun-central.mjs scripts/ci/comun-central.node-test.mjs
+          npx prettier --check .github/workflows/comun-ci.yml scripts/process/evaluate-comun-checkpoint.mjs scripts/process/evaluate-comun-checkpoint.node-test.mjs scripts/ci/update-comun-central.mjs scripts/ci/comun-central.node-test.mjs package.json
+          node --check scripts/process/evaluate-comun-checkpoint.mjs
+          node --check scripts/ci/update-comun-central.mjs
+          git diff --check origin/main...HEAD
+          echo 'COMUN_PROCESS_CHECKPOINT_GREEN' >> "$GITHUB_STEP_SUMMARY"
+
   central-after-micro:
     name: Update COMUN CENTRAL after MICRO
     needs: micro
@@ -576,13 +604,17 @@ jobs:
           DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
           DEPLOYMENT_ID: ${{ github.event.deployment.id }}
           MERGE_SHA: ${{ github.event.deployment.sha }}
+          COMUN_RETRO_SMOKE_ROUTES: ${{ vars.COMUN_RETRO_SMOKE_ROUTES }}
           ARTIFACT_DIR: .ci-artifacts/comun-process-review
         shell: bash
         run: |
           set -uo pipefail
           smoke_status=passed
           smoke_args=()
-          for route in /comun /comun/acoes; do
+          mapfile -t routes < <(
+            node --input-type=module -e "import { resolveSmokeRoutes } from './scripts/process/evaluate-comun-checkpoint.mjs'; console.log(resolveSmokeRoutes(process.env.COMUN_RETRO_SMOKE_ROUTES).join('\\n'))"
+          )
+          for route in "${routes[@]}"; do
             status="$(curl --silent --show-error --location --output /dev/null --write-out '%{http_code}' "${DEPLOYMENT_URL}${route}" || true)"
             smoke_args+=("--smoke-route=${route}:${status}")
             if [ "$status" != "200" ]; then smoke_status=failed; fi

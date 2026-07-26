@@ -4,6 +4,7 @@ import {
   countRepeatedRuns,
   evaluateComumCheckpoint,
   limitImprovements,
+  resolveSmokeRoutes,
   sanitizeProcessData,
 } from "./evaluate-comun-checkpoint.mjs";
 
@@ -97,6 +98,14 @@ test("preserva evidência sanitizada por workflow", () => {
     review.metrics.runsByWorkflow.map((run) => run.label),
     ["MICRO", "CHECKPOINT", "RELEASE/FULL"],
   );
+});
+
+test("aceita rotas de smoke informadas e mantém fallback seguro", () => {
+  assert.deepEqual(
+    resolveSmokeRoutes("/comun/acoes,/comun/minha-participacao"),
+    ["/comun/acoes", "/comun/minha-participacao"],
+  );
+  assert.deepEqual(resolveSmokeRoutes(""), ["/comun", "/comun/acoes"]);
 });
 
 test("SHA incompatível bloqueia", () => {

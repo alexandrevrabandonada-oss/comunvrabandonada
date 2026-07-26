@@ -12,6 +12,7 @@ const SENSITIVE_KEY =
 const SENSITIVE_VALUE =
   /(?:\b(?:gh[pous]_|github_pat_|eyJ[a-zA-Z0-9_-]{10,})\S*|\b(?:postgres(?:ql)?):\/\/\S+|\b(?:password|token|secret)\s*[=:]\s*\S+)/gi;
 const REQUIRED_RUNS = ["MICRO", "CHECKPOINT", "RELEASE/FULL"];
+const DEFAULT_SMOKE_ROUTES = ["/comun", "/comun/acoes"];
 
 function isKnown(value) {
   return (
@@ -64,6 +65,14 @@ export function limitImprovements(improvements = []) {
       return true;
     })
     .slice(0, 3);
+}
+
+export function resolveSmokeRoutes(configuredRoutes) {
+  const routes = String(configuredRoutes ?? "")
+    .split(",")
+    .map((route) => route.trim())
+    .filter((route) => route.startsWith("/"));
+  return routes.length ? [...new Set(routes)] : DEFAULT_SMOKE_ROUTES;
 }
 
 export function decideComumFlow(scores) {
