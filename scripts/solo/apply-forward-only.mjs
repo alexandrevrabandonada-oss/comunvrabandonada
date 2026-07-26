@@ -6,6 +6,7 @@ import path from "node:path";
 import { buildTransactionalPackage } from "./sql-contract.mjs";
 import { buildDocuments, query } from "../db/verify-canonical-baseline.mjs";
 import { selectReleaseManifest, validateReleaseSql } from "./validate-forward-only-sql.mjs";
+import { buildDocument as buildScopedDocument, fingerprint as fingerprintScoped, query as scopedFingerprintQuery } from "./sidewalk-operational-fingerprint.mjs";
 
 const MAX_CAPTURE_BUFFER = 64 * 1024 * 1024;
 const PROCESS_TIMEOUT_MS = 5 * 60 * 1000;
@@ -301,9 +302,25 @@ function captureBaseline() {
   };
 }
 
-function ledgerValue(release) {
-  return `${release.migrationSha256}|${release.expectedPreFingerprint}|${release.expectedPostFingerprint}`;
+function captureScopedBaseline() {
+  const raw = queryOutput(scopedFingerprintQuery);
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch { fail("SOLO_SCOPED_FINGERPRINT_JSON_INVALID"); }
+  const document = buildScopedDocument(parsed);
+  return { fingerprint: fingerprintScoped(document), document };
 }
+
+function expectedScopedFingerprint(release, key) {
+  if (!release.fingerprintScope) return release[key];
+  const scopedKey = key === "expectedPreFingerprint" ? "expectedScopedPreFingerprint" : "expectedScopedPostFingerprint";
+  const value = release[scopedKey];
+  if (!/^[a-f0-9]{64}$/.test(value ?? "")) fail("SOLO_SCOPED_FINGERPRINT_EXPECTATION_MISSING");
+  return value;
+}
+
+const expectedPre = (release) => expectedScopedFingerprint(release, "expectedPreFingerprint");
+const expectedPost = (release) => expectedScopedFingerprint(release, "expectedPostFingerprint");
+function ledgerValue(release) { return `${release.migrationSha256}|${expectedPre(release)}|${expectedPost(release)}`; }
 
 function acceptedLedgerValues(release) {
   return new Set([
@@ -366,11 +383,11 @@ export function validatePreflightObjects(baseline, onboardingTriggerCount) {
 
 export function validateCurrentState(before, release, readLedgerFn = readLedger) {
   const ledgerValueForRelease = readLedgerFn(release);
-  if (before.fingerprint === release.expectedPreFingerprint) {
+  if (before.fingerprint === expectedPre(release)) {
     if (ledgerValueForRelease !== LEDGER_ABSENT) fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
     return "PRE";
   }
-  if (before.fingerprint === release.expectedPostFingerprint) {
+  if (before.fingerprint === expectedPost(release)) {
     if (!acceptedLedgerValues(release).has(ledgerValueForRelease)) {
       fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
     }
@@ -389,24 +406,26 @@ export async function main(argv = process.argv.slice(2)) {
   validateAllowlist();
   const { release, migration } = loadRelease(argv);
   const diagnosticOutput = securityDiagnosticOutputPath(argv);
-  const before = captureBaseline();
-  validatePreflightObjects(before, readOnboardingTriggerCount());
+  const globalBefore = captureBaseline();
+  validatePreflightObjects(globalBefore, readOnboardingTriggerCount());
+  const before = release.fingerprintScope ? captureScopedBaseline() : globalBefore;
   const state = validateCurrentState(before, release);
   const beforeLedgerState = summarizeLedgerState(release);
 
   if (argv.includes("--read-only-preflight")) {
     await emitSecurityDiagnostic(
       buildSanitizedSecurityDiagnostic({
-        before,
+        before: globalBefore,
         after: null,
         beforeLedgerState,
         afterLedgerState: "NOT_REACHED",
       }),
       diagnosticOutput,
     );
-    console.log(`COMUN_CANONICAL_RELEASE_FINGERPRINT ${before.fingerprint}`);
-    console.log(`COMUN_CANONICAL_RELEASE_BLOCKING_FINDINGS ${before.security.blockingFindings.length}`);
-    console.log(`COMUN_CANONICAL_RELEASE_PLATFORM_OBSERVATIONS ${before.security.platformObservations.length}`);
+    console.log(`COMUN_CANONICAL_RELEASE_FINGERPRINT ${globalBefore.fingerprint}`);
+    console.log(`COMUN_SCOPED_RELEASE_FINGERPRINT ${before.fingerprint}`);
+    console.log(`COMUN_CANONICAL_RELEASE_BLOCKING_FINDINGS ${globalBefore.security.blockingFindings.length}`);
+    console.log(`COMUN_CANONICAL_RELEASE_PLATFORM_OBSERVATIONS ${globalBefore.security.platformObservations.length}`);
     console.log(`COMUN_CANONICAL_RELEASE_LEDGER_STATE ${state === "PRE" ? "ABSENT" : "PRESENT"}`);
     console.log("COMUN_CANONICAL_RELEASE_REMOTE_READY");
     return;
@@ -415,8 +434,8 @@ export async function main(argv = process.argv.slice(2)) {
   if (state === "POST") {
     await emitSecurityDiagnostic(
       buildSanitizedSecurityDiagnostic({
-        before,
-        after: before,
+        before: globalBefore,
+        after: globalBefore,
         beforeLedgerState,
         afterLedgerState: beforeLedgerState,
       }),
@@ -430,33 +449,34 @@ export async function main(argv = process.argv.slice(2)) {
     /^\s*begin;\s*/i,
     `begin;
 select pg_catalog.set_config('comun.release_sha256', '${release.migrationSha256}', true);
-select pg_catalog.set_config('comun.release_pre_fingerprint', '${release.expectedPreFingerprint}', true);
-select pg_catalog.set_config('comun.release_post_fingerprint', '${release.expectedPostFingerprint}', true);
+select pg_catalog.set_config('comun.release_pre_fingerprint', '${expectedPre(release)}', true);
+select pg_catalog.set_config('comun.release_post_fingerprint', '${expectedPost(release)}', true);
 `,
   );
   executeSql(configuredMigration);
 
-  const after = captureBaseline();
+  const globalAfter = captureBaseline();
+  const after = release.fingerprintScope ? captureScopedBaseline() : globalAfter;
   const afterLedgerState = summarizeLedgerState(release);
   const diagnostic = buildSanitizedSecurityDiagnostic({
-    before,
-    after,
+    before: globalBefore,
+    after: globalAfter,
     beforeLedgerState,
     afterLedgerState,
   });
   await emitSecurityDiagnostic(diagnostic, diagnosticOutput);
-  if (after.fingerprint !== release.expectedPostFingerprint) {
+  if (after.fingerprint !== expectedPost(release)) {
     fail("SOLO_CANONICAL_POST_FINGERPRINT_MISMATCH");
   }
-  validateBlockingFindings(after, release.expectedBlockingFindings);
-  if (after.security.platformObservations.length && !release.platformObservationsAllowed) {
+  validateBlockingFindings(globalAfter, release.expectedBlockingFindings);
+  if (globalAfter.security.platformObservations.length && !release.platformObservationsAllowed) {
     fail("SOLO_CANONICAL_PLATFORM_OBSERVATION_NOT_ALLOWED");
   }
   if (!acceptedLedgerValues(release).has(readLedger(release))) {
     fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
   }
-  if (after.security.platformObservations.length) {
-    console.log(`COMUN_PLATFORM_DEFAULTS_OBSERVED ${after.security.platformObservations.length}`);
+  if (globalAfter.security.platformObservations.length) {
+    console.log(`COMUN_PLATFORM_DEFAULTS_OBSERVED ${globalAfter.security.platformObservations.length}`);
   }
   console.log(releaseMarker(release, "OK"));
 }
