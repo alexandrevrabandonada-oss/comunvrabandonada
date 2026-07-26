@@ -357,7 +357,7 @@ jobs:
         run: |
           set -euo pipefail
           for required in "MICRO / COMUN_MICRO_GREEN" "CHECKPOINT / COMUN_CHECKPOINT_GREEN"; do
-            passed="$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs?per_page=100" --jq "[.check_runs[] | select(.name == \"$required\" and .conclusion == \"success\")] | length")"
+            passed="$(gh api --paginate "repos/${{ github.repository }}/commits/$SHA/check-runs?per_page=100" | jq -s --arg required "$required" '[.[].check_runs[] | select(.name == $required and .conclusion == "success")] | length')"
             test "$passed" -gt 0
           done
       - uses: actions/setup-node@v4

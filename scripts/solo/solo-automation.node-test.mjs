@@ -221,6 +221,12 @@ test("the map checkpoint uses a scoped Vercel protection bypass for its Preview 
   assert.doesNotMatch(workflow, /VERCEL_TOKEN/);
 });
 
+test("the map FULL gate finds successful checks beyond the first API page", () => {
+  const workflow = readFileSync(".github/workflows/comun-ci.yml", "utf8");
+  assert.match(workflow, /gh api --paginate.*check-runs\?per_page=100/s);
+  assert.match(workflow, /jq -s --arg required/);
+});
+
 test("preview-only workflow cannot access database or mutable jobs", () => {
   const nightly = readFileSync(".github/workflows/comun-nightly.yml", "utf8");
   const previewJob =
