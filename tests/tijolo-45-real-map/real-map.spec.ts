@@ -68,3 +68,24 @@ test("falha do PMTiles mantém a grade neutra e a lista, sem voltar à demo", as
     fullPage: false,
   });
 });
+
+test("envio de calçada permanece pausado sem uma fixture sintética", async ({
+  page,
+}) => {
+  const response = await page.goto(
+    "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao",
+  );
+
+  expect(response?.status()).toBeLessThan(500);
+  await expect(
+    page.getByText(
+      "O envio de novos registros está temporariamente pausado enquanto concluímos uma atualização operacional. O mapa e os registros publicados continuam disponíveis.",
+    ),
+  ).toBeVisible();
+  expect(await page.locator("body").innerText()).not.toContain(
+    "conteúdo sintético",
+  );
+  await expect(
+    page.getByRole("button", { name: "Enviar para revisão" }),
+  ).toHaveCount(0);
+});
