@@ -7,6 +7,13 @@ const limitArg = process.argv.find((value) => value.startsWith("--limit="));
 const projectRefArg = process.argv.find((value) => value.startsWith("--project-ref="));
 const limit = Math.min(Math.max(Number(limitArg?.split("=")[1] ?? 25), 1), 100);
 const minimumAgeMs = Math.max(Number(process.env.COMUN_SIDEWALK_CLEANUP_MIN_AGE_HOURS ?? 24), 24) * 3_600_000;
+const release = "20260724233256-comun-sidewalk-operational-hardening";
+const migrationPath = "supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql";
+const migrationSha256 = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be";
+if (process.env.COMUN_SIDEWALK_OPERATIONAL_V2 !== "enabled") {
+  console.log(JSON.stringify({ status: "COMUN_SIDEWALK_OPERATIONAL_DISABLED", examined: 0, removed: 0 }));
+  process.exit(0);
+}
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!url || !key) throw new Error("CLEANUP_CONFIGURATION_MISSING");
@@ -18,6 +25,21 @@ const target = assertCleanupTarget({
   allowlist: (process.env.COMUN_SIDEWALK_CLEANUP_ALLOWED_REFS ?? "").split(",").filter(Boolean),
 });
 const db = createClient(url, key, { auth: { persistSession: false } });
+const ledger = await db
+  .from("comun_schema_releases")
+  .select("release,status,migration_path,migration_sha256")
+  .eq("release", release)
+  .maybeSingle();
+if (
+  ledger.error ||
+  !ledger.data ||
+  ledger.data.status !== "applied" ||
+  ledger.data.migration_path !== migrationPath ||
+  ledger.data.migration_sha256 !== migrationSha256
+) {
+  console.log(JSON.stringify({ status: "COMUN_SIDEWALK_OPERATIONAL_DISABLED", examined: 0, removed: 0 }));
+  process.exit(0);
+}
 const now = new Date();
 let query;
 for (let attempt = 1; attempt <= 12; attempt += 1) {

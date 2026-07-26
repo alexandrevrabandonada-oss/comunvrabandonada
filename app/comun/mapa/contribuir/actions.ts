@@ -5,6 +5,10 @@ import { requireCommunitySession } from "@/lib/community-auth";
 import { safeCommunityReturn } from "@/lib/community-return";
 import { getMediaStorage } from "@/lib/media-storage";
 import { validateSidewalkPhotoImage } from "@/lib/sidewalk-photos";
+import {
+  requireSidewalkOperationalRelease,
+  SIDEWALK_OPERATIONAL_PAUSED_MESSAGE,
+} from "@/lib/sidewalk-operational-release";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
 export async function submitTerritorialContribution(f: FormData) {
@@ -107,6 +111,7 @@ export async function authorizeSidewalkPhotoUpload(input: {
   sizeBytes: number;
   payload: DirectUploadPayload;
 }) {
+  await requireSidewalkOperationalRelease();
   const { user } = await requireCommunitySession(
       "/comun/mapa/contribuir?origem=calcadas",
     ),
@@ -185,6 +190,7 @@ export async function authorizeSidewalkPhotoUpload(input: {
 }
 
 export async function confirmSidewalkPhotoUpload(uploadId: string) {
+  await requireSidewalkOperationalRelease();
   const { user } = await requireCommunitySession(
       "/comun/mapa/contribuir?origem=calcadas",
     ),
@@ -313,6 +319,7 @@ async function persistAuthenticatedSidewalkRecord(
   f: FormData,
   directUpload?: { uploadId: string; objectKey: string },
 ) {
+  await requireSidewalkOperationalRelease();
   const returnTo = safeCommunityReturn(f.get("return_to"), "/comun/calcadas"),
     { user } = await requireCommunitySession(
       "/comun/mapa/contribuir?origem=calcadas",
@@ -560,6 +567,7 @@ async function persistAuthenticatedSidewalkRecord(
 
 export type SidewalkSubmissionState = { error?: string } | null;
 const safeSubmissionMessages = new Set([
+  SIDEWALK_OPERATIONAL_PAUSED_MESSAGE,
   "Serviço local indisponível.",
   "Confirme o ponto no mapa antes de enviar.",
   "Escolha uma fotografia antes de enviar.",

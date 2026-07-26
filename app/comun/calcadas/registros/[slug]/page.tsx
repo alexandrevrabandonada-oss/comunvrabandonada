@@ -9,6 +9,10 @@ import {
   getSidewalkMiniappRecord,
 } from "@/lib/sidewalk-miniapp";
 import { submitSidewalkObservation } from "./actions";
+import {
+  getSidewalkOperationalRelease,
+  SIDEWALK_OPERATIONAL_PAUSED_MESSAGE,
+} from "@/lib/sidewalk-operational-release";
 export const dynamic = "force-dynamic";
 const labels: Record<string, string> = {
   good: "Boa",
@@ -30,9 +34,10 @@ export default async function Page({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const [data, miniapp] = await Promise.all([
+  const [data, miniapp, sidewalkOperational] = await Promise.all([
     getSidewalkMiniappRecord((await params).slug),
     getSidewalkMiniapp(),
+    getSidewalkOperationalRelease(),
   ]);
   if (!data || !miniapp) notFound();
   const r = data.record;
@@ -139,7 +144,7 @@ export default async function Page({
             </div>
           </div>
         </div>
-        <form
+        {sidewalkOperational.enabled ? <form
           action={submitSidewalkObservation}
           className="grid gap-3 border-2 bg-white p-5"
         >
@@ -189,7 +194,9 @@ export default async function Page({
               Enviar nova foto
             </Link>
           </div>
-        </form>
+        </form> : <p role="status" className="border-l-4 border-comun-yellow bg-white p-5">
+          {SIDEWALK_OPERATIONAL_PAUSED_MESSAGE}
+        </p>}
         <p className="border-l-4 border-comun-yellow bg-comun-black p-4 text-white">
           Este registro pode ter contribuído para prioridades e encaminhamentos
           relacionados. O vínculo não prova causalidade isolada.

@@ -3,6 +3,10 @@ import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin-shell";
 import { requireComunAdminProfile } from "@/lib/admin-auth";
 import { canAccessOperationalSurface } from "@/lib/operational-authorization";
+import {
+  getSidewalkOperationalRelease,
+  SIDEWALK_OPERATIONAL_PAUSED_MESSAGE,
+} from "@/lib/sidewalk-operational-release";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { prepareSidewalkForwarding } from "../encaminhamentos/actions";
 import { createSidewalkPriority } from "./actions";
@@ -12,6 +16,16 @@ export default async function Page() {
   const session = await requireComunAdminProfile();
   if (!canAccessOperationalSurface(session.profile, "circle"))
     redirect("/comun/admin?forbidden=sidewalk-priority");
+  if (!(await getSidewalkOperationalRelease()).enabled) {
+    return (
+      <AdminShell adminEmail={session.admin.email}>
+        <h1 className="text-3xl font-black uppercase">Prioridades e encaminhamentos</h1>
+        <p className="mt-4 border-l-4 border-comun-yellow bg-comun-paper/10 p-4">
+          {SIDEWALK_OPERATIONAL_PAUSED_MESSAGE}
+        </p>
+      </AdminShell>
+    );
+  }
   const db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco local indisponível.");
   const [{ data: records }, { data: priorities }, { data: forwardings }] =

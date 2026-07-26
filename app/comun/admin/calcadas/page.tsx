@@ -3,10 +3,25 @@ import { requireComunAdmin } from "@/lib/admin-auth";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { decideSidewalkDuplicate, moderateSidewalkObservation, moderateSidewalkRecord } from "./actions";
 import { duplicateSignalScore } from "@/lib/sidewalk-operational-loop";
+import {
+  getSidewalkOperationalRelease,
+  SIDEWALK_OPERATIONAL_PAUSED_MESSAGE,
+} from "@/lib/sidewalk-operational-release";
 export const dynamic = "force-dynamic";
 export default async function Page() {
-  const session = await requireComunAdmin({ roles: ["admin", "editor"] }),
-    db = createServiceSupabaseClient();
+  const session = await requireComunAdmin({ roles: ["admin", "editor"] });
+  const sidewalkOperational = await getSidewalkOperationalRelease();
+  if (!sidewalkOperational.enabled) {
+    return (
+      <AdminShell adminEmail={session.admin.email}>
+        <h1 className="text-3xl font-black uppercase">Fila das calçadas</h1>
+        <p className="mt-4 border-l-4 border-comun-yellow bg-comun-paper/10 p-4">
+          {SIDEWALK_OPERATIONAL_PAUSED_MESSAGE}
+        </p>
+      </AdminShell>
+    );
+  }
+  const db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco local indisponível.");
   const [records, observations] = await Promise.all([
     db

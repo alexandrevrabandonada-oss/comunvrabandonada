@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { logComunAdminAction } from "@/lib/admin-audit";
 import { generateSidewalkPhotoDerivative } from "@/lib/sidewalk-photos";
+import { requireSidewalkOperationalRelease } from "@/lib/sidewalk-operational-release";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
 const decisions = new Set([
@@ -23,6 +24,7 @@ const approximate = (geometry: any) =>
     : null;
 
 export async function moderateSidewalkRecord(form: FormData) {
+  await requireSidewalkOperationalRelease();
   const session = await requireComunAdmin({ roles: ["admin", "editor"] }),
     db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco local indisponível.");
@@ -190,6 +192,7 @@ export async function moderateSidewalkRecord(form: FormData) {
 }
 
 export async function moderateSidewalkObservation(form: FormData) {
+  await requireSidewalkOperationalRelease();
   const session = await requireComunAdmin({ roles: ["admin", "editor"] }),
     db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco local indisponível.");
@@ -246,6 +249,7 @@ export async function moderateSidewalkObservation(form: FormData) {
 }
 
 export async function decideSidewalkDuplicate(form: FormData) {
+  await requireSidewalkOperationalRelease();
   const session = await requireComunAdmin({ roles: ["admin", "editor"] }),
     db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco local indisponível.");

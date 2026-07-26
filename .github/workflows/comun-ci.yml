@@ -147,6 +147,10 @@ jobs:
             echo "COMUN_REHEARSAL_SECOND_MARKER=NOT_REACHED"
             echo "PR23_DOCKER_NETWORK=$network"
           } >> "$GITHUB_ENV"
+      - name: Verify pre-migration sidewalk compatibility
+        env:
+          COMUN_SIDEWALK_OPERATIONAL_V2: disabled
+        run: node scripts/solo/verify-sidewalk-premigration-compat.mjs
       - name: Rehearse selected release first pass
         env:
           COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
@@ -268,8 +272,13 @@ jobs:
         shell: bash
         run: |
           supabase start
-          supabase db reset --local --yes
+          supabase db reset --local --yes --version 20260723220112
           container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          PR23_DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres?application_name=LOCAL_VALIDATION \
+          SUPABASE_PROJECT_REF=LOCAL_VALIDATION \
+          PR23_ALLOWED_PROJECT_REFS=LOCAL_VALIDATION \
+          COMUN_RELEASE_MANIFEST=supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json \
+          node scripts/solo/apply-forward-only.mjs
           node scripts/run-pr23-reconciliation.mjs --container="$container"
           npm run test:schema-release-ledger
           npm run test:handle-new-user
@@ -278,13 +287,20 @@ jobs:
           node scripts/run-pr23-reconciliation.mjs --container="$container"
           supabase stop --no-backup
           supabase start
-          supabase db reset --local --yes
+          supabase db reset --local --yes --version 20260723220112
           container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          PR23_DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres?application_name=LOCAL_VALIDATION \
+          SUPABASE_PROJECT_REF=LOCAL_VALIDATION \
+          PR23_ALLOWED_PROJECT_REFS=LOCAL_VALIDATION \
+          COMUN_RELEASE_MANIFEST=supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json \
+          node scripts/solo/apply-forward-only.mjs
           node scripts/run-pr23-reconciliation.mjs --container="$container"
           node scripts/solo/schema-fingerprint.mjs --container="$container" > /tmp/comun-hash-2
           diff -u /tmp/comun-hash-1 /tmp/comun-hash-2
           node scripts/run-pr23-reconciliation.mjs --container="$container"
       - name: Critical product regressions
+        env:
+          COMUN_SIDEWALK_OPERATIONAL_V2: enabled
         run: |
           npm run test:e2e:comun-integral-experience
           npm run test:e2e:editorial-operation-authenticated
