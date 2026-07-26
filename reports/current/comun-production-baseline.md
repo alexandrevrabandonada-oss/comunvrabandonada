@@ -1,30 +1,30 @@
 # Baseline de produção do COMUN
 
-Atualizado em 24 de julho de 2026.
+Atualizado em 26 de julho de 2026.
 
 ## Baseline vigente
 
 - repositório: `alexandrevrabandonada-oss/comunvrabandonada`;
-- `main`: `a989d517cd56d1051176eeb16675b019936e3244`;
-- PR de fechamento: [#32](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/32);
-- CI pós-merge:
-  [run 30130058303](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30130058303),
+- `main`: `28f26f2b7c101633e6b68332e0cea003bc4c3af1`;
+- PR de fechamento: [#40](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/40);
+- RELEASE/FULL do candidato:
+  [run 30216249436](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30216249436),
   aprovado;
-- Vercel Production deployment `5595972121`: aprovado;
-- domínio canônico: `https://comunsocial.online`;
-- pauta canônica, Home, pautas, mapa e participação: HTTP 200;
-- Minha Participação e Caixa de entrada: HTTP 307 esperado;
-- PMTiles: HTTP 206, `Content-Range: bytes 0-31/10147678`;
-- navegação pauta ↔ mapa: aprovada;
-- nenhuma resposta 5xx ou marcador sensível encontrado nas superfícies
-  inspecionadas;
-- decisão: `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN`;
-- Tijolo 43: `TIJOLO_43_UNBLOCKED`;
-- gate humano: 0/3;
-- piloto público: fechado.
+- Vercel Production:
+  [READY](https://comunvrabandonada-p0xatd36v-alexandrevrabandonada-oss-projects.vercel.app);
+- `/comun/acoes`: HTTP 200 com mensagem pública de preparação;
+- `/comun/minha-participacao` e `/comun/admin/acoes`: HTTP 307 controlado para
+  autenticação;
+- nenhuma resposta 5xx, erro de schema ou log de runtime em nível de erro
+  encontrado no smoke;
+- decisão: `COMUN_TIJolo_44_3_ACTION_TO_MEMORY_MERGED`;
+- `COMUN_COLLECTIVE_ACTIONS_V1`: desabilitada em produção;
+- migration remota de Ações Coletivas: não aplicada;
+- domínio: inalterado;
+- banco remoto, storage e histórico de migrations: sem escrita.
 
-Nenhuma migration, escrita no Supabase remoto, alteração de domínio ou deploy
-manual foi necessária no hotfix 42.1.
+O bloco histórico abaixo registra baselines anteriores à integração do Tijolo
+44.3.
 
 ## Baseline histórico
 

@@ -1,31 +1,31 @@
 # Estado atual do COMUN
 
-Atualizado em 25 de julho de 2026.
+Atualizado em 26 de julho de 2026.
 
-## Linha ativa
+## Estado vigente
 
 - repositório: `alexandrevrabandonada-oss/comunvrabandonada`;
-- PR #31 e PR #32: mescladas por merge commit;
-- HEAD de partida e base `main`:
-  `7152bb7d946ac4245053ae3cd0e2563a3822ac51`;
-- HEAD técnico validado:
-  `072006b458d04319a983d7823ed814199f8884da`;
-- HEAD documental:
-  `ca40c96b5fd2b4991e4fe987b636a7e8811fdbe1`;
-- `main` vigente:
-  `4a9e2d4f341e755b3a1aa969c26344f4f4334bae`;
-- escopo: composição da experiência existente, sem migration;
-- CI e Vercel no merge SHA: aprovados;
-- decisão vigente: `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN`;
-- hotfix 42.1: concluído pela PR #32;
-- estado local do hotfix: `COMUN_CANONICAL_SIDEWALK_PAUTA_OK`;
-- Tijolo 43: ciclo operacional corrigido localmente, com migration pendente de promoção;
-- PR #35 (draft): HEAD `4ca09221f4d4720ac0da6cca1dab871ecdda8e46`;
-- decisão do Tijolo 43: `COMUN_CALCADAS_FAST_PATCH_REQUIRED`;
-- gate humano: 0/3;
+- `main` vigente: `28f26f2b7c101633e6b68332e0cea003bc4c3af1`;
+- último fechamento: PR #40, mesclada por merge commit;
+- decisão vigente:
+  `COMUN_TIJolo_44_3_ACTION_TO_MEMORY_MERGED`;
+- Tijolo 44.3: jornada administrativa de Ações Coletivas integrada até
+  encaminhamento, protocolo, resposta, resultado e memória pública;
+- MICRO, CHECKPOINT e RELEASE/FULL do SHA candidato aprovados;
+- Preview e produção do merge SHA aprovados; `/comun/acoes` respondeu 200 em
+  modo pausado;
+- `COMUN_COLLECTIVE_ACTIONS_V1`: desabilitada em produção;
+- migration remota de Ações Coletivas: não aplicada;
+- Tijolo 43: código integrado, ativação operacional permanece estacionada na
+  branch específica e sem escrita remota;
+- banco remoto, storage e histórico de migrations: sem escrita nesta entrega;
 - piloto público: fechado.
 
-## Decisão vigente — Tijolo 42
+O relatório de fechamento desta entrega está em
+`reports/current/comun-tijolo-44-3-fechamento.md`. As seções seguintes
+preservam o histórico dos Tijolos 42 e 43.
+
+## Histórico — Tijolo 42
 
 A pauta passa a ser o eixo público entre território, comunidade, conversa,
 contribuição, ação, resultado e memória. A pauta-piloto “Calçadas em
