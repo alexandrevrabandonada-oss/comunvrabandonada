@@ -20,7 +20,7 @@ export function selectReleaseManifest(value = arg?.slice(19) ?? process.env.COMU
     if (changed.some((line) => /^[DR]/.test(line))) marker("SOLO_RELEASE_MANIFEST_PATH_INVALID");
     const manifests = changed.map((line) => line.split(/\s+/).at(-1)).filter((name) => name?.endsWith(".json"));
     if (manifests.length !== 1) marker("SOLO_RELEASE_MANIFEST_COUNT_INVALID");
-    value = `supabase/releases/${manifests[0]}`;
+    value = manifests[0];
   }
   if (path.isAbsolute(value)) marker("SOLO_RELEASE_MANIFEST_PATH_INVALID");
   const absolute = path.resolve(value);
