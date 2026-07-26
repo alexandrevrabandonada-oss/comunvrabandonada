@@ -272,6 +272,8 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci --ignore-scripts
+      - name: Install the pinned Playwright browser
+        run: npx playwright install --with-deps chromium
       - run: npm run test:map-base
       - run: npx vitest run lib/sidewalk-basemap-provider.test.ts
       - run: npm run typecheck
