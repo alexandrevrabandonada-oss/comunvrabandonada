@@ -143,7 +143,8 @@ jobs:
             const browser = await chromium.launch({ headless: true });
             const errors = [];
             for (const [name, width, height] of viewports) {
-              const page = await browser.newPage({ viewport: { width, height } });
+              const context = await browser.newContext({ viewport: { width, height } });
+              const page = await context.newPage();
               page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
               page.on("pageerror", (error) => errors.push(error.message));
               for (const [routeName, path] of routes) {
@@ -163,7 +164,7 @@ jobs:
                 if (/member_user_id|contribution_note_private|service_role|private_contact/i.test(content)) throw new Error(`Private marker exposed: ${path}`);
                 await page.screenshot({ path: `.ci-artifacts/collective-actions-preview/${name}-${routeName}.png`, fullPage: true });
               }
-              await page.close();
+              await context.close();
             }
             await browser.close();
             if (errors.length) throw new Error(`Console errors: ${errors.join(" | ")}`);
