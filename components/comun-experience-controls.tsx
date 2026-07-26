@@ -317,7 +317,7 @@ export function SearchSheet() {
         ref={trigger}
         type="button"
         onClick={() => setOpen(true)}
-        className="grid size-11 place-items-center text-comun-yellow hover:bg-comun-paper hover:text-comun-black"
+        className="grid size-12 place-items-center text-comun-yellow hover:bg-comun-paper hover:text-comun-black"
         aria-label="Abrir busca"
       >
         <Search aria-hidden="true" size={19} />
