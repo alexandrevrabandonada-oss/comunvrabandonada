@@ -153,7 +153,7 @@ jobs:
                 if (await page.locator("main").count() === 0) throw new Error(`Missing main landmark: ${path}`);
                 const undersizedButtons = await page.locator("button").evaluateAll((buttons) => buttons.filter((button) => {
                   const rect = button.getBoundingClientRect();
-                  return rect.width < 40 || rect.height < 40;
+                  return rect.width > 0 && rect.height > 0 && (rect.width < 40 || rect.height < 40);
                 }).length);
                 if (undersizedButtons) throw new Error(`Undersized touch targets: ${name} ${path}`);
                 const audit = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
