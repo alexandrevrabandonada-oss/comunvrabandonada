@@ -30,6 +30,7 @@ export async function AdminShell({
             <Link href="/comun/admin/organizacao/entrada/vincular">Vincular relato</Link>
             <Link href="/comun/admin/relatos">Relatos</Link>
             <Link href="/comun/admin/pautas">Pautas</Link>
+            <Link href="/comun/admin/acoes">Acoes coletivas</Link>
             <Link href="/comun/admin/pautas/contribuicoes">Contribuicoes</Link>
             <Link href="/comun/admin/dossies">Dossies</Link>
             <Link href="/comun/admin/acervo">Acervo</Link>

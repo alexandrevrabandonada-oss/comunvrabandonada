@@ -17,6 +17,7 @@ import { getPersonalCenter } from "@/lib/personal-center";
 import { listMyParticipation } from "@/lib/pauta-miniapps";
 import { listMyIdentificationContributions } from "@/lib/archive-identification";
 import { withdrawIdentificationComment } from "@/app/comun/acervo/identificar/actions";
+import { listMemberCollectiveActions } from "@/lib/collective-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -37,10 +38,11 @@ export default async function MinhaAreaPage({
   const { user, profile } = await requireCommunitySession(
     "/comun/minha-participacao",
   );
-  const [center, submissions, archiveContributions] = await Promise.all([
+  const [center, submissions, archiveContributions, collectiveActions] = await Promise.all([
     getPersonalCenter(user.id),
     listMyParticipation(user.id),
     listMyIdentificationContributions(user.id),
+    listMemberCollectiveActions(user.id),
   ]);
   const contributions = [
     ...submissions.contributions,
@@ -189,6 +191,16 @@ export default async function MinhaAreaPage({
           </div>
         </Area>
       ) : null}
+      {selected === "acompanhando" && collectiveActions.length ? (
+        <Area title="Ações coletivas que você acompanha">
+          <Rows
+            rows={collectiveActions}
+            title={(x: any) => x.action?.title || "Ação coletiva"}
+            status={(x: any) => x.action?.status || x.status}
+            text={(x: any) => x.action?.summary || "Acompanhe os próximos passos."}
+          />
+        </Area>
+      ) : null}
       {selected === "contribuicoes" && contributions.length ? (
         <Area title="Minhas contribuições">
           <Rows
@@ -254,7 +266,7 @@ export default async function MinhaAreaPage({
           Registrar primeira contribuição
         </SingleEmpty>
       ) : null}
-      {selected === "acompanhando" && !center.memberships.length ? (
+      {selected === "acompanhando" && !center.memberships.length && !collectiveActions.length ? (
         <SingleEmpty href="/comun/explorar" title="Nada acompanhado">
           Explorar comunidades
         </SingleEmpty>

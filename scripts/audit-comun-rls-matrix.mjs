@@ -194,6 +194,42 @@ const classifications = {
     sensitive: "Checksums e fingerprints operacionais, sem dados pessoais.",
     expected: "Sem leitura ou escrita por anon/authenticated.",
   },
+  comun_collective_actions: {
+    decision: "public_read_safe",
+    purpose: "Cadernos de ações coletivas publicados.",
+    sensitive: "Rascunhos, vínculos internos e operação não publicada ficam fora da leitura pública.",
+    expected: "Leitura pública somente de ações publicadas em estado visível.",
+  },
+  comun_collective_action_participations: {
+    decision: "owner_read",
+    purpose: "Participação privada de cada membro em uma ação coletiva.",
+    sensitive: "Identidade, estado de participação e contribuição curta para revisão.",
+    expected: "Cada membro lê e escreve somente a própria participação; contagens são agregadas no servidor.",
+  },
+  comun_collective_action_tasks: {
+    decision: "public_read_safe",
+    purpose: "Tarefas pequenas de ações coletivas públicas.",
+    sensitive: "Sem identidade de quem assumiu a tarefa.",
+    expected: "Leitura pública somente quando vinculada a ação pública visível.",
+  },
+  comun_collective_action_task_assignments: {
+    decision: "owner_read",
+    purpose: "Assunções privadas de tarefas coletivas.",
+    sensitive: "Identidade e estado da pessoa que assumiu ou liberou uma tarefa.",
+    expected: "Cada membro lê e muda somente sua própria assunção; a capacidade é aplicada no banco.",
+  },
+  comun_collective_action_updates: {
+    decision: "public_read_safe",
+    purpose: "Linha do tempo pública estruturada das ações coletivas.",
+    sensitive: "Atualizações internas não aparecem publicamente.",
+    expected: "Leitura pública apenas de atualizações públicas de ações visíveis.",
+  },
+  comun_collective_action_sidewalk_records: {
+    decision: "public_read_safe",
+    purpose: "Vínculos de ação coletiva com registros de calçada.",
+    sensitive: "Somente os identificadores de vínculo; a página sanitiza a projeção do registro.",
+    expected: "Leitura apenas quando a ação coletiva é pública e visível.",
+  },
   comun_archive_items: {
     decision: "public_read_safe",
     purpose: "Itens publicados do Acervo Vivo.",
