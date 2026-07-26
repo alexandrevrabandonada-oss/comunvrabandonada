@@ -39,6 +39,14 @@ const branch = process.env.COMUN_CENTRAL_BRANCH;
 const pr = process.env.COMUN_CENTRAL_PR;
 const runUrl = process.env.COMUN_CENTRAL_RUN_URL;
 const deploymentUrl = process.env.COMUN_CENTRAL_DEPLOYMENT_URL;
+const checkpoint = process.env.COMUN_CENTRAL_CHECKPOINT;
+const productDecision = process.env.COMUN_CENTRAL_PRODUCT_DECISION;
+const processDecision = process.env.COMUN_CENTRAL_PROCESS_DECISION;
+const duration = process.env.COMUN_CENTRAL_DURATION;
+const runs = process.env.COMUN_CENTRAL_RUNS;
+const interventions = process.env.COMUN_CENTRAL_HUMAN_INTERVENTIONS;
+const improvements = process.env.COMUN_CENTRAL_IMPROVEMENTS;
+const remoteWrites = process.env.COMUN_CENTRAL_REMOTE_WRITES;
 
 const branchIsSha = /^[a-f0-9]{40}$/i.test(branch ?? "");
 if (branch && !branchIsSha && stage !== "merge" && stage !== "deploy")
@@ -70,9 +78,25 @@ if (stage === "merge") {
 if (stage === "deploy") {
   state.set(
     "Deploy",
-      deploymentUrl ? `${result} — [abrir](${deploymentUrl})` : result,
+    deploymentUrl ? `${result} — [abrir](${deploymentUrl})` : result,
   );
   state.set("Etapa atual", "deploy concluído; aguardando smoke de produção");
+}
+if (stage === "retro") {
+  state.set("Último checkpoint", checkpoint ?? "indisponível");
+  state.set("Decisão de produto", productDecision ?? "unknown");
+  state.set("Decisão de processo", processDecision ?? "unknown");
+  state.set("Duração", duration ?? "unknown");
+  state.set("Runs e reexecuções", runs ?? "unknown");
+  state.set("Intervenções humanas", interventions ?? "unknown");
+  state.set("Melhorias próximo ciclo", improvements ?? "nenhuma");
+  state.set("Escritas remotas de banco", remoteWrites ?? "unknown");
+  state.set("Branch ativa", "nenhuma — `main` integrada");
+  state.set("PR ativa", "nenhuma — checkpoint integrado");
+  state.set(
+    "Etapa atual",
+    "COMUN RETRO concluída; próximo checkpoint pode iniciar",
+  );
 }
 
 state.set(
@@ -92,6 +116,14 @@ const preferredOrder = [
   "Merge",
   "Deploy",
   "Última execução",
+  "Último checkpoint",
+  "Decisão de produto",
+  "Decisão de processo",
+  "Duração",
+  "Runs e reexecuções",
+  "Intervenções humanas",
+  "Melhorias próximo ciclo",
+  "Escritas remotas de banco",
   "Produção",
   "Migration remota",
 ];

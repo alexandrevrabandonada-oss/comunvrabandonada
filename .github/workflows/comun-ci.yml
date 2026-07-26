@@ -444,6 +444,48 @@ jobs:
       - if: always() && steps.deduplicate.outputs.should_run == 'true'
         run: supabase stop --no-backup || true
 
+  process-retro-unit:
+    name: COMUN RETRO / unit
+    if: >-
+      (github.event_name == 'pull_request' && github.event.action != 'closed') ||
+      github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: node --test scripts/process/evaluate-comun-checkpoint.node-test.mjs
+
+  process-checkpoint:
+    name: PROCESS / COMUN_PROCESS_CHECKPOINT_GREEN
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      contains(github.event.pull_request.labels.*.name, 'comun:process')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Validate process contract
+        run: |
+          node --test scripts/process/evaluate-comun-checkpoint.node-test.mjs
+          node --test scripts/ci/comun-central.node-test.mjs
+          npx eslint scripts/process/evaluate-comun-checkpoint.mjs scripts/process/evaluate-comun-checkpoint.node-test.mjs scripts/ci/update-comun-central.mjs scripts/ci/comun-central.node-test.mjs
+          npx prettier --check .github/workflows/comun-ci.yml scripts/process/evaluate-comun-checkpoint.mjs scripts/process/evaluate-comun-checkpoint.node-test.mjs scripts/ci/update-comun-central.mjs scripts/ci/comun-central.node-test.mjs package.json
+          node --check scripts/process/evaluate-comun-checkpoint.mjs
+          node --check scripts/ci/update-comun-central.mjs
+          git diff --check origin/main...HEAD
+          echo 'COMUN_PROCESS_CHECKPOINT_GREEN' >> "$GITHUB_STEP_SUMMARY"
+
   central-after-micro:
     name: Update COMUN CENTRAL after MICRO
     needs: micro
@@ -515,25 +557,99 @@ jobs:
           COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node scripts/ci/update-comun-central.mjs
 
-  central-after-merge-or-deploy:
-    name: Update COMUN CENTRAL after merge or deploy
+  central-after-merge:
+    name: Update COMUN CENTRAL after merge
     if: >-
-      (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.number == 40 && github.event.pull_request.merged == true) ||
-      (github.event_name == 'deployment_status' && github.event.deployment.environment == 'Production' && github.event.deployment.ref == 'main')
+      github.event_name == 'pull_request' &&
+      github.event.action == 'closed' &&
+      github.event.pull_request.merged == true
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.deployment.sha || github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Update fixed control issue
         env:
           GITHUB_TOKEN: ${{ github.token }}
           COMUN_CENTRAL_ISSUE: "39"
-          COMUN_CENTRAL_STAGE: ${{ github.event_name == 'deployment_status' && 'deploy' || 'merge' }}
-          COMUN_CENTRAL_RESULT: ${{ github.event_name == 'deployment_status' && github.event.deployment_status.state || 'merged' }}
-          COMUN_CENTRAL_SHA: ${{ github.event.deployment.sha || github.event.pull_request.head.sha || github.sha }}
-          COMUN_CENTRAL_BRANCH: ${{ github.event.deployment.ref || github.event.pull_request.head.ref || github.ref_name }}
-          COMUN_CENTRAL_PR: ${{ github.event.pull_request.number || '40' }}
-          COMUN_CENTRAL_DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
+          COMUN_CENTRAL_STAGE: merge
+          COMUN_CENTRAL_RESULT: merged
+          COMUN_CENTRAL_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          COMUN_CENTRAL_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          COMUN_CENTRAL_PR: ${{ github.event.pull_request.number }}
+          COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/ci/update-comun-central.mjs
+
+  comun-retro:
+    name: COMUN RETRO / evaluate merged checkpoint
+    if: >-
+      github.event_name == 'deployment_status' &&
+      github.event.deployment.environment == 'Production' &&
+      github.event.deployment.ref == 'main' &&
+      github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - id: retro
+        name: Smoke production and evaluate the completed checkpoint
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
+          DEPLOYMENT_ID: ${{ github.event.deployment.id }}
+          MERGE_SHA: ${{ github.event.deployment.sha }}
+          COMUN_RETRO_SMOKE_ROUTES: ${{ vars.COMUN_RETRO_SMOKE_ROUTES }}
+          ARTIFACT_DIR: .ci-artifacts/comun-process-review
+        shell: bash
+        run: |
+          set -uo pipefail
+          smoke_status=passed
+          smoke_args=()
+          mapfile -t routes < <(
+            node --input-type=module -e "import { resolveSmokeRoutes } from './scripts/process/evaluate-comun-checkpoint.mjs'; console.log(resolveSmokeRoutes(process.env.COMUN_RETRO_SMOKE_ROUTES).join('\\n'))"
+          )
+          for route in "${routes[@]}"; do
+            status="$(curl --silent --show-error --location --output /dev/null --write-out '%{http_code}' "${DEPLOYMENT_URL}${route}" || true)"
+            smoke_args+=("--smoke-route=${route}:${status}")
+            if [ "$status" != "200" ]; then smoke_status=failed; fi
+          done
+          node scripts/process/evaluate-comun-checkpoint.mjs \
+            --repository="${{ github.repository }}" \
+            --merge-sha="$MERGE_SHA" \
+            --production-deployment="$DEPLOYMENT_ID" \
+            --smoke-status="$smoke_status" \
+            --remote-writes=unknown \
+            --output-dir="$ARTIFACT_DIR" \
+            --github-output="$GITHUB_OUTPUT" \
+            "${smoke_args[@]}"
+      - name: Publish sanitized COMUN RETRO artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-process-review-${{ steps.retro.outputs.checkpoint_id }}-${{ github.run_id }}
+          path: .ci-artifacts/comun-process-review
+          if-no-files-found: warn
+      - name: Update COMUN CENTRAL after COMUN RETRO
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          COMUN_CENTRAL_ISSUE: "39"
+          COMUN_CENTRAL_STAGE: retro
+          COMUN_CENTRAL_RESULT: ${{ steps.retro.outputs.process_decision }}
+          COMUN_CENTRAL_SHA: ${{ github.event.deployment.sha }}
+          COMUN_CENTRAL_CHECKPOINT: ${{ steps.retro.outputs.checkpoint_id }}
+          COMUN_CENTRAL_PRODUCT_DECISION: ${{ steps.retro.outputs.product_decision }}
+          COMUN_CENTRAL_PROCESS_DECISION: ${{ steps.retro.outputs.process_decision }}
+          COMUN_CENTRAL_DURATION: ${{ steps.retro.outputs.duration }}
+          COMUN_CENTRAL_RUNS: ${{ steps.retro.outputs.runs }}
+          COMUN_CENTRAL_HUMAN_INTERVENTIONS: ${{ steps.retro.outputs.human_interventions }}
+          COMUN_CENTRAL_IMPROVEMENTS: ${{ steps.retro.outputs.improvements }}
+          COMUN_CENTRAL_REMOTE_WRITES: ${{ steps.retro.outputs.remote_writes }}
           COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node scripts/ci/update-comun-central.mjs

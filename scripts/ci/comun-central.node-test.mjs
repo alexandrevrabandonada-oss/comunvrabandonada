@@ -21,6 +21,14 @@ test("COMUN Central updater never handles database credentials", () => {
   assert.match(source, /não disparado para o SHA atual/);
 });
 
+test("COMUN Central updater supports the COMUN RETRO process fields", () => {
+  const source = readFileSync("scripts/ci/update-comun-central.mjs", "utf8");
+  assert.match(source, /stage === "retro"/);
+  assert.match(source, /Decisão de processo/);
+  assert.match(source, /Melhorias próximo ciclo/);
+  assert.match(source, /Escritas remotas de banco/);
+});
+
 test("CI scripts have valid JavaScript syntax", () => {
   for (const file of [ignoreScript, "scripts/ci/update-comun-central.mjs"]) {
     const result = spawnSync(process.execPath, ["--check", file], {

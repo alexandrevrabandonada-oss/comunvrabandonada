@@ -1,0 +1,141 @@
+{
+  "protocol": "COMUN RETRO",
+  "checkpointId": "tijolo-44-3",
+  "productDecision": "COMUN_TIJolo_44_3_ACTION_TO_MEMORY_MERGED",
+  "processDecision": "COMUN_FLOW_GREEN_WITH_ADJUSTMENT",
+  "retroactive": true,
+  "integrity": {
+    "candidateSha": "2015c6cc4d265211f632cfcdd9b9a10301009d96",
+    "mergeSha": "28f26f2b7c101633e6b68332e0cea003bc4c3af1",
+    "prHeadSha": "2015c6cc4d265211f632cfcdd9b9a10301009d96",
+    "prMergeSha": "28f26f2b7c101633e6b68332e0cea003bc4c3af1",
+    "mainIntegrated": true,
+    "remoteWrites": "none",
+    "blockers": []
+  },
+  "metrics": {
+    "pr": 40,
+    "branch": "codex/tijolo-44-3-acao-memoria",
+    "base": "main",
+    "commits": 10,
+    "changedFiles": 20,
+    "candidateShas": [
+      "56ea1da620285b9e19e6b2b6ce285d44582228d2",
+      "5fb872b7cc024fd15eb8ea980b8385e3d22c1fa6",
+      "a5a13f4ca096b491a7708557eca2ffb24d3f0c60",
+      "98b1662e32a41e650c9db1a8ed74c6ad28b30fb8",
+      "1ca2065a432617f95c62e144d6d8e466f968f639",
+      "0f8841ff7528cef4f73a5f53efe97865e0c094aa",
+      "ec477abf89efcfdafd6a3f27121e641272eef2d1",
+      "d91e37ecd79281490bf1180ec5325ac24d303567",
+      "2ccc57dde74a4a429591a01fe4153d4b82d042bd",
+      "2015c6cc4d265211f632cfcdd9b9a10301009d96"
+    ],
+    "runs": 3,
+    "runsByWorkflow": [
+      {
+        "label": "MICRO",
+        "id": 30215943724,
+        "conclusion": "success",
+        "runAttempt": 1,
+        "durationMs": 79000,
+        "failedJobs": 0,
+        "artifacts": 0
+      },
+      {
+        "label": "CHECKPOINT",
+        "id": 30216002336,
+        "conclusion": "success",
+        "runAttempt": 1,
+        "durationMs": 366000,
+        "failedJobs": 0,
+        "artifacts": 1
+      },
+      {
+        "label": "RELEASE/FULL",
+        "id": 30216249436,
+        "conclusion": "success",
+        "runAttempt": 1,
+        "durationMs": 304000,
+        "failedJobs": 0,
+        "artifacts": 0
+      }
+    ],
+    "repeatedRuns": 0,
+    "failedJobs": 0,
+    "artifacts": 1,
+    "deployments": 3,
+    "duration": {
+      "totalMs": 749000,
+      "known": 3,
+      "unknown": 0
+    },
+    "toolbar": {
+      "unresolved": 1
+    },
+    "human": {
+      "state": "unknown",
+      "count": null,
+      "types": []
+    },
+    "smoke": {
+      "status": "passed",
+      "routes": [
+        "/comun:200",
+        "/comun/acoes:200"
+      ]
+    }
+  },
+  "scores": {
+    "objective_alignment": {
+      "status": "green",
+      "justification": "A PR foi mesclada para a base declarada."
+    },
+    "scope_control": {
+      "status": "green",
+      "justification": "20 arquivo(s) alterado(s) na PR."
+    },
+    "branch_discipline": {
+      "status": "green",
+      "justification": "Base main, branch identificada, descartada e sem mistura registrada."
+    },
+    "integration_quality": {
+      "status": "green",
+      "justification": "Gates, merge, deployment e smoke são compatíveis."
+    },
+    "automation_level": {
+      "status": "yellow",
+      "justification": "Avaliação retroativa: métricas não foram emitidas pelo fechamento original."
+    },
+    "human_dependency": {
+      "status": "yellow",
+      "justification": "Intervenções humanas não foram registradas de forma estruturada."
+    },
+    "rework_cost": {
+      "status": "yellow",
+      "justification": "10 SHA(s) candidato(s) e 0 reexecução(ões)."
+    },
+    "gate_efficiency": {
+      "status": "green",
+      "justification": "Gates concluídos sem repetição."
+    },
+    "operational_safety": {
+      "status": "green",
+      "justification": "Sem escrita remota e smoke verde."
+    },
+    "evidence_quality": {
+      "status": "yellow",
+      "justification": "A retrospectiva foi reconstruída após o checkpoint."
+    }
+  },
+  "improvements": [
+    {
+      "action": "Persistir duração, reexecuções, smoke e intervenções humanas no artefato de cada checkpoint.",
+      "evidence": "A retrospectiva não deve depender de reconstrução posterior de métricas."
+    },
+    {
+      "action": "Executar a verificação de interface responsável pelo retrabalho no CHECKPOINT antes de solicitar RELEASE/FULL.",
+      "evidence": "10 SHAs candidatos foram observados."
+    }
+  ]
+}
