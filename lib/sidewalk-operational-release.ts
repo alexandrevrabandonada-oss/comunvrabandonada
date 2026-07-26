@@ -1,6 +1,5 @@
 import "server-only";
 
-import { cache } from "react";
 import {
   hasExactSidewalkOperationalLedger,
   isSidewalkOperationalReleaseEnabled,
@@ -54,7 +53,7 @@ async function readSidewalkOperationalLedger() {
  * This check is intentionally fail-closed. The environment flag only permits
  * the ledger lookup; it never enables the feature on its own.
  */
-export const getSidewalkOperationalRelease = cache(async () => {
+export async function getSidewalkOperationalRelease() {
   if (process.env.COMUN_SIDEWALK_OPERATIONAL_V2 !== "enabled") {
     return { enabled: false as const };
   }
@@ -68,7 +67,7 @@ export const getSidewalkOperationalRelease = cache(async () => {
   } catch {
     return { enabled: false as const };
   }
-});
+}
 
 export async function requireSidewalkOperationalRelease() {
   if (!(await getSidewalkOperationalRelease()).enabled) {
