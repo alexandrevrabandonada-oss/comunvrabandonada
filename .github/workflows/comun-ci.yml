@@ -312,7 +312,7 @@ jobs:
                   --header "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" \
                   --dump-header "$headers_path" --output /dev/null --write-out '%{http_code}' \
                   "$deployment_url/maps/volta-redonda/volta-redonda.pmtiles" || true)"
-                content_range="$(tr -d '\r' < "$headers_path" | awk 'tolower($1) == "content-range:" { print $2; exit }')"
+                content_range="$(tr -d '\r' < "$headers_path" | awk 'tolower($1) == "content-range:" { print $2 " " $3; exit }')"
                 rm -f "$headers_path"
                 if [[ "$http_status" == "206" && "$content_range" == "bytes 0-127/10147678" ]]; then
                   echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
