@@ -478,10 +478,12 @@ jobs:
       - name: Validate process contract
         run: |
           node --test scripts/process/evaluate-comun-checkpoint.node-test.mjs
+          node --test scripts/process/verify-main-deployment.node-test.mjs
           node --test scripts/ci/comun-central.node-test.mjs
-          npx eslint scripts/process/evaluate-comun-checkpoint.mjs scripts/process/evaluate-comun-checkpoint.node-test.mjs scripts/ci/update-comun-central.mjs scripts/ci/comun-central.node-test.mjs
-          npx prettier --check .github/workflows/comun-ci.yml scripts/process/evaluate-comun-checkpoint.mjs scripts/process/evaluate-comun-checkpoint.node-test.mjs scripts/ci/update-comun-central.mjs scripts/ci/comun-central.node-test.mjs package.json
+          npx eslint scripts/process scripts/ci
+          npx prettier --check .github/workflows scripts/process scripts/ci package.json
           node --check scripts/process/evaluate-comun-checkpoint.mjs
+          node --check scripts/process/verify-main-deployment.mjs
           node --check scripts/ci/update-comun-central.mjs
           git diff --check origin/main...HEAD
           echo 'COMUN_PROCESS_CHECKPOINT_GREEN' >> "$GITHUB_STEP_SUMMARY"
@@ -585,7 +587,6 @@ jobs:
     if: >-
       github.event_name == 'deployment_status' &&
       github.event.deployment.environment == 'Production' &&
-      github.event.deployment.ref == 'main' &&
       github.event.deployment_status.state == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -593,12 +594,23 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.deployment.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22.18.0
           cache: npm
+      - id: lineage
+        name: Verify production deployment lineage from main
+        env:
+          DEPLOYMENT_SHA: ${{ github.event.deployment.sha }}
+          DEPLOYMENT_ENVIRONMENT: ${{ github.event.deployment.environment }}
+          DEPLOYMENT_STATE: ${{ github.event.deployment_status.state }}
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          node scripts/process/verify-main-deployment.mjs --github-output="$GITHUB_OUTPUT"
       - id: retro
         name: Smoke production and evaluate the completed checkpoint
+        if: steps.lineage.outputs.eligible == 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
           DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
@@ -629,14 +641,14 @@ jobs:
             --github-output="$GITHUB_OUTPUT" \
             "${smoke_args[@]}"
       - name: Publish sanitized COMUN RETRO artifact
-        if: always()
+        if: always() && steps.lineage.outputs.eligible == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: comun-process-review-${{ steps.retro.outputs.checkpoint_id }}-${{ github.run_id }}
           path: .ci-artifacts/comun-process-review
           if-no-files-found: warn
       - name: Update COMUN CENTRAL after COMUN RETRO
-        if: success()
+        if: steps.lineage.outputs.eligible == 'true' && steps.retro.outcome == 'success'
         env:
           GITHUB_TOKEN: ${{ github.token }}
           COMUN_CENTRAL_ISSUE: "39"

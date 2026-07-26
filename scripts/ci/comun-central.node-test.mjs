@@ -29,6 +29,13 @@ test("COMUN Central updater supports the COMUN RETRO process fields", () => {
   assert.match(source, /Escritas remotas de banco/);
 });
 
+test("COMUN Central updater supports an active process repair", () => {
+  const source = readFileSync("scripts/ci/update-comun-central.mjs", "utf8");
+  assert.match(source, /stage === "process"/);
+  assert.match(source, /Checkpoint bloqueado/);
+  assert.match(source, /nenhuma branch de produto ativa/);
+});
+
 test("CI scripts have valid JavaScript syntax", () => {
   for (const file of [ignoreScript, "scripts/ci/update-comun-central.mjs"]) {
     const result = spawnSync(process.execPath, ["--check", file], {
