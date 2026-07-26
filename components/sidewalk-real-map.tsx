@@ -44,6 +44,8 @@ type Filters = {
   problem: string;
   neighborhood: string;
   forwarding: string;
+  verification: string;
+  period: string;
 };
 
 export function SidewalkRealMap({
@@ -73,7 +75,21 @@ export function SidewalkRealMap({
     problem: params.get("problema") ?? "",
     neighborhood: params.get("bairro") ?? "",
     forwarding: params.get("estado") ?? "",
+    verification: params.get("verificacao") ?? "",
+    period: params.get("periodo") ?? "",
   });
+  const referenceTime = useMemo(
+    () =>
+      Math.max(
+        0,
+        ...records.map((record) =>
+          record.last_observed_at
+            ? new Date(record.last_observed_at).getTime()
+            : 0,
+        ),
+      ),
+    [records],
+  );
   const neighborhoods = useMemo(
     () =>
       [
@@ -96,10 +112,19 @@ export function SidewalkRealMap({
           (!filters.condition || x.condition === filters.condition) &&
           (!filters.problem || x.categories.includes(filters.problem)) &&
           (!filters.neighborhood || x.neighborhood === filters.neighborhood) &&
-          (!filters.forwarding || x.forwarding_status === filters.forwarding)
+          (!filters.forwarding || x.forwarding_status === filters.forwarding) &&
+          (!filters.verification ||
+            x.verification_status === filters.verification) &&
+          (!filters.period ||
+            Boolean(
+              x.last_observed_at &&
+                new Date(x.last_observed_at).getTime() >=
+                  referenceTime -
+                    Number.parseInt(filters.period, 10) * 24 * 60 * 60 * 1000,
+            ))
         );
       }),
-    [records, filters],
+    [records, filters, referenceTime],
   );
   const clusters = useMemo(
     () => clusterSidewalkRecords(visible, zoom),
@@ -113,6 +138,8 @@ export function SidewalkRealMap({
       problema: next.problem,
       bairro: next.neighborhood,
       estado: next.forwarding,
+      verificacao: next.verification,
+      periodo: next.period,
     }).forEach(([key, value]) => {
       if (value) q.set(key, value);
     });
@@ -132,6 +159,8 @@ export function SidewalkRealMap({
       problem: "",
       neighborhood: "",
       forwarding: "",
+      verification: "",
+      period: "",
     };
     setFilters(next);
     sync(next);
@@ -261,6 +290,34 @@ export function SidewalkRealMap({
             value={filters.neighborhood}
             onChange={(v) => change("neighborhood", v)}
             options={neighborhoods.map((v) => [v, v])}
+          />
+          <Select
+            label="Situação"
+            value={filters.forwarding}
+            onChange={(v) => change("forwarding", v)}
+            options={Object.entries(forwarding)}
+          />
+          <Select
+            label="Verificação"
+            value={filters.verification}
+            onChange={(v) => change("verification", v)}
+            options={[
+              ["community_report", "Relato comunitário"],
+              ["source_checked", "Fonte conferida"],
+              ["verified", "Verificada"],
+              ["disputed", "Em divergência"],
+              ["outdated", "Desatualizada"],
+            ]}
+          />
+          <Select
+            label="Período"
+            value={filters.period}
+            onChange={(v) => change("period", v)}
+            options={[
+              ["30", "Últimos 30 dias"],
+              ["90", "Últimos 90 dias"],
+              ["365", "Último ano"],
+            ]}
           />
         </fieldset>
       ) : null}

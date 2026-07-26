@@ -11,8 +11,16 @@ export function assertCleanupTarget(target: CleanupTarget) {
   return { local: false, ref: target.projectRef };
 }
 
-export function isCleanupEligible(ticket: { status: string; expires_at: string; record_id?: string | null }, now: Date, minimumAgeMs: number) {
+export function isCleanupEligible(ticket: { status: string; confirmation_state?: string | null; expires_at: string; record_id?: string | null }, now: Date, minimumAgeMs: number) {
   if (ticket.record_id) return false;
-  if (!["draft", "awaiting_upload", "uploaded", "upload_failed"].includes(ticket.status)) return false;
+  if (!["awaiting_upload", "uploaded"].includes(ticket.status)) return false;
+  if (![
+    undefined,
+    null,
+    "idle",
+    "ready",
+    "confirming",
+    "failed_retryable",
+  ].includes(ticket.confirmation_state)) return false;
   return new Date(ticket.expires_at).getTime() <= now.getTime() - minimumAgeMs;
 }

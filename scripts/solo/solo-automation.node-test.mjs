@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { evaluatePromotion } from "./authorize-promotion.mjs";
 import { buildTransactionalPackage, validateForwardOnlySql } from "./sql-contract.mjs";
+import { releaseMarker } from "./apply-forward-only.mjs";
 import { readFileSync, readdirSync } from "node:fs";
 
 const sha = "a".repeat(40);
@@ -32,9 +33,17 @@ test("reconciliation package has one fail-fast transaction", () => {
   assert.match(sql, /^\\set ON_ERROR_STOP on\nBEGIN;/);
   assert.match(sql, /postflight_assertions\.sql/);
   assert.match(sql, /COMMIT;\n$/);
-  assert.match(executor, /COMUN_CANONICAL_SECURITY_HARDENING_ALREADY_APPLIED/);
   assert.match(executor, /executeSql\(configuredMigration\)/);
   assert.match(executor, /--read-only-preflight/);
+});
+
+test("release markers are selected by release contract", () => {
+  const canonical = { release: "20260723220112-canonical-security-hardening" };
+  const operational = { release: "20260724233256-comun-sidewalk-operational-hardening" };
+  assert.equal(releaseMarker(canonical, "ALREADY_APPLIED"), "COMUN_CANONICAL_SECURITY_HARDENING_ALREADY_APPLIED");
+  assert.equal(releaseMarker(operational, "ALREADY_APPLIED"), "COMUN_SIDEWALK_OPERATIONAL_HARDENING_ALREADY_APPLIED");
+  assert.equal(releaseMarker(canonical, "OK"), "COMUN_CANONICAL_SECURITY_HARDENING_OK");
+  assert.equal(releaseMarker(operational, "OK"), "COMUN_SIDEWALK_OPERATIONAL_HARDENING_OK");
 });
 
 test("promotion checkpoint is short-lived, sanitized and not a full backup", () => {
@@ -130,11 +139,20 @@ test("preview-only workflow cannot access database or mutable jobs", () => {
   assert.match(nightly, /!inputs\.preview_preflight/);
 });
 
+test("release preflight selects the sidewalk release explicitly and remains read-only", () => {
+  const nightly = readFileSync(".github/workflows/comun-nightly.yml", "utf8");
+  const job = nightly.match(/  release-preflight:[\s\S]*?\n  preview-preflight:/)?.[0] ?? "";
+  assert.match(job, /COMUN_RELEASE_MANIFEST:\s*supabase\/releases\/20260724233256-comun-sidewalk-operational-hardening\.json/);
+  assert.match(job, /apply-forward-only\.mjs --read-only-preflight/);
+  assert.doesNotMatch(job, /apply-forward-only\.mjs(?! --read-only-preflight)|cleanup|full-local|production-health|capture_baseline/i);
+});
+
 test("FULL compares deterministic PostgreSQL catalog fingerprints", () => {
   const workflow = readFileSync(".github/workflows/comun-ci.yml", "utf8");
+  const fullJob = workflow.match(/\n  full:[\s\S]*$/)?.[0] ?? "";
   const fingerprint = readFileSync("scripts/solo/schema-fingerprint.mjs", "utf8");
-  assert.equal((workflow.match(/schema-fingerprint\.mjs/g) ?? []).length, 2);
-  assert.match(workflow, /diff -u \/tmp\/comun-hash-1 \/tmp\/comun-hash-2/);
+  assert.equal((fullJob.match(/schema-fingerprint\.mjs/g) ?? []).length, 2);
+  assert.match(fullJob, /diff -u \/tmp\/comun-hash-1 \/tmp\/comun-hash-2/);
   assert.match(fingerprint, /information_schema\.columns/);
   assert.match(fingerprint, /pg_constraint/);
   assert.match(fingerprint, /pg_policies/);

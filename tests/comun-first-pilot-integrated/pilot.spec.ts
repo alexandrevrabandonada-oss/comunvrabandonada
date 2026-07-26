@@ -105,6 +105,15 @@ test("pessoa nova acompanha contribui consulta inbox e sai", async ({
     .fill(
       "Barreira sintética usada somente no ensaio local da candidata integrada.",
     );
+  await page
+    .getByRole("checkbox", { name: /Autorizo a publicação sanitizada/ })
+    .check();
+  await page
+    .getByRole("checkbox", { name: /Conferi fotografia, local, condição/ })
+    .check();
+  await expect(
+    page.getByRole("button", { name: "Enviar para revisão" }),
+  ).toBeEnabled();
   await assertAccessible(page);
   await page.getByRole("button", { name: "Enviar para revisão" }).click();
   await expect(

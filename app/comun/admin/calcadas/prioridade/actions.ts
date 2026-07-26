@@ -4,8 +4,10 @@ import { redirect } from "next/navigation";
 import { requireComunAdminProfile } from "@/lib/admin-auth";
 import { logComunAdminAction } from "@/lib/admin-audit";
 import { canAccessOperationalSurface } from "@/lib/operational-authorization";
+import { requireSidewalkOperationalRelease } from "@/lib/sidewalk-operational-release";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 export async function createSidewalkPriority(form: FormData) {
+  await requireSidewalkOperationalRelease();
   const session = await requireComunAdminProfile();
   if (!canAccessOperationalSurface(session.profile, "circle"))
     redirect("/comun/admin?forbidden=sidewalk-priority");

@@ -1,6 +1,6 @@
 # Estado atual do COMUN
 
-Atualizado em 24 de julho de 2026.
+Atualizado em 25 de julho de 2026.
 
 ## Linha ativa
 
@@ -13,13 +13,15 @@ Atualizado em 24 de julho de 2026.
 - HEAD documental:
   `ca40c96b5fd2b4991e4fe987b636a7e8811fdbe1`;
 - `main` vigente:
-  `a989d517cd56d1051176eeb16675b019936e3244`;
+  `4a9e2d4f341e755b3a1aa969c26344f4f4334bae`;
 - escopo: composição da experiência existente, sem migration;
 - CI e Vercel no merge SHA: aprovados;
 - decisão vigente: `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN`;
 - hotfix 42.1: concluído pela PR #32;
 - estado local do hotfix: `COMUN_CANONICAL_SIDEWALK_PAUTA_OK`;
-- Tijolo 43: `TIJOLO_43_UNBLOCKED`;
+- Tijolo 43: ciclo operacional corrigido localmente, com migration pendente de promoção;
+- PR #35 (draft): HEAD `4ca09221f4d4720ac0da6cca1dab871ecdda8e46`;
+- decisão do Tijolo 43: `COMUN_CALCADAS_FAST_PATCH_REQUIRED`;
 - gate humano: 0/3;
 - piloto público: fechado.
 
@@ -78,6 +80,55 @@ Decisão vigente: `COMUN_NUCLEO_VIVO_PRODUCTION_GREEN`.
 
 O Tijolo 43 está `TIJOLO_43_UNBLOCKED`; o gate humano permanece 0/3 e o piloto
 público permanece fechado.
+
+## Início controlado do Tijolo 43
+
+A PR documental #33 foi mesclada no SHA
+`9b067d8302eb42e443afb6580b347d8a2cc941ec`. O smoke subsequente encontrou um
+identificador editorial local usado como chave React no payload RSC de Home e
+Pautas. A correção mínima da PR #34 foi mesclada no SHA
+`4a9e2d4f341e755b3a1aa969c26344f4f4334bae`.
+
+O novo smoke confirmou Home, Pautas, pauta canônica, Mapa e Participar com HTTP
+200, PMTiles com HTTP 206, navegação bidirecional e ausência dos marcadores
+sensíveis auditados. Só então foi criada a branch
+`codex/tijolo-43-calcadas-ciclo-operacional`.
+
+O diagnóstico inicial foi corrigido: a proteção do texto privado, o lock
+recuperável e a relação durável de duplicidade exigiram a migration local
+`20260724233256_comun_sidewalk_operational_hardening.sql`. Ela não foi aplicada
+remotamente. O gate humano permanece 0/3 e o piloto público fechado.
+
+## Checkpoint CI do Tijolo 43
+
+O SHA anterior corrigiu o teste frágil de marcadores e tornou o rehearsal
+diagnosticável por checkout imutável e artifact sanitizado. No run
+`30141194406`, o PRE real coincidiu com o contrato, mas a primeira passagem
+falhou com `SOLO_CANONICAL_DATABASE_QUERY_FAILED`; POST e segunda passagem não
+foram alcançados. FAST falhou nos três testes de transporte Docker do
+PostgreSQL temporário no Ubuntu, enquanto os gates locais seguem verdes.
+Vercel Preview passou; FULL foi pulado e não foi disparado manualmente.
+
+Não houve Supabase remoto, migration remota, merge, deploy manual, domínio ou
+promoção. A correção da conectividade Docker no CI é o próximo bloqueio antes
+de qualquer promoção.
+
+## Patch T43.1 — transporte PostgreSQL no Ubuntu
+
+O diagnóstico confirmou que o cliente `psql` e o banco são containers irmãos:
+no GitHub Ubuntu, a porta publicada em loopback não é uma rota entre eles. O
+patch usa uma rede Docker explícita e alias interno (`postgres-test` nos
+testes; `db` no rehearsal), sem ampliar a allowlist local nem alterar a
+migration ou o manifesto congelado. Os 18 testes do runner passaram em duas
+execuções locais consecutivas; typecheck, lint, 266 unitários, validator SQL,
+`solo:test` e smoke operacional passaram.
+
+Na mesma rodada, a stack Supabase local não estava iniciada: faltava
+`supabase_db_nvmdszymrtacfehdynpg`. Portanto runtime smoke, matriz RLS e DB
+lint não têm novo resultado verde e a decisão continua
+`COMUN_CALCADAS_FAST_PATCH_REQUIRED`. O FAST e o rehearsal no GitHub devem
+passar no mesmo SHA antes de qualquer FULL. Gate humano permanece 0/3 e piloto
+público fechado.
 
 ## Hardening
 
@@ -236,3 +287,4 @@ deployment `dpl_41VBYab1Z6i6cBtr5Y266tJAZPyy` foi confirmado read-only como
 Decisão vigente: `NO_GO_VERCEL_PREVIEW_CREDENTIAL`. A PR #30 permanece aberta,
 sem merge e sem label de promoção; o gate humano permanece 0/3 e o piloto
 público continua fechado.
+Adendo Tijolo 43.1: FAST no SHA `5503e02` ficou verde e o rehearsal confirmou a rede interna em `db:5432`; a falha posterior era somente um delimitador de fingerprint no runner, já corrigido com teste de regressão. A decisão permanece `COMUN_CALCADAS_FAST_PATCH_REQUIRED`, sem FULL, promoção ou escrita remota.

@@ -960,6 +960,12 @@ const classifications = {
     expected:
       "Servidor expõe somente registros públicos com campos sanitizados.",
   },
+  comun_sidewalk_duplicate_suggestions: {
+    decision: "service_role_only",
+    purpose: "Sugestões assistidas de duplicidade entre registros de calçada.",
+    sensitive: "Sinais privados, distância aproximada e decisão editorial.",
+    expected: "Somente servidor e moderação autorizada; nenhuma fusão automática.",
+  },
   comun_sidewalk_uploads: {
     decision: "owner_read",
     purpose: "Autorizações efêmeras de upload privado de calçadas.",

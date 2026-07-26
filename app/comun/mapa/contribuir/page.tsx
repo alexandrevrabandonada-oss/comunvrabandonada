@@ -1,6 +1,10 @@
 import { SidewalkFirstParticipationForm } from "@/components/sidewalk-first-participation-form";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { listPublicMapData } from "@/lib/popular-map";
+import {
+  getSidewalkOperationalRelease,
+  SIDEWALK_OPERATIONAL_PAUSED_MESSAGE,
+} from "@/lib/sidewalk-operational-release";
 import { submitTerritorialContribution } from "./actions";
 export const dynamic = "force-dynamic";
 const types = [
@@ -25,9 +29,10 @@ export default async function Page({
     origem?: string;
     pauta?: string;
   }>;
-}) {
+  }) {
   const p = await searchParams;
-  if (p.origem === "calcadas")
+  if (p.origem === "calcadas") {
+    const sidewalkOperational = await getSidewalkOperationalRelease();
     return (
       <ComunShell>
         <Section>
@@ -38,15 +43,19 @@ export default async function Page({
             Registrar problema na calçada
           </h1>
           <p className="mt-3 max-w-3xl text-comun-paper/75">
-            Foto, localização, condição e envio em uma única tela. Tudo passa
-            por revisão antes de aparecer no mapa.
+            {sidewalkOperational.enabled
+              ? "Foto, localização, condição e envio em uma única tela. Tudo passa por revisão antes de aparecer no mapa."
+              : SIDEWALK_OPERATIONAL_PAUSED_MESSAGE}
           </p>
-          <SidewalkFirstParticipationForm
-            pautaSlug={p.pauta ?? "calcadas-em-circulacao"}
-          />
+          {sidewalkOperational.enabled ? (
+            <SidewalkFirstParticipationForm
+              pautaSlug={p.pauta ?? "calcadas-em-circulacao"}
+            />
+          ) : null}
         </Section>
       </ComunShell>
     );
+  }
   const { items } = await listPublicMapData();
   return (
     <ComunShell>

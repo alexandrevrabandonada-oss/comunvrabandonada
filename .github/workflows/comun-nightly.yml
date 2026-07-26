@@ -83,6 +83,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Canonical release remote read-only preflight
         env:
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
           PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
           PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}

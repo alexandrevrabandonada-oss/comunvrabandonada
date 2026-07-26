@@ -132,6 +132,15 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await page
     .getByLabel("Descrição opcional")
     .fill(`Trecho sintético ${runId} com piso irregular.`);
+  await page
+    .getByRole("checkbox", { name: /Autorizo a publicação sanitizada/ })
+    .check();
+  await page
+    .getByRole("checkbox", { name: /Conferi fotografia, local, condição/ })
+    .check();
+  await expect(
+    page.getByRole("button", { name: "Enviar para revisão" }),
+  ).toBeEnabled();
   await auditSurface(page, "contribuicao-revisao", testInfo.project.name);
   await page.screenshot({
     path: `test-results/evidence/sprint-37-integral-revisao-${testInfo.project.name}.png`,
@@ -170,6 +179,9 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   });
   await expect(card).toBeVisible();
   await auditSurface(page, "moderacao-registro", testInfo.project.name);
+  await card
+    .getByLabel("Resumo público sanitizado")
+    .fill("Trecho com piso irregular, localizado aproximadamente e revisado pela equipe.");
   await card
     .getByRole("button", { name: "Aprovar com local aproximado" })
     .click();
@@ -474,7 +486,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await login(page, email, "/comun/minha-participacao");
   await expect(
     page.getByText(
-      /Seu registro integra esta prioridade e este encaminhamento/,
+      /Acompanhar se a melhoria permanece/,
     ),
   ).toBeVisible();
   await auditSurface(page, "minha-area-fechada", testInfo.project.name);

@@ -90,6 +90,157 @@ jobs:
       - if: always()
         run: supabase stop --no-backup || true
 
+  release-rehearsal:
+    name: RELEASE / COMUN_RELEASE_REHEARSAL
+    if: github.event.pull_request.number == 35
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Assert immutable pull request head
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          echo "COMUN_RELEASE_REHEARSAL_HEAD_IMMUTABLE"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - run: npm ci --ignore-scripts
+      - run: supabase start
+      - name: Reset baseline before the selected release
+        shell: bash
+        run: |
+          set +e
+          output="$(supabase db reset --local --yes --version 20260723220112 2>&1)"
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          if ((status != 0)) && grep -q "Error status 502" <<<"$output"; then
+            echo "COMUN_REHEARSAL_BASELINE_RESET_502_SINGLE_RETRY"
+            sleep 5
+            supabase db reset --local --yes --version 20260723220112
+          elif ((status != 0)); then
+            exit "$status"
+          fi
+      - name: Assert complete local platform
+        run: |
+          docker ps --format '{{.Names}} {{.Status}}' | grep -E '^supabase_(auth|storage|rest|db)_'
+          container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          network="$(docker inspect -f '{{range $name, $_ := .NetworkSettings.Networks}}{{$name}}{{end}}' "$container")"
+          test -n "$network"
+          docker exec "$container" psql -U postgres -d postgres -XAt -c "select to_regclass('auth.users'), to_regclass('storage.buckets'), to_regclass('storage.objects'), to_regclass('public.comun_schema_releases');"
+          docker run --rm --network "$network" postgres:17 pg_isready -h db -p 5432 -U postgres
+          actual_pre="$(node scripts/solo/schema-fingerprint.mjs --container="$container")"
+          [[ "$actual_pre" =~ ^[a-f0-9]{64}$ ]]
+          {
+            echo "COMUN_REHEARSAL_ACTUAL_PRE=$actual_pre"
+            echo "COMUN_REHEARSAL_ACTUAL_POST=NOT_REACHED"
+            echo "COMUN_REHEARSAL_FIRST_STATUS=NOT_REACHED"
+            echo "COMUN_REHEARSAL_FIRST_MARKER=COMUN_RELEASE_REHEARSAL_UNCLASSIFIED_FAILURE"
+            echo "COMUN_REHEARSAL_SECOND_STATUS=NOT_REACHED"
+            echo "COMUN_REHEARSAL_SECOND_MARKER=NOT_REACHED"
+            echo "PR23_DOCKER_NETWORK=$network"
+          } >> "$GITHUB_ENV"
+      - name: Verify pre-migration sidewalk compatibility
+        env:
+          COMUN_SIDEWALK_OPERATIONAL_V2: disabled
+        run: node scripts/solo/verify-sidewalk-premigration-compat.mjs
+      - name: Rehearse selected release first pass
+        env:
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
+          PR23_DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres?application_name=LOCAL_VALIDATION
+          SUPABASE_PROJECT_REF: LOCAL_VALIDATION
+          PR23_ALLOWED_PROJECT_REFS: LOCAL_VALIDATION
+        run: |
+          set +e
+          first_output="$(node scripts/solo/apply-forward-only.mjs --security-diagnostic-output=.ci-artifacts/release-security-diagnostic.json 2>&1)"
+          first_status=$?
+          set -e
+          printf '%s\n' "$first_output"
+          first_marker="$(printf '%s\n' "$first_output" | grep -oE '(SOLO|COMUN)_[A-Z0-9_:.-]+' | tail -1 || true)"
+          if [[ -z "$first_marker" ]]; then first_marker=COMUN_RELEASE_REHEARSAL_UNCLASSIFIED_FAILURE; fi
+          {
+            echo "COMUN_REHEARSAL_FIRST_STATUS=$first_status"
+            echo "COMUN_REHEARSAL_FIRST_MARKER=$first_marker"
+          } >> "$GITHUB_ENV"
+          if ((first_status != 0)); then exit "$first_status"; fi
+          test "$first_marker" = "COMUN_SIDEWALK_OPERATIONAL_HARDENING_OK"
+      - name: Capture post and rehearse selected release second pass
+        env:
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
+          PR23_DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres?application_name=LOCAL_VALIDATION
+          SUPABASE_PROJECT_REF: LOCAL_VALIDATION
+          PR23_ALLOWED_PROJECT_REFS: LOCAL_VALIDATION
+        run: |
+          container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          actual_post="$(node scripts/solo/schema-fingerprint.mjs --container="$container")"
+          [[ "$actual_post" =~ ^[a-f0-9]{64}$ ]]
+          echo "COMUN_REHEARSAL_ACTUAL_POST=$actual_post" >> "$GITHUB_ENV"
+          set +e
+          second_output="$(node scripts/solo/apply-forward-only.mjs --security-diagnostic-output=.ci-artifacts/release-security-diagnostic.json 2>&1)"
+          second_status=$?
+          set -e
+          printf '%s\n' "$second_output"
+          second_marker="$(printf '%s\n' "$second_output" | grep -oE '(SOLO|COMUN)_[A-Z0-9_:.-]+' | tail -1 || true)"
+          if [[ -z "$second_marker" ]]; then second_marker=COMUN_RELEASE_REHEARSAL_UNCLASSIFIED_FAILURE; fi
+          {
+            echo "COMUN_REHEARSAL_SECOND_STATUS=$second_status"
+            echo "COMUN_REHEARSAL_SECOND_MARKER=$second_marker"
+          } >> "$GITHUB_ENV"
+          if ((second_status != 0)); then exit "$second_status"; fi
+          test "$second_marker" = "COMUN_SIDEWALK_OPERATIONAL_HARDENING_ALREADY_APPLIED"
+      - run: supabase db lint --local --schema public --level error --fail-on error
+      - run: npm run audit:rls-matrix
+      - run: npm run test:fixtures:assert-clean
+      - name: Prepare sanitized rehearsal evidence
+        if: always()
+        run: |
+          mkdir -p .ci-artifacts
+          test -f .ci-artifacts/release-security-diagnostic.json
+          node scripts/solo/assert-sanitized-security-diagnostic.mjs --input=.ci-artifacts/release-security-diagnostic.json
+          {
+            echo "release_rehearsal=COMUN_RELEASE_REHEARSAL"
+            echo "head_sha=${{ github.event.pull_request.head.sha }}"
+            echo "merge_sha=${{ github.sha }}"
+            echo "manifest=20260724233256-comun-sidewalk-operational-hardening"
+            echo "expected_pre=a6599aa24658c4339c7518d484364699d07ca4fa9cb1db68bb6fed4c20b94a10"
+            echo "actual_pre=${COMUN_REHEARSAL_ACTUAL_PRE:-NOT_REACHED}"
+            echo "expected_post=614908b735616fc64d4d36bc05e050ee53a0fb2b1f4e099febe1f327923350c4"
+            echo "actual_post=${COMUN_REHEARSAL_ACTUAL_POST:-NOT_REACHED}"
+            echo "first_status=${COMUN_REHEARSAL_FIRST_STATUS:-NOT_REACHED}"
+            echo "first_marker=${COMUN_REHEARSAL_FIRST_MARKER:-COMUN_RELEASE_REHEARSAL_UNCLASSIFIED_FAILURE}"
+            echo "second_status=${COMUN_REHEARSAL_SECOND_STATUS:-NOT_REACHED}"
+            echo "second_marker=${COMUN_REHEARSAL_SECOND_MARKER:-NOT_REACHED}"
+            echo "remote_writes=none"
+          } > .ci-artifacts/release-rehearsal.txt
+      - name: Upload sanitized rehearsal evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-release-rehearsal-${{ github.run_id }}
+          path: |
+            .ci-artifacts/release-rehearsal.txt
+            .ci-artifacts/release-security-diagnostic.json
+          include-hidden-files: true
+          if-no-files-found: error
+      - name: Declare release rehearsal green
+        if: success()
+        run: |
+          test "${COMUN_REHEARSAL_FIRST_STATUS}" = "0"
+          test "${COMUN_REHEARSAL_FIRST_MARKER}" = "COMUN_SIDEWALK_OPERATIONAL_HARDENING_OK"
+          test "${COMUN_REHEARSAL_ACTUAL_POST}" = "614908b735616fc64d4d36bc05e050ee53a0fb2b1f4e099febe1f327923350c4"
+          test "${COMUN_REHEARSAL_SECOND_STATUS}" = "0"
+          test "${COMUN_REHEARSAL_SECOND_MARKER}" = "COMUN_SIDEWALK_OPERATIONAL_HARDENING_ALREADY_APPLIED"
+          echo 'COMUN_RELEASE_REHEARSAL_GREEN' >> "$GITHUB_STEP_SUMMARY"
+      - if: always()
+        run: supabase stop --no-backup || true
+
   full:
     name: FULL / COMUN_CI_GREEN
     needs: fast
@@ -121,8 +272,15 @@ jobs:
         shell: bash
         run: |
           supabase start
-          supabase db reset --local --yes
+          supabase db reset --local --yes --version 20260723220112
           container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          network="$(docker inspect "$container" --format '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' | head -1)"
+          PR23_DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres?application_name=LOCAL_VALIDATION \
+          SUPABASE_PROJECT_REF=LOCAL_VALIDATION \
+          PR23_ALLOWED_PROJECT_REFS=LOCAL_VALIDATION \
+          PR23_DOCKER_NETWORK="$network" \
+          COMUN_RELEASE_MANIFEST=supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json \
+          node scripts/solo/apply-forward-only.mjs
           node scripts/run-pr23-reconciliation.mjs --container="$container"
           npm run test:schema-release-ledger
           npm run test:handle-new-user
@@ -131,20 +289,36 @@ jobs:
           node scripts/run-pr23-reconciliation.mjs --container="$container"
           supabase stop --no-backup
           supabase start
-          supabase db reset --local --yes
+          supabase db reset --local --yes --version 20260723220112
           container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          network="$(docker inspect "$container" --format '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' | head -1)"
+          PR23_DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres?application_name=LOCAL_VALIDATION \
+          SUPABASE_PROJECT_REF=LOCAL_VALIDATION \
+          PR23_ALLOWED_PROJECT_REFS=LOCAL_VALIDATION \
+          PR23_DOCKER_NETWORK="$network" \
+          COMUN_RELEASE_MANIFEST=supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json \
+          node scripts/solo/apply-forward-only.mjs
           node scripts/run-pr23-reconciliation.mjs --container="$container"
           node scripts/solo/schema-fingerprint.mjs --container="$container" > /tmp/comun-hash-2
           diff -u /tmp/comun-hash-1 /tmp/comun-hash-2
           node scripts/run-pr23-reconciliation.mjs --container="$container"
       - name: Critical product regressions
+        env:
+          COMUN_SIDEWALK_OPERATIONAL_V2: enabled
         run: |
+          COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '\"')"
+          test -n "$COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL"
+          export COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL
           npm run test:e2e:comun-integral-experience
           npm run test:e2e:editorial-operation-authenticated
           npm run test:e2e:territorial-art
           supabase start
           npm run test:e2e:community-radio
           npm run test:e2e:comun-sidewalk-real-map
+          npm run smoke:comun-calcadas-operacional
+          npm run smoke:comun-calcadas-operacional-runtime
+          npm run test:e2e:comun-calcadas-operacional
+          npm run test:a11y:comun-calcadas-operacional
           npm run test:e2e:comun-miniapp-experience
           npm run test:e2e:comun-mobile-app-shell
           npm run test:e2e:comun-pwa-experience

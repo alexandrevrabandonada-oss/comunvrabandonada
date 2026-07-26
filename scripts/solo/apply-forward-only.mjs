@@ -1,15 +1,41 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readdirSync, readFileSync } from "node:fs";
+import { mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { buildTransactionalPackage } from "./sql-contract.mjs";
 import { buildDocuments, query } from "../db/verify-canonical-baseline.mjs";
+import { selectReleaseManifest, validateReleaseSql } from "./validate-forward-only-sql.mjs";
+import { buildDocument as buildScopedDocument, fingerprint as fingerprintScoped, query as scopedFingerprintQuery } from "./sidewalk-operational-fingerprint.mjs";
 
 const MAX_CAPTURE_BUFFER = 64 * 1024 * 1024;
 const PROCESS_TIMEOUT_MS = 5 * 60 * 1000;
 const QUERY_FLAGS = ["--no-psqlrc", "--tuples-only", "--no-align", "--quiet", "--set=ON_ERROR_STOP=1"];
 const EXECUTE_FLAGS = ["--no-psqlrc", "--set=ON_ERROR_STOP=1"];
+const LEDGER_ABSENT = "__COMUN_RELEASE_LEDGER_ABSENT__";
+const SECURITY_DIAGNOSTIC_PREFIX = "COMUN_RELEASE_SECURITY_DIAGNOSTIC ";
+const DIAGNOSTIC_FORBIDDEN_KEY = /(?:email|phone|user.?id|object_key|exact_latitude|exact_longitude|file(?:name)?|content|notes?|password|token|dsn)/i;
+const DIAGNOSTIC_FORBIDDEN_VALUE = /(?:postgres(?:ql)?:\/\/|\b(?:password|token|secret|dsn)\b|\b(?:email|phone|user_id|object_key|exact_latitude|exact_longitude)\b|[-+]?\d{1,3}\.\d{4,}\s*,\s*[-+]?\d{1,3}\.\d{4,})/i;
+export const schemaFingerprintQuery = String.raw`
+with objects as (
+  select 'column' kind, c.table_name || '.' || c.column_name name,
+    concat_ws('|', c.ordinal_position, c.data_type, c.udt_schema, c.udt_name, c.is_nullable, coalesce(c.column_default, '')) definition
+  from information_schema.columns c where c.table_schema = 'public'
+  union all
+  select 'constraint', cls.relname || '.' || con.conname, pg_get_constraintdef(con.oid, true)
+  from pg_constraint con join pg_class cls on cls.oid = con.conrelid join pg_namespace ns on ns.oid = cls.relnamespace
+  where ns.nspname = 'public'
+  union all
+  select 'index', tablename || '.' || indexname, indexdef from pg_indexes where schemaname = 'public'
+  union all
+  select 'policy', tablename || '.' || policyname,
+    concat_ws('|', permissive, array_to_string(roles, ','), cmd, coalesce(qual, ''), coalesce(with_check, ''))
+  from pg_policies where schemaname = 'public'
+  union all
+  select 'function', p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')', pg_get_functiondef(p.oid)
+  from pg_proc p join pg_namespace ns on ns.oid = p.pronamespace where ns.nspname = 'public'
+)
+select kind || E'\t' || name || E'\t' || definition from objects order by kind, name, definition;`;
 
 export class SoloRunnerError extends Error {
   constructor(marker) {
@@ -23,8 +49,157 @@ function fail(marker) {
   throw new SoloRunnerError(marker);
 }
 
+function stableSort(items) {
+  return [...items].sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+}
+
+function safeDiagnosticObject(value) {
+  const object = String(value ?? "");
+  if (object === "schema public") return object;
+  if (/^(?:public|storage)\.[a-z_][a-z0-9_-]*(?:\.[a-z_][a-z0-9_-]*)?(?:\([a-z0-9_, ]*\))?$/i.test(object)) {
+    return object;
+  }
+  if (/^(?:public|\*):[a-z]$/i.test(object)) return object;
+  return "redacted-catalog-object";
+}
+
+function safeDiagnosticDetail(rule, sourceDetail) {
+  if (rule === "DANGEROUS_RELATION_GRANT") {
+    const match = String(sourceDetail ?? "").match(/^(anon|authenticated):(TRUNCATE|TRIGGER|MAINTAIN)$/);
+    if (match) return `role=${match[1]}; privilege=${match[2]}`;
+  }
+  const details = {
+    RLS_ENABLED: "exposed relation has row-level security disabled",
+    DANGEROUS_RELATION_GRANT: "dangerous relation privilege is exposed",
+    PUBLIC_SCHEMA_CREATE: "public schema create privilege is exposed",
+    DEFINER_SEARCH_PATH: "security definer search path is not fixed",
+    DEFINER_EXECUTE: "security definer execute privilege is exposed",
+    VIEW_SECURITY_INVOKER: "exposed view is not security invoker",
+    PRIVATE_BUCKET: "private or original bucket is public",
+    STORAGE_POLICY_EXPOSURE: "exposed storage policy references a sensitive locator",
+    DANGEROUS_DEFAULT_PRIVILEGE: "dangerous default privilege is exposed",
+    SUPABASE_ADMIN_DEFAULT_PRIVILEGES: "managed platform default privileges observed",
+  };
+  return details[rule] ?? "security rule violation";
+}
+
+function sanitizeDiagnosticItem(item) {
+  return {
+    classification: String(item?.classification ?? "UNKNOWN_SECURITY_CLASSIFICATION").replace(/[^A-Z0-9_]/gi, "_").toUpperCase(),
+    rule: String(item?.rule ?? "UNKNOWN_SECURITY_RULE").replace(/[^A-Z0-9_]/gi, "_").toUpperCase(),
+    object: safeDiagnosticObject(item?.object),
+    detail: safeDiagnosticDetail(item?.rule, item?.detail),
+  };
+}
+
+function securityDiagnosticSnapshot(baseline, ledgerState) {
+  const security = baseline?.security ?? {};
+  const blockingFindings = stableSort((security.blockingFindings ?? []).map(sanitizeDiagnosticItem));
+  const platformObservations = stableSort((security.platformObservations ?? []).map(sanitizeDiagnosticItem));
+  return {
+    fingerprint: baseline?.fingerprint ?? "NOT_REACHED",
+    blockingFindingsCount: blockingFindings.length,
+    blockingFindings,
+    platformObservationsCount: platformObservations.length,
+    platformObservations,
+    ledgerState,
+  };
+}
+
+export function buildSanitizedSecurityDiagnostic({ before, after, beforeLedgerState, afterLedgerState }) {
+  return {
+    formatVersion: 1,
+    scope: "COMUN_RELEASE_SECURITY_DIAGNOSTIC",
+    before: securityDiagnosticSnapshot(before, beforeLedgerState),
+    after: securityDiagnosticSnapshot(after, afterLedgerState),
+  };
+}
+
+function assertExactKeys(value, expected) {
+  const keys = Object.keys(value || {}).sort();
+  if (JSON.stringify(keys) !== JSON.stringify([...expected].sort())) {
+    throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
+  }
+}
+
+function assertDiagnosticItem(item) {
+  assertExactKeys(item, ["classification", "rule", "object", "detail"]);
+  if (!/^[A-Z0-9_]+$/.test(item.classification) || !/^[A-Z0-9_]+$/.test(item.rule)) {
+    throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
+  }
+  const validGrantDetail = item.rule === "DANGEROUS_RELATION_GRANT"
+    && /^role=(?:anon|authenticated); privilege=(?:TRUNCATE|TRIGGER|MAINTAIN)$/.test(item.detail);
+  const validStaticDetail = item.rule !== "DANGEROUS_RELATION_GRANT"
+    && item.detail === safeDiagnosticDetail(item.rule);
+  if (item.object !== safeDiagnosticObject(item.object) || (!validGrantDetail && !validStaticDetail)) {
+    throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
+  }
+}
+
+function assertDiagnosticSnapshot(snapshot) {
+  assertExactKeys(snapshot, ["fingerprint", "blockingFindingsCount", "blockingFindings", "platformObservationsCount", "platformObservations", "ledgerState"]);
+  if (!/^(?:[a-f0-9]{64}|NOT_REACHED)$/.test(snapshot.fingerprint)
+    || !["ABSENT", "PRESENT_ACCEPTED", "PRESENT_MISMATCH", "NOT_REACHED"].includes(snapshot.ledgerState)
+    || snapshot.blockingFindingsCount !== snapshot.blockingFindings.length
+    || snapshot.platformObservationsCount !== snapshot.platformObservations.length) {
+    throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
+  }
+  snapshot.blockingFindings.forEach(assertDiagnosticItem);
+  snapshot.platformObservations.forEach(assertDiagnosticItem);
+}
+
+function assertNoForbiddenDiagnosticData(value) {
+  if (Array.isArray(value)) return value.forEach(assertNoForbiddenDiagnosticData);
+  if (value && typeof value === "object") {
+    for (const [key, nested] of Object.entries(value)) {
+      if (DIAGNOSTIC_FORBIDDEN_KEY.test(key)) throw new Error("SOLO_SECURITY_DIAGNOSTIC_FORBIDDEN_FIELD");
+      assertNoForbiddenDiagnosticData(nested);
+    }
+    return;
+  }
+  if (typeof value === "string" && DIAGNOSTIC_FORBIDDEN_VALUE.test(value)) throw new Error("SOLO_SECURITY_DIAGNOSTIC_FORBIDDEN_VALUE");
+}
+
+export function serializeSanitizedSecurityDiagnostic(diagnostic) {
+  assertExactKeys(diagnostic, ["formatVersion", "scope", "before", "after"]);
+  if (diagnostic.formatVersion !== 1 || diagnostic.scope !== "COMUN_RELEASE_SECURITY_DIAGNOSTIC") {
+    throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
+  }
+  assertDiagnosticSnapshot(diagnostic.before);
+  assertDiagnosticSnapshot(diagnostic.after);
+  assertNoForbiddenDiagnosticData(diagnostic);
+  return `${JSON.stringify(diagnostic)}\n`;
+}
+
+function securityDiagnosticOutputPath(argv) {
+  const value = argv.find((argument) => argument.startsWith("--security-diagnostic-output="))?.slice(29);
+  if (!value) return null;
+  const artifactRoot = `${path.resolve(".ci-artifacts")}${path.sep}`;
+  const target = path.resolve(value);
+  if (!target.startsWith(artifactRoot)) fail("SOLO_SECURITY_DIAGNOSTIC_OUTPUT_INVALID");
+  return target;
+}
+
+async function emitSecurityDiagnostic(diagnostic, outputPath) {
+  const serialized = serializeSanitizedSecurityDiagnostic(diagnostic);
+  console.log(`${SECURITY_DIAGNOSTIC_PREFIX}${serialized.trimEnd()}`);
+  if (outputPath) {
+    await mkdir(path.dirname(outputPath), { recursive: true });
+    await writeFile(outputPath, serialized, "utf8");
+  }
+}
+
+function dockerNetworkArgs(dockerNetwork) {
+  if (!dockerNetwork) return ["--add-host=host.docker.internal:host-gateway"];
+  if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(dockerNetwork)) {
+    fail("SOLO_PSQL_CLIENT_NETWORK_INVALID");
+  }
+  return ["--network", dockerNetwork];
+}
+
 function runPsql(sql, flags, {
   databaseUrl = process.env.PR23_DATABASE_URL,
+  dockerNetwork = process.env.PR23_DOCKER_NETWORK,
   spawn = spawnSync,
   maxBuffer = MAX_CAPTURE_BUFFER,
 } = {}) {
@@ -32,7 +207,7 @@ function runPsql(sql, flags, {
     "docker",
     [
       "run", "--rm", "-i",
-      "--add-host=host.docker.internal:host-gateway",
+      ...dockerNetworkArgs(dockerNetwork),
       "postgres:17", "psql", databaseUrl, ...flags,
     ],
     {
@@ -88,45 +263,64 @@ export function parseScalarOutput(stdout) {
   return lines[0];
 }
 
-function loadRelease() {
-  const releaseFiles = readdirSync(path.resolve("supabase/releases"), {
-    withFileTypes: true,
-  })
-    .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
-    .map((entry) => entry.name);
-  if (releaseFiles.length !== 1) fail("SOLO_CANONICAL_RELEASE_COUNT_INVALID");
-  const release = JSON.parse(
-    readFileSync(path.resolve("supabase/releases", releaseFiles[0]), "utf8"),
-  );
-  const migration = readFileSync(path.resolve(release.migration), "utf8");
-  const checksum = createHash("sha256").update(migration).digest("hex");
-  if (checksum !== release.migrationSha256) fail("SOLO_CANONICAL_RELEASE_CHECKSUM_MISMATCH");
-  const executable = migration
-    .replace(/--.*$/gm, "")
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/'(?:''|[^'])*'/g, "''");
-  if (/\b(drop|truncate|delete)\b/i.test(executable) || release.destructiveSql !== false) {
-    fail("SOLO_CANONICAL_RELEASE_DESTRUCTIVE_SQL");
+function loadRelease(argv = []) {
+  try {
+    const explicit = argv.find((value) => value.startsWith("--release-manifest="))?.slice(19);
+    const selected = selectReleaseManifest(explicit ?? process.env.COMUN_RELEASE_MANIFEST);
+    return validateReleaseSql(selected);
+  } catch (error) {
+    const marker = error instanceof Error ? error.message : "SOLO_RELEASE_MANIFEST_NOT_SELECTED";
+    fail(marker.startsWith("SOLO_") ? marker : "SOLO_RELEASE_MANIFEST_NOT_SELECTED");
   }
-  return { release, migration };
 }
 
 function validateAllowlist() {
   const url = process.env.PR23_DATABASE_URL;
   const ref = process.env.SUPABASE_PROJECT_REF;
   const allowed = (process.env.PR23_ALLOWED_PROJECT_REFS ?? "").split(",").filter(Boolean);
+  if (ref === "LOCAL_VALIDATION") {
+    const localHostDatabase = /^postgres(?:ql)?:\/\/[^@]+@(?:127\.0\.0\.1|localhost|host\.docker\.internal):55432\/postgres(?:[/?]|$)/.test(url ?? "");
+    const localNetworkDatabase = /^postgres(?:ql)?:\/\/[^@]+@db:5432\/postgres(?:[/?]|$)/.test(url ?? "")
+      && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(process.env.PR23_DOCKER_NETWORK ?? "");
+    const localDatabase = localHostDatabase || localNetworkDatabase;
+    if (!localDatabase || !allowed.includes(ref)) fail("SOLO_REMOTE_DATABASE_NOT_ALLOWLISTED");
+    return;
+  }
   if (!url || !ref || !allowed.includes(ref) || !url.includes(ref)) {
     fail("SOLO_REMOTE_DATABASE_NOT_ALLOWLISTED");
   }
 }
 
 function captureBaseline() {
-  return buildDocuments(queryJson(query)).compact;
+  const document = buildDocuments(queryJson(query)).compact;
+  const normalized = queryOutput(schemaFingerprintQuery).replace(/\r\n/g, "\n").trimEnd();
+  if (!normalized) fail("SOLO_SCHEMA_FINGERPRINT_EMPTY");
+  return {
+    ...document,
+    fingerprint: createHash("sha256").update(normalized).digest("hex"),
+    fingerprintAlgorithm: "sha256-postgres-public-catalog-v1",
+  };
 }
 
-function ledgerValue(release) {
-  return `${release.migrationSha256}|${release.expectedPreFingerprint}|${release.expectedPostFingerprint}`;
+function captureScopedBaseline() {
+  const raw = queryOutput(scopedFingerprintQuery);
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch { fail("SOLO_SCOPED_FINGERPRINT_JSON_INVALID"); }
+  const document = buildScopedDocument(parsed);
+  return { fingerprint: fingerprintScoped(document), document };
 }
+
+function expectedScopedFingerprint(release, key) {
+  if (!release.fingerprintScope) return release[key];
+  const scopedKey = key === "expectedPreFingerprint" ? "expectedScopedPreFingerprint" : "expectedScopedPostFingerprint";
+  const value = release[scopedKey];
+  if (!/^[a-f0-9]{64}$/.test(value ?? "")) fail("SOLO_SCOPED_FINGERPRINT_EXPECTATION_MISSING");
+  return value;
+}
+
+const expectedPre = (release) => expectedScopedFingerprint(release, "expectedPreFingerprint");
+const expectedPost = (release) => expectedScopedFingerprint(release, "expectedPostFingerprint");
+function ledgerValue(release) { return `${release.migrationSha256}|${expectedPre(release)}|${expectedPost(release)}`; }
 
 function acceptedLedgerValues(release) {
   return new Set([
@@ -137,16 +331,25 @@ function acceptedLedgerValues(release) {
 
 function readLedger(release) {
   return queryScalar(
-    `select migration_sha256 || '|' || pre_fingerprint || '|' || post_fingerprint
-     from public.comun_schema_releases
-     where release = '${release.release.replaceAll("'", "''")}';`,
+    `select coalesce((
+       select migration_sha256 || '|' || pre_fingerprint || '|' || post_fingerprint
+       from public.comun_schema_releases
+       where release = '${release.release.replaceAll("'", "''")}'
+     ), '${LEDGER_ABSENT}');`,
   );
 }
 
-function hasLedgerRelation(baseline) {
-  return baseline.canonical.relations.some(
-    (relation) => relation.schema === "public" && relation.name === "comun_schema_releases",
-  );
+function summarizeLedgerState(release) {
+  const value = readLedger(release);
+  if (value === LEDGER_ABSENT) return "ABSENT";
+  return acceptedLedgerValues(release).has(value) ? "PRESENT_ACCEPTED" : "PRESENT_MISMATCH";
+}
+
+export function releaseMarker(release, suffix) {
+  if (release.release === "20260724233256-comun-sidewalk-operational-hardening") {
+    return `COMUN_SIDEWALK_OPERATIONAL_HARDENING_${suffix}`;
+  }
+  return `COMUN_CANONICAL_SECURITY_HARDENING_${suffix}`;
 }
 
 function readOnboardingTriggerCount() {
@@ -169,24 +372,23 @@ export function validatePreflightObjects(baseline, onboardingTriggerCount) {
     (item) => item.schema === "public" && item.name === "comun_public_reports",
   );
   const functions = new Set(baseline.canonical.functions.map((item) => item.name));
-  if (
-    !relation?.rls
-    || !view
-    || !functions.has("handle_new_user")
-    || onboardingTriggerCount !== "1"
-  ) {
+  const hasOnboardingFunction = functions.has("handle_new_user");
+  const validOnboardingState = hasOnboardingFunction
+    ? onboardingTriggerCount === "1"
+    : onboardingTriggerCount === "0";
+  if (!relation?.rls || !view || !validOnboardingState) {
     fail("SOLO_CANONICAL_PREFLIGHT_OBJECTS_INVALID");
   }
 }
 
 export function validateCurrentState(before, release, readLedgerFn = readLedger) {
-  const ledgerPresent = hasLedgerRelation(before);
-  if (before.fingerprint === release.expectedPreFingerprint) {
-    if (ledgerPresent) fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
+  const ledgerValueForRelease = readLedgerFn(release);
+  if (before.fingerprint === expectedPre(release)) {
+    if (ledgerValueForRelease !== LEDGER_ABSENT) fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
     return "PRE";
   }
-  if (before.fingerprint === release.expectedPostFingerprint) {
-    if (!ledgerPresent || !acceptedLedgerValues(release).has(readLedgerFn(release))) {
+  if (before.fingerprint === expectedPost(release)) {
+    if (!acceptedLedgerValues(release).has(ledgerValueForRelease)) {
       fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
     }
     return "POST";
@@ -194,24 +396,52 @@ export function validateCurrentState(before, release, readLedgerFn = readLedger)
   fail("SOLO_CANONICAL_PRE_FINGERPRINT_MISMATCH");
 }
 
+export function validateBlockingFindings(baseline, expectedBlockingFindings) {
+  if (baseline.security.blockingFindings.length !== expectedBlockingFindings) {
+    fail("SOLO_CANONICAL_SECURITY_FINDINGS_REMAIN");
+  }
+}
+
 export async function main(argv = process.argv.slice(2)) {
   validateAllowlist();
-  const { release, migration } = loadRelease();
-  const before = captureBaseline();
-  validatePreflightObjects(before, readOnboardingTriggerCount());
+  const { release, migration } = loadRelease(argv);
+  const diagnosticOutput = securityDiagnosticOutputPath(argv);
+  const globalBefore = captureBaseline();
+  validatePreflightObjects(globalBefore, readOnboardingTriggerCount());
+  const before = release.fingerprintScope ? captureScopedBaseline() : globalBefore;
   const state = validateCurrentState(before, release);
+  const beforeLedgerState = summarizeLedgerState(release);
 
   if (argv.includes("--read-only-preflight")) {
-    console.log(`COMUN_CANONICAL_RELEASE_FINGERPRINT ${before.fingerprint}`);
-    console.log(`COMUN_CANONICAL_RELEASE_BLOCKING_FINDINGS ${before.security.blockingFindings.length}`);
-    console.log(`COMUN_CANONICAL_RELEASE_PLATFORM_OBSERVATIONS ${before.security.platformObservations.length}`);
+    await emitSecurityDiagnostic(
+      buildSanitizedSecurityDiagnostic({
+        before: globalBefore,
+        after: null,
+        beforeLedgerState,
+        afterLedgerState: "NOT_REACHED",
+      }),
+      diagnosticOutput,
+    );
+    console.log(`COMUN_CANONICAL_RELEASE_FINGERPRINT ${globalBefore.fingerprint}`);
+    console.log(`COMUN_SCOPED_RELEASE_FINGERPRINT ${before.fingerprint}`);
+    console.log(`COMUN_CANONICAL_RELEASE_BLOCKING_FINDINGS ${globalBefore.security.blockingFindings.length}`);
+    console.log(`COMUN_CANONICAL_RELEASE_PLATFORM_OBSERVATIONS ${globalBefore.security.platformObservations.length}`);
     console.log(`COMUN_CANONICAL_RELEASE_LEDGER_STATE ${state === "PRE" ? "ABSENT" : "PRESENT"}`);
     console.log("COMUN_CANONICAL_RELEASE_REMOTE_READY");
     return;
   }
 
   if (state === "POST") {
-    console.log("COMUN_CANONICAL_SECURITY_HARDENING_ALREADY_APPLIED");
+    await emitSecurityDiagnostic(
+      buildSanitizedSecurityDiagnostic({
+        before: globalBefore,
+        after: globalBefore,
+        beforeLedgerState,
+        afterLedgerState: beforeLedgerState,
+      }),
+      diagnosticOutput,
+    );
+    console.log(releaseMarker(release, "ALREADY_APPLIED"));
     return;
   }
 
@@ -219,29 +449,36 @@ export async function main(argv = process.argv.slice(2)) {
     /^\s*begin;\s*/i,
     `begin;
 select pg_catalog.set_config('comun.release_sha256', '${release.migrationSha256}', true);
-select pg_catalog.set_config('comun.release_pre_fingerprint', '${release.expectedPreFingerprint}', true);
-select pg_catalog.set_config('comun.release_post_fingerprint', '${release.expectedPostFingerprint}', true);
+select pg_catalog.set_config('comun.release_pre_fingerprint', '${expectedPre(release)}', true);
+select pg_catalog.set_config('comun.release_post_fingerprint', '${expectedPost(release)}', true);
 `,
   );
   executeSql(configuredMigration);
 
-  const after = captureBaseline();
-  if (after.fingerprint !== release.expectedPostFingerprint) {
+  const globalAfter = captureBaseline();
+  const after = release.fingerprintScope ? captureScopedBaseline() : globalAfter;
+  const afterLedgerState = summarizeLedgerState(release);
+  const diagnostic = buildSanitizedSecurityDiagnostic({
+    before: globalBefore,
+    after: globalAfter,
+    beforeLedgerState,
+    afterLedgerState,
+  });
+  await emitSecurityDiagnostic(diagnostic, diagnosticOutput);
+  if (after.fingerprint !== expectedPost(release)) {
     fail("SOLO_CANONICAL_POST_FINGERPRINT_MISMATCH");
   }
-  if (after.security.blockingFindings.length !== release.expectedBlockingFindings) {
-    fail("SOLO_CANONICAL_SECURITY_FINDINGS_REMAIN");
-  }
-  if (after.security.platformObservations.length && !release.platformObservationsAllowed) {
+  validateBlockingFindings(globalAfter, release.expectedBlockingFindings);
+  if (globalAfter.security.platformObservations.length && !release.platformObservationsAllowed) {
     fail("SOLO_CANONICAL_PLATFORM_OBSERVATION_NOT_ALLOWED");
   }
   if (!acceptedLedgerValues(release).has(readLedger(release))) {
     fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
   }
-  if (after.security.platformObservations.length) {
-    console.log(`COMUN_PLATFORM_DEFAULTS_OBSERVED ${after.security.platformObservations.length}`);
+  if (globalAfter.security.platformObservations.length) {
+    console.log(`COMUN_PLATFORM_DEFAULTS_OBSERVED ${globalAfter.security.platformObservations.length}`);
   }
-  console.log("COMUN_CANONICAL_SECURITY_HARDENING_OK");
+  console.log(releaseMarker(release, "OK"));
 }
 
 const isDirect = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);

@@ -39,6 +39,10 @@ memória pública.
 - Rádio: `/comun/radio`;
 - Mapa das Calçadas: `/comun/calcadas`.
 
+O Mapa das Calçadas mantém um ciclo operacional completo entre registro,
+moderação, verificação, prioridade, ação ou protocolo, resultado e memória.
+Consulte `docs/product/COMUN_SIDEWALK_OPERATIONAL_LOOP.md`.
+
 ## Núcleo vivo da experiência
 
 A pauta é a unidade canônica de continuidade. Cada pauta organiza a experiência

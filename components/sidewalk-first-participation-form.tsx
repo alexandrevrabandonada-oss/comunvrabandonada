@@ -36,11 +36,14 @@ export function SidewalkFirstParticipationForm({
     [preview, setPreview] = useState<string | null>(null),
     [condition, setCondition] = useState(""),
     [categories, setCategories] = useState<string[]>([]),
+    [affectedGroups, setAffectedGroups] = useState<string[]>([]),
     [point, setPoint] = useState<[number, number] | null>(null),
     [accuracy, setAccuracy] = useState<number | null>(null),
     [locationState, setLocationState] = useState<LocationState>("idle"),
     [pointConfirmed, setPointConfirmed] = useState(false),
     [sessionReady, setSessionReady] = useState(false),
+    [consentPublish, setConsentPublish] = useState(false),
+    [reviewConfirmed, setReviewConfirmed] = useState(false),
     [submissionError, setSubmissionError] = useState<string | null>(null),
     [pending, setPending] = useState(false);
   useEffect(
@@ -113,7 +116,13 @@ export function SidewalkFirstParticipationForm({
     if (fileRef.current) fileRef.current.value = "";
   };
   const ready = Boolean(
-    preview && point && pointConfirmed && condition && sessionReady,
+    preview &&
+      point &&
+      pointConfirmed &&
+      condition &&
+      sessionReady &&
+      consentPublish &&
+      reviewConfirmed,
   );
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -134,6 +143,8 @@ export function SidewalkFirstParticipationForm({
           latitude: String(data.get("latitude") ?? ""),
           location_accuracy_m: String(data.get("location_accuracy_m") ?? ""),
           location_source: String(data.get("location_source") ?? ""),
+          affected_groups: String(data.get("affected_groups") ?? ""),
+          consent_publish: String(data.get("consent_publish") ?? ""),
         },
         authorization = await authorizeSidewalkPhotoUpload({
           filename: photo.name,
@@ -167,6 +178,16 @@ export function SidewalkFirstParticipationForm({
       <input type="hidden" name="condition" value={condition} />
       <input type="hidden" name="category" value={categories[0] || "outro"} />
       <input type="hidden" name="problems" value={categories.join(",")} />
+      <input
+        type="hidden"
+        name="affected_groups"
+        value={affectedGroups.join(",")}
+      />
+      <input
+        type="hidden"
+        name="consent_publish"
+        value={consentPublish ? "yes" : "no"}
+      />
       <input type="hidden" name="longitude" value={point?.[0] ?? "not-set"} />
       <input type="hidden" name="latitude" value={point?.[1] ?? "not-set"} />
       <input type="hidden" name="location_accuracy_m" value={accuracy ?? ""} />
@@ -329,6 +350,70 @@ export function SidewalkFirstParticipationForm({
               />
             </label>
           </section>
+          <section className="border-2 bg-comun-paper p-4 text-comun-black">
+            <h2 className="font-black uppercase">Impacto na acessibilidade</h2>
+            <p className="mt-1 text-sm">
+              Marque quem encontra dificuldade neste trecho. A seleção ajuda na
+              triagem, mas não define prioridade automaticamente.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {[
+                ["wheelchair_users", "Cadeira de rodas"],
+                ["visually_impaired", "Deficiência visual"],
+                ["elderly", "Pessoas idosas"],
+                ["children", "Crianças"],
+                ["strollers", "Carrinhos de bebê"],
+                ["temporary_mobility", "Mobilidade temporária"],
+                ["general_public", "Circulação geral"],
+              ].map(([value, label]) => (
+                <button
+                  type="button"
+                  aria-pressed={affectedGroups.includes(value)}
+                  key={value}
+                  onClick={() =>
+                    setAffectedGroups((all) =>
+                      all.includes(value)
+                        ? all.filter((item) => item !== value)
+                        : [...all, value],
+                    )
+                  }
+                  className={`min-h-11 border-2 px-3 font-bold ${affectedGroups.includes(value) ? "bg-comun-yellow" : "bg-white"}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </section>
+          <section className="grid gap-3 border-2 border-comun-yellow bg-comun-black p-4 text-comun-paper">
+            <h2 className="font-black uppercase">Revise antes de enviar</h2>
+            <p className="text-sm">
+              A fotografia e o ponto exato ficam privados. Se a equipe aprovar
+              a contribuição, somente uma derivada revisada e uma localização
+              aproximada poderão aparecer no mapa.
+            </p>
+            <label className="flex min-h-11 items-start gap-3">
+              <input
+                type="checkbox"
+                checked={consentPublish}
+                onChange={(event) => setConsentPublish(event.target.checked)}
+                className="mt-1 size-6"
+              />
+              <span>
+                Autorizo a publicação sanitizada da contribuição após moderação.
+              </span>
+            </label>
+            <label className="flex min-h-11 items-start gap-3">
+              <input
+                type="checkbox"
+                checked={reviewConfirmed}
+                onChange={(event) => setReviewConfirmed(event.target.checked)}
+                className="mt-1 size-6"
+              />
+              <span>
+                Conferi fotografia, local, condição e impacto antes do envio.
+              </span>
+            </label>
+          </section>
           <button
             disabled={!ready || pending}
             className="sticky bottom-20 min-h-14 w-full border-2 border-comun-black bg-comun-yellow px-5 text-lg font-black uppercase text-comun-black shadow-[3px_3px_0_#0b0b0a] disabled:opacity-50"
@@ -371,10 +456,30 @@ function ManualPointPicker({
 }) {
   const p = point ? projectMercator(point) : null;
   return (
+    <>
     <button
       type="button"
       aria-label="Mapa para confirmar ou ajustar o ponto"
+      aria-describedby="manual-point-help"
+      onKeyDown={(event) => {
+        const current = point ?? VOLTA_REDONDA_MAP.center;
+        const delta = event.shiftKey ? 0.002 : 0.0005;
+        const next: Record<string, [number, number]> = {
+          ArrowLeft: [current[0] - delta, current[1]],
+          ArrowRight: [current[0] + delta, current[1]],
+          ArrowUp: [current[0], current[1] + delta],
+          ArrowDown: [current[0], current[1] - delta],
+        };
+        if (next[event.key]) {
+          event.preventDefault();
+          onChange(next[event.key]);
+        }
+      }}
       onClick={(event) => {
+        if (event.detail === 0) {
+          onChange(point ?? VOLTA_REDONDA_MAP.center);
+          return;
+        }
         const rect = event.currentTarget.getBoundingClientRect();
         onChange(
           unprojectMercator(
@@ -421,9 +526,14 @@ function ManualPointPicker({
         </>
       ) : null}
       <span className="absolute bottom-2 left-2 bg-white p-2 text-xs font-bold">
-        Toque para ajustar o marcador
+        Toque ou use as setas para ajustar o marcador
       </span>
     </button>
+    <p id="manual-point-help" className="mt-2 text-sm">
+      Sem GPS, use Tab para focar o mapa e as setas para mover o marcador. Use
+      Enter ou Espaço para confirmar o ponto.
+    </p>
+    </>
   );
 }
 async function compressPhoto(file: File) {
