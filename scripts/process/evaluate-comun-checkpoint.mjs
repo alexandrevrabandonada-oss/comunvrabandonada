@@ -11,7 +11,8 @@ const SENSITIVE_KEY =
   /(?:authorization|cookie|credential|dsn|pass(?:word)?|secret|token|database[_-]?url|service[_-]?role)/i;
 const SENSITIVE_VALUE =
   /(?:\b(?:gh[pous]_|github_pat_|eyJ[a-zA-Z0-9_-]{10,})\S*|\b(?:postgres(?:ql)?):\/\/\S+|\b(?:password|token|secret)\s*[=:]\s*\S+)/gi;
-const REQUIRED_RUNS = ["MICRO", "CHECKPOINT", "RELEASE/FULL"];
+const PRODUCT_REQUIRED_RUNS = ["MICRO", "CHECKPOINT", "RELEASE/FULL"];
+const PROCESS_REQUIRED_RUNS = ["PROCESS"];
 const DEFAULT_SMOKE_ROUTES = ["/comun", "/comun/acoes"];
 
 function isKnown(value) {
@@ -73,6 +74,16 @@ export function resolveSmokeRoutes(configuredRoutes) {
     .map((route) => route.trim())
     .filter((route) => route.startsWith("/"));
   return routes.length ? [...new Set(routes)] : DEFAULT_SMOKE_ROUTES;
+}
+
+export function requiredRunsForCheckpoint(checkpointType) {
+  return checkpointType === "process"
+    ? PROCESS_REQUIRED_RUNS
+    : PRODUCT_REQUIRED_RUNS;
+}
+
+export function selectPreferredRun(runs = []) {
+  return runs.find((run) => run.conclusion === "success") ?? runs[0] ?? null;
 }
 
 export function decideComumFlow(scores) {
@@ -171,9 +182,12 @@ export function evaluateComumCheckpoint(input) {
   const pr = input.pr ?? {};
   const candidateSha = input.candidateSha;
   const mergeSha = input.mergeSha;
+  const checkpointType =
+    input.checkpointType === "process" ? "process" : "product";
   const duration = knownDuration(runs);
   const human = humanSummary(input.humanInterventions);
   const metrics = {
+    checkpointType,
     pr: pr.number ?? "unknown",
     branch: pr.branch ?? "unknown",
     base: pr.base ?? "unknown",
@@ -202,7 +216,7 @@ export function evaluateComumCheckpoint(input) {
     smoke: input.smoke ?? { status: "unknown", errors: [] },
   };
 
-  const requiredMissing = REQUIRED_RUNS.filter(
+  const requiredMissing = requiredRunsForCheckpoint(checkpointType).filter(
     (label) => !runSucceeded(selectedRun(runs, label)),
   );
   const blockers = [];
@@ -340,6 +354,7 @@ export function evaluateComumCheckpoint(input) {
   });
   return sanitizeProcessData({
     protocol: "COMUN RETRO",
+    checkpointType,
     checkpointId:
       input.checkpointId ??
       `pr-${pr.number ?? "unknown"}-${String(candidateSha ?? "unknown").slice(0, 7)}`,
@@ -480,17 +495,27 @@ async function collectRemoteCheckpoint(options, fetchImpl = fetch) {
   );
   const allRuns = runsResponse?.workflow_runs ?? [];
   const candidateSha = options.candidateSha ?? pr?.head?.sha;
-  const requested = new Map([
-    ["MICRO", options.microRun],
-    ["CHECKPOINT", options.checkpointRun],
-    ["RELEASE/FULL", options.fullRun],
-  ]);
+  const checkpointType =
+    options.checkpointType ??
+    (pr?.labels?.some((label) => label.name === "comun:process")
+      ? "process"
+      : "product");
+  const requested = new Map(
+    checkpointType === "process"
+      ? [["PROCESS", options.processRun]]
+      : [
+          ["MICRO", options.microRun],
+          ["CHECKPOINT", options.checkpointRun],
+          ["RELEASE/FULL", options.fullRun],
+        ],
+  );
   const selected = [];
   const jobCache = new Map();
   const jobMatcher = {
     MICRO: /\bMICRO\b/i,
     CHECKPOINT: /\bCHECKPOINT\b/i,
     "RELEASE/FULL": /\b(?:RELEASE|FULL)\b/i,
+    PROCESS: /\bPROCESS\b/i,
   };
   async function jobsForRun(run) {
     if (!jobCache.has(run.id)) {
@@ -514,6 +539,7 @@ async function collectRemoteCheckpoint(options, fetchImpl = fetch) {
       const candidates = allRuns.filter(
         (item) => item.head_sha === candidateSha,
       );
+      const matchingRuns = [];
       for (const candidate of candidates) {
         const jobs = await jobsForRun(candidate);
         if (
@@ -521,10 +547,10 @@ async function collectRemoteCheckpoint(options, fetchImpl = fetch) {
             jobMatcher[label].test(job.name ?? ""),
           )
         ) {
-          run = candidate;
-          break;
+          matchingRuns.push(candidate);
         }
       }
+      run = selectPreferredRun(matchingRuns);
     }
     if (!run) {
       selected.push({ label, conclusion: "unknown", runAttempt: 0 });
@@ -632,6 +658,7 @@ async function collectRemoteCheckpoint(options, fetchImpl = fetch) {
           0,
         );
   return {
+    checkpointType,
     candidateSha,
     mergeSha,
     pr: {
@@ -716,6 +743,7 @@ async function main() {
   const remote = await collectRemoteCheckpoint(options);
   const review = evaluateComumCheckpoint({
     ...remote,
+    checkpointType: options.checkpointType ?? remote.checkpointType,
     checkpointId: options.checkpointId,
     productDecision: options.productDecision,
     smoke: smokeFromOptions(options),
