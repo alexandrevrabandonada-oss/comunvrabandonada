@@ -200,6 +200,246 @@ jobs:
       - run: npm run test:unit
       - run: git diff --check HEAD^ HEAD
 
+  tijolo-45-map-lane-integrity:
+    name: Map lane integrity / COMUN_ACTIVE_LANE_INTEGRITY_GREEN
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.ref == 'codex/tijolo-45-1-mapa-real-volta-redonda'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Confirm the exclusive map lane
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+          ACTUAL_BRANCH: ${{ github.event.pull_request.head.ref }}
+          ACTUAL_BASE: ${{ github.event.pull_request.base.ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$ACTUAL_BRANCH" = 'codex/tijolo-45-1-mapa-real-volta-redonda'
+          test "$ACTUAL_BASE" = main
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          git fetch --no-tags origin \
+            +refs/heads/main:refs/remotes/origin/main \
+            +refs/heads/codex/tijolo-43-ativacao-operacional:refs/remotes/origin/codex/tijolo-43-ativacao-operacional
+          ! git merge-base --is-ancestor refs/remotes/origin/codex/tijolo-43-ativacao-operacional HEAD
+          changed="$(git diff --name-only origin/main...HEAD)"
+          ! printf '%s\n' "$changed" | grep -E '(^|/)(backups?|[^/]+\.(dump|sql\.gz|log)|\.env($|\.)|.*secret)'
+          ! printf '%s\n' "$changed" | grep -E '^supabase/migrations/20260724233256_comun_sidewalk_operational_hardening\.sql$'
+          ! printf '%s\n' "$changed" | grep -E '^public/maps/volta-redonda/volta-redonda\.pmtiles$'
+          echo COMUN_ACTIVE_LANE_INTEGRITY_GREEN
+
+  tijolo-45-map-micro:
+    name: MICRO / COMUN_MICRO_GREEN
+    if: github.event_name == 'push' && github.ref_name == 'codex/tijolo-45-1-mapa-real-volta-redonda'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run test:map-base
+      - run: npx vitest run lib/sidewalk-basemap-provider.test.ts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: git diff --check HEAD^ HEAD
+
+  tijolo-45-map-checkpoint:
+    name: CHECKPOINT / COMUN_CHECKPOINT_GREEN
+    needs: tijolo-45-map-lane-integrity
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action == 'labeled' &&
+      github.event.pull_request.head.ref == 'codex/tijolo-45-1-mapa-real-volta-redonda' &&
+      github.event.label.name == 'comun:checkpoint'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Install the pinned Playwright browser
+        run: npx playwright install --with-deps chromium
+      - run: npm run test:map-base
+      - run: npx vitest run lib/sidewalk-basemap-provider.test.ts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - name: Start the map without a database
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run start -- --hostname 127.0.0.1 --port 3102 > /tmp/comun-tijolo-45-map.log 2>&1 &
+          for attempt in {1..60}; do
+            curl --fail --silent http://127.0.0.1:3102/comun/calcadas > /dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/comun-tijolo-45-map.log
+          exit 1
+      - name: Verify real map, fallback and responsive screenshots
+        run: PLAYWRIGHT_SKIP_WEBSERVER=1 npx playwright test -c playwright.tijolo-45-real-map.config.ts
+      - id: preview
+        name: Require the exact Vercel Preview and HTTP Range
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_AUTOMATION_BYPASS_SECRET"
+          for attempt in {1..30}; do
+            deployment_id="$(gh api "repos/${{ github.repository }}/deployments?sha=$SHA&environment=Preview&per_page=20" --jq '[.[] | select(.sha == env.SHA and .environment == "Preview")][0].id // empty')"
+            if [[ -n "$deployment_id" ]]; then
+              deployment_url="$(gh api "repos/${{ github.repository }}/deployments/$deployment_id/statuses?per_page=20" --jq '[.[] | select(.state == "success" and .environment_url)][0].environment_url // empty')"
+              if [[ -n "$deployment_url" ]]; then
+                headers_path="$(mktemp)"
+                http_status="$(curl --silent --show-error --location --range 0-127 \
+                  --header "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" \
+                  --dump-header "$headers_path" --output /dev/null --write-out '%{http_code}' \
+                  "$deployment_url/maps/volta-redonda/volta-redonda.pmtiles" || true)"
+                content_range="$(tr -d '\r' < "$headers_path" | awk 'tolower($1) == "content-range:" { print $2 " " $3; exit }')"
+                rm -f "$headers_path"
+                if [[ "$http_status" == "206" && "$content_range" == "bytes 0-127/10147678" ]]; then
+                  echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
+                  echo COMUN_VOLTA_REDONDA_PREVIEW_RANGE_GREEN
+                  exit 0
+                fi
+              fi
+            fi
+            sleep 10
+          done
+          echo COMUN_VOLTA_REDONDA_PREVIEW_RANGE_UNAVAILABLE
+          exit 1
+      - name: Upload map checkpoint evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-tijolo-45-real-map-${{ github.run_id }}
+          path: |
+            test-results
+            /tmp/comun-tijolo-45-map.log
+          if-no-files-found: warn
+
+  tijolo-45-map-full:
+    name: RELEASE/FULL / COMUN_CI_GREEN
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action == 'labeled' &&
+      github.event.pull_request.head.ref == 'codex/tijolo-45-1-mapa-real-volta-redonda' &&
+      github.event.label.name == 'comun:release-candidate'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Require MICRO and CHECKPOINT for this exact SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for required in "MICRO / COMUN_MICRO_GREEN" "CHECKPOINT / COMUN_CHECKPOINT_GREEN"; do
+            passed="$(gh api --paginate "repos/${{ github.repository }}/commits/$SHA/check-runs?per_page=100" | jq -s --arg required "$required" '[.[].check_runs[] | select(.name == $required and .conclusion == "success")] | length')"
+            test "$passed" -gt 0
+          done
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run test:map-base
+      - run: npx vitest run lib/sidewalk-basemap-provider.test.ts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run test:unit
+      - run: npm run build
+      - run: git diff --check origin/main...HEAD
+      - run: echo COMUN_CI_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  central-after-tijolo-45-map-micro:
+    name: Update COMUN CENTRAL after map MICRO
+    needs: tijolo-45-map-micro
+    if: >-
+      always() && github.event_name == 'push' &&
+      github.ref_name == 'codex/tijolo-45-1-mapa-real-volta-redonda'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update fixed control issue
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          COMUN_CENTRAL_ISSUE: "39"
+          COMUN_CENTRAL_STAGE: push
+          COMUN_CENTRAL_RESULT: ${{ needs.tijolo-45-map-micro.result }}
+          COMUN_CENTRAL_SHA: ${{ github.sha }}
+          COMUN_CENTRAL_BRANCH: ${{ github.ref_name }}
+          COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/ci/update-comun-central.mjs
+
+  central-after-tijolo-45-map-checkpoint:
+    name: Update COMUN CENTRAL after map CHECKPOINT
+    needs: tijolo-45-map-checkpoint
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.action == 'labeled' &&
+      github.event.pull_request.head.ref == 'codex/tijolo-45-1-mapa-real-volta-redonda' &&
+      github.event.label.name == 'comun:checkpoint'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update fixed control issue
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          COMUN_CENTRAL_ISSUE: "39"
+          COMUN_CENTRAL_STAGE: checkpoint
+          COMUN_CENTRAL_RESULT: ${{ needs.tijolo-45-map-checkpoint.result }}
+          COMUN_CENTRAL_SHA: ${{ github.event.pull_request.head.sha }}
+          COMUN_CENTRAL_BRANCH: ${{ github.event.pull_request.head.ref }}
+          COMUN_CENTRAL_PR: ${{ github.event.pull_request.number }}
+          COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/ci/update-comun-central.mjs
+
+  central-after-tijolo-45-map-release:
+    name: Update COMUN CENTRAL after map RELEASE/FULL
+    needs: tijolo-45-map-full
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.action == 'labeled' &&
+      github.event.pull_request.head.ref == 'codex/tijolo-45-1-mapa-real-volta-redonda' &&
+      github.event.label.name == 'comun:release-candidate'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update fixed control issue
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          COMUN_CENTRAL_ISSUE: "39"
+          COMUN_CENTRAL_STAGE: release
+          COMUN_CENTRAL_RESULT: ${{ needs.tijolo-45-map-full.result }}
+          COMUN_CENTRAL_SHA: ${{ github.event.pull_request.head.sha }}
+          COMUN_CENTRAL_BRANCH: ${{ github.event.pull_request.head.ref }}
+          COMUN_CENTRAL_PR: ${{ github.event.pull_request.number }}
+          COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/ci/update-comun-central.mjs
+
   release-rehearsal:
     name: RELEASE / COMUN_RELEASE_REHEARSAL
     if: github.event.pull_request.number == 35

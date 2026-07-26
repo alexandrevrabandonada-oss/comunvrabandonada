@@ -29,12 +29,12 @@ export default async function Page({
     origem?: string;
     pauta?: string;
   }>;
-  }) {
+}) {
   const p = await searchParams;
   if (p.origem === "calcadas") {
     const sidewalkOperational = await getSidewalkOperationalRelease();
     return (
-      <ComunShell>
+      <ComunShell showSyntheticNotice={false}>
         <Section>
           <p className="text-xs font-black uppercase text-comun-yellow">
             Pauta das calçadas · contribuição rápida
