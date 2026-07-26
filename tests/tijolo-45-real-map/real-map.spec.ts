@@ -36,6 +36,9 @@ test("usa o PMTiles real canônico por HTTP Range sem cartografia demo", async (
     .poll(() => ranges.some((range) => range.startsWith("bytes=")))
     .toBe(true);
   expect(await page.locator("body").innerText()).not.toContain("(demo)");
+  expect(await page.locator("body").innerText()).not.toContain(
+    "conteúdo sintético",
+  );
   expect(consoleErrors).toEqual([]);
   await page.screenshot({
     path: testInfo.outputPath("visao-geral-real.png"),

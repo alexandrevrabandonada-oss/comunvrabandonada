@@ -9,7 +9,13 @@ import {
 import { ComunPwaRuntime, ComunShareButton } from "./comun-pwa-runtime";
 import { ComunMobileAppBar } from "./comun-mobile-app-bar";
 
-export function ComunAppShell({ children }: { children: ReactNode }) {
+export function ComunAppShell({
+  children,
+  showSyntheticNotice = true,
+}: {
+  children: ReactNode;
+  showSyntheticNotice?: boolean;
+}) {
   return (
     <div className="min-h-screen overflow-x-hidden pb-[env(safe-area-inset-bottom)]">
       <ComunPwaRuntime />
@@ -19,12 +25,14 @@ export function ComunAppShell({ children }: { children: ReactNode }) {
       >
         Pular para o conteúdo
       </a>
-      <div
-        role="note"
-        className="bg-comun-yellow px-4 py-1 text-center text-xs font-black text-comun-black"
-      >
-        Ambiente de demonstração · conteúdo sintético
-      </div>
+      {showSyntheticNotice ? (
+        <div
+          role="note"
+          className="bg-comun-yellow px-4 py-1 text-center text-xs font-black text-comun-black"
+        >
+          Ambiente de demonstração · conteúdo sintético
+        </div>
+      ) : null}
       <header className="sticky top-0 z-30 hidden border-b-2 border-comun-yellow bg-comun-black pt-[env(safe-area-inset-top)] text-comun-paper lg:block">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2">
           <Link
