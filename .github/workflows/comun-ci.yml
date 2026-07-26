@@ -56,6 +56,73 @@ jobs:
           ! printf '%s\n' "$changed" | grep -E '^supabase/migrations/20260724233256_comun_sidewalk_operational_hardening\.sql$'
           echo "COMUN_ACTIVE_LANE_INTEGRITY_GREEN"
 
+  collective-actions-preview-audit:
+    name: Preview visual / COMUN_COLLECTIVE_ACTIONS_PREVIEW_GREEN
+    if: github.event.pull_request.number == 37
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      VERCEL_ENV: preview
+      COMUN_COLLECTIVE_ACTIONS_PREVIEW_FIXTURES: enabled
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Start synthetic preview
+        run: |
+          npm run start -- --port 3100 > /tmp/comun-collective-actions-preview.log 2>&1 &
+          for attempt in {1..60}; do
+            curl --fail --silent http://127.0.0.1:3100/comun/acoes > /dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/comun-collective-actions-preview.log
+          exit 1
+      - name: Capture responsive synthetic preview
+        run: |
+          node <<'NODE'
+          const { chromium } = require("playwright");
+          const routes = [
+            ["listagem", "/comun/acoes"],
+            ["detalhe-tarefas-timeline", "/comun/acoes/mutirao-caminho-seguro"],
+            ["memoria", "/comun/acoes/memoria-do-mutirao"],
+            ["minha-participacao", "/comun/minha-participacao"],
+            ["administracao", "/comun/admin/acoes"],
+          ];
+          const viewports = [["mobile", 390, 844], ["tablet", 768, 1024], ["desktop", 1440, 900]];
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const errors = [];
+            for (const [name, width, height] of viewports) {
+              const page = await browser.newPage({ viewport: { width, height } });
+              page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+              page.on("pageerror", (error) => errors.push(error.message));
+              for (const [routeName, path] of routes) {
+                const response = await page.goto(`http://127.0.0.1:3100${path}`, { waitUntil: "networkidle" });
+                if (!response || response.status() >= 500) throw new Error(`Preview route failed: ${path}`);
+                if (await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)) throw new Error(`Horizontal overflow: ${name} ${path}`);
+                await page.screenshot({ path: `.ci-artifacts/collective-actions-preview/${name}-${routeName}.png`, fullPage: true });
+              }
+              await page.close();
+            }
+            await browser.close();
+            if (errors.length) throw new Error(`Console errors: ${errors.join(" | ")}`);
+          })().catch((error) => { console.error(error); process.exit(1); });
+          NODE
+      - name: Upload visual audit artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-collective-actions-preview-${{ github.run_id }}
+          path: .ci-artifacts/collective-actions-preview
+          if-no-files-found: error
+
   fast:
     name: FAST / COMUN_CI_GREEN
     runs-on: ubuntu-24.04
