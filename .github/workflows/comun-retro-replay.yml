@@ -1,0 +1,130 @@
+name: COMUN RETRO replay
+
+on:
+  workflow_dispatch:
+    inputs:
+      merge_sha:
+        description: Merge commit já integrado à main.
+        required: true
+        type: string
+      deployment_url:
+        description: URL pública registrada pelo deployment.
+        required: true
+        type: string
+      deployment_id:
+        description: Identificador do deployment do GitHub.
+        required: true
+        type: string
+      smoke_routes:
+        description: Rotas públicas separadas por vírgula; vazio usa o fallback.
+        required: false
+        default: ""
+        type: string
+      update_central:
+        description: Atualiza a Central somente quando autorizado explicitamente.
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  actions: read
+  contents: read
+  deployments: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  replay:
+    name: Replay COMUN RETRO / validated main lineage
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.merge_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - id: lineage
+        name: Confirm replay SHA belongs to main
+        env:
+          DEPLOYMENT_SHA: ${{ inputs.merge_sha }}
+          DEPLOYMENT_ENVIRONMENT: Production
+          DEPLOYMENT_STATE: success
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          node scripts/process/verify-main-deployment.mjs --event-name=deployment_status --github-output="$GITHUB_OUTPUT"
+      - id: pull_request
+        name: Locate the merged pull request exactly
+        if: steps.lineage.outputs.eligible == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          MERGE_SHA: ${{ inputs.merge_sha }}
+        run: |
+          set -euo pipefail
+          pr_number="$(gh api "repos/${{ github.repository }}/commits/$MERGE_SHA/pulls" --jq '[.[] | select(.merged_at != null and .merge_commit_sha == env.MERGE_SHA)][0].number')"
+          test -n "$pr_number"
+          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+      - id: retro
+        name: Smoke and evaluate the historical checkpoint
+        if: steps.lineage.outputs.eligible == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DEPLOYMENT_URL: ${{ inputs.deployment_url }}
+          DEPLOYMENT_ID: ${{ inputs.deployment_id }}
+          MERGE_SHA: ${{ inputs.merge_sha }}
+          PR_NUMBER: ${{ steps.pull_request.outputs.pr_number }}
+          COMUN_RETRO_SMOKE_ROUTES: ${{ inputs.smoke_routes }}
+          ARTIFACT_DIR: .ci-artifacts/comun-process-review
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$DEPLOYMENT_URL" in https://*) ;; *) exit 1 ;; esac
+          case "$DEPLOYMENT_ID" in *[!0-9]*|'') exit 1 ;; esac
+          smoke_status=passed
+          smoke_args=()
+          mapfile -t routes < <(
+            node --input-type=module -e "import { resolveSmokeRoutes } from './scripts/process/evaluate-comun-checkpoint.mjs'; console.log(resolveSmokeRoutes(process.env.COMUN_RETRO_SMOKE_ROUTES).join('\\n'))"
+          )
+          for route in "${routes[@]}"; do
+            status="$(curl --silent --show-error --location --output /dev/null --write-out '%{http_code}' "${DEPLOYMENT_URL}${route}" || true)"
+            smoke_args+=("--smoke-route=${route}:${status}")
+            if [ "$status" != "200" ]; then smoke_status=failed; fi
+          done
+          node scripts/process/evaluate-comun-checkpoint.mjs \
+            --repository="${{ github.repository }}" \
+            --pr="$PR_NUMBER" \
+            --merge-sha="$MERGE_SHA" \
+            --production-deployment="$DEPLOYMENT_ID" \
+            --smoke-status="$smoke_status" \
+            --remote-writes=unknown \
+            --output-dir="$ARTIFACT_DIR" \
+            --github-output="$GITHUB_OUTPUT" \
+            "${smoke_args[@]}"
+      - name: Publish sanitized replay artifact
+        if: always() && steps.lineage.outputs.eligible == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-process-review-${{ steps.retro.outputs.checkpoint_id }}-${{ github.run_id }}
+          path: .ci-artifacts/comun-process-review
+          if-no-files-found: error
+      - name: Update COMUN CENTRAL after an explicitly authorized replay
+        if: inputs.update_central == true && steps.lineage.outputs.eligible == 'true' && steps.retro.outcome == 'success'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          COMUN_CENTRAL_ISSUE: "39"
+          COMUN_CENTRAL_STAGE: retro
+          COMUN_CENTRAL_RESULT: ${{ steps.retro.outputs.process_decision }}
+          COMUN_CENTRAL_SHA: ${{ inputs.merge_sha }}
+          COMUN_CENTRAL_CHECKPOINT: ${{ steps.retro.outputs.checkpoint_id }}
+          COMUN_CENTRAL_PRODUCT_DECISION: ${{ steps.retro.outputs.product_decision }}
+          COMUN_CENTRAL_PROCESS_DECISION: ${{ steps.retro.outputs.process_decision }}
+          COMUN_CENTRAL_DURATION: ${{ steps.retro.outputs.duration }}
+          COMUN_CENTRAL_RUNS: ${{ steps.retro.outputs.runs }}
+          COMUN_CENTRAL_HUMAN_INTERVENTIONS: ${{ steps.retro.outputs.human_interventions }}
+          COMUN_CENTRAL_IMPROVEMENTS: ${{ steps.retro.outputs.improvements }}
+          COMUN_CENTRAL_REMOTE_WRITES: ${{ steps.retro.outputs.remote_writes }}
+          COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/ci/update-comun-central.mjs

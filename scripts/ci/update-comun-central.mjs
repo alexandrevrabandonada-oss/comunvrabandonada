@@ -47,6 +47,7 @@ const runs = process.env.COMUN_CENTRAL_RUNS;
 const interventions = process.env.COMUN_CENTRAL_HUMAN_INTERVENTIONS;
 const improvements = process.env.COMUN_CENTRAL_IMPROVEMENTS;
 const remoteWrites = process.env.COMUN_CENTRAL_REMOTE_WRITES;
+const cause = process.env.COMUN_CENTRAL_CAUSE;
 
 const branchIsSha = /^[a-f0-9]{40}$/i.test(branch ?? "");
 if (branch && !branchIsSha && stage !== "merge" && stage !== "deploy")
@@ -98,6 +99,22 @@ if (stage === "retro") {
     "COMUN RETRO concluída; próximo checkpoint pode iniciar",
   );
 }
+if (stage === "process") {
+  state.set(
+    "Branch ativa",
+    branch ? `\`${branch}\`` : "processo em preparação",
+  );
+  state.set(
+    "PR ativa",
+    pr ? `#${pr} — reparo de processo` : "reparo de processo",
+  );
+  state.set("Checkpoint bloqueado", checkpoint ?? "COMUN RETRO pós-deploy");
+  state.set("Causa", cause ?? "indisponível");
+  state.set(
+    "Etapa atual",
+    "reparo de processo em validação; nenhuma branch de produto ativa",
+  );
+}
 
 state.set(
   "Produção",
@@ -124,6 +141,8 @@ const preferredOrder = [
   "Intervenções humanas",
   "Melhorias próximo ciclo",
   "Escritas remotas de banco",
+  "Checkpoint bloqueado",
+  "Causa",
   "Produção",
   "Migration remota",
 ];
