@@ -9,7 +9,6 @@ import {
   SIDEWALK_OPERATIONAL_PAUSED_MESSAGE,
   SIDEWALK_OPERATIONAL_RELEASE,
 } from "@/lib/sidewalk-operational-release-contract";
-import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
 export {
   hasExactSidewalkOperationalLedger,
@@ -19,6 +18,37 @@ export {
   SIDEWALK_OPERATIONAL_PAUSED_MESSAGE,
   SIDEWALK_OPERATIONAL_RELEASE,
 };
+
+async function readSidewalkOperationalLedger() {
+  const connectionString = process.env.COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL;
+  if (!connectionString) return null;
+
+  const { Client } = await import("pg");
+  const client = new Client({
+    connectionString,
+    connectionTimeoutMillis: 1_500,
+    query_timeout: 1_500,
+  });
+
+  try {
+    await client.connect();
+    const result = await client.query<{
+      release: string;
+      status: string;
+      migration_path: string;
+      migration_sha256: string;
+    }>(
+      `select release, status, migration_path, migration_sha256
+       from public.comun_schema_releases
+       where release = $1
+       limit 1`,
+      [SIDEWALK_OPERATIONAL_RELEASE],
+    );
+    return result.rows[0] ?? null;
+  } finally {
+    await client.end().catch(() => undefined);
+  }
+}
 
 /**
  * This check is intentionally fail-closed. The environment flag only permits
@@ -30,16 +60,8 @@ export const getSidewalkOperationalRelease = cache(async () => {
   }
 
   try {
-    const db = createServiceSupabaseClient();
-    if (!db) return { enabled: false as const };
-
-    const { data, error } = await db
-      .from("comun_schema_releases")
-      .select("release,status,migration_path,migration_sha256")
-      .eq("release", SIDEWALK_OPERATIONAL_RELEASE)
-      .maybeSingle();
-
-    if (error || !isSidewalkOperationalReleaseEnabled(process.env.COMUN_SIDEWALK_OPERATIONAL_V2, data)) {
+    const ledger = await readSidewalkOperationalLedger();
+    if (!isSidewalkOperationalReleaseEnabled(process.env.COMUN_SIDEWALK_OPERATIONAL_V2, ledger)) {
       return { enabled: false as const };
     }
     return { enabled: true as const };
