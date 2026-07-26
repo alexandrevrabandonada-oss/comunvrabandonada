@@ -124,10 +124,17 @@ jobs:
           mkdir -p .ci-artifacts/collective-actions-preview
           node <<'NODE'
           const { chromium } = require("playwright");
+          const AxeBuilder = require("@axe-core/playwright").default;
           const routes = [
             ["listagem", "/comun/acoes"],
-            ["detalhe-tarefas-timeline", "/comun/acoes/mutirao-caminho-seguro"],
-            ["memoria", "/comun/acoes/memoria-do-mutirao"],
+            ["acao-aberta", "/comun/acoes/mutirao-caminho-seguro"],
+            ["tarefas", "/comun/acoes/mutirao-caminho-seguro"],
+            ["timeline", "/comun/acoes/mutirao-caminho-seguro"],
+            ["encaminhamento", "/comun/acoes/encaminhamento-iluminacao"],
+            ["protocolo", "/comun/acoes/encaminhamento-iluminacao"],
+            ["resposta", "/comun/acoes/encaminhamento-iluminacao"],
+            ["resultado", "/comun/acoes/memoria-do-mutirao"],
+            ["memoria-final", "/comun/acoes/memoria-do-mutirao"],
             ["minha-participacao", "/comun/minha-participacao"],
             ["administracao", "/comun/admin/acoes"],
           ];
@@ -143,6 +150,17 @@ jobs:
                 const response = await page.goto(`http://127.0.0.1:3100${path}`, { waitUntil: "networkidle" });
                 if (!response || response.status() >= 500) throw new Error(`Preview route failed: ${path}`);
                 if (await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)) throw new Error(`Horizontal overflow: ${name} ${path}`);
+                if (await page.locator("main").count() === 0) throw new Error(`Missing main landmark: ${path}`);
+                const undersizedButtons = await page.locator("button").evaluateAll((buttons) => buttons.filter((button) => {
+                  const rect = button.getBoundingClientRect();
+                  return rect.width < 40 || rect.height < 40;
+                }).length);
+                if (undersizedButtons) throw new Error(`Undersized touch targets: ${name} ${path}`);
+                const audit = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+                const blockers = audit.violations.filter((violation) => ["critical", "serious"].includes(violation.impact));
+                if (blockers.length) throw new Error(`Accessibility blockers: ${name} ${path} ${blockers.map((violation) => violation.id).join(",")}`);
+                const content = await page.content();
+                if (/member_user_id|contribution_note_private|service_role|private_contact/i.test(content)) throw new Error(`Private marker exposed: ${path}`);
                 await page.screenshot({ path: `.ci-artifacts/collective-actions-preview/${name}-${routeName}.png`, fullPage: true });
               }
               await page.close();
