@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { evaluateMainDeployment } from "./verify-main-deployment.mjs";
 
@@ -77,4 +78,13 @@ test("dados inválidos nunca produzem eligible true", () => {
     ).eligible,
     false,
   );
+});
+
+test("replay executa a automação da main atual, não o merge histórico", () => {
+  const workflow = readFileSync(
+    ".github/workflows/comun-retro-replay.yml",
+    "utf8",
+  );
+  assert.match(workflow, /ref: \$\{\{ github\.sha \}\}/);
+  assert.doesNotMatch(workflow, /ref: \$\{\{ inputs\.merge_sha \}\}/);
 });
