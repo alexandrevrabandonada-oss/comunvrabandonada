@@ -28,6 +28,34 @@ permissions:
   contents: read
 
 jobs:
+  active-lane-integrity:
+    name: Active lane integrity / COMUN_ACTIVE_LANE_INTEGRITY_GREEN
+    if: github.event.pull_request.number == 37
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Validate the active product lane
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_BRANCH: codex/tijolo-44-acoes-coletivas
+          EXPECTED_BASE: main
+          ACTUAL_BRANCH: ${{ github.event.pull_request.head.ref }}
+          ACTUAL_BASE: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -euo pipefail
+          test "$ACTUAL_BRANCH" = "$EXPECTED_BRANCH"
+          test "$ACTUAL_BASE" = "$EXPECTED_BASE"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          git fetch origin main codex/tijolo-43-ativacao-operacional
+          git diff --quiet origin/main...origin/codex/tijolo-43-ativacao-operacional
+          changed="$(git diff --name-only origin/main...HEAD)"
+          ! printf '%s\n' "$changed" | grep -E '(^|/)(backups?|[^/]+\.(dump|sql\.gz|log)|\.env($|\.)|.*secret)'
+          ! printf '%s\n' "$changed" | grep -E '^supabase/migrations/20260724233256_comun_sidewalk_operational_hardening\.sql$'
+          echo "COMUN_ACTIVE_LANE_INTEGRITY_GREEN"
+
   fast:
     name: FAST / COMUN_CI_GREEN
     runs-on: ubuntu-24.04
