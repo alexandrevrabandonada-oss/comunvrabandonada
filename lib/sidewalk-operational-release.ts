@@ -64,13 +64,7 @@ export async function getSidewalkOperationalRelease() {
       return { enabled: false as const };
     }
     return { enabled: true as const };
-  } catch (error) {
-    if (process.env.COMUN_SIDEWALK_OPERATIONAL_GATE_DIAGNOSTIC === "enabled") {
-      const code = typeof error === "object" && error && "code" in error
-        ? String(error.code)
-        : "unknown";
-      console.error(`COMUN_SIDEWALK_OPERATIONAL_GATE_READ_FAILED code=${/^[A-Z0-9_]{1,32}$/.test(code) ? code : "unknown"}`);
-    }
+  } catch {
     return { enabled: false as const };
   }
 }
