@@ -306,6 +306,7 @@ jobs:
         env:
           COMUN_SIDEWALK_OPERATIONAL_V2: enabled
           COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres?application_name=LOCAL_VALIDATION
+          COMUN_SIDEWALK_OPERATIONAL_GATE_DIAGNOSTIC: enabled
         run: |
           npm run test:e2e:comun-integral-experience
           npm run test:e2e:editorial-operation-authenticated
