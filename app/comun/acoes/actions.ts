@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireCommunitySession } from "@/lib/community-auth";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { requireCollectiveActionsRelease } from "@/lib/collective-actions-release";
 
 const participationStates = new Set([
   "interested", "participating", "available_for_task", "attended", "contributed", "withdrew",
@@ -13,6 +14,7 @@ function value(form: FormData, name: string) {
 }
 
 async function memberAction(form: FormData) {
+  await requireCollectiveActionsRelease();
   const slug = value(form, "slug");
   if (!slug) throw new Error("Ação coletiva inválida.");
   const session = await requireCommunitySession(`/comun/acoes/${slug}`);

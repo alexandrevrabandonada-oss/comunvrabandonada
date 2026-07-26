@@ -18,6 +18,9 @@ import { listMyParticipation } from "@/lib/pauta-miniapps";
 import { listMyIdentificationContributions } from "@/lib/archive-identification";
 import { withdrawIdentificationComment } from "@/app/comun/acervo/identificar/actions";
 import { listMemberCollectiveActions } from "@/lib/collective-actions";
+import { isCollectiveActionsPreviewFixturesEnabled } from "@/lib/collective-actions-release-contract";
+import { collectiveActionsPreviewFixtures } from "@/lib/collective-actions-preview-fixtures";
+import { getCollectiveActionsRelease } from "@/lib/collective-actions-release";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +29,7 @@ export default async function MinhaAreaPage({
 }: {
   searchParams: Promise<{ secao?: string }>;
 }) {
+  if (isCollectiveActionsPreviewFixturesEnabled()) return <CollectiveActionsPreviewParticipation />;
   const requested = (await searchParams).secao;
   const selected = [
     "contribuicoes",
@@ -38,11 +42,12 @@ export default async function MinhaAreaPage({
   const { user, profile } = await requireCommunitySession(
     "/comun/minha-participacao",
   );
+  const collectiveActionsRelease = await getCollectiveActionsRelease();
   const [center, submissions, archiveContributions, collectiveActions] = await Promise.all([
     getPersonalCenter(user.id),
     listMyParticipation(user.id),
     listMyIdentificationContributions(user.id),
-    listMemberCollectiveActions(user.id),
+    collectiveActionsRelease.enabled ? listMemberCollectiveActions(user.id) : Promise.resolve([]),
   ]);
   const contributions = [
     ...submissions.contributions,
@@ -285,6 +290,9 @@ export default async function MinhaAreaPage({
       ) : null}
     </ComunShell>
   );
+}
+function CollectiveActionsPreviewParticipation() {
+  return <ComunShell><ComunSection><h1 className="text-4xl font-black uppercase text-comun-yellow">Minha área</h1><p className="mt-3 text-comun-paper/75">Demonstração de Preview com participação sintética e sem dados pessoais.</p><div className="mt-6 grid gap-4">{collectiveActionsPreviewFixtures.map((action) => <article key={action.id} className="border-2 border-comun-yellow p-5"><p className="text-xs font-black uppercase text-comun-yellow">Acompanhando · {action.status}</p><h2 className="mt-2 text-xl font-black">{action.title}</h2><p className="mt-2 text-comun-paper/75">{action.summary}</p></article>)}</div></ComunSection></ComunShell>;
 }
 function AreaTab({
   value,

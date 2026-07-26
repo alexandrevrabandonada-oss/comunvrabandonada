@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { collectiveActionStatusLabels, collectiveActionTypeLabels, collectiveActionTypes, listPublicCollectiveActionFilters, listPublicCollectiveActions } from "@/lib/collective-actions";
+import { CollectiveActionsPaused } from "@/components/collective-actions-paused";
+import { collectiveActionsPreviewFixtures } from "@/lib/collective-actions-preview-fixtures";
+import { getCollectiveActionsRelease } from "@/lib/collective-actions-release";
+import { isCollectiveActionsPreviewFixturesEnabled } from "@/lib/collective-actions-release-contract";
 
 export const dynamic = "force-dynamic";
 
@@ -8,10 +12,12 @@ const labels = collectiveActionTypeLabels;
 
 export default async function CollectiveActionsPage({ searchParams }: { searchParams: Promise<{ territorio?: string; tipo?: string }> }) {
   const filters = await searchParams;
-  const [actions, options] = await Promise.all([
-    listPublicCollectiveActions({ territory: filters.territorio, type: filters.tipo }),
-    listPublicCollectiveActionFilters(),
-  ]);
+  const previewFixtures = isCollectiveActionsPreviewFixturesEnabled();
+  const release = previewFixtures ? { enabled: false } : await getCollectiveActionsRelease();
+  if (!previewFixtures && !release.enabled) return <CollectiveActionsPaused />;
+  const [actions, options] = previewFixtures
+    ? [collectiveActionsPreviewFixtures.filter((action) => (!filters.territorio || action.territory_label === filters.territorio) && (!filters.tipo || action.action_type === filters.tipo)), { territories: ["Território demonstração"], types: ["community_inspection", "mutual_aid"] }]
+    : await Promise.all([listPublicCollectiveActions({ territory: filters.territorio, type: filters.tipo }), listPublicCollectiveActionFilters()]);
   const groups = [
     ["Ações abertas", actions.filter((action: any) => action.status === "open")],
     ["Em andamento", actions.filter((action: any) => ["active", "awaiting_result"].includes(action.status))],

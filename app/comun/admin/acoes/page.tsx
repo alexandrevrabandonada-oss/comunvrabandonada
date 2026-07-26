@@ -4,11 +4,16 @@ import { requireComunAdmin } from "@/lib/admin-auth";
 import { collectiveActionTypes, listAdminCollectiveActions, listCollectiveActionCommunities } from "@/lib/collective-actions";
 import { listAdminPautaSpaces } from "@/lib/pauta-spaces";
 import { completeCollectiveAction, createCollectiveAction, createCollectiveActionTask, linkCollectiveActionSidewalkRecord, publishCollectiveAction, publishCollectiveActionUpdate, updateCollectiveAction } from "./actions";
+import { getCollectiveActionsRelease } from "@/lib/collective-actions-release";
+import { isCollectiveActionsPreviewFixturesEnabled } from "@/lib/collective-actions-release-contract";
+import { collectiveActionsPreviewFixtures } from "@/lib/collective-actions-preview-fixtures";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminCollectiveActionsPage() {
+  if (isCollectiveActionsPreviewFixturesEnabled()) return <CollectiveActionsPreviewAdmin />;
   const session = await requireComunAdmin({ roles: ["admin", "editor"] });
+  if (!(await getCollectiveActionsRelease()).enabled) return <AdminShell adminEmail={session.admin.email}><h1 className="text-3xl font-black uppercase">Ações coletivas</h1><p role="status" className="mt-5 border-l-4 border-comun-yellow bg-white p-5">As Ações Coletivas estão sendo preparadas no COMUN.</p></AdminShell>;
   const [actions, communities, pautas] = await Promise.all([listAdminCollectiveActions(), listCollectiveActionCommunities(), listAdminPautaSpaces()]);
   return <AdminShell adminEmail={session.admin.email}>
     <div className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-3xl font-black uppercase">Ações coletivas</h1><p className="mt-2 max-w-3xl text-sm text-comun-asphalt/75">Uma esteira de mobilização: objetivo, pessoas, tarefas, atualizações e memória — sem feed infinito.</p></div><Link href="/comun/acoes" className="border-2 border-comun-black bg-white px-3 py-2 text-sm font-black uppercase">Ver ações públicas</Link></div>
@@ -26,6 +31,10 @@ export default async function AdminCollectiveActionsPage() {
     </form>
     <div className="mt-7 grid gap-5">{actions.map((action: any) => <ActionAdminCard key={action.id} action={action} />)}</div>
   </AdminShell>;
+}
+
+function CollectiveActionsPreviewAdmin() {
+  return <main className="min-h-screen bg-comun-paper p-5 text-comun-black"><p className="text-xs font-black uppercase">Preview sintético · sem banco</p><h1 className="mt-2 text-3xl font-black uppercase">Administração de ações coletivas</h1><p className="mt-3 max-w-3xl">Demonstração visual: nenhuma ação administrativa é mutável neste Preview.</p><div className="mt-6 grid gap-4">{collectiveActionsPreviewFixtures.map((action) => <article key={action.id} className="border-2 border-comun-black bg-white p-4"><p className="text-xs font-black uppercase">{action.status} · fixture</p><h2 className="mt-2 text-xl font-black uppercase">{action.title}</h2><p className="mt-2">{action.summary}</p><button disabled className="mt-4 border-2 border-comun-black px-3 py-2 font-black uppercase opacity-60">Edição indisponível no Preview</button></article>)}</div></main>;
 }
 
 function ActionAdminCard({ action }: { action: any }) {
