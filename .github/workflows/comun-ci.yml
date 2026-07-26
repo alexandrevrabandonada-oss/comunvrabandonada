@@ -86,6 +86,7 @@ jobs:
           exit 1
       - name: Capture responsive synthetic preview
         run: |
+          mkdir -p .ci-artifacts/collective-actions-preview
           node <<'NODE'
           const { chromium } = require("playwright");
           const routes = [
