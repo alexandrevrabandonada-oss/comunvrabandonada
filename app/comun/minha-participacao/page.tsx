@@ -18,6 +18,10 @@ import { listMyParticipation } from "@/lib/pauta-miniapps";
 import { listMyIdentificationContributions } from "@/lib/archive-identification";
 import { withdrawIdentificationComment } from "@/app/comun/acervo/identificar/actions";
 import { listMemberCollectiveActions } from "@/lib/collective-actions";
+import {
+  releaseCollectiveActionTask,
+  updateCollectiveActionParticipation,
+} from "@/app/comun/acoes/actions";
 import { isCollectiveActionsPreviewFixturesEnabled } from "@/lib/collective-actions-release-contract";
 import { collectiveActionsPreviewFixtures } from "@/lib/collective-actions-preview-fixtures";
 import { getCollectiveActionsRelease } from "@/lib/collective-actions-release";
@@ -29,7 +33,8 @@ export default async function MinhaAreaPage({
 }: {
   searchParams: Promise<{ secao?: string }>;
 }) {
-  if (isCollectiveActionsPreviewFixturesEnabled()) return <CollectiveActionsPreviewParticipation />;
+  if (isCollectiveActionsPreviewFixturesEnabled())
+    return <CollectiveActionsPreviewParticipation />;
   const requested = (await searchParams).secao;
   const selected = [
     "contribuicoes",
@@ -43,12 +48,15 @@ export default async function MinhaAreaPage({
     "/comun/minha-participacao",
   );
   const collectiveActionsRelease = await getCollectiveActionsRelease();
-  const [center, submissions, archiveContributions, collectiveActions] = await Promise.all([
-    getPersonalCenter(user.id),
-    listMyParticipation(user.id),
-    listMyIdentificationContributions(user.id),
-    collectiveActionsRelease.enabled ? listMemberCollectiveActions(user.id) : Promise.resolve([]),
-  ]);
+  const [center, submissions, archiveContributions, collectiveActions] =
+    await Promise.all([
+      getPersonalCenter(user.id),
+      listMyParticipation(user.id),
+      listMyIdentificationContributions(user.id),
+      collectiveActionsRelease.enabled
+        ? listMemberCollectiveActions(user.id)
+        : Promise.resolve([]),
+    ]);
   const contributions = [
     ...submissions.contributions,
     ...submissions.artworkSubmissions,
@@ -56,6 +64,13 @@ export default async function MinhaAreaPage({
   ].sort(
     (a: any, b: any) =>
       communityStatusPriority(b.status) - communityStatusPriority(a.status),
+  );
+  const collectiveTaskAssignments = collectiveActions.flatMap(
+    (participation: any) =>
+      (participation.taskAssignments ?? []).map((assignment: any) => ({
+        ...assignment,
+        participation,
+      })),
   );
   const attention = center.inbox
     .filter((x: any) => !x.read_at)
@@ -102,11 +117,17 @@ export default async function MinhaAreaPage({
           linha do tempo infinita.
         </p>
         <div className="mt-5 border-l-4 border-comun-yellow bg-comun-paper/5 p-4 text-sm">
-          <p className="font-black uppercase text-comun-yellow">Seu ciclo de participação</p>
-          <p className="mt-1 text-comun-paper/75">
-            Contribuição recebida → revisão → proposta ou prioridade → ação ou encaminhamento → resultado e memória.
+          <p className="font-black uppercase text-comun-yellow">
+            Seu ciclo de participação
           </p>
-          <Link href="/comun/caixa-de-entrada" className="mt-2 inline-flex font-black underline">
+          <p className="mt-1 text-comun-paper/75">
+            Contribuição recebida → revisão → proposta ou prioridade → ação ou
+            encaminhamento → resultado e memória.
+          </p>
+          <Link
+            href="/comun/caixa-de-entrada"
+            className="mt-2 inline-flex font-black underline"
+          >
             Ver retornos na Caixa de entrada
           </Link>
         </div>
@@ -173,6 +194,57 @@ export default async function MinhaAreaPage({
           />
         </Area>
       ) : null}
+      {selected === "tarefas" && collectiveTaskAssignments.length ? (
+        <Area title="Tarefas em ações coletivas">
+          <div className="grid gap-4 md:grid-cols-2">
+            {collectiveTaskAssignments.map((assignment: any) => (
+              <article
+                className="border-2 border-comun-yellow p-5"
+                key={assignment.id}
+              >
+                <p className="text-xs font-black uppercase text-comun-yellow">
+                  Tarefa assumida · {assignment.task?.state}
+                </p>
+                <h3 className="mt-2 text-xl font-black">
+                  {assignment.task?.title}
+                </h3>
+                <p className="mt-2 text-comun-paper/75">
+                  {assignment.task?.description}
+                </p>
+                <p className="mt-3 text-sm font-bold">
+                  Ação: {assignment.participation.action?.title}
+                  {assignment.task?.due_at
+                    ? ` · até ${new Date(assignment.task.due_at).toLocaleDateString("pt-BR")}`
+                    : ""}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <Link
+                    href={assignment.participation.action_url}
+                    className="inline-flex min-h-11 items-center font-black uppercase text-comun-yellow underline"
+                  >
+                    Ver ação
+                  </Link>
+                  <form action={releaseCollectiveActionTask}>
+                    <input
+                      type="hidden"
+                      name="slug"
+                      value={assignment.participation.action?.slug}
+                    />
+                    <input
+                      type="hidden"
+                      name="task_id"
+                      value={assignment.task?.id}
+                    />
+                    <button className="min-h-11 border-2 border-comun-paper px-3 font-black uppercase">
+                      Liberar tarefa
+                    </button>
+                  </form>
+                </div>
+              </article>
+            ))}
+          </div>
+        </Area>
+      ) : null}
       {selected === "acompanhando" && center.memberships.length ? (
         <Area title="Acompanhando">
           <div className="grid gap-4 md:grid-cols-2">
@@ -198,12 +270,60 @@ export default async function MinhaAreaPage({
       ) : null}
       {selected === "acompanhando" && collectiveActions.length ? (
         <Area title="Ações coletivas que você acompanha">
-          <Rows
-            rows={collectiveActions}
-            title={(x: any) => x.action?.title || "Ação coletiva"}
-            status={(x: any) => x.action?.status || x.status}
-            text={(x: any) => x.action?.summary || "Acompanhe os próximos passos."}
-          />
+          <div className="grid gap-4 md:grid-cols-2">
+            {collectiveActions.map((participation: any) => (
+              <article
+                className="border-2 border-comun-yellow p-5"
+                key={participation.id}
+              >
+                <p className="text-xs font-black uppercase text-comun-yellow">
+                  {participation.status} · {participation.action?.status}
+                </p>
+                <h3 className="mt-2 text-xl font-black">
+                  {participation.action?.title}
+                </h3>
+                <p className="mt-2 text-comun-paper/75">
+                  {participation.action?.summary}
+                </p>
+                <p className="mt-3 text-sm">
+                  {participation.taskAssignments?.length ?? 0} tarefa(s)
+                  assumida(s)
+                </p>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <Link
+                    href={participation.action_url}
+                    className="inline-flex min-h-11 items-center font-black uppercase text-comun-yellow underline"
+                  >
+                    Ver ação
+                  </Link>
+                  <form action={updateCollectiveActionParticipation}>
+                    <input
+                      type="hidden"
+                      name="slug"
+                      value={participation.action?.slug}
+                    />
+                    <input type="hidden" name="status" value="withdrew" />
+                    <button
+                      className="min-h-11 px-2 font-black underline disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={Boolean(participation.taskAssignments?.length)}
+                      title={
+                        participation.taskAssignments?.length
+                          ? "Libere suas tarefas antes de sair."
+                          : undefined
+                      }
+                    >
+                      Sair da ação
+                    </button>
+                  </form>
+                </div>
+                {participation.taskAssignments?.length ? (
+                  <p role="status" className="mt-3 text-sm text-comun-paper/70">
+                    Libere suas tarefas antes de sair da ação.
+                  </p>
+                ) : null}
+              </article>
+            ))}
+          </div>
         </Area>
       ) : null}
       {selected === "contribuicoes" && contributions.length ? (
@@ -271,14 +391,17 @@ export default async function MinhaAreaPage({
           Registrar primeira contribuição
         </SingleEmpty>
       ) : null}
-      {selected === "acompanhando" && !center.memberships.length && !collectiveActions.length ? (
+      {selected === "acompanhando" &&
+      !center.memberships.length &&
+      !collectiveActions.length ? (
         <SingleEmpty href="/comun/explorar" title="Nada acompanhado">
           Explorar comunidades
         </SingleEmpty>
       ) : null}
       {selected === "tarefas" &&
       !center.tasks.length &&
-      !center.circles.length ? (
+      !center.circles.length &&
+      !collectiveTaskAssignments.length ? (
         <SingleEmpty href="/comun/participar" title="Sem tarefas">
           Encontrar formas de participar
         </SingleEmpty>
@@ -292,7 +415,50 @@ export default async function MinhaAreaPage({
   );
 }
 function CollectiveActionsPreviewParticipation() {
-  return <ComunShell><ComunSection><h1 className="text-4xl font-black uppercase text-comun-yellow">Minha área</h1><p className="mt-3 text-comun-paper/75">Demonstração de Preview com participação sintética e sem dados pessoais.</p><div className="mt-6 grid gap-4">{collectiveActionsPreviewFixtures.map((action) => <article key={action.id} className="border-2 border-comun-yellow p-5"><p className="text-xs font-black uppercase text-comun-yellow">Acompanhando · {action.status}</p><h2 className="mt-2 text-xl font-black">{action.title}</h2><p className="mt-2 text-comun-paper/75">{action.summary}</p></article>)}</div></ComunSection></ComunShell>;
+  return (
+    <ComunShell>
+      <ComunSection>
+        <h1 className="text-4xl font-black uppercase text-comun-yellow">
+          Minha área
+        </h1>
+        <p className="mt-3 text-comun-paper/75">
+          Demonstração de Preview com participação sintética e sem dados
+          pessoais.
+        </p>
+        <div className="mt-6 grid gap-4">
+          {collectiveActionsPreviewFixtures.map((action) => (
+            <article
+              key={action.id}
+              className="border-2 border-comun-yellow p-5"
+            >
+              <p className="text-xs font-black uppercase text-comun-yellow">
+                Participando · {action.status}
+              </p>
+              <h2 className="mt-2 text-xl font-black">{action.title}</h2>
+              <p className="mt-2 text-comun-paper/75">{action.summary}</p>
+              {action.tasks.slice(0, 1).map((task) => (
+                <div
+                  className="mt-4 border-l-4 border-comun-yellow bg-comun-paper/5 p-4"
+                  key={task.id}
+                >
+                  <p className="text-xs font-black uppercase text-comun-yellow">
+                    Tarefa assumida
+                  </p>
+                  <p className="mt-1 font-black">{task.title}</p>
+                  <button
+                    disabled
+                    className="mt-3 min-h-11 border-2 border-comun-paper px-3 font-black uppercase opacity-60"
+                  >
+                    Liberar no modo autenticado
+                  </button>
+                </div>
+              ))}
+            </article>
+          ))}
+        </div>
+      </ComunSection>
+    </ComunShell>
+  );
 }
 function AreaTab({
   value,
