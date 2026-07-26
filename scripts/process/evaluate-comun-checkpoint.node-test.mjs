@@ -4,8 +4,10 @@ import {
   countRepeatedRuns,
   evaluateComumCheckpoint,
   limitImprovements,
+  requiredRunsForCheckpoint,
   resolveSmokeRoutes,
   sanitizeProcessData,
+  selectPreferredRun,
 } from "./evaluate-comun-checkpoint.mjs";
 
 function validInput(overrides = {}) {
@@ -47,6 +49,35 @@ test("emite COMUN_FLOW_GREEN com evidência completa", () => {
   const review = evaluateComumCheckpoint(validInput());
   assert.equal(review.processDecision, "COMUN_FLOW_GREEN");
   assert.equal(review.scores.integration_quality.status, "green");
+});
+
+test("checkpoint process exige somente o gate de processo", () => {
+  const review = evaluateComumCheckpoint(
+    validInput({
+      checkpointType: "process",
+      runs: [
+        {
+          label: "PROCESS",
+          conclusion: "success",
+          runAttempt: 1,
+          durationMs: 1_000,
+        },
+      ],
+    }),
+  );
+  assert.deepEqual(requiredRunsForCheckpoint("process"), ["PROCESS"]);
+  assert.equal(review.metrics.checkpointType, "process");
+  assert.equal(review.processDecision, "COMUN_FLOW_GREEN");
+});
+
+test("prefere run verde ao cancelado para o mesmo SHA", () => {
+  assert.equal(
+    selectPreferredRun([
+      { id: 1, conclusion: "cancelled" },
+      { id: 2, conclusion: "success" },
+    ]).id,
+    2,
+  );
 });
 
 test("retrospectiva incompleta emite GREEN_WITH_ADJUSTMENT", () => {
