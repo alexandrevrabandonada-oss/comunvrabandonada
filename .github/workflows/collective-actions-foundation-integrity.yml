@@ -34,8 +34,8 @@ jobs:
           test "$ACTUAL_BASE" = "$EXPECTED_BASE"
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           git fetch origin main codex/tijolo-43-ativacao-operacional
-          ! git merge-base --is-ancestor origin/codex/tijolo-43-ativacao-operacional HEAD
+          git diff --quiet origin/main...origin/codex/tijolo-43-ativacao-operacional
           changed="$(git diff --name-only origin/main...HEAD)"
-          ! printf '%s\n' "$changed" | grep -E '(^|/)(backups?|[^/]+\.(dump|sql\.gz|log)|\.env($|\.)|.*secret)' 
+          ! printf '%s\n' "$changed" | grep -E '(^|/)(backups?|[^/]+\.(dump|sql\.gz|log)|\.env($|\.)|.*secret)'
           ! printf '%s\n' "$changed" | grep -E '^supabase/migrations/20260724233256_comun_sidewalk_operational_hardening\.sql$'
           echo "COMUN_ACTIVE_LANE_INTEGRITY_GREEN"
