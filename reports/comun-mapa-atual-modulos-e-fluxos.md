@@ -1,5 +1,25 @@
 # Mapa atual de módulos e fluxos do COMUN
 
+Atualizado em 26 de julho de 2026.
+
+## Atualização — Tijolo 44.3
+
+O diagnóstico original abaixo permanece como contexto histórico. O domínio de
+Ações Coletivas foi integrado posteriormente e substitui a lacuna então
+registrada de “ação organizada”.
+
+| Domínio integrado | Estruturas | Rotas | Estado em produção |
+|---|---|---|---|
+| Ações Coletivas | ações, participações, tarefas, atualizações, encaminhamentos e memória | `/comun/acoes`, `/comun/acoes/[slug]`, `/comun/admin/acoes` | código integrado; gate `COMUN_COLLECTIVE_ACTIONS_V1` fail-closed, sem consulta às tabelas novas enquanto a migration remota estiver ausente |
+
+A jornada administrativa cobre criação, publicação, tarefa, encaminhamento,
+protocolo, resposta, conclusão, resultado e memória. A timeline pública é
+estruturada e sanitizada; participações e dados internos permanecem privados.
+O fechamento verificável está em
+`reports/comun-fechamento-tijolo-44-3.md`.
+
+## Diagnóstico histórico
+
 Diagnóstico realizado antes de qualquer migration da Sprint 25, em 14/07/2026.
 
 ## Inventário existente
