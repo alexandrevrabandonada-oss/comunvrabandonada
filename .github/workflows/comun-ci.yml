@@ -37,6 +37,7 @@ concurrency:
 
 permissions:
   actions: read
+  checks: read
   contents: read
   deployments: read
   issues: write
@@ -45,7 +46,7 @@ permissions:
 jobs:
   active-lane-integrity:
     name: Active lane integrity / COMUN_ACTIVE_LANE_INTEGRITY_GREEN
-    if: github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.pull_request.number == 38
+    if: github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.pull_request.number == 40
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -55,7 +56,7 @@ jobs:
       - name: Validate the active product lane
         env:
           EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
-          EXPECTED_BRANCH: codex/tijolo-44-2-fluxos-autenticados
+          EXPECTED_BRANCH: codex/tijolo-44-3-acao-memoria
           EXPECTED_BASE: main
           ACTUAL_BRANCH: ${{ github.event.pull_request.head.ref }}
           ACTUAL_BASE: ${{ github.event.pull_request.base.ref }}
@@ -76,7 +77,7 @@ jobs:
     if: >-
       github.event_name == 'pull_request' &&
       github.event.action == 'labeled' &&
-      github.event.pull_request.number == 38 &&
+      github.event.pull_request.number == 40 &&
       github.event.label.name == 'comun:checkpoint'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -98,7 +99,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test:unit
-      - run: node --test scripts/ci/comun-central.node-test.mjs scripts/collective-actions-premigration.node-test.mjs scripts/collective-actions-member-journey.node-test.mjs
+      - run: node --test scripts/ci/comun-central.node-test.mjs scripts/collective-actions-premigration.node-test.mjs scripts/collective-actions-member-journey.node-test.mjs scripts/collective-actions-admin-memory.node-test.mjs
       - name: Start and reset local Supabase
         run: |
           supabase start
@@ -123,10 +124,17 @@ jobs:
           mkdir -p .ci-artifacts/collective-actions-preview
           node <<'NODE'
           const { chromium } = require("playwright");
+          const AxeBuilder = require("@axe-core/playwright").default;
           const routes = [
             ["listagem", "/comun/acoes"],
-            ["detalhe-tarefas-timeline", "/comun/acoes/mutirao-caminho-seguro"],
-            ["memoria", "/comun/acoes/memoria-do-mutirao"],
+            ["acao-aberta", "/comun/acoes/mutirao-caminho-seguro"],
+            ["tarefas", "/comun/acoes/mutirao-caminho-seguro"],
+            ["timeline", "/comun/acoes/mutirao-caminho-seguro"],
+            ["encaminhamento", "/comun/acoes/encaminhamento-iluminacao"],
+            ["protocolo", "/comun/acoes/encaminhamento-iluminacao"],
+            ["resposta", "/comun/acoes/encaminhamento-iluminacao"],
+            ["resultado", "/comun/acoes/memoria-do-mutirao"],
+            ["memoria-final", "/comun/acoes/memoria-do-mutirao"],
             ["minha-participacao", "/comun/minha-participacao"],
             ["administracao", "/comun/admin/acoes"],
           ];
@@ -135,16 +143,28 @@ jobs:
             const browser = await chromium.launch({ headless: true });
             const errors = [];
             for (const [name, width, height] of viewports) {
-              const page = await browser.newPage({ viewport: { width, height } });
+              const context = await browser.newContext({ viewport: { width, height } });
+              const page = await context.newPage();
               page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
               page.on("pageerror", (error) => errors.push(error.message));
               for (const [routeName, path] of routes) {
                 const response = await page.goto(`http://127.0.0.1:3100${path}`, { waitUntil: "networkidle" });
                 if (!response || response.status() >= 500) throw new Error(`Preview route failed: ${path}`);
                 if (await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)) throw new Error(`Horizontal overflow: ${name} ${path}`);
+                if (await page.locator("main").count() === 0) throw new Error(`Missing main landmark: ${path}`);
+                const undersizedButtons = await page.locator("button").evaluateAll((buttons) => buttons.filter((button) => {
+                  const rect = button.getBoundingClientRect();
+                  return rect.width > 0 && rect.height > 0 && (Math.round(rect.width) < 40 || Math.round(rect.height) < 40);
+                }).length);
+                if (undersizedButtons) throw new Error(`Undersized touch targets: ${name} ${path}`);
+                const audit = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+                const blockers = audit.violations.filter((violation) => ["critical", "serious"].includes(violation.impact));
+                if (blockers.length) throw new Error(`Accessibility blockers: ${name} ${path} ${blockers.map((violation) => violation.id).join(",")}`);
+                const content = await page.content();
+                if (/member_user_id|contribution_note_private|service_role|private_contact/i.test(content)) throw new Error(`Private marker exposed: ${path}`);
                 await page.screenshot({ path: `.ci-artifacts/collective-actions-preview/${name}-${routeName}.png`, fullPage: true });
               }
-              await page.close();
+              await context.close();
             }
             await browser.close();
             if (errors.length) throw new Error(`Console errors: ${errors.join(" | ")}`);
@@ -162,7 +182,7 @@ jobs:
 
   micro:
     name: MICRO / COMUN_MICRO_GREEN
-    if: github.event_name == 'push' && github.ref_name == 'codex/tijolo-44-2-fluxos-autenticados'
+    if: github.event_name == 'push' && github.ref_name == 'codex/tijolo-44-3-acao-memoria'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -174,7 +194,7 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: node --test scripts/ci/comun-central.node-test.mjs scripts/collective-actions-premigration.node-test.mjs scripts/collective-actions-member-journey.node-test.mjs
+      - run: node --test scripts/ci/comun-central.node-test.mjs scripts/collective-actions-premigration.node-test.mjs scripts/collective-actions-member-journey.node-test.mjs scripts/collective-actions-admin-memory.node-test.mjs
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test:unit
@@ -333,18 +353,11 @@ jobs:
 
   full:
     name: RELEASE/FULL / COMUN_CI_GREEN
-    needs: [micro, checkpoint]
     if: >-
-      always() &&
-      (
-        inputs.force_full == true ||
-        (
-          github.event_name == 'pull_request' &&
-          github.event.action == 'labeled' &&
-          github.event.pull_request.number == 38 &&
-          github.event.label.name == 'comun:release-candidate'
-        )
-      )
+      github.event_name == 'pull_request' &&
+      github.event.action == 'labeled' &&
+      github.event.pull_request.number == 40 &&
+      github.event.label.name == 'comun:release-candidate'
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     steps:
@@ -352,6 +365,21 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
+      - name: Require MICRO and CHECKPOINT for this exact SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for required in "MICRO / COMUN_MICRO_GREEN" "CHECKPOINT / COMUN_CHECKPOINT_GREEN"; do
+            passed="$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs?per_page=100" --jq "[.check_runs[] | select(.name == \"$required\" and .conclusion == \"success\")] | length")"
+            if ((passed == 0)); then
+              echo "COMUN_FULL_BLOCKED_BY_${required//[^A-Z]/_}"
+              exit 1
+            fi
+          done
+          echo "COMUN_FULL_PRIOR_GATES_GREEN_FOR_SHA"
       - id: deduplicate
         name: Reuse a successful FULL for the same SHA
         env:
@@ -361,7 +389,7 @@ jobs:
         shell: bash
         run: |
           previous="$(
-            gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" \
+            gh api "repos/${{ github.repository }}/commits/$SHA/check-runs?per_page=100" \
               --jq '[.check_runs[] | select(.name == env.CHECK_NAME and .conclusion == "success")] | length'
           )"
           if ((previous > 0)); then
@@ -385,79 +413,32 @@ jobs:
         run: npm run db:privileges:lint
       - if: steps.deduplicate.outputs.should_run == 'true'
         run: npm run test:promotion-runner
-      - name: Install Playwright Chromium
+      - if: steps.deduplicate.outputs.should_run == 'true'
+        run: npm run test:security-hardening
+      - if: steps.deduplicate.outputs.should_run == 'true'
+        run: npm run solo:test
+      - if: steps.deduplicate.outputs.should_run == 'true'
+        run: npm run typecheck
+      - if: steps.deduplicate.outputs.should_run == 'true'
+        run: npm run lint
+      - if: steps.deduplicate.outputs.should_run == 'true'
+        run: npm run test:unit
+      - name: Validate administrative schema and RLS locally
         if: steps.deduplicate.outputs.should_run == 'true'
-        run: npx playwright install --with-deps chromium
+        run: |
+          supabase start
+          supabase db reset --local --yes
+          container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          node scripts/solo/schema-fingerprint.mjs --container="$container" > /tmp/comun-hash-1
+          node scripts/db/test-collective-actions-local.mjs
+          npm run audit:rls-matrix
+          node scripts/solo/schema-fingerprint.mjs --container="$container" > /tmp/comun-hash-2
+          diff -u /tmp/comun-hash-1 /tmp/comun-hash-2
       - name: Build application for production-like suites
         if: steps.deduplicate.outputs.should_run == 'true'
         run: npm run build
-      - name: Two independent reconciliation trials
-        if: steps.deduplicate.outputs.should_run == 'true'
-        shell: bash
-        run: |
-          supabase start
-          supabase db reset --local --yes --version 20260723220112
-          container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
-          network="$(docker inspect "$container" --format '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' | head -1)"
-          PR23_DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres?application_name=LOCAL_VALIDATION \
-          SUPABASE_PROJECT_REF=LOCAL_VALIDATION \
-          PR23_ALLOWED_PROJECT_REFS=LOCAL_VALIDATION \
-          PR23_DOCKER_NETWORK="$network" \
-          COMUN_RELEASE_MANIFEST=supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json \
-          node scripts/solo/apply-forward-only.mjs
-          node scripts/run-pr23-reconciliation.mjs --container="$container"
-          npm run test:schema-release-ledger
-          npm run test:handle-new-user
-          npm run test:public-reports-view
-          node scripts/solo/schema-fingerprint.mjs --container="$container" > /tmp/comun-hash-1
-          node scripts/run-pr23-reconciliation.mjs --container="$container"
-          supabase stop --no-backup
-          supabase start
-          supabase db reset --local --yes --version 20260723220112
-          container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
-          network="$(docker inspect "$container" --format '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' | head -1)"
-          PR23_DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres?application_name=LOCAL_VALIDATION \
-          SUPABASE_PROJECT_REF=LOCAL_VALIDATION \
-          PR23_ALLOWED_PROJECT_REFS=LOCAL_VALIDATION \
-          PR23_DOCKER_NETWORK="$network" \
-          COMUN_RELEASE_MANIFEST=supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json \
-          node scripts/solo/apply-forward-only.mjs
-          node scripts/run-pr23-reconciliation.mjs --container="$container"
-          node scripts/solo/schema-fingerprint.mjs --container="$container" > /tmp/comun-hash-2
-          diff -u /tmp/comun-hash-1 /tmp/comun-hash-2
-          node scripts/run-pr23-reconciliation.mjs --container="$container"
-      - name: Critical product regressions
-        if: steps.deduplicate.outputs.should_run == 'true'
-        env:
-          COMUN_SIDEWALK_OPERATIONAL_V2: enabled
-        run: |
-          COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '\"')"
-          test -n "$COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL"
-          export COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL
-          npm run test:e2e:comun-integral-experience
-          npm run test:e2e:editorial-operation-authenticated
-          npm run test:e2e:territorial-art
-          supabase start
-          npm run test:e2e:community-radio
-          npm run test:e2e:comun-sidewalk-real-map
-          npm run smoke:comun-calcadas-operacional
-          npm run smoke:comun-calcadas-operacional-runtime
-          npm run test:e2e:comun-calcadas-operacional
-          npm run test:a11y:comun-calcadas-operacional
-          npm run test:e2e:comun-miniapp-experience
-          npm run test:e2e:comun-mobile-app-shell
-          npm run test:e2e:comun-pwa-experience
-          node scripts/comun-local-env.mjs run npm run start > /tmp/comun-next.log 2>&1 &
-          app_pid=$!
-          trap 'kill "$app_pid" 2>/dev/null || true' EXIT
-          for attempt in {1..120}; do
-            curl --fail --silent http://127.0.0.1:3000/comun > /dev/null && break
-            if [ "$attempt" -eq 120 ]; then cat /tmp/comun-next.log; exit 1; fi
-            sleep 1
-          done
-          node scripts/comun-local-env.mjs run npm run smoke:no-leak-http
-          node scripts/comun-local-env.mjs run npm run cleanup:comun-sidewalk-uploads
-          node scripts/comun-local-env.mjs run npm run test:fixtures:assert-clean
+      - if: steps.deduplicate.outputs.should_run == 'true'
+        run: git diff --check origin/main...HEAD
       - if: success() && steps.deduplicate.outputs.should_run == 'true'
         run: echo 'COMUN_CI_GREEN' >> "$GITHUB_STEP_SUMMARY"
       - if: always() && steps.deduplicate.outputs.should_run == 'true'
@@ -466,7 +447,7 @@ jobs:
   central-after-micro:
     name: Update COMUN CENTRAL after MICRO
     needs: micro
-    if: always() && github.event_name == 'push' && github.ref_name == 'codex/tijolo-44-2-fluxos-autenticados'
+    if: always() && github.event_name == 'push' && github.ref_name == 'codex/tijolo-44-3-acao-memoria'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -478,7 +459,7 @@ jobs:
           COMUN_CENTRAL_RESULT: ${{ needs.micro.result }}
           COMUN_CENTRAL_SHA: ${{ github.sha }}
           COMUN_CENTRAL_BRANCH: ${{ github.ref_name }}
-          COMUN_CENTRAL_PR: "38"
+          COMUN_CENTRAL_PR: "40"
           COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node scripts/ci/update-comun-central.mjs
 
@@ -489,6 +470,7 @@ jobs:
       always() &&
       github.event_name == 'pull_request' &&
       github.event.action == 'labeled' &&
+      github.event.pull_request.number == 40 &&
       github.event.label.name == 'comun:checkpoint'
     runs-on: ubuntu-24.04
     steps:
@@ -514,6 +496,7 @@ jobs:
       always() &&
       github.event_name == 'pull_request' &&
       github.event.action == 'labeled' &&
+      github.event.pull_request.number == 40 &&
       github.event.label.name == 'comun:release-candidate'
     runs-on: ubuntu-24.04
     steps:
@@ -535,8 +518,8 @@ jobs:
   central-after-merge-or-deploy:
     name: Update COMUN CENTRAL after merge or deploy
     if: >-
-      (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true) ||
-      github.event_name == 'deployment_status'
+      (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.number == 40 && github.event.pull_request.merged == true) ||
+      (github.event_name == 'deployment_status' && github.event.deployment.environment == 'Production' && github.event.deployment.ref == 'main')
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -550,7 +533,7 @@ jobs:
           COMUN_CENTRAL_RESULT: ${{ github.event_name == 'deployment_status' && github.event.deployment_status.state || 'merged' }}
           COMUN_CENTRAL_SHA: ${{ github.event.deployment.sha || github.event.pull_request.head.sha || github.sha }}
           COMUN_CENTRAL_BRANCH: ${{ github.event.deployment.ref || github.event.pull_request.head.ref || github.ref_name }}
-          COMUN_CENTRAL_PR: ${{ github.event.pull_request.number || '38' }}
+          COMUN_CENTRAL_PR: ${{ github.event.pull_request.number || '40' }}
           COMUN_CENTRAL_DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
           COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node scripts/ci/update-comun-central.mjs

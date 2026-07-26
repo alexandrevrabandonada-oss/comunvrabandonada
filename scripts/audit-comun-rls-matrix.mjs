@@ -230,6 +230,21 @@ const classifications = {
     sensitive: "Somente os identificadores de vínculo; a página sanitiza a projeção do registro.",
     expected: "Leitura apenas quando a ação coletiva é pública e visível.",
   },
+  comun_collective_action_forwardings: {
+    decision: "public_read_safe",
+    purpose: "Encaminhamentos coletivos revisados para publicação.",
+    sensitive:
+      "Rascunhos, destinatários ainda não revisados e dados não publicados ficam fora da leitura pública.",
+    expected:
+      "Leitura pública somente de encaminhamentos marcados como públicos em ações visíveis.",
+  },
+  comun_collective_action_memory_assets: {
+    decision: "public_read_safe",
+    purpose: "Documentos e fotografias públicos revisados da memória coletiva.",
+    sensitive: "Materiais ainda em revisão e metadados internos.",
+    expected:
+      "Leitura pública somente de materiais revisados e marcados como públicos em ações concluídas.",
+  },
   comun_archive_items: {
     decision: "public_read_safe",
     purpose: "Itens publicados do Acervo Vivo.",

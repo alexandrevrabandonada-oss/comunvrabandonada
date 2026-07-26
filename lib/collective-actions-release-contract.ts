@@ -46,10 +46,12 @@ export function isCollectiveActionsReleaseEnabled(
   ledger: CollectiveActionsLedgerRow | null | undefined,
   tablesPresent: boolean,
   memberJourneyPresent: boolean,
+  administrationMemoryPresent: boolean,
 ) {
   return (
     flag === "enabled" &&
     (hasExactCollectiveActionsLedger(ledger) || tablesPresent) &&
-    memberJourneyPresent
+    memberJourneyPresent &&
+    administrationMemoryPresent
   );
 }

@@ -17,22 +17,25 @@ describe("collective actions release gate", () => {
   };
   it("fails closed when the flag, ledger and tables are absent", () => {
     expect(
-      isCollectiveActionsReleaseEnabled(undefined, null, false, false),
+      isCollectiveActionsReleaseEnabled(undefined, null, false, false, false),
     ).toBe(false);
     expect(
-      isCollectiveActionsReleaseEnabled("enabled", null, false, false),
+      isCollectiveActionsReleaseEnabled("enabled", null, false, false, false),
     ).toBe(false);
   });
-  it("accepts a complete foundation only when the member journey guard is present", () => {
+  it("accepts a complete foundation only when every local contract is present", () => {
     expect(hasExactCollectiveActionsLedger(exact)).toBe(true);
     expect(
-      isCollectiveActionsReleaseEnabled("enabled", exact, false, true),
+      isCollectiveActionsReleaseEnabled("enabled", exact, false, true, true),
     ).toBe(true);
-    expect(isCollectiveActionsReleaseEnabled("enabled", null, true, true)).toBe(
+    expect(isCollectiveActionsReleaseEnabled("enabled", null, true, true, true)).toBe(
       true,
     );
     expect(
-      isCollectiveActionsReleaseEnabled("enabled", exact, false, false),
+      isCollectiveActionsReleaseEnabled("enabled", exact, false, false, true),
+    ).toBe(false);
+    expect(
+      isCollectiveActionsReleaseEnabled("enabled", exact, false, true, false),
     ).toBe(false);
   });
   it("permits preview fixtures only in preview", () => {

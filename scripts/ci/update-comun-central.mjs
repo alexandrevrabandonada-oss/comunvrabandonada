@@ -40,23 +40,39 @@ const pr = process.env.COMUN_CENTRAL_PR;
 const runUrl = process.env.COMUN_CENTRAL_RUN_URL;
 const deploymentUrl = process.env.COMUN_CENTRAL_DEPLOYMENT_URL;
 
-if (branch) state.set("Branch ativa", `\`${branch}\``);
-if (pr) state.set("PR ativa", `#${pr}`);
+const branchIsSha = /^[a-f0-9]{40}$/i.test(branch ?? "");
+if (branch && !branchIsSha && stage !== "merge" && stage !== "deploy")
+  state.set("Branch ativa", `\`${branch}\``);
+if (pr && stage !== "merge") state.set("PR ativa", `#${pr}`);
 state.set("Último SHA observado", `\`${sha}\``);
 if (runUrl) state.set("Última execução", `[abrir](${runUrl})`);
 
-if (stage === "push") state.set("MICRO", result);
-if (stage === "checkpoint") state.set("CHECKPOINT", result);
-if (stage === "release") state.set("RELEASE/FULL", result);
+if (stage === "push") {
+  state.set("MICRO", result);
+  state.set("CHECKPOINT", "não disparado para o SHA atual");
+  state.set("RELEASE/FULL", "não executado para o SHA atual");
+  state.set("Etapa atual", "MICRO concluído; aguardando jornada navegável");
+}
+if (stage === "checkpoint") {
+  state.set("CHECKPOINT", result);
+  state.set("Etapa atual", "CHECKPOINT concluído; aguardando RELEASE/FULL");
+}
+if (stage === "release") {
+  state.set("RELEASE/FULL", result);
+  state.set("Etapa atual", "RELEASE/FULL concluído; candidato a merge");
+}
 if (stage === "merge") {
   state.set("Merge", result);
   state.set("PR ativa", pr ? `#${pr} — mesclada` : "mesclada");
+  state.set("Branch ativa", "nenhuma — `main` integrada");
+  state.set("Etapa atual", "merge concluído; aguardando deploy e smoke");
 }
 if (stage === "deploy") {
   state.set(
     "Deploy",
-    deploymentUrl ? `${result} — [abrir](${deploymentUrl})` : result,
+      deploymentUrl ? `${result} — [abrir](${deploymentUrl})` : result,
   );
+  state.set("Etapa atual", "deploy concluído; aguardando smoke de produção");
 }
 
 state.set(
@@ -68,6 +84,7 @@ state.set("Migration remota", "não aplicada");
 const preferredOrder = [
   "Branch ativa",
   "PR ativa",
+  "Etapa atual",
   "Último SHA observado",
   "MICRO",
   "CHECKPOINT",

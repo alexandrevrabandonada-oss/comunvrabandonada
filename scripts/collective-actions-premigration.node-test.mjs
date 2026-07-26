@@ -27,10 +27,29 @@ test("collective actions routes fail closed before querying absent tables", () =
     actions.indexOf("await requireCollectiveActionsRelease()") <
       actions.indexOf("comun_collective_actions"),
   );
-  assert.ok(
-    adminActions.indexOf("await requireCollectiveActionsRelease()") <
-      adminActions.indexOf("comun_collective_actions"),
+  const gateDefinition = adminActions.indexOf(
+    "async function requireAdminRelease()",
   );
+  assert.ok(
+    gateDefinition > -1 &&
+      adminActions.indexOf("await requireCollectiveActionsRelease()", gateDefinition) <
+        adminActions.indexOf("return requireComunAdmin", gateDefinition),
+  );
+  for (const actionName of [
+    "createCollectiveAction",
+    "updateCollectiveAction",
+    "publishCollectiveAction",
+    "createCollectiveActionTask",
+    "saveCollectiveActionForwarding",
+    "recordCollectiveActionResult",
+    "completeCollectiveAction",
+    "publishCollectiveActionMemory",
+  ]) {
+    const start = adminActions.indexOf(`export async function ${actionName}`);
+    const next = adminActions.indexOf("export async function", start + 1);
+    const body = adminActions.slice(start, next === -1 ? undefined : next);
+    assert.ok(start > -1 && body.indexOf("requireAdminRelease()") > -1);
+  }
   assert.match(adminProxy, /pathname === "\/comun\/admin\/acoes"/);
   assert.match(adminProxy, /process\.env\.VERCEL_ENV === "preview"/);
   assert.match(

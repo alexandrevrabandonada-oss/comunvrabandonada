@@ -17,6 +17,8 @@ test("COMUN Central updater never handles database credentials", () => {
   const source = readFileSync("scripts/ci/update-comun-central.mjs", "utf8");
   assert.match(source, /COMUN_CENTRAL_UPDATED/);
   assert.doesNotMatch(source, /SUPABASE|DATABASE_URL|SERVICE_ROLE|password/i);
+  assert.match(source, /branchIsSha/);
+  assert.match(source, /não disparado para o SHA atual/);
 });
 
 test("CI scripts have valid JavaScript syntax", () => {
