@@ -297,25 +297,24 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.event.pull_request.head.sha }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$VERCEL_TOKEN"
+          test -n "$VERCEL_AUTOMATION_BYPASS_SECRET"
           for attempt in {1..30}; do
             deployment_id="$(gh api "repos/${{ github.repository }}/deployments?sha=$SHA&environment=Preview&per_page=20" --jq '[.[] | select(.sha == env.SHA and .environment == "Preview")][0].id // empty')"
             if [[ -n "$deployment_id" ]]; then
               deployment_url="$(gh api "repos/${{ github.repository }}/deployments/$deployment_id/statuses?per_page=20" --jq '[.[] | select(.state == "success" and .environment_url)][0].environment_url // empty')"
               if [[ -n "$deployment_url" ]]; then
-                if DEPLOYMENT_URL="$deployment_url" node --input-type=module -e '
-                  import { requestPreview, validatePmtilesResponse } from "./scripts/solo/vercel-preview-client.mjs";
-                  validatePmtilesResponse(requestPreview({
-                    route: "/maps/volta-redonda/volta-redonda.pmtiles",
-                    deploymentUrl: process.env.DEPLOYMENT_URL,
-                    token: process.env.VERCEL_TOKEN,
-                    range: true,
-                  }));
-                '; then
+                headers_path="$(mktemp)"
+                http_status="$(curl --silent --show-error --location --range 0-127 \
+                  --header "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" \
+                  --dump-header "$headers_path" --output /dev/null --write-out '%{http_code}' \
+                  "$deployment_url/maps/volta-redonda/volta-redonda.pmtiles" || true)"
+                content_range="$(tr -d '\r' < "$headers_path" | awk 'tolower($1) == "content-range:" { print $2; exit }')"
+                rm -f "$headers_path"
+                if [[ "$http_status" == "206" && "$content_range" == "bytes 0-127/10147678" ]]; then
                   echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
                   echo COMUN_VOLTA_REDONDA_PREVIEW_RANGE_GREEN
                   exit 0
