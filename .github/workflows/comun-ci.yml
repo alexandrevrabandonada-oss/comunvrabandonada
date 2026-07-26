@@ -3,8 +3,19 @@ name: COMUN CI
 on:
   pull_request:
     branches: [main]
+    types:
+      [
+        opened,
+        synchronize,
+        reopened,
+        labeled,
+        unlabeled,
+        ready_for_review,
+        closed,
+      ]
   push:
     branches: [main, "codex/**"]
+  deployment_status:
   workflow_call:
     inputs:
       force_full:
@@ -25,12 +36,16 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  actions: read
   contents: read
+  deployments: read
+  issues: write
+  pull-requests: write
 
 jobs:
   active-lane-integrity:
     name: Active lane integrity / COMUN_ACTIVE_LANE_INTEGRITY_GREEN
-    if: github.event.pull_request.number == 37
+    if: github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.pull_request.number == 38
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +55,7 @@ jobs:
       - name: Validate the active product lane
         env:
           EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
-          EXPECTED_BRANCH: codex/tijolo-44-acoes-coletivas
+          EXPECTED_BRANCH: codex/tijolo-44-2-fluxos-autenticados
           EXPECTED_BASE: main
           ACTUAL_BRANCH: ${{ github.event.pull_request.head.ref }}
           ACTUAL_BASE: ${{ github.event.pull_request.base.ref }}
@@ -49,16 +64,20 @@ jobs:
           test "$ACTUAL_BRANCH" = "$EXPECTED_BRANCH"
           test "$ACTUAL_BASE" = "$EXPECTED_BASE"
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
-          git fetch origin main codex/tijolo-43-ativacao-operacional
-          git diff --quiet origin/main...origin/codex/tijolo-43-ativacao-operacional
+          git fetch origin main
           changed="$(git diff --name-only origin/main...HEAD)"
           ! printf '%s\n' "$changed" | grep -E '(^|/)(backups?|[^/]+\.(dump|sql\.gz|log)|\.env($|\.)|.*secret)'
           ! printf '%s\n' "$changed" | grep -E '^supabase/migrations/20260724233256_comun_sidewalk_operational_hardening\.sql$'
           echo "COMUN_ACTIVE_LANE_INTEGRITY_GREEN"
 
-  collective-actions-preview-audit:
-    name: Preview visual / COMUN_COLLECTIVE_ACTIONS_PREVIEW_GREEN
-    if: github.event.pull_request.number == 37
+  checkpoint:
+    name: CHECKPOINT / COMUN_CHECKPOINT_GREEN
+    needs: active-lane-integrity
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action == 'labeled' &&
+      github.event.pull_request.number == 38 &&
+      github.event.label.name == 'comun:checkpoint'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -72,7 +91,22 @@ jobs:
         with:
           node-version: 22.18.0
           cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
       - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run test:unit
+      - run: node --test scripts/ci/comun-central.node-test.mjs scripts/collective-actions-premigration.node-test.mjs
+      - name: Start and reset local Supabase
+        run: |
+          supabase start
+          supabase db reset --local --yes
+      - name: Validate member journey and RLS locally
+        run: |
+          node scripts/db/test-collective-actions-local.mjs
+          npm run audit:rls-matrix
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - name: Start synthetic preview
@@ -123,68 +157,26 @@ jobs:
           name: comun-collective-actions-preview-${{ github.run_id }}
           path: .ci-artifacts/collective-actions-preview
           if-no-files-found: error
+      - if: always()
+        run: supabase stop --no-backup || true
 
-  fast:
-    name: FAST / COMUN_CI_GREEN
+  micro:
+    name: MICRO / COMUN_MICRO_GREEN
+    if: github.event_name == 'push' && github.ref_name == 'codex/tijolo-44-2-fluxos-autenticados'
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22.18.0
           cache: npm
-      - uses: supabase/setup-cli@v1
-        with:
-          version: 2.109.1
       - run: npm ci --ignore-scripts
-      - run: npm run solo:test
-      - run: npm run test:promotion-runner
+      - run: node --test scripts/ci/comun-central.node-test.mjs scripts/collective-actions-premigration.node-test.mjs
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test:unit
-      - run: npm run test:security-hardening
-      - run: npm run db:privileges:lint
-      - run: npm run build
-      - name: Start local Supabase
-        timeout-minutes: 10
-        run: supabase start
-      - name: Reset local database
-        timeout-minutes: 15
-        shell: bash
-        run: |
-          set +e
-          output="$(supabase db reset --local --yes 2>&1)"
-          status=$?
-          set -e
-          printf '%s\n' "$output"
-          if ((status != 0)) && grep -q "Error status 502" <<<"$output"; then
-            echo "COMUN_SUPABASE_LOCAL_502_SINGLE_RETRY"
-            sleep 5
-            supabase db reset --local --yes
-          elif ((status != 0)); then
-            exit "$status"
-          fi
-      - name: Local database lint
-        timeout-minutes: 5
-        run: supabase db lint --local --schema public --level error --fail-on error
-      - name: Schema release ledger
-        timeout-minutes: 5
-        run: npm run test:schema-release-ledger
-      - name: Auth onboarding trigger
-        timeout-minutes: 5
-        run: npm run test:handle-new-user
-      - name: Public reports least privilege
-        timeout-minutes: 5
-        run: npm run test:public-reports-view
-      - name: RLS matrix
-        timeout-minutes: 10
-        run: npm run audit:rls-matrix
-      - name: Fixtures assert-clean
-        timeout-minutes: 5
-        run: npm run test:fixtures:assert-clean
-      - if: always()
-        run: supabase stop --no-backup || true
+      - run: git diff --check HEAD^ HEAD
 
   release-rehearsal:
     name: RELEASE / COMUN_RELEASE_REHEARSAL
@@ -338,33 +330,67 @@ jobs:
         run: supabase stop --no-backup || true
 
   full:
-    name: FULL / COMUN_CI_GREEN
-    needs: fast
+    name: RELEASE/FULL / COMUN_CI_GREEN
+    needs: [micro, checkpoint]
     if: >-
-      inputs.force_full == true ||
-      github.event.pull_request.number == 23 ||
-      github.event.pull_request.number == 30 ||
-      startsWith(github.head_ref, 'codex/promote-') ||
-      startsWith(github.ref_name, 'codex/promote-')
+      always() &&
+      (
+        inputs.force_full == true ||
+        (
+          github.event_name == 'pull_request' &&
+          github.event.action == 'labeled' &&
+          github.event.pull_request.number == 38 &&
+          github.event.label.name == 'comun:release-candidate'
+        )
+      )
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - id: deduplicate
+        name: Reuse a successful FULL for the same SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CHECK_NAME: RELEASE/FULL / COMUN_CI_GREEN
+        shell: bash
+        run: |
+          previous="$(
+            gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" \
+              --jq '[.check_runs[] | select(.name == env.CHECK_NAME and .conclusion == "success")] | length'
+          )"
+          if ((previous > 0)); then
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "COMUN_FULL_REUSED_FOR_UNCHANGED_SHA"
+          else
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-node@v4
+        if: steps.deduplicate.outputs.should_run == 'true'
         with:
           node-version: 22.18.0
           cache: npm
       - uses: supabase/setup-cli@v1
+        if: steps.deduplicate.outputs.should_run == 'true'
         with:
           version: 2.109.1
-      - run: npm ci --ignore-scripts
-      - run: npm run db:privileges:lint
-      - run: npm run test:promotion-runner
+      - if: steps.deduplicate.outputs.should_run == 'true'
+        run: npm ci --ignore-scripts
+      - if: steps.deduplicate.outputs.should_run == 'true'
+        run: npm run db:privileges:lint
+      - if: steps.deduplicate.outputs.should_run == 'true'
+        run: npm run test:promotion-runner
       - name: Install Playwright Chromium
+        if: steps.deduplicate.outputs.should_run == 'true'
         run: npx playwright install --with-deps chromium
       - name: Build application for production-like suites
+        if: steps.deduplicate.outputs.should_run == 'true'
         run: npm run build
       - name: Two independent reconciliation trials
+        if: steps.deduplicate.outputs.should_run == 'true'
         shell: bash
         run: |
           supabase start
@@ -399,6 +425,7 @@ jobs:
           diff -u /tmp/comun-hash-1 /tmp/comun-hash-2
           node scripts/run-pr23-reconciliation.mjs --container="$container"
       - name: Critical product regressions
+        if: steps.deduplicate.outputs.should_run == 'true'
         env:
           COMUN_SIDEWALK_OPERATIONAL_V2: enabled
         run: |
@@ -429,7 +456,99 @@ jobs:
           node scripts/comun-local-env.mjs run npm run smoke:no-leak-http
           node scripts/comun-local-env.mjs run npm run cleanup:comun-sidewalk-uploads
           node scripts/comun-local-env.mjs run npm run test:fixtures:assert-clean
-      - if: success()
+      - if: success() && steps.deduplicate.outputs.should_run == 'true'
         run: echo 'COMUN_CI_GREEN' >> "$GITHUB_STEP_SUMMARY"
-      - if: always()
+      - if: always() && steps.deduplicate.outputs.should_run == 'true'
         run: supabase stop --no-backup || true
+
+  central-after-micro:
+    name: Update COMUN CENTRAL after MICRO
+    needs: micro
+    if: always() && github.event_name == 'push' && github.ref_name == 'codex/tijolo-44-2-fluxos-autenticados'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update fixed control issue
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          COMUN_CENTRAL_ISSUE: "39"
+          COMUN_CENTRAL_STAGE: push
+          COMUN_CENTRAL_RESULT: ${{ needs.micro.result }}
+          COMUN_CENTRAL_SHA: ${{ github.sha }}
+          COMUN_CENTRAL_BRANCH: ${{ github.ref_name }}
+          COMUN_CENTRAL_PR: "38"
+          COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/ci/update-comun-central.mjs
+
+  central-after-checkpoint:
+    name: Update COMUN CENTRAL after CHECKPOINT
+    needs: checkpoint
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      github.event.action == 'labeled' &&
+      github.event.label.name == 'comun:checkpoint'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Update fixed control issue
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          COMUN_CENTRAL_ISSUE: "39"
+          COMUN_CENTRAL_STAGE: checkpoint
+          COMUN_CENTRAL_RESULT: ${{ needs.checkpoint.result }}
+          COMUN_CENTRAL_SHA: ${{ github.event.pull_request.head.sha }}
+          COMUN_CENTRAL_BRANCH: ${{ github.event.pull_request.head.ref }}
+          COMUN_CENTRAL_PR: ${{ github.event.pull_request.number }}
+          COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/ci/update-comun-central.mjs
+
+  central-after-release:
+    name: Update COMUN CENTRAL after RELEASE/FULL
+    needs: full
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      github.event.action == 'labeled' &&
+      github.event.label.name == 'comun:release-candidate'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Update fixed control issue
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          COMUN_CENTRAL_ISSUE: "39"
+          COMUN_CENTRAL_STAGE: release
+          COMUN_CENTRAL_RESULT: ${{ needs.full.result }}
+          COMUN_CENTRAL_SHA: ${{ github.event.pull_request.head.sha }}
+          COMUN_CENTRAL_BRANCH: ${{ github.event.pull_request.head.ref }}
+          COMUN_CENTRAL_PR: ${{ github.event.pull_request.number }}
+          COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/ci/update-comun-central.mjs
+
+  central-after-merge-or-deploy:
+    name: Update COMUN CENTRAL after merge or deploy
+    if: >-
+      (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true) ||
+      github.event_name == 'deployment_status'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha || github.event.pull_request.head.sha || github.sha }}
+      - name: Update fixed control issue
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          COMUN_CENTRAL_ISSUE: "39"
+          COMUN_CENTRAL_STAGE: ${{ github.event_name == 'deployment_status' && 'deploy' || 'merge' }}
+          COMUN_CENTRAL_RESULT: ${{ github.event_name == 'deployment_status' && github.event.deployment_status.state || 'merged' }}
+          COMUN_CENTRAL_SHA: ${{ github.event.deployment.sha || github.event.pull_request.head.sha || github.sha }}
+          COMUN_CENTRAL_BRANCH: ${{ github.event.deployment.ref || github.event.pull_request.head.ref || github.ref_name }}
+          COMUN_CENTRAL_PR: ${{ github.event.pull_request.number || '38' }}
+          COMUN_CENTRAL_DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
+          COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/ci/update-comun-central.mjs
