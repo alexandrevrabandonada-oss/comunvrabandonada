@@ -274,9 +274,11 @@ jobs:
           supabase start
           supabase db reset --local --yes --version 20260723220112
           container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          network="$(docker inspect "$container" --format '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' | head -1)"
           PR23_DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres?application_name=LOCAL_VALIDATION \
           SUPABASE_PROJECT_REF=LOCAL_VALIDATION \
           PR23_ALLOWED_PROJECT_REFS=LOCAL_VALIDATION \
+          PR23_DOCKER_NETWORK="$network" \
           COMUN_RELEASE_MANIFEST=supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json \
           node scripts/solo/apply-forward-only.mjs
           node scripts/run-pr23-reconciliation.mjs --container="$container"
@@ -289,9 +291,11 @@ jobs:
           supabase start
           supabase db reset --local --yes --version 20260723220112
           container="$(docker ps --format '{{.Names}}' | grep '^supabase_db_' | head -1)"
+          network="$(docker inspect "$container" --format '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' | head -1)"
           PR23_DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres?application_name=LOCAL_VALIDATION \
           SUPABASE_PROJECT_REF=LOCAL_VALIDATION \
           PR23_ALLOWED_PROJECT_REFS=LOCAL_VALIDATION \
+          PR23_DOCKER_NETWORK="$network" \
           COMUN_RELEASE_MANIFEST=supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json \
           node scripts/solo/apply-forward-only.mjs
           node scripts/run-pr23-reconciliation.mjs --container="$container"
