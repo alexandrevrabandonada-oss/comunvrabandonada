@@ -98,7 +98,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test:unit
-      - run: node --test scripts/ci/comun-central.node-test.mjs scripts/collective-actions-premigration.node-test.mjs
+      - run: node --test scripts/ci/comun-central.node-test.mjs scripts/collective-actions-premigration.node-test.mjs scripts/collective-actions-member-journey.node-test.mjs
       - name: Start and reset local Supabase
         run: |
           supabase start
@@ -172,7 +172,7 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: node --test scripts/ci/comun-central.node-test.mjs scripts/collective-actions-premigration.node-test.mjs
+      - run: node --test scripts/ci/comun-central.node-test.mjs scripts/collective-actions-premigration.node-test.mjs scripts/collective-actions-member-journey.node-test.mjs
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test:unit
