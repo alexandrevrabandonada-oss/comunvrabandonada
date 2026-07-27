@@ -103,8 +103,8 @@
     "database": "none",
     "ledger": "none",
     "storage": "none",
-    "vercelFlag": "none-observed",
-    "deployment": "none"
+    "vercelFlag": "enabled-then-disabled-by-automatic-rollback",
+    "deployment": "activation-then-rollback"
   },
   "nextHumanGate": "separate code checkpoint to supply the smoke deployment context before any new activation approval"
 }
