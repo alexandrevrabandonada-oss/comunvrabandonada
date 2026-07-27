@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "checkpoint": "tijolo-45-3g-operational-activation",
-  "decision": "COMUN_TIJOLO_45_3G_ACTIVATION_BLOCKED_VERCEL_ACCESS",
-  "authorization": {
+  "decision": "COMUN_TIJOLO_45_3G_VERCEL_ACCESS_STILL_BLOCKED",
+  "approvalState": {
     "recognized": true,
     "exact": true,
     "projectRef": "allowlisted-masked"
@@ -13,7 +13,15 @@
     "executorSha": "b0beb869dfe055ff506bf5ba54c7c52c73d2d3fb",
     "postflight": "success-read-only",
     "activation": "blocked-before-flag-change",
-    "retryExecuted": false
+    "retryExecuted": false,
+    "vercelReadOnlyPreflight": {
+      "workflowRunId": 30284379657,
+      "workflowRunUrl": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30284379657",
+      "method": "GET",
+      "httpStatus": 403,
+      "mutatingJobs": "skipped",
+      "responsePublished": false
+    }
   },
   "contract": {
     "id": "sidewalk-operational-safer-pre-v2",
@@ -37,7 +45,7 @@
   },
   "failure": {
     "stage": "vercel-account-access",
-    "sanitizedCause": "protected Vercel credential could not access the configured account",
+    "sanitizedCause": "protected Vercel credential still cannot access the canonical project through the read-only preflight",
     "requiresHumanDecision": true
   },
   "remoteWrites": {
@@ -47,5 +55,5 @@
     "vercelFlag": "none-observed",
     "deployment": "none"
   },
-  "nextHumanGate": "repair protected Vercel account access and issue a new exact activation authorization"
+  "nextHumanGate": "repair protected Vercel team/project access, obtain a green read-only preflight, then receive a new exact activation approval"
 }

@@ -2,13 +2,14 @@
 
 ## Resultado
 
-`COMUN_TIJOLO_45_3G_ACTIVATION_BLOCKED_VERCEL_ACCESS`
+`COMUN_TIJOLO_45_3G_VERCEL_ACCESS_STILL_BLOCKED`
 
-O workflow reconheceu a autorização exata e confirmou o estado remoto por postflight somente leitura. A ativação foi bloqueada antes da alteração da flag: a credencial/configuração protegida do Vercel não teve acesso à conta configurada. Não houve retry.
+O workflow original reconheceu a autorização exata e confirmou o estado remoto por postflight somente leitura. A ativação foi bloqueada antes da alteração da flag. O reparo executou um preflight Vercel separado e somente leitura; a API respondeu HTTP `403`, confirmando que a credencial protegida ainda não tem acesso ao projeto canônico. Não houve retry de ativação.
 
 ## Evidência verificada
 
 - Workflow: [COMUN Sidewalk Activate — run 30283137271](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30283137271)
+- Preflight somente leitura: [run 30284379657](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30284379657) — HTTP `403`; todos os jobs mutáveis foram ignorados.
 - SHA imutável executor: `b0beb869dfe055ff506bf5ba54c7c52c73d2d3fb`
 - Project ref: allowlisted e mascarado.
 - Contrato: `sidewalk-operational-safer-pre-v2` (`d916a99153c8e29a10833c4ff7c0efc5b765bdab54e08ee671ad9a1ee3e58858`)
@@ -33,10 +34,11 @@ O comando de alteração da flag foi recusado por acesso à conta Vercel antes d
 ## Segurança
 
 - Nenhuma migration, alteração de ledger ou escrita em Storage foi tentada neste checkpoint.
+- O preflight usou apenas `GET` à API da Vercel; a resposta e o token não foram publicados.
 - Nenhum deploy, domínio ou outra flag foi alterado.
 - Nenhum valor de conexão, token, chave ou project ref completo é registrado neste relatório.
 - Não houve contribuição técnica de teste nem escrita pública de dados.
 
 ## Próximo bloqueio humano
 
-Corrigir o acesso da credencial protegida à conta Vercel canônica e fornecer nova autorização exata para uma nova tentativa de `mode=activate`. Esta execução não autoriza retry automático.
+Uma pessoa responsável deve corrigir ou rotacionar a credencial protegida para que ela tenha acesso ao time e projeto canônicos, sem fornecer o valor no chat. Depois de um preflight HTTP `200`, será necessária uma nova autorização exata para uma nova tentativa de `mode=activate`. Esta execução não autoriza retry automático.
