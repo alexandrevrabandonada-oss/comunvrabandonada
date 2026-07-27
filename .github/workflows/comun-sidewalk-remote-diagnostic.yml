@@ -1,0 +1,115 @@
+name: COMUN Sidewalk Remote Diagnostic
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Confirm the read-only sidewalk diagnostic
+        required: true
+        type: string
+      expected_main_sha:
+        description: Immutable main SHA to diagnose
+        required: true
+        type: string
+      emit_artifact:
+        description: Upload sanitized diagnostic artifact
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: comun-sidewalk-remote-diagnostic-${{ inputs.expected_main_sha }}
+  cancel-in-progress: false
+
+jobs:
+  validate-input:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require explicit read-only confirmation
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: test "$CONFIRMATION" = "EXECUTAR_DIAGNOSTICO_READ_ONLY_CALCADAS"
+
+  local-reference:
+    needs: validate-input
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require immutable diagnosed main
+        shell: bash
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = "${{ inputs.expected_main_sha }}"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - run: npm ci --ignore-scripts
+      - run: supabase start
+      - name: Reset local baseline before sidewalk operational release
+        run: supabase db reset --local --yes --version 20260723220112
+      - name: Capture local pre and post scoped fingerprints
+        env:
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
+        run: node scripts/comun-local-env.mjs run node scripts/solo/capture-sidewalk-local-reference.mjs --output=.ci-artifacts/local-reference.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-sidewalk-local-reference-${{ inputs.expected_main_sha }}-${{ github.run_id }}
+          path: .ci-artifacts/local-reference.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+      - if: always()
+        run: supabase stop --no-backup || true
+
+  remote-diagnostic:
+    needs: local-reference
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require immutable diagnosed main
+        shell: bash
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = "${{ inputs.expected_main_sha }}"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - uses: actions/download-artifact@v4
+        with:
+          name: comun-sidewalk-local-reference-${{ inputs.expected_main_sha }}-${{ github.run_id }}
+          path: .ci-artifacts
+      - name: Capture remote catalog in a read-only transaction
+        env:
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
+          PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: node scripts/solo/diagnose-sidewalk-remote-drift.mjs --reference=.ci-artifacts/local-reference.json --output-dir=.ci-artifacts/comun-sidewalk-remote-diagnostic
+      - name: Publish read-only diagnostic marker
+        run: |
+          echo COMUN_SIDEWALK_REMOTE_DIAGNOSTIC_READ_ONLY_ENFORCED >> "$GITHUB_STEP_SUMMARY"
+          cat .ci-artifacts/comun-sidewalk-remote-diagnostic/classification.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: inputs.emit_artifact
+        with:
+          name: comun-sidewalk-remote-diagnostic-${{ inputs.expected_main_sha }}-${{ github.run_id }}
+          path: .ci-artifacts/comun-sidewalk-remote-diagnostic
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14

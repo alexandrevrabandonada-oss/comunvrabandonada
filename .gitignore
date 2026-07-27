@@ -3,6 +3,7 @@
 !.env.example
 .next*/
 node_modules/
+.ci-artifacts/
 out/
 dist/
 coverage/
