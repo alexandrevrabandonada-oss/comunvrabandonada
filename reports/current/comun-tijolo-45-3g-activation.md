@@ -2,9 +2,9 @@
 
 ## Resultado
 
-`COMUN_TIJOLO_45_3G_VERCEL_ACCESS_GREEN_PARSER_FAILED`
+`COMUN_VERCEL_PROTECTED_ACCESS_READ_GREEN`
 
-O workflow original reconheceu a autorização exata e confirmou o estado remoto por postflight somente leitura. A ativação foi bloqueada antes da alteração da flag. Os dois primeiros preflights Vercel somente leitura responderam HTTP `403`. Após a atualização da credencial, o GET do run mais recente avançou pela condição HTTP `200`, mas o parser tentou executar o arquivo temporário como JavaScript e falhou. Não houve retry de ativação.
+O workflow original reconheceu a aprovação exata e confirmou o estado remoto por postflight somente leitura. A ativação foi bloqueada antes da alteração da flag. Os dois primeiros preflights Vercel somente leitura responderam HTTP `403`. Após a atualização da credencial, o GET seguinte avançou pela condição HTTP `200`, mas o parser tentou executar o arquivo temporário como JavaScript e falhou. O reparo de parser separou o arquivo de resposta do programa Node e a revalidação final confirmou o acesso protegido sem executar nenhum modo mutável.
 
 ## Evidência verificada
 
@@ -12,6 +12,7 @@ O workflow original reconheceu a autorização exata e confirmou o estado remoto
 - Preflight somente leitura: [run 30284379657](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30284379657) — HTTP `403`; todos os jobs mutáveis foram ignorados.
 - Revalidação somente leitura: [run 30285022945](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30285022945), em `2026-07-27T16:30:49Z` — HTTP `403`; `validate-input` verde e todos os jobs mutáveis ignorados.
 - Revalidação com acesso HTTP confirmado: [run 30286251608](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30286251608) — o GET avançou pela condição HTTP `200`; falha posterior no parser Node. O corpo da resposta foi impresso acidentalmente no log do run, não foi copiado para este relatório e o cabeçalho de credencial não foi impresso.
+- Revalidação corrigida: [run 30287408311](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30287408311), em `2026-07-27T17:01:52Z` — HTTP `200`, projeto correspondente, time correspondente e nome correspondente. O parser leu apenas o caminho protegido por `PROJECT_JSON`; nenhum corpo de resposta foi impresso.
 - SHA imutável executor: `b0beb869dfe055ff506bf5ba54c7c52c73d2d3fb`
 - Project ref: allowlisted e mascarado.
 - Contrato: `sidewalk-operational-safer-pre-v2` (`d916a99153c8e29a10833c4ff7c0efc5b765bdab54e08ee671ad9a1ee3e58858`)
@@ -31,16 +32,16 @@ O workflow original reconheceu a autorização exata e confirmou o estado remoto
 | Smoke de ativação  | não iniciado              | não iniciado                                     |
 | Rollback           | não aplicável             | não aplicável: a mutação não foi aceita          |
 
-O comando de alteração da flag foi recusado por acesso à conta Vercel antes de sucesso, deploy ou smoke. A verificação HTTP posterior confirmou que a contribuição continua pausada e que o mapa público continua disponível.
+O comando de alteração da flag não foi executado nesta revalidação. A contribuição continua pausada e o mapa público continua disponível.
 
 ## Segurança
 
 - Nenhuma migration, alteração de ledger ou escrita em Storage foi tentada neste checkpoint.
-- O preflight usou apenas `GET` à API da Vercel; nenhum corpo de resposta, cabeçalho de credencial ou valor protegido foi copiado para os relatórios.
+- O preflight usou apenas `GET` à API da Vercel; o novo run não imprimiu corpo de resposta, cabeçalho de credencial ou valor protegido.
 - Nenhum deploy, domínio ou outra flag foi alterado.
 - Nenhum valor de conexão, token, chave ou project ref completo é registrado neste relatório.
 - Não houve contribuição técnica de teste nem escrita pública de dados.
 
 ## Próximo bloqueio humano
 
-O parser e o transporte do preflight precisam ser corrigidos e validados em uma única nova execução somente leitura. O run sensível permanece preservado até o recebimento explícito de `AUTORIZO_EXCLUIR_RUN_SENSIVEL_30286251608`. Mesmo após um preflight verde, será necessária uma nova autorização exata para uma tentativa de `mode=activate`.
+O run sensível permanece preservado até o recebimento explícito de `AUTORIZO_EXCLUIR_RUN_SENSIVEL_30286251608`. O próximo gate é uma nova aprovação humana exata para `mode=activate`; ela não foi fornecida nem utilizada nesta execução.
