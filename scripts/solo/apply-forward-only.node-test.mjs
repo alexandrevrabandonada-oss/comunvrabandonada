@@ -5,7 +5,9 @@ import { after, before, test } from "node:test";
 import {
   SoloRunnerError,
   buildSanitizedSecurityDiagnostic,
+  dockerDatabaseUrl,
   executeSql,
+  localPublishedDatabaseUrl,
   parseJsonOutput,
   parseScalarOutput,
   queryJson,
@@ -20,7 +22,11 @@ import {
 const marker = (expected) => (error) =>
   error instanceof SoloRunnerError && error.marker === expected;
 
-const securityBaseline = ({ fingerprint = "a".repeat(64), blockingFindings = [], platformObservations = [] } = {}) => ({
+const securityBaseline = ({
+  fingerprint = "a".repeat(64),
+  blockingFindings = [],
+  platformObservations = [],
+} = {}) => ({
   fingerprint,
   security: { blockingFindings, platformObservations },
 });
@@ -42,51 +48,76 @@ test("security diagnostic preserves one finding with a sanitized detail", () => 
   const diagnostic = buildSanitizedSecurityDiagnostic({
     before: securityBaseline(),
     after: securityBaseline({
-      blockingFindings: [{
-        classification: "FUNCTION_SECURITY_RISK",
-        rule: "DEFINER_EXECUTE",
-        object: "public.comun_safe_function(uuid)",
-        detail: "postgresql://user:password@database/private-note",
-      }],
+      blockingFindings: [
+        {
+          classification: "FUNCTION_SECURITY_RISK",
+          rule: "DEFINER_EXECUTE",
+          object: "public.comun_safe_function(uuid)",
+          detail: "postgresql://user:password@database/private-note",
+        },
+      ],
     }),
     beforeLedgerState: "ABSENT",
     afterLedgerState: "PRESENT_ACCEPTED",
   });
-  assert.deepEqual(diagnostic.after.blockingFindings, [{
-    classification: "FUNCTION_SECURITY_RISK",
-    rule: "DEFINER_EXECUTE",
-    object: "public.comun_safe_function(uuid)",
-    detail: "security definer execute privilege is exposed",
-  }]);
+  assert.deepEqual(diagnostic.after.blockingFindings, [
+    {
+      classification: "FUNCTION_SECURITY_RISK",
+      rule: "DEFINER_EXECUTE",
+      object: "public.comun_safe_function(uuid)",
+      detail: "security definer execute privilege is exposed",
+    },
+  ]);
 });
 
 test("security diagnostic exposes only the safe role and privilege for a dangerous grant", () => {
   const diagnostic = buildSanitizedSecurityDiagnostic({
     before: securityBaseline({
-      blockingFindings: [{
-        classification: "EXCESS_PRIVILEGE",
-        rule: "DANGEROUS_RELATION_GRANT",
-        object: "public.comun_records",
-        detail: "authenticated:TRUNCATE",
-      }],
+      blockingFindings: [
+        {
+          classification: "EXCESS_PRIVILEGE",
+          rule: "DANGEROUS_RELATION_GRANT",
+          object: "public.comun_records",
+          detail: "authenticated:TRUNCATE",
+        },
+      ],
     }),
     after: null,
     beforeLedgerState: "ABSENT",
     afterLedgerState: "NOT_REACHED",
   });
-  assert.equal(diagnostic.before.blockingFindings[0].detail, "role=authenticated; privilege=TRUNCATE");
+  assert.equal(
+    diagnostic.before.blockingFindings[0].detail,
+    "role=authenticated; privilege=TRUNCATE",
+  );
 });
 
 test("security diagnostic sorts multiple findings deterministically", () => {
   const findings = [
-    { classification: "VIEW_SECURITY_RISK", rule: "VIEW_SECURITY_INVOKER", object: "public.z_view", detail: "ignored" },
-    { classification: "EXCESS_PRIVILEGE", rule: "RLS_ENABLED", object: "public.a_table", detail: "ignored" },
+    {
+      classification: "VIEW_SECURITY_RISK",
+      rule: "VIEW_SECURITY_INVOKER",
+      object: "public.z_view",
+      detail: "ignored",
+    },
+    {
+      classification: "EXCESS_PRIVILEGE",
+      rule: "RLS_ENABLED",
+      object: "public.a_table",
+      detail: "ignored",
+    },
   ];
   const first = buildSanitizedSecurityDiagnostic({
-    before: securityBaseline({ blockingFindings: findings }), after: null, beforeLedgerState: "ABSENT", afterLedgerState: "NOT_REACHED",
+    before: securityBaseline({ blockingFindings: findings }),
+    after: null,
+    beforeLedgerState: "ABSENT",
+    afterLedgerState: "NOT_REACHED",
   });
   const second = buildSanitizedSecurityDiagnostic({
-    before: securityBaseline({ blockingFindings: [...findings].reverse() }), after: null, beforeLedgerState: "ABSENT", afterLedgerState: "NOT_REACHED",
+    before: securityBaseline({ blockingFindings: [...findings].reverse() }),
+    after: null,
+    beforeLedgerState: "ABSENT",
+    afterLedgerState: "NOT_REACHED",
   });
   assert.deepEqual(first, second);
   assert.equal(first.before.blockingFindingsCount, 2);
@@ -95,12 +126,14 @@ test("security diagnostic sorts multiple findings deterministically", () => {
 test("platform observations remain separate from blocking findings", () => {
   const diagnostic = buildSanitizedSecurityDiagnostic({
     before: securityBaseline({
-      platformObservations: [{
-        classification: "PLATFORM_MANAGED_OBSERVATION",
-        rule: "SUPABASE_ADMIN_DEFAULT_PRIVILEGES",
-        object: "schema public",
-        detail: "unsafe raw platform default hash=secret",
-      }],
+      platformObservations: [
+        {
+          classification: "PLATFORM_MANAGED_OBSERVATION",
+          rule: "SUPABASE_ADMIN_DEFAULT_PRIVILEGES",
+          object: "schema public",
+          detail: "unsafe raw platform default hash=secret",
+        },
+      ],
     }),
     after: null,
     beforeLedgerState: "ABSENT",
@@ -108,28 +141,44 @@ test("platform observations remain separate from blocking findings", () => {
   });
   assert.equal(diagnostic.before.blockingFindingsCount, 0);
   assert.equal(diagnostic.before.platformObservationsCount, 1);
-  assert.equal(diagnostic.before.platformObservations[0].detail, "managed platform default privileges observed");
+  assert.equal(
+    diagnostic.before.platformObservations[0].detail,
+    "managed platform default privileges observed",
+  );
 });
 
 test("security diagnostic rejects prohibited values and table content", () => {
   assert.throws(
-    () => serializeSanitizedSecurityDiagnostic({ formatVersion: 1, tableContent: "private note", after: {} }),
+    () =>
+      serializeSanitizedSecurityDiagnostic({
+        formatVersion: 1,
+        tableContent: "private note",
+        after: {},
+      }),
     /SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID/,
   );
   assert.throws(
-    () => serializeSanitizedSecurityDiagnostic({ formatVersion: 1, after: { detail: "postgresql://user:password@db/postgres" } }),
+    () =>
+      serializeSanitizedSecurityDiagnostic({
+        formatVersion: 1,
+        after: { detail: "postgresql://user:password@db/postgres" },
+      }),
     /SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID/,
   );
 });
 
 test("security diagnostic serialization never exposes a database URL", () => {
   const diagnostic = buildSanitizedSecurityDiagnostic({
-    before: securityBaseline({ blockingFindings: [{
-      classification: "EXCESS_PRIVILEGE",
-      rule: "RLS_ENABLED",
-      object: "public.comun_records",
-      detail: "postgresql://person:password@db/postgres",
-    }] }),
+    before: securityBaseline({
+      blockingFindings: [
+        {
+          classification: "EXCESS_PRIVILEGE",
+          rule: "RLS_ENABLED",
+          object: "public.comun_records",
+          detail: "postgresql://person:password@db/postgres",
+        },
+      ],
+    }),
     after: null,
     beforeLedgerState: "ABSENT",
     afterLedgerState: "NOT_REACHED",
@@ -141,7 +190,11 @@ test("security diagnostic serialization never exposes a database URL", () => {
 
 test("security finding error preserves the canonical runner marker", () => {
   assert.throws(
-    () => validateBlockingFindings(securityBaseline({ blockingFindings: [{ rule: "RLS_ENABLED" }] }), 0),
+    () =>
+      validateBlockingFindings(
+        securityBaseline({ blockingFindings: [{ rule: "RLS_ENABLED" }] }),
+        0,
+      ),
     marker("SOLO_CANONICAL_SECURITY_FINDINGS_REMAIN"),
   );
 });
@@ -150,11 +203,21 @@ test("legacy tabular psql output is rejected as JSON", () => {
   assert.equal(parseDockerMappedPort("127.0.0.1:49152\n"), 49152);
   assert.equal(parseDockerMappedPort("0.0.0.0:49153\n"), 49153);
   assert.equal(parseDockerMappedPort("[::]:49154\n"), 49154);
-  for (const invalid of ["", "127.0.0.1:0\n", "127.0.0.1:49152\n0.0.0.0:49152\n"]) {
-    assert.throws(() => parseDockerMappedPort(invalid), /COMUN_TEST_POSTGRES_PORT_INVALID/);
+  for (const invalid of [
+    "",
+    "127.0.0.1:0\n",
+    "127.0.0.1:49152\n0.0.0.0:49152\n",
+  ]) {
+    assert.throws(
+      () => parseDockerMappedPort(invalid),
+      /COMUN_TEST_POSTGRES_PORT_INVALID/,
+    );
   }
   assert.throws(
-    () => parseJsonOutput(" jsonb_build_object\n--------------------\n {\"ok\": true}\n(1 row)\n"),
+    () =>
+      parseJsonOutput(
+        ' jsonb_build_object\n--------------------\n {"ok": true}\n(1 row)\n',
+      ),
     marker("SOLO_CANONICAL_BASELINE_OUTPUT_INVALID"),
   );
 });
@@ -165,7 +228,7 @@ test("canonical query flags produce parseable JSON", () => {
     databaseUrl: "postgresql://redacted.invalid/db",
     spawn: (_command, args) => {
       receivedArgs = args;
-      return { status: 0, signal: null, stdout: "{\"ok\":true}\n", stderr: "" };
+      return { status: 0, signal: null, stdout: '{"ok":true}\n', stderr: "" };
     },
   });
   assert.deepEqual(value, { ok: true });
@@ -173,6 +236,70 @@ test("canonical query flags produce parseable JSON", () => {
   assert.ok(receivedArgs.includes("--no-align"));
   assert.ok(receivedArgs.includes("--quiet"));
   assert.ok(receivedArgs.includes("--no-psqlrc"));
+});
+
+test("published localhost database URLs are translated only for the Docker psql client", () => {
+  const published = "postgresql://local:example@127.0.0.1:56532/postgres";
+  assert.equal(localPublishedDatabaseUrl(published), true);
+  assert.match(
+    dockerDatabaseUrl(published),
+    /@host\.docker\.internal:56532\/postgres$/,
+  );
+
+  let receivedArgs = [];
+  assert.equal(
+    queryScalar("select 'ready';", {
+      databaseUrl: published,
+      spawn: (_command, args) => {
+        receivedArgs = args;
+        return { status: 0, signal: null, stdout: "ready\n", stderr: "" };
+      },
+    }),
+    "ready",
+  );
+  assert.ok(
+    receivedArgs.includes("--add-host=host.docker.internal:host-gateway"),
+  );
+  assert.ok(
+    receivedArgs.some((value) =>
+      /@host\.docker\.internal:56532\/postgres$/.test(value),
+    ),
+  );
+  assert.equal(receivedArgs.includes(published), false);
+  assert.equal(receivedArgs.includes("undefined"), false);
+});
+
+test("only published local PostgreSQL URLs qualify for local validation", () => {
+  assert.equal(
+    localPublishedDatabaseUrl(
+      "postgresql://local:example@localhost:55432/postgres",
+    ),
+    true,
+  );
+  assert.equal(
+    localPublishedDatabaseUrl(
+      "postgresql://local:example@host.docker.internal:55432/postgres",
+    ),
+    true,
+  );
+  assert.equal(
+    localPublishedDatabaseUrl(
+      "postgresql://local:example@remote.example:55432/postgres",
+    ),
+    false,
+  );
+  assert.equal(
+    localPublishedDatabaseUrl(
+      "postgresql://local:example@127.0.0.1:55432/another_database",
+    ),
+    false,
+  );
+  assert.equal(
+    localPublishedDatabaseUrl(
+      "postgresql://local:example@127.0.0.1:0/postgres",
+    ),
+    false,
+  );
 });
 
 test("runner fingerprint query uses the canonical PostgreSQL tab delimiter", () => {
@@ -214,10 +341,14 @@ test("empty JSON stdout has a specific marker", () => {
 
 test("ENOBUFS has a specific marker", () => {
   assert.throws(
-    () => queryJson("select 1", {
-      databaseUrl: "postgresql://redacted.invalid/db",
-      spawn: () => ({ error: Object.assign(new Error("buffer"), { code: "ENOBUFS" }), status: null }),
-    }),
+    () =>
+      queryJson("select 1", {
+        databaseUrl: "postgresql://redacted.invalid/db",
+        spawn: () => ({
+          error: Object.assign(new Error("buffer"), { code: "ENOBUFS" }),
+          status: null,
+        }),
+      }),
     marker("SOLO_PSQL_OUTPUT_BUFFER_EXCEEDED"),
   );
 });
@@ -225,22 +356,30 @@ test("ENOBUFS has a specific marker", () => {
 test("connection failure is sanitized", () => {
   const secretUrl = "postgresql://user:password-that-must-not-leak@invalid/db";
   assert.throws(
-    () => queryJson("select 1", {
-      databaseUrl: secretUrl,
-      spawn: () => ({ status: 2, signal: null, stdout: "", stderr: `psql: ${secretUrl}` }),
-    }),
-    (error) => marker("SOLO_CANONICAL_DATABASE_QUERY_FAILED")(error)
-      && !error.message.includes("password-that-must-not-leak")
-      && !error.message.includes(secretUrl),
+    () =>
+      queryJson("select 1", {
+        databaseUrl: secretUrl,
+        spawn: () => ({
+          status: 2,
+          signal: null,
+          stdout: "",
+          stderr: `psql: ${secretUrl}`,
+        }),
+      }),
+    (error) =>
+      marker("SOLO_CANONICAL_DATABASE_QUERY_FAILED")(error) &&
+      !error.message.includes("password-that-must-not-leak") &&
+      !error.message.includes(secretUrl),
   );
 });
 
 test("transaction failure is distinct from query failure", () => {
   assert.throws(
-    () => executeSql("begin; select 1; commit;", {
-      databaseUrl: "postgresql://redacted.invalid/db",
-      spawn: () => ({ status: 3, signal: null, stdout: "", stderr: "" }),
-    }),
+    () =>
+      executeSql("begin; select 1; commit;", {
+        databaseUrl: "postgresql://redacted.invalid/db",
+        spawn: () => ({ status: 3, signal: null, stdout: "", stderr: "" }),
+      }),
     marker("SOLO_CANONICAL_DATABASE_TRANSACTION_FAILED"),
   );
 });
@@ -256,7 +395,14 @@ test("pre fingerprint with absent ledger is valid", () => {
     fingerprint: "pre",
     canonical: { relations: [] },
   };
-  assert.equal(validateCurrentState(baseline, releaseFixture, () => "__COMUN_RELEASE_LEDGER_ABSENT__"), "PRE");
+  assert.equal(
+    validateCurrentState(
+      baseline,
+      releaseFixture,
+      () => "__COMUN_RELEASE_LEDGER_ABSENT__",
+    ),
+    "PRE",
+  );
 });
 
 test("post fingerprint with the exact ledger is valid", () => {
@@ -284,11 +430,20 @@ test("post fingerprint accepts only an explicitly recorded legacy ledger tuple",
     acceptedLegacyLedgerValues: ["sha|pre|legacy-post"],
   };
   assert.equal(
-    validateCurrentState(baseline, reconciledRelease, () => "sha|pre|legacy-post"),
+    validateCurrentState(
+      baseline,
+      reconciledRelease,
+      () => "sha|pre|legacy-post",
+    ),
     "POST",
   );
   assert.throws(
-    () => validateCurrentState(baseline, reconciledRelease, () => "sha|pre|unknown"),
+    () =>
+      validateCurrentState(
+        baseline,
+        reconciledRelease,
+        () => "sha|pre|unknown",
+      ),
     marker("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH"),
   );
 });
@@ -332,9 +487,12 @@ let localConnection;
 export function parseDockerMappedPort(output) {
   const lines = output.trim().split(/\r?\n/).filter(Boolean);
   if (lines.length !== 1) throw new Error("COMUN_TEST_POSTGRES_PORT_INVALID");
-  const match = lines[0].match(/^(?:127\.0\.0\.1|0\.0\.0\.0|\[::\]):(\d{1,5})$/);
+  const match = lines[0].match(
+    /^(?:127\.0\.0\.1|0\.0\.0\.0|\[::\]):(\d{1,5})$/,
+  );
   const port = Number(match?.[1]);
-  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("COMUN_TEST_POSTGRES_PORT_INVALID");
+  if (!Number.isInteger(port) || port < 1 || port > 65535)
+    throw new Error("COMUN_TEST_POSTGRES_PORT_INVALID");
   return port;
 }
 
@@ -349,11 +507,34 @@ export function removeTemporaryNetwork(name) {
 export function startTemporaryPostgres(name, dockerNetwork) {
   removeTemporaryPostgres(name);
   removeTemporaryNetwork(dockerNetwork);
-  const networkCreated = spawnSync("docker", ["network", "create", dockerNetwork], { encoding: "utf8" });
-  if (networkCreated.status !== 0) throw new Error("COMUN_TEST_POSTGRES_NETWORK_START_FAILED");
+  const networkCreated = spawnSync(
+    "docker",
+    ["network", "create", dockerNetwork],
+    { encoding: "utf8" },
+  );
+  if (networkCreated.status !== 0)
+    throw new Error("COMUN_TEST_POSTGRES_NETWORK_START_FAILED");
   let started;
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    started = spawnSync("docker", ["run", "-d", "--name", name, "--network", dockerNetwork, "--network-alias", "postgres-test", "-e", "POSTGRES_PASSWORD=local_test_only", "-p", "127.0.0.1::5432", "postgres:17"], { encoding: "utf8" });
+    started = spawnSync(
+      "docker",
+      [
+        "run",
+        "-d",
+        "--name",
+        name,
+        "--network",
+        dockerNetwork,
+        "--network-alias",
+        "postgres-test",
+        "-e",
+        "POSTGRES_PASSWORD=local_test_only",
+        "-p",
+        "127.0.0.1::5432",
+        "postgres:17",
+      ],
+      { encoding: "utf8" },
+    );
     if (started.status === 0) break;
     removeTemporaryPostgres(name);
     if (attempt === 0)
@@ -364,8 +545,11 @@ export function startTemporaryPostgres(name, dockerNetwork) {
     throw new Error("COMUN_TEST_POSTGRES_START_FAILED");
   }
   try {
-    const mapped = spawnSync("docker", ["port", name, "5432/tcp"], { encoding: "utf8" });
-    if (mapped.status !== 0) throw new Error("COMUN_TEST_POSTGRES_PORT_INVALID");
+    const mapped = spawnSync("docker", ["port", name, "5432/tcp"], {
+      encoding: "utf8",
+    });
+    if (mapped.status !== 0)
+      throw new Error("COMUN_TEST_POSTGRES_PORT_INVALID");
     return parseDockerMappedPort(mapped.stdout);
   } catch (error) {
     removeTemporaryPostgres(name);
@@ -377,7 +561,8 @@ export function startTemporaryPostgres(name, dockerNetwork) {
 before(() => {
   const mappedPort = startTemporaryPostgres(container, network);
   assert.ok(mappedPort >= 1 && mappedPort <= 65535);
-  localUrl = "postgresql://postgres:local_test_only@postgres-test:5432/postgres";
+  localUrl =
+    "postgresql://postgres:local_test_only@postgres-test:5432/postgres";
   localConnection = { databaseUrl: localUrl, dockerNetwork: network };
   for (let attempt = 0; attempt < 45; attempt += 1) {
     try {
@@ -407,7 +592,10 @@ test("PostgreSQL 17 returns canonical JSON transport", () => {
 });
 
 test("PostgreSQL 17 returns canonical scalar transport", () => {
-  assert.equal(queryScalar("select 'one-value';", localConnection), "one-value");
+  assert.equal(
+    queryScalar("select 'one-value';", localConnection),
+    "one-value",
+  );
   console.log("COMUN_PSQL_SCALAR_TRANSPORT_OK");
 });
 

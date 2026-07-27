@@ -519,7 +519,23 @@ jobs:
       - uses: supabase/setup-cli@v1
         with: { version: 2.109.1 }
       - run: npm ci --ignore-scripts
-      - run: supabase start && supabase db reset --local --yes
+      - name: Reset the historical pre-release local baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          held_migrations="$(mktemp -d)"
+          restore_migrations() {
+            find "$held_migrations" -maxdepth 1 -type f -name '*.sql' -exec mv {} supabase/migrations/ \;
+            rmdir "$held_migrations"
+          }
+          trap restore_migrations EXIT
+          while IFS= read -r migration; do
+            mv "supabase/migrations/$migration" "$held_migrations/$migration"
+          done < <(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' | awk '$0 >= "20260724233256_comun_sidewalk_operational_hardening.sql"')
+          test ! -e supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+          supabase start
+          supabase db reset --local --yes
+          test -f "$held_migrations/20260724233256_comun_sidewalk_operational_hardening.sql"
       - name: Verify pre-migration compatibility
         env: { COMUN_SIDEWALK_OPERATIONAL_V2: disabled }
         run: node scripts/solo/verify-sidewalk-premigration-compat.mjs
@@ -569,7 +585,10 @@ jobs:
 
   central-after-sidewalk-micro:
     needs: sidewalk-readiness-micro
-    if: always() && github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness')
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      contains(fromJSON('["opened","synchronize","reopened","ready_for_review"]'), github.event.action) &&
+      contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness')
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -599,7 +618,29 @@ jobs:
           COMUN_CENTRAL_SHA: ${{ github.event.pull_request.head.sha }}
           COMUN_CENTRAL_BRANCH: ${{ github.event.pull_request.head.ref }}
           COMUN_CENTRAL_PR: ${{ github.event.pull_request.number }}
-          COMUN_CENTRAL_CAUSE: transporte local do PostgreSQL no runner Ubuntu
+          COMUN_CENTRAL_CAUSE: ${{ needs.sidewalk-readiness-checkpoint.result == 'failure' && 'transporte local do PostgreSQL no runner Ubuntu' || '' }}
+          COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          COMUN_CENTRAL_REMOTE_WRITES: none
+        run: node scripts/ci/update-comun-central.mjs
+
+  central-after-sidewalk-release:
+    needs: sidewalk-readiness-full
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      contains(fromJSON('["labeled","synchronize"]'), github.event.action) &&
+      contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness') &&
+      contains(github.event.pull_request.labels.*.name, 'comun:release-candidate')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          GITHUB_TOKEN: ${{ github.token }}
+          COMUN_CENTRAL_ISSUE: "39"
+          COMUN_CENTRAL_STAGE: release
+          COMUN_CENTRAL_RESULT: ${{ needs.sidewalk-readiness-full.result }}
+          COMUN_CENTRAL_SHA: ${{ github.event.pull_request.head.sha }}
+          COMUN_CENTRAL_BRANCH: ${{ github.event.pull_request.head.ref }}
+          COMUN_CENTRAL_PR: ${{ github.event.pull_request.number }}
           COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           COMUN_CENTRAL_REMOTE_WRITES: none
         run: node scripts/ci/update-comun-central.mjs

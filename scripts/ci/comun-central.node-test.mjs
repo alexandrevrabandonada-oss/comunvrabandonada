@@ -19,6 +19,8 @@ test("COMUN Central updater never handles database credentials", () => {
   assert.doesNotMatch(source, /SUPABASE|DATABASE_URL|SERVICE_ROLE|password/i);
   assert.match(source, /branchIsSha/);
   assert.match(source, /não disparado para o SHA atual/);
+  assert.match(source, /CHECKPOINT falhou; correção em andamento/);
+  assert.match(source, /state\.delete\("Causa"\)/);
 });
 
 test("COMUN Central updater supports the COMUN RETRO process fields", () => {

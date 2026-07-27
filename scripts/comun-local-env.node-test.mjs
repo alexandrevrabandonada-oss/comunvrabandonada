@@ -1,17 +1,82 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
+import {
+  buildLocalEnvironment,
+  parseLocalStatus,
+  printSafeEnvironment,
+} from "./comun-local-env.mjs";
 
-test("local environment forwards only the published local DB contract", async () => {
-  const source = await readFile("scripts/comun-local-env.mjs", "utf8");
-  assert.match(source, /PR23_DATABASE_URL: local\.DB_URL/);
-  assert.match(source, /SUPABASE_PROJECT_REF: "LOCAL_VALIDATION"/);
-  assert.match(source, /PR23_ALLOWED_PROJECT_REFS: "LOCAL_VALIDATION"/);
-  assert.match(
-    source,
-    /COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL: local\.DB_URL/,
+const local = {
+  API_URL: "http://127.0.0.1:56531",
+  DB_URL: "postgresql://local:example@127.0.0.1:56532/postgres",
+  ANON_KEY: "local-anon-only",
+  SERVICE_ROLE_KEY: "local-service-only",
+};
+
+test("local environment propagates the published database URL to both sidewalk runners", () => {
+  const env = buildLocalEnvironment(local, {
+    COMUN_BASE_URL: "http://localhost:3000",
+  });
+  assert.equal(env.PR23_DATABASE_URL, local.DB_URL);
+  assert.equal(env.COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL, local.DB_URL);
+  assert.equal(env.SUPABASE_PROJECT_REF, "LOCAL_VALIDATION");
+  assert.equal(env.PR23_ALLOWED_PROJECT_REFS, "LOCAL_VALIDATION");
+  assert.equal(env.NEXT_PUBLIC_SUPABASE_URL, local.API_URL);
+});
+
+test("local environment rejects missing or remote database destinations before a child starts", () => {
+  assert.throws(
+    () => buildLocalEnvironment({ ...local, DB_URL: "" }),
+    /PostgreSQL local obrigatório/,
   );
-  assert.match(source, /Destino remoto detectado/);
-  assert.match(source, /secrets: "redacted"/);
-  assert.doesNotMatch(source, /console\.log\([^\n]*DB_URL/);
+  assert.throws(
+    () =>
+      buildLocalEnvironment({
+        ...local,
+        DB_URL: "postgresql://local:example@remote.example:5432/postgres",
+      }),
+    /PostgreSQL local obrigatório/,
+  );
+  assert.throws(
+    () =>
+      buildLocalEnvironment(local, {
+        COMUN_BASE_URL: "https://example.vercel.app",
+      }),
+    /Destino remoto detectado/,
+  );
+});
+
+test("print-safe output never includes local connection or credential values", () => {
+  const env = buildLocalEnvironment(local, {
+    COMUN_BASE_URL: "http://localhost:3000",
+  });
+  const safe = JSON.stringify(printSafeEnvironment(env));
+  assert.doesNotMatch(safe, /postgres(?:ql)?:\/\//i);
+  assert.doesNotMatch(safe, /local-(?:anon|service)-only/);
+  assert.match(safe, /redacted/);
+});
+
+test("status parsing has the same logical contract across Windows and Linux", () => {
+  const parsed = parseLocalStatus(
+    [
+      `API_URL=${local.API_URL}`,
+      `DB_URL=${local.DB_URL}`,
+      "ANON_KEY=local-anon-only",
+      "SERVICE_ROLE_KEY=local-service-only",
+    ].join("\n"),
+  );
+  const windows = buildLocalEnvironment(parsed, {
+    COMUN_BASE_URL: "http://127.0.0.1:3000",
+  });
+  const linux = buildLocalEnvironment(parsed, {
+    COMUN_BASE_URL: "http://localhost:3000",
+  });
+  for (const key of [
+    "PR23_DATABASE_URL",
+    "COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL",
+    "SUPABASE_PROJECT_REF",
+    "PR23_ALLOWED_PROJECT_REFS",
+  ]) {
+    assert.equal(windows[key], linux[key]);
+  }
 });
