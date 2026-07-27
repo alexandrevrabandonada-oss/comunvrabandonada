@@ -495,7 +495,7 @@ jobs:
 
   sidewalk-readiness-checkpoint:
     name: CHECKPOINT / COMUN_CHECKPOINT_GREEN
-    needs: sidewalk-readiness-lane
+    needs: [sidewalk-readiness-lane, sidewalk-readiness-micro]
     if: >-
       github.event_name == 'pull_request' && contains(fromJSON('["labeled","synchronize"]'), github.event.action) &&
       github.event.pull_request.base.ref == 'main' &&
