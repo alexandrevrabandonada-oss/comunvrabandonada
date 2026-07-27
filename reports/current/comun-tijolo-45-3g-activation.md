@@ -4,12 +4,13 @@
 
 `COMUN_TIJOLO_45_3G_VERCEL_ACCESS_STILL_BLOCKED`
 
-O workflow original reconheceu a autorização exata e confirmou o estado remoto por postflight somente leitura. A ativação foi bloqueada antes da alteração da flag. O reparo executou um preflight Vercel separado e somente leitura; a API respondeu HTTP `403`, confirmando que a credencial protegida ainda não tem acesso ao projeto canônico. Não houve retry de ativação.
+O workflow original reconheceu a autorização exata e confirmou o estado remoto por postflight somente leitura. A ativação foi bloqueada antes da alteração da flag. Dois preflights Vercel separados e somente leitura responderam HTTP `403`; a revalidação após a rotação humana não confirmou acesso ao projeto canônico. Não houve retry de ativação.
 
 ## Evidência verificada
 
 - Workflow: [COMUN Sidewalk Activate — run 30283137271](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30283137271)
 - Preflight somente leitura: [run 30284379657](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30284379657) — HTTP `403`; todos os jobs mutáveis foram ignorados.
+- Revalidação somente leitura: [run 30285022945](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30285022945), em `2026-07-27T16:30:49Z` — HTTP `403`; `validate-input` verde e todos os jobs mutáveis ignorados.
 - SHA imutável executor: `b0beb869dfe055ff506bf5ba54c7c52c73d2d3fb`
 - Project ref: allowlisted e mascarado.
 - Contrato: `sidewalk-operational-safer-pre-v2` (`d916a99153c8e29a10833c4ff7c0efc5b765bdab54e08ee671ad9a1ee3e58858`)
@@ -41,4 +42,4 @@ O comando de alteração da flag foi recusado por acesso à conta Vercel antes d
 
 ## Próximo bloqueio humano
 
-Uma pessoa responsável deve corrigir ou rotacionar a credencial protegida para que ela tenha acesso ao time e projeto canônicos, sem fornecer o valor no chat. Depois de um preflight HTTP `200`, será necessária uma nova autorização exata para uma nova tentativa de `mode=activate`. Esta execução não autoriza retry automático.
+Uma pessoa responsável deve revisar a injeção e o escopo da credencial protegida para que ela tenha acesso ao time e projeto canônicos, sem fornecer o valor no chat. Depois de um preflight HTTP `200`, será necessária uma nova autorização exata para uma nova tentativa de `mode=activate`. Esta execução não autoriza retry automático.

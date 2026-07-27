@@ -14,11 +14,24 @@
     "postflight": "success-read-only",
     "activation": "blocked-before-flag-change",
     "retryExecuted": false,
-    "vercelReadOnlyPreflight": {
+    "priorVercelReadOnlyPreflight": {
       "workflowRunId": 30284379657,
       "workflowRunUrl": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30284379657",
       "method": "GET",
       "httpStatus": 403,
+      "mutatingJobs": "skipped",
+      "responsePublished": false
+    },
+    "vercelReadOnlyPreflight": {
+      "workflowRunId": 30285022945,
+      "workflowRunUrl": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30285022945",
+      "timestamp": "2026-07-27T16:30:49Z",
+      "method": "GET",
+      "httpStatus": 403,
+      "projectIdMatch": "not-checked",
+      "accountMatch": "not-checked",
+      "projectNameMatch": "not-checked",
+      "validateInput": "success",
       "mutatingJobs": "skipped",
       "responsePublished": false
     }
