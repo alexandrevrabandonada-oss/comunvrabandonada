@@ -559,6 +559,17 @@ jobs:
       - name: Run the local E2E visual matrix
         env: { COMUN_SIDEWALK_OPERATIONAL_V2: enabled }
         run: npm run test:e2e:comun-integral-experience -- --project=390x844 --project=768x1024 --project=1440x900
+      - name: Upload sidewalk readiness E2E evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-sidewalk-readiness-e2e-${{ github.sha }}
+          path: |
+            test-results/evidence
+            test-results/**/error-context.md
+            test-results/**/trace.zip
+          if-no-files-found: warn
+          retention-days: 14
       - if: always()
         run: supabase stop --no-backup || true
       - run: echo COMUN_CHECKPOINT_GREEN >> "$GITHUB_STEP_SUMMARY"

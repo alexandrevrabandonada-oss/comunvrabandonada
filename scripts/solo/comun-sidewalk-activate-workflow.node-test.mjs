@@ -50,6 +50,12 @@ test("sidewalk readiness restores a historical local baseline before applying th
     checkpoint,
     /Apply and reapply the local release[\s\S]*?Restore the current local schema for RLS and E2E[\s\S]*?supabase db reset --local --yes[\s\S]*?Adopt the exact local release ledger for E2E[\s\S]*?--adopt-local-validation-ledger[\s\S]*?npm run audit:rls-matrix/,
   );
+  assert.match(checkpoint, /Upload sidewalk readiness E2E evidence/);
+  assert.match(
+    checkpoint,
+    /comun-sidewalk-readiness-e2e-\$\{\{ github\.sha \}\}/,
+  );
+  assert.match(checkpoint, /test-results\/evidence/);
   assert.doesNotMatch(checkpoint, /supabase db push|migration repair/i);
 });
 
