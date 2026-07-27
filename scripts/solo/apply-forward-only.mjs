@@ -5,17 +5,32 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { buildTransactionalPackage } from "./sql-contract.mjs";
 import { buildDocuments, query } from "../db/verify-canonical-baseline.mjs";
-import { selectReleaseManifest, validateReleaseSql } from "./validate-forward-only-sql.mjs";
-import { buildDocument as buildScopedDocument, fingerprint as fingerprintScoped, query as scopedFingerprintQuery } from "./sidewalk-operational-fingerprint.mjs";
+import {
+  selectReleaseManifest,
+  validateReleaseSql,
+} from "./validate-forward-only-sql.mjs";
+import {
+  buildDocument as buildScopedDocument,
+  fingerprint as fingerprintScoped,
+  query as scopedFingerprintQuery,
+} from "./sidewalk-operational-fingerprint.mjs";
 
 const MAX_CAPTURE_BUFFER = 64 * 1024 * 1024;
 const PROCESS_TIMEOUT_MS = 5 * 60 * 1000;
-const QUERY_FLAGS = ["--no-psqlrc", "--tuples-only", "--no-align", "--quiet", "--set=ON_ERROR_STOP=1"];
+const QUERY_FLAGS = [
+  "--no-psqlrc",
+  "--tuples-only",
+  "--no-align",
+  "--quiet",
+  "--set=ON_ERROR_STOP=1",
+];
 const EXECUTE_FLAGS = ["--no-psqlrc", "--set=ON_ERROR_STOP=1"];
 const LEDGER_ABSENT = "__COMUN_RELEASE_LEDGER_ABSENT__";
 const SECURITY_DIAGNOSTIC_PREFIX = "COMUN_RELEASE_SECURITY_DIAGNOSTIC ";
-const DIAGNOSTIC_FORBIDDEN_KEY = /(?:email|phone|user.?id|object_key|exact_latitude|exact_longitude|file(?:name)?|content|notes?|password|token|dsn)/i;
-const DIAGNOSTIC_FORBIDDEN_VALUE = /(?:postgres(?:ql)?:\/\/|\b(?:password|token|secret|dsn)\b|\b(?:email|phone|user_id|object_key|exact_latitude|exact_longitude)\b|[-+]?\d{1,3}\.\d{4,}\s*,\s*[-+]?\d{1,3}\.\d{4,})/i;
+const DIAGNOSTIC_FORBIDDEN_KEY =
+  /(?:email|phone|user.?id|object_key|exact_latitude|exact_longitude|file(?:name)?|content|notes?|password|token|dsn)/i;
+const DIAGNOSTIC_FORBIDDEN_VALUE =
+  /(?:postgres(?:ql)?:\/\/|\b(?:password|token|secret|dsn)\b|\b(?:email|phone|user_id|object_key|exact_latitude|exact_longitude)\b|[-+]?\d{1,3}\.\d{4,}\s*,\s*[-+]?\d{1,3}\.\d{4,})/i;
 export const schemaFingerprintQuery = String.raw`
 with objects as (
   select 'column' kind, c.table_name || '.' || c.column_name name,
@@ -50,13 +65,19 @@ function fail(marker) {
 }
 
 function stableSort(items) {
-  return [...items].sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+  return [...items].sort((left, right) =>
+    JSON.stringify(left).localeCompare(JSON.stringify(right)),
+  );
 }
 
 function safeDiagnosticObject(value) {
   const object = String(value ?? "");
   if (object === "schema public") return object;
-  if (/^(?:public|storage)\.[a-z_][a-z0-9_-]*(?:\.[a-z_][a-z0-9_-]*)?(?:\([a-z0-9_, ]*\))?$/i.test(object)) {
+  if (
+    /^(?:public|storage)\.[a-z_][a-z0-9_-]*(?:\.[a-z_][a-z0-9_-]*)?(?:\([a-z0-9_, ]*\))?$/i.test(
+      object,
+    )
+  ) {
     return object;
   }
   if (/^(?:public|\*):[a-z]$/i.test(object)) return object;
@@ -65,7 +86,9 @@ function safeDiagnosticObject(value) {
 
 function safeDiagnosticDetail(rule, sourceDetail) {
   if (rule === "DANGEROUS_RELATION_GRANT") {
-    const match = String(sourceDetail ?? "").match(/^(anon|authenticated):(TRUNCATE|TRIGGER|MAINTAIN)$/);
+    const match = String(sourceDetail ?? "").match(
+      /^(anon|authenticated):(TRUNCATE|TRIGGER|MAINTAIN)$/,
+    );
     if (match) return `role=${match[1]}; privilege=${match[2]}`;
   }
   const details = {
@@ -76,17 +99,25 @@ function safeDiagnosticDetail(rule, sourceDetail) {
     DEFINER_EXECUTE: "security definer execute privilege is exposed",
     VIEW_SECURITY_INVOKER: "exposed view is not security invoker",
     PRIVATE_BUCKET: "private or original bucket is public",
-    STORAGE_POLICY_EXPOSURE: "exposed storage policy references a sensitive locator",
+    STORAGE_POLICY_EXPOSURE:
+      "exposed storage policy references a sensitive locator",
     DANGEROUS_DEFAULT_PRIVILEGE: "dangerous default privilege is exposed",
-    SUPABASE_ADMIN_DEFAULT_PRIVILEGES: "managed platform default privileges observed",
+    SUPABASE_ADMIN_DEFAULT_PRIVILEGES:
+      "managed platform default privileges observed",
   };
   return details[rule] ?? "security rule violation";
 }
 
 function sanitizeDiagnosticItem(item) {
   return {
-    classification: String(item?.classification ?? "UNKNOWN_SECURITY_CLASSIFICATION").replace(/[^A-Z0-9_]/gi, "_").toUpperCase(),
-    rule: String(item?.rule ?? "UNKNOWN_SECURITY_RULE").replace(/[^A-Z0-9_]/gi, "_").toUpperCase(),
+    classification: String(
+      item?.classification ?? "UNKNOWN_SECURITY_CLASSIFICATION",
+    )
+      .replace(/[^A-Z0-9_]/gi, "_")
+      .toUpperCase(),
+    rule: String(item?.rule ?? "UNKNOWN_SECURITY_RULE")
+      .replace(/[^A-Z0-9_]/gi, "_")
+      .toUpperCase(),
     object: safeDiagnosticObject(item?.object),
     detail: safeDiagnosticDetail(item?.rule, item?.detail),
   };
@@ -94,8 +125,12 @@ function sanitizeDiagnosticItem(item) {
 
 function securityDiagnosticSnapshot(baseline, ledgerState) {
   const security = baseline?.security ?? {};
-  const blockingFindings = stableSort((security.blockingFindings ?? []).map(sanitizeDiagnosticItem));
-  const platformObservations = stableSort((security.platformObservations ?? []).map(sanitizeDiagnosticItem));
+  const blockingFindings = stableSort(
+    (security.blockingFindings ?? []).map(sanitizeDiagnosticItem),
+  );
+  const platformObservations = stableSort(
+    (security.platformObservations ?? []).map(sanitizeDiagnosticItem),
+  );
   return {
     fingerprint: baseline?.fingerprint ?? "NOT_REACHED",
     blockingFindingsCount: blockingFindings.length,
@@ -106,7 +141,12 @@ function securityDiagnosticSnapshot(baseline, ledgerState) {
   };
 }
 
-export function buildSanitizedSecurityDiagnostic({ before, after, beforeLedgerState, afterLedgerState }) {
+export function buildSanitizedSecurityDiagnostic({
+  before,
+  after,
+  beforeLedgerState,
+  afterLedgerState,
+}) {
   return {
     formatVersion: 1,
     scope: "COMUN_RELEASE_SECURITY_DIAGNOSTIC",
@@ -124,24 +164,45 @@ function assertExactKeys(value, expected) {
 
 function assertDiagnosticItem(item) {
   assertExactKeys(item, ["classification", "rule", "object", "detail"]);
-  if (!/^[A-Z0-9_]+$/.test(item.classification) || !/^[A-Z0-9_]+$/.test(item.rule)) {
+  if (
+    !/^[A-Z0-9_]+$/.test(item.classification) ||
+    !/^[A-Z0-9_]+$/.test(item.rule)
+  ) {
     throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
   }
-  const validGrantDetail = item.rule === "DANGEROUS_RELATION_GRANT"
-    && /^role=(?:anon|authenticated); privilege=(?:TRUNCATE|TRIGGER|MAINTAIN)$/.test(item.detail);
-  const validStaticDetail = item.rule !== "DANGEROUS_RELATION_GRANT"
-    && item.detail === safeDiagnosticDetail(item.rule);
-  if (item.object !== safeDiagnosticObject(item.object) || (!validGrantDetail && !validStaticDetail)) {
+  const validGrantDetail =
+    item.rule === "DANGEROUS_RELATION_GRANT" &&
+    /^role=(?:anon|authenticated); privilege=(?:TRUNCATE|TRIGGER|MAINTAIN)$/.test(
+      item.detail,
+    );
+  const validStaticDetail =
+    item.rule !== "DANGEROUS_RELATION_GRANT" &&
+    item.detail === safeDiagnosticDetail(item.rule);
+  if (
+    item.object !== safeDiagnosticObject(item.object) ||
+    (!validGrantDetail && !validStaticDetail)
+  ) {
     throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
   }
 }
 
 function assertDiagnosticSnapshot(snapshot) {
-  assertExactKeys(snapshot, ["fingerprint", "blockingFindingsCount", "blockingFindings", "platformObservationsCount", "platformObservations", "ledgerState"]);
-  if (!/^(?:[a-f0-9]{64}|NOT_REACHED)$/.test(snapshot.fingerprint)
-    || !["ABSENT", "PRESENT_ACCEPTED", "PRESENT_MISMATCH", "NOT_REACHED"].includes(snapshot.ledgerState)
-    || snapshot.blockingFindingsCount !== snapshot.blockingFindings.length
-    || snapshot.platformObservationsCount !== snapshot.platformObservations.length) {
+  assertExactKeys(snapshot, [
+    "fingerprint",
+    "blockingFindingsCount",
+    "blockingFindings",
+    "platformObservationsCount",
+    "platformObservations",
+    "ledgerState",
+  ]);
+  if (
+    !/^(?:[a-f0-9]{64}|NOT_REACHED)$/.test(snapshot.fingerprint) ||
+    !["ABSENT", "PRESENT_ACCEPTED", "PRESENT_MISMATCH", "NOT_REACHED"].includes(
+      snapshot.ledgerState,
+    ) ||
+    snapshot.blockingFindingsCount !== snapshot.blockingFindings.length ||
+    snapshot.platformObservationsCount !== snapshot.platformObservations.length
+  ) {
     throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
   }
   snapshot.blockingFindings.forEach(assertDiagnosticItem);
@@ -149,20 +210,26 @@ function assertDiagnosticSnapshot(snapshot) {
 }
 
 function assertNoForbiddenDiagnosticData(value) {
-  if (Array.isArray(value)) return value.forEach(assertNoForbiddenDiagnosticData);
+  if (Array.isArray(value))
+    return value.forEach(assertNoForbiddenDiagnosticData);
   if (value && typeof value === "object") {
     for (const [key, nested] of Object.entries(value)) {
-      if (DIAGNOSTIC_FORBIDDEN_KEY.test(key)) throw new Error("SOLO_SECURITY_DIAGNOSTIC_FORBIDDEN_FIELD");
+      if (DIAGNOSTIC_FORBIDDEN_KEY.test(key))
+        throw new Error("SOLO_SECURITY_DIAGNOSTIC_FORBIDDEN_FIELD");
       assertNoForbiddenDiagnosticData(nested);
     }
     return;
   }
-  if (typeof value === "string" && DIAGNOSTIC_FORBIDDEN_VALUE.test(value)) throw new Error("SOLO_SECURITY_DIAGNOSTIC_FORBIDDEN_VALUE");
+  if (typeof value === "string" && DIAGNOSTIC_FORBIDDEN_VALUE.test(value))
+    throw new Error("SOLO_SECURITY_DIAGNOSTIC_FORBIDDEN_VALUE");
 }
 
 export function serializeSanitizedSecurityDiagnostic(diagnostic) {
   assertExactKeys(diagnostic, ["formatVersion", "scope", "before", "after"]);
-  if (diagnostic.formatVersion !== 1 || diagnostic.scope !== "COMUN_RELEASE_SECURITY_DIAGNOSTIC") {
+  if (
+    diagnostic.formatVersion !== 1 ||
+    diagnostic.scope !== "COMUN_RELEASE_SECURITY_DIAGNOSTIC"
+  ) {
     throw new Error("SOLO_SECURITY_DIAGNOSTIC_SHAPE_INVALID");
   }
   assertDiagnosticSnapshot(diagnostic.before);
@@ -172,11 +239,14 @@ export function serializeSanitizedSecurityDiagnostic(diagnostic) {
 }
 
 function securityDiagnosticOutputPath(argv) {
-  const value = argv.find((argument) => argument.startsWith("--security-diagnostic-output="))?.slice(29);
+  const value = argv
+    .find((argument) => argument.startsWith("--security-diagnostic-output="))
+    ?.slice(29);
   if (!value) return null;
   const artifactRoot = `${path.resolve(".ci-artifacts")}${path.sep}`;
   const target = path.resolve(value);
-  if (!target.startsWith(artifactRoot)) fail("SOLO_SECURITY_DIAGNOSTIC_OUTPUT_INVALID");
+  if (!target.startsWith(artifactRoot))
+    fail("SOLO_SECURITY_DIAGNOSTIC_OUTPUT_INVALID");
   return target;
 }
 
@@ -189,26 +259,69 @@ async function emitSecurityDiagnostic(diagnostic, outputPath) {
   }
 }
 
-function dockerNetworkArgs(dockerNetwork) {
-  if (!dockerNetwork) return ["--add-host=host.docker.internal:host-gateway"];
-  if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(dockerNetwork)) {
-    fail("SOLO_PSQL_CLIENT_NETWORK_INVALID");
+export function localPublishedDatabaseUrl(databaseUrl) {
+  try {
+    const parsed = new URL(databaseUrl);
+    return (
+      ["postgres:", "postgresql:"].includes(parsed.protocol) &&
+      ["127.0.0.1", "localhost", "host.docker.internal"].includes(
+        parsed.hostname,
+      ) &&
+      /^\/[Pp]ostgres$/.test(parsed.pathname) &&
+      /^\d{1,5}$/.test(parsed.port) &&
+      Number(parsed.port) > 0 &&
+      Number(parsed.port) <= 65535
+    );
+  } catch {
+    return false;
   }
-  return ["--network", dockerNetwork];
 }
 
-function runPsql(sql, flags, {
-  databaseUrl = process.env.PR23_DATABASE_URL,
-  dockerNetwork = process.env.PR23_DOCKER_NETWORK,
-  spawn = spawnSync,
-  maxBuffer = MAX_CAPTURE_BUFFER,
-} = {}) {
+export function dockerDatabaseUrl(databaseUrl) {
+  if (!localPublishedDatabaseUrl(databaseUrl)) return databaseUrl;
+  const parsed = new URL(databaseUrl);
+  if (["127.0.0.1", "localhost"].includes(parsed.hostname)) {
+    parsed.hostname = "host.docker.internal";
+  }
+  return parsed.toString();
+}
+
+function dockerNetworkArgs(dockerNetwork, requiresHostGateway = false) {
+  const args = [];
+  if (dockerNetwork) {
+    if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(dockerNetwork)) {
+      fail("SOLO_PSQL_CLIENT_NETWORK_INVALID");
+    }
+    args.push("--network", dockerNetwork);
+  }
+  if (requiresHostGateway)
+    args.push("--add-host=host.docker.internal:host-gateway");
+  return args;
+}
+
+export function runPsql(
+  sql,
+  flags,
+  {
+    databaseUrl = process.env.PR23_DATABASE_URL,
+    dockerNetwork = process.env.PR23_DOCKER_NETWORK,
+    spawn = spawnSync,
+    maxBuffer = MAX_CAPTURE_BUFFER,
+  } = {},
+) {
+  const psqlDatabaseUrl = dockerDatabaseUrl(databaseUrl);
+  const requiresHostGateway = psqlDatabaseUrl !== databaseUrl;
   const result = spawn(
     "docker",
     [
-      "run", "--rm", "-i",
-      ...dockerNetworkArgs(dockerNetwork),
-      "postgres:17", "psql", databaseUrl, ...flags,
+      "run",
+      "--rm",
+      "-i",
+      ...dockerNetworkArgs(dockerNetwork, requiresHostGateway),
+      "postgres:17",
+      "psql",
+      psqlDatabaseUrl,
+      ...flags,
     ],
     {
       input: sql,
@@ -217,8 +330,14 @@ function runPsql(sql, flags, {
       timeout: PROCESS_TIMEOUT_MS,
     },
   );
-  if (result?.error?.code === "ENOBUFS") fail("SOLO_PSQL_OUTPUT_BUFFER_EXCEEDED");
-  if (result?.error || result?.status === null || result?.status === undefined || result?.signal) {
+  if (result?.error?.code === "ENOBUFS")
+    fail("SOLO_PSQL_OUTPUT_BUFFER_EXCEEDED");
+  if (
+    result?.error ||
+    result?.status === null ||
+    result?.status === undefined ||
+    result?.signal
+  ) {
     fail("SOLO_PSQL_PROCESS_FAILED");
   }
   return result;
@@ -265,25 +384,44 @@ export function parseScalarOutput(stdout) {
 
 function loadRelease(argv = []) {
   try {
-    const explicit = argv.find((value) => value.startsWith("--release-manifest="))?.slice(19);
-    const selected = selectReleaseManifest(explicit ?? process.env.COMUN_RELEASE_MANIFEST);
+    const explicit = argv
+      .find((value) => value.startsWith("--release-manifest="))
+      ?.slice(19);
+    const selected = selectReleaseManifest(
+      explicit ?? process.env.COMUN_RELEASE_MANIFEST,
+    );
     return validateReleaseSql(selected);
   } catch (error) {
-    const marker = error instanceof Error ? error.message : "SOLO_RELEASE_MANIFEST_NOT_SELECTED";
-    fail(marker.startsWith("SOLO_") ? marker : "SOLO_RELEASE_MANIFEST_NOT_SELECTED");
+    const marker =
+      error instanceof Error
+        ? error.message
+        : "SOLO_RELEASE_MANIFEST_NOT_SELECTED";
+    fail(
+      marker.startsWith("SOLO_")
+        ? marker
+        : "SOLO_RELEASE_MANIFEST_NOT_SELECTED",
+    );
   }
 }
 
 function validateAllowlist() {
   const url = process.env.PR23_DATABASE_URL;
   const ref = process.env.SUPABASE_PROJECT_REF;
-  const allowed = (process.env.PR23_ALLOWED_PROJECT_REFS ?? "").split(",").filter(Boolean);
+  const allowed = (process.env.PR23_ALLOWED_PROJECT_REFS ?? "")
+    .split(",")
+    .filter(Boolean);
   if (ref === "LOCAL_VALIDATION") {
-    const localHostDatabase = /^postgres(?:ql)?:\/\/[^@]+@(?:127\.0\.0\.1|localhost|host\.docker\.internal):55432\/postgres(?:[/?]|$)/.test(url ?? "");
-    const localNetworkDatabase = /^postgres(?:ql)?:\/\/[^@]+@db:5432\/postgres(?:[/?]|$)/.test(url ?? "")
-      && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(process.env.PR23_DOCKER_NETWORK ?? "");
+    const localHostDatabase = localPublishedDatabaseUrl(url);
+    const localNetworkDatabase =
+      /^postgres(?:ql)?:\/\/[^@]+@db:5432\/postgres(?:[/?]|$)/.test(
+        url ?? "",
+      ) &&
+      /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(
+        process.env.PR23_DOCKER_NETWORK ?? "",
+      );
     const localDatabase = localHostDatabase || localNetworkDatabase;
-    if (!localDatabase || !allowed.includes(ref)) fail("SOLO_REMOTE_DATABASE_NOT_ALLOWLISTED");
+    if (!localDatabase || !allowed.includes(ref))
+      fail("SOLO_REMOTE_DATABASE_NOT_ALLOWLISTED");
     return;
   }
   if (!url || !ref || !allowed.includes(ref) || !url.includes(ref)) {
@@ -293,7 +431,9 @@ function validateAllowlist() {
 
 function captureBaseline() {
   const document = buildDocuments(queryJson(query)).compact;
-  const normalized = queryOutput(schemaFingerprintQuery).replace(/\r\n/g, "\n").trimEnd();
+  const normalized = queryOutput(schemaFingerprintQuery)
+    .replace(/\r\n/g, "\n")
+    .trimEnd();
   if (!normalized) fail("SOLO_SCHEMA_FINGERPRINT_EMPTY");
   return {
     ...document,
@@ -305,22 +445,70 @@ function captureBaseline() {
 function captureScopedBaseline() {
   const raw = queryOutput(scopedFingerprintQuery);
   let parsed;
-  try { parsed = JSON.parse(raw); } catch { fail("SOLO_SCOPED_FINGERPRINT_JSON_INVALID"); }
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    fail("SOLO_SCOPED_FINGERPRINT_JSON_INVALID");
+  }
   const document = buildScopedDocument(parsed);
   return { fingerprint: fingerprintScoped(document), document };
 }
 
 function expectedScopedFingerprint(release, key) {
   if (!release.fingerprintScope) return release[key];
-  const scopedKey = key === "expectedPreFingerprint" ? "expectedScopedPreFingerprint" : "expectedScopedPostFingerprint";
+  const scopedKey =
+    key === "expectedPreFingerprint"
+      ? "expectedScopedPreFingerprint"
+      : "expectedScopedPostFingerprint";
   const value = release[scopedKey];
-  if (!/^[a-f0-9]{64}$/.test(value ?? "")) fail("SOLO_SCOPED_FINGERPRINT_EXPECTATION_MISSING");
+  if (!/^[a-f0-9]{64}$/.test(value ?? ""))
+    fail("SOLO_SCOPED_FINGERPRINT_EXPECTATION_MISSING");
   return value;
 }
 
-const expectedPre = (release) => expectedScopedFingerprint(release, "expectedPreFingerprint");
-const expectedPost = (release) => expectedScopedFingerprint(release, "expectedPostFingerprint");
-function ledgerValue(release) { return `${release.migrationSha256}|${expectedPre(release)}|${expectedPost(release)}`; }
+const expectedPre = (release) =>
+  expectedScopedFingerprint(release, "expectedPreFingerprint");
+const expectedPost = (release) =>
+  expectedScopedFingerprint(release, "expectedPostFingerprint");
+
+export function localValidationLedgerAdoptionSql(release) {
+  if (
+    release.release !== "20260724233256-comun-sidewalk-operational-hardening" ||
+    !/^[a-f0-9]{64}$/.test(release.migrationSha256 ?? "") ||
+    !/^[a-f0-9]{64}$/.test(expectedPre(release)) ||
+    !/^[a-f0-9]{64}$/.test(expectedPost(release))
+  ) {
+    fail("SOLO_LOCAL_LEDGER_RELEASE_INVALID");
+  }
+  const quoted = (value) => String(value).replaceAll("'", "''");
+  return `
+begin;
+do $local_ledger$
+declare
+  adopted_count integer;
+begin
+  update public.comun_schema_releases
+  set migration_sha256 = '${quoted(release.migrationSha256)}',
+      pre_fingerprint = '${quoted(expectedPre(release))}',
+      post_fingerprint = '${quoted(expectedPost(release))}'
+  where release = '${quoted(release.release)}'
+    and status = 'applied'
+    and migration_path = '${quoted(release.migration)}'
+    and migration_sha256 = 'LOCAL_VALIDATION'
+    and pre_fingerprint = 'LOCAL_VALIDATION'
+    and post_fingerprint = 'LOCAL_VALIDATION';
+  get diagnostics adopted_count = row_count;
+  if adopted_count <> 1 then
+    raise exception 'COMUN_LOCAL_LEDGER_ADOPTION_REFUSED';
+  end if;
+end
+$local_ledger$;
+commit;`;
+}
+
+function ledgerValue(release) {
+  return `${release.migrationSha256}|${expectedPre(release)}|${expectedPost(release)}`;
+}
 
 function acceptedLedgerValues(release) {
   return new Set([
@@ -342,11 +530,15 @@ function readLedger(release) {
 function summarizeLedgerState(release) {
   const value = readLedger(release);
   if (value === LEDGER_ABSENT) return "ABSENT";
-  return acceptedLedgerValues(release).has(value) ? "PRESENT_ACCEPTED" : "PRESENT_MISMATCH";
+  return acceptedLedgerValues(release).has(value)
+    ? "PRESENT_ACCEPTED"
+    : "PRESENT_MISMATCH";
 }
 
 export function releaseMarker(release, suffix) {
-  if (release.release === "20260724233256-comun-sidewalk-operational-hardening") {
+  if (
+    release.release === "20260724233256-comun-sidewalk-operational-hardening"
+  ) {
     return `COMUN_SIDEWALK_OPERATIONAL_HARDENING_${suffix}`;
   }
   return `COMUN_CANONICAL_SECURITY_HARDENING_${suffix}`;
@@ -371,7 +563,9 @@ export function validatePreflightObjects(baseline, onboardingTriggerCount) {
   const view = baseline.canonical.relations.find(
     (item) => item.schema === "public" && item.name === "comun_public_reports",
   );
-  const functions = new Set(baseline.canonical.functions.map((item) => item.name));
+  const functions = new Set(
+    baseline.canonical.functions.map((item) => item.name),
+  );
   const hasOnboardingFunction = functions.has("handle_new_user");
   const validOnboardingState = hasOnboardingFunction
     ? onboardingTriggerCount === "1"
@@ -381,10 +575,15 @@ export function validatePreflightObjects(baseline, onboardingTriggerCount) {
   }
 }
 
-export function validateCurrentState(before, release, readLedgerFn = readLedger) {
+export function validateCurrentState(
+  before,
+  release,
+  readLedgerFn = readLedger,
+) {
   const ledgerValueForRelease = readLedgerFn(release);
   if (before.fingerprint === expectedPre(release)) {
-    if (ledgerValueForRelease !== LEDGER_ABSENT) fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
+    if (ledgerValueForRelease !== LEDGER_ABSENT)
+      fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
     return "PRE";
   }
   if (before.fingerprint === expectedPost(release)) {
@@ -405,10 +604,19 @@ export function validateBlockingFindings(baseline, expectedBlockingFindings) {
 export async function main(argv = process.argv.slice(2)) {
   validateAllowlist();
   const { release, migration } = loadRelease(argv);
+  if (argv.includes("--adopt-local-validation-ledger")) {
+    if (process.env.SUPABASE_PROJECT_REF !== "LOCAL_VALIDATION")
+      fail("SOLO_LOCAL_LEDGER_LOCAL_ONLY");
+    executeSql(localValidationLedgerAdoptionSql(release));
+    console.log("COMUN_SIDEWALK_OPERATIONAL_LOCAL_LEDGER_READY");
+    return;
+  }
   const diagnosticOutput = securityDiagnosticOutputPath(argv);
   const globalBefore = captureBaseline();
   validatePreflightObjects(globalBefore, readOnboardingTriggerCount());
-  const before = release.fingerprintScope ? captureScopedBaseline() : globalBefore;
+  const before = release.fingerprintScope
+    ? captureScopedBaseline()
+    : globalBefore;
   const state = validateCurrentState(before, release);
   const beforeLedgerState = summarizeLedgerState(release);
 
@@ -422,11 +630,19 @@ export async function main(argv = process.argv.slice(2)) {
       }),
       diagnosticOutput,
     );
-    console.log(`COMUN_CANONICAL_RELEASE_FINGERPRINT ${globalBefore.fingerprint}`);
+    console.log(
+      `COMUN_CANONICAL_RELEASE_FINGERPRINT ${globalBefore.fingerprint}`,
+    );
     console.log(`COMUN_SCOPED_RELEASE_FINGERPRINT ${before.fingerprint}`);
-    console.log(`COMUN_CANONICAL_RELEASE_BLOCKING_FINDINGS ${globalBefore.security.blockingFindings.length}`);
-    console.log(`COMUN_CANONICAL_RELEASE_PLATFORM_OBSERVATIONS ${globalBefore.security.platformObservations.length}`);
-    console.log(`COMUN_CANONICAL_RELEASE_LEDGER_STATE ${state === "PRE" ? "ABSENT" : "PRESENT"}`);
+    console.log(
+      `COMUN_CANONICAL_RELEASE_BLOCKING_FINDINGS ${globalBefore.security.blockingFindings.length}`,
+    );
+    console.log(
+      `COMUN_CANONICAL_RELEASE_PLATFORM_OBSERVATIONS ${globalBefore.security.platformObservations.length}`,
+    );
+    console.log(
+      `COMUN_CANONICAL_RELEASE_LEDGER_STATE ${state === "PRE" ? "ABSENT" : "PRESENT"}`,
+    );
     console.log("COMUN_CANONICAL_RELEASE_REMOTE_READY");
     return;
   }
@@ -456,7 +672,9 @@ select pg_catalog.set_config('comun.release_post_fingerprint', '${expectedPost(r
   executeSql(configuredMigration);
 
   const globalAfter = captureBaseline();
-  const after = release.fingerprintScope ? captureScopedBaseline() : globalAfter;
+  const after = release.fingerprintScope
+    ? captureScopedBaseline()
+    : globalAfter;
   const afterLedgerState = summarizeLedgerState(release);
   const diagnostic = buildSanitizedSecurityDiagnostic({
     before: globalBefore,
@@ -469,24 +687,32 @@ select pg_catalog.set_config('comun.release_post_fingerprint', '${expectedPost(r
     fail("SOLO_CANONICAL_POST_FINGERPRINT_MISMATCH");
   }
   validateBlockingFindings(globalAfter, release.expectedBlockingFindings);
-  if (globalAfter.security.platformObservations.length && !release.platformObservationsAllowed) {
+  if (
+    globalAfter.security.platformObservations.length &&
+    !release.platformObservationsAllowed
+  ) {
     fail("SOLO_CANONICAL_PLATFORM_OBSERVATION_NOT_ALLOWED");
   }
   if (!acceptedLedgerValues(release).has(readLedger(release))) {
     fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
   }
   if (globalAfter.security.platformObservations.length) {
-    console.log(`COMUN_PLATFORM_DEFAULTS_OBSERVED ${globalAfter.security.platformObservations.length}`);
+    console.log(
+      `COMUN_PLATFORM_DEFAULTS_OBSERVED ${globalAfter.security.platformObservations.length}`,
+    );
   }
   console.log(releaseMarker(release, "OK"));
 }
 
-const isDirect = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+const isDirect =
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isDirect) {
   main().catch((error) => {
-    const marker = error instanceof SoloRunnerError
-      ? error.marker
-      : "SOLO_PSQL_PROCESS_FAILED";
+    const marker =
+      error instanceof SoloRunnerError
+        ? error.marker
+        : "SOLO_PSQL_PROCESS_FAILED";
     console.error(marker);
     process.exitCode = 1;
   });

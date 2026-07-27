@@ -20,10 +20,10 @@ export default defineConfig({
     { name: "768x1024", use: { viewport: { width: 768, height: 1024 } } },
     { name: "1024x768", use: { viewport: { width: 1024, height: 768 } } },
     {
-      name: "1366x768",
+      name: "1440x900",
       use: {
         ...devices["Desktop Chrome"],
-        viewport: { width: 1366, height: 768 },
+        viewport: { width: 1440, height: 900 },
       },
     },
   ],
