@@ -150,13 +150,14 @@ test("rollback is application-only and never runs reverse SQL", () => {
   );
 });
 
-test("only the five canonical workflows remain active", () => {
+test("only the six canonical workflows remain active", () => {
   assert.deepEqual(readdirSync(".github/workflows").sort(), [
     "comun-ci.yml",
     "comun-nightly.yml",
     "comun-promote.yml",
     "comun-retro-replay.yml",
     "comun-sidewalk-activate.yml",
+    "comun-sidewalk-remote-diagnostic.yml",
   ]);
   const archived = readdirSync(".github/workflows-disabled/pr23");
   assert.ok(archived.includes("pr23-protected-orchestrator.yml"));

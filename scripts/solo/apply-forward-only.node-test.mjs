@@ -13,6 +13,7 @@ import {
   parseScalarOutput,
   queryJson,
   queryScalar,
+  readOnlyTransactionSql,
   schemaFingerprintQuery,
   serializeSanitizedSecurityDiagnostic,
   validateBlockingFindings,
@@ -237,6 +238,29 @@ test("canonical query flags produce parseable JSON", () => {
   assert.ok(receivedArgs.includes("--no-align"));
   assert.ok(receivedArgs.includes("--quiet"));
   assert.ok(receivedArgs.includes("--no-psqlrc"));
+});
+
+test("read-only preflight queries force a read-only transaction before catalog reads", () => {
+  const sql = readOnlyTransactionSql("select 'ready';");
+  assert.match(sql, /^set default_transaction_read_only = on;/);
+  assert.match(sql, /begin transaction read only;/);
+  assert.match(sql, /select 'ready';/);
+  assert.match(sql, /rollback;$/);
+
+  let input = "";
+  assert.equal(
+    queryScalar("select 'ready';", {
+      readOnly: true,
+      databaseUrl: "postgresql://redacted.invalid/db",
+      spawn: (_command, _args, options) => {
+        input = options.input;
+        return { status: 0, signal: null, stdout: "ready\n", stderr: "" };
+      },
+    }),
+    "ready",
+  );
+  assert.match(input, /set default_transaction_read_only = on;/);
+  assert.match(input, /begin transaction read only;/);
 });
 
 test("published localhost database URLs are translated only for the Docker psql client", () => {

@@ -4,37 +4,84 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: Run a read-only preflight or the explicitly authorized activation.
+        description: Run the separately authorized preflight, migration, or public activation.
         required: true
         type: choice
         default: preflight
-        options: [preflight, activate]
+        options: [preflight, migrate, activate]
       expected_main_sha:
         description: Immutable commit already integrated into main.
         required: true
         type: string
       release_id:
-        description: Release being evaluated.
+        description: Fixed sidewalk release evaluated by this workflow.
         required: true
         default: 20260724233256-comun-sidewalk-operational-hardening
         type: string
+      contract_id:
+        description: Fixed, allowlisted scoped promotion contract.
+        required: true
+        default: sidewalk-operational-safer-pre-v1
+        type: string
       authorization:
-        description: Required only for mode=activate.
+        description: Empty for preflight; exact and mode-specific for migrate or activate.
         required: false
         default: ""
         type: string
 
 concurrency:
-  group: comun-sidewalk-operational-activation
+  group: comun-sidewalk-operational-${{ inputs.mode }}-${{ inputs.expected_main_sha }}
   cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
-  preflight:
+  validate-input:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    outputs:
+      contract_hash: ${{ steps.contract.outputs.contract_hash }}
+      ledger_hash: ${{ steps.contract.outputs.ledger_hash }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 0
+      - name: Require immutable main SHA, release, and fixed contract
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          RELEASE_ID: ${{ inputs.release_id }}
+          CONTRACT_ID: ${{ inputs.contract_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$EXPECTED_MAIN_SHA"
+          test "$RELEASE_ID" = "20260724233256-comun-sidewalk-operational-hardening"
+          test "$CONTRACT_ID" = "sidewalk-operational-safer-pre-v1"
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          git merge-base --is-ancestor "$EXPECTED_MAIN_SHA" refs/remotes/origin/main
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+      - id: contract
+        name: Validate the fixed scoped promotion contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'NODE' >> "$GITHUB_OUTPUT"
+          import { createHash } from "node:crypto";
+          import { selectScopedPromotionContract } from "./scripts/solo/sidewalk-scoped-promotion-contract.mjs";
+          const { contract, contractHash } = selectScopedPromotionContract();
+          const ledgerHash = createHash("sha256")
+            .update(JSON.stringify(contract.expectedLedger))
+            .digest("hex");
+          console.log(`contract_hash=${contractHash}`);
+          console.log(`ledger_hash=${ledgerHash}`);
+          NODE
+
+  preflight:
+    if: inputs.mode == 'preflight' || inputs.mode == 'migrate'
+    needs: validate-input
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -45,32 +92,37 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci --ignore-scripts
-      - name: Require the immutable SHA to belong to main
-        env:
-          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
-          RELEASE_ID: ${{ inputs.release_id }}
-        shell: bash
+      - name: Validate migration and scoped contract without remote writes
         run: |
-          set -euo pipefail
-          test "$RELEASE_ID" = "20260724233256-comun-sidewalk-operational-hardening"
-          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
-          git merge-base --is-ancestor "$EXPECTED_MAIN_SHA" refs/remotes/origin/main
-          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
-      - name: Validate the target release package without remote access
-        run: npm run solo:sql:validate -- --release-manifest=supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
-      - name: Canonical remote read-only preflight
+          npm run solo:sql:validate -- --release-manifest=supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v1.json
+          node --input-type=module -e "import('./scripts/solo/sidewalk-scoped-promotion-contract.mjs').then(({selectScopedPromotionContract}) => selectScopedPromotionContract())"
+      - name: Remote read-only scoped PRE and absent ledger preflight
         env:
-          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v1.json
           PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
           PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        shell: bash
         run: |
-          node scripts/solo/apply-forward-only.mjs --read-only-preflight
+          set -euo pipefail
+          mkdir -p .ci-artifacts/sidewalk-preflight
+          node scripts/solo/apply-forward-only.mjs --read-only-preflight --security-diagnostic-output=.ci-artifacts/sidewalk-preflight/security-diagnostic.json | tee .ci-artifacts/sidewalk-preflight/preflight.txt
+          grep -Fx "COMUN_CANONICAL_RELEASE_LEDGER_STATE ABSENT" .ci-artifacts/sidewalk-preflight/preflight.txt
+          node scripts/solo/assert-sanitized-security-diagnostic.mjs --input=.ci-artifacts/sidewalk-preflight/security-diagnostic.json
           echo COMUN_CALCADAS_REMOTE_READONLY_PREFLIGHT_GREEN >> "$GITHUB_STEP_SUMMARY"
+      - name: Confirm public contribution remains paused by read-only HTTP
+        run: node scripts/solo/assert-sidewalk-public-paused.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-sidewalk-scoped-preflight-${{ inputs.expected_main_sha }}-${{ github.run_id }}
+          path: .ci-artifacts/sidewalk-preflight
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
 
-  activate:
-    if: inputs.mode == 'activate'
-    needs: preflight
+  migrate:
+    if: inputs.mode == 'migrate'
+    needs: [validate-input, preflight]
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -83,27 +135,77 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci --ignore-scripts
-      - name: Require the exact human authorization before any write
+      - name: Require exact migration authorization after this SHA's preflight
         env:
           AUTHORIZATION: ${{ inputs.authorization }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
-          RELEASE_ID: ${{ inputs.release_id }}
+          CONTRACT_HASH: ${{ needs.validate-input.outputs.contract_hash }}
         shell: bash
         run: |
           set -euo pipefail
-          test "$AUTHORIZATION" = "AUTORIZO_CALCADAS_20260724233256"
-          test "$RELEASE_ID" = "20260724233256-comun-sidewalk-operational-hardening"
-          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
-          git merge-base --is-ancestor "$EXPECTED_MAIN_SHA" refs/remotes/origin/main
-          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
-      - name: Apply only the validated target migration in its forward-only transaction
+          test "$AUTHORIZATION" = "AUTORIZO_MIGRATION_CALCADAS_${PROJECT_REF}_${EXPECTED_MAIN_SHA}_${CONTRACT_HASH}_MANTER_FLAG_DESABILITADA"
+      - name: Apply only the scoped, validated migration
         env:
-          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v1.json
           PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
           PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: node scripts/solo/apply-forward-only.mjs
-      - name: Enable the operational gate after the exact ledger is green
+      - name: Verify scoped POST and exact ledger without further writes
+        env:
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v1.json
+          PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: node scripts/solo/apply-forward-only.mjs --read-only-postflight
+      - name: Confirm public contribution remains paused
+        run: node scripts/solo/assert-sidewalk-public-paused.mjs
+
+  postflight:
+    if: inputs.mode == 'activate'
+    needs: validate-input
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Verify existing scoped POST and exact ledger read-only
+        env:
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v1.json
+          PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: node scripts/solo/apply-forward-only.mjs --read-only-postflight
+
+  activate:
+    if: inputs.mode == 'activate'
+    needs: [validate-input, postflight]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 0
+      - name: Require exact activation authorization after read-only POST verification
+        env:
+          AUTHORIZATION: ${{ inputs.authorization }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          LEDGER_HASH: ${{ needs.validate-input.outputs.ledger_hash }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$AUTHORIZATION" = "AUTORIZO_ATIVAR_CALCADAS_${PROJECT_REF}_${EXPECTED_MAIN_SHA}_${LEDGER_HASH}"
+      - name: Enable operational gate only after migration and ledger are already green
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
@@ -113,7 +215,7 @@ jobs:
           set -euo pipefail
           printf '%s' enabled | npx --yes vercel@50.28.0 env add COMUN_SIDEWALK_OPERATIONAL_V2 production --force --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
           npx --yes vercel@50.28.0 --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
-      - name: Smoke and fail closed if it fails
+      - name: Smoke and disable the operational gate if activation fails
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}

@@ -8,24 +8,75 @@ const workflowPath = path.resolve(
 );
 const ciWorkflowPath = path.resolve(".github/workflows/comun-ci.yml");
 
-test("sidewalk activation workflow keeps a read-only preflight and an exact activation interlock", async () => {
-  const workflow = await readFile(workflowPath, "utf8");
-
-  assert.match(workflow, /options: \[preflight, activate\]/);
-  assert.match(
-    workflow,
-    /node scripts\/solo\/apply-forward-only\.mjs --read-only-preflight/,
+function job(workflow, name, next) {
+  return (
+    workflow.match(new RegExp(`  ${name}:[\\s\\S]*?\\n  ${next}:`, "m"))?.[0] ??
+    ""
   );
-  assert.match(workflow, /COMUN_CALCADAS_REMOTE_READONLY_PREFLIGHT_GREEN/);
-  assert.match(workflow, /if: inputs\.mode == 'activate'/);
-  assert.match(workflow, /AUTORIZO_CALCADAS_20260724233256/);
+}
+
+test("sidewalk workflow separates read-only preflight, migration, and activation", async () => {
+  const workflow = await readFile(workflowPath, "utf8");
+  const preflight = job(workflow, "preflight", "migrate");
+  const migrate = job(workflow, "migrate", "postflight");
+  const postflight = job(workflow, "postflight", "activate");
+  const activate = workflow.match(/  activate:[\s\S]*$/)?.[0] ?? "";
+
+  assert.match(workflow, /options: \[preflight, migrate, activate\]/);
+  assert.match(workflow, /contract_id:/);
+  assert.match(workflow, /sidewalk-operational-safer-pre-v1/);
   assert.match(
     workflow,
     /git merge-base --is-ancestor "\$EXPECTED_MAIN_SHA" refs\/remotes\/origin\/main/,
   );
-  assert.match(workflow, /node scripts\/solo\/apply-forward-only\.mjs\n/);
-  assert.match(workflow, /COMUN_SIDEWALK_OPERATIONAL_V2 production --force/);
-  assert.match(workflow, /printf '%s' disabled/);
+  assert.match(
+    preflight,
+    /node scripts\/solo\/apply-forward-only\.mjs --read-only-preflight/,
+  );
+  assert.match(preflight, /COMUN_CANONICAL_RELEASE_LEDGER_STATE ABSENT/);
+  assert.match(preflight, /COMUN_CALCADAS_REMOTE_READONLY_PREFLIGHT_GREEN/);
+  assert.match(preflight, /assert-sanitized-security-diagnostic/);
+  assert.doesNotMatch(
+    preflight,
+    /VERCEL_TOKEN|vercel@|apply-forward-only\.mjs\n/,
+  );
+
+  assert.match(migrate, /needs: \[validate-input, preflight\]/);
+  assert.match(migrate, /AUTORIZO_MIGRATION_CALCADAS_/);
+  assert.match(migrate, /MANTER_FLAG_DESABILITADA/);
+  assert.match(migrate, /node scripts\/solo\/apply-forward-only\.mjs\n/);
+  assert.match(migrate, /--read-only-postflight/);
+  assert.doesNotMatch(
+    migrate,
+    /VERCEL_TOKEN|vercel@|COMUN_SIDEWALK_OPERATIONAL_V2 production/,
+  );
+
+  assert.match(postflight, /--read-only-postflight/);
+  assert.doesNotMatch(postflight, /apply-forward-only\.mjs\n/);
+  assert.match(activate, /AUTORIZO_ATIVAR_CALCADAS_/);
+  assert.match(activate, /COMUN_SIDEWALK_OPERATIONAL_V2 production --force/);
+  assert.doesNotMatch(
+    activate,
+    /node scripts\/solo\/apply-forward-only\.mjs\n/,
+  );
+  assert.notEqual(
+    workflow.indexOf("AUTORIZO_MIGRATION_CALCADAS_"),
+    workflow.indexOf("AUTORIZO_ATIVAR_CALCADAS_"),
+  );
+});
+
+test("workflow accepts no SQL or path input and uses only the fixed scoped contract", async () => {
+  const workflow = await readFile(workflowPath, "utf8");
+  assert.doesNotMatch(
+    workflow,
+    /sql_input|migration_path|release_manifest_path/i,
+  );
+  assert.match(
+    workflow,
+    /20260724233256-comun-sidewalk-operational-hardening-safer-pre-v1\.json/,
+  );
+  assert.doesNotMatch(workflow, /COMUN_RELEASE_MANIFEST:\s*\$\{\{ inputs/i);
+  assert.match(workflow, /expected_main_sha:/);
 });
 
 test("sidewalk readiness restores a historical local baseline before applying the canonical release", async () => {
