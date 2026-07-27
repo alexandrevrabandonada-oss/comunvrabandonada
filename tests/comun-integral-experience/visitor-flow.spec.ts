@@ -104,7 +104,8 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await page.goto("/comun/calcadas");
   await page.getByRole("link", { name: "Registrar calçada" }).click();
   await expect(page).toHaveURL(/\/comun\/mapa\/contribuir\?origem=calcadas/);
-  const contributionPath = new URL(page.url()).pathname + new URL(page.url()).search;
+  const contributionPath =
+    new URL(page.url()).pathname + new URL(page.url()).search;
   await page.goto(
     `/comun/criar-conta?returnTo=${encodeURIComponent(contributionPath)}`,
   );
@@ -181,7 +182,9 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await auditSurface(page, "moderacao-registro", testInfo.project.name);
   await card
     .getByLabel("Resumo público sanitizado")
-    .fill("Trecho com piso irregular, localizado aproximadamente e revisado pela equipe.");
+    .fill(
+      "Trecho com piso irregular, localizado aproximadamente e revisado pela equipe.",
+    );
   await card
     .getByRole("button", { name: "Aprovar com local aproximado" })
     .click();
@@ -316,9 +319,14 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     .locator("article")
     .filter({ hasText: "Rota acessível entre o ponto de ônibus" })
     .first();
-  await priorityCard
-    .getByRole("button", { name: "Preparar encaminhamento" })
-    .click();
+  await Promise.all([
+    page.waitForURL(/\/comun\/admin\/calcadas\/encaminhamentos\//, {
+      timeout: 15_000,
+    }),
+    priorityCard
+      .getByRole("button", { name: "Preparar encaminhamento" })
+      .click(),
+  ]);
   await expect(
     page.getByRole("heading", { name: "Preparar encaminhamento" }),
   ).toBeVisible();
@@ -485,9 +493,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await noCritical(page);
   await login(page, email, "/comun/minha-participacao");
   await expect(
-    page.getByText(
-      /Acompanhar se a melhoria permanece/,
-    ),
+    page.getByText(/Acompanhar se a melhoria permanece/),
   ).toBeVisible();
   await auditSurface(page, "minha-area-fechada", testInfo.project.name);
   await page.goto("/comun/caixa-de-entrada");
