@@ -189,15 +189,26 @@ export function compareScopedObjects(remote, localPre = [], localPost = []) {
   return [...keys].sort().map((key) => {
     const [type, ...rest] = key.split(":");
     const name = rest.join(":");
+    const hasObserved = observed.has(key);
+    const hasPre = pre.has(key);
+    const hasPost = post.has(key);
     const observedHash = observed.get(key) ?? null;
     const preHash = pre.get(key) ?? null;
     const postHash = post.get(key) ?? null;
     let state = "unexpected";
-    if (observedHash === null) state = "missing";
-    else if (observedHash === preHash && observedHash === postHash)
+    if (!hasObserved && !hasPre && hasPost) state = "pre";
+    else if (!hasObserved && hasPre && !hasPost) state = "post";
+    else if (!hasObserved) state = "missing";
+    else if (!hasPre && !hasPost) state = "unexpected";
+    else if (
+      hasPre &&
+      hasPost &&
+      observedHash === preHash &&
+      observedHash === postHash
+    )
       state = "equal";
-    else if (observedHash === preHash) state = "pre";
-    else if (observedHash === postHash) state = "post";
+    else if (hasPre && observedHash === preHash) state = "pre";
+    else if (hasPost && observedHash === postHash) state = "post";
     else state = "changed";
     return {
       type,
@@ -233,10 +244,11 @@ export function classifyRemoteDrift(evidence) {
   const objectStates = new Set(
     (evidence.objects ?? []).map((item) => item.state),
   );
-  const hasPartial =
-    (objectStates.has("pre") && objectStates.has("post")) ||
-    ((objectStates.has("pre") || objectStates.has("post")) &&
-      (objectStates.has("missing") || objectStates.has("unexpected")));
+  const hasPartial = objectStates.has("pre") && objectStates.has("post");
+  const hasRealPreDrift =
+    objectStates.has("changed") ||
+    objectStates.has("unexpected") ||
+    objectStates.has("missing");
   const scopedPre = evidence.scopedObserved === evidence.scopedPre;
   const scopedPost = evidence.scopedObserved === evidence.scopedPost;
   const globalPre = evidence.globalObserved === evidence.globalPre;
@@ -255,6 +267,15 @@ export function classifyRemoteDrift(evidence) {
     (evidence.ledger === "ABSENT" || evidence.ledger === "PRESENT_MISMATCH")
   ) {
     return "PARTIAL_RELEASE_STATE";
+  }
+  if (
+    evidence.ledger === "ABSENT" &&
+    !objectStates.has("post") &&
+    !scopedPre &&
+    !scopedPost &&
+    hasRealPreDrift
+  ) {
+    return "SIDEWALK_SCOPE_PRE_DRIFT";
   }
   if (!scopedPre && !scopedPost && evidence.ledger === "ABSENT") {
     return "SIDEWALK_SCOPE_PRE_DRIFT";
