@@ -91,15 +91,34 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$VERCEL_TOKEN"
-          test -n "$VERCEL_ORG_ID"
-          test -n "$VERCEL_PROJECT_ID"
-          test "$VERCEL_ORG_ID" = "team_LBVwyK8FQMO7tA3hzVXXeumF"
-          test "$VERCEL_PROJECT_ID" = "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X"
+          token_present=false
+          team_present=false
+          project_present=false
+          [[ -n "$VERCEL_TOKEN" ]] && token_present=true
+          [[ -n "$VERCEL_ORG_ID" ]] && team_present=true
+          [[ -n "$VERCEL_PROJECT_ID" ]] && project_present=true
+          if [[ -z "$VERCEL_TOKEN" || -z "$VERCEL_ORG_ID" || -z "$VERCEL_PROJECT_ID" ]]; then
+            echo "COMUN_VERCEL_PREFLIGHT token_present=$token_present team_present=$team_present project_present=$project_present" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo COMUN_TIJOLO_45_3G_VERCEL_CONFIGURATION_MISMATCH | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          team_match=false
+          project_match=false
+          [[ "$VERCEL_ORG_ID" = "team_LBVwyK8FQMO7tA3hzVXXeumF" ]] && team_match=true
+          [[ "$VERCEL_PROJECT_ID" = "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X" ]] && project_match=true
+          if [[ "$VERCEL_ORG_ID" != "team_LBVwyK8FQMO7tA3hzVXXeumF" || "$VERCEL_PROJECT_ID" != "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X" ]]; then
+            echo "COMUN_VERCEL_PREFLIGHT team_match=$team_match project_match=$project_match" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo COMUN_TIJOLO_45_3G_VERCEL_CONFIGURATION_MISMATCH | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
           project_json="$(mktemp)"
           trap 'rm -f "$project_json"' EXIT
           status="$(curl --silent --show-error --output "$project_json" --write-out '%{http_code}' --header "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}?teamId=${VERCEL_ORG_ID}")"
-          test "$status" = "200"
+          if [[ "$status" != "200" ]]; then
+            echo "COMUN_VERCEL_PREFLIGHT http_status=$status project_id_match=not_checked account_match=not_checked project_name_match=not_checked" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo COMUN_TIJOLO_45_3G_VERCEL_ACCESS_STILL_BLOCKED | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
           node --input-type=module -- "$project_json" <<'NODE'
           import { readFile } from "node:fs/promises";
 

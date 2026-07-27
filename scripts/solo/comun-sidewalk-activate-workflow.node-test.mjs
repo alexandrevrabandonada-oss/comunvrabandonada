@@ -74,7 +74,10 @@ test("Vercel credential preflight is fixed, read-only, and cannot activate", asy
 
   assert.match(vercelPreflight, /if: inputs\.mode == 'vercel-preflight'/);
   assert.match(vercelPreflight, /needs: validate-input/);
-  assert.match(vercelPreflight, /test -n "\$VERCEL_TOKEN"/);
+  assert.match(
+    vercelPreflight,
+    /\[\[ -n "\$VERCEL_TOKEN" \]\] && token_present=true/,
+  );
   assert.match(vercelPreflight, /team_LBVwyK8FQMO7tA3hzVXXeumF/);
   assert.match(vercelPreflight, /prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X/);
   assert.match(
@@ -82,6 +85,14 @@ test("Vercel credential preflight is fixed, read-only, and cannot activate", asy
     /https:\/\/api\.vercel\.com\/v9\/projects\/\$\{VERCEL_PROJECT_ID\}\?teamId=\$\{VERCEL_ORG_ID\}/,
   );
   assert.match(vercelPreflight, /COMUN_VERCEL_PROTECTED_ACCESS_READ_GREEN/);
+  assert.match(
+    vercelPreflight,
+    /COMUN_TIJOLO_45_3G_VERCEL_CONFIGURATION_MISMATCH/,
+  );
+  assert.match(
+    vercelPreflight,
+    /COMUN_TIJOLO_45_3G_VERCEL_ACCESS_STILL_BLOCKED/,
+  );
   assert.doesNotMatch(
     vercelPreflight,
     /vercel@|env add|--prod|COMUN_SIDEWALK_OPERATIONAL_V2|apply-forward-only\.mjs/,
