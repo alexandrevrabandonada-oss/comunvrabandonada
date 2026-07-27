@@ -1,23 +1,68 @@
 {
-  "formatVersion": 1,
+  "formatVersion": 2,
   "checkpoint": "TIJOLO_45_3E",
-  "decisionTarget": "COMUN_TIJOLO_45_3E_SCOPED_PROMOTION_CONTRACT_READY",
-  "mainSha": "REQUIRES_IMMUTABLE_MAIN_SHA_AFTER_MERGE",
-  "projectRef": "REQUIRES_ALLOWLISTED_PROJECT_REF_AFTER_READ_ONLY_PREFLIGHT",
-  "contractId": "sidewalk-operational-safer-pre-v1",
-  "contractSha256": "1ae7b7c8bc000acc5369276809f2f4d58ca919d925399d9750e840c9e3aecc74",
-  "migration": "supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql",
-  "migrationSha256": "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be",
-  "canonicalManifest": "supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json",
-  "canonicalManifestSha256": "ceb7002f9a7069cbe82c4e6b16032bef1cd3619f12271a260dbca37fb5bc1335",
-  "scopedPreFingerprint": "441f96efad5bb7fa0d47a0ae59734c24eccddca62f5388a4d8cff9c6250ff41d",
-  "scopedPostFingerprint": "4ed4d61242adc4035a6c8c94c8bb72e93b310e6fa22d56929c4e4431b75a8d9d",
-  "grantRisk": "safer_than_pre",
-  "expectedLedger": "ABSENT_BEFORE_MIGRATE_AND_EXACT_APPLIED_AFTER_MIGRATE",
+  "decision": "COMUN_TIJOLO_45_3E_SCOPED_PROMOTION_CONTRACT_READY",
+  "mainSha": "b0beb869dfe055ff506bf5ba54c7c52c73d2d3fb",
+  "projectRef": "masked-by-read-only-diagnostic",
+  "preflight": {
+    "run": 30279794600,
+    "artifact": "comun-sidewalk-scoped-preflight-b0beb869dfe055ff506bf5ba54c7c52c73d2d3fb-30279794600",
+    "readOnly": true,
+    "ledger": "ABSENT",
+    "blockingFindings": 0,
+    "publicContribution": "paused",
+    "remoteWrites": "none"
+  },
+  "contract": {
+    "id": "sidewalk-operational-safer-pre-v2",
+    "sha256": "d916a99153c8e29a10833c4ff7c0efc5b765bdab54e08ee671ad9a1ee3e58858",
+    "fingerprintScope": "sidewalk-operational-v2",
+    "fingerprintAlgorithm": "sha256-json-stable-v2-ledger-excluded",
+    "scopedPreFingerprint": "501f75609e3ed0d1edea63f26076d3b05ab9767f71ef12794ac22d1929b7e875",
+    "scopedPostFingerprint": "4bebf4c1db4da58fd9710c7f9478bb2837b171aa4620de2d376e19d5a99b66d8"
+  },
+  "migration": {
+    "path": "supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql",
+    "sha256": "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be",
+    "canonicalManifest": "supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json",
+    "canonicalManifestSha256": "ceb7002f9a7069cbe82c4e6b16032bef1cd3619f12271a260dbca37fb5bc1335",
+    "remoteStatus": "not_applied"
+  },
+  "grantMatrix": {
+    "fixtureTables": 12,
+    "fixturePublicRevocations": 72,
+    "anon": [],
+    "authenticated": [],
+    "postgres": [
+      "DELETE",
+      "INSERT",
+      "REFERENCES",
+      "SELECT",
+      "TRIGGER",
+      "TRUNCATE",
+      "UPDATE"
+    ],
+    "service_role": [
+      "DELETE",
+      "INSERT",
+      "REFERENCES",
+      "SELECT",
+      "TRIGGER",
+      "TRUNCATE",
+      "UPDATE"
+    ]
+  },
+  "expectedLedger": "exact_applied_with_structural_v2_pre_and_post",
   "flag": "disabled",
-  "remoteWrites": "none",
   "activation": "separate_human_authorization_required",
-  "authorizationTemplate": "AUTORIZO_MIGRATION_CALCADAS_<PROJECT_REF>_<MAIN_SHA>_1ae7b7c8bc000acc5369276809f2f4d58ca919d925399d9750e840c9e3aecc74_MANTER_FLAG_DESABILITADA",
+  "estimatedDuration": "short_transaction; remote duration not measured",
+  "expectedLocks": [
+    "transactional ALTER TABLE",
+    "CREATE INDEX",
+    "table grants"
+  ],
   "stopProcedure": "abort_on_any_preflight_or_postflight_mismatch_without_activate",
-  "partialApplicationProcedure": "read_only_diagnosis_and_human_decision_before_any_retry"
+  "partialApplicationProcedure": "read_only_diagnosis_and_human_decision_before_any_retry",
+  "authorizationTemplate": "AUTORIZO_MIGRATION_CALCADAS_<PROJECT_REF_ALLOWLISTED>_b0beb869dfe055ff506bf5ba54c7c52c73d2d3fb_d916a99153c8e29a10833c4ff7c0efc5b765bdab54e08ee671ad9a1ee3e58858_MANTER_FLAG_DESABILITADA",
+  "isAuthorization": false
 }

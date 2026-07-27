@@ -1,66 +1,67 @@
-# Tijolo 45.3E — contrato escopado seguro das Calçadas
+# Tijolo 45.3E — contrato escopado estrutural das Calçadas
 
-## Estado
+## Decisão
 
-- Contrato: `sidewalk-operational-safer-pre-v1`
-- Hash do contrato: `1ae7b7c8bc000acc5369276809f2f4d58ca919d925399d9750e840c9e3aecc74`
-- Migration canônica: `supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql`
-- SHA-256 da migration: `6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be`
-- Manifesto canônico preservado: `supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json`
-- SHA-256 do manifesto canônico: `ceb7002f9a7069cbe82c4e6b16032bef1cd3619f12271a260dbca37fb5bc1335`
-- Referência diagnóstica: run `30237943854`
-- Risco de grants: `safer_than_pre`
+`COMUN_TIJOLO_45_3E_SCOPED_PROMOTION_CONTRACT_READY`
 
-## Contrato escopado
+O contrato v1 foi substituído por `sidewalk-operational-safer-pre-v2` porque o
+ledger da própria release tornava o fingerprint v1 autorreferente. O escopo v2
+preserva todos os objetos estruturais das Calçadas e exclui apenas a linha do
+ledger da release; o ledger é validado separadamente.
 
-O PRE aceito é exato: `public.comun_admin_audit_log` não possui grants para
-`anon` nem `authenticated`; `postgres` e `service_role` mantêm a matriz
-esperada. Qualquer grant público, perda do CRUD de `service_role`, drift em
-outro objeto escopado ou ledger incompatível é bloqueante.
+## Evidência read-only
 
-| Evidência             | Fingerprint                                                        |
-| --------------------- | ------------------------------------------------------------------ |
-| Scoped PRE compatível | `441f96efad5bb7fa0d47a0ae59734c24eccddca62f5388a4d8cff9c6250ff41d` |
-| Scoped POST esperado  | `4ed4d61242adc4035a6c8c94c8bb72e93b310e6fa22d56929c4e4431b75a8d9d` |
-| PRE global canônico   | `a6599aa24658c4339c7518d484364699d07ca4fa9cb1db68bb6fed4c20b94a10` |
-| POST global canônico  | `614908b735616fc64d4d36bc05e050ee53a0fb2b1f4e099febe1f327923350c4` |
+- main diagnosticada: `b0beb869dfe055ff506bf5ba54c7c52c73d2d3fb`;
+- run de diagnóstico estrutural: `30278733804`;
+- run de preflight remoto: `30279794600`;
+- artifact: `comun-sidewalk-scoped-preflight-b0beb869dfe055ff506bf5ba54c7c52c73d2d3fb-30279794600`;
+- scanner independente: verde, sem termos proibidos;
+- ledger remoto: `ABSENT`;
+- findings bloqueantes: `0`;
+- contribuição pública: pausada;
+- escritas remotas: `none`.
+
+O PRE estrutural local e o remoto coincidiram exatamente. A divergência global
+permanece fora do escopo da release e não é aceita como evidência de POST.
+
+| Evidência                     | SHA-256                                                            |
+| ----------------------------- | ------------------------------------------------------------------ |
+| Contrato v2                   | `d916a99153c8e29a10833c4ff7c0efc5b765bdab54e08ee671ad9a1ee3e58858` |
+| Scoped PRE estrutural         | `501f75609e3ed0d1edea63f26076d3b05ab9767f71ef12794ac22d1929b7e875` |
+| Scoped POST esperado          | `4bebf4c1db4da58fd9710c7f9478bb2837b171aa4620de2d376e19d5a99b66d8` |
+| Migration canônica            | `6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be` |
+| Manifesto canônico preservado | `ceb7002f9a7069cbe82c4e6b16032bef1cd3619f12271a260dbca37fb5bc1335` |
+
+## PRE exato aceito
+
+A fixture local reproduz exatamente 72 ausências de grants públicos: as
+combinações de `REFERENCES`, `TRIGGER` e `TRUNCATE` para `anon` e
+`authenticated` nas 12 relações legadas do escopo. Não aceita um PRE canônico
+mais permissivo, qualquer grant público adicional, perda do CRUD de
+`service_role`, ledger presente incompatível ou drift em outro objeto escopado.
 
 ## Separação de responsabilidades
 
-1. `preflight`: somente leitura, exige o PRE escopado, ledger ausente e a
-   contribuição pública pausada.
-2. `migrate`: requer autorização exclusiva, aplica somente a migration,
-   confirma POST e ledger e mantém a flag desligada.
-3. `activate`: não executa migration; exige POST e ledger já válidos e uma
-   autorização diferente antes de habilitar a flag e fazer smoke.
+1. `preflight`: leitura somente; exige PRE estrutural, ledger ausente, alvo
+   allowlisted e contribuição pública pausada.
+2. `migrate`: requer autorização exclusiva; aplica apenas a migration, confirma
+   o POST estrutural e o ledger exato, mantendo a flag desabilitada.
+3. `activate`: não aplica migration; exige POST e ledger já válidos, além de
+   autorização distinta antes de habilitar a flag e fazer smoke.
 
-## Impacto e interrupção
+## Impacto, interrupção e recuperação
 
-A migration segue sendo transacional e não destrutiva pelo contrato. A janela
-esperada é curta, limitada ao lock das alterações de tabela, índice e grants
-da release. Se a aplicação falhar, a transação falha sem ativar a flag. Se o
-estado ficar parcial, não se repete a migration: um novo diagnóstico
-read-only e uma decisão humana são obrigatórios.
-
-## Verificações futuras após migrate
-
-- fingerprint scoped POST exato;
-- ledger exato com PRE/POST escopados;
-- zero findings bloqueantes;
-- matriz de grants sem grants públicos;
-- contribuição pública ainda pausada;
-- ativação pública em checkpoint separado.
+A migration permanece transacional e não destrutiva pelo contrato. A previsão
+operacional é de uma execução curta, com locks de DDL/grants limitados aos
+objetos da release; a duração não foi medida no remoto. Interromper em qualquer
+mismatch antes de `migrate`. Se houver estado parcial, não repetir: executar
+novo diagnóstico read-only e aguardar decisão humana.
 
 ## Autorização futura — modelo, não autorização
 
-`AUTORIZO_MIGRATION_CALCADAS_<PROJECT_REF>_<MAIN_SHA>_1ae7b7c8bc000acc5369276809f2f4d58ca919d925399d9750e840c9e3aecc74_MANTER_FLAG_DESABILITADA`
+`AUTORIZO_MIGRATION_CALCADAS_<PROJECT_REF_ALLOWLISTED>_b0beb869dfe055ff506bf5ba54c7c52c73d2d3fb_d916a99153c8e29a10833c4ff7c0efc5b765bdab54e08ee671ad9a1ee3e58858_MANTER_FLAG_DESABILITADA`
 
-O `project ref` e o SHA de main serão preenchidos somente depois do
-preflight read-only da main integrada. A presença deste texto não autoriza o
-modo `migrate`.
-
-Ativação pública continua sendo outro checkpoint e outra autorização:
-
-`AUTORIZO_ATIVAR_CALCADAS_<PROJECT_REF>_<MAIN_SHA>_<LEDGER_HASH>`
-
-Nenhuma escrita remota foi realizada para gerar este pacote.
+O `project ref` não é registrado neste relatório. A frase acima não autoriza
+`migrate`; ela somente descreve a autorização humana exata exigida pelo
+workflow. A ativação pública continua sendo outro checkpoint, com outra
+autorização e a flag permanece desabilitada.
