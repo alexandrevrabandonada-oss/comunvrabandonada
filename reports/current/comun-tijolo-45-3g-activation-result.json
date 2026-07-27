@@ -1,0 +1,51 @@
+{
+  "formatVersion": 1,
+  "checkpoint": "tijolo-45-3g-operational-activation",
+  "decision": "COMUN_TIJOLO_45_3G_ACTIVATION_BLOCKED_VERCEL_ACCESS",
+  "authorization": {
+    "recognized": true,
+    "exact": true,
+    "projectRef": "allowlisted-masked"
+  },
+  "execution": {
+    "workflowRunId": 30283137271,
+    "workflowRunUrl": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30283137271",
+    "executorSha": "b0beb869dfe055ff506bf5ba54c7c52c73d2d3fb",
+    "postflight": "success-read-only",
+    "activation": "blocked-before-flag-change",
+    "retryExecuted": false
+  },
+  "contract": {
+    "id": "sidewalk-operational-safer-pre-v2",
+    "sha256": "d916a99153c8e29a10833c4ff7c0efc5b765bdab54e08ee671ad9a1ee3e58858",
+    "ledgerSha256": "e36b508762b19da01afa91ff810c18c8d5d3a000c20618793eafc25c7a012793",
+    "scopedPostFingerprint": "4bebf4c1db4da58fd9710c7f9478bb2837b171aa4620de2d376e19d5a99b66d8"
+  },
+  "postflight": {
+    "ledger": "PRESENT_ACCEPTED",
+    "blockingFindings": 0,
+    "readOnly": true
+  },
+  "operationalState": {
+    "flagBefore": "disabled",
+    "flagAfter": "disabled-confirmed-by-public-pause",
+    "publicContribution": "paused",
+    "mapPublicHttpStatus": 200,
+    "productionDeployment": "not-started",
+    "activationSmoke": "not-started",
+    "rollback": "not-required-before-mutation"
+  },
+  "failure": {
+    "stage": "vercel-account-access",
+    "sanitizedCause": "protected Vercel credential could not access the configured account",
+    "requiresHumanDecision": true
+  },
+  "remoteWrites": {
+    "database": "none",
+    "ledger": "none",
+    "storage": "none",
+    "vercelFlag": "none-observed",
+    "deployment": "none"
+  },
+  "nextHumanGate": "repair protected Vercel account access and issue a new exact activation authorization"
+}
