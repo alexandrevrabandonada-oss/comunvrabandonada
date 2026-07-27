@@ -545,6 +545,11 @@ jobs:
         run: |
           node scripts/comun-local-env.mjs run node scripts/solo/apply-forward-only.mjs
           node scripts/comun-local-env.mjs run node scripts/solo/apply-forward-only.mjs | grep COMUN_SIDEWALK_OPERATIONAL_HARDENING_ALREADY_APPLIED
+      - name: Restore the current local schema for RLS and E2E
+        run: |
+          supabase stop --no-backup
+          supabase start
+          supabase db reset --local --yes
       - run: npm run audit:rls-matrix
       - run: npx playwright install --with-deps chromium
       - name: Run the local E2E visual matrix

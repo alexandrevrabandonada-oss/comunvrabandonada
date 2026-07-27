@@ -46,6 +46,10 @@ test("sidewalk readiness restores a historical local baseline before applying th
     checkpoint,
     /node scripts\/comun-local-env\.mjs run node scripts\/solo\/apply-forward-only\.mjs/,
   );
+  assert.match(
+    checkpoint,
+    /Apply and reapply the local release[\s\S]*?Restore the current local schema for RLS and E2E[\s\S]*?supabase db reset --local --yes[\s\S]*?npm run audit:rls-matrix/,
+  );
   assert.doesNotMatch(checkpoint, /supabase db push|migration repair/i);
 });
 
