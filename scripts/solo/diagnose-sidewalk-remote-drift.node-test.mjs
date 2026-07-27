@@ -16,6 +16,7 @@ import {
   runReadOnlyQuery,
   sanitizeGrantRole,
   sanitizeArtifact,
+  summarizeScopedObjects,
   validateCanonicalRelease,
   validateRemoteEnvironment,
 } from "./diagnose-sidewalk-remote-drift.mjs";
@@ -186,6 +187,75 @@ test("hashes remote definitions and never serializes them in the object comparis
     observedHash: "observed",
     state: "changed",
   });
+});
+
+test("keeps every grant in a scoped table distinct instead of collapsing it by table", () => {
+  const pre = summarizeScopedObjects({
+    canonical: {
+      grants: [
+        {
+          table: "comun_admin_audit_log",
+          grantee: "anon",
+          privilege: "SELECT",
+        },
+        {
+          table: "comun_admin_audit_log",
+          grantee: "authenticated",
+          privilege: "SELECT",
+        },
+        {
+          table: "comun_admin_audit_log",
+          grantee: "untrusted_role",
+          privilege: "UPDATE",
+        },
+      ],
+    },
+  });
+  const remote = summarizeScopedObjects({
+    canonical: {
+      grants: [
+        {
+          table: "comun_admin_audit_log",
+          grantee: "anon",
+          privilege: "SELECT",
+        },
+        {
+          table: "comun_admin_audit_log",
+          grantee: "authenticated",
+          privilege: "UPDATE",
+        },
+        {
+          table: "comun_admin_audit_log",
+          grantee: "untrusted_role",
+          privilege: "UPDATE",
+        },
+      ],
+    },
+  });
+  const compared = compareScopedObjects(remote, pre, pre);
+
+  assert.equal(compared.length, 4);
+  assert.deepEqual(
+    compared.map(({ name, state }) => ({ name, state })),
+    [
+      {
+        name: "comun_admin_audit_log.anon.SELECT",
+        state: "equal",
+      },
+      {
+        name: "comun_admin_audit_log.authenticated.SELECT",
+        state: "missing",
+      },
+      {
+        name: "comun_admin_audit_log.authenticated.UPDATE",
+        state: "unexpected",
+      },
+      {
+        name: "comun_admin_audit_log.other-role-f553a25e0d58.UPDATE",
+        state: "equal",
+      },
+    ],
+  );
 });
 
 test("treats an object created only in POST and absent remotely as PRE", () => {
