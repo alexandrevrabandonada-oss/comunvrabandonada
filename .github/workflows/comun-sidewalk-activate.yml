@@ -320,7 +320,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          node scripts/solo/monitor-production.mjs --minutes=2 --domain=comunvrabandonada.vercel.app
+          node scripts/solo/monitor-production.mjs --minutes=2 --domain=comunvrabandonada.vercel.app --activation
           status=$?
           set -e
           if ((status != 0)); then

@@ -79,6 +79,10 @@ test("sidewalk workflow separates read-only preflight, migration, and activation
     activate,
     /node scripts\/solo\/apply-forward-only\.mjs\n/,
   );
+  assert.match(
+    activate,
+    /monitor-production\.mjs --minutes=2 --domain=comunvrabandonada\.vercel\.app --activation/,
+  );
   assert.notEqual(
     workflow.indexOf("AUTORIZO_MIGRATION_CALCADAS_"),
     workflow.indexOf("AUTORIZO_ATIVAR_CALCADAS_"),
