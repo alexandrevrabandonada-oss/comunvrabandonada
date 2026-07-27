@@ -348,8 +348,21 @@ export function executeSql(sql, options = {}) {
   if (result.status !== 0) fail("SOLO_CANONICAL_DATABASE_TRANSACTION_FAILED");
 }
 
-function queryOutput(sql, options = {}) {
-  const result = runPsql(sql, QUERY_FLAGS, options);
+export function readOnlyTransactionSql(sql) {
+  return [
+    "set default_transaction_read_only = on;",
+    "begin transaction read only;",
+    String(sql).trim(),
+    "rollback;",
+  ].join("\n");
+}
+
+function queryOutput(sql, { readOnly = false, ...options } = {}) {
+  const result = runPsql(
+    readOnly ? readOnlyTransactionSql(sql) : sql,
+    QUERY_FLAGS,
+    options,
+  );
   if (result.status !== 0) fail("SOLO_CANONICAL_DATABASE_QUERY_FAILED");
   return typeof result.stdout === "string" ? result.stdout : "";
 }
@@ -429,9 +442,9 @@ function validateAllowlist() {
   }
 }
 
-function captureBaseline() {
-  const document = buildDocuments(queryJson(query)).compact;
-  const normalized = queryOutput(schemaFingerprintQuery)
+function captureBaseline({ readOnly = false } = {}) {
+  const document = buildDocuments(queryJson(query, { readOnly })).compact;
+  const normalized = queryOutput(schemaFingerprintQuery, { readOnly })
     .replace(/\r\n/g, "\n")
     .trimEnd();
   if (!normalized) fail("SOLO_SCHEMA_FINGERPRINT_EMPTY");
@@ -442,8 +455,8 @@ function captureBaseline() {
   };
 }
 
-function captureScopedBaseline() {
-  const raw = queryOutput(scopedFingerprintQuery);
+function captureScopedBaseline({ readOnly = false } = {}) {
+  const raw = queryOutput(scopedFingerprintQuery, { readOnly });
   let parsed;
   try {
     parsed = JSON.parse(raw);
@@ -517,18 +530,19 @@ function acceptedLedgerValues(release) {
   ]);
 }
 
-function readLedger(release) {
+function readLedger(release, options = {}) {
   return queryScalar(
     `select coalesce((
        select migration_sha256 || '|' || pre_fingerprint || '|' || post_fingerprint
        from public.comun_schema_releases
        where release = '${release.release.replaceAll("'", "''")}'
      ), '${LEDGER_ABSENT}');`,
+    options,
   );
 }
 
-function summarizeLedgerState(release) {
-  const value = readLedger(release);
+function summarizeLedgerState(release, options = {}) {
+  const value = readLedger(release, options);
   if (value === LEDGER_ABSENT) return "ABSENT";
   return acceptedLedgerValues(release).has(value)
     ? "PRESENT_ACCEPTED"
@@ -544,8 +558,9 @@ export function releaseMarker(release, suffix) {
   return `COMUN_CANONICAL_SECURITY_HARDENING_${suffix}`;
 }
 
-function readOnboardingTriggerCount() {
-  return queryScalar(`
+function readOnboardingTriggerCount(options = {}) {
+  return queryScalar(
+    `
     select pg_catalog.count(*)::text
     from pg_catalog.pg_trigger trigger
     join pg_catalog.pg_class relation on relation.oid = trigger.tgrelid
@@ -553,7 +568,9 @@ function readOnboardingTriggerCount() {
     where namespace.nspname = 'auth'
       and relation.relname = 'users'
       and trigger.tgname = 'on_auth_user_created'
-      and not trigger.tgisinternal;`);
+      and not trigger.tgisinternal;`,
+    options,
+  );
 }
 
 export function validatePreflightObjects(baseline, onboardingTriggerCount) {
@@ -604,6 +621,10 @@ export function validateBlockingFindings(baseline, expectedBlockingFindings) {
 export async function main(argv = process.argv.slice(2)) {
   validateAllowlist();
   const { release, migration } = loadRelease(argv);
+  const readOnlyPreflight = argv.includes("--read-only-preflight");
+  const readOnlyPostflight = argv.includes("--read-only-postflight");
+  if (readOnlyPreflight && readOnlyPostflight)
+    fail("SOLO_CANONICAL_READONLY_MODE_INVALID");
   if (argv.includes("--adopt-local-validation-ledger")) {
     if (process.env.SUPABASE_PROJECT_REF !== "LOCAL_VALIDATION")
       fail("SOLO_LOCAL_LEDGER_LOCAL_ONLY");
@@ -612,15 +633,20 @@ export async function main(argv = process.argv.slice(2)) {
     return;
   }
   const diagnosticOutput = securityDiagnosticOutputPath(argv);
-  const globalBefore = captureBaseline();
-  validatePreflightObjects(globalBefore, readOnboardingTriggerCount());
+  const readOnly = readOnlyPreflight || readOnlyPostflight;
+  const globalBefore = captureBaseline({ readOnly });
+  validatePreflightObjects(
+    globalBefore,
+    readOnboardingTriggerCount({ readOnly }),
+  );
   const before = release.fingerprintScope
-    ? captureScopedBaseline()
+    ? captureScopedBaseline({ readOnly })
     : globalBefore;
-  const state = validateCurrentState(before, release);
-  const beforeLedgerState = summarizeLedgerState(release);
+  const readLedgerForState = (candidate) => readLedger(candidate, { readOnly });
+  const state = validateCurrentState(before, release, readLedgerForState);
+  const beforeLedgerState = summarizeLedgerState(release, { readOnly });
 
-  if (argv.includes("--read-only-preflight")) {
+  if (readOnlyPreflight) {
     await emitSecurityDiagnostic(
       buildSanitizedSecurityDiagnostic({
         before: globalBefore,
@@ -644,6 +670,25 @@ export async function main(argv = process.argv.slice(2)) {
       `COMUN_CANONICAL_RELEASE_LEDGER_STATE ${state === "PRE" ? "ABSENT" : "PRESENT"}`,
     );
     console.log("COMUN_CANONICAL_RELEASE_REMOTE_READY");
+    return;
+  }
+
+  if (readOnlyPostflight) {
+    if (state !== "POST") fail("SOLO_CANONICAL_POST_FINGERPRINT_MISMATCH");
+    await emitSecurityDiagnostic(
+      buildSanitizedSecurityDiagnostic({
+        before: globalBefore,
+        after: globalBefore,
+        beforeLedgerState,
+        afterLedgerState: beforeLedgerState,
+      }),
+      diagnosticOutput,
+    );
+    console.log(
+      `COMUN_CANONICAL_RELEASE_FINGERPRINT ${globalBefore.fingerprint}`,
+    );
+    console.log(`COMUN_SCOPED_RELEASE_FINGERPRINT ${before.fingerprint}`);
+    console.log("COMUN_CANONICAL_RELEASE_POST_READY");
     return;
   }
 

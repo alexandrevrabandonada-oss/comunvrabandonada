@@ -1,0 +1,23 @@
+{
+  "formatVersion": 1,
+  "checkpoint": "TIJOLO_45_3E",
+  "decisionTarget": "COMUN_TIJOLO_45_3E_SCOPED_PROMOTION_CONTRACT_READY",
+  "mainSha": "REQUIRES_IMMUTABLE_MAIN_SHA_AFTER_MERGE",
+  "projectRef": "REQUIRES_ALLOWLISTED_PROJECT_REF_AFTER_READ_ONLY_PREFLIGHT",
+  "contractId": "sidewalk-operational-safer-pre-v1",
+  "contractSha256": "1ae7b7c8bc000acc5369276809f2f4d58ca919d925399d9750e840c9e3aecc74",
+  "migration": "supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql",
+  "migrationSha256": "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be",
+  "canonicalManifest": "supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json",
+  "canonicalManifestSha256": "ceb7002f9a7069cbe82c4e6b16032bef1cd3619f12271a260dbca37fb5bc1335",
+  "scopedPreFingerprint": "441f96efad5bb7fa0d47a0ae59734c24eccddca62f5388a4d8cff9c6250ff41d",
+  "scopedPostFingerprint": "4ed4d61242adc4035a6c8c94c8bb72e93b310e6fa22d56929c4e4431b75a8d9d",
+  "grantRisk": "safer_than_pre",
+  "expectedLedger": "ABSENT_BEFORE_MIGRATE_AND_EXACT_APPLIED_AFTER_MIGRATE",
+  "flag": "disabled",
+  "remoteWrites": "none",
+  "activation": "separate_human_authorization_required",
+  "authorizationTemplate": "AUTORIZO_MIGRATION_CALCADAS_<PROJECT_REF>_<MAIN_SHA>_1ae7b7c8bc000acc5369276809f2f4d58ca919d925399d9750e840c9e3aecc74_MANTER_FLAG_DESABILITADA",
+  "stopProcedure": "abort_on_any_preflight_or_postflight_mismatch_without_activate",
+  "partialApplicationProcedure": "read_only_diagnosis_and_human_decision_before_any_retry"
+}
