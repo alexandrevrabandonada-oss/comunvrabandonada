@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,11 +17,11 @@ import { summarizeScopedObjects } from "./diagnose-sidewalk-remote-drift.mjs";
 const output =
   process.argv.find((arg) => arg.startsWith("--output="))?.slice(9) ??
   ".ci-artifacts/local-sidewalk-reference.json";
-const databaseUrl = process.env.PR23_DATABASE_URL;
-if (!databaseUrl || !/(?:localhost|127\.0\.0\.1)/i.test(databaseUrl))
-  throw new Error("COMUN_LOCAL_REFERENCE_REQUIRES_LOCAL_DATABASE");
-
 function readJson(sql) {
+  const databaseUrl = process.env.PR23_DATABASE_URL;
+  if (!databaseUrl || !/(?:localhost|127\.0\.0\.1)/i.test(databaseUrl)) {
+    throw new Error("COMUN_LOCAL_REFERENCE_REQUIRES_LOCAL_DATABASE");
+  }
   const result = spawnSync(
     "psql",
     [
@@ -49,6 +49,11 @@ function capture() {
     scoped: fingerprint(scoped),
     objects: summarizeScopedObjects(scoped),
   };
+}
+
+export async function persistLocalReference(output, reference) {
+  await mkdir(path.dirname(output), { recursive: true });
+  await writeFile(output, `${JSON.stringify(reference, null, 2)}\n`, "utf8");
 }
 
 async function main() {
@@ -86,7 +91,7 @@ async function main() {
     objectsPost: post.objects,
     alreadyApplied: true,
   };
-  await writeFile(output, `${JSON.stringify(reference, null, 2)}\n`);
+  await persistLocalReference(output, reference);
   console.log("COMUN_SIDEWALK_LOCAL_REFERENCE_READY");
 }
 
