@@ -22,7 +22,10 @@ test("sidewalk workflow separates read-only preflight, migration, and activation
   const postflight = job(workflow, "postflight", "activate");
   const activate = workflow.match(/  activate:[\s\S]*$/)?.[0] ?? "";
 
-  assert.match(workflow, /options: \[preflight, migrate, activate\]/);
+  assert.match(
+    workflow,
+    /options: \[preflight, vercel-preflight, migrate, activate\]/,
+  );
   assert.match(workflow, /contract_id:/);
   assert.match(workflow, /sidewalk-operational-safer-pre-v2/);
   assert.match(
@@ -63,6 +66,27 @@ test("sidewalk workflow separates read-only preflight, migration, and activation
     workflow.indexOf("AUTORIZO_MIGRATION_CALCADAS_"),
     workflow.indexOf("AUTORIZO_ATIVAR_CALCADAS_"),
   );
+});
+
+test("Vercel credential preflight is fixed, read-only, and cannot activate", async () => {
+  const workflow = await readFile(workflowPath, "utf8");
+  const vercelPreflight = job(workflow, "vercel-preflight", "preflight");
+
+  assert.match(vercelPreflight, /if: inputs\.mode == 'vercel-preflight'/);
+  assert.match(vercelPreflight, /needs: validate-input/);
+  assert.match(vercelPreflight, /test -n "\$VERCEL_TOKEN"/);
+  assert.match(vercelPreflight, /team_LBVwyK8FQMO7tA3hzVXXeumF/);
+  assert.match(vercelPreflight, /prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X/);
+  assert.match(
+    vercelPreflight,
+    /https:\/\/api\.vercel\.com\/v9\/projects\/\$\{VERCEL_PROJECT_ID\}\?teamId=\$\{VERCEL_ORG_ID\}/,
+  );
+  assert.match(vercelPreflight, /COMUN_VERCEL_PROTECTED_ACCESS_READ_GREEN/);
+  assert.doesNotMatch(
+    vercelPreflight,
+    /vercel@|env add|--prod|COMUN_SIDEWALK_OPERATIONAL_V2|apply-forward-only\.mjs/,
+  );
+  assert.doesNotMatch(vercelPreflight, /-X\s*(?:POST|PUT|PATCH|DELETE)/i);
 });
 
 test("workflow accepts no SQL or path input and uses only the fixed scoped contract", async () => {
