@@ -73,3 +73,18 @@ test("sidewalk readiness re-runs its labeled checkpoint on synchronize and repor
     /COMUN_CENTRAL_CAUSE: \$\{\{ needs\.sidewalk-readiness-checkpoint\.result == 'failure'/,
   );
 });
+
+test("sidewalk readiness release waits for the exact checkpoint instead of racing it", async () => {
+  const workflow = await readFile(ciWorkflowPath, "utf8");
+  const release =
+    workflow.match(
+      /  sidewalk-readiness-full:[\s\S]*?\n  central-after-sidewalk-micro:/,
+    )?.[0] ?? "";
+
+  assert.match(release, /needs: sidewalk-readiness-checkpoint/);
+  assert.match(
+    release,
+    /needs\.sidewalk-readiness-checkpoint\.result == 'success'/,
+  );
+  assert.match(release, /Require MICRO and CHECKPOINT for the exact SHA/);
+});

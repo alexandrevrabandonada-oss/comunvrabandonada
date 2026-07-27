@@ -576,7 +576,9 @@ jobs:
 
   sidewalk-readiness-full:
     name: RELEASE/FULL / COMUN_CI_GREEN
+    needs: sidewalk-readiness-checkpoint
     if: >-
+      needs.sidewalk-readiness-checkpoint.result == 'success' &&
       github.event_name == 'pull_request' && contains(fromJSON('["labeled","synchronize"]'), github.event.action) &&
       github.event.pull_request.base.ref == 'main' &&
       contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness') &&
