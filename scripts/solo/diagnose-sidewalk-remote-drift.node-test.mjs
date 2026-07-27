@@ -8,6 +8,7 @@ import {
   auditGrantProvenance,
   assertReadOnlySql,
   auditGrantMatrixQuery,
+  buildFingerprintDocument,
   classifyRemoteDrift,
   compareScopedObjects,
   diffAuditGrantMatrices,
@@ -18,12 +19,16 @@ import {
   sanitizeArtifact,
   summarizeScopedObjects,
   validateCanonicalRelease,
+  validateReference,
   validateRemoteEnvironment,
 } from "./diagnose-sidewalk-remote-drift.mjs";
 import {
   buildDocument as buildScopedDocument,
+  buildStructuralDocument,
   fingerprint as fingerprintScoped,
+  fingerprintScope,
   scopedObjects,
+  structuralFingerprintScope,
 } from "./sidewalk-operational-fingerprint.mjs";
 
 const marker = (expected) => (error) =>
@@ -187,6 +192,49 @@ test("hashes remote definitions and never serializes them in the object comparis
     observedHash: "observed",
     state: "changed",
   });
+});
+
+test("accepts the versioned structural v2 reference while preserving v1 support", () => {
+  const raw = {
+    relations: [],
+    columns: [],
+    constraints: [],
+    indexes: [],
+    policies: [],
+    grants: [],
+    ledger: [],
+  };
+  const v1 = fingerprintScoped(buildFingerprintDocument(raw, fingerprintScope));
+  const v2 = fingerprintScoped(
+    buildFingerprintDocument(raw, structuralFingerprintScope),
+  );
+
+  assert.equal(v1, fingerprintScoped(buildScopedDocument(raw)));
+  assert.equal(v2, fingerprintScoped(buildStructuralDocument(raw)));
+  assert.doesNotThrow(() =>
+    validateReference({
+      scope: structuralFingerprintScope,
+      scopedPre: "a".repeat(64),
+      scopedPost: "b".repeat(64),
+      objectsPre: [],
+      objectsPost: [],
+      auditGrantsPre: [],
+      auditGrantsPost: [],
+    }),
+  );
+  assert.throws(
+    () =>
+      validateReference({
+        scope: "unversioned",
+        scopedPre: "a".repeat(64),
+        scopedPost: "b".repeat(64),
+        objectsPre: [],
+        objectsPost: [],
+        auditGrantsPre: [],
+        auditGrantsPost: [],
+      }),
+    marker("COMUN_SIDEWALK_REMOTE_DIAGNOSTIC_REFERENCE_INVALID"),
+  );
 });
 
 test("keeps every grant in a scoped table distinct instead of collapsing it by table", () => {
@@ -637,6 +685,25 @@ test("workflow is dispatch-only and never invokes the activation path", () => {
   assert.match(workflow, /diagnose-sidewalk-remote-drift\.mjs/);
   assert.doesNotMatch(workflow, /\bactivate\b/i);
   assert.doesNotMatch(workflow, /supabase\s+(?:db\s+push|migration\s+up)/i);
+});
+
+test("workflow accepts only the canonical or safer PRE v2 local reference profiles", () => {
+  const workflow = readFileSync(
+    new URL(
+      "../../.github/workflows/comun-sidewalk-remote-diagnostic.yml",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+  assert.match(workflow, /reference_profile:/);
+  assert.match(workflow, /- canonical/);
+  assert.match(workflow, /- safer-pre-v2/);
+  assert.match(
+    workflow,
+    /derive-sidewalk-safer-pre-v2-reference\.mjs --output=\.ci-artifacts\/local-reference\.json/,
+  );
+  assert.match(workflow, /canonical\|safer-pre-v2\) ;;/);
+  assert.doesNotMatch(workflow, /mode:\s*(?:migrate|activate)/i);
 });
 
 test("canonical migration and manifest hashes remain immutable", async () => {

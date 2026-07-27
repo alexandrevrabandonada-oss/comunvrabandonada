@@ -1,11 +1,33 @@
 import { createHash } from "node:crypto";
 
-const scopedTables = ["comun_sidewalk_records", "comun_sidewalk_uploads", "comun_sidewalk_duplicate_suggestions", "comun_schema_releases"];
-const legacyGrantTables = ["comun_actions", "comun_admin_audit_log", "comun_admin_users", "comun_communities", "comun_dossiers", "comun_issues", "comun_pauta_evidence_items", "comun_pauta_spaces", "comun_pauta_tasks", "comun_public_lookup_events", "comun_report_attachments", "comun_reports"];
+const scopedTables = [
+  "comun_sidewalk_records",
+  "comun_sidewalk_uploads",
+  "comun_sidewalk_duplicate_suggestions",
+  "comun_schema_releases",
+];
+const legacyGrantTables = [
+  "comun_actions",
+  "comun_admin_audit_log",
+  "comun_admin_users",
+  "comun_communities",
+  "comun_dossiers",
+  "comun_issues",
+  "comun_pauta_evidence_items",
+  "comun_pauta_spaces",
+  "comun_pauta_tasks",
+  "comun_public_lookup_events",
+  "comun_report_attachments",
+  "comun_reports",
+];
 export const fingerprintScope = "sidewalk-operational-v1";
+export const structuralFingerprintScope = "sidewalk-operational-v2";
 export const scopedObjects = [...scopedTables, ...legacyGrantTables].sort();
 export const normalize = (value) => JSON.parse(JSON.stringify(value));
-export const fingerprint = (document) => createHash("sha256").update(JSON.stringify(normalize(document))).digest("hex");
+export const fingerprint = (document) =>
+  createHash("sha256")
+    .update(JSON.stringify(normalize(document)))
+    .digest("hex");
 export const query = String.raw`
 with scoped as (select unnest(array['comun_sidewalk_records','comun_sidewalk_uploads','comun_sidewalk_duplicate_suggestions','comun_schema_releases']) as name), grants as (select unnest(array['comun_actions','comun_admin_audit_log','comun_admin_users','comun_communities','comun_dossiers','comun_issues','comun_pauta_evidence_items','comun_pauta_spaces','comun_pauta_tasks','comun_public_lookup_events','comun_report_attachments','comun_reports']) as name)
 select jsonb_build_object(
@@ -19,6 +41,26 @@ select jsonb_build_object(
 )::text;`;
 export function buildDocument(raw) {
   const canonical = normalize(raw);
-  for (const key of Object.keys(canonical)) canonical[key] = Array.isArray(canonical[key]) ? canonical[key].sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))) : canonical[key];
-  return { formatVersion: 1, scope: fingerprintScope, objects: scopedObjects, canonical };
+  for (const key of Object.keys(canonical))
+    canonical[key] = Array.isArray(canonical[key])
+      ? canonical[key].sort((a, b) =>
+          JSON.stringify(a).localeCompare(JSON.stringify(b)),
+        )
+      : canonical[key];
+  return {
+    formatVersion: 1,
+    scope: fingerprintScope,
+    objects: scopedObjects,
+    canonical,
+  };
+}
+
+export function buildStructuralDocument(raw) {
+  const { ledger: _targetLedger, ...canonical } = buildDocument(raw).canonical;
+  return {
+    formatVersion: 2,
+    scope: structuralFingerprintScope,
+    objects: scopedObjects,
+    canonical,
+  };
 }
