@@ -302,7 +302,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$AUTHORIZATION" = "AUTORIZO_ATIVAR_CALCADAS_${PROJECT_REF}_${EXPECTED_MAIN_SHA}_${LEDGER_HASH}"
-      - name: Enable operational gate only after migration and ledger are already green
+      - name: Activate only after deployment and alias readiness
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
@@ -310,22 +310,228 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          printf '%s' enabled | npx --yes vercel@50.28.0 env add COMUN_SIDEWALK_OPERATIONAL_V2 production --force --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
-          npx --yes vercel@50.28.0 --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
-      - name: Smoke and disable the operational gate if activation fails
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
-        shell: bash
-        run: |
-          set +e
-          node scripts/solo/monitor-production.mjs --minutes=2 --domain=comunvrabandonada.vercel.app --activation
-          status=$?
-          set -e
-          if ((status != 0)); then
-            printf '%s' disabled | npx --yes vercel@50.28.0 env add COMUN_SIDEWALK_OPERATIONAL_V2 production --force --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
-            npx --yes vercel@50.28.0 --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
-            exit "$status"
+          umask 077
+          started_at="$SECONDS"
+          temporary_files=()
+
+          cleanup() {
+            rm -f "${temporary_files[@]:-}"
+          }
+
+          trap cleanup EXIT
+
+          state() {
+            printf '%s timestamp=%s duration_seconds=%s\n' \
+              "$1" \
+              "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+              "$((SECONDS - started_at))" \
+              >> "$GITHUB_STEP_SUMMARY"
+          }
+
+          marker() {
+            printf '%s timestamp=%s duration_seconds=%s\n' \
+              "$1" \
+              "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+              "$((SECONDS - started_at))" \
+              >> "$GITHUB_STEP_SUMMARY"
+          }
+
+          new_capture_file() {
+            CAPTURE_FILE="$(mktemp)"
+            chmod 600 "$CAPTURE_FILE"
+            temporary_files+=("$CAPTURE_FILE")
+          }
+
+          run_vercel_env() {
+            local value="$1"
+            local output error env_exit
+            new_capture_file
+            output="$CAPTURE_FILE"
+            new_capture_file
+            error="$CAPTURE_FILE"
+            set +e
+            printf '%s' "$value" | npx --yes vercel@50.28.0 env add COMUN_SIDEWALK_OPERATIONAL_V2 production --force --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >"$output" 2>"$error"
+            env_exit="${PIPESTATUS[1]}"
+            set -e
+            return "$env_exit"
+          }
+
+          capture_deployment() {
+            local phase="$1"
+            local output error deploy_exit
+            new_capture_file
+            output="$CAPTURE_FILE"
+            new_capture_file
+            error="$CAPTURE_FILE"
+            set +e
+            npx --yes vercel@50.28.0 --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >"$output" 2>"$error"
+            deploy_exit="$?"
+            set -e
+            if ((deploy_exit != 0)); then
+              marker SOLO_ACTIVATION_DEPLOYMENT_COMMAND_FAILED
+              return "$deploy_exit"
+            fi
+            DEPLOYMENT_URL="$(DEPLOYMENT_STDOUT="$output" node --input-type=module <<'NODE'
+          import { readFile } from "node:fs/promises";
+
+          const output = await readFile(process.env.DEPLOYMENT_STDOUT, "utf8");
+          const urls = [...new Set(output.match(/https:\/\/comunvrabandonada(?:-[a-z0-9-]+)?\.vercel\.app\/?/gi) ?? [])]
+            .map((candidate) => new URL(candidate).origin)
+            .filter((candidate) => new URL(candidate).hostname !== "comunvrabandonada.vercel.app");
+
+          if (urls.length !== 1) process.exit(1);
+          const deployment = new URL(urls[0]);
+          if (
+            deployment.protocol !== "https:" ||
+            deployment.hostname === "comunvrabandonada.vercel.app" ||
+            !deployment.hostname.endsWith("-alexandrevrabandonada-oss-projects.vercel.app") ||
+            !deployment.hostname.startsWith("comunvrabandonada-") ||
+            deployment.username ||
+            deployment.password ||
+            deployment.search ||
+            deployment.hash
+          ) {
+            process.exit(1);
+          }
+
+          process.stdout.write(deployment.origin);
+          NODE
+            )" || {
+              marker SOLO_ACTIVATION_DEPLOYMENT_URL_INVALID
+              return 1
+            }
+          if [[ "$phase" = "activation" ]]; then
+            marker SOLO_ACTIVATION_DEPLOYMENT_CREATED
+            state DEPLOYMENT_CREATED
+          else
+            marker SOLO_ACTIVATION_ROLLBACK_DEPLOYMENT_CREATED
+            state ROLLBACK_DEPLOYMENT_CREATED
           fi
-          echo COMUN_CALCADAS_OPERATIONAL_ACTIVATION_GREEN >> "$GITHUB_STEP_SUMMARY"
+          return 0
+          }
+
+          inspect_deployment() {
+            local phase="$1"
+            local output error inspect_exit
+            new_capture_file
+            output="$CAPTURE_FILE"
+            new_capture_file
+            error="$CAPTURE_FILE"
+            set +e
+            timeout 300s npx --yes vercel@50.28.0 inspect "$DEPLOYMENT_URL" --wait --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >"$output" 2>"$error"
+            inspect_exit="$?"
+            set -e
+            if ((inspect_exit != 0)); then
+              marker SOLO_ACTIVATION_DEPLOYMENT_NOT_READY
+              return "$inspect_exit"
+            fi
+            if [[ "$phase" = "activation" ]]; then
+              marker SOLO_ACTIVATION_DEPLOYMENT_READY
+              state DEPLOYMENT_READY
+            else
+              marker SOLO_ACTIVATION_ROLLBACK_DEPLOYMENT_INSPECT_READY
+            fi
+          }
+
+          record_monitor_states() {
+            local output="$1"
+            while IFS= read -r observed; do
+              case "$observed" in
+                SOLO_ACTIVATION_DEPLOYMENT_FLAG_VISIBLE)
+                  marker "$observed"
+                  state DEPLOYMENT_FLAG_VISIBLE
+                  ;;
+                SOLO_ACTIVATION_CANONICAL_ALIAS_READY)
+                  marker "$observed"
+                  state ALIAS_READY
+                  ;;
+                SOLO_ACTIVATION_FUNCTIONAL_SMOKE_GREEN)
+                  marker "$observed"
+                  state FUNCTIONAL_SMOKE_GREEN
+                  ;;
+                SOLO_ACTIVATION_MONITOR_GREEN)
+                  marker "$observed"
+                  state MONITOR_GREEN
+                  ;;
+                SOLO_ACTIVATION_ROLLBACK_DEPLOYMENT_READY)
+                  marker "$observed"
+                  state ROLLBACK_DEPLOYMENT_READY
+                  ;;
+                SOLO_ACTIVATION_ROLLBACK_ALIAS_READY)
+                  marker "$observed"
+                  state ROLLBACK_ALIAS_PAUSED
+                  ;;
+                SOLO_ACTIVATION_ROLLBACK_GREEN)
+                  marker "$observed"
+                  state ROLLBACK_GREEN
+                  ;;
+                SOLO_ACTIVATION_DEPLOYMENT_FLAG_NOT_READY|SOLO_ACTIVATION_ALIAS_PROPAGATION_TIMEOUT)
+                  marker "$observed"
+                  ;;
+              esac
+            done < <(grep -E '^SOLO_ACTIVATION_(DEPLOYMENT_FLAG_VISIBLE|CANONICAL_ALIAS_READY|FUNCTIONAL_SMOKE_GREEN|MONITOR_GREEN|ROLLBACK_DEPLOYMENT_READY|ROLLBACK_ALIAS_READY|ROLLBACK_GREEN|DEPLOYMENT_FLAG_NOT_READY|ALIAS_PROPAGATION_TIMEOUT)$' "$output" || true)
+          }
+
+          run_activation_monitor() {
+            local output error monitor_exit
+            new_capture_file
+            output="$CAPTURE_FILE"
+            new_capture_file
+            error="$CAPTURE_FILE"
+            set +e
+            node scripts/solo/monitor-production.mjs --minutes=2 --domain=comunvrabandonada.vercel.app --deployment-url="$DEPLOYMENT_URL" --readiness-minutes=5 --poll-seconds=10 --require-consecutive=2 --activation >"$output" 2>"$error"
+            monitor_exit="$?"
+            set -e
+            record_monitor_states "$output"
+            return "$monitor_exit"
+          }
+
+          run_rollback_readiness() {
+            local output error rollback_exit
+            new_capture_file
+            output="$CAPTURE_FILE"
+            new_capture_file
+            error="$CAPTURE_FILE"
+            set +e
+            node scripts/solo/monitor-production.mjs --domain=comunvrabandonada.vercel.app --deployment-url="$DEPLOYMENT_URL" --readiness-minutes=5 --poll-seconds=10 --require-consecutive=2 --rollback-readiness >"$output" 2>"$error"
+            rollback_exit="$?"
+            set -e
+            record_monitor_states "$output"
+            return "$rollback_exit"
+          }
+
+          rollback() {
+            if ! run_vercel_env disabled; then
+              marker SOLO_ACTIVATION_ROLLBACK_FLAG_COMMAND_FAILED
+              return 1
+            fi
+            state ROLLBACK_FLAG_DISABLED
+            if ! capture_deployment rollback; then
+              return 1
+            fi
+            if ! inspect_deployment rollback; then
+              return 1
+            fi
+            if ! run_rollback_readiness; then
+              return 1
+            fi
+          }
+
+          node scripts/solo/assert-sidewalk-public-paused.mjs
+          state FLAG_DISABLED_INITIAL
+          if ! run_vercel_env enabled; then
+            marker SOLO_ACTIVATION_FLAG_ENABLE_FAILED
+            exit 1
+          fi
+          state FLAG_ENABLED
+          if capture_deployment activation && inspect_deployment activation && run_activation_monitor; then
+            marker COMUN_CALCADAS_OPERATIONAL_ACTIVATION_GREEN
+            state ACTIVATION_GREEN
+            exit 0
+          fi
+
+          activation_exit=1
+          if ! rollback; then
+            marker SOLO_ACTIVATION_ROLLBACK_FAILED
+          fi
+          exit "$activation_exit"

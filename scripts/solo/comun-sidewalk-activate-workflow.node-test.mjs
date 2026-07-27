@@ -81,11 +81,69 @@ test("sidewalk workflow separates read-only preflight, migration, and activation
   );
   assert.match(
     activate,
-    /monitor-production\.mjs --minutes=2 --domain=comunvrabandonada\.vercel\.app --activation/,
+    /monitor-production\.mjs --minutes=2 --domain=comunvrabandonada\.vercel\.app --deployment-url="\$DEPLOYMENT_URL"[\s\S]*--activation/,
   );
   assert.notEqual(
     workflow.indexOf("AUTORIZO_MIGRATION_CALCADAS_"),
     workflow.indexOf("AUTORIZO_ATIVAR_CALCADAS_"),
+  );
+});
+
+test("activation captures one protected deployment URL, waits for readiness, and rolls back through the same states", async () => {
+  const workflow = await readFile(workflowPath, "utf8");
+  const activate = workflow.match(/  activate:[\s\S]*$/)?.[0] ?? "";
+
+  assert.match(activate, /umask 077/);
+  assert.match(activate, /CAPTURE_FILE="\$\(mktemp\)"/);
+  assert.match(activate, /chmod 600 "\$CAPTURE_FILE"/);
+  assert.match(activate, /trap cleanup EXIT/);
+  assert.match(activate, /\>"\$output" 2>"\$error"/);
+  assert.match(
+    activate,
+    /DEPLOYMENT_STDOUT="\$output" node --input-type=module/,
+  );
+  assert.match(activate, /https:\\\/\\\/comunvrabandonada/);
+  assert.match(
+    activate,
+    /filter\(\(candidate\) => new URL\(candidate\)\.hostname !== "comunvrabandonada\.vercel\.app"\)/,
+  );
+  assert.match(activate, /SOLO_ACTIVATION_DEPLOYMENT_CREATED/);
+  assert.match(activate, /timeout 300s npx --yes vercel@50\.28\.0 inspect/);
+  assert.match(activate, /vercel@50\.28\.0 inspect "\$DEPLOYMENT_URL" --wait/);
+  assert.match(activate, /SOLO_ACTIVATION_DEPLOYMENT_READY/);
+  assert.match(
+    activate,
+    /--readiness-minutes=5 --poll-seconds=10 --require-consecutive=2 --activation/,
+  );
+  assert.match(activate, /SOLO_ACTIVATION_DEPLOYMENT_FLAG_VISIBLE/);
+  assert.match(activate, /SOLO_ACTIVATION_CANONICAL_ALIAS_READY/);
+  assert.match(activate, /SOLO_ACTIVATION_FUNCTIONAL_SMOKE_GREEN/);
+  assert.match(activate, /SOLO_ACTIVATION_MONITOR_GREEN/);
+  assert.match(activate, /ROLLBACK_FLAG_DISABLED/);
+  assert.match(activate, /ROLLBACK_DEPLOYMENT_CREATED/);
+  assert.match(activate, /--rollback-readiness/);
+  assert.match(activate, /ROLLBACK_ALIAS_PAUSED/);
+  assert.match(activate, /ROLLBACK_GREEN/);
+  assert.match(activate, /COMUN_CALCADAS_OPERATIONAL_ACTIVATION_GREEN/);
+  assert.doesNotMatch(activate, /\btee\b|\bcat\b|set -x/);
+  assert.doesNotMatch(
+    activate,
+    /(?:echo|printf)\s+[^|\n]*"\$(?:VERCEL_TOKEN|VERCEL_ORG_ID|VERCEL_PROJECT_ID)"/,
+  );
+
+  assert.ok(
+    activate.indexOf(
+      "capture_deployment activation && inspect_deployment activation && run_activation_monitor",
+    ) > activate.indexOf('inspect "$DEPLOYMENT_URL" --wait'),
+  );
+  assert.ok(
+    activate.indexOf(
+      "capture_deployment activation && inspect_deployment activation && run_activation_monitor",
+    ) < activate.indexOf("COMUN_CALCADAS_OPERATIONAL_ACTIVATION_GREEN"),
+  );
+  assert.ok(
+    activate.indexOf("if ! run_rollback_readiness; then") >
+      activate.indexOf("if ! inspect_deployment rollback; then"),
   );
 });
 
@@ -222,6 +280,10 @@ test("sidewalk readiness restores a historical local baseline before applying th
 test("sidewalk readiness re-runs its labeled checkpoint on synchronize and reports exact Central states", async () => {
   const workflow = await readFile(ciWorkflowPath, "utf8");
 
+  assert.match(
+    workflow,
+    /contains\(fromJSON\('\["opened","synchronize","reopened","ready_for_review","labeled"\]'\), github\.event\.action\)/,
+  );
   assert.match(
     workflow,
     /contains\(fromJSON\('\["labeled","synchronize"\]'\), github\.event\.action\)/,

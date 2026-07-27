@@ -474,7 +474,7 @@ jobs:
     needs: sidewalk-readiness-lane
     if: >-
       github.event_name == 'pull_request' &&
-      contains(fromJSON('["opened","synchronize","reopened","ready_for_review"]'), github.event.action) &&
+      contains(fromJSON('["opened","synchronize","reopened","ready_for_review","labeled"]'), github.event.action) &&
       github.event.pull_request.base.ref == 'main' &&
       contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness')
     runs-on: ubuntu-24.04
@@ -609,7 +609,7 @@ jobs:
     needs: sidewalk-readiness-micro
     if: >-
       always() && github.event_name == 'pull_request' &&
-      contains(fromJSON('["opened","synchronize","reopened","ready_for_review"]'), github.event.action) &&
+      contains(fromJSON('["opened","synchronize","reopened","ready_for_review","labeled"]'), github.event.action) &&
       contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness')
     runs-on: ubuntu-24.04
     steps:
