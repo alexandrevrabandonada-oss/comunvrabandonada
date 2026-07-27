@@ -11,8 +11,11 @@ import {
 } from "./validate-forward-only-sql.mjs";
 import {
   buildDocument as buildScopedDocument,
+  buildStructuralDocument,
   fingerprint as fingerprintScoped,
+  fingerprintScope,
   query as scopedFingerprintQuery,
+  structuralFingerprintScope,
 } from "./sidewalk-operational-fingerprint.mjs";
 
 const MAX_CAPTURE_BUFFER = 64 * 1024 * 1024;
@@ -455,7 +458,14 @@ function captureBaseline({ readOnly = false } = {}) {
   };
 }
 
-function captureScopedBaseline({ readOnly = false } = {}) {
+export function scopedFingerprintDocument(raw, scope) {
+  if (scope === fingerprintScope) return buildScopedDocument(raw);
+  if (scope === structuralFingerprintScope) return buildStructuralDocument(raw);
+  fail("SOLO_SCOPED_FINGERPRINT_SCOPE_INVALID");
+}
+
+function captureScopedBaseline({ readOnly = false, release } = {}) {
+  if (!release?.fingerprintScope) fail("SOLO_SCOPED_FINGERPRINT_SCOPE_INVALID");
   const raw = queryOutput(scopedFingerprintQuery, { readOnly });
   let parsed;
   try {
@@ -463,7 +473,7 @@ function captureScopedBaseline({ readOnly = false } = {}) {
   } catch {
     fail("SOLO_SCOPED_FINGERPRINT_JSON_INVALID");
   }
-  const document = buildScopedDocument(parsed);
+  const document = scopedFingerprintDocument(parsed, release.fingerprintScope);
   return { fingerprint: fingerprintScoped(document), document };
 }
 
@@ -640,7 +650,7 @@ export async function main(argv = process.argv.slice(2)) {
     readOnboardingTriggerCount({ readOnly }),
   );
   const before = release.fingerprintScope
-    ? captureScopedBaseline({ readOnly })
+    ? captureScopedBaseline({ readOnly, release })
     : globalBefore;
   const readLedgerForState = (candidate) => readLedger(candidate, { readOnly });
   const state = validateCurrentState(before, release, readLedgerForState);
@@ -718,7 +728,7 @@ select pg_catalog.set_config('comun.release_post_fingerprint', '${expectedPost(r
 
   const globalAfter = captureBaseline();
   const after = release.fingerprintScope
-    ? captureScopedBaseline()
+    ? captureScopedBaseline({ release })
     : globalAfter;
   const afterLedgerState = summarizeLedgerState(release);
   const diagnostic = buildSanitizedSecurityDiagnostic({

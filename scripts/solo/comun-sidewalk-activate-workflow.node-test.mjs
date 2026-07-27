@@ -24,7 +24,7 @@ test("sidewalk workflow separates read-only preflight, migration, and activation
 
   assert.match(workflow, /options: \[preflight, migrate, activate\]/);
   assert.match(workflow, /contract_id:/);
-  assert.match(workflow, /sidewalk-operational-safer-pre-v1/);
+  assert.match(workflow, /sidewalk-operational-safer-pre-v2/);
   assert.match(
     workflow,
     /git merge-base --is-ancestor "\$EXPECTED_MAIN_SHA" refs\/remotes\/origin\/main/,
@@ -73,7 +73,7 @@ test("workflow accepts no SQL or path input and uses only the fixed scoped contr
   );
   assert.match(
     workflow,
-    /20260724233256-comun-sidewalk-operational-hardening-safer-pre-v1\.json/,
+    /20260724233256-comun-sidewalk-operational-hardening-safer-pre-v2\.json/,
   );
   assert.doesNotMatch(workflow, /COMUN_RELEASE_MANIFEST:\s*\$\{\{ inputs/i);
   assert.match(workflow, /expected_main_sha:/);
