@@ -173,6 +173,169 @@ test("hashes remote definitions and never serializes them in the object comparis
   });
 });
 
+test("treats an object created only in POST and absent remotely as PRE", () => {
+  const [object] = compareScopedObjects(
+    [],
+    [],
+    [{ type: "table", name: "created_later", hash: "post" }],
+  );
+  assert.equal(object.state, "pre");
+  assert.equal(object.observedHash, null);
+});
+
+test("treats an object removed in POST and absent remotely as POST", () => {
+  const [object] = compareScopedObjects(
+    [],
+    [{ type: "policy", name: "removed_later", hash: "pre" }],
+    [],
+  );
+  assert.equal(object.state, "post");
+  assert.equal(object.observedHash, null);
+});
+
+test("does not classify a complete PRE with future POST objects absent as partial", () => {
+  const objects = compareScopedObjects(
+    [{ type: "table", name: "legacy", hash: "pre" }],
+    [{ type: "table", name: "legacy", hash: "pre" }],
+    [{ type: "table", name: "future", hash: "post" }],
+  );
+  assert.deepEqual(
+    objects.map(({ state }) => state),
+    ["pre", "pre"],
+  );
+  assert.notEqual(
+    classifyRemoteDrift(base({ objects })),
+    "PARTIAL_RELEASE_STATE",
+  );
+});
+
+test("does not classify a complete POST with removed PRE objects absent as partial", () => {
+  const objects = compareScopedObjects(
+    [{ type: "table", name: "future", hash: "post" }],
+    [{ type: "table", name: "legacy", hash: "pre" }],
+    [{ type: "table", name: "future", hash: "post" }],
+  );
+  assert.deepEqual(
+    objects.map(({ state }) => state),
+    ["post", "post"],
+  );
+  assert.notEqual(
+    classifyRemoteDrift(base({ scopedObserved: "scoped-post", objects })),
+    "PARTIAL_RELEASE_STATE",
+  );
+});
+
+test("classifies a verified PRE and POST object mixture as partial", () => {
+  assert.equal(
+    classifyRemoteDrift(
+      base({
+        scopedObserved: "third-state",
+        objects: [{ state: "pre" }, { state: "post" }],
+      }),
+    ),
+    "PARTIAL_RELEASE_STATE",
+  );
+});
+
+test("classifies a PRE state with a changed grant as sidewalk scope PRE drift", () => {
+  assert.equal(
+    classifyRemoteDrift(
+      base({
+        scopedObserved: "third-state",
+        objects: [{ state: "pre" }, { state: "changed" }],
+      }),
+    ),
+    "SIDEWALK_SCOPE_PRE_DRIFT",
+  );
+});
+
+test("classifies a PRE state with an unexpected object as sidewalk scope PRE drift", () => {
+  assert.equal(
+    classifyRemoteDrift(
+      base({
+        scopedObserved: "third-state",
+        objects: [{ state: "pre" }, { state: "unexpected" }],
+      }),
+    ),
+    "SIDEWALK_SCOPE_PRE_DRIFT",
+  );
+});
+
+test("marks an absent object required in PRE and POST as missing", () => {
+  const [object] = compareScopedObjects(
+    [],
+    [{ type: "grant", name: "required", hash: "same" }],
+    [{ type: "grant", name: "required", hash: "same" }],
+  );
+  assert.equal(object.state, "missing");
+});
+
+test("marks an absent object required by distinct PRE and POST states as missing", () => {
+  const [object] = compareScopedObjects(
+    [],
+    [{ type: "policy", name: "required", hash: "pre" }],
+    [{ type: "policy", name: "required", hash: "post" }],
+  );
+  assert.equal(object.state, "missing");
+});
+
+test("reclassifies the sanitized 30235576480 artifact deterministically", () => {
+  const objects = [
+    ...Array.from({ length: 124 }, () => ({ state: "equal" })),
+    ...Array.from({ length: 31 }, () => ({ state: "pre" })),
+    { state: "pre" },
+    { state: "changed" },
+  ];
+  assert.equal(
+    classifyRemoteDrift(
+      base({
+        globalObserved:
+          "df68dc13bb7693d45806d79acd3bd002f7304b41a086f9d19b625d9883bc6a01",
+        scopedObserved:
+          "8e673f05b6976dfb4675133e7ad4c90c300b18585596279d600fa0d6442535fd",
+        objects,
+      }),
+    ),
+    "SIDEWALK_SCOPE_PRE_DRIFT",
+  );
+});
+
+test("always returns exactly one supported drift classification", () => {
+  const classification = classifyRemoteDrift(
+    base({ scopedObserved: "third-state", objects: [{ state: "changed" }] }),
+  );
+  assert.deepEqual(
+    [
+      "GLOBAL_ONLY_DRIFT",
+      "SIDEWALK_SCOPE_PRE_DRIFT",
+      "PARTIAL_RELEASE_STATE",
+      "POST_WITH_LEDGER_MISMATCH",
+      "ALREADY_APPLIED_ACCEPTED",
+      "INSUFFICIENT_READ_PERMISSION",
+    ].filter((value) => value === classification),
+    [classification],
+  );
+});
+
+test("offline reclassification needs neither a connection nor a secret", () => {
+  const objects = compareScopedObjects(
+    [{ type: "grant", name: "public.audit", hash: "changed" }],
+    [{ type: "grant", name: "public.audit", hash: "pre" }],
+    [{ type: "grant", name: "public.audit", hash: "post" }],
+  );
+  const replay = {
+    objects,
+    classification: classifyRemoteDrift(
+      base({ scopedObserved: "third-state", objects }),
+    ),
+  };
+  assert.doesNotMatch(
+    JSON.stringify(replay),
+    /postgres(?:ql)?:|password|token/i,
+  );
+  assert.equal(replay.classification, "SIDEWALK_SCOPE_PRE_DRIFT");
+});
+
 test("scoped fingerprint remains deterministic over the versioned sidewalk object scope", () => {
   const raw = {
     relations: [],
