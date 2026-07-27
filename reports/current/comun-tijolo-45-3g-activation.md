@@ -2,15 +2,16 @@
 
 ## Resultado
 
-`COMUN_TIJOLO_45_3G_VERCEL_ACCESS_STILL_BLOCKED`
+`COMUN_TIJOLO_45_3G_VERCEL_ACCESS_GREEN_PARSER_FAILED`
 
-O workflow original reconheceu a autorização exata e confirmou o estado remoto por postflight somente leitura. A ativação foi bloqueada antes da alteração da flag. Dois preflights Vercel separados e somente leitura responderam HTTP `403`; a revalidação após a rotação humana não confirmou acesso ao projeto canônico. Não houve retry de ativação.
+O workflow original reconheceu a autorização exata e confirmou o estado remoto por postflight somente leitura. A ativação foi bloqueada antes da alteração da flag. Os dois primeiros preflights Vercel somente leitura responderam HTTP `403`. Após a atualização da credencial, o GET do run mais recente avançou pela condição HTTP `200`, mas o parser tentou executar o arquivo temporário como JavaScript e falhou. Não houve retry de ativação.
 
 ## Evidência verificada
 
 - Workflow: [COMUN Sidewalk Activate — run 30283137271](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30283137271)
 - Preflight somente leitura: [run 30284379657](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30284379657) — HTTP `403`; todos os jobs mutáveis foram ignorados.
 - Revalidação somente leitura: [run 30285022945](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30285022945), em `2026-07-27T16:30:49Z` — HTTP `403`; `validate-input` verde e todos os jobs mutáveis ignorados.
+- Revalidação com acesso HTTP confirmado: [run 30286251608](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30286251608) — o GET avançou pela condição HTTP `200`; falha posterior no parser Node. O corpo da resposta foi impresso acidentalmente no log do run, não foi copiado para este relatório e o cabeçalho de credencial não foi impresso.
 - SHA imutável executor: `b0beb869dfe055ff506bf5ba54c7c52c73d2d3fb`
 - Project ref: allowlisted e mascarado.
 - Contrato: `sidewalk-operational-safer-pre-v2` (`d916a99153c8e29a10833c4ff7c0efc5b765bdab54e08ee671ad9a1ee3e58858`)
@@ -35,11 +36,11 @@ O comando de alteração da flag foi recusado por acesso à conta Vercel antes d
 ## Segurança
 
 - Nenhuma migration, alteração de ledger ou escrita em Storage foi tentada neste checkpoint.
-- O preflight usou apenas `GET` à API da Vercel; a resposta e o token não foram publicados.
+- O preflight usou apenas `GET` à API da Vercel; nenhum corpo de resposta, cabeçalho de credencial ou valor protegido foi copiado para os relatórios.
 - Nenhum deploy, domínio ou outra flag foi alterado.
 - Nenhum valor de conexão, token, chave ou project ref completo é registrado neste relatório.
 - Não houve contribuição técnica de teste nem escrita pública de dados.
 
 ## Próximo bloqueio humano
 
-Uma pessoa responsável deve revisar a injeção e o escopo da credencial protegida para que ela tenha acesso ao time e projeto canônicos, sem fornecer o valor no chat. Depois de um preflight HTTP `200`, será necessária uma nova autorização exata para uma nova tentativa de `mode=activate`. Esta execução não autoriza retry automático.
+O parser e o transporte do preflight precisam ser corrigidos e validados em uma única nova execução somente leitura. O run sensível permanece preservado até o recebimento explícito de `AUTORIZO_EXCLUIR_RUN_SENSIVEL_30286251608`. Mesmo após um preflight verde, será necessária uma nova autorização exata para uma tentativa de `mode=activate`.

@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "checkpoint": "tijolo-45-3g-operational-activation",
-  "decision": "COMUN_TIJOLO_45_3G_VERCEL_ACCESS_STILL_BLOCKED",
+  "decision": "COMUN_TIJOLO_45_3G_VERCEL_ACCESS_GREEN_PARSER_FAILED",
   "approvalState": {
     "recognized": true,
     "exact": true,
@@ -34,6 +34,17 @@
       "validateInput": "success",
       "mutatingJobs": "skipped",
       "responsePublished": false
+    },
+    "parserFailureReadOnlyPreflight": {
+      "workflowRunId": 30286251608,
+      "workflowRunUrl": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30286251608",
+      "method": "GET",
+      "httpStatus": 200,
+      "httpStatusConfirmedByControlFlow": true,
+      "failure": "temporary response file was incorrectly passed to Node as a program",
+      "responseBodyCopiedToReport": false,
+      "credentialHeaderPrinted": false,
+      "mutatingJobs": "skipped"
     }
   },
   "contract": {
@@ -57,9 +68,9 @@
     "rollback": "not-required-before-mutation"
   },
   "failure": {
-    "stage": "vercel-account-access",
-    "sanitizedCause": "protected Vercel credential still cannot access the canonical project through the read-only preflight",
-    "requiresHumanDecision": true
+    "stage": "vercel-preflight-parser",
+    "sanitizedCause": "HTTP 200 response was parsed as JavaScript because the temporary response path was passed as a Node program",
+    "requiresHumanDecision": false
   },
   "remoteWrites": {
     "database": "none",
@@ -68,5 +79,5 @@
     "vercelFlag": "none-observed",
     "deployment": "none"
   },
-  "nextHumanGate": "repair protected Vercel team/project access, obtain a green read-only preflight, then receive a new exact activation approval"
+  "nextHumanGate": "validate the parser repair with one read-only preflight; sensitive run deletion still requires its explicit approval"
 }
