@@ -415,11 +415,16 @@ export function summarizeScopedObjects(document) {
   for (const [kind, entries] of Object.entries(canonical)) {
     if (!Array.isArray(entries)) continue;
     for (const entry of entries) {
-      const rawObjectName = entry.table
-        ? entry.name
-          ? `${entry.table}.${entry.name}`
+      const rawObjectName =
+        kind === "grants" && entry.table
+          ? `${entry.table}.${sanitizeGrantRole(entry.grantee)}.${String(
+              entry.privilege ?? "",
+            ).toUpperCase()}`
           : entry.table
-        : (entry.release ?? "catalog");
+            ? entry.name
+              ? `${entry.table}.${entry.name}`
+              : entry.table
+            : (entry.release ?? "catalog");
       const rawName = String(rawObjectName);
       const name =
         /(?:private_notes|exact_latitude|exact_longitude|object_key|email|telefone)/i.test(
