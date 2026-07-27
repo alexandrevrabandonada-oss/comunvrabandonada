@@ -48,7 +48,7 @@ test("sidewalk readiness restores a historical local baseline before applying th
   );
   assert.match(
     checkpoint,
-    /Apply and reapply the local release[\s\S]*?Restore the current local schema for RLS and E2E[\s\S]*?supabase db reset --local --yes[\s\S]*?npm run audit:rls-matrix/,
+    /Apply and reapply the local release[\s\S]*?Restore the current local schema for RLS and E2E[\s\S]*?supabase db reset --local --yes[\s\S]*?Adopt the exact local release ledger for E2E[\s\S]*?--adopt-local-validation-ledger[\s\S]*?npm run audit:rls-matrix/,
   );
   assert.doesNotMatch(checkpoint, /supabase db push|migration repair/i);
 });

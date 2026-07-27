@@ -470,6 +470,42 @@ const expectedPre = (release) =>
   expectedScopedFingerprint(release, "expectedPreFingerprint");
 const expectedPost = (release) =>
   expectedScopedFingerprint(release, "expectedPostFingerprint");
+
+export function localValidationLedgerAdoptionSql(release) {
+  if (
+    release.release !== "20260724233256-comun-sidewalk-operational-hardening" ||
+    !/^[a-f0-9]{64}$/.test(release.migrationSha256 ?? "") ||
+    !/^[a-f0-9]{64}$/.test(expectedPre(release)) ||
+    !/^[a-f0-9]{64}$/.test(expectedPost(release))
+  ) {
+    fail("SOLO_LOCAL_LEDGER_RELEASE_INVALID");
+  }
+  const quoted = (value) => String(value).replaceAll("'", "''");
+  return `
+begin;
+do $local_ledger$
+declare
+  adopted_count integer;
+begin
+  update public.comun_schema_releases
+  set migration_sha256 = '${quoted(release.migrationSha256)}',
+      pre_fingerprint = '${quoted(expectedPre(release))}',
+      post_fingerprint = '${quoted(expectedPost(release))}'
+  where release = '${quoted(release.release)}'
+    and status = 'applied'
+    and migration_path = '${quoted(release.migration)}'
+    and migration_sha256 = 'LOCAL_VALIDATION'
+    and pre_fingerprint = 'LOCAL_VALIDATION'
+    and post_fingerprint = 'LOCAL_VALIDATION';
+  get diagnostics adopted_count = row_count;
+  if adopted_count <> 1 then
+    raise exception 'COMUN_LOCAL_LEDGER_ADOPTION_REFUSED';
+  end if;
+end
+$local_ledger$;
+commit;`;
+}
+
 function ledgerValue(release) {
   return `${release.migrationSha256}|${expectedPre(release)}|${expectedPost(release)}`;
 }
@@ -568,6 +604,13 @@ export function validateBlockingFindings(baseline, expectedBlockingFindings) {
 export async function main(argv = process.argv.slice(2)) {
   validateAllowlist();
   const { release, migration } = loadRelease(argv);
+  if (argv.includes("--adopt-local-validation-ledger")) {
+    if (process.env.SUPABASE_PROJECT_REF !== "LOCAL_VALIDATION")
+      fail("SOLO_LOCAL_LEDGER_LOCAL_ONLY");
+    executeSql(localValidationLedgerAdoptionSql(release));
+    console.log("COMUN_SIDEWALK_OPERATIONAL_LOCAL_LEDGER_READY");
+    return;
+  }
   const diagnosticOutput = securityDiagnosticOutputPath(argv);
   const globalBefore = captureBaseline();
   validatePreflightObjects(globalBefore, readOnboardingTriggerCount());

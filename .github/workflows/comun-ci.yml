@@ -550,6 +550,10 @@ jobs:
           supabase stop --no-backup
           supabase start
           supabase db reset --local --yes
+      - name: Adopt the exact local release ledger for E2E
+        env:
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
+        run: node scripts/comun-local-env.mjs run node scripts/solo/apply-forward-only.mjs --adopt-local-validation-ledger
       - run: npm run audit:rls-matrix
       - run: npx playwright install --with-deps chromium
       - name: Run the local E2E visual matrix

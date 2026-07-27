@@ -7,6 +7,7 @@ import {
   buildSanitizedSecurityDiagnostic,
   dockerDatabaseUrl,
   executeSql,
+  localValidationLedgerAdoptionSql,
   localPublishedDatabaseUrl,
   parseJsonOutput,
   parseScalarOutput,
@@ -299,6 +300,28 @@ test("only published local PostgreSQL URLs qualify for local validation", () => 
       "postgresql://local:example@127.0.0.1:0/postgres",
     ),
     false,
+  );
+});
+
+test("local E2E ledger adoption accepts only the canonical sidewalk placeholder", () => {
+  const release = {
+    release: "20260724233256-comun-sidewalk-operational-hardening",
+    migration:
+      "supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql",
+    migrationSha256: "a".repeat(64),
+    expectedPreFingerprint: "b".repeat(64),
+    expectedPostFingerprint: "c".repeat(64),
+  };
+  const sql = localValidationLedgerAdoptionSql(release);
+  assert.match(sql, /migration_sha256 = 'a{64}'/);
+  assert.match(sql, /pre_fingerprint = 'b{64}'/);
+  assert.match(sql, /post_fingerprint = 'c{64}'/);
+  assert.match(sql, /migration_sha256 = 'LOCAL_VALIDATION'/);
+  assert.match(sql, /COMUN_LOCAL_LEDGER_ADOPTION_REFUSED/);
+  assert.doesNotMatch(sql, /delete\s+from/i);
+  assert.throws(
+    () => localValidationLedgerAdoptionSql({ ...release, release: "other" }),
+    marker("SOLO_LOCAL_LEDGER_RELEASE_INVALID"),
   );
 });
 
