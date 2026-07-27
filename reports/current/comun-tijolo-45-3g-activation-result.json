@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "checkpoint": "tijolo-45-3g-operational-activation",
-  "decision": "COMUN_VERCEL_PROTECTED_ACCESS_READ_GREEN",
+  "decision": "COMUN_TIJOLO_45_3G_ACTIVATION_ROLLED_BACK",
   "approvalState": {
     "recognized": true,
     "exact": true,
@@ -58,6 +58,19 @@
       "parser": "reads the protected temporary response path from PROJECT_JSON",
       "responseBodyPublished": false,
       "mutatingJobs": "skipped"
+    },
+    "activationAttempt": {
+      "workflowRunId": 30292000244,
+      "workflowRunUrl": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30292000244",
+      "approvalRecognized": true,
+      "postflight": "success-read-only",
+      "flagBefore": "disabled",
+      "initialFlagAndDeployment": "success",
+      "smoke": "failed-closed-before-route-checks",
+      "sanitizedFailure": "activation job did not provide the GitHub deployment context required by the monitor",
+      "rollback": "success-public-pause-confirmed",
+      "flagAfter": "disabled",
+      "retryExecuted": false
     }
   },
   "contract": {
@@ -73,12 +86,12 @@
   },
   "operationalState": {
     "flagBefore": "disabled",
-    "flagAfter": "disabled-confirmed-by-public-pause",
+    "flagAfter": "disabled-confirmed-by-public-pause-after-rollback",
     "publicContribution": "paused",
     "mapPublicHttpStatus": 200,
-    "productionDeployment": "not-started",
-    "activationSmoke": "not-started",
-    "rollback": "not-required-before-mutation"
+    "productionDeployment": "activation-and-rollback-attempted",
+    "activationSmoke": "failed-closed-before-route-checks",
+    "rollback": "completed-public-pause-confirmed"
   },
   "parserIncident": {
     "stage": "vercel-preflight-parser",
@@ -93,5 +106,5 @@
     "vercelFlag": "none-observed",
     "deployment": "none"
   },
-  "nextHumanGate": "new exact human approval for mode=activate; sensitive run deletion remains separately gated"
+  "nextHumanGate": "separate code checkpoint to supply the smoke deployment context before any new activation approval"
 }
