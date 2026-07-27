@@ -71,6 +71,23 @@
       "rollback": "success-public-pause-confirmed",
       "flagAfter": "disabled",
       "retryExecuted": false
+    },
+    "finalActivationAttempt": {
+      "workflowRunId": 30294542396,
+      "workflowRunUrl": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30294542396",
+      "executorSha": "b80428643db6042ff648aa49235e7422f524ae4a",
+      "approvalRecognized": true,
+      "validateInput": "success",
+      "postflight": "success-read-only",
+      "migrate": "skipped",
+      "flagBefore": "disabled",
+      "initialFlagAndDeployment": "success",
+      "smoke": "failed-closed-contribution-still-paused",
+      "sanitizedFailure": "SOLO_ACTIVATION_SMOKE_CONTRIBUTION_STILL_PAUSED",
+      "rollback": "success-public-pause-confirmed",
+      "flagAfter": "disabled",
+      "monitoring": "not-started-after-smoke-failure",
+      "retryExecuted": false
     }
   },
   "contract": {
@@ -90,7 +107,7 @@
     "publicContribution": "paused",
     "mapPublicHttpStatus": 200,
     "productionDeployment": "activation-and-rollback-attempted",
-    "activationSmoke": "failed-closed-before-route-checks",
+    "activationSmoke": "failed-closed-contribution-still-paused",
     "rollback": "completed-public-pause-confirmed"
   },
   "parserIncident": {
@@ -106,5 +123,5 @@
     "vercelFlag": "enabled-then-disabled-by-automatic-rollback",
     "deployment": "activation-then-rollback"
   },
-  "nextHumanGate": "separate code checkpoint to supply the smoke deployment context before any new activation approval"
+  "nextHumanGate": "separate code checkpoint to wait for post-deploy activation readiness before smoke, then a new exact activation authorization"
 }
