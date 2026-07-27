@@ -440,6 +440,131 @@ jobs:
           COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node scripts/ci/update-comun-central.mjs
 
+  sidewalk-readiness-lane:
+    name: Sidewalk readiness lane / COMUN_SIDEWALK_READINESS_LANE_GREEN
+    if: >-
+      github.event_name == 'pull_request' && github.event.action != 'closed' &&
+      github.event.pull_request.base.ref == 'main' &&
+      contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: '${{ github.event.pull_request.head.sha }}', fetch-depth: 0 }
+      - name: Validate generic readiness lane integrity
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+          ACTUAL_BRANCH: ${{ github.event.pull_request.head.ref }}
+          ACTUAL_BASE: ${{ github.event.pull_request.base.ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$ACTUAL_BASE" = main
+          [[ "$ACTUAL_BRANCH" == codex/* ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          changed="$(git diff --name-only origin/main...HEAD)"
+          ! printf '%s\n' "$changed" | grep -E '(^|/)(backups?|[^/]+\.(dump|sql\.gz|log)|\.env($|\.)|.*secret)'
+          ! printf '%s\n' "$changed" | grep -E '^supabase/migrations/20260724233256_comun_sidewalk_operational_hardening\.sql$'
+          ! printf '%s\n' "$changed" | grep -E '^supabase/releases/20260724233256-comun-sidewalk-operational-hardening\.json$'
+          echo COMUN_SIDEWALK_READINESS_LANE_GREEN
+
+  sidewalk-readiness-micro:
+    name: MICRO / COMUN_MICRO_GREEN
+    needs: sidewalk-readiness-lane
+    if: >-
+      github.event_name == 'pull_request' &&
+      contains(fromJSON('["opened","synchronize","reopened","ready_for_review"]'), github.event.action) &&
+      github.event.pull_request.base.ref == 'main' &&
+      contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: '${{ github.event.pull_request.head.sha }}', fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run test:unit
+      - run: node --test scripts/solo/comun-sidewalk-activate-workflow.node-test.mjs scripts/solo/reconcile-sidewalk-scoped.node-test.mjs
+      - run: git diff --check origin/main...HEAD
+      - run: echo COMUN_MICRO_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  sidewalk-readiness-checkpoint:
+    name: CHECKPOINT / COMUN_CHECKPOINT_GREEN
+    needs: sidewalk-readiness-lane
+    if: >-
+      github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+      github.event.pull_request.base.ref == 'main' &&
+      contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness') &&
+      contains(github.event.pull_request.labels.*.name, 'comun:checkpoint')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: '${{ github.event.pull_request.head.sha }}' }
+      - name: Require MICRO for the exact SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api --paginate "repos/${{ github.repository }}/commits/$SHA/check-runs?per_page=100" | jq -s -e '[.[].check_runs[] | select(.name == "MICRO / COMUN_MICRO_GREEN" and .conclusion == "success")] | length > 0' > /dev/null
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.109.1 }
+      - run: npm ci --ignore-scripts
+      - run: supabase start && supabase db reset --local --yes
+      - name: Verify pre-migration compatibility
+        env: { COMUN_SIDEWALK_OPERATIONAL_V2: disabled }
+        run: node scripts/solo/verify-sidewalk-premigration-compat.mjs
+      - name: Apply and reapply the local release
+        env:
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
+          PR23_DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres?application_name=LOCAL_VALIDATION
+          SUPABASE_PROJECT_REF: LOCAL_VALIDATION
+          PR23_ALLOWED_PROJECT_REFS: LOCAL_VALIDATION
+        run: |
+          node scripts/solo/apply-forward-only.mjs
+          node scripts/solo/apply-forward-only.mjs | grep COMUN_SIDEWALK_OPERATIONAL_HARDENING_ALREADY_APPLIED
+      - run: npm run audit:rls-matrix
+      - run: npx playwright install --with-deps chromium
+      - name: Run the local E2E visual matrix
+        env: { COMUN_SIDEWALK_OPERATIONAL_V2: enabled }
+        run: npm run test:e2e:comun-integral-experience -- --project=390x844 --project=768x1024 --project=1440x900
+      - if: always()
+        run: supabase stop --no-backup || true
+      - run: echo COMUN_CHECKPOINT_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  sidewalk-readiness-full:
+    name: RELEASE/FULL / COMUN_CI_GREEN
+    if: >-
+      github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+      github.event.pull_request.base.ref == 'main' &&
+      contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness') &&
+      contains(github.event.pull_request.labels.*.name, 'comun:checkpoint') &&
+      contains(github.event.pull_request.labels.*.name, 'comun:release-candidate')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: '${{ github.event.pull_request.head.sha }}', fetch-depth: 0 }
+      - name: Require MICRO and CHECKPOINT for the exact SHA
+        env: { GH_TOKEN: ${{ github.token }}, SHA: ${{ github.event.pull_request.head.sha }} }
+        run: |
+          for required in "MICRO / COMUN_MICRO_GREEN" "CHECKPOINT / COMUN_CHECKPOINT_GREEN"; do
+            gh api --paginate "repos/${{ github.repository }}/commits/$SHA/check-runs?per_page=100" | jq -s -e --arg required "$required" '[.[].check_runs[] | select(.name == $required and .conclusion == "success")] | length > 0' > /dev/null
+          done
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npm run test:promotion-runner && npm run test:security-hardening && npm run db:privileges:lint && npm run build
+      - run: git diff --check origin/main...HEAD
+      - run: echo COMUN_CI_GREEN >> "$GITHUB_STEP_SUMMARY"
+
   release-rehearsal:
     name: RELEASE / COMUN_RELEASE_REHEARSAL
     if: github.event.pull_request.number == 35
