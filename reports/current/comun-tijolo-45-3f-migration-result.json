@@ -1,0 +1,66 @@
+{
+  "formatVersion": 1,
+  "checkpoint": "tijolo-45-3f-scoped-migration",
+  "decision": "COMUN_TIJOLO_45_3F_SCOPED_MIGRATION_APPLIED_FLAG_DISABLED",
+  "authorization": {
+    "recognized": true,
+    "exact": true,
+    "projectRef": "allowlisted-masked"
+  },
+  "execution": {
+    "workflowRunId": 30281552982,
+    "workflowRunUrl": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30281552982",
+    "executorSha": "b0beb869dfe055ff506bf5ba54c7c52c73d2d3fb",
+    "dispatchMainSha": "ad188f54c7b6b4d7d79dd8277c9cc86a04484f78",
+    "preflight": "success",
+    "migration": "success",
+    "postflight": "success-read-only",
+    "transactionStartedAt": "2026-07-27T15:47:34Z",
+    "transactionCompletedAt": "2026-07-27T15:48:03Z"
+  },
+  "contract": {
+    "id": "sidewalk-operational-safer-pre-v2",
+    "sha256": "d916a99153c8e29a10833c4ff7c0efc5b765bdab54e08ee671ad9a1ee3e58858",
+    "scopedPreFingerprint": "501f75609e3ed0d1edea63f26076d3b05ab9767f71ef12794ac22d1929b7e875",
+    "scopedPostFingerprint": "4bebf4c1db4da58fd9710c7f9478bb2837b171aa4620de2d376e19d5a99b66d8"
+  },
+  "canonicalInputs": {
+    "migrationPath": "supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql",
+    "migrationSha256": "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be",
+    "manifestPath": "supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json",
+    "manifestSha256": "ceb7002f9a7069cbe82c4e6b16032bef1cd3619f12271a260dbca37fb5bc1335",
+    "preserved": true
+  },
+  "remoteState": {
+    "ledgerBefore": "ABSENT",
+    "ledgerAfter": "PRESENT_ACCEPTED",
+    "blockingFindingsBefore": 0,
+    "blockingFindingsAfter": 0,
+    "platformObservations": 1,
+    "idempotencyVerification": {
+      "mode": "read-only-postflight",
+      "marker": "COMUN_CANONICAL_RELEASE_POST_READY",
+      "reappliedDdlOrDml": false
+    }
+  },
+  "operationalState": {
+    "flag": "disabled",
+    "activateExecuted": false,
+    "publicContribution": "paused",
+    "storage": "unchanged",
+    "vercel": "unchanged"
+  },
+  "remoteWrites": {
+    "canonicalMigration": "applied-once",
+    "releaseLedger": "created-after-complete-application",
+    "storage": "none",
+    "vercelConfiguration": "none",
+    "featureFlag": "none"
+  },
+  "sanitization": {
+    "preflightArtifactScanned": true,
+    "connectionValuesIncluded": false,
+    "privateDataIncluded": false
+  },
+  "nextHumanGate": "separate exact authorization for mode=activate"
+}
