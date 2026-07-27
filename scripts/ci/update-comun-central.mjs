@@ -64,6 +64,7 @@ if (stage === "push") {
 }
 if (stage === "checkpoint") {
   state.set("CHECKPOINT", result);
+  if (cause) state.set("Causa", cause);
   state.set("Etapa atual", "CHECKPOINT concluído; aguardando RELEASE/FULL");
 }
 if (stage === "release") {

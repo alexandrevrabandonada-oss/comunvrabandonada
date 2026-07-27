@@ -497,7 +497,7 @@ jobs:
     name: CHECKPOINT / COMUN_CHECKPOINT_GREEN
     needs: sidewalk-readiness-lane
     if: >-
-      github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+      github.event_name == 'pull_request' && contains(fromJSON('["labeled","synchronize"]'), github.event.action) &&
       github.event.pull_request.base.ref == 'main' &&
       contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness') &&
       contains(github.event.pull_request.labels.*.name, 'comun:checkpoint')
@@ -526,12 +526,9 @@ jobs:
       - name: Apply and reapply the local release
         env:
           COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
-          PR23_DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres?application_name=LOCAL_VALIDATION
-          SUPABASE_PROJECT_REF: LOCAL_VALIDATION
-          PR23_ALLOWED_PROJECT_REFS: LOCAL_VALIDATION
         run: |
-          node scripts/solo/apply-forward-only.mjs
-          node scripts/solo/apply-forward-only.mjs | grep COMUN_SIDEWALK_OPERATIONAL_HARDENING_ALREADY_APPLIED
+          node scripts/comun-local-env.mjs run node scripts/solo/apply-forward-only.mjs
+          node scripts/comun-local-env.mjs run node scripts/solo/apply-forward-only.mjs | grep COMUN_SIDEWALK_OPERATIONAL_HARDENING_ALREADY_APPLIED
       - run: npm run audit:rls-matrix
       - run: npx playwright install --with-deps chromium
       - name: Run the local E2E visual matrix
@@ -544,7 +541,7 @@ jobs:
   sidewalk-readiness-full:
     name: RELEASE/FULL / COMUN_CI_GREEN
     if: >-
-      github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+      github.event_name == 'pull_request' && contains(fromJSON('["labeled","synchronize"]'), github.event.action) &&
       github.event.pull_request.base.ref == 'main' &&
       contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness') &&
       contains(github.event.pull_request.labels.*.name, 'comun:checkpoint') &&
@@ -569,6 +566,43 @@ jobs:
       - run: npm run test:promotion-runner && npm run test:security-hardening && npm run db:privileges:lint && npm run build
       - run: git diff --check origin/main...HEAD
       - run: echo COMUN_CI_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  central-after-sidewalk-micro:
+    needs: sidewalk-readiness-micro
+    if: always() && github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          GITHUB_TOKEN: ${{ github.token }}
+          COMUN_CENTRAL_ISSUE: "39"
+          COMUN_CENTRAL_STAGE: push
+          COMUN_CENTRAL_RESULT: ${{ needs.sidewalk-readiness-micro.result }}
+          COMUN_CENTRAL_SHA: ${{ github.event.pull_request.head.sha }}
+          COMUN_CENTRAL_BRANCH: ${{ github.event.pull_request.head.ref }}
+          COMUN_CENTRAL_PR: ${{ github.event.pull_request.number }}
+          COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          COMUN_CENTRAL_REMOTE_WRITES: none
+        run: node scripts/ci/update-comun-central.mjs
+
+  central-after-sidewalk-checkpoint:
+    needs: sidewalk-readiness-checkpoint
+    if: always() && github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness') && contains(github.event.pull_request.labels.*.name, 'comun:checkpoint')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          GITHUB_TOKEN: ${{ github.token }}
+          COMUN_CENTRAL_ISSUE: "39"
+          COMUN_CENTRAL_STAGE: checkpoint
+          COMUN_CENTRAL_RESULT: ${{ needs.sidewalk-readiness-checkpoint.result }}
+          COMUN_CENTRAL_SHA: ${{ github.event.pull_request.head.sha }}
+          COMUN_CENTRAL_BRANCH: ${{ github.event.pull_request.head.ref }}
+          COMUN_CENTRAL_PR: ${{ github.event.pull_request.number }}
+          COMUN_CENTRAL_CAUSE: transporte local do PostgreSQL no runner Ubuntu
+          COMUN_CENTRAL_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          COMUN_CENTRAL_REMOTE_WRITES: none
+        run: node scripts/ci/update-comun-central.mjs
 
   release-rehearsal:
     name: RELEASE / COMUN_RELEASE_REHEARSAL
