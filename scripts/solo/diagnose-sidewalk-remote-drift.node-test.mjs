@@ -2,12 +2,19 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import {
+  GRANT_CLASSIFICATIONS,
   DiagnosticError,
+  assessAuditGrantDrift,
+  auditGrantProvenance,
   assertReadOnlySql,
+  auditGrantMatrixQuery,
   classifyRemoteDrift,
   compareScopedObjects,
+  diffAuditGrantMatrices,
+  normalizeAuditGrantMatrix,
   readOnlyTransaction,
   runReadOnlyQuery,
+  sanitizeGrantRole,
   sanitizeArtifact,
   validateCanonicalRelease,
   validateRemoteEnvironment,
@@ -36,6 +43,14 @@ const base = (overrides = {}) => ({
 
 const remoteUrl = (host = "database.internal") =>
   ["postgresql:", "//reader:placeholder@", host, "/postgres"].join("");
+
+const auditGrant = (role, privilege, isGrantable = false) => ({
+  schema: "public",
+  table: "comun_admin_audit_log",
+  role,
+  privilege,
+  isGrantable,
+});
 
 test("rejects INSERT before opening a PostgreSQL connection", () => {
   let calls = 0;
@@ -334,6 +349,173 @@ test("offline reclassification needs neither a connection nor a secret", () => {
     /postgres(?:ql)?:|password|token/i,
   );
   assert.equal(replay.classification, "SIDEWALK_SCOPE_PRE_DRIFT");
+});
+
+test("classifies an audit grant matrix equal to local PRE", () => {
+  const pre = [
+    auditGrant("anon", "TRIGGER"),
+    auditGrant("authenticated", "TRUNCATE"),
+  ];
+  const assessment = assessAuditGrantDrift({ pre, post: [], remote: pre });
+  assert.equal(assessment.classification, "REMOTE_EQUIVALENT_TO_PRE");
+  assert.equal(assessment.risk, "equivalent_pre");
+});
+
+test("classifies an audit grant matrix equal to local POST", () => {
+  const pre = [auditGrant("anon", "TRIGGER")];
+  const post = [auditGrant("service_role", "SELECT")];
+  const assessment = assessAuditGrantDrift({ pre, post, remote: post });
+  assert.equal(assessment.classification, "REMOTE_EQUIVALENT_TO_POST");
+  assert.equal(assessment.risk, "equivalent_post");
+});
+
+test("classifies TRIGGER and TRUNCATE already revoked as more restrictive than PRE", () => {
+  const pre = [
+    auditGrant("anon", "TRIGGER"),
+    auditGrant("authenticated", "TRUNCATE"),
+  ];
+  const assessment = assessAuditGrantDrift({ pre, post: pre, remote: [] });
+  assert.equal(assessment.classification, "REMOTE_MORE_RESTRICTIVE_THAN_PRE");
+  assert.equal(assessment.risk, "safer_than_pre");
+});
+
+test("marks an extra SELECT grant for anon as more exposed", () => {
+  const pre = [auditGrant("service_role", "SELECT")];
+  const remote = [...pre, auditGrant("anon", "SELECT")];
+  const assessment = assessAuditGrantDrift({ pre, post: pre, remote });
+  assert.equal(assessment.classification, "REMOTE_MORE_PERMISSIVE_THAN_PRE");
+  assert.equal(assessment.risk, "more_exposed");
+});
+
+test("marks an extra INSERT grant for authenticated as more exposed", () => {
+  const pre = [auditGrant("service_role", "SELECT")];
+  const remote = [...pre, auditGrant("authenticated", "INSERT")];
+  assert.equal(
+    assessAuditGrantDrift({ pre, post: pre, remote }).classification,
+    "REMOTE_MORE_PERMISSIVE_THAN_PRE",
+  );
+});
+
+test("marks incomplete service role CRUD as incompatible service grant drift", () => {
+  const pre = [
+    auditGrant("service_role", "SELECT"),
+    auditGrant("service_role", "INSERT"),
+    auditGrant("service_role", "UPDATE"),
+    auditGrant("service_role", "DELETE"),
+  ];
+  const remote = pre.filter((grant) => grant.privilege !== "DELETE");
+  const assessment = assessAuditGrantDrift({ pre, post: pre, remote });
+  assert.equal(assessment.classification, "SERVICE_ROLE_GRANT_DRIFT");
+  assert.equal(assessment.risk, "service_role_incompatible");
+});
+
+test("classifies an additional unknown role grant as other drift and masks the role", () => {
+  const pre = [auditGrant("service_role", "SELECT")];
+  const remote = [...pre, auditGrant("project_owner", "SELECT")];
+  const assessment = assessAuditGrantDrift({ pre, post: pre, remote });
+  assert.equal(assessment.classification, "OTHER_GRANT_DRIFT");
+  assert.match(
+    assessment.remote.find((grant) => grant.role.startsWith("other-role-"))
+      .role,
+    /^other-role-[a-f0-9]{12}$/,
+  );
+});
+
+test("treats a public is_grantable escalation as more exposed", () => {
+  const pre = [auditGrant("anon", "SELECT", false)];
+  const remote = [auditGrant("anon", "SELECT", true)];
+  assert.equal(
+    assessAuditGrantDrift({ pre, post: pre, remote }).classification,
+    "REMOTE_MORE_PERMISSIVE_THAN_PRE",
+  );
+});
+
+test("does not infer audit grant equality when read permission is insufficient", () => {
+  const assessment = assessAuditGrantDrift({
+    pre: [auditGrant("anon", "SELECT")],
+    post: [],
+    remote: null,
+    unreadable: true,
+  });
+  assert.equal(assessment.classification, "INSUFFICIENT_READ_PERMISSION");
+  assert.equal(assessment.risk, "unknown");
+});
+
+test("audit grant classification is exactly one supported state", () => {
+  const assessment = assessAuditGrantDrift({
+    pre: [auditGrant("anon", "TRIGGER")],
+    post: [],
+    remote: [],
+  });
+  assert.deepEqual(
+    GRANT_CLASSIFICATIONS.filter(
+      (classification) => classification === assessment.classification,
+    ),
+    [assessment.classification],
+  );
+});
+
+test("sanitizes every unknown grant role deterministically", () => {
+  const masked = sanitizeGrantRole("project_owner");
+  assert.equal(masked, sanitizeGrantRole("project_owner"));
+  assert.match(masked, /^other-role-[a-f0-9]{12}$/);
+  assert.equal(sanitizeGrantRole(masked), masked);
+});
+
+test("rejects connection strings while allowing the service_role matrix entry", () => {
+  assert.deepEqual(
+    sanitizeArtifact({ grants: [auditGrant("service_role", "SELECT")] }),
+    { grants: [auditGrant("service_role", "SELECT")] },
+  );
+  assert.throws(
+    () => sanitizeArtifact({ connection: remoteUrl("database.private") }),
+    marker("COMUN_SIDEWALK_REMOTE_DIAGNOSTIC_SENSITIVE_ARTIFACT"),
+  );
+});
+
+test("sorts the audit grant matrix deterministically", () => {
+  const first = normalizeAuditGrantMatrix([
+    auditGrant("authenticated", "INSERT"),
+    auditGrant("anon", "SELECT"),
+  ]);
+  const second = normalizeAuditGrantMatrix([...first].reverse());
+  assert.deepEqual(first, second);
+});
+
+test("uses fixed read-only SQL for the audit grant matrix", () => {
+  assert.doesNotThrow(() => assertReadOnlySql(auditGrantMatrixQuery));
+  assert.doesNotMatch(
+    auditGrantMatrixQuery,
+    /\b(?:insert|update|delete|grant|revoke)\b/i,
+  );
+});
+
+test("builds deterministic PRE and POST deltas without a remote connection", () => {
+  const pre = [auditGrant("anon", "TRIGGER")];
+  const remote = [auditGrant("authenticated", "TRUNCATE")];
+  assert.deepEqual(diffAuditGrantMatrices(pre, remote), {
+    missingInRemote: pre,
+    extraInRemote: remote,
+    equal: [],
+  });
+});
+
+test("builds grant provenance from local migrations without reading remote SQL", async () => {
+  const timeline = await auditGrantProvenance(["20260708175500"]);
+  const hardening = timeline.find(
+    (entry) => entry.migration === "20260708175500",
+  );
+  const operational = timeline.find(
+    (entry) => entry.migration === "20260724233256",
+  );
+  assert.equal(hardening.presentInRemoteHistory, true);
+  assert.equal(hardening.causality, "likely");
+  assert.deepEqual(operational.operations[0], {
+    operation: "revoke",
+    roles: ["anon", "authenticated"],
+    privileges: ["TRIGGER", "TRUNCATE"],
+  });
+  assert.equal(operational.presentInRemoteHistory, false);
 });
 
 test("scoped fingerprint remains deterministic over the versioned sidewalk object scope", () => {

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -28,6 +28,25 @@ export const CLASSIFICATIONS = Object.freeze([
   "INSUFFICIENT_READ_PERMISSION",
 ]);
 
+export const GRANT_CLASSIFICATIONS = Object.freeze([
+  "REMOTE_EQUIVALENT_TO_PRE",
+  "REMOTE_EQUIVALENT_TO_POST",
+  "REMOTE_MORE_RESTRICTIVE_THAN_PRE",
+  "REMOTE_MORE_PERMISSIVE_THAN_PRE",
+  "SERVICE_ROLE_GRANT_DRIFT",
+  "OTHER_GRANT_DRIFT",
+  "INSUFFICIENT_READ_PERMISSION",
+]);
+
+export const AUDIT_GRANT_ROLES = Object.freeze([
+  "anon",
+  "authenticated",
+  "service_role",
+  "postgres",
+  "supabase_admin",
+  "authenticator",
+]);
+
 const RELEASE = "20260724233256-comun-sidewalk-operational-hardening";
 const MIGRATION_SHA256 =
   "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be";
@@ -40,7 +59,24 @@ const FORBIDDEN_SQL =
 const VOLATILE_SQL =
   /\b(?:random|clock_timestamp|statement_timestamp|transaction_timestamp|timeofday|gen_random_uuid|uuid_generate_v[0-9])\s*\(/i;
 const SENSITIVE_ARTIFACT =
-  /postgres(?:ql)?:\/\/|\b(?:jwt|service_role|password|authorization|cookie|coordinates|exact_latitude|exact_longitude|object_key|private_notes|email|telefone)\b|(?:[a-z0-9-]+\.)+supabase\.co/i;
+  /postgres(?:ql)?:\/\/|\b(?:jwt|password|authorization|cookie|coordinates|exact_latitude|exact_longitude|object_key|private_notes|email|telefone)\b|service_role\s*(?:key|token|=|:)|(?:[a-z0-9-]+\.)+supabase\.co/i;
+
+export const auditGrantMatrixQuery = String.raw`
+select coalesce(
+  jsonb_agg(
+    jsonb_build_object(
+      'schema', table_schema,
+      'table', table_name,
+      'grantee', grantee,
+      'privilege', privilege_type,
+      'isGrantable', is_grantable
+    ) order by table_schema, table_name, grantee, privilege_type, is_grantable
+  ),
+  '[]'::jsonb
+)::text
+from information_schema.role_table_grants
+where table_schema = 'public'
+  and table_name = 'comun_admin_audit_log';`;
 
 export class DiagnosticError extends Error {
   constructor(marker) {
@@ -56,6 +92,228 @@ const fail = (marker) => {
 const sha256 = (value) =>
   createHash("sha256").update(String(value)).digest("hex");
 const normalize = (value) => JSON.parse(JSON.stringify(value));
+
+const auditGrantTarget = Object.freeze({
+  schema: "public",
+  table: "comun_admin_audit_log",
+});
+const publicGrantRoles = new Set(["anon", "authenticated"]);
+const requiredServiceRoleCrud = new Set([
+  "SELECT",
+  "INSERT",
+  "UPDATE",
+  "DELETE",
+]);
+
+export function sanitizeGrantRole(role) {
+  const normalized = String(role ?? "")
+    .trim()
+    .toLowerCase();
+  return AUDIT_GRANT_ROLES.includes(normalized) ||
+    /^other-role-[a-f0-9]{12}$/.test(normalized)
+    ? normalized
+    : `other-role-${sha256(normalized).slice(0, 12)}`;
+}
+
+function normalizeIsGrantable(value) {
+  return value === true || /^(?:yes|true)$/i.test(String(value ?? ""));
+}
+
+function sortGrantMatrix(entries) {
+  return [...entries].sort((left, right) =>
+    [left.role, left.privilege, String(left.isGrantable)]
+      .join("\u0000")
+      .localeCompare(
+        [right.role, right.privilege, String(right.isGrantable)].join("\u0000"),
+      ),
+  );
+}
+
+export function normalizeAuditGrantMatrix(entries) {
+  if (!Array.isArray(entries)) return null;
+  return sortGrantMatrix(
+    entries.map((entry) => ({
+      ...auditGrantTarget,
+      role: sanitizeGrantRole(entry.role ?? entry.grantee),
+      privilege: String(entry.privilege ?? entry.privilege_type ?? "")
+        .trim()
+        .toUpperCase(),
+      isGrantable: normalizeIsGrantable(
+        entry.isGrantable ?? entry.is_grantable,
+      ),
+    })),
+  );
+}
+
+function grantKey(grant) {
+  return [grant.role, grant.privilege, String(grant.isGrantable)].join(
+    "\u0000",
+  );
+}
+
+function grantCapabilityKey(grant) {
+  return [grant.role, grant.privilege].join("\u0000");
+}
+
+function grantMap(matrix) {
+  return new Map(matrix.map((grant) => [grantKey(grant), grant]));
+}
+
+function capabilityMap(matrix) {
+  return new Map(matrix.map((grant) => [grantCapabilityKey(grant), grant]));
+}
+
+export function diffAuditGrantMatrices(reference, remote) {
+  if (!Array.isArray(reference) || !Array.isArray(remote)) return null;
+  const expected = grantMap(reference);
+  const observed = grantMap(remote);
+  return {
+    missingInRemote: sortGrantMatrix(
+      [...expected.entries()]
+        .filter(([key]) => !observed.has(key))
+        .map(([, grant]) => grant),
+    ),
+    extraInRemote: sortGrantMatrix(
+      [...observed.entries()]
+        .filter(([key]) => !expected.has(key))
+        .map(([, grant]) => grant),
+    ),
+    equal: sortGrantMatrix(
+      [...observed.entries()]
+        .filter(([key]) => expected.has(key))
+        .map(([, grant]) => grant),
+    ),
+  };
+}
+
+function isMatrixEqual(delta) {
+  return delta.missingInRemote.length === 0 && delta.extraInRemote.length === 0;
+}
+
+function isBroaderThanPre(remote, preCapabilities) {
+  const pre = preCapabilities.get(grantCapabilityKey(remote));
+  return !pre || (remote.isGrantable && !pre.isGrantable);
+}
+
+function isRestrictedFromPre(pre, remoteCapabilities) {
+  const remote = remoteCapabilities.get(grantCapabilityKey(pre));
+  return !remote || (pre.isGrantable && !remote.isGrantable);
+}
+
+function isReductionReplacement(remote, preCapabilities) {
+  const pre = preCapabilities.get(grantCapabilityKey(remote));
+  return pre?.isGrantable === true && remote.isGrantable === false;
+}
+
+function hasRequiredServiceRoleCrud(remote) {
+  const privileges = new Set(
+    remote
+      .filter((grant) => grant.role === "service_role")
+      .map((grant) => grant.privilege),
+  );
+  return [...requiredServiceRoleCrud].every((privilege) =>
+    privileges.has(privilege),
+  );
+}
+
+export function classifyAuditGrantDrift({
+  pre,
+  post,
+  remote,
+  unreadable = false,
+} = {}) {
+  if (
+    unreadable ||
+    !Array.isArray(pre) ||
+    !Array.isArray(post) ||
+    !Array.isArray(remote)
+  ) {
+    return { classification: "INSUFFICIENT_READ_PERMISSION", risk: "unknown" };
+  }
+  const remoteVsPre = diffAuditGrantMatrices(pre, remote);
+  const remoteVsPost = diffAuditGrantMatrices(post, remote);
+  if (isMatrixEqual(remoteVsPre)) {
+    return {
+      classification: "REMOTE_EQUIVALENT_TO_PRE",
+      risk: "equivalent_pre",
+    };
+  }
+  if (isMatrixEqual(remoteVsPost)) {
+    return {
+      classification: "REMOTE_EQUIVALENT_TO_POST",
+      risk: "equivalent_post",
+    };
+  }
+  const preCapabilities = capabilityMap(pre);
+  const remoteCapabilities = capabilityMap(remote);
+  const changed = [
+    ...remoteVsPre.missingInRemote,
+    ...remoteVsPre.extraInRemote,
+  ];
+  const publicCapabilityAdded = remote.some(
+    (grant) =>
+      publicGrantRoles.has(grant.role) &&
+      isBroaderThanPre(grant, preCapabilities),
+  );
+  if (publicCapabilityAdded) {
+    return {
+      classification: "REMOTE_MORE_PERMISSIVE_THAN_PRE",
+      risk: "more_exposed",
+    };
+  }
+  if (
+    changed.length > 0 &&
+    changed.every((grant) => grant.role === "service_role")
+  ) {
+    return {
+      classification: "SERVICE_ROLE_GRANT_DRIFT",
+      risk: hasRequiredServiceRoleCrud(remote)
+        ? "unknown"
+        : "service_role_incompatible",
+    };
+  }
+  const prePrivilegeRemoved = pre.some((grant) =>
+    isRestrictedFromPre(grant, remoteCapabilities),
+  );
+  const onlyReductions = remoteVsPre.extraInRemote.every((grant) =>
+    isReductionReplacement(grant, preCapabilities),
+  );
+  if (prePrivilegeRemoved && onlyReductions) {
+    return {
+      classification: "REMOTE_MORE_RESTRICTIVE_THAN_PRE",
+      risk: "safer_than_pre",
+    };
+  }
+  return { classification: "OTHER_GRANT_DRIFT", risk: "unknown" };
+}
+
+export function assessAuditGrantDrift({
+  pre,
+  post,
+  remote,
+  unreadable = false,
+} = {}) {
+  const normalizedPre = normalizeAuditGrantMatrix(pre);
+  const normalizedPost = normalizeAuditGrantMatrix(post);
+  const normalizedRemote = normalizeAuditGrantMatrix(remote);
+  const assessment = classifyAuditGrantDrift({
+    pre: normalizedPre,
+    post: normalizedPost,
+    remote: normalizedRemote,
+    unreadable,
+  });
+  return {
+    ...auditGrantTarget,
+    pre: normalizedPre ?? [],
+    post: normalizedPost ?? [],
+    remote: normalizedRemote ?? [],
+    remoteVsPre: diffAuditGrantMatrices(normalizedPre, normalizedRemote),
+    remoteVsPost: diffAuditGrantMatrices(normalizedPost, normalizedRemote),
+    unreadable:
+      unreadable || !normalizedPre || !normalizedPost || !normalizedRemote,
+    ...assessment,
+  };
+}
 
 function removeSqlStringsAndComments(sql) {
   return String(sql)
@@ -289,6 +547,62 @@ export function classifyRemoteDrift(evidence) {
   return "INSUFFICIENT_READ_PERMISSION";
 }
 
+function auditGrantOperationsFromMigration(source) {
+  return String(source)
+    .split(";")
+    .flatMap((statement) => {
+      if (!/\bcomun_admin_audit_log\b/i.test(statement)) return [];
+      const operation = statement.match(
+        /\b(grant|revoke)\s+(.+?)\s+on\s+table\b/is,
+      );
+      const roleMatch = statement.match(/\b(?:to|from)\s+([^;]+)$/is);
+      if (!operation || !roleMatch) return [];
+      const privileges = operation[2]
+        .split(",")
+        .map((value) => value.trim().toUpperCase())
+        .filter(Boolean)
+        .sort();
+      const roles = roleMatch[1]
+        .split(",")
+        .map((value) => sanitizeGrantRole(value))
+        .sort();
+      return [
+        {
+          operation: operation[1].toLowerCase(),
+          roles,
+          privileges,
+        },
+      ];
+    });
+}
+
+export async function auditGrantProvenance(remoteMigrations = []) {
+  const remote = new Set(remoteMigrations.map(String));
+  const directory = "supabase/migrations";
+  const files = (await readdir(directory)).sort();
+  const timeline = [];
+  for (const file of files) {
+    if (!file.endsWith(".sql")) continue;
+    const source = await readFile(path.join(directory, file), "utf8");
+    if (!/\bcomun_admin_audit_log\b/i.test(source)) continue;
+    const migration = file.split("_")[0];
+    const operations = auditGrantOperationsFromMigration(source);
+    const presentInRemoteHistory = remote.has(migration);
+    timeline.push({
+      migration,
+      operations,
+      presentInRemoteHistory,
+      causality:
+        operations.length > 0 && presentInRemoteHistory
+          ? "likely"
+          : presentInRemoteHistory
+            ? "unknown"
+            : "unrelated",
+    });
+  }
+  return timeline;
+}
+
 function sanitizeSecurityFinding(item) {
   const allowed = new Set([
     "RLS_ENABLED",
@@ -330,6 +644,37 @@ export async function scanArtifacts(paths) {
   };
 }
 
+function grantRows(grants) {
+  return grants.length
+    ? grants.map(
+        (grant) =>
+          `| ${grant.role} | ${grant.privilege} | ${grant.isGrantable ? "yes" : "no"} |`,
+      )
+    : ["| none | — | — |"];
+}
+
+function grantMatrixMarkdown(title, grants) {
+  return [
+    `### ${title}`,
+    "",
+    "| Role | Privilege | Is grantable |",
+    "| --- | --- | --- |",
+    ...grantRows(grants),
+    "",
+  ];
+}
+
+function grantDeltaMarkdown(title, delta) {
+  if (!delta) return [`### ${title}`, "", "- Matrix unreadable.", ""];
+  return [
+    `### ${title}`,
+    "",
+    ...grantMatrixMarkdown("Absent in remote", delta.missingInRemote),
+    ...grantMatrixMarkdown("Extra in remote", delta.extraInRemote),
+    ...grantMatrixMarkdown("Equal", delta.equal),
+  ];
+}
+
 function markdown(diagnostic) {
   return [
     "# Diagnóstico remoto somente leitura das Calçadas",
@@ -347,6 +692,22 @@ function markdown(diagnostic) {
     ...diagnostic.objects.map(
       (item) =>
         `| ${item.type} | ${item.name} | ${item.state} | ${item.observedHash ?? "absent"} |`,
+    ),
+    "",
+    "## Grant matrix: public.comun_admin_audit_log",
+    "",
+    `- Classification: ${diagnostic.grantAudit.classification}`,
+    `- Risk: ${diagnostic.grantAudit.risk}`,
+    ...grantMatrixMarkdown("Local PRE", diagnostic.grantAudit.pre),
+    ...grantMatrixMarkdown("Local POST", diagnostic.grantAudit.post),
+    ...grantMatrixMarkdown("Remote", diagnostic.grantAudit.remote),
+    ...grantDeltaMarkdown("Remote vs PRE", diagnostic.grantAudit.remoteVsPre),
+    ...grantDeltaMarkdown("Remote vs POST", diagnostic.grantAudit.remoteVsPost),
+    "## Provenance",
+    "",
+    ...diagnostic.provenance.map(
+      (item) =>
+        `- ${item.migration}: ${item.operations.length ? item.operations.map((operation) => `${operation.operation} ${operation.privileges.join(", ")} for ${operation.roles.join(", ")}`).join("; ") : "no grant operation"}; remote history: ${item.presentInRemoteHistory ? "present" : "absent"}; causality: ${item.causality}`,
     ),
     "",
     "## Segurança",
@@ -403,6 +764,13 @@ export async function diagnose({
         migrations: [],
         objects: [],
         findings: [],
+        grantAudit: assessAuditGrantDrift({
+          pre: reference.auditGrantsPre,
+          post: reference.auditGrantsPost,
+          remote: null,
+          unreadable: true,
+        }),
+        provenance: await auditGrantProvenance([]),
       };
     }
     throw error;
@@ -416,6 +784,27 @@ export async function diagnose({
     reference.objectsPost,
   );
   const ledger = ledgerState(scoped, release);
+  let rawAuditGrants = null;
+  let auditGrantUnreadable = false;
+  try {
+    rawAuditGrants = JSON.parse(execute(auditGrantMatrixQuery));
+  } catch (error) {
+    if (
+      error instanceof DiagnosticError &&
+      error.marker === "COMUN_SIDEWALK_REMOTE_DIAGNOSTIC_UNREADABLE"
+    ) {
+      auditGrantUnreadable = true;
+    } else {
+      throw error;
+    }
+  }
+  const grantAudit = assessAuditGrantDrift({
+    pre: reference.auditGrantsPre,
+    post: reference.auditGrantsPost,
+    remote: rawAuditGrants,
+    unreadable: auditGrantUnreadable,
+  });
+  const migrations = (global.canonical.migrations ?? []).map(String);
   const evidence = {
     globalPre: release.expectedPreFingerprint,
     globalPost: release.expectedPostFingerprint,
@@ -446,9 +835,11 @@ export async function diagnose({
       objects: scopedObjects,
     },
     ledger,
-    migrations: (global.canonical.migrations ?? []).map(String),
+    migrations,
     objects,
     findings: global.security.blockingFindings.map(sanitizeSecurityFinding),
+    grantAudit,
+    provenance: await auditGrantProvenance(migrations),
   };
 }
 
@@ -468,6 +859,8 @@ async function main() {
   await mkdir(outputDir, { recursive: true });
   const classification = {
     classification: diagnostic.classification,
+    grantClassification: diagnostic.grantAudit.classification,
+    grantRisk: diagnostic.grantAudit.risk,
     release: diagnostic.release,
     zeroRemoteWrites: true,
   };
