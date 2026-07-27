@@ -13,7 +13,7 @@
     "maps:sources:download:volta-redonda": "node scripts/download-volta-redonda-map-sources.mjs",
     "maps:toolchain:check": "node scripts/check-map-toolchain.mjs",
     "cleanup:comun-sidewalk-uploads": "node scripts/comun-local-env.mjs run node scripts/cleanup-comun-sidewalk-uploads.mjs",
-    "solo:test": "node --test scripts/solo/solo-automation.node-test.mjs scripts/solo/comun-sidewalk-activate-workflow.node-test.mjs scripts/solo/sidewalk-scoped-promotion-contract.node-test.mjs",
+    "solo:test": "node --test scripts/solo/solo-automation.node-test.mjs scripts/solo/comun-sidewalk-activate-workflow.node-test.mjs scripts/solo/sidewalk-scoped-promotion-contract.node-test.mjs scripts/solo/diagnose-sidewalk-remote-drift.node-test.mjs scripts/solo/derive-sidewalk-safer-pre-v2-reference.node-test.mjs",
     "test:sidewalk-scoped-contract": "node --test scripts/solo/sidewalk-scoped-promotion-contract.node-test.mjs",
     "test:comun-retro": "node --test scripts/process/evaluate-comun-checkpoint.node-test.mjs",
     "solo:sql:validate": "node scripts/solo/validate-forward-only-sql.mjs",

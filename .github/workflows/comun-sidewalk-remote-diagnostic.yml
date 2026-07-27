@@ -16,6 +16,14 @@ on:
         required: false
         default: true
         type: boolean
+      reference_profile:
+        description: Local reference profile used for the read-only comparison
+        required: false
+        default: canonical
+        type: choice
+        options:
+          - canonical
+          - safer-pre-v2
 
 permissions:
   contents: read
@@ -54,14 +62,25 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: 2.109.1
+      - name: Validate local reference profile
+        shell: bash
+        run: |
+          case "${{ inputs.reference_profile }}" in
+            canonical|safer-pre-v2) ;;
+            *) echo "COMUN_SIDEWALK_REMOTE_DIAGNOSTIC_REFERENCE_PROFILE_INVALID"; exit 1 ;;
+          esac
       - run: npm ci --ignore-scripts
       - run: supabase start
       - name: Reset local baseline before sidewalk operational release
         run: supabase db reset --local --yes --version 20260723220112
       - name: Capture local pre and post scoped fingerprints
+        if: inputs.reference_profile == 'canonical'
         env:
           COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
         run: node scripts/comun-local-env.mjs run node scripts/solo/capture-sidewalk-local-reference.mjs --output=.ci-artifacts/local-reference.json
+      - name: Derive safer PRE v2 local reference
+        if: inputs.reference_profile == 'safer-pre-v2'
+        run: node scripts/comun-local-env.mjs run node scripts/solo/derive-sidewalk-safer-pre-v2-reference.mjs --output=.ci-artifacts/local-reference.json
       - uses: actions/upload-artifact@v4
         with:
           name: comun-sidewalk-local-reference-${{ inputs.expected_main_sha }}-${{ github.run_id }}

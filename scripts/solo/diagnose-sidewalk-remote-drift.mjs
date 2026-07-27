@@ -9,10 +9,12 @@ import {
 } from "../db/verify-canonical-baseline.mjs";
 import {
   buildDocument as buildScopedDocument,
+  buildStructuralDocument,
   fingerprint as fingerprintScoped,
   fingerprintScope,
   query as scopedFingerprintQuery,
   scopedObjects,
+  structuralFingerprintScope,
 } from "./sidewalk-operational-fingerprint.mjs";
 import {
   selectReleaseManifest,
@@ -484,6 +486,28 @@ export function compareScopedObjects(remote, localPre = [], localPost = []) {
   });
 }
 
+export function buildFingerprintDocument(raw, scope = fingerprintScope) {
+  if (scope === fingerprintScope) return buildScopedDocument(raw);
+  if (scope === structuralFingerprintScope) return buildStructuralDocument(raw);
+  fail("COMUN_SIDEWALK_REMOTE_DIAGNOSTIC_SCOPE_INVALID");
+}
+
+export function validateReference(reference) {
+  if (
+    !reference ||
+    ![fingerprintScope, structuralFingerprintScope].includes(reference.scope) ||
+    !/^[a-f0-9]{64}$/.test(reference.scopedPre ?? "") ||
+    !/^[a-f0-9]{64}$/.test(reference.scopedPost ?? "") ||
+    !Array.isArray(reference.objectsPre) ||
+    !Array.isArray(reference.objectsPost) ||
+    !Array.isArray(reference.auditGrantsPre) ||
+    !Array.isArray(reference.auditGrantsPost)
+  ) {
+    fail("COMUN_SIDEWALK_REMOTE_DIAGNOSTIC_REFERENCE_INVALID");
+  }
+  return reference;
+}
+
 export function ledgerState(scopedDocument, release) {
   const ledger = scopedDocument?.canonical?.ledger;
   if (!Array.isArray(ledger)) return "UNREADABLE";
@@ -734,6 +758,7 @@ export async function diagnose({
   run = spawnSync,
   reference,
 }) {
+  validateReference(reference);
   const { release } = await validateCanonicalRelease();
   const { projectRef, databaseUrl } = validateRemoteEnvironment(env);
   const execute = (sql) => runReadOnlyQuery(sql, { databaseUrl, run });
@@ -763,6 +788,7 @@ export async function diagnose({
           localPost: reference.scopedPost,
           remoteObserved: null,
           algorithm: reference.algorithm,
+          scope: reference.scope,
           objects: scopedObjects,
         },
         ledger: "UNREADABLE",
@@ -781,14 +807,15 @@ export async function diagnose({
     throw error;
   }
   const global = buildDocuments(rawGlobal).compact;
-  const scoped = buildScopedDocument(rawScoped);
-  const remoteObjects = summarizeScopedObjects(scoped);
+  const rawScopedDocument = buildScopedDocument(rawScoped);
+  const scoped = buildFingerprintDocument(rawScoped, reference.scope);
+  const remoteObjects = summarizeScopedObjects(rawScopedDocument);
   const objects = compareScopedObjects(
     remoteObjects,
     reference.objectsPre,
     reference.objectsPost,
   );
-  const ledger = ledgerState(scoped, release);
+  const ledger = ledgerState(rawScopedDocument, release);
   let rawAuditGrants = null;
   let auditGrantUnreadable = false;
   try {
@@ -836,7 +863,8 @@ export async function diagnose({
       localPre: evidence.scopedPre,
       localPost: evidence.scopedPost,
       remoteObserved: evidence.scopedObserved,
-      algorithm: "sha256-json-stable-v1",
+      algorithm: reference.algorithm,
+      scope: reference.scope,
       objects: scopedObjects,
     },
     ledger,
