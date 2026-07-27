@@ -553,7 +553,9 @@ jobs:
       - uses: actions/checkout@v4
         with: { ref: '${{ github.event.pull_request.head.sha }}', fetch-depth: 0 }
       - name: Require MICRO and CHECKPOINT for the exact SHA
-        env: { GH_TOKEN: ${{ github.token }}, SHA: ${{ github.event.pull_request.head.sha }} }
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           for required in "MICRO / COMUN_MICRO_GREEN" "CHECKPOINT / COMUN_CHECKPOINT_GREEN"; do
             gh api --paginate "repos/${{ github.repository }}/commits/$SHA/check-runs?per_page=100" | jq -s -e --arg required "$required" '[.[].check_runs[] | select(.name == $required and .conclusion == "success")] | length > 0' > /dev/null
