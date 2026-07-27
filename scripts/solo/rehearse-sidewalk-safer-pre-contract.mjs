@@ -8,22 +8,20 @@ import {
   normalizeAuditGrantMatrix,
 } from "./diagnose-sidewalk-remote-drift.mjs";
 import {
-  buildDocument,
+  buildStructuralDocument,
   fingerprint,
   query as scopedFingerprintQuery,
 } from "./sidewalk-operational-fingerprint.mjs";
+import { saferPreFixtureSql } from "./sidewalk-safer-pre-v2-fixture.mjs";
 import {
   assertExactContractMatrix,
   selectScopedPromotionContract,
 } from "./sidewalk-scoped-promotion-contract.mjs";
 
-export const saferPreFixtureSql = `
-revoke references, trigger, truncate
-on public.comun_admin_audit_log
-from anon, authenticated;`;
+export { saferPreFixtureSql } from "./sidewalk-safer-pre-v2-fixture.mjs";
 
 const releaseManifest =
-  "supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v1.json";
+  "supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v2.json";
 const migrationPath =
   "supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql";
 const ledgerAbsent = "__COMUN_RELEASE_LEDGER_ABSENT__";
@@ -35,7 +33,7 @@ function localOnly() {
 }
 
 function capture() {
-  const document = buildDocument(queryJson(scopedFingerprintQuery));
+  const document = buildStructuralDocument(queryJson(scopedFingerprintQuery));
   return {
     scopedFingerprint: fingerprint(document),
     auditGrants: normalizeAuditGrantMatrix(queryJson(auditGrantMatrixQuery)),

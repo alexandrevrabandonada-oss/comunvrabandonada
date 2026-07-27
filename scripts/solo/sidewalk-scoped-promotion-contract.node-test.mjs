@@ -11,6 +11,8 @@ import {
   selectScopedPromotionContract,
   validateScopedPromotionContract,
 } from "./sidewalk-scoped-promotion-contract.mjs";
+import { scopedFingerprintDocument } from "./apply-forward-only.mjs";
+import { fingerprint } from "./sidewalk-operational-fingerprint.mjs";
 import {
   assertSaferPreMatrix,
   saferPreFixtureSql,
@@ -35,10 +37,10 @@ test("safer PRE contract is fixed, exact, and free of credentials", () => {
   assert.equal(selected.contract.contractId, CONTRACT_ID);
   assert.equal(selected.contractPath, CONTRACT_PATH);
   assert.equal(selected.contractHash, CONTRACT_SHA256);
-  assert.equal(selected.contract.grantRisk, "safer_than_pre");
+  assert.equal(selected.contract.grantRisk, "equivalent_pre");
   assert.equal(
     selected.contract.acceptedRemoteCondition,
-    "public.comun_admin_audit_log possui zero grants para anon/authenticated",
+    "as 72 revogacoes de REFERENCES, TRIGGER e TRUNCATE para anon e authenticated nas 12 tabelas legadas",
   );
   assert.doesNotMatch(
     JSON.stringify(selected.contract),
@@ -53,6 +55,20 @@ test("contract rejects canonical PRE, public privileges, service role loss, and 
   assert.throws(
     () => validateScopedPromotionContract(canonicalPre),
     /SOLO_SCOPED_PROMOTION_CONTRACT_/,
+  );
+
+  const anotherScopedDrift = clone(contract);
+  anotherScopedDrift.expectedScopedPostFingerprint = "b".repeat(64);
+  assert.throws(
+    () => validateScopedPromotionContract(anotherScopedDrift),
+    /SOLO_SCOPED_PROMOTION_CONTRACT_FINGERPRINT_INVALID/,
+  );
+
+  const incompleteFixture = clone(contract);
+  incompleteFixture.fixture.tables.pop();
+  assert.throws(
+    () => validateScopedPromotionContract(incompleteFixture),
+    /SOLO_SCOPED_PROMOTION_CONTRACT_FIXTURE_INVALID/,
   );
 
   const publicGrant = clone(contract);
@@ -109,6 +125,7 @@ test("safer PRE fixture removes the exact public grants and retains service role
     saferPreFixtureSql,
     /revoke references, trigger, truncate[\s\S]*comun_admin_audit_log[\s\S]*anon, authenticated/i,
   );
+  assert.equal((saferPreFixtureSql.match(/public\.comun_/g) ?? []).length, 12);
   const { contract } = selectScopedPromotionContract();
   assert.doesNotThrow(() =>
     assertSaferPreMatrix(contract.expectedAuditGrantMatrixPre),
@@ -119,6 +136,35 @@ test("safer PRE fixture removes the exact public grants and retains service role
       "post",
       contract.expectedAuditGrantMatrixPost,
     ),
+  );
+});
+
+test("structural promotion fingerprint excludes only the target ledger", () => {
+  const before = {
+    relations: [],
+    columns: [],
+    constraints: [],
+    indexes: [],
+    policies: [],
+    grants: [],
+    ledger: [],
+  };
+  const after = {
+    ...before,
+    ledger: [
+      {
+        release: "20260724233256-comun-sidewalk-operational-hardening",
+        status: "applied",
+      },
+    ],
+  };
+  assert.equal(
+    fingerprint(scopedFingerprintDocument(before, "sidewalk-operational-v2")),
+    fingerprint(scopedFingerprintDocument(after, "sidewalk-operational-v2")),
+  );
+  assert.throws(
+    () => scopedFingerprintDocument(before, "untrusted-scope"),
+    /SOLO_SCOPED_FINGERPRINT_SCOPE_INVALID/,
   );
 });
 

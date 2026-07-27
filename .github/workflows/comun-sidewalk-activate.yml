@@ -21,7 +21,7 @@ on:
       contract_id:
         description: Fixed, allowlisted scoped promotion contract.
         required: true
-        default: sidewalk-operational-safer-pre-v1
+        default: sidewalk-operational-safer-pre-v2
         type: string
       authorization:
         description: Empty for preflight; exact and mode-specific for migrate or activate.
@@ -57,7 +57,7 @@ jobs:
           set -euo pipefail
           test -n "$EXPECTED_MAIN_SHA"
           test "$RELEASE_ID" = "20260724233256-comun-sidewalk-operational-hardening"
-          test "$CONTRACT_ID" = "sidewalk-operational-safer-pre-v1"
+          test "$CONTRACT_ID" = "sidewalk-operational-safer-pre-v2"
           git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
           git merge-base --is-ancestor "$EXPECTED_MAIN_SHA" refs/remotes/origin/main
           test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
@@ -94,11 +94,11 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Validate migration and scoped contract without remote writes
         run: |
-          npm run solo:sql:validate -- --release-manifest=supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v1.json
+          npm run solo:sql:validate -- --release-manifest=supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v2.json
           node --input-type=module -e "import('./scripts/solo/sidewalk-scoped-promotion-contract.mjs').then(({selectScopedPromotionContract}) => selectScopedPromotionContract())"
       - name: Remote read-only scoped PRE and absent ledger preflight
         env:
-          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v1.json
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v2.json
           PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
           PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
@@ -147,14 +147,14 @@ jobs:
           test "$AUTHORIZATION" = "AUTORIZO_MIGRATION_CALCADAS_${PROJECT_REF}_${EXPECTED_MAIN_SHA}_${CONTRACT_HASH}_MANTER_FLAG_DESABILITADA"
       - name: Apply only the scoped, validated migration
         env:
-          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v1.json
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v2.json
           PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
           PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: node scripts/solo/apply-forward-only.mjs
       - name: Verify scoped POST and exact ledger without further writes
         env:
-          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v1.json
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v2.json
           PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
           PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
@@ -179,7 +179,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Verify existing scoped POST and exact ledger read-only
         env:
-          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v1.json
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v2.json
           PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
           PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}

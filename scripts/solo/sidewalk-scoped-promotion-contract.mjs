@@ -3,10 +3,16 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { normalizeAuditGrantMatrix } from "./diagnose-sidewalk-remote-drift.mjs";
 import { scopedObjects } from "./sidewalk-operational-fingerprint.mjs";
+import {
+  saferPreFixtureId,
+  saferPreLegacyTables,
+  saferPrePublicPrivileges,
+  saferPrePublicRoles,
+} from "./sidewalk-safer-pre-v2-fixture.mjs";
 
-export const CONTRACT_ID = "sidewalk-operational-safer-pre-v1";
+export const CONTRACT_ID = "sidewalk-operational-safer-pre-v2";
 export const CONTRACT_PATH =
-  "supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v1.json";
+  "supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v2.json";
 export const RELEASE = "20260724233256-comun-sidewalk-operational-hardening";
 export const MIGRATION_PATH =
   "supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql";
@@ -17,7 +23,11 @@ export const CANONICAL_PRE_FINGERPRINT =
 export const CANONICAL_POST_FINGERPRINT =
   "614908b735616fc64d4d36bc05e050ee53a0fb2b1f4e099febe1f327923350c4";
 export const CONTRACT_SHA256 =
-  "1ae7b7c8bc000acc5369276809f2f4d58ca919d925399d9750e840c9e3aecc74";
+  "d916a99153c8e29a10833c4ff7c0efc5b765bdab54e08ee671ad9a1ee3e58858";
+export const SCOPED_PRE_FINGERPRINT =
+  "501f75609e3ed0d1edea63f26076d3b05ab9767f71ef12794ac22d1929b7e875";
+export const SCOPED_POST_FINGERPRINT =
+  "4bebf4c1db4da58fd9710c7f9478bb2837b171aa4620de2d376e19d5a99b66d8";
 
 const fingerprint = /^[a-f0-9]{64}$/;
 const unsafe =
@@ -49,6 +59,19 @@ function assertSafeGrantMatrix(matrix) {
   }
 }
 
+function assertExactFixture(fixture) {
+  if (
+    !fixture ||
+    fixture.id !== saferPreFixtureId ||
+    JSON.stringify(fixture.tables) !== JSON.stringify(saferPreLegacyTables) ||
+    JSON.stringify(fixture.roles) !== JSON.stringify(saferPrePublicRoles) ||
+    JSON.stringify(fixture.privileges) !==
+      JSON.stringify(saferPrePublicPrivileges)
+  ) {
+    fail("SOLO_SCOPED_PROMOTION_CONTRACT_FIXTURE_INVALID");
+  }
+}
+
 export function contractHash(source) {
   return createHash("sha256").update(source).digest("hex");
 }
@@ -77,20 +100,21 @@ export function validateScopedPromotionContract(contract) {
     contract.expectedBlockingFindings !== 0 ||
     contract.platformObservationsAllowed !== true ||
     contract.releaseLedger !== "public.comun_schema_releases" ||
-    contract.fingerprintScope !== "sidewalk-operational-v1" ||
+    contract.fingerprintScope !== "sidewalk-operational-v2" ||
+    contract.fingerprintAlgorithm !== "sha256-json-stable-v2-ledger-excluded" ||
     JSON.stringify(contract.scopedObjects) !== JSON.stringify(scopedObjects) ||
     contract.expectedPreFingerprint !== CANONICAL_PRE_FINGERPRINT ||
     contract.expectedPostFingerprint !== CANONICAL_POST_FINGERPRINT ||
-    contract.derivedFromDiagnosticRun !== 30237943854 ||
-    contract.grantRisk !== "safer_than_pre" ||
+    contract.derivedFromDiagnosticRun !== 30278733804 ||
+    contract.grantRisk !== "equivalent_pre" ||
     contract.acceptedRemoteCondition !==
-      "public.comun_admin_audit_log possui zero grants para anon/authenticated"
+      "as 72 revogacoes de REFERENCES, TRIGGER e TRUNCATE para anon e authenticated nas 12 tabelas legadas"
   ) {
     fail("SOLO_SCOPED_PROMOTION_CONTRACT_INVALID");
   }
   if (
-    !fingerprint.test(contract.expectedScopedPreFingerprint ?? "") ||
-    !fingerprint.test(contract.expectedScopedPostFingerprint ?? "") ||
+    contract.expectedScopedPreFingerprint !== SCOPED_PRE_FINGERPRINT ||
+    contract.expectedScopedPostFingerprint !== SCOPED_POST_FINGERPRINT ||
     contract.expectedScopedPreFingerprint ===
       contract.expectedScopedPostFingerprint
   ) {
@@ -107,6 +131,7 @@ export function validateScopedPromotionContract(contract) {
   ) {
     fail("SOLO_SCOPED_PROMOTION_CONTRACT_LEDGER_INVALID");
   }
+  assertExactFixture(contract.fixture);
   assertSafeGrantMatrix(contract.expectedAuditGrantMatrixPre);
   assertSafeGrantMatrix(contract.expectedAuditGrantMatrixPost);
   if (unsafe.test(JSON.stringify(contract))) {
