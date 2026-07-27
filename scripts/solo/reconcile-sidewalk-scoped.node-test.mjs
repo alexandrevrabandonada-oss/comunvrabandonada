@@ -62,7 +62,7 @@ class FakeCommandRunner {
 
 const options = (commandRunner, roundId = "round", overrides = {}) => ({
   roundId,
-  backupDir: "D:/synthetic-backup",
+  backupDir: "/tmp/synthetic-backup",
   manifestPath: MANIFEST,
   discoveryMode: true,
   commandRunner,
@@ -160,7 +160,7 @@ test("foreign keys added by later independent domains do not block the scoped re
   const runner = new FakeCommandRunner({ foreignKeys: 7 });
   const result = await runIndependentRound({
     roundId: "seven-fks",
-    backupDir: "C:/fixtures/comun-sidewalk",
+    backupDir: "/tmp/comun-sidewalk",
     manifestPath: MANIFEST,
     discoveryMode: true,
     commandRunner: runner,
