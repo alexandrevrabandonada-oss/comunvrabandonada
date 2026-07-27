@@ -12,7 +12,11 @@ import {
   query as scopedQuery,
   scopedObjects,
 } from "./sidewalk-operational-fingerprint.mjs";
-import { summarizeScopedObjects } from "./diagnose-sidewalk-remote-drift.mjs";
+import {
+  auditGrantMatrixQuery,
+  normalizeAuditGrantMatrix,
+  summarizeScopedObjects,
+} from "./diagnose-sidewalk-remote-drift.mjs";
 
 const output =
   process.argv.find((arg) => arg.startsWith("--output="))?.slice(9) ??
@@ -48,6 +52,7 @@ function capture() {
     global,
     scoped: fingerprint(scoped),
     objects: summarizeScopedObjects(scoped),
+    auditGrants: normalizeAuditGrantMatrix(readJson(auditGrantMatrixQuery)),
   };
 }
 
@@ -89,6 +94,8 @@ async function main() {
     scopedPost: post.scoped,
     objectsPre: pre.objects,
     objectsPost: post.objects,
+    auditGrantsPre: pre.auditGrants,
+    auditGrantsPost: post.auditGrants,
     alreadyApplied: true,
   };
   await persistLocalReference(output, reference);
