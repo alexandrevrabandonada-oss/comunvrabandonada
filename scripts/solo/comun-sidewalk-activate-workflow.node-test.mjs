@@ -15,6 +15,23 @@ function job(workflow, name, next) {
   );
 }
 
+function validateFakeVercelProjectResponse(raw) {
+  try {
+    const project = JSON.parse(raw);
+    const matches = {
+      projectId: project.id === "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X",
+      account: project.accountId === "team_LBVwyK8FQMO7tA3hzVXXeumF",
+      name: project.name === "comunvrabandonada",
+    };
+
+    return Object.values(matches).every(Boolean)
+      ? "COMUN_VERCEL_PREFLIGHT http_status=200 project_id_match=true account_match=true project_name_match=true"
+      : "COMUN_TIJOLO_45_3G_VERCEL_CONFIGURATION_MISMATCH";
+  } catch {
+    return "COMUN_VERCEL_PREFLIGHT_RESPONSE_INVALID";
+  }
+}
+
 test("sidewalk workflow separates read-only preflight, migration, and activation", async () => {
   const workflow = await readFile(workflowPath, "utf8");
   const preflight = job(workflow, "preflight", "migrate");
@@ -22,7 +39,10 @@ test("sidewalk workflow separates read-only preflight, migration, and activation
   const postflight = job(workflow, "postflight", "activate");
   const activate = workflow.match(/  activate:[\s\S]*$/)?.[0] ?? "";
 
-  assert.match(workflow, /options: \[preflight, migrate, activate\]/);
+  assert.match(
+    workflow,
+    /options: \[preflight, vercel-preflight, migrate, activate\]/,
+  );
   assert.match(workflow, /contract_id:/);
   assert.match(workflow, /sidewalk-operational-safer-pre-v2/);
   assert.match(
@@ -59,9 +79,98 @@ test("sidewalk workflow separates read-only preflight, migration, and activation
     activate,
     /node scripts\/solo\/apply-forward-only\.mjs\n/,
   );
+  assert.match(
+    activate,
+    /monitor-production\.mjs --minutes=2 --domain=comunvrabandonada\.vercel\.app --activation/,
+  );
   assert.notEqual(
     workflow.indexOf("AUTORIZO_MIGRATION_CALCADAS_"),
     workflow.indexOf("AUTORIZO_ATIVAR_CALCADAS_"),
+  );
+});
+
+test("Vercel credential preflight is fixed, read-only, and cannot activate", async () => {
+  const workflow = await readFile(workflowPath, "utf8");
+  const vercelPreflight = job(workflow, "vercel-preflight", "preflight");
+
+  assert.match(vercelPreflight, /if: inputs\.mode == 'vercel-preflight'/);
+  assert.match(vercelPreflight, /needs: validate-input/);
+  assert.match(
+    vercelPreflight,
+    /\[\[ -n "\$VERCEL_TOKEN" \]\] && token_present=true/,
+  );
+  assert.match(vercelPreflight, /team_LBVwyK8FQMO7tA3hzVXXeumF/);
+  assert.match(vercelPreflight, /prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X/);
+  assert.match(
+    vercelPreflight,
+    /https:\/\/api\.vercel\.com\/v9\/projects\/\$\{VERCEL_PROJECT_ID\}\?teamId=\$\{VERCEL_ORG_ID\}/,
+  );
+  assert.match(vercelPreflight, /COMUN_VERCEL_PROTECTED_ACCESS_READ_GREEN/);
+  assert.match(
+    vercelPreflight,
+    /COMUN_TIJOLO_45_3G_VERCEL_CONFIGURATION_MISMATCH/,
+  );
+  assert.match(
+    vercelPreflight,
+    /COMUN_TIJOLO_45_3G_VERCEL_ACCESS_STILL_BLOCKED/,
+  );
+  assert.match(vercelPreflight, /umask 077/);
+  assert.match(vercelPreflight, /project_json="\$\(mktemp\)"/);
+  assert.match(vercelPreflight, /curl_error="\$\(mktemp\)"/);
+  assert.match(vercelPreflight, /chmod 600 "\$project_json" "\$curl_error"/);
+  assert.match(
+    vercelPreflight,
+    /trap 'rm -f "\$project_json" "\$curl_error"' EXIT/,
+  );
+  assert.match(vercelPreflight, /set \+e/);
+  assert.match(vercelPreflight, /curl_exit=\$\?/);
+  assert.match(vercelPreflight, /COMUN_VERCEL_PREFLIGHT_TRANSPORT_FAILED/);
+  assert.ok(
+    vercelPreflight.indexOf('if [[ "$status" != "200" ]]') <
+      vercelPreflight.indexOf('PROJECT_JSON="$project_json" node'),
+  );
+  assert.doesNotMatch(
+    vercelPreflight,
+    /node --input-type=module -- "\$project_json"/,
+  );
+  assert.match(
+    vercelPreflight,
+    /PROJECT_JSON="\$project_json" node --input-type=module <</,
+  );
+  assert.match(vercelPreflight, /process\.env\.PROJECT_JSON/);
+  assert.match(vercelPreflight, /COMUN_VERCEL_PREFLIGHT_RESPONSE_PATH_MISSING/);
+  assert.match(vercelPreflight, /COMUN_VERCEL_PREFLIGHT_RESPONSE_INVALID/);
+  assert.doesNotMatch(vercelPreflight, /cat\b|tee\b|set -x/);
+  assert.doesNotMatch(
+    vercelPreflight,
+    /console\.log\(project|console\.error\(project/,
+  );
+  assert.doesNotMatch(
+    vercelPreflight,
+    /vercel@|env add|--prod|COMUN_SIDEWALK_OPERATIONAL_V2|apply-forward-only\.mjs/,
+  );
+  assert.doesNotMatch(vercelPreflight, /-X\s*(?:POST|PUT|PATCH|DELETE)/i);
+});
+
+test("Vercel preflight fixtures emit only sanitized matches or parser markers", () => {
+  const validFixture = JSON.stringify({
+    id: "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X",
+    accountId: "team_LBVwyK8FQMO7tA3hzVXXeumF",
+    name: "comunvrabandonada",
+    ignoredSensitiveFixtureField: "never-logged",
+  });
+
+  assert.equal(
+    validateFakeVercelProjectResponse(validFixture),
+    "COMUN_VERCEL_PREFLIGHT http_status=200 project_id_match=true account_match=true project_name_match=true",
+  );
+  assert.equal(
+    validateFakeVercelProjectResponse("not-json"),
+    "COMUN_VERCEL_PREFLIGHT_RESPONSE_INVALID",
+  );
+  assert.equal(
+    validateFakeVercelProjectResponse(JSON.stringify({ id: "wrong" })),
+    "COMUN_TIJOLO_45_3G_VERCEL_CONFIGURATION_MISMATCH",
   );
 });
 

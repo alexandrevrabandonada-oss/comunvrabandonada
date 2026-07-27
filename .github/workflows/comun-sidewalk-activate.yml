@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: Run the separately authorized preflight, migration, or public activation.
+        description: Run the separately authorized database preflight, Vercel read-only preflight, migration, or public activation.
         required: true
         type: choice
         default: preflight
-        options: [preflight, migrate, activate]
+        options: [preflight, vercel-preflight, migrate, activate]
       expected_main_sha:
         description: Immutable commit already integrated into main.
         required: true
@@ -76,6 +76,103 @@ jobs:
           console.log(`contract_hash=${contractHash}`);
           console.log(`ledger_hash=${ledgerHash}`);
           NODE
+
+  vercel-preflight:
+    if: inputs.mode == 'vercel-preflight'
+    needs: validate-input
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Verify protected Vercel access with one read-only project request
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          token_present=false
+          team_present=false
+          project_present=false
+          [[ -n "$VERCEL_TOKEN" ]] && token_present=true
+          [[ -n "$VERCEL_ORG_ID" ]] && team_present=true
+          [[ -n "$VERCEL_PROJECT_ID" ]] && project_present=true
+          if [[ -z "$VERCEL_TOKEN" || -z "$VERCEL_ORG_ID" || -z "$VERCEL_PROJECT_ID" ]]; then
+            echo "COMUN_VERCEL_PREFLIGHT token_present=$token_present team_present=$team_present project_present=$project_present" >> "$GITHUB_STEP_SUMMARY"
+            echo COMUN_TIJOLO_45_3G_VERCEL_CONFIGURATION_MISMATCH >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          team_match=false
+          project_match=false
+          [[ "$VERCEL_ORG_ID" = "team_LBVwyK8FQMO7tA3hzVXXeumF" ]] && team_match=true
+          [[ "$VERCEL_PROJECT_ID" = "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X" ]] && project_match=true
+          if [[ "$VERCEL_ORG_ID" != "team_LBVwyK8FQMO7tA3hzVXXeumF" || "$VERCEL_PROJECT_ID" != "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X" ]]; then
+            echo "COMUN_VERCEL_PREFLIGHT team_match=$team_match project_match=$project_match" >> "$GITHUB_STEP_SUMMARY"
+            echo COMUN_TIJOLO_45_3G_VERCEL_CONFIGURATION_MISMATCH >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          umask 077
+          project_json="$(mktemp)"
+          curl_error="$(mktemp)"
+          chmod 600 "$project_json" "$curl_error"
+          trap 'rm -f "$project_json" "$curl_error"' EXIT
+          set +e
+          status="$(
+            curl \
+              --silent \
+              --show-error \
+              --output "$project_json" \
+              --write-out '%{http_code}' \
+              --header "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}?teamId=${VERCEL_ORG_ID}" \
+              2>"$curl_error"
+          )"
+          curl_exit=$?
+          set -e
+          if ((curl_exit != 0)); then
+            echo "COMUN_VERCEL_PREFLIGHT transport=failed http_status=not_available" >> "$GITHUB_STEP_SUMMARY"
+            echo COMUN_VERCEL_PREFLIGHT_TRANSPORT_FAILED >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          if [[ "$status" != "200" ]]; then
+            echo "COMUN_VERCEL_PREFLIGHT http_status=$status project_id_match=not_checked account_match=not_checked project_name_match=not_checked" >> "$GITHUB_STEP_SUMMARY"
+            echo COMUN_TIJOLO_45_3G_VERCEL_ACCESS_STILL_BLOCKED >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          PROJECT_JSON="$project_json" node --input-type=module <<'NODE'
+          import { readFile } from "node:fs/promises";
+
+          const fail = (marker) => {
+            console.error(marker);
+            process.exit(1);
+          };
+
+          try {
+            const responsePath = process.env.PROJECT_JSON;
+
+            if (!responsePath) {
+              fail("COMUN_VERCEL_PREFLIGHT_RESPONSE_PATH_MISSING");
+            }
+
+            const project = JSON.parse(await readFile(responsePath, "utf8"));
+            const matches = {
+              projectId: project.id === "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X",
+              account: project.accountId === "team_LBVwyK8FQMO7tA3hzVXXeumF",
+              name: project.name === "comunvrabandonada",
+            };
+
+            if (!Object.values(matches).every(Boolean)) {
+              fail("COMUN_TIJOLO_45_3G_VERCEL_CONFIGURATION_MISMATCH");
+            }
+
+            console.log(
+              "COMUN_VERCEL_PREFLIGHT http_status=200 project_id_match=true account_match=true project_name_match=true",
+            );
+          } catch {
+            fail("COMUN_VERCEL_PREFLIGHT_RESPONSE_INVALID");
+          }
+          NODE
+          echo COMUN_VERCEL_PROTECTED_ACCESS_READ_GREEN >> "$GITHUB_STEP_SUMMARY"
 
   preflight:
     if: inputs.mode == 'preflight' || inputs.mode == 'migrate'
@@ -223,7 +320,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          node scripts/solo/monitor-production.mjs --minutes=2 --domain=comunvrabandonada.vercel.app
+          node scripts/solo/monitor-production.mjs --minutes=2 --domain=comunvrabandonada.vercel.app --activation
           status=$?
           set -e
           if ((status != 0)); then

@@ -1,0 +1,110 @@
+{
+  "formatVersion": 1,
+  "checkpoint": "tijolo-45-3g-operational-activation",
+  "decision": "COMUN_TIJOLO_45_3G_ACTIVATION_ROLLED_BACK",
+  "approvalState": {
+    "recognized": true,
+    "exact": true,
+    "projectRef": "allowlisted-masked"
+  },
+  "execution": {
+    "workflowRunId": 30283137271,
+    "workflowRunUrl": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30283137271",
+    "executorSha": "b0beb869dfe055ff506bf5ba54c7c52c73d2d3fb",
+    "postflight": "success-read-only",
+    "activation": "blocked-before-flag-change",
+    "retryExecuted": false,
+    "priorVercelReadOnlyPreflight": {
+      "workflowRunId": 30284379657,
+      "workflowRunUrl": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30284379657",
+      "method": "GET",
+      "httpStatus": 403,
+      "mutatingJobs": "skipped",
+      "responsePublished": false
+    },
+    "vercelReadOnlyPreflight": {
+      "workflowRunId": 30285022945,
+      "workflowRunUrl": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30285022945",
+      "timestamp": "2026-07-27T16:30:49Z",
+      "method": "GET",
+      "httpStatus": 403,
+      "projectIdMatch": "not-checked",
+      "accountMatch": "not-checked",
+      "projectNameMatch": "not-checked",
+      "validateInput": "success",
+      "mutatingJobs": "skipped",
+      "responsePublished": false
+    },
+    "parserFailureReadOnlyPreflight": {
+      "workflowRunId": 30286251608,
+      "workflowRunUrl": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30286251608",
+      "method": "GET",
+      "httpStatus": 200,
+      "httpStatusConfirmedByControlFlow": true,
+      "failure": "temporary response file was incorrectly passed to Node as a program",
+      "responseBodyCopiedToReport": false,
+      "credentialHeaderPrinted": false,
+      "mutatingJobs": "skipped"
+    },
+    "correctedVercelReadOnlyPreflight": {
+      "workflowRunId": 30287408311,
+      "workflowRunUrl": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30287408311",
+      "timestamp": "2026-07-27T17:01:52Z",
+      "method": "GET",
+      "httpStatus": 200,
+      "projectIdMatch": true,
+      "accountMatch": true,
+      "projectNameMatch": true,
+      "parser": "reads the protected temporary response path from PROJECT_JSON",
+      "responseBodyPublished": false,
+      "mutatingJobs": "skipped"
+    },
+    "activationAttempt": {
+      "workflowRunId": 30292000244,
+      "workflowRunUrl": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/30292000244",
+      "approvalRecognized": true,
+      "postflight": "success-read-only",
+      "flagBefore": "disabled",
+      "initialFlagAndDeployment": "success",
+      "smoke": "failed-closed-before-route-checks",
+      "sanitizedFailure": "activation job did not provide the GitHub deployment context required by the monitor",
+      "rollback": "success-public-pause-confirmed",
+      "flagAfter": "disabled",
+      "retryExecuted": false
+    }
+  },
+  "contract": {
+    "id": "sidewalk-operational-safer-pre-v2",
+    "sha256": "d916a99153c8e29a10833c4ff7c0efc5b765bdab54e08ee671ad9a1ee3e58858",
+    "ledgerSha256": "e36b508762b19da01afa91ff810c18c8d5d3a000c20618793eafc25c7a012793",
+    "scopedPostFingerprint": "4bebf4c1db4da58fd9710c7f9478bb2837b171aa4620de2d376e19d5a99b66d8"
+  },
+  "postflight": {
+    "ledger": "PRESENT_ACCEPTED",
+    "blockingFindings": 0,
+    "readOnly": true
+  },
+  "operationalState": {
+    "flagBefore": "disabled",
+    "flagAfter": "disabled-confirmed-by-public-pause-after-rollback",
+    "publicContribution": "paused",
+    "mapPublicHttpStatus": 200,
+    "productionDeployment": "activation-and-rollback-attempted",
+    "activationSmoke": "failed-closed-before-route-checks",
+    "rollback": "completed-public-pause-confirmed"
+  },
+  "parserIncident": {
+    "stage": "vercel-preflight-parser",
+    "sanitizedCause": "HTTP 200 response was parsed as JavaScript because the temporary response path was passed as a Node program",
+    "requiresHumanDecision": false,
+    "sensitiveRunDeletionApproval": "required"
+  },
+  "remoteWrites": {
+    "database": "none",
+    "ledger": "none",
+    "storage": "none",
+    "vercelFlag": "enabled-then-disabled-by-automatic-rollback",
+    "deployment": "activation-then-rollback"
+  },
+  "nextHumanGate": "separate code checkpoint to supply the smoke deployment context before any new activation approval"
+}
