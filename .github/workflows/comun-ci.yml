@@ -497,7 +497,7 @@ jobs:
     name: CHECKPOINT / COMUN_CHECKPOINT_GREEN
     needs: [sidewalk-readiness-lane, sidewalk-readiness-micro]
     if: >-
-      github.event_name == 'pull_request' && contains(fromJSON('["labeled","synchronize"]'), github.event.action) &&
+      github.event_name == 'pull_request' && (github.event.action == 'synchronize' || (github.event.action == 'labeled' && github.event.label.name == 'comun:checkpoint')) &&
       github.event.pull_request.base.ref == 'main' &&
       contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness') &&
       contains(github.event.pull_request.labels.*.name, 'comun:checkpoint')
@@ -591,9 +591,8 @@ jobs:
 
   sidewalk-readiness-full:
     name: RELEASE/FULL / COMUN_CI_GREEN
-    needs: sidewalk-readiness-checkpoint
+    needs: [sidewalk-readiness-lane, sidewalk-readiness-micro]
     if: >-
-      needs.sidewalk-readiness-checkpoint.result == 'success' &&
       github.event_name == 'pull_request' && contains(fromJSON('["labeled","synchronize"]'), github.event.action) &&
       github.event.pull_request.base.ref == 'main' &&
       contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness') &&
@@ -613,6 +612,7 @@ jobs:
           for required in "MICRO / COMUN_MICRO_GREEN" "CHECKPOINT / COMUN_CHECKPOINT_GREEN"; do
             gh api --paginate "repos/${{ github.repository }}/commits/$SHA/check-runs?per_page=100" | jq -s -e --arg required "$required" '[.[].check_runs[] | select(.name == $required and .conclusion == "success")] | length > 0' > /dev/null
           done
+          echo COMUN_SIDEWALK_CHECKPOINT_REUSED_EXACT_SHA >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/setup-node@v4
         with: { node-version: 22.18.0, cache: npm }
       - run: npm ci --ignore-scripts
@@ -643,7 +643,7 @@ jobs:
 
   central-after-sidewalk-checkpoint:
     needs: sidewalk-readiness-checkpoint
-    if: always() && github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness') && contains(github.event.pull_request.labels.*.name, 'comun:checkpoint')
+    if: always() && github.event_name == 'pull_request' && (github.event.action == 'synchronize' || (github.event.action == 'labeled' && github.event.label.name == 'comun:checkpoint')) && contains(github.event.pull_request.labels.*.name, 'comun:sidewalk-readiness') && contains(github.event.pull_request.labels.*.name, 'comun:checkpoint')
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4

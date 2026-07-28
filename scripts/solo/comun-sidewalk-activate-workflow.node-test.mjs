@@ -124,7 +124,7 @@ test("activation captures one protected deployment URL, waits for readiness, and
   assert.match(activate, /--rollback-readiness/);
   assert.match(activate, /ROLLBACK_ALIAS_PAUSED/);
   assert.match(activate, /ROLLBACK_GREEN/);
-  assert.match(activate, /COMUN_CALCADAS_OPERATIONAL_ACTIVATION_GREEN/);
+  assert.match(activate, /Emit one sanitized terminal activation result/);
   assert.doesNotMatch(activate, /\btee\b|\bcat\b|set -x/);
   assert.doesNotMatch(
     activate,
@@ -139,7 +139,7 @@ test("activation captures one protected deployment URL, waits for readiness, and
   assert.ok(
     activate.indexOf(
       "capture_deployment activation && inspect_deployment activation && run_activation_monitor",
-    ) < activate.indexOf("COMUN_CALCADAS_OPERATIONAL_ACTIVATION_GREEN"),
+    ) < activate.indexOf("state ACTIVATION_GREEN"),
   );
   assert.ok(
     activate.indexOf("if ! run_rollback_readiness; then") >
@@ -288,6 +288,39 @@ test("workflow accepts no SQL or path input and uses only the fixed scoped contr
   assert.match(workflow, /expected_main_sha:/);
 });
 
+test("activation binds authorization and concurrency to a single attempt and always emits a sanitized terminal artifact", async () => {
+  const workflow = await readFile(workflowPath, "utf8");
+  const activate = workflow.match(/  activate:[\s\S]*$/)?.[0] ?? "";
+
+  assert.match(workflow, /activation_attempt_id:/);
+  assert.match(
+    workflow,
+    /comun-sidewalk-operational-\$\{\{ inputs\.mode \}\}-\$\{\{ inputs\.expected_main_sha \}\}-\$\{\{ inputs\.activation_attempt_id \}\}/,
+  );
+  assert.match(activate, /\^sidewalk-activate-\[0-9\]\{8\}-\[0-9\]\{2\}\$/);
+  assert.match(
+    activate,
+    /AUTORIZO_ATIVAR_CALCADAS_\$\{PROJECT_REF\}_\$\{EXPECTED_MAIN_SHA\}_\$\{LEDGER_HASH\}_\$\{ACTIVATION_ATTEMPT_ID\}/,
+  );
+  assert.match(activate, /SOLO_ACTIVATION_AUTHORIZATION_INVALID/);
+  assert.match(
+    activate,
+    /Confirm a failed activation returned to paused public state/,
+  );
+  assert.match(activate, /if: failure\(\)/);
+  assert.match(activate, /FINAL_PUBLIC_PAUSED/);
+  assert.match(activate, /FINAL_PUBLIC_UNSAFE/);
+  assert.match(activate, /Emit one sanitized terminal activation result/);
+  assert.match(activate, /if: always\(\)/);
+  assert.match(activate, /activation-result\.mjs/);
+  assert.match(activate, /path: \.ci-artifacts\/sidewalk-activation\/result/);
+  assert.match(
+    activate,
+    /comun-sidewalk-activation-\$\{\{ inputs\.expected_main_sha \}\}-\$\{\{ inputs\.activation_attempt_id \}\}-\$\{\{ github\.run_id \}\}/,
+  );
+  assert.doesNotMatch(activate, /--retry|retry_count|retry-delay/i);
+});
+
 test("sidewalk readiness restores a historical local baseline before applying the canonical release", async () => {
   const workflow = await readFile(ciWorkflowPath, "utf8");
   const checkpoint =
@@ -324,17 +357,23 @@ test("sidewalk readiness restores a historical local baseline before applying th
   assert.doesNotMatch(checkpoint, /supabase db push|migration repair/i);
 });
 
-test("sidewalk readiness re-runs its labeled checkpoint on synchronize and reports exact Central states", async () => {
+test("sidewalk readiness runs CHECKPOINT only for its own label or a new SHA", async () => {
   const workflow = await readFile(ciWorkflowPath, "utf8");
+  const checkpoint =
+    workflow.match(
+      /  sidewalk-readiness-checkpoint:[\s\S]*?\n  sidewalk-readiness-full:/,
+    )?.[0] ?? "";
 
   assert.match(
     workflow,
     /contains\(fromJSON\('\["opened","synchronize","reopened","ready_for_review","labeled"\]'\), github\.event\.action\)/,
   );
   assert.match(
-    workflow,
-    /contains\(fromJSON\('\["labeled","synchronize"\]'\), github\.event\.action\)/,
+    checkpoint,
+    /github\.event\.action == 'synchronize' \|\| \(github\.event\.action == 'labeled' && github\.event\.label\.name == 'comun:checkpoint'\)/,
   );
+  assert.doesNotMatch(checkpoint, /comun:release-candidate/);
+  assert.match(checkpoint, /commits\/\$SHA\/check-runs/);
   assert.match(workflow, /central-after-sidewalk-checkpoint/);
   assert.match(workflow, /central-after-sidewalk-release/);
   assert.match(
@@ -343,17 +382,19 @@ test("sidewalk readiness re-runs its labeled checkpoint on synchronize and repor
   );
 });
 
-test("sidewalk readiness release waits for the exact checkpoint instead of racing it", async () => {
+test("sidewalk readiness FULL reuses only a green CHECKPOINT for the exact SHA", async () => {
   const workflow = await readFile(ciWorkflowPath, "utf8");
   const release =
     workflow.match(
       /  sidewalk-readiness-full:[\s\S]*?\n  central-after-sidewalk-micro:/,
     )?.[0] ?? "";
 
-  assert.match(release, /needs: sidewalk-readiness-checkpoint/);
   assert.match(
     release,
-    /needs\.sidewalk-readiness-checkpoint\.result == 'success'/,
+    /needs: \[sidewalk-readiness-lane, sidewalk-readiness-micro\]/,
   );
+  assert.doesNotMatch(release, /needs\.sidewalk-readiness-checkpoint\.result/);
   assert.match(release, /Require MICRO and CHECKPOINT for the exact SHA/);
+  assert.match(release, /commits\/\$SHA\/check-runs/);
+  assert.match(release, /COMUN_SIDEWALK_CHECKPOINT_REUSED_EXACT_SHA/);
 });
