@@ -1,4 +1,8 @@
 import { readFileSync } from "node:fs";
+import {
+  createProtectedContributionProbeRoute,
+  probeProtectedVercelDeployment,
+} from "./probe-protected-vercel-deployment.mjs";
 
 const pausedMessage =
   "O envio de novos registros está temporariamente pausado enquanto concluímos uma atualização operacional. O mapa e os registros publicados continuam disponíveis.";
@@ -209,20 +213,60 @@ async function waitForContributionReadiness({
   throw new Error(timeoutMarker);
 }
 
+async function waitForProtectedDeploymentState({
+  expectedState,
+  phase,
+  readyMarker,
+  timeoutMarker,
+  options,
+  deploymentProbe,
+  sleep,
+}) {
+  const maximumAttempts = Math.ceil(
+    (options.readinessMinutes * 60) / options.pollSeconds,
+  );
+  let consecutive = 0;
+
+  for (let attempt = 1; attempt <= maximumAttempts; attempt += 1) {
+    let observedState = "access_failed";
+    try {
+      const result = await deploymentProbe({
+        deploymentUrl: options.deploymentUrl,
+        route: createProtectedContributionProbeRoute(`${phase}-${attempt}`),
+        expectedState,
+      });
+      observedState = result?.state;
+    } catch {
+      observedState = "access_failed";
+    }
+
+    if (observedState === expectedState) consecutive += 1;
+    else consecutive = 0;
+
+    if (consecutive >= options.requireConsecutive) {
+      console.log(readyMarker);
+      return;
+    }
+    if (attempt < maximumAttempts) await sleep(options.pollSeconds * 1000);
+  }
+
+  console.log(timeoutMarker);
+  throw new Error(timeoutMarker);
+}
+
 export async function waitForActivationDeploymentReadiness({
   options,
-  fetchImpl = fetch,
+  deploymentProbe = probeProtectedVercelDeployment,
   sleep = (milliseconds) =>
     new Promise((resolve) => setTimeout(resolve, milliseconds)),
 } = {}) {
-  await waitForContributionReadiness({
-    baseUrl: options.deploymentUrl,
+  await waitForProtectedDeploymentState({
+    expectedState: "active",
     phase: "deployment",
-    expectedActive: true,
     readyMarker: "SOLO_ACTIVATION_DEPLOYMENT_FLAG_VISIBLE",
     timeoutMarker: "SOLO_ACTIVATION_DEPLOYMENT_FLAG_NOT_READY",
     options,
-    fetchImpl,
+    deploymentProbe,
     sleep,
   });
 }
@@ -304,17 +348,17 @@ export async function monitorActivationStability({
 export async function waitForRollbackReadiness({
   options,
   fetchImpl = fetch,
+  deploymentProbe = probeProtectedVercelDeployment,
   sleep = (milliseconds) =>
     new Promise((resolve) => setTimeout(resolve, milliseconds)),
 } = {}) {
-  await waitForContributionReadiness({
-    baseUrl: options.deploymentUrl,
+  await waitForProtectedDeploymentState({
+    expectedState: "paused",
     phase: "rollback-deployment",
-    expectedActive: false,
     readyMarker: "SOLO_ACTIVATION_ROLLBACK_DEPLOYMENT_READY",
     timeoutMarker: "SOLO_ACTIVATION_ROLLBACK_DEPLOYMENT_NOT_READY",
     options,
-    fetchImpl,
+    deploymentProbe,
     sleep,
   });
   await waitForContributionReadiness({
@@ -440,13 +484,22 @@ export async function monitorProduction({
   argv = process.argv.slice(2),
   env = process.env,
   fetchImpl = fetch,
+  deploymentProbe = probeProtectedVercelDeployment,
   sleep = (milliseconds) =>
     new Promise((resolve) => setTimeout(resolve, milliseconds)),
 } = {}) {
   const options = parseMonitorOptions(argv);
+  const protectedDeploymentProbe = (input) =>
+    deploymentProbe === probeProtectedVercelDeployment
+      ? deploymentProbe({ ...input, env })
+      : deploymentProbe(input);
 
   if (options.activationMode) {
-    await waitForActivationDeploymentReadiness({ options, fetchImpl, sleep });
+    await waitForActivationDeploymentReadiness({
+      options,
+      deploymentProbe: protectedDeploymentProbe,
+      sleep,
+    });
     await waitForActivationAliasReadiness({ options, fetchImpl, sleep });
     await runActivationFunctionalSmoke({ options, fetchImpl });
     await monitorActivationStability({ options, fetchImpl, sleep });
@@ -455,7 +508,12 @@ export async function monitorProduction({
   }
 
   if (options.rollbackReadiness) {
-    await waitForRollbackReadiness({ options, fetchImpl, sleep });
+    await waitForRollbackReadiness({
+      options,
+      fetchImpl,
+      deploymentProbe: protectedDeploymentProbe,
+      sleep,
+    });
     return;
   }
 
