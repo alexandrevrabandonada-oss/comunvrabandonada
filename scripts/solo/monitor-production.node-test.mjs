@@ -66,6 +66,17 @@ function readinessFetch(sequence, trace = []) {
   };
 }
 
+function readinessProbe(sequence, trace = []) {
+  let index = 0;
+  return async ({ deploymentUrl: target, route, expectedState }) => {
+    const next = sequence[Math.min(index, sequence.length - 1)];
+    index += 1;
+    trace.push({ target, route, expectedState });
+    if (next instanceof Error) throw next;
+    return { state: next.state };
+  };
+}
+
 test("activation options require an allowlisted HTTPS deployment URL", () => {
   assert.deepEqual(
     parseMonitorOptions([
@@ -139,12 +150,12 @@ test("deployment readiness treats paused responses as transient until two active
   await withMarkers(async (markers) => {
     await waitForActivationDeploymentReadiness({
       options: options(),
-      fetchImpl: readinessFetch(
+      deploymentProbe: readinessProbe(
         [
-          { body: pausedBody, status: 200 },
-          { body: pausedBody, status: 200 },
-          { body: activeBody, status: 200 },
-          { body: activeBody, status: 200 },
+          { state: "paused" },
+          { state: "paused" },
+          { state: "active" },
+          { state: "active" },
         ],
         trace,
       ),
@@ -153,12 +164,11 @@ test("deployment readiness treats paused responses as transient until two active
     assert.deepEqual(markers, ["SOLO_ACTIVATION_DEPLOYMENT_FLAG_VISIBLE"]);
   });
   assert.equal(trace.length, 4);
-  assert.equal(new Set(trace.map(({ target }) => target)).size, 4);
+  assert.equal(new Set(trace.map(({ target }) => target)).size, 1);
   assert.equal(
     trace.every(
-      ({ request }) =>
-        request.headers["cache-control"] === "no-cache" &&
-        request.headers.pragma === "no-cache",
+      ({ route, expectedState }) =>
+        route.includes("comun_probe=deployment-") && expectedState === "active",
     ),
     true,
   );
@@ -169,7 +179,7 @@ test("one active response does not satisfy the deployment readiness quorum", asy
     withMarkers(async () =>
       waitForActivationDeploymentReadiness({
         options: options({ readinessMinutes: 1, pollSeconds: 60 }),
-        fetchImpl: readinessFetch([{ body: activeBody, status: 200 }]),
+        deploymentProbe: readinessProbe([{ state: "active" }]),
         sleep: async () => {},
       }),
     ),
@@ -180,10 +190,10 @@ test("one active response does not satisfy the deployment readiness quorum", asy
 test("deployment readiness tolerates a transient 500 before it becomes active", async () => {
   await waitForActivationDeploymentReadiness({
     options: options(),
-    fetchImpl: readinessFetch([
-      { body: "", status: 500 },
-      { body: activeBody, status: 200 },
-      { body: activeBody, status: 200 },
+    deploymentProbe: readinessProbe([
+      { state: "access_failed" },
+      { state: "active" },
+      { state: "active" },
     ]),
     sleep: async () => {},
   });
@@ -193,7 +203,7 @@ test("deployment readiness fails closed for a permanent failed deployment", asyn
   await assert.rejects(
     waitForActivationDeploymentReadiness({
       options: options({ readinessMinutes: 1, pollSeconds: 60 }),
-      fetchImpl: readinessFetch([{ body: "", status: 503 }]),
+      deploymentProbe: readinessProbe([{ state: "response_invalid" }]),
       sleep: async () => {},
     }),
     /SOLO_ACTIVATION_DEPLOYMENT_FLAG_NOT_READY/,
@@ -215,7 +225,7 @@ test("alias readiness starts only after deployment readiness and waits for propa
 
   await waitForActivationDeploymentReadiness({
     options: options(),
-    fetchImpl,
+    deploymentProbe: readinessProbe([{ state: "active" }]),
     sleep: async () => {},
   });
   await waitForActivationAliasReadiness({
@@ -227,11 +237,13 @@ test("alias readiness starts only after deployment readiness and waits for propa
   const firstAlias = trace.findIndex(({ target }) =>
     target.startsWith(`https://${canonicalDomain}`),
   );
-  assert.equal(firstAlias, 2);
+  assert.equal(firstAlias, 0);
   assert.equal(
-    trace
-      .slice(0, firstAlias)
-      .every(({ target }) => target.startsWith(deploymentUrl)),
+    trace.every(
+      ({ request }) =>
+        request.headers["cache-control"] === "no-cache" &&
+        request.headers.authorization === undefined,
+    ),
     true,
   );
 });
@@ -243,7 +255,7 @@ test("an alias that remains paused after an active deployment fails with propaga
     );
   await waitForActivationDeploymentReadiness({
     options: options(),
-    fetchImpl,
+    deploymentProbe: readinessProbe([{ state: "active" }]),
     sleep: async () => {},
   });
   await assert.rejects(
@@ -323,6 +335,7 @@ test("rollback waits for the exact deployment and canonical alias to stabilize a
     await waitForRollbackReadiness({
       options: options({ activationMode: false, rollbackReadiness: true }),
       fetchImpl,
+      deploymentProbe: readinessProbe([{ state: "paused" }]),
       sleep: async () => {},
     });
     assert.deepEqual(markers, [
@@ -334,7 +347,7 @@ test("rollback waits for the exact deployment and canonical alias to stabilize a
   const firstAlias = trace.findIndex(({ target }) =>
     target.startsWith(`https://${canonicalDomain}`),
   );
-  assert.equal(firstAlias, 2);
+  assert.equal(firstAlias, 0);
 });
 
 test("full activation sequence runs readiness before smoke and monitoring", async () => {
@@ -357,6 +370,7 @@ test("full activation sequence runs readiness before smoke and monitoring", asyn
         if (target.endsWith("volta-redonda.pmtiles")) return rangeResponse();
         return textResponse(activeBody);
       },
+      deploymentProbe: readinessProbe([{ state: "active" }]),
       sleep: async () => {},
     });
     assert.deepEqual(markers, [
@@ -370,7 +384,7 @@ test("full activation sequence runs readiness before smoke and monitoring", asyn
   const firstRange = trace.findIndex(({ target }) =>
     target.endsWith("volta-redonda.pmtiles"),
   );
-  assert.ok(firstRange > 3);
+  assert.ok(firstRange > 1);
 });
 
 test("paused detection is strict and does not expose a remote body", () => {

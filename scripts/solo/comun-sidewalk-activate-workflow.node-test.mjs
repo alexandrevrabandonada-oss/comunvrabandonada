@@ -41,7 +41,7 @@ test("sidewalk workflow separates read-only preflight, migration, and activation
 
   assert.match(
     workflow,
-    /options: \[preflight, vercel-preflight, migrate, activate\]/,
+    /options:\s*\[\s*preflight,\s*vercel-preflight,\s*protected-deployment-preflight,\s*migrate,\s*activate,?\s*\]/,
   );
   assert.match(workflow, /contract_id:/);
   assert.match(workflow, /sidewalk-operational-safer-pre-v2/);
@@ -149,7 +149,11 @@ test("activation captures one protected deployment URL, waits for readiness, and
 
 test("Vercel credential preflight is fixed, read-only, and cannot activate", async () => {
   const workflow = await readFile(workflowPath, "utf8");
-  const vercelPreflight = job(workflow, "vercel-preflight", "preflight");
+  const vercelPreflight = job(
+    workflow,
+    "vercel-preflight",
+    "protected-deployment-preflight",
+  );
 
   assert.match(vercelPreflight, /if: inputs\.mode == 'vercel-preflight'/);
   assert.match(vercelPreflight, /needs: validate-input/);
@@ -210,6 +214,44 @@ test("Vercel credential preflight is fixed, read-only, and cannot activate", asy
   assert.doesNotMatch(vercelPreflight, /-X\s*(?:POST|PUT|PATCH|DELETE)/i);
 });
 
+test("protected deployment preflight reads one allowlisted rollback deployment without changing Vercel", async () => {
+  const workflow = await readFile(workflowPath, "utf8");
+  const protectedPreflight = job(
+    workflow,
+    "protected-deployment-preflight",
+    "preflight",
+  );
+
+  assert.match(
+    protectedPreflight,
+    /if: inputs\.mode == 'protected-deployment-preflight'/,
+  );
+  assert.match(protectedPreflight, /ref: \$\{\{ github\.sha \}\}/);
+  assert.match(protectedPreflight, /target=production&state=READY&limit=20/);
+  assert.match(
+    protectedPreflight,
+    /deployment\?\.meta\?\.githubCommitSha === process\.env\.EXPECTED_MAIN_SHA/,
+  );
+  assert.match(
+    protectedPreflight,
+    /node scripts\/solo\/probe-protected-vercel-deployment\.mjs/,
+  );
+  assert.match(protectedPreflight, /--expected-state=paused/);
+  assert.match(
+    protectedPreflight,
+    /COMUN_PROTECTED_DEPLOYMENT_READONLY_PREFLIGHT_GREEN/,
+  );
+  assert.match(protectedPreflight, /umask 077/);
+  assert.match(protectedPreflight, /mktemp/);
+  assert.match(protectedPreflight, /chmod 600/);
+  assert.match(protectedPreflight, /trap 'rm -f/);
+  assert.doesNotMatch(
+    protectedPreflight,
+    /env add|--prod|COMUN_SIDEWALK_OPERATIONAL_V2|apply-forward-only\.mjs/,
+  );
+  assert.doesNotMatch(protectedPreflight, /-X\s*(?:POST|PUT|PATCH|DELETE)/i);
+});
+
 test("Vercel preflight fixtures emit only sanitized matches or parser markers", () => {
   const validFixture = JSON.stringify({
     id: "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X",
@@ -268,6 +310,11 @@ test("sidewalk readiness restores a historical local baseline before applying th
     checkpoint,
     /Apply and reapply the local release[\s\S]*?Restore the current local schema for RLS and E2E[\s\S]*?supabase db reset --local --yes[\s\S]*?Adopt the exact local release ledger for E2E[\s\S]*?--adopt-local-validation-ledger[\s\S]*?npm run audit:rls-matrix/,
   );
+  assert.match(
+    checkpoint,
+    /Restore the current local schema for RLS and E2E[\s\S]*?reset_output="\$\(mktemp\)"[\s\S]*?grep -q "Error status 502" "\$reset_output"[\s\S]*?COMUN_SIDEWALK_LOCAL_RESET_502_SINGLE_RETRY/,
+  );
+  assert.doesNotMatch(checkpoint, /printf ['\"]?%s.*reset_output/);
   assert.match(checkpoint, /Upload sidewalk readiness E2E evidence/);
   assert.match(
     checkpoint,

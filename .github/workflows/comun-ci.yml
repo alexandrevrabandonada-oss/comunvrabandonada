@@ -546,10 +546,25 @@ jobs:
           node scripts/comun-local-env.mjs run node scripts/solo/apply-forward-only.mjs
           node scripts/comun-local-env.mjs run node scripts/solo/apply-forward-only.mjs | grep COMUN_SIDEWALK_OPERATIONAL_HARDENING_ALREADY_APPLIED
       - name: Restore the current local schema for RLS and E2E
+        shell: bash
         run: |
+          set -euo pipefail
           supabase stop --no-backup
           supabase start
-          supabase db reset --local --yes
+          reset_output="$(mktemp)"
+          chmod 600 "$reset_output"
+          trap 'rm -f "$reset_output"' EXIT
+          set +e
+          supabase db reset --local --yes >"$reset_output" 2>&1
+          reset_status=$?
+          set -e
+          if ((reset_status != 0)) && grep -q "Error status 502" "$reset_output"; then
+            echo COMUN_SIDEWALK_LOCAL_RESET_502_SINGLE_RETRY
+            supabase db reset --local --yes >"$reset_output" 2>&1
+          elif ((reset_status != 0)); then
+            echo COMUN_SIDEWALK_LOCAL_RESET_FAILED
+            exit "$reset_status"
+          fi
       - name: Adopt the exact local release ledger for E2E
         env:
           COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json

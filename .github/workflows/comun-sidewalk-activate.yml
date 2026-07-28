@@ -8,7 +8,14 @@ on:
         required: true
         type: choice
         default: preflight
-        options: [preflight, vercel-preflight, migrate, activate]
+        options:
+          [
+            preflight,
+            vercel-preflight,
+            protected-deployment-preflight,
+            migrate,
+            activate,
+          ]
       expected_main_sha:
         description: Immutable commit already integrated into main.
         required: true
@@ -173,6 +180,86 @@ jobs:
           }
           NODE
           echo COMUN_VERCEL_PROTECTED_ACCESS_READ_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  protected-deployment-preflight:
+    if: inputs.mode == 'protected-deployment-preflight'
+    needs: validate-input
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Probe the latest protected rollback deployment read-only
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_TOKEN"
+          test "$VERCEL_ORG_ID" = "team_LBVwyK8FQMO7tA3hzVXXeumF"
+          test "$VERCEL_PROJECT_ID" = "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X"
+          umask 077
+          deployment_json="$(mktemp)"
+          curl_error="$(mktemp)"
+          chmod 600 "$deployment_json" "$curl_error"
+          trap 'rm -f "$deployment_json" "$curl_error"' EXIT
+          set +e
+          http_status="$(
+            curl \
+              --silent \
+              --show-error \
+              --output "$deployment_json" \
+              --write-out '%{http_code}' \
+              --header "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v6/deployments?projectId=${VERCEL_PROJECT_ID}&teamId=${VERCEL_ORG_ID}&target=production&state=READY&limit=20" \
+              2>"$curl_error"
+          )"
+          curl_exit=$?
+          set -e
+          if ((curl_exit != 0)) || [[ "$http_status" != "200" ]]; then
+            echo PROTECTED_DEPLOYMENT_ACCESS_FAILED >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          deployment_url="$(DEPLOYMENT_JSON="$deployment_json" EXPECTED_MAIN_SHA="$EXPECTED_MAIN_SHA" node --input-type=module <<'NODE'
+          import { readFile } from "node:fs/promises";
+
+          const expectedHost = /^comunvrabandonada-[a-z0-9-]+-alexandrevrabandonada-oss-projects\.vercel\.app$/;
+          const payload = JSON.parse(await readFile(process.env.DEPLOYMENT_JSON, "utf8"));
+          const deployments = Array.isArray(payload.deployments) ? payload.deployments : [];
+          const matches = deployments
+            .filter((deployment) => deployment?.state === "READY")
+            .filter((deployment) => deployment?.target === "production")
+            .filter((deployment) => deployment?.meta?.githubCommitSha === process.env.EXPECTED_MAIN_SHA)
+            .map((deployment) => {
+              const candidate = String(deployment.url ?? "");
+              const url = new URL(candidate.startsWith("https://") ? candidate : `https://${candidate}`);
+              if (url.protocol !== "https:" || url.pathname !== "/" || !expectedHost.test(url.hostname)) return null;
+              return { url: url.origin, createdAt: Number(deployment.createdAt ?? 0) };
+            })
+            .filter(Boolean)
+            .sort((left, right) => right.createdAt - left.createdAt);
+          if (matches.length === 0) process.exit(1);
+          process.stdout.write(matches[0].url);
+          NODE
+          )" || {
+            echo PROTECTED_DEPLOYMENT_RESPONSE_INVALID >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          }
+          node scripts/solo/probe-protected-vercel-deployment.mjs \
+            --deployment-url="$deployment_url" \
+            --route="/comun/mapa/contribuir?origem=calcadas&comun_probe=readonly-preflight" \
+            --expected-state=paused
+          echo COMUN_PROTECTED_DEPLOYMENT_READONLY_PREFLIGHT_GREEN >> "$GITHUB_STEP_SUMMARY"
 
   preflight:
     if: inputs.mode == 'preflight' || inputs.mode == 'migrate'
