@@ -41,7 +41,7 @@ test("sidewalk workflow separates read-only preflight, migration, and activation
 
   assert.match(
     workflow,
-    /options:\s*\[\s*preflight,\s*vercel-preflight,\s*protected-deployment-preflight,\s*migrate,\s*activate,?\s*\]/,
+    /options:\s*\[\s*preflight,\s*vercel-preflight,\s*operational-env-preflight,\s*protected-deployment-preflight,\s*protected-operational-diagnostic,\s*migrate,\s*activate,?\s*\]/,
   );
   assert.match(workflow, /contract_id:/);
   assert.match(workflow, /sidewalk-operational-safer-pre-v2/);
@@ -250,6 +250,69 @@ test("protected deployment preflight reads one allowlisted rollback deployment w
     /env add|--prod|COMUN_SIDEWALK_OPERATIONAL_V2|apply-forward-only\.mjs/,
   );
   assert.doesNotMatch(protectedPreflight, /-X\s*(?:POST|PUT|PATCH|DELETE)/i);
+});
+
+test("operational environment preflight inventories only names and production targets", async () => {
+  const workflow = await readFile(workflowPath, "utf8");
+  const environmentPreflight = job(
+    workflow,
+    "operational-env-preflight",
+    "protected-operational-diagnostic",
+  );
+
+  assert.match(
+    environmentPreflight,
+    /if: inputs\.mode == 'operational-env-preflight'/,
+  );
+  assert.match(environmentPreflight, /needs: validate-input/);
+  assert.match(
+    environmentPreflight,
+    /https:\/\/api\.vercel\.com\/v9\/projects\/\$\{VERCEL_PROJECT_ID\}\/env\?teamId=\$\{VERCEL_ORG_ID\}/,
+  );
+  assert.match(environmentPreflight, /sidewalk-operational-env-inventory\.mjs/);
+  assert.match(
+    environmentPreflight,
+    /COMUN_SIDEWALK_OPERATIONAL_ENV_PREFLIGHT_GREEN/,
+  );
+  assert.match(
+    environmentPreflight,
+    /comun-sidewalk-operational-env-inventory-\$\{\{ inputs\.expected_main_sha \}\}-\$\{\{ github\.run_id \}\}/,
+  );
+  assert.doesNotMatch(
+    environmentPreflight,
+    /env pull|env add|env rm|--prod|COMUN_SIDEWALK_OPERATIONAL_V2 production|value=/i,
+  );
+  assert.doesNotMatch(environmentPreflight, /-X\s*(?:POST|PUT|PATCH|DELETE)/i);
+});
+
+test("protected operational diagnostic uses the immutable deployment and emits only sanitized evidence", async () => {
+  const workflow = await readFile(workflowPath, "utf8");
+  const diagnostic = job(
+    workflow,
+    "protected-operational-diagnostic",
+    "protected-deployment-preflight",
+  );
+
+  assert.match(
+    diagnostic,
+    /if: inputs\.mode == 'protected-operational-diagnostic'/,
+  );
+  assert.match(diagnostic, /target=production&state=READY&limit=20/);
+  assert.match(
+    diagnostic,
+    /node scripts\/solo\/probe-protected-vercel-deployment\.mjs[\s\S]*?--operational-diagnostic/,
+  );
+  assert.match(diagnostic, /classify-sidewalk-operational-gate\.mjs/);
+  assert.match(diagnostic, /PROTECTED_OPERATIONAL_DIAGNOSTIC_GREEN/);
+  assert.match(
+    diagnostic,
+    /comun-sidewalk-protected-operational-diagnostic-\$\{\{ inputs\.expected_main_sha \}\}-\$\{\{ github\.run_id \}\}/,
+  );
+  assert.doesNotMatch(
+    diagnostic,
+    /env pull|env add|env rm|--prod|COMUN_SIDEWALK_OPERATIONAL_V2 production|apply-forward-only\.mjs/i,
+  );
+  assert.doesNotMatch(diagnostic, /-X\s*(?:POST|PUT|PATCH|DELETE)/i);
 });
 
 test("Vercel preflight fixtures emit only sanitized matches or parser markers", () => {

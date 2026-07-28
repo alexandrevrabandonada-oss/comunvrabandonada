@@ -2,9 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildProtectedDeploymentCurlArgs,
+  classifyProtectedOperationalDiagnosticProbe,
   classifyProtectedDeploymentProbe,
   createProtectedContributionProbeRoute,
   normalizeProtectedDeploymentUrl,
+  normalizeProtectedOperationalDiagnosticRoute,
+  probeProtectedOperationalDiagnosticDeployment,
+  protectedOperationalDiagnosticRoute,
   probeProtectedVercelDeployment,
 } from "./probe-protected-vercel-deployment.mjs";
 
@@ -155,4 +159,81 @@ test("response parsing is deterministic and rejects a body without a final HTTP 
       markers: ["PROTECTED_DEPLOYMENT_RESPONSE_INVALID"],
     },
   );
+});
+
+test("operational diagnostic probe permits only the fixed route and exact sanitized payload", async () => {
+  assert.equal(
+    normalizeProtectedOperationalDiagnosticRoute(
+      protectedOperationalDiagnosticRoute,
+    ),
+    protectedOperationalDiagnosticRoute,
+  );
+  for (const route of [
+    "/api/comun/sidewalk-operational-diagnostic?next=alias",
+    "/api/comun/sidewalk-operational-diagnostic/extra",
+    "/api/comun/other",
+  ]) {
+    assert.throws(
+      () => normalizeProtectedOperationalDiagnosticRoute(route),
+      /ROUTE_INVALID/,
+    );
+  }
+
+  let invocation;
+  const result = await probeProtectedOperationalDiagnosticDeployment({
+    deploymentUrl,
+    env,
+    executeCli: async (value) => {
+      invocation = value;
+      return {
+        exitCode: 0,
+        stdout: `${JSON.stringify({
+          formatVersion: 1,
+          flag: "disabled",
+          databaseUrl: "present",
+          database: "reachable",
+          ledger: "exact",
+          operationalState: "FLAG_DISABLED",
+        })}\n200`,
+        stderr: "",
+      };
+    },
+  });
+  assert.equal(result.valid, true);
+  assert.deepEqual(result.markers, ["PROTECTED_OPERATIONAL_DIAGNOSTIC_GREEN"]);
+  assert.equal(invocation.args[3], protectedOperationalDiagnosticRoute);
+  assert.doesNotMatch(JSON.stringify(result), /https?:\/\/|token|password/i);
+});
+
+test("operational diagnostic probe rejects extra fields, URLs, and secret-shaped values", () => {
+  for (const payload of [
+    {
+      formatVersion: 1,
+      flag: "disabled",
+      databaseUrl: "present",
+      database: "reachable",
+      ledger: "exact",
+      operationalState: "FLAG_DISABLED",
+      extra: true,
+    },
+    {
+      formatVersion: 1,
+      flag: "disabled",
+      databaseUrl: "present",
+      database: "reachable",
+      ledger: "exact",
+      operationalState: "FLAG_DISABLED",
+      note: "postgresql://never-allowed",
+    },
+  ]) {
+    const result = classifyProtectedOperationalDiagnosticProbe({
+      exitCode: 0,
+      stdout: `${JSON.stringify(payload)}\n200`,
+      stderr: "",
+    });
+    assert.deepEqual(result, {
+      valid: false,
+      markers: ["PROTECTED_OPERATIONAL_DIAGNOSTIC_RESPONSE_INVALID"],
+    });
+  }
 });
