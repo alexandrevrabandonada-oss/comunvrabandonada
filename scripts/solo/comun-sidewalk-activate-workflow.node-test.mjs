@@ -310,6 +310,11 @@ test("sidewalk readiness restores a historical local baseline before applying th
     checkpoint,
     /Apply and reapply the local release[\s\S]*?Restore the current local schema for RLS and E2E[\s\S]*?supabase db reset --local --yes[\s\S]*?Adopt the exact local release ledger for E2E[\s\S]*?--adopt-local-validation-ledger[\s\S]*?npm run audit:rls-matrix/,
   );
+  assert.match(
+    checkpoint,
+    /Restore the current local schema for RLS and E2E[\s\S]*?reset_output="\$\(mktemp\)"[\s\S]*?grep -q "Error status 502" "\$reset_output"[\s\S]*?COMUN_SIDEWALK_LOCAL_RESET_502_SINGLE_RETRY/,
+  );
+  assert.doesNotMatch(checkpoint, /printf ['\"]?%s.*reset_output/);
   assert.match(checkpoint, /Upload sidewalk readiness E2E evidence/);
   assert.match(
     checkpoint,
