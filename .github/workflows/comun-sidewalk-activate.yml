@@ -35,9 +35,13 @@ on:
         required: false
         default: ""
         type: string
+      activation_attempt_id:
+        description: Immutable, single-use identifier for an activation attempt.
+        required: true
+        type: string
 
 concurrency:
-  group: comun-sidewalk-operational-${{ inputs.mode }}-${{ inputs.expected_main_sha }}
+  group: comun-sidewalk-operational-${{ inputs.mode }}-${{ inputs.expected_main_sha }}-${{ inputs.activation_attempt_id }}
   cancel-in-progress: false
 
 permissions:
@@ -379,30 +383,35 @@ jobs:
         with:
           ref: ${{ inputs.expected_main_sha }}
           fetch-depth: 0
-      - name: Require exact activation authorization after read-only POST verification
-        env:
-          AUTHORIZATION: ${{ inputs.authorization }}
-          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
-          LEDGER_HASH: ${{ needs.validate-input.outputs.ledger_hash }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$AUTHORIZATION" = "AUTORIZO_ATIVAR_CALCADAS_${PROJECT_REF}_${EXPECTED_MAIN_SHA}_${LEDGER_HASH}"
       - name: Activate only after deployment and alias readiness
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+          AUTHORIZATION: ${{ inputs.authorization }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          LEDGER_HASH: ${{ needs.validate-input.outputs.ledger_hash }}
+          ACTIVATION_ATTEMPT_ID: ${{ inputs.activation_attempt_id }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           started_at="$SECONDS"
           temporary_files=()
+          event_directory=".ci-artifacts/sidewalk-activation"
+          event_file="$event_directory/events.txt"
+          duration_file="$event_directory/duration-seconds.txt"
+          mkdir -p "$event_directory"
+          : > "$event_file"
+
+          record_event() {
+            printf '%s=%s\n' "$1" "$2" >> "$event_file"
+          }
 
           cleanup() {
             rm -f "${temporary_files[@]:-}"
+            printf '%s\n' "$((SECONDS - started_at))" > "$duration_file"
           }
 
           trap cleanup EXIT
@@ -413,6 +422,7 @@ jobs:
               "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
               "$((SECONDS - started_at))" \
               >> "$GITHUB_STEP_SUMMARY"
+            record_event state "$1"
           }
 
           marker() {
@@ -421,6 +431,7 @@ jobs:
               "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
               "$((SECONDS - started_at))" \
               >> "$GITHUB_STEP_SUMMARY"
+            record_event marker "$1"
           }
 
           new_capture_file() {
@@ -536,6 +547,9 @@ jobs:
                   marker "$observed"
                   state FUNCTIONAL_SMOKE_GREEN
                   ;;
+                SOLO_ACTIVATION_FUNCTIONAL_SMOKE_FAILED)
+                  marker "$observed"
+                  ;;
                 SOLO_ACTIVATION_MONITOR_GREEN)
                   marker "$observed"
                   state MONITOR_GREEN
@@ -552,11 +566,11 @@ jobs:
                   marker "$observed"
                   state ROLLBACK_GREEN
                   ;;
-                SOLO_ACTIVATION_DEPLOYMENT_FLAG_NOT_READY|SOLO_ACTIVATION_ALIAS_PROPAGATION_TIMEOUT)
+                SOLO_ACTIVATION_DEPLOYMENT_FLAG_NOT_READY|SOLO_ACTIVATION_ALIAS_PROPAGATION_TIMEOUT|SOLO_ACTIVATION_MONITOR_FAILED_UNKNOWN_SUBPHASE)
                   marker "$observed"
                   ;;
               esac
-            done < <(grep -E '^SOLO_ACTIVATION_(DEPLOYMENT_FLAG_VISIBLE|CANONICAL_ALIAS_READY|FUNCTIONAL_SMOKE_GREEN|MONITOR_GREEN|ROLLBACK_DEPLOYMENT_READY|ROLLBACK_ALIAS_READY|ROLLBACK_GREEN|DEPLOYMENT_FLAG_NOT_READY|ALIAS_PROPAGATION_TIMEOUT)$' "$output" || true)
+            done < <(grep -E '^SOLO_ACTIVATION_(DEPLOYMENT_FLAG_VISIBLE|CANONICAL_ALIAS_READY|FUNCTIONAL_SMOKE_GREEN|FUNCTIONAL_SMOKE_FAILED|MONITOR_GREEN|ROLLBACK_DEPLOYMENT_READY|ROLLBACK_ALIAS_READY|ROLLBACK_GREEN|DEPLOYMENT_FLAG_NOT_READY|ALIAS_PROPAGATION_TIMEOUT|MONITOR_FAILED_UNKNOWN_SUBPHASE)$' "$output" || true)
           }
 
           run_activation_monitor() {
@@ -570,6 +584,9 @@ jobs:
             monitor_exit="$?"
             set -e
             record_monitor_states "$output"
+            if ((monitor_exit != 0)) && ! grep -Eq '^SOLO_ACTIVATION_(DEPLOYMENT_FLAG_NOT_READY|ALIAS_PROPAGATION_TIMEOUT|FUNCTIONAL_SMOKE_FAILED)$' "$output"; then
+              marker SOLO_ACTIVATION_MONITOR_FAILED_UNKNOWN_SUBPHASE
+            fi
             return "$monitor_exit"
           }
 
@@ -588,6 +605,7 @@ jobs:
           }
 
           rollback() {
+            state ROLLBACK_ATTEMPTED
             if ! run_vercel_env disabled; then
               marker SOLO_ACTIVATION_ROLLBACK_FLAG_COMMAND_FAILED
               return 1
@@ -602,8 +620,17 @@ jobs:
             if ! run_rollback_readiness; then
               return 1
             fi
+            state ROLLBACK_COMPLETE
           }
 
+          if [[ ! "$ACTIVATION_ATTEMPT_ID" =~ ^sidewalk-activate-[0-9]{8}-[0-9]{2}$ ]]; then
+            marker SOLO_ACTIVATION_AUTHORIZATION_INVALID
+            exit 1
+          fi
+          if [[ "$AUTHORIZATION" != "AUTORIZO_ATIVAR_CALCADAS_${PROJECT_REF}_${EXPECTED_MAIN_SHA}_${LEDGER_HASH}_${ACTIVATION_ATTEMPT_ID}" ]]; then
+            marker SOLO_ACTIVATION_AUTHORIZATION_INVALID
+            exit 1
+          fi
           node scripts/solo/assert-sidewalk-public-paused.mjs
           state FLAG_DISABLED_INITIAL
           if ! run_vercel_env enabled; then
@@ -612,7 +639,6 @@ jobs:
           fi
           state FLAG_ENABLED
           if capture_deployment activation && inspect_deployment activation && run_activation_monitor; then
-            marker COMUN_CALCADAS_OPERATIONAL_ACTIVATION_GREEN
             state ACTIVATION_GREEN
             exit 0
           fi
@@ -622,3 +648,52 @@ jobs:
             marker SOLO_ACTIVATION_ROLLBACK_FAILED
           fi
           exit "$activation_exit"
+      - name: Confirm a failed activation returned to paused public state
+        if: failure()
+        env:
+          ACTIVATION_EVENTS: .ci-artifacts/sidewalk-activation/events.txt
+        shell: bash
+        run: |
+          set -euo pipefail
+          if node scripts/solo/assert-sidewalk-public-paused.mjs; then
+            printf 'state=FINAL_PUBLIC_PAUSED\n' >> "$ACTIVATION_EVENTS"
+          else
+            printf 'state=FINAL_PUBLIC_UNSAFE\n' >> "$ACTIVATION_EVENTS"
+            exit 1
+          fi
+      - name: Emit one sanitized terminal activation result
+        if: always()
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          RUN_ID: ${{ github.run_id }}
+          ACTIVATION_ATTEMPT_ID: ${{ inputs.activation_attempt_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          event_directory=".ci-artifacts/sidewalk-activation"
+          event_file="$event_directory/events.txt"
+          mkdir -p "$event_directory"
+          if [[ ! -f "$event_file" ]]; then
+            printf 'marker=SOLO_ACTIVATION_AUTHORIZATION_INVALID\nstate=FINAL_PUBLIC_PAUSED\n' > "$event_file"
+          fi
+          duration_seconds=0
+          if [[ -f "$event_directory/duration-seconds.txt" ]]; then
+            duration_seconds="$(< "$event_directory/duration-seconds.txt")"
+          fi
+          [[ "$duration_seconds" =~ ^[0-9]+$ ]] || duration_seconds=0
+          node scripts/solo/activation-result.mjs \
+            --events="$event_file" \
+            --output-dir="$event_directory/result" \
+            --expected-main-sha="$EXPECTED_MAIN_SHA" \
+            --run-id="$RUN_ID" \
+            --attempt-id="$ACTIVATION_ATTEMPT_ID" \
+            --duration-seconds="$duration_seconds" \
+            >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload sanitized activation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-sidewalk-activation-${{ inputs.expected_main_sha }}-${{ inputs.activation_attempt_id }}-${{ github.run_id }}
+          path: .ci-artifacts/sidewalk-activation/result
+          if-no-files-found: error
+          retention-days: 14

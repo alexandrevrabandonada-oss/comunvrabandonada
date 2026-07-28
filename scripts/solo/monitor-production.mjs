@@ -335,11 +335,16 @@ export async function monitorActivationStability({
     new Promise((resolve) => setTimeout(resolve, milliseconds)),
 } = {}) {
   for (let attempt = 1; attempt <= options.minutes; attempt += 1) {
-    await runActivationFunctionalSmoke({
-      options,
-      fetchImpl,
-      emitMarker: false,
-    });
+    try {
+      await runActivationFunctionalSmoke({
+        options,
+        fetchImpl,
+        emitMarker: false,
+      });
+    } catch (error) {
+      console.log("SOLO_ACTIVATION_FUNCTIONAL_SMOKE_FAILED");
+      throw error;
+    }
     if (attempt < options.minutes) await sleep(60000);
   }
   console.log("SOLO_ACTIVATION_MONITOR_GREEN");
@@ -501,7 +506,12 @@ export async function monitorProduction({
       sleep,
     });
     await waitForActivationAliasReadiness({ options, fetchImpl, sleep });
-    await runActivationFunctionalSmoke({ options, fetchImpl });
+    try {
+      await runActivationFunctionalSmoke({ options, fetchImpl });
+    } catch (error) {
+      console.log("SOLO_ACTIVATION_FUNCTIONAL_SMOKE_FAILED");
+      throw error;
+    }
     await monitorActivationStability({ options, fetchImpl, sleep });
     console.log("COMUN_CALCADAS_OPERATIONAL_ACTIVATION_GREEN");
     return;

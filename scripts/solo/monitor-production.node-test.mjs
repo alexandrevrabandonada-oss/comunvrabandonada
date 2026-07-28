@@ -325,6 +325,24 @@ test("activation monitor runs only after a functional smoke and fails closed for
   );
 });
 
+test("activation monitoring emits a sanitized functional-smoke failure marker", async () => {
+  await withMarkers(async (markers) => {
+    await assert.rejects(
+      monitorActivationStability({
+        options: options(),
+        fetchImpl: async (url) => {
+          if (String(url).endsWith("volta-redonda.pmtiles"))
+            return rangeResponse();
+          return textResponse("unavailable", 503);
+        },
+        sleep: async () => {},
+      }),
+      /SOLO_PRODUCTION_SMOKE_HTTP_503/,
+    );
+    assert.deepEqual(markers, ["SOLO_ACTIVATION_FUNCTIONAL_SMOKE_FAILED"]);
+  });
+});
+
 test("rollback waits for the exact deployment and canonical alias to stabilize as paused", async () => {
   const trace = [];
   const fetchImpl = async (url, request) => {
