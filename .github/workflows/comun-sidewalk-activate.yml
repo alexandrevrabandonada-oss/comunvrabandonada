@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: Run the separately authorized database preflight, Vercel read-only preflight, migration, or public activation.
+        description: Run a fixed read-only preflight, environment diagnostic, migration, or separately authorized public activation.
         required: true
         type: choice
         default: preflight
@@ -12,7 +12,9 @@ on:
           [
             preflight,
             vercel-preflight,
+            operational-env-preflight,
             protected-deployment-preflight,
+            protected-operational-diagnostic,
             migrate,
             activate,
           ]
@@ -37,7 +39,8 @@ on:
         type: string
       activation_attempt_id:
         description: Immutable, single-use identifier for an activation attempt.
-        required: true
+        required: false
+        default: ""
         type: string
 
 concurrency:
@@ -184,6 +187,177 @@ jobs:
           }
           NODE
           echo COMUN_VERCEL_PROTECTED_ACCESS_READ_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  operational-env-preflight:
+    if: inputs.mode == 'operational-env-preflight'
+    needs: validate-input
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 1
+      - name: Inventory production environment metadata without reading values
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_TOKEN"
+          test "$VERCEL_ORG_ID" = "team_LBVwyK8FQMO7tA3hzVXXeumF"
+          test "$VERCEL_PROJECT_ID" = "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X"
+          umask 077
+          metadata_json="$(mktemp)"
+          curl_error="$(mktemp)"
+          chmod 600 "$metadata_json" "$curl_error"
+          trap 'rm -f "$metadata_json" "$curl_error"' EXIT
+          set +e
+          http_status="$(
+            curl \
+              --silent \
+              --show-error \
+              --output "$metadata_json" \
+              --write-out '%{http_code}' \
+              --header "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/env?teamId=${VERCEL_ORG_ID}" \
+              2>"$curl_error"
+          )"
+          curl_exit=$?
+          set -e
+          if ((curl_exit != 0)) || [[ "$http_status" != "200" ]]; then
+            echo COMUN_SIDEWALK_OPERATIONAL_ENV_METADATA_ACCESS_FAILED >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          node scripts/solo/sidewalk-operational-env-inventory.mjs \
+            --input="$metadata_json" \
+            --output=.ci-artifacts/sidewalk-operational-env/inventory.json
+          echo COMUN_SIDEWALK_OPERATIONAL_ENV_PREFLIGHT_GREEN >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload sanitized operational environment inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-sidewalk-operational-env-inventory-${{ inputs.expected_main_sha }}-${{ github.run_id }}
+          path: .ci-artifacts/sidewalk-operational-env/inventory.json
+          if-no-files-found: error
+          retention-days: 14
+
+  protected-operational-diagnostic:
+    if: inputs.mode == 'protected-operational-diagnostic'
+    needs: validate-input
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Read protected deployment diagnostic and classify without changing Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_TOKEN"
+          test "$VERCEL_ORG_ID" = "team_LBVwyK8FQMO7tA3hzVXXeumF"
+          test "$VERCEL_PROJECT_ID" = "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X"
+          umask 077
+          metadata_json="$(mktemp)"
+          deployment_json="$(mktemp)"
+          curl_error="$(mktemp)"
+          probe_output="$(mktemp)"
+          chmod 600 "$metadata_json" "$deployment_json" "$curl_error" "$probe_output"
+          trap 'rm -f "$metadata_json" "$deployment_json" "$curl_error" "$probe_output"' EXIT
+          set +e
+          metadata_status="$(
+            curl --silent --show-error --output "$metadata_json" --write-out '%{http_code}' \
+              --header "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/env?teamId=${VERCEL_ORG_ID}" \
+              2>"$curl_error"
+          )"
+          metadata_exit=$?
+          deployment_status="$(
+            curl --silent --show-error --output "$deployment_json" --write-out '%{http_code}' \
+              --header "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v6/deployments?projectId=${VERCEL_PROJECT_ID}&teamId=${VERCEL_ORG_ID}&target=production&state=READY&limit=20" \
+              2>>"$curl_error"
+          )"
+          deployment_exit=$?
+          set -e
+          if ((metadata_exit != 0)) || [[ "$metadata_status" != "200" ]] || ((deployment_exit != 0)) || [[ "$deployment_status" != "200" ]]; then
+            echo COMUN_SIDEWALK_OPERATIONAL_DIAGNOSTIC_ACCESS_FAILED >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          node scripts/solo/sidewalk-operational-env-inventory.mjs \
+            --input="$metadata_json" \
+            --output=.ci-artifacts/sidewalk-operational-diagnostic/inventory.json
+          deployment_url="$(DEPLOYMENT_JSON="$deployment_json" EXPECTED_MAIN_SHA="$EXPECTED_MAIN_SHA" node --input-type=module <<'NODE'
+          import { readFile } from "node:fs/promises";
+          const expectedHost = /^comunvrabandonada-[a-z0-9-]+-alexandrevrabandonada-oss-projects\.vercel\.app$/;
+          const payload = JSON.parse(await readFile(process.env.DEPLOYMENT_JSON, "utf8"));
+          const deployments = Array.isArray(payload.deployments) ? payload.deployments : [];
+          const matches = deployments
+            .filter((deployment) => deployment?.state === "READY")
+            .filter((deployment) => deployment?.target === "production")
+            .filter((deployment) => deployment?.meta?.githubCommitSha === process.env.EXPECTED_MAIN_SHA)
+            .map((deployment) => {
+              const candidate = String(deployment.url ?? "");
+              const url = new URL(candidate.startsWith("https://") ? candidate : `https://${candidate}`);
+              if (url.protocol !== "https:" || url.pathname !== "/" || !expectedHost.test(url.hostname)) return null;
+              return { url: url.origin, createdAt: Number(deployment.createdAt ?? 0) };
+            })
+            .filter(Boolean)
+            .sort((left, right) => right.createdAt - left.createdAt);
+          if (matches.length === 0) process.exit(1);
+          process.stdout.write(matches[0].url);
+          NODE
+          )" || {
+            echo PROTECTED_OPERATIONAL_DIAGNOSTIC_DEPLOYMENT_NOT_FOUND >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          }
+          node scripts/solo/probe-protected-vercel-deployment.mjs \
+            --deployment-url="$deployment_url" \
+            --operational-diagnostic > "$probe_output"
+          PROBE_OUTPUT="$probe_output" node --input-type=module <<'NODE'
+          import { mkdir, readFile, writeFile } from "node:fs/promises";
+          import path from "node:path";
+          const raw = await readFile(process.env.PROBE_OUTPUT, "utf8");
+          const line = raw.trim().split(/\r?\n/).at(-1);
+          const diagnostic = JSON.parse(line);
+          const keys = ["formatVersion", "flag", "databaseUrl", "database", "ledger", "operationalState"];
+          if (JSON.stringify(Object.keys(diagnostic).sort()) !== JSON.stringify(keys.sort())) process.exit(1);
+          const output = ".ci-artifacts/sidewalk-operational-diagnostic/runtime-diagnostic.json";
+          await mkdir(path.dirname(output), { recursive: true });
+          await writeFile(output, `${JSON.stringify(diagnostic, null, 2)}\n`, "utf8");
+          NODE
+          node scripts/solo/classify-sidewalk-operational-gate.mjs \
+            --inventory=.ci-artifacts/sidewalk-operational-diagnostic/inventory.json \
+            --diagnostic=.ci-artifacts/sidewalk-operational-diagnostic/runtime-diagnostic.json \
+            --output=.ci-artifacts/sidewalk-operational-diagnostic/classification.json
+          node scripts/solo/render-sidewalk-operational-gate-report.mjs \
+            --inventory=.ci-artifacts/sidewalk-operational-diagnostic/inventory.json \
+            --diagnostic=.ci-artifacts/sidewalk-operational-diagnostic/runtime-diagnostic.json \
+            --output-directory=.ci-artifacts/sidewalk-operational-diagnostic \
+            --main-sha="$EXPECTED_MAIN_SHA"
+          echo PROTECTED_OPERATIONAL_DIAGNOSTIC_GREEN >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload sanitized protected operational diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-sidewalk-protected-operational-diagnostic-${{ inputs.expected_main_sha }}-${{ github.run_id }}
+          path: .ci-artifacts/sidewalk-operational-diagnostic
+          if-no-files-found: error
+          retention-days: 14
 
   protected-deployment-preflight:
     if: inputs.mode == 'protected-deployment-preflight'

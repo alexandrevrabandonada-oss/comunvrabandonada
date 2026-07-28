@@ -12,6 +12,8 @@ import path from "node:path";
 
 export const protectedContributionRoute =
   "/comun/mapa/contribuir?origem=calcadas";
+export const protectedOperationalDiagnosticRoute =
+  "/api/comun/sidewalk-operational-diagnostic";
 export const protectedDeploymentHost =
   /^comunvrabandonada-[a-z0-9-]+-alexandrevrabandonada-oss-projects\.vercel\.app$/;
 
@@ -30,6 +32,20 @@ const protectionMarkers = [
 ];
 const canonicalTeamId = "team_LBVwyK8FQMO7tA3hzVXXeumF";
 const canonicalProjectId = "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X";
+const operationalDiagnosticKeys = [
+  "formatVersion",
+  "flag",
+  "databaseUrl",
+  "database",
+  "ledger",
+  "operationalState",
+];
+const sensitiveDiagnosticPatterns = [
+  /postgres(?:ql)?:\/\//i,
+  /\b(?:password|token|authorization|cookie|service[_ -]?role\s*(?:key|token|=|:))\b/i,
+  /\beyJ[a-zA-Z0-9_-]{10,}/,
+  /(?:dsn|connection string|private_notes|object_key|exact_latitude|exact_longitude)/i,
+];
 
 function optionValue(argv, name) {
   return argv
@@ -87,6 +103,27 @@ export function normalizeProtectedContributionRoute(value) {
   return `${url.pathname}${url.search}`;
 }
 
+export function normalizeProtectedOperationalDiagnosticRoute(value) {
+  if (!value?.startsWith("/"))
+    throw new Error("PROTECTED_DEPLOYMENT_ROUTE_INVALID");
+  const url = new URL(value, "https://comun.invalid");
+  if (
+    url.origin !== "https://comun.invalid" ||
+    url.pathname !== protectedOperationalDiagnosticRoute ||
+    url.search ||
+    url.hash
+  ) {
+    throw new Error("PROTECTED_DEPLOYMENT_ROUTE_INVALID");
+  }
+  return url.pathname;
+}
+
+export function normalizeProtectedProbeRoute(value) {
+  return value?.startsWith(protectedOperationalDiagnosticRoute)
+    ? normalizeProtectedOperationalDiagnosticRoute(value)
+    : normalizeProtectedContributionRoute(value);
+}
+
 export function createProtectedContributionProbeRoute(nonce) {
   if (!/^[a-z0-9-]{1,120}$/i.test(String(nonce ?? "")))
     throw new Error("PROTECTED_DEPLOYMENT_ROUTE_INVALID");
@@ -110,7 +147,7 @@ export function buildProtectedDeploymentCurlArgs({
 }) {
   const normalizedDeploymentUrl =
     normalizeProtectedDeploymentUrl(deploymentUrl);
-  const normalizedRoute = normalizeProtectedContributionRoute(route);
+  const normalizedRoute = normalizeProtectedProbeRoute(route);
   assertProtectedProbeEnvironment(env);
 
   return [
@@ -190,6 +227,70 @@ export function classifyProtectedDeploymentProbe({ exitCode, stdout }) {
   return { state, markers };
 }
 
+export function validateOperationalDiagnosticPayload(body) {
+  let payload;
+  try {
+    payload = JSON.parse(String(body));
+  } catch {
+    throw new Error("PROTECTED_OPERATIONAL_DIAGNOSTIC_RESPONSE_INVALID");
+  }
+  if (
+    !payload ||
+    JSON.stringify(Object.keys(payload).sort()) !==
+      JSON.stringify([...operationalDiagnosticKeys].sort()) ||
+    payload.formatVersion !== 1 ||
+    !["disabled", "enabled", "missing"].includes(payload.flag) ||
+    !["present", "missing"].includes(payload.databaseUrl) ||
+    !["reachable", "unreachable", "not_tested"].includes(payload.database) ||
+    !["exact", "missing", "mismatch", "not_tested"].includes(payload.ledger) ||
+    ![
+      "FLAG_DISABLED",
+      "DATABASE_URL_MISSING",
+      "DATABASE_CONNECTION_FAILED",
+      "LEDGER_ROW_MISSING",
+      "LEDGER_MISMATCH",
+      "OPERATIONAL_READY",
+    ].includes(payload.operationalState) ||
+    sensitiveDiagnosticPatterns.some((pattern) =>
+      pattern.test(JSON.stringify(payload)),
+    )
+  ) {
+    throw new Error("PROTECTED_OPERATIONAL_DIAGNOSTIC_RESPONSE_INVALID");
+  }
+  return payload;
+}
+
+export function classifyProtectedOperationalDiagnosticProbe({
+  exitCode,
+  stdout,
+}) {
+  if (exitCode !== 0) {
+    return {
+      valid: false,
+      markers: ["PROTECTED_OPERATIONAL_DIAGNOSTIC_ACCESS_FAILED"],
+    };
+  }
+  const status = responseStatus(stdout);
+  if (status !== 200) {
+    return {
+      valid: false,
+      markers: ["PROTECTED_OPERATIONAL_DIAGNOSTIC_RESPONSE_INVALID"],
+    };
+  }
+  try {
+    return {
+      valid: true,
+      diagnostic: validateOperationalDiagnosticPayload(responseBody(stdout)),
+      markers: ["PROTECTED_OPERATIONAL_DIAGNOSTIC_GREEN"],
+    };
+  } catch {
+    return {
+      valid: false,
+      markers: ["PROTECTED_OPERATIONAL_DIAGNOSTIC_RESPONSE_INVALID"],
+    };
+  }
+}
+
 function waitForChild(child) {
   return new Promise((resolve, reject) => {
     child.once("error", reject);
@@ -264,15 +365,48 @@ export async function probeProtectedVercelDeployment({
   };
 }
 
+export async function probeProtectedOperationalDiagnosticDeployment({
+  deploymentUrl,
+  env = process.env,
+  executeCli = executeProtectedDeploymentCurl,
+}) {
+  let result;
+  try {
+    result = await executeCli({
+      args: buildProtectedDeploymentCurlArgs({
+        deploymentUrl,
+        route: protectedOperationalDiagnosticRoute,
+        env,
+      }),
+      env,
+    });
+  } catch {
+    result = { exitCode: 1, stdout: "", stderr: "" };
+  }
+  return classifyProtectedOperationalDiagnosticProbe(result);
+}
+
 export function parseProtectedProbeOptions(argv) {
   const deploymentUrl = optionValue(argv, "--deployment-url");
-  const route = optionValue(argv, "--route") ?? protectedContributionRoute;
+  const operationalDiagnostic = argv.includes("--operational-diagnostic");
+  const route =
+    optionValue(argv, "--route") ??
+    (operationalDiagnostic
+      ? protectedOperationalDiagnosticRoute
+      : protectedContributionRoute);
   const expectedState = optionValue(argv, "--expected-state");
-  return { deploymentUrl, route, expectedState };
+  return { deploymentUrl, route, expectedState, operationalDiagnostic };
 }
 
 async function main() {
   const options = parseProtectedProbeOptions(process.argv.slice(2));
+  if (options.operationalDiagnostic) {
+    const result = await probeProtectedOperationalDiagnosticDeployment(options);
+    for (const marker of result.markers) console.log(marker);
+    if (result.valid) console.log(JSON.stringify(result.diagnostic));
+    else process.exitCode = 1;
+    return;
+  }
   const result = await probeProtectedVercelDeployment(options);
   for (const marker of result.markers) console.log(marker);
   if (!result.matchesExpectedState) process.exitCode = 1;
