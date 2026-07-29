@@ -426,7 +426,11 @@ test("database URL configuration is a fixed, separately authorized gate with lim
   assert.match(configuration, /\^sidewalk-db-env-\[0-9\]\{8\}-\[0-9\]\{2\}\$/);
   assert.match(
     configuration,
-    /AUTORIZO_CONFIGURAR_CALCADAS_DATABASE_URL_\$\{VERCEL_PROJECT_ID\}_\$\{EXPECTED_MAIN_SHA\}_\$\{LEDGER_HASH\}_\$\{CONFIGURATION_ATTEMPT_ID\}_MANTER_FLAG_DESABILITADA/,
+    /AUTORIZO_CONFIGURAR_CALCADAS_DATABASE_URL_\$\{VERCEL_PROJECT_ID\}_\$\{EXPECTED_MAIN_SHA\}_\$\{LEDGER_HASH\}_\$\{CONFIGURATION_ATTEMPT_ID\}_MANTER_FLAG_DISABLED/,
+  );
+  assert.doesNotMatch(
+    configuration,
+    /AUTORIZO_CONFIGURAR_CALCADAS_DATABASE_URL_[^\n]+_MANTER_FLAG_DESABILITADA/,
   );
   assert.match(
     configuration,
