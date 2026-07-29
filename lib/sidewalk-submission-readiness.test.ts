@@ -36,33 +36,62 @@ describe("sidewalk submission readiness", () => {
     });
   });
 
-  it("reuses an existing anonymous session without a bootstrap POST", async () => {
+  it("reuses an existing anonymous session without CAPTCHA or bootstrap POST", async () => {
     const signInAnonymously = vi.fn();
-    const result = await ensureSidewalkAnonymousSession({
-      auth: {
-        getSession: vi
-          .fn()
-          .mockResolvedValue({ data: { session: { user: "anonymous" } } }),
-        signInAnonymously,
+    const getCaptchaToken = vi.fn();
+    const result = await ensureSidewalkAnonymousSession(
+      {
+        auth: {
+          getSession: vi
+            .fn()
+            .mockResolvedValue({ data: { session: { user: "anonymous" } } }),
+          signInAnonymously,
+        },
       },
-    });
+      getCaptchaToken,
+    );
     expect(result).toEqual({ source: "existing" });
+    expect(getCaptchaToken).not.toHaveBeenCalled();
     expect(signInAnonymously).not.toHaveBeenCalled();
   });
 
-  it("creates one anonymous session only after submission requests it", async () => {
+  it("creates one anonymous session with one CAPTCHA token after submission", async () => {
     const signInAnonymously = vi.fn().mockResolvedValue({
       data: { session: { user: "anonymous" } },
       error: null,
     });
-    const result = await ensureSidewalkAnonymousSession({
-      auth: {
-        getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
-        signInAnonymously,
+    const getCaptchaToken = vi.fn().mockResolvedValue("captcha-token");
+    const result = await ensureSidewalkAnonymousSession(
+      {
+        auth: {
+          getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+          signInAnonymously,
+        },
       },
-    });
+      getCaptchaToken,
+    );
     expect(result).toEqual({ source: "created" });
+    expect(getCaptchaToken).toHaveBeenCalledTimes(1);
     expect(signInAnonymously).toHaveBeenCalledTimes(1);
+    expect(signInAnonymously).toHaveBeenCalledWith({
+      options: { captchaToken: "captcha-token" },
+    });
+  });
+
+  it("blocks bootstrap before POST when CAPTCHA returns an empty token", async () => {
+    const signInAnonymously = vi.fn();
+    await expect(
+      ensureSidewalkAnonymousSession(
+        {
+          auth: {
+            getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+            signInAnonymously,
+          },
+        },
+        vi.fn().mockResolvedValue("  "),
+      ),
+    ).rejects.toThrow("token válido");
+    expect(signInAnonymously).not.toHaveBeenCalled();
   });
 
   it("fails without retry when the anonymous provider rejects bootstrap", async () => {
@@ -71,12 +100,15 @@ describe("sidewalk submission readiness", () => {
       error: { code: "provider_disabled" },
     });
     await expect(
-      ensureSidewalkAnonymousSession({
-        auth: {
-          getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
-          signInAnonymously,
+      ensureSidewalkAnonymousSession(
+        {
+          auth: {
+            getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+            signInAnonymously,
+          },
         },
-      }),
+        vi.fn().mockResolvedValue("captcha-token"),
+      ),
     ).rejects.toThrow("Não foi possível criar a sessão privada");
     expect(signInAnonymously).toHaveBeenCalledTimes(1);
   });
