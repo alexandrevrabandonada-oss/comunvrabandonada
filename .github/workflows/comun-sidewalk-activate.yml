@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: Run a fixed read-only preflight, environment diagnostic, migration, or separately authorized public activation.
+        description: Run a fixed preflight, configuration gate, migration, or separately authorized public activation.
         required: true
         type: choice
         default: preflight
@@ -15,6 +15,7 @@ on:
             operational-env-preflight,
             protected-deployment-preflight,
             protected-operational-diagnostic,
+            configure-operational-database-url,
             migrate,
             activate,
           ]
@@ -42,9 +43,14 @@ on:
         required: false
         default: ""
         type: string
+      configuration_attempt_id:
+        description: Immutable, single-use identifier for a database environment configuration attempt.
+        required: false
+        default: ""
+        type: string
 
 concurrency:
-  group: comun-sidewalk-operational-${{ inputs.mode }}-${{ inputs.expected_main_sha }}-${{ inputs.activation_attempt_id }}
+  group: comun-sidewalk-operational-${{ inputs.mode }}-${{ inputs.expected_main_sha }}-${{ inputs.activation_attempt_id }}-${{ inputs.configuration_attempt_id }}
   cancel-in-progress: false
 
 permissions:
@@ -838,5 +844,317 @@ jobs:
         with:
           name: comun-sidewalk-activation-${{ inputs.expected_main_sha }}-${{ inputs.activation_attempt_id }}-${{ github.run_id }}
           path: .ci-artifacts/sidewalk-activation/result
+          if-no-files-found: error
+          retention-days: 14
+
+  configure-operational-database-url:
+    if: inputs.mode == 'configure-operational-database-url'
+    needs: validate-input
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Configure only the fixed operational database URL after read-only preflight
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          AUTHORIZATION: ${{ inputs.authorization }}
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          LEDGER_HASH: ${{ needs.validate-input.outputs.ledger_hash }}
+          CONFIGURATION_ATTEMPT_ID: ${{ inputs.configuration_attempt_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          started_at="$SECONDS"
+          event_directory=".ci-artifacts/sidewalk-database-env-configuration"
+          event_file="$event_directory/events.txt"
+          duration_file="$event_directory/duration-seconds.txt"
+          temporary_files=()
+          mkdir -p "$event_directory"
+          : > "$event_file"
+
+          record() {
+            printf '%s=%s\n' "$1" "$2" >> "$event_file"
+          }
+
+          state() {
+            record state "$1"
+            printf '%s duration_seconds=%s\n' "$1" "$((SECONDS - started_at))" >> "$GITHUB_STEP_SUMMARY"
+          }
+
+          marker() {
+            record marker "$1"
+            printf '%s duration_seconds=%s\n' "$1" "$((SECONDS - started_at))" >> "$GITHUB_STEP_SUMMARY"
+          }
+
+          capture_file() {
+            CAPTURE_FILE="$(mktemp)"
+            chmod 600 "$CAPTURE_FILE"
+            temporary_files+=("$CAPTURE_FILE")
+          }
+
+          cleanup() {
+            rm -f "${temporary_files[@]:-}"
+            printf '%s\n' "$((SECONDS - started_at))" > "$duration_file"
+          }
+          trap cleanup EXIT
+
+          run_metadata() {
+            local output error metadata_exit
+            capture_file; output="$CAPTURE_FILE"
+            capture_file; error="$CAPTURE_FILE"
+            set +e
+            COMUN_SIDEWALK_OPERATIONAL_ENV_ARTIFACT_DIRECTORY="$event_directory/env-metadata" \
+              node scripts/solo/fetch-vercel-operational-env-metadata.mjs >"$output" 2>"$error"
+            metadata_exit=$?
+            set -e
+            return "$metadata_exit"
+          }
+
+          require_inventory() {
+            local expected_database_present="$1"
+            EXPECTED_DATABASE_PRESENT="$expected_database_present" node --input-type=module <<'NODE'
+          import { readFile } from "node:fs/promises";
+          const inventory = JSON.parse(await readFile(
+            ".ci-artifacts/sidewalk-database-env-configuration/env-metadata/inventory.json",
+            "utf8",
+          ));
+          const expectedDatabasePresent = process.env.EXPECTED_DATABASE_PRESENT === "true";
+          if (
+            inventory.flagKeyPresent !== true ||
+            inventory.flagTargetsProduction !== true ||
+            inventory.databaseUrlKeyPresent !== expectedDatabasePresent ||
+            inventory.databaseUrlTargetsProduction !== expectedDatabasePresent
+          ) process.exit(1);
+          NODE
+          }
+
+          verify_protected_diagnostic() {
+            local output error probe_exit
+            capture_file; output="$CAPTURE_FILE"
+            capture_file; error="$CAPTURE_FILE"
+            set +e
+            node scripts/solo/probe-protected-vercel-deployment.mjs \
+              --deployment-url="$DEPLOYMENT_URL" \
+              --operational-diagnostic >"$output" 2>"$error"
+            probe_exit=$?
+            set -e
+            if ((probe_exit != 0)); then return "$probe_exit"; fi
+            PROBE_OUTPUT="$output" node --input-type=module <<'NODE'
+          import { readFile } from "node:fs/promises";
+          const diagnostic = JSON.parse((await readFile(process.env.PROBE_OUTPUT, "utf8")).trim().split(/\r?\n/).at(-1));
+          const expected = {
+            formatVersion: 1,
+            flag: "disabled",
+            databaseUrl: "present",
+            database: "reachable",
+            ledger: "exact",
+            operationalState: "FLAG_DISABLED",
+          };
+          if (JSON.stringify(diagnostic) !== JSON.stringify(expected)) process.exit(1);
+          NODE
+          }
+
+          capture_deployment() {
+            local phase="$1" output error deployment_exit
+            capture_file; output="$CAPTURE_FILE"
+            capture_file; error="$CAPTURE_FILE"
+            set +e
+            npx --yes vercel@50.28.0 --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >"$output" 2>"$error"
+            deployment_exit=$?
+            set -e
+            if ((deployment_exit != 0)); then
+              marker SOLO_DATABASE_ENV_DEPLOYMENT_COMMAND_FAILED
+              return "$deployment_exit"
+            fi
+            DEPLOYMENT_URL="$(DEPLOYMENT_STDOUT="$output" node --input-type=module <<'NODE'
+          import { readFile } from "node:fs/promises";
+          const output = await readFile(process.env.DEPLOYMENT_STDOUT, "utf8");
+          const urls = [...new Set(output.match(/https:\/\/comunvrabandonada(?:-[a-z0-9-]+)?\.vercel\.app\/?/gi) ?? [])]
+            .map((candidate) => new URL(candidate).origin)
+            .filter((candidate) => new URL(candidate).hostname !== "comunvrabandonada.vercel.app");
+          if (urls.length !== 1) process.exit(1);
+          const deployment = new URL(urls[0]);
+          if (
+            deployment.protocol !== "https:" ||
+            !/^comunvrabandonada-[a-z0-9-]+-alexandrevrabandonada-oss-projects\.vercel\.app$/.test(deployment.hostname)
+          ) process.exit(1);
+          process.stdout.write(deployment.origin);
+          NODE
+            )" || {
+              marker SOLO_DATABASE_ENV_DEPLOYMENT_URL_INVALID
+              return 1
+            }
+            if [[ "$phase" = "configuration" ]]; then
+              state DEPLOYMENT_CREATED
+            else
+              state ROLLBACK_DEPLOYMENT_CREATED
+            fi
+          }
+
+          wait_for_deployment() {
+            local phase="$1" output error inspect_exit
+            capture_file; output="$CAPTURE_FILE"
+            capture_file; error="$CAPTURE_FILE"
+            set +e
+            timeout 300s npx --yes vercel@50.28.0 inspect "$DEPLOYMENT_URL" --wait --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >"$output" 2>"$error"
+            inspect_exit=$?
+            set -e
+            if ((inspect_exit != 0)); then
+              marker SOLO_DATABASE_ENV_DEPLOYMENT_NOT_READY
+              return "$inspect_exit"
+            fi
+            if [[ "$phase" = "configuration" ]]; then
+              state DEPLOYMENT_READY
+            else
+              state ROLLBACK_DEPLOYMENT_READY
+            fi
+          }
+
+          remove_only_configured_database_url() {
+            local output error remove_exit
+            capture_file; output="$CAPTURE_FILE"
+            capture_file; error="$CAPTURE_FILE"
+            set +e
+            npx --yes vercel@50.28.0 env rm COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >"$output" 2>"$error"
+            remove_exit=$?
+            set -e
+            return "$remove_exit"
+          }
+
+          rollback() {
+            state ROLLBACK_ATTEMPTED
+            if ! remove_only_configured_database_url; then
+              marker SOLO_DATABASE_ENV_ROLLBACK_FAILED
+              return 1
+            fi
+            state ROLLBACK_VARIABLE_REMOVED
+            if ! capture_deployment rollback || ! wait_for_deployment rollback; then
+              marker SOLO_DATABASE_ENV_ROLLBACK_FAILED
+              return 1
+            fi
+            if ! node scripts/solo/assert-sidewalk-public-paused.mjs; then
+              marker SOLO_DATABASE_ENV_ROLLBACK_FAILED
+              return 1
+            fi
+            state PUBLIC_PAUSED_CONFIRMED
+            if ! run_metadata || ! require_inventory false; then
+              marker SOLO_DATABASE_ENV_ROLLBACK_FAILED
+              return 1
+            fi
+            state ROLLBACK_COMPLETE
+          }
+
+          if [[ ! "$CONFIGURATION_ATTEMPT_ID" =~ ^sidewalk-db-env-[0-9]{8}-[0-9]{2}$ ]]; then
+            marker SOLO_DATABASE_ENV_AUTHORIZATION_INVALID
+            exit 1
+          fi
+          if [[ "$VERCEL_ORG_ID" != "team_LBVwyK8FQMO7tA3hzVXXeumF" || "$VERCEL_PROJECT_ID" != "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X" ]]; then
+            marker SOLO_DATABASE_ENV_PREFLIGHT_FAILED
+            exit 1
+          fi
+          if [[ -z "$VERCEL_TOKEN" || -z "$SUPABASE_DB_URL" || -z "$PROJECT_REF" ]]; then
+            marker SOLO_DATABASE_ENV_PREFLIGHT_FAILED
+            exit 1
+          fi
+          if [[ "$AUTHORIZATION" != "AUTORIZO_CONFIGURAR_CALCADAS_DATABASE_URL_${VERCEL_PROJECT_ID}_${EXPECTED_MAIN_SHA}_${LEDGER_HASH}_${CONFIGURATION_ATTEMPT_ID}_MANTER_FLAG_DESABILITADA" ]]; then
+            marker SOLO_DATABASE_ENV_AUTHORIZATION_INVALID
+            exit 1
+          fi
+
+          COMUN_RELEASE_MANIFEST=supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v2.json \
+          PR23_DATABASE_URL="$SUPABASE_DB_URL" \
+          PR23_ALLOWED_PROJECT_REFS="$PROJECT_REF" \
+          SUPABASE_PROJECT_REF="$PROJECT_REF" \
+            node scripts/solo/apply-forward-only.mjs --read-only-postflight
+          state LEDGER_EXACT
+          if ! run_metadata || ! require_inventory false; then
+            marker COMUN_SIDEWALK_DATABASE_ENV_ALREADY_PRESENT_REVIEW_REQUIRED
+            exit 1
+          fi
+          state INVENTORY_CONFIRMED_MISSING
+          if ! node scripts/solo/assert-sidewalk-public-paused.mjs; then
+            marker SOLO_DATABASE_ENV_PREFLIGHT_FAILED
+            exit 1
+          fi
+          state FLAG_DISABLED_CONFIRMED
+          state PUBLIC_PAUSED_CONFIRMED
+
+          capture_file; add_output="$CAPTURE_FILE"
+          capture_file; add_error="$CAPTURE_FILE"
+          set +e
+          printf '%s' "$SUPABASE_DB_URL" | npx --yes vercel@50.28.0 env add COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL production --sensitive --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >"$add_output" 2>"$add_error"
+          add_exit="${PIPESTATUS[1]}"
+          set -e
+          if ((add_exit != 0)); then
+            marker SOLO_DATABASE_ENV_ADD_FAILED
+            exit 1
+          fi
+          state DATABASE_ENV_CONFIGURED
+
+          if capture_deployment configuration && wait_for_deployment configuration && verify_protected_diagnostic; then
+            state DATABASE_REACHABLE
+            state LEDGER_EXACT
+            state FLAG_DISABLED_CONFIRMED
+            if node scripts/solo/assert-sidewalk-public-paused.mjs; then
+              state PUBLIC_PAUSED_CONFIRMED
+              state CONFIGURATION_GREEN
+              exit 0
+            fi
+            marker SOLO_DATABASE_ENV_PUBLIC_PAUSED_FAILED
+          else
+            marker SOLO_DATABASE_ENV_PROTECTED_DIAGNOSTIC_FAILED
+          fi
+
+          if ! rollback; then
+            marker SOLO_DATABASE_ENV_ROLLBACK_FAILED
+          fi
+          exit 1
+      - name: Emit one sanitized terminal database environment configuration result
+        if: always()
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          RUN_ID: ${{ github.run_id }}
+          CONFIGURATION_ATTEMPT_ID: ${{ inputs.configuration_attempt_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          event_directory=".ci-artifacts/sidewalk-database-env-configuration"
+          event_file="$event_directory/events.txt"
+          mkdir -p "$event_directory"
+          if [[ ! -f "$event_file" ]]; then
+            printf 'marker=SOLO_DATABASE_ENV_AUTHORIZATION_INVALID\n' > "$event_file"
+          fi
+          duration_seconds=0
+          if [[ -f "$event_directory/duration-seconds.txt" ]]; then
+            duration_seconds="$(< "$event_directory/duration-seconds.txt")"
+          fi
+          [[ "$duration_seconds" =~ ^[0-9]+$ ]] || duration_seconds=0
+          node scripts/solo/database-env-configuration-result.mjs \
+            --events="$event_file" \
+            --output-dir="$event_directory/result" \
+            --expected-main-sha="$EXPECTED_MAIN_SHA" \
+            --run-id="$RUN_ID" \
+            --configuration-attempt-id="$CONFIGURATION_ATTEMPT_ID" \
+            --duration-seconds="$duration_seconds" \
+            >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload sanitized database environment configuration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-sidewalk-database-env-configuration-${{ inputs.expected_main_sha }}-${{ inputs.configuration_attempt_id }}-${{ github.run_id }}
+          path: .ci-artifacts/sidewalk-database-env-configuration/result
           if-no-files-found: error
           retention-days: 14

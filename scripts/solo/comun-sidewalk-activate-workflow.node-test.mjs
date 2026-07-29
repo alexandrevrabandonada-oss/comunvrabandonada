@@ -37,11 +37,15 @@ test("sidewalk workflow separates read-only preflight, migration, and activation
   const preflight = job(workflow, "preflight", "migrate");
   const migrate = job(workflow, "migrate", "postflight");
   const postflight = job(workflow, "postflight", "activate");
-  const activate = workflow.match(/  activate:[\s\S]*$/)?.[0] ?? "";
+  const activate = job(
+    workflow,
+    "activate",
+    "configure-operational-database-url",
+  );
 
   assert.match(
     workflow,
-    /options:\s*\[\s*preflight,\s*vercel-preflight,\s*operational-env-preflight,\s*protected-deployment-preflight,\s*protected-operational-diagnostic,\s*migrate,\s*activate,?\s*\]/,
+    /options:\s*\[\s*preflight,\s*vercel-preflight,\s*operational-env-preflight,\s*protected-deployment-preflight,\s*protected-operational-diagnostic,\s*configure-operational-database-url,\s*migrate,\s*activate,?\s*\]/,
   );
   assert.match(workflow, /contract_id:/);
   assert.match(workflow, /sidewalk-operational-safer-pre-v2/);
@@ -91,7 +95,11 @@ test("sidewalk workflow separates read-only preflight, migration, and activation
 
 test("activation captures one protected deployment URL, waits for readiness, and rolls back through the same states", async () => {
   const workflow = await readFile(workflowPath, "utf8");
-  const activate = workflow.match(/  activate:[\s\S]*$/)?.[0] ?? "";
+  const activate = job(
+    workflow,
+    "activate",
+    "configure-operational-database-url",
+  );
 
   assert.match(activate, /umask 077/);
   assert.match(activate, /CAPTURE_FILE="\$\(mktemp\)"/);
@@ -365,12 +373,16 @@ test("workflow accepts no SQL or path input and uses only the fixed scoped contr
 
 test("activation binds authorization and concurrency to a single attempt and always emits a sanitized terminal artifact", async () => {
   const workflow = await readFile(workflowPath, "utf8");
-  const activate = workflow.match(/  activate:[\s\S]*$/)?.[0] ?? "";
+  const activate = job(
+    workflow,
+    "activate",
+    "configure-operational-database-url",
+  );
 
   assert.match(workflow, /activation_attempt_id:/);
   assert.match(
     workflow,
-    /comun-sidewalk-operational-\$\{\{ inputs\.mode \}\}-\$\{\{ inputs\.expected_main_sha \}\}-\$\{\{ inputs\.activation_attempt_id \}\}/,
+    /comun-sidewalk-operational-\$\{\{ inputs\.mode \}\}-\$\{\{ inputs\.expected_main_sha \}\}-\$\{\{ inputs\.activation_attempt_id \}\}-\$\{\{ inputs\.configuration_attempt_id \}\}/,
   );
   assert.match(activate, /\^sidewalk-activate-\[0-9\]\{8\}-\[0-9\]\{2\}\$/);
   assert.match(
@@ -394,6 +406,68 @@ test("activation binds authorization and concurrency to a single attempt and alw
     /comun-sidewalk-activation-\$\{\{ inputs\.expected_main_sha \}\}-\$\{\{ inputs\.activation_attempt_id \}\}-\$\{\{ github\.run_id \}\}/,
   );
   assert.doesNotMatch(activate, /--retry|retry_count|retry-delay/i);
+});
+
+test("database URL configuration is a fixed, separately authorized gate with limited rollback", async () => {
+  const workflow = await readFile(workflowPath, "utf8");
+  const configurationResult = await readFile(
+    path.resolve("scripts/solo/database-env-configuration-result.mjs"),
+    "utf8",
+  );
+  const configuration =
+    workflow.match(/  configure-operational-database-url:[\s\S]*$/)?.[0] ?? "";
+
+  assert.match(
+    configuration,
+    /if: inputs\.mode == 'configure-operational-database-url'/,
+  );
+  assert.match(configuration, /needs: validate-input/);
+  assert.match(workflow, /configuration_attempt_id:/);
+  assert.match(configuration, /\^sidewalk-db-env-\[0-9\]\{8\}-\[0-9\]\{2\}\$/);
+  assert.match(
+    configuration,
+    /AUTORIZO_CONFIGURAR_CALCADAS_DATABASE_URL_\$\{VERCEL_PROJECT_ID\}_\$\{EXPECTED_MAIN_SHA\}_\$\{LEDGER_HASH\}_\$\{CONFIGURATION_ATTEMPT_ID\}_MANTER_FLAG_DESABILITADA/,
+  );
+  assert.match(
+    configuration,
+    /PR23_DATABASE_URL="\$SUPABASE_DB_URL"[\s\S]*?apply-forward-only\.mjs --read-only-postflight/,
+  );
+  assert.match(
+    configuration,
+    /COMUN_SIDEWALK_DATABASE_ENV_ALREADY_PRESENT_REVIEW_REQUIRED/,
+  );
+  assert.match(
+    configuration,
+    /printf '%s' "\$SUPABASE_DB_URL" \| npx --yes vercel@50\.28\.0 env add COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL production --sensitive/,
+  );
+  assert.match(
+    configuration,
+    /env rm COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL production --yes/,
+  );
+  assert.match(
+    configurationResult,
+    /COMUN_SIDEWALK_DATABASE_ENV_CONFIGURED_RUNTIME_GREEN_FLAG_DISABLED/,
+  );
+  assert.match(
+    configurationResult,
+    /COMUN_SIDEWALK_DATABASE_ENV_CONFIGURATION_FAILED_ROLLED_BACK/,
+  );
+  assert.match(
+    configurationResult,
+    /COMUN_SIDEWALK_DATABASE_ENV_CONFIGURATION_FAILED_ROLLBACK_INCOMPLETE/,
+  );
+  assert.match(configurationResult, /configuration-result\.json/);
+  assert.match(configuration, /if: always\(\)/);
+  assert.match(
+    configuration,
+    /comun-sidewalk-database-env-configuration-\$\{\{ inputs\.expected_main_sha \}\}-\$\{\{ inputs\.configuration_attempt_id \}\}-\$\{\{ github\.run_id \}\}/,
+  );
+  assert.doesNotMatch(
+    configuration,
+    /COMUN_SIDEWALK_OPERATIONAL_V2 production/,
+  );
+  assert.doesNotMatch(configuration, /apply-forward-only\.mjs\n/);
+  assert.doesNotMatch(configuration, /set -x|env pull|--debug/i);
 });
 
 test("sidewalk readiness restores a historical local baseline before applying the canonical release", async () => {
