@@ -11,6 +11,11 @@ import {
   unprojectMercator,
   VOLTA_REDONDA_MAP,
 } from "@/lib/sidewalk-map-config";
+import {
+  createSingleSubmissionGuard,
+  ensureSidewalkAnonymousSession,
+  getSidewalkSubmissionReadiness,
+} from "@/lib/sidewalk-submission-readiness";
 
 type LocationState =
   | "idle"
@@ -33,6 +38,7 @@ export function SidewalkFirstParticipationForm({
   pautaSlug: string;
 }) {
   const fileRef = useRef<HTMLInputElement>(null),
+    submissionGuard = useRef(createSingleSubmissionGuard()),
     [preview, setPreview] = useState<string | null>(null),
     [condition, setCondition] = useState(""),
     [categories, setCategories] = useState<string[]>([]),
@@ -41,7 +47,6 @@ export function SidewalkFirstParticipationForm({
     [accuracy, setAccuracy] = useState<number | null>(null),
     [locationState, setLocationState] = useState<LocationState>("idle"),
     [pointConfirmed, setPointConfirmed] = useState(false),
-    [sessionReady, setSessionReady] = useState(false),
     [consentPublish, setConsentPublish] = useState(false),
     [reviewConfirmed, setReviewConfirmed] = useState(false),
     [submissionError, setSubmissionError] = useState<string | null>(null),
@@ -91,20 +96,7 @@ export function SidewalkFirstParticipationForm({
     if (preview) URL.revokeObjectURL(preview);
     setPreview(URL.createObjectURL(compressed));
     setPointConfirmed(false);
-    setSessionReady(false);
     locate();
-    const client = createSupabaseBrowserClient();
-    const { data } = await client.auth.getSession();
-    if (data.session) {
-      setSessionReady(true);
-      return;
-    }
-    const { error } = await client.auth.signInAnonymously();
-    setSessionReady(!error);
-    if (error)
-      setSubmissionError(
-        "Não foi possível criar a sessão privada neste dispositivo. Tente novamente.",
-      );
   };
   const remove = () => {
     if (preview) URL.revokeObjectURL(preview);
@@ -115,22 +107,24 @@ export function SidewalkFirstParticipationForm({
     setLocationState("idle");
     if (fileRef.current) fileRef.current.value = "";
   };
-  const ready = Boolean(
-    preview &&
-      point &&
-      pointConfirmed &&
-      condition &&
-      sessionReady &&
-      consentPublish &&
+  const readiness = getSidewalkSubmissionReadiness({
+      hasPhoto: Boolean(preview),
+      hasPoint: Boolean(point),
+      pointConfirmed,
+      hasCondition: Boolean(condition),
+      consentPublish,
       reviewConfirmed,
-  );
+    }),
+    ready = readiness.ready;
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const photo = fileRef.current?.files?.[0];
-    if (!photo || !ready) return;
+    if (!photo || !ready || !submissionGuard.current.enter()) return;
     setPending(true);
     setSubmissionError(null);
     try {
+      const client = createSupabaseBrowserClient();
+      await ensureSidewalkAnonymousSession(client);
       const data = new FormData(event.currentTarget),
         payload = {
           pauta_slug: String(data.get("pauta_slug") ?? ""),
@@ -152,7 +146,6 @@ export function SidewalkFirstParticipationForm({
           sizeBytes: photo.size,
           payload,
         }),
-        client = createSupabaseBrowserClient(),
         uploaded = await client.storage
           .from("archive-private-originals")
           .uploadToSignedUrl(authorization.path, authorization.token, photo, {
@@ -169,6 +162,7 @@ export function SidewalkFirstParticipationForm({
           : "Não foi possível enviar agora. Tente novamente.",
       );
       setPending(false);
+      submissionGuard.current.release();
     }
   };
   return (
@@ -387,8 +381,8 @@ export function SidewalkFirstParticipationForm({
           <section className="grid gap-3 border-2 border-comun-yellow bg-comun-black p-4 text-comun-paper">
             <h2 className="font-black uppercase">Revise antes de enviar</h2>
             <p className="text-sm">
-              A fotografia e o ponto exato ficam privados. Se a equipe aprovar
-              a contribuição, somente uma derivada revisada e uma localização
+              A fotografia e o ponto exato ficam privados. Se a equipe aprovar a
+              contribuição, somente uma derivada revisada e uma localização
               aproximada poderão aparecer no mapa.
             </p>
             <label className="flex min-h-11 items-start gap-3">
@@ -420,9 +414,15 @@ export function SidewalkFirstParticipationForm({
           >
             {pending ? "Enviando…" : "Enviar para revisão"}
           </button>
+          {!ready ? (
+            <p role="status" className="text-sm text-comun-paper/75">
+              Complete fotografia, ponto, condição e as duas confirmações para
+              liberar o envio.
+            </p>
+          ) : null}
           <p className="text-sm text-comun-paper/75">
             Nenhum cadastro é exigido antes do envio. Uma sessão anônima
-            limitada é criada somente após a escolha da foto para permitir
+            limitada é criada somente quando você enviar, para permitir
             confirmação e acompanhamento neste dispositivo.
           </p>
         </>
@@ -457,82 +457,82 @@ function ManualPointPicker({
   const p = point ? projectMercator(point) : null;
   return (
     <>
-    <button
-      type="button"
-      aria-label="Mapa para confirmar ou ajustar o ponto"
-      aria-describedby="manual-point-help"
-      onKeyDown={(event) => {
-        const current = point ?? VOLTA_REDONDA_MAP.center;
-        const delta = event.shiftKey ? 0.002 : 0.0005;
-        const next: Record<string, [number, number]> = {
-          ArrowLeft: [current[0] - delta, current[1]],
-          ArrowRight: [current[0] + delta, current[1]],
-          ArrowUp: [current[0], current[1] + delta],
-          ArrowDown: [current[0], current[1] - delta],
-        };
-        if (next[event.key]) {
-          event.preventDefault();
-          onChange(next[event.key]);
-        }
-      }}
-      onClick={(event) => {
-        if (event.detail === 0) {
-          onChange(point ?? VOLTA_REDONDA_MAP.center);
-          return;
-        }
-        const rect = event.currentTarget.getBoundingClientRect();
-        onChange(
-          unprojectMercator(
-            (event.clientX - rect.left) / rect.width,
-            (event.clientY - rect.top) / rect.height,
-          ),
-        );
-      }}
-      className="relative mt-3 block h-64 w-full overflow-hidden border-2 bg-[#dfe7df]"
-    >
-      <svg
-        viewBox="0 0 600 300"
-        className="absolute inset-0 size-full"
-        aria-hidden="true"
+      <button
+        type="button"
+        aria-label="Mapa para confirmar ou ajustar o ponto"
+        aria-describedby="manual-point-help"
+        onKeyDown={(event) => {
+          const current = point ?? VOLTA_REDONDA_MAP.center;
+          const delta = event.shiftKey ? 0.002 : 0.0005;
+          const next: Record<string, [number, number]> = {
+            ArrowLeft: [current[0] - delta, current[1]],
+            ArrowRight: [current[0] + delta, current[1]],
+            ArrowUp: [current[0], current[1] + delta],
+            ArrowDown: [current[0], current[1] - delta],
+          };
+          if (next[event.key]) {
+            event.preventDefault();
+            onChange(next[event.key]);
+          }
+        }}
+        onClick={(event) => {
+          if (event.detail === 0) {
+            onChange(point ?? VOLTA_REDONDA_MAP.center);
+            return;
+          }
+          const rect = event.currentTarget.getBoundingClientRect();
+          onChange(
+            unprojectMercator(
+              (event.clientX - rect.left) / rect.width,
+              (event.clientY - rect.top) / rect.height,
+            ),
+          );
+        }}
+        className="relative mt-3 block h-64 w-full overflow-hidden border-2 bg-[#dfe7df]"
       >
-        <path
-          d="M0 190 C100 130 210 230 310 160 S480 90 600 130"
-          fill="none"
-          stroke={VOLTA_REDONDA_MAP.style.water}
-          strokeWidth="22"
-        />
-      </svg>
-      {p ? (
-        <>
-          <span
-            className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-blue-700 bg-blue-300/25"
-            style={{
-              left: `${p.x * 100}%`,
-              top: `${p.y * 100}%`,
-              width: accuracy
-                ? `${Math.min(120, Math.max(30, accuracy))}px`
-                : 30,
-              height: accuracy
-                ? `${Math.min(120, Math.max(30, accuracy))}px`
-                : 30,
-            }}
+        <svg
+          viewBox="0 0 600 300"
+          className="absolute inset-0 size-full"
+          aria-hidden="true"
+        >
+          <path
+            d="M0 190 C100 130 210 230 310 160 S480 90 600 130"
+            fill="none"
+            stroke={VOLTA_REDONDA_MAP.style.water}
+            strokeWidth="22"
           />
-          <span
-            className="absolute grid size-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 bg-comun-yellow"
-            style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}
-          >
-            ●
-          </span>
-        </>
-      ) : null}
-      <span className="absolute bottom-2 left-2 bg-white p-2 text-xs font-bold">
-        Toque ou use as setas para ajustar o marcador
-      </span>
-    </button>
-    <p id="manual-point-help" className="mt-2 text-sm">
-      Sem GPS, use Tab para focar o mapa e as setas para mover o marcador. Use
-      Enter ou Espaço para confirmar o ponto.
-    </p>
+        </svg>
+        {p ? (
+          <>
+            <span
+              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-blue-700 bg-blue-300/25"
+              style={{
+                left: `${p.x * 100}%`,
+                top: `${p.y * 100}%`,
+                width: accuracy
+                  ? `${Math.min(120, Math.max(30, accuracy))}px`
+                  : 30,
+                height: accuracy
+                  ? `${Math.min(120, Math.max(30, accuracy))}px`
+                  : 30,
+              }}
+            />
+            <span
+              className="absolute grid size-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 bg-comun-yellow"
+              style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}
+            >
+              ●
+            </span>
+          </>
+        ) : null}
+        <span className="absolute bottom-2 left-2 bg-white p-2 text-xs font-bold">
+          Toque ou use as setas para ajustar o marcador
+        </span>
+      </button>
+      <p id="manual-point-help" className="mt-2 text-sm">
+        Sem GPS, use Tab para focar o mapa e as setas para mover o marcador. Use
+        Enter ou Espaço para confirmar o ponto.
+      </p>
     </>
   );
 }
