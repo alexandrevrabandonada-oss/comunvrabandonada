@@ -1,0 +1,115 @@
+{
+  "formatVersion": 1,
+  "checkpointId": "sidewalk-post-activation-checkpoint-20260729-06",
+  "checkpointType": "post_activation_read_only",
+  "activationRun": "30454192828",
+  "activationAttempt": "sidewalk-activate-20260729-03",
+  "activationMainSha": "9b07bcfb52c4a3b9d00c5e0fa263237f3e8b110c",
+  "currentMainSha": "e8dacb04a4a6628eba5c6ee1f9fbc73dd560a038",
+  "productionDeployment": "production-ready-e8dacb04",
+  "deploymentState": "READY",
+  "deploymentChangedByCheckpoint": false,
+  "deploymentCompatibility": "post_activation_process_only_changes",
+  "runtimeSourceFilesChangedSinceActivation": 0,
+  "environmentChanged": false,
+  "databaseUrl": "present",
+  "database": "reachable",
+  "ledger": "exact",
+  "migrationRequired": false,
+  "migrationExecuted": false,
+  "flag": "enabled",
+  "operationalState": "OPERATIONAL_READY",
+  "publicState": "active",
+  "mapHttpStatus": 200,
+  "contributionInterfaceHttpStatus": 200,
+  "contributionSubmitted": false,
+  "databaseWrites": "none",
+  "storageWrites": "none",
+  "activationExecuted": false,
+  "secondActivationDetected": false,
+  "activationAttempt03Reused": false,
+  "attemptConsumptionControl": "process_controlled_consistent",
+  "remotePersistentNonce": false,
+  "rollbackExecuted": false,
+  "logsEvidence": "sufficient",
+  "findingsCount": 0,
+  "checkpointResult": "COMUN_SIDEWALK_POST_ACTIVATION_STABILITY_GREEN",
+  "runs": {
+    "activationAudited": {
+      "id": "30454192828",
+      "attempt": "sidewalk-activate-20260729-03",
+      "conclusion": "success"
+    },
+    "operationalEnvironmentInventory": {
+      "id": "30461347309",
+      "conclusion": "success",
+      "mode": "operational-env-preflight"
+    },
+    "protectedOperationalDiagnostic": {
+      "id": "30461433004",
+      "conclusion": "success",
+      "mode": "protected-operational-diagnostic"
+    }
+  },
+  "artifacts": {
+    "activation": "comun-sidewalk-activation-9b07bcfb52c4a3b9d00c5e0fa263237f3e8b110c-sidewalk-activate-20260729-03-30454192828",
+    "inventory": "comun-sidewalk-operational-env-inventory-e8dacb04a4a6628eba5c6ee1f9fbc73dd560a038-30461347309",
+    "protectedDiagnostic": "comun-sidewalk-protected-operational-diagnostic-e8dacb04a4a6628eba5c6ee1f9fbc73dd560a038-30461433004",
+    "rendererSource": "reports/current/comun-sidewalk-post-activation-stability-recheck-source.json",
+    "checkpointReport": "reports/current/comun-sidewalk-post-activation-stability-recheck.json"
+  },
+  "renderer": {
+    "result": "COMUN_SIDEWALK_POST_ACTIVATION_RENDERER_CORRECTED_RUNTIME_UNCHANGED",
+    "historicalArtifactSelected": false,
+    "sourceActivationAttempt": "sidewalk-activate-20260729-03",
+    "sourceInventoryRun": "30461347309",
+    "sourceProtectedDiagnosisRun": "30461433004"
+  },
+  "smoke": {
+    "mapRendered": true,
+    "mapRealTileRange": true,
+    "contributionInterfaceRendered": true,
+    "pausedMessageVisible": false,
+    "consoleErrors": 0,
+    "mutableHttpMethodsUsed": 0,
+    "contributionCreated": false,
+    "secretPatternsObserved": 0
+  },
+  "logAudit": {
+    "historicalSanitizedAudit": "reports/current/comun-sidewalk-post-activation-stability.json",
+    "runtimeErrors": 0,
+    "http500": 0,
+    "timeouts": 0,
+    "migrationMarkers": 0,
+    "uploadMarkers": 0,
+    "flagErrorMarkers": 0,
+    "attemptReuseMarkers": 0,
+    "rawLogsPersisted": false,
+    "interpretation": "The historical read-only log audit remains applicable because the only later production diff is process and report infrastructure; the current protected diagnostic and public smoke are green."
+  },
+  "activationAudit": {
+    "workflowDispatchesAtOrAfterActivation": 5,
+    "successfulActivateRuns": 1,
+    "successfulMigrateRuns": 0,
+    "onlySuccessfulActivateRun": "30454192828",
+    "attempt03Reused": false,
+    "secondActivationDetected": false
+  },
+  "canonicalIntegrity": {
+    "migrationSha256": "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be",
+    "manifestSha256": "ceb7002f9a7069cbe82c4e6b16032bef1cd3619f12271a260dbca37fb5bc1335"
+  },
+  "sanitization": {
+    "status": "sanitized",
+    "rawEnvironmentResponsePersisted": false,
+    "environmentValuesPersisted": false,
+    "rawRuntimeLogsPersisted": false,
+    "credentialsPersisted": false,
+    "forbiddenOccurrences": 0
+  },
+  "limitations": {
+    "attemptNonce": "Attempt consumption remains process-controlled; no remote persistent nonce exists.",
+    "historicalCheckpoint": "The blocked result of checkpoint 20260729-04 is preserved as historical evidence and is not retroactively changed."
+  },
+  "nextGate": "Prepare, only after separate human authorization, a controlled validation of the first production contribution with one predefined write, identified actor, non-sensitive data, before-and-after evidence, database and Storage checks, and an explicit preservation or removal procedure."
+}

@@ -1,0 +1,108 @@
+{
+  "sourceContract": {
+    "rendererFixId": "sidewalk-post-activation-renderer-fix-20260729-05",
+    "evidenceScope": "current_post_activation",
+    "activationRun": "30454192828",
+    "activationAttempt": "sidewalk-activate-20260729-03",
+    "activationMainSha": "9b07bcfb52c4a3b9d00c5e0fa263237f3e8b110c",
+    "inventoryRun": "30461347309",
+    "protectedDiagnosisRun": "30461433004",
+    "expectedInventory": {
+      "flagKeyPresent": true,
+      "flagTargetsProduction": true,
+      "databaseUrlKeyPresent": true,
+      "databaseUrlTargetsProduction": true,
+      "publicSupabaseUrlPresent": true,
+      "serviceRoleKeyPresent": true
+    },
+    "expectedRuntime": {
+      "formatVersion": 1,
+      "flag": "enabled",
+      "databaseUrl": "present",
+      "database": "reachable",
+      "ledger": "exact",
+      "operationalState": "OPERATIONAL_READY"
+    },
+    "expectedSnapshot": {
+      "deploymentState": "READY",
+      "migrationRequired": false,
+      "migrationExecuted": false,
+      "publicState": "active",
+      "mapHttpStatus": 200,
+      "contributionInterfaceHttpStatus": 200,
+      "contributionSubmitted": false,
+      "databaseWrites": "none",
+      "storageWrites": "none",
+      "activationExecutedByFix": false,
+      "activationAttempt03Reused": false,
+      "secondActivationDetected": false,
+      "rollbackExecuted": false,
+      "runtimeChangedByFix": false,
+      "deploymentChangedByFix": false,
+      "environmentChangedByFix": false,
+      "attemptConsumptionControl": "process_controlled_consistent",
+      "remotePersistentNonce": false
+    }
+  },
+  "activationArtifacts": [
+    {
+      "artifactType": "comun-sidewalk-activation-result",
+      "evidenceScope": "current_post_activation",
+      "runId": "30454192828",
+      "attemptId": "sidewalk-activate-20260729-03",
+      "mainSha": "9b07bcfb52c4a3b9d00c5e0fa263237f3e8b110c",
+      "payload": {
+        "formatVersion": 1,
+        "attemptId": "sidewalk-activate-20260729-03",
+        "expectedMainSha": "9b07bcfb52c4a3b9d00c5e0fa263237f3e8b110c",
+        "runId": "30454192828",
+        "lastGreenPhase": "ACTIVATION_GREEN",
+        "originalFailurePhase": null,
+        "originalFailureMarker": null,
+        "rollbackAttempted": false,
+        "rollbackResult": "not_required",
+        "finalPublicState": "active",
+        "durationSeconds": 177,
+        "databaseWrites": "none",
+        "storageWrites": "none",
+        "terminalMarker": "COMUN_SIDEWALK_ACTIVATION_GREEN"
+      }
+    }
+  ],
+  "inventory": {
+    "flagKeyPresent": true,
+    "flagTargetsProduction": true,
+    "databaseUrlKeyPresent": true,
+    "databaseUrlTargetsProduction": true,
+    "publicSupabaseUrlPresent": true,
+    "serviceRoleKeyPresent": true
+  },
+  "runtime": {
+    "formatVersion": 1,
+    "flag": "enabled",
+    "databaseUrl": "present",
+    "database": "reachable",
+    "ledger": "exact",
+    "operationalState": "OPERATIONAL_READY"
+  },
+  "snapshot": {
+    "deploymentState": "READY",
+    "migrationRequired": false,
+    "migrationExecuted": false,
+    "publicState": "active",
+    "mapHttpStatus": 200,
+    "contributionInterfaceHttpStatus": 200,
+    "contributionSubmitted": false,
+    "databaseWrites": "none",
+    "storageWrites": "none",
+    "activationExecutedByFix": false,
+    "activationAttempt03Reused": false,
+    "secondActivationDetected": false,
+    "rollbackExecuted": false,
+    "runtimeChangedByFix": false,
+    "deploymentChangedByFix": false,
+    "environmentChangedByFix": false,
+    "attemptConsumptionControl": "process_controlled_consistent",
+    "remotePersistentNonce": false
+  }
+}
