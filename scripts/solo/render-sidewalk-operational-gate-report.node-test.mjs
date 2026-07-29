@@ -38,6 +38,8 @@ test("operational gate package records only the classified read-only evidence", 
     "MANTER_COMUN_SIDEWALK_OPERATIONAL_V2_DISABLED",
   ]);
   assert.equal(report.attempt03, "not_created");
+  assert.equal(report.artifactType, "legacy_sidewalk_operational_gate");
+  assert.equal(report.evidenceScope, "historical_pre_activation");
   assert.equal(report.databaseWrites, "none");
   assert.equal(report.storageWrites, "none");
 
