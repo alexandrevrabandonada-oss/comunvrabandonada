@@ -1,0 +1,38 @@
+{
+  "formatVersion": 1,
+  "checkpoint": "COMUN_TIJOLO_45_3M_DATABASE_ENV_CONFIGURATION_GATE_READY_FLAG_DISABLED",
+  "mergeSha": "49620b70cf98cd9ded01818756754acf9f41360d",
+  "projectId": "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X",
+  "configurationAttemptId": "sidewalk-db-env-20260729-01",
+  "allowedVariable": "COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL",
+  "allowedTarget": "production",
+  "sourceSecretName": "SUPABASE_DB_URL",
+  "ledgerHash": "e36b508762b19da01afa91ff810c18c8d5d3a000c20618793eafc25c7a012793",
+  "preflight": {
+    "environmentMetadataRun": 30415891983,
+    "protectedDiagnosticRun": 30415955163,
+    "databaseUrlKey": "missing",
+    "flag": "disabled",
+    "publicState": "paused",
+    "ledger": "PRESENT_ACCEPTED",
+    "scopedPost": "confirmed"
+  },
+  "expectedAfterConfiguration": {
+    "flag": "disabled",
+    "databaseUrl": "present",
+    "database": "reachable",
+    "ledger": "exact",
+    "operationalState": "FLAG_DISABLED",
+    "publicState": "paused"
+  },
+  "rollback": {
+    "removesOnly": "COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL",
+    "flagChange": false,
+    "databaseWrites": "none",
+    "storageWrites": "none"
+  },
+  "activateExecuted": false,
+  "attempt03Created": false,
+  "configurationExecuted": false,
+  "authorizationRequired": true
+}
