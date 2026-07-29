@@ -71,13 +71,15 @@ test("renders real cartography and exposes CAPTCHA progress without a production
   });
   await expect(submit).toBeEnabled();
   await submit.click({ noWaitAfter: true });
-  await expect(
-    page.getByText("Verificando que este envio é humano…", { exact: true }),
-  ).toBeVisible();
+  await expect(page.locator("#sidewalk-submit-progress")).toHaveText(
+    "Verificando que este envio é humano…",
+  );
   await expect(
     page.getByRole("dialog", { name: "Confirme que você é uma pessoa" }),
   ).toBeVisible();
-  await expect(submit).toBeDisabled();
+  await expect(
+    page.locator('button[data-submission-phase="checking_captcha"]'),
+  ).toBeDisabled();
   expect(mutableRequests).toEqual([]);
   expect(consoleErrors).toEqual([]);
   await page.screenshot({
