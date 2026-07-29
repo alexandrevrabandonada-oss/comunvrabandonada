@@ -206,41 +206,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$VERCEL_TOKEN"
-          test "$VERCEL_ORG_ID" = "team_LBVwyK8FQMO7tA3hzVXXeumF"
-          test "$VERCEL_PROJECT_ID" = "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X"
           umask 077
-          metadata_json="$(mktemp)"
-          curl_error="$(mktemp)"
-          chmod 600 "$metadata_json" "$curl_error"
-          trap 'rm -f "$metadata_json" "$curl_error"' EXIT
           set +e
-          http_status="$(
-            curl \
-              --silent \
-              --show-error \
-              --output "$metadata_json" \
-              --write-out '%{http_code}' \
-              --header "Authorization: Bearer $VERCEL_TOKEN" \
-              "https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/env?teamId=${VERCEL_ORG_ID}" \
-              2>"$curl_error"
-          )"
-          curl_exit=$?
+          node scripts/solo/fetch-vercel-operational-env-metadata.mjs
+          helper_exit=$?
           set -e
-          if ((curl_exit != 0)) || [[ "$http_status" != "200" ]]; then
-            echo COMUN_SIDEWALK_OPERATIONAL_ENV_METADATA_ACCESS_FAILED >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          fi
-          node scripts/solo/sidewalk-operational-env-inventory.mjs \
-            --input="$metadata_json" \
-            --output=.ci-artifacts/sidewalk-operational-env/inventory.json
+          classification="$(node -e "process.stdout.write(require('./.ci-artifacts/sidewalk-operational-env/classification.json').classification)")"
+          echo "COMUN_SIDEWALK_OPERATIONAL_ENV_ACCESS $classification" >> "$GITHUB_STEP_SUMMARY"
+          if ((helper_exit != 0)); then exit "$helper_exit"; fi
           echo COMUN_SIDEWALK_OPERATIONAL_ENV_PREFLIGHT_GREEN >> "$GITHUB_STEP_SUMMARY"
       - name: Upload sanitized operational environment inventory
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: comun-sidewalk-operational-env-inventory-${{ inputs.expected_main_sha }}-${{ github.run_id }}
-          path: .ci-artifacts/sidewalk-operational-env/inventory.json
+          path: .ci-artifacts/sidewalk-operational-env/
           if-no-files-found: error
           retention-days: 14
 
@@ -265,26 +245,18 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
           EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          COMUN_SIDEWALK_OPERATIONAL_ENV_ARTIFACT_DIRECTORY: .ci-artifacts/sidewalk-operational-diagnostic
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$VERCEL_TOKEN"
-          test "$VERCEL_ORG_ID" = "team_LBVwyK8FQMO7tA3hzVXXeumF"
-          test "$VERCEL_PROJECT_ID" = "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X"
           umask 077
-          metadata_json="$(mktemp)"
           deployment_json="$(mktemp)"
           curl_error="$(mktemp)"
           probe_output="$(mktemp)"
-          chmod 600 "$metadata_json" "$deployment_json" "$curl_error" "$probe_output"
-          trap 'rm -f "$metadata_json" "$deployment_json" "$curl_error" "$probe_output"' EXIT
+          chmod 600 "$deployment_json" "$curl_error" "$probe_output"
+          trap 'rm -f "$deployment_json" "$curl_error" "$probe_output"' EXIT
           set +e
-          metadata_status="$(
-            curl --silent --show-error --output "$metadata_json" --write-out '%{http_code}' \
-              --header "Authorization: Bearer $VERCEL_TOKEN" \
-              "https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/env?teamId=${VERCEL_ORG_ID}" \
-              2>"$curl_error"
-          )"
+          node scripts/solo/fetch-vercel-operational-env-metadata.mjs
           metadata_exit=$?
           deployment_status="$(
             curl --silent --show-error --output "$deployment_json" --write-out '%{http_code}' \
@@ -294,13 +266,10 @@ jobs:
           )"
           deployment_exit=$?
           set -e
-          if ((metadata_exit != 0)) || [[ "$metadata_status" != "200" ]] || ((deployment_exit != 0)) || [[ "$deployment_status" != "200" ]]; then
+          if ((metadata_exit != 0)) || ((deployment_exit != 0)) || [[ "$deployment_status" != "200" ]]; then
             echo COMUN_SIDEWALK_OPERATIONAL_DIAGNOSTIC_ACCESS_FAILED >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
-          node scripts/solo/sidewalk-operational-env-inventory.mjs \
-            --input="$metadata_json" \
-            --output=.ci-artifacts/sidewalk-operational-diagnostic/inventory.json
           deployment_url="$(DEPLOYMENT_JSON="$deployment_json" EXPECTED_MAIN_SHA="$EXPECTED_MAIN_SHA" node --input-type=module <<'NODE'
           import { readFile } from "node:fs/promises";
           const expectedHost = /^comunvrabandonada-[a-z0-9-]+-alexandrevrabandonada-oss-projects\.vercel\.app$/;

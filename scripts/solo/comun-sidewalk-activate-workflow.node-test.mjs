@@ -252,7 +252,7 @@ test("protected deployment preflight reads one allowlisted rollback deployment w
   assert.doesNotMatch(protectedPreflight, /-X\s*(?:POST|PUT|PATCH|DELETE)/i);
 });
 
-test("operational environment preflight inventories only names and production targets", async () => {
+test("operational environment preflight uses the fixed v10 read-only helper and always uploads access evidence", async () => {
   const workflow = await readFile(workflowPath, "utf8");
   const environmentPreflight = job(
     workflow,
@@ -267,9 +267,13 @@ test("operational environment preflight inventories only names and production ta
   assert.match(environmentPreflight, /needs: validate-input/);
   assert.match(
     environmentPreflight,
-    /https:\/\/api\.vercel\.com\/v9\/projects\/\$\{VERCEL_PROJECT_ID\}\/env\?teamId=\$\{VERCEL_ORG_ID\}/,
+    /node scripts\/solo\/fetch-vercel-operational-env-metadata\.mjs/,
   );
-  assert.match(environmentPreflight, /sidewalk-operational-env-inventory\.mjs/);
+  assert.match(environmentPreflight, /classification\.json/);
+  assert.match(
+    environmentPreflight,
+    /path: \.ci-artifacts\/sidewalk-operational-env\//,
+  );
   assert.match(
     environmentPreflight,
     /COMUN_SIDEWALK_OPERATIONAL_ENV_PREFLIGHT_GREEN/,
@@ -280,7 +284,7 @@ test("operational environment preflight inventories only names and production ta
   );
   assert.doesNotMatch(
     environmentPreflight,
-    /env pull|env add|env rm|--prod|COMUN_SIDEWALK_OPERATIONAL_V2 production|value=/i,
+    /env pull|env add|env rm|--prod|COMUN_SIDEWALK_OPERATIONAL_V2 production|value=|\/v9\/projects\/\$\{VERCEL_PROJECT_ID\}\/env/i,
   );
   assert.doesNotMatch(environmentPreflight, /-X\s*(?:POST|PUT|PATCH|DELETE)/i);
 });
@@ -296,6 +300,14 @@ test("protected operational diagnostic uses the immutable deployment and emits o
   assert.match(
     diagnostic,
     /if: inputs\.mode == 'protected-operational-diagnostic'/,
+  );
+  assert.match(
+    diagnostic,
+    /node scripts\/solo\/fetch-vercel-operational-env-metadata\.mjs/,
+  );
+  assert.doesNotMatch(
+    diagnostic,
+    /\/v9\/projects\/\$\{VERCEL_PROJECT_ID\}\/env/,
   );
   assert.match(diagnostic, /target=production&state=READY&limit=20/);
   assert.match(
