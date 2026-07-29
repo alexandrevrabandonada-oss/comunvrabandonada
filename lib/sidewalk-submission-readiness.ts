@@ -1,4 +1,7 @@
-import { getSidewalkCaptchaToken } from "./sidewalk-hcaptcha";
+import {
+  getSidewalkCaptchaToken,
+  resetSidewalkCaptcha,
+} from "./sidewalk-hcaptcha";
 
 export type SidewalkSubmissionReadinessInput = {
   hasPhoto: boolean;
@@ -57,14 +60,18 @@ export async function ensureSidewalkAnonymousSession(
   const captchaToken = (await getCaptchaToken()).trim();
   if (!captchaToken)
     throw new Error("A confirmação antirobô não retornou um token válido.");
-  const created = await client.auth.signInAnonymously({
-    options: { captchaToken },
-  });
-  if (created.error || !created.data?.session)
-    throw new Error(
-      "Não foi possível criar a sessão privada neste dispositivo.",
-    );
-  return { source: "created" as const };
+  try {
+    const created = await client.auth.signInAnonymously({
+      options: { captchaToken },
+    });
+    if (created.error || !created.data?.session)
+      throw new Error(
+        "Não foi possível criar a sessão privada neste dispositivo.",
+      );
+    return { source: "created" as const };
+  } finally {
+    resetSidewalkCaptcha();
+  }
 }
 
 export function createSingleSubmissionGuard() {
