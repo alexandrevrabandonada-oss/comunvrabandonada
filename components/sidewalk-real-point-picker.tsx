@@ -177,7 +177,7 @@ export function SidewalkRealPointPicker({
     <>
       <button
         type="button"
-        aria-label="Mapa real para confirmar ou ajustar o ponto"
+        aria-label="Mapa para confirmar ou ajustar o ponto"
         aria-describedby="manual-point-help"
         onKeyDown={(event) => {
           if (!updateFromKeyboard(event.key, event.shiftKey)) return;
