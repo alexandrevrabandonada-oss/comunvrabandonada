@@ -7,12 +7,10 @@ import sharp from "sharp";
 
 const { Client } = pg;
 const cycleId =
-  process.env.CYCLE_ID ??
-  "sidewalk-first-production-contribution-20260729-11";
-const baseUrl = (process.env.COMUN_BASE_URL ?? "https://comunsocial.online").replace(
-  /\/$/,
-  "",
-);
+  process.env.CYCLE_ID ?? "sidewalk-first-production-contribution-20260729-11";
+const baseUrl = (
+  process.env.COMUN_BASE_URL ?? "https://comunsocial.online"
+).replace(/\/$/, "");
 const projectRef = required("SUPABASE_PROJECT_REF");
 const serviceRole = required("SUPABASE_SERVICE_ROLE_KEY");
 const databaseUrl = required("SUPABASE_DB_URL");
@@ -52,7 +50,8 @@ const evidence = {
   consoleErrors: 0,
   runtimeErrors: 0,
   challengeObserved: false,
-  cycleResult: "COMUN_SIDEWALK_FIRST_PRODUCTION_CONTRIBUTION_INSUFFICIENT_EVIDENCE",
+  cycleResult:
+    "COMUN_SIDEWALK_FIRST_PRODUCTION_CONTRIBUTION_INSUFFICIENT_EVIDENCE",
 };
 
 await mkdir(artifactDir, { recursive: true });
@@ -69,8 +68,7 @@ try {
     },
   });
   evidence.authSettingsHttpStatus = settingsResponse.status;
-  if (!settingsResponse.ok)
-    throw new Error("AUTH_SETTINGS_UNAVAILABLE");
+  if (!settingsResponse.ok) throw new Error("AUTH_SETTINGS_UNAVAILABLE");
   const settings = await settingsResponse.json();
   evidence.anonymousProviderObserved = observeAnonymousProvider(settings);
   evidence.captchaProviderObserved = observeCaptcha(settings);
@@ -85,8 +83,7 @@ try {
 
   const before = await inspectCycle(client, description);
   evidence.recordCountBefore = before.records.length;
-  if (before.records.length !== 0)
-    throw new Error("CYCLE_ALREADY_CONSUMED");
+  if (before.records.length !== 0) throw new Error("CYCLE_ALREADY_CONSUMED");
 
   const fixturePath = path.join(artifactDir, "controlled-sidewalk-fixture.jpg");
   const svg =
@@ -240,11 +237,9 @@ try {
   await writeArtifacts(evidence);
   console.log(evidence.cycleResult);
   if (process.env.GITHUB_STEP_SUMMARY)
-    await writeFile(
-      process.env.GITHUB_STEP_SUMMARY,
-      markdown(evidence),
-      { flag: "a" },
-    );
+    await writeFile(process.env.GITHUB_STEP_SUMMARY, markdown(evidence), {
+      flag: "a",
+    });
 }
 
 function required(name) {
@@ -341,11 +336,14 @@ async function waitForOutcome(page, timeoutMs) {
   while (Date.now() - started < timeoutMs) {
     if (/\/comun\/mapa\/contribuir\/confirmacao/.test(page.url()))
       return { status: "confirmed", challengeObserved };
-    const heading = page.getByRole("heading", { name: /Recebemos seu registro/ });
+    const heading = page.getByRole("heading", {
+      name: /Recebemos seu registro/,
+    });
     if (await heading.isVisible().catch(() => false))
       return { status: "confirmed", challengeObserved };
     const frames = page.frames().map((frame) => frame.url());
-    if (frames.some((url) => /hcaptcha\.com/.test(url))) challengeObserved = true;
+    if (frames.some((url) => /hcaptcha\.com/.test(url)))
+      challengeObserved = true;
     const alert = page.locator('[role="alert"]');
     if (await alert.isVisible().catch(() => false)) {
       const text = (await alert.textContent().catch(() => "")) ?? "";
