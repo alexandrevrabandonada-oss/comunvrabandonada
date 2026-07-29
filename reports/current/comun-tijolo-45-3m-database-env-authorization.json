@@ -1,21 +1,32 @@
 {
   "formatVersion": 1,
   "checkpoint": "COMUN_TIJOLO_45_3M_DATABASE_ENV_CONFIGURATION_GATE_READY_FLAG_DISABLED",
-  "mergeSha": "49620b70cf98cd9ded01818756754acf9f41360d",
+  "mergeSha": "5758a0bd05b54caba418b25d3e09149e19c21104",
   "projectId": "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X",
-  "configurationAttemptId": "sidewalk-db-env-20260729-01",
+  "configurationAttemptId": "sidewalk-db-env-20260729-02",
   "allowedVariable": "COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL",
   "allowedTarget": "production",
   "sourceSecretName": "SUPABASE_DB_URL",
   "ledgerHash": "e36b508762b19da01afa91ff810c18c8d5d3a000c20618793eafc25c7a012793",
   "preflight": {
-    "environmentMetadataRun": 30415891983,
+    "environmentMetadataRun": 30417062556,
     "protectedDiagnosticRun": 30415955163,
     "databaseUrlKey": "missing",
     "flag": "disabled",
     "publicState": "paused",
     "ledger": "PRESENT_ACCEPTED",
     "scopedPost": "confirmed"
+  },
+  "consumedAttempt": {
+    "configurationAttemptId": "sidewalk-db-env-20260729-01",
+    "runId": 30416713899,
+    "authorizationAccepted": false,
+    "variableConfigured": false,
+    "rollbackAttempted": false,
+    "rollbackResult": "not_required",
+    "databaseWrites": "none",
+    "storageWrites": "none",
+    "cause": "authorization_suffix_contract_mismatch"
   },
   "expectedAfterConfiguration": {
     "flag": "disabled",

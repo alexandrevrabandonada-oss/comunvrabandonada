@@ -1,8 +1,8 @@
 # TIJOLO 45.3M — pacote de autorização da URL operacional do banco
 
-- merge_sha: `49620b70cf98cd9ded01818756754acf9f41360d`
+- merge_sha: `5758a0bd05b54caba418b25d3e09149e19c21104`
 - project_id: `prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X`
-- configuration_attempt_id: `sidewalk-db-env-20260729-01`
+- configuration_attempt_id: `sidewalk-db-env-20260729-02`
 - variável permitida: `COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL`
 - target permitido: `production`
 - origem permitida: secret GitHub Actions `SUPABASE_DB_URL` (valor não registrado)
@@ -16,6 +16,19 @@
 - O ledger está `PRESENT_ACCEPTED` e o scoped POST está confirmado.
 - Preflight de metadados e diagnóstico protegido foram executados somente para leitura.
 - Não houve escrita em banco ou Storage; `activate` não foi executado e attempt 03 não foi criado.
+
+## Attempt anterior consumido
+
+- O attempt `sidewalk-db-env-20260729-01` foi consumido pelo run `30416713899`.
+- A autorização foi rejeitada antes do preflight e antes de qualquer escrita porque
+  o workflow comparava `MANTER_FLAG_DESABILITADA`, enquanto o helper e o contrato
+  versionado usam `MANTER_FLAG_DISABLED`.
+- `variableConfigured=false`, `rollbackAttempted=false` e
+  `rollbackResult=not_required`.
+- O hotfix foi integrado na PR #66, merge
+  `5758a0bd05b54caba418b25d3e09149e19c21104`.
+- O inventário read-only pós-hotfix, run `30417062556`, confirmou novamente a
+  variável ausente e a flag desabilitada.
 
 ## Operação futura limitada
 
