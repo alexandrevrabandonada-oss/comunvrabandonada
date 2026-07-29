@@ -5,23 +5,27 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/comun-sidewalk-auth-captcha.yml"
+      - ".github/workflows/comun-sidewalk-first-production-contribution.yml"
       - ".env.example"
       - "docs/env.md"
       - "lib/sidewalk-hcaptcha.ts"
       - "lib/sidewalk-submission-readiness.ts"
       - "lib/sidewalk-submission-readiness.test.ts"
       - "components/sidewalk-first-participation-form.tsx"
+      - "scripts/solo/run-sidewalk-first-production-contribution.mjs"
       - "next.config.mjs"
   push:
     branches: [main]
     paths:
       - ".github/workflows/comun-sidewalk-auth-captcha.yml"
+      - ".github/workflows/comun-sidewalk-first-production-contribution.yml"
       - ".env.example"
       - "docs/env.md"
       - "lib/sidewalk-hcaptcha.ts"
       - "lib/sidewalk-submission-readiness.ts"
       - "lib/sidewalk-submission-readiness.test.ts"
       - "components/sidewalk-first-participation-form.tsx"
+      - "scripts/solo/run-sidewalk-first-production-contribution.mjs"
       - "next.config.mjs"
   workflow_dispatch:
 
@@ -48,6 +52,19 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Run focused CAPTCHA and anonymous-session tests
         run: npx vitest run lib/sidewalk-submission-readiness.test.ts
+      - name: Validate the controlled production runner when present
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -f scripts/solo/run-sidewalk-first-production-contribution.mjs ]]; then
+            node --check scripts/solo/run-sidewalk-first-production-contribution.mjs
+            npx prettier --check \
+              scripts/solo/run-sidewalk-first-production-contribution.mjs \
+              .github/workflows/comun-sidewalk-first-production-contribution.yml \
+              .github/workflows/comun-sidewalk-auth-captcha.yml
+            grep -q 'evidence.submissionAttempt = 1' scripts/solo/run-sidewalk-first-production-contribution.mjs
+            grep -q 'retryExecuted: false' scripts/solo/run-sidewalk-first-production-contribution.mjs
+          fi
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
@@ -69,4 +86,7 @@ jobs:
           ! grep -R -n -E 'HCAPTCHA_SECRET|NEXT_PUBLIC_.*SECRET' \
             lib components .env.example docs/env.md next.config.mjs
           grep -q 'captchaToken' lib/sidewalk-submission-readiness.ts
+          ! grep -R -n -E 'SUPABASE_SERVICE_ROLE_KEY=[^$]|SUPABASE_DB_URL=[^$]' \
+            scripts/solo/run-sidewalk-first-production-contribution.mjs \
+            .github/workflows/comun-sidewalk-first-production-contribution.yml
           echo COMUN_SIDEWALK_AUTH_CAPTCHA_GREEN >> "$GITHUB_STEP_SUMMARY"
