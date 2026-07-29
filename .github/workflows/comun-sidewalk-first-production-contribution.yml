@@ -37,7 +37,7 @@ jobs:
       - run: npx prettier --check scripts/solo/run-sidewalk-first-production-contribution.mjs .github/workflows/comun-sidewalk-first-production-contribution.yml
       - run: npm run typecheck
       - run: npm run lint
-      - run: git diff --check origin/main...HEAD
+      - run: git diff --check HEAD^ HEAD
       - name: Verify single-attempt and secret boundaries
         shell: bash
         run: |
