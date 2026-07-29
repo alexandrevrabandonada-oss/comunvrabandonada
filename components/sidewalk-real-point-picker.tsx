@@ -135,7 +135,7 @@ export function SidewalkRealPointPicker({
           }
           onChange(unprojectMercator(x / rect.width, y / rect.height));
         }}
-        className="relative mt-3 block h-72 w-full overflow-hidden border-2 bg-[#ecebe5] text-left"
+        className="relative mt-3 block h-56 w-full touch-manipulation overflow-hidden border-2 bg-[#ecebe5] text-left sm:h-64 lg:h-72"
       >
         <div
           ref={host}
@@ -167,7 +167,7 @@ export function SidewalkRealPointPicker({
             </span>
           </>
         ) : null}
-        <span className="pointer-events-none absolute bottom-2 left-2 max-w-[calc(100%-1rem)] bg-white p-2 text-xs font-bold shadow-[2px_2px_0_#0b0b0a]">
+        <span className="pointer-events-none absolute bottom-2 left-2 right-2 bg-white p-2 text-center text-xs font-bold shadow-[2px_2px_0_#0b0b0a]">
           Toque no mapa real para ajustar o marcador
         </span>
         <span className="pointer-events-none absolute right-2 top-2 bg-white/90 px-2 py-1 text-[10px] font-bold">

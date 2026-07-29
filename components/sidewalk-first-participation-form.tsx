@@ -50,6 +50,14 @@ const impactOptions = [
   ["temporary_mobility", "Mobilidade temporária"],
   ["general_public", "Circulação geral"],
 ] as const;
+const readinessLabels = {
+  photo: "fotografia",
+  point: "ponto no mapa",
+  point_confirmation: "confirmação do ponto",
+  condition: "condição da calçada",
+  publication_consent: "autorização para publicação sanitizada",
+  review_confirmation: "conferência final",
+} as const;
 
 export function SidewalkFirstParticipationForm({
   pautaSlug,
@@ -79,6 +87,11 @@ export function SidewalkFirstParticipationForm({
     },
     [preview],
   );
+
+  const clearRecoverableError = () => {
+    setSubmissionError(null);
+    if (submissionPhase === "recoverable_error") setSubmissionPhase("idle");
+  };
 
   const showError = (message: string) => {
     setSubmissionError(message);
@@ -128,7 +141,7 @@ export function SidewalkFirstParticipationForm({
       if (preview) URL.revokeObjectURL(preview);
       setPreview(URL.createObjectURL(compressed));
       setPointConfirmed(false);
-      setSubmissionError(null);
+      clearRecoverableError();
       locate();
     } catch {
       showError(
@@ -144,7 +157,7 @@ export function SidewalkFirstParticipationForm({
     setAccuracy(null);
     setPointConfirmed(false);
     setLocationState("idle");
-    setSubmissionError(null);
+    clearRecoverableError();
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -216,7 +229,10 @@ export function SidewalkFirstParticipationForm({
   };
 
   return (
-    <form onSubmit={submit} className="mt-6 grid gap-4">
+    <form
+      onSubmit={submit}
+      className="mt-6 grid gap-4 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0"
+    >
       <input type="hidden" name="pauta_slug" value={pautaSlug} />
       <input type="hidden" name="return_to" value="/comun/calcadas" />
       <input type="hidden" name="condition" value={condition} />
@@ -310,6 +326,7 @@ export function SidewalkFirstParticipationForm({
                 point={point}
                 accuracy={accuracy}
                 onChange={(value) => {
+                  clearRecoverableError();
                   setPoint(value);
                   setAccuracy(null);
                   setLocationState("located");
@@ -321,9 +338,10 @@ export function SidewalkFirstParticipationForm({
                   <input
                     type="checkbox"
                     checked={pointConfirmed}
-                    onChange={(event) =>
-                      setPointConfirmed(event.target.checked)
-                    }
+                    onChange={(event) => {
+                      clearRecoverableError();
+                      setPointConfirmed(event.target.checked);
+                    }}
                     className="size-6"
                   />
                   Confirmo este ponto após conferir no mapa real
@@ -342,7 +360,10 @@ export function SidewalkFirstParticipationForm({
                   type="button"
                   key={value}
                   aria-pressed={condition === value}
-                  onClick={() => setCondition(value)}
+                  onClick={() => {
+                    clearRecoverableError();
+                    setCondition(value);
+                  }}
                   className={`grid min-h-14 place-items-center border-2 p-2 font-black ${condition === value ? "bg-comun-yellow" : "bg-white"}`}
                 >
                   {label}
@@ -359,13 +380,14 @@ export function SidewalkFirstParticipationForm({
                   type="button"
                   aria-pressed={categories.includes(value)}
                   key={value}
-                  onClick={() =>
+                  onClick={() => {
+                    clearRecoverableError();
                     setCategories((all) =>
                       all.includes(value)
                         ? all.filter((item) => item !== value)
                         : [...all, value],
-                    )
-                  }
+                    );
+                  }}
                   className={`min-h-11 border-2 px-3 font-bold ${categories.includes(value) ? "bg-comun-yellow" : "bg-white"}`}
                 >
                   {label}
@@ -395,13 +417,14 @@ export function SidewalkFirstParticipationForm({
                   type="button"
                   aria-pressed={affectedGroups.includes(value)}
                   key={value}
-                  onClick={() =>
+                  onClick={() => {
+                    clearRecoverableError();
                     setAffectedGroups((all) =>
                       all.includes(value)
                         ? all.filter((item) => item !== value)
                         : [...all, value],
-                    )
-                  }
+                    );
+                  }}
                   className={`min-h-11 border-2 px-3 font-bold ${affectedGroups.includes(value) ? "bg-comun-yellow" : "bg-white"}`}
                 >
                   {label}
@@ -421,7 +444,10 @@ export function SidewalkFirstParticipationForm({
               <input
                 type="checkbox"
                 checked={consentPublish}
-                onChange={(event) => setConsentPublish(event.target.checked)}
+                onChange={(event) => {
+                  clearRecoverableError();
+                  setConsentPublish(event.target.checked);
+                }}
                 className="mt-1 size-6"
               />
               <span>
@@ -432,7 +458,10 @@ export function SidewalkFirstParticipationForm({
               <input
                 type="checkbox"
                 checked={reviewConfirmed}
-                onChange={(event) => setReviewConfirmed(event.target.checked)}
+                onChange={(event) => {
+                  clearRecoverableError();
+                  setReviewConfirmed(event.target.checked);
+                }}
                 className="mt-1 size-6"
               />
               <span>
@@ -445,7 +474,7 @@ export function SidewalkFirstParticipationForm({
             disabled={!ready || pending}
             aria-describedby="sidewalk-submit-progress"
             data-submission-phase={submissionPhase}
-            className="sticky bottom-20 min-h-14 w-full border-2 border-comun-black bg-comun-yellow px-5 text-lg font-black uppercase text-comun-black shadow-[3px_3px_0_#0b0b0a] disabled:opacity-50"
+            className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom)+0.75rem)] z-20 min-h-14 w-full border-2 border-comun-black bg-comun-yellow px-5 text-lg font-black uppercase text-comun-black shadow-[3px_3px_0_#0b0b0a] disabled:opacity-50 lg:bottom-4"
           >
             {sidewalkSubmissionButtonLabel(submissionPhase)}
           </button>
@@ -455,7 +484,8 @@ export function SidewalkFirstParticipationForm({
             aria-live="polite"
             aria-atomic="true"
             className={
-              submissionPhase === "idle"
+              submissionPhase === "idle" ||
+              submissionPhase === "recoverable_error"
                 ? "sr-only"
                 : "border-l-4 border-comun-yellow bg-comun-paper p-4 text-sm font-bold text-comun-black"
             }
@@ -475,8 +505,11 @@ export function SidewalkFirstParticipationForm({
           ) : null}
           {!ready ? (
             <p role="status" className="text-sm text-comun-paper/75">
-              Complete fotografia, ponto, condição e as duas confirmações para
-              liberar o envio.
+              Falta:{" "}
+              {readiness.missing
+                .map((item) => readinessLabels[item])
+                .join(", ")}
+              .
             </p>
           ) : null}
           <p className="text-sm text-comun-paper/75">
