@@ -1,12 +1,9 @@
 "use client";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useState } from "react";
-import type {
-  Map as MapLibreMap,
-  Marker as MapLibreMarker,
-  StyleSpecification,
-} from "maplibre-gl";
+import type { Map as MapLibreMap, Marker as MapLibreMarker } from "maplibre-gl";
 import type { SidewalkBasemapProvider } from "@/lib/sidewalk-basemap-provider";
+import { createSidewalkMapLibreStyle } from "@/lib/sidewalk-maplibre-style";
 import {
   pointCoordinates,
   type PublicSidewalkRecord,
@@ -34,91 +31,7 @@ export function SidewalkMapLibreMap({
         if (cancelled || !host.current) return;
         const protocol = new Protocol();
         maplibre.default.addProtocol("pmtiles", protocol.tile);
-        const style: StyleSpecification = {
-          version: 8,
-          sources: {
-            comun: {
-              type: "vector",
-              url: `pmtiles://${provider.style.pmtilesUrl}`,
-            },
-          },
-          layers: [
-            {
-              id: "background",
-              type: "background",
-              paint: { "background-color": "#ecebe5" },
-            },
-            {
-              id: "water",
-              type: "fill",
-              source: "comun",
-              "source-layer": "osm",
-              filter: [
-                "any",
-                ["has", "water"],
-                ["==", ["get", "natural"], "water"],
-              ],
-              paint: { "fill-color": "#9fcbd3" },
-            },
-            {
-              id: "buildings",
-              type: "fill",
-              source: "comun",
-              "source-layer": "osm",
-              filter: ["has", "building"],
-              minzoom: 14,
-              paint: {
-                "fill-color": "#d4d0c5",
-                "fill-outline-color": "#aaa59a",
-              },
-            },
-            {
-              id: "roads",
-              type: "line",
-              source: "comun",
-              "source-layer": "osm",
-              filter: ["any", ["has", "highway"], ["has", "railway"]],
-              paint: {
-                "line-color": "#ffffff",
-                "line-width": [
-                  "interpolate",
-                  ["linear"],
-                  ["zoom"],
-                  10,
-                  1,
-                  17,
-                  7,
-                ],
-              },
-            },
-            {
-              id: "road-labels",
-              type: "symbol",
-              source: "comun",
-              "source-layer": "osm",
-              filter: [
-                "all",
-                ["has", "name"],
-                ["any", ["has", "highway"], ["has", "railway"]],
-              ],
-              layout: {
-                "text-field": ["coalesce", ["get", "name"], ""],
-                "text-size": 12,
-              },
-            },
-            {
-              id: "municipal-boundary",
-              type: "line",
-              source: "comun",
-              "source-layer": "boundary",
-              paint: {
-                "line-color": "#26352a",
-                "line-width": 2,
-                "line-dasharray": [3, 2],
-              },
-            },
-          ],
-        };
+        const style = createSidewalkMapLibreStyle(provider);
         const map = new maplibre.default.Map({
           container: host.current,
           style,

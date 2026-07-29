@@ -56,6 +56,7 @@ describe("sidewalk submission readiness", () => {
   });
 
   it("creates one anonymous session with one CAPTCHA token after submission", async () => {
+    const phases: string[] = [];
     const signInAnonymously = vi.fn().mockResolvedValue({
       data: { session: { user: "anonymous" } },
       error: null,
@@ -69,6 +70,7 @@ describe("sidewalk submission readiness", () => {
         },
       },
       getCaptchaToken,
+      (phase) => phases.push(phase),
     );
     expect(result).toEqual({ source: "created" });
     expect(getCaptchaToken).toHaveBeenCalledTimes(1);
@@ -76,6 +78,7 @@ describe("sidewalk submission readiness", () => {
     expect(signInAnonymously).toHaveBeenCalledWith({
       options: { captchaToken: "captcha-token" },
     });
+    expect(phases).toEqual(["checking_captcha", "creating_private_session"]);
   });
 
   it("blocks bootstrap before POST when CAPTCHA returns an empty token", async () => {
