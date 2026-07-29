@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  captureSidewalkSubmissionPayload,
   classifySidewalkAnonymousSessionFailure,
   createSingleSubmissionGuard,
   ensureSidewalkAnonymousSession,
@@ -16,6 +17,46 @@ const valid = {
 };
 
 describe("sidewalk submission readiness", () => {
+  it("captures the form synchronously before asynchronous session work", () => {
+    const form = {} as HTMLFormElement;
+    const values = new Map<string, string>([
+      ["pauta_slug", "calcadas"],
+      ["return_to", "/comun/calcadas"],
+      ["description", "Trecho controlado"],
+      ["category", "buraco"],
+      ["problems", "buraco,irregular"],
+      ["condition", "bad"],
+      ["longitude", "-44.10"],
+      ["latitude", "-22.50"],
+      ["location_accuracy_m", "12"],
+      ["location_source", "device"],
+      ["affected_groups", "wheelchair_users"],
+      ["consent_publish", "yes"],
+    ]);
+    const constructor = vi.fn(function (received: HTMLFormElement) {
+      expect(received).toBe(form);
+      return { get: (key: string) => values.get(key) ?? null };
+    });
+    vi.stubGlobal("FormData", constructor);
+
+    expect(captureSidewalkSubmissionPayload(form)).toEqual({
+      pauta_slug: "calcadas",
+      return_to: "/comun/calcadas",
+      description: "Trecho controlado",
+      category: "buraco",
+      problems: "buraco,irregular",
+      condition: "bad",
+      longitude: "-44.10",
+      latitude: "-22.50",
+      location_accuracy_m: "12",
+      location_source: "device",
+      affected_groups: "wheelchair_users",
+      consent_publish: "yes",
+    });
+    expect(constructor).toHaveBeenCalledOnce();
+    vi.unstubAllGlobals();
+  });
+
   it("keeps an incomplete form closed and explains its visible requirements", () => {
     expect(
       getSidewalkSubmissionReadiness({
