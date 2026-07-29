@@ -5,12 +5,8 @@ import {
   authorizeSidewalkPhotoUpload,
   confirmSidewalkPhotoUpload,
 } from "@/app/comun/mapa/contribuir/actions";
+import { SidewalkRealPointPicker } from "@/components/sidewalk-real-point-picker";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import {
-  projectMercator,
-  unprojectMercator,
-  VOLTA_REDONDA_MAP,
-} from "@/lib/sidewalk-map-config";
 import {
   createSingleSubmissionGuard,
   ensureSidewalkAnonymousSession,
@@ -25,11 +21,35 @@ type LocationState =
   | "denied"
   | "unavailable"
   | "timeout";
+type SubmissionStage =
+  | "idle"
+  | "human_check"
+  | "authorizing"
+  | "uploading"
+  | "confirming";
+
 const conditionOptions = [
   ["good", "Boa"],
   ["regular", "Regular"],
   ["bad", "Ruim"],
   ["terrible", "Péssima"],
+] as const;
+const problemOptions = [
+  ["buraco", "Buraco"],
+  ["irregular", "Irregular"],
+  ["sem_rampa", "Sem rampa"],
+  ["obstaculo", "Obstáculo"],
+  ["estreita", "Estreita"],
+  ["inexistente", "Sem calçada"],
+] as const;
+const impactOptions = [
+  ["wheelchair_users", "Cadeira de rodas"],
+  ["visually_impaired", "Deficiência visual"],
+  ["elderly", "Pessoas idosas"],
+  ["children", "Crianças"],
+  ["strollers", "Carrinhos de bebê"],
+  ["temporary_mobility", "Mobilidade temporária"],
+  ["general_public", "Circulação geral"],
 ] as const;
 
 export function SidewalkFirstParticipationForm({
@@ -38,6 +58,7 @@ export function SidewalkFirstParticipationForm({
   pautaSlug: string;
 }) {
   const fileRef = useRef<HTMLInputElement>(null),
+    errorRef = useRef<HTMLParagraphElement>(null),
     submissionGuard = useRef(createSingleSubmissionGuard()),
     [preview, setPreview] = useState<string | null>(null),
     [condition, setCondition] = useState(""),
@@ -50,13 +71,24 @@ export function SidewalkFirstParticipationForm({
     [consentPublish, setConsentPublish] = useState(false),
     [reviewConfirmed, setReviewConfirmed] = useState(false),
     [submissionError, setSubmissionError] = useState<string | null>(null),
-    [pending, setPending] = useState(false);
+    [pending, setPending] = useState(false),
+    [submissionStage, setSubmissionStage] =
+      useState<SubmissionStage>("idle");
+
   useEffect(
     () => () => {
       if (preview) URL.revokeObjectURL(preview);
     },
     [preview],
   );
+
+  const showError = (message: string) => {
+    setSubmissionError(message);
+    requestAnimationFrame(() =>
+      errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }),
+    );
+  };
+
   const locate = () => {
     if (!navigator.geolocation) {
       setLocationState("unavailable");
@@ -87,26 +119,35 @@ export function SidewalkFirstParticipationForm({
       },
     );
   };
+
   const selectPhoto = async (file?: File) => {
     if (!file) return;
-    const compressed = await compressPhoto(file);
-    const transfer = new DataTransfer();
-    transfer.items.add(compressed);
-    if (fileRef.current) fileRef.current.files = transfer.files;
-    if (preview) URL.revokeObjectURL(preview);
-    setPreview(URL.createObjectURL(compressed));
-    setPointConfirmed(false);
-    locate();
+    try {
+      const compressed = await compressPhoto(file),
+        transfer = new DataTransfer();
+      transfer.items.add(compressed);
+      if (fileRef.current) fileRef.current.files = transfer.files;
+      if (preview) URL.revokeObjectURL(preview);
+      setPreview(URL.createObjectURL(compressed));
+      setPointConfirmed(false);
+      setSubmissionError(null);
+      locate();
+    } catch {
+      showError("Não foi possível preparar esta fotografia. Tente outra imagem.");
+    }
   };
-  const remove = () => {
+
+  const removePhoto = () => {
     if (preview) URL.revokeObjectURL(preview);
     setPreview(null);
     setPoint(null);
     setAccuracy(null);
     setPointConfirmed(false);
     setLocationState("idle");
+    setSubmissionError(null);
     if (fileRef.current) fileRef.current.value = "";
   };
+
   const readiness = getSidewalkSubmissionReadiness({
       hasPhoto: Boolean(preview),
       hasPoint: Boolean(point),
@@ -116,15 +157,18 @@ export function SidewalkFirstParticipationForm({
       reviewConfirmed,
     }),
     ready = readiness.ready;
+
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const photo = fileRef.current?.files?.[0];
     if (!photo || !ready || !submissionGuard.current.enter()) return;
     setPending(true);
+    setSubmissionStage("human_check");
     setSubmissionError(null);
     try {
       const client = createSupabaseBrowserClient();
       await ensureSidewalkAnonymousSession(client);
+      setSubmissionStage("authorizing");
       const data = new FormData(event.currentTarget),
         payload = {
           pauta_slug: String(data.get("pauta_slug") ?? ""),
@@ -145,26 +189,30 @@ export function SidewalkFirstParticipationForm({
           mimeType: photo.type || "image/jpeg",
           sizeBytes: photo.size,
           payload,
-        }),
-        uploaded = await client.storage
-          .from("archive-private-originals")
-          .uploadToSignedUrl(authorization.path, authorization.token, photo, {
-            contentType: photo.type || "image/jpeg",
-            upsert: false,
-          });
+        });
+      setSubmissionStage("uploading");
+      const uploaded = await client.storage
+        .from("archive-private-originals")
+        .uploadToSignedUrl(authorization.path, authorization.token, photo, {
+          contentType: photo.type || "image/jpeg",
+          upsert: false,
+        });
       if (uploaded.error)
         throw new Error("Falha ao enviar a fotografia privada.");
+      setSubmissionStage("confirming");
       await confirmSidewalkPhotoUpload(authorization.uploadId);
     } catch (error) {
-      setSubmissionError(
+      showError(
         error instanceof Error
           ? error.message
           : "Não foi possível enviar agora. Tente novamente.",
       );
       setPending(false);
+      setSubmissionStage("idle");
       submissionGuard.current.release();
     }
   };
+
   return (
     <form onSubmit={submit} className="mt-6 grid gap-4">
       <input type="hidden" name="pauta_slug" value={pautaSlug} />
@@ -204,14 +252,7 @@ export function SidewalkFirstParticipationForm({
         className="sr-only"
         onChange={(event) => void selectPhoto(event.target.files?.[0])}
       />
-      {submissionError ? (
-        <p
-          role="alert"
-          className="border-l-4 border-comun-yellow bg-comun-paper p-4 text-comun-black"
-        >
-          {submissionError}
-        </p>
-      ) : null}
+
       {!preview ? (
         <section className="border-2 border-comun-yellow bg-comun-paper p-6 text-comun-black">
           <h2 className="text-2xl font-black uppercase">Fotografe a calçada</h2>
@@ -249,7 +290,7 @@ export function SidewalkFirstParticipationForm({
                 </button>
                 <button
                   type="button"
-                  onClick={remove}
+                  onClick={removePhoto}
                   className="font-black underline"
                 >
                   Remover
@@ -257,13 +298,11 @@ export function SidewalkFirstParticipationForm({
               </div>
             </div>
             <div>
-              <h2 className="text-2xl font-black uppercase">
-                Confirme o local
-              </h2>
+              <h2 className="text-2xl font-black uppercase">Confirme o local</h2>
               <p role="status" className="mt-2 text-sm">
                 {locationMessage(locationState, accuracy)}
               </p>
-              <ManualPointPicker
+              <SidewalkRealPointPicker
                 point={point}
                 accuracy={accuracy}
                 onChange={(value) => {
@@ -283,11 +322,12 @@ export function SidewalkFirstParticipationForm({
                     }
                     className="size-6"
                   />
-                  Confirmo este ponto após conferir no mapa
+                  Confirmo este ponto após conferir no mapa real
                 </label>
               ) : null}
             </div>
           </section>
+
           <fieldset className="border-2 bg-comun-paper p-4 text-comun-black">
             <legend className="px-2 font-black uppercase">
               Condição obrigatória
@@ -306,17 +346,11 @@ export function SidewalkFirstParticipationForm({
               ))}
             </div>
           </fieldset>
+
           <section className="border-2 bg-comun-paper p-4 text-comun-black">
             <h2 className="font-black uppercase">Problemas opcionais</h2>
             <div className="mt-2 flex flex-wrap gap-2">
-              {[
-                ["buraco", "Buraco"],
-                ["irregular", "Irregular"],
-                ["sem_rampa", "Sem rampa"],
-                ["obstaculo", "Obstáculo"],
-                ["estreita", "Estreita"],
-                ["inexistente", "Sem calçada"],
-              ].map(([value, label]) => (
+              {problemOptions.map(([value, label]) => (
                 <button
                   type="button"
                   aria-pressed={categories.includes(value)}
@@ -324,7 +358,7 @@ export function SidewalkFirstParticipationForm({
                   onClick={() =>
                     setCategories((all) =>
                       all.includes(value)
-                        ? all.filter((x) => x !== value)
+                        ? all.filter((item) => item !== value)
                         : [...all, value],
                     )
                   }
@@ -344,6 +378,7 @@ export function SidewalkFirstParticipationForm({
               />
             </label>
           </section>
+
           <section className="border-2 bg-comun-paper p-4 text-comun-black">
             <h2 className="font-black uppercase">Impacto na acessibilidade</h2>
             <p className="mt-1 text-sm">
@@ -351,15 +386,7 @@ export function SidewalkFirstParticipationForm({
               triagem, mas não define prioridade automaticamente.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {[
-                ["wheelchair_users", "Cadeira de rodas"],
-                ["visually_impaired", "Deficiência visual"],
-                ["elderly", "Pessoas idosas"],
-                ["children", "Crianças"],
-                ["strollers", "Carrinhos de bebê"],
-                ["temporary_mobility", "Mobilidade temporária"],
-                ["general_public", "Circulação geral"],
-              ].map(([value, label]) => (
+              {impactOptions.map(([value, label]) => (
                 <button
                   type="button"
                   aria-pressed={affectedGroups.includes(value)}
@@ -378,6 +405,7 @@ export function SidewalkFirstParticipationForm({
               ))}
             </div>
           </section>
+
           <section className="grid gap-3 border-2 border-comun-yellow bg-comun-black p-4 text-comun-paper">
             <h2 className="font-black uppercase">Revise antes de enviar</h2>
             <p className="text-sm">
@@ -408,12 +436,29 @@ export function SidewalkFirstParticipationForm({
               </span>
             </label>
           </section>
+
           <button
             disabled={!ready || pending}
             className="sticky bottom-20 min-h-14 w-full border-2 border-comun-black bg-comun-yellow px-5 text-lg font-black uppercase text-comun-black shadow-[3px_3px_0_#0b0b0a] disabled:opacity-50"
           >
-            {pending ? "Enviando…" : "Enviar para revisão"}
+            {submissionLabel(submissionStage, pending)}
           </button>
+          {pending ? (
+            <p role="status" aria-live="polite" className="text-sm font-bold text-comun-yellow">
+              Não feche esta tela. A foto continua privada durante o envio.
+            </p>
+          ) : null}
+          {submissionError ? (
+            <p
+              ref={errorRef}
+              role="alert"
+              className="border-l-4 border-comun-yellow bg-comun-paper p-4 text-comun-black"
+            >
+              <strong>O envio não foi concluído.</strong>
+              <br />
+              {submissionError}
+            </p>
+          ) : null}
           {!ready ? (
             <p role="status" className="text-sm text-comun-paper/75">
               Complete fotografia, ponto, condição e as duas confirmações para
@@ -421,9 +466,9 @@ export function SidewalkFirstParticipationForm({
             </p>
           ) : null}
           <p className="text-sm text-comun-paper/75">
-            Nenhum cadastro é exigido antes do envio. Uma sessão anônima
-            limitada é criada somente quando você enviar, para permitir
-            confirmação e acompanhamento neste dispositivo.
+            Nenhum cadastro é exigido antes do envio. A verificação antirobô
+            aparecerá em uma janela visível; depois dela, uma sessão anônima
+            limitada permitirá confirmação e acompanhamento neste dispositivo.
           </p>
         </>
       )}
@@ -431,111 +476,30 @@ export function SidewalkFirstParticipationForm({
   );
 }
 
+function submissionLabel(stage: SubmissionStage, pending: boolean) {
+  if (!pending) return "Enviar para revisão";
+  if (stage === "human_check") return "Aguardando verificação…";
+  if (stage === "authorizing") return "Preparando envio…";
+  if (stage === "uploading") return "Enviando foto privada…";
+  if (stage === "confirming") return "Confirmando registro…";
+  return "Enviando…";
+}
+
 function locationMessage(state: LocationState, accuracy: number | null) {
   if (state === "locating") return "Obtendo o GPS uma única vez…";
   if (state === "located")
-    return `Local encontrado${accuracy ? ` · precisão aproximada de ${Math.round(accuracy)} m` : ""}. Você pode ajustar o marcador.`;
+    return `Local encontrado${accuracy ? ` · precisão aproximada de ${Math.round(accuracy)} m` : ""}. Você pode ajustar o marcador no mapa real.`;
   if (state === "low_accuracy")
-    return `Precisão baixa (${Math.round(accuracy || 0)} m). Ajuste ou confirme o ponto manualmente.`;
+    return `Precisão baixa (${Math.round(accuracy || 0)} m). Ajuste ou confirme o ponto no mapa real.`;
   if (state === "denied")
-    return "Permissão de localização negada. Toque no mapa para marcar manualmente.";
+    return "Permissão de localização negada. Toque no mapa real para marcar manualmente.";
   if (state === "timeout")
-    return "O GPS demorou demais. Toque no mapa para marcar manualmente.";
+    return "O GPS demorou demais. Toque no mapa real para marcar manualmente.";
   if (state === "unavailable")
-    return "GPS indisponível. Toque no mapa para marcar manualmente.";
+    return "GPS indisponível. Toque no mapa real para marcar manualmente.";
   return "Aguardando a fotografia.";
 }
-function ManualPointPicker({
-  point,
-  accuracy,
-  onChange,
-}: {
-  point: [number, number] | null;
-  accuracy: number | null;
-  onChange: (point: [number, number]) => void;
-}) {
-  const p = point ? projectMercator(point) : null;
-  return (
-    <>
-      <button
-        type="button"
-        aria-label="Mapa para confirmar ou ajustar o ponto"
-        aria-describedby="manual-point-help"
-        onKeyDown={(event) => {
-          const current = point ?? VOLTA_REDONDA_MAP.center;
-          const delta = event.shiftKey ? 0.002 : 0.0005;
-          const next: Record<string, [number, number]> = {
-            ArrowLeft: [current[0] - delta, current[1]],
-            ArrowRight: [current[0] + delta, current[1]],
-            ArrowUp: [current[0], current[1] + delta],
-            ArrowDown: [current[0], current[1] - delta],
-          };
-          if (next[event.key]) {
-            event.preventDefault();
-            onChange(next[event.key]);
-          }
-        }}
-        onClick={(event) => {
-          if (event.detail === 0) {
-            onChange(point ?? VOLTA_REDONDA_MAP.center);
-            return;
-          }
-          const rect = event.currentTarget.getBoundingClientRect();
-          onChange(
-            unprojectMercator(
-              (event.clientX - rect.left) / rect.width,
-              (event.clientY - rect.top) / rect.height,
-            ),
-          );
-        }}
-        className="relative mt-3 block h-64 w-full overflow-hidden border-2 bg-[#dfe7df]"
-      >
-        <svg
-          viewBox="0 0 600 300"
-          className="absolute inset-0 size-full"
-          aria-hidden="true"
-        >
-          <path
-            d="M0 190 C100 130 210 230 310 160 S480 90 600 130"
-            fill="none"
-            stroke={VOLTA_REDONDA_MAP.style.water}
-            strokeWidth="22"
-          />
-        </svg>
-        {p ? (
-          <>
-            <span
-              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-blue-700 bg-blue-300/25"
-              style={{
-                left: `${p.x * 100}%`,
-                top: `${p.y * 100}%`,
-                width: accuracy
-                  ? `${Math.min(120, Math.max(30, accuracy))}px`
-                  : 30,
-                height: accuracy
-                  ? `${Math.min(120, Math.max(30, accuracy))}px`
-                  : 30,
-              }}
-            />
-            <span
-              className="absolute grid size-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 bg-comun-yellow"
-              style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}
-            >
-              ●
-            </span>
-          </>
-        ) : null}
-        <span className="absolute bottom-2 left-2 bg-white p-2 text-xs font-bold">
-          Toque ou use as setas para ajustar o marcador
-        </span>
-      </button>
-      <p id="manual-point-help" className="mt-2 text-sm">
-        Sem GPS, use Tab para focar o mapa e as setas para mover o marcador. Use
-        Enter ou Espaço para confirmar o ponto.
-      </p>
-    </>
-  );
-}
+
 async function compressPhoto(file: File) {
   if (file.size < 1_500_000) return file;
   const bitmap = await createImageBitmap(file),
@@ -560,6 +524,7 @@ async function compressPhoto(file: File) {
     lastModified: Date.now(),
   });
 }
+
 export function SidewalkDraftCleanup() {
   return null;
 }

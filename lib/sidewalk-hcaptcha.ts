@@ -1,27 +1,19 @@
-type HCaptchaExecution = {
-  response?: string;
-  key?: string;
-};
-
 type HCaptchaApi = {
   render(
     container: HTMLElement,
     options: {
       sitekey: string;
-      size: "invisible";
+      size: "normal" | "compact";
       hl: string;
+      theme: "light";
+      callback: (token: string) => void;
+      "expired-callback": () => void;
+      "error-callback": () => void;
+      "close-callback": () => void;
     },
   ): string;
-  execute(
-    widgetId: string,
-    options: { async: true },
-  ): Promise<HCaptchaExecution>;
   reset(widgetId: string): void;
-};
-
-type InvisibleHCaptchaController = {
-  execute(): Promise<string>;
-  reset(): void;
+  remove(widgetId: string): void;
 };
 
 declare global {
@@ -38,7 +30,8 @@ const HCAPTCHA_SCRIPT_SELECTOR =
 const DEFAULT_SIDEWALK_HCAPTCHA_SITEKEY =
   "740aa1e0-2e96-49ce-9ef6-b65a7e965640";
 let hcaptchaApiPromise: Promise<HCaptchaApi> | null = null;
-let controllerPromise: Promise<InvisibleHCaptchaController> | null = null;
+let activeChallenge: Promise<string> | null = null;
+let activeChallengeCleanup: (() => void) | null = null;
 
 function getSitekey() {
   return (
@@ -95,54 +88,156 @@ function loadHCaptchaApi() {
   return hcaptchaApiPromise;
 }
 
-async function getController() {
-  if (controllerPromise) return controllerPromise;
-  controllerPromise = (async () => {
-    const sitekey = getSitekey();
-    if (!sitekey)
-      throw new Error("A chave pública da proteção antirobô não foi configurada.");
-    const api = await loadHCaptchaApi();
-    const container = document.createElement("div");
-    container.dataset.comunSidewalkHcaptchaContainer = "true";
-    document.body.appendChild(container);
-    const widgetId = api.render(container, {
-      sitekey,
-      size: "invisible",
-      hl: "pt-BR",
-    });
-    return {
-      async execute() {
-        const result = await api.execute(widgetId, { async: true });
-        const token = result.response?.trim();
-        if (!token)
-          throw new Error(
-            "A confirmação antirobô não retornou um token válido.",
-          );
-        return token;
-      },
-      reset() {
-        api.reset(widgetId);
-      },
-    };
-  })().catch((error) => {
-    controllerPromise = null;
-    throw error;
+function createChallengeOverlay() {
+  const overlay = document.createElement("div"),
+    panel = document.createElement("section"),
+    title = document.createElement("h2"),
+    explanation = document.createElement("p"),
+    host = document.createElement("div"),
+    privacy = document.createElement("p"),
+    cancel = document.createElement("button"),
+    previousOverflow = document.body.style.overflow;
+
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-labelledby", "comun-hcaptcha-title");
+  Object.assign(overlay.style, {
+    position: "fixed",
+    inset: "0",
+    zIndex: "2147483646",
+    display: "grid",
+    placeItems: "center",
+    padding: "16px",
+    background: "rgba(11, 11, 10, 0.82)",
   });
-  return controllerPromise;
+  Object.assign(panel.style, {
+    width: "min(100%, 380px)",
+    maxHeight: "calc(100dvh - 32px)",
+    overflowY: "auto",
+    padding: "20px",
+    border: "3px solid #0b0b0a",
+    background: "#f4f0e6",
+    color: "#0b0b0a",
+    boxShadow: "6px 6px 0 #f6c900",
+    textAlign: "center",
+  });
+  title.id = "comun-hcaptcha-title";
+  title.textContent = "Confirme que você é uma pessoa";
+  Object.assign(title.style, {
+    margin: "0",
+    fontSize: "22px",
+    fontWeight: "900",
+    textTransform: "uppercase",
+  });
+  explanation.textContent =
+    "Conclua a verificação abaixo para liberar o envio da contribuição.";
+  Object.assign(explanation.style, { margin: "12px 0 16px", lineHeight: "1.45" });
+  Object.assign(host.style, {
+    display: "grid",
+    placeItems: "center",
+    minHeight: "82px",
+  });
+  privacy.textContent =
+    "A verificação não envia a foto nem cria o registro. O envio continua somente depois da confirmação.";
+  Object.assign(privacy.style, {
+    margin: "14px 0",
+    fontSize: "13px",
+    lineHeight: "1.4",
+  });
+  cancel.type = "button";
+  cancel.textContent = "Cancelar e voltar";
+  Object.assign(cancel.style, {
+    width: "100%",
+    minHeight: "48px",
+    border: "2px solid #0b0b0a",
+    background: "#ffffff",
+    color: "#0b0b0a",
+    fontWeight: "900",
+    textTransform: "uppercase",
+  });
+  panel.append(title, explanation, host, privacy, cancel);
+  overlay.append(panel);
+  document.body.append(overlay);
+  document.body.style.overflow = "hidden";
+  cancel.focus();
+
+  return {
+    host,
+    cancel,
+    remove() {
+      document.body.style.overflow = previousOverflow;
+      overlay.remove();
+    },
+  };
 }
 
 export async function getSidewalkCaptchaToken() {
-  const controller = await getController();
-  try {
-    return await controller.execute();
-  } catch {
-    controller.reset();
-    throw new Error(
-      "Não foi possível confirmar que o envio é humano. Tente novamente.",
-    );
-  }
+  if (activeChallenge) return activeChallenge;
+  activeChallenge = (async () => {
+    const sitekey = getSitekey();
+    if (!sitekey)
+      throw new Error("A chave pública da proteção antirobô não foi configurada.");
+    const api = await loadHCaptchaApi(),
+      overlay = createChallengeOverlay();
+    return new Promise<string>((resolve, reject) => {
+      let widgetId = "",
+        settled = false;
+      const timeout = setTimeout(
+        () => finish(undefined, "A verificação expirou. Tente novamente."),
+        5 * 60_000,
+      );
+      const cleanup = () => {
+        clearTimeout(timeout);
+        if (widgetId) {
+          try {
+            api.remove(widgetId);
+          } catch {
+            // O provedor pode já ter removido o widget ao fechar o desafio.
+          }
+        }
+        overlay.remove();
+        activeChallengeCleanup = null;
+      };
+      const finish = (token?: string, error?: string) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        if (token?.trim()) resolve(token.trim());
+        else reject(new Error(error || "Verificação antirobô não concluída."));
+      };
+      activeChallengeCleanup = () =>
+        finish(undefined, "Verificação cancelada. Nenhum dado foi enviado.");
+      overlay.cancel.addEventListener("click", activeChallengeCleanup, {
+        once: true,
+      });
+      try {
+        widgetId = api.render(overlay.host, {
+          sitekey,
+          size: window.innerWidth < 390 ? "compact" : "normal",
+          hl: "pt-BR",
+          theme: "light",
+          callback: (token) => finish(token),
+          "expired-callback": () =>
+            finish(undefined, "A verificação expirou. Tente novamente."),
+          "error-callback": () =>
+            finish(
+              undefined,
+              "Não foi possível carregar a verificação antirobô.",
+            ),
+          "close-callback": () =>
+            finish(undefined, "Verificação fechada. Nenhum dado foi enviado."),
+        });
+      } catch {
+        finish(undefined, "Não foi possível iniciar a verificação antirobô.");
+      }
+    });
+  })().finally(() => {
+    activeChallenge = null;
+  });
+  return activeChallenge;
 }
 
 export function resetSidewalkCaptcha() {
-  void controllerPromise?.then((controller) => controller.reset());
+  activeChallengeCleanup?.();
+  activeChallengeCleanup = null;
 }
