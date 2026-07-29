@@ -8,6 +8,7 @@ import {
 import { SidewalkRealPointPicker } from "@/components/sidewalk-real-point-picker";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
+  captureSidewalkSubmissionPayload,
   createSingleSubmissionGuard,
   ensureSidewalkAnonymousSession,
   getSidewalkSubmissionReadiness,
@@ -179,32 +180,20 @@ export function SidewalkFirstParticipationForm({
     setSubmissionPhase("validating");
     setSubmissionError(null);
     try {
+      // React só mantém currentTarget durante a fase síncrona do handler.
+      // Capture os campos antes de aguardar CAPTCHA ou criação da sessão.
+      const payload = captureSidewalkSubmissionPayload(event.currentTarget);
       const client = createSupabaseBrowserClient();
       await ensureSidewalkAnonymousSession(client, undefined, (phase) =>
         setSubmissionPhase(phase),
       );
       setSubmissionPhase("authorizing_upload");
-      const data = new FormData(event.currentTarget),
-        payload = {
-          pauta_slug: String(data.get("pauta_slug") ?? ""),
-          return_to: String(data.get("return_to") ?? ""),
-          description: String(data.get("description") ?? ""),
-          category: String(data.get("category") ?? ""),
-          problems: String(data.get("problems") ?? ""),
-          condition: String(data.get("condition") ?? ""),
-          longitude: String(data.get("longitude") ?? ""),
-          latitude: String(data.get("latitude") ?? ""),
-          location_accuracy_m: String(data.get("location_accuracy_m") ?? ""),
-          location_source: String(data.get("location_source") ?? ""),
-          affected_groups: String(data.get("affected_groups") ?? ""),
-          consent_publish: String(data.get("consent_publish") ?? ""),
-        },
-        authorization = await authorizeSidewalkPhotoUpload({
-          filename: photo.name,
-          mimeType: photo.type || "image/jpeg",
-          sizeBytes: photo.size,
-          payload,
-        });
+      const authorization = await authorizeSidewalkPhotoUpload({
+        filename: photo.name,
+        mimeType: photo.type || "image/jpeg",
+        sizeBytes: photo.size,
+        payload,
+      });
       setSubmissionPhase("uploading_photo");
       const uploaded = await client.storage
         .from("archive-private-originals")

@@ -33,6 +33,24 @@ export function getSidewalkSubmissionReadiness(
   return { ready: missing.length === 0, missing };
 }
 
+export function captureSidewalkSubmissionPayload(form: HTMLFormElement) {
+  const data = new FormData(form);
+  return {
+    pauta_slug: String(data.get("pauta_slug") ?? ""),
+    return_to: String(data.get("return_to") ?? ""),
+    description: String(data.get("description") ?? ""),
+    category: String(data.get("category") ?? ""),
+    problems: String(data.get("problems") ?? ""),
+    condition: String(data.get("condition") ?? ""),
+    longitude: String(data.get("longitude") ?? ""),
+    latitude: String(data.get("latitude") ?? ""),
+    location_accuracy_m: String(data.get("location_accuracy_m") ?? ""),
+    location_source: String(data.get("location_source") ?? ""),
+    affected_groups: String(data.get("affected_groups") ?? ""),
+    consent_publish: String(data.get("consent_publish") ?? ""),
+  };
+}
+
 type AnonymousSessionClient = {
   auth: {
     getSession(): Promise<{
