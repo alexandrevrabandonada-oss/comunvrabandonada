@@ -1,259 +1,98 @@
 name: COMUN Sidewalk First Production Contribution
 
 on:
-  workflow_dispatch:
-    inputs:
-      confirmation:
-        description: Exact authorization for this one controlled production contribution.
-        required: true
-        type: string
-      expected_main_sha:
-        description: Immutable main SHA that owns this fixed one-time validation.
-        required: true
-        type: string
-      cycle_id:
-        description: Fixed controlled contribution cycle; no arbitrary record identity is accepted.
-        required: true
-        default: sidewalk-first-production-contribution-20260729-07
-        type: string
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-sidewalk-first-production-contribution.yml"
+      - "scripts/solo/run-sidewalk-first-production-contribution.mjs"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-sidewalk-first-production-contribution.yml"
+      - "scripts/solo/run-sidewalk-first-production-contribution.mjs"
 
 concurrency:
-  group: comun-sidewalk-first-production-contribution-${{ inputs.cycle_id }}
+  group: comun-sidewalk-first-production-contribution-20260729-11
   cancel-in-progress: false
 
 permissions:
   contents: read
-  actions: read
+  issues: write
 
 jobs:
-  validate-input:
-    runs-on: ubuntu-24.04
-    outputs:
-      deployment_ref: ${{ steps.deployment.outputs.deployment_ref }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.expected_main_sha }}
-          fetch-depth: 0
-      - name: Require immutable main, fixed cycle, and exact one-time confirmation
-        env:
-          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
-          CYCLE_ID: ${{ inputs.cycle_id }}
-          CONFIRMATION: ${{ inputs.confirmation }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$CYCLE_ID" = "sidewalk-first-production-contribution-20260729-07"
-          test "$CONFIRMATION" = "EXECUTAR_UNICA_CONTRIBUICAO_CONTROLADA_CALCADAS_${EXPECTED_MAIN_SHA}_${CYCLE_ID}"
-          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
-          test "$EXPECTED_MAIN_SHA" = "$(git rev-parse refs/remotes/origin/main)"
-          test "$EXPECTED_MAIN_SHA" = "$(git rev-parse HEAD)"
-      - id: deployment
-        name: Require a ready production deployment compatible with the immutable main
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
-          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -n "$VERCEL_TOKEN"
-          test "$VERCEL_ORG_ID" = "team_LBVwyK8FQMO7tA3hzVXXeumF"
-          test "$VERCEL_PROJECT_ID" = "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X"
-          umask 077
-          response="$(mktemp)"; trap 'rm -f "$response"' EXIT
-          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' --header "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v6/deployments?projectId=${VERCEL_PROJECT_ID}&teamId=${VERCEL_ORG_ID}&target=production&state=READY&limit=20")"
-          test "$status" = "200"
-          deployment_sha="$(DEPLOYMENT_JSON="$response" node --input-type=module <<'NODE'
-          import { readFile } from "node:fs/promises";
-          const body = JSON.parse(await readFile(process.env.DEPLOYMENT_JSON, "utf8"));
-          const immutableHost = /^comunvrabandonada-[a-z0-9-]+-alexandrevrabandonada-oss-projects\.vercel\.app$/;
-          const candidates = (body.deployments ?? [])
-            .filter((item) => item?.state === "READY" && item?.target === "production" && immutableHost.test(String(item?.url ?? "")) && /^[0-9a-f]{40}$/i.test(item?.meta?.githubCommitSha ?? ""))
-            .sort((left, right) => Number(right.createdAt ?? 0) - Number(left.createdAt ?? 0));
-          if (candidates.length === 0) process.exit(1);
-          process.stdout.write(candidates[0].meta.githubCommitSha);
-          NODE
-          )"
-          git fetch --no-tags origin "$deployment_sha"
-          git merge-base --is-ancestor "$deployment_sha" "$EXPECTED_MAIN_SHA"
-          mapfile -t changed < <(git diff --name-only "$deployment_sha" "$EXPECTED_MAIN_SHA")
-          for file in "${changed[@]}"; do
-            [[ "$file" =~ ^(\.github/workflows/|scripts/solo/|tests/sidewalk-production-controlled/|playwright\.sidewalk-production-controlled\.config\.ts$|reports/current/) ]] || exit 1
-          done
-          printf 'deployment_ref=production-ready-%s\n' "${deployment_sha:0:12}" >> "$GITHUB_OUTPUT"
-      - name: Block while another mutable sidewalk workflow is in progress
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          response="$(mktemp)"; trap 'rm -f "$response"' EXIT
-          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs?status=in_progress&per_page=100")"
-          test "$status" = "200"
-          RUNS_JSON="$response" CURRENT_RUN_ID="$GITHUB_RUN_ID" node --input-type=module <<'NODE'
-          import { readFile } from "node:fs/promises";
-          const payload = JSON.parse(await readFile(process.env.RUNS_JSON, "utf8"));
-          const active = (payload.workflow_runs ?? []).filter(
-            (run) => String(run.id) !== process.env.CURRENT_RUN_ID,
-          );
-          if (active.length !== 0) process.exit(1);
-          NODE
-
-  preflight:
-    needs: validate-input
+  verify-contract:
+    name: VERIFY / COMUN_SIDEWALK_FIRST_WRITE_AUTOMATION_GREEN
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.expected_main_sha }}
-          fetch-depth: 1
       - uses: actions/setup-node@v4
         with:
           node-version: 22.18.0
           cache: npm
       - run: npm ci --ignore-scripts
-      - name: Confirm scoped POST and exact ledger without writing
-        env:
-          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening-safer-pre-v2.json
-          PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
-          PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-        run: node scripts/solo/apply-forward-only.mjs --read-only-postflight
-      - name: Capture sanitized snapshot before the one submission in a read-only transaction
-        env:
-          PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
-          PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-        run: |
-          node scripts/solo/controlled-sidewalk-production-contribution.mjs \
-            --mode=preflight \
-            --candidate-sha=${{ inputs.expected_main_sha }} \
-            --deployment-ref=${{ needs.validate-input.outputs.deployment_ref }} \
-            --output=.ci-artifacts/sidewalk-first-production-contribution/before.json
-      - name: Confirm protected runtime is active without exposing deployment metadata
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
-          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+      - run: node --check scripts/solo/run-sidewalk-first-production-contribution.mjs
+      - run: npx prettier --check scripts/solo/run-sidewalk-first-production-contribution.mjs .github/workflows/comun-sidewalk-first-production-contribution.yml
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: git diff --check origin/main...HEAD
+      - name: Verify single-attempt and secret boundaries
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p .ci-artifacts/sidewalk-first-production-contribution
-          deployment_json="$(mktemp)"; trap 'rm -f "$deployment_json"' EXIT
-          status="$(curl --silent --show-error --output "$deployment_json" --write-out '%{http_code}' --header "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v6/deployments?projectId=${VERCEL_PROJECT_ID}&teamId=${VERCEL_ORG_ID}&target=production&state=READY&limit=20")"
-          test "$status" = "200"
-          deployment_url="$(DEPLOYMENT_JSON="$deployment_json" node --input-type=module <<'NODE'
-          import { readFile } from "node:fs/promises";
-          const payload = JSON.parse(await readFile(process.env.DEPLOYMENT_JSON, "utf8"));
-          const expected = /^comunvrabandonada-[a-z0-9-]+-alexandrevrabandonada-oss-projects\.vercel\.app$/;
-          const candidates = (payload.deployments ?? [])
-            .filter((item) => item?.state === "READY" && item?.target === "production")
-            .sort((left, right) => Number(right.createdAt ?? 0) - Number(left.createdAt ?? 0));
-          const host = String(candidates[0]?.url ?? "");
-          if (!expected.test(host)) process.exit(1);
-          process.stdout.write(`https://${host}`);
-          NODE
-          )"
-          node scripts/solo/probe-protected-vercel-deployment.mjs \
-            --deployment-url="$deployment_url" \
-            --operational-diagnostic > .ci-artifacts/sidewalk-first-production-contribution/runtime-diagnostic.raw
-          node --input-type=module <<'NODE'
-          import { mkdir, readFile, writeFile } from "node:fs/promises";
-          const raw = await readFile(".ci-artifacts/sidewalk-first-production-contribution/runtime-diagnostic.raw", "utf8");
-          const payload = JSON.parse(raw.trim().split(/\r?\n/).at(-1));
-          const expected = { formatVersion: 1, flag: "enabled", databaseUrl: "present", database: "reachable", ledger: "exact", operationalState: "OPERATIONAL_READY" };
-          if (JSON.stringify(payload) !== JSON.stringify(expected)) process.exit(1);
-          await mkdir(".ci-artifacts/sidewalk-first-production-contribution", { recursive: true });
-          await writeFile(".ci-artifacts/sidewalk-first-production-contribution/runtime-diagnostic.json", `${JSON.stringify(payload, null, 2)}\n`);
-          NODE
-          rm -f .ci-artifacts/sidewalk-first-production-contribution/runtime-diagnostic.raw
-      - name: Check public map and contribution interface with safe GET and Range requests only
-        shell: bash
-        run: |
-          set -euo pipefail
-          map_status="$(curl --silent --output /dev/null --write-out '%{http_code}' https://comunvrabandonada.vercel.app/comun/calcadas)"
-          contribution_status="$(curl --silent --output /dev/null --write-out '%{http_code}' https://comunvrabandonada.vercel.app/comun/mapa/contribuir?origem=calcadas)"
-          range_status="$(curl --silent --output /dev/null --write-out '%{http_code}' --range 0-127 https://comunvrabandonada.vercel.app/maps/volta-redonda/volta-redonda.pmtiles)"
-          test "$map_status" = "200"; test "$contribution_status" = "200"; [[ "$range_status" = "200" || "$range_status" = "206" ]]
-          node --input-type=module <<'NODE'
-          import { writeFile } from "node:fs/promises";
-          await writeFile(".ci-artifacts/sidewalk-first-production-contribution/public-preflight.json", JSON.stringify({ mapHttpStatus: 200, contributionInterfaceHttpStatus: 200, pmtilesRange: "supported", mutableHttpMethodsUsed: 0 }, null, 2) + "\n");
-          NODE
-      - uses: actions/upload-artifact@v4
-        with:
-          name: comun-sidewalk-first-production-contribution-preflight-${{ inputs.expected_main_sha }}-${{ github.run_id }}
-          path: .ci-artifacts/sidewalk-first-production-contribution/
-          if-no-files-found: error
-          retention-days: 30
+          grep -q 'evidence.submissionAttempt = 1' scripts/solo/run-sidewalk-first-production-contribution.mjs
+          grep -q 'retryExecuted: false' scripts/solo/run-sidewalk-first-production-contribution.mjs
+          ! grep -R -n -E 'SUPABASE_SERVICE_ROLE_KEY=[^$]|SUPABASE_DB_URL=[^$]' \
+            scripts/solo/run-sidewalk-first-production-contribution.mjs \
+            .github/workflows/comun-sidewalk-first-production-contribution.yml
+          echo COMUN_SIDEWALK_FIRST_WRITE_AUTOMATION_GREEN >> "$GITHUB_STEP_SUMMARY"
 
-  submit-once:
-    needs: [validate-input, preflight]
+  production-cycle:
+    name: PRODUCTION / COMUN_SIDEWALK_FIRST_CONTRIBUTION
+    if: github.event_name == 'push' && github.ref_name == 'main'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    env:
+      CYCLE_ID: sidewalk-first-production-contribution-20260729-11
+      COMUN_BASE_URL: https://comunsocial.online
+      COMUN_ARTIFACT_DIR: .ci-artifacts/sidewalk-first-production-contribution
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.expected_main_sha }}
-          fetch-depth: 1
       - uses: actions/setup-node@v4
         with:
           node-version: 22.18.0
           cache: npm
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npx playwright install --with-deps chromium
-      - name: Initialize a sanitized browser-evidence envelope before the one submission
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p .ci-artifacts/sidewalk-first-production-contribution
-          node --input-type=module <<'NODE'
-          import { writeFile } from "node:fs/promises";
-          await writeFile(
-            ".ci-artifacts/sidewalk-first-production-contribution/browser.json",
-            `${JSON.stringify({ formatVersion: 1, cycleId: "sidewalk-first-production-contribution-20260729-07", formOpened: false, submissionAttempt: 0, retryExecuted: false, confirmationSeen: false, consoleErrors: 0, requestErrorCount: 0, mutableRequestMethods: [], contributionSubmitted: false, sensitivePatternsObserved: 0 }, null, 2)}\n`,
-            "utf8",
-          );
-          NODE
-      - name: Submit exactly one fixed controlled contribution through the public interface
-        id: submit
-        continue-on-error: true
-        env:
-          COMUN_CONTROLLED_CONTRIBUTION_EXECUTION: authorized-once
-          COMUN_CONTROLLED_CONTRIBUTION_CYCLE_ID: ${{ inputs.cycle_id }}
-          COMUN_CONTROLLED_CONTRIBUTION_BASE_URL: https://comunvrabandonada.vercel.app
-          COMUN_CONTROLLED_CONTRIBUTION_BROWSER_OUTPUT: .ci-artifacts/sidewalk-first-production-contribution/browser.json
-        run: npx playwright test -c playwright.sidewalk-production-controlled.config.ts
-      - name: Query the exact cycle once after submission without another write
-        id: postflight
-        env:
-          PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
-          PR23_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-        run: |
-          node scripts/solo/controlled-sidewalk-production-contribution.mjs \
-            --mode=postflight \
-            --candidate-sha=${{ inputs.expected_main_sha }} \
-            --deployment-ref=${{ needs.validate-input.outputs.deployment_ref }} \
-            --output=.ci-artifacts/sidewalk-first-production-contribution/after.json
-      - name: Render one sanitized terminal contribution result
-        if: always()
-        run: |
-          node scripts/solo/controlled-sidewalk-production-contribution.mjs \
-            --mode=result \
-            --before=.ci-artifacts/sidewalk-first-production-contribution/before.json \
-            --after=.ci-artifacts/sidewalk-first-production-contribution/after.json \
-            --browser=.ci-artifacts/sidewalk-first-production-contribution/browser.json \
-            --output=.ci-artifacts/sidewalk-first-production-contribution/contribution-result.json
-          node -e "const r=require('./.ci-artifacts/sidewalk-first-production-contribution/contribution-result.json'); if(r.checkpointResult !== 'COMUN_SIDEWALK_FIRST_PRODUCTION_CONTRIBUTION_GREEN_PRESERVED') process.exit(1); console.log(r.checkpointResult)" >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload sanitized first-contribution evidence
+      - name: Execute exactly one controlled production attempt
+        run: node scripts/solo/run-sidewalk-first-production-contribution.mjs
+      - name: Upload sanitized evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: comun-sidewalk-first-production-contribution-${{ inputs.expected_main_sha }}-${{ inputs.cycle_id }}-${{ github.run_id }}
-          path: .ci-artifacts/sidewalk-first-production-contribution/
+          name: comun-sidewalk-first-production-contribution-${{ github.run_id }}
+          path: .ci-artifacts/sidewalk-first-production-contribution
           if-no-files-found: error
           retention-days: 30
+      - name: Update COMUN CENTRAL 39
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          result_file=.ci-artifacts/sidewalk-first-production-contribution/result.json
+          if [[ ! -f "$result_file" ]]; then
+            gh issue comment 39 --body "Tijolo 45.11: execução sem artifact; evidência insuficiente. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            exit 0
+          fi
+          result="$(node -e "const x=require('./$result_file'); process.stdout.write(x.cycleResult)")"
+          records="$(node -e "const x=require('./$result_file'); process.stdout.write(String(x.recordCountAfter ?? 'unknown'))")"
+          writes="$(node -e "const x=require('./$result_file'); process.stdout.write(x.databaseWrites + '/' + x.storageWrites)")"
+          challenge="$(node -e "const x=require('./$result_file'); process.stdout.write(String(x.challengeObserved))")"
+          gh issue comment 39 --body "Tijolo 45.11: **$result**. Cycle \`sidewalk-first-production-contribution-20260729-11\`; registros=$records; writes=$writes; desafio_humano=$challenge; retry=false. Evidência sanitizada: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
