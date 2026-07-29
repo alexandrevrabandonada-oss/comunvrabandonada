@@ -1,6 +1,7 @@
 {
   "formatVersion": 1,
   "cycleId": "sidewalk-anonymous-auth-first-contribution-20260729-09",
+  "authorizationScope": "auth_security_config_deploy_single_write",
   "cycleResult": "COMUN_SIDEWALK_ANONYMOUS_AUTH_BLOCKED_MISSING_CAPTCHA_CONFIGURATION",
   "observedAt": "2026-07-29T16:30:37Z",
   "initialMainSha": "8be1155dc431cffa151522d8c95c6182355a5345",
