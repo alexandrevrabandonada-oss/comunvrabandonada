@@ -51,6 +51,11 @@ test("renders real cartography and exposes CAPTCHA progress without a production
   await expect(map).toHaveAttribute("data-map-provider", "realVoltaRedonda");
   await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
   await expect(map).toHaveAttribute("data-road-layer", "roads");
+  expect(
+    await map.evaluate((element) =>
+      Math.round(element.getBoundingClientRect().height),
+    ),
+  ).toBe(224);
   await expect
     .poll(() => pmtilesRanges.some((range) => range.startsWith("bytes=")))
     .toBe(true);
@@ -70,6 +75,9 @@ test("renders real cartography and exposes CAPTCHA progress without a production
     exact: true,
   });
   await expect(submit).toBeEnabled();
+  expect(
+    await submit.evaluate((element) => getComputedStyle(element).position),
+  ).toBe("sticky");
   await submit.click({ noWaitAfter: true });
   await expect(page.locator("#sidewalk-submit-progress")).toHaveText(
     "Verificando que este envio é humano…",

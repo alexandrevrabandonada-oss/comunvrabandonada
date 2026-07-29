@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  classifySidewalkAnonymousSessionFailure,
   createSingleSubmissionGuard,
   ensureSidewalkAnonymousSession,
   getSidewalkSubmissionReadiness,
@@ -114,6 +115,44 @@ describe("sidewalk submission readiness", () => {
       ),
     ).rejects.toThrow("Não foi possível criar a sessão privada");
     expect(signInAnonymously).toHaveBeenCalledTimes(1);
+  });
+
+  it("explains the known anonymous-provider rejection without exposing its raw code", async () => {
+    const signInAnonymously = vi.fn().mockResolvedValue({
+      data: { session: null },
+      error: { code: "anonymous_provider_disabled", message: "internal" },
+    });
+    await expect(
+      ensureSidewalkAnonymousSession(
+        {
+          auth: {
+            getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+            signInAnonymously,
+          },
+        },
+        vi.fn().mockResolvedValue("captcha-token"),
+      ),
+    ).rejects.toThrow("sessão anônima ainda não foi liberada");
+    expect(signInAnonymously).toHaveBeenCalledTimes(1);
+  });
+
+  it("classifies known session failures into safe user-facing categories", () => {
+    expect(
+      classifySidewalkAnonymousSessionFailure({
+        code: "anonymous_provider_disabled",
+      }),
+    ).toBe("anonymous_auth_unavailable");
+    expect(
+      classifySidewalkAnonymousSessionFailure({
+        code: "captcha_verification_failed",
+      }),
+    ).toBe("captcha_not_accepted");
+    expect(classifySidewalkAnonymousSessionFailure({ status: 429 })).toBe(
+      "rate_limited",
+    );
+    expect(
+      classifySidewalkAnonymousSessionFailure(new TypeError("failed")),
+    ).toBe("network");
   });
 
   it("blocks a second logical submission until the first one finishes", () => {

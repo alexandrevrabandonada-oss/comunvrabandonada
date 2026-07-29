@@ -49,14 +49,94 @@ type AnonymousSessionClient = {
 export type SidewalkSessionPhase =
   "checking_captcha" | "creating_private_session";
 
+export type SidewalkAnonymousSessionFailure =
+  | "anonymous_auth_unavailable"
+  | "captcha_not_accepted"
+  | "rate_limited"
+  | "network"
+  | "unknown";
+
+const ANONYMOUS_SESSION_MESSAGES: Record<
+  SidewalkAnonymousSessionFailure,
+  string
+> = {
+  anonymous_auth_unavailable:
+    "O envio está temporariamente indisponível porque a sessão anônima ainda não foi liberada. Seus dados continuam neste aparelho.",
+  captcha_not_accepted:
+    "A verificação antirobô não foi aceita. Conclua-a novamente antes de enviar.",
+  rate_limited:
+    "Há muitas tentativas neste dispositivo. Aguarde alguns minutos antes de tentar de novo.",
+  network:
+    "Não foi possível conectar para criar sua sessão privada. Verifique sua conexão e tente novamente.",
+  unknown:
+    "Não foi possível criar a sessão privada neste dispositivo. Seus dados continuam preenchidos.",
+};
+
+type AnonymousSessionErrorLike = {
+  code?: unknown;
+  status?: unknown;
+  message?: unknown;
+  name?: unknown;
+};
+
+function readErrorText(value: unknown) {
+  return typeof value === "string" ? value.toLowerCase() : "";
+}
+
+export function classifySidewalkAnonymousSessionFailure(
+  error: unknown,
+): SidewalkAnonymousSessionFailure {
+  if (!error || typeof error !== "object")
+    return error instanceof TypeError ? "network" : "unknown";
+
+  const candidate = error as AnonymousSessionErrorLike;
+  const code = readErrorText(candidate.code);
+  const message = readErrorText(candidate.message);
+  const name = readErrorText(candidate.name);
+  const status = typeof candidate.status === "number" ? candidate.status : 0;
+
+  if (code === "anonymous_provider_disabled")
+    return "anonymous_auth_unavailable";
+  if (
+    code.includes("captcha") ||
+    message.includes("captcha") ||
+    message.includes("hcaptcha")
+  )
+    return "captcha_not_accepted";
+  if (status === 429 || code.includes("rate_limit")) return "rate_limited";
+  if (name === "typeerror" || code === "network_error") return "network";
+  return "unknown";
+}
+
+export class SidewalkAnonymousSessionError extends Error {
+  readonly failure: SidewalkAnonymousSessionFailure;
+
+  constructor(failure: SidewalkAnonymousSessionFailure) {
+    super(ANONYMOUS_SESSION_MESSAGES[failure]);
+    this.name = "SidewalkAnonymousSessionError";
+    this.failure = failure;
+  }
+}
+
 export async function ensureSidewalkAnonymousSession(
   client: AnonymousSessionClient,
   getCaptchaToken: () => Promise<string> = getSidewalkCaptchaToken,
   onPhase?: (phase: SidewalkSessionPhase) => void,
 ) {
-  const current = await client.auth.getSession();
+  let current: Awaited<
+    ReturnType<AnonymousSessionClient["auth"]["getSession"]>
+  >;
+  try {
+    current = await client.auth.getSession();
+  } catch (error) {
+    throw new SidewalkAnonymousSessionError(
+      classifySidewalkAnonymousSessionFailure(error),
+    );
+  }
   if (current.error)
-    throw new Error("Não foi possível verificar a sessão privada.");
+    throw new SidewalkAnonymousSessionError(
+      classifySidewalkAnonymousSessionFailure(current.error),
+    );
   if (current.data.session) return { source: "existing" as const };
 
   onPhase?.("checking_captcha");
@@ -68,11 +148,18 @@ export async function ensureSidewalkAnonymousSession(
     const created = await client.auth.signInAnonymously({
       options: { captchaToken },
     });
-    if (created.error || !created.data?.session)
-      throw new Error(
-        "Não foi possível criar a sessão privada neste dispositivo.",
+    if (created.error)
+      throw new SidewalkAnonymousSessionError(
+        classifySidewalkAnonymousSessionFailure(created.error),
       );
+    if (!created.data?.session)
+      throw new SidewalkAnonymousSessionError("unknown");
     return { source: "created" as const };
+  } catch (error) {
+    if (error instanceof SidewalkAnonymousSessionError) throw error;
+    throw new SidewalkAnonymousSessionError(
+      classifySidewalkAnonymousSessionFailure(error),
+    );
   } finally {
     resetSidewalkCaptcha();
   }
