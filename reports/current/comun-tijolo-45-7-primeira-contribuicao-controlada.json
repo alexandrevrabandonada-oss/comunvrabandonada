@@ -1,0 +1,63 @@
+{
+  "formatVersion": 1,
+  "checkpointId": "sidewalk-first-production-contribution-20260729-07",
+  "checkpointType": "controlled_first_production_contribution",
+  "terminalResult": "COMUN_SIDEWALK_FIRST_PRODUCTION_CONTRIBUTION_BLOCKED_BEFORE_WRITE",
+  "candidateSha": "3a1b6ec25b86106878ff1fd065bc8bba86be0ed7",
+  "runId": "30466525556",
+  "productionDeployment": "production-ready-e8dacb04a4a6",
+  "preflight": {
+    "result": "green",
+    "deploymentState": "READY",
+    "databaseUrl": "present",
+    "database": "reachable",
+    "ledger": "exact",
+    "migrationRequired": false,
+    "flag": "enabled",
+    "operationalState": "OPERATIONAL_READY",
+    "publicState": "active",
+    "mapHttpStatus": 200,
+    "contributionInterfaceHttpStatus": 200,
+    "pmtilesRange": "supported",
+    "cycleExistsBefore": false
+  },
+  "singleSubmission": {
+    "browserFormOpened": true,
+    "submissionAttempt": 0,
+    "retryExecuted": false,
+    "confirmationSeen": false,
+    "submitButton": "disabled",
+    "controlledRecordCreated": false,
+    "controlledUploadCreated": false,
+    "controlledStorageObjectCreated": false,
+    "contributionPubliclyVisible": false
+  },
+  "postflight": {
+    "result": "not_exactly_one_record",
+    "marker": "COMUN_SIDEWALK_CONTROLLED_CONTRIBUTION_RECORD_COUNT_INVALID",
+    "terminalArtifactProduced": false
+  },
+  "runtimeChanges": {
+    "migrationExecuted": false,
+    "activationExecuted": false,
+    "rollbackExecuted": false,
+    "flagChanged": false,
+    "environmentChanged": false,
+    "deploymentChanged": false,
+    "ledgerChanged": false,
+    "storageWritesForControlledCycle": "none",
+    "databaseWritesForControlledCycle": "none"
+  },
+  "auditLimitation": {
+    "anonymousBootstrapPostObserved": true,
+    "meaning": "The browser observed authentication/bootstrap POST traffic after image selection. It did not click the contribution submit button and no controlled contribution was created. No actor-level data was collected for privacy."
+  },
+  "artifacts": {
+    "preflight": "comun-sidewalk-first-production-contribution-preflight-3a1b6ec25b86106878ff1fd065bc8bba86be0ed7-30466525556",
+    "submission": "comun-sidewalk-first-production-contribution-3a1b6ec25b86106878ff1fd065bc8bba86be0ed7-sidewalk-first-production-contribution-20260729-07-30466525556",
+    "sanitized": true
+  },
+  "cause": "The public form remained disabled after the fixed non-sensitive fields were completed; the browser therefore never clicked the submit control.",
+  "nextGate": "Human review of the disabled-form cause and a separately authorized corrective checkpoint. No automatic retry or second contribution is permitted.",
+  "secretsPersisted": false
+}
