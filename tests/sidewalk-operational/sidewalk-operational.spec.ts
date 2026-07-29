@@ -50,14 +50,24 @@ test("participante sem GPS usa teclado para posicionar e confere privacidade", a
   await manualMap.focus();
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("ArrowUp");
-  await page.keyboard.press("Enter");
   await expect(manualMap).toBeFocused();
-  await expect(page.getByText(/Sem GPS, use Tab para focar o mapa/i)).toBeVisible();
+  await expect(manualMap).toHaveAttribute(
+    "data-map-provider",
+    "realVoltaRedonda",
+  );
+  await expect(manualMap).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(
+    page.getByText(/Toque em uma rua para ajustar o ponto/i),
+  ).toBeVisible();
 });
 
-test("superfície pública não expõe texto privado ou coordenada exata", async ({ page }) => {
+test("superfície pública não expõe texto privado ou coordenada exata", async ({
+  page,
+}) => {
   await page.goto("/comun/calcadas");
-  await expect(page.locator("body")).not.toContainText("PRIVATE_SIDEWALK_RUNTIME");
+  await expect(page.locator("body")).not.toContainText(
+    "PRIVATE_SIDEWALK_RUNTIME",
+  );
   await expect(page.locator("body")).not.toContainText("-44.104321");
 });
 

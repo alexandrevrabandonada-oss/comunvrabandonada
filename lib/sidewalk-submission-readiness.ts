@@ -39,28 +39,32 @@ type AnonymousSessionClient = {
       data: { session: unknown | null };
       error?: unknown;
     }>;
-    signInAnonymously(input: {
-      options: { captchaToken: string };
-    }): Promise<{
+    signInAnonymously(input: { options: { captchaToken: string } }): Promise<{
       data?: { session?: unknown | null };
       error: unknown | null;
     }>;
   };
 };
 
+export type SidewalkSessionPhase =
+  "checking_captcha" | "creating_private_session";
+
 export async function ensureSidewalkAnonymousSession(
   client: AnonymousSessionClient,
   getCaptchaToken: () => Promise<string> = getSidewalkCaptchaToken,
+  onPhase?: (phase: SidewalkSessionPhase) => void,
 ) {
   const current = await client.auth.getSession();
   if (current.error)
     throw new Error("Não foi possível verificar a sessão privada.");
   if (current.data.session) return { source: "existing" as const };
 
+  onPhase?.("checking_captcha");
   const captchaToken = (await getCaptchaToken()).trim();
   if (!captchaToken)
     throw new Error("A confirmação antirobô não retornou um token válido.");
   try {
+    onPhase?.("creating_private_session");
     const created = await client.auth.signInAnonymously({
       options: { captchaToken },
     });

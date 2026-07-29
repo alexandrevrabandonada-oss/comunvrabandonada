@@ -12,6 +12,12 @@ import {
   ensureSidewalkAnonymousSession,
   getSidewalkSubmissionReadiness,
 } from "@/lib/sidewalk-submission-readiness";
+import {
+  isSidewalkSubmissionPending,
+  SIDEWALK_SUBMISSION_PROGRESS,
+  sidewalkSubmissionButtonLabel,
+  type SidewalkSubmissionPhase,
+} from "@/lib/sidewalk-submission-progress";
 
 type LocationState =
   | "idle"
@@ -21,13 +27,6 @@ type LocationState =
   | "denied"
   | "unavailable"
   | "timeout";
-type SubmissionStage =
-  | "idle"
-  | "human_check"
-  | "authorizing"
-  | "uploading"
-  | "confirming";
-
 const conditionOptions = [
   ["good", "Boa"],
   ["regular", "Regular"],
@@ -71,9 +70,8 @@ export function SidewalkFirstParticipationForm({
     [consentPublish, setConsentPublish] = useState(false),
     [reviewConfirmed, setReviewConfirmed] = useState(false),
     [submissionError, setSubmissionError] = useState<string | null>(null),
-    [pending, setPending] = useState(false),
-    [submissionStage, setSubmissionStage] =
-      useState<SubmissionStage>("idle");
+    [submissionPhase, setSubmissionPhase] =
+      useState<SidewalkSubmissionPhase>("idle");
 
   useEffect(
     () => () => {
@@ -133,7 +131,9 @@ export function SidewalkFirstParticipationForm({
       setSubmissionError(null);
       locate();
     } catch {
-      showError("Não foi possível preparar esta fotografia. Tente outra imagem.");
+      showError(
+        "Não foi possível preparar esta fotografia. Tente outra imagem.",
+      );
     }
   };
 
@@ -156,19 +156,21 @@ export function SidewalkFirstParticipationForm({
       consentPublish,
       reviewConfirmed,
     }),
-    ready = readiness.ready;
+    ready = readiness.ready,
+    pending = isSidewalkSubmissionPending(submissionPhase);
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const photo = fileRef.current?.files?.[0];
     if (!photo || !ready || !submissionGuard.current.enter()) return;
-    setPending(true);
-    setSubmissionStage("human_check");
+    setSubmissionPhase("validating");
     setSubmissionError(null);
     try {
       const client = createSupabaseBrowserClient();
-      await ensureSidewalkAnonymousSession(client);
-      setSubmissionStage("authorizing");
+      await ensureSidewalkAnonymousSession(client, undefined, (phase) =>
+        setSubmissionPhase(phase),
+      );
+      setSubmissionPhase("authorizing_upload");
       const data = new FormData(event.currentTarget),
         payload = {
           pauta_slug: String(data.get("pauta_slug") ?? ""),
@@ -190,7 +192,7 @@ export function SidewalkFirstParticipationForm({
           sizeBytes: photo.size,
           payload,
         });
-      setSubmissionStage("uploading");
+      setSubmissionPhase("uploading_photo");
       const uploaded = await client.storage
         .from("archive-private-originals")
         .uploadToSignedUrl(authorization.path, authorization.token, photo, {
@@ -199,16 +201,16 @@ export function SidewalkFirstParticipationForm({
         });
       if (uploaded.error)
         throw new Error("Falha ao enviar a fotografia privada.");
-      setSubmissionStage("confirming");
+      setSubmissionPhase("confirming_record");
       await confirmSidewalkPhotoUpload(authorization.uploadId);
+      setSubmissionPhase("success");
     } catch (error) {
       showError(
         error instanceof Error
           ? error.message
           : "Não foi possível enviar agora. Tente novamente.",
       );
-      setPending(false);
-      setSubmissionStage("idle");
+      setSubmissionPhase("recoverable_error");
       submissionGuard.current.release();
     }
   };
@@ -298,7 +300,9 @@ export function SidewalkFirstParticipationForm({
               </div>
             </div>
             <div>
-              <h2 className="text-2xl font-black uppercase">Confirme o local</h2>
+              <h2 className="text-2xl font-black uppercase">
+                Confirme o local
+              </h2>
               <p role="status" className="mt-2 text-sm">
                 {locationMessage(locationState, accuracy)}
               </p>
@@ -439,15 +443,25 @@ export function SidewalkFirstParticipationForm({
 
           <button
             disabled={!ready || pending}
+            aria-describedby="sidewalk-submit-progress"
+            data-submission-phase={submissionPhase}
             className="sticky bottom-20 min-h-14 w-full border-2 border-comun-black bg-comun-yellow px-5 text-lg font-black uppercase text-comun-black shadow-[3px_3px_0_#0b0b0a] disabled:opacity-50"
           >
-            {submissionLabel(submissionStage, pending)}
+            {sidewalkSubmissionButtonLabel(submissionPhase)}
           </button>
-          {pending ? (
-            <p role="status" aria-live="polite" className="text-sm font-bold text-comun-yellow">
-              Não feche esta tela. A foto continua privada durante o envio.
-            </p>
-          ) : null}
+          <p
+            id="sidewalk-submit-progress"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            className={
+              submissionPhase === "idle"
+                ? "sr-only"
+                : "border-l-4 border-comun-yellow bg-comun-paper p-4 text-sm font-bold text-comun-black"
+            }
+          >
+            {SIDEWALK_SUBMISSION_PROGRESS[submissionPhase]}
+          </p>
           {submissionError ? (
             <p
               ref={errorRef}
@@ -474,15 +488,6 @@ export function SidewalkFirstParticipationForm({
       )}
     </form>
   );
-}
-
-function submissionLabel(stage: SubmissionStage, pending: boolean) {
-  if (!pending) return "Enviar para revisão";
-  if (stage === "human_check") return "Aguardando verificação…";
-  if (stage === "authorizing") return "Preparando envio…";
-  if (stage === "uploading") return "Enviando foto privada…";
-  if (stage === "confirming") return "Confirmando registro…";
-  return "Enviando…";
 }
 
 function locationMessage(state: LocationState, accuracy: number | null) {

@@ -2,9 +2,16 @@
 
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useState } from "react";
-import type { Map as MapLibreMap, StyleSpecification } from "maplibre-gl";
+import type { Map as MapLibreMap } from "maplibre-gl";
 import { realBasemapProvider } from "@/lib/sidewalk-basemap-provider";
-import { unprojectMercator, VOLTA_REDONDA_MAP } from "@/lib/sidewalk-map-config";
+import {
+  createSidewalkMapLibreStyle,
+  SIDEWALK_REAL_ROAD_LAYER_ID,
+} from "@/lib/sidewalk-maplibre-style";
+import {
+  unprojectMercator,
+  VOLTA_REDONDA_MAP,
+} from "@/lib/sidewalk-map-config";
 
 export function SidewalkRealPointPicker({
   point,
@@ -17,9 +24,10 @@ export function SidewalkRealPointPicker({
 }) {
   const host = useRef<HTMLDivElement>(null),
     mapRef = useRef<MapLibreMap | null>(null),
-    [markerPosition, setMarkerPosition] = useState<{ x: number; y: number } | null>(
-      null,
-    ),
+    [markerPosition, setMarkerPosition] = useState<{
+      x: number;
+      y: number;
+    } | null>(null),
     [failed, setFailed] = useState(false),
     [ready, setReady] = useState(false);
 
@@ -35,88 +43,9 @@ export function SidewalkRealPointPicker({
         } catch {
           // O protocolo pode já estar registrado por outro mapa na mesma página.
         }
-        const style: StyleSpecification = {
-          version: 8,
-          sources: {
-            comun: {
-              type: "vector",
-              url: `pmtiles://${realBasemapProvider.style.pmtilesUrl}`,
-            },
-          },
-          layers: [
-            {
-              id: "background",
-              type: "background",
-              paint: { "background-color": "#ecebe5" },
-            },
-            {
-              id: "water",
-              type: "fill",
-              source: "comun",
-              "source-layer": "osm",
-              filter: [
-                "any",
-                ["has", "water"],
-                ["==", ["get", "natural"], "water"],
-              ],
-              paint: { "fill-color": "#9fcbd3" },
-            },
-            {
-              id: "buildings",
-              type: "fill",
-              source: "comun",
-              "source-layer": "osm",
-              filter: ["has", "building"],
-              minzoom: 14,
-              paint: {
-                "fill-color": "#d4d0c5",
-                "fill-outline-color": "#aaa59a",
-              },
-            },
-            {
-              id: "roads",
-              type: "line",
-              source: "comun",
-              "source-layer": "osm",
-              filter: ["any", ["has", "highway"], ["has", "railway"]],
-              paint: {
-                "line-color": "#ffffff",
-                "line-width": [
-                  "interpolate",
-                  ["linear"],
-                  ["zoom"],
-                  10,
-                  1,
-                  17,
-                  7,
-                ],
-              },
-            },
-            {
-              id: "road-labels",
-              type: "symbol",
-              source: "comun",
-              "source-layer": "osm",
-              filter: [
-                "all",
-                ["has", "name"],
-                ["any", ["has", "highway"], ["has", "railway"]],
-              ],
-              layout: {
-                "text-field": ["coalesce", ["get", "name"], ""],
-                "text-size": 12,
-              },
-              paint: {
-                "text-color": "#232323",
-                "text-halo-color": "#ffffff",
-                "text-halo-width": 1.5,
-              },
-            },
-          ],
-        };
         const map = new maplibre.default.Map({
           container: host.current,
-          style,
+          style: createSidewalkMapLibreStyle(realBasemapProvider),
           center: point ?? realBasemapProvider.center,
           zoom: point ? 16 : 12,
           minZoom: realBasemapProvider.minZoom,
@@ -155,7 +84,11 @@ export function SidewalkRealPointPicker({
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready || !point) return;
-    map.easeTo({ center: point, zoom: Math.max(map.getZoom(), 15), duration: 350 });
+    map.easeTo({
+      center: point,
+      zoom: Math.max(map.getZoom(), 15),
+      duration: 350,
+    });
     const projected = map.project(point);
     setMarkerPosition({ x: projected.x, y: projected.y });
   }, [point, ready]);
@@ -179,6 +112,9 @@ export function SidewalkRealPointPicker({
         type="button"
         aria-label="Mapa para confirmar ou ajustar o ponto"
         aria-describedby="manual-point-help"
+        data-map-provider="realVoltaRedonda"
+        data-pmtiles-loaded={ready}
+        data-road-layer={SIDEWALK_REAL_ROAD_LAYER_ID}
         onKeyDown={(event) => {
           if (!updateFromKeyboard(event.key, event.shiftKey)) return;
           event.preventDefault();
@@ -201,10 +137,15 @@ export function SidewalkRealPointPicker({
         }}
         className="relative mt-3 block h-72 w-full overflow-hidden border-2 bg-[#ecebe5] text-left"
       >
-        <div ref={host} className="absolute inset-0 size-full" aria-hidden="true" />
+        <div
+          ref={host}
+          className="absolute inset-0 size-full"
+          aria-hidden="true"
+        />
         {failed ? (
           <span className="absolute inset-0 grid place-items-center bg-[#ecebe5] p-6 text-center font-bold">
-            Mapa-base indisponível. O ponto ainda pode ser marcado de forma aproximada.
+            Mapa-base indisponível. O ponto ainda pode ser marcado de forma
+            aproximada.
           </span>
         ) : null}
         {markerPosition ? (

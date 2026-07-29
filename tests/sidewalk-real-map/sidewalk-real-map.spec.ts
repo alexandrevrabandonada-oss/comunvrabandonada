@@ -121,9 +121,11 @@ test("captura rápida aceita câmera, GPS negado e ponto manual", async ({
       "Permissão de localização negada. Toque no mapa para marcar manualmente.",
     ),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Mapa para confirmar ou ajustar o ponto" })
-    .click({ position: { x: 150, y: 120 } });
+  const pointMap = page.getByRole("button", {
+    name: "Mapa para confirmar ou ajustar o ponto",
+  });
+  await expect(pointMap).toHaveAttribute("data-pmtiles-loaded", "true");
+  await pointMap.click({ position: { x: 150, y: 120 } });
   await page.getByRole("button", { name: "Ruim" }).click();
   await page
     .getByRole("checkbox", { name: /Autorizo a publicação sanitizada/ })
@@ -170,7 +172,9 @@ test("envio direto privado conclui a confirmação em duas fases", async ({
     .locator('input[type="file"]')
     .setInputFiles("public/icons/comun-192.png");
   await page
-    .getByRole("button", { name: "Mapa para confirmar ou ajustar o ponto" })
+    .getByRole("button", {
+      name: "Mapa para confirmar ou ajustar o ponto",
+    })
     .click({ position: { x: 150, y: 120 } });
   await page.getByRole("button", { name: "Regular", exact: true }).click();
   await page
