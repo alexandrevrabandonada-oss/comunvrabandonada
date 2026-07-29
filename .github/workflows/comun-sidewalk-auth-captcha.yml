@@ -57,7 +57,10 @@ jobs:
           set -euo pipefail
           git diff --check HEAD^ HEAD
           changed="$(git diff --name-only HEAD^ HEAD)"
-          ! printf '%s\n' "$changed" | grep -E '(^|/)(\.env($|\.)|.*secret)'
+          unsafe="$(printf '%s\n' "$changed" \
+            | grep -E '(^|/)(\.env($|\.)|.*secret)' \
+            | grep -v '^\.env\.example$' || true)"
+          test -z "$unsafe"
       - name: Confirm the public/secret boundary
         shell: bash
         run: |
