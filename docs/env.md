@@ -9,6 +9,9 @@ Crie `.env.local` a partir de `.env.example`.
 - `NEXT_PUBLIC_SITE_URL`: URL publica do site.
 - `SUPABASE_PROJECT_ID`: usado apenas para gerar tipos.
 - `COMUN_LOOKUP_HASH_SALT`: recomendado em producao. Salt usado para gerar hashes de IP, user-agent e protocolo nos eventos de consulta publica por protocolo. Nao e exposto ao client.
+- `NEXT_PUBLIC_HCAPTCHA_SITEKEY`: override opcional da sitekey publica usada no bootstrap anonimo das contribuicoes. O Mapa de Calcadas possui uma sitekey publica canonica; nunca coloque a secret key do hCaptcha na Vercel, no cliente ou no repositorio.
+
+A secret key do hCaptcha pertence exclusivamente a configuracao protegida do Supabase Auth em Bot and Abuse Protection. Anonymous Sign-Ins so devem ser habilitados depois que essa protecao estiver ativa.
 
 Storage:
 
@@ -25,4 +28,4 @@ Quando migrar para nomes novos do Supabase, mantenha compatibilidade ate ajustar
 - client: publishable key publica equivalente a `NEXT_PUBLIC_SUPABASE_ANON_KEY`;
 - servidor: secret/service role key apenas como `SUPABASE_SERVICE_ROLE_KEY`.
 
-Nao coloque service role, token de acesso pessoal ou senha do banco em arquivos versionados.
+Nao coloque service role, token de acesso pessoal, secret do CAPTCHA ou senha do banco em arquivos versionados.

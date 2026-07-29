@@ -1,0 +1,72 @@
+name: COMUN Sidewalk Auth CAPTCHA
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-sidewalk-auth-captcha.yml"
+      - ".env.example"
+      - "docs/env.md"
+      - "lib/sidewalk-hcaptcha.ts"
+      - "lib/sidewalk-submission-readiness.ts"
+      - "lib/sidewalk-submission-readiness.test.ts"
+      - "components/sidewalk-first-participation-form.tsx"
+      - "next.config.mjs"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-sidewalk-auth-captcha.yml"
+      - ".env.example"
+      - "docs/env.md"
+      - "lib/sidewalk-hcaptcha.ts"
+      - "lib/sidewalk-submission-readiness.ts"
+      - "lib/sidewalk-submission-readiness.test.ts"
+      - "components/sidewalk-first-participation-form.tsx"
+      - "next.config.mjs"
+  workflow_dispatch:
+
+concurrency:
+  group: comun-sidewalk-auth-captcha-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: VERIFY / COMUN_SIDEWALK_AUTH_CAPTCHA_GREEN
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Run focused CAPTCHA and anonymous-session tests
+        run: npx vitest run lib/sidewalk-submission-readiness.test.ts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - name: Reject whitespace and secret-like files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check HEAD^ HEAD
+          changed="$(git diff --name-only HEAD^ HEAD)"
+          unsafe="$(printf '%s\n' "$changed" \
+            | grep -E '(^|/)(\.env($|\.)|.*secret)' \
+            | grep -v '^\.env\.example$' || true)"
+          test -z "$unsafe"
+      - name: Confirm the public/secret boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'NEXT_PUBLIC_HCAPTCHA_SITEKEY' .env.example
+          ! grep -R -n -E 'HCAPTCHA_SECRET|NEXT_PUBLIC_.*SECRET' \
+            lib components .env.example docs/env.md next.config.mjs
+          grep -q 'captchaToken' lib/sidewalk-submission-readiness.ts
+          echo COMUN_SIDEWALK_AUTH_CAPTCHA_GREEN >> "$GITHUB_STEP_SUMMARY"

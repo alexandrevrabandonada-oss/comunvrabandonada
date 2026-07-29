@@ -31,16 +31,18 @@ if (supabaseUrl) {
     /* build remains safe while Supabase is not configured */
   }
 }
+const hcaptchaSources = "https://hcaptcha.com https://*.hcaptcha.com";
 const cspReportOnly = [
   "default-src 'self'",
   "base-uri 'self'",
   "frame-ancestors 'none'",
   "object-src 'none'",
   "form-action 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-  "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: ${publicMediaBase || ""} ${supabaseUrl || ""}`.trim(),
-  `connect-src 'self' ${supabaseUrl || ""}`.trim(),
+  `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${hcaptchaSources}`,
+  `style-src 'self' 'unsafe-inline' ${hcaptchaSources}`,
+  `img-src 'self' data: blob: ${publicMediaBase || ""} ${supabaseUrl || ""} ${hcaptchaSources}`.trim(),
+  `connect-src 'self' ${supabaseUrl || ""} ${hcaptchaSources}`.trim(),
+  `frame-src 'self' ${hcaptchaSources}`,
   "font-src 'self' data:",
   "media-src 'none'",
 ].join("; ");
