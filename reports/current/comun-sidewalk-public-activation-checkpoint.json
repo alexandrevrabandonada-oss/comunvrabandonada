@@ -1,0 +1,55 @@
+{
+  "formatVersion": 1,
+  "checkpointAttempt": "sidewalk-public-activation-checkpoint-20260729-01",
+  "candidateSha": "5758a0bd05b54caba418b25d3e09149e19c21104",
+  "productionDeployment": "production-ready-for-candidate-sha",
+  "deploymentState": "READY",
+  "databaseUrl": "present",
+  "database": "reachable",
+  "ledger": "exact",
+  "migrationRequired": false,
+  "flag": "disabled",
+  "operationalState": "FLAG_DISABLED",
+  "publicState": "paused",
+  "databaseWrites": "none",
+  "storageWrites": "none",
+  "activationExecuted": false,
+  "migrationExecuted": false,
+  "environmentChanged": false,
+  "deploymentChanged": false,
+  "humanAuthorization": "absent",
+  "checkpointResult": "COMUN_SIDEWALK_PUBLIC_ACTIVATION_CHECKPOINT_READY_FLAG_DISABLED",
+  "runs": {
+    "operationalEnvironmentInventory": {
+      "id": "30418704165",
+      "conclusion": "success"
+    },
+    "protectedOperationalDiagnostic": {
+      "id": "30418705720",
+      "conclusion": "success"
+    },
+    "protectedDeploymentPreflight": {
+      "id": "30418707339",
+      "conclusion": "success"
+    }
+  },
+  "futureActivationControls": {
+    "explicitAuthorizationRequired": true,
+    "newActivationAttemptRequired": true,
+    "configurationAttemptReuseRejected": true,
+    "actorAndTimestampRecordedByActions": true,
+    "commitBoundAuthorization": true,
+    "deploymentObservedByActivationMonitor": true,
+    "exactLedgerRequired": true,
+    "migrationSkippedWhenLedgerExact": true,
+    "rollbackToPausedOnSmokeFailure": true,
+    "concurrencyBoundToAttempt": true
+  },
+  "sanitization": {
+    "status": "sanitized",
+    "rawResponsesPersisted": false,
+    "environmentValuesPersisted": false,
+    "credentialsPersisted": false
+  },
+  "nextGate": "receber autorização humana explícita para preparar um novo prompt de ativação pública, com novo attempt ID."
+}
