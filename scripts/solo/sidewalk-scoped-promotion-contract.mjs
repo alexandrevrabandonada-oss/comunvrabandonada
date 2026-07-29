@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { normalizeAuditGrantMatrix } from "./diagnose-sidewalk-remote-drift.mjs";
+import { buildDatabaseUrlConfigurationAuthorization } from "./database-env-configuration-result.mjs";
 import { scopedObjects } from "./sidewalk-operational-fingerprint.mjs";
 import {
   saferPreFixtureId,
@@ -168,10 +169,24 @@ export function assertExactContractMatrix(contract, phase, matrix) {
   }
 }
 
-export function authorizationFormats({ projectRef, mainSha, ledgerHash }) {
+export function authorizationFormats({
+  projectRef,
+  projectId,
+  mainSha,
+  ledgerHash,
+  configurationAttemptId,
+}) {
   const { contractHash: currentContractHash } = selectScopedPromotionContract();
   return {
     migration: `AUTORIZO_MIGRATION_CALCADAS_${projectRef}_${mainSha}_${currentContractHash}_MANTER_FLAG_DESABILITADA`,
     activate: `AUTORIZO_ATIVAR_CALCADAS_${projectRef}_${mainSha}_${ledgerHash}`,
+    configuration: configurationAttemptId
+      ? buildDatabaseUrlConfigurationAuthorization({
+          projectId,
+          mainSha,
+          ledgerHash,
+          configurationAttemptId,
+        })
+      : null,
   };
 }

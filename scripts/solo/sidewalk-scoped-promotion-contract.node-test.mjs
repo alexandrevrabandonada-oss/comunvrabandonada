@@ -171,12 +171,19 @@ test("structural promotion fingerprint excludes only the target ledger", () => {
 test("migration and activation authorizations are intentionally different", () => {
   const formats = authorizationFormats({
     projectRef: "local-project-ref",
+    projectId: "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X",
     mainSha: "a".repeat(40),
     ledgerHash: "b".repeat(64),
+    configurationAttemptId: "sidewalk-db-env-20260729-01",
   });
   assert.match(formats.migration, /^AUTORIZO_MIGRATION_CALCADAS_/);
   assert.match(formats.activate, /^AUTORIZO_ATIVAR_CALCADAS_/);
+  assert.match(
+    formats.configuration,
+    /^AUTORIZO_CONFIGURAR_CALCADAS_DATABASE_URL_/,
+  );
   assert.notEqual(formats.migration, formats.activate);
+  assert.notEqual(formats.configuration, formats.activate);
   assert.match(formats.migration, /MANTER_FLAG_DESABILITADA$/);
 });
 
