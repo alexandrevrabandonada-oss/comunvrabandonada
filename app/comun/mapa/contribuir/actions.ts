@@ -2,6 +2,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { redirect, unstable_rethrow } from "next/navigation";
 import { requireCommunitySession } from "@/lib/community-auth";
+import { CANONICAL_SIDEWALK_PAUTA_SLUG } from "@/lib/comun/canonical-editorial-pautas";
 import { safeCommunityReturn } from "@/lib/community-return";
 import { getMediaStorage } from "@/lib/media-storage";
 import { validateSidewalkPhotoImage } from "@/lib/sidewalk-photos";
@@ -74,43 +75,88 @@ async function compensatePartialSidewalkUpload(
     .select("id")
     .eq("slug", `foto-${recordSlug}`)
     .maybeSingle();
-  if (item.error) throw new Error("Não foi possível inspecionar o item parcial.");
+  if (item.error)
+    throw new Error("Não foi possível inspecionar o item parcial.");
   const asset = await db
     .from("comun_archive_assets")
     .select("id,archive_item_id")
     .eq("object_key", objectKey)
     .maybeSingle();
-  if (asset.error) throw new Error("Não foi possível inspecionar a recuperação do envio.");
+  if (asset.error)
+    throw new Error("Não foi possível inspecionar a recuperação do envio.");
   const record = await db
     .from("comun_sidewalk_records")
     .select("id")
     .eq("slug", recordSlug)
     .maybeSingle();
-  if (record.error) throw new Error("Não foi possível inspecionar a recuperação do registro.");
+  if (record.error)
+    throw new Error("Não foi possível inspecionar a recuperação do registro.");
   if (record.data) {
-    const deletedRecord = await db.from("comun_sidewalk_records").delete().eq("id", record.data.id).eq("visibility", "internal");
-    if (deletedRecord.error) throw new Error("Não foi possível reverter o registro parcial.");
+    const deletedRecord = await db
+      .from("comun_sidewalk_records")
+      .delete()
+      .eq("id", record.data.id)
+      .eq("visibility", "internal");
+    if (deletedRecord.error)
+      throw new Error("Não foi possível reverter o registro parcial.");
   }
   if (asset.data) {
-    const deletedAsset = await db.from("comun_archive_assets").delete().eq("id", asset.data.id);
-    if (deletedAsset.error) throw new Error("Não foi possível reverter o asset parcial.");
-    const deletedItem = await db.from("comun_archive_items").delete().eq("id", asset.data.archive_item_id).eq("visibility", "private");
-    if (deletedItem.error) throw new Error("Não foi possível reverter o item parcial.");
+    const deletedAsset = await db
+      .from("comun_archive_assets")
+      .delete()
+      .eq("id", asset.data.id);
+    if (deletedAsset.error)
+      throw new Error("Não foi possível reverter o asset parcial.");
+    const deletedItem = await db
+      .from("comun_archive_items")
+      .delete()
+      .eq("id", asset.data.archive_item_id)
+      .eq("visibility", "private");
+    if (deletedItem.error)
+      throw new Error("Não foi possível reverter o item parcial.");
   } else if (item.data) {
-    const deletedItem = await db.from("comun_archive_items").delete().eq("id", item.data.id).eq("visibility", "private");
-    if (deletedItem.error) throw new Error("Não foi possível reverter o item parcial.");
+    const deletedItem = await db
+      .from("comun_archive_items")
+      .delete()
+      .eq("id", item.data.id)
+      .eq("visibility", "private");
+    if (deletedItem.error)
+      throw new Error("Não foi possível reverter o item parcial.");
   }
-  await getMediaStorage().removeObject("private_original", objectKey).catch((error) => {
-    throw new Error(`Não foi possível remover o objeto privado parcial: ${String(error)}`);
-  });
+  const removedObject = await db.storage
+    .from("archive-private-originals")
+    .remove([objectKey]);
+  if (removedObject.error)
+    throw new Error("Não foi possível remover o objeto privado parcial.");
 }
 
-export async function authorizeSidewalkPhotoUpload(input: {
+type SidewalkUploadAuthorization =
+  | {
+      ok: true;
+      uploadId: string;
+      path: string;
+      token: string;
+      expiresAt: string;
+    }
+  | { ok: false; error: string };
+
+const safeUploadAuthorizationMessages = new Set([
+  SIDEWALK_OPERATIONAL_PAUSED_MESSAGE,
+  "Serviço local indisponível.",
+  "Formato de fotografia inválido.",
+  "Tamanho de fotografia inválido.",
+  "Pauta das calçadas indisponível.",
+  "Não foi possível verificar o limite de envio.",
+  "Limite temporário de envios atingido. Tente novamente mais tarde.",
+  "Não foi possível autorizar o envio.",
+]);
+
+async function authorizeSidewalkPhotoUploadInternal(input: {
   filename: string;
   mimeType: string;
   sizeBytes: number;
   payload: DirectUploadPayload;
-}) {
+}): Promise<SidewalkUploadAuthorization> {
   await requireSidewalkOperationalRelease();
   const { user } = await requireCommunitySession(
       "/comun/mapa/contribuir?origem=calcadas",
@@ -128,14 +174,37 @@ export async function authorizeSidewalkPhotoUpload(input: {
     input.sizeBytes > 30 * 1024 * 1024
   )
     throw new Error("Tamanho de fotografia inválido.");
+  const pauta = await db
+    .from("comun_pauta_spaces")
+    .select("id")
+    .eq("slug", CANONICAL_SIDEWALK_PAUTA_SLUG)
+    .maybeSingle();
+  if (pauta.error || !pauta.data)
+    throw new Error("Pauta das calçadas indisponível.");
   const now = Date.now(),
     hour = new Date(now - 3_600_000).toISOString(),
     day = new Date(now - 86_400_000).toISOString(),
     [hourly, daily, active, declared] = await Promise.all([
-      db.from("comun_sidewalk_uploads").select("id", { count: "exact", head: true }).eq("member_user_id", user.id).gte("created_at", hour),
-      db.from("comun_sidewalk_uploads").select("id", { count: "exact", head: true }).eq("member_user_id", user.id).gte("created_at", day),
-      db.from("comun_sidewalk_uploads").select("id", { count: "exact", head: true }).eq("member_user_id", user.id).in("status", ["awaiting_upload", "uploaded"]),
-      db.from("comun_sidewalk_uploads").select("declared_size_bytes").eq("member_user_id", user.id).gte("created_at", day),
+      db
+        .from("comun_sidewalk_uploads")
+        .select("id", { count: "exact", head: true })
+        .eq("member_user_id", user.id)
+        .gte("created_at", hour),
+      db
+        .from("comun_sidewalk_uploads")
+        .select("id", { count: "exact", head: true })
+        .eq("member_user_id", user.id)
+        .gte("created_at", day),
+      db
+        .from("comun_sidewalk_uploads")
+        .select("id", { count: "exact", head: true })
+        .eq("member_user_id", user.id)
+        .in("status", ["awaiting_upload", "uploaded"]),
+      db
+        .from("comun_sidewalk_uploads")
+        .select("declared_size_bytes")
+        .eq("member_user_id", user.id)
+        .gte("created_at", day),
     ]);
   if ([hourly, daily, active, declared].some((query) => query.error))
     throw new Error("Não foi possível verificar o limite de envio.");
@@ -149,7 +218,9 @@ export async function authorizeSidewalkPhotoUpload(input: {
     (active.count ?? 0) >= 3 ||
     declaredBytes + input.sizeBytes > 120 * 1024 * 1024
   )
-    throw new Error("Limite temporário de envios atingido. Tente novamente mais tarde.");
+    throw new Error(
+      "Limite temporário de envios atingido. Tente novamente mais tarde.",
+    );
   const uploadId = randomUUID(),
     extension =
       input.mimeType === "image/png"
@@ -177,16 +248,42 @@ export async function authorizeSidewalkPhotoUpload(input: {
   if (signed.error || !signed.data) {
     await db
       .from("comun_sidewalk_uploads")
-      .update({ confirmation_state: "failed_retryable", failure_code: "signed_url", failure_kind: "transient" })
+      .update({
+        confirmation_state: "failed_retryable",
+        failure_code: "signed_url",
+        failure_kind: "transient",
+      })
       .eq("id", uploadId);
     throw new Error("Não foi possível autorizar o envio.");
   }
   return {
+    ok: true,
     uploadId,
     path: signed.data.path,
     token: signed.data.token,
     expiresAt,
   };
+}
+
+export async function authorizeSidewalkPhotoUpload(input: {
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  payload: DirectUploadPayload;
+}): Promise<SidewalkUploadAuthorization> {
+  try {
+    return await authorizeSidewalkPhotoUploadInternal(input);
+  } catch (error) {
+    unstable_rethrow(error);
+    return {
+      ok: false,
+      error:
+        error instanceof Error &&
+        safeUploadAuthorizationMessages.has(error.message)
+          ? error.message
+          : "Não foi possível preparar o envio agora. Seus dados continuam preenchidos.",
+    };
+  }
 }
 
 export async function confirmSidewalkPhotoUpload(uploadId: string) {
@@ -210,23 +307,36 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
   if (new Date(ticket.data.expires_at).getTime() < Date.now()) {
     const expired = await db
       .from("comun_sidewalk_uploads")
-      .update({ status: "abandoned", failure_code: "expired", failure_kind: "final", confirmation_locked_at: null })
+      .update({
+        status: "abandoned",
+        failure_code: "expired",
+        failure_kind: "final",
+        confirmation_locked_at: null,
+      })
       .eq("id", uploadId);
-    if (expired.error) throw new Error("Não foi possível encerrar a autorização expirada.");
+    if (expired.error)
+      throw new Error("Não foi possível encerrar a autorização expirada.");
     throw new Error("A autorização expirou. Tente enviar novamente.");
   }
   const staleLock =
     ticket.data.confirmation_state === "confirming" &&
     ticket.data.confirmation_locked_at &&
-    new Date(ticket.data.confirmation_locked_at).getTime() < Date.now() - 5 * 60_000;
+    new Date(ticket.data.confirmation_locked_at).getTime() <
+      Date.now() - 5 * 60_000;
   if (staleLock) {
-    const recovered = await db.from("comun_sidewalk_uploads").update({
-      confirmation_state: "failed_retryable",
-      failure_code: "confirmation_lock_expired",
-      failure_kind: "transient",
-      confirmation_locked_at: null,
-    }).eq("id", uploadId).eq("member_user_id", user.id).eq("confirmation_state", "confirming");
-    if (recovered.error) throw new Error("Não foi possível retomar este envio.");
+    const recovered = await db
+      .from("comun_sidewalk_uploads")
+      .update({
+        confirmation_state: "failed_retryable",
+        failure_code: "confirmation_lock_expired",
+        failure_kind: "transient",
+        confirmation_locked_at: null,
+      })
+      .eq("id", uploadId)
+      .eq("member_user_id", user.id)
+      .eq("confirmation_state", "confirming");
+    if (recovered.error)
+      throw new Error("Não foi possível retomar este envio.");
     return confirmSidewalkPhotoUpload(uploadId);
   }
   if (!["awaiting_upload", "uploaded"].includes(ticket.data.status))
@@ -237,7 +347,12 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
   if (downloaded.error || !downloaded.data) {
     await db
       .from("comun_sidewalk_uploads")
-      .update({ confirmation_state: "failed_retryable", failure_code: "object_missing", failure_kind: "transient", confirmation_locked_at: null })
+      .update({
+        confirmation_state: "failed_retryable",
+        failure_code: "object_missing",
+        failure_kind: "transient",
+        confirmation_locked_at: null,
+      })
       .eq("id", uploadId);
     throw new Error("A fotografia ainda não chegou ao armazenamento privado.");
   }
@@ -277,11 +392,18 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
       .eq("id", uploadId)
       .eq("member_user_id", user.id)
       .single();
-    if (latest.data?.confirmation_state === "confirmed" && latest.data.record_id)
+    if (
+      latest.data?.confirmation_state === "confirmed" &&
+      latest.data.record_id
+    )
       redirect(
         `/comun/mapa/contribuir/confirmacao?registro=${latest.data.record_id}&returnTo=${encodeURIComponent("/comun/calcadas")}`,
       );
-    throw new Error(latest.data?.confirmation_state === "confirming" ? "Este envio já está sendo confirmado. Aguarde antes de tentar novamente." : "Este envio não pode mais ser confirmado.");
+    throw new Error(
+      latest.data?.confirmation_state === "confirming"
+        ? "Este envio já está sendo confirmado. Aguarde antes de tentar novamente."
+        : "Este envio não pode mais ser confirmado.",
+    );
   }
   const form = new FormData();
   for (const [key, value] of Object.entries(
@@ -295,7 +417,10 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
     }),
   );
   try {
-    await persistAuthenticatedSidewalkRecord(form, { uploadId, objectKey: ticket.data.object_key });
+    await persistAuthenticatedSidewalkRecord(form, {
+      uploadId,
+      objectKey: ticket.data.object_key,
+    });
   } catch (error) {
     unstable_rethrow(error);
     await compensatePartialSidewalkUpload(
@@ -303,14 +428,25 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
       ticket.data.object_key,
       `registro-${uploadId.slice(0, 8)}`,
     );
-    const finalFailure = error instanceof Error && error.message.startsWith("SIDEWALK_PHOTO_");
-    const failed = await db.from("comun_sidewalk_uploads").update({
-      confirmation_state: finalFailure ? "failed_final" : "failed_retryable",
-      failure_code: finalFailure ? "photo_validation" : "confirmation_failed",
-      failure_kind: finalFailure ? "final" : "transient",
-      confirmation_locked_at: null,
-    }).eq("id", uploadId).eq("member_user_id", user.id).eq("confirmation_state", "confirming");
-    if (failed.error) throw new Error("Não foi possível registrar o estado recuperável do envio.");
+    const failed = await db
+      .from("comun_sidewalk_uploads")
+      .update({
+        status: "abandoned",
+        confirmation_state: "abandoned",
+        failure_code:
+          error instanceof Error && error.message.startsWith("SIDEWALK_PHOTO_")
+            ? "photo_validation"
+            : "confirmation_failed",
+        failure_kind: "final",
+        confirmation_locked_at: null,
+      })
+      .eq("id", uploadId)
+      .eq("member_user_id", user.id)
+      .eq("confirmation_state", "confirming");
+    if (failed.error)
+      throw new Error(
+        "Não foi possível registrar o estado recuperável do envio.",
+      );
     throw error;
   }
 }
@@ -374,7 +510,7 @@ async function persistAuthenticatedSidewalkRecord(
   const { data: pauta, error: pautaError } = await db
     .from("comun_pauta_spaces")
     .select("id,slug,title")
-    .eq("slug", String(f.get("pauta_slug") ?? "calcadas-em-circulacao"))
+    .eq("slug", String(f.get("pauta_slug") ?? CANONICAL_SIDEWALK_PAUTA_SLUG))
     .single();
   if (pautaError || !pauta) throw new Error("Pauta das calçadas indisponível.");
   const [hourly, daily] = await Promise.all([
@@ -525,7 +661,8 @@ async function persistAuthenticatedSidewalkRecord(
       },
       { onConflict: "pauta_id,member_user_id" },
     );
-    if (membership.error) throw new Error("Não foi possível registrar a participação na pauta.");
+    if (membership.error)
+      throw new Error("Não foi possível registrar a participação na pauta.");
   }
   const inbox = await db.from("comun_member_inbox").upsert(
     {
@@ -542,7 +679,8 @@ async function persistAuthenticatedSidewalkRecord(
     },
     { onConflict: "member_user_id,dedupe_key" },
   );
-  if (inbox.error) throw new Error("Não foi possível registrar o acompanhamento do envio.");
+  if (inbox.error)
+    throw new Error("Não foi possível registrar o acompanhamento do envio.");
   if (directUpload) {
     const confirmed = await db
       .from("comun_sidewalk_uploads")

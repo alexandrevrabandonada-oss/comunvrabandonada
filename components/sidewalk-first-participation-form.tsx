@@ -194,6 +194,7 @@ export function SidewalkFirstParticipationForm({
         sizeBytes: photo.size,
         payload,
       });
+      if (!authorization.ok) throw new Error(authorization.error);
       setSubmissionPhase("uploading_photo");
       const uploaded = await client.storage
         .from("archive-private-originals")
