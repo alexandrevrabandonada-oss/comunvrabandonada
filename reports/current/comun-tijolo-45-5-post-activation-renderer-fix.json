@@ -1,0 +1,61 @@
+{
+  "formatVersion": 1,
+  "fixId": "sidewalk-post-activation-renderer-fix-20260729-05",
+  "result": "COMUN_SIDEWALK_POST_ACTIVATION_RENDERER_CORRECTED_RUNTIME_UNCHANGED",
+  "initialMainSha": "aaf3cae6750156a57f3fb847ed0ae66d94c6b67d",
+  "auditedActivation": {
+    "run": "30454192828",
+    "attempt": "sidewalk-activate-20260729-03",
+    "mainSha": "9b07bcfb52c4a3b9d00c5e0fa263237f3e8b110c"
+  },
+  "rootCause": {
+    "renderer": "scripts/solo/render-sidewalk-operational-gate-report.mjs",
+    "cause": "The legacy pre-activation renderer fixed consumedRun, consumedAttempt, flag, publicState, and attempt03 values for the attempt 02 diagnostic package. It had no post-activation source contract and was not a valid source for current runtime evidence.",
+    "historicalArtifact": "The attempt 02 package remains preserved as historical evidence and is no longer eligible for the current post-activation renderer."
+  },
+  "currentEvidenceContract": {
+    "evidenceScope": "current_post_activation",
+    "activationRun": "30454192828",
+    "activationAttempt": "sidewalk-activate-20260729-03",
+    "activationMainSha": "9b07bcfb52c4a3b9d00c5e0fa263237f3e8b110c",
+    "inventoryRun": "30455092900",
+    "protectedDiagnosisRun": "30455096013",
+    "selection": "exact attempt, run, SHA, artifact type, and evidence scope",
+    "conflicts": "fail closed",
+    "historicalFallback": "disabled"
+  },
+  "runtimeEvidence": {
+    "deploymentState": "READY",
+    "database": "reachable",
+    "ledger": "exact",
+    "migrationRequired": false,
+    "migrationExecuted": false,
+    "flag": "enabled",
+    "operationalState": "OPERATIONAL_READY",
+    "publicState": "active",
+    "mapHttpStatus": 200,
+    "contributionInterfaceHttpStatus": 200,
+    "contributionSubmitted": false,
+    "databaseWrites": "none",
+    "storageWrites": "none",
+    "runtimeChangedByFix": false,
+    "environmentChangedByFix": false,
+    "deploymentChangedByFix": false,
+    "activationExecutedByFix": false,
+    "migrationExecutedByFix": false,
+    "rollbackExecutedByFix": false,
+    "activationAttempt03Reused": false,
+    "secondActivationDetected": false,
+    "attemptConsumptionControl": "process_controlled_consistent",
+    "remotePersistentNonce": false
+  },
+  "canonicalIntegrity": {
+    "migrationSha256": "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be",
+    "manifestSha256": "ceb7002f9a7069cbe82c4e6b16032bef1cd3619f12271a260dbca37fb5bc1335"
+  },
+  "historicalCheckpoint": {
+    "checkpoint45_4": "COMUN_SIDEWALK_POST_ACTIVATION_STABILITY_BLOCKED",
+    "status": "preserved_without_retroactive_reclassification"
+  },
+  "nextGate": "Repeat the full post-activation stability checkpoint in a separate read-only checkpoint with a new checkpoint ID and this renderer. The first production contribution remains unauthorized."
+}

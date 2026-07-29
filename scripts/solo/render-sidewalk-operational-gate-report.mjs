@@ -68,6 +68,8 @@ export function createOperationalGateReport({
   assertOperationalGateClassification(classification);
   return {
     formatVersion: 1,
+    artifactType: "legacy_sidewalk_operational_gate",
+    evidenceScope: "historical_pre_activation",
     mainSha,
     consumedRun,
     consumedAttempt,
@@ -99,6 +101,8 @@ function markdown(report) {
   return [
     "# TIJOLO 45.3L — diagnóstico da cadeia de visibilidade operacional",
     "",
+    `- artifact_type: ${report.artifactType}`,
+    `- evidence_scope: ${report.evidenceScope}`,
     `- main_sha: ${report.mainSha}`,
     `- consumed_run: ${report.consumedRun}`,
     `- consumed_attempt: ${report.consumedAttempt}`,
