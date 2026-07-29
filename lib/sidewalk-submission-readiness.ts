@@ -1,3 +1,5 @@
+import { getSidewalkCaptchaToken } from "./sidewalk-hcaptcha";
+
 export type SidewalkSubmissionReadinessInput = {
   hasPhoto: boolean;
   hasPoint: boolean;
@@ -45,7 +47,7 @@ type AnonymousSessionClient = {
 
 export async function ensureSidewalkAnonymousSession(
   client: AnonymousSessionClient,
-  getCaptchaToken: () => Promise<string>,
+  getCaptchaToken: () => Promise<string> = getSidewalkCaptchaToken,
 ) {
   const current = await client.auth.getSession();
   if (current.error)
