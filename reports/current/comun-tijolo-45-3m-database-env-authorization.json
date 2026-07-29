@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "checkpoint": "COMUN_TIJOLO_45_3M_DATABASE_ENV_CONFIGURATION_GATE_READY_FLAG_DISABLED",
+  "checkpoint": "COMUN_SIDEWALK_DATABASE_ENV_CONFIGURED_RUNTIME_GREEN_FLAG_DISABLED",
   "mergeSha": "5758a0bd05b54caba418b25d3e09149e19c21104",
   "projectId": "prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X",
   "configurationAttemptId": "sidewalk-db-env-20260729-02",
@@ -28,6 +28,34 @@
     "storageWrites": "none",
     "cause": "authorization_suffix_contract_mismatch"
   },
+  "configurationResult": {
+    "configurationAttemptId": "sidewalk-db-env-20260729-02",
+    "runId": 30417723973,
+    "authorizationAccepted": true,
+    "variableConfigured": true,
+    "deploymentReady": true,
+    "databaseReachable": true,
+    "ledgerExact": true,
+    "flagDisabled": true,
+    "publicPaused": true,
+    "rollbackAttempted": false,
+    "rollbackResult": "not_required",
+    "terminalMarker": "COMUN_SIDEWALK_DATABASE_ENV_CONFIGURED_RUNTIME_GREEN_FLAG_DISABLED",
+    "databaseWrites": "none",
+    "storageWrites": "none"
+  },
+  "postValidation": {
+    "environmentMetadataRun": 30417862859,
+    "protectedDiagnosticRun": 30417917181,
+    "protectedDiagnosticRunAttempt": 2,
+    "databaseUrlKey": "present",
+    "databaseUrlTargetsProduction": true,
+    "database": "reachable",
+    "ledger": "exact",
+    "flag": "disabled",
+    "publicState": "paused",
+    "valuesPersisted": false
+  },
   "expectedAfterConfiguration": {
     "flag": "disabled",
     "databaseUrl": "present",
@@ -44,6 +72,6 @@
   },
   "activateExecuted": false,
   "attempt03Created": false,
-  "configurationExecuted": false,
-  "authorizationRequired": true
+  "configurationExecuted": true,
+  "authorizationRequired": false
 }

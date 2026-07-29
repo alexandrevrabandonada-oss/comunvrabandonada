@@ -8,14 +8,19 @@
 - origem permitida: secret GitHub Actions `SUPABASE_DB_URL` (valor não registrado)
 - ledger_hash: `e36b508762b19da01afa91ff810c18c8d5d3a000c20618793eafc25c7a012793`
 
-## Estado antes da autorização futura
+## Resultado do attempt autorizado
 
-- A variável operacional de banco está ausente em Production.
+- O attempt `sidewalk-db-env-20260729-02` foi executado pelo run `30417723973`.
+- A variável operacional de banco foi criada somente em Production.
+- O deployment ficou READY, a conexão ficou alcançável e o ledger foi confirmado
+  como exato.
 - `COMUN_SIDEWALK_OPERATIONAL_V2` está presente em Production e permanece `disabled`.
 - O estado público permanece `paused`.
-- O ledger está `PRESENT_ACCEPTED` e o scoped POST está confirmado.
-- Preflight de metadados e diagnóstico protegido foram executados somente para leitura.
-- Não houve escrita em banco ou Storage; `activate` não foi executado e attempt 03 não foi criado.
+- Não houve escrita em banco ou Storage; `activate` não foi executado e attempt 03
+  não foi criado.
+- O resultado terminal foi
+  `COMUN_SIDEWALK_DATABASE_ENV_CONFIGURED_RUNTIME_GREEN_FLAG_DISABLED`.
+- Rollback não foi necessário.
 
 ## Attempt anterior consumido
 
@@ -30,16 +35,15 @@
 - O inventário read-only pós-hotfix, run `30417062556`, confirmou novamente a
   variável ausente e a flag desabilitada.
 
-## Operação futura limitada
+## Validação independente pós-configuração
 
-Uma autorização humana futura e exata poderá permitir somente criar a variável
-operacional de banco em Production com o secret de origem fixo. Antes da escrita,
-o gate exige SHA integrado, contrato v2, ledger e scoped POST exatos, variável
-ainda ausente, flag desabilitada e contribuição pública pausada.
-
-Depois da configuração, o gate exige um deployment Production e um diagnóstico
-protegido com URL de banco presente, conexão alcançável, ledger exato e flag ainda
-desabilitada. O alias público deve continuar pausado.
+- O inventário read-only, run `30417862859`, confirmou a chave presente e com
+  target Production, sem persistir valores.
+- O diagnóstico protegido read-only, run `30417917181` attempt 2, confirmou
+  `databaseUrl=present`, `database=reachable`, `ledger=exact`,
+  `flag=disabled` e `operationalState=FLAG_DISABLED`.
+- O primeiro attempt desse diagnóstico recebeu HTTP 500 da API Vercel; apenas o
+  job read-only falho foi reexecutado.
 
 ## Rollback limitado
 
@@ -48,5 +52,5 @@ Se o deployment ou o diagnóstico falhar depois da criação, o gate remove some
 que o inventário volte a indicar a chave ausente e a contribuição continue pausada.
 Nenhuma outra variável, a flag, banco, ledger ou Storage entram no rollback.
 
-Este pacote não é uma autorização e não executa configuração, migration ou
-ativação pública.
+Este registro não autoriza ativação pública. Migration, ledger, banco e Storage
+permaneceram inalterados durante a configuração.
