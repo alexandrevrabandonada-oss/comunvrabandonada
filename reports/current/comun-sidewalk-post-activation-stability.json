@@ -1,0 +1,98 @@
+{
+  "formatVersion": 1,
+  "checkpointId": "sidewalk-post-activation-checkpoint-20260729-04",
+  "checkpointType": "post_activation_read_only",
+  "activationRun": "30454192828",
+  "activationAttempt": "sidewalk-activate-20260729-03",
+  "activationMainSha": "9b07bcfb52c4a3b9d00c5e0fa263237f3e8b110c",
+  "currentMainSha": "9b07bcfb52c4a3b9d00c5e0fa263237f3e8b110c",
+  "productionDeployment": "production-ready-for-activation-sha",
+  "deploymentState": "READY",
+  "deploymentChangedByCheckpoint": false,
+  "environmentChanged": false,
+  "databaseUrl": "present",
+  "database": "reachable",
+  "ledger": "exact",
+  "migrationRequired": false,
+  "migrationExecuted": false,
+  "flag": "enabled",
+  "operationalState": "FLAG_ENABLED",
+  "runtimeDiagnosticState": "OPERATIONAL_READY",
+  "publicState": "active",
+  "mapHttpStatus": 200,
+  "contributionInterfaceHttpStatus": 200,
+  "contributionSubmitted": false,
+  "databaseWrites": "none",
+  "storageWrites": "none",
+  "activationExecuted": false,
+  "secondActivationDetected": false,
+  "activationAttempt03Reused": false,
+  "attemptConsumptionControl": "process_controlled_consistent",
+  "rollbackExecuted": false,
+  "logsEvidence": "sufficient",
+  "findingsCount": 1,
+  "checkpointResult": "COMUN_SIDEWALK_POST_ACTIVATION_STABILITY_BLOCKED",
+  "runs": {
+    "activationAudited": {
+      "id": "30454192828",
+      "attempt": 1,
+      "conclusion": "success"
+    },
+    "operationalEnvironmentInventory": {
+      "id": "30455092900",
+      "conclusion": "success"
+    },
+    "protectedOperationalDiagnostic": {
+      "id": "30455096013",
+      "conclusion": "success"
+    }
+  },
+  "smoke": {
+    "mapRendered": true,
+    "contributionInterfaceRendered": true,
+    "pausedMessageVisible": false,
+    "consoleErrors": 0,
+    "mutableHttpMethodsObserved": 0,
+    "secretPatternsObserved": 0
+  },
+  "logAudit": {
+    "windowStart": "2026-07-29T13:06:28Z",
+    "runtimeErrors": 0,
+    "http500": 0,
+    "timeouts": 0,
+    "migrationMarkers": 0,
+    "uploadMarkers": 0,
+    "flagErrorMarkers": 0,
+    "attemptReuseMarkers": 0,
+    "rawLogsPersistedInReport": false
+  },
+  "finding": {
+    "id": "POST_ACTIVATION_DIAGNOSTIC_REPORT_STALE",
+    "severity": "operational_evidence_inconsistency",
+    "runtimeEvidence": {
+      "flag": "enabled",
+      "database": "reachable",
+      "ledger": "exact",
+      "operationalState": "OPERATIONAL_READY"
+    },
+    "conflictingLegacyReport": {
+      "classification": "INSUFFICIENT_EVIDENCE",
+      "consumedAttempt": "sidewalk-activate-20260728-02",
+      "publicState": "paused",
+      "flag": "disabled"
+    },
+    "impact": "The product is active and healthy, but the legacy diagnostic report is not post-activation aware, so the evidence set is not fully consistent."
+  },
+  "canonicalIntegrity": {
+    "migrationSha256": "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be",
+    "manifestSha256": "ceb7002f9a7069cbe82c4e6b16032bef1cd3619f12271a260dbca37fb5bc1335"
+  },
+  "sanitization": {
+    "status": "sanitized",
+    "rawEnvironmentResponsePersisted": false,
+    "environmentValuesPersisted": false,
+    "rawRuntimeLogsPersisted": false,
+    "credentialsPersisted": false
+  },
+  "nextGate": "Create a separate corrective checkpoint for the stale post-activation diagnostic renderer, then repeat this read-only stability checkpoint."
+}
