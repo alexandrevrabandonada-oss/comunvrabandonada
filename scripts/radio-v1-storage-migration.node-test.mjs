@@ -3,10 +3,10 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   assertRadioV1MigrationArtifactSanitized,
+  createRadioV1ExactMigrationPlan,
   RADIO_V1_STORAGE_MIGRATION_VERSION,
   validateRadioV1AuditPlan,
   validateRadioV1StorageMigrationSql,
-  verifyRadioV1SupabasePushPlan,
 } from "./radio-v1-storage-migration.mjs";
 
 test("migration nova ajusta somente os dois buckets de Rádio para 45 MiB", async () => {
@@ -67,16 +67,26 @@ test("plano remoto aceita somente os dois buckets ausentes e allowlisted", () =>
   );
 });
 
-test("dry-run aceita exatamente a migration nova e rejeita migration adicional", () => {
-  const exact = `Would push these migrations:\n • ${RADIO_V1_STORAGE_MIGRATION_VERSION}_radio_v1_free_storage_profile.sql\n`;
-  assert.equal(verifyRadioV1SupabasePushPlan(exact), true);
-  assert.throws(
-    () =>
-      verifyRadioV1SupabasePushPlan(
-        `${exact} • 20260730220000_unexpected.sql\n`,
-      ),
-    /UNEXPECTED_MIGRATION_PLAN/,
+test("plano exato seleciona somente a migration nova e nenhuma histórica", () => {
+  const hash = "b".repeat(64);
+  const plan = createRadioV1ExactMigrationPlan(
+    {
+      target: { verified: true },
+      storage: {
+        missingBuckets: ["radio-private-originals", "radio-public-audio"],
+        incompatibleBuckets: [],
+        policyEvidence: { policiesGreen: true },
+      },
+      radioStorageMigrationPlan: {
+        exact: true,
+        marker: "COMUN_RADIO_V1_STORAGE_MIGRATION_PLAN_EXACT",
+        planHash: hash,
+      },
+    },
+    hash,
   );
+  assert.deepEqual(plan.versions, [RADIO_V1_STORAGE_MIGRATION_VERSION]);
+  assert.equal(plan.historicalMigrationsSelected, 0);
 });
 
 test("artifact sanitizado rejeita conexão e segredo", () => {

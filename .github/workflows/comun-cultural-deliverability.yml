@@ -293,6 +293,7 @@ jobs:
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
       COMUN_CULTURAL_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
       COMUN_CULTURAL_EXPECTED_PLAN_HASH: ${{ inputs.expected_plan_hash }}
+      COMUN_RADIO_V1_STORAGE_MIGRATION_CONFIRMATION: ${{ inputs.confirmation }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -312,27 +313,21 @@ jobs:
         with:
           node-version: 22.18.0
           cache: npm
-      - uses: supabase/setup-cli@v1
-        with:
-          version: 2.110.0
       - run: npm ci --ignore-scripts
       - name: Recompute read-only preflight
         run: >-
           node scripts/audit-comun-cultural-deliverability.mjs
           --output .ci-artifacts/comun-cultural-deliverability/preflight.json
       - name: Require exactly the new forward-only migration
-        shell: bash
-        run: |
-          set -euo pipefail
-          supabase db push --db-url "$SUPABASE_DB_URL" --include-all --dry-run \
-            > .ci-artifacts/comun-cultural-deliverability/dry-run.txt 2>&1
-          node scripts/radio-v1-storage-migration.mjs \
-            --audit .ci-artifacts/comun-cultural-deliverability/preflight.json \
-            --dry-run .ci-artifacts/comun-cultural-deliverability/dry-run.txt \
-            --output .ci-artifacts/comun-cultural-deliverability/migration-plan.json
-          rm .ci-artifacts/comun-cultural-deliverability/dry-run.txt
+        run: >-
+          node scripts/radio-v1-storage-migration.mjs
+          --audit .ci-artifacts/comun-cultural-deliverability/preflight.json
+          --output .ci-artifacts/comun-cultural-deliverability/migration-plan.json
       - name: Apply only the verified profile migration
-        run: supabase db push --db-url "$SUPABASE_DB_URL" --include-all
+        run: >-
+          node scripts/apply-radio-v1-storage-migration.mjs
+          --audit .ci-artifacts/comun-cultural-deliverability/preflight.json
+          --output .ci-artifacts/comun-cultural-deliverability/migration-result.json
       - name: Independent read-only bucket postflight
         run: >-
           node scripts/audit-comun-cultural-deliverability.mjs
