@@ -9,7 +9,8 @@ Data: 2026-07-15. Status: implementação local concluída e candidata a release
 - Créditos: múltiplos agentes e papéis, visibilidade explícita e notas privadas.
 - Consentimento e menores: permissões de voz granulares; menor e localização sensível exigem revisão reforçada.
 - Música: uso e permissão por finalidade; pendência bloqueia publicação.
-- Storage: original no bucket privado; MP3 e waveform no bucket público local. Upload direto assinado, 250 MB.
+- Storage: original no bucket privado; MP3 e waveform no bucket público local.
+  Upload direto assinado no perfil V1 gratuito, com teto de 45 MiB por arquivo.
 - Processamento: magic bytes + FFprobe; FFmpeg 8.1.1 local; MP3 160 kbps, loudnorm, metadados removidos e peaks JSON.
 - Transcrição e capítulos: edição humana versionada, publicação explícita e capítulos ordenados.
 - Portal e player: páginas de rádio, programa, episódio, grade, contribuição e direitos; `<audio>` sem autoplay, saltos, velocidade, capítulos e download condicionado.

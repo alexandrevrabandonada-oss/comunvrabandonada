@@ -103,9 +103,17 @@ export async function createRadioEpisode(f: FormData) {
     .select("id")
     .single();
   if (error) throw error;
+  const seasonNumber = Number(f.get("season_number") || 0);
+  const episodeNumber = Number(f.get("episode_number") || 0);
   await db.from("comun_radio_episodes").insert({
     archive_item_id: item.id,
     program_item_id: String(f.get("program_item_id")),
+    season_number:
+      Number.isInteger(seasonNumber) && seasonNumber > 0 ? seasonNumber : null,
+    episode_number:
+      Number.isInteger(episodeNumber) && episodeNumber > 0
+        ? episodeNumber
+        : null,
     title_public: title,
     slug_public: slug,
     summary_public: String(f.get("summary") || "").trim(),

@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import pg from "pg";
 import {
   buildCulturalRepairPlan,
+  buildRadioStorageMigrationPlan,
   buildCulturalStoragePolicyEvidence,
   createAltCandidateFingerprint,
   expectedCulturalBuckets,
@@ -558,6 +559,17 @@ export function sanitizeCulturalMetrics(input) {
     altCandidateFingerprint: privacy.altCandidateFingerprint,
     publicImageSha256: privacy.publicImageSha256,
   });
+  const radioStorageMigrationPlan = buildRadioStorageMigrationPlan({
+    targetVerified: target.verified,
+    schemaGreen:
+      schema.presentTables === schema.expectedTables &&
+      schema.rlsDisabled === 0 &&
+      schema.dangerousPublicGrants === 0,
+    policiesGreen: storage.policyEvidence.policiesGreen,
+    similarUnexpectedBuckets: storage.similarUnexpectedBuckets,
+    missingBuckets: storage.missingBuckets,
+    incompatibleBuckets: storage.incompatibleBuckets,
+  });
   return {
     formatVersion: 2,
     auditType: "archive_radio_art_read_only",
@@ -570,6 +582,7 @@ export function sanitizeCulturalMetrics(input) {
     structuralFindings,
     allDomainsHavePotentialContent,
     realContentAuthorizationProven: false,
+    radioStorageMigrationPlan,
     repairPlan,
     result,
     containsPersonalData: false,
@@ -625,6 +638,8 @@ export function renderCulturalAuditMarkdown(artifact) {
 Contagens de candidatos não equivalem a autorização de direitos. A promoção exige evidência editorial real, explícita e separada nos três recortes.
 
 ${artifact.repairPlan.exact ? `Plano focal: \`${artifact.repairPlan.marker}\` (hash sanitizado disponível no JSON).` : `Plano focal: \`${artifact.repairPlan.marker}\`.`}
+
+Perfil gratuito da Rádio: \`${artifact.radioStorageMigrationPlan.marker}\`.
 `;
 }
 

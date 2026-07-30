@@ -10,14 +10,20 @@ on:
       - "app/comun/admin/acervo/**"
       - "app/comun/radio/**"
       - "app/comun/admin/radio/**"
+      - "app/api/comun/admin/archive/upload-url/route.ts"
+      - "config/radio-v1-media-profile.json"
       - "lib/archive/**"
       - "lib/archive.ts"
       - "lib/radio.ts"
+      - "lib/radio-audio.ts"
+      - "lib/radio-media-profile*"
       - "lib/cultural-deliverability*"
       - "scripts/audit-comun-cultural-deliverability*"
       - "scripts/comun-cultural-remote-state*"
       - "scripts/repair-comun-cultural-remote-state*"
+      - "scripts/radio-v1-storage-migration*"
       - "scripts/rehearse-comun-cultural-deliverability*"
+      - "supabase/migrations/*radio_v1_free_storage_profile.sql"
   push:
     branches: [main]
     paths:
@@ -26,14 +32,20 @@ on:
       - "app/comun/admin/acervo/**"
       - "app/comun/radio/**"
       - "app/comun/admin/radio/**"
+      - "app/api/comun/admin/archive/upload-url/route.ts"
+      - "config/radio-v1-media-profile.json"
       - "lib/archive/**"
       - "lib/archive.ts"
       - "lib/radio.ts"
+      - "lib/radio-audio.ts"
+      - "lib/radio-media-profile*"
       - "lib/cultural-deliverability*"
       - "scripts/audit-comun-cultural-deliverability*"
       - "scripts/comun-cultural-remote-state*"
       - "scripts/repair-comun-cultural-remote-state*"
+      - "scripts/radio-v1-storage-migration*"
       - "scripts/rehearse-comun-cultural-deliverability*"
+      - "supabase/migrations/*radio_v1_free_storage_profile.sql"
   schedule:
     - cron: "41 10 * * *"
   workflow_dispatch:
@@ -44,6 +56,7 @@ on:
         type: choice
         options:
           - preflight
+          - migrate-radio-profile
           - repair
           - postflight
           - private-rehearsal
@@ -88,11 +101,13 @@ jobs:
           npx vitest run \
             lib/cultural-deliverability.test.ts \
             lib/archive/territorial-art.test.ts \
-            lib/radio.test.ts
+            lib/radio.test.ts \
+            lib/radio-media-profile.test.ts
           node --test \
             scripts/audit-comun-cultural-deliverability.node-test.mjs \
             scripts/comun-cultural-remote-state.node-test.mjs \
             scripts/repair-comun-cultural-remote-state.node-test.mjs \
+            scripts/radio-v1-storage-migration.node-test.mjs \
             scripts/rehearse-comun-cultural-deliverability.node-test.mjs \
             scripts/comun-cultural-deliverability-workflow.node-test.mjs
       - name: Existing cultural regressions
@@ -118,12 +133,18 @@ jobs:
             lib/cultural-deliverability.test.ts \
             lib/radio.ts \
             lib/radio.test.ts \
+            lib/radio-audio.ts \
+            lib/radio-media-profile.mjs \
+            lib/radio-media-profile.d.mts \
+            lib/radio-media-profile.test.ts \
             scripts/audit-comun-cultural-deliverability.mjs \
             scripts/audit-comun-cultural-deliverability.node-test.mjs \
             scripts/comun-cultural-remote-state.mjs \
             scripts/comun-cultural-remote-state.node-test.mjs \
             scripts/repair-comun-cultural-remote-state.mjs \
             scripts/repair-comun-cultural-remote-state.node-test.mjs \
+            scripts/radio-v1-storage-migration.mjs \
+            scripts/radio-v1-storage-migration.node-test.mjs \
             scripts/rehearse-comun-cultural-deliverability.mjs \
             scripts/rehearse-comun-cultural-deliverability.node-test.mjs \
             scripts/comun-cultural-deliverability-workflow.node-test.mjs
@@ -259,6 +280,85 @@ jobs:
               });
             }
 
+  migrate-radio-profile:
+    name: MIGRATE / COMUN_RADIO_V1_FREE_STORAGE_PROFILE
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.mode == 'migrate-radio-profile'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: production
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      COMUN_CULTURAL_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+      COMUN_CULTURAL_EXPECTED_PLAN_HASH: ${{ inputs.expected_plan_hash }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 0
+      - name: Validate immutable main and exact migration envelope
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ inputs.expected_main_sha }}"
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse refs/remotes/origin/main)"
+          test "${{ inputs.confirmation }}" = \
+            "APLICAR_PERFIL_GRATUITO_RADIO_V1_47_6B"
+          test "${{ inputs.expected_plan_hash }}" != ""
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.110.0
+      - run: npm ci --ignore-scripts
+      - name: Recompute read-only preflight
+        run: >-
+          node scripts/audit-comun-cultural-deliverability.mjs
+          --output .ci-artifacts/comun-cultural-deliverability/preflight.json
+      - name: Require exactly the new forward-only migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db push --db-url "$SUPABASE_DB_URL" --include-all --dry-run \
+            > .ci-artifacts/comun-cultural-deliverability/dry-run.txt 2>&1
+          node scripts/radio-v1-storage-migration.mjs \
+            --audit .ci-artifacts/comun-cultural-deliverability/preflight.json \
+            --dry-run .ci-artifacts/comun-cultural-deliverability/dry-run.txt \
+            --output .ci-artifacts/comun-cultural-deliverability/migration-plan.json
+          rm .ci-artifacts/comun-cultural-deliverability/dry-run.txt
+      - name: Apply only the verified profile migration
+        run: supabase db push --db-url "$SUPABASE_DB_URL" --include-all
+      - name: Independent read-only bucket postflight
+        run: >-
+          node scripts/audit-comun-cultural-deliverability.mjs
+          --output .ci-artifacts/comun-cultural-deliverability/post-migration.json
+      - name: Require exact 45 MiB buckets and no objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const audit = require("./.ci-artifacts/comun-cultural-deliverability/post-migration.json");
+          const radio = audit.storage.buckets.filter((bucket) => bucket.id.startsWith("radio-"));
+          if (
+            radio.length !== 2 ||
+            radio.some((bucket) => !bucket.present || !bucket.exact || bucket.fileSizeLimit !== 47185920) ||
+            audit.storage.incompatibleBuckets.length !== 0
+          ) process.exit(1);
+          NODE
+          echo COMUN_RADIO_V1_STORAGE_PROFILE_APPLIED >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-radio-v1-storage-migration-${{ github.sha }}-${{ github.run_id }}
+          path: .ci-artifacts/comun-cultural-deliverability/
+          retention-days: 30
+          if-no-files-found: error
+
   repair:
     name: REPAIR / COMUN_CULTURAL_REMOTE_STATE_EXACT
     if: >-
@@ -270,8 +370,6 @@ jobs:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
       COMUN_CULTURAL_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
-      NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       COMUN_CULTURAL_REPAIR_CONFIRMATION: ${{ inputs.confirmation }}
       COMUN_CULTURAL_EXPECTED_PLAN_HASH: ${{ inputs.expected_plan_hash }}
     steps:
@@ -286,7 +384,7 @@ jobs:
           git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
           test "$(git rev-parse HEAD)" = "$(git rev-parse refs/remotes/origin/main)"
           test "${{ inputs.confirmation }}" = \
-            "EXECUTAR_REPARO_CULTURAL_47_6A"
+            "EXECUTAR_CORRECAO_ALT_CULTURAL_47_6B"
           test "${{ inputs.expected_plan_hash }}" != ""
       - uses: actions/setup-node@v4
         with:

@@ -1,0 +1,50 @@
+{
+  "formatVersion": 1,
+  "checkpoint": "comun-tijolo-47-6b-radio-free-storage-profile",
+  "baseSha": "09f9156915b306290ab6e589f9474fa6eaf09fad",
+  "branch": "codex/tijolo-47-6b-radio-free-storage-profile",
+  "preflightRun": 30583497665,
+  "targetVerified": true,
+  "profile": {
+    "id": "comun-radio-v1-free-storage",
+    "maxUploadBytes": 47185920,
+    "maxDurationSeconds": 1800,
+    "maxChannels": 2,
+    "publicBitrateKbps": 160
+  },
+  "remoteBefore": {
+    "schema": "11/11",
+    "rlsDisabled": 0,
+    "dangerousGrants": 0,
+    "buckets": "2/4",
+    "missingBuckets": ["radio-private-originals", "radio-public-audio"],
+    "dangerousStoragePolicies": 0,
+    "publicImagesWithoutAltText": 1,
+    "storageObjectsCreated": 0,
+    "remoteWrites": "none"
+  },
+  "localEvidence": {
+    "unitTests": "364/364",
+    "communityRadioE2eA11y": "24/24",
+    "territorialArtE2eA11y": "28/28",
+    "rls": "green",
+    "typecheck": "green",
+    "lint": "green",
+    "build": "green",
+    "radioBuckets": "2/2 exact at 47185920 bytes",
+    "historicalMigrationsChanged": false
+  },
+  "remotePromotion": {
+    "migrationExecuted": false,
+    "altTextUpdated": false,
+    "privateRehearsalExecuted": false,
+    "storageObjectsCreated": 0
+  },
+  "deliverability": {
+    "archive_radio_art": "evidence_required",
+    "miniapps": "in_progress",
+    "launch_publicly": "not_triggered"
+  },
+  "maximumResult": "COMUN_ARCHIVE_RADIO_ART_READY_FOR_REAL_CONTENT_REHEARSAL",
+  "containsSensitiveData": false
+}

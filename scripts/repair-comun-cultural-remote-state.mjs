@@ -1,7 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createClient } from "@supabase/supabase-js";
 import pg from "pg";
 import {
   assertSanitizedCulturalArtifact,
@@ -14,32 +13,25 @@ import {
 import {
   createAltCandidateFingerprint,
   culturalAltTextContract,
-  expectedCulturalBuckets,
   validateAltText,
 } from "./comun-cultural-remote-state.mjs";
 
 const { Client } = pg;
 
-export const repairConfirmation = "EXECUTAR_REPARO_CULTURAL_47_6A";
+export const repairConfirmation = "EXECUTAR_CORRECAO_ALT_CULTURAL_47_6B";
 
 export function validateCulturalRepairEnvironment(environment = process.env) {
   const database = validateCulturalDatabaseTarget(environment);
-  const projectRef = String(environment.SUPABASE_PROJECT_REF ?? "").trim();
-  const apiUrl = String(environment.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
-  const serviceKey = String(environment.SUPABASE_SERVICE_ROLE_KEY ?? "");
   const expectedPlanHash = String(
     environment.COMUN_CULTURAL_EXPECTED_PLAN_HASH ?? "",
   ).trim();
   if (environment.COMUN_CULTURAL_REPAIR_CONFIRMATION !== repairConfirmation) {
     throw new Error("COMUN_CULTURAL_REMOTE_REPAIR_CONFIRMATION_INVALID");
   }
-  if (apiUrl !== `https://${projectRef}.supabase.co` || !serviceKey) {
-    throw new Error("COMUN_CULTURAL_REMOTE_REPAIR_API_TARGET_INVALID");
-  }
   if (!/^[a-f0-9]{64}$/.test(expectedPlanHash)) {
     throw new Error("COMUN_CULTURAL_REMOTE_REPAIR_PLAN_HASH_INVALID");
   }
-  return { ...database, apiUrl, serviceKey, expectedPlanHash };
+  return { ...database, expectedPlanHash };
 }
 
 export function assertExactCulturalRepairPlan(artifact, expectedPlanHash) {
@@ -47,8 +39,7 @@ export function assertExactCulturalRepairPlan(artifact, expectedPlanHash) {
     artifact?.repairPlan?.exact !== true ||
     artifact.repairPlan.marker !== "COMUN_CULTURAL_REMOTE_REPAIR_PLAN_EXACT" ||
     artifact.repairPlan.planHash !== expectedPlanHash ||
-    artifact.storage.missingBuckets.length < 1 ||
-    artifact.storage.missingBuckets.length > 2 ||
+    artifact.storage.missingBuckets.length !== 0 ||
     artifact.storage.incompatibleBuckets.length !== 0 ||
     artifact.storage.similarUnexpectedBuckets !== 0 ||
     artifact.privacy.publicImageAssetsWithoutAltText !== 1 ||
@@ -102,39 +93,6 @@ async function collectAudit(environment) {
   } finally {
     await client.end().catch(() => undefined);
   }
-}
-
-async function createMissingBuckets({
-  apiUrl,
-  serviceKey,
-  missingBuckets,
-  environment,
-}) {
-  const supabase = createClient(apiUrl, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  let created = 0;
-  for (const id of missingBuckets) {
-    const contract = expectedCulturalBuckets.find((bucket) => bucket.id === id);
-    if (!contract) {
-      throw new Error("COMUN_CULTURAL_REMOTE_REPAIR_BUCKET_NOT_ALLOWLISTED");
-    }
-    const { error } = await supabase.storage.createBucket(contract.id, {
-      public: contract.public,
-      fileSizeLimit: contract.fileSizeLimit,
-      allowedMimeTypes: contract.allowedMimeTypes,
-    });
-    if (!error) {
-      created += 1;
-      continue;
-    }
-    const reread = await collectAudit(environment);
-    const current = reread.storage.buckets.find((bucket) => bucket.id === id);
-    if (!current?.present || !current.exact) {
-      throw new Error("COMUN_CULTURAL_REMOTE_REPAIR_BUCKET_CREATE_FAILED");
-    }
-  }
-  return created;
 }
 
 async function updateExactAltText({
@@ -221,25 +179,8 @@ export async function executeCulturalRemoteRepair(environment = process.env) {
   const validated = validateCulturalRepairEnvironment(environment);
   const preflight = await collectAudit(environment);
   assertExactCulturalRepairPlan(preflight, validated.expectedPlanHash);
-  const missingBefore = [...preflight.storage.missingBuckets];
-  const bucketRowsCreated = await createMissingBuckets({
-    apiUrl: validated.apiUrl,
-    serviceKey: validated.serviceKey,
-    missingBuckets: missingBefore,
-    environment,
-  });
-  const afterBuckets = await collectAudit(environment);
-  if (
-    afterBuckets.storage.missingBuckets.length !== 0 ||
-    afterBuckets.storage.incompatibleBuckets.length !== 0 ||
-    afterBuckets.storage.policyEvidence.policiesGreen !== true ||
-    afterBuckets.privacy.altCandidateFingerprint !==
-      preflight.privacy.altCandidateFingerprint ||
-    afterBuckets.privacy.publicImageSha256 !==
-      preflight.privacy.publicImageSha256
-  ) {
-    throw new Error("COMUN_CULTURAL_REMOTE_REPAIR_BUCKET_POSTCHECK_FAILED");
-  }
+  const missingBefore = [];
+  const bucketRowsCreated = 0;
   const altTextRowsUpdated = await updateExactAltText({
     databaseUrl: validated.databaseUrl,
     expectedFingerprint: preflight.privacy.altCandidateFingerprint,
@@ -276,7 +217,7 @@ export async function executeCulturalRemoteRepair(environment = process.env) {
     consentsChanged: false,
     publicationStatusChanged: false,
     databaseWrites: "one_alt_text_field",
-    storageWrites: `${bucketRowsCreated}_bucket_metadata_rows`,
+    storageWrites: "none",
   };
 }
 

@@ -1,0 +1,37 @@
+{
+  "profileId": "comun-radio-v1-free-storage",
+  "maxUploadBytes": 47185920,
+  "maxDurationSeconds": 1800,
+  "maxChannels": 2,
+  "publicBitrateKbps": 160,
+  "allowedOriginalMimeTypes": [
+    "audio/wav",
+    "audio/mpeg",
+    "audio/mp4",
+    "audio/ogg",
+    "audio/flac"
+  ],
+  "privateBucket": {
+    "id": "radio-private-originals",
+    "public": false,
+    "fileSizeLimit": 47185920,
+    "allowedMimeTypes": [
+      "audio/wav",
+      "audio/mpeg",
+      "audio/mp4",
+      "audio/ogg",
+      "audio/flac"
+    ]
+  },
+  "publicBucket": {
+    "id": "radio-public-audio",
+    "public": true,
+    "fileSizeLimit": 47185920,
+    "allowedMimeTypes": [
+      "audio/mpeg",
+      "application/json",
+      "text/vtt",
+      "text/plain"
+    ]
+  }
+}

@@ -1,4 +1,8 @@
 import { createHash } from "node:crypto";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const radioProfile = require("../config/radio-v1-media-profile.json");
 
 export const expectedCulturalBuckets = [
   {
@@ -14,27 +18,16 @@ export const expectedCulturalBuckets = [
     allowedMimeTypes: ["image/webp"],
   },
   {
-    id: "radio-private-originals",
-    public: false,
-    fileSizeLimit: 250 * 1024 * 1024,
-    allowedMimeTypes: [
-      "audio/wav",
-      "audio/mpeg",
-      "audio/mp4",
-      "audio/ogg",
-      "audio/flac",
-    ],
+    id: radioProfile.privateBucket.id,
+    public: radioProfile.privateBucket.public,
+    fileSizeLimit: radioProfile.privateBucket.fileSizeLimit,
+    allowedMimeTypes: radioProfile.privateBucket.allowedMimeTypes,
   },
   {
-    id: "radio-public-audio",
-    public: true,
-    fileSizeLimit: 250 * 1024 * 1024,
-    allowedMimeTypes: [
-      "audio/mpeg",
-      "application/json",
-      "text/vtt",
-      "text/plain",
-    ],
+    id: radioProfile.publicBucket.id,
+    public: radioProfile.publicBucket.public,
+    fileSizeLimit: radioProfile.publicBucket.fileSizeLimit,
+    allowedMimeTypes: radioProfile.publicBucket.allowedMimeTypes,
   },
 ];
 
@@ -294,8 +287,7 @@ export function buildCulturalRepairPlan(input = {}) {
     input.policiesGreen === true &&
     boundedCount(input.similarUnexpectedBuckets) === 0 &&
     missingBucketsAllowlisted &&
-    missingBuckets.length > 0 &&
-    missingBuckets.length <= 2 &&
+    missingBuckets.length === 0 &&
     incompatibleBuckets.length === 0 &&
     boundedCount(input.altCandidateCount) === 1 &&
     typeof input.altCandidateFingerprint === "string" &&
@@ -304,19 +296,12 @@ export function buildCulturalRepairPlan(input = {}) {
     formatVersion: 1,
     repairId: "comun-cultural-remote-state-47-6a",
     missingBuckets,
-    bucketContracts: expectedCulturalBuckets
-      .filter((bucket) => missingBuckets.includes(bucket.id))
-      .map((bucket) => ({
-        id: bucket.id,
-        public: bucket.public,
-        fileSizeLimit: bucket.fileSizeLimit,
-        allowedMimeTypes: bucket.allowedMimeTypes,
-      })),
+    bucketContracts: [],
     altTextContractId: culturalAltTextContract.id,
     altCandidateFingerprint: input.altCandidateFingerprint ?? null,
     publicImageSha256: input.publicImageSha256 ?? null,
     writes: {
-      bucketRowsCreatedMax: 2,
+      bucketRowsCreatedMax: 0,
       altTextRowsUpdatedMax: 1,
       storageObjectsCreated: 0,
     },
@@ -326,6 +311,43 @@ export function buildCulturalRepairPlan(input = {}) {
     marker: exact
       ? "COMUN_CULTURAL_REMOTE_REPAIR_PLAN_EXACT"
       : "COMUN_CULTURAL_REMOTE_REPAIR_PLAN_BLOCKED",
+    planHash: exact ? sha256Json(plan) : null,
+    plan,
+  };
+}
+
+export function buildRadioStorageMigrationPlan(input = {}) {
+  const missingBuckets = sortedStrings(input.missingBuckets);
+  const incompatibleBuckets = sortedStrings(input.incompatibleBuckets);
+  const expectedRadioBuckets = [
+    radioProfile.privateBucket.id,
+    radioProfile.publicBucket.id,
+  ].sort();
+  const exact =
+    input.targetVerified === true &&
+    input.schemaGreen === true &&
+    input.policiesGreen === true &&
+    boundedCount(input.similarUnexpectedBuckets) === 0 &&
+    JSON.stringify(missingBuckets) === JSON.stringify(expectedRadioBuckets) &&
+    incompatibleBuckets.length === 0;
+  const plan = {
+    formatVersion: 1,
+    profileId: radioProfile.profileId,
+    migration:
+      "supabase/migrations/20260730213205_radio_v1_free_storage_profile.sql",
+    buckets: [radioProfile.privateBucket, radioProfile.publicBucket],
+    writes: {
+      bucketRowsCreatedMax: 2,
+      bucketRowsUpdatedMax: 2,
+      storageObjectsCreated: 0,
+      contentRowsUpdated: 0,
+    },
+  };
+  return {
+    exact,
+    marker: exact
+      ? "COMUN_RADIO_V1_STORAGE_MIGRATION_PLAN_EXACT"
+      : "COMUN_RADIO_V1_STORAGE_MIGRATION_PLAN_BLOCKED",
     planHash: exact ? sha256Json(plan) : null,
     plan,
   };

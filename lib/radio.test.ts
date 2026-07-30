@@ -56,6 +56,21 @@ describe("radio comunitaria", () => {
       }),
     ).toEqual([]);
   });
+  it("não publica episódio fora do teto gratuito de 30 minutos", () => {
+    expect(
+      radioPublicationBlockers({
+        title: "T",
+        summary: "R",
+        program: "p",
+        duration: 1_801,
+        publicAudio: true,
+        credits: 1,
+        consents: [{ consent_status: "approved", allow_comun_audio: true }],
+        context: true,
+        transcriptStatus: "published",
+      }),
+    ).toContain("duration_limit");
+  });
   it("aceita configuracao segura do modulo", () => {
     expect(
       validatePautaModuleConfig("community_radio", {
