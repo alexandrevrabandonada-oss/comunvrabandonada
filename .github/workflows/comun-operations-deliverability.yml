@@ -1,0 +1,227 @@
+name: COMUN Operations Deliverability
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-operations-deliverability.yml"
+      - "app/comun/admin/operacao/**"
+      - "lib/editorial-operation*"
+      - "lib/operational-*"
+      - "scripts/audit-comun-operations*"
+      - "supabase/migrations/*comun_operations*"
+  schedule:
+    - cron: "41 10 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Fixed operations lane
+        required: true
+        type: choice
+        default: preflight
+        options:
+          - preflight
+          - migrate
+          - sync
+          - rehearsal
+          - postflight
+      expected_main_sha:
+        description: Immutable main SHA
+        required: true
+        type: string
+
+concurrency:
+  group: comun-operations-${{ github.event.pull_request.number || inputs.mode || 'daily' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verify:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Unit, query and sanitization contracts
+        run: |
+          npx vitest run \
+            lib/editorial-operation.test.ts \
+            lib/operational-adapters.test.ts \
+            lib/operational-authorization.test.ts \
+            lib/operational-queue.test.ts \
+            lib/operational-responsibility.test.ts \
+            lib/operational-surfaces.test.ts
+          node --test \
+            scripts/audit-comun-operations.node-test.mjs \
+            scripts/comun-operations-workflow.node-test.mjs
+          npm run smoke:editorial-operation
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - name: Formatting and clean diff
+        run: |
+          npx prettier --check \
+            .github/workflows/comun-operations-deliverability.yml \
+            app/comun/admin/operacao/actions.ts \
+            app/comun/admin/operacao/page.tsx \
+            app/comun/admin/operacao/[id]/page.tsx \
+            lib/operational-adapters.ts \
+            lib/operational-adapters.test.ts \
+            lib/operational-queue.ts \
+            lib/operational-responsibility.ts \
+            lib/operational-responsibility.test.ts \
+            lib/operational-surfaces.ts \
+            scripts/audit-comun-operations.mjs \
+            scripts/audit-comun-operations.node-test.mjs
+          git diff --check origin/main...HEAD
+      - name: Static security boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "projection_contract" supabase/migrations/20260730230044_comun_operations_unified_projection.sql
+          grep -q "enable row level security" supabase/migrations/20260717013709_editorial_operation.sql
+          grep -q "from public, anon, authenticated" supabase/migrations/20260717013709_editorial_operation.sql
+          grep -q "begin transaction read only" scripts/audit-comun-operations.mjs
+          ! grep -R -n -E "raw_text|contact_private|object_key|signed_url" \
+            lib/operational-adapters.ts app/comun/admin/operacao
+          echo COMUN_OPERATIONS_CONTRACT_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  local-schema:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - run: npm ci --ignore-scripts
+      - name: Reset complete history and rehearse transactionally
+        run: |
+          node scripts/run-pauta-action-cycle-local-reset.mjs start
+          node scripts/run-pauta-action-cycle-local-reset.mjs reset
+          database_url="$(supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
+          test -n "$database_url"
+          SUPABASE_DB_URL="$database_url" \
+            COMUN_OPERATIONS_ARTIFACT_DIR=.ci-artifacts/comun-operations/local-preflight \
+            node --experimental-strip-types scripts/audit-comun-operations.mjs
+          SUPABASE_DB_URL="$database_url" \
+            COMUN_OPERATIONS_ARTIFACT_DIR=.ci-artifacts/comun-operations/local-rehearsal \
+            node --experimental-strip-types scripts/audit-comun-operations.mjs --rehearsal
+          npm run audit:rls-matrix
+      - name: Stop disposable stack
+        if: always()
+        run: supabase stop --no-backup
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-operations-local-${{ github.sha }}-${{ github.run_id }}
+          path: .ci-artifacts/comun-operations/
+          retention-days: 30
+          if-no-files-found: error
+
+  validate-remote-input:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Bind dispatch to current main
+        env:
+          EXPECTED: ${{ inputs.expected_main_sha }}
+          ACTUAL: ${{ github.sha }}
+          REF: ${{ github.ref }}
+        run: |
+          test "$REF" = "refs/heads/main"
+          if [ -n "$EXPECTED" ]; then test "$EXPECTED" = "$ACTUAL"; fi
+
+  migrate:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'migrate'
+    needs: validate-remote-input
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - name: Apply only the additive versioned migration
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase migration list --db-url "$SUPABASE_DB_URL" > /tmp/migrations.txt
+          grep -q "20260730230044" /tmp/migrations.txt
+          supabase db push --db-url "$SUPABASE_DB_URL"
+          echo COMUN_OPERATIONS_ADDITIVE_MIGRATION_APPLIED >> "$GITHUB_STEP_SUMMARY"
+
+  audit:
+    if: >-
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' &&
+       contains(fromJSON('["preflight","sync","rehearsal","postflight"]'), inputs.mode))
+    needs:
+      - validate-remote-input
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Run the fixed operational lane
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          MODE: ${{ inputs.mode || 'preflight' }}
+          COMUN_OPERATIONS_ARTIFACT_DIR: .ci-artifacts/comun-operations
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=()
+          if [ "$MODE" = "sync" ]; then args+=(--sync); fi
+          if [ "$MODE" = "rehearsal" ]; then args+=(--rehearsal); fi
+          node --experimental-strip-types scripts/audit-comun-operations.mjs "${args[@]}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-operations-${{ inputs.mode || 'daily' }}-${{ github.sha }}-${{ github.run_id }}
+          path: .ci-artifacts/comun-operations/
+          retention-days: 30
+          if-no-files-found: error
+      - name: Update the single aggregated operations issue
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact=.ci-artifacts/comun-operations/operations-report.json
+          p1=$(jq -r '.projectionBefore.p1 // 0' "$artifact")
+          overdue=$(jq -r '.projectionBefore.overdue // 0' "$artifact")
+          duplicates=$(jq -r '.projectionBefore.duplicates // 0' "$artifact")
+          if [ "$p1" = "0" ] && [ "$overdue" = "0" ] && [ "$duplicates" = "0" ]; then
+            exit 0
+          fi
+          title="Operação unificada do COMUN"
+          existing=$(gh issue list --state open --search "$title in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+          body="A auditoria agregada encontrou P1=$p1, vencidos=$overdue e duplicidades=$duplicates. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. O artifact não contém conteúdo, pessoas ou IDs das fontes."
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi

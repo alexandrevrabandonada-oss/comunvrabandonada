@@ -37,6 +37,7 @@
     "smoke:community-radio": "node --experimental-strip-types scripts/smoke-comun-community-radio.mjs",
     "smoke:sidewalk-pilot": "node --experimental-strip-types scripts/smoke-comun-sidewalk-pilot.mjs",
     "smoke:editorial-operation": "node --experimental-strip-types scripts/smoke-comun-editorial-operation.mjs",
+    "audit:operations": "node --experimental-strip-types scripts/audit-comun-operations.mjs",
     "smoke:editorial-incidents": "node --experimental-strip-types scripts/smoke-comun-editorial-incidents.mjs",
     "smoke:first-pilot-rehearsal": "node scripts/smoke-comun-first-pilot-rehearsal.mjs",
     "smoke:first-pilot-authenticated-rehearsal": "node scripts/smoke-comun-first-pilot-authenticated-rehearsal.mjs",
