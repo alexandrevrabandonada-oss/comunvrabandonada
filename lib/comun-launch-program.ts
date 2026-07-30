@@ -1,8 +1,5 @@
 export type ComunLaunchDomainStatus =
-  | "green"
-  | "in_progress"
-  | "blocked"
-  | "evidence_required";
+  "green" | "in_progress" | "blocked" | "evidence_required";
 
 export type ComunLaunchDomain = {
   id: string;
