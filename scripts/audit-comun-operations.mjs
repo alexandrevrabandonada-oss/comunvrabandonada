@@ -206,7 +206,38 @@ async function collectCandidates(client) {
   return { candidates, counts };
 }
 
-async function inventoryProjection(client) {
+async function detectProjectionSchema(client) {
+  const result = await client.query(`select count(*)::int as available
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'comun_editorial_operation_items'
+      and column_name in (
+        'source_domain','idempotency_key','sla_state','projection_contract'
+      )`);
+  return result.rows[0].available === 4 ? "operations-v1" : "legacy";
+}
+
+async function inventoryProjection(client, projectionSchema) {
+  if (projectionSchema === "legacy") {
+    const legacy = await client.query(`select
+      count(*)::int as total,
+      count(*) filter (where state not in ('resolved','withdrawn'))::int as open,
+      count(*) filter (where priority = 1 and state not in ('resolved','withdrawn'))::int as p1,
+      (select count(*)::int from public.comun_editorial_operation_assignments a
+        left join public.comun_editorial_operation_items i on i.id = a.item_id
+        where i.id is null) as orphan_assignments,
+      (select count(*)::int from public.comun_editorial_operation_events e
+        left join public.comun_editorial_operation_items i on i.id = e.item_id
+        where i.id is null) as orphan_events
+      from public.comun_editorial_operation_items`);
+    return {
+      ...legacy.rows[0],
+      overdue: null,
+      managed: 0,
+      missing_key: null,
+      duplicates: null,
+    };
+  }
   const result = await client.query(`select
     count(*)::int as total,
     count(*) filter (where state not in ('resolved','withdrawn'))::int as open,
@@ -460,7 +491,10 @@ export async function runOperationsAudit() {
       mode === "read-only" ? "begin transaction read only" : "begin",
     );
     await client.query("set local statement_timeout = '30s'");
-    const before = await inventoryProjection(client);
+    const projectionSchema = await detectProjectionSchema(client);
+    if (mode !== "read-only" && projectionSchema !== "operations-v1")
+      throw new Error("COMUN_OPERATIONS_PROJECTION_MIGRATION_REQUIRED");
+    const before = await inventoryProjection(client, projectionSchema);
     if (mode === "rehearsal") {
       const rehearsal = await runRehearsal(client);
       await client.query("rollback");
@@ -470,6 +504,7 @@ export async function runOperationsAudit() {
         mode,
         rehearsal,
         before,
+        projectionSchema,
         databaseWrites: "rolled_back",
         storageWrites: "none",
         publicWrites: "none",
@@ -494,6 +529,8 @@ export async function runOperationsAudit() {
         sourceCounts: counts,
         candidates: candidates.length,
         projectionBefore: before,
+        projectionSchema,
+        migrationRequired: projectionSchema !== "operations-v1",
         sync,
         databaseWrites:
           mode === "sync" ? "operational_projection_only" : "none",
