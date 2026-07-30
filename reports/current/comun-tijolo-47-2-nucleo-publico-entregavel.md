@@ -1,6 +1,6 @@
 # Tijolo 47.2 — Núcleo público entregável
 
-Resultado em preparação: `COMUN_V1_PUBLIC_CORE_IN_PROGRESS`
+Resultado: `COMUN_V1_PUBLIC_CORE_GREEN`
 
 ## Findings confirmados em produção
 
@@ -12,14 +12,24 @@ Resultado em preparação: `COMUN_V1_PUBLIC_CORE_IN_PROGRESS`
 
 ## Correção
 
-- o aviso global passa a dizer `Versão em preparação · acesso piloto`;
-- o mapa passa a identificar `contribuições revisadas`;
+- o aviso global passou a dizer `Versão em preparação · acesso piloto`;
+- o mapa passou a identificar `contribuições revisadas`;
 - foi criado um contrato central de conteúdo público entregável;
 - slugs de smoke/fixture e metadados editoriais técnicos são bloqueados nas superfícies públicas;
 - Home, busca, acervo, coleções e experiências territoriais usam a mesma fronteira;
 - o detalhe direto de um item incoerente retorna indisponível até que sua curadoria pública seja corrigida;
 - a derivada pública da calçada permanece disponível no mapa, sem apagar o original ou o registro;
 - o detector de launch readiness passou a usar marcadores precisos.
+
+## Evidências de produção
+
+- Home: HTTP 200, sem cards smoke ou metadados privados;
+- Mapa das Calçadas: HTTP 200, um registro real preservado e linguagem `contribuições revisadas`;
+- Acervo editorial: HTTP 200, sem itens técnicos promovidos;
+- busca por `smoke`: HTTP 200 e zero resultados públicos;
+- detalhe editorial incoerente: HTTP 404;
+- runtime `error/fatal`: zero no deployment auditado;
+- testes focais, typecheck, lint, build, diff-check e gate público: verdes.
 
 ## Fronteira
 
@@ -28,4 +38,4 @@ Resultado em preparação: `COMUN_V1_PUBLIC_CORE_IN_PROGRESS`
 - nenhum registro público da calçada foi despublicado;
 - nenhum dado privado foi lido ou copiado para artifacts;
 - itens de teste permanecem disponíveis apenas para administração e auditoria;
-- o lançamento integral continua bloqueado.
+- o lançamento integral continua bloqueado pelos nove domínios restantes.

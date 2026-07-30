@@ -22,7 +22,7 @@ export const COMUN_V1_LAUNCH_PROGRAM = {
     {
       id: "public_core",
       label: "Núcleo público e navegação",
-      status: "in_progress",
+      status: "green",
       objective:
         "Home, exploração, busca, territórios e navegação precisam formar uma jornada coerente sem conta.",
       requiredEvidence: [
