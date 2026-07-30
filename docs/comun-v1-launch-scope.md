@@ -93,3 +93,10 @@ solicitação moderada, autoaprovação bloqueada, decisão idempotente, papéis
 grupos escopados à comunidade, Inbox conectada, revogação imediata e
 postflight sem resíduos. Nenhum e-mail externo foi enviado e o gate
 `launch_publicly` permanece fechado.
+
+O Tijolo 47.5 extraiu o contrato executável do motor de miniapps e conectou o
+Mapa das Calçadas à definição canônica. A janela territorial
+`calcadas-vr-piloto-01` permanece ativa até `2026-08-06T03:00:00.000Z`; por
+isso `miniapps` continua `in_progress`. O estado técnico é
+`COMUN_MINIAPPS_READY_FOR_PILOT_CLOSEOUT`, sem promoção antecipada e sem acionar
+`launch_publicly`.

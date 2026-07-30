@@ -1,0 +1,61 @@
+{
+  "formatVersion": 1,
+  "checkpoint": "comun-tijolo-47-5-miniapps-pilot-closeout",
+  "result": "COMUN_MINIAPPS_READY_FOR_PILOT_CLOSEOUT",
+  "domainStatus": "in_progress",
+  "baseMainSha": "b3091b69b7675c13911f05d3288b3ad2b66b392e",
+  "functionalCandidateSha": "ec75f3566abbdffd861de8ac2c307a560f660d5a",
+  "pilot": {
+    "id": "calcadas-vr-piloto-01",
+    "phase": "active",
+    "startAt": "2026-07-30T03:00:00.000Z",
+    "endAt": "2026-08-06T03:00:00.000Z",
+    "observedRun": 30567936950,
+    "artifact": "comun-sidewalk-pilot-30567936950"
+  },
+  "metrics": {
+    "participants": 0,
+    "authorizedUploads": 0,
+    "confirmedUploads": 0,
+    "records": 0,
+    "published": 0,
+    "completionRatePct": 0,
+    "technicalFailures": 0,
+    "technicalFailureRatePct": 0,
+    "moderationDecisions": 0,
+    "moderationWithinSla": 0,
+    "pendingRecords": 0,
+    "pendingPhotos": 0,
+    "returnRatePct": 0,
+    "territoriesReached": 0,
+    "recordsLinkedToPriority": 0,
+    "recordsLinkedToAction": 0,
+    "recordsLinkedToProtocol": 0,
+    "recordsWithResponse": 0,
+    "fieldVerifications": 0,
+    "resolutions": 0,
+    "reopenings": 0
+  },
+  "privacy": {
+    "containsCoordinates": false,
+    "containsPersonalData": false,
+    "containsUserIds": false,
+    "containsRecordIds": false,
+    "containsObjectKeys": false
+  },
+  "remoteWrites": "none",
+  "migrationCreated": false,
+  "migrationApplied": false,
+  "syntheticPilotResidue": "none",
+  "localVerification": {
+    "contractAndCloseoutTests": 13,
+    "domainRegressionTests": 95,
+    "typecheck": "green",
+    "lint": "green",
+    "build": "green",
+    "pmtiles": "green",
+    "axeViewports": 5,
+    "integratedMobileJourney": "green"
+  },
+  "launchPubliclyTriggered": false
+}

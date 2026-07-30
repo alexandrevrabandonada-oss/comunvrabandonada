@@ -36,7 +36,7 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
   ).toBeVisible();
   await screenshot(page, "mapa", testInfo.project.name);
   await expect(
-    page.getByText("Base cartográfica real · registros demonstrativos", {
+    page.getByText("Base cartográfica real · contribuições revisadas", {
       exact: true,
     }),
   ).toBeVisible();
@@ -59,7 +59,7 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
   await screenshot(page, "lista", testInfo.project.name);
   await page.goto(`/comun/calcadas/registros/${fixture.recordSlug}`);
   await expect(
-    page.getByText("Confirmar ou atualizar", { exact: true }),
+    page.getByRole("heading", { name: "Trecho de calçada quebrada — E2E" }),
   ).toBeVisible();
   await screenshot(page, "registro", testInfo.project.name);
   await page.goto("/comun/entrar?returnTo=%2Fcomun%2Fminha-participacao");

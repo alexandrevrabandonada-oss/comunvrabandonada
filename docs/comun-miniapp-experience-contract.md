@@ -2,7 +2,13 @@
 
 ## Propósito
 
-Um miniapp é uma ferramenta de uma pauta, não um produto separado. Ele reutiliza o registro de módulos de pauta e deve manter visíveis o território, a comunidade responsável e o caminho de volta ao COMUN.
+Um miniapp é uma ferramenta especializada de uma pauta. Ele não substitui comunidade, ação coletiva, protocolo, resultado ou memória. Ele reutiliza o registro canônico de módulos de pauta e deve manter visíveis o território, a comunidade responsável e o caminho de volta ao COMUN.
+
+O contrato executável está em `lib/miniapp-contract.ts`. A registry de módulos
+continua sendo `lib/comun/pauta-module-registry.ts`; não há segunda tabela nem
+segunda fonte de verdade. Cada definição declara uma versão, rotas, contexto,
+permissões, estados, projeção pública, capacidades políticas, auditoria,
+privacidade e retenção.
 
 ## Contexto obrigatório
 
@@ -44,6 +50,9 @@ Retornos obrigatórios: Minha área, Caixa de entrada, prioridade, ação, resul
 - cobertura parcial nunca é apresentada como levantamento completo;
 - dados privados, originais e coordenadas protegidas não entram na projeção pública;
 - nenhuma integração remota é ativada implicitamente.
+- conflitos de attempt, run, pauta ou projeção pública falham fechados;
+- capacidades são opcionais, mas pauta, território, comunidade, contribuição,
+  alternativa textual, participação, Inbox e administração são explícitos.
 
 ## Aplicação no Mapa das Calçadas
 
@@ -53,6 +62,15 @@ Retornos obrigatórios: Minha área, Caixa de entrada, prioridade, ação, resul
 - ação principal: registrar calçada;
 - navegação local: Mapa, Prioridades, Mobilização e Resultados;
 - acompanhamento: Minha área e Caixa de entrada;
-- cartografia: `localSynthetic` nesta Sprint, com contrato preparado para `realBasemapProvider`.
+- definição executável: `lib/sidewalk-miniapp-definition.ts`;
+- cartografia padrão: PMTiles canônico de Volta Redonda, com grade neutra e
+  lista equivalente como fallback;
+- contribuição: sessão anônima limitada, upload privado e moderação antes da
+  projeção pública;
+- ciclo político: prioridade, ação, protocolo, resposta, verificação de campo,
+  resultado e memória usam entidades canônicas já existentes.
 
 Não foi criada uma segunda registry nem uma nova tabela.
+
+Uma definição sintética de agenda cultural existe somente em teste para provar
+desacoplamento. Ela não cria rota, dado ou miniapp público.
