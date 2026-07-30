@@ -1,12 +1,25 @@
 name: COMUN Sidewalk Operations
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-sidewalk-operations.yml"
+      - "app/comun/admin/calcadas/operacao/**"
+      - "components/admin-shell.tsx"
+      - "lib/pauta-miniapps.ts"
+      - "lib/sidewalk-operations.ts"
+      - "lib/sidewalk-operations.test.ts"
+      - "lib/sidewalk-upload-cleanup.ts"
+      - "lib/sidewalk-upload-cleanup.test.ts"
+      - "scripts/audit-comun-sidewalk-operations.mjs"
+      - "scripts/cleanup-comun-sidewalk-uploads.mjs"
   schedule:
     - cron: "47 4 * * *"
   workflow_dispatch:
 
 concurrency:
-  group: comun-sidewalk-operations
+  group: comun-sidewalk-operations-${{ github.event.pull_request.number || 'production' }}
   cancel-in-progress: false
 
 permissions:
@@ -14,8 +27,45 @@ permissions:
   issues: write
 
 jobs:
+  verify:
+    name: VERIFY / COMUN_SIDEWALK_OPERATION_VIVA_GREEN
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --check scripts/audit-comun-sidewalk-operations.mjs
+      - run: node --check scripts/cleanup-comun-sidewalk-uploads.mjs
+      - run: npx prettier --check .github/workflows/comun-sidewalk-operations.yml app/comun/admin/calcadas/operacao/page.tsx components/admin-shell.tsx lib/pauta-miniapps.ts lib/sidewalk-operations.ts lib/sidewalk-operations.test.ts lib/sidewalk-upload-cleanup.ts lib/sidewalk-upload-cleanup.test.ts scripts/audit-comun-sidewalk-operations.mjs scripts/cleanup-comun-sidewalk-uploads.mjs
+      - run: npx vitest run lib/sidewalk-operations.test.ts lib/sidewalk-upload-cleanup.test.ts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: git diff --check origin/main...HEAD
+      - name: Verify privacy and cleanup boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'containsCoordinates: false' scripts/audit-comun-sidewalk-operations.mjs
+          grep -q 'expired_cleanup_marked' scripts/cleanup-comun-sidewalk-uploads.mjs
+          grep -q 'COMUN_SIDEWALK_CLEANUP_DELETE_AGE_HOURS: "168"' .github/workflows/comun-sidewalk-operations.yml
+          grep -q 'createSignedUrl(asset.object_key, 300)' app/comun/admin/calcadas/operacao/page.tsx
+          ! grep -R -n -E 'SUPABASE_SERVICE_ROLE_KEY=|SUPABASE_DB_URL=' \
+            app/comun/admin/calcadas/operacao/page.tsx \
+            scripts/audit-comun-sidewalk-operations.mjs \
+            scripts/cleanup-comun-sidewalk-uploads.mjs
+          echo COMUN_SIDEWALK_OPERATION_VIVA_GREEN >> "$GITHUB_STEP_SUMMARY"
+
   audit:
     name: AUDIT / COMUN_SIDEWALK_OPERATIONS
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -59,7 +109,7 @@ jobs:
   quarantine-expired:
     name: CLEANUP / QUARANTINE_EXPIRED_UPLOADS
     needs: audit
-    if: always() && needs.audit.result != 'cancelled'
+    if: github.event_name != 'pull_request' && always() && needs.audit.result != 'cancelled'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -96,7 +146,7 @@ jobs:
   delete-after-quarantine:
     name: CLEANUP / DELETE_AFTER_SEVEN_DAY_QUARANTINE
     needs: quarantine-expired
-    if: always() && needs.quarantine-expired.result == 'success'
+    if: github.event_name != 'pull_request' && always() && needs.quarantine-expired.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
