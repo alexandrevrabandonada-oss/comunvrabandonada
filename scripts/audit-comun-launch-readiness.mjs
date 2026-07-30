@@ -107,7 +107,7 @@ const securityHeaders = {
   referrerPolicy: Boolean(home.headers["referrer-policy"]),
   contentSecurityPolicy: Boolean(
     home.headers["content-security-policy"] ||
-      home.headers["content-security-policy-report-only"],
+    home.headers["content-security-policy-report-only"],
   ),
 };
 

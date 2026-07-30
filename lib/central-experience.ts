@@ -6,7 +6,13 @@ export async function getCentralExperience() {
   const started = performance.now();
   const db = createServiceSupabaseClient();
   if (!db)
-    return { rounds: [], artworks: [], episodes: [], memory: [], durationMs: 0 };
+    return {
+      rounds: [],
+      artworks: [],
+      episodes: [],
+      memory: [],
+      durationMs: 0,
+    };
 
   const [
     { data: rounds },
@@ -182,7 +188,10 @@ export async function getTerritoryExperience(territoryId: string) {
         const archive = Array.isArray(item.archive)
           ? item.archive[0]
           : item.archive;
-        return archive?.visibility === "public" && isPublicContentDeliverable(archive);
+        return (
+          archive?.visibility === "public" &&
+          isPublicContentDeliverable(archive)
+        );
       })
       .slice(0, 6),
   };

@@ -28,7 +28,12 @@ describe("public content readiness", () => {
         visibility: "public",
         published_at: "2026-07-30T00:00:00Z",
       }).reasons,
-    ).toEqual(expect.arrayContaining(["technical_slug", "technical_editorial_metadata"]));
+    ).toEqual(
+      expect.arrayContaining([
+        "technical_slug",
+        "technical_editorial_metadata",
+      ]),
+    );
   });
 
   it("recusa derivada pública com título ou resumo ainda privados", () => {
