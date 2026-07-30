@@ -3,13 +3,53 @@ import { NextResponse } from "next/server";
 import { getComunAdminSession } from "@/lib/admin-auth";
 import { logComunAdminAction } from "@/lib/admin-audit";
 import { getMediaStorage, publicMediaUrl } from "@/lib/media-storage";
+import { validateRadioUploadMetadata } from "@/lib/radio-media-profile.mjs";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
-const ROLES = new Set(["original", "public_version", "cover", "oral_history_original_audio", "oral_history_public_audio_excerpt", "oral_history_public_full_audio", "oral_history_consent_document", "oral_history_transcript_source", "oral_history_portrait", "oral_history_attachment", "radio_private_original", "radio_voice_consent_document", "radio_music_rights_document", "radio_transcript_document", "radio_context_document"]);
-const ORAL_AUDIO = new Set(["audio/mpeg", "audio/mp4", "audio/x-m4a", "audio/wav", "audio/ogg"]);
-const RADIO_AUDIO = new Set(["audio/wav", "audio/mpeg", "audio/mp4", "audio/ogg", "audio/flac"]);
-const PRIVATE_ORAL_ROLES = new Set(["oral_history_original_audio", "oral_history_consent_document", "oral_history_transcript_source", "oral_history_attachment"]);
-const PRIVATE_RADIO_ROLES = new Set(["radio_private_original", "radio_voice_consent_document", "radio_music_rights_document", "radio_transcript_document", "radio_context_document"]);
+const ROLES = new Set([
+  "original",
+  "public_version",
+  "cover",
+  "oral_history_original_audio",
+  "oral_history_public_audio_excerpt",
+  "oral_history_public_full_audio",
+  "oral_history_consent_document",
+  "oral_history_transcript_source",
+  "oral_history_portrait",
+  "oral_history_attachment",
+  "radio_private_original",
+  "radio_voice_consent_document",
+  "radio_music_rights_document",
+  "radio_transcript_document",
+  "radio_context_document",
+]);
+const ORAL_AUDIO = new Set([
+  "audio/mpeg",
+  "audio/mp4",
+  "audio/x-m4a",
+  "audio/wav",
+  "audio/ogg",
+]);
+const RADIO_AUDIO = new Set([
+  "audio/wav",
+  "audio/mpeg",
+  "audio/mp4",
+  "audio/ogg",
+  "audio/flac",
+]);
+const PRIVATE_ORAL_ROLES = new Set([
+  "oral_history_original_audio",
+  "oral_history_consent_document",
+  "oral_history_transcript_source",
+  "oral_history_attachment",
+]);
+const PRIVATE_RADIO_ROLES = new Set([
+  "radio_private_original",
+  "radio_voice_consent_document",
+  "radio_music_rights_document",
+  "radio_transcript_document",
+  "radio_context_document",
+]);
 const MAX_URLS_PER_10_MINUTES = 20;
 
 export async function POST(request: Request) {
@@ -36,20 +76,65 @@ export async function POST(request: Request) {
     };
     if (!body.archiveItemId || !body.filename || !ROLES.has(body.role))
       throw new Error("Dados de upload incompletos.");
-    const { data: typedItem } = await db.from("comun_archive_items").select("id,item_type").eq("id", body.archiveItemId).maybeSingle();
+    const { data: typedItem } = await db
+      .from("comun_archive_items")
+      .select("id,item_type")
+      .eq("id", body.archiveItemId)
+      .maybeSingle();
     if (!typedItem) throw new Error("Item do Acervo nao encontrado.");
     const oralRole = body.role.startsWith("oral_history_");
     const radioRole = body.role.startsWith("radio_");
-    if (oralRole && typedItem.item_type !== "oral_history") throw new Error("Papel de Historia Oral exige entrevista.");
-    if (radioRole && typedItem.item_type !== "community_radio_episode") throw new Error("Papel de radio exige episodio.");
-    if (body.mimeType.startsWith("video/")) throw new Error("Upload de video permanece bloqueado.");
-    if (body.mimeType.startsWith("audio/") && !((oralRole && ORAL_AUDIO.has(body.mimeType)) || (body.role === "radio_private_original" && RADIO_AUDIO.has(body.mimeType)))) throw new Error("Audio exige papel e MIME autorizados.");
-    if (body.role === "radio_private_original" && body.sizeBytes > 250 * 1024 * 1024) throw new Error("Audio excede 250 MB.");
-    if (["radio_voice_consent_document", "radio_music_rights_document", "radio_context_document"].includes(body.role) && body.mimeType !== "application/pdf") throw new Error("Documento privado deve ser PDF.");
-    if (body.role === "radio_transcript_document" && !["text/plain", "text/vtt", "application/pdf"].includes(body.mimeType)) throw new Error("Transcricao deve ser TXT, VTT ou PDF.");
-    if (body.role === "oral_history_original_audio" && body.sizeBytes > 500 * 1024 * 1024) throw new Error("Audio excede 500 MB.");
-    if (body.role === "oral_history_consent_document" && body.mimeType !== "application/pdf") throw new Error("Termo deve ser PDF privado.");
-    if (body.role === "oral_history_transcript_source" && !["text/plain", "application/pdf"].includes(body.mimeType)) throw new Error("Fonte de transcricao deve ser TXT ou PDF.");
+    if (oralRole && typedItem.item_type !== "oral_history")
+      throw new Error("Papel de Historia Oral exige entrevista.");
+    if (radioRole && typedItem.item_type !== "community_radio_episode")
+      throw new Error("Papel de radio exige episodio.");
+    if (body.mimeType.startsWith("video/"))
+      throw new Error("Upload de video permanece bloqueado.");
+    if (
+      body.mimeType.startsWith("audio/") &&
+      !(
+        (oralRole && ORAL_AUDIO.has(body.mimeType)) ||
+        (body.role === "radio_private_original" &&
+          RADIO_AUDIO.has(body.mimeType))
+      )
+    )
+      throw new Error("Audio exige papel e MIME autorizados.");
+    if (body.role === "radio_private_original") {
+      const radioValidation = validateRadioUploadMetadata({
+        mimeType: body.mimeType,
+        sizeBytes: body.sizeBytes,
+      });
+      if (!radioValidation.ok) throw new Error(radioValidation.message);
+    }
+    if (
+      [
+        "radio_voice_consent_document",
+        "radio_music_rights_document",
+        "radio_context_document",
+      ].includes(body.role) &&
+      body.mimeType !== "application/pdf"
+    )
+      throw new Error("Documento privado deve ser PDF.");
+    if (
+      body.role === "radio_transcript_document" &&
+      !["text/plain", "text/vtt", "application/pdf"].includes(body.mimeType)
+    )
+      throw new Error("Transcricao deve ser TXT, VTT ou PDF.");
+    if (
+      body.role === "oral_history_original_audio" &&
+      body.sizeBytes > 500 * 1024 * 1024
+    )
+      throw new Error("Audio excede 500 MB.");
+    if (
+      body.role === "oral_history_consent_document" &&
+      body.mimeType !== "application/pdf"
+    )
+      throw new Error("Termo deve ser PDF privado.");
+    if (
+      body.role === "oral_history_transcript_source" &&
+      !["text/plain", "application/pdf"].includes(body.mimeType)
+    )
+      throw new Error("Fonte de transcricao deve ser TXT ou PDF.");
     const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     const { count, error: rateLimitError } = await db
       .from("comun_admin_audit_log")
@@ -75,7 +160,11 @@ export async function POST(request: Request) {
       );
     }
     const extension = body.filename.split(".").pop()?.toLowerCase() ?? "";
-    const scope = PRIVATE_RADIO_ROLES.has(body.role) ? "radio_private_original" : body.role === "original" || PRIVATE_ORAL_ROLES.has(body.role) ? "private_original" : ("public_safe" as const);
+    const scope = PRIVATE_RADIO_ROLES.has(body.role)
+      ? "radio_private_original"
+      : body.role === "original" || PRIVATE_ORAL_ROLES.has(body.role)
+        ? "private_original"
+        : ("public_safe" as const);
     const created = await db
       .from("comun_archive_assets")
       .insert({
@@ -97,8 +186,8 @@ export async function POST(request: Request) {
       scope === "radio_private_original"
         ? `radio-originals/${body.archiveItemId}/${randomUUID()}.${extension}`
         : scope === "private_original"
-        ? `originals/${body.archiveItemId}/${randomUUID()}.${extension}`
-        : `public/${body.archiveItemId}/${assetId}/${randomUUID()}.${extension}`;
+          ? `originals/${body.archiveItemId}/${randomUUID()}.${extension}`
+          : `public/${body.archiveItemId}/${assetId}/${randomUUID()}.${extension}`;
     const signed = await getMediaStorage().createUploadUrl({
       scope,
       key,

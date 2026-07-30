@@ -32,23 +32,42 @@ test("preflight, postflight e inventário usam o mesmo auditor fixo read-only", 
   );
 });
 
-test("reparo é uma lane separada com SHA e plano exatos", async () => {
+test("migration de perfil é separada, exata e não cria objetos", async () => {
+  const workflow = await readFile(workflowUrl, "utf8");
+  const migration =
+    workflow.match(/  migrate-radio-profile:[\s\S]*?\n  repair:/)?.[0] ?? "";
+  assert.match(migration, /inputs\.mode == 'migrate-radio-profile'/);
+  assert.match(migration, /APLICAR_PERFIL_GRATUITO_RADIO_V1_47_6B/);
+  assert.match(migration, /supabase db push.+--dry-run/s);
+  assert.match(migration, /radio-v1-storage-migration\.mjs/);
+  assert.match(migration, /COMUN_RADIO_V1_STORAGE_PROFILE_APPLIED/);
+  assert.doesNotMatch(
+    migration,
+    /SUPABASE_SERVICE_ROLE_KEY|storage\.(?:upload|createBucket)/,
+  );
+});
+
+test("correção de alt text é uma lane separada com SHA e plano exatos", async () => {
   const workflow = await readFile(workflowUrl, "utf8");
   const repair =
     workflow.match(/  repair:[\s\S]*?\n  private-rehearsal:/)?.[0] ?? "";
   assert.match(repair, /inputs\.mode == 'repair'/);
-  assert.match(repair, /EXECUTAR_REPARO_CULTURAL_47_6A/);
+  assert.match(repair, /EXECUTAR_CORRECAO_ALT_CULTURAL_47_6B/);
   assert.match(repair, /inputs\.expected_plan_hash/);
   assert.match(repair, /repair-comun-cultural-remote-state\.mjs/);
-  assert.match(repair, /SUPABASE_SERVICE_ROLE_KEY:/);
   assert.match(repair, /if: always\(\)/);
-  assert.doesNotMatch(repair, /storage\.from\(.+upload|launch_publicly/);
+  assert.doesNotMatch(
+    repair,
+    /SUPABASE_SERVICE_ROLE_KEY|storage\.from\(.+upload|launch_publicly/,
+  );
 });
 
 test("findings diários reutilizam uma única issue agregadora", async () => {
   const workflow = await readFile(workflowUrl, "utf8");
   const findings =
-    workflow.match(/  operational-findings:[\s\S]*?\n  repair:/)?.[0] ?? "";
+    workflow.match(
+      /  operational-findings:[\s\S]*?\n  migrate-radio-profile:/,
+    )?.[0] ?? "";
   assert.match(findings, /github\.event_name == 'schedule'/);
   assert.match(findings, /issues:\s*write/);
   assert.match(findings, /Entregabilidade cultural — findings/);
@@ -75,5 +94,8 @@ test("ensaio privado é separado, confirmado e publica artifact", async () => {
 test("workflow não possui canal de publicação ou lançamento", async () => {
   const workflow = await readFile(workflowUrl, "utf8");
   assert.doesNotMatch(workflow, /launch_publicly|mode == 'publish'/);
-  assert.doesNotMatch(workflow, /VERCEL_TOKEN|storage\.from\(.+upload/);
+  assert.doesNotMatch(
+    workflow,
+    /VERCEL_TOKEN|SUPABASE_SERVICE_ROLE_KEY|storage\.from\(.+upload/,
+  );
 });

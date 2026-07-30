@@ -13,8 +13,6 @@ const environment = {
     "postgresql://postgres.projectref:secret@pooler.supabase.com:6543/postgres",
   SUPABASE_PROJECT_REF: "projectref",
   COMUN_CULTURAL_ALLOWED_PROJECT_REFS: "projectref",
-  NEXT_PUBLIC_SUPABASE_URL: "https://projectref.supabase.co",
-  SUPABASE_SERVICE_ROLE_KEY: "test-only-secret",
   COMUN_CULTURAL_EXPECTED_PLAN_HASH: "a".repeat(64),
   COMUN_CULTURAL_REPAIR_CONFIRMATION: repairConfirmation,
 };
@@ -27,7 +25,7 @@ function exactArtifact() {
       planHash: "a".repeat(64),
     },
     storage: {
-      missingBuckets: ["radio-private-originals", "radio-public-audio"],
+      missingBuckets: [],
       incompatibleBuckets: [],
       similarUnexpectedBuckets: 0,
       policyEvidence: { policiesGreen: true },
@@ -36,11 +34,10 @@ function exactArtifact() {
   };
 }
 
-test("reparo exige target API, allowlist, confirmação e hash exatos", () => {
+test("correção editorial exige banco allowlisted, confirmação e hash exatos", () => {
   const validated = validateCulturalRepairEnvironment(environment);
   assert.equal(validated.expectedPlanHash, "a".repeat(64));
   for (const key of [
-    "SUPABASE_SERVICE_ROLE_KEY",
     "COMUN_CULTURAL_EXPECTED_PLAN_HASH",
     "COMUN_CULTURAL_REPAIR_CONFIRMATION",
   ]) {
@@ -65,14 +62,14 @@ test("plano exato aceita apenas o hash e a cardinalidade observados", () => {
     /PLAN_MISMATCH/,
   );
   const tooMany = exactArtifact();
-  tooMany.storage.missingBuckets.push("unexpected");
+  tooMany.storage.missingBuckets.push("radio-public-audio");
   assert.throws(
     () => assertExactCulturalRepairPlan(tooMany, "a".repeat(64)),
     /PLAN_MISMATCH/,
   );
 });
 
-test("artifact permite somente bucket metadata e um campo alt text", () => {
+test("artifact permite somente um campo alt text e zero Storage writes", () => {
   const artifact = {
     result: "COMUN_ARCHIVE_RADIO_ART_REMOTE_STATE_REPAIRED",
     storageObjectsCreated: 0,
@@ -80,7 +77,7 @@ test("artifact permite somente bucket metadata e um campo alt text", () => {
     consentsChanged: false,
     publicationStatusChanged: false,
     databaseWrites: "one_alt_text_field",
-    storageWrites: "2_bucket_metadata_rows",
+    storageWrites: "none",
   };
   assert.equal(assertCulturalRepairArtifactSanitized(artifact), true);
   assert.throws(
@@ -101,15 +98,14 @@ test("artifact permite somente bucket metadata e um campo alt text", () => {
   );
 });
 
-test("reparador não atualiza bucket existente nem cria ou remove objetos", async () => {
+test("reparador editorial não toca buckets nem cria ou remove objetos", async () => {
   const source = await readFile(
     new URL("./repair-comun-cultural-remote-state.mjs", import.meta.url),
     "utf8",
   );
-  assert.match(source, /storage\.createBucket/);
   assert.doesNotMatch(
     source,
-    /storage\.(?:updateBucket|upload|remove|move|copy|deleteBucket)/,
+    /storage\.(?:createBucket|updateBucket|upload|remove|move|copy|deleteBucket)/,
   );
   assert.match(source, /set alt_text = \$2/);
   assert.match(source, /for update of asset/);

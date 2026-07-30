@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   buildCulturalRepairPlan,
   buildCulturalStoragePolicyEvidence,
+  buildRadioStorageMigrationPlan,
   culturalAltTextContract,
   expectedCulturalBuckets,
   sanitizeBucketState,
@@ -23,6 +24,11 @@ test("contrato reconhece os quatro buckets com configuração exata", () => {
   assert.deepEqual(state.missingBuckets, []);
   assert.deepEqual(state.incompatibleBuckets, []);
   assert.ok(state.buckets.every((bucket) => bucket.exact));
+  assert.equal(
+    state.buckets.find((bucket) => bucket.id === "radio-private-originals")
+      ?.fileSizeLimit,
+    47_185_920,
+  );
 });
 
 test("contrato lista os dois buckets de Rádio ausentes sem inventar estado", () => {
@@ -88,13 +94,13 @@ test("authenticated amplo em update ou delete é perigoso", () => {
   }
 });
 
-test("plano exato limita duas linhas de bucket e um alt text", () => {
+test("plano editorial exato só existe depois da migration e limita um alt text", () => {
   const plan = buildCulturalRepairPlan({
     targetVerified: true,
     schemaGreen: true,
     policiesGreen: true,
     similarUnexpectedBuckets: 0,
-    missingBuckets: ["radio-private-originals", "radio-public-audio"],
+    missingBuckets: [],
     incompatibleBuckets: [],
     altCandidateCount: 1,
     altCandidateFingerprint: "a".repeat(64),
@@ -102,9 +108,25 @@ test("plano exato limita duas linhas de bucket e um alt text", () => {
   });
   assert.equal(plan.marker, "COMUN_CULTURAL_REMOTE_REPAIR_PLAN_EXACT");
   assert.match(plan.planHash, /^[a-f0-9]{64}$/);
-  assert.equal(plan.plan.writes.bucketRowsCreatedMax, 2);
+  assert.equal(plan.plan.writes.bucketRowsCreatedMax, 0);
   assert.equal(plan.plan.writes.altTextRowsUpdatedMax, 1);
   assert.equal(plan.plan.writes.storageObjectsCreated, 0);
+});
+
+test("plano da migration aceita exatamente os dois buckets de Rádio ausentes", () => {
+  const plan = buildRadioStorageMigrationPlan({
+    targetVerified: true,
+    schemaGreen: true,
+    policiesGreen: true,
+    similarUnexpectedBuckets: 0,
+    missingBuckets: ["radio-private-originals", "radio-public-audio"],
+    incompatibleBuckets: [],
+  });
+  assert.equal(plan.exact, true);
+  assert.equal(plan.plan.buckets.length, 2);
+  assert.ok(
+    plan.plan.buckets.every((bucket) => bucket.fileSizeLimit === 47_185_920),
+  );
 });
 
 test("plano bloqueia mais de dois buckets, bucket incompatível e lookalike", () => {
@@ -160,7 +182,7 @@ test("plano falha fechado quando a imagem já mudou ou não pôde ser inspeciona
     schemaGreen: true,
     policiesGreen: true,
     similarUnexpectedBuckets: 0,
-    missingBuckets: ["radio-public-audio"],
+    missingBuckets: [],
     incompatibleBuckets: [],
   };
   assert.equal(

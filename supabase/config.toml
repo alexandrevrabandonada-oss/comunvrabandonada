@@ -129,12 +129,12 @@ allowed_mime_types = ["image/webp"]
 
 [storage.buckets.radio-private-originals]
 public = false
-file_size_limit = "250MiB"
+file_size_limit = "45MiB"
 allowed_mime_types = ["audio/wav", "audio/mpeg", "audio/mp4", "audio/ogg", "audio/flac"]
 
 [storage.buckets.radio-public-audio]
 public = true
-file_size_limit = "250MiB"
+file_size_limit = "45MiB"
 allowed_mime_types = ["audio/mpeg", "application/json", "text/vtt", "text/plain"]
 
 # Uncomment to configure local storage buckets

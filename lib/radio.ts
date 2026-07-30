@@ -1,3 +1,5 @@
+import { RADIO_V1_MEDIA_PROFILE } from "./radio-media-profile.mjs";
+
 export const radioFormats = [
   "news",
   "interview",
@@ -32,6 +34,8 @@ export function radioPublicationBlockers(x: {
   if (!x.summary) b.push("summary");
   if (!x.program) b.push("program");
   if (!x.duration) b.push("duration");
+  else if (x.duration > RADIO_V1_MEDIA_PROFILE.maxDurationSeconds)
+    b.push("duration_limit");
   if (!x.publicAudio) b.push("public_audio");
   if (!x.credits) b.push("credits");
   if (!x.consents?.length && x.consents !== undefined) b.push("voice_consent");
