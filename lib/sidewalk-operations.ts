@@ -58,7 +58,9 @@ export function summarizeSidewalkOperations(
   }
 
   const oldestQueueAgeHours = pendingRecords.length
-    ? Math.max(...pendingRecords.map((record) => ageHours(record.created_at, now)))
+    ? Math.max(
+        ...pendingRecords.map((record) => ageHours(record.created_at, now)),
+      )
     : null;
 
   return {
@@ -98,15 +100,17 @@ export function summarizeSidewalkOperations(
       ).length,
       uploaded: input.uploads.filter((upload) => upload.status === "uploaded")
         .length,
-      confirmed: input.uploads.filter(
-        (upload) => upload.status === "confirmed",
-      ).length,
-      abandoned: input.uploads.filter(
-        (upload) => upload.status === "abandoned",
-      ).length,
+      confirmed: input.uploads.filter((upload) => upload.status === "confirmed")
+        .length,
+      abandoned: input.uploads.filter((upload) => upload.status === "abandoned")
+        .length,
     },
-    failures24h: Array.from(failureCodes, ([code, count]) => ({ code, count })).sort(
-      (left, right) => right.count - left.count || left.code.localeCompare(right.code),
+    failures24h: Array.from(failureCodes, ([code, count]) => ({
+      code,
+      count,
+    })).sort(
+      (left, right) =>
+        right.count - left.count || left.code.localeCompare(right.code),
     ),
     publishedTotal: input.records.filter(
       (record) =>

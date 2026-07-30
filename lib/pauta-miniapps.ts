@@ -228,10 +228,7 @@ export async function listMyParticipation(userId: string) {
     ((priorities ?? []) as any[]).map((item: any) => [item.record_id, item.id]),
   );
   const forwardingByPriority = new Map(
-    ((forwardings ?? []) as any[]).map((item: any) => [
-      item.priority_id,
-      item,
-    ]),
+    ((forwardings ?? []) as any[]).map((item: any) => [item.priority_id, item]),
   );
   const sidewalk = sidewalkRows.map((item: any) => {
     const flow: any = forwardingByPriority.get(priorityByRecord.get(item.id));
@@ -248,7 +245,7 @@ export async function listMyParticipation(userId: string) {
         item.approximate_location &&
         item.approximate_location !== "Localização protegida"
           ? item.approximate_location
-          : item.pauta?.title ?? "Registro de calçada",
+          : (item.pauta?.title ?? "Registro de calçada"),
       status: operational.state,
       next_action_public: operational.nextAction,
       last_changed_at: operational.lastChangedAt,
@@ -260,7 +257,7 @@ export async function listMyParticipation(userId: string) {
 
   return {
     memberships: (memberships.data ?? []) as any[],
-    contributions: ([...(contributions.data ?? []), ...sidewalk]) as any[],
+    contributions: [...(contributions.data ?? []), ...sidewalk] as any[],
     artworkSubmissions: (artworkSubmissions.data ?? []) as any[],
     radioContributions: (radioContributions.data ?? []) as any[],
   };

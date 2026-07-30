@@ -38,38 +38,43 @@ export default async function SidewalkOperationsPage() {
   const db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco operacional indisponível.");
 
-  const [queueResult, allRecordsResult, uploadsResult, photosResult, observations] =
-    await Promise.all([
-      db
-        .from("comun_sidewalk_records")
-        .select(
-          "id,slug,name,condition,categories,created_at,approximate_location,neighborhood,private_geometry_geojson,location_accuracy_m,inferred_street,inferred_neighborhood,geographic_risk,status,private_notes,public_summary",
-        )
-        .in("status", ["under_review", "pending"])
-        .order("created_at"),
-      db
-        .from("comun_sidewalk_records")
-        .select("status,visibility,created_at,updated_at")
-        .order("created_at", { ascending: false })
-        .limit(1000),
-      db
-        .from("comun_sidewalk_uploads")
-        .select(
-          "record_id,status,confirmation_state,failure_code,created_at,expires_at,submission_payload",
-        )
-        .order("created_at", { ascending: false })
-        .limit(1000),
-      db
-        .from("comun_sidewalk_record_photos")
-        .select(
-          "id,record_id,review_status,is_public,derivative_asset_id,comun_archive_assets!comun_sidewalk_record_photos_original_asset_id_fkey(object_key,original_filename)",
-        )
-        .limit(1000),
-      db
-        .from("comun_sidewalk_observations")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "pending"),
-    ]);
+  const [
+    queueResult,
+    allRecordsResult,
+    uploadsResult,
+    photosResult,
+    observations,
+  ] = await Promise.all([
+    db
+      .from("comun_sidewalk_records")
+      .select(
+        "id,slug,name,condition,categories,created_at,approximate_location,neighborhood,private_geometry_geojson,location_accuracy_m,inferred_street,inferred_neighborhood,geographic_risk,status,private_notes,public_summary",
+      )
+      .in("status", ["under_review", "pending"])
+      .order("created_at"),
+    db
+      .from("comun_sidewalk_records")
+      .select("status,visibility,created_at,updated_at")
+      .order("created_at", { ascending: false })
+      .limit(1000),
+    db
+      .from("comun_sidewalk_uploads")
+      .select(
+        "record_id,status,confirmation_state,failure_code,created_at,expires_at,submission_payload",
+      )
+      .order("created_at", { ascending: false })
+      .limit(1000),
+    db
+      .from("comun_sidewalk_record_photos")
+      .select(
+        "id,record_id,review_status,is_public,derivative_asset_id,comun_archive_assets!comun_sidewalk_record_photos_original_asset_id_fkey(object_key,original_filename)",
+      )
+      .limit(1000),
+    db
+      .from("comun_sidewalk_observations")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
+  ]);
 
   for (const result of [
     queueResult,
@@ -78,7 +83,8 @@ export default async function SidewalkOperationsPage() {
     photosResult,
     observations,
   ]) {
-    if (result.error) throw new Error("Não foi possível montar o cockpit operacional.");
+    if (result.error)
+      throw new Error("Não foi possível montar o cockpit operacional.");
   }
 
   const queue = (queueResult.data ?? []) as any[];
@@ -128,7 +134,9 @@ export default async function SidewalkOperationsPage() {
           <p className="text-xs font-black uppercase text-comun-yellow">
             Tijolo 46 · operação viva
           </p>
-          <h1 className="text-3xl font-black uppercase">Operação das calçadas</h1>
+          <h1 className="text-3xl font-black uppercase">
+            Operação das calçadas
+          </h1>
           <p className="mt-2 max-w-3xl">
             Funil, fila, fotografia privada temporária e decisões editoriais em
             uma única superfície. Nenhuma coordenada aparece nos indicadores.
@@ -172,7 +180,9 @@ export default async function SidewalkOperationsPage() {
       </section>
 
       <section className="mt-7 border-2 border-comun-yellow p-5">
-        <h2 className="text-2xl font-black uppercase">Funil dos últimos 7 dias</h2>
+        <h2 className="text-2xl font-black uppercase">
+          Funil dos últimos 7 dias
+        </h2>
         <div className="mt-4 grid gap-2 sm:grid-cols-5">
           <FunnelStep label="Autorizados" value={summary.funnel7d.authorized} />
           <FunnelStep label="Foto enviada" value={summary.funnel7d.uploaded} />
@@ -191,7 +201,10 @@ export default async function SidewalkOperationsPage() {
           <h2 className="text-xl font-black uppercase">Falhas recentes</h2>
           <ul className="mt-3 grid gap-2">
             {summary.failures24h.map((failure) => (
-              <li className="flex justify-between border-b py-2" key={failure.code}>
+              <li
+                className="flex justify-between border-b py-2"
+                key={failure.code}
+              >
                 <code>{failure.code}</code>
                 <strong>{failure.count}</strong>
               </li>
@@ -245,7 +258,8 @@ export default async function SidewalkOperationsPage() {
                   Consentimento para ponto exato: {exactConsent ? "sim" : "não"}
                 </p>
                 <p className="text-sm">
-                  Precisão original: {item.location_accuracy_m == null
+                  Precisão original:{" "}
+                  {item.location_accuracy_m == null
                     ? "não informada"
                     : `${Math.round(item.location_accuracy_m)} m`}
                 </p>
@@ -261,16 +275,21 @@ export default async function SidewalkOperationsPage() {
 
               <div>
                 <p className="text-xs font-black uppercase">
-                  {new Date(item.created_at).toLocaleString("pt-BR")} · {item.condition}
+                  {new Date(item.created_at).toLocaleString("pt-BR")} ·{" "}
+                  {item.condition}
                 </p>
-                <h3 className="mt-1 text-xl font-black uppercase">{item.name}</h3>
+                <h3 className="mt-1 text-xl font-black uppercase">
+                  {item.name}
+                </h3>
                 <p className="mt-2">
                   <strong>Problemas:</strong>{" "}
                   {item.categories?.join(" · ") || "não classificados"}
                 </p>
                 <p>
                   <strong>Referência:</strong>{" "}
-                  {item.approximate_location || item.neighborhood || "protegida"}
+                  {item.approximate_location ||
+                    item.neighborhood ||
+                    "protegida"}
                 </p>
                 <details className="mt-3">
                   <summary className="cursor-pointer font-black">
@@ -281,7 +300,10 @@ export default async function SidewalkOperationsPage() {
                   </p>
                 </details>
 
-                <form action={moderateSidewalkRecord} className="mt-5 grid gap-3">
+                <form
+                  action={moderateSidewalkRecord}
+                  className="mt-5 grid gap-3"
+                >
                   <input type="hidden" name="record_id" value={item.id} />
                   <label className="grid gap-1 font-bold">
                     Resumo público sanitizado
@@ -317,13 +339,25 @@ export default async function SidewalkOperationsPage() {
                     />
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <button className="btn" name="decision" value="approve_approximate">
+                    <button
+                      className="btn"
+                      name="decision"
+                      value="approve_approximate"
+                    >
                       Publicar aproximado
                     </button>
-                    <button className="btn" name="decision" value="publish_without_image">
+                    <button
+                      className="btn"
+                      name="decision"
+                      value="publish_without_image"
+                    >
                       Publicar sem imagem
                     </button>
-                    <button className="btn" name="decision" value="needs_information">
+                    <button
+                      className="btn"
+                      name="decision"
+                      value="needs_information"
+                    >
                       Pedir complemento
                     </button>
                     <button className="btn" name="decision" value="reject">
@@ -358,7 +392,10 @@ export default async function SidewalkOperationsPage() {
           {observations.count ?? 0} observação(ões) aguardando decisão. A fila
           detalhada mantém moderação de observações e sugestões de duplicidade.
         </p>
-        <Link className="mt-2 inline-flex font-black underline" href="/comun/admin/calcadas">
+        <Link
+          className="mt-2 inline-flex font-black underline"
+          href="/comun/admin/calcadas"
+        >
           Abrir observações e duplicidades
         </Link>
       </section>

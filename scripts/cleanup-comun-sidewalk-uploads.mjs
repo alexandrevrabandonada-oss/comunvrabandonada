@@ -16,10 +16,7 @@ const limitArg = process.argv.find((value) => value.startsWith("--limit="));
 const projectRefArg = process.argv.find((value) =>
   value.startsWith("--project-ref="),
 );
-const limit = Math.min(
-  Math.max(Number(limitArg?.split("=")[1] ?? 25), 1),
-  100,
-);
+const limit = Math.min(Math.max(Number(limitArg?.split("=")[1] ?? 25), 1), 100);
 const markAgeHours = Math.max(
   Number(process.env.COMUN_SIDEWALK_CLEANUP_MARK_AGE_HOURS ?? 24),
   24,
@@ -143,13 +140,14 @@ if (mode === "mark") {
   for (const ticket of markCandidates) {
     const current = await db
       .from("comun_sidewalk_uploads")
-      .select(
-        "status,confirmation_state,failure_code,expires_at,record_id",
-      )
+      .select("status,confirmation_state,failure_code,expires_at,record_id")
       .eq("id", ticket.id)
       .maybeSingle();
     if (current.error) throw current.error;
-    if (!current.data || !isCleanupMarkEligible(current.data, new Date(), markAgeMs)) {
+    if (
+      !current.data ||
+      !isCleanupMarkEligible(current.data, new Date(), markAgeMs)
+    ) {
       skippedRace += 1;
       continue;
     }
@@ -186,9 +184,7 @@ if (mode === "delete") {
   for (const ticket of deleteCandidates) {
     const current = await db
       .from("comun_sidewalk_uploads")
-      .select(
-        "status,confirmation_state,failure_code,expires_at,record_id",
-      )
+      .select("status,confirmation_state,failure_code,expires_at,record_id")
       .eq("id", ticket.id)
       .maybeSingle();
     if (current.error) throw current.error;
