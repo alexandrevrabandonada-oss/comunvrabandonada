@@ -1,6 +1,7 @@
 # Tijolo 47.6 — Memória e cultura entregáveis
 
-Estado deste relatório: implementação e evidência em andamento.
+Estado deste relatório: implementação integrada; promoção bloqueada por
+findings remotos objetivos.
 
 ## Diagnóstico
 
@@ -133,3 +134,41 @@ O workflow focal separa:
 4. uma única issue agregadora para findings da execução diária.
 
 Nenhum desses canais publica conteúdo ou aciona `launch_publicly`.
+
+## Fechamento
+
+- PR funcional: #105;
+- SHA candidato funcional:
+  `a6bee9b4b1e75df96ffe96a0f99f53442beb3ed0`;
+- merge funcional:
+  `007cd534bbced82b4b3ffeb0a5fa061cc5d95361`;
+- PR de reparo da linhagem do audit: #106;
+- SHA candidato do reparo:
+  `bda9283a7737839c0b88a95fd7f8877a6104c99a`;
+- merge do reparo:
+  `20bfd0c05ff2eca28811f78143e95fc864835c93`;
+- CI focal da PR #106: run `30576664453`, verde;
+- audit automático pós-merge: run `30576859682`, verde como execução
+  read-only e sanitizada;
+- deployment de Production: `5681375598`, `success`;
+- `target.verified=true`;
+- schema: 11/11 tabelas, RLS ausente em 0, grants públicos perigosos 0;
+- Storage: 2/4 buckets culturais presentes;
+- imagens efetivamente publicadas sem alt text: 1;
+- conteúdo real potencial comprovado: Acervo 0, Rádio 0, Arte 0;
+- rotas `/comun/acervo`, `/comun/radio`, `/comun/acervo/arte` e `/comun/arte`:
+  HTTP 200 e sem marcadores privados;
+- ensaio privado remoto: não executado, pois o preflight permaneceu bloqueado;
+- banco e Storage: zero escrita remota neste checkpoint;
+- `launch_publicly`: não executado.
+
+Resultado terminal:
+
+`COMUN_ARCHIVE_RADIO_ART_BLOCKED_REMOTE_STATE`
+
+O domínio permanece `evidence_required`. A próxima correção deve tratar, em
+checkpoint próprio, os dois buckets ausentes e a acessibilidade editorial da
+imagem publicada. Somente depois de um novo preflight estrutural verde poderá
+ser executado o ensaio privado transacional. A presença de conteúdo real
+autorizado nos três recortes continuará sendo uma evidência separada e
+obrigatória.
