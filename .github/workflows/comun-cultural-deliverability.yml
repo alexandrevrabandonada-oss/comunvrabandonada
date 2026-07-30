@@ -1,0 +1,280 @@
+name: COMUN Cultural Deliverability
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/comun-cultural-deliverability.yml"
+      - "app/comun/acervo/**"
+      - "app/comun/admin/acervo/**"
+      - "app/comun/radio/**"
+      - "app/comun/admin/radio/**"
+      - "lib/archive/**"
+      - "lib/archive.ts"
+      - "lib/radio.ts"
+      - "lib/cultural-deliverability*"
+      - "scripts/audit-comun-cultural-deliverability*"
+      - "scripts/rehearse-comun-cultural-deliverability*"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-cultural-deliverability.yml"
+      - "app/comun/acervo/**"
+      - "app/comun/admin/acervo/**"
+      - "app/comun/radio/**"
+      - "app/comun/admin/radio/**"
+      - "lib/archive/**"
+      - "lib/archive.ts"
+      - "lib/radio.ts"
+      - "lib/cultural-deliverability*"
+      - "scripts/audit-comun-cultural-deliverability*"
+      - "scripts/rehearse-comun-cultural-deliverability*"
+  schedule:
+    - cron: "41 10 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Canal operacional separado
+        required: true
+        type: choice
+        options:
+          - preflight
+          - private-rehearsal
+          - content-inventory
+      expected_main_sha:
+        description: SHA imutável da main
+        required: true
+        type: string
+      confirmation:
+        description: Confirmação exclusiva do ensaio privado
+        required: false
+        type: string
+
+concurrency:
+  group: comun-cultural-deliverability-${{ github.event.pull_request.number || github.ref }}-${{ inputs.mode || 'verify' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: VERIFY / COMUN_ARCHIVE_RADIO_ART_CONTRACT
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Unit, contract and workflow tests
+        run: |
+          npx vitest run \
+            lib/cultural-deliverability.test.ts \
+            lib/archive/territorial-art.test.ts \
+            lib/radio.test.ts
+          node --test \
+            scripts/audit-comun-cultural-deliverability.node-test.mjs \
+            scripts/rehearse-comun-cultural-deliverability.node-test.mjs \
+            scripts/comun-cultural-deliverability-workflow.node-test.mjs
+      - name: Existing cultural regressions
+        run: |
+          npx vitest run \
+            lib/archive.test.ts \
+            lib/archive/artwork-storage.test.ts \
+            lib/archive/territorial-art.test.ts \
+            lib/radio.test.ts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - name: Formatting and repository integrity
+        run: |
+          npx prettier --check \
+            .github/workflows/comun-cultural-deliverability.yml \
+            app/comun/acervo/arte/actions.ts \
+            app/comun/admin/acervo/arte/[id]/page.tsx \
+            app/comun/radio/actions.ts \
+            lib/archive/territorial-art.ts \
+            lib/archive/territorial-art-rules.ts \
+            lib/cultural-deliverability.ts \
+            lib/cultural-deliverability.test.ts \
+            lib/radio.ts \
+            lib/radio.test.ts \
+            scripts/audit-comun-cultural-deliverability.mjs \
+            scripts/audit-comun-cultural-deliverability.node-test.mjs \
+            scripts/rehearse-comun-cultural-deliverability.mjs \
+            scripts/rehearse-comun-cultural-deliverability.node-test.mjs \
+            scripts/comun-cultural-deliverability-workflow.node-test.mjs
+          git diff --check origin/main...HEAD
+      - name: Assert local and read-only PR lane
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! sed -n '/^  verify:/,/^  [a-z]/p' \
+            .github/workflows/comun-cultural-deliverability.yml \
+            | grep -E 'secrets[.]'
+          grep -q 'COMUN_ARCHIVE_RADIO_ART_CONTRACT' \
+            .github/workflows/comun-cultural-deliverability.yml
+          echo COMUN_ARCHIVE_RADIO_ART_CONTRACT_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  remote-audit:
+    name: AUDIT / COMUN_ARCHIVE_RADIO_ART_READ_ONLY
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' &&
+       (inputs.mode == 'preflight' || inputs.mode == 'content-inventory'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      result: ${{ steps.audit.outputs.result }}
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.expected_main_sha || github.sha }}
+      - name: Validate immutable main lineage
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ inputs.expected_main_sha }}"
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          git merge-base --is-ancestor HEAD refs/remotes/origin/main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Generate sanitized aggregate inventory
+        id: audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/audit-comun-cultural-deliverability.mjs \
+            --output .ci-artifacts/comun-cultural-deliverability/audit.json
+          result="$(
+            node -e \
+              "process.stdout.write(require('./.ci-artifacts/comun-cultural-deliverability/audit.json').result)"
+          )"
+          echo "result=$result" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-cultural-deliverability-${{ github.sha }}-${{ github.run_id }}
+          path: .ci-artifacts/comun-cultural-deliverability/
+          retention-days: 30
+          if-no-files-found: error
+
+  operational-findings:
+    name: REPORT / COMUN_ARCHIVE_RADIO_ART_FINDINGS
+    needs: remote-audit
+    if: >-
+      always() &&
+      github.event_name == 'schedule' &&
+      needs.remote-audit.outputs.result != ''
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/github-script@v7
+        env:
+          AUDIT_RESULT: ${{ needs.remote-audit.outputs.result }}
+        with:
+          script: |
+            const title = "[COMUN] Entregabilidade cultural — findings";
+            const result = process.env.AUDIT_RESULT;
+            const runUrl =
+              `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}` +
+              `/actions/runs/${context.runId}`;
+            const { data: issues } = await github.rest.issues.listForRepo({
+              ...context.repo,
+              state: "all",
+              per_page: 100,
+            });
+            const existing = issues.find(
+              (issue) => !issue.pull_request && issue.title === title,
+            );
+            const green = result === "COMUN_ARCHIVE_RADIO_ART_GREEN";
+            const body = [
+              `Resultado agregado sanitizado: \`${result}\`.`,
+              `Run: ${runUrl}`,
+              "",
+              "Esta issue agrega somente estados operacionais; não contém conteúdo, IDs privados ou credenciais.",
+            ].join("\n");
+            if (!existing) {
+              if (!green) {
+                await github.rest.issues.create({
+                  ...context.repo,
+                  title,
+                  body,
+                });
+              }
+              return;
+            }
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: existing.number,
+              body,
+            });
+            if (green && existing.state !== "closed") {
+              await github.rest.issues.update({
+                ...context.repo,
+                issue_number: existing.number,
+                state: "closed",
+              });
+            } else if (!green && existing.state !== "open") {
+              await github.rest.issues.update({
+                ...context.repo,
+                issue_number: existing.number,
+                state: "open",
+              });
+            }
+
+  private-rehearsal:
+    name: REHEARSAL / COMUN_ARCHIVE_RADIO_ART_PRIVATE
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.mode == 'private-rehearsal'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      COMUN_CULTURAL_REHEARSAL_CONFIRMATION: ${{ inputs.confirmation }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+      - name: Validate immutable main lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ inputs.expected_main_sha }}"
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          git merge-base --is-ancestor HEAD refs/remotes/origin/main
+          test "${{ inputs.confirmation }}" = \
+            "EXECUTAR_ENSAIO_PRIVADO_ARCHIVE_RADIO_ART"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Run private transactional rehearsal
+        run: >-
+          node scripts/rehearse-comun-cultural-deliverability.mjs
+          --output .ci-artifacts/comun-cultural-deliverability/rehearsal.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-cultural-private-rehearsal-${{ github.sha }}-${{ github.run_id }}
+          path: .ci-artifacts/comun-cultural-deliverability/
+          retention-days: 30
+          if-no-files-found: error

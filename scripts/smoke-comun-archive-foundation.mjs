@@ -9,7 +9,7 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL,
   );
 if (!url || !key) throw new Error("Supabase não configurado.");
 const db = createClient(url, key, { auth: { persistSession: false } }),
-  slug = `smoke-acervo-${Date.now()}`;
+  slug = `validacao-acervo-${Date.now()}`;
 let itemId, collectionId;
 const assert = (ok, msg) => {
   if (!ok) throw new Error(msg);
@@ -30,8 +30,8 @@ try {
     .insert({
       slug,
       item_type: "photograph",
-      title: "Fotografia smoke",
-      summary: "Teste controlado",
+      title: "Fotografia de validação editorial",
+      summary: "Memória local revisada para validação descartável.",
       source_name: "Fixture smoke",
       credits: "Equipe COMUN",
       rights_status: "permission_granted",
@@ -73,7 +73,8 @@ try {
   if (r.error) throw r.error;
   publicPage = await page(`/comun/acervo/${publishedSlug}`);
   assert(
-    publicPage.status === 200 && publicPage.html.includes("Fotografia smoke"),
+    publicPage.status === 200 &&
+      publicPage.html.includes("Fotografia de validação editorial"),
     `Item publicado não apareceu (${publicPage.status}).`,
   );
   for (const secret of [
