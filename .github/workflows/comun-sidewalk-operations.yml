@@ -1,0 +1,182 @@
+name: COMUN Sidewalk Operations
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-sidewalk-operations.yml"
+      - "app/comun/admin/calcadas/operacao/**"
+      - "components/admin-shell.tsx"
+      - "eslint.config.mjs"
+      - "lib/pauta-miniapps.ts"
+      - "lib/sidewalk-operations.ts"
+      - "lib/sidewalk-operations.test.ts"
+      - "lib/sidewalk-upload-cleanup.ts"
+      - "lib/sidewalk-upload-cleanup.test.ts"
+      - "scripts/audit-comun-sidewalk-operations.mjs"
+      - "scripts/cleanup-comun-sidewalk-uploads.mjs"
+  schedule:
+    - cron: "47 4 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: comun-sidewalk-operations-${{ github.event.pull_request.number || 'production' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verify:
+    name: VERIFY / COMUN_SIDEWALK_OPERATION_VIVA_GREEN
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --check scripts/audit-comun-sidewalk-operations.mjs
+      - run: node --check scripts/cleanup-comun-sidewalk-uploads.mjs
+      - run: npx prettier --check .github/workflows/comun-sidewalk-operations.yml app/comun/admin/calcadas/operacao/page.tsx components/admin-shell.tsx eslint.config.mjs lib/pauta-miniapps.ts lib/sidewalk-operations.ts lib/sidewalk-operations.test.ts lib/sidewalk-upload-cleanup.ts lib/sidewalk-upload-cleanup.test.ts scripts/audit-comun-sidewalk-operations.mjs scripts/cleanup-comun-sidewalk-uploads.mjs
+      - run: npx vitest run lib/sidewalk-operations.test.ts lib/sidewalk-upload-cleanup.test.ts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: git diff --check origin/main...HEAD
+      - name: Verify privacy and cleanup boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'containsCoordinates: false' scripts/audit-comun-sidewalk-operations.mjs
+          grep -q 'expired_cleanup_marked' scripts/cleanup-comun-sidewalk-uploads.mjs
+          grep -q 'COMUN_SIDEWALK_CLEANUP_DELETE_AGE_HOURS: "168"' .github/workflows/comun-sidewalk-operations.yml
+          grep -q 'createSignedUrl(asset.object_key, 300)' app/comun/admin/calcadas/operacao/page.tsx
+          ! grep -R -n -E 'SUPABASE_SERVICE_ROLE_KEY=|SUPABASE_DB_URL=' \
+            app/comun/admin/calcadas/operacao/page.tsx \
+            scripts/audit-comun-sidewalk-operations.mjs \
+            scripts/cleanup-comun-sidewalk-uploads.mjs
+          echo COMUN_SIDEWALK_OPERATION_VIVA_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  audit:
+    name: AUDIT / COMUN_SIDEWALK_OPERATIONS
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - id: audit
+        name: Build sanitized operational snapshot
+        continue-on-error: true
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          COMUN_ARTIFACT_DIR: .ci-artifacts/sidewalk-operations
+        run: node --experimental-strip-types scripts/audit-comun-sidewalk-operations.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-sidewalk-operations-${{ github.run_id }}
+          path: .ci-artifacts/sidewalk-operations
+          retention-days: 14
+          if-no-files-found: error
+      - name: Open or update the single operations incident
+        if: steps.audit.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="Operação viva das calçadas"
+          existing=$(gh issue list --state open --search "$title in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+          body="A auditoria sanitizada da operação encontrou fila antiga, volume anormal ou falhas recentes. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Nenhum rollback ou publicação foi executado automaticamente."
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi
+
+  quarantine-expired:
+    name: CLEANUP / QUARANTINE_EXPIRED_UPLOADS
+    needs: audit
+    if: github.event_name != 'pull_request' && always() && needs.audit.result != 'cancelled'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Mark expired orphan uploads without deleting objects
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          COMUN_SIDEWALK_CLEANUP_ALLOWED_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+          COMUN_SIDEWALK_OPERATIONAL_V2: enabled
+          COMUN_SIDEWALK_CLEANUP_MARK_AGE_HOURS: "24"
+          COMUN_SIDEWALK_CLEANUP_DELETE_AGE_HOURS: "168"
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/sidewalk-cleanup-mark
+          node --experimental-strip-types scripts/cleanup-comun-sidewalk-uploads.mjs \
+            --execute-mark \
+            --allow-non-local \
+            --project-ref=${{ secrets.SUPABASE_PROJECT_REF }} \
+            | tee .ci-artifacts/sidewalk-cleanup-mark/result.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-sidewalk-cleanup-mark-${{ github.run_id }}
+          path: .ci-artifacts/sidewalk-cleanup-mark
+          retention-days: 14
+          if-no-files-found: error
+
+  delete-after-quarantine:
+    name: CLEANUP / DELETE_AFTER_SEVEN_DAY_QUARANTINE
+    needs: quarantine-expired
+    if: github.event_name != 'pull_request' && always() && needs.quarantine-expired.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Delete only objects quarantined for at least seven days
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          COMUN_SIDEWALK_CLEANUP_ALLOWED_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+          COMUN_SIDEWALK_OPERATIONAL_V2: enabled
+          COMUN_SIDEWALK_CLEANUP_MARK_AGE_HOURS: "24"
+          COMUN_SIDEWALK_CLEANUP_DELETE_AGE_HOURS: "168"
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/sidewalk-cleanup-delete
+          node --experimental-strip-types scripts/cleanup-comun-sidewalk-uploads.mjs \
+            --execute-delete \
+            --allow-non-local \
+            --project-ref=${{ secrets.SUPABASE_PROJECT_REF }} \
+            | tee .ci-artifacts/sidewalk-cleanup-delete/result.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-sidewalk-cleanup-delete-${{ github.run_id }}
+          path: .ci-artifacts/sidewalk-cleanup-delete
+          retention-days: 14
+          if-no-files-found: error
