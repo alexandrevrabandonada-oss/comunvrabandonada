@@ -14,7 +14,7 @@ on:
       - "app/comun/admin/calcadas/exact-actions.ts"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify:
@@ -31,42 +31,11 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci --ignore-scripts
-      - name: Apply and format exact-consent contract
-        env:
-          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          node scripts/process/apply-sidewalk-exact-consent-contract.mjs
-          npx prettier --write \
-            scripts/process/apply-sidewalk-exact-consent-contract.mjs \
-            components/sidewalk-first-participation-form.tsx \
-            lib/sidewalk-submission-readiness.ts \
-            lib/sidewalk-submission-readiness.test.ts \
-            lib/sidewalk-exact-consent-contract.test.ts \
-            app/comun/admin/calcadas/page.tsx \
-            app/comun/admin/calcadas/exact-actions.ts \
-            .github/workflows/comun-sidewalk-exact-consent-contract.yml
-          if git diff --quiet; then
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            scripts/process/apply-sidewalk-exact-consent-contract.mjs \
-            components/sidewalk-first-participation-form.tsx \
-            lib/sidewalk-submission-readiness.ts \
-            lib/sidewalk-submission-readiness.test.ts \
-            lib/sidewalk-exact-consent-contract.test.ts \
-            app/comun/admin/calcadas/page.tsx \
-            app/comun/admin/calcadas/exact-actions.ts \
-            .github/workflows/comun-sidewalk-exact-consent-contract.yml
-          git commit -m "feat(sidewalk): aplica consentimento explícito de ponto exato"
-          git push origin "HEAD:${HEAD_BRANCH}"
-      - name: Verify codemod idempotence
+      - name: Verify generated contract is current and idempotent
         run: |
           node scripts/process/apply-sidewalk-exact-consent-contract.mjs
           git diff --exit-code
+      - run: npx prettier --check scripts/process/apply-sidewalk-exact-consent-contract.mjs components/sidewalk-first-participation-form.tsx lib/sidewalk-submission-readiness.ts lib/sidewalk-submission-readiness.test.ts lib/sidewalk-exact-consent-contract.test.ts app/comun/admin/calcadas/page.tsx app/comun/admin/calcadas/exact-actions.ts .github/workflows/comun-sidewalk-exact-consent-contract.yml
       - run: npx vitest run lib/sidewalk-submission-readiness.test.ts lib/sidewalk-exact-consent-contract.test.ts
       - run: npm run typecheck
       - run: npm run lint
