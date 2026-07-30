@@ -1,6 +1,306 @@
-"use server";import crypto from"node:crypto";import{revalidatePath}from"next/cache";import{redirect}from"next/navigation";import{getCommunitySession}from"@/lib/community-auth";import{requireComunAdmin}from"@/lib/admin-auth";import{createServiceSupabaseClient}from"@/lib/supabase/server";import{radioPublicationBlockers}from"@/lib/radio";import{logComunAdminAction}from"@/lib/admin-audit";export async function submitRadioContribution(_:unknown,f:FormData){const db=createServiceSupabaseClient(),s=await getCommunitySession();if(!db)return{error:"Indisponível."};const title=String(f.get("title")||"").trim().slice(0,160),context=String(f.get("context")||"").trim().slice(0,4000);if(title.length<3||context.length<20||f.get("consent")!=="on"||f.get("moderation")!=="on")return{error:"Revise os campos e declarações."};const protocol=`RADIO-${crypto.randomUUID().slice(0,8).toUpperCase()}`,{error}=await db.from("comun_radio_contributions").insert({member_user_id:s?.user.id??null,public_protocol:protocol,contribution_type:String(f.get("type")||"program_proposal"),title_suggestion:title,context_suggestion:context,creator_credit_suggestion:String(f.get("credit")||"").trim()||null,private_contact:String(f.get("contact")||"").trim()||null,status:"pending",next_action_public:"Aguardar triagem editorial."});return error?{error:"Não foi possível enviar."}:{ok:true,protocol}}
-export async function createRadioProgram(f:FormData){const s=await requireComunAdmin(),db=createServiceSupabaseClient();if(!db)throw new Error("Banco indisponível");const title=String(f.get("title")||"").trim(),slug=String(f.get("slug")||title).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");const{data:item,error}=await db.from("comun_archive_items").insert({slug,item_type:"community_radio_program",title,status:"draft",visibility:"private"}).select("id").single();if(error)throw error;await db.from("comun_radio_programs").insert({archive_item_id:item.id,title_public:title,slug_public:slug,description_public:String(f.get("description")||"").trim(),format_type:String(f.get("format_type")||"mixed")});await logComunAdminAction({session:s,action:"radio_program_created",targetType:"community_radio_program",targetId:item.id,metadata:{status:"draft",format:String(f.get("format_type")||"mixed")}});redirect(`/comun/admin/radio/programas`)}
-export async function createRadioEpisode(f:FormData){const s=await requireComunAdmin(),db=createServiceSupabaseClient();if(!db)throw new Error("Banco indisponível");const title=String(f.get("title")||"").trim(),slug=String(f.get("slug")||title).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");const{data:item,error}=await db.from("comun_archive_items").insert({slug,item_type:"community_radio_episode",title,status:"draft",visibility:"private"}).select("id").single();if(error)throw error;await db.from("comun_radio_episodes").insert({archive_item_id:item.id,program_item_id:String(f.get("program_item_id")),title_public:title,slug_public:slug,summary_public:String(f.get("summary")||"").trim(),transcript_status:"unavailable"});await logComunAdminAction({session:s,action:"radio_episode_created",targetType:"community_radio_episode",targetId:item.id,metadata:{status:"draft"}});redirect(`/comun/admin/radio/episodios/${item.id}`)}
-export async function publishRadioEpisode(f:FormData){const s=await requireComunAdmin(),db=createServiceSupabaseClient();if(!db)throw new Error("Banco indisponível");const id=String(f.get("id"));const[{data:e},{data:assets},{data:credits},{data:consents},{data:music},{data:safety}]=await Promise.all([db.from("comun_radio_episodes").select("*").eq("archive_item_id",id).single(),db.from("comun_archive_assets").select("asset_role,review_status").eq("archive_item_id",id),db.from("comun_radio_credits").select("id").eq("episode_item_id",id),db.from("comun_radio_voice_consents").select("consent_status,allow_comun_audio").eq("episode_item_id",id),db.from("comun_radio_music_uses").select("rights_status,allow_streaming").eq("episode_item_id",id),db.from("comun_radio_safety_reviews").select("minor_involved_private,reinforced_review_status").eq("episode_item_id",id).maybeSingle()]);const b=radioPublicationBlockers({title:e.title_public,summary:e.summary_public,program:e.program_item_id,duration:e.duration_seconds,publicAudio:assets?.some(x=>x.asset_role==="radio_public_episode"&&x.review_status==="approved"),credits:credits?.length,consents:consents??[],music:music??[],minor:safety?.minor_involved_private,minorApproved:safety?.reinforced_review_status==="approved",context:Boolean(e.pauta_id||e.territory_id||e.description_public),transcriptStatus:e.transcript_status});if(b.length)redirect(`/comun/admin/radio/episodios/${id}?bloqueios=${b.join(",")}`);const now=new Date().toISOString();await Promise.all([db.from("comun_radio_episodes").update({publication_status:"published",published_at:now}).eq("archive_item_id",id),db.from("comun_archive_items").update({status:"published",visibility:"public",published_at:now}).eq("id",id)]);await logComunAdminAction({session:s,action:"radio_episode_published",targetType:"community_radio_episode",targetId:id,metadata:{status:"published"}});revalidatePath("/comun/radio")}
-export async function addRadioEditorialData(f:FormData){const s=await requireComunAdmin(),db=createServiceSupabaseClient();if(!db)throw new Error("Banco indisponível");const id=String(f.get("id")),kind=String(f.get("kind"));if(kind==="credit")await db.from("comun_radio_credits").insert({episode_item_id:id,credit_role:String(f.get("role")||"producer"),public_credit:String(f.get("label")||"").trim(),public_visibility:"public"});else if(kind==="consent")await db.from("comun_radio_voice_consents").insert({episode_item_id:id,participant_reference_private:String(f.get("reference")||"").trim(),consent_status:"approved",allow_private_preservation:true,allow_comun_audio:true,allow_transcript:f.get("transcript")==="on",allow_name_publication:f.get("name")==="on",reviewed_at:new Date().toISOString()});else if(kind==="music")await db.from("comun_radio_music_uses").insert({episode_item_id:id,title_public:String(f.get("title")||"").trim(),usage_type:"excerpt",rights_status:String(f.get("approved"))==="on"?"approved":"pending",allow_streaming:String(f.get("approved"))==="on"});else if(kind==="transcript"){const{count}=await db.from("comun_radio_transcript_versions").select("id",{count:"exact",head:true}).eq("episode_item_id",id);await db.from("comun_radio_transcript_versions").insert({episode_item_id:id,version_number:(count??0)+1,transcript_type:"manual_editorial",content:String(f.get("content")||""),status:"review"});await db.from("comun_radio_episodes").update({transcript_status:"review"}).eq("archive_item_id",id)}else if(kind==="chapter")await db.from("comun_radio_episode_chapters").insert({episode_item_id:id,start_seconds:Number(f.get("start")||0),title_public:String(f.get("title")||"").trim(),position:Number(f.get("position")||0)});await logComunAdminAction({session:s,action:`radio_${kind}_recorded`,targetType:"community_radio_episode",targetId:id,metadata:{kind}});revalidatePath(`/comun/admin/radio/episodios/${id}`)}
-export async function unpublishRadioEpisode(f:FormData){const s=await requireComunAdmin(),db=createServiceSupabaseClient();if(!db)throw new Error("Banco indisponível");const id=String(f.get("id"));await Promise.all([db.from("comun_radio_episodes").update({publication_status:"withdrawn",published_at:null}).eq("archive_item_id",id),db.from("comun_archive_items").update({status:"archived",visibility:"private",published_at:null}).eq("id",id),db.from("comun_radio_schedule_entries").update({status:"cancelled"}).eq("episode_item_id",id)]);await logComunAdminAction({session:s,action:"radio_withdrawn",targetType:"community_radio_episode",targetId:id,metadata:{status:"withdrawn"}});revalidatePath("/comun/radio")}
+"use server";
+import crypto from "node:crypto";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { getCommunitySession } from "@/lib/community-auth";
+import { requireComunAdmin } from "@/lib/admin-auth";
+import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { radioPublicationBlockers } from "@/lib/radio";
+import { logComunAdminAction } from "@/lib/admin-audit";
+export async function submitRadioContribution(_: unknown, f: FormData) {
+  const db = createServiceSupabaseClient(),
+    s = await getCommunitySession();
+  if (!db) return { error: "Indisponível." };
+  const title = String(f.get("title") || "")
+      .trim()
+      .slice(0, 160),
+    context = String(f.get("context") || "")
+      .trim()
+      .slice(0, 4000);
+  if (
+    title.length < 3 ||
+    context.length < 20 ||
+    f.get("consent") !== "on" ||
+    f.get("moderation") !== "on"
+  )
+    return { error: "Revise os campos e declarações." };
+  const protocol = `RADIO-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+    { error } = await db.from("comun_radio_contributions").insert({
+      member_user_id: s?.user.id ?? null,
+      public_protocol: protocol,
+      contribution_type: String(f.get("type") || "program_proposal"),
+      title_suggestion: title,
+      context_suggestion: context,
+      creator_credit_suggestion: String(f.get("credit") || "").trim() || null,
+      private_contact: String(f.get("contact") || "").trim() || null,
+      status: "pending",
+      next_action_public: "Aguardar triagem editorial.",
+    });
+  return error ? { error: "Não foi possível enviar." } : { ok: true, protocol };
+}
+export async function createRadioProgram(f: FormData) {
+  const s = await requireComunAdmin(),
+    db = createServiceSupabaseClient();
+  if (!db) throw new Error("Banco indisponível");
+  const title = String(f.get("title") || "").trim(),
+    slug = String(f.get("slug") || title)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+  const { data: item, error } = await db
+    .from("comun_archive_items")
+    .insert({
+      slug,
+      item_type: "community_radio_program",
+      title,
+      status: "draft",
+      visibility: "private",
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  await db.from("comun_radio_programs").insert({
+    archive_item_id: item.id,
+    title_public: title,
+    slug_public: slug,
+    description_public: String(f.get("description") || "").trim(),
+    format_type: String(f.get("format_type") || "mixed"),
+  });
+  await logComunAdminAction({
+    session: s,
+    action: "radio_program_created",
+    targetType: "community_radio_program",
+    targetId: item.id,
+    metadata: {
+      status: "draft",
+      format: String(f.get("format_type") || "mixed"),
+    },
+  });
+  redirect(`/comun/admin/radio/programas`);
+}
+export async function createRadioEpisode(f: FormData) {
+  const s = await requireComunAdmin(),
+    db = createServiceSupabaseClient();
+  if (!db) throw new Error("Banco indisponível");
+  const title = String(f.get("title") || "").trim(),
+    slug = String(f.get("slug") || title)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+  const { data: item, error } = await db
+    .from("comun_archive_items")
+    .insert({
+      slug,
+      item_type: "community_radio_episode",
+      title,
+      status: "draft",
+      visibility: "private",
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  await db.from("comun_radio_episodes").insert({
+    archive_item_id: item.id,
+    program_item_id: String(f.get("program_item_id")),
+    title_public: title,
+    slug_public: slug,
+    summary_public: String(f.get("summary") || "").trim(),
+    transcript_status: "unavailable",
+  });
+  await logComunAdminAction({
+    session: s,
+    action: "radio_episode_created",
+    targetType: "community_radio_episode",
+    targetId: item.id,
+    metadata: { status: "draft" },
+  });
+  redirect(`/comun/admin/radio/episodios/${item.id}`);
+}
+export async function publishRadioEpisode(f: FormData) {
+  const s = await requireComunAdmin(),
+    db = createServiceSupabaseClient();
+  if (!db) throw new Error("Banco indisponível");
+  const id = String(f.get("id"));
+  const [
+    { data: e },
+    { data: assets },
+    { data: credits },
+    { data: consents },
+    { data: music },
+    { data: safety },
+    { data: transcript },
+  ] = await Promise.all([
+    db
+      .from("comun_radio_episodes")
+      .select("*")
+      .eq("archive_item_id", id)
+      .single(),
+    db
+      .from("comun_archive_assets")
+      .select("asset_role,bucket_scope,review_status,public_url")
+      .eq("archive_item_id", id),
+    db.from("comun_radio_credits").select("id").eq("episode_item_id", id),
+    db
+      .from("comun_radio_voice_consents")
+      .select("consent_status,allow_comun_audio")
+      .eq("episode_item_id", id),
+    db
+      .from("comun_radio_music_uses")
+      .select("rights_status,allow_streaming")
+      .eq("episode_item_id", id),
+    db
+      .from("comun_radio_safety_reviews")
+      .select("minor_involved_private,reinforced_review_status")
+      .eq("episode_item_id", id)
+      .maybeSingle(),
+    db
+      .from("comun_radio_transcript_versions")
+      .select("id")
+      .eq("episode_item_id", id)
+      .eq("status", "published")
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  const b = radioPublicationBlockers({
+    title: e.title_public,
+    summary: e.summary_public,
+    program: e.program_item_id,
+    duration: e.duration_seconds,
+    publicAudio: assets?.some(
+      (x) =>
+        x.asset_role === "radio_public_episode" &&
+        x.bucket_scope === "public_safe" &&
+        x.review_status === "approved" &&
+        Boolean(x.public_url),
+    ),
+    credits: credits?.length,
+    consents: consents ?? [],
+    music: music ?? [],
+    minor: safety?.minor_involved_private,
+    minorApproved: safety?.reinforced_review_status === "approved",
+    context: Boolean(e.pauta_id || e.territory_id || e.description_public),
+    transcriptStatus: transcript ? "published" : e.transcript_status,
+  });
+  if (b.length)
+    redirect(`/comun/admin/radio/episodios/${id}?bloqueios=${b.join(",")}`);
+  const now = new Date().toISOString();
+  await Promise.all([
+    db
+      .from("comun_radio_episodes")
+      .update({
+        publication_status: "published",
+        published_at: now,
+        transcript_status: "published",
+      })
+      .eq("archive_item_id", id),
+    db
+      .from("comun_archive_items")
+      .update({ status: "published", visibility: "public", published_at: now })
+      .eq("id", id),
+  ]);
+  await logComunAdminAction({
+    session: s,
+    action: "radio_episode_published",
+    targetType: "community_radio_episode",
+    targetId: id,
+    metadata: { status: "published", accessibility: "transcript_published" },
+  });
+  revalidatePath("/comun/radio");
+}
+export async function addRadioEditorialData(f: FormData) {
+  const s = await requireComunAdmin(),
+    db = createServiceSupabaseClient();
+  if (!db) throw new Error("Banco indisponível");
+  const id = String(f.get("id")),
+    kind = String(f.get("kind"));
+  if (kind === "credit")
+    await db.from("comun_radio_credits").insert({
+      episode_item_id: id,
+      credit_role: String(f.get("role") || "producer"),
+      public_credit: String(f.get("label") || "").trim(),
+      public_visibility: "public",
+    });
+  else if (kind === "consent")
+    await db.from("comun_radio_voice_consents").insert({
+      episode_item_id: id,
+      participant_reference_private: String(f.get("reference") || "").trim(),
+      consent_status: "approved",
+      allow_private_preservation: true,
+      allow_comun_audio: true,
+      allow_transcript: f.get("transcript") === "on",
+      allow_name_publication: f.get("name") === "on",
+      reviewed_at: new Date().toISOString(),
+    });
+  else if (kind === "music")
+    await db.from("comun_radio_music_uses").insert({
+      episode_item_id: id,
+      title_public: String(f.get("title") || "").trim(),
+      usage_type: "excerpt",
+      rights_status:
+        String(f.get("approved")) === "on" ? "approved" : "pending",
+      allow_streaming: String(f.get("approved")) === "on",
+    });
+  else if (kind === "transcript") {
+    const { count } = await db
+      .from("comun_radio_transcript_versions")
+      .select("id", { count: "exact", head: true })
+      .eq("episode_item_id", id);
+    await db.from("comun_radio_transcript_versions").insert({
+      episode_item_id: id,
+      version_number: (count ?? 0) + 1,
+      transcript_type: "manual_editorial",
+      content: String(f.get("content") || ""),
+      status: "review",
+    });
+    await db
+      .from("comun_radio_episodes")
+      .update({ transcript_status: "review" })
+      .eq("archive_item_id", id);
+  } else if (kind === "chapter")
+    await db.from("comun_radio_episode_chapters").insert({
+      episode_item_id: id,
+      start_seconds: Number(f.get("start") || 0),
+      title_public: String(f.get("title") || "").trim(),
+      position: Number(f.get("position") || 0),
+    });
+  await logComunAdminAction({
+    session: s,
+    action: `radio_${kind}_recorded`,
+    targetType: "community_radio_episode",
+    targetId: id,
+    metadata: { kind },
+  });
+  revalidatePath(`/comun/admin/radio/episodios/${id}`);
+}
+export async function unpublishRadioEpisode(f: FormData) {
+  const s = await requireComunAdmin(),
+    db = createServiceSupabaseClient();
+  if (!db) throw new Error("Banco indisponível");
+  const id = String(f.get("id"));
+  await Promise.all([
+    db
+      .from("comun_radio_episodes")
+      .update({ publication_status: "withdrawn", published_at: null })
+      .eq("archive_item_id", id),
+    db
+      .from("comun_archive_items")
+      .update({ status: "archived", visibility: "private", published_at: null })
+      .eq("id", id),
+    db
+      .from("comun_radio_schedule_entries")
+      .update({ status: "cancelled" })
+      .eq("episode_item_id", id),
+  ]);
+  await logComunAdminAction({
+    session: s,
+    action: "radio_withdrawn",
+    targetType: "community_radio_episode",
+    targetId: id,
+    metadata: { status: "withdrawn" },
+  });
+  revalidatePath("/comun/radio");
+}

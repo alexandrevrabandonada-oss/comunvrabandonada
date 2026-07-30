@@ -1,6 +1,134 @@
-export const artworkTypes=["drawing","painting","collage","poster","photography","graffiti","mural","sculpture","installation","comic","illustration","digital_art","textile","craft","printmaking","performance_record","poetry_visual","mixed_media","other"] as const;
-export const artworkCreditRoles=["creator","co_creator","collective","photographer","designer","illustrator","writer","printer","performer","curator","restorer","donor","rights_holder","unknown_creator"] as const;
-export const acceptedArtworkMimeTypes=new Set(["image/jpeg","image/png","image/webp"]);
-export function validateArtworkBinary(input:{mime:string;size:number;width:number;height:number;animated?:boolean;magic:Uint8Array}){if(!acceptedArtworkMimeTypes.has(input.mime))return"mime_not_allowed";if(input.size<=0||input.size>30*1024*1024)return"size_not_allowed";if(input.width<=0||input.height<=0||input.width*input.height>80_000_000)return"dimensions_not_allowed";if(input.animated)return"animated_not_allowed";const hex=Array.from(input.magic.slice(0,12)).map(byte=>byte.toString(16).padStart(2,"0")).join("");const valid=input.mime==="image/jpeg"?hex.startsWith("ffd8ff"):input.mime==="image/png"?hex.startsWith("89504e470d0a1a0a"):hex.startsWith("52494646")&&hex.slice(16,24)==="57454250";return valid?null:"magic_bytes_mismatch"}
-export function artworkPublicationBlockers(input:{title?:string;description?:string;context?:string;credits:number;territoryId?:string|null;territoryAbsenceReason?:string|null;privateOriginal:boolean;publicDerivative:boolean;allowDisplay:boolean;consentStatus?:string;validFrom?:string|null;validUntil?:string|null;safetyRequired:boolean;safetyApproved:boolean}){const blockers:string[]=[],today=new Date().toISOString().slice(0,10);if(!input.title?.trim())blockers.push("title");if(!input.description?.trim())blockers.push("description");if(!input.context?.trim())blockers.push("context");if(!input.credits)blockers.push("credit");if(!input.territoryId&&!input.territoryAbsenceReason?.trim())blockers.push("territory");if(!input.privateOriginal)blockers.push("private_original");if(!input.publicDerivative)blockers.push("public_derivative");if(!input.allowDisplay||!["granted","partially_granted"].includes(input.consentStatus||""))blockers.push("display_rights");if(input.validFrom&&input.validFrom>today)blockers.push("rights_not_started");if(input.validUntil&&input.validUntil<today)blockers.push("rights_expired");if(input.safetyRequired&&!input.safetyApproved)blockers.push("reinforced_review");return blockers}
-export function sanitizeArtworkSnapshot(value:Record<string,unknown>){const allowed=new Set(["title","description","context","credit","territory","technique","materials","rights_public","relations","publication","withdrawal"]);return Object.fromEntries(Object.entries(value).filter(([key])=>allowed.has(key)))}
+export const artworkTypes = [
+  "drawing",
+  "painting",
+  "collage",
+  "poster",
+  "photography",
+  "graffiti",
+  "mural",
+  "sculpture",
+  "installation",
+  "comic",
+  "illustration",
+  "digital_art",
+  "textile",
+  "craft",
+  "printmaking",
+  "performance_record",
+  "poetry_visual",
+  "mixed_media",
+  "other",
+] as const;
+export const artworkCreditRoles = [
+  "creator",
+  "co_creator",
+  "collective",
+  "photographer",
+  "designer",
+  "illustrator",
+  "writer",
+  "printer",
+  "performer",
+  "curator",
+  "restorer",
+  "donor",
+  "rights_holder",
+  "unknown_creator",
+] as const;
+export const acceptedArtworkMimeTypes = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+export function validateArtworkBinary(input: {
+  mime: string;
+  size: number;
+  width: number;
+  height: number;
+  animated?: boolean;
+  magic: Uint8Array;
+}) {
+  if (!acceptedArtworkMimeTypes.has(input.mime)) return "mime_not_allowed";
+  if (input.size <= 0 || input.size > 30 * 1024 * 1024)
+    return "size_not_allowed";
+  if (
+    input.width <= 0 ||
+    input.height <= 0 ||
+    input.width * input.height > 80_000_000
+  )
+    return "dimensions_not_allowed";
+  if (input.animated) return "animated_not_allowed";
+  const hex = Array.from(input.magic.slice(0, 12))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+  const valid =
+    input.mime === "image/jpeg"
+      ? hex.startsWith("ffd8ff")
+      : input.mime === "image/png"
+        ? hex.startsWith("89504e470d0a1a0a")
+        : hex.startsWith("52494646") && hex.slice(16, 24) === "57454250";
+  return valid ? null : "magic_bytes_mismatch";
+}
+export function artworkPublicationBlockers(input: {
+  title?: string;
+  description?: string;
+  context?: string;
+  credits: number;
+  territoryId?: string | null;
+  territoryAbsenceReason?: string | null;
+  privateOriginal: boolean;
+  publicDerivative: boolean;
+  publicDerivativeAltText: boolean;
+  publicDerivativeObjectVerified: boolean;
+  allowDisplay: boolean;
+  consentStatus?: string;
+  validFrom?: string | null;
+  validUntil?: string | null;
+  safetyRequired: boolean;
+  safetyApproved: boolean;
+}) {
+  const blockers: string[] = [],
+    today = new Date().toISOString().slice(0, 10);
+  if (!input.title?.trim()) blockers.push("title");
+  if (!input.description?.trim()) blockers.push("description");
+  if (!input.context?.trim()) blockers.push("context");
+  if (!input.credits) blockers.push("credit");
+  if (!input.territoryId && !input.territoryAbsenceReason?.trim())
+    blockers.push("territory");
+  if (!input.privateOriginal) blockers.push("private_original");
+  if (!input.publicDerivative) blockers.push("public_derivative");
+  if (input.publicDerivative && !input.publicDerivativeAltText)
+    blockers.push("public_derivative_alt_text");
+  if (input.publicDerivative && !input.publicDerivativeObjectVerified)
+    blockers.push("public_derivative_object");
+  if (
+    !input.allowDisplay ||
+    !["granted", "partially_granted"].includes(input.consentStatus || "")
+  )
+    blockers.push("display_rights");
+  if (input.validFrom && input.validFrom > today)
+    blockers.push("rights_not_started");
+  if (input.validUntil && input.validUntil < today)
+    blockers.push("rights_expired");
+  if (input.safetyRequired && !input.safetyApproved)
+    blockers.push("reinforced_review");
+  return blockers;
+}
+export function sanitizeArtworkSnapshot(value: Record<string, unknown>) {
+  const allowed = new Set([
+    "title",
+    "description",
+    "context",
+    "credit",
+    "territory",
+    "technique",
+    "materials",
+    "rights_public",
+    "relations",
+    "publication",
+    "withdrawal",
+  ]);
+  return Object.fromEntries(
+    Object.entries(value).filter(([key]) => allowed.has(key)),
+  );
+}

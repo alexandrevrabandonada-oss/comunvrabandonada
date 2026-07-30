@@ -19,6 +19,14 @@ O lançamento integral só acontece depois que os dez domínios do programa de e
 9. **Qualidade e segurança** — RLS, retenção, backup, restore, PWA, acessibilidade, performance e recuperação.
 10. **Governança e conteúdo** — onboarding, ajuda, normas comunitárias, política editorial, privacidade, termos e contato.
 
+Acervo Vivo, Rádio Comunitária e Arte dos Territórios compartilham a raiz
+`comun_archive_items`. O contrato operacional e os gates estão documentados
+em [`comun-cultural-deliverability.md`](./comun-cultural-deliverability.md).
+Código e fixtures não bastam para promover `archive_radio_art`: conteúdo real
+com direitos, autorização editorial e smoke público precisa existir nos três
+recortes. Na ausência dessa prova, o estado máximo é
+`COMUN_ARCHIVE_RADIO_ART_READY_FOR_REAL_CONTENT_REHEARSAL`.
+
 ## Fora da V1
 
 - feed algorítmico infinito;

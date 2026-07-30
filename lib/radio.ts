@@ -1,11 +1,176 @@
-export const radioFormats=["news","interview","debate","storytelling","music","cultural","educational","bulletin","documentary","children","mixed","other"] as const;
-export function radioPublicationBlockers(x:{title?:string;summary?:string;program?:string;duration?:number;publicAudio?:boolean;credits?:number;consents?:{consent_status:string;allow_comun_audio:boolean}[];music?:{rights_status:string;allow_streaming:boolean}[];minor?:boolean;minorApproved?:boolean;context?:boolean;transcriptStatus?:string}){const b:string[]=[];if(!x.title)b.push("title");if(!x.summary)b.push("summary");if(!x.program)b.push("program");if(!x.duration)b.push("duration");if(!x.publicAudio)b.push("public_audio");if(!x.credits)b.push("credits");if(!(x.consents?.length)&&x.consents!==undefined)b.push("voice_consent");if(x.consents?.some(c=>c.consent_status!=="approved"||!c.allow_comun_audio))b.push("voice_consent");if(x.music?.some(m=>!["approved","public_domain_verified"].includes(m.rights_status)||!m.allow_streaming))b.push("music_rights");if(x.minor&&!x.minorApproved)b.push("minor_review");if(!x.context)b.push("context");if(!x.transcriptStatus)b.push("transcript_status");return[...new Set(b)]}
-export async function listPublicRadio(){
- const{createServiceSupabaseClient}=await import("@/lib/supabase/server");const db=createServiceSupabaseClient();if(!db)return{programs:[],episodes:[],schedule:[]};
- const[{data:programs},{data:episodes},{data:schedule}]=await Promise.all([db.from("comun_radio_programs").select("archive_item_id,title_public,slug_public,subtitle_public,description_public,format_type,frequency_public").eq("publication_status","published").limit(24),db.from("comun_radio_episodes").select("archive_item_id,program_item_id,title_public,slug_public,summary_public,published_at,duration_seconds,transcript_status,comun_archive_assets(asset_role,public_url,review_status)").eq("publication_status","published").order("published_at",{ascending:false}).limit(24),db.from("comun_radio_schedule_entries").select("id,title_public,starts_at,ends_at,schedule_type,public_note").eq("status","published").order("starts_at").limit(30)]);return{programs:programs??[],episodes:episodes??[],schedule:schedule??[]}
+export const radioFormats = [
+  "news",
+  "interview",
+  "debate",
+  "storytelling",
+  "music",
+  "cultural",
+  "educational",
+  "bulletin",
+  "documentary",
+  "children",
+  "mixed",
+  "other",
+] as const;
+export function radioPublicationBlockers(x: {
+  title?: string;
+  summary?: string;
+  program?: string;
+  duration?: number;
+  publicAudio?: boolean;
+  credits?: number;
+  consents?: { consent_status: string; allow_comun_audio: boolean }[];
+  music?: { rights_status: string; allow_streaming: boolean }[];
+  minor?: boolean;
+  minorApproved?: boolean;
+  context?: boolean;
+  transcriptStatus?: string;
+  transcriptExceptionDocumented?: boolean;
+}) {
+  const b: string[] = [];
+  if (!x.title) b.push("title");
+  if (!x.summary) b.push("summary");
+  if (!x.program) b.push("program");
+  if (!x.duration) b.push("duration");
+  if (!x.publicAudio) b.push("public_audio");
+  if (!x.credits) b.push("credits");
+  if (!x.consents?.length && x.consents !== undefined) b.push("voice_consent");
+  if (
+    x.consents?.some(
+      (c) => c.consent_status !== "approved" || !c.allow_comun_audio,
+    )
+  )
+    b.push("voice_consent");
+  if (
+    x.music?.some(
+      (m) =>
+        !["approved", "public_domain_verified"].includes(m.rights_status) ||
+        !m.allow_streaming,
+    )
+  )
+    b.push("music_rights");
+  if (x.minor && !x.minorApproved) b.push("minor_review");
+  if (!x.context) b.push("context");
+  if (x.transcriptStatus !== "published" && !x.transcriptExceptionDocumented)
+    b.push("transcript_status");
+  return [...new Set(b)];
 }
-export async function getPublicEpisode(slug:string){
- const{createServiceSupabaseClient}=await import("@/lib/supabase/server");const db=createServiceSupabaseClient();if(!db)return null;
- const{data:e}=await db.from("comun_radio_episodes").select("archive_item_id,program_item_id,season_number,episode_number,title_public,slug_public,summary_public,description_public,recorded_at,published_at,duration_seconds,transcript_status,allow_download").eq("slug_public",slug).eq("publication_status","published").maybeSingle();if(!e)return null;
- const[{data:t},{data:program},{data:assets},{data:credits},{data:music},{data:chapters}]=await Promise.all([db.from("comun_radio_transcript_versions").select("content,transcript_type").eq("episode_item_id",e.archive_item_id).eq("status","published").order("version_number",{ascending:false}).limit(1).maybeSingle(),db.from("comun_radio_programs").select("title_public,slug_public").eq("archive_item_id",e.program_item_id).eq("publication_status","published").maybeSingle(),db.from("comun_archive_assets").select("asset_role,public_url,review_status").eq("archive_item_id",e.archive_item_id).eq("review_status","approved").in("asset_role",["radio_public_episode","radio_public_preview","radio_waveform","radio_cover_derivative"]),db.from("comun_radio_credits").select("public_credit,credit_role,position,public_visibility").eq("episode_item_id",e.archive_item_id).eq("public_visibility","public").order("position"),db.from("comun_radio_music_uses").select("title_public,performer_public,composer_public,usage_type,license_public,rights_status").eq("episode_item_id",e.archive_item_id).in("rights_status",["approved","public_domain_verified"]),db.from("comun_radio_episode_chapters").select("start_seconds,end_seconds,title_public,summary_public,position").eq("episode_item_id",e.archive_item_id).order("position")]);return{...e,comun_radio_programs:program,comun_archive_assets:assets??[],comun_radio_credits:credits??[],comun_radio_music_uses:music??[],comun_radio_episode_chapters:chapters??[],transcript:t}
+export async function listPublicRadio() {
+  const { createServiceSupabaseClient } = await import("@/lib/supabase/server");
+  const db = createServiceSupabaseClient();
+  if (!db) return { programs: [], episodes: [], schedule: [] };
+  const [{ data: programs }, { data: episodes }, { data: schedule }] =
+    await Promise.all([
+      db
+        .from("comun_radio_programs")
+        .select(
+          "archive_item_id,title_public,slug_public,subtitle_public,description_public,format_type,frequency_public",
+        )
+        .eq("publication_status", "published")
+        .limit(24),
+      db
+        .from("comun_radio_episodes")
+        .select(
+          "archive_item_id,program_item_id,title_public,slug_public,summary_public,published_at,duration_seconds,transcript_status,comun_archive_assets(asset_role,bucket_scope,public_url,review_status)",
+        )
+        .eq("publication_status", "published")
+        .order("published_at", { ascending: false })
+        .limit(24),
+      db
+        .from("comun_radio_schedule_entries")
+        .select("id,title_public,starts_at,ends_at,schedule_type,public_note")
+        .eq("status", "published")
+        .order("starts_at")
+        .limit(30),
+    ]);
+  return {
+    programs: programs ?? [],
+    episodes: (episodes ?? []).map((episode: any) => ({
+      ...episode,
+      comun_archive_assets: (episode.comun_archive_assets ?? []).filter(
+        (asset: any) =>
+          asset.bucket_scope === "public_safe" &&
+          asset.review_status === "approved" &&
+          Boolean(asset.public_url),
+      ),
+    })),
+    schedule: schedule ?? [],
+  };
+}
+export async function getPublicEpisode(slug: string) {
+  const { createServiceSupabaseClient } = await import("@/lib/supabase/server");
+  const db = createServiceSupabaseClient();
+  if (!db) return null;
+  const { data: e } = await db
+    .from("comun_radio_episodes")
+    .select(
+      "archive_item_id,program_item_id,season_number,episode_number,title_public,slug_public,summary_public,description_public,recorded_at,published_at,duration_seconds,transcript_status,allow_download",
+    )
+    .eq("slug_public", slug)
+    .eq("publication_status", "published")
+    .maybeSingle();
+  if (!e) return null;
+  const [
+    { data: t },
+    { data: program },
+    { data: assets },
+    { data: credits },
+    { data: music },
+    { data: chapters },
+  ] = await Promise.all([
+    db
+      .from("comun_radio_transcript_versions")
+      .select("content,transcript_type")
+      .eq("episode_item_id", e.archive_item_id)
+      .eq("status", "published")
+      .order("version_number", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    db
+      .from("comun_radio_programs")
+      .select("title_public,slug_public")
+      .eq("archive_item_id", e.program_item_id)
+      .eq("publication_status", "published")
+      .maybeSingle(),
+    db
+      .from("comun_archive_assets")
+      .select("asset_role,public_url,review_status")
+      .eq("archive_item_id", e.archive_item_id)
+      .eq("bucket_scope", "public_safe")
+      .eq("review_status", "approved")
+      .not("public_url", "is", null)
+      .in("asset_role", [
+        "radio_public_episode",
+        "radio_public_preview",
+        "radio_waveform",
+        "radio_cover_derivative",
+      ]),
+    db
+      .from("comun_radio_credits")
+      .select("public_credit,credit_role,position,public_visibility")
+      .eq("episode_item_id", e.archive_item_id)
+      .eq("public_visibility", "public")
+      .order("position"),
+    db
+      .from("comun_radio_music_uses")
+      .select(
+        "title_public,performer_public,composer_public,usage_type,license_public,rights_status",
+      )
+      .eq("episode_item_id", e.archive_item_id)
+      .in("rights_status", ["approved", "public_domain_verified"]),
+    db
+      .from("comun_radio_episode_chapters")
+      .select("start_seconds,end_seconds,title_public,summary_public,position")
+      .eq("episode_item_id", e.archive_item_id)
+      .order("position"),
+  ]);
+  return {
+    ...e,
+    comun_radio_programs: program,
+    comun_archive_assets: assets ?? [],
+    comun_radio_credits: credits ?? [],
+    comun_radio_music_uses: music ?? [],
+    comun_radio_episode_chapters: chapters ?? [],
+    transcript: t,
+  };
 }
