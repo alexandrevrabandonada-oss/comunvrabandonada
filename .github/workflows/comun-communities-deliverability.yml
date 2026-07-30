@@ -3,6 +3,7 @@ name: COMUN Communities Deliverability
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
     paths:
       - ".github/workflows/comun-communities-deliverability.yml"
       - "app/comun/admin/comunidades/**"
@@ -13,6 +14,8 @@ on:
       - "lib/community-administration.test.ts"
       - "lib/community-membership.ts"
       - "scripts/audit-comun-communities-readiness.mjs"
+      - "scripts/rehearse-comun-identity-communities.mjs"
+      - "scripts/rehearse-comun-identity-communities.node-test.mjs"
   push:
     branches: [main]
     paths:
@@ -23,6 +26,7 @@ on:
       - "lib/community-administration.ts"
       - "lib/community-membership.ts"
       - "scripts/audit-comun-communities-readiness.mjs"
+      - "scripts/rehearse-comun-identity-communities.mjs"
   schedule:
     - cron: "23 11 * * *"
   workflow_dispatch:
@@ -64,6 +68,7 @@ jobs:
           lib/community-membership.ts
           scripts/audit-comun-communities-readiness.mjs
       - run: npx vitest run lib/community-administration.test.ts
+      - run: node --test scripts/rehearse-comun-identity-communities.node-test.mjs
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
@@ -86,6 +91,38 @@ jobs:
             lib/community-administration.ts \
             lib/community-membership.ts
           echo COMUN_COMMUNITIES_COMPLETE_CONTRACT_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  controlled-rehearsal:
+    name: REHEARSAL / COMUN_IDENTITY_COMMUNITIES_GREEN
+    if: >-
+      github.event_name == 'pull_request' &&
+      contains(github.event.pull_request.labels.*.name, 'comun:controlled-rehearsal')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      COMUN_IDENTITY_REHEARSAL_CONFIRMATION: EXECUTAR_ENSAIO_PRIVADO_IDENTITY_COMMUNITIES
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Run private transactional rehearsal
+        run: >-
+          node --experimental-strip-types
+          scripts/rehearse-comun-identity-communities.mjs
+          --controlled-remote
+          --output .ci-artifacts/comun-identity-communities/rehearsal.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-identity-communities-${{ github.sha }}-${{ github.run_id }}
+          path: .ci-artifacts/comun-identity-communities/
+          retention-days: 30
+          if-no-files-found: error
 
   audit:
     name: AUDIT / COMUN_COMMUNITIES_READINESS

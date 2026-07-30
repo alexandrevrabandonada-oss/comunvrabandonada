@@ -27,6 +27,14 @@ describe("COMUN V1 launch program", () => {
     ).toBe("green");
   });
 
+  it("registra identidade e comunidades como verde após ensaio remoto com rollback", () => {
+    expect(
+      COMUN_V1_LAUNCH_PROGRAM.domains.find(
+        (domain) => domain.id === "identity_communities",
+      )?.status,
+    ).toBe("green");
+  });
+
   it("só libera o gate final quando todos os domínios estão verdes", () => {
     const green = COMUN_V1_LAUNCH_PROGRAM.domains.map((domain) => ({
       ...domain,

@@ -86,3 +86,10 @@ privado com rollback, protocolo e resposta sintéticos vinculados, atividade
 separada de resultado, postflight sanitizado e ativação escopada de
 `COMUN_COLLECTIVE_ACTIONS_V1`. O gate integral `launch_publicly` não foi
 acionado.
+
+O domínio `identity_communities` está `green` desde o fechamento da evidência
+do Tijolo 47.3. A promoção exigiu ensaio remoto privado e transacional de
+solicitação moderada, autoaprovação bloqueada, decisão idempotente, papéis e
+grupos escopados à comunidade, Inbox conectada, revogação imediata e
+postflight sem resíduos. Nenhum e-mail externo foi enviado e o gate
+`launch_publicly` permanece fechado.
