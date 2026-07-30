@@ -1,0 +1,50 @@
+name: COMUN Sidewalk Exact Consent Contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-sidewalk-exact-consent-contract.yml"
+      - "components/sidewalk-first-participation-form.tsx"
+      - "lib/sidewalk-submission-readiness.ts"
+      - "lib/sidewalk-submission-readiness.test.ts"
+      - "lib/sidewalk-exact-consent-contract.test.ts"
+      - "app/comun/admin/calcadas/page.tsx"
+      - "app/comun/admin/calcadas/exact-actions.ts"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: VERIFY / COMUN_SIDEWALK_EXACT_CONSENT_GREEN
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx prettier --check components/sidewalk-first-participation-form.tsx lib/sidewalk-submission-readiness.ts lib/sidewalk-submission-readiness.test.ts lib/sidewalk-exact-consent-contract.test.ts app/comun/admin/calcadas/page.tsx app/comun/admin/calcadas/exact-actions.ts .github/workflows/comun-sidewalk-exact-consent-contract.yml
+      - run: npx vitest run lib/sidewalk-submission-readiness.test.ts lib/sidewalk-exact-consent-contract.test.ts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: git diff --check origin/main...HEAD
+      - name: Confirm consent and privacy boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'name="consent_location_precision"' components/sidewalk-first-participation-form.tsx
+          grep -q 'Aprovar com ponto exato consentido' app/comun/admin/calcadas/page.tsx
+          grep -q 'confirmed_upload_payload' app/comun/admin/calcadas/exact-actions.ts
+          grep -q 'public_geometry_geojson: record.private_geometry_geojson' app/comun/admin/calcadas/exact-actions.ts
+          ! grep -R -n -E 'SUPABASE_SERVICE_ROLE_KEY=|SUPABASE_DB_URL=' \
+            app/comun/admin/calcadas/exact-actions.ts \
+            components/sidewalk-first-participation-form.tsx
+          echo COMUN_SIDEWALK_EXACT_CONSENT_GREEN >> "$GITHUB_STEP_SUMMARY"
