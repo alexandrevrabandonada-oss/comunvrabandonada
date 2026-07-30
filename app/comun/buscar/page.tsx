@@ -5,6 +5,7 @@ import {
   ComunEmptyState,
   ComunSection,
 } from "@/components/comun-ui";
+import { isPublicContentDeliverable } from "@/lib/public-content-readiness";
 import { unifiedPublicSearch } from "@/lib/unified-search";
 const types = [
   "ferramenta",
@@ -28,10 +29,18 @@ export default async function Page({
 }) {
   const p = await searchParams,
     q = p.q ?? "",
-    { results, durationMs } = await unifiedPublicSearch(q, {
+    search = await unifiedPublicSearch(q, {
       type: p.tipo,
       pautaId: p.pauta,
-    });
+    }),
+    results = search.results.filter((result) =>
+      isPublicContentDeliverable({
+        slug: result.href,
+        title: result.title,
+        summary: result.summary,
+      }),
+    ),
+    durationMs = search.durationMs;
   const groups = types
     .map((type) => ({
       type,
@@ -78,8 +87,7 @@ export default async function Page({
         </form>
         {q.length >= 2 ? (
           <p role="status" className="mt-4 text-sm">
-            {results.length} resultados públicos · consulta local {durationMs}{" "}
-            ms
+            {results.length} resultados públicos · consulta local {durationMs} ms
           </p>
         ) : null}
         <div className="mt-6 grid gap-8">
