@@ -36,7 +36,7 @@ export const COMUN_V1_LAUNCH_PROGRAM = {
     {
       id: "identity_communities",
       label: "Identidade e comunidades",
-      status: "blocked",
+      status: "green",
       objective:
         "Conta, vínculo comunitário, solicitação moderada, papéis e grupos precisam funcionar de ponta a ponta.",
       requiredEvidence: [

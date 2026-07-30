@@ -1,6 +1,6 @@
 # Tijolo 47.3 — Comunidades completas
 
-Resultado em implementação: `COMUN_V1_COMMUNITIES_IN_PROGRESS`
+Resultado: `COMUN_IDENTITY_COMMUNITIES_GREEN`
 
 ## Causa-raiz
 
@@ -59,5 +59,29 @@ O artifact não contém nomes, IDs, e-mails, mensagens privadas ou secrets.
 - nenhuma alteração de RLS;
 - nenhuma promoção automática de seguidor para membro;
 - nenhuma concessão automática de papel;
-- nenhuma escrita de produção durante a revisão da PR;
-- o domínio permanece `in_progress` até o ensaio controlado e a reconciliação histórica.
+- nenhum envio externo ou escrita em Storage;
+- toda escrita sintética do ensaio remoto ocorreu em uma única transação
+  privada, integralmente revertida;
+- zero linhas sintéticas permaneceram no postflight.
+
+## Fechamento da evidência
+
+- primeiro run remoto controlado: `30567012604`;
+- SHA funcional ensaiado: `413d6be7dfecb4d02d1f87277a224745bdbd3376`;
+- artifact:
+  `comun-identity-communities-eba0205ebcb740dd09a82ea74d2106d48043db64-30567012604`;
+- resultado do artifact: `COMUN_IDENTITY_COMMUNITIES_GREEN`;
+- 14 verificações positivas e negativas verdes;
+- autoaprovações históricas encontradas: `0`;
+- autoaprovação no fluxo atual: bloqueada;
+- repetição da mesma decisão: idempotente;
+- visitante, membro comum e membro de outra comunidade: sem escalada;
+- aprovação por ator autorizado diferente: comprovada;
+- Inbox de solicitante e coordenação: comprovada;
+- papel temporário e revogação imediata: comprovados;
+- fixture privada: invisível na superfície pública;
+- scanner independente: sem conexão, segredo, e-mail, UUID bruto ou dado
+  pessoal.
+
+O domínio `identity_communities` passa a `green`. O gate terminal
+`launch_publicly` continua fechado.
