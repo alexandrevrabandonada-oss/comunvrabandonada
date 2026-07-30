@@ -1,6 +1,5 @@
 import {
   COMMUNITY_MEMBERSHIP_REVIEW_GATE,
-  isOpenCommunityMembershipOperation,
   resolveCommunitySelfServiceState,
 } from "@/lib/community-administration";
 import { upsertMemberInbox } from "@/lib/community-inbox";
@@ -280,7 +279,13 @@ export async function updateCommunityMembership(input: {
       ? "preferences_changed"
       : input.intent === "follow"
         ? "followed"
-        : input.intent;
+        : input.intent === "pause"
+          ? "paused"
+          : input.intent === "resume"
+            ? "resumed"
+            : input.intent === "leave"
+              ? "left"
+              : input.intent;
   await db.from("comun_community_audit_log").insert({
     community_id: community.id,
     member_user_id: input.userId,
