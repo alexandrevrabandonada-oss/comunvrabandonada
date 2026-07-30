@@ -1,0 +1,115 @@
+name: COMUN V1 Launch Readiness
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-launch-readiness.yml"
+      - "app/comun/admin/lancamento/**"
+      - "components/admin-shell.tsx"
+      - "docs/comun-v1-launch-scope.md"
+      - "lib/comun-launch-program.ts"
+      - "lib/comun-launch-program.test.ts"
+      - "scripts/audit-comun-launch-readiness.mjs"
+  schedule:
+    - cron: "41 10 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: comun-v1-launch-readiness-${{ github.event.pull_request.number || 'daily' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verify:
+    name: VERIFY / COMUN_V1_DELIVERABILITY_CONTRACT
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --check scripts/audit-comun-launch-readiness.mjs
+      - run: >-
+          npx prettier --check
+          .github/workflows/comun-launch-readiness.yml
+          app/comun/admin/lancamento/page.tsx
+          components/admin-shell.tsx
+          docs/comun-v1-launch-scope.md
+          lib/comun-launch-program.ts
+          lib/comun-launch-program.test.ts
+          scripts/audit-comun-launch-readiness.mjs
+      - run: npx vitest run lib/comun-launch-program.test.ts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: git diff --check origin/main...HEAD
+      - name: Verify final-gate and sanitization boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'finalHumanGate: "launch_publicly"' lib/comun-launch-program.ts
+          grep -q 'containsCoordinates: false' scripts/audit-comun-launch-readiness.mjs
+          grep -q 'containsPersonalData: false' scripts/audit-comun-launch-readiness.mjs
+          grep -q 'containsUserIds: false' scripts/audit-comun-launch-readiness.mjs
+          grep -q 'containsSecrets: false' scripts/audit-comun-launch-readiness.mjs
+          ! grep -R -n -E 'SUPABASE_SERVICE_ROLE_KEY=|SUPABASE_DB_URL=' \
+            app/comun/admin/lancamento \
+            lib/comun-launch-program.ts \
+            scripts/audit-comun-launch-readiness.mjs
+          echo COMUN_V1_DELIVERABILITY_CONTRACT_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  audit:
+    name: AUDIT / COMUN_V1_DELIVERABILITY
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Audit public launch readiness without writes
+        env:
+          COMUN_PUBLIC_BASE_URL: https://comunsocial.online
+          COMUN_ARTIFACT_DIR: .ci-artifacts/comun-launch-readiness
+        run: >-
+          node --experimental-strip-types
+          scripts/audit-comun-launch-readiness.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-v1-launch-readiness-${{ github.run_id }}
+          path: .ci-artifacts/comun-launch-readiness
+          retention-days: 30
+          if-no-files-found: error
+      - name: Open or update the single launch-readiness issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact=.ci-artifacts/comun-launch-readiness/comun-launch-readiness.json
+          result=$(jq -r .result "$artifact")
+          findings=$(jq -r .findingsCount "$artifact")
+          if [ "$result" = "COMUN_V1_DELIVERABILITY_READY_FOR_FINAL_HUMAN_GATE" ]; then
+            exit 0
+          fi
+          title="Entregabilidade V1 do COMUN"
+          existing=$(gh issue list --state open --search "$title in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+          body="A auditoria read-only encontrou $findings pendência(s). Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Nenhum lançamento, banco, Storage, Auth ou deployment foi alterado."
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi
