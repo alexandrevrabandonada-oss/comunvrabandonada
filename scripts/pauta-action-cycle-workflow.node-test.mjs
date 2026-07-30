@@ -41,6 +41,15 @@ test("migration aceita somente o plano aditivo exato e não ativa feature", () =
   assert.match(source, /COMUN_PAUTA_ACTION_CYCLE_MIGRATION_ALREADY_APPLIED/);
   assert.match(source, /migration-attempt\.json/);
   assert.match(source, /blocked_before_write/);
+  assert.match(
+    source,
+    /20260724233256_comun_sidewalk_operational_hardening\.sql/,
+  );
+  assert.match(
+    source,
+    /6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be/,
+  );
+  assert.equal([...source.matchAll(/trap restore_sidewalk EXIT/g)].length, 2);
   assert.doesNotMatch(
     source,
     /SUPABASE_ACCESS_TOKEN|SUPABASE_DB_PASSWORD|supabase link/,
