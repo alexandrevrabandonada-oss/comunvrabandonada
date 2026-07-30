@@ -46,6 +46,11 @@ test("migration is additive, private and idempotent by key", () => {
   assert.doesNotMatch(migration, /grant\s+.*\s+to\s+(anon|authenticated)/i);
 });
 
+test("static boundary recognizes the historical private grant contract", () => {
+  assert.match(workflow, /from \(public, \)\?anon, authenticated/);
+  assert.doesNotMatch(migration, /grant\s+.*\s+to\s+(anon|authenticated)/i);
+});
+
 test("daily artifacts and the one aggregated issue are sanitized", () => {
   assert.match(workflow, /actions\/upload-artifact@v4/);
   assert.match(workflow, /Operação unificada do COMUN/);

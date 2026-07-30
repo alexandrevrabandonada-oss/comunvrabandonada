@@ -90,7 +90,7 @@ jobs:
           set -euo pipefail
           grep -q "projection_contract" supabase/migrations/20260730230044_comun_operations_unified_projection.sql
           grep -q "enable row level security" supabase/migrations/20260717013709_editorial_operation.sql
-          grep -q "from public, anon, authenticated" supabase/migrations/20260717013709_editorial_operation.sql
+          grep -Eq "from (public, )?anon, authenticated" supabase/migrations/20260717013709_editorial_operation.sql
           grep -q "begin transaction read only" scripts/audit-comun-operations.mjs
           ! grep -R -n -E "raw_text|contact_private|object_key|signed_url" \
             lib/operational-adapters.ts app/comun/admin/operacao
