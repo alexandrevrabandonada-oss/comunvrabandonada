@@ -69,13 +69,48 @@ export function sanitizeCulturalRehearsalResult(input) {
   };
 }
 
+function rehearsalOutputPath(argv = process.argv) {
+  const outputIndex = argv.indexOf("--output");
+  return outputIndex >= 0
+    ? argv[outputIndex + 1]
+    : ".ci-artifacts/comun-cultural-deliverability/rehearsal.json";
+}
+
+async function persistRehearsalFailure(error, output) {
+  const marker = String(error?.message ?? "");
+  const safeMarker = /^COMUN_[A-Z0-9_]+$/.test(marker)
+    ? marker
+    : "COMUN_CULTURAL_REHEARSAL_FAILED";
+  const artifact = {
+    formatVersion: 1,
+    rehearsalType: "private_transactional_archive_radio_art_failure",
+    result: safeMarker,
+    transactionRolledBack: "attempted",
+    rowsRemainingAfterRollback: "unknown",
+    containsIds: false,
+    containsPersonalData: false,
+    databaseWritesPersisted: "none",
+    storageWrites: "none",
+  };
+  await mkdir(path.dirname(output), { recursive: true });
+  await writeFile(output, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
+  await writeFile(
+    path.join(path.dirname(output), "rehearsal.md"),
+    `# Ensaio privado de memória e cultura
+
+- Resultado: \`${safeMarker}\`
+- Falha fechada: sim
+- Escritas persistidas no banco: none
+- Escritas no Storage: none
+`,
+    "utf8",
+  );
+  return safeMarker;
+}
+
 async function run() {
   assertCulturalRehearsalContract();
-  const outputIndex = process.argv.indexOf("--output");
-  const output =
-    outputIndex >= 0
-      ? process.argv[outputIndex + 1]
-      : ".ci-artifacts/comun-cultural-deliverability/rehearsal.json";
+  const output = rehearsalOutputPath();
   const namespace = `private-cultural-${crypto.randomUUID()}`;
   const client = new Client({
     connectionString: resolveCulturalRehearsalDatabaseUrl(),
@@ -295,10 +330,12 @@ async function run() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  run().catch((error) => {
-    process.stderr.write(
-      `${String(error?.message ?? "COMUN_CULTURAL_REHEARSAL_FAILED")}\n`,
+  run().catch(async (error) => {
+    const safeMarker = await persistRehearsalFailure(
+      error,
+      rehearsalOutputPath(),
     );
+    process.stderr.write(`${safeMarker}\n`);
     process.exitCode = 1;
   });
 }
