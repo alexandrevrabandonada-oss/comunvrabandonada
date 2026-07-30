@@ -1,3 +1,4 @@
+import { isPublicContentDeliverable } from "@/lib/public-content-readiness";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
 export type ArchiveItem = {
@@ -117,7 +118,9 @@ export async function listPublicArchiveItems(
       );
   }
   const { data } = await q;
-  const items = (data ?? []) as ArchiveItem[];
+  const items = ((data ?? []) as ArchiveItem[]).filter(
+    isPublicContentDeliverable,
+  );
   return attachPublicAssets(items);
 }
 async function attachPublicAssets(items: ArchiveItem[]) {
@@ -150,7 +153,7 @@ export async function getPublicArchiveItem(slug: string) {
     .eq("visibility", "public")
     .not("published_at", "is", null)
     .maybeSingle();
-  if (!data) return null;
+  if (!data || !isPublicContentDeliverable(data as ArchiveItem)) return null;
   return (await attachPublicAssets([data as ArchiveItem]))[0];
 }
 export async function listAdminArchiveItems() {
@@ -194,7 +197,9 @@ export async function listPublicCollections() {
     .eq("status", "published")
     .not("published_at", "is", null)
     .order("published_at", { ascending: false });
-  return (data ?? []) as ArchiveCollection[];
+  return ((data ?? []) as ArchiveCollection[]).filter(
+    isPublicContentDeliverable,
+  );
 }
 export async function getPublicCollection(slug: string) {
   const db = createServiceSupabaseClient();
@@ -207,7 +212,7 @@ export async function getPublicCollection(slug: string) {
     .eq("slug", slug)
     .eq("status", "published")
     .maybeSingle();
-  if (!c) return null;
+  if (!c || !isPublicContentDeliverable(c as ArchiveCollection)) return null;
   const { data: links } = await db
     .from("comun_archive_collection_items")
     .select("archive_item_id, position")
@@ -223,7 +228,9 @@ export async function getPublicCollection(slug: string) {
     .eq("visibility", "public");
   return {
     collection: c as ArchiveCollection,
-    items: await attachPublicAssets((items ?? []) as ArchiveItem[]),
+    items: await attachPublicAssets(
+      ((items ?? []) as ArchiveItem[]).filter(isPublicContentDeliverable),
+    ),
   };
 }
 export async function listAdminCollections() {

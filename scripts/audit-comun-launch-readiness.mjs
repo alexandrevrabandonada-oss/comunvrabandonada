@@ -32,9 +32,15 @@ const forbiddenPublicMarkers = [
   "placeholder",
   "conteúdo demonstrativo",
   "registros demonstrativos",
+  "ambiente de demonstração",
+  "conteúdo sintético",
+  "fotografia smoke",
+  "teste controlado",
+  "foto privada de registro de calçada",
+  "imagem aguardando revisão de privacidade",
   "fixture",
   "lorem ipsum",
-  "em construção",
+  "página em construção",
 ];
 
 async function readRoute(path) {

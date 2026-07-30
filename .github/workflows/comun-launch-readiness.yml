@@ -6,10 +6,17 @@ on:
     paths:
       - ".github/workflows/comun-launch-readiness.yml"
       - "app/comun/admin/lancamento/**"
+      - "app/comun/buscar/**"
+      - "app/comun/calcadas/**"
       - "components/admin-shell.tsx"
+      - "components/comun-app-shell.tsx"
       - "docs/comun-v1-launch-scope.md"
+      - "lib/archive.ts"
+      - "lib/central-experience.ts"
       - "lib/comun-launch-program.ts"
       - "lib/comun-launch-program.test.ts"
+      - "lib/public-content-readiness.ts"
+      - "lib/public-content-readiness.test.ts"
       - "scripts/audit-comun-launch-readiness.mjs"
   schedule:
     - cron: "41 10 * * *"
@@ -43,30 +50,50 @@ jobs:
           npx prettier --check
           .github/workflows/comun-launch-readiness.yml
           app/comun/admin/lancamento/page.tsx
+          app/comun/buscar/page.tsx
+          app/comun/calcadas/page.tsx
           components/admin-shell.tsx
+          components/comun-app-shell.tsx
           docs/comun-v1-launch-scope.md
+          lib/archive.ts
+          lib/central-experience.ts
           lib/comun-launch-program.ts
           lib/comun-launch-program.test.ts
+          lib/public-content-readiness.ts
+          lib/public-content-readiness.test.ts
           scripts/audit-comun-launch-readiness.mjs
-      - run: npx vitest run lib/comun-launch-program.test.ts
+      - run: >-
+          npx vitest run
+          lib/comun-launch-program.test.ts
+          lib/public-content-readiness.test.ts
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
       - run: git diff --check origin/main...HEAD
-      - name: Verify final-gate and sanitization boundaries
+      - name: Verify final-gate, public boundary and sanitization
         shell: bash
         run: |
           set -euo pipefail
           grep -q 'finalHumanGate: "launch_publicly"' lib/comun-launch-program.ts
+          grep -q 'isPublicContentDeliverable' lib/archive.ts
+          grep -q 'isPublicContentDeliverable' lib/central-experience.ts
+          grep -q 'contribuições revisadas' app/comun/calcadas/page.tsx
+          grep -q 'Versão em preparação · acesso piloto' components/comun-app-shell.tsx
+          ! grep -R -n 'Ambiente de demonstração · conteúdo sintético' \
+            components/comun-app-shell.tsx app/comun/buscar app/comun/calcadas
+          ! grep -R -n 'registros demonstrativos' app/comun/calcadas
           grep -q 'containsCoordinates: false' scripts/audit-comun-launch-readiness.mjs
           grep -q 'containsPersonalData: false' scripts/audit-comun-launch-readiness.mjs
           grep -q 'containsUserIds: false' scripts/audit-comun-launch-readiness.mjs
           grep -q 'containsSecrets: false' scripts/audit-comun-launch-readiness.mjs
           ! grep -R -n -E 'SUPABASE_SERVICE_ROLE_KEY=|SUPABASE_DB_URL=' \
             app/comun/admin/lancamento \
+            app/comun/buscar \
+            app/comun/calcadas \
             lib/comun-launch-program.ts \
+            lib/public-content-readiness.ts \
             scripts/audit-comun-launch-readiness.mjs
-          echo COMUN_V1_DELIVERABILITY_CONTRACT_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo COMUN_V1_PUBLIC_CORE_CONTRACT_GREEN >> "$GITHUB_STEP_SUMMARY"
 
   audit:
     name: AUDIT / COMUN_V1_DELIVERABILITY

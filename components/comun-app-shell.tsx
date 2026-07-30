@@ -30,7 +30,7 @@ export function ComunAppShell({
           role="note"
           className="bg-comun-yellow px-4 py-1 text-center text-xs font-black text-comun-black"
         >
-          Ambiente de demonstração · conteúdo sintético
+          Versão em preparação · acesso piloto
         </div>
       ) : null}
       <header className="sticky top-0 z-30 hidden border-b-2 border-comun-yellow bg-comun-black pt-[env(safe-area-inset-top)] text-comun-paper lg:block">
