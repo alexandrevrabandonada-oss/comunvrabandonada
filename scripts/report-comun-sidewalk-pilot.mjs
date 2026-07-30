@@ -63,7 +63,8 @@ const result = {
   },
 };
 
-const outputDir = process.env.COMUN_ARTIFACT_DIR ?? ".ci-artifacts/sidewalk-pilot";
+const outputDir =
+  process.env.COMUN_ARTIFACT_DIR ?? ".ci-artifacts/sidewalk-pilot";
 await mkdir(outputDir, { recursive: true });
 await writeFile(
   `${outputDir}/comun-sidewalk-pilot.json`,

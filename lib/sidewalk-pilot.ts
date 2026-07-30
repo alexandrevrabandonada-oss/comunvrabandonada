@@ -158,7 +158,10 @@ export function summarizeSidewalkPilot(
   const neighborhoods = Array.from(neighborhoodCounts, ([name, count]) => ({
     name,
     count,
-  })).sort((left, right) => right.count - left.count || left.name.localeCompare(right.name));
+  })).sort(
+    (left, right) =>
+      right.count - left.count || left.name.localeCompare(right.name),
+  );
 
   const completionRatePct = percent(confirmed.length, uploads.length);
   const technicalFailureRatePct = percent(
@@ -169,10 +172,7 @@ export function summarizeSidewalkPilot(
     moderationWithinSla,
     moderationDurations.length,
   );
-  const returnRatePct = percent(
-    returningParticipants,
-    uniqueParticipants.size,
-  );
+  const returnRatePct = percent(returningParticipants, uniqueParticipants.size);
   const phase = sidewalkPilotPhase(now);
   const findings: string[] = [];
   if (
@@ -236,10 +236,7 @@ export function summarizeSidewalkPilot(
 }
 
 export function buildSidewalkPilotInviteUrl(territory: string) {
-  const url = new URL(
-    "/comun/mapa/contribuir",
-    "https://comunsocial.online",
-  );
+  const url = new URL("/comun/mapa/contribuir", "https://comunsocial.online");
   url.searchParams.set("origem", "calcadas");
   url.searchParams.set("pauta", "calcadas-em-circulacao");
   url.searchParams.set("piloto", SIDEWALK_PILOT.id);

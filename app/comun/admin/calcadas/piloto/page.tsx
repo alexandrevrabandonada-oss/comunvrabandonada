@@ -135,7 +135,10 @@ export default async function SidewalkPilotPage() {
           <h2 className="text-xl font-black uppercase">Moderação</h2>
           <dl className="mt-4 grid gap-3">
             <Row label="Pendentes" value={String(metrics.pendingRecords)} />
-            <Row label="Fotos pendentes" value={String(metrics.pendingPhotos)} />
+            <Row
+              label="Fotos pendentes"
+              value={String(metrics.pendingPhotos)}
+            />
             <Row
               label="Decisões em até 24 h"
               value={`${metrics.moderationWithinSla}/${metrics.moderationDecisions}`}
@@ -170,7 +173,9 @@ export default async function SidewalkPilotPage() {
               ))}
             </ul>
           ) : (
-            <p className="mt-4">Nenhum registro recebido na janela do piloto.</p>
+            <p className="mt-4">
+              Nenhum registro recebido na janela do piloto.
+            </p>
           )}
         </div>
       </section>
@@ -185,7 +190,10 @@ export default async function SidewalkPilotPage() {
           {SIDEWALK_PILOT.territories.map((territory) => {
             const invite = buildSidewalkPilotInviteUrl(territory);
             return (
-              <article className="border-2 border-comun-black p-4" key={territory}>
+              <article
+                className="border-2 border-comun-black p-4"
+                key={territory}
+              >
                 <h3 className="font-black uppercase">{territory}</h3>
                 <p className="mt-2 break-all text-xs">{invite}</p>
                 <a
