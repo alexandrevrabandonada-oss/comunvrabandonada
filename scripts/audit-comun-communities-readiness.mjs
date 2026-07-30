@@ -14,23 +14,37 @@ const artifactDir = resolve(
 );
 const openStates = ["pending", "assigned", "in_review", "blocked", "ready"];
 
-const [
+const [communities, memberships, roles, groups, requests, selfApprovals] =
+  await Promise.all([
+    db
+      .from("comun_communities")
+      .select("id", { count: "exact", head: true })
+      .eq("is_active", true),
+    db.from("comun_community_memberships").select("state"),
+    db
+      .from("comun_community_role_assignments")
+      .select("id", { count: "exact", head: true })
+      .is("revoked_at", null),
+    db.from("comun_community_work_groups").select("state"),
+    db
+      .from("comun_editorial_operation_items")
+      .select("state")
+      .eq("human_gate", COMMUNITY_MEMBERSHIP_REVIEW_GATE)
+      .in("state", openStates),
+    db
+      .from("comun_community_audit_log")
+      .select("actor_user_id,member_user_id")
+      .eq("event_type", "membership_approved"),
+  ]);
+
+for (const result of [
   communities,
   memberships,
   roles,
   groups,
   requests,
   selfApprovals,
-] = await Promise.all([
-  db.from("comun_communities").select("id", { count: "exact", head: true }).eq("is_active", true),
-  db.from("comun_community_memberships").select("state"),
-  db.from("comun_community_role_assignments").select("id", { count: "exact", head: true }).is("revoked_at", null),
-  db.from("comun_community_work_groups").select("state"),
-  db.from("comun_editorial_operation_items").select("state").eq("human_gate", COMMUNITY_MEMBERSHIP_REVIEW_GATE).in("state", openStates),
-  db.from("comun_community_audit_log").select("actor_user_id,member_user_id").eq("event_type", "membership_approved"),
-]);
-
-for (const result of [communities, memberships, roles, groups, requests, selfApprovals]) {
+]) {
   if (result.error) throw new Error("COMMUNITY_AUDIT_QUERY_FAILED");
 }
 

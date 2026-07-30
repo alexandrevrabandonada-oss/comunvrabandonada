@@ -28,7 +28,9 @@ function requiredId(formData: FormData, name: string) {
 }
 
 function safeText(formData: FormData, name: string, max: number) {
-  return String(formData.get(name) ?? "").trim().slice(0, max);
+  return String(formData.get(name) ?? "")
+    .trim()
+    .slice(0, max);
 }
 
 function revalidateCommunityAdministration(slug?: string) {
@@ -47,7 +49,9 @@ export async function reviewCommunityMembership(formData: FormData) {
   const db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco indisponível.");
   const operationId = requiredId(formData, "operation_id");
-  const decision = String(formData.get("decision") ?? "") as CommunityMembershipDecision;
+  const decision = String(
+    formData.get("decision") ?? "",
+  ) as CommunityMembershipDecision;
   if (!(["approve", "reject"] as const).includes(decision))
     throw new Error("Decisão inválida.");
   const note = safeText(formData, "review_note", 800);
@@ -75,7 +79,8 @@ export async function reviewCommunityMembership(formData: FormData) {
     membershipState: membership.data.state,
     decision,
   });
-  if (!validation.ok) throw new Error(`Decisão recusada: ${validation.reason}.`);
+  if (!validation.ok)
+    throw new Error(`Decisão recusada: ${validation.reason}.`);
 
   const community = Array.isArray((membership.data as any).community)
     ? (membership.data as any).community[0]
@@ -340,7 +345,9 @@ export async function changeCommunityWorkGroupMember(formData: FormData) {
   const [group, membership] = await Promise.all([
     db
       .from("comun_community_work_groups")
-      .select("id,name,community_id,community:comun_communities!inner(slug,name)")
+      .select(
+        "id,name,community_id,community:comun_communities!inner(slug,name)",
+      )
       .eq("id", groupId)
       .maybeSingle(),
     db
@@ -395,7 +402,8 @@ export async function changeCommunityWorkGroupMember(formData: FormData) {
     }),
     upsertMemberInbox({
       memberUserId: membership.data.member_user_id,
-      type: intent === "join" ? "community_task_assigned" : "contribution_update",
+      type:
+        intent === "join" ? "community_task_assigned" : "contribution_update",
       title:
         intent === "join"
           ? `Você entrou no grupo ${group.data.name}`

@@ -24,11 +24,7 @@ export const updateChoices = [
   "radio",
 ] as const;
 export type CommunityMembershipState =
-  | "following"
-  | "member"
-  | "paused"
-  | "left"
-  | "suspended";
+  "following" | "member" | "paused" | "left" | "suspended";
 
 const openOperationStates = [
   "pending",
@@ -250,7 +246,10 @@ export async function updateCommunityMembership(input: {
         event_type: "membership_requested",
         prior_state: prior?.state ?? null,
         next_state: membership.state,
-        metadata: { source: "community_self_service", operation_id: operation.id },
+        metadata: {
+          source: "community_self_service",
+          operation_id: operation.id,
+        },
       });
       await notifyCommunityCoordinators({
         communityId: community.id,

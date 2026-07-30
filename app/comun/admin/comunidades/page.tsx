@@ -97,7 +97,9 @@ export default async function CommunityAdministrationPage() {
   const groups = groupsResult.data ?? [];
   const groupMembers = groupMembersResult.data ?? [];
   const pautas = pautasResult.data ?? [];
-  const userIds = [...new Set(memberships.map((item: any) => item.member_user_id))];
+  const userIds = [
+    ...new Set(memberships.map((item: any) => item.member_user_id)),
+  ];
   const profilesResult = userIds.length
     ? await db
         .from("comun_member_profiles")
@@ -107,7 +109,10 @@ export default async function CommunityAdministrationPage() {
   if (profilesResult.error)
     throw new Error("Não foi possível carregar os perfis comunitários.");
   const profileByUser = new Map(
-    (profilesResult.data ?? []).map((profile: any) => [profile.user_id, profile]),
+    (profilesResult.data ?? []).map((profile: any) => [
+      profile.user_id,
+      profile,
+    ]),
   );
   const membershipById = new Map(
     memberships.map((membership: any) => [membership.id, membership]),
@@ -118,7 +123,9 @@ export default async function CommunityAdministrationPage() {
       membership: membershipById.get(operation.source_id),
     }))
     .filter((item: any) => item.membership);
-  const activeMembers = memberships.filter((item: any) => item.state === "member");
+  const activeMembers = memberships.filter(
+    (item: any) => item.state === "member",
+  );
 
   return (
     <AdminShell adminEmail={session.admin.email}>
@@ -134,14 +141,20 @@ export default async function CommunityAdministrationPage() {
       </div>
 
       <section className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric label="Solicitações" value={operationRequests.length} attention />
+        <Metric
+          label="Solicitações"
+          value={operationRequests.length}
+          attention
+        />
         <Metric label="Membros ativos" value={activeMembers.length} />
         <Metric label="Papéis ativos" value={roles.length} />
         <Metric label="Grupos abertos" value={groups.length} />
       </section>
 
       <section className="mt-8">
-        <h2 className="text-2xl font-black uppercase">Solicitações de entrada</h2>
+        <h2 className="text-2xl font-black uppercase">
+          Solicitações de entrada
+        </h2>
         <p className="mt-1 text-sm opacity-75">
           Mais antigas primeiro. A decisão altera apenas o vínculo; papéis são
           concedidos separadamente.
@@ -162,19 +175,26 @@ export default async function CommunityAdministrationPage() {
                   {profile?.display_name || "Pessoa sem nome público"}
                 </h3>
                 <p className="mt-2 text-sm">
-                  Solicitado em {new Date(operation.created_at).toLocaleString("pt-BR")}
+                  Solicitado em{" "}
+                  {new Date(operation.created_at).toLocaleString("pt-BR")}
                   {operation.indicative_due_at
                     ? ` · revisar até ${new Date(operation.indicative_due_at).toLocaleString("pt-BR")}`
                     : ""}
                 </p>
                 <p className="mt-2">
-                  Interesses: {membership.collaboration_preferences?.join(" · ") || "não informados"}
+                  Interesses:{" "}
+                  {membership.collaboration_preferences?.join(" · ") ||
+                    "não informados"}
                 </p>
                 <form
                   action={reviewCommunityMembership}
                   className="mt-4 grid gap-3 md:grid-cols-[1fr_auto_auto]"
                 >
-                  <input type="hidden" name="operation_id" value={operation.id} />
+                  <input
+                    type="hidden"
+                    name="operation_id"
+                    value={operation.id}
+                  />
                   <input
                     className="border-2 p-3"
                     maxLength={800}
@@ -211,50 +231,91 @@ export default async function CommunityAdministrationPage() {
               (assignment: any) => assignment.membership_id === membership.id,
             );
             return (
-              <article className="border-2 bg-white p-5 text-comun-black" key={membership.id}>
-                <p className="text-xs font-black uppercase">{community?.name}</p>
+              <article
+                className="border-2 bg-white p-5 text-comun-black"
+                key={membership.id}
+              >
+                <p className="text-xs font-black uppercase">
+                  {community?.name}
+                </p>
                 <h3 className="mt-1 text-xl font-black">
                   {profile?.display_name || "Pessoa sem nome público"}
                 </h3>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {assignments.map((assignment: any) => (
                     <form action={revokeCommunityRole} key={assignment.id}>
-                      <input type="hidden" name="assignment_id" value={assignment.id} />
+                      <input
+                        type="hidden"
+                        name="assignment_id"
+                        value={assignment.id}
+                      />
                       <button className="border-2 px-3 py-2 text-sm font-bold">
                         {assignment.role} · remover
                       </button>
                     </form>
                   ))}
-                  {!assignments.length ? <span className="text-sm">Sem papel operacional.</span> : null}
+                  {!assignments.length ? (
+                    <span className="text-sm">Sem papel operacional.</span>
+                  ) : null}
                 </div>
                 {session.admin.role === "admin" ? (
-                  <form action={grantCommunityRole} className="mt-4 grid gap-2 md:grid-cols-[1fr_1fr_1fr_auto]">
-                    <input type="hidden" name="membership_id" value={membership.id} />
-                    <select className="border-2 p-3" name="role" defaultValue="facilitator">
+                  <form
+                    action={grantCommunityRole}
+                    className="mt-4 grid gap-2 md:grid-cols-[1fr_1fr_1fr_auto]"
+                  >
+                    <input
+                      type="hidden"
+                      name="membership_id"
+                      value={membership.id}
+                    />
+                    <select
+                      className="border-2 p-3"
+                      name="role"
+                      defaultValue="facilitator"
+                    >
                       {communityRoles.map((role) => (
-                        <option value={role} key={role}>{role}</option>
+                        <option value={role} key={role}>
+                          {role}
+                        </option>
                       ))}
                     </select>
-                    <input className="border-2 p-3" name="scope" defaultValue="community" />
-                    <input className="border-2 p-3" name="review_at" type="datetime-local" />
+                    <input
+                      className="border-2 p-3"
+                      name="scope"
+                      defaultValue="community"
+                    />
+                    <input
+                      className="border-2 p-3"
+                      name="review_at"
+                      type="datetime-local"
+                    />
                     <button className="btn">Conceder papel</button>
                   </form>
                 ) : null}
               </article>
             );
           })}
-          {!activeMembers.length ? <p className="border-2 p-4">Nenhum membro ativo.</p> : null}
+          {!activeMembers.length ? (
+            <p className="border-2 p-4">Nenhum membro ativo.</p>
+          ) : null}
         </div>
       </section>
 
       <section className="mt-8 grid gap-6 lg:grid-cols-[.8fr_1.2fr]">
-        <form action={createCommunityWorkGroup} className="grid gap-3 border-2 bg-white p-5 text-comun-black">
-          <h2 className="text-xl font-black uppercase">Criar grupo de trabalho</h2>
+        <form
+          action={createCommunityWorkGroup}
+          className="grid gap-3 border-2 bg-white p-5 text-comun-black"
+        >
+          <h2 className="text-xl font-black uppercase">
+            Criar grupo de trabalho
+          </h2>
           <label className="grid gap-1 font-bold">
             Comunidade
             <select className="border-2 p-3" name="community_id" required>
               {communities.map((community: any) => (
-                <option value={community.id} key={community.id}>{community.name}</option>
+                <option value={community.id} key={community.id}>
+                  {community.name}
+                </option>
               ))}
             </select>
           </label>
@@ -262,23 +323,42 @@ export default async function CommunityAdministrationPage() {
             Pauta da comunidade
             <select className="border-2 p-3" name="pauta_id" required>
               {pautas.map((pauta: any) => (
-                <option value={pauta.id} key={pauta.id}>{pauta.title}</option>
+                <option value={pauta.id} key={pauta.id}>
+                  {pauta.title}
+                </option>
               ))}
             </select>
           </label>
           <Field name="name" label="Nome" maxLength={160} />
           <Area name="objective" label="Objetivo" maxLength={1200} />
           <Field name="cycle_label" label="Ciclo" maxLength={120} />
-          <Area name="next_action" label="Próxima ação" maxLength={500} required={false} />
-          <Area name="result_expected" label="Resultado esperado" maxLength={800} />
+          <Area
+            name="next_action"
+            label="Próxima ação"
+            maxLength={500}
+            required={false}
+          />
+          <Area
+            name="result_expected"
+            label="Resultado esperado"
+            maxLength={800}
+          />
           <select className="border-2 p-3" name="state" defaultValue="proposed">
             <option value="proposed">proposed</option>
             <option value="active">active</option>
             <option value="paused">paused</option>
           </select>
           <div className="grid gap-2 sm:grid-cols-2">
-            <input className="border-2 p-3" name="starts_at" type="datetime-local" />
-            <input className="border-2 p-3" name="ends_at" type="datetime-local" />
+            <input
+              className="border-2 p-3"
+              name="starts_at"
+              type="datetime-local"
+            />
+            <input
+              className="border-2 p-3"
+              name="ends_at"
+              type="datetime-local"
+            />
           </div>
           <button className="btn">Criar grupo</button>
         </form>
@@ -293,10 +373,14 @@ export default async function CommunityAdministrationPage() {
                 (item: any) => item.group_id === group.id,
               );
               const eligibleMembers = activeMembers.filter(
-                (membership: any) => membership.community_id === group.community_id,
+                (membership: any) =>
+                  membership.community_id === group.community_id,
               );
               return (
-                <article className="border-2 bg-white p-5 text-comun-black" key={group.id}>
+                <article
+                  className="border-2 bg-white p-5 text-comun-black"
+                  key={group.id}
+                >
                   <p className="text-xs font-black uppercase">
                     {community?.name} · {group.state} · {group.cycle_label}
                   </p>
@@ -305,35 +389,80 @@ export default async function CommunityAdministrationPage() {
                   <p className="mt-2 text-sm">Pauta: {pauta?.title}</p>
                   <div className="mt-4 grid gap-2">
                     {activeGroupMembers.map((item: any) => {
-                      const membership = membershipById.get(item.membership_id) as any;
+                      const membership = membershipById.get(
+                        item.membership_id,
+                      ) as any;
                       const profile = membership
                         ? (profileByUser.get(membership.member_user_id) as any)
                         : null;
                       return (
-                        <form action={changeCommunityWorkGroupMember} className="flex flex-wrap items-center justify-between gap-3 border-t-2 pt-2" key={item.membership_id}>
-                          <input type="hidden" name="group_id" value={group.id} />
-                          <input type="hidden" name="membership_id" value={item.membership_id} />
-                          <span>{profile?.display_name || "Pessoa sem nome público"} · {item.responsibility}</span>
-                          <button className="font-black underline" name="intent" value="leave">Retirar do grupo</button>
+                        <form
+                          action={changeCommunityWorkGroupMember}
+                          className="flex flex-wrap items-center justify-between gap-3 border-t-2 pt-2"
+                          key={item.membership_id}
+                        >
+                          <input
+                            type="hidden"
+                            name="group_id"
+                            value={group.id}
+                          />
+                          <input
+                            type="hidden"
+                            name="membership_id"
+                            value={item.membership_id}
+                          />
+                          <span>
+                            {profile?.display_name || "Pessoa sem nome público"}{" "}
+                            · {item.responsibility}
+                          </span>
+                          <button
+                            className="font-black underline"
+                            name="intent"
+                            value="leave"
+                          >
+                            Retirar do grupo
+                          </button>
                         </form>
                       );
                     })}
                   </div>
-                  <form action={changeCommunityWorkGroupMember} className="mt-4 grid gap-2 md:grid-cols-[1fr_1fr_auto]">
+                  <form
+                    action={changeCommunityWorkGroupMember}
+                    className="mt-4 grid gap-2 md:grid-cols-[1fr_1fr_auto]"
+                  >
                     <input type="hidden" name="group_id" value={group.id} />
-                    <select className="border-2 p-3" name="membership_id" required>
+                    <select
+                      className="border-2 p-3"
+                      name="membership_id"
+                      required
+                    >
                       {eligibleMembers.map((membership: any) => {
-                        const profile = profileByUser.get(membership.member_user_id) as any;
-                        return <option value={membership.id} key={membership.id}>{profile?.display_name || membership.id.slice(0, 8)}</option>;
+                        const profile = profileByUser.get(
+                          membership.member_user_id,
+                        ) as any;
+                        return (
+                          <option value={membership.id} key={membership.id}>
+                            {profile?.display_name || membership.id.slice(0, 8)}
+                          </option>
+                        );
                       })}
                     </select>
-                    <input className="border-2 p-3" name="responsibility" placeholder="Responsabilidade" maxLength={300} />
-                    <button className="btn" name="intent" value="join">Incluir</button>
+                    <input
+                      className="border-2 p-3"
+                      name="responsibility"
+                      placeholder="Responsabilidade"
+                      maxLength={300}
+                    />
+                    <button className="btn" name="intent" value="join">
+                      Incluir
+                    </button>
                   </form>
                 </article>
               );
             })}
-            {!groups.length ? <p className="border-2 p-4">Nenhum grupo aberto.</p> : null}
+            {!groups.length ? (
+              <p className="border-2 p-4">Nenhum grupo aberto.</p>
+            ) : null}
           </div>
         </div>
       </section>
@@ -345,14 +474,68 @@ function relation(value: any) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function Metric({ label, value, attention = false }: { label: string; value: number; attention?: boolean }) {
-  return <div className={`border-2 bg-white p-4 text-comun-black ${attention ? "border-comun-yellow" : "border-comun-black"}`}><p className="text-xs font-black uppercase">{label}</p><p className="mt-1 text-3xl font-black">{value}</p></div>;
+function Metric({
+  label,
+  value,
+  attention = false,
+}: {
+  label: string;
+  value: number;
+  attention?: boolean;
+}) {
+  return (
+    <div
+      className={`border-2 bg-white p-4 text-comun-black ${attention ? "border-comun-yellow" : "border-comun-black"}`}
+    >
+      <p className="text-xs font-black uppercase">{label}</p>
+      <p className="mt-1 text-3xl font-black">{value}</p>
+    </div>
+  );
 }
 
-function Field({ name, label, maxLength }: { name: string; label: string; maxLength: number }) {
-  return <label className="grid gap-1 font-bold">{label}<input className="border-2 p-3" maxLength={maxLength} name={name} required /></label>;
+function Field({
+  name,
+  label,
+  maxLength,
+}: {
+  name: string;
+  label: string;
+  maxLength: number;
+}) {
+  return (
+    <label className="grid gap-1 font-bold">
+      {label}
+      <input
+        className="border-2 p-3"
+        maxLength={maxLength}
+        name={name}
+        required
+      />
+    </label>
+  );
 }
 
-function Area({ name, label, maxLength, required = true }: { name: string; label: string; maxLength: number; required?: boolean }) {
-  return <label className="grid gap-1 font-bold">{label}<textarea className="border-2 p-3" maxLength={maxLength} name={name} required={required} rows={3} /></label>;
+function Area({
+  name,
+  label,
+  maxLength,
+  required = true,
+}: {
+  name: string;
+  label: string;
+  maxLength: number;
+  required?: boolean;
+}) {
+  return (
+    <label className="grid gap-1 font-bold">
+      {label}
+      <textarea
+        className="border-2 p-3"
+        maxLength={maxLength}
+        name={name}
+        required={required}
+        rows={3}
+      />
+    </label>
+  );
 }

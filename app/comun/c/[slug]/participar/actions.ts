@@ -7,17 +7,10 @@ import { updateCommunityMembership } from "@/lib/community-membership";
 export async function changeCommunityMembership(formData: FormData) {
   const slug = String(formData.get("slug") ?? "");
   const intent = String(formData.get("intent") ?? "follow") as
-    | "follow"
-    | "join"
-    | "save"
-    | "pause"
-    | "resume"
-    | "leave";
+    "follow" | "join" | "save" | "pause" | "resume" | "leave";
   if (
     !/^[a-z0-9-]{2,80}$/.test(slug) ||
-    !["follow", "join", "save", "pause", "resume", "leave"].includes(
-      intent,
-    )
+    !["follow", "join", "save", "pause", "resume", "leave"].includes(intent)
   )
     throw new Error("Ação comunitária inválida.");
   const { user } = await requireCommunitySession(`/comun/c/${slug}/participar`);
