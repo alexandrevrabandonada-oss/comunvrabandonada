@@ -57,8 +57,15 @@ consentimentos.
 
 O reset local completo chegou ao perfil final 4/4. A reaplicação focal resultou
 em zero linha alterada, e as migrations históricas permaneceram byte a byte
-intactas. O plano remoto será aceito somente quando contiver exclusivamente a
-nova migration.
+intactas.
+
+O primeiro transporte pós-merge, no run `30586827727`, foi bloqueado antes de
+qualquer escrita: o planejamento global da CLI incluiu uma migration histórica
+já aplicada por outro contrato e ausente apenas do ledger da CLI. A correção
+operacional remove o planejamento global e executa, em transação única, somente
+o SQL allowlisted `20260730213205`, seu registro de ledger e as releituras dos
+dois buckets. O ensaio local desse transporte confirmou duas linhas de bucket,
+uma linha de ledger, zero objeto e zero migration histórica.
 
 ## Evidência local
 
@@ -83,7 +90,7 @@ alterar produto fora do escopo.
 Após integração, a lane executará separadamente:
 
 1. preflight remoto read-only;
-2. dry-run e aplicação exclusiva da nova migration;
+2. plano allowlisted e aplicação transacional exclusiva da nova migration;
 3. postflight independente;
 4. correção otimista de exatamente um `alt_text`, sem Storage write;
 5. novo postflight;

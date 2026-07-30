@@ -6,6 +6,9 @@ import { fileURLToPath } from "node:url";
 export const RADIO_V1_STORAGE_MIGRATION_VERSION = "20260730213205";
 export const RADIO_V1_STORAGE_MIGRATION_PATH =
   "supabase/migrations/20260730213205_radio_v1_free_storage_profile.sql";
+export const RADIO_V1_STORAGE_MIGRATION_NAME = "radio_v1_free_storage_profile";
+export const RADIO_V1_STORAGE_MIGRATION_SHA256 =
+  "ea34fe5c05157a5aca083eefee7b837a2b6603c65d0f69485db49f49784d7247";
 
 export async function radioV1StorageMigrationSha256() {
   return createHash("sha256")
@@ -46,24 +49,14 @@ export function validateRadioV1StorageMigrationSql(sql) {
   return true;
 }
 
-export function verifyRadioV1SupabasePushPlan(plan) {
-  const versions = [
-    ...new Set(
-      [...String(plan).matchAll(/(?<!\d)(20\d{12})(?!\d)/g)].map(
-        (match) => match[1],
-      ),
-    ),
-  ].sort();
-  if (
-    versions.length !== 1 ||
-    versions[0] !== RADIO_V1_STORAGE_MIGRATION_VERSION
-  ) {
-    throw new Error("COMUN_RADIO_V1_STORAGE_UNEXPECTED_MIGRATION_PLAN");
-  }
-  if (/\b(drop|truncate|delete)\b/i.test(String(plan))) {
-    throw new Error("COMUN_RADIO_V1_STORAGE_DESTRUCTIVE_PLAN_BLOCKED");
-  }
-  return true;
+export function createRadioV1ExactMigrationPlan(artifact, expectedPlanHash) {
+  validateRadioV1AuditPlan(artifact, expectedPlanHash);
+  return {
+    exact: true,
+    versions: [RADIO_V1_STORAGE_MIGRATION_VERSION],
+    paths: [RADIO_V1_STORAGE_MIGRATION_PATH],
+    historicalMigrationsSelected: 0,
+  };
 }
 
 export function validateRadioV1AuditPlan(artifact, expectedPlanHash) {
@@ -97,9 +90,8 @@ export function assertRadioV1MigrationArtifactSanitized(artifact) {
 
 async function main() {
   const auditIndex = process.argv.indexOf("--audit");
-  const dryRunIndex = process.argv.indexOf("--dry-run");
   const outputIndex = process.argv.indexOf("--output");
-  if (auditIndex < 0 || dryRunIndex < 0 || outputIndex < 0) {
+  if (auditIndex < 0 || outputIndex < 0) {
     throw new Error("COMUN_RADIO_V1_STORAGE_MIGRATION_INPUT_REQUIRED");
   }
   const expectedPlanHash = String(
@@ -108,21 +100,26 @@ async function main() {
   if (!/^[a-f0-9]{64}$/.test(expectedPlanHash)) {
     throw new Error("COMUN_RADIO_V1_STORAGE_PLAN_HASH_INVALID");
   }
-  const [audit, dryRun, sql] = await Promise.all([
+  const [audit, sql] = await Promise.all([
     readFile(process.argv[auditIndex + 1], "utf8").then(JSON.parse),
-    readFile(process.argv[dryRunIndex + 1], "utf8"),
     readFile(RADIO_V1_STORAGE_MIGRATION_PATH, "utf8"),
   ]);
-  validateRadioV1AuditPlan(audit, expectedPlanHash);
+  const exactPlan = createRadioV1ExactMigrationPlan(audit, expectedPlanHash);
   validateRadioV1StorageMigrationSql(sql);
-  verifyRadioV1SupabasePushPlan(dryRun);
+  if (
+    (await radioV1StorageMigrationSha256()) !==
+    RADIO_V1_STORAGE_MIGRATION_SHA256
+  ) {
+    throw new Error("COMUN_RADIO_V1_STORAGE_MIGRATION_HASH_MISMATCH");
+  }
   const artifact = {
     formatVersion: 1,
     result: "COMUN_RADIO_V1_STORAGE_MIGRATION_PLAN_GREEN",
     profileId: "comun-radio-v1-free-storage",
     migrationVersion: RADIO_V1_STORAGE_MIGRATION_VERSION,
-    migrationSha256: await radioV1StorageMigrationSha256(),
+    migrationSha256: RADIO_V1_STORAGE_MIGRATION_SHA256,
     planHash: expectedPlanHash,
+    exactPlan,
     buckets: 2,
     maxFileSizeBytes: 47_185_920,
     storageObjectsCreated: 0,

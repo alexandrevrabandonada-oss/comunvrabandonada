@@ -38,9 +38,10 @@ test("migration de perfil é separada, exata e não cria objetos", async () => {
     workflow.match(/  migrate-radio-profile:[\s\S]*?\n  repair:/)?.[0] ?? "";
   assert.match(migration, /inputs\.mode == 'migrate-radio-profile'/);
   assert.match(migration, /APLICAR_PERFIL_GRATUITO_RADIO_V1_47_6B/);
-  assert.match(migration, /supabase db push.+--dry-run/s);
   assert.match(migration, /radio-v1-storage-migration\.mjs/);
+  assert.match(migration, /apply-radio-v1-storage-migration\.mjs/);
   assert.match(migration, /COMUN_RADIO_V1_STORAGE_PROFILE_APPLIED/);
+  assert.doesNotMatch(migration, /supabase db push|migration repair/);
   assert.doesNotMatch(
     migration,
     /SUPABASE_SERVICE_ROLE_KEY|storage\.(?:upload|createBucket)/,

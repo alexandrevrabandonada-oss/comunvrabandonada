@@ -40,6 +40,15 @@
     "privateRehearsalExecuted": false,
     "storageObjectsCreated": 0
   },
+  "transportRecovery": {
+    "blockedRun": 30586827727,
+    "blockedBeforeWrite": true,
+    "cause": "global_cli_plan_included_historical_migration",
+    "exactMigrationVersion": "20260730213205",
+    "transactional": true,
+    "historicalMigrationsSelected": 0,
+    "localRehearsal": "green"
+  },
   "deliverability": {
     "archive_radio_art": "evidence_required",
     "miniapps": "in_progress",
