@@ -106,6 +106,30 @@ const classifications = {
     expected:
       "Sem acesso direto anon/authenticated; paginas publicas recebem dados sanitizados via servidor.",
   },
+  comun_pauta_decisions: {
+    decision: "public_read_safe",
+    purpose: "Decisoes comunitarias versionadas vinculadas a pautas.",
+    sensitive:
+      "Rascunhos, autoria operacional e justificativas ainda nao publicadas.",
+    expected:
+      "Leitura publica somente de decisoes publicadas em pautas publicas; escrita server-only.",
+  },
+  comun_pauta_action_cycles: {
+    decision: "public_read_safe",
+    purpose: "Estado e proveniencia da esteira politica da pauta ao resultado.",
+    sensitive:
+      "Ciclos privados de ensaio, ids internos e estados ainda nao revisados.",
+    expected:
+      "Leitura publica somente de ciclos explicitamente publicos vinculados a pautas publicas.",
+  },
+  comun_pauta_action_cycle_events: {
+    decision: "public_read_safe",
+    purpose: "Historico imutavel e sanitizado das transicoes politicas.",
+    sensitive:
+      "Ator operacional, notas privadas e eventos de ciclos nao publicados.",
+    expected:
+      "Leitura publica somente de eventos sem nota privada em ciclos publicos; escrita server-only.",
+  },
   comun_pauta_dossier_evidence: {
     decision: "service_role_only",
     purpose: "Vinculo interno entre dossie e evidencias.",
@@ -197,37 +221,45 @@ const classifications = {
   comun_collective_actions: {
     decision: "public_read_safe",
     purpose: "Cadernos de ações coletivas publicados.",
-    sensitive: "Rascunhos, vínculos internos e operação não publicada ficam fora da leitura pública.",
+    sensitive:
+      "Rascunhos, vínculos internos e operação não publicada ficam fora da leitura pública.",
     expected: "Leitura pública somente de ações publicadas em estado visível.",
   },
   comun_collective_action_participations: {
     decision: "owner_read",
     purpose: "Participação privada de cada membro em uma ação coletiva.",
-    sensitive: "Identidade, estado de participação e contribuição curta para revisão.",
-    expected: "Cada membro lê e escreve somente a própria participação; contagens são agregadas no servidor.",
+    sensitive:
+      "Identidade, estado de participação e contribuição curta para revisão.",
+    expected:
+      "Cada membro lê e escreve somente a própria participação; contagens são agregadas no servidor.",
   },
   comun_collective_action_tasks: {
     decision: "public_read_safe",
     purpose: "Tarefas pequenas de ações coletivas públicas.",
     sensitive: "Sem identidade de quem assumiu a tarefa.",
-    expected: "Leitura pública somente quando vinculada a ação pública visível.",
+    expected:
+      "Leitura pública somente quando vinculada a ação pública visível.",
   },
   comun_collective_action_task_assignments: {
     decision: "owner_read",
     purpose: "Assunções privadas de tarefas coletivas.",
-    sensitive: "Identidade e estado da pessoa que assumiu ou liberou uma tarefa.",
-    expected: "Cada membro lê e muda somente sua própria assunção; a capacidade é aplicada no banco.",
+    sensitive:
+      "Identidade e estado da pessoa que assumiu ou liberou uma tarefa.",
+    expected:
+      "Cada membro lê e muda somente sua própria assunção; a capacidade é aplicada no banco.",
   },
   comun_collective_action_updates: {
     decision: "public_read_safe",
     purpose: "Linha do tempo pública estruturada das ações coletivas.",
     sensitive: "Atualizações internas não aparecem publicamente.",
-    expected: "Leitura pública apenas de atualizações públicas de ações visíveis.",
+    expected:
+      "Leitura pública apenas de atualizações públicas de ações visíveis.",
   },
   comun_collective_action_sidewalk_records: {
     decision: "public_read_safe",
     purpose: "Vínculos de ação coletiva com registros de calçada.",
-    sensitive: "Somente os identificadores de vínculo; a página sanitiza a projeção do registro.",
+    sensitive:
+      "Somente os identificadores de vínculo; a página sanitiza a projeção do registro.",
     expected: "Leitura apenas quando a ação coletiva é pública e visível.",
   },
   comun_collective_action_forwardings: {
@@ -1015,7 +1047,8 @@ const classifications = {
     decision: "service_role_only",
     purpose: "Sugestões assistidas de duplicidade entre registros de calçada.",
     sensitive: "Sinais privados, distância aproximada e decisão editorial.",
-    expected: "Somente servidor e moderação autorizada; nenhuma fusão automática.",
+    expected:
+      "Somente servidor e moderação autorizada; nenhuma fusão automática.",
   },
   comun_sidewalk_uploads: {
     decision: "owner_read",

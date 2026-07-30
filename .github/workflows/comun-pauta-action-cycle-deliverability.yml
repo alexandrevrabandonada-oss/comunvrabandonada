@@ -1,0 +1,159 @@
+name: COMUN Pauta Action Cycle Deliverability
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-pauta-action-cycle-*.yml"
+      - "app/comun/admin/pautas/**"
+      - "app/comun/pautas/**"
+      - "app/comun/preview/esteira-politica/**"
+      - "components/*pauta-political-cycle*"
+      - "lib/collective-actions-release*"
+      - "lib/pauta-action-cycle*"
+      - "scripts/*pauta-action-cycle*"
+      - "supabase/migrations/*collective_action*"
+      - "supabase/migrations/*pauta_action_cycle*"
+      - "tests/pauta-action-cycle.spec.ts"
+      - "playwright.pauta-action-cycle.config.ts"
+  workflow_dispatch:
+
+concurrency:
+  group: comun-pauta-action-cycle-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Political cycle / contract and product
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Unit, contract and sanitization tests
+        run: |
+          npx vitest run lib/pauta-action-cycle.test.ts lib/collective-actions-release-contract.test.ts
+          node --test \
+            scripts/audit-comun-pauta-action-cycle.node-test.mjs \
+            scripts/pauta-action-cycle-contract.node-test.mjs \
+            scripts/pauta-action-cycle-workflow.node-test.mjs \
+            scripts/preflight-pauta-action-cycle.node-test.mjs \
+            scripts/rehearse-pauta-action-cycle.node-test.mjs \
+            scripts/run-pauta-action-cycle-local-reset.node-test.mjs \
+            scripts/validate-pauta-action-cycle-release.node-test.mjs
+          node scripts/validate-pauta-action-cycle-release.mjs
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - name: Formatting, YAML-adjacent contract and clean diff
+        run: |
+          npx prettier --check \
+            .github/workflows/comun-pauta-action-cycle-audit.yml \
+            .github/workflows/comun-pauta-action-cycle-deliverability.yml \
+            .github/workflows/comun-pauta-action-cycle-promote.yml \
+            app/comun/admin/pautas/[id]/page.tsx \
+            app/comun/admin/pautas/[id]/political-cycle-actions.ts \
+            app/comun/pautas/[slug]/page.tsx \
+            app/comun/preview/esteira-politica/page.tsx \
+            components/admin-pauta-political-cycle.tsx \
+            components/pauta-political-cycle.tsx \
+            lib/collective-actions-release-contract.ts \
+            lib/collective-actions-release.ts \
+            lib/pauta-action-cycle-data.ts \
+            lib/pauta-action-cycle-preview-fixture.ts \
+            lib/pauta-action-cycle.ts \
+            scripts/audit-comun-pauta-action-cycle.mjs \
+            scripts/preflight-pauta-action-cycle.mjs \
+            scripts/rehearse-pauta-action-cycle.mjs \
+            scripts/validate-pauta-action-cycle-release.mjs
+          git diff --check origin/main...HEAD
+      - name: Security and authorization boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "enable row level security" supabase/migrations/20260730122000_comun_pauta_action_cycle.sql
+          grep -q "from public, anon, authenticated" supabase/migrations/20260730122000_comun_pauta_action_cycle.sql
+          grep -q "security definer" supabase/migrations/20260730122000_comun_pauta_action_cycle.sql
+          grep -q "state_version" supabase/migrations/20260730122000_comun_pauta_action_cycle.sql
+          ! grep -R -n -E "raw_text|contact_private|object_key|signed_url" \
+            components/pauta-political-cycle.tsx \
+            lib/pauta-action-cycle-data.ts
+          echo COMUN_PAUTA_ACTION_CYCLE_CONTRACT_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  local-schema-and-rehearsal:
+    name: Political cycle / schema, RLS and controlled rehearsal
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - run: npm ci --ignore-scripts
+      - name: Reset complete local history
+        run: |
+          mkdir -p .ci-artifacts/pauta-action-cycle
+          printf '%s\n' '{"formatVersion":1,"reset":"started","remoteWrites":"none"}' \
+            > .ci-artifacts/pauta-action-cycle/reset-state.json
+          node scripts/run-pauta-action-cycle-local-reset.mjs start
+          node scripts/run-pauta-action-cycle-local-reset.mjs reset
+          git diff --exit-code -- \
+            supabase/migrations/20260729205156_allow_anonymous_sidewalk_auth_without_legacy_profile.sql
+      - name: Exact local postflight and transactional rehearsal
+        shell: bash
+        run: |
+          set -euo pipefail
+          database_url="$(supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
+          test -n "$database_url"
+          SUPABASE_DB_URL="$database_url" node scripts/preflight-pauta-action-cycle.mjs \
+            --expected after \
+            --output .ci-artifacts/pauta-action-cycle/preflight.json
+          SUPABASE_DB_URL="$database_url" node scripts/rehearse-pauta-action-cycle.mjs \
+            --output .ci-artifacts/pauta-action-cycle/rehearsal.json
+          npm run audit:rls-matrix
+      - name: Stop disposable stack
+        if: always()
+        run: supabase stop --no-backup
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-pauta-action-cycle-local-${{ github.sha }}-${{ github.run_id }}
+          path: .ci-artifacts/pauta-action-cycle/
+          retention-days: 30
+          if-no-files-found: error
+
+  preview:
+    name: Political cycle / public, mobile and keyboard
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test -c playwright.pauta-action-cycle.config.ts
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: comun-pauta-action-cycle-playwright-${{ github.sha }}-${{ github.run_id }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
+          if-no-files-found: ignore

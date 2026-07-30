@@ -1,0 +1,282 @@
+name: COMUN Pauta Action Cycle Promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Read-only preflight, additive migration, private rehearsal or scoped activation
+        required: true
+        type: choice
+        options: [preflight, migrate, rehearse, activate]
+      expected_main_sha:
+        description: Immutable HEAD of main
+        required: true
+      confirmation:
+        description: Exact confirmation for the selected mutable mode
+        required: false
+        default: ""
+      evidence_run_id:
+        description: Green private-rehearsal run required only for activation
+        required: false
+        default: ""
+
+concurrency:
+  group: comun-pauta-action-cycle-promotion
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+
+env:
+  TARGET_PROJECT_REF: nvmdszymrtacfehdynpg
+
+jobs:
+  validate:
+    name: Political cycle promotion / immutable input
+    runs-on: ubuntu-24.04
+    outputs:
+      sha: ${{ steps.input.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - id: input
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          MODE: ${{ inputs.mode }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+          EVIDENCE_RUN_ID: ${{ inputs.evidence_run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          test "$(git rev-parse origin/main)" = "$EXPECTED_MAIN_SHA"
+          case "$MODE" in
+            preflight)
+              test -z "$CONFIRMATION"
+              ;;
+            migrate)
+              test "$CONFIRMATION" = "APLICAR_MIGRATIONS_ADITIVAS_PAUTA_ACTION_CYCLE"
+              ;;
+            rehearse)
+              test "$CONFIRMATION" = "EXECUTAR_ENSAIO_CONTROLADO_PAUTA_ACTION_CYCLE"
+              ;;
+            activate)
+              test "$CONFIRMATION" = "ATIVAR_COMUN_PAUTA_ACTION_CYCLE_V1"
+              [[ "$EVIDENCE_RUN_ID" =~ ^[0-9]+$ ]]
+              ;;
+            *)
+              exit 1
+              ;;
+          esac
+          echo "sha=$EXPECTED_MAIN_SHA" >> "$GITHUB_OUTPUT"
+          echo COMUN_PAUTA_ACTION_CYCLE_IMMUTABLE_INPUT_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  preflight:
+    name: Political cycle promotion / read-only preflight
+    needs: validate
+    runs-on: ubuntu-24.04
+    outputs:
+      classification: ${{ steps.schema.outputs.classification }}
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - id: schema
+        name: Read schema state in a read-only transaction
+        run: |
+          node scripts/preflight-pauta-action-cycle.mjs \
+            --expected before \
+            --output .ci-artifacts/pauta-action-cycle-promotion/preflight.json
+          echo "classification=$(jq -r .classification .ci-artifacts/pauta-action-cycle-promotion/preflight.json)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-pauta-action-cycle-preflight-${{ needs.validate.outputs.sha }}-${{ github.run_id }}
+          path: .ci-artifacts/pauta-action-cycle-promotion/
+          retention-days: 30
+          if-no-files-found: error
+
+  migrate:
+    name: Political cycle promotion / additive forward-only migration
+    if: inputs.mode == 'migrate'
+    needs: [validate, preflight]
+    runs-on: ubuntu-24.04
+    environment: production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - run: npm ci --ignore-scripts
+      - name: Require the allowlisted project and exact dry-run plan
+        if: needs.preflight.outputs.classification == 'ABSENT_READY'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$SUPABASE_PROJECT_REF" = "$TARGET_PROJECT_REF"
+          node scripts/validate-pauta-action-cycle-release.mjs
+          supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+          supabase db push --include-all --dry-run --password "$SUPABASE_DB_PASSWORD" \
+            > .ci-pauta-action-cycle-plan.txt
+          node scripts/verify-pauta-action-cycle-push-plan.mjs \
+            .ci-pauta-action-cycle-plan.txt
+      - name: Apply only the verified additive plan
+        if: needs.preflight.outputs.classification == 'ABSENT_READY'
+        run: supabase db push --include-all --password "$SUPABASE_DB_PASSWORD"
+      - name: Reuse the exact already-applied release
+        if: needs.preflight.outputs.classification == 'APPLIED_EXACT'
+        run: echo COMUN_PAUTA_ACTION_CYCLE_MIGRATION_ALREADY_APPLIED >> "$GITHUB_STEP_SUMMARY"
+      - name: Exact read-only postflight
+        run: |
+          node scripts/preflight-pauta-action-cycle.mjs \
+            --expected after \
+            --output .ci-artifacts/pauta-action-cycle-promotion/postflight.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-pauta-action-cycle-migration-${{ needs.validate.outputs.sha }}-${{ github.run_id }}
+          path: .ci-artifacts/pauta-action-cycle-promotion/
+          retention-days: 90
+          if-no-files-found: error
+
+  rehearse:
+    name: Political cycle promotion / private transactional rehearsal
+    if: inputs.mode == 'rehearse'
+    needs: [validate, preflight]
+    runs-on: ubuntu-24.04
+    environment: production
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      COMUN_PAUTA_ACTION_CYCLE_REHEARSAL_CONFIRMATION: ${{ inputs.confirmation }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Require the exact applied schema
+        run: |
+          node scripts/preflight-pauta-action-cycle.mjs \
+            --expected after \
+            --output .ci-artifacts/pauta-action-cycle-promotion/preflight-after.json
+      - name: Run the hidden rehearsal and roll back all synthetic rows
+        run: |
+          node scripts/rehearse-pauta-action-cycle.mjs \
+            --controlled-remote \
+            --output .ci-artifacts/pauta-action-cycle-promotion/rehearsal.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-pauta-action-cycle-rehearsal-${{ needs.validate.outputs.sha }}-${{ github.run_id }}
+          path: .ci-artifacts/pauta-action-cycle-promotion/
+          retention-days: 90
+          if-no-files-found: error
+
+  activate:
+    name: Political cycle promotion / scoped feature activation
+    if: inputs.mode == 'activate'
+    needs: [validate, preflight]
+    runs-on: ubuntu-24.04
+    environment: production
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REHEARSAL_RUN_ID: ${{ inputs.evidence_run_id }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Require exact schema before touching the feature flag
+        run: |
+          node scripts/preflight-pauta-action-cycle.mjs \
+            --expected after \
+            --output .ci-artifacts/pauta-action-cycle-promotion/preflight-after.json
+      - name: Require a green private rehearsal for this exact main SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_json="$(gh api "repos/${{ github.repository }}/actions/runs/$REHEARSAL_RUN_ID")"
+          test "$(jq -r .head_sha <<<"$run_json")" = "${{ needs.validate.outputs.sha }}"
+          test "$(jq -r .conclusion <<<"$run_json")" = success
+          test "$(jq -r .name <<<"$run_json")" = "COMUN Pauta Action Cycle Promotion"
+          gh run download "$REHEARSAL_RUN_ID" \
+            --pattern "comun-pauta-action-cycle-rehearsal-*" \
+            --dir .ci-artifacts/rehearsal-evidence
+          rehearsal="$(find .ci-artifacts/rehearsal-evidence -name rehearsal.json -print -quit)"
+          test -n "$rehearsal"
+          test "$(jq -r .result "$rehearsal")" = COMUN_PAUTA_ACTION_CYCLE_REHEARSAL_GREEN
+          test "$(jq -r .transactionRolledBack "$rehearsal")" = true
+          test "$(jq -r .postflightSyntheticRows "$rehearsal")" = 0
+      - name: Link only the canonical Vercel project locally
+        shell: bash
+        run: |
+          mkdir -p .vercel
+          node -e "require('node:fs').writeFileSync('.vercel/project.json', JSON.stringify({orgId:process.env.VERCEL_ORG_ID,projectId:process.env.VERCEL_PROJECT_ID}))"
+      - id: flag
+        name: Enable only the scoped collective-actions feature
+        shell: bash
+        run: |
+          printf '%s' enabled | npx --yes vercel@50.28.0 env add \
+            COMUN_COLLECTIVE_ACTIONS_V1 production --force \
+            --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+      - name: Create the normal protected Production deployment
+        run: |
+          npx --yes vercel@50.28.0 deploy --prod --yes \
+            --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+      - name: Public healthcheck without launching the full COMUN
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in {1..30}; do
+            status="$(curl --silent --show-error --output /tmp/actions.html \
+              --write-out '%{http_code}' https://comunsocial.online/comun/acoes)"
+            if [ "$status" = 200 ] && grep -q "Ações coletivas" /tmp/actions.html; then
+              echo COMUN_PAUTA_ACTION_CYCLE_FEATURE_GREEN >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 10
+          done
+          exit 1
+      - name: Restore the closed feature state after any activation failure
+        if: failure() && steps.flag.outputs.changed == 'true'
+        shell: bash
+        run: |
+          printf '%s' disabled | npx --yes vercel@50.28.0 env add \
+            COMUN_COLLECTIVE_ACTIONS_V1 production --force \
+            --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+          npx --yes vercel@50.28.0 deploy --prod --yes \
+            --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null

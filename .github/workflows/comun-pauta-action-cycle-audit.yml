@@ -1,0 +1,97 @@
+name: COMUN Pauta Action Cycle Audit
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/comun-pauta-action-cycle-audit.yml"
+      - "scripts/audit-comun-pauta-action-cycle.mjs"
+      - "scripts/audit-comun-pauta-action-cycle.node-test.mjs"
+      - "lib/pauta-action-cycle*"
+      - "supabase/migrations/*pauta_action_cycle*"
+  schedule:
+    - cron: "23 10 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: Political cycle audit / contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: node --test scripts/audit-comun-pauta-action-cycle.node-test.mjs scripts/pauta-action-cycle-contract.node-test.mjs
+      - run: npx vitest run lib/pauta-action-cycle.test.ts
+
+  read-only-audit:
+    name: Political cycle audit / read-only
+    if: github.event_name != 'pull_request'
+    needs: contract
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Collect only aggregate operational states
+        run: node scripts/audit-comun-pauta-action-cycle.mjs --output .ci-artifacts/pauta-action-cycle-audit/metrics.json
+      - name: Upload sanitized aggregate
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-pauta-action-cycle-audit-${{ github.sha }}-${{ github.run_id }}
+          path: .ci-artifacts/pauta-action-cycle-audit/
+          if-no-files-found: error
+
+  aggregate-issue:
+    name: Political cycle audit / aggregate issue
+    if: github.event_name != 'pull_request'
+    needs: read-only-audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: comun-pauta-action-cycle-audit-${{ github.sha }}-${{ github.run_id }}
+          path: audit
+      - uses: actions/github-script@v7
+        env:
+          AUDIT_PATH: audit/metrics.md
+        with:
+          script: |
+            const fs = require("node:fs");
+            const title = "[COMUN] Auditoria diária da esteira política";
+            const body = fs.readFileSync(process.env.AUDIT_PATH, "utf8");
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              per_page: 100,
+            });
+            const current = issues.find((issue) => issue.title === title);
+            if (current) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: current.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+              });
+            }

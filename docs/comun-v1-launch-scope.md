@@ -71,3 +71,16 @@ O gate `launch_publicly` só pode aparecer quando a auditoria retornar:
 `COMUN_V1_DELIVERABILITY_READY_FOR_FINAL_HUMAN_GATE`
 
 Até lá, o domínio integral permanece em preparação, embora módulos já autorizados possam operar em piloto restrito.
+
+## Contrato do ciclo político
+
+O Tijolo 47.4 conecta as fontes canônicas já existentes por uma máquina de
+estados auditável. Decisão não é inferida de reação; tarefa concluída não é
+resultado; resposta não é resolução; memória só é publicada depois de resultado
+verificado. A migration é aditiva e a ativação permanece sob
+`COMUN_COLLECTIVE_ACTIONS_V1`.
+
+O domínio `pauta_action_cycle` só muda de `evidence_required` para `green`
+depois de schema e RLS remotos exatos, ensaio autenticado privado com rollback,
+protocolo e resposta sintéticos vinculados, atividade separada de resultado e
+postflight sanitizado. Compilação ou Preview isolados não bastam.
