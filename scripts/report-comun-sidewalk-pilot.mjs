@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 import {
   SIDEWALK_PILOT,
+  classifySidewalkPilotCloseout,
   summarizeSidewalkPilot,
 } from "../lib/sidewalk-pilot.ts";
 
@@ -22,7 +23,9 @@ const [uploadsResult, recordsResult, photosResult] = await Promise.all([
     .limit(1000),
   db
     .from("comun_sidewalk_records")
-    .select("id,status,visibility,created_at,updated_at,inferred_neighborhood")
+    .select(
+      "id,status,visibility,forwarding_status,verification_status,created_at,updated_at,inferred_neighborhood",
+    )
     .gte("created_at", SIDEWALK_PILOT.startAt)
     .lt("created_at", SIDEWALK_PILOT.endAt)
     .order("created_at", { ascending: false })
@@ -36,20 +39,79 @@ const [uploadsResult, recordsResult, photosResult] = await Promise.all([
 if (uploadsResult.error || recordsResult.error || photosResult.error)
   throw new Error("SIDEWALK_PILOT_READ_FAILED");
 
+const recordIds = (recordsResult.data ?? []).map((row) => row.id);
+const [prioritiesResult, linksResult, observationsResult, incidentsResult] =
+  await Promise.all([
+    recordIds.length
+      ? db
+          .from("comun_sidewalk_priorities")
+          .select("id,record_id,status")
+          .in("record_id", recordIds)
+          .limit(2000)
+      : Promise.resolve({ data: [], error: null }),
+    recordIds.length
+      ? db
+          .from("comun_sidewalk_record_links")
+          .select("record_id,target_type")
+          .in("record_id", recordIds)
+          .limit(5000)
+      : Promise.resolve({ data: [], error: null }),
+    recordIds.length
+      ? db
+          .from("comun_sidewalk_observations")
+          .select("record_id,observation_type,status")
+          .in("record_id", recordIds)
+          .limit(5000)
+      : Promise.resolve({ data: [], error: null }),
+    db
+      .from("comun_admin_alerts")
+      .select("severity,status,source_type,alert_type")
+      .in("status", ["open", "acknowledged"])
+      .limit(1000),
+  ]);
+for (const query of [
+  prioritiesResult,
+  linksResult,
+  observationsResult,
+  incidentsResult,
+]) {
+  if (query.error) throw new Error("SIDEWALK_PILOT_READ_FAILED");
+}
+const priorityIds = (prioritiesResult.data ?? []).map((row) => row.id);
+const forwardingsResult = priorityIds.length
+  ? await db
+      .from("comun_sidewalk_forwardings")
+      .select("priority_id,state,action_id,protocol_id,result_id,memory_id")
+      .in("priority_id", priorityIds)
+      .limit(2000)
+  : { data: [], error: null };
+if (forwardingsResult.error) throw new Error("SIDEWALK_PILOT_READ_FAILED");
+const incidents = (incidentsResult.data ?? [])
+  .filter(
+    (row) =>
+      String(row.source_type ?? "").includes("sidewalk") ||
+      String(row.alert_type ?? "").startsWith("sidewalk_"),
+  )
+  .map(({ severity, status }) => ({ severity, status }));
+
 const summary = summarizeSidewalkPilot({
   uploads: uploadsResult.data ?? [],
   records: recordsResult.data ?? [],
   photos: photosResult.data ?? [],
+  priorities: prioritiesResult.data ?? [],
+  links: linksResult.data ?? [],
+  forwardings: forwardingsResult.data ?? [],
+  observations: observationsResult.data ?? [],
+  incidents,
 });
+const closeout = classifySidewalkPilotCloseout(summary);
 const generatedAt = new Date().toISOString();
 const result = {
   cycleId: "sidewalk-territorial-pilot-20260730-46-2",
   generatedAt,
-  result:
-    summary.status === "green"
-      ? "COMUN_SIDEWALK_PILOT_OBSERVATION_GREEN"
-      : "COMUN_SIDEWALK_PILOT_OBSERVATION_ATTENTION",
+  result: closeout.result,
   phase: summary.phase,
+  closeout,
   pilot: summary.pilot,
   metrics: summary.metrics,
   progress: summary.progress,
@@ -77,6 +139,7 @@ const lines = [
   "",
   `- Resultado: \`${result.result}\``,
   `- Fase: \`${summary.phase}\``,
+  `- Fechamento: \`${closeout.status}\``,
   `- Gerado em: ${generatedAt}`,
   `- Participantes: ${summary.metrics.participants}/${SIDEWALK_PILOT.participantTarget}`,
   `- Registros: ${summary.metrics.records}/${SIDEWALK_PILOT.recordTarget}`,
@@ -86,6 +149,11 @@ const lines = [
   `- Moderação no SLA: ${summary.metrics.moderationSlaPct}%`,
   `- Retorno: ${summary.metrics.returnRatePct}%`,
   `- Territórios alcançados: ${summary.progress.territoriesReached}/${SIDEWALK_PILOT.territoryTarget}`,
+  `- Registros órfãos: ${summary.metrics.orphanRecords}`,
+  `- Vínculos: prioridade ${summary.metrics.recordsLinkedToPriority}, ação ${summary.metrics.recordsLinkedToAction}, protocolo ${summary.metrics.recordsLinkedToProtocol}, resposta ${summary.metrics.recordsWithResponse}`,
+  `- Verificações de campo: ${summary.metrics.fieldVerifications}`,
+  `- Resoluções: ${summary.metrics.resolutions}; reaberturas: ${summary.metrics.reopenings}`,
+  `- Incidentes: P0 ${summary.metrics.incidents.P0}, P1 ${summary.metrics.incidents.P1}, P2 ${summary.metrics.incidents.P2}`,
   "",
   "## Bairros observados",
   "",

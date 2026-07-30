@@ -9,6 +9,9 @@ on:
       - "components/admin-shell.tsx"
       - "lib/sidewalk-pilot.ts"
       - "lib/sidewalk-pilot.test.ts"
+      - "lib/miniapp-contract.ts"
+      - "lib/miniapp-contract.test.ts"
+      - "lib/sidewalk-miniapp-definition.ts"
       - "scripts/report-comun-sidewalk-pilot.mjs"
   schedule:
     - cron: "17 12 * * *"
@@ -38,8 +41,8 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: node --check scripts/report-comun-sidewalk-pilot.mjs
-      - run: npx prettier --check .github/workflows/comun-sidewalk-pilot.yml app/comun/admin/calcadas/piloto/page.tsx components/admin-shell.tsx lib/sidewalk-pilot.ts lib/sidewalk-pilot.test.ts scripts/report-comun-sidewalk-pilot.mjs
-      - run: npx vitest run lib/sidewalk-pilot.test.ts
+      - run: npx prettier --check .github/workflows/comun-sidewalk-pilot.yml app/comun/admin/calcadas/piloto/page.tsx components/admin-shell.tsx lib/miniapp-contract.ts lib/miniapp-contract.test.ts lib/sidewalk-miniapp-definition.ts lib/sidewalk-pilot.ts lib/sidewalk-pilot.test.ts scripts/report-comun-sidewalk-pilot.mjs
+      - run: npx vitest run lib/miniapp-contract.test.ts lib/sidewalk-pilot.test.ts
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
@@ -87,12 +90,13 @@ jobs:
           set -euo pipefail
           result=$(jq -r .result .ci-artifacts/sidewalk-pilot/comun-sidewalk-pilot.json)
           phase=$(jq -r .phase .ci-artifacts/sidewalk-pilot/comun-sidewalk-pilot.json)
-          if [ "$result" != "COMUN_SIDEWALK_PILOT_OBSERVATION_ATTENTION" ] || [ "$phase" != "active" ]; then
+          closeout=$(jq -r .closeout.status .ci-artifacts/sidewalk-pilot/comun-sidewalk-pilot.json)
+          if [ "$closeout" = "eligible_for_closeout" ]; then
             exit 0
           fi
           title="Piloto territorial das calçadas"
           existing=$(gh issue list --state open --search "$title in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)
-          body="O relatório sanitizado do piloto encontrou métricas fora do alvo. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Nenhuma publicação, limpeza ou rollback foi executado por este relatório."
+          body="O relatório sanitizado do piloto exige acompanhamento ou decisão de fechamento. Resultado: $result. Fase: $phase. Classificação: $closeout. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Nenhuma publicação, limpeza, promoção de domínio ou lançamento público foi executado por este relatório."
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --body "$body"
           else

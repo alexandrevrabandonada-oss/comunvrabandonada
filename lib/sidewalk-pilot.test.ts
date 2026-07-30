@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildSidewalkPilotInviteUrl,
+  classifySidewalkPilotCloseout,
   sidewalkPilotPhase,
   summarizeSidewalkPilot,
 } from "./sidewalk-pilot";
@@ -63,6 +64,32 @@ describe("sidewalk pilot", () => {
           { record_id: "record-a", review_status: "approved", is_public: true },
           { record_id: "record-b", review_status: "pending", is_public: false },
         ],
+        priorities: [
+          { id: "priority-a", record_id: "record-a", status: "approved" },
+        ],
+        links: [
+          { record_id: "record-a", target_type: "action" },
+          { record_id: "record-a", target_type: "protocol" },
+        ],
+        forwardings: [
+          {
+            priority_id: "priority-a",
+            state: "response_received",
+            action_id: "action-a",
+            protocol_id: "protocol-a",
+          },
+        ],
+        observations: [
+          {
+            record_id: "record-a",
+            observation_type: "same",
+            status: "approved",
+          },
+        ],
+        incidents: [
+          { severity: "attention", status: "open" },
+          { severity: "critical", status: "resolved" },
+        ],
       },
       now,
     );
@@ -75,6 +102,12 @@ describe("sidewalk pilot", () => {
     expect(summary.metrics.returnRatePct).toBe(50);
     expect(summary.metrics.published).toBe(1);
     expect(summary.metrics.pendingPhotos).toBe(1);
+    expect(summary.metrics.recordsLinkedToPriority).toBe(1);
+    expect(summary.metrics.recordsLinkedToAction).toBe(1);
+    expect(summary.metrics.recordsLinkedToProtocol).toBe(1);
+    expect(summary.metrics.recordsWithResponse).toBe(1);
+    expect(summary.metrics.fieldVerifications).toBe(1);
+    expect(summary.metrics.incidents).toEqual({ P0: 0, P1: 0, P2: 1 });
     expect(summary.metrics.neighborhoods).toEqual([
       { name: "Retiro", count: 1 },
       { name: "Santa Cruz", count: 1 },
@@ -115,5 +148,88 @@ describe("sidewalk pilot", () => {
     expect(url).toContain("origem=calcadas");
     expect(url).toContain("piloto=calcadas-vr-piloto-01");
     expect(url).toContain("bairro=Vila+Rica%2FTiradentes");
+  });
+
+  it("mantém miniapps em andamento durante a janela oficial", () => {
+    const summary = summarizeSidewalkPilot(
+      { uploads: [], records: [], photos: [] },
+      now,
+    );
+    expect(classifySidewalkPilotCloseout(summary)).toMatchObject({
+      status: "eligible_for_closeout",
+      result: "COMUN_MINIAPPS_READY_FOR_PILOT_CLOSEOUT",
+      blockers: ["official_window_active"],
+    });
+  });
+
+  it("não inventa sucesso depois da janela sem amostra real", () => {
+    const summary = summarizeSidewalkPilot(
+      { uploads: [], records: [], photos: [] },
+      new Date("2026-08-06T03:00:00.000Z"),
+    );
+    expect(classifySidewalkPilotCloseout(summary)).toMatchObject({
+      status: "blocked",
+      result: "COMUN_MINIAPPS_BLOCKED_INSUFFICIENT_REAL_PILOT_EVIDENCE",
+    });
+  });
+
+  it("rehearsal privado comprova evidência completa sem alterar a amostra", () => {
+    const summary = summarizeSidewalkPilot(
+      {
+        uploads: [
+          {
+            member_user_id: "fixture-member",
+            status: "confirmed",
+            created_at: "2026-08-01T10:00:00.000Z",
+            record_id: "fixture-record",
+          },
+        ],
+        records: [
+          {
+            id: "fixture-record",
+            status: "published",
+            visibility: "public",
+            forwarding_status: "resolved",
+            created_at: "2026-08-01T10:00:00.000Z",
+          },
+        ],
+        photos: [],
+        priorities: [
+          {
+            id: "fixture-priority",
+            record_id: "fixture-record",
+            status: "approved",
+          },
+        ],
+        links: [
+          { record_id: "fixture-record", target_type: "action" },
+          { record_id: "fixture-record", target_type: "protocol" },
+          { record_id: "fixture-record", target_type: "result" },
+          { record_id: "fixture-record", target_type: "memory" },
+        ],
+        forwardings: [
+          {
+            priority_id: "fixture-priority",
+            state: "closed",
+            action_id: "fixture-action",
+            protocol_id: "fixture-protocol",
+            result_id: "fixture-result",
+            memory_id: "fixture-memory",
+          },
+        ],
+        observations: [
+          {
+            record_id: "fixture-record",
+            observation_type: "resolved",
+            status: "approved",
+          },
+        ],
+      },
+      new Date("2026-08-06T03:00:00.000Z"),
+    );
+    expect(classifySidewalkPilotCloseout(summary)).toMatchObject({
+      status: "green_evidence_complete",
+      result: "COMUN_MINIAPPS_GREEN",
+    });
   });
 });
