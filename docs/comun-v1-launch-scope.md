@@ -80,7 +80,9 @@ resultado; resposta não é resolução; memória só é publicada depois de res
 verificado. A migration é aditiva e a ativação permanece sob
 `COMUN_COLLECTIVE_ACTIONS_V1`.
 
-O domínio `pauta_action_cycle` só muda de `evidence_required` para `green`
-depois de schema e RLS remotos exatos, ensaio autenticado privado com rollback,
-protocolo e resposta sintéticos vinculados, atividade separada de resultado e
-postflight sanitizado. Compilação ou Preview isolados não bastam.
+O domínio `pauta_action_cycle` está `green` desde o Tijolo 47.4. A promoção foi
+baseada cumulativamente em schema e RLS remotos exatos, ensaio autenticado
+privado com rollback, protocolo e resposta sintéticos vinculados, atividade
+separada de resultado, postflight sanitizado e ativação escopada de
+`COMUN_COLLECTIVE_ACTIONS_V1`. O gate integral `launch_publicly` não foi
+acionado.
