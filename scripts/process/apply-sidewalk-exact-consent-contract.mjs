@@ -3,18 +3,21 @@ import { readFile, writeFile } from "node:fs/promises";
 const replacements = [
   {
     path: "components/sidewalk-first-participation-form.tsx",
-    pairs: [
-      [
-        'publication_consent: "autorização para publicação sanitizada",',
-        'publication_consent: "autorização para publicação do ponto exato",',
-      ],
-      [
-        `      <input
+    changes: [
+      {
+        before:
+          'publication_consent: "autorização para publicação sanitizada",',
+        after:
+          'publication_consent: "autorização para publicação do ponto exato",',
+        marker: "autorização para publicação do ponto exato",
+      },
+      {
+        before: `      <input
         type="hidden"
         name="consent_publish"
         value={consentPublish ? "yes" : "no"}
       />`,
-        `      <input
+        after: `      <input
         type="hidden"
         name="consent_publish"
         value={consentPublish ? "yes" : "no"}
@@ -24,66 +27,74 @@ const replacements = [
         name="consent_location_precision"
         value={consentPublish ? "exact" : "none"}
       />`,
-      ],
-      [
-        `              A fotografia e o ponto exato ficam privados. Se a equipe aprovar a
+        marker: 'name="consent_location_precision"',
+      },
+      {
+        before: `              A fotografia e o ponto exato ficam privados. Se a equipe aprovar a
               contribuição, somente uma derivada revisada e uma localização
               aproximada poderão aparecer no mapa.`,
-        `              A fotografia original e a identidade permanecem privadas. Se a
+        after: `              A fotografia original e a identidade permanecem privadas. Se a
               equipe aprovar a contribuição, uma derivada revisada e o ponto
               exato marcado poderão aparecer no mapa público.`,
-      ],
-      [
-        `                Autorizo a publicação sanitizada da contribuição após moderação.`,
-        `                Autorizo a publicação do ponto exato marcado e de uma versão
+        marker: "exato marcado poderão aparecer no mapa público",
+      },
+      {
+        before: `                Autorizo a publicação sanitizada da contribuição após moderação.`,
+        after: `                Autorizo a publicação do ponto exato marcado e de uma versão
                 sanitizada da contribuição após moderação.`,
-      ],
+        marker: "Autorizo a publicação do ponto exato marcado",
+      },
     ],
   },
   {
     path: "lib/sidewalk-submission-readiness.ts",
-    pairs: [
-      [
-        `    consent_publish: String(data.get("consent_publish") ?? ""),`,
-        `    consent_publish: String(data.get("consent_publish") ?? ""),
+    changes: [
+      {
+        before: `    consent_publish: String(data.get("consent_publish") ?? ""),`,
+        after: `    consent_publish: String(data.get("consent_publish") ?? ""),
     consent_location_precision: String(
       data.get("consent_location_precision") ?? "",
     ),`,
-      ],
+        marker: 'data.get("consent_location_precision")',
+      },
     ],
   },
   {
     path: "lib/sidewalk-submission-readiness.test.ts",
-    pairs: [
-      [
-        `      ["consent_publish", "yes"],`,
-        `      ["consent_publish", "yes"],
+    changes: [
+      {
+        before: `      ["consent_publish", "yes"],`,
+        after: `      ["consent_publish", "yes"],
       ["consent_location_precision", "exact"],`,
-      ],
-      [
-        `      consent_publish: "yes",`,
-        `      consent_publish: "yes",
+        marker: '["consent_location_precision", "exact"]',
+      },
+      {
+        before: `      consent_publish: "yes",`,
+        after: `      consent_publish: "yes",
       consent_location_precision: "exact",`,
-      ],
+        marker: 'consent_location_precision: "exact"',
+      },
     ],
   },
   {
     path: "app/comun/admin/calcadas/page.tsx",
-    pairs: [
-      [
-        `import { decideSidewalkDuplicate, moderateSidewalkObservation, moderateSidewalkRecord } from "./actions";`,
-        `import { decideSidewalkDuplicate, moderateSidewalkObservation, moderateSidewalkRecord } from "./actions";
+    changes: [
+      {
+        before: `import { decideSidewalkDuplicate, moderateSidewalkObservation, moderateSidewalkRecord } from "./actions";`,
+        after: `import { decideSidewalkDuplicate, moderateSidewalkObservation, moderateSidewalkRecord } from "./actions";
 import { moderateSidewalkRecordExact } from "./exact-actions";`,
-      ],
-      [
-        `              <p className="text-sm">Remova contatos, endereço completo, telefone, e-mail, nomes de terceiros e qualquer informação sensível antes de publicar.</p>`,
-        `              <p className="text-sm">Remova contatos, endereço completo, telefone, e-mail, nomes de terceiros e qualquer informação sensível antes de publicar.</p>
+        marker: 'from "./exact-actions"',
+      },
+      {
+        before: `              <p className="text-sm">Remova contatos, endereço completo, telefone, e-mail, nomes de terceiros e qualquer informação sensível antes de publicar.</p>`,
+        after: `              <p className="text-sm">Remova contatos, endereço completo, telefone, e-mail, nomes de terceiros e qualquer informação sensível antes de publicar.</p>
               <p className="text-sm font-bold">A publicação do ponto exato só é concluída quando o envio contém consentimento explícito vinculado ao registro.</p>`,
-      ],
-      [
-        `              </div>
+        marker: "consentimento explícito vinculado ao registro",
+      },
+      {
+        before: `              </div>
             </form>`,
-        `              </div>
+        after: `              </div>
               <button
                 formAction={moderateSidewalkRecordExact}
                 className="btn"
@@ -91,23 +102,26 @@ import { moderateSidewalkRecordExact } from "./exact-actions";`,
                 Aprovar com ponto exato consentido
               </button>
             </form>`,
-      ],
+        marker: "Aprovar com ponto exato consentido",
+      },
     ],
   },
 ];
 
-function replaceOnce(source, before, after, path) {
-  if (source.includes(after)) return source;
-  if (!source.includes(before)) {
-    throw new Error(`Âncora ausente em ${path}: ${before.slice(0, 80)}`);
+function replaceOnce(source, change, path) {
+  if (source.includes(change.marker)) return source;
+  if (!source.includes(change.before)) {
+    throw new Error(
+      `Âncora ausente em ${path}: ${change.before.slice(0, 80)}`,
+    );
   }
-  return source.replace(before, after);
+  return source.replace(change.before, change.after);
 }
 
 for (const entry of replacements) {
   let source = await readFile(entry.path, "utf8");
-  for (const [before, after] of entry.pairs) {
-    source = replaceOnce(source, before, after, entry.path);
+  for (const change of entry.changes) {
+    source = replaceOnce(source, change, entry.path);
   }
   await writeFile(entry.path, source);
 }
