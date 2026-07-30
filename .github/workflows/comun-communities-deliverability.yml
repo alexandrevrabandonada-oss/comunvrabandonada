@@ -1,0 +1,134 @@
+name: COMUN Communities Deliverability
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-communities-deliverability.yml"
+      - "app/comun/admin/comunidades/**"
+      - "app/comun/c/*/participar/**"
+      - "components/admin-shell.tsx"
+      - "components/community-participation-onboarding.tsx"
+      - "lib/community-administration.ts"
+      - "lib/community-administration.test.ts"
+      - "lib/community-membership.ts"
+      - "scripts/audit-comun-communities-readiness.mjs"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-communities-deliverability.yml"
+      - "app/comun/admin/comunidades/**"
+      - "app/comun/c/*/participar/**"
+      - "components/community-participation-onboarding.tsx"
+      - "lib/community-administration.ts"
+      - "lib/community-membership.ts"
+      - "scripts/audit-comun-communities-readiness.mjs"
+  schedule:
+    - cron: "23 11 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: comun-communities-deliverability-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verify:
+    name: VERIFY / COMUN_COMMUNITIES_COMPLETE_CONTRACT
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --check scripts/audit-comun-communities-readiness.mjs
+      - run: >-
+          npx prettier --check
+          .github/workflows/comun-communities-deliverability.yml
+          app/comun/admin/comunidades/actions.ts
+          app/comun/admin/comunidades/page.tsx
+          app/comun/c/[slug]/participar/actions.ts
+          components/admin-shell.tsx
+          components/community-participation-onboarding.tsx
+          lib/community-administration.ts
+          lib/community-administration.test.ts
+          lib/community-membership.ts
+          scripts/audit-comun-communities-readiness.mjs
+      - run: npx vitest run lib/community-administration.test.ts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: git diff --check origin/main...HEAD
+      - name: Verify moderated membership and authorization boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'COMMUNITY_MEMBERSHIP_REVIEW_GATE' lib/community-membership.ts
+          grep -q 'Solicitar entrada como membro' components/community-participation-onboarding.tsx
+          grep -q 'requireComunAdmin({ roles: \["admin"\] })' app/comun/admin/comunidades/actions.ts
+          grep -q 'validateCommunityRoleMutation' app/comun/admin/comunidades/actions.ts
+          grep -q 'validateCommunityGroupMember' app/comun/admin/comunidades/actions.ts
+          grep -q 'containsPersonalData: false' scripts/audit-comun-communities-readiness.mjs
+          grep -q 'containsUserIds: false' scripts/audit-comun-communities-readiness.mjs
+          grep -q 'containsSecrets: false' scripts/audit-comun-communities-readiness.mjs
+          ! grep -R -n -E 'SUPABASE_SERVICE_ROLE_KEY=|SUPABASE_DB_URL=' \
+            app/comun/admin/comunidades \
+            app/comun/c/[slug]/participar \
+            lib/community-administration.ts \
+            lib/community-membership.ts
+          echo COMUN_COMMUNITIES_COMPLETE_CONTRACT_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  audit:
+    name: AUDIT / COMUN_COMMUNITIES_READINESS
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Generate sanitized read-only report
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          COMUN_ARTIFACT_DIR: .ci-artifacts/comun-communities-readiness
+        run: >-
+          node --experimental-strip-types
+          scripts/audit-comun-communities-readiness.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-communities-readiness-${{ github.run_id }}
+          path: .ci-artifacts/comun-communities-readiness
+          retention-days: 30
+          if-no-files-found: error
+      - name: Open or update one reconciliation issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact=.ci-artifacts/comun-communities-readiness/comun-communities-readiness.json
+          findings=$(jq -r .findingsCount "$artifact")
+          if [ "$findings" = "0" ]; then
+            exit 0
+          fi
+          title="Prontidão das comunidades do COMUN"
+          existing=$(gh issue list --state open --search "$title in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+          body="A auditoria read-only encontrou $findings pendência(s), incluindo possível reconciliação de autoaprovações históricas. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Nenhum vínculo, papel ou grupo foi alterado."
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi
