@@ -136,6 +136,8 @@ jobs:
       result: ${{ steps.audit.outputs.result }}
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      COMUN_CULTURAL_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -248,6 +250,8 @@ jobs:
     timeout-minutes: 15
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      COMUN_CULTURAL_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
       COMUN_CULTURAL_REHEARSAL_CONFIRMATION: ${{ inputs.confirmation }}
     steps:
       - uses: actions/checkout@v4

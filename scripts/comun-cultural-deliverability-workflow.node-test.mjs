@@ -17,12 +17,16 @@ test("lane de PR é local e não injeta credenciais remotas", async () => {
 
 test("preflight e inventário usam o mesmo auditor fixo read-only", async () => {
   const workflow = await readFile(workflowUrl, "utf8");
+  const remoteAudit =
+    workflow.match(/  remote-audit:[\s\S]*?\n  operational-findings:/)?.[0] ??
+    "";
   assert.match(workflow, /inputs\.mode == 'preflight'/);
   assert.match(workflow, /inputs\.mode == 'content-inventory'/);
   assert.match(workflow, /audit-comun-cultural-deliverability\.mjs/);
+  assert.match(remoteAudit, /SUPABASE_PROJECT_REF:/);
+  assert.match(remoteAudit, /COMUN_CULTURAL_ALLOWED_PROJECT_REFS:/);
   assert.doesNotMatch(
-    workflow.match(/  remote-audit:[\s\S]*?\n  operational-findings:/)?.[0] ??
-      "",
+    remoteAudit,
     /\b(db push|migration up|insert|update|delete)\b/i,
   );
 });
@@ -47,6 +51,8 @@ test("ensaio privado é separado, confirmado e publica artifact", async () => {
   assert.match(rehearsal, /rehearse-comun-cultural-deliverability\.mjs/);
   assert.match(rehearsal, /actions\/upload-artifact@v4/);
   assert.match(rehearsal, /if: always\(\)/);
+  assert.match(rehearsal, /SUPABASE_PROJECT_REF:/);
+  assert.match(rehearsal, /COMUN_CULTURAL_ALLOWED_PROJECT_REFS:/);
 });
 
 test("workflow não possui canal de publicação ou lançamento", async () => {

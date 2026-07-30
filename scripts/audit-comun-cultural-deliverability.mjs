@@ -84,11 +84,16 @@ select jsonb_build_object(
     ),
     'publicImageAssetsWithoutAltText', (
       select count(*)::int
-      from public.comun_archive_assets
-      where bucket_scope = 'public_safe'
-        and review_status = 'approved'
-        and mime_type like 'image/%'
-        and nullif(trim(alt_text), '') is null
+      from public.comun_archive_assets asset
+      join public.comun_archive_items item
+        on item.id = asset.archive_item_id
+      where asset.bucket_scope = 'public_safe'
+        and asset.review_status = 'approved'
+        and asset.public_url is not null
+        and asset.mime_type like 'image/%'
+        and nullif(trim(asset.alt_text), '') is null
+        and item.status = 'published'
+        and item.visibility = 'public'
     ),
     'orphanAssetRows', (
       select count(*)::int
@@ -248,11 +253,70 @@ export function assertCulturalAuditReadOnly(sql = fixedCulturalAuditSql) {
   return true;
 }
 
+export function resolveCulturalDatabaseUrl(environment = process.env) {
+  return (
+    environment.COMUN_CULTURAL_DATABASE_URL ??
+    environment.SUPABASE_DB_URL ??
+    environment.PR23_DATABASE_URL ??
+    ""
+  );
+}
+
+export function validateCulturalDatabaseTarget(environment = process.env) {
+  const databaseUrl = resolveCulturalDatabaseUrl(environment);
+  const projectRef = String(environment.SUPABASE_PROJECT_REF ?? "").trim();
+  const allowed = String(
+    environment.COMUN_CULTURAL_ALLOWED_PROJECT_REFS ??
+      environment.PR23_ALLOWED_PROJECT_REFS ??
+      "",
+  )
+    .split(/[\s,]+/)
+    .filter(Boolean);
+
+  if (!databaseUrl) throw new Error("COMUN_CULTURAL_AUDIT_DATABASE_MISSING");
+  if (!projectRef || allowed.length !== 1 || allowed[0] !== projectRef) {
+    throw new Error("COMUN_CULTURAL_AUDIT_PROJECT_NOT_ALLOWLISTED");
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(databaseUrl);
+  } catch {
+    throw new Error("COMUN_CULTURAL_AUDIT_DATABASE_TARGET_INVALID");
+  }
+  if (!["postgres:", "postgresql:"].includes(parsed.protocol)) {
+    throw new Error("COMUN_CULTURAL_AUDIT_DATABASE_TARGET_INVALID");
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+  const username = decodeURIComponent(parsed.username);
+  if (projectRef === "LOCAL_VALIDATION") {
+    if (!["localhost", "127.0.0.1", "::1"].includes(hostname)) {
+      throw new Error("COMUN_CULTURAL_AUDIT_DATABASE_TARGET_MISMATCH");
+    }
+  } else {
+    const directHost = hostname === `db.${projectRef}.supabase.co`;
+    const poolerUser = username === `postgres.${projectRef}`;
+    if (!directHost && !poolerUser) {
+      throw new Error("COMUN_CULTURAL_AUDIT_DATABASE_TARGET_MISMATCH");
+    }
+  }
+
+  return {
+    databaseUrl,
+    targetVerified: true,
+  };
+}
+
 function boundedCount(value) {
   return Math.max(0, Math.min(1_000_000_000, Number(value) || 0));
 }
 
 export function sanitizeCulturalMetrics(input) {
+  const target = {
+    verified: input?.target?.verified === true,
+    evidence: "allowlisted_project_ref_matches_database_target",
+  };
   const schema = {
     expectedTables:
       input?.schema?.expectedTables == null
@@ -308,6 +372,7 @@ export function sanitizeCulturalMetrics(input) {
     },
   };
   const structuralFindings =
+    (target.verified ? 0 : 1) +
     schema.expectedTables -
     schema.presentTables +
     schema.rlsDisabled +
@@ -329,6 +394,7 @@ export function sanitizeCulturalMetrics(input) {
     formatVersion: 1,
     auditType: "archive_radio_art_read_only",
     generatedAt: new Date().toISOString(),
+    target,
     schema,
     storage,
     privacy,
@@ -354,6 +420,7 @@ export function assertSanitizedCulturalArtifact(artifact) {
   if (
     artifact.containsPersonalData !== false ||
     artifact.containsObjectKeys !== false ||
+    artifact.target?.verified !== true ||
     artifact.databaseWrites !== "none" ||
     artifact.storageWrites !== "none"
   ) {
@@ -367,6 +434,7 @@ export function renderCulturalAuditMarkdown(artifact) {
 
 - Resultado: \`${artifact.result}\`
 - Auditoria: somente leitura
+- Destino remoto allowlisted e compatível com a conexão: ${artifact.target.verified ? "sim" : "não"}
 - Tabelas canônicas presentes: ${artifact.schema.presentTables}/${artifact.schema.expectedTables}
 - Tabelas sem RLS: ${artifact.schema.rlsDisabled}
 - Grants públicos perigosos: ${artifact.schema.dangerousPublicGrants}
@@ -386,12 +454,9 @@ Contagens de candidatos não equivalem a autorização de direitos. A promoção
 
 async function run() {
   assertCulturalAuditReadOnly();
-  const connectionString =
-    process.env.COMUN_CULTURAL_DATABASE_URL ??
-    process.env.SUPABASE_DB_URL ??
-    process.env.PR23_DATABASE_URL;
-  if (!connectionString)
-    throw new Error("COMUN_CULTURAL_AUDIT_DATABASE_MISSING");
+  const { databaseUrl: connectionString } = validateCulturalDatabaseTarget(
+    process.env,
+  );
   const outputIndex = process.argv.indexOf("--output");
   const output =
     outputIndex >= 0
@@ -407,7 +472,10 @@ async function run() {
     await client.query("set default_transaction_read_only = on");
     await client.query("begin transaction read only");
     const result = await client.query(fixedCulturalAuditSql);
-    const artifact = sanitizeCulturalMetrics(result.rows[0]?.metrics ?? {});
+    const artifact = sanitizeCulturalMetrics({
+      ...(result.rows[0]?.metrics ?? {}),
+      target: { verified: true },
+    });
     assertSanitizedCulturalArtifact(artifact);
     await client.query("rollback");
     await mkdir(path.dirname(output), { recursive: true });
