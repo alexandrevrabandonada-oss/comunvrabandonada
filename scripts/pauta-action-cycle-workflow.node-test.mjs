@@ -61,7 +61,8 @@ test("ativação exige evidência do mesmo SHA e não aplica migration", () => {
 });
 
 test("CI comprova schema, RLS, ensaio e experiência mobile", () => {
-  assert.match(deliverability, /supabase db reset --local --yes/);
+  assert.match(deliverability, /run-pauta-action-cycle-local-reset\.mjs/);
+  assert.match(deliverability, /git diff --exit-code/);
   assert.match(deliverability, /audit:rls-matrix/);
   assert.match(deliverability, /rehearse-pauta-action-cycle\.mjs/);
   assert.match(deliverability, /playwright\.pauta-action-cycle\.config\.ts/);
