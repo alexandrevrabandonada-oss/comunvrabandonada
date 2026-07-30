@@ -1,0 +1,63 @@
+# Tijolo 47.3 — Comunidades completas
+
+Resultado em implementação: `COMUN_V1_COMMUNITIES_IN_PROGRESS`
+
+## Causa-raiz
+
+O fluxo anterior tratava `join` como autoaprovação:
+
+- mudava imediatamente o vínculo para `member`;
+- preenchia `joined_at`;
+- registrava `membership_approved` com a própria pessoa como ator;
+- não criava fila de revisão;
+- não oferecia cockpit para papéis e grupos.
+
+## Correção
+
+- `Acompanhar` continua sendo autoatendimento e não concede papel;
+- `Solicitar entrada como membro` preserva o estado `following`;
+- a solicitação vira item pendente na fila editorial existente;
+- solicitações repetidas reutilizam a operação aberta;
+- a pessoa recebe confirmação pela Inbox;
+- coordenadores ativos recebem aviso agregado;
+- a decisão administrativa é idempotente e bloqueia vínculo suspenso ou operação encerrada;
+- aprovação muda o vínculo para `member` e registra auditoria;
+- rejeição mantém a pessoa como seguidora;
+- papéis são concedidos separadamente, somente a membros ativos e por administrador;
+- revogação do papel não remove o vínculo comunitário;
+- grupos de trabalho só aceitam membros ativos da mesma comunidade;
+- entradas e saídas de grupo geram auditoria e Inbox.
+
+## Superfície administrativa
+
+`/comun/admin/comunidades`
+
+- fila de solicitações;
+- prazo indicativo de 48 horas;
+- aprovação ou encerramento;
+- membros e papéis ativos;
+- concessão, revisão e revogação de papéis;
+- criação de grupos de trabalho;
+- entrada e saída de membros em grupos.
+
+## Auditoria
+
+O workflow diário mede apenas contagens sanitizadas:
+
+- comunidades ativas;
+- vínculos por estado;
+- papéis ativos;
+- grupos por estado;
+- solicitações abertas;
+- autoaprovações históricas que exigem reconciliação.
+
+O artifact não contém nomes, IDs, e-mails, mensagens privadas ou secrets.
+
+## Fronteira
+
+- nenhuma migration;
+- nenhuma alteração de RLS;
+- nenhuma promoção automática de seguidor para membro;
+- nenhuma concessão automática de papel;
+- nenhuma escrita de produção durante a revisão da PR;
+- o domínio permanece `in_progress` até o ensaio controlado e a reconciliação histórica.
