@@ -9,10 +9,9 @@ const { Client } = pg;
 const cycleId = "sidewalk-first-exact-publication-20260729-13";
 const publicSummary =
   "Trecho de calçada em condição regular, com irregularidades no piso e indicação comunitária de ausência de rampa.";
-const baseUrl = (process.env.COMUN_BASE_URL ?? "https://comunsocial.online").replace(
-  /\/$/,
-  "",
-);
+const baseUrl = (
+  process.env.COMUN_BASE_URL ?? "https://comunsocial.online"
+).replace(/\/$/, "");
 const projectRef = required("SUPABASE_PROJECT_REF");
 const serviceRole = required("SUPABASE_SERVICE_ROLE_KEY");
 const databaseUrl = required("SUPABASE_DB_URL");
@@ -101,7 +100,8 @@ try {
   const existing = await supabase.storage
     .from(publicBucket)
     .download(derivativeKey);
-  if (!existing.error) throw new Error("PUBLIC_DERIVATIVE_OBJECT_ALREADY_EXISTS");
+  if (!existing.error)
+    throw new Error("PUBLIC_DERIVATIVE_OBJECT_ALREADY_EXISTS");
 
   const original = await supabase.storage
     .from(privateBucket)
@@ -242,7 +242,10 @@ try {
   committed = true;
   evidence.databaseWrites = "controlled_publication";
 
-  const postflight = await db.query(postflightSql, [candidate.id, publicSummary]);
+  const postflight = await db.query(postflightSql, [
+    candidate.id,
+    publicSummary,
+  ]);
   if (postflight.rowCount !== 1) throw new Error("POSTFLIGHT_RECORD_NOT_GREEN");
   const post = postflight.rows[0];
   if (
@@ -260,8 +263,7 @@ try {
   evidence.recordVisibility = post.visibility;
   evidence.publicDerivativeCount = Number(post.derivative_count);
   await publicSmoke(candidate.slug);
-  evidence.cycleResult =
-    "COMUN_SIDEWALK_FIRST_EXACT_PUBLICATION_GREEN";
+  evidence.cycleResult = "COMUN_SIDEWALK_FIRST_EXACT_PUBLICATION_GREEN";
 } catch (error) {
   if (db) await db.query("rollback").catch(() => undefined);
   if (uploadedDerivativeKey && !committed) {
@@ -291,8 +293,11 @@ try {
     });
 }
 
-if (!evidence.cycleResult.endsWith("_GREEN") &&
-    evidence.cycleResult !== "COMUN_SIDEWALK_FIRST_EXACT_PUBLICATION_ALREADY_GREEN") {
+if (
+  !evidence.cycleResult.endsWith("_GREEN") &&
+  evidence.cycleResult !==
+    "COMUN_SIDEWALK_FIRST_EXACT_PUBLICATION_ALREADY_GREEN"
+) {
   process.exitCode = 1;
 }
 
