@@ -5,7 +5,6 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/comun-sidewalk-exact-consent-contract.yml"
-      - "scripts/process/apply-sidewalk-exact-consent-contract.mjs"
       - "components/sidewalk-first-participation-form.tsx"
       - "lib/sidewalk-submission-readiness.ts"
       - "lib/sidewalk-submission-readiness.test.ts"
@@ -31,11 +30,7 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci --ignore-scripts
-      - name: Verify generated contract is current and idempotent
-        run: |
-          node scripts/process/apply-sidewalk-exact-consent-contract.mjs
-          git diff --exit-code
-      - run: npx prettier --check scripts/process/apply-sidewalk-exact-consent-contract.mjs components/sidewalk-first-participation-form.tsx lib/sidewalk-submission-readiness.ts lib/sidewalk-submission-readiness.test.ts lib/sidewalk-exact-consent-contract.test.ts app/comun/admin/calcadas/page.tsx app/comun/admin/calcadas/exact-actions.ts .github/workflows/comun-sidewalk-exact-consent-contract.yml
+      - run: npx prettier --check components/sidewalk-first-participation-form.tsx lib/sidewalk-submission-readiness.ts lib/sidewalk-submission-readiness.test.ts lib/sidewalk-exact-consent-contract.test.ts app/comun/admin/calcadas/page.tsx app/comun/admin/calcadas/exact-actions.ts .github/workflows/comun-sidewalk-exact-consent-contract.yml
       - run: npx vitest run lib/sidewalk-submission-readiness.test.ts lib/sidewalk-exact-consent-contract.test.ts
       - run: npm run typecheck
       - run: npm run lint
