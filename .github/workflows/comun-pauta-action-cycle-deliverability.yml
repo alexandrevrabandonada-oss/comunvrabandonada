@@ -108,8 +108,8 @@ jobs:
           mkdir -p .ci-artifacts/pauta-action-cycle
           printf '%s\n' '{"formatVersion":1,"reset":"started","remoteWrites":"none"}' \
             > .ci-artifacts/pauta-action-cycle/reset-state.json
-          supabase start
-          node scripts/run-pauta-action-cycle-local-reset.mjs
+          node scripts/run-pauta-action-cycle-local-reset.mjs start
+          node scripts/run-pauta-action-cycle-local-reset.mjs reset
           git diff --exit-code -- \
             supabase/migrations/20260729205156_allow_anonymous_sidewalk_auth_without_legacy_profile.sql
       - name: Exact local postflight and transactional rehearsal

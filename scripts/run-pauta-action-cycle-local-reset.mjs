@@ -54,7 +54,15 @@ export async function runCompleteDisposableReset(
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  runCompleteDisposableReset().catch((error) => {
+  const mode = process.argv[2] ?? "reset";
+  const args =
+    mode === "start"
+      ? ["start"]
+      : mode === "reset"
+        ? ["db", "reset", "--local", "--yes"]
+        : null;
+  if (!args) throw new Error("COMUN_PAUTA_ACTION_CYCLE_LOCAL_MODE_INVALID");
+  runCompleteDisposableReset("supabase", args).catch((error) => {
     process.stderr.write(
       `${String(error?.message ?? "COMUN_PAUTA_ACTION_CYCLE_RESET_FAILED")}\n`,
     );

@@ -30,5 +30,7 @@ test("helper preserva restauração em finally e não toca o remoto", async () =
   );
   assert.match(helper, /finally\s*{/);
   assert.match(helper, /writeFile\(AUTH_MIGRATION, original/);
+  assert.match(helper, /mode === "start"/);
+  assert.match(helper, /\["db", "reset", "--local", "--yes"\]/);
   assert.doesNotMatch(helper, /db push|migration up|SUPABASE_DB_URL|--linked/);
 });
