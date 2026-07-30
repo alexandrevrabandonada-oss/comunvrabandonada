@@ -17,6 +17,7 @@ async function readReleaseState() {
       tablesPresent: false,
       memberJourneyPresent: false,
       administrationMemoryPresent: false,
+      pautaActionCyclePresent: false,
     };
   const client = new Client({
     connectionString,
@@ -25,41 +26,49 @@ async function readReleaseState() {
   });
   try {
     await client.connect();
-    const [ledgerResult, tablesResult, memberJourneyResult, administrationMemoryResult] = await Promise.all(
-      [
-        client.query(
-          "select release, status, migration_path, migration_sha256 from public.comun_schema_releases where release = $1 limit 1",
-          [COLLECTIVE_ACTIONS_RELEASE],
-        ),
-        client.query(
-          "select count(*)::int as count from pg_catalog.pg_tables where schemaname = 'public' and tablename = any($1::text[])",
+    const [
+      ledgerResult,
+      tablesResult,
+      memberJourneyResult,
+      administrationMemoryResult,
+      pautaActionCycleResult,
+    ] = await Promise.all([
+      client.query(
+        "select release, status, migration_path, migration_sha256 from public.comun_schema_releases where release = $1 limit 1",
+        [COLLECTIVE_ACTIONS_RELEASE],
+      ),
+      client.query(
+        "select count(*)::int as count from pg_catalog.pg_tables where schemaname = 'public' and tablename = any($1::text[])",
+        [
           [
-            [
-              "comun_collective_actions",
-              "comun_collective_action_participations",
-              "comun_collective_action_tasks",
-              "comun_collective_action_task_assignments",
-              "comun_collective_action_updates",
-              "comun_collective_action_sidewalk_records",
-              "comun_collective_action_forwardings",
-              "comun_collective_action_memory_assets",
-            ],
+            "comun_collective_actions",
+            "comun_collective_action_participations",
+            "comun_collective_action_tasks",
+            "comun_collective_action_task_assignments",
+            "comun_collective_action_updates",
+            "comun_collective_action_sidewalk_records",
+            "comun_collective_action_forwardings",
+            "comun_collective_action_memory_assets",
           ],
-        ),
-        client.query(
-          "select to_regprocedure('public.comun_collective_action_member_journey_guard()') is not null as present",
-        ),
-        client.query(
-          "select to_regclass('public.comun_collective_action_forwardings') is not null and to_regclass('public.comun_collective_action_memory_assets') is not null as present",
-        ),
-      ],
-    );
+        ],
+      ),
+      client.query(
+        "select to_regprocedure('public.comun_collective_action_member_journey_guard()') is not null as present",
+      ),
+      client.query(
+        "select to_regclass('public.comun_collective_action_forwardings') is not null and to_regclass('public.comun_collective_action_memory_assets') is not null as present",
+      ),
+      client.query(
+        "select to_regclass('public.comun_pauta_action_cycles') is not null and to_regclass('public.comun_pauta_decisions') is not null and to_regprocedure('public.comun_transition_pauta_action_cycle(uuid,integer,text,text,uuid,text,text,text)') is not null as present",
+      ),
+    ]);
     return {
       ledger: ledgerResult.rows[0] ?? null,
       tablesPresent: tablesResult.rows[0]?.count === 8,
       memberJourneyPresent: memberJourneyResult.rows[0]?.present === true,
       administrationMemoryPresent:
         administrationMemoryResult.rows[0]?.present === true,
+      pautaActionCyclePresent: pautaActionCycleResult.rows[0]?.present === true,
     };
   } finally {
     await client.end().catch(() => undefined);
@@ -79,6 +88,7 @@ export async function getCollectiveActionsRelease() {
         state.tablesPresent,
         state.memberJourneyPresent,
         state.administrationMemoryPresent,
+        state.pautaActionCyclePresent,
       ) as boolean,
     };
   } catch {

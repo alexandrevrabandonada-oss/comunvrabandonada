@@ -1,0 +1,45 @@
+{
+  "formatVersion": 1,
+  "checkpoint": "tijolo-47-4",
+  "domain": "pauta_action_cycle",
+  "branch": "codex/tijolo-47-4-esteira-politica-completa",
+  "baseMergeSha": "881c3bda42ff0bea8c882d2735cc4584c8c86de5",
+  "architecture": {
+    "parallelMobilizationSystemCreated": false,
+    "explicitStateMachine": true,
+    "activitySeparatedFromResult": true,
+    "canonicalEntitiesLinked": true
+  },
+  "localEvidence": {
+    "schemaReset": "green",
+    "expectedObjects": 11,
+    "rlsObjects": 11,
+    "stateMachineTests": "green",
+    "globalRlsMatrix": "green",
+    "controlledRehearsal": "green",
+    "rehearsalPassedStages": 12,
+    "negativeTransitionBlocked": true,
+    "transactionRolledBack": true,
+    "postflightSyntheticRows": 0,
+    "publicProjectionRls": "green",
+    "desktopAndMobilePreview": "green"
+  },
+  "migrationHashes": {
+    "20260726133409_comun_collective_actions_foundation.sql": "e5c1638637e9baa7c8d0f57f73caab775cd4c183cd3472355e061125121005eb",
+    "20260726161426_comun_collective_action_member_journey.sql": "f0ac1fad80ab1efeeee3367e717c3d071b746be5be51e24bf0c74ff5634060cd",
+    "20260726171220_collective_action_administration_memory.sql": "33b7d212dcca36ab7393a6a38dfca7271c44ed22c8421b13217873bd90ead76a",
+    "20260730122000_comun_pauta_action_cycle.sql": "b15712275bc56258e902867cdb575b0df15f344d5e743d91cf4e2c3006a00c5b"
+  },
+  "remoteEvidence": {
+    "initialInventory": "read_only",
+    "targetMigrationsInitiallyPresent": 0,
+    "remoteWritesDuringDiagnosis": "none",
+    "promotionStatus": "pending_candidate_sha"
+  },
+  "externalOfficialProtocolSent": false,
+  "containsPrivateData": false,
+  "containsRawIdentifiers": false,
+  "storageWrites": "none",
+  "launchPubliclyTriggered": false,
+  "result": "COMUN_PAUTA_ACTION_CYCLE_READY_FOR_CONTROLLED_REHEARSAL"
+}

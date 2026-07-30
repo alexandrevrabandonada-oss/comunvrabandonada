@@ -1,0 +1,36 @@
+{
+  "release": "20260730122000-comun-pauta-action-cycle",
+  "releaseLedger": "supabase_migrations.schema_migrations",
+  "destructiveSql": false,
+  "requiresPromotion": true,
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "featureFlag": "COMUN_COLLECTIVE_ACTIONS_V1",
+  "migrations": [
+    {
+      "path": "supabase/migrations/20260726133409_comun_collective_actions_foundation.sql",
+      "sha256": "e5c1638637e9baa7c8d0f57f73caab775cd4c183cd3472355e061125121005eb"
+    },
+    {
+      "path": "supabase/migrations/20260726161426_comun_collective_action_member_journey.sql",
+      "sha256": "f0ac1fad80ab1efeeee3367e717c3d071b746be5be51e24bf0c74ff5634060cd"
+    },
+    {
+      "path": "supabase/migrations/20260726171220_collective_action_administration_memory.sql",
+      "sha256": "33b7d212dcca36ab7393a6a38dfca7271c44ed22c8421b13217873bd90ead76a"
+    },
+    {
+      "path": "supabase/migrations/20260730122000_comun_pauta_action_cycle.sql",
+      "sha256": "b15712275bc56258e902867cdb575b0df15f344d5e743d91cf4e2c3006a00c5b"
+    }
+  ],
+  "expectedObjects": 11,
+  "expectedRlsObjects": 11,
+  "assertions": [
+    "activity does not imply verified result",
+    "decision publication requires a second authorized actor",
+    "controlled rehearsal remains private and is rolled back",
+    "public timeline excludes private notes and actor identifiers",
+    "activation remains gated by COMUN_COLLECTIVE_ACTIONS_V1"
+  ]
+}

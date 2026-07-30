@@ -96,3 +96,15 @@ A secao `Inteligencia operacional` em `/comun/admin/protocolos-oficiais` calcula
 A secao `Possiveis dossies` e apenas um radar interno. Ela sinaliza pautas ou recortes locais com volume, vencimento, resposta insatisfatoria ou nao resolvidos acumulados. Ela nao cria dossie automaticamente e nao publica resposta completa.
 
 Quando um sinal amadurece, o admin pode criar uma pauta social. A pauta organiza discussao, contribuicoes moderadas e tarefas publicas antes de qualquer dossie final.
+
+## Vínculo com a esteira política
+
+Um protocolo oficial continua sendo a fonte canônica da tramitação. A esteira
+da pauta apenas guarda o vínculo depois que o protocolo foi revisado como
+evidência da mesma pauta. O número e o resumo público podem aparecer no ciclo;
+texto bruto, contatos e notas continuam privados.
+
+Registrar uma resposta não resolve a pauta. A resposta precisa de resumo
+público sanitizado; o resultado é avaliado separadamente e a memória só pode ser
+publicada quando houver evidência verificada. O COMUN não envia automaticamente
+uma demanda real a órgão externo.

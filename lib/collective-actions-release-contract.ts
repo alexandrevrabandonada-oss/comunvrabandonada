@@ -47,11 +47,13 @@ export function isCollectiveActionsReleaseEnabled(
   tablesPresent: boolean,
   memberJourneyPresent: boolean,
   administrationMemoryPresent: boolean,
+  pautaActionCyclePresent: boolean,
 ) {
   return (
     flag === "enabled" &&
     (hasExactCollectiveActionsLedger(ledger) || tablesPresent) &&
     memberJourneyPresent &&
-    administrationMemoryPresent
+    administrationMemoryPresent &&
+    pautaActionCyclePresent
   );
 }

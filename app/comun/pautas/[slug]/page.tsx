@@ -29,6 +29,9 @@ import {
 } from "@/lib/sidewalk-pauta";
 import { SidewalkMemorySection } from "@/components/sidewalk-memory-section";
 import { ComunContextTrail } from "@/components/comun-context-trail";
+import { PautaPoliticalCycle } from "@/components/pauta-political-cycle";
+import { getCollectiveActionsRelease } from "@/lib/collective-actions-release";
+import { getPublicPautaActionCycle } from "@/lib/pauta-action-cycle-data";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -127,6 +130,10 @@ export default async function PautaPage(props: {
     listPublicDossierFeatures(),
     getPublicPautaHub(space.id),
   ]);
+  const politicalRelease = await getCollectiveActionsRelease();
+  const politicalCycle = politicalRelease.enabled
+    ? await getPublicPautaActionCycle(space.id)
+    : null;
   const featuredDossiers = allFeatures.filter(
     (feature) => feature.snapshot.pauta?.id === space.id,
   );
@@ -187,6 +194,8 @@ export default async function PautaPage(props: {
           </aside>
         </div>
       </Section>
+
+      <PautaPoliticalCycle cycle={politicalCycle} />
 
       <Section>
         <h2 className="text-2xl font-black uppercase text-comun-yellow">
