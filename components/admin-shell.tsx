@@ -22,6 +22,7 @@ export async function AdminShell({
             Admin COMUN
           </Link>
           <nav className="flex flex-wrap items-center gap-3 text-sm font-black uppercase">
+            <Link href="/comun/admin/lancamento">Lançamento V1</Link>
             <Link href="/comun/admin/organizacao">Organizacao</Link>
             <Link href="/comun/admin/territorio">Territorio</Link>
             <Link href="/comun/admin/calcadas">Calcadas</Link>
