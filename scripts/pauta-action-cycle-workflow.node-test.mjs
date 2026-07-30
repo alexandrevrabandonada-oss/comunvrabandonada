@@ -36,6 +36,11 @@ test("migration aceita somente o plano aditivo exato e não ativa feature", () =
   const source = job(promotion, "migrate", "rehearse");
   assert.match(source, /verify-pauta-action-cycle-push-plan\.mjs/);
   assert.match(source, /--dry-run/);
+  assert.match(
+    source,
+    /> \.ci-pauta-action-cycle-plan\.txt 2>&1/,
+    "the CLI writes its dry-run plan to stderr, which must be verified too",
+  );
   assert.match(source, /db push --db-url "\$SUPABASE_DB_URL"/);
   assert.match(source, /--expected after/);
   assert.match(source, /COMUN_PAUTA_ACTION_CYCLE_MIGRATION_ALREADY_APPLIED/);

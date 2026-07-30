@@ -164,7 +164,7 @@ jobs:
           trap restore_sidewalk EXIT
 
           supabase db push --db-url "$SUPABASE_DB_URL" --include-all --dry-run \
-            > .ci-pauta-action-cycle-plan.txt
+            > .ci-pauta-action-cycle-plan.txt 2>&1
           node scripts/verify-pauta-action-cycle-push-plan.mjs \
             .ci-pauta-action-cycle-plan.txt
           restore_sidewalk
