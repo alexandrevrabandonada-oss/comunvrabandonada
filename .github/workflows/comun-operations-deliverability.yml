@@ -63,7 +63,8 @@ jobs:
             lib/operational-surfaces.test.ts
           node --test \
             scripts/audit-comun-operations.node-test.mjs \
-            scripts/comun-operations-workflow.node-test.mjs
+            scripts/comun-operations-workflow.node-test.mjs \
+            scripts/verify-comun-operations-push-plan.node-test.mjs
           npm run smoke:editorial-operation
       - run: npm run typecheck
       - run: npm run lint
@@ -82,7 +83,9 @@ jobs:
             lib/operational-responsibility.test.ts \
             lib/operational-surfaces.ts \
             scripts/audit-comun-operations.mjs \
-            scripts/audit-comun-operations.node-test.mjs
+            scripts/audit-comun-operations.node-test.mjs \
+            scripts/verify-comun-operations-push-plan.mjs \
+            scripts/verify-comun-operations-push-plan.node-test.mjs
           git diff --check origin/main...HEAD
       - name: Static security boundary
         shell: bash
@@ -163,8 +166,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          supabase migration list --db-url "$SUPABASE_DB_URL" > /tmp/migrations.txt
-          grep -q "20260730230044" /tmp/migrations.txt
+          supabase db push --dry-run --db-url "$SUPABASE_DB_URL" > /tmp/plan.txt
+          node scripts/verify-comun-operations-push-plan.mjs /tmp/plan.txt
           supabase db push --db-url "$SUPABASE_DB_URL"
           echo COMUN_OPERATIONS_ADDITIVE_MIGRATION_APPLIED >> "$GITHUB_STEP_SUMMARY"
 
