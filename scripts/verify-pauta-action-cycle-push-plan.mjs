@@ -5,7 +5,9 @@ const file = process.argv[2];
 if (!file) throw new Error("COMUN_PAUTA_ACTION_CYCLE_PUSH_PLAN_REQUIRED");
 const plan = readFileSync(file, "utf8");
 const versions = [
-  ...new Set([...plan.matchAll(/\b(20\d{12})\b/g)].map((match) => match[1])),
+  ...new Set(
+    [...plan.matchAll(/(?<!\d)(20\d{12})(?!\d)/g)].map((match) => match[1]),
+  ),
 ].sort();
 const expected = [...PAUTA_ACTION_CYCLE_MIGRATIONS].sort();
 if (JSON.stringify(versions) !== JSON.stringify(expected))
