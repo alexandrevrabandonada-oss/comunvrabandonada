@@ -36,8 +36,15 @@ test("migration aceita somente o plano aditivo exato e não ativa feature", () =
   const source = job(promotion, "migrate", "rehearse");
   assert.match(source, /verify-pauta-action-cycle-push-plan\.mjs/);
   assert.match(source, /--dry-run/);
+  assert.match(source, /db push --db-url "\$SUPABASE_DB_URL"/);
   assert.match(source, /--expected after/);
   assert.match(source, /COMUN_PAUTA_ACTION_CYCLE_MIGRATION_ALREADY_APPLIED/);
+  assert.match(source, /migration-attempt\.json/);
+  assert.match(source, /blocked_before_write/);
+  assert.doesNotMatch(
+    source,
+    /SUPABASE_ACCESS_TOKEN|SUPABASE_DB_PASSWORD|supabase link/,
+  );
   assert.doesNotMatch(
     source,
     /COMUN_COLLECTIVE_ACTIONS_V1|vercel@|deploy --prod/,

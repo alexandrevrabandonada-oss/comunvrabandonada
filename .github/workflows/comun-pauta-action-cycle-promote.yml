@@ -113,8 +113,6 @@ jobs:
     runs-on: ubuntu-24.04
     environment: production
     env:
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
     steps:
@@ -129,6 +127,22 @@ jobs:
         with:
           version: 2.109.1
       - run: npm ci --ignore-scripts
+      - name: Initialize sanitized migration evidence
+        shell: bash
+        run: |
+          mkdir -p .ci-artifacts/pauta-action-cycle-promotion
+          jq -n \
+            --arg sha "${{ needs.validate.outputs.sha }}" \
+            --arg runId "${{ github.run_id }}" \
+            '{
+              formatVersion: 1,
+              expectedMainSha: $sha,
+              runId: $runId,
+              status: "blocked_before_write",
+              databaseWrites: "none",
+              containsSensitiveData: false
+            }' \
+            > .ci-artifacts/pauta-action-cycle-promotion/migration-attempt.json
       - name: Require the allowlisted project and exact dry-run plan
         if: needs.preflight.outputs.classification == 'ABSENT_READY'
         shell: bash
@@ -136,14 +150,13 @@ jobs:
           set -euo pipefail
           test "$SUPABASE_PROJECT_REF" = "$TARGET_PROJECT_REF"
           node scripts/validate-pauta-action-cycle-release.mjs
-          supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
-          supabase db push --include-all --dry-run --password "$SUPABASE_DB_PASSWORD" \
+          supabase db push --db-url "$SUPABASE_DB_URL" --include-all --dry-run \
             > .ci-pauta-action-cycle-plan.txt
           node scripts/verify-pauta-action-cycle-push-plan.mjs \
             .ci-pauta-action-cycle-plan.txt
       - name: Apply only the verified additive plan
         if: needs.preflight.outputs.classification == 'ABSENT_READY'
-        run: supabase db push --include-all --password "$SUPABASE_DB_PASSWORD"
+        run: supabase db push --db-url "$SUPABASE_DB_URL" --include-all
       - name: Reuse the exact already-applied release
         if: needs.preflight.outputs.classification == 'APPLIED_EXACT'
         run: echo COMUN_PAUTA_ACTION_CYCLE_MIGRATION_ALREADY_APPLIED >> "$GITHUB_STEP_SUMMARY"
@@ -152,6 +165,32 @@ jobs:
           node scripts/preflight-pauta-action-cycle.mjs \
             --expected after \
             --output .ci-artifacts/pauta-action-cycle-promotion/postflight.json
+      - name: Record sanitized migration result
+        env:
+          PREFLIGHT_CLASSIFICATION: ${{ needs.preflight.outputs.classification }}
+        shell: bash
+        run: |
+          if [ "$PREFLIGHT_CLASSIFICATION" = ABSENT_READY ]; then
+            status=applied_additive
+            database_writes=schema_additive
+          else
+            status=already_applied
+            database_writes=none
+          fi
+          jq -n \
+            --arg sha "${{ needs.validate.outputs.sha }}" \
+            --arg runId "${{ github.run_id }}" \
+            --arg status "$status" \
+            --arg databaseWrites "$database_writes" \
+            '{
+              formatVersion: 1,
+              expectedMainSha: $sha,
+              runId: $runId,
+              status: $status,
+              databaseWrites: $databaseWrites,
+              containsSensitiveData: false
+            }' \
+            > .ci-artifacts/pauta-action-cycle-promotion/migration-attempt.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
