@@ -1,7 +1,15 @@
+import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
+import {
+  buildCulturalRepairPlan,
+  buildCulturalStoragePolicyEvidence,
+  createAltCandidateFingerprint,
+  expectedCulturalBuckets,
+  sanitizeBucketState,
+} from "./comun-cultural-remote-state.mjs";
 
 const { Client } = pg;
 
@@ -18,6 +26,10 @@ export const expectedCulturalTables = [
   "comun_radio_voice_consents",
   "comun_radio_transcript_versions",
 ];
+
+const bucketIdsSql = expectedCulturalBuckets
+  .map((bucket) => `'${bucket.id}'`)
+  .join(",");
 
 export const fixedCulturalAuditSql = `
 select jsonb_build_object(
@@ -47,32 +59,62 @@ select jsonb_build_object(
     )
   ),
   'storage', jsonb_build_object(
-    'expectedBuckets', 4,
-    'presentBuckets', (
-      select count(*)::int
-      from storage.buckets
-      where id in (
-        'archive-private-originals',
-        'archive-public-derivatives',
-        'radio-private-originals',
-        'radio-public-audio'
+    'bucketRows', (
+      select jsonb_agg(
+        jsonb_build_object(
+          'id', expected.id,
+          'present', bucket.id is not null,
+          'public', bucket.public,
+          'file_size_limit', bucket.file_size_limit,
+          'allowed_mime_types', bucket.allowed_mime_types
+        )
+        order by expected.id
       )
+      from unnest(array[${bucketIdsSql}]) expected(id)
+      left join storage.buckets bucket on bucket.id = expected.id
     ),
-    'privateBucketsAccidentallyPublic', (
+    'similarUnexpectedBuckets', (
       select count(*)::int
       from storage.buckets
-      where id in ('archive-private-originals', 'radio-private-originals')
-        and public
+      where id not in (${bucketIdsSql})
+        and (id like 'archive-%' or id like 'radio-%')
     ),
     'knownObjects', (
       select count(*)::int
       from storage.objects
-      where bucket_id in (
-        'archive-private-originals',
-        'archive-public-derivatives',
-        'radio-private-originals',
-        'radio-public-audio'
+      where bucket_id in (${bucketIdsSql})
+    ),
+    'storageRlsDisabled', (
+      select count(*)::int
+      from pg_class relation
+      join pg_namespace namespace on namespace.oid = relation.relnamespace
+      where namespace.nspname = 'storage'
+        and relation.relname in ('buckets', 'objects')
+        and relation.relkind = 'r'
+        and not relation.relrowsecurity
+    ),
+    'serviceOperation', (
+      select coalesce(bool_or(role.rolsuper or role.rolbypassrls), false)
+      from pg_roles role
+      where role.rolname = 'service_role'
+    ),
+    'policies', (
+      select coalesce(
+        jsonb_agg(
+          jsonb_build_object(
+            'tablename', policy.tablename,
+            'roles', policy.roles,
+            'cmd', policy.cmd,
+            'qual', policy.qual,
+            'with_check', policy.with_check
+          )
+          order by policy.tablename, policy.policyname
+        ),
+        '[]'::jsonb
       )
+      from pg_policies policy
+      where policy.schemaname = 'storage'
+        and policy.tablename in ('buckets', 'objects')
     )
   ),
   'privacy', jsonb_build_object(
@@ -94,6 +136,49 @@ select jsonb_build_object(
         and nullif(trim(asset.alt_text), '') is null
         and item.status = 'published'
         and item.visibility = 'public'
+        and item.published_at is not null
+    ),
+    'publicImageAltCandidates', (
+      select coalesce(
+        jsonb_agg(
+          jsonb_build_object(
+            'asset_id', candidate.asset_id,
+            'archive_item_id', candidate.archive_item_id,
+            'asset_created_at', candidate.asset_created_at,
+            'item_updated_at', candidate.item_updated_at,
+            'public_url', candidate.public_url,
+            'review_status', candidate.review_status,
+            'item_status', candidate.item_status,
+            'item_visibility', candidate.item_visibility
+          )
+          order by candidate.asset_created_at
+        ),
+        '[]'::jsonb
+      )
+      from (
+        select
+          asset.id as asset_id,
+          asset.archive_item_id,
+          asset.created_at as asset_created_at,
+          item.updated_at as item_updated_at,
+          asset.public_url,
+          asset.review_status,
+          item.status as item_status,
+          item.visibility as item_visibility
+        from public.comun_archive_assets asset
+        join public.comun_archive_items item
+          on item.id = asset.archive_item_id
+        where asset.bucket_scope = 'public_safe'
+          and asset.review_status = 'approved'
+          and asset.public_url is not null
+          and asset.mime_type like 'image/%'
+          and nullif(trim(asset.alt_text), '') is null
+          and item.status = 'published'
+          and item.visibility = 'public'
+          and item.published_at is not null
+        order by asset.created_at
+        limit 2
+      ) candidate
     ),
     'orphanAssetRows', (
       select count(*)::int
@@ -312,6 +397,60 @@ function boundedCount(value) {
   return Math.max(0, Math.min(1_000_000_000, Number(value) || 0));
 }
 
+export async function fetchPublicImageSha256(url, fetcher = fetch) {
+  let parsed;
+  try {
+    parsed = new URL(String(url ?? ""));
+  } catch {
+    throw new Error("COMUN_CULTURAL_PUBLIC_IMAGE_URL_INVALID");
+  }
+  if (parsed.protocol !== "https:") {
+    throw new Error("COMUN_CULTURAL_PUBLIC_IMAGE_URL_INVALID");
+  }
+  const response = await fetcher(parsed, {
+    method: "GET",
+    redirect: "error",
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!response.ok) {
+    throw new Error("COMUN_CULTURAL_PUBLIC_IMAGE_UNAVAILABLE");
+  }
+  const type = String(response.headers.get("content-type") ?? "").toLowerCase();
+  const declaredLength = Number(response.headers.get("content-length") ?? 0);
+  if (
+    !type.startsWith("image/") ||
+    (declaredLength > 0 && declaredLength > 15 * 1024 * 1024)
+  ) {
+    throw new Error("COMUN_CULTURAL_PUBLIC_IMAGE_RESPONSE_INVALID");
+  }
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  if (bytes.byteLength === 0 || bytes.byteLength > 15 * 1024 * 1024) {
+    throw new Error("COMUN_CULTURAL_PUBLIC_IMAGE_RESPONSE_INVALID");
+  }
+  return createHash("sha256").update(bytes).digest("hex");
+}
+
+export async function enrichCulturalMetricsForRepair(input, fetcher = fetch) {
+  const candidates = Array.isArray(input?.privacy?.publicImageAltCandidates)
+    ? input.privacy.publicImageAltCandidates
+    : [];
+  const candidate = candidates.length === 1 ? candidates[0] : null;
+  let publicImageSha256 = null;
+  if (candidate?.public_url) {
+    publicImageSha256 = await fetchPublicImageSha256(
+      candidate.public_url,
+      fetcher,
+    );
+  }
+  return {
+    ...input,
+    repairEvidence: {
+      altCandidateFingerprint: createAltCandidateFingerprint(candidate),
+      publicImageSha256,
+    },
+  };
+}
+
 export function sanitizeCulturalMetrics(input) {
   const target = {
     verified: input?.target?.verified === true,
@@ -326,16 +465,20 @@ export function sanitizeCulturalMetrics(input) {
     rlsDisabled: boundedCount(input?.schema?.rlsDisabled),
     dangerousPublicGrants: boundedCount(input?.schema?.dangerousPublicGrants),
   };
+  const bucketState = sanitizeBucketState(input?.storage?.bucketRows);
+  const policyEvidence = buildCulturalStoragePolicyEvidence({
+    buckets: bucketState.buckets,
+    policies: input?.storage?.policies,
+    storageRlsDisabled: input?.storage?.storageRlsDisabled,
+    serviceOperation: input?.storage?.serviceOperation,
+  });
   const storage = {
-    expectedBuckets:
-      input?.storage?.expectedBuckets == null
-        ? 4
-        : boundedCount(input.storage.expectedBuckets),
-    presentBuckets: boundedCount(input?.storage?.presentBuckets),
-    privateBucketsAccidentallyPublic: boundedCount(
-      input?.storage?.privateBucketsAccidentallyPublic,
+    ...bucketState,
+    similarUnexpectedBuckets: boundedCount(
+      input?.storage?.similarUnexpectedBuckets,
     ),
     knownObjects: boundedCount(input?.storage?.knownObjects),
+    policyEvidence,
   };
   const privacy = {
     privateAssetsWithPublicUrl: boundedCount(
@@ -345,6 +488,14 @@ export function sanitizeCulturalMetrics(input) {
       input?.privacy?.publicImageAssetsWithoutAltText,
     ),
     orphanAssetRows: boundedCount(input?.privacy?.orphanAssetRows),
+    altCandidateFingerprint:
+      typeof input?.repairEvidence?.altCandidateFingerprint === "string"
+        ? input.repairEvidence.altCandidateFingerprint
+        : null,
+    publicImageSha256:
+      typeof input?.repairEvidence?.publicImageSha256 === "string"
+        ? input.repairEvidence.publicImageSha256
+        : null,
   };
   const content = {
     archive: {
@@ -377,9 +528,12 @@ export function sanitizeCulturalMetrics(input) {
     schema.presentTables +
     schema.rlsDisabled +
     schema.dangerousPublicGrants +
-    Math.max(0, storage.expectedBuckets - storage.presentBuckets) +
-    storage.privateBucketsAccidentallyPublic +
+    storage.missingBuckets.length +
+    storage.incompatibleBuckets.length +
+    storage.similarUnexpectedBuckets +
+    (storage.policyEvidence.policiesGreen ? 0 : 1) +
     privacy.privateAssetsWithPublicUrl +
+    privacy.publicImageAssetsWithoutAltText +
     privacy.orphanAssetRows;
   const allDomainsHavePotentialContent = [
     content.archive.potentialRealCandidates,
@@ -390,8 +544,22 @@ export function sanitizeCulturalMetrics(input) {
     structuralFindings > 0
       ? "COMUN_ARCHIVE_RADIO_ART_BLOCKED_REMOTE_STATE"
       : "COMUN_ARCHIVE_RADIO_ART_READY_FOR_REAL_CONTENT_REHEARSAL";
+  const repairPlan = buildCulturalRepairPlan({
+    targetVerified: target.verified,
+    schemaGreen:
+      schema.presentTables === schema.expectedTables &&
+      schema.rlsDisabled === 0 &&
+      schema.dangerousPublicGrants === 0,
+    policiesGreen: storage.policyEvidence.policiesGreen,
+    similarUnexpectedBuckets: storage.similarUnexpectedBuckets,
+    missingBuckets: storage.missingBuckets,
+    incompatibleBuckets: storage.incompatibleBuckets,
+    altCandidateCount: privacy.publicImageAssetsWithoutAltText,
+    altCandidateFingerprint: privacy.altCandidateFingerprint,
+    publicImageSha256: privacy.publicImageSha256,
+  });
   return {
-    formatVersion: 1,
+    formatVersion: 2,
     auditType: "archive_radio_art_read_only",
     generatedAt: new Date().toISOString(),
     target,
@@ -402,6 +570,7 @@ export function sanitizeCulturalMetrics(input) {
     structuralFindings,
     allDomainsHavePotentialContent,
     realContentAuthorizationProven: false,
+    repairPlan,
     result,
     containsPersonalData: false,
     containsRawText: false,
@@ -439,6 +608,11 @@ export function renderCulturalAuditMarkdown(artifact) {
 - Tabelas sem RLS: ${artifact.schema.rlsDisabled}
 - Grants públicos perigosos: ${artifact.schema.dangerousPublicGrants}
 - Buckets presentes: ${artifact.storage.presentBuckets}/${artifact.storage.expectedBuckets}
+- Buckets ausentes: ${artifact.storage.missingBuckets.join(", ") || "nenhum"}
+- Buckets incompatíveis: ${artifact.storage.incompatibleBuckets.join(", ") || "nenhum"}
+- Policies de Storage: \`${artifact.storage.policyEvidence.marker}\`
+- Policies perigosas: ${artifact.storage.policyEvidence.dangerousPolicyCount}
+- Imagens publicadas sem texto alternativo: ${artifact.privacy.publicImageAssetsWithoutAltText}
 - Originais privados com URL pública: ${artifact.privacy.privateAssetsWithPublicUrl}
 - Assets órfãos: ${artifact.privacy.orphanAssetRows}
 - Acervo — candidatos potenciais: ${artifact.content.archive.potentialRealCandidates}
@@ -449,7 +623,49 @@ export function renderCulturalAuditMarkdown(artifact) {
 - Escritas no Storage: none
 
 Contagens de candidatos não equivalem a autorização de direitos. A promoção exige evidência editorial real, explícita e separada nos três recortes.
+
+${artifact.repairPlan.exact ? `Plano focal: \`${artifact.repairPlan.marker}\` (hash sanitizado disponível no JSON).` : `Plano focal: \`${artifact.repairPlan.marker}\`.`}
 `;
+}
+
+function auditOutputPath(argv = process.argv) {
+  const outputIndex = argv.indexOf("--output");
+  return outputIndex >= 0
+    ? argv[outputIndex + 1]
+    : ".ci-artifacts/comun-cultural-deliverability/audit.json";
+}
+
+async function persistCulturalAuditFailure(error, output) {
+  const marker = String(error?.message ?? "");
+  const safeMarker = /^COMUN_[A-Z0-9_]+$/.test(marker)
+    ? marker
+    : "COMUN_CULTURAL_AUDIT_FAILED";
+  const artifact = {
+    formatVersion: 2,
+    auditType: "archive_radio_art_read_only_failure",
+    result: safeMarker,
+    target: { verified: false },
+    databaseWrites: "none",
+    storageWrites: "none",
+    rawResponsePersisted: false,
+    containsPersonalData: false,
+    containsObjectKeys: false,
+  };
+  await mkdir(path.dirname(output), { recursive: true });
+  await writeFile(output, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
+  await writeFile(
+    path.join(path.dirname(output), "audit.md"),
+    `# Entregabilidade de memória e cultura
+
+- Resultado: \`${safeMarker}\`
+- Auditoria: falhou fechada
+- Resposta bruta persistida: não
+- Escritas no banco: none
+- Escritas no Storage: none
+`,
+    "utf8",
+  );
+  return safeMarker;
 }
 
 async function run() {
@@ -457,11 +673,7 @@ async function run() {
   const { databaseUrl: connectionString } = validateCulturalDatabaseTarget(
     process.env,
   );
-  const outputIndex = process.argv.indexOf("--output");
-  const output =
-    outputIndex >= 0
-      ? process.argv[outputIndex + 1]
-      : ".ci-artifacts/comun-cultural-deliverability/audit.json";
+  const output = auditOutputPath();
   const client = new Client({
     connectionString,
     connectionTimeoutMillis: 5_000,
@@ -472,8 +684,11 @@ async function run() {
     await client.query("set default_transaction_read_only = on");
     await client.query("begin transaction read only");
     const result = await client.query(fixedCulturalAuditSql);
+    const enriched = await enrichCulturalMetricsForRepair(
+      result.rows[0]?.metrics ?? {},
+    );
     const artifact = sanitizeCulturalMetrics({
-      ...(result.rows[0]?.metrics ?? {}),
+      ...enriched,
       target: { verified: true },
     });
     assertSanitizedCulturalArtifact(artifact);
@@ -492,10 +707,12 @@ async function run() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  run().catch((error) => {
-    process.stderr.write(
-      `${String(error?.message ?? "COMUN_CULTURAL_AUDIT_FAILED")}\n`,
+  run().catch(async (error) => {
+    const safeMarker = await persistCulturalAuditFailure(
+      error,
+      auditOutputPath(),
     );
+    process.stderr.write(`${safeMarker}\n`);
     process.exitCode = 1;
   });
 }

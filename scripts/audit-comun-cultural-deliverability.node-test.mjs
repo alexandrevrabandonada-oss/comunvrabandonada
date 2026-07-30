@@ -3,10 +3,12 @@ import test from "node:test";
 import {
   assertCulturalAuditReadOnly,
   assertSanitizedCulturalArtifact,
+  fetchPublicImageSha256,
   fixedCulturalAuditSql,
   sanitizeCulturalMetrics,
   validateCulturalDatabaseTarget,
 } from "./audit-comun-cultural-deliverability.mjs";
+import { expectedCulturalBuckets } from "./comun-cultural-remote-state.mjs";
 
 const greenInput = {
   target: { verified: true },
@@ -17,10 +19,18 @@ const greenInput = {
     dangerousPublicGrants: 0,
   },
   storage: {
-    expectedBuckets: 4,
-    presentBuckets: 4,
-    privateBucketsAccidentallyPublic: 0,
+    bucketRows: expectedCulturalBuckets.map((bucket) => ({
+      id: bucket.id,
+      present: true,
+      public: bucket.public,
+      file_size_limit: bucket.fileSizeLimit,
+      allowed_mime_types: bucket.allowedMimeTypes,
+    })),
+    similarUnexpectedBuckets: 0,
     knownObjects: 8,
+    storageRlsDisabled: 0,
+    serviceOperation: true,
+    policies: [],
   },
   privacy: {
     privateAssetsWithPublicUrl: 0,
@@ -155,5 +165,37 @@ test("scanner rejeita conexão e chaves privadas", () => {
         object_key: "private/original.jpg",
       }),
     /SANITIZATION_FAILED/,
+  );
+});
+
+test("fingerprint público aceita somente imagem HTTPS limitada", async () => {
+  const headers = new Headers({
+    "content-type": "image/webp",
+    "content-length": "4",
+  });
+  const digest = await fetchPublicImageSha256(
+    "https://media.example.invalid/image.webp",
+    async () =>
+      new Response(new Uint8Array([1, 2, 3, 4]), { status: 200, headers }),
+  );
+  assert.match(digest, /^[a-f0-9]{64}$/);
+  await assert.rejects(
+    () =>
+      fetchPublicImageSha256("http://example.invalid/image.webp", async () => {
+        throw new Error("fetch não deveria executar");
+      }),
+    /URL_INVALID/,
+  );
+  await assert.rejects(
+    () =>
+      fetchPublicImageSha256(
+        "https://media.example.invalid/image.webp",
+        async () =>
+          new Response("not an image", {
+            status: 200,
+            headers: { "content-type": "text/plain" },
+          }),
+      ),
+    /RESPONSE_INVALID/,
   );
 });

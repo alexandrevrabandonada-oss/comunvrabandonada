@@ -15,6 +15,8 @@ on:
       - "lib/radio.ts"
       - "lib/cultural-deliverability*"
       - "scripts/audit-comun-cultural-deliverability*"
+      - "scripts/comun-cultural-remote-state*"
+      - "scripts/repair-comun-cultural-remote-state*"
       - "scripts/rehearse-comun-cultural-deliverability*"
   push:
     branches: [main]
@@ -29,6 +31,8 @@ on:
       - "lib/radio.ts"
       - "lib/cultural-deliverability*"
       - "scripts/audit-comun-cultural-deliverability*"
+      - "scripts/comun-cultural-remote-state*"
+      - "scripts/repair-comun-cultural-remote-state*"
       - "scripts/rehearse-comun-cultural-deliverability*"
   schedule:
     - cron: "41 10 * * *"
@@ -40,6 +44,8 @@ on:
         type: choice
         options:
           - preflight
+          - repair
+          - postflight
           - private-rehearsal
           - content-inventory
       expected_main_sha:
@@ -47,7 +53,11 @@ on:
         required: true
         type: string
       confirmation:
-        description: Confirmação exclusiva do ensaio privado
+        description: Confirmação exclusiva da lane mutável ou do ensaio
+        required: false
+        type: string
+      expected_plan_hash:
+        description: Hash sanitizado do plano exato de reparo
         required: false
         type: string
 
@@ -81,6 +91,8 @@ jobs:
             lib/radio.test.ts
           node --test \
             scripts/audit-comun-cultural-deliverability.node-test.mjs \
+            scripts/comun-cultural-remote-state.node-test.mjs \
+            scripts/repair-comun-cultural-remote-state.node-test.mjs \
             scripts/rehearse-comun-cultural-deliverability.node-test.mjs \
             scripts/comun-cultural-deliverability-workflow.node-test.mjs
       - name: Existing cultural regressions
@@ -108,6 +120,10 @@ jobs:
             lib/radio.test.ts \
             scripts/audit-comun-cultural-deliverability.mjs \
             scripts/audit-comun-cultural-deliverability.node-test.mjs \
+            scripts/comun-cultural-remote-state.mjs \
+            scripts/comun-cultural-remote-state.node-test.mjs \
+            scripts/repair-comun-cultural-remote-state.mjs \
+            scripts/repair-comun-cultural-remote-state.node-test.mjs \
             scripts/rehearse-comun-cultural-deliverability.mjs \
             scripts/rehearse-comun-cultural-deliverability.node-test.mjs \
             scripts/comun-cultural-deliverability-workflow.node-test.mjs
@@ -129,7 +145,9 @@ jobs:
       github.event_name == 'schedule' ||
       github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' &&
-       (inputs.mode == 'preflight' || inputs.mode == 'content-inventory'))
+       (inputs.mode == 'preflight' ||
+        inputs.mode == 'postflight' ||
+        inputs.mode == 'content-inventory'))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     outputs:
@@ -241,6 +259,52 @@ jobs:
               });
             }
 
+  repair:
+    name: REPAIR / COMUN_CULTURAL_REMOTE_STATE_EXACT
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.mode == 'repair'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      COMUN_CULTURAL_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+      NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      COMUN_CULTURAL_REPAIR_CONFIRMATION: ${{ inputs.confirmation }}
+      COMUN_CULTURAL_EXPECTED_PLAN_HASH: ${{ inputs.expected_plan_hash }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+      - name: Validate immutable main and exact repair envelope
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ inputs.expected_main_sha }}"
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse refs/remotes/origin/main)"
+          test "${{ inputs.confirmation }}" = \
+            "EXECUTAR_REPARO_CULTURAL_47_6A"
+          test "${{ inputs.expected_plan_hash }}" != ""
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Apply exact idempotent remote repair
+        run: >-
+          node scripts/repair-comun-cultural-remote-state.mjs
+          --output .ci-artifacts/comun-cultural-deliverability/repair.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-cultural-remote-repair-${{ github.sha }}-${{ github.run_id }}
+          path: .ci-artifacts/comun-cultural-deliverability/
+          retention-days: 30
+          if-no-files-found: error
+
   private-rehearsal:
     name: REHEARSAL / COMUN_ARCHIVE_RADIO_ART_PRIVATE
     if: >-
@@ -271,6 +335,16 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci --ignore-scripts
+      - name: Require an independently recomputed green postflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/audit-comun-cultural-deliverability.mjs \
+            --output .ci-artifacts/comun-cultural-deliverability/pre-rehearsal-audit.json
+          test "$(
+            node -e \
+              "process.stdout.write(require('./.ci-artifacts/comun-cultural-deliverability/pre-rehearsal-audit.json').result)"
+          )" = "COMUN_ARCHIVE_RADIO_ART_READY_FOR_REAL_CONTENT_REHEARSAL"
       - name: Run private transactional rehearsal
         run: >-
           node scripts/rehearse-comun-cultural-deliverability.mjs

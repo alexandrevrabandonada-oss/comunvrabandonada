@@ -15,12 +15,13 @@ test("lane de PR é local e não injeta credenciais remotas", async () => {
   assert.match(verify, /COMUN_ARCHIVE_RADIO_ART_CONTRACT/);
 });
 
-test("preflight e inventário usam o mesmo auditor fixo read-only", async () => {
+test("preflight, postflight e inventário usam o mesmo auditor fixo read-only", async () => {
   const workflow = await readFile(workflowUrl, "utf8");
   const remoteAudit =
     workflow.match(/  remote-audit:[\s\S]*?\n  operational-findings:/)?.[0] ??
     "";
   assert.match(workflow, /inputs\.mode == 'preflight'/);
+  assert.match(workflow, /inputs\.mode == 'postflight'/);
   assert.match(workflow, /inputs\.mode == 'content-inventory'/);
   assert.match(workflow, /audit-comun-cultural-deliverability\.mjs/);
   assert.match(remoteAudit, /SUPABASE_PROJECT_REF:/);
@@ -31,12 +32,23 @@ test("preflight e inventário usam o mesmo auditor fixo read-only", async () => 
   );
 });
 
+test("reparo é uma lane separada com SHA e plano exatos", async () => {
+  const workflow = await readFile(workflowUrl, "utf8");
+  const repair =
+    workflow.match(/  repair:[\s\S]*?\n  private-rehearsal:/)?.[0] ?? "";
+  assert.match(repair, /inputs\.mode == 'repair'/);
+  assert.match(repair, /EXECUTAR_REPARO_CULTURAL_47_6A/);
+  assert.match(repair, /inputs\.expected_plan_hash/);
+  assert.match(repair, /repair-comun-cultural-remote-state\.mjs/);
+  assert.match(repair, /SUPABASE_SERVICE_ROLE_KEY:/);
+  assert.match(repair, /if: always\(\)/);
+  assert.doesNotMatch(repair, /storage\.from\(.+upload|launch_publicly/);
+});
+
 test("findings diários reutilizam uma única issue agregadora", async () => {
   const workflow = await readFile(workflowUrl, "utf8");
   const findings =
-    workflow.match(
-      /  operational-findings:[\s\S]*?\n  private-rehearsal:/,
-    )?.[0] ?? "";
+    workflow.match(/  operational-findings:[\s\S]*?\n  repair:/)?.[0] ?? "";
   assert.match(findings, /github\.event_name == 'schedule'/);
   assert.match(findings, /issues:\s*write/);
   assert.match(findings, /Entregabilidade cultural — findings/);
@@ -49,6 +61,11 @@ test("ensaio privado é separado, confirmado e publica artifact", async () => {
   const rehearsal = workflow.match(/  private-rehearsal:[\s\S]*/)?.[0] ?? "";
   assert.match(rehearsal, /EXECUTAR_ENSAIO_PRIVADO_ARCHIVE_RADIO_ART/);
   assert.match(rehearsal, /rehearse-comun-cultural-deliverability\.mjs/);
+  assert.match(rehearsal, /pre-rehearsal-audit\.json/);
+  assert.match(
+    rehearsal,
+    /COMUN_ARCHIVE_RADIO_ART_READY_FOR_REAL_CONTENT_REHEARSAL/,
+  );
   assert.match(rehearsal, /actions\/upload-artifact@v4/);
   assert.match(rehearsal, /if: always\(\)/);
   assert.match(rehearsal, /SUPABASE_PROJECT_REF:/);

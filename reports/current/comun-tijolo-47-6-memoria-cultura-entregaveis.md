@@ -172,3 +172,7 @@ imagem publicada. Somente depois de um novo preflight estrutural verde poderá
 ser executado o ensaio privado transacional. A presença de conteúdo real
 autorizado nos três recortes continuará sendo uma evidência separada e
 obrigatória.
+
+O checkpoint focal subsequente está documentado em
+[TIJOLO 47.6A](./comun-tijolo-47-6a-remote-state-checkpoint.md). Este resultado
+bloqueado permanece preservado e não será reclassificado retroativamente.
