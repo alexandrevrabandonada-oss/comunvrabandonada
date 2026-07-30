@@ -49,14 +49,66 @@ export default async function OperationPage({
       data-operational-surface="central"
     >
       <header className="max-w-3xl">
-        <p className="text-sm font-semibold uppercase">Operação editorial</p>
+        <p className="text-sm font-semibold uppercase">Cuidado coletivo</p>
         <h1 className="text-3xl font-bold">Central operacional</h1>
         <p className="mt-2">
-          Filas finitas, prazos indicativos e decisões sempre humanas. Mostrando{" "}
-          {result.items.length} de {result.pageInfo.totalItems} itens no recorte
-          atual.
+          O que precisa de cuidado agora, qual papel pode agir e o que está
+          bloqueando. Decisões políticas e editoriais permanecem nas fontes
+          responsáveis. Mostrando {result.items.length} de{" "}
+          {result.pageInfo.totalItems} itens no recorte atual.
         </p>
       </header>
+      <section
+        className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        aria-label="Recortes de cuidado agora"
+      >
+        {[
+          [
+            "Agora · P1",
+            result.summary.p1,
+            operationalQueryHref(query, { page: 1, priority: 1 }),
+          ],
+          [
+            "Sem responsável",
+            result.summary.unassigned,
+            operationalQueryHref(query, { page: 1, unassigned: true }),
+          ],
+          [
+            "Vencidos",
+            result.summary.overdue,
+            operationalQueryHref(query, { page: 1, dueState: "overdue" }),
+          ],
+          [
+            "Bloqueados",
+            result.summary.blocked,
+            operationalQueryHref(query, { page: 1, status: "blocked" }),
+          ],
+          [
+            "Aguardando terceiro",
+            result.summary.waitingThirdParty,
+            "/comun/admin/operacao?dueState=blocked_by_third_party",
+          ],
+          [
+            "Retiradas",
+            result.summary.withdrawals,
+            operationalQueryHref(query, { page: 1, queue: "withdrawals" }),
+          ],
+          [
+            "Incidentes",
+            result.summary.incidents,
+            "/comun/admin/operacao?type=incident",
+          ],
+        ].map(([title, count, href]) => (
+          <Link
+            className="rounded-xl border p-3 hover:bg-white/10"
+            href={String(href)}
+            key={String(title)}
+          >
+            <span className="block text-sm font-medium">{title}</span>
+            <strong className="text-2xl">{count}</strong>
+          </Link>
+        ))}
+      </section>
       <section
         className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
         aria-label="Resumo agregado das filas"
@@ -70,7 +122,7 @@ export default async function OperationPage({
           </div>
         ))}
       </section>
-    <details className="mt-6 min-w-0 max-w-full rounded-2xl border p-4 md:hidden">
+      <details className="mt-6 min-w-0 max-w-full rounded-2xl border p-4 md:hidden">
         <summary className="cursor-pointer font-semibold">
           Abrir filtros e ordenação
         </summary>
@@ -176,7 +228,8 @@ export default async function OperationPage({
                     </p>
                   </div>
                   <span className="rounded-full bg-muted px-3 py-1 text-sm">
-                    {item.sourceType}
+                    {label(item.sourceDomain || "legado")} ·{" "}
+                    {label(item.sourceType)}
                   </span>
                 </div>
                 <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
@@ -192,11 +245,22 @@ export default async function OperationPage({
                   </div>
                   <div>
                     <dt className="font-medium">Prazo indicativo</dt>
-                    <dd>{formatDue(item.indicativeDueAt)}</dd>
+                    <dd>
+                      {formatDue(item.indicativeDueAt)} ·{" "}
+                      {label(item.slaState || "sem SLA aplicável")}
+                    </dd>
                   </div>
                   <div>
                     <dt className="font-medium">Próxima ação</dt>
                     <dd>{item.nextAction || "Definir em revisão humana"}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-medium">Papel necessário</dt>
+                    <dd>
+                      {item.requiredRole
+                        ? label(item.requiredRole)
+                        : "Revisão da equipe"}
+                    </dd>
                   </div>
                   <div>
                     <dt className="font-medium">Contexto permitido</dt>
@@ -378,6 +442,7 @@ function FilterForm({
           <option value="">Todos</option>
           <option value="overdue">Vencido</option>
           <option value="soon">Vence em breve</option>
+          <option value="blocked_by_third_party">Aguardando terceiro</option>
         </select>
       </label>
       <label className="grid gap-1 text-sm">
