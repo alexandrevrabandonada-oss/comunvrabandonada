@@ -1,0 +1,100 @@
+name: COMUN Sidewalk Pilot
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-sidewalk-pilot.yml"
+      - "app/comun/admin/calcadas/piloto/**"
+      - "components/admin-shell.tsx"
+      - "lib/sidewalk-pilot.ts"
+      - "lib/sidewalk-pilot.test.ts"
+      - "scripts/report-comun-sidewalk-pilot.mjs"
+  schedule:
+    - cron: "17 12 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: comun-sidewalk-pilot-${{ github.event.pull_request.number || 'daily' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verify:
+    name: VERIFY / COMUN_SIDEWALK_PILOT_GREEN
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --check scripts/report-comun-sidewalk-pilot.mjs
+      - run: npx prettier --check .github/workflows/comun-sidewalk-pilot.yml app/comun/admin/calcadas/piloto/page.tsx components/admin-shell.tsx lib/sidewalk-pilot.ts lib/sidewalk-pilot.test.ts scripts/report-comun-sidewalk-pilot.mjs
+      - run: npx vitest run lib/sidewalk-pilot.test.ts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: git diff --check origin/main...HEAD
+      - name: Verify sanitized pilot boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'containsCoordinates: false' scripts/report-comun-sidewalk-pilot.mjs
+          grep -q 'containsPersonalData: false' scripts/report-comun-sidewalk-pilot.mjs
+          grep -q 'containsUserIds: false' scripts/report-comun-sidewalk-pilot.mjs
+          ! grep -q 'private_geometry_geojson' scripts/report-comun-sidewalk-pilot.mjs
+          ! grep -q 'object_key' scripts/report-comun-sidewalk-pilot.mjs
+          echo COMUN_SIDEWALK_PILOT_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  report:
+    name: REPORT / COMUN_SIDEWALK_PILOT
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Generate sanitized pilot report
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          COMUN_ARTIFACT_DIR: .ci-artifacts/sidewalk-pilot
+        run: node --experimental-strip-types scripts/report-comun-sidewalk-pilot.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-sidewalk-pilot-${{ github.run_id }}
+          path: .ci-artifacts/sidewalk-pilot
+          retention-days: 30
+          if-no-files-found: error
+      - name: Open or update the single pilot incident
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          result=$(jq -r .result .ci-artifacts/sidewalk-pilot/comun-sidewalk-pilot.json)
+          phase=$(jq -r .phase .ci-artifacts/sidewalk-pilot/comun-sidewalk-pilot.json)
+          if [ "$result" != "COMUN_SIDEWALK_PILOT_OBSERVATION_ATTENTION" ] || [ "$phase" != "active" ]; then
+            exit 0
+          fi
+          title="Piloto territorial das calçadas"
+          existing=$(gh issue list --state open --search "$title in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+          body="O relatório sanitizado do piloto encontrou métricas fora do alvo. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Nenhuma publicação, limpeza ou rollback foi executado por este relatório."
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi
