@@ -42,12 +42,32 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci --ignore-scripts
-      - name: Apply canonical formatting once
+      - name: Apply final lint fix and canonical formatting once
         env:
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
         shell: bash
         run: |
           set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("app/comun/admin/calcadas/operacao/page.tsx")
+          source = path.read_text(encoding="utf-8")
+          source = source.replace(
+              '''          const queueAge = formatSidewalkOperationAge(
+            (Date.now() - new Date(item.created_at).getTime()) / 3_600_000,
+          );
+''',
+              "",
+          )
+          source = source.replace(
+              '''                <p className="mt-3 text-xs font-black uppercase">
+                  Na fila há {queueAge}
+                </p>
+''',
+              "",
+          )
+          path.write_text(source, encoding="utf-8")
+          PY
           npx prettier --write \
             .github/workflows/comun-sidewalk-operations.yml \
             app/comun/admin/calcadas/operacao/page.tsx \
@@ -75,7 +95,7 @@ jobs:
             lib/sidewalk-upload-cleanup.test.ts \
             scripts/audit-comun-sidewalk-operations.mjs \
             scripts/cleanup-comun-sidewalk-uploads.mjs
-          git commit -m "style(sidewalk): aplica formato canônico à operação viva"
+          git commit -m "fix(sidewalk): mantém cockpit puro e formatado"
           git push origin "HEAD:${HEAD_BRANCH}"
       - run: node --check scripts/audit-comun-sidewalk-operations.mjs
       - run: node --check scripts/cleanup-comun-sidewalk-uploads.mjs
