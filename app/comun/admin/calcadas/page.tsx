@@ -1,7 +1,12 @@
 import { AdminShell } from "@/components/admin-shell";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
-import { decideSidewalkDuplicate, moderateSidewalkObservation, moderateSidewalkRecord } from "./actions";
+import {
+  decideSidewalkDuplicate,
+  moderateSidewalkObservation,
+  moderateSidewalkRecord,
+} from "./actions";
+import { moderateSidewalkRecordExact } from "./exact-actions";
 import { duplicateSignalScore } from "@/lib/sidewalk-operational-loop";
 import {
   getSidewalkOperationalRelease,
@@ -66,56 +71,102 @@ export default async function Page() {
               local sensível.
             </p>
             <details className="mt-2">
-              <summary className="font-black">Ler texto original privado</summary>
+              <summary className="font-black">
+                Ler texto original privado
+              </summary>
               <p className="mt-2 whitespace-pre-wrap border-2 p-3">
                 {item.private_notes || "sem descrição adicional"}
               </p>
             </details>
-            <p><strong>Precisão original:</strong> {item.location_accuracy_m == null ? "não informada" : `${Math.round(item.location_accuracy_m)} m`}</p>
-            <p><strong>Inferência:</strong> {[item.inferred_street,item.inferred_neighborhood].filter(Boolean).join(" · ") || "ainda não executada"}</p>
-            <p><strong>Risco geográfico:</strong> {item.geographic_risk}</p>
+            <p>
+              <strong>Precisão original:</strong>{" "}
+              {item.location_accuracy_m == null
+                ? "não informada"
+                : `${Math.round(item.location_accuracy_m)} m`}
+            </p>
+            <p>
+              <strong>Inferência:</strong>{" "}
+              {[item.inferred_street, item.inferred_neighborhood]
+                .filter(Boolean)
+                .join(" · ") || "ainda não executada"}
+            </p>
+            <p>
+              <strong>Risco geográfico:</strong> {item.geographic_risk}
+            </p>
             <details>
               <summary className="font-black">Ver geometria privada</summary>
               <pre className="overflow-auto border-2 p-2 text-xs">
                 {JSON.stringify(item.private_geometry_geojson)}
               </pre>
             </details>
-            <form
-              action={moderateSidewalkRecord}
-              className="mt-3 grid gap-3"
-            >
+            <form action={moderateSidewalkRecord} className="mt-3 grid gap-3">
               <input type="hidden" name="record_id" value={item.id} />
               <label className="grid gap-1 font-bold">
                 Resumo público sanitizado
-                <textarea name="public_summary" defaultValue={item.public_summary ?? ""} rows={3} maxLength={1600} className="border-2 p-2" />
+                <textarea
+                  name="public_summary"
+                  defaultValue={item.public_summary ?? ""}
+                  rows={3}
+                  maxLength={1600}
+                  className="border-2 p-2"
+                />
               </label>
               <label className="grid gap-1 font-bold">
                 Pedido de complemento (privado)
-                <textarea name="complement_request" rows={2} maxLength={1600} className="border-2 p-2" />
+                <textarea
+                  name="complement_request"
+                  rows={2}
+                  maxLength={1600}
+                  className="border-2 p-2"
+                />
               </label>
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className="grid gap-1 font-bold">Campo ou evidência que falta<input name="complement_field" maxLength={300} className="border-2 p-2" /></label>
-                <label className="grid gap-1 font-bold">Prazo opcional<input name="complement_due_at" type="datetime-local" className="border-2 p-2" /></label>
+                <label className="grid gap-1 font-bold">
+                  Campo ou evidência que falta
+                  <input
+                    name="complement_field"
+                    maxLength={300}
+                    className="border-2 p-2"
+                  />
+                </label>
+                <label className="grid gap-1 font-bold">
+                  Prazo opcional
+                  <input
+                    name="complement_due_at"
+                    type="datetime-local"
+                    className="border-2 p-2"
+                  />
+                </label>
               </div>
-              <p className="text-sm">Remova contatos, endereço completo, telefone, e-mail, nomes de terceiros e qualquer informação sensível antes de publicar.</p>
+              <p className="text-sm">
+                Remova contatos, endereço completo, telefone, e-mail, nomes de
+                terceiros e qualquer informação sensível antes de publicar.
+              </p>
+              <p className="text-sm font-bold">
+                A publicação do ponto exato só é concluída quando o envio contém
+                consentimento explícito vinculado ao registro.
+              </p>
               <div className="flex flex-wrap gap-2">
-              {[
-                ["approve_approximate", "Aprovar com local aproximado"],
-                ["publish_without_image", "Publicar sem imagem"],
-                ["needs_information", "Solicitar complemento"],
-                ["reject", "Rejeitar"],
-                ["withdraw", "Retirar"],
-              ].map(([value, label]) => (
-                <button
-                  key={value}
-                  name="decision"
-                  value={value}
-                  className="btn"
-                >
-                  {label}
-                </button>
-              ))}
+                {[
+                  ["approve_approximate", "Aprovar com local aproximado"],
+                  ["publish_without_image", "Publicar sem imagem"],
+                  ["needs_information", "Solicitar complemento"],
+                  ["reject", "Rejeitar"],
+                  ["withdraw", "Retirar"],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    name="decision"
+                    value={value}
+                    className="btn"
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
+              <button formAction={moderateSidewalkRecordExact} className="btn">
+                Aprovar com ponto exato consentido
+              </button>
             </form>
             <DuplicateSuggestions item={item} records={records.data ?? []} />
           </article>
@@ -151,19 +202,37 @@ export default async function Page() {
   );
 }
 
-function DuplicateSuggestions({ item, records }: { item: any; records: any[] }) {
+function DuplicateSuggestions({
+  item,
+  records,
+}: {
+  item: any;
+  records: any[];
+}) {
   const candidates = records
     .filter((candidate) => candidate.id !== item.id)
     .map((candidate) => {
       const point = item.private_geometry_geojson?.coordinates,
         other = candidate.private_geometry_geojson?.coordinates,
-        distanceMeters = Array.isArray(point) && Array.isArray(other)
-          ? Math.round(Math.hypot((point[0] - other[0]) * 102_000, (point[1] - other[1]) * 111_000))
-          : null,
+        distanceMeters =
+          Array.isArray(point) && Array.isArray(other)
+            ? Math.round(
+                Math.hypot(
+                  (point[0] - other[0]) * 102_000,
+                  (point[1] - other[1]) * 111_000,
+                ),
+              )
+            : null,
         score = duplicateSignalScore({
           distanceMeters,
-          sameCategory: (item.categories ?? []).some((value: string) => (candidate.categories ?? []).includes(value)),
-          hoursApart: Math.abs(new Date(item.created_at).getTime() - new Date(candidate.created_at).getTime()) / 3_600_000,
+          sameCategory: (item.categories ?? []).some((value: string) =>
+            (candidate.categories ?? []).includes(value),
+          ),
+          hoursApart:
+            Math.abs(
+              new Date(item.created_at).getTime() -
+                new Date(candidate.created_at).getTime(),
+            ) / 3_600_000,
           sameImageHash: false,
           textSimilarity: 0,
         });
@@ -174,17 +243,39 @@ function DuplicateSuggestions({ item, records }: { item: any; records: any[] }) 
   if (!candidates.length) return null;
   return (
     <section className="mt-4 border-t-2 pt-3">
-      <h3 className="font-black uppercase">Possíveis duplicidades assistidas</h3>
+      <h3 className="font-black uppercase">
+        Possíveis duplicidades assistidas
+      </h3>
       {candidates.map(({ candidate, distanceMeters, score }) => (
-        <form action={decideSidewalkDuplicate} className="mt-2 flex flex-wrap items-center gap-2 border-2 p-3" key={candidate.id}>
+        <form
+          action={decideSidewalkDuplicate}
+          className="mt-2 flex flex-wrap items-center gap-2 border-2 p-3"
+          key={candidate.id}
+        >
           <input type="hidden" name="record_id" value={item.id} />
-          <input type="hidden" name="candidate_record_id" value={candidate.id} />
+          <input
+            type="hidden"
+            name="candidate_record_id"
+            value={candidate.id}
+          />
           <input type="hidden" name="score" value={score.score} />
           <input type="hidden" name="signals" value={score.signals.join(",")} />
-          <span className="text-sm">{candidate.name} · {distanceMeters == null ? "distância não disponível" : `~${distanceMeters} m`} · pontuação {score.score} · {score.signals.join(", ")}</span>
-          <button name="decision" value="related" className="btn">Relacionar</button>
-          <button name="decision" value="merged" className="btn">Marcar como mesclada</button>
-          <button name="decision" value="distinct" className="btn">Manter distintos</button>
+          <span className="text-sm">
+            {candidate.name} ·{" "}
+            {distanceMeters == null
+              ? "distância não disponível"
+              : `~${distanceMeters} m`}{" "}
+            · pontuação {score.score} · {score.signals.join(", ")}
+          </span>
+          <button name="decision" value="related" className="btn">
+            Relacionar
+          </button>
+          <button name="decision" value="merged" className="btn">
+            Marcar como mesclada
+          </button>
+          <button name="decision" value="distinct" className="btn">
+            Manter distintos
+          </button>
         </form>
       ))}
     </section>

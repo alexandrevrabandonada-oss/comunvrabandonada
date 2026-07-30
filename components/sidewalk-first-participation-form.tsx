@@ -56,7 +56,7 @@ const readinessLabels = {
   point: "ponto no mapa",
   point_confirmation: "confirmação do ponto",
   condition: "condição da calçada",
-  publication_consent: "autorização para publicação sanitizada",
+  publication_consent: "autorização para publicação do ponto exato",
   review_confirmation: "conferência final",
 } as const;
 
@@ -237,6 +237,11 @@ export function SidewalkFirstParticipationForm({
         type="hidden"
         name="consent_publish"
         value={consentPublish ? "yes" : "no"}
+      />
+      <input
+        type="hidden"
+        name="consent_location_precision"
+        value={consentPublish ? "exact" : "none"}
       />
       <input type="hidden" name="longitude" value={point?.[0] ?? "not-set"} />
       <input type="hidden" name="latitude" value={point?.[1] ?? "not-set"} />
@@ -426,9 +431,9 @@ export function SidewalkFirstParticipationForm({
           <section className="grid gap-3 border-2 border-comun-yellow bg-comun-black p-4 text-comun-paper">
             <h2 className="font-black uppercase">Revise antes de enviar</h2>
             <p className="text-sm">
-              A fotografia e o ponto exato ficam privados. Se a equipe aprovar a
-              contribuição, somente uma derivada revisada e uma localização
-              aproximada poderão aparecer no mapa.
+              A fotografia original e a identidade permanecem privadas. Se a
+              equipe aprovar a contribuição, uma derivada revisada e o ponto
+              exato marcado poderão aparecer no mapa público.
             </p>
             <label className="flex min-h-11 items-start gap-3">
               <input
@@ -441,7 +446,8 @@ export function SidewalkFirstParticipationForm({
                 className="mt-1 size-6"
               />
               <span>
-                Autorizo a publicação sanitizada da contribuição após moderação.
+                Autorizo a publicação do ponto exato marcado e de uma versão
+                sanitizada da contribuição após moderação.
               </span>
             </label>
             <label className="flex min-h-11 items-start gap-3">

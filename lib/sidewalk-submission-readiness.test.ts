@@ -32,6 +32,7 @@ describe("sidewalk submission readiness", () => {
       ["location_source", "device"],
       ["affected_groups", "wheelchair_users"],
       ["consent_publish", "yes"],
+      ["consent_location_precision", "exact"],
     ]);
     const constructor = vi.fn(function (received: HTMLFormElement) {
       expect(received).toBe(form);
@@ -52,6 +53,7 @@ describe("sidewalk submission readiness", () => {
       location_source: "device",
       affected_groups: "wheelchair_users",
       consent_publish: "yes",
+      consent_location_precision: "exact",
     });
     expect(constructor).toHaveBeenCalledOnce();
     vi.unstubAllGlobals();

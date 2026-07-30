@@ -9,7 +9,9 @@ describe("sidewalk exact-location consent contract", () => {
     expect(form).toContain('name="consent_location_precision"');
     expect(form).toContain('value={consentPublish ? "exact" : "none"}');
     expect(form).toContain("Autorizo a publicação do ponto exato marcado");
-    expect(form).not.toContain("uma localização\n              aproximada poderão aparecer");
+    expect(form).not.toContain(
+      "uma localização\n              aproximada poderão aparecer",
+    );
   });
 
   it("captures the precision consent in the immutable upload payload", () => {
@@ -23,7 +25,7 @@ describe("sidewalk exact-location consent contract", () => {
     expect(action).toContain('.eq("status", "confirmed")');
     expect(action).toContain("uploads?.length !== 1");
     expect(action).toContain(
-      'candidate.consent_location_precision === EXACT_CONSENT_VALUE',
+      "candidate.consent_location_precision === EXACT_CONSENT_VALUE",
     );
     expect(action).toContain(
       "public_geometry_geojson: record.private_geometry_geojson",

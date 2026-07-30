@@ -70,8 +70,12 @@ export async function moderateSidewalkRecordExact(form: FormData) {
     .select("id,status,submission_payload")
     .eq("record_id", recordId)
     .eq("status", "confirmed");
-  if (uploadsError) throw new Error("Não foi possível verificar o consentimento.");
-  if (uploads?.length !== 1 || !hasExactLocationConsent(uploads[0].submission_payload))
+  if (uploadsError)
+    throw new Error("Não foi possível verificar o consentimento.");
+  if (
+    uploads?.length !== 1 ||
+    !hasExactLocationConsent(uploads[0].submission_payload)
+  )
     throw new Error(
       "A publicação do ponto exato exige consentimento explícito registrado no envio.",
     );
@@ -85,8 +89,14 @@ export async function moderateSidewalkRecordExact(form: FormData) {
     .maybeSingle();
   if (photoError || !photo)
     throw new Error("A fotografia privada não está pronta para revisão.");
-  if (photo.review_status !== "pending" || photo.derivative_asset_id || photo.is_public)
-    throw new Error("A fotografia já recebeu uma decisão editorial incompatível.");
+  if (
+    photo.review_status !== "pending" ||
+    photo.derivative_asset_id ||
+    photo.is_public
+  )
+    throw new Error(
+      "A fotografia já recebeu uma decisão editorial incompatível.",
+    );
 
   const originalAsset = Array.isArray(photo.comun_archive_assets)
     ? photo.comun_archive_assets[0]
@@ -95,8 +105,7 @@ export async function moderateSidewalkRecordExact(form: FormData) {
     throw new Error("O original privado não está disponível para derivação.");
 
   let derivative:
-    | Awaited<ReturnType<typeof generateSidewalkPhotoDerivative>>
-    | undefined;
+    Awaited<ReturnType<typeof generateSidewalkPhotoDerivative>> | undefined;
   let recordPublished = false;
   try {
     derivative = await generateSidewalkPhotoDerivative(
@@ -171,7 +180,9 @@ export async function moderateSidewalkRecordExact(form: FormData) {
         { onConflict: "member_user_id,dedupe_key" },
       );
       if (inbox.error)
-        throw new Error("Não foi possível registrar a mensagem de acompanhamento.");
+        throw new Error(
+          "Não foi possível registrar a mensagem de acompanhamento.",
+        );
     }
   } catch (error) {
     if (recordPublished) {

@@ -48,6 +48,9 @@ export function captureSidewalkSubmissionPayload(form: HTMLFormElement) {
     location_source: String(data.get("location_source") ?? ""),
     affected_groups: String(data.get("affected_groups") ?? ""),
     consent_publish: String(data.get("consent_publish") ?? ""),
+    consent_location_precision: String(
+      data.get("consent_location_precision") ?? "",
+    ),
   };
 }
 
