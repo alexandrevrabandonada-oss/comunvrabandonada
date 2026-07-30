@@ -58,7 +58,7 @@ export default async function Page() {
             </p>
           </div>
           <p className="text-xs font-bold">
-            Base cartográfica real · registros demonstrativos
+            Base cartográfica real · contribuições revisadas
           </p>
         </div>
         <SidewalkRealMap records={data.records} provider={provider} />
