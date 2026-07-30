@@ -1,0 +1,104 @@
+name: COMUN Sidewalk First Exact Publication
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-sidewalk-first-exact-publication.yml"
+      - "scripts/solo/publish-first-sidewalk-exact.mjs"
+      - "app/comun/admin/calcadas/actions.ts"
+      - "app/comun/admin/calcadas/page.tsx"
+      - "components/sidewalk-first-participation-form.tsx"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-sidewalk-first-exact-publication.yml"
+      - "scripts/solo/publish-first-sidewalk-exact.mjs"
+
+concurrency:
+  group: comun-sidewalk-first-exact-publication-20260729-13
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verify-contract:
+    name: VERIFY / COMUN_SIDEWALK_EXACT_PUBLICATION_CONTRACT_GREEN
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --check scripts/solo/publish-first-sidewalk-exact.mjs
+      - run: npx prettier --check scripts/solo/publish-first-sidewalk-exact.mjs .github/workflows/comun-sidewalk-first-exact-publication.yml
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: git diff --check HEAD^ HEAD
+      - name: Verify exact-publication and privacy boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "public_geometry_geojson = private_geometry_geojson" scripts/solo/publish-first-sidewalk-exact.mjs
+          grep -q "location_precision = 'exact'" scripts/solo/publish-first-sidewalk-exact.mjs
+          grep -q "exactCoordinateExposedInArtifact: false" scripts/solo/publish-first-sidewalk-exact.mjs
+          grep -q "retryExecuted: false" scripts/solo/publish-first-sidewalk-exact.mjs
+          ! grep -R -n -E 'SUPABASE_SERVICE_ROLE_KEY=[^$]|SUPABASE_DB_URL=[^$]' \
+            scripts/solo/publish-first-sidewalk-exact.mjs \
+            .github/workflows/comun-sidewalk-first-exact-publication.yml
+          echo COMUN_SIDEWALK_EXACT_PUBLICATION_CONTRACT_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  publish-once:
+    name: PRODUCTION / COMUN_SIDEWALK_FIRST_EXACT_PUBLICATION
+    if: github.event_name == 'push' && github.ref_name == 'main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      COMUN_BASE_URL: https://comunsocial.online
+      COMUN_ARTIFACT_DIR: .ci-artifacts/sidewalk-first-exact-publication
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Publish exactly one reviewed record with exact public coordinate
+        run: node scripts/solo/publish-first-sidewalk-exact.mjs
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-sidewalk-first-exact-publication-${{ github.run_id }}
+          path: .ci-artifacts/sidewalk-first-exact-publication
+          if-no-files-found: error
+          retention-days: 30
+      - name: Update COMUN CENTRAL 39
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          result_file=.ci-artifacts/sidewalk-first-exact-publication/result.json
+          if [[ ! -f "$result_file" ]]; then
+            gh issue comment 39 --body "Tijolo 45.13: execução sem artifact; evidência insuficiente. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            exit 0
+          fi
+          result="$(node -e "const x=require('./$result_file'); process.stdout.write(x.cycleResult)")"
+          precision="$(node -e "const x=require('./$result_file'); process.stdout.write(x.locationPrecision)")"
+          writes="$(node -e "const x=require('./$result_file'); process.stdout.write(x.databaseWrites + '/' + x.storageWrites)")"
+          record="$(node -e "const x=require('./$result_file'); process.stdout.write(x.recordRef || 'none')")"
+          gh issue comment 39 --body "Tijolo 45.13: **$result**. Cycle \`sidewalk-first-exact-publication-20260729-13\`; registro_sanitizado=$record; precisão_pública=$precision; writes=$writes; coordenada_em_artifact=false; retry=false. Evidência: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
