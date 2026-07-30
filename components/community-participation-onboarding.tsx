@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { changeCommunityMembership } from "@/app/comun/c/[slug]/participar/actions";
+
 const collaboration = [
   ["circles", "Participar de rodas"],
   ["actions", "Ajudar em ações"],
@@ -18,6 +19,7 @@ const updates = [
   ["art", "Arte relacionada"],
   ["radio", "Rádio relacionada"],
 ];
+
 export function CommunityParticipationOnboarding({
   slug,
   name,
@@ -31,9 +33,20 @@ export function CommunityParticipationOnboarding({
   membership: any;
   status?: string;
 }) {
-  const current = new Set(membership?.collaboration_preferences ?? []),
-    currentUpdates = new Set(membership?.update_preferences ?? []),
-    state = membership?.state === "left" ? undefined : membership?.state;
+  const current = new Set(membership?.collaboration_preferences ?? []);
+  const currentUpdates = new Set(membership?.update_preferences ?? []);
+  const state = membership?.state === "left" ? undefined : membership?.state;
+  const requestPending = Boolean(membership?.membership_request);
+  const stateLabel = requestPending
+    ? "solicitação em análise"
+    : state === "member"
+      ? "membro"
+      : state === "paused"
+        ? "atualizações pausadas"
+        : state === "following"
+          ? "acompanhando"
+          : "ainda não acompanha";
+
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_.7fr]">
       <form
@@ -84,6 +97,18 @@ export function CommunityParticipationOnboarding({
             ))}
           </div>
         </fieldset>
+        {state === "following" && !requestPending ? (
+          <label className="mt-5 grid gap-2 font-bold">
+            Por que deseja entrar como membro? <span>(opcional)</span>
+            <textarea
+              className="border-2 p-3"
+              maxLength={800}
+              name="request_message"
+              placeholder="Conte como pretende colaborar. A mensagem fica restrita à equipe responsável."
+              rows={3}
+            />
+          </label>
+        ) : null}
         <div className="mt-5 flex flex-wrap gap-3">
           <button
             name="intent"
@@ -92,32 +117,36 @@ export function CommunityParticipationOnboarding({
           >
             {state ? "Salvar preferências" : "Acompanhar"}
           </button>
-          {state === "following" ? (
+          {state === "following" && !requestPending ? (
             <button
               name="intent"
               value="join"
               className="min-h-12 border-2 border-comun-black px-5 font-black uppercase"
             >
-              Entrar como membro
+              Solicitar entrada como membro
             </button>
           ) : null}
         </div>
       </form>
       <aside className="border-2 border-comun-yellow p-5">
         <p className="text-xs font-black uppercase text-comun-yellow">
-          Vínculo · {state ?? "ainda não acompanha"}
+          Vínculo · {stateLabel}
         </p>
         <h2 className="mt-2 text-2xl font-black uppercase">
-          {status
-            ? "Alteração confirmada"
-            : state
-              ? `Você acompanha ${name}`
-              : "Sem decisões obrigatórias"}
+          {status === "requested" || requestPending
+            ? "Solicitação recebida"
+            : status
+              ? "Alteração confirmada"
+              : state
+                ? `Você acompanha ${name}`
+                : "Sem decisões obrigatórias"}
         </h2>
         <p role="status" className="mt-3 text-comun-paper/75">
-          {state
-            ? "Você receberá somente as atualizações escolhidas. Acompanhar ou entrar não concede papel operacional."
-            : "Explore livremente. A conta é usada apenas para persistir o vínculo."}
+          {requestPending
+            ? "Você continua acompanhando a comunidade. Entrar como membro depende de revisão e não concede automaticamente papel operacional."
+            : state
+              ? "Você receberá somente as atualizações escolhidas. Acompanhar não concede papel; papéis são concedidos separadamente e podem ser revogados."
+              : "Explore livremente. A conta é usada apenas para persistir o vínculo."}
         </p>
         <div className="mt-5 grid gap-3">
           <Link
