@@ -1,8 +1,5 @@
 export type ComunLaunchDomainStatus =
-  | "green"
-  | "in_progress"
-  | "blocked"
-  | "evidence_required";
+  "green" | "in_progress" | "blocked" | "evidence_required";
 
 export type ComunLaunchDomain = {
   id: string;
@@ -199,7 +196,6 @@ export function summarizeComunLaunchProgram(
       counts.blocked === 0 &&
       counts.evidenceRequired === 0 &&
       counts.inProgress === 0,
-    remaining:
-      counts.blocked + counts.evidenceRequired + counts.inProgress,
+    remaining: counts.blocked + counts.evidenceRequired + counts.inProgress,
   };
 }

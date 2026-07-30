@@ -55,9 +55,10 @@ export default async function ComunLaunchReadinessPage() {
         <h2 className="text-xl font-black uppercase">Política do lançamento</h2>
         <p className="mt-2 max-w-4xl">{COMUN_V1_LAUNCH_PROGRAM.policy}</p>
         <p className="mt-3 text-sm text-white/75">
-          Gate humano final: <code>{COMUN_V1_LAUNCH_PROGRAM.finalHumanGate}</code>.
-          Não existem autorizações humanas intermediárias para diagnósticos,
-          correções reversíveis, testes, PRs ou deployments verdes.
+          Gate humano final:{" "}
+          <code>{COMUN_V1_LAUNCH_PROGRAM.finalHumanGate}</code>. Não existem
+          autorizações humanas intermediárias para diagnósticos, correções
+          reversíveis, testes, PRs ou deployments verdes.
         </p>
       </section>
 
