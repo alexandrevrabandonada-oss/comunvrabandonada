@@ -46,6 +46,26 @@ test("migration is additive, private and idempotent by key", () => {
   assert.doesNotMatch(migration, /grant\s+.*\s+to\s+(anon|authenticated)/i);
 });
 
+test("migration transport excludes the accepted sidewalk ledger drift", () => {
+  const migrateBlock = workflow.slice(
+    workflow.indexOf("  migrate:"),
+    workflow.indexOf("  audit:"),
+  );
+  assert.match(
+    migrateBlock,
+    /20260724233256_comun_sidewalk_operational_hardening\.sql/,
+  );
+  assert.match(
+    migrateBlock,
+    /6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be/,
+  );
+  assert.match(migrateBlock, /supabase db push --include-all --dry-run/);
+  assert.match(migrateBlock, /verify-comun-operations-push-plan\.mjs/);
+  assert.match(migrateBlock, /supabase db push --include-all --db-url/);
+  assert.match(migrateBlock, /trap restore_sidewalk EXIT/);
+  assert.doesNotMatch(migrateBlock, /--include-all.*sidewalk_migration/);
+});
+
 test("static boundary recognizes the historical private grant contract", () => {
   assert.match(workflow, /from \(public, \)\?anon, authenticated/);
   assert.doesNotMatch(migration, /grant\s+.*\s+to\s+(anon|authenticated)/i);
