@@ -166,9 +166,25 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          supabase db push --dry-run --db-url "$SUPABASE_DB_URL" > /tmp/plan.txt
+
+          # Calçadas usa um ledger forward-only próprio e, por contrato, não
+          # aparece no histórico do Supabase CLI. Retire somente esse arquivo
+          # canônico e já aplicado antes de calcular o plano deste domínio.
+          sidewalk_migration=supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+          sidewalk_stash="$RUNNER_TEMP/20260724233256_comun_sidewalk_operational_hardening.sql"
+          test "$(sha256sum "$sidewalk_migration" | cut -d ' ' -f1)" = \
+            6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
+          test ! -e "$sidewalk_stash"
+          mv "$sidewalk_migration" "$sidewalk_stash"
+          restore_sidewalk() { mv "$sidewalk_stash" "$sidewalk_migration"; }
+          trap restore_sidewalk EXIT
+
+          supabase db push --include-all --dry-run --db-url "$SUPABASE_DB_URL" \
+            > /tmp/plan.txt 2>&1
           node scripts/verify-comun-operations-push-plan.mjs /tmp/plan.txt
-          supabase db push --db-url "$SUPABASE_DB_URL"
+          supabase db push --include-all --db-url "$SUPABASE_DB_URL"
+          restore_sidewalk
+          trap - EXIT
           echo COMUN_OPERATIONS_ADDITIVE_MIGRATION_APPLIED >> "$GITHUB_STEP_SUMMARY"
 
   audit:
