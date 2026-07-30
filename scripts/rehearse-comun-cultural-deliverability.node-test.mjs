@@ -13,7 +13,10 @@ test("exige confirmação e conexão explícitas", () => {
   assert.equal(
     assertCulturalRehearsalContract({
       COMUN_CULTURAL_REHEARSAL_CONFIRMATION: CULTURAL_REHEARSAL_CONFIRMATION,
-      SUPABASE_DB_URL: "local-test-placeholder",
+      SUPABASE_DB_URL:
+        "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+      SUPABASE_PROJECT_REF: "LOCAL_VALIDATION",
+      PR23_ALLOWED_PROJECT_REFS: "LOCAL_VALIDATION",
     }),
     true,
   );
@@ -22,11 +25,14 @@ test("exige confirmação e conexão explícitas", () => {
 test("aceita a conexão publicada pelo helper local canônico", () => {
   const environment = {
     COMUN_CULTURAL_REHEARSAL_CONFIRMATION: CULTURAL_REHEARSAL_CONFIRMATION,
-    PR23_DATABASE_URL: "local-test-placeholder",
+    PR23_DATABASE_URL:
+      "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    SUPABASE_PROJECT_REF: "LOCAL_VALIDATION",
+    PR23_ALLOWED_PROJECT_REFS: "LOCAL_VALIDATION",
   };
   assert.equal(
     resolveCulturalRehearsalDatabaseUrl(environment),
-    "local-test-placeholder",
+    "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
   );
   assert.equal(assertCulturalRehearsalContract(environment), true);
 });

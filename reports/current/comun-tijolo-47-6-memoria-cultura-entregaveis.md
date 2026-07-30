@@ -73,6 +73,32 @@ que contrato, schema, RLS e ensaio privado fiquem verdes.
 Até a existência dessas provas, este documento não declara
 `COMUN_ARCHIVE_RADIO_ART_GREEN`.
 
+## Evidência pós-merge e reparo de linhagem
+
+O primeiro audit automático da `main`, run `30575925581`, foi preservado como
+evidência histórica e retornou
+`COMUN_ARCHIVE_RADIO_ART_BLOCKED_REMOTE_STATE`. As contagens SQL daquele run
+divergiram do inventário read-only obtido pela configuração pública canônica:
+foram observados 2/4 buckets, enquanto o inventário do projeto público mostrou
+4/4. O run também contou assets de imagem fora da projeção pública cultural
+efetivamente publicada.
+
+Essa divergência não foi reinterpretada como sucesso e o ensaio remoto privado
+permaneceu bloqueado. O reparo focal:
+
+- vincula `SUPABASE_DB_URL` ao único `SUPABASE_PROJECT_REF` allowlisted antes
+  da conexão;
+- aceita somente host direto ou usuário de pooler compatível com o project ref
+  exato;
+- aplica o mesmo bloqueio ao audit e ao ensaio privado;
+- registra no artifact apenas `target.verified=true`, sem URL, host, usuário ou
+  project ref;
+- limita o finding de alt text a imagens aprovadas, com URL pública, ligadas a
+  itens efetivamente publicados e públicos.
+
+Um novo preflight remoto é obrigatório antes do ensaio privado. O run
+`30575925581` não será apagado nem sobrescrito.
+
 ## Evidência local
 
 - histórico completo de migrations aplicado em Supabase local descartável;

@@ -3,6 +3,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import crypto from "node:crypto";
 import pg from "pg";
+import {
+  resolveCulturalDatabaseUrl,
+  validateCulturalDatabaseTarget,
+} from "./audit-comun-cultural-deliverability.mjs";
 
 const { Client } = pg;
 
@@ -10,7 +14,7 @@ export const CULTURAL_REHEARSAL_CONFIRMATION =
   "EXECUTAR_ENSAIO_PRIVADO_ARCHIVE_RADIO_ART";
 
 export function resolveCulturalRehearsalDatabaseUrl(environment = process.env) {
-  return environment.SUPABASE_DB_URL || environment.PR23_DATABASE_URL || "";
+  return resolveCulturalDatabaseUrl(environment);
 }
 
 export function assertCulturalRehearsalContract(environment = process.env) {
@@ -22,6 +26,7 @@ export function assertCulturalRehearsalContract(environment = process.env) {
   }
   if (!resolveCulturalRehearsalDatabaseUrl(environment))
     throw new Error("COMUN_CULTURAL_REHEARSAL_DATABASE_MISSING");
+  validateCulturalDatabaseTarget(environment);
   return true;
 }
 

@@ -5,9 +5,11 @@ import {
   assertSanitizedCulturalArtifact,
   fixedCulturalAuditSql,
   sanitizeCulturalMetrics,
+  validateCulturalDatabaseTarget,
 } from "./audit-comun-cultural-deliverability.mjs";
 
 const greenInput = {
+  target: { verified: true },
   schema: {
     expectedTables: 11,
     presentTables: 11,
@@ -45,6 +47,59 @@ test("auditoria usa somente SELECT fixo e transação read-only", () => {
   );
 });
 
+test("destino remoto exige project ref único e compatível com conexão direta", () => {
+  const result = validateCulturalDatabaseTarget({
+    SUPABASE_DB_URL:
+      "postgresql://postgres:secret@db.projectref.supabase.co:5432/postgres",
+    SUPABASE_PROJECT_REF: "projectref",
+    COMUN_CULTURAL_ALLOWED_PROJECT_REFS: "projectref",
+  });
+  assert.equal(result.targetVerified, true);
+});
+
+test("destino remoto aceita pooler somente quando usuário contém o project ref exato", () => {
+  const result = validateCulturalDatabaseTarget({
+    SUPABASE_DB_URL:
+      "postgresql://postgres.projectref:secret@aws-0-region.pooler.supabase.com:6543/postgres",
+    SUPABASE_PROJECT_REF: "projectref",
+    COMUN_CULTURAL_ALLOWED_PROJECT_REFS: "projectref",
+  });
+  assert.equal(result.targetVerified, true);
+  assert.throws(
+    () =>
+      validateCulturalDatabaseTarget({
+        SUPABASE_DB_URL:
+          "postgresql://postgres.other:secret@aws-0-region.pooler.supabase.com:6543/postgres",
+        SUPABASE_PROJECT_REF: "projectref",
+        COMUN_CULTURAL_ALLOWED_PROJECT_REFS: "projectref",
+      }),
+    /TARGET_MISMATCH/,
+  );
+});
+
+test("allowlist ausente ou ambígua falha antes da conexão", () => {
+  assert.throws(
+    () =>
+      validateCulturalDatabaseTarget({
+        SUPABASE_DB_URL:
+          "postgresql://postgres:secret@db.projectref.supabase.co:5432/postgres",
+        SUPABASE_PROJECT_REF: "projectref",
+        COMUN_CULTURAL_ALLOWED_PROJECT_REFS: "projectref,other",
+      }),
+    /PROJECT_NOT_ALLOWLISTED/,
+  );
+});
+
+test("destino local canônico é aceito sem contrato diferente entre sistemas", () => {
+  const result = validateCulturalDatabaseTarget({
+    PR23_DATABASE_URL:
+      "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    SUPABASE_PROJECT_REF: "LOCAL_VALIDATION",
+    PR23_ALLOWED_PROJECT_REFS: "LOCAL_VALIDATION",
+  });
+  assert.equal(result.targetVerified, true);
+});
+
 test("resultado técnico não inventa autorização editorial real", () => {
   const artifact = sanitizeCulturalMetrics(greenInput);
   assert.equal(
@@ -68,6 +123,18 @@ test("ausência de métricas vira zero, nunca sucesso inventado", () => {
   assert.equal(artifact.schema.presentTables, 0);
   assert.equal(artifact.allDomainsHavePotentialContent, false);
   assert.notEqual(artifact.structuralFindings, 0);
+});
+
+test("métricas sem destino verificado nunca produzem sucesso", () => {
+  const artifact = sanitizeCulturalMetrics({
+    ...greenInput,
+    target: { verified: false },
+  });
+  assert.equal(artifact.result, "COMUN_ARCHIVE_RADIO_ART_BLOCKED_REMOTE_STATE");
+  assert.throws(
+    () => assertSanitizedCulturalArtifact(artifact),
+    /CONTRACT_INVALID/,
+  );
 });
 
 test("scanner rejeita conexão e chaves privadas", () => {
