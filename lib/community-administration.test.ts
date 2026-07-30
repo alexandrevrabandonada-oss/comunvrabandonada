@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  isCommunityMembershipReviewReplay,
   resolveCommunitySelfServiceState,
   validateCommunityGroupMember,
   validateCommunityMembershipReview,
+  validateCommunityPautaContext,
   validateCommunityRoleMutation,
 } from "./community-administration";
 
@@ -65,6 +67,48 @@ describe("community administration", () => {
     ).toMatchObject({ ok: false, reason: "membership_suspended" });
   });
 
+  it("impede que a pessoa solicitante aprove a própria entrada", () => {
+    expect(
+      validateCommunityMembershipReview({
+        operationState: "pending",
+        membershipState: "following",
+        decision: "approve",
+        actorUserId: "same-user",
+        memberUserId: "same-user",
+      }),
+    ).toMatchObject({ ok: false, reason: "self_approval_forbidden" });
+    expect(
+      validateCommunityMembershipReview({
+        operationState: "pending",
+        membershipState: "following",
+        decision: "approve",
+        actorUserId: "reviewer",
+        memberUserId: "requester",
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("reconhece repetição da mesma decisão sem duplicar efeitos", () => {
+    expect(
+      isCommunityMembershipReviewReplay({
+        operationState: "resolved",
+        matchingDecisionEventExists: true,
+      }),
+    ).toBe(true);
+    expect(
+      isCommunityMembershipReviewReplay({
+        operationState: "resolved",
+        matchingDecisionEventExists: false,
+      }),
+    ).toBe(false);
+    expect(
+      isCommunityMembershipReviewReplay({
+        operationState: "pending",
+        matchingDecisionEventExists: true,
+      }),
+    ).toBe(false);
+  });
+
   it("concede papel apenas a membro ativo e papel conhecido", () => {
     expect(
       validateCommunityRoleMutation({
@@ -99,6 +143,27 @@ describe("community administration", () => {
         membershipState: "member",
         membershipCommunityId: "a",
         groupCommunityId: "a",
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("vincula grupo somente à pauta da comunidade canônica", () => {
+    expect(
+      validateCommunityPautaContext({
+        communitySlug: "vila-rica",
+        pautaCommunitySlug: "retiro",
+      }),
+    ).toMatchObject({ ok: false, reason: "community_mismatch" });
+    expect(
+      validateCommunityPautaContext({
+        communitySlug: "vila-rica",
+        pautaCommunitySlug: null,
+      }),
+    ).toMatchObject({ ok: false, reason: "pauta_without_community" });
+    expect(
+      validateCommunityPautaContext({
+        communitySlug: "vila-rica",
+        pautaCommunitySlug: "vila-rica",
       }),
     ).toEqual({ ok: true });
   });

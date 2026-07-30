@@ -44,17 +44,45 @@ export function isOpenCommunityMembershipOperation(state: string) {
   );
 }
 
+export function isCommunityMembershipReviewReplay(input: {
+  operationState: string;
+  matchingDecisionEventExists: boolean;
+}) {
+  return (
+    input.operationState === "resolved" && input.matchingDecisionEventExists
+  );
+}
+
 export function validateCommunityMembershipReview(input: {
   operationState: string;
   membershipState: string;
   decision: CommunityMembershipDecision;
+  actorUserId?: string | null;
+  memberUserId?: string | null;
 }) {
+  if (
+    input.actorUserId &&
+    input.memberUserId &&
+    input.actorUserId === input.memberUserId
+  )
+    return { ok: false as const, reason: "self_approval_forbidden" };
   if (!isOpenCommunityMembershipOperation(input.operationState))
     return { ok: false as const, reason: "operation_closed" };
   if (input.membershipState === "suspended")
     return { ok: false as const, reason: "membership_suspended" };
   if (input.decision === "approve" && input.membershipState === "member")
     return { ok: false as const, reason: "already_member" };
+  return { ok: true as const };
+}
+
+export function validateCommunityPautaContext(input: {
+  communitySlug: string;
+  pautaCommunitySlug?: string | null;
+}) {
+  if (!input.pautaCommunitySlug)
+    return { ok: false as const, reason: "pauta_without_community" };
+  if (input.communitySlug !== input.pautaCommunitySlug)
+    return { ok: false as const, reason: "community_mismatch" };
   return { ok: true as const };
 }
 

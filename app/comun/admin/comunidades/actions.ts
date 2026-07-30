@@ -4,8 +4,11 @@ import { revalidatePath } from "next/cache";
 import {
   COMMUNITY_MEMBERSHIP_REVIEW_GATE,
   communityRoles,
+  isCommunityMembershipReviewReplay,
+  isOpenCommunityMembershipOperation,
   validateCommunityGroupMember,
   validateCommunityMembershipReview,
+  validateCommunityPautaContext,
   validateCommunityRoleMutation,
   type CommunityMembershipDecision,
 } from "@/lib/community-administration";
@@ -74,10 +77,37 @@ export async function reviewCommunityMembership(formData: FormData) {
   if (membership.error || !membership.data)
     throw new Error("Vínculo não encontrado.");
 
+  if (session.user.id === membership.data.member_user_id)
+    throw new Error("A pessoa solicitante não pode aprovar a própria entrada.");
+  if (!isOpenCommunityMembershipOperation(operation.data.state)) {
+    const replayEvent = await db
+      .from("comun_editorial_operation_events")
+      .select("id")
+      .eq("item_id", operationId)
+      .eq(
+        "event_type",
+        decision === "approve"
+          ? "community_membership_approved"
+          : "community_membership_rejected",
+      )
+      .limit(1)
+      .maybeSingle();
+    if (
+      isCommunityMembershipReviewReplay({
+        operationState: operation.data.state,
+        matchingDecisionEventExists: Boolean(replayEvent.data),
+      })
+    ) {
+      revalidateCommunityAdministration();
+      return;
+    }
+  }
   const validation = validateCommunityMembershipReview({
     operationState: operation.data.state,
     membershipState: membership.data.state,
     decision,
+    actorUserId: session.user.id,
+    memberUserId: membership.data.member_user_id,
   });
   if (!validation.ok)
     throw new Error(`Decisão recusada: ${validation.reason}.`);
@@ -306,12 +336,25 @@ export async function createCommunityWorkGroup(formData: FormData) {
   if (!db) throw new Error("Banco indisponível.");
   const communityId = requiredId(formData, "community_id");
   const pautaId = requiredId(formData, "pauta_id");
-  const pauta = await db
-    .from("comun_pauta_spaces")
-    .select("id,community_id")
-    .eq("id", pautaId)
-    .maybeSingle();
-  if (pauta.error || !pauta.data || pauta.data.community_id !== communityId)
+  const [community, pauta] = await Promise.all([
+    db
+      .from("comun_communities")
+      .select("id,slug")
+      .eq("id", communityId)
+      .maybeSingle(),
+    db
+      .from("comun_pauta_spaces")
+      .select("id,community")
+      .eq("id", pautaId)
+      .maybeSingle(),
+  ]);
+  if (community.error || !community.data || pauta.error || !pauta.data)
+    throw new Error("Comunidade ou pauta não encontrada.");
+  const context = validateCommunityPautaContext({
+    communitySlug: community.data.slug,
+    pautaCommunitySlug: pauta.data.community,
+  });
+  if (!context.ok)
     throw new Error("A pauta precisa pertencer à comunidade escolhida.");
   const created = await db
     .from("comun_community_work_groups")
