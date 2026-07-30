@@ -1,0 +1,64 @@
+{
+  "checkpoint": "comun-tijolo-47-6a-remote-state-checkpoint",
+  "result": "COMUN_ARCHIVE_RADIO_ART_BLOCKED_REMOTE_STATE",
+  "baseSha": "fa3ed469235010724286d67b0a79c9af39ce6167",
+  "candidateSha": "08a1a60485621d3c417b7510625307364a113592",
+  "mergeSha": "6126f2ce2dde3c6f39be91301c86e380027b96f5",
+  "pullRequest": 108,
+  "runs": {
+    "preflight": 30581991491,
+    "repair": 30582088607,
+    "postflight": 30582179111
+  },
+  "targetVerified": true,
+  "schema": {
+    "present": 11,
+    "expected": 11,
+    "rlsDisabled": 0,
+    "dangerousPublicGrants": 0
+  },
+  "storage": {
+    "presentBucketsBefore": 2,
+    "expectedBuckets": 4,
+    "missingBuckets": ["radio-private-originals", "radio-public-audio"],
+    "incompatibleExistingBuckets": 0,
+    "dangerousPolicies": 0,
+    "policiesResult": "COMUN_CULTURAL_STORAGE_POLICIES_GREEN",
+    "bucketRowsCreated": 0,
+    "objectsCreated": 0,
+    "globalFileSizeLimitMiB": 50,
+    "requiredRadioBucketLimitMiB": 250,
+    "capacitySource": "sanitized_read_only_project_configuration"
+  },
+  "accessibility": {
+    "publishedImagesWithoutAltBefore": 1,
+    "publishedImagesWithoutAltAfter": 1,
+    "assetInspected": true,
+    "altTextRowsUpdated": 0,
+    "fallbackApplied": false
+  },
+  "writes": {
+    "database": "none",
+    "storage": "none",
+    "rightsChanged": false,
+    "consentsChanged": false,
+    "publicationStatusChanged": false
+  },
+  "privateRemoteRehearsal": "not_executed_structural_postflight_blocked",
+  "realContentProved": {
+    "archive": 0,
+    "radio": 0,
+    "art": 0
+  },
+  "domains": {
+    "green": 3,
+    "inProgress": 2,
+    "blocked": 4,
+    "evidenceRequired": 1,
+    "total": 10,
+    "archiveRadioArt": "evidence_required",
+    "miniapps": "in_progress"
+  },
+  "launchPublicly": "not_triggered",
+  "blocker": "project_global_storage_limit_below_exact_radio_bucket_contract"
+}

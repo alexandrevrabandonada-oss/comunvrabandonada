@@ -60,6 +60,72 @@ O resultado máximo permanece:
 
 O domínio `archive_radio_art` permanece `evidence_required`. Acervo, Rádio e Arte ainda dependem de conteúdo real autorizado, direitos completos, smoke público e evidência editorial explícita. Este checkpoint não constitui promoção para `green`.
 
+## Fechamento pós-merge
+
+- PR: #108
+- SHA candidato: `08a1a60485621d3c417b7510625307364a113592`
+- Merge SHA: `6126f2ce2dde3c6f39be91301c86e380027b96f5`
+- Deployment do merge: READY
+- Preflight pós-deploy: run `30581991491`, somente leitura, verde como
+  execução e bloqueado como estado do domínio
+- Tentativa de reparo exato: run `30582088607`
+- Postflight independente: run `30582179111`, somente leitura
+
+O preflight confirmou o plano exato:
+
+- buckets presentes: 2/4;
+- buckets ausentes: `radio-private-originals` e `radio-public-audio`;
+- buckets existentes incompatíveis: 0;
+- policies perigosas: 0;
+- imagem efetivamente publicada sem texto alternativo: 1;
+- hash sanitizado do plano:
+  `6fe07f69fb992c56e0b0d4895a7fcb47e6e885aec18061b32c0ded107aee72aa`.
+
+A tentativa de reparo foi encerrada na primeira criação de bucket, antes da
+atualização editorial, com o marcador sanitizado
+`COMUN_CULTURAL_REMOTE_REPAIR_BUCKET_CREATE_FAILED`. O postflight independente
+provou que nenhum efeito parcial ocorreu: os mesmos dois buckets continuam
+ausentes, a mesma imagem continua sem texto alternativo e nenhum objeto foi
+criado.
+
+Uma inspeção read-only posterior da configuração canônica do projeto comprovou
+a causa: o projeto está no plano Free, cujo limite global de arquivo é 50 MB.
+Os dois buckets de Rádio exigem exatamente 250 MiB pelo contrato versionado.
+A API oficial do Storage não pode criar buckets com limite superior ao limite
+global do projeto.
+
+O contrato não foi reduzido para 50 MB, nenhum bucket incompatível foi criado e
+nenhuma alteração financeira ou de plano foi executada. Esse tipo de alteração
+fica fora da autorização deste checkpoint. Também não foi feita uma correção
+parcial do texto alternativo, pois o postflight estrutural não poderia ficar
+verde e o plano exato não autoriza uma promoção parcial.
+
+Estado final comprovado:
+
+- Storage: 2/4 buckets; 0 buckets e 0 objetos criados;
+- policies: `COMUN_CULTURAL_STORAGE_POLICIES_GREEN`;
+- imagem publicada sem alt text: 1;
+- banco: nenhuma escrita;
+- Storage: nenhuma escrita;
+- direitos, consentimentos e status editorial: inalterados;
+- ensaio privado remoto: não executado;
+- conteúdo real comprovado: Acervo 0, Rádio 0, Arte 0;
+- `archive_radio_art`: `evidence_required`;
+- `miniapps`: `in_progress`;
+- programa de dez domínios: 3 green, 2 in progress, 4 blocked e 1
+  evidence_required;
+- `launch_publicly`: não acionado.
+
+Resultado terminal preservado:
+
+`COMUN_ARCHIVE_RADIO_ART_BLOCKED_REMOTE_STATE`
+
+O próximo passo exige uma decisão humana separada sobre capacidade do projeto:
+elevar o limite global do Storage para pelo menos 250 MiB sem reduzir o
+contrato cultural. Somente depois disso o mesmo plano deve ser relido
+integralmente antes de uma nova tentativa. A correção de acessibilidade e o
+ensaio privado continuam bloqueados até o postflight estrutural ficar verde.
+
 ## Limite da validação local
 
 O reset descartável local foi interrompido por uma incompatibilidade anterior e fora do escopo deste checkpoint: a migration `20260708182724_restore_public_reports_view_grants.sql` detectou que `public.handle_new_user()` não corresponde ao contrato esperado do trigger de autenticação anônima (`COMUN_ANONYMOUS_AUTH_PROFILE_TRIGGER_POSTFLIGHT_FAILED`). Nenhum arquivo desse domínio foi alterado e a stack local foi destruída. Por isso, os smokes que dependem do schema Supabase local completo ficam representados pelos testes de contrato e pelo postflight remoto independente; o reparo cultural permanece bloqueado até que esse postflight confirme schema, RLS, grants, Storage e acessibilidade no target allowlisted.
