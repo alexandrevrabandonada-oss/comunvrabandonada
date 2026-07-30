@@ -19,6 +19,14 @@ describe("COMUN V1 launch program", () => {
     expect(summary.counts.blocked).toBeGreaterThan(0);
   });
 
+  it("registra a esteira política como verde somente após as evidências remotas", () => {
+    expect(
+      COMUN_V1_LAUNCH_PROGRAM.domains.find(
+        (domain) => domain.id === "pauta_action_cycle",
+      )?.status,
+    ).toBe("green");
+  });
+
   it("só libera o gate final quando todos os domínios estão verdes", () => {
     const green = COMUN_V1_LAUNCH_PROGRAM.domains.map((domain) => ({
       ...domain,

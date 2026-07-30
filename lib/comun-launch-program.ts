@@ -51,7 +51,7 @@ export const COMUN_V1_LAUNCH_PROGRAM = {
     {
       id: "pauta_action_cycle",
       label: "Ciclo de pauta e ação coletiva",
-      status: "evidence_required",
+      status: "green",
       objective:
         "Relato, roda, síntese, tarefa, ação, protocolo, resposta e resultado devem formar um único processo acompanhável.",
       requiredEvidence: [

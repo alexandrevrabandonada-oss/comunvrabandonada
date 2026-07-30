@@ -2,8 +2,12 @@
   "formatVersion": 1,
   "checkpoint": "tijolo-47-4",
   "domain": "pauta_action_cycle",
-  "branch": "codex/tijolo-47-4-esteira-politica-completa",
+  "branch": "none_main_integrated",
   "baseMergeSha": "881c3bda42ff0bea8c882d2735cc4584c8c86de5",
+  "functionalPr": 96,
+  "functionalCandidateSha": "3705e25fff86f3c400f2c2c9d734fba53d6a5be4",
+  "functionalMergeSha": "89f5e41ce95b76f78c01ec0068affd93ee81a41b",
+  "operationalMainSha": "e9bd809324dce96875f2f4dc8b96fcd5a5fa4f18",
   "architecture": {
     "parallelMobilizationSystemCreated": false,
     "explicitStateMachine": true,
@@ -34,12 +38,49 @@
     "initialInventory": "read_only",
     "targetMigrationsInitiallyPresent": 0,
     "remoteWritesDuringDiagnosis": "none",
-    "promotionStatus": "pending_candidate_sha"
+    "migrationRun": 30563375786,
+    "migrationStatus": "applied_additive",
+    "appliedTargetMigrations": 4,
+    "objectCount": 11,
+    "rlsCount": 11,
+    "postflight": "APPLIED_EXACT",
+    "independentPreflightRun": 30563542027,
+    "independentPreflight": "APPLIED_EXACT",
+    "rehearsalRun": 30563635313,
+    "rehearsalResult": "COMUN_PAUTA_ACTION_CYCLE_REHEARSAL_GREEN",
+    "transactionRolledBack": true,
+    "postflightSyntheticRows": 0,
+    "activationRun": 30563832909,
+    "activationStatus": "green",
+    "featureFlag": "enabled",
+    "productionRoutesHttp200": 5,
+    "syntheticPublicLeak": false,
+    "dailyAuditRun": 30564142320,
+    "dailyAuditFindings": 0,
+    "promotionStatus": "green"
+  },
+  "artifacts": [
+    "comun-pauta-action-cycle-migration-e9bd809324dce96875f2f4dc8b96fcd5a5fa4f18-30563375786",
+    "comun-pauta-action-cycle-preflight-e9bd809324dce96875f2f4dc8b96fcd5a5fa4f18-30563542027",
+    "comun-pauta-action-cycle-rehearsal-e9bd809324dce96875f2f4dc8b96fcd5a5fa4f18-30563635313",
+    "comun-pauta-action-cycle-audit-e9bd809324dce96875f2f4dc8b96fcd5a5fa4f18-30564142320"
+  ],
+  "processReview": {
+    "additionalPromotionPullRequests": [97, 98, 99, 100],
+    "blockedRunsBeforeWrite": [
+      30560615985, 30561315404, 30562003980, 30562729114
+    ],
+    "remoteWritesInBlockedRuns": "none",
+    "improvements": [
+      "reproduce real stdout and stderr in workflow fixtures",
+      "declare CLI-history compatibility for dedicated migration runners",
+      "preserve sanitized plan classification in failure artifacts"
+    ]
   },
   "externalOfficialProtocolSent": false,
   "containsPrivateData": false,
   "containsRawIdentifiers": false,
   "storageWrites": "none",
   "launchPubliclyTriggered": false,
-  "result": "COMUN_PAUTA_ACTION_CYCLE_READY_FOR_CONTROLLED_REHEARSAL"
+  "result": "COMUN_PAUTA_ACTION_CYCLE_GREEN"
 }
