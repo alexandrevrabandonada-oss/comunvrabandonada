@@ -137,25 +137,26 @@ jobs:
       - name: Capability and target preflight
         run: |
           test -n "$SUPABASE_PROJECT_REF"
-          test -n "$SUPABASE_ACCESS_TOKEN"
           test -n "$SUPABASE_DB_URL"
           test -n "$SUPABASE_SERVICE_ROLE_KEY"
           npm run security:secrets
-          supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
-          supabase db query --linked "select current_setting('server_version_num')::int >= 170000 as postgres_17, exists(select 1 from pg_available_extensions where name='vector') as vector_available, exists(select 1 from pg_ts_config where cfgname='portuguese') as portuguese_fts" >/dev/null
-      - name: Additive migration and focal function
+          node scripts/civic-intelligence/apply-comun-civic-search-remote.mjs
+      - name: Focal function when management capability exists
         run: |
-          supabase db push --linked --include-all
-          supabase functions deploy comun-civic-embed --project-ref "$SUPABASE_PROJECT_REF"
-      - name: Public-only indexing and real embeddings
+          if test -n "$SUPABASE_ACCESS_TOKEN"; then
+            supabase functions deploy comun-civic-embed --project-ref "$SUPABASE_PROJECT_REF"
+          else
+            node -e "require('node:fs').writeFileSync('.ci-artifacts/civic-intelligence/provider-capability.json',JSON.stringify({result:'COMUN_CIVIC_INTELLIGENCE_BLOCKED_PROVIDER_CAPABILITY',nativeEmbeddingRuntime:'verified',deploymentCredential:'missing',embeddingsReal:false,containsSecrets:false},null,2))"
+          fi
+      - name: Public-only indexing with provider fallback
         run: npm run civic:search:sync
-      - name: Real provider eval and permission rehearsal
+      - name: Provider eval contract and permission rehearsal
         run: |
-          npm run civic:search:eval
+          if test -n "$SUPABASE_ACCESS_TOKEN"; then npm run civic:search:eval; else npm run civic:search:eval:contract; fi
           node scripts/civic-intelligence/audit-comun-civic-search-permissions.mjs
           npm run civic:search:rehearsal:remote
       - name: Sanitized postflight
-        run: node -e "require('node:fs').writeFileSync('.ci-artifacts/civic-intelligence/98-postflight.json',JSON.stringify({status:'complete',publicProjectionOnly:true,queriesExposed:false,documentsExposed:false,cleanup:true,humanRehearsal:'not_executed'},null,2))"
+        run: node -e "require('node:fs').writeFileSync('.ci-artifacts/civic-intelligence/98-postflight.json',JSON.stringify({status:'complete',result:process.env.SUPABASE_ACCESS_TOKEN?'COMUN_CIVIC_REMOTE_TECHNICAL_EVIDENCE_GREEN':'COMUN_CIVIC_INTELLIGENCE_BLOCKED_PROVIDER_CAPABILITY',publicProjectionOnly:true,queriesExposed:false,documentsExposed:false,cleanup:true,humanRehearsal:'not_executed'},null,2))"
       - name: Sanitized failure marker
         if: failure()
         run: node -e "require('node:fs').writeFileSync('.ci-artifacts/civic-intelligence/99-failure.json',JSON.stringify({status:'failed',queriesExposed:false,documentsExposed:false,secretsExposed:false},null,2))"
