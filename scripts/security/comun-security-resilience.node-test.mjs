@@ -92,7 +92,10 @@ test("rotação do cron preserva a chave atual durante a transição", async () 
   assert.match(auth, /timingSafeEqual/);
   assert.match(workflow, /mode == 'dual-key'/);
   assert.match(workflow, /env add CRON_SECRET_NEXT production/);
-  assert.match(workflow, /vercel@50\.28\.0 redeploy/);
+  assert.match(
+    workflow,
+    /vercel@50\.28\.0 deploy --prod --yes --force/,
+  );
   assert.doesNotMatch(workflow, /env rm CRON_SECRET/);
 });
 
