@@ -108,3 +108,12 @@ Mapa das Calçadas à definição canônica. A janela territorial
 isso `miniapps` continua `in_progress`. O estado técnico é
 `COMUN_MINIAPPS_READY_FOR_PILOT_CLOSEOUT`, sem promoção antecipada e sem acionar
 `launch_publicly`.
+
+O domínio `operations` está `green` desde o Tijolo 47.7. A Central preserva as
+fontes canônicas dos nove domínios, mantém apenas projeção sanitizada e
+reconstruível, oferece recortes cotidianos por cuidado, SLA e responsabilidade
+e não cria decisão política. A promoção exigiu migration aditiva, RLS remoto
+nas três tabelas, zero grant público de escrita, sincronização idempotente,
+ensaio privado transacional com rollback, postflight sem duplicidades ou
+órfãos e proteção visual da superfície administrativa em cinco viewports. O
+gate `launch_publicly` continua fechado.

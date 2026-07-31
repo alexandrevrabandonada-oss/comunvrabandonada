@@ -45,7 +45,7 @@ contato, original, resposta integral, object key ou coordenada. `anon` e
 `authenticated` continuam sem acesso às três tabelas operacionais; a RPC
 permanece exclusiva de `service_role`.
 
-## Evidência
+## Evidência local
 
 Evidência local do candidato:
 
@@ -59,6 +59,59 @@ Evidência local do candidato:
 - smoke editorial com 26 verificações verdes;
 - RLS matrix, typecheck, lint, Prettier, build e `git diff --check` verdes.
 
-O resultado remoto será consolidado após PR, migration aditiva, sincronização,
-ensaio privado e postflight independentes. Até lá, o domínio permanece
-`in_progress`.
+## Integração
+
+- PR funcional: `#112`;
+- merge funcional: `fdbfded1dcdc7361b9283f3d3a69df2ef696580a`;
+- PR de preflight de transporte: `#113`;
+- merge de transporte: `6a9f88cc692da080afed7334e774fee591cf5084`;
+- PR de reconciliação do histórico: `#114`;
+- merge de reconciliação: `18a2621f4d7e1f2d6d1af92e8c96e217bc90dd0a`;
+- PR de escopo e segurança: `#115`;
+- merge final de código: `993c5e9d00177f1bb4401856676322e2df42b7e4`;
+- deployment Production `5684298978`: `success`.
+
+O primeiro attempt de migration (`30591625569`) falhou antes da escrita porque
+a release de Calçadas, aplicada por runner forward-only e aceita em ledger
+próprio, não consta no histórico do Supabase CLI. O transporte foi corrigido
+sem `--include-all` indiscriminado: a migration canônica de Calçadas é retirada
+temporariamente somente após validação do hash, e o plano continua aceitando
+exatamente a migration operacional.
+
+## Evidência remota
+
+- preflight final `30592993851`: 5 candidatos reais, schema `operations-v1`,
+  migration desnecessária e zero escrita;
+- migration aditiva `30592209385`: somente
+  `20260730230044_comun_operations_unified_projection.sql`;
+- sync final `30593054379`: 5 projeções reconciliadas e 859 projeções
+  obsoletas encerradas, sem alterar fontes;
+- rehearsal final `30593132418`: 10 cenários, 10 criações transacionais,
+  duplicidade zero, transição negativa bloqueada e rollback verde;
+- postflight final `30593185303`: 864 projeções históricas, 5 abertas, 1 P1,
+  5 vencidas, duplicidades zero e órfãos zero;
+- segurança remota: 3/3 tabelas presentes, 0 sem RLS e 0 grants perigosos para
+  `anon` ou `authenticated`;
+- fontes abertas: 2 uploads de Calçadas e 3 alertas de plataforma;
+- Acervo, Rádio e Arte: nenhuma pendência pública atual projetada;
+- artifacts: sanitizados, sem IDs de fonte, conteúdo privado ou dados pessoais;
+- E2E read-only em Production: 15/15 em 360×800, 390×844, 768×1024,
+  1024×768 e 1366×768; visitante redirecionado ao login, sem overflow e sem
+  violação séria/crítica de acessibilidade.
+
+O primeiro sync havia criado 859 falsos positivos de acessibilidade cultural
+porque a consulta não exigia item efetivamente publicado. O finding foi
+preservado, a fonte foi alinhada ao audit cultural canônico e o sync seguinte
+encerrou essas projeções sem apagá-las e sem reescrever o histórico.
+
+## Resultado
+
+`COMUN_OPERATIONS_GREEN`
+
+O domínio `operations` foi promovido para `green`. Permanecem cinco itens reais
+para o trabalho cotidiano da equipe; a existência da fila não bloqueia o
+domínio, pois a Central os tornou visíveis, explicáveis e acompanháveis. A
+rotina não pontua pessoas, não deriva prioridade de popularidade e não executa
+decisões editoriais, políticas ou de publicação.
+
+`launch_publicly` não foi acionado.

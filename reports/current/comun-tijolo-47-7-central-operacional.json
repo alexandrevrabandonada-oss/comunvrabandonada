@@ -1,0 +1,70 @@
+{
+  "formatVersion": 1,
+  "domain": "operations",
+  "result": "COMUN_OPERATIONS_GREEN",
+  "baseSha": "00f84e6e18d6d75400a2fc84402a08d56b087f24",
+  "codeMergeSha": "993c5e9d00177f1bb4401856676322e2df42b7e4",
+  "productionDeployment": {
+    "reference": "5684298978",
+    "state": "READY"
+  },
+  "schema": {
+    "migration": "20260730230044_comun_operations_unified_projection.sql",
+    "applied": true,
+    "migrationRequired": false,
+    "projectionContract": "operations-v1"
+  },
+  "security": {
+    "tablesExpected": 3,
+    "tablesPresent": 3,
+    "tablesWithoutRls": 0,
+    "dangerousPublicGrants": 0
+  },
+  "sources": {
+    "candidates": 5,
+    "sidewalkUploads": 2,
+    "platformAlerts": 3,
+    "archiveAccessibility": 0,
+    "containsPrivateContent": false,
+    "containsSourceIds": false
+  },
+  "projection": {
+    "historicalTotal": 864,
+    "open": 5,
+    "p1": 1,
+    "overdue": 5,
+    "duplicates": 0,
+    "orphanAssignments": 0,
+    "orphanEvents": 0,
+    "obsoleteResolved": 859
+  },
+  "rehearsal": {
+    "fixtures": 10,
+    "createdInTransaction": 10,
+    "duplicateWrites": 0,
+    "negativeTransition": "blocked",
+    "cleanup": "transaction_rollback"
+  },
+  "runs": {
+    "migration": 30592209385,
+    "finalPreflight": 30592993851,
+    "finalSync": 30593054379,
+    "finalRehearsal": 30593132418,
+    "finalPostflight": 30593185303
+  },
+  "artifacts": {
+    "preflight": "comun-operations-preflight-993c5e9d00177f1bb4401856676322e2df42b7e4-30592993851",
+    "sync": "comun-operations-sync-993c5e9d00177f1bb4401856676322e2df42b7e4-30593054379",
+    "rehearsal": "comun-operations-rehearsal-993c5e9d00177f1bb4401856676322e2df42b7e4-30593132418",
+    "postflight": "comun-operations-postflight-993c5e9d00177f1bb4401856676322e2df42b7e4-30593185303",
+    "sanitized": true
+  },
+  "writes": {
+    "schema": "additive_once",
+    "operationalProjection": "reconciled",
+    "canonicalSources": "none",
+    "storage": "none",
+    "publicContent": "none"
+  },
+  "launchPublicly": "not_invoked"
+}
