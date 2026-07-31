@@ -1,0 +1,71 @@
+{
+  "updatedAt": "2026-07-31",
+  "tijolo": "47.9B",
+  "result": "COMUN_CIVIC_INTELLIGENCE_BLOCKED_PROVIDER_CAPABILITY",
+  "baseSha": "e73060f9abb8170a4fb34908cd32dd49fd96e92b",
+  "finalMergeSha": "f4cb2b4004f9b33a9d9ca0846c49f2fec4970cad",
+  "pullRequests": [126, 127, 128, 129],
+  "remoteRun": 30669629360,
+  "productionDeployment": 5698955589,
+  "productionStatus": "success",
+  "projection": {
+    "scope": "public_projection",
+    "documents": 10,
+    "sections": 30,
+    "readySections": 0,
+    "privateRealContent": false
+  },
+  "provider": {
+    "runtimeVerified": true,
+    "deploymentCredential": "missing",
+    "model": "gte-small",
+    "version": "native-v1",
+    "expectedDimensions": 384,
+    "observedDimensions": null,
+    "includedMonthlyInvocations": 500000,
+    "overageAvailable": false,
+    "realEmbeddings": false,
+    "generationEnabled": false
+  },
+  "permissions": {
+    "result": "COMUN_CIVIC_SEARCH_PERMISSION_BOUNDARY_GREEN",
+    "personas": 9,
+    "functionsAudited": 6,
+    "violations": 0
+  },
+  "evals": {
+    "corpusVersion": "47.9b-v1",
+    "total": 110,
+    "exactTop3": 1,
+    "semanticRecallAt5": null,
+    "semanticMrr": null,
+    "intentAccuracy": 1,
+    "automaticIncorrectRedirects": 0,
+    "invalidRoutes": 0,
+    "unsourcedAnswers": 0
+  },
+  "rehearsal": {
+    "passed": 16,
+    "total": 16,
+    "syntheticOnly": true,
+    "cleanup": true,
+    "humanRehearsal": "not_executed"
+  },
+  "productionSmoke": {
+    "home": 200,
+    "search": 200,
+    "aliasRedirect": 308,
+    "lexicalApiMs": 603,
+    "semanticFallbackApiMs": 756,
+    "lexicalResultsPreserved": true,
+    "noLeak": "green"
+  },
+  "preservedStates": {
+    "experience47_9A": "COMUN_EXPERIENCE_COHERENCE_READY_FOR_USABILITY_REHEARSAL",
+    "security_resilience": "blocked",
+    "miniapps": "in_progress",
+    "archive_radio_art": "evidence_required",
+    "formalGreenDomains": 4,
+    "launch_publicly": "not_triggered"
+  }
+}

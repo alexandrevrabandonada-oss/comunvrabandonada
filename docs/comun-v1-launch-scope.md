@@ -135,3 +135,12 @@ Constituição de Experiência, tokens e três superfícies-piloto comparáveis.
 estado máximo antes de participantes reais é
 `COMUN_EXPERIENCE_COHERENCE_READY_FOR_USABILITY_REHEARSAL`; automação não é
 evidência de compreensão humana e não promove o domínio integral.
+
+O Tijolo 47.9B preserva a busca lexical e acrescenta projeção pública
+reconstruível, FTS português, ranking híbrido explicável, intenções allowlisted,
+Memória Viva, relacionados, RLS e fallback progressivo. O ensaio remoto passou
+16/16 cenários e a permissão está verde, mas embeddings reais não foram
+transportados porque a credencial de gestão do provider está ausente. O estado
+vigente é `COMUN_CIVIC_INTELLIGENCE_BLOCKED_PROVIDER_CAPABILITY`; não houve
+ensaio humano, geração textual permanece desativada e nenhum estado de domínio
+ou `launch_publicly` é promovido.
