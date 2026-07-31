@@ -1,23 +1,18 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { runArchiveProcessingBatch } from "@/lib/archive/photo-processing-worker";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { evaluateArchiveOperationalAlerts } from "@/lib/archive/worker-health";
 import { randomUUID } from "node:crypto";
+import { matchesCronSecret } from "@/lib/security/cron-auth";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export async function GET() {
   return NextResponse.json({ error: "method_not_allowed" }, { status: 405 });
 }
 export async function POST(request: NextRequest) {
-  const expected = process.env.CRON_SECRET ?? "",
-    actual =
-      request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
-  if (
-    !expected ||
-    actual.length !== expected.length ||
-    !timingSafeEqual(Buffer.from(actual), Buffer.from(expected))
-  )
+  const actual =
+    request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+  if (!matchesCronSecret(actual))
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const started = Date.now(),
     db = createServiceSupabaseClient();

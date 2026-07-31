@@ -55,6 +55,18 @@ const inventory = [
     "high",
   ),
   item(
+    "Archive scheduler current runtime key",
+    "server_runtime",
+    ["CRON_SECRET"],
+    "high",
+  ),
+  item(
+    "Archive scheduler additive rotation key",
+    "server_runtime",
+    ["CRON_SECRET_NEXT"],
+    "high",
+  ),
+  item(
     "CAPTCHA public site configuration",
     "client_runtime",
     ["NEXT_PUBLIC_HCAPTCHA_SITEKEY"],

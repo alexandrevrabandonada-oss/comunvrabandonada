@@ -64,6 +64,23 @@ financeiro é alterado automaticamente.
 Nunca restaurar sobre produção. Um restore real do projeto Supabase continua
 sendo ação destrutiva e exige gate específico.
 
+## Transição de credencial do scheduler
+
+Uma divergência entre o bearer guardado no GitHub e o runtime não autoriza
+substituição direta. A transição operacional é aditiva:
+
+1. preservar `CRON_SECRET`;
+2. instalar o mesmo material já protegido no GitHub como `CRON_SECRET_NEXT`,
+   sem imprimi-lo;
+3. aceitar ambas as chaves com comparação constante nos endpoints internos;
+4. redeployar sem trocar tráfego manualmente;
+5. comprovar scheduler e ensaio de recuperação com a chave nova;
+6. manter a chave anterior até uma janela posterior de revogação específica.
+
+O modo `dual-key` do workflow executa somente os passos 2 a 4 e publica um
+marcador sanitizado. Ele não remove a chave anterior. A futura revogação é uma
+operação separada e não faz parte deste tijolo.
+
 ## Rollback
 
 Migrations usam contenção, rollback transacional antes do commit, correção
