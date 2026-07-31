@@ -18,7 +18,13 @@ export async function POST(request: NextRequest) {
     actual.length !== expected.length ||
     !timingSafeEqual(Buffer.from(actual), Buffer.from(expected))
   )
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "unauthorized",
+        marker: "COMUN_STORAGE_RUNTIME_CRON_AUTH_FAILED",
+      },
+      { status: 401, headers: { "Cache-Control": "no-store" } },
+    );
 
   const purpose = request.headers.get("x-comun-rehearsal-purpose");
   const requestedAt = Number(request.headers.get("x-comun-requested-at"));
@@ -41,7 +47,13 @@ export async function POST(request: NextRequest) {
     signature.length !== expectedSignature.length ||
     !timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))
   )
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "unauthorized",
+        marker: "COMUN_STORAGE_RUNTIME_SIGNATURE_AUTH_FAILED",
+      },
+      { status: 401, headers: { "Cache-Control": "no-store" } },
+    );
 
   try {
     const evidence = await runRuntimeStorageRestoreRehearsal(body.attemptId);
