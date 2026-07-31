@@ -1,7 +1,7 @@
 {
   "release": "20260731183339-comun-civic-search-foundation",
   "migration": "supabase/migrations/20260731183339_comun_civic_search_foundation.sql",
-  "migrationSha256": "bd24031d09302edc5419d9259d02d058e5f59cede5c5940a8212daea4e06a5dd",
+  "migrationSha256": "f0480fc357e79d5ab4939699ed831a92fc6a45f0811749b41d5c4aeb36966eb5",
   "destructiveSql": false,
   "requiresPromotion": true,
   "expectedPreFingerprint": "ADDITIVE_PUBLIC_PROJECTION",
@@ -29,6 +29,7 @@
     "public.comun_public_search_hybrid",
     "public.comun_claim_search_embedding_jobs",
     "public.comun_complete_search_embedding_job",
-    "public.comun_fail_search_embedding_job"
+    "public.comun_fail_search_embedding_job",
+    "public.comun_record_search_metric"
   ]
 }

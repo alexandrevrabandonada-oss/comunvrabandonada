@@ -62,6 +62,19 @@ export default async function AdminObservabilityPage() {
             value={civicSearch.oldestPendingMinutes ?? 0}
           />
         </div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <MetricCard label="Buscas 24h" value={civicSearch.searches24h} />
+          <MetricCard
+            label="Sem resultado 24h"
+            value={civicSearch.zeroResults24h}
+          />
+          <MetricCard label="Fallbacks 24h" value={civicSearch.fallbacks24h} />
+          <MetricCard label="Timeouts 24h" value={civicSearch.timeouts24h} />
+          <MetricCard
+            label="Seções obsoletas"
+            value={civicSearch.staleSections}
+          />
+        </div>
         <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
           <div>
             <dt className="font-black">Camada</dt>
@@ -74,6 +87,37 @@ export default async function AdminObservabilityPage() {
           <div>
             <dt className="font-black">Consultas</dt>
             <dd>Não persistidas; agregação sem texto bruto</dd>
+          </div>
+          <div>
+            <dt className="font-black">Cobertura por domínio</dt>
+            <dd>
+              {Object.entries(civicSearch.coverageByDomain)
+                .sort(([left], [right]) => left.localeCompare(right, "pt-BR"))
+                .map(([domain, count]) => `${domain}: ${count}`)
+                .join(" · ") || "Aguardando primeira sincronização"}
+            </dd>
+          </div>
+          <div>
+            <dt className="font-black">Capability e blockers</dt>
+            <dd>
+              {civicSearch.model === "lexical_only" || !civicSearch.available
+                ? "Lexical funcional; embedding remoto ainda sem evidência nesta leitura"
+                : "Embedding observado; relevância depende do último eval sanitizado"}
+            </dd>
+          </div>
+          <div>
+            <dt className="font-black">Última sincronização</dt>
+            <dd>
+              {civicSearch.lastSyncAt
+                ? new Date(civicSearch.lastSyncAt).toLocaleString("pt-BR")
+                : "Sem evidência"}
+            </dd>
+          </div>
+          <div>
+            <dt className="font-black">Testes</dt>
+            <dd>
+              Contrato local versionado; promoção depende do postflight remoto
+            </dd>
           </div>
         </dl>
       </section>

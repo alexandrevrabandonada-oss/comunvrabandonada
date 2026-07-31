@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { checkCivicSearchRateLimit } from "@/lib/rate-limit";
 import { hybridPublicSearch } from "@/lib/civic-intelligence/search";
+import { recordCivicSearchMetric } from "@/lib/civic-intelligence/observability";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,12 @@ export async function GET(request: Request) {
   }
   const limit = await checkCivicSearchRateLimit();
   if (!limit.allowed) {
+    await recordCivicSearchMetric({
+      searchKind: "lexical",
+      outcome: "fallback",
+      queryLength: parsed.data.q.length,
+      durationMs: 0,
+    });
     return NextResponse.json(
       { code: "rate_limited", fallbackPreserved: true },
       {
@@ -38,6 +45,26 @@ export async function GET(request: Request) {
       semantic: parsed.data.semantic === "1",
       timeoutMs: 1800,
     });
+    await recordCivicSearchMetric({
+      searchKind: result.intents.length
+        ? "intent"
+        : result.semanticState === "ready"
+          ? "hybrid"
+          : "lexical",
+      outcome:
+        result.semanticState === "timeout"
+          ? "timeout"
+          : result.semanticState === "unavailable"
+            ? "fallback"
+            : result.results.length
+              ? "results"
+              : "zero_results",
+      queryLength: parsed.data.q.length,
+      durationMs: result.durationMs,
+      confidenceBand: result.intents[0]?.confidenceBand ?? "none",
+      modelVersion:
+        result.semanticState === "ready" ? "gte-small@native-v1" : "lexical",
+    });
     return NextResponse.json(result, {
       headers: {
         "Cache-Control": "private, no-store",
@@ -45,6 +72,12 @@ export async function GET(request: Request) {
       },
     });
   } catch {
+    await recordCivicSearchMetric({
+      searchKind: "lexical",
+      outcome: "error",
+      queryLength: parsed.data.q.length,
+      durationMs: 0,
+    });
     return NextResponse.json(
       { code: "enrichment_unavailable", fallbackPreserved: true },
       { status: 503, headers: { "Cache-Control": "private, no-store" } },

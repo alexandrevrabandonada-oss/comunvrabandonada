@@ -469,6 +469,34 @@ begin
 end
 $$;
 
+create or replace function public.comun_record_search_metric(
+  p_search_kind text,
+  p_outcome text,
+  p_query_size_band text,
+  p_latency_band text,
+  p_confidence_band text default 'none',
+  p_model_version text default 'lexical'
+)
+returns void
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+begin
+  if current_user not in ('postgres', 'service_role', 'supabase_admin') then
+    raise exception 'COMUN_SEARCH_SERVER_ROLE_REQUIRED' using errcode = '42501';
+  end if;
+  insert into public.comun_search_metrics_hourly (
+    bucket, search_kind, outcome, query_size_band, latency_band, confidence_band, model_version, total
+  ) values (
+    date_trunc('hour', now()), p_search_kind, p_outcome, p_query_size_band, p_latency_band,
+    coalesce(nullif(p_confidence_band, ''), 'none'), left(coalesce(nullif(p_model_version, ''), 'lexical'), 80), 1
+  )
+  on conflict (bucket, search_kind, outcome, query_size_band, latency_band, confidence_band, model_version)
+  do update set total = public.comun_search_metrics_hourly.total + 1;
+end
+$$;
+
 revoke all on function public.comun_sync_public_search_projection() from public, anon, authenticated;
 grant execute on function public.comun_sync_public_search_projection() to service_role;
 revoke all on function public.comun_claim_search_embedding_jobs(integer) from public, anon, authenticated;
@@ -477,6 +505,8 @@ revoke all on function public.comun_complete_search_embedding_job(bigint, text, 
 grant execute on function public.comun_complete_search_embedding_job(bigint, text, text, text, extensions.vector) to service_role;
 revoke all on function public.comun_fail_search_embedding_job(bigint, text) from public, anon, authenticated;
 grant execute on function public.comun_fail_search_embedding_job(bigint, text) to service_role;
+revoke all on function public.comun_record_search_metric(text, text, text, text, text, text) from public, anon, authenticated;
+grant execute on function public.comun_record_search_metric(text, text, text, text, text, text) to service_role;
 revoke all on function public.comun_public_search_hybrid(text, text, uuid, uuid, extensions.vector, integer) from public;
 grant execute on function public.comun_public_search_hybrid(text, text, uuid, uuid, extensions.vector, integer) to anon, authenticated, service_role;
 
