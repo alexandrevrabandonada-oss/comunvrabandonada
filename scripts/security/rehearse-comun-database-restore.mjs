@@ -23,6 +23,7 @@ const startedAt = Date.now();
 const tag = syntheticTag("db-restore");
 const container = tag.slice(0, 62);
 const password = syntheticTag("db-password");
+const ISOLATED_POSTGRES_IMAGE = "pgvector/pgvector:0.8.0-pg17";
 const ALLOWED_REMOTE_LEGACY_TABLES = new Set([
   "comments",
   "communities",
@@ -120,7 +121,7 @@ async function main() {
       container,
       "-e",
       `POSTGRES_PASSWORD=${password}`,
-      "postgres:17",
+      ISOLATED_POSTGRES_IMAGE,
     ]);
     waitForPostgres();
     recoveryPhase = "isolated_bootstrap";
@@ -469,10 +470,10 @@ async function rehearseApplicationAgainstRestore(tables) {
   const remoteTableSet = new Set(tables);
   const applicationTables = tables.filter((name) => localTableSet.has(name));
   const remoteOnlyTables = tables.filter((name) => !localTableSet.has(name));
-  const localOnlyTables = localTables.filter((name) => !remoteTableSet.has(name));
-  if (
-    remoteOnlyTables.some((name) => !ALLOWED_REMOTE_LEGACY_TABLES.has(name))
-  )
+  const localOnlyTables = localTables.filter(
+    (name) => !remoteTableSet.has(name),
+  );
+  if (remoteOnlyTables.some((name) => !ALLOWED_REMOTE_LEGACY_TABLES.has(name)))
     throw new Error("COMUN_DATABASE_APPLICATION_SCHEMA_DRIFT_FAILED");
   if (localOnlyTables.length)
     throw new Error("COMUN_DATABASE_APPLICATION_REMOTE_SCHEMA_BEHIND_FAILED");
@@ -838,6 +839,10 @@ do $$ begin
   if not exists(select 1 from pg_roles where rolname='supabase_storage_admin') then create role supabase_storage_admin nologin; end if;
 end $$;
 create extension if not exists pgcrypto;
+create schema if not exists extensions;
+create extension if not exists vector with schema extensions;
+create extension if not exists unaccent with schema extensions;
+create extension if not exists pg_trgm with schema extensions;
 create schema if not exists auth;
 create schema if not exists storage;
 create table if not exists auth.users(id uuid primary key);
