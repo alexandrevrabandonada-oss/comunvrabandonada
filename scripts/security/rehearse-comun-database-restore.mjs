@@ -519,7 +519,7 @@ async function rehearseApplicationAgainstRestore(tables) {
           MEDIA_STORAGE_PROVIDER: "supabase-local",
           NODE_ENV: "production",
         },
-        stdio: ["ignore", "pipe", "pipe"],
+        stdio: "ignore",
         shell: process.platform === "win32",
       },
     );
@@ -550,6 +550,7 @@ async function rehearseApplicationAgainstRestore(tables) {
       const routeStartedAt = Date.now();
       const response = await fetch(`${baseUrl}${route}`, {
         redirect: "manual",
+        signal: AbortSignal.timeout(5_000),
       });
       publicRouteMaximumMs = Math.max(
         publicRouteMaximumMs,
@@ -569,6 +570,7 @@ async function rehearseApplicationAgainstRestore(tables) {
     const administrationStartedAt = Date.now();
     const protectedResponse = await fetch(`${baseUrl}/comun/admin/operacao`, {
       redirect: "manual",
+      signal: AbortSignal.timeout(5_000),
     });
     const administrationProbeMs = Date.now() - administrationStartedAt;
     assert.ok([302, 303, 307, 308].includes(protectedResponse.status));
@@ -689,7 +691,10 @@ async function waitForHttp(url) {
   let last;
   for (let attempt = 0; attempt < 90; attempt += 1) {
     try {
-      const response = await fetch(url, { redirect: "manual" });
+      const response = await fetch(url, {
+        redirect: "manual",
+        signal: AbortSignal.timeout(5_000),
+      });
       if (response.status < 500) return;
       last = new Error(`status ${response.status}`);
     } catch (error) {
