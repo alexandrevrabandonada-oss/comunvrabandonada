@@ -122,7 +122,7 @@ export function LiveSearchResults({
   return (
     <>
       <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-        <p role="status" aria-live="polite">
+        <p role="status" aria-live="polite" data-testid="civic-search-status">
           {results.length} resultados públicos · correspondência inicial em{" "}
           {lexicalDurationMs} ms
           {state === "loading" ? " · buscando relações…" : ""}

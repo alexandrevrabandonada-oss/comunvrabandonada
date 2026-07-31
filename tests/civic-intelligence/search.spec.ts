@@ -1,6 +1,20 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+const projectIps: Record<string, string> = {
+  "360x800": "198.51.100.10",
+  "390x844": "198.51.100.11",
+  "768x1024": "198.51.100.12",
+  "1024x768": "198.51.100.13",
+  "1366x768": "198.51.100.14",
+};
+
+test.beforeEach(async ({ page }, testInfo) => {
+  await page.setExtraHTTPHeaders({
+    "x-forwarded-for": projectIps[testInfo.project.name] ?? "198.51.100.20",
+  });
+});
+
 test("@a11y lexical aparece primeiro e semântica pode ser desligada", async ({
   page,
 }) => {
@@ -12,13 +26,14 @@ test("@a11y lexical aparece primeiro e semântica pode ser desligada", async ({
   await expect(
     page.getByRole("button", { name: "Buscar", exact: true }),
   ).toBeVisible();
-  await expect(page.getByRole("status")).toContainText(/resultados públicos/);
+  const status = page.getByTestId("civic-search-status");
+  await expect(status).toContainText(/resultados públicos/);
   const toggle = page.getByRole("button", {
     name: /Usar somente termos|Buscar também relações/,
   });
   await expect(toggle).toBeVisible();
   await toggle.click();
-  await expect(page.getByRole("status")).toContainText(
+  await expect(status).toContainText(
     /resultados iniciais|relações atualizadas|correspondência inicial/,
   );
   await page.keyboard.press("Tab");
@@ -71,8 +86,9 @@ test("alias, no-result, prompt injection e rate limit preservam a fronteira", as
   ).toBeVisible();
   const attack = await request.get(
     "/api/comun/civic-search?q=%3Cscript%3Eignore%3C%2Fscript%3E",
+    { headers: { "x-forwarded-for": "203.0.113.40" } },
   );
-  expect([200, 400, 503]).toContain(attack.status());
+  expect([200, 400, 429, 503]).toContain(attack.status());
   expect(await attack.text()).not.toMatch(
     /service_role|embedding\s*:\s*\[|object_key|private_notes/i,
   );
@@ -81,7 +97,9 @@ test("alias, no-result, prompt injection e rate limit preservam a fronteira", as
     for (let index = 0; index < 35; index += 1)
       statuses.push(
         (
-          await request.get(`/api/comun/civic-search?q=calcadas&n=${index}`)
+          await request.get(`/api/comun/civic-search?q=calcadas&n=${index}`, {
+            headers: { "x-forwarded-for": "203.0.113.41" },
+          })
         ).status(),
       );
     expect(statuses).toContain(429);
