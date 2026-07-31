@@ -69,7 +69,44 @@ jobs:
       - name: Start and migrate disposable Supabase
         run: |
           supabase start
-          supabase db reset --local --yes
+          reset_log="$(mktemp)"
+          chmod 600 "$reset_log"
+          trap 'rm -f "$reset_log"' EXIT
+
+          set +e
+          supabase db reset --local --yes >"$reset_log" 2>&1
+          reset_status=$?
+          set -e
+
+          if [ "$reset_status" -ne 0 ]; then
+            if ! grep -q 'Error status 502' "$reset_log" ||
+              ! grep -q 'invalid response was received from the upstream server' "$reset_log"; then
+              echo 'COMUN_CIVIC_LOCAL_RESET_FAILED_SANITIZED'
+              exit "$reset_status"
+            fi
+
+            echo 'COMUN_CIVIC_LOCAL_RESET_502_REQUIRES_INDEPENDENT_VERIFICATION'
+            supabase status >/dev/null 2>&1
+
+            mapfile -t db_containers < <(
+              docker ps --filter 'name=supabase_db_' --format '{{.Names}}'
+            )
+            if [ "${#db_containers[@]}" -ne 1 ]; then
+              echo 'COMUN_CIVIC_LOCAL_RESET_DATABASE_TARGET_UNVERIFIED'
+              exit 1
+            fi
+
+            applied="$({
+              docker exec "${db_containers[0]}" psql -U postgres -d postgres -Atc \
+                "select count(*) from supabase_migrations.schema_migrations where version in ('20260731183339', '20260731220000')"
+            } 2>/dev/null)"
+            if [ "$applied" != '2' ]; then
+              echo 'COMUN_CIVIC_LOCAL_RESET_MIGRATIONS_UNVERIFIED'
+              exit 1
+            fi
+
+            echo 'COMUN_CIVIC_LOCAL_RESET_502_CONTAINED_GREEN'
+          fi
       - name: Fake provider, queue, RLS and scale
         env:
           COMUN_CIVIC_FAKE_EMBEDDINGS: "1"
