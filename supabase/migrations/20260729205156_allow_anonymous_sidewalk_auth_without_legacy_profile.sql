@@ -83,12 +83,17 @@ end
 $migration$;
 
 do $postflight$
+declare
+  target_function oid := pg_catalog.to_regprocedure('public.handle_new_user()');
 begin
-  if pg_catalog.to_regprocedure('public.handle_new_user()') is not null
-     and not exists (
+  if target_function is null then
+    return;
+  end if;
+
+  if not exists (
     select 1
     from pg_catalog.pg_proc
-    where oid = 'public.handle_new_user()'::pg_catalog.regprocedure
+    where oid = target_function
       and prosecdef
       and proconfig = array['search_path=pg_catalog']
       and prosrc like '%if new.is_anonymous is true then%'

@@ -97,6 +97,7 @@ jobs:
           name: comun-security-resilience-local-${{ github.sha }}-${{ github.run_id }}
           path: .security-evidence/*.json
           if-no-files-found: error
+          include-hidden-files: true
           retention-days: 7
 
   remote-full:
@@ -190,4 +191,5 @@ jobs:
           name: comun-security-resilience-remote-${{ github.sha }}-${{ github.run_id }}
           path: .security-evidence/*.json
           if-no-files-found: error
+          include-hidden-files: true
           retention-days: 7
