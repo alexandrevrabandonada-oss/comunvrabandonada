@@ -1,7 +1,7 @@
 {
   "release": "20260731183339-comun-civic-search-foundation",
   "migration": "supabase/migrations/20260731183339_comun_civic_search_foundation.sql",
-  "migrationSha256": "f0480fc357e79d5ab4939699ed831a92fc6a45f0811749b41d5c4aeb36966eb5",
+  "migrationSha256": "2f6e1d62eb06f5ca436d03f0fb09993798f234f9008a409b3872086e5c39f08d",
   "destructiveSql": false,
   "requiresPromotion": true,
   "expectedPreFingerprint": "ADDITIVE_PUBLIC_PROJECTION",
@@ -13,7 +13,7 @@
     "unifiedPublicSearch remains the first-result fallback",
     "only public_projection can be indexed",
     "documents, sections, jobs, metrics and embeddings have no direct public access",
-    "hybrid RPC returns sanitized public fields only",
+    "server-only hybrid RPC returns sanitized public fields only",
     "privileged functions use a fixed search_path and service_role grants",
     "source removal removes the reconstructible projection",
     "embedding completion rejects stale checksums",

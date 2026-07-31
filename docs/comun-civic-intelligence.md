@@ -80,16 +80,17 @@ Relacionados são no máximo quatro, explicados e não comportamentais. Duplicid
 
 Consultas brutas não são persistidas, associadas à conta, incluídas em logs/artifacts ou usadas para personalização. Rate limit usa somente hash efêmero de rede já existente, com janela de um minuto. Métricas permitidas são contagem, faixa de tamanho/latência, tipo, zero resultado, fallback, erro, confiança e versão.
 
-| Recurso             | anon                               | auth sem vínculo         | membro/outra comunidade/coordenador/operador/admin/revogado | service role                |
-| ------------------- | ---------------------------------- | ------------------------ | ----------------------------------------------------------- | --------------------------- |
-| documentos/seções   | sem leitura direta                 | sem leitura direta       | sem leitura direta                                          | leitura/escrita server-side |
-| embeddings          | invisíveis                         | invisíveis               | invisíveis                                                  | worker focal                |
-| jobs                | invisíveis                         | invisíveis               | invisíveis                                                  | claim/complete/fail         |
-| métricas            | invisíveis e sem escrita           | invisíveis e sem escrita | observabilidade sanitizada só via servidor admin            | agregação                   |
-| RPC pública híbrida | execução, somente projeção pública | idem                     | idem; revogação não muda o escopo público                   | execução                    |
-| RPCs privilegiadas  | negadas                            | negadas                  | negadas                                                     | execução                    |
+| Recurso              | anon                                | auth sem vínculo         | membro/outra comunidade/coordenador/operador/admin/revogado | service role                |
+| -------------------- | ----------------------------------- | ------------------------ | ----------------------------------------------------------- | --------------------------- |
+| documentos/seções    | sem leitura direta                  | sem leitura direta       | sem leitura direta                                          | leitura/escrita server-side |
+| embeddings           | invisíveis                          | invisíveis               | invisíveis                                                  | worker focal                |
+| jobs                 | invisíveis                          | invisíveis               | invisíveis                                                  | claim/complete/fail         |
+| métricas             | invisíveis e sem escrita            | invisíveis e sem escrita | observabilidade sanitizada só via servidor admin            | agregação                   |
+| API pública de busca | resposta sanitizada, com rate limit | idem                     | idem; revogação não muda o escopo público                   | chamada HTTP                |
+| RPC híbrida interna  | bloqueada                           | bloqueada                | bloqueada                                                   | somente `service_role`      |
+| RPCs privilegiadas   | negadas                             | negadas                  | negadas                                                     | execução                    |
 
-Todas as tabelas têm RLS, nenhum policy de leitura direta e grants explícitos mínimos. Funções privilegiadas são `security definer`, `search_path` fixo e executáveis só por `service_role`. A RPC pública filtra no banco por `public_projection/public`; nunca recupera tudo para filtrar na aplicação. Fixtures provam rejeição de outro escopo. Resultado esperado: `COMUN_CIVIC_SEARCH_PERMISSION_BOUNDARY_GREEN`.
+Todas as tabelas têm RLS, nenhum policy de leitura direta e grants explícitos mínimos. Funções privilegiadas são `security definer`, `search_path` fixo e executáveis só por `service_role`. A API chama a RPC híbrida no servidor, que filtra no banco por `public_projection/public`; nunca recupera tudo para filtrar na aplicação. Fixtures provam que `anon` não executa a RPC nem lê outro escopo. Resultado esperado: `COMUN_CIVIC_SEARCH_PERMISSION_BOUNDARY_GREEN`.
 
 Ameaças cobertas: prompt injection é tratado como dado; HTML não é gerado; payload, dimensão e rota são validados; jobs são deduplicados; checksum impede persistir embedding obsoleto; timeout mantém lexical; rate limit contém flood; RLS impede exfiltração/enumeração; URLs externas são rejeitadas; logs e artifacts não contêm consulta, conteúdo, prompt, vetor, chave ou usuário.
 

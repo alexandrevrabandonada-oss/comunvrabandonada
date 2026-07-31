@@ -26,7 +26,8 @@ const tables = [
 const directReadResults = [];
 let directWriteBlocked = false;
 let privateProjectionRejected = false;
-let publicRpcAvailable = false;
+let directRpcBlocked = false;
+let serverRpcAvailable = false;
 if (anon && service) {
   for (const table of tables) {
     const { data, error } = await anon.from(table).select("*").limit(1);
@@ -62,7 +63,18 @@ if (anon && service) {
       content_checksum: "0".repeat(32),
       search_vector: "fixture",
     });
-  const { data: publicRpc, error: rpcError } = await anon.rpc(
+  const { error: directRpcError } = await anon.rpc(
+    "comun_public_search_hybrid",
+    {
+      p_query: "calçadas",
+      p_type: null,
+      p_pauta_id: null,
+      p_territory_id: null,
+      p_query_embedding: null,
+      p_limit: 5,
+    },
+  );
+  const { data: serverRpc, error: serverRpcError } = await service.rpc(
     "comun_public_search_hybrid",
     {
       p_query: "calçadas",
@@ -75,7 +87,8 @@ if (anon && service) {
   );
   directWriteBlocked = Boolean(directWriteError);
   privateProjectionRejected = Boolean(privateProjectionError);
-  publicRpcAvailable = !rpcError && Array.isArray(publicRpc);
+  directRpcBlocked = Boolean(directRpcError);
+  serverRpcAvailable = !serverRpcError && Array.isArray(serverRpc);
 }
 
 const database = new pg.Client({ connectionString: databaseUrl });
@@ -109,9 +122,13 @@ if (!httpBoundaryAvailable) {
   );
   directWriteBlocked = privileges.rows.every((row) => !row.anon_write);
   privateProjectionRejected = true;
-  publicRpcAvailable = catalog.rows.some(
-    (row) => row.proname === "comun_public_search_hybrid" && row.anon_execute,
+  const hybrid = catalog.rows.find(
+    (row) => row.proname === "comun_public_search_hybrid",
   );
+  directRpcBlocked = Boolean(
+    hybrid && !hybrid.anon_execute && !hybrid.authenticated_execute,
+  );
+  serverRpcAvailable = Boolean(hybrid);
 }
 await database.end();
 
@@ -120,6 +137,8 @@ const privileged = new Set([
   "comun_claim_search_embedding_jobs",
   "comun_complete_search_embedding_job",
   "comun_fail_search_embedding_job",
+  "comun_public_search_hybrid",
+  "comun_record_search_metric",
 ]);
 const catalogGreen = catalog.rows.every(
   (row) =>
@@ -132,7 +151,8 @@ const result =
   directReadResults.every((item) => item.blocked) &&
   directWriteBlocked &&
   privateProjectionRejected &&
-  publicRpcAvailable &&
+  directRpcBlocked &&
+  serverRpcAvailable &&
   catalogGreen
     ? "COMUN_CIVIC_SEARCH_PERMISSION_BOUNDARY_GREEN"
     : "COMUN_CIVIC_INTELLIGENCE_BLOCKED_PERMISSION_BOUNDARY";
@@ -141,7 +161,8 @@ const evidence = {
   directTablesInvisible: directReadResults.every((item) => item.blocked),
   directMetricsWriteBlocked: directWriteBlocked,
   privateProjectionRejected,
-  publicSanitizedRpcAvailable: publicRpcAvailable,
+  directPrivilegedRpcBlocked: directRpcBlocked,
+  serverSanitizedRpcAvailable: serverRpcAvailable,
   privilegedFunctionsProtected: catalogGreen,
   functionsAudited: catalog.rows.length,
   personas: [

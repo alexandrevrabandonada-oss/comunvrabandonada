@@ -507,8 +507,8 @@ revoke all on function public.comun_fail_search_embedding_job(bigint, text) from
 grant execute on function public.comun_fail_search_embedding_job(bigint, text) to service_role;
 revoke all on function public.comun_record_search_metric(text, text, text, text, text, text) from public, anon, authenticated;
 grant execute on function public.comun_record_search_metric(text, text, text, text, text, text) to service_role;
-revoke all on function public.comun_public_search_hybrid(text, text, uuid, uuid, extensions.vector, integer) from public;
-grant execute on function public.comun_public_search_hybrid(text, text, uuid, uuid, extensions.vector, integer) to anon, authenticated, service_role;
+revoke all on function public.comun_public_search_hybrid(text, text, uuid, uuid, extensions.vector, integer) from public, anon, authenticated;
+grant execute on function public.comun_public_search_hybrid(text, text, uuid, uuid, extensions.vector, integer) to service_role;
 
 alter default privileges in schema public revoke all on tables from anon, authenticated;
 alter default privileges in schema public revoke all on sequences from anon, authenticated;
