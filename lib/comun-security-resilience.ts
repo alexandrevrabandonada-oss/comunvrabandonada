@@ -1,15 +1,16 @@
 export const COMUN_SECURITY_RESILIENCE = {
   result: "COMUN_SECURITY_RESILIENCE_BLOCKED_PROVIDER_CAPABILITY",
-  evidenceAt: "2026-07-30",
-  state: "Recuperação implementada; ponto durável de backup indisponível",
+  evidenceAt: "2026-07-31 01:49 BRT",
+  state: "Restores ensaiados; recuperação durável indisponível no plano atual",
   nextAction:
-    "Executar o ensaio isolado e manter o domínio bloqueado até existir um ponto durável de recuperação compatível com o RPO.",
+    "Manter o domínio bloqueado até existir um ponto durável do banco e uma cópia secundária dos arquivos compatíveis com o RPO.",
   checks: [
     ["RLS e grants", "ready"],
     ["Fronteira de segredos", "ready"],
-    ["Backup remoto durável", "blocked"],
-    ["Restore do banco", "pending"],
-    ["Restore de arquivos", "pending"],
+    ["Backup remoto efêmero", "ready"],
+    ["Ponto de recuperação durável", "blocked"],
+    ["Restore do banco", "ready"],
+    ["Restore de arquivos", "ready"],
     ["Retenção e exclusão", "ready"],
     ["Resposta a incidentes", "ready"],
     ["Rollback", "ready"],

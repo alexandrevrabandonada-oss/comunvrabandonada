@@ -1,0 +1,87 @@
+{
+  "formatVersion": 1,
+  "domain": "security_resilience",
+  "result": "COMUN_SECURITY_RESILIENCE_BLOCKED_PROVIDER_CAPABILITY",
+  "baseSha": "3721a9fbcec74d8573f7356717a07ded67f08c57",
+  "rehearsedSha": "708aa9009b6ef7e901d215b97d8b402a3ef152a0",
+  "productionDeployment": {
+    "reference": "5686481830",
+    "state": "READY"
+  },
+  "pullRequests": {
+    "main": 117,
+    "focusedCorrections": [118, 119, 120, 121]
+  },
+  "runs": {
+    "finalPrLane": 30604641109,
+    "dualKeyTransition": 30604879649,
+    "remoteFull": 30604977938
+  },
+  "checks": {
+    "rls": "COMUN_RLS_COMPLETE_GREEN",
+    "secrets": "COMUN_SECRETS_BOUNDARY_GREEN",
+    "databaseRestore": "COMUN_DATABASE_RESTORE_REHEARSAL_GREEN",
+    "storageRestore": "COMUN_STORAGE_RESTORE_REHEARSAL_GREEN",
+    "migrationRecovery": "COMUN_MIGRATION_RECOVERY_GREEN",
+    "deploymentRollback": "COMUN_DEPLOYMENT_ROLLBACK_GREEN",
+    "retention": "COMUN_RETENTION_POLICY_GREEN",
+    "incidents": "COMUN_INCIDENT_RESPONSE_REHEARSAL_GREEN"
+  },
+  "database": {
+    "tables": 188,
+    "aggregateRows": 11872,
+    "policies": 61,
+    "indexes": 466,
+    "constraints": 1131,
+    "invalidIndexes": 0,
+    "unvalidatedConstraints": 0,
+    "publicForeignKeyOrphans": 0,
+    "migrationLedgerEntries": 70,
+    "cleanup": "complete"
+  },
+  "storage": {
+    "provider": "r2_runtime",
+    "realObjectCountObserved": 0,
+    "syntheticObjectsRestored": 5,
+    "realObjectsDeleted": false,
+    "cleanup": "complete",
+    "durableSecondaryCopy": "not_proven"
+  },
+  "secrets": {
+    "filesScanned": 1684,
+    "recentCommitsScanned": 30,
+    "unexpectedPublicExposure": 0,
+    "valuesExposed": false,
+    "dualKeyTransition": "staged_and_verified",
+    "previousKeyRevoked": false
+  },
+  "incidents": {
+    "scenarios": 15,
+    "p0": 2,
+    "p1": 10,
+    "p2": 3,
+    "duplicateOperationalEntries": 0
+  },
+  "retention": {
+    "policyTypes": 14,
+    "realDataDeleted": false,
+    "legalDeadlineInvented": false
+  },
+  "providerBlocker": {
+    "observedPlan": "free",
+    "automaticDatabaseBackup": "unavailable",
+    "pitr": "unavailable",
+    "durableDatabaseRecoveryPoint": "missing",
+    "durableStorageSecondaryCopy": "not_proven",
+    "financialPlanChanged": false
+  },
+  "artifact": {
+    "name": "comun-security-resilience-remote-708aa9009b6ef7e901d215b97d8b402a3ef152a0-30604977938",
+    "sanitized": true,
+    "containsBackup": false,
+    "containsObjectKeys": false,
+    "containsSecretMaterial": false
+  },
+  "launchPublicly": "not_invoked"
+}
+
