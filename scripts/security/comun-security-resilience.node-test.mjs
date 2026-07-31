@@ -1,6 +1,37 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { validateRemoteTarget } from "./comun-security-contract.mjs";
+
+test("allowlist reconhece alvos Supabase diretos e pooler sem aceitar host externo", () => {
+  const projectRef = "abcdefghijklmnopqrst";
+  const allowedRefs = projectRef;
+  assert.equal(
+    validateRemoteTarget({
+      databaseUrl: `postgresql://postgres:synthetic@db.${projectRef}.supabase.co:5432/postgres`,
+      projectRef,
+      allowedRefs,
+    }).target,
+    "verified",
+  );
+  assert.equal(
+    validateRemoteTarget({
+      databaseUrl: `postgresql://postgres.${projectRef}:synthetic@aws-0-region.pooler.supabase.com:6543/postgres`,
+      projectRef,
+      allowedRefs,
+    }).target,
+    "verified",
+  );
+  assert.throws(
+    () =>
+      validateRemoteTarget({
+        databaseUrl: `postgresql://postgres.${projectRef}:synthetic@external.invalid:6543/postgres`,
+        projectRef,
+        allowedRefs,
+      }),
+    /TARGET_MISMATCH/,
+  );
+});
 
 test("workflow nunca publica dump, env ou object keys", async () => {
   const workflow = await readFile(

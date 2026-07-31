@@ -60,10 +60,16 @@ export function validateRemoteTarget({ databaseUrl, projectRef, allowedRefs }) {
   if (!allowlist.has(projectRef))
     throw new Error("COMUN_SECURITY_PROJECT_REF_NOT_ALLOWLISTED");
   const url = new URL(databaseUrl);
-  const hostMatches =
-    url.hostname === `db.${projectRef}.supabase.co` ||
-    url.hostname.includes(`.${projectRef}.`);
-  if (!hostMatches) throw new Error("COMUN_SECURITY_DATABASE_TARGET_MISMATCH");
+  if (!["postgres:", "postgresql:"].includes(url.protocol))
+    throw new Error("COMUN_SECURITY_DATABASE_TARGET_MISMATCH");
+  const hostname = url.hostname.toLowerCase();
+  const username = decodeURIComponent(url.username);
+  const directTarget = hostname === `db.${projectRef}.supabase.co`;
+  const poolerTarget =
+    hostname.endsWith(".pooler.supabase.com") &&
+    username === `postgres.${projectRef}`;
+  if (!directTarget && !poolerTarget)
+    throw new Error("COMUN_SECURITY_DATABASE_TARGET_MISMATCH");
   return { target: "verified", mode: "remote_read_only_source" };
 }
 
