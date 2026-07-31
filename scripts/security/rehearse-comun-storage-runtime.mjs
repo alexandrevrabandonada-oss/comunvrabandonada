@@ -36,8 +36,15 @@ try {
     body: JSON.stringify({ attemptId }),
     signal: AbortSignal.timeout(65_000),
   });
-  if (!response.ok)
-    throw new Error("COMUN_STORAGE_RUNTIME_REHEARSAL_REQUEST_FAILED");
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    const marker =
+      typeof body.marker === "string" &&
+      /^COMUN_STORAGE_RUNTIME_[A-Z_]+$/.test(body.marker)
+        ? body.marker
+        : `COMUN_STORAGE_RUNTIME_HTTP_${response.status}`;
+    throw new Error(marker);
+  }
   const evidence = await response.json();
   assert.equal(evidence.result, RESULT.storageRestore);
   assert.equal(evidence.cleanup?.realObjectsDeleted, false);

@@ -73,7 +73,9 @@ test("ensaio de Storage no runtime exige duas chaves, assinatura e prazo", async
   assert.match(route, /createHmac\("sha256"/);
   assert.match(route, /5 \* 60_000/);
   assert.match(route, /timingSafeEqual/);
+  assert.match(route, /\^COMUN_STORAGE_RUNTIME_\[A-Z_\]\+\$/);
   assert.match(caller, /X-COMUN-Rehearsal-Signature/);
+  assert.match(caller, /COMUN_STORAGE_RUNTIME_HTTP_/);
   assert.doesNotMatch(caller, /console\.log\([^)]*(?:token|signature|signingKey)/i);
 });
 

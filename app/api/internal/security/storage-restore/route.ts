@@ -48,9 +48,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(evidence, {
       headers: { "Cache-Control": "no-store" },
     });
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    const marker = /^COMUN_STORAGE_RUNTIME_[A-Z_]+$/.test(message)
+      ? message
+      : "COMUN_STORAGE_RUNTIME_INTERNAL_FAILURE";
     return NextResponse.json(
-      { error: "storage_rehearsal_failed" },
+      { error: "storage_rehearsal_failed", marker },
       { status: 500, headers: { "Cache-Control": "no-store" } },
     );
   }
