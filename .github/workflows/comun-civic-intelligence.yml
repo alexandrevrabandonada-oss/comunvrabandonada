@@ -1,0 +1,169 @@
+name: COMUN Civic Intelligence Deliverability
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "components/civic-intelligence/**"
+      - "lib/civic-intelligence/**"
+      - "scripts/civic-intelligence/**"
+      - "supabase/functions/comun-civic-embed/**"
+      - "supabase/migrations/**"
+      - "docs/comun-civic-intelligence*.md"
+      - "tests/civic-intelligence/**"
+      - "playwright.civic-intelligence.config.ts"
+      - "package*.json"
+      - ".github/workflows/comun-civic-intelligence.yml"
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "components/civic-intelligence/**"
+      - "lib/civic-intelligence/**"
+      - "scripts/civic-intelligence/**"
+      - "supabase/functions/comun-civic-embed/**"
+      - "supabase/migrations/**"
+      - "docs/comun-civic-intelligence*.md"
+      - "tests/civic-intelligence/**"
+      - "playwright.civic-intelligence.config.ts"
+      - "package*.json"
+      - ".github/workflows/comun-civic-intelligence.yml"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Local verification or allowlisted post-merge lane
+        required: true
+        type: choice
+        default: local
+        options: [local, full]
+
+concurrency:
+  group: comun-civic-intelligence-${{ github.event.pull_request.number || github.ref }}-${{ inputs.mode || 'pr' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  pr-lane:
+    if: github.event_name == 'pull_request' || inputs.mode == 'local'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.111.0
+      - name: Create sanitized envelope before the first write
+        run: mkdir -p .ci-artifacts/civic-intelligence && node -e "require('node:fs').writeFileSync('.ci-artifacts/civic-intelligence/00-envelope.json',JSON.stringify({status:'started',scope:'disposable_local',containsQueries:false,containsDocuments:false,containsSecrets:false},null,2))"
+      - run: npm ci --ignore-scripts
+      - name: Repository secret boundary and fixed corpus
+        run: |
+          npm run security:secrets
+          npm run civic-intelligence:test
+      - name: Start and migrate disposable Supabase
+        run: |
+          supabase start
+          supabase db reset --local --yes
+      - name: Fake provider, queue, RLS and scale
+        env:
+          COMUN_CIVIC_FAKE_EMBEDDINGS: "1"
+        run: |
+          npm run civic-intelligence:sync:local
+          npm run civic:search:permissions:local
+          npm run civic-intelligence:perf
+          npm run civic-intelligence:rehearsal:local
+      - run: npx playwright install --with-deps chromium
+      - name: Five-viewports, keyboard, a11y, timeout and fallback
+        run: npm run test:e2e:civic-intelligence
+      - name: Static regressions and build
+        run: |
+          npm run experience:coherence:test
+          npm run test:unit
+          npm run audit:rls-matrix
+          npm run security:test
+          npm run typecheck
+          npm run lint
+          npm run build
+          npx prettier --check app/comun/buscar/page.tsx components/civic-intelligence lib/civic-intelligence scripts/civic-intelligence docs/comun-civic-intelligence*.md tests/civic-intelligence playwright.civic-intelligence.config.ts .github/workflows/comun-civic-intelligence.yml
+          git diff --check
+      - name: Stop and erase disposable services
+        if: always()
+        run: supabase stop --no-backup || true
+      - name: Sanitized failure marker
+        if: failure()
+        run: node -e "require('node:fs').writeFileSync('.ci-artifacts/civic-intelligence/99-failure.json',JSON.stringify({status:'failed',queriesExposed:false,documentsExposed:false,secretsExposed:false},null,2))"
+      - name: Publish sanitized evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-civic-intelligence-${{ github.run_id }}
+          path: .ci-artifacts/civic-intelligence/*.json
+          if-no-files-found: error
+          retention-days: 14
+
+  post-merge:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'full'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      PR23_DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+      COMUN_CIVIC_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+      COMUN_BASE_URL: https://comunsocial.online
+      COMUN_CIVIC_REHEARSAL_HTTP: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.111.0
+      - name: Failure-safe envelope before remote access
+        run: mkdir -p .ci-artifacts/civic-intelligence && node -e "require('node:fs').writeFileSync('.ci-artifacts/civic-intelligence/00-envelope.json',JSON.stringify({status:'started',scope:'allowlisted_remote',containsQueries:false,containsDocuments:false,containsSecrets:false},null,2))"
+      - run: npm ci --ignore-scripts
+      - name: Capability and target preflight
+        run: |
+          test -n "$SUPABASE_PROJECT_REF"
+          test -n "$SUPABASE_ACCESS_TOKEN"
+          test -n "$SUPABASE_DB_URL"
+          test -n "$SUPABASE_SERVICE_ROLE_KEY"
+          npm run security:secrets
+          supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+          supabase db query --linked "select current_setting('server_version_num')::int >= 170000 as postgres_17, exists(select 1 from pg_available_extensions where name='vector') as vector_available, exists(select 1 from pg_ts_config where cfgname='portuguese') as portuguese_fts" >/dev/null
+      - name: Additive migration and focal function
+        run: |
+          supabase db push --linked --include-all
+          supabase functions deploy comun-civic-embed --project-ref "$SUPABASE_PROJECT_REF"
+      - name: Public-only indexing and real embeddings
+        run: npm run civic:search:sync
+      - name: Real provider eval and permission rehearsal
+        run: |
+          npm run civic:search:eval
+          node scripts/civic-intelligence/audit-comun-civic-search-permissions.mjs
+          npm run civic:search:rehearsal:remote
+      - name: Sanitized postflight
+        run: node -e "require('node:fs').writeFileSync('.ci-artifacts/civic-intelligence/98-postflight.json',JSON.stringify({status:'complete',publicProjectionOnly:true,queriesExposed:false,documentsExposed:false,cleanup:true,humanRehearsal:'not_executed'},null,2))"
+      - name: Sanitized failure marker
+        if: failure()
+        run: node -e "require('node:fs').writeFileSync('.ci-artifacts/civic-intelligence/99-failure.json',JSON.stringify({status:'failed',queriesExposed:false,documentsExposed:false,secretsExposed:false},null,2))"
+      - name: Publish sanitized evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-civic-intelligence-remote-${{ github.run_id }}
+          path: .ci-artifacts/civic-intelligence/*.json
+          if-no-files-found: error
+          retention-days: 14

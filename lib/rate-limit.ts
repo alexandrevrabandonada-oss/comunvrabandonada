@@ -57,7 +57,9 @@ export function hashLookupValue(value: string | null | undefined) {
   const cleanValue = value?.trim();
   if (!cleanValue) return null;
 
-  return createHash("sha256").update(`${hashSalt()}:${cleanValue}`).digest("hex");
+  return createHash("sha256")
+    .update(`${hashSalt()}:${cleanValue}`)
+    .digest("hex");
 }
 
 function firstForwardedIp(value: string | null) {
@@ -76,6 +78,39 @@ export async function getClientFingerprint() {
   return {
     ip_hash: hashLookupValue(ip),
     user_agent_hash: hashLookupValue(userAgent),
+  };
+}
+
+const civicSearchWindows = new Map<
+  string,
+  { startedAt: number; count: number }
+>();
+
+/** Ephemeral per-runtime protection. It never stores query text or account identity. */
+export async function checkCivicSearchRateLimit() {
+  const fingerprint = await getClientFingerprint();
+  const key = fingerprint.ip_hash ?? "unknown";
+  const now = Date.now();
+  const windowMs = 60_000;
+  const limit = process.env.COMUN_CIVIC_SEARCH_LIMIT_TEST_MODE === "1" ? 3 : 30;
+  const current = civicSearchWindows.get(key);
+  if (!current || now - current.startedAt >= windowMs) {
+    civicSearchWindows.set(key, { startedAt: now, count: 1 });
+    return { allowed: true, retryAfterSeconds: 0 };
+  }
+  current.count += 1;
+  if (civicSearchWindows.size > 2_000) {
+    for (const [candidate, value] of civicSearchWindows) {
+      if (now - value.startedAt >= windowMs)
+        civicSearchWindows.delete(candidate);
+    }
+  }
+  return {
+    allowed: current.count <= limit,
+    retryAfterSeconds: Math.max(
+      1,
+      Math.ceil((windowMs - (now - current.startedAt)) / 1000),
+    ),
   };
 }
 
@@ -98,7 +133,8 @@ async function countEvents(filters: {
     .gte("created_at", windowStartIso());
 
   if (filters.ip_hash) query = query.eq("ip_hash", filters.ip_hash);
-  if (filters.protocol_hash) query = query.eq("protocol_hash", filters.protocol_hash);
+  if (filters.protocol_hash)
+    query = query.eq("protocol_hash", filters.protocol_hash);
   if (filters.route) query = query.eq("route", filters.route);
   if (filters.result_type) query = query.eq("result_type", filters.result_type);
 
@@ -125,26 +161,57 @@ export async function logProtocolLookupEvent(input: RateLimitInput) {
   });
 }
 
-export async function checkProtocolLookupRateLimit(input: RateLimitInput): Promise<RateLimitDecision> {
+export async function checkProtocolLookupRateLimit(
+  input: RateLimitInput,
+): Promise<RateLimitDecision> {
   const limits = getLimits();
   const fingerprint = await getClientFingerprint();
   const protocolHash = hashLookupValue(input.protocol.trim().toUpperCase());
 
   if (!fingerprint.ip_hash) {
-    return { allowed: true, ...fingerprint, protocol_hash: protocolHash, reason: "ok" };
+    return {
+      allowed: true,
+      ...fingerprint,
+      protocol_hash: protocolHash,
+      reason: "ok",
+    };
   }
 
-  const routeCount = await countEvents({ ip_hash: fingerprint.ip_hash, route: input.route });
+  const routeCount = await countEvents({
+    ip_hash: fingerprint.ip_hash,
+    route: input.route,
+  });
   if (routeCount >= limits.route) {
-    await logProtocolLookupEvent({ ...input, resultType: "rate_limited", metadata: { reason: "route" } });
-    return { allowed: false, ...fingerprint, protocol_hash: protocolHash, reason: "route" };
+    await logProtocolLookupEvent({
+      ...input,
+      resultType: "rate_limited",
+      metadata: { reason: "route" },
+    });
+    return {
+      allowed: false,
+      ...fingerprint,
+      protocol_hash: protocolHash,
+      reason: "route",
+    };
   }
 
   if (input.resultType === "invalid_format") {
-    const invalidCount = await countEvents({ ip_hash: fingerprint.ip_hash, result_type: "invalid_format" });
+    const invalidCount = await countEvents({
+      ip_hash: fingerprint.ip_hash,
+      result_type: "invalid_format",
+    });
     if (invalidCount >= limits.invalidByIp) {
-      await logProtocolLookupEvent({ ...input, resultType: "rate_limited", metadata: { reason: "invalid_format" } });
-      return { allowed: false, ...fingerprint, protocol_hash: protocolHash, reason: "invalid_format" };
+      await logProtocolLookupEvent({
+        ...input,
+        resultType: "rate_limited",
+        metadata: { reason: "invalid_format" },
+      });
+      return {
+        allowed: false,
+        ...fingerprint,
+        protocol_hash: protocolHash,
+        reason: "invalid_format",
+      };
     }
   }
 
@@ -155,19 +222,35 @@ export async function checkProtocolLookupRateLimit(input: RateLimitInput): Promi
       route: input.route,
     });
     if (protocolCount >= limits.protocolByIp) {
-      await logProtocolLookupEvent({ ...input, resultType: "rate_limited", metadata: { reason: "protocol" } });
-      return { allowed: false, ...fingerprint, protocol_hash: protocolHash, reason: "protocol" };
+      await logProtocolLookupEvent({
+        ...input,
+        resultType: "rate_limited",
+        metadata: { reason: "protocol" },
+      });
+      return {
+        allowed: false,
+        ...fingerprint,
+        protocol_hash: protocolHash,
+        reason: "protocol",
+      };
     }
   }
 
-  return { allowed: true, ...fingerprint, protocol_hash: protocolHash, reason: "ok" };
+  return {
+    allowed: true,
+    ...fingerprint,
+    protocol_hash: protocolHash,
+    reason: "ok",
+  };
 }
 
 function sanitizeLookupMetadata(metadata: Record<string, unknown> | undefined) {
   if (!metadata) return {};
 
   const allowedKeys = new Set(["reason", "status", "smoke_id"]);
-  return Object.fromEntries(Object.entries(metadata).filter(([key]) => allowedKeys.has(key)));
+  return Object.fromEntries(
+    Object.entries(metadata).filter(([key]) => allowedKeys.has(key)),
+  );
 }
 
 export type PublicLookupEvent = {
@@ -199,10 +282,14 @@ export async function getProtocolLookupObservability() {
   const events = (data ?? []) as PublicLookupEvent[];
   const totals = {
     total: events.length,
-    invalid: events.filter((event) => event.result_type === "invalid_format").length,
-    notFound: events.filter((event) => event.result_type === "not_found").length,
-    found: events.filter((event) => event.result_type.startsWith("found_")).length,
-    rateLimited: events.filter((event) => event.result_type === "rate_limited").length,
+    invalid: events.filter((event) => event.result_type === "invalid_format")
+      .length,
+    notFound: events.filter((event) => event.result_type === "not_found")
+      .length,
+    found: events.filter((event) => event.result_type.startsWith("found_"))
+      .length,
+    rateLimited: events.filter((event) => event.result_type === "rate_limited")
+      .length,
   };
 
   return { totals, events };

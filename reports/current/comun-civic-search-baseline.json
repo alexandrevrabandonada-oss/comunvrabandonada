@@ -1,0 +1,14 @@
+{
+  "measuredAt": "2026-07-31",
+  "sourceSha": "e73060f9abb8170a4fb34908cd32dd49fd96e92b",
+  "surface": "/comun/buscar",
+  "requests": 20,
+  "httpStatus": 200,
+  "p50Ms": 565.3,
+  "p95Ms": 3943.6,
+  "maxMs": 3943.6,
+  "allowedP95Ms": 4732.3,
+  "queryTextIncluded": false,
+  "identityIncluded": false,
+  "note": "End-to-end production baseline of the preserved 11-source lexical search before 47.9B deployment. The first result remains server-rendered by this path."
+}

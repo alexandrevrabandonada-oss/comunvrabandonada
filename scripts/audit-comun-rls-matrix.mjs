@@ -197,6 +197,30 @@ const classifications = {
     sensitive: "protocol_hash, ip_hash, user_agent_hash e metadata.",
     expected: "Sem acesso direto publico.",
   },
+  comun_search_documents: {
+    decision: "service_role_only",
+    purpose: "Projeção reconstruível e sanitizada da busca pública.",
+    sensitive: "Embedding, chave da fonte e texto projetado não têm leitura direta.",
+    expected: "Anon/authenticated usam somente a RPC pública sanitizada; escrita server-side.",
+  },
+  comun_search_sections: {
+    decision: "service_role_only",
+    purpose: "Seções públicas segmentadas para indexação semântica.",
+    sensitive: "Texto segmentado e embedding ficam invisíveis diretamente.",
+    expected: "Somente worker server-side; a RPC retorna campos sanitizados do documento.",
+  },
+  comun_search_embedding_jobs: {
+    decision: "service_role_only",
+    purpose: "Fila focal deduplicada de embeddings.",
+    sensitive: "Checksums, tentativas e estado operacional.",
+    expected: "Claim, conclusão e falha somente por service_role.",
+  },
+  comun_search_metrics_hourly: {
+    decision: "service_role_only",
+    purpose: "Métricas agregadas sem texto de consulta ou identidade.",
+    sensitive: "Somente faixas e contagens; ainda assim operacionais.",
+    expected: "Sem leitura/escrita direta; observabilidade admin sanitizada via servidor.",
+  },
   comun_report_attachments: {
     decision: "service_role_only",
     purpose: "Anexos, paths de storage e curadoria.",

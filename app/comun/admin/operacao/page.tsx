@@ -77,6 +77,35 @@ export default async function OperationPage({
             {result.pageInfo.totalItems} itens no recorte atual.
           </p>
         </header>
+        {rawSearchParams.inteligencia === "busca-viva" ? (
+          <section
+            className="mt-6 border-2 border-slate-300 p-4"
+            aria-labelledby="central-public-relations"
+          >
+            <h2 id="central-public-relations" className="font-bold uppercase">
+              Relações públicas, somente leitura
+            </h2>
+            <p className="mt-2 text-sm">
+              A busca operacional acima permanece separada. Este atalho consulta
+              apenas a projeção pública e não envia notas, contatos ou itens da
+              fila.
+            </p>
+            <form
+              action="/comun/buscar"
+              className="mt-3 flex flex-col gap-2 sm:flex-row"
+            >
+              <input
+                aria-label="Buscar relações públicas"
+                className="min-h-11 flex-1 border-2 border-slate-300 bg-slate-950 px-3"
+                name="q"
+                placeholder="Pauta, território ou resultado público"
+              />
+              <button className="min-h-11 border-2 border-slate-200 px-3 font-bold">
+                Abrir busca pública
+              </button>
+            </form>
+          </section>
+        ) : null}
         <section
           className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
           aria-label="Recortes de cuidado agora"
