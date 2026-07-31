@@ -120,7 +120,7 @@ export const COMUN_V1_LAUNCH_PROGRAM = {
         "política de retenção e exclusão",
         "runbook de incidente e rollback",
       ],
-      nextTijolo: "47.8 — Resiliência operacional",
+      nextTijolo: "47.8 — Segurança, privacidade e recuperação",
       href: "/comun/admin/auditoria",
     },
     {
@@ -135,7 +135,7 @@ export const COMUN_V1_LAUNCH_PROGRAM = {
         "carga representativa 25/50/100 materializando itens",
         "orçamentos de performance cumpridos",
       ],
-      nextTijolo: "47.9 — Qualidade integral",
+      nextTijolo: "47.9A/47.9B — Experiência e qualidade integral",
       href: "/comun/admin/observabilidade",
     },
     {
