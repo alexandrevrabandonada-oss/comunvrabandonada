@@ -121,6 +121,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
       COMUN_CIVIC_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
       COMUN_BASE_URL: https://comunsocial.online
+      COMUN_CIVIC_REHEARSAL_HTTP: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

@@ -131,7 +131,10 @@ try {
   await client.end();
 }
 scenarios.cleanup = cleanup;
-if (process.env.COMUN_BASE_URL) {
+if (
+  process.env.COMUN_CIVIC_REHEARSAL_HTTP === "1" &&
+  process.env.COMUN_BASE_URL
+) {
   const base = process.env.COMUN_BASE_URL.replace(/\/$/, "");
   const statuses = [];
   for (let index = 0; index < 35; index += 1) {
