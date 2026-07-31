@@ -658,7 +658,13 @@ export default async function PautaPage(props: {
           ) : null}
         </Section>
       </ComunExperiencePilot>
-      {searchParams.inteligencia === "busca-viva" ? <PautaMemoryRelations pautaId={space.id} title={space.title} route={`/comun/pautas/${space.slug}`} /> : null}
+      {searchParams.inteligencia === "busca-viva" ? (
+        <PautaMemoryRelations
+          pautaId={space.id}
+          title={space.title}
+          route={`/comun/pautas/${space.slug}`}
+        />
+      ) : null}
     </ComunShell>
   );
 }
