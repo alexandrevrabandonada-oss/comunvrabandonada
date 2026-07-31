@@ -241,8 +241,10 @@ async function main() {
     });
     console.log(RESULT.databaseRestore);
   } catch (error) {
+    const originalMarker = sanitizedError(error);
     const recordedError =
-      sanitizedError(error) === "COMUN_SECURITY_STEP_FAILED"
+      originalMarker === "COMUN_SECURITY_STEP_FAILED" ||
+      originalMarker === "COMUN_DATABASE_DOCKER_STEP_FAILED"
         ? new Error(
             `COMUN_DATABASE_RESTORE_${recoveryPhase
               .replace(/[^a-z0-9_]+/gi, "_")
