@@ -16,7 +16,8 @@ try {
     .trim()
     .split(/\r?\n/)
     .filter(Boolean);
-  assert.equal(commits.length, 2);
+  if (commits.length !== 2)
+    throw new Error("COMUN_DEPLOYMENT_ROLLBACK_HISTORY_UNAVAILABLE");
   const migrationPatch = execFileSync(
     "git",
     [

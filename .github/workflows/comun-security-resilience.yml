@@ -37,6 +37,8 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: 22.18.0
@@ -119,6 +121,8 @@ jobs:
       ARCHIVE_PROCESSING_CRON_SECRET: ${{ secrets.ARCHIVE_PROCESSING_CRON_SECRET }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: 22.18.0
