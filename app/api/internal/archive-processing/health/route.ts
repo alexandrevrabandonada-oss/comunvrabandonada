@@ -1,14 +1,10 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getArchiveWorkerHealth } from "@/lib/archive/worker-health";
+import { matchesCronSecret } from "@/lib/security/cron-auth";
 export async function GET(r: NextRequest) {
-  const e = process.env.CRON_SECRET ?? "",
-    a = r.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
-  if (
-    !e ||
-    a.length !== e.length ||
-    !timingSafeEqual(Buffer.from(a), Buffer.from(e))
-  )
+  const actual =
+    r.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+  if (!matchesCronSecret(actual))
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const h = await getArchiveWorkerHealth();
   return NextResponse.json({

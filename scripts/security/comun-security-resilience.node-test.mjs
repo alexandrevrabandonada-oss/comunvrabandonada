@@ -68,7 +68,7 @@ test("ensaio de Storage no runtime exige duas chaves, assinatura e prazo", async
     "scripts/security/rehearse-comun-storage-runtime.mjs",
     "utf8",
   );
-  assert.match(route, /CRON_SECRET/);
+  assert.match(route, /matchesCronSecret/);
   assert.match(route, /SUPABASE_SERVICE_ROLE_KEY/);
   assert.match(route, /createHmac\("sha256"/);
   assert.match(route, /5 \* 60_000/);
@@ -79,6 +79,21 @@ test("ensaio de Storage no runtime exige duas chaves, assinatura e prazo", async
   assert.match(caller, /X-COMUN-Rehearsal-Signature/);
   assert.match(caller, /COMUN_STORAGE_RUNTIME_HTTP_/);
   assert.doesNotMatch(caller, /console\.log\([^)]*(?:token|signature|signingKey)/i);
+});
+
+test("rotação do cron preserva a chave atual durante a transição", async () => {
+  const auth = await readFile("lib/security/cron-auth.ts", "utf8");
+  const workflow = await readFile(
+    ".github/workflows/comun-security-resilience.yml",
+    "utf8",
+  );
+  assert.match(auth, /CRON_SECRET/);
+  assert.match(auth, /CRON_SECRET_NEXT/);
+  assert.match(auth, /timingSafeEqual/);
+  assert.match(workflow, /mode == 'dual-key'/);
+  assert.match(workflow, /env add CRON_SECRET_NEXT production/);
+  assert.match(workflow, /vercel@50\.28\.0 redeploy/);
+  assert.doesNotMatch(workflow, /env rm CRON_SECRET/);
 });
 
 test("roadmap 47.9A e 47.9B permanece separado", async () => {

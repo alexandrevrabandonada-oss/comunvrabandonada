@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { runRuntimeStorageRestoreRehearsal } from "@/lib/security/storage-restore-rehearsal";
+import { matchesCronSecret } from "@/lib/security/cron-auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -10,14 +11,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const expected = process.env.CRON_SECRET ?? "";
   const actual =
     request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
-  if (
-    !expected ||
-    actual.length !== expected.length ||
-    !timingSafeEqual(Buffer.from(actual), Buffer.from(expected))
-  )
+  if (!matchesCronSecret(actual))
     return NextResponse.json(
       {
         error: "unauthorized",
