@@ -5,8 +5,10 @@ on:
     paths:
       - ".github/workflows/comun-security-resilience.yml"
       - "app/comun/admin/auditoria/**"
+      - "app/api/internal/security/**"
       - "docs/comun-*.md"
       - "lib/comun-security-resilience.ts"
+      - "lib/security/**"
       - "scripts/security/**"
       - "supabase/migrations/**"
       - "package.json"
