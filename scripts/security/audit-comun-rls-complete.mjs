@@ -129,13 +129,13 @@ async function main() {
         dangerousGrants: audit.dangerousSequenceGrants,
         resources: audit.sequenceResources,
       },
-    policies: {
-      clientControlled: audit.clientControlledPolicies,
-    },
-    defaultPrivileges: {
-      dangerousApplicationSchema: audit.dangerousDefaultPrivileges,
-      providerManagedObserved: audit.providerManagedDefaultPrivileges,
-    },
+      policies: {
+        clientControlled: audit.clientControlledPolicies,
+      },
+      defaultPrivileges: {
+        dangerousApplicationSchema: audit.dangerousDefaultPrivileges,
+        providerManagedObserved: audit.providerManagedDefaultPrivileges,
+      },
       storage: {
         publicOriginalBuckets: audit.publicOriginalBuckets,
         dangerousPolicies: audit.dangerousStoragePolicies,
@@ -203,6 +203,8 @@ function query(databaseUrl, sql) {
     [
       "run",
       "--rm",
+      "--add-host",
+      "host.docker.internal:host-gateway",
       "-i",
       "-e",
       `DATABASE_URL=${containerUrl}`,

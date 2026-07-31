@@ -66,6 +66,8 @@ async function main() {
     dockerRun([
       "run",
       "--rm",
+      "--add-host",
+      "host.docker.internal:host-gateway",
       "-e",
       `SOURCE_DATABASE_URL=${dockerUrl(sourceUrl)}`,
       "-v",
@@ -300,6 +302,8 @@ function remoteRows(url, sql) {
     [
       "run",
       "--rm",
+      "--add-host",
+      "host.docker.internal:host-gateway",
       "-i",
       "-e",
       `DATABASE_URL=${dockerUrl(url)}`,
