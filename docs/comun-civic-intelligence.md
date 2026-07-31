@@ -42,6 +42,8 @@ Fontes primárias consultadas em 31/07/2026: [modelos de IA em Edge Functions](h
 
 Resultado de capability só pode ser `COMUN_CIVIC_AI_PROVIDER_CAPABILITY_VERIFIED` depois de uma invocação remota real com dimensão validada. Disponibilidade no catálogo, sozinha, não basta.
 
+O transporte remoto do schema usa a conexão PostgreSQL allowlisted e valida checksum e ledger sem depender de credencial de gestão. O deploy do provider Edge exige `SUPABASE_ACCESS_TOKEN`; quando ausente, a lane conclui FTS, projeção, RLS, fallback e ensaio técnico, mas registra `COMUN_CIVIC_INTELLIGENCE_BLOCKED_PROVIDER_CAPABILITY` e não declara embeddings reais.
+
 ## Arquitetura e contratos
 
 `unifiedPublicSearch` continua sendo o primeiro resultado e o fallback. A migration cria `comun_search_documents`, `comun_search_sections`, `comun_search_embedding_jobs`, métricas agregadas, FTS, HNSW e RPC híbrida. As fontes continuam canônicas e a projeção é apagável/reconstruível.
