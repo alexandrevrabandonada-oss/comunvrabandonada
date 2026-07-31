@@ -418,7 +418,18 @@ function waitForPostgres() {
 
 async function rehearseApplicationAgainstRestore(tables) {
   const localUrl = localDatabaseUrl();
-  const localContainer = dockerRun([
+  const applicationDocker = (phase, args) => {
+    try {
+      return dockerRun(args);
+    } catch {
+      throw new Error(
+        `COMUN_DATABASE_APPLICATION_${phase
+          .replace(/[^a-z0-9_]+/gi, "_")
+          .toUpperCase()}_FAILED`,
+      );
+    }
+  };
+  const localContainer = applicationDocker("local_container_discovery", [
     "ps",
     "--filter",
     "name=supabase_db_",
@@ -430,7 +441,7 @@ async function rehearseApplicationAgainstRestore(tables) {
   if (!localContainer)
     throw new Error("COMUN_DATABASE_APPLICATION_SUPABASE_NOT_RUNNING");
   const appDump = "/tmp/comun-application-restore.dump";
-  dockerRun([
+  applicationDocker("data_dump", [
     "exec",
     container,
     "pg_dump",
@@ -445,14 +456,22 @@ async function rehearseApplicationAgainstRestore(tables) {
     appDump,
   ]);
   const appHostDump = path.join(tempDir, "application-data.dump");
-  dockerRun(["cp", `${container}:${appDump}`, appHostDump]);
-  dockerRun(["cp", appHostDump, `${localContainer}:${appDump}`]);
+  applicationDocker("data_export", [
+    "cp",
+    `${container}:${appDump}`,
+    appHostDump,
+  ]);
+  applicationDocker("data_import", [
+    "cp",
+    appHostDump,
+    `${localContainer}:${appDump}`,
+  ]);
   const truncate = tables.length
     ? `truncate table ${tables
         .map((name) => `public.${quoteIdentifier(name)}`)
         .join(",")} cascade;`
     : "select 1;";
-  dockerRun([
+  applicationDocker("local_truncate", [
     "exec",
     localContainer,
     "psql",
@@ -467,7 +486,7 @@ async function rehearseApplicationAgainstRestore(tables) {
     "-c",
     truncate,
   ]);
-  dockerRun([
+  applicationDocker("local_restore", [
     "exec",
     localContainer,
     "pg_restore",
