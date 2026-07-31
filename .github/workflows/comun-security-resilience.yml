@@ -144,12 +144,6 @@ jobs:
           test -n "$VERCEL_CANONICAL_PROJECT_ID"
           npm run security:secrets
           npm run security:rls:remote
-      - name: Start isolated application services
-        run: supabase start
-      - name: Build against isolated application services
-        run: node scripts/comun-local-env.mjs run npm run build
-      - name: Create ephemeral remote database backup and restore it
-        run: npm run security:restore:database:remote
       - name: Pull protected Storage configuration into ephemeral workspace
         env:
           COMUN_VERCEL_ENV_FILE: ${{ runner.temp }}/comun-production.env
@@ -162,6 +156,16 @@ jobs:
             exit 1
           fi
           test -s "$COMUN_VERCEL_ENV_FILE"
+      - name: Verify protected Storage boundary without exposing values
+        env:
+          COMUN_SECURITY_VERCEL_ENV_FILE: ${{ runner.temp }}/comun-production.env
+        run: node scripts/security/audit-comun-storage-boundary.mjs
+      - name: Start isolated application services
+        run: supabase start
+      - name: Build against isolated application services
+        run: node scripts/comun-local-env.mjs run npm run build
+      - name: Create ephemeral remote database backup and restore it
+        run: npm run security:restore:database:remote
       - name: Back up physical Storage and rehearse synthetic restore
         env:
           COMUN_SECURITY_VERCEL_ENV_FILE: ${{ runner.temp }}/comun-production.env
