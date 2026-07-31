@@ -115,6 +115,7 @@ jobs:
       COMUN_SECURITY_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
       VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
       ARCHIVE_PROCESSING_ENDPOINT: ${{ secrets.ARCHIVE_PROCESSING_ENDPOINT }}
@@ -156,7 +157,10 @@ jobs:
           umask 077
           mkdir -p .vercel
           node -e "require('node:fs').writeFileSync('.vercel/project.json',JSON.stringify({projectId:process.env.VERCEL_CANONICAL_PROJECT_ID,orgId:process.env.VERCEL_TEAM_ID}))"
-          npx --yes vercel@50.28.0 env pull "$COMUN_VERCEL_ENV_FILE" --environment=production --yes --token="$VERCEL_TOKEN" >/dev/null
+          if ! npx --yes vercel@50.28.0 env pull "$COMUN_VERCEL_ENV_FILE" --environment=production --yes --token="$VERCEL_TOKEN" >/dev/null; then
+            node -e "import('./scripts/security/comun-security-contract.mjs').then(m=>m.writeFailureEvidence('storage_configuration',new Error('COMUN_STORAGE_CONFIGURATION_PULL_FAILED')))"
+            exit 1
+          fi
           test -s "$COMUN_VERCEL_ENV_FILE"
       - name: Back up physical Storage and rehearse synthetic restore
         env:
