@@ -122,13 +122,21 @@ export const SOURCE_QUERIES = [
   },
   {
     name: "archive-accessibility",
-    sql: `select id::text as source_id, 'archive' as domain, 'archive_asset' as source_type,
+    sql: `select asset.id::text as source_id, 'archive' as domain, 'archive_asset' as source_type,
       'missing_accessibility' as work_category, 'pending' as source_state,
-      created_at::text as updated_at, null::text as due_at, 'normal' as risk,
+      greatest(asset.created_at, item.updated_at)::text as updated_at,
+      null::text as due_at, 'normal' as risk,
       null::text as pauta_id, null::text as territory_id
-      from public.comun_archive_assets
-      where review_status = 'approved' and public_url is not null
-        and mime_type like 'image/%' and nullif(btrim(alt_text), '') is null`,
+      from public.comun_archive_assets asset
+      join public.comun_archive_items item on item.id = asset.archive_item_id
+      where asset.bucket_scope = 'public_safe'
+        and asset.review_status = 'approved'
+        and asset.public_url is not null
+        and asset.mime_type like 'image/%'
+        and nullif(btrim(asset.alt_text), '') is null
+        and item.status = 'published'
+        and item.visibility = 'public'
+        and item.published_at is not null`,
   },
   {
     name: "archive-withdrawals",
@@ -257,6 +265,56 @@ async function inventoryProjection(client, projectionSchema) {
       where i.id is null) as orphan_events
     from public.comun_editorial_operation_items`);
   return result.rows[0];
+}
+
+async function inventorySecurity(client) {
+  const result = await client.query(`select
+    (select count(*)::int
+       from pg_class relation
+       join pg_namespace namespace on namespace.oid = relation.relnamespace
+      where namespace.nspname = 'public'
+        and relation.relname in (
+          'comun_editorial_operation_items',
+          'comun_editorial_operation_assignments',
+          'comun_editorial_operation_events'
+        )
+        and relation.relkind = 'r') as tables_present,
+    (select count(*)::int
+       from pg_class relation
+       join pg_namespace namespace on namespace.oid = relation.relnamespace
+      where namespace.nspname = 'public'
+        and relation.relname in (
+          'comun_editorial_operation_items',
+          'comun_editorial_operation_assignments',
+          'comun_editorial_operation_events'
+        )
+        and relation.relkind = 'r'
+        and not relation.relrowsecurity) as tables_without_rls,
+    (select count(*)::int
+       from information_schema.role_table_grants grant_entry
+      where grant_entry.table_schema = 'public'
+        and grant_entry.table_name in (
+          'comun_editorial_operation_items',
+          'comun_editorial_operation_assignments',
+          'comun_editorial_operation_events'
+        )
+        and grant_entry.grantee in ('anon', 'authenticated')
+        and grant_entry.privilege_type in (
+          'INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER'
+        )) as dangerous_public_grants`);
+  const security = {
+    tablesExpected: 3,
+    tablesPresent: result.rows[0].tables_present,
+    tablesWithoutRls: result.rows[0].tables_without_rls,
+    dangerousPublicGrants: result.rows[0].dangerous_public_grants,
+  };
+  if (
+    security.tablesPresent !== security.tablesExpected ||
+    security.tablesWithoutRls !== 0 ||
+    security.dangerousPublicGrants !== 0
+  )
+    throw new Error("COMUN_OPERATIONS_SECURITY_BOUNDARY_BLOCKED");
+  return security;
 }
 
 async function syncProjection(client, candidates) {
@@ -495,6 +553,7 @@ export async function runOperationsAudit() {
     if (mode !== "read-only" && projectionSchema !== "operations-v1")
       throw new Error("COMUN_OPERATIONS_PROJECTION_MIGRATION_REQUIRED");
     const before = await inventoryProjection(client, projectionSchema);
+    const security = await inventorySecurity(client);
     if (mode === "rehearsal") {
       const rehearsal = await runRehearsal(client);
       await client.query("rollback");
@@ -505,6 +564,7 @@ export async function runOperationsAudit() {
         rehearsal,
         before,
         projectionSchema,
+        security,
         databaseWrites: "rolled_back",
         storageWrites: "none",
         publicWrites: "none",
@@ -530,6 +590,7 @@ export async function runOperationsAudit() {
         candidates: candidates.length,
         projectionBefore: before,
         projectionSchema,
+        security,
         migrationRequired: projectionSchema !== "operations-v1",
         sync,
         databaseWrites:
