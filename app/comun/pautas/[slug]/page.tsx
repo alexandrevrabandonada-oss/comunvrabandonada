@@ -32,6 +32,8 @@ import { ComunContextTrail } from "@/components/comun-context-trail";
 import { PautaPoliticalCycle } from "@/components/pauta-political-cycle";
 import { getCollectiveActionsRelease } from "@/lib/collective-actions-release";
 import { getPublicPautaActionCycle } from "@/lib/pauta-action-cycle-data";
+import { ComunExperiencePilot } from "@/components/comun-experience-pilot";
+import { isExperienceCoherencePilot } from "@/lib/experience-coherence";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -52,8 +54,9 @@ export default async function PautaPage(props: {
 }) {
   const searchParams = await props.searchParams;
   const params = await props.params;
+  const experiencePilot = isExperienceCoherencePilot(searchParams.experiencia);
   const space = await getPublicPautaSpaceBySlug(params.slug);
-  if (!space) return <LegacyIssuePage slug={params.slug} />;
+  if (!space) return <LegacyIssuePage slug={params.slug} experiencePilot={experiencePilot} />;
 
   const isEditorialFallback = space.source === "editorial_fallback";
   const modules = isEditorialFallback
@@ -87,6 +90,8 @@ export default async function PautaPage(props: {
       searchParams.contribuicao === "recebida";
     return (
       <ComunShell>
+        <ComunExperiencePilot active={experiencePilot} level={1} currentHref={`/comun/pautas/${space.slug}`}>
+        <PautaReturn />
         {contributionAck ? (
           <section className="bg-comun-black py-3">
             <div className="mx-auto max-w-6xl px-4">
@@ -104,6 +109,7 @@ export default async function PautaPage(props: {
           sidewalks={sidewalks}
         />
         <SidewalkMemorySection pautaSlug={space.slug} memories={memories} />
+        </ComunExperiencePilot>
       </ComunShell>
     );
   }
@@ -141,6 +147,8 @@ export default async function PautaPage(props: {
 
   return (
     <ComunShell>
+      <ComunExperiencePilot active={experiencePilot} level={1} currentHref={`/comun/pautas/${space.slug}`}>
+      <PautaReturn />
       <Section>
         <ComunContextTrail
           items={[
@@ -633,11 +641,12 @@ export default async function PautaPage(props: {
           </PrimaryLink>
         ) : null}
       </Section>
+      </ComunExperiencePilot>
     </ComunShell>
   );
 }
 
-async function LegacyIssuePage({ slug }: { slug: string }) {
+async function LegacyIssuePage({ slug, experiencePilot }: { slug: string; experiencePilot: boolean }) {
   const issue = await getIssue(slug);
   if (!issue) notFound();
   const [community, communityReports] = await Promise.all([
@@ -650,7 +659,10 @@ async function LegacyIssuePage({ slug }: { slug: string }) {
   const isWorkCampaign = issue.slug === "trabalho-burnout-volta-redonda";
   return (
     <ComunShell>
+      <ComunExperiencePilot active={experiencePilot} level={1} currentHref={`/comun/pautas/${slug}`}>
+      <PautaReturn />
       <Section>
+        <ComunContextTrail items={[{ kind: "pauta", label: issue.title }]} />
         <h1 className="comun-prose text-3xl font-black uppercase text-comun-yellow">
           {issue.title}
         </h1>
@@ -700,7 +712,18 @@ async function LegacyIssuePage({ slug }: { slug: string }) {
           ) : null}
         </div>
       </Section>
+      </ComunExperiencePilot>
     </ComunShell>
+  );
+}
+
+function PautaReturn() {
+  return (
+    <div className="mx-auto max-w-7xl px-4 pt-5">
+      <Link href="/comun/pautas" className="inline-flex min-h-11 items-center font-black uppercase text-comun-yellow underline decoration-2 underline-offset-4">
+        ← Voltar às pautas
+      </Link>
+    </div>
   );
 }
 

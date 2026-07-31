@@ -50,14 +50,22 @@ export function SidewalkMapLibreMap({
           new maplibre.default.NavigationControl({ showCompass: false }),
           "top-right",
         );
-        map.addControl(
-          new maplibre.default.GeolocateControl({
-            positionOptions: { enableHighAccuracy: true },
-            trackUserLocation: false,
-            showAccuracyCircle: true,
-          }),
-          "top-right",
+        const geolocate = new maplibre.default.GeolocateControl({
+          positionOptions: { enableHighAccuracy: true },
+          trackUserLocation: false,
+          showAccuracyCircle: true,
+        });
+        map.addControl(geolocate, "top-right");
+        const geolocateButton = host.current.querySelector<HTMLButtonElement>(
+          ".maplibregl-ctrl-geolocate",
         );
+        if (geolocateButton) {
+          geolocateButton.setAttribute(
+            "aria-label",
+            "Usar minha localização aproximada",
+          );
+          geolocateButton.title = "Usar minha localização aproximada";
+        }
         map.addControl(
           new maplibre.default.AttributionControl({
             compact: false,

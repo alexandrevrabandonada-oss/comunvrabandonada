@@ -53,9 +53,12 @@ Esses itens podem entrar depois, desde que nasçam de necessidade social comprov
 - **47.6** Acervo, rádio e arte em recortes mínimos reais.
 - **47.7** Central operacional unificada.
 - **47.8** Segurança, privacidade, backup, recuperação, retenção e incidentes.
-- **47.9A** Coerência de experiência, arquitetura de informação e direção
-  UI/UX.
-- **47.9B** Acessibilidade, PWA, performance e matriz de dispositivos.
+- **47.8A** Redundância durável independente, em pista paralela: ponto durável
+  do banco, recuperação de Auth, cópia secundária de Storage com idade inferior
+  a 24 horas e restore a partir da cópia durável.
+- **47.9A** Coerência de experiência, rotas e direção UI/UX.
+- **47.9B** Busca Viva e Inteligência Transversal.
+- **47.9C** Acessibilidade, PWA, performance e matriz de dispositivos.
 - **47.10** Conteúdo, ajuda, governança e preparação editorial.
 - **47.11** Ensaio fechado, estabilidade de 72 horas e go/no-go final.
 
@@ -119,3 +122,16 @@ nas três tabelas, zero grant público de escrita, sincronização idempotente,
 ensaio privado transacional com rollback, postflight sem duplicidades ou
 órfãos e proteção visual da superfície administrativa em cinco viewports. O
 gate `launch_publicly` continua fechado.
+
+O Tijolo 47.8 encerrou os controles internos de segurança em verde, mas o
+domínio `security_resilience` permanece `blocked` por capacidade do provedor:
+não há recovery point durável independente nem cópia secundária de Storage.
+A pista 47.8A precisa comprovar também recuperação de Auth e restore de uma
+cópia durável com idade inferior a 24 horas. Nenhum provedor ou plano foi
+escolhido neste tijolo e o bloqueio continua impedindo o lançamento final.
+
+O Tijolo 47.9A mantém as rotas públicas e seus deep links, consolida vocabulário,
+Constituição de Experiência, tokens e três superfícies-piloto comparáveis. O
+estado máximo antes de participantes reais é
+`COMUN_EXPERIENCE_COHERENCE_READY_FOR_USABILITY_REHEARSAL`; automação não é
+evidência de compreensão humana e não promove o domínio integral.

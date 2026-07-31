@@ -1,0 +1,67 @@
+name: COMUN Experience Coherence Deliverability
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "components/**"
+      - "lib/experience-coherence.ts"
+      - "docs/comun-experience-*.md"
+      - "scripts/experience/**"
+      - "tests/experience-coherence/**"
+      - "playwright.experience-coherence.config.ts"
+      - "package.json"
+      - ".github/workflows/comun-experience-coherence.yml"
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "components/**"
+      - "lib/experience-coherence.ts"
+      - "docs/comun-experience-*.md"
+      - "scripts/experience/**"
+      - "tests/experience-coherence/**"
+      - "playwright.experience-coherence.config.ts"
+      - "package.json"
+      - ".github/workflows/comun-experience-coherence.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: comun-experience-coherence-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  coherence:
+    name: Experience coherence / READY_FOR_USABILITY_REHEARSAL
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Audit routes, vocabulary, tokens and pilots
+        run: npm run experience:coherence:audit
+      - run: npm run experience:coherence:test
+      - run: npm run test:unit
+      - run: npm run typecheck
+      - run: npm run lint
+      - name: Check formatted files introduced by this lane
+        run: npx prettier --check components/comun-experience-pilot.tsx lib/experience-coherence.ts docs/comun-experience-coherence.md docs/comun-experience-routes.md scripts/experience playwright.experience-coherence.config.ts tests/experience-coherence .github/workflows/comun-experience-coherence.yml
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e:experience-coherence
+      - run: npm run build
+      - name: Publish sanitized coherence evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-experience-coherence-${{ github.run_id }}
+          path: .ci-artifacts/experience-coherence/coherence.json
+          if-no-files-found: warn
+          retention-days: 14

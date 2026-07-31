@@ -19,7 +19,10 @@ function loadEnvFile(filePath) {
     const key = line.slice(0, separatorIndex).trim();
     let value = line.slice(separatorIndex + 1).trim();
 
-    if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
       value = value.slice(1, -1);
     }
 
@@ -53,15 +56,24 @@ if (!baseUrl) {
 const checks = [
   {
     path: "/comun",
-    required: ["COMUN VR ABANDONADA", "O que está acontecendo agora", "Próximas ações", "Participe", "Projetos e frentes", "Resultados recentes", "Territórios", "Acervo Vivo"],
+    required: [
+      "Agora no território.",
+      "Como o COMUN se organiza",
+      "Sua próxima participação",
+      "Encontre seu caminho",
+      "Pautas em construção",
+      "Do território ao resultado",
+      "O que a comunidade construiu",
+      "Comece pelo que você já sabe",
+    ],
   },
   {
     path: "/comun/comunidades",
-    required: ["Comunidades", "Entrar"],
+    required: ["Comunidades", "Conhecer comunidade"],
   },
   {
     path: "/comun/c/trabalho",
-    required: ["Enviar relato nesta comunidade"],
+    required: ["Abrir pauta prioritária", "Acompanhar ou colaborar"],
   },
   {
     path: "/comun/pautas/falta-profissionais-escolas",
@@ -81,11 +93,20 @@ const checks = [
   },
   {
     path: "/comun/seguranca",
-    required: ["Como o COMUN protege relatos", "Fotos enviadas no relato rapido", "Enviar relato com seguranca"],
+    required: [
+      "Como o COMUN protege relatos",
+      "Fotos enviadas no relato rapido",
+      "Enviar relato com seguranca",
+    ],
   },
   {
     path: "/comun/relatar",
-    required: ["Relato rapido", "Relato detalhado", "Foto opcional", "Usar minha localizacao aproximada"],
+    required: [
+      "Relato rapido",
+      "Relato detalhado",
+      "Foto opcional",
+      "Usar minha localizacao aproximada",
+    ],
     allowFormFieldNames: true,
   },
   {

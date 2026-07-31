@@ -13,6 +13,8 @@ import {
   STATES,
   type OperationalFilterOptions,
 } from "@/lib/operational-queue";
+import { ComunExperiencePilot } from "@/components/comun-experience-pilot";
+import { isExperienceCoherencePilot } from "@/lib/experience-coherence";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +36,9 @@ export default async function OperationPage({
   const session = await requireComunAdminProfile();
   if (!canAccessOperationalSurface(session.profile, "central"))
     redirect("/comun/admin");
-  const query = normalizeOperationalQuery(await searchParams);
+  const rawSearchParams = await searchParams;
+  const experiencePilot = isExperienceCoherencePilot(rawSearchParams.experiencia);
+  const query = normalizeOperationalQuery(rawSearchParams);
   const [result, options] = await Promise.all([
     listOperationalItems(query),
     listOperationalFilterOptions(),
@@ -44,10 +48,20 @@ export default async function OperationPage({
   const active = activeOperationalFilters(query);
   const noResults = result.pageInfo.totalItems === 0;
   return (
+    <ComunExperiencePilot
+      active={experiencePilot}
+      level={0}
+      currentHref={operationalQueryHref(query)}
+    >
     <main
       className="mx-auto max-w-6xl p-4 text-slate-50 sm:p-6"
       data-operational-surface="central"
     >
+      <nav aria-label="Retorno da Central" className="mb-5">
+        <Link className="inline-flex min-h-11 items-center font-semibold underline" href="/comun/admin">
+          ← Voltar à administração
+        </Link>
+      </nav>
       <header className="max-w-3xl">
         <p className="text-sm font-semibold uppercase">Cuidado coletivo</p>
         <h1 className="text-3xl font-bold">Central operacional</h1>
@@ -314,6 +328,7 @@ export default async function OperationPage({
         </Link>
       </nav>
     </main>
+    </ComunExperiencePilot>
   );
 }
 

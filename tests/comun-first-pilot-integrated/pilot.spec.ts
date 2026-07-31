@@ -28,7 +28,7 @@ test("visitante percorre território comunidade pauta resultado e memória sem c
   );
   await page.goto("/comun");
   await expect(
-    page.getByRole("heading", { name: /Organize seu território/ }),
+    page.getByRole("heading", { name: /Agora no território/ }),
   ).toBeVisible();
   await assertAccessible(page);
   await page.goto("/comun/territorios");
