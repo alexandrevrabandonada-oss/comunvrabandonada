@@ -4,6 +4,7 @@
 .next*/
 node_modules/
 .ci-artifacts/
+.security-evidence/
 out/
 dist/
 coverage/

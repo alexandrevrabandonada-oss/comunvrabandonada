@@ -52,8 +52,10 @@ Esses itens podem entrar depois, desde que nasçam de necessidade social comprov
 - **47.5** Fechamento do motor de miniapps e conclusão do piloto de calçadas.
 - **47.6** Acervo, rádio e arte em recortes mínimos reais.
 - **47.7** Central operacional unificada.
-- **47.8** Segurança, backup, restore, retenção e resposta a incidentes.
-- **47.9** Acessibilidade, PWA, performance e matriz de dispositivos.
+- **47.8** Segurança, privacidade, backup, recuperação, retenção e incidentes.
+- **47.9A** Coerência de experiência, arquitetura de informação e direção
+  UI/UX.
+- **47.9B** Acessibilidade, PWA, performance e matriz de dispositivos.
 - **47.10** Conteúdo, ajuda, governança e preparação editorial.
 - **47.11** Ensaio fechado, estabilidade de 72 horas e go/no-go final.
 

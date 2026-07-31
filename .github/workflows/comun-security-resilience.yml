@@ -1,0 +1,209 @@
+name: COMUN Security Resilience Deliverability
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/comun-security-resilience.yml"
+      - "app/comun/admin/auditoria/**"
+      - "app/api/internal/security/**"
+      - "docs/comun-*.md"
+      - "lib/comun-security-resilience.ts"
+      - "lib/security/**"
+      - "scripts/security/**"
+      - "supabase/migrations/**"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Local lane or complete remote/isolated rehearsal
+        required: true
+        type: choice
+        default: local
+        options:
+          - local
+          - full
+
+concurrency:
+  group: comun-security-resilience-${{ github.ref }}-${{ inputs.mode || 'pr' }}
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  pr-lane:
+    if: github.event_name == 'pull_request' || inputs.mode == 'local'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - name: Create sanitized run envelope before any test
+        run: node -e "import('./scripts/security/comun-security-contract.mjs').then(m=>m.writeEvidence('00-run-envelope.json',{status:'started',scope:'local',containsPrivateData:false,containsSecretMaterial:false}))"
+      - run: npm ci --ignore-scripts
+      - name: Repository and recent-history secrets boundary
+        run: npm run security:secrets
+      - name: Start disposable Supabase
+        run: supabase start
+      - name: Build application against disposable services
+        run: node scripts/comun-local-env.mjs run npm run build
+      - name: Verify generated client bundles and source maps
+        run: npm run security:secrets
+      - name: Complete RLS and catalog matrix
+        run: |
+          npm run security:rls:local
+          COMUN_RLS_SKIP_HTTP=1 node scripts/comun-local-env.mjs run npm run smoke:rls-matrix
+      - name: Synthetic database backup and application restore
+        run: npm run security:restore:database:local
+      - name: Synthetic Storage loss and restore
+        run: npm run security:restore:storage:local
+      - name: Migration recovery
+        run: npm run security:migration-recovery
+      - name: Deployment rollback contract
+        run: npm run security:deployment-rollback:local
+      - name: Retention dry-run contract
+        run: |
+          npm run security:retention
+          npm run security:provider-capability
+      - name: Incident response rehearsal
+        run: |
+          node scripts/comun-local-env.mjs run npm run smoke:editorial-incidents
+          npm run security:incidents
+      - name: Static security workflow and UI contracts
+        run: npm run security:test
+      - name: Typecheck, lint and unit tests
+        run: |
+          npm run typecheck
+          npm run lint
+          npm run test:unit
+      - name: Aggregate local readiness without declaring remote green
+        run: npm run security:collect:local
+      - name: Stop and erase disposable Supabase
+        if: always()
+        run: supabase stop --no-backup || true
+      - name: Finalize sanitized failure evidence
+        if: failure()
+        run: node -e "import('./scripts/security/comun-security-contract.mjs').then(m=>m.writeFailureEvidence('pr_lane',new Error('COMUN_SECURITY_PR_LANE_FAILED')))"
+      - name: Publish sanitized evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-security-resilience-local-${{ github.sha }}-${{ github.run_id }}
+          path: .security-evidence/*.json
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 7
+
+  remote-full:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'full'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+      COMUN_SECURITY_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
+      VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+      ARCHIVE_PROCESSING_ENDPOINT: ${{ secrets.ARCHIVE_PROCESSING_ENDPOINT }}
+      ARCHIVE_PROCESSING_CRON_SECRET: ${{ secrets.ARCHIVE_PROCESSING_CRON_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - name: Emit failure-safe run envelope before remote access
+        run: node -e "import('./scripts/security/comun-security-contract.mjs').then(m=>m.writeEvidence('00-run-envelope.json',{status:'started',scope:'remote',containsPrivateData:false,containsSecretMaterial:false}))"
+      - run: npm ci --ignore-scripts
+      - name: Preflight target, capabilities and required boundaries
+        run: |
+          test -n "$SUPABASE_DB_URL"
+          test -n "$SUPABASE_PROJECT_REF"
+          test -n "$SUPABASE_SERVICE_ROLE_KEY"
+          test -n "$VERCEL_TOKEN"
+          test -n "$VERCEL_TEAM_ID"
+          test -n "$VERCEL_CANONICAL_PROJECT_ID"
+          npm run security:secrets
+          npm run security:rls:remote
+      - name: Pull protected Storage configuration into ephemeral workspace
+        env:
+          COMUN_VERCEL_ENV_FILE: ${{ runner.temp }}/comun-production.env
+        run: |
+          umask 077
+          mkdir -p .vercel
+          node -e "require('node:fs').writeFileSync('.vercel/project.json',JSON.stringify({projectId:process.env.VERCEL_CANONICAL_PROJECT_ID,orgId:process.env.VERCEL_TEAM_ID}))"
+          if ! npx --yes vercel@50.28.0 env pull "$COMUN_VERCEL_ENV_FILE" --environment=production --yes --token="$VERCEL_TOKEN" >/dev/null; then
+            node -e "import('./scripts/security/comun-security-contract.mjs').then(m=>m.writeFailureEvidence('storage_configuration',new Error('COMUN_STORAGE_CONFIGURATION_PULL_FAILED')))"
+            exit 1
+          fi
+          test -s "$COMUN_VERCEL_ENV_FILE"
+      - name: Verify protected Storage boundary without exposing values
+        env:
+          COMUN_SECURITY_VERCEL_ENV_FILE: ${{ runner.temp }}/comun-production.env
+        run: node scripts/security/audit-comun-storage-boundary.mjs
+      - name: Start isolated application services
+        run: supabase start
+      - name: Build against isolated application services
+        run: node scripts/comun-local-env.mjs run npm run build
+      - name: Create ephemeral remote database backup and restore it
+        run: npm run security:restore:database:remote
+      - name: Back up physical Storage and rehearse synthetic restore
+        env:
+          COMUN_SECURITY_VERCEL_ENV_FILE: ${{ runner.temp }}/comun-production.env
+        run: |
+          npm run security:secrets
+          npm run security:restore:storage:runtime
+      - name: Migration recovery in a disposable database
+        run: npm run security:migration-recovery
+      - name: Deployment rollback without changing public traffic
+        run: |
+          npm run health:production
+          npm run security:deployment-rollback:remote
+      - name: Retention and incident postflight
+        run: |
+          npm run security:retention
+          npm run security:provider-capability
+          node scripts/comun-local-env.mjs run npm run smoke:editorial-incidents
+          npm run security:incidents
+          npm run security:test
+      - name: Promote evidence only when every isolated check is green
+        run: npm run security:collect:remote
+      - name: Postflight cleanup
+        if: always()
+        run: |
+          rm -f "${{ runner.temp }}/comun-production.env"
+          rm -rf .vercel
+          supabase stop --no-backup || true
+      - name: Finalize sanitized failure evidence
+        if: failure()
+        run: node -e "import('./scripts/security/comun-security-contract.mjs').then(m=>m.writeFailureEvidence('remote_full_lane',new Error('COMUN_SECURITY_REMOTE_FULL_LANE_FAILED')))"
+      - name: Publish aggregate sanitized evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-security-resilience-remote-${{ github.sha }}-${{ github.run_id }}
+          path: .security-evidence/*.json
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 7
