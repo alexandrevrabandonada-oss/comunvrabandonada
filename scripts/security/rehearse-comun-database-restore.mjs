@@ -480,7 +480,9 @@ async function rehearseApplicationAgainstRestore(tables) {
   );
   let syntheticUserId;
   let syntheticActionId;
+  let applicationPhase = "start";
   try {
+    applicationPhase = "http_start";
     await waitForHttp(`${baseUrl}/comun`);
     const routes = [
       "/",
@@ -496,6 +498,7 @@ async function rehearseApplicationAgainstRestore(tables) {
     ];
     let publicRouteMaximumMs = 0;
     for (const route of routes) {
+      applicationPhase = `public_route_${route.replaceAll("/", "_") || "root"}`;
       const routeStartedAt = Date.now();
       const response = await fetch(`${baseUrl}${route}`, {
         redirect: "manual",
@@ -514,6 +517,7 @@ async function rehearseApplicationAgainstRestore(tables) {
         /service_role|SUPABASE_DB_URL|R2_SECRET|private_geometry_geojson|object_key/i,
       );
     }
+    applicationPhase = "administration_negative_route";
     const administrationStartedAt = Date.now();
     const protectedResponse = await fetch(`${baseUrl}/comun/admin/operacao`, {
       redirect: "manual",
@@ -524,6 +528,7 @@ async function rehearseApplicationAgainstRestore(tables) {
     const service = createClient(localEnv.API_URL, localEnv.SERVICE_ROLE_KEY, {
       auth: { persistSession: false },
     });
+    applicationPhase = "synthetic_auth_create";
     const password = `${syntheticTag("auth")}Aa1!`;
     const email = `${tag}@example.invalid`;
     const { data: created, error: createError } =
@@ -538,6 +543,7 @@ async function rehearseApplicationAgainstRestore(tables) {
     const publicClient = createClient(localEnv.API_URL, localEnv.ANON_KEY, {
       auth: { persistSession: false },
     });
+    applicationPhase = "synthetic_auth_login";
     const authenticationStartedAt = Date.now();
     const { error: loginError } = await publicClient.auth.signInWithPassword({
       email,
@@ -546,6 +552,7 @@ async function rehearseApplicationAgainstRestore(tables) {
     const authenticationProbeMs = Date.now() - authenticationStartedAt;
     if (loginError)
       throw new Error("COMUN_DATABASE_SYNTHETIC_AUTH_LOGIN_FAILED");
+    applicationPhase = "synthetic_action_create";
     const { data: action, error: actionError } = await service
       .from("comun_collective_actions")
       .insert({
@@ -563,6 +570,7 @@ async function rehearseApplicationAgainstRestore(tables) {
     if (actionError || !action)
       throw new Error("COMUN_DATABASE_SYNTHETIC_ACTION_CREATE_FAILED");
     syntheticActionId = action.id;
+    applicationPhase = "synthetic_contribution";
     const contributionStartedAt = Date.now();
     const { error: contributionError } = await publicClient
       .from("comun_collective_action_participations")
@@ -574,6 +582,7 @@ async function rehearseApplicationAgainstRestore(tables) {
     const contributionProbeMs = Date.now() - contributionStartedAt;
     if (contributionError)
       throw new Error("COMUN_DATABASE_SYNTHETIC_CONTRIBUTION_FAILED");
+    applicationPhase = "private_read_negative";
     const { data: privateRows, error: privateError } = await publicClient
       .from("comun_admin_users")
       .select("id")
@@ -594,6 +603,10 @@ async function rehearseApplicationAgainstRestore(tables) {
         administration: durationBand(administrationProbeMs),
       },
     };
+  } catch (error) {
+    if (sanitizedError(error) !== "COMUN_SECURITY_STEP_FAILED") throw error;
+    const marker = applicationPhase.replace(/[^a-z0-9_]+/gi, "_").toUpperCase();
+    throw new Error(`COMUN_DATABASE_APPLICATION_${marker}_FAILED`);
   } finally {
     if (syntheticActionId) {
       const service = createClient(
