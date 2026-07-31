@@ -417,7 +417,6 @@ function waitForPostgres() {
 }
 
 async function rehearseApplicationAgainstRestore(tables) {
-  const localUrl = localDatabaseUrl();
   const applicationDocker = (phase, args) => {
     try {
       return dockerRun(args);
@@ -476,7 +475,7 @@ async function rehearseApplicationAgainstRestore(tables) {
     localContainer,
     "psql",
     "-U",
-    "postgres",
+    "supabase_admin",
     "-d",
     "postgres",
     "-X",
@@ -491,7 +490,7 @@ async function rehearseApplicationAgainstRestore(tables) {
     localContainer,
     "pg_restore",
     "-U",
-    "postgres",
+    "supabase_admin",
     "-d",
     "postgres",
     "--data-only",
@@ -504,24 +503,29 @@ async function rehearseApplicationAgainstRestore(tables) {
 
   const localEnv = localSupabaseEnvironment();
   const baseUrl = "http://127.0.0.1:3217";
-  const app = spawn(
-    process.platform === "win32" ? "npm.cmd" : "npm",
-    ["run", "start", "--", "-p", "3217"],
-    {
-      env: {
-        ...process.env,
-        NEXT_PUBLIC_SUPABASE_URL: localEnv.API_URL,
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: localEnv.ANON_KEY,
-        SUPABASE_SERVICE_ROLE_KEY: localEnv.SERVICE_ROLE_KEY,
-        NEXT_PUBLIC_SITE_URL: baseUrl,
-        COMUN_BASE_URL: baseUrl,
-        MEDIA_STORAGE_PROVIDER: "supabase-local",
-        NODE_ENV: "production",
+  let app;
+  try {
+    app = spawn(
+      process.platform === "win32" ? "npm.cmd" : "npm",
+      ["run", "start", "--", "-p", "3217"],
+      {
+        env: {
+          ...process.env,
+          NEXT_PUBLIC_SUPABASE_URL: localEnv.API_URL,
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: localEnv.ANON_KEY,
+          SUPABASE_SERVICE_ROLE_KEY: localEnv.SERVICE_ROLE_KEY,
+          NEXT_PUBLIC_SITE_URL: baseUrl,
+          COMUN_BASE_URL: baseUrl,
+          MEDIA_STORAGE_PROVIDER: "supabase-local",
+          NODE_ENV: "production",
+        },
+        stdio: ["ignore", "pipe", "pipe"],
+        shell: process.platform === "win32",
       },
-      stdio: ["ignore", "pipe", "pipe"],
-      shell: false,
-    },
-  );
+    );
+  } catch {
+    throw new Error("COMUN_DATABASE_APPLICATION_PROCESS_START_FAILED");
+  }
   let syntheticUserId;
   let syntheticActionId;
   let applicationPhase = "start";
