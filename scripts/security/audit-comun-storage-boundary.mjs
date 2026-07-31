@@ -19,20 +19,27 @@ try {
   const file = process.env.COMUN_SECURITY_VERCEL_ENV_FILE;
   if (!file)
     throw new Error("COMUN_STORAGE_BOUNDARY_ENVIRONMENT_FILE_MISSING");
-  const names = new Set();
+  const values = new Map();
   for (const raw of (await readFile(file, "utf8")).split(/\r?\n/)) {
     const line = raw.trim();
     if (!line || line.startsWith("#")) continue;
     const index = line.indexOf("=");
     if (index < 1) continue;
     const name = line.slice(0, index).trim();
-    if ([...required, ...optional].includes(name)) names.add(name);
+    if (![...required, ...optional].includes(name)) continue;
+    let value = line.slice(index + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    )
+      value = value.slice(1, -1);
+    values.set(name, value);
   }
   const inventory = [...required, ...optional].map((name) => ({
     name,
-    status: names.has(name) ? "present" : "missing",
+    status: values.get(name) ? "present" : "missing",
   }));
-  const missing = required.filter((name) => !names.has(name));
+  const missing = required.filter((name) => !values.get(name));
   await writeEvidence("25-storage-boundary.json", {
     result: missing.length
       ? "COMUN_STORAGE_BOUNDARY_BLOCKED"
