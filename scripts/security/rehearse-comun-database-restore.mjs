@@ -689,18 +689,21 @@ async function rehearseApplicationAgainstRestore(tables) {
 
 async function waitForHttp(url) {
   let last;
-  for (let attempt = 0; attempt < 90; attempt += 1) {
+  const deadline = Date.now() + 90_000;
+  while (Date.now() < deadline) {
     try {
+      const remainingMs = Math.max(1, deadline - Date.now());
       const response = await fetch(url, {
         redirect: "manual",
-        signal: AbortSignal.timeout(5_000),
+        signal: AbortSignal.timeout(Math.min(3_000, remainingMs)),
       });
       if (response.status < 500) return;
       last = new Error(`status ${response.status}`);
     } catch (error) {
       last = error;
     }
-    await new Promise((resolve) => setTimeout(resolve, 1_000));
+    if (Date.now() < deadline)
+      await new Promise((resolve) => setTimeout(resolve, 1_000));
   }
   throw last || new Error("COMUN_DATABASE_APPLICATION_START_TIMEOUT");
 }
