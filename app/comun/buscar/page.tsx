@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { ComunShell } from "@/components/comun-shell";
 import {
   ComunBreadcrumbs,
@@ -7,6 +6,7 @@ import {
 } from "@/components/comun-ui";
 import { isPublicContentDeliverable } from "@/lib/public-content-readiness";
 import { unifiedPublicSearch } from "@/lib/unified-search";
+import { LiveSearchResults } from "@/components/civic-intelligence/live-search-results";
 const types = [
   "ferramenta",
   "comunidade",
@@ -41,12 +41,6 @@ export default async function Page({
       }),
     ),
     durationMs = search.durationMs;
-  const groups = types
-    .map((type) => ({
-      type,
-      rows: results.filter((result) => result.type === type),
-    }))
-    .filter((group) => group.rows.length);
   return (
     <ComunShell>
       <ComunSection>
@@ -60,6 +54,17 @@ export default async function Page({
           Resultados públicos de processos, territórios e memória. A ordem usa
           correspondência editorial, nunca popularidade.
         </p>
+        <details className="mt-4 max-w-3xl border-l-4 border-comun-yellow pl-4 text-sm text-comun-paper/75">
+          <summary className="min-h-11 cursor-pointer py-2 font-black uppercase">
+            Como esta busca funciona
+          </summary>
+          <p>
+            Primeiro mostramos correspondências por termos. Quando disponível,
+            relações de significado usam somente conteúdo já público. A busca
+            não decide, publica, cria perfil nem guarda seu texto; você pode
+            desligar o enriquecimento sem perder os resultados iniciais.
+          </p>
+        </details>
         <form className="mt-6 grid gap-3 md:grid-cols-[1fr_auto_auto]">
           <input
             aria-label="Termo de busca"
@@ -85,46 +90,13 @@ export default async function Page({
             Buscar
           </button>
         </form>
-        {q.length >= 2 ? (
-          <p role="status" className="mt-4 text-sm">
-            {results.length} resultados públicos · consulta local {durationMs}{" "}
-            ms
-          </p>
-        ) : null}
-        <div className="mt-6 grid gap-8">
-          {groups.map((group) => (
-            <section key={group.type} aria-labelledby={`grupo-${group.type}`}>
-              <h2
-                id={`grupo-${group.type}`}
-                className="border-b-2 border-comun-yellow pb-2 text-xl font-black uppercase text-comun-yellow"
-              >
-                {group.type}
-              </h2>
-              <div className="divide-y-2 divide-comun-paper/20">
-                {group.rows.map((x, i) => (
-                  <article className="py-5" key={`${x.href}-${i}`}>
-                    <p className="text-xs font-black uppercase text-comun-yellow">
-                      {x.type} · origem: {x.origin}
-                    </p>
-                    <h2 className="mt-2 text-xl font-black">
-                      <Link
-                        className="underline decoration-2 underline-offset-4"
-                        href={x.href}
-                      >
-                        {x.title}
-                      </Link>
-                    </h2>
-                    {x.summary ? (
-                      <p className="mt-2 max-w-3xl text-comun-paper/70">
-                        {x.summary}
-                      </p>
-                    ) : null}
-                  </article>
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
+        <LiveSearchResults
+          query={q}
+          type={p.tipo}
+          pauta={p.pauta}
+          initialResults={results}
+          lexicalDurationMs={durationMs}
+        />
         {q.length >= 2 && !results.length ? (
           <ComunEmptyState href="/comun/participar">
             Não encontramos conteúdo público com esses filtros. Você pode

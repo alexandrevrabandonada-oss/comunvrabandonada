@@ -1,0 +1,34 @@
+{
+  "release": "20260731183339-comun-civic-search-foundation",
+  "migration": "supabase/migrations/20260731183339_comun_civic_search_foundation.sql",
+  "migrationSha256": "bd24031d09302edc5419d9259d02d058e5f59cede5c5940a8212daea4e06a5dd",
+  "destructiveSql": false,
+  "requiresPromotion": true,
+  "expectedPreFingerprint": "ADDITIVE_PUBLIC_PROJECTION",
+  "expectedPostFingerprint": "ADDITIVE_PUBLIC_PROJECTION",
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "releaseLedger": "public.comun_schema_releases",
+  "assertions": [
+    "unifiedPublicSearch remains the first-result fallback",
+    "only public_projection can be indexed",
+    "documents, sections, jobs, metrics and embeddings have no direct public access",
+    "hybrid RPC returns sanitized public fields only",
+    "privileged functions use a fixed search_path and service_role grants",
+    "source removal removes the reconstructible projection",
+    "embedding completion rejects stale checksums",
+    "release ledger is idempotent"
+  ],
+  "changedObjects": [
+    "public.comun_portuguese_unaccent",
+    "public.comun_search_documents",
+    "public.comun_search_sections",
+    "public.comun_search_embedding_jobs",
+    "public.comun_search_metrics_hourly",
+    "public.comun_sync_public_search_projection",
+    "public.comun_public_search_hybrid",
+    "public.comun_claim_search_embedding_jobs",
+    "public.comun_complete_search_embedding_job",
+    "public.comun_fail_search_embedding_job"
+  ]
+}

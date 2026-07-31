@@ -34,6 +34,7 @@ import { getCollectiveActionsRelease } from "@/lib/collective-actions-release";
 import { getPublicPautaActionCycle } from "@/lib/pauta-action-cycle-data";
 import { ComunExperiencePilot } from "@/components/comun-experience-pilot";
 import { isExperienceCoherencePilot } from "@/lib/experience-coherence";
+import { PautaMemoryRelations } from "@/components/civic-intelligence/pauta-memory-relations";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -657,6 +658,7 @@ export default async function PautaPage(props: {
           ) : null}
         </Section>
       </ComunExperiencePilot>
+      {searchParams.inteligencia === "busca-viva" ? <PautaMemoryRelations pautaId={space.id} title={space.title} route={`/comun/pautas/${space.slug}`} /> : null}
     </ComunShell>
   );
 }
