@@ -27,6 +27,7 @@ let tempDir;
 let dumpPath;
 
 async function main() {
+  let recoveryPhase = "preflight";
   try {
     const sourceUrl = local ? localDatabaseUrl() : process.env.SUPABASE_DB_URL;
     if (!local) {
@@ -38,6 +39,7 @@ async function main() {
           process.env.SUPABASE_PROJECT_REF,
       });
     }
+    recoveryPhase = "source_inventory";
     tempDir = await mkdtemp(path.join(os.tmpdir(), "comun-db-restore-"));
     dumpPath = path.join(tempDir, "source.dump");
     const sourceTables = remoteRows(
@@ -63,6 +65,7 @@ async function main() {
      order by src.relname,att.attname;`,
     ).map((value) => JSON.parse(value));
 
+    recoveryPhase = "backup_create";
     dockerRun([
       "run",
       "--rm",
@@ -77,6 +80,7 @@ async function main() {
       "-c",
       'umask 077; pg_dump "$SOURCE_DATABASE_URL" --format=custom --schema=public --schema=supabase_migrations --no-owner --file=/work/source.dump',
     ]);
+    recoveryPhase = "backup_integrity";
     const dumpStats = await stat(dumpPath);
     const dumpBuffer = await readFile(dumpPath);
     const dumpHash = checksum(dumpBuffer);
@@ -98,6 +102,7 @@ async function main() {
       ]),
     );
 
+    recoveryPhase = "isolated_database_start";
     dockerRun([
       "run",
       "--detach",
@@ -108,8 +113,10 @@ async function main() {
       "postgres:17",
     ]);
     waitForPostgres();
+    recoveryPhase = "isolated_bootstrap";
     isolatedSql(BOOTSTRAP_SQL);
     dockerRun(["cp", dumpPath, `${container}:/tmp/source.dump`]);
+    recoveryPhase = "restore_pre_data";
     isolatedRestore(["--section=pre-data"]);
     const incompleteRestoreDetected =
       Number(
@@ -118,10 +125,14 @@ async function main() {
         ),
       ) === 0;
     assert.equal(incompleteRestoreDetected, true);
+    recoveryPhase = "restore_data";
     isolatedRestore(["--section=data", "--disable-triggers"]);
+    recoveryPhase = "auth_shadow";
     synthesizeAuthReferences(authReferences);
+    recoveryPhase = "restore_post_data";
     isolatedRestore(["--section=post-data"]);
 
+    recoveryPhase = "aggregate_counts";
     const restoredCounts = isolatedCounts(sourceTables);
     const restoredMigrations = isolatedRows(
       "select version::text from supabase_migrations.schema_migrations order by version;",
@@ -136,6 +147,7 @@ async function main() {
       sourceMigrations,
       "ledger de migrations divergiu",
     );
+    recoveryPhase = "structure";
     const structure = isolatedJson(`
     select json_build_object(
       'schemas',(select count(*)::int from pg_namespace where nspname in ('public','auth','storage')),
@@ -154,8 +166,10 @@ async function main() {
     assert.equal(structure.invalidIndexes, 0);
     assert.equal(structure.unvalidatedConstraints, 0);
     assert.equal(structure.tables, sourceTables.length);
+    recoveryPhase = "foreign_keys";
     const publicFkOrphans = Number(isolatedScalar(PUBLIC_FK_ORPHAN_SQL));
     assert.equal(publicFkOrphans, 0, "foreign keys públicas órfãs");
+    recoveryPhase = "application";
     const application = applicationSmokeRequested
       ? await rehearseApplicationAgainstRestore(sourceTables)
       : { status: "not_requested" };
@@ -226,10 +240,18 @@ async function main() {
     });
     console.log(RESULT.databaseRestore);
   } catch (error) {
-    await writeFailureEvidence("database_restore", error);
+    const recordedError =
+      sanitizedError(error) === "COMUN_SECURITY_STEP_FAILED"
+        ? new Error(
+            `COMUN_DATABASE_RESTORE_${recoveryPhase
+              .replace(/[^a-z0-9_]+/gi, "_")
+              .toUpperCase()}_FAILED`,
+          )
+        : error;
+    await writeFailureEvidence("database_restore", recordedError);
     if (process.env.COMUN_SECURITY_DEBUG === "1")
       console.error(error instanceof Error ? error.stack : error);
-    console.error(sanitizedError(error));
+    console.error(sanitizedError(recordedError));
     process.exitCode = 1;
   } finally {
     try {
