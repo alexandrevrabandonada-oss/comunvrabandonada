@@ -11,20 +11,31 @@ validateRemoteTarget({
   allowedRefs: process.env.COMUN_CIVIC_ALLOWED_PROJECT_REFS,
 });
 
-const release = JSON.parse(
-  await readFile(
+async function loadRelease(manifest, version, name) {
+  const release = JSON.parse(await readFile(manifest, "utf8"));
+  const migration = await readFile(release.migration, "utf8");
+  const migrationSha256 = createHash("sha256").update(migration).digest("hex");
+  if (migrationSha256 !== release.migrationSha256)
+    throw new Error("COMUN_CIVIC_MIGRATION_CHECKSUM_MISMATCH");
+  return { release, migration, version, name };
+}
+
+const releases = await Promise.all([
+  loadRelease(
     "supabase/releases/20260731183339-comun-civic-search-foundation.json",
-    "utf8",
+    "20260731183339",
+    "comun_civic_search_foundation",
   ),
-);
-const migration = await readFile(release.migration, "utf8");
-const migrationSha256 = createHash("sha256").update(migration).digest("hex");
-if (migrationSha256 !== release.migrationSha256)
-  throw new Error("COMUN_CIVIC_MIGRATION_CHECKSUM_MISMATCH");
+  loadRelease(
+    "supabase/releases/20260731220000-comun-civic-search-service-observability.json",
+    "20260731220000",
+    "comun_civic_search_service_observability",
+  ),
+]);
 
 const client = new pg.Client({ connectionString: databaseUrl });
 await client.connect();
-let alreadyApplied = false;
+const migrationResults = [];
 let capabilities;
 try {
   const observed = await client.query(`
@@ -45,35 +56,38 @@ try {
   )
     throw new Error("COMUN_CIVIC_PROVIDER_CAPABILITY_INCOMPLETE");
 
-  const ledger = await client.query(
-    "select exists(select 1 from supabase_migrations.schema_migrations where version=$1) as applied",
-    ["20260731183339"],
-  );
-  alreadyApplied = ledger.rows[0].applied;
-  if (!alreadyApplied) {
-    await client.query(migration);
-    const ledgerColumns = (
-      await client.query(`
+  const ledgerColumns = (
+    await client.query(`
         select column_name from information_schema.columns
         where table_schema='supabase_migrations' and table_name='schema_migrations'
       `)
-    ).rows.map((row) => row.column_name);
-    const insertColumns = ["version"];
-    const insertValues = ["20260731183339"];
-    if (ledgerColumns.includes("name")) {
-      insertColumns.push("name");
-      insertValues.push("comun_civic_search_foundation");
-    }
-    if (ledgerColumns.includes("statements")) {
-      insertColumns.push("statements");
-      insertValues.push(["checksum_verified_external_transport"]);
-    }
-    await client.query(
-      `insert into supabase_migrations.schema_migrations (${insertColumns.join(",")})
+  ).rows.map((row) => row.column_name);
+  for (const item of releases) {
+    const ledger = await client.query(
+      "select exists(select 1 from supabase_migrations.schema_migrations where version=$1) as applied",
+      [item.version],
+    );
+    const alreadyApplied = ledger.rows[0].applied;
+    if (!alreadyApplied) {
+      await client.query(item.migration);
+      const insertColumns = ["version"];
+      const insertValues = [item.version];
+      if (ledgerColumns.includes("name")) {
+        insertColumns.push("name");
+        insertValues.push(item.name);
+      }
+      if (ledgerColumns.includes("statements")) {
+        insertColumns.push("statements");
+        insertValues.push(["checksum_verified_external_transport"]);
+      }
+      await client.query(
+        `insert into supabase_migrations.schema_migrations (${insertColumns.join(",")})
        values (${insertValues.map((_, index) => `$${index + 1}`).join(",")})
        on conflict (version) do nothing`,
-      insertValues,
-    );
+        insertValues,
+      );
+    }
+    migrationResults.push({ version: item.version, alreadyApplied });
   }
 
   const postflight = await client.query(`
@@ -81,7 +95,10 @@ try {
       to_regclass('public.comun_search_documents') is not null as documents,
       to_regclass('public.comun_search_sections') is not null as sections,
       to_regprocedure('public.comun_public_search_hybrid(text,text,uuid,uuid,extensions.vector,integer)') is not null as hybrid,
-      exists(select 1 from supabase_migrations.schema_migrations where version='20260731183339') as ledger
+      exists(select 1 from supabase_migrations.schema_migrations where version='20260731183339') as foundation_ledger,
+      exists(select 1 from supabase_migrations.schema_migrations where version='20260731220000') as observability_ledger,
+      has_table_privilege('service_role','public.comun_search_documents','select') as service_documents,
+      has_table_privilege('service_role','public.comun_search_sections','select') as service_sections
   `);
   if (Object.values(postflight.rows[0]).some((value) => value !== true))
     throw new Error("COMUN_CIVIC_REMOTE_MIGRATION_POSTFLIGHT_FAILED");
@@ -97,8 +114,10 @@ await writeFile(
     {
       result: "COMUN_CIVIC_REMOTE_MIGRATION_GREEN",
       target: "allowlisted_remote",
-      applied: !alreadyApplied,
-      idempotentReplay: alreadyApplied,
+      migrationsApplied: migrationResults.filter((item) => !item.alreadyApplied)
+        .length,
+      idempotentReplays: migrationResults.filter((item) => item.alreadyApplied)
+        .length,
       migrationSha256Verified: true,
       postgresMajor: Math.floor(
         Number(capabilities.server_version_num) / 10000,

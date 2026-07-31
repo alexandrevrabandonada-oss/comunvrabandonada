@@ -28,6 +28,7 @@ let directWriteBlocked = false;
 let privateProjectionRejected = false;
 let directRpcBlocked = false;
 let serverRpcAvailable = false;
+let serviceObservabilityReadAvailable = false;
 if (anon && service) {
   for (const table of tables) {
     const { data, error } = await anon.from(table).select("*").limit(1);
@@ -89,6 +90,11 @@ if (anon && service) {
   privateProjectionRejected = Boolean(privateProjectionError);
   directRpcBlocked = Boolean(directRpcError);
   serverRpcAvailable = !serverRpcError && Array.isArray(serverRpc);
+  const { error: serviceReadError } = await service
+    .from("comun_search_documents")
+    .select("id")
+    .limit(1);
+  serviceObservabilityReadAvailable = !serviceReadError;
 }
 
 const database = new pg.Client({ connectionString: databaseUrl });
@@ -108,7 +114,8 @@ if (!httpBoundaryAvailable) {
     `
     select c.relname,
       has_table_privilege('anon', c.oid, 'select') as anon_select,
-      has_table_privilege('anon', c.oid, 'insert,update,delete') as anon_write
+      has_table_privilege('anon', c.oid, 'insert,update,delete') as anon_write,
+      has_table_privilege('service_role', c.oid, 'select') as service_select
     from pg_class c join pg_namespace n on n.oid=c.relnamespace
     where n.nspname='public' and c.relname = any($1::text[])
   `,
@@ -121,6 +128,9 @@ if (!httpBoundaryAvailable) {
     })),
   );
   directWriteBlocked = privileges.rows.every((row) => !row.anon_write);
+  serviceObservabilityReadAvailable = privileges.rows.every(
+    (row) => row.service_select,
+  );
   privateProjectionRejected = true;
   const hybrid = catalog.rows.find(
     (row) => row.proname === "comun_public_search_hybrid",
@@ -153,6 +163,7 @@ const result =
   privateProjectionRejected &&
   directRpcBlocked &&
   serverRpcAvailable &&
+  serviceObservabilityReadAvailable &&
   catalogGreen
     ? "COMUN_CIVIC_SEARCH_PERMISSION_BOUNDARY_GREEN"
     : "COMUN_CIVIC_INTELLIGENCE_BLOCKED_PERMISSION_BOUNDARY";
@@ -163,6 +174,7 @@ const evidence = {
   privateProjectionRejected,
   directPrivilegedRpcBlocked: directRpcBlocked,
   serverSanitizedRpcAvailable: serverRpcAvailable,
+  serviceObservabilityReadAvailable,
   privilegedFunctionsProtected: catalogGreen,
   functionsAudited: catalog.rows.length,
   personas: [

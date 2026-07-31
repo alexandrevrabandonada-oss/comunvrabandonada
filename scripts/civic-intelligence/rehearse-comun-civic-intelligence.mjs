@@ -5,6 +5,10 @@ import { resolveCivicIntents } from "../../lib/civic-intelligence/intents.ts";
 const databaseUrl =
   process.env.PR23_DATABASE_URL || process.env.SUPABASE_DB_URL;
 if (!databaseUrl) throw new Error("COMUN_CIVIC_REHEARSAL_DATABASE_MISSING");
+const remoteDatabase =
+  !/^postgres(?:ql)?:\/\/[^@]+@(localhost|127\.0\.0\.1):\d+\//i.test(
+    databaseUrl,
+  );
 const client = new pg.Client({ connectionString: databaseUrl });
 await client.connect();
 const fixtureSource = `fixture-rehearsal-${Date.now()}`;
@@ -149,7 +153,9 @@ if (
 const passed = Object.values(scenarios).filter(Boolean).length;
 const result =
   passed === 16
-    ? "COMUN_CIVIC_INTELLIGENCE_LOCAL_REHEARSAL_GREEN"
+    ? remoteDatabase
+      ? "COMUN_CIVIC_INTELLIGENCE_CONTROLLED_REHEARSAL_GREEN"
+      : "COMUN_CIVIC_INTELLIGENCE_LOCAL_REHEARSAL_GREEN"
     : "COMUN_CIVIC_INTELLIGENCE_REHEARSAL_FAILED";
 const evidence = {
   result,
