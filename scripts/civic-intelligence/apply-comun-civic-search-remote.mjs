@@ -85,6 +85,7 @@ try {
   `);
   if (Object.values(postflight.rows[0]).some((value) => value !== true))
     throw new Error("COMUN_CIVIC_REMOTE_MIGRATION_POSTFLIGHT_FAILED");
+  await client.query("select pg_notify('pgrst','reload schema')");
 } finally {
   await client.end();
 }

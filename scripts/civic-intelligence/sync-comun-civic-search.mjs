@@ -36,9 +36,15 @@ const fakeEmbedding = (input) => {
     Math.sqrt(vector.reduce((sum, value) => sum + value * value, 0)) || 1;
   return vector.map((value) => value / norm);
 };
-const { data: sync, error: syncError } = await client.rpc(
+let { data: sync, error: syncError } = await client.rpc(
   "comun_sync_public_search_projection",
 );
+if (syncError?.code === "PGRST202") {
+  await new Promise((resolve) => setTimeout(resolve, 1_500));
+  ({ data: sync, error: syncError } = await client.rpc(
+    "comun_sync_public_search_projection",
+  ));
+}
 if (syncError) {
   console.error(
     JSON.stringify({
