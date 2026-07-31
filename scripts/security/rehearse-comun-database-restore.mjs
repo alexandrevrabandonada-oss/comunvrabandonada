@@ -69,6 +69,7 @@ async function main() {
     dockerRun([
       "run",
       "--rm",
+      ...dockerUserArgs(),
       "--add-host",
       "host.docker.internal:host-gateway",
       "-e",
@@ -713,6 +714,15 @@ function dockerUrl(url) {
   if (["127.0.0.1", "localhost"].includes(target.hostname))
     target.hostname = "host.docker.internal";
   return target.toString();
+}
+
+function dockerUserArgs() {
+  if (
+    typeof process.getuid !== "function" ||
+    typeof process.getgid !== "function"
+  )
+    return [];
+  return ["--user", `${process.getuid()}:${process.getgid()}`];
 }
 
 function quoteIdentifier(value) {
