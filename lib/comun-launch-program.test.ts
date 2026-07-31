@@ -35,6 +35,14 @@ describe("COMUN V1 launch program", () => {
     ).toBe("green");
   });
 
+  it("registra operações como verde após projeção, segurança e ensaio remotos", () => {
+    expect(
+      COMUN_V1_LAUNCH_PROGRAM.domains.find(
+        (domain) => domain.id === "operations",
+      )?.status,
+    ).toBe("green");
+  });
+
   it("só libera o gate final quando todos os domínios estão verdes", () => {
     const green = COMUN_V1_LAUNCH_PROGRAM.domains.map((domain) => ({
       ...domain,

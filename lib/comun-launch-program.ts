@@ -96,7 +96,7 @@ export const COMUN_V1_LAUNCH_PROGRAM = {
     {
       id: "operations",
       label: "Operação, moderação e observabilidade",
-      status: "in_progress",
+      status: "green",
       objective:
         "Fila, notificações, incidentes e responsabilidades precisam operar em uma superfície única.",
       requiredEvidence: [
@@ -105,8 +105,8 @@ export const COMUN_V1_LAUNCH_PROGRAM = {
         "alertas sem duplicação",
         "rotina diária reproduzível",
       ],
-      nextTijolo: "47.7 — Central operacional unificada",
-      href: "/comun/admin/organizacao",
+      nextTijolo: "47.8 — Segurança, backup e recuperação",
+      href: "/comun/admin/operacao",
     },
     {
       id: "security_resilience",
