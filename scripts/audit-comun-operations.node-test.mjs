@@ -56,3 +56,24 @@ test("read-only preflight distinguishes legacy projection from missing evidence"
     /migrationRequired: projectionSchema !== "operations-v1"/,
   );
 });
+
+test("archive accessibility queue includes only effectively public images", () => {
+  const query = SOURCE_QUERIES.find(
+    (candidate) => candidate.name === "archive-accessibility",
+  );
+  assert.ok(query);
+  assert.match(query.sql, /join public\.comun_archive_items item/);
+  assert.match(query.sql, /asset\.bucket_scope = 'public_safe'/);
+  assert.match(query.sql, /item\.status = 'published'/);
+  assert.match(query.sql, /item\.visibility = 'public'/);
+  assert.match(query.sql, /item\.published_at is not null/);
+});
+
+test("remote audit fails closed on RLS or public write grants", () => {
+  assert.match(auditSource, /not relation\.relrowsecurity/);
+  assert.match(
+    auditSource,
+    /grant_entry\.grantee in \('anon', 'authenticated'\)/,
+  );
+  assert.match(auditSource, /COMUN_OPERATIONS_SECURITY_BOUNDARY_BLOCKED/);
+});
