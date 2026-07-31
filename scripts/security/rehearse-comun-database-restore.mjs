@@ -23,6 +23,15 @@ const startedAt = Date.now();
 const tag = syntheticTag("db-restore");
 const container = tag.slice(0, 62);
 const password = syntheticTag("db-password");
+const ALLOWED_REMOTE_LEGACY_TABLES = new Set([
+  "comments",
+  "communities",
+  "knowledge_pages",
+  "posts",
+  "profiles",
+  "project_links",
+  "reactions_as_actions",
+]);
 let tempDir;
 let dumpPath;
 
@@ -439,6 +448,34 @@ async function rehearseApplicationAgainstRestore(tables) {
     .split(/\r?\n/)[0];
   if (!localContainer)
     throw new Error("COMUN_DATABASE_APPLICATION_SUPABASE_NOT_RUNNING");
+  const localTables = applicationDocker("local_catalog", [
+    "exec",
+    localContainer,
+    "psql",
+    "-U",
+    "supabase_admin",
+    "-d",
+    "postgres",
+    "-X",
+    "-A",
+    "-t",
+    "-c",
+    "select c.relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','p') order by c.relname;",
+  ])
+    .trim()
+    .split(/\r?\n/)
+    .filter(Boolean);
+  const localTableSet = new Set(localTables);
+  const remoteTableSet = new Set(tables);
+  const applicationTables = tables.filter((name) => localTableSet.has(name));
+  const remoteOnlyTables = tables.filter((name) => !localTableSet.has(name));
+  const localOnlyTables = localTables.filter((name) => !remoteTableSet.has(name));
+  if (
+    remoteOnlyTables.some((name) => !ALLOWED_REMOTE_LEGACY_TABLES.has(name))
+  )
+    throw new Error("COMUN_DATABASE_APPLICATION_SCHEMA_DRIFT_FAILED");
+  if (localOnlyTables.length)
+    throw new Error("COMUN_DATABASE_APPLICATION_REMOTE_SCHEMA_BEHIND_FAILED");
   const appDump = "/tmp/comun-application-restore.dump";
   applicationDocker("data_dump", [
     "exec",
@@ -451,6 +488,7 @@ async function rehearseApplicationAgainstRestore(tables) {
     "-Fc",
     "--data-only",
     "--schema=public",
+    ...applicationTables.map((name) => `--table=public.${name}`),
     "-f",
     appDump,
   ]);
@@ -465,8 +503,8 @@ async function rehearseApplicationAgainstRestore(tables) {
     appHostDump,
     `${localContainer}:${appDump}`,
   ]);
-  const truncate = tables.length
-    ? `truncate table ${tables
+  const truncate = applicationTables.length
+    ? `truncate table ${applicationTables
         .map((name) => `public.${quoteIdentifier(name)}`)
         .join(",")} cascade;`
     : "select 1;";
@@ -646,6 +684,12 @@ async function rehearseApplicationAgainstRestore(tables) {
       syntheticLogin: "green",
       noLeak: "green",
       notificationsSent: false,
+      applicationSchema: {
+        restoredRelations: applicationTables.length,
+        explicitlyExcludedLegacyRelations: remoteOnlyTables.length,
+        excludedSetChecksum: envelopeDigest(remoteOnlyTables.sort()),
+        unknownDrift: 0,
+      },
       measured: {
         publicReading: durationBand(publicRouteMaximumMs),
         authentication: durationBand(authenticationProbeMs),
