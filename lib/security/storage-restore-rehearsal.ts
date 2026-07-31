@@ -116,6 +116,7 @@ export async function runRuntimeStorageRestoreRehearsal(attemptId: string) {
       sourceObjects,
     );
     await removeObjects(client, bucket, sourceObjects);
+    await assertObjectsMissing(client, bucket, sourceObjects);
 
     for (const [index, item] of fixtures.entries()) {
       await putVerified(
@@ -158,6 +159,7 @@ export async function runRuntimeStorageRestoreRehearsal(attemptId: string) {
       throw new Error("COMUN_STORAGE_RUNTIME_RELATION_COUNT_FAILED");
 
     await removeObjects(client, bucket, restoreObjects);
+    await assertObjectsMissing(client, bucket, restoreObjects);
     const { error: cleanupError } = await database
       .from("comun_archive_items")
       .delete()
@@ -336,7 +338,7 @@ async function removeObjects(
   for (const scope of ["private", "public"] as const) {
     const selected = objects.filter((item) => item.scope === scope);
     if (!selected.length) continue;
-    await client.send(
+    const removed = await client.send(
       new DeleteObjectsCommand({
         Bucket: bucket(scope),
         Delete: {
@@ -345,6 +347,30 @@ async function removeObjects(
         },
       }),
     );
+    if (removed.Errors?.length)
+      throw new Error("COMUN_STORAGE_RUNTIME_REMOVE_FAILED");
+  }
+}
+
+async function assertObjectsMissing(
+  client: S3Client,
+  bucket: (scope: Scope) => string,
+  objects: Array<{ scope: Scope; key: string }>,
+) {
+  for (const object of objects) {
+    try {
+      await client.send(
+        new HeadObjectCommand({
+          Bucket: bucket(object.scope),
+          Key: object.key,
+        }),
+      );
+      throw new Error("COMUN_STORAGE_RUNTIME_OBJECT_NOT_REMOVED");
+    } catch (error) {
+      const status = (error as { $metadata?: { httpStatusCode?: number } })
+        .$metadata?.httpStatusCode;
+      if (status !== 404) throw error;
+    }
   }
 }
 
@@ -429,8 +455,10 @@ async function createRelations(
       review_status: "pending",
     })),
   );
-  if (error)
+  if (error) {
+    await database.from("comun_archive_items").delete().eq("id", item.id);
     throw new Error("COMUN_STORAGE_RUNTIME_RELATION_ASSET_FAILED");
+  }
   return item.id as string;
 }
 
