@@ -135,7 +135,7 @@ export const COMUN_V1_LAUNCH_PROGRAM = {
         "carga representativa 25/50/100 materializando itens",
         "orçamentos de performance cumpridos",
       ],
-      nextTijolo: "47.9A/47.9B — Experiência e qualidade integral",
+      nextTijolo: "47.9C — Acessibilidade, PWA, performance e dispositivos",
       href: "/comun/admin/observabilidade",
     },
     {

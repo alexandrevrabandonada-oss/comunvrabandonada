@@ -14,7 +14,7 @@ for (const route of routes) test(`@a11y ${route}`, async ({ page }) => {
 test("visitante entende navegacao finita", async ({ page }) => {
   await page.goto("/comun");
   await expect(page.getByRole("navigation").first()).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Organize seu território. Construa soluções coletivamente." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Agora no território." })).toBeVisible();
   await page.goto("/comun/participar");
   await expect(page).toHaveURL(/\/comun\/participar/);
   await expect(page.locator("h1")).toContainText("Como você quer contribuir?");

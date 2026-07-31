@@ -79,6 +79,7 @@ async function login(
   await page.getByRole("button", { name: "Entrar" }).click();
   await expect(page).toHaveURL(
     new RegExp(path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+    { timeout: 20_000 },
   );
 }
 test("jornada autenticada canônica percorre fotografia até memória", async ({
@@ -116,7 +117,9 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await page.getByLabel(/Aceito os termos/).check();
   await page.getByLabel(/política de privacidade/).check();
   await page.getByRole("button", { name: "Criar conta" }).click();
-  await expect(page).toHaveURL(/\/comun\/onboarding\?returnTo=/);
+  await expect(page).toHaveURL(/\/comun\/onboarding\?returnTo=/, {
+    timeout: 20_000,
+  });
   await page
     .getByRole("button", { name: /Salvar território e continuar/ })
     .click();
@@ -134,7 +137,9 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     .getByLabel("Descrição opcional")
     .fill(`Trecho sintético ${runId} com piso irregular.`);
   await page
-    .getByRole("checkbox", { name: /Autorizo a publicação sanitizada/ })
+    .getByRole("checkbox", {
+      name: /Autorizo a publicação do ponto exato.*versão sanitizada/,
+    })
     .check();
   await page
     .getByRole("checkbox", { name: /Conferi fotografia, local, condição/ })

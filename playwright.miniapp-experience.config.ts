@@ -27,8 +27,8 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined
     : {
-        command: "node scripts/comun-local-env.mjs run npm run dev",
-        url: "http://127.0.0.1:3000/comun/calcadas",
+        command: "npm run dev",
+        url: `${(process.env.COMUN_BASE_URL ?? "http://127.0.0.1:3000").replace(/\/$/, "")}/comun/calcadas`,
         reuseExistingServer: true,
         timeout: 120_000,
       },

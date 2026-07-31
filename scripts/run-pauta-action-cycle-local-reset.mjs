@@ -8,12 +8,20 @@ const unsafeLookup =
   "where oid = 'public.handle_new_user()'::pg_catalog.regprocedure";
 const safeLookup =
   "where oid = pg_catalog.to_regprocedure('public.handle_new_user()')";
+const compatibleGuard =
+  "if pg_catalog.to_regprocedure('public.handle_new_user()') is null then";
 
 export function createDisposableResetCompatibilityPatch(source) {
-  const occurrences = source.split(unsafeLookup).length - 1;
-  if (occurrences !== 1)
-    throw new Error("COMUN_PAUTA_ACTION_CYCLE_RESET_PATCH_SOURCE_INVALID");
-  return source.replace(unsafeLookup, safeLookup);
+  const unsafeOccurrences = source.split(unsafeLookup).length - 1;
+  const safeOccurrences = source.split(safeLookup).length - 1;
+  if (unsafeOccurrences === 1 && safeOccurrences === 0)
+    return source.replace(unsafeLookup, safeLookup);
+  if (
+    unsafeOccurrences === 0 &&
+    (safeOccurrences === 1 || source.includes(compatibleGuard))
+  )
+    return source;
+  throw new Error("COMUN_PAUTA_ACTION_CYCLE_RESET_PATCH_SOURCE_INVALID");
 }
 
 function run(command, args) {

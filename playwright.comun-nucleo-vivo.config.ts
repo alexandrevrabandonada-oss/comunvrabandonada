@@ -13,12 +13,13 @@ export default defineConfig({
     { name: "mobile", use: { ...devices["Pixel 7"] } },
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
   ],
-  webServer: process.env.COMUN_BASE_URL
-    ? undefined
-    : {
-        command: "node scripts/comun-local-env.mjs run npm run dev",
-        url: "http://127.0.0.1:3000/comun",
-        reuseExistingServer: true,
-        timeout: 120_000,
-      },
+  webServer:
+    process.env.PLAYWRIGHT_SKIP_WEBSERVER === "1"
+      ? undefined
+      : {
+          command: "npm run dev",
+          url: `${(process.env.COMUN_BASE_URL ?? "http://127.0.0.1:3000").replace(/\/$/, "")}/comun`,
+          reuseExistingServer: true,
+          timeout: 120_000,
+        },
 });

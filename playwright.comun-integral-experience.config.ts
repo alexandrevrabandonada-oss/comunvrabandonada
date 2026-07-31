@@ -30,8 +30,15 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined
     : {
-        command: "node scripts/comun-local-env.mjs run npm run dev",
+        command: "npm run dev",
         url: `${(process.env.COMUN_BASE_URL ?? "http://127.0.0.1:3000").replace(/\/$/, "")}/comun`,
+        // O ensaio integral usa somente a release local já reconciliada. A
+        // flag fica contida no processo descartável do servidor; produção
+        // continua fail-closed e depende do ledger remoto exato.
+        env: {
+          ...process.env,
+          COMUN_SIDEWALK_OPERATIONAL_V2: "enabled",
+        },
         reuseExistingServer: true,
         timeout: 120_000,
       },

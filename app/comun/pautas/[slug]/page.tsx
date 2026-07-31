@@ -32,6 +32,8 @@ import { ComunContextTrail } from "@/components/comun-context-trail";
 import { PautaPoliticalCycle } from "@/components/pauta-political-cycle";
 import { getCollectiveActionsRelease } from "@/lib/collective-actions-release";
 import { getPublicPautaActionCycle } from "@/lib/pauta-action-cycle-data";
+import { ComunExperiencePilot } from "@/components/comun-experience-pilot";
+import { isExperienceCoherencePilot } from "@/lib/experience-coherence";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -52,8 +54,12 @@ export default async function PautaPage(props: {
 }) {
   const searchParams = await props.searchParams;
   const params = await props.params;
+  const experiencePilot = isExperienceCoherencePilot(searchParams.experiencia);
   const space = await getPublicPautaSpaceBySlug(params.slug);
-  if (!space) return <LegacyIssuePage slug={params.slug} />;
+  if (!space)
+    return (
+      <LegacyIssuePage slug={params.slug} experiencePilot={experiencePilot} />
+    );
 
   const isEditorialFallback = space.source === "editorial_fallback";
   const modules = isEditorialFallback
@@ -87,23 +93,30 @@ export default async function PautaPage(props: {
       searchParams.contribuicao === "recebida";
     return (
       <ComunShell>
-        {contributionAck ? (
-          <section className="bg-comun-black py-3">
-            <div className="mx-auto max-w-6xl px-4">
-              <p className="border-2 border-comun-yellow bg-comun-black p-3 text-sm font-bold text-comun-paper">
-                Contribuicao recebida. Ela entra em moderacao antes de aparecer
-                publicamente.
-              </p>
-            </div>
-          </section>
-        ) : null}
-        <PautaAppShell
-          space={space}
-          modules={modules}
-          circles={circles}
-          sidewalks={sidewalks}
-        />
-        <SidewalkMemorySection pautaSlug={space.slug} memories={memories} />
+        <ComunExperiencePilot
+          active={experiencePilot}
+          level={1}
+          currentHref={`/comun/pautas/${space.slug}`}
+        >
+          <PautaReturn />
+          {contributionAck ? (
+            <section className="bg-comun-black py-3">
+              <div className="mx-auto max-w-6xl px-4">
+                <p className="border-2 border-comun-yellow bg-comun-black p-3 text-sm font-bold text-comun-paper">
+                  Contribuicao recebida. Ela entra em moderacao antes de
+                  aparecer publicamente.
+                </p>
+              </div>
+            </section>
+          ) : null}
+          <PautaAppShell
+            space={space}
+            modules={modules}
+            circles={circles}
+            sidewalks={sidewalks}
+          />
+          <SidewalkMemorySection pautaSlug={space.slug} memories={memories} />
+        </ComunExperiencePilot>
       </ComunShell>
     );
   }
@@ -141,503 +154,520 @@ export default async function PautaPage(props: {
 
   return (
     <ComunShell>
-      <Section>
-        <ComunContextTrail
-          items={[
-            ...(community
-              ? [
-                  {
-                    kind: "comunidade" as const,
-                    label: community.name,
-                    href: `/comun/c/${community.slug}`,
-                  },
-                ]
-              : []),
-            { kind: "pauta", label: space.title },
-          ]}
-        />
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
-          <div>
-            <p className="text-xs font-black uppercase text-comun-yellow">
-              {details.public_status ?? statusLabel(space.status)} /{" "}
-              {community?.name ?? space.community ?? "comunidade aberta"}
-            </p>
-            <h1 className="comun-prose mt-3 text-3xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">
-              {space.title}
-            </h1>
-            <p className="comun-prose mt-4 max-w-3xl text-comun-paper/78">
-              {space.summary ?? "Pauta em organizacao coletiva."}
-            </p>
-            {space.next_step ? (
-              <p className="mt-4 border-2 border-comun-yellow bg-comun-black p-4 text-sm font-bold text-comun-paper">
-                Proximo passo: {space.next_step}
-              </p>
-            ) : null}
-          </div>
-          <aside className="paper-panel border-2 border-comun-black p-4">
-            <h2 className="font-black uppercase">Numeros principais</h2>
-            <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
-              <Metric label="Relatos" value={space.stats.reportCount} />
-              <Metric
-                label="Protocolos"
-                value={space.stats.officialProtocolCount}
-              />
-              <Metric
-                label="Vencidos"
-                value={space.stats.overdueProtocolCount}
-              />
-              <Metric
-                label="Tarefas abertas"
-                value={space.stats.openTaskCount}
-              />
-            </dl>
-          </aside>
-        </div>
-      </Section>
-
-      <PautaPoliticalCycle cycle={politicalCycle} />
-
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          O problema e quem é afetado
-        </h2>
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <div className="paper-panel border-2 p-4">
-            <h3 className="font-black uppercase">O problema</h3>
-            <p className="mt-2">
-              {details.problem_public ??
-                space.public_synthesis ??
-                space.summary}
-            </p>
-          </div>
-          <div className="paper-panel border-2 p-4">
-            <h3 className="font-black uppercase">Quem é afetado</h3>
-            <p className="mt-2">
-              {details.affected_people_public ??
-                "O recorte público ainda está em apuração."}
-            </p>
-          </div>
-        </div>
-      </Section>
-
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          O que está sendo reivindicado
-        </h2>
-        <p className="mt-3 text-comun-paper/80">
-          {details.demand_public ??
-            "A reivindicação pública está em construção."}
-        </p>
-        <h3 className="mt-5 text-xl font-black uppercase text-comun-yellow">
-          Propostas
-        </h3>
-        <p className="mt-2 text-comun-paper/80">
-          {details.proposals_public ??
-            "Propostas ainda em elaboração coletiva."}
-        </p>
-      </Section>
-
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          Linha do tempo
-        </h2>
-        <div className="mt-4 grid gap-3">
-          {hub.timeline.map((x: any) => (
-            <article
-              className="border-l-4 border-comun-yellow bg-comun-black p-4"
-              key={x.id}
-            >
+      <ComunExperiencePilot
+        active={experiencePilot}
+        level={1}
+        currentHref={`/comun/pautas/${space.slug}`}
+      >
+        <PautaReturn />
+        <Section>
+          <ComunContextTrail
+            items={[
+              ...(community
+                ? [
+                    {
+                      kind: "comunidade" as const,
+                      label: community.name,
+                      href: `/comun/c/${community.slug}`,
+                    },
+                  ]
+                : []),
+              { kind: "pauta", label: space.title },
+            ]}
+          />
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+            <div>
               <p className="text-xs font-black uppercase text-comun-yellow">
-                {new Date(x.occurred_at).toLocaleDateString("pt-BR")} ·{" "}
-                {x.event_type}
+                {details.public_status ?? statusLabel(space.status)} /{" "}
+                {community?.name ?? space.community ?? "comunidade aberta"}
               </p>
-              <h3 className="mt-1 font-black">{x.title}</h3>
-              {x.public_summary ? (
-                <p className="mt-2 text-sm text-comun-paper/75">
-                  {x.public_summary}
+              <h1 className="comun-prose mt-3 text-3xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">
+                {space.title}
+              </h1>
+              <p className="comun-prose mt-4 max-w-3xl text-comun-paper/78">
+                {space.summary ?? "Pauta em organizacao coletiva."}
+              </p>
+              {space.next_step ? (
+                <p className="mt-4 border-2 border-comun-yellow bg-comun-black p-4 text-sm font-bold text-comun-paper">
+                  Proximo passo: {space.next_step}
                 </p>
               ) : null}
-            </article>
-          ))}
-          {!hub.timeline.length ? (
-            <EmptyState text="A linha do tempo pública começa com o próximo evento verificado." />
-          ) : null}
-        </div>
-      </Section>
+            </div>
+            <aside className="paper-panel border-2 border-comun-black p-4">
+              <h2 className="font-black uppercase">Numeros principais</h2>
+              <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <Metric label="Relatos" value={space.stats.reportCount} />
+                <Metric
+                  label="Protocolos"
+                  value={space.stats.officialProtocolCount}
+                />
+                <Metric
+                  label="Vencidos"
+                  value={space.stats.overdueProtocolCount}
+                />
+                <Metric
+                  label="Tarefas abertas"
+                  value={space.stats.openTaskCount}
+                />
+              </dl>
+            </aside>
+          </div>
+        </Section>
 
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          Ações realizadas e próximas ações
-        </h2>
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          {hub.actions.map((x: any) => (
-            <Link
-              className="paper-panel border-2 p-4"
-              href={`/comun/acoes/${x.slug}`}
-              key={x.id}
-            >
-              <p className="text-xs font-black uppercase">
-                {x.action_type} · {x.status}
+        <PautaPoliticalCycle cycle={politicalCycle} />
+
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            O problema e quem é afetado
+          </h2>
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="paper-panel border-2 p-4">
+              <h3 className="font-black uppercase">O problema</h3>
+              <p className="mt-2">
+                {details.problem_public ??
+                  space.public_synthesis ??
+                  space.summary}
               </p>
-              <h3 className="mt-2 font-black uppercase">{x.title}</h3>
-              <p className="mt-2 text-sm">{x.objective_public}</p>
-            </Link>
-          ))}
-        </div>
-        {!hub.actions.length ? (
-          <EmptyState text="Nenhuma ação pública vinculada ainda." />
-        ) : null}
-      </Section>
-
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          Resultados
-        </h2>
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          {hub.results.map((x: any) => (
-            <article className="paper-panel border-2 p-4" key={x.id}>
-              <p className="text-xs font-black uppercase">
-                {x.result_type} · {x.verification_status}
+            </div>
+            <div className="paper-panel border-2 p-4">
+              <h3 className="font-black uppercase">Quem é afetado</h3>
+              <p className="mt-2">
+                {details.affected_people_public ??
+                  "O recorte público ainda está em apuração."}
               </p>
-              <h3 className="mt-2 font-black uppercase">{x.title}</h3>
-              <p className="mt-2 text-sm">{x.public_summary}</p>
-            </article>
-          ))}
-        </div>
-        {!hub.results.length ? (
-          <EmptyState text="Ainda não há resultado público registrado. Promessas não são contadas como conquista." />
-        ) : null}
-      </Section>
-
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          Memória relacionada
-        </h2>
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          {hub.archive.map((x: any) => (
-            <Link
-              className="paper-panel border-2 p-4"
-              href={`/comun/acervo/${x.archive.slug}`}
-              key={`${x.relation_type}-${x.archive.slug}`}
-            >
-              <p className="text-xs font-black uppercase">{x.relation_type}</p>
-              <h3 className="mt-2 font-black uppercase">{x.archive.title}</h3>
-              <p className="mt-2 text-sm">{x.public_note}</p>
-            </Link>
-          ))}
-        </div>
-        {!hub.archive.length ? (
-          <EmptyState text="Nenhum item do Acervo relacionado a esta pauta." />
-        ) : null}
-      </Section>
-
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          Projetos relacionados
-        </h2>
-        <div className="mt-4 flex flex-wrap gap-3">
-          {hub.projects.map((x: any) => (
-            <Link
-              className="border-2 border-comun-yellow px-4 py-3 font-black uppercase text-comun-yellow"
-              href={`/comun/projetos/${x.project.slug}`}
-              key={x.project.slug}
-            >
-              {x.project.name}
-            </Link>
-          ))}
-        </div>
-        {!hub.projects.length ? (
-          <EmptyState text="Nenhum projeto relacionado ainda." />
-        ) : null}
-      </Section>
-
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          Dossies publicados desta pauta
-        </h2>
-        {featuredDossiers.length ? (
-          <div className="mb-5 mt-4 border-2 border-comun-yellow bg-comun-black p-4">
-            <h3 className="text-xl font-black uppercase text-comun-yellow">
-              Dossies em destaque
-            </h3>
-            <div className="mt-3 grid gap-3 lg:grid-cols-2">
-              {featuredDossiers.slice(0, 2).map((feature) => (
-                <Link
-                  key={feature.id}
-                  href={`/comun/dossies/${feature.snapshot.public_slug}`}
-                  className="border border-comun-yellow p-3 text-comun-paper"
-                >
-                  <p className="text-xs font-black uppercase text-comun-yellow">
-                    {feature.public_label || "Destaque publico"}
-                  </p>
-                  <h4 className="comun-prose mt-1 font-black uppercase">
-                    {feature.snapshot.public_title}
-                  </h4>
-                  <p className="comun-prose mt-2 text-sm text-comun-paper/75">
-                    {feature.public_note || feature.snapshot.public_summary}
-                  </p>
-                </Link>
-              ))}
             </div>
           </div>
-        ) : null}
-        {publishedDossiers.length ? (
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            {publishedDossiers.map((dossier) => (
-              <PublicDossierCard key={dossier.id} dossier={dossier} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState text="Ainda nao ha dossies publicados nesta pauta." />
-        )}
-      </Section>
+        </Section>
 
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          O que sabemos
-        </h2>
-        <p className="comun-prose mt-3 max-w-4xl text-comun-paper/78">
-          {space.public_synthesis ??
-            "A sintese publica ainda esta em construcao pela curadoria."}
-        </p>
-        <div className="mt-5 grid gap-4 lg:grid-cols-2">
-          {reports.slice(0, 4).map((report: any) => (
-            <article
-              key={report.id}
-              className="paper-panel border-2 border-comun-black p-4"
-            >
-              <p className="text-xs font-black uppercase">{report.protocol}</p>
-              <h3 className="comun-prose mt-2 font-black uppercase">
-                {report.title ?? "Relato sanitizado"}
-              </h3>
-              <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">
-                {report.public_text}
-              </p>
-            </article>
-          ))}
-          {!reports.length ? (
-            <EmptyState text="Ainda nao ha relatos sanitizados publicados neste recorte." />
-          ) : null}
-        </div>
-      </Section>
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            O que está sendo reivindicado
+          </h2>
+          <p className="mt-3 text-comun-paper/80">
+            {details.demand_public ??
+              "A reivindicação pública está em construção."}
+          </p>
+          <h3 className="mt-5 text-xl font-black uppercase text-comun-yellow">
+            Propostas
+          </h3>
+          <p className="mt-2 text-comun-paper/80">
+            {details.proposals_public ??
+              "Propostas ainda em elaboração coletiva."}
+          </p>
+        </Section>
 
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          Discussao estruturada
-        </h2>
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          {contributionTypes.slice(0, 6).map(([type, label]) => (
-            <div
-              key={type}
-              className="paper-panel border-2 border-comun-black p-4"
-            >
-              <h3 className="font-black uppercase">{label}</h3>
-              <div className="mt-3 grid gap-2">
-                {(grouped[type] ?? []).map((item) => (
-                  <article
-                    key={item.id}
-                    className="border-l-4 border-comun-yellow bg-white p-3 text-sm"
-                  >
-                    <p className="comun-prose text-comun-asphalt/80">
-                      {item.body}
-                    </p>
-                    <p className="mt-2 text-xs font-bold uppercase text-comun-asphalt/55">
-                      {item.author_alias || "Contribuicao anonima"}
-                    </p>
-                  </article>
-                ))}
-                {!(grouped[type] ?? []).length ? (
-                  <p className="text-sm text-comun-asphalt/65">
-                    Sem contribuicoes aprovadas ainda.
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            Linha do tempo
+          </h2>
+          <div className="mt-4 grid gap-3">
+            {hub.timeline.map((x: any) => (
+              <article
+                className="border-l-4 border-comun-yellow bg-comun-black p-4"
+                key={x.id}
+              >
+                <p className="text-xs font-black uppercase text-comun-yellow">
+                  {new Date(x.occurred_at).toLocaleDateString("pt-BR")} ·{" "}
+                  {x.event_type}
+                </p>
+                <h3 className="mt-1 font-black">{x.title}</h3>
+                {x.public_summary ? (
+                  <p className="mt-2 text-sm text-comun-paper/75">
+                    {x.public_summary}
                   </p>
                 ) : null}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          Evidencias publicas
-        </h2>
-        <div className="mt-4 grid gap-3 lg:grid-cols-2">
-          {evidence.map((item) => (
-            <article
-              key={item.id}
-              className="paper-panel border-2 border-comun-black p-4"
-            >
-              <p className="text-xs font-black uppercase text-comun-asphalt/60">
-                {item.evidence_type}
-              </p>
-              <h3 className="mt-1 font-black uppercase">{item.title}</h3>
-              {item.summary ? (
-                <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">
-                  {item.summary}
-                </p>
-              ) : null}
-              {item.public_note ? (
-                <p className="comun-prose mt-2 border-l-4 border-comun-yellow pl-3 text-sm text-comun-asphalt/75">
-                  {item.public_note}
-                </p>
-              ) : null}
-            </article>
-          ))}
-          {!evidence.length ? (
-            <EmptyState text="Ainda nao ha evidencias publicas aprovadas para esta pauta." />
-          ) : null}
-        </div>
-      </Section>
-
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          Contribuir
-        </h2>
-        {searchParams.contribuicao === "pendente" ||
-        searchParams.contribuicao === "recebida" ? (
-          <p className="mt-3 border-2 border-comun-yellow bg-comun-black p-3 text-sm font-bold text-comun-paper">
-            Contribuicao recebida. Ela entra em moderacao antes de aparecer
-            publicamente.
-          </p>
-        ) : null}
-        <form
-          action={submitPautaContribution}
-          className="paper-panel mt-4 grid gap-3 border-2 border-comun-black p-4"
-        >
-          <input type="hidden" name="pauta_id" value={space.id} />
-          <input type="hidden" name="slug" value={space.slug} />
-          <label className="hidden">
-            Site da empresa
-            <input name="company_website" tabIndex={-1} autoComplete="off" />
-          </label>
-          <label className="grid gap-1 text-sm font-black uppercase">
-            Nome/apelido opcional
-            <input
-              name="author_alias"
-              className="min-h-11 border-2 border-comun-black px-3"
-            />
-          </label>
-          <label className="grid gap-1 text-sm font-black uppercase">
-            Tipo
-            <select
-              name="contribution_type"
-              className="min-h-11 border-2 border-comun-black px-3"
-            >
-              {contributionTypes.map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-1 text-sm font-black uppercase">
-            Texto
-            <textarea
-              name="body"
-              rows={5}
-              required
-              className="border-2 border-comun-black p-3"
-            />
-          </label>
-          <label className="grid gap-1 text-sm font-black uppercase">
-            Contato privado opcional
-            <input
-              name="contact_private"
-              className="min-h-11 border-2 border-comun-black px-3"
-            />
-          </label>
-          <label className="grid gap-1 text-sm font-black uppercase">
-            Confirmacao humana: quanto e 2 + 3?
-            <input
-              name="human_check"
-              required
-              inputMode="numeric"
-              className="min-h-11 border-2 border-comun-black px-3"
-            />
-          </label>
-          <p className="text-xs font-bold text-comun-asphalt/70">
-            A contribuicao passa por moderacao. Nao envie CPF, telefone,
-            endereco completo ou dados sensiveis de terceiros.
-          </p>
-          <button className="min-h-11 border-2 border-comun-black bg-comun-yellow font-black uppercase">
-            Enviar para moderacao
-          </button>
-        </form>
-      </Section>
-
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          Tarefas
-        </h2>
-        <div className="mt-4 grid gap-3">
-          {tasks.map((task) => (
-            <article
-              key={task.id}
-              className="paper-panel border-2 border-comun-black p-4"
-            >
-              <p className="text-xs font-black uppercase text-comun-asphalt/60">
-                {task.status}
-                {task.help_needed ? " / precisa de ajuda" : ""}
-              </p>
-              <h3 className="mt-1 font-black uppercase">{task.title}</h3>
-              {task.description ? (
-                <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">
-                  {task.description}
-                </p>
-              ) : null}
-            </article>
-          ))}
-          {!tasks.length ? (
-            <EmptyState text="Ainda nao ha tarefas publicas nesta pauta." />
-          ) : null}
-        </div>
-      </Section>
-
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          Protocolos e cobranca
-        </h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-4">
-          <MetricCard
-            label="Protocolos"
-            value={space.stats.officialProtocolCount}
-          />
-          <MetricCard
-            label="Vencidos"
-            value={space.stats.overdueProtocolCount}
-          />
-          <MetricCard
-            label="Aguardando"
-            value={space.stats.waitingResponseCount}
-          />
-          <MetricCard
-            label="Nao resolvidos"
-            value={space.stats.unresolvedCount}
-          />
-        </div>
-        <div className="mt-4 grid gap-3">
-          {protocols
-            .filter((x: any) => x.public_summary)
-            .map((x: any) => (
-              <article className="paper-panel border-2 p-4" key={x.id}>
-                <p className="text-xs font-black uppercase">
-                  {x.agency ?? x.channel} · {x.status}
-                </p>
-                <p className="mt-2">{x.public_summary}</p>
               </article>
             ))}
-        </div>
-        {protocols.length ? (
-          <PrimaryLink href="/comun/protocolo-popular">
-            Usar Protocolo Popular
-          </PrimaryLink>
-        ) : null}
-      </Section>
+            {!hub.timeline.length ? (
+              <EmptyState text="A linha do tempo pública começa com o próximo evento verificado." />
+            ) : null}
+          </div>
+        </Section>
+
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            Ações realizadas e próximas ações
+          </h2>
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            {hub.actions.map((x: any) => (
+              <Link
+                className="paper-panel border-2 p-4"
+                href={`/comun/acoes/${x.slug}`}
+                key={x.id}
+              >
+                <p className="text-xs font-black uppercase">
+                  {x.action_type} · {x.status}
+                </p>
+                <h3 className="mt-2 font-black uppercase">{x.title}</h3>
+                <p className="mt-2 text-sm">{x.objective_public}</p>
+              </Link>
+            ))}
+          </div>
+          {!hub.actions.length ? (
+            <EmptyState text="Nenhuma ação pública vinculada ainda." />
+          ) : null}
+        </Section>
+
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            Resultados
+          </h2>
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            {hub.results.map((x: any) => (
+              <article className="paper-panel border-2 p-4" key={x.id}>
+                <p className="text-xs font-black uppercase">
+                  {x.result_type} · {x.verification_status}
+                </p>
+                <h3 className="mt-2 font-black uppercase">{x.title}</h3>
+                <p className="mt-2 text-sm">{x.public_summary}</p>
+              </article>
+            ))}
+          </div>
+          {!hub.results.length ? (
+            <EmptyState text="Ainda não há resultado público registrado. Promessas não são contadas como conquista." />
+          ) : null}
+        </Section>
+
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            Memória relacionada
+          </h2>
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            {hub.archive.map((x: any) => (
+              <Link
+                className="paper-panel border-2 p-4"
+                href={`/comun/acervo/${x.archive.slug}`}
+                key={`${x.relation_type}-${x.archive.slug}`}
+              >
+                <p className="text-xs font-black uppercase">
+                  {x.relation_type}
+                </p>
+                <h3 className="mt-2 font-black uppercase">{x.archive.title}</h3>
+                <p className="mt-2 text-sm">{x.public_note}</p>
+              </Link>
+            ))}
+          </div>
+          {!hub.archive.length ? (
+            <EmptyState text="Nenhum item do Acervo relacionado a esta pauta." />
+          ) : null}
+        </Section>
+
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            Projetos relacionados
+          </h2>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {hub.projects.map((x: any) => (
+              <Link
+                className="border-2 border-comun-yellow px-4 py-3 font-black uppercase text-comun-yellow"
+                href={`/comun/projetos/${x.project.slug}`}
+                key={x.project.slug}
+              >
+                {x.project.name}
+              </Link>
+            ))}
+          </div>
+          {!hub.projects.length ? (
+            <EmptyState text="Nenhum projeto relacionado ainda." />
+          ) : null}
+        </Section>
+
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            Dossies publicados desta pauta
+          </h2>
+          {featuredDossiers.length ? (
+            <div className="mb-5 mt-4 border-2 border-comun-yellow bg-comun-black p-4">
+              <h3 className="text-xl font-black uppercase text-comun-yellow">
+                Dossies em destaque
+              </h3>
+              <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                {featuredDossiers.slice(0, 2).map((feature) => (
+                  <Link
+                    key={feature.id}
+                    href={`/comun/dossies/${feature.snapshot.public_slug}`}
+                    className="border border-comun-yellow p-3 text-comun-paper"
+                  >
+                    <p className="text-xs font-black uppercase text-comun-yellow">
+                      {feature.public_label || "Destaque publico"}
+                    </p>
+                    <h4 className="comun-prose mt-1 font-black uppercase">
+                      {feature.snapshot.public_title}
+                    </h4>
+                    <p className="comun-prose mt-2 text-sm text-comun-paper/75">
+                      {feature.public_note || feature.snapshot.public_summary}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {publishedDossiers.length ? (
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              {publishedDossiers.map((dossier) => (
+                <PublicDossierCard key={dossier.id} dossier={dossier} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState text="Ainda nao ha dossies publicados nesta pauta." />
+          )}
+        </Section>
+
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            O que sabemos
+          </h2>
+          <p className="comun-prose mt-3 max-w-4xl text-comun-paper/78">
+            {space.public_synthesis ??
+              "A sintese publica ainda esta em construcao pela curadoria."}
+          </p>
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            {reports.slice(0, 4).map((report: any) => (
+              <article
+                key={report.id}
+                className="paper-panel border-2 border-comun-black p-4"
+              >
+                <p className="text-xs font-black uppercase">
+                  {report.protocol}
+                </p>
+                <h3 className="comun-prose mt-2 font-black uppercase">
+                  {report.title ?? "Relato sanitizado"}
+                </h3>
+                <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">
+                  {report.public_text}
+                </p>
+              </article>
+            ))}
+            {!reports.length ? (
+              <EmptyState text="Ainda nao ha relatos sanitizados publicados neste recorte." />
+            ) : null}
+          </div>
+        </Section>
+
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            Discussao estruturada
+          </h2>
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            {contributionTypes.slice(0, 6).map(([type, label]) => (
+              <div
+                key={type}
+                className="paper-panel border-2 border-comun-black p-4"
+              >
+                <h3 className="font-black uppercase">{label}</h3>
+                <div className="mt-3 grid gap-2">
+                  {(grouped[type] ?? []).map((item) => (
+                    <article
+                      key={item.id}
+                      className="border-l-4 border-comun-yellow bg-white p-3 text-sm"
+                    >
+                      <p className="comun-prose text-comun-asphalt/80">
+                        {item.body}
+                      </p>
+                      <p className="mt-2 text-xs font-bold uppercase text-comun-asphalt/55">
+                        {item.author_alias || "Contribuicao anonima"}
+                      </p>
+                    </article>
+                  ))}
+                  {!(grouped[type] ?? []).length ? (
+                    <p className="text-sm text-comun-asphalt/65">
+                      Sem contribuicoes aprovadas ainda.
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            Evidencias publicas
+          </h2>
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            {evidence.map((item) => (
+              <article
+                key={item.id}
+                className="paper-panel border-2 border-comun-black p-4"
+              >
+                <p className="text-xs font-black uppercase text-comun-asphalt/60">
+                  {item.evidence_type}
+                </p>
+                <h3 className="mt-1 font-black uppercase">{item.title}</h3>
+                {item.summary ? (
+                  <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">
+                    {item.summary}
+                  </p>
+                ) : null}
+                {item.public_note ? (
+                  <p className="comun-prose mt-2 border-l-4 border-comun-yellow pl-3 text-sm text-comun-asphalt/75">
+                    {item.public_note}
+                  </p>
+                ) : null}
+              </article>
+            ))}
+            {!evidence.length ? (
+              <EmptyState text="Ainda nao ha evidencias publicas aprovadas para esta pauta." />
+            ) : null}
+          </div>
+        </Section>
+
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            Contribuir
+          </h2>
+          {searchParams.contribuicao === "pendente" ||
+          searchParams.contribuicao === "recebida" ? (
+            <p className="mt-3 border-2 border-comun-yellow bg-comun-black p-3 text-sm font-bold text-comun-paper">
+              Contribuicao recebida. Ela entra em moderacao antes de aparecer
+              publicamente.
+            </p>
+          ) : null}
+          <form
+            action={submitPautaContribution}
+            className="paper-panel mt-4 grid gap-3 border-2 border-comun-black p-4"
+          >
+            <input type="hidden" name="pauta_id" value={space.id} />
+            <input type="hidden" name="slug" value={space.slug} />
+            <label className="hidden">
+              Site da empresa
+              <input name="company_website" tabIndex={-1} autoComplete="off" />
+            </label>
+            <label className="grid gap-1 text-sm font-black uppercase">
+              Nome/apelido opcional
+              <input
+                name="author_alias"
+                className="min-h-11 border-2 border-comun-black px-3"
+              />
+            </label>
+            <label className="grid gap-1 text-sm font-black uppercase">
+              Tipo
+              <select
+                name="contribution_type"
+                className="min-h-11 border-2 border-comun-black px-3"
+              >
+                {contributionTypes.map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1 text-sm font-black uppercase">
+              Texto
+              <textarea
+                name="body"
+                rows={5}
+                required
+                className="border-2 border-comun-black p-3"
+              />
+            </label>
+            <label className="grid gap-1 text-sm font-black uppercase">
+              Contato privado opcional
+              <input
+                name="contact_private"
+                className="min-h-11 border-2 border-comun-black px-3"
+              />
+            </label>
+            <label className="grid gap-1 text-sm font-black uppercase">
+              Confirmacao humana: quanto e 2 + 3?
+              <input
+                name="human_check"
+                required
+                inputMode="numeric"
+                className="min-h-11 border-2 border-comun-black px-3"
+              />
+            </label>
+            <p className="text-xs font-bold text-comun-asphalt/70">
+              A contribuicao passa por moderacao. Nao envie CPF, telefone,
+              endereco completo ou dados sensiveis de terceiros.
+            </p>
+            <button className="min-h-11 border-2 border-comun-black bg-comun-yellow font-black uppercase">
+              Enviar para moderacao
+            </button>
+          </form>
+        </Section>
+
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            Tarefas
+          </h2>
+          <div className="mt-4 grid gap-3">
+            {tasks.map((task) => (
+              <article
+                key={task.id}
+                className="paper-panel border-2 border-comun-black p-4"
+              >
+                <p className="text-xs font-black uppercase text-comun-asphalt/60">
+                  {task.status}
+                  {task.help_needed ? " / precisa de ajuda" : ""}
+                </p>
+                <h3 className="mt-1 font-black uppercase">{task.title}</h3>
+                {task.description ? (
+                  <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">
+                    {task.description}
+                  </p>
+                ) : null}
+              </article>
+            ))}
+            {!tasks.length ? (
+              <EmptyState text="Ainda nao ha tarefas publicas nesta pauta." />
+            ) : null}
+          </div>
+        </Section>
+
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            Protocolos e cobranca
+          </h2>
+          <div className="mt-4 grid gap-3 md:grid-cols-4">
+            <MetricCard
+              label="Protocolos"
+              value={space.stats.officialProtocolCount}
+            />
+            <MetricCard
+              label="Vencidos"
+              value={space.stats.overdueProtocolCount}
+            />
+            <MetricCard
+              label="Aguardando"
+              value={space.stats.waitingResponseCount}
+            />
+            <MetricCard
+              label="Nao resolvidos"
+              value={space.stats.unresolvedCount}
+            />
+          </div>
+          <div className="mt-4 grid gap-3">
+            {protocols
+              .filter((x: any) => x.public_summary)
+              .map((x: any) => (
+                <article className="paper-panel border-2 p-4" key={x.id}>
+                  <p className="text-xs font-black uppercase">
+                    {x.agency ?? x.channel} · {x.status}
+                  </p>
+                  <p className="mt-2">{x.public_summary}</p>
+                </article>
+              ))}
+          </div>
+          {protocols.length ? (
+            <PrimaryLink href="/comun/protocolo-popular">
+              Usar Protocolo Popular
+            </PrimaryLink>
+          ) : null}
+        </Section>
+      </ComunExperiencePilot>
     </ComunShell>
   );
 }
 
-async function LegacyIssuePage({ slug }: { slug: string }) {
+async function LegacyIssuePage({
+  slug,
+  experiencePilot,
+}: {
+  slug: string;
+  experiencePilot: boolean;
+}) {
   const issue = await getIssue(slug);
   if (!issue) notFound();
   const [community, communityReports] = await Promise.all([
@@ -650,57 +680,80 @@ async function LegacyIssuePage({ slug }: { slug: string }) {
   const isWorkCampaign = issue.slug === "trabalho-burnout-volta-redonda";
   return (
     <ComunShell>
-      <Section>
-        <h1 className="comun-prose text-3xl font-black uppercase text-comun-yellow">
-          {issue.title}
-        </h1>
-        <p className="comun-prose mt-4 max-w-3xl text-comun-paper/80">
-          {issue.summary}
-        </p>
-        <p className="mt-3 text-sm text-comun-paper/60">
-          Comunidade relacionada: {community?.name ?? "-"}
-        </p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <PrimaryLink
-            href={`/comun/relatar?comunidade=${issue.communitySlug}&pauta=${issue.slug}`}
-          >
-            {isWorkCampaign
-              ? "Relatar situacao de trabalho"
-              : "Enviar relato parecido"}
-          </PrimaryLink>
-          <Link
-            href="/comun/pautas"
-            className="inline-flex min-h-12 items-center justify-center border-2 border-comun-yellow px-5 py-3 text-sm font-black uppercase text-comun-yellow"
-          >
-            Acompanhar pauta
-          </Link>
-        </div>
-      </Section>
-      <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          Relatos associados
-        </h2>
-        <div className="mt-4 grid gap-4">
-          {reports.map((report) => (
-            <article
-              key={report.id}
-              className="paper-panel border-2 border-comun-black p-4"
+      <ComunExperiencePilot
+        active={experiencePilot}
+        level={1}
+        currentHref={`/comun/pautas/${slug}`}
+      >
+        <PautaReturn />
+        <Section>
+          <ComunContextTrail items={[{ kind: "pauta", label: issue.title }]} />
+          <h1 className="comun-prose text-3xl font-black uppercase text-comun-yellow">
+            {issue.title}
+          </h1>
+          <p className="comun-prose mt-4 max-w-3xl text-comun-paper/80">
+            {issue.summary}
+          </p>
+          <p className="mt-3 text-sm text-comun-paper/60">
+            Comunidade relacionada: {community?.name ?? "-"}
+          </p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <PrimaryLink
+              href={`/comun/relatar?comunidade=${issue.communitySlug}&pauta=${issue.slug}`}
             >
-              <p className="text-xs font-black uppercase">{report.protocol}</p>
-              <h3 className="comun-prose mt-2 font-black uppercase">
-                {report.title ?? "Relato sanitizado"}
-              </h3>
-              <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">
-                {report.public_text}
-              </p>
-            </article>
-          ))}
-          {!reports.length ? (
-            <EmptyState text="Ainda nao ha relatos publicados nesta pauta." />
-          ) : null}
-        </div>
-      </Section>
+              {isWorkCampaign
+                ? "Relatar situacao de trabalho"
+                : "Enviar relato parecido"}
+            </PrimaryLink>
+            <Link
+              href="/comun/pautas"
+              className="inline-flex min-h-12 items-center justify-center border-2 border-comun-yellow px-5 py-3 text-sm font-black uppercase text-comun-yellow"
+            >
+              Acompanhar pauta
+            </Link>
+          </div>
+        </Section>
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            Relatos associados
+          </h2>
+          <div className="mt-4 grid gap-4">
+            {reports.map((report) => (
+              <article
+                key={report.id}
+                className="paper-panel border-2 border-comun-black p-4"
+              >
+                <p className="text-xs font-black uppercase">
+                  {report.protocol}
+                </p>
+                <h3 className="comun-prose mt-2 font-black uppercase">
+                  {report.title ?? "Relato sanitizado"}
+                </h3>
+                <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">
+                  {report.public_text}
+                </p>
+              </article>
+            ))}
+            {!reports.length ? (
+              <EmptyState text="Ainda nao ha relatos publicados nesta pauta." />
+            ) : null}
+          </div>
+        </Section>
+      </ComunExperiencePilot>
     </ComunShell>
+  );
+}
+
+function PautaReturn() {
+  return (
+    <div className="mx-auto max-w-7xl px-4 pt-5">
+      <Link
+        href="/comun/pautas"
+        className="inline-flex min-h-11 items-center font-black uppercase text-comun-yellow underline decoration-2 underline-offset-4"
+      >
+        ← Voltar às pautas
+      </Link>
+    </div>
   );
 }
 

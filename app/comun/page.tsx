@@ -23,10 +23,18 @@ import { listPublicPautaSpaces } from "@/lib/pauta-spaces";
 import { getOptionalCommunitySession } from "@/lib/community-auth";
 import { getPersonalCenter } from "@/lib/personal-center";
 import { ComunJourneyEvent } from "@/components/comun-journey-event";
+import { ComunExperiencePilot } from "@/components/comun-experience-pilot";
+import { isExperienceCoherencePilot } from "@/lib/experience-coherence";
 
 export const dynamic = "force-dynamic";
 
-export default async function ComunHomePage() {
+export default async function ComunHomePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const requestedExperience = (await searchParams).experiencia;
+  const experiencePilot = isExperienceCoherencePilot(requestedExperience);
   const [pautas, actions, results, territories, experience, session] =
     await Promise.all([
       listPublicPautaSpaces(),
@@ -55,6 +63,11 @@ export default async function ComunHomePage() {
 
   return (
     <ComunShell>
+      <ComunExperiencePilot
+        active={experiencePilot}
+        level={2}
+        currentHref="/comun"
+      >
       <ComunJourneyEvent event="home_viewed" surface="home:publica" />
       <ComunSection className="pb-7 pt-8 sm:pt-12">
         <div className="grid gap-8 lg:grid-cols-[1.25fr_.75fr] lg:items-end">
@@ -70,9 +83,11 @@ export default async function ComunHomePage() {
               e acompanhe o que a comunidade fez com ela.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
+              <span data-comun-primary-action="true">
               <PrimaryLink href="/comun/territorios">
                 Explorar o território
               </PrimaryLink>
+              </span>
               <Link
                 href="/comun/participar"
                 className="inline-flex min-h-12 items-center justify-center border-2 border-comun-yellow px-5 py-3 text-center text-sm font-black uppercase text-comun-yellow"
@@ -387,7 +402,8 @@ export default async function ComunHomePage() {
             </Link>
           </div>
         </div>
-      </ComunSection>
+        </ComunSection>
+      </ComunExperiencePilot>
     </ComunShell>
   );
 }
