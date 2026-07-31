@@ -9,145 +9,155 @@ import {
 
 const local = process.argv.includes("--local");
 
-try {
-  const databaseUrl = local ? localDatabaseUrl() : process.env.SUPABASE_DB_URL;
-  if (!local) {
-    validateRemoteTarget({
-      databaseUrl,
-      projectRef: process.env.SUPABASE_PROJECT_REF,
-      allowedRefs:
-        process.env.COMUN_SECURITY_ALLOWED_PROJECT_REFS ||
-        process.env.SUPABASE_PROJECT_REF,
-    });
-  }
-  const audit = query(databaseUrl, SQL);
-  const failures = [
-    audit.tablesWithoutRls && "table_without_rls",
-    audit.dangerousTableGrants && "dangerous_table_grant",
-    audit.unsafeDefiners && "unsafe_security_definer",
-    audit.exposedDefiners && "exposed_security_definer",
-    audit.unsafeViews && "unsafe_public_view",
-    audit.privateViewColumns && "private_column_in_public_view",
-    audit.dangerousSequenceGrants && "dangerous_sequence_grant",
-    audit.dangerousDefaultPrivileges && "dangerous_default_privilege",
-    audit.dangerousStoragePolicies && "dangerous_storage_policy",
-    audit.publicOriginalBuckets && "private_original_bucket_public",
-    audit.clientControlledPolicies && "client_controlled_policy",
-  ].filter(Boolean);
-  const personas = [
-    "anon",
-    "authenticated_without_link",
-    "visitor",
-    "follower",
-    "member",
-    "coordinator",
-    "editor",
-    "administrator",
-    "temporary_role",
-    "revoked_role",
-    "other_community_member",
-    "service_role",
-  ];
-  const matrix = audit.tables.flatMap((table) =>
-    personas.map((persona) => {
-      const publicPersona = persona === "anon" || persona === "visitor";
-      const service = persona === "service_role";
-      const authenticated = !publicPersona && !service;
-      return {
-        resource: table.name,
-        persona,
-        select: service
-          ? table.serviceSelect
-          : publicPersona
-            ? permission(table.anonSelect, table.rls)
-            : permission(table.authSelect, table.rls),
-        insert: service
-          ? table.serviceInsert
-            ? "allowed"
-            : "blocked"
-          : publicPersona
-            ? permission(table.anonInsert, table.rls)
-            : permission(table.authInsert, table.rls),
-        update: service
-          ? table.serviceUpdate
-            ? "allowed"
-            : "blocked"
-          : publicPersona
-            ? permission(table.anonUpdate, table.rls)
-            : permission(table.authUpdate, table.rls),
-        delete: service
-          ? table.serviceDelete
-            ? "allowed"
-            : "blocked"
-          : publicPersona
-            ? permission(table.anonDelete, table.rls)
-            : permission(table.authDelete, table.rls),
-        expected:
-          persona === "revoked_role"
-            ? "policy_scoped_and_revocation_rehearsed"
-            : authenticated
-              ? "policy_scoped_to_server_verified_membership"
-              : service
-                ? "server_only"
-                : "public_projection_only",
-      };
-    }),
-  );
-  const result = failures.length ? "COMUN_RLS_COMPLETE_BLOCKED" : RESULT.rls;
-  await writeEvidence("10-rls-complete.json", {
-    result,
-    source: local ? "local_disposable_supabase" : "remote_read_only",
-    counts: {
-      tables: audit.tables.length,
-      views: audit.views,
-      materializedViews: audit.materializedViews,
-      functions: audit.functions,
-      sequences: audit.sequences,
-      buckets: audit.buckets,
-      policies: audit.policies,
-      storagePolicies: audit.storagePolicies,
-      personaMatrixRows: matrix.length,
-    },
-    findings: failures,
-    matrix,
-    functionBoundary: {
-      securityDefiners: audit.securityDefiners,
-      unsafeDefiners: audit.unsafeDefiners,
-      exposedDefiners: audit.exposedDefiners,
-      parameterAndReturnReview: "static_and_catalog_reviewed",
-      resources: audit.functionResources,
-    },
-    views: {
-      unsafe: audit.unsafeViews,
-      privateColumns: audit.privateViewColumns,
-      resources: audit.viewResources,
-    },
-    sequences: {
-      dangerousGrants: audit.dangerousSequenceGrants,
-      resources: audit.sequenceResources,
-    },
+async function main() {
+  try {
+    const databaseUrl = local
+      ? localDatabaseUrl()
+      : process.env.SUPABASE_DB_URL;
+    if (!local) {
+      validateRemoteTarget({
+        databaseUrl,
+        projectRef: process.env.SUPABASE_PROJECT_REF,
+        allowedRefs:
+          process.env.COMUN_SECURITY_ALLOWED_PROJECT_REFS ||
+          process.env.SUPABASE_PROJECT_REF,
+      });
+    }
+    const audit = query(databaseUrl, SQL);
+    const failures = [
+      audit.tablesWithoutRls && "table_without_rls",
+      audit.dangerousTableGrants && "dangerous_table_grant",
+      audit.unsafeDefiners && "unsafe_security_definer",
+      audit.exposedDefiners && "exposed_security_definer",
+      audit.unsafeViews && "unsafe_public_view",
+      audit.privateViewColumns && "private_column_in_public_view",
+      audit.dangerousSequenceGrants && "dangerous_sequence_grant",
+      audit.dangerousDefaultPrivileges && "dangerous_default_privilege",
+      audit.dangerousStoragePolicies && "dangerous_storage_policy",
+      audit.publicOriginalBuckets && "private_original_bucket_public",
+      audit.clientControlledPolicies && "client_controlled_policy",
+    ].filter(Boolean);
+    const personas = [
+      "anon",
+      "authenticated_without_link",
+      "visitor",
+      "follower",
+      "member",
+      "coordinator",
+      "editor",
+      "administrator",
+      "temporary_role",
+      "revoked_role",
+      "other_community_member",
+      "service_role",
+    ];
+    const matrix = audit.tables.flatMap((table) =>
+      personas.map((persona) => {
+        const publicPersona = persona === "anon" || persona === "visitor";
+        const service = persona === "service_role";
+        const authenticated = !publicPersona && !service;
+        return {
+          resource: table.name,
+          persona,
+          select: service
+            ? table.serviceSelect
+            : publicPersona
+              ? permission(table.anonSelect, table.rls)
+              : permission(table.authSelect, table.rls),
+          insert: service
+            ? table.serviceInsert
+              ? "allowed"
+              : "blocked"
+            : publicPersona
+              ? permission(table.anonInsert, table.rls)
+              : permission(table.authInsert, table.rls),
+          update: service
+            ? table.serviceUpdate
+              ? "allowed"
+              : "blocked"
+            : publicPersona
+              ? permission(table.anonUpdate, table.rls)
+              : permission(table.authUpdate, table.rls),
+          delete: service
+            ? table.serviceDelete
+              ? "allowed"
+              : "blocked"
+            : publicPersona
+              ? permission(table.anonDelete, table.rls)
+              : permission(table.authDelete, table.rls),
+          expected:
+            persona === "revoked_role"
+              ? "policy_scoped_and_revocation_rehearsed"
+              : authenticated
+                ? "policy_scoped_to_server_verified_membership"
+                : service
+                  ? "server_only"
+                  : "public_projection_only",
+        };
+      }),
+    );
+    const result = failures.length ? "COMUN_RLS_COMPLETE_BLOCKED" : RESULT.rls;
+    await writeEvidence("10-rls-complete.json", {
+      result,
+      source: local ? "local_disposable_supabase" : "remote_read_only",
+      counts: {
+        tables: audit.tables.length,
+        views: audit.views,
+        materializedViews: audit.materializedViews,
+        functions: audit.functions,
+        sequences: audit.sequences,
+        buckets: audit.buckets,
+        policies: audit.policies,
+        storagePolicies: audit.storagePolicies,
+        personaMatrixRows: matrix.length,
+      },
+      findings: failures,
+      matrix,
+      functionBoundary: {
+        securityDefiners: audit.securityDefiners,
+        unsafeDefiners: audit.unsafeDefiners,
+        exposedDefiners: audit.exposedDefiners,
+        parameterAndReturnReview: "static_and_catalog_reviewed",
+        resources: audit.functionResources,
+      },
+      views: {
+        unsafe: audit.unsafeViews,
+        privateColumns: audit.privateViewColumns,
+        resources: audit.viewResources,
+      },
+      sequences: {
+        dangerousGrants: audit.dangerousSequenceGrants,
+        resources: audit.sequenceResources,
+      },
     policies: {
       clientControlled: audit.clientControlledPolicies,
     },
-    storage: {
-      publicOriginalBuckets: audit.publicOriginalBuckets,
-      dangerousPolicies: audit.dangerousStoragePolicies,
-      buckets: audit.bucketResources,
+    defaultPrivileges: {
+      dangerousApplicationSchema: audit.dangerousDefaultPrivileges,
+      providerManagedObserved: audit.providerManagedDefaultPrivileges,
     },
-    auth: {
-      identitiesRead: false,
-      passwordsRead: false,
-      sessionsRead: false,
-      policySurfaceOnly: true,
-    },
-    revocation: "covered_by_incident_rehearsal",
-  });
-  console.log(result);
-  if (failures.length) process.exitCode = 1;
-} catch (error) {
-  await writeFailureEvidence("rls_complete", error);
-  console.error(sanitizedError(error));
-  process.exitCode = 1;
+      storage: {
+        publicOriginalBuckets: audit.publicOriginalBuckets,
+        dangerousPolicies: audit.dangerousStoragePolicies,
+        buckets: audit.bucketResources,
+      },
+      auth: {
+        identitiesRead: false,
+        passwordsRead: false,
+        sessionsRead: false,
+        policySurfaceOnly: true,
+      },
+      revocation: "covered_by_incident_rehearsal",
+    });
+    console.log(result);
+    if (failures.length) process.exitCode = 1;
+  } catch (error) {
+    await writeFailureEvidence("rls_complete", error);
+    if (process.env.COMUN_SECURITY_DEBUG === "1")
+      console.error(error instanceof Error ? error.stack : error);
+    console.error(sanitizedError(error));
+    process.exitCode = 1;
+  }
 }
 
 function permission(granted, rls) {
@@ -184,9 +194,10 @@ function localDatabaseUrl() {
 
 function query(databaseUrl, sql) {
   if (!databaseUrl) throw new Error("COMUN_SECURITY_DATABASE_URL_MISSING");
-  const containerUrl = databaseUrl
-    .replace("://127.0.0.1:", "://host.docker.internal:")
-    .replace("://localhost:", "://host.docker.internal:");
+  const target = new URL(databaseUrl);
+  if (["127.0.0.1", "localhost"].includes(target.hostname))
+    target.hostname = "host.docker.internal";
+  const containerUrl = target.toString();
   const result = spawnSync(
     "docker",
     [
@@ -207,8 +218,11 @@ function query(databaseUrl, sql) {
       maxBuffer: 20 * 1024 * 1024,
     },
   );
-  if (result.status !== 0)
+  if (result.status !== 0) {
+    if (process.env.COMUN_SECURITY_DEBUG === "1")
+      console.error(result.stderr.trim());
     throw new Error("COMUN_SECURITY_CATALOG_QUERY_FAILED");
+  }
   return JSON.parse(result.stdout.trim());
 }
 
@@ -278,10 +292,24 @@ with public_tables as (
 ), default_acl as (
   select count(*)::int dangerous
   from pg_default_acl d
+  join pg_namespace n on n.oid=d.defaclnamespace
   cross join lateral aclexplode(coalesce(d.defaclacl,acldefault(d.defaclobjtype,d.defaclrole))) a
   left join pg_roles r on r.oid=a.grantee
-  where coalesce(r.rolname,'public') in ('public','anon','authenticated')
+  where n.nspname='public'
+    and d.defaclrole=current_user::regrole
+    and coalesce(r.rolname,'public') in ('public','anon','authenticated')
     and a.privilege_type in ('UPDATE','DELETE','TRUNCATE','TRIGGER','EXECUTE')
+), provider_default_acl as (
+  select count(*)::int observed
+  from pg_default_acl d
+  join pg_namespace n on n.oid=d.defaclnamespace
+  cross join lateral aclexplode(coalesce(d.defaclacl,acldefault(d.defaclobjtype,d.defaclrole))) a
+  left join pg_roles r on r.oid=a.grantee
+  where (
+      n.nspname='storage'
+      or (n.nspname='public' and d.defaclrole<>current_user::regrole)
+    )
+    and coalesce(r.rolname,'public') in ('public','anon','authenticated')
 ), bucket_audit as (
   select id, public
   from storage.buckets
@@ -331,5 +359,8 @@ select json_build_object(
   'publicOriginalBuckets',(select count(*)::int from bucket_audit where public and id ~* '(private|original)'),
   'storagePolicies',(select total from storage_policy_audit),
   'dangerousStoragePolicies',(select dangerous from storage_policy_audit),
-  'dangerousDefaultPrivileges',(select dangerous from default_acl)
+  'dangerousDefaultPrivileges',(select dangerous from default_acl),
+  'providerManagedDefaultPrivileges',(select observed from provider_default_acl)
 );`;
+
+await main();

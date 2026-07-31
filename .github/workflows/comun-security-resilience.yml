@@ -58,7 +58,7 @@ jobs:
       - name: Complete RLS and catalog matrix
         run: |
           npm run security:rls:local
-          node scripts/comun-local-env.mjs run npm run smoke:rls-matrix
+          COMUN_RLS_SKIP_HTTP=1 node scripts/comun-local-env.mjs run npm run smoke:rls-matrix
       - name: Synthetic database backup and application restore
         run: npm run security:restore:database:local
       - name: Synthetic Storage loss and restore

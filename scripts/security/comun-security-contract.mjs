@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 export const RESULT = {
@@ -89,11 +89,25 @@ export async function writeEvidence(name, body) {
 }
 
 export async function writeFailureEvidence(step, error) {
-  return writeEvidence("00-failure.json", {
+  await mkdir(evidenceDir, { recursive: true });
+  const failure = {
+    formatVersion: 1,
+    generatedAt: new Date().toISOString(),
     status: "blocked",
     step,
     marker: sanitizedError(error),
     containsPrivateData: false,
     containsSecretMaterial: false,
-  });
+  };
+  const failurePath = path.join(evidenceDir, "00-failure.json");
+  try {
+    await writeFile(failurePath, `${JSON.stringify(failure, null, 2)}\n`, {
+      mode: 0o600,
+      flag: "wx",
+    });
+    return failure;
+  } catch (writeError) {
+    if (writeError?.code !== "EEXIST") throw writeError;
+    return JSON.parse(await readFile(failurePath, "utf8"));
+  }
 }

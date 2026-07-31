@@ -97,13 +97,17 @@ try {
   }
   ok("tabelas public_read_safe retornam apenas linhas sanitizadas por RLS");
 
-  const index = await fetch(new URL("/comun/dossies", process.env.NEXT_PUBLIC_SITE_URL));
-  if (!index.ok) throw new Error(`/comun/dossies retornou ${index.status}`);
-  const indexText = await index.text();
-  for (const forbidden of ["internal_notes", "review_notes_internal", "unpublish_reason", "storage_path", "signed_url", "checklist", "comun_admin_profiles"]) {
-    if (indexText.includes(forbidden)) throw new Error(`indice publico vazou ${forbidden}`);
+  if (process.env.COMUN_RLS_SKIP_HTTP === "1") {
+    ok("no-leak HTTP delegado ao restore isolado da aplicação");
+  } else {
+    const index = await fetch(new URL("/comun/dossies", process.env.NEXT_PUBLIC_SITE_URL));
+    if (!index.ok) throw new Error(`/comun/dossies retornou ${index.status}`);
+    const indexText = await index.text();
+    for (const forbidden of ["internal_notes", "review_notes_internal", "unpublish_reason", "storage_path", "signed_url", "checklist", "comun_admin_profiles"]) {
+      if (indexText.includes(forbidden)) throw new Error(`indice publico vazou ${forbidden}`);
+    }
+    ok("snapshots/dossies publicos seguem acessiveis somente por pagina segura");
   }
-  ok("snapshots/dossies publicos seguem acessiveis somente por pagina segura");
 
   console.log("RLS_MATRIX_SMOKE_OK");
 } catch (error) {

@@ -26,31 +26,32 @@ const password = syntheticTag("db-password");
 let tempDir;
 let dumpPath;
 
-try {
-  const sourceUrl = local ? localDatabaseUrl() : process.env.SUPABASE_DB_URL;
-  if (!local) {
-    validateRemoteTarget({
-      databaseUrl: sourceUrl,
-      projectRef: process.env.SUPABASE_PROJECT_REF,
-      allowedRefs:
-        process.env.COMUN_SECURITY_ALLOWED_PROJECT_REFS ||
-        process.env.SUPABASE_PROJECT_REF,
-    });
-  }
-  tempDir = await mkdtemp(path.join(os.tmpdir(), "comun-db-restore-"));
-  dumpPath = path.join(tempDir, "source.dump");
-  const sourceTables = remoteRows(
-    sourceUrl,
-    "select c.relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','p') order by c.relname;",
-  );
-  const sourceCounts = remoteCounts(sourceUrl, sourceTables);
-  const sourceMigrations = remoteRows(
-    sourceUrl,
-    "select version::text from supabase_migrations.schema_migrations order by version;",
-  );
-  const authReferences = remoteRows(
-    sourceUrl,
-    `select json_build_object('table',src.relname,'column',att.attname)
+async function main() {
+  try {
+    const sourceUrl = local ? localDatabaseUrl() : process.env.SUPABASE_DB_URL;
+    if (!local) {
+      validateRemoteTarget({
+        databaseUrl: sourceUrl,
+        projectRef: process.env.SUPABASE_PROJECT_REF,
+        allowedRefs:
+          process.env.COMUN_SECURITY_ALLOWED_PROJECT_REFS ||
+          process.env.SUPABASE_PROJECT_REF,
+      });
+    }
+    tempDir = await mkdtemp(path.join(os.tmpdir(), "comun-db-restore-"));
+    dumpPath = path.join(tempDir, "source.dump");
+    const sourceTables = remoteRows(
+      sourceUrl,
+      "select c.relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','p') order by c.relname;",
+    );
+    const sourceCounts = remoteCounts(sourceUrl, sourceTables);
+    const sourceMigrations = remoteRows(
+      sourceUrl,
+      "select version::text from supabase_migrations.schema_migrations order by version;",
+    ).sort();
+    const authReferences = remoteRows(
+      sourceUrl,
+      `select json_build_object('table',src.relname,'column',att.attname)
      from pg_constraint con
      join pg_class src on src.oid=con.conrelid
      join pg_namespace n on n.oid=src.relnamespace
@@ -60,80 +61,80 @@ try {
      join pg_attribute att on att.attrelid=src.oid and att.attnum=keys.attnum
      where con.contype='f' and n.nspname='public' and tn.nspname='auth' and target.relname='users'
      order by src.relname,att.attname;`,
-  ).map((value) => JSON.parse(value));
+    ).map((value) => JSON.parse(value));
 
-  dockerRun([
-    "run",
-    "--rm",
-    "-e",
-    `SOURCE_DATABASE_URL=${dockerUrl(sourceUrl)}`,
-    "-v",
-    `${tempDir}:/work`,
-    "postgres:17",
-    "sh",
-    "-c",
-    'umask 077; pg_dump "$SOURCE_DATABASE_URL" --format=custom --schema=public --schema=supabase_migrations --no-owner --file=/work/source.dump',
-  ]);
-  const dumpStats = await stat(dumpPath);
-  const dumpBuffer = await readFile(dumpPath);
-  const dumpHash = checksum(dumpBuffer);
-  const corruptedDump = Buffer.from(dumpBuffer);
-  corruptedDump[0] = corruptedDump[0] ^ 0xff;
-  const corruptedDumpPath = path.join(tempDir, "corrupted.dump");
-  await writeFile(corruptedDumpPath, corruptedDump, { mode: 0o600 });
-  assert.notEqual(checksum(corruptedDump), dumpHash);
-  assert.throws(() =>
     dockerRun([
       "run",
       "--rm",
+      "-e",
+      `SOURCE_DATABASE_URL=${dockerUrl(sourceUrl)}`,
       "-v",
       `${tempDir}:/work`,
       "postgres:17",
-      "pg_restore",
-      "--list",
-      "/work/corrupted.dump",
-    ]),
-  );
+      "sh",
+      "-c",
+      'umask 077; pg_dump "$SOURCE_DATABASE_URL" --format=custom --schema=public --schema=supabase_migrations --no-owner --file=/work/source.dump',
+    ]);
+    const dumpStats = await stat(dumpPath);
+    const dumpBuffer = await readFile(dumpPath);
+    const dumpHash = checksum(dumpBuffer);
+    const corruptedDump = Buffer.from(dumpBuffer);
+    corruptedDump[0] = corruptedDump[0] ^ 0xff;
+    const corruptedDumpPath = path.join(tempDir, "corrupted.dump");
+    await writeFile(corruptedDumpPath, corruptedDump, { mode: 0o600 });
+    assert.notEqual(checksum(corruptedDump), dumpHash);
+    assert.throws(() =>
+      dockerRun([
+        "run",
+        "--rm",
+        "-v",
+        `${tempDir}:/work`,
+        "postgres:17",
+        "pg_restore",
+        "--list",
+        "/work/corrupted.dump",
+      ]),
+    );
 
-  dockerRun([
-    "run",
-    "--detach",
-    "--name",
-    container,
-    "-e",
-    `POSTGRES_PASSWORD=${password}`,
-    "postgres:17",
-  ]);
-  waitForPostgres();
-  isolatedSql(BOOTSTRAP_SQL);
-  dockerRun(["cp", dumpPath, `${container}:/tmp/source.dump`]);
-  isolatedRestore(["--section=pre-data"]);
-  const incompleteRestoreDetected =
-    Number(
-      isolatedScalar(
-        "select count(*) from pg_policies where schemaname='public';",
-      ),
-    ) === 0;
-  assert.equal(incompleteRestoreDetected, true);
-  isolatedRestore(["--section=data", "--disable-triggers"]);
-  synthesizeAuthReferences(authReferences);
-  isolatedRestore(["--section=post-data"]);
+    dockerRun([
+      "run",
+      "--detach",
+      "--name",
+      container,
+      "-e",
+      `POSTGRES_PASSWORD=${password}`,
+      "postgres:17",
+    ]);
+    waitForPostgres();
+    isolatedSql(BOOTSTRAP_SQL);
+    dockerRun(["cp", dumpPath, `${container}:/tmp/source.dump`]);
+    isolatedRestore(["--section=pre-data"]);
+    const incompleteRestoreDetected =
+      Number(
+        isolatedScalar(
+          "select count(*) from pg_policies where schemaname='public';",
+        ),
+      ) === 0;
+    assert.equal(incompleteRestoreDetected, true);
+    isolatedRestore(["--section=data", "--disable-triggers"]);
+    synthesizeAuthReferences(authReferences);
+    isolatedRestore(["--section=post-data"]);
 
-  const restoredCounts = isolatedCounts(sourceTables);
-  const restoredMigrations = isolatedRows(
-    "select version::text from supabase_migrations.schema_migrations order by version;",
-  );
-  assert.deepEqual(
-    restoredCounts,
-    sourceCounts,
-    "contagens agregadas divergiram",
-  );
-  assert.deepEqual(
-    restoredMigrations,
-    sourceMigrations,
-    "ledger de migrations divergiu",
-  );
-  const structure = isolatedJson(`
+    const restoredCounts = isolatedCounts(sourceTables);
+    const restoredMigrations = isolatedRows(
+      "select version::text from supabase_migrations.schema_migrations order by version;",
+    ).sort();
+    assert.deepEqual(
+      restoredCounts,
+      sourceCounts,
+      "contagens agregadas divergiram",
+    );
+    assert.deepEqual(
+      restoredMigrations,
+      sourceMigrations,
+      "ledger de migrations divergiu",
+    );
+    const structure = isolatedJson(`
     select json_build_object(
       'schemas',(select count(*)::int from pg_namespace where nspname in ('public','auth','storage')),
       'tables',(select count(*)::int from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','p')),
@@ -148,86 +149,92 @@ try {
       'unvalidatedConstraints',(select count(*)::int from pg_constraint con join pg_class c on c.oid=con.conrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and not con.convalidated),
       'publicFkOrphans',0
     );`);
-  assert.equal(structure.invalidIndexes, 0);
-  assert.equal(structure.unvalidatedConstraints, 0);
-  assert.equal(structure.tables, sourceTables.length);
-  const publicFkOrphans = Number(isolatedScalar(PUBLIC_FK_ORPHAN_SQL));
-  assert.equal(publicFkOrphans, 0, "foreign keys públicas órfãs");
-  const application = applicationSmokeRequested
-    ? await rehearseApplicationAgainstRestore(sourceTables)
-    : { status: "not_requested" };
+    assert.equal(structure.invalidIndexes, 0);
+    assert.equal(structure.unvalidatedConstraints, 0);
+    assert.equal(structure.tables, sourceTables.length);
+    const publicFkOrphans = Number(isolatedScalar(PUBLIC_FK_ORPHAN_SQL));
+    assert.equal(publicFkOrphans, 0, "foreign keys públicas órfãs");
+    const application = applicationSmokeRequested
+      ? await rehearseApplicationAgainstRestore(sourceTables)
+      : { status: "not_requested" };
 
-  const countEnvelope = sourceCounts.map(({ name, count }) => ({
-    name,
-    count,
-  }));
-  const finishedAt = Date.now();
-  const evidenceEnvelope = {
-    tableCount: sourceTables.length,
-    aggregateRowCount: sourceCounts.reduce((sum, item) => sum + item.count, 0),
-    countSetChecksum: envelopeDigest(countEnvelope),
-    dumpIntegrity: checksum(
-      Buffer.from(`${dumpHash}:${dumpStats.size}:${sourceTables.length}`),
-    )
-      ? "verified"
-      : "failed",
-    corruptedBackupRejected: true,
-    checksumMismatchRejected: true,
-    incompleteRestoreRejected: incompleteRestoreDetected,
-    sizeBand: sizeBand(dumpStats.size),
-    durationBand: durationBand(finishedAt - startedAt),
-  };
-  await writeEvidence("30-database-restore.json", {
-    result: RESULT.databaseRestore,
-    source: local ? "local_disposable" : "remote_allowlisted",
-    backup: {
-      format: "postgres_custom",
-      schemas: ["public", "supabase_migrations"],
-      excludedSchemas: ["auth", "storage", "vault", "realtime"],
-      classification:
-        "application_database_backup_not_provider_internal_backup",
-      ...evidenceEnvelope,
-      artifactPublished: false,
-      permissions: "restricted",
-    },
-    authRecovery: {
-      providerInternalDataExported: false,
-      syntheticShadowIdentities: authReferences.length > 0,
-      sessionStrategy: "invalidate_and_reauthenticate",
-      applicationProfilesRestored: true,
-    },
-    restore: {
-      isolated: true,
-      structure: { ...structure, publicFkOrphans },
-      aggregateCountsMatch: true,
-      migrationLedger: {
-        count: sourceMigrations.length,
-        setChecksum: envelopeDigest(sourceMigrations),
-        match: true,
+    const countEnvelope = sourceCounts.map(({ name, count }) => ({
+      name,
+      count,
+    }));
+    const finishedAt = Date.now();
+    const evidenceEnvelope = {
+      tableCount: sourceTables.length,
+      aggregateRowCount: sourceCounts.reduce(
+        (sum, item) => sum + item.count,
+        0,
+      ),
+      countSetChecksum: envelopeDigest(countEnvelope),
+      dumpIntegrity: checksum(
+        Buffer.from(`${dumpHash}:${dumpStats.size}:${sourceTables.length}`),
+      )
+        ? "verified"
+        : "failed",
+      corruptedBackupRejected: true,
+      checksumMismatchRejected: true,
+      incompleteRestoreRejected: incompleteRestoreDetected,
+      sizeBand: sizeBand(dumpStats.size),
+      durationBand: durationBand(finishedAt - startedAt),
+    };
+    await writeEvidence("30-database-restore.json", {
+      result: RESULT.databaseRestore,
+      source: local ? "local_disposable" : "remote_allowlisted",
+      backup: {
+        format: "postgres_custom",
+        schemas: ["public", "supabase_migrations"],
+        excludedSchemas: ["auth", "storage", "vault", "realtime"],
+        classification:
+          "application_database_backup_not_provider_internal_backup",
+        ...evidenceEnvelope,
+        artifactPublished: false,
+        permissions: "restricted",
       },
-      sourceRowsPrinted: false,
-      applicationSmoke: application,
-    },
-    rpoRto: {
-      databaseRpoObserved: "snapshot_at_rehearsal_start",
-      fullRecoveryRtoMeasured: durationBand(finishedAt - startedAt),
-    },
-    cleanup: {
-      isolatedDatabaseDestroyed: true,
-      dumpDestroyed: true,
-      privateManifestDestroyed: true,
-    },
-  });
-  console.log(RESULT.databaseRestore);
-} catch (error) {
-  await writeFailureEvidence("database_restore", error);
-  console.error(sanitizedError(error));
-  process.exitCode = 1;
-} finally {
-  try {
-    dockerRun(["rm", "--force", container]);
-  } catch {}
-  if (tempDir) await rm(tempDir, { recursive: true, force: true });
+      authRecovery: {
+        providerInternalDataExported: false,
+        syntheticShadowIdentities: authReferences.length > 0,
+        sessionStrategy: "invalidate_and_reauthenticate",
+        applicationProfilesRestored: true,
+      },
+      restore: {
+        isolated: true,
+        structure: { ...structure, publicFkOrphans },
+        aggregateCountsMatch: true,
+        migrationLedger: {
+          count: sourceMigrations.length,
+          setChecksum: envelopeDigest(sourceMigrations),
+          match: true,
+        },
+        sourceRowsPrinted: false,
+        applicationSmoke: application,
+      },
+      rpoRto: {
+        databaseRpoObserved: "snapshot_at_rehearsal_start",
+        fullRecoveryRtoMeasured: durationBand(finishedAt - startedAt),
+      },
+      cleanup: {
+        isolatedDatabaseDestroyed: true,
+        dumpDestroyed: true,
+        privateManifestDestroyed: true,
+      },
+    });
+    console.log(RESULT.databaseRestore);
+  } catch (error) {
+    await writeFailureEvidence("database_restore", error);
+    if (process.env.COMUN_SECURITY_DEBUG === "1")
+      console.error(error instanceof Error ? error.stack : error);
+    console.error(sanitizedError(error));
+    process.exitCode = 1;
+  } finally {
+    try {
+      dockerRun(["rm", "--force", container]);
+    } catch {}
+    if (tempDir) await rm(tempDir, { recursive: true, force: true });
+  }
 }
 
 function synthesizeAuthReferences(references) {
@@ -262,7 +269,9 @@ function remoteCounts(url, tables) {
   return remoteRows(
     url,
     `select json_build_object('name',name,'count',count) from (${sql}) counts order by name;`,
-  ).map((value) => JSON.parse(value));
+  )
+    .map((value) => JSON.parse(value))
+    .sort(compareNamedRows);
 }
 
 function isolatedCounts(tables) {
@@ -275,7 +284,14 @@ function isolatedCounts(tables) {
     .join(" union all ");
   return isolatedRows(
     `select json_build_object('name',name,'count',count) from (${sql}) counts order by name;`,
-  ).map((value) => JSON.parse(value));
+  )
+    .map((value) => JSON.parse(value))
+    .sort(compareNamedRows);
+}
+
+function compareNamedRows(left, right) {
+  if (left.name === right.name) return 0;
+  return left.name < right.name ? -1 : 1;
 }
 
 function remoteRows(url, sql) {
@@ -654,9 +670,10 @@ function localSupabaseEnvironment() {
 
 function dockerUrl(url) {
   if (!url) throw new Error("COMUN_DATABASE_SOURCE_URL_MISSING");
-  return url
-    .replace("://127.0.0.1:", "://host.docker.internal:")
-    .replace("://localhost:", "://host.docker.internal:");
+  const target = new URL(url);
+  if (["127.0.0.1", "localhost"].includes(target.hostname))
+    target.hostname = "host.docker.internal";
+  return target.toString();
 }
 
 function quoteIdentifier(value) {
@@ -677,6 +694,8 @@ function dockerRun(args, input) {
     maxBuffer: 100 * 1024 * 1024,
   });
   if (result.status !== 0) {
+    if (process.env.COMUN_SECURITY_DEBUG === "1")
+      console.error(result.stderr.trim());
     throw new Error("COMUN_DATABASE_DOCKER_STEP_FAILED");
   }
   return result.stdout;
@@ -702,6 +721,7 @@ create or replace function auth.role() returns text language sql stable as $$ se
 create table if not exists storage.buckets(id text primary key,name text,public boolean default false,file_size_limit bigint,allowed_mime_types text[]);
 create table if not exists storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text,owner uuid,metadata jsonb,created_at timestamptz default now(),updated_at timestamptz default now());
 create or replace function storage.foldername(name text) returns text[] language sql immutable as $$ select (string_to_array(name,'/'))[1:greatest(array_length(string_to_array(name,'/'),1)-1,0)] $$;
+drop schema public cascade;
 `;
 
 const PUBLIC_FK_ORPHAN_SQL = `
@@ -737,3 +757,5 @@ begin
 end $$;
 select coalesce(sum(count),0) from comun_fk_orphans;
 `;
+
+await main();
