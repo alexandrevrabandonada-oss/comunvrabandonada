@@ -37,9 +37,10 @@ try {
   }
   const inventory = [...required, ...optional].map((name) => ({
     name,
-    status: values.get(name) ? "present" : "missing",
+    status: values.has(name) ? "present" : "missing",
   }));
-  const missing = required.filter((name) => !values.get(name));
+  const missing = required.filter((name) => !values.has(name));
+  const runtimeOnly = required.some((name) => !values.get(name));
   await writeEvidence("25-storage-boundary.json", {
     result: missing.length
       ? "COMUN_STORAGE_BOUNDARY_BLOCKED"
@@ -49,6 +50,7 @@ try {
     fragmentsExposed: false,
     lengthsExposed: false,
     hashesExposed: false,
+    consumption: runtimeOnly ? "runtime_only" : "ephemeral_runner",
   });
   if (missing.length)
     throw new Error("COMUN_STORAGE_RESTORE_BLOCKED_PROVIDER_CREDENTIALS");

@@ -59,6 +59,24 @@ test("superfície administrativa não mostra materiais proibidos", async () => {
   assert.match(page, /\/comun\/admin\/operacao/);
 });
 
+test("ensaio de Storage no runtime exige duas chaves, assinatura e prazo", async () => {
+  const route = await readFile(
+    "app/api/internal/security/storage-restore/route.ts",
+    "utf8",
+  );
+  const caller = await readFile(
+    "scripts/security/rehearse-comun-storage-runtime.mjs",
+    "utf8",
+  );
+  assert.match(route, /CRON_SECRET/);
+  assert.match(route, /SUPABASE_SERVICE_ROLE_KEY/);
+  assert.match(route, /createHmac\("sha256"/);
+  assert.match(route, /5 \* 60_000/);
+  assert.match(route, /timingSafeEqual/);
+  assert.match(caller, /X-COMUN-Rehearsal-Signature/);
+  assert.doesNotMatch(caller, /console\.log\([^)]*(?:token|signature|signingKey)/i);
+});
+
 test("roadmap 47.9A e 47.9B permanece separado", async () => {
   const scope = await readFile("docs/comun-v1-launch-scope.md", "utf8");
   assert.match(scope, /47\.9A/);

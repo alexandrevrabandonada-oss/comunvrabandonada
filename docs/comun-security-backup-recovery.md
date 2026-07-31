@@ -13,7 +13,11 @@
    policies do Supabase são inventariados separadamente, e os objetos físicos
    do provedor ativo são baixados para workspace efêmero e verificados. O
    artifact contém somente contagem, faixa de tamanho, MIME agregado e checksum
-   de conjunto sem object keys.
+   de conjunto sem object keys. Como as credenciais R2 de produção são
+   sensíveis e não legíveis após a criação, o ensaio remoto roda dentro do
+   runtime Vercel por um endpoint interno POST. A chamada exige simultaneamente
+   o bearer do scheduler, HMAC com a service role, timestamp curto e namespace
+   sintético; nenhum desses materiais aparece na resposta.
 4. **Auth.** Senhas, tokens, sessões, identidades, e-mails e MFA não são
    exportados. A recuperação depende da capacidade nativa do Supabase Auth
    realmente contratada, além de reconstrução dos perfis `public`, invalidação
@@ -52,8 +56,10 @@ financeiro é alterado automaticamente.
 4. iniciar Postgres descartável, criar somente stubs de Auth e restaurar;
 5. comparar contagens, catálogo, RLS, constraints, índices e FKs públicas;
 6. executar no-leak e smoke de Preview;
-7. destruir banco, dump, objetos sintéticos e arquivos de ambiente no `finally`;
-8. publicar somente envelopes sanitizados.
+7. executar o restore físico no runtime que já possui as credenciais sensíveis,
+   sem copiá-las para o runner;
+8. destruir banco, dump, objetos sintéticos e arquivos de ambiente no `finally`;
+9. publicar somente envelopes sanitizados.
 
 Nunca restaurar sobre produção. Um restore real do projeto Supabase continua
 sendo ação destrutiva e exige gate específico.

@@ -45,6 +45,7 @@
     "security:restore:database:remote": "node scripts/security/rehearse-comun-database-restore.mjs --application-smoke",
     "security:restore:storage:local": "node scripts/security/rehearse-comun-storage-restore.mjs --local",
     "security:restore:storage:remote": "node scripts/security/rehearse-comun-storage-restore.mjs",
+    "security:restore:storage:runtime": "node scripts/security/rehearse-comun-storage-runtime.mjs",
     "security:migration-recovery": "node scripts/security/rehearse-comun-migration-recovery.mjs",
     "security:deployment-rollback:local": "node scripts/security/rehearse-comun-deployment-rollback.mjs --local",
     "security:deployment-rollback:remote": "node scripts/security/rehearse-comun-deployment-rollback.mjs",
