@@ -16,6 +16,7 @@ const [
   help,
   date,
   workflow,
+  performanceRunner,
 ] = await Promise.all([
   read("public/sw.js"),
   read("lib/comun-pwa.ts"),
@@ -30,6 +31,7 @@ const [
   read("app/comun/ajuda/page.tsx"),
   read("lib/comun-date.ts"),
   read(".github/workflows/comun-quality-performance.yml"),
+  read("scripts/quality/run-comun-quality-performance.mjs"),
 ]);
 
 const checks = {
@@ -71,6 +73,9 @@ const checks = {
   fourBudgets:
     Object.keys(JSON.parse(budgets)).sort().join(",") ===
     "media,rich,simple,visual",
+  performanceLabIsolated:
+    performanceRunner.includes('COMUN_BASE_URL: "http://127.0.0.1:3022"') &&
+    performanceRunner.includes('PLAYWRIGHT_SKIP_WEBSERVER: "0"'),
   helpCanonical:
     help.includes("Ajuda para seguir sem se perder") &&
     help.includes("/comun/offline"),
