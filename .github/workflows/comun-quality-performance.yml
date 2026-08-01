@@ -91,13 +91,13 @@ jobs:
           npm run quality:network
       - name: Jornadas integrais e regressões dos domínios existentes
         run: |
+          npm run test:e2e:comun-integral-experience
           npm run test:e2e:experience-coherence
           npm run test:a11y:experience-coherence
           npm run test:e2e:comun-pwa-experience
           npm run test:e2e:comun-mobile-app-shell
           npm run test:e2e:comun-nucleo-vivo
           npm run test:a11y:comun-nucleo-vivo
-          npm run test:e2e:comun-integral-experience
           npm run test:e2e:central-experience
           npm run test:a11y:central-experience
           npm run test:e2e:comun-miniapp-experience
