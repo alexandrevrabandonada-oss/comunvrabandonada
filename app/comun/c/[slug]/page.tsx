@@ -11,12 +11,19 @@ import { listPublicReports } from "@/lib/reports";
 import { listCommunityWorkGroups } from "@/lib/community-work-groups";
 import { MiniAppContextCard } from "@/components/miniapp-context-card";
 import { ComunContextTrail } from "@/components/comun-context-trail";
+import { ComunActionCard, ComunPautaCard } from "@/components/comun-cards";
+import { ComunStatePanel } from "@/components/comun-state-panel";
+import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
+import { withComunJourneyContext } from "@/lib/comun-journey-context";
+import { communityLoginHref } from "@/lib/community-return";
 
 export const dynamic = "force-dynamic";
 export default async function CommunityPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ experiencia?: string }>;
 }) {
   const { slug } = await params,
     community = await getCommunity(slug),
@@ -39,6 +46,18 @@ export default async function CommunityPage({
           nextAction: group.next_action,
         }))
       : experience.workingGroups;
+  const appV2 = isComunAppV2((await searchParams).experiencia);
+  if (appV2)
+    return (
+      <CommunityAppV2
+        slug={slug}
+        community={community}
+        experience={experience}
+        issues={issues}
+        principal={principal}
+        groups={groups}
+      />
+    );
   return (
     <ComunShell>
       <RememberJourney
@@ -366,6 +385,174 @@ export default async function CommunityPage({
           </div>
         </Header>
       </Section>
+    </ComunShell>
+  );
+}
+
+function CommunityAppV2({
+  slug,
+  community,
+  experience,
+  issues,
+  principal,
+  groups,
+}: {
+  slug: string;
+  community: any;
+  experience: any;
+  issues: any[];
+  principal: any;
+  groups: any[];
+}) {
+  const communityRoute = withComunAppV2(`/comun/c/${slug}`);
+  const membershipRoute = withComunAppV2(
+    withComunJourneyContext(`/comun/c/${slug}/participar`, {
+      intent: "join_community",
+      sourceRoute: communityRoute,
+      returnTo: communityRoute,
+      communitySlug: slug,
+      currentStage: "participate",
+      trackingRoute: "/comun/minha-participacao?secao=comunidades",
+    }),
+  );
+  return (
+    <ComunShell
+      appBar={{
+        title: community.name,
+        contextLabel: `${experience.territory} · comunidade`,
+      }}
+    >
+      <div className="comun-v2-page" data-comun-app-v2-page="community-home">
+        <header className="surface-community rounded-[var(--comun-radius-community)] border border-comun-black/20 p-5">
+          <div className="flex items-start gap-4">
+            <span className="grid size-16 shrink-0 place-items-center rounded-full border-2 border-comun-black bg-[#7d8254] text-2xl font-black">
+              {String(community.name)
+                .split(/\s+/)
+                .map((part) => part[0])
+                .join("")
+                .slice(0, 2)}
+            </span>
+            <div>
+              <p className="comun-v2-eyebrow">
+                {experience.kind === "territorial" ? "Territorial" : "Temática"}{" "}
+                · {experience.territory}
+              </p>
+              <h1 className="comun-v2-title mt-2 normal-case">
+                {community.name}
+              </h1>
+            </div>
+          </div>
+          <p className="mt-4 max-w-2xl text-comun-black/70">
+            {experience.purpose}
+          </p>
+          <p className="mt-4 inline-flex rounded-[var(--comun-radius-pill)] border border-comun-black/25 px-3 py-2 text-xs font-black">
+            Vínculo atual: visita pública
+          </p>
+        </header>
+
+        <section className="mt-7" aria-labelledby="community-next">
+          <h2 id="community-next" className="comun-v2-section-title mb-3">
+            Próxima ação
+          </h2>
+          <ComunActionCard
+            href={communityLoginHref(membershipRoute)}
+            title={experience.nextAction ?? "Acompanhar esta comunidade"}
+            description="A conta protege seu vínculo e devolve você a esta comunidade depois do acesso."
+            action="Acompanhar ou solicitar entrada"
+          />
+        </section>
+
+        {experience.nextActivity ? (
+          <section className="surface-action mt-6 rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4">
+            <p className="comun-v2-eyebrow">
+              Próxima atividade · {experience.nextActivity.dateLabel}
+            </p>
+            <h2 className="mt-2 text-xl font-black normal-case">
+              {experience.nextActivity.title}
+            </h2>
+            <Link
+              className="mt-3 inline-flex min-h-11 items-center font-black underline"
+              href={
+                principal
+                  ? withComunAppV2(`/comun/pautas/${principal.slug}`)
+                  : communityRoute
+              }
+            >
+              Abrir contexto
+            </Link>
+          </section>
+        ) : null}
+
+        <section className="mt-8" aria-labelledby="community-processes">
+          <h2 id="community-processes" className="comun-v2-section-title mb-3">
+            Pautas e ações ativas
+          </h2>
+          <div className="grid gap-3 lg:grid-cols-2">
+            {issues.slice(0, 4).map((issue) => (
+              <ComunPautaCard
+                key={issue.slug}
+                href={withComunAppV2(`/comun/pautas/${issue.slug}`)}
+                title={issue.title}
+                summary={issue.summary}
+                status={issue.status}
+                nextAction={issue.nextSteps}
+              />
+            ))}
+            {!issues.length ? (
+              <ComunStatePanel
+                state="empty"
+                actionHref={withComunAppV2(`/comun/relatar?comunidade=${slug}`)}
+                actionLabel="Enviar relato"
+              >
+                Nenhuma pauta pública está ativa nesta comunidade.
+              </ComunStatePanel>
+            ) : null}
+          </div>
+        </section>
+
+        <details className="mt-8 border-t-2 border-comun-black pt-4">
+          <summary className="min-h-11 cursor-pointer py-2 text-xl font-black">
+            Organização e grupos de trabalho
+          </summary>
+          <div className="mt-3 grid gap-3">
+            {groups.map((group) => (
+              <article
+                key={group.name}
+                className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
+              >
+                <p className="comun-v2-status">
+                  {group.state} · {group.cycle}
+                </p>
+                <h2 className="mt-2 font-black normal-case">{group.name}</h2>
+                <p className="mt-2 text-sm text-comun-black/65">
+                  {group.objective}
+                </p>
+              </article>
+            ))}
+          </div>
+        </details>
+
+        <section className="surface-memory mt-8 rounded-[var(--comun-radius-cultural)] border border-comun-black/20 p-5">
+          <p className="comun-v2-eyebrow">Memória recente relacionada</p>
+          <h2 className="mt-2 text-xl font-black normal-case">
+            Resultados, cultura e memória
+          </h2>
+          <div className="mt-4 flex flex-wrap gap-4">
+            <Link
+              href={withComunAppV2("/comun/resultados")}
+              className="inline-flex min-h-11 items-center font-black underline"
+            >
+              Ver resultados
+            </Link>
+            <Link
+              href={withComunAppV2("/comun/acervo")}
+              className="inline-flex min-h-11 items-center font-black underline"
+            >
+              Abrir memória
+            </Link>
+          </div>
+        </section>
+      </div>
     </ComunShell>
   );
 }

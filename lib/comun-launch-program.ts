@@ -137,7 +137,7 @@ export const COMUN_V1_LAUNCH_PROGRAM = {
         "Android e segunda plataforma físicos",
         "tecnologia assistiva real e amostra de campo suficiente",
       ],
-      nextTijolo: "47.9C — Ensaio em aparelho real e tecnologia assistiva",
+      nextTijolo: "47.9D — Ensaio humano e consolidação visual",
       href: "/comun/admin/observabilidade",
     },
     {

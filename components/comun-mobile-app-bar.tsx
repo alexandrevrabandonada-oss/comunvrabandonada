@@ -2,12 +2,16 @@
 
 import Link from "next/link";
 import { ArrowLeft, MoreHorizontal } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   resolveComunShellRoute,
   withComunAppV2,
 } from "@/lib/comun-shell-contract";
+import {
+  parseComunJourneyContext,
+  resolveComunJourneyReturn,
+} from "@/lib/comun-journey-context";
 
 const labels: Array<[RegExp, string, string, string]> = [
   [
@@ -55,6 +59,7 @@ export function ComunMobileAppBar({
   experienceV2 = false,
 }: ComunMobileAppBarProps = {}) {
   const path = usePathname();
+  const searchParams = useSearchParams();
   const canonicalRoute = resolveComunShellRoute(path);
   const [, legacyTitle, legacyContextLabel, legacyBackDestination] =
     labels.find(([pattern]) => pattern.test(path)) ?? [
@@ -72,7 +77,12 @@ export function ComunMobileAppBar({
     : legacyBackDestination;
   const title = titleOverride ?? routeTitle;
   const contextLabel = contextLabelOverride ?? routeContextLabel;
-  const backDestination = backDestinationOverride ?? routeBackDestination;
+  const journey = parseComunJourneyContext(searchParams);
+  const backDestination =
+    backDestinationOverride ??
+    (experienceV2
+      ? resolveComunJourneyReturn(journey, routeBackDestination)
+      : routeBackDestination);
   const menuActions = [
     ...actions,
     ...overflowActions,

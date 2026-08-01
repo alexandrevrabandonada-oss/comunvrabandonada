@@ -1,6 +1,6 @@
 # Inventário e grafo de rotas da experiência V1
 
-Leitura canônica em 31 de julho de 2026. O App Router contém **188 páginas**.
+Leitura canônica em 1º de agosto de 2026. O núcleo `/comun` contém **189 páginas**.
 O auditor verifica o catálogo exato; a tabela abaixo registra as superfícies e
 famílias relevantes com decisão de produto. Rotas dinâmicas mantêm seus deep
 links atuais. Nenhuma rota é retirada neste tijolo.

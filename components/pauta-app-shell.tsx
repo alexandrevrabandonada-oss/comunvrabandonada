@@ -20,6 +20,7 @@ import { ComunContextTrail } from "@/components/comun-context-trail";
 import { ComunJourneyEvent } from "@/components/comun-journey-event";
 import { ComunActionCard } from "@/components/comun-cards";
 import { withComunAppV2 } from "@/lib/comun-shell-contract";
+import { withComunJourneyContext } from "@/lib/comun-journey-context";
 
 const icons = {
   overview: Sparkles,
@@ -285,6 +286,19 @@ function PautaAppShellV2({
     : currentCircle
       ? "#participar"
       : "/comun/participar";
+  const pautaRoute = withComunAppV2(`/comun/pautas/${space.slug}`);
+  const streamlinedPrimaryHref = primaryHref.startsWith("#")
+    ? primaryHref
+    : withComunAppV2(
+        withComunJourneyContext(primaryHref, {
+          intent: sidewalks ? "register_sidewalk" : "contribute_pauta",
+          sourceRoute: pautaRoute,
+          returnTo: pautaRoute,
+          pautaSlug: space.slug,
+          currentStage: "participate",
+          trackingRoute: "/comun/minha-participacao?secao=contribuicoes",
+        }),
+      );
   return (
     <main
       className="surface-paper text-comun-black"
@@ -325,11 +339,7 @@ function PautaAppShellV2({
             Próxima ação
           </h2>
           <ComunActionCard
-            href={
-              primaryHref.startsWith("#")
-                ? primaryHref
-                : withComunAppV2(primaryHref)
-            }
+            href={streamlinedPrimaryHref}
             title={
               space.next_step ||
               (sidewalks ? "Registrar uma calçada" : "Participar da construção")
@@ -372,7 +382,7 @@ function PautaAppShellV2({
             automaticamente.
           </p>
           {currentCircle ? (
-            <CirclePanel circle={currentCircle} pautaSlug={space.slug} />
+            <CirclePanel circle={currentCircle} pautaSlug={space.slug} appV2 />
           ) : (
             <Link
               href={withComunAppV2("/comun/participar")}
@@ -486,9 +496,11 @@ function PautaModuleSurface({
 function CirclePanel({
   circle,
   pautaSlug,
+  appV2 = false,
 }: {
   circle: any;
   pautaSlug: string;
+  appV2?: boolean;
 }) {
   const rounds = Array.isArray(circle.comun_construction_circle_rounds)
     ? circle.comun_construction_circle_rounds
@@ -546,6 +558,16 @@ function CirclePanel({
           <input type="hidden" name="circle_id" value={circle.id} />
           <input type="hidden" name="round_id" value={current.id} />
           <input type="hidden" name="pauta_slug" value={pautaSlug} />
+          {appV2 ? (
+            <>
+              <input type="hidden" name="experiencia" value="app-v2" />
+              <input
+                type="hidden"
+                name="journey_return"
+                value={withComunAppV2(`/comun/pautas/${pautaSlug}`)}
+              />
+            </>
+          ) : null}
           <label className="text-sm font-bold">
             Que tipo de contribuição é esta?
             <select

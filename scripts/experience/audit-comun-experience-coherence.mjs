@@ -153,11 +153,10 @@ export async function auditExperience(root = defaultRoot) {
   );
   assert(
     [
-      "47.9A2 — App Shell V2 e Gramática Visual",
       "47.9A3 — Fluxos Centrais Streamlined",
-      "47.9C — Acessibilidade, PWA, performance e dispositivos",
-      "47.9D — Ensaio humano e consolidação visual",
-      "47.10 — Conteúdo e governança",
+      "Regressão focal de qualidade dentro do próprio 47.9A3",
+      "47.9D — Ensaio humano, aparelhos reais e consolidação visual",
+      "47.10 — Conteúdo, ajuda e governança",
       "47.11 — Ensaio geral e go/no-go",
     ].every((item) => constitution.includes(item)) &&
       constitution.includes("47.8A permanece em pista paralela") &&
@@ -166,7 +165,7 @@ export async function auditExperience(root = defaultRoot) {
     findings,
   );
   assert(
-    routeInventory.includes("**188 páginas**"),
+    routeInventory.includes("**189 páginas**"),
     "route_inventory_count_not_recorded",
     findings,
   );

@@ -1,0 +1,143 @@
+name: COMUN Core Journeys Deliverability
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "components/**"
+      - "lib/**"
+      - "scripts/journeys/**"
+      - "tests/core-journeys/**"
+      - "playwright.core-journeys.config.ts"
+      - "package*.json"
+      - ".github/workflows/comun-core-journeys.yml"
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "components/**"
+      - "lib/**"
+      - "scripts/journeys/**"
+      - "tests/core-journeys/**"
+      - "playwright.core-journeys.config.ts"
+      - "package*.json"
+      - ".github/workflows/comun-core-journeys.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: comun-core-journeys-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  pr-contract:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: npm
+      - name: Abrir envelope sanitizado
+        run: mkdir -p .ci-artifacts/core-journeys && node -e "require('node:fs').writeFileSync('.ci-artifacts/core-journeys/00-envelope.json',JSON.stringify({scope:'pull_request',containsPersonalData:false,containsQueries:false,containsContacts:false,containsCookies:false,containsSessions:false,containsPrivateScreenshots:false},null,2))"
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: Auditoria, contratos e matriz negativa
+        run: |
+          npm run journeys:audit
+          npm run journeys:test
+          npm run experience:coherence:test
+          npm run quality:test
+          npm run security:test
+      - name: E2E, cinco viewports e acessibilidade
+        run: |
+          npm run journeys:e2e
+          npm run test:e2e:app-shell-v2
+      - name: Regressão focal de qualidade, PWA e performance
+        run: npm run journeys:quality-regression
+      - name: Regressão focal estática e build
+        run: |
+          npm run typecheck
+          npm run lint
+          npm run build
+      - name: Formatação focal e whitespace
+        run: |
+          npx --yes prettier@3.9.6 --check app/actions.ts app/comun/c app/comun/caixa-de-entrada app/comun/criar-conta app/comun/entrar app/comun/explorar app/comun/mapa/contribuir app/comun/minha-participacao app/comun/participar app/comun/relatar/confirmacao components/comun-app-v2-home.tsx components/comun-cards.tsx components/comun-experience-controls.tsx components/comun-journey-confirmation.tsx components/comun-mobile-app-bar.tsx components/comun-state-panel.tsx components/pauta-app-shell.tsx lib/comun-inbox-presentation* lib/comun-journey-context* lib/community-inbox.ts lib/community-return.ts scripts/journeys tests/core-journeys playwright.core-journeys.config.ts .github/workflows/comun-core-journeys.yml
+          git diff --check
+      - name: Coletar somente evidência agregada
+        run: |
+          npm run journeys:collect
+          cp reports/current/comun-core-journeys-audit.json .ci-artifacts/core-journeys/
+          cp reports/current/comun-core-journeys-evidence.json .ci-artifacts/core-journeys/
+      - name: Marcador sanitizado de falha
+        if: failure()
+        run: node -e "require('node:fs').writeFileSync('.ci-artifacts/core-journeys/99-failure.json',JSON.stringify({status:'failed',privateArtifactsPublished:false,humanResult:null},null,2))"
+      - name: Publicar apenas JSON sanitizado
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-core-journeys-${{ github.run_id }}
+          path: .ci-artifacts/core-journeys/*.json
+          if-no-files-found: error
+          retention-days: 14
+
+  post-merge-production:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    env:
+      COMUN_BASE_URL: https://comunsocial.online
+      PLAYWRIGHT_SKIP_WEBSERVER: "1"
+      NEXT_PUBLIC_SITE_URL: https://comunsocial.online
+      COMUN_EXPECTED_SHA: ${{ github.sha }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: npm
+      - run: mkdir -p .ci-artifacts/core-journeys
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: 1. Preflight do SHA em Production
+        run: |
+          for attempt in $(seq 1 30); do
+            observed="$(curl --silent --show-error --fail "$COMUN_BASE_URL/api/comun/quality-status" | node -e "let x='';process.stdin.on('data',d=>x+=d).on('end',()=>{try{process.stdout.write(JSON.parse(x).version||'')}catch{}})")" || true
+            if [ "$observed" = "$COMUN_EXPECTED_SHA" ]; then exit 0; fi
+            echo "COMUN_CORE_JOURNEYS_DEPLOYMENT_NOT_READY attempt=$attempt"
+            sleep 20
+          done
+          exit 1
+      - name: 2. Jornadas públicas
+        run: npm run journeys:e2e
+      - name: 3. Autenticação sintética sem publicar dados
+        run: node scripts/quality/remote-comun-quality-rehearsal.mjs
+      - name: 4. Qualidade focal, PWA e performance
+        run: npm run journeys:quality-regression
+      - name: 5. No-leak
+        run: npm run smoke:no-leak-http
+      - name: 6. Cleanup e coleta sanitizada
+        run: |
+          npm run journeys:collect
+          cp reports/current/comun-core-journeys-audit.json .ci-artifacts/core-journeys/
+          cp reports/current/comun-core-journeys-evidence.json .ci-artifacts/core-journeys/
+      - name: 7. Classificação técnica, sem resultado humano
+        run: node -e "require('node:fs').writeFileSync('.ci-artifacts/core-journeys/98-classification.json',JSON.stringify({result:'COMUN_CORE_JOURNEYS_STREAMLINED_READY_FOR_HUMAN_REHEARSAL',humanRehearsal:'pending',realDevices:'pending',assistiveTechnology:'pending',launchPublicly:'not_triggered'},null,2))"
+      - name: Marcador sanitizado de falha
+        if: failure()
+        run: node -e "require('node:fs').writeFileSync('.ci-artifacts/core-journeys/99-failure.json',JSON.stringify({status:'failed',privateArtifactsPublished:false,humanResult:null},null,2))"
+      - name: Publicar apenas JSON sanitizado
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-core-journeys-production-${{ github.run_id }}
+          path: .ci-artifacts/core-journeys/*.json
+          if-no-files-found: error
+          retention-days: 14

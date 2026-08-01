@@ -24,7 +24,11 @@ export function CopyProtocolButton({ protocol }: { protocol: string }) {
         Copiar protocolo
       </button>
       <p className="text-xs font-bold uppercase text-comun-asphalt/70">
-        {status === "copied" ? "Protocolo copiado." : status === "error" ? "Copie manualmente se precisar." : "Guarde este numero para acompanhar depois."}
+        {status === "copied"
+          ? "Protocolo copiado."
+          : status === "error"
+            ? "Copie manualmente se precisar."
+            : "Guarde este numero para acompanhar depois."}
       </p>
     </div>
   );

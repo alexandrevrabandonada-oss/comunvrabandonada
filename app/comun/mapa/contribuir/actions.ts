@@ -4,6 +4,11 @@ import { redirect, unstable_rethrow } from "next/navigation";
 import { requireCommunitySession } from "@/lib/community-auth";
 import { CANONICAL_SIDEWALK_PAUTA_SLUG } from "@/lib/comun/canonical-editorial-pautas";
 import { safeCommunityReturn } from "@/lib/community-return";
+import { withComunAppV2 } from "@/lib/comun-shell-contract";
+import {
+  parseComunJourneyContext,
+  withComunJourneyContext,
+} from "@/lib/comun-journey-context";
 import { getMediaStorage } from "@/lib/media-storage";
 import { validateSidewalkPhotoImage } from "@/lib/sidewalk-photos";
 import {
@@ -286,10 +291,16 @@ export async function authorizeSidewalkPhotoUpload(input: {
   }
 }
 
-export async function confirmSidewalkPhotoUpload(uploadId: string) {
+export async function confirmSidewalkPhotoUpload(
+  uploadId: string,
+  sourceRoute?: string,
+) {
   await requireSidewalkOperationalRelease();
   const { user } = await requireCommunitySession(
-      "/comun/mapa/contribuir?origem=calcadas",
+      safeCommunityReturn(
+        sourceRoute,
+        "/comun/mapa/contribuir?origem=calcadas",
+      ),
     ),
     db = createServiceSupabaseClient();
   if (!db) throw new Error("Serviço local indisponível.");
@@ -301,9 +312,7 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
     .single();
   if (ticket.error || !ticket.data) throw new Error("Envio não encontrado.");
   if (ticket.data.status === "confirmed" && ticket.data.record_id)
-    redirect(
-      `/comun/mapa/contribuir/confirmacao?registro=${ticket.data.record_id}&returnTo=${encodeURIComponent("/comun/calcadas")}`,
-    );
+    redirect(sidewalkConfirmationHref(ticket.data.record_id, sourceRoute));
   if (new Date(ticket.data.expires_at).getTime() < Date.now()) {
     const expired = await db
       .from("comun_sidewalk_uploads")
@@ -337,7 +346,7 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
       .eq("confirmation_state", "confirming");
     if (recovered.error)
       throw new Error("Não foi possível retomar este envio.");
-    return confirmSidewalkPhotoUpload(uploadId);
+    return confirmSidewalkPhotoUpload(uploadId, sourceRoute);
   }
   if (!["awaiting_upload", "uploaded"].includes(ticket.data.status))
     throw new Error("Este envio não pode mais ser confirmado.");
@@ -396,9 +405,7 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
       latest.data?.confirmation_state === "confirmed" &&
       latest.data.record_id
     )
-      redirect(
-        `/comun/mapa/contribuir/confirmacao?registro=${latest.data.record_id}&returnTo=${encodeURIComponent("/comun/calcadas")}`,
-      );
+      redirect(sidewalkConfirmationHref(latest.data.record_id, sourceRoute));
     throw new Error(
       latest.data?.confirmation_state === "confirming"
         ? "Este envio já está sendo confirmado. Aguarde antes de tentar novamente."
@@ -410,6 +417,7 @@ export async function confirmSidewalkPhotoUpload(uploadId: string) {
     ticket.data.submission_payload as DirectUploadPayload,
   ))
     form.set(key, String(value));
+  if (sourceRoute) form.set("journey_source", sourceRoute);
   form.set(
     "photo",
     new File([bytes], ticket.data.original_filename, {
@@ -458,7 +466,10 @@ async function persistAuthenticatedSidewalkRecord(
   await requireSidewalkOperationalRelease();
   const returnTo = safeCommunityReturn(f.get("return_to"), "/comun/calcadas"),
     { user } = await requireCommunitySession(
-      "/comun/mapa/contribuir?origem=calcadas",
+      safeCommunityReturn(
+        f.get("journey_source"),
+        "/comun/mapa/contribuir?origem=calcadas",
+      ),
     ),
     db = createServiceSupabaseClient();
   if (!db) throw new Error("Serviço local indisponível.");
@@ -699,7 +710,37 @@ async function persistAuthenticatedSidewalkRecord(
     if (confirmed.error) throw new Error("Não foi possível confirmar o envio.");
   }
   redirect(
-    `/comun/mapa/contribuir/confirmacao?registro=${id}&returnTo=${encodeURIComponent(returnTo)}`,
+    sidewalkConfirmationHref(
+      id,
+      String(f.get("journey_source") ?? ""),
+      returnTo,
+    ),
+  );
+}
+
+function sidewalkConfirmationHref(
+  recordId: string,
+  sourceRoute?: string,
+  returnTo = "/comun/calcadas",
+) {
+  const safeSource = safeCommunityReturn(sourceRoute, "");
+  const sourceUrl = safeSource
+    ? new URL(safeSource, "http://comun.local")
+    : null;
+  const appV2 = sourceUrl?.searchParams.get("experiencia") === "app-v2";
+  const base = `/comun/mapa/contribuir/confirmacao?registro=${encodeURIComponent(recordId)}&returnTo=${encodeURIComponent(returnTo)}`;
+  if (!appV2 || !sourceUrl) return base;
+  const journey = parseComunJourneyContext(sourceUrl.searchParams);
+  return withComunAppV2(
+    withComunJourneyContext(base, {
+      ...journey,
+      intent: "register_sidewalk",
+      sourceRoute: journey.sourceRoute ?? safeSource,
+      returnTo,
+      pautaSlug: journey.pautaSlug ?? "calcadas-em-circulacao",
+      currentStage: "confirm",
+      trackingRoute: "/comun/minha-participacao?secao=contribuicoes",
+    }),
   );
 }
 

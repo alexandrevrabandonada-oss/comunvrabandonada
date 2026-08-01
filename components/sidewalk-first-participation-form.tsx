@@ -205,7 +205,10 @@ export function SidewalkFirstParticipationForm({
       if (uploaded.error)
         throw new Error("Falha ao enviar a fotografia privada.");
       setSubmissionPhase("confirming_record");
-      await confirmSidewalkPhotoUpload(authorization.uploadId);
+      await confirmSidewalkPhotoUpload(
+        authorization.uploadId,
+        `${window.location.pathname}${window.location.search}`,
+      );
       setSubmissionPhase("success");
     } catch (error) {
       showError(

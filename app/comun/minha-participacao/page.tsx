@@ -28,6 +28,10 @@ import { getCollectiveActionsRelease } from "@/lib/collective-actions-release";
 import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
 import { ComunPautaCard, ComunResultCard } from "@/components/comun-cards";
 import { ComunStatePanel } from "@/components/comun-state-panel";
+import {
+  COMUN_JOURNEY_STATE_COPY,
+  normalizeComunJourneyStatus,
+} from "@/lib/comun-journey-status";
 
 export const dynamic = "force-dynamic";
 
@@ -41,16 +45,28 @@ export default async function MinhaAreaPage({
   const rawSearchParams = await searchParams;
   const requested = rawSearchParams.secao;
   const appV2 = isComunAppV2(rawSearchParams.experiencia);
-  const selected = [
+  const v2Sections = [
+    "contribuicoes",
+    "comunidades",
+    "tarefas",
+    "acompanhando",
+    "resultados",
+    "cultura",
+    "configuracoes",
+  ];
+  const legacySections = [
     "contribuicoes",
     "acompanhando",
     "tarefas",
     "resultados",
-  ].includes(requested ?? "")
+  ];
+  const selected = (appV2 ? v2Sections : legacySections).includes(
+    requested ?? "",
+  )
     ? requested!
     : "contribuicoes";
   const { user, profile } = await requireCommunitySession(
-    "/comun/minha-participacao",
+    withComunAppV2(`/comun/minha-participacao?secao=${selected}`, appV2),
   );
   const collectiveActionsRelease = await getCollectiveActionsRelease();
   const [center, submissions, archiveContributions, collectiveActions] =
@@ -450,10 +466,13 @@ function MinhaAreaAppV2({
   attention: any[];
 }) {
   const tabs = [
-    ["contribuicoes", "Contribuições"],
-    ["acompanhando", "Acompanhando"],
+    ["contribuicoes", "Participações"],
+    ["comunidades", "Comunidades"],
     ["tarefas", "Tarefas"],
+    ["acompanhando", "Acompanhamentos"],
     ["resultados", "Resultados"],
+    ["cultura", "Cultura"],
+    ["configuracoes", "Configurações"],
   ] as const;
   return (
     <ComunShell
@@ -481,15 +500,42 @@ function MinhaAreaAppV2({
           </div>
         </header>
         <p className="mt-5 max-w-2xl text-comun-black/70">
-          Organizada pela próxima ação e pelo retorno — nunca por popularidade
-          ou linha do tempo infinita.
+          Histórico, vínculos e continuidade. Mensagens que pedem ação ficam
+          somente na Caixa.
         </p>
-        <div className="surface-community mt-5 rounded-[var(--comun-radius-card)] border-l-4 border-comun-yellow p-4 text-sm">
-          <p className="comun-v2-eyebrow">Seu ciclo de participação</p>
-          <p className="mt-2">
-            Contribuição → revisão → prioridade → ação → resultado e memória.
-          </p>
+        <div
+          className="mt-5 grid grid-cols-3 gap-2"
+          aria-label="Resumo da sua área"
+        >
+          <AreaMetric
+            label="Ativas"
+            value={
+              contributions.filter(
+                (item) =>
+                  !["completed", "withdrawn", "archived"].includes(item.status),
+              ).length
+            }
+          />
+          <AreaMetric
+            label="Vínculos"
+            value={(center.communities ?? []).length}
+          />
+          <AreaMetric
+            label="Resultados"
+            value={(center.results ?? []).length}
+          />
         </div>
+        {attention.length ? (
+          <Link
+            href={withComunAppV2("/comun/caixa-de-entrada")}
+            className="surface-alert mt-4 flex min-h-12 items-center justify-between rounded-[var(--comun-radius-card)] border border-comun-black/20 px-4 font-black"
+          >
+            <span>
+              {attention.length} mensagem(ns) pedem compreensão ou ação
+            </span>
+            <span aria-hidden="true">→</span>
+          </Link>
+        ) : null}
         <nav
           aria-label="Seções de Minha área"
           className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -516,7 +562,11 @@ function MinhaAreaAppV2({
                     className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
                   >
                     <p className="comun-v2-status text-comun-rust">
-                      {communityStatusLabel(item.status ?? "pending")}
+                      {
+                        COMUN_JOURNEY_STATE_COPY[
+                          normalizeComunJourneyStatus(item.status)
+                        ].label
+                      }
                     </p>
                     <h2 className="mt-2 font-black normal-case">
                       {item.title ??
@@ -525,9 +575,17 @@ function MinhaAreaAppV2({
                         "Contribuição recebida"}
                     </h2>
                     <p className="mt-2 text-sm text-comun-black/65">
-                      A próxima mudança aparecerá na Caixa quando houver decisão
-                      ou pedido de complemento.
+                      {item.next_action_public ??
+                        "A próxima mudança aparecerá aqui; pedidos de ação chegam pela Caixa."}
                     </p>
+                    {item.action_url ? (
+                      <Link
+                        className="mt-3 inline-flex min-h-11 items-center font-black underline"
+                        href={withComunAppV2(item.action_url)}
+                      >
+                        Abrir acompanhamento
+                      </Link>
+                    ) : null}
                   </article>
                 ))}
               {!contributions.length && !archiveContributions.length ? (
@@ -537,6 +595,45 @@ function MinhaAreaAppV2({
                   actionLabel="Escolher participação"
                 >
                   Você ainda não enviou contribuições nesta área.
+                </ComunStatePanel>
+              ) : null}
+            </div>
+          ) : null}
+          {selected === "comunidades" ? (
+            <div className="grid gap-3 lg:grid-cols-2">
+              {(center.communities ?? []).slice(0, 6).map((item: any) => (
+                <article
+                  key={item.id}
+                  className="surface-community rounded-[var(--comun-radius-community)] border border-comun-black/20 p-4"
+                >
+                  <p className="comun-v2-status">
+                    {communityStatusLabel(item.status ?? "member")}
+                  </p>
+                  <h2 className="mt-2 text-lg font-black normal-case">
+                    {item.community?.name ?? item.name ?? "Comunidade"}
+                  </h2>
+                  <p className="mt-2 text-sm text-comun-black/65">
+                    {item.community?.purpose ??
+                      item.purpose ??
+                      "Vínculo comunitário ativo."}
+                  </p>
+                  <Link
+                    className="mt-3 inline-flex min-h-11 items-center font-black underline"
+                    href={withComunAppV2(
+                      `/comun/c/${item.community?.slug ?? item.slug ?? "cidade"}`,
+                    )}
+                  >
+                    Abrir comunidade
+                  </Link>
+                </article>
+              ))}
+              {!(center.communities ?? []).length ? (
+                <ComunStatePanel
+                  state="empty"
+                  actionHref={withComunAppV2("/comun/comunidades")}
+                  actionLabel="Explorar comunidades"
+                >
+                  Você ainda não possui vínculo comunitário.
                 </ComunStatePanel>
               ) : null}
             </div>
@@ -560,7 +657,7 @@ function MinhaAreaAppV2({
           ) : null}
           {selected === "tarefas" ? (
             <div className="grid gap-3">
-              {[...attention, ...collectiveTaskAssignments]
+              {[...(center.tasks ?? []), ...collectiveTaskAssignments]
                 .slice(0, 6)
                 .map((item: any, index) => (
                   <article
@@ -580,6 +677,16 @@ function MinhaAreaAppV2({
                     </p>
                   </article>
                 ))}
+              {!(center.tasks ?? []).length &&
+              !collectiveTaskAssignments.length ? (
+                <ComunStatePanel
+                  state="empty"
+                  actionHref={withComunAppV2("/comun/acoes")}
+                  actionLabel="Encontrar uma ação"
+                >
+                  Nenhuma tarefa está sob sua responsabilidade.
+                </ComunStatePanel>
+              ) : null}
             </div>
           ) : null}
           {selected === "resultados" ? (
@@ -597,6 +704,57 @@ function MinhaAreaAppV2({
               ))}
             </div>
           ) : null}
+          {selected === "cultura" ? (
+            <div className="grid gap-3">
+              {archiveContributions.slice(0, 6).map((item: any) => (
+                <article
+                  key={item.id}
+                  className="surface-memory rounded-[var(--comun-radius-cultural)] border border-comun-black/20 p-4"
+                >
+                  <p className="comun-v2-status">
+                    {
+                      COMUN_JOURNEY_STATE_COPY[
+                        normalizeComunJourneyStatus(item.status)
+                      ].label
+                    }
+                  </p>
+                  <h2 className="mt-2 font-black normal-case">
+                    {item.archive_item?.title ?? "Contribuição cultural"}
+                  </h2>
+                  {item.public_slug ? (
+                    <Link
+                      className="mt-3 inline-flex min-h-11 items-center font-black underline"
+                      href={withComunAppV2(
+                        `/comun/acervo/identificar/${item.public_slug}`,
+                      )}
+                    >
+                      Abrir acompanhamento
+                    </Link>
+                  ) : null}
+                </article>
+              ))}
+              {!archiveContributions.length ? (
+                <ComunStatePanel
+                  state="empty"
+                  actionHref={withComunAppV2("/comun/participar")}
+                  actionLabel="Contribuir com cultura"
+                >
+                  Nenhuma contribuição cultural vinculada à sua área.
+                </ComunStatePanel>
+              ) : null}
+            </div>
+          ) : null}
+          {selected === "configuracoes" ? (
+            <div className="grid gap-3">
+              <AreaSettingsLink href="/comun/conta">
+                Conta e preferências
+              </AreaSettingsLink>
+              <AreaSettingsLink href="/comun/seguranca">
+                Privacidade e segurança
+              </AreaSettingsLink>
+              <AreaSettingsLink href="/comun/ajuda">Ajuda</AreaSettingsLink>
+            </div>
+          ) : null}
         </section>
         <Link
           href="/comun/minha-participacao"
@@ -606,6 +764,32 @@ function MinhaAreaAppV2({
         </Link>
       </div>
     </ComunShell>
+  );
+}
+function AreaMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-3">
+      <strong className="block text-2xl font-black">{value}</strong>
+      <span className="text-xs font-bold text-comun-black/60">{label}</span>
+    </div>
+  );
+}
+
+function AreaSettingsLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      className="surface-paper flex min-h-14 items-center justify-between rounded-[var(--comun-radius-card)] border border-comun-black/20 px-4 font-black"
+      href={withComunAppV2(href)}
+    >
+      <span>{children}</span>
+      <span aria-hidden="true">→</span>
+    </Link>
   );
 }
 function CollectiveActionsPreviewParticipation() {

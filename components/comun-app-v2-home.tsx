@@ -36,6 +36,7 @@ export function ComunAppV2Home({
     .sort((a: any, b: any) => priority(b.priority) - priority(a.priority));
   const firstPauta = center?.memberships?.[0]?.pauta ?? pautas[0];
   const firstAction = center?.actions?.[0] ?? actions[0];
+  const firstTask = center?.tasks?.[0];
   const firstResult = center?.results?.[0] ?? results[0];
   const firstMemory = memory[0];
   const displayName = String(profile?.display_name ?? "")
@@ -99,14 +100,46 @@ export function ComunAppV2Home({
         <h2 id="home-next" className="comun-v2-section-title mb-3">
           Próxima ação
         </h2>
-        <ComunActionCard
-          href={withComunAppV2(
-            "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao",
-          )}
-          title="Registrar uma calçada"
-          description="Ajude a mapear barreiras e melhorar caminhos da cidade. O registro passa por revisão."
-          action="Começar registro"
-        />
+        {attention[0] ? (
+          <ComunActionCard
+            href={withComunAppV2(attention[0].action_url)}
+            title={attention[0].title}
+            description={attention[0].summary}
+            action={attention[0].action_label ?? "Abrir pedido"}
+          />
+        ) : firstTask ? (
+          <ComunActionCard
+            href={withComunAppV2(
+              firstTask.action_url ?? "/comun/minha-participacao?secao=tarefas",
+            )}
+            title={firstTask.title}
+            description={
+              firstTask.result_public ??
+              "Confira responsabilidade, prazo e resultado esperado."
+            }
+            action="Abrir tarefa"
+          />
+        ) : firstAction ? (
+          <ComunActionCard
+            href={withComunAppV2(
+              firstAction.action_url ?? `/comun/acoes/${firstAction.slug}`,
+            )}
+            title={firstAction.title}
+            description={
+              firstAction.participation_public ??
+              firstAction.objective_public ??
+              "Confira o compromisso antes de participar."
+            }
+            action="Ver ação"
+          />
+        ) : (
+          <ComunActionCard
+            href={withComunAppV2("/comun/participar")}
+            title="Escolha como começar"
+            description="Não há pendência agora. Explore um processo público ou abra uma intenção concreta."
+            action="Ver formas de participar"
+          />
+        )}
       </section>
 
       <section aria-labelledby="home-shortcuts" className="mt-8">

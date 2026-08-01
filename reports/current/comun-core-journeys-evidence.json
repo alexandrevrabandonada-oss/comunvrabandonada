@@ -1,0 +1,31 @@
+{
+  "schema": "comun.core-journeys.evidence.v1",
+  "collectedAt": "2026-08-01T20:14:46.993Z",
+  "commit": "be70e49a6fe6e2457c4cd2eaf14aa2c381ccfa57",
+  "journeys": 18,
+  "intermediateRoutes": 6,
+  "metrics": {
+    "screensBefore": 61,
+    "screensAfter": 37,
+    "repeatedActionsBefore": 7,
+    "repeatedActionsAfter": 0,
+    "brokenReturnsBefore": 4,
+    "brokenReturnsAfter": 0,
+    "lostContextsBefore": 3,
+    "lostContextsAfter": 0,
+    "authWithoutReturnBefore": 3,
+    "authWithoutReturnAfter": 0,
+    "confirmationsWithoutTrackingBefore": 4,
+    "confirmationsWithoutTrackingAfter": 0,
+    "messagesWithoutOriginBefore": 2,
+    "messagesWithoutOriginAfter": 0,
+    "competingCtasBefore": 5,
+    "competingCtasAfter": 0,
+    "deadEndsBefore": 2,
+    "deadEndsAfter": 0
+  },
+  "containsPrivateFixtures": false,
+  "containsScreenshots": false,
+  "containsSessions": false,
+  "humanResult": null
+}

@@ -77,17 +77,23 @@ test("participation panel is allowlisted, progressive and mutation-free", async 
     .getByRole("button", { name: "Ver cultura, memória e direitos" })
     .click();
   for (const label of [
-    "Contribuir com pauta",
     "Registrar calçada",
+    "Contribuir com pauta",
+    "Enviar relato",
+    "Registrar resposta institucional",
     "Entrar em comunidade",
     "Assumir tarefa",
+    "Participar de ação",
+    "Acompanhar pauta",
     "Enviar item ao Acervo",
     "Enviar áudio à Rádio",
     "Enviar obra",
-    "Correção ou retirada",
+    "Pedir correção",
+    "Pedir retirada",
+    "Relatar problema de privacidade",
   ])
     await expect(
-      dialog.getByRole("link", { name: label, exact: false }),
+      dialog.getByRole("link", { name: new RegExp(`^${label}(?:\\s|$)`) }),
     ).toBeVisible();
   await expect(dialog.locator("form")).toHaveCount(0);
 });

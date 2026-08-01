@@ -2,9 +2,13 @@
 
 import Link from "next/link";
 import { Search, X } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { withComunAppV2 } from "@/lib/comun-shell-contract";
+import {
+  type ComunJourneyIntent,
+  withComunJourneyContext,
+} from "@/lib/comun-journey-context";
 
 type Way = {
   title: string;
@@ -14,6 +18,12 @@ type Way = {
   purpose?: string;
   after?: string;
   note?: string;
+  group?:
+    | "Resolver um problema"
+    | "Construir junto"
+    | "Preservar memória e cultura"
+    | "Corrigir ou proteger";
+  intent?: ComunJourneyIntent;
 };
 
 const legacyMobileWays: Way[] = [
@@ -62,19 +72,41 @@ const legacyMobileWays: Way[] = [
 
 const mobileWays: Way[] = [
   {
-    title: "Contribuir com pauta",
-    href: "/comun/pautas",
-    time: "5–20 min",
-    account: "Conforme a pauta",
-    purpose: "Enviar relato, evidência, proposta ou contraponto.",
-  },
-  {
     title: "Registrar calçada",
     href: "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao",
     time: "5–10 min",
     account: "Conta necessária",
     purpose: "Fotografar e avaliar um trecho.",
     after: "O registro segue para revisão antes de aparecer no mapa.",
+    group: "Resolver um problema",
+    intent: "register_sidewalk",
+  },
+  {
+    title: "Contribuir com pauta",
+    href: "/comun/pautas",
+    time: "5–20 min",
+    account: "Conforme a pauta",
+    purpose: "Enviar relato, evidência, proposta ou contraponto.",
+    group: "Resolver um problema",
+    intent: "contribute_pauta",
+  },
+  {
+    title: "Enviar relato",
+    href: "/comun/relatar",
+    time: "5–10 min",
+    account: "Conta não obrigatória",
+    purpose: "Contar um problema vivido para triagem segura.",
+    group: "Resolver um problema",
+    intent: "send_report",
+  },
+  {
+    title: "Registrar resposta institucional",
+    href: "/comun/protocolos-oficiais",
+    time: "5–15 min",
+    account: "Conta necessária",
+    purpose: "Relacionar uma resposta oficial a um processo acompanhado.",
+    group: "Resolver um problema",
+    intent: "institutional_response",
   },
   {
     title: "Entrar em comunidade",
@@ -82,6 +114,8 @@ const mobileWays: Way[] = [
     time: "2–5 min",
     account: "Conta necessária para solicitar vínculo",
     purpose: "Conhecer uma comunidade e pedir entrada moderada.",
+    group: "Construir junto",
+    intent: "join_community",
   },
   {
     title: "Assumir tarefa",
@@ -89,6 +123,26 @@ const mobileWays: Way[] = [
     time: "Compromisso indicado na tarefa",
     account: "Conta necessária",
     purpose: "Aceitar responsabilidade explícita por uma entrega.",
+    group: "Construir junto",
+    intent: "take_task",
+  },
+  {
+    title: "Participar de ação",
+    href: "/comun/acoes",
+    time: "Conforme a ação",
+    account: "Conforme o compromisso",
+    purpose: "Escolher uma atividade concreta e ver responsabilidades.",
+    group: "Construir junto",
+    intent: "join_action",
+  },
+  {
+    title: "Acompanhar pauta",
+    href: "/comun/pautas",
+    time: "2 min",
+    account: "Conta necessária",
+    purpose: "Receber pedidos, decisões e resultados relevantes.",
+    group: "Construir junto",
+    intent: "follow_pauta",
   },
   {
     title: "Enviar item ao Acervo",
@@ -96,6 +150,8 @@ const mobileWays: Way[] = [
     time: "10–30 min",
     account: "Conta opcional",
     purpose: "Compartilhar uma memória para revisão editorial.",
+    group: "Preservar memória e cultura",
+    intent: "send_archive_item",
   },
   {
     title: "Enviar áudio à Rádio",
@@ -103,6 +159,8 @@ const mobileWays: Way[] = [
     time: "10–20 min",
     account: "Conta opcional",
     purpose: "Propor áudio com consentimento e contexto.",
+    group: "Preservar memória e cultura",
+    intent: "send_radio_audio",
   },
   {
     title: "Enviar obra",
@@ -110,13 +168,35 @@ const mobileWays: Way[] = [
     time: "10–30 min",
     account: "Conta opcional",
     purpose: "Enviar arte, crédito e contexto para revisão.",
+    group: "Preservar memória e cultura",
+    intent: "send_artwork",
   },
   {
-    title: "Correção ou retirada",
+    title: "Pedir correção",
     href: "/comun/acervo/direitos-e-remocao",
     time: "5–15 min",
     account: "Canal protegido",
-    purpose: "Solicitar correção, crédito, restrição ou retirada.",
+    purpose: "Solicitar correção ou crédito sem expor dados pessoais.",
+    group: "Corrigir ou proteger",
+    intent: "request_correction",
+  },
+  {
+    title: "Pedir retirada",
+    href: "/comun/acervo/direitos-e-remocao",
+    time: "5–15 min",
+    account: "Canal protegido",
+    purpose: "Pedir restrição ou retirada por um canal seguro.",
+    group: "Corrigir ou proteger",
+    intent: "request_withdrawal",
+  },
+  {
+    title: "Relatar problema de privacidade",
+    href: "/comun/seguranca",
+    time: "5–15 min",
+    account: "Canal protegido",
+    purpose: "Entender o canal adequado para proteger dados e consentimento.",
+    group: "Corrigir ou proteger",
+    intent: "privacy_report",
   },
 ];
 
@@ -283,6 +363,7 @@ export function ParticipateSheet({
   experienceV2?: boolean;
 }) {
   const path = usePathname();
+  const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -292,14 +373,13 @@ export function ParticipateSheet({
     setTimeout(() => trigger.current?.focus(), 0);
   };
   const mobile = variant === "mobile-nav";
-  const ways =
-    mobile && experienceV2
-      ? mobileWays
-      : mobile
-        ? legacyMobileWays
-        : contextualWays(path);
-  const visibleWays =
-    mobile && experienceV2 && !showAll ? ways.slice(0, 4) : ways;
+  const ways = experienceV2
+    ? mobileWays
+    : mobile
+      ? legacyMobileWays
+      : contextualWays(path);
+  const visibleWays = experienceV2 && !showAll ? ways.slice(0, 4) : ways;
+  const sourceRoute = `${path}${searchParams.size ? `?${searchParams.toString()}` : ""}`;
   const participating =
     mobile && experienceV2 && (open || path === "/comun/participar");
   return (
@@ -343,37 +423,64 @@ export function ParticipateSheet({
           Opções relacionadas ao contexto atual. Cada caminho informa tempo e
           necessidade de conta.
         </p>
-        <ul className="mt-5 divide-y divide-comun-black/25">
-          {visibleWays.map((way) => (
-            <li key={`${way.title}-${way.href}`}>
-              <Link
-                href={withComunAppV2(way.href, experienceV2)}
-                onClick={close}
-                className="block py-4 hover:text-comun-rust"
+        <ul className="mt-5">
+          {visibleWays.map((way, index) => {
+            const showGroup =
+              way.group && way.group !== visibleWays[index - 1]?.group;
+            const journeyHref =
+              experienceV2 && way.intent
+                ? withComunJourneyContext(way.href, {
+                    intent: way.intent,
+                    sourceRoute,
+                    returnTo: sourceRoute,
+                    currentStage: "participate",
+                    pautaSlug:
+                      searchParams.get("pauta") ??
+                      (/\/pautas\/([^/?#]+)/.exec(path)?.[1] || undefined),
+                    communitySlug:
+                      searchParams.get("comunidade") ??
+                      (/\/c\/([^/?#]+)/.exec(path)?.[1] || undefined),
+                  })
+                : way.href;
+            return (
+              <li
+                key={`${way.title}-${way.href}`}
+                className="border-b border-comun-black/25"
               >
-                <span className="flex items-center justify-between gap-4 font-black">
-                  <span>{way.title}</span>
-                  <small className="text-right text-xs normal-case font-bold">
-                    {way.time}
-                  </small>
-                </span>
-                <span className="mt-1 block text-xs font-bold text-comun-concrete">
-                  {way.account}
-                  {way.note ? ` · ${way.note}` : ""}
-                </span>
-                {way.purpose ? (
-                  <span className="mt-2 block text-sm">{way.purpose}</span>
+                {showGroup ? (
+                  <h3 className="comun-v2-eyebrow pb-1 pt-5 text-comun-rust">
+                    {way.group}
+                  </h3>
                 ) : null}
-                {way.after ? (
-                  <span className="mt-1 block text-xs text-comun-concrete">
-                    Depois: {way.after}
+                <Link
+                  href={withComunAppV2(journeyHref, experienceV2)}
+                  onClick={close}
+                  className="block py-4 hover:text-comun-rust"
+                >
+                  <span className="flex items-center justify-between gap-4 font-black">
+                    <span>{way.title}</span>
+                    <small className="text-right text-xs normal-case font-bold">
+                      {way.time}
+                    </small>
                   </span>
-                ) : null}
-              </Link>
-            </li>
-          ))}
+                  <span className="mt-1 block text-xs font-bold text-comun-concrete">
+                    {way.account}
+                    {way.note ? ` · ${way.note}` : ""}
+                  </span>
+                  {way.purpose ? (
+                    <span className="mt-2 block text-sm">{way.purpose}</span>
+                  ) : null}
+                  {way.after ? (
+                    <span className="mt-1 block text-xs text-comun-concrete">
+                      Depois: {way.after}
+                    </span>
+                  ) : null}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
-        {mobile && experienceV2 && !showAll ? (
+        {experienceV2 && !showAll ? (
           <button
             type="button"
             onClick={() => setShowAll(true)}
