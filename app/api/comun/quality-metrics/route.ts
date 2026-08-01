@@ -5,6 +5,7 @@ import {
   COMUN_ROUTE_CLASSES,
   COMUN_WEB_VITAL_NAMES,
 } from "@/lib/quality-performance";
+import { isAllowedQualityMetricOrigin } from "@/lib/quality-metric-origin";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,7 @@ function capacityAvailable() {
 
 export async function POST(request: Request) {
   const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin)
+  if (!isAllowedQualityMetricOrigin({ origin, requestUrl: request.url }))
     return NextResponse.json({ code: "origin_rejected" }, { status: 403 });
   if (!capacityAvailable())
     return NextResponse.json({ code: "temporarily_limited" }, { status: 429 });
