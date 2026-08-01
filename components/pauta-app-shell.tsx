@@ -21,6 +21,13 @@ import { ComunJourneyEvent } from "@/components/comun-journey-event";
 import { ComunActionCard } from "@/components/comun-cards";
 import { withComunAppV2 } from "@/lib/comun-shell-contract";
 import { withComunJourneyContext } from "@/lib/comun-journey-context";
+import type { ComunEntityContext } from "@/lib/comun-entity-context";
+import {
+  ComunEmptyStateV2,
+  ComunEntityHeader,
+  ComunRelatedSection,
+  ComunRelationRail,
+} from "@/components/comun-relational";
 
 const icons = {
   overview: Sparkles,
@@ -98,12 +105,14 @@ export function PautaAppShell({
   circles,
   sidewalks,
   appV2 = false,
+  entityContext,
 }: {
   space: PublicPautaSpace;
   modules: PublicPautaModule[];
   circles: any[];
   sidewalks?: any;
   appV2?: boolean;
+  entityContext?: ComunEntityContext;
 }) {
   if (appV2)
     return (
@@ -112,6 +121,7 @@ export function PautaAppShell({
         modules={modules}
         circles={circles}
         sidewalks={sidewalks}
+        entityContext={entityContext}
       />
     );
   return (
@@ -274,11 +284,13 @@ function PautaAppShellV2({
   modules,
   circles,
   sidewalks,
+  entityContext,
 }: {
   space: PublicPautaSpace;
   modules: PublicPautaModule[];
   circles: any[];
   sidewalks?: any;
+  entityContext?: ComunEntityContext;
 }) {
   const currentCircle = circles[0];
   const primaryHref = sidewalks
@@ -301,7 +313,7 @@ function PautaAppShellV2({
       );
   return (
     <main
-      className="surface-paper text-comun-black"
+      className="surface-base comun-relational-page"
       data-comun-app-v2-page="pauta-detail"
     >
       <ComunJourneyEvent
@@ -309,15 +321,43 @@ function PautaAppShellV2({
         surface={`pauta:${space.slug}:app-v2`}
       />
       <div className="comun-v2-page comun-v2-page--reading">
-        <header className="relative overflow-hidden rounded-[var(--comun-radius-community)] border border-comun-black/20 bg-comun-paper p-5">
-          <span className="comun-v2-status inline-flex rounded-[var(--comun-radius-pill)] bg-comun-yellow px-3 py-1">
-            {space.public_status || space.status}
-          </span>
-          <h1 className="comun-v2-title mt-4 normal-case">{space.title}</h1>
-          <p className="mt-4 max-w-2xl text-lg font-medium text-comun-black/70">
-            {space.summary}
-          </p>
-        </header>
+        {entityContext ? (
+          <>
+            <ComunContextTrail
+              items={[
+                ...(entityContext.territory
+                  ? [
+                      {
+                        kind: "território" as const,
+                        label: entityContext.territory.title,
+                        href: withComunAppV2(entityContext.territory.href),
+                      },
+                    ]
+                  : []),
+                ...(entityContext.community
+                  ? [
+                      {
+                        kind: "comunidade" as const,
+                        label: entityContext.community.title,
+                        href: withComunAppV2(entityContext.community.href),
+                      },
+                    ]
+                  : []),
+                { kind: "pauta", label: entityContext.title },
+              ]}
+            />
+            <ComunEntityHeader context={entityContext} />
+            <ComunRelationRail relations={entityContext.relations} />
+          </>
+        ) : (
+          <header className="comun-entity-header">
+            <p className="comun-v2-eyebrow text-comun-yellow">Pauta</p>
+            <h1 className="comun-v2-title mt-2 normal-case">{space.title}</h1>
+            <p className="mt-4 max-w-2xl text-lg text-comun-paper/75">
+              {space.summary}
+            </p>
+          </header>
+        )}
 
         <section
           className="mt-7 border-l-4 border-comun-yellow pl-4"
@@ -326,7 +366,7 @@ function PautaAppShellV2({
           <h2 id="pauta-now" className="comun-v2-section-title">
             Agora
           </h2>
-          <p className="mt-2 text-comun-black/70">
+          <p className="mt-2 text-comun-paper/72">
             {space.public_synthesis ||
               space.problem_public ||
               space.demand_public ||
@@ -334,39 +374,53 @@ function PautaAppShellV2({
           </p>
         </section>
 
-        <section className="mt-7" aria-labelledby="pauta-next">
-          <h2 id="pauta-next" className="comun-v2-section-title mb-3">
-            Próxima ação
-          </h2>
-          <ComunActionCard
-            href={streamlinedPrimaryHref}
-            title={
-              space.next_step ||
-              (sidewalks ? "Registrar uma calçada" : "Participar da construção")
-            }
-            description="Você verá o que será público, o que passa por revisão e como acompanhar a consequência."
-            action={sidewalks ? "Registrar calçada" : "Abrir participação"}
-          />
-        </section>
+        {!entityContext?.primaryAction ? (
+          <section className="mt-7" aria-labelledby="pauta-next">
+            <h2 id="pauta-next" className="comun-v2-section-title mb-3">
+              Próxima ação
+            </h2>
+            <ComunActionCard
+              href={streamlinedPrimaryHref}
+              title={
+                space.next_step ||
+                (sidewalks
+                  ? "Registrar uma calçada"
+                  : "Participar da construção")
+              }
+              description="Você verá o que será público, o que passa por revisão e como acompanhar a consequência."
+              action={sidewalks ? "Registrar calçada" : "Abrir participação"}
+            />
+          </section>
+        ) : null}
 
         <section className="mt-8" aria-labelledby="pauta-known">
           <h2 id="pauta-known" className="comun-v2-section-title">
             O que sabemos
           </h2>
-          <dl className="mt-3 grid grid-cols-2 gap-3">
-            <div className="surface-result rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4">
-              <dt className="comun-v2-eyebrow">Registros</dt>
-              <dd className="mt-1 text-2xl font-black">
-                {sidewalks?.records?.length ?? modules.length}
-              </dd>
-            </div>
-            <div className="surface-community rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4">
-              <dt className="comun-v2-eyebrow">Etapas públicas</dt>
-              <dd className="mt-1 text-2xl font-black">
-                {modules.length || phases.length}
-              </dd>
-            </div>
+          <dl className="mt-3 grid grid-cols-3 gap-2 rounded-[var(--comun-radius-card)] border border-comun-paper/20 bg-comun-paper/5 p-4">
+            <ScopedMetric
+              label="Contribuições públicas"
+              value={space.stats.reportCount}
+            />
+            <ScopedMetric
+              label="Protocolos públicos"
+              value={space.stats.officialProtocolCount}
+            />
+            <ScopedMetric
+              label="Tarefas abertas"
+              value={space.stats.openTaskCount}
+            />
           </dl>
+          {sidewalks ? (
+            <p className="mt-3 text-xs text-comun-paper/65">
+              Nesta pauta. Registros publicados no miniapp são contados
+              separadamente: {sidewalks.records?.length ?? 0}.
+            </p>
+          ) : (
+            <p className="mt-3 text-xs text-comun-paper/65">
+              Nesta pauta · somente conteúdo público no estado atual.
+            </p>
+          )}
         </section>
 
         <section
@@ -377,7 +431,7 @@ function PautaAppShellV2({
           <h2 id="pauta-participate" className="comun-v2-section-title">
             Participar
           </h2>
-          <p className="mt-2 text-comun-black/70">
+          <p className="mt-2 text-comun-paper/70">
             Escolha uma contribuição concreta. Nenhum estado muda
             automaticamente.
           </p>
@@ -394,12 +448,35 @@ function PautaAppShellV2({
         </section>
 
         {sidewalks ? (
-          <section className="mt-8">
-            <h2 className="comun-v2-section-title mb-3">
-              Ferramenta desta pauta
-            </h2>
+          <ComunRelatedSection
+            title="Ferramenta desta pauta"
+            summary="Registros do miniapp possuem escopo próprio e não são somados às contribuições da pauta."
+          >
             <MiniAppContextCard compact appV2 />
-          </section>
+          </ComunRelatedSection>
+        ) : null}
+
+        {!circles.length &&
+        !entityContext?.relations.some((relation) =>
+          ["action", "protocol", "result", "memory"].includes(relation.kind),
+        ) ? (
+          <ComunRelatedSection title="Atividade e decisões">
+            <ComunEmptyStateV2
+              title="Atividade pública ainda não registrada"
+              explanation="Contribuições, decisões e encaminhamentos feitos pela comunidade aparecerão aqui depois de revisão e publicação."
+              related="A próxima ação acima continua disponível enquanto o processo é construído."
+              action={{
+                href: "/comun/participar",
+                label: "Ver formas de participar",
+              }}
+              secondaryActions={[
+                {
+                  href: "/comun/resultados",
+                  label: "Entender critérios de resultado",
+                },
+              ]}
+            />
+          </ComunRelatedSection>
         ) : null}
 
         <details className="mt-9 border-t-2 border-comun-black pt-5">
@@ -440,6 +517,17 @@ function PautaAppShellV2({
         </details>
       </div>
     </main>
+  );
+}
+
+function ScopedMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div>
+      <dt className="text-[10px] font-black uppercase leading-tight text-comun-paper/60">
+        {label}
+      </dt>
+      <dd className="mt-1 text-2xl font-black text-comun-paper">{value}</dd>
+    </div>
   );
 }
 

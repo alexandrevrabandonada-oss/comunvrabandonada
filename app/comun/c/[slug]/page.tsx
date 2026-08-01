@@ -16,6 +16,11 @@ import { ComunStatePanel } from "@/components/comun-state-panel";
 import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
 import { withComunJourneyContext } from "@/lib/comun-journey-context";
 import { communityLoginHref } from "@/lib/community-return";
+import { ComunRelationRail } from "@/components/comun-relational";
+import {
+  entityReference,
+  type EntityRelation,
+} from "@/lib/comun-entity-context";
 
 export const dynamic = "force-dynamic";
 export default async function CommunityPage({
@@ -405,6 +410,28 @@ function CommunityAppV2({
   groups: any[];
 }) {
   const communityRoute = withComunAppV2(`/comun/c/${slug}`);
+  const relations: EntityRelation[] = [
+    ...issues.slice(0, 4).map((issue) => ({
+      ...entityReference("pauta", issue.slug, issue.title, issue.status),
+      source: "foreign_key" as const,
+    })),
+    {
+      kind: "result" as const,
+      slug: "resultados",
+      title: "Resultados",
+      href: "/comun/resultados",
+      source: "canonical_route" as const,
+      scope: "resultados públicos; filtro comunitário ainda não canônico",
+    },
+    {
+      kind: "memory" as const,
+      slug: "acervo",
+      title: "Memória coletiva",
+      href: "/comun/acervo",
+      source: "canonical_route" as const,
+      scope: "acervo público; filtro comunitário ainda não canônico",
+    },
+  ];
   const membershipRoute = withComunAppV2(
     withComunJourneyContext(`/comun/c/${slug}/participar`, {
       intent: "join_community",
@@ -449,6 +476,8 @@ function CommunityAppV2({
             Vínculo atual: visita pública
           </p>
         </header>
+
+        <ComunRelationRail relations={relations} />
 
         <section className="mt-7" aria-labelledby="community-next">
           <h2 id="community-next" className="comun-v2-section-title mb-3">

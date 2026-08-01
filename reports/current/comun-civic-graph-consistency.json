@@ -1,0 +1,16 @@
+{
+  "schema": "comun.civic-graph.consistency.v1",
+  "generatedAt": "2026-08-01T22:39:24.829Z",
+  "commit": "0160fa0b4884a403a02c016fc3ebc43b8dfb7c66",
+  "classification": "aggregate_read_only_not_human_rehearsal",
+  "containsPrivateData": false,
+  "status": "canonical_source_unavailable_locally",
+  "counts": [],
+  "findings": [
+    {
+      "type": "remote_source_not_configured",
+      "severity": "info",
+      "count": 1
+    }
+  ]
+}

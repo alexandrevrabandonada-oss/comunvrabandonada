@@ -15,7 +15,11 @@ type InstallEvent = Event & {
 };
 type Connection = "online" | "offline" | "reconnecting";
 
-export function ComunPwaRuntime() {
+export function ComunPwaRuntime({
+  inlineConnectionStatus = false,
+}: {
+  inlineConnectionStatus?: boolean;
+} = {}) {
   const path = usePathname();
   const installSurfaceBlocked =
     path.startsWith("/comun/calcadas") ||
@@ -122,7 +126,7 @@ export function ComunPwaRuntime() {
         data-testid="connection-status"
         role="status"
         aria-live="polite"
-        className={`fixed inset-x-0 z-50 mx-auto w-fit max-w-[calc(100%-2rem)] border-2 border-comun-black px-3 py-2 text-center text-xs font-black uppercase shadow-[3px_3px_0_#0b0b0a] ${connection === "online" ? "sr-only" : "top-[4.5rem] bg-comun-yellow text-comun-black"}`}
+        className={`${inlineConnectionStatus ? "relative z-20 mx-auto my-3" : "fixed inset-x-0 z-50 mx-auto top-[4.5rem]"} w-fit max-w-[calc(100%-2rem)] border-2 border-comun-black px-3 py-2 text-center text-xs font-black uppercase shadow-[3px_3px_0_#0b0b0a] ${connection === "online" ? "sr-only" : "bg-comun-yellow text-comun-black"}`}
       >
         {connection === "offline"
           ? "Sem conexão. Conteúdos já disponíveis continuam acessíveis; envios precisam de conexão."

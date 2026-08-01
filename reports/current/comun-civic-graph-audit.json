@@ -1,0 +1,1001 @@
+{
+  "schema": "comun.civic-graph.audit.v1",
+  "generatedAt": "2026-08-01T22:39:23.199Z",
+  "scope": "TIJOLO 47.9A4",
+  "classification": "technical_audit_not_human_rehearsal",
+  "totals": {
+    "appRouterPages": 189,
+    "firstWaveRoutes": 27,
+    "sourceRelations": 16,
+    "relationalScenarios": 18,
+    "findings": 96,
+    "blocking": 0,
+    "adminDeferred": 82
+  },
+  "sourceMatrix": [
+    {
+      "origin": "territory",
+      "destination": "pauta",
+      "key": "comun_pauta_spaces.territory_id",
+      "canonicalSource": "comun_hub_territories.id",
+      "public": true,
+      "available": true,
+      "gap": ""
+    },
+    {
+      "origin": "community",
+      "destination": "pauta",
+      "key": "comun_pauta_spaces.community",
+      "canonicalSource": "comun_communities.slug (is_active lookup without seed fallback)",
+      "public": true,
+      "available": "projection",
+      "gap": "Texto legado sem chave estrangeira; só navegar após confirmação pública do slug."
+    },
+    {
+      "origin": "pauta",
+      "destination": "contribution",
+      "key": "comun_pauta_contributions.pauta_id",
+      "canonicalSource": "comun_pauta_spaces.id",
+      "public": "moderated",
+      "available": true,
+      "gap": "Somente approved_public pode ser projetada publicamente."
+    },
+    {
+      "origin": "pauta",
+      "destination": "decision",
+      "key": "comun_pauta_decisions.pauta_id",
+      "canonicalSource": "comun_pauta_spaces.id",
+      "public": "status-dependent",
+      "available": true,
+      "gap": "Decisões internas não podem entrar no contexto público."
+    },
+    {
+      "origin": "pauta",
+      "destination": "action",
+      "key": "comun_mobilization_actions.pauta_id",
+      "canonicalSource": "comun_pauta_spaces.id",
+      "public": "visibility=public",
+      "available": true,
+      "gap": ""
+    },
+    {
+      "origin": "pauta",
+      "destination": "task",
+      "key": "comun_pauta_tasks.pauta_id",
+      "canonicalSource": "comun_pauta_spaces.id",
+      "public": "visibility-dependent",
+      "available": true,
+      "gap": "Tarefas internas permanecem fora do grafo público."
+    },
+    {
+      "origin": "action",
+      "destination": "task",
+      "key": "comun_pauta_tasks.action_id",
+      "canonicalSource": "comun_mobilization_actions.id",
+      "public": "visibility-dependent",
+      "available": true,
+      "gap": ""
+    },
+    {
+      "origin": "report",
+      "destination": "protocol",
+      "key": "comun_official_protocols.report_id",
+      "canonicalSource": "comun_reports.id",
+      "public": "public projection",
+      "available": true,
+      "gap": "Não há FK direta pauta→protocolo em todos os fluxos."
+    },
+    {
+      "origin": "pauta",
+      "destination": "result",
+      "key": "comun_hub_results.pauta_id",
+      "canonicalSource": "comun_pauta_spaces.id",
+      "public": "visibility=public",
+      "available": true,
+      "gap": ""
+    },
+    {
+      "origin": "action",
+      "destination": "result",
+      "key": "comun_hub_results.action_id",
+      "canonicalSource": "comun_mobilization_actions.id",
+      "public": "visibility=public",
+      "available": true,
+      "gap": ""
+    },
+    {
+      "origin": "territory",
+      "destination": "result",
+      "key": "comun_hub_results.territory_id",
+      "canonicalSource": "comun_hub_territories.id",
+      "public": "visibility=public",
+      "available": true,
+      "gap": ""
+    },
+    {
+      "origin": "pauta/action/result/territory",
+      "destination": "memory",
+      "key": "comun_hub_archive_links (exactly one FK)",
+      "canonicalSource": "comun_archive_items.id",
+      "public": "published item only",
+      "available": true,
+      "gap": "Polimorfismo é explícito na junção; não inferir por título."
+    },
+    {
+      "origin": "pauta",
+      "destination": "miniapp",
+      "key": "comun_pauta_modules.pauta_id",
+      "canonicalSource": "comun_pauta_spaces.id",
+      "public": "visibility=public",
+      "available": true,
+      "gap": "Calçadas possui projeção própria; suas contagens não equivalem a relatos da pauta."
+    },
+    {
+      "origin": "radio_program",
+      "destination": "territory/pauta",
+      "key": "territory_id / pauta_id",
+      "canonicalSource": "comun_radio_programs",
+      "public": "publication_status=published",
+      "available": true,
+      "gap": "Vínculos são opcionais por desenho editorial."
+    },
+    {
+      "origin": "radio_episode",
+      "destination": "territory/pauta/action",
+      "key": "territory_id / pauta_id / action_id",
+      "canonicalSource": "comun_radio_episodes",
+      "public": "publication_status=published",
+      "available": true,
+      "gap": "Vínculos são opcionais; ausência não é inconsistência."
+    },
+    {
+      "origin": "artwork",
+      "destination": "territory",
+      "key": "comun_archive_artworks.territory_id",
+      "canonicalSource": "comun_hub_territories.id",
+      "public": "published archive item",
+      "available": true,
+      "gap": "Obra cultural não exige pauta."
+    }
+  ],
+  "routes": [
+    {
+      "route": "/comun/territorios",
+      "family": "territories",
+      "file": "app/comun/territorios/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/territorios/[slug]",
+      "family": "territories",
+      "file": "app/comun/territorios/[slug]/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/comunidades",
+      "family": "communities",
+      "file": "app/comun/comunidades/page.tsx",
+      "contractChecks": 2
+    },
+    {
+      "route": "/comun/c/[slug]",
+      "family": "communities",
+      "file": "app/comun/c/[slug]/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/pautas",
+      "family": "pautas",
+      "file": "app/comun/pautas/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/pautas/[slug]",
+      "family": "pautas",
+      "file": "app/comun/pautas/[slug]/page.tsx",
+      "contractChecks": 2
+    },
+    {
+      "route": "/comun/acoes",
+      "family": "actions",
+      "file": "app/comun/acoes/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/acoes/[slug]",
+      "family": "actions",
+      "file": "app/comun/acoes/[slug]/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/resultados",
+      "family": "results",
+      "file": "app/comun/resultados/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/calcadas",
+      "family": "miniapps",
+      "file": "components/sidewalk-miniapp-shell.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/calcadas/prioridades",
+      "family": "miniapps",
+      "file": "components/sidewalk-miniapp-shell.tsx",
+      "contractChecks": 2
+    },
+    {
+      "route": "/comun/calcadas/resultados",
+      "family": "miniapps",
+      "file": "components/sidewalk-miniapp-shell.tsx",
+      "contractChecks": 2
+    },
+    {
+      "route": "/comun/acervo",
+      "family": "archive",
+      "file": "app/comun/acervo/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/acervo/[slug]",
+      "family": "archive",
+      "file": "app/comun/acervo/[slug]/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/acervo/colecoes",
+      "family": "archive",
+      "file": "app/comun/acervo/colecoes/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/acervo/colecoes/[slug]",
+      "family": "archive",
+      "file": "app/comun/acervo/colecoes/[slug]/page.tsx",
+      "contractChecks": 2
+    },
+    {
+      "route": "/comun/acervo/identificar",
+      "family": "archive",
+      "file": "app/comun/acervo/identificar/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/acervo/identificar/[slug]",
+      "family": "archive",
+      "file": "app/comun/acervo/identificar/[slug]/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/acervo/arte",
+      "family": "art",
+      "file": "app/comun/acervo/arte/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/acervo/arte/[slug]",
+      "family": "art",
+      "file": "app/comun/acervo/arte/[slug]/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/acervo/musica",
+      "family": "music",
+      "file": "app/comun/acervo/musica/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/acervo/musica/[slug]",
+      "family": "music",
+      "file": "app/comun/acervo/musica/[slug]/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/acervo/historias-orais",
+      "family": "oral_history",
+      "file": "app/comun/acervo/historias-orais/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/acervo/historias-orais/[slug]",
+      "family": "oral_history",
+      "file": "app/comun/acervo/historias-orais/[slug]/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/radio",
+      "family": "radio",
+      "file": "app/comun/radio/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/radio/episodios/[slug]",
+      "family": "radio",
+      "file": "app/comun/radio/episodios/[slug]/page.tsx",
+      "contractChecks": 3
+    },
+    {
+      "route": "/comun/radio/programas/[slug]",
+      "family": "radio",
+      "file": "app/comun/radio/programas/[slug]/page.tsx",
+      "contractChecks": 3
+    }
+  ],
+  "findings": [
+    {
+      "route": "/comun/territorios",
+      "family": "territories",
+      "finding": "legacy_token_in_fallback_source",
+      "severity": "info",
+      "decision": "preserve_legacy_fallback; auditor validates the V2 branch separately"
+    },
+    {
+      "route": "/comun/territorios/[slug]",
+      "family": "territories",
+      "finding": "legacy_token_in_fallback_source",
+      "severity": "info",
+      "decision": "preserve_legacy_fallback; auditor validates the V2 branch separately"
+    },
+    {
+      "route": "/comun/comunidades",
+      "family": "communities",
+      "finding": "legacy_token_in_fallback_source",
+      "severity": "info",
+      "decision": "preserve_legacy_fallback; auditor validates the V2 branch separately"
+    },
+    {
+      "route": "/comun/pautas",
+      "family": "pautas",
+      "finding": "legacy_token_in_fallback_source",
+      "severity": "info",
+      "decision": "preserve_legacy_fallback; auditor validates the V2 branch separately"
+    },
+    {
+      "route": "/comun/pautas/[slug]",
+      "family": "pautas",
+      "finding": "legacy_token_in_fallback_source",
+      "severity": "info",
+      "decision": "preserve_legacy_fallback; auditor validates the V2 branch separately"
+    },
+    {
+      "route": "/comun/resultados",
+      "family": "results",
+      "finding": "legacy_token_in_fallback_source",
+      "severity": "info",
+      "decision": "preserve_legacy_fallback; auditor validates the V2 branch separately"
+    },
+    {
+      "route": "/comun/acervo",
+      "family": "archive",
+      "finding": "legacy_token_in_fallback_source",
+      "severity": "info",
+      "decision": "preserve_legacy_fallback; auditor validates the V2 branch separately"
+    },
+    {
+      "route": "/comun/acervo/colecoes",
+      "family": "archive",
+      "finding": "legacy_token_in_fallback_source",
+      "severity": "info",
+      "decision": "preserve_legacy_fallback; auditor validates the V2 branch separately"
+    },
+    {
+      "route": "/comun/acervo/colecoes/[slug]",
+      "family": "archive",
+      "finding": "legacy_token_in_fallback_source",
+      "severity": "info",
+      "decision": "preserve_legacy_fallback; auditor validates the V2 branch separately"
+    },
+    {
+      "route": "/comun/acervo/musica",
+      "family": "music",
+      "finding": "legacy_token_in_fallback_source",
+      "severity": "info",
+      "decision": "preserve_legacy_fallback; auditor validates the V2 branch separately"
+    },
+    {
+      "route": "/comun/acervo/musica/[slug]",
+      "family": "music",
+      "finding": "legacy_token_in_fallback_source",
+      "severity": "info",
+      "decision": "preserve_legacy_fallback; auditor validates the V2 branch separately"
+    },
+    {
+      "route": "/comun/acervo/historias-orais",
+      "family": "oral_history",
+      "finding": "legacy_token_in_fallback_source",
+      "severity": "info",
+      "decision": "preserve_legacy_fallback; auditor validates the V2 branch separately"
+    },
+    {
+      "route": "/comun/radio",
+      "family": "radio",
+      "finding": "legacy_token_in_fallback_source",
+      "severity": "info",
+      "decision": "preserve_legacy_fallback; auditor validates the V2 branch separately"
+    },
+    {
+      "route": "/comun/radio/programas/[slug]",
+      "family": "radio",
+      "finding": "legacy_token_in_fallback_source",
+      "severity": "info",
+      "decision": "preserve_legacy_fallback; auditor validates the V2 branch separately"
+    },
+    {
+      "route": "/comun/admin/acervo/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/arte/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/arte/contribuicoes",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/arte/creditos",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/arte/direitos",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/arte/novo",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/arte",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/artistas/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/artistas/contribuicoes",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/artistas",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/artistas/pendencias",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/artistas/reivindicacoes",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/colecoes",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/contribuicoes/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/contribuicoes",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/historias-orais/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/historias-orais/consentimentos",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/historias-orais/novo",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/historias-orais",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/historias-orais/piloto",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/historias-orais/transcricoes",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/historias-orais/transcricoes/trabalho",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/identificacao/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/identificacao",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/musica/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/musica/observabilidade",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/novo",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/processamento/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/processamento",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/storage",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/sugestoes",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acervo/verificacao",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/acoes",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/alertas",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/anexos",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/auditoria",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/calcadas/encaminhamentos/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/calcadas/operacao",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/calcadas",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/calcadas/piloto",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/calcadas/prioridade",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/comunidades",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/dossies/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/dossies/[id]/preview",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/dossies",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/dossies/revisoes",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/equipe",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/lancamento",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/notificacoes",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/observabilidade",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/observatorios/[id]/campanhas/[campaignId]/acessos",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/observatorios/[id]/campanhas/[campaignId]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/observatorios/[id]/campanhas/[campaignId]/prontidao",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/observatorios/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/observatorios",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/operacao/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/operacao",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/operacao/superficies/[surface]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/organizacao/calendario",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/organizacao/entrada",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/organizacao/entrada/vincular",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/organizacao",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/pautas/[id]/aplicativo",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/pautas/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/pautas/contribuicoes",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/pautas",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/protocolos-oficiais",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/radio/consentimentos",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/radio/contribuicoes",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/radio/direitos",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/radio/episodios/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/radio/episodios/novo",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/radio/episodios",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/radio/grade",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/radio",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/radio/programas/novo",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/radio/programas",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/relatos/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/rodas/[id]",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/rodas",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    },
+    {
+      "route": "/comun/admin/territorio",
+      "family": "admin",
+      "finding": "legacy_visual_language_scheduled_for_47.9A5",
+      "severity": "info",
+      "decision": "record_only_do_not_fail_47.9A4"
+    }
+  ],
+  "containsPrivateData": false,
+  "humanRehearsal": "pending"
+}
