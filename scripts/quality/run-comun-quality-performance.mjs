@@ -8,7 +8,9 @@ const run = (command, args, extraEnv = {}) =>
     env: { ...process.env, ...extraEnv },
   });
 
-run("npm", ["run", "build"]);
+run("npm", ["run", "build"], {
+  NEXT_PUBLIC_COMUN_WEB_VITALS_SAMPLE_RATE: "0",
+});
 run(
   "npx",
   [
@@ -24,5 +26,6 @@ run(
     PLAYWRIGHT_SKIP_WEBSERVER: "0",
     COMUN_QUALITY_ENFORCE_BUDGETS: "1",
     COMUN_QUALITY_SERVER_COMMAND: "npm run start -- -p 3022",
+    NEXT_PUBLIC_COMUN_WEB_VITALS_SAMPLE_RATE: "0",
   },
 );

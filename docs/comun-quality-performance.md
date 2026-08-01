@@ -94,6 +94,8 @@ Home, ajuda, segurança, pauta textual e resultado usam “simples”; Acervo, A
 
 O gate de orçamento mede sempre o build candidato em `next start` local isolado, inclusive quando é orquestrado pelo pós-merge. Production permanece no preflight, nos smokes e no no-leak, mas sua latência de rede e a quantidade variável de conteúdo publicado não são misturadas com o orçamento de laboratório. Amostras remotas frias continuam registradas como diagnóstico, sem relaxar os limites para fazê-las passar.
 
+O envelope sanitizado de cada rota registra status HTTP, HTML inicial, JS, CSS, imagens, fontes, requests, heap, TTFB, FCP, LCP, aproximação laboratorial de interação, CLS, long tasks, erros por classe e presença de assets pesados de mapa. Bytes são contados pelo protocolo de rede do navegador, inclusive para assets cross-origin, sem gravar URLs. Os budgets de imagens e fontes são aplicados pelo mesmo gate de JS e CSS.
+
 ## Carga, rede e IA
 
 O contrato materializa 25, 50, 100, 500 e 1.000 documentos públicos sintéticos em memória, valida paginação de 25 e deduplicação. Ensaios integrados continuam responsáveis por Supabase local, Inbox e Minha Participação; nenhuma fixture é publicada em Production.

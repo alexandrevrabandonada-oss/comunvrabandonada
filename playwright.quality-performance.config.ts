@@ -43,6 +43,6 @@ export default defineConfig({
           url: `${baseURL}/comun`,
           reuseExistingServer: true,
           timeout: 180_000,
-          env: { NEXT_PUBLIC_COMUN_WEB_VITALS_SAMPLE_RATE: "1" },
+          env: { NEXT_PUBLIC_COMUN_WEB_VITALS_SAMPLE_RATE: "0" },
         },
 });
