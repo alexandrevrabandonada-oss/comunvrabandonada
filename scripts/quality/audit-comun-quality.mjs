@@ -79,6 +79,12 @@ const checks = {
     workflow.includes("--adopt-local-validation-ledger") &&
     workflow.includes(
       "supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json",
+    ) &&
+    workflow.includes(
+      "COMUN_SIDEWALK_OPERATIONAL_V2=enabled npm run test:e2e:comun-calcadas-operacional",
+    ) &&
+    workflow.includes(
+      "COMUN_SIDEWALK_OPERATIONAL_V2=enabled npm run test:a11y:comun-calcadas-operacional",
     ),
   postcssPatched:
     Number(JSON.parse(packageJson).devDependencies.postcss.split(".").at(-1)) >=
