@@ -177,6 +177,15 @@ test("@performance budgets, hidratação e client boundaries", async ({
   ] as const;
   const report = [];
   for (const [route, path, budgetClass] of routes) {
+    const routeErrors: string[] = [];
+    const transferredBytes = {
+      html: 0,
+      js: 0,
+      css: 0,
+      images: 0,
+      fonts: 0,
+    };
+    const requestKinds = new Map<string, keyof typeof transferredBytes>();
     const projectUse = testInfo.project.use;
     const routeContext = await browser.newContext({
       baseURL: process.env.COMUN_BASE_URL ?? "http://127.0.0.1:3022",
@@ -188,20 +197,56 @@ test("@performance budgets, hidratação e client boundaries", async ({
     });
     await routeContext.addInitScript(qualityObserver);
     const routePage = await routeContext.newPage();
-    routePage.on("pageerror", (error) => errors.push(error.name));
+    routePage.on("pageerror", (error) => {
+      errors.push(error.name);
+      routeErrors.push(error.name);
+    });
+    routePage.on("console", (message) => {
+      if (message.type() === "error") {
+        errors.push("console.error");
+        routeErrors.push("console.error");
+      }
+    });
     const cdp = await routePage.context().newCDPSession(routePage);
     await cdp.send("Network.enable");
     await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
-    await routePage.goto(path, { waitUntil: "networkidle" });
+    cdp.on(
+      "Network.responseReceived",
+      (event: { requestId: string; type: string }) => {
+        const kind = {
+          Document: "html",
+          Script: "js",
+          Stylesheet: "css",
+          Image: "images",
+          Font: "fonts",
+        }[event.type] as keyof typeof transferredBytes | undefined;
+        if (kind) requestKinds.set(event.requestId, kind);
+      },
+    );
+    cdp.on(
+      "Network.loadingFinished",
+      (event: { requestId: string; encodedDataLength: number }) => {
+        const kind = requestKinds.get(event.requestId);
+        if (kind) transferredBytes[kind] += event.encodedDataLength;
+      },
+    );
+    const navigationResponse = await routePage.goto(path, {
+      waitUntil: "networkidle",
+    });
     await routePage.waitForTimeout(250);
+    const interactionApproxMs = await routePage.evaluate(
+      () =>
+        new Promise<number>((resolve) => {
+          const startedAt = performance.now();
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => resolve(performance.now() - startedAt)),
+          );
+        }),
+    );
     const metrics = await routePage.evaluate(() => {
       const entries = performance.getEntriesByType(
         "resource",
       ) as PerformanceResourceTiming[];
-      const bytes = (pattern: RegExp) =>
-        entries
-          .filter((entry) => pattern.test(new URL(entry.name).pathname))
-          .reduce((sum, entry) => sum + entry.transferSize, 0);
       const state = (
         window as typeof window & {
           __comunQualityLab?: {
@@ -214,21 +259,36 @@ test("@performance budgets, hidratação e client boundaries", async ({
       const measured = performance as Performance & {
         memory?: { usedJSHeapSize: number };
       };
+      const navigation = performance.getEntriesByType("navigation")[0] as
+        PerformanceNavigationTiming | undefined;
+      const fcp = performance.getEntriesByName("first-contentful-paint")[0];
       return {
-        jsKb: bytes(/\.js$/) / 1024,
-        cssKb: bytes(/\.css$/) / 1024,
         requests: entries.length + 1,
         heapMb: (measured.memory?.usedJSHeapSize ?? 0) / 1048576,
+        ttfbMs: navigation
+          ? Math.max(0, navigation.responseStart - navigation.requestStart)
+          : 0,
+        fcpMs: fcp?.startTime ?? 0,
         ...state,
         heavyMapLoaded: entries.some((entry) =>
           /maplibre|pmtiles/i.test(entry.name),
         ),
       };
     });
+    const transferred = {
+      htmlKb: transferredBytes.html / 1024,
+      jsKb: transferredBytes.js / 1024,
+      cssKb: transferredBytes.css / 1024,
+      imagesKb: transferredBytes.images / 1024,
+      fontsKb: transferredBytes.fonts / 1024,
+    };
     const budget = budgets[budgetClass];
     const passed =
-      metrics.jsKb <= budget.initialJsKb &&
-      metrics.cssKb <= budget.cssKb &&
+      navigationResponse?.status() === 200 &&
+      transferred.jsKb <= budget.initialJsKb &&
+      transferred.cssKb <= budget.cssKb &&
+      transferred.imagesKb <= budget.imagesKb &&
+      transferred.fontsKb <= budget.fontsKb &&
       metrics.requests <= budget.requests &&
       (!metrics.heapMb || metrics.heapMb <= budget.heapMb) &&
       (!metrics.lcp || metrics.lcp <= budget.lcpMs) &&
@@ -237,13 +297,21 @@ test("@performance budgets, hidratação e client boundaries", async ({
       route,
       budgetClass,
       passed,
-      jsKb: Number(metrics.jsKb.toFixed(1)),
-      cssKb: Number(metrics.cssKb.toFixed(1)),
+      status: navigationResponse?.status() ?? 0,
+      htmlKb: Number(transferred.htmlKb.toFixed(1)),
+      jsKb: Number(transferred.jsKb.toFixed(1)),
+      cssKb: Number(transferred.cssKb.toFixed(1)),
+      imagesKb: Number(transferred.imagesKb.toFixed(1)),
+      fontsKb: Number(transferred.fontsKb.toFixed(1)),
       requests: metrics.requests,
       heapMb: Number(metrics.heapMb.toFixed(1)),
+      ttfbMs: Math.round(metrics.ttfbMs),
+      fcpMs: Math.round(metrics.fcpMs),
       lcpMs: Math.round(metrics.lcp),
+      interactionApproxMs: Math.round(interactionApproxMs),
       cls: Number(metrics.cls.toFixed(4)),
       longTasks: metrics.longTasks,
+      errorClasses: [...new Set(routeErrors)].sort(),
       heavyMapLoaded: metrics.heavyMapLoaded,
     });
     await routeContext.close();

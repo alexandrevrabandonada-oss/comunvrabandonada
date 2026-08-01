@@ -17,6 +17,7 @@ const [
   date,
   workflow,
   performanceRunner,
+  performanceTest,
 ] = await Promise.all([
   read("public/sw.js"),
   read("lib/comun-pwa.ts"),
@@ -32,6 +33,7 @@ const [
   read("lib/comun-date.ts"),
   read(".github/workflows/comun-quality-performance.yml"),
   read("scripts/quality/run-comun-quality-performance.mjs"),
+  read("tests/quality-performance/quality.spec.ts"),
 ]);
 
 const checks = {
@@ -75,7 +77,17 @@ const checks = {
     "media,rich,simple,visual",
   performanceLabIsolated:
     performanceRunner.includes('COMUN_BASE_URL: "http://127.0.0.1:3022"') &&
-    performanceRunner.includes('PLAYWRIGHT_SKIP_WEBSERVER: "0"'),
+    performanceRunner.includes('PLAYWRIGHT_SKIP_WEBSERVER: "0"') &&
+    performanceRunner.includes('NEXT_PUBLIC_COMUN_WEB_VITALS_SAMPLE_RATE: "0"'),
+  completePerformanceEnvelope:
+    performanceTest.includes("transferred.imagesKb <= budget.imagesKb") &&
+    performanceTest.includes("transferred.fontsKb <= budget.fontsKb") &&
+    performanceTest.includes("interactionApproxMs") &&
+    performanceTest.includes("ttfbMs") &&
+    performanceTest.includes("fcpMs") &&
+    performanceTest.includes("htmlKb") &&
+    performanceTest.includes("errorClasses") &&
+    performanceTest.includes("navigationResponse?.status() === 200"),
   helpCanonical:
     help.includes("Ajuda para seguir sem se perder") &&
     help.includes("/comun/offline"),
