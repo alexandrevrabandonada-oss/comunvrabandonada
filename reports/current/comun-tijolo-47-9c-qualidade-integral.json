@@ -1,14 +1,31 @@
 {
   "schemaVersion": 1,
   "tijolo": "47.9C",
-  "result": "COMUN_QUALITY_PERFORMANCE_CANDIDATE",
+  "result": "COMUN_QUALITY_PERFORMANCE_READY_FOR_REAL_DEVICE_REHEARSAL",
   "targetResult": "COMUN_QUALITY_PERFORMANCE_READY_FOR_REAL_DEVICE_REHEARSAL",
   "base": "47d0925a80b494f1fc60cb3a8709d275a8e71ff1",
   "branch": "codex/tijolo-47-9c-qualidade-integral",
-  "candidateSha": "703e57eb0a810a4380355f9bf34a68f3a07828c7",
-  "pullRequest": null,
-  "mergeSha": null,
-  "deployment": null,
+  "candidateSha": "88238d2108fe8b4e4b2a2127703302fa012f2953",
+  "pullRequest": 131,
+  "mergeSha": "ff38327d703a0eb83c39d08b9ed3ae176239fc1d",
+  "focalRepair": {
+    "branch": "codex/tijolo-47-9c-reparo-pos-merge",
+    "candidateSha": "71261a09f3f65fc203b322a945586e8b975339a9",
+    "pullRequest": 132,
+    "mergeSha": "a118d7006da2f5358a6b65c48cd803a04ffb6fbd"
+  },
+  "deployment": {
+    "id": 5701989409,
+    "environment": "Production",
+    "status": "READY",
+    "sha": "a118d7006da2f5358a6b65c48cd803a04ffb6fbd"
+  },
+  "evidenceRuns": {
+    "principalPr": 30683251675,
+    "focalPrQuality": 30685312412,
+    "focalPrSecurity": 30685312409,
+    "finalPostmerge": 30686182181
+  },
   "automated": {
     "unit": { "files": 71, "tests": 381, "status": "green" },
     "pwa": { "passed": 30, "status": "green" },
@@ -18,8 +35,6 @@
     "loadDocuments": [25, 50, 100, 500, 1000]
   },
   "pending": [
-    "ci_disposable_supabase_reset",
-    "production_postmerge",
     "physical_android",
     "second_physical_platform",
     "real_assistive_technology",
