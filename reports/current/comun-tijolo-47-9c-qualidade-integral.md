@@ -1,10 +1,10 @@
 # Tijolo 47.9C — qualidade integral
 
-Data do candidato: 31/07/2026. Base: `47d0925a80b494f1fc60cb3a8709d275a8e71ff1`. Candidato: `703e57eb0a810a4380355f9bf34a68f3a07828c7`. Branch: `codex/tijolo-47-9c-qualidade-integral`.
+Fechado em 01/08/2026. Base: `47d0925a80b494f1fc60cb3a8709d275a8e71ff1`. Candidato principal: `88238d2108fe8b4e4b2a2127703302fa012f2953`. Branch principal: `codex/tijolo-47-9c-qualidade-integral`. PR principal: `#131`, merge `ff38327d703a0eb83c39d08b9ed3ae176239fc1d`. Reparo focal pós-merge: PR `#132`, candidato `71261a09f3f65fc203b322a945586e8b975339a9`, merge final `a118d7006da2f5358a6b65c48cd803a04ffb6fbd`.
 
 ## Classificação
 
-Resultado candidato: `COMUN_QUALITY_PERFORMANCE_READY_FOR_REAL_DEVICE_REHEARSAL`, condicionado a CI, transporte focal da migration e Production verdes. Não é `GREEN`: Android físico popular, segunda plataforma física, tecnologia assistiva real e amostra de campo suficiente ainda não foram ensaiados. `launch_publicly` não foi acionado.
+Resultado: `COMUN_QUALITY_PERFORMANCE_READY_FOR_REAL_DEVICE_REHEARSAL`. CI, transporte focal idempotente, Production, pós-merge e artifacts sanitizados estão verdes. Não é `GREEN`: Android físico popular, segunda plataforma física, tecnologia assistiva real e amostra de campo suficiente ainda não foram ensaiados. `launch_publicly` não foi acionado.
 
 ## Baseline, acessibilidade e PWA
 
@@ -16,7 +16,7 @@ O manifest tem identidade e escopo canônicos. O service worker `comun-pwa-v2` s
 
 ## Performance e observabilidade
 
-Os budgets são separados em `simple`, `visual`, `rich` e `media`. O gate final usa `next build` + `next start`, contextos frios e enforcement. Em 390×844, por exemplo, a Home mediu 160,2 kB JS/17 requests/LCP 288 ms; busca 160,9 kB/14/LCP 208 ms; Calçadas inicial 167,4 kB/24/LCP 200 ms. Todos os oito percursos passaram nos nove viewports. São dados sintéticos locais, não Web Vitals de campo.
+Os budgets são separados em `simple`, `visual`, `rich` e `media`. O gate final usa `next build` + `next start`, contextos frios e enforcement. Na rodada final em 390×844, a Home mediu 160,1 kB JS/17 requests/LCP 192 ms; busca 160,9 kB/14/LCP 116 ms; Calçadas inicial 167,3 kB/24/LCP 164 ms. Todos os oito percursos passaram nos nove viewports. São dados sintéticos de laboratório, não Web Vitals de campo.
 
 Calçadas agora começa na lista funcional; MapLibre e PMTiles só carregam após a pessoa escolher “Mapa” ou abrir `?vista=mapa`. A navegação global e os cards da Rádio não fazem prefetch indiscriminado. A busca usa primeiro a projeção lexical e preserva `unifiedPublicSearch` como fallback. Datas públicas usam o fuso explícito `America/Sao_Paulo`, eliminando divergência de hidratação.
 
@@ -32,7 +32,12 @@ Web Vitals são amostrados em 20% e agregados por hora, métrica, classe de rota
 - rede: 10 passes e oito skips intencionais; 3G lento roda somente no perfil Android de baixa capacidade;
 - carga pública sintética: 25, 50, 100, 500 e 1.000 documentos;
 - build, typecheck, lint, Prettier focal e `git diff --check`: verdes;
-- reset integral, RLS e jornadas autenticadas dependentes do Supabase local: delegados ao runner descartável do CI porque o daemon Docker local estava indisponível; não foram declarados como passe local.
+- reset integral, RLS e jornadas autenticadas dependentes do Supabase local: verdes no runner descartável do CI; o daemon Docker local estava indisponível e isso não foi declarado como passe local;
+- PR principal verde no run `30683251675`; PR focal verde nos runs `30685312412` e `30685312409`;
+- pós-merge final verde no run `30686182181`: SHA de Production, PWA, acessibilidade, performance, carga, rede, autenticação negativa, no-leak, coleta e classificação;
+- deployment Production `5701989409`, `READY`, servindo `a118d7006da2f5358a6b65c48cd803a04ffb6fbd`.
+
+A primeira execução pós-merge registrou um crash isolado do Chromium no ensaio PWA. A repetição controlada, feita somente após classificar o `SIGSEGV`, passou PWA e WCAG, mas revelou que a performance herdava a URL de Production e misturava laboratório com rede/conteúdo publicado. O PR focal `#132` corrigiu o harness para medir sempre o `next start` isolado, preservou todos os budgets originais e adicionou contrato antirregressão. O pós-merge final passou sem retry adicional.
 
 O audit de dependências reduziu findings altos de 10 para 4 ao atualizar PostCSS para 8.5.25. Os quatro restantes pertencem ao toolchain ESLint de desenvolvimento; não foi aplicado downgrade nem `audit fix` destrutivo.
 
@@ -46,4 +51,4 @@ O audit de dependências reduziu findings altos de 10 para 4 ao atualizar PostCS
 - `archive_radio_art=evidence_required`;
 - quatro domínios permanecem verdes; nenhum foi promovido artificialmente.
 
-Próximas ações: concluir o lane remoto deste candidato, ensaiar Android popular e uma segunda plataforma física, executar TalkBack/VoiceOver ou NVDA real, acumular amostra suficiente de campo e então seguir para 47.10 sem antecipar `launch_publicly`.
+Próximas ações: ensaiar Android popular e uma segunda plataforma física, executar TalkBack/VoiceOver ou NVDA real, acumular amostra suficiente de campo e então seguir para 47.10 sem antecipar `launch_publicly`. A pista 47.8A continua bloqueando o lançamento por redundância durável de banco e Storage.
