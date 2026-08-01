@@ -33,16 +33,22 @@ export const inboxTypes = [
   "archive_comment_needs_information",
   "archive_comment_withdrawn",
 ] as const;
-export async function listMemberInbox(memberUserId: string) {
+export async function listMemberInbox(
+  memberUserId: string,
+  options: { history?: boolean } = {},
+) {
   const db = createServiceSupabaseClient();
   if (!db) return [];
-  const { data } = await db
+  let query = db
     .from("comun_member_inbox")
     .select(
       "id,pauta_id,notification_type,title,summary,action_label,action_url,priority,read_at,resolved_at,created_at,pauta:comun_pauta_spaces(title,slug)",
     )
-    .eq("member_user_id", memberUserId)
-    .is("resolved_at", null)
+    .eq("member_user_id", memberUserId);
+  query = options.history
+    ? query.not("resolved_at", "is", null)
+    : query.is("resolved_at", null);
+  const { data } = await query
     .order("priority", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(50);

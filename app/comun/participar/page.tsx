@@ -1,24 +1,220 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { ComunBreadcrumbs, ComunSectionHeader } from "@/components/comun-ui";
 import { safeCommunityReturn } from "@/lib/community-return";
+import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
+import {
+  parseComunJourneyContext,
+  withComunJourneyContext,
+} from "@/lib/comun-journey-context";
 
 const ways = [
-  { title: "Registrar uma calçada", href: "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao&returnTo=%2Fcomun%2Fpautas%2Fcalcadas-em-circulacao", goal: "Situar uma barreira no mapa e fortalecer a pauta Mobilidade e Acessibilidade.", time: "3–8 min", account: "Sessão protegida no envio", moderation: "Local e imagem passam por revisão", result: "Registro acompanhável, que pode formar prioridade, ação e memória." },
-  { title: "Contar um problema", href: "/comun/relatar", goal: "Registrar um sinal com segurança para triagem coletiva.", time: "5–10 min", account: "Conta não obrigatória", moderation: "Triagem privada", result: "Pode originar ou reforçar uma pauta." },
-  { title: "Entrar numa roda", href: "/comun/pautas", goal: "Responder a uma pergunta concreta e ajudar na síntese.", time: "10–20 min", account: "Conta recomendada", moderation: "Contribuição moderada", result: "Síntese com acordos e divergências." },
-  { title: "Ajudar numa ação", href: "/comun/acoes", goal: "Contribuir com uma mobilização ou atividade confirmada.", time: "Varia por ação", account: "Conforme a ação", moderation: "Orientação da equipe", result: "Entrega ou resultado público registrado." },
-  { title: "Assumir uma tarefa", href: "/comun/pautas", goal: "Realizar uma atividade pequena com prazo e resultado esperado.", time: "Informado na tarefa", account: "Conta necessária", moderation: "Acompanhamento por pauta", result: "Tarefa concluída e incorporada ao processo." },
-  { title: "Observar o território", href: "/comun/observatorios", goal: "Coletar observação segundo método público.", time: "15–60 min", account: "Acesso de campanha", moderation: "Revisão de qualidade", result: "Dado agregado ou evidência revisada." },
-  { title: "Contribuir com Arte", href: "/comun/acervo/arte/contribuir", goal: "Preservar uma obra com autoria, contexto e direitos.", time: "10–20 min", account: "Conta opcional", moderation: "Curadoria e direitos", result: "Obra relacionada a território ou pauta." },
-  { title: "Contribuir com a Rádio", href: "/comun/radio/contribuir", goal: "Propor programa, pauta, áudio ou correção.", time: "10–20 min", account: "Conta opcional", moderation: "Consentimento e direitos", result: "Proposta acompanhável ou episódio revisado." },
-  { title: "Colaborar com documentos", href: "/comun/acervo/contribuir", goal: "Adicionar contexto e fontes à memória coletiva.", time: "10–30 min", account: "Conta opcional", moderation: "Verificação editorial", result: "Documento ou memória relacionados." },
-  { title: "Identificar fotografias antigas", href: "/comun/acervo/identificar", goal: "Reconhecer lugares, pessoas, datas e acontecimentos em fotografias históricas.", time: "5–20 min", account: "Conta necessária para contribuir", moderation: "Aprovação antes da exibição", result: "Comentário comunitário e possível síntese editorial." },
-  { title: "Acompanhar uma pauta", href: "/comun/pautas", goal: "Receber próximas ações e acompanhar resultados.", time: "2 min", account: "Conta necessária", moderation: "Sem publicação automática", result: "Resumo pessoal e caixa de entrada." },
+  {
+    title: "Registrar uma calçada",
+    href: "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao&returnTo=%2Fcomun%2Fpautas%2Fcalcadas-em-circulacao",
+    goal: "Situar uma barreira no mapa e fortalecer a pauta Mobilidade e Acessibilidade.",
+    time: "3–8 min",
+    account: "Sessão protegida no envio",
+    moderation: "Local e imagem passam por revisão",
+    result:
+      "Registro acompanhável, que pode formar prioridade, ação e memória.",
+  },
+  {
+    title: "Contar um problema",
+    href: "/comun/relatar",
+    goal: "Registrar um sinal com segurança para triagem coletiva.",
+    time: "5–10 min",
+    account: "Conta não obrigatória",
+    moderation: "Triagem privada",
+    result: "Pode originar ou reforçar uma pauta.",
+  },
+  {
+    title: "Entrar numa roda",
+    href: "/comun/pautas",
+    goal: "Responder a uma pergunta concreta e ajudar na síntese.",
+    time: "10–20 min",
+    account: "Conta recomendada",
+    moderation: "Contribuição moderada",
+    result: "Síntese com acordos e divergências.",
+  },
+  {
+    title: "Ajudar numa ação",
+    href: "/comun/acoes",
+    goal: "Contribuir com uma mobilização ou atividade confirmada.",
+    time: "Varia por ação",
+    account: "Conforme a ação",
+    moderation: "Orientação da equipe",
+    result: "Entrega ou resultado público registrado.",
+  },
+  {
+    title: "Assumir uma tarefa",
+    href: "/comun/pautas",
+    goal: "Realizar uma atividade pequena com prazo e resultado esperado.",
+    time: "Informado na tarefa",
+    account: "Conta necessária",
+    moderation: "Acompanhamento por pauta",
+    result: "Tarefa concluída e incorporada ao processo.",
+  },
+  {
+    title: "Observar o território",
+    href: "/comun/observatorios",
+    goal: "Coletar observação segundo método público.",
+    time: "15–60 min",
+    account: "Acesso de campanha",
+    moderation: "Revisão de qualidade",
+    result: "Dado agregado ou evidência revisada.",
+  },
+  {
+    title: "Contribuir com Arte",
+    href: "/comun/acervo/arte/contribuir",
+    goal: "Preservar uma obra com autoria, contexto e direitos.",
+    time: "10–20 min",
+    account: "Conta opcional",
+    moderation: "Curadoria e direitos",
+    result: "Obra relacionada a território ou pauta.",
+  },
+  {
+    title: "Contribuir com a Rádio",
+    href: "/comun/radio/contribuir",
+    goal: "Propor programa, pauta, áudio ou correção.",
+    time: "10–20 min",
+    account: "Conta opcional",
+    moderation: "Consentimento e direitos",
+    result: "Proposta acompanhável ou episódio revisado.",
+  },
+  {
+    title: "Colaborar com documentos",
+    href: "/comun/acervo/contribuir",
+    goal: "Adicionar contexto e fontes à memória coletiva.",
+    time: "10–30 min",
+    account: "Conta opcional",
+    moderation: "Verificação editorial",
+    result: "Documento ou memória relacionados.",
+  },
+  {
+    title: "Identificar fotografias antigas",
+    href: "/comun/acervo/identificar",
+    goal: "Reconhecer lugares, pessoas, datas e acontecimentos em fotografias históricas.",
+    time: "5–20 min",
+    account: "Conta necessária para contribuir",
+    moderation: "Aprovação antes da exibição",
+    result: "Comentário comunitário e possível síntese editorial.",
+  },
+  {
+    title: "Acompanhar uma pauta",
+    href: "/comun/pautas",
+    goal: "Receber próximas ações e acompanhar resultados.",
+    time: "2 min",
+    account: "Conta necessária",
+    moderation: "Sem publicação automática",
+    result: "Resumo pessoal e caixa de entrada.",
+  },
 ];
 
-export default async function ParticiparPage({ searchParams }: { searchParams: Promise<{ status?: string; returnTo?: string }> }) {
+export default async function ParticiparPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const params = await searchParams;
-  params.returnTo = safeCommunityReturn(params.returnTo, "/comun/pautas");
-  return <ComunShell>{params.status === "recebido" ? <Section><div role="status" className="border-2 border-comun-yellow bg-comun-paper p-6 text-comun-black"><p className="text-xs font-black uppercase text-comun-concrete">Recebido</p><h1 className="mt-2 text-3xl font-black uppercase">Recebemos sua contribuição.</h1><p className="mt-3 max-w-2xl">Ela está em revisão antes de aparecer publicamente. A equipe responsável verifica o contexto e pode pedir complemento antes de publicar ou relacionar a uma pauta.</p><div className="mt-5 flex flex-wrap gap-3"><Link className="inline-flex min-h-12 items-center bg-comun-black px-4 font-black uppercase text-comun-paper" href="/comun/minha-participacao">Ver em Minha área</Link><Link className="inline-flex min-h-12 items-center border-2 border-comun-black px-4 font-black uppercase" href={params.returnTo?.startsWith("/comun/") ? params.returnTo : "/comun/pautas"}>Voltar às pautas</Link></div></div></Section> : null}<Section><ComunBreadcrumbs items={[{ label: "Início", href: "/comun" }, { label: "Participar" }]}/><h1 className="text-4xl font-black uppercase text-comun-yellow sm:text-6xl">Como você quer contribuir?</h1><p className="mt-4 max-w-3xl text-lg text-comun-paper/80">Escolha pelo objetivo. Cada caminho explica tempo, privacidade, moderação e o que acontece depois.</p></Section><Section><ComunSectionHeader title="Formas de participação" intro="Não é um mural genérico: cada contribuição entra em um processo definido."/><div className="grid gap-4 md:grid-cols-2">{ways.map((way) => <article className="border-2 border-comun-yellow p-5" key={way.title}><h2 className="text-xl font-black uppercase text-comun-yellow">{way.title}</h2><p className="mt-3 text-comun-paper/80">{way.goal}</p><dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm"><dt className="font-black">Tempo</dt><dd>{way.time}</dd><dt className="font-black">Acesso</dt><dd>{way.account}</dd><dt className="font-black">Revisão</dt><dd>{way.moderation}</dd><dt className="font-black">O que acontece</dt><dd>{way.result}</dd></dl><Link className="mt-5 inline-flex min-h-11 items-center font-black uppercase text-comun-yellow underline" href={way.href}>Começar esta contribuição</Link></article>)}</div></Section></ComunShell>;
+  const appV2 = isComunAppV2(params.experiencia);
+  const journey = parseComunJourneyContext(params);
+  const returnTo = safeCommunityReturn(params.returnTo, "/comun/pautas");
+  if (appV2 && params.status === "recebido") {
+    redirect(
+      withComunAppV2(
+        withComunJourneyContext("/comun/participar/confirmacao", {
+          ...journey,
+          returnTo,
+          currentStage: "confirm",
+        }),
+      ),
+    );
+  }
+  return (
+    <ComunShell>
+      {params.status === "recebido" ? (
+        <Section>
+          <div
+            role="status"
+            className="border-2 border-comun-yellow bg-comun-paper p-6 text-comun-black"
+          >
+            <p className="text-xs font-black uppercase text-comun-concrete">
+              Recebido
+            </p>
+            <h1 className="mt-2 text-3xl font-black uppercase">
+              Recebemos sua contribuição.
+            </h1>
+            <p className="mt-3 max-w-2xl">
+              Ela está em revisão antes de aparecer publicamente. A equipe
+              responsável verifica o contexto e pode pedir complemento antes de
+              publicar ou relacionar a uma pauta.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link
+                className="inline-flex min-h-12 items-center bg-comun-black px-4 font-black uppercase text-comun-paper"
+                href="/comun/minha-participacao"
+              >
+                Ver em Minha área
+              </Link>
+              <Link
+                className="inline-flex min-h-12 items-center border-2 border-comun-black px-4 font-black uppercase"
+                href={returnTo}
+              >
+                Voltar às pautas
+              </Link>
+            </div>
+          </div>
+        </Section>
+      ) : null}
+      <Section>
+        <ComunBreadcrumbs
+          items={[{ label: "Início", href: "/comun" }, { label: "Participar" }]}
+        />
+        <h1 className="text-4xl font-black uppercase text-comun-yellow sm:text-6xl">
+          Como você quer contribuir?
+        </h1>
+        <p className="mt-4 max-w-3xl text-lg text-comun-paper/80">
+          Escolha pelo objetivo. Cada caminho explica tempo, privacidade,
+          moderação e o que acontece depois.
+        </p>
+      </Section>
+      <Section>
+        <ComunSectionHeader
+          title="Formas de participação"
+          intro="Não é um mural genérico: cada contribuição entra em um processo definido."
+        />
+        <div className="grid gap-4 md:grid-cols-2">
+          {ways.map((way) => (
+            <article
+              className="border-2 border-comun-yellow p-5"
+              key={way.title}
+            >
+              <h2 className="text-xl font-black uppercase text-comun-yellow">
+                {way.title}
+              </h2>
+              <p className="mt-3 text-comun-paper/80">{way.goal}</p>
+              <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
+                <dt className="font-black">Tempo</dt>
+                <dd>{way.time}</dd>
+                <dt className="font-black">Acesso</dt>
+                <dd>{way.account}</dd>
+                <dt className="font-black">Revisão</dt>
+                <dd>{way.moderation}</dd>
+                <dt className="font-black">O que acontece</dt>
+                <dd>{way.result}</dd>
+              </dl>
+              <Link
+                className="mt-5 inline-flex min-h-11 items-center font-black uppercase text-comun-yellow underline"
+                href={way.href}
+              >
+                Começar esta contribuição
+              </Link>
+            </article>
+          ))}
+        </div>
+      </Section>
+    </ComunShell>
+  );
 }

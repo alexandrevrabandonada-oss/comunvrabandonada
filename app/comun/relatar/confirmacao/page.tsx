@@ -2,27 +2,90 @@ import Link from "next/link";
 import { ArrowRight, Files, Newspaper, ShieldCheck } from "lucide-react";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
 import { CopyProtocolButton } from "@/app/comun/relatar/confirmacao/copy-protocol-button";
+import { ComunJourneyConfirmation } from "@/components/comun-journey-confirmation";
+import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
+import {
+  parseComunJourneyContext,
+  withComunJourneyContext,
+} from "@/lib/comun-journey-context";
 
-export default async function ConfirmationPage(props: { searchParams: Promise<{ protocolo?: string; modo?: string }> }) {
+export default async function ConfirmationPage(props: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const searchParams = await props.searchParams;
-  const protocol = searchParams.protocolo ?? "COMUN-LOCAL";
+  const protocol = (
+    typeof searchParams.protocolo === "string"
+      ? searchParams.protocolo
+      : "COMUN-LOCAL"
+  ).slice(0, 80);
   const isQuickReport = searchParams.modo === "rapido";
+  const appV2 = isComunAppV2(searchParams.experiencia);
+  if (appV2) {
+    const journey = parseComunJourneyContext(searchParams);
+    const trackingRoute = `/comun/acompanhar/${encodeURIComponent(protocol)}`;
+    return (
+      <ComunShell>
+        <ComunJourneyConfirmation
+          title="Seu relato foi recebido"
+          status="Aguardando triagem"
+          whatHappened="O relato entrou no fluxo de triagem com um protocolo seguro para consulta."
+          privacy="Nada é publicado automaticamente. Contato e dados pessoais permanecem privados."
+          next="A equipe pode relacionar o relato a uma pauta, pedir complemento ou informar o encerramento."
+          trackingHref={withComunAppV2(
+            withComunJourneyContext(trackingRoute, {
+              ...journey,
+              intent: "send_report",
+              currentStage: "track",
+              trackingRoute,
+            }),
+          )}
+          returnHref={withComunAppV2(
+            journey.sourceRoute ?? "/comun/participar",
+          )}
+          returnLabel="Voltar à origem"
+          correctionHref={withComunAppV2(
+            withComunJourneyContext("/comun/acervo/direitos-e-remocao", {
+              ...journey,
+              intent: "request_correction",
+              currentStage: "participate",
+            }),
+          )}
+          protocol={
+            <div className="rounded-[var(--comun-radius-control)] border-2 border-comun-black bg-comun-yellow p-4">
+              <p className="comun-v2-eyebrow">Protocolo COMUN</p>
+              <p className="mt-1 break-all text-xl font-black">{protocol}</p>
+              <div className="mt-3">
+                <CopyProtocolButton protocol={protocol} />
+              </div>
+            </div>
+          }
+        />
+      </ComunShell>
+    );
+  }
 
   return (
     <ComunShell>
       <Section className="pt-10">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
           <div className="industrial-border bg-comun-paper p-5 text-comun-black sm:p-6">
-            <h1 className="text-3xl font-black uppercase leading-tight sm:text-4xl">Seu relato foi recebido.</h1>
+            <h1 className="text-3xl font-black uppercase leading-tight sm:text-4xl">
+              Seu relato foi recebido.
+            </h1>
             <p className="mt-4 max-w-2xl text-sm text-comun-asphalt/80 sm:text-base">
-              O envio entrou no fluxo interno do COMUN. Nada e publicado automaticamente.
+              O envio entrou no fluxo interno do COMUN. Nada e publicado
+              automaticamente.
             </p>
 
             <div className="mt-6 border-2 border-comun-black bg-comun-yellow p-4 sm:p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-xs font-black uppercase text-comun-black/70">Protocolo COMUN</p>
-                  <p className="comun-prose mt-2 text-2xl font-black uppercase leading-tight sm:text-3xl">{protocol}</p>
+                  <p className="text-xs font-black uppercase text-comun-black/70">
+                    Protocolo COMUN
+                  </p>
+                  <p className="comun-prose mt-2 text-2xl font-black uppercase leading-tight sm:text-3xl">
+                    {protocol}
+                  </p>
                 </div>
                 <CopyProtocolButton protocol={protocol} />
               </div>
@@ -33,21 +96,28 @@ export default async function ConfirmationPage(props: { searchParams: Promise<{ 
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="mt-0.5 text-comun-green" size={20} />
                   <div>
-                    <h2 className="text-lg font-black uppercase">O que acontece agora?</h2>
+                    <h2 className="text-lg font-black uppercase">
+                      O que acontece agora?
+                    </h2>
                     <ul className="mt-3 grid gap-2 text-sm text-comun-asphalt/80">
-                      <li className="border-l-4 border-comun-yellow pl-3">A equipe revisa o relato.</li>
                       <li className="border-l-4 border-comun-yellow pl-3">
-                        Se voce autorizou, uma versao sanitizada pode ser publicada.
+                        A equipe revisa o relato.
+                      </li>
+                      <li className="border-l-4 border-comun-yellow pl-3">
+                        Se voce autorizou, uma versao sanitizada pode ser
+                        publicada.
                       </li>
                       <li className="border-l-4 border-comun-yellow pl-3">
                         Dados pessoais e contato privado nao sao publicados.
                       </li>
                       <li className="border-l-4 border-comun-yellow pl-3">
-                        O relato pode virar pauta, dossie, post ou encaminhamento.
+                        O relato pode virar pauta, dossie, post ou
+                        encaminhamento.
                       </li>
                       {isQuickReport ? (
                         <li className="border-l-4 border-comun-yellow pl-3">
-                          Se voce enviou foto ou localizacao, isso fica interno para curadoria.
+                          Se voce enviou foto ou localizacao, isso fica interno
+                          para curadoria.
                         </li>
                       ) : null}
                     </ul>
@@ -59,12 +129,19 @@ export default async function ConfirmationPage(props: { searchParams: Promise<{ 
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="mt-0.5 text-comun-rust" size={20} />
                   <div>
-                    <h2 className="text-lg font-black uppercase">Acompanhamento por protocolo</h2>
+                    <h2 className="text-lg font-black uppercase">
+                      Acompanhamento por protocolo
+                    </h2>
                     <p className="mt-3 text-sm text-comun-asphalt/80">
-                      Use o numero do protocolo COMUN para consultar o andamento publico e seguro deste relato.
+                      Use o numero do protocolo COMUN para consultar o andamento
+                      publico e seguro deste relato.
                     </p>
                     <div className="mt-4">
-                      <PrimaryLink href={`/comun/acompanhar/${encodeURIComponent(protocol)}`}>Acompanhar este relato</PrimaryLink>
+                      <PrimaryLink
+                        href={`/comun/acompanhar/${encodeURIComponent(protocol)}`}
+                      >
+                        Acompanhar este relato
+                      </PrimaryLink>
                     </div>
                   </div>
                 </div>
@@ -74,12 +151,18 @@ export default async function ConfirmationPage(props: { searchParams: Promise<{ 
                 <div className="flex items-start gap-3">
                   <Files className="mt-0.5 text-comun-rust" size={20} />
                   <div>
-                    <h2 className="text-lg font-black uppercase">Protocolo Popular</h2>
+                    <h2 className="text-lg font-black uppercase">
+                      Protocolo Popular
+                    </h2>
                     <p className="mt-3 text-sm text-comun-asphalt/80">
-                      O COMUN pode ajudar a gerar um texto para a Ouvidoria oficial. O envio oficial continua sendo feito por voce no canal da Prefeitura.
+                      O COMUN pode ajudar a gerar um texto para a Ouvidoria
+                      oficial. O envio oficial continua sendo feito por voce no
+                      canal da Prefeitura.
                     </p>
                     <div className="mt-4">
-                      <PrimaryLink href={`/comun/acompanhar/${encodeURIComponent(protocol)}/ouvidoria`}>
+                      <PrimaryLink
+                        href={`/comun/acompanhar/${encodeURIComponent(protocol)}/ouvidoria`}
+                      >
                         Gerar texto para Ouvidoria
                       </PrimaryLink>
                     </div>
@@ -92,7 +175,9 @@ export default async function ConfirmationPage(props: { searchParams: Promise<{ 
           <aside className="paper-panel border-2 border-comun-black p-4">
             <h2 className="text-lg font-black uppercase">Proximas acoes</h2>
             <div className="mt-4 grid gap-3">
-              <PrimaryLink href="/comun/relatar">Enviar outro relato</PrimaryLink>
+              <PrimaryLink href="/comun/relatar">
+                Enviar outro relato
+              </PrimaryLink>
               <Link
                 href="/comun/comunidades"
                 className="inline-flex min-h-12 items-center justify-between border-2 border-comun-black bg-white px-4 py-3 text-sm font-black uppercase"

@@ -1,0 +1,419 @@
+{
+  "generatedAt": "2026-08-01T20:06:57.934Z",
+  "scope": "TIJOLO 47.9A3",
+  "classification": "technical_audit_not_human_rehearsal",
+  "journeys": [
+    {
+      "id": 1,
+      "intention": "Encontrar uma pauta",
+      "entry": "/comun/explorar",
+      "screens": ["Explorar", "Pauta"],
+      "action": "Abrir pauta",
+      "auth": "Livre",
+      "confirmation": "Não se aplica",
+      "tracking": "Pauta ou Minha área",
+      "return": "Explorar com recorte",
+      "intermediate": "Índice /comun/pautas permanece compatível",
+      "duplicates": "Home e Explorar repetiam descoberta",
+      "deadEnd": "Não",
+      "privacy": "Público",
+      "decision": "Explorar é a root canônica",
+      "steps": {
+        "before": 3,
+        "after": 2
+      }
+    },
+    {
+      "id": 2,
+      "intention": "Contribuir com pauta",
+      "entry": "/comun/pautas/[slug]",
+      "screens": ["Pauta", "Formulário"],
+      "action": "Enviar contribuição",
+      "auth": "Informada conforme ação",
+      "confirmation": "Canônica no V2",
+      "tracking": "Minha área",
+      "return": "Pauta de origem",
+      "intermediate": "Participar vira lançador, não landing obrigatória",
+      "duplicates": "CTAs concorrentes reduzidos a uma ação principal",
+      "deadEnd": "Não",
+      "privacy": "Envio privado até revisão",
+      "decision": "Contexto leva pauta sem payload",
+      "steps": {
+        "before": 4,
+        "after": 2
+      }
+    },
+    {
+      "id": 3,
+      "intention": "Criar conta",
+      "entry": "/comun/criar-conta",
+      "screens": ["Cadastro", "Onboarding"],
+      "action": "Criar conta",
+      "auth": "Próprio fluxo",
+      "confirmation": "Retorno seguro",
+      "tracking": "Intenção original",
+      "return": "Ação original",
+      "intermediate": "Onboarding de segurança mantido",
+      "duplicates": "Nenhuma",
+      "deadEnd": "Não",
+      "privacy": "E-mail privado",
+      "decision": "Manter etapa necessária de segurança",
+      "steps": {
+        "before": 3,
+        "after": 3
+      }
+    },
+    {
+      "id": 4,
+      "intention": "Retornar à intenção",
+      "entry": "/comun/entrar",
+      "screens": ["Login", "Ação original"],
+      "action": "Entrar",
+      "auth": "Obrigatória",
+      "confirmation": "Explica destino",
+      "tracking": "Contexto allowlisted",
+      "return": "Origem explícita",
+      "intermediate": "Nenhuma",
+      "duplicates": "Seleção repetida removida",
+      "deadEnd": "Fallback seguro",
+      "privacy": "Sem payload em query",
+      "decision": "Contrato canônico com expiração",
+      "steps": {
+        "before": 4,
+        "after": 2
+      }
+    },
+    {
+      "id": 5,
+      "intention": "Enviar contribuição",
+      "entry": "/comun/pautas/[slug]",
+      "screens": ["Formulário", "Confirmação"],
+      "action": "Enviar",
+      "auth": "Conforme pauta",
+      "confirmation": "Canônica",
+      "tracking": "Minha área",
+      "return": "Pauta",
+      "intermediate": "Confirmação redundante removida",
+      "duplicates": "Nenhuma no V2",
+      "deadEnd": "Erro retorna ao formulário",
+      "privacy": "Privado até revisão",
+      "decision": "Mutation preservada",
+      "steps": {
+        "before": 3,
+        "after": 2
+      }
+    },
+    {
+      "id": 6,
+      "intention": "Entender confirmação",
+      "entry": "/comun/participar/confirmacao?experiencia=app-v2",
+      "screens": ["Confirmação"],
+      "action": "Acompanhar participação",
+      "auth": "Já resolvida quando necessária",
+      "confirmation": "O quê, privacidade e próximo passo",
+      "tracking": "Um passo",
+      "return": "Origem",
+      "intermediate": "Nenhuma",
+      "duplicates": "CTAs reduzidos",
+      "deadEnd": "Não",
+      "privacy": "Estado público claro",
+      "decision": "Sem progresso falsamente linear",
+      "steps": {
+        "before": 2,
+        "after": 1
+      }
+    },
+    {
+      "id": 7,
+      "intention": "Ver contribuição",
+      "entry": "/comun/minha-participacao",
+      "screens": ["Participações"],
+      "action": "Abrir acompanhamento",
+      "auth": "Obrigatória",
+      "confirmation": "Estado público",
+      "tracking": "Na própria área",
+      "return": "Origem da contribuição",
+      "intermediate": "Nenhuma",
+      "duplicates": "Caixa removida desta área",
+      "deadEnd": "Empty state acionável",
+      "privacy": "Privado",
+      "decision": "Resumo e ativos primeiro",
+      "steps": {
+        "before": 3,
+        "after": 1
+      }
+    },
+    {
+      "id": 8,
+      "intention": "Ler pedido de complemento",
+      "entry": "/comun/caixa-de-entrada",
+      "screens": ["Caixa"],
+      "action": "Abrir origem",
+      "auth": "Obrigatória",
+      "confirmation": "Leitura explícita",
+      "tracking": "Origem direta",
+      "return": "Caixa com recorte",
+      "intermediate": "Nenhuma",
+      "duplicates": "Eventos técnicos ocultos",
+      "deadEnd": "Histórico disponível",
+      "privacy": "Privado",
+      "decision": "Grupo precisa da sua ação",
+      "steps": {
+        "before": 3,
+        "after": 1
+      }
+    },
+    {
+      "id": 9,
+      "intention": "Responder complemento",
+      "entry": "/comun/caixa-de-entrada",
+      "screens": ["Caixa", "Origem"],
+      "action": "Responder",
+      "auth": "Obrigatória",
+      "confirmation": "Canônica da mutation existente",
+      "tracking": "Minha área",
+      "return": "Caixa preservada",
+      "intermediate": "Nenhuma",
+      "duplicates": "Origem não precisa ser reencontrada",
+      "deadEnd": "Não",
+      "privacy": "Privado",
+      "decision": "Origem explícita precede parent canônico",
+      "steps": {
+        "before": 4,
+        "after": 2
+      }
+    },
+    {
+      "id": 10,
+      "intention": "Ver publicação ou encerramento",
+      "entry": "/comun/minha-participacao",
+      "screens": ["Participações", "Resultado"],
+      "action": "Abrir consequência",
+      "auth": "Obrigatória",
+      "confirmation": "Estado público",
+      "tracking": "Histórico",
+      "return": "Entidade",
+      "intermediate": "Nenhuma",
+      "duplicates": "Mensagem acionável só na Caixa",
+      "deadEnd": "Não",
+      "privacy": "Privado e público diferenciados",
+      "decision": "Estados internos não expostos",
+      "steps": {
+        "before": 3,
+        "after": 2
+      }
+    },
+    {
+      "id": 11,
+      "intention": "Encontrar resultado",
+      "entry": "/comun/explorar?categoria=resultados",
+      "screens": ["Explorar", "Resultado"],
+      "action": "Ver consequência e fonte",
+      "auth": "Livre",
+      "confirmation": "Não se aplica",
+      "tracking": "Pauta de origem",
+      "return": "Explorar com filtro",
+      "intermediate": "Índice mantido",
+      "duplicates": "Home não duplica catálogo",
+      "deadEnd": "Empty state",
+      "privacy": "Público",
+      "decision": "Resultado tem gramática própria",
+      "steps": {
+        "before": 3,
+        "after": 2
+      }
+    },
+    {
+      "id": 12,
+      "intention": "Preservar resultado na memória",
+      "entry": "/comun/resultados",
+      "screens": ["Resultado", "Memória"],
+      "action": "Ver memória relacionada",
+      "auth": "Livre",
+      "confirmation": "Não se aplica",
+      "tracking": "Acervo",
+      "return": "Resultado",
+      "intermediate": "Nenhuma",
+      "duplicates": "Resultado não parece post",
+      "deadEnd": "Relacionamento pode estar ausente",
+      "privacy": "Público",
+      "decision": "Evidência e limites progressivos",
+      "steps": {
+        "before": 3,
+        "after": 2
+      }
+    },
+    {
+      "id": 13,
+      "intention": "Registrar Calçada",
+      "entry": "/comun/participar",
+      "screens": ["Painel", "Ferramenta", "Confirmação"],
+      "action": "Registrar calçada",
+      "auth": "Obrigatória no envio",
+      "confirmation": "Canônica no V2",
+      "tracking": "Minha área",
+      "return": "Pauta Calçadas",
+      "intermediate": "Landings repetidas ignoradas",
+      "duplicates": "Contexto territorial preservado",
+      "deadEnd": "Estado operacional explica pausa",
+      "privacy": "Privado até moderação",
+      "decision": "Ferramenta abre diretamente",
+      "steps": {
+        "before": 5,
+        "after": 3
+      }
+    },
+    {
+      "id": 14,
+      "intention": "Entrar em comunidade",
+      "entry": "/comun/participar",
+      "screens": ["Painel", "Comunidades", "Comunidade"],
+      "action": "Solicitar entrada",
+      "auth": "Obrigatória",
+      "confirmation": "Estado do vínculo",
+      "tracking": "Minha área / Comunidades",
+      "return": "Comunidade",
+      "intermediate": "Índice é seleção real",
+      "duplicates": "Nenhuma",
+      "deadEnd": "Permissão negada explicada",
+      "privacy": "Vínculo privado",
+      "decision": "Comunidade é casa organizativa",
+      "steps": {
+        "before": 4,
+        "after": 3
+      }
+    },
+    {
+      "id": 15,
+      "intention": "Assumir tarefa",
+      "entry": "/comun/participar",
+      "screens": ["Painel", "Ação"],
+      "action": "Assumir tarefa",
+      "auth": "Obrigatória",
+      "confirmation": "Mutation existente",
+      "tracking": "Minha área / Tarefas",
+      "return": "Ação",
+      "intermediate": "Índice /comun/acoes é escolha real",
+      "duplicates": "Caixa não duplicada",
+      "deadEnd": "Tarefa indisponível é bloqueada",
+      "privacy": "Privado",
+      "decision": "Responsabilidade e prazo antes da ação",
+      "steps": {
+        "before": 4,
+        "after": 2
+      }
+    },
+    {
+      "id": 16,
+      "intention": "Enviar material cultural",
+      "entry": "/comun/participar",
+      "screens": ["Painel", "Formulário cultural", "Confirmação"],
+      "action": "Enviar item, áudio ou obra",
+      "auth": "Opcional conforme canal",
+      "confirmation": "Canônica quando integrada",
+      "tracking": "Minha área / Cultura ou protocolo",
+      "return": "Acervo, Rádio ou Arte",
+      "intermediate": "Landing detalhada preservada por compatibilidade",
+      "duplicates": "Três intenções distintas",
+      "deadEnd": "Canal informa indisponibilidade",
+      "privacy": "Consentimento e direitos",
+      "decision": "Sem tratar cultura como comunidade",
+      "steps": {
+        "before": 4,
+        "after": 3
+      }
+    },
+    {
+      "id": 17,
+      "intention": "Pedir correção",
+      "entry": "/comun/participar",
+      "screens": ["Painel", "Direitos"],
+      "action": "Pedir correção",
+      "auth": "Canal protegido",
+      "confirmation": "Protocolo existente",
+      "tracking": "Canal de direitos",
+      "return": "Origem",
+      "intermediate": "Nenhuma",
+      "duplicates": "Separado de retirada",
+      "deadEnd": "Ajuda disponível",
+      "privacy": "Privado",
+      "decision": "Intenção mínima e explícita",
+      "steps": {
+        "before": 3,
+        "after": 2
+      }
+    },
+    {
+      "id": 18,
+      "intention": "Pedir retirada",
+      "entry": "/comun/participar",
+      "screens": ["Painel", "Direitos"],
+      "action": "Pedir retirada",
+      "auth": "Canal protegido",
+      "confirmation": "Protocolo existente",
+      "tracking": "Canal de direitos",
+      "return": "Origem",
+      "intermediate": "Nenhuma",
+      "duplicates": "Separado de correção",
+      "deadEnd": "Ajuda disponível",
+      "privacy": "Privado",
+      "decision": "Ação sensível continua confirmada",
+      "steps": {
+        "before": 3,
+        "after": 2
+      }
+    }
+  ],
+  "intermediateRoutes": [
+    {
+      "route": "/comun/participar",
+      "classification": "fallback",
+      "decision": "Manter deep link, ajuda detalhada e alternativa sem JavaScript; no app V2 a aba abre o painel."
+    },
+    {
+      "route": "/comun/acompanhar",
+      "classification": "real_destination",
+      "decision": "Manter consulta segura por protocolo."
+    },
+    {
+      "route": "/comun/projetos",
+      "classification": "compatibility",
+      "decision": "Ocultar da navegação principal e preservar deep links."
+    },
+    {
+      "route": "/comun/campo",
+      "classification": "compatibility",
+      "decision": "Manter entrada operacional; turnos continuam imersivos."
+    },
+    {
+      "route": "/comun/pautas",
+      "classification": "real_destination",
+      "decision": "Manter como índice público e seleção quando a pauta não é conhecida."
+    },
+    {
+      "route": "/comun/acoes",
+      "classification": "real_destination",
+      "decision": "Manter como seleção de compromisso e tarefa."
+    }
+  ],
+  "metrics": {
+    "screensBefore": 61,
+    "screensAfter": 37,
+    "repeatedActionsBefore": 7,
+    "repeatedActionsAfter": 0,
+    "brokenReturnsBefore": 4,
+    "brokenReturnsAfter": 0,
+    "lostContextsBefore": 3,
+    "lostContextsAfter": 0,
+    "authWithoutReturnBefore": 3,
+    "authWithoutReturnAfter": 0,
+    "confirmationsWithoutTrackingBefore": 4,
+    "confirmationsWithoutTrackingAfter": 0,
+    "messagesWithoutOriginBefore": 2,
+    "messagesWithoutOriginAfter": 0,
+    "competingCtasBefore": 5,
+    "competingCtasAfter": 0,
+    "deadEndsBefore": 2,
+    "deadEndsAfter": 0
+  }
+}

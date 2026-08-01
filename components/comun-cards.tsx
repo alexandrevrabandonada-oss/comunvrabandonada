@@ -209,11 +209,31 @@ export function ComunResultCard({
   title,
   summary,
   verification = "Resultado verificado",
+  evidence,
+  happenedAt,
+  origin,
+  verifierRole,
+  limitations,
+  reopeningHref,
+  memoryHref,
+  resultKind = "Resultado verificado",
 }: {
   href: string;
   title: string;
   summary: string;
   verification?: string;
+  evidence?: string;
+  happenedAt?: string;
+  origin?: string;
+  verifierRole?: string;
+  limitations?: string;
+  reopeningHref?: string;
+  memoryHref?: string;
+  resultKind?:
+    | "Atividade realizada"
+    | "Resposta recebida"
+    | "Resultado verificado"
+    | "Impacto ainda não comprovado";
 }) {
   return (
     <article className="comun-v2-card-result p-5" data-comun-card="result">
@@ -222,12 +242,70 @@ export function ComunResultCard({
       </p>
       <h2 className="mt-2 text-xl font-black normal-case">{title}</h2>
       <p className="mt-2 text-sm text-comun-black/70">{summary}</p>
+      <p className="mt-3 inline-flex rounded-[var(--comun-radius-pill)] border border-comun-black/20 px-3 py-1 text-xs font-black">
+        {resultKind}
+      </p>
+      {evidence || happenedAt || origin || verifierRole || limitations ? (
+        <details className="mt-4 border-t border-comun-black/20 pt-3 text-sm">
+          <summary className="min-h-11 cursor-pointer py-2 font-black">
+            Evidência e limites
+          </summary>
+          <dl className="mt-2 grid gap-2">
+            {evidence ? (
+              <div>
+                <dt className="font-black">Evidência</dt>
+                <dd>{evidence}</dd>
+              </div>
+            ) : null}
+            {happenedAt ? (
+              <div>
+                <dt className="font-black">Quando</dt>
+                <dd>{happenedAt}</dd>
+              </div>
+            ) : null}
+            {origin ? (
+              <div>
+                <dt className="font-black">Origem</dt>
+                <dd>{origin}</dd>
+              </div>
+            ) : null}
+            {verifierRole ? (
+              <div>
+                <dt className="font-black">Verificação</dt>
+                <dd>{verifierRole}</dd>
+              </div>
+            ) : null}
+            {limitations ? (
+              <div>
+                <dt className="font-black">Limitações</dt>
+                <dd>{limitations}</dd>
+              </div>
+            ) : null}
+          </dl>
+        </details>
+      ) : null}
       <Link
         href={href}
         className="mt-4 inline-flex min-h-11 items-center font-black underline"
       >
         Ver consequência e fonte
       </Link>
+      {reopeningHref ? (
+        <Link
+          href={reopeningHref}
+          className="ml-4 inline-flex min-h-11 items-center font-black underline"
+        >
+          Pedir reabertura
+        </Link>
+      ) : null}
+      {memoryHref ? (
+        <Link
+          href={memoryHref}
+          className="ml-4 inline-flex min-h-11 items-center font-black underline"
+        >
+          Ver memória relacionada
+        </Link>
+      ) : null}
     </article>
   );
 }

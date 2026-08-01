@@ -173,6 +173,13 @@ const CONTEXT_ROUTES: Array<{
   routeGroup: string;
 }> = [
   {
+    pattern: /^\/comun\/participar\/confirmacao/,
+    title: "Confirmação",
+    context: "Participação registrada",
+    parentHref: "/comun/participar",
+    routeGroup: "participation_confirmation",
+  },
+  {
     pattern: /^\/comun\/pautas\/[^/]+/,
     title: "Pauta",
     context: "Processo comunitário",

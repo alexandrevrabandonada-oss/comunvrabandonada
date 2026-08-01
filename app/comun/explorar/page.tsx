@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
 import { ComunShell, Section } from "@/components/comun-shell";
+import { ComunStatePanel } from "@/components/comun-state-panel";
 import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
 
 const categories = [
@@ -35,6 +36,18 @@ const categories = [
     "resultados",
   ],
   ["Acervo", "O que permanece na memória coletiva.", "/comun/acervo", "acervo"],
+  [
+    "Rádio",
+    "Vozes, programas e escuta do território.",
+    "/comun/radio",
+    "radio",
+  ],
+  [
+    "Arte",
+    "Obras territoriais, autoria e contexto.",
+    "/comun/acervo/arte",
+    "arte",
+  ],
 ] as const;
 
 const categorySurfaces: Record<(typeof categories)[number][3], string> = {
@@ -50,6 +63,9 @@ const categorySurfaces: Record<(typeof categories)[number][3], string> = {
     "surface-result rounded-[var(--comun-radius-card)] border-comun-black/20",
   acervo:
     "surface-memory rounded-[var(--comun-radius-cultural)] border-comun-black/20",
+  radio:
+    "surface-action rounded-[var(--comun-radius-cultural)] border-comun-black/25",
+  arte: "surface-memory rounded-[var(--comun-radius-community)] border-comun-rust/40",
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -220,6 +236,18 @@ function ExploreAppV2({ params }: { params: SearchParams }) {
             </Link>
           ))}
         </div>
+        {!activeCategories.length ? (
+          <div className="mt-6">
+            <ComunStatePanel
+              state="empty"
+              actionHref={withComunAppV2("/comun/explorar")}
+              actionLabel="Limpar recorte"
+            >
+              Este filtro não existe ou deixou de estar disponível. Nenhum
+              conteúdo privado foi consultado; volte ao recorte público.
+            </ComunStatePanel>
+          </div>
+        ) : null}
       </div>
     </ComunShell>
   );

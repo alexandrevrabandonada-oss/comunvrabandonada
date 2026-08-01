@@ -2,11 +2,10 @@ export const COMUN_EXPERIENCE_COHERENCE_RESULT =
   "COMUN_EXPERIENCE_COHERENCE_READY_FOR_USABILITY_REHEARSAL" as const;
 
 export const COMUN_EXPERIENCE_ROADMAP = [
-  "47.9A2 — App Shell V2 e Gramática Visual",
   "47.9A3 — Fluxos Centrais Streamlined",
-  "47.9C — Acessibilidade, PWA, performance e dispositivos",
-  "47.9D — Ensaio humano e consolidação visual",
-  "47.10 — Conteúdo e governança",
+  "Regressão focal de qualidade dentro do próprio 47.9A3",
+  "47.9D — Ensaio humano, aparelhos reais e consolidação visual",
+  "47.10 — Conteúdo, ajuda e governança",
   "47.11 — Ensaio geral e go/no-go",
 ] as const;
 

@@ -7,11 +7,15 @@ export type ComunStateKind =
   | "error"
   | "offline"
   | "reconnecting"
+  | "permission_denied"
+  | "session_expired"
   | "blocked"
   | "waiting_person"
+  | "waiting_institution"
   | "completed"
   | "result"
-  | "withdrawn";
+  | "withdrawn"
+  | "archived";
 
 const labels: Record<ComunStateKind, string> = {
   loading: "Carregando",
@@ -19,11 +23,15 @@ const labels: Record<ComunStateKind, string> = {
   error: "Não foi possível carregar",
   offline: "Sem conexão",
   reconnecting: "Reconectando",
+  permission_denied: "Sem permissão",
+  session_expired: "Sessão encerrada",
   blocked: "Bloqueado",
   waiting_person: "Aguardando pessoa",
+  waiting_institution: "Aguardando instituição",
   completed: "Concluído",
   result: "Resultado",
   withdrawn: "Retirado",
+  archived: "Arquivado",
 };
 
 export function ComunStatePanel({
@@ -33,6 +41,7 @@ export function ComunStatePanel({
   actionLabel,
   returnHref = "/comun",
   returnLabel = "Voltar ao início",
+  helpHref = "/comun/ajuda",
 }: {
   state: ComunStateKind;
   children: ReactNode;
@@ -40,6 +49,7 @@ export function ComunStatePanel({
   actionLabel?: string;
   returnHref?: string;
   returnLabel?: string;
+  helpHref?: string;
 }) {
   const live = ["loading", "error", "offline", "reconnecting"].includes(state);
   return (
@@ -64,6 +74,14 @@ export function ComunStatePanel({
         >
           {returnLabel}
         </Link>
+        {helpHref !== returnHref ? (
+          <Link
+            className="inline-flex min-h-11 items-center text-sm font-black underline"
+            href={helpHref}
+          >
+            Ajuda
+          </Link>
+        ) : null}
       </div>
     </section>
   );

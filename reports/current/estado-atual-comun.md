@@ -2,22 +2,22 @@
 
 Atualizado em 1º de agosto de 2026.
 
-## Checkpoint ativo — Tijolo 47.9A2
+## Checkpoint ativo — Tijolo 47.9A3
 
-- base efetiva: `a2feb1dddccf3cd8cba145ea445110e87dcac95a`;
-- branch: `codex/tijolo-47-9a2-app-shell-visual-grammar`;
+- base efetiva: `8f0334258d176d9dee1789f1dd2883d4c3704363`;
+- PR #136 do App Shell V2: mesclada;
+- resultado herdado: `COMUN_APP_SHELL_VISUAL_SYSTEM_READY_FOR_FLOW_REHEARSAL`;
+- branch: `codex/tijolo-47-9a3-fluxos-centrais-streamlined`;
 - feature flag reversível: `?experiencia=app-v2`;
-- candidato local: `COMUN_APP_SHELL_VISUAL_SYSTEM_CANDIDATE_READY`;
-- 189 páginas classificadas por contrato canônico de shell;
-- 35/35 E2E V2 em cinco perfis e 9/9 regressões do shell anterior;
-- Production, PR e merge ainda precisam ser registrados no fechamento remoto;
+- checkpoint técnico em construção; nenhum resultado humano foi produzido;
+- contrato de continuidade, auditoria de 18 fluxos e regressão focal são o escopo;
 - 47.9A e 47.9D continuam exigindo ensaio humano;
 - `launch_publicly` não foi acionado.
 
-O roadmap oficial passa a seguir 47.9A2, 47.9A3, 47.9C, 47.9D, 47.10 e
-47.11. Permanecem paralelos 47.8A, o fechamento do provider 47.9B, Calçadas e
-conteúdo cultural real. O relatório detalhado está em
-`reports/current/comun-tijolo-47-9a2-app-shell-visual-grammar.md`.
+O roadmap oficial passa a seguir 47.9A3, regressão focal dentro do A3, 47.9D,
+47.10 e 47.11. O 47.9C já foi implementado. Permanecem paralelos 47.8A, o
+fechamento do provider 47.9B, Calçadas e conteúdo cultural real. A auditoria
+detalhada está em `reports/current/comun-core-journeys-audit.md`.
 
 ## Linha ativa
 
