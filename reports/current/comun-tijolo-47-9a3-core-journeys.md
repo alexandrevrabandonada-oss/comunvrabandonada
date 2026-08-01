@@ -5,8 +5,8 @@ Relatório técnico de candidato. Este documento não contém resultado de ensai
 1. **Resultado terminal.** Candidato técnico a `COMUN_CORE_JOURNEYS_STREAMLINED_READY_FOR_HUMAN_REHEARSAL`; a classificação terminal depende de CI, merge, Production e ensaio remoto verdes. Não é `GREEN`.
 2. **Base.** `8f0334258d176d9dee1789f1dd2883d4c3704363`, `main` que contém a PR #136 do App Shell V2.
 3. **Branch.** `codex/tijolo-47-9a3-fluxos-centrais-streamlined`.
-4. **Candidate.** Commit focal desta branch, registrado na PR principal.
-5. **PR.** Uma única PR principal; número e URL ficam registrados no GitHub.
+4. **Candidate.** `be70e49` (`be70e49a6fe6e2457c4cd2eaf14aa2c381ccfa57`).
+5. **PR.** [#137 — TIJOLO 47.9A3 — Fluxos Centrais Streamlined](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/137), única PR principal.
 6. **Merge.** Obrigatoriamente após todos os checks requeridos verdes.
 7. **Deployment.** Workflow pós-merge espera o SHA exato em `https://comunsocial.online/api/comun/quality-status` antes do ensaio.
 8. **Jornadas auditadas.** Dezoito fluxos reais, do encontro de pauta até correção e retirada, catalogados em `scripts/journeys/catalog.mjs` e no relatório de auditoria.

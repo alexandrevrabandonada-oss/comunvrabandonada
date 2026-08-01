@@ -1,7 +1,7 @@
 {
   "schema": "comun.core-journeys.evidence.v1",
-  "collectedAt": "2026-08-01T20:06:58.166Z",
-  "commit": "8f0334258d176d9dee1789f1dd2883d4c3704363",
+  "collectedAt": "2026-08-01T20:14:46.993Z",
+  "commit": "be70e49a6fe6e2457c4cd2eaf14aa2c381ccfa57",
   "journeys": 18,
   "intermediateRoutes": 6,
   "metrics": {
