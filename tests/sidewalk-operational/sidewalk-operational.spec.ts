@@ -40,7 +40,9 @@ test("participante sem GPS usa teclado para posicionar e confere privacidade", a
     page.getByText(/uma derivada revisada e o ponto exato marcado poderão/i),
   ).toBeVisible();
   await expect(
-    page.getByRole("checkbox", { name: /Autorizo a publicação sanitizada/ }),
+    page.getByRole("checkbox", {
+      name: /Autorizo a publicação do ponto exato marcado.*versão sanitizada/,
+    }),
   ).not.toBeChecked();
   await expect(
     page.getByRole("checkbox", {
