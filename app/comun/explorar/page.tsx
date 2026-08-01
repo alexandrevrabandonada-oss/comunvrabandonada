@@ -1,16 +1,67 @@
 import Link from "next/link";
+import { SlidersHorizontal } from "lucide-react";
 import { ComunShell, Section } from "@/components/comun-shell";
+import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
 
 const categories = [
-  ["Territórios", "Onde os processos acontecem.", "/comun/territorios"],
-  ["Comunidades", "Quem acompanha e organiza.", "/comun/comunidades"],
-  ["Pautas", "Problemas, propostas e próximos passos.", "/comun/pautas"],
-  ["Ferramentas", "Como agir em processos concretos.", "/comun/calcadas"],
-  ["Resultados", "O que mudou e como foi verificado.", "/comun/resultados"],
-  ["Acervo", "O que permanece na memória coletiva.", "/comun/acervo"],
+  [
+    "Territórios",
+    "Onde os processos acontecem.",
+    "/comun/territorios",
+    "territorios",
+  ],
+  [
+    "Comunidades",
+    "Quem acompanha e organiza.",
+    "/comun/comunidades",
+    "comunidades",
+  ],
+  [
+    "Pautas",
+    "Problemas, propostas e próximos passos.",
+    "/comun/pautas",
+    "pautas",
+  ],
+  [
+    "Ferramentas",
+    "Como agir em processos concretos.",
+    "/comun/calcadas",
+    "ferramentas",
+  ],
+  [
+    "Resultados",
+    "O que mudou e como foi verificado.",
+    "/comun/resultados",
+    "resultados",
+  ],
+  ["Acervo", "O que permanece na memória coletiva.", "/comun/acervo", "acervo"],
 ] as const;
 
-export default function ExplorarPage() {
+const categorySurfaces: Record<(typeof categories)[number][3], string> = {
+  territorios:
+    "surface-base rounded-[var(--comun-radius-cultural)] border-comun-black text-comun-paper",
+  comunidades:
+    "surface-community rounded-[var(--comun-radius-community)] border-comun-black/25",
+  pautas:
+    "surface-paper rounded-[var(--comun-radius-card)] border-comun-black/25",
+  ferramentas:
+    "surface-tool rounded-[var(--comun-radius-control)] border-comun-rust border-l-[.5rem]",
+  resultados:
+    "surface-result rounded-[var(--comun-radius-card)] border-comun-black/20",
+  acervo:
+    "surface-memory rounded-[var(--comun-radius-cultural)] border-comun-black/20",
+};
+
+type SearchParams = Record<string, string | string[] | undefined>;
+
+export default async function ExplorarPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+  const appV2 = isComunAppV2(params.experiencia);
+  if (appV2) return <ExploreAppV2 params={params} />;
   return (
     <ComunShell>
       <Section>
@@ -57,5 +108,141 @@ export default function ExplorarPage() {
         </div>
       </Section>
     </ComunShell>
+  );
+}
+
+function ExploreAppV2({ params }: { params: SearchParams }) {
+  const category =
+    typeof params.categoria === "string" ? params.categoria : "tudo";
+  const activeCategories =
+    category === "tudo"
+      ? categories
+      : categories.filter((item) => item[3] === category);
+  return (
+    <ComunShell>
+      <div className="comun-v2-page" data-comun-app-v2-page="explore">
+        <h1 className="sr-only">Explorar</h1>
+        <form
+          action="/comun/buscar"
+          className="grid gap-2 sm:grid-cols-[1fr_auto]"
+        >
+          <label className="sr-only" htmlFor="explore-v2-search">
+            Buscar no COMUN
+          </label>
+          <input
+            id="explore-v2-search"
+            name="q"
+            defaultValue={typeof params.q === "string" ? params.q : ""}
+            className="min-h-12 rounded-[var(--comun-radius-control)] border-2 border-comun-black bg-comun-black px-4 text-comun-paper placeholder:text-comun-paper/55"
+            placeholder="Território, comunidade, pauta…"
+          />
+          <input type="hidden" name="experiencia" value="app-v2" />
+          <button className="comun-v2-action">Buscar</button>
+        </form>
+
+        <nav
+          aria-label="Filtros principais"
+          className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <FilterChip label="Tudo" value="tudo" active={category === "tudo"} />
+          {categories.slice(0, 4).map(([title, , , value]) => (
+            <FilterChip
+              key={value}
+              label={title}
+              value={value}
+              active={category === value}
+            />
+          ))}
+        </nav>
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <p role="status" className="text-sm font-bold">
+            {activeCategories.length} grupos de resultados
+          </p>
+          <details className="relative">
+            <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-[var(--comun-radius-control)] px-2 font-black">
+              <SlidersHorizontal size={18} aria-hidden="true" /> Filtros
+              avançados
+            </summary>
+            <div className="absolute right-0 z-20 mt-2 grid w-64 gap-2 rounded-[var(--comun-radius-card)] border-2 border-comun-black bg-comun-paper p-3 shadow-[var(--comun-elevation-floating)]">
+              <Link
+                className="min-h-11 py-2 font-bold"
+                href={withComunAppV2("/comun/comunidades?acao=aberta")}
+              >
+                Comunidades com ação aberta
+              </Link>
+              <Link
+                className="min-h-11 py-2 font-bold"
+                href={withComunAppV2("/comun/comunidades?tema=mobilidade")}
+              >
+                Tema: mobilidade
+              </Link>
+              <Link
+                className="min-h-11 py-2 font-bold"
+                href={withComunAppV2("/comun/resultados")}
+              >
+                Somente resultados
+              </Link>
+            </div>
+          </details>
+        </div>
+
+        {category !== "tudo" ? (
+          <div className="mt-3 flex items-center gap-3">
+            <span className="comun-v2-chip surface-action">
+              {categories.find((item) => item[3] === category)?.[0] ?? category}
+            </span>
+            <Link
+              href={withComunAppV2("/comun/explorar")}
+              className="inline-flex min-h-11 items-center font-black underline"
+            >
+              Limpar filtros
+            </Link>
+          </div>
+        ) : null}
+
+        <div className="mt-6 grid gap-3">
+          {activeCategories.map(([title, description, href, value]) => (
+            <Link
+              key={href}
+              href={withComunAppV2(href)}
+              className={`${categorySurfaces[value]} flex min-h-24 items-center justify-between gap-4 border p-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-comun-yellow`}
+            >
+              <span>
+                <strong className="block text-xl normal-case">{title}</strong>
+                <span className="mt-1 block text-sm opacity-70">
+                  {description}
+                </span>
+              </span>
+              <span aria-hidden="true" className="text-xl">
+                →
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </ComunShell>
+  );
+}
+
+function FilterChip({
+  label,
+  value,
+  active,
+}: {
+  label: string;
+  value: string;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={withComunAppV2(
+        `/comun/explorar${value === "tudo" ? "" : `?categoria=${value}`}`,
+      )}
+      className="comun-v2-chip"
+      aria-current={active ? "page" : undefined}
+    >
+      {label}
+    </Link>
   );
 }

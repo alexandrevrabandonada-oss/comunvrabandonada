@@ -79,7 +79,7 @@ test("alias, filtros e retorno à origem são preservados", async ({ page }) => 
   await page.goto(
     "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao&returnTo=%2Fcomun%2Fpautas%2Fcalcadas-em-circulacao",
   );
-  await expect(page.locator("h1")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
   await expectNoOverflow(page);
 });
 

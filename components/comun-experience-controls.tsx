@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Search, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import { withComunAppV2 } from "@/lib/comun-shell-contract";
 
 type Way = {
   title: string;
@@ -15,7 +16,7 @@ type Way = {
   note?: string;
 };
 
-const mobileWays: Way[] = [
+const legacyMobileWays: Way[] = [
   {
     title: "Registrar uma calçada",
     href: "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao",
@@ -56,6 +57,66 @@ const mobileWays: Way[] = [
     purpose: "Descobrir uma atividade concreta para apoiar.",
     after:
       "A página da ação explica compromisso, responsável e acompanhamento.",
+  },
+];
+
+const mobileWays: Way[] = [
+  {
+    title: "Contribuir com pauta",
+    href: "/comun/pautas",
+    time: "5–20 min",
+    account: "Conforme a pauta",
+    purpose: "Enviar relato, evidência, proposta ou contraponto.",
+  },
+  {
+    title: "Registrar calçada",
+    href: "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao",
+    time: "5–10 min",
+    account: "Conta necessária",
+    purpose: "Fotografar e avaliar um trecho.",
+    after: "O registro segue para revisão antes de aparecer no mapa.",
+  },
+  {
+    title: "Entrar em comunidade",
+    href: "/comun/comunidades",
+    time: "2–5 min",
+    account: "Conta necessária para solicitar vínculo",
+    purpose: "Conhecer uma comunidade e pedir entrada moderada.",
+  },
+  {
+    title: "Assumir tarefa",
+    href: "/comun/acoes",
+    time: "Compromisso indicado na tarefa",
+    account: "Conta necessária",
+    purpose: "Aceitar responsabilidade explícita por uma entrega.",
+  },
+  {
+    title: "Enviar item ao Acervo",
+    href: "/comun/acervo/contribuir",
+    time: "10–30 min",
+    account: "Conta opcional",
+    purpose: "Compartilhar uma memória para revisão editorial.",
+  },
+  {
+    title: "Enviar áudio à Rádio",
+    href: "/comun/radio/contribuir",
+    time: "10–20 min",
+    account: "Conta opcional",
+    purpose: "Propor áudio com consentimento e contexto.",
+  },
+  {
+    title: "Enviar obra",
+    href: "/comun/acervo/arte/contribuir",
+    time: "10–30 min",
+    account: "Conta opcional",
+    purpose: "Enviar arte, crédito e contexto para revisão.",
+  },
+  {
+    title: "Correção ou retirada",
+    href: "/comun/acervo/direitos-e-remocao",
+    time: "5–15 min",
+    account: "Canal protegido",
+    purpose: "Solicitar correção, crédito, restrição ou retirada.",
   },
 ];
 
@@ -216,18 +277,31 @@ function Sheet({
 
 export function ParticipateSheet({
   variant = "header",
+  experienceV2 = false,
 }: {
   variant?: "header" | "mobile-nav";
+  experienceV2?: boolean;
 }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const close = () => {
     setOpen(false);
+    setShowAll(false);
     setTimeout(() => trigger.current?.focus(), 0);
   };
   const mobile = variant === "mobile-nav";
-  const ways = mobile ? mobileWays : contextualWays(path);
+  const ways =
+    mobile && experienceV2
+      ? mobileWays
+      : mobile
+        ? legacyMobileWays
+        : contextualWays(path);
+  const visibleWays =
+    mobile && experienceV2 && !showAll ? ways.slice(0, 4) : ways;
+  const participating =
+    mobile && experienceV2 && (open || path === "/comun/participar");
   return (
     <>
       <button
@@ -235,15 +309,23 @@ export function ParticipateSheet({
         type="button"
         onClick={() => setOpen(true)}
         aria-label={mobile ? "Abrir formas de participar" : undefined}
+        aria-current={participating ? "page" : undefined}
         className={
           mobile
-            ? "flex min-h-16 w-full flex-col items-center justify-center gap-1 px-1 text-center text-[10px] font-black leading-tight text-comun-asphalt"
+            ? `flex min-h-16 w-full flex-col items-center justify-center gap-1 px-1 text-center text-[10px] font-black leading-tight ${experienceV2 ? (participating ? "text-comun-yellow" : "text-comun-paper/80") : "text-comun-asphalt"}`
             : "hidden min-h-10 border-2 border-comun-yellow px-3 text-xs font-black uppercase text-comun-yellow hover:bg-comun-yellow hover:text-comun-black lg:inline-flex lg:items-center"
         }
       >
         {mobile ? (
           <>
-            <span aria-hidden="true" className="text-xl leading-none">
+            <span
+              aria-hidden="true"
+              className={
+                participating
+                  ? "grid size-8 place-items-center rounded-[var(--comun-radius-control)] bg-comun-yellow text-xl leading-none text-comun-black"
+                  : "grid size-8 place-items-center text-xl leading-none"
+              }
+            >
               ＋
             </span>
             <span>Participar</span>
@@ -261,15 +343,15 @@ export function ParticipateSheet({
           Opções relacionadas ao contexto atual. Cada caminho informa tempo e
           necessidade de conta.
         </p>
-        <ul className="mt-5 divide-y-2 divide-comun-black">
-          {ways.map((way) => (
+        <ul className="mt-5 divide-y divide-comun-black/25">
+          {visibleWays.map((way) => (
             <li key={`${way.title}-${way.href}`}>
               <Link
-                href={way.href}
+                href={withComunAppV2(way.href, experienceV2)}
                 onClick={close}
                 className="block py-4 hover:text-comun-rust"
               >
-                <span className="flex items-center justify-between gap-4 font-black uppercase">
+                <span className="flex items-center justify-between gap-4 font-black">
                   <span>{way.title}</span>
                   <small className="text-right text-xs normal-case font-bold">
                     {way.time}
@@ -291,8 +373,17 @@ export function ParticipateSheet({
             </li>
           ))}
         </ul>
+        {mobile && experienceV2 && !showAll ? (
+          <button
+            type="button"
+            onClick={() => setShowAll(true)}
+            className="mt-4 min-h-11 w-full rounded-[var(--comun-radius-control)] border-2 border-comun-black px-4 font-black"
+          >
+            Ver cultura, memória e direitos
+          </button>
+        ) : null}
         <Link
-          href="/comun/participar"
+          href={withComunAppV2("/comun/participar", experienceV2)}
           onClick={close}
           className="mt-5 inline-flex min-h-11 items-center border-2 border-comun-black bg-comun-yellow px-4 font-black uppercase"
         >
@@ -303,7 +394,11 @@ export function ParticipateSheet({
   );
 }
 
-export function SearchSheet() {
+export function SearchSheet({
+  experienceV2 = false,
+}: {
+  experienceV2?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const trigger = useRef<HTMLButtonElement>(null);
@@ -338,6 +433,9 @@ export function SearchSheet() {
             placeholder="Pauta, território, memória…"
             className="min-h-12 border-2 border-comun-black bg-white px-3"
           />
+          {experienceV2 ? (
+            <input type="hidden" name="experiencia" value="app-v2" />
+          ) : null}
           <button className="min-h-12 border-2 border-comun-black bg-comun-yellow px-4 font-black uppercase">
             Buscar
           </button>

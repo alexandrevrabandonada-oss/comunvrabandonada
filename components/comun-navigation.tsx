@@ -11,7 +11,15 @@ import {
   Users,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import { ParticipateSheet } from "./comun-experience-controls";
+import {
+  COMUN_ROOT_TABS,
+  resolveComunShellRoute,
+  sanitizeComunBadge,
+  withComunAppV2,
+  type ComunRootTab,
+} from "@/lib/comun-shell-contract";
 
 const primaryNav = [
   ["Início", "/comun", Home],
@@ -27,17 +35,21 @@ const memberNav = [
 ] as const;
 
 const mobileNav = [
-  ["Início", "/comun", Home],
-  ["Explorar", "/comun/explorar", Compass],
-  ["Caixa", "/comun/caixa-de-entrada", Bell],
-  ["Minha área", "/comun/minha-participacao", UserRound],
-] as const;
+  ["inicio", Home],
+  ["explorar", Compass],
+  ["caixa", Bell],
+  ["minha_area", UserRound],
+] as const satisfies ReadonlyArray<readonly [ComunRootTab, typeof Home]>;
 
 function active(path: string, href: string) {
   return href === "/comun" ? path === href : path.startsWith(href);
 }
 
-export function ComunPrimaryNavigation() {
+export function ComunPrimaryNavigation({
+  experienceV2 = false,
+}: {
+  experienceV2?: boolean;
+}) {
   const path = usePathname();
   return (
     <nav
@@ -48,7 +60,7 @@ export function ComunPrimaryNavigation() {
         <Link
           aria-current={active(path, href) ? "page" : undefined}
           className={`inline-flex min-h-11 items-center gap-2 px-3 transition-colors ${active(path, href) ? "bg-comun-yellow text-comun-black" : "text-comun-paper/85 hover:bg-comun-paper/10 hover:text-comun-yellow"}`}
-          href={href}
+          href={withComunAppV2(href, experienceV2)}
           prefetch={false}
           key={href}
         >
@@ -60,7 +72,11 @@ export function ComunPrimaryNavigation() {
   );
 }
 
-export function ComunMemberNavigation() {
+export function ComunMemberNavigation({
+  experienceV2 = false,
+}: {
+  experienceV2?: boolean;
+}) {
   const path = usePathname();
   return (
     <nav
@@ -71,7 +87,7 @@ export function ComunMemberNavigation() {
         <Link
           aria-current={active(path, href) ? "page" : undefined}
           className={`inline-flex min-h-11 items-center gap-2 px-2 ${active(path, href) ? "text-comun-yellow" : "text-comun-paper/70 hover:text-comun-yellow"}`}
-          href={href}
+          href={withComunAppV2(href, experienceV2)}
           prefetch={false}
           key={href}
         >
@@ -87,41 +103,138 @@ export function ComunMemberNavigation() {
   );
 }
 
-export function ComunMobileNavigation() {
+export function ComunMobileNavigation({
+  experienceV2 = false,
+  inboxBadge,
+}: {
+  experienceV2?: boolean;
+  inboxBadge?: number | string | null;
+}) {
   const path = usePathname();
+  const route = resolveComunShellRoute(path);
+  useEffect(() => {
+    if (!experienceV2 || !route.rootTab) return;
+    const scrollKey = `comun:app-v2:scroll:${route.rootTab}`;
+    const hrefKey = `comun:app-v2:href:${route.rootTab}`;
+    const storedScroll = Number(sessionStorage.getItem(scrollKey) ?? "0");
+    const currentHref = `${window.location.pathname}${window.location.search}`;
+    sessionStorage.setItem(hrefKey, currentHref);
+    if (storedScroll > 0)
+      requestAnimationFrame(() => window.scrollTo({ top: storedScroll }));
+  }, [experienceV2, path, route.rootTab]);
+
+  const saveCurrentScroll = () => {
+    if (!experienceV2 || !route.rootTab) return;
+    sessionStorage.setItem(
+      `comun:app-v2:scroll:${route.rootTab}`,
+      String(window.scrollY),
+    );
+  };
+
+  const badge = sanitizeComunBadge(inboxBadge);
   return (
     <nav
       aria-label="Navegação principal"
-      className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-comun-black bg-comun-paper pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className={`fixed inset-x-0 bottom-0 z-40 border-t-2 border-comun-black pb-[env(safe-area-inset-bottom)] lg:hidden ${experienceV2 ? "comun-bottom-nav-v2 bg-comun-black text-comun-paper" : "bg-comun-paper"}`}
+      data-comun-bottom-navigation={experienceV2 ? "app-v2" : "legacy"}
     >
       <div className="mx-auto grid max-w-lg grid-cols-5">
-        <MobileItem item={mobileNav[0]} path={path} />
-        <MobileItem item={mobileNav[1]} path={path} />
-        <ParticipateSheet variant="mobile-nav" />
-        <MobileItem item={mobileNav[2]} path={path} />
-        <MobileItem item={mobileNav[3]} path={path} />
+        <MobileItem
+          tab="inicio"
+          Icon={mobileNav[0][1]}
+          currentTab={route.rootTab}
+          experienceV2={experienceV2}
+          onNavigate={saveCurrentScroll}
+        />
+        <MobileItem
+          tab="explorar"
+          Icon={mobileNav[1][1]}
+          currentTab={route.rootTab}
+          experienceV2={experienceV2}
+          onNavigate={saveCurrentScroll}
+        />
+        <ParticipateSheet variant="mobile-nav" experienceV2={experienceV2} />
+        <MobileItem
+          tab="caixa"
+          Icon={mobileNav[2][1]}
+          currentTab={route.rootTab}
+          experienceV2={experienceV2}
+          onNavigate={saveCurrentScroll}
+          badge={badge}
+        />
+        <MobileItem
+          tab="minha_area"
+          Icon={mobileNav[3][1]}
+          currentTab={route.rootTab}
+          experienceV2={experienceV2}
+          onNavigate={saveCurrentScroll}
+        />
       </div>
     </nav>
   );
 }
 
 function MobileItem({
-  item,
-  path,
+  tab,
+  Icon,
+  currentTab,
+  experienceV2,
+  onNavigate,
+  badge,
 }: {
-  item: (typeof mobileNav)[number];
-  path: string;
+  tab: ComunRootTab;
+  Icon: typeof Home;
+  currentTab?: ComunRootTab;
+  experienceV2: boolean;
+  onNavigate: () => void;
+  badge?: string | null;
 }) {
-  const [label, href, Icon] = item;
+  const item = COMUN_ROOT_TABS[tab];
+  const isActive = currentTab === tab;
+  const href = withComunAppV2(item.href, experienceV2);
   return (
     <Link
-      aria-current={active(path, href) ? "page" : undefined}
-      className={`flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-center text-[10px] font-black leading-tight ${active(path, href) ? "bg-comun-yellow text-comun-black" : "text-comun-asphalt"}`}
+      aria-current={isActive ? "page" : undefined}
+      className={`relative flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-center text-[10px] font-black leading-tight ${experienceV2 ? (isActive ? "text-comun-yellow" : "text-comun-paper/80") : isActive ? "bg-comun-yellow text-comun-black" : "text-comun-asphalt"}`}
       href={href}
       prefetch={false}
+      onClick={(event) => {
+        onNavigate();
+        if (experienceV2 && !isActive) {
+          const preserved = sessionStorage.getItem(`comun:app-v2:href:${tab}`);
+          if (preserved && preserved !== href) {
+            event.preventDefault();
+            window.location.assign(preserved);
+            return;
+          }
+        }
+        if (!experienceV2 || !isActive) return;
+        event.preventDefault();
+        const reduced = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+        sessionStorage.setItem(`comun:app-v2:scroll:${tab}`, "0");
+      }}
     >
-      <Icon size={20} strokeWidth={2.25} aria-hidden="true" />
-      <span>{label}</span>
+      <span
+        className={
+          experienceV2 && isActive
+            ? "grid size-8 place-items-center rounded-[var(--comun-radius-control)] bg-comun-yellow text-comun-black"
+            : "grid size-8 place-items-center"
+        }
+      >
+        <Icon size={20} strokeWidth={2.25} aria-hidden="true" />
+      </span>
+      <span>{item.label}</span>
+      {badge ? (
+        <span
+          className="absolute right-[18%] top-1 min-w-5 rounded-full bg-comun-red px-1 text-[10px] leading-5 text-white"
+          aria-label={`${badge} itens não lidos`}
+        >
+          {badge}
+        </span>
+      ) : null}
     </Link>
   );
 }

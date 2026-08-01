@@ -2,12 +2,29 @@ export const COMUN_EXPERIENCE_COHERENCE_RESULT =
   "COMUN_EXPERIENCE_COHERENCE_READY_FOR_USABILITY_REHEARSAL" as const;
 
 export const COMUN_EXPERIENCE_ROADMAP = [
-  "47.8A — Redundância Durável Independente",
-  "47.9A — Coerência de experiência e direção UI/UX",
-  "47.9B — Busca Viva e Inteligência Transversal",
+  "47.9A2 — App Shell V2 e Gramática Visual",
+  "47.9A3 — Fluxos Centrais Streamlined",
   "47.9C — Acessibilidade, PWA, performance e dispositivos",
-  "47.10 — Conteúdo, ajuda e governança",
+  "47.9D — Ensaio humano e consolidação visual",
+  "47.10 — Conteúdo e governança",
   "47.11 — Ensaio geral e go/no-go",
+] as const;
+
+export const COMUN_EXPERIENCE_PARALLEL_TRACKS = [
+  "47.8A — Redundância Durável Independente",
+  "47.9B — Fechamento do provider de Busca Viva",
+  "Calçadas",
+  "Conteúdo cultural real",
+] as const;
+
+export const COMUN_APP_SHELL_V2_PILOTS = [
+  "/comun",
+  "/comun/explorar",
+  "/comun/comunidades",
+  "/comun/calcadas",
+  "/comun/pautas/calcadas-em-circulacao",
+  "/comun/minha-participacao",
+  "/comun/admin/operacao",
 ] as const;
 
 export const COMUN_EXPERIENCE_PRINCIPLES = [

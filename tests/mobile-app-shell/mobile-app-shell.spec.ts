@@ -44,7 +44,7 @@ test("Explorar agrupa diretórios e miniapp preserva uma navegação local", asy
     "Resultados",
     "Acervo",
   ])
-    await expect(page.getByLabel(name, { exact: true })).toBeVisible();
+    await expect(page.getByLabel(name, { exact: true }).first()).toBeVisible();
   await page.goto("/comun/calcadas");
   await expect(
     page.getByRole("navigation", { name: "Navegação do Mapa das Calçadas" }),
@@ -52,10 +52,21 @@ test("Explorar agrupa diretórios e miniapp preserva uma navegação local", asy
   await expect(
     page.getByRole("link", { name: "Registrar calçada", exact: true }),
   ).toHaveCount(1);
-  await expect(
-    page.getByText("Sobre este processo", { exact: false }),
-  ).not.toBeVisible();
+  expect(
+    await page
+      .getByText("Sobre este processo", { exact: false })
+      .evaluateAll((elements) =>
+        elements.every((element) => !element.getClientRects().length),
+      ),
+  ).toBe(true);
   await expect(page.getByLabel("Instalar COMUN")).toHaveCount(0);
+});
+
+test("fallback do shell não duplica a árvore interativa", async ({ page }) => {
+  await page.goto("/comun/entrar?returnTo=%2Fcomun%2Fcalcadas");
+  await expect(page.getByLabel("E-mail")).toHaveCount(1);
+  await expect(page.getByLabel("Senha")).toHaveCount(1);
+  await expect(page.locator("main#conteudo")).toHaveCount(1);
 });
 
 test("@a11y shell mobile não possui bloqueios ou overflow", async ({

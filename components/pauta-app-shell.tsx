@@ -18,6 +18,8 @@ import { SidewalkMapModule } from "@/components/sidewalk-map-module";
 import { MiniAppContextCard } from "@/components/miniapp-context-card";
 import { ComunContextTrail } from "@/components/comun-context-trail";
 import { ComunJourneyEvent } from "@/components/comun-journey-event";
+import { ComunActionCard } from "@/components/comun-cards";
+import { withComunAppV2 } from "@/lib/comun-shell-contract";
 
 const icons = {
   overview: Sparkles,
@@ -61,12 +63,32 @@ const publicTitles = {
 } as const;
 
 const phases = [
-  { id: "entenda", label: "Entenda", types: ["overview", "reports", "evidence", "map", "observatory", "metrics", "documents"] },
+  {
+    id: "entenda",
+    label: "Entenda",
+    types: [
+      "overview",
+      "reports",
+      "evidence",
+      "map",
+      "observatory",
+      "metrics",
+      "documents",
+    ],
+  },
   { id: "converse", label: "Converse", types: ["construction_circle"] },
   { id: "contribua", label: "Contribua", types: ["participation"] },
-  { id: "construa", label: "Construa", types: ["proposals", "actions", "tasks", "calendar"] },
+  {
+    id: "construa",
+    label: "Construa",
+    types: ["proposals", "actions", "tasks", "calendar"],
+  },
   { id: "acompanhe", label: "Acompanhe", types: ["timeline", "results"] },
-  { id: "memoria", label: "Memória", types: ["archive", "art_gallery", "community_radio"] },
+  {
+    id: "memoria",
+    label: "Memória",
+    types: ["archive", "art_gallery", "community_radio"],
+  },
 ] as const;
 
 export function PautaAppShell({
@@ -74,12 +96,23 @@ export function PautaAppShell({
   modules,
   circles,
   sidewalks,
+  appV2 = false,
 }: {
   space: PublicPautaSpace;
   modules: PublicPautaModule[];
   circles: any[];
   sidewalks?: any;
+  appV2?: boolean;
 }) {
+  if (appV2)
+    return (
+      <PautaAppShellV2
+        space={space}
+        modules={modules}
+        circles={circles}
+        sidewalks={sidewalks}
+      />
+    );
   return (
     <main className="bg-comun-paper text-comun-black">
       <ComunJourneyEvent event="pauta_opened" surface={`pauta:${space.slug}`} />
@@ -193,11 +226,19 @@ export function PautaAppShell({
               key={phase.id}
               className="scroll-mt-32 border-b-2 border-comun-black py-10 sm:py-14"
             >
-              <p className="text-xs font-black uppercase text-comun-black/60">Ciclo da pauta</p>
+              <p className="text-xs font-black uppercase text-comun-black/60">
+                Ciclo da pauta
+              </p>
               <h2 className="text-3xl font-black uppercase">{phase.label}</h2>
               {phaseModules.length ? (
                 phaseModules.map((module) => (
-                  <PautaModuleSurface key={module.id} module={module} space={space} circles={circles} sidewalks={sidewalks} />
+                  <PautaModuleSurface
+                    key={module.id}
+                    module={module}
+                    space={space}
+                    circles={circles}
+                    sidewalks={sidewalks}
+                  />
                 ))
               ) : (
                 <PhaseGuidance phase={phase.id} pautaSlug={space.slug} />
@@ -227,6 +268,171 @@ export function PautaAppShell({
   );
 }
 
+function PautaAppShellV2({
+  space,
+  modules,
+  circles,
+  sidewalks,
+}: {
+  space: PublicPautaSpace;
+  modules: PublicPautaModule[];
+  circles: any[];
+  sidewalks?: any;
+}) {
+  const currentCircle = circles[0];
+  const primaryHref = sidewalks
+    ? "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao"
+    : currentCircle
+      ? "#participar"
+      : "/comun/participar";
+  return (
+    <main
+      className="surface-paper text-comun-black"
+      data-comun-app-v2-page="pauta-detail"
+    >
+      <ComunJourneyEvent
+        event="pauta_opened"
+        surface={`pauta:${space.slug}:app-v2`}
+      />
+      <div className="comun-v2-page comun-v2-page--reading">
+        <header className="relative overflow-hidden rounded-[var(--comun-radius-community)] border border-comun-black/20 bg-comun-paper p-5">
+          <span className="comun-v2-status inline-flex rounded-[var(--comun-radius-pill)] bg-comun-yellow px-3 py-1">
+            {space.public_status || space.status}
+          </span>
+          <h1 className="comun-v2-title mt-4 normal-case">{space.title}</h1>
+          <p className="mt-4 max-w-2xl text-lg font-medium text-comun-black/70">
+            {space.summary}
+          </p>
+        </header>
+
+        <section
+          className="mt-7 border-l-4 border-comun-yellow pl-4"
+          aria-labelledby="pauta-now"
+        >
+          <h2 id="pauta-now" className="comun-v2-section-title">
+            Agora
+          </h2>
+          <p className="mt-2 text-comun-black/70">
+            {space.public_synthesis ||
+              space.problem_public ||
+              space.demand_public ||
+              "A comunidade está reunindo contexto revisado para orientar a próxima etapa."}
+          </p>
+        </section>
+
+        <section className="mt-7" aria-labelledby="pauta-next">
+          <h2 id="pauta-next" className="comun-v2-section-title mb-3">
+            Próxima ação
+          </h2>
+          <ComunActionCard
+            href={
+              primaryHref.startsWith("#")
+                ? primaryHref
+                : withComunAppV2(primaryHref)
+            }
+            title={
+              space.next_step ||
+              (sidewalks ? "Registrar uma calçada" : "Participar da construção")
+            }
+            description="Você verá o que será público, o que passa por revisão e como acompanhar a consequência."
+            action={sidewalks ? "Registrar calçada" : "Abrir participação"}
+          />
+        </section>
+
+        <section className="mt-8" aria-labelledby="pauta-known">
+          <h2 id="pauta-known" className="comun-v2-section-title">
+            O que sabemos
+          </h2>
+          <dl className="mt-3 grid grid-cols-2 gap-3">
+            <div className="surface-result rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4">
+              <dt className="comun-v2-eyebrow">Registros</dt>
+              <dd className="mt-1 text-2xl font-black">
+                {sidewalks?.records?.length ?? modules.length}
+              </dd>
+            </div>
+            <div className="surface-community rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4">
+              <dt className="comun-v2-eyebrow">Etapas públicas</dt>
+              <dd className="mt-1 text-2xl font-black">
+                {modules.length || phases.length}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section
+          id="participar"
+          className="mt-8 scroll-mt-28"
+          aria-labelledby="pauta-participate"
+        >
+          <h2 id="pauta-participate" className="comun-v2-section-title">
+            Participar
+          </h2>
+          <p className="mt-2 text-comun-black/70">
+            Escolha uma contribuição concreta. Nenhum estado muda
+            automaticamente.
+          </p>
+          {currentCircle ? (
+            <CirclePanel circle={currentCircle} pautaSlug={space.slug} />
+          ) : (
+            <Link
+              href={withComunAppV2("/comun/participar")}
+              className="comun-v2-action mt-4"
+            >
+              Ver formas de participar
+            </Link>
+          )}
+        </section>
+
+        {sidewalks ? (
+          <section className="mt-8">
+            <h2 className="comun-v2-section-title mb-3">
+              Ferramenta desta pauta
+            </h2>
+            <MiniAppContextCard compact appV2 />
+          </section>
+        ) : null}
+
+        <details className="mt-9 border-t-2 border-comun-black pt-5">
+          <summary className="min-h-11 cursor-pointer text-xl font-black">
+            Percurso completo da pauta
+          </summary>
+          <div className="mt-5">
+            {phases.map((phase) => {
+              const phaseModules = modules.filter((module) =>
+                (phase.types as readonly string[]).includes(module.module_type),
+              );
+              return (
+                <section
+                  id={phase.id}
+                  key={phase.id}
+                  className="border-b border-comun-black/20 py-6"
+                >
+                  <h2 className="text-xl font-black normal-case">
+                    {phase.label}
+                  </h2>
+                  {phaseModules.length ? (
+                    phaseModules.map((module) => (
+                      <PautaModuleSurface
+                        key={module.id}
+                        module={module}
+                        space={space}
+                        circles={circles}
+                        sidewalks={sidewalks}
+                      />
+                    ))
+                  ) : (
+                    <PhaseGuidance phase={phase.id} pautaSlug={space.slug} />
+                  )}
+                </section>
+              );
+            })}
+          </div>
+        </details>
+      </div>
+    </main>
+  );
+}
+
 function PautaModuleSurface({
   module,
   space,
@@ -247,10 +453,7 @@ function PautaModuleSurface({
     (sidewalks?.records?.length ||
       (module.config as any)?.layerIds?.includes("sidewalk_accessibility"));
   return (
-    <section
-      data-module={module.module_type}
-      className="py-7"
-    >
+    <section data-module={module.module_type} className="py-7">
       <div className="flex gap-4">
         <Icon className="mt-1 shrink-0" aria-hidden="true" />
         <div className="min-w-0">
@@ -396,7 +599,8 @@ function CirclePanel({
             Enviar para revisão
           </button>
           <p className="text-xs text-comun-paper/75">
-            A equipe revisa antes da publicação. Depois, você acompanha a decisão em Minha Participação e na Caixa de entrada.
+            A equipe revisa antes da publicação. Depois, você acompanha a
+            decisão em Minha Participação e na Caixa de entrada.
           </p>
         </form>
       )}
@@ -404,8 +608,17 @@ function CirclePanel({
   );
 }
 
-function PhaseGuidance({ phase, pautaSlug }: { phase: string; pautaSlug: string }) {
-  const content: Record<string, { text: string; href: string; action: string }> = {
+function PhaseGuidance({
+  phase,
+  pautaSlug,
+}: {
+  phase: string;
+  pautaSlug: string;
+}) {
+  const content: Record<
+    string,
+    { text: string; href: string; action: string }
+  > = {
     contribua: {
       text: "Escolha uma contribuição concreta. Você verá o que será público, o que passa por revisão e como acompanhar.",
       href: `/comun/mapa/contribuir?origem=calcadas&pauta=${encodeURIComponent(pautaSlug)}&returnTo=${encodeURIComponent(`/comun/pautas/${pautaSlug}`)}`,
@@ -432,7 +645,10 @@ function PhaseGuidance({ phase, pautaSlug }: { phase: string; pautaSlug: string 
   return (
     <div className="mt-5 max-w-3xl border-l-4 border-comun-yellow bg-comun-black p-5 text-comun-paper">
       <p>{item.text}</p>
-      <Link href={item.href} className="mt-3 inline-flex font-black text-comun-yellow underline">
+      <Link
+        href={item.href}
+        className="mt-3 inline-flex font-black text-comun-yellow underline"
+      >
         {item.action}
       </Link>
     </div>

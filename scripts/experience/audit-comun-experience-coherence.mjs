@@ -152,9 +152,16 @@ export async function auditExperience(root = defaultRoot) {
     findings,
   );
   assert(
-    constitution.includes("47.8A — Redundância Durável Independente") &&
-      constitution.includes("47.9B — Busca Viva") &&
-      constitution.includes("47.9C — Acessibilidade"),
+    [
+      "47.9A2 — App Shell V2 e Gramática Visual",
+      "47.9A3 — Fluxos Centrais Streamlined",
+      "47.9C — Acessibilidade, PWA, performance e dispositivos",
+      "47.9D — Ensaio humano e consolidação visual",
+      "47.10 — Conteúdo e governança",
+      "47.11 — Ensaio geral e go/no-go",
+    ].every((item) => constitution.includes(item)) &&
+      constitution.includes("47.8A permanece em pista paralela") &&
+      constitution.includes("fechamento do provider 47.9B"),
     "roadmap_sequence_missing",
     findings,
   );

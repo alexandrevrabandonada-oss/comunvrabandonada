@@ -1,19 +1,40 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { ComunAppShell } from "./comun-app-shell";
 import { ComunSection } from "./comun-ui";
+import type { ComunMobileAppBarProps } from "./comun-mobile-app-bar";
 
 export function ComunShell({
   children,
   showSyntheticNotice,
+  inboxBadge,
+  appBar,
 }: {
   children: ReactNode;
   showSyntheticNotice?: boolean;
+  inboxBadge?: number | string | null;
+  appBar?: Omit<ComunMobileAppBarProps, "experienceV2">;
 }) {
   return (
-    <ComunAppShell showSyntheticNotice={showSyntheticNotice}>
-      {children}
-    </ComunAppShell>
+    <Suspense
+      fallback={
+        <div
+          role="status"
+          aria-live="polite"
+          className="min-h-screen bg-comun-paper px-4 py-6 text-sm font-bold text-comun-black"
+        >
+          Carregando experiência…
+        </div>
+      }
+    >
+      <ComunAppShell
+        showSyntheticNotice={showSyntheticNotice}
+        inboxBadge={inboxBadge}
+        appBar={appBar}
+      >
+        {children}
+      </ComunAppShell>
+    </Suspense>
   );
 }
 

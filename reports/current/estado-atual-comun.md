@@ -1,6 +1,23 @@
 # Estado atual do COMUN
 
-Atualizado em 25 de julho de 2026.
+Atualizado em 1º de agosto de 2026.
+
+## Checkpoint ativo — Tijolo 47.9A2
+
+- base efetiva: `a2feb1dddccf3cd8cba145ea445110e87dcac95a`;
+- branch: `codex/tijolo-47-9a2-app-shell-visual-grammar`;
+- feature flag reversível: `?experiencia=app-v2`;
+- candidato local: `COMUN_APP_SHELL_VISUAL_SYSTEM_CANDIDATE_READY`;
+- 189 páginas classificadas por contrato canônico de shell;
+- 35/35 E2E V2 em cinco perfis e 9/9 regressões do shell anterior;
+- Production, PR e merge ainda precisam ser registrados no fechamento remoto;
+- 47.9A e 47.9D continuam exigindo ensaio humano;
+- `launch_publicly` não foi acionado.
+
+O roadmap oficial passa a seguir 47.9A2, 47.9A3, 47.9C, 47.9D, 47.10 e
+47.11. Permanecem paralelos 47.8A, o fechamento do provider 47.9B, Calçadas e
+conteúdo cultural real. O relatório detalhado está em
+`reports/current/comun-tijolo-47-9a2-app-shell-visual-grammar.md`.
 
 ## Linha ativa
 

@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { MapPinned } from "lucide-react";
 import { ComunContextTrail } from "@/components/comun-context-trail";
 import { ComunJourneyEvent } from "@/components/comun-journey-event";
+import { useSearchParams } from "next/navigation";
+import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
 
 const localNavigation = [
   { href: "/comun/calcadas", label: "Mapa" },
@@ -28,6 +32,8 @@ export function MiniAppExperienceShell({
   status?: string | null;
   entity?: { label: string; href?: string };
 }) {
+  const searchParams = useSearchParams();
+  const appV2 = isComunAppV2(searchParams.get("experiencia"));
   const activeEntity =
     entity ??
     (active === "mapa"
@@ -39,7 +45,10 @@ export function MiniAppExperienceShell({
         });
   return (
     <div className="min-h-screen bg-[#f4f1e8] text-comun-black">
-      <ComunJourneyEvent event="miniapp_opened" surface={`calcadas:${active}`} />
+      <ComunJourneyEvent
+        event="miniapp_opened"
+        surface={`calcadas:${active}`}
+      />
       <header className="hidden border-b-2 border-comun-black bg-white lg:block">
         <div className="mx-auto grid max-w-7xl gap-4 px-4 py-4 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="flex min-w-0 items-start gap-3">
@@ -59,7 +68,10 @@ export function MiniAppExperienceShell({
             </div>
           </div>
           <Link
-            href="/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao"
+            href={withComunAppV2(
+              "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao",
+              appV2,
+            )}
             className="inline-flex min-h-11 items-center justify-center border-2 border-comun-black bg-comun-yellow px-5 font-black shadow-[3px_3px_0_#0b0b0a]"
           >
             Registrar calçada
@@ -104,13 +116,16 @@ export function MiniAppExperienceShell({
                 <strong>Status:</strong> {status}
               </span>
               <Link
-                href="/comun/pautas/calcadas-em-circulacao"
+                href={withComunAppV2(
+                  "/comun/pautas/calcadas-em-circulacao",
+                  appV2,
+                )}
                 className="font-bold underline"
               >
                 Voltar à pauta Calçadas
               </Link>
               <Link
-                href="/comun/minha-participacao"
+                href={withComunAppV2("/comun/minha-participacao", appV2)}
                 className="ml-auto font-bold underline"
               >
                 Acompanhar em Minha área
@@ -127,7 +142,7 @@ export function MiniAppExperienceShell({
           {localNavigation.map((item) => (
             <Link
               key={item.href}
-              href={item.href}
+              href={withComunAppV2(item.href, appV2)}
               aria-current={
                 item.href.endsWith(
                   active === "mapa" ? "/calcadas" : `/${active}`,
@@ -143,11 +158,17 @@ export function MiniAppExperienceShell({
         </div>
       </nav>
       <div className="grid gap-2 border-b-2 border-comun-black bg-white p-3 lg:hidden">
-        <Link href="/comun/pautas/calcadas-em-circulacao" className="text-xs font-bold underline">
+        <Link
+          href={withComunAppV2("/comun/pautas/calcadas-em-circulacao", appV2)}
+          className="text-xs font-bold underline"
+        >
           ← Voltar à pauta Calçadas em circulação
         </Link>
         <Link
-          href="/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao"
+          href={withComunAppV2(
+            "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao",
+            appV2,
+          )}
           className="inline-flex min-h-11 items-center justify-center border-2 border-comun-black bg-comun-yellow px-4 font-black"
         >
           Registrar calçada
