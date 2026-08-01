@@ -84,8 +84,10 @@ jobs:
           node scripts/comun-local-env.mjs run node scripts/solo/apply-forward-only.mjs --adopt-local-validation-ledger
           npm run audit:rls-matrix
       - run: npx playwright install --with-deps chromium
-      - name: Regressões focais de Calçadas e Rádio
+      - name: Regressões focais de Núcleo, Calçadas e Rádio
         run: |
+          npm run test:e2e:comun-nucleo-vivo
+          npm run test:a11y:comun-nucleo-vivo
           COMUN_SIDEWALK_OPERATIONAL_V2=enabled npm run test:e2e:comun-calcadas-operacional
           COMUN_SIDEWALK_OPERATIONAL_V2=enabled npm run test:a11y:comun-calcadas-operacional
           npm run test:e2e:community-radio
@@ -105,8 +107,6 @@ jobs:
           npm run test:a11y:experience-coherence
           npm run test:e2e:comun-pwa-experience
           npm run test:e2e:comun-mobile-app-shell
-          npm run test:e2e:comun-nucleo-vivo
-          npm run test:a11y:comun-nucleo-vivo
           npm run test:e2e:central-experience
           npm run test:a11y:central-experience
           npm run test:e2e:comun-miniapp-experience
