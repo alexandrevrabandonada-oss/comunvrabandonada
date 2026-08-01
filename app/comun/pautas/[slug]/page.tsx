@@ -17,7 +17,11 @@ import {
   type PublishedPautaDossierSnapshot,
 } from "@/lib/pauta-dossiers";
 import { listPublicReports } from "@/lib/reports";
-import { getPublicPautaHub } from "@/lib/central-hub";
+import {
+  getPublicCanonicalCommunity,
+  getPublicPautaHub,
+  getPublicTerritoryById,
+} from "@/lib/central-hub";
 import { PautaAppShell } from "@/components/pauta-app-shell";
 import {
   listPublicCircleSurface,
@@ -35,7 +39,18 @@ import { getPublicPautaActionCycle } from "@/lib/pauta-action-cycle-data";
 import { ComunExperiencePilot } from "@/components/comun-experience-pilot";
 import { isExperienceCoherencePilot } from "@/lib/experience-coherence";
 import { PautaMemoryRelations } from "@/components/civic-intelligence/pauta-memory-relations";
-import { isComunAppV2 } from "@/lib/comun-shell-contract";
+import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
+import {
+  createComunEntityContext,
+  entityReference,
+  type EntityRelation,
+} from "@/lib/comun-entity-context";
+import {
+  ComunEmptyStateV2,
+  ComunEntityHeader,
+  ComunRelatedSection,
+  ComunRelationRail,
+} from "@/components/comun-relational";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -69,28 +84,115 @@ export default async function PautaPage(props: {
     ? []
     : await listPublicPautaModules(space.id);
   if (modules.length || isEditorialFallback) {
-    const [circles, sidewalks, memories] = isEditorialFallback
-      ? [
-          [],
-          {
-            records: [],
-            count: 0,
-            coverage: {
-              total: 0,
-              verified: 0,
-              highImpact: 0,
-              resolved: 0,
-              territories: 0,
+    const [circles, sidewalks, memories, community, territory, hub] =
+      isEditorialFallback
+        ? [
+            [],
+            {
+              records: [],
+              count: 0,
+              coverage: {
+                total: 0,
+                verified: 0,
+                highImpact: 0,
+                resolved: 0,
+                territories: 0,
+              },
+              warning: null,
             },
-            warning: null,
-          },
-          [],
-        ]
-      : await Promise.all([
-          listPublicCircleSurface(space.id),
-          listPublicSidewalkSurface(space.id),
-          listPublicSidewalkMemories(space.id),
-        ]);
+            [],
+            null,
+            null,
+            {
+              timeline: [],
+              actions: [],
+              results: [],
+              projects: [],
+              archive: [],
+            },
+          ]
+        : await Promise.all([
+            listPublicCircleSurface(space.id),
+            listPublicSidewalkSurface(space.id),
+            listPublicSidewalkMemories(space.id),
+            space.community
+              ? getPublicCanonicalCommunity(space.community)
+              : Promise.resolve(null),
+            space.territory_id
+              ? getPublicTerritoryById(space.territory_id)
+              : Promise.resolve(null),
+            getPublicPautaHub(space.id),
+          ]);
+    const relations: EntityRelation[] = [
+      ...(territory
+        ? [
+            {
+              ...entityReference("territory", territory.slug, territory.name),
+              source: "foreign_key" as const,
+            },
+          ]
+        : []),
+      ...(community && space.community
+        ? [
+            {
+              ...entityReference("community", community.slug, community.name),
+              source: "published_projection" as const,
+              scope: "slug público confirmado; vínculo sem FK",
+            },
+          ]
+        : []),
+      ...(sidewalks
+        ? [
+            {
+              ...entityReference("miniapp", "calcadas", "Calçadas"),
+              source: "published_projection" as const,
+            },
+          ]
+        : []),
+      ...hub.actions.slice(0, 3).map((action: any) => ({
+        ...entityReference("action", action.slug, action.title, action.status),
+        source: "foreign_key" as const,
+      })),
+      ...hub.results.slice(0, 3).map((result: any) => ({
+        ...entityReference(
+          "result",
+          result.slug,
+          result.title,
+          result.result_type,
+        ),
+        source: "foreign_key" as const,
+        count: hub.results.length,
+        scope: "resultados públicos nesta pauta",
+      })),
+      ...hub.archive.slice(0, 3).map((item: any) => ({
+        ...entityReference("memory", item.archive.slug, item.archive.title),
+        source: "junction" as const,
+      })),
+    ];
+    const entityContext = createComunEntityContext({
+      kind: "pauta",
+      id: space.id,
+      slug: space.slug,
+      title: space.title,
+      shortTitle: space.title,
+      state: space.public_status ?? space.status,
+      summary: space.summary ?? "Pauta em organização coletiva.",
+      territory: territory
+        ? entityReference("territory", territory.slug, territory.name)
+        : undefined,
+      community:
+        community && space.community
+          ? entityReference("community", community.slug, community.name)
+          : undefined,
+      primaryAction: {
+        href: sidewalks ? "/comun/calcadas" : "/comun/participar",
+        label: sidewalks ? "Abrir Calçadas" : "Abrir participação",
+        description:
+          space.next_step ??
+          (sidewalks ? "Registrar uma calçada" : "Participar da construção"),
+      },
+      relations,
+    });
     const contributionAck =
       searchParams.contribuicao === "pendente" ||
       searchParams.contribuicao === "recebida";
@@ -100,7 +202,7 @@ export default async function PautaPage(props: {
           appV2
             ? {
                 title: space.title,
-                contextLabel: `Pauta · ${space.community ?? "Volta Redonda"}`,
+                contextLabel: `Pauta · ${entityContext.community?.title ?? entityContext.territory?.title ?? "processo coletivo"}`,
                 backDestination: "/comun/pautas",
               }
             : undefined
@@ -128,6 +230,7 @@ export default async function PautaPage(props: {
             circles={circles}
             sidewalks={sidewalks}
             appV2={appV2}
+            entityContext={entityContext}
           />
           <SidewalkMemorySection pautaSlug={space.slug} memories={memories} />
         </ComunExperiencePilot>
@@ -143,14 +246,16 @@ export default async function PautaPage(props: {
     evidence,
     community,
     publishedDossiers,
+    territory,
   ] = await Promise.all([
     listSafePautaReports(space),
     listSafePautaOfficialProtocols(space),
     listApprovedPautaContributions(space.id),
     listPublicPautaTasks(space.id),
     listPublicPautaEvidence(space.id),
-    space.community ? getCommunity(space.community) : null,
+    space.community ? getPublicCanonicalCommunity(space.community) : null,
     listPublishedPautaDossiersByPauta(space.id),
+    space.territory_id ? getPublicTerritoryById(space.territory_id) : null,
   ]);
   const grouped = groupContributions(contributions);
   const [allFeatures, hub] = await Promise.all([
@@ -165,6 +270,198 @@ export default async function PautaPage(props: {
     (feature) => feature.snapshot.pauta?.id === space.id,
   );
   const details = space as any;
+
+  if (appV2) {
+    const relations: EntityRelation[] = [
+      ...(territory
+        ? [
+            {
+              ...entityReference("territory", territory.slug, territory.name),
+              source: "foreign_key" as const,
+            },
+          ]
+        : []),
+      ...(community && space.community
+        ? [
+            {
+              ...entityReference("community", community.slug, community.name),
+              source: "published_projection" as const,
+              scope: "slug público confirmado; vínculo sem FK",
+            },
+          ]
+        : []),
+      ...hub.actions.slice(0, 4).map((action: any) => ({
+        ...entityReference("action", action.slug, action.title, action.status),
+        source: "foreign_key" as const,
+      })),
+      ...protocols.slice(0, 3).map((protocol: any) => ({
+        ...entityReference(
+          "protocol",
+          protocol.protocol,
+          protocol.title ?? protocol.protocol,
+        ),
+        source: "foreign_key" as const,
+      })),
+      ...hub.results.slice(0, 4).map((result: any) => ({
+        ...entityReference(
+          "result",
+          result.slug,
+          result.title,
+          result.result_type,
+        ),
+        source: "foreign_key" as const,
+      })),
+      ...hub.archive.slice(0, 4).map((item: any) => ({
+        ...entityReference("memory", item.archive.slug, item.archive.title),
+        source: "junction" as const,
+      })),
+    ];
+    const entityContext = createComunEntityContext({
+      kind: "pauta",
+      id: space.id,
+      slug: space.slug,
+      title: space.title,
+      state: details.public_status ?? statusLabel(space.status),
+      summary: space.summary ?? "Pauta em organização coletiva.",
+      territory: territory
+        ? entityReference("territory", territory.slug, territory.name)
+        : undefined,
+      community: community
+        ? entityReference("community", community.slug, community.name)
+        : undefined,
+      primaryAction: {
+        href: "/comun/participar",
+        label: "Contribuir com esta pauta",
+        description: space.next_step ?? "Conhecer a próxima etapa do processo.",
+      },
+      relations,
+    });
+    return (
+      <ComunShell
+        appBar={{
+          title: space.title,
+          contextLabel: `Pauta · ${community?.name ?? territory?.name ?? "processo coletivo"}`,
+          backDestination: "/comun/pautas",
+        }}
+      >
+        <main
+          className="comun-v2-page comun-v2-page--reading comun-relational-page"
+          data-comun-app-v2-page="pauta-detail"
+        >
+          <ComunContextTrail
+            items={[
+              ...(territory
+                ? [
+                    {
+                      kind: "território" as const,
+                      label: territory.name,
+                      href: withComunAppV2(
+                        `/comun/territorios/${territory.slug}`,
+                      ),
+                    },
+                  ]
+                : []),
+              ...(community
+                ? [
+                    {
+                      kind: "comunidade" as const,
+                      label: community.name,
+                      href: withComunAppV2(`/comun/c/${community.slug}`),
+                    },
+                  ]
+                : []),
+              { kind: "pauta", label: space.title },
+            ]}
+          />
+          <ComunEntityHeader context={entityContext} />
+          <ComunRelationRail relations={relations} />
+          <section className="mt-8" aria-labelledby="pauta-v2-counts">
+            <h2 id="pauta-v2-counts" className="comun-v2-section-title">
+              Nesta pauta
+            </h2>
+            <dl className="mt-3 grid grid-cols-3 gap-2 rounded-[var(--comun-radius-card)] border border-comun-paper/20 bg-comun-paper/5 p-4">
+              <ScopedPautaMetric
+                label="Contribuições públicas"
+                value={contributions.length}
+              />
+              <ScopedPautaMetric
+                label="Protocolos públicos"
+                value={protocols.length}
+              />
+              <ScopedPautaMetric
+                label="Tarefas abertas"
+                value={
+                  tasks.filter((task: any) => task.status !== "done").length
+                }
+              />
+            </dl>
+            <p className="mt-2 text-xs text-comun-paper/60">
+              Escopo: apenas esta pauta, conteúdo público e estados publicáveis
+              no momento da consulta.
+            </p>
+          </section>
+          <ComunRelatedSection title="Atividade, decisão e resposta">
+            {hub.timeline.length ? (
+              <div className="grid gap-3">
+                {hub.timeline.slice(0, 6).map((event: any) => (
+                  <article
+                    key={event.id}
+                    className="border-l-4 border-comun-yellow py-2 pl-4"
+                  >
+                    <p className="comun-v2-status text-comun-yellow">
+                      {event.event_type} ·{" "}
+                      {new Date(event.occurred_at).toLocaleDateString("pt-BR")}
+                    </p>
+                    <h3 className="mt-1 font-black normal-case">
+                      {event.title}
+                    </h3>
+                    {event.public_summary ? (
+                      <p className="mt-1 text-sm text-comun-paper/70">
+                        {event.public_summary}
+                      </p>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <ComunEmptyStateV2
+                title="Atividade pública ainda não registrada"
+                explanation="Contribuições, decisões, protocolos e respostas aparecem aqui somente depois de revisão e publicação."
+                related="A pauta permanece aberta para a próxima ação indicada acima."
+                action={{
+                  href: "/comun/participar",
+                  label: "Ver formas de participar",
+                }}
+                secondaryActions={[
+                  { href: "/comun/resultados", label: "Entender resultados" },
+                ]}
+              />
+            )}
+          </ComunRelatedSection>
+          <details className="mt-8 border-t border-comun-paper/25 pt-4">
+            <summary className="min-h-11 cursor-pointer text-xl font-black">
+              Evidências, tarefas e memória
+            </summary>
+            <div className="mt-4 grid gap-4">
+              <p>
+                {evidence.length} evidências públicas · {tasks.length} tarefas
+                publicáveis · {hub.archive.length} memórias relacionadas.
+              </p>
+              {hub.archive.map((item: any) => (
+                <Link
+                  key={item.archive.slug}
+                  href={withComunAppV2(`/comun/acervo/${item.archive.slug}`)}
+                  className="min-h-11 font-black underline"
+                >
+                  {item.archive.title}
+                </Link>
+              ))}
+            </div>
+          </details>
+        </main>
+      </ComunShell>
+    );
+  }
 
   return (
     <ComunShell>
@@ -797,6 +1094,17 @@ function Metric({ label, value }: { label: string; value: number }) {
         {label}
       </dt>
       <dd className="text-2xl font-black">{value}</dd>
+    </div>
+  );
+}
+
+function ScopedPautaMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div>
+      <dt className="text-[10px] font-black uppercase leading-tight text-comun-paper/60">
+        {label}
+      </dt>
+      <dd className="mt-1 text-2xl font-black text-comun-paper">{value}</dd>
     </div>
   );
 }

@@ -1,0 +1,20 @@
+{
+  "schema": "comun.civic-graph.evidence.v1",
+  "collectedAt": "2026-08-01T22:39:25.224Z",
+  "commit": "0160fa0b4884a403a02c016fc3ebc43b8dfb7c66",
+  "routes": 27,
+  "relationTypes": 16,
+  "findingsBySeverity": {
+    "critical": 0,
+    "high": 0,
+    "warning": 0,
+    "info": 97
+  },
+  "consistencyStatus": "canonical_source_unavailable_locally",
+  "aggregateCountTypes": 0,
+  "containsPrivateData": false,
+  "containsIds": false,
+  "containsSessions": false,
+  "humanRehearsal": "pending",
+  "launchPublicly": "not_triggered"
+}

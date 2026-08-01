@@ -149,6 +149,154 @@ html[data-comun-keyboard="open"]
   width: min(100%, 56rem);
 }
 
+.comun-relational-page,
+.comun-v2-page[data-comun-app-v2-page$="-collection"] {
+  background: var(--comun-surface-base) !important;
+  color: var(--comun-color-paper) !important;
+}
+
+.comun-relational-collection-header {
+  border-bottom: 0.28rem solid var(--comun-color-action);
+  padding-block: 0.75rem 1.5rem;
+}
+
+.comun-entity-header {
+  padding-block: 0.5rem 1.5rem;
+}
+
+.comun-entity-header--community {
+  border-radius: var(--comun-radius-community);
+}
+
+.comun-entity-header--memory {
+  border-radius: var(--comun-radius-cultural);
+}
+
+.comun-primary-entity-action {
+  margin-top: 1.5rem;
+  border: var(--comun-stroke-subtle);
+  border-radius: var(--comun-radius-card) var(--comun-radius-control)
+    var(--comun-radius-card) var(--comun-radius-card);
+  background: var(--comun-surface-paper);
+  padding: 1.25rem;
+  color: var(--comun-color-ink);
+}
+
+.comun-entity-state {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid
+    color-mix(in srgb, var(--comun-color-action) 65%, transparent);
+  border-radius: var(--comun-radius-pill);
+  padding-inline: 0.9rem;
+  color: var(--comun-color-action);
+  font-size: 0.6875rem;
+  font-weight: 900;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.comun-entity-state > span {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentcolor;
+}
+
+.comun-relation-rail {
+  display: flex;
+  gap: 0.65rem;
+  margin-inline: calc(var(--comun-page-gutter) * -1);
+  overflow-x: auto;
+  padding: 0.1rem var(--comun-page-gutter) 0.65rem;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.comun-relation-chip {
+  display: flex;
+  min-width: 9.5rem;
+  min-height: 4.75rem;
+  align-items: center;
+  gap: 0.7rem;
+  border: 1px solid
+    color-mix(in srgb, var(--comun-color-paper) 45%, transparent);
+  border-radius: var(--comun-radius-card);
+  padding: 0.75rem;
+  color: var(--comun-color-paper);
+  scroll-snap-align: start;
+}
+
+.comun-relation-chip[data-relation-kind="miniapp"] svg {
+  color: #91a85c;
+}
+
+.comun-relation-chip[data-relation-kind="result"] svg,
+.comun-relation-chip[data-relation-kind="memory"] svg {
+  color: #c35a36;
+}
+
+.comun-relation-chip strong,
+.comun-relation-chip small {
+  display: block;
+}
+
+.comun-relation-chip strong {
+  line-height: 1.1;
+}
+
+.comun-relation-chip small {
+  margin-top: 0.25rem;
+  color: color-mix(in srgb, var(--comun-color-paper) 67%, transparent);
+}
+
+.comun-related-section {
+  margin-top: 2rem;
+  border-top: var(--comun-stroke-subtle);
+  padding-top: 1.5rem;
+}
+
+.comun-empty-state-v2 {
+  border-radius: var(--comun-radius-card) var(--comun-radius-control)
+    var(--comun-radius-card) var(--comun-radius-card);
+  background: var(--comun-surface-paper);
+  padding: clamp(1.25rem, 5vw, 2rem);
+  color: var(--comun-color-ink);
+}
+
+.comun-empty-state-v2__icon {
+  display: grid;
+  width: 3.5rem;
+  height: 3.5rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--comun-surface-action);
+}
+
+.comun-relational-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.comun-relational-list > * {
+  min-width: 0;
+}
+
+[data-comun-miniapp-experience="app-v2"] {
+  background: var(--comun-surface-tool) !important;
+}
+
+[data-comun-miniapp-experience="app-v2"] .bg-white {
+  background: var(--comun-surface-paper) !important;
+}
+
+[data-comun-miniapp-experience="app-v2"] :is(article, section).bg-white {
+  border-radius: var(--comun-radius-card);
+  border-color: color-mix(in srgb, var(--comun-color-ink) 28%, transparent);
+}
+
 .comun-v2-title {
   font-size: clamp(2rem, 9vw, 3.75rem);
   font-weight: 900;
@@ -196,6 +344,7 @@ html[data-comun-keyboard="open"]
   border: var(--comun-stroke-strong);
   border-radius: var(--comun-radius-card);
   background: var(--comun-surface-tool);
+  color: var(--comun-color-ink);
   box-shadow: 5px 5px 0 #8f2f1d;
 }
 
@@ -346,6 +495,12 @@ html[data-comun-keyboard="open"]
   .comun-v2-action {
     outline: 2px solid Highlight;
     outline-offset: 2px;
+  }
+
+  .comun-relation-chip,
+  .comun-empty-state-v2,
+  .comun-primary-entity-action {
+    border: 2px solid CanvasText !important;
   }
 }
 

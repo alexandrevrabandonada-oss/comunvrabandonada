@@ -1,0 +1,212 @@
+name: COMUN Civic Graph Deliverability
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "components/**"
+      - "lib/**"
+      - "scripts/civic-graph/**"
+      - "tests/civic-graph/**"
+      - "playwright.civic-graph.config.ts"
+      - "package*.json"
+      - ".github/workflows/comun-civic-graph.yml"
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "components/**"
+      - "lib/**"
+      - "scripts/civic-graph/**"
+      - "tests/civic-graph/**"
+      - "playwright.civic-graph.config.ts"
+      - "package*.json"
+      - ".github/workflows/comun-civic-graph.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: comun-civic-graph-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 22.19.0
+
+jobs:
+  audit:
+    name: 1. Auditoria
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22.19.0", cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npm run civic-graph:audit
+      - name: Envelope agregado
+        run: |
+          mkdir -p .ci-artifacts/civic-graph
+          cp reports/current/comun-civic-graph-audit.json .ci-artifacts/civic-graph/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: civic-graph-audit-${{ github.run_id }}
+          path: .ci-artifacts/civic-graph/*.json
+          if-no-files-found: error
+          retention-days: 14
+
+  consistency:
+    name: 2. Consistência
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ github.event_name == 'push' && secrets.SUPABASE_DB_URL || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22.19.0", cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Contagens agregadas somente leitura
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            node scripts/civic-graph/audit-comun-civic-graph-consistency.mjs --require-remote
+          else
+            npm run civic-graph:consistency
+          fi
+      - name: Publicar somente agregados
+        uses: actions/upload-artifact@v4
+        with:
+          name: civic-graph-consistency-${{ github.run_id }}
+          path: reports/current/comun-civic-graph-consistency.json
+          if-no-files-found: error
+          retention-days: 14
+
+  public-routes:
+    name: 3. Rotas públicas
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22.19.0", cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: npm run civic-graph:e2e -- --grep "coleções|não há campos"
+
+  relations:
+    name: 4. Relações
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22.19.0", cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: npm run civic-graph:test
+      - run: npm run civic-graph:e2e -- --grep "deep link|Calçadas|estado vazio|filtros"
+
+  accessibility:
+    name: 5. Acessibilidade
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22.19.0", cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: npm run civic-graph:a11y
+
+  performance:
+    name: 6. Performance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22.19.0", cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: npm run quality:test
+      - run: npm run quality:performance
+
+  production:
+    name: 7. Production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      COMUN_BASE_URL: https://comunsocial.online
+      NEXT_PUBLIC_SITE_URL: https://comunsocial.online
+      PLAYWRIGHT_SKIP_WEBSERVER: "1"
+      COMUN_EXPECTED_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22.19.0", cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Build no pull request
+        if: github.event_name != 'push'
+        run: npm run build
+      - name: Aguardar o SHA exato em Production
+        if: github.event_name == 'push'
+        run: |
+          for attempt in $(seq 1 30); do
+            observed="$(curl --silent --show-error --fail "$COMUN_BASE_URL/api/comun/quality-status" | node -e "let x='';process.stdin.on('data',d=>x+=d).on('end',()=>{try{process.stdout.write(JSON.parse(x).version||'')}catch{}})")" || true
+            if [ "$observed" = "$COMUN_EXPECTED_SHA" ]; then exit 0; fi
+            echo "COMUN_CIVIC_GRAPH_DEPLOYMENT_NOT_READY attempt=$attempt"
+            sleep 20
+          done
+          exit 1
+      - run: npx playwright install --with-deps chromium
+        if: github.event_name == 'push'
+      - run: npm run civic-graph:e2e
+        if: github.event_name == 'push'
+
+  no-leak:
+    name: 8. No-leak
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      NEXT_PUBLIC_SITE_URL: https://comunsocial.online
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22.19.0", cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npm run security:test
+      - run: npm run smoke:no-leak-http
+        if: github.event_name == 'push'
+
+  classification:
+    name: 9. Classificação
+    if: always()
+    needs:
+      [
+        audit,
+        consistency,
+        public-routes,
+        relations,
+        accessibility,
+        performance,
+        production,
+        no-leak,
+      ]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Classificar sem ensaio humano
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          mkdir -p .ci-artifacts/civic-graph
+          node -e "const fs=require('fs');const needs=JSON.parse(process.env.NEEDS_JSON);const green=Object.values(needs).every(x=>x.result==='success');fs.writeFileSync('.ci-artifacts/civic-graph/98-classification.json',JSON.stringify({status:green?'ready':'blocked',result:green?'COMUN_RELATIONAL_NAVIGATION_READY_FOR_FULL_SURFACE_MIGRATION':'COMUN_RELATIONAL_NAVIGATION_BLOCKED_QUALITY_REGRESSION',humanRehearsal:'pending',fullSurfaceMigration:'pending',launchPublicly:'not_triggered',lanes:Object.fromEntries(Object.entries(needs).map(([k,v])=>[k,v.result]))},null,2));if(!green)process.exitCode=1"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: civic-graph-classification-${{ github.run_id }}
+          path: .ci-artifacts/civic-graph/*.json
+          if-no-files-found: error
+          retention-days: 14

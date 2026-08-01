@@ -173,6 +173,41 @@ const CONTEXT_ROUTES: Array<{
   routeGroup: string;
 }> = [
   {
+    pattern: /^\/comun\/territorios$/,
+    title: "Territórios",
+    context: "Onde as pautas acontecem",
+    parentHref: "/comun/explorar",
+    routeGroup: "territory_collection",
+  },
+  {
+    pattern: /^\/comun\/comunidades$/,
+    title: "Comunidades",
+    context: "Quem organiza",
+    parentHref: "/comun/explorar",
+    routeGroup: "community_collection",
+  },
+  {
+    pattern: /^\/comun\/pautas$/,
+    title: "Pautas",
+    context: "Processos coletivos",
+    parentHref: "/comun/explorar",
+    routeGroup: "pauta_collection",
+  },
+  {
+    pattern: /^\/comun\/acoes$/,
+    title: "Ações",
+    context: "Organização coletiva",
+    parentHref: "/comun/explorar",
+    routeGroup: "action_collection",
+  },
+  {
+    pattern: /^\/comun\/resultados$/,
+    title: "Resultados",
+    context: "Prestação de contas",
+    parentHref: "/comun/explorar",
+    routeGroup: "result_collection",
+  },
+  {
     pattern: /^\/comun\/participar\/confirmacao/,
     title: "Confirmação",
     context: "Participação registrada",

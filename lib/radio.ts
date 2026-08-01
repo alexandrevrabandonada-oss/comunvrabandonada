@@ -68,14 +68,14 @@ export async function listPublicRadio() {
       db
         .from("comun_radio_programs")
         .select(
-          "archive_item_id,title_public,slug_public,subtitle_public,description_public,format_type,frequency_public",
+          "archive_item_id,title_public,slug_public,subtitle_public,description_public,format_type,frequency_public,territory:comun_hub_territories(slug,name,visibility,status),pauta:comun_pauta_spaces(slug,title,visibility,status)",
         )
         .eq("publication_status", "published")
         .limit(24),
       db
         .from("comun_radio_episodes")
         .select(
-          "archive_item_id,program_item_id,title_public,slug_public,summary_public,published_at,duration_seconds,transcript_status,comun_archive_assets(asset_role,bucket_scope,public_url,review_status)",
+          "archive_item_id,program_item_id,title_public,slug_public,summary_public,published_at,duration_seconds,transcript_status,territory:comun_hub_territories(slug,name,visibility,status),pauta:comun_pauta_spaces(slug,title,visibility,status),action:comun_mobilization_actions(slug,title,visibility,status),comun_archive_assets(asset_role,bucket_scope,public_url,review_status)",
         )
         .eq("publication_status", "published")
         .order("published_at", { ascending: false })
@@ -88,16 +88,27 @@ export async function listPublicRadio() {
         .limit(30),
     ]);
   return {
-    programs: programs ?? [],
-    episodes: (episodes ?? []).map((episode: any) => ({
-      ...episode,
-      comun_archive_assets: (episode.comun_archive_assets ?? []).filter(
-        (asset: any) =>
-          asset.bucket_scope === "public_safe" &&
-          asset.review_status === "approved" &&
-          Boolean(asset.public_url),
+    programs: (programs ?? []).filter(
+      (program: any) =>
+        (!program.territory || program.territory.visibility === "public") &&
+        (!program.pauta || program.pauta.visibility === "public"),
+    ),
+    episodes: (episodes ?? [])
+      .map((episode: any) => ({
+        ...episode,
+        comun_archive_assets: (episode.comun_archive_assets ?? []).filter(
+          (asset: any) =>
+            asset.bucket_scope === "public_safe" &&
+            asset.review_status === "approved" &&
+            Boolean(asset.public_url),
+        ),
+      }))
+      .filter(
+        (episode: any) =>
+          (!episode.territory || episode.territory.visibility === "public") &&
+          (!episode.pauta || episode.pauta.visibility === "public") &&
+          (!episode.action || episode.action.visibility === "public"),
       ),
-    })),
     schedule: schedule ?? [],
   };
 }
@@ -108,12 +119,18 @@ export async function getPublicEpisode(slug: string) {
   const { data: e } = await db
     .from("comun_radio_episodes")
     .select(
-      "archive_item_id,program_item_id,season_number,episode_number,title_public,slug_public,summary_public,description_public,recorded_at,published_at,duration_seconds,transcript_status,allow_download",
+      "archive_item_id,program_item_id,season_number,episode_number,title_public,slug_public,summary_public,description_public,recorded_at,published_at,duration_seconds,transcript_status,allow_download,territory:comun_hub_territories(slug,name,visibility,status),pauta:comun_pauta_spaces(slug,title,visibility,status),action:comun_mobilization_actions(slug,title,visibility,status)",
     )
     .eq("slug_public", slug)
     .eq("publication_status", "published")
     .maybeSingle();
-  if (!e) return null;
+  if (
+    !e ||
+    ((e as any).territory && (e as any).territory.visibility !== "public") ||
+    ((e as any).pauta && (e as any).pauta.visibility !== "public") ||
+    ((e as any).action && (e as any).action.visibility !== "public")
+  )
+    return null;
   const [
     { data: t },
     { data: program },

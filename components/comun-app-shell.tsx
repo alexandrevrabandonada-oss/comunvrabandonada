@@ -67,13 +67,13 @@ export function ComunAppShell({
       data-comun-shell-scroll={contract.scroll}
       data-comun-shell-width={contract.width}
     >
-      <ComunPwaRuntime />
       <SkipLink />
       {showSyntheticNotice && route.mode === "public_web" ? (
         <SyntheticNotice />
       ) : null}
       {showDesktopHeader ? <DesktopHeader experienceV2 /> : null}
       {showMobileAppBar ? <ComunMobileAppBar {...appBar} experienceV2 /> : null}
+      <ComunPwaRuntime inlineConnectionStatus />
       <main
         id="conteudo"
         className="comun-app-shell-v2__content"

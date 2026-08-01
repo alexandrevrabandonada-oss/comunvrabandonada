@@ -7,6 +7,8 @@ import { ComunContextTrail } from "@/components/comun-context-trail";
 import { ComunJourneyEvent } from "@/components/comun-journey-event";
 import { useSearchParams } from "next/navigation";
 import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
+import { ComunRelationRail } from "@/components/comun-relational";
+import type { EntityRelation } from "@/lib/comun-entity-context";
 
 const localNavigation = [
   { href: "/comun/calcadas", label: "Mapa" },
@@ -43,8 +45,39 @@ export function MiniAppExperienceShell({
             localNavigation.find((item) => item.href.endsWith(`/${active}`))
               ?.label ?? "",
         });
+  const relations: EntityRelation[] = [
+    {
+      kind: "territory",
+      slug: "volta-redonda",
+      title: "Volta Redonda",
+      href: "/comun/territorios/volta-redonda",
+      source: "published_projection",
+    },
+    ...(community
+      ? [
+          {
+            kind: "community" as const,
+            slug: community,
+            title: community,
+            href: `/comun/c/${community}`,
+            source: "published_projection" as const,
+          },
+        ]
+      : []),
+    {
+      kind: "pauta",
+      slug: "calcadas-em-circulacao",
+      title: "Calçadas em circulação",
+      href: "/comun/pautas/calcadas-em-circulacao",
+      source: "published_projection",
+    },
+  ];
   return (
-    <div className="min-h-screen bg-[#f4f1e8] text-comun-black">
+    <div
+      className="min-h-screen bg-[#f4f1e8] text-comun-black"
+      data-comun-miniapp-experience={appV2 ? "app-v2" : "legacy"}
+      data-comun-app-v2-page={appV2 ? `sidewalk-${active}` : undefined}
+    >
       <ComunJourneyEvent
         event="miniapp_opened"
         surface={`calcadas:${active}`}
@@ -157,6 +190,16 @@ export function MiniAppExperienceShell({
           ))}
         </div>
       </nav>
+      {appV2 ? (
+        <div className="surface-base px-4 pb-4 pt-1">
+          <div className="mx-auto max-w-7xl">
+            <ComunRelationRail
+              relations={relations}
+              title="Esta ferramenta conecta"
+            />
+          </div>
+        </div>
+      ) : null}
       <div className="grid gap-2 border-b-2 border-comun-black bg-white p-3 lg:hidden">
         <Link
           href={withComunAppV2("/comun/pautas/calcadas-em-circulacao", appV2)}

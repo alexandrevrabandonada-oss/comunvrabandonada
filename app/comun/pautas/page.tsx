@@ -1,12 +1,95 @@
 import Link from "next/link";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { listPublicPautaSpaces } from "@/lib/pauta-spaces";
+import { ComunPautaCard } from "@/components/comun-cards";
+import {
+  ComunCollectionPage,
+  ComunEmptyStateV2,
+} from "@/components/comun-relational";
+import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function PautaSpacesPage() {
+export default async function PautaSpacesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ experiencia?: string }>;
+}) {
   const spaces = await listPublicPautaSpaces();
+  const appV2 = isComunAppV2((await searchParams).experiencia);
+
+  if (appV2)
+    return (
+      <ComunShell
+        appBar={{
+          title: "Pautas",
+          contextLabel: "Processos coletivos",
+          backDestination: "/comun/explorar",
+        }}
+      >
+        <ComunCollectionPage
+          kind="pauta"
+          title="Pautas"
+          summary="Problemas coletivos organizados em evidências, decisões, ações e acompanhamento público."
+          rail={[
+            {
+              kind: "territory",
+              slug: "territorios",
+              title: "Territórios",
+              href: "/comun/territorios",
+              source: "canonical_route",
+            },
+            {
+              kind: "community",
+              slug: "comunidades",
+              title: "Comunidades",
+              href: "/comun/comunidades",
+              source: "canonical_route",
+            },
+            {
+              kind: "result",
+              slug: "resultados",
+              title: "Resultados",
+              href: "/comun/resultados",
+              source: "canonical_route",
+            },
+          ]}
+        >
+          {spaces.length ? (
+            <div className="grid gap-4 lg:grid-cols-2">
+              {spaces.map((space) => (
+                <ComunPautaCard
+                  key={space.slug}
+                  href={withComunAppV2(`/comun/pautas/${space.slug}`)}
+                  title={space.title}
+                  summary={space.summary ?? "Pauta em organização coletiva."}
+                  status={statusLabel(space.status)}
+                  nextAction={
+                    space.next_step ??
+                    "Conhecer o processo e as formas de participação"
+                  }
+                />
+              ))}
+            </div>
+          ) : (
+            <ComunEmptyStateV2
+              title="Nenhuma pauta pública neste recorte"
+              explanation="Pautas aparecem depois de triagem e publicação. Isso não apaga relatos ou processos ainda em revisão."
+              related="Você pode explorar territórios, abrir uma ferramenta ou contribuir com uma nova pauta."
+              action={{
+                href: "/comun/participar",
+                label: "Contribuir com pauta",
+              }}
+              secondaryActions={[
+                { href: "/comun/territorios", label: "Explorar territórios" },
+                { href: "/comun/calcadas", label: "Abrir Calçadas" },
+              ]}
+            />
+          )}
+        </ComunCollectionPage>
+      </ComunShell>
+    );
 
   return (
     <ComunShell>
