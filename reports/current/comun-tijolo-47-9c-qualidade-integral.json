@@ -8,29 +8,68 @@
   "candidateSha": "88238d2108fe8b4e4b2a2127703302fa012f2953",
   "pullRequest": 131,
   "mergeSha": "ff38327d703a0eb83c39d08b9ed3ae176239fc1d",
-  "focalRepair": {
-    "branch": "codex/tijolo-47-9c-reparo-pos-merge",
-    "candidateSha": "71261a09f3f65fc203b322a945586e8b975339a9",
-    "pullRequest": 132,
-    "mergeSha": "a118d7006da2f5358a6b65c48cd803a04ffb6fbd"
-  },
+  "focalRepairs": [
+    {
+      "branch": "codex/tijolo-47-9c-reparo-pos-merge",
+      "candidateSha": "71261a09f3f65fc203b322a945586e8b975339a9",
+      "pullRequest": 132,
+      "mergeSha": "a118d7006da2f5358a6b65c48cd803a04ffb6fbd"
+    },
+    {
+      "branch": "codex/tijolo-47-9c-reparo-metricas-assets",
+      "candidateSha": "a45a88a86912ca1a58951246f44b9dd2f4b2e6ea",
+      "pullRequest": 134,
+      "mergeSha": "0aad72c96d8b200e0f682f542723dc0a6de8333e"
+    }
+  ],
+  "evidenceClosures": [
+    {
+      "pullRequest": 133,
+      "mergeSha": "d47e5de3e15780d20b64985ca123bdadaedf4f05"
+    }
+  ],
   "deployment": {
-    "id": 5701989409,
+    "id": 5702316082,
     "environment": "Production",
     "status": "READY",
-    "sha": "a118d7006da2f5358a6b65c48cd803a04ffb6fbd"
+    "sha": "0aad72c96d8b200e0f682f542723dc0a6de8333e"
   },
   "evidenceRuns": {
     "principalPr": 30683251675,
-    "focalPrQuality": 30685312412,
-    "focalPrSecurity": 30685312409,
-    "finalPostmerge": 30686182181
+    "isolationRepairPrQuality": 30685312412,
+    "isolationRepairPrSecurity": 30685312409,
+    "envelopeRepairPrQuality": 30687001201,
+    "envelopeRepairPrSecurity": 30687001276,
+    "finalPostmerge": 30688027449
   },
   "automated": {
     "unit": { "files": 71, "tests": 381, "status": "green" },
     "pwa": { "passed": 30, "status": "green" },
     "a11y": { "passed": 27, "viewports": 9, "status": "green" },
-    "performance": { "projects": 9, "surfaces": 72, "status": "green" },
+    "performance": {
+      "projects": 9,
+      "surfaces": 72,
+      "status": "green",
+      "assetBudgetsEnforced": true,
+      "envelope": [
+        "status",
+        "html",
+        "javascript",
+        "css",
+        "images",
+        "fonts",
+        "requests",
+        "heap",
+        "ttfb",
+        "fcp",
+        "lcp",
+        "interaction_approximation",
+        "cls",
+        "long_tasks",
+        "error_classes",
+        "heavy_map_assets"
+      ]
+    },
     "network": { "passed": 10, "intentionalSkips": 8, "status": "green" },
     "loadDocuments": [25, 50, 100, 500, 1000]
   },
