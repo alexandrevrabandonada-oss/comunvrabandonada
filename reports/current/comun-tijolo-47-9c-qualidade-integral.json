@@ -5,7 +5,7 @@
   "targetResult": "COMUN_QUALITY_PERFORMANCE_READY_FOR_REAL_DEVICE_REHEARSAL",
   "base": "47d0925a80b494f1fc60cb3a8709d275a8e71ff1",
   "branch": "codex/tijolo-47-9c-qualidade-integral",
-  "candidateSha": null,
+  "candidateSha": "703e57eb0a810a4380355f9bf34a68f3a07828c7",
   "pullRequest": null,
   "mergeSha": null,
   "deployment": null,

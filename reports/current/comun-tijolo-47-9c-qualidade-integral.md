@@ -1,6 +1,6 @@
 # Tijolo 47.9C — qualidade integral
 
-Data do candidato: 31/07/2026. Base: `47d0925a80b494f1fc60cb3a8709d275a8e71ff1`. Branch: `codex/tijolo-47-9c-qualidade-integral`.
+Data do candidato: 31/07/2026. Base: `47d0925a80b494f1fc60cb3a8709d275a8e71ff1`. Candidato: `703e57eb0a810a4380355f9bf34a68f3a07828c7`. Branch: `codex/tijolo-47-9c-qualidade-integral`.
 
 ## Classificação
 
