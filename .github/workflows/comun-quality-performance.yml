@@ -84,6 +84,14 @@ jobs:
           node scripts/comun-local-env.mjs run node scripts/solo/apply-forward-only.mjs --adopt-local-validation-ledger
           npm run audit:rls-matrix
       - run: npx playwright install --with-deps chromium
+      - name: Regressões focais de Calçadas, Rádio e Arte
+        run: |
+          COMUN_SIDEWALK_OPERATIONAL_V2=enabled npm run test:e2e:comun-calcadas-operacional
+          COMUN_SIDEWALK_OPERATIONAL_V2=enabled npm run test:a11y:comun-calcadas-operacional
+          node scripts/comun-local-env.mjs run npm run test:e2e:community-radio
+          node scripts/comun-local-env.mjs run npm run test:a11y:community-radio
+          node scripts/comun-local-env.mjs run npm run test:e2e:territorial-art
+          node scripts/comun-local-env.mjs run npm run test:a11y:territorial-art
       - name: WCAG automatizável em nove viewports
         run: npm run quality:a11y
       - name: PWA, cache privado, update e offline
@@ -104,12 +112,6 @@ jobs:
           npm run test:e2e:central-experience
           npm run test:a11y:central-experience
           npm run test:e2e:comun-miniapp-experience
-          COMUN_SIDEWALK_OPERATIONAL_V2=enabled npm run test:e2e:comun-calcadas-operacional
-          COMUN_SIDEWALK_OPERATIONAL_V2=enabled npm run test:a11y:comun-calcadas-operacional
-          node scripts/comun-local-env.mjs run npm run test:e2e:community-radio
-          node scripts/comun-local-env.mjs run npm run test:a11y:community-radio
-          node scripts/comun-local-env.mjs run npm run test:e2e:territorial-art
-          node scripts/comun-local-env.mjs run npm run test:a11y:territorial-art
       - name: Smokes HTTP contra release local isolada
         run: |
           node scripts/comun-local-env.mjs run npm run start -- -p 3000 > /tmp/comun-quality-server.log 2>&1 &
