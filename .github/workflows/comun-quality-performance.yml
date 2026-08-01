@@ -137,7 +137,7 @@ jobs:
           npm run build
       - name: Formatação focal e whitespace
         run: |
-          npx prettier --check app/api/comun/quality-metrics app/comun/ajuda app/comun/admin/observabilidade app/comun/buscar app/comun/conta app/globals.css app/layout.tsx components/comun-web-vitals.tsx components/comun-pwa-runtime.tsx components/community-auth-form.tsx components/admin-login-form.tsx lib/quality-* lib/comun-pwa* lib/comun-date.ts scripts/quality tests/quality-performance tests/comun-pwa-experience config/comun-quality-budgets.json docs/comun-quality-*.md playwright.quality-performance.config.ts .github/workflows/comun-quality-performance.yml
+          npx --yes prettier@3.9.6 --check app/api/comun/quality-metrics app/comun/ajuda app/comun/admin/observabilidade app/comun/buscar app/comun/conta app/globals.css app/layout.tsx components/comun-web-vitals.tsx components/comun-pwa-runtime.tsx components/community-auth-form.tsx components/admin-login-form.tsx lib/quality-* lib/comun-pwa* lib/comun-date.ts scripts/quality tests/quality-performance tests/comun-pwa-experience config/comun-quality-budgets.json docs/comun-quality-*.md playwright.quality-performance.config.ts .github/workflows/comun-quality-performance.yml
           git diff --check
       - name: Evidência agregada sanitizada
         run: |
