@@ -20,7 +20,10 @@ export function ComunPwaRuntime() {
   const installSurfaceBlocked =
     path.startsWith("/comun/calcadas") ||
     path.startsWith("/comun/mapa/contribuir");
-  const installSurfaceAllowed = path.startsWith("/comun/minha-participacao") || path.startsWith("/comun/conta") || path.includes("/confirmacao");
+  const installSurfaceAllowed =
+    path.startsWith("/comun/minha-participacao") ||
+    path.startsWith("/comun/conta") ||
+    path.includes("/confirmacao");
   const [connection, setConnection] = useState<Connection>("online");
   const [installEvent, setInstallEvent] = useState<InstallEvent | null>(null);
   const [showInstall, setShowInstall] = useState(false);
@@ -130,7 +133,10 @@ export function ComunPwaRuntime() {
           Aplicativo aberto em modo instalado
         </span>
       ) : null}
-      {showInstall && installSurfaceAllowed && !installSurfaceBlocked && !updateWorker ? (
+      {showInstall &&
+      installSurfaceAllowed &&
+      !installSurfaceBlocked &&
+      !updateWorker ? (
         <aside
           aria-label="Instalar COMUN"
           className="relative z-20 border-b-2 border-comun-black bg-comun-paper px-4 py-3 text-comun-black"
@@ -242,7 +248,7 @@ export function ComunLogoutCleanup() {
       onClick={() => {
         sessionStorage.removeItem(COMUN_LAST_SAFE_ROUTE_KEY);
         navigator.serviceWorker?.controller?.postMessage({
-          type: "CLEAR_PRIVATE",
+          type: "CLEAR_CONTENT_CACHES",
         });
       }}
       className="mt-5 block min-h-11 border-2 border-comun-yellow px-4 font-black uppercase text-comun-yellow"

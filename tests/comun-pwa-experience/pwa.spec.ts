@@ -66,4 +66,67 @@ test("conteúdo privado está fora da política de cache", async ({ request }) =
     expect(sw).toContain(route);
   expect(sw).toContain('request.method !== "GET"');
   expect(sw).toContain('response.headers.has("set-cookie")');
+  expect(sw).toContain("!url.search");
+  expect(sw).toContain("!url.hash");
+  expect(sw).toContain('cacheControl.includes("no-store")');
+  expect(sw).toContain('type === "CLEAR_CONTENT_CACHES"');
+  expect(sw).toContain("key !== SHELL_CACHE");
+  expect(sw).toContain('const VERSION = "comun-pwa-v2"');
+});
+
+test("shell offline continua honesto e não confirma mutações", async ({
+  page,
+  context,
+}) => {
+  await page.goto("/comun/offline");
+  await expect
+    .poll(() =>
+      page.evaluate(() => navigator.serviceWorker?.ready.then(Boolean)),
+    )
+    .toBeTruthy();
+  await context.setOffline(true);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Sem conexão agora." }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/qualquer envio precisam de conexão/i),
+  ).toBeVisible();
+  await expect(page.getByText(/fotos não são guardadas/i)).toBeVisible();
+  await context.setOffline(false);
+});
+
+test("logout limpa caches de conteúdo sem apagar o shell seguro", async ({
+  page,
+}) => {
+  await page.goto("/comun/offline");
+  await expect
+    .poll(() =>
+      page.evaluate(() => navigator.serviceWorker?.ready.then(Boolean)),
+    )
+    .toBeTruthy();
+  await page.evaluate(async () => {
+    const cache = await caches.open("comun-pwa-v2-public");
+    await cache.put(
+      "/comun/pautas/fixture-publica",
+      new Response("fixture pública"),
+    );
+    navigator.serviceWorker.controller?.postMessage({
+      type: "CLEAR_CONTENT_CACHES",
+    });
+  });
+  await expect
+    .poll(() =>
+      page.evaluate(
+        async () => !(await caches.keys()).includes("comun-pwa-v2-public"),
+      ),
+    )
+    .toBeTruthy();
+  await expect
+    .poll(() =>
+      page.evaluate(async () =>
+        (await caches.keys()).includes("comun-pwa-v2-shell"),
+      ),
+    )
+    .toBeTruthy();
 });

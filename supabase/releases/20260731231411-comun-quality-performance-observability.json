@@ -1,0 +1,26 @@
+{
+  "release": "20260731231411-comun-quality-performance-observability",
+  "migration": "supabase/migrations/20260731231411_comun_quality_performance_observability.sql",
+  "migrationSha256": "312a83f6f091beb1ba3b4a87c2805faf3eacd7338ff0d3e93e1a374b348852e3",
+  "destructiveSql": false,
+  "requiresPromotion": true,
+  "expectedPreFingerprint": "QUALITY_METRICS_ABSENT",
+  "expectedPostFingerprint": "QUALITY_AGGREGATE_ONLY",
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "releaseLedger": "public.comun_schema_releases",
+  "scope": "aggregate_quality_observability_only",
+  "containsPersonalData": false,
+  "containsRawRoutes": false,
+  "containsQueries": false,
+  "assertions": [
+    "anon and authenticated have no table access",
+    "writes require the fixed-search_path service RPC",
+    "raw paths, queries, identities, IPs and sessions have no storage column",
+    "field percentiles are reconstructed only from hourly aggregate buckets"
+  ],
+  "changedObjects": [
+    "public.comun_quality_metrics_hourly",
+    "public.comun_record_quality_metric"
+  ]
+}

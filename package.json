@@ -124,6 +124,14 @@
     "civic-intelligence:sync:local": "npm run civic:search:sync:local",
     "civic-intelligence:rehearsal:local": "npm run civic:search:rehearsal:local",
     "civic-intelligence:perf": "npm run civic:search:performance:local",
+    "quality:test": "node --test scripts/quality/audit-comun-quality.node-test.mjs && vitest run lib/quality-performance.test.ts lib/comun-pwa.test.ts",
+    "quality:a11y": "playwright test -c playwright.quality-performance.config.ts --grep @a11y",
+    "quality:pwa": "playwright test -c playwright.comun-pwa-experience.config.ts",
+    "quality:performance": "node scripts/quality/run-comun-quality-performance.mjs",
+    "quality:load": "node scripts/quality/load-comun-quality.mjs",
+    "quality:network": "playwright test -c playwright.quality-performance.config.ts --grep @network",
+    "quality:rehearsal:local": "node scripts/quality/rehearse-comun-quality.mjs",
+    "quality:collect": "node scripts/quality/collect-comun-quality.mjs",
     "test:e2e:experience-coherence": "node scripts/comun-local-env.mjs run playwright test -c playwright.experience-coherence.config.ts",
     "test:a11y:experience-coherence": "node scripts/comun-local-env.mjs run playwright test -c playwright.experience-coherence.config.ts --grep @a11y",
     "test:e2e:music": "playwright test -c playwright.music.config.ts",
@@ -242,7 +250,7 @@
     "autoprefixer": "^10.4.20",
     "eslint": "9.39.1",
     "eslint-config-next": "16.2.11",
-    "postcss": "8.5.12",
+    "postcss": "8.5.25",
     "shpjs": "^6.2.0",
     "tailwindcss": "^3.4.15",
     "typescript": "^5.6.3",
@@ -250,7 +258,7 @@
   },
   "overrides": {
     "brace-expansion": "1.1.16",
-    "postcss": "8.5.12",
+    "postcss": "8.5.25",
     "sharp": "0.35.3"
   }
 }

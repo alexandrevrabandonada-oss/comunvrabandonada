@@ -327,6 +327,19 @@ a:active {
 :focus-visible {
   outline: 3px solid #f4c400;
   outline-offset: 3px;
+  scroll-margin-block: 6rem;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 3px solid Highlight;
+  }
 }
 
 .industrial-border {

@@ -2,13 +2,17 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { createClient } from "@supabase/supabase-js";
 
-test("miniapp abre no mapa e possui lista e filtros", async ({ page }) => {
+test("miniapp abre em lista útil e oferece mapa e filtros", async ({
+  page,
+}) => {
   await page.goto("/comun/calcadas");
   await expect(page.locator("h1")).toContainText("Calçadas de Volta Redonda");
   await expect(
     page.getByRole("button", { name: "Mapa", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Lista", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Lista", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("group", { name: "Visualização" })).toBeVisible();
   await page.getByRole("button", { name: /Mais filtros/ }).click();
   await expect(
@@ -95,6 +99,7 @@ test("rotas locais preservam contexto e deep links", async ({ page }) => {
 
 test("@visual captura experiência integrada", async ({ page }, testInfo) => {
   await page.goto("/comun/calcadas");
+  await page.getByRole("button", { name: "Mapa", exact: true }).click();
   await page.screenshot({
     path: `reports/screenshots/sprint-38-calcadas-mapa-${testInfo.project.name}.png`,
     fullPage: true,
@@ -151,6 +156,7 @@ test("mapa real local lê o PMTiles v3 por HTTP Range", async ({ page }) => {
       ranges.push(request.headers().range ?? "");
   });
   await page.goto("/comun/calcadas");
+  await page.getByRole("button", { name: "Mapa", exact: true }).click();
   await expect(page.locator(".maplibregl-canvas")).toBeVisible();
   await expect
     .poll(() => ranges.some((value) => value.startsWith("bytes=")))

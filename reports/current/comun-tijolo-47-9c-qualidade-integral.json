@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "tijolo": "47.9C",
+  "result": "COMUN_QUALITY_PERFORMANCE_CANDIDATE",
+  "targetResult": "COMUN_QUALITY_PERFORMANCE_READY_FOR_REAL_DEVICE_REHEARSAL",
+  "base": "47d0925a80b494f1fc60cb3a8709d275a8e71ff1",
+  "branch": "codex/tijolo-47-9c-qualidade-integral",
+  "candidateSha": null,
+  "pullRequest": null,
+  "mergeSha": null,
+  "deployment": null,
+  "automated": {
+    "unit": { "files": 71, "tests": 381, "status": "green" },
+    "pwa": { "passed": 30, "status": "green" },
+    "a11y": { "passed": 27, "viewports": 9, "status": "green" },
+    "performance": { "projects": 9, "surfaces": 72, "status": "green" },
+    "network": { "passed": 10, "intentionalSkips": 8, "status": "green" },
+    "loadDocuments": [25, 50, 100, 500, 1000]
+  },
+  "pending": [
+    "ci_disposable_supabase_reset",
+    "production_postmerge",
+    "physical_android",
+    "second_physical_platform",
+    "real_assistive_technology",
+    "field_sample"
+  ],
+  "domains": {
+    "quality_performance": "evidence_required",
+    "experience_47_9a": "ready_for_usability_rehearsal",
+    "civic_intelligence_47_9b": "blocked_provider_capability",
+    "security_resilience": "blocked",
+    "miniapps": "in_progress",
+    "archive_radio_art": "evidence_required",
+    "greenCount": 4
+  },
+  "launchPublicly": "not_triggered"
+}

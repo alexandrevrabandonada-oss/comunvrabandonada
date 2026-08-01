@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatComunDate } from "@/lib/comun-date";
 import { getStructuredCivicMemory } from "@/lib/civic-intelligence/memory";
 import { getPublicRelatedContent } from "@/lib/civic-intelligence/related";
 
@@ -52,7 +53,7 @@ export async function PautaMemoryRelations({
                   className="mt-2 block text-xs text-comun-paper/60"
                   dateTime={item.date}
                 >
-                  {new Date(item.date).toLocaleDateString("pt-BR")}
+                  {formatComunDate(item.date)}
                 </time>
               ) : null}
             </article>

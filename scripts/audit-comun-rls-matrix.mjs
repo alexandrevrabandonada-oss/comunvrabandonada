@@ -200,14 +200,17 @@ const classifications = {
   comun_search_documents: {
     decision: "service_role_only",
     purpose: "Projeção reconstruível e sanitizada da busca pública.",
-    sensitive: "Embedding, chave da fonte e texto projetado não têm leitura direta.",
-    expected: "Anon/authenticated usam somente a RPC pública sanitizada; escrita server-side.",
+    sensitive:
+      "Embedding, chave da fonte e texto projetado não têm leitura direta.",
+    expected:
+      "Anon/authenticated usam somente a RPC pública sanitizada; escrita server-side.",
   },
   comun_search_sections: {
     decision: "service_role_only",
     purpose: "Seções públicas segmentadas para indexação semântica.",
     sensitive: "Texto segmentado e embedding ficam invisíveis diretamente.",
-    expected: "Somente worker server-side; a RPC retorna campos sanitizados do documento.",
+    expected:
+      "Somente worker server-side; a RPC retorna campos sanitizados do documento.",
   },
   comun_search_embedding_jobs: {
     decision: "service_role_only",
@@ -219,7 +222,16 @@ const classifications = {
     decision: "service_role_only",
     purpose: "Métricas agregadas sem texto de consulta ou identidade.",
     sensitive: "Somente faixas e contagens; ainda assim operacionais.",
-    expected: "Sem leitura/escrita direta; observabilidade admin sanitizada via servidor.",
+    expected:
+      "Sem leitura/escrita direta; observabilidade admin sanitizada via servidor.",
+  },
+  comun_quality_metrics_hourly: {
+    decision: "service_role_only",
+    purpose: "Web Vitals agregados por hora e classe canônica de rota.",
+    sensitive:
+      "Buckets e contagens operacionais; URL, query, pessoa, IP e sessão são proibidos.",
+    expected:
+      "Sem leitura/escrita direta por anon ou authenticated; gravação e leitura somente server-side.",
   },
   comun_report_attachments: {
     decision: "service_role_only",

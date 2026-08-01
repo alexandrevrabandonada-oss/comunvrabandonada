@@ -126,7 +126,7 @@ export const COMUN_V1_LAUNCH_PROGRAM = {
     {
       id: "quality_performance",
       label: "Acessibilidade, PWA e performance",
-      status: "blocked",
+      status: "evidence_required",
       objective:
         "A experiência precisa ser utilizável em mobile popular, conexão ruim, teclado e leitores de tela.",
       requiredEvidence: [
@@ -134,8 +134,10 @@ export const COMUN_V1_LAUNCH_PROGRAM = {
         "Axe e visual nas jornadas centrais",
         "carga representativa 25/50/100 materializando itens",
         "orçamentos de performance cumpridos",
+        "Android e segunda plataforma físicos",
+        "tecnologia assistiva real e amostra de campo suficiente",
       ],
-      nextTijolo: "47.9C — Acessibilidade, PWA, performance e dispositivos",
+      nextTijolo: "47.9C — Ensaio em aparelho real e tecnologia assistiva",
       href: "/comun/admin/observabilidade",
     },
     {

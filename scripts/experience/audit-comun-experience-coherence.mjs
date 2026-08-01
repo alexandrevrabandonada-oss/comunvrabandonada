@@ -22,6 +22,7 @@ const requiredRoutes = [
   "/comun/radio",
   "/comun/arte",
   "/comun/seguranca",
+  "/comun/ajuda",
   "/comun/entrar",
   "/comun/minha-participacao",
   "/comun/caixa-de-entrada",
@@ -158,7 +159,7 @@ export async function auditExperience(root = defaultRoot) {
     findings,
   );
   assert(
-    routeInventory.includes("**187 páginas**"),
+    routeInventory.includes("**188 páginas**"),
     "route_inventory_count_not_recorded",
     findings,
   );
