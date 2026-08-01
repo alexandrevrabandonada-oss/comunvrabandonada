@@ -70,6 +70,7 @@ export function ComunMobileAppBar({
         {canGoBack ? (
           <Link
             href={backDestination}
+            prefetch={false}
             aria-label="Voltar"
             className="grid size-11 shrink-0 place-items-center rounded-lg focus:outline focus:outline-2 focus:outline-comun-rust"
           >
@@ -97,6 +98,7 @@ export function ComunMobileAppBar({
                 key={action.href}
                 className="min-h-11 px-3 py-3 font-bold"
                 href={action.href}
+                prefetch={false}
               >
                 {action.label}
               </Link>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { formatComunDate } from "@/lib/comun-date";
 export function ComunSection({
   children,
   className = "",
@@ -37,7 +38,7 @@ export function ComunSectionHeader({
         ) : null}
         {updatedAt ? (
           <p className="mt-2 text-xs font-bold uppercase text-comun-paper/55">
-            Atualizado em {new Date(updatedAt).toLocaleDateString("pt-BR")}
+            Atualizado em {formatComunDate(updatedAt)}
           </p>
         ) : null}
       </div>
@@ -112,7 +113,10 @@ export function ComunBreadcrumbs({
   items: { label: string; href?: string }[];
 }) {
   return (
-    <nav aria-label="Breadcrumb" className="mb-5 hidden text-sm text-comun-paper/65 lg:block">
+    <nav
+      aria-label="Breadcrumb"
+      className="mb-5 hidden text-sm text-comun-paper/65 lg:block"
+    >
       <ol className="flex flex-wrap gap-2">
         {items.map((x, i) => (
           <li key={`${x.label}-${i}`}>

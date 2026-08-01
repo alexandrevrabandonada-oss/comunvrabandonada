@@ -1,6 +1,6 @@
 # Inventário e grafo de rotas da experiência V1
 
-Leitura canônica em 31 de julho de 2026. O App Router contém **187 páginas**.
+Leitura canônica em 31 de julho de 2026. O App Router contém **188 páginas**.
 O auditor verifica o catálogo exato; a tabela abaixo registra as superfícies e
 famílias relevantes com decisão de produto. Rotas dinâmicas mantêm seus deep
 links atuais. Nenhuma rota é retirada neste tijolo.
@@ -49,6 +49,7 @@ Legenda de público: público, pessoal autenticado ou administrativo autorizado.
 | `/comun/criar-conta`                            | Criar conta              | público         | identidade comunitária                | login/ação / criar conta                | onboarding/origem                  | deep link com `returnTo`                               | manter                      |
 | `/comun/recuperar-acesso` e `/redefinir-acesso` | Recuperar acesso         | público         | recuperação Auth                      | login / solicitar ou redefinir          | login                              | tokens nunca aparecem em navegação                     | manter                      |
 | `/comun/seguranca`                              | Segurança e privacidade  | público         | explicar fronteiras e direitos        | rodapé/ajuda / entender proteção        | Início                             | auditoria admin é separada                             | manter                      |
+| `/comun/ajuda`                                  | Ajuda                    | público         | orientar tarefa, conexão e direitos   | rodapé / escolher um caminho            | Início                             | conteúdo governado será aprofundado no 47.10           | manter                      |
 | `/comun/offline`                                | Ajuda de conexão         | público         | estado e recuperação de rede          | banner runtime / tentar novamente       | origem/Início                      | deep link PWA                                          | manter                      |
 | `/comun/minha-participacao`                     | Minha área               | pessoal         | acompanhar contribuições e tarefas    | navegação / retomar próxima ação        | origem contextual                  | login preserva retorno                                 | manter                      |
 | `/comun/caixa-de-entrada`                       | Caixa de entrada         | pessoal         | avisos acionáveis                     | shell pessoal / abrir item              | origem/Minha área                  | Inbox não é feed                                       | manter                      |

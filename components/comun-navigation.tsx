@@ -49,6 +49,7 @@ export function ComunPrimaryNavigation() {
           aria-current={active(path, href) ? "page" : undefined}
           className={`inline-flex min-h-11 items-center gap-2 px-3 transition-colors ${active(path, href) ? "bg-comun-yellow text-comun-black" : "text-comun-paper/85 hover:bg-comun-paper/10 hover:text-comun-yellow"}`}
           href={href}
+          prefetch={false}
           key={href}
         >
           <Icon size={18} aria-hidden="true" />
@@ -71,6 +72,7 @@ export function ComunMemberNavigation() {
           aria-current={active(path, href) ? "page" : undefined}
           className={`inline-flex min-h-11 items-center gap-2 px-2 ${active(path, href) ? "text-comun-yellow" : "text-comun-paper/70 hover:text-comun-yellow"}`}
           href={href}
+          prefetch={false}
           key={href}
         >
           {label === "Caixa de entrada" ? (
@@ -116,6 +118,7 @@ function MobileItem({
       aria-current={active(path, href) ? "page" : undefined}
       className={`flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-center text-[10px] font-black leading-tight ${active(path, href) ? "bg-comun-yellow text-comun-black" : "text-comun-asphalt"}`}
       href={href}
+      prefetch={false}
     >
       <Icon size={20} strokeWidth={2.25} aria-hidden="true" />
       <span>{label}</span>

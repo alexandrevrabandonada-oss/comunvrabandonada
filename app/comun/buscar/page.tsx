@@ -7,6 +7,24 @@ import {
 import { isPublicContentDeliverable } from "@/lib/public-content-readiness";
 import { unifiedPublicSearch } from "@/lib/unified-search";
 import { LiveSearchResults } from "@/components/civic-intelligence/live-search-results";
+import { hybridPublicSearch } from "@/lib/civic-intelligence/search";
+
+async function initialPublicSearch(
+  query: string,
+  filters: { type?: string; pautaId?: string },
+) {
+  try {
+    const projected = await hybridPublicSearch({
+      query,
+      type: filters.type,
+      pautaId: filters.pautaId,
+      semantic: false,
+    });
+    return { results: projected.results, durationMs: projected.durationMs };
+  } catch {
+    return unifiedPublicSearch(query, filters);
+  }
+}
 const types = [
   "ferramenta",
   "comunidade",
@@ -29,7 +47,7 @@ export default async function Page({
 }) {
   const p = await searchParams,
     q = p.q ?? "",
-    search = await unifiedPublicSearch(q, {
+    search = await initialPublicSearch(q, {
       type: p.tipo,
       pautaId: p.pauta,
     }),

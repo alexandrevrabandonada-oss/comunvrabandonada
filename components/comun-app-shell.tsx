@@ -37,6 +37,7 @@ export function ComunAppShell({
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2">
           <Link
             href="/comun"
+            prefetch={false}
             aria-label="COMUN VR Abandonada"
             className="max-w-32 text-lg font-black leading-none tracking-[-.05em] text-comun-paper"
           >
@@ -67,14 +68,33 @@ export function ComunAppShell({
             aria-label="Navegação complementar"
             className="flex flex-wrap content-start gap-x-5 gap-y-3 text-sm font-bold"
           >
-            <Link href="/comun/pautas">Pautas</Link>
-            <Link href="/comun/acoes">Agenda</Link>
-            <Link href="/comun/radio">Rádio</Link>
-            <Link href="/comun/acervo">Acervo</Link>
-            <Link href="/comun/observatorios">Observatórios</Link>
-            <Link href="/comun/buscar">Buscar</Link>
-            <Link href="/comun/seguranca">Segurança e privacidade</Link>
-            <Link href="/comun/territorio-tomado">Sobre</Link>
+            <Link href="/comun/pautas" prefetch={false}>
+              Pautas
+            </Link>
+            <Link href="/comun/acoes" prefetch={false}>
+              Agenda
+            </Link>
+            <Link href="/comun/radio" prefetch={false}>
+              Rádio
+            </Link>
+            <Link href="/comun/acervo" prefetch={false}>
+              Acervo
+            </Link>
+            <Link href="/comun/observatorios" prefetch={false}>
+              Observatórios
+            </Link>
+            <Link href="/comun/buscar" prefetch={false}>
+              Buscar
+            </Link>
+            <Link href="/comun/seguranca" prefetch={false}>
+              Segurança e privacidade
+            </Link>
+            <Link href="/comun/ajuda" prefetch={false}>
+              Ajuda
+            </Link>
+            <Link href="/comun/territorio-tomado" prefetch={false}>
+              Sobre
+            </Link>
           </nav>
         </div>
       </footer>

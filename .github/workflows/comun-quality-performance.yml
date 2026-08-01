@@ -1,0 +1,227 @@
+name: COMUN Quality Performance Deliverability
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "components/**"
+      - "lib/**"
+      - "public/sw.js"
+      - "scripts/quality/**"
+      - "tests/quality-performance/**"
+      - "tests/comun-pwa-experience/**"
+      - "supabase/migrations/**"
+      - "supabase/releases/**"
+      - "config/comun-quality-budgets.json"
+      - "docs/comun-quality-*.md"
+      - "playwright.quality-performance.config.ts"
+      - "playwright.comun-pwa-experience.config.ts"
+      - "package*.json"
+      - ".github/workflows/comun-quality-performance.yml"
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "components/**"
+      - "lib/**"
+      - "public/sw.js"
+      - "scripts/quality/**"
+      - "tests/quality-performance/**"
+      - "tests/comun-pwa-experience/**"
+      - "supabase/migrations/**"
+      - "supabase/releases/**"
+      - "config/comun-quality-budgets.json"
+      - "docs/comun-quality-*.md"
+      - "playwright.quality-performance.config.ts"
+      - "playwright.comun-pwa-experience.config.ts"
+      - "package*.json"
+      - ".github/workflows/comun-quality-performance.yml"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Laboratório local ou post-merge allowlisted
+        required: true
+        type: choice
+        default: local
+        options: [local, full]
+
+concurrency:
+  group: comun-quality-performance-${{ github.event.pull_request.number || github.ref }}-${{ inputs.mode || 'automatic' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  pr-lane:
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'local')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.111.0
+      - name: Envelope sanitizado antes da primeira escrita
+        run: mkdir -p .ci-artifacts/quality-performance && node -e "require('node:fs').writeFileSync('.ci-artifacts/quality-performance/00-envelope.json',JSON.stringify({status:'started',scope:'disposable_local',containsPersonalData:false,containsQueries:false,containsSecrets:false},null,2))"
+      - run: npm ci --ignore-scripts
+      - name: Secrets, contratos, corpus e carga sintética
+        run: |
+          npm run security:secrets
+          npm run quality:test
+          npm run quality:load
+      - name: Supabase descartável e migration forward-only
+        env:
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
+        run: |
+          supabase start
+          supabase db reset --local --yes
+          node scripts/comun-local-env.mjs run node scripts/solo/apply-forward-only.mjs --adopt-local-validation-ledger
+          npm run audit:rls-matrix
+      - run: npx playwright install --with-deps chromium
+      - name: Regressões focais de Núcleo, Calçadas e Rádio
+        run: |
+          npm run test:e2e:comun-nucleo-vivo
+          npm run test:a11y:comun-nucleo-vivo
+          COMUN_SIDEWALK_OPERATIONAL_V2=enabled npm run test:e2e:comun-calcadas-operacional
+          COMUN_SIDEWALK_OPERATIONAL_V2=enabled npm run test:a11y:comun-calcadas-operacional
+          npm run test:e2e:community-radio
+          npm run test:a11y:community-radio
+      - name: WCAG automatizável em nove viewports
+        run: npm run quality:a11y
+      - name: PWA, cache privado, update e offline
+        run: npm run quality:pwa
+      - name: Performance, hidratação, bundles e rede degradada
+        run: |
+          npm run quality:performance
+          npm run quality:network
+      - name: Jornadas integrais e regressões dos domínios existentes
+        run: |
+          npm run test:e2e:comun-integral-experience
+          npm run test:e2e:experience-coherence
+          npm run test:a11y:experience-coherence
+          npm run test:e2e:comun-pwa-experience
+          npm run test:e2e:comun-mobile-app-shell
+          npm run test:e2e:central-experience
+          npm run test:a11y:central-experience
+          npm run test:e2e:comun-miniapp-experience
+          node scripts/comun-local-env.mjs run npm run test:e2e:territorial-art
+          node scripts/comun-local-env.mjs run npm run test:a11y:territorial-art
+      - name: Smokes HTTP contra release local isolada
+        run: |
+          node scripts/comun-local-env.mjs run npm run start -- -p 3000 > /tmp/comun-quality-server.log 2>&1 &
+          server_pid=$!
+          cleanup() { kill "$server_pid" 2>/dev/null || true; }
+          trap cleanup EXIT
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:3000/comun >/dev/null; then break; fi
+            if [ "$attempt" = 30 ]; then echo "COMUN_LOCAL_RELEASE_NOT_READY"; exit 1; fi
+            sleep 2
+          done
+          node scripts/comun-local-env.mjs run npm run smoke:core-public-routes
+          node scripts/comun-local-env.mjs run npm run smoke:public-ui
+          node scripts/comun-local-env.mjs run npm run smoke:no-leak-http
+      - name: Regressões estáticas e build
+        run: |
+          npm run experience:coherence:test
+          npm run civic-intelligence:test
+          npm run security:test
+          npm run test:unit
+          npm run typecheck
+          npm run lint
+          npm run build
+      - name: Formatação focal e whitespace
+        run: |
+          npx --yes prettier@3.9.6 --check app/api/comun/quality-metrics app/comun/ajuda app/comun/admin/observabilidade app/comun/buscar app/comun/conta app/globals.css app/layout.tsx components/comun-web-vitals.tsx components/comun-pwa-runtime.tsx components/community-auth-form.tsx components/admin-login-form.tsx lib/quality-* lib/comun-pwa* lib/comun-date.ts scripts/quality tests/quality-performance tests/comun-pwa-experience config/comun-quality-budgets.json docs/comun-quality-*.md playwright.quality-performance.config.ts .github/workflows/comun-quality-performance.yml
+          git diff --check
+      - name: Evidência agregada sanitizada
+        run: |
+          npm run quality:collect
+          cp reports/generated/*.json .ci-artifacts/quality-performance/
+      - name: Cleanup local
+        if: always()
+        run: supabase stop --no-backup || true
+      - name: Marcador sanitizado de falha
+        if: failure()
+        run: node -e "require('node:fs').writeFileSync('.ci-artifacts/quality-performance/99-failure.json',JSON.stringify({status:'failed',containsPersonalData:false,containsQueries:false,containsSecrets:false,tracesPublished:false},null,2))"
+      - name: Publicar somente JSON sanitizado
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-quality-performance-${{ github.run_id }}
+          path: .ci-artifacts/quality-performance/*.json
+          if-no-files-found: error
+          retention-days: 14
+
+  post-merge:
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'full')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
+    env:
+      COMUN_BASE_URL: https://comunsocial.online
+      PLAYWRIGHT_SKIP_WEBSERVER: "1"
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      COMUN_QUALITY_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+      COMUN_EXPECTED_SHA: ${{ github.sha }}
+      COMUN_QUALITY_ENFORCE_BUDGETS: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: npm
+      - name: Envelope remoto sanitizado
+        run: mkdir -p .ci-artifacts/quality-performance && node -e "require('node:fs').writeFileSync('.ci-artifacts/quality-performance/00-envelope.json',JSON.stringify({status:'started',scope:'allowlisted_remote',containsPersonalData:false,containsQueries:false,containsSecrets:false},null,2))"
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: 1. Production preflight do SHA esperado
+        run: |
+          for attempt in $(seq 1 30); do
+            observed="$(curl --silent --show-error --fail "$COMUN_BASE_URL/api/comun/quality-status" | node -e "let x='';process.stdin.on('data',d=>x+=d).on('end',()=>{try{process.stdout.write(JSON.parse(x).version||'')}catch{}})")" || true
+            if [ "$observed" = "$COMUN_EXPECTED_SHA" ]; then
+              node scripts/quality/remote-comun-quality-rehearsal.mjs
+              exit 0
+            fi
+            echo "COMUN_QUALITY_DEPLOYMENT_NOT_READY attempt=$attempt"
+            sleep 20
+          done
+          echo "COMUN_QUALITY_EXPECTED_SHA_NOT_DEPLOYED"
+          exit 1
+      - name: Transporte focal de observabilidade agregada
+        run: node scripts/quality/apply-comun-quality-remote.mjs
+      - name: 2. PWA
+        run: npm run quality:pwa
+      - name: 3. Acessibilidade sintética
+        run: npm run quality:a11y
+      - name: 4. Performance sintética
+        run: npm run quality:performance
+      - name: 5. Carga local sem publicação
+        run: npm run quality:load
+      - name: 6. Rede degradada em navegador isolado
+        run: npm run quality:network
+      - name: 7. Autenticação e superfície protegida sem mutation
+        run: node scripts/quality/remote-comun-quality-rehearsal.mjs
+      - name: 8. Postflight no-leak e coleta
+        run: |
+          NEXT_PUBLIC_SITE_URL="$COMUN_BASE_URL" npm run smoke:no-leak-http
+          npm run quality:collect -- --promote
+          cp reports/generated/*.json .ci-artifacts/quality-performance/
+      - name: 9. Classificação honesta
+        run: node -e "require('node:fs').writeFileSync('.ci-artifacts/quality-performance/98-classification.json',JSON.stringify({result:'COMUN_QUALITY_PERFORMANCE_READY_FOR_REAL_DEVICE_REHEARSAL',physicalAndroid:'pending',secondPhysicalPlatform:'pending',realAssistiveTechnology:'pending',fieldSample:'pending',launchPublicly:'not_triggered'},null,2))"
+      - name: Marcador sanitizado de falha
+        if: failure()
+        run: node -e "require('node:fs').writeFileSync('.ci-artifacts/quality-performance/99-failure.json',JSON.stringify({status:'failed',containsPersonalData:false,containsQueries:false,containsSecrets:false,tracesPublished:false},null,2))"
+      - name: Publicar somente JSON sanitizado
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-quality-performance-remote-${{ github.run_id }}
+          path: .ci-artifacts/quality-performance/*.json
+          if-no-files-found: error
+          retention-days: 14

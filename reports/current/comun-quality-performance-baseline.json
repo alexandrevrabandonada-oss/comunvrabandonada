@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-31",
+  "source": "production_synthetic_lab_before_47_9c",
+  "productionDeployment": 5698955589,
+  "viewport": "390x844",
+  "network": "unthrottled_cold_context",
+  "fieldData": false,
+  "routes": [
+    {
+      "route": "home",
+      "status": 200,
+      "htmlBytes": 11720,
+      "jsBytes": 167000,
+      "cssBytes": 18672,
+      "requests": 29,
+      "lcpMs": 2904,
+      "cls": 0,
+      "heapMb": 9.54,
+      "longTasks": 1
+    },
+    {
+      "route": "discovery",
+      "status": 200,
+      "jsBytes": 156010,
+      "cssBytes": 18672,
+      "requests": 26,
+      "lcpMs": 216,
+      "cls": 0
+    },
+    {
+      "route": "search",
+      "status": 200,
+      "jsBytes": 167755,
+      "cssBytes": 18672,
+      "requests": 28,
+      "lcpMs": 6808,
+      "cls": 0,
+      "longTasks": 1,
+      "finding": "hydration_and_variable_multisource_latency"
+    },
+    {
+      "route": "process",
+      "status": 200,
+      "jsBytes": 171550,
+      "cssBytes": 18672,
+      "requests": 31,
+      "lcpMs": 2184,
+      "cls": 0
+    },
+    {
+      "route": "sidewalks",
+      "status": 200,
+      "jsBytes": 448281,
+      "cssBytes": 28725,
+      "requests": 24,
+      "lcpMs": 840,
+      "cls": 0,
+      "heapMb": 15.35,
+      "longTasks": 3
+    },
+    {
+      "route": "culture_archive",
+      "status": 200,
+      "jsBytes": 171357,
+      "cssBytes": 18672,
+      "requests": 32,
+      "lcpMs": 712,
+      "cls": 0
+    },
+    {
+      "route": "culture_radio",
+      "status": 200,
+      "jsBytes": 156010,
+      "cssBytes": 18672,
+      "requests": 34,
+      "lcpMs": 248,
+      "cls": 0
+    },
+    {
+      "route": "culture_art",
+      "status": 200,
+      "jsBytes": 171357,
+      "cssBytes": 18672,
+      "requests": 32,
+      "lcpMs": 652,
+      "cls": 0
+    },
+    {
+      "route": "help",
+      "status": 404,
+      "finding": "canonical_help_route_missing"
+    },
+    {
+      "route": "help_security",
+      "status": 200,
+      "jsBytes": 156010,
+      "cssBytes": 18672,
+      "requests": 23,
+      "lcpMs": 204,
+      "cls": 0
+    },
+    {
+      "route": "offline",
+      "status": 200,
+      "jsBytes": 167383,
+      "cssBytes": 18672,
+      "requests": 32,
+      "lcpMs": 252,
+      "cls": 0
+    },
+    {
+      "route": "auth",
+      "status": 200,
+      "jsBytes": 177619,
+      "cssBytes": 18672,
+      "requests": 32,
+      "lcpMs": 452,
+      "cls": 0
+    }
+  ],
+  "privacy": "canonical_route_names_and_aggregate_metrics_only"
+}

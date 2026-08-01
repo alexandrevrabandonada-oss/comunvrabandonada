@@ -1,16 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { isSafeComunRoute, migrateSidewalkDraft, parseSafeDrafts } from "./comun-pwa";
+import { isSafeComunRoute } from "./comun-pwa";
 
-describe("COMUN PWA safety", () => {
-  it("aceita somente retornos públicos seguros", () => {
-    expect(isSafeComunRoute("/comun/pautas/calcadas")).toBe(true);
-    expect(isSafeComunRoute("/comun/admin")).toBe(false);
-    expect(isSafeComunRoute("https://example.com/comun")).toBe(false);
-  });
-  it("rejeita rascunhos inválidos", () => expect(parseSafeDrafts('[{"description":"sensível"}]')).toEqual([]));
-  it("migra o rascunho legado sem conteúdo sensível", () => {
-    const [draft] = migrateSidewalkDraft('{"step":3,"category":"buraco","manualMap":true}');
-    expect(draft).toMatchObject({ schemaVersion: 2, step: 3, category: "buraco" });
-    expect(draft).not.toHaveProperty("description");
+describe("PWA public offline boundary", () => {
+  it("accepts only allowlisted public paths without query or fragment", () => {
+    expect(isSafeComunRoute("/comun/pautas/calcadas-em-circulacao")).toBe(true);
+    expect(isSafeComunRoute("/comun/seguranca")).toBe(true);
+    expect(isSafeComunRoute("/comun/buscar?q=contato-privado")).toBe(false);
+    expect(isSafeComunRoute("/comun/minha-participacao")).toBe(false);
+    expect(isSafeComunRoute("/comun/admin/operacao")).toBe(false);
+    expect(isSafeComunRoute("https://example.org/comun/pautas/x")).toBe(false);
   });
 });

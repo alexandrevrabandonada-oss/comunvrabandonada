@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- derivada local revisada; evita proxy externo */
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -21,7 +22,21 @@ import {
   VOLTA_REDONDA_MAP,
 } from "@/lib/sidewalk-map-config";
 import type { SidewalkBasemapProvider } from "@/lib/sidewalk-basemap-provider";
-import { SidewalkMapLibreMap } from "@/components/sidewalk-maplibre-map";
+
+const SidewalkMapLibreMap = dynamic(
+  () =>
+    import("@/components/sidewalk-maplibre-map").then(
+      (module) => module.SidewalkMapLibreMap,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <p className="absolute inset-0 grid place-items-center p-6 text-center font-bold">
+        Carregando a base cartográfica. A lista continua disponível.
+      </p>
+    ),
+  },
+);
 
 const conditions = {
   good: "Boa",
@@ -63,7 +78,7 @@ export function SidewalkRealMap({
       null,
     );
   const [view, setView] = useState<"map" | "list">(
-      params.get("vista") === "lista" ? "list" : "map",
+      params.get("vista") === "mapa" ? "map" : "list",
     ),
     [zoom, setZoom] = useState(1),
     [pan, setPan] = useState({ x: 0, y: 0 }),
@@ -118,9 +133,9 @@ export function SidewalkRealMap({
           (!filters.period ||
             Boolean(
               x.last_observed_at &&
-                new Date(x.last_observed_at).getTime() >=
-                  referenceTime -
-                    Number.parseInt(filters.period, 10) * 24 * 60 * 60 * 1000,
+              new Date(x.last_observed_at).getTime() >=
+                referenceTime -
+                  Number.parseInt(filters.period, 10) * 24 * 60 * 60 * 1000,
             ))
         );
       }),
@@ -143,7 +158,7 @@ export function SidewalkRealMap({
     }).forEach(([key, value]) => {
       if (value) q.set(key, value);
     });
-    if (nextView === "list") q.set("vista", "lista");
+    q.set("vista", nextView === "map" ? "mapa" : "lista");
     router.replace(`${pathname}${q.size ? `?${q}` : ""}`, { scroll: false });
   };
   const change = (key: keyof Filters, value: string) =>

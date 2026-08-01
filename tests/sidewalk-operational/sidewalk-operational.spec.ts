@@ -34,10 +34,15 @@ test("participante sem GPS usa teclado para posicionar e confere privacidade", a
   await expect(file).toHaveAttribute("capture", "environment");
   await file.setInputFiles("public/icons/comun-192.png");
   await expect(
-    page.getByText(/fotografia e o ponto exato ficam privados/i),
+    page.getByText(/fotografia original e a identidade permanecem privadas/i),
   ).toBeVisible();
   await expect(
-    page.getByRole("checkbox", { name: /Autorizo a publicação sanitizada/ }),
+    page.getByText(/uma derivada revisada e o ponto exato marcado poderão/i),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("checkbox", {
+      name: /Autorizo a publicação do ponto exato marcado.*versão sanitizada/,
+    }),
   ).not.toBeChecked();
   await expect(
     page.getByRole("checkbox", {

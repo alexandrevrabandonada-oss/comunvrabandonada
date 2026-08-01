@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { SearchResult } from "@/lib/unified-search";
 import type { CivicIntentMatch } from "@/lib/civic-intelligence/intents";
+import { formatComunDate } from "@/lib/comun-date";
 
 type EnrichedResult = SearchResult & { matchReason?: string };
 type ApiResponse = {
@@ -212,8 +213,7 @@ export function LiveSearchResults({
                       className="mt-2 block text-xs text-comun-paper/60"
                       dateTime={result.updatedAt}
                     >
-                      Fonte atualizada em{" "}
-                      {new Date(result.updatedAt).toLocaleDateString("pt-BR")}
+                      Fonte atualizada em {formatComunDate(result.updatedAt)}
                     </time>
                   ) : null}
                   {result.matchReason ? (

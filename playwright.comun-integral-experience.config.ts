@@ -39,7 +39,7 @@ export default defineConfig({
           ...process.env,
           COMUN_SIDEWALK_OPERATIONAL_V2: "enabled",
         },
-        reuseExistingServer: true,
+        reuseExistingServer: false,
         timeout: 120_000,
       },
 });

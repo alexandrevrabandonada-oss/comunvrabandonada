@@ -1,0 +1,42 @@
+{
+  "simple": {
+    "initialJsKb": 190,
+    "cssKb": 25,
+    "imagesKb": 600,
+    "fontsKb": 100,
+    "requests": 36,
+    "heapMb": 18,
+    "lcpMs": 3200,
+    "longTasks": 3
+  },
+  "visual": {
+    "initialJsKb": 225,
+    "cssKb": 32,
+    "imagesKb": 1600,
+    "fontsKb": 100,
+    "requests": 46,
+    "heapMb": 25,
+    "lcpMs": 3200,
+    "longTasks": 5
+  },
+  "rich": {
+    "initialJsKb": 500,
+    "cssKb": 42,
+    "imagesKb": 2000,
+    "fontsKb": 100,
+    "requests": 52,
+    "heapMb": 34,
+    "lcpMs": 3600,
+    "longTasks": 9
+  },
+  "media": {
+    "initialJsKb": 230,
+    "cssKb": 32,
+    "imagesKb": 1200,
+    "fontsKb": 100,
+    "requests": 46,
+    "heapMb": 26,
+    "lcpMs": 3200,
+    "longTasks": 5
+  }
+}
