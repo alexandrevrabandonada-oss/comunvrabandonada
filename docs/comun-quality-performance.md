@@ -92,6 +92,8 @@ Os orçamentos foram derivados do baseline, por classe, e não alteram os limite
 
 Home, ajuda, segurança, pauta textual e resultado usam “simples”; Acervo, Arte e territórios, “visual”; Calçadas, mapa, busca e Central, “rica”; Rádio/player, “mídia”. Áudio iniciado pela pessoa não conta como transferência inicial.
 
+O gate de orçamento mede sempre o build candidato em `next start` local isolado, inclusive quando é orquestrado pelo pós-merge. Production permanece no preflight, nos smokes e no no-leak, mas sua latência de rede e a quantidade variável de conteúdo publicado não são misturadas com o orçamento de laboratório. Amostras remotas frias continuam registradas como diagnóstico, sem relaxar os limites para fazê-las passar.
+
 ## Carga, rede e IA
 
 O contrato materializa 25, 50, 100, 500 e 1.000 documentos públicos sintéticos em memória, valida paginação de 25 e deduplicação. Ensaios integrados continuam responsáveis por Supabase local, Inbox e Minha Participação; nenhuma fixture é publicada em Production.

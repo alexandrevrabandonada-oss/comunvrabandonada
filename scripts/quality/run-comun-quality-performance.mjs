@@ -20,6 +20,8 @@ run(
     "@performance",
   ],
   {
+    COMUN_BASE_URL: "http://127.0.0.1:3022",
+    PLAYWRIGHT_SKIP_WEBSERVER: "0",
     COMUN_QUALITY_ENFORCE_BUDGETS: "1",
     COMUN_QUALITY_SERVER_COMMAND: "npm run start -- -p 3022",
   },
