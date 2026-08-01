@@ -1,6 +1,6 @@
 # Tijolo 47.9C — qualidade integral
 
-Fechado em 01/08/2026. Base: `47d0925a80b494f1fc60cb3a8709d275a8e71ff1`. Candidato principal: `88238d2108fe8b4e4b2a2127703302fa012f2953`. Branch principal: `codex/tijolo-47-9c-qualidade-integral`. PR principal: `#131`, merge `ff38327d703a0eb83c39d08b9ed3ae176239fc1d`. Reparo focal pós-merge: PR `#132`, candidato `71261a09f3f65fc203b322a945586e8b975339a9`, merge final `a118d7006da2f5358a6b65c48cd803a04ffb6fbd`.
+Fechado em 01/08/2026. Base: `47d0925a80b494f1fc60cb3a8709d275a8e71ff1`. Candidato principal: `88238d2108fe8b4e4b2a2127703302fa012f2953`. Branch principal: `codex/tijolo-47-9c-qualidade-integral`. PR principal: `#131`, merge `ff38327d703a0eb83c39d08b9ed3ae176239fc1d`. Reparos focais: PR `#132`, candidato `71261a09f3f65fc203b322a945586e8b975339a9`, merge `a118d7006da2f5358a6b65c48cd803a04ffb6fbd`; PR `#134`, candidato `a45a88a86912ca1a58951246f44b9dd2f4b2e6ea`, merge funcional final `0aad72c96d8b200e0f682f542723dc0a6de8333e`. O fechamento remoto intermediário foi preservado no PR documental `#133`, merge `d47e5de3e15780d20b64985ca123bdadaedf4f05`.
 
 ## Classificação
 
@@ -16,7 +16,7 @@ O manifest tem identidade e escopo canônicos. O service worker `comun-pwa-v2` s
 
 ## Performance e observabilidade
 
-Os budgets são separados em `simple`, `visual`, `rich` e `media`. O gate final usa `next build` + `next start`, contextos frios e enforcement. Na rodada final em 390×844, a Home mediu 160,1 kB JS/17 requests/LCP 192 ms; busca 160,9 kB/14/LCP 116 ms; Calçadas inicial 167,3 kB/24/LCP 164 ms. Todos os oito percursos passaram nos nove viewports. São dados sintéticos de laboratório, não Web Vitals de campo.
+Os budgets são separados em `simple`, `visual`, `rich` e `media`. O gate final usa `next build` + `next start`, contextos frios e enforcement. Na rodada final em 390×844, a Home mediu 18,7 kB HTML/168,3 kB JS/10,9 kB CSS/17 requests/LCP 196 ms; busca 169,1 kB JS/14 requests/LCP 124 ms; Calçadas inicial 176,4 kB JS/24 requests/LCP 148 ms. Imagens e fontes marcaram 0 kB nessas fixtures isoladas, agora como valor medido por CDP e sujeito a budget, não como ausência presumida. Todos os oito percursos passaram nos nove viewports. São dados sintéticos de laboratório, não Web Vitals de campo.
 
 Calçadas agora começa na lista funcional; MapLibre e PMTiles só carregam após a pessoa escolher “Mapa” ou abrir `?vista=mapa`. A navegação global e os cards da Rádio não fazem prefetch indiscriminado. A busca usa primeiro a projeção lexical e preserva `unifiedPublicSearch` como fallback. Datas públicas usam o fuso explícito `America/Sao_Paulo`, eliminando divergência de hidratação.
 
@@ -33,11 +33,13 @@ Web Vitals são amostrados em 20% e agregados por hora, métrica, classe de rota
 - carga pública sintética: 25, 50, 100, 500 e 1.000 documentos;
 - build, typecheck, lint, Prettier focal e `git diff --check`: verdes;
 - reset integral, RLS e jornadas autenticadas dependentes do Supabase local: verdes no runner descartável do CI; o daemon Docker local estava indisponível e isso não foi declarado como passe local;
-- PR principal verde no run `30683251675`; PR focal verde nos runs `30685312412` e `30685312409`;
-- pós-merge final verde no run `30686182181`: SHA de Production, PWA, acessibilidade, performance, carga, rede, autenticação negativa, no-leak, coleta e classificação;
-- deployment Production `5701989409`, `READY`, servindo `a118d7006da2f5358a6b65c48cd803a04ffb6fbd`.
+- PR principal verde no run `30683251675`; reparo de isolamento verde nos runs `30685312412` e `30685312409`; reparo de envelope verde nos runs `30687001201` e `30687001276`;
+- pós-merge funcional final verde no run `30688027449`: SHA de Production, PWA, acessibilidade, performance, carga, rede, autenticação negativa, no-leak, coleta e classificação;
+- deployment Production `5702316082`, `READY`, servindo `0aad72c96d8b200e0f682f542723dc0a6de8333e`.
 
-A primeira execução pós-merge registrou um crash isolado do Chromium no ensaio PWA. A repetição controlada, feita somente após classificar o `SIGSEGV`, passou PWA e WCAG, mas revelou que a performance herdava a URL de Production e misturava laboratório com rede/conteúdo publicado. O PR focal `#132` corrigiu o harness para medir sempre o `next start` isolado, preservou todos os budgets originais e adicionou contrato antirregressão. O pós-merge final passou sem retry adicional.
+A primeira execução pós-merge registrou um crash isolado do Chromium no ensaio PWA. A repetição controlada, feita somente após classificar o `SIGSEGV`, passou PWA e WCAG, mas revelou que a performance herdava a URL de Production e misturava laboratório com rede/conteúdo publicado. O PR focal `#132` corrigiu o harness para medir sempre o `next start` isolado, preservou todos os budgets originais e adicionou contrato antirregressão. O pós-merge desse reparo passou sem retry adicional.
+
+A releitura terminal do pedido encontrou que imagens e fontes tinham budgets definidos, porém ainda não eram termos do enforcement, e que HTML, TTFB, FCP, interação aproximada e erros de console não apareciam no envelope. O PR `#134` fechou essa lacuna com contagem CDP sem URLs, status HTTP obrigatório, classes de erro sanitizadas e telemetria desativada somente no build de laboratório. Os budgets não foram relaxados. A classificação continuou `READY_FOR_REAL_DEVICE_REHEARSAL` depois do novo CI e pós-merge integrais.
 
 O audit de dependências reduziu findings altos de 10 para 4 ao atualizar PostCSS para 8.5.25. Os quatro restantes pertencem ao toolchain ESLint de desenvolvimento; não foi aplicado downgrade nem `audit fix` destrutivo.
 
