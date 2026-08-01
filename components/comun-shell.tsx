@@ -18,9 +18,13 @@ export function ComunShell({
   return (
     <Suspense
       fallback={
-        <main id="conteudo" className="min-h-screen overflow-x-hidden">
-          {children}
-        </main>
+        <div
+          role="status"
+          aria-live="polite"
+          className="min-h-screen bg-comun-paper px-4 py-6 text-sm font-bold text-comun-black"
+        >
+          Carregando experiência…
+        </div>
       }
     >
       <ComunAppShell
