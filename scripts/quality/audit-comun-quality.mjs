@@ -15,6 +15,7 @@ const [
   packageJson,
   help,
   date,
+  workflow,
 ] = await Promise.all([
   read("public/sw.js"),
   read("lib/comun-pwa.ts"),
@@ -28,6 +29,7 @@ const [
   read("package.json"),
   read("app/comun/ajuda/page.tsx"),
   read("lib/comun-date.ts"),
+  read(".github/workflows/comun-quality-performance.yml"),
 ]);
 
 const checks = {
@@ -73,6 +75,11 @@ const checks = {
     help.includes("Ajuda para seguir sem se perder") &&
     help.includes("/comun/offline"),
   deterministicDate: date.includes("timeZone: COMUN_TIME_ZONE"),
+  disposableSidewalkLedgerExact:
+    workflow.includes("--adopt-local-validation-ledger") &&
+    workflow.includes(
+      "supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json",
+    ),
   postcssPatched:
     Number(JSON.parse(packageJson).devDependencies.postcss.split(".").at(-1)) >=
     17,

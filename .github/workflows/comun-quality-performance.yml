@@ -76,9 +76,12 @@ jobs:
           npm run quality:test
           npm run quality:load
       - name: Supabase descartável e migration forward-only
+        env:
+          COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
         run: |
           supabase start
           supabase db reset --local --yes
+          node scripts/comun-local-env.mjs run node scripts/solo/apply-forward-only.mjs --adopt-local-validation-ledger
           npm run audit:rls-matrix
       - run: npx playwright install --with-deps chromium
       - name: WCAG automatizável em nove viewports
