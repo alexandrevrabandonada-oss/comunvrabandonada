@@ -1,4 +1,7 @@
-import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import {
+  createPublicSupabaseClient,
+  createServiceSupabaseClient,
+} from "@/lib/supabase/server";
 import type {
   PautaContribution,
   PautaEvidenceItem,
@@ -76,22 +79,42 @@ export type PautaContributionSafetyDecision = {
 };
 
 export async function listPublicPautaSpaces() {
-  const supabase = createServiceSupabaseClient();
+  const serviceSupabase = createServiceSupabaseClient();
+  const publicSupabase = createPublicSupabaseClient();
+  const supabase = serviceSupabase ?? publicSupabase;
   if (!supabase) return [] as PublicPautaSpace[];
 
-  const [{ data, error }, canonical] = await Promise.all([
-    supabase
+  let { data, error } = await supabase
+    .from("comun_pauta_spaces")
+    .select(
+      "id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, public_status, priority, urgency, risk_level, responsible_public, territory_id, affected_people_public, problem_public, demand_public, proposals_public, participation_public, last_operational_update_at, created_at, updated_at",
+    )
+    .eq("visibility", "public")
+    .neq("status", "archived")
+    .order("updated_at", { ascending: false });
+
+  if (error && serviceSupabase && publicSupabase) {
+    const publicResult = await publicSupabase
       .from("comun_pauta_spaces")
       .select(
         "id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, public_status, priority, urgency, risk_level, responsible_public, territory_id, affected_people_public, problem_public, demand_public, proposals_public, participation_public, last_operational_update_at, created_at, updated_at",
       )
       .eq("visibility", "public")
       .neq("status", "archived")
-      .order("updated_at", { ascending: false }),
-    inspectCanonicalPautaRows(supabase),
-  ]);
+      .order("updated_at", { ascending: false });
+    data = publicResult.data;
+    error = publicResult.error;
+  }
 
   if (error || !data) return [];
+  const canonical = serviceSupabase
+    ? await inspectCanonicalPautaRows(serviceSupabase)
+    : {
+        failed: false,
+        rows: (data as PautaSpace[]).filter(
+          (space) => space.slug === CANONICAL_SIDEWALK_PAUTA_SLUG,
+        ),
+      };
   const spaces: PublicPautaSpace[] = await Promise.all(
     (data as PautaSpace[]).map(async (space) => ({
       ...(await withPautaStats(space)),
@@ -161,8 +184,27 @@ async function inspectCanonicalPautaRows(
     )
     .eq("slug", CANONICAL_SIDEWALK_PAUTA_SLUG);
   if (error) {
-    console.error("COMUN_CANONICAL_PAUTA_QUERY_FAILED");
-    return { failed: true, rows: [] as PautaSpace[] };
+    const publicSupabase = createPublicSupabaseClient();
+    if (!publicSupabase) {
+      console.error("COMUN_CANONICAL_PAUTA_QUERY_FAILED");
+      return { failed: true, rows: [] as PautaSpace[] };
+    }
+    const publicResult = await publicSupabase
+      .from("comun_pauta_spaces")
+      .select(
+        "id, slug, title, summary, category, community, status, visibility, public_synthesis, next_step, created_from_signal, editorial_checklist, public_status, priority, urgency, risk_level, responsible_public, territory_id, affected_people_public, problem_public, demand_public, proposals_public, participation_public, last_operational_update_at, created_at, updated_at",
+      )
+      .eq("slug", CANONICAL_SIDEWALK_PAUTA_SLUG)
+      .eq("visibility", "public")
+      .neq("status", "archived");
+    if (publicResult.error || !publicResult.data?.length) {
+      console.error("COMUN_CANONICAL_PAUTA_QUERY_FAILED");
+      return { failed: true, rows: [] as PautaSpace[] };
+    }
+    return {
+      failed: false,
+      rows: publicResult.data as PautaSpace[],
+    };
   }
   return { failed: false, rows: (data ?? []) as PautaSpace[] };
 }

@@ -16,69 +16,71 @@ const base = {
   containsPrivateData: false,
 };
 
-if (!connectionString) {
-  const payload = {
-    ...base,
-    status: "canonical_source_unavailable_locally",
-    counts: [],
-    findings: [
-      { type: "remote_source_not_configured", severity: "info", count: 1 },
-    ],
-  };
-  await persist(payload);
-  console.log(JSON.stringify({ ok: !requireRemote, status: payload.status }));
-  if (requireRemote) process.exitCode = 1;
-} else {
-  const client = new pg.Client({
-    connectionString,
-    connectionTimeoutMillis: 8_000,
-    query_timeout: 15_000,
-  });
-  try {
-    await client.connect();
-    await client.query("set default_transaction_read_only = on");
-    await client.query("begin transaction read only");
-    const counts = [];
-    for (const definition of countDefinitions) {
-      const response = await client.query(definition.sql);
-      counts.push({
-        key: definition.key,
-        scope: definition.scope,
-        source: definition.source,
-        filters: definition.filters,
-        visibility: definition.visibility,
-        state: definition.state,
-        referenceDate,
-        count: Number(response.rows[0]?.count ?? 0),
-      });
-    }
-    await client.query("rollback");
-    const byKey = new Map(counts.map((item) => [item.key, item.count]));
-    const findings = findingDefinitions
-      .map((definition) => ({
-        ...definition,
-        count: byKey.get(definition.key) ?? 0,
-      }))
-      .filter((item) => item.count > 0);
-    const blocking = findings.filter((item) => item.severity === "critical");
+async function run() {
+  if (!connectionString) {
     const payload = {
       ...base,
-      status: blocking.length ? "inconsistent" : "consistent",
-      counts,
-      findings,
+      status: "canonical_source_unavailable_locally",
+      counts: [],
+      findings: [
+        { type: "remote_source_not_configured", severity: "info", count: 1 },
+      ],
     };
     await persist(payload);
-    console.log(
-      JSON.stringify({
-        ok: blocking.length === 0,
-        status: payload.status,
-        counts: counts.length,
-        findings: findings.length,
-      }),
-    );
-    if (blocking.length) process.exitCode = 1;
-  } finally {
-    await client.end().catch(() => undefined);
+    console.log(JSON.stringify({ ok: !requireRemote, status: payload.status }));
+    if (requireRemote) process.exitCode = 1;
+  } else {
+    const client = new pg.Client({
+      connectionString,
+      connectionTimeoutMillis: 8_000,
+      query_timeout: 15_000,
+    });
+    try {
+      await client.connect();
+      await client.query("set default_transaction_read_only = on");
+      await client.query("begin transaction read only");
+      const counts = [];
+      for (const definition of countDefinitions) {
+        const response = await client.query(definition.sql);
+        counts.push({
+          key: definition.key,
+          scope: definition.scope,
+          source: definition.source,
+          filters: definition.filters,
+          visibility: definition.visibility,
+          state: definition.state,
+          referenceDate,
+          count: Number(response.rows[0]?.count ?? 0),
+        });
+      }
+      await client.query("rollback");
+      const byKey = new Map(counts.map((item) => [item.key, item.count]));
+      const findings = findingDefinitions
+        .map((definition) => ({
+          ...definition,
+          count: byKey.get(definition.key) ?? 0,
+        }))
+        .filter((item) => item.count > 0);
+      const blocking = findings.filter((item) => item.severity === "critical");
+      const payload = {
+        ...base,
+        status: blocking.length ? "inconsistent" : "consistent",
+        counts,
+        findings,
+      };
+      await persist(payload);
+      console.log(
+        JSON.stringify({
+          ok: blocking.length === 0,
+          status: payload.status,
+          counts: counts.length,
+          findings: findings.length,
+        }),
+      );
+      if (blocking.length) process.exitCode = 1;
+    } finally {
+      await client.end().catch(() => undefined);
+    }
   }
 }
 
@@ -280,3 +282,5 @@ const findingDefinitions = [
 function count(key, scope, source, filters, visibility, state, sql) {
   return { key, scope, source, filters, visibility, state, sql };
 }
+
+await run();
