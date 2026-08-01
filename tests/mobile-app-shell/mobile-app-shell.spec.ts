@@ -44,7 +44,7 @@ test("Explorar agrupa diretórios e miniapp preserva uma navegação local", asy
     "Resultados",
     "Acervo",
   ])
-    await expect(page.getByLabel(name, { exact: true })).toBeVisible();
+    await expect(page.getByLabel(name, { exact: true }).first()).toBeVisible();
   await page.goto("/comun/calcadas");
   await expect(
     page.getByRole("navigation", { name: "Navegação do Mapa das Calçadas" }),
@@ -52,9 +52,13 @@ test("Explorar agrupa diretórios e miniapp preserva uma navegação local", asy
   await expect(
     page.getByRole("link", { name: "Registrar calçada", exact: true }),
   ).toHaveCount(1);
-  await expect(
-    page.getByText("Sobre este processo", { exact: false }),
-  ).not.toBeVisible();
+  expect(
+    await page
+      .getByText("Sobre este processo", { exact: false })
+      .evaluateAll((elements) =>
+        elements.every((element) => !element.getClientRects().length),
+      ),
+  ).toBe(true);
   await expect(page.getByLabel("Instalar COMUN")).toHaveCount(0);
 });
 

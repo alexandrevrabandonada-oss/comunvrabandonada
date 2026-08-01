@@ -35,6 +35,7 @@ import { getPublicPautaActionCycle } from "@/lib/pauta-action-cycle-data";
 import { ComunExperiencePilot } from "@/components/comun-experience-pilot";
 import { isExperienceCoherencePilot } from "@/lib/experience-coherence";
 import { PautaMemoryRelations } from "@/components/civic-intelligence/pauta-memory-relations";
+import { isComunAppV2 } from "@/lib/comun-shell-contract";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -56,6 +57,7 @@ export default async function PautaPage(props: {
   const searchParams = await props.searchParams;
   const params = await props.params;
   const experiencePilot = isExperienceCoherencePilot(searchParams.experiencia);
+  const appV2 = isComunAppV2(searchParams.experiencia);
   const space = await getPublicPautaSpaceBySlug(params.slug);
   if (!space)
     return (
@@ -93,13 +95,23 @@ export default async function PautaPage(props: {
       searchParams.contribuicao === "pendente" ||
       searchParams.contribuicao === "recebida";
     return (
-      <ComunShell>
+      <ComunShell
+        appBar={
+          appV2
+            ? {
+                title: space.title,
+                contextLabel: `Pauta · ${space.community ?? "Volta Redonda"}`,
+                backDestination: "/comun/pautas",
+              }
+            : undefined
+        }
+      >
         <ComunExperiencePilot
           active={experiencePilot}
           level={1}
           currentHref={`/comun/pautas/${space.slug}`}
         >
-          <PautaReturn />
+          {appV2 ? null : <PautaReturn />}
           {contributionAck ? (
             <section className="bg-comun-black py-3">
               <div className="mx-auto max-w-6xl px-4">
@@ -115,6 +127,7 @@ export default async function PautaPage(props: {
             modules={modules}
             circles={circles}
             sidewalks={sidewalks}
+            appV2={appV2}
           />
           <SidewalkMemorySection pautaSlug={space.slug} memories={memories} />
         </ComunExperiencePilot>

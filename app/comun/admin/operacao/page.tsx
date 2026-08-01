@@ -15,6 +15,8 @@ import {
 } from "@/lib/operational-queue";
 import { ComunExperiencePilot } from "@/components/comun-experience-pilot";
 import { isExperienceCoherencePilot } from "@/lib/experience-coherence";
+import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
+import { ComunOperationalShell } from "@/components/comun-operational-shell";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +42,8 @@ export default async function OperationPage({
   const experiencePilot = isExperienceCoherencePilot(
     rawSearchParams.experiencia,
   );
+  const appV2 = isComunAppV2(rawSearchParams.experiencia);
+  const pilotHref = (href: string) => withComunAppV2(href, appV2);
   const query = normalizeOperationalQuery(rawSearchParams);
   const [result, options] = await Promise.all([
     listOperationalItems(query),
@@ -55,313 +59,329 @@ export default async function OperationPage({
       level={0}
       currentHref={operationalQueryHref(query)}
     >
-      <main
-        className="mx-auto max-w-6xl p-4 text-slate-50 sm:p-6"
-        data-operational-surface="central"
-      >
-        <nav aria-label="Retorno da Central" className="mb-5">
-          <Link
-            className="inline-flex min-h-11 items-center font-semibold underline"
-            href="/comun/admin"
-          >
-            ← Voltar à administração
-          </Link>
-        </nav>
-        <header className="max-w-3xl">
-          <p className="text-sm font-semibold uppercase">Cuidado coletivo</p>
-          <h1 className="text-3xl font-bold">Central operacional</h1>
-          <p className="mt-2">
-            O que precisa de cuidado agora, qual papel pode agir e o que está
-            bloqueando. Decisões políticas e editoriais permanecem nas fontes
-            responsáveis. Mostrando {result.items.length} de{" "}
-            {result.pageInfo.totalItems} itens no recorte atual.
-          </p>
-        </header>
-        {rawSearchParams.inteligencia === "busca-viva" ? (
-          <section
-            className="mt-6 border-2 border-slate-300 p-4"
-            aria-labelledby="central-public-relations"
-          >
-            <h2 id="central-public-relations" className="font-bold uppercase">
-              Relações públicas, somente leitura
-            </h2>
-            <p className="mt-2 text-sm">
-              A busca operacional acima permanece separada. Este atalho consulta
-              apenas a projeção pública e não envia notas, contatos ou itens da
-              fila.
-            </p>
-            <form
-              action="/comun/buscar"
-              className="mt-3 flex flex-col gap-2 sm:flex-row"
-            >
-              <input
-                aria-label="Buscar relações públicas"
-                className="min-h-11 flex-1 border-2 border-slate-300 bg-slate-950 px-3"
-                name="q"
-                placeholder="Pauta, território ou resultado público"
-              />
-              <button className="min-h-11 border-2 border-slate-200 px-3 font-bold">
-                Abrir busca pública
-              </button>
-            </form>
-          </section>
-        ) : null}
-        <section
-          className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
-          aria-label="Recortes de cuidado agora"
+      <ComunOperationalShell active={appV2}>
+        <main
+          className={`mx-auto max-w-6xl p-4 text-slate-50 sm:p-6 ${appV2 ? "surface-operation" : ""}`}
+          data-operational-surface="central"
         >
-          {[
-            [
-              "Agora · P1",
-              result.summary.p1,
-              operationalQueryHref(query, { page: 1, priority: 1 }),
-            ],
-            [
-              "Sem responsável",
-              result.summary.unassigned,
-              operationalQueryHref(query, { page: 1, unassigned: true }),
-            ],
-            [
-              "Vencidos",
-              result.summary.overdue,
-              operationalQueryHref(query, { page: 1, dueState: "overdue" }),
-            ],
-            [
-              "Bloqueados",
-              result.summary.blocked,
-              operationalQueryHref(query, { page: 1, status: "blocked" }),
-            ],
-            [
-              "Aguardando terceiro",
-              result.summary.waitingThirdParty,
-              "/comun/admin/operacao?dueState=blocked_by_third_party",
-            ],
-            [
-              "Retiradas",
-              result.summary.withdrawals,
-              operationalQueryHref(query, { page: 1, queue: "withdrawals" }),
-            ],
-            [
-              "Incidentes",
-              result.summary.incidents,
-              "/comun/admin/operacao?type=incident",
-            ],
-          ].map(([title, count, href]) => (
+          <nav aria-label="Retorno da Central" className="mb-5">
             <Link
-              className="rounded-xl border p-3 hover:bg-white/10"
-              href={String(href)}
-              key={String(title)}
+              className="inline-flex min-h-11 items-center font-semibold underline"
+              href="/comun/admin"
             >
-              <span className="block text-sm font-medium">{title}</span>
-              <strong className="text-2xl">{count}</strong>
+              ← Voltar à administração
             </Link>
-          ))}
-        </section>
-        <section
-          className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
-          aria-label="Resumo agregado das filas"
-        >
-          {OPERATION_QUEUES.map((queue) => (
-            <div key={queue} className="rounded-xl border p-3">
-              <p className="text-sm font-medium">{QUEUE_LABELS[queue]}</p>
-              <p className="text-2xl font-bold">
-                {result.queueCounts[queue] ?? 0}
-              </p>
-            </div>
-          ))}
-        </section>
-        <details className="mt-6 min-w-0 max-w-full rounded-2xl border p-4 md:hidden">
-          <summary className="cursor-pointer font-semibold">
-            Abrir filtros e ordenação
-          </summary>
-          <FilterForm query={query} options={options} />
-        </details>
-        <section
-          className="mt-6 hidden rounded-2xl border p-4 md:block"
-          aria-label="Filtros server-side"
-        >
-          <h2 className="font-semibold">Filtros e ordenação</h2>
-          <FilterForm query={query} options={options} />
-        </section>
-        <section
-          className="mt-4 flex flex-wrap items-center gap-2"
-          aria-label="Filtros ativos"
-        >
-          <strong>Recorte:</strong>
-          {active.length ? (
-            active.map(([name, value]) => (
-              <Link
-                key={name}
-                className="rounded-full border px-3 py-1 text-sm"
-                href={operationalQueryHref(query, {
-                  page: 1,
-                  [name === "prioridade"
-                    ? "priority"
-                    : name === "responsável"
-                      ? "assignedTo"
-                      : name === "sem_responsável"
-                        ? "unassigned"
-                        : name === "prazo"
-                          ? "dueState"
-                          : name === "tipo"
-                            ? "sourceType"
-                            : name === "busca"
-                              ? "search"
-                              : name]: undefined,
-                })}
-              >
-                × {name}: {String(value)}
-              </Link>
-            ))
-          ) : (
-            <span className="text-sm">Sem filtros ativos.</span>
-          )}{" "}
-          {active.length > 0 && (
-            <Link className="underline" href="/comun/admin/operacao">
-              Limpar filtros
-            </Link>
-          )}
-        </section>
-        <section className="mt-6" aria-live="polite">
-          <div className="flex flex-wrap items-baseline justify-between gap-3">
-            <h2 className="text-xl font-semibold">
-              Página {result.pageInfo.page} de {result.pageInfo.totalPages}
-            </h2>
-            <p className="text-sm">
-              {result.pageInfo.totalItems} itens filtrados ·{" "}
-              {result.totalGeneral} no total geral
+          </nav>
+          <header className="max-w-3xl">
+            <p className="text-sm font-semibold uppercase">Cuidado coletivo</p>
+            <h1 className="text-3xl font-bold">Central operacional</h1>
+            <p className="mt-2">
+              O que precisa de cuidado agora, qual papel pode agir e o que está
+              bloqueando. Decisões políticas e editoriais permanecem nas fontes
+              responsáveis. Mostrando {result.items.length} de{" "}
+              {result.pageInfo.totalItems} itens no recorte atual.
             </p>
-          </div>
-          {noResults ? (
-            <div className="mt-4 rounded-2xl border border-dashed p-6">
-              <h3 className="font-semibold">
-                {active.length ? "Nenhum item neste recorte" : "Fila vazia"}
-              </h3>
-              <p className="mt-1 text-sm">
-                {active.length
-                  ? "Remova filtros ou escolha outro recorte para continuar."
-                  : "Não há ação pendente nesta central no momento."}
+          </header>
+          {rawSearchParams.inteligencia === "busca-viva" ? (
+            <section
+              className="mt-6 border-2 border-slate-300 p-4"
+              aria-labelledby="central-public-relations"
+            >
+              <h2 id="central-public-relations" className="font-bold uppercase">
+                Relações públicas, somente leitura
+              </h2>
+              <p className="mt-2 text-sm">
+                A busca operacional acima permanece separada. Este atalho
+                consulta apenas a projeção pública e não envia notas, contatos
+                ou itens da fila.
               </p>
-              {active.length > 0 && (
+              <form
+                action="/comun/buscar"
+                className="mt-3 flex flex-col gap-2 sm:flex-row"
+              >
+                <input
+                  aria-label="Buscar relações públicas"
+                  className="min-h-11 flex-1 border-2 border-slate-300 bg-slate-950 px-3"
+                  name="q"
+                  placeholder="Pauta, território ou resultado público"
+                />
+                <button className="min-h-11 border-2 border-slate-200 px-3 font-bold">
+                  Abrir busca pública
+                </button>
+              </form>
+            </section>
+          ) : null}
+          <section
+            className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+            aria-label="Recortes de cuidado agora"
+          >
+            {[
+              [
+                "Agora · P1",
+                result.summary.p1,
+                operationalQueryHref(query, { page: 1, priority: 1 }),
+              ],
+              [
+                "Sem responsável",
+                result.summary.unassigned,
+                operationalQueryHref(query, { page: 1, unassigned: true }),
+              ],
+              [
+                "Vencidos",
+                result.summary.overdue,
+                operationalQueryHref(query, { page: 1, dueState: "overdue" }),
+              ],
+              [
+                "Bloqueados",
+                result.summary.blocked,
+                operationalQueryHref(query, { page: 1, status: "blocked" }),
+              ],
+              [
+                "Aguardando terceiro",
+                result.summary.waitingThirdParty,
+                "/comun/admin/operacao?dueState=blocked_by_third_party",
+              ],
+              [
+                "Retiradas",
+                result.summary.withdrawals,
+                operationalQueryHref(query, { page: 1, queue: "withdrawals" }),
+              ],
+              [
+                "Incidentes",
+                result.summary.incidents,
+                "/comun/admin/operacao?type=incident",
+              ],
+            ].map(([title, count, href]) => (
+              <Link
+                className="rounded-xl border p-3 hover:bg-white/10"
+                href={String(href)}
+                key={String(title)}
+              >
+                <span className="block text-sm font-medium">{title}</span>
+                <strong className="text-2xl">{count}</strong>
+              </Link>
+            ))}
+          </section>
+          <section
+            className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
+            aria-label="Resumo agregado das filas"
+          >
+            {OPERATION_QUEUES.map((queue) => (
+              <div key={queue} className="rounded-xl border p-3">
+                <p className="text-sm font-medium">{QUEUE_LABELS[queue]}</p>
+                <p className="text-2xl font-bold">
+                  {result.queueCounts[queue] ?? 0}
+                </p>
+              </div>
+            ))}
+          </section>
+          <details className="mt-6 min-w-0 max-w-full rounded-2xl border p-4 md:hidden">
+            <summary className="cursor-pointer font-semibold">
+              Abrir filtros e ordenação
+            </summary>
+            <FilterForm query={query} options={options} appV2={appV2} />
+          </details>
+          <section
+            className="mt-6 hidden rounded-2xl border p-4 md:block"
+            aria-label="Filtros server-side"
+          >
+            <h2 className="font-semibold">Filtros e ordenação</h2>
+            <FilterForm query={query} options={options} appV2={appV2} />
+          </section>
+          <section
+            className="mt-4 flex flex-wrap items-center gap-2"
+            aria-label="Filtros ativos"
+          >
+            <strong>Recorte:</strong>
+            {active.length ? (
+              active.map(([name, value]) => (
                 <Link
-                  className="mt-3 inline-block underline"
-                  href="/comun/admin/operacao"
+                  key={name}
+                  className="rounded-full border px-3 py-1 text-sm"
+                  href={pilotHref(
+                    operationalQueryHref(query, {
+                      page: 1,
+                      [name === "prioridade"
+                        ? "priority"
+                        : name === "responsável"
+                          ? "assignedTo"
+                          : name === "sem_responsável"
+                            ? "unassigned"
+                            : name === "prazo"
+                              ? "dueState"
+                              : name === "tipo"
+                                ? "sourceType"
+                                : name === "busca"
+                                  ? "search"
+                                  : name]: undefined,
+                    }),
+                  )}
                 >
-                  Limpar filtros
+                  × {name}: {String(value)}
                 </Link>
-              )}
+              ))
+            ) : (
+              <span className="text-sm">Sem filtros ativos.</span>
+            )}{" "}
+            {active.length > 0 && (
+              <Link className="underline" href="/comun/admin/operacao">
+                Limpar filtros
+              </Link>
+            )}
+          </section>
+          <section className="mt-6" aria-live="polite">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <h2 className="text-xl font-semibold">
+                Página {result.pageInfo.page} de {result.pageInfo.totalPages}
+              </h2>
+              <p className="text-sm">
+                {result.pageInfo.totalItems} itens filtrados ·{" "}
+                {result.totalGeneral} no total geral
+              </p>
             </div>
-          ) : (
-            <ul className="mt-4 grid gap-3" aria-label="Itens da página atual">
-              {result.items.map((item) => (
-                <li
-                  key={item.id}
-                  id={`item-${item.id}`}
-                  className={`rounded-2xl border p-4 ${item.queue === "withdrawals" ? "border-red-500 bg-red-950 text-white" : ""}`}
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold">
-                        {QUEUE_LABELS[item.queue]} · {label(item.state)} · P
-                        {item.priority}
-                      </p>
-                      <Link
-                        className="mt-1 block text-lg font-bold underline"
-                        href={`/comun/admin/operacao/${item.id}?returnTo=${encodeURIComponent(returnTo)}#item-${item.id}`}
-                      >
-                        {item.title}
-                      </Link>
-                      <p className="mt-1 text-sm">
-                        {item.publicReason || "Motivo sanitizado indisponível."}
-                      </p>
+            {noResults ? (
+              <div className="mt-4 rounded-2xl border border-dashed p-6">
+                <h3 className="font-semibold">
+                  {active.length ? "Nenhum item neste recorte" : "Fila vazia"}
+                </h3>
+                <p className="mt-1 text-sm">
+                  {active.length
+                    ? "Remova filtros ou escolha outro recorte para continuar."
+                    : "Não há ação pendente nesta central no momento."}
+                </p>
+                {active.length > 0 && (
+                  <Link
+                    className="mt-3 inline-block underline"
+                    href="/comun/admin/operacao"
+                  >
+                    Limpar filtros
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <ul
+                className="mt-4 grid gap-3"
+                aria-label="Itens da página atual"
+              >
+                {result.items.map((item) => (
+                  <li
+                    key={item.id}
+                    id={`item-${item.id}`}
+                    className={`rounded-2xl border p-4 ${item.queue === "withdrawals" ? "border-red-500 bg-red-950 text-white" : ""}`}
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold">
+                          {QUEUE_LABELS[item.queue]} · {label(item.state)} · P
+                          {item.priority}
+                        </p>
+                        <Link
+                          className="mt-1 block text-lg font-bold underline"
+                          href={pilotHref(
+                            `/comun/admin/operacao/${item.id}?returnTo=${encodeURIComponent(pilotHref(returnTo))}#item-${item.id}`,
+                          )}
+                        >
+                          {item.title}
+                        </Link>
+                        <p className="mt-1 text-sm">
+                          {item.publicReason ||
+                            "Motivo sanitizado indisponível."}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-muted px-3 py-1 text-sm">
+                        {label(item.sourceDomain || "legado")} ·{" "}
+                        {label(item.sourceType)}
+                      </span>
                     </div>
-                    <span className="rounded-full bg-muted px-3 py-1 text-sm">
-                      {label(item.sourceDomain || "legado")} ·{" "}
-                      {label(item.sourceType)}
-                    </span>
-                  </div>
-                  <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                    <div>
-                      <dt className="font-medium">Responsável</dt>
-                      <dd>
-                        {item.assignees.length
-                          ? item.assignees
-                              .map(({ displayName }) => displayName)
-                              .join(", ")
-                          : "Sem responsável"}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="font-medium">Prazo indicativo</dt>
-                      <dd>
-                        {formatDue(item.indicativeDueAt)} ·{" "}
-                        {label(item.slaState || "sem SLA aplicável")}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="font-medium">Próxima ação</dt>
-                      <dd>{item.nextAction || "Definir em revisão humana"}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-medium">Papel necessário</dt>
-                      <dd>
-                        {item.requiredRole
-                          ? label(item.requiredRole)
-                          : "Revisão da equipe"}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="font-medium">Contexto permitido</dt>
-                      <dd>
-                        {item.pautaTitle ||
-                          item.territoryName ||
-                          "Sem pauta ou território"}
-                      </dd>
-                    </div>
-                  </dl>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-        <nav
-          className="mt-8 flex flex-wrap items-center justify-between gap-3"
-          aria-label="Paginação"
-        >
-          <Link
-            aria-disabled={!result.pageInfo.hasPrevious}
-            className={
-              !result.pageInfo.hasPrevious
-                ? "pointer-events-none text-muted-foreground"
-                : "underline"
-            }
-            href={operationalQueryHref(current, {
-              page: Math.max(1, result.pageInfo.page - 1),
-            })}
+                    <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                      <div>
+                        <dt className="font-medium">Responsável</dt>
+                        <dd>
+                          {item.assignees.length
+                            ? item.assignees
+                                .map(({ displayName }) => displayName)
+                                .join(", ")
+                            : "Sem responsável"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium">Prazo indicativo</dt>
+                        <dd>
+                          {formatDue(item.indicativeDueAt)} ·{" "}
+                          {label(item.slaState || "sem SLA aplicável")}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium">Próxima ação</dt>
+                        <dd>
+                          {item.nextAction || "Definir em revisão humana"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium">Papel necessário</dt>
+                        <dd>
+                          {item.requiredRole
+                            ? label(item.requiredRole)
+                            : "Revisão da equipe"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium">Contexto permitido</dt>
+                        <dd>
+                          {item.pautaTitle ||
+                            item.territoryName ||
+                            "Sem pauta ou território"}
+                        </dd>
+                      </div>
+                    </dl>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          <nav
+            className="mt-8 flex flex-wrap items-center justify-between gap-3"
+            aria-label="Paginação"
           >
-            Página anterior
-          </Link>
-          <span className="text-sm">
-            {result.pageInfo.totalItems
-              ? `${(result.pageInfo.page - 1) * result.pageInfo.pageSize + 1}–${Math.min(result.pageInfo.page * result.pageInfo.pageSize, result.pageInfo.totalItems)}`
-              : "0"}{" "}
-            de {result.pageInfo.totalItems}
-          </span>
-          <Link
-            aria-disabled={!result.pageInfo.hasNext}
-            className={
-              !result.pageInfo.hasNext
-                ? "pointer-events-none text-muted-foreground"
-                : "underline"
-            }
-            href={operationalQueryHref(current, {
-              page: result.pageInfo.page + 1,
-            })}
-          >
-            Próxima página
-          </Link>
-        </nav>
-      </main>
+            <Link
+              aria-disabled={!result.pageInfo.hasPrevious}
+              className={
+                !result.pageInfo.hasPrevious
+                  ? "pointer-events-none text-muted-foreground"
+                  : "underline"
+              }
+              href={pilotHref(
+                operationalQueryHref(current, {
+                  page: Math.max(1, result.pageInfo.page - 1),
+                }),
+              )}
+            >
+              Página anterior
+            </Link>
+            <span className="text-sm">
+              {result.pageInfo.totalItems
+                ? `${(result.pageInfo.page - 1) * result.pageInfo.pageSize + 1}–${Math.min(result.pageInfo.page * result.pageInfo.pageSize, result.pageInfo.totalItems)}`
+                : "0"}{" "}
+              de {result.pageInfo.totalItems}
+            </span>
+            <Link
+              aria-disabled={!result.pageInfo.hasNext}
+              className={
+                !result.pageInfo.hasNext
+                  ? "pointer-events-none text-muted-foreground"
+                  : "underline"
+              }
+              href={pilotHref(
+                operationalQueryHref(current, {
+                  page: result.pageInfo.page + 1,
+                }),
+              )}
+            >
+              Próxima página
+            </Link>
+          </nav>
+        </main>
+      </ComunOperationalShell>
     </ComunExperiencePilot>
   );
 }
@@ -369,9 +389,11 @@ export default async function OperationPage({
 function FilterForm({
   query,
   options,
+  appV2,
 }: {
   query: ReturnType<typeof normalizeOperationalQuery>;
   options: OperationalFilterOptions;
+  appV2: boolean;
 }) {
   const control =
     "w-full min-w-0 rounded border bg-white p-2 text-slate-950 dark:bg-slate-950 dark:text-slate-50";
@@ -381,6 +403,7 @@ function FilterForm({
       className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4"
     >
       <input type="hidden" name="page" value="1" />
+      {appV2 ? <input type="hidden" name="experiencia" value="app-v2" /> : null}
       <label className="grid gap-1 text-sm">
         Busca segura
         <input

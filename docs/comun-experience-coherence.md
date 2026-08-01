@@ -155,16 +155,20 @@ não contam como compreensão humana.
 
 ## Roadmap preservado
 
-1. **47.8A — Redundância Durável Independente**, em pista paralela: ponto
-   durável do banco, recuperação de Auth, cópia secundária de Storage com idade
-   inferior a 24 horas e restore a partir dessa cópia. Sem provedor escolhido,
-   contratação ou dados reais neste tijolo.
-2. **47.9A — Coerência de experiência e direção UI/UX**.
-3. **47.9B — Busca Viva e Inteligência Transversal**.
-4. **47.9C — Acessibilidade, PWA, performance e dispositivos**.
-5. **47.10 — Conteúdo, ajuda e governança**.
+47.8A permanece em pista paralela: ponto durável do banco, recuperação de Auth,
+cópia secundária de Storage com idade inferior a 24 horas e restore a partir
+dessa cópia. Sem provedor escolhido, contratação ou dados reais neste tijolo.
+
+1. **47.9A2 — App Shell V2 e Gramática Visual**.
+2. **47.9A3 — Fluxos Centrais Streamlined**.
+3. **47.9C — Acessibilidade, PWA, performance e dispositivos**.
+4. **47.9D — Ensaio humano e consolidação visual**.
+5. **47.10 — Conteúdo e governança**.
 6. **47.11 — Ensaio geral e go/no-go**.
 
-`security_resilience` permanece `blocked` por capacidade do provedor; seus
-controles internos seguem verdes. Isso não impede 47.9A, mas impede lançamento
-final. `launch_publicly` permanece fechado.
+Em paralelo permanecem 47.8A, o fechamento do provider 47.9B, Calçadas e conteúdo cultural real. O App Shell V2 é reversível por `?experiencia=app-v2`; ele não promove o ensaio humano 47.9A, não substitui a versão atual e não aciona `launch_publicly`.
+
+`security_resilience` permanece `blocked` por recovery point durável independente
+e cópia secundária de Storage; seus controles internos seguem verdes. Isso não
+impede o piloto 47.9A2, mas impede lançamento final. `launch_publicly` permanece
+fechado.

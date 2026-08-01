@@ -1,8 +1,31 @@
 import Link from "next/link";
 import { ArrowRight, MapPinned } from "lucide-react";
 import { sidewalkMiniappDefinition } from "@/lib/sidewalk-miniapp-definition";
+import { ComunMiniappCard } from "@/components/comun-cards";
+import { withComunAppV2 } from "@/lib/comun-shell-contract";
 
-export function MiniAppContextCard({ compact = false }: { compact?: boolean }) {
+export function MiniAppContextCard({
+  compact = false,
+  appV2 = false,
+}: {
+  compact?: boolean;
+  appV2?: boolean;
+}) {
+  if (appV2)
+    return (
+      <ComunMiniappCard
+        href={withComunAppV2(sidewalkMiniappDefinition.routes.home)}
+        contributionHref={withComunAppV2(
+          sidewalkMiniappDefinition.routes.contribution,
+        )}
+        title={sidewalkMiniappDefinition.title}
+        objective="Registrar barreiras e acompanhar prioridades"
+        territory={sidewalkMiniappDefinition.context.territory.label}
+        status="Registros publicados e revisados"
+        impact="Prioridades em acompanhamento"
+        action={sidewalkMiniappDefinition.primaryAction.label}
+      />
+    );
   return (
     <article
       className={`border-2 border-comun-black bg-white text-comun-black ${compact ? "p-4" : "p-5"}`}

@@ -25,6 +25,8 @@ import { getPersonalCenter } from "@/lib/personal-center";
 import { ComunJourneyEvent } from "@/components/comun-journey-event";
 import { ComunExperiencePilot } from "@/components/comun-experience-pilot";
 import { isExperienceCoherencePilot } from "@/lib/experience-coherence";
+import { isComunAppV2 } from "@/lib/comun-shell-contract";
+import { ComunAppV2Home } from "@/components/comun-app-v2-home";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +38,7 @@ export default async function ComunHomePage({
   const resolvedSearchParams = await searchParams;
   const requestedExperience = resolvedSearchParams.experiencia;
   const experiencePilot = isExperienceCoherencePilot(requestedExperience);
+  const appV2 = isComunAppV2(requestedExperience);
   const civicIntelligencePilot =
     resolvedSearchParams.inteligencia === "busca-viva";
   const [pautas, actions, results, territories, experience, session] =
@@ -60,9 +63,25 @@ export default async function ComunHomePage({
         center={center}
         experience={experience}
         profile={session.profile}
+        appV2={appV2}
+        pautas={pautas}
+        actions={activeActions}
+        results={results}
       />
     );
   }
+
+  if (appV2)
+    return (
+      <ComunShell>
+        <ComunAppV2Home
+          pautas={pautas}
+          actions={activeActions}
+          results={results}
+          memory={experience.memory}
+        />
+      </ComunShell>
+    );
 
   return (
     <ComunShell>
@@ -452,10 +471,18 @@ function AuthenticatedHome({
   center,
   experience,
   profile,
+  appV2 = false,
+  pautas = [],
+  actions = [],
+  results = [],
 }: {
   center: any;
   experience: any;
   profile: any;
+  appV2?: boolean;
+  pautas?: any[];
+  actions?: any[];
+  results?: any[];
 }) {
   const attention = center.inbox
     .filter((item: any) => !item.read_at)
@@ -466,6 +493,19 @@ function AuthenticatedHome({
     center.memberships.length ||
     center.actions.length ||
     center.results.length;
+  if (appV2)
+    return (
+      <ComunShell inboxBadge={attention.length}>
+        <ComunAppV2Home
+          center={center}
+          profile={profile}
+          pautas={pautas}
+          actions={actions}
+          results={results}
+          memory={experience.memory}
+        />
+      </ComunShell>
+    );
   return (
     <ComunShell>
       <ComunSection className="pb-4 pt-8">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import "./comun-app-v2.css";
 import { ComunWebVitals } from "@/components/comun-web-vitals";
 
 export const metadata: Metadata = {
