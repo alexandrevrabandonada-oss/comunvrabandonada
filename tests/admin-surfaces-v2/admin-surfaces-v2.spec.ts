@@ -103,6 +103,10 @@ test("retorno operacional e flag sobrevivem ao detalhe", async ({
     viewport,
   );
   try {
+    await expect(page.locator(".comun-admin-shell-v2")).toHaveAttribute(
+      "data-comun-hydrated",
+      "true",
+    );
     const newItem = page.locator('main a[href="/comun/admin/acervo/novo"]');
     await expect(newItem).toHaveCount(1);
     await newItem.click();

@@ -67,6 +67,8 @@ A terceira execução fechou contraste, foco, formulário, sessão expirada e 18
 
 A comparação entre os traces mostrou a causa do loop: o fluxo navegava quando o snapshot era obtido da URL no evento, mas travava quando o snapshot era memoizado a partir de `useSearchParams` e atualizado durante o mesmo `router.push`. O shell passou a capturar `window.location.search` somente no clique, aplica o mesmo allowlist puro e evita acoplar a navegação ao ciclo reativo do App Router.
 
+O fluxo simples ainda revelou uma corrida do harness: a presença do shell SSR não garante que o handler client-side já hidratou. O shell V2 passou a publicar `data-comun-hydrated=true` no efeito de montagem, e o Playwright aguarda esse contrato antes de clicar. A operação JS usada no primeiro candidate apenas mascarava essa espera.
+
 ## Invariantes preservados
 
 - nenhuma mutation canônica alterada;

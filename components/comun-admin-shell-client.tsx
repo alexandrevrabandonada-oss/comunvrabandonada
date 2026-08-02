@@ -103,6 +103,8 @@ export function ComunAdminShellClient({
 
   useEffect(() => {
     if (!appV2) return;
+    const shell = document.querySelector<HTMLElement>(".comun-admin-shell-v2");
+    shell?.setAttribute("data-comun-hydrated", "true");
     const workspace = document.querySelector<HTMLElement>("#conteudo-admin");
     for (const table of workspace?.querySelectorAll("table") ?? []) {
       if (!table.querySelector("caption") && !table.getAttribute("aria-label"))
@@ -134,6 +136,7 @@ export function ComunAdminShellClient({
       if (placeholder || name)
         field.setAttribute("aria-label", placeholder || name || "Campo");
     }
+    return () => shell?.removeAttribute("data-comun-hydrated");
   }, [appV2, pathname, surface.contextualTitle, surface.family]);
 
   if (!appV2)
