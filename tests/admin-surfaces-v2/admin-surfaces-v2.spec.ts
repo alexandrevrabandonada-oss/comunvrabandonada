@@ -213,3 +213,80 @@ test("@a11y sessão expirada preserva proteção e flag", async ({
     await context.close();
   }
 });
+
+test("@a11y administração sistêmica usa nível zero e preserva a flag", async ({
+  browser,
+}, testInfo) => {
+  const viewport = testInfo.project.use.viewport as {
+    width: number;
+    height: number;
+  };
+  const { context, page } = await openAdmin(
+    browser,
+    "/comun/admin/operacao/superficies/incidents?experiencia=app-v2",
+    viewport,
+  );
+  try {
+    await expect(
+      page.locator("[data-comun-app-v2-page='central-operation']"),
+    ).toBeVisible();
+    await expect(page.locator("[data-comun-bottom-navigation]")).toHaveCount(0);
+    await expect(page.locator("footer")).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { name: "Incidentes" }),
+    ).toBeVisible();
+    const internalLinks = page.locator(
+      "[data-comun-app-v2-page='central-operation'] a[href^='/comun']",
+    );
+    for (let index = 0; index < (await internalLinks.count()); index += 1) {
+      const href = await internalLinks.nth(index).getAttribute("href");
+      expect(
+        new URL(href ?? "", "http://comun.local").searchParams.get(
+          "experiencia",
+        ),
+      ).toBe("app-v2");
+    }
+    const result = await new AxeBuilder({ page }).analyze();
+    expect(
+      result.violations.filter(
+        ({ impact }) => impact === "serious" || impact === "critical",
+      ),
+    ).toEqual([]);
+  } finally {
+    await context.close();
+  }
+});
+
+test("gate de lançamento permanece humano e observabilidade permanece sanitizada", async ({
+  browser,
+}, testInfo) => {
+  if (testInfo.project.name !== "390x844") return;
+  const viewport = testInfo.project.use.viewport as {
+    width: number;
+    height: number;
+  };
+  const { context, page } = await openAdmin(
+    browser,
+    "/comun/admin/lancamento?experiencia=app-v2",
+    viewport,
+    "admin",
+  );
+  try {
+    const gate = page.locator("[data-human-gate='launch_publicly']");
+    await expect(gate).toHaveAttribute(
+      "data-human-gate-state",
+      "human_gate_closed",
+    );
+    await expect(gate).toContainText("Gate fechado");
+    await expect(
+      page.getByRole("button", { name: /launch_publicly/i }),
+    ).toHaveCount(0);
+    await page.goto("/comun/admin/observabilidade?experiencia=app-v2");
+    await assertAdminV2(page);
+    await expect(page.locator("body")).not.toContainText(
+      /service_role|signed_url|select\s+\*/i,
+    );
+  } finally {
+    await context.close();
+  }
+});

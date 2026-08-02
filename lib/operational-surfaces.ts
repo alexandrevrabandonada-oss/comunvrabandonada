@@ -246,3 +246,29 @@ export const OPERATIONAL_SURFACES: readonly OperationalSurfaceDefinition[] = [
 export function getOperationalSurface(key: string) {
   return OPERATIONAL_SURFACES.find((surface) => surface.key === key) ?? null;
 }
+
+const ACTION_HREFS: Partial<Record<OperationalSurfaceKey, string>> = {
+  queue: "/comun/admin/operacao",
+  assignment: "/comun/admin/operacao?unassigned=1",
+  reassignment: "/comun/admin/operacao?sort=next_action",
+  privacy: "/comun/admin/relatos",
+  media: "/comun/admin/calcadas/operacao",
+  "art-rights": "/comun/admin/acervo/arte/direitos",
+  "radio-rights": "/comun/admin/radio/direitos",
+  circle: "/comun/admin/pautas",
+  synthesis: "/comun/admin/pautas",
+  protocol: "/comun/admin/protocolos-oficiais",
+  response: "/comun/admin/protocolos-oficiais",
+  result: "/comun/admin/dossies",
+  correction: "/comun/admin/alertas",
+  withdrawal: "/comun/admin/alertas",
+  incidents: "/comun/admin/operacao?type=incident",
+  audit: "/comun/admin/auditoria",
+  error: "/comun/admin/operacao",
+  empty: "/comun/admin/operacao",
+  expired: "/comun/admin/login",
+};
+
+export function operationalSurfaceActionHref(key: OperationalSurfaceKey) {
+  return ACTION_HREFS[key] ?? "/comun/admin/operacao";
+}

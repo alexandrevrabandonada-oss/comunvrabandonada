@@ -4,6 +4,10 @@ import { getProtocolLookupObservability } from "@/lib/rate-limit";
 import { getCivicSearchObservability } from "@/lib/civic-intelligence/observability";
 import { getQualityObservability } from "@/lib/quality-observability";
 import { COMUN_ROUTE_BUDGETS } from "@/lib/quality-performance";
+import {
+  COMUN_ADMIN_PLATFORM_GATES,
+  sanitizeComunPlatformTelemetry,
+} from "@/lib/comun-admin-platform-contract";
 
 export const dynamic = "force-dynamic";
 
@@ -189,6 +193,14 @@ export default async function AdminObservabilityPage() {
                 ? "Lexical funcional; embedding remoto ainda sem evidência nesta leitura"
                 : "Embedding observado; relevância depende do último eval sanitizado"}
             </dd>
+            {!civicSearch.available || civicSearch.model === "lexical_only" ? (
+              <p
+                className="mt-1 text-xs font-bold"
+                data-platform-blocker="civic-intelligence-provider"
+              >
+                {COMUN_ADMIN_PLATFORM_GATES.civicIntelligence.state}
+              </p>
+            ) : null}
           </div>
           <div>
             <dt className="font-black">Última sincronização</dt>
@@ -230,7 +242,9 @@ export default async function AdminObservabilityPage() {
                   {maskProtocol(event.normalized_protocol)}
                 </td>
                 <td className="p-3 font-mono text-xs">
-                  {JSON.stringify(event.metadata ?? {})}
+                  {JSON.stringify(
+                    sanitizeComunPlatformTelemetry(event.metadata ?? {}),
+                  )}
                 </td>
               </tr>
             ))}

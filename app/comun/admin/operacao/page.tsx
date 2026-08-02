@@ -59,15 +59,19 @@ export default async function OperationPage({
       level={0}
       currentHref={operationalQueryHref(query)}
     >
-      <ComunOperationalShell active={appV2}>
+      <ComunOperationalShell
+        active={appV2}
+        currentPathname="/comun/admin/operacao"
+      >
         <main
           className={`mx-auto max-w-6xl p-4 text-slate-50 sm:p-6 ${appV2 ? "surface-operation" : ""}`}
           data-operational-surface="central"
+          data-platform-domain="operations"
         >
           <nav aria-label="Retorno da Central" className="mb-5">
             <Link
               className="inline-flex min-h-11 items-center font-semibold underline"
-              href="/comun/admin"
+              href={pilotHref("/comun/admin")}
             >
               ← Voltar à administração
             </Link>
@@ -99,6 +103,9 @@ export default async function OperationPage({
                 action="/comun/buscar"
                 className="mt-3 flex flex-col gap-2 sm:flex-row"
               >
+                {appV2 ? (
+                  <input type="hidden" name="experiencia" value="app-v2" />
+                ) : null}
                 <input
                   aria-label="Buscar relações públicas"
                   className="min-h-11 flex-1 border-2 border-slate-300 bg-slate-950 px-3"
@@ -154,7 +161,7 @@ export default async function OperationPage({
             ].map(([title, count, href]) => (
               <Link
                 className="rounded-xl border p-3 hover:bg-white/10"
-                href={String(href)}
+                href={pilotHref(String(href))}
                 key={String(title)}
               >
                 <span className="block text-sm font-medium">{title}</span>
@@ -224,7 +231,10 @@ export default async function OperationPage({
               <span className="text-sm">Sem filtros ativos.</span>
             )}{" "}
             {active.length > 0 && (
-              <Link className="underline" href="/comun/admin/operacao">
+              <Link
+                className="underline"
+                href={pilotHref("/comun/admin/operacao")}
+              >
                 Limpar filtros
               </Link>
             )}
@@ -252,7 +262,7 @@ export default async function OperationPage({
                 {active.length > 0 && (
                   <Link
                     className="mt-3 inline-block underline"
-                    href="/comun/admin/operacao"
+                    href={pilotHref("/comun/admin/operacao")}
                   >
                     Limpar filtros
                   </Link>
@@ -559,7 +569,10 @@ function FilterForm({
         >
           Aplicar filtros
         </button>
-        <Link className="rounded border px-4 py-2" href="/comun/admin/operacao">
+        <Link
+          className="rounded border px-4 py-2"
+          href={withComunAppV2("/comun/admin/operacao", appV2)}
+        >
           Limpar filtros
         </Link>
       </div>

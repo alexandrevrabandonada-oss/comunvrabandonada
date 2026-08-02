@@ -6,6 +6,7 @@ import {
   summarizeComunLaunchProgram,
   type ComunLaunchDomainStatus,
 } from "@/lib/comun-launch-program";
+import { COMUN_ADMIN_PLATFORM_GATES } from "@/lib/comun-admin-platform-contract";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +52,11 @@ export default async function ComunLaunchReadinessPage() {
         <Metric label="Restantes" value={String(summary.remaining)} attention />
       </section>
 
-      <section className="mt-7 border-2 border-comun-yellow bg-comun-black p-5 text-white">
+      <section
+        className="mt-7 border-2 border-comun-yellow bg-comun-black p-5 text-white"
+        data-human-gate={COMUN_ADMIN_PLATFORM_GATES.launch.gate}
+        data-human-gate-state={COMUN_ADMIN_PLATFORM_GATES.launch.state}
+      >
         <h2 className="text-xl font-black uppercase">Política do lançamento</h2>
         <p className="mt-2 max-w-4xl">{COMUN_V1_LAUNCH_PROGRAM.policy}</p>
         <p className="mt-3 text-sm text-white/75">
@@ -59,6 +64,9 @@ export default async function ComunLaunchReadinessPage() {
           <code>{COMUN_V1_LAUNCH_PROGRAM.finalHumanGate}</code>. Não existem
           autorizações humanas intermediárias para diagnósticos, correções
           reversíveis, testes, PRs ou deployments verdes.
+        </p>
+        <p className="mt-2 text-sm font-black text-comun-yellow">
+          Gate fechado: esta tela não executa lançamento.
         </p>
       </section>
 

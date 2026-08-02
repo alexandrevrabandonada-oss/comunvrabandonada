@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BellRing, ListChecks, Menu, ShieldCheck, Users } from "lucide-react";
 import type { ReactNode } from "react";
+import { withComunAppV2 } from "@/lib/comun-experience";
 
 const operationNav = [
   ["Fila", "/comun/admin/operacao", ListChecks],
@@ -11,9 +12,11 @@ const operationNav = [
 
 export function ComunOperationalShell({
   active,
+  currentPathname = "/comun/admin/operacao",
   children,
 }: {
   active: boolean;
+  currentPathname?: string;
   children: ReactNode;
 }) {
   if (!active) return children;
@@ -26,7 +29,7 @@ export function ComunOperationalShell({
       <header className="sticky top-0 z-40 border-b border-comun-paper/25 bg-comun-black px-3 pb-2 pt-[calc(.5rem+env(safe-area-inset-top))]">
         <div className="mx-auto flex min-h-12 max-w-7xl items-center gap-3">
           <Link
-            href="/comun/admin"
+            href={withComunAppV2("/comun/admin")}
             className="grid size-11 place-items-center rounded-[var(--comun-radius-control)]"
             aria-label="Abrir administração"
           >
@@ -53,16 +56,22 @@ export function ComunOperationalShell({
           className="border-b border-comun-paper/20 bg-comun-black md:min-h-[calc(100dvh-4.25rem)] md:border-b-0 md:border-r"
         >
           <div className="flex overflow-x-auto md:sticky md:top-20 md:grid">
-            {operationNav.map(([label, href, Icon], index) => (
-              <Link
-                key={href}
-                href={href}
-                aria-current={index === 0 ? "page" : undefined}
-                className={`flex min-h-16 min-w-20 flex-col items-center justify-center gap-1 px-2 text-xs font-bold ${index === 0 ? "bg-comun-yellow text-comun-black" : "text-comun-paper/75"}`}
-              >
-                <Icon size={19} aria-hidden="true" /> {label}
-              </Link>
-            ))}
+            {operationNav.map(([label, href, Icon]) => {
+              const current =
+                currentPathname === href ||
+                (href === "/comun/admin/operacao" &&
+                  currentPathname.startsWith("/comun/admin/operacao/"));
+              return (
+                <Link
+                  key={href}
+                  href={withComunAppV2(href)}
+                  aria-current={current ? "page" : undefined}
+                  className={`flex min-h-16 min-w-20 flex-col items-center justify-center gap-1 px-2 text-xs font-bold ${current ? "bg-comun-yellow text-comun-black" : "text-comun-paper/75"}`}
+                >
+                  <Icon size={19} aria-hidden="true" /> {label}
+                </Link>
+              );
+            })}
           </div>
         </nav>
         <div className="min-w-0">{children}</div>

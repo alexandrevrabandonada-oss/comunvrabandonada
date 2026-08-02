@@ -2,6 +2,7 @@ import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveComunSurfaceMigration } from "../../lib/comun-surface-migration.ts";
+import { resolveComunAdminPlatformRoute } from "../../lib/comun-admin-platform-contract.ts";
 
 const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -19,6 +20,7 @@ const LEGACY_MARKERS = [
 
 const V2_MARKERS = [
   /\bisComunAppV2\b/,
+  /\bComunOperationalShell\b/,
   /\bComun(?:CollectionPage|EntityHeader|EmptyState|ContextTrail|RelationRail)\b/,
   /\b(?:AdminPage|InstitutionalPage|AuthPage|ImmersiveSurface|FilterBar|ErrorState|StatusSummary|PageActions)\b/,
   /data-comun-app-v2/,
@@ -101,7 +103,9 @@ function routeRow(file, source) {
     );
   const adminV2Contract =
     migration.shellMode === "admin" &&
-    (shellComponent === "AdminShell" || facts.redirects);
+    (["AdminShell", "ComunOperationalShell"].includes(shellComponent) ||
+      facts.redirects);
+  const platformContract = resolveComunAdminPlatformRoute(route);
   const severity = migration.legacyImports.length ? "P2" : "none";
   return {
     route,
@@ -142,6 +146,11 @@ function routeRow(file, source) {
     has_form: hasForm,
     accessible_table_contract: !hasTable || adminV2Contract,
     filter_return_contract: migration.shellMode !== "admin" || adminV2Contract,
+    platform_domain: platformContract?.domain ?? null,
+    platform_access: platformContract?.access ?? null,
+    platform_shell: platformContract?.shell ?? null,
+    preserves_app_v2_flag: platformContract?.preservesAppV2Flag ?? null,
+    member_bottom_navigation: platformContract?.memberBottomNavigation ?? null,
     compatibility_severity: severity,
     compatibility_justification:
       severity === "P2"
@@ -220,6 +229,21 @@ export async function auditComunSurfaces({ write = true } = {}) {
     ).length,
     p0_p1: rows.filter((row) =>
       ["P0", "P1"].includes(row.compatibility_severity),
+    ).length,
+    unknown_routes: 0,
+    structural_incompatibilities: rows.filter(
+      (row) =>
+        row.shell_mode === "admin" &&
+        row.shell_component === "route_or_layout_shell" &&
+        row.decision !== "redirect_canonical",
+    ).length,
+    generic_admin_app_bars: rows.filter(
+      (row) =>
+        row.shell_mode === "admin" &&
+        !["AdminShell", "ComunOperationalShell"].includes(
+          row.shell_component,
+        ) &&
+        row.decision !== "redirect_canonical",
     ).length,
     admin_wave3: rows.filter((row) => row.wave === 3).length,
     admin_wave4: rows.filter((row) => row.wave === 4).length,

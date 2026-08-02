@@ -1,6 +1,6 @@
 # Matriz canônica de superfícies — 47.9A5
 
-Gerada em: 2026-08-02T03:40:33.741Z
+Gerada em: 2026-08-02T06:19:02.867Z
 
 Total: **189** · ondas: 1=69 · 2=32 · 3=76 · 4=12
 
@@ -118,7 +118,7 @@ Total: **189** · ondas: 1=69 · 2=32 · 3=76 · 4=12
 | `/comun/admin/radio/grade` | radio | admin | v2_compatibility | Page | compatibility_v2 | 3 |
 | `/comun/admin/radio/programas` | radio | admin | v2_compatibility | Page | compatibility_v2 | 3 |
 | `/comun/admin/radio/programas/novo` | radio | admin | v2_compatibility | Page | compatibility_v2 | 3 |
-| `/comun/admin/relatos` | relatos | admin | v2_compatibility | anonymous_page | compatibility_v2 | 3 |
+| `/comun/admin/relatos` | relatos | admin | not_rendered | anonymous_page | redirect_canonical | 3 |
 | `/comun/admin/relatos/[id]` | relatos | admin | not_rendered | ReviewReportPage | redirect_canonical | 3 |
 | `/comun/admin/rodas` | rodas | admin | v2_compatibility | RodasAdminPage | compatibility_v2 | 3 |
 | `/comun/admin/rodas/[id]` | rodas | admin | not_rendered | RodaFacilitationPage | redirect_canonical | 3 |
