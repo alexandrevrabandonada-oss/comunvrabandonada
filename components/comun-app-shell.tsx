@@ -17,6 +17,7 @@ import {
   isComunAppV2,
   resolveComunShellContract,
 } from "@/lib/comun-shell-contract";
+import { resolveComunSurfaceMigration } from "@/lib/comun-surface-migration";
 
 export function ComunAppShell({
   children,
@@ -33,6 +34,7 @@ export function ComunAppShell({
   const searchParams = useSearchParams();
   const appV2 = isComunAppV2(searchParams.get("experiencia"));
   const { route, contract } = resolveComunShellContract(pathname);
+  const surface = resolveComunSurfaceMigration(pathname);
 
   useVisualViewportContract(appV2);
 
@@ -66,6 +68,9 @@ export function ComunAppShell({
       data-comun-shell-route-group={route.routeGroup}
       data-comun-shell-scroll={contract.scroll}
       data-comun-shell-width={contract.width}
+      data-comun-surface-family={surface.family}
+      data-comun-surface-wave={surface.wave}
+      data-comun-surface-decision={surface.decision}
     >
       <SkipLink />
       {showSyntheticNotice && route.mode === "public_web" ? (

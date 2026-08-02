@@ -1,3 +1,12 @@
+import { resolveComunSurfaceMigration } from "./comun-surface-migration";
+export {
+  COMUN_APP_V2_EXPERIENCE,
+  isComunAppV2,
+  resolveComunExperience,
+  withComunAppV2,
+  withComunExperience,
+} from "./comun-experience";
+
 export type ComunShellMode =
   | "public_web"
   | "member_root"
@@ -33,8 +42,7 @@ export type ComunShellRoute = {
   routeGroup: string;
 };
 
-export const COMUN_APP_V2_EXPERIENCE = "app-v2" as const;
-export const COMUN_APP_V2_QUERY = `experiencia=${COMUN_APP_V2_EXPERIENCE}`;
+export const COMUN_APP_V2_QUERY = "experiencia=app-v2";
 
 export const COMUN_ROOT_TABS: Record<
   ComunRootTab,
@@ -142,158 +150,6 @@ const ROOT_ROUTES = new Map<string, ComunRootTab>(
   ]),
 );
 
-const AUTH_ROUTES = new Set([
-  "/comun/entrar",
-  "/comun/criar-conta",
-  "/comun/recuperar-acesso",
-  "/comun/redefinir-acesso",
-  "/comun/onboarding",
-  "/comun/admin/login",
-]);
-
-const INSTITUTIONAL_ROUTES = new Set([
-  "/comun/ajuda",
-  "/comun/seguranca",
-  "/comun/territorio-tomado",
-  "/comun/offline",
-]);
-
-const IMMERSIVE_PREFIXES = [
-  "/comun/calcadas",
-  "/comun/mapa",
-  "/comun/campo/turno",
-  "/comun/preview",
-] as const;
-
-const CONTEXT_ROUTES: Array<{
-  pattern: RegExp;
-  title: string;
-  context: string;
-  parentHref: string;
-  routeGroup: string;
-}> = [
-  {
-    pattern: /^\/comun\/territorios$/,
-    title: "Territórios",
-    context: "Onde as pautas acontecem",
-    parentHref: "/comun/explorar",
-    routeGroup: "territory_collection",
-  },
-  {
-    pattern: /^\/comun\/comunidades$/,
-    title: "Comunidades",
-    context: "Quem organiza",
-    parentHref: "/comun/explorar",
-    routeGroup: "community_collection",
-  },
-  {
-    pattern: /^\/comun\/pautas$/,
-    title: "Pautas",
-    context: "Processos coletivos",
-    parentHref: "/comun/explorar",
-    routeGroup: "pauta_collection",
-  },
-  {
-    pattern: /^\/comun\/acoes$/,
-    title: "Ações",
-    context: "Organização coletiva",
-    parentHref: "/comun/explorar",
-    routeGroup: "action_collection",
-  },
-  {
-    pattern: /^\/comun\/resultados$/,
-    title: "Resultados",
-    context: "Prestação de contas",
-    parentHref: "/comun/explorar",
-    routeGroup: "result_collection",
-  },
-  {
-    pattern: /^\/comun\/participar\/confirmacao/,
-    title: "Confirmação",
-    context: "Participação registrada",
-    parentHref: "/comun/participar",
-    routeGroup: "participation_confirmation",
-  },
-  {
-    pattern: /^\/comun\/pautas\/[^/]+/,
-    title: "Pauta",
-    context: "Processo comunitário",
-    parentHref: "/comun/pautas",
-    routeGroup: "pauta_detail",
-  },
-  {
-    pattern: /^\/comun\/c\/[^/]+/,
-    title: "Comunidade",
-    context: "Quem organiza",
-    parentHref: "/comun/comunidades",
-    routeGroup: "community_detail",
-  },
-  {
-    pattern: /^\/comun\/territorios\/[^/]+/,
-    title: "Território",
-    context: "Onde acontece",
-    parentHref: "/comun/explorar",
-    routeGroup: "territory_detail",
-  },
-  {
-    pattern: /^\/comun\/calcadas\/registros\/[^/]+/,
-    title: "Registro de calçada",
-    context: "Mapa das Calçadas",
-    parentHref: "/comun/calcadas",
-    routeGroup: "sidewalk_record",
-  },
-  {
-    pattern: /^\/comun\/calcadas/,
-    title: "Mapa das Calçadas",
-    context: "Ferramenta · Volta Redonda",
-    parentHref: "/comun/pautas/calcadas-em-circulacao",
-    routeGroup: "sidewalk_miniapp",
-  },
-  {
-    pattern: /^\/comun\/mapa/,
-    title: "Mapa",
-    context: "Território e registros",
-    parentHref: "/comun/explorar",
-    routeGroup: "map",
-  },
-  {
-    pattern: /^\/comun\/acervo/,
-    title: "Acervo",
-    context: "Memória coletiva",
-    parentHref: "/comun/explorar",
-    routeGroup: "archive",
-  },
-  {
-    pattern: /^\/comun\/radio/,
-    title: "Rádio",
-    context: "Escuta e participação",
-    parentHref: "/comun/explorar",
-    routeGroup: "radio",
-  },
-  {
-    pattern: /^\/comun\/acoes\/[^/]+/,
-    title: "Ação",
-    context: "Próximo passo coletivo",
-    parentHref: "/comun/acoes",
-    routeGroup: "action_detail",
-  },
-];
-
-export function isComunAppV2(
-  value: string | string[] | null | undefined,
-): boolean {
-  return value === COMUN_APP_V2_EXPERIENCE;
-}
-
-export function withComunAppV2(href: string, active = true): string {
-  if (!active || !href.startsWith("/")) return href;
-  const [pathAndQuery, hash = ""] = href.split("#", 2);
-  const [path, query = ""] = pathAndQuery.split("?", 2);
-  const params = new URLSearchParams(query);
-  params.set("experiencia", COMUN_APP_V2_EXPERIENCE);
-  return `${path}?${params.toString()}${hash ? `#${hash}` : ""}`;
-}
-
 export function sanitizeComunBadge(value: number | string | null | undefined) {
   const parsed = Number.parseInt(String(value ?? "0"), 10);
   if (!Number.isFinite(parsed) || parsed <= 0) return null;
@@ -303,73 +159,6 @@ export function sanitizeComunBadge(value: number | string | null | undefined) {
 export function resolveComunShellRoute(pathname: string): ComunShellRoute {
   const normalized =
     pathname.length > 1 ? pathname.replace(/\/$/, "") : pathname;
-  const rootTab = ROOT_ROUTES.get(normalized);
-  if (rootTab) {
-    const tab = COMUN_ROOT_TABS[rootTab];
-    return {
-      mode: "member_root",
-      title: tab.label,
-      context:
-        rootTab === "inicio"
-          ? "Organização comunitária"
-          : rootTab === "caixa"
-            ? "Mudanças que pedem atenção"
-            : rootTab === "minha_area"
-              ? "Sua relação com os processos"
-              : rootTab === "participar"
-                ? "Escolha uma intenção"
-                : "Territórios, comunidades e pautas",
-      parentHref: "/comun",
-      rootTab,
-      routeGroup: `member_root:${rootTab}`,
-    };
-  }
-  if (AUTH_ROUTES.has(normalized))
-    return {
-      mode: "auth",
-      title: normalized.includes("admin") ? "Acesso administrativo" : "Acesso",
-      context: "Conta e segurança",
-      parentHref: "/comun",
-      routeGroup: "auth",
-    };
-  if (normalized.startsWith("/comun/admin"))
-    return {
-      mode: "admin",
-      title:
-        normalized === "/comun/admin/operacao"
-          ? "Central Operacional"
-          : "Administração",
-      context: "Área interna · dados sensíveis",
-      parentHref: "/comun/admin",
-      routeGroup: "admin",
-    };
-  if (INSTITUTIONAL_ROUTES.has(normalized))
-    return {
-      mode: "institutional",
-      title: normalized === "/comun/ajuda" ? "Ajuda" : "Sobre o COMUN",
-      context: "Informação pública",
-      parentHref: "/comun",
-      routeGroup: "institutional",
-    };
-  const contextual = CONTEXT_ROUTES.find(({ pattern }) =>
-    pattern.test(normalized),
-  );
-  if (contextual) {
-    const mode = IMMERSIVE_PREFIXES.some((prefix) =>
-      normalized.startsWith(prefix),
-    )
-      ? "immersive"
-      : "member_nested";
-    return { mode, ...contextual };
-  }
-  if (IMMERSIVE_PREFIXES.some((prefix) => normalized.startsWith(prefix)))
-    return {
-      mode: "immersive",
-      title: "Ferramenta",
-      context: "Modo imersivo",
-      parentHref: "/comun/explorar",
-      routeGroup: "immersive",
-    };
   if (normalized === "/" || !normalized.startsWith("/comun"))
     return {
       mode: "public_web",
@@ -378,12 +167,15 @@ export function resolveComunShellRoute(pathname: string): ComunShellRoute {
       parentHref: "/",
       routeGroup: "public_web",
     };
+  const migration = resolveComunSurfaceMigration(normalized);
+  const rootTab = ROOT_ROUTES.get(normalized);
   return {
-    mode: "member_nested",
-    title: "COMUN",
-    context: "Processo comunitário",
-    parentHref: "/comun/explorar",
-    routeGroup: "member_nested",
+    mode: migration.shellMode,
+    title: migration.contextualTitle,
+    context: migration.contextLabel,
+    parentHref: migration.parentHref,
+    rootTab,
+    routeGroup: rootTab ? `member_root:${rootTab}` : migration.family,
   };
 }
 

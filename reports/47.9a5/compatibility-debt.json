@@ -1,0 +1,947 @@
+[
+  {
+    "code": "A5-P2-1-COMUN-ACERVO-ARTE-CONTRIBUIR",
+    "severity": "P2",
+    "route": "/comun/acervo/arte/contribuir",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-ACERVO-ARTE-DIREITOS-E-RETIRADA",
+    "severity": "P2",
+    "route": "/comun/acervo/arte/direitos-e-retirada",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-ACERVO-ARTISTAS",
+    "severity": "P2",
+    "route": "/comun/acervo/artistas",
+    "components": [
+      "legacy-shell",
+      "paper-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-ACERVO-CONTRIBUIR",
+    "severity": "P2",
+    "route": "/comun/acervo/contribuir",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-ACERVO-CONTRIBUIR-ARTISTA",
+    "severity": "P2",
+    "route": "/comun/acervo/contribuir/artista",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-ACERVO-DIREITOS-E-REMOCAO",
+    "severity": "P2",
+    "route": "/comun/acervo/direitos-e-remocao",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-ACERVO-HISTORIAS-ORAIS-CONTRIBUIR",
+    "severity": "P2",
+    "route": "/comun/acervo/historias-orais/contribuir",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-ACERVO-HISTORIAS-ORAIS-DIREITOS-E-RETIRADA",
+    "severity": "P2",
+    "route": "/comun/acervo/historias-orais/direitos-e-retirada",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-ACOMPANHAR-PROTOCOL",
+    "severity": "P2",
+    "route": "/comun/acompanhar/[protocol]",
+    "components": [
+      "generic-white-panel",
+      "legacy-shell",
+      "paper-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-ACOMPANHAR-PROTOCOL-OUVIDORIA",
+    "severity": "P2",
+    "route": "/comun/acompanhar/[protocol]/ouvidoria",
+    "components": [
+      "generic-white-panel",
+      "legacy-shell",
+      "paper-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO",
+    "severity": "P2",
+    "route": "/comun/admin/acervo",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-ARTE",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/arte",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-ARTE-CONTRIBUICOES",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/arte/contribuicoes",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-ARTE-CREDITOS",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/arte/creditos",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-ARTE-DIREITOS",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/arte/direitos",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-ARTE-NOVO",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/arte/novo",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-ARTISTAS",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/artistas",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-ARTISTAS-CONTRIBUICOES",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/artistas/contribuicoes",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-ARTISTAS-PENDENCIAS",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/artistas/pendencias",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-ARTISTAS-REIVINDICACOES",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/artistas/reivindicacoes",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-COLECOES",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/colecoes",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-CONTRIBUICOES",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/contribuicoes",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-HISTORIAS-ORAIS",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/historias-orais",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-HISTORIAS-ORAIS-CONSENTIMENTOS",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/historias-orais/consentimentos",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-HISTORIAS-ORAIS-NOVO",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/historias-orais/novo",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-HISTORIAS-ORAIS-PILOTO",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/historias-orais/piloto",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-HISTORIAS-ORAIS-TRANSCRICOES",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/historias-orais/transcricoes",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-HISTORIAS-ORAIS-TRANSCRICOES-TRABALHO",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/historias-orais/transcricoes/trabalho",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-IDENTIFICACAO",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/identificacao",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-MUSICA-OBSERVABILIDADE",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/musica/observabilidade",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-PROCESSAMENTO",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/processamento",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-STORAGE",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/storage",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-SUGESTOES",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/sugestoes",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-VERIFICACAO",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/verificacao",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ACOES",
+    "severity": "P2",
+    "route": "/comun/admin/acoes",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ALERTAS",
+    "severity": "P2",
+    "route": "/comun/admin/alertas",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-ANEXOS",
+    "severity": "P2",
+    "route": "/comun/admin/anexos",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-4-COMUN-ADMIN-AUDITORIA",
+    "severity": "P2",
+    "route": "/comun/admin/auditoria",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-CALCADAS",
+    "severity": "P2",
+    "route": "/comun/admin/calcadas",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-CALCADAS-OPERACAO",
+    "severity": "P2",
+    "route": "/comun/admin/calcadas/operacao",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-COMUNIDADES",
+    "severity": "P2",
+    "route": "/comun/admin/comunidades",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-DOSSIES",
+    "severity": "P2",
+    "route": "/comun/admin/dossies",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-DOSSIES-REVISOES",
+    "severity": "P2",
+    "route": "/comun/admin/dossies/revisoes",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-4-COMUN-ADMIN-EQUIPE",
+    "severity": "P2",
+    "route": "/comun/admin/equipe",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-4-COMUN-ADMIN-LANCAMENTO",
+    "severity": "P2",
+    "route": "/comun/admin/lancamento",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-NOTIFICACOES",
+    "severity": "P2",
+    "route": "/comun/admin/notificacoes",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-4-COMUN-ADMIN-OBSERVABILIDADE",
+    "severity": "P2",
+    "route": "/comun/admin/observabilidade",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-OBSERVATORIOS",
+    "severity": "P2",
+    "route": "/comun/admin/observatorios",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-OBSERVATORIOS-ID",
+    "severity": "P2",
+    "route": "/comun/admin/observatorios/[id]",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-OBSERVATORIOS-ID-CAMPANHAS-CAMPAIGNID",
+    "severity": "P2",
+    "route": "/comun/admin/observatorios/[id]/campanhas/[campaignId]",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-OBSERVATORIOS-ID-CAMPANHAS-CAMPAIGNID-ACESSOS",
+    "severity": "P2",
+    "route": "/comun/admin/observatorios/[id]/campanhas/[campaignId]/acessos",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-OBSERVATORIOS-ID-CAMPANHAS-CAMPAIGNID-PRONTIDAO",
+    "severity": "P2",
+    "route": "/comun/admin/observatorios/[id]/campanhas/[campaignId]/prontidao",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-4-COMUN-ADMIN-ORGANIZACAO",
+    "severity": "P2",
+    "route": "/comun/admin/organizacao",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-4-COMUN-ADMIN-ORGANIZACAO-CALENDARIO",
+    "severity": "P2",
+    "route": "/comun/admin/organizacao/calendario",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-4-COMUN-ADMIN-ORGANIZACAO-ENTRADA",
+    "severity": "P2",
+    "route": "/comun/admin/organizacao/entrada",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-4-COMUN-ADMIN-ORGANIZACAO-ENTRADA-VINCULAR",
+    "severity": "P2",
+    "route": "/comun/admin/organizacao/entrada/vincular",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-PAUTAS",
+    "severity": "P2",
+    "route": "/comun/admin/pautas",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-PAUTAS-CONTRIBUICOES",
+    "severity": "P2",
+    "route": "/comun/admin/pautas/contribuicoes",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-PROTOCOLOS-OFICIAIS",
+    "severity": "P2",
+    "route": "/comun/admin/protocolos-oficiais",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-RADIO",
+    "severity": "P2",
+    "route": "/comun/admin/radio",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-RADIO-CONSENTIMENTOS",
+    "severity": "P2",
+    "route": "/comun/admin/radio/consentimentos",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-RADIO-CONTRIBUICOES",
+    "severity": "P2",
+    "route": "/comun/admin/radio/contribuicoes",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-RADIO-DIREITOS",
+    "severity": "P2",
+    "route": "/comun/admin/radio/direitos",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-RADIO-EPISODIOS",
+    "severity": "P2",
+    "route": "/comun/admin/radio/episodios",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-RADIO-GRADE",
+    "severity": "P2",
+    "route": "/comun/admin/radio/grade",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-RADIO-PROGRAMAS",
+    "severity": "P2",
+    "route": "/comun/admin/radio/programas",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-RODAS",
+    "severity": "P2",
+    "route": "/comun/admin/rodas",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-3-COMUN-ADMIN-TERRITORIO",
+    "severity": "P2",
+    "route": "/comun/admin/territorio",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-AJUDA",
+    "severity": "P2",
+    "route": "/comun/ajuda",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-CAMPO",
+    "severity": "P2",
+    "route": "/comun/campo",
+    "components": [
+      "generic-white-panel",
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-CAMPO-TURNO",
+    "severity": "P2",
+    "route": "/comun/campo/turno",
+    "components": [
+      "generic-white-panel",
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-CAMPO-TURNO-REGISTRAR",
+    "severity": "P2",
+    "route": "/comun/campo/turno/registrar",
+    "components": [
+      "generic-white-panel",
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-CONTA",
+    "severity": "P2",
+    "route": "/comun/conta",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-CONTA-PRIVACIDADE",
+    "severity": "P2",
+    "route": "/comun/conta/privacidade",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-COOPERATIVAS",
+    "severity": "P2",
+    "route": "/comun/cooperativas",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-DOSSIES",
+    "severity": "P2",
+    "route": "/comun/dossies",
+    "components": [
+      "legacy-shell",
+      "paper-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-MAPA",
+    "severity": "P2",
+    "route": "/comun/mapa",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-MAPA-CONTRIBUIR",
+    "severity": "P2",
+    "route": "/comun/mapa/contribuir",
+    "components": [
+      "legacy-shell",
+      "paper-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-OBSERVATORIOS",
+    "severity": "P2",
+    "route": "/comun/observatorios",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-OBSERVATORIOS-SLUG-MAPA",
+    "severity": "P2",
+    "route": "/comun/observatorios/[slug]/mapa",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-OBSERVATORIOS-SLUG-REGISTRAR",
+    "severity": "P2",
+    "route": "/comun/observatorios/[slug]/registrar",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-OFFLINE",
+    "severity": "P2",
+    "route": "/comun/offline",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-ONBOARDING",
+    "severity": "P2",
+    "route": "/comun/onboarding",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-PROJETOS",
+    "severity": "P2",
+    "route": "/comun/projetos",
+    "components": [
+      "HubCard",
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-PROTOCOLO-POPULAR",
+    "severity": "P2",
+    "route": "/comun/protocolo-popular",
+    "components": [
+      "generic-white-panel",
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-RADIO-CONTRIBUIR",
+    "severity": "P2",
+    "route": "/comun/radio/contribuir",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-RADIO-DIREITOS-E-CONSENTIMENTO",
+    "severity": "P2",
+    "route": "/comun/radio/direitos-e-consentimento",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-RADIO-GRADE",
+    "severity": "P2",
+    "route": "/comun/radio/grade",
+    "components": [
+      "legacy-shell",
+      "paper-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-RECICLAGEM",
+    "severity": "P2",
+    "route": "/comun/reciclagem",
+    "components": [
+      "legacy-shell",
+      "paper-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-RECUPERAR-ACESSO",
+    "severity": "P2",
+    "route": "/comun/recuperar-acesso",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-REDEFINIR-ACESSO",
+    "severity": "P2",
+    "route": "/comun/redefinir-acesso",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-SEGURANCA",
+    "severity": "P2",
+    "route": "/comun/seguranca",
+    "components": [
+      "legacy-shell",
+      "paper-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-2-COMUN-TERRITORIO-TOMADO",
+    "severity": "P2",
+    "route": "/comun/territorio-tomado",
+    "components": [
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  }
+]
