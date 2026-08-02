@@ -206,8 +206,8 @@ export default async function ParticiparPage({
               Como você quer contribuir?
             </h1>
             <p className="comun-text-secondary mt-2 max-w-xl text-sm">
-              Comece pelo objetivo. Tempo, acesso e revisão aparecem quando
-              você pedir os detalhes.
+              Comece pelo objetivo. Tempo, acesso e revisão aparecem quando você
+              pedir os detalhes.
             </p>
           </header>
 

@@ -54,10 +54,7 @@ export default async function Entrar({
                 </p>
               ) : null}
               <div className="comun-v2-auth-form-card">
-                <CommunityLoginForm
-                  returnTo={returnTo}
-                  experienceV2={appV2}
-                />
+                <CommunityLoginForm returnTo={returnTo} experienceV2={appV2} />
                 <p className="comun-text-secondary mt-3 text-sm">
                   Ainda não tem conta?{" "}
                   <Link
