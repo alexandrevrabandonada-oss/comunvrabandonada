@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { MouseEvent, ReactNode } from "react";
 import { useEffect, useMemo } from "react";
 import { logoutAdmin } from "@/app/actions";
@@ -85,7 +85,6 @@ export function ComunAdminShellClient({
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const appV2 = isComunAppV2(searchParams);
   const surface = resolveComunSurfaceMigration(pathname);
   const activeHref = useMemo(
@@ -185,7 +184,7 @@ export function ComunAdminShellClient({
         ),
       );
     event.preventDefault();
-    router.push(
+    window.location.assign(
       withComunAppV2(`${target.pathname}${target.search}${target.hash}`),
     );
   }
