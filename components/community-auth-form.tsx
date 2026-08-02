@@ -47,7 +47,12 @@ export function CommunityLoginForm({
         />
       </label>
       {state?.error && (
-        <p ref={errorRef} role="alert" tabIndex={-1} className="font-bold text-red-800">
+        <p
+          ref={errorRef}
+          role="alert"
+          tabIndex={-1}
+          className="font-bold text-red-800"
+        >
           {state.error}
         </p>
       )}
