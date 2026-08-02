@@ -11,7 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ParticipateSheet } from "./comun-experience-controls";
 import {
   COMUN_ROOT_TABS,
@@ -112,6 +112,7 @@ export function ComunMobileNavigation({
 }) {
   const path = usePathname();
   const route = resolveComunShellRoute(path);
+  const navigationRef = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!experienceV2 || !route.rootTab) return;
     const scrollKey = `comun:app-v2:scroll:${route.rootTab}`;
@@ -122,6 +123,28 @@ export function ComunMobileNavigation({
     if (storedScroll > 0)
       requestAnimationFrame(() => window.scrollTo({ top: storedScroll }));
   }, [experienceV2, path, route.rootTab]);
+
+  useEffect(() => {
+    if (!experienceV2) return;
+    const navigation = navigationRef.current;
+    if (!navigation) return;
+    const root = document.documentElement;
+    const updateHeight = () => {
+      const height = Math.ceil(navigation.getBoundingClientRect().height);
+      if (height > 0)
+        root.style.setProperty(
+          "--comun-bottom-nav-effective-height",
+          `${height}px`,
+        );
+    };
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(navigation);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--comun-bottom-nav-effective-height");
+    };
+  }, [experienceV2]);
 
   const saveCurrentScroll = () => {
     if (!experienceV2 || !route.rootTab) return;
@@ -134,6 +157,7 @@ export function ComunMobileNavigation({
   const badge = sanitizeComunBadge(inboxBadge);
   return (
     <nav
+      ref={navigationRef}
       aria-label="Navegação principal"
       className={`fixed inset-x-0 bottom-0 z-40 border-t-2 border-comun-black pb-[env(safe-area-inset-bottom)] lg:hidden ${experienceV2 ? "comun-bottom-nav-v2 bg-comun-black text-comun-paper" : "bg-comun-paper"}`}
       data-comun-bottom-navigation={experienceV2 ? "app-v2" : "legacy"}

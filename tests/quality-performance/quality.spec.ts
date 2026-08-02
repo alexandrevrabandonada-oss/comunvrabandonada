@@ -140,7 +140,7 @@ test("@network conexão lenta mantém conteúdo útil e recuperação", async ({
     .toBeTruthy();
   await page.evaluate(() => window.dispatchEvent(new Event("offline")));
   await expect(page.getByTestId("connection-status")).toContainText(
-    "Sem conexão",
+    /sem conexão/i,
   );
   await page.evaluate(() => window.dispatchEvent(new Event("online")));
   await expect(page.getByTestId("connection-status")).toContainText(

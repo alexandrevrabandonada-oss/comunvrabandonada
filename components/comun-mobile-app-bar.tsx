@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ArrowLeft, MoreHorizontal } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import {
   resolveComunShellRoute,
   withComunAppV2,
@@ -97,7 +96,6 @@ export function ComunMobileAppBar({
       canonicalRoute.mode !== "public_web" &&
       canonicalRoute.mode !== "institutional"
     : path !== "/comun";
-  const connection = useConnectionState(experienceV2);
   return (
     <header
       className={`sticky top-0 z-30 border-b-2 border-comun-black px-3 pb-2 pt-[calc(.5rem+env(safe-area-inset-top))] lg:hidden ${experienceV2 ? "comun-app-bar-v2 bg-comun-black text-comun-paper" : "bg-comun-paper text-comun-black"}`}
@@ -124,15 +122,6 @@ export function ComunMobileAppBar({
             {contextLabel}
           </p>
         </div>
-        {experienceV2 && connection !== "connected" ? (
-          <span
-            role="status"
-            aria-live="polite"
-            className="mr-1 text-[10px] font-black uppercase text-comun-yellow"
-          >
-            {connection === "offline" ? "Offline" : "Reconectando"}
-          </span>
-        ) : null}
         <details className="relative shrink-0">
           <summary
             aria-label="Mais ações"
@@ -156,28 +145,4 @@ export function ComunMobileAppBar({
       </div>
     </header>
   );
-}
-
-function useConnectionState(active: boolean) {
-  const [state, setState] = useState<"connected" | "offline" | "reconnecting">(
-    "connected",
-  );
-  useEffect(() => {
-    if (!active) return;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const offline = () => setState("offline");
-    const online = () => {
-      setState("reconnecting");
-      timer = setTimeout(() => setState("connected"), 1200);
-    };
-    if (!navigator.onLine) offline();
-    window.addEventListener("offline", offline);
-    window.addEventListener("online", online);
-    return () => {
-      window.removeEventListener("offline", offline);
-      window.removeEventListener("online", online);
-      if (timer) clearTimeout(timer);
-    };
-  }, [active]);
-  return state;
 }

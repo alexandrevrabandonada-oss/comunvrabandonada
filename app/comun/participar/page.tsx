@@ -1,4 +1,18 @@
 import Link from "next/link";
+import {
+  Accessibility,
+  Archive,
+  BellRing,
+  Binoculars,
+  FileImage,
+  HandHeart,
+  ListChecks,
+  MessageSquareWarning,
+  Palette,
+  Radio,
+  UsersRound,
+  type LucideIcon,
+} from "lucide-react";
 import { redirect } from "next/navigation";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { ComunBreadcrumbs, ComunSectionHeader } from "@/components/comun-ui";
@@ -11,6 +25,8 @@ import {
 
 const ways = [
   {
+    group: "report",
+    icon: Accessibility,
     title: "Registrar uma calçada",
     href: "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao&returnTo=%2Fcomun%2Fpautas%2Fcalcadas-em-circulacao",
     goal: "Situar uma barreira no mapa e fortalecer a pauta Mobilidade e Acessibilidade.",
@@ -21,6 +37,8 @@ const ways = [
       "Registro acompanhável, que pode formar prioridade, ação e memória.",
   },
   {
+    group: "report",
+    icon: MessageSquareWarning,
     title: "Contar um problema",
     href: "/comun/relatar",
     goal: "Registrar um sinal com segurança para triagem coletiva.",
@@ -30,6 +48,8 @@ const ways = [
     result: "Pode originar ou reforçar uma pauta.",
   },
   {
+    group: "organize",
+    icon: UsersRound,
     title: "Entrar numa roda",
     href: "/comun/pautas",
     goal: "Responder a uma pergunta concreta e ajudar na síntese.",
@@ -39,6 +59,8 @@ const ways = [
     result: "Síntese com acordos e divergências.",
   },
   {
+    group: "organize",
+    icon: HandHeart,
     title: "Ajudar numa ação",
     href: "/comun/acoes",
     goal: "Contribuir com uma mobilização ou atividade confirmada.",
@@ -48,6 +70,8 @@ const ways = [
     result: "Entrega ou resultado público registrado.",
   },
   {
+    group: "organize",
+    icon: ListChecks,
     title: "Assumir uma tarefa",
     href: "/comun/pautas",
     goal: "Realizar uma atividade pequena com prazo e resultado esperado.",
@@ -57,6 +81,8 @@ const ways = [
     result: "Tarefa concluída e incorporada ao processo.",
   },
   {
+    group: "report",
+    icon: Binoculars,
     title: "Observar o território",
     href: "/comun/observatorios",
     goal: "Coletar observação segundo método público.",
@@ -66,6 +92,8 @@ const ways = [
     result: "Dado agregado ou evidência revisada.",
   },
   {
+    group: "culture",
+    icon: Palette,
     title: "Contribuir com Arte",
     href: "/comun/acervo/arte/contribuir",
     goal: "Preservar uma obra com autoria, contexto e direitos.",
@@ -75,6 +103,8 @@ const ways = [
     result: "Obra relacionada a território ou pauta.",
   },
   {
+    group: "culture",
+    icon: Radio,
     title: "Contribuir com a Rádio",
     href: "/comun/radio/contribuir",
     goal: "Propor programa, pauta, áudio ou correção.",
@@ -84,6 +114,8 @@ const ways = [
     result: "Proposta acompanhável ou episódio revisado.",
   },
   {
+    group: "culture",
+    icon: Archive,
     title: "Colaborar com documentos",
     href: "/comun/acervo/contribuir",
     goal: "Adicionar contexto e fontes à memória coletiva.",
@@ -93,6 +125,8 @@ const ways = [
     result: "Documento ou memória relacionados.",
   },
   {
+    group: "culture",
+    icon: FileImage,
     title: "Identificar fotografias antigas",
     href: "/comun/acervo/identificar",
     goal: "Reconhecer lugares, pessoas, datas e acontecimentos em fotografias históricas.",
@@ -102,6 +136,8 @@ const ways = [
     result: "Comentário comunitário e possível síntese editorial.",
   },
   {
+    group: "follow",
+    icon: BellRing,
     title: "Acompanhar uma pauta",
     href: "/comun/pautas",
     goal: "Receber próximas ações e acompanhar resultados.",
@@ -111,6 +147,29 @@ const ways = [
     result: "Resumo pessoal e caixa de entrada.",
   },
 ];
+
+const intentionGroups = [
+  {
+    id: "report",
+    title: "Relatar e mapear",
+    description: "Registre um sinal concreto do território.",
+  },
+  {
+    id: "organize",
+    title: "Organizar e agir",
+    description: "Encontre uma roda, ação ou tarefa possível.",
+  },
+  {
+    id: "follow",
+    title: "Acompanhar",
+    description: "Siga uma pauta e receba as próximas etapas.",
+  },
+  {
+    id: "culture",
+    title: "Memória e cultura",
+    description: "Contribua com Arte, Rádio, documentos e fotografias.",
+  },
+] as const;
 
 export default async function ParticiparPage({
   searchParams,
@@ -130,6 +189,47 @@ export default async function ParticiparPage({
           currentStage: "confirm",
         }),
       ),
+    );
+  }
+  if (appV2) {
+    return (
+      <ComunShell>
+        <div
+          className="comun-v2-participate-page comun-surface-page"
+          data-comun-layout-page="participar"
+        >
+          <header className="comun-v2-participate-page__header">
+            <p className="comun-text-action text-xs font-black uppercase">
+              Escolha uma intenção
+            </p>
+            <h1 className="comun-v2-participate-page__title comun-text-primary mt-1">
+              Como você quer contribuir?
+            </h1>
+            <p className="comun-text-secondary mt-2 max-w-xl text-sm">
+              Comece pelo objetivo. Tempo, acesso e revisão aparecem quando você
+              pedir os detalhes.
+            </p>
+          </header>
+
+          {intentionGroups.map((group) => (
+            <section className="comun-intention-group" key={group.id}>
+              <header>
+                <h2 className="comun-text-primary text-base font-black">
+                  {group.title}
+                </h2>
+                <p className="comun-text-muted text-xs">{group.description}</p>
+              </header>
+              <div className="comun-intention-list">
+                {ways
+                  .filter((way) => way.group === group.id)
+                  .map((way) => (
+                    <CompactIntentionCard key={way.title} way={way} />
+                  ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </ComunShell>
     );
   }
   return (
@@ -216,5 +316,42 @@ export default async function ParticiparPage({
         </div>
       </Section>
     </ComunShell>
+  );
+}
+
+function CompactIntentionCard({
+  way,
+}: {
+  way: (typeof ways)[number] & { icon: LucideIcon };
+}) {
+  const Icon = way.icon;
+  return (
+    <article className="comun-intention-card">
+      <Link
+        className="comun-intention-card__action focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-comun-black"
+        href={withComunAppV2(way.href)}
+        aria-label={`${way.title}. ${way.goal}`}
+      >
+        <span
+          className="grid size-10 place-items-center rounded-[var(--comun-radius-control)] bg-comun-yellow text-comun-black"
+          aria-hidden="true"
+        >
+          <Icon size={21} strokeWidth={2.3} />
+        </span>
+        <span className="min-w-0">
+          <strong className="comun-text-primary block text-sm leading-tight">
+            {way.title}
+          </strong>
+          <span className="comun-text-secondary mt-1 block truncate text-xs">
+            {way.goal}
+          </span>
+        </span>
+        <span className="comun-text-muted text-right text-[10px] font-bold">
+          {way.time}
+          <br />
+          {way.account.includes("Conta") ? "Conta" : "Acesso simples"}
+        </span>
+      </Link>
+    </article>
   );
 }
