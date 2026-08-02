@@ -55,6 +55,129 @@
     calc(var(--comun-bottom-nav-height) + env(safe-area-inset-bottom) + 1rem);
 }
 
+.comun-admin-page__header,
+.comun-institutional-page__header,
+.comun-auth-page__header {
+  border-bottom: var(--comun-stroke-strong);
+  padding-bottom: 1.25rem;
+}
+
+.comun-admin-page {
+  max-width: 100%;
+}
+
+.comun-institutional-page,
+.comun-auth-page {
+  max-width: 52rem;
+}
+
+.comun-auth-page {
+  margin-inline: auto;
+}
+
+.comun-immersive-surface {
+  display: grid;
+  min-height: var(--comun-visual-viewport-height, 100dvh);
+  grid-template-rows: auto minmax(18rem, 1fr) auto;
+  background: var(--comun-surface-tool);
+  color: var(--comun-black, #0b0b0a);
+}
+
+.comun-immersive-surface__bar {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: var(--comun-stroke-strong);
+  padding: calc(0.5rem + env(safe-area-inset-top)) 0.75rem 0.5rem;
+}
+
+.comun-immersive-surface__bar > a {
+  display: grid;
+  min-height: 2.75rem;
+  place-items: center;
+}
+
+.comun-immersive-surface__canvas {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.comun-immersive-surface__alternative {
+  border-top: var(--comun-stroke-subtle);
+  padding: 0.75rem 0.75rem calc(0.75rem + env(safe-area-inset-bottom));
+}
+
+.comun-filter-bar {
+  display: grid;
+  gap: 0.75rem;
+  border-radius: var(--comun-radius-control);
+  background: var(--comun-surface-tool);
+  padding: 0.75rem;
+  color: #0b0b0a;
+}
+
+.comun-filter-bar__controls,
+.comun-filter-bar__active,
+.comun-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.comun-error-state-v2,
+.comun-status-summary {
+  border-radius: var(--comun-radius-card);
+  padding: 1.25rem;
+  color: #0b0b0a;
+}
+
+.comun-error-state-v2 {
+  background: var(--comun-surface-alert);
+}
+
+.comun-status-summary {
+  background: var(--comun-surface-result);
+}
+
+/*
+ * Compatibility bridge for routes whose legacy markup remains available to the
+ * rollback. The App V2 shell owns their material, radius and rhythm so the old
+ * paper-panel visual is never presented when the feature flag is active.
+ * Markup retirement remains deferred until the human rehearsal in 47.9D.
+ */
+.comun-app-shell-v2 .paper-panel {
+  border: var(--comun-stroke-subtle);
+  border-radius: var(--comun-radius-card);
+  background: var(--comun-surface-paper);
+  box-shadow: none;
+  color: #0b0b0a;
+}
+
+.comun-app-shell-v2[data-comun-surface-family="comunidades"] .paper-panel {
+  border-radius: var(--comun-radius-community);
+  background: var(--comun-surface-community);
+}
+
+.comun-app-shell-v2:is(
+    [data-comun-surface-family="acervo"],
+    [data-comun-surface-family="arte"],
+    [data-comun-surface-family="radio"]
+  )
+  .paper-panel {
+  border-radius: var(--comun-radius-cultural);
+  background: var(--comun-surface-memory);
+}
+
+.comun-app-shell-v2[data-comun-shell-mode="member_nested"] .paper-panel {
+  max-width: 100%;
+}
+
+.comun-app-shell-v2 .paper-panel:hover {
+  transform: none;
+}
+
 .comun-app-shell-v2__content[data-bottom-navigation="present"] {
   padding-bottom: calc(
     var(--comun-bottom-nav-height) + env(safe-area-inset-bottom) + 1.25rem
