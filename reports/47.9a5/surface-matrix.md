@@ -1,6 +1,6 @@
 # Matriz canônica de superfícies — 47.9A5
 
-Gerada em: 2026-08-02T01:44:40.138Z
+Gerada em: 2026-08-02T03:40:33.741Z
 
 Total: **189** · ondas: 1=69 · 2=32 · 3=76 · 4=12
 
@@ -65,7 +65,7 @@ Total: **189** · ondas: 1=69 · 2=32 · 3=76 · 4=12
 | `/comun/admin/acervo/novo` | acervo | admin | v2_compatibility | NewArchive | compatibility_v2 | 3 |
 | `/comun/admin/acervo/processamento` | acervo | admin | v2_compatibility | Page | compatibility_v2 | 3 |
 | `/comun/admin/acervo/processamento/[id]` | acervo | admin | not_rendered | Page | redirect_canonical | 3 |
-| `/comun/admin/acervo/processamento/dead-letter` | acervo | admin | v2_compatibility | anonymous_page | compatibility_v2 | 3 |
+| `/comun/admin/acervo/processamento/dead-letter` | acervo | admin | not_rendered | anonymous_page | redirect_canonical | 3 |
 | `/comun/admin/acervo/storage` | acervo | admin | v2_compatibility | ArchiveStoragePage | compatibility_v2 | 3 |
 | `/comun/admin/acervo/sugestoes` | acervo | admin | v2_compatibility | SuggestionsPage | compatibility_v2 | 3 |
 | `/comun/admin/acervo/verificacao` | acervo | admin | v2_compatibility | Page | compatibility_v2 | 3 |
