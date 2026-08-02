@@ -19,30 +19,211 @@
   --comun-surface-operation: #121310;
   --comun-color-rust: #8f2f1d;
   --comun-app-bar-height: 4.125rem;
-  --comun-bottom-nav-height: 4rem;
+  --comun-bottom-nav-height: 4.25rem;
+  --comun-bottom-nav-effective-height: calc(
+    var(--comun-bottom-nav-height) + env(safe-area-inset-bottom)
+  );
   --comun-page-gutter: clamp(1rem, 4vw, 1.5rem);
   --comun-motion-confirm: 120ms;
   --comun-motion-panel: 180ms;
 }
 
 .comun-app-shell-v2 {
+  --comun-text-primary: var(--comun-color-paper);
+  --comun-text-secondary: #d8d1c4;
+  --comun-text-muted: #b7afa1;
+  --comun-text-action: var(--comun-color-action);
+  --comun-surface-page: var(--comun-surface-base);
+  --comun-surface-card: var(--comun-color-asphalt);
   min-height: 100vh;
   min-height: 100dvh;
   overflow-x: clip;
-  background: var(--comun-surface-base);
-  color: var(--comun-color-paper);
+  background: var(--comun-surface-page);
+  color: var(--comun-text-primary);
   overscroll-behavior-y: contain;
 }
 
 .comun-app-shell-v2[data-comun-shell-mode="member_root"],
-.comun-app-shell-v2[data-comun-shell-mode="auth"] {
-  background: var(--comun-surface-paper);
-  color: var(--comun-color-ink);
+.comun-app-shell-v2[data-comun-shell-mode="member_nested"],
+.comun-app-shell-v2[data-comun-shell-mode="auth"],
+.comun-app-shell-v2[data-comun-shell-mode="institutional"],
+.comun-app-shell-v2[data-comun-shell-mode="immersive"] {
+  --comun-text-primary: var(--comun-color-ink);
+  --comun-text-secondary: #3f3e3a;
+  --comun-text-muted: #625f58;
+  --comun-text-action: #762712;
+  --comun-surface-page: var(--comun-surface-paper);
+  --comun-surface-card: #ebe4d7;
+  background: var(--comun-surface-page);
+  color: var(--comun-text-primary);
 }
 
 .comun-app-shell-v2[data-comun-shell-mode="immersive"] {
-  background: var(--comun-surface-tool);
-  color: var(--comun-color-ink);
+  --comun-surface-page: var(--comun-surface-tool);
+}
+
+.comun-app-shell-v2[data-comun-shell-mode="admin"] {
+  --comun-surface-page: var(--comun-surface-operation);
+  --comun-surface-card: #1c1e1a;
+}
+
+.comun-text-primary {
+  color: var(--comun-text-primary) !important;
+}
+
+.comun-text-secondary {
+  color: var(--comun-text-secondary) !important;
+}
+
+.comun-text-muted {
+  color: var(--comun-text-muted) !important;
+}
+
+.comun-text-action {
+  color: var(--comun-text-action) !important;
+}
+
+.comun-surface-page {
+  background: var(--comun-surface-page) !important;
+  color: var(--comun-text-primary) !important;
+}
+
+.comun-surface-card {
+  background: var(--comun-surface-card) !important;
+  color: var(--comun-text-primary) !important;
+}
+
+/*
+ * Ponte auditável para páginas anteriores ao contrato semântico. O shell
+ * resolve a cor; superfícies internas opostas declaram seu próprio contexto.
+ */
+:is(
+    .comun-app-shell-v2[data-comun-shell-mode="member_root"],
+    .comun-app-shell-v2[data-comun-shell-mode="member_nested"],
+    .comun-app-shell-v2[data-comun-shell-mode="auth"],
+    .comun-app-shell-v2[data-comun-shell-mode="institutional"],
+    .comun-app-shell-v2[data-comun-shell-mode="immersive"]
+  )
+  .comun-app-shell-v2__content
+  :where([class~="text-comun-paper"], [class~="text-white"]) {
+  color: var(--comun-text-primary) !important;
+}
+
+:is(
+    .comun-app-shell-v2[data-comun-shell-mode="member_root"],
+    .comun-app-shell-v2[data-comun-shell-mode="member_nested"],
+    .comun-app-shell-v2[data-comun-shell-mode="auth"],
+    .comun-app-shell-v2[data-comun-shell-mode="institutional"],
+    .comun-app-shell-v2[data-comun-shell-mode="immersive"]
+  )
+  .comun-app-shell-v2__content
+  :where([class*="text-comun-paper/"], [class*="text-white/"]) {
+  color: var(--comun-text-secondary) !important;
+}
+
+:is(
+    .comun-app-shell-v2[data-comun-shell-mode="member_root"],
+    .comun-app-shell-v2[data-comun-shell-mode="member_nested"],
+    .comun-app-shell-v2[data-comun-shell-mode="auth"],
+    .comun-app-shell-v2[data-comun-shell-mode="institutional"],
+    .comun-app-shell-v2[data-comun-shell-mode="immersive"]
+  )
+  .comun-app-shell-v2__content
+  :where([class~="text-comun-yellow"], [class*="text-comun-yellow/"]) {
+  color: var(--comun-text-action) !important;
+}
+
+:is(
+    .comun-app-shell-v2[data-comun-shell-mode="member_root"],
+    .comun-app-shell-v2[data-comun-shell-mode="member_nested"],
+    .comun-app-shell-v2[data-comun-shell-mode="auth"],
+    .comun-app-shell-v2[data-comun-shell-mode="institutional"],
+    .comun-app-shell-v2[data-comun-shell-mode="immersive"]
+  )
+  .comun-app-shell-v2__content
+  [class*="placeholder:text-comun-paper"]::placeholder {
+  color: var(--comun-text-muted) !important;
+  opacity: 1;
+}
+
+:is(
+    .comun-app-shell-v2[data-comun-shell-mode="member_root"],
+    .comun-app-shell-v2[data-comun-shell-mode="member_nested"],
+    .comun-app-shell-v2[data-comun-shell-mode="auth"],
+    .comun-app-shell-v2[data-comun-shell-mode="institutional"],
+    .comun-app-shell-v2[data-comun-shell-mode="immersive"]
+  )
+  .comun-app-shell-v2__content
+  [class*="border-comun-paper"] {
+  border-color: color-mix(in srgb, var(--comun-color-ink) 45%, transparent) !important;
+}
+
+.comun-app-shell-v2
+  :is(
+    .surface-base,
+    .surface-operation,
+    .bg-comun-black,
+    .bg-comun-asphalt,
+    .comun-relational-page,
+    .comun-v2-page[data-comun-app-v2-page$="-collection"],
+    [data-comun-contrast-surface="dark"]
+  )
+  :where([class~="text-comun-paper"], [class~="text-white"]),
+.comun-app-shell-v2
+  :is(.surface-base, .surface-operation, .bg-comun-black, .bg-comun-asphalt, .comun-relational-page, .comun-v2-page[data-comun-app-v2-page$="-collection"]):is(
+    [class~="text-comun-paper"],
+    [class~="text-white"]
+  ) {
+  color: var(--comun-color-paper) !important;
+}
+
+.comun-app-shell-v2
+  :is(
+    .surface-base,
+    .surface-operation,
+    .bg-comun-black,
+    .bg-comun-asphalt,
+    .comun-relational-page,
+    .comun-v2-page[data-comun-app-v2-page$="-collection"],
+    [data-comun-contrast-surface="dark"]
+  )
+  :where([class*="text-comun-paper/"], [class*="text-white/"]) {
+  color: #d8d1c4 !important;
+}
+
+.comun-app-shell-v2
+  :is(.surface-base, .surface-operation, .bg-comun-black, .bg-comun-asphalt, .comun-relational-page, .comun-v2-page[data-comun-app-v2-page$="-collection"]):is(
+    [class*="text-comun-paper/"],
+    [class*="text-white/"]
+  ) {
+  color: #d8d1c4 !important;
+}
+
+.comun-app-shell-v2
+  :is(
+    .surface-base,
+    .surface-operation,
+    .bg-comun-black,
+    .bg-comun-asphalt,
+    .comun-relational-page,
+    .comun-v2-page[data-comun-app-v2-page$="-collection"],
+    [data-comun-contrast-surface="dark"]
+  )
+  :where([class~="text-comun-yellow"], [class*="text-comun-yellow/"]) {
+  color: var(--comun-color-action) !important;
+}
+
+.comun-app-shell-v2
+  :is(.surface-base, .surface-operation, .bg-comun-black, .bg-comun-asphalt, .comun-relational-page, .comun-v2-page[data-comun-app-v2-page$="-collection"]):is(
+    [class~="text-comun-yellow"],
+    [class*="text-comun-yellow/"]
+  ) {
+  color: var(--comun-color-action) !important;
+}
+
+.comun-app-shell-v2
+  .bg-comun-yellow:where([class~="text-comun-yellow"], [class*="text-comun-yellow/"]) {
+  color: var(--comun-color-ink) !important;
 }
 
 .comun-app-shell-v2[data-comun-shell-mode="auth"] .comun-app-shell-v2__content {
@@ -66,14 +247,10 @@
   overscroll-behavior: contain;
 }
 
-.comun-app-shell-v2[data-comun-shell-mode="admin"] {
-  background: var(--comun-surface-operation);
-}
-
 .comun-app-shell-v2__content {
   min-height: calc(100dvh - var(--comun-app-bar-height));
   scroll-padding-block: calc(var(--comun-app-bar-height) + 1rem)
-    calc(var(--comun-bottom-nav-height) + env(safe-area-inset-bottom) + 1rem);
+    calc(var(--comun-bottom-nav-effective-height) + 1rem);
 }
 
 .comun-admin-page__header,
@@ -518,14 +695,12 @@
 }
 
 .comun-app-shell-v2__content[data-bottom-navigation="present"] {
-  padding-bottom: calc(
-    var(--comun-bottom-nav-height) + env(safe-area-inset-bottom) + 1.25rem
-  );
+  padding-bottom: calc(var(--comun-bottom-nav-effective-height) + 1.25rem);
 }
 
 .comun-app-shell-v2 :is(input, textarea, select, button, [tabindex]) {
   scroll-margin-block: calc(var(--comun-app-bar-height) + 0.75rem)
-    calc(var(--comun-bottom-nav-height) + env(safe-area-inset-bottom) + 1rem);
+    calc(var(--comun-bottom-nav-effective-height) + 1rem);
 }
 
 .comun-app-bar-v2 {
@@ -533,10 +708,125 @@
 }
 
 .comun-bottom-nav-v2 {
-  min-height: calc(
-    var(--comun-bottom-nav-height) + env(safe-area-inset-bottom)
-  );
+  min-height: var(--comun-bottom-nav-effective-height);
   box-shadow: 0 -8px 28px rgb(0 0 0 / 18%);
+}
+
+.comun-connection-toast {
+  position: fixed;
+  z-index: 55;
+  top: calc(
+    var(--comun-app-bar-height) + env(safe-area-inset-top) + 0.75rem
+  );
+  left: 50%;
+  width: max-content;
+  max-width: calc(100% - 2rem);
+  transform: translateX(-50%);
+}
+
+.comun-v2-participate-page,
+.comun-v2-auth-page {
+  margin-inline: auto;
+  width: min(100%, 48rem);
+  padding: 1rem var(--comun-page-gutter)
+    calc(var(--comun-bottom-nav-effective-height) + 1rem);
+}
+
+.comun-v2-participate-page__header,
+.comun-v2-auth-page__header {
+  margin-bottom: 1rem;
+}
+
+.comun-v2-participate-page__title,
+.comun-v2-auth-page__title {
+  max-width: 18ch;
+  font-size: clamp(1.85rem, 8vw, 2.75rem);
+  font-weight: 950;
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+
+.comun-intention-group + .comun-intention-group {
+  margin-top: 1.25rem;
+}
+
+.comun-intention-list {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.55rem;
+}
+
+.comun-intention-card {
+  border: var(--comun-stroke-subtle);
+  border-radius: var(--comun-radius-card);
+  background: var(--comun-surface-card);
+  color: var(--comun-text-primary);
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--comun-color-ink) 18%, transparent);
+}
+
+.comun-intention-card__action {
+  display: grid;
+  min-height: 4.5rem;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.comun-v2-auth-form-card {
+  border: var(--comun-stroke-strong);
+  border-radius: var(--comun-radius-card);
+  background: var(--comun-surface-card);
+  padding: 1rem;
+  color: var(--comun-text-primary);
+}
+
+.comun-v2-auth-context {
+  margin-top: 1rem;
+  border-left: 4px solid var(--comun-color-action);
+  padding: 0.75rem 1rem;
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .comun-v2-participate-page,
+  .comun-v2-auth-page {
+    padding-top: 0.5rem;
+  }
+
+  .comun-v2-participate-page__header,
+  .comun-v2-auth-page__header {
+    margin-bottom: 0.5rem;
+  }
+
+  .comun-v2-participate-page__title,
+  .comun-v2-auth-page__title {
+    max-width: none;
+    font-size: 1.6rem;
+    line-height: 1;
+  }
+
+  .comun-v2-participate-page__header > :last-child,
+  .comun-v2-auth-page__header > :last-child {
+    margin-top: 0.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .comun-v2-auth-page {
+    width: min(100%, 70rem);
+    padding-top: 3rem;
+  }
+
+  .comun-v2-auth-page__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 32rem) minmax(18rem, 1fr);
+    align-items: start;
+    gap: 3rem;
+  }
+
+  .comun-v2-auth-context {
+    margin-top: 0;
+  }
 }
 
 html[data-comun-keyboard="open"] .comun-bottom-nav-v2 {
@@ -899,9 +1189,7 @@ html[data-comun-keyboard="open"]
 
 @media (orientation: landscape) and (max-height: 520px) {
   .comun-app-shell-v2__content[data-bottom-navigation="present"] {
-    padding-bottom: calc(
-      var(--comun-bottom-nav-height) + env(safe-area-inset-bottom) + 0.5rem
-    );
+    padding-bottom: calc(var(--comun-bottom-nav-effective-height) + 0.5rem);
   }
 
   .comun-sheet {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   COMUN_INSTALL_DISMISS_KEY,
   COMUN_LAST_SAFE_ROUTE_KEY,
@@ -13,7 +13,7 @@ type InstallEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
-type Connection = "online" | "offline" | "reconnecting";
+type Connection = "online" | "offline" | "reconnecting" | "restored";
 
 export function ComunPwaRuntime({
   inlineConnectionStatus = false,
@@ -29,6 +29,8 @@ export function ComunPwaRuntime({
     path.startsWith("/comun/conta") ||
     path.includes("/confirmacao");
   const [connection, setConnection] = useState<Connection>("online");
+  const hadConfirmedOffline = useRef(false);
+  const restoredTimer = useRef<number | null>(null);
   const [installEvent, setInstallEvent] = useState<InstallEvent | null>(null);
   const [showInstall, setShowInstall] = useState(false);
   const [iosHelp, setIosHelp] = useState(false);
@@ -37,7 +39,11 @@ export function ComunPwaRuntime({
 
   useEffect(() => {
     queueMicrotask(() => {
-      setConnection(navigator.onLine ? "online" : "offline");
+      if (navigator.onLine) setConnection("online");
+      else {
+        hadConfirmedOffline.current = true;
+        setConnection("offline");
+      }
       setStandalone(
         window.matchMedia("(display-mode: standalone)").matches ||
           (navigator as Navigator & { standalone?: boolean }).standalone ===
@@ -49,14 +55,32 @@ export function ComunPwaRuntime({
   }, [path]);
 
   useEffect(() => {
-    const online = () => {
+    const confirmRestoredConnection = async () => {
+      if (!hadConfirmedOffline.current) return;
       setConnection("reconnecting");
-      window.setTimeout(
-        () => setConnection(navigator.onLine ? "online" : "offline"),
-        900,
-      );
+      try {
+        const response = await fetch("/manifest.webmanifest", {
+          cache: "no-store",
+          method: "HEAD",
+        });
+        if (!navigator.onLine || !response.ok) throw new Error("offline");
+        hadConfirmedOffline.current = false;
+        setConnection("restored");
+        if (restoredTimer.current) window.clearTimeout(restoredTimer.current);
+        restoredTimer.current = window.setTimeout(
+          () => setConnection("online"),
+          2400,
+        );
+      } catch {
+        hadConfirmedOffline.current = true;
+        setConnection("offline");
+      }
     };
-    const offline = () => setConnection("offline");
+    const online = () => void confirmRestoredConnection();
+    const offline = () => {
+      hadConfirmedOffline.current = true;
+      setConnection("offline");
+    };
     window.addEventListener("online", online);
     window.addEventListener("offline", offline);
     const beforeInstall = (event: Event) => {
@@ -88,7 +112,7 @@ export function ComunPwaRuntime({
             });
           });
         })
-        .catch(() => setConnection("offline"));
+        .catch(() => undefined);
     }
     sessionStorage.setItem(
       "comun:surfaces-seen",
@@ -98,6 +122,7 @@ export function ComunPwaRuntime({
       window.removeEventListener("online", online);
       window.removeEventListener("offline", offline);
       window.removeEventListener("beforeinstallprompt", beforeInstall);
+      if (restoredTimer.current) window.clearTimeout(restoredTimer.current);
     };
   }, []);
 
@@ -124,13 +149,32 @@ export function ComunPwaRuntime({
     <>
       <div
         data-testid="connection-status"
+        data-comun-connection-placement={
+          inlineConnectionStatus ? "app-shell" : "legacy-shell"
+        }
         role="status"
         aria-live="polite"
-        className={`${inlineConnectionStatus ? "relative z-20 mx-auto my-3" : "fixed inset-x-0 z-50 mx-auto top-[4.5rem]"} w-fit max-w-[calc(100%-2rem)] border-2 border-comun-black px-3 py-2 text-center text-xs font-black uppercase shadow-[3px_3px_0_#0b0b0a] ${connection === "online" ? "sr-only" : "bg-comun-yellow text-comun-black"}`}
+        className={`${connection === "online" ? "sr-only" : "comun-connection-toast border-2 border-comun-black bg-comun-yellow px-3 py-2 text-center text-xs font-black uppercase text-comun-black shadow-[3px_3px_0_#0b0b0a]"}`}
       >
-        {connection === "offline"
-          ? "Sem conexão. Conteúdos já disponíveis continuam acessíveis; envios precisam de conexão."
-          : "Conexão restabelecida."}
+        {connection === "online"
+          ? null
+          : connection === "offline"
+            ? "Offline — sem conexão. Conteúdos disponíveis continuam acessíveis; envios precisam de conexão."
+            : connection === "reconnecting"
+              ? "Confirmando conexão…"
+              : "Conexão restabelecida."}
+        {connection === "offline" ? (
+          <Link
+            href={
+              inlineConnectionStatus
+                ? "/comun/offline?experiencia=app-v2"
+                : "/comun/offline"
+            }
+            className="ml-2 underline"
+          >
+            Ajuda
+          </Link>
+        ) : null}
       </div>
       {standalone ? (
         <span className="sr-only" data-testid="standalone-active">
