@@ -96,10 +96,6 @@ export function ComunAdminShellClient({
         .sort((left, right) => right.length - left.length)[0],
     [pathname],
   );
-  const currentSnapshot = useMemo(
-    () => adminFilterSnapshot(pathname, searchParams),
-    [pathname, searchParams],
-  );
   const returnHref = safeComunAdminReturn(
     searchParams.get("returnTo"),
     surface.parentHref,
@@ -178,7 +174,13 @@ export function ComunAdminShellClient({
       target.pathname !== pathname &&
       !target.searchParams.has("returnTo")
     )
-      target.searchParams.set("returnTo", currentSnapshot);
+      target.searchParams.set(
+        "returnTo",
+        adminFilterSnapshot(
+          pathname,
+          new URLSearchParams(window.location.search),
+        ),
+      );
     event.preventDefault();
     router.push(
       withComunAppV2(`${target.pathname}${target.search}${target.hash}`),

@@ -65,6 +65,8 @@ A segunda execução isolada confirmou o reset Supabase e o seed completo, e sep
 
 A terceira execução fechou contraste, foco, formulário, sessão expirada e 18/20 cenários. Os dois resíduos eram o mesmo teste de retorno: a simulação por `history.replaceState` alterava a URL fora do ciclo inicial do App Router e não representava a entrada real por deep link. Duas tentativas seguintes confirmaram que uma segunda navegação server-side com query — tanto na lista quanto em `returnTo` codificado — permanece no overlay `Rendering…` do Next dev até o timeout. A cobertura foi separada por responsabilidade: o E2E nos extremos 390×844 e 1366×768 comprova captura, destino, volta e flag; os testes unitários comprovam filtros allowlisted e remoção de dados sensíveis. O produto não ganhou estado paralelo para satisfazer o runner.
 
+A comparação entre os traces mostrou a causa do loop: o fluxo navegava quando o snapshot era obtido da URL no evento, mas travava quando o snapshot era memoizado a partir de `useSearchParams` e atualizado durante o mesmo `router.push`. O shell passou a capturar `window.location.search` somente no clique, aplica o mesmo allowlist puro e evita acoplar a navegação ao ciclo reativo do App Router.
+
 ## Invariantes preservados
 
 - nenhuma mutation canônica alterada;
