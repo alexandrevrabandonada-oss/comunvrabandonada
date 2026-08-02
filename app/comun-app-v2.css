@@ -18,6 +18,7 @@
   --comun-surface-alert: #f5df75;
   --comun-surface-operation: #121310;
   --comun-color-rust: #8f2f1d;
+  --comun-color-success-strong: #14532d;
   --comun-app-bar-height: 4.125rem;
   --comun-bottom-nav-height: 4.25rem;
   --comun-bottom-nav-effective-height: calc(
@@ -1124,6 +1125,10 @@ html[data-comun-keyboard="open"]
   border: var(--comun-stroke-subtle);
   border-radius: var(--comun-radius-card);
   background: var(--comun-surface-result);
+}
+
+.comun-v2-card-result .text-comun-green {
+  color: var(--comun-color-success-strong);
 }
 
 .comun-v2-card-memory {
