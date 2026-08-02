@@ -398,6 +398,7 @@
 /* Administração V2: densidade e previsibilidade têm prioridade visual. */
 .comun-admin-shell-v2 {
   min-height: 100dvh;
+  overflow-x: clip;
   background: var(--comun-surface-operation);
   color: var(--comun-color-paper);
 }
@@ -519,6 +520,11 @@
   padding: calc(0.75rem + env(safe-area-inset-top)) var(--comun-page-gutter)
     0.75rem;
   backdrop-filter: blur(10px);
+}
+
+.comun-admin-context-bar > div:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .comun-admin-context-bar a {
