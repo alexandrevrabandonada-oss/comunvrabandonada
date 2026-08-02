@@ -20,11 +20,29 @@ test("bottom nav possui cinco destinos e Participar abre action sheet", async ({
   });
   await expect(dialog).toBeVisible();
   for (const name of [
-    "Registrar uma calçada",
+    "Registrar calçada",
+    "Contribuir com pauta",
     "Enviar relato",
-    "Contribuir com o Acervo",
-    "Participar de roda",
-    "Encontrar ação",
+    "Registrar resposta institucional",
+  ])
+    await expect(
+      dialog.getByRole("link", { name, exact: false }),
+    ).toBeVisible();
+  await expect(
+    dialog.getByRole("button", {
+      name: "Ver cultura, memória e direitos",
+    }),
+  ).toBeVisible();
+  await dialog
+    .getByRole("button", { name: "Ver cultura, memória e direitos" })
+    .click();
+  for (const name of [
+    "Entrar em comunidade",
+    "Assumir tarefa",
+    "Enviar item ao Acervo",
+    "Enviar áudio à Rádio",
+    "Enviar obra",
+    "Pedir correção",
   ])
     await expect(
       dialog.getByRole("link", { name, exact: false }),
@@ -44,7 +62,9 @@ test("Explorar agrupa diretórios e miniapp preserva uma navegação local", asy
     "Resultados",
     "Acervo",
   ])
-    await expect(page.getByLabel(name, { exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByRole("link", { name, exact: true }).first(),
+    ).toBeVisible();
   await page.goto("/comun/calcadas");
   await expect(
     page.getByRole("navigation", { name: "Navegação do Mapa das Calçadas" }),
