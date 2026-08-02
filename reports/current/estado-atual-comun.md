@@ -1,16 +1,23 @@
 # Estado atual do COMUN
 
-Atualizado em 1º de agosto de 2026.
+Atualizado em 2 de agosto de 2026.
 
 ## Checkpoint ativo — Tijolo 47.9A4
 
 - base efetiva: `0160fa0b4884a403a02c016fc3ebc43b8dfb7c66`;
 - PR #137 do 47.9A3: mesclada;
 - resultado herdado: `COMUN_CORE_JOURNEYS_STREAMLINED_READY_FOR_HUMAN_REHEARSAL`;
-- branch: `codex/tijolo-47-9a4-grafo-civico-superficies-relacionais`;
+- PR principal #138 e correções focais #139/#140: mescladas;
+- runtime final: `224617bd5b90ef549045a007e5cd5199a14f51a8`;
+- Production e workflows pós-merge no SHA exato: aprovados;
+- resultado técnico:
+  `COMUN_RELATIONAL_NAVIGATION_READY_FOR_FULL_SURFACE_MIGRATION`;
+- branch principal: `codex/tijolo-47-9a4-grafo-civico-superficies-relacionais`;
 - feature flag reversível: `?experiencia=app-v2`;
 - 189 páginas App Router em `/comun` inventariadas; 27 rotas compõem a primeira onda relacional;
 - fontes, relações, contagens agregadas e legado residual possuem auditores próprios;
+- consistência remota: `consistent`, com um warning não bloqueante para a pauta
+  pública ainda sem território formal;
 - nenhuma relação textual vira fonte canônica sem lookup público explícito;
 - nenhum resultado de ensaio humano foi produzido;
 - 47.9A e 47.9D continuam exigindo ensaio humano;
