@@ -1,5 +1,7 @@
 export const COMUN_APP_V2_EXPERIENCE = "app-v2" as const;
 export const COMUN_LEGACY_EXPERIENCE = "legacy" as const;
+/** Historical coherence pilot kept as a non-canonical legacy compatibility alias. */
+export const COMUN_COHERENCE_EXPERIENCE = "coerencia" as const;
 
 export type ComunExperience =
   typeof COMUN_APP_V2_EXPERIENCE | typeof COMUN_LEGACY_EXPERIENCE;
@@ -16,6 +18,7 @@ export function resolveComunExperience(
   value: ComunExperienceValue,
 ): ComunExperience {
   return firstExperienceValue(value) === COMUN_LEGACY_EXPERIENCE
+    || firstExperienceValue(value) === COMUN_COHERENCE_EXPERIENCE
     ? COMUN_LEGACY_EXPERIENCE
     : COMUN_APP_V2_EXPERIENCE;
 }

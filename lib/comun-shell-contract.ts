@@ -1,6 +1,7 @@
 import { resolveComunSurfaceMigration } from "./comun-surface-migration";
 export {
   COMUN_APP_V2_EXPERIENCE,
+  COMUN_COHERENCE_EXPERIENCE,
   isComunAppV2,
   resolveComunExperience,
   withComunAppV2,

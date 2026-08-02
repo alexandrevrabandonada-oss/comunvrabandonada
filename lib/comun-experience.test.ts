@@ -16,6 +16,8 @@ describe("COMUN experience contract", () => {
     expect(resolveComunExperience("v2")).toBe("app-v2");
     expect(resolveComunExperience(undefined)).toBe("app-v2");
     expect(resolveComunExperience("legacy")).toBe("legacy");
+    expect(resolveComunExperience("coerencia")).toBe("legacy");
+    expect(isComunAppV2("coerencia")).toBe(false);
   });
 
   it("preserves query and hash while emitting canonical V2 links", () => {
