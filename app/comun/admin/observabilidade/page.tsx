@@ -192,18 +192,19 @@ export default async function AdminObservabilityPage() {
               {civicSearch.model === "lexical_only" || !civicSearch.available
                 ? "Lexical funcional; embedding remoto ainda sem evidência nesta leitura"
                 : "Embedding observado; relevância depende do último eval sanitizado"}
+              {!civicSearch.available ||
+              civicSearch.model === "lexical_only" ? (
+                <span
+                  className="mt-1 block text-xs font-bold"
+                  data-platform-blocker="civic-intelligence-provider"
+                  data-platform-state={
+                    COMUN_ADMIN_PLATFORM_GATES.civicIntelligence.state
+                  }
+                >
+                  Provider semântico: capability remota ainda não comprovada.
+                </span>
+              ) : null}
             </dd>
-            {!civicSearch.available || civicSearch.model === "lexical_only" ? (
-              <p
-                className="mt-1 text-xs font-bold"
-                data-platform-blocker="civic-intelligence-provider"
-                data-platform-state={
-                  COMUN_ADMIN_PLATFORM_GATES.civicIntelligence.state
-                }
-              >
-                Provider semântico: capability remota ainda não comprovada.
-              </p>
-            ) : null}
           </div>
           <div>
             <dt className="font-black">Última sincronização</dt>

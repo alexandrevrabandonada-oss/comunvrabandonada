@@ -75,6 +75,9 @@ O primeiro run autenticado da PR passou 34/35 cenários e encontrou overflow em
 390 px na Observabilidade: o identificador técnico do blocker era renderizado
 sem ponto de quebra. O contrato continua contendo o estado canônico; a UI passou
 a apresentar a mesma condição em linguagem humana e sem ampliar o viewport.
+O segundo run confirmou o overflow encerrado e encontrou a mensagem como filho
+inválido de um grupo `dl`; ela foi incorporada ao `dd` correspondente, mantendo
+a estrutura acessível e o estado técnico fora do texto visual.
 
 ## Roadmap
 
