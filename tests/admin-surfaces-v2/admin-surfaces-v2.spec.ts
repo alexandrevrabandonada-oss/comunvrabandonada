@@ -18,9 +18,10 @@ async function openAdmin(
   browser: Browser,
   path: string,
   viewport: { width: number; height: number },
+  persona = "operations_admin",
 ) {
   const context = await browser.newContext({
-    storageState: stateFor("operations_admin"),
+    storageState: stateFor(persona),
     viewport,
   });
   const page = await context.newPage();
@@ -101,6 +102,7 @@ test("retorno operacional e flag sobrevivem ao detalhe", async ({
     browser,
     "/comun/admin/acervo/novo?experiencia=app-v2&returnTo=%2Fcomun%2Fadmin%2Facervo%3Fq%3Dmemoria%26status%3Dreview%26page%3D2",
     viewport,
+    "admin",
   );
   try {
     await expect(page.locator(".comun-admin-shell-v2")).toHaveAttribute(
@@ -120,6 +122,29 @@ test("retorno operacional e flag sobrevivem ao detalhe", async ({
     expect(backUrl.searchParams.get("status")).toBe("review");
     expect(backUrl.searchParams.get("page")).toBe("2");
     expect(backUrl.searchParams.get("experiencia")).toBe("app-v2");
+  } finally {
+    await context.close();
+  }
+});
+
+test("landing administrativo respeita capacidade sem loop", async ({
+  browser,
+}, testInfo) => {
+  if (testInfo.project.name !== "390x844") return;
+  const viewport = testInfo.project.use.viewport as {
+    width: number;
+    height: number;
+  };
+  const { context, page } = await openAdmin(
+    browser,
+    "/comun/admin?experiencia=app-v2",
+    viewport,
+  );
+  try {
+    await expect(page).toHaveURL(/\/comun\/admin\/operacao/);
+    expect(new URL(page.url()).searchParams.get("experiencia")).toBe("app-v2");
+    await expect(page.getByLabel("E-mail")).toHaveCount(0);
+    await expect(page.locator("[data-comun-bottom-navigation]")).toHaveCount(0);
   } finally {
     await context.close();
   }

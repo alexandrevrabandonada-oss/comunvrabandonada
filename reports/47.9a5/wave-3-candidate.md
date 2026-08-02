@@ -71,6 +71,8 @@ O fluxo simples ainda revelou uma corrida do harness: a presença do shell SSR n
 
 Com a hidratação comprovada, o timeout persistiu exclusivamente na transição entre Server Components administrativos e a tentativa documental terminou em `chrome-error://chromewebdata/`. Navegações diretas para os mesmos destinos já passavam na própria suíte. A construção do destino virou função pura usada pelo shell e coberta com filtros allowlisted/dado sensível; o E2E abre o deep link produzido e valida retorno/flag no destino. O transporte instável do servidor dev deixa de ser uma falsa dependência do contrato.
 
+O deep link direto expôs ainda um loop real de autorização: a persona operacional `viewer` era recusada pela rota editorial e enviada ao root, que redirecionava cegamente para outra rota editorial. O landing agora respeita capacidade sem ampliar acesso: admin/editor vai à Organização, perfil com capacidade `central` vai à Operação e demais perfis administrativos vão às Notificações. O cenário editorial usa a persona `admin` compatível com a rota.
+
 ## Invariantes preservados
 
 - nenhuma mutation canônica alterada;
