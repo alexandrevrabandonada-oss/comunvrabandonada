@@ -79,6 +79,13 @@ O segundo run confirmou o overflow encerrado e encontrou a mensagem como filho
 inválido de um grupo `dl`; ela foi incorporada ao `dd` correspondente, mantendo
 a estrutura acessível e o estado técnico fora do texto visual.
 
+No SHA com o browser administrativo 35/35, o Core Journeys passou E2E e 9/9
+cenários de qualidade, mas o typecheck consumiu um
+`.next/dev/types/validator.ts` truncado pelo web server anterior. O retry focal
+repetiu somente essa falha gerada. O workflow agora apaga o diretório descartável
+`.next` antes da regressão estática; código-fonte, mutations e evidências não são
+removidos.
+
 ## Roadmap
 
 Próximo tijolo, sem iniciá-lo: **47.9D — Ensaio humano, aparelhos reais e
