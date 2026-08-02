@@ -68,7 +68,9 @@ function sourceFacts(source) {
     pattern.test(source),
   ).map(([name]) => name);
   return {
-    redirects: /\b(?:redirect|permanentRedirect|notFound)\s*\(/.test(source),
+    redirects:
+      /\b(?:redirect|permanentRedirect|notFound)\s*\(/.test(source) ||
+      /export\s*\{\s*default\s*\}\s*from\s*["'][^"']+["']/.test(source),
     explicitV2: hasAny(source, V2_MARKERS),
     notUserSurface:
       /export\s+default\s+function\s+\w+\s*\(.*\)\s*\{?\s*return\s+null/s.test(
@@ -90,6 +92,17 @@ function routeRow(file, source) {
   const route = routeFromFile(file);
   const facts = sourceFacts(source);
   const migration = resolveComunSurfaceMigration(route, facts);
+  const shellComponent = importedShell(source);
+  const hasTable = /<table\b|role=["']table["']/.test(source);
+  const hasForm = /<form\b|action=\{/.test(source);
+  const hasQueue =
+    /\b(?:queue|fila|triage|rights|editorial|publication|withdrawal)/i.test(
+      source,
+    );
+  const adminV2Contract =
+    migration.shellMode === "admin" &&
+    (shellComponent === "AdminShell" || facts.redirects);
+  const severity = migration.legacyImports.length ? "P2" : "none";
   return {
     route,
     family: migration.family,
@@ -100,9 +113,9 @@ function routeRow(file, source) {
     ),
     visual_state: visualState(migration.decision, facts),
     main_component: exportedComponent(source),
-    shell_component: importedShell(source),
+    shell_component: shellComponent,
     legacy_components: migration.legacyImports,
-    contextual_app_bar: ["member_nested", "immersive"].includes(
+    contextual_app_bar: ["member_nested", "immersive", "admin"].includes(
       migration.shellMode,
     ),
     primary_action: migration.primaryAction ?? null,
@@ -111,9 +124,29 @@ function routeRow(file, source) {
     ),
     requires_entity_context: migration.requiresEntityContext,
     preserves_filters_or_return:
+      adminV2Contract ||
       /\b(?:searchParams|returnTo|withComunJourneyContext|filtro|filter)/.test(
         source,
       ),
+    admin_domain: migration.shellMode === "admin" ? migration.family : null,
+    admin_surface_type: hasQueue
+      ? "queue"
+      : hasTable
+        ? "table"
+        : hasForm
+          ? "form"
+          : migration.requiresEntityContext
+            ? "detail"
+            : "collection",
+    has_table: hasTable,
+    has_form: hasForm,
+    accessible_table_contract: !hasTable || adminV2Contract,
+    filter_return_contract: migration.shellMode !== "admin" || adminV2Contract,
+    compatibility_severity: severity,
+    compatibility_justification:
+      severity === "P2"
+        ? "Markup preservado para rollback; shell V2 neutraliza material legado e adiciona navegação, foco e semântica operacional."
+        : null,
     decision: migration.decision,
     wave: migration.wave,
     source: path.relative(root, file).replaceAll(path.sep, "/"),
@@ -185,6 +218,17 @@ export async function auditComunSurfaces({ write = true } = {}) {
       (row) =>
         row.decision === "compatibility_v2" && row.legacy_components.length > 0,
     ).length,
+    p0_p1: rows.filter((row) =>
+      ["P0", "P1"].includes(row.compatibility_severity),
+    ).length,
+    admin_wave3: rows.filter((row) => row.wave === 3).length,
+    admin_wave4: rows.filter((row) => row.wave === 4).length,
+    admin_tables: rows.filter(
+      (row) => row.shell_mode === "admin" && row.has_table,
+    ).length,
+    admin_forms: rows.filter(
+      (row) => row.shell_mode === "admin" && row.has_form,
+    ).length,
   };
   const compatibilityDebt = rows
     .filter(
@@ -217,6 +261,23 @@ export async function auditComunSurfaces({ write = true } = {}) {
       path.join(reportRoot, "compatibility-debt.json"),
       `${JSON.stringify(compatibilityDebt, null, 2)}\n`,
     );
+    await writeFile(
+      path.join(reportRoot, "admin-surface-matrix.json"),
+      `${JSON.stringify(
+        {
+          summary: {
+            wave3: summary.admin_wave3,
+            wave4: summary.admin_wave4,
+            tables: summary.admin_tables,
+            forms: summary.admin_forms,
+            p0_p1: summary.p0_p1,
+          },
+          routes: rows.filter((row) => row.shell_mode === "admin"),
+        },
+        null,
+        2,
+      )}\n`,
+    );
   }
   return { summary, routes: rows };
 }
@@ -226,4 +287,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   process.stdout.write(`${JSON.stringify(result.summary, null, 2)}\n`);
   if (result.summary.duplicate_routes.length) process.exitCode = 1;
   if (result.summary.legacy_rendered > 0) process.exitCode = 1;
+  if (result.summary.p0_p1 > 0) process.exitCode = 1;
 }

@@ -190,7 +190,12 @@ function titleFor(route: string, family: string) {
 }
 
 function parentFor(route: string, shellMode: ComunShellMode) {
-  if (shellMode === "admin") return "/comun/admin";
+  if (shellMode === "admin") {
+    const segments = routeSegments(route);
+    return segments.length <= 3
+      ? "/comun/admin"
+      : `/${segments.slice(0, -1).join("/")}`;
+  }
   if (shellMode === "auth" || shellMode === "institutional") return "/comun";
   const segments = routeSegments(route);
   if (segments.length <= 2) return "/comun/explorar";

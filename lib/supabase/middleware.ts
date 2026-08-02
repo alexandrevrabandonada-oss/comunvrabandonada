@@ -44,6 +44,8 @@ export async function updateSession(request: NextRequest) {
     redirectUrl.pathname = "/comun/admin/login";
     redirectUrl.search = "";
     redirectUrl.searchParams.set("redirectTo", `${pathname}${search}`);
+    if (request.nextUrl.searchParams.get("experiencia") === "app-v2")
+      redirectUrl.searchParams.set("experiencia", "app-v2");
     return NextResponse.redirect(redirectUrl);
   }
 

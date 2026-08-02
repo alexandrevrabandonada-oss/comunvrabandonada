@@ -19,6 +19,24 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   assert.ok(routes.every((route) => route.contextual_app_bar !== undefined));
   assert.ok(routes.every((route) => route.wave >= 1 && route.wave <= 4));
   assert.equal(summary.legacy_rendered, 0);
+  assert.equal(summary.p0_p1, 0);
+  assert.equal(summary.admin_wave3, 76);
+  assert.equal(summary.admin_wave4, 12);
+});
+
+test("admin civic and editorial routes inherit navigation and table contracts", async () => {
+  const { routes } = await auditComunSurfaces({ write: false });
+  const wave3 = routes.filter((route) => route.wave === 3);
+  assert.equal(wave3.length, 76);
+  assert.ok(wave3.every((route) => route.shell_mode === "admin"));
+  assert.ok(wave3.every((route) => route.contextual_app_bar));
+  assert.ok(wave3.every((route) => route.preserves_filters_or_return));
+  assert.ok(wave3.every((route) => route.accessible_table_contract));
+  assert.ok(
+    wave3.every(
+      (route) => !["P0", "P1"].includes(route.compatibility_severity),
+    ),
+  );
 });
 
 test("keeps roots, nested routes, immersive tools and admin surfaces distinct", async () => {

@@ -9,7 +9,9 @@ on:
       - "lib/comun-**"
       - "scripts/surfaces/**"
       - "tests/app-shell-v2/**"
+      - "tests/admin-surfaces-v2/**"
       - "playwright.app-shell-v2.config.ts"
+      - "playwright.admin-surfaces-v2.config.ts"
       - "package*.json"
       - ".github/workflows/comun-full-surface-migration.yml"
   workflow_dispatch:
@@ -58,6 +60,54 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run surfaces:e2e
       - run: npm run surfaces:a11y
+
+  admin-browser:
+    name: Authenticated admin surfaces and accessibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: supabase start
+      - name: Reset disposable Supabase stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          reset_output="$(mktemp)"
+          trap 'rm -f "$reset_output"' EXIT
+          set +e
+          supabase db reset --local --yes >"$reset_output" 2>&1
+          reset_status=$?
+          set -e
+          if ((reset_status != 0)) && grep -q "Error status 502" "$reset_output"; then
+            echo COMUN_ADMIN_LOCAL_RESET_502_SINGLE_RETRY
+            supabase db reset --local --yes
+          elif ((reset_status != 0)); then
+            cat "$reset_output"
+            exit "$reset_status"
+          fi
+      - run: npm run surfaces:admin:e2e
+      - name: Admin browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-admin-surfaces-v2-${{ github.sha }}
+          path: |
+            test-results/**/admin-*.png
+            test-results/**/error-context.md
+            test-results/**/trace.zip
+          if-no-files-found: warn
+          retention-days: 14
+      - if: always()
+        run: supabase stop --no-backup || true
 
   security:
     name: Security and public no-leak contracts
