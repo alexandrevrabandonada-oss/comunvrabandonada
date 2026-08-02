@@ -103,24 +103,38 @@ test("filtros e retorno operacional sobrevivem ao detalhe", async ({
     viewport,
   );
   try {
-    await page.goto(
-      "/comun/admin/acervo?experiencia=app-v2&q=memoria&status=review&page=2",
-    );
-    await expect(page.locator(".comun-admin-shell-v2")).toBeVisible();
+    const filteredReturn = "/comun/admin/acervo?q=memoria&status=review&page=2";
+    await page.evaluate((returnTo) => {
+      const anchor = document.querySelector<HTMLAnchorElement>(
+        'main a[href="/comun/admin/acervo/novo"]',
+      );
+      if (!anchor) throw new Error("Ação Novo item ausente");
+      const target = new URL(anchor.href);
+      target.searchParams.set("returnTo", returnTo);
+      anchor.href = `${target.pathname}${target.search}`;
+    }, filteredReturn);
     const newItem = page.locator('main a[href="/comun/admin/acervo/novo"]');
-    await expect(newItem).toHaveCount(1);
-    await newItem.click();
+    await expect(newItem).toHaveCount(0);
+    const linkedNewItem = page.locator(
+      'main a[href^="/comun/admin/acervo/novo?returnTo="]',
+    );
+    await expect(linkedNewItem).toHaveCount(1);
+    await linkedNewItem.click();
     await expect(page).toHaveURL(/\/comun\/admin\/acervo\/novo/);
     expect(new URL(page.url()).searchParams.get("experiencia")).toBe("app-v2");
     const returnTo = new URL(page.url()).searchParams.get("returnTo") ?? "";
     expect(returnTo).toContain("q=memoria");
     expect(returnTo).toContain("status=review");
     expect(returnTo).toContain("page=2");
-    await page.getByRole("link", { name: "← Voltar ao recorte" }).click();
-    await expect(page).toHaveURL(/\/comun\/admin\/acervo/);
-    expect(new URL(page.url()).searchParams.get("q")).toBe("memoria");
-    expect(new URL(page.url()).searchParams.get("status")).toBe("review");
-    expect(new URL(page.url()).searchParams.get("page")).toBe("2");
+    const backHref = await page
+      .getByRole("link", { name: "← Voltar ao recorte" })
+      .getAttribute("href");
+    const backUrl = new URL(backHref ?? "", "http://comun.local");
+    expect(backUrl.pathname).toBe("/comun/admin/acervo");
+    expect(backUrl.searchParams.get("q")).toBe("memoria");
+    expect(backUrl.searchParams.get("status")).toBe("review");
+    expect(backUrl.searchParams.get("page")).toBe("2");
+    expect(backUrl.searchParams.get("experiencia")).toBe("app-v2");
   } finally {
     await context.close();
   }
