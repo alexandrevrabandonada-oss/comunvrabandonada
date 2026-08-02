@@ -305,7 +305,7 @@ function V2Row({
 }) {
   return value ? (
     <div>
-      <dt className="comun-v2-eyebrow text-comun-black/55">{label}</dt>
+      <dt className="comun-v2-eyebrow text-comun-black/75">{label}</dt>
       <dd className="mt-1">{value}</dd>
     </div>
   ) : null;

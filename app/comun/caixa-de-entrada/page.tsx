@@ -106,11 +106,11 @@ function InboxAppV2({ rows, history }: { rows: any[]; history: boolean }) {
                             Não lida
                           </span>
                         ) : (
-                          <span className="comun-v2-status text-comun-black/55">
+                          <span className="comun-v2-status text-comun-black/75">
                             Lida
                           </span>
                         )}
-                        <span className="text-xs font-bold text-comun-black/55">
+                        <span className="text-xs font-bold text-comun-black/75">
                           {item.context.sourceLabel} · {item.context.entityType}
                         </span>
                       </div>
@@ -122,7 +122,7 @@ function InboxAppV2({ rows, history }: { rows: any[]; history: boolean }) {
                       </p>
                       {item.created_at ? (
                         <time
-                          className="mt-2 block text-xs text-comun-black/55"
+                          className="mt-2 block text-xs text-comun-black/75"
                           dateTime={item.created_at}
                         >
                           {new Date(item.created_at).toLocaleDateString(
