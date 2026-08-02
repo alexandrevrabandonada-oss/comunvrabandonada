@@ -4,6 +4,10 @@ import { getProtocolLookupObservability } from "@/lib/rate-limit";
 import { getCivicSearchObservability } from "@/lib/civic-intelligence/observability";
 import { getQualityObservability } from "@/lib/quality-observability";
 import { COMUN_ROUTE_BUDGETS } from "@/lib/quality-performance";
+import {
+  COMUN_ADMIN_PLATFORM_GATES,
+  sanitizeComunPlatformTelemetry,
+} from "@/lib/comun-admin-platform-contract";
 
 export const dynamic = "force-dynamic";
 
@@ -188,6 +192,18 @@ export default async function AdminObservabilityPage() {
               {civicSearch.model === "lexical_only" || !civicSearch.available
                 ? "Lexical funcional; embedding remoto ainda sem evidência nesta leitura"
                 : "Embedding observado; relevância depende do último eval sanitizado"}
+              {!civicSearch.available ||
+              civicSearch.model === "lexical_only" ? (
+                <span
+                  className="mt-1 block text-xs font-bold"
+                  data-platform-blocker="civic-intelligence-provider"
+                  data-platform-state={
+                    COMUN_ADMIN_PLATFORM_GATES.civicIntelligence.state
+                  }
+                >
+                  Provider semântico: capability remota ainda não comprovada.
+                </span>
+              ) : null}
             </dd>
           </div>
           <div>
@@ -230,7 +246,9 @@ export default async function AdminObservabilityPage() {
                   {maskProtocol(event.normalized_protocol)}
                 </td>
                 <td className="p-3 font-mono text-xs">
-                  {JSON.stringify(event.metadata ?? {})}
+                  {JSON.stringify(
+                    sanitizeComunPlatformTelemetry(event.metadata ?? {}),
+                  )}
                 </td>
               </tr>
             ))}

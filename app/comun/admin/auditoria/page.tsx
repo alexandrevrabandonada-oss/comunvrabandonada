@@ -3,6 +3,7 @@ import { AdminShell } from "@/components/admin-shell";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { listComunAdminAuditLogSanitized } from "@/lib/admin-audit";
 import { COMUN_SECURITY_RESILIENCE } from "@/lib/comun-security-resilience";
+import { COMUN_ADMIN_PLATFORM_GATES } from "@/lib/comun-admin-platform-contract";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,8 @@ export default async function AdminAuditPage() {
       <section
         className="mt-6 border-2 border-comun-black bg-white p-4"
         aria-labelledby="security-state"
+        data-platform-blocker="durable-recovery"
+        data-platform-state={COMUN_ADMIN_PLATFORM_GATES.durableRecovery.state}
       >
         <h2 id="security-state" className="text-xl font-black">
           {COMUN_SECURITY_RESILIENCE.state}
@@ -41,6 +44,9 @@ export default async function AdminAuditPage() {
         <p className="mt-2">{COMUN_SECURITY_RESILIENCE.nextAction}</p>
         <p className="mt-2 text-sm">
           Evidência versionada em {COMUN_SECURITY_RESILIENCE.evidenceAt}.
+        </p>
+        <p className="mt-2 text-xs font-bold">
+          Redundância durável segue bloqueada pela capacidade atual do provider.
         </p>
         <Link
           href="/comun/admin/operacao"

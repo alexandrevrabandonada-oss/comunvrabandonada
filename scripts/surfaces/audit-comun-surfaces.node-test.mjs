@@ -22,6 +22,9 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   assert.equal(summary.p0_p1, 0);
   assert.equal(summary.admin_wave3, 76);
   assert.equal(summary.admin_wave4, 12);
+  assert.equal(summary.unknown_routes, 0);
+  assert.equal(summary.structural_incompatibilities, 0);
+  assert.equal(summary.generic_admin_app_bars, 0);
 });
 
 test("admin civic and editorial routes inherit navigation and table contracts", async () => {
@@ -37,6 +40,19 @@ test("admin civic and editorial routes inherit navigation and table contracts", 
       (route) => !["P0", "P1"].includes(route.compatibility_severity),
     ),
   );
+});
+
+test("admin systemic routes use the canonical level-zero platform contract", async () => {
+  const { routes } = await auditComunSurfaces({ write: false });
+  const wave4 = routes.filter((route) => route.wave === 4);
+  assert.equal(wave4.length, 12);
+  assert.ok(wave4.every((route) => route.shell_mode === "admin"));
+  assert.ok(wave4.every((route) => route.platform_domain));
+  assert.ok(wave4.every((route) => route.platform_access));
+  assert.ok(wave4.every((route) => route.platform_shell));
+  assert.ok(wave4.every((route) => route.preserves_app_v2_flag === true));
+  assert.ok(wave4.every((route) => route.member_bottom_navigation === false));
+  assert.ok(wave4.every((route) => route.preserves_filters_or_return));
 });
 
 test("keeps roots, nested routes, immersive tools and admin surfaces distinct", async () => {

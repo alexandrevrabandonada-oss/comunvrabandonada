@@ -159,15 +159,16 @@ não contam como compreensão humana.
 cópia secundária de Storage com idade inferior a 24 horas e restore a partir
 dessa cópia. Sem provedor escolhido, contratação ou dados reais neste tijolo.
 
-1. **47.9A3 — Fluxos Centrais Streamlined**.
-2. **Regressão focal de qualidade dentro do próprio 47.9A3**.
-3. **47.9D — Ensaio humano, aparelhos reais e consolidação visual**.
-4. **47.10 — Conteúdo, ajuda e governança**.
-5. **47.11 — Ensaio geral e go/no-go**.
+1. **47.9D — Ensaio humano, aparelhos reais e consolidação visual**.
+2. **47.10 — Conteúdo, ajuda e governança**.
+3. **47.11 — Ensaio geral e go/no-go**.
 
 O 47.9C já foi implementado e permanece
 `COMUN_QUALITY_PERFORMANCE_READY_FOR_REAL_DEVICE_REHEARSAL`; não há um segundo
 Tijolo 47.9C neste roadmap.
+
+As Ondas 1–4 do 47.9A5 integram a migração dos sete shells, mas não contam como
+ensaio humano. O próximo tijolo só começa depois do fechamento técnico do A5.
 
 Em paralelo permanecem 47.8A, o fechamento do provider 47.9B, Calçadas e conteúdo cultural real. O App Shell V2 é reversível por `?experiencia=app-v2`; ele não promove o ensaio humano 47.9A, não substitui a versão atual e não aciona `launch_publicly`.
 
