@@ -1,15 +1,168 @@
 {
   "schema": "comun.civic-graph.consistency.v1",
-  "generatedAt": "2026-08-01T22:39:24.829Z",
-  "commit": "0160fa0b4884a403a02c016fc3ebc43b8dfb7c66",
+  "generatedAt": "2026-08-02T00:48:43.578Z",
+  "commit": "224617bd5b90ef549045a007e5cd5199a14f51a8",
   "classification": "aggregate_read_only_not_human_rehearsal",
   "containsPrivateData": false,
-  "status": "canonical_source_unavailable_locally",
-  "counts": [],
+  "status": "consistent",
+  "counts": [
+    {
+      "key": "territories_public",
+      "scope": "territórios formais públicos",
+      "source": "comun_hub_territories",
+      "filters": "visibility='public'",
+      "visibility": "public",
+      "state": "active or archived",
+      "referenceDate": "2026-08-02T00:48:43.578Z",
+      "count": 0
+    },
+    {
+      "key": "pautas_public",
+      "scope": "pautas públicas",
+      "source": "comun_pauta_spaces",
+      "filters": "visibility='public'",
+      "visibility": "public",
+      "state": "all public states",
+      "referenceDate": "2026-08-02T00:48:43.578Z",
+      "count": 1
+    },
+    {
+      "key": "pautas_public_without_territory",
+      "scope": "pautas públicas sem território formal",
+      "source": "comun_pauta_spaces",
+      "filters": "visibility='public' and territory_id is null",
+      "visibility": "public",
+      "state": "all public states",
+      "referenceDate": "2026-08-02T00:48:43.578Z",
+      "count": 1
+    },
+    {
+      "key": "pautas_with_unmatched_community",
+      "scope": "pautas com projeção comunitária sem comunidade pública correspondente",
+      "source": "comun_pauta_spaces + comun_communities",
+      "filters": "community is not null; slug não confirmado",
+      "visibility": "public",
+      "state": "active projection",
+      "referenceDate": "2026-08-02T00:48:43.578Z",
+      "count": 0
+    },
+    {
+      "key": "contributions_approved_public",
+      "scope": "contribuições aprovadas na pauta",
+      "source": "comun_pauta_contributions + comun_pauta_spaces",
+      "filters": "contribution.status='approved'; pauta public/non-archived",
+      "visibility": "public",
+      "state": "approved",
+      "referenceDate": "2026-08-02T00:48:43.578Z",
+      "count": 0
+    },
+    {
+      "key": "actions_public",
+      "scope": "ações públicas",
+      "source": "comun_mobilization_actions",
+      "filters": "visibility='public'",
+      "visibility": "public",
+      "state": "all action states",
+      "referenceDate": "2026-08-02T00:48:43.578Z",
+      "count": 0
+    },
+    {
+      "key": "results_public",
+      "scope": "resultados publicados",
+      "source": "comun_hub_results",
+      "filters": "visibility='public'",
+      "visibility": "public",
+      "state": "all verification states",
+      "referenceDate": "2026-08-02T00:48:43.578Z",
+      "count": 0
+    },
+    {
+      "key": "results_public_without_origin",
+      "scope": "resultados públicos sem pauta nem ação",
+      "source": "comun_hub_results",
+      "filters": "visibility='public'; pauta_id/action_id null",
+      "visibility": "public",
+      "state": "all verification states",
+      "referenceDate": "2026-08-02T00:48:43.578Z",
+      "count": 0
+    },
+    {
+      "key": "results_verified",
+      "scope": "resultados verificados",
+      "source": "comun_hub_results",
+      "filters": "visibility='public' and verification_status='verified'",
+      "visibility": "public",
+      "state": "verified",
+      "referenceDate": "2026-08-02T00:48:43.578Z",
+      "count": 0
+    },
+    {
+      "key": "sidewalk_records_published",
+      "scope": "registros publicados de Calçadas",
+      "source": "comun_sidewalk_records",
+      "filters": "status='published' and visibility='public'",
+      "visibility": "public",
+      "state": "published",
+      "referenceDate": "2026-08-02T00:48:43.578Z",
+      "count": 1
+    },
+    {
+      "key": "archive_items_public",
+      "scope": "itens editoriais públicos",
+      "source": "comun_archive_items",
+      "filters": "status='published' and visibility='public'",
+      "visibility": "public",
+      "state": "published",
+      "referenceDate": "2026-08-02T00:48:43.578Z",
+      "count": 3
+    },
+    {
+      "key": "archive_links_public",
+      "scope": "relações públicas entre memória e processo",
+      "source": "comun_hub_archive_links + comun_archive_items",
+      "filters": "item published/public",
+      "visibility": "public",
+      "state": "published",
+      "referenceDate": "2026-08-02T00:48:43.578Z",
+      "count": 0
+    },
+    {
+      "key": "radio_episodes_public",
+      "scope": "episódios públicos",
+      "source": "comun_radio_episodes",
+      "filters": "publication_status='published'",
+      "visibility": "public",
+      "state": "published",
+      "referenceDate": "2026-08-02T00:48:43.578Z",
+      "count": 0
+    },
+    {
+      "key": "radio_episodes_without_civic_relation",
+      "scope": "episódios sem território, pauta ou ação",
+      "source": "comun_radio_episodes",
+      "filters": "published; três FKs null",
+      "visibility": "public",
+      "state": "published",
+      "referenceDate": "2026-08-02T00:48:43.578Z",
+      "count": 0
+    },
+    {
+      "key": "invalid_public_slugs",
+      "scope": "slugs públicos fora do contrato",
+      "source": "territories+pautas+actions+results+archive",
+      "filters": "slug !~ canonical regex",
+      "visibility": "public",
+      "state": "published/public",
+      "referenceDate": "2026-08-02T00:48:43.578Z",
+      "count": 0
+    }
+  ],
   "findings": [
     {
-      "type": "remote_source_not_configured",
-      "severity": "info",
+      "key": "pautas_public_without_territory",
+      "type": "public_entity_without_territory",
+      "severity": "warning",
+      "decision": "exibir somente contexto comprovado e tratar aditivamente",
       "count": 1
     }
   ]
