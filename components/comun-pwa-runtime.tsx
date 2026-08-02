@@ -8,6 +8,11 @@ import {
   COMUN_LAST_SAFE_ROUTE_KEY,
   isSafeComunRoute,
 } from "@/lib/comun-pwa";
+import {
+  COMUN_APP_V2_EXPERIENCE,
+  COMUN_LEGACY_EXPERIENCE,
+  withComunExperience,
+} from "@/lib/comun-experience";
 
 type InstallEvent = Event & {
   prompt: () => Promise<void>;
@@ -21,6 +26,9 @@ export function ComunPwaRuntime({
   inlineConnectionStatus?: boolean;
 } = {}) {
   const path = usePathname();
+  const experience = inlineConnectionStatus
+    ? COMUN_APP_V2_EXPERIENCE
+    : COMUN_LEGACY_EXPERIENCE;
   const installSurfaceBlocked =
     path.startsWith("/comun/calcadas") ||
     path.startsWith("/comun/mapa/contribuir");
@@ -50,9 +58,11 @@ export function ComunPwaRuntime({
             true,
       );
     });
-    if (isSafeComunRoute(path))
-      sessionStorage.setItem(COMUN_LAST_SAFE_ROUTE_KEY, path);
-  }, [path]);
+    if (isSafeComunRoute(path)) {
+      const safeRoute = withComunExperience(path, experience);
+      sessionStorage.setItem(COMUN_LAST_SAFE_ROUTE_KEY, safeRoute);
+    }
+  }, [experience, path]);
 
   useEffect(() => {
     const confirmRestoredConnection = async () => {
@@ -165,11 +175,7 @@ export function ComunPwaRuntime({
               : "Conexão restabelecida."}
         {connection === "offline" ? (
           <Link
-            href={
-              inlineConnectionStatus
-                ? "/comun/offline?experiencia=app-v2"
-                : "/comun/offline"
-            }
+            href={withComunExperience("/comun/offline", experience)}
             className="ml-2 underline"
           >
             Ajuda

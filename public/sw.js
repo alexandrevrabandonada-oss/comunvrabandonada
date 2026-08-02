@@ -1,4 +1,4 @@
-const VERSION = "comun-pwa-v2";
+const VERSION = "comun-pwa-v3";
 const SHELL_CACHE = `${VERSION}-shell`;
 const PUBLIC_CACHE = `${VERSION}-public`;
 const SHELL = [

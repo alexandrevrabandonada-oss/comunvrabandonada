@@ -6,6 +6,11 @@ import { CANONICAL_SIDEWALK_PAUTA_SLUG } from "@/lib/comun/canonical-editorial-p
 import { safeCommunityReturn } from "@/lib/community-return";
 import { withComunAppV2 } from "@/lib/comun-shell-contract";
 import {
+  COMUN_LEGACY_EXPERIENCE,
+  isComunAppV2,
+  withComunExperience,
+} from "@/lib/comun-experience";
+import {
   parseComunJourneyContext,
   withComunJourneyContext,
 } from "@/lib/comun-journey-context";
@@ -727,9 +732,13 @@ function sidewalkConfirmationHref(
   const sourceUrl = safeSource
     ? new URL(safeSource, "http://comun.local")
     : null;
-  const appV2 = sourceUrl?.searchParams.get("experiencia") === "app-v2";
+  const appV2 = isComunAppV2(
+    sourceUrl?.searchParams ??
+      new URL(safeCommunityReturn(returnTo), "http://comun.local").searchParams,
+  );
   const base = `/comun/mapa/contribuir/confirmacao?registro=${encodeURIComponent(recordId)}&returnTo=${encodeURIComponent(returnTo)}`;
-  if (!appV2 || !sourceUrl) return base;
+  if (!appV2) return withComunExperience(base, COMUN_LEGACY_EXPERIENCE);
+  if (!sourceUrl) return base;
   const journey = parseComunJourneyContext(sourceUrl.searchParams);
   return withComunAppV2(
     withComunJourneyContext(base, {

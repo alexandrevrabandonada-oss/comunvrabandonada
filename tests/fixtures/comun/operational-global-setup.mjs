@@ -52,7 +52,7 @@ export async function operationalGlobalSetup({suite="authenticated"}={}){
    await page.getByLabel("E-mail").fill(entry.email);
    await page.getByLabel("Senha").fill(fixtures.operationalPassword);
    await Promise.all([page.waitForURL(url=>!url.pathname.includes(participant?"/entrar":"/admin/login")),page.getByRole("button",{name:"Entrar"}).click()]);
-   await page.getByRole("heading",{name:heading}).waitFor({state:"visible"});
+   await page.locator("main").getByRole("heading",{name:heading}).first().waitFor({state:"visible"});
    if(await page.getByLabel("E-mail").count())throw new Error(`login ainda visível: ${entry.persona}`);
    if(!participant)await page.getByText(entry.email,{exact:true}).waitFor({state:"visible"});
    if(!(await context.cookies()).some(cookie=>/^sb-.*auth-token/i.test(cookie.name)&&Boolean(cookie.value)))throw new Error(`cookie de sessão ausente: ${entry.persona}`);

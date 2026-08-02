@@ -2,42 +2,39 @@
 
 Atualizado em 2 de agosto de 2026.
 
-## Checkpoint ativo — Tijolo 47.9A4
+## Checkpoint ativo — Tijolo 47.9D0
 
-- base efetiva: `0160fa0b4884a403a02c016fc3ebc43b8dfb7c66`;
-- PR #137 do 47.9A3: mesclada;
-- resultado herdado: `COMUN_CORE_JOURNEYS_STREAMLINED_READY_FOR_HUMAN_REHEARSAL`;
-- PR principal #138 e correções focais #139/#140: mescladas;
-- runtime final: `224617bd5b90ef549045a007e5cd5199a14f51a8`;
-- Production e workflows pós-merge no SHA exato: aprovados;
-- resultado técnico:
-  `COMUN_RELATIONAL_NAVIGATION_READY_FOR_FULL_SURFACE_MIGRATION`;
-- branch principal: `codex/tijolo-47-9a4-grafo-civico-superficies-relacionais`;
-- feature flag reversível: `?experiencia=app-v2`;
-- 189 páginas App Router em `/comun` inventariadas; 27 rotas compõem a primeira onda relacional;
-- fontes, relações, contagens agregadas e legado residual possuem auditores próprios;
-- consistência remota: `consistent`, com um warning não bloqueante para a pauta
-  pública ainda sem território formal;
-- nenhuma relação textual vira fonte canônica sem lookup público explícito;
+- base efetiva da promoção: `da76487568611b7e137b2c6798357250779af7cf`;
+- PR #146 de estabilização visual: mesclada;
+- Production da estabilização: `dpl_BUy8oxTEmsn2fiAezyxGhSJcoiHT`, READY e
+  validada no SHA exato;
+- resultado parcial: `COMUN_APP_V2_LAYOUT_REAL_STABILIZED`;
+- branch candidata da promoção:
+  `codex/tijolo-47-9d0-v2-default-promotion`;
+- padrão candidato: App V2 canônico sem query;
+- compatibilidade: `?experiencia=app-v2`;
+- rollback temporário: `?experiencia=legacy`;
+- PWA candidata: `comun-pwa-v3`;
+- inventário preservado: 189 páginas, sete shells, zero rota desconhecida,
+  zero `legacy_rendered`, zero P0/P1 e 93 compatibilidades P2/P3;
 - nenhum resultado de ensaio humano foi produzido;
-- 47.9A e 47.9D continuam exigindo ensaio humano;
+- 47.9A e 47.9C não foram promovidos a GREEN;
 - `launch_publicly` não foi acionado.
 
 O roadmap oficial passa a seguir:
 
-1. `47.9A4 — Grafo Cívico Navegável e Superfícies Relacionais`;
-2. `47.9A5 — Migração Integral dos Sete Shells`;
-3. `47.9D — Ensaio humano, aparelhos reais e consolidação`;
-4. `47.10 — Conteúdo, ajuda e governança`;
-5. `47.11 — Ensaio geral e go/no-go`.
+1. `47.9D0 — Estabilização de layout real e promoção controlada do App V2`;
+2. `47.9D — Ensaio humano ampliado, aparelhos reais e consolidação`;
+3. `47.10 — Conteúdo, ajuda e governança`;
+4. `47.11 — Ensaio geral e go/no-go`.
 
 Permanecem em paralelo 47.8A, o fechamento do provider 47.9B, Calçadas e
-conteúdo cultural real. O 47.9C permanece
-`COMUN_QUALITY_PERFORMANCE_READY_FOR_REAL_DEVICE_REHEARSAL`, sem promoção a
-GREEN. `security_resilience` segue bloqueado por redundância durável;
+conteúdo cultural real. O 47.9B permanece bloqueado pelo provider e o 47.9C
+aguarda aparelhos e tecnologias assistivas reais, sem promoção a GREEN.
+`security_resilience` segue bloqueado por redundância durável;
 `miniapps` está `in_progress`; `archive_radio_art` permanece
-`evidence_required`. A auditoria detalhada está em
-`reports/current/comun-civic-graph-audit.md`.
+`evidence_required`. A candidata da promoção está em
+`reports/47.9d0/default-promotion-candidate.md`.
 
 ## Linha ativa
 

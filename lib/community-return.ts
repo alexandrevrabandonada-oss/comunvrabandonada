@@ -41,22 +41,31 @@ export function safeCommunityReturn(
 
 export function communityLoginHref(returnTo: string) {
   const safeReturn = safeCommunityReturn(returnTo);
-  const appV2 = new URL(safeReturn, "http://comun.local").searchParams.get(
-    "experiencia",
+  const experience = resolveComunExperience(
+    new URL(safeReturn, "http://comun.local").searchParams.get("experiencia"),
   );
-  const params = new URLSearchParams({ returnTo: safeReturn });
-  if (appV2 === "app-v2") params.set("experiencia", "app-v2");
+  const params = new URLSearchParams({
+    returnTo: withComunExperience(safeReturn, experience),
+  });
+  if (experience === COMUN_LEGACY_EXPERIENCE)
+    params.set("experiencia", COMUN_LEGACY_EXPERIENCE);
   return `/comun/entrar?${params.toString()}`;
 }
 
 export function communityOnboardingHref(returnTo: string) {
   const safeReturn = safeCommunityReturn(returnTo);
-  const params = new URLSearchParams({ returnTo: safeReturn });
-  if (
-    new URL(safeReturn, "http://comun.local").searchParams.get(
-      "experiencia",
-    ) === "app-v2"
-  )
-    params.set("experiencia", "app-v2");
+  const experience = resolveComunExperience(
+    new URL(safeReturn, "http://comun.local").searchParams.get("experiencia"),
+  );
+  const params = new URLSearchParams({
+    returnTo: withComunExperience(safeReturn, experience),
+  });
+  if (experience === COMUN_LEGACY_EXPERIENCE)
+    params.set("experiencia", COMUN_LEGACY_EXPERIENCE);
   return `/comun/onboarding?${params.toString()}`;
 }
+import {
+  COMUN_LEGACY_EXPERIENCE,
+  resolveComunExperience,
+  withComunExperience,
+} from "./comun-experience";

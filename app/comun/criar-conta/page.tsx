@@ -1,7 +1,12 @@
 import { ComunShell, Section } from "@/components/comun-shell";
 import { CommunitySignupForm } from "@/components/community-auth-form";
 import { safeCommunityReturn } from "@/lib/community-return";
-import { isComunAppV2 } from "@/lib/comun-shell-contract";
+import {
+  COMUN_APP_V2_EXPERIENCE,
+  COMUN_LEGACY_EXPERIENCE,
+  resolveComunExperience,
+  withComunExperience,
+} from "@/lib/comun-experience";
 
 export default async function CriarConta({
   searchParams,
@@ -9,8 +14,18 @@ export default async function CriarConta({
   searchParams: Promise<{ returnTo?: string; experiencia?: string }>;
 }) {
   const params = await searchParams;
-  const returnTo = safeCommunityReturn(params.returnTo);
-  const appV2 = isComunAppV2(params.experiencia);
+  const safeReturnTo = safeCommunityReturn(params.returnTo);
+  const returnExperience = resolveComunExperience(
+    new URL(safeReturnTo, "http://comun.local").searchParams.get("experiencia"),
+  );
+  const experience =
+    params.experiencia === COMUN_LEGACY_EXPERIENCE
+      ? COMUN_LEGACY_EXPERIENCE
+      : params.experiencia === COMUN_APP_V2_EXPERIENCE
+        ? COMUN_APP_V2_EXPERIENCE
+        : returnExperience;
+  const returnTo = withComunExperience(safeReturnTo, experience);
+  const appV2 = experience === COMUN_APP_V2_EXPERIENCE;
   return (
     <ComunShell>
       <Section>

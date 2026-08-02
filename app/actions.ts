@@ -67,6 +67,12 @@ import {
   communitySignupError,
 } from "@/lib/community-auth-errors";
 import { withComunAppV2 } from "@/lib/comun-shell-contract";
+import {
+  COMUN_APP_V2_EXPERIENCE,
+  COMUN_LEGACY_EXPERIENCE,
+  resolveComunExperience,
+  withComunExperience,
+} from "@/lib/comun-experience";
 import { withComunJourneyContext } from "@/lib/comun-journey-context";
 
 const reportSchema = z.object({
@@ -1374,7 +1380,10 @@ export async function submitCircleContributionAction(formData: FormData) {
     metadata: { protocol, body_length: body.length },
   });
   revalidatePath(`/comun/pautas/${pautaSlug}`);
-  if (formData.get("experiencia") === "app-v2") {
+  const experience = resolveComunExperience(
+    String(formData.get("experiencia") ?? ""),
+  );
+  if (experience === COMUN_APP_V2_EXPERIENCE) {
     const pautaRoute = safeCommunityReturn(
       formData.get("journey_return"),
       withComunAppV2(`/comun/pautas/${pautaSlug}`),
@@ -1392,7 +1401,12 @@ export async function submitCircleContributionAction(formData: FormData) {
       ),
     );
   }
-  redirect(`/comun/pautas/${pautaSlug}?contribuicao=pendente`);
+  redirect(
+    withComunExperience(
+      `/comun/pautas/${pautaSlug}?contribuicao=pendente`,
+      COMUN_LEGACY_EXPERIENCE,
+    ),
+  );
 }
 
 export async function upsertPautaModuleAction(formData: FormData) {

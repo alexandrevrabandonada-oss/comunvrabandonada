@@ -20,6 +20,7 @@ const LEGACY_MARKERS = [
 
 const V2_MARKERS = [
   /\bisComunAppV2\b/,
+  /\b(?:COMUN_APP_V2_EXPERIENCE|resolveComunExperience)\b/,
   /\bComunOperationalShell\b/,
   /\bComun(?:CollectionPage|EntityHeader|EmptyState|ContextTrail|RelationRail)\b/,
   /\b(?:AdminPage|InstitutionalPage|AuthPage|ImmersiveSurface|FilterBar|ErrorState|StatusSummary|PageActions)\b/,

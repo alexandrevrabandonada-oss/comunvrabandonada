@@ -14,6 +14,11 @@ describe("navegação administrativa", () => {
         "/comun/admin/pautas?status=triage&page=2&experiencia=app-v2",
       ),
     ).toBe("/comun/admin/pautas?status=triage&page=2&experiencia=app-v2");
+    expect(
+      safeComunAdminReturn(
+        "/comun/admin/pautas?status=triage&experiencia=legacy",
+      ),
+    ).toBe("/comun/admin/pautas?status=triage&experiencia=legacy");
     expect(safeComunAdminReturn("/comun/pautas?status=privado")).toBe(
       "/comun/admin",
     );
@@ -33,13 +38,13 @@ describe("navegação administrativa", () => {
     ).toBe("/comun/admin/comunidades?fila=rights&q=centro");
   });
 
-  it("carrega retorno e flag sem perder filtros", () => {
+  it("carrega retorno canônico sem perder filtros", () => {
     expect(
       withComunAdminReturn(
         "/comun/admin/pautas/123",
         "/comun/admin/pautas?fila=editorial&page=3",
       ),
-    ).toContain("experiencia=app-v2");
+    ).not.toContain("experiencia=");
     expect(
       withComunAdminReturn(
         "/comun/admin/pautas/123",
@@ -48,6 +53,13 @@ describe("navegação administrativa", () => {
     ).toContain(
       "returnTo=%2Fcomun%2Fadmin%2Fpautas%3Ffila%3Deditorial%26page%3D3",
     );
+    expect(
+      withComunAdminReturn(
+        "/comun/admin/pautas/123",
+        "/comun/admin/pautas?fila=editorial&page=3",
+        false,
+      ),
+    ).toContain("experiencia=legacy");
   });
 
   it("preserva os filtros canônicos cívicos e editoriais", () => {
@@ -83,7 +95,7 @@ describe("navegação administrativa", () => {
       preserveReturn: true,
     });
     const parsed = new URL(href, "http://comun.local");
-    expect(parsed.searchParams.get("experiencia")).toBe("app-v2");
+    expect(parsed.searchParams.get("experiencia")).toBeNull();
     expect(parsed.searchParams.get("returnTo")).toBe(
       "/comun/admin/acervo?q=memoria&status=review&page=2",
     );

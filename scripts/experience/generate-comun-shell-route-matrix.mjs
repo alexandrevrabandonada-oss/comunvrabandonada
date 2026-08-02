@@ -84,7 +84,7 @@ const lines = [
   "",
   "## Regra de fallback",
   "",
-  "Sem `?experiencia=app-v2`, a árvore legada continua sendo renderizada. Com a flag, somente a classificação acima decide chrome, footer e navegação; nenhuma rota ou deep link é removido.",
+  "Sem query, o App V2 canônico usa somente a classificação acima para decidir chrome, footer e navegação. `?experiencia=app-v2` permanece compatível e `?experiencia=legacy` preserva o rollback; nenhuma rota ou deep link é removido.",
 ];
 
 await writeFile(

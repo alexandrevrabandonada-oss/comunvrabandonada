@@ -103,8 +103,8 @@ export default async function OperationPage({
                 action="/comun/buscar"
                 className="mt-3 flex flex-col gap-2 sm:flex-row"
               >
-                {appV2 ? (
-                  <input type="hidden" name="experiencia" value="app-v2" />
+                {!appV2 ? (
+                  <input type="hidden" name="experiencia" value="legacy" />
                 ) : null}
                 <input
                   aria-label="Buscar relações públicas"
@@ -413,7 +413,9 @@ function FilterForm({
       className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4"
     >
       <input type="hidden" name="page" value="1" />
-      {appV2 ? <input type="hidden" name="experiencia" value="app-v2" /> : null}
+      {!appV2 ? (
+        <input type="hidden" name="experiencia" value="legacy" />
+      ) : null}
       <label className="grid gap-1 text-sm">
         Busca segura
         <input

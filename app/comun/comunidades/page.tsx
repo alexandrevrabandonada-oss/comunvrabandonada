@@ -191,7 +191,6 @@ function CommunityFilters({
           placeholder="Nome, propósito ou território"
           className="min-h-12 rounded-[var(--comun-radius-control)] border-2 border-comun-black bg-comun-black px-4 text-comun-paper placeholder:text-comun-paper/55"
         />
-        <input type="hidden" name="experiencia" value="app-v2" />
         <button className="comun-v2-action">Buscar</button>
       </div>
       <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

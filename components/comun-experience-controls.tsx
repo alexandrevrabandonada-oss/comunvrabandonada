@@ -540,8 +540,8 @@ export function SearchSheet({
             placeholder="Pauta, território, memória…"
             className="min-h-12 border-2 border-comun-black bg-white px-3"
           />
-          {experienceV2 ? (
-            <input type="hidden" name="experiencia" value="app-v2" />
+          {!experienceV2 ? (
+            <input type="hidden" name="experiencia" value="legacy" />
           ) : null}
           <button className="min-h-12 border-2 border-comun-black bg-comun-yellow px-4 font-black uppercase">
             Buscar

@@ -1,7 +1,8 @@
 # Fluxos centrais do COMUN — contrato do Tijolo 47.9A3
 
-Este contrato amplia o piloto `?experiencia=app-v2`. Sem a flag, a árvore
-anterior continua disponível. O trabalho não altera schema, regras de
+Este contrato cobre o App V2 canônico sem query. `?experiencia=app-v2` continua
+compatível e `?experiencia=legacy` preserva temporariamente a árvore
+anterior. O trabalho não altera schema, regras de
 autorização nem a semântica das mutations existentes.
 
 ## Ciclo público

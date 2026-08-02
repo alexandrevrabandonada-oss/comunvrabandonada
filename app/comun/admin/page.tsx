@@ -15,7 +15,5 @@ export default async function Page({
     : canAccessOperationalSurface(session.profile, "central")
       ? "/comun/admin/operacao"
       : "/comun/admin/notificacoes";
-  redirect(
-    isComunAppV2(query.experiencia) ? withComunAppV2(destination) : destination,
-  );
+  redirect(withComunAppV2(destination, isComunAppV2(query.experiencia)));
 }

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import type { ReactNode } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type { FormEvent, MouseEvent, ReactNode } from "react";
 import { useEffect } from "react";
 import { ParticipateSheet, SearchSheet } from "./comun-experience-controls";
 import {
@@ -18,6 +18,11 @@ import {
   resolveComunShellContract,
 } from "@/lib/comun-shell-contract";
 import { resolveComunSurfaceMigration } from "@/lib/comun-surface-migration";
+import {
+  COMUN_APP_V2_EXPERIENCE,
+  COMUN_LEGACY_EXPERIENCE,
+  withComunExperience,
+} from "@/lib/comun-experience";
 
 export function ComunAppShell({
   children,
@@ -37,10 +42,18 @@ export function ComunAppShell({
   const surface = resolveComunSurfaceMigration(pathname);
 
   useVisualViewportContract(appV2);
+  const legacyBoundary = useLegacyExperienceBoundary(!appV2);
 
   if (!appV2)
     return (
-      <div className="min-h-screen overflow-x-hidden pb-[env(safe-area-inset-bottom)]">
+      <div
+        className="min-h-screen overflow-x-hidden pb-[env(safe-area-inset-bottom)]"
+        data-comun-legacy-boundary="active"
+        onClickCapture={legacyBoundary.onClickCapture}
+        onAuxClickCapture={legacyBoundary.onAuxClickCapture}
+        onContextMenuCapture={legacyBoundary.onContextMenuCapture}
+        onSubmitCapture={legacyBoundary.onSubmitCapture}
+      >
         <ComunPwaRuntime />
         <SkipLink />
         {showSyntheticNotice ? <SyntheticNotice /> : null}
@@ -98,6 +111,99 @@ export function ComunAppShell({
   );
 }
 
+function preserveLegacyExperienceForm(form: HTMLFormElement) {
+  const action = new URL(form.action || window.location.href);
+  if (
+    action.origin !== window.location.origin ||
+    (action.pathname !== "/comun" && !action.pathname.startsWith("/comun/")) ||
+    form.elements.namedItem("experiencia")
+  )
+    return;
+  const input = document.createElement("input");
+  input.type = "hidden";
+  input.name = "experiencia";
+  input.value = COMUN_LEGACY_EXPERIENCE;
+  form.append(input);
+}
+
+function useLegacyExperienceBoundary(active: boolean) {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!active) return;
+    const prepareForms = () => {
+      document
+        .querySelectorAll<HTMLFormElement>(
+          '[data-comun-legacy-boundary="active"] form',
+        )
+        .forEach(preserveLegacyExperienceForm);
+    };
+    prepareForms();
+    const observer = new MutationObserver(prepareForms);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [active]);
+
+  const preserveLegacyHref = (event: MouseEvent<HTMLDivElement>) => {
+    if (!active || event.defaultPrevented) return null;
+    const anchor = (event.target as Element | null)?.closest("a[href]");
+    if (!(anchor instanceof HTMLAnchorElement)) return null;
+    if (anchor.target || anchor.download) return null;
+    const url = new URL(anchor.href, window.location.href);
+    const requestedExperience = url.searchParams.get("experiencia");
+    if (
+      url.origin !== window.location.origin ||
+      (url.pathname !== "/comun" && !url.pathname.startsWith("/comun/")) ||
+      (requestedExperience !== null &&
+        requestedExperience !== COMUN_LEGACY_EXPERIENCE)
+    )
+      return null;
+    const legacyHref =
+      requestedExperience === COMUN_LEGACY_EXPERIENCE
+        ? `${url.pathname}${url.search}${url.hash}`
+        : withComunExperience(
+            `${url.pathname}${url.search}${url.hash}`,
+            COMUN_LEGACY_EXPERIENCE,
+          );
+    anchor.href = legacyHref;
+    return legacyHref;
+  };
+
+  const onClickCapture = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    const legacyHref = preserveLegacyHref(event);
+    if (!legacyHref) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    router.push(legacyHref);
+  };
+
+  const onAuxClickCapture = (event: MouseEvent<HTMLDivElement>) => {
+    preserveLegacyHref(event);
+  };
+
+  const onContextMenuCapture = (event: MouseEvent<HTMLDivElement>) => {
+    preserveLegacyHref(event);
+  };
+
+  const onSubmitCapture = (event: FormEvent<HTMLDivElement>) => {
+    if (!active || event.defaultPrevented) return;
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement)) return;
+    preserveLegacyExperienceForm(form);
+  };
+
+  return {
+    onClickCapture,
+    onAuxClickCapture,
+    onContextMenuCapture,
+    onSubmitCapture,
+  };
+}
+
 function useVisualViewportContract(active: boolean) {
   useEffect(() => {
     if (!active || !window.visualViewport) return;
@@ -152,7 +258,10 @@ function DesktopHeader({ experienceV2 = false }: { experienceV2?: boolean }) {
     <header className="sticky top-0 z-30 hidden border-b-2 border-comun-yellow bg-comun-black pt-[env(safe-area-inset-top)] text-comun-paper lg:block">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2">
         <Link
-          href={experienceV2 ? "/comun?experiencia=app-v2" : "/comun"}
+          href={withComunExperience(
+            "/comun",
+            experienceV2 ? COMUN_APP_V2_EXPERIENCE : COMUN_LEGACY_EXPERIENCE,
+          )}
           prefetch={false}
           aria-label="COMUN VR Abandonada"
           className="max-w-32 text-lg font-black leading-none tracking-[-.05em] text-comun-paper"
@@ -202,7 +311,12 @@ function InstitutionalFooter({
         >
           {links.map(([label, href]) => (
             <Link
-              href={experienceV2 ? `${href}?experiencia=app-v2` : href}
+              href={withComunExperience(
+                href,
+                experienceV2
+                  ? COMUN_APP_V2_EXPERIENCE
+                  : COMUN_LEGACY_EXPERIENCE,
+              )}
               prefetch={false}
               key={href}
             >

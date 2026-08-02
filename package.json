@@ -123,6 +123,7 @@
     "test:unit": "vitest run --exclude=tests/**",
     "experience:coherence:audit": "node scripts/experience/audit-comun-experience-coherence.mjs --write-report",
     "experience:coherence:test": "node --test scripts/experience/audit-comun-experience-coherence.node-test.mjs",
+    "experience:default:e2e": "node scripts/comun-local-env.mjs run playwright test -c playwright.default-experience.config.ts",
     "experience:shell:matrix": "node --experimental-strip-types scripts/experience/generate-comun-shell-route-matrix.mjs",
     "layout:surface-contract": "node scripts/layout/audit-comun-layout-surface.mjs",
     "layout:contrast-audit": "playwright test -c playwright.layout-stabilization.config.ts --grep @contrast --project=360x800 --project=desktop-1366x768",

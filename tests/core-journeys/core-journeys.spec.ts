@@ -116,10 +116,10 @@ test("Explorar preserva recorte e oferece fallback semântico para filtro invál
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Limpar recorte" }),
-  ).toHaveAttribute("href", /experiencia=app-v2/);
+  ).toHaveAttribute("href", "/comun/explorar");
 });
 
-test("Caixa protegida preserva flag, origem e sessão expirada", async ({
+test("Caixa protegida preserva experiência, origem e sessão expirada", async ({
   page,
   context,
 }) => {
@@ -127,8 +127,9 @@ test("Caixa protegida preserva flag, origem e sessão expirada", async ({
   await page.goto(`/comun/caixa-de-entrada?${flag}`);
   await expect(page).toHaveURL(/\/comun\/entrar/);
   expect(decodeURIComponent(page.url())).toContain(
-    "/comun/caixa-de-entrada?experiencia=app-v2",
+    "returnTo=/comun/caixa-de-entrada",
   );
+  expect(decodeURIComponent(page.url())).not.toContain("experiencia=app-v2");
   await page.goto(
     `/comun/entrar?${flag}&status=sessao-expirada&returnTo=${encodeURIComponent("/comun/caixa-de-entrada?experiencia=app-v2")}`,
   );

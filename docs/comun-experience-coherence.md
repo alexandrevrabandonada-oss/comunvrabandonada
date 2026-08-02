@@ -170,7 +170,7 @@ Tijolo 47.9C neste roadmap.
 As Ondas 1–4 do 47.9A5 integram a migração dos sete shells, mas não contam como
 ensaio humano. O próximo tijolo só começa depois do fechamento técnico do A5.
 
-Em paralelo permanecem 47.8A, o fechamento do provider 47.9B, Calçadas e conteúdo cultural real. O App Shell V2 é reversível por `?experiencia=app-v2`; ele não promove o ensaio humano 47.9A, não substitui a versão atual e não aciona `launch_publicly`.
+Em paralelo permanecem 47.8A, o fechamento do provider 47.9B, Calçadas e conteúdo cultural real. O App Shell V2 é a experiência canônica sem query; `?experiencia=app-v2` continua aceito como compatibilidade e a versão anterior permanece disponível por `?experiencia=legacy`. A promoção não conclui o ensaio humano 47.9A, não promove 47.9C e não aciona `launch_publicly`.
 
 `security_resilience` permanece `blocked` por recovery point durável independente
 e cópia secundária de Storage; seus controles internos seguem verdes. Isso não

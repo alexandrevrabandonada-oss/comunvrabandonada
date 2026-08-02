@@ -152,7 +152,6 @@ function ExploreAppV2({ params }: { params: SearchParams }) {
             className="min-h-12 rounded-[var(--comun-radius-control)] border-2 border-comun-black bg-comun-black px-4 text-comun-paper placeholder:text-comun-paper/55"
             placeholder="Território, comunidade, pauta…"
           />
-          <input type="hidden" name="experiencia" value="app-v2" />
           <button className="comun-v2-action">Buscar</button>
         </form>
 

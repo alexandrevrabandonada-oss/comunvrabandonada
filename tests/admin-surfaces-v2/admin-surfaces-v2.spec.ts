@@ -90,7 +90,7 @@ test("@a11y shell administrativo V2 em cinco viewports", async ({
   }
 });
 
-test("retorno operacional e flag sobrevivem ao detalhe", async ({
+test("retorno operacional sobrevive ao detalhe e normaliza a flag", async ({
   browser,
 }, testInfo) => {
   if (!["390x844", "1366x768"].includes(testInfo.project.name)) return;
@@ -121,7 +121,7 @@ test("retorno operacional e flag sobrevivem ao detalhe", async ({
     expect(backUrl.searchParams.get("q")).toBe("memoria");
     expect(backUrl.searchParams.get("status")).toBe("review");
     expect(backUrl.searchParams.get("page")).toBe("2");
-    expect(backUrl.searchParams.get("experiencia")).toBe("app-v2");
+    expect(backUrl.searchParams.get("experiencia")).toBeNull();
   } finally {
     await context.close();
   }
@@ -142,7 +142,7 @@ test("landing administrativo respeita capacidade sem loop", async ({
   );
   try {
     await expect(page).toHaveURL(/\/comun\/admin\/operacao/);
-    expect(new URL(page.url()).searchParams.get("experiencia")).toBe("app-v2");
+    expect(new URL(page.url()).searchParams.get("experiencia")).toBeNull();
     await expect(page.getByLabel("E-mail")).toHaveCount(0);
     await expect(page.locator("[data-comun-bottom-navigation]")).toHaveCount(0);
   } finally {
@@ -184,7 +184,7 @@ test("@a11y tabela e formulário mantêm semântica administrativa", async ({
   }
 });
 
-test("@a11y sessão expirada preserva proteção e flag", async ({
+test("@a11y sessão expirada preserva proteção e URL canônica", async ({
   browser,
 }, testInfo) => {
   if (!["320x568", "1366x768"].includes(testInfo.project.name)) return;
@@ -201,7 +201,7 @@ test("@a11y sessão expirada preserva proteção e flag", async ({
     await context.clearCookies();
     await page.goto("/comun/admin/comunidades?experiencia=app-v2");
     await expect(page).toHaveURL(/\/comun\/admin\/login/);
-    expect(new URL(page.url()).searchParams.get("experiencia")).toBe("app-v2");
+    expect(new URL(page.url()).searchParams.get("experiencia")).toBeNull();
     await expect(page.locator(".comun-admin-shell-v2")).toHaveCount(0);
     const result = await new AxeBuilder({ page }).analyze();
     expect(
@@ -214,7 +214,7 @@ test("@a11y sessão expirada preserva proteção e flag", async ({
   }
 });
 
-test("@a11y administração sistêmica usa nível zero e preserva a flag", async ({
+test("@a11y administração sistêmica usa nível zero e links canônicos", async ({
   browser,
 }, testInfo) => {
   const viewport = testInfo.project.use.viewport as {
@@ -244,7 +244,7 @@ test("@a11y administração sistêmica usa nível zero e preserva a flag", async
         new URL(href ?? "", "http://comun.local").searchParams.get(
           "experiencia",
         ),
-      ).toBe("app-v2");
+      ).toBeNull();
     }
     const result = await new AxeBuilder({ page }).analyze();
     expect(
