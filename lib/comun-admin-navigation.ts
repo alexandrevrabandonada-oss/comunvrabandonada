@@ -79,3 +79,23 @@ export function adminFilterSnapshot(pathname: string, search: URLSearchParams) {
   }
   return safeComunAdminReturn(`${parsed.pathname}${parsed.search}`);
 }
+
+export function adminV2NavigationHref({
+  targetHref,
+  currentPathname,
+  currentSearch,
+  preserveReturn,
+}: {
+  targetHref: string;
+  currentPathname: string;
+  currentSearch: URLSearchParams;
+  preserveReturn: boolean;
+}) {
+  const target = new URL(targetHref, "http://comun.local");
+  if (preserveReturn && !target.searchParams.has("returnTo"))
+    target.searchParams.set(
+      "returnTo",
+      adminFilterSnapshot(currentPathname, currentSearch),
+    );
+  return withComunAppV2(`${target.pathname}${target.search}${target.hash}`);
+}

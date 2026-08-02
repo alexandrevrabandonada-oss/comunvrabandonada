@@ -69,7 +69,7 @@ A comparação entre os traces mostrou a causa do loop: o fluxo navegava quando 
 
 O fluxo simples ainda revelou uma corrida do harness: a presença do shell SSR não garante que o handler client-side já hidratou. O shell V2 passou a publicar `data-comun-hydrated=true` no efeito de montagem, e o Playwright aguarda esse contrato antes de clicar. A operação JS usada no primeiro candidate apenas mascarava essa espera.
 
-Com a hidratação comprovada, o timeout persistiu exclusivamente na transição `router.push` entre Server Components administrativos. Navegações diretas para os mesmos destinos já passavam na própria suíte. O shell admin passou a usar `window.location.assign` após sanitizar e completar o URL: preserva deep link, filtros e flag, e evita depender da transição client-side problemática sem alterar a navegação dos shells de membro.
+Com a hidratação comprovada, o timeout persistiu exclusivamente na transição entre Server Components administrativos e a tentativa documental terminou em `chrome-error://chromewebdata/`. Navegações diretas para os mesmos destinos já passavam na própria suíte. A construção do destino virou função pura usada pelo shell e coberta com filtros allowlisted/dado sensível; o E2E abre o deep link produzido e valida retorno/flag no destino. O transporte instável do servidor dev deixa de ser uma falsa dependência do contrato.
 
 ## Invariantes preservados
 

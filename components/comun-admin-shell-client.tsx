@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { MouseEvent, ReactNode } from "react";
 import { useEffect, useMemo } from "react";
 import { logoutAdmin } from "@/app/actions";
 import {
-  adminFilterSnapshot,
+  adminV2NavigationHref,
   safeComunAdminReturn,
 } from "@/lib/comun-admin-navigation";
 import { isComunAppV2, withComunAppV2 } from "@/lib/comun-experience";
@@ -85,6 +85,7 @@ export function ComunAdminShellClient({
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const appV2 = isComunAppV2(searchParams);
   const surface = resolveComunSurfaceMigration(pathname);
   const activeHref = useMemo(
@@ -170,22 +171,19 @@ export function ComunAdminShellClient({
       return;
     if (target.searchParams.get("experiencia") === "app-v2") return;
     const targetSurface = resolveComunSurfaceMigration(target.pathname);
-    if (
+    const preserveReturn =
       target.pathname.startsWith("/comun/admin") &&
       targetSurface.family === surface.family &&
       target.pathname !== pathname &&
-      !target.searchParams.has("returnTo")
-    )
-      target.searchParams.set(
-        "returnTo",
-        adminFilterSnapshot(
-          pathname,
-          new URLSearchParams(window.location.search),
-        ),
-      );
+      !target.searchParams.has("returnTo");
     event.preventDefault();
-    window.location.assign(
-      withComunAppV2(`${target.pathname}${target.search}${target.hash}`),
+    router.push(
+      adminV2NavigationHref({
+        targetHref: `${target.pathname}${target.search}${target.hash}`,
+        currentPathname: pathname,
+        currentSearch: new URLSearchParams(window.location.search),
+        preserveReturn,
+      }),
     );
   }
 

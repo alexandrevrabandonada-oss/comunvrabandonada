@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   adminFilterSnapshot,
+  adminV2NavigationHref,
   safeComunAdminReturn,
   withComunAdminReturn,
 } from "./comun-admin-navigation";
@@ -70,5 +71,22 @@ describe("navegação administrativa", () => {
     expect(resolveComunSurfaceMigration("/comun/admin/acervo").parentHref).toBe(
       "/comun/admin",
     );
+  });
+
+  it("constrói a navegação V2 com retorno filtrado no momento da ação", () => {
+    const href = adminV2NavigationHref({
+      targetHref: "/comun/admin/acervo/novo",
+      currentPathname: "/comun/admin/acervo",
+      currentSearch: new URLSearchParams(
+        "q=memoria&status=review&page=2&email=privado%40example.com",
+      ),
+      preserveReturn: true,
+    });
+    const parsed = new URL(href, "http://comun.local");
+    expect(parsed.searchParams.get("experiencia")).toBe("app-v2");
+    expect(parsed.searchParams.get("returnTo")).toBe(
+      "/comun/admin/acervo?q=memoria&status=review&page=2",
+    );
+    expect(href).not.toContain("privado");
   });
 });
