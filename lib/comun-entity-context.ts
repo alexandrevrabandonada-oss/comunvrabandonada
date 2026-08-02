@@ -134,7 +134,7 @@ export function createComunEntityContext(
     summary: input.summary ? safeText(input.summary, 600) : undefined,
     primaryAction: input.primaryAction
       ? {
-          href: safeHref(input.primaryAction.href),
+          href: safeActionHref(input.primaryAction.href),
           label: safeText(input.primaryAction.label, 90),
           description: input.primaryAction.description
             ? safeText(input.primaryAction.description, 240)
@@ -207,6 +207,18 @@ function safeHref(value: string) {
     throw new Error(`COMUN_ENTITY_NON_CANONICAL_HREF:${href}`);
   }
   return href;
+}
+
+function safeActionHref(value: string) {
+  const href = value.trim();
+  if (
+    href === "/comun/participar" ||
+    href.startsWith("/comun/participar?") ||
+    href.startsWith("/comun/participar#")
+  ) {
+    return href;
+  }
+  return safeHref(href);
 }
 
 function safeSlug(value: string) {
