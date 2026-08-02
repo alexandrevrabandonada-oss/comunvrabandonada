@@ -103,14 +103,10 @@ test("filtros e retorno operacional sobrevivem ao detalhe", async ({
     viewport,
   );
   try {
-    await page.evaluate(() =>
-      history.replaceState(
-        null,
-        "",
-        "/comun/admin/acervo?experiencia=app-v2&q=memoria&status=review&page=2",
-      ),
+    await page.goto(
+      "/comun/admin/acervo?experiencia=app-v2&q=memoria&status=review&page=2",
     );
-    await expect(page).toHaveURL(/q=memoria/);
+    await expect(page.locator(".comun-admin-shell-v2")).toBeVisible();
     const newItem = page.locator('main a[href="/comun/admin/acervo/novo"]');
     await expect(newItem).toHaveCount(1);
     await newItem.click();

@@ -63,6 +63,8 @@ A primeira execução isolada da PR expôs drift na fixture histórica da Centra
 
 A segunda execução isolada confirmou o reset Supabase e o seed completo, e separou quatro findings focais do produto/teste: contraste de ações amarelas no tema administrativo, regiões horizontais roláveis sem foco, continuidade da flag no redirecionamento de sessão expirada e excesso de recompilações no cenário repetido de filtros. As correções mantêm o fallback intacto, aplicam semântica de foco e contraste ao shell V2, preservam a flag também no parâmetro externo do login e validam o retorno nos viewports móveis/desktop extremos. Não houve retry cego.
 
+A terceira execução fechou contraste, foco, formulário, sessão expirada e 18/20 cenários. Os dois resíduos eram o mesmo teste de retorno: a simulação por `history.replaceState` alterava a URL fora do ciclo inicial do App Router e não representava a entrada real por deep link. O cenário focal passou a aquecer a rota e então abrir o deep link completo nos extremos 390×844 e 1366×768, preservando o contrato canônico de `useSearchParams`. O produto não ganhou estado paralelo para satisfazer o teste.
+
 ## Invariantes preservados
 
 - nenhuma mutation canônica alterada;
