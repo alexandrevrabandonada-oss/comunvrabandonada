@@ -40,7 +40,7 @@ A dívida P2/P3 permanece classificada na matriz canônica. Ela não representa 
 ## Verificação local
 
 - `npm run surfaces:collect`: verde;
-- `npm run test:unit`: 79 arquivos e 411 testes verdes;
+- `npm run test:unit`: 79 arquivos e 413 testes verdes;
 - `npm run journeys:test`: verde;
 - `npm run civic-graph:test`: verde;
 - `npm run quality:test`: verde;
@@ -60,6 +60,8 @@ O primeiro `surfaces:e2e` local teve 34/35 casos verdes e uma corrida de restaur
 O Docker Desktop global não respondeu ao ping em dez segundos (`DOCKER_DAEMON_TIMEOUT`) e não havia portas Supabase locais abertas. Nenhum finding do produto foi derivado disso. O workflow da PR executa a suíte admin em Supabase descartável e realiza somente um retry focal quando o reset retorna o 502 já conhecido.
 
 A primeira execução isolada da PR expôs drift na fixture histórica da Central: `source_key` e `idempotency_key` tornaram-se obrigatórios na projeção unificada, mas três geradores sintéticos ainda não os declaravam. As fixtures foram alinhadas com chaves determinísticas por execução/item; nenhuma tabela, migration ou mutation do produto foi alterada.
+
+A segunda execução isolada confirmou o reset Supabase e o seed completo, e separou quatro findings focais do produto/teste: contraste de ações amarelas no tema administrativo, regiões horizontais roláveis sem foco, continuidade da flag no redirecionamento de sessão expirada e excesso de recompilações no cenário repetido de filtros. As correções mantêm o fallback intacto, aplicam semântica de foco e contraste ao shell V2, preservam a flag também no parâmetro externo do login e validam o retorno nos viewports móveis/desktop extremos. Não houve retry cego.
 
 ## Invariantes preservados
 

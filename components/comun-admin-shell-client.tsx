@@ -96,10 +96,6 @@ export function ComunAdminShellClient({
         .sort((left, right) => right.length - left.length)[0],
     [pathname],
   );
-  const currentSnapshot = useMemo(
-    () => adminFilterSnapshot(pathname, searchParams),
-    [pathname, searchParams],
-  );
   const returnHref = safeComunAdminReturn(
     searchParams.get("returnTo"),
     surface.parentHref,
@@ -113,6 +109,30 @@ export function ComunAdminShellClient({
         table.setAttribute("aria-label", `Dados de ${surface.contextualTitle}`);
       for (const header of table.querySelectorAll("th:not([scope])"))
         header.setAttribute("scope", "col");
+    }
+    for (const region of workspace?.querySelectorAll<HTMLElement>(
+      ".overflow-x-auto, .overflow-auto",
+    ) ?? []) {
+      if (region.tabIndex < 0) region.tabIndex = 0;
+      if (!region.getAttribute("aria-label"))
+        region.setAttribute(
+          "aria-label",
+          `Conteúdo rolável de ${surface.contextualTitle}`,
+        );
+    }
+    for (const field of workspace?.querySelectorAll<HTMLElement>(
+      'input:not([type="hidden"]), select, textarea',
+    ) ?? []) {
+      if (
+        field.closest("label") ||
+        field.getAttribute("aria-label") ||
+        field.getAttribute("aria-labelledby")
+      )
+        continue;
+      const name = field.getAttribute("name")?.replace(/[_-]+/g, " ");
+      const placeholder = field.getAttribute("placeholder");
+      if (placeholder || name)
+        field.setAttribute("aria-label", placeholder || name || "Campo");
     }
   }, [appV2, pathname, surface.contextualTitle, surface.family]);
 
@@ -154,7 +174,13 @@ export function ComunAdminShellClient({
       target.pathname !== pathname &&
       !target.searchParams.has("returnTo")
     )
-      target.searchParams.set("returnTo", currentSnapshot);
+      target.searchParams.set(
+        "returnTo",
+        adminFilterSnapshot(
+          pathname,
+          new URLSearchParams(window.location.search),
+        ),
+      );
     event.preventDefault();
     router.push(
       withComunAppV2(`${target.pathname}${target.search}${target.hash}`),

@@ -400,12 +400,38 @@
 }
 
 .comun-admin-shell-v2 .bg-white,
+.comun-admin-shell-v2 .bg-comun-paper,
 .comun-admin-shell-v2 .paper-panel {
   border-color: rgb(244 239 228 / 22%) !important;
   border-radius: var(--comun-radius-control) !important;
   background: #1b1c18 !important;
   box-shadow: none !important;
   color: var(--comun-color-paper) !important;
+}
+
+.comun-admin-shell-v2 [class*="text-comun-asphalt/"] {
+  color: rgb(244 239 228 / 82%) !important;
+}
+
+.comun-admin-shell-v2 .text-comun-black {
+  color: var(--comun-color-paper) !important;
+}
+
+.comun-admin-shell-v2 .bg-comun-yellow {
+  background: var(--comun-surface-action) !important;
+  color: #0b0b0a !important;
+}
+
+.comun-admin-shell-v2 :is(.bg-red-50, .bg-yellow-50) {
+  color: #0b0b0a !important;
+}
+
+.comun-admin-shell-v2 .text-red-700 {
+  color: #fca5a5 !important;
+}
+
+.comun-admin-shell-v2 .bg-red-50 .text-red-700 {
+  color: #991b1b !important;
 }
 
 .comun-admin-shell-v2 :is(table, [role="table"]) {
@@ -463,10 +489,31 @@
   .comun-admin-rail,
   .comun-admin-context-bar,
   .comun-admin-shell-v2 .bg-white,
+  .comun-admin-shell-v2 .bg-comun-paper,
   .comun-admin-shell-v2 .paper-panel {
     border-color: CanvasText !important;
     background: Canvas !important;
     color: CanvasText !important;
+  }
+}
+
+@media print {
+  .comun-admin-shell-v2 {
+    min-height: auto;
+    background: white !important;
+    color: black !important;
+  }
+
+  .comun-admin-shell-v2 :is(.comun-admin-rail, .comun-admin-context-bar) {
+    display: none !important;
+  }
+
+  .comun-admin-workspace {
+    margin: 0 !important;
+  }
+
+  .comun-admin-workspace > main {
+    padding: 0 !important;
   }
 }
 

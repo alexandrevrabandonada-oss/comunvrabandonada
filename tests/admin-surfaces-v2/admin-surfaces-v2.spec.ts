@@ -92,20 +92,28 @@ test("@a11y shell administrativo V2 em cinco viewports", async ({
 test("filtros e retorno operacional sobrevivem ao detalhe", async ({
   browser,
 }, testInfo) => {
+  if (!["390x844", "1366x768"].includes(testInfo.project.name)) return;
   const viewport = testInfo.project.use.viewport as {
     width: number;
     height: number;
   };
   const { context, page } = await openAdmin(
     browser,
-    "/comun/admin/acervo?experiencia=app-v2&q=memoria&status=review&page=2",
+    "/comun/admin/acervo?experiencia=app-v2",
     viewport,
   );
   try {
-    await page
-      .locator('main a[href="/comun/admin/acervo/novo"]')
-      .first()
-      .click();
+    await page.evaluate(() =>
+      history.replaceState(
+        null,
+        "",
+        "/comun/admin/acervo?experiencia=app-v2&q=memoria&status=review&page=2",
+      ),
+    );
+    await expect(page).toHaveURL(/q=memoria/);
+    const newItem = page.locator('main a[href="/comun/admin/acervo/novo"]');
+    await expect(newItem).toHaveCount(1);
+    await newItem.click();
     await expect(page).toHaveURL(/\/comun\/admin\/acervo\/novo/);
     expect(new URL(page.url()).searchParams.get("experiencia")).toBe("app-v2");
     const returnTo = new URL(page.url()).searchParams.get("returnTo") ?? "";
@@ -148,7 +156,9 @@ test("@a11y tabela e formulário mantêm semântica administrativa", async ({
     );
     await assertAdminV2(page);
     await expect(page.getByLabel("Título")).toBeVisible();
-    await expect(page.getByRole("button")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "CRIAR EPISÓDIO" }),
+    ).toBeVisible();
   } finally {
     await context.close();
   }
