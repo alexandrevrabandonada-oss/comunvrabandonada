@@ -35,6 +35,8 @@ export async function createOperationalPerformanceScenario({ runId = randomUUID(
   if (!adminProfile || !reviewerProfile) throw new Error("perfis de performance ausentes");
   const items = Array.from({ length: itemCount }, (_, index) => ({
     source_type: ["contribution", "record", "photo", "observation", "protocol"][index % 5],
+    source_key: `${tag}:item:${index + 1}`,
+    idempotency_key: `fixture:${tag}:item:${index + 1}`,
     pauta_id: pauta.id,
     queue: queue === "all" ? OPERATION_QUEUES[index % OPERATION_QUEUES.length] : queue,
     state: status === "mixed" ? states[index % states.length] : status,

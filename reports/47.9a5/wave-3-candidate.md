@@ -59,6 +59,8 @@ O primeiro `surfaces:e2e` local teve 34/35 casos verdes e uma corrida de restaur
 
 O Docker Desktop global não respondeu ao ping em dez segundos (`DOCKER_DAEMON_TIMEOUT`) e não havia portas Supabase locais abertas. Nenhum finding do produto foi derivado disso. O workflow da PR executa a suíte admin em Supabase descartável e realiza somente um retry focal quando o reset retorna o 502 já conhecido.
 
+A primeira execução isolada da PR expôs drift na fixture histórica da Central: `source_key` e `idempotency_key` tornaram-se obrigatórios na projeção unificada, mas três geradores sintéticos ainda não os declaravam. As fixtures foram alinhadas com chaves determinísticas por execução/item; nenhuma tabela, migration ou mutation do produto foi alterada.
+
 ## Invariantes preservados
 
 - nenhuma mutation canônica alterada;

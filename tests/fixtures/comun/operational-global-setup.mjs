@@ -34,7 +34,8 @@ export async function operationalGlobalSetup({suite="authenticated"}={}){
  await fixtures.cleanupOperationalPersonas();
  const personas=await fixtures.createOperationalPersonas();
  const db=local.localServiceClient();
- const inserted=await db.from("comun_editorial_operation_items").insert({source_type:"contribution",queue:"withdrawals",title:"Retirada urgente sintética",next_action:"Conter publicação",human_gate:"Confirmação humana",fixture_tag:`fixture-s33-2-1:${runId}`}).select("id").single();
+ const fixtureKey=`fixture-s33-2-1:${runId}`;
+ const inserted=await db.from("comun_editorial_operation_items").insert({source_type:"contribution",source_key:fixtureKey,idempotency_key:`fixture:${fixtureKey}`,queue:"withdrawals",title:"Retirada urgente sintética",next_action:"Conter publicação",human_gate:"Confirmação humana",fixture_tag:fixtureKey}).select("id").single();
  if(inserted.error||!inserted.data)throw new Error(inserted.error?.message??"item fixture");
  const root=`.local/comun-auth/${runId}`;
  await rm(".local/comun-auth",{recursive:true,force:true}).catch(()=>{});
