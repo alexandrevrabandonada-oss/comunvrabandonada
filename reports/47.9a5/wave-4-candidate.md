@@ -71,6 +71,11 @@ da regressão integral pós-merge.
 - browser autenticado em cinco viewports, regressões completas, Preview e
   Production permanecem gates da PR e do fechamento pós-merge.
 
+O primeiro run autenticado da PR passou 34/35 cenários e encontrou overflow em
+390 px na Observabilidade: o identificador técnico do blocker era renderizado
+sem ponto de quebra. O contrato continua contendo o estado canônico; a UI passou
+a apresentar a mesma condição em linguagem humana e sem ampliar o viewport.
+
 ## Roadmap
 
 Próximo tijolo, sem iniciá-lo: **47.9D — Ensaio humano, aparelhos reais e

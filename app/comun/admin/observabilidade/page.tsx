@@ -197,8 +197,11 @@ export default async function AdminObservabilityPage() {
               <p
                 className="mt-1 text-xs font-bold"
                 data-platform-blocker="civic-intelligence-provider"
+                data-platform-state={
+                  COMUN_ADMIN_PLATFORM_GATES.civicIntelligence.state
+                }
               >
-                {COMUN_ADMIN_PLATFORM_GATES.civicIntelligence.state}
+                Provider semântico: capability remota ainda não comprovada.
               </p>
             ) : null}
           </div>
