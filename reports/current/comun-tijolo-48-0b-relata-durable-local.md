@@ -15,7 +15,8 @@ fechamento da integração.
 
 - base/main: `97c102d2a2464e511cd443ee29cac119d7e7c360`;
 - branch: `codex/tijolo-48-0b-relata-durable-local`;
-- candidata funcional: `eff0f9b652c59cc2ad3a5bc01bf90e8d19fa9adc`;
+- candidata funcional após hardening RLS:
+  `f96f92efd99a28525a172ca7d497ab03d615316c`;
 - PR #151, inicialmente draft enquanto os checks remotos são coletados;
 - migration forward-only:
   `20260803161310_comun_relata_durable_local.sql`;
