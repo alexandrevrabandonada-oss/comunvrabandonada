@@ -5,7 +5,9 @@
   "functionalProductSha": "093f9772d28c018c95d5f8c1aac5afe6c1de30e6",
   "productionObservedSha": "093f9772d28c018c95d5f8c1aac5afe6c1de30e6",
   "branch": "codex/tijolo-48-0c-relata-private-evidence-cases",
-  "pullRequest": null,
+  "candidateSha": "ed8c4a5cdb95565f5a5025eaf80c47c23083e797",
+  "pullRequest": 153,
+  "pullRequestState": "draft",
   "mergeSha": null,
   "migration": {
     "path": "supabase/migrations/20260803192419_comun_relata_private_evidence_cases.sql",

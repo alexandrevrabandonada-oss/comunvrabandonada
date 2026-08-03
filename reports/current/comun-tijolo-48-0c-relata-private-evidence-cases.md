@@ -17,7 +17,8 @@ checks, Preview, merge e smoke read-only do deployment funcional exato.
 - `functional_product_sha`: `093f9772d28c018c95d5f8c1aac5afe6c1de30e6`;
 - `production_observed_sha`: `093f9772d28c018c95d5f8c1aac5afe6c1de30e6`;
 - branch: `codex/tijolo-48-0c-relata-private-evidence-cases`;
-- candidata, PR, Preview, merge e Production funcional: pendentes da integração;
+- candidata funcional: `ed8c4a5cdb95565f5a5025eaf80c47c23083e797`;
+- PR #153: aberta em draft; Preview, merge e Production funcional pendentes;
 - migration forward-only:
   `20260803192419_comun_relata_private_evidence_cases.sql`;
 - SHA-256: `97be487aa2c03c559aa1918835056aa90cb9dba16288d4396370ac1fc95e9983`;

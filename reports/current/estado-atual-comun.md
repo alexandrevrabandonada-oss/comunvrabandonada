@@ -4,6 +4,8 @@
 
 - baseline forward-only: repository main `bb2b3cb709a6f3b01c0774175c9c9e9704e81396`;
 - branch: `codex/tijolo-48-0c-relata-private-evidence-cases`;
+- candidata funcional: `ed8c4a5cdb95565f5a5025eaf80c47c23083e797`;
+- PR #153 aberta em draft; checks e Preview em andamento;
 - migration aditiva/checksum e manifesto local-only verdes; migration 48.0B intacta;
 - localização opcional com AES-256-GCM server-side e células somente em HMAC;
 - JPEG/PNG/WebP: até três, 8 MiB, 20 MP, validação real, derivada privada sem
@@ -19,7 +21,7 @@
 - Supabase remoto não consultado, não migrado e não alterado;
 - resultado não terminal:
   `COMUN_RELATA_48_0C_CANDIDATE_LOCAL_GREEN_REMOTE_DB_UNCHANGED`;
-- PR, Preview, merge e smoke do deployment funcional exato ainda pendentes;
+- Preview, merge e smoke do deployment funcional exato ainda pendentes;
 - 47.9D não iniciado; `launch_publicly` não acionado.
 
 ## Tijolo 48.0B integrado e dormente — 3 de agosto de 2026
