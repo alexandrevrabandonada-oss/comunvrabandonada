@@ -22,7 +22,7 @@ política definitiva de produção.
 ## Acesso e logging
 
 RLS é forçada em todas as tabelas. O navegador chama somente a API same-origin;
-as três RPCs são executáveis apenas pela service role do runtime Node local e
+as RPCs Relata são executáveis apenas pela service role do runtime Node local e
 exigem prova de posse. Ausência, protocolo desconhecido e segredo incorreto são
 indistinguíveis para evitar enumeração. Eventos não podem ser atualizados ou
 removidos.

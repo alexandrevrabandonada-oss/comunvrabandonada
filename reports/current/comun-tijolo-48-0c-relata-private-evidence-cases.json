@@ -1,14 +1,34 @@
 {
   "brick": "48.0C",
-  "result": "COMUN_RELATA_48_0C_CANDIDATE_LOCAL_GREEN_REMOTE_DB_UNCHANGED",
-  "repositoryMainSha": "bb2b3cb709a6f3b01c0774175c9c9e9704e81396",
-  "functionalProductSha": "093f9772d28c018c95d5f8c1aac5afe6c1de30e6",
-  "productionObservedSha": "093f9772d28c018c95d5f8c1aac5afe6c1de30e6",
-  "branch": "codex/tijolo-48-0c-relata-private-evidence-cases",
+  "result": "COMUN_RELATA_48_0C_MERGED_DORMANT_LOCAL_GREEN_REMOTE_DB_UNCHANGED",
+  "baselineRepositoryMainSha": "bb2b3cb709a6f3b01c0774175c9c9e9704e81396",
+  "priorFunctionalProductSha": "093f9772d28c018c95d5f8c1aac5afe6c1de30e6",
+  "priorProductionObservedSha": "093f9772d28c018c95d5f8c1aac5afe6c1de30e6",
+  "repositoryMainSha": "6fefaa8e79de53e4c8bee1f4f4c16a71d5bc68c1",
+  "functionalProductSha": "6fefaa8e79de53e4c8bee1f4f4c16a71d5bc68c1",
+  "productionObservedSha": "6fefaa8e79de53e4c8bee1f4f4c16a71d5bc68c1",
+  "branches": [
+    "codex/tijolo-48-0c-relata-private-evidence-cases",
+    "codex/tijolo-48-0c-relata-method-cloak"
+  ],
   "candidateSha": "ed8c4a5cdb95565f5a5025eaf80c47c23083e797",
-  "pullRequest": 153,
-  "pullRequestState": "draft",
-  "mergeSha": null,
+  "mainPullRequestHeadSha": "90f55fc35af1d3c41b62af56bb53d20d3dde4a18",
+  "focalCandidateSha": "f184dba5e373482947096011a3c435a5da2adeb3",
+  "pullRequests": [
+    {
+      "number": 153,
+      "state": "merged",
+      "mergeSha": "eda38611f04870056d9ed6f30525b9f8d2b8fa1f",
+      "previewDeployment": "dpl_28oH7PgcDTHx9JVaWRheZigC2VNP"
+    },
+    {
+      "number": 154,
+      "state": "merged",
+      "mergeSha": "6fefaa8e79de53e4c8bee1f4f4c16a71d5bc68c1",
+      "previewDeployment": "dpl_2NdxV7SVvh4mwLjRvVoR47vpw63y"
+    }
+  ],
+  "mergeSha": "6fefaa8e79de53e4c8bee1f4f4c16a71d5bc68c1",
   "migration": {
     "path": "supabase/migrations/20260803192419_comun_relata_private_evidence_cases.sql",
     "sha256": "97be487aa2c03c559aa1918835056aa90cb9dba16288d4396370ac1fc95e9983",
@@ -73,7 +93,7 @@
     "relata": "32/32",
     "relataE2e": "15/15",
     "viewports": 5,
-    "unit": "455/455",
+    "unit": "456/456",
     "security": "8/8",
     "rls": "COMUN_RLS_COMPLETE_GREEN",
     "databaseRestore": "COMUN_DATABASE_RESTORE_REHEARSAL_GREEN",
@@ -92,11 +112,30 @@
     "typecheck": "passed",
     "lint": "passed",
     "build": "passed",
-    "noLeakProduction": "passed"
+    "noLeakProduction": "passed",
+    "dormantEvidenceMethodCloak": "21/21"
+  },
+  "ci": {
+    "pullRequestChecks": "passed",
+    "postMerge": "passed",
+    "qualityInfrastructureRetry": {
+      "run": 30855538952,
+      "cause": "disposable_supabase_restart_502",
+      "sameSha": "f184dba5e373482947096011a3c435a5da2adeb3",
+      "attempt": 2,
+      "result": "success"
+    },
+    "civicGraphInfrastructureRetry": {
+      "run": 30857875236,
+      "cause": "chromium_sigsegv_after_39_of_40_cases",
+      "sameSha": "6fefaa8e79de53e4c8bee1f4f4c16a71d5bc68c1",
+      "attempt": 2,
+      "result": "40/40_success"
+    }
   },
   "remoteDatabase": "not_contacted_not_migrated_unchanged",
   "production": {
-    "deployment": "dpl_B8Tm8VzZV2SNTECxV9dAuJFHpvEN",
+    "deployment": "dpl_Z4Da7tM1QEcNZ6hGyaUBeZANXEaw",
     "status": "READY",
     "domain": "https://comunsocial.online",
     "pwa": "comun-pwa-v3",
@@ -104,7 +143,12 @@
     "/comun?experiencia=app-v2": 200,
     "/comun?experiencia=legacy": 200,
     "/comun/relata": 404,
-    "evidenceGetApis": 404,
+    "evidenceApiMethods": {
+      "routes": ["location", "grouping", "attachments"],
+      "methods": ["GET", "POST", "DELETE", "PUT", "PATCH", "OPTIONS", "HEAD"],
+      "status": 404,
+      "assertions": "21/21"
+    },
     "publicRelataLink": false
   },
   "launchPublicly": false,
