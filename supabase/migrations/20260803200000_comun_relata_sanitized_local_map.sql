@@ -75,6 +75,15 @@ create trigger comun_relata_public_precision_guard
 before update on private.comun_relata_public_projections
 for each row execute function private.comun_relata_public_precision_guard();
 
+drop trigger if exists comun_relata_public_projection_events_append_only on private.comun_relata_public_projection_events;
+create trigger comun_relata_public_projection_events_append_only
+before update or delete on private.comun_relata_public_projection_events
+for each row execute function private.comun_relata_reject_append_only_mutation();
+drop trigger if exists comun_relata_public_confirmation_events_append_only on private.comun_relata_public_confirmation_events;
+create trigger comun_relata_public_confirmation_events_append_only
+before update or delete on private.comun_relata_public_confirmation_events
+for each row execute function private.comun_relata_reject_append_only_mutation();
+
 alter table private.comun_relata_public_projection_candidates enable row level security;
 alter table private.comun_relata_public_projection_candidates force row level security;
 alter table private.comun_relata_public_projections enable row level security;
@@ -91,6 +100,12 @@ revoke all on table private.comun_relata_public_projection_candidates,
   private.comun_relata_public_projection_events,
   private.comun_relata_public_confirmations,
   private.comun_relata_public_confirmation_events from public, anon, authenticated;
+-- Keep explicit one-relation revokes for the repository privilege linter and
+-- make the no-client-grants contract mechanically auditable.
+revoke all privileges on table private.comun_relata_public_projections from public, anon, authenticated;
+revoke all privileges on table private.comun_relata_public_projection_events from public, anon, authenticated;
+revoke all privileges on table private.comun_relata_public_confirmations from public, anon, authenticated;
+revoke all privileges on table private.comun_relata_public_confirmation_events from public, anon, authenticated;
 grant select, insert, update, delete on table private.comun_relata_public_projection_candidates,
   private.comun_relata_public_projections,
   private.comun_relata_public_projection_events,
@@ -162,7 +177,7 @@ declare v_id uuid; v_active boolean;
 begin
   if p_token_hash is null or octet_length(p_token_hash) <> 32 then raise exception using errcode='22023',message='RELATA_PUBLIC_TOKEN_INVALID'; end if;
   if not exists(select 1 from private.comun_relata_public_projections where public_id=p_public_id and projection_state in ('visible_local_preview','eligible_auto_local','review_required')) then return; end if;
-  select id,active into v_id,v_active from private.comun_relata_public_confirmations where public_id=p_public_id and token_hash=p_token_hash for update;
+  select c.id,c.active into v_id,v_active from private.comun_relata_public_confirmations c where c.public_id=p_public_id and c.token_hash=p_token_hash for update;
   if p_undo then
     if v_id is not null and v_active then
       update private.comun_relata_public_confirmations set active=false,withdrawn_at=now() where id=v_id;
@@ -175,7 +190,7 @@ begin
     update private.comun_relata_public_confirmations set active=true,withdrawn_at=null where id=v_id;
     insert into private.comun_relata_public_confirmation_events(confirmation_id,event_type) values(v_id,'confirmed');
   end if;
-  return query select coalesce((select active from private.comun_relata_public_confirmations where id=v_id),false),
+  return query select coalesce((select c.active from private.comun_relata_public_confirmations c where c.id=v_id),false),
     (select count(*)::integer from private.comun_relata_public_confirmations c where c.public_id=p_public_id and c.active);
 end;
 $$;

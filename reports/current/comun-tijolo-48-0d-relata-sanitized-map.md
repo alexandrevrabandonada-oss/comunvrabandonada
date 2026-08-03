@@ -2,9 +2,7 @@
 
 ## Resultado da verificação local
 
-**Gate atual:** `COMUN_RELATA_48_0D_BLOCKED_LOCAL_DB_VALIDATION_UNAVAILABLE`
-
-O código e os contratos locais estão implementados, mas a integração/merge fica bloqueada até que o Supabase CLI/harness descartável esteja disponível para aplicar a migration somente localmente e executar a matriz RLS/authorization. Não houve escrita remota.
+**Resultado R1:** `COMUN_RELATA_48_0D_MERGED_DORMANT_LOCAL_SANITIZED_MAP_GREEN_REMOTE_UNCHANGED` (validação local concluída; merge/Production ainda não executados).
 
 Implementação aditiva em branch `codex/tijolo-48-0d-relata-sanitized-local-map`, baseada no main documental `118f1d4c88cc6915ef471ba59cfcfbcf0355d770`. O 48.0B não foi alterado: `public.comun_relata_public_snapshots` continua com bloqueio estrutural e trigger de rejeição.
 
@@ -26,4 +24,14 @@ O mapa/lista é local, lista-first, com filtros de categoria, alerta de localiza
 
 ## Limitações
 
-O CLI Supabase não está instalado nesta máquina; a migration foi criada manualmente com checksum e manifesto local-only, sem `db push`, sem consulta remota e sem alteração de domínio/secrets. A validação de banco deve continuar restrita ao Supabase descartável quando o harness local estiver disponível.
+O laboratório usou somente Supabase descartável em loopback, com portas temporárias por conflito de reserva do Windows. Não houve `db push`, consulta remota, alteração de domínio ou secrets. A migration foi aplicada pela cadeia completa via `supabase db reset --local --yes`/retry `--no-seed`, e o seed/Storage foi verificado separadamente.
+
+## Evidências R1
+
+- `relata:test`: 39/39 focais, release, DB, Storage, cleanup e retenção verdes;
+- rehearsal DB: `COMUN_RELATA_48_0D_DB_GREEN`, seis tabelas novas RLS forced, confirmação idempotente e precisão monotônica;
+- `COMUN_RLS_COMPLETE_GREEN` e `COMUN_EXPLICIT_PRIVILEGE_CONTRACT_OK`;
+- Storage/restore/cleanup/retention verdes, sem artefacts com nomes de objeto;
+- E2E Relata: 20/20 em 320 px, 390 px, landscape, 768 px e PWA 430 px, Axe verde;
+- no-leak dormente: `/comun` 200, `/comun/relata`/mapa/APIs evidence/public 404 e sete métodos sem 405;
+- commit funcional permanece derivado de `cee9f3226667c1de693bd858f747bd023bccdf36`, com correções R1 não publicadas.

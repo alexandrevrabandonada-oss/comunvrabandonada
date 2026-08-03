@@ -27,4 +27,10 @@ Há MapLibre/PMTiles no projeto, com carregamento dinâmico em Calçadas. A mesm
 - A projeção não pode afirmar que uma fotografia é publicável e não pode revelar status oficial.
 - O mapa só é elegível sob as regras templated do 48.0D; categorias de risco, emergência, saúde, crianças, violência e acusação individualizada ficam bloqueadas.
 
-Conclusão do diagnóstico: baseline explicável, sem escrita remota, patch local aditivo seguro para iniciar.
+## Recuperação 48.0D-R1
+
+Docker Desktop `4.61.0` / Engine `29.2.1` (`desktop-linux`) e WSL2 estavam saudáveis. `npx supabase` `2.111.0` foi usado; a configuração original reservava `55432`, faixa Windows excluída `55360–55459`. O laboratório foi deslocado temporariamente para API `56431`, DB `56432`, Studio `56433`, Mailpit `56434`, analytics `56437` e pooler `56439`; `supabase/config.toml` foi restaurado ao final.
+
+Houve dois incidentes de infraestrutura durante a recuperação: inicialização com porta reservada e gateway Kong apontando para IP antigo do Storage (`502`, host unreachable) após reinícios. O retry focal com restart do container Kong e reset `--no-seed` completou a cadeia SQL; Storage, seed de buckets e restore passaram separadamente. Nenhum incidente alterou a migration ou foi classificado como finding de produto.
+
+Conclusão: `COMUN_RELATA_48_0D_MERGED_DORMANT_LOCAL_SANITIZED_MAP_GREEN_REMOTE_UNCHANGED` está pronto para integração condicionada aos checks de PR; não houve escrita remota.

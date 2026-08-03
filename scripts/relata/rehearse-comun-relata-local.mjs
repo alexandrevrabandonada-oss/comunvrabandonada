@@ -567,6 +567,115 @@ const publicSnapshots = await postgres.query(
 );
 assert.equal(publicSnapshots.rows[0].count, 0);
 
+// 48.0D: only sanitized, synthetic projection rows are created in the
+// disposable database. No report text, protocol or exact location is used.
+const projectionCases = [
+  ["public_lighting", "visible_local_preview", 1, -22.501, -44.101, 300],
+  ["power_distribution", "suppressed", 1, -22.502, -44.102, 800],
+  ["power_distribution", "visible_local_preview", 2, -22.503, -44.103, 800],
+  ["smoke_or_environmental_trace", "visible_local_preview", 1, -22.504, -44.104, 1000],
+];
+for (const [category, state, reports, latitude, longitude, radius] of projectionCases) {
+  const collectiveId = randomUUID();
+  const projectionId = randomUUID();
+  await postgres.query(
+    `insert into public.comun_relata_collective_cases
+      (id,category,collective_urgency,state,match_rule,match_rule_version,active_members_count,first_report_at,last_report_at,confidence_level)
+     values ($1,$2,'routine','active','new_collective_case','relata-match-v1',$3,now()-interval '1 day',now(),'high')`,
+    [collectiveId, category, reports],
+  );
+  await postgres.query(
+    `insert into private.comun_relata_public_projection_candidates
+      (collective_case_id,cell_x,cell_y,grid_meters,public_latitude,public_longitude,uncertainty_radius_meters,source_contract)
+     values ($1,100,200,$2,$3,$4,$5,'relata-public-projection-v1')`,
+    [collectiveId, radius, latitude, longitude, radius],
+  );
+  await postgres.query(
+    `insert into private.comun_relata_public_projections
+      (public_id,collective_case_id,category,community_state,report_count,first_seen_date,last_activity_date,public_latitude,public_longitude,uncertainty_radius_meters,policy_version,eligibility_reason,projection_state)
+     values ($1,$2,$3,'active',$4,current_date-1,current_date,$5,$6,$7,'relata-public-projection-v1','allowlisted_rule',$8)`,
+    [projectionId, collectiveId, category, reports, latitude, longitude, radius, state],
+  );
+  await postgres.query(
+    "insert into private.comun_relata_public_projection_events(public_id,event_type,result_code) values($1,'created','RELATA_PUBLIC_PROJECTION_CREATED')",
+    [projectionId],
+  );
+  if (category === "public_lighting") {
+    globalThis.__relataProjectionId = projectionId;
+  }
+}
+const projectionId = globalThis.__relataProjectionId;
+assert.ok(projectionId);
+const listedProjection = await asRole("service_role", (client) =>
+  client.query("select * from public.comun_relata_public_list($1,$2,500)", ["public_lighting", "visible_local_preview"]),
+);
+assert.equal(listedProjection.rowCount, 1);
+const safeProjectionText = JSON.stringify(listedProjection.rows[0]);
+for (const forbidden of ["report_id", "case_id", "protocol", "ciphertext", "nonce", "tag", "object_key", "filename", "private_note"]) {
+  assert.equal(safeProjectionText.includes(forbidden), false);
+}
+const detailProjection = await asRole("service_role", (client) =>
+  client.query("select * from public.comun_relata_public_get($1)", [projectionId]),
+);
+assert.equal(detailProjection.rowCount, 1);
+const reportCountBeforeConfirmation = detailProjection.rows[0].report_count;
+const tokenHash = randomBytes(32);
+const confirmationA = await asRole("service_role", (client) =>
+  client.query("select * from public.comun_relata_public_confirm($1,$2,false)", [projectionId, tokenHash]),
+);
+const confirmationB = await asRole("service_role", (client) =>
+  client.query("select * from public.comun_relata_public_confirm($1,$2,false)", [projectionId, tokenHash]),
+);
+assert.deepEqual(confirmationA.rows[0], { active: true, confirmation_count: 1 });
+assert.deepEqual(confirmationB.rows[0], { active: true, confirmation_count: 1 });
+const confirmationUndo = await asRole("service_role", (client) =>
+  client.query("select * from public.comun_relata_public_confirm($1,$2,true)", [projectionId, tokenHash]),
+);
+assert.deepEqual(confirmationUndo.rows[0], { active: false, confirmation_count: 0 });
+const reportCountAfterConfirmation = await postgres.query(
+  "select report_count,confirmation_count from private.comun_relata_public_projections where public_id=$1",
+  [projectionId],
+);
+assert.deepEqual(reportCountAfterConfirmation.rows[0], { report_count: reportCountBeforeConfirmation, confirmation_count: 0 });
+await postgres.query("update private.comun_relata_public_projections set uncertainty_radius_meters=1 where public_id=$1", [projectionId]);
+const precision = await postgres.query("select uncertainty_radius_meters from private.comun_relata_public_projections where public_id=$1", [projectionId]);
+assert.equal(Number(precision.rows[0].uncertainty_radius_meters), 300);
+await assert.rejects(
+  postgres.query("delete from private.comun_relata_public_projection_events where public_id=$1", [projectionId]),
+  /COMUN_RELATA_EVIDENCE_EVENT_APPEND_ONLY/,
+);
+await assert.rejects(
+  postgres.query(
+    `insert into private.comun_relata_public_projections
+      (collective_case_id,category,community_state,first_seen_date,last_activity_date,public_latitude,public_longitude,uncertainty_radius_meters,policy_version,eligibility_reason,projection_state)
+     values ($1,'active_fire','active',current_date,current_date,0,0,1000,'relata-public-projection-v1','blocked','blocked')`,
+    [randomUUID()],
+  ),
+  /violates foreign key|violates check constraint/,
+);
+for (const role of ["anon", "authenticated"]) {
+  await assert.rejects(
+    asRole(role, (client) => client.query("select count(*) from private.comun_relata_public_projections")),
+    /permission denied/,
+  );
+  await assert.rejects(
+    asRole(role, (client) => client.query("select * from public.comun_relata_public_list(null,'visible_local_preview',10)")),
+    /permission denied/,
+  );
+}
+const projectionSecurity = await postgres.query(`
+  select count(*) filter (where relrowsecurity and relforcerowsecurity)::int as protected_tables,
+    count(*)::int as total_tables
+  from pg_class where oid in (
+    'private.comun_relata_public_projection_candidates'::regclass,
+    'private.comun_relata_public_projections'::regclass,
+    'private.comun_relata_public_projection_events'::regclass,
+    'private.comun_relata_public_confirmations'::regclass,
+    'private.comun_relata_public_confirmation_events'::regclass
+  )
+`);
+assert.deepEqual(projectionSecurity.rows[0], { protected_tables: 5, total_tables: 5 });
+
 const persistedInvariant = await postgres.query(`
   select count(*)::int as invalid
   from public.comun_relata_cases
@@ -577,11 +686,11 @@ await postgres.end();
 
 console.log(
   JSON.stringify({
-    result: "COMUN_RELATA_LOCAL_PERSISTENCE_GREEN",
+    result: "COMUN_RELATA_48_0D_DB_GREEN",
     roles: ["PUBLIC", "anon", "authenticated", "admin", "non_admin", "service_role"],
     idempotency: ["sequential", "concurrent", "payload_conflict"],
     privacy: "no_private_values_emitted",
-    evidence: ["aes_256_gcm_contract", "private_photos", "collective_cases"],
+    evidence: ["aes_256_gcm_contract", "private_photos", "collective_cases", "sanitized_projection", "community_confirmation", "projection_rls"],
     remote: "not_contacted",
   }),
 );
