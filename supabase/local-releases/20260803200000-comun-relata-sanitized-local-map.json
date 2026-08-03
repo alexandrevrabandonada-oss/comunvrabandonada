@@ -1,0 +1,19 @@
+{
+  "release": "20260803200000-comun-relata-sanitized-local-map",
+  "migration": "supabase/migrations/20260803200000_comun_relata_sanitized_local_map.sql",
+  "migrationSha256": "ebf74d970f65f73086791147f9f4d6c949e9b1bec86a8124a83a60ae83246d00",
+  "destructiveSql": false,
+  "requiresPromotion": false,
+  "remotePromotionAllowed": false,
+  "scope": "disposable_local_supabase_only",
+  "publicProjection": "sanitized_local_preview_only",
+  "policyVersion": "relata-public-projection-v1",
+  "oldPublicSnapshotsPreserved": true,
+  "assertions": [
+    "all map and confirmation routes require four cumulative local flags and a loopback Supabase target",
+    "projection rows contain only templated category, approximate metric-cell location, counts and day precision dates",
+    "confirmations use a first-party hashed HttpOnly token and never become reports or contacts",
+    "all new tables are forced RLS with service_role-only grants",
+    "remote Supabase, public snapshots, official forwarding and publication remain untouched"
+  ]
+}

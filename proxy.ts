@@ -4,11 +4,17 @@ import {
   canonicalComunHref,
   shouldUseLegacyDefault,
 } from "@/lib/comun-experience";
-import { shouldCloakComunRelataEvidenceApi } from "@/lib/comun-relata-evidence-feature";
+import {
+  shouldCloakComunRelataEvidenceApi,
+  shouldCloakComunRelataPublicMap,
+} from "@/lib/comun-relata-evidence-feature";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function proxy(request: NextRequest) {
-  if (shouldCloakComunRelataEvidenceApi(request.nextUrl.pathname)) {
+  if (
+    shouldCloakComunRelataEvidenceApi(request.nextUrl.pathname) ||
+    shouldCloakComunRelataPublicMap(request.nextUrl.pathname)
+  ) {
     return NextResponse.json(
       { code: "evidence_unavailable" },
       {
@@ -54,5 +60,9 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/comun/:path*", "/api/comun/relata/evidence/:path*"],
+  matcher: [
+    "/comun/:path*",
+    "/api/comun/relata/evidence/:path*",
+    "/api/comun/relata/public/:path*",
+  ],
 };

@@ -1,0 +1,14 @@
+{
+  "brick": "48.0D",
+  "result": "COMUN_RELATA_48_0D_BLOCKED_LOCAL_DB_VALIDATION_UNAVAILABLE",
+  "branch": "codex/tijolo-48-0d-relata-sanitized-local-map",
+  "base": "118f1d4c88cc6915ef471ba59cfcfbcf0355d770",
+  "policyVersion": "relata-public-projection-v1",
+  "flags": ["COMUN_RELATA_PREVIEW", "COMUN_RELATA_LOCAL_PERSISTENCE", "COMUN_RELATA_LOCAL_EVIDENCE", "COMUN_RELATA_LOCAL_PUBLIC_MAP"],
+  "routes": {"page": "/comun/relata/mapa", "api": "/api/comun/relata/public"},
+  "projection": {"categories": ["public_lighting", "power_distribution", "smoke_or_environmental_trace"], "metricGridMeters": [300, 800, 1000], "exactLocation": false, "publicSnapshots": false},
+  "confirmation": {"firstPartyCookie": true, "hashedServerSide": true, "reportCreation": false, "undo": true},
+  "remoteSupabase": {"consulted": false, "migrated": false, "changed": false},
+  "production": {"promoted": false, "publicRelata": false},
+  "nextBrick": "48.0E package forwarding/channel verification"
+}

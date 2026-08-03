@@ -1,0 +1,9 @@
+{
+  "version": "relata-public-projection-v1",
+  "allowlistedCategories": {"public_lighting": {"gridMeters": 300, "minimumReports": 1}, "power_distribution": {"gridMeters": 800, "minimumReports": 2}, "smoke_or_environmental_trace": {"gridMeters": 1000, "minimumReports": 1}},
+  "blocked": ["electrical_hazard", "active_fire", "emergency", "violence", "health", "children", "individualized_accusation", "retaliation_risk", "sensitive", "high_risk"],
+  "publicPrecision": "metric-cell-center-plus-uncertainty-radius",
+  "reversible": true,
+  "officialForwarding": false,
+  "publicSnapshotTable": "unchanged-and-blocked"
+}

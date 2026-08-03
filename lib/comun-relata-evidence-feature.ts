@@ -8,6 +8,11 @@ export const COMUN_RELATA_SPATIAL_KEY =
   "COMUN_RELATA_SPATIAL_HMAC_KEY" as const;
 export const COMUN_RELATA_EVIDENCE_API_PREFIX =
   "/api/comun/relata/evidence" as const;
+export const COMUN_RELATA_PUBLIC_MAP_FLAG =
+  "COMUN_RELATA_LOCAL_PUBLIC_MAP" as const;
+export const COMUN_RELATA_PUBLIC_MAP_API_PREFIX =
+  "/api/comun/relata/public" as const;
+export const COMUN_RELATA_PUBLIC_MAP_PATH = "/comun/relata/mapa" as const;
 
 function validLocalKey(value: string | undefined) {
   if (!value || value.length > 128) return false;
@@ -48,4 +53,32 @@ export function shouldCloakComunRelataEvidenceApi(
     pathname === COMUN_RELATA_EVIDENCE_API_PREFIX ||
     pathname.startsWith(`${COMUN_RELATA_EVIDENCE_API_PREFIX}/`);
   return isEvidenceApi && !isComunRelataEvidenceEnabled(env);
+}
+
+export function areComunRelataPublicMapFlagsEnabled(
+  env: Record<string, string | undefined> = process.env,
+) {
+  return (
+    areComunRelataEvidenceFlagsEnabled(env) &&
+    env[COMUN_RELATA_PUBLIC_MAP_FLAG] === "enabled"
+  );
+}
+
+export function isComunRelataPublicMapEnabled(
+  env: Record<string, string | undefined> = process.env,
+) {
+  // The map is deliberately cumulative: no fourth flag can bypass evidence
+  // or local persistence. Keys are still validated by the evidence gate.
+  return areComunRelataPublicMapFlagsEnabled(env) && isComunRelataEvidenceEnabled(env);
+}
+
+export function shouldCloakComunRelataPublicMap(
+  pathname: string,
+  env: Record<string, string | undefined> = process.env,
+) {
+  const isApi =
+    pathname === COMUN_RELATA_PUBLIC_MAP_API_PREFIX ||
+    pathname.startsWith(`${COMUN_RELATA_PUBLIC_MAP_API_PREFIX}/`);
+  const isPage = pathname === COMUN_RELATA_PUBLIC_MAP_PATH;
+  return (isApi || isPage) && !isComunRelataPublicMapEnabled(env);
 }

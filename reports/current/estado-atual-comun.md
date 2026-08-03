@@ -1,5 +1,20 @@
 # Estado atual do COMUN
 
+## Tijolo 48.0D — projeção sanitizada e mapa local — execução local
+
+- baseline verificado forward-only: `origin/main` documental `118f1d4c88cc6915ef471ba59cfcfbcf0355d770`; produto/Production observado `6fefaa8e79de53e4c8bee1f4f4c16a71d5bc68c1`;
+- branch isolada: `codex/tijolo-48-0d-relata-sanitized-local-map`;
+- quarta barreira cumulativa: `COMUN_RELATA_LOCAL_PUBLIC_MAP`;
+- migration local-only `20260803200000_comun_relata_sanitized_local_map.sql`, checksum no manifesto, `requiresPromotion=false`, `remotePromotionAllowed=false`;
+- snapshots públicos do 48.0B preservados e bloqueados; nova projeção é aditiva e não publica Relata;
+- política `relata-public-projection-v1`: células métricas 300/800/1.000 m, categorias templated, estados bloqueados/suprimidos/revisão/prévia local;
+- confirmações first-party com cookie HttpOnly e hash server-side, sem criar relato ou alterar contagem de relatos;
+- mapa/lista local com filtros, detalhe sanitizado, raio de incerteza e alternativa acessível; sem fotos, texto, protocolo, endereço ou status oficial;
+- verificação: typecheck verde; testes focais de flags/projeção `9/9` verdes; Supabase CLI ausente, portanto migration não foi aplicada nem validada remotamente;
+- Production permanece dormente; nenhum domínio, secret, flag remota ou bucket remoto foi tocado;
+- resultado do tijolo: `COMUN_RELATA_48_0D_BLOCKED_LOCAL_DB_VALIDATION_UNAVAILABLE`; integração/merge não promovidos até regressão local do banco descartável, RLS e autorização;
+- próximo tijolo: `48.0E — package forwarding/channel verification`; 47.9D não iniciado; `launch_publicly` não acionado.
+
 ## Tijolo 48.0C integrado e dormente — 3 de agosto de 2026
 
 - baseline forward-only: repository main `bb2b3cb709a6f3b01c0774175c9c9e9704e81396`;
