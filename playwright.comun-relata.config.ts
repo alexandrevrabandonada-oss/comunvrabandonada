@@ -17,7 +17,11 @@ export default defineConfig({
   reporter: "line",
   projects: viewports.map(([name, width, height]) => ({
     name,
-    use: { viewport: { width, height } },
+    use: {
+      viewport: { width, height },
+      permissions: ["geolocation"],
+      geolocation: { longitude: -44.101, latitude: -22.52, accuracy: 18 },
+    },
   })),
   use: { baseURL, trace: "retain-on-failure" },
   webServer: {

@@ -1,5 +1,27 @@
 # Estado atual do COMUN
 
+## Tijolo 48.0C candidato local verde — 3 de agosto de 2026
+
+- baseline forward-only: repository main `bb2b3cb709a6f3b01c0774175c9c9e9704e81396`;
+- branch: `codex/tijolo-48-0c-relata-private-evidence-cases`;
+- migration aditiva/checksum e manifesto local-only verdes; migration 48.0B intacta;
+- localização opcional com AES-256-GCM server-side e células somente em HMAC;
+- JPEG/PNG/WebP: até três, 8 MiB, 20 MP, validação real, derivada privada sem
+  metadados e bucket privado sem leitura direta;
+- processo individual preservado; casos coletivos e participações aditivos,
+  determinísticos, versionados e sem auto-link de emergência/sensível;
+- retirada revoga interface, inativa vínculos e preserva história; cleanup dry-run;
+- Relata 32/32, E2E 15/15, unidade 455/455, RLS 194 tabelas/2.328 combinações,
+  a11y, PWA, performance, rede, restore, no-leak, typecheck, lint e build verdes;
+- surfaces: 190 páginas, sete shells, zero desconhecida, zero legacy e zero P0/P1;
+- Production pré-integração permanece `READY`: `/comun=200`, App V2/legado=200,
+  `/comun/relata=404` e APIs de evidência GET=404;
+- Supabase remoto não consultado, não migrado e não alterado;
+- resultado não terminal:
+  `COMUN_RELATA_48_0C_CANDIDATE_LOCAL_GREEN_REMOTE_DB_UNCHANGED`;
+- PR, Preview, merge e smoke do deployment funcional exato ainda pendentes;
+- 47.9D não iniciado; `launch_publicly` não acionado.
+
 ## Tijolo 48.0B integrado e dormente — 3 de agosto de 2026
 
 - base: `97c102d2a2464e511cd443ee29cac119d7e7c360`, merge verde do 48.0A-N1;

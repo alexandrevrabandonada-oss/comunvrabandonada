@@ -62,6 +62,41 @@ test("backup recupera o schema privado quando ele existe", async () => {
   assert.match(rehearsal, /artifactPublished: false/);
 });
 
+test("Relata 48.0C mantém evidência local, privada e sem promoção", async () => {
+  const [foundation, migration, feature, runtime, cleanup, manifest] = await Promise.all([
+    readFile(
+      "supabase/migrations/20260803161310_comun_relata_durable_local.sql",
+      "utf8",
+    ),
+    readFile(
+      "supabase/migrations/20260803192419_comun_relata_private_evidence_cases.sql",
+      "utf8",
+    ),
+    readFile("lib/comun-relata-evidence-feature.ts", "utf8"),
+    readFile("lib/comun-relata-evidence.ts", "utf8"),
+    readFile("scripts/relata/evidence-cleanup.mjs", "utf8"),
+    readFile(
+      "supabase/local-releases/20260803192419-comun-relata-private-evidence-cases.json",
+      "utf8",
+    ),
+  ]);
+  assert.match(feature, /COMUN_RELATA_LOCAL_EVIDENCE/);
+  assert.match(feature, /isLoopbackSupabaseUrl/);
+  assert.match(runtime, /aes-256-gcm/);
+  assert.match(runtime, /createHmac\("sha256"/);
+  assert.match(runtime, /limitInputPixels: COMUN_RELATA_MAX_PHOTO_PIXELS/);
+  assert.match(migration, /'comun-relata-private'.*false/s);
+  assert.match(migration, /force row level security/g);
+  assert.match(migration, /future_map_eligibility = false/);
+  assert.match(foundation, /COMUN_RELATA_PUBLICATION_BLOCKED_48_0B/);
+  assert.match(foundation, /comun_relata_public_snapshots_blocked/);
+  assert.doesNotMatch(migration, /grant\s+(?:select|insert|update|delete|all)[^;]+to\s+(?:anon|authenticated)/i);
+  assert.match(cleanup, /--execute-local/);
+  assert.match(cleanup, /remote: "not_contacted"/);
+  assert.match(manifest, /"remotePromotionAllowed": false/);
+  assert.match(manifest, /"requiresPromotion": false/);
+});
+
 test("superfície administrativa não mostra materiais proibidos", async () => {
   const page = await readFile("app/comun/admin/auditoria/page.tsx", "utf8");
   assert.doesNotMatch(

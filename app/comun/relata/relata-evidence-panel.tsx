@@ -1,0 +1,257 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import type { ComunRelataEvidenceState } from "@/lib/comun-relata-evidence";
+
+const SidewalkRealPointPicker = dynamic(
+  () =>
+    import("@/components/sidewalk-real-point-picker").then(
+      (module) => module.SidewalkRealPointPicker,
+    ),
+  { ssr: false },
+);
+
+const EVIDENCE_ENDPOINT = "/api/comun/relata/evidence";
+
+function locationLabel(state: ComunRelataEvidenceState["location"]) {
+  return {
+    not_added: "Não adicionada",
+    added_private: "Adicionada privadamente",
+    approximate_private: "Aproximada e privada",
+    withdrawn: "Retirada",
+  }[state];
+}
+
+function groupingLabel(state: ComunRelataEvidenceState["grouping"]) {
+  return {
+    case_individual: "Caso individual",
+    auto_link_high_confidence: "Vinculado automaticamente",
+    candidate_medium_confidence: "Candidato não vinculado",
+    new_collective_case: "Novo caso coletivo privado",
+    never_auto_link: "Agrupamento bloqueado por segurança",
+    human_review_future: "Revisão futura, sem bloqueio",
+  }[state];
+}
+
+export function RelataEvidencePanel({ withdrawn }: { withdrawn: boolean }) {
+  const [evidence, setEvidence] = useState<ComunRelataEvidenceState | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const [mapPoint, setMapPoint] = useState<[number, number] | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const refresh = useCallback(async () => {
+    const response = await fetch(EVIDENCE_ENDPOINT, { cache: "no-store" });
+    if (!response.ok) throw new Error("evidence_unavailable");
+    const value = (await response.json()) as {
+      evidence: ComunRelataEvidenceState;
+    };
+    setEvidence(value.evidence);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetch(EVIDENCE_ENDPOINT, { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("evidence_unavailable");
+        const value = (await response.json()) as {
+          evidence: ComunRelataEvidenceState;
+        };
+        if (active) setEvidence(value.evidence);
+      })
+      .catch(() => {
+        if (active)
+          setNotice("As evidências privadas não puderam ser recuperadas agora.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [withdrawn]);
+
+  const saveLocation = async (
+    longitude: number,
+    latitude: number,
+    origin: "device" | "map_pin",
+    accuracyMeters: number | null,
+  ) => {
+    setBusy(true);
+    setNotice(null);
+    try {
+      const response = await fetch(`${EVIDENCE_ENDPOINT}/location`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({
+          longitude,
+          latitude,
+          origin,
+          accuracyMeters,
+          capturedAt: new Date().toISOString(),
+        }),
+      });
+      if (!response.ok) throw new Error("location_failed");
+      const value = (await response.json()) as {
+        evidence: ComunRelataEvidenceState;
+      };
+      setEvidence(value.evidence);
+      setShowMap(false);
+      setNotice("Local guardado privadamente. A coordenada exata não será exibida.");
+    } catch {
+      setNotice("Não foi possível guardar o local. O relato continua salvo sem localização.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const useDeviceLocation = () => {
+    if (!navigator.geolocation) {
+      setNotice("Este navegador não oferece localização. Você pode marcar no mapa ou pular.");
+      return;
+    }
+    setBusy(true);
+    setNotice("Aguardando a permissão de localização deste navegador…");
+    navigator.geolocation.getCurrentPosition(
+      (position) =>
+        void saveLocation(
+          position.coords.longitude,
+          position.coords.latitude,
+          "device",
+          position.coords.accuracy,
+        ),
+      () => {
+        setBusy(false);
+        setNotice("A localização não foi autorizada. O relato continua salvo e você pode pular.");
+      },
+      { enableHighAccuracy: false, timeout: 10_000, maximumAge: 0 },
+    );
+  };
+
+  const addPhoto = async (file: File) => {
+    setBusy(true);
+    setNotice(null);
+    try {
+      const start = await fetch(`${EVIDENCE_ENDPOINT}/attachments`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({ mimeType: file.type, sizeBytes: file.size }),
+      });
+      if (!start.ok) throw new Error("start_failed");
+      const started = (await start.json()) as {
+        upload: { label: string; url: string; method: "PUT" };
+      };
+      setNotice(`${started.upload.label} está sendo validada privadamente…`);
+      const upload = await fetch(started.upload.url, {
+        method: started.upload.method,
+        headers: { "content-type": file.type || "application/octet-stream" },
+        cache: "no-store",
+        body: file,
+      });
+      if (!upload.ok) throw new Error("upload_failed");
+      const value = (await upload.json()) as {
+        evidence: ComunRelataEvidenceState;
+      };
+      setEvidence(value.evidence);
+      setNotice(
+        `${started.upload.label} foi guardada privadamente. Metadados foram removidos, mas a imagem ainda exige revisão antes de qualquer uso futuro.`,
+      );
+    } catch {
+      setNotice("A fotografia foi rejeitada ou não pôde ser finalizada. Nenhum arquivo foi publicado.");
+      await refresh().catch(() => undefined);
+    } finally {
+      if (inputRef.current) inputRef.current.value = "";
+      setBusy(false);
+    }
+  };
+
+  const withdrawPhoto = async (accessUrl: string) => {
+    setBusy(true);
+    try {
+      const response = await fetch(accessUrl, { method: "DELETE", cache: "no-store" });
+      if (!response.ok) throw new Error("withdraw_failed");
+      const value = (await response.json()) as { evidence: ComunRelataEvidenceState };
+      setEvidence(value.evidence);
+      setNotice("A fotografia foi retirada da interface. A retenção permanece pendente e nenhum delete automático ocorreu.");
+    } catch {
+      setNotice("Não foi possível retirar a fotografia agora.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!evidence) {
+    return (
+      <section aria-live="polite" className="border-2 border-comun-black bg-comun-paper p-4 text-sm font-bold">
+        Recuperando evidências privadas…
+      </section>
+    );
+  }
+
+  return (
+    <section aria-labelledby="relata-evidence-title" className="grid gap-5 border-2 border-comun-black bg-[#f8f2e6] p-4">
+      <div>
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-comun-muted">Somente neste laboratório local</p>
+        <h2 id="relata-evidence-title" className="text-2xl font-black">Evidências</h2>
+        <p className="mt-1 text-sm leading-6">Localização e fotos são opcionais, privadas e vinculadas apenas ao seu recibo.</p>
+      </div>
+
+      <div className="grid gap-3 border-t-2 border-comun-black pt-4">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div><h3 className="font-black">Localização</h3><p className="text-sm">{locationLabel(evidence.location)}</p></div>
+          {!withdrawn && evidence.location !== "withdrawn" ? <span className="bg-comun-black px-2 py-1 text-xs font-black text-comun-yellow">Privada</span> : null}
+        </div>
+        {!withdrawn && evidence.location === "not_added" ? (
+          <>
+            <p className="text-sm leading-6">Ao escolher uma opção, você autoriza guardar o ponto criptografado. A permissão do aparelho só será pedida depois do toque.</p>
+            <div className="grid gap-2 sm:grid-cols-3">
+              <button type="button" disabled={busy} onClick={useDeviceLocation} className="min-h-11 border-2 border-comun-black bg-comun-yellow px-3 py-2 text-sm font-black">Usar localização</button>
+              <button type="button" disabled={busy} onClick={() => setShowMap((value) => !value)} className="min-h-11 border-2 border-comun-black bg-white px-3 py-2 text-sm font-black">Marcar no mapa</button>
+              <button type="button" disabled={busy} onClick={() => setNotice("Tudo bem. O relato permanece salvo sem localização.")} className="min-h-11 border-2 border-comun-black px-3 py-2 text-sm font-black">Pular</button>
+            </div>
+          </>
+        ) : null}
+        {showMap && !withdrawn ? (
+          <div className="grid gap-3">
+            <SidewalkRealPointPicker point={mapPoint} accuracy={null} onChange={setMapPoint} />
+            <button type="button" disabled={!mapPoint || busy} onClick={() => mapPoint && void saveLocation(mapPoint[0], mapPoint[1], "map_pin", null)} className="min-h-11 border-2 border-comun-black bg-comun-yellow px-3 py-2 text-sm font-black disabled:opacity-50">Guardar ponto privadamente</button>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="grid gap-3 border-t-2 border-comun-black pt-4">
+        <div><h3 className="font-black">Fotografias</h3><p className="text-sm">{evidence.photos.length} de 3 adicionadas</p></div>
+        <ul className="grid gap-3">
+          {evidence.photos.map((photo) => (
+            <li key={photo.accessUrl} className="grid gap-2 border-2 border-comun-black bg-white p-3 text-sm">
+              <div className="flex items-center justify-between gap-2"><strong>{photo.label}</strong><span className="font-black">{photo.state === "sealed_private" ? "Guardada privadamente" : photo.state === "withdrawn" ? "Retirada" : photo.state === "rejected" ? "Rejeitada" : "Processando"}</span></div>
+              {photo.state === "sealed_private" && !withdrawn ? (
+                // O proxy exige o cookie HttpOnly no próprio request; next/image não deve intermediar essa prova privada.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={photo.accessUrl} alt={`${photo.label}, evidência privada sem revisão visual`} className="max-h-48 w-full border border-comun-black object-contain" />
+              ) : null}
+              {photo.state === "sealed_private" && !withdrawn ? <button type="button" disabled={busy} onClick={() => void withdrawPhoto(photo.accessUrl)} className="min-h-11 justify-self-start border-2 border-comun-black px-3 py-2 font-black">Retirar {photo.label.toLowerCase()}</button> : null}
+            </li>
+          ))}
+        </ul>
+        {!withdrawn && evidence.photos.length < 3 ? (
+          <>
+            <p className="text-sm leading-6">Ao adicionar uma foto, você autoriza o armazenamento privado. Remover metadados não comprova ausência de rostos, placas ou residências.</p>
+            <input ref={inputRef} id="relata-private-photo" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (file) void addPhoto(file); }} />
+            <button type="button" disabled={busy} onClick={() => inputRef.current?.click()} className="min-h-11 justify-self-start border-2 border-comun-black bg-comun-yellow px-4 py-2 text-sm font-black">Adicionar foto</button>
+          </>
+        ) : null}
+      </div>
+
+      <div className="grid gap-1 border-t-2 border-comun-black pt-4 text-sm">
+        <h3 className="font-black">Agrupamento</h3>
+        <p>{groupingLabel(evidence.grouping)}</p>
+        <p className="text-comun-muted">Nenhum dado de outro relato é exibido.</p>
+      </div>
+
+      {notice ? <p role="status" aria-live="polite" className="border-l-4 border-comun-yellow bg-white p-3 text-sm font-bold">{notice}</p> : null}
+      <div className="grid gap-1 border-2 border-comun-black bg-comun-asphalt p-3 font-black text-comun-paper"><p>Nenhum órgão público recebeu esta manifestação.</p><p className="text-comun-yellow">Nada foi publicado no mapa.</p></div>
+    </section>
+  );
+}

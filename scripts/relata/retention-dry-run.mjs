@@ -21,6 +21,13 @@ const { rows } = await client.query(`
   group by retention_class
   order by retention_class
 `);
+const evidence = await client.query(`
+  select state, count(*)::int as review_candidates
+  from private.comun_relata_attachments
+  where review_after <= now()
+  group by state
+  order by state
+`);
 await client.end();
 console.log(
   JSON.stringify({
@@ -28,6 +35,7 @@ console.log(
     policyVersion: "relata-retention-proposal-v1",
     deletesExecuted: 0,
     classes: rows,
+    evidenceClasses: evidence.rows,
     containsPersonalData: false,
     remote: "not_contacted",
   }),

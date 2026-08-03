@@ -1,10 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { ComunShell } from "@/components/comun-shell";
 import { routeRelata, DARK_STREET_QUESTION } from "@/lib/comun-relata-routing";
 import type { RoutingDecision } from "@/lib/comun-relata-contract";
 import type { ComunRelataReceipt } from "@/lib/comun-relata-persistence";
+
+const RelataEvidencePanel = dynamic(
+  () =>
+    import("./relata-evidence-panel").then(
+      (module) => module.RelataEvidencePanel,
+    ),
+  { ssr: false },
+);
 
 const RECEIPT_ENDPOINT = "/api/comun/relata/receipt";
 
@@ -28,7 +37,7 @@ function stateLabel(state: string) {
   );
 }
 
-export function RelataPreview() {
+export function RelataPreview({ evidenceEnabled }: { evidenceEnabled: boolean }) {
   const [text, setText] = useState("");
   const [answer, setAnswer] = useState<string | undefined>();
   const [decision, setDecision] = useState<RoutingDecision | null>(null);
@@ -160,7 +169,9 @@ export function RelataPreview() {
         >
           <header className="grid gap-2">
             <p className="text-xs font-black uppercase tracking-[0.14em] text-comun-muted">
-              Laboratório local · fundação 48.0B
+              {evidenceEnabled
+                ? "Laboratório local · evidências privadas 48.0C"
+                : "Laboratório local · fundação 48.0B"}
             </p>
             <h1 className="text-3xl font-black leading-tight sm:text-4xl">
               O que está acontecendo?
@@ -301,8 +312,10 @@ export function RelataPreview() {
                     <p>
                       O relato ficará somente no laboratório local. O código
                       será um protocolo COMUN, não oficial. Publicação pública
-                      continuará bloqueada. Localização exata, contato e anexos
-                      não são solicitados.
+                      continuará bloqueada. Contato e endereço exato não são
+                      solicitados. Após o recibo, localização e fotos serão
+                      opcionais, privadas e acompanhadas de explicação
+                      contextual.
                     </p>
                     <p className="font-black">
                       Nenhum órgão público recebeu esta manifestação.
@@ -381,6 +394,7 @@ export function RelataPreview() {
                   ))}
                 </ol>
               </div>
+              {evidenceEnabled ? <RelataEvidencePanel withdrawn={receipt.state === "withdrawn"} /> : null}
               {receipt.state !== "withdrawn" && !confirmWithdrawal ? (
                 <button
                   type="button"
@@ -438,9 +452,9 @@ export function RelataPreview() {
           <aside className="border-l-4 border-comun-yellow bg-white p-4 text-sm leading-6">
             <p className="font-black">Privacidade e limites</p>
             <p>
-              Não há localização, anexo, contato, mapa público ou canal
-              automático. O recibo de acesso fica em cookie HttpOnly deste
-              navegador.
+              {evidenceEnabled
+                ? "Localização e fotografias permanecem privadas; não há contato, mapa público ou canal automático. O recibo de acesso fica em cookie HttpOnly deste navegador."
+                : "Não há localização, anexo, contato, mapa público ou canal automático. O recibo de acesso fica em cookie HttpOnly deste navegador."}
             </p>
           </aside>
         </main>

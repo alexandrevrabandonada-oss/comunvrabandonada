@@ -1,8 +1,8 @@
 # Matriz canônica de superfícies — 47.9A5
 
-Gerada em: 2026-08-02T20:27:33.677Z
+Gerada em: 2026-08-03T20:12:57.444Z
 
-Total: **189** · ondas: 1=69 · 2=32 · 3=76 · 4=12
+Total: **190** · ondas: 1=70 · 2=32 · 3=76 · 4=12
 
 | Rota | Família | Shell | Visual | Componente | Decisão | Onda |
 | --- | --- | --- | --- | --- | --- | ---: |
@@ -187,6 +187,7 @@ Total: **189** · ondas: 1=69 · 2=32 · 3=76 · 4=12
 | `/comun/reciclagem` | reciclagem | public_web | v2_compatibility | Page | compatibility_v2 | 1 |
 | `/comun/recuperar-acesso` | recuperar-acesso | auth | v2_compatibility | RecuperarAcessoPage | compatibility_v2 | 2 |
 | `/comun/redefinir-acesso` | redefinir-acesso | auth | v2_compatibility | RedefinirAcessoPage | compatibility_v2 | 2 |
+| `/comun/relata` | relata | member_nested | not_rendered | RelataPage | redirect_canonical | 1 |
 | `/comun/relatar` | relatar | member_nested | v2_compatibility | ReportPage | compatibility_v2 | 1 |
 | `/comun/relatar/confirmacao` | relatar | member_nested | mixed | ConfirmationPage | retain_v2 | 1 |
 | `/comun/resultados` | resultados | member_nested | mixed | Page | retain_v2 | 1 |
