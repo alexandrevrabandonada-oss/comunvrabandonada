@@ -2,14 +2,14 @@
 
 Atualizado em 3 de agosto de 2026.
 
-## Estado da candidata
+## Estado integrado
 
-`COMUN_RELATA_48_0B_LOCAL_CANDIDATE_GREEN_REMOTE_DB_UNCHANGED`
+`COMUN_RELATA_48_0B_MERGED_DORMANT_LOCAL_GREEN_REMOTE_DB_UNCHANGED`
 
 A persistência está comprovada somente contra Supabase descartável local. A
 flag continua desligada em Production, a migration não foi promovida e nenhum
-canal externo foi acionado. PR, merge e Production serão preenchidos no
-fechamento da integração.
+canal externo foi acionado. A PR #151, o merge e o pós-merge foram concluídos;
+Production permanece deliberadamente dormente e sem o schema Relata remoto.
 
 ## Base e branch
 
@@ -17,7 +17,12 @@ fechamento da integração.
 - branch: `codex/tijolo-48-0b-relata-durable-local`;
 - candidata funcional após hardening RLS:
   `43484e730cc273dbb578affed98420c96099616b`;
-- PR #151, inicialmente draft enquanto os checks remotos são coletados;
+- cabeça aprovada da PR: `72643d328a847b1c49874118cc89e37196a01621`;
+- PR #151: mesclada em 3 de agosto de 2026;
+- merge/main: `093f9772d28c018c95d5f8c1aac5afe6c1de30e6`;
+- Preview: `dpl_D3kQzbn9JSp8jfe12QvS1TwmsLWD`, `READY`;
+- Production: `dpl_B8Tm8VzZV2SNTECxV9dAuJFHpvEN`, `READY`, no merge SHA
+  exato em `https://comunsocial.online`;
 - migration forward-only:
   `20260803161310_comun_relata_durable_local.sql`;
 - SHA-256: `cb216666f64602c02e756d8e2d66017e5a721c7b9ad7810f793cad6a276606b7`;
@@ -109,11 +114,27 @@ podem mudar de `comun` para oficial.
   `comun_sync_public_search_projection` pela ausência de
   `comun_search_candidates`, pertencente ao blocker 47.9B/provider.
 
+## Gates remotos e pós-merge
+
+- PR: 23 checks aprovados, zero falha e zero pendência no SHA
+  `72643d328a847b1c49874118cc89e37196a01621`;
+- Security Resilience PR run `30839915591`: verde, incluindo RLS integral,
+  restauração de `private`, Storage, recovery, retenção e no-leak;
+- Quality Performance PR run `30839917806`: verde; lane Chromium focal e
+  regressão integral verdes;
+- pós-merge: CI `30843037158`, Civic Graph `30843037152`, Core Journeys
+  `30843037194`, Experience Coherence `30843037178` e Quality Performance
+  `30843037183`, todos verdes;
+- Production read-only: `/comun=200`, `?experiencia=legacy=200`,
+  `?experiencia=app-v2=200`, `/comun/relata=404`, sem link público;
+- `/api/comun/quality-status` confirmou o merge SHA exato e `comun-pwa-v3`.
+
 ## Limites e próximos gates
 
 - política definitiva de retenção: decisão pendente de produto/privacidade;
 - catálogo é `source_verified`, não `operationally_checked`;
 - divergências oficiais de CAU/WhatsApp e Light/call center permanecem abertas;
 - nenhuma integração automática pode usar o catálogo;
-- checks da PR, Preview, merge e smoke Production pós-merge ainda pendentes;
+- persistência remota, promoção da migration e ativação da flag continuam
+  explicitamente fora de escopo;
 - próximo tijolo: `48.0C — localização privada, anexos protegidos e formação de casos`.
