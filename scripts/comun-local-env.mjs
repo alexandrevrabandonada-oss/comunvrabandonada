@@ -110,20 +110,6 @@ if (isDirect) {
     env,
     stdio: "inherit",
     shell: process.platform === "win32",
-    detached: process.platform !== "win32",
   });
-
-  const forwardSignal = (signal) => {
-    if (!child.pid || child.killed) return;
-    try {
-      if (process.platform === "win32") child.kill(signal);
-      else process.kill(-child.pid, signal);
-    } catch (error) {
-      if (error?.code !== "ESRCH") throw error;
-    }
-  };
-
-  process.once("SIGINT", () => forwardSignal("SIGINT"));
-  process.once("SIGTERM", () => forwardSignal("SIGTERM"));
   child.on("exit", (code) => process.exit(code ?? 1));
 }
