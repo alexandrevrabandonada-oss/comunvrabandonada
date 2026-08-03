@@ -14,8 +14,9 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
     await readFile(".comun-sidewalk-pilot-slug", "utf8"),
   );
   await page.goto("/comun");
+  await expect(page.locator('[data-comun-app-v2-page="home"]')).toBeVisible();
   await expect(
-    page.getByText("Sua próxima participação", { exact: true }),
+    page.getByRole("heading", { name: "Próxima ação" }),
   ).toBeVisible();
   await screenshot(page, "home", testInfo.project.name);
   await page.goto("/comun/pautas/calcadas-em-circulacao");
@@ -126,10 +127,13 @@ test("@a11y deep links preservam contexto sem bloqueios", async ({
     await page.goto(route);
     if ((testInfo.project.use.viewport?.width ?? 1366) < 1024) {
       await expect(
+        page.locator('[data-comun-app-bar="contextual-v2"]'),
+      ).toBeVisible();
+      await expect(
         page.getByRole("link", { name: "Voltar", exact: true }),
       ).toBeVisible();
       await expect(
-        page.getByRole("navigation", { name: "Navegação principal" }),
+        page.locator('[data-bottom-navigation="absent"]'),
       ).toBeVisible();
     } else {
       await expect(page.locator("#conteudo")).toBeVisible();
