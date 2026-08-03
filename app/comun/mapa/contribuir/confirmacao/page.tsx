@@ -103,6 +103,7 @@ export default async function Confirmation({
               },
             ),
           )}
+          trackingLabel="Ver em Minha área"
           returnHref={withComunAppV2(returnTo)}
           returnLabel="Voltar à pauta"
           correctionHref={withComunAppV2(

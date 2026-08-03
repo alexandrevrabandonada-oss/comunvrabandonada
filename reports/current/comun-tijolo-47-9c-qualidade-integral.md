@@ -12,7 +12,7 @@ O baseline de Production está em `comun-quality-performance-baseline.json`. Ele
 
 O alvo formal é WCAG 2.2 AA. O laboratório cobriu Axe, landmarks, heading único, labels, teclado, foco visível, forced colors, fonte a 200%, reflow a 320 CSS px, redução de movimento e autenticação compatível com colagem/autocomplete. Foram usados nove viewports entre 320×568 e 1440×900. Isso não equivale a TalkBack, VoiceOver ou NVDA reais.
 
-O manifest tem identidade e escopo canônicos. O service worker `comun-pwa-v2` só reutiliza páginas públicas allowlisted, sem query, `Set-Cookie`, `private` ou `no-store`; nunca intercepta mutações. Admin, conta, Inbox, autenticação, confirmações, APIs e buscas com query ficam fora do cache. Logout remove todos os caches de conteúdo e preserva somente o shell seguro. Offline não promete envio, upload ou dado privado recente.
+O manifest tem identidade e escopo canônicos. O service worker `comun-pwa-v3` só reutiliza páginas públicas allowlisted, sem query, `Set-Cookie`, `private` ou `no-store`; nunca intercepta mutações. Admin, conta, Inbox, autenticação, confirmações, APIs e buscas com query ficam fora do cache. Logout remove todos os caches de conteúdo e preserva somente o shell seguro. Offline não promete envio, upload ou dado privado recente.
 
 ## Performance e observabilidade
 

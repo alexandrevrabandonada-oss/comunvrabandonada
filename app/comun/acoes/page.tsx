@@ -142,7 +142,6 @@ export default async function CollectiveActionsPage({
           ]}
         >
           <form className="mb-6 grid gap-3 rounded-[var(--comun-radius-card)] border border-comun-paper/20 p-4 sm:grid-cols-3">
-            <input type="hidden" name="experiencia" value="app-v2" />
             <label className="grid gap-1 text-sm font-black">
               Território
               <select

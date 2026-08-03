@@ -14,18 +14,25 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
     await readFile(".comun-sidewalk-pilot-slug", "utf8"),
   );
   await page.goto("/comun");
+  await expect(page.locator('[data-comun-app-v2-page="home"]')).toBeVisible();
   await expect(
-    page.getByText("Sua próxima participação", { exact: true }),
+    page.getByRole("heading", { name: "Próxima ação" }),
   ).toBeVisible();
   await screenshot(page, "home", testInfo.project.name);
   await page.goto("/comun/pautas/calcadas-em-circulacao");
   await expect(
-    page.getByText("Ferramenta desta pauta", { exact: true }),
+    page.locator('[data-comun-app-v2-page="pauta-detail"]'),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Ferramenta desta pauta" }),
   ).toBeVisible();
   await screenshot(page, "pauta", testInfo.project.name);
   await page.goto("/comun/c/cidade");
   await expect(
-    page.getByText("Ferramentas que estamos usando", { exact: true }),
+    page.locator('[data-comun-app-v2-page="community-home"]'),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Pautas e ações ativas" }),
   ).toBeVisible();
   await screenshot(page, "comunidade", testInfo.project.name);
   await page.goto("/comun/territorios");
@@ -97,13 +104,15 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
   await expect(page.getByText(/Memória fixture do ensaio local/)).toBeVisible();
   await screenshot(page, "memoria", testInfo.project.name);
   await page.goto("/comun/caixa-de-entrada");
-  await expect(
-    page.getByRole("heading", { name: "Caixa de Entrada" }),
-  ).toBeVisible();
+  await expect(page.locator('[data-comun-app-v2-page="inbox"]')).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Caixa" })).toBeVisible();
   await screenshot(page, "inbox", testInfo.project.name);
   await page.goto("/comun/c/cidade");
   await expect(
-    page.getByText("Ferramentas que estamos usando", { exact: true }),
+    page.locator('[data-comun-app-v2-page="community-home"]'),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Pautas e ações ativas" }),
   ).toBeVisible();
 });
 
@@ -126,10 +135,13 @@ test("@a11y deep links preservam contexto sem bloqueios", async ({
     await page.goto(route);
     if ((testInfo.project.use.viewport?.width ?? 1366) < 1024) {
       await expect(
+        page.locator('[data-comun-app-bar="contextual-v2"]'),
+      ).toBeVisible();
+      await expect(
         page.getByRole("link", { name: "Voltar", exact: true }),
       ).toBeVisible();
       await expect(
-        page.getByRole("navigation", { name: "Navegação principal" }),
+        page.locator('[data-bottom-navigation="absent"]'),
       ).toBeVisible();
     } else {
       await expect(page.locator("#conteudo")).toBeVisible();

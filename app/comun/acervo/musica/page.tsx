@@ -154,7 +154,9 @@ function ReleaseFilters({
       aria-label="Filtros de lançamentos"
       className={`${appV2 ? "mt-0 rounded-[var(--comun-radius-cultural)] border border-comun-paper/20 p-4" : "mt-5"} grid gap-2 sm:grid-cols-2 lg:grid-cols-4`}
     >
-      {appV2 ? <input type="hidden" name="experiencia" value="app-v2" /> : null}
+      {!appV2 ? (
+        <input type="hidden" name="experiencia" value="legacy" />
+      ) : null}
       <input
         className="min-h-11 bg-comun-paper p-3 text-comun-black placeholder:text-comun-asphalt"
         name="q"

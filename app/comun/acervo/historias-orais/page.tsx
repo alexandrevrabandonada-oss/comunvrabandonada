@@ -173,7 +173,9 @@ function HistoryFilters({
       aria-label="Buscar histórias orais"
       className={`${appV2 ? "rounded-[var(--comun-radius-cultural)] border border-comun-paper/20 p-4" : "mt-5"} grid gap-2 text-comun-black md:grid-cols-4`}
     >
-      {appV2 ? <input type="hidden" name="experiencia" value="app-v2" /> : null}
+      {!appV2 ? (
+        <input type="hidden" name="experiencia" value="legacy" />
+      ) : null}
       <input
         className="min-h-11 bg-comun-paper p-3"
         aria-label="Busca"

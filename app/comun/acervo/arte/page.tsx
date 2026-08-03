@@ -85,7 +85,6 @@ export default async function ArtArchive({
           ]}
         >
           <form className="grid gap-3 rounded-[var(--comun-radius-cultural)] border border-comun-paper/20 p-4 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto_auto]">
-            <input type="hidden" name="experiencia" value="app-v2" />
             <label className="font-bold">
               Buscar
               <input

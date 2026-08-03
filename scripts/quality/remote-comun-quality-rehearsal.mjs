@@ -10,7 +10,7 @@ const qualityStatusResponse = await fetch(
 );
 assert.equal(qualityStatusResponse.status, 200);
 const qualityStatus = await qualityStatusResponse.json();
-assert.equal(qualityStatus.serviceWorker, "comun-pwa-v2");
+assert.equal(qualityStatus.serviceWorker, "comun-pwa-v3");
 assert.equal(qualityStatus.telemetry, "aggregate_only");
 if (process.env.COMUN_EXPECTED_SHA)
   assert.equal(qualityStatus.version, process.env.COMUN_EXPECTED_SHA);
@@ -46,7 +46,7 @@ const [manifest, serviceWorker] = await Promise.all([
 assert.equal(manifest.status, 200);
 assert.equal(serviceWorker.status, 200);
 assert.equal((await manifest.json()).scope, "/comun/");
-assert.match(await serviceWorker.text(), /comun-pwa-v2/);
+assert.match(await serviceWorker.text(), /comun-pwa-v3/);
 const invalidMetric = await fetch(new URL("/api/comun/quality-metrics", base), {
   method: "POST",
   headers: { "Content-Type": "application/json", Origin: base.origin },

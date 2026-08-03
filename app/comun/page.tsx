@@ -64,6 +64,7 @@ export default async function ComunHomePage({
         experience={experience}
         profile={session.profile}
         appV2={appV2}
+        civicIntelligencePilot={civicIntelligencePilot}
         pautas={pautas}
         actions={activeActions}
         results={results}
@@ -79,6 +80,7 @@ export default async function ComunHomePage({
           actions={activeActions}
           results={results}
           memory={experience.memory}
+          civicIntelligencePilot={civicIntelligencePilot}
         />
       </ComunShell>
     );
@@ -472,6 +474,7 @@ function AuthenticatedHome({
   experience,
   profile,
   appV2 = false,
+  civicIntelligencePilot = false,
   pautas = [],
   actions = [],
   results = [],
@@ -480,6 +483,7 @@ function AuthenticatedHome({
   experience: any;
   profile: any;
   appV2?: boolean;
+  civicIntelligencePilot?: boolean;
   pautas?: any[];
   actions?: any[];
   results?: any[];
@@ -503,6 +507,7 @@ function AuthenticatedHome({
           actions={actions}
           results={results}
           memory={experience.memory}
+          civicIntelligencePilot={civicIntelligencePilot}
         />
       </ComunShell>
     );

@@ -2,7 +2,12 @@ import Link from "next/link";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { CommunityLoginForm } from "@/components/community-auth-form";
 import { safeCommunityReturn } from "@/lib/community-return";
-import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
+import {
+  COMUN_APP_V2_EXPERIENCE,
+  COMUN_LEGACY_EXPERIENCE,
+  resolveComunExperience,
+  withComunExperience,
+} from "@/lib/comun-experience";
 
 export default async function Entrar({
   searchParams,
@@ -14,14 +19,21 @@ export default async function Entrar({
   }>;
 }) {
   const params = await searchParams;
-  const returnTo = safeCommunityReturn(params.returnTo);
-  const appV2 =
-    isComunAppV2(params.experiencia) ||
-    new URL(returnTo, "http://comun.local").searchParams.get("experiencia") ===
-      "app-v2";
-  const signupHref = withComunAppV2(
+  const safeReturnTo = safeCommunityReturn(params.returnTo);
+  const returnExperience = resolveComunExperience(
+    new URL(safeReturnTo, "http://comun.local").searchParams.get("experiencia"),
+  );
+  const experience =
+    params.experiencia === COMUN_LEGACY_EXPERIENCE
+      ? COMUN_LEGACY_EXPERIENCE
+      : params.experiencia === COMUN_APP_V2_EXPERIENCE
+        ? COMUN_APP_V2_EXPERIENCE
+        : returnExperience;
+  const returnTo = withComunExperience(safeReturnTo, experience);
+  const appV2 = experience === COMUN_APP_V2_EXPERIENCE;
+  const signupHref = withComunExperience(
     `/comun/criar-conta?returnTo=${encodeURIComponent(returnTo)}`,
-    appV2,
+    experience,
   );
   if (appV2) {
     return (
@@ -128,7 +140,7 @@ export default async function Entrar({
               formulário não ficam na URL.
             </p>
             <Link
-              href={returnTo}
+              href={withComunExperience(returnTo, experience)}
               className="mt-5 inline-block font-black uppercase text-comun-yellow underline"
             >
               Continuar explorando sem entrar
@@ -154,7 +166,7 @@ function AuthReturnContext({ returnTo }: { returnTo: string }) {
         formulário não ficam na URL.
       </p>
       <Link
-        href={withComunAppV2(returnTo)}
+        href={withComunExperience(returnTo, COMUN_APP_V2_EXPERIENCE)}
         className="comun-text-action mt-3 inline-flex min-h-11 items-center font-black underline"
       >
         Continuar explorando sem entrar

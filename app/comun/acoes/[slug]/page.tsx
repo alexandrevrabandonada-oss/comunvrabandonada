@@ -503,7 +503,6 @@ function ActionDetailV2({
                   >
                     <input type="hidden" name="slug" value={slug} />
                     <input type="hidden" name="status" value={status} />
-                    <input type="hidden" name="experiencia" value="app-v2" />
                     <button className="comun-v2-action">
                       {status === "interested"
                         ? "Tenho interesse"
@@ -540,7 +539,6 @@ function ActionDetailV2({
                     <form action={claimCollectiveActionTask} className="mt-4">
                       <input type="hidden" name="slug" value={slug} />
                       <input type="hidden" name="task_id" value={task.id} />
-                      <input type="hidden" name="experiencia" value="app-v2" />
                       <button className="comun-v2-action">
                         Assumir tarefa
                       </button>

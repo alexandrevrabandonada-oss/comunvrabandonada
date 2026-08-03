@@ -648,14 +648,15 @@ function CirclePanel({
           <input type="hidden" name="pauta_slug" value={pautaSlug} />
           {appV2 ? (
             <>
-              <input type="hidden" name="experiencia" value="app-v2" />
               <input
                 type="hidden"
                 name="journey_return"
                 value={withComunAppV2(`/comun/pautas/${pautaSlug}`)}
               />
             </>
-          ) : null}
+          ) : (
+            <input type="hidden" name="experiencia" value="legacy" />
+          )}
           <label className="text-sm font-bold">
             Que tipo de contribuição é esta?
             <select

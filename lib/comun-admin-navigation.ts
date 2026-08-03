@@ -44,7 +44,10 @@ export function safeComunAdminReturn(
     if (!ADMIN_ROUTE.test(parsed.pathname)) return fallback;
     const safe = new URLSearchParams();
     for (const [key, filterValue] of parsed.searchParams) {
-      if (key === "experiencia" && filterValue === "app-v2") {
+      if (
+        key === "experiencia" &&
+        (filterValue === "app-v2" || filterValue === "legacy")
+      ) {
         safe.set(key, filterValue);
       } else if (ALLOWED_FILTER_KEYS.has(key) && filterValue.length <= 160) {
         safe.append(key, filterValue);
@@ -68,7 +71,7 @@ export function withComunAdminReturn(
   parsed.searchParams.set("returnTo", safeReturn);
   return appV2
     ? withComunAppV2(`${parsed.pathname}${parsed.search}`)
-    : `${parsed.pathname}${parsed.search}`;
+    : withComunAppV2(`${parsed.pathname}${parsed.search}`, false);
 }
 
 export function adminFilterSnapshot(pathname: string, search: URLSearchParams) {

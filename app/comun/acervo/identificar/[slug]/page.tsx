@@ -371,7 +371,9 @@ function ContributionForm({
       </h2>
       <input type="hidden" name="item_id" value={item.id} />
       <input type="hidden" name="slug" value={slug} />
-      {appV2 ? <input type="hidden" name="experiencia" value="app-v2" /> : null}
+      {!appV2 ? (
+        <input type="hidden" name="experiencia" value="legacy" />
+      ) : null}
       {parentId ? (
         <input type="hidden" name="parent_id" value={parentId} />
       ) : null}
@@ -484,8 +486,8 @@ function Comment({
           >
             <input type="hidden" name="slug" value={slug} />
             <input type="hidden" name="suggestion_id" value={comment.id} />
-            {appV2 ? (
-              <input type="hidden" name="experiencia" value="app-v2" />
+            {!appV2 ? (
+              <input type="hidden" name="experiencia" value="legacy" />
             ) : null}
             <select
               name="reason"

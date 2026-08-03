@@ -7,6 +7,10 @@ import {
 } from "@/lib/comun-journey-context";
 import { safeCommunityReturn } from "@/lib/community-return";
 import { redirect } from "next/navigation";
+import {
+  COMUN_LEGACY_EXPERIENCE,
+  withComunExperience,
+} from "@/lib/comun-experience";
 
 export default async function ParticipationConfirmation({
   searchParams,
@@ -17,7 +21,10 @@ export default async function ParticipationConfirmation({
   const returnTo = safeCommunityReturn(params.returnTo, "/comun/pautas");
   if (!isComunAppV2(params.experiencia)) {
     redirect(
-      `/comun/participar?status=recebido&returnTo=${encodeURIComponent(returnTo)}`,
+      withComunExperience(
+        `/comun/participar?status=recebido&returnTo=${encodeURIComponent(returnTo)}`,
+        COMUN_LEGACY_EXPERIENCE,
+      ),
     );
   }
   const journey = parseComunJourneyContext(params);

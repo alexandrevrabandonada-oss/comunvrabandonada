@@ -1,10 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  COMUN_LEGACY_EXPERIENCE,
+  resolveComunExperience,
+  withComunExperience,
+} from "@/lib/comun-experience";
 
 export async function updateSession(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const { pathname, search } = request.nextUrl;
+  const isAdminRoute =
+    pathname === "/comun/admin" || pathname.startsWith("/comun/admin/");
+  const isLoginRoute = pathname === "/comun/admin/login";
   const isCollectiveActionsPreviewAdmin =
     pathname === "/comun/admin/acoes" &&
     process.env.VERCEL_ENV === "preview" &&
@@ -12,7 +20,10 @@ export async function updateSession(request: NextRequest) {
 
   let response = NextResponse.next({ request });
   if (isCollectiveActionsPreviewAdmin) return response;
-  if (!url || !anonKey) return response;
+  if (!url || !anonKey)
+    return isAdminRoute && !isLoginRoute
+      ? adminLoginRedirect(request, pathname, search)
+      : response;
 
   const supabase = createServerClient(url, anonKey, {
     cookies: {
@@ -35,19 +46,27 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAdminRoute =
-    pathname === "/comun/admin" || pathname.startsWith("/comun/admin/");
-  const isLoginRoute = pathname === "/comun/admin/login";
-
   if (isAdminRoute && !isLoginRoute && !user) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/comun/admin/login";
-    redirectUrl.search = "";
-    redirectUrl.searchParams.set("redirectTo", `${pathname}${search}`);
-    if (request.nextUrl.searchParams.get("experiencia") === "app-v2")
-      redirectUrl.searchParams.set("experiencia", "app-v2");
-    return NextResponse.redirect(redirectUrl);
+    return adminLoginRedirect(request, pathname, search);
   }
 
   return response;
+}
+
+function adminLoginRedirect(
+  request: NextRequest,
+  pathname: string,
+  search: string,
+) {
+  const redirectUrl = request.nextUrl.clone();
+  const experience = resolveComunExperience(
+    request.nextUrl.searchParams.get("experiencia"),
+  );
+  const returnTo = withComunExperience(`${pathname}${search}`, experience);
+  redirectUrl.pathname = "/comun/admin/login";
+  redirectUrl.search = "";
+  redirectUrl.searchParams.set("redirectTo", returnTo);
+  if (experience === COMUN_LEGACY_EXPERIENCE)
+    redirectUrl.searchParams.set("experiencia", COMUN_LEGACY_EXPERIENCE);
+  return NextResponse.redirect(redirectUrl);
 }

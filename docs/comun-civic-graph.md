@@ -2,8 +2,8 @@
 
 O COMUN apresenta território, comunidade, pauta, ação, ferramenta, protocolo,
 resultado e memória como entidades relacionadas de um processo coletivo. Este
-contrato amplia somente o piloto `?experiencia=app-v2`; o fallback anterior
-continua disponível.
+contrato cobre o App V2 canônico sem query; `?experiencia=app-v2` continua
+compatível e o fallback anterior permanece em `?experiencia=legacy`.
 
 ## Regra de fonte
 

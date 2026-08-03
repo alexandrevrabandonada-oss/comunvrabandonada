@@ -478,7 +478,6 @@ function ArchiveAppV2({
             placeholder="Buscar no Acervo"
             className="min-h-12 rounded-[var(--comun-radius-control)] border border-comun-paper/30 bg-comun-paper/5 px-4 text-comun-paper placeholder:text-comun-paper/50"
           />
-          <input type="hidden" name="experiencia" value="app-v2" />
           <button className="comun-v2-action">Buscar</button>
         </form>
 

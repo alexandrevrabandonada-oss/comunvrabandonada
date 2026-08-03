@@ -23,6 +23,7 @@ export function ComunAppV2Home({
   actions = [],
   results = [],
   memory = [],
+  civicIntelligencePilot = false,
 }: {
   center?: any;
   profile?: any;
@@ -30,6 +31,7 @@ export function ComunAppV2Home({
   actions?: any[];
   results?: any[];
   memory?: any[];
+  civicIntelligencePilot?: boolean;
 }) {
   const attention = (center?.inbox ?? [])
     .filter((item: any) => !item.read_at)
@@ -55,6 +57,36 @@ export function ComunAppV2Home({
             : "O que precisa de atenção?"}
         </h1>
       </header>
+
+      {civicIntelligencePilot ? (
+        <section
+          aria-labelledby="home-civic-search-v2"
+          className="surface-tool rounded-[var(--comun-radius-card)] border-2 border-comun-black p-4"
+        >
+          <h2 id="home-civic-search-v2" className="comun-v2-section-title">
+            O que você precisa encontrar?
+          </h2>
+          <p className="mt-2 text-sm text-comun-black/70">
+            Descreva uma necessidade comum. A busca leva a processos e rotas
+            públicas; não cria feed nem perfil de interesses.
+          </p>
+          <form
+            action="/comun/buscar"
+            className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]"
+          >
+            <label className="sr-only" htmlFor="home-civic-search-v2-input">
+              Necessidade ou assunto
+            </label>
+            <input
+              id="home-civic-search-v2-input"
+              name="q"
+              className="min-h-12 rounded-[var(--comun-radius-control)] border-2 border-comun-black bg-comun-paper px-3 text-comun-black"
+              placeholder="Ex.: não consigo passar com cadeira de rodas"
+            />
+            <button className="comun-v2-action">Buscar</button>
+          </form>
+        </section>
+      ) : null}
 
       <section aria-labelledby="home-attention" className="mt-2">
         <div className="mb-3 flex items-end justify-between gap-4">

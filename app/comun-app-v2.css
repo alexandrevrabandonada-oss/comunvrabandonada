@@ -18,6 +18,7 @@
   --comun-surface-alert: #f5df75;
   --comun-surface-operation: #121310;
   --comun-color-rust: #8f2f1d;
+  --comun-color-success-strong: #14532d;
   --comun-app-bar-height: 4.125rem;
   --comun-bottom-nav-height: 4.25rem;
   --comun-bottom-nav-effective-height: calc(
@@ -398,6 +399,7 @@
 /* Administração V2: densidade e previsibilidade têm prioridade visual. */
 .comun-admin-shell-v2 {
   min-height: 100dvh;
+  overflow-x: clip;
   background: var(--comun-surface-operation);
   color: var(--comun-color-paper);
 }
@@ -519,6 +521,11 @@
   padding: calc(0.75rem + env(safe-area-inset-top)) var(--comun-page-gutter)
     0.75rem;
   backdrop-filter: blur(10px);
+}
+
+.comun-admin-context-bar > div:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .comun-admin-context-bar a {
@@ -1118,6 +1125,10 @@ html[data-comun-keyboard="open"]
   border: var(--comun-stroke-subtle);
   border-radius: var(--comun-radius-card);
   background: var(--comun-surface-result);
+}
+
+.comun-v2-card-result .text-comun-green {
+  color: var(--comun-color-success-strong);
 }
 
 .comun-v2-card-memory {

@@ -63,7 +63,6 @@ export default async function Page({
           ]}
         >
           <form className="grid gap-3 rounded-[var(--comun-radius-cultural)] border border-comun-paper/20 p-4 sm:grid-cols-[1fr_auto_auto]">
-            <input type="hidden" name="experiencia" value="app-v2" />
             <label className="grid gap-1 text-sm font-black">
               Buscar
               <input

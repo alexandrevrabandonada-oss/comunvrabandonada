@@ -48,7 +48,7 @@ test("coleções da primeira onda usam shell e título contextuais", async ({
   }
 });
 
-test("deep link de pauta mantém contexto, retorno, relações e flag", async ({
+test("deep link de pauta mantém contexto, retorno e relações canônicas", async ({
   page,
 }) => {
   await page.goto(`/comun/pautas/calcadas-em-circulacao?${flag}`);
@@ -57,7 +57,11 @@ test("deep link de pauta mantém contexto, retorno, relações e flag", async ({
   ).toBeVisible();
   await expect(page.getByRole("link", { name: "Voltar" })).toHaveAttribute(
     "href",
-    /experiencia=app-v2/,
+    /^\/comun/,
+  );
+  await expect(page.getByRole("link", { name: "Voltar" })).not.toHaveAttribute(
+    "href",
+    /experiencia=/,
   );
   const rail = page.locator("[data-comun-relation-rail]").first();
   if (await rail.count()) {
@@ -69,9 +73,9 @@ test("deep link de pauta mantém contexto, retorno, relações e flag", async ({
       index < Math.min(3, await relations.count());
       index += 1
     )
-      await expect(relations.nth(index)).toHaveAttribute(
+      await expect(relations.nth(index)).not.toHaveAttribute(
         "href",
-        /experiencia=app-v2/,
+        /experiencia=/,
       );
   }
 });
@@ -96,9 +100,9 @@ test("estado vazio oferece próxima ação e não simula dado", async ({
   const empty = page.locator("[data-comun-empty-state='actionable']");
   if (await empty.count()) {
     await expect(empty).toBeVisible();
-    await expect(empty.locator("a").first()).toHaveAttribute(
+    await expect(empty.locator("a").first()).not.toHaveAttribute(
       "href",
-      /experiencia=app-v2/,
+      /experiencia=/,
     );
     await expect(empty).not.toContainText(
       /exemplo fictício|conteúdo de demonstração/i,
@@ -112,11 +116,11 @@ test("filtros culturais permanecem no retorno e nos detalhes", async ({
   await page.goto(
     `/comun/acervo/identificar?q=estacao&state=under_review&${flag}`,
   );
-  await expect(page.locator('input[name="experiencia"]')).toHaveValue("app-v2");
+  await expect(page.locator('input[name="experiencia"]')).toHaveCount(0);
   await expect(page.locator('input[name="q"]')).toHaveValue("estacao");
   const detail = page.locator('a[href*="/comun/acervo/identificar/"]').first();
   if (await detail.count())
-    await expect(detail).toHaveAttribute("href", /experiencia=app-v2/);
+    await expect(detail).not.toHaveAttribute("href", /experiencia=/);
 });
 
 test("não há campos privados nem overflow nos documentos públicos", async ({

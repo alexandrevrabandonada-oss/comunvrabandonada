@@ -19,7 +19,9 @@ test("visitante encontra mapa, filtros operacionais e pauta", async ({
       page.locator("label").filter({ hasText: label }).locator("select"),
     ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: /Calçadas em circulação/ }),
+    page
+      .locator('a[href="/comun/pautas/calcadas-em-circulacao"]:visible')
+      .first(),
   ).toBeVisible();
 });
 

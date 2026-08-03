@@ -12,6 +12,10 @@ import {
   identificationRisk,
   shouldHideOnReport,
 } from "@/lib/archive-identification-rules";
+import {
+  resolveComunExperience,
+  withComunExperience,
+} from "@/lib/comun-experience";
 
 const commentSchema = z.object({
   itemId: z.string().uuid(),
@@ -23,9 +27,10 @@ const commentSchema = z.object({
   publicName: z.literal("on"),
 });
 function preserveExperience(href: string, formData: FormData) {
-  return formData.get("experiencia") === "app-v2"
-    ? `${href}${href.includes("?") ? "&" : "?"}experiencia=app-v2`
-    : href;
+  return withComunExperience(
+    href,
+    resolveComunExperience(String(formData.get("experiencia") ?? "")),
+  );
 }
 export async function submitIdentificationComment(formData: FormData) {
   const parsed = commentSchema.safeParse({

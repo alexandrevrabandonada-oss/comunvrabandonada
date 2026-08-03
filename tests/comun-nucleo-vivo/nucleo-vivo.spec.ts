@@ -3,11 +3,19 @@ import AxeBuilder from "@axe-core/playwright";
 
 test("jornada central liga home, participação e mapa", async ({ page }) => {
   await page.goto("/comun");
-  await expect(page.getByRole("heading", { name: "Agora no território." })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Sua próxima participação" })).toBeVisible();
-  await page.getByRole("link", { name: /participar de uma ação/i }).first().click();
-  await expect(page.getByRole("heading", { name: /como você quer contribuir/i })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Registrar uma calçada" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "O que precisa de atenção?" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Próxima ação" }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: /formas de participar/i }).click();
+  await expect(
+    page.getByRole("heading", { name: /como você quer contribuir/i }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /registrar uma calçada/i }),
+  ).toBeVisible();
 });
 
 test("mapa mantém vínculo explícito com a pauta", async ({ page }) => {
@@ -23,14 +31,16 @@ test("mapa mantém vínculo explícito com a pauta", async ({ page }) => {
   ).toBeVisible();
   await page.getByRole("link", { name: /abrir ferramenta/i }).click();
   await expect(page).toHaveURL(/\/comun\/calcadas$/);
-  await expect(page.getByRole("link", { name: /registrar calçada/i }).first()).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /registrar calçada/i }).first(),
+  ).toBeVisible();
 });
 
-test("pauta canônica mantém seis fases e retorno allowlisted", async ({
+test("pauta legada explícita mantém seis fases e retorno allowlisted", async ({
   page,
 }) => {
   const response = await page.goto(
-    "/comun/pautas/calcadas-em-circulacao",
+    "/comun/pautas/calcadas-em-circulacao?experiencia=legacy",
   );
   expect(response?.status()).toBe(200);
   for (const phase of [
@@ -41,11 +51,15 @@ test("pauta canônica mantém seis fases e retorno allowlisted", async ({
     "Acompanhe",
     "Memória",
   ]) {
-    await expect(page.getByRole("link", { name: phase, exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: phase, exact: true }),
+    ).toBeVisible();
   }
-  const contribute = page.getByRole("link", {
-    name: /registrar uma calçada/i,
-  }).first();
+  const contribute = page
+    .getByRole("link", {
+      name: /registrar uma calçada/i,
+    })
+    .first();
   const href = await contribute.getAttribute("href");
   expect(href).toContain("returnTo=%2Fcomun%2Fpautas%2Fcalcadas-em-circulacao");
   await expect(page.locator("body")).not.toContainText(
@@ -69,7 +83,9 @@ for (const route of [
     ).toEqual([]);
     expect(
       await page.evaluate(
-        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
       ),
     ).toBe(true);
   });

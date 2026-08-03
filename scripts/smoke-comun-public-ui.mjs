@@ -57,14 +57,11 @@ const checks = [
   {
     path: "/comun",
     required: [
-      "Agora no território.",
-      "Como o COMUN se organiza",
-      "Sua próxima participação",
-      "Encontre seu caminho",
-      "Pautas em construção",
-      "Do território ao resultado",
-      "O que a comunidade construiu",
-      "Comece pelo que você já sabe",
+      "O que precisa de atenção?",
+      "Escolha como começar",
+      "Atalhos",
+      "Acompanhamentos",
+      "Mapa das Calçadas",
     ],
   },
   {
@@ -73,7 +70,7 @@ const checks = [
   },
   {
     path: "/comun/c/trabalho",
-    required: ["Abrir pauta prioritária", "Acompanhar ou colaborar"],
+    required: ["Acompanhar ou solicitar entrada", "Próxima atividade"],
   },
   {
     path: "/comun/pautas/falta-profissionais-escolas",
@@ -115,7 +112,19 @@ const checks = [
   },
   {
     path: "/comun/relatar/confirmacao?protocolo=COMUN-TESTE",
-    required: ["Acompanhar este relato", "Copiar protocolo"],
+    required: ["Acompanhar participação", "Copiar protocolo"],
+  },
+  {
+    path: "/comun?experiencia=legacy",
+    required: [
+      "Agora no território.",
+      "Como o COMUN se organiza",
+      "Sua próxima participação",
+    ],
+  },
+  {
+    path: "/comun/c/trabalho?experiencia=legacy",
+    required: ["Abrir pauta prioritária", "Acompanhar ou colaborar"],
   },
 ];
 
