@@ -173,6 +173,7 @@ jobs:
           npm run civic-intelligence:test
           npm run security:test
           npm run test:unit
+          node -e "require('node:fs').rmSync('.next/dev',{recursive:true,force:true})"
           npm run typecheck
           npm run lint
           npm run build
