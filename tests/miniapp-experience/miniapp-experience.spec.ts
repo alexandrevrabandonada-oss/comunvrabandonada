@@ -24,7 +24,7 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
     page.locator('[data-comun-app-v2-page="pauta-detail"]'),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Nesta pauta" }),
+    page.getByRole("heading", { name: "Ferramenta desta pauta" }),
   ).toBeVisible();
   await screenshot(page, "pauta", testInfo.project.name);
   await page.goto("/comun/c/cidade");
