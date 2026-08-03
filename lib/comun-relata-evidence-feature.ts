@@ -6,6 +6,8 @@ export const COMUN_RELATA_LOCATION_KEY =
   "COMUN_RELATA_LOCATION_ENCRYPTION_KEY" as const;
 export const COMUN_RELATA_SPATIAL_KEY =
   "COMUN_RELATA_SPATIAL_HMAC_KEY" as const;
+export const COMUN_RELATA_EVIDENCE_API_PREFIX =
+  "/api/comun/relata/evidence" as const;
 
 function validLocalKey(value: string | undefined) {
   if (!value || value.length > 128) return false;
@@ -36,4 +38,14 @@ export function isComunRelataEvidenceEnabled(
     validLocalKey(env[COMUN_RELATA_SPATIAL_KEY]) &&
     env[COMUN_RELATA_LOCATION_KEY] !== env[COMUN_RELATA_SPATIAL_KEY]
   );
+}
+
+export function shouldCloakComunRelataEvidenceApi(
+  pathname: string,
+  env: Record<string, string | undefined> = process.env,
+) {
+  const isEvidenceApi =
+    pathname === COMUN_RELATA_EVIDENCE_API_PREFIX ||
+    pathname.startsWith(`${COMUN_RELATA_EVIDENCE_API_PREFIX}/`);
+  return isEvidenceApi && !isComunRelataEvidenceEnabled(env);
 }
