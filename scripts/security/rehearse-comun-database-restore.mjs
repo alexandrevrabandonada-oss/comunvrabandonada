@@ -52,11 +52,21 @@ async function main() {
     recoveryPhase = "source_inventory";
     tempDir = await mkdtemp(path.join(os.tmpdir(), "comun-db-restore-"));
     dumpPath = path.join(tempDir, "source.dump");
-    const sourceTables = remoteRows(
+    const sourceApplicationSchemas = remoteRows(
       sourceUrl,
-      "select c.relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','p') order by c.relname;",
+      "select nspname from pg_namespace where nspname in ('public','private') order by nspname;",
     );
-    const sourceCounts = remoteCounts(sourceUrl, sourceTables);
+    assert.ok(sourceApplicationSchemas.includes("public"));
+    const sourceTables = remoteTableNames(sourceUrl, "public");
+    const sourcePrivateTables = sourceApplicationSchemas.includes("private")
+      ? remoteTableNames(sourceUrl, "private")
+      : [];
+    const sourceCounts = remoteCounts(sourceUrl, "public", sourceTables);
+    const sourcePrivateCounts = remoteCounts(
+      sourceUrl,
+      "private",
+      sourcePrivateTables,
+    );
     const sourceMigrations = remoteRows(
       sourceUrl,
       "select version::text from supabase_migrations.schema_migrations order by version;",
@@ -76,6 +86,13 @@ async function main() {
     ).map((value) => JSON.parse(value));
 
     recoveryPhase = "backup_create";
+    const backupSchemas = [
+      ...sourceApplicationSchemas,
+      "supabase_migrations",
+    ];
+    const schemaFlags = backupSchemas
+      .map((schema) => `--schema=${schema}`)
+      .join(" ");
     dockerRun([
       "run",
       "--rm",
@@ -89,7 +106,7 @@ async function main() {
       "postgres:17",
       "sh",
       "-c",
-      'umask 077; pg_dump "$SOURCE_DATABASE_URL" --format=custom --schema=public --schema=supabase_migrations --no-owner --file=/work/source.dump',
+      `umask 077; pg_dump "$SOURCE_DATABASE_URL" --format=custom ${schemaFlags} --no-owner --file=/work/source.dump`,
     ]);
     recoveryPhase = "backup_integrity";
     const dumpStats = await stat(dumpPath);
@@ -144,7 +161,11 @@ async function main() {
     isolatedRestore(["--section=post-data"]);
 
     recoveryPhase = "aggregate_counts";
-    const restoredCounts = isolatedCounts(sourceTables);
+    const restoredCounts = isolatedCounts("public", sourceTables);
+    const restoredPrivateCounts = isolatedCounts(
+      "private",
+      sourcePrivateTables,
+    );
     const restoredMigrations = isolatedRows(
       "select version::text from supabase_migrations.schema_migrations order by version;",
     ).sort();
@@ -154,6 +175,11 @@ async function main() {
       "contagens agregadas divergiram",
     );
     assert.deepEqual(
+      restoredPrivateCounts,
+      sourcePrivateCounts,
+      "contagens privadas agregadas divergiram",
+    );
+    assert.deepEqual(
       restoredMigrations,
       sourceMigrations,
       "ledger de migrations divergiu",
@@ -161,8 +187,9 @@ async function main() {
     recoveryPhase = "structure";
     const structure = isolatedJson(`
     select json_build_object(
-      'schemas',(select count(*)::int from pg_namespace where nspname in ('public','auth','storage')),
+      'schemas',(select count(*)::int from pg_namespace where nspname in ('public','private','auth','storage')),
       'tables',(select count(*)::int from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','p')),
+      'privateTables',(select count(*)::int from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='private' and c.relkind in ('r','p')),
       'views',(select count(*)::int from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('v','m')),
       'functions',(select count(*)::int from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public'),
       'triggers',(select count(*)::int from pg_trigger t join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and not t.tgisinternal),
@@ -177,6 +204,7 @@ async function main() {
     assert.equal(structure.invalidIndexes, 0);
     assert.equal(structure.unvalidatedConstraints, 0);
     assert.equal(structure.tables, sourceTables.length);
+    assert.equal(structure.privateTables, sourcePrivateTables.length);
     recoveryPhase = "foreign_keys";
     const publicFkOrphans = Number(isolatedScalar(PUBLIC_FK_ORPHAN_SQL));
     assert.equal(publicFkOrphans, 0, "foreign keys públicas órfãs");
@@ -185,14 +213,22 @@ async function main() {
       ? await rehearseApplicationAgainstRestore(sourceTables)
       : { status: "not_requested" };
 
-    const countEnvelope = sourceCounts.map(({ name, count }) => ({
-      name,
-      count,
-    }));
+    const countEnvelope = [
+      ...sourceCounts.map(({ name, count }) => ({
+        schema: "public",
+        name,
+        count,
+      })),
+      ...sourcePrivateCounts.map(({ name, count }) => ({
+        schema: "private",
+        name,
+        count,
+      })),
+    ];
     const finishedAt = Date.now();
     const evidenceEnvelope = {
-      tableCount: sourceTables.length,
-      aggregateRowCount: sourceCounts.reduce(
+      tableCount: sourceTables.length + sourcePrivateTables.length,
+      aggregateRowCount: countEnvelope.reduce(
         (sum, item) => sum + item.count,
         0,
       ),
@@ -213,7 +249,7 @@ async function main() {
       source: local ? "local_disposable" : "remote_allowlisted",
       backup: {
         format: "postgres_custom",
-        schemas: ["public", "supabase_migrations"],
+        schemas: backupSchemas,
         excludedSchemas: ["auth", "storage", "vault", "realtime"],
         classification:
           "application_database_backup_not_provider_internal_backup",
@@ -231,6 +267,7 @@ async function main() {
         isolated: true,
         structure: { ...structure, publicFkOrphans },
         aggregateCountsMatch: true,
+        privateSchemaRecovered: sourceApplicationSchemas.includes("private"),
         migrationLedger: {
           count: sourceMigrations.length,
           setChecksum: envelopeDigest(sourceMigrations),
@@ -295,12 +332,19 @@ function synthesizeAuthReferences(references) {
   );
 }
 
-function remoteCounts(url, tables) {
+function remoteTableNames(url, schema) {
+  return remoteRows(
+    url,
+    `select c.relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname=${literal(schema)} and c.relkind in ('r','p') order by c.relname;`,
+  );
+}
+
+function remoteCounts(url, schema, tables) {
   if (!tables.length) return [];
   const sql = tables
     .map(
       (name) =>
-        `select ${literal(name)} as name,count(*)::bigint as count from public.${quoteIdentifier(name)}`,
+        `select ${literal(name)} as name,count(*)::bigint as count from ${quoteIdentifier(schema)}.${quoteIdentifier(name)}`,
     )
     .join(" union all ");
   return remoteRows(
@@ -311,12 +355,12 @@ function remoteCounts(url, tables) {
     .sort(compareNamedRows);
 }
 
-function isolatedCounts(tables) {
+function isolatedCounts(schema, tables) {
   if (!tables.length) return [];
   const sql = tables
     .map(
       (name) =>
-        `select ${literal(name)} as name,count(*)::bigint as count from public.${quoteIdentifier(name)}`,
+        `select ${literal(name)} as name,count(*)::bigint as count from ${quoteIdentifier(schema)}.${quoteIdentifier(name)}`,
     )
     .join(" union all ");
   return isolatedRows(

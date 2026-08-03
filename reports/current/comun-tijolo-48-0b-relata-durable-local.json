@@ -49,6 +49,12 @@
     "database": "COMUN_RELATA_LOCAL_PERSISTENCE_GREEN",
     "idempotency": ["sequential", "concurrent", "payload_conflict"],
     "retentionDryRun": "passed_zero_deletes",
+    "databaseRestore": {
+      "result": "COMUN_DATABASE_RESTORE_REHEARSAL_GREEN",
+      "schemas": ["public", "private", "supabase_migrations"],
+      "publicAndPrivateCountsMatch": true,
+      "isolated": true
+    },
     "releaseChecksum": "passed",
     "typecheck": "passed",
     "lint": "passed",
@@ -58,7 +64,7 @@
     "pwa": "30/30",
     "performance": "9/9",
     "qualityNetwork": "2/2_green_exit_0_no_signal",
-    "security": "6/6",
+    "security": "7/7",
     "securityRlsComplete": {
       "result": "COMUN_RLS_COMPLETE_GREEN",
       "tables": 190,

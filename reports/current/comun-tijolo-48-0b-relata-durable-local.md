@@ -87,6 +87,9 @@ podem mudar de `comun` para oficial.
 - idempotência: sequencial, concorrente e conflito de payload verdes;
 - isolamento: ausência/segredo errado indistinguíveis e duas pessoas isoladas;
 - retention dry-run: zero delete, zero dado pessoal emitido, remoto não contatado;
+- backup/restauração sintéticos: `COMUN_DATABASE_RESTORE_REHEARSAL_GREEN`;
+  `public`, `private` e o ledger de migrations são recuperados em banco isolado,
+  com contagens públicas e privadas verificadas;
 - contrato de release/checksum: verde;
 - typecheck: verde;
 - lint e build: verdes; build local com flags desligadas confirmou
@@ -95,7 +98,7 @@ podem mudar de `comun` para oficial.
 - App Shell V2: 35/35; PWA: 30/30; performance: 9/9;
 - rede focal Chromium: 2/2, `exit code=0`, `signal=null`, classificação
   `green`;
-- segurança: 6/6; auditoria RLS integral:
+- segurança: 7/7; auditoria RLS integral:
   `COMUN_RLS_COMPLETE_GREEN`, 190 tabelas, 2.280 linhas de matriz, zero
   finding, zero `security definer` inseguro e zero `security definer` exposto;
 - grants das três RPCs Relata: `anon=0`, `authenticated=0`,

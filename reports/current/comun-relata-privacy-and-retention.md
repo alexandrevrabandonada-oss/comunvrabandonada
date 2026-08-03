@@ -43,5 +43,10 @@ revisão. O script `relata:retention:dry-run` somente contabiliza candidatos,
 não emite dados pessoais e nunca executa delete. Resultado observado:
 `deletesExecuted=0`, `remote=not_contacted`.
 
+O ensaio de recuperação inclui o schema `private` quando presente, além de
+`public` e `supabase_migrations`. A restauração ocorre em PostgreSQL isolado e
+compara separadamente as contagens privadas e públicas; o backup bruto nunca é
+publicado como artefato.
+
 Qualquer cleanup real, promoção remota ou prazo definitivo exige decisão de
 produto, privacidade e obrigação institucional em tijolo futuro.
