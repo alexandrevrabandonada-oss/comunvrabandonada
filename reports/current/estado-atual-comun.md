@@ -1,11 +1,12 @@
 # Estado atual do COMUN
 
-## Tijolo 48.0C candidato local verde — 3 de agosto de 2026
+## Tijolo 48.0C integrado e dormente — 3 de agosto de 2026
 
 - baseline forward-only: repository main `bb2b3cb709a6f3b01c0774175c9c9e9704e81396`;
-- branch: `codex/tijolo-48-0c-relata-private-evidence-cases`;
-- candidata funcional: `ed8c4a5cdb95565f5a5025eaf80c47c23083e797`;
-- PR #153 aberta em draft; checks e Preview em andamento;
+- PR #153 principal mesclada em `eda38611f04870056d9ed6f30525b9f8d2b8fa1f`;
+- smoke pós-merge encontrou `405` focal em métodos não implementados de duas
+  APIs dormentes; nenhuma superfície foi promovida;
+- PR #154 focal mesclada em `6fefaa8e79de53e4c8bee1f4f4c16a71d5bc68c1`;
 - migration aditiva/checksum e manifesto local-only verdes; migration 48.0B intacta;
 - localização opcional com AES-256-GCM server-side e células somente em HMAC;
 - JPEG/PNG/WebP: até três, 8 MiB, 20 MP, validação real, derivada privada sem
@@ -13,15 +14,20 @@
 - processo individual preservado; casos coletivos e participações aditivos,
   determinísticos, versionados e sem auto-link de emergência/sensível;
 - retirada revoga interface, inativa vínculos e preserva história; cleanup dry-run;
-- Relata 32/32, E2E 15/15, unidade 455/455, RLS 194 tabelas/2.328 combinações,
+- Relata 32/32, E2E 15/15, unidade 456/456, RLS 194 tabelas/2.328 combinações,
   a11y, PWA, performance, rede, restore, no-leak, typecheck, lint e build verdes;
 - surfaces: 190 páginas, sete shells, zero desconhecida, zero legacy e zero P0/P1;
-- Production pré-integração permanece `READY`: `/comun=200`, App V2/legado=200,
-  `/comun/relata=404` e APIs de evidência GET=404;
+- Production `dpl_Z4Da7tM1QEcNZ6hGyaUBeZANXEaw`, `READY`, no SHA final exato;
+- `/comun`, App V2 e legado: `200`; `/comun/relata`: `404`;
+- 21/21 combinações de localização, agrupamento e anexos com sete métodos:
+  `404`, sem leak de existência por `405`;
+- Quality da PR #154 teve `502` de restart Supabase descartável e Civic Graph
+  pós-merge teve `SIGSEGV` do Chromium; retries focais únicos nos mesmos SHAs
+  passaram, sem finding de produto;
+- CI, deployment status, Core Journeys, Quality e Civic Graph pós-merge verdes;
 - Supabase remoto não consultado, não migrado e não alterado;
-- resultado não terminal:
-  `COMUN_RELATA_48_0C_CANDIDATE_LOCAL_GREEN_REMOTE_DB_UNCHANGED`;
-- Preview, merge e smoke do deployment funcional exato ainda pendentes;
+- resultado terminal:
+  `COMUN_RELATA_48_0C_MERGED_DORMANT_LOCAL_GREEN_REMOTE_DB_UNCHANGED`;
 - 47.9D não iniciado; `launch_publicly` não acionado.
 
 ## Tijolo 48.0B integrado e dormente — 3 de agosto de 2026

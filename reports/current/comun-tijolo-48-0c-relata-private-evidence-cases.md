@@ -2,23 +2,32 @@
 
 Atualizado em 3 de agosto de 2026.
 
-## Estado candidato
+## Estado terminal
 
-`COMUN_RELATA_48_0C_CANDIDATE_LOCAL_GREEN_REMOTE_DB_UNCHANGED`
+`COMUN_RELATA_48_0C_MERGED_DORMANT_LOCAL_GREEN_REMOTE_DB_UNCHANGED`
 
-O tijolo está comprovado somente no laboratório local descartável. Production
-permanece dormente, a migration não foi promovida e o Supabase remoto não foi
-consultado, migrado ou alterado. O estado terminal será emitido apenas após PR,
-checks, Preview, merge e smoke read-only do deployment funcional exato.
+O tijolo foi integrado por duas PRs verdes. A funcionalidade está comprovada
+somente no laboratório local descartável e permanece completamente dormente em
+Production. A migration não foi promovida e o Supabase remoto não foi
+consultado, migrado ou alterado.
 
 ## Baseline e entrega
 
 - `repository_main_sha`: `bb2b3cb709a6f3b01c0774175c9c9e9704e81396`;
 - `functional_product_sha`: `093f9772d28c018c95d5f8c1aac5afe6c1de30e6`;
 - `production_observed_sha`: `093f9772d28c018c95d5f8c1aac5afe6c1de30e6`;
-- branch: `codex/tijolo-48-0c-relata-private-evidence-cases`;
+- branch principal: `codex/tijolo-48-0c-relata-private-evidence-cases`;
 - candidata funcional: `ed8c4a5cdb95565f5a5025eaf80c47c23083e797`;
-- PR #153: aberta em draft; Preview, merge e Production funcional pendentes;
+- HEAD final da PR principal: `90f55fc35af1d3c41b62af56bb53d20d3dde4a18`;
+- PR #153: mesclada em `eda38611f04870056d9ed6f30525b9f8d2b8fa1f`;
+- Preview funcional: `dpl_28oH7PgcDTHx9JVaWRheZigC2VNP`, `READY`;
+- smoke pós-merge detectou exposição de método `405` em duas rotas dormentes;
+- branch focal: `codex/tijolo-48-0c-relata-method-cloak`;
+- candidata focal: `f184dba5e373482947096011a3c435a5da2adeb3`;
+- PR #154: mesclada em `6fefaa8e79de53e4c8bee1f4f4c16a71d5bc68c1`;
+- Preview focal: `dpl_2NdxV7SVvh4mwLjRvVoR47vpw63y`, `READY`;
+- `repository_main_sha` funcional final:
+  `6fefaa8e79de53e4c8bee1f4f4c16a71d5bc68c1`;
 - migration forward-only:
   `20260803192419_comun_relata_private_evidence_cases.sql`;
 - SHA-256: `97be487aa2c03c559aa1918835056aa90cb9dba16288d4396370ac1fc95e9983`;
@@ -33,7 +42,9 @@ As três flags são cumulativas: `COMUN_RELATA_PREVIEW`,
 também exige Supabase HTTP loopback com porta explícita, service role local e
 duas chaves distintas de 32 bytes. Flags e loopback são validados antes da
 leitura de segredo ou criação de cliente. Com qualquer barreira desligada, a
-interface experimental desaparece e as novas APIs respondem `404`.
+interface experimental desaparece e toda a árvore de APIs de evidência é
+interceptada antes do dispatch de método. `GET`, `POST`, `DELETE`, `PUT`,
+`PATCH`, `OPTIONS` e `HEAD` respondem uniformemente `404`.
 
 ## Localização privada
 
@@ -106,7 +117,7 @@ sintéticos com checksums e smokes verdes.
 
 - Relata consolidado: 10 arquivos/32 testes, DB, Storage, cleanup e retenção verdes;
 - E2E Relata: 15/15 em 320×568, 390×844, 844×390, 768×1024 e PWA 430×932;
-- unitária integral: 91 arquivos/455 testes;
+- unitária integral final: 91 arquivos/456 testes;
 - Security Resilience: 8/8; RLS integral `COMUN_RLS_COMPLETE_GREEN`;
 - restauração: `COMUN_DATABASE_RESTORE_REHEARSAL_GREEN` e
   `COMUN_STORAGE_RESTORE_REHEARSAL_GREEN`;
@@ -115,15 +126,33 @@ sintéticos com checksums e smokes verdes.
 - surfaces: 190 páginas, sete shells, zero desconhecida, zero `legacy_rendered`,
   zero P0/P1 e dívida P2/P3 estrutural inalterada em 93;
 - typecheck, lint, build, release/checksum, grants, no-leak e UI pública: verdes;
+- cloak dormente: 21/21 combinações de rota e método em runtime Next local e
+  novamente em Production;
 - `npm audit`: quatro vulnerabilidades high preexistentes; nenhuma correção
   automática ou mudança de dependência foi aplicada neste tijolo.
 
-## Production observada antes da integração
+## Integração e infraestrutura
 
-- deployment funcional: `dpl_B8Tm8VzZV2SNTECxV9dAuJFHpvEN`, `READY`;
+- PR #153: todos os checks verdes após classificar as quatro tabelas
+  operacionais novas na matriz RLS;
+- PR #154: zero check pendente ou falho e Preview verde;
+- Quality da PR #154 teve um `502` no restart da stack Supabase descartável;
+  um único retry focal no mesmo SHA passou no attempt 2;
+- Civic Graph pós-merge teve `SIGSEGV` do Chromium após 39/40 casos verdes;
+  um único retry focal no mesmo SHA passou 40/40 no attempt 2;
+- ambas as ocorrências foram falhas de infraestrutura comprovadas, não
+  findings do produto;
+- pós-merge final: CI, deployment status, Core Journeys, Quality Performance e
+  Civic Graph verdes no SHA funcional final.
+
+## Production final
+
+- deployment funcional: `dpl_Z4Da7tM1QEcNZ6hGyaUBeZANXEaw`, `READY`;
+- SHA observado: `6fefaa8e79de53e4c8bee1f4f4c16a71d5bc68c1`;
 - domínio: `https://comunsocial.online`; PWA: `comun-pwa-v3`;
 - `/comun`, App V2 e fallback legado: `200`;
-- `/comun/relata` e APIs GET de evidência: `404`;
+- `/comun/relata`: `404`;
+- localização, agrupamento e anexos: `404` nos sete métodos exercitados;
 - nenhum link público, request Relata, envio externo ou snapshot público.
 
 ## Limites e próximos gates
@@ -131,5 +160,5 @@ sintéticos com checksums e smokes verdes.
 Retenção definitiva, revisão visual humana, publicação, encaminhamento,
 protocolo oficial, vídeos, áudios, documentos, OCR, reconhecimento, mapa público
 e promoção remota continuam fora de escopo. 47.9D não foi iniciado e
-`launch_publicly` permanece fechado. O próximo tijolo será definido após o
-fechamento integrado do 48.0C.
+`launch_publicly` permanece fechado. Qualquer ativação do Relata, consulta ou
+aplicação remota de migration continua exigindo um tijolo e gate próprios.
