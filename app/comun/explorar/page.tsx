@@ -221,6 +221,7 @@ function ExploreAppV2({ params }: { params: SearchParams }) {
             <Link
               key={href}
               href={withComunAppV2(href)}
+              aria-label={title}
               className={`${categorySurfaces[value]} flex min-h-24 items-center justify-between gap-4 border p-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-comun-yellow`}
             >
               <span>
