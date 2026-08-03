@@ -1,0 +1,89 @@
+{
+  "brick": "48.0B",
+  "result": "COMUN_RELATA_48_0B_LOCAL_CANDIDATE_GREEN_REMOTE_DB_UNCHANGED",
+  "baseSha": "97c102d2a2464e511cd443ee29cac119d7e7c360",
+  "branch": "codex/tijolo-48-0b-relata-durable-local",
+  "candidateSha": "43484e730cc273dbb578affed98420c96099616b",
+  "pullRequest": 151,
+  "pullRequestState": "draft",
+  "mergeSha": null,
+  "migration": {
+    "path": "supabase/migrations/20260803161310_comun_relata_durable_local.sql",
+    "sha256": "cb216666f64602c02e756d8e2d66017e5a721c7b9ad7810f793cad6a276606b7",
+    "forwardOnly": true,
+    "localOnly": true,
+    "requiresPromotion": false,
+    "remotePromotionAllowed": false,
+    "appliedRemotely": false
+  },
+  "tables": {
+    "private": ["comun_relata_reports", "comun_relata_private_locations"],
+    "operational": ["comun_relata_cases", "comun_relata_consents", "comun_relata_status_events"],
+    "blockedPublic": ["comun_relata_public_snapshots"]
+  },
+  "functions": ["comun_relata_create", "comun_relata_get_receipt", "comun_relata_withdraw"],
+  "rls": {
+    "enabledAndForcedTables": 6,
+    "directAnonCrud": false,
+    "privateAuthenticatedCrud": false,
+    "clientRpcExecute": false,
+    "adminOperationalRead": "future_server_mediated_only",
+    "serverRpcRole": "service_role_local_only",
+    "crossPersonAccess": false
+  },
+  "protocol": {
+    "prefix": "COMUN-RELATA-",
+    "randomHexCharacters": 16,
+    "sequential": false,
+    "kind": "comun",
+    "official": false
+  },
+  "flags": ["COMUN_RELATA_PREVIEW", "COMUN_RELATA_LOCAL_PERSISTENCE"],
+  "productionFlagEnabled": false,
+  "externalSubmission": false,
+  "tests": {
+    "vitest": "21/21",
+    "e2e": "15/15",
+    "viewports": 5,
+    "axe": "passed",
+    "database": "COMUN_RELATA_LOCAL_PERSISTENCE_GREEN",
+    "idempotency": ["sequential", "concurrent", "payload_conflict"],
+    "retentionDryRun": "passed_zero_deletes",
+    "databaseRestore": {
+      "result": "COMUN_DATABASE_RESTORE_REHEARSAL_GREEN",
+      "schemas": ["public", "private", "supabase_migrations"],
+      "publicAndPrivateCountsMatch": true,
+      "isolated": true
+    },
+    "releaseChecksum": "passed",
+    "typecheck": "passed",
+    "lint": "passed",
+    "build": "passed",
+    "unit": "444/444",
+    "appShellV2": "35/35",
+    "pwa": "30/30",
+    "performance": "9/9",
+    "qualityNetwork": "2/2_green_exit_0_no_signal",
+    "security": "7/7",
+    "securityRlsComplete": {
+      "result": "COMUN_RLS_COMPLETE_GREEN",
+      "tables": 190,
+      "personaMatrixRows": 2280,
+      "findings": 0,
+      "unsafeSecurityDefiners": 0,
+      "exposedSecurityDefiners": 0,
+      "relataRpcExecute": { "anon": 0, "authenticated": 0, "serviceRole": 3 }
+    },
+    "surfaces": "4_auditor_and_26_vitest_passed",
+    "noLeakHttpProduction": "passed",
+    "publicUiProduction": "passed",
+    "corePublicRoutesLocal": "passed",
+    "dbLintRelataFindings": 0,
+    "dbLintInheritedFinding": "47.9B provider capability: comun_search_candidates absent"
+  },
+  "remoteDatabase": "not_contacted_not_migrated_unchanged",
+  "production": { "status": "pending_integration", "/comun/relata": 404 },
+  "nextBrick": "48.0C — localização privada, anexos protegidos e formação de casos",
+  "launchPublicly": false,
+  "humanRehearsal47_9D": false
+}

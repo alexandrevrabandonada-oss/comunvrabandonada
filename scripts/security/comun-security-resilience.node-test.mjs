@@ -50,6 +50,18 @@ test("workflow nunca publica dump, env ou object keys", async () => {
   }
 });
 
+test("backup recupera o schema privado quando ele existe", async () => {
+  const rehearsal = await readFile(
+    "scripts/security/rehearse-comun-database-restore.mjs",
+    "utf8",
+  );
+  assert.match(rehearsal, /nspname in \('public','private'\)/);
+  assert.match(rehearsal, /sourcePrivateCounts/);
+  assert.match(rehearsal, /restoredPrivateCounts/);
+  assert.match(rehearsal, /privateSchemaRecovered/);
+  assert.match(rehearsal, /artifactPublished: false/);
+});
+
 test("superfície administrativa não mostra materiais proibidos", async () => {
   const page = await readFile("app/comun/admin/auditoria/page.tsx", "utf8");
   assert.doesNotMatch(

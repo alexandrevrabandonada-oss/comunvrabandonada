@@ -1179,6 +1179,30 @@ const classifications = {
     sensitive: "Histórico de decisões internas.",
     expected: "Exclusivo do servidor e administração.",
   },
+  comun_relata_cases: {
+    decision: "service_role_only",
+    purpose: "Projeção operacional sanitizada de casos Relata.",
+    sensitive: "Categoria, urgência, regra, estado e protocolo COMUN.",
+    expected: "Sem leitura direta; API server-only opera por RPC allowlisted.",
+  },
+  comun_relata_consents: {
+    decision: "service_role_only",
+    purpose: "Consentimento versionado sem texto livre.",
+    sensitive: "Vínculo do caso, versão e instante de consentimento.",
+    expected: "Sem leitura direta; API server-only opera por RPC allowlisted.",
+  },
+  comun_relata_status_events: {
+    decision: "service_role_only",
+    purpose: "Histórico append-only e sanitizado do Relata.",
+    sensitive: "Estado, ator técnico e código de resultado.",
+    expected: "Sem leitura direta; API server-only opera por RPC allowlisted.",
+  },
+  comun_relata_public_snapshots: {
+    decision: "service_role_only",
+    purpose: "Contrato futuro de projeção pública, bloqueado no 48.0B.",
+    sensitive: "Projeção futura; deve permanecer vazia e sem grants públicos.",
+    expected: "Sem leitura ou escrita pública; publicação estruturalmente bloqueada.",
+  },
 };
 
 const internalDecisions = new Set(["admin_only", "service_role_only"]);

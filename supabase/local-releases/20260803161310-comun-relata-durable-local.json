@@ -1,0 +1,32 @@
+{
+  "release": "20260803161310-comun-relata-durable-local",
+  "migration": "supabase/migrations/20260803161310_comun_relata_durable_local.sql",
+  "migrationSha256": "cb216666f64602c02e756d8e2d66017e5a721c7b9ad7810f793cad6a276606b7",
+  "destructiveSql": false,
+  "requiresPromotion": false,
+  "remotePromotionAllowed": false,
+  "scope": "disposable_local_supabase_only",
+  "containsPrivateReportText": true,
+  "containsPreciseLocation": false,
+  "containsAttachments": false,
+  "containsContacts": false,
+  "assertions": [
+    "remote Supabase is never contacted by rehearsal or retention scripts",
+    "anonymous and non-admin roles cannot read or mutate report tables",
+    "private original text is absent from public operational projections",
+    "receipt secrets and idempotency keys are stored only as hashes",
+    "withdrawal is explicit, append-only in history and idempotent",
+    "public publication and external forwarding remain structurally blocked"
+  ],
+  "changedObjects": [
+    "private.comun_relata_reports",
+    "private.comun_relata_private_locations",
+    "public.comun_relata_cases",
+    "public.comun_relata_consents",
+    "public.comun_relata_status_events",
+    "public.comun_relata_public_snapshots",
+    "public.comun_relata_create",
+    "public.comun_relata_get_receipt",
+    "public.comun_relata_withdraw"
+  ]
+}
