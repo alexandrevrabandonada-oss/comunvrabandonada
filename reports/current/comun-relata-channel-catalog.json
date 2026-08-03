@@ -1,0 +1,34 @@
+{
+  "version": "relata-channel-catalog-v1",
+  "reviewedAt": "2026-08-03",
+  "sourceCount": 14,
+  "channelCount": 13,
+  "sourceVerified": true,
+  "operationallyChecked": false,
+  "automationAllowed": false,
+  "sources": [
+    {"id":"vr-cau-page-2018","title":"CAU - Central de Atendimento Único","url":"https://www2.voltaredonda.rj.gov.br/13-geral/3789-central-de-atendimento-unico","publisher":"Prefeitura Municipal de Volta Redonda","accessedAt":"2026-08-03","normalizedSha256":"1ca9372952abce7efe8846d878aef8732c9ff0918ce3d7796f35f1be0d92600b"},
+    {"id":"vr-smas-unit-phones","title":"Secretaria Municipal de Assistência Social - Telefones das Unidades","url":"https://smas.voltaredonda.rj.gov.br/a-secretaria/telefones-das-unidades","publisher":"Prefeitura Municipal de Volta Redonda / SMAS","accessedAt":"2026-08-03","normalizedSha256":"b0a080be8e75d583971c623240ac543e1e2cd949a3aefcfb91350a1e6f914e7f"},
+    {"id":"vr-fiscaliza-news","title":"Fiscaliza VR facilita atendimento ao cidadão","url":"https://www.voltaredonda.rj.gov.br/cidade/27-noticias-em-destaque/seplag/818-fiscaliza-vr-facilita-atendimento-ao-cidad%C3%A3o/","publisher":"Prefeitura Municipal de Volta Redonda","accessedAt":"2026-08-03","normalizedSha256":"9425c000a215e8e5c29f45164d96567996a2c7669d96d65d336b8beaee97ec58"},
+    {"id":"vr-smma-environmental-damage","title":"Realizar Denúncia de Danos Ambientais","url":"https://servicos.voltaredonda.rj.gov.br/cartaServicos/201/","publisher":"Prefeitura Municipal de Volta Redonda / SMMA","accessedAt":"2026-08-03","normalizedSha256":"6c5f318df5561e65512daf1d090b884ba0ea87cbd182bc0c8325089830da1c15"},
+    {"id":"light-contact-page","title":"Canais de atendimento Light","url":"https://www.light.com.br/SitePages/page-centro-cultural-light.aspx","publisher":"Light","accessedAt":"2026-08-03","normalizedSha256":"5c583c07cc2d306b0d17ad587dd2c1e5e9e52b03e42d03a9fde841a5de2c05b1"},
+    {"id":"light-virtual-agency","title":"Agência Virtual Light","url":"https://agenciavirtual.light.com.br/","publisher":"Light","accessedAt":"2026-08-03","normalizedSha256":"081068e621161b3d7a4ae4fcf328e29e0eab17a43df9b6d68253e13fd27dee04"},
+    {"id":"light-ethics-code","title":"Código de Ética Light","url":"https://www.light.com.br/Documentos%20Compartilhados/Codigo-de-Etica/CODIGO%20DE%20ETICA.pdf","publisher":"Light","accessedAt":"2026-08-03","normalizedSha256":"51c9925e92a2b150127c7c2665b175cb725e7cd75156b38122938f1fd2f8eecc"},
+    {"id":"aneel-distributor-contacts","title":"Fale com a sua distribuidora","url":"https://www.gov.br/aneel/pt-br/canais_atendimento/fale-com-a-sua-distribuidora","publisher":"Agência Nacional de Energia Elétrica","accessedAt":"2026-08-03","normalizedSha256":"456f9813a9441b4861d1eedcb715e95d44eb73d92e9cebadbe2934054d1e93b9"},
+    {"id":"aneel-complaint-sequence","title":"Reclame da distribuidora","url":"https://www.gov.br/aneel/pt-br/canais_atendimento/reclame-da-distribuidora","publisher":"Agência Nacional de Energia Elétrica","accessedAt":"2026-08-03","normalizedSha256":"850da92f7d1d5a9cd1ea08f4feaa857be3d717b3fbbf4bb531100f04dfdca3ca"},
+    {"id":"cbmerj-22gbm-volta-redonda","title":"22º GBM - Volta Redonda","url":"https://www.cbmerj.rj.gov.br/sobre-o-cbmerj/unidade/unidades-operacionais/22o-gbm-volta-redonda/","publisher":"Corpo de Bombeiros Militar do Estado do Rio de Janeiro","accessedAt":"2026-08-03","normalizedSha256":"8acc2eb8012a664d7015ba13008e7164213d8898e7cecd407edeb26551130b9f"},
+    {"id":"inea-faq-ouverj","title":"Perguntas frequentes","url":"https://www.inea.rj.gov.br/perguntas-frequentes/","publisher":"Instituto Estadual do Ambiente","accessedAt":"2026-08-03","normalizedSha256":"61238429ac5cab01a886d6e1318233f5a645f3cdc51391baa309e0d67059af38"},
+    {"id":"seas-ouverj","title":"Ouvidoria","url":"https://www.rj.gov.br/seas/Ouvidoria","publisher":"Secretaria de Estado do Ambiente e Sustentabilidade","accessedAt":"2026-08-03","normalizedSha256":"8d5027ebb0cd3871f712db5da74a6c9ab35c105865d5e091f8860b429655f5ce"},
+    {"id":"ibama-environmental-complaint","title":"Apresentar denúncia ambiental","url":"https://www.gov.br/pt-br/servicos/apresentar-denuncia-ambiental","publisher":"Ibama / Governo Federal","accessedAt":"2026-08-03","normalizedSha256":"eaee5190881b6ac1fa8a4d8381fdbecf809bf19c8d354bc999c2a0dd5d875d43"},
+    {"id":"ibama-linha-verde","title":"Fale com o Ibama pelo Linha Verde","url":"https://www.gov.br/ibama/pt-br/assuntos/notas/2022/fale-com-o-ibama-pelo-linha-verde","publisher":"Ibama","accessedAt":"2026-08-03","normalizedSha256":"7c4a5072feadff7dacddfb0ce5245dcbfda7d7482ed427a6adaddc6703d00f1a"}
+  ],
+  "channels": [
+    "vr-cau-156","vr-cau-whatsapp-conflict","vr-fiscaliza-web","vr-smma-danos-ambientais","light-call-center-conflict","light-whatsapp","light-agencia-virtual","light-ouvidoria","aneel-escalation","cbmerj-193","inea-ouverj","ibama-falabr","ibama-linha-verde"
+  ],
+  "conflicts": [
+    {"channel":"vr-cau-whatsapp-conflict","values":["(24) 99300-2786","(24) 99288-5500"],"status":"conflicting_official_sources"},
+    {"channel":"light-call-center-conflict","values":["0800 021 0196","0800 2820 120"],"status":"conflicting_official_sources"}
+  ],
+  "emergency": {"channel":"cbmerj-193","immediate":true,"queueable":false,"automatic":false,"protocolPromised":false},
+  "integrationSelectable": false
+}

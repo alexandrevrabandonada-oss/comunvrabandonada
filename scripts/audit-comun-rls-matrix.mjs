@@ -1179,6 +1179,30 @@ const classifications = {
     sensitive: "Histórico de decisões internas.",
     expected: "Exclusivo do servidor e administração.",
   },
+  comun_relata_cases: {
+    decision: "admin_rls_read",
+    purpose: "Projeção operacional sanitizada de casos Relata.",
+    sensitive: "Categoria, urgência, regra, estado e protocolo COMUN.",
+    expected: "Leitura apenas por authenticated com claim administrativo validado por RLS.",
+  },
+  comun_relata_consents: {
+    decision: "admin_rls_read",
+    purpose: "Consentimento versionado sem texto livre.",
+    sensitive: "Vínculo do caso, versão e instante de consentimento.",
+    expected: "Leitura apenas por authenticated com claim administrativo validado por RLS.",
+  },
+  comun_relata_status_events: {
+    decision: "admin_rls_read",
+    purpose: "Histórico append-only e sanitizado do Relata.",
+    sensitive: "Estado, ator técnico e código de resultado.",
+    expected: "Leitura apenas por authenticated com claim administrativo validado por RLS.",
+  },
+  comun_relata_public_snapshots: {
+    decision: "service_role_only",
+    purpose: "Contrato futuro de projeção pública, bloqueado no 48.0B.",
+    sensitive: "Projeção futura; deve permanecer vazia e sem grants públicos.",
+    expected: "Sem leitura ou escrita pública; publicação estruturalmente bloqueada.",
+  },
 };
 
 const internalDecisions = new Set(["admin_only", "service_role_only"]);
@@ -1187,6 +1211,7 @@ const allowedDecisions = new Set([
   "public_insert_safe",
   "public_insert_sanitized_read",
   "admin_only",
+  "admin_rls_read",
   "service_role_only",
   "owner_read",
   "must_fix",
@@ -1249,6 +1274,20 @@ for (const table of tables) {
     failures.push(
       `${table.table_name}: authenticated com SELECT em tabela interna`,
     );
+  if (config.decision === "admin_rls_read") {
+    const adminPolicies = (policiesByTable.get(table.table_name) ?? []).filter(
+      (policy) =>
+        policy.cmd === "SELECT" &&
+        String(policy.roles).includes("authenticated") &&
+        String(policy.qual).includes("comun_relata_is_admin"),
+    );
+    if (table.anon_select)
+      failures.push(`${table.table_name}: anon com SELECT em tabela admin por RLS`);
+    if (!table.authenticated_select)
+      failures.push(`${table.table_name}: grant SELECT authenticated ausente para policy admin`);
+    if (adminPolicies.length !== 1)
+      failures.push(`${table.table_name}: policy admin Relata ausente ou ambigua`);
+  }
   if (
     internalDecisions.has(config.decision) &&
     hasPublicAllowingPolicy(policiesByTable.get(table.table_name) ?? [])

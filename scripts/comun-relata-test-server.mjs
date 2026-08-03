@@ -7,6 +7,7 @@ const child = spawn(command, ["run", "dev", "--", "-p", "3137"], {
   env: {
     ...process.env,
     COMUN_RELATA_PREVIEW: "enabled",
+    COMUN_RELATA_LOCAL_PERSISTENCE: "enabled",
     COMUN_BASE_URL: "http://127.0.0.1:3137",
   },
 });
@@ -17,5 +18,5 @@ const stop = (signal) => {
 process.on("SIGINT", () => stop("SIGINT"));
 process.on("SIGTERM", () => stop("SIGTERM"));
 child.on("exit", (code, signal) => {
-  process.exit(signal ? 1 : code ?? 1);
+  process.exit(signal ? 1 : (code ?? 1));
 });

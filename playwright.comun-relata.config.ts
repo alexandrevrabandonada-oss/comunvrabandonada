@@ -21,7 +21,8 @@ export default defineConfig({
   })),
   use: { baseURL, trace: "retain-on-failure" },
   webServer: {
-    command: "node scripts/comun-relata-test-server.mjs",
+    command:
+      "node scripts/comun-local-env.mjs run node scripts/comun-relata-test-server.mjs",
     url: `${baseURL}/comun/relata`,
     reuseExistingServer: false,
     timeout: 120_000,

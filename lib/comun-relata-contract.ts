@@ -22,9 +22,18 @@ export type RelataStatus =
   | "triage"
   | "awaiting_person"
   | "routed"
-  | "human_review"
-  | "resolved"
+  | "stored_private"
   | "withdrawn";
+
+export type FutureRelataStatus =
+  | "ready_for_submission"
+  | "submitted"
+  | "official_protocol_received"
+  | "under_review"
+  | "resolved"
+  | "deadline_expired"
+  | "escalated"
+  | "published";
 
 export type ProtocolKind = "comun" | "official";
 
@@ -57,17 +66,49 @@ export type Agency = {
     | "environmental"
     | "community_review";
   displayName: string;
-  verified: boolean;
+  sphere:
+    "municipal" | "state" | "federal" | "private_concessionaire" | "community";
+  territory: string;
 };
 
 export type Channel = {
   id: string;
   agencyId: string;
   label: string;
-  kind: "fixture" | "future_verified";
-  verified: boolean;
-  sourceStatus: "unverified_fixture" | "pending_verification" | "verified";
-  endpoint?: never;
+  service: string;
+  category: RelataCategory | "cross_category";
+  channelType: "phone" | "whatsapp" | "web" | "ombudsman" | "emergency";
+  channelValue: string | null;
+  requirements: string[];
+  identification: "required" | "optional" | "source_unclear";
+  anonymity: "accepted" | "not_available" | "source_unclear";
+  confidentiality: "stated" | "not_stated" | "source_unclear";
+  protocolExpectation: "expected" | "not_promised" | "source_unclear";
+  followUp: "available" | "not_available" | "source_unclear";
+  priorProtocolRequired: boolean;
+  hours: string | null;
+  sourceIds: string[];
+  sourceVerified: boolean;
+  operationallyChecked: boolean;
+  operationalStatus:
+    | "source_only"
+    | "conflicting_official_sources"
+    | "unavailable"
+    | "expired"
+    | "operationally_confirmed";
+  sourceConflict: boolean;
+  lastSourceReviewAt: string;
+  lastOperationalCheckAt: string | null;
+  reviewDueAt: string;
+  verifier: string;
+  state: "review_required" | "catalogued" | "disabled";
+  disabledReason: string | null;
+  internalNote: string;
+  version: string;
+  emergency: boolean;
+  immediateAssistedAction: boolean;
+  queueable: boolean;
+  automationAllowed: false;
 };
 
 export type RoutingRule = {
