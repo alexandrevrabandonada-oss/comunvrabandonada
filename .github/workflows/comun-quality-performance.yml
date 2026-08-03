@@ -60,6 +60,8 @@ jobs:
     if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'network')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    env:
+      COMUN_QUALITY_NETWORK_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -92,6 +94,8 @@ jobs:
     if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'local')
     runs-on: ubuntu-24.04
     timeout-minutes: 110
+    env:
+      COMUN_QUALITY_NETWORK_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -206,6 +210,7 @@ jobs:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       COMUN_QUALITY_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
       COMUN_EXPECTED_SHA: ${{ github.sha }}
+      COMUN_QUALITY_NETWORK_SHA: ${{ github.sha }}
       COMUN_QUALITY_ENFORCE_BUDGETS: "1"
     steps:
       - uses: actions/checkout@v4

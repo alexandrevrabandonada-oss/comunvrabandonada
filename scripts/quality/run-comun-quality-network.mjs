@@ -26,6 +26,8 @@ export function classifyNetworkRun({ exitCode, signal, browserCrash }) {
 }
 
 function resolveSha() {
+  if (process.env.COMUN_QUALITY_NETWORK_SHA)
+    return process.env.COMUN_QUALITY_NETWORK_SHA;
   if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA;
   return execFileSync("git", ["rev-parse", "HEAD"], {
     encoding: "utf8",

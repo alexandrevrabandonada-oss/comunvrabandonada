@@ -39,5 +39,6 @@ test("runner usa configuração focal, um projeto e nenhum retry", async () => {
     packageJson,
     /"quality:network": "node scripts\/quality\/run-comun-quality-network\.mjs"/,
   );
+  assert.match(workflow, /COMUN_QUALITY_NETWORK_SHA/);
   assert.doesNotMatch(workflow, /continue-on-error/);
 });
