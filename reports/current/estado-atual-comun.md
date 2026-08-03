@@ -4,6 +4,8 @@
 
 - base: `97c102d2a2464e511cd443ee29cac119d7e7c360`, merge verde do 48.0A-N1;
 - branch: `codex/tijolo-48-0b-relata-durable-local`;
+- candidata funcional: `eff0f9b652c59cc2ad3a5bc01bf90e8d19fa9adc`;
+- PR #151 aberta em draft para coleta dos gates remotos;
 - migration real e forward-only validada somente no Supabase descartável;
 - manifesto/checksum local-only verde; promoção remota explicitamente proibida;
 - seis tabelas com RLS forçada e três RPCs allowlisted;

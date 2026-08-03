@@ -15,6 +15,8 @@ fechamento da integração.
 
 - base/main: `97c102d2a2464e511cd443ee29cac119d7e7c360`;
 - branch: `codex/tijolo-48-0b-relata-durable-local`;
+- candidata funcional: `eff0f9b652c59cc2ad3a5bc01bf90e8d19fa9adc`;
+- PR #151, inicialmente draft enquanto os checks remotos são coletados;
 - migration forward-only:
   `20260803161310_comun_relata_durable_local.sql`;
 - SHA-256: `729806b2208a48af79405c97b07eb9475450c86b0c10c418641db3ba380125bb`;
@@ -101,5 +103,5 @@ append-only e protocolos não podem mudar de `comun` para oficial.
 - catálogo é `source_verified`, não `operationally_checked`;
 - divergências oficiais de CAU/WhatsApp e Light/call center permanecem abertas;
 - nenhuma integração automática pode usar o catálogo;
-- PR, Preview, merge e smoke Production pós-merge ainda pendentes;
+- checks da PR, Preview, merge e smoke Production pós-merge ainda pendentes;
 - próximo tijolo: `48.0C — localização privada, anexos protegidos e formação de casos`.

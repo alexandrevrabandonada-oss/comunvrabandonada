@@ -3,8 +3,9 @@
   "result": "COMUN_RELATA_48_0B_LOCAL_CANDIDATE_GREEN_REMOTE_DB_UNCHANGED",
   "baseSha": "97c102d2a2464e511cd443ee29cac119d7e7c360",
   "branch": "codex/tijolo-48-0b-relata-durable-local",
-  "candidateSha": null,
-  "pullRequest": null,
+  "candidateSha": "eff0f9b652c59cc2ad3a5bc01bf90e8d19fa9adc",
+  "pullRequest": 151,
+  "pullRequestState": "draft",
   "mergeSha": null,
   "migration": {
     "path": "supabase/migrations/20260803161310_comun_relata_durable_local.sql",
