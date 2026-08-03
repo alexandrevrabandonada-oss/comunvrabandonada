@@ -2,6 +2,21 @@
 
 Atualizado em 2 de agosto de 2026.
 
+## Atualização canônica — Tijolo 48.0A (3 de agosto de 2026)
+
+- baseline confirmado: `d14f1aed1eca46b330b661935e6c73122390e708`;
+- escopo: fundação local do COMUN Relata em `/comun/relata`, sem persistência, migration, envio ou integração oficial;
+- flag: `COMUN_RELATA_PREVIEW`, desligada por padrão e sem link público;
+- protocolo de preview: `COMUN-LOCAL-*`, explicitamente não oficial;
+- roteamento: determinístico, versionado (`relata-routing-v1`) e sem LLM;
+- resultado local: `COMUN_RELATA_FOUNDATION_CANDIDATE_READY_FOR_PR`;
+- PR/deployment/Production do tijolo: ainda pendentes de gate remoto;
+- `/comun/relatar` legado, App V2 canônico e rollback `?experiencia=legacy` preservados;
+- 47.9D não iniciado e `launch_publicly` não acionado;
+- diagnóstico: `reports/current/comun-tijolo-48-0a-relata-diagnostico.md`;
+- proposta de schema (não executável): `reports/current/comun-relata-schema-proposal.md`;
+- relatório: `reports/current/comun-tijolo-48-0a-relata-foundation.md` e `.json`.
+
 ## Checkpoint ativo — Tijolo 47.9D0
 
 - base efetiva da promoção: `da76487568611b7e137b2c6798357250779af7cf`;

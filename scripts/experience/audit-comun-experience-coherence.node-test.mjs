@@ -4,7 +4,8 @@ import { auditExperience } from "./audit-comun-experience-coherence.mjs";
 
 test("contrato de coerência cobre rotas, pilotos, tokens e roadmap", async () => {
   const report = await auditExperience();
-  assert.equal(report.routeInventory.totalPages, 189);
+  // The dormant, feature-flagged /comun/relata route is part of the App Router inventory.
+  assert.equal(report.routeInventory.totalPages, 190);
   assert.equal(report.routeInventory.missingRequiredRoutes, 0);
   assert.equal(report.routeInventory.knownCompatibleRedirects, 1);
   assert.deepEqual(report.pilots.levels, [0, 1, 2]);

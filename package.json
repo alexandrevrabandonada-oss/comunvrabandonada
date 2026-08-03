@@ -84,6 +84,7 @@
     "test:e2e:comun-mobile-app-shell": "node scripts/comun-local-env.mjs run playwright test -c playwright.mobile-app-shell.config.ts",
     "test:e2e:comun-app-shell-v2": "playwright test -c playwright.app-shell-v2.config.ts",
     "test:e2e:app-shell-v2": "npm run test:e2e:comun-app-shell-v2",
+    "test:e2e:comun-relata": "playwright test -c playwright.comun-relata.config.ts",
     "journeys:audit": "node scripts/journeys/audit-comun-core-journeys.mjs --write-report",
     "journeys:test": "node --test scripts/journeys/comun-core-journeys.node-test.mjs && vitest run lib/comun-journey-context.test.ts lib/comun-inbox-presentation.test.ts lib/comun-journey-status.test.ts",
     "journeys:e2e": "playwright test -c playwright.core-journeys.config.ts",
