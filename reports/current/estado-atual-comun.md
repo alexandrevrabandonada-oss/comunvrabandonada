@@ -9,8 +9,10 @@ Atualizado em 2 de agosto de 2026.
 - flag: `COMUN_RELATA_PREVIEW`, desligada por padrão e sem link público;
 - protocolo de preview: `COMUN-LOCAL-*`, explicitamente não oficial;
 - roteamento: determinístico, versionado (`relata-routing-v1`) e sem LLM;
-- resultado local: `COMUN_RELATA_FOUNDATION_CANDIDATE_READY_FOR_PR`;
-- PR/deployment/Production do tijolo: ainda pendentes de gate remoto;
+- resultado: `COMUN_RELATA_FOUNDATION_BLOCKED_POSTMERGE_QUALITY_NETWORK_CHROMIUM_SIGSEGV`;
+- PR #148 mesclada; merge/Production SHA: `c70d1ceab802a7df591c9e6ac2aee07d364c3b1b`;
+- Production confirmou o SHA exato e o Relata segue `404` com flag desligada;
+- blocker pós-merge: Chromium headless `SIGSEGV` no teste de rede; retry focal no mesmo SHA repetiu; separar de finding do produto;
 - `/comun/relatar` legado, App V2 canônico e rollback `?experiencia=legacy` preservados;
 - 47.9D não iniciado e `launch_publicly` não acionado;
 - diagnóstico: `reports/current/comun-tijolo-48-0a-relata-diagnostico.md`;

@@ -2,7 +2,7 @@
 
 ## 1. Resultado
 
-Resultado local candidato: `COMUN_RELATA_FOUNDATION_CANDIDATE_READY_FOR_PR`. O resultado terminal de Production permanece pendente até PR, checks remotos e confirmação do SHA exato. O tijolo não inicia 47.9D, não torna App V2 padrão e não aciona `launch_publicly`.
+Resultado final documental: `COMUN_RELATA_FOUNDATION_BLOCKED_POSTMERGE_QUALITY_NETWORK_CHROMIUM_SIGSEGV`. A PR principal foi integrada e Production recebeu o SHA exato, mas o workflow pós-merge de qualidade falhou duas vezes no teste de rede por crash SIGSEGV do Chromium headless. O retry focal no mesmo SHA repetiu a falha; isso é blocker de infraestrutura, não finding de produto. O tijolo não inicia 47.9D, não torna App V2 padrão e não aciona `launch_publicly`.
 
 ## 2. Base
 
@@ -23,15 +23,15 @@ Implementação aditiva em módulos `lib/comun-relata-*`, rota protegida `/comun
 
 ## 5. PR
 
-Pendente de publicação após regressão local. Título: `TIJOLO 48.0A — fundação do COMUN Relata`.
+PR #148 — `TIJOLO 48.0A — fundação do COMUN Relata` — mesclada.
 
 ## 6. Merge
 
-Não realizado neste ponto do relatório.
+Merge commit: `c70d1ceab802a7df591c9e6ac2aee07d364c3b1b`.
 
 ## 7. Deployment
 
-Nenhum deployment remoto provocado pelo tijolo. A produção segue no baseline enquanto a flag permanece ausente/desligada.
+Production confirmou `c70d1ceab802a7df591c9e6ac2aee07d364c3b1b` em `/api/comun/quality-status`, com PWA `comun-pwa-v3`. Smoke read-only: `/comun/relata` `404`, `/comun` `200`, rollback `?experiencia=legacy` `200`, sem marcador Relata na Home.
 
 ## 8. Domínio e flag
 
@@ -110,10 +110,10 @@ Persistência, idempotência real, canais verificados, consentimento durável, l
 
 48.0A fundação local; próximo tijolo `48.0B — persistência/local verified channels/durable COMUN protocol`, ainda sem envios reais. 47.9D permanece não iniciado.
 
-## 26. Critério de integração
+## 26. Critério de integração e blocker pós-merge
 
-Só mesclar após PR com checks verdes, Preview READY, zero P0/P1, flag desligada por padrão, App V2 e legado intactos, sem migration/escrita/integração, no-leak e regressão completa. Caso contrário, manter PR aberta com blocker específico.
+Os gates da PR foram verdes (Preview READY, zero P0/P1, flag desligada, App V2/legado intactos, sem migration/escrita/integração, no-leak e regressão). Após o merge, o job `COMUN Quality Performance Deliverability` falhou em `6. Rede degradada em navegador isolado`: `browser.newContext` encerrou porque o Chromium recebeu `SIGSEGV`. O retry focal do mesmo SHA repetiu o mesmo crash. PWA, acessibilidade sintética, performance sintética, no-leak e preflight do SHA passaram. O blocker permanece separado de produto.
 
-## 27. Estado final a emitir depois do gate
+## 27. Estado final emitido
 
-`COMUN_RELATA_FOUNDATION_PRODUCTION_DORMANT_GREEN` somente após confirmação remota do SHA final e smoke read-only em Production. Até lá, este arquivo é candidato documental.
+`COMUN_RELATA_FOUNDATION_BLOCKED_POSTMERGE_QUALITY_NETWORK_CHROMIUM_SIGSEGV`. O preview continua dormente em Production, sem qualquer envio real; o próximo passo é repetir o job de rede em runner/browser estável antes de promover o resultado.
