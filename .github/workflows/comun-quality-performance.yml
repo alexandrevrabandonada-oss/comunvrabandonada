@@ -16,6 +16,7 @@ on:
       - "config/comun-quality-budgets.json"
       - "docs/comun-quality-*.md"
       - "playwright.quality-performance.config.ts"
+      - "playwright.quality-network.config.ts"
       - "playwright.comun-pwa-experience.config.ts"
       - "package*.json"
       - ".github/workflows/comun-quality-performance.yml"
@@ -34,6 +35,7 @@ on:
       - "config/comun-quality-budgets.json"
       - "docs/comun-quality-*.md"
       - "playwright.quality-performance.config.ts"
+      - "playwright.quality-network.config.ts"
       - "playwright.comun-pwa-experience.config.ts"
       - "package*.json"
       - ".github/workflows/comun-quality-performance.yml"
@@ -44,7 +46,7 @@ on:
         required: true
         type: choice
         default: local
-        options: [local, full]
+        options: [local, full, network]
 
 concurrency:
   group: comun-quality-performance-${{ github.event.pull_request.number || github.ref }}-${{ inputs.mode || 'automatic' }}
@@ -54,6 +56,38 @@ permissions:
   contents: read
 
 jobs:
+  network-lane:
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'network')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: npm
+      - name: Envelope sanitizado do laboratório focal
+        run: mkdir -p .ci-artifacts/quality-performance && node -e "require('node:fs').writeFileSync('.ci-artifacts/quality-performance/00-envelope.json',JSON.stringify({status:'started',scope:'network_focal_disposable',containsPersonalData:false,containsQueries:false,containsSecrets:false},null,2))"
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: Rede degradada em Chromium low-Android isolado
+        run: |
+          npm run quality:network:runner-test
+          free -h
+          df -h . /dev/shm
+          npm run quality:network
+      - name: Marcador sanitizado de falha
+        if: failure()
+        run: node -e "require('node:fs').writeFileSync('.ci-artifacts/quality-performance/99-failure.json',JSON.stringify({status:'failed',containsPersonalData:false,containsQueries:false,containsSecrets:false,tracesPublished:false},null,2))"
+      - name: Publicar somente JSON sanitizado
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-quality-network-${{ github.run_id }}
+          path: .ci-artifacts/quality-performance/*.json
+          if-no-files-found: error
+          retention-days: 14
+
   pr-lane:
     if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'local')
     runs-on: ubuntu-24.04
@@ -99,6 +133,9 @@ jobs:
       - name: Performance, hidratação, bundles e rede degradada
         run: |
           npm run quality:performance
+          npm run quality:network:runner-test
+          free -h
+          df -h . /dev/shm
           npm run quality:network
       - name: Jornadas integrais e regressões dos domínios existentes
         run: |
@@ -137,7 +174,7 @@ jobs:
           npm run build
       - name: Formatação focal e whitespace
         run: |
-          npx --yes prettier@3.9.6 --check app/api/comun/quality-metrics app/comun/ajuda app/comun/admin/observabilidade app/comun/buscar app/comun/conta app/globals.css app/layout.tsx components/comun-web-vitals.tsx components/comun-pwa-runtime.tsx components/community-auth-form.tsx components/admin-login-form.tsx lib/quality-* lib/comun-pwa* lib/comun-date.ts scripts/quality tests/quality-performance tests/comun-pwa-experience config/comun-quality-budgets.json docs/comun-quality-*.md playwright.quality-performance.config.ts .github/workflows/comun-quality-performance.yml
+          npx --yes prettier@3.9.6 --check app/api/comun/quality-metrics app/comun/ajuda app/comun/admin/observabilidade app/comun/buscar app/comun/conta app/globals.css app/layout.tsx components/comun-web-vitals.tsx components/comun-pwa-runtime.tsx components/community-auth-form.tsx components/admin-login-form.tsx lib/quality-* lib/comun-pwa* lib/comun-date.ts scripts/quality tests/quality-performance tests/comun-pwa-experience config/comun-quality-budgets.json docs/comun-quality-*.md playwright.quality-performance.config.ts playwright.quality-network.config.ts .github/workflows/comun-quality-performance.yml
           git diff --check
       - name: Evidência agregada sanitizada
         run: |
@@ -204,7 +241,11 @@ jobs:
       - name: 5. Carga local sem publicação
         run: npm run quality:load
       - name: 6. Rede degradada em navegador isolado
-        run: npm run quality:network
+        run: |
+          npm run quality:network:runner-test
+          free -h
+          df -h . /dev/shm
+          npm run quality:network
       - name: 7. Autenticação e superfície protegida sem mutation
         run: node scripts/quality/remote-comun-quality-rehearsal.mjs
       - name: 8. Postflight no-leak e coleta
