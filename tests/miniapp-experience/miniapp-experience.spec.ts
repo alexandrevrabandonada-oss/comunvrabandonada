@@ -104,9 +104,8 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
   await expect(page.getByText(/Memória fixture do ensaio local/)).toBeVisible();
   await screenshot(page, "memoria", testInfo.project.name);
   await page.goto("/comun/caixa-de-entrada");
-  await expect(
-    page.getByRole("heading", { name: "Caixa de Entrada" }),
-  ).toBeVisible();
+  await expect(page.locator('[data-comun-app-v2-page="inbox"]')).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Caixa" })).toBeVisible();
   await screenshot(page, "inbox", testInfo.project.name);
   await page.goto("/comun/c/cidade");
   await expect(
