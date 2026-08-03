@@ -3,7 +3,7 @@
   "result": "COMUN_RELATA_48_0B_LOCAL_CANDIDATE_GREEN_REMOTE_DB_UNCHANGED",
   "baseSha": "97c102d2a2464e511cd443ee29cac119d7e7c360",
   "branch": "codex/tijolo-48-0b-relata-durable-local",
-  "candidateSha": "f96f92efd99a28525a172ca7d497ab03d615316c",
+  "candidateSha": "43484e730cc273dbb578affed98420c96099616b",
   "pullRequest": 151,
   "pullRequestState": "draft",
   "mergeSha": null,
