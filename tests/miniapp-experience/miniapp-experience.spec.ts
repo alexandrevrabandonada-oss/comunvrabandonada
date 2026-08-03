@@ -26,7 +26,10 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
   await screenshot(page, "pauta", testInfo.project.name);
   await page.goto("/comun/c/cidade");
   await expect(
-    page.getByText("Ferramentas que estamos usando", { exact: true }),
+    page.locator('[data-comun-app-v2-page="community-home"]'),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Pautas e ações ativas" }),
   ).toBeVisible();
   await screenshot(page, "comunidade", testInfo.project.name);
   await page.goto("/comun/territorios");
@@ -104,7 +107,10 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
   await screenshot(page, "inbox", testInfo.project.name);
   await page.goto("/comun/c/cidade");
   await expect(
-    page.getByText("Ferramentas que estamos usando", { exact: true }),
+    page.locator('[data-comun-app-v2-page="community-home"]'),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Pautas e ações ativas" }),
   ).toBeVisible();
 });
 
