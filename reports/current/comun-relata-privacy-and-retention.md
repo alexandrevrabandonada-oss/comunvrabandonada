@@ -16,10 +16,11 @@ política definitiva de produção.
 
 ## Acesso e logging
 
-RLS é forçada em todas as tabelas. Operações anônimas passam exclusivamente por
-três RPCs allowlisted e por prova de posse. Ausência, protocolo desconhecido e
-segredo incorreto são indistinguíveis para evitar enumeração. Eventos não podem
-ser atualizados ou removidos.
+RLS é forçada em todas as tabelas. O navegador chama somente a API same-origin;
+as três RPCs são executáveis apenas pela service role do runtime Node local e
+exigem prova de posse. Ausência, protocolo desconhecido e segredo incorreto são
+indistinguíveis para evitar enumeração. Eventos não podem ser atualizados ou
+removidos.
 
 São proibidos em logs: original, resposta livre, protocolo completo, segredo,
 hash, endereço, coordenada, IP, telefone, e-mail, cookie, header e conteúdo de

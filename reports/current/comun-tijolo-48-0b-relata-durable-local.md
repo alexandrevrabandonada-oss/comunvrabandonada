@@ -19,7 +19,7 @@ fechamento da integração.
 - PR #151, inicialmente draft enquanto os checks remotos são coletados;
 - migration forward-only:
   `20260803161310_comun_relata_durable_local.sql`;
-- SHA-256: `729806b2208a48af79405c97b07eb9475450c86b0c10c418641db3ba380125bb`;
+- SHA-256: `cb216666f64602c02e756d8e2d66017e5a721c7b9ad7810f793cad6a276606b7`;
 - manifesto: `supabase/local-releases/20260803161310-comun-relata-durable-local.json`;
 - `requiresPromotion=false`; `remotePromotionAllowed=false`;
 - Supabase remoto: não consultado, não migrado e não alterado.
@@ -33,14 +33,16 @@ fechamento da integração.
 | futura privada | `private.comun_relata_private_locations` | contrato bloqueado; zero linhas |
 | futura pública | `public.comun_relata_public_snapshots` | contrato bloqueado; zero publicação |
 
-Funções allowlisted: `comun_relata_create`, `comun_relata_get_receipt` e
-`comun_relata_withdraw`. Todas são `security definer` com `search_path` fixo,
-validam argumentos e não retornam original, segredo, hash ou coordenada.
+Funções server-only allowlisted: `comun_relata_create`,
+`comun_relata_get_receipt` e `comun_relata_withdraw`. Todas são
+`security definer` com `search_path=pg_catalog`, validam argumentos e não
+retornam original, segredo, hash ou coordenada.
 
-RLS está habilitada e forçada nas seis tabelas. `PUBLIC` e `anon` não possuem
-CRUD direto; authenticated comum não lê superfícies privadas; leitura
-operacional administrativa depende do papel allowlisted. Eventos são
-append-only e protocolos não podem mudar de `comun` para oficial.
+RLS está habilitada e forçada nas seis tabelas. `PUBLIC`, `anon` e
+`authenticated` não possuem CRUD direto nem EXECUTE nas RPCs. Somente a API
+server-only local usa `service_role`; qualquer futura tela administrativa deve
+continuar mediada pelo servidor. Eventos são append-only e protocolos não
+podem mudar de `comun` para oficial.
 
 ## Protocolo, idempotência e estado
 
@@ -62,6 +64,7 @@ append-only e protocolos não podem mudar de `comun` para oficial.
 - flags exigidas em conjunto: `COMUN_RELATA_PREVIEW=enabled` e
   `COMUN_RELATA_LOCAL_PERSISTENCE=enabled`;
 - URL Supabase aceita somente `http` loopback com porta explícita;
+- a chave service role local permanece exclusivamente no runtime Node;
 - flags desligadas ou destino remoto retornam `404` antes de criar cliente;
 - recibo em cookie HttpOnly, SameSite Strict e Secure em HTTPS;
 - nenhum segredo em URL, Local Storage, Session Storage, analytics ou logs;
@@ -78,7 +81,8 @@ append-only e protocolos não podem mudar de `comun` para oficial.
   PWA standalone 430×932;
 - Axe: verde nos cinco projetos;
 - DB rehearsal: `COMUN_RELATA_LOCAL_PERSISTENCE_GREEN`;
-- papéis: `PUBLIC`, `anon`, `authenticated`, admin e não-admin;
+- papéis: `PUBLIC`, `anon`, `authenticated`, admin, não-admin e
+  `service_role` exclusivamente server-side;
 - idempotência: sequencial, concorrente e conflito de payload verdes;
 - isolamento: ausência/segredo errado indistinguíveis e duas pessoas isoladas;
 - retention dry-run: zero delete, zero dado pessoal emitido, remoto não contatado;
@@ -90,7 +94,11 @@ append-only e protocolos não podem mudar de `comun` para oficial.
 - App Shell V2: 35/35; PWA: 30/30; performance: 9/9;
 - rede focal Chromium: 2/2, `exit code=0`, `signal=null`, classificação
   `green`;
-- segurança: 6/6; surfaces: 4 testes de auditor + 26 Vitest verdes;
+- segurança: 6/6; auditoria RLS integral:
+  `COMUN_RLS_COMPLETE_GREEN`, 190 tabelas, 2.280 linhas de matriz, zero
+  finding, zero `security definer` inseguro e zero `security definer` exposto;
+- grants das três RPCs Relata: `anon=0`, `authenticated=0`,
+  `service_role=3`; surfaces: 4 testes de auditor + 26 Vitest verdes;
 - no-leak HTTP e UI pública em Production: verdes; smoke de rotas públicas
   locais: verde;
 - DB lint: nenhum finding Relata; permanece o finding preexistente de

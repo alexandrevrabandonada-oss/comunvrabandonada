@@ -9,7 +9,7 @@
   "mergeSha": null,
   "migration": {
     "path": "supabase/migrations/20260803161310_comun_relata_durable_local.sql",
-    "sha256": "729806b2208a48af79405c97b07eb9475450c86b0c10c418641db3ba380125bb",
+    "sha256": "cb216666f64602c02e756d8e2d66017e5a721c7b9ad7810f793cad6a276606b7",
     "forwardOnly": true,
     "localOnly": true,
     "requiresPromotion": false,
@@ -26,7 +26,9 @@
     "enabledAndForcedTables": 6,
     "directAnonCrud": false,
     "privateAuthenticatedCrud": false,
-    "adminOperationalRead": "allowlisted_role_only",
+    "clientRpcExecute": false,
+    "adminOperationalRead": "future_server_mediated_only",
+    "serverRpcRole": "service_role_local_only",
     "crossPersonAccess": false
   },
   "protocol": {
@@ -57,6 +59,15 @@
     "performance": "9/9",
     "qualityNetwork": "2/2_green_exit_0_no_signal",
     "security": "6/6",
+    "securityRlsComplete": {
+      "result": "COMUN_RLS_COMPLETE_GREEN",
+      "tables": 190,
+      "personaMatrixRows": 2280,
+      "findings": 0,
+      "unsafeSecurityDefiners": 0,
+      "exposedSecurityDefiners": 0,
+      "relataRpcExecute": { "anon": 0, "authenticated": 0, "serviceRole": 3 }
+    },
     "surfaces": "4_auditor_and_26_vitest_passed",
     "noLeakHttpProduction": "passed",
     "publicUiProduction": "passed",

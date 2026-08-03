@@ -123,7 +123,7 @@ create or replace function private.comun_relata_reject_event_mutation()
 returns trigger
 language plpgsql
 security definer
-set search_path = ''
+set search_path = 'pg_catalog'
 as $$
 begin
   raise exception using errcode = '42501', message = 'COMUN_RELATA_EVENT_APPEND_ONLY';
@@ -134,7 +134,7 @@ create or replace function private.comun_relata_reject_public_snapshot()
 returns trigger
 language plpgsql
 security definer
-set search_path = ''
+set search_path = 'pg_catalog'
 as $$
 begin
   raise exception using errcode = '42501', message = 'COMUN_RELATA_PUBLICATION_BLOCKED_48_0B';
@@ -145,7 +145,7 @@ create or replace function private.comun_relata_guard_case_identity()
 returns trigger
 language plpgsql
 security definer
-set search_path = ''
+set search_path = 'pg_catalog'
 as $$
 begin
   if new.protocol is distinct from old.protocol
@@ -174,22 +174,6 @@ create trigger comun_relata_case_identity_guard
 before update on public.comun_relata_cases
 for each row execute function private.comun_relata_guard_case_identity();
 
-create or replace function public.comun_relata_is_admin()
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select exists (
-    select 1
-    from public.comun_admin_users admin_user
-    where admin_user.user_id = (select auth.uid())
-      and admin_user.is_active = true
-      and admin_user.role = 'admin'
-  );
-$$;
-
 create or replace function public.comun_relata_create(
   p_idempotency_key text,
   p_receipt_secret text,
@@ -213,7 +197,7 @@ returns table (
 )
 language plpgsql
 security definer
-set search_path = ''
+set search_path = 'pg_catalog'
 as $$
 declare
   v_idempotency_hash bytea;
@@ -346,7 +330,7 @@ returns table (
 language sql
 stable
 security definer
-set search_path = ''
+set search_path = 'pg_catalog'
 as $$
   select
     relata_case.protocol,
@@ -389,7 +373,7 @@ returns table (
 )
 language plpgsql
 security definer
-set search_path = ''
+set search_path = 'pg_catalog'
 as $$
 declare
   v_case public.comun_relata_cases%rowtype;
@@ -443,13 +427,6 @@ alter table public.comun_relata_status_events force row level security;
 alter table public.comun_relata_public_snapshots enable row level security;
 alter table public.comun_relata_public_snapshots force row level security;
 
-create policy comun_relata_admin_read_cases on public.comun_relata_cases
-  for select to authenticated using ((select public.comun_relata_is_admin()));
-create policy comun_relata_admin_read_consents on public.comun_relata_consents
-  for select to authenticated using ((select public.comun_relata_is_admin()));
-create policy comun_relata_admin_read_events on public.comun_relata_status_events
-  for select to authenticated using ((select public.comun_relata_is_admin()));
-
 revoke all on all tables in schema private from public, anon, authenticated;
 revoke all on table public.comun_relata_cases from public, anon, authenticated;
 revoke all on table public.comun_relata_consents from public, anon, authenticated;
@@ -457,22 +434,16 @@ revoke all on table public.comun_relata_status_events from public, anon, authent
 revoke all on table public.comun_relata_public_snapshots from public, anon, authenticated;
 revoke all on sequence public.comun_relata_status_events_id_seq from public, anon, authenticated;
 
-grant select on table public.comun_relata_cases to authenticated;
-grant select on table public.comun_relata_consents to authenticated;
-grant select on table public.comun_relata_status_events to authenticated;
-
 revoke all on function private.comun_relata_reject_event_mutation() from public;
 revoke all on function private.comun_relata_reject_public_snapshot() from public;
 revoke all on function private.comun_relata_guard_case_identity() from public;
-revoke all on function public.comun_relata_is_admin() from public;
 revoke all on function public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text) from public;
 revoke all on function public.comun_relata_get_receipt(text,text) from public;
 revoke all on function public.comun_relata_withdraw(text,text) from public;
 
-grant execute on function public.comun_relata_is_admin() to authenticated;
-grant execute on function public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text) to anon, authenticated;
-grant execute on function public.comun_relata_get_receipt(text,text) to anon, authenticated;
-grant execute on function public.comun_relata_withdraw(text,text) to anon, authenticated;
+grant execute on function public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text) to service_role;
+grant execute on function public.comun_relata_get_receipt(text,text) to service_role;
+grant execute on function public.comun_relata_withdraw(text,text) to service_role;
 
 comment on table private.comun_relata_reports is
   '48.0B local-only: texto original, provas em hash e retenção proposta; sem promoção remota.';

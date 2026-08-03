@@ -7,12 +7,12 @@ import {
 } from "./comun-relata-persistence";
 
 describe("COMUN Relata local persistence guard", () => {
-  it("requires both flags, a loopback URL and an anon key", () => {
+  it("requires both flags, a loopback URL and a server-only key", () => {
     const enabled = {
       COMUN_RELATA_PREVIEW: "enabled",
       COMUN_RELATA_LOCAL_PERSISTENCE: "enabled",
       NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:56431",
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "local-anon",
+      SUPABASE_SERVICE_ROLE_KEY: "local-service-only",
     };
     expect(isComunRelataPersistenceEnabled(enabled)).toBe(true);
     expect(

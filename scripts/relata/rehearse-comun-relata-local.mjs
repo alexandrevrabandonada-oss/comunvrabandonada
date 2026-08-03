@@ -60,7 +60,7 @@ async function asRole(role, callback, subject = null) {
 }
 
 async function createReport(input) {
-  return asRole("anon", (client) =>
+  return asRole("service_role", (client) =>
     client.query(
       `select * from public.comun_relata_create(
         $1,$2,$3,$4::jsonb,$5,$6,$7,$8::jsonb,$9,$10
@@ -123,13 +123,13 @@ assert.deepEqual(
 );
 assert.notEqual(concurrentA.rows[0].protocol, firstCreate.rows[0].protocol);
 
-const wrongReceipt = await asRole("anon", (client) =>
+const wrongReceipt = await asRole("service_role", (client) =>
   client.query("select * from public.comun_relata_get_receipt($1,$2)", [
     firstCreate.rows[0].protocol,
     proof(),
   ]),
 );
-const nonexistent = await asRole("anon", (client) =>
+const nonexistent = await asRole("service_role", (client) =>
   client.query("select * from public.comun_relata_get_receipt($1,$2)", [
     "COMUN-RELATA-0000000000000000",
     proof(),
@@ -138,7 +138,7 @@ const nonexistent = await asRole("anon", (client) =>
 assert.equal(wrongReceipt.rowCount, 0);
 assert.equal(nonexistent.rowCount, 0);
 
-const ownReceipt = await asRole("anon", (client) =>
+const ownReceipt = await asRole("service_role", (client) =>
   client.query("select * from public.comun_relata_get_receipt($1,$2)", [
     firstCreate.rows[0].protocol,
     first.receiptSecret,
@@ -183,15 +183,14 @@ await assert.rejects(
 );
 
 const ordinarySubject = randomUUID();
-const ordinaryRead = await asRole(
-  "authenticated",
-  (client) =>
-    client.query(
-      "select count(*)::int as count from public.comun_relata_cases",
-    ),
-  ordinarySubject,
+await assert.rejects(
+  asRole(
+    "authenticated",
+    (client) => client.query("select count(*) from public.comun_relata_cases"),
+    ordinarySubject,
+  ),
+  /permission denied/,
 );
-assert.equal(ordinaryRead.rows[0].count, 0);
 
 const adminSubject = randomUUID();
 await postgres.query(
@@ -199,15 +198,14 @@ await postgres.query(
    values ($1,$2,'admin',true)`,
   [adminSubject, `relata-admin-${adminSubject}@example.invalid`],
 );
-const adminRead = await asRole(
-  "authenticated",
-  (client) =>
-    client.query(
-      "select count(*)::int as count from public.comun_relata_cases",
-    ),
-  adminSubject,
+await assert.rejects(
+  asRole(
+    "authenticated",
+    (client) => client.query("select count(*) from public.comun_relata_cases"),
+    adminSubject,
+  ),
+  /permission denied/,
 );
-assert.ok(adminRead.rows[0].count >= 2);
 
 await assert.rejects(
   postgres.query(
@@ -273,7 +271,23 @@ const grants = await postgres.query(`
 `);
 assert.equal(grants.rows[0].count, 0);
 
-const withdrawal = await asRole("anon", (client) =>
+const rpcGrants = await postgres.query(`
+  select
+    count(*) filter (where has_function_privilege('anon', p.oid, 'execute'))::int as anon,
+    count(*) filter (where has_function_privilege('authenticated', p.oid, 'execute'))::int as authenticated,
+    count(*) filter (where has_function_privilege('service_role', p.oid, 'execute'))::int as service_role
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public'
+    and p.proname in ('comun_relata_create','comun_relata_get_receipt','comun_relata_withdraw')
+`);
+assert.deepEqual(rpcGrants.rows[0], {
+  anon: 0,
+  authenticated: 0,
+  service_role: 3,
+});
+
+const withdrawal = await asRole("service_role", (client) =>
   client.query("select * from public.comun_relata_withdraw($1,$2)", [
     firstCreate.rows[0].protocol,
     first.receiptSecret,
@@ -281,7 +295,7 @@ const withdrawal = await asRole("anon", (client) =>
 );
 assert.equal(withdrawal.rows[0].state, "withdrawn");
 assert.equal(withdrawal.rows[0].timeline.length, 5);
-const withdrawalAgain = await asRole("anon", (client) =>
+const withdrawalAgain = await asRole("service_role", (client) =>
   client.query("select * from public.comun_relata_withdraw($1,$2)", [
     firstCreate.rows[0].protocol,
     first.receiptSecret,
@@ -300,7 +314,7 @@ await postgres.end();
 console.log(
   JSON.stringify({
     result: "COMUN_RELATA_LOCAL_PERSISTENCE_GREEN",
-    roles: ["PUBLIC", "anon", "authenticated", "admin", "non_admin"],
+    roles: ["PUBLIC", "anon", "authenticated", "admin", "non_admin", "service_role"],
     idempotency: ["sequential", "concurrent", "payload_conflict"],
     privacy: "no_private_values_emitted",
     remote: "not_contacted",
