@@ -4,6 +4,7 @@ import {
   COMUN_RELATA_LOCATION_KEY,
   COMUN_RELATA_SPATIAL_KEY,
   isComunRelataEvidenceEnabled,
+  shouldCloakComunRelataEvidenceApi,
 } from "./comun-relata-evidence-feature";
 
 const key = (byte: number) => Buffer.alloc(32, byte).toString("base64url");
@@ -64,5 +65,36 @@ describe("COMUN Relata evidence flags", () => {
     expect(areComunRelataEvidenceFlagsEnabled(env)).toBe(false);
     expect(isComunRelataEvidenceEnabled(env)).toBe(false);
     expect(secretReads).toBe(0);
+  });
+
+  it("cloaks every evidence subroute before method dispatch while dormant", () => {
+    const dormant = {
+      ...enabledEnv(),
+      COMUN_RELATA_LOCAL_EVIDENCE: "disabled",
+    };
+    expect(
+      shouldCloakComunRelataEvidenceApi(
+        "/api/comun/relata/evidence/location",
+        dormant,
+      ),
+    ).toBe(true);
+    expect(
+      shouldCloakComunRelataEvidenceApi(
+        "/api/comun/relata/evidence/grouping",
+        dormant,
+      ),
+    ).toBe(true);
+    expect(
+      shouldCloakComunRelataEvidenceApi(
+        "/api/comun/relata/evidence-not-this-contract",
+        dormant,
+      ),
+    ).toBe(false);
+    expect(
+      shouldCloakComunRelataEvidenceApi(
+        "/api/comun/relata/evidence/location",
+        enabledEnv(),
+      ),
+    ).toBe(false);
   });
 });

@@ -4,9 +4,23 @@ import {
   canonicalComunHref,
   shouldUseLegacyDefault,
 } from "@/lib/comun-experience";
+import { shouldCloakComunRelataEvidenceApi } from "@/lib/comun-relata-evidence-feature";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function proxy(request: NextRequest) {
+  if (shouldCloakComunRelataEvidenceApi(request.nextUrl.pathname)) {
+    return NextResponse.json(
+      { code: "evidence_unavailable" },
+      {
+        status: 404,
+        headers: {
+          "Cache-Control": "private, no-store, max-age=0",
+          "X-Robots-Tag": "noindex, nofollow, noarchive",
+        },
+      },
+    );
+  }
+
   const requestedExperience = request.nextUrl.searchParams.get("experiencia");
 
   if (
@@ -40,5 +54,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/comun/:path*"],
+  matcher: ["/comun/:path*", "/api/comun/relata/evidence/:path*"],
 };
