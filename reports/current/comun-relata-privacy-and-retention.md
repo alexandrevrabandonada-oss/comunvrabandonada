@@ -1,4 +1,4 @@
-# COMUN Relata — privacidade e proposta de retenção do 48.0B
+# COMUN Relata — privacidade e proposta de retenção do 48.0C
 
 Atualizado em 3 de agosto de 2026. Esta é uma proposta técnica local, não uma
 política definitiva de produção.
@@ -10,7 +10,12 @@ política definitiva de produção.
   COMUN e eventos;
 - o protocolo sozinho não autoriza leitura;
 - segredo de recibo, idempotência e ator são persistidos somente como hashes;
-- localização exata, contato e anexos não são coletados no 48.0B;
+- contato não é coletado; localização e até três fotografias são opcionais,
+  pós-recibo e somente no laboratório local 48.0C;
+- coordenada exata usa AES-256-GCM server-side e agrupamento recebe apenas
+  chaves HMAC com chave separada;
+- fotografias ficam em bucket privado, passam por validação real e geram
+  derivada privada recodificada, sem se tornarem publicáveis;
 - snapshot público existe apenas como contrato bloqueado e permanece vazio;
 - nenhum órgão externo recebe conteúdo e nenhuma migration chega ao remoto.
 
@@ -33,10 +38,11 @@ uma aparecer na saída sanitizada.
 | --- | --- | --- | --- |
 | `incomplete` | relato não concluído | revisão calculável, zero auto-delete | prazo e base legal |
 | `withdrawn` | retirada confirmada | bloquear uso; preservar evento mínimo | prazo do original e auditoria |
-| `submitted_future` | futuro envio externo | inalcançável no 48.0B | obrigação institucional |
-| `sensitive_future` | contato/local/anexo | não coletado | minimização e criptografia |
+| `submitted_future` | futuro envio externo | inalcançável no 48.0C | obrigação institucional |
+| `private_location` | coordenada opcional | criptografar; retirar acesso sem apagar história | prazo e rotação de chave |
+| `private_evidence` | foto selada ou retirada | bloquear publicação; incluir no cleanup dry-run | prazo dos bytes e revisão |
 | `audit_event` | transição append-only | manter sanitizado | janela de auditoria |
-| `evidence_future` | comprovante externo | não existe | cadeia de custódia |
+| `collective_membership` | vínculo operacional | inativar na retirada; preservar evento | janela de auditoria |
 
 Cada relato persiste `retention_policy_version`, classe e data calculável de
 revisão. O script `relata:retention:dry-run` somente contabiliza candidatos,
@@ -48,5 +54,7 @@ O ensaio de recuperação inclui o schema `private` quando presente, além de
 compara separadamente as contagens privadas e públicas; o backup bruto nunca é
 publicado como artefato.
 
-Qualquer cleanup real, promoção remota ou prazo definitivo exige decisão de
-produto, privacidade e obrigação institucional em tijolo futuro.
+O cleanup de evidências é idempotente e dry-run por padrão; qualquer mutação
+exige loopback e confirmação literal, nunca destino remoto. Qualquer prazo
+definitivo, eliminação real ou promoção remota exige decisão de produto,
+privacidade e obrigação institucional em tijolo futuro.

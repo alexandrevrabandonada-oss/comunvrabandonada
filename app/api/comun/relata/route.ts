@@ -8,6 +8,8 @@ import {
 } from "@/lib/comun-relata-persistence";
 import { classifyRelataPrivacy } from "@/lib/comun-relata-privacy";
 import { routeRelata } from "@/lib/comun-relata-routing";
+import { isComunRelataEvidenceEnabled } from "@/lib/comun-relata-evidence-feature";
+import { associateComunRelataCollective } from "@/lib/comun-relata-evidence-runtime";
 
 export const runtime = "nodejs";
 
@@ -107,6 +109,12 @@ export async function POST(request: NextRequest) {
     );
   }
   const receipt = normalizeComunRelataReceipt(receiptResult.data[0]);
+  if (isComunRelataEvidenceEnabled()) {
+    await associateComunRelataCollective(db, {
+      protocol: receipt.protocol,
+      receiptSecret,
+    });
+  }
   const response = NextResponse.json(
     { receipt, noOfficialSend: true },
     { status: 201, headers: noStoreHeaders },

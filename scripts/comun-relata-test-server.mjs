@@ -1,4 +1,8 @@
 import { spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
+
+const locationKey = randomBytes(32).toString("base64url");
+const spatialKey = randomBytes(32).toString("base64url");
 
 const command = process.platform === "win32" ? "npm.cmd" : "npm";
 const child = spawn(command, ["run", "dev", "--", "-p", "3137"], {
@@ -8,6 +12,9 @@ const child = spawn(command, ["run", "dev", "--", "-p", "3137"], {
     ...process.env,
     COMUN_RELATA_PREVIEW: "enabled",
     COMUN_RELATA_LOCAL_PERSISTENCE: "enabled",
+    COMUN_RELATA_LOCAL_EVIDENCE: "enabled",
+    COMUN_RELATA_LOCATION_ENCRYPTION_KEY: locationKey,
+    COMUN_RELATA_SPATIAL_HMAC_KEY: spatialKey,
     COMUN_BASE_URL: "http://127.0.0.1:3137",
   },
 });

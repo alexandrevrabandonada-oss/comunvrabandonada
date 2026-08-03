@@ -1203,6 +1203,30 @@ const classifications = {
     sensitive: "Projeção futura; deve permanecer vazia e sem grants públicos.",
     expected: "Sem leitura ou escrita pública; publicação estruturalmente bloqueada.",
   },
+  comun_relata_collective_cases: {
+    decision: "service_role_only",
+    purpose: "Projeção operacional sanitizada do problema coletivo.",
+    sensitive: "Contagem, confiança, regra e estado de revisão do agrupamento.",
+    expected: "Sem leitura direta; API server-only devolve apenas estado seguro do próprio recibo.",
+  },
+  comun_relata_case_memberships: {
+    decision: "service_role_only",
+    purpose: "Vínculo histórico entre processo individual e caso coletivo.",
+    sensitive: "Associação, confiança, método, encerramento e motivo sanitizado.",
+    expected: "Sem leitura direta; associação e retirada somente por RPC allowlisted.",
+  },
+  comun_relata_case_match_events: {
+    decision: "service_role_only",
+    purpose: "Auditoria append-only das decisões determinísticas de agrupamento.",
+    sensitive: "Caso anterior e posterior, confiança, regra e código de decisão.",
+    expected: "Sem leitura direta; eventos não podem ser atualizados ou apagados.",
+  },
+  comun_relata_evidence_consents: {
+    decision: "service_role_only",
+    purpose: "Consentimentos contextuais versionados de evidência privada.",
+    sensitive: "Vínculo do caso, tipo, versão, estado e retirada do consentimento.",
+    expected: "Sem leitura direta; nenhuma permissão autoriza publicação ou envio.",
+  },
 };
 
 const internalDecisions = new Set(["admin_only", "service_role_only"]);

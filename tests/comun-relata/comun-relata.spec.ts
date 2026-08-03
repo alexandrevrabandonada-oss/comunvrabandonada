@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import sharp from "sharp";
 
 test("stores, restores and withdraws a private local report", async ({
   page,
@@ -50,6 +51,36 @@ test("stores, restores and withdraws a private local report", async ({
     .textContent();
   expect(protocol?.trim()).toMatch(/^COMUN-RELATA-[A-F0-9]{16}$/);
   await expect(receipt.getByRole("list").getByRole("listitem")).toHaveCount(4);
+  await expect(page.getByRole("heading", { name: "Evidências" })).toBeVisible();
+  await expect(page.getByText("Nada foi publicado no mapa.")).toBeVisible();
+  await expect(page.getByText("Novo caso coletivo privado")).toBeVisible();
+
+  await page.getByRole("button", { name: "Usar localização" }).click();
+  await expect(page.getByText("Adicionada privadamente")).toBeVisible();
+  await expect(page.getByText(/coordenada exata não será exibida/i)).toBeVisible();
+
+  const photo = await sharp({
+    create: {
+      width: 96,
+      height: 72,
+      channels: 3,
+      background: "#777777",
+    },
+  })
+    .jpeg({ quality: 80 })
+    .toBuffer();
+  await page.locator("#relata-private-photo").setInputFiles({
+    name: "nome-privado-nao-persistido.jpg",
+    mimeType: "image/jpeg",
+    buffer: photo,
+  });
+  await expect(
+    page.getByText("Foto 1 foi guardada privadamente", { exact: false }),
+  ).toBeVisible({ timeout: 20_000 });
+  await expect(
+    page.getByAltText("Foto 1, evidência privada sem revisão visual"),
+  ).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText("1 de 3 adicionadas")).toBeVisible();
 
   const cookies = await context.cookies();
   const proofCookie = cookies.find(
@@ -78,6 +109,8 @@ test("stores, restores and withdraws a private local report", async ({
   await expect(
     page.locator("[data-comun-relata-receipt=stored_private]"),
   ).toContainText(protocol!.trim());
+  await expect(page.getByText("Adicionada privadamente")).toBeVisible();
+  await expect(page.getByAltText("Foto 1, evidência privada sem revisão visual")).toBeVisible();
   await page.getByRole("button", { name: "Quero retirar este relato" }).click();
   await expect(
     page.getByRole("group", { name: "Confirmar retirada" }),
@@ -86,8 +119,10 @@ test("stores, restores and withdraws a private local report", async ({
   await expect(
     page.locator("[data-comun-relata-receipt=withdrawn]"),
   ).toBeVisible();
+  await expect(page.getByText("Retirada", { exact: true }).first()).toBeVisible();
+  await expect(page.getByAltText("Foto 1, evidência privada sem revisão visual")).toHaveCount(0);
   await expect(
-    page.getByText("Nenhum órgão público recebeu esta manifestação."),
+    page.getByText("Nenhum órgão público recebeu esta manifestação.").first(),
   ).toBeVisible();
   expect(externalRequests).toEqual([]);
 });

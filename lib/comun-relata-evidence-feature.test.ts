@@ -1,0 +1,68 @@
+import { describe, expect, it } from "vitest";
+import {
+  areComunRelataEvidenceFlagsEnabled,
+  COMUN_RELATA_LOCATION_KEY,
+  COMUN_RELATA_SPATIAL_KEY,
+  isComunRelataEvidenceEnabled,
+} from "./comun-relata-evidence-feature";
+
+const key = (byte: number) => Buffer.alloc(32, byte).toString("base64url");
+
+function enabledEnv() {
+  return {
+    COMUN_RELATA_PREVIEW: "enabled",
+    COMUN_RELATA_LOCAL_PERSISTENCE: "enabled",
+    COMUN_RELATA_LOCAL_EVIDENCE: "enabled",
+    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+    SUPABASE_SERVICE_ROLE_KEY: "local-only",
+    [COMUN_RELATA_LOCATION_KEY]: key(1),
+    [COMUN_RELATA_SPATIAL_KEY]: key(2),
+  };
+}
+
+describe("COMUN Relata evidence flags", () => {
+  it("requires all three flags, loopback, service role and distinct 256-bit keys", () => {
+    expect(isComunRelataEvidenceEnabled(enabledEnv())).toBe(true);
+    expect(
+      isComunRelataEvidenceEnabled({
+        ...enabledEnv(),
+        COMUN_RELATA_LOCAL_EVIDENCE: "disabled",
+      }),
+    ).toBe(false);
+    expect(
+      isComunRelataEvidenceEnabled({
+        ...enabledEnv(),
+        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      }),
+    ).toBe(false);
+    expect(
+      isComunRelataEvidenceEnabled({
+        ...enabledEnv(),
+        [COMUN_RELATA_SPATIAL_KEY]: key(1),
+      }),
+    ).toBe(false);
+  });
+
+  it("fails before reading cryptographic secrets when a flag is off", () => {
+    let secretReads = 0;
+    const env: Record<string, string | undefined> = {
+      ...enabledEnv(),
+      COMUN_RELATA_LOCAL_EVIDENCE: "disabled",
+    };
+    Object.defineProperty(env, COMUN_RELATA_LOCATION_KEY, {
+      get() {
+        secretReads += 1;
+        return key(1);
+      },
+    });
+    Object.defineProperty(env, COMUN_RELATA_SPATIAL_KEY, {
+      get() {
+        secretReads += 1;
+        return key(2);
+      },
+    });
+    expect(areComunRelataEvidenceFlagsEnabled(env)).toBe(false);
+    expect(isComunRelataEvidenceEnabled(env)).toBe(false);
+    expect(secretReads).toBe(0);
+  });
+});

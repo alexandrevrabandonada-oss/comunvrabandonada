@@ -303,6 +303,270 @@ const withdrawalAgain = await asRole("service_role", (client) =>
 );
 assert.equal(withdrawalAgain.rows[0].timeline.length, 5);
 
+const evidenceA = fixture({
+  text: "Poste apagado perto da praça durante a noite.",
+});
+const evidenceB = fixture({
+  text: "Outro ponto de iluminação apagado na mesma praça.",
+});
+const evidenceACreate = await createReport(evidenceA);
+const evidenceBCreate = await createReport(evidenceB);
+const sharedCell = randomBytes(32);
+const otherCell = randomBytes(32);
+
+const location = await asRole("service_role", (client) =>
+  client.query(
+    `select * from public.comun_relata_add_location(
+      $1,$2,'device','under_25m',now(),$3,$4,$5,'relata-location-key-v1',null,'none','unreviewed'
+    )`,
+    [
+      evidenceACreate.rows[0].protocol,
+      evidenceA.receiptSecret,
+      randomBytes(64),
+      randomBytes(12),
+      randomBytes(16),
+    ],
+  ),
+);
+assert.deepEqual(location.rows[0], {
+  location_state: "added_private",
+  grouping_allowed: true,
+});
+
+const firstGrouping = await asRole("service_role", (client) =>
+  client.query(
+    `select * from public.comun_relata_associate_collective(
+      $1,$2,'auto_link_high_confidence',$3::bytea[],now()-interval '21 days'
+    )`,
+    [
+      evidenceACreate.rows[0].protocol,
+      evidenceA.receiptSecret,
+      [sharedCell, otherCell],
+    ],
+  ),
+);
+assert.equal(firstGrouping.rows[0].grouping_state, "new_collective_case");
+assert.equal(firstGrouping.rows[0].active_members_count, 1);
+
+const secondGrouping = await asRole("service_role", (client) =>
+  client.query(
+    `select * from public.comun_relata_associate_collective(
+      $1,$2,'auto_link_high_confidence',$3::bytea[],now()-interval '21 days'
+    )`,
+    [
+      evidenceBCreate.rows[0].protocol,
+      evidenceB.receiptSecret,
+      [sharedCell],
+    ],
+  ),
+);
+assert.equal(
+  secondGrouping.rows[0].grouping_state,
+  "auto_link_high_confidence",
+);
+assert.equal(secondGrouping.rows[0].active_members_count, 2);
+
+const attachmentIds = [randomUUID(), randomUUID(), randomUUID()];
+for (const attachmentId of attachmentIds) {
+  const started = await asRole("service_role", (client) =>
+    client.query(
+      "select * from public.comun_relata_begin_attachment($1,$2,$3,'image/jpeg','under_1mb')",
+      [
+        evidenceACreate.rows[0].protocol,
+        evidenceA.receiptSecret,
+        attachmentId,
+      ],
+    ),
+  );
+  assert.equal(started.rowCount, 1);
+}
+await assert.rejects(
+  asRole("service_role", (client) =>
+    client.query(
+      "select * from public.comun_relata_begin_attachment($1,$2,$3,'image/jpeg','under_1mb')",
+      [evidenceACreate.rows[0].protocol, evidenceA.receiptSecret, randomUUID()],
+    ),
+  ),
+  /COMUN_RELATA_ATTACHMENT_LIMIT/,
+);
+
+const concurrentPhotos = fixture({
+  text: "Duas fotos privadas serão iniciadas ao mesmo tempo.",
+});
+const concurrentPhotosCreate = await createReport(concurrentPhotos);
+const concurrentPhotoIds = [randomUUID(), randomUUID()];
+const concurrentPhotoStarts = await Promise.all(
+  concurrentPhotoIds.map((attachmentId) =>
+    asRole("service_role", (client) =>
+      client.query(
+        "select * from public.comun_relata_begin_attachment($1,$2,$3,'image/jpeg','under_1mb')",
+        [
+          concurrentPhotosCreate.rows[0].protocol,
+          concurrentPhotos.receiptSecret,
+          attachmentId,
+        ],
+      ),
+    ),
+  ),
+);
+assert.deepEqual(
+  concurrentPhotoStarts
+    .map((result) => Number(result.rows[0].label_index))
+    .sort(),
+  [1, 2],
+);
+
+const markedValidating = await asRole("service_role", (client) =>
+  client.query(
+    "select * from public.comun_relata_mark_attachment_validating($1,$2,$3)",
+    [evidenceACreate.rows[0].protocol, evidenceA.receiptSecret, attachmentIds[0]],
+  ),
+);
+assert.equal(markedValidating.rowCount, 1);
+const concurrentMark = await asRole("service_role", (client) =>
+  client.query(
+    "select * from public.comun_relata_mark_attachment_validating($1,$2,$3)",
+    [evidenceACreate.rows[0].protocol, evidenceA.receiptSecret, attachmentIds[0]],
+  ),
+);
+assert.equal(concurrentMark.rowCount, 0);
+const finalized = await asRole("service_role", (client) =>
+  client.query(
+    `select * from public.comun_relata_finalize_attachment(
+      $1,$2,$3,'image/jpeg',1024,512,80,60,$4,$5
+    )`,
+    [
+      evidenceACreate.rows[0].protocol,
+      evidenceA.receiptSecret,
+      attachmentIds[0],
+      randomBytes(32),
+      randomBytes(32),
+    ],
+  ),
+);
+assert.equal(finalized.rows[0].attachment_state, "sealed_private");
+const ownAttachmentRead = await asRole("service_role", (client) =>
+  client.query(
+    "select * from public.comun_relata_authorize_attachment_read($1,$2,$3)",
+    [evidenceACreate.rows[0].protocol, evidenceA.receiptSecret, attachmentIds[0]],
+  ),
+);
+const crossAttachmentRead = await asRole("service_role", (client) =>
+  client.query(
+    "select * from public.comun_relata_authorize_attachment_read($1,$2,$3)",
+    [evidenceBCreate.rows[0].protocol, evidenceB.receiptSecret, attachmentIds[0]],
+  ),
+);
+assert.equal(ownAttachmentRead.rowCount, 1);
+assert.equal(crossAttachmentRead.rowCount, 0);
+
+const safeEvidence = await asRole("service_role", (client) =>
+  client.query("select * from public.comun_relata_get_evidence_state($1,$2)", [
+    evidenceACreate.rows[0].protocol,
+    evidenceA.receiptSecret,
+  ]),
+);
+const safeEvidenceText = JSON.stringify(safeEvidence.rows[0]);
+assert.equal(safeEvidence.rows[0].evidence.photos[0].label, "Foto 1");
+assert.equal(safeEvidenceText.includes("quarantine/"), false);
+assert.equal(safeEvidenceText.includes("sealed/"), false);
+assert.equal(safeEvidenceText.includes("encrypted_value"), false);
+assert.equal(safeEvidenceText.includes(sharedCell.toString("hex")), false);
+
+const emergency = fixture({
+  text: "Há fogo ativo e chamas no terreno.",
+  category: "active_fire",
+  urgency: "emergency",
+  privacyClass: "high_risk",
+});
+const emergencyCreate = await createReport(emergency);
+const emergencyGrouping = await asRole("service_role", (client) =>
+  client.query(
+    `select * from public.comun_relata_associate_collective(
+      $1,$2,'auto_link_high_confidence',$3::bytea[],now()-interval '1 hour'
+    )`,
+    [emergencyCreate.rows[0].protocol, emergency.receiptSecret, [sharedCell]],
+  ),
+);
+assert.equal(emergencyGrouping.rows[0].grouping_state, "never_auto_link");
+const emergencyKeys = await postgres.query(
+  `select count(*)::int as count from private.comun_relata_case_match_keys key
+   join public.comun_relata_cases relata_case on relata_case.id=key.individual_case_id
+   where relata_case.protocol=$1`,
+  [emergencyCreate.rows[0].protocol],
+);
+assert.equal(emergencyKeys.rows[0].count, 0);
+
+await assert.rejects(
+  postgres.query(
+    "delete from public.comun_relata_case_match_events where individual_case_id=(select id from public.comun_relata_cases where protocol=$1)",
+    [evidenceACreate.rows[0].protocol],
+  ),
+  /COMUN_RELATA_EVIDENCE_EVENT_APPEND_ONLY/,
+);
+
+const evidenceWithdrawal = await asRole("service_role", (client) =>
+  client.query("select * from public.comun_relata_withdraw($1,$2)", [
+    evidenceACreate.rows[0].protocol,
+    evidenceA.receiptSecret,
+  ]),
+);
+assert.equal(evidenceWithdrawal.rows[0].state, "withdrawn");
+const withdrawnRead = await asRole("service_role", (client) =>
+  client.query(
+    "select * from public.comun_relata_authorize_attachment_read($1,$2,$3)",
+    [evidenceACreate.rows[0].protocol, evidenceA.receiptSecret, attachmentIds[0]],
+  ),
+);
+assert.equal(withdrawnRead.rowCount, 0);
+const withdrawnEvidence = await postgres.query(
+  `select
+    (select count(*)::int from private.comun_relata_attachments where report_id=(select report_id from public.comun_relata_cases where protocol=$1) and state='withdrawn') as attachments,
+    (select count(*)::int from public.comun_relata_case_memberships membership join public.comun_relata_cases relata_case on relata_case.id=membership.individual_case_id where relata_case.protocol=$1 and membership.active) as active_memberships`,
+  [evidenceACreate.rows[0].protocol],
+);
+assert.deepEqual(withdrawnEvidence.rows[0], {
+  attachments: 3,
+  active_memberships: 0,
+});
+
+for (const role of ["anon", "authenticated"]) {
+  await assert.rejects(
+    asRole(role, (client) =>
+      client.query("select count(*) from public.comun_relata_collective_cases"),
+    ),
+    /permission denied/,
+  );
+  await assert.rejects(
+    asRole(role, (client) =>
+      client.query("select count(*) from private.comun_relata_attachments"),
+    ),
+    /permission denied/,
+  );
+}
+
+const evidenceSecurity = await postgres.query(`
+  select count(*) filter (where relrowsecurity and relforcerowsecurity)::int as protected_tables,
+    count(*)::int as total_tables
+  from pg_class where oid in (
+    'private.comun_relata_attachments'::regclass,
+    'private.comun_relata_case_match_keys'::regclass,
+    'public.comun_relata_evidence_consents'::regclass,
+    'public.comun_relata_collective_cases'::regclass,
+    'public.comun_relata_case_memberships'::regclass,
+    'public.comun_relata_case_match_events'::regclass
+  )
+`);
+assert.deepEqual(evidenceSecurity.rows[0], {
+  protected_tables: 6,
+  total_tables: 6,
+});
+
+const publicSnapshots = await postgres.query(
+  "select count(*)::int as count from public.comun_relata_public_snapshots",
+);
+assert.equal(publicSnapshots.rows[0].count, 0);
+
 const persistedInvariant = await postgres.query(`
   select count(*)::int as invalid
   from public.comun_relata_cases
@@ -317,6 +581,7 @@ console.log(
     roles: ["PUBLIC", "anon", "authenticated", "admin", "non_admin", "service_role"],
     idempotency: ["sequential", "concurrent", "payload_conflict"],
     privacy: "no_private_values_emitted",
+    evidence: ["aes_256_gcm_contract", "private_photos", "collective_cases"],
     remote: "not_contacted",
   }),
 );

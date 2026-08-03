@@ -57,6 +57,37 @@ export type Case = {
   ruleVersion: string;
 };
 
+export type CollectiveCaseMatchDecision =
+  | "auto_link_high_confidence"
+  | "candidate_medium_confidence"
+  | "new_collective_case"
+  | "never_auto_link"
+  | "human_review_future";
+
+export type CollectiveCase = {
+  id: string;
+  category: RelataCategory;
+  collectiveUrgency: RelataUrgency;
+  ruleVersion: string;
+  activeMembershipCount: number;
+  confidence: "high" | "medium" | "low";
+  futureMapEligibility: false;
+  reviewState: "not_required" | "future_review" | "blocked_by_safety";
+};
+
+export type CollectiveCaseMembership = {
+  collectiveCaseId: string;
+  individualCaseId: string;
+  role: "origin" | "corroborating" | "candidate";
+  method: CollectiveCaseMatchDecision;
+  confidence: "high" | "medium" | "low";
+  ruleVersion: string;
+  active: boolean;
+  createdAt: string;
+  endedAt: string | null;
+  sanitizedReason: string | null;
+};
+
 export type Agency = {
   id: string;
   kind:

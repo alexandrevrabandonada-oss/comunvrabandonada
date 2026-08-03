@@ -15,10 +15,13 @@ for (const file of files) {
 
   for (const match of sql.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?([\w.]+)/gi)) {
     const relation = match[1];
+    const [schema] = relation.includes(".") ? relation.split(".") : ["public"];
     if (!new RegExp(`alter\\s+table\\s+${relation.replace(".", "\\.")}\\s+enable\\s+row\\s+level\\s+security`, "i").test(sql)) {
       failures.push(`${file}:${relation}:RLS_REQUIRED`);
     }
-    if (!new RegExp(`revoke\\s+all(?:\\s+privileges)?\\s+on\\s+table\\s+${relation.replace(".", "\\.")}[\\s\\S]*from\\s+public,\\s*anon,\\s*authenticated`, "i").test(sql)) {
+    const directRevoke = new RegExp(`revoke\\s+all(?:\\s+privileges)?\\s+on\\s+table\\s+${relation.replace(".", "\\.")}[\\s\\S]*?from\\s+public,\\s*anon,\\s*authenticated`, "i").test(sql);
+    const schemaRevoke = new RegExp(`revoke\\s+all(?:\\s+privileges)?\\s+on\\s+all\\s+tables\\s+in\\s+schema\\s+${schema}[\\s\\S]*?from\\s+public,\\s*anon,\\s*authenticated`, "i").test(sql);
+    if (!directRevoke && !schemaRevoke) {
       failures.push(`${file}:${relation}:EXPLICIT_REVOKE_REQUIRED`);
     }
   }
@@ -34,8 +37,11 @@ for (const file of files) {
     if (!/search_path\s*(?:=|to)\s*(?:'pg_catalog'|pg_catalog)/i.test(sql)) {
       failures.push(`${file}:SECURITY_DEFINER_SEARCH_PATH_REQUIRED`);
     }
-    if (!/revoke\s+all[\s\S]*on\s+function[\s\S]*from\s+public,\s*anon,\s*authenticated/i.test(sql)) {
+    if (!/revoke\s+all[\s\S]*?on\s+function[\s\S]*?from\s+public(?:\s*,\s*anon\s*,\s*authenticated)?/i.test(sql)) {
       failures.push(`${file}:SECURITY_DEFINER_REVOKE_REQUIRED`);
+    }
+    if (/grant\s+execute[\s\S]*?on\s+function[\s\S]*?to\s+(?:anon|authenticated)\b/i.test(sql)) {
+      failures.push(`${file}:SECURITY_DEFINER_CLIENT_EXECUTE_FORBIDDEN`);
     }
   }
 }
