@@ -1,5 +1,23 @@
 # Estado atual do COMUN
 
+## Faixa focal em validação — Tijolo 48.0A-N1 (3 de agosto de 2026)
+
+- baseline documental: `28dd410dffe96b1065a2846545dbde2a20799bc9`;
+- SHA funcional e observado em Production:
+  `c70d1ceab802a7df591c9e6ac2aee07d364c3b1b`;
+- Production continua com `/comun/relata` em `404` e `/comun` em `200`;
+- causa operacional confirmada: o contrato de rede coletava 18 casos em nove
+  projetos e criava a fixture de navegador antes do skip de oito cenários;
+- candidata focal: um Chromium `320x568-low-android`, dois checks funcionais,
+  um worker, nenhum retry e artifact sanitizado;
+- duas execuções locais consecutivas verdes; remoto, PR e pós-merge pendentes;
+- resultado não terminal:
+  `COMUN_QUALITY_NETWORK_CHROMIUM_STABILIZATION_CANDIDATE`;
+- relatório: `reports/current/comun-tijolo-48-0a-n1-quality-network.md` e
+  `.json`;
+- nenhuma mudança de produto, banco, flag ou integração externa;
+- 47.9D não iniciado e `launch_publicly` não acionado.
+
 Atualizado em 2 de agosto de 2026.
 
 ## Atualização canônica — Tijolo 48.0A (3 de agosto de 2026)

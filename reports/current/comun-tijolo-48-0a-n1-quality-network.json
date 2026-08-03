@@ -1,0 +1,103 @@
+{
+  "brick": "48.0A-N1",
+  "result": "COMUN_QUALITY_NETWORK_CHROMIUM_STABILIZATION_CANDIDATE",
+  "repository_main_sha": "28dd410dffe96b1065a2846545dbde2a20799bc9",
+  "functional_product_sha": "c70d1ceab802a7df591c9e6ac2aee07d364c3b1b",
+  "production_observed_sha": "c70d1ceab802a7df591c9e6ac2aee07d364c3b1b",
+  "intermediate_commits": [],
+  "branch": "codex/tijolo-48-0a-n1-quality-network-chromium",
+  "productionReadOnly": {
+    "/comun/relata": 404,
+    "/comun": 200
+  },
+  "failedRun": {
+    "run": 30818903916,
+    "sha": "c70d1ceab802a7df591c9e6ac2aee07d364c3b1b",
+    "attempts": [
+      {
+        "attempt": 1,
+        "job": 91703507060,
+        "runner": "ubuntu-24.04",
+        "runnerImage": "20260720.247.2",
+        "exitCode": 1,
+        "signal": "SIGSEGV",
+        "projectAtFailure": "320x568-low-android"
+      },
+      {
+        "attempt": 2,
+        "job": 91705236587,
+        "runner": "ubuntu-24.04",
+        "runnerImage": "20260720.247.2",
+        "exitCode": 1,
+        "signal": "SIGSEGV",
+        "projectAtFailure": "1280x720-modest-desktop"
+      }
+    ],
+    "Node": "22.19.0",
+    "Playwright": "1.61.1",
+    "ChromiumRevision": "1228 (149.0.7827.55)",
+    "testsCollected": 18,
+    "workers": 1,
+    "resourceTelemetryAvailable": false,
+    "classification": "browser_process_crash",
+    "productFinding": false
+  },
+  "controlledReproduction": [
+    {
+      "contract": "previous",
+      "tests": 18,
+      "chromiumProcesses": 9,
+      "durationSeconds": 44,
+      "passed": 10,
+      "skipped": 8
+    },
+    {
+      "contract": "previous_restricted_low_android",
+      "tests": 2,
+      "chromiumProcesses": 1,
+      "durationSeconds": 16,
+      "passed": 2,
+      "skipped": 0
+    },
+    {
+      "contract": "focal_attempt_1",
+      "tests": 2,
+      "chromiumProcesses": 1,
+      "durationSeconds": 16,
+      "passed": 2,
+      "skipped": 0
+    },
+    {
+      "contract": "focal_attempt_2",
+      "tests": 2,
+      "chromiumProcesses": 1,
+      "durationSeconds": 15,
+      "passed": 2,
+      "skipped": 0
+    }
+  ],
+  "patch": {
+    "productChanged": false,
+    "projects": ["320x568-low-android"],
+    "workers": 1,
+    "retries": 0,
+    "serviceWorker": "preserved",
+    "trace": "retain-on-failure",
+    "screenshot": "only-on-failure",
+    "video": "off",
+    "continueOnError": false,
+    "remoteFocalMode": "network"
+  },
+  "gates": {
+    "runnerTests": "2/2_passed",
+    "localFocalConsecutive": "2/2_passed",
+    "lint": "passed",
+    "typecheck": "passed",
+    "build": "passed",
+    "remoteFocal": "pending",
+    "prChecks": "pending",
+    "postMerge": "pending"
+  },
+  "launchPublicly": false,
+  "humanRehearsal47_9D": false
+}
