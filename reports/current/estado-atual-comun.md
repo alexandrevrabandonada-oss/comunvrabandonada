@@ -1,27 +1,33 @@
 # Estado atual do COMUN
 
-## Candidata ativa — Tijolo 48.0B (3 de agosto de 2026)
+## Tijolo 48.0B integrado e dormente — 3 de agosto de 2026
 
 - base: `97c102d2a2464e511cd443ee29cac119d7e7c360`, merge verde do 48.0A-N1;
-- branch: `codex/tijolo-48-0b-relata-durable-local`;
-- candidata funcional: `eff0f9b652c59cc2ad3a5bc01bf90e8d19fa9adc`;
-- PR #151 aberta em draft para coleta dos gates remotos;
+- branch de produto removida após o merge;
+- candidata funcional final: `43484e730cc273dbb578affed98420c96099616b`;
+- PR #151 mesclada; merge/main:
+  `093f9772d28c018c95d5f8c1aac5afe6c1de30e6`;
 - migration real e forward-only validada somente no Supabase descartável;
 - manifesto/checksum local-only verde; promoção remota explicitamente proibida;
-- seis tabelas com RLS forçada e três RPCs allowlisted;
+- seis tabelas com RLS forçada e três RPCs executáveis somente pela service
+  role do runtime local server-side;
 - protocolo COMUN não oficial, não sequencial e separado do segredo de recibo;
 - idempotência sequencial/concorrente, isolamento, retirada e histórico verdes;
 - 21 testes Vitest e 15 E2E em cinco viewports verdes, incluindo Axe e PWA;
-- regressão: 444 unitários, App V2 35/35, PWA 30/30, performance 9/9,
+- regressão local: 444 unitários, App V2 35/35, PWA 30/30, performance 9/9,
   rede focal 2/2, segurança, surfaces, no-leak e smokes verdes;
+- PR: 23 checks verdes; RLS completa com 190 tabelas, 2.280 combinações e
+  zero finding; backup/restauração de `public`, `private` e ledger verdes;
 - catálogo v1: 14 fontes oficiais, 13 canais, zero canal operacionalmente
   verificado e zero automação;
 - conflitos CAU/WhatsApp e Light/call center preservados, sem escolher valor;
-- Production continua dormente: flags desligadas e `/comun/relata` em `404`;
+- Production `dpl_B8Tm8VzZV2SNTECxV9dAuJFHpvEN` em `READY`, no merge SHA
+  exato; `/comun=200`, legado/App V2 em `200` e `/comun/relata=404`;
 - Supabase remoto não consultado, não migrado e não alterado;
-- estado candidato:
-  `COMUN_RELATA_48_0B_LOCAL_CANDIDATE_GREEN_REMOTE_DB_UNCHANGED`;
-- PR, merge e smoke Production ainda pendentes;
+- CI, Civic Graph, Core Journeys, Experience Coherence e Quality Performance
+  pós-merge verdes;
+- resultado terminal honesto:
+  `COMUN_RELATA_48_0B_MERGED_DORMANT_LOCAL_GREEN_REMOTE_DB_UNCHANGED`;
 - próximo: `48.0C — localização privada, anexos protegidos e formação de casos`;
 - 47.9D não iniciado; `launch_publicly` não acionado.
 

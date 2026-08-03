@@ -1,12 +1,17 @@
 {
   "brick": "48.0B",
-  "result": "COMUN_RELATA_48_0B_LOCAL_CANDIDATE_GREEN_REMOTE_DB_UNCHANGED",
+  "result": "COMUN_RELATA_48_0B_MERGED_DORMANT_LOCAL_GREEN_REMOTE_DB_UNCHANGED",
   "baseSha": "97c102d2a2464e511cd443ee29cac119d7e7c360",
   "branch": "codex/tijolo-48-0b-relata-durable-local",
   "candidateSha": "43484e730cc273dbb578affed98420c96099616b",
+  "pullRequestHeadSha": "72643d328a847b1c49874118cc89e37196a01621",
   "pullRequest": 151,
-  "pullRequestState": "draft",
-  "mergeSha": null,
+  "pullRequestState": "merged",
+  "mergeSha": "093f9772d28c018c95d5f8c1aac5afe6c1de30e6",
+  "preview": {
+    "deployment": "dpl_D3kQzbn9JSp8jfe12QvS1TwmsLWD",
+    "status": "READY"
+  },
   "migration": {
     "path": "supabase/migrations/20260803161310_comun_relata_durable_local.sql",
     "sha256": "cb216666f64602c02e756d8e2d66017e5a721c7b9ad7810f793cad6a276606b7",
@@ -82,7 +87,27 @@
     "dbLintInheritedFinding": "47.9B provider capability: comun_search_candidates absent"
   },
   "remoteDatabase": "not_contacted_not_migrated_unchanged",
-  "production": { "status": "pending_integration", "/comun/relata": 404 },
+  "production": {
+    "deployment": "dpl_B8Tm8VzZV2SNTECxV9dAuJFHpvEN",
+    "status": "READY",
+    "domain": "https://comunsocial.online",
+    "observedSha": "093f9772d28c018c95d5f8c1aac5afe6c1de30e6",
+    "pwa": "comun-pwa-v3",
+    "/comun": 200,
+    "/comun?experiencia=legacy": 200,
+    "/comun?experiencia=app-v2": 200,
+    "/comun/relata": 404,
+    "publicRelataLink": false
+  },
+  "pullRequestChecks": { "passed": 23, "failed": 0, "pending": 0 },
+  "postMergeRuns": {
+    "ci": 30843037158,
+    "civicGraph": 30843037152,
+    "coreJourneys": 30843037194,
+    "experienceCoherence": 30843037178,
+    "qualityPerformance": 30843037183,
+    "allGreen": true
+  },
   "nextBrick": "48.0C — localização privada, anexos protegidos e formação de casos",
   "launchPublicly": false,
   "humanRehearsal47_9D": false
