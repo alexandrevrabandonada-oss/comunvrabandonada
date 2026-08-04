@@ -319,6 +319,11 @@ export function ParticipationWalletPanel({
                       {item.category ?? item.source_domain} · atualizado em{" "}
                       {new Date(item.updated_at).toLocaleDateString("pt-BR")}
                     </p>
+                    {item.metadata?.relatedDomain === "sidewalks" ? (
+                      <p className="text-sm font-bold text-comun-black/80">
+                        Relacionado ao Mapa das Calçadas · observação e relato permanecem separados.
+                      </p>
+                    ) : null}
                     <div className="flex flex-wrap gap-3">
                       <button
                         type="button"

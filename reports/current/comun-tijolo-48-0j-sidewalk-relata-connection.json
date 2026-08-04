@@ -1,0 +1,11 @@
+{
+  "result": "COMUN_SIDEWALK_48_0J_LOCAL_CONNECTION_GREEN_FISCALIZA_DEGRADED",
+  "baseline": "8beb93415bd6deddd1ca3ca3ff0d473866f9b1e6",
+  "migration": {"name":"20260804203000_comun_sidewalk_relata_connection_local.sql","sha256":"76f42a963a1e9a167090938aaba24c37f95e9add8597184332bff0e57d05355a","requiresPromotion":false,"remotePromotionAllowed":false},
+  "domains": {"sidewalks":"canonical_observation_and_public_derivative","relata":"canonical_private_report_and_forwarding","wallet":"authorized_organizer","forwarding":"assisted_preparation_only"},
+  "fiscaliza": {"state":"public_entry_observed_auth_boundary_pending","destination":"degraded_public_entry_auth_unconfirmed","submission":"unconfirmed","officialProtocol":"unconfirmed"},
+  "syntheticFlow": ["sidewalk_record","relata_protocol","wallet_item","jurisdiction","package_ready_channel_degraded"],
+  "rls": {"newTablesForced":true,"publicCrud":false,"anonCrud":false,"authenticatedCrud":false,"serviceRoleRpcOnly":true},
+  "remoteSupabase":"unchanged",
+  "productionFlags":"unchanged"
+}

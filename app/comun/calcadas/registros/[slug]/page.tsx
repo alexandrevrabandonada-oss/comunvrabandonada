@@ -13,6 +13,7 @@ import {
   getSidewalkOperationalRelease,
   SIDEWALK_OPERATIONAL_PAUSED_MESSAGE,
 } from "@/lib/sidewalk-operational-release";
+import { isComunSidewalkRelataForwardingEnabled } from "@/lib/comun-sidewalk-relata-feature";
 export const dynamic = "force-dynamic";
 const labels: Record<string, string> = {
   good: "Boa",
@@ -144,6 +145,18 @@ export default async function Page({
             </div>
           </div>
         </div>
+        {isComunSidewalkRelataForwardingEnabled() ? (
+          <section className="grid gap-3 border-2 border-comun-yellow bg-comun-yellow p-5 text-comun-black">
+            <p className="text-xs font-black uppercase">Próxima ação</p>
+            <h3 className="text-xl font-black">Pedir providência</h3>
+            <p>
+              A observação pública continua no mapa. Um pedido privado no Relata pode usar o mesmo contexto, pedir a jurisdição e preparar um pacote para revisão antes de qualquer abertura de canal.
+            </p>
+            <Link href="/comun/minha-participacao" className="inline-flex min-h-11 items-center font-black underline">
+              Abrir Minha Participação
+            </Link>
+          </section>
+        ) : null}
         {sidewalkOperational.enabled ? <form
           action={submitSidewalkObservation}
           className="grid gap-3 border-2 bg-white p-5"

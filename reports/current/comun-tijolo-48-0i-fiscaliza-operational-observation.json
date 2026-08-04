@@ -1,7 +1,7 @@
 {
   "tijolo": "48.0I",
   "result": "COMUN_FISCALIZA_OPERATIONAL_OBSERVATION_PARTIAL",
-  "state": "operationally_observed_no_submission",
+  "state": "public_entry_observed_auth_boundary_pending",
   "baseline": {"originMain": "3beab754d99ab2048430a5124960b960cbf4a518", "production": "dpl_7H9z7JzbuosPKepQ3mCLFSUKkXbz"},
   "sources": {"generalDeadline": "not_stated", "lightingEstimate": "30 days", "historical2019": "48 hours", "historicalUsedForDue": false},
   "publicEntry": {"url": "https://www.voltaredonda.rj.gov.br/fiscalizavr", "redirectHost": "fiscalizavr.citysystems.com.br", "dns": "unavailable", "authentication": "unconfirmed"},
@@ -10,6 +10,7 @@
   "automationAllowed": false,
   "remoteSupabase": "unchanged",
   "humanMicroGate": "not_required_public_entry_unavailable",
+  "semanticCorrection": "The stronger no-submission state is not claimed because authentication, form, review and submission boundaries were not observed.",
   "migration": "20260804164500_comun_fiscaliza_observation_local.sql",
   "migrationSha256": "6924e6de8053d785058dec5cb77aae4d1503efe387d959d34d35cc7c73b14aca"
 }

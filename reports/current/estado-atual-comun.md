@@ -502,3 +502,17 @@ Evidência: 20 tabelas privadas com RLS forçada, RPCs sem execução pública, 
 O 48.0I está implementado em branch local-only a partir de `origin/main` `3beab754d99ab2048430a5124960b960cbf4a518`. As fontes foram reconciliadas: prazo geral atual `not_stated`, iluminação `30 dias` como estimativa de realização não legal e menção histórica de `48 horas` excluída de vencimentos. A entrada pública municipal redirecionou para `fiscalizavr.citysystems.com.br`, indisponível por DNS; não houve autenticação, preenchimento, submissão ou protocolo real. O resultado técnico é `COMUN_FISCALIZA_OPERATIONAL_OBSERVATION_PARTIAL`.
 
 A migration local-only `20260804164500_comun_fiscaliza_observation_local.sql` (SHA-256 `6924e6de8053d785058dec5cb77aae4d1503efe387d959d34d35cc7c73b14aca`) adiciona catálogo de fontes e observações com RLS forçada/service-role-only. A abertura assistida exige flag separada, URL HTTPS exata e gesto explícito; host inesperado é rejeitado. Production, Supabase remoto, `launch_publicly` e todas as flags públicas permanecem inalterados. Próximo tijolo: `48.0J — Conectar Calçadas ao encaminhamento`.
+
+# Tijolo 48.0J — conexão Calçadas, Relata e Carteira (04/08/2026)
+
+Branch local-only: `codex/tijolo-48-0j-sidewalk-relata-forwarding`, baseada em `origin/main` `8beb93415bd6deddd1ca3ca3ff0d473866f9b1e6`.
+
+Foi criada a ponte aditiva `20260804203000_comun_sidewalk_relata_connection_local.sql` (SHA-256 `76f42a963a1e9a167090938aaba24c37f95e9add8597184332bff0e57d05355a`), com RLS forçada, RPCs server-only, idempotência e eventos append-only. Calçadas permanece fonte da verdade das observações e derivadas públicas; Relata permanece fonte da verdade do relato privado, protocolo COMUN, evidências e retirada; Carteira organiza a relação; encaminhamento prepara pacote.
+
+Rehearsal sintético verde: registro de calçada → protocolo COMUN → item da Carteira → jurisdição pública explícita → pacote `package_ready_channel_degraded`, sem publicação, envio externo ou duplicação de Storage. O adapter Carta 165 registra inspeção estimada em 7 dias e execução estimada em 30 dias, ambas não legais.
+
+Correção semântica do Fiscaliza: estado máximo automático agora `public_entry_observed_auth_boundary_pending`; destino legado indisponível e autenticação/formulário/submissão/protocolo continuam não confirmados. Nenhum link de abertura é oferecido.
+
+Production e Supabase remoto não foram consultados de forma mutável ou alterados; flags permanecem desligadas. Próximo tijolo: `48.0K — Verificação operacional da STMU`.
+
+Faixa 48.0J-N1: o smoke genérico foi classificado como `SMOKE_WRONG_ENVIRONMENT`, pois `localhost:3000` estava ocupado por outro laboratório e a fixture era criada em stack/porta diferentes. Com aplicação e fixture no mesmo ambiente local descartável (`localhost:3100`), `smoke:no-leak-http` passou com teardown limpo. Nenhum 404 foi aceito como sucesso e nenhum gate foi suprimido; PR #164 foi atualizada para merge.
