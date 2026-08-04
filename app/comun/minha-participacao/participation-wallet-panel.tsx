@@ -322,7 +322,8 @@ export function ParticipationWalletPanel({
                     </p>
                     {item.metadata?.relatedDomain === "sidewalks" ? (
                       <p className="text-sm font-bold text-comun-black/80">
-                        Relacionado ao Mapa das Calçadas · observação e relato permanecem separados.
+                        Relacionado ao Mapa das Calçadas · observação e relato
+                        permanecem separados.
                       </p>
                     ) : null}
                     <div className="flex flex-wrap gap-3">
