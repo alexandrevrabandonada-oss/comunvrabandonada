@@ -61,9 +61,9 @@ export function ComunStmuWhatsappPanel({
       setText(found.institutional_text ?? "");
     }
   }, [relataCaseId]);
-  // The async fetch synchronizes the wallet item after mount; state updates occur on response.
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
+    // The async fetch synchronizes the wallet item after mount; state updates occur on response.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
   async function call(
