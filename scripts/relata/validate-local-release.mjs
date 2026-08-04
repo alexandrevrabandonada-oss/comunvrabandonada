@@ -7,7 +7,7 @@ const root = process.cwd();
 const releaseDirectory = path.join(root, "supabase/local-releases");
 const manifesta = (await readdir(releaseDirectory))
   .filter((name) =>
-    /^\d+-comun-(?:relata|bus|capture|participation-wallet|forwarding)-.+\.json$/.test(
+    /^\d+-comun-(?:relata|bus|capture|participation-wallet|forwarding|stmu)-.+\.json$/.test(
       name,
     ),
   )

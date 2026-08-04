@@ -1,0 +1,13 @@
+{
+  "release": "20260804204544-comun-stmu-whatsapp-assisted-local",
+  "migration": "supabase/migrations/20260804204544_comun_stmu_whatsapp_assisted_local.sql",
+  "migrationSha256": "5ed6358e97650c20fb0bb881c6d804a6f79d6ea5455fb81079f506861e7c112a",
+  "destructiveSql": false,
+  "requiresPromotion": false,
+  "remotePromotionAllowed": false,
+  "scope": "disposable_local_supabase_only",
+  "flags": ["COMUN_STMU_WHATSAPP_ASSISTED_LOCAL", "COMUN_BUS_LOCAL_PILOT", "COMUN_RELATA_PREVIEW", "COMUN_RELATA_LOCAL_PERSISTENCE", "COMUN_PARTICIPATION_WALLET_LOCAL", "COMUN_FORWARDING_LOCAL"],
+  "channel": "vr-stmu-whatsapp",
+  "adapter": "vr-stmu-whatsapp-complaint-v1",
+  "assertions": ["menu_observation_sanitized", "no_automatic_submission", "official_protocol_unconfirmed", "RLS_forced", "service_role_only"]
+}

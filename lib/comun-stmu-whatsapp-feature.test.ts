@@ -1,0 +1,4 @@
+import { describe, expect, it } from "vitest";
+import { isComunStmuWhatsappEnabled, shouldCloakComunStmuWhatsapp } from "./comun-stmu-whatsapp-feature";
+const enabled = { ALLOW_LOCAL_TESTS: "true", NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:56431", SUPABASE_SERVICE_ROLE_KEY: "local", COMUN_BUS_LOCAL_PILOT: "enabled", COMUN_RELATA_PREVIEW: "enabled", COMUN_RELATA_LOCAL_PERSISTENCE: "enabled", COMUN_PARTICIPATION_WALLET_LOCAL: "enabled", COMUN_FORWARDING_LOCAL: "enabled", COMUN_STMU_WHATSAPP_ASSISTED_LOCAL: "enabled" };
+describe("STMU WhatsApp local gate", () => { it("requires every cumulative flag", () => { expect(isComunStmuWhatsappEnabled(enabled)).toBe(true); expect(isComunStmuWhatsappEnabled({ ...enabled, COMUN_FORWARDING_LOCAL: "disabled" })).toBe(false); }); it("cloaks every method when disabled", () => { expect(shouldCloakComunStmuWhatsapp("/api/comun/stmu-whatsapp/package", { ...enabled, COMUN_STMU_WHATSAPP_ASSISTED_LOCAL: "disabled" })).toBe(true); }); });
