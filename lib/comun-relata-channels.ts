@@ -160,6 +160,13 @@ export const RELATA_OFFICIAL_SOURCES: RelataOfficialSource[] = [
 
 export const RELATA_AGENCIES: Agency[] = [
   {
+    id: "stmu-transport",
+    kind: "public_transport",
+    displayName: "STMU — canal de transporte (candidato)",
+    sphere: "municipal",
+    territory: "Volta Redonda/RJ",
+  },
+  {
     id: "vr-cau",
     kind: "public_lighting",
     displayName: "Central de Atendimento Único de Volta Redonda",
@@ -233,6 +240,32 @@ const base = {
   immediateAssistedAction: false,
   queueable: false,
   automationAllowed: false as const,
+};
+
+export const COMUN_BUS_STMU_CHANNEL_CANDIDATE: Channel = {
+  ...base,
+  id: "stmu-bus-whatsapp-candidate",
+  agencyId: "stmu-transport",
+  label: "WhatsApp de Ônibus — STMU (candidato)",
+  service: "Reclamações de transporte coletivo",
+  category: "public_transport",
+  channelType: "whatsapp",
+  channelValue: "(24) 99295-8558",
+  requirements: ["Selecionar a opção de reclamações e informar a ocorrência"],
+  identification: "source_unclear",
+  anonymity: "source_unclear",
+  confidentiality: "source_unclear",
+  protocolExpectation: "source_unclear",
+  followUp: "source_unclear",
+  sourceVerified: false,
+  operationallyChecked: false,
+  operationalStatus: "source_only",
+  priorProtocolRequired: false,
+  hours: null,
+  state: "review_required",
+  disabledReason: "Canal informado, mas fonte oficial atual e operação ainda não foram verificadas.",
+  sourceIds: [],
+  internalNote: "Não abrir WhatsApp, não criar deep link e não enviar mensagens neste tijolo.",
 };
 
 export const RELATA_CHANNELS: Channel[] = [

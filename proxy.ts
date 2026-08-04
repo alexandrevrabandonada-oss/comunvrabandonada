@@ -8,12 +8,14 @@ import {
   shouldCloakComunRelataEvidenceApi,
   shouldCloakComunRelataPublicMap,
 } from "@/lib/comun-relata-evidence-feature";
+import { shouldCloakComunBus } from "@/lib/comun-bus-feature";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function proxy(request: NextRequest) {
   if (
     shouldCloakComunRelataEvidenceApi(request.nextUrl.pathname) ||
-    shouldCloakComunRelataPublicMap(request.nextUrl.pathname)
+    shouldCloakComunRelataPublicMap(request.nextUrl.pathname) ||
+    shouldCloakComunBus(request.nextUrl.pathname)
   ) {
     return NextResponse.json(
       { code: "evidence_unavailable" },
@@ -64,5 +66,7 @@ export const config = {
     "/comun/:path*",
     "/api/comun/relata/evidence/:path*",
     "/api/comun/relata/public/:path*",
+    "/comun/onibus/:path*",
+    "/api/comun/onibus/:path*",
   ],
 };

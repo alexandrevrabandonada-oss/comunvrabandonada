@@ -1,0 +1,19 @@
+{
+  "release": "20260804002757-comun-bus-foundation",
+  "migration": "supabase/migrations/20260804002757_comun_bus_foundation.sql",
+  "migrationSha256": "b9a5e4cc97bbbcd84250a0df6a8b89ac709ef03fccb5c235f35b8c1283b8c453",
+  "destructiveSql": false,
+  "requiresPromotion": false,
+  "remotePromotionAllowed": false,
+  "scope": "disposable_local_supabase_only",
+  "featureFlag": "COMUN_BUS_LOCAL_PILOT",
+  "publicTransportCategory": "private_linked_relata_only",
+  "whatsapp": {"number": "(24) 99295-8558", "verificationState": "candidate", "sendingEnabled": false, "deepLinkEnabled": false},
+  "assertions": [
+    "timetable versions are append-only by replacement state and retain source hashes",
+    "waiting sessions use server timestamps and hashed opaque session tokens",
+    "transport observations never become official protocols or public map projections",
+    "all new tables and RPCs are service_role-only with forced RLS",
+    "remote Supabase, WhatsApp, Production flags and public transport map remain untouched"
+  ]
+}

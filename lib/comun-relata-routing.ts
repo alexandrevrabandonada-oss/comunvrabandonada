@@ -48,6 +48,17 @@ export function routeRelata(input: RelataInput): RoutingDecision {
   const darkStreet = hasAny(value, ["rua toda escura", "rua está toda escura", "rua esta toda escura", "luminárias apagadas", "luminaria apagada"]);
   const homesAnswer = input.answers?.homes_power;
 
+  if (hasAny(value, ["ônibus", "onibus", "linha de ônibus", "ponto de ônibus", "ponto de onibus", "lotação", "lotacao"])) {
+    return baseDecision("public_transport", input, {
+      urgency: "attention",
+      agencyKind: "public_transport",
+      explanation: "A observação será guardada como transporte coletivo, sem envio automático a um órgão.",
+      nextStep: "Revise a linha, o ponto e o horário antes de guardar o relato privado.",
+      confidence: "medium",
+      publication: "never_automatic",
+    });
+  }
+
   if (darkStreet && !homesAnswer) {
     return baseDecision("public_lighting", input, {
       urgency: "attention",

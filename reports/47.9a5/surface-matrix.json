@@ -1,26 +1,26 @@
 {
   "summary": {
-    "generated_at": "2026-08-03T23:38:26.301Z",
-    "total": 191,
+    "generated_at": "2026-08-04T01:05:29.642Z",
+    "total": 192,
     "duplicate_routes": [],
     "shell_modes": {
       "admin": 88,
       "auth": 6,
       "immersive": 18,
       "institutional": 8,
-      "member_nested": 24,
+      "member_nested": 25,
       "member_root": 5,
       "public_web": 42
     },
     "by_wave": {
-      "1": 71,
+      "1": 72,
       "2": 32,
       "3": 76,
       "4": 12
     },
     "by_decision": {
       "compatibility_v2": 105,
-      "redirect_canonical": 65,
+      "redirect_canonical": 66,
       "retain_v2": 21
     },
     "legacy_rendered": 0,
@@ -5529,6 +5529,40 @@
       "decision": "compatibility_v2",
       "wave": 2,
       "source": "app/comun/onboarding/page.tsx"
+    },
+    {
+      "route": "/comun/onibus",
+      "family": "onibus",
+      "shell_mode": "member_nested",
+      "public": false,
+      "auth_required": true,
+      "visual_state": "not_rendered",
+      "main_component": "ComunBusPage",
+      "shell_component": "ComunShell",
+      "legacy_components": [
+        "legacy-shell"
+      ],
+      "contextual_app_bar": true,
+      "primary_action": "/comun/participar",
+      "empty_state": false,
+      "requires_entity_context": false,
+      "preserves_filters_or_return": false,
+      "admin_domain": null,
+      "admin_surface_type": "collection",
+      "has_table": false,
+      "has_form": false,
+      "accessible_table_contract": true,
+      "filter_return_contract": true,
+      "platform_domain": null,
+      "platform_access": null,
+      "platform_shell": null,
+      "preserves_app_v2_flag": null,
+      "member_bottom_navigation": null,
+      "compatibility_severity": "P2",
+      "compatibility_justification": "Markup preservado para rollback; shell V2 neutraliza material legado e adiciona navegação, foco e semântica operacional.",
+      "decision": "redirect_canonical",
+      "wave": 1,
+      "source": "app/comun/onibus/page.tsx"
     },
     {
       "route": "/comun/participar",
