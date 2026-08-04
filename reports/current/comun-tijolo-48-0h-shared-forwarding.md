@@ -13,3 +13,7 @@ Estado da candidata: `COMUN_FORWARDING_48_0H_LOCAL_CANDIDATE_GREEN`.
 - Adapter único: `vr-fiscaliza-lighting-v1`; categoria canônica `public_lighting`; sem automação.
 
 O pacote nunca chama Fiscaliza VR. A abertura usa URL oficial somente depois do clique explícito; a pessoa envia no canal por sua própria ação.
+
+## Fechamento
+
+PR #160 foi mesclada em `e07e5f7324817dfad6a643a97bbcb2b2383a6c52`; Production `dpl_7H9z7JzbuosPKepQ3mCLFSUKkXbz` está `READY`. Smoke confirma legado público intacto e forwarding dormente com `404` uniforme em todos os métodos. Resultado terminal: `COMUN_FORWARDING_48_0H_MERGED_DORMANT_LOCAL_FISCALIZA_ADAPTER_GREEN_REMOTE_UNCHANGED`.

@@ -10,7 +10,8 @@
 - DB rehearsal `COMUN_FORWARDING_48_0H_DB_GREEN`; forwarding E2E/Axe `5/5` em cinco viewports; typecheck, lint e build verdes;
 - resets locais tiveram retries focais por 502/stack compartilhada do gateway Storage; a cadeia completa foi aplicada em banco descartável; não é finding do produto;
 - Production, flags públicas, Supabase remoto, domínio, secrets, canal externo e `launch_publicly` permanecem intocados; ensaio operacional real do Fiscaliza e 47.9D não iniciados;
-- resultado parcial: `COMUN_FORWARDING_48_0H_LOCAL_CANDIDATE_GREEN`; próximo gate é PR/CI/Preview e smoke pós-merge dormente;
+- PR #160 mesclada no SHA `e07e5f7324817dfad6a643a97bbcb2b2383a6c52`; Production `dpl_7H9z7JzbuosPKepQ3mCLFSUKkXbz` `READY`; smoke pós-merge preservou `/comun` e legado `200`, Relata/Ônibus/forwarding `404` dormentes;
+- resultado terminal: `COMUN_FORWARDING_48_0H_MERGED_DORMANT_LOCAL_FISCALIZA_ADAPTER_GREEN_REMOTE_UNCHANGED`;
 - relatórios: `comun-tijolo-48-0h-forwarding-diagnostico.md`, `comun-tijolo-48-0h-shared-forwarding.md`, `comun-tijolo-48-0h-forwarding.json` e contratos associados;
 - próximo tijolo: `48.0I — verificação operacional do canal e primeiro encaminhamento assistido`, sem execução neste tijolo.
 
