@@ -10,14 +10,16 @@ import {
 } from "@/lib/comun-relata-evidence-feature";
 import { shouldCloakComunBus } from "@/lib/comun-bus-feature";
 import { shouldCloakComunQuickCaptureApi } from "@/lib/comun-capture-feature";
+import { shouldCloakComunParticipationWallet } from "@/lib/comun-participation-wallet-feature";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function proxy(request: NextRequest) {
   if (
     shouldCloakComunRelataEvidenceApi(request.nextUrl.pathname) ||
     shouldCloakComunRelataPublicMap(request.nextUrl.pathname) ||
-    shouldCloakComunBus(request.nextUrl.pathname)
-    || shouldCloakComunQuickCaptureApi(request.nextUrl.pathname)
+    shouldCloakComunBus(request.nextUrl.pathname) ||
+    shouldCloakComunQuickCaptureApi(request.nextUrl.pathname) ||
+    shouldCloakComunParticipationWallet(request.nextUrl.pathname)
   ) {
     return NextResponse.json(
       { code: "evidence_unavailable" },
@@ -71,5 +73,7 @@ export const config = {
     "/comun/onibus/:path*",
     "/api/comun/onibus/:path*",
     "/api/comun/capture/:path*",
+    "/api/comun/participation-wallet",
+    "/api/comun/participation-wallet/:path*",
   ],
 };

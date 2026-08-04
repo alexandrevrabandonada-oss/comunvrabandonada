@@ -8,7 +8,7 @@ import {
   ComunStatus,
 } from "@/components/comun-ui";
 import { MyCommunitySummary } from "@/components/my-community-summary";
-import { requireCommunitySession } from "@/lib/community-auth";
+import { getCommunitySession, requireCommunitySession } from "@/lib/community-auth";
 import {
   communityStatusLabel,
   communityStatusPriority,
@@ -32,6 +32,8 @@ import {
   COMUN_JOURNEY_STATE_COPY,
   normalizeComunJourneyStatus,
 } from "@/lib/comun-journey-status";
+import { isComunParticipationWalletEnabled } from "@/lib/comun-participation-wallet-feature";
+import { ParticipationWalletPanel } from "./participation-wallet-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +67,10 @@ export default async function MinhaAreaPage({
   )
     ? requested!
     : "contribuicoes";
+  if (isComunParticipationWalletEnabled()) {
+    const optional = await getCommunitySession();
+    if (!optional?.user) return <WalletOnlyPage />;
+  }
   const { user, profile } = await requireCommunitySession(
     withComunAppV2(`/comun/minha-participacao?secao=${selected}`, appV2),
   );
@@ -165,6 +171,7 @@ export default async function MinhaAreaPage({
           </Link>
         </div>
       </ComunSection>
+      {isComunParticipationWalletEnabled() ? <ComunSection><ParticipationWalletPanel /></ComunSection> : null}
       <nav
         aria-label="Seções de Minha área"
         className="mx-auto flex max-w-7xl overflow-x-auto px-4 [scrollbar-width:none]"
@@ -503,6 +510,7 @@ function MinhaAreaAppV2({
           Histórico, vínculos e continuidade. Mensagens que pedem ação ficam
           somente na Caixa.
         </p>
+        {isComunParticipationWalletEnabled() ? <ParticipationWalletPanel /> : null}
         <div
           className="mt-5 grid grid-cols-3 gap-2"
           aria-label="Resumo da sua área"
@@ -838,6 +846,17 @@ function CollectiveActionsPreviewParticipation() {
     </ComunShell>
   );
 }
+
+function WalletOnlyPage() {
+  return (
+    <ComunShell appBar={{ title: "Minha Participação", contextLabel: "Carteira local" }}>
+      <div className="comun-v2-page" data-comun-app-v2-page="wallet-only">
+        <ParticipationWalletPanel standalone />
+      </div>
+    </ComunShell>
+  );
+}
+
 function AreaTab({
   value,
   label,
