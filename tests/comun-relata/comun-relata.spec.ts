@@ -150,3 +150,17 @@ test("has no critical or serious Axe findings @a11y", async ({ page }) => {
   );
   expect(blocking, JSON.stringify(blocking, null, 2)).toEqual([]);
 });
+
+test("opens the local sanitized map/list without private content", async ({ page }) => {
+  await page.goto("/comun/relata/mapa");
+  await expect(page.getByRole("heading", { name: "Casos organizados no território" })).toBeVisible();
+  await expect(page.getByText(/Localização aproximada, sem texto, fotos ou protocolo/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Mapa" })).toHaveAttribute("aria-pressed", "false");
+  await page.getByRole("button", { name: "Mapa" }).click();
+  await expect(page.getByRole("img", { name: "Mapa local com localizações aproximadas" })).toBeVisible();
+  await expect(page.getByText(/Cada marcador representa uma área aproximada/)).toBeVisible();
+  await page.getByRole("button", { name: "Lista" }).click();
+  await expect(page.getByRole("button", { name: "Lista" })).toHaveAttribute("aria-pressed", "true");
+  const html = await page.locator("body").innerText();
+  expect(html).not.toMatch(/COMUN-RELATA-|report_id|ciphertext|object_key|Foto [0-9]/i);
+});

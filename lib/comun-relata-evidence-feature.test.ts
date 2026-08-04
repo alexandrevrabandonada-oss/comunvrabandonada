@@ -5,6 +5,9 @@ import {
   COMUN_RELATA_SPATIAL_KEY,
   isComunRelataEvidenceEnabled,
   shouldCloakComunRelataEvidenceApi,
+  areComunRelataPublicMapFlagsEnabled,
+  isComunRelataPublicMapEnabled,
+  shouldCloakComunRelataPublicMap,
 } from "./comun-relata-evidence-feature";
 
 const key = (byte: number) => Buffer.alloc(32, byte).toString("base64url");
@@ -22,6 +25,15 @@ function enabledEnv() {
 }
 
 describe("COMUN Relata evidence flags", () => {
+  it("requires the cumulative fourth map barrier and cloaks page/API uniformly", () => {
+    expect(isComunRelataPublicMapEnabled({ ...enabledEnv(), COMUN_RELATA_LOCAL_PUBLIC_MAP: "enabled" })).toBe(true);
+    const dormant = { ...enabledEnv(), COMUN_RELATA_LOCAL_PUBLIC_MAP: "disabled" };
+    expect(areComunRelataPublicMapFlagsEnabled(dormant)).toBe(false);
+    for (const methodPath of ["/comun/relata/mapa", "/api/comun/relata/public/cases", "/api/comun/relata/public/cases/id/confirm"]) {
+      expect(shouldCloakComunRelataPublicMap(methodPath, dormant)).toBe(true);
+    }
+    expect(shouldCloakComunRelataPublicMap("/api/comun/relata/publicity", dormant)).toBe(false);
+  });
   it("requires all three flags, loopback, service role and distinct 256-bit keys", () => {
     expect(isComunRelataEvidenceEnabled(enabledEnv())).toBe(true);
     expect(

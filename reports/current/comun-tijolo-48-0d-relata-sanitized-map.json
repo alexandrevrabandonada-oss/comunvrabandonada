@@ -1,0 +1,16 @@
+{
+  "brick": "48.0D",
+  "result": "COMUN_RELATA_48_0D_MERGED_DORMANT_LOCAL_SANITIZED_MAP_GREEN_REMOTE_UNCHANGED",
+  "branch": "codex/tijolo-48-0d-relata-sanitized-local-map",
+  "base": "118f1d4c88cc6915ef471ba59cfcfbcf0355d770",
+  "policyVersion": "relata-public-projection-v1",
+  "flags": ["COMUN_RELATA_PREVIEW", "COMUN_RELATA_LOCAL_PERSISTENCE", "COMUN_RELATA_LOCAL_EVIDENCE", "COMUN_RELATA_LOCAL_PUBLIC_MAP"],
+  "routes": {"page": "/comun/relata/mapa", "api": "/api/comun/relata/public"},
+  "projection": {"categories": ["public_lighting", "power_distribution", "smoke_or_environmental_trace"], "metricGridMeters": [300, 800, 1000], "exactLocation": false, "publicSnapshots": false},
+  "confirmation": {"firstPartyCookie": true, "hashedServerSide": true, "reportCreation": false, "undo": true},
+  "remoteSupabase": {"consulted": false, "migrated": false, "changed": false},
+  "localHarness": {"docker": "Docker Desktop 4.61.0 / Engine 29.2.1", "supabaseCli": "2.111.0", "temporaryPorts": [56431, 56432, 56433, 56434, 56437, 56439], "migrationApplied": true, "dbRehearsal": "green", "rls": "green", "storageRestore": "green", "noLeak": "green"},
+  "tests": {"relataFocused": "39/39", "unit": "462/462", "e2e": "20/20", "surfaces": "26/26", "security": "8/8"},
+  "production": {"promoted": false, "publicRelata": false},
+  "nextBrick": "48.0E package forwarding/channel verification"
+}

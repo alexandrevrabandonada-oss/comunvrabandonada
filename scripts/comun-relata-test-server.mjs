@@ -13,6 +13,7 @@ const child = spawn(command, ["run", "dev", "--", "-p", "3137"], {
     COMUN_RELATA_PREVIEW: "enabled",
     COMUN_RELATA_LOCAL_PERSISTENCE: "enabled",
     COMUN_RELATA_LOCAL_EVIDENCE: "enabled",
+    COMUN_RELATA_LOCAL_PUBLIC_MAP: "enabled",
     COMUN_RELATA_LOCATION_ENCRYPTION_KEY: locationKey,
     COMUN_RELATA_SPATIAL_HMAC_KEY: spatialKey,
     COMUN_BASE_URL: "http://127.0.0.1:3137",
