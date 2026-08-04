@@ -1,0 +1,44 @@
+{
+  "brick": "48.0L",
+  "result": "COMUN_STMU_48_0L_LOCAL_MULTICHANNEL_GREEN",
+  "baseline": "7d40abbac84daaa4a4298dcea1e471f7441b6830",
+  "branch": "codex/tijolo-48-0l-stmu-multichannel",
+  "migration": "20260804232125_comun_stmu_multichannel_attempts_local.sql",
+  "migration_sha256": "8cc01fcd7acf16fa7337d52626eb0be4c547a61bce76760954479cd1bfd5b572",
+  "requiresPromotion": false,
+  "remotePromotionAllowed": false,
+  "channels": {
+    "whatsapp": {"id": "vr-stmu-whatsapp", "state": "menu_operational_complaint_flow_pending"},
+    "official_email": {"id": "vr-stmu-official-email", "state": "source_verified_operation_unconfirmed"},
+    "field_email": {"id": "vr-stmu-field-ombudsman-email-candidate", "state": "candidate_unverified_blocked"},
+    "phone": {"id": "vr-stmu-phone", "state": "source_verified_not_tested"},
+    "in_person": {"id": "vr-stmu-in-person", "state": "source_verified_not_tested"}
+  },
+  "proof": {
+    "one_relata_case": true,
+    "multiple_attempts": true,
+    "email_idempotent": true,
+    "exact_destination": true,
+    "no_body_or_query": true,
+    "attempts_isolated": true,
+    "deadline_after_person_declaration": true,
+    "field_email_blocked": true,
+    "anon_rpc_blocked": true,
+    "external_submission": false,
+    "remote_supabase_changed": false,
+    "production_flag_enabled": false
+  },
+  "tests": {
+    "db": "COMUN_STMU_48_0L_DB_GREEN",
+    "rls": "COMUN_RLS_COMPLETE_GREEN",
+    "privileges": "COMUN_EXPLICIT_PRIVILEGE_CONTRACT_OK",
+    "unit": "492/492",
+    "surfaces": "26/26",
+    "typecheck": "green",
+    "lint": "green",
+    "build": "green",
+    "cloak_http": "GET/POST/PATCH/PUT/DELETE=404"
+  },
+  "human_micro_gate": "pending",
+  "launch_publicly": false
+}

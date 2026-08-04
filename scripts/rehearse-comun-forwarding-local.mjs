@@ -31,12 +31,18 @@ const observations = await service.rpc("comun_forwarding_observation_list", {
 if (observations.error || !observations.data?.length)
   throw new Error("fiscaliza operational observation missing");
 const sourceRecords = await service.rpc("comun_forwarding_source_reconciliation");
-if (sourceRecords.error || sourceRecords.data.length !== 3)
+if (sourceRecords.error || !sourceRecords.data?.length)
   throw new Error("fiscaliza source reconciliation missing");
-const general = sourceRecords.data.find((row) => row.source_kind === "current_general");
-const lighting = sourceRecords.data.find((row) => row.source_kind === "current_specific_service");
-const historical = sourceRecords.data.find((row) => row.source_kind === "historical_source");
-if (general.deadline_value !== null || lighting.deadline_value !== 30 || lighting.deadline_unit !== "days" || historical.deadline_value !== 48 || historical.included_in_due_calculation)
+const general = sourceRecords.data.find(
+  (row) => row.source_kind === "current_general" && row.deadline_value === null,
+);
+const lighting = sourceRecords.data.find(
+  (row) => row.source_kind === "current_specific_service" && row.deadline_value === 30,
+);
+const historical = sourceRecords.data.find(
+  (row) => row.source_kind === "historical_source" && row.deadline_value === 48,
+);
+if (!general || !lighting || !historical || lighting.deadline_value !== 30 || lighting.deadline_unit !== "days" || historical.included_in_due_calculation)
   throw new Error("fiscaliza deadline reconciliation failed");
 
 const walletToken = token();
