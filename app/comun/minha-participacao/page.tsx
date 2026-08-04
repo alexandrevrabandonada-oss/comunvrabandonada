@@ -8,7 +8,10 @@ import {
   ComunStatus,
 } from "@/components/comun-ui";
 import { MyCommunitySummary } from "@/components/my-community-summary";
-import { getCommunitySession, requireCommunitySession } from "@/lib/community-auth";
+import {
+  getCommunitySession,
+  requireCommunitySession,
+} from "@/lib/community-auth";
 import {
   communityStatusLabel,
   communityStatusPriority,
@@ -171,7 +174,11 @@ export default async function MinhaAreaPage({
           </Link>
         </div>
       </ComunSection>
-      {isComunParticipationWalletEnabled() ? <ComunSection><ParticipationWalletPanel /></ComunSection> : null}
+      {isComunParticipationWalletEnabled() ? (
+        <ComunSection>
+          <ParticipationWalletPanel />
+        </ComunSection>
+      ) : null}
       <nav
         aria-label="Seções de Minha área"
         className="mx-auto flex max-w-7xl overflow-x-auto px-4 [scrollbar-width:none]"
@@ -510,7 +517,9 @@ function MinhaAreaAppV2({
           Histórico, vínculos e continuidade. Mensagens que pedem ação ficam
           somente na Caixa.
         </p>
-        {isComunParticipationWalletEnabled() ? <ParticipationWalletPanel /> : null}
+        {isComunParticipationWalletEnabled() ? (
+          <ParticipationWalletPanel />
+        ) : null}
         <div
           className="mt-5 grid grid-cols-3 gap-2"
           aria-label="Resumo da sua área"
@@ -849,7 +858,9 @@ function CollectiveActionsPreviewParticipation() {
 
 function WalletOnlyPage() {
   return (
-    <ComunShell appBar={{ title: "Minha Participação", contextLabel: "Carteira local" }}>
+    <ComunShell
+      appBar={{ title: "Minha Participação", contextLabel: "Carteira local" }}
+    >
       <div className="comun-v2-page" data-comun-app-v2-page="wallet-only">
         <ParticipationWalletPanel standalone />
       </div>
