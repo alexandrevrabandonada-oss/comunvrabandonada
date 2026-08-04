@@ -514,3 +514,5 @@ Rehearsal sintético verde: registro de calçada → protocolo COMUN → item da
 Correção semântica do Fiscaliza: estado máximo automático agora `public_entry_observed_auth_boundary_pending`; destino legado indisponível e autenticação/formulário/submissão/protocolo continuam não confirmados. Nenhum link de abertura é oferecido.
 
 Production e Supabase remoto não foram consultados de forma mutável ou alterados; flags permanecem desligadas. Próximo tijolo: `48.0K — Verificação operacional da STMU`.
+
+Faixa 48.0J-N1: o smoke genérico foi classificado como `SMOKE_WRONG_ENVIRONMENT`, pois `localhost:3000` estava ocupado por outro laboratório e a fixture era criada em stack/porta diferentes. Com aplicação e fixture no mesmo ambiente local descartável (`localhost:3100`), `smoke:no-leak-http` passou com teardown limpo. Nenhum 404 foi aceito como sucesso e nenhum gate foi suprimido; PR #164 foi atualizada para merge.

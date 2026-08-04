@@ -20,3 +20,7 @@ Como a entrada pública do Fiscaliza redireciona para destino legado indisponív
 ## Limites preservados
 
 Sem conversão automática de registros antigos, sem publicação de coordenada, sem cópia de texto/foto para projeção pública, sem telefone ativo, sem link de abertura enquanto o canal estiver degradado, sem envio institucional e sem promoção remota.
+
+## Classificação do smoke
+
+O finding foi classificado como `SMOKE_WRONG_ENVIRONMENT`. O runner apontava para `localhost:3000`, ocupado por um Next de outro laboratório, enquanto a fixture era criada na stack Supabase local de outra porta. A fixture era criada e removida corretamente; a requisição chegava ao processo errado e retornava 404. Com aplicação e fixture no mesmo ambiente local descartável (`localhost:3100`), `smoke:no-leak-http` passou e o teardown comprovou zero resíduo. Não houve supressão de 404 nem redução de cobertura.
