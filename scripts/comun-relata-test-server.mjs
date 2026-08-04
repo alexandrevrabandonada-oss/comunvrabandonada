@@ -14,6 +14,7 @@ const child = spawn(command, ["run", "dev", "--", "-p", "3137"], {
     COMUN_RELATA_LOCAL_PERSISTENCE: "enabled",
     COMUN_RELATA_LOCAL_EVIDENCE: "enabled",
     COMUN_RELATA_LOCAL_PUBLIC_MAP: "enabled",
+    COMUN_QUICK_CAPTURE_V2: "enabled",
     COMUN_BUS_LOCAL_PILOT: "enabled",
     COMUN_RELATA_LOCATION_ENCRYPTION_KEY: locationKey,
     COMUN_RELATA_SPATIAL_HMAC_KEY: spatialKey,

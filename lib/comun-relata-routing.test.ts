@@ -24,4 +24,11 @@ describe("COMUN Relata deterministic routing", () => {
     expect(decision.category).toBe("smoke_or_environmental_trace");
     expect(decision.agencyKind).toBe("environmental");
   });
+
+  it("uses canonical categories for civic capture", () => {
+    expect(routeRelata({ text: "A calçada está bloqueada por entulho" }).category).toBe("sidewalk_accessibility");
+    expect(routeRelata({ text: "Há lixo e entulho na rua" }).category).toBe("waste_or_debris");
+    expect(routeRelata({ text: "O problema é no ônibus da linha 10" }).category).toBe("public_transport");
+    expect(routeRelata({ text: "Aconteceu na escola municipal" }).category).toBe("public_education");
+  });
 });

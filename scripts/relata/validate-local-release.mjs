@@ -6,7 +6,7 @@ import path from "node:path";
 const root = process.cwd();
 const releaseDirectory = path.join(root, "supabase/local-releases");
 const manifesta = (await readdir(releaseDirectory))
-  .filter((name) => /^\d+-comun-(?:relata|bus)-.+\.json$/.test(name))
+  .filter((name) => /^\d+-comun-(?:relata|bus|capture)-.+\.json$/.test(name))
   .sort();
 assert.ok(manifesta.length >= 2);
 const verified = [];

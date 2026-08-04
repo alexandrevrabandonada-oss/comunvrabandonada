@@ -19,7 +19,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const preview = sanitizePreview(body);
   const relata = createComunRelataPersistenceClient();
   const text = typeof body.text === "string" && body.text.trim().length >= 8 ? body.text.trim().slice(0, 600) : "Observação privada de transporte coletivo.";
-  const created = await relata.rpc("comun_relata_create", { p_idempotency_key: body.idempotencyKey, p_receipt_secret: body.receiptSecret, p_original_text: text, p_answers: {}, p_category: "other", p_urgency: "attention", p_rule_version: "relata-routing-v1", p_decision: { category: "public_transport", problemKind: kind, source: "comun-bus-local-48-0e" }, p_privacy_class: "restricted", p_consent_version: "relata-consent-v1" });
+  const created = await relata.rpc("comun_relata_create", { p_idempotency_key: body.idempotencyKey, p_receipt_secret: body.receiptSecret, p_original_text: text, p_answers: {}, p_category: "public_transport", p_urgency: "attention", p_rule_version: "relata-routing-v1", p_decision: { category: "public_transport", problemKind: kind, source: "comun-bus-local-48-0e" }, p_privacy_class: "restricted", p_consent_version: "relata-consent-v1" });
   if (created.error || !Array.isArray(created.data) || !created.data[0]) return unavailable();
   const receipt = created.data[0] as { protocol: string };
   const linked = await busDb.rpc("comun_bus_link_relata", { p_token_hash: hashBusSessionToken(body.sessionToken as string), p_session_id: sessionId, p_protocol: receipt.protocol, p_preview: preview, p_problem_kind: kind, p_description: typeof body.description === "string" ? body.description : text });

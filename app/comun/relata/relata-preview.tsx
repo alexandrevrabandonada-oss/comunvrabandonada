@@ -28,6 +28,7 @@ function randomProof() {
 function stateLabel(state: string) {
   return (
     {
+      captured_private: "Guardado",
       draft: "Relato recebido",
       triage: "Triagem registrada",
       routed: "Contexto classificado",

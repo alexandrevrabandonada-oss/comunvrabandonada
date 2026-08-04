@@ -10,6 +10,7 @@ import { classifyRelataPrivacy } from "@/lib/comun-relata-privacy";
 import { routeRelata } from "@/lib/comun-relata-routing";
 import { isComunRelataEvidenceEnabled } from "@/lib/comun-relata-evidence-feature";
 import { associateComunRelataCollective } from "@/lib/comun-relata-evidence-runtime";
+import { isComunQuickCaptureEnabled } from "@/lib/comun-capture-feature";
 
 export const runtime = "nodejs";
 
@@ -46,6 +47,8 @@ export async function POST(request: NextRequest) {
     typeof body.idempotencyKey === "string" ? body.idempotencyKey : "";
   const receiptSecret =
     typeof body.receiptSecret === "string" ? body.receiptSecret : "";
+  const quickCapture = body.captureMode === "quick_v2" && isComunQuickCaptureEnabled();
+  const allowedAnswerKeys = new Set(["homes_power", "smoke_active", "blocked", "line", "direction", "unit", "school_type"]);
 
   if (
     text.length < 8 ||
@@ -53,7 +56,7 @@ export async function POST(request: NextRequest) {
     !/^[A-Za-z0-9_-]{32,160}$/.test(idempotencyKey) ||
     !/^[A-Za-z0-9_-]{32,160}$/.test(receiptSecret) ||
     Object.keys(answers).some(
-      (key) => key !== "homes_power" || !["sim", "nao"].includes(answers[key]),
+      (key) => !allowedAnswerKeys.has(key) || (key === "homes_power" && !["sim", "nao"].includes(answers[key])),
     )
   ) {
     return NextResponse.json(
@@ -62,7 +65,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const input = { text, answers };
+  const input = { text, answers, hasAttachment: quickCapture && body.hasPhoto === true };
   const decision = routeRelata(input);
   if (decision.missingInformation.length > 0) {
     return NextResponse.json(
@@ -80,7 +83,7 @@ export async function POST(request: NextRequest) {
     p_category: decision.category,
     p_urgency: decision.urgency,
     p_rule_version: decision.ruleVersion,
-    p_decision: decision,
+    p_decision: quickCapture ? { ...decision, captureMode: "quick_v2", captureState: "captured_private" } : decision,
     p_privacy_class: classifyRelataPrivacy(input),
     p_consent_version: "relata-consent-v1",
   });
