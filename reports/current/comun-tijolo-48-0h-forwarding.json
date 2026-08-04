@@ -1,7 +1,10 @@
 {
-  "result": "COMUN_FORWARDING_48_0H_LOCAL_CANDIDATE_GREEN",
+  "result": "COMUN_FORWARDING_48_0H_MERGED_DORMANT_LOCAL_FISCALIZA_ADAPTER_GREEN_REMOTE_UNCHANGED",
   "baseline": "7a4ebaa5ab9b59323fe55cd7c9f0dd87c8c28ffe",
   "branch": "codex/tijolo-48-0h-forwarding-fiscaliza",
+  "pr": 160,
+  "mergeSha": "e07e5f7324817dfad6a643a97bbcb2b2383a6c52",
+  "deployment": "dpl_7H9z7JzbuosPKepQ3mCLFSUKkXbz",
   "migration": "20260804151244_comun_forwarding_local.sql",
   "migrationSha256": "68235715785a01c6f7c94e65ad5a4342493ec39a0012923c356ccdc597475454",
   "requiresPromotion": false,
@@ -12,5 +15,5 @@
   "operationalCheck": "pending",
   "automationAllowed": false,
   "tests": { "db": "green", "rls": "green", "grants": "green", "e2e": "5/5", "typecheck": "green", "lint": "green", "build": "green" },
-  "production": { "remoteWritten": false, "flagActivated": false, "externalSubmission": false, "launchPublicly": false }
+  "production": { "remoteWritten": false, "flagActivated": false, "externalSubmission": false, "launchPublicly": false, "publicReportRoute": 200, "legacyRoute": 200, "forwardingMethods404": true }
 }

@@ -26,4 +26,10 @@
 - Privacidade: contato fica em tabela separada; listagem segura omite valor; RLS/grants service-role-only.
 - Produto: sem envio externo, sem canal adicional público, sem ativação de flag em Production.
 
-Resultado diagnóstico: pronto para adaptação local, sujeito aos gates de CI/Preview e smoke dormente.
+## Integração
+
+- PR principal: #160, checks e Preview verdes; merge squash `e07e5f7324817dfad6a643a97bbcb2b2383a6c52`.
+- Production: deployment `dpl_7H9z7JzbuosPKepQ3mCLFSUKkXbz`, `READY`, domínio `comunsocial.online`.
+- Smoke pós-merge: `/comun=200`, `/comun/relatar=200`, `/comun/relata=404`, `/comun/onibus=404`, Carteira `307` para autenticação; todos os métodos GET/POST/PATCH/PUT/DELETE de `/api/comun/forwarding/packages` retornaram `404`.
+
+Resultado: `COMUN_FORWARDING_48_0H_MERGED_DORMANT_LOCAL_FISCALIZA_ADAPTER_GREEN_REMOTE_UNCHANGED`.
