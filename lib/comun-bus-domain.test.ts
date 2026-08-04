@@ -3,7 +3,7 @@ import { classifyDifference, differenceMinutes, sanitizePreview } from "./comun-
 
 describe("COMUN Ônibus contracts", () => {
   it("handles a journey after midnight", () => {
-    const observed = new Date("2026-08-04T00:04:00-03:00");
+    const observed = new Date(2026, 7, 4, 0, 4);
     expect(differenceMinutes("23:58", observed)).toBe(6);
     expect(classifyDifference(6, 5)).toBe("late");
   });
