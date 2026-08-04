@@ -6,7 +6,11 @@ import path from "node:path";
 const root = process.cwd();
 const releaseDirectory = path.join(root, "supabase/local-releases");
 const manifesta = (await readdir(releaseDirectory))
-  .filter((name) => /^\d+-comun-(?:relata|bus|capture|participation-wallet)-.+\.json$/.test(name))
+  .filter((name) =>
+    /^\d+-comun-(?:relata|bus|capture|participation-wallet|forwarding)-.+\.json$/.test(
+      name,
+    ),
+  )
   .sort();
 assert.ok(manifesta.length >= 2);
 const verified = [];
@@ -27,10 +31,12 @@ for (const name of manifesta) {
   });
 }
 
-const remoteApplyScripts = (await readdir(path.join(root, "scripts"), {
-  recursive: true,
-  withFileTypes: true,
-}))
+const remoteApplyScripts = (
+  await readdir(path.join(root, "scripts"), {
+    recursive: true,
+    withFileTypes: true,
+  })
+)
   .filter(
     (entry) =>
       entry.isFile() &&
@@ -42,7 +48,8 @@ for (const scriptPath of remoteApplyScripts) {
   const contents = await readFile(scriptPath, "utf8");
   for (const release of verified) {
     assert.equal(
-      contents.includes(release.release) || contents.includes(release.migration),
+      contents.includes(release.release) ||
+        contents.includes(release.migration),
       false,
       `${path.relative(root, scriptPath)} must not promote ${release.release}`,
     );

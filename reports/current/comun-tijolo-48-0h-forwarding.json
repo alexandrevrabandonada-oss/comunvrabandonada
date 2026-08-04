@@ -1,0 +1,16 @@
+{
+  "result": "COMUN_FORWARDING_48_0H_LOCAL_CANDIDATE_GREEN",
+  "baseline": "7a4ebaa5ab9b59323fe55cd7c9f0dd87c8c28ffe",
+  "branch": "codex/tijolo-48-0h-forwarding-fiscaliza",
+  "migration": "20260804151244_comun_forwarding_local.sql",
+  "migrationSha256": "68235715785a01c6f7c94e65ad5a4342493ec39a0012923c356ccdc597475454",
+  "requiresPromotion": false,
+  "remotePromotionAllowed": false,
+  "adapter": "vr-fiscaliza-lighting-v1",
+  "channel": "vr-fiscaliza-web",
+  "sourceVerified": true,
+  "operationalCheck": "pending",
+  "automationAllowed": false,
+  "tests": { "db": "green", "rls": "green", "grants": "green", "e2e": "5/5", "typecheck": "green", "lint": "green", "build": "green" },
+  "production": { "remoteWritten": false, "flagActivated": false, "externalSubmission": false, "launchPublicly": false }
+}
