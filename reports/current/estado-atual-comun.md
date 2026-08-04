@@ -1,5 +1,19 @@
 # Estado atual do COMUN
 
+## Tijolo 48.0G — carteira única de participação — candidata local
+
+- baseline `origin/main` confirmado em `8947b3db28280b988c0a1f72ac67947c9bca7455`; branch isolada `codex/tijolo-48-0g-wallet`;
+- `/comun/minha-participacao` é a superfície canônica; carteira anônima local reúne múltiplos relatos, follows legados, observações de Ônibus e casos sanitizados;
+- Relata permanece fonte da verdade; protocolos antigos continuam válidos e aparecem como “Protocolo acompanhado”;
+- migration `20260804135032_participation_wallet_local.sql`, SHA `ddd8a8cb3acb84a13f8b1f58ffb96df1d75d83dc1f4370a0550141c7585de2c0`, manifesto local-only;
+- tokens, recibos e recuperação separados; hashes only, RLS forçada, RPCs service-role-only e rate limit de recuperação;
+- DB rehearsal `COMUN_WALLET_48_0G_DB_GREEN`; RLS/grants e restore descartável de banco/Storage verdes; 479 unitários; wallet E2E/Axe 5/5 em cinco viewports; typecheck/lint/build/surfaces verdes;
+- primeiro reset apresentou container Supabase compartilhado em estado parcial; retry focal aplicou a cadeia completa. Não é finding do produto;
+- Production, flags públicas, Supabase remoto, domínio, secrets, encaminhamento externo e `launch_publicly` permanecem intocados;
+- ensaio humano 48.0F-H1 continua pendente; 47.9D não iniciado;
+- resultado técnico local: `COMUN_WALLET_48_0G_LOCAL_CANDIDATE_GREEN`; integração exige PR/CI/Preview e smoke dormente;
+- próximo tijolo: `48.0H — Encaminhamento institucional compartilhado`.
+
 ## Tijolo 48.0F — captura rápida e convergência — candidata local
 
 - baseline `origin/main` confirmado em `87277aa2b7a58ea7a9bcd9f260082519beca25fc`; branch `codex/tijolo-48-0f-capture`;

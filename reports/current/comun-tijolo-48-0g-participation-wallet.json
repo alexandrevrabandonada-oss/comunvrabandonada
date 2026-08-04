@@ -1,0 +1,21 @@
+{
+  "result": "COMUN_WALLET_48_0G_LOCAL_CANDIDATE_GREEN",
+  "baseline": "8947b3db28280b988c0a1f72ac67947c9bca7455",
+  "branch": "codex/tijolo-48-0g-wallet",
+  "surface": "/comun/minha-participacao",
+  "featureFlag": "COMUN_PARTICIPATION_WALLET_LOCAL",
+  "migration": "20260804135032_participation_wallet_local.sql",
+  "migrationSha256": "ddd8a8cb3acb84a13f8b1f58ffb96df1d75d83dc1f4370a0550141c7585de2c0",
+  "requiresPromotion": false,
+  "remotePromotionAllowed": false,
+  "localDb": "COMUN_WALLET_48_0G_DB_GREEN",
+  "rls": "COMUN_RLS_COMPLETE_GREEN",
+  "restore": { "database": "green", "storage": "green" },
+  "unit": { "passed": 479, "files": 99 },
+  "walletE2e": { "passed": 5, "viewports": 5, "axe": true },
+  "surfaces": { "pages": 192, "unknownRoutes": 0, "legacyRendered": 0, "p0p1": 0 },
+  "remoteSupabase": "untouched",
+  "productionFlag": "disabled",
+  "humanRehearsal": "pending",
+  "next": "48.0H — encaminhamento institucional compartilhado"
+}

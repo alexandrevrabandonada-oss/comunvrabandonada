@@ -11,6 +11,8 @@ import { routeRelata } from "@/lib/comun-relata-routing";
 import { isComunRelataEvidenceEnabled } from "@/lib/comun-relata-evidence-feature";
 import { associateComunRelataCollective } from "@/lib/comun-relata-evidence-runtime";
 import { isComunQuickCaptureEnabled } from "@/lib/comun-capture-feature";
+import { isComunParticipationWalletEnabled } from "@/lib/comun-participation-wallet-feature";
+import { createWallet, readWalletToken, setWalletCookie, walletSecretHash } from "@/lib/comun-participation-wallet-runtime";
 
 export const runtime = "nodejs";
 
@@ -118,8 +120,31 @@ export async function POST(request: NextRequest) {
       receiptSecret,
     });
   }
+  let walletRecoveryCode: string | undefined;
+  let walletToken: string | null = null;
+  if (quickCapture && isComunParticipationWalletEnabled()) {
+    try {
+      const existingToken = readWalletToken(request);
+      if (existingToken) {
+        walletToken = existingToken;
+      } else {
+        const createdWallet = await createWallet(db);
+        walletToken = createdWallet.token;
+        walletRecoveryCode = createdWallet.recoveryCode;
+      }
+      if (walletToken) {
+        await db.rpc("comun_participation_wallet_attach_relata", {
+          p_token_hash_hex: walletSecretHash(walletToken),
+          p_protocol: receipt.protocol,
+          p_receipt_secret: receiptSecret,
+        });
+      }
+    } catch {
+      // A wallet association is compensable; the already-created Relata receipt is not rolled back.
+    }
+  }
   const response = NextResponse.json(
-    { receipt, noOfficialSend: true },
+    { receipt, noOfficialSend: true, ...(walletRecoveryCode ? { walletRecoveryCode } : {}) },
     { status: 201, headers: noStoreHeaders },
   );
   response.cookies.set(
@@ -132,5 +157,6 @@ export async function POST(request: NextRequest) {
       path: "/api/comun/relata",
     },
   );
+  if (walletToken) setWalletCookie(response, walletToken);
   return response;
 }

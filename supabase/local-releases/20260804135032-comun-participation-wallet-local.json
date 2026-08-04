@@ -1,0 +1,36 @@
+{
+  "release": "20260804135032-comun-participation-wallet-local",
+  "migration": "supabase/migrations/20260804135032_participation_wallet_local.sql",
+  "migrationSha256": "ddd8a8cb3acb84a13f8b1f58ffb96df1d75d83dc1f4370a0550141c7585de2c0",
+  "destructiveSql": false,
+  "requiresPromotion": false,
+  "remotePromotionAllowed": false,
+  "scope": "disposable_local_supabase_only",
+  "featureFlag": "COMUN_PARTICIPATION_WALLET_LOCAL",
+  "canonicalSurface": "/comun/minha-participacao",
+  "canonicalSource": "relata_and_existing_participation_domains",
+  "assertions": [
+    "wallet token and recovery credentials are persisted only as hashes",
+    "Relata remains the source of truth and protocols remain compatible",
+    "legacy protocols are followed, never claimed as private ownership",
+    "all wallet tables are forced RLS and service_role-only",
+    "recovery rotates the wallet token and invalidates the used code",
+    "production flags, remote promotion and external forwarding remain disabled"
+  ],
+  "changedObjects": [
+    "private.comun_participation_wallets",
+    "private.comun_participation_wallet_items",
+    "private.comun_participation_wallet_events",
+    "private.comun_participation_wallet_recovery_credentials",
+    "private.comun_participation_wallet_rate_limits",
+    "public.comun_participation_wallet_create",
+    "public.comun_participation_wallet_list",
+    "public.comun_participation_wallet_attach_relata",
+    "public.comun_participation_wallet_follow_legacy",
+    "public.comun_participation_wallet_follow_case",
+    "public.comun_participation_wallet_claim_bus",
+    "public.comun_participation_wallet_remove_item",
+    "public.comun_participation_wallet_redeem",
+    "public.comun_participation_wallet_rotate_recovery"
+  ]
+}
