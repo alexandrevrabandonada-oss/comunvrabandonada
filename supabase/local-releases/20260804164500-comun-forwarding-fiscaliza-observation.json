@@ -1,0 +1,18 @@
+{
+  "release": "20260804164500-comun-forwarding-fiscaliza-observation",
+  "migration": "supabase/migrations/20260804164500_comun_fiscaliza_observation_local.sql",
+  "migrationSha256": "6924e6de8053d785058dec5cb77aae4d1503efe387d959d34d35cc7c73b14aca",
+  "destructiveSql": false,
+  "requiresPromotion": false,
+  "remotePromotionAllowed": false,
+  "scope": "disposable_local_supabase_only",
+  "featureFlag": "COMUN_FISCALIZA_ASSISTED_OPENING_LOCAL",
+  "forwardingFlag": "COMUN_FORWARDING_LOCAL",
+  "channel": "vr-fiscaliza-web",
+  "adapter": "vr-fiscaliza-lighting-v1",
+  "observationState": "operationally_observed_no_submission",
+  "sourceReconciliation": {"generalDeadline":"not_stated","specificLightingEstimate":"30 days","historical2019ResponseWindow":"48 hours","historicalIncludedInDueCalculation":false},
+  "automationAllowed": false,
+  "assertions": ["no external Fiscaliza form is submitted","public entry redirect and DNS unavailability are recorded without credentials","current general source has no stated deadline","lighting estimate is 30 days and is not a legal deadline","historical 2019 48 hour note is excluded from current due calculations","observations and source records are forced RLS and service_role-only","Production remains dormant and no external channel is contacted"],
+  "changedObjects": ["private.comun_forwarding_source_records","private.comun_forwarding_channel_observations","private.comun_forwarding_observation_list","private.comun_forwarding_source_reconciliation","private.comun_forwarding_adapters.source_general_deadline_value","private.comun_forwarding_adapters.source_general_deadline_unit","private.comun_forwarding_adapters.source_general_deadline_nature","private.comun_forwarding_adapters.historical_source_notes"]
+}

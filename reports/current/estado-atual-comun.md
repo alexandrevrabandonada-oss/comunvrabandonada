@@ -497,3 +497,8 @@ Em 2026-08-04, a branch `codex/tijolo-48-0e-comun-bus-foundation` foi criada a p
 Estado: pronta para PR draft, ainda não integrada. `COMUN_BUS_LOCAL_PILOT` permanece desligada fora do laboratório. Não houve consulta ou escrita no Supabase remoto, envio para STMU, publicação de mapa ou acionamento de `launch_publicly`. Production continua dormente e `/comun/onibus` permanece 404 fora do ambiente local permitido.
 
 Evidência: 20 tabelas privadas com RLS forçada, RPCs sem execução pública, 470 testes unitários, 5 viewports Playwright, zero rota desconhecida, zero `legacy_rendered` e zero P0/P1. Próximo gate é CI/Preview da PR; nenhum ensaio humano foi iniciado.
+# Tijolo 48.0I — verificação Fiscaliza VR (04/08/2026)
+
+O 48.0I está implementado em branch local-only a partir de `origin/main` `3beab754d99ab2048430a5124960b960cbf4a518`. As fontes foram reconciliadas: prazo geral atual `not_stated`, iluminação `30 dias` como estimativa de realização não legal e menção histórica de `48 horas` excluída de vencimentos. A entrada pública municipal redirecionou para `fiscalizavr.citysystems.com.br`, indisponível por DNS; não houve autenticação, preenchimento, submissão ou protocolo real. O resultado técnico é `COMUN_FISCALIZA_OPERATIONAL_OBSERVATION_PARTIAL`.
+
+A migration local-only `20260804164500_comun_fiscaliza_observation_local.sql` (SHA-256 `6924e6de8053d785058dec5cb77aae4d1503efe387d959d34d35cc7c73b14aca`) adiciona catálogo de fontes e observações com RLS forçada/service-role-only. A abertura assistida exige flag separada, URL HTTPS exata e gesto explícito; host inesperado é rejeitado. Production, Supabase remoto, `launch_publicly` e todas as flags públicas permanecem inalterados. Próximo tijolo: `48.0J — Conectar Calçadas ao encaminhamento`.

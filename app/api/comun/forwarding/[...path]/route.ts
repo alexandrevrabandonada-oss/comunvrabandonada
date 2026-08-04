@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isComunForwardingEnabled } from "@/lib/comun-forwarding-feature";
+import {
+  isComunForwardingEnabled,
+  isFiscalizaAssistedOpeningEnabled,
+} from "@/lib/comun-forwarding-feature";
+import { FISCALIZA_VR_CHANNEL } from "@/lib/comun-forwarding-catalog";
+import {
+  FISCALIZA_ASSISTED_OPENING_URL,
+  validateFiscalizaDestination,
+} from "@/lib/comun-fiscaliza-operational";
 import {
   forwardingDb,
   safePackage,
@@ -33,6 +41,17 @@ export async function GET(
   const token = readWalletToken(request);
   if (!token) return dormant();
   const path = (await context.params).path;
+  if (path[0] === "observation" && path.length === 1) {
+    return json({
+      channel: FISCALIZA_VR_CHANNEL.id,
+      state: "operationally_observed_no_submission",
+      authenticationRequired: "unconfirmed",
+      publicEntry: "redirect_observed_unavailable",
+      submission: "unconfirmed",
+      protocol: "unconfirmed",
+      destination: FISCALIZA_ASSISTED_OPENING_URL,
+    });
+  }
   if (path[0] !== "packages") return dormant();
   try {
     const { data, error } = await forwardingDb().rpc(
@@ -78,11 +97,14 @@ export async function POST(
     const packageId = path[1];
     if (!packageId) return dormant();
     if (path[2] === "opened") {
+      if (!isFiscalizaAssistedOpeningEnabled()) return dormant();
       const { data, error } = await db.rpc("comun_forwarding_opened", {
         p_token_hash_hex: walletHash(token),
         p_package_id: packageId,
       });
       if (error || !Array.isArray(data) || !data[0]) return dormant();
+      const destination = validateFiscalizaDestination(data[0].channel_url);
+      if (!destination.valid) return dormant();
       return json({ opened: true, package: data[0] });
     }
     if (path[2] === "review") {

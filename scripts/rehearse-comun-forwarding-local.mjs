@@ -25,6 +25,20 @@ const first = async (promise, label) => {
   return data[0];
 };
 
+const observations = await service.rpc("comun_forwarding_observation_list", {
+  p_channel_id: "vr-fiscaliza-web",
+});
+if (observations.error || !observations.data?.length)
+  throw new Error("fiscaliza operational observation missing");
+const sourceRecords = await service.rpc("comun_forwarding_source_reconciliation");
+if (sourceRecords.error || sourceRecords.data.length !== 3)
+  throw new Error("fiscaliza source reconciliation missing");
+const general = sourceRecords.data.find((row) => row.source_kind === "current_general");
+const lighting = sourceRecords.data.find((row) => row.source_kind === "current_specific_service");
+const historical = sourceRecords.data.find((row) => row.source_kind === "historical_source");
+if (general.deadline_value !== null || lighting.deadline_value !== 30 || lighting.deadline_unit !== "days" || historical.deadline_value !== 48 || historical.included_in_due_calculation)
+  throw new Error("fiscaliza deadline reconciliation failed");
+
 const walletToken = token();
 await first(
   service.rpc("comun_participation_wallet_create", {
@@ -206,6 +220,8 @@ console.log(
     adapter: "vr-fiscaliza-lighting-v1",
     sourceVerified: true,
     operationallyUnchecked: true,
+    observationState: observations.data[0].state,
+    sourceReconciliation: { general: "not_stated", lighting: "30 days estimate", historical2019: "48 hours excluded" },
     automationAllowed: false,
     packageIdempotent: true,
     protocolImmutable: true,

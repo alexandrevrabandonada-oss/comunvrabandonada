@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  isFiscalizaAssistedOpeningEnabled,
   isComunForwardingEnabled,
   shouldCloakComunForwarding,
 } from "./comun-forwarding-feature";
@@ -35,5 +36,14 @@ describe("forwarding local barrier", () => {
       }),
     ).toBe(true);
     expect(shouldCloakComunForwarding("/api/comun/relata", local)).toBe(false);
+  });
+  it("requires the separate assisted-opening barrier", () => {
+    expect(isFiscalizaAssistedOpeningEnabled(local)).toBe(false);
+    expect(
+      isFiscalizaAssistedOpeningEnabled({
+        ...local,
+        COMUN_FISCALIZA_ASSISTED_OPENING_LOCAL: "enabled",
+      }),
+    ).toBe(true);
   });
 });

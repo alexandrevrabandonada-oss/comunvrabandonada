@@ -1,6 +1,8 @@
 import { isLoopbackSupabaseUrl } from "./comun-relata-persistence";
 
 export const COMUN_FORWARDING_FLAG = "COMUN_FORWARDING_LOCAL";
+export const COMUN_FISCALIZA_ASSISTED_OPENING_FLAG =
+  "COMUN_FISCALIZA_ASSISTED_OPENING_LOCAL";
 export const COMUN_FORWARDING_PREFIX = "/api/comun/forwarding";
 export const FISCALIZA_LIGHTING_ADAPTER_ID = "vr-fiscaliza-lighting-v1";
 
@@ -12,6 +14,15 @@ export function isComunForwardingEnabled(
     env.ALLOW_LOCAL_TESTS === "true" &&
     isLoopbackSupabaseUrl(env.NEXT_PUBLIC_SUPABASE_URL) &&
     Boolean(env.SUPABASE_SERVICE_ROLE_KEY)
+  );
+}
+
+export function isFiscalizaAssistedOpeningEnabled(
+  env: Record<string, string | undefined> = process.env,
+) {
+  return (
+    isComunForwardingEnabled(env) &&
+    env[COMUN_FISCALIZA_ASSISTED_OPENING_FLAG] === "enabled"
   );
 }
 

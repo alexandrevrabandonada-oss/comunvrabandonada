@@ -7,10 +7,16 @@ export const FISCALIZA_VR_CHANNEL = {
   territory: "Volta Redonda",
   officialUrl: "https://www.voltaredonda.rj.gov.br/fiscalizavr",
   state: "source_verified",
-  operationalCheck: "pending",
+  operationalCheck: "public_entry_unavailable_redirect_observed",
   automationAllowed: false,
   reviewedAt: "2026-08-04",
-  sourceVersion: "relata-channel-catalog-v1",
+  sourceVersion: "fiscaliza-vr-operational-observation-v1",
+  sourceGeneralUrl:
+    "https://servicos.voltaredonda.rj.gov.br/cartaServicos/435/",
+  sourceSpecificUrl:
+    "https://servicos.voltaredonda.rj.gov.br/cartaServicos/158/",
+  sourceHistoricalUrl:
+    "https://www.voltaredonda.rj.gov.br/cidade/27-noticias-em-destaque/seplag/818-fiscaliza-vr-facilita-atendimento-ao-cidad%C3%A3o/",
 } as const;
 
 export const FISCALIZA_LIGHTING_ADAPTER = {
@@ -20,10 +26,19 @@ export const FISCALIZA_LIGHTING_ADAPTER = {
   category: "public_lighting",
   institutionalSubcategory: "iluminacao_e_energia",
   version: "fiscaliza-vr-lighting-v1",
-  sourceStatedDuration: 48,
-  sourceStatedUnit: "hours",
+  sourceStatedDuration: 30,
+  sourceStatedUnit: "days",
   serviceExpectation:
-    "Resposta inicial informada pela fonte municipal; não é prazo legal.",
+    "Previsão informada para realização: 30 dias. É uma estimativa de execução do serviço, não prazo legal.",
+  generalDeadline: null,
+  historicalResponseWindow: {
+    value: 48,
+    unit: "hours",
+    sourceKind: "historical_source",
+    operationalStatus: "operational_confirmation_required",
+    includedInDueCalculation: false,
+  },
+  observationState: "operationally_observed_no_submission",
   requirements: [
     {
       key: "location_reference",
