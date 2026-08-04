@@ -102,6 +102,7 @@
     "wallet:a11y": "node scripts/comun-local-env.mjs run playwright test -c playwright.comun-participation-wallet.config.ts --grep @a11y",
     "forwarding:db:test": "node scripts/comun-local-env.mjs run node scripts/rehearse-comun-forwarding-local.mjs",
     "sidewalk:relata:db:test": "node scripts/comun-local-env.mjs run node scripts/rehearse-comun-sidewalk-relata-local.mjs",
+    "stmu:whatsapp:db:test": "node scripts/comun-local-env.mjs run node scripts/rehearse-comun-stmu-whatsapp-local.mjs",
     "forwarding:e2e": "node scripts/comun-local-env.mjs run playwright test -c playwright.comun-forwarding.config.ts",
     "forwarding:a11y": "node scripts/comun-local-env.mjs run playwright test -c playwright.comun-forwarding.config.ts --grep @a11y",
     "capture:a11y": "node scripts/comun-local-env.mjs run playwright test -c playwright.comun-capture.config.ts --grep @a11y",

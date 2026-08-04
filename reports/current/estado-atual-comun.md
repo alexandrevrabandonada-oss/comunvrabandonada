@@ -1,3 +1,27 @@
+# Estado atual — atualização 48.0K (04/08/2026)
+
+## Tijolo 48.0K — STMU WhatsApp — candidato local, dormente
+
+- baseline após Fase A: `origin/main=e7ef45aadd92e757da2fc2ca6c01dd240ac24708`; branch `codex/tijolo-48-0k-stmu-whatsapp-assisted`;
+- canal `vr-stmu-whatsapp` observado ao vivo de forma sanitizada: identidade, menu 1/2/3 e horário 8h–17h; perguntas da opção 3, anexos, protocolo e handoff não observados;
+- adaptador `vr-stmu-whatsapp-complaint-v1`, categoria canônica `public_transport`, forwarding compartilhado e Carteira existente;
+- migration local-only `20260804204544_comun_stmu_whatsapp_assisted_local.sql`, SHA `5ed6358e97650c20fb0bb881c6d804a6f79d6ea5455fb81079f506861e7c112a`; manifesto `requiresPromotion=false`, `remotePromotionAllowed=false`;
+- pacote idempotente, requisitos versionados, revisão, abertura assistida por gesto, retorno e declaração sintética verdes no DB rehearsal `COMUN_STMU_48_0K_DB_GREEN`;
+- RLS `COMUN_RLS_COMPLETE_GREEN`, grants explícitos/service-role-only; cloak GET/POST/PATCH/DELETE/PUT `404` sem `405`;
+- URL exata `https://wa.me/5524992958558`, sem query, prefill, automação, sessão, envio ou protocolo confirmado; expectativa de 72h permanece fonte declarada e começa somente após declaração da pessoa;
+- typecheck, lint, build, surfaces e teste focal verdes; ensaio humano da opção 3 pendente; nenhum WhatsApp real acessado;
+- Production, Supabase remoto, flags públicas, domínio, secrets e `launch_publicly` permanecem intocados;
+- resultado esperado após integração segura: `COMUN_STMU_48_0K_MERGED_DORMANT_WHATSAPP_MENU_OBSERVED_COMPLAINT_FLOW_PENDING_REMOTE_UNCHANGED`;
+- relatórios: `comun-tijolo-48-0k-stmu-diagnostico.md`, `comun-tijolo-48-0k-stmu-whatsapp.md/.json`, reconciliação, observação, abertura e template do micro-gate;
+- próximo passo: `48.1 — primeiro piloto real consentido` somente após gates humanos e operacionais separados; 47.9D não iniciado.
+
+## Faixa 48.0J-N1 — Calçadas integrada, Fiscaliza degradado
+
+- PR #164 mesclada no SHA `e7ef45aadd92e757da2fc2ca6c01dd240ac24708`; a falha do smoke foi classificada como `SMOKE_WRONG_ENVIRONMENT` (fixture local correta, app apontava para processo/porta errados), corrigida sem aceitar `404` genérico;
+- smoke pós-merge: `/comun=200`, `/comun/relatar=200`, `/comun/calcadas=200`, Relata/Ônibus/forwarding `404`; Production permaneceu dormente e remoto inalterado;
+- resultado Fase A: `COMUN_SIDEWALK_48_0J_MERGED_DORMANT_LOCAL_CONNECTED_FISCALIZA_DEGRADED_REMOTE_UNCHANGED`;
+- 48.0K só foi iniciado após esse merge, novo baseline e remoção da branch 48.0J.
+
 # Estado atual do COMUN
 
 ## Tijolo 48.0H — encaminhamento institucional compartilhado — candidata local
