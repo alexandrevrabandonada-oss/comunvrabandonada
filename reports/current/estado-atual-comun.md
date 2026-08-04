@@ -447,3 +447,10 @@ Decisão vigente: `NO_GO_VERCEL_PREVIEW_CREDENTIAL`. A PR #30 permanece aberta,
 sem merge e sem label de promoção; o gate humano permanece 0/3 e o piloto
 público continua fechado.
 Adendo Tijolo 43.1: FAST no SHA `5503e02` ficou verde e o rehearsal confirmou a rede interna em `db:5432`; a falha posterior era somente um delimitador de fingerprint no runner, já corrigido com teste de regressão. A decisão permanece `COMUN_CALCADAS_FAST_PATCH_REQUIRED`, sem FULL, promoção ou escrita remota.
+# Tijolo 48.0E — COMUN Ônibus (local-only)
+
+Em 2026-08-04, a branch `codex/tijolo-48-0e-comun-bus-foundation` foi criada a partir de `origin/main` em `f8efa8e1eb8370613a35e605ddb8d346b90a4676`. A fundação local do COMUN Ônibus está implementada e validada em Supabase descartável, com fixture sintética `FIX-01`, horários versionados, sessões de espera, observações e vínculo privado com Relata.
+
+Estado: pronta para PR draft, ainda não integrada. `COMUN_BUS_LOCAL_PILOT` permanece desligada fora do laboratório. Não houve consulta ou escrita no Supabase remoto, envio para STMU, publicação de mapa ou acionamento de `launch_publicly`. Production continua dormente e `/comun/onibus` permanece 404 fora do ambiente local permitido.
+
+Evidência: 20 tabelas privadas com RLS forçada, RPCs sem execução pública, 470 testes unitários, 5 viewports Playwright, zero rota desconhecida, zero `legacy_rendered` e zero P0/P1. Próximo gate é CI/Preview da PR; nenhum ensaio humano foi iniciado.

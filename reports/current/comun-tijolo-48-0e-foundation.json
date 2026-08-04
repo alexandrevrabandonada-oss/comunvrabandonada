@@ -1,0 +1,20 @@
+{
+  "result": "COMUN_BUS_48_0E_LOCAL_FOUNDATION_READY_FOR_INTEGRATION",
+  "branch": "codex/tijolo-48-0e-comun-bus-foundation",
+  "base": "f8efa8e1eb8370613a35e605ddb8d346b90a4676",
+  "migration": "20260804002757_comun_bus_foundation.sql",
+  "migrationSha256": "b9a5e4cc97bbbcd84250a0df6a8b89ac709ef03fccb5c235f35b8c1283b8c453",
+  "featureFlag": "COMUN_BUS_LOCAL_PILOT",
+  "localOnly": true,
+  "remoteSupabase": "untouched",
+  "production": "dormant",
+  "pages": 192,
+  "unknownRoutes": 0,
+  "legacyRendered": 0,
+  "p0p1": 0,
+  "rlsTables": 20,
+  "publicRpcExecute": false,
+  "unitTests": "470/470",
+  "busE2E": "5/5 viewports",
+  "nextStep": "draft PR and remote CI validation"
+}

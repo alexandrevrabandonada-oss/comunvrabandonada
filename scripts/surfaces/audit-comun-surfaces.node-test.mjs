@@ -4,8 +4,8 @@ import { auditComunSurfaces } from "./audit-comun-surfaces.mjs";
 
 test("classifies every COMUN page into the seven-shell migration matrix", async () => {
   const { summary, routes } = await auditComunSurfaces({ write: false });
-  // The dormant, feature-flagged /comun/relata route is part of the full matrix.
-  assert.equal(summary.total, 191);
+  // The dormant, feature-flagged /comun/relata and /comun/onibus routes are part of the full matrix.
+  assert.equal(summary.total, 192);
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
     "admin",

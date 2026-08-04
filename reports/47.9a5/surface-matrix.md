@@ -1,8 +1,8 @@
 # Matriz canônica de superfícies — 47.9A5
 
-Gerada em: 2026-08-03T23:38:26.301Z
+Gerada em: 2026-08-04T01:05:29.642Z
 
-Total: **191** · ondas: 1=71 · 2=32 · 3=76 · 4=12
+Total: **192** · ondas: 1=72 · 2=32 · 3=76 · 4=12
 
 | Rota | Família | Shell | Visual | Componente | Decisão | Onda |
 | --- | --- | --- | --- | --- | --- | ---: |
@@ -168,6 +168,7 @@ Total: **191** · ondas: 1=71 · 2=32 · 3=76 · 4=12
 | `/comun/observatorios/[slug]/registrar` | observatorios | immersive | v2_compatibility | Page | compatibility_v2 | 2 |
 | `/comun/offline` | offline | institutional | v2_compatibility | OfflinePage | compatibility_v2 | 2 |
 | `/comun/onboarding` | onboarding | auth | v2_compatibility | Onboarding | compatibility_v2 | 2 |
+| `/comun/onibus` | onibus | member_nested | not_rendered | ComunBusPage | redirect_canonical | 1 |
 | `/comun/participar` | participar | member_root | not_rendered | ParticiparPage | redirect_canonical | 1 |
 | `/comun/participar/confirmacao` | participar | member_nested | not_rendered | ParticipationConfirmation | redirect_canonical | 1 |
 | `/comun/pautas` | pautas | member_nested | mixed | PautaSpacesPage | retain_v2 | 1 |
