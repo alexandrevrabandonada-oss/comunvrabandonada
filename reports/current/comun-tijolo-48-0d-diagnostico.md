@@ -1,7 +1,7 @@
 # COMUN — Tijolo 48.0D — diagnóstico local
 
-Data: 2026-08-03  
-Baseline: `118f1d4c88cc6915ef471ba59cfcfbcf0355d770` (main documental), `6fefaa8e79de53e4c8bee1f4f4c16a71d5bc68c1` (produto/Production)
+Data: 2026-08-04
+Baseline: `118f1d4c88cc6915ef471ba59cfcfbcf0355d770`; merge final `261c853d606158ce349fa24cf1cb7b3a74a60f31`; Production `dpl_G9iA4Mgn6jAcuuFqDgtQiKcgD7q6`
 
 ## DIAG
 
@@ -33,4 +33,4 @@ Docker Desktop `4.61.0` / Engine `29.2.1` (`desktop-linux`) e WSL2 estavam saud�
 
 Houve dois incidentes de infraestrutura durante a recuperação: inicialização com porta reservada e gateway Kong apontando para IP antigo do Storage (`502`, host unreachable) após reinícios. O retry focal com restart do container Kong e reset `--no-seed` completou a cadeia SQL; Storage, seed de buckets e restore passaram separadamente. Nenhum incidente alterou a migration ou foi classificado como finding de produto.
 
-Conclusão: `COMUN_RELATA_48_0D_MERGED_DORMANT_LOCAL_SANITIZED_MAP_GREEN_REMOTE_UNCHANGED` está pronto para integração condicionada aos checks de PR; não houve escrita remota.
+Conclusão: `COMUN_RELATA_48_0D_MERGED_DORMANT_LOCAL_SANITIZED_MAP_GREEN_REMOTE_UNCHANGED`. PR #156 e todas as lanes pós-merge ficaram verdes; Production permanece dormente e não houve consulta, migration ou escrita no Supabase remoto.

@@ -2,6 +2,8 @@
   "brick": "48.0D",
   "result": "COMUN_RELATA_48_0D_MERGED_DORMANT_LOCAL_SANITIZED_MAP_GREEN_REMOTE_UNCHANGED",
   "branch": "codex/tijolo-48-0d-relata-sanitized-local-map",
+  "candidate": "cee9f3226667c1de693bd858f747bd023bccdf36",
+  "pullRequest": {"number": 156, "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/156", "merged": true, "mergeSha": "261c853d606158ce349fa24cf1cb7b3a74a60f31"},
   "base": "118f1d4c88cc6915ef471ba59cfcfbcf0355d770",
   "policyVersion": "relata-public-projection-v1",
   "flags": ["COMUN_RELATA_PREVIEW", "COMUN_RELATA_LOCAL_PERSISTENCE", "COMUN_RELATA_LOCAL_EVIDENCE", "COMUN_RELATA_LOCAL_PUBLIC_MAP"],
@@ -11,6 +13,6 @@
   "remoteSupabase": {"consulted": false, "migrated": false, "changed": false},
   "localHarness": {"docker": "Docker Desktop 4.61.0 / Engine 29.2.1", "supabaseCli": "2.111.0", "temporaryPorts": [56431, 56432, 56433, 56434, 56437, 56439], "migrationApplied": true, "dbRehearsal": "green", "rls": "green", "storageRestore": "green", "noLeak": "green"},
   "tests": {"relataFocused": "39/39", "unit": "462/462", "e2e": "20/20", "surfaces": "26/26", "security": "8/8"},
-  "production": {"promoted": false, "publicRelata": false},
+  "production": {"deployment": "dpl_G9iA4Mgn6jAcuuFqDgtQiKcgD7q6", "status": "READY", "promoted": false, "publicRelata": false, "smoke": {"comun": 200, "appV2": 200, "legacy": 200, "relata": 404, "mapa": 404, "apis": 404}},
   "nextBrick": "48.0E package forwarding/channel verification"
 }

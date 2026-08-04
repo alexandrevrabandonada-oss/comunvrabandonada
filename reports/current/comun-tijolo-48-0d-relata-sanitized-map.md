@@ -2,7 +2,9 @@
 
 ## Resultado da verificação local
 
-**Resultado R1:** `COMUN_RELATA_48_0D_MERGED_DORMANT_LOCAL_SANITIZED_MAP_GREEN_REMOTE_UNCHANGED` (validação local concluída; merge/Production ainda não executados).
+**Resultado R1:** `COMUN_RELATA_48_0D_MERGED_DORMANT_LOCAL_SANITIZED_MAP_GREEN_REMOTE_UNCHANGED`.
+
+Integração concluída pela PR #156 no merge SHA `261c853d606158ce349fa24cf1cb7b3a74a60f31`. Production está em `dpl_G9iA4Mgn6jAcuuFqDgtQiKcgD7q6` (`READY`), com smoke read-only confirmado no domínio `comunsocial.online`.
 
 Implementação aditiva em branch `codex/tijolo-48-0d-relata-sanitized-local-map`, baseada no main documental `118f1d4c88cc6915ef471ba59cfcfbcf0355d770`. O 48.0B não foi alterado: `public.comun_relata_public_snapshots` continua com bloqueio estrutural e trigger de rejeição.
 
@@ -34,4 +36,5 @@ O laboratório usou somente Supabase descartável em loopback, com portas tempor
 - Storage/restore/cleanup/retention verdes, sem artefacts com nomes de objeto;
 - E2E Relata: 20/20 em 320 px, 390 px, landscape, 768 px e PWA 430 px, Axe verde;
 - no-leak dormente: `/comun` 200, `/comun/relata`/mapa/APIs evidence/public 404 e sete métodos sem 405;
-- commit funcional permanece derivado de `cee9f3226667c1de693bd858f747bd023bccdf36`, com correções R1 não publicadas.
+- commit candidato `cee9f3226667c1de693bd858f747bd023bccdf36` recebeu as correções R1 nos commits `be429d31ee3f650bd4b899189ec6ecd65b74fce7` e `b8c576de349a6c556a3f8c746e30a9971a9be977`; ambos foram integrados pela PR #156.
+- smoke Production pós-merge: `/comun`, App V2 e legado `200`; `/comun/relata`, `/comun/relata/mapa` e APIs Relata `404` em métodos dormentes, sem migration ou escrita remota.
