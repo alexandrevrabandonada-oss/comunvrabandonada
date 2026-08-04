@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ComunForwardingPanel } from "./comun-forwarding-panel";
 
 type WalletItem = {
   item_id: string;
@@ -332,6 +333,9 @@ export function ParticipationWalletPanel({
                         </span>
                       ) : null}
                     </div>
+                    {item.item_type === "relata_report" ? (
+                      <ComunForwardingPanel relataCaseId={item.item_id} />
+                    ) : null}
                   </article>
                 ))}
               </div>

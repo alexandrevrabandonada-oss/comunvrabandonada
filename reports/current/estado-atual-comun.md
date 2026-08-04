@@ -1,5 +1,19 @@
 # Estado atual do COMUN
 
+## Tijolo 48.0H — encaminhamento institucional compartilhado — candidata local
+
+- baseline `origin/main` confirmado em `7a4ebaa5ab9b59323fe55cd7c9f0dd87c8c28ffe`; branch isolada `codex/tijolo-48-0h-forwarding-fiscaliza`;
+- adaptador único `vr-fiscaliza-lighting-v1` para `public_lighting`; canal `vr-fiscaliza-web` permanece `source_verified`, `operationally_unchecked`, sem automação;
+- pacote privado com requisitos, revisão, abertura assistida, declaração de envio, protocolo oficial informado pela pessoa, resposta e retirada; nenhum envio externo;
+- migration `20260804151244_comun_forwarding_local.sql`, SHA `68235715785a01c6f7c94e65ad5a4342493ec39a0012923c356ccdc597475454`; manifesto local-only;
+- RLS/grants verdes: tabelas privadas forçadas, RPCs service-role-only, contato separado e omitido da listagem; protocolo oficial imutável após primeiro registro;
+- DB rehearsal `COMUN_FORWARDING_48_0H_DB_GREEN`; forwarding E2E/Axe `5/5` em cinco viewports; typecheck, lint e build verdes;
+- resets locais tiveram retries focais por 502/stack compartilhada do gateway Storage; a cadeia completa foi aplicada em banco descartável; não é finding do produto;
+- Production, flags públicas, Supabase remoto, domínio, secrets, canal externo e `launch_publicly` permanecem intocados; ensaio operacional real do Fiscaliza e 47.9D não iniciados;
+- resultado parcial: `COMUN_FORWARDING_48_0H_LOCAL_CANDIDATE_GREEN`; próximo gate é PR/CI/Preview e smoke pós-merge dormente;
+- relatórios: `comun-tijolo-48-0h-forwarding-diagnostico.md`, `comun-tijolo-48-0h-shared-forwarding.md`, `comun-tijolo-48-0h-forwarding.json` e contratos associados;
+- próximo tijolo: `48.0I — verificação operacional do canal e primeiro encaminhamento assistido`, sem execução neste tijolo.
+
 ## Tijolo 48.0G — carteira única de participação — candidata local
 
 - baseline `origin/main` confirmado em `8947b3db28280b988c0a1f72ac67947c9bca7455`; branch isolada `codex/tijolo-48-0g-wallet`;

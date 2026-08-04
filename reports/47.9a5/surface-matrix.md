@@ -1,6 +1,6 @@
 # Matriz canônica de superfícies — 47.9A5
 
-Gerada em: 2026-08-04T01:05:29.642Z
+Gerada em: 2026-08-04T16:08:40.533Z
 
 Total: **192** · ondas: 1=72 · 2=32 · 3=76 · 4=12
 
