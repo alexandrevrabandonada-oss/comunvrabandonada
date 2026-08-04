@@ -48,12 +48,85 @@ export function routeRelata(input: RelataInput): RoutingDecision {
   const darkStreet = hasAny(value, ["rua toda escura", "rua está toda escura", "rua esta toda escura", "luminárias apagadas", "luminaria apagada"]);
   const homesAnswer = input.answers?.homes_power;
 
+  // A fotografia, por si só, já é conteúdo mínimo válido. Não inventamos uma
+  // categoria: guardamos como "other" e deixamos a classificação para depois.
+  if (input.hasAttachment && input.text.startsWith("Observação registrada a partir")) {
+    return baseDecision("other", input, {
+      explanation: "A fotografia foi recebida como evidência privada.",
+      nextStep: "Guarde o relato agora; você poderá completar o contexto depois.",
+      missingInformation: [],
+      confidence: "low",
+      publication: "never_automatic",
+    });
+  }
+
   if (hasAny(value, ["ônibus", "onibus", "linha de ônibus", "ponto de ônibus", "ponto de onibus", "lotação", "lotacao"])) {
     return baseDecision("public_transport", input, {
       urgency: "attention",
       agencyKind: "public_transport",
       explanation: "A observação será guardada como transporte coletivo, sem envio automático a um órgão.",
       nextStep: "Revise a linha, o ponto e o horário antes de guardar o relato privado.",
+      confidence: "medium",
+      publication: "never_automatic",
+    });
+  }
+
+  if (hasAny(value, ["calçada", "calcada", "rampa", "passagem bloqueada", "acessibilidade"])) {
+    return baseDecision("sidewalk_accessibility", input, {
+      agencyKind: "community_review",
+      explanation: "A descrição aponta para uma barreira de calçada ou acessibilidade.",
+      nextStep: "Confirme se a passagem está totalmente bloqueada, se puder.",
+      missingInformation: hasAny(value, ["totalmente bloqueada", "totalmente bloqueado"]) ? [] : ["A passagem está totalmente bloqueada?"],
+      confidence: "medium",
+      publication: "never_automatic",
+    });
+  }
+
+  if (hasAny(value, ["lixo", "entulho", "descarte", "caçamba", "cacamba"])) {
+    return baseDecision("waste_or_debris", input, {
+      explanation: "A descrição aponta para lixo ou entulho no espaço comum.",
+      nextStep: "Registre uma referência aproximada sem expor endereço residencial.",
+      confidence: "medium",
+      publication: "never_automatic",
+    });
+  }
+
+  if (hasAny(value, ["posto de saúde", "ubs", "hospital", "consulta", "exame", "fila de cirurgia"])) {
+    return baseDecision("public_health", input, {
+      agencyKind: "community_review",
+      explanation: "A descrição aponta para uma situação de saúde pública.",
+      nextStep: "Se puder, informe em qual unidade aconteceu, sem dados pessoais.",
+      confidence: "low",
+      publication: "never_automatic",
+    });
+  }
+
+  if (hasAny(value, ["escola", "creche", "merenda", "professor", "sala de aula"])) {
+    return baseDecision("public_education", input, {
+      agencyKind: "community_review",
+      explanation: "A descrição aponta para uma situação de educação pública.",
+      nextStep: "Se souber, indique se é escola municipal, estadual ou não sabe.",
+      confidence: "low",
+      publication: "never_automatic",
+    });
+  }
+
+  if (hasAny(value, ["trabalho", "empresa", "chefe", "salário", "salario", "assédio", "assedio", "burnout"])) {
+    return baseDecision("workplace", input, {
+      agencyKind: "community_review",
+      explanation: "A descrição aponta para uma situação de trabalho.",
+      nextStep: "O formulário detalhado continua disponível para contexto sensível.",
+      confidence: "low",
+      privacyClass: "sensitive",
+      publication: "never_automatic",
+    });
+  }
+
+  if (hasAny(value, ["poluição", "poluicao", "po preto", "cheiro forte", "esgoto", "água contaminada", "agua contaminada"])) {
+    return baseDecision("environmental_pollution", input, {
+      agencyKind: "environmental",
+      explanation: "A descrição aponta para poluição ou impacto ambiental.",
+      nextStep: "Registre o momento e uma referência aproximada, sem endereço exato.",
       confidence: "medium",
       publication: "never_automatic",
     });

@@ -7,6 +7,12 @@ export type RelataCategory =
   | "electrical_hazard"
   | "active_fire"
   | "smoke_or_environmental_trace"
+  | "sidewalk_accessibility"
+  | "waste_or_debris"
+  | "public_health"
+  | "public_education"
+  | "workplace"
+  | "environmental_pollution"
   | "other";
 
 export type RelataUrgency = "routine" | "attention" | "urgent" | "emergency";
@@ -19,6 +25,7 @@ export type PrivacyClass =
   | "high_risk";
 
 export type RelataStatus =
+  | "captured_private"
   | "draft"
   | "triage"
   | "awaiting_person"

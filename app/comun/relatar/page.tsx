@@ -1,4 +1,6 @@
 import { ReportForm } from "@/app/comun/relatar/report-form";
+import { QuickCaptureV2 } from "@/app/comun/relatar/quick-capture-v2";
+import { isComunQuickCaptureEnabled } from "@/lib/comun-capture-feature";
 
 type TopicChoice = "trabalho" | "escolas" | "saude" | "meio-ambiente" | "cidade" | "outro";
 
@@ -20,10 +22,13 @@ const allowedCampaignCategories = new Set([
 
 export default async function ReportPage(
   props: {
-    searchParams: Promise<{ comunidade?: string; pauta?: string; categoria?: string }>;
+    searchParams: Promise<{ comunidade?: string; pauta?: string; categoria?: string; modo?: string }>;
   }
 ) {
   const searchParams = await props.searchParams;
+  if (isComunQuickCaptureEnabled() && searchParams.modo !== "detalhado") {
+    return <QuickCaptureV2 />;
+  }
   const initialTopicChoice: TopicChoice =
     searchParams.comunidade && allowedTopics.has(searchParams.comunidade)
       ? (searchParams.comunidade as TopicChoice)

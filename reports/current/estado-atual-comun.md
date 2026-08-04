@@ -1,5 +1,19 @@
 # Estado atual do COMUN
 
+## Tijolo 48.0F — captura rápida e convergência — candidata local
+
+- baseline `origin/main` confirmado em `87277aa2b7a58ea7a9bcd9f260082519beca25fc`; branch `codex/tijolo-48-0f-capture`;
+- `COMUN_QUICK_CAPTURE_V2` cumulativa e desligada fora do laboratório; `/comun/relatar` legado preservado quando desligada;
+- Relata novo é fonte da verdade; legado é projeção reversível; protocolos antigos permanecem válidos;
+- estado `captured_private`, taxonomia canônica com `public_transport`, perguntas adaptativas e formulário detalhado com retomada de rascunho;
+- migration `20260804022743_comun_capture_quick_capture_convergence.sql`, SHA `d730d5f005bb7e443b72b016ea30983d0b16123878a9b4b3eb6363991c2e003e`, local-only;
+- 475 unitários, 10 E2E em cinco viewports com Axe, DB rehearsal/RLS/grants, typecheck/lint/build e surfaces verdes;
+- 192 páginas, zero rota desconhecida, zero `legacy_rendered`, zero P0/P1; dívida estrutural não aumentou;
+- nenhum Supabase remoto, Production, domínio, secret, canal externo ou `launch_publicly` foi tocado;
+- ensaio humano de 60 segundos não realizado; 47.9D não iniciado;
+- resultado parcial: `COMUN_CAPTURE_48_0F_LOCAL_FOUNDATION_CANDIDATE`; próximo gate é PR/CI/Preview e smoke pós-merge dormente;
+- próximo tijolo após integração segura: `48.0G — Carteira de relatos`.
+
 ## Tijolo 48.0D-R1 — projeção sanitizada e mapa local — integrado, Production dormente
 
 - baseline verificado forward-only: `118f1d4c88cc6915ef471ba59cfcfbcf0355d770`; merge final `261c853d606158ce349fa24cf1cb7b3a74a60f31`;

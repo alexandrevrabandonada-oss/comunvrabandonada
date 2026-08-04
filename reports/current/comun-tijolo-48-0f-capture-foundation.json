@@ -1,0 +1,19 @@
+{
+  "brick": "48.0F",
+  "result": "COMUN_CAPTURE_48_0F_LOCAL_FOUNDATION_CANDIDATE",
+  "branch": "codex/tijolo-48-0f-capture",
+  "baseline": "87277aa2b7a58ea7a9bcd9f260082519beca25fc",
+  "migration": {
+    "path": "supabase/migrations/20260804022743_comun_capture_quick_capture_convergence.sql",
+    "sha256": "d730d5f005bb7e443b72b016ea30983d0b16123878a9b4b3eb6363991c2e003e",
+    "requiresPromotion": false,
+    "remotePromotionAllowed": false
+  },
+  "flags": ["COMUN_RELATA_PREVIEW", "COMUN_RELATA_LOCAL_PERSISTENCE", "COMUN_RELATA_LOCAL_EVIDENCE", "COMUN_QUICK_CAPTURE_V2"],
+  "sourceOfTruth": "relata",
+  "legacy": "reversible_projection_only",
+  "categories": ["public_lighting", "power_distribution", "electrical_hazard", "active_fire", "smoke_or_environmental_trace", "sidewalk_accessibility", "waste_or_debris", "public_transport", "public_health", "public_education", "workplace", "environmental_pollution", "other"],
+  "verification": {"unit": "475/475", "captureE2E": "10/10", "rls": "green", "privileges": "green", "typecheck": "green", "lint": "green", "build": "green", "surfaces": {"pages": 192, "unknownRoutes": 0, "legacyRendered": 0, "p0p1": 0}},
+  "remote": {"supabaseQueried": false, "supabaseWritten": false, "productionChanged": false, "launchPublicly": false},
+  "humanRehearsal": "not_performed"
+}

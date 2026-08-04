@@ -1,6 +1,7 @@
 import type { RelataStatus } from "./comun-relata-contract";
 
 const ALLOWED_TRANSITIONS: Record<RelataStatus, readonly RelataStatus[]> = {
+  captured_private: ["stored_private", "withdrawn"],
   draft: ["triage", "withdrawn"],
   triage: ["awaiting_person", "routed", "withdrawn"],
   awaiting_person: ["triage", "routed", "withdrawn"],
