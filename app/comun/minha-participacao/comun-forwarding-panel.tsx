@@ -26,7 +26,15 @@ type ForwardingPackage = {
   channel_url?: string | null;
 };
 
-function CopyField({ label, value, sensitive = false }: { label: string; value: string; sensitive?: boolean }) {
+function CopyField({
+  label,
+  value,
+  sensitive = false,
+}: {
+  label: string;
+  value: string;
+  sensitive?: boolean;
+}) {
   const copy = async () => {
     if (!value || sensitive) return;
     await navigator.clipboard?.writeText(value);
@@ -34,8 +42,18 @@ function CopyField({ label, value, sensitive = false }: { label: string; value: 
   return (
     <div className="grid gap-1 border-2 border-comun-black/20 bg-white p-3">
       <span className="text-xs font-black uppercase">{label}</span>
-      <span className="break-words text-sm">{sensitive ? "Informado privadamente" : value || "Ainda não informado"}</span>
-      {!sensitive && value ? <button type="button" onClick={() => void copy()} className="min-h-11 w-fit border-2 border-comun-black px-3 text-xs font-black">Copiar</button> : null}
+      <span className="break-words text-sm">
+        {sensitive ? "Informado privadamente" : value || "Ainda não informado"}
+      </span>
+      {!sensitive && value ? (
+        <button
+          type="button"
+          onClick={() => void copy()}
+          className="min-h-11 w-fit border-2 border-comun-black px-3 text-xs font-black"
+        >
+          Copiar
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -258,16 +276,38 @@ export function ComunForwardingPanel({
       ) : null}
       {pkg.state === "ready_for_assisted_opening" ? (
         <div className="grid gap-2 bg-[#f8f2e6] p-3">
-          <p className="text-sm font-bold">Abertura assistida, sem preenchimento automático</p>
-          <p className="text-sm">Destino: {pkg.channel_url ?? "Fiscaliza VR"}</p>
-          <p className="text-sm">Serviço: manutenção de iluminação pública. Você controla o cadastro, os campos e o botão final. Nada foi enviado.</p>
+          <p className="text-sm font-bold">
+            Abertura assistida, sem preenchimento automático
+          </p>
+          <p className="text-sm">
+            Destino: {pkg.channel_url ?? "Fiscaliza VR"}
+          </p>
+          <p className="text-sm">
+            Serviço: manutenção de iluminação pública. Você controla o cadastro,
+            os campos e o botão final. Nada foi enviado.
+          </p>
           <div className="grid gap-2 sm:grid-cols-2">
             <CopyField label="Descrição" value={text} />
-            <CopyField label="Endereço ou ponto de referência" value={(pkg.requirements ?? []).find((item) => item.key === "location_reference")?.value ?? ""} />
+            <CopyField
+              label="Endereço ou ponto de referência"
+              value={
+                (pkg.requirements ?? []).find(
+                  (item) => item.key === "location_reference",
+                )?.value ?? ""
+              }
+            />
             <CopyField label="Contato" value="" sensitive />
-            <CopyField label="Protocolo COMUN" value={pkg.official_protocol_masked ?? ""} sensitive />
+            <CopyField
+              label="Protocolo COMUN"
+              value={pkg.official_protocol_masked ?? ""}
+              sensitive
+            />
           </div>
-          <p className="text-xs">Fotografias privadas disponíveis: o canal deverá ser preenchido manualmente, se aceitar anexos. Nenhuma fotografia é copiada para a área de transferência.</p>
+          <p className="text-xs">
+            Fotografias privadas disponíveis: o canal deverá ser preenchido
+            manualmente, se aceitar anexos. Nenhuma fotografia é copiada para a
+            área de transferência.
+          </p>
           <button
             type="button"
             disabled={busy}
@@ -316,10 +356,20 @@ export function ComunForwardingPanel({
               ["site_failed", "O site não abriu"],
               ["abandoned", "Desisti"],
             ].map(([result, label]) => (
-              <button key={result} type="button" disabled={busy} onClick={() => void call("declare-sent", "POST", { result })} className="min-h-11 border-2 border-comun-black bg-white px-3 font-black">{label}</button>
+              <button
+                key={result}
+                type="button"
+                disabled={busy}
+                onClick={() => void call("declare-sent", "POST", { result })}
+                className="min-h-11 border-2 border-comun-black bg-white px-3 font-black"
+              >
+                {label}
+              </button>
             ))}
           </div>
-          <p className="text-xs">O COMUN não confirma envio nem protocolo oficial neste laboratório.</p>
+          <p className="text-xs">
+            O COMUN não confirma envio nem protocolo oficial neste laboratório.
+          </p>
         </div>
       ) : null}
       {pkg.state === "person_declared_sent" ||
@@ -385,8 +435,9 @@ export function ComunForwardingPanel({
       ) : null}
       {pkg.deadline?.sourceStatedDuration ? (
         <p className="text-sm">
-          Previsão informada para realização: {pkg.deadline.sourceStatedDuration}{" "}
-          {pkg.deadline.sourceStatedUnit}. É uma estimativa de execução, não prazo legal.
+          Previsão informada para realização:{" "}
+          {pkg.deadline.sourceStatedDuration} {pkg.deadline.sourceStatedUnit}. É
+          uma estimativa de execução, não prazo legal.
         </p>
       ) : null}
       {pkg.official_protocol_masked ? (
