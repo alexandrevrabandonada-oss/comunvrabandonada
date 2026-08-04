@@ -1,0 +1,16 @@
+{
+  "release": "20260804203000-comun-forwarding-sidewalk-relata-connection",
+  "migration": "supabase/migrations/20260804203000_comun_sidewalk_relata_connection_local.sql",
+  "migrationSha256": "76f42a963a1e9a167090938aaba24c37f95e9add8597184332bff0e57d05355a",
+  "destructiveSql": false,
+  "requiresPromotion": false,
+  "remotePromotionAllowed": false,
+  "scope": "disposable_local_supabase_only",
+  "featureFlag": "COMUN_SIDEWALK_RELATA_FORWARDING_LOCAL",
+  "sidewalkFlag": "COMUN_SIDEWALK_OPERATIONAL_V2",
+  "relataFlag": "COMUN_RELATA_LOCAL_PERSISTENCE",
+  "walletFlag": "COMUN_PARTICIPATION_WALLET_LOCAL",
+  "forwardingFlag": "COMUN_FORWARDING_LOCAL",
+  "changedObjects": ["private.comun_sidewalk_relata_links","private.comun_sidewalk_relata_events","private.comun_sidewalk_relata_idempotency","public.comun_sidewalk_relata_create","public.comun_sidewalk_jurisdiction_set","public.comun_sidewalk_forwarding_prepare"],
+  "assertions": ["Sidewalks remain canonical for observations and public derivatives","Relata remains canonical for private reports and protocols","no public coordinate, photo, original text or external submission","Fiscaliza remains degraded and no assisted opening is exposed"]
+}

@@ -9,6 +9,8 @@ export const FISCALIZA_OPERATIONAL_STATES = [
   "review_boundary_observed",
   "submission_boundary_observed",
   "protocol_behavior_unconfirmed",
+  "public_entry_observed_auth_boundary_pending",
+  "degraded_public_entry_auth_unconfirmed",
   "operationally_observed_no_submission",
   "degraded",
   "unavailable",
@@ -75,4 +77,3 @@ export function validateFiscalizaDestination(raw: string) {
     return { valid: false, reason: "invalid_url", url: raw };
   }
 }
-

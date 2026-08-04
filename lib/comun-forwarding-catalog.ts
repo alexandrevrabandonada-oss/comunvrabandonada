@@ -38,7 +38,7 @@ export const FISCALIZA_LIGHTING_ADAPTER = {
     operationalStatus: "operational_confirmation_required",
     includedInDueCalculation: false,
   },
-  observationState: "operationally_observed_no_submission",
+  observationState: "public_entry_observed_auth_boundary_pending",
   requirements: [
     {
       key: "location_reference",

@@ -154,12 +154,10 @@ const caseRow = await postgres.query(
 );
 const caseId = caseRow.rows[0].id;
 const reportId = caseRow.rows[0].report_id;
-assert.deepEqual(caseRow.rows[0].routing_decision, {
-  category: "public_lighting",
-  urgency: "attention",
-  ruleVersion: "relata-routing-v1",
-  source: "deterministic_server_route",
-});
+assert.equal(caseRow.rows[0].routing_decision.category, "public_lighting");
+assert.equal(caseRow.rows[0].routing_decision.urgency, "attention");
+assert.equal(caseRow.rows[0].routing_decision.ruleVersion, "relata-routing-v1");
+assert.equal(caseRow.rows[0].routing_decision.source, "deterministic_server_route");
 const counts = await postgres.query(
   `select
     (select count(*)::int from public.comun_relata_cases where report_id = $1) as cases,

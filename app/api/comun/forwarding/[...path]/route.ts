@@ -44,7 +44,7 @@ export async function GET(
   if (path[0] === "observation" && path.length === 1) {
     return json({
       channel: FISCALIZA_VR_CHANNEL.id,
-      state: "operationally_observed_no_submission",
+      state: "public_entry_observed_auth_boundary_pending",
       authenticationRequired: "unconfirmed",
       publicEntry: "redirect_observed_unavailable",
       submission: "unconfirmed",

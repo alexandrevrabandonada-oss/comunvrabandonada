@@ -18,6 +18,8 @@ const child = spawn(command, ["run", "dev", "--", "-p", "3137"], {
     COMUN_FORWARDING_LOCAL: "enabled",
     COMUN_FISCALIZA_ASSISTED_OPENING_LOCAL: "enabled",
     COMUN_PARTICIPATION_WALLET_LOCAL: "enabled",
+    COMUN_SIDEWALK_OPERATIONAL_V2: "enabled",
+    COMUN_SIDEWALK_RELATA_FORWARDING_LOCAL: "enabled",
     COMUN_BUS_LOCAL_PILOT: "enabled",
     COMUN_RELATA_LOCATION_ENCRYPTION_KEY: locationKey,
     COMUN_RELATA_SPATIAL_HMAC_KEY: spatialKey,
