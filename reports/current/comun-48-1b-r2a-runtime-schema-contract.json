@@ -54,7 +54,9 @@
   "accountWalletLink": {
     "table": "private.comun_participation_wallet_account_links",
     "rpc": "comun_participation_wallet_link_account",
+    "revokeRpc": "comun_participation_wallet_revoke_account",
     "endpoint": "POST /api/comun/participation-wallet/account/link",
+    "revokeEndpoint": "POST /api/comun/participation-wallet/account/unlink",
     "method": "explicit_account_link",
     "silentClaim": false,
     "idempotent": true,

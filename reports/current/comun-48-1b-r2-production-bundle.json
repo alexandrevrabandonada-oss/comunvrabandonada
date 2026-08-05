@@ -1,7 +1,7 @@
 {
   "result": "COMUN_48_1B_R2A_RUNTIME_SCHEMA_ALIGNMENT_REQUIRED",
   "migration": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
-  "sha256": "68013621f106c12d5a46b84b5d99fb64e6a69ab494d84891a31c216bfdf42d79",
+  "sha256": "252cb0d43ec365ff82057cae584aefacb6586dc05ea635300fa8907cbb471b82",
   "manifest": "supabase/releases/20260805130000-comun-production-pilot-core-bundle.json",
   "requiresPromotion": true,
   "remotePromotionAllowed": true,

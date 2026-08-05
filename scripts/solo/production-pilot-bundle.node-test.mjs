@@ -52,6 +52,7 @@ test("R2A bundle uses canonical runtime names and forced RLS", async () => {
     "comun_relata_get_receipt",
     "comun_participation_wallet_create",
     "comun_participation_wallet_link_account",
+    "comun_participation_wallet_revoke_account",
   ]) assert.match(sql, new RegExp(`public\\.${fn}`));
   assert.match(sql, /revoke all on schema private from public, anon, authenticated;/);
   assert.match(sql, /grant usage on schema private to service_role;/);

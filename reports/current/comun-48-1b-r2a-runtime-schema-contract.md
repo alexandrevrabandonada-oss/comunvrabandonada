@@ -32,7 +32,7 @@ list --linked` e `supabase db push --linked --dry-run` propuseram somente:
 `20260805130000_comun_production_pilot_core_bundle.sql`
 
 Seeds e roles ficaram vazios; nenhum push mutável foi executado. O SHA atual é
-`68013621f106c12d5a46b84b5d99fb64e6a69ab494d84891a31c216bfdf42d79`.
+`252cb0d43ec365ff82057cae584aefacb6586dc05ea635300fa8907cbb471b82`.
 
 ## Rehearsal local
 
