@@ -1,8 +1,11 @@
 {
   "brick": "48.0L",
-  "result": "COMUN_STMU_48_0L_LOCAL_MULTICHANNEL_GREEN",
+  "result": "COMUN_STMU_48_0L_MERGED_DORMANT_MULTICHANNEL_RESILIENCE_GREEN_FIELD_EMAIL_PENDING_REMOTE_UNCHANGED",
   "baseline": "7d40abbac84daaa4a4298dcea1e471f7441b6830",
   "branch": "codex/tijolo-48-0l-stmu-multichannel",
+  "pr": 166,
+  "merge_sha": "1177323071a826c912b63c2aa9678ad1577589f1",
+  "production_deployment": "dpl_9WgR8YbQCzmNqEx2GD8Cnd1BjUX6",
   "migration": "20260804232125_comun_stmu_multichannel_attempts_local.sql",
   "migration_sha256": "8cc01fcd7acf16fa7337d52626eb0be4c547a61bce76760954479cd1bfd5b572",
   "requiresPromotion": false,
@@ -26,7 +29,16 @@
     "anon_rpc_blocked": true,
     "external_submission": false,
     "remote_supabase_changed": false,
-    "production_flag_enabled": false
+    "production_flag_enabled": false,
+    "production_smoke": {
+      "/comun": 200,
+      "/comun/relatar": 200,
+      "/comun/calcadas": 200,
+      "/comun/relata": 404,
+      "/comun/onibus": 404,
+      "/api/comun/stmu-multichannel/observation": 404,
+      "wallet_html_contains_mailto": false
+    }
   },
   "tests": {
     "db": "COMUN_STMU_48_0L_DB_GREEN",

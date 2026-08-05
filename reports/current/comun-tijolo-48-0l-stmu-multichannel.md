@@ -2,7 +2,7 @@
 
 ## Resultado técnico
 
-`COMUN_STMU_48_0L_LOCAL_MULTICHANNEL_GREEN` — candidato local, dormente e pronto para PR/Preview. O resultado terminal de integração permanece condicionado aos checks externos; não houve envio de WhatsApp/e-mail nem alteração remota.
+`COMUN_STMU_48_0L_MERGED_DORMANT_MULTICHANNEL_RESILIENCE_GREEN_FIELD_EMAIL_PENDING_REMOTE_UNCHANGED` — PR #166 mesclada no SHA `1177323071a826c912b63c2aa9678ad1577589f1`; Production `dpl_9WgR8YbQCzmNqEx2GD8Cnd1BjUX6` READY. Não houve envio de WhatsApp/e-mail nem alteração remota.
 
 ## Modelo
 
@@ -30,3 +30,5 @@ O pacote exige assunto, descrição, linha, sentido, local, data, horário, núm
 ## Regressão integral local
 
 Também verdes: `COMUN_STMU_48_0K_DB_GREEN`, `COMUN_WALLET_48_0G_DB_GREEN`, `COMUN_FORWARDING_48_0H_DB_GREEN`, `COMUN_SIDEWALK_48_0J_DB_GREEN` e `COMUN_RELATA_48_0D_DB_GREEN`. O smoke HTTP do endpoint multicanal retornou `404` para GET/POST/PATCH/PUT/DELETE com flags desligadas.
+
+Smoke pós-merge em `comunsocial.online`: `/comun`, `/comun/relatar` e `/comun/calcadas` `200`; Relata, Ônibus, forwarding, WhatsApp e multicanal `404`. Minha Participação não renderizou `mailto:`, contatos STMU ou API multicanal com flags desligadas.
