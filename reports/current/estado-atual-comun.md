@@ -693,3 +693,17 @@ Resultado: `COMUN_48_1B_BLOCKED_REMOTE_MIGRATION_PLAN_DRIFT`. Production,
 Supabase remoto, `launch_publicly` e registros de usuários permanecem
 inalterados. O piloto não deve avançar até a reconciliação forward-only do
 histórico.
+
+## 48.1B-R1 — reconciliação do ledger externo (05/08/2026)
+
+A tentativa R1 executou o workflow canônico read-only no run `31011836481`.
+O ledger próprio de Calçadas apareceu como `PRESENT_ACCEPTED` e o fingerprint
+scoped coincidiu com o POST local, mas a classificação canônica foi
+`INSUFFICIENT_READ_PERMISSION`, pois os gates globais não puderam ser provados.
+O CLI continua vendo `20260724233256` ausente e o dry-run continua recusando a
+fila com sugestão de `--include-all`; essa opção não foi usada. Resultado
+vigente: `COMUN_48_1B_R1_BLOCKED_SIDEWALK_REMOTE_STATE_UNPROVEN`.
+
+Não houve migration, repair, reset, seed, flags, piloto, alteração de
+Production ou escrita remota. A PR #174 permanece draft e o próximo passo só
+é permitido após prova exata do estado remoto e baseline de CLI vazio.

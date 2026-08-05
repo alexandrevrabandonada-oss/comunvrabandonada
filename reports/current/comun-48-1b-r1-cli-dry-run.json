@@ -1,0 +1,25 @@
+{
+  "result": "COMUN_48_1B_R1_BLOCKED_SIDEWALK_REMOTE_STATE_UNPROVEN",
+  "migrationList": {
+    "exceptionalMigration": "20260724233256",
+    "remoteLedger": "absent",
+    "laterRemoteMigrationsPresent": true
+  },
+  "dryRun": {
+    "command": "supabase db push --linked --dry-run",
+    "status": "blocked",
+    "error": "LegacyDbPushMissingRemoteError",
+    "suggestionObserved": "--include-all",
+    "includeAllUsed": false,
+    "mutatingPush": false
+  },
+  "emptyBaseline": false,
+  "quarantine": {
+    "executed": false,
+    "reason": "external_ledger_exact_not_proven"
+  },
+  "tests": {
+    "focused": "87/87",
+    "aggregateSolo": "100 passed, 1 pre-existing workflow inventory failure"
+  }
+}

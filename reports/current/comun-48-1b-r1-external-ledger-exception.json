@@ -1,0 +1,14 @@
+{
+  "status": "not_created",
+  "reason": "external_ledger_exact_not_proven",
+  "classification": "INSUFFICIENT_READ_PERMISSION",
+  "requiredForException": "APPLIED_EXACT_EXTERNAL_LEDGER or APPLIED_BY_DEDICATED_RUNNER",
+  "release": "20260724233256-comun-sidewalk-operational-hardening",
+  "path": "supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql",
+  "sha256": "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be",
+  "historyAuthority": null,
+  "cliHistoryExpected": null,
+  "remoteStateRequired": "applied_exact",
+  "excludeFromCliPlanning": false,
+  "remoteWrites": false
+}

@@ -1,0 +1,35 @@
+{
+  "result": "COMUN_48_1B_R1_BLOCKED_SIDEWALK_REMOTE_STATE_UNPROVEN",
+  "branch": "codex/tijolo-48-1b-production-domain-pilot",
+  "head": "2b31d3a69e55a13593382b108c38e1a48845714a",
+  "baseline": "7e2d259e193c0d8841c57b89002f551c9a9c2ad",
+  "release": "20260724233256-comun-sidewalk-operational-hardening",
+  "migrationPath": "supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql",
+  "migrationSha256": "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be",
+  "remoteDiagnostic": {
+    "workflowRun": "31011836481",
+    "classification": "INSUFFICIENT_READ_PERMISSION",
+    "ledger": "PRESENT_ACCEPTED",
+    "scopedObserved": "4bebf4c1db4da58fd9710c7f9478bb2837b171aa4620de2d376e19d5a99b66d8",
+    "scopedPost": "4bebf4c1db4da58fd9710c7f9478bb2837b171aa4620de2d376e19d5a99b66d8",
+    "globalObserved": "93c6a029774546a15dc66055066c9fa121f04b10a657dfd86b25ec41198a6cd9",
+    "globalPre": "a6599aa24658c4339c7518d484364699d07ca4fa9cb1db68bb6fed4c20b94a10",
+    "globalPost": "614908b735616fc64d4d36bc05e050ee53a0fb2b1f4e099febe1f327923350c4",
+    "grantClassification": "REMOTE_EQUIVALENT_TO_PRE",
+    "grantRisk": "equivalent_pre",
+    "zeroRemoteWrites": true
+  },
+  "cli": {
+    "version": "2.111.0",
+    "migrationList": "20260724233256 absent from CLI remote ledger",
+    "dryRun": "LegacyDbPushMissingRemoteError",
+    "suggestedIncludeAll": false,
+    "mutatingPush": false
+  },
+  "activation": {
+    "migrationExecuted": false,
+    "flagsChanged": false,
+    "pilotActivated": false,
+    "launchPublicly": false
+  }
+}

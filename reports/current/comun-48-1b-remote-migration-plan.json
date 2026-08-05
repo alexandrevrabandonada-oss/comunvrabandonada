@@ -1,9 +1,18 @@
 {
-  "result": "COMUN_48_1B_BLOCKED_REMOTE_MIGRATION_PLAN_DRIFT",
+  "result": "COMUN_48_1B_R1_BLOCKED_SIDEWALK_REMOTE_STATE_UNPROVEN",
   "baseline": "7e2d259e193c0d8841c57b89002f551c9a9c2ad",
   "projectRef": "nvmdszymrtacfehdynpg",
   "cliVersion": "2.111.0",
   "readOnly": true,
+  "r1": {
+    "workflowRun": "31011836481",
+    "classification": "INSUFFICIENT_READ_PERMISSION",
+    "ledger": "PRESENT_ACCEPTED",
+    "scopedFingerprintMatchesPost": true,
+    "globalFingerprintMatchesExpected": false,
+    "zeroRemoteWrites": true,
+    "externalLedgerExceptionCreated": false
+  },
   "remoteMigrationApplied": false,
   "remoteMigrationRepair": false,
   "remoteReset": false,
