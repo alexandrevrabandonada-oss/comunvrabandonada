@@ -1,0 +1,20 @@
+{
+  "release": "20260805130000-comun-production-pilot-core-bundle",
+  "migration": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
+  "sha256": "fefb9149bd549362f5533bcc0b77730803f1285823ba133d174fcc8d2c4e8c98",
+  "requiresPromotion": true,
+  "remotePromotionAllowed": true,
+  "scope": "production",
+  "featureFlag": "COMUN_PRODUCTION_PILOT_CORE_ENABLED",
+  "waves": [
+    "account_and_wallet",
+    "relata_v2_private",
+    "private_evidence_and_location"
+  ],
+  "remoteWrites": false,
+  "status": "ready_for_exact_dry_run",
+  "destructiveSql": false,
+  "publicProjection": false,
+  "externalForwarding": false,
+  "notes": "New additive R2 bundle; not a promotion authorization and not a replacement for local-only migrations."
+}

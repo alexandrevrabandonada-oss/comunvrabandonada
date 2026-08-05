@@ -1,0 +1,14 @@
+{
+  "result": "COMUN_48_1B_R2_PRODUCTION_BUNDLE_READY_FOR_EXACT_DRY_RUN",
+  "migration": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
+  "sha256": "fefb9149bd549362f5533bcc0b77730803f1285823ba133d174fcc8d2c4e8c98",
+  "manifest": "supabase/releases/20260805130000-comun-production-pilot-core-bundle.json",
+  "requiresPromotion": true,
+  "remotePromotionAllowed": true,
+  "remoteWrites": false,
+  "flagsChanged": false,
+  "pilotActivated": false,
+  "launchPublicly": false,
+  "validation": "2/2",
+  "baseline": "COMUN_48_1B_R1_EXTERNAL_LEDGER_AND_LOCAL_ONLY_RECONCILED_CLI_BASELINE_EMPTY"
+}

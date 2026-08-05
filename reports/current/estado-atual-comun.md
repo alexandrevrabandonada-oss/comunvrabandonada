@@ -732,3 +732,12 @@ restaurada e o dry-run retornou `upToDate=true` com arrays vazios.
 Resultado vigente: `COMUN_48_1B_R1_EXTERNAL_LEDGER_AND_LOCAL_ONLY_RECONCILED_CLI_BASELINE_EMPTY`.
 Isso não ativa Production nem o piloto; R2 pode ser preparado, sem escrita
 remota.
+
+## 48.1B-R2 — bundle novo preparado (05/08/2026)
+
+Com o baseline R1B vazio, foi criado um bundle novo e aditivo para conta,
+Carteira, Relata V2 privado, evidências e localização. A migration tem SHA
+`fefb9149…`, RLS forçada e revogações para `public`, `anon` e `authenticated`.
+
+Resultado: `COMUN_48_1B_R2_PRODUCTION_BUNDLE_READY_FOR_EXACT_DRY_RUN`.
+Nenhuma escrita remota, promoção, flag ou piloto ocorreu.
