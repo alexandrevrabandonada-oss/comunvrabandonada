@@ -1,0 +1,24 @@
+{
+  "date": "2026-08-05",
+  "projectRef": "nvmdszymrtacfehdynpg",
+  "cli": {
+    "version": "2.111.0",
+    "authenticatedProfile": true,
+    "environmentTokenPresent": false,
+    "projectIdEnvironmentPresent": false,
+    "projectRefEnvironmentPresent": false,
+    "dbUrlEnvironmentPresent": false,
+    "serviceRoleEnvironmentPresent": false,
+    "projectListedByCli": true,
+    "localLinkPresent": false
+  },
+  "mcp": {
+    "projectListed": false,
+    "getProject": "permission_denied"
+  },
+  "classification": "authenticated_but_permission_insufficient",
+  "databaseReadPermission": "not_tested_no_password_or_db_url",
+  "remoteMutation": false,
+  "pilot": "blocked",
+  "launchPublicly": false
+}

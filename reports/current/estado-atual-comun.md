@@ -641,3 +641,19 @@ incluem `comun-report-attachments` e `comun-public-safe-attachments`, mas não
 há bucket `comun-relata-private` visível. Isso é evidência de UI, não prova de
 schema privado, RLS, grants ou ledger. O blocker permanece e nenhuma promoção
 foi tentada.
+
+## Fechamento 48.1A
+
+PR #171 foi integrada pelo head SHA exato, com merge SHA
+`1d8774491c87cc9d9dbc907da5b6b9cc9e8b5cfd`; a branch foi removida. Production
+foi revalidada após propagação: `/comun`, `/comun/relatar` e `/comun/calcadas`
+em 200; todos os métodos de `/api/comun/relata` em 404; nenhuma flag pública,
+allowlist, migration ou escrita remota.
+
+Resultado: `COMUN_48_1A_MERGED_DORMANT_PREFLIGHT_INFRA_GREEN_REMOTE_PREFLIGHT_BLOCKED_PROJECT_PERMISSION`.
+
+A CLI Supabase 2.111.0, autenticada por perfil local, lista o projeto-alvo;
+as variáveis de token/DB/service role estão ausentes no processo. O MCP lista
+apenas projetos não relacionados e nega `get_project` do alvo. Permissão de
+banco read-only, ledger, RLS e grants permanecem não comprovados. Piloto,
+Google real e `launch_publicly` continuam fechados.
