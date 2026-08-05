@@ -77,13 +77,15 @@ try {
   await Promise.all([left.connect(), right.connect()]);
   const concurrentIds = [randomUUID(), randomUUID()];
   await Promise.all([left.query("begin"), right.query("begin")]);
-  const concurrent = await Promise.all([
-    callAttachment(left, concurrentIds[0]),
-    callAttachment(right, concurrentIds[1]),
-  ]);
-  const indexes = concurrent.map((result) => result.rows[0]?.label_index).sort((a, b) => a - b);
+  const leftCall = callAttachment(left, concurrentIds[0]);
+  await new Promise((resolve) => setTimeout(resolve, 25));
+  const rightCall = callAttachment(right, concurrentIds[1]);
+  const leftResult = await leftCall;
+  await left.query("commit");
+  const rightResult = await rightCall;
+  await right.query("commit");
+  const indexes = [leftResult, rightResult].map((result) => result.rows[0]?.label_index).sort((a, b) => a - b);
   assert.deepEqual(indexes, [2, 3]);
-  await Promise.all([left.query("commit"), right.query("commit")]);
   await Promise.all([left.end(), right.end()]);
 
   await assert.rejects(
