@@ -65,7 +65,10 @@ Não houve migration remota, flag pública, Google, allowlist, piloto ou
 - candidata e hotfix de anexos permaneceram byte a byte imutáveis;
 - commit da correção do teste: `9e51e5cb6d2bfa0c36a89a82102a0beb56e0e60f`;
 - topology/release/privileges/typecheck/lint/build: verdes;
-- primeira lane após o patch: stack descartável travada no `supabase start`;
-- retry focal único: mesma trava, sem alcançar `db reset` ou E2E;
-- resultado: `COMUN_48_1B_R2A_BLOCKED_CI_RUNTIME_INFRASTRUCTURE`;
+- execução anterior: cancelada enquanto iniciava, antes de qualquer resultado
+  de health; Postgres e E2E não foram exercitados;
+- classificação corrigida: `COMUN_48_1B_R2A_BLOCKED_CI_STARTUP_CANCELLED_BEFORE_HEALTH_RESULT`;
+- patch CI1: artifacts pré-start, diagnóstico sanitizado, stack mínima,
+  heartbeat de 20 segundos e limite real de 12 minutos;
+- novo attempt neste SHA: pendente;
 - PR #174 permanece draft; nenhuma migration remota, flag ou piloto foi ativado.

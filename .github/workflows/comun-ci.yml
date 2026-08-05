@@ -112,6 +112,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p .ci-artifacts/r2a-private-runtime-e2e
+          : > .ci-artifacts/r2a-private-runtime-e2e/environment.txt
+          : > .ci-artifacts/r2a-private-runtime-e2e/timestamps.txt
+          : > .ci-artifacts/r2a-private-runtime-e2e/docker-info.txt
+          : > .ci-artifacts/r2a-private-runtime-e2e/docker-disk.txt
+          : > .ci-artifacts/r2a-private-runtime-e2e/supabase-version.txt
+          : > .ci-artifacts/r2a-private-runtime-e2e/startup.log
+          : > .ci-artifacts/r2a-private-runtime-e2e/startup-exit.txt
+          : > .ci-artifacts/r2a-private-runtime-e2e/startup-classification.json
           cleanup() {
             supabase stop --no-backup >/dev/null 2>&1 || true
             if docker ps -a --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA' --format '{{.ID}}' | grep -q .; then
@@ -120,9 +129,9 @@ jobs:
             fi
           }
           trap cleanup EXIT
-          supabase start
+          export COMUN_R2A_ARTIFACT_DIR="$GITHUB_WORKSPACE/.ci-artifacts/r2a-private-runtime-e2e"
+          node scripts/solo/r2a-supabase-startup.mjs
           supabase db reset --local --yes
-          mkdir -p .ci-artifacts/r2a-private-runtime-e2e
           status_file="$(mktemp)"
           supabase status -o env >"$status_file"
           api_url="$(sed -n 's/^API_URL="\(.*\)"$/\1/p' "$status_file")"
@@ -169,6 +178,7 @@ jobs:
         with:
           name: comun-r2a-private-runtime-e2e-${{ github.run_id }}
           path: .ci-artifacts/r2a-private-runtime-e2e
+          include-hidden-files: true
           if-no-files-found: warn
   active-lane-integrity:
     name: Active lane integrity / COMUN_ACTIVE_LANE_INTEGRITY_GREEN

@@ -1,5 +1,5 @@
 {
-  "result": "COMUN_48_1B_R2A_BLOCKED_CI_RUNTIME_INFRASTRUCTURE",
+  "result": "COMUN_48_1B_R2A_BLOCKED_CI_STARTUP_CANCELLED_BEFORE_HEALTH_RESULT",
   "branch": "codex/tijolo-48-1b-production-domain-pilot",
   "head": "9e51e5cb6d2bfa0c36a89a82102a0beb56e0e60f",
   "candidate": {
@@ -42,10 +42,18 @@
   "ciRetry": {
     "attempt": "single_focal_retry",
     "startedAt": "2026-08-05T22:17:02Z",
-    "status": "cancelled_after_runtime_infrastructure_stall",
+    "status": "cancelled_before_health_result",
     "step": "Start disposable Supabase and apply the canonical chain",
     "reachedDatabase": false,
-    "reachedE2E": false
+    "reachedE2E": false,
+    "classification": "COMUN_48_1B_R2A_BLOCKED_CI_STARTUP_CANCELLED_BEFORE_HEALTH_RESULT"
+  },
+  "ciStartupPatch": {
+    "artifactBeforeStart": true,
+    "minimalStack": true,
+    "heartbeatSeconds": 20,
+    "startupLimitMinutes": 12,
+    "healthResult": "pending_new_sha"
   },
   "secondaryFinding": {
     "kind": "functional",

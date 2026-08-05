@@ -2,7 +2,7 @@
 
 ## Resultado
 
-`COMUN_48_1B_R2A_BLOCKED_CI_RUNTIME_INFRASTRUCTURE`
+`COMUN_48_1B_R2A_BLOCKED_CI_STARTUP_CANCELLED_BEFORE_HEALTH_RESULT`
 
 A correção forward-only foi implementada e publicada na branch da PR #174. O
 defeito era a referência ambígua em `ON CONFLICT(wallet_id,user_id)` na RPC
@@ -29,10 +29,14 @@ passaram. A primeira execução CI aplicou a cadeia e revelou que o teste focal
 tratava `array_agg` textual do driver PostgreSQL como array JavaScript; o teste
 foi corrigido sem alterar o produto.
 
-Na nova execução de PR, o job ficou preso em `Start disposable Supabase and
-apply the canonical chain` desde `2026-08-05T22:17:02Z`, sem chegar ao `db reset`
-ou ao E2E. A tentativa excedeu o limite operacional e foi cancelada após o
-retry focal único. Não há evidência de nova falha SQL.
+Na execução anterior, o job foi cancelado enquanto iniciava, sem resultado de
+health, sem erro do Postgres e sem E2E funcional. Isso não prova que Docker ou
+Supabase estivessem indisponíveis. O harness CI1 foi corrigido para criar
+artifacts antes do start, diagnosticar o runner, iniciar somente a stack
+necessária e aguardar até 12 minutos com heartbeat de 20 segundos.
+
+O novo attempt ainda precisa ser executado no SHA deste patch; não há
+classificação de saúde ou E2E funcional disponível neste momento.
 
 ## Estado remoto
 

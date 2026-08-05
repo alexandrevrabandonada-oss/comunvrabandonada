@@ -813,7 +813,9 @@ descartáveis, E2E do runtime, auditoria RLS/grants, rollback e dry-run exato.
 - correção: `ON CONFLICT ON CONSTRAINT` qualificado na RPC de vínculo Carteira–conta;
 - static gates: topology, release, privilégios, typecheck, lint e build verdes;
 - primeira lane CI: stack efêmera travada antes do banco;
-- retry focal único: mesma trava na inicialização, sem atingir E2E;
-- resultado: `COMUN_48_1B_R2A_BLOCKED_CI_RUNTIME_INFRASTRUCTURE`;
+- cancelamento anterior ocorreu antes de health, Postgres ou E2E; não prova indisponibilidade do Docker/Supabase;
+- classificação corrigida para: `COMUN_48_1B_R2A_BLOCKED_CI_STARTUP_CANCELLED_BEFORE_HEALTH_RESULT`;
+- CI1 aplicado: artifacts pré-start, diagnóstico sanitizado, stack mínima, heartbeat e limite de 12 minutos;
+- novo attempt neste SHA: pendente;
 - PR #174 continua draft; sem READY, merge, promoção remota ou flags;
 - Supabase remoto, Google, piloto e `launch_publicly`: inalterados/fechados.
