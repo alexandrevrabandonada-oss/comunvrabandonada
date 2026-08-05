@@ -3,7 +3,7 @@
 Data: 2026-08-05  
 Branch: `codex/tijolo-48-1b-production-domain-pilot`  
 PR: [#174](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/174)  
-HEAD auditado antes da correção: `77a736dca196e654282f651d8e9adfb4048f358e`  
+HEAD auditado antes da correção: `77a736dca196e654282f651d8e9adfb4048f358e`
 Patch R1A: `4d9eae23ed5f9bc02c035d17defa62af58c363b2`
 Baseline: `7e2d259e193c0d8841c57b89002f551c9a9c2ad`
 
