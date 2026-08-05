@@ -1,5 +1,5 @@
 {
-  "result": "COMUN_48_1B_R2A_RUNTIME_SCHEMA_ALIGNMENT_REQUIRED",
+  "result": "COMUN_48_1B_R2A_L1_BLOCKED_RUNTIME_E2E_SCOPE",
   "migration": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
   "runtimeSourceOfTruth": "canonical existing Relata and Participation Wallet RPCs",
   "canonicalTables": {
@@ -82,19 +82,23 @@
     "legacyRoutesPreserved": true
   },
   "exactDryRun": {
-    "status": "green",
+    "status": "green_for_current_migration_sha",
     "proposed": ["20260805130000_comun_production_pilot_core_bundle.sql"],
     "seeds": [],
     "roles": [],
     "mutatingPush": false,
-    "quarantineRestored": true
+    "quarantineRestored": true,
+    "note": "Read-only dry-run rerun with the external-ledger and explicit local-only migrations quarantined; all quarantined files were restored and hashes rechecked."
   },
   "localRehearsal": {
-    "status": "blocked_infrastructure",
-    "cause": "LOCAL_SUPABASE_PORT_CONFLICT",
-    "port": 55432,
-    "remoteUntouched": true
+    "status": "green",
+    "workdirs": {
+      "A": {"apiPort": 56000, "dbPort": 56001, "result": "COMUN_48_1B_R2A_CORE_LOCAL_GREEN"},
+      "B": {"apiPort": 56100, "dbPort": 56101, "result": "COMUN_48_1B_R2A_CORE_LOCAL_GREEN"}
+    },
+    "remoteUntouched": true,
+    "scopeNote": "collective/evidence local-only functions intentionally excluded from R2A bundle"
   },
   "historicalR2Preparation": "COMUN_48_1B_R2_PRODUCTION_BUNDLE_READY_FOR_EXACT_DRY_RUN",
-  "nextGate": "COMUN_48_1B_R2A_CANONICAL_RUNTIME_SCHEMA_ROLLBACK_GREEN_EXACT_DRY_RUN"
+  "nextGate": "R2A-R2_PROMOTE_OR_RECONCILE_EVIDENCE_AND_COLLECTIVE_SCOPE_THEN_FULL_RUNTIME_E2E"
 }

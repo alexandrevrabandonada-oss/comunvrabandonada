@@ -67,6 +67,14 @@ create table public.comun_relata_cases (
   updated_at timestamptz not null default now(),
   withdrawn_at timestamptz
 );
+create table public.comun_relata_public_snapshots (
+  id uuid primary key default gen_random_uuid(),
+  case_id uuid not null unique references public.comun_relata_cases(id) on delete restrict,
+  public_summary text not null,
+  approximate_location jsonb not null,
+  publication_state text not null default 'blocked' check (publication_state='blocked'),
+  created_at timestamptz not null default now()
+);
 
 create table public.comun_relata_consents (
   id uuid primary key default gen_random_uuid(), case_id uuid not null unique references public.comun_relata_cases(id) on delete restrict,
@@ -142,6 +150,30 @@ create index comun_wallet_events_order_idx on private.comun_participation_wallet
 create index comun_relata_status_case_idx on public.comun_relata_status_events(case_id,occurred_at,id);
 create index comun_relata_attachment_report_idx on private.comun_relata_attachments(report_id,state,created_at);
 
+create or replace function private.comun_relata_reject_event_mutation()
+returns trigger language plpgsql security definer set search_path=pg_catalog as $$
+begin raise exception using errcode='42501',message='COMUN_RELATA_EVENT_APPEND_ONLY'; end; $$;
+create or replace function private.comun_relata_reject_public_snapshot()
+returns trigger language plpgsql security definer set search_path=pg_catalog as $$
+begin raise exception using errcode='42501',message='COMUN_RELATA_PUBLICATION_BLOCKED_48_0B'; end; $$;
+create or replace function private.comun_relata_guard_case_identity()
+returns trigger language plpgsql security definer set search_path=pg_catalog as $$
+begin
+ if new.protocol is distinct from old.protocol or new.protocol_kind is distinct from old.protocol_kind or new.is_official is distinct from old.is_official or new.official_protocol is distinct from old.official_protocol then raise exception using errcode='42501',message='COMUN_RELATA_PROTOCOL_IMMUTABLE'; end if;
+ if new.state is distinct from old.state and not (old.state='stored_private' and new.state='withdrawn') then raise exception using errcode='23514',message='COMUN_RELATA_INVALID_STATE_TRANSITION'; end if;
+ return new;
+end; $$;
+drop trigger if exists comun_relata_status_events_append_only on public.comun_relata_status_events;
+create trigger comun_relata_status_events_append_only before update or delete on public.comun_relata_status_events for each row execute function private.comun_relata_reject_event_mutation();
+do $$ begin
+ if to_regclass('public.comun_relata_public_snapshots') is not null then
+   execute 'drop trigger if exists comun_relata_public_snapshots_blocked on public.comun_relata_public_snapshots';
+   execute 'create trigger comun_relata_public_snapshots_blocked before insert or update or delete on public.comun_relata_public_snapshots for each row execute function private.comun_relata_reject_public_snapshot()';
+ end if;
+end $$;
+drop trigger if exists comun_relata_case_identity_guard on public.comun_relata_cases;
+create trigger comun_relata_case_identity_guard before update on public.comun_relata_cases for each row execute function private.comun_relata_guard_case_identity();
+
 create or replace function private.comun_relata_authorized_context(p_protocol text,p_receipt_secret text)
 returns table(report_id uuid,case_id uuid,case_state text,category text,urgency text,privacy_class text)
 language sql stable security definer set search_path=pg_catalog,private,public as $$
@@ -151,17 +183,22 @@ language sql stable security definer set search_path=pg_catalog,private,public a
 create or replace function public.comun_relata_create(p_idempotency_key text,p_receipt_secret text,p_original_text text,p_answers jsonb,p_category text,p_urgency text,p_rule_version text,p_decision jsonb,p_privacy_class text,p_consent_version text)
 returns table(protocol text,state text,category text,urgency text,rule_version text,created_at timestamptz,idempotent boolean)
 language plpgsql security definer set search_path=pg_catalog,private,public as $$
-declare ih bytea; rh bytea; ph bytea; rid uuid; cid uuid; proto text; existing private.comun_relata_reports%rowtype;
+declare ih bytea; rh bytea; ph bytea; rid uuid; cid uuid; proto text; existing private.comun_relata_reports%rowtype; decision jsonb;
 begin
  if p_idempotency_key !~ '^[A-Za-z0-9_-]{32,160}$' or p_receipt_secret !~ '^[A-Za-z0-9_-]{32,160}$' or char_length(trim(p_original_text)) not between 8 and 600 then raise exception using errcode='22023',message='COMUN_RELATA_INVALID_PROOF'; end if;
- ih:=extensions.digest('relata-idempotency-v1:'||p_idempotency_key,'sha256'); rh:=extensions.digest('relata-receipt-v1:'||p_receipt_secret,'sha256'); ph:=extensions.digest(convert_to(jsonb_build_object('text',trim(p_original_text),'answers',coalesce(p_answers,'{}'::jsonb),'category',p_category,'urgency',p_urgency,'decision',coalesce(p_decision,'{}'::jsonb))::text,'utf8'),'sha256');
+ if jsonb_typeof(coalesce(p_answers,'{}'::jsonb)) <> 'object' or coalesce(p_answers,'{}'::jsonb) - 'homes_power' <> '{}'::jsonb or (coalesce(p_answers,'{}'::jsonb) ? 'homes_power' and coalesce(p_answers,'{}'::jsonb)->>'homes_power' not in ('sim','nao')) or jsonb_typeof(coalesce(p_decision,'{}'::jsonb)) <> 'object' or octet_length(convert_to(coalesce(p_decision,'{}'::jsonb)::text,'utf8')) > 4096 then raise exception using errcode='22023',message='COMUN_RELATA_INVALID_TRIAGE'; end if;
+ if p_category not in ('public_lighting','power_distribution','electrical_hazard','active_fire','smoke_or_environmental_trace','sidewalk_accessibility','waste_or_debris','public_transport','public_health','public_education','workplace','environmental_pollution','other') or p_urgency not in ('routine','attention','urgent','emergency') or p_rule_version <> 'relata-routing-v1' or p_privacy_class not in ('public_safe','public_after_sanitization','restricted','sensitive','high_risk') or p_consent_version <> 'relata-consent-v1' then raise exception using errcode='22023',message='COMUN_RELATA_INVALID_CONTRACT'; end if;
+ decision:=jsonb_build_object('category',p_category,'urgency',p_urgency,'ruleVersion',p_rule_version,'source','deterministic_server_route');
+ ih:=extensions.digest('relata-idempotency-v1:'||p_idempotency_key,'sha256'); rh:=extensions.digest('relata-receipt-v1:'||p_receipt_secret,'sha256'); ph:=extensions.digest(convert_to(jsonb_build_object('text',trim(p_original_text),'answers',coalesce(p_answers,'{}'::jsonb),'category',p_category,'urgency',p_urgency,'decision',decision)::text,'utf8'),'sha256');
+ perform pg_advisory_xact_lock(hashtextextended(encode(ih,'hex'),4800));
  select * into existing from private.comun_relata_reports where idempotency_hash=ih;
- if found then return query select c.protocol,c.state,c.category,c.urgency,c.routing_rule_version,c.created_at,true from public.comun_relata_cases c where c.report_id=existing.id; return; end if;
- insert into private.comun_relata_reports(original_text,triage_answers,receipt_hash,actor_hash,idempotency_hash,payload_hash,privacy_class,routing_rule_version,routing_decision,urgency,consent_version) values(trim(p_original_text),coalesce(p_answers,'{}'::jsonb),rh,extensions.digest('relata-actor-v1:'||p_receipt_secret,'sha256'),ih,ph,p_privacy_class,p_rule_version,coalesce(p_decision,'{}'::jsonb),p_urgency,p_consent_version) returning id into rid;
- loop proto:='COMUN-RELATA-'||upper(encode(gen_random_bytes(8),'hex')); exit when not exists(select 1 from public.comun_relata_cases where protocol=proto); end loop;
- insert into public.comun_relata_cases(report_id,protocol,category,urgency,routing_rule_version,routing_decision,state) values(rid,proto,p_category,p_urgency,p_rule_version,coalesce(p_decision,'{}'::jsonb),'stored_private') returning id into cid;
+ if found then if existing.payload_hash<>ph or existing.receipt_hash<>rh then raise exception using errcode='P0001',message='COMUN_RELATA_IDEMPOTENCY_CONFLICT'; end if; return query select c.protocol,c.state,c.category,c.urgency,c.routing_rule_version,c.created_at,true from public.comun_relata_cases c where c.report_id=existing.id; return; end if;
+ insert into private.comun_relata_reports(original_text,triage_answers,receipt_hash,actor_hash,idempotency_hash,payload_hash,privacy_class,routing_rule_version,routing_decision,urgency,consent_version,retention_class,review_after) values(trim(p_original_text),coalesce(p_answers,'{}'::jsonb),rh,extensions.digest('relata-actor-v1:'||p_receipt_secret,'sha256'),ih,ph,p_privacy_class,p_rule_version,decision,p_urgency,p_consent_version,case when p_privacy_class in ('sensitive','high_risk') then 'sensitive' else 'private_unsubmitted' end,now()+case when p_privacy_class in ('sensitive','high_risk') then interval '30 days' else interval '90 days' end) returning id into rid;
+ loop proto:='COMUN-RELATA-'||upper(encode(extensions.gen_random_bytes(8),'hex')); exit when not exists(select 1 from public.comun_relata_cases c where c.protocol=proto); end loop;
+ insert into public.comun_relata_cases(report_id,protocol,category,urgency,routing_rule_version,routing_decision,state) values(rid,proto,p_category,p_urgency,p_rule_version,decision,'stored_private') returning id into cid;
  insert into public.comun_relata_consents(case_id,consent_version) values(cid,p_consent_version);
- insert into public.comun_relata_status_events(case_id,state,actor,result_code) values(cid,'stored_private','system_local','RELATA_STORED_PRIVATE');
+ insert into public.comun_relata_status_events(case_id,state,actor,result_code) values
+   (cid,'draft','person','RELATA_DRAFT_ACCEPTED'),(cid,'triage','system_local','RELATA_TRIAGE_RECORDED'),(cid,'routed','system_local','RELATA_ROUTE_CLASSIFIED'),(cid,'stored_private','system_local','RELATA_STORED_PRIVATE');
  return query select proto,'stored_private',p_category,p_urgency,p_rule_version,now(),false;
 end; $$;
 
@@ -174,7 +211,7 @@ create or replace function public.comun_relata_withdraw(p_protocol text,p_receip
 returns table(protocol text,state text,category text,urgency text,rule_version text,created_at timestamptz,withdrawn_at timestamptz,timeline jsonb)
 language plpgsql security definer set search_path=pg_catalog,private,public as $$
 declare c public.comun_relata_cases%rowtype; r private.comun_relata_reports%rowtype;
-begin select * into c from public.comun_relata_cases where protocol=p_protocol; select * into r from private.comun_relata_reports where id=c.report_id and receipt_hash=extensions.digest('relata-receipt-v1:'||p_receipt_secret,'sha256'); if not found then return; end if; if c.state<>'withdrawn' then update public.comun_relata_cases set state='withdrawn',withdrawn_at=now(),updated_at=now() where id=c.id returning * into c; update private.comun_relata_reports set withdrawn_at=c.withdrawn_at,retention_class='withdrawn',updated_at=now() where id=r.id; insert into public.comun_relata_status_events(case_id,state,actor,result_code) values(c.id,'withdrawn','person','RELATA_WITHDRAWN_BY_HOLDER'); end if; return query select * from public.comun_relata_get_receipt(p_protocol,p_receipt_secret); end; $$;
+begin select c0.* into c from public.comun_relata_cases c0 where c0.protocol=p_protocol; select r0.* into r from private.comun_relata_reports r0 where r0.id=c.report_id and r0.receipt_hash=extensions.digest('relata-receipt-v1:'||p_receipt_secret,'sha256'); if not found then return; end if; if c.state<>'withdrawn' then update public.comun_relata_cases set state='withdrawn',withdrawn_at=now(),updated_at=now() where id=c.id returning * into c; update private.comun_relata_reports set withdrawn_at=c.withdrawn_at,retention_class='withdrawn',updated_at=now() where id=r.id; insert into public.comun_relata_status_events(case_id,state,actor,result_code) values(c.id,'withdrawn','person','RELATA_WITHDRAWN_BY_HOLDER'); end if; return query select * from public.comun_relata_get_receipt(p_protocol,p_receipt_secret); end; $$;
 
 create or replace function public.comun_participation_wallet_create(p_token_hash_hex text,p_recovery_hash_hex text)
 returns table(wallet_id uuid) language plpgsql security definer set search_path=pg_catalog,private,public as $$ declare w uuid; begin if p_token_hash_hex !~ '^[0-9a-f]{64}$' or p_recovery_hash_hex !~ '^[0-9a-f]{64}$' then return; end if; insert into private.comun_participation_wallets(token_hash) values(decode(p_token_hash_hex,'hex')) on conflict(token_hash) do update set rotated_at=private.comun_participation_wallets.rotated_at returning id into w; insert into private.comun_participation_wallet_recovery_credentials(wallet_id,recovery_hash) values(w,decode(p_recovery_hash_hex,'hex')) on conflict(recovery_hash) do nothing; return query select w; end; $$;
@@ -189,7 +226,7 @@ create or replace function public.comun_participation_wallet_follow_case(p_token
 create or replace function public.comun_participation_wallet_claim_bus(p_token_hash_hex text,p_observation_id text,p_metadata jsonb default '{}'::jsonb) returns table(item_id uuid) language plpgsql security definer set search_path=pg_catalog,private,public as $$ declare w uuid;i uuid; begin select id into w from private.comun_participation_wallets where token_hash=decode(p_token_hash_hex,'hex') and status='active'; if w is null then return; end if; insert into private.comun_participation_wallet_items(wallet_id,item_type,subject_ref,subject_hash,title_template,category,presentation_state,source_domain,metadata) values(w,'bus_observation',p_observation_id,extensions.digest('wallet-subject-v1:'||p_observation_id,'sha256'),'Observação de ônibus','public_transport','Observação registrada','onibus',coalesce(p_metadata,'{}'::jsonb)) on conflict(wallet_id,item_type,subject_hash) do update set archived_at=null,updated_at=now(),metadata=excluded.metadata returning id into i; return query select i; end; $$;
 create or replace function public.comun_participation_wallet_remove_item(p_token_hash_hex text,p_item_id uuid) returns boolean language plpgsql security definer set search_path=pg_catalog,private,public as $$ declare w uuid; begin select id into w from private.comun_participation_wallets where token_hash=decode(p_token_hash_hex,'hex') and status='active'; if w is null then return false; end if; update private.comun_participation_wallet_items set archived_at=now(),updated_at=now() where id=p_item_id and wallet_id=w and archived_at is null; return found; end; $$;
 create or replace function public.comun_participation_wallet_redeem(p_recovery_code_hash_hex text,p_new_token_hash_hex text) returns table(wallet_id uuid,recovery_ok boolean) language plpgsql security definer set search_path=pg_catalog,private,public as $$ declare c private.comun_participation_wallet_recovery_credentials%rowtype; begin select * into c from private.comun_participation_wallet_recovery_credentials where recovery_hash=decode(p_recovery_code_hash_hex,'hex') and active=true and revoked_at is null and used_at is null; if not found then return query select null::uuid,false; return; end if; update private.comun_participation_wallets set token_hash=decode(p_new_token_hash_hex,'hex'),rotated_at=now() where id=c.wallet_id; update private.comun_participation_wallet_recovery_credentials set active=false,used_at=now() where id=c.id; return query select c.wallet_id,true; end; $$;
-create or replace function public.comun_participation_wallet_rotate_recovery(p_token_hash_hex text,p_new_recovery_hash_hex text,p_new_token_hash_hex text) returns table(wallet_id uuid,rotated boolean) language plpgsql security definer set search_path=pg_catalog,private,public as $$ declare w uuid; begin select id into w from private.comun_participation_wallets where token_hash=decode(p_token_hash_hex,'hex') and status='active'; if w is null then return; end if; update private.comun_participation_wallets set token_hash=decode(p_new_token_hash_hex,'hex'),rotated_at=now() where id=w; update private.comun_participation_wallet_recovery_credentials set active=false,revoked_at=now() where wallet_id=w and active=true; insert into private.comun_participation_wallet_recovery_credentials(wallet_id,recovery_hash) values(w,decode(p_new_recovery_hash_hex,'hex')); return query select w,true; end; $$;
+create or replace function public.comun_participation_wallet_rotate_recovery(p_token_hash_hex text,p_new_recovery_hash_hex text,p_new_token_hash_hex text) returns table(wallet_id uuid,rotated boolean) language plpgsql security definer set search_path=pg_catalog,private,public as $$ declare w uuid; begin select wallets.id into w from private.comun_participation_wallets wallets where wallets.token_hash=decode(p_token_hash_hex,'hex') and wallets.status='active'; if w is null then return; end if; update private.comun_participation_wallets wallets set token_hash=decode(p_new_token_hash_hex,'hex'),rotated_at=now() where wallets.id=w; update private.comun_participation_wallet_recovery_credentials credentials set active=false,revoked_at=now() where credentials.wallet_id=w and credentials.active=true; insert into private.comun_participation_wallet_recovery_credentials(wallet_id,recovery_hash) values(w,decode(p_new_recovery_hash_hex,'hex')); return query select w,true; end; $$;
 create or replace function public.comun_participation_wallet_link_account(p_token_hash_hex text,p_user_id uuid,p_link_method text)
 returns table(wallet_id uuid,linked boolean) language plpgsql security definer set search_path=pg_catalog,private,public as $$ declare w uuid; begin if p_link_method not in ('explicit_account_link','recovery_claim') then return; end if; select id into w from private.comun_participation_wallets where token_hash=decode(p_token_hash_hex,'hex') and status='active'; if w is null then return; end if; insert into private.comun_participation_wallet_account_links(wallet_id,user_id,link_method) values(w,p_user_id,p_link_method) on conflict(wallet_id,user_id) do update set revoked_at=null,link_method=excluded.link_method; insert into private.comun_participation_wallet_events(wallet_id,event_type,result_code) values(w,'item_updated','WALLET_ACCOUNT_LINKED'); return query select w,true; end; $$;
 create or replace function public.comun_participation_wallet_revoke_account(p_token_hash_hex text,p_user_id uuid)
@@ -207,7 +244,7 @@ create or replace function public.comun_relata_withdraw_attachment(p_protocol te
 -- Private Storage contract. Existing incompatible bucket state is a hard stop.
 do $$ begin if exists(select 1 from storage.buckets where id='comun-relata-private' and (public or file_size_limit<>8388608 or allowed_mime_types is distinct from array['image/jpeg','image/png','image/webp'])) then raise exception 'COMUN_48_1B_R2A_BLOCKED_PRIVATE_STORAGE'; end if; if not exists(select 1 from storage.buckets where id='comun-relata-private') then insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types) values('comun-relata-private','comun-relata-private',false,8388608,array['image/jpeg','image/png','image/webp']); end if; end $$;
 
-do $$ declare t text; begin foreach t in array array['comun_relata_reports','comun_relata_private_locations','comun_relata_attachments','comun_participation_wallets','comun_participation_wallet_items','comun_participation_wallet_events','comun_participation_wallet_recovery_credentials','comun_participation_wallet_rate_limits','comun_participation_wallet_account_links'] loop execute format('alter table private.%I enable row level security',t); execute format('alter table private.%I force row level security',t); execute format('revoke all on private.%I from public,anon,authenticated',t); execute format('grant all on private.%I to service_role',t); end loop; foreach t in array array['comun_relata_cases','comun_relata_consents','comun_relata_status_events','comun_relata_evidence_consents'] loop execute format('alter table public.%I enable row level security',t); execute format('alter table public.%I force row level security',t); execute format('revoke all on public.%I from public,anon,authenticated',t); execute format('grant all on public.%I to service_role',t); end loop; end $$;
+ do $$ declare t text; begin foreach t in array array['comun_relata_reports','comun_relata_private_locations','comun_relata_attachments','comun_participation_wallets','comun_participation_wallet_items','comun_participation_wallet_events','comun_participation_wallet_recovery_credentials','comun_participation_wallet_rate_limits','comun_participation_wallet_account_links'] loop execute format('alter table private.%I enable row level security',t); execute format('alter table private.%I force row level security',t); execute format('revoke all on private.%I from public,anon,authenticated',t); execute format('grant all on private.%I to service_role',t); end loop; foreach t in array array['comun_relata_cases','comun_relata_public_snapshots','comun_relata_consents','comun_relata_status_events','comun_relata_evidence_consents'] loop execute format('alter table public.%I enable row level security',t); execute format('alter table public.%I force row level security',t); execute format('revoke all on public.%I from public,anon,authenticated',t); execute format('grant all on public.%I to service_role',t); end loop; end $$;
 
 -- Explicit privilege declarations are kept alongside the loop so static and
 -- runtime auditors see the complete contract without expanding dynamic SQL.
@@ -251,6 +288,10 @@ alter table public.comun_relata_cases enable row level security;
 alter table public.comun_relata_cases force row level security;
 revoke all on table public.comun_relata_cases from public, anon, authenticated;
 grant all on table public.comun_relata_cases to service_role;
+alter table public.comun_relata_public_snapshots enable row level security;
+alter table public.comun_relata_public_snapshots force row level security;
+revoke all on table public.comun_relata_public_snapshots from public, anon, authenticated;
+grant all on table public.comun_relata_public_snapshots to service_role;
 alter table public.comun_relata_consents enable row level security;
 alter table public.comun_relata_consents force row level security;
 revoke all on table public.comun_relata_consents from public, anon, authenticated;

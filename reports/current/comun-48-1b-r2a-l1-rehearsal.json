@@ -1,0 +1,23 @@
+{
+  "result": "COMUN_48_1B_R2A_L1_BLOCKED_RUNTIME_E2E_SCOPE",
+  "branch": "codex/tijolo-48-1b-production-domain-pilot",
+  "headBeforePatch": "c4a66c5954d7aebace9dbd4852c1057757eba52b",
+  "migrationSha256": "ffcfc1b22d889452b8c57817393b1b9ea24fca862abc04344f58bae081d2f4ab",
+  "portOwner": {"classification": "LOCAL_SUPABASE_PORT_CONFLICT", "canonicalPort": 55432, "action": "isolated_workdirs"},
+  "rehearsals": {
+    "A": {"workdir": "cleaned", "ports": [56000, 56001], "result": "COMUN_48_1B_R2A_CORE_LOCAL_GREEN"},
+    "B": {"workdir": "cleaned", "ports": [56100, 56101], "result": "COMUN_48_1B_R2A_CORE_LOCAL_GREEN"}
+  },
+  "runtimeE2E": {"walletCreate": 201, "relataCreate": 201, "receiptTimelineStates": 4, "noOfficialSend": true, "photoLocationAccount": "not_run_in_core_bundle"},
+  "roleMatrix": {"rlsForced": "14/14", "publicTableGrants": 0, "anonRpc": 0, "authenticatedRpc": 0, "serviceRoleRpc": 6, "anonDirectRead": "blocked", "authenticatedDirectRead": "blocked"},
+  "storage": {"bucket": "comun-relata-private", "public": false, "maxBytes": 8388608, "mime": ["image/jpeg", "image/png", "image/webp"]},
+  "rollback": {"methods404": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"], "wallet404": true, "dataDeleted": false},
+  "cleanup": {"A": true, "B": true, "containersStopped": true},
+  "exactDryRun": {"currentBytesRevalidated": true, "result": "COMUN_48_1B_R2A_CLI_BASELINE_RECONCILED_CANDIDATE_ONLY", "proposed": ["20260805130000_comun_production_pilot_core_bundle.sql"], "seeds": [], "roles": [], "quarantineRestored": true},
+  "remote": {"writes": false, "migrationsApplied": false, "flagsChanged": false, "launchPublicly": false},
+  "blockers": [
+    "R2A bundle excludes local-only collective/evidence functions required by full photo/location runtime E2E",
+    "exact linked dry-run must be refreshed for current migration bytes",
+    "PR CI/Preview lanes are not all green yet"
+  ]
+}

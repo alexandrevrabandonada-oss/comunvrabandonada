@@ -2,7 +2,7 @@
 
 ## Estado
 
-`COMUN_48_1B_R2A_RUNTIME_SCHEMA_ALIGNMENT_REQUIRED`
+`COMUN_48_1B_R2A_L1_BLOCKED_RUNTIME_E2E_SCOPE`
 
 O baseline CLI da R1B foi comprovado vazio antes da criação deste bundle. A
 R2 usa migration nova e aditiva; não reutiliza migrations local-only antigas.
@@ -13,7 +13,7 @@ Migration:
 
 SHA-256 atual:
 
-`252cb0d43ec365ff82057cae584aefacb6586dc05ea635300fa8907cbb471b82`
+`ffcfc1b22d889452b8c57817393b1b9ea24fca862abc04344f58bae081d2f4ab`
 
 Manifesto:
 
@@ -39,5 +39,9 @@ O bundle anterior `COMUN_48_1B_R2_PRODUCTION_BUNDLE_READY_FOR_EXACT_DRY_RUN`
 fica preservado como histórico. Ele foi substituído porque criava
 `comun_production_*`, desconectado do runtime. O bundle atual usa nomes e
 assinaturas canônicos, PRE fail-closed, RLS/grants explícitos, Storage privado
-e rollback por flags. O dry-run final e o rehearsal em bancos descartáveis
-continuam sendo o gate antes de qualquer promoção.
+e rollback por flags. Os rehearsals A/B, o smoke runtime do núcleo e o dry-run
+read-only do SHA atual estão verdes, mas o E2E completo de foto/localização/conta
+ainda não foi provado. O dry-run propôs somente a migration candidata após
+quarentena temporária da exceção externa e das migrations explicitamente
+local-only; tudo foi restaurado. Por isso a PR permanece draft e nenhuma
+promoção é permitida.

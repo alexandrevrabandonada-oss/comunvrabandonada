@@ -749,9 +749,14 @@ O inventário do runtime mostrou que o bundle R2 inicial usava tabelas
 foi redesenhada, ainda não aplicada remotamente, para usar os contratos
 canônicos de Relata, Carteira e evidências, incluindo vínculo explícito
 Conta–Carteira, RPCs server-only, RLS forçada, grants e Storage privado.
-O SHA atual é `252cb0d43ec365ff82057cae584aefacb6586dc05ea635300fa8907cbb471b82`.
+O SHA atual é `ffcfc1b22d889452b8c57817393b1b9ea24fca862abc04344f58bae081d2f4ab`.
 
-Estado vigente: `COMUN_48_1B_R2A_RUNTIME_SCHEMA_ALIGNMENT_REQUIRED`.
+Estado vigente: `COMUN_48_1B_R2A_L1_BLOCKED_RUNTIME_E2E_SCOPE`.
+
+Rehearsal L1: workdirs A/B isolados verdes; Relata/Carteira core, Storage privado,
+RLS/grants, rollback por flags e dry-run read-only do SHA atual comprovados. O
+runner amplo de evidências/coletivos permanece fora do escopo desta migration
+R2A; o terminal continua bloqueado até a cobertura E2E completa.
 O resultado R2 anterior permanece apenas como histórico. Não houve migration,
 flag, Google, allowlist, deployment de piloto, escrita remota ou
 `launch_publicly`. O próximo gate é validar duas rehearsals locais em bancos
