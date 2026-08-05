@@ -1,7 +1,7 @@
 {
-  "result": "COMUN_48_1B_R2A_ATTACHMENT_RPC_FORWARD_FIX_IN_CI",
+  "result": "COMUN_48_1B_R2A_BLOCKED_RUNTIME_E2E_FUNCTIONAL_FAILURE",
   "branch": "codex/tijolo-48-1b-production-domain-pilot",
-  "head": "7f120522ac65d9bea3ce5ec559f63367bc7bac05",
+  "head": "97b6ea496ccd9838778557aba79b038b6a907fe0",
   "candidate": {
     "path": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
     "sha256": "0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9"
@@ -11,7 +11,7 @@
     "path": "supabase/migrations/20260805201000_comun_production_pilot_attachment_rpc_fix.sql",
     "sha256": "f092f26df14fe9f724be9b3a6ad9d46fb5d73145d8cf2072933ac0c5917addcc",
     "candidateImmutable": true,
-    "targetedSqlTest": "ci_pending"
+    "targetedSqlTest": "ci_chain_applied_before_wallet_failure"
   },
   "ciLane": "COMUN R2A / private runtime E2E",
   "finding": {
@@ -33,7 +33,15 @@
     "account": "implemented_in_harness",
     "collectives": "disabled_and_no_rpc_expected"
   },
-  "ciRun": "31043986822",
+  "ciRun": "31047472852",
+  "secondaryFinding": {
+    "kind": "functional",
+    "rpc": "public.comun_participation_wallet_link_account",
+    "sqlstate": "42702",
+    "sqlstateMeaning": "ambiguous_column",
+    "cause": "unqualified ON CONFLICT(wallet_id,user_id) inside wallet-account link function",
+    "remoteWrite": false
+  },
   "remoteContacted": false,
   "remoteMigrationApplied": false,
   "flagsChanged": false,

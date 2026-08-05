@@ -8,15 +8,16 @@ alterar a candidata congelada. A nova cadeia é exatamente:
 1. `20260805130000_comun_production_pilot_core_bundle.sql`;
 2. `20260805201000_comun_production_pilot_attachment_rpc_fix.sql`.
 
-O teste focal de banco e o E2E completo estão sendo executados na lane CI
-descartável `31043986822`; o resultado permanece pendente até a conclusão dessa
-lane. A PR #174 continua draft.
+O teste focal de banco e o E2E completo foram executados na lane CI descartável
+`31047472852` sobre o head `97b6ea496ccd9838778557aba79b038b6a907fe0`.
+As migrations da cadeia foram aplicadas no banco descartável, mas a jornada
+falhou depois dos anexos no vínculo explícito Carteira–conta.
 
 ## Estado
 
 `COMUN_48_1B_R2A_BLOCKED_RUNTIME_E2E_FUNCTIONAL_FAILURE`
 
-O head `f303fb44a08d3dc0300fc970be1231579e053499` mantém a migration candidata
+O head `97b6ea496ccd9838778557aba79b038b6a907fe0` mantém a migration candidata
 imutável (`0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9`).
 
 ## Tentativa local limitada
@@ -35,21 +36,24 @@ bucket privado, isolamento entre carteiras, recuperação, vínculo explícito d
 conta e coletivos desabilitados. O artifact é sanitizado e a stack é parada por
 `trap`, com verificação de containers residuais.
 
-## Finding funcional
+## Findings funcionais
 
-A lane confirmou que o runtime sobe e que a localização privada funciona, mas o
-início de fotografia retorna `404 {"code":"attachments_unavailable"}`. A
-chamada read-only local, dentro de transação revertida, reproduziu SQLSTATE
-`42702` (`ambiguous_column`) na RPC
-`public.comun_relata_begin_attachment`. Isso é uma falha funcional do SQL
-canônico da migration candidata, não uma falha de Docker/CI. Como o contrato
-exige a migration candidata byte a byte imutável, não foi aplicada correção
-silenciosa nem criada migration remota.
+A primeira execução confirmou SQLSTATE `42702` (`ambiguous_column`) na RPC
+`public.comun_relata_begin_attachment`; isso foi corrigido pelo hotfix
+forward-only e a cadeia passou a aplicar no laboratório descartável.
+
+Na execução seguinte, a jornada avançou até o vínculo de conta e encontrou uma
+segunda falha funcional existente em
+`public.comun_participation_wallet_link_account`: a cláusula
+`ON CONFLICT(wallet_id,user_id)` é ambígua. A resposta foi reproduzida no banco
+descartável, sem escrita remota. Não alteramos a migration candidata e não
+expandimos o hotfix de anexos para esconder um defeito de outro domínio.
 
 ## Gate
 
 A PR permanece draft e não pode ser marcada pronta ou mesclada enquanto o
-SQLSTATE `42702` não tiver uma correção forward-only compatível com a
-imutabilidade da candidata.
+E2E completo continuar bloqueado por essa falha funcional. O próximo patch
+deverá ser tratado como hotfix forward-only separado, com escopo e cadeia
+explicitamente revisados.
 Não houve migration remota, flag pública, Google, allowlist, piloto ou
 `launch_publicly`.
