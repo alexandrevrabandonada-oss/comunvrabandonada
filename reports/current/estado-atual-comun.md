@@ -1,8 +1,8 @@
 # Estado atual — atualização 48.0L (04/08/2026)
 
-## Tijolo 48.0L — STMU multicanal — candidata local, dormente
+## Tijolo 48.0L — STMU multicanal — integrado, dormente
 
-- baseline confirmado: `origin/main=7d40abbac84daaa4a4298dcea1e471f7441b6830`; branch `codex/tijolo-48-0l-stmu-multichannel`;
+- baseline confirmado: `origin/main=7d40abbac84daaa4a4298dcea1e471f7441b6830`; PR #166 mesclada no SHA `1177323071a826c912b63c2aa9678ad1577589f1`; deployment Production `dpl_9WgR8YbQCzmNqEx2GD8Cnd1BjUX6` READY;
 - modelo multicanal aditivo: um caso Relata, tentativas sequenciais por canal, eventos append-only, latência em faixas e escalonamento sem duplicação;
 - canais reconciliados: WhatsApp com menu 1/2/3 observado; e-mail oficial `stmu@voltaredonda.rj.gov.br` verificado como fonte atual, ainda não testado; Gmail de campo não corroborado e bloqueado; telefone e presencial verificados como fontes, sem automação;
 - migration local-only `20260804232125_comun_stmu_multichannel_attempts_local.sql`, SHA `8cc01fcd7acf16fa7337d52626eb0be4c547a61bce76760954479cd1bfd5b572`; manifesto `requiresPromotion=false`, `remotePromotionAllowed=false`;
@@ -10,7 +10,7 @@
 - DB rehearsal `COMUN_STMU_48_0L_DB_GREEN`; RLS `COMUN_RLS_COMPLETE_GREEN`; privilégios explícitos verdes; cloak GET/POST/PATCH/PUT/DELETE `404`;
 - 492 testes unitários, surfaces 26/26, typecheck, lint e build verdes; micro-gate humano de opção 3 e verificação de e-mail pendentes;
 - Production, Supabase remoto, flags públicas, domínio, secrets, WhatsApp, e-mail e `launch_publicly` permanecem intocados;
-- resultado esperado após PR/CI/Preview e smoke dormente: `COMUN_STMU_48_0L_MERGED_DORMANT_MULTICHANNEL_RESILIENCE_GREEN_FIELD_EMAIL_PENDING_REMOTE_UNCHANGED`;
+- resultado terminal: `COMUN_STMU_48_0L_MERGED_DORMANT_MULTICHANNEL_RESILIENCE_GREEN_FIELD_EMAIL_PENDING_REMOTE_UNCHANGED`; smoke pós-merge preservou rotas públicas e manteve multicanal `404`;
 - próximo passo: micro-gates humanos separados e planejamento de `48.1 — primeiro piloto real consentido`; 47.9D não iniciado.
 
 ## Tijolo 48.0K — STMU WhatsApp — candidato local, dormente
