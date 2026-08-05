@@ -590,3 +590,28 @@ Correção semântica do Fiscaliza: estado máximo automático agora `public_ent
 Production e Supabase remoto não foram consultados de forma mutável ou alterados; flags permanecem desligadas. Próximo tijolo: `48.0K — Verificação operacional da STMU`.
 
 Faixa 48.0J-N1: o smoke genérico foi classificado como `SMOKE_WRONG_ENVIRONMENT`, pois `localhost:3000` estava ocupado por outro laboratório e a fixture era criada em stack/porta diferentes. Com aplicação e fixture no mesmo ambiente local descartável (`localhost:3100`), `smoke:no-leak-http` passou com teardown limpo. Nenhum 404 foi aceito como sucesso e nenhum gate foi suprimido; PR #164 foi atualizada para merge.
+
+# Tijolo 48.0M — fechamento técnico (05/08/2026)
+
+O HEAD local `a930ff1c22b5a263ad96a87123eeba107317267d` permanece forward-only
+desde `a4910c50680cdde09808364c3cb83669baebaba0`. O ambiente de ensaio foi
+confirmado pelo responsável do produto em computador e celular na LAN, com
+cadastro por e-mail, login, onboarding, Minha Participação e Relata acessíveis.
+Resultado adicional: `COMUN_OWNER_OPERATOR_CORE_FLOW_SMOKE_GREEN`.
+
+Isso não encerra o ensaio humano integrado: `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE`.
+Não há participantes formais, tempos, taxa de conclusão ou acionamento de
+canal externo. Google real continua `provider_configuration_pending`;
+`launch_publicly=false`.
+
+A suíte local descartável passou RLS, grants, todas as rehearsals de banco,
+restore, cleanup, captura E2E (10/10), Carteira (5/5), Ônibus (5/5) e
+forwarding (5/5). Nenhuma migration remota ou flag pública foi ativada.
+
+# 48.1A — plano allowlisted
+
+O 48.1A está somente em diagnóstico/preflight: dependências, checksums,
+rollback e métricas sanitizadas foram documentados; preflight remoto e
+checkpoint ainda precisam ser executados antes de qualquer promoção. Ônibus,
+STMU e encaminhamento ficam fora do primeiro conjunto core. Nenhuma expansão
+fechada, piloto público ou ativação ampla foi iniciada.

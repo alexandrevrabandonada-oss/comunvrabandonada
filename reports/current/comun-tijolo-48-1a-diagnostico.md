@@ -1,0 +1,23 @@
+# COMUN — 48.1A · diagnóstico de piloto allowlisted
+
+Status: planejamento bloqueado até preflight remoto read-only e checkpoint.
+
+## Escopo seguro
+
+Piloto fechado, explicitamente allowlisted, para o responsável pelo produto.
+Não é amostra humana, não é lançamento público e não habilita encaminhamento
+automático. O piloto deve usar somente os domínios já implementados (Relata,
+Carteira, onboarding territorial e superfícies dormentes), sem ativar Google
+real sem configuração verificada.
+
+## Dependências
+
+1. merge técnico do 48.0M e Production no SHA exato;
+2. preflight remoto read-only sanitizado (SHA, deployment, ledger, schema,
+   RLS, grants, buckets, flags e fingerprints);
+3. comparação dos checksums das migrations locais-only;
+4. backup/checkpoint e rollback comprovados;
+5. confirmação de zero P0/P1 e zero envio externo;
+6. allowlist por ID opaco, sem e-mail ou PII.
+
+Nenhuma escrita remota foi executada por este diagnóstico.
