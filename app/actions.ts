@@ -1250,6 +1250,12 @@ export async function saveCommunityProfileAction(formData: FormData) {
   const displayName = String(formData.get("display_name") ?? "")
     .trim()
     .slice(0, 80);
+  const territoryMunicipality = String(formData.get("territory") ?? "")
+    .trim()
+    .slice(0, 120);
+  const territoryNeighborhood = String(formData.get("neighborhood") ?? "")
+    .trim()
+    .slice(0, 120);
   const visibility = String(formData.get("profile_visibility") ?? "private");
   if (
     !displayName ||
@@ -1258,6 +1264,7 @@ export async function saveCommunityProfileAction(formData: FormData) {
     throw new Error("Perfil inválido.");
   const service = createServiceSupabaseClient();
   if (!service) throw new Error("Serviço indisponível.");
+  const territoryCatalogEnabled = process.env.COMUN_TERRITORY_CATALOG_LOCAL === "enabled";
   const { error } = await service
     .from("comun_member_profiles" as never)
     .update({
@@ -1273,6 +1280,15 @@ export async function saveCommunityProfileAction(formData: FormData) {
           : visibility === "pauta_members"
             ? "participants"
             : "private",
+      ...(territoryCatalogEnabled
+        ? {
+            territory_municipality: territoryMunicipality || null,
+            territory_neighborhood: territoryNeighborhood || null,
+            territory_source_version: territoryMunicipality === "Volta Redonda"
+              ? "2026-08-04-textual-preliminary"
+              : null,
+          }
+        : {}),
       onboarding_completed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     } as never)

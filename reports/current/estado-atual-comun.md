@@ -25,6 +25,15 @@
 - provider Google permanece não configurado, flag Production desligada, `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE` preservado e 48.1 não iniciado.
 - regressão E2E comunitária tentou o setup, mas o Supabase descartável não iniciou em duas tentativas (`ECONNREFUSED 127.0.0.1:55431`/bootstrap); não houve efeito remoto e a configuração local foi restaurada.
 
+## Catálogo territorial de bairros — integração local
+
+- onboarding com bairro opcional para Volta Redonda usando snapshot textual Prefeitura/IPPU `2026-08-04-textual-preliminary`;
+- persistência aditiva local-only em `comun_member_profiles`, protegida por `COMUN_TERRITORY_CATALOG_LOCAL`;
+- sem geometria, coordenada, endereço ou projeção pública;
+- migration `20260805090000_comun_member_profile_territory_selection.sql`, manifesto com `requiresPromotion=false` e `remotePromotionAllowed=false`;
+- resultado: `COMUN_TERRITORY_NEIGHBORHOOD_CATALOG_LOCAL_READY`;
+- lista preliminar ainda aguarda validação contra o shapefile oficial; Supabase remoto não consultado ou alterado.
+
 ## Tijolo 48.0L — STMU multicanal — integrado, dormente
 
 ## Tijolo 48.0L — STMU multicanal — integrado, dormente

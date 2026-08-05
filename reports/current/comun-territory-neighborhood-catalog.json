@@ -1,0 +1,15 @@
+{
+  "result": "COMUN_TERRITORY_NEIGHBORHOOD_CATALOG_LOCAL_READY",
+  "city": "Volta Redonda",
+  "featureFlag": "COMUN_TERRITORY_CATALOG_LOCAL",
+  "snapshotVersion": "2026-08-04-textual-preliminary",
+  "sourceStatus": "official_public_snapshot_pending_geometry_validation",
+  "geometryImported": false,
+  "neighborhoodCount": 55,
+  "privacy": {
+    "optional": true,
+    "preciseLocationStored": false,
+    "publicProjection": false
+  },
+  "remoteSupabase": "unchanged"
+}
