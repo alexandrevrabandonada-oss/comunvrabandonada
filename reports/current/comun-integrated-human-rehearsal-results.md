@@ -4,7 +4,9 @@
 
 `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE`
 
-Nenhuma sessão com pessoas e aparelhos reais foi realizada nesta execução. Não há participantes, tempos ou findings humanos válidos para promover. O preflight automatizado ficou em `COMUN_REHEARSAL_48_0M_ENVIRONMENT_READY_HUMAN_SESSION_PENDING`.
+O responsável pelo produto confirmou smoke LAN humano: abertura correta em computador e celular pela rede local, rotas necessárias acessíveis e nenhuma submissão externa. Resultado técnico adicional: `COMUN_REHEARSAL_48_0M_LAN_SMOKE_GREEN`.
+
+Essa confirmação não contabiliza participante completo. Não foram medidos tempos, não foram executadas todas as tarefas, não houve três participantes e não há resultado de usabilidade para promover. O preflight automatizado ficou em `COMUN_REHEARSAL_48_0M_ENVIRONMENT_READY_HUMAN_SESSION_PENDING`.
 
 ## O que foi comprovado automaticamente
 

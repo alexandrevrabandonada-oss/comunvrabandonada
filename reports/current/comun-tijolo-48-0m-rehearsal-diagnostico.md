@@ -49,4 +49,6 @@ Classificação: `FIXTURE_SETUP_MISSING` (com expectativa histórica a revisar).
 
 `COMUN_REHEARSAL_48_0M_ENVIRONMENT_READY_HUMAN_SESSION_PENDING`
 
-Não houve participantes reais, aparelhos reais ou micro-gate humano STMU nesta execução. O resultado humano correto permanece `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE`.
+Smoke LAN humano confirmado pelo responsável do produto: o ambiente abriu corretamente em computador e celular pela rede local, as rotas necessárias ficaram acessíveis e nenhuma submissão externa foi realizada. Resultado: `COMUN_REHEARSAL_48_0M_LAN_SMOKE_GREEN`.
+
+Isso não é ensaio humano integrado: não foram medidos tempos, não foram executadas todas as tarefas, não houve três participantes e não há resultado de usabilidade. O resultado humano correto permanece `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE`; o micro-gate STMU também não foi executado.

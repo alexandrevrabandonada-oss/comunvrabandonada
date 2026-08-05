@@ -1,6 +1,9 @@
 {
   "brick": "48.0M",
   "status": "COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE",
+  "lanSmoke": "COMUN_REHEARSAL_48_0M_LAN_SMOKE_GREEN",
+  "lanSmokeOperator": "responsavel_do_produto",
+  "lanSmokeCompleteParticipant": false,
   "participants": 0,
   "minimumParticipants": 3,
   "technicalPreflight": "COMUN_REHEARSAL_48_0M_ENVIRONMENT_READY_HUMAN_SESSION_PENDING",

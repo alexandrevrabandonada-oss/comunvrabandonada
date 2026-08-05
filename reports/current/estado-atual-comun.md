@@ -9,7 +9,8 @@
 - infraestrutura local: conflito de porta 5543x e retry focal de gateway Storage 502, ambos descartáveis; configuração restaurada; nenhum Supabase remoto consultado ou alterado;
 - E2E histórico de Calçadas 4/8 por `FIXTURE_SETUP_MISSING`: fixture genérica não cria pauta canônica e a página renderiza fallback editorial. Não foi aplicado patch permissivo nem alterada a implementação;
 - resultado técnico: `COMUN_REHEARSAL_48_0M_ENVIRONMENT_READY_HUMAN_SESSION_PENDING`;
-- resultado humano: `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE` (zero participantes reais nesta execução);
+- smoke LAN humano confirmado pelo responsável do produto em computador e celular, sem submissão externa: `COMUN_REHEARSAL_48_0M_LAN_SMOKE_GREEN`;
+- resultado humano: `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE` (não participante completo; sem tempos, jornadas completas ou três participantes);
 - STMU opção 3 e verificação de e-mail não realizadas; nenhum envio, WhatsApp, e-mail ou piloto público iniciado;
 - relatórios: `comun-tijolo-48-0m-rehearsal-diagnostico.md`, plano/template/resultados, matriz de prontidão, plano de piloto, findings JSON e contratos STMU;
 - próximo passo: ensaio humano real 48.0M-H1 e correção focal da fixture antes de qualquer 48.1; 47.9D não iniciado e `launch_publicly` não acionado.
