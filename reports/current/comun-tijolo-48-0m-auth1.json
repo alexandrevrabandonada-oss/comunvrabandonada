@@ -1,0 +1,31 @@
+{
+  "brick": "48.0M-AUTH1",
+  "result": "COMUN_AUTH_GOOGLE_48_0M_CODE_READY_PROVIDER_CONFIGURATION_PENDING",
+  "flag": "COMUN_GOOGLE_AUTH_ENABLED",
+  "provider": "google",
+  "pkce": true,
+  "scopes": ["openid", "email", "profile"],
+  "callback": "/comun/auth/callback",
+  "completion": "/comun/completar-conta",
+  "providerConfigured": false,
+  "productionFlag": "off",
+  "remoteMigration": false,
+  "remoteSupabaseChanged": false,
+  "walletSecretRotated": false,
+  "walletClaimedSilently": false,
+  "integratedHumanRehearsal": "COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE",
+  "tests": {
+    "googleContract": "14/14",
+    "typecheck": "green",
+    "lint": "green",
+    "build": "green"
+  },
+  "flagOffSmoke": {
+    "login": 200,
+    "signup": 200,
+    "googleButton": false,
+    "googleScript": false
+  },
+  "communityE2E": "blocked_local_supabase_bootstrap",
+  "infraCause": "LOCAL_SUPABASE_RESOURCE_EXHAUSTION_OR_BOOTSTRAP_FAILURE"
+}

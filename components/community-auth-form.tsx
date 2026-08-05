@@ -1,14 +1,21 @@
 "use client";
 import Link from "next/link";
 import { useActionState, useEffect, useRef } from "react";
-import { createCommunityAccount, loginCommunity } from "@/app/actions";
+import { useFormStatus } from "react-dom";
+import {
+  createCommunityAccount,
+  loginCommunity,
+  signInCommunityWithGoogle,
+} from "@/app/actions";
 import { withComunAppV2 } from "@/lib/comun-shell-contract";
 export function CommunityLoginForm({
   returnTo,
   experienceV2 = false,
+  googleAuthEnabled = false,
 }: {
   returnTo?: string;
   experienceV2?: boolean;
+  googleAuthEnabled?: boolean;
 }) {
   const [state, action] = useActionState(loginCommunity, null);
   const errorRef = useRef<HTMLParagraphElement>(null);
@@ -16,7 +23,18 @@ export function CommunityLoginForm({
     if (state?.error) errorRef.current?.focus();
   }, [state?.error]);
   return (
-    <form action={action} className="grid gap-3" aria-label="Entrar no COMUN">
+    <div className="grid gap-4">
+      {googleAuthEnabled ? (
+        <CommunityGoogleButton returnTo={returnTo} experienceV2={experienceV2} />
+      ) : null}
+      {googleAuthEnabled ? (
+        <div className="flex items-center gap-3 text-xs font-black uppercase text-comun-concrete" role="separator" aria-label="ou entre com e-mail">
+          <span className="h-px flex-1 bg-current/30" aria-hidden="true" />
+          <span>ou entre com e-mail</span>
+          <span className="h-px flex-1 bg-current/30" aria-hidden="true" />
+        </div>
+      ) : null}
+      <form action={action} className="grid gap-3" aria-label="Entrar no COMUN">
       <input type="hidden" name="returnTo" value={returnTo} />
       <label>
         E-mail
@@ -75,13 +93,29 @@ export function CommunityLoginForm({
       >
         Esqueci minha senha
       </Link>
-    </form>
+      </form>
+    </div>
   );
 }
-export function CommunitySignupForm({ returnTo }: { returnTo?: string }) {
+export function CommunitySignupForm({
+  returnTo,
+  googleAuthEnabled = false,
+}: {
+  returnTo?: string;
+  googleAuthEnabled?: boolean;
+}) {
   const [state, action] = useActionState(createCommunityAccount, null);
   return (
-    <form action={action} className="grid gap-3">
+    <div className="grid gap-4">
+      {googleAuthEnabled ? (
+        <CommunityGoogleButton returnTo={returnTo} />
+      ) : null}
+      {googleAuthEnabled ? (
+        <p className="text-center text-xs font-black uppercase text-comun-concrete" role="separator">
+          ou crie com e-mail e senha
+        </p>
+      ) : null}
+      <form action={action} className="grid gap-3">
       <input type="hidden" name="returnTo" value={returnTo} />
       <input
         name="website"
@@ -142,6 +176,41 @@ export function CommunitySignupForm({ returnTo }: { returnTo?: string }) {
       <button className="min-h-11 bg-comun-yellow font-black uppercase">
         Criar conta
       </button>
+      </form>
+    </div>
+  );
+}
+
+export function CommunityGoogleButton({
+  returnTo,
+  experienceV2 = false,
+}: {
+  returnTo?: string;
+  experienceV2?: boolean;
+}) {
+  return (
+    <form action={signInCommunityWithGoogle}>
+      <input type="hidden" name="returnTo" value={returnTo} />
+      <GoogleSubmitButton experienceV2={experienceV2} />
     </form>
+  );
+}
+
+function GoogleSubmitButton({ experienceV2 }: { experienceV2?: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      aria-busy={pending}
+      className={
+        experienceV2
+          ? "flex min-h-12 w-full items-center justify-center gap-3 rounded-[var(--comun-radius-control)] border-2 border-comun-black bg-white px-4 font-black text-comun-black disabled:cursor-wait disabled:opacity-60"
+          : "flex min-h-12 w-full items-center justify-center gap-3 border-2 border-comun-black bg-comun-paper px-4 font-black text-comun-black disabled:cursor-wait disabled:opacity-60"
+      }
+    >
+      <span aria-hidden="true" className="grid size-6 place-items-center rounded-full border border-comun-black text-sm font-black">G</span>
+      {pending ? "Abrindo acesso…" : "Continuar com Google"}
+    </button>
   );
 }

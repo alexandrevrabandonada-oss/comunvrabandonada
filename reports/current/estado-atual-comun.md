@@ -15,6 +15,16 @@
 - relatórios: `comun-tijolo-48-0m-rehearsal-diagnostico.md`, plano/template/resultados, matriz de prontidão, plano de piloto, findings JSON e contratos STMU;
 - próximo passo: ensaio humano real 48.0M-H1 e correção focal da fixture antes de qualquer 48.1; 47.9D não iniciado e `launch_publicly` não acionado.
 
+### 48.0M-AUTH1 — Google Auth integrado ao Supabase Auth, dormente
+
+- código pronto na branch `codex/tijolo-48-0m-integrated-human-rehearsal`, sem migration ou credencial real;
+- `Continuar com Google` é opt-in por `COMUN_GOOGLE_AUTH_ENABLED`, com PKCE/SSR, callback `/comun/auth/callback` e retorno interno allowlisted;
+- contas novas passam por `/comun/completar-conta` para nome editável, termos e política; contas existentes preservam identidade, perfil, participação e Carteira;
+- Carteira anônima não é rotacionada, reivindicada silenciosamente ou duplicada;
+- resultado: `COMUN_AUTH_GOOGLE_48_0M_CODE_READY_PROVIDER_CONFIGURATION_PENDING`;
+- provider Google permanece não configurado, flag Production desligada, `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE` preservado e 48.1 não iniciado.
+- regressão E2E comunitária tentou o setup, mas o Supabase descartável não iniciou em duas tentativas (`ECONNREFUSED 127.0.0.1:55431`/bootstrap); não houve efeito remoto e a configuração local foi restaurada.
+
 ## Tijolo 48.0L — STMU multicanal — integrado, dormente
 
 ## Tijolo 48.0L — STMU multicanal — integrado, dormente
