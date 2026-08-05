@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { spawn } from "node:child_process";
+import { writeFileSync } from "node:fs";
 import pg from "pg";
 
 const base = process.env.COMUN_BASE_URL ?? "http://127.0.0.1:3138";
@@ -35,7 +36,14 @@ async function waitForServer() {
   throw new Error("COMUN_R2A_LOCAL_HTTP_UNAVAILABLE");
 }
 
-const server = spawn(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "dev", "--", "-p", new URL(base).port], { cwd: process.cwd(), env: process.env, shell: process.platform === "win32", stdio: "ignore" });
+const server = spawn(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "dev", "--", "-p", new URL(base).port], { cwd: process.cwd(), env: process.env, shell: process.platform === "win32", stdio: ["ignore", "pipe", "pipe"] });
+const output = [];
+const capture = (chunk) => {
+  output.push(String(chunk));
+  if (output.length > 80) output.shift();
+};
+server.stdout.on("data", capture);
+server.stderr.on("data", capture);
 try {
   await waitForServer();
   const receiptSecret = token();
@@ -131,5 +139,9 @@ try {
   assert.equal(removedLocation.status, 200);
   console.log(JSON.stringify({ result: "COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN", location: "encrypted_server_only", photo: "sealed_private_derivative", wallet: "http_cookie_item", account: "local_auth_explicit_link", collective: "deferred_disabled", remote: "not_contacted" }));
 } finally {
+  if (server.exitCode === null && !server.killed) server.kill("SIGTERM");
+  if (output.length && process.env.COMUN_R2A_E2E_LOG) {
+    writeFileSync(process.env.COMUN_R2A_E2E_LOG, output.join(""), { flag: "a" });
+  }
   server.kill();
 }

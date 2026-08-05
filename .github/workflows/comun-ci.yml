@@ -146,6 +146,7 @@ jobs:
           export COMUN_RELATA_LOCATION_ENCRYPTION_KEY="$location_key"
           export COMUN_RELATA_SPATIAL_HMAC_KEY="$spatial_key"
           mkdir -p .ci-artifacts/r2a-private-runtime-e2e
+          export COMUN_R2A_E2E_LOG=.ci-artifacts/r2a-private-runtime-e2e/next.log
           npm run relata:r2a:private:e2e:local 2>&1 | tee .ci-artifacts/r2a-private-runtime-e2e/e2e.log
       - name: Upload sanitized runtime evidence
         if: always()
