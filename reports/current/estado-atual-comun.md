@@ -657,3 +657,20 @@ as variáveis de token/DB/service role estão ausentes no processo. O MCP lista
 apenas projetos não relacionados e nega `get_project` do alvo. Permissão de
 banco read-only, ledger, RLS e grants permanecem não comprovados. Piloto,
 Google real e `launch_publicly` continuam fechados.
+
+## Checkpoint pós-48.1A e 48.0M-H1 (05/08/2026)
+
+O fechamento documental da 48.1A foi integrado pela PR #172 no merge SHA
+`c35776513ea3141171b843f696edb1df81232979`; a branch foi removida. O smoke
+read-only pós-merge confirmou `/comun`, `/comun/relatar` e `/comun/calcadas`
+em 200. Relata, Ônibus, forwarding, STMU e o ambiente de ensaio continuam
+dormentes em 404, e os métodos GET/POST/PUT/PATCH/DELETE/HEAD/OPTIONS do
+endpoint dormente do Relata também respondem 404.
+
+Resultado documental: `COMUN_48_1A_DOCUMENTATION_MERGED_REMOTE_PREFLIGHT_STILL_PERMISSION_BLOCKED`.
+
+O roteiro do 48.0M-H1 está preparado, mas a sessão integrada real não foi
+executada neste checkpoint. Não há três participantes, medições, taxa de
+conclusão ou achados de usabilidade para contabilizar. O estado permanece
+`COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE`; não houve piloto, envio externo,
+ativação de flag ou `launch_publicly`.

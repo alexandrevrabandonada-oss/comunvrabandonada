@@ -17,3 +17,17 @@ Captura 10/10; Carteira 5/5 E2E e 5/5 Axe; forwarding 5/5 E2E e 5/5 Axe; Ônibus
 ## Pendências humanas
 
 Sessão mínima de três participantes, 200%/leitor de tela quando possível, opção 3 do WhatsApp sem caso fictício e verificação de e-mail neutra continuam pendentes. Este documento não declara ensaio humano concluído nem habilita captura pública.
+
+## Checkpoint pós-48.1A
+
+O fechamento documental da 48.1A foi integrado pela PR #172 no SHA
+`c35776513ea3141171b843f696edb1df81232979`. O smoke read-only posterior
+confirmou `/comun`, `/comun/relatar` e `/comun/calcadas` em 200; `/comun/relata`,
+`/comun/onibus`, forwarding, STMU e ambiente de ensaio permaneceram 404. Todos
+os métodos do endpoint dormente do Relata (GET, POST, PUT, PATCH, DELETE,
+HEAD e OPTIONS) responderam 404.
+
+Nenhuma sessão humana integrada foi executada neste checkpoint: não foram
+disponibilizados três participantes reais, portanto não há tempos, taxa de
+conclusão, pedidos de ajuda ou achados de usabilidade a contabilizar. O estado
+continua `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE`.
