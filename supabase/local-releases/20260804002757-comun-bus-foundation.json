@@ -1,6 +1,6 @@
 {
   "release": "20260804002757-comun-bus-foundation",
-  "migration": "supabase/migrations/20260804002757_comun_bus_foundation.sql",
+  "migration": "supabase/local-migrations/20260804002757_comun_bus_foundation.sql",
   "migrationSha256": "b9a5e4cc97bbbcd84250a0df6a8b89ac709ef03fccb5c235f35b8c1283b8c453",
   "destructiveSql": false,
   "requiresPromotion": false,

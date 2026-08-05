@@ -1,6 +1,6 @@
 {
   "release": "20260804164500-comun-forwarding-fiscaliza-observation",
-  "migration": "supabase/migrations/20260804164500_comun_fiscaliza_observation_local.sql",
+  "migration": "supabase/local-migrations/20260804164500_comun_fiscaliza_observation_local.sql",
   "migrationSha256": "6924e6de8053d785058dec5cb77aae4d1503efe387d959d34d35cc7c73b14aca",
   "destructiveSql": false,
   "requiresPromotion": false,

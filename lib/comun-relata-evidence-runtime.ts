@@ -12,7 +12,10 @@ import {
   deriveComunRelataMatchPlan,
   type ComunRelataEvidenceState,
 } from "./comun-relata-evidence";
-import { isComunRelataEvidenceEnabled } from "./comun-relata-evidence-feature";
+import {
+  isComunRelataCollectiveEnabled,
+  isComunRelataEvidenceEnabled,
+} from "./comun-relata-evidence-feature";
 
 export const COMUN_RELATA_EVIDENCE_NO_STORE = {
   "cache-control": "private, no-store, max-age=0",
@@ -51,6 +54,7 @@ export async function associateComunRelataCollective(
   proof: { protocol: string; receiptSecret: string },
   coordinates?: { longitude: number; latitude: number },
 ) {
+  if (!isComunRelataCollectiveEnabled()) return null;
   const receiptResult = await db.rpc("comun_relata_get_receipt", {
     p_protocol: proof.protocol,
     p_receipt_secret: proof.receiptSecret,

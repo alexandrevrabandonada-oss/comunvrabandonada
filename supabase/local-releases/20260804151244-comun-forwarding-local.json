@@ -1,6 +1,6 @@
 {
   "release": "20260804151244-comun-forwarding-local",
-  "migration": "supabase/migrations/20260804151244_comun_forwarding_local.sql",
+  "migration": "supabase/local-migrations/20260804151244_comun_forwarding_local.sql",
   "migrationSha256": "68235715785a01c6f7c94e65ad5a4342493ec39a0012923c356ccdc597475454",
   "destructiveSql": false,
   "requiresPromotion": false,

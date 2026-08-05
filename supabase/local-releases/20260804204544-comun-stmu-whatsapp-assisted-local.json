@@ -1,6 +1,6 @@
 {
   "release": "20260804204544-comun-stmu-whatsapp-assisted-local",
-  "migration": "supabase/migrations/20260804204544_comun_stmu_whatsapp_assisted_local.sql",
+  "migration": "supabase/local-migrations/20260804204544_comun_stmu_whatsapp_assisted_local.sql",
   "migrationSha256": "5ed6358e97650c20fb0bb881c6d804a6f79d6ea5455fb81079f506861e7c112a",
   "destructiveSql": false,
   "requiresPromotion": false,

@@ -26,7 +26,7 @@ export function validateLocalManifestShape(manifest) {
   if (typeof manifest.release !== "string" || !manifest.release) return false;
   if (
     typeof manifest.migration !== "string" ||
-    !/^supabase\/migrations\/\d+_[^/]+\.sql$/.test(manifest.migration)
+    !/^supabase\/(?:local-migrations|migrations)\/\d+_[^/]+\.sql$/.test(manifest.migration)
   ) {
     return false;
   }

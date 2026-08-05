@@ -1,6 +1,6 @@
 {
   "release": "20260803200000-comun-relata-sanitized-local-map",
-  "migration": "supabase/migrations/20260803200000_comun_relata_sanitized_local_map.sql",
+  "migration": "supabase/local-migrations/20260803200000_comun_relata_sanitized_local_map.sql",
   "migrationSha256": "630271ca9e2d924f08e1b4e24228e485da61b522c5745d141534f8f068cd53f3",
   "destructiveSql": false,
   "requiresPromotion": false,

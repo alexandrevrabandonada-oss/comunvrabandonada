@@ -1,6 +1,6 @@
 {
   "release": "20260804232125-comun-stmu-multichannel-attempts-local",
-  "migration": "supabase/migrations/20260804232125_comun_stmu_multichannel_attempts_local.sql",
+  "migration": "supabase/local-migrations/20260804232125_comun_stmu_multichannel_attempts_local.sql",
   "migrationSha256": "8cc01fcd7acf16fa7337d52626eb0be4c547a61bce76760954479cd1bfd5b572",
   "destructiveSql": false,
   "requiresPromotion": false,

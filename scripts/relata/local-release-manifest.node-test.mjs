@@ -8,7 +8,7 @@ import {
   validateLocalManifestShape,
 } from "./local-release-manifest.mjs";
 
-const migration = "supabase/migrations/20260805090000_test.sql";
+const migration = "supabase/local-migrations/20260805090000_test.sql";
 const baseManifest = {
   release: "20260805090000-test",
   migration,
@@ -21,7 +21,7 @@ const baseManifest = {
 
 async function fixture(manifest = baseManifest, directory = "supabase/local-releases") {
   const root = await mkdtemp(path.join(os.tmpdir(), "comun-local-release-"));
-  await mkdir(path.join(root, "supabase/migrations"), { recursive: true });
+  await mkdir(path.join(root, "supabase/local-migrations"), { recursive: true });
   await mkdir(path.join(root, directory), { recursive: true });
   const bytes = "-- local-only test migration\n";
   const { createHash } = await import("node:crypto");

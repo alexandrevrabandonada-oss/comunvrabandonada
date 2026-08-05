@@ -761,3 +761,16 @@ O resultado R2 anterior permanece apenas como histórico. Não houve migration,
 flag, Google, allowlist, deployment de piloto, escrita remota ou
 `launch_publicly`. O próximo gate é validar duas rehearsals locais em bancos
 descartáveis, E2E do runtime, auditoria RLS/grants, rollback e dry-run exato.
+## 48.1B-R2A-R2 — checkpoint atual (2026-08-05)
+
+- branch: `codex/tijolo-48-1b-production-domain-pilot`;
+- migration candidata: `20260805130000_comun_production_pilot_core_bundle.sql`;
+- checksum atual: `0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9`;
+- topologia: migrations local-only separadas em `supabase/local-migrations`;
+- localização/anexos/estado sanitizado: contratos e RPCs presentes;
+- coletivos: adiados e bloqueados por `COMUN_RELATA_COLLECTIVE_ENABLED`;
+- static gates: topology, release, privileges, typecheck, lint e build verdes;
+- dry-run CLI read-only: somente a migration candidata, sem escrita;
+- E2E privado HTTP completo: pendente por falha do daemon Docker na repetição;
+- resultado: `COMUN_48_1B_R2A_R2_BLOCKED_RUNTIME_E2E_SCOPE`;
+- Production, flags públicas, Google, allowlist, piloto e `launch_publicly`: inalterados/fechados.

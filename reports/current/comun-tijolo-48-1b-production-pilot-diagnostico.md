@@ -68,3 +68,10 @@ Após quarentena com restauração `finally`, o dry-run retornou `upToDate=true`
 sem migrations, seeds, roles ou escrita. Resultado R1:
 `COMUN_48_1B_R1_EXTERNAL_LEDGER_AND_LOCAL_ONLY_RECONCILED_CLI_BASELINE_EMPTY`.
 Nenhuma migration local-only foi promovida e o piloto continua fechado.
+# Atualização R2A-R2 (2026-08-05)
+
+O escopo de runtime foi auditado contra a migration candidata. Localização, anexos privados, wallet/account e estado sanitizado possuem RPCs/tabelas correspondentes; coletivos foram deliberadamente adiados e estão fail-closed por flag. As migrations `local-only` foram movidas para `supabase/local-migrations` e seus manifests foram atualizados, mantendo a cadeia do CLI exclusiva para migrations promovíveis.
+
+O checksum da migration candidata é `0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9`. O dry-run read-only reconciliado, com a exceção externa temporariamente isolada e restaurada por trap, planeja somente essa migration candidata; não houve escrita remota.
+
+O gate técnico permanece bloqueado em `COMUN_48_1B_R2A_R2_BLOCKED_RUNTIME_E2E_SCOPE` porque o laboratório Docker falhou ao reiniciar durante a repetição do E2E HTTP privado. Não promover flags nem tornar a PR pronta até repetir esse E2E com o daemon estável.

@@ -44,6 +44,29 @@ permissions:
   pull-requests: write
 
 jobs:
+  r2a-production-candidate-contract:
+    name: COMUN R2A / production candidate topology
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Keep production candidate chain separate from local-only labs
+        run: |
+          test -f supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql
+          test -d supabase/local-migrations
+          ! find supabase/migrations -maxdepth 1 -type f -name '20260803*.sql' -o -name '20260804*.sql' -o -name '20260805090000*.sql' | grep -q .
+      - run: npm run relata:topology:test
+      - run: npm run relata:release:test
+      - run: npm run db:privileges:lint
+      - run: npm run solo:sql:validate -- --release-manifest=supabase/releases/20260805130000-comun-production-pilot-core-bundle.json
+      - run: node --test scripts/solo/production-pilot-bundle.node-test.mjs
+      - run: npm run typecheck
+      - run: npm run lint
   active-lane-integrity:
     name: Active lane integrity / COMUN_ACTIVE_LANE_INTEGRITY_GREEN
     if: github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.pull_request.number == 40

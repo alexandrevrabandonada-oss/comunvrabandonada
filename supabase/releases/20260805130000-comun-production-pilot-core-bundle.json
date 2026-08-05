@@ -1,7 +1,8 @@
 {
   "release": "20260805130000-comun-production-pilot-core-bundle",
   "migration": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
-  "sha256": "ffcfc1b22d889452b8c57817393b1b9ea24fca862abc04344f58bae081d2f4ab",
+  "sha256": "0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9",
+  "migrationSha256": "0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9",
   "requiresPromotion": true,
   "remotePromotionAllowed": true,
   "scope": "production",
@@ -12,6 +13,9 @@
     "private_evidence_and_location"
   ],
   "remoteWrites": false,
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "releaseLedger": "public.comun_schema_releases",
   "status": "runtime_schema_alignment_required",
   "destructiveSql": false,
   "publicProjection": false,

@@ -2,7 +2,7 @@
 
 ## Estado
 
-`COMUN_48_1B_R2A_L1_BLOCKED_RUNTIME_E2E_SCOPE`
+`COMUN_48_1B_R2A_R2_BLOCKED_RUNTIME_E2E_SCOPE`
 
 O baseline CLI da R1B foi comprovado vazio antes da criação deste bundle. A
 R2 usa migration nova e aditiva; não reutiliza migrations local-only antigas.
@@ -13,7 +13,7 @@ Migration:
 
 SHA-256 atual:
 
-`ffcfc1b22d889452b8c57817393b1b9ea24fca862abc04344f58bae081d2f4ab`
+`0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9`
 
 Manifesto:
 
@@ -43,5 +43,8 @@ e rollback por flags. Os rehearsals A/B, o smoke runtime do núcleo e o dry-run
 read-only do SHA atual estão verdes, mas o E2E completo de foto/localização/conta
 ainda não foi provado. O dry-run propôs somente a migration candidata após
 quarentena temporária da exceção externa e das migrations explicitamente
-local-only; tudo foi restaurado. Por isso a PR permanece draft e nenhuma
-promoção é permitida.
+local-only; tudo foi restaurado. O primeiro ensaio HTTP revelou uma
+incompatibilidade de allowlist de respostas na RPC de criação; ela foi
+corrigida na migration candidata e seu checksum/manifests foram atualizados.
+O daemon Docker falhou ao reiniciar durante a repetição do E2E privado, por
+isso a PR permanece draft e nenhuma promoção é permitida.
