@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import pg from "pg";
@@ -138,7 +138,7 @@ try {
   await client.connect();
   const walletToken = cookie.match(/comun_participation_wallet_v1=([^;]+)/)?.[1];
   assert.ok(walletToken);
-  const cryptoHash = (value) => Buffer.from(value, "base64url").toString("hex");
+  const cryptoHash = (value) => createHash("sha256").update(`comun-wallet-v1:${value}`).digest("hex");
   const linked = await client.query("select * from public.comun_participation_wallet_link_account($1,$2,'explicit_account_link')", [cryptoHash(walletToken), authUser.user.id]);
   assert.equal(linked.rows[0].linked, true);
   const linkRow = await client.query("select count(*)::int as count from private.comun_participation_wallet_account_links where user_id=$1", [authUser.user.id]);
