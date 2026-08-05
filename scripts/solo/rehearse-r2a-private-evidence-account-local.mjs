@@ -22,6 +22,11 @@ async function http(path, init = {}) {
   absorb(response);
   return response;
 }
+async function httpWithCookie(path, cookieValue, init = {}) {
+  const headers = new Headers(init.headers);
+  headers.set("cookie", cookieValue);
+  return fetch(`${base}${path}`, { ...init, headers });
+}
 async function waitForServer() {
   for (let i = 0; i < 90; i++) {
     try { const response = await fetch(`${base}/comun/minha-participacao`); if (response.status < 500) return; } catch {}
@@ -34,10 +39,11 @@ const server = spawn(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "
 try {
   await waitForServer();
   const receiptSecret = token();
-  const created = await http("/api/comun/relata", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({
+  const createPayload = {
     text: "A calçada está totalmente bloqueada por entulho e impede a passagem.",
     answers: { blocked: "sim" }, idempotencyKey: token(), receiptSecret, captureMode: "quick_v2",
-  }) });
+  };
+  const created = await http("/api/comun/relata", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(createPayload) });
   const createdBody = await created.json();
   assert.equal(created.status, 201, JSON.stringify(createdBody));
   assert.equal(createdBody.noOfficialSend, true);
@@ -45,6 +51,14 @@ try {
   const protocol = createdBody.receipt.protocol;
   assert.match(protocol, /^COMUN-RELATA-/);
   assert.ok(createdBody.walletRecoveryCode);
+  const replay = await http("/api/comun/relata", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(createPayload) });
+  const replayBody = await replay.json();
+  assert.equal(replay.status, 201, JSON.stringify(replayBody));
+  assert.equal(replayBody.receipt.protocol, protocol);
+  const receiptCookie = cookie;
+  const wrongReceiptCookie = receiptCookie.replace(/comun_relata_receipt_v1=[^;]+/, "comun_relata_receipt_v1=invalid");
+  const wrongLocation = await httpWithCookie("/api/comun/relata/evidence/location", wrongReceiptCookie, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ origin: "map_pin", longitude: -44.1, latitude: -22.52, accuracyMeters: 40 }) });
+  assert.equal(wrongLocation.status, 404);
 
   const location = await http("/api/comun/relata/evidence/location", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ origin: "map_pin", longitude: -44.1, latitude: -22.52, accuracyMeters: 40 }) });
   assert.equal(location.status, 200);
@@ -56,6 +70,10 @@ try {
   const started = await http("/api/comun/relata/evidence/attachments", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mimeType: "image/png", sizeBytes: png.byteLength }) });
   assert.equal(started.status, 201);
   const upload = (await started.json()).upload;
+  const invalidType = await http("/api/comun/relata/evidence/attachments", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mimeType: "image/gif", sizeBytes: png.byteLength }) });
+  assert.equal(invalidType.status, 400);
+  const oversize = await http("/api/comun/relata/evidence/attachments", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mimeType: "image/png", sizeBytes: 8 * 1024 * 1024 + 1 }) });
+  assert.equal(oversize.status, 400);
   const uploaded = await http(upload.url, { method: "PUT", headers: { "content-type": "image/png", "content-length": String(png.byteLength) }, body: png });
   assert.equal(uploaded.status, 200);
   const attachmentBody = await uploaded.json();
@@ -66,6 +84,14 @@ try {
   assert.equal(downloaded.headers.get("content-type"), "image/webp");
   const privateDownload = await fetch(`${base}/api/comun/relata/evidence/attachments/${attachmentId}`);
   assert.equal(privateDownload.status, 404);
+  const secondWallet = await fetch(`${base}/api/comun/participation-wallet`, { method: "POST" });
+  assert.equal(secondWallet.status, 201);
+  const secondWalletCookie = (secondWallet.headers.get("set-cookie") ?? "").split(";", 1)[0];
+  assert.match(secondWalletCookie, /^comun_participation_wallet_v1=/);
+  const crossWallet = await fetch(`${base}/api/comun/relata/evidence/attachments/${attachmentId}`, { headers: { cookie: secondWalletCookie } });
+  assert.equal(crossWallet.status, 404);
+  const isolatedWallet = await fetch(`${base}/api/comun/participation-wallet`, { headers: { cookie: secondWalletCookie } });
+  assert.equal((await isolatedWallet.json()).items.length, 0);
 
   const wallet = await http("/api/comun/participation-wallet");
   assert.equal(wallet.status, 200);
@@ -93,9 +119,15 @@ try {
   assert.deepEqual(attachmentRow.rows[0], { state: "sealed_private", review_required_for_publication: true });
   await client.end();
 
-  const removedPhoto = await http(`/api/comun/relata/evidence/attachments/${attachmentId}`, { method: "DELETE" });
+  const wrongRecovery = await fetch(`${base}/api/comun/participation-wallet/recovery/redeem`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ recoveryCode: "AAAA-AAAA-AAAA-AAAA-AAAA-AAAA" }) });
+  assert.equal(wrongRecovery.status, 404);
+  const recovered = await fetch(`${base}/api/comun/participation-wallet/recovery/redeem`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ recoveryCode: createdBody.walletRecoveryCode }) });
+  assert.equal(recovered.status, 200);
+  assert.equal((await recovered.json()).recovered, true);
+
+  const removedPhoto = await httpWithCookie(`/api/comun/relata/evidence/attachments/${attachmentId}`, receiptCookie, { method: "DELETE" });
   assert.equal(removedPhoto.status, 200);
-  const removedLocation = await http("/api/comun/relata/evidence/location", { method: "DELETE" });
+  const removedLocation = await httpWithCookie("/api/comun/relata/evidence/location", receiptCookie, { method: "DELETE" });
   assert.equal(removedLocation.status, 200);
   console.log(JSON.stringify({ result: "COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN", location: "encrypted_server_only", photo: "sealed_private_derivative", wallet: "http_cookie_item", account: "local_auth_explicit_link", collective: "deferred_disabled", remote: "not_contacted" }));
 } finally {

@@ -774,3 +774,13 @@ descartáveis, E2E do runtime, auditoria RLS/grants, rollback e dry-run exato.
 - E2E privado HTTP completo: pendente por falha do daemon Docker na repetição;
 - resultado: `COMUN_48_1B_R2A_R2_BLOCKED_RUNTIME_E2E_SCOPE`;
 - Production, flags públicas, Google, allowlist, piloto e `launch_publicly`: inalterados/fechados.
+
+## 48.1B-R2A-E2E — lane CI (2026-08-05)
+
+- head: `26b9679a168827b0c20886068c949aed0e28a899`;
+- tentativa local limitada: Docker Desktop indisponível;
+- lane adicionada: `COMUN R2A / private runtime E2E`;
+- escopo: Relata, localização, anexos, Carteira, conta explícita e isolamento;
+- coletivos: desabilitados, sem chamada RPC;
+- PR #174: permanece draft aguardando CI;
+- nenhum schema remoto, flag pública, Google, allowlist, piloto ou `launch_publicly` foi alterado.
