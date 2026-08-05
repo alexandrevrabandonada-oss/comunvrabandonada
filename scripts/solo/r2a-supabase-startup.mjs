@@ -22,14 +22,19 @@ const append = async (name, value) =>
     `${artifactDir}/${name}`,
     `${redact(value).replace(/\r?\n?$/, "")}\n`,
   );
-const run = (command, args = []) => {
+const run = (command, args = [], timeout = 30_000) => {
   const result = spawnSync(command, args, {
     encoding: "utf8",
+    timeout,
+    killSignal: "SIGTERM",
     env: { ...process.env, DO_NOT_TRACK: "1", SUPABASE_DISABLE_TELEMETRY: "1" },
   });
+  const timedOut = result.error?.code === "ETIMEDOUT";
   return {
-    status: result.status ?? 1,
-    output: redact(`${result.stdout ?? ""}${result.stderr ?? ""}`),
+    status: timedOut ? 124 : (result.status ?? 1),
+    output: redact(
+      `${result.stdout ?? ""}${result.stderr ?? ""}${timedOut ? `\n${command} timeout=${timeout}ms` : ""}`,
+    ),
   };
 };
 
