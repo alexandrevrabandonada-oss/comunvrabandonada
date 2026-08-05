@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isComunParticipationWalletEnabled } from "@/lib/comun-participation-wallet-feature";
 import {
   createWalletRecoveryCode,
@@ -46,6 +47,18 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pa
 
     if (!token) return dormant();
     const db = walletDb(); const tokenHash = walletSecretHash(token);
+    if (path[0] === "account" && path[1] === "link") {
+      const server = await createSupabaseServerClient();
+      const { data: auth } = server ? await server.auth.getUser() : { data: { user: null } };
+      if (!auth.user?.id) return dormant();
+      const { data, error } = await db.rpc("comun_participation_wallet_link_account", {
+        p_token_hash_hex: tokenHash,
+        p_user_id: auth.user.id,
+        p_link_method: "explicit_account_link",
+      });
+      if (error || !Array.isArray(data) || !data[0]?.linked) return dormant();
+      return NextResponse.json({ linked: true }, { headers });
+    }
     if (path[0] === "items" && path[1] === "claim-relata") {
       const protocol = typeof body.protocol === "string" ? body.protocol : ""; const receiptSecret = typeof body.receiptSecret === "string" ? body.receiptSecret : "";
       const { data, error } = await db.rpc("comun_participation_wallet_attach_relata", { p_token_hash_hex: tokenHash, p_protocol: protocol, p_receipt_secret: receiptSecret });

@@ -1,8 +1,8 @@
-# 48.1B-R2 — bundle novo de Production
+# 48.1B-R2A — contrato canônico runtime/schema
 
 ## Estado
 
-`COMUN_48_1B_R2_PRODUCTION_BUNDLE_READY_FOR_EXACT_DRY_RUN`
+`COMUN_48_1B_R2A_RUNTIME_SCHEMA_ALIGNMENT_REQUIRED`
 
 O baseline CLI da R1B foi comprovado vazio antes da criação deste bundle. A
 R2 usa migration nova e aditiva; não reutiliza migrations local-only antigas.
@@ -11,9 +11,9 @@ Migration:
 
 `supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql`
 
-SHA-256:
+SHA-256 atual:
 
-`fefb9149bd549362f5533bcc0b77730803f1285823ba133d174fcc8d2c4e8c98`
+`a107009151cd15bf8468ed3fbdaa422dddaecad1e418954977dbaacd0c0627df`
 
 Manifesto:
 
@@ -21,9 +21,11 @@ Manifesto:
 
 ## Escopo
 
-- conta e Carteira privadas;
-- Relata V2 privado;
-- evidências privadas e localização criptografada;
+- conta e Carteira privadas, usando `private.comun_participation_*`;
+- Relata V2 privado, usando `private.comun_relata_reports` e
+  `public.comun_relata_cases`;
+- evidências privadas e localização criptografada, usando os RPCs canônicos;
+- vínculo explícito e idempotente Conta–Carteira;
 - RLS habilitada e forçada;
 - revogação explícita para `public`, `anon` e `authenticated`;
 - grants somente para `service_role`;
@@ -33,7 +35,9 @@ Manifesto:
 possibilidade futura; nenhuma promoção foi executada. A flag
 `COMUN_PRODUCTION_PILOT_CORE_ENABLED` permanece desligada.
 
-Validação estática do bundle: `2/2`. O dry-run exato read-only, com as
-migrations local-only em quarentena restaurável, propôs somente a migration
-R2 acima; seeds e roles ficaram vazios. Nenhuma escrita ocorreu. Próximo gate:
-auditoria remota de RLS/grants antes de qualquer promoção.
+O bundle anterior `COMUN_48_1B_R2_PRODUCTION_BUNDLE_READY_FOR_EXACT_DRY_RUN`
+fica preservado como histórico. Ele foi substituído porque criava
+`comun_production_*`, desconectado do runtime. O bundle atual usa nomes e
+assinaturas canônicos, PRE fail-closed, RLS/grants explícitos, Storage privado
+e rollback por flags. O dry-run final e o rehearsal em bancos descartáveis
+continuam sendo o gate antes de qualquer promoção.
