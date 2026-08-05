@@ -107,7 +107,6 @@ jobs:
         run: |
           set -euo pipefail
           cleanup() {
-            if [[ -n "${APP_PID:-}" ]]; then kill "$APP_PID" 2>/dev/null || true; wait "$APP_PID" 2>/dev/null || true; fi
             supabase stop --no-backup >/dev/null 2>&1 || true
             if docker ps -a --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA' --format '{{.ID}}' | grep -q .; then
               echo 'COMUN_R2A_E2E_CLEANUP_CONTAINERS_REMAIN'
@@ -146,13 +145,7 @@ jobs:
           export COMUN_PARTICIPATION_WALLET_LOCAL=enabled
           export COMUN_RELATA_LOCATION_ENCRYPTION_KEY="$location_key"
           export COMUN_RELATA_SPATIAL_HMAC_KEY="$spatial_key"
-          npm run dev -- --port 3138 > .ci-artifacts/r2a-private-runtime-e2e/next.log 2>&1 &
-          APP_PID=$!
-          for attempt in {1..90}; do
-            if curl --fail --silent "$COMUN_BASE_URL/comun/minha-participacao" >/dev/null; then break; fi
-            sleep 1
-          done
-          test "$(curl --silent --output /dev/null --write-out '%{http_code}' "$COMUN_BASE_URL/comun/minha-participacao")" = 200
+          mkdir -p .ci-artifacts/r2a-private-runtime-e2e
           npm run relata:r2a:private:e2e:local 2>&1 | tee .ci-artifacts/r2a-private-runtime-e2e/e2e.log
       - name: Upload sanitized runtime evidence
         if: always()
