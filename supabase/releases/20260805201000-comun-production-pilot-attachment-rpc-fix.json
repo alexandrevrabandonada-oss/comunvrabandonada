@@ -1,0 +1,19 @@
+{
+  "release": "20260805201000-comun-production-pilot-attachment-rpc-fix",
+  "migration": "supabase/migrations/20260805201000_comun_production_pilot_attachment_rpc_fix.sql",
+  "path": "supabase/migrations/20260805201000_comun_production_pilot_attachment_rpc_fix.sql",
+  "sha256": "f092f26df14fe9f724be9b3a6ad9d46fb5d73145d8cf2072933ac0c5917addcc",
+  "migrationSha256": "f092f26df14fe9f724be9b3a6ad9d46fb5d73145d8cf2072933ac0c5917addcc",
+  "requiresPromotion": true,
+  "remotePromotionAllowed": true,
+  "scope": "production",
+  "dependsOn": "20260805130000-comun-production-pilot-core-bundle",
+  "releaseLedger": "public.comun_schema_releases",
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "destructiveSql": false,
+  "dataMutation": false,
+  "publicProjection": false,
+  "externalForwarding": false,
+  "reason": "qualified_output_parameter_ambiguity_fix"
+}

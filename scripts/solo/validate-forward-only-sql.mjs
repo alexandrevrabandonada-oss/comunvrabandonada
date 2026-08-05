@@ -12,6 +12,7 @@ const ALLOWED_PUBLIC_SUMMARY_NULLABILITY = "alter table public.comun_sidewalk_re
 const ALLOWED_LEGACY_GRANT_REPAIR = "revoke trigger, truncate on table public.comun_actions, public.comun_admin_audit_log, public.comun_admin_users, public.comun_communities, public.comun_dossiers, public.comun_issues, public.comun_pauta_evidence_items, public.comun_pauta_spaces, public.comun_pauta_tasks, public.comun_public_lookup_events, public.comun_report_attachments, public.comun_reports from anon, authenticated";
 const OPERATIONAL_HARDENING_RELEASE = "20260724233256-comun-sidewalk-operational-hardening";
 const R2A_PRODUCTION_BUNDLE_RELEASE = "20260805130000-comun-production-pilot-core-bundle";
+const R2A_ATTACHMENT_RPC_FIX_RELEASE = "20260805201000-comun-production-pilot-attachment-rpc-fix";
 
 export function selectReleaseManifest(value = arg?.slice(19) ?? process.env.COMUN_RELEASE_MANIFEST) {
   if (!value) {
@@ -37,7 +38,9 @@ export function validateForwardOnlySqlText(release, migration) {
   const executable = migration.replace(/--.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "").replace(/'(?:''|[^'])*'/g, "''");
   const normalized = executable.replace(/\s+/g, " ").trim().toLowerCase();
   const requiresLegacyGrantRepair = release.release === OPERATIONAL_HARDENING_RELEASE;
-  const requiresSidewalkSummaryException = release.release !== R2A_PRODUCTION_BUNDLE_RELEASE;
+  const requiresSidewalkSummaryException =
+    release.release !== R2A_PRODUCTION_BUNDLE_RELEASE &&
+    release.release !== R2A_ATTACHMENT_RPC_FIX_RELEASE;
   const allowedStatements = [
     ...(requiresSidewalkSummaryException ? [ALLOWED_PUBLIC_SUMMARY_NULLABILITY] : []),
     ...(requiresLegacyGrantRepair ? [ALLOWED_LEGACY_GRANT_REPAIR] : []),
@@ -51,7 +54,11 @@ export function validateForwardOnlySqlText(release, migration) {
     remaining = remaining.replace(/drop trigger if exists [a-z0-9_]+ on [a-z0-9_.]+;/g, "");
     remaining = remaining.replace(/on delete restrict/g, "").replace(/or delete on/g, "or update on");
   }
-  const dynamicSql = release.release === R2A_PRODUCTION_BUNDLE_RELEASE ? "" : "|\\bexecute\\s+(immediate|format)\\b";
+  const dynamicSql =
+    release.release === R2A_PRODUCTION_BUNDLE_RELEASE ||
+    release.release === R2A_ATTACHMENT_RPC_FIX_RELEASE
+      ? ""
+      : "|\\bexecute\\s+(immediate|format)\\b";
   if (new RegExp(`\\bdrop\\s+(table|schema|function|view|index|policy|sequence)\\b|\\btruncate\\b|\\bdelete\\s+from\\b|\\bcascade\\b${dynamicSql}`, "i").test(remaining)) marker("SOLO_CANONICAL_RELEASE_DESTRUCTIVE_SQL");
 }
 
