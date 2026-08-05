@@ -9,6 +9,15 @@
   "flagsChanged": false,
   "pilotActivated": false,
   "launchPublicly": false,
+  "dryRun": {
+    "command": "supabase db push --linked --dry-run",
+    "status": "success",
+    "migrations": ["20260805130000_comun_production_pilot_core_bundle.sql"],
+    "seeds": [],
+    "roles": [],
+    "quarantineRestored": true,
+    "mutatingPush": false
+  },
   "validation": "2/2",
   "baseline": "COMUN_48_1B_R1_EXTERNAL_LEDGER_AND_LOCAL_ONLY_RECONCILED_CLI_BASELINE_EMPTY"
 }

@@ -33,5 +33,7 @@ Manifesto:
 possibilidade futura; nenhuma promoção foi executada. A flag
 `COMUN_PRODUCTION_PILOT_CORE_ENABLED` permanece desligada.
 
-Validação estática do bundle: `2/2`. Próximo gate: dry-run exato da R2, seguido
-por auditoria de RLS/grants antes de qualquer promoção.
+Validação estática do bundle: `2/2`. O dry-run exato read-only, com as
+migrations local-only em quarentena restaurável, propôs somente a migration
+R2 acima; seeds e roles ficaram vazios. Nenhuma escrita ocorreu. Próximo gate:
+auditoria remota de RLS/grants antes de qualquer promoção.
