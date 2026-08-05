@@ -11,7 +11,7 @@
     "typecheck": "green",
     "lint": "green",
     "build": "green",
-    "unit": "496/496"
+    "unit": "499/499"
   },
   "runtime": {
     "location": "contract_present_http_repeat_pending",
