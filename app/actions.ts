@@ -1264,7 +1264,8 @@ export async function saveCommunityProfileAction(formData: FormData) {
     throw new Error("Perfil inválido.");
   const service = createServiceSupabaseClient();
   if (!service) throw new Error("Serviço indisponível.");
-  const territoryCatalogEnabled = process.env.COMUN_TERRITORY_CATALOG_LOCAL === "enabled";
+  const territoryCatalogEnabled =
+    process.env.COMUN_TERRITORY_CATALOG_LOCAL === "enabled";
   const { error } = await service
     .from("comun_member_profiles" as never)
     .update({
@@ -1284,9 +1285,10 @@ export async function saveCommunityProfileAction(formData: FormData) {
         ? {
             territory_municipality: territoryMunicipality || null,
             territory_neighborhood: territoryNeighborhood || null,
-            territory_source_version: territoryMunicipality === "Volta Redonda"
-              ? "2026-08-04-textual-preliminary"
-              : null,
+            territory_source_version:
+              territoryMunicipality === "Volta Redonda"
+                ? "2026-08-04-textual-preliminary"
+                : null,
           }
         : {}),
       onboarding_completed_at: new Date().toISOString(),
@@ -1313,7 +1315,10 @@ export async function completeGoogleCommunityProfile(formData: FormData) {
       [...formData].filter(([key]) => !key.startsWith("$ACTION_")),
     ),
   );
-  if (!parsed.success) throw new Error("É necessário aceitar os termos e a política de privacidade.");
+  if (!parsed.success)
+    throw new Error(
+      "É necessário aceitar os termos e a política de privacidade.",
+    );
   const returnTo = safeCommunityReturn(parsed.data.returnTo);
   const session = await requireCommunitySession(returnTo);
   const service = createServiceSupabaseClient();

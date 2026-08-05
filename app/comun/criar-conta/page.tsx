@@ -41,7 +41,10 @@ export default async function CriarConta({
             formulário da ação não é colocado na URL.
           </p>
           <div className="mt-6 max-w-md bg-comun-paper p-5 text-comun-black">
-            <CommunitySignupForm returnTo={returnTo} googleAuthEnabled={googleAuthEnabled} />
+            <CommunitySignupForm
+              returnTo={returnTo}
+              googleAuthEnabled={googleAuthEnabled}
+            />
           </div>
         </div>
       </Section>
