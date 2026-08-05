@@ -57,3 +57,15 @@ deverá ser tratado como hotfix forward-only separado, com escopo e cadeia
 explicitamente revisados.
 Não houve migration remota, flag pública, Google, allowlist, piloto ou
 `launch_publicly`.
+
+## 48.1B-R2A-F2 — correção Carteira–conta (2026-08-05)
+
+- migration forward-only: `20260805212659_comun_production_pilot_wallet_account_rpc_fix.sql`;
+- SHA: `0d4b9a271a169184d45020bdad3ef11c8e1a01bd6d256848787b98b5d04a3382`;
+- candidata e hotfix de anexos permaneceram byte a byte imutáveis;
+- commit da correção do teste: `9e51e5cb6d2bfa0c36a89a82102a0beb56e0e60f`;
+- topology/release/privileges/typecheck/lint/build: verdes;
+- primeira lane após o patch: stack descartável travada no `supabase start`;
+- retry focal único: mesma trava, sem alcançar `db reset` ou E2E;
+- resultado: `COMUN_48_1B_R2A_BLOCKED_CI_RUNTIME_INFRASTRUCTURE`;
+- PR #174 permanece draft; nenhuma migration remota, flag ou piloto foi ativado.

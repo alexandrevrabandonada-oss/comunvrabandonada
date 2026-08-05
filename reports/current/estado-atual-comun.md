@@ -802,3 +802,18 @@ descartáveis, E2E do runtime, auditoria RLS/grants, rollback e dry-run exato.
 - finding adicional: `public.comun_participation_wallet_link_account` falha com SQLSTATE
   `42702` por `ON CONFLICT(wallet_id,user_id)` ambíguo; nenhum schema remoto foi alterado;
 - schema remoto, flags, Google, allowlist, piloto e `launch_publicly`: inalterados/fechados.
+
+## 48.1B-R2A-F2 — hotfix Carteira–conta (2026-08-05)
+
+- branch: `codex/tijolo-48-1b-production-domain-pilot`;
+- head: `9e51e5cb6d2bfa0c36a89a82102a0beb56e0e60f`;
+- migration nova: `20260805212659_comun_production_pilot_wallet_account_rpc_fix.sql`;
+- SHA: `0d4b9a271a169184d45020bdad3ef11c8e1a01bd6d256848787b98b5d04a3382`;
+- candidata e hotfix de anexos preservados byte a byte;
+- correção: `ON CONFLICT ON CONSTRAINT` qualificado na RPC de vínculo Carteira–conta;
+- static gates: topology, release, privilégios, typecheck, lint e build verdes;
+- primeira lane CI: stack efêmera travada antes do banco;
+- retry focal único: mesma trava na inicialização, sem atingir E2E;
+- resultado: `COMUN_48_1B_R2A_BLOCKED_CI_RUNTIME_INFRASTRUCTURE`;
+- PR #174 continua draft; sem READY, merge, promoção remota ou flags;
+- Supabase remoto, Google, piloto e `launch_publicly`: inalterados/fechados.
