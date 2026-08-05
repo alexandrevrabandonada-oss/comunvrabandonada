@@ -31,9 +31,14 @@ participantes ou execução de todas as jornadas. Google real continua pendente;
 
 ## Estado de integração
 
-A branch ainda não foi publicada nesta etapa documental. O próximo passo é
-push e PR draft única. O código de autenticação Google, seleção territorial e
-catálogo preliminar de bairros são locais/dormentes; nenhuma flag pública ou
-migration remota foi ativada.
+PR #170 foi mesclada em `dcc0baa414c114f2ced7e8d57aae1f32af1af233` após
+CI/Preview verdes. O smoke read-only pós-merge manteve `/comun`,
+`/comun/relatar` e `/comun/calcadas` em 200 e Relata/Ônibus em 404. O método
+POST dormente respondeu 404; métodos HTTP sem handler no endpoint Relata
+revelaram 405, corrigidos de forma focal na branch 48.1A.
+
+O código de autenticação Google, seleção territorial e catálogo preliminar de
+bairros são locais/dormentes; nenhuma flag pública ou migration remota foi
+ativada.
 
 Próximo gate: PR/CI/Preview, merge dormente e smoke read-only de Production.

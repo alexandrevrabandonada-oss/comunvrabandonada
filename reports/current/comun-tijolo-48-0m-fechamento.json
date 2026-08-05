@@ -8,7 +8,8 @@
     "ownerOperatorSmoke": "COMUN_OWNER_OPERATOR_CORE_FLOW_SMOKE_GREEN",
     "integratedHuman": "COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE"
   },
-  "production": { "deploymentObserved": "dpl_9WgR8YbQCzmNqEx2GD8Cnd1BjUX6", "flagsPublic": false, "launchPublicly": false },
+  "merge": { "pr": 170, "sha": "dcc0baa414c114f2ced7e8d57aae1f32af1af233", "ci": "green", "flagsPublic": false },
+  "production": { "deploymentObserved": "dpl_9WgR8YbQCzmNqEx2GD8Cnd1BjUX6", "status": "READY", "smoke": { "comun": 200, "legacyRelatar": 200, "calcadas": 200, "relata": 404, "onibus": 404, "relataPost": 404, "unsupportedMethods": 405, "unsupportedMethodsDisposition": "fixed_on_48_1a_branch" }, "launchPublicly": false },
   "verification": { "unit": "498 passed", "surfaces": { "pages": 193, "unknown": 0, "legacyRendered": 0, "p0p1": 0 }, "dbRemoteContacted": false, "externalSubmission": false },
   "humanLimits": { "participants": 0, "timingsMeasured": false, "allJourneysCompleted": false }
 }
