@@ -72,9 +72,7 @@ export function ComunStmuEmailPanel({
       );
       const value = (await response.json()) as { package?: Pkg };
       if (!response.ok || !value.package) throw new Error();
-      setPkg((current) =>
-        current ? { ...current, ...value.package } : null,
-      );
+      setPkg((current) => (current ? { ...current, ...value.package } : null));
       if (value.package.institutional_text)
         setText(value.package.institutional_text);
       return value.package;
