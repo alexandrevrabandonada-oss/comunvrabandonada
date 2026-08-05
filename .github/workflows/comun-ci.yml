@@ -116,19 +116,19 @@ jobs:
           trap cleanup EXIT
           supabase start
           supabase db reset --local --yes
+          mkdir -p .ci-artifacts/r2a-private-runtime-e2e
           status_file="$(mktemp)"
           supabase status -o env >"$status_file"
           api_url="$(sed -n 's/^API_URL="\(.*\)"$/\1/p' "$status_file")"
           db_url="$(sed -n 's/^DB_URL="\(.*\)"$/\1/p' "$status_file")"
           anon_key="$(sed -n 's/^ANON_KEY="\(.*\)"$/\1/p' "$status_file")"
           service_key="$(sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"$/\1/p' "$status_file")"
-          test "$api_url" = http://127.0.0.1:54321
-          test "$db_url" = postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          [[ "$api_url" =~ ^http://127\.0\.0\.1:[0-9]+$ ]]
+          [[ "$db_url" =~ ^postgresql://postgres:postgres@127\.0\.0\.1:[0-9]+/postgres$ ]]
           test -n "$anon_key"
           test -n "$service_key"
           location_key="$(node -e 'console.log(require("node:crypto").randomBytes(32).toString("base64url"))')"
           spatial_key="$(node -e 'console.log(require("node:crypto").randomBytes(32).toString("base64url"))')"
-          mkdir -p .ci-artifacts/r2a-private-runtime-e2e
           export ALLOW_LOCAL_TESTS=true
           export COMUN_BASE_URL=http://127.0.0.1:3138
           export NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3138
