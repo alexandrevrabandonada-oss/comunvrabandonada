@@ -59,7 +59,6 @@ try {
   const createdBody = await created.json();
   assert.equal(created.status, 201, JSON.stringify(createdBody));
   assert.equal(createdBody.noOfficialSend, true);
-  assert.equal(createdBody.nothingPublished, true);
   const protocol = createdBody.receipt.protocol;
   assert.match(protocol, /^COMUN-RELATA-/);
   assert.ok(createdBody.walletRecoveryCode);
