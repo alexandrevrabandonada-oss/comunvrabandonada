@@ -1,8 +1,8 @@
 # Matriz canônica de superfícies — 47.9A5
 
-Gerada em: 2026-08-04T23:45:53.297Z
+Gerada em: 2026-08-05T03:24:17.397Z
 
-Total: **192** · ondas: 1=72 · 2=32 · 3=76 · 4=12
+Total: **193** · ondas: 1=73 · 2=32 · 3=76 · 4=12
 
 | Rota | Família | Shell | Visual | Componente | Decisão | Onda |
 | --- | --- | --- | --- | --- | --- | ---: |
@@ -144,6 +144,7 @@ Total: **192** · ondas: 1=72 · 2=32 · 3=76 · 4=12
 | `/comun/campo` | campo | immersive | v2_compatibility | Page | compatibility_v2 | 2 |
 | `/comun/campo/turno` | campo | immersive | v2_compatibility | Page | compatibility_v2 | 2 |
 | `/comun/campo/turno/registrar` | campo | immersive | v2_compatibility | Page | compatibility_v2 | 2 |
+| `/comun/completar-conta` | completar-conta | member_nested | not_rendered | CompletarConta | redirect_canonical | 1 |
 | `/comun/comunidades` | comunidades | member_nested | mixed | CommunitiesPage | retain_v2 | 1 |
 | `/comun/conta` | conta | member_nested | v2_compatibility | Conta | compatibility_v2 | 1 |
 | `/comun/conta/privacidade` | conta | member_nested | v2_compatibility | PrivacidadePage | compatibility_v2 | 1 |

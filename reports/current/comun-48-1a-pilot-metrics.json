@@ -1,0 +1,8 @@
+{
+  "status": "pending",
+  "ownerOperatorSmoke": "green",
+  "formalParticipants": 0,
+  "humanRehearsal": "incomplete",
+  "metrics": { "timings": "not_collected", "completionRate": "not_collected", "protocolUnderstanding": "not_collected", "walletRecovery": "not_collected" },
+  "privacy": { "rawText": false, "photos": false, "coordinates": false, "fullProtocols": false, "externalSubmission": false }
+}

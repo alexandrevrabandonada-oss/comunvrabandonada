@@ -1,0 +1,14 @@
+{
+  "brick": "48.0M",
+  "branch": "codex/tijolo-48-0m-integrated-human-rehearsal",
+  "head": "a930ff1c22b5a263ad96a87123eeba107317267d",
+  "results": {
+    "technical": "COMUN_REHEARSAL_48_0M_ENVIRONMENT_READY_HUMAN_SESSION_PENDING",
+    "lanSmoke": "COMUN_REHEARSAL_48_0M_LAN_SMOKE_GREEN",
+    "ownerOperatorSmoke": "COMUN_OWNER_OPERATOR_CORE_FLOW_SMOKE_GREEN",
+    "integratedHuman": "COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE"
+  },
+  "production": { "deploymentObserved": "dpl_9WgR8YbQCzmNqEx2GD8Cnd1BjUX6", "flagsPublic": false, "launchPublicly": false },
+  "verification": { "unit": "498 passed", "surfaces": { "pages": 193, "unknown": 0, "legacyRendered": 0, "p0p1": 0 }, "dbRemoteContacted": false, "externalSubmission": false },
+  "humanLimits": { "participants": 0, "timingsMeasured": false, "allJourneysCompleted": false }
+}

@@ -1,26 +1,26 @@
 {
   "summary": {
-    "generated_at": "2026-08-04T23:45:53.297Z",
-    "total": 192,
+    "generated_at": "2026-08-05T03:24:17.397Z",
+    "total": 193,
     "duplicate_routes": [],
     "shell_modes": {
       "admin": 88,
       "auth": 6,
       "immersive": 18,
       "institutional": 8,
-      "member_nested": 25,
+      "member_nested": 26,
       "member_root": 5,
       "public_web": 42
     },
     "by_wave": {
-      "1": 72,
+      "1": 73,
       "2": 32,
       "3": 76,
       "4": 12
     },
     "by_decision": {
       "compatibility_v2": 105,
-      "redirect_canonical": 66,
+      "redirect_canonical": 67,
       "retain_v2": 21
     },
     "legacy_rendered": 0,
@@ -4709,6 +4709,40 @@
       "decision": "compatibility_v2",
       "wave": 2,
       "source": "app/comun/campo/turno/registrar/page.tsx"
+    },
+    {
+      "route": "/comun/completar-conta",
+      "family": "completar-conta",
+      "shell_mode": "member_nested",
+      "public": false,
+      "auth_required": true,
+      "visual_state": "not_rendered",
+      "main_component": "CompletarConta",
+      "shell_component": "ComunShell",
+      "legacy_components": [
+        "legacy-shell"
+      ],
+      "contextual_app_bar": true,
+      "primary_action": "/comun/participar",
+      "empty_state": false,
+      "requires_entity_context": false,
+      "preserves_filters_or_return": true,
+      "admin_domain": null,
+      "admin_surface_type": "collection",
+      "has_table": false,
+      "has_form": false,
+      "accessible_table_contract": true,
+      "filter_return_contract": true,
+      "platform_domain": null,
+      "platform_access": null,
+      "platform_shell": null,
+      "preserves_app_v2_flag": null,
+      "member_bottom_navigation": null,
+      "compatibility_severity": "P2",
+      "compatibility_justification": "Markup preservado para rollback; shell V2 neutraliza material legado e adiciona navegação, foco e semântica operacional.",
+      "decision": "redirect_canonical",
+      "wave": 1,
+      "source": "app/comun/completar-conta/page.tsx"
     },
     {
       "route": "/comun/comunidades",

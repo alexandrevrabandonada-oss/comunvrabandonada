@@ -66,6 +66,11 @@ import {
   communityLoginError,
   communitySignupError,
 } from "@/lib/community-auth-errors";
+import {
+  googleAuthErrorHref,
+  googleCallbackUrl,
+  isGoogleAuthEnabled,
+} from "@/lib/community-google-auth";
 import { withComunAppV2 } from "@/lib/comun-shell-contract";
 import {
   COMUN_APP_V2_EXPERIENCE,
@@ -1168,6 +1173,22 @@ export async function loginCommunity(_: unknown, formData: FormData) {
   redirect(returnTo);
 }
 
+export async function signInCommunityWithGoogle(formData: FormData) {
+  const returnTo = safeCommunityReturn(formData.get("returnTo"));
+  if (!isGoogleAuthEnabled()) redirect(googleAuthErrorHref());
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) redirect(googleAuthErrorHref());
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: googleCallbackUrl(returnTo),
+      scopes: "openid email profile",
+    },
+  });
+  if (error || !data.url) redirect(googleAuthErrorHref());
+  redirect(data.url);
+}
+
 export async function logoutCommunity() {
   const supabase = await createSupabaseServerClient();
   await supabase?.auth.signOut();
@@ -1229,6 +1250,12 @@ export async function saveCommunityProfileAction(formData: FormData) {
   const displayName = String(formData.get("display_name") ?? "")
     .trim()
     .slice(0, 80);
+  const territoryMunicipality = String(formData.get("territory") ?? "")
+    .trim()
+    .slice(0, 120);
+  const territoryNeighborhood = String(formData.get("neighborhood") ?? "")
+    .trim()
+    .slice(0, 120);
   const visibility = String(formData.get("profile_visibility") ?? "private");
   if (
     !displayName ||
@@ -1237,6 +1264,8 @@ export async function saveCommunityProfileAction(formData: FormData) {
     throw new Error("Perfil inválido.");
   const service = createServiceSupabaseClient();
   if (!service) throw new Error("Serviço indisponível.");
+  const territoryCatalogEnabled =
+    process.env.COMUN_TERRITORY_CATALOG_LOCAL === "enabled";
   const { error } = await service
     .from("comun_member_profiles" as never)
     .update({
@@ -1252,6 +1281,16 @@ export async function saveCommunityProfileAction(formData: FormData) {
           : visibility === "pauta_members"
             ? "participants"
             : "private",
+      ...(territoryCatalogEnabled
+        ? {
+            territory_municipality: territoryMunicipality || null,
+            territory_neighborhood: territoryNeighborhood || null,
+            territory_source_version:
+              territoryMunicipality === "Volta Redonda"
+                ? "2026-08-04-textual-preliminary"
+                : null,
+          }
+        : {}),
       onboarding_completed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     } as never)
@@ -1259,6 +1298,50 @@ export async function saveCommunityProfileAction(formData: FormData) {
   if (error) throw new Error(error.message);
   revalidatePath("/comun/minha-participacao");
   redirect(safeCommunityReturn(formData.get("returnTo")));
+}
+
+const googleCommunityCompletionSchema = z
+  .object({
+    display_name: z.string().trim().min(2).max(80),
+    terms: z.literal("on"),
+    privacy: z.literal("on"),
+    returnTo: z.string().optional(),
+  })
+  .strict();
+
+export async function completeGoogleCommunityProfile(formData: FormData) {
+  const parsed = googleCommunityCompletionSchema.safeParse(
+    Object.fromEntries(
+      [...formData].filter(([key]) => !key.startsWith("$ACTION_")),
+    ),
+  );
+  if (!parsed.success)
+    throw new Error(
+      "É necessário aceitar os termos e a política de privacidade.",
+    );
+  const returnTo = safeCommunityReturn(parsed.data.returnTo);
+  const session = await requireCommunitySession(returnTo);
+  const service = createServiceSupabaseClient();
+  if (!service) throw new Error("Serviço indisponível.");
+  const now = new Date().toISOString();
+  const { error } = await service
+    .from("comun_member_profiles" as never)
+    .update({
+      display_name: parsed.data.display_name,
+      terms_version: "2026-08",
+      terms_accepted_at: now,
+      privacy_version: "2026-08",
+      privacy_accepted_at: now,
+      onboarding_completed_at: now,
+      status: "active",
+      profile_visibility: "private",
+      participation_visibility: "private",
+      updated_at: now,
+    } as never)
+    .eq("user_id" as never, session.user.id);
+  if (error) throw new Error("Não foi possível concluir o acesso.");
+  revalidatePath("/comun/minha-participacao");
+  redirect(returnTo);
 }
 
 export async function requestCommunityDeactivationAction() {

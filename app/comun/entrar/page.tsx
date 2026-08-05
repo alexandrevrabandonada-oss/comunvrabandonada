@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { CommunityLoginForm } from "@/components/community-auth-form";
+import { isGoogleAuthEnabled } from "@/lib/community-google-auth";
 import { safeCommunityReturn } from "@/lib/community-return";
 import {
   COMUN_APP_V2_EXPERIENCE,
@@ -15,6 +16,7 @@ export default async function Entrar({
   searchParams: Promise<{
     returnTo?: string;
     status?: string;
+    erro?: string;
     experiencia?: string;
   }>;
 }) {
@@ -31,6 +33,7 @@ export default async function Entrar({
         : returnExperience;
   const returnTo = withComunExperience(safeReturnTo, experience);
   const appV2 = experience === COMUN_APP_V2_EXPERIENCE;
+  const googleAuthEnabled = isGoogleAuthEnabled();
   const signupHref = withComunExperience(
     `/comun/criar-conta?returnTo=${encodeURIComponent(returnTo)}`,
     experience,
@@ -65,8 +68,21 @@ export default async function Entrar({
                   continuar de onde parou.
                 </p>
               ) : null}
+              {params.erro === "google" ? (
+                <p
+                  role="alert"
+                  className="mb-3 border-l-4 border-comun-yellow bg-[var(--comun-surface-alert)] p-3 text-sm text-comun-black"
+                >
+                  Não foi possível concluir o acesso com Google. Tente novamente
+                  ou use e-mail e senha.
+                </p>
+              ) : null}
               <div className="comun-v2-auth-form-card">
-                <CommunityLoginForm returnTo={returnTo} experienceV2={appV2} />
+                <CommunityLoginForm
+                  returnTo={returnTo}
+                  experienceV2={appV2}
+                  googleAuthEnabled={googleAuthEnabled}
+                />
                 <p className="comun-text-secondary mt-3 text-sm">
                   Ainda não tem conta?{" "}
                   <Link
@@ -118,8 +134,20 @@ export default async function Entrar({
                 continuar de onde parou.
               </p>
             ) : null}
+            {params.erro === "google" ? (
+              <p
+                role="alert"
+                className="mt-5 border-l-4 border-comun-yellow bg-comun-paper p-4 text-comun-black"
+              >
+                Não foi possível concluir o acesso com Google. Tente novamente
+                ou use e-mail e senha.
+              </p>
+            ) : null}
             <div className="mt-6 bg-comun-paper p-5 text-comun-black">
-              <CommunityLoginForm returnTo={returnTo} />
+              <CommunityLoginForm
+                returnTo={returnTo}
+                googleAuthEnabled={googleAuthEnabled}
+              />
               <p className="mt-4 text-sm">
                 Ainda não tem conta?{" "}
                 <Link className="font-bold underline" href={signupHref}>

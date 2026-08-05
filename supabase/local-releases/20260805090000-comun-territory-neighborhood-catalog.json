@@ -1,0 +1,11 @@
+{
+  "release": "20260805090000-comun-territory-neighborhood-catalog",
+  "migration": "supabase/migrations/20260805090000_comun_member_profile_territory_selection.sql",
+  "sha256": "90ae54c116eccd8832639e623649dd765e84c988442bd58311665144d6533dd0",
+  "requiresPromotion": false,
+  "remotePromotionAllowed": false,
+  "scope": "local-only",
+  "description": "Catálogo textual opcional de bairros de Volta Redonda no onboarding; sem geometria pública e sem coordenadas.",
+  "source": "PortalVR/IPPU; snapshot textual preliminar 2026-08-04",
+  "featureFlag": "COMUN_TERRITORY_CATALOG_LOCAL"
+}

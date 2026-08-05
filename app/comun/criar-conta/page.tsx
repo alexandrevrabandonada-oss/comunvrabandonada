@@ -1,5 +1,6 @@
 import { ComunShell, Section } from "@/components/comun-shell";
 import { CommunitySignupForm } from "@/components/community-auth-form";
+import { isGoogleAuthEnabled } from "@/lib/community-google-auth";
 import { safeCommunityReturn } from "@/lib/community-return";
 import {
   COMUN_APP_V2_EXPERIENCE,
@@ -26,6 +27,7 @@ export default async function CriarConta({
         : returnExperience;
   const returnTo = withComunExperience(safeReturnTo, experience);
   const appV2 = experience === COMUN_APP_V2_EXPERIENCE;
+  const googleAuthEnabled = isGoogleAuthEnabled();
   return (
     <ComunShell>
       <Section>
@@ -39,7 +41,10 @@ export default async function CriarConta({
             formulário da ação não é colocado na URL.
           </p>
           <div className="mt-6 max-w-md bg-comun-paper p-5 text-comun-black">
-            <CommunitySignupForm returnTo={returnTo} />
+            <CommunitySignupForm
+              returnTo={returnTo}
+              googleAuthEnabled={googleAuthEnabled}
+            />
           </div>
         </div>
       </Section>

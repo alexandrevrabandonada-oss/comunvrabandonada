@@ -59,6 +59,7 @@ export function buildLocalEnvironment(local, inherited = process.env) {
     SUPABASE_PROJECT_REF: "LOCAL_VALIDATION",
     PR23_ALLOWED_PROJECT_REFS: "LOCAL_VALIDATION",
     MEDIA_STORAGE_PROVIDER: "supabase-local",
+    COMUN_TERRITORY_CATALOG_LOCAL: inherited.COMUN_TERRITORY_CATALOG_LOCAL || "enabled",
   };
 }
 
