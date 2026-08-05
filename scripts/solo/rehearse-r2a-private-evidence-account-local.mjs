@@ -30,13 +30,17 @@ async function httpWithCookie(path, cookieValue, init = {}) {
 }
 async function waitForServer() {
   for (let i = 0; i < 90; i++) {
+    if (server.exitCode !== null) {
+      throw new Error(`COMUN_R2A_LOCAL_SERVER_EXIT_${server.exitCode}\n${output.join("")}`);
+    }
     try { const response = await fetch(`${base}/comun/minha-participacao`); if (response.status < 500) return; } catch {}
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
   throw new Error("COMUN_R2A_LOCAL_HTTP_UNAVAILABLE");
 }
 
-const server = spawn(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "dev", "--", "-p", new URL(base).port], { cwd: process.cwd(), env: process.env, shell: process.platform === "win32", stdio: ["ignore", "pipe", "pipe"] });
+const serverScript = process.env.COMUN_R2A_USE_BUILT_SERVER === "1" ? "start" : "dev";
+const server = spawn(process.platform === "win32" ? "npm.cmd" : "npm", ["run", serverScript, "--", "-p", new URL(base).port], { cwd: process.cwd(), env: process.env, shell: process.platform === "win32", stdio: ["ignore", "pipe", "pipe"] });
 const output = [];
 const capture = (chunk) => {
   output.push(String(chunk));

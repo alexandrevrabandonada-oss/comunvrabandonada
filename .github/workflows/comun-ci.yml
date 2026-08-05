@@ -145,9 +145,16 @@ jobs:
           export COMUN_PARTICIPATION_WALLET_LOCAL=enabled
           export COMUN_RELATA_LOCATION_ENCRYPTION_KEY="$location_key"
           export COMUN_RELATA_SPATIAL_HMAC_KEY="$spatial_key"
-          mkdir -p .ci-artifacts/r2a-private-runtime-e2e
-          export COMUN_R2A_E2E_LOG=.ci-artifacts/r2a-private-runtime-e2e/next.log
-          npm run relata:r2a:private:e2e:local 2>&1 | tee .ci-artifacts/r2a-private-runtime-e2e/e2e.log
+          export COMUN_R2A_USE_BUILT_SERVER=1
+          export COMUN_R2A_E2E_LOG="$GITHUB_WORKSPACE/.ci-artifacts/r2a-private-runtime-e2e/next.log"
+          npm run build > .ci-artifacts/r2a-private-runtime-e2e/build.log 2>&1
+          set +e
+          npm run relata:r2a:private:e2e:local > .ci-artifacts/r2a-private-runtime-e2e/e2e.log 2>&1
+          e2e_status=$?
+          set -e
+          printf '%s\n' "$e2e_status" > .ci-artifacts/r2a-private-runtime-e2e/e2e.exit
+          cat .ci-artifacts/r2a-private-runtime-e2e/e2e.log
+          test "$e2e_status" -eq 0
       - name: Upload sanitized runtime evidence
         if: always()
         uses: actions/upload-artifact@v4
