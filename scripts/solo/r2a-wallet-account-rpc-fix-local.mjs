@@ -8,6 +8,12 @@ if (!/^postgres(?:ql)?:\/\/[^@]+@(?:127\.0\.0\.1|localhost):\d+\/postgres(?:[/?]
 }
 
 const hash = (value) => createHash("sha256").update(`comun-wallet-v1:${value}`).digest("hex");
+const normalizePgTextArray = (value) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value !== "string" || !value.startsWith("{") || !value.endsWith("}")) return value;
+  const body = value.slice(1, -1);
+  return body === "" ? [] : body.split(",").map((entry) => entry.replace(/^"|"$/g, ""));
+};
 const client = new pg.Client({ connectionString: dbUrl });
 const walletToken = randomBytes(32).toString("base64url");
 const walletHash = hash(walletToken);
@@ -31,7 +37,7 @@ try {
   `);
   assert.equal(constraint.rows.length, 1);
   assert.equal(constraint.rows[0].contype, "u");
-  assert.deepEqual(constraint.rows[0].columns, ["wallet_id", "user_id"]);
+  assert.deepEqual(normalizePgTextArray(constraint.rows[0].columns), ["wallet_id", "user_id"]);
 
   await client.query(
     `insert into private.comun_participation_wallets (id, token_hash, status)
