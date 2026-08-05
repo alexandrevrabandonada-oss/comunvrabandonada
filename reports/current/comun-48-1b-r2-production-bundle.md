@@ -13,7 +13,7 @@ Migration:
 
 SHA-256 atual:
 
-`a107009151cd15bf8468ed3fbdaa422dddaecad1e418954977dbaacd0c0627df`
+`68013621f106c12d5a46b84b5d99fb64e6a69ab494d84891a31c216bfdf42d79`
 
 Manifesto:
 

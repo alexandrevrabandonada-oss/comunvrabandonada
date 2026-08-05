@@ -749,7 +749,7 @@ O inventário do runtime mostrou que o bundle R2 inicial usava tabelas
 foi redesenhada, ainda não aplicada remotamente, para usar os contratos
 canônicos de Relata, Carteira e evidências, incluindo vínculo explícito
 Conta–Carteira, RPCs server-only, RLS forçada, grants e Storage privado.
-O SHA atual é `a107009151cd15bf8468ed3fbdaa422dddaecad1e418954977dbaacd0c0627df`.
+O SHA atual é `68013621f106c12d5a46b84b5d99fb64e6a69ab494d84891a31c216bfdf42d79`.
 
 Estado vigente: `COMUN_48_1B_R2A_RUNTIME_SCHEMA_ALIGNMENT_REQUIRED`.
 O resultado R2 anterior permanece apenas como histórico. Não houve migration,
