@@ -1,4 +1,20 @@
-# Estado atual — atualização 48.0L (04/08/2026)
+# Estado atual — atualização 48.0M (05/08/2026)
+
+## Tijolo 48.0M — ensaio humano integrado — técnico pronto, humano pendente
+
+- baseline confirmado: `origin/main=a4910c50680cdde09808364c3cb83669baebaba0`; branch `codex/tijolo-48-0m-integrated-human-rehearsal`; Production `dpl_9WgR8YbQCzmNqEx2GD8Cnd1BjUX6` permanece READY;
+- smoke read-only: `/comun`, `/comun/relatar`, `/comun/calcadas` 200; Relata, Ônibus, forwarding e STMU multicanal 404; flags públicas desligadas;
+- preflight: 492 unitários, typecheck/lint/build, surfaces 192/0 desconhecidas/0 legacy/0 P0-P1, DB/RLS/grants e rehearsals de Relata, Carteira, forwarding, Calçadas, Ônibus, STMU WhatsApp e multicanal verdes;
+- E2E/Axe: captura 10/10, Carteira 5/5, forwarding 5/5, Ônibus 5/5; a11y Calçadas 2/2;
+- infraestrutura local: conflito de porta 5543x e retry focal de gateway Storage 502, ambos descartáveis; configuração restaurada; nenhum Supabase remoto consultado ou alterado;
+- E2E histórico de Calçadas 4/8 por `FIXTURE_SETUP_MISSING`: fixture genérica não cria pauta canônica e a página renderiza fallback editorial. Não foi aplicado patch permissivo nem alterada a implementação;
+- resultado técnico: `COMUN_REHEARSAL_48_0M_ENVIRONMENT_READY_HUMAN_SESSION_PENDING`;
+- resultado humano: `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE` (zero participantes reais nesta execução);
+- STMU opção 3 e verificação de e-mail não realizadas; nenhum envio, WhatsApp, e-mail ou piloto público iniciado;
+- relatórios: `comun-tijolo-48-0m-rehearsal-diagnostico.md`, plano/template/resultados, matriz de prontidão, plano de piloto, findings JSON e contratos STMU;
+- próximo passo: ensaio humano real 48.0M-H1 e correção focal da fixture antes de qualquer 48.1; 47.9D não iniciado e `launch_publicly` não acionado.
+
+## Tijolo 48.0L — STMU multicanal — integrado, dormente
 
 ## Tijolo 48.0L — STMU multicanal — integrado, dormente
 

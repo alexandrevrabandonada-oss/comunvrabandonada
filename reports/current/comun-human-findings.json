@@ -1,0 +1,17 @@
+{
+  "brick": "48.0M",
+  "status": "COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE",
+  "participants": 0,
+  "minimumParticipants": 3,
+  "technicalPreflight": "COMUN_REHEARSAL_48_0M_ENVIRONMENT_READY_HUMAN_SESSION_PENDING",
+  "findings": [],
+  "p0": 0,
+  "p1": 0,
+  "p2": 0,
+  "p3": 0,
+  "humanStmuOption3": "not_tested",
+  "emailVerification": "not_sent",
+  "publicPilot": false,
+  "productionFlags": "off",
+  "remoteWrites": false
+}
