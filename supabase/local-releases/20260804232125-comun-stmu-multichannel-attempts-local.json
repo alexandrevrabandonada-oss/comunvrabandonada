@@ -1,0 +1,12 @@
+{
+  "release": "20260804232125-comun-stmu-multichannel-attempts-local",
+  "migration": "supabase/migrations/20260804232125_comun_stmu_multichannel_attempts_local.sql",
+  "migrationSha256": "8cc01fcd7acf16fa7337d52626eb0be4c547a61bce76760954479cd1bfd5b572",
+  "destructiveSql": false,
+  "requiresPromotion": false,
+  "remotePromotionAllowed": false,
+  "scope": "disposable_local_supabase_only",
+  "flags": ["COMUN_STMU_MULTICHANNEL_LOCAL", "COMUN_STMU_WHATSAPP_ASSISTED_LOCAL", "COMUN_BUS_LOCAL_PILOT", "COMUN_RELATA_PREVIEW", "COMUN_RELATA_LOCAL_PERSISTENCE", "COMUN_PARTICIPATION_WALLET_LOCAL", "COMUN_FORWARDING_LOCAL"],
+  "channels": ["vr-stmu-whatsapp", "vr-stmu-official-email", "vr-stmu-field-ombudsman-email-candidate", "vr-stmu-phone", "vr-stmu-in-person"],
+  "assertions": ["one_relata_case_multiple_attempts", "official_email_exact", "field_email_blocked", "no_body_in_mailto", "response_expectation_not_legal_deadline", "RLS_forced", "service_role_only", "no_external_submission"]
+}

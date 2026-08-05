@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ComunForwardingPanel } from "./comun-forwarding-panel";
-import { ComunStmuWhatsappPanel } from "./comun-stmu-whatsapp-panel";
+import { ComunStmuMultichannelPanel } from "./comun-stmu-multichannel-panel";
 
 type WalletItem = {
   item_id: string;
@@ -342,7 +342,9 @@ export function ParticipationWalletPanel({
                     </div>
                     {item.item_type === "relata_report" ? (
                       item.category === "public_transport" ? (
-                        <ComunStmuWhatsappPanel relataCaseId={item.item_id} />
+                        <ComunStmuMultichannelPanel
+                          relataCaseId={item.item_id}
+                        />
                       ) : (
                         <ComunForwardingPanel relataCaseId={item.item_id} />
                       )
