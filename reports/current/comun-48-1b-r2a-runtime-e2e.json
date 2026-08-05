@@ -1,13 +1,24 @@
 {
-  "result": "COMUN_48_1B_R2A_RUNTIME_E2E_PENDING_CI",
+  "result": "COMUN_48_1B_R2A_BLOCKED_RUNTIME_E2E_FUNCTIONAL_FAILURE",
   "branch": "codex/tijolo-48-1b-production-domain-pilot",
-  "head": "26b9679a168827b0c20886068c949aed0e28a899",
+  "head": "f303fb44a08d3dc0300fc970be1231579e053499",
   "candidate": {
     "path": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
     "sha256": "0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9"
   },
   "boundedLocalRetry": "blocked_docker_desktop_unavailable",
   "ciLane": "COMUN R2A / private runtime E2E",
+  "finding": {
+    "kind": "functional",
+    "endpoint": "/api/comun/relata/evidence/attachments",
+    "status": 404,
+    "code": "attachments_unavailable",
+    "rpc": "public.comun_relata_begin_attachment",
+    "sqlstate": "42702",
+    "sqlstateMeaning": "ambiguous_column",
+    "migrationBytesChanged": false,
+    "remoteWrite": false
+  },
   "scope": {
     "relata": "implemented_in_harness",
     "location": "implemented_in_harness",
