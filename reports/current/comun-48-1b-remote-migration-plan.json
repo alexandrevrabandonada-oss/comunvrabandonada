@@ -1,0 +1,21 @@
+{
+  "result": "COMUN_48_1B_BLOCKED_REMOTE_MIGRATION_PLAN_DRIFT",
+  "baseline": "7e2d259e193c0d8841c57b89002f551c9a9c2ad",
+  "projectRef": "nvmdszymrtacfehdynpg",
+  "cliVersion": "2.111.0",
+  "readOnly": true,
+  "remoteMigrationApplied": false,
+  "remoteMigrationRepair": false,
+  "remoteReset": false,
+  "dryRun": {
+    "status": "blocked",
+    "error": "LegacyDbPushMissingRemoteError",
+    "missingHistoricalMigration": "20260724233256_comun_sidewalk_operational_hardening.sql",
+    "sha256": "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be",
+    "suggestedFlagNotUsed": "--include-all"
+  },
+  "candidatePromotions": [],
+  "flagsActivated": false,
+  "productionChanged": false,
+  "launchPublicly": false
+}

@@ -674,3 +674,22 @@ executada neste checkpoint. Não há três participantes, medições, taxa de
 conclusão ou achados de usabilidade para contabilizar. O estado permanece
 `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE`; não houve piloto, envio externo,
 ativação de flag ou `launch_publicly`.
+
+## 48.1B — preflight do piloto em Production (05/08/2026)
+
+A branch `codex/tijolo-48-1b-production-domain-pilot` foi criada a partir de
+`origin/main` `7e2d259e193c0d8841c57b89002f551c9a9c2ad`. A CLI Supabase 2.111.0
+listou o projeto alvo e o vínculo local foi estabelecido sem mutação. A
+consulta `migration list --linked` mostrou um drift histórico: a migration
+`20260724233256_comun_sidewalk_operational_hardening.sql` não aparece no
+histórico remoto, apesar de migrations posteriores constarem como aplicadas.
+
+`supabase db push --linked --dry-run` recusou prosseguir (`LegacyDbPushMissingRemoteError`)
+e sugeriu `--include-all`. Não foi usado `--include-all`, `migration repair`,
+reset, seed ou `db push` mutável. Nenhuma flag, Auth, Google, Carteira,
+Relata V2, Calçadas, Ônibus, Observatórios ou forwarding foi ativado.
+
+Resultado: `COMUN_48_1B_BLOCKED_REMOTE_MIGRATION_PLAN_DRIFT`. Production,
+Supabase remoto, `launch_publicly` e registros de usuários permanecem
+inalterados. O piloto não deve avançar até a reconciliação forward-only do
+histórico.
