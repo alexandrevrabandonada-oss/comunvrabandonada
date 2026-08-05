@@ -83,8 +83,9 @@ try {
   assert.equal(JSON.stringify(locationBody).includes("ciphertext"), false);
 
   const started = await http("/api/comun/relata/evidence/attachments", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mimeType: "image/png", sizeBytes: png.byteLength }) });
-  assert.equal(started.status, 201);
-  const upload = (await started.json()).upload;
+  const startedBody = await started.json();
+  assert.equal(started.status, 201, JSON.stringify(startedBody));
+  const upload = startedBody.upload;
   const invalidType = await http("/api/comun/relata/evidence/attachments", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mimeType: "image/gif", sizeBytes: png.byteLength }) });
   assert.equal(invalidType.status, 400);
   const oversize = await http("/api/comun/relata/evidence/attachments", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mimeType: "image/png", sizeBytes: 8 * 1024 * 1024 + 1 }) });
