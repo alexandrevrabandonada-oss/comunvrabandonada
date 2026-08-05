@@ -67,7 +67,11 @@ try {
   assert.equal(replay.status, 201, JSON.stringify(replayBody));
   assert.equal(replayBody.receipt.protocol, protocol);
   const receiptCookie = cookie;
-  const wrongReceiptCookie = receiptCookie.replace(/comun_relata_receipt_v1=[^;]+/, "comun_relata_receipt_v1=invalid");
+  const wrongReceiptCookie = receiptCookie
+    .split(";")
+    .map((part) => part.trim().startsWith("comun_relata_receipt_v1=") ? "comun_relata_receipt_v1=invalid" : part.trim())
+    .join("; ");
+  assert.notEqual(wrongReceiptCookie, receiptCookie);
   const wrongLocation = await httpWithCookie("/api/comun/relata/evidence/location", wrongReceiptCookie, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ origin: "map_pin", longitude: -44.1, latitude: -22.52, accuracyMeters: 40 }) });
   assert.equal(wrongLocation.status, 404);
 
