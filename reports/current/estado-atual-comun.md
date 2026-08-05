@@ -1,8 +1,8 @@
 # Estado atual — atualização 48.0M (05/08/2026)
 
-## Tijolo 48.0M — ensaio humano integrado — técnico pronto, humano pendente
+## Tijolo 48.0M — ensaio humano integrado — integrado, técnico dormente, humano pendente
 
-- baseline confirmado: `origin/main=a4910c50680cdde09808364c3cb83669baebaba0`; branch `codex/tijolo-48-0m-integrated-human-rehearsal`; Production `dpl_9WgR8YbQCzmNqEx2GD8Cnd1BjUX6` permanece READY;
+- baseline inicial confirmado: `origin/main=a4910c50680cdde09808364c3cb83669baebaba0`; PR #168 mesclada no SHA `dbdf61a39deecefc558e8ee1ee527a4ba326d4d3`; Production `dpl_9WgR8YbQCzmNqEx2GD8Cnd1BjUX6` permanece READY e sem promoção manual;
 - smoke read-only: `/comun`, `/comun/relatar`, `/comun/calcadas` 200; Relata, Ônibus, forwarding e STMU multicanal 404; flags públicas desligadas;
 - preflight: 492 unitários, typecheck/lint/build, surfaces 192/0 desconhecidas/0 legacy/0 P0-P1, DB/RLS/grants e rehearsals de Relata, Carteira, forwarding, Calçadas, Ônibus, STMU WhatsApp e multicanal verdes;
 - E2E/Axe: captura 10/10, Carteira 5/5, forwarding 5/5, Ônibus 5/5; a11y Calçadas 2/2;
@@ -11,6 +11,8 @@
 - resultado técnico: `COMUN_REHEARSAL_48_0M_ENVIRONMENT_READY_HUMAN_SESSION_PENDING`;
 - smoke LAN humano confirmado pelo responsável do produto em computador e celular, sem submissão externa: `COMUN_REHEARSAL_48_0M_LAN_SMOKE_GREEN`;
 - resultado humano: `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE` (não participante completo; sem tempos, jornadas completas ou três participantes);
+- smoke read-only pós-merge preservou `/comun=200`, `/comun/relatar=200`, `/comun/calcadas=200` e manteve Relata, Ônibus, forwarding, STMU e ambiente de ensaio em `404`;
+- resultado terminal técnico: `COMUN_REHEARSAL_48_0M_MERGED_DORMANT_ENVIRONMENT_READY_HUMAN_SESSION_PENDING_REMOTE_UNCHANGED`;
 - STMU opção 3 e verificação de e-mail não realizadas; nenhum envio, WhatsApp, e-mail ou piloto público iniciado;
 - relatórios: `comun-tijolo-48-0m-rehearsal-diagnostico.md`, plano/template/resultados, matriz de prontidão, plano de piloto, findings JSON e contratos STMU;
 - próximo passo: ensaio humano real 48.0M-H1 e correção focal da fixture antes de qualquer 48.1; 47.9D não iniciado e `launch_publicly` não acionado.

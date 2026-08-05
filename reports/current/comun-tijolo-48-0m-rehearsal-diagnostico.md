@@ -45,6 +45,14 @@ O E2E de Calçadas passou 4/8 e falhou 4/8 porque `getSidewalkMiniapp()` retorna
 
 Classificação: `FIXTURE_SETUP_MISSING` (com expectativa histórica a revisar). Não foi adicionado `404` permissivo, não se alterou a página de Calçadas e a fixture foi removida/confirmada limpa.
 
+## Integração e smoke pós-merge
+
+- PR #168 (`TIJOLO 48.0M — ambiente do ensaio humano integrado`) foi mesclada no merge commit `dbdf61a39deecefc558e8ee1ee527a4ba326d4d3`;
+- CI pós-merge: concluída com sucesso; Preview/Vercel e lanes aplicáveis sem falhas;
+- Production permaneceu no deployment funcional observado antes da integração (`dpl_9WgR8YbQCzmNqEx2GD8Cnd1BjUX6`); não houve promoção manual nem mudança funcional pública;
+- smoke read-only pós-merge: `/comun=200`, `/comun/relatar=200`, `/comun/calcadas=200`, `/comun/relata=404`, `/comun/onibus=404`, forwarding/STMU/ensaio `404`;
+- nenhuma migration remota, flag pública, canal externo, envio ou acesso mutável ao Supabase remoto.
+
 ## Resultado desta etapa
 
 `COMUN_REHEARSAL_48_0M_ENVIRONMENT_READY_HUMAN_SESSION_PENDING`
@@ -52,3 +60,5 @@ Classificação: `FIXTURE_SETUP_MISSING` (com expectativa histórica a revisar).
 Smoke LAN humano confirmado pelo responsável do produto: o ambiente abriu corretamente em computador e celular pela rede local, as rotas necessárias ficaram acessíveis e nenhuma submissão externa foi realizada. Resultado: `COMUN_REHEARSAL_48_0M_LAN_SMOKE_GREEN`.
 
 Isso não é ensaio humano integrado: não foram medidos tempos, não foram executadas todas as tarefas, não houve três participantes e não há resultado de usabilidade. O resultado humano correto permanece `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE`; o micro-gate STMU também não foi executado.
+
+Resultado terminal técnico: `COMUN_REHEARSAL_48_0M_MERGED_DORMANT_ENVIRONMENT_READY_HUMAN_SESSION_PENDING_REMOTE_UNCHANGED`.
