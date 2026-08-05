@@ -32,3 +32,14 @@ usada. Não há plano seguro sem permissão/evidência adicional.
   artefato sanitizado.
 
 Nenhuma migration remota foi aplicada.
+
+## R1A
+
+O classificador corrigido e o replay do artefato confirmaram
+`APPLIED_EXACT_SCOPED_EXTERNAL_LEDGER`; a divergência global é evolução
+esperada após a release escopada. A exceção externa foi validada.
+
+A quarentena temporária deixou o dry-run limpo para a migration excepcional e
+as migrations explicitamente local-only. O baseline ainda propôs
+`20260805090000_comun_member_profile_territory_selection.sql`, sem manifesto ou
+declaração local-only. Resultado: `COMUN_48_1B_R1A_BLOCKED_PENDING_MIGRATION_CLASSIFICATION`.

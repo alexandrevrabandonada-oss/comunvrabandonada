@@ -2,7 +2,7 @@
 
 ## Resultado
 
-`COMUN_48_1B_R1_BLOCKED_SIDEWALK_REMOTE_STATE_UNPROVEN`
+`COMUN_48_1B_R1A_BLOCKED_PENDING_MIGRATION_CLASSIFICATION`
 
 O comando read-only executado foi:
 
@@ -11,19 +11,19 @@ npx supabase migration list --linked
 npx supabase db push --linked --dry-run
 ```
 
-`migration list --linked` confirmou que `20260724233256` está local e sem
-linha correspondente no ledger do CLI, enquanto migrations posteriores estão
-remotas. O dry-run terminou com `LegacyDbPushMissingRemoteError` e sugeriu
-`--include-all` para a migration excepcional. A sugestão foi registrada, mas
-não foi executada.
+Após a quarentena comprovada, `migration list --linked` não propôs a migration
+excepcional nem as migrations local-only isoladas. O dry-run terminou com
+sucesso e propôs somente:
+
+`20260805090000_comun_member_profile_territory_selection.sql`
+
+Essa migration não tem manifesto de promoção nem declaração local-only. Ela não
+foi isolada e bloqueia a emissão de baseline vazio.
 
 ## Baseline vazio
 
-Não foi emitido `COMUN_48_1B_R1_CLI_BASELINE_RECONCILED_EMPTY`. Esse resultado
-exigiria uma exceção externa comprovada e uma quarentena temporária segura. Como
-o runner canônico classificou o estado remoto como
-`INSUFFICIENT_READ_PERMISSION`, o plano não pode ser alterado para aparentar
-vazio.
+Não foi emitido `COMUN_48_1B_R1A_CLI_BASELINE_RECONCILED_EMPTY`. A exceção
+externa foi validada, mas o plano ainda contém a migration sem classificação.
 
 ## Proteções
 
@@ -38,7 +38,7 @@ vazio.
 - SHA-256 da migration preservado.
 
 Os testes focais de diagnóstico, contrato de promoção e runner forward-only
-passaram (`87/87`). A suíte agregada `npm run solo:test` teve uma falha
-preexistente e não relacionada: o teste de automação espera somente seis
-workflows, enquanto o checkout contém workflows adicionais. Nenhuma alteração
-foi feita para mascarar essa falha.
+passaram: diagnóstico/classificador, exceção e runner (`105/105` no agregado
+`solo:test`, além de `2/2` no contrato da exceção). O contrato de inventário de
+workflows foi atualizado para exigir os canônicos e permitir apenas adicionais
+conhecidos; agora a suíte agregada está verde.

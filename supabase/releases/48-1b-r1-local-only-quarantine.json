@@ -1,0 +1,19 @@
+{
+  "version": "48.1B-R1A",
+  "purpose": "temporary_cli_dry_run_quarantine",
+  "remoteWrites": false,
+  "entries": [
+    {"path":"supabase/migrations/20260803161310_comun_relata_durable_local.sql","sha256":"cb216666f64602c02e756d8e2d66017e5a721c7b9ad7810f793cad6a276606b7","domain":"relata","localOnly":true,"fixture":false,"promotionForbidden":true,"manifest":"missing","state":"remote_absent_explicit_comment"},
+    {"path":"supabase/migrations/20260803192419_comun_relata_private_evidence_cases.sql","sha256":"97be487aa2c03c559aa1918835056aa90cb9dba16288d4396370ac1fc95e9983","domain":"relata-evidence","localOnly":true,"fixture":false,"promotionForbidden":true,"manifest":"missing","state":"remote_absent_explicit_comment"},
+    {"path":"supabase/migrations/20260803200000_comun_relata_sanitized_local_map.sql","sha256":"630271ca9e2d924f08e1b4e24228e485da61b522c5745d141534f8f068cd53f3","domain":"relata-map","localOnly":true,"fixture":false,"promotionForbidden":true,"manifest":"missing","state":"remote_absent_explicit_comment"},
+    {"path":"supabase/migrations/20260804002757_comun_bus_foundation.sql","sha256":"b9a5e4cc97bbbcd84250a0df6a8b89ac709ef03fccb5c235f35b8c1283b8c453","domain":"onibus","localOnly":true,"fixture":true,"promotionForbidden":true,"manifest":"missing","state":"remote_absent_explicit_comment"},
+    {"path":"supabase/migrations/20260804022743_comun_capture_quick_capture_convergence.sql","sha256":"d730d5f005bb7e443b72b016ea30983d0b16123878a9b4b3eb6363991c2e003e","domain":"capture","localOnly":true,"fixture":false,"promotionForbidden":true,"manifest":"missing","state":"remote_absent_explicit_comment"},
+    {"path":"supabase/migrations/20260804135032_participation_wallet_local.sql","sha256":"ddd8a8cb3acb84a13f8b1f58ffb96df1d75d83dc1f4370a0550141c7585de2c0","domain":"wallet","localOnly":true,"fixture":false,"promotionForbidden":true,"manifest":"missing","state":"remote_absent_explicit_comment"},
+    {"path":"supabase/migrations/20260804151244_comun_forwarding_local.sql","sha256":"68235715785a01c6f7c94e65ad5a4342493ec39a0012923c356ccdc597475454","domain":"forwarding","localOnly":true,"fixture":false,"promotionForbidden":true,"manifest":"missing","state":"remote_absent_explicit_comment"},
+    {"path":"supabase/migrations/20260804164500_comun_fiscaliza_observation_local.sql","sha256":"6924e6de8053d785058dec5cb77aae4d1503efe387d959d34d35cc7c73b14aca","domain":"fiscaliza","localOnly":true,"fixture":false,"promotionForbidden":true,"manifest":"missing","state":"remote_absent_explicit_comment"},
+    {"path":"supabase/migrations/20260804203000_comun_sidewalk_relata_connection_local.sql","sha256":"76f42a963a1e9a167090938aaba24c37f95e9add8597184332bff0e57d05355a","domain":"sidewalk-relata","localOnly":true,"fixture":false,"promotionForbidden":true,"manifest":"missing","state":"remote_absent_explicit_comment"},
+    {"path":"supabase/migrations/20260804204544_comun_stmu_whatsapp_assisted_local.sql","sha256":"5ed6358e97650c20fb0bb881c6d804a6f79d6ea5455fb81079f506861e7c112a","domain":"stmu-whatsapp","localOnly":true,"fixture":false,"promotionForbidden":true,"manifest":"missing","state":"remote_absent_explicit_comment"},
+    {"path":"supabase/migrations/20260804232125_comun_stmu_multichannel_attempts_local.sql","sha256":"8cc01fcd7acf16fa7337d52626eb0be4c547a61bce76760954479cd1bfd5b572","domain":"stmu-multichannel","localOnly":true,"fixture":false,"promotionForbidden":true,"manifest":"missing","state":"remote_absent_explicit_comment"},
+    {"path":"supabase/migrations/20260805090000_comun_member_profile_territory_selection.sql","sha256":"90ae54c116eccd8832639e623649dd765e84c988442bd58311665144d6533dd0","domain":"member-profile-territory","localOnly":false,"fixture":false,"promotionForbidden":false,"manifest":"missing","state":"unknown_blocks_quarantine"}
+  ]
+}

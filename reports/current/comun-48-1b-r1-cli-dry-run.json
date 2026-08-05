@@ -1,5 +1,5 @@
 {
-  "result": "COMUN_48_1B_R1_BLOCKED_SIDEWALK_REMOTE_STATE_UNPROVEN",
+  "result": "COMUN_48_1B_R1A_BLOCKED_PENDING_MIGRATION_CLASSIFICATION",
   "migrationList": {
     "exceptionalMigration": "20260724233256",
     "remoteLedger": "absent",
@@ -7,19 +7,26 @@
   },
   "dryRun": {
     "command": "supabase db push --linked --dry-run",
-    "status": "blocked",
-    "error": "LegacyDbPushMissingRemoteError",
-    "suggestionObserved": "--include-all",
+    "status": "success",
+    "error": null,
+    "suggestionObserved": null,
     "includeAllUsed": false,
-    "mutatingPush": false
+    "mutatingPush": false,
+    "pending": ["20260805090000_comun_member_profile_territory_selection.sql"]
   },
   "emptyBaseline": false,
   "quarantine": {
-    "executed": false,
-    "reason": "external_ledger_exact_not_proven"
+    "executed": true,
+    "restored": true,
+    "reason": "scoped_external_ledger_exact"
   },
   "tests": {
     "focused": "87/87",
-    "aggregateSolo": "100 passed, 1 pre-existing workflow inventory failure"
+    "aggregateSolo": "105/105",
+    "promotionRunner": "31/31",
+    "exceptionContract": "2/2",
+    "typecheck": "passed",
+    "lint": "passed",
+    "build": "passed"
   }
 }

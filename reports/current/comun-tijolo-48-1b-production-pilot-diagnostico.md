@@ -42,3 +42,17 @@ O piloto permanece fechado até reconciliar o histórico com evidência do estad
 remoto e um plano forward-only explícito. Não há base segura para criar uma
 exceção do ledger do CLI, executar o runner de migration ou promover schema.
 Relata V2, Calçadas, Carteira, Ônibus e Observatórios continuam sem ativação.
+
+## 48.1B-R1A
+
+O classificador foi corrigido para separar o fingerprint global da prova
+escopada. O replay do run `31011836481` confirmou
+`APPLIED_EXACT_SCOPED_EXTERNAL_LEDGER`; a divergência global foi registrada
+como `EXPECTED_GLOBAL_EVOLUTION_AFTER_SCOPED_RELEASE`. A exceção externa foi
+validada e a migration histórica permaneceu imutável.
+
+A quarentena temporária restaurou todos os arquivos e o dry-run do CLI ficou
+limpo para a migration excepcional e as migrations explicitamente local-only.
+O baseline ainda propôs `20260805090000_comun_member_profile_territory_selection.sql`,
+que não possui manifesto nem classificação local-only. Resultado vigente:
+`COMUN_48_1B_R1A_BLOCKED_PENDING_MIGRATION_CLASSIFICATION`.

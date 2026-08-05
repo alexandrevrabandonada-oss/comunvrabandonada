@@ -707,3 +707,18 @@ vigente: `COMUN_48_1B_R1_BLOCKED_SIDEWALK_REMOTE_STATE_UNPROVEN`.
 Não houve migration, repair, reset, seed, flags, piloto, alteração de
 Production ou escrita remota. A PR #174 permanece draft e o próximo passo só
 é permitido após prova exata do estado remoto e baseline de CLI vazio.
+
+## 48.1B-R1A — classificação escopada e reconciliação (05/08/2026)
+
+O classificador passou a separar prova escopada de evolução global. O replay do
+run `31011836481` confirmou `APPLIED_EXACT_SCOPED_EXTERNAL_LEDGER`; o fingerprint
+global divergente foi classificado como
+`EXPECTED_GLOBAL_EVOLUTION_AFTER_SCOPED_RELEASE`. A exceção externa do ledger
+foi validada sem alterar a migration histórica.
+
+A quarentena temporária isolou apenas a migration excepcional e as migrations
+com declaração explícita local-only, restaurando tudo com SHA confirmado. O
+dry-run reconciliado ficou com uma única pendência não classificada:
+`20260805090000_comun_member_profile_territory_selection.sql`. Resultado
+vigente: `COMUN_48_1B_R1A_BLOCKED_PENDING_MIGRATION_CLASSIFICATION`. Nenhuma
+flag, piloto, deployment ou escrita remota foi executada.

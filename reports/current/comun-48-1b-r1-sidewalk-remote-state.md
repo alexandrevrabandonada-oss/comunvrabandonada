@@ -3,25 +3,27 @@
 Data: 2026-08-05  
 Branch: `codex/tijolo-48-1b-production-domain-pilot`  
 PR: [#174](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/174)  
-HEAD: `2b31d3a69e55a13593382b108c38e1a48845714a`  
+HEAD auditado: `77a736dca196e654282f651d8e9adfb4048f358e`
 Baseline: `7e2d259e193c0d8841c57b89002f551c9a9c2ad`
 
 ## Resultado
 
-`COMUN_48_1B_R1_BLOCKED_SIDEWALK_REMOTE_STATE_UNPROVEN`
+`COMUN_48_1B_R1A_SIDEWALK_APPLIED_EXACT_SCOPED_EXTERNAL_LEDGER`
 
 O diagnóstico remoto read-only foi executado pelo workflow canônico
 `comun-sidewalk-remote-diagnostic.yml`, no run
 `31011836481`. O artefato sanitizado classificou o escopo como
-`INSUFFICIENT_READ_PERMISSION`. Não houve escrita remota.
+`APPLIED_EXACT_SCOPED_EXTERNAL_LEDGER` após o replay corrigido. Não houve
+escrita remota.
 
-Há evidências parciais úteis, mas insuficientes para promover a migration à
-classe `APPLIED_EXACT_EXTERNAL_LEDGER`: o ledger próprio foi lido como
-`PRESENT_ACCEPTED` e o fingerprint estrutural específico de Calçadas coincide
-com o POST local (`4bebf4c1...`), porém o fingerprint global observado não
-coincide com PRE nem POST canônicos e o classificador canônico não conseguiu
-provar todos os gates globais de leitura/segurança. Portanto, não se afirma
-que a migration esteja aplicada exatamente para fins de reconciliação do CLI.
+O ledger próprio foi lido como `PRESENT_ACCEPTED`, o fingerprint estrutural
+específico de Calçadas coincide com o POST local
+(`4bebf4c1db4da58fd9710c7f9478bb2837b171aa4620de2d376e19d5a99b66d8`) e todos
+os objetos decisivos estão em `equal` ou `post`; o ledger dinâmico foi excluído
+da decisão estrutural. O grant audit `REMOTE_EQUIVALENT_TO_PRE` é
+`equal_pre_post`, portanto não bloqueia. O fingerprint global divergente foi
+classificado como `EXPECTED_GLOBAL_EVOLUTION_AFTER_SCOPED_RELEASE` porque há
+migrations posteriores no histórico remoto.
 
 ## Evidência sanitizada
 
@@ -32,7 +34,7 @@ que a migration esteja aplicada exatamente para fins de reconciliação do CLI.
 - fingerprint scoped remoto: `4bebf4c1db4da58fd9710c7f9478bb2837b171aa4620de2d376e19d5a99b66d8`;
 - fingerprint scoped POST local: igual ao remoto;
 - fingerprint global remoto: `93c6a029...` (não PRE/POST esperados);
-- grant audit: `REMOTE_EQUIVALENT_TO_PRE` / `equivalent_pre`;
+- grant audit: `REMOTE_EQUIVALENT_TO_PRE`, com PRE=POST (`equal_pre_post`);
 - `zeroRemoteWrites: true`;
 - artefato: `classification.json`, `diagnostic.json`, `diagnostic.md` do run `31011836481`.
 
@@ -43,11 +45,16 @@ da evidência acima; isso não é finding do produto.
 
 ## Decisão
 
-Não executar migration, runner `migrate`, `repair`, `reset`, `--include-all`,
-seed ou qualquer escrita. A classificação A não é permitida enquanto a
-permissão/estado global não forem comprovados. A classificação B também não é
-permitida porque o ledger não pode ser tratado como ausente e o estado PRE
-exato não foi demonstrado pelo classificador canônico.
+A exceção externa foi criada e validada. A migration histórica não foi
+executada novamente. A quarentena temporária foi aplicada com restauração por
+`try/finally`; o SHA foi confirmado após a restauração. O dry-run reconciliado
+ficou limpo para as migrations classificadas, mas revelou uma migration sem
+manifesto (`20260805090000_comun_member_profile_territory_selection.sql`),
+portanto o baseline final não é vazio.
+
+Resultado: `COMUN_48_1B_R1A_BLOCKED_PENDING_MIGRATION_CLASSIFICATION`.
+
+Não executar `repair`, `reset`, `--include-all`, seed ou qualquer escrita.
 
 O piloto, flags, Google, allowlist, deployment de piloto e
 `launch_publicly` permanecem fechados.

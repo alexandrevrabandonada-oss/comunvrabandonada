@@ -2,11 +2,11 @@
 
 ## Estado
 
-Nenhuma quarentena foi executada. O padrão de isolamento temporário só pode
-ser usado depois de provar `APPLIED_EXACT_EXTERNAL_LEDGER` ou
-`APPLIED_BY_DEDICATED_RUNNER`. O diagnóstico canônico terminou em
-`INSUFFICIENT_READ_PERMISSION`; mover a migration excepcional neste estado
-criaria uma exceção não comprovada.
+Após o replay corrigido, a quarentena foi executada somente para a migration
+excepcional e as migrations com comentário explícito de local-only. Cada
+arquivo foi validado dentro do checkout, movido para diretório temporário,
+processado em `try/finally` e restaurado. O SHA da migration excepcional foi
+confirmado após a restauração.
 
 ## Inventário read-only
 
@@ -19,14 +19,14 @@ Também existem migrations posteriores sem linha remota, incluindo:
   território);
 - migrations de ensaio/fixtures do Ônibus e artefatos locais.
 
-Essas entradas não foram removidas, renomeadas ou marcadas como promovíveis.
-Onde não há manifesto explícito `requiresPromotion=false` /
-`remotePromotionAllowed=false`, a ausência de manifesto é tratada como
-`manifest_missing`/`unknown` e bloqueia qualquer plano.
+As onze entradas com comentário explícito foram isoladas temporariamente. A
+migration `20260805090000_comun_member_profile_territory_selection.sql` não
+possui manifesto nem declaração local-only; permaneceu no checkout e bloqueou
+o baseline como `manifest_missing`/`unknown`.
 
 ## Regra de restauração
 
-Nenhum arquivo foi movido. A migration histórica permanece no caminho original
-e seu SHA-256 continua
+Todos os arquivos foram restaurados. A migration histórica permanece no caminho
+original e seu SHA-256 continua
 `6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be`.
 Não houve `--include-all`, `repair`, `reset`, seed ou push mutável.
