@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import pg from "pg";
@@ -84,6 +84,21 @@ try {
 
   const started = await http("/api/comun/relata/evidence/attachments", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mimeType: "image/png", sizeBytes: png.byteLength }) });
   const startedBody = await started.json();
+  if (started.status === 404) {
+    const diagnostic = new pg.Client({ connectionString: dbUrl });
+    try {
+      await diagnostic.connect();
+      await diagnostic.query("begin");
+      await diagnostic.query("select * from public.comun_relata_begin_attachment($1,$2,$3,$4,$5)", [protocol, receiptSecret, randomUUID(), "image/png", "under_1mb"]);
+      await diagnostic.query("rollback");
+    } catch (error) {
+      await diagnostic.query("rollback").catch(() => {});
+      const code = error && typeof error === "object" && "code" in error ? String(error.code) : "unknown";
+      throw new Error(`COMUN_R2A_ATTACHMENT_RPC_${code}`);
+    } finally {
+      await diagnostic.end().catch(() => {});
+    }
+  }
   assert.equal(started.status, 201, JSON.stringify(startedBody));
   const upload = startedBody.upload;
   const invalidType = await http("/api/comun/relata/evidence/attachments", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mimeType: "image/gif", sizeBytes: png.byteLength }) });
