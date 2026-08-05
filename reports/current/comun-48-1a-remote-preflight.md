@@ -43,3 +43,33 @@ não escrever. O preflight não cria usuário, não ativa flag e não envia dado
 Resultado: `COMUN_48_1A_REMOTE_PREFLIGHT_BLOCKED_PROJECT_PERMISSION`.
 Promoção de migration, criação de allowlist e piloto do proprietário foram
 adiados; `launch_publicly=false`.
+
+## Resultado após merge da infraestrutura dormente
+
+PR #171 foi mesclada com proteção pelo head SHA
+`aaebe841f56aa9189c1afdb745db1a720df96fed`; merge SHA:
+`1d8774491c87cc9d9dbc907da5b6b9cc9e8b5cfd`. A branch remota foi removida.
+
+O smoke pós-deployment confirmou `/comun`, `/comun/relatar` e
+`/comun/calcadas` em 200; Relata, Ônibus, encaminhamento, STMU e APIs
+experimentais permaneceram dormentes. Depois da propagação do deployment,
+`/api/comun/relata` retornou 404 para GET, POST, PUT, PATCH, DELETE, HEAD e
+OPTIONS, sem 405.
+
+O resultado terminal técnico desta etapa é
+`COMUN_48_1A_MERGED_DORMANT_PREFLIGHT_INFRA_GREEN_REMOTE_PREFLIGHT_BLOCKED_PROJECT_PERMISSION`.
+
+## Diagnóstico CLI versus MCP
+
+O ambiente não possui `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID`,
+`SUPABASE_PROJECT_REF`, `SUPABASE_DB_URL` ou `SUPABASE_SERVICE_ROLE_KEY` como
+variáveis de processo. A CLI `supabase` é a versão 2.111.0 e está autenticada
+por perfil local não exposto; `supabase projects list` listou o projeto-alvo e
+seu estado saudável, mas o repositório não está vinculado localmente.
+
+O conector MCP, na mesma execução, listou apenas projetos não relacionados e
+`supabase_get_project` para o alvo retornou erro de permissão. Portanto a
+classificação é: Management API da CLI autenticada e com escopo de projeto;
+MCP sem autorização para o projeto; leitura de banco, ledger, RLS e grants não
+comprovada. Não foi usada senha de banco, service role, SQL Editor ou endpoint
+de escrita.
