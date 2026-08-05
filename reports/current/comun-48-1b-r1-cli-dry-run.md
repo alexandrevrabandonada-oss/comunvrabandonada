@@ -1,8 +1,8 @@
-# 48.1B-R1 — dry-run reconciliado do CLI
+# 48.1B-R1B — dry-run reconciliado do CLI
 
 ## Resultado
 
-`COMUN_48_1B_R1A_BLOCKED_PENDING_MIGRATION_CLASSIFICATION`
+`COMUN_48_1B_R1B_CLI_BASELINE_RECONCILED_EMPTY`
 
 O comando read-only executado foi:
 
@@ -11,19 +11,15 @@ npx supabase migration list --linked
 npx supabase db push --linked --dry-run
 ```
 
-Após a quarentena comprovada, `migration list --linked` não propôs a migration
-excepcional nem as migrations local-only isoladas. O dry-run terminou com
-sucesso e propôs somente:
-
-`20260805090000_comun_member_profile_territory_selection.sql`
-
-Essa migration não tem manifesto de promoção nem declaração local-only. Ela não
-foi isolada e bloqueia a emissão de baseline vazio.
+Após a descoberta explícita em `supabase/local-releases/`, o manifesto de
+território foi validado como `LOCAL_ONLY_MANIFEST_EXACT`. A migration
+excepcional e todas as migrations local-only foram isoladas temporariamente,
+sempre restauradas, e o dry-run terminou com arrays vazios.
 
 ## Baseline vazio
 
-Não foi emitido `COMUN_48_1B_R1A_CLI_BASELINE_RECONCILED_EMPTY`. A exceção
-externa foi validada, mas o plano ainda contém a migration sem classificação.
+O baseline vazio foi comprovado: não há migration pendente, migration
+excepcional, seed, role ou sugestão de `--include-all`.
 
 ## Proteções
 
@@ -37,8 +33,7 @@ externa foi validada, mas o plano ainda contém a migration sem classificação.
 - arquivos restaurados/nunca removidos;
 - SHA-256 da migration preservado.
 
-Os testes focais de diagnóstico, contrato de promoção e runner forward-only
-passaram: diagnóstico/classificador, exceção e runner (`105/105` no agregado
-`solo:test`, além de `2/2` no contrato da exceção). O contrato de inventário de
-workflows foi atualizado para exigir os canônicos e permitir apenas adicionais
-conhecidos; agora a suíte agregada está verde.
+Os testes de descoberta de manifestos passaram (`4/4`), além de diagnóstico,
+exceção, runner forward-only (`105/105` no agregado `solo:test`, `31/31` no
+runner e `2/2` no contrato da exceção). Typecheck, lint, build e diff-check
+também estão verdes.

@@ -19,10 +19,12 @@ Também existem migrations posteriores sem linha remota, incluindo:
   território);
 - migrations de ensaio/fixtures do Ônibus e artefatos locais.
 
-As onze entradas com comentário explícito foram isoladas temporariamente. A
-migration `20260805090000_comun_member_profile_territory_selection.sql` não
-possui manifesto nem declaração local-only; permaneceu no checkout e bloqueou
-o baseline como `manifest_missing`/`unknown`.
+As doze entradas com manifesto local-only exato foram isoladas temporariamente. A
+migration `20260805090000_comun_member_profile_territory_selection.sql` possui
+manifesto local-only exato em
+`supabase/local-releases/20260805090000-comun-territory-neighborhood-catalog.json`;
+seu SHA e seus campos de promoção proibida foram validados. Ela pode ser
+isolada temporariamente durante o dry-run, mas nunca promovida.
 
 ## Regra de restauração
 

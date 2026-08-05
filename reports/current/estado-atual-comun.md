@@ -722,3 +722,13 @@ dry-run reconciliado ficou com uma única pendência não classificada:
 `20260805090000_comun_member_profile_territory_selection.sql`. Resultado
 vigente: `COMUN_48_1B_R1A_BLOCKED_PENDING_MIGRATION_CLASSIFICATION`. Nenhuma
 flag, piloto, deployment ou escrita remota foi executada.
+
+## 48.1B-R1B — baseline CLI reconciliado (05/08/2026)
+
+O manifesto local-only de território foi reconhecido e validado exatamente;
+as migrations local-only permaneceram fora do plano remoto. A quarentena foi
+restaurada e o dry-run retornou `upToDate=true` com arrays vazios.
+
+Resultado vigente: `COMUN_48_1B_R1_EXTERNAL_LEDGER_AND_LOCAL_ONLY_RECONCILED_CLI_BASELINE_EMPTY`.
+Isso não ativa Production nem o piloto; R2 pode ser preparado, sem escrita
+remota.

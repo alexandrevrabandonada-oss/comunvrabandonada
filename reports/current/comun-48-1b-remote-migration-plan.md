@@ -43,3 +43,11 @@ A quarentena temporária deixou o dry-run limpo para a migration excepcional e
 as migrations explicitamente local-only. O baseline ainda propôs
 `20260805090000_comun_member_profile_territory_selection.sql`, sem manifesto ou
 declaração local-only. Resultado: `COMUN_48_1B_R1A_BLOCKED_PENDING_MIGRATION_CLASSIFICATION`.
+
+## R1B — baseline vazio
+
+O manifesto de território foi reconhecido como `LOCAL_ONLY_MANIFEST_EXACT` e
+incluído na quarentena permitida. O dry-run reconciliado ficou vazio; não há
+plano remoto pendente. A migration local-only continua proibida de promoção.
+
+Resultado: `COMUN_48_1B_R1_EXTERNAL_LEDGER_AND_LOCAL_ONLY_RECONCILED_CLI_BASELINE_EMPTY`.

@@ -56,3 +56,15 @@ limpo para a migration excepcional e as migrations explicitamente local-only.
 O baseline ainda propôs `20260805090000_comun_member_profile_territory_selection.sql`,
 que não possui manifesto nem classificação local-only. Resultado vigente:
 `COMUN_48_1B_R1A_BLOCKED_PENDING_MIGRATION_CLASSIFICATION`.
+
+## 48.1B-R1B — manifesto local-only de território (05/08/2026)
+
+O inventário passou a procurar explicitamente em `supabase/local-releases/` e
+`supabase/releases/`. O manifesto de território corresponde exatamente à
+migration, ao SHA `90ae54c1…`, ao escopo `local-only` e às barreiras de promoção;
+resultado `LOCAL_ONLY_MANIFEST_EXACT`.
+
+Após quarentena com restauração `finally`, o dry-run retornou `upToDate=true`,
+sem migrations, seeds, roles ou escrita. Resultado R1:
+`COMUN_48_1B_R1_EXTERNAL_LEDGER_AND_LOCAL_ONLY_RECONCILED_CLI_BASELINE_EMPTY`.
+Nenhuma migration local-only foi promovida e o piloto continua fechado.

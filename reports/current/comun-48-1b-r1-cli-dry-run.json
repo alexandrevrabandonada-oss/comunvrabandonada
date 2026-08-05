@@ -1,9 +1,10 @@
 {
-  "result": "COMUN_48_1B_R1A_BLOCKED_PENDING_MIGRATION_CLASSIFICATION",
+  "result": "COMUN_48_1B_R1B_CLI_BASELINE_RECONCILED_EMPTY",
   "migrationList": {
     "exceptionalMigration": "20260724233256",
     "remoteLedger": "absent",
-    "laterRemoteMigrationsPresent": true
+    "laterRemoteMigrationsPresent": true,
+    "localOnlyManifest": "supabase/local-releases/20260805090000-comun-territory-neighborhood-catalog.json"
   },
   "dryRun": {
     "command": "supabase db push --linked --dry-run",
@@ -12,19 +13,20 @@
     "suggestionObserved": null,
     "includeAllUsed": false,
     "mutatingPush": false,
-    "pending": ["20260805090000_comun_member_profile_territory_selection.sql"]
+    "pending": []
   },
-  "emptyBaseline": false,
+  "emptyBaseline": true,
   "quarantine": {
     "executed": true,
     "restored": true,
-    "reason": "scoped_external_ledger_exact"
+    "reason": "scoped_external_ledger_and_all_local_only_manifests_exact"
   },
   "tests": {
     "focused": "87/87",
     "aggregateSolo": "105/105",
     "promotionRunner": "31/31",
     "exceptionContract": "2/2",
+    "manifestClassifier": "4/4",
     "typecheck": "passed",
     "lint": "passed",
     "build": "passed"
