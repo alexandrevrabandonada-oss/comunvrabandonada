@@ -617,3 +617,27 @@ rollback e métricas sanitizadas foram documentados; preflight remoto e
 checkpoint ainda precisam ser executados antes de qualquer promoção. Ônibus,
 STMU e encaminhamento ficam fora do primeiro conjunto core. Nenhuma expansão
 fechada, piloto público ou ativação ampla foi iniciada.
+
+## Pós-merge e bloqueio do preflight remoto
+
+O 48.0M foi mesclado pela PR #170 no SHA
+`dcc0baa414c114f2ced7e8d57aae1f32af1af233`, com CI/Preview verdes e Production
+dormente. O smoke read-only pós-merge preservou as rotas públicas e encontrou
+405 em métodos sem handler de `/api/comun/relata`; a correção focal está na
+branch `codex/tijolo-48-1a-owner-allowlisted-pilot`.
+
+O preflight remoto do 48.1A foi bloqueado por permissão no projeto Supabase
+correto (`COMUN_48_1A_REMOTE_PREFLIGHT_BLOCKED_PROJECT_PERMISSION`). Não houve
+consulta de schema/ledger/RLS, migration remota, criação de allowlist, ativação
+de flag, piloto ou envio externo. O próximo passo é recuperar a autorização
+read-only do projeto antes de qualquer promoção controlada.
+
+O responsável liberou uma sessão Chrome autenticada para leitura manual. O
+painel confirmou o projeto-alvo e permitiu observar, sem mutação, o catálogo de
+tabelas públicas, a tela de migrations, os buckets e a tela de provedores. As
+buscas públicas por `wallet`, `particip` e `relata` não retornaram tabela; a
+tela de migrations não mostrou entradas; os buckets privados existentes
+incluem `comun-report-attachments` e `comun-public-safe-attachments`, mas não
+há bucket `comun-relata-private` visível. Isso é evidência de UI, não prova de
+schema privado, RLS, grants ou ledger. O blocker permanece e nenhuma promoção
+foi tentada.
