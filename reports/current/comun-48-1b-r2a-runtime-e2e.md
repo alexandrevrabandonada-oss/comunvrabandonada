@@ -1,5 +1,17 @@
 # 48.1B-R2A — E2E privado de runtime
 
+## Retomada F1 (2026-08-05)
+
+O SQLSTATE `42702` foi corrigido por migration posterior e monotônica, sem
+alterar a candidata congelada. A nova cadeia é exatamente:
+
+1. `20260805130000_comun_production_pilot_core_bundle.sql`;
+2. `20260805201000_comun_production_pilot_attachment_rpc_fix.sql`.
+
+O teste focal de banco e o E2E completo estão sendo executados na lane CI
+descartável `31043986822`; o resultado permanece pendente até a conclusão dessa
+lane. A PR #174 continua draft.
+
 ## Estado
 
 `COMUN_48_1B_R2A_BLOCKED_RUNTIME_E2E_FUNCTIONAL_FAILURE`

@@ -1,5 +1,20 @@
 {
-  "result": "COMUN_48_1B_R1_BLOCKED_SIDEWALK_REMOTE_STATE_UNPROVEN",
+  "chain": [
+    {
+      "path": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
+      "sha256": "0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9",
+      "activationAllowed": false
+    },
+    {
+      "path": "supabase/migrations/20260805201000_comun_production_pilot_attachment_rpc_fix.sql",
+      "sha256": "f092f26df14fe9f724be9b3a6ad9d46fb5d73145d8cf2072933ac0c5917addcc",
+      "activationAllowed": false,
+      "dependsOn": "20260805130000-comun-production-pilot-core-bundle"
+    }
+  ],
+  "remoteApplied": false,
+  "dryRunAfterHotfix": "pending",
+  "result": "COMUN_48_1B_R2A_ATTACHMENT_RPC_FORWARD_FIX_IN_CI",
   "baseline": "7e2d259e193c0d8841c57b89002f551c9a9c2ad",
   "projectRef": "nvmdszymrtacfehdynpg",
   "cliVersion": "2.111.0",

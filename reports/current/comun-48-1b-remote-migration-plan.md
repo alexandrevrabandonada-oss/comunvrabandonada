@@ -51,3 +51,13 @@ incluído na quarentena permitida. O dry-run reconciliado ficou vazio; não há
 plano remoto pendente. A migration local-only continua proibida de promoção.
 
 Resultado: `COMUN_48_1B_R1_EXTERNAL_LEDGER_AND_LOCAL_ONLY_RECONCILED_CLI_BASELINE_EMPTY`.
+# 48.1B-R2A-F1 — plano de cadeia forward-only
+
+O plano de código contém somente a candidata congelada e o hotfix posterior.
+O hotfix tem `requiresPromotion=true`, `remotePromotionAllowed=true` e depende
+explicitamente da candidata, mas nenhuma das duas foi aplicada no Supabase
+remoto neste checkpoint. O dry-run remoto ainda não foi executado após o novo
+commit; a PR permanece draft até o E2E e a validação de plano concluírem.
+
+Não usar `migration repair`, `--include-all`, `db reset --linked`, `db pull`,
+seed remoto ou qualquer ativação.

@@ -786,3 +786,17 @@ descartáveis, E2E do runtime, auditoria RLS/grants, rollback e dry-run exato.
   na RPC `public.comun_relata_begin_attachment`;
 - resultado: `COMUN_48_1B_R2A_BLOCKED_RUNTIME_E2E_FUNCTIONAL_FAILURE`;
 - nenhum schema remoto, flag pública, Google, allowlist, piloto ou `launch_publicly` foi alterado.
+
+## 48.1B-R2A-F1 — hotfix da RPC de anexos (2026-08-05)
+
+- head: `7f120522ac65d9bea3ce5ec559f63367bc7bac05`;
+- candidata preservada com SHA `0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9`;
+- hotfix forward-only: `20260805201000_comun_production_pilot_attachment_rpc_fix.sql`;
+- hotfix SHA: `f092f26df14fe9f724be9b3a6ad9d46fb5d73145d8cf2072933ac0c5917addcc`;
+- correção: qualificação `a.label_index`, variável `v_label_index` e lock do relatório autorizado;
+- privilégios: somente `service_role`;
+- static gates: validator, topology, typecheck, lint e build verdes;
+- Docker local: indisponível; SQL focal e E2E aguardando CI descartável `31043986822`;
+- PR #174: draft;
+- resultado vigente: `COMUN_48_1B_R2A_ATTACHMENT_RPC_FORWARD_FIX_IN_CI`;
+- schema remoto, flags, Google, allowlist, piloto e `launch_publicly`: inalterados/fechados.
