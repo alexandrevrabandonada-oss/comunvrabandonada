@@ -33,3 +33,7 @@ Com a flag desligada, a ação de perfil não envia as novas colunas, preservand
 ## Próxima validação
 
 Conferir a lista contra o shapefile oficial quando o endpoint estiver acessível e registrar aliases/loteamentos separadamente, sem transformar nomes populares em limites oficiais.
+
+## Smoke local
+
+O responsável pelo produto confirmou cadastro, login, acesso à Minha Participação e conclusão do onboarding no laboratório local. A confirmação é um smoke operacional do ambiente, não um ensaio humano integrado nem autorização para ativação pública.

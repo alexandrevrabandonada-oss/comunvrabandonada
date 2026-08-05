@@ -26,6 +26,15 @@
     "googleButton": false,
     "googleScript": false
   },
-  "communityE2E": "blocked_local_supabase_bootstrap",
-  "infraCause": "LOCAL_SUPABASE_RESOURCE_EXHAUSTION_OR_BOOTSTRAP_FAILURE"
+  "communityE2E": "local_harness_recovered_manual_smoke_green",
+  "infraCause": "LOCAL_SUPABASE_PORT_RESERVATION_55432_RECOVERED_ON_ALTERNATE_PORTS",
+  "manualSmoke": {
+    "operator": "responsável pelo produto",
+    "signup": "green",
+    "login": "green",
+    "participationArea": "green",
+    "onboarding": "green",
+    "externalSubmission": false,
+    "integratedHumanRehearsal": "pending"
+  }
 }

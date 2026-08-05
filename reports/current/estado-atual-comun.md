@@ -23,7 +23,8 @@
 - Carteira anônima não é rotacionada, reivindicada silenciosamente ou duplicada;
 - resultado: `COMUN_AUTH_GOOGLE_48_0M_CODE_READY_PROVIDER_CONFIGURATION_PENDING`;
 - provider Google permanece não configurado, flag Production desligada, `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE` preservado e 48.1 não iniciado.
-- regressão E2E comunitária tentou o setup, mas o Supabase descartável não iniciou em duas tentativas (`ECONNREFUSED 127.0.0.1:55431`/bootstrap); não houve efeito remoto e a configuração local foi restaurada.
+- regressão E2E comunitária inicialmente encontrou `ECONNREFUSED 127.0.0.1:55431`; o laboratório foi recuperado em portas alternativas após reserva da `55432`, o reset integral local ficou verde e a configuração versionada foi restaurada;
+- smoke manual do responsável pelo produto confirmou cadastro, login, Minha Participação e onboarding no laboratório LAN; nenhum canal externo foi acionado; `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE` permanece.
 
 ## Catálogo territorial de bairros — integração local
 

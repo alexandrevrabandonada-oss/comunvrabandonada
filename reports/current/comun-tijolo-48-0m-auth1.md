@@ -31,7 +31,8 @@ Data: 2026-08-05
 - rotas geradas incluem callback e completar-conta;
 - smoke local com a flag desligada confirmou `/comun/entrar` e `/comun/criar-conta` em `200`, sem o botão Google e sem script `accounts.google.com`;
 - provider real não foi acionado; nenhum segredo foi usado.
-- E2E comunitário completo foi tentado, mas o harness parou no setup por `ECONNREFUSED 127.0.0.1:55431`; duas tentativas de reset local descartável falharam no bootstrap do container. Não foi classificado como finding OAuth e a configuração de portas foi restaurada.
+- o primeiro E2E comunitário encontrou `ECONNREFUSED 127.0.0.1:55431`; a recuperação local remapeou temporariamente a stack para portas alternativas, aplicou o reset descartável integral e restaurou a configuração versionada;
+- smoke manual do responsável pelo produto: cadastro, login, Minha Participação e onboarding acessíveis e funcionais no laboratório LAN; nenhum canal externo foi acionado.
 
 ## Estado e gates
 
