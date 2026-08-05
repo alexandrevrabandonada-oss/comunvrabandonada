@@ -1,7 +1,7 @@
 # COMUN — Tijolo 48.0M · fechamento técnico
 
-Data: 2026-08-05  
-Branch: `codex/tijolo-48-0m-integrated-human-rehearsal`  
+Data: 2026-08-05
+Branch: `codex/tijolo-48-0m-integrated-human-rehearsal`
 HEAD local: `a930ff1c22b5a263ad96a87123eeba107317267d`
 
 ## Resultado
