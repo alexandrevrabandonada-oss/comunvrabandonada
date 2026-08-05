@@ -16,6 +16,7 @@ test("production CLI chain excludes explicit local-only migrations", () => {
     [
       "20260805130000_comun_production_pilot_core_bundle.sql",
       "20260805201000_comun_production_pilot_attachment_rpc_fix.sql",
+      "20260805212659_comun_production_pilot_wallet_account_rpc_fix.sql",
     ],
   );
   assert.ok(!names.some((name) => name.startsWith("20260803") || name.startsWith("20260804") || name.startsWith("20260805090000")));

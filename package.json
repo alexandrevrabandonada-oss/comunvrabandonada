@@ -90,6 +90,7 @@
     "relata:topology:test": "node --test scripts/relata/migration-topology.node-test.mjs",
     "relata:r2a:private:e2e:local": "node scripts/solo/rehearse-r2a-private-evidence-account-local.mjs",
     "relata:r2a:attachment-fix:test": "node scripts/solo/r2a-attachment-rpc-fix-local.mjs",
+    "relata:r2a:wallet-account-fix:test": "node scripts/solo/r2a-wallet-account-rpc-fix-local.mjs",
     "relata:r2a:private:e2e:workflow:test": "node --test scripts/solo/r2a-private-runtime-e2e-workflow.node-test.mjs",
     "relata:retention:dry-run": "node scripts/comun-local-env.mjs run node scripts/relata/retention-dry-run.mjs",
     "relata:evidence:cleanup": "node scripts/comun-local-env.mjs run node scripts/relata/evidence-cleanup.mjs",

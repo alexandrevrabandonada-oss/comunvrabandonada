@@ -13,6 +13,7 @@ const ALLOWED_LEGACY_GRANT_REPAIR = "revoke trigger, truncate on table public.co
 const OPERATIONAL_HARDENING_RELEASE = "20260724233256-comun-sidewalk-operational-hardening";
 const R2A_PRODUCTION_BUNDLE_RELEASE = "20260805130000-comun-production-pilot-core-bundle";
 const R2A_ATTACHMENT_RPC_FIX_RELEASE = "20260805201000-comun-production-pilot-attachment-rpc-fix";
+const R2A_WALLET_ACCOUNT_RPC_FIX_RELEASE = "20260805212659-comun-production-pilot-wallet-account-rpc-fix";
 
 export function selectReleaseManifest(value = arg?.slice(19) ?? process.env.COMUN_RELEASE_MANIFEST) {
   if (!value) {
@@ -40,7 +41,8 @@ export function validateForwardOnlySqlText(release, migration) {
   const requiresLegacyGrantRepair = release.release === OPERATIONAL_HARDENING_RELEASE;
   const requiresSidewalkSummaryException =
     release.release !== R2A_PRODUCTION_BUNDLE_RELEASE &&
-    release.release !== R2A_ATTACHMENT_RPC_FIX_RELEASE;
+    release.release !== R2A_ATTACHMENT_RPC_FIX_RELEASE &&
+    release.release !== R2A_WALLET_ACCOUNT_RPC_FIX_RELEASE;
   const allowedStatements = [
     ...(requiresSidewalkSummaryException ? [ALLOWED_PUBLIC_SUMMARY_NULLABILITY] : []),
     ...(requiresLegacyGrantRepair ? [ALLOWED_LEGACY_GRANT_REPAIR] : []),
@@ -56,7 +58,8 @@ export function validateForwardOnlySqlText(release, migration) {
   }
   const dynamicSql =
     release.release === R2A_PRODUCTION_BUNDLE_RELEASE ||
-    release.release === R2A_ATTACHMENT_RPC_FIX_RELEASE
+    release.release === R2A_ATTACHMENT_RPC_FIX_RELEASE ||
+    release.release === R2A_WALLET_ACCOUNT_RPC_FIX_RELEASE
       ? ""
       : "|\\bexecute\\s+(immediate|format)\\b";
   if (new RegExp(`\\bdrop\\s+(table|schema|function|view|index|policy|sequence)\\b|\\btruncate\\b|\\bdelete\\s+from\\b|\\bcascade\\b${dynamicSql}`, "i").test(remaining)) marker("SOLO_CANONICAL_RELEASE_DESTRUCTIVE_SQL");

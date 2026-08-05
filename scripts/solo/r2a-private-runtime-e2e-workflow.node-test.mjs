@@ -10,7 +10,9 @@ test("R2A private runtime E2E lane is isolated and reproducible", () => {
   assert.match(workflow, /supabase start[\s\S]+supabase db reset --local --yes/);
   assert.match(workflow, /npm run relata:r2a:private:e2e:local/);
   assert.match(workflow, /npm run relata:r2a:attachment-fix:test/);
+  assert.match(workflow, /npm run relata:r2a:wallet-account-fix:test/);
   assert.match(workflow, /20260805201000_comun_production_pilot_attachment_rpc_fix\.sql/);
+  assert.match(workflow, /20260805212659_comun_production_pilot_wallet_account_rpc_fix\.sql/);
   assert.match(workflow, /supabase stop --no-backup/);
   assert.match(workflow, /COMUN_R2A_E2E_CLEANUP_CONTAINERS_REMAIN/);
   assert.match(workflow, /test -z "\$\{SUPABASE_ACCESS_TOKEN:-\}"/);

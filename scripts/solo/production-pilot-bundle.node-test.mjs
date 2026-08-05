@@ -13,6 +13,12 @@ const attachmentFixManifestPath =
   "supabase/releases/20260805201000-comun-production-pilot-attachment-rpc-fix.json";
 const chainManifestPath =
   "supabase/releases/20260805130000-comun-production-pilot-core-chain.json";
+const walletFixMigrationPath =
+  "supabase/migrations/20260805212659_comun_production_pilot_wallet_account_rpc_fix.sql";
+const walletFixManifestPath =
+  "supabase/releases/20260805212659-comun-production-pilot-wallet-account-rpc-fix.json";
+const chainV2ManifestPath =
+  "supabase/releases/20260805214000-comun-production-pilot-core-chain-v2.json";
 
 test("R2A bundle manifest is exact and promotion-gated", async () => {
   const sql = await readFile(migrationPath, "utf8");
@@ -85,5 +91,29 @@ test("R2A attachment fix is forward-only and preserves the candidate checksum", 
   assert.doesNotMatch(fix, /\b(drop\s+(table|schema)|truncate|delete\s+from|update\s+)/i);
   assert.deepEqual(chain.migrations.map((entry) => entry.path), [migrationPath, attachmentFixMigrationPath]);
   assert.deepEqual(chain.migrations.map((entry) => entry.order), [1, 2]);
+  assert.equal(chain.activationRequiresCompleteChain, true);
+});
+
+test("R2A wallet-account fix is forward-only and forms the exact v2 chain", async () => {
+  const fix = await readFile(walletFixMigrationPath, "utf8");
+  const manifest = JSON.parse(await readFile(walletFixManifestPath, "utf8"));
+  const chain = JSON.parse(await readFile(chainV2ManifestPath, "utf8"));
+  assert.equal(manifest.sha256, createHash("sha256").update(fix).digest("hex"));
+  assert.equal(manifest.migrationSha256, manifest.sha256);
+  assert.deepEqual(manifest.dependsOn, [
+    "20260805130000-comun-production-pilot-core-bundle",
+    "20260805201000-comun-production-pilot-attachment-rpc-fix",
+  ]);
+  assert.equal(manifest.dataMutation, false);
+  assert.equal(manifest.publicProjection, false);
+  assert.equal(manifest.externalForwarding, false);
+  assert.match(fix, /create or replace function public\.comun_participation_wallet_link_account/);
+  assert.match(fix, /v_wallet_id/);
+  assert.match(fix, /on conflict on constraint\s+comun_participation_wallet_account_links_wallet_id_user_id_key/);
+  assert.doesNotMatch(fix, /on conflict\s*\(\s*wallet_id\s*,\s*user_id\s*\)/i);
+  assert.match(fix, /revoke all on function public\.comun_participation_wallet_link_account/);
+  assert.match(fix, /grant execute on function public\.comun_participation_wallet_link_account/);
+  assert.deepEqual(chain.migrations.map((entry) => entry.path), [migrationPath, attachmentFixMigrationPath, walletFixMigrationPath]);
+  assert.deepEqual(chain.migrations.map((entry) => entry.order), [1, 2, 3]);
   assert.equal(chain.activationRequiresCompleteChain, true);
 });

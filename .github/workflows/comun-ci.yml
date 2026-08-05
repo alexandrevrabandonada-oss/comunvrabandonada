@@ -59,8 +59,9 @@ jobs:
         run: |
           test -f supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql
           test -f supabase/migrations/20260805201000_comun_production_pilot_attachment_rpc_fix.sql
-          test -f supabase/releases/20260805130000-comun-production-pilot-core-chain.json
-          test "$(find supabase/migrations -maxdepth 1 -type f -name '20260805*.sql' | wc -l)" -eq 2
+          test -f supabase/migrations/20260805212659_comun_production_pilot_wallet_account_rpc_fix.sql
+          test -f supabase/releases/20260805214000-comun-production-pilot-core-chain-v2.json
+          test "$(find supabase/migrations -maxdepth 1 -type f -name '20260805*.sql' | wc -l)" -eq 3
           test -d supabase/local-migrations
           ! find supabase/migrations -maxdepth 1 -type f -name '20260803*.sql' -o -name '20260804*.sql' -o -name '20260805090000*.sql' | grep -q .
       - run: npm run relata:topology:test
@@ -68,6 +69,7 @@ jobs:
       - run: npm run db:privileges:lint
       - run: npm run solo:sql:validate -- --release-manifest=supabase/releases/20260805130000-comun-production-pilot-core-bundle.json
       - run: npm run solo:sql:validate -- --release-manifest=supabase/releases/20260805201000-comun-production-pilot-attachment-rpc-fix.json
+      - run: npm run solo:sql:validate -- --release-manifest=supabase/releases/20260805212659-comun-production-pilot-wallet-account-rpc-fix.json
       - run: node --test scripts/solo/production-pilot-bundle.node-test.mjs
       - run: npm run relata:r2a:private:e2e:workflow:test
       - run: npm run typecheck
@@ -152,6 +154,7 @@ jobs:
           export COMUN_R2A_USE_BUILT_SERVER=1
           export COMUN_R2A_E2E_LOG="$GITHUB_WORKSPACE/.ci-artifacts/r2a-private-runtime-e2e/next.log"
           npm run relata:r2a:attachment-fix:test > .ci-artifacts/r2a-private-runtime-e2e/attachment-fix.log 2>&1
+          npm run relata:r2a:wallet-account-fix:test > .ci-artifacts/r2a-private-runtime-e2e/wallet-account-fix.log 2>&1
           npm run build > .ci-artifacts/r2a-private-runtime-e2e/build.log 2>&1
           set +e
           npm run relata:r2a:private:e2e:local > .ci-artifacts/r2a-private-runtime-e2e/e2e.log 2>&1
