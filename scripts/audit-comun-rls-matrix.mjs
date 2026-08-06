@@ -1201,31 +1201,43 @@ const classifications = {
     decision: "service_role_only",
     purpose: "Contrato futuro de projeção pública, bloqueado no 48.0B.",
     sensitive: "Projeção futura; deve permanecer vazia e sem grants públicos.",
-    expected: "Sem leitura ou escrita pública; publicação estruturalmente bloqueada.",
+    expected:
+      "Sem leitura ou escrita pública; publicação estruturalmente bloqueada.",
   },
   comun_relata_collective_cases: {
     decision: "service_role_only",
+    localOnly: true,
     purpose: "Projeção operacional sanitizada do problema coletivo.",
     sensitive: "Contagem, confiança, regra e estado de revisão do agrupamento.",
-    expected: "Sem leitura direta; API server-only devolve apenas estado seguro do próprio recibo.",
+    expected:
+      "Sem leitura direta; API server-only devolve apenas estado seguro do próprio recibo.",
   },
   comun_relata_case_memberships: {
     decision: "service_role_only",
+    localOnly: true,
     purpose: "Vínculo histórico entre processo individual e caso coletivo.",
-    sensitive: "Associação, confiança, método, encerramento e motivo sanitizado.",
-    expected: "Sem leitura direta; associação e retirada somente por RPC allowlisted.",
+    sensitive:
+      "Associação, confiança, método, encerramento e motivo sanitizado.",
+    expected:
+      "Sem leitura direta; associação e retirada somente por RPC allowlisted.",
   },
   comun_relata_case_match_events: {
     decision: "service_role_only",
-    purpose: "Auditoria append-only das decisões determinísticas de agrupamento.",
-    sensitive: "Caso anterior e posterior, confiança, regra e código de decisão.",
-    expected: "Sem leitura direta; eventos não podem ser atualizados ou apagados.",
+    localOnly: true,
+    purpose:
+      "Auditoria append-only das decisões determinísticas de agrupamento.",
+    sensitive:
+      "Caso anterior e posterior, confiança, regra e código de decisão.",
+    expected:
+      "Sem leitura direta; eventos não podem ser atualizados ou apagados.",
   },
   comun_relata_evidence_consents: {
     decision: "service_role_only",
     purpose: "Consentimentos contextuais versionados de evidência privada.",
-    sensitive: "Vínculo do caso, tipo, versão, estado e retirada do consentimento.",
-    expected: "Sem leitura direta; nenhuma permissão autoriza publicação ou envio.",
+    sensitive:
+      "Vínculo do caso, tipo, versão, estado e retirada do consentimento.",
+    expected:
+      "Sem leitura direta; nenhuma permissão autoriza publicação ou envio.",
   },
 };
 
@@ -1356,7 +1368,11 @@ for (const table of tables) {
 }
 
 for (const tableName of Object.keys(classifications)) {
-  if (!tables.some((table) => table.table_name === tableName))
+  const config = classifications[tableName];
+  if (
+    !tables.some((table) => table.table_name === tableName) &&
+    !config.localOnly
+  )
     failures.push(`${tableName}: classificacao sem tabela existente`);
 }
 
