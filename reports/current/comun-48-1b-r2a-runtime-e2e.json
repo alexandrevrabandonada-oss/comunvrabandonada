@@ -72,6 +72,15 @@
     "remoteContacted": false,
     "artifactSanitizationFinding": "local_storage_keys_were_present_in_startup_log"
   },
+  "ciRuntimeAttempt2": {
+    "run": "31058759867",
+    "startup": "COMUN_48_1B_R2A_CI_STARTUP_GREEN",
+    "e2e": "COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN",
+    "cleanup": "cancelled_by_runner_after_e2e",
+    "cleanupClassification": "COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP",
+    "remoteContacted": false,
+    "artifactSanitizationFinding": "redaction_patch_not_yet_in_this_attempt"
+  },
   "secondaryFinding": {
     "kind": "functional",
     "rpc": "public.comun_participation_wallet_link_account",

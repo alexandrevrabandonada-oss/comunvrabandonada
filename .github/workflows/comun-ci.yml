@@ -123,19 +123,25 @@ jobs:
           : > .ci-artifacts/r2a-private-runtime-e2e/startup-classification.json
           cleanup() {
             local stop_status=0
-            timeout --foreground 120s supabase stop --no-backup >/dev/null 2>&1 || stop_status=$?
+            echo 'COMUN_R2A_E2E_CLEANUP_START'
+            timeout -k 10s 120s supabase stop --no-backup >/dev/null 2>&1 || stop_status=$?
             if [[ "$stop_status" -eq 124 || "$stop_status" -eq 137 ]]; then
               echo 'COMUN_R2A_E2E_CLEANUP_TIMEOUT'
             elif [[ "$stop_status" -ne 0 ]]; then
               echo "COMUN_R2A_E2E_CLEANUP_STOP_FAILED status=$stop_status"
             fi
-            if docker ps -a --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA' --format '{{.ID}}' | grep -q .; then
+            mapfile -t residual_ids < <(docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA')
+            if (( ${#residual_ids[@]} )); then
+              docker rm -f "${residual_ids[@]}" >/dev/null 2>&1 || true
+            fi
+            if docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA' | grep -q .; then
               echo 'COMUN_R2A_E2E_CLEANUP_CONTAINERS_REMAIN'
               exit 1
             fi
             if [[ "$stop_status" -ne 0 ]]; then
               exit 1
             fi
+            echo 'COMUN_R2A_E2E_CLEANUP_DONE'
           }
           trap cleanup EXIT
           export COMUN_R2A_ARTIFACT_DIR="$GITHUB_WORKSPACE/.ci-artifacts/r2a-private-runtime-e2e"

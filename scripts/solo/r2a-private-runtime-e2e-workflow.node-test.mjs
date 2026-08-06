@@ -48,7 +48,9 @@ test("R2A private runtime E2E lane is isolated and reproducible", () => {
   assert.match(workflow, /supabase stop --no-backup/);
   assert.match(workflow, /COMUN_R2A_E2E_CLEANUP_CONTAINERS_REMAIN/);
   assert.match(workflow, /COMUN_R2A_E2E_CLEANUP_TIMEOUT/);
-  assert.match(workflow, /timeout --foreground 120s supabase stop --no-backup/);
+  assert.match(workflow, /timeout -k 10s 120s supabase stop --no-backup/);
+  assert.match(workflow, /docker rm -f/);
+  assert.match(workflow, /COMUN_R2A_E2E_CLEANUP_DONE/);
   assert.match(workflow, /test -z "\$\{SUPABASE_ACCESS_TOKEN:-\}"/);
   assert.match(workflow, /test -z "\$\{SUPABASE_DB_URL:-\}"/);
   assert.doesNotMatch(

@@ -834,3 +834,9 @@ descartáveis, E2E do runtime, auditoria RLS/grants, rollback e dry-run exato.
 - novo attempt é obrigatório; PR #174 permanece draft;
 - nenhum acesso ou escrita remota, migration, flag, Google, piloto ou
   `launch_publicly` ocorreu.
+
+O retry `31058759867` repetiu startup e E2E verdes, mas também terminou por
+cancelamento do runner durante cleanup (`COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP`).
+O patch corrente usa timeout com kill escalonado e remove apenas containers
+rotulados do laboratório antes da verificação final. Um terceiro attempt deve
+confirmar `COMUN_R2A_E2E_CLEANUP_DONE` antes de qualquer READY/merge.

@@ -95,3 +95,18 @@ locais de Storage no log sanitizado. O patch CI1 seguinte adiciona redação por
 rótulo/JSON e `timeout --foreground 120s supabase stop --no-backup`, mantendo a
 verificação de containers residuais. Um novo attempt é obrigatório; a PR segue
 draft.
+
+## CI1 retry 2 — attempt 31058759867 (2026-08-06)
+
+O segundo attempt reproduziu os dois sinais positivos:
+
+- startup: `COMUN_48_1B_R2A_CI_STARTUP_GREEN`;
+- Auth/PostgREST/Storage `200/200/400` e Postgres `true`;
+- E2E: `COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN`;
+- nenhum contato remoto ou dado real.
+
+O job voltou a ser cancelado pelo timeout global de 35 minutos depois do E2E.
+O cleanup ainda não publicou `DONE`, portanto o bloqueio permanece
+`COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP`. O patch seguinte troca o timeout para a
+forma não-interativa com kill escalonado e remove somente containers do label do
+laboratório antes da verificação final. Um terceiro attempt é necessário.
