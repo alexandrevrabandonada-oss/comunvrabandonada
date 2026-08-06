@@ -237,7 +237,7 @@ jobs:
           supabase db reset --local --yes
           db_url="$(supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
           [[ "$db_url" =~ ^postgresql://postgres:postgres@127\.0\.0\.1:[0-9]+/postgres$ ]]
-          supabase db query --local --file supabase/local-migrations/20260805090000_comun_member_profile_territory_selection.sql
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/local-migrations/20260805090000_comun_member_profile_territory_selection.sql
           local_env="$(supabase status -o env)"
           api_url="$(printf '%s\n' "$local_env" | sed -n 's/^API_URL="\(.*\)"$/\1/p')"
           anon_key="$(printf '%s\n' "$local_env" | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')"
