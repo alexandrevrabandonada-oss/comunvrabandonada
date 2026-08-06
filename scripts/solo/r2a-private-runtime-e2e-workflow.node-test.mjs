@@ -10,6 +10,10 @@ const startup = await readFile(
   new URL("./r2a-supabase-startup.mjs", import.meta.url),
   "utf8",
 );
+const harness = await readFile(
+  new URL("./rehearse-r2a-private-evidence-account-local.mjs", import.meta.url),
+  "utf8",
+);
 
 test("R2A private runtime E2E lane is isolated and reproducible", () => {
   assert.match(workflow, /name: COMUN R2A \/ private runtime E2E/);
@@ -51,6 +55,9 @@ test("R2A private runtime E2E lane is isolated and reproducible", () => {
   assert.match(workflow, /timeout -k 10s 120s supabase stop --no-backup/);
   assert.match(workflow, /docker rm -f/);
   assert.match(workflow, /COMUN_R2A_E2E_CLEANUP_DONE/);
+  assert.match(harness, /detached: process\.platform !== "win32"/);
+  assert.match(harness, /process\.kill\(-server\.pid, signal\)/);
+  assert.match(harness, /setTimeout\(resolve, 5000\)/);
   assert.match(workflow, /test -z "\$\{SUPABASE_ACCESS_TOKEN:-\}"/);
   assert.match(workflow, /test -z "\$\{SUPABASE_DB_URL:-\}"/);
   assert.doesNotMatch(
