@@ -49,3 +49,18 @@ Não houve consulta ou escrita no Supabase remoto, aplicação de migration,
 alteração de flags, Google, piloto ou deployment de ativação. A PR #174
 permanece draft; não é seguro marcar READY ou mesclar sem uma lane de runtime
 verde.
+
+## Fechamento CI1
+
+O attempt `31063191091` confirmou startup observável, E2E privado, cleanup e
+sanitização dos artefatos verdes. A lane de runtime está apta tecnicamente.
+Os checks agregados ainda encontram um contrato de schema preexistente:
+`territory_municipality` é exigido por jornadas integrais, mas só existe na
+migration local-only `supabase/local-migrations/20260805090000_comun_member_profile_territory_selection.sql`.
+
+Resultado vigente:
+
+`COMUN_48_1B_R2A_BLOCKED_PREEXISTING_SCHEMA_SCOPE`
+
+Por isso a PR #174 continua draft, sem READY/merge, promoção remota, flags,
+Google, piloto ou `launch_publicly`.

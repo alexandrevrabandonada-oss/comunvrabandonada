@@ -840,3 +840,11 @@ cancelamento do runner durante cleanup (`COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP`).
 O patch corrente usa timeout com kill escalonado e remove apenas containers
 rotulados do laboratório antes da verificação final. Um terceiro attempt deve
 confirmar `COMUN_R2A_E2E_CLEANUP_DONE` antes de qualquer READY/merge.
+
+O attempt `31063191091` confirmou startup, E2E privado, cleanup e artefatos
+sanitizados verdes. A execução completa continua bloqueada por
+`COMUN_48_1B_R2A_BLOCKED_PREEXISTING_SCHEMA_SCOPE`: jornadas agregadas assumem
+`territory_municipality` em `comun_member_profiles`, mas a coluna existe apenas
+na migration local-only `supabase/local-migrations/20260805090000_comun_member_profile_territory_selection.sql`.
+Não houve promoção dessa migration, escrita remota, ativação de flags, Google,
+piloto ou `launch_publicly`. A PR #174 permanece draft.

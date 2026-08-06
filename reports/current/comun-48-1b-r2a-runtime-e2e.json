@@ -1,7 +1,7 @@
 {
-  "result": "COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP",
+  "result": "COMUN_48_1B_R2A_BLOCKED_PREEXISTING_SCHEMA_SCOPE",
   "branch": "codex/tijolo-48-1b-production-domain-pilot",
-  "head": "9e51e5cb6d2bfa0c36a89a82102a0beb56e0e60f",
+  "head": "cc45507109b8d468761eb83855442cfe834f188c",
   "candidate": {
     "path": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
     "sha256": "0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9"
@@ -80,6 +80,39 @@
     "cleanupClassification": "COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP",
     "remoteContacted": false,
     "artifactSanitizationFinding": "redaction_patch_not_yet_in_this_attempt"
+  },
+  "ciRuntimeAttempt3": {
+    "run": "31063191091",
+    "startup": "COMUN_48_1B_R2A_CI_STARTUP_GREEN",
+    "services": {
+      "auth": 200,
+      "postgrest": 200,
+      "storage": 400,
+      "database": true
+    },
+    "e2e": "COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN",
+    "cleanup": "COMUN_R2A_E2E_CLEANUP_DONE",
+    "artifactSanitization": "green",
+    "remoteContacted": false,
+    "remoteMigrationApplied": false
+  },
+  "ciRuntimeAttempt4": {
+    "run": "31063601959",
+    "head": "cc45507109b8d468761eb83855442cfe834f188c",
+    "startup": "COMUN_48_1B_R2A_CI_STARTUP_GREEN",
+    "e2e": "COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN",
+    "cleanup": "COMUN_R2A_E2E_CLEANUP_DONE",
+    "artifactSanitization": "green",
+    "conclusion": "success",
+    "remoteContacted": false,
+    "remoteMigrationApplied": false
+  },
+  "fullCi": {
+    "status": "blocked",
+    "result": "COMUN_48_1B_R2A_BLOCKED_PREEXISTING_SCHEMA_SCOPE",
+    "run": "31063601906",
+    "finding": "aggregated journeys require territory_municipality, present only in local-only migration 20260805090000_comun_member_profile_territory_selection.sql",
+    "migrationPromoted": false
   },
   "secondaryFinding": {
     "kind": "functional",

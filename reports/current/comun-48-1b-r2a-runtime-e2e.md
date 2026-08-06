@@ -110,3 +110,31 @@ O cleanup ainda não publicou `DONE`, portanto o bloqueio permanece
 `COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP`. O patch seguinte troca o timeout para a
 forma não-interativa com kill escalonado e remove somente containers do label do
 laboratório antes da verificação final. Um terceiro attempt é necessário.
+
+## CI1 — attempt 31063191091 (fechamento do runtime)
+
+O terceiro attempt confirmou a recuperação completa da lane descartável:
+
+O mesmo estado foi reproduzido no head documental `cc45507109b8d468761eb83855442cfe834f188c`,
+no workflow run `31063601959`, concluído com sucesso.
+
+- startup: `COMUN_48_1B_R2A_CI_STARTUP_GREEN`;
+- Auth/PostgREST/Storage `200/200/400` e Postgres `true`;
+- E2E privado: `COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN`;
+- cleanup: `COMUN_R2A_E2E_CLEANUP_DONE`;
+- artefatos: redação de chaves e identificadores de Storage verificada;
+- nenhum contato remoto, migration remota ou dado real.
+
+O runtime E2E está verde. A suíte completa, porém, continua bloqueada por um
+contrato de schema preexistente: jornadas agregadas exigem a coluna
+`territory_municipality` em `comun_member_profiles`, mas ela existe somente na
+migration local-only `supabase/local-migrations/20260805090000_comun_member_profile_territory_selection.sql`
+e não no conjunto canônico de migrations. Essa migration local-only não foi
+promovida nem usada para mascarar o finding.
+
+Resultado vigente:
+
+`COMUN_48_1B_R2A_BLOCKED_PREEXISTING_SCHEMA_SCOPE`
+
+A PR #174 permanece draft: sem READY, merge, promoção remota, flags, Google,
+piloto ou `launch_publicly`.
