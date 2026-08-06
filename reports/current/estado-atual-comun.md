@@ -862,3 +862,14 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
 - unitários: 502/502; typecheck e lint focais verdes;
 - nenhum schema remoto, flag, Google, piloto ou `launch_publicly` foi alterado;
 - PR #174 aguarda CI nova antes de READY/merge.
+
+### Fechamento técnico S1 (2026-08-06)
+
+- head final: `9ab125d433fe99c5e4e918b5cc59117155a1d76a`;
+- Quality Performance e lane territorial local-only verdes no run `31128794554`;
+- topology e runtime E2E privado verdes no run `31129181849`;
+- cadeia R2A preservada, sem promoção da migration territorial local-only;
+- nenhuma flag, Google, piloto, migration remota ou `launch_publicly` foi alterada;
+- PR #174 pode avançar para READY/merge documental e técnico;
+- promoção remota continua separada, condicionada a dry-run exato das três
+  migrations R2A e sem promoção territorial.

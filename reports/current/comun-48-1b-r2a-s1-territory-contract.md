@@ -2,7 +2,8 @@
 
 Data: 2026-08-06
 Branch: `codex/tijolo-48-1b-production-domain-pilot`
-Head de trabalho: `2d0f6f04d25f11cc503d1935ec00a30ea51dd9ce`
+Head de trabalho inicial: `2d0f6f04d25f11cc503d1935ec00a30ea51dd9ce`
+Head verificado: `9ab125d433fe99c5e4e918b5cc59117155a1d76a`
 
 ## Diagnóstico
 
@@ -50,11 +51,15 @@ textuais, privados e sem coordenadas.
 - typecheck: verde;
 - lint focal: verde;
 - formatting e `git diff --check`: verdes;
+- Quality Performance e lane territorial local-only no head final: run `31128794554`, verde;
+- topology e runtime E2E privado no head final: run `31129181849`, verde;
+- runtime descartável, cadeia R2A e cleanup concluídos sem conexão remota;
 - nenhuma consulta ou escrita no Supabase remoto;
 - nenhuma alteração de flags, Google, piloto ou `launch_publicly`.
 
 ## Estado
 
-O runtime R2A permanece verde. A PR #174 precisa de nova CI após este patch;
-não está pronta para READY/merge até a jornada Production e a lane local-only
-ficarem verdes.
+O runtime R2A, a jornada candidata sem território e a lane local-only estão
+verdes no head final. A cadeia R2A continua sem migration territorial. A PR
+#174 pode avançar para READY/merge após a atualização documental; a promoção
+remota permanece uma fase posterior e não inclui a migration local-only.

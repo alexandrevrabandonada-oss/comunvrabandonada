@@ -1,7 +1,7 @@
 {
   "result": "COMUN_COMMUNITY_MINIMUM_ONBOARDING_SCHEMA_INDEPENDENT",
   "branch": "codex/tijolo-48-1b-production-domain-pilot",
-  "head": "2d0f6f04d25f11cc503d1935ec00a30ea51dd9ce",
+  "head": "9ab125d433fe99c5e4e918b5cc59117155a1d76a",
   "capability": {
     "resolver": "lib/comun-territory-profile.ts",
     "productionFlag": "COMUN_TERRITORY_PROFILE_ENABLED",
@@ -19,7 +19,13 @@
     "migration": "supabase/local-migrations/20260805090000_comun_member_profile_territory_selection.sql",
     "explicitOptIn": true,
     "privacy": "private",
-    "cleanup": "required"
+    "cleanup": "green",
+    "workflowRun": "31128794554"
+  },
+  "ci": {
+    "qualityPerformanceRun": "31128794554",
+    "comunCiRun": "31129181849",
+    "result": "green"
   },
   "r2aChainMutated": false,
   "remoteContacted": false,
