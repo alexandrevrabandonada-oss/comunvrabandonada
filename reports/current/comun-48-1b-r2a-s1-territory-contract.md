@@ -1,7 +1,7 @@
 # COMUN 48.1B-R2A-S1 — contrato territorial e onboarding mínimo
 
-Data: 2026-08-06  
-Branch: `codex/tijolo-48-1b-production-domain-pilot`  
+Data: 2026-08-06
+Branch: `codex/tijolo-48-1b-production-domain-pilot`
 Head de trabalho: `2d0f6f04d25f11cc503d1935ec00a30ea51dd9ce`
 
 ## Diagnóstico
