@@ -35,8 +35,13 @@ Supabase estivessem indisponíveis. O harness CI1 foi corrigido para criar
 artifacts antes do start, diagnosticar o runner, iniciar somente a stack
 necessária e aguardar até 12 minutos com heartbeat de 20 segundos.
 
-O novo attempt ainda precisa ser executado no SHA deste patch; não há
-classificação de saúde ou E2E funcional disponível neste momento.
+O attempt `31056455947` executou no SHA deste patch: o start observável passou
+(`COMUN_48_1B_R2A_CI_STARTUP_GREEN`) e o E2E privado passou
+(`COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN`). O runner foi cancelado
+somente durante o cleanup posterior, antes de concluir a lane; o resultado é
+`COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP`. O artifact também revelou chaves locais
+no log, corrigidas no patch CI1 seguinte com redação por rótulo/JSON e timeout
+de cleanup de 120 segundos.
 
 ## Estado remoto
 

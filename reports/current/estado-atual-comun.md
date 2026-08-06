@@ -819,3 +819,18 @@ descartáveis, E2E do runtime, auditoria RLS/grants, rollback e dry-run exato.
 - novo attempt neste SHA: pendente;
 - PR #174 continua draft; sem READY, merge, promoção remota ou flags;
 - Supabase remoto, Google, piloto e `launch_publicly`: inalterados/fechados.
+
+## 48.1B-R2A-CI1 — inicialização observável e cleanup (2026-08-06)
+
+- run `31056455947` iniciou a stack descartável com classificação
+  `COMUN_48_1B_R2A_CI_STARTUP_GREEN`;
+- Auth/PostgREST/Storage responderam `200/200/400` e o Postgres passou no probe;
+- E2E privado passou como
+  `COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN`;
+- o job foi cancelado pelo limite do runner durante cleanup, resultando em
+  `COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP`;
+- artifact revelou chaves locais no log sanitizado; redação por rótulo/JSON foi
+  corrigida e o stop agora possui timeout de 120 segundos;
+- novo attempt é obrigatório; PR #174 permanece draft;
+- nenhum acesso ou escrita remota, migration, flag, Google, piloto ou
+  `launch_publicly` ocorreu.

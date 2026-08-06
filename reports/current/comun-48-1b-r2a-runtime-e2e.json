@@ -1,5 +1,5 @@
 {
-  "result": "COMUN_48_1B_R2A_BLOCKED_CI_STARTUP_CANCELLED_BEFORE_HEALTH_RESULT",
+  "result": "COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP",
   "branch": "codex/tijolo-48-1b-production-domain-pilot",
   "head": "9e51e5cb6d2bfa0c36a89a82102a0beb56e0e60f",
   "candidate": {
@@ -38,7 +38,7 @@
     "account": "implemented_in_harness",
     "collectives": "disabled_and_no_rpc_expected"
   },
-  "ciRun": "31049697629",
+  "ciRun": "31056455947",
   "ciRetry": {
     "attempt": "single_focal_retry",
     "startedAt": "2026-08-05T22:17:02Z",
@@ -53,7 +53,24 @@
     "minimalStack": true,
     "heartbeatSeconds": 20,
     "startupLimitMinutes": 12,
-    "healthResult": "pending_new_sha"
+    "healthResult": "green",
+    "startupClassification": "COMUN_48_1B_R2A_CI_STARTUP_GREEN",
+    "startupElapsedMs": 133417,
+    "services": {
+      "auth": 200,
+      "postgrest": 200,
+      "storage": 400,
+      "database": true
+    }
+  },
+  "ciRuntimeAttempt": {
+    "run": "31056455947",
+    "startup": "COMUN_48_1B_R2A_CI_STARTUP_GREEN",
+    "e2e": "COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN",
+    "cleanup": "cancelled_by_runner_after_e2e",
+    "cleanupClassification": "COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP",
+    "remoteContacted": false,
+    "artifactSanitizationFinding": "local_storage_keys_were_present_in_startup_log"
   },
   "secondaryFinding": {
     "kind": "functional",

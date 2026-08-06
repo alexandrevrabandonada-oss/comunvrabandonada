@@ -72,3 +72,26 @@ Não houve migration remota, flag pública, Google, allowlist, piloto ou
   heartbeat de 20 segundos e limite real de 12 minutos;
 - novo attempt neste SHA: pendente;
 - PR #174 permanece draft; nenhuma migration remota, flag ou piloto foi ativado.
+
+## CI1 — attempt 31056455947 (2026-08-05/06)
+
+O wrapper observável confirmou a inicialização da stack descartável e a saúde
+dos serviços:
+
+- `startup-classification.json`: `COMUN_48_1B_R2A_CI_STARTUP_GREEN`;
+- Auth `200`, PostgREST `200`, Storage `400`, Postgres `true`;
+- startup em `133417 ms`;
+- E2E privado: `COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN`;
+- nenhum contato remoto, nenhuma migration remota e nenhum dado real.
+
+O job foi cancelado pelo limite do runner depois do E2E, durante o encerramento
+da stack. Portanto o resultado desta tentativa é:
+
+`COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP`
+
+Isso não é uma falha funcional do Relata nem prova de indisponibilidade do
+Supabase. O artifact também revelou que a redação anterior deixava chaves
+locais de Storage no log sanitizado. O patch CI1 seguinte adiciona redação por
+rótulo/JSON e `timeout --foreground 120s supabase stop --no-backup`, mantendo a
+verificação de containers residuais. Um novo attempt é obrigatório; a PR segue
+draft.

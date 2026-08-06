@@ -122,9 +122,18 @@ jobs:
           : > .ci-artifacts/r2a-private-runtime-e2e/startup-exit.txt
           : > .ci-artifacts/r2a-private-runtime-e2e/startup-classification.json
           cleanup() {
-            supabase stop --no-backup >/dev/null 2>&1 || true
+            local stop_status=0
+            timeout --foreground 120s supabase stop --no-backup >/dev/null 2>&1 || stop_status=$?
+            if [[ "$stop_status" -eq 124 || "$stop_status" -eq 137 ]]; then
+              echo 'COMUN_R2A_E2E_CLEANUP_TIMEOUT'
+            elif [[ "$stop_status" -ne 0 ]]; then
+              echo "COMUN_R2A_E2E_CLEANUP_STOP_FAILED status=$stop_status"
+            fi
             if docker ps -a --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA' --format '{{.ID}}' | grep -q .; then
               echo 'COMUN_R2A_E2E_CLEANUP_CONTAINERS_REMAIN'
+              exit 1
+            fi
+            if [[ "$stop_status" -ne 0 ]]; then
               exit 1
             fi
           }

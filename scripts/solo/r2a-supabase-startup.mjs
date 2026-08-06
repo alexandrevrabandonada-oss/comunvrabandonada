@@ -9,12 +9,34 @@ const heartbeatMs = 20 * 1000;
 
 const redact = (value) =>
   String(value ?? "")
-    .replace(
-      /(service_role|anon|access[_-]?token|password|secret|jwt|api[_-]?key|connection[_-]?string)[^\n=]*[=:][^\n]*/gi,
-      "$1=[REDACTED]",
-    )
+    .split(/\r?\n/)
+    .map((line) => {
+      const secretLabel = line.match(
+        /^(\s*(?:publishable|secret|access key|secret key)\b)/i,
+      );
+      if (secretLabel) return `${secretLabel[1]} [REDACTED]`;
+      const jsonSecret = line.match(
+        /^(\s*"?(?:PUBLISHABLE_KEY|SECRET|SERVICE_ROLE|ANON_KEY|ACCESS_KEY|SECRET_KEY)"?\s*:\s*)/i,
+      );
+      if (jsonSecret) return `${jsonSecret[1]}[REDACTED]`;
+      if (
+        /(service[_ -]?role|anon(?:[_ -]?key)?|access[_ -]?token|password|secret|jwt|api[_ -]?key|connection[_ -]?string|publishable|access key|secret key)/i.test(
+          line,
+        )
+      ) {
+        return line
+          .replace(/(:\s*|=\s*).*/g, "$1[REDACTED]")
+          .replace(
+            /\bsb_(?:publishable|secret)_[A-Za-z0-9_-]+\b/g,
+            "[KEY_REDACTED]",
+          );
+      }
+      return line;
+    })
+    .join("\n")
     .replace(/postgres(?:ql)?:\/\/[^\s]+/gi, "postgresql://[REDACTED]")
-    .replace(/eyJ[a-zA-Z0-9._-]+/g, "[JWT_REDACTED]");
+    .replace(/eyJ[a-zA-Z0-9._-]+/g, "[JWT_REDACTED]")
+    .replace(/\bsb_(?:publishable|secret)_[A-Za-z0-9_-]+\b/g, "[KEY_REDACTED]");
 
 const timestamp = () => new Date().toISOString();
 const append = async (name, value) =>
