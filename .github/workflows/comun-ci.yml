@@ -78,9 +78,14 @@ jobs:
   r2a-private-runtime-e2e:
     name: COMUN R2A / private runtime E2E
     if: >-
-      github.event_name == 'pull_request' &&
-      github.event.action != 'closed' &&
-      github.event.pull_request.number == 174
+      (
+        github.event_name == 'pull_request' &&
+        github.event.action != 'closed' &&
+        github.event.pull_request.number == 174
+      ) || (
+        github.event_name == 'workflow_dispatch' &&
+        inputs.force_full == true
+      )
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     permissions:
