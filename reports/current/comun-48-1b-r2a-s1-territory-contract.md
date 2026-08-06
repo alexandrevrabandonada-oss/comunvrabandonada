@@ -51,8 +51,8 @@ textuais, privados e sem coordenadas.
 - typecheck: verde;
 - lint focal: verde;
 - formatting e `git diff --check`: verdes;
-- Quality Performance e lane territorial local-only no head final: run `31128794554`, verde;
-- topology e runtime E2E privado no head final: run `31129181849`, verde;
+- Quality Performance e lane territorial local-only no head final: run `31129274128`, verde;
+- topology e runtime E2E privado no head final: run `31130644215`, verde;
 - runtime descartável, cadeia R2A e cleanup concluídos sem conexão remota;
 - nenhuma consulta ou escrita no Supabase remoto;
 - nenhuma alteração de flags, Google, piloto ou `launch_publicly`.

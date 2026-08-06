@@ -20,11 +20,11 @@
     "explicitOptIn": true,
     "privacy": "private",
     "cleanup": "green",
-    "workflowRun": "31128794554"
+    "workflowRun": "31129274128"
   },
   "ci": {
-    "qualityPerformanceRun": "31128794554",
-    "comunCiRun": "31129181849",
+    "qualityPerformanceRun": "31129274128",
+    "comunCiRun": "31130644215",
     "result": "green"
   },
   "r2aChainMutated": false,
