@@ -1,0 +1,27 @@
+{
+  "release": "20260806235454-comun-member-profile-optional-territory",
+  "migration": "supabase/migrations/20260806235454_comun_member_profile_optional_territory.sql",
+  "path": "supabase/migrations/20260806235454_comun_member_profile_optional_territory.sql",
+  "sha256": "1173bbddeafdcb929bee4eb7594e74fa6465af87421c0b0fe7ca7c549f11a1f5",
+  "migrationSha256": "1173bbddeafdcb929bee4eb7594e74fa6465af87421c0b0fe7ca7c549f11a1f5",
+  "requiresPromotion": true,
+  "remotePromotionAllowed": true,
+  "scope": "production",
+  "dependsOn": [
+    "20260805130000-comun-production-pilot-core-bundle",
+    "20260805201000-comun-production-pilot-attachment-rpc-fix",
+    "20260805212659-comun-production-pilot-wallet-account-rpc-fix"
+  ],
+  "destructiveSql": false,
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "backfill": false,
+  "dataMutation": false,
+  "publicProjection": false,
+  "externalForwarding": false,
+  "newPublicGrant": false,
+  "rollbackMode": "feature_flag",
+  "releaseLedger": "public.comun_schema_releases",
+  "reason": "optional_private_profile_territory_columns",
+  "notes": "Adds nullable text territory fields without changing RLS, grants, visibility, or existing data."
+}
