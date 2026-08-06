@@ -1,0 +1,104 @@
+{
+  "result": "COMUN_48_1B_R2A_L1_BLOCKED_RUNTIME_E2E_SCOPE",
+  "migration": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
+  "runtimeSourceOfTruth": "canonical existing Relata and Participation Wallet RPCs",
+  "canonicalTables": {
+    "wallet": [
+      "private.comun_participation_wallets",
+      "private.comun_participation_wallet_items",
+      "private.comun_participation_wallet_events",
+      "private.comun_participation_wallet_recovery_credentials",
+      "private.comun_participation_wallet_rate_limits",
+      "private.comun_participation_wallet_account_links"
+    ],
+    "relata": [
+      "private.comun_relata_reports",
+      "public.comun_relata_cases",
+      "public.comun_relata_consents",
+      "public.comun_relata_status_events"
+    ],
+    "evidence": [
+      "private.comun_relata_private_locations",
+      "private.comun_relata_attachments",
+      "public.comun_relata_evidence_consents"
+    ]
+  },
+  "canonicalRpcs": {
+    "wallet": [
+      "comun_participation_wallet_create",
+      "comun_participation_wallet_list",
+      "comun_participation_wallet_attach_relata",
+      "comun_participation_wallet_follow_legacy",
+      "comun_participation_wallet_follow_case",
+      "comun_participation_wallet_claim_bus",
+      "comun_participation_wallet_remove_item",
+      "comun_participation_wallet_redeem",
+      "comun_participation_wallet_rotate_recovery",
+      "comun_participation_wallet_link_account"
+    ],
+    "relata": [
+      "comun_relata_create",
+      "comun_relata_get_receipt",
+      "comun_relata_withdraw"
+    ],
+    "evidence": [
+      "comun_relata_add_location",
+      "comun_relata_withdraw_location",
+      "comun_relata_begin_attachment",
+      "comun_relata_mark_attachment_validating",
+      "comun_relata_finalize_attachment",
+      "comun_relata_authorize_attachment_read",
+      "comun_relata_withdraw_attachment"
+    ]
+  },
+  "accountWalletLink": {
+    "table": "private.comun_participation_wallet_account_links",
+    "rpc": "comun_participation_wallet_link_account",
+    "revokeRpc": "comun_participation_wallet_revoke_account",
+    "endpoint": "POST /api/comun/participation-wallet/account/link",
+    "revokeEndpoint": "POST /api/comun/participation-wallet/account/unlink",
+    "method": "explicit_account_link",
+    "silentClaim": false,
+    "idempotent": true,
+    "revocation": "revoked_at"
+  },
+  "security": {
+    "privateSchemaDirectCrud": false,
+    "tablesRls": "enabled_and_forced",
+    "clientPolicies": "none",
+    "rpcExecute": "service_role_only",
+    "searchPath": "pg_catalog,private,public",
+    "receiptAndWalletSecrets": "hash_only",
+    "storageBucket": "comun-relata-private",
+    "storagePublic": false,
+    "publication": false,
+    "forwarding": false
+  },
+  "rollback": {
+    "flagsOff": true,
+    "apis404": true,
+    "newWritesStopped": true,
+    "dataPreserved": true,
+    "legacyRoutesPreserved": true
+  },
+  "exactDryRun": {
+    "status": "green_for_current_migration_sha",
+    "proposed": ["20260805130000_comun_production_pilot_core_bundle.sql"],
+    "seeds": [],
+    "roles": [],
+    "mutatingPush": false,
+    "quarantineRestored": true,
+    "note": "Read-only dry-run rerun with the external-ledger and explicit local-only migrations quarantined; all quarantined files were restored and hashes rechecked."
+  },
+  "localRehearsal": {
+    "status": "green",
+    "workdirs": {
+      "A": {"apiPort": 56000, "dbPort": 56001, "result": "COMUN_48_1B_R2A_CORE_LOCAL_GREEN"},
+      "B": {"apiPort": 56100, "dbPort": 56101, "result": "COMUN_48_1B_R2A_CORE_LOCAL_GREEN"}
+    },
+    "remoteUntouched": true,
+    "scopeNote": "collective/evidence local-only functions intentionally excluded from R2A bundle"
+  },
+  "historicalR2Preparation": "COMUN_48_1B_R2_PRODUCTION_BUNDLE_READY_FOR_EXACT_DRY_RUN",
+  "nextGate": "R2A-R2_PROMOTE_OR_RECONCILE_EVIDENCE_AND_COLLECTIVE_SCOPE_THEN_FULL_RUNTIME_E2E"
+}

@@ -1,0 +1,31 @@
+{
+  "chain": "20260805214000-comun-production-pilot-core-chain-v2",
+  "status": "ready_when_all_applied",
+  "activationRequiresCompleteChain": true,
+  "migrations": [
+    {
+      "order": 1,
+      "path": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
+      "sha256": "0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9",
+      "purpose": "production pilot private core bundle",
+      "dataMutation": false,
+      "activationAllowed": false
+    },
+    {
+      "order": 2,
+      "path": "supabase/migrations/20260805201000_comun_production_pilot_attachment_rpc_fix.sql",
+      "sha256": "f092f26df14fe9f724be9b3a6ad9d46fb5d73145d8cf2072933ac0c5917addcc",
+      "purpose": "qualified attachment allocator output parameter",
+      "dataMutation": false,
+      "activationAllowed": false
+    },
+    {
+      "order": 3,
+      "path": "supabase/migrations/20260805212659_comun_production_pilot_wallet_account_rpc_fix.sql",
+      "sha256": "0d4b9a271a169184d45020bdad3ef11c8e1a01bd6d256848787b98b5d04a3382",
+      "purpose": "qualified wallet account conflict target",
+      "dataMutation": false,
+      "activationAllowed": false
+    }
+  ]
+}

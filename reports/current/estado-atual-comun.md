@@ -674,3 +674,202 @@ executada neste checkpoint. Não há três participantes, medições, taxa de
 conclusão ou achados de usabilidade para contabilizar. O estado permanece
 `COMUN_INTEGRATED_HUMAN_REHEARSAL_INCOMPLETE`; não houve piloto, envio externo,
 ativação de flag ou `launch_publicly`.
+
+## 48.1B — preflight do piloto em Production (05/08/2026)
+
+A branch `codex/tijolo-48-1b-production-domain-pilot` foi criada a partir de
+`origin/main` `7e2d259e193c0d8841c57b89002f551c9a9c2ad`. A CLI Supabase 2.111.0
+listou o projeto alvo e o vínculo local foi estabelecido sem mutação. A
+consulta `migration list --linked` mostrou um drift histórico: a migration
+`20260724233256_comun_sidewalk_operational_hardening.sql` não aparece no
+histórico remoto, apesar de migrations posteriores constarem como aplicadas.
+
+`supabase db push --linked --dry-run` recusou prosseguir (`LegacyDbPushMissingRemoteError`)
+e sugeriu `--include-all`. Não foi usado `--include-all`, `migration repair`,
+reset, seed ou `db push` mutável. Nenhuma flag, Auth, Google, Carteira,
+Relata V2, Calçadas, Ônibus, Observatórios ou forwarding foi ativado.
+
+Resultado: `COMUN_48_1B_BLOCKED_REMOTE_MIGRATION_PLAN_DRIFT`. Production,
+Supabase remoto, `launch_publicly` e registros de usuários permanecem
+inalterados. O piloto não deve avançar até a reconciliação forward-only do
+histórico.
+
+## 48.1B-R1 — reconciliação do ledger externo (05/08/2026)
+
+A tentativa R1 executou o workflow canônico read-only no run `31011836481`.
+O ledger próprio de Calçadas apareceu como `PRESENT_ACCEPTED` e o fingerprint
+scoped coincidiu com o POST local, mas a classificação canônica foi
+`INSUFFICIENT_READ_PERMISSION`, pois os gates globais não puderam ser provados.
+O CLI continua vendo `20260724233256` ausente e o dry-run continua recusando a
+fila com sugestão de `--include-all`; essa opção não foi usada. Resultado
+vigente: `COMUN_48_1B_R1_BLOCKED_SIDEWALK_REMOTE_STATE_UNPROVEN`.
+
+Não houve migration, repair, reset, seed, flags, piloto, alteração de
+Production ou escrita remota. A PR #174 permanece draft e o próximo passo só
+é permitido após prova exata do estado remoto e baseline de CLI vazio.
+
+## 48.1B-R1A — classificação escopada e reconciliação (05/08/2026)
+
+O classificador passou a separar prova escopada de evolução global. O replay do
+run `31011836481` confirmou `APPLIED_EXACT_SCOPED_EXTERNAL_LEDGER`; o fingerprint
+global divergente foi classificado como
+`EXPECTED_GLOBAL_EVOLUTION_AFTER_SCOPED_RELEASE`. A exceção externa do ledger
+foi validada sem alterar a migration histórica.
+
+A quarentena temporária isolou apenas a migration excepcional e as migrations
+com declaração explícita local-only, restaurando tudo com SHA confirmado. O
+dry-run reconciliado ficou com uma única pendência não classificada:
+`20260805090000_comun_member_profile_territory_selection.sql`. Resultado
+vigente: `COMUN_48_1B_R1A_BLOCKED_PENDING_MIGRATION_CLASSIFICATION`. Nenhuma
+flag, piloto, deployment ou escrita remota foi executada.
+
+## 48.1B-R1B — baseline CLI reconciliado (05/08/2026)
+
+O manifesto local-only de território foi reconhecido e validado exatamente;
+as migrations local-only permaneceram fora do plano remoto. A quarentena foi
+restaurada e o dry-run retornou `upToDate=true` com arrays vazios.
+
+Resultado vigente: `COMUN_48_1B_R1_EXTERNAL_LEDGER_AND_LOCAL_ONLY_RECONCILED_CLI_BASELINE_EMPTY`.
+Isso não ativa Production nem o piloto; R2 pode ser preparado, sem escrita
+remota.
+
+## 48.1B-R2 — bundle novo preparado (05/08/2026)
+
+Com o baseline R1B vazio, foi criado um bundle novo e aditivo para conta,
+Carteira, Relata V2 privado, evidências e localização. A migration tem SHA
+`fefb9149…`, RLS forçada e revogações para `public`, `anon` e `authenticated`.
+
+Resultado: `COMUN_48_1B_R2_PRODUCTION_BUNDLE_READY_FOR_EXACT_DRY_RUN`.
+Nenhuma escrita remota, promoção, flag ou piloto ocorreu.
+
+## 48.1B-R2A — alinhamento runtime/schema (05/08/2026)
+
+O inventário do runtime mostrou que o bundle R2 inicial usava tabelas
+`comun_production_*` que não eram chamadas pelas APIs. A migration candidata
+foi redesenhada, ainda não aplicada remotamente, para usar os contratos
+canônicos de Relata, Carteira e evidências, incluindo vínculo explícito
+Conta–Carteira, RPCs server-only, RLS forçada, grants e Storage privado.
+O SHA atual é `ffcfc1b22d889452b8c57817393b1b9ea24fca862abc04344f58bae081d2f4ab`.
+
+Estado vigente: `COMUN_48_1B_R2A_L1_BLOCKED_RUNTIME_E2E_SCOPE`.
+
+Rehearsal L1: workdirs A/B isolados verdes; Relata/Carteira core, Storage privado,
+RLS/grants, rollback por flags e dry-run read-only do SHA atual comprovados. O
+runner amplo de evidências/coletivos permanece fora do escopo desta migration
+R2A; o terminal continua bloqueado até a cobertura E2E completa.
+O resultado R2 anterior permanece apenas como histórico. Não houve migration,
+flag, Google, allowlist, deployment de piloto, escrita remota ou
+`launch_publicly`. O próximo gate é validar duas rehearsals locais em bancos
+descartáveis, E2E do runtime, auditoria RLS/grants, rollback e dry-run exato.
+## 48.1B-R2A-R2 — checkpoint atual (2026-08-05)
+
+- branch: `codex/tijolo-48-1b-production-domain-pilot`;
+- migration candidata: `20260805130000_comun_production_pilot_core_bundle.sql`;
+- checksum atual: `0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9`;
+- topologia: migrations local-only separadas em `supabase/local-migrations`;
+- localização/anexos/estado sanitizado: contratos e RPCs presentes;
+- coletivos: adiados e bloqueados por `COMUN_RELATA_COLLECTIVE_ENABLED`;
+- static gates: topology, release, privileges, typecheck, lint e build verdes;
+- dry-run CLI read-only: somente a migration candidata, sem escrita;
+- E2E privado HTTP completo: pendente por falha do daemon Docker na repetição;
+- resultado: `COMUN_48_1B_R2A_R2_BLOCKED_RUNTIME_E2E_SCOPE`;
+- Production, flags públicas, Google, allowlist, piloto e `launch_publicly`: inalterados/fechados.
+
+## 48.1B-R2A-E2E — lane CI (2026-08-05)
+
+- head: `f303fb44a08d3dc0300fc970be1231579e053499`;
+- tentativa local limitada: Docker Desktop indisponível;
+- lane adicionada: `COMUN R2A / private runtime E2E`;
+- escopo: Relata, localização, anexos, Carteira, conta explícita e isolamento;
+- coletivos: desabilitados, sem chamada RPC;
+- PR #174: permanece draft; lane CI reproduzível encontrou `42702 ambiguous_column`
+  na RPC `public.comun_relata_begin_attachment`;
+- resultado: `COMUN_48_1B_R2A_BLOCKED_RUNTIME_E2E_FUNCTIONAL_FAILURE`;
+- nenhum schema remoto, flag pública, Google, allowlist, piloto ou `launch_publicly` foi alterado.
+
+## 48.1B-R2A-F1 — hotfix da RPC de anexos (2026-08-05)
+
+- head: `97b6ea496ccd9838778557aba79b038b6a907fe0`;
+- candidata preservada com SHA `0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9`;
+- hotfix forward-only: `20260805201000_comun_production_pilot_attachment_rpc_fix.sql`;
+- hotfix SHA: `f092f26df14fe9f724be9b3a6ad9d46fb5d73145d8cf2072933ac0c5917addcc`;
+- correção: qualificação `a.label_index`, variável `v_label_index` e lock do relatório autorizado;
+- privilégios: somente `service_role`;
+- static gates: validator, topology, typecheck, lint e build verdes;
+- Docker local: indisponível; CI descartável `31047472852` aplicou a cadeia e executou o E2E;
+- PR #174: draft;
+- resultado vigente: `COMUN_48_1B_R2A_BLOCKED_RUNTIME_E2E_FUNCTIONAL_FAILURE`;
+- finding adicional: `public.comun_participation_wallet_link_account` falha com SQLSTATE
+  `42702` por `ON CONFLICT(wallet_id,user_id)` ambíguo; nenhum schema remoto foi alterado;
+- schema remoto, flags, Google, allowlist, piloto e `launch_publicly`: inalterados/fechados.
+
+## 48.1B-R2A-F2 — hotfix Carteira–conta (2026-08-05)
+
+- branch: `codex/tijolo-48-1b-production-domain-pilot`;
+- head: `9e51e5cb6d2bfa0c36a89a82102a0beb56e0e60f`;
+- migration nova: `20260805212659_comun_production_pilot_wallet_account_rpc_fix.sql`;
+- SHA: `0d4b9a271a169184d45020bdad3ef11c8e1a01bd6d256848787b98b5d04a3382`;
+- candidata e hotfix de anexos preservados byte a byte;
+- correção: `ON CONFLICT ON CONSTRAINT` qualificado na RPC de vínculo Carteira–conta;
+- static gates: topology, release, privilégios, typecheck, lint e build verdes;
+- primeira lane CI: stack efêmera travada antes do banco;
+- cancelamento anterior ocorreu antes de health, Postgres ou E2E; não prova indisponibilidade do Docker/Supabase;
+- classificação corrigida para: `COMUN_48_1B_R2A_BLOCKED_CI_STARTUP_CANCELLED_BEFORE_HEALTH_RESULT`;
+- CI1 aplicado: artifacts pré-start, diagnóstico sanitizado, stack mínima, heartbeat e limite de 12 minutos;
+- novo attempt neste SHA: pendente;
+- PR #174 continua draft; sem READY, merge, promoção remota ou flags;
+- Supabase remoto, Google, piloto e `launch_publicly`: inalterados/fechados.
+
+## 48.1B-R2A-CI1 — inicialização observável e cleanup (2026-08-06)
+
+- run `31056455947` iniciou a stack descartável com classificação
+  `COMUN_48_1B_R2A_CI_STARTUP_GREEN`;
+- Auth/PostgREST/Storage responderam `200/200/400` e o Postgres passou no probe;
+- E2E privado passou como
+  `COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN`;
+- o job foi cancelado pelo limite do runner durante cleanup, resultando em
+  `COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP`;
+- artifact revelou chaves locais no log sanitizado; redação por rótulo/JSON foi
+  corrigida e o stop agora possui timeout de 120 segundos;
+- novo attempt é obrigatório; PR #174 permanece draft;
+- nenhum acesso ou escrita remota, migration, flag, Google, piloto ou
+  `launch_publicly` ocorreu.
+
+O retry `31058759867` repetiu startup e E2E verdes, mas também terminou por
+cancelamento do runner durante cleanup (`COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP`).
+O patch corrente usa timeout com kill escalonado e remove apenas containers
+rotulados do laboratório antes da verificação final. Um terceiro attempt deve
+confirmar `COMUN_R2A_E2E_CLEANUP_DONE` antes de qualquer READY/merge.
+
+O attempt `31063191091` confirmou startup, E2E privado, cleanup e artefatos
+sanitizados verdes. A execução completa continua bloqueada por
+`COMUN_48_1B_R2A_BLOCKED_PREEXISTING_SCHEMA_SCOPE`: jornadas agregadas assumem
+`territory_municipality` em `comun_member_profiles`, mas a coluna existe apenas
+na migration local-only `supabase/local-migrations/20260805090000_comun_member_profile_territory_selection.sql`.
+Não houve promoção dessa migration, escrita remota, ativação de flags, Google,
+piloto ou `launch_publicly`. A PR #174 permanece draft.
+
+## 48.1B-R2A-S1 — onboarding mínimo e catálogo territorial local-only (2026-08-06)
+
+- resolver canônico: `lib/comun-territory-profile.ts`;
+- Production: `COMUN_TERRITORY_PROFILE_ENABLED=disabled` por padrão;
+- alias local: somente com `ALLOW_LOCAL_TESTS=true` e fora de Production;
+- onboarding mínimo e Calçadas concluem sem as colunas territoriais;
+- payload mínimo não inclui campos territoriais quando a capacidade está off;
+- lane separada `COMUN Territory / local-only contract` aplica explicitamente
+  a migration local e verifica persistência privada de cidade/bairro;
+- cadeia R2A: preservada, sem quarta migration;
+- unitários: 502/502; typecheck e lint focais verdes;
+- nenhum schema remoto, flag, Google, piloto ou `launch_publicly` foi alterado;
+- PR #174 aguarda CI nova antes de READY/merge.
+
+### Fechamento técnico S1 (2026-08-06)
+
+- head final: `9ab125d433fe99c5e4e918b5cc59117155a1d76a`;
+- Quality Performance e lane territorial local-only verdes no run `31129274128`;
+- topology e runtime E2E privado verdes no run `31130644215`;
+- cadeia R2A preservada, sem promoção da migration territorial local-only;
+- nenhuma flag, Google, piloto, migration remota ou `launch_publicly` foi alterada;
+- PR #174 pode avançar para READY/merge documental e técnico;
+- promoção remota continua separada, condicionada a dry-run exato das três
+  migrations R2A e sem promoção territorial.

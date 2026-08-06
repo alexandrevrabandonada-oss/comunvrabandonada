@@ -1,0 +1,24 @@
+{
+  "release": "20260805130000-comun-production-pilot-core-bundle",
+  "migration": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
+  "sha256": "0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9",
+  "migrationSha256": "0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9",
+  "requiresPromotion": true,
+  "remotePromotionAllowed": true,
+  "scope": "production",
+  "featureFlag": "COMUN_PRODUCTION_PILOT_CORE_ENABLED",
+  "waves": [
+    "account_and_wallet",
+    "relata_v2_private",
+    "private_evidence_and_location"
+  ],
+  "remoteWrites": false,
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "releaseLedger": "public.comun_schema_releases",
+  "status": "runtime_schema_alignment_required",
+  "destructiveSql": false,
+  "publicProjection": false,
+  "externalForwarding": false,
+  "notes": "R2A canonical runtime-aligned bundle; exact dry-run is still required and no activation is authorized."
+}

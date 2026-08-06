@@ -27,10 +27,18 @@ export const CLASSIFICATIONS = Object.freeze([
   "PARTIAL_RELEASE_STATE",
   "POST_WITH_LEDGER_MISMATCH",
   "ALREADY_APPLIED_ACCEPTED",
+  "APPLIED_EXACT_SCOPED_EXTERNAL_LEDGER",
   "INSUFFICIENT_READ_PERMISSION",
 ]);
 
+export const SCOPED_CLASSIFICATIONS = Object.freeze([
+  "APPLIED_EXACT_SCOPED_EXTERNAL_LEDGER",
+  "BLOCKED_SCOPED_OBJECT_READ_PERMISSION",
+  "BLOCKED_SCOPED_REMOTE_MISMATCH",
+]);
+
 export const GRANT_CLASSIFICATIONS = Object.freeze([
+  "EQUAL_PRE_POST",
   "REMOTE_EQUIVALENT_TO_PRE",
   "REMOTE_EQUIVALENT_TO_POST",
   "REMOTE_MORE_RESTRICTIVE_THAN_PRE",
@@ -234,6 +242,12 @@ export function classifyAuditGrantDrift({
   }
   const remoteVsPre = diffAuditGrantMatrices(pre, remote);
   const remoteVsPost = diffAuditGrantMatrices(post, remote);
+  if (isMatrixEqual(diffAuditGrantMatrices(pre, post)) && isMatrixEqual(remoteVsPre)) {
+    return {
+      classification: "EQUAL_PRE_POST",
+      risk: "equal_pre_post",
+    };
+  }
   if (isMatrixEqual(remoteVsPre)) {
     return {
       classification: "REMOTE_EQUIVALENT_TO_PRE",
@@ -313,8 +327,67 @@ export function assessAuditGrantDrift({
     remoteVsPost: diffAuditGrantMatrices(normalizedPost, normalizedRemote),
     unreadable:
       unreadable || !normalizedPre || !normalizedPost || !normalizedRemote,
+    prePostEqual:
+      !normalizedPre || !normalizedPost
+        ? false
+        : isMatrixEqual(diffAuditGrantMatrices(normalizedPre, normalizedPost)),
     ...assessment,
   };
+}
+
+function isEqualGrantMatrix(pre, post) {
+  if (!Array.isArray(pre) || !Array.isArray(post)) return false;
+  return isMatrixEqual(
+    diffAuditGrantMatrices(
+      normalizeAuditGrantMatrix(pre),
+      normalizeAuditGrantMatrix(post),
+    ),
+  );
+}
+
+/**
+ * Classifies the release-owned scope independently from the historical global
+ * fingerprint. Later migrations are expected to evolve the global database;
+ * they do not invalidate an exact scoped POST.
+ */
+export function classifyScopedExternalLedger(evidence = {}) {
+  if (
+    evidence.scopedUnreadable === true ||
+    evidence.ledgerUnreadable === true ||
+    evidence.grantAudit?.unreadable === true
+  ) {
+    return "BLOCKED_SCOPED_OBJECT_READ_PERMISSION";
+  }
+  if (evidence.ledger !== "PRESENT_ACCEPTED") {
+    return "BLOCKED_SCOPED_REMOTE_MISMATCH";
+  }
+  if (evidence.ledgerProof && evidence.ledgerProof.exact !== true) {
+    return "BLOCKED_SCOPED_REMOTE_MISMATCH";
+  }
+  if (!evidence.scopedObserved || evidence.scopedObserved !== evidence.scopedPost) {
+    return "BLOCKED_SCOPED_REMOTE_MISMATCH";
+  }
+  const decisiveStates = new Set(["equal", "post"]);
+  const scopedObjects = (evidence.objects ?? []).filter(
+    (item) => item.type !== "ledger",
+  );
+  if (scopedObjects.some((item) => !decisiveStates.has(item.state))) {
+    return "BLOCKED_SCOPED_REMOTE_MISMATCH";
+  }
+  if (!evidence.grantAudit) return "BLOCKED_SCOPED_OBJECT_READ_PERMISSION";
+  const grantClassification = evidence.grantAudit.classification;
+  const grantsEqualPrePost =
+    grantClassification === "EQUAL_PRE_POST" ||
+    (grantClassification === "REMOTE_EQUIVALENT_TO_PRE" &&
+      evidence.grantAudit?.prePostEqual === true) ||
+    isEqualGrantMatrix(evidence.grantAudit?.pre, evidence.grantAudit?.post);
+  const grantAllowed =
+    grantClassification === "REMOTE_EQUIVALENT_TO_POST" ||
+    grantsEqualPrePost;
+  if (evidence.grantAudit && !grantAllowed) {
+    return "BLOCKED_SCOPED_REMOTE_MISMATCH";
+  }
+  return "APPLIED_EXACT_SCOPED_EXTERNAL_LEDGER";
 }
 
 function removeSqlStringsAndComments(sql) {
@@ -519,6 +592,26 @@ export function ledgerState(scopedDocument, release) {
     value.status === "applied"
     ? "PRESENT_ACCEPTED"
     : "PRESENT_MISMATCH";
+}
+
+export function ledgerProof(scopedDocument, release) {
+  const ledger = scopedDocument?.canonical?.ledger;
+  if (!Array.isArray(ledger)) return null;
+  const value = ledger.find((item) => item.release === release.release);
+  if (!value) return null;
+  return {
+    release: value.release ?? null,
+    migrationPath: value.migrationPath ?? null,
+    migrationSha256: value.migrationSha256 ?? null,
+    preFingerprint: value.preFingerprint ?? null,
+    postFingerprint: value.postFingerprint ?? null,
+    status: value.status ?? null,
+    exact:
+      value.release === release.release &&
+      value.migrationPath === release.migration &&
+      value.migrationSha256 === release.migrationSha256 &&
+      value.status === "applied",
+  };
 }
 
 export function classifyRemoteDrift(evidence) {
@@ -837,6 +930,16 @@ export async function diagnose({
     unreadable: auditGrantUnreadable,
   });
   const migrations = (global.canonical.migrations ?? []).map(String);
+  const remoteLedgerProof = ledgerProof(rawScopedDocument, release);
+  const scopedClassification = classifyScopedExternalLedger({
+    scopedObserved: fingerprintScoped(scoped),
+    scopedPost: reference.scopedPost,
+    ledger,
+    ledgerProof: remoteLedgerProof,
+    objects,
+    grantAudit,
+    scopedUnreadable: false,
+  });
   const evidence = {
     globalPre: release.expectedPreFingerprint,
     globalPost: release.expectedPostFingerprint,
@@ -848,12 +951,26 @@ export async function diagnose({
     objects,
     blockingFindings: global.security.blockingFindings.length,
   };
+  const legacyClassification = classifyRemoteDrift(evidence);
+  const globalEvolution =
+    scopedClassification === "APPLIED_EXACT_SCOPED_EXTERNAL_LEDGER" &&
+    Boolean(evidence.globalPre) &&
+    evidence.globalObserved !== evidence.globalPre &&
+    evidence.globalObserved !== evidence.globalPost &&
+    migrations.some((value) => value > "20260724233256")
+      ? "EXPECTED_GLOBAL_EVOLUTION_AFTER_SCOPED_RELEASE"
+      : null;
   return {
     projectRef: `${projectRef.slice(0, 4)}…`,
     environment: "production",
     release: release.release,
     zeroRemoteWrites: true,
-    classification: classifyRemoteDrift(evidence),
+    classification:
+      scopedClassification === "APPLIED_EXACT_SCOPED_EXTERNAL_LEDGER"
+        ? scopedClassification
+        : legacyClassification,
+    scopedClassification,
+    globalEvolution,
     global: {
       expectedPre: evidence.globalPre,
       expectedPost: evidence.globalPost,
@@ -868,6 +985,7 @@ export async function diagnose({
       objects: scopedObjects,
     },
     ledger,
+    ledgerProof: ledgerProof(rawScopedDocument, release),
     migrations,
     objects,
     findings: global.security.blockingFindings.map(sanitizeSecurityFinding),
@@ -892,6 +1010,8 @@ async function main() {
   await mkdir(outputDir, { recursive: true });
   const classification = {
     classification: diagnostic.classification,
+    scopedClassification: diagnostic.scopedClassification ?? diagnostic.classification,
+    globalEvolution: diagnostic.globalEvolution ?? null,
     grantClassification: diagnostic.grantAudit.classification,
     grantRisk: diagnostic.grantAudit.risk,
     release: diagnostic.release,

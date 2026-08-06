@@ -1,0 +1,14 @@
+{
+  "result": "COMUN_48_1B_R2A_R2_CLI_CANDIDATE_ONLY",
+  "command": "supabase db push --linked --dry-run",
+  "status": "success",
+  "planned": ["20260805130000_comun_production_pilot_core_bundle.sql"],
+  "seeds": [],
+  "roles": [],
+  "includeAll": false,
+  "mutatingPush": false,
+  "exceptionalMigrationTemporarilyQuarantined": true,
+  "exceptionalMigrationRestored": true,
+  "localOnlyMigrationsInCliChain": false,
+  "remoteMigrationApplied": false
+}

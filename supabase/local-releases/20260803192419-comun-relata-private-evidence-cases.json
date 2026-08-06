@@ -1,6 +1,6 @@
 {
   "release": "20260803192419-comun-relata-private-evidence-cases",
-  "migration": "supabase/migrations/20260803192419_comun_relata_private_evidence_cases.sql",
+  "migration": "supabase/local-migrations/20260803192419_comun_relata_private_evidence_cases.sql",
   "migrationSha256": "97be487aa2c03c559aa1918835056aa90cb9dba16288d4396370ac1fc95e9983",
   "destructiveSql": false,
   "requiresPromotion": false,

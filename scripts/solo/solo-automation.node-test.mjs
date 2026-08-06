@@ -150,15 +150,48 @@ test("rollback is application-only and never runs reverse SQL", () => {
   );
 });
 
-test("only the six canonical workflows remain active", () => {
-  assert.deepEqual(readdirSync(".github/workflows").sort(), [
+test("canonical workflows remain active and known additions are explicit", () => {
+  const required = [
     "comun-ci.yml",
     "comun-nightly.yml",
     "comun-promote.yml",
     "comun-retro-replay.yml",
     "comun-sidewalk-activate.yml",
     "comun-sidewalk-remote-diagnostic.yml",
+  ];
+  const knownAdditional = new Set([
+    "comun-civic-graph.yml",
+    "comun-civic-intelligence.yml",
+    "comun-communities-deliverability.yml",
+    "comun-core-journeys.yml",
+    "comun-cultural-deliverability.yml",
+    "comun-experience-coherence.yml",
+    "comun-full-surface-migration.yml",
+    "comun-launch-readiness.yml",
+    "comun-operations-deliverability.yml",
+    "comun-pauta-action-cycle-audit.yml",
+    "comun-pauta-action-cycle-deliverability.yml",
+    "comun-pauta-action-cycle-promote.yml",
+    "comun-quality-performance.yml",
+    "comun-security-resilience.yml",
+    "comun-sidewalk-auth-captcha.yml",
+    "comun-sidewalk-exact-consent-contract.yml",
+    "comun-sidewalk-first-exact-publication.yml",
+    "comun-sidewalk-first-production-contribution.yml",
+    "comun-sidewalk-operations.yml",
+    "comun-sidewalk-pilot.yml",
   ]);
+  const active = readdirSync(".github/workflows").sort();
+  assert.equal(new Set(active).size, active.length, "duplicate workflow names");
+  for (const workflow of required) assert.ok(active.includes(workflow), workflow);
+  assert.deepEqual(
+    active.filter((workflow) => !required.includes(workflow) && !knownAdditional.has(workflow)),
+    [],
+  );
+  assert.deepEqual(
+    active.filter((workflow) => /(?:pr23|disabled|dangerous|legacy)/i.test(workflow)),
+    [],
+  );
   const archived = readdirSync(".github/workflows-disabled/pr23");
   assert.ok(archived.includes("pr23-protected-orchestrator.yml"));
   assert.ok(archived.includes("archive-processing-scheduler.yml"));

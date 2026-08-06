@@ -44,6 +44,162 @@ permissions:
   pull-requests: write
 
 jobs:
+  r2a-production-candidate-contract:
+    name: COMUN R2A / production candidate topology
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Keep production candidate chain separate from local-only labs
+        run: |
+          test -f supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql
+          test -f supabase/migrations/20260805201000_comun_production_pilot_attachment_rpc_fix.sql
+          test -f supabase/migrations/20260805212659_comun_production_pilot_wallet_account_rpc_fix.sql
+          test -f supabase/releases/20260805214000-comun-production-pilot-core-chain-v2.json
+          test "$(find supabase/migrations -maxdepth 1 -type f -name '20260805*.sql' | wc -l)" -eq 3
+          test -d supabase/local-migrations
+          ! find supabase/migrations -maxdepth 1 -type f -name '20260803*.sql' -o -name '20260804*.sql' -o -name '20260805090000*.sql' | grep -q .
+      - run: npm run relata:topology:test
+      - run: npm run relata:release:test
+      - run: npm run db:privileges:lint
+      - run: npm run solo:sql:validate -- --release-manifest=supabase/releases/20260805130000-comun-production-pilot-core-bundle.json
+      - run: npm run solo:sql:validate -- --release-manifest=supabase/releases/20260805201000-comun-production-pilot-attachment-rpc-fix.json
+      - run: npm run solo:sql:validate -- --release-manifest=supabase/releases/20260805212659-comun-production-pilot-wallet-account-rpc-fix.json
+      - run: node --test scripts/solo/production-pilot-bundle.node-test.mjs
+      - run: npm run relata:r2a:private:e2e:workflow:test
+      - run: npm run typecheck
+      - run: npm run lint
+
+  r2a-private-runtime-e2e:
+    name: COMUN R2A / private runtime E2E
+    if: >-
+      (
+        github.event_name == 'pull_request' &&
+        github.event.action != 'closed' &&
+        github.event.pull_request.number == 174
+      ) || (
+        github.event_name == 'workflow_dispatch' &&
+        inputs.force_full == true
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - name: Assert isolated candidate inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${SUPABASE_PROJECT_REF:-}"
+          test -z "${SUPABASE_DB_URL:-}"
+          test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
+          test -f supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql
+          grep -q '^project_id = "COMUM_VR_ABANDONADA"' supabase/config.toml
+      - run: npm ci --ignore-scripts
+      - name: Start disposable Supabase and apply the canonical chain
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/r2a-private-runtime-e2e
+          : > .ci-artifacts/r2a-private-runtime-e2e/environment.txt
+          : > .ci-artifacts/r2a-private-runtime-e2e/timestamps.txt
+          : > .ci-artifacts/r2a-private-runtime-e2e/docker-info.txt
+          : > .ci-artifacts/r2a-private-runtime-e2e/docker-disk.txt
+          : > .ci-artifacts/r2a-private-runtime-e2e/supabase-version.txt
+          : > .ci-artifacts/r2a-private-runtime-e2e/startup.log
+          : > .ci-artifacts/r2a-private-runtime-e2e/startup-exit.txt
+          : > .ci-artifacts/r2a-private-runtime-e2e/startup-classification.json
+          cleanup() {
+            local stop_status=0
+            echo 'COMUN_R2A_E2E_CLEANUP_START'
+            timeout -k 10s 120s supabase stop --no-backup >/dev/null 2>&1 || stop_status=$?
+            if [[ "$stop_status" -eq 124 || "$stop_status" -eq 137 ]]; then
+              echo 'COMUN_R2A_E2E_CLEANUP_TIMEOUT'
+            elif [[ "$stop_status" -ne 0 ]]; then
+              echo "COMUN_R2A_E2E_CLEANUP_STOP_FAILED status=$stop_status"
+            fi
+            mapfile -t residual_ids < <(docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA')
+            if (( ${#residual_ids[@]} )); then
+              docker rm -f "${residual_ids[@]}" >/dev/null 2>&1 || true
+            fi
+            if docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA' | grep -q .; then
+              echo 'COMUN_R2A_E2E_CLEANUP_CONTAINERS_REMAIN'
+              exit 1
+            fi
+            if [[ "$stop_status" -ne 0 ]]; then
+              exit 1
+            fi
+            echo 'COMUN_R2A_E2E_CLEANUP_DONE'
+          }
+          trap cleanup EXIT
+          export COMUN_R2A_ARTIFACT_DIR="$GITHUB_WORKSPACE/.ci-artifacts/r2a-private-runtime-e2e"
+          node scripts/solo/r2a-supabase-startup.mjs
+          supabase db reset --local --yes
+          status_file="$(mktemp)"
+          supabase status -o env >"$status_file"
+          api_url="$(sed -n 's/^API_URL="\(.*\)"$/\1/p' "$status_file")"
+          db_url="$(sed -n 's/^DB_URL="\(.*\)"$/\1/p' "$status_file")"
+          anon_key="$(sed -n 's/^ANON_KEY="\(.*\)"$/\1/p' "$status_file")"
+          service_key="$(sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"$/\1/p' "$status_file")"
+          [[ "$api_url" =~ ^http://127\.0\.0\.1:[0-9]+$ ]]
+          [[ "$db_url" =~ ^postgresql://postgres:postgres@127\.0\.0\.1:[0-9]+/postgres$ ]]
+          test -n "$anon_key"
+          test -n "$service_key"
+          location_key="$(node -e 'console.log(require("node:crypto").randomBytes(32).toString("base64url"))')"
+          spatial_key="$(node -e 'console.log(require("node:crypto").randomBytes(32).toString("base64url"))')"
+          export ALLOW_LOCAL_TESTS=true
+          export COMUN_BASE_URL=http://127.0.0.1:3138
+          export NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3138
+          export NEXT_PUBLIC_SUPABASE_URL="$api_url"
+          export NEXT_PUBLIC_SUPABASE_ANON_KEY="$anon_key"
+          export SUPABASE_SERVICE_ROLE_KEY="$service_key"
+          export COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL="$db_url"
+          export COMUN_RELATA_PREVIEW=enabled
+          export COMUN_RELATA_LOCAL_PERSISTENCE=enabled
+          export COMUN_RELATA_LOCAL_EVIDENCE=enabled
+          export COMUN_RELATA_LOCAL_PUBLIC_MAP=disabled
+          export COMUN_RELATA_COLLECTIVE_ENABLED=disabled
+          export COMUN_QUICK_CAPTURE_V2=enabled
+          export COMUN_PARTICIPATION_WALLET_LOCAL=enabled
+          export COMUN_RELATA_LOCATION_ENCRYPTION_KEY="$location_key"
+          export COMUN_RELATA_SPATIAL_HMAC_KEY="$spatial_key"
+          export COMUN_R2A_USE_BUILT_SERVER=1
+          export COMUN_R2A_E2E_LOG="$GITHUB_WORKSPACE/.ci-artifacts/r2a-private-runtime-e2e/next.log"
+          npm run relata:r2a:attachment-fix:test > .ci-artifacts/r2a-private-runtime-e2e/attachment-fix.log 2>&1
+          npm run relata:r2a:wallet-account-fix:test > .ci-artifacts/r2a-private-runtime-e2e/wallet-account-fix.log 2>&1
+          npm run build > .ci-artifacts/r2a-private-runtime-e2e/build.log 2>&1
+          set +e
+          npm run relata:r2a:private:e2e:local > .ci-artifacts/r2a-private-runtime-e2e/e2e.log 2>&1
+          e2e_status=$?
+          set -e
+          printf '%s\n' "$e2e_status" > .ci-artifacts/r2a-private-runtime-e2e/e2e.exit
+          cat .ci-artifacts/r2a-private-runtime-e2e/e2e.log
+          test "$e2e_status" -eq 0
+      - name: Upload sanitized runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-r2a-private-runtime-e2e-${{ github.run_id }}
+          path: .ci-artifacts/r2a-private-runtime-e2e
+          include-hidden-files: true
+          if-no-files-found: warn
   active-lane-integrity:
     name: Active lane integrity / COMUN_ACTIVE_LANE_INTEGRITY_GREEN
     if: github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.pull_request.number == 40

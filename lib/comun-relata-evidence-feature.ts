@@ -2,6 +2,8 @@ import { isLoopbackSupabaseUrl } from "./comun-relata-persistence";
 
 export const COMUN_RELATA_EVIDENCE_FLAG =
   "COMUN_RELATA_LOCAL_EVIDENCE" as const;
+export const COMUN_RELATA_COLLECTIVE_FLAG =
+  "COMUN_RELATA_COLLECTIVE_ENABLED" as const;
 export const COMUN_RELATA_LOCATION_KEY =
   "COMUN_RELATA_LOCATION_ENCRYPTION_KEY" as const;
 export const COMUN_RELATA_SPATIAL_KEY =
@@ -43,6 +45,13 @@ export function isComunRelataEvidenceEnabled(
     validLocalKey(env[COMUN_RELATA_SPATIAL_KEY]) &&
     env[COMUN_RELATA_LOCATION_KEY] !== env[COMUN_RELATA_SPATIAL_KEY]
   );
+}
+
+export function isComunRelataCollectiveEnabled(
+  env: Record<string, string | undefined> = process.env,
+) {
+  return isComunRelataEvidenceEnabled(env) &&
+    env[COMUN_RELATA_COLLECTIVE_FLAG] === "enabled";
 }
 
 export function shouldCloakComunRelataEvidenceApi(

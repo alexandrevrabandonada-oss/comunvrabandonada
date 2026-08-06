@@ -1,0 +1,22 @@
+{
+  "release": "20260805212659-comun-production-pilot-wallet-account-rpc-fix",
+  "migration": "supabase/migrations/20260805212659_comun_production_pilot_wallet_account_rpc_fix.sql",
+  "path": "supabase/migrations/20260805212659_comun_production_pilot_wallet_account_rpc_fix.sql",
+  "sha256": "0d4b9a271a169184d45020bdad3ef11c8e1a01bd6d256848787b98b5d04a3382",
+  "migrationSha256": "0d4b9a271a169184d45020bdad3ef11c8e1a01bd6d256848787b98b5d04a3382",
+  "requiresPromotion": true,
+  "remotePromotionAllowed": true,
+  "scope": "production",
+  "dependsOn": [
+    "20260805130000-comun-production-pilot-core-bundle",
+    "20260805201000-comun-production-pilot-attachment-rpc-fix"
+  ],
+  "releaseLedger": "public.comun_schema_releases",
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "destructiveSql": false,
+  "dataMutation": false,
+  "publicProjection": false,
+  "externalForwarding": false,
+  "reason": "qualified_wallet_account_conflict_target"
+}

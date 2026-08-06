@@ -1,0 +1,32 @@
+{
+  "result": "COMUN_48_1B_R2A_R2_BLOCKED_RUNTIME_E2E_SCOPE",
+  "migration": {
+    "path": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
+    "sha256": "0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9"
+  },
+  "static": {
+    "topology": "green",
+    "release": "green",
+    "privileges": "green",
+    "typecheck": "green",
+    "lint": "green",
+    "build": "green",
+    "unit": "499/499"
+  },
+  "runtime": {
+    "location": "contract_present_http_repeat_pending",
+    "attachments": "contract_present_http_repeat_pending",
+    "wallet": "contract_present_http_repeat_pending",
+    "account": "local_auth_link_contract_present_http_repeat_pending",
+    "collectives": "deferred_flag_off",
+    "reason": "Docker Desktop stopped responding during the second disposable-lab reset"
+  },
+  "dryRun": {
+    "mode": "read_only",
+    "planned": ["20260805130000_comun_production_pilot_core_bundle.sql"],
+    "includeAll": false,
+    "repair": false,
+    "remoteWrite": false
+  },
+  "remote": {"migrationApplied": false, "flagsChanged": false, "productionChanged": false}
+}

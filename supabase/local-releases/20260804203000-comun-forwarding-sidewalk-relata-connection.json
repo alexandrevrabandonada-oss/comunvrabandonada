@@ -1,6 +1,6 @@
 {
   "release": "20260804203000-comun-forwarding-sidewalk-relata-connection",
-  "migration": "supabase/migrations/20260804203000_comun_sidewalk_relata_connection_local.sql",
+  "migration": "supabase/local-migrations/20260804203000_comun_sidewalk_relata_connection_local.sql",
   "migrationSha256": "76f42a963a1e9a167090938aaba24c37f95e9add8597184332bff0e57d05355a",
   "destructiveSql": false,
   "requiresPromotion": false,

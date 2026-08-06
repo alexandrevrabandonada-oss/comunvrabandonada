@@ -1,0 +1,24 @@
+{
+  "result": "COMUN_48_1B_R2A_L1_BLOCKED_RUNTIME_E2E_SCOPE",
+  "migration": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
+  "sha256": "ffcfc1b22d889452b8c57817393b1b9ea24fca862abc04344f58bae081d2f4ab",
+  "manifest": "supabase/releases/20260805130000-comun-production-pilot-core-bundle.json",
+  "requiresPromotion": true,
+  "remotePromotionAllowed": true,
+  "remoteWrites": false,
+  "flagsChanged": false,
+  "pilotActivated": false,
+  "launchPublicly": false,
+  "dryRun": {
+    "command": "supabase db push --linked --dry-run",
+    "status": "success",
+    "migrations": ["20260805130000_comun_production_pilot_core_bundle.sql"],
+    "seeds": [],
+    "roles": [],
+    "quarantineRestored": true,
+    "mutatingPush": false,
+    "note": "Current-SHA read-only dry-run succeeded after quarantining the external-ledger and explicit local-only migrations; all files were restored. Two isolated local rehearsals and runtime core smoke are green; no remote write."
+  },
+  "validation": "2/2 + local core A/B + runtime cloak; full photo/location E2E pending",
+  "baseline": "COMUN_48_1B_R1_EXTERNAL_LEDGER_AND_LOCAL_ONLY_RECONCILED_CLI_BASELINE_EMPTY"
+}

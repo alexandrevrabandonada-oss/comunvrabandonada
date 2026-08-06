@@ -65,11 +65,11 @@ test("backup recupera o schema privado quando ele existe", async () => {
 test("Relata 48.0C mantém evidência local, privada e sem promoção", async () => {
   const [foundation, migration, feature, runtime, cleanup, manifest] = await Promise.all([
     readFile(
-      "supabase/migrations/20260803161310_comun_relata_durable_local.sql",
+      "supabase/local-migrations/20260803161310_comun_relata_durable_local.sql",
       "utf8",
     ),
     readFile(
-      "supabase/migrations/20260803192419_comun_relata_private_evidence_cases.sql",
+      "supabase/local-migrations/20260803192419_comun_relata_private_evidence_cases.sql",
       "utf8",
     ),
     readFile("lib/comun-relata-evidence-feature.ts", "utf8"),

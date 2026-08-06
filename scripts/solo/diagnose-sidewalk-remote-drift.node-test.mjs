@@ -9,6 +9,7 @@ import {
   assertReadOnlySql,
   auditGrantMatrixQuery,
   buildFingerprintDocument,
+  classifyScopedExternalLedger,
   classifyRemoteDrift,
   compareScopedObjects,
   diffAuditGrantMatrices,
@@ -485,6 +486,72 @@ test("classifies an audit grant matrix equal to local POST", () => {
   const assessment = assessAuditGrantDrift({ pre, post, remote: post });
   assert.equal(assessment.classification, "REMOTE_EQUIVALENT_TO_POST");
   assert.equal(assessment.risk, "equivalent_post");
+});
+
+test("marks PRE=POST grants as equal_pre_post", () => {
+  const grants = [auditGrant("service_role", "SELECT")];
+  const assessment = assessAuditGrantDrift({
+    pre: grants,
+    post: grants,
+    remote: grants,
+  });
+  assert.equal(assessment.classification, "EQUAL_PRE_POST");
+  assert.equal(assessment.risk, "equal_pre_post");
+  assert.equal(assessment.prePostEqual, true);
+});
+
+test("accepts exact scoped POST despite global fingerprint evolution", () => {
+  const grants = [auditGrant("service_role", "SELECT")];
+  const assessment = assessAuditGrantDrift({
+    pre: grants,
+    post: grants,
+    remote: grants,
+  });
+  assert.equal(
+    classifyScopedExternalLedger({
+      globalObserved: "later-global",
+      globalPre: "historical-pre",
+      globalPost: "historical-post",
+      scopedObserved: "scoped-post",
+      scopedPost: "scoped-post",
+      ledger: "PRESENT_ACCEPTED",
+      objects: [{ type: "relations", state: "equal" }, { type: "columns", state: "post" }],
+      grantAudit: assessment,
+    }),
+    "APPLIED_EXACT_SCOPED_EXTERNAL_LEDGER",
+  );
+});
+
+test("blocks a partial scoped object even when global state evolved", () => {
+  const grants = [auditGrant("service_role", "SELECT")];
+  const assessment = assessAuditGrantDrift({
+    pre: grants,
+    post: grants,
+    remote: grants,
+  });
+  assert.equal(
+    classifyScopedExternalLedger({
+      scopedObserved: "scoped-post",
+      scopedPost: "scoped-post",
+      ledger: "PRESENT_ACCEPTED",
+      objects: [{ type: "columns", state: "post" }, { type: "policies", state: "changed" }],
+      grantAudit: assessment,
+    }),
+    "BLOCKED_SCOPED_REMOTE_MISMATCH",
+  );
+});
+
+test("blocks only when a scoped catalog read is actually unreadable", () => {
+  assert.equal(
+    classifyScopedExternalLedger({
+      scopedObserved: "scoped-post",
+      scopedPost: "scoped-post",
+      ledger: "PRESENT_ACCEPTED",
+      scopedUnreadable: true,
+      objects: [],
+    }),
+    "BLOCKED_SCOPED_OBJECT_READ_PERMISSION",
+  );
 });
 
 test("classifies TRIGGER and TRUNCATE already revoked as more restrictive than PRE", () => {

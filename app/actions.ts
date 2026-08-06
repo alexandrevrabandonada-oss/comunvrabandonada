@@ -43,6 +43,7 @@ import {
 } from "@/lib/pauta-spaces";
 import { generateProtocol } from "@/lib/protocol";
 import { isValidProtocol, normalizeProtocol } from "@/lib/reports";
+import { isComunTerritoryProfileEnabled } from "@/lib/comun-territory-profile";
 import {
   createPublicSupabaseClient,
   createServiceSupabaseClient,
@@ -1250,12 +1251,6 @@ export async function saveCommunityProfileAction(formData: FormData) {
   const displayName = String(formData.get("display_name") ?? "")
     .trim()
     .slice(0, 80);
-  const territoryMunicipality = String(formData.get("territory") ?? "")
-    .trim()
-    .slice(0, 120);
-  const territoryNeighborhood = String(formData.get("neighborhood") ?? "")
-    .trim()
-    .slice(0, 120);
   const visibility = String(formData.get("profile_visibility") ?? "private");
   if (
     !displayName ||
@@ -1264,36 +1259,42 @@ export async function saveCommunityProfileAction(formData: FormData) {
     throw new Error("Perfil inválido.");
   const service = createServiceSupabaseClient();
   if (!service) throw new Error("Serviço indisponível.");
-  const territoryCatalogEnabled =
-    process.env.COMUN_TERRITORY_CATALOG_LOCAL === "enabled";
+  const territoryProfileEnabled = isComunTerritoryProfileEnabled();
+  const updatePayload: Record<string, unknown> = {
+    display_name: displayName,
+    public_bio:
+      String(formData.get("public_bio") ?? "")
+        .trim()
+        .slice(0, 280) || null,
+    profile_visibility: visibility,
+    participation_visibility:
+      visibility === "public"
+        ? "public"
+        : visibility === "pauta_members"
+          ? "participants"
+          : "private",
+    onboarding_completed_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+  if (territoryProfileEnabled) {
+    const territoryMunicipality = String(formData.get("territory") ?? "")
+      .trim()
+      .slice(0, 120);
+    const territoryNeighborhood = String(formData.get("neighborhood") ?? "")
+      .trim()
+      .slice(0, 120);
+    Object.assign(updatePayload, {
+      territory_municipality: territoryMunicipality || null,
+      territory_neighborhood: territoryNeighborhood || null,
+      territory_source_version:
+        territoryMunicipality === "Volta Redonda"
+          ? "2026-08-04-textual-preliminary"
+          : null,
+    });
+  }
   const { error } = await service
     .from("comun_member_profiles" as never)
-    .update({
-      display_name: displayName,
-      public_bio:
-        String(formData.get("public_bio") ?? "")
-          .trim()
-          .slice(0, 280) || null,
-      profile_visibility: visibility,
-      participation_visibility:
-        visibility === "public"
-          ? "public"
-          : visibility === "pauta_members"
-            ? "participants"
-            : "private",
-      ...(territoryCatalogEnabled
-        ? {
-            territory_municipality: territoryMunicipality || null,
-            territory_neighborhood: territoryNeighborhood || null,
-            territory_source_version:
-              territoryMunicipality === "Volta Redonda"
-                ? "2026-08-04-textual-preliminary"
-                : null,
-          }
-        : {}),
-      onboarding_completed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    } as never)
+    .update(updatePayload as never)
     .eq("user_id" as never, session.user.id);
   if (error) throw new Error(error.message);
   revalidatePath("/comun/minha-participacao");

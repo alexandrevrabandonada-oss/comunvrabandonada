@@ -1,0 +1,23 @@
+{
+  "chain": "20260805130000-comun-production-pilot-core-chain",
+  "status": "ready_when_all_applied",
+  "activationRequiresCompleteChain": true,
+  "migrations": [
+    {
+      "order": 1,
+      "path": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
+      "sha256": "0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9",
+      "purpose": "production pilot private core bundle",
+      "dataMutation": false,
+      "activationAllowed": false
+    },
+    {
+      "order": 2,
+      "path": "supabase/migrations/20260805201000_comun_production_pilot_attachment_rpc_fix.sql",
+      "sha256": "f092f26df14fe9f724be9b3a6ad9d46fb5d73145d8cf2072933ac0c5917addcc",
+      "purpose": "qualified attachment allocator output parameter",
+      "dataMutation": false,
+      "activationAllowed": false
+    }
+  ]
+}

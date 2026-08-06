@@ -1,6 +1,6 @@
 {
   "release": "20260803161310-comun-relata-durable-local",
-  "migration": "supabase/migrations/20260803161310_comun_relata_durable_local.sql",
+  "migration": "supabase/local-migrations/20260803161310_comun_relata_durable_local.sql",
   "migrationSha256": "cb216666f64602c02e756d8e2d66017e5a721c7b9ad7810f793cad6a276606b7",
   "destructiveSql": false,
   "requiresPromotion": false,

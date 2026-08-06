@@ -1,0 +1,129 @@
+{
+  "result": "COMUN_48_1B_R2A_BLOCKED_PREEXISTING_SCHEMA_SCOPE",
+  "branch": "codex/tijolo-48-1b-production-domain-pilot",
+  "head": "cc45507109b8d468761eb83855442cfe834f188c",
+  "candidate": {
+    "path": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
+    "sha256": "0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9"
+  },
+  "boundedLocalRetry": "blocked_docker_desktop_unavailable",
+  "forwardFix": {
+    "path": "supabase/migrations/20260805201000_comun_production_pilot_attachment_rpc_fix.sql",
+    "sha256": "f092f26df14fe9f724be9b3a6ad9d46fb5d73145d8cf2072933ac0c5917addcc",
+    "candidateImmutable": true,
+    "targetedSqlTest": "ci_chain_applied_before_wallet_failure",
+    "walletAccountFix": {
+      "path": "supabase/migrations/20260805212659_comun_production_pilot_wallet_account_rpc_fix.sql",
+      "sha256": "0d4b9a271a169184d45020bdad3ef11c8e1a01bd6d256848787b98b5d04a3382",
+      "candidateImmutable": true
+    }
+  },
+  "ciLane": "COMUN R2A / private runtime E2E",
+  "finding": {
+    "kind": "functional",
+    "endpoint": "/api/comun/relata/evidence/attachments",
+    "status": 404,
+    "code": "attachments_unavailable",
+    "rpc": "public.comun_relata_begin_attachment",
+    "sqlstate": "42702",
+    "sqlstateMeaning": "ambiguous_column",
+    "migrationBytesChanged": false,
+    "remoteWrite": false
+  },
+  "scope": {
+    "relata": "implemented_in_harness",
+    "location": "implemented_in_harness",
+    "attachments": "implemented_in_harness",
+    "wallet": "implemented_in_harness",
+    "account": "implemented_in_harness",
+    "collectives": "disabled_and_no_rpc_expected"
+  },
+  "ciRun": "31056455947",
+  "ciRetry": {
+    "attempt": "single_focal_retry",
+    "startedAt": "2026-08-05T22:17:02Z",
+    "status": "cancelled_before_health_result",
+    "step": "Start disposable Supabase and apply the canonical chain",
+    "reachedDatabase": false,
+    "reachedE2E": false,
+    "classification": "COMUN_48_1B_R2A_BLOCKED_CI_STARTUP_CANCELLED_BEFORE_HEALTH_RESULT"
+  },
+  "ciStartupPatch": {
+    "artifactBeforeStart": true,
+    "minimalStack": true,
+    "heartbeatSeconds": 20,
+    "startupLimitMinutes": 12,
+    "healthResult": "green",
+    "startupClassification": "COMUN_48_1B_R2A_CI_STARTUP_GREEN",
+    "startupElapsedMs": 133417,
+    "services": {
+      "auth": 200,
+      "postgrest": 200,
+      "storage": 400,
+      "database": true
+    }
+  },
+  "ciRuntimeAttempt": {
+    "run": "31056455947",
+    "startup": "COMUN_48_1B_R2A_CI_STARTUP_GREEN",
+    "e2e": "COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN",
+    "cleanup": "cancelled_by_runner_after_e2e",
+    "cleanupClassification": "COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP",
+    "remoteContacted": false,
+    "artifactSanitizationFinding": "local_storage_keys_were_present_in_startup_log"
+  },
+  "ciRuntimeAttempt2": {
+    "run": "31058759867",
+    "startup": "COMUN_48_1B_R2A_CI_STARTUP_GREEN",
+    "e2e": "COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN",
+    "cleanup": "cancelled_by_runner_after_e2e",
+    "cleanupClassification": "COMUN_48_1B_R2A_BLOCKED_E2E_CLEANUP",
+    "remoteContacted": false,
+    "artifactSanitizationFinding": "redaction_patch_not_yet_in_this_attempt"
+  },
+  "ciRuntimeAttempt3": {
+    "run": "31063191091",
+    "startup": "COMUN_48_1B_R2A_CI_STARTUP_GREEN",
+    "services": {
+      "auth": 200,
+      "postgrest": 200,
+      "storage": 400,
+      "database": true
+    },
+    "e2e": "COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN",
+    "cleanup": "COMUN_R2A_E2E_CLEANUP_DONE",
+    "artifactSanitization": "green",
+    "remoteContacted": false,
+    "remoteMigrationApplied": false
+  },
+  "ciRuntimeAttempt4": {
+    "run": "31063601959",
+    "head": "cc45507109b8d468761eb83855442cfe834f188c",
+    "startup": "COMUN_48_1B_R2A_CI_STARTUP_GREEN",
+    "e2e": "COMUN_48_1B_R2A_PRIVATE_EVIDENCE_ACCOUNT_E2E_GREEN",
+    "cleanup": "COMUN_R2A_E2E_CLEANUP_DONE",
+    "artifactSanitization": "green",
+    "conclusion": "success",
+    "remoteContacted": false,
+    "remoteMigrationApplied": false
+  },
+  "fullCi": {
+    "status": "blocked",
+    "result": "COMUN_48_1B_R2A_BLOCKED_PREEXISTING_SCHEMA_SCOPE",
+    "run": "31063601906",
+    "finding": "aggregated journeys require territory_municipality, present only in local-only migration 20260805090000_comun_member_profile_territory_selection.sql",
+    "migrationPromoted": false
+  },
+  "secondaryFinding": {
+    "kind": "functional",
+    "rpc": "public.comun_participation_wallet_link_account",
+    "sqlstate": "42702",
+    "sqlstateMeaning": "ambiguous_column",
+    "cause": "unqualified ON CONFLICT(wallet_id,user_id) inside wallet-account link function",
+    "remoteWrite": false
+  },
+  "remoteContacted": false,
+  "remoteMigrationApplied": false,
+  "flagsChanged": false,
+  "productionChanged": false
+}

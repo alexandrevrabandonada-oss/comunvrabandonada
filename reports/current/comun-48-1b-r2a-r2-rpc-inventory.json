@@ -1,0 +1,11 @@
+{
+  "migration": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql",
+  "migrationSha256": "46ff3bcd264191b73356b4d2e4e6dbc2ead4a330636e27d5c24db13489b4edd9",
+  "collectives": "deferred",
+  "rows": [
+    {"surface":"location","runtime":["add_location","withdraw_location","get_evidence_state"],"rpc":["comun_relata_add_location","comun_relata_withdraw_location","comun_relata_get_evidence_state"],"tables":["private.comun_relata_private_locations","public.comun_relata_evidence_consents"],"present":"yes","wave1Required":true},
+    {"surface":"attachments","runtime":["begin","validate","finalize","read","withdraw","reject"],"rpc":["comun_relata_begin_attachment","comun_relata_mark_attachment_validating","comun_relata_finalize_attachment","comun_relata_authorize_attachment_read","comun_relata_withdraw_attachment","comun_relata_reject_attachment"],"tables":["private.comun_relata_attachments","storage.objects"],"present":"yes","wave1Required":true},
+    {"surface":"grouping","runtime":["associate"],"rpc":[],"tables":["public.comun_relata_collective_cases","public.comun_relata_case_memberships"],"present":"deferred","wave1Required":false,"guard":"COMUN_RELATA_COLLECTIVE_ENABLED"},
+    {"surface":"wallet-account","runtime":["attach","link_account","list"],"rpc":["comun_participation_wallet_attach_relata","comun_participation_wallet_link_account","comun_participation_wallet_list"],"tables":["private.comun_participation_wallets","private.comun_participation_wallet_items","private.comun_participation_wallet_events"],"present":"yes","wave1Required":true}
+  ]
+}

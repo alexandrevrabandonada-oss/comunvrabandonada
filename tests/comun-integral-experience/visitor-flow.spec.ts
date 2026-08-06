@@ -121,7 +121,9 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     timeout: 20_000,
   });
   await page
-    .getByRole("button", { name: /Salvar território e continuar/ })
+    .getByRole("button", {
+      name: /Continuar o registro|Salvar território e continuar/,
+    })
     .click();
   await expect(page).toHaveURL(/\/comun\/mapa\/contribuir\?origem=calcadas/);
   await page.setInputFiles(
