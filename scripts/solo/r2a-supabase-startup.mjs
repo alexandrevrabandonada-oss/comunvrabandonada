@@ -16,11 +16,11 @@ const redact = (value) =>
       );
       if (secretLabel) return `${secretLabel[1]} [REDACTED]`;
       const jsonSecret = line.match(
-        /^(\s*"?(?:PUBLISHABLE_KEY|SECRET|SERVICE_ROLE|ANON_KEY|ACCESS_KEY|SECRET_KEY)"?\s*:\s*)/i,
+        /^(\s*"?(?:PUBLISHABLE_KEY|SECRET|SERVICE_ROLE|ANON_KEY|(?:[A-Z0-9_]+_)?ACCESS_KEY(?:_ID)?|SECRET_KEY)"?\s*:\s*)/i,
       );
       if (jsonSecret) return `${jsonSecret[1]}[REDACTED]`;
       if (
-        /(service[_ -]?role|anon(?:[_ -]?key)?|access[_ -]?token|password|secret|jwt|api[_ -]?key|connection[_ -]?string|publishable|access key|secret key)/i.test(
+        /(service[_ -]?role|anon(?:[_ -]?key)?|access[_ -]?token|access[_ -]?key(?:[_ -]?id)?|password|secret|jwt|api[_ -]?key|connection[_ -]?string|publishable|secret key)/i.test(
           line,
         )
       ) {
