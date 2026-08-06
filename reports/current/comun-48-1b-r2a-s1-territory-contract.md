@@ -63,3 +63,27 @@ O runtime R2A, a jornada candidata sem território e a lane local-only estão
 verdes no head final. A cadeia R2A continua sem migration territorial. A PR
 #174 pode avançar para READY/merge após a atualização documental; a promoção
 remota permanece uma fase posterior e não inclui a migration local-only.
+
+## Pós-merge e promoção R2A (2026-08-06)
+
+- PR #174 mesclada com head `3015626c3f6cb188f2099ffef6bdcc5a58708532`;
+- merge commit: `a0eda5cc7ba7e1ae9e7cf74fa9d9f5c24950d378`;
+- dry-run remoto reconciliado: exatamente as três migrations R2A, sem
+  `20260724233256` no plano e sem a migration territorial local-only;
+- promoção remota concluída: as três migrations aparecem aplicadas no ledger;
+- SHA das migrations: core `0648404b…`, attachment fix `f092f26d…`, wallet fix
+  `0d4b9a27…`;
+- exceção externa de Calçadas restaurada byte a byte após a promoção;
+- postflight read-only: 14 tabelas R2A com RLS e force-RLS, nenhum grant para
+  `PUBLIC`/`anon`/`authenticated` nas tabelas escopadas, RPCs server-only e
+  bucket `comun-relata-private` privado;
+- `supabase db lint --linked` registrou apenas o finding preexistente da função
+  `public.comun_sync_public_search_projection` referindo relação ausente
+  `comun_search_candidates`, fora do escopo R2A;
+- smoke `https://comunsocial.online`: `/comun`, `/comun/relatar` e
+  `/comun/calcadas` em 200; Relata novo, Ônibus e APIs de piloto em 404;
+- HTML de `/comun/relatar` sem chaves territoriais, flags ou fixtures;
+- nenhuma flag pública, Google, allowlist, piloto ou `launch_publicly` foi
+  ativada.
+
+Resultado: `COMUN_48_1B_R2A_REMOTE_SCHEMA_PROMOTED_DOMAIN_STABLE_FLAGS_OFF`.

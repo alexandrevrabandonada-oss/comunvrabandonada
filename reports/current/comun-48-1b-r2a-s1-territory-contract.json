@@ -28,8 +28,20 @@
     "result": "green"
   },
   "r2aChainMutated": false,
-  "remoteContacted": false,
-  "remoteMigrationApplied": false,
+  "remoteContacted": true,
+  "remoteMigrationApplied": true,
+  "remotePromotion": {
+    "result": "COMUN_48_1B_R2A_REMOTE_SCHEMA_PROMOTED_DOMAIN_STABLE_FLAGS_OFF",
+    "mergeCommit": "a0eda5cc7ba7e1ae9e7cf74fa9d9f5c24950d378",
+    "migrations": [
+      {"path": "supabase/migrations/20260805130000_comun_production_pilot_core_bundle.sql", "sha256": "0648404b49be00b2d46dc5431c1bde4cb0072bf0f27a1c8f42075bb522cdd4f9"},
+      {"path": "supabase/migrations/20260805201000_comun_production_pilot_attachment_rpc_fix.sql", "sha256": "f092f26df14fe9f724be9b3a6ad9d46fb5d73145d8cf2072933ac0c5917addcc"},
+      {"path": "supabase/migrations/20260805212659_comun_production_pilot_wallet_account_rpc_fix.sql", "sha256": "0d4b9a271a169184d45020bdad3ef11c8e1a01bd6d256848787b98b5d04a3382"}
+    ],
+    "territoryMigrationPromoted": false,
+    "flags": "off",
+    "launchPublicly": false
+  },
   "flagsChanged": false,
   "launchPublicly": false
 }

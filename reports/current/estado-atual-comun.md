@@ -873,3 +873,17 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
 - PR #174 pode avançar para READY/merge documental e técnico;
 - promoção remota continua separada, condicionada a dry-run exato das três
   migrations R2A e sem promoção territorial.
+
+### Pós-merge e promoção R2A (2026-08-06)
+
+- PR #174 mesclada; merge commit `a0eda5cc7ba7e1ae9e7cf74fa9d9f5c24950d378`;
+- dry-run remoto exato e promoção concluída somente para as três migrations R2A;
+- migration territorial local-only não foi promovida;
+- postflight read-only confirmou RLS/force-RLS, grants públicos ausentes nas
+  tabelas escopadas, RPCs server-only e bucket privado;
+- `supabase db lint --linked` mantém apenas o finding preexistente de
+  `comun_search_candidates`, fora do escopo R2A;
+- smoke de Production: `/comun=200`, `/comun/relatar=200`,
+  `/comun/calcadas=200`; Relata novo, Ônibus e APIs de piloto `404`;
+- flags, Google, allowlist, piloto e `launch_publicly` permanecem fechados;
+- resultado: `COMUN_48_1B_R2A_REMOTE_SCHEMA_PROMOTED_DOMAIN_STABLE_FLAGS_OFF`.
