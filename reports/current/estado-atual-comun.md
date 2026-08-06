@@ -848,3 +848,17 @@ sanitizados verdes. A execução completa continua bloqueada por
 na migration local-only `supabase/local-migrations/20260805090000_comun_member_profile_territory_selection.sql`.
 Não houve promoção dessa migration, escrita remota, ativação de flags, Google,
 piloto ou `launch_publicly`. A PR #174 permanece draft.
+
+## 48.1B-R2A-S1 — onboarding mínimo e catálogo territorial local-only (2026-08-06)
+
+- resolver canônico: `lib/comun-territory-profile.ts`;
+- Production: `COMUN_TERRITORY_PROFILE_ENABLED=disabled` por padrão;
+- alias local: somente com `ALLOW_LOCAL_TESTS=true` e fora de Production;
+- onboarding mínimo e Calçadas concluem sem as colunas territoriais;
+- payload mínimo não inclui campos territoriais quando a capacidade está off;
+- lane separada `COMUN Territory / local-only contract` aplica explicitamente
+  a migration local e verifica persistência privada de cidade/bairro;
+- cadeia R2A: preservada, sem quarta migration;
+- unitários: 502/502; typecheck e lint focais verdes;
+- nenhum schema remoto, flag, Google, piloto ou `launch_publicly` foi alterado;
+- PR #174 aguarda CI nova antes de READY/merge.
