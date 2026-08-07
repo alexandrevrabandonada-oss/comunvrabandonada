@@ -34,7 +34,7 @@ try {
   await db.connect();
   for (const point of synthetic) {
     const secret = token();
-    const created = await http("/api/comun/relata", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "Fixture P3B localização privada sem dado pessoal.", answers: {}, captureMode: "quick_v2", idempotencyKey: token(), receiptSecret: secret }) });
+    const created = await http("/api/comun/relata", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "A calçada está totalmente bloqueada por entulho e impede a passagem.", answers: { blocked: "sim" }, captureMode: "quick_v2", idempotencyKey: token(), receiptSecret: secret }) });
     const body = await created.json();
     assert.equal(created.status, 201, JSON.stringify(body));
     const protocol = body.receipt.protocol;
