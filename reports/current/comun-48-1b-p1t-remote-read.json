@@ -1,0 +1,24 @@
+{
+  "result": "COMUN_P1T_REMOTE_TERRITORY_SCHEMA_READ_COMPLETE",
+  "classification": "COMUN_P1T_REMOTE_TERRITORY_ABSENT",
+  "table": "public.comun_member_profiles",
+  "columns": {
+    "territory_municipality": "absent",
+    "territory_neighborhood": "absent",
+    "territory_source_version": "absent"
+  },
+  "rls": {
+    "enabled": true,
+    "forced": false
+  },
+  "tableGrants": {
+    "public": "absent",
+    "anon": "absent",
+    "authenticated": "absent",
+    "service_role": "present"
+  },
+  "policies": "none_observed",
+  "historicalLocalMigrationInRemoteLedger": false,
+  "valuesRead": false,
+  "remoteWrite": false
+}

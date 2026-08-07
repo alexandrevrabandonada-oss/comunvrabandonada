@@ -887,3 +887,13 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
   `/comun/calcadas=200`; Relata novo, Ônibus e APIs de piloto `404`;
 - flags, Google, allowlist, piloto e `launch_publicly` permanecem fechados;
 - resultado: `COMUN_48_1B_R2A_REMOTE_SCHEMA_PROMOTED_DOMAIN_STABLE_FLAGS_OFF`.
+
+## 48.1B-P1T — território opcional do perfil (2026-08-06)
+
+- Baseline remoto confirmado em `6bd9bd86630364b9acecce7ae4966903639ece4f`.
+- Leitura remota classificou `public.comun_member_profiles` como `COMUN_P1T_REMOTE_TERRITORY_ABSENT`.
+- Migration nova criada: `20260806235454_comun_member_profile_optional_territory.sql`.
+- SHA-256: `1173bbddeafdcb929bee4eb7594e74fa6465af87421c0b0fe7ca7c549f11a1f5`.
+- A migration local-only `20260805090000` não foi movida nem promovida.
+- Flags, Google, piloto e `launch_publicly` continuam fechados.
+- CI, lane descartável e dry-run exato verdes; PR #177 permanece draft até a promoção remota controlada.
