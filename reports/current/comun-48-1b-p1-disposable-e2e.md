@@ -38,3 +38,5 @@ o runner focal ficou preso na etapa de acessibilidade de outras superfícies.
 - O mega-job mantém sua cobertura e usa o mesmo executor isolado para as suítes
   a11y focais e WCAG.
 - Smoke local do executor: `COMUN_P1_CI_A11Y_TARGETED_GREEN`.
+- O contrato `disposableSidewalkLedgerExact` foi ajustado para reconhecer o
+  comando isolado sem aceitar remoção da cobertura de Calçadas.

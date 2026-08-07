@@ -945,4 +945,6 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
   local do executor verde.
 - Nenhuma funcionalidade P1, migration, RPC, flag, Google ou Production foi
   alterada.
+- O contrato estático de Quality Performance foi atualizado para a nova forma
+  isolada de a11y; `npm run quality:test` permanece verde.
 - Próximo gate: nova execução CI no head deste patch; ainda não marcar READY.

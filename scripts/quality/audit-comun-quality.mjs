@@ -100,9 +100,12 @@ const checks = {
     workflow.includes(
       "COMUN_SIDEWALK_OPERATIONAL_V2=enabled npm run test:e2e:comun-calcadas-operacional",
     ) &&
-    workflow.includes(
+    (workflow.includes(
       "COMUN_SIDEWALK_OPERATIONAL_V2=enabled npm run test:a11y:comun-calcadas-operacional",
-    ),
+    ) ||
+      workflow.includes(
+        "COMUN_SIDEWALK_OPERATIONAL_V2=enabled COMUN_QUALITY_A11Y_ARTIFACT_DIR=.ci-artifacts/p1-quality-a11y/calcadas node scripts/quality/run-isolated-a11y.mjs npm run test:a11y:comun-calcadas-operacional",
+      )),
   postcssPatched:
     Number(JSON.parse(packageJson).devDependencies.postcss.split(".").at(-1)) >=
     17,
