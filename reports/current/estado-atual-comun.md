@@ -1055,3 +1055,7 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
 - O responsável informou rotação da chave `service_role` no Supabase, mas a
   nova credencial ainda não foi comprovada no ambiente seguro de execução; não
   usar chaves coladas no chat.
+- Em 2026-08-07 houve uma tentativa de deploy a partir do worktree P3A por
+  falha de troca para `main`; o alias foi revertido imediatamente para
+  `dpl_542s3DLmDyTDur11Z4v3cxNBBt6k`. Smoke pós-rollback ficou verde e nenhuma
+  fixture, migration, flag ou escrita remota ocorreu.
