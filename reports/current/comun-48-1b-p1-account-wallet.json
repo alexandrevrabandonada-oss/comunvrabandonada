@@ -1,5 +1,5 @@
 {
-  "result": "COMUN_48_1B_P1_BLOCKED_CI_RUNTIME_INFRASTRUCTURE",
+  "result": "COMUN_48_1B_P1_ACCOUNT_WALLET_DOMAIN_GREEN_TERRITORY_OFF_GOOGLE_OFF",
   "baseline": "903c7519658395eba7e9b0437c1cb236ffbaea38",
   "migration": "none",
   "remoteDryRun": "empty_after_known_external_sidewalk_quarantine",
@@ -7,7 +7,7 @@
   "wallet": { "canonicalFlag": "COMUN_PARTICIPATION_WALLET_ENABLED", "localAliasPreserved": true, "explicitAccountLink": true },
   "territory": "off",
   "relata": "off",
-  "production": { "flags": "unchanged_off", "launchPublicly": false },
+  "production": { "registration": "open", "wallet": "enabled", "territory": "disabled", "google": "disabled", "launchPublicly": false },
   "runtimeE2E": "green_prior_evidence_31138922028",
   "ci1": {
     "head": "b715da904994ee65560c5002e5a255ad1a30a2ed",
@@ -17,5 +17,27 @@
     "classification": "COMUN_P1_CI_INTEGRAL_JOURNEY_ENVIRONMENT_MISCONFIGURED",
     "patch": "COMMUNITY_REGISTRATION_MODE=open_scoped_to_pr_lane"
   },
-  "remoteWrites": 0
+  "remoteWrites": 0,
+  "merge": {
+    "pr": 179,
+    "head": "6a48aaae2ce5cde5696c244f4cdf8725847064df",
+    "mergeSha": "b9ed2dcde3d1f78e5c85ea5640e0305b35144eeb"
+  },
+  "deployments": {
+    "flagsOff": "qokdtmxdw",
+    "accountOpen": "3zavnu1uk",
+    "walletEnabled": "iemr840o6",
+    "domain": "https://comunsocial.online"
+  },
+  "productionSmoke": {
+    "corePages": 200,
+    "createAccount": 200,
+    "minhaParticipacao": 200,
+    "walletApiWithoutCookie": { "status": 200, "wallet": null, "items": [] },
+    "newRelataApi": 404,
+    "busRoute": 404,
+    "territory": "off",
+    "google": "off",
+    "syntheticProductionLifecycle": "not_executed_to_avoid_persisted_test_data"
+  }
 }
