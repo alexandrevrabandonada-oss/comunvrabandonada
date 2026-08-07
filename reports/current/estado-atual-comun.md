@@ -931,3 +931,18 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
   gate não estiver verde. Território, Google, Relata novo, flags e `launch_publicly`
   permanecem desligados; nenhuma migration ou escrita remota foi feita.
 - Resultado atual: `COMUN_48_1B_P1_BLOCKED_CI_RUNTIME_INFRASTRUCTURE`.
+
+### 48.1B-P1-CI1 — isolamento Quality Performance (2026-08-07)
+
+- Adicionado `scripts/quality/run-isolated-a11y.mjs` com health gate inicial,
+  monitor de vida, snapshots sanitizados de recursos, classificação de saída e
+  cleanup por processo/grupo.
+- Criada lane obrigatória `COMUN Quality / isolated a11y` na Quality Performance;
+  a cobertura completa permanece obrigatória.
+- Suítes a11y focais e WCAG do mega-job passaram a usar servidor explícito na
+  porta `3037`, sem `PLAYWRIGHT webServer` concorrente.
+- Build, unitários (504), typecheck, lint, sintaxe e formatação verdes; smoke
+  local do executor verde.
+- Nenhuma funcionalidade P1, migration, RPC, flag, Google ou Production foi
+  alterada.
+- Próximo gate: nova execução CI no head deste patch; ainda não marcar READY.

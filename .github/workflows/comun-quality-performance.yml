@@ -9,6 +9,7 @@ on:
       - "lib/**"
       - "public/sw.js"
       - "scripts/quality/**"
+      - "scripts/quality/run-isolated-a11y.mjs"
       - "tests/quality-performance/**"
       - "tests/comun-pwa-experience/**"
       - "supabase/migrations/**"
@@ -28,6 +29,7 @@ on:
       - "lib/**"
       - "public/sw.js"
       - "scripts/quality/**"
+      - "scripts/quality/run-isolated-a11y.mjs"
       - "tests/quality-performance/**"
       - "tests/comun-pwa-experience/**"
       - "supabase/migrations/**"
@@ -94,6 +96,52 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  isolated-a11y:
+    name: COMUN Quality / isolated a11y
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'local')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      ALLOW_LOCAL_TESTS: "true"
+      COMUN_TERRITORY_PROFILE_ENABLED: disabled
+      COMUN_TERRITORY_CATALOG_LOCAL: disabled
+      COMUN_QUALITY_A11Y_PORT: 3037
+      COMUN_BASE_URL: http://127.0.0.1:3037
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3037
+      PLAYWRIGHT_SKIP_WEBSERVER: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.111.0
+      - run: mkdir -p .ci-artifacts/p1-quality-a11y
+      - run: npm ci --ignore-scripts
+      - name: Supabase descartável
+        run: |
+          supabase start
+          supabase db reset --local --yes
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Núcleo a11y com servidor isolado e monitorado
+        run: |
+          node scripts/quality/run-isolated-a11y.mjs npm run test:a11y:comun-nucleo-vivo
+          node -e "const r=require('./.ci-artifacts/p1-quality-a11y/result.json'); if(r.result!=='COMUN_P1_CI_A11Y_TARGETED_GREEN') process.exit(1); console.log(JSON.stringify({result:'COMUN_P1_CI_A11Y_INFRASTRUCTURE_GREEN',server:r.result},null,2))"
+      - name: Publicar diagnóstico sanitizado
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-p1-quality-isolated-a11y-${{ github.run_id }}
+          path: .ci-artifacts/p1-quality-a11y
+          if-no-files-found: error
+          retention-days: 14
+      - name: Cleanup Supabase
+        if: always()
+        run: supabase stop --no-backup || true
+
   pr-lane:
     if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'local')
     runs-on: ubuntu-24.04
@@ -130,16 +178,18 @@ jobs:
           node scripts/comun-local-env.mjs run node scripts/solo/apply-forward-only.mjs --adopt-local-validation-ledger
           npm run audit:rls-matrix
       - run: npx playwright install --with-deps chromium
+      - name: Build único para servidores a11y focais
+        run: npm run build
       - name: Regressões focais de Núcleo, Calçadas e Rádio
         run: |
           npm run test:e2e:comun-nucleo-vivo
-          npm run test:a11y:comun-nucleo-vivo
+          COMUN_QUALITY_A11Y_ARTIFACT_DIR=.ci-artifacts/p1-quality-a11y/nucleo node scripts/quality/run-isolated-a11y.mjs npm run test:a11y:comun-nucleo-vivo
           COMUN_SIDEWALK_OPERATIONAL_V2=enabled npm run test:e2e:comun-calcadas-operacional
-          COMUN_SIDEWALK_OPERATIONAL_V2=enabled npm run test:a11y:comun-calcadas-operacional
+          COMUN_SIDEWALK_OPERATIONAL_V2=enabled COMUN_QUALITY_A11Y_ARTIFACT_DIR=.ci-artifacts/p1-quality-a11y/calcadas node scripts/quality/run-isolated-a11y.mjs npm run test:a11y:comun-calcadas-operacional
           npm run test:e2e:community-radio
-          npm run test:a11y:community-radio
+          COMUN_QUALITY_A11Y_ARTIFACT_DIR=.ci-artifacts/p1-quality-a11y/radio node scripts/quality/run-isolated-a11y.mjs npm run test:a11y:community-radio
       - name: WCAG automatizável em nove viewports
-        run: npm run quality:a11y
+        run: COMUN_QUALITY_A11Y_ARTIFACT_DIR=.ci-artifacts/p1-quality-a11y/quality node scripts/quality/run-isolated-a11y.mjs npm run quality:a11y
       - name: PWA, cache privado, update e offline
         run: npm run quality:pwa
       - name: Performance, hidratação, bundles e rede degradada

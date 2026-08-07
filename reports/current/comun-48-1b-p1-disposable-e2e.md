@@ -24,3 +24,17 @@ Resultado CI: `COMUN_48_1B_P1_ACCOUNT_WALLET_DISPOSABLE_E2E_GREEN` (run `3113989
 O host local permaneceu sem Docker. A regressão da lane Quality Performance no novo
 head `e0bfedb` não atingiu o E2E P1: a suíte P1 foi marcada como pendente enquanto
 o runner focal ficou preso na etapa de acessibilidade de outras superfícies.
+
+## CI1 — isolamento do servidor de Quality Performance
+
+- Script: `scripts/quality/run-isolated-a11y.mjs`.
+- Porta dedicada: `127.0.0.1:3037`.
+- O script inicia um único `next start` após o build, aguarda `/comun` e
+  `/comun/entrar`, monitora PID/HTTP a cada 10 segundos e encerra o grupo no
+  cleanup.
+- `PLAYWRIGHT_SKIP_WEBSERVER=1` impede que o Playwright crie outro Next.
+- A lane obrigatória `COMUN Quality / isolated a11y` executa Chromium único,
+  um worker e zero retry, publicando apenas diagnóstico sanitizado.
+- O mega-job mantém sua cobertura e usa o mesmo executor isolado para as suítes
+  a11y focais e WCAG.
+- Smoke local do executor: `COMUN_P1_CI_A11Y_TARGETED_GREEN`.
