@@ -23,6 +23,8 @@ try {
   const createdBody = await created.json();
   assert.equal(created.status, 201, JSON.stringify(createdBody));
   const protocol = createdBody.receipt.protocol;
+  const bucketProbe = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/bucket/comun-relata-private`, { headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "", authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""}` } });
+  assert.equal(bucketProbe.status, 200, `bucket_status=${bucketProbe.status}`);
   async function addPhoto() {
     const started = await http("/api/comun/relata/evidence/attachments", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mimeType: "image/png", sizeBytes: png.byteLength }) });
     const startedBody = await started.json();
@@ -31,7 +33,7 @@ try {
     assert.match(upload.url, /^https?:\/\/(?:127\.0\.0\.1|localhost):/);
     assert.ok(upload.finalizeUrl);
     const uploaded = await fetch(upload.url, { method: "PUT", headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "", authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""}`, "content-type": "image/png", "cache-control": "max-age=3600", "x-upsert": "false" }, body: png });
-    assert.equal(uploaded.status, 200, await uploaded.text());
+    assert.equal(uploaded.status, 200, `upload_status=${uploaded.status}`);
     const finalized = await http(upload.finalizeUrl, { method: "POST" });
     assert.equal(finalized.status, 200);
     return upload.attachmentId;
