@@ -21,11 +21,11 @@ A migration local-only `20260805090000` permanece intocada em `supabase/local-mi
 
 `npm run solo:sql:validate -- --release-manifest=supabase/releases/20260806235454-comun-member-profile-optional-territory.json` passou com `COMUN_CANONICAL_RELEASE_SQL_OK`.
 
-O teste descartável `COMUN_P1T_DISPOSABLE_E2E_GREEN` passou na lane Quality Performance run `31133171991`.
+O teste descartável `COMUN_P1T_DISPOSABLE_E2E_GREEN` passou na lane Quality Performance run `31134678742`.
 
 CI adicional relevante passou:
 
-- COMUN CI: run `31133171988`;
-- Civic Intelligence: run `31133171963`;
-- Security Resilience: run `31133171989`;
+- COMUN CI: run `31134678848`;
+- Civic Intelligence: run `31134678913`;
+- Security Resilience: run `31134678906`;
 - Vercel Preview: verde.

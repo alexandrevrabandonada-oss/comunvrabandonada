@@ -15,7 +15,7 @@ Itens proibidos no plano:
 - qualquer migration R2A já aplicada;
 - fixtures, seeds ou migrations local-only.
 
-Nenhuma migration remota foi aplicada durante a leitura inicial.
+Nenhuma migration remota foi aplicada durante a leitura inicial; a promoção ocorreu somente após o merge e o segundo dry-run exato.
 
 Dry-run executado em 2026-08-06, com a release histórica de Calçadas temporariamente isolada e restaurada byte a byte:
 
@@ -24,3 +24,5 @@ Dry-run executado em 2026-08-06, com a release histórica de Calçadas temporari
 ```
 
 Não apareceram migrations R2A, fixtures, seeds ou a migration local-only histórica.
+
+Resultado após a promoção: `COMUN_P1T_REMOTE_MIGRATION_APPLIED_FLAG_OFF`.
