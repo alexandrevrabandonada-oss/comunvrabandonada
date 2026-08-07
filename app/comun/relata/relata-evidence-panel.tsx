@@ -145,7 +145,7 @@ export function RelataEvidencePanel({ withdrawn, attachmentsEnabled, locationEna
       setNotice(`${started.upload.label} está sendo validada privadamente…`);
       const upload = await fetch(started.upload.url, {
         method: started.upload.method,
-        headers: { "content-type": started.upload.contentType ?? (file.type || "application/octet-stream"), "x-upsert": "false" },
+        headers: { "content-type": started.upload.contentType ?? (file.type || "application/octet-stream"), "cache-control": "max-age=3600", "x-upsert": "false" },
         cache: "no-store",
         body: file,
       });
