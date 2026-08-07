@@ -1048,6 +1048,7 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
 - Não houve deployment, flag, migration, fixture ou escrita remota. P3B não foi
   iniciado. `launch_publicly=false`.
 - Head atual `545dd71` publicado na PR draft `#183`; a lane CI descartável
-  passou no run `31205708682` (`COMUN_P3A_ATTACHMENTS_DISPOSABLE_E2E_GREEN`).
+  passou nos runs `31205708682` e `31206331155`
+  (`COMUN_P3A_ATTACHMENTS_DISPOSABLE_E2E_GREEN`).
   A PR permanece draft porque a prova remota do bucket/RLS/grants/RPC ainda
   está bloqueada por credencial server-side não disponível nesta sessão.

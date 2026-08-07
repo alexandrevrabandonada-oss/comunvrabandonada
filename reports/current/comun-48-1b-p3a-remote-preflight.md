@@ -3,7 +3,7 @@
 Data: 2026-08-07
 
 Branch/PR: `codex/48-1b-p3a-private-attachments`, PR draft `#183`, head
-`545dd71`.
+`bab8ff7`.
 
 ## Estado
 
@@ -26,7 +26,7 @@ RLS, grants e RPCs no projeto remoto. Nenhuma chave foi registrada no relatório
 
 Resultado: `COMUN_P3A_BLOCKED_REMOTE_ATTACHMENT_PREFLIGHT_PERMISSION`.
 
-O E2E descartável da PR passou no run `31205708682`, mas isso não substitui a
+O E2E descartável da PR passou nos runs `31205708682` e `31206331155`, mas isso não substitui a
 prova do bucket e das políticas no projeto remoto. Não houve escrita remota,
 criação de fixture, alteração de migration, ativação de flag ou acesso a
 objetos reais.

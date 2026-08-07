@@ -15,14 +15,14 @@ Implementação preparada na branch `codex/48-1b-p3a-private-attachments`:
 
 Verificação local: unitários focais 14/14, unitários completos 507/507,
 typecheck, lint, build, YAML do workflow e `git diff --check` verdes. A lane
-descartável `COMUN P3A / private attachments E2E` passou no run de PR
-`31205708682` (5m06s), incluindo upload assinado, finalização, derivada,
+descartável `COMUN P3A / private attachments E2E` passou nos runs de PR
+`31205708682` (5m06s) e `31206331155` (head documental), incluindo upload assinado, finalização, derivada,
 leituras autorizadas/negadas, limite de três anexos, retirada e cleanup exato.
 As duas falhas anteriores foram corrigidas apenas no harness: argumentos de
 cleanup ausentes e preservação do trigger append-only durante a remoção da
 fixture descartável.
 
-Commits relevantes: `330bafc`, `68f9d13`, `790a847`, `20a7a29`, `545dd71`.
+Commits relevantes: `330bafc`, `68f9d13`, `790a847`, `20a7a29`, `545dd71`, `bab8ff7`.
 PR draft: `#183` — `48.1B-P3A — fotos privadas por signed upload`.
 
 Resultado técnico: `COMUN_P3A_ATTACHMENTS_DISPOSABLE_E2E_GREEN`.
