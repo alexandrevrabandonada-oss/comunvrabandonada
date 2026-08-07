@@ -40,8 +40,9 @@ try {
     const protocol = body.receipt.protocol;
     protocols.push(protocol);
     const location = await http("/api/comun/relata/evidence/location", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ longitude: point.longitude, latitude: point.latitude, origin: "map_pin", accuracyMeters: null, capturedAt: "2026-08-07T12:00:00.000Z" }) });
-    assert.equal(location.status, 200, await location.text());
-    const locationBody = await location.json();
+    const locationText = await location.text();
+    assert.equal(location.status, 200, locationText);
+    const locationBody = JSON.parse(locationText);
     const sanitized = JSON.stringify(locationBody);
     assert.ok(!sanitized.includes(String(point.longitude)) && !sanitized.includes(String(point.latitude)));
     const caseRow = await db.query("select id from public.comun_relata_cases where protocol=$1", [protocol]);
