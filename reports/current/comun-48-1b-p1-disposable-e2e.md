@@ -67,3 +67,21 @@ o runner focal ficou preso na etapa de acessibilidade de outras superfícies.
   deployment.
 - Resultado permanece bloqueado até a nova execução no SHA corrigido; não houve
   migration, escrita remota, ativação ou alteração funcional do P1.
+
+### Fechamento CI1 e ativação staged (2026-08-07)
+
+- Patch CI-only `6a48aaa` passou a variável de cadastro sintético para a
+  `pr-lane`; a execução completa `31145624724` ficou verde, assim como o E2E
+  Conta/Carteira `31145624637`.
+- PR #179 foi mesclada com proteção do head; merge `b9ed2dcde3d1f78e5c85ea5640e0305b35144eeb`.
+- Deploy inicial com flags fechadas ficou READY (`qokdtmxdw`); smoke público:
+  páginas centrais 200 e Wallet/Relata novo/Ônibus 404.
+- Cadastro foi ativado com `COMMUNITY_REGISTRATION_MODE=open` e novo deploy
+  READY (`3zavnu1uk`); `/comun/criar-conta` exibiu o formulário aberto.
+- Carteira foi ativada com `COMUN_PARTICIPATION_WALLET_ENABLED=enabled` e novo
+  deploy READY (`iemr840o6`); `/comun/minha-participacao` respondeu 200 e a
+  API sem cookie respondeu `{"wallet":null,"items":[]}`.
+- Território e Google permaneceram desligados; Relata novo, Ônibus e
+  encaminhamento permaneceram dormentes; nenhum dado sintético foi criado na
+  Production para evitar e-mail externo e retenção sem cleanup administrativo
+  comprovável.

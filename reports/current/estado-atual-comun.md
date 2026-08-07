@@ -973,3 +973,23 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
 - Patch CI-only: adicionar o env à `pr-lane`; nenhuma funcionalidade, schema,
   Auth, Carteira, migration, flag pública ou Production foi alterada.
 - PR #179 permanece draft até a execução completa no novo SHA.
+
+### 48.1B-P1-CI1 — fechamento e ativação staged (2026-08-07)
+
+- Correção CI-only `6a48aaa` integrada; a execução `31145624724` passou Quality
+  Performance completa e a11y isolado. E2E Conta/Carteira `31145624637` verde.
+- PR #179 mesclada em `b9ed2dcde3d1f78e5c85ea5640e0305b35144eeb`.
+- Deploy flags-off READY `qokdtmxdw`; smoke: `/comun`, `/comun/entrar`,
+  `/comun/criar-conta`, `/comun/relatar`, `/comun/calcadas` 200; Wallet API,
+  Relata novo e Ônibus dormentes 404.
+- `COMMUNITY_REGISTRATION_MODE=open` ativado no deploy `3zavnu1uk`; formulário
+  de criação público respondeu 200 sem aviso de cadastro fechado.
+- `COMUN_PARTICIPATION_WALLET_ENABLED=enabled` ativado no deploy `iemr840o6`;
+  Minha Participação respondeu 200 e Wallet API anônima retornou estado vazio
+  sem criar registro.
+- Território e Google continuam desligados. Não foi criado usuário/carteira
+  sintética em Production: o ciclo de recuperação foi comprovado na CI
+  descartável, mas não foi repetido remotamente para não deixar dados de teste
+  nem disparar e-mail externo sem cleanup administrativo seguro.
+- Estado: Conta e superfície da Carteira ativas; piloto de Relata, território,
+  Google e `launch_publicly` continuam fechados.
