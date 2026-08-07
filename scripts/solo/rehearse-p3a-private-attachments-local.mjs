@@ -74,9 +74,16 @@ try {
     }
     await db.query("delete from private.comun_relata_private_locations where report_id=$1", [reportId]).catch(() => {});
     if (caseId) {
-      await db.query("delete from public.comun_relata_status_events where case_id=$1", [caseId]);
-      await db.query("delete from public.comun_relata_evidence_consents where case_id=$1", [caseId]);
-      await db.query("delete from public.comun_relata_consents where case_id=$1", [caseId]);
+      // The disposable fixture is removed by exact IDs after the append-only
+      // assertions have run. Never weaken this trigger in shared/production DBs.
+      await db.query("alter table public.comun_relata_status_events disable trigger user");
+      try {
+        await db.query("delete from public.comun_relata_status_events where case_id=$1", [caseId]);
+        await db.query("delete from public.comun_relata_evidence_consents where case_id=$1", [caseId]);
+        await db.query("delete from public.comun_relata_consents where case_id=$1", [caseId]);
+      } finally {
+        await db.query("alter table public.comun_relata_status_events enable trigger user");
+      }
     }
     await db.query("delete from public.comun_relata_cases where protocol=$1", [protocol]);
     await db.query("delete from private.comun_relata_reports where id=$1", [reportId]);
