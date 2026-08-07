@@ -78,7 +78,10 @@ export function isComunRelataLocationEnabled(
     validLocalKey(env[COMUN_RELATA_LOCATION_KEY]) &&
     validLocalKey(env[COMUN_RELATA_SPATIAL_KEY]) &&
     env[COMUN_RELATA_LOCATION_KEY] !== env[COMUN_RELATA_SPATIAL_KEY];
-  return (production || localEvidenceRuntime(env)) && hasDistinctKeys();
+  const local =
+    env[COMUN_RELATA_LOCATION_FLAG] === "enabled" &&
+    localEvidenceRuntime(env);
+  return (production || local) && hasDistinctKeys();
 }
 
 export function isComunRelataEvidenceEnabled(

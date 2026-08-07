@@ -20,6 +20,7 @@ function enabledEnv() {
     COMUN_RELATA_PREVIEW: "enabled",
     COMUN_RELATA_LOCAL_PERSISTENCE: "enabled",
     COMUN_RELATA_LOCAL_EVIDENCE: "enabled",
+    COMUN_RELATA_LOCATION_ENABLED: "enabled",
     NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
     SUPABASE_SERVICE_ROLE_KEY: "local-only",
     [COMUN_RELATA_LOCATION_KEY]: key(1),

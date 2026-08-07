@@ -261,6 +261,7 @@ jobs:
           export COMUN_RELATA_PREVIEW=enabled
           export COMUN_RELATA_LOCAL_PERSISTENCE=enabled
           export COMUN_RELATA_LOCAL_EVIDENCE=enabled
+          export COMUN_RELATA_LOCATION_ENABLED=enabled
           export COMUN_RELATA_LOCAL_PUBLIC_MAP=disabled
           export COMUN_RELATA_COLLECTIVE_ENABLED=disabled
           export COMUN_QUICK_CAPTURE_V2=enabled
