@@ -14,6 +14,7 @@ test("P2 textual Relata lane is isolated and evidence-off", () => {
   assert.match(workflow, /supabase db reset --local --yes/);
   assert.match(workflow, /r2a-supabase-startup\.mjs/);
   assert.match(workflow, /supabase stop --no-backup/);
+  assert.match(workflow, /timeout -k 10s 120s supabase stop --no-backup/);
   assert.match(harness, /COMUN_P2_RELATA_TEXT_DISPOSABLE_E2E_GREEN/);
   assert.match(harness, /data-comun-quick-capture-v2/);
   assert.match(harness, /public_snapshot_count|publicSnapshotCount/);

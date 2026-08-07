@@ -246,7 +246,7 @@ jobs:
           mkdir -p "$artifact"
           cleanup() {
             local status=0
-            supabase stop --no-backup >/dev/null 2>&1 || status=$?
+            timeout -k 10s 120s supabase stop --no-backup >/dev/null 2>&1 || status=$?
             if docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA' | grep -q .; then
               docker rm -f $(docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA') >/dev/null 2>&1 || true
             fi

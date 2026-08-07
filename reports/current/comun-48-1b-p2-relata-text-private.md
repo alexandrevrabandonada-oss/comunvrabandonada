@@ -20,10 +20,11 @@
 - Topologia de migrations e release: verde.
 - Privileges lint: verde.
 - Contrato estático da lane P2: verde.
-- Rehearsal runtime: lane CI descartável adicionada. O primeiro replay funcional
-  foi corrigido no fixture e o terceiro run parou antes do harness por `502` no
-  restart do Supabase descartável; a lane foi alinhada ao startup canônico para
-  um retry focal. Execução local permanece bloqueada pelo daemon Docker.
+- Rehearsal runtime: lane CI descartável adicionada. O harness já passou no
+  rehearsal cancelado (`COMUN_P2_RELATA_TEXT_DISPOSABLE_E2E_GREEN`, sem snapshot
+  público e sem anexos), mas o job ficou preso no cleanup de `supabase stop`.
+  A lane recebeu timeout de cleanup para validar encerramento completo no retry.
+  Execução local permanece bloqueada pelo daemon Docker.
 
 ## Segurança
 

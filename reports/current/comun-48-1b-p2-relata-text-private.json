@@ -23,7 +23,7 @@
     "topology": "green",
     "release": "green",
     "privileges": "green",
-    "disposableRuntimeE2E": "retry-after-disposable-supabase-502",
+    "disposableRuntimeE2E": "harness-green-cleanup-timeout-retry",
     "localDocker": "unavailable"
   }
 }
