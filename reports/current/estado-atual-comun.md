@@ -1059,3 +1059,8 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
   falha de troca para `main`; o alias foi revertido imediatamente para
   `dpl_542s3DLmDyTDur11Z4v3cxNBBt6k`. Smoke pós-rollback ficou verde e nenhuma
   fixture, migration, flag ou escrita remota ocorreu.
+- O preflight remoto P3A foi posteriormente executado em deployment Production
+  staged sem alias canônico (`dpl_J8Ksnhye8ztj6xnqmBrbRtY4KUHt`), usando a
+  service role somente no runtime server-side. Bucket privado, superfície RPC,
+  bloqueio anon e baseline R2A foram comprovados; o endpoint temporário foi
+  removido antes do merge. Resultado: `COMUN_P3A_REMOTE_ATTACHMENT_PREFLIGHT_GREEN`.

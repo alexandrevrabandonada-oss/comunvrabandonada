@@ -26,5 +26,12 @@ Production permanece no estado P2:
 - `launch_publicly=false`.
 
 Não houve request de upload, signed URL, leitura de Storage, migration ou
-fixture remota. O smoke P3A de ativação fica pendente até o preflight
-server-side.
+fixture remota. O smoke P3A de ativação permanece pendente até o merge e a
+ativação explícita da flag de anexos.
+
+Atualização do preflight staged (2026-08-07): o deployment Production staged
+`dpl_J8Ksnhye8ztj6xnqmBrbRtY4KUHt` respondeu `COMUN_P3A_REMOTE_ATTACHMENT_PREFLIGHT_GREEN`
+por `vercel curl`, sem receber o alias `comunsocial.online`. O bucket foi
+confirmado privado, 6/6 RPCs foram observadas e a leitura privada por anon foi
+bloqueada. O endpoint diagnóstico retornou 404 no domínio canônico e foi
+removido antes do merge. Nenhuma capacidade P3A foi ativada em Production.
