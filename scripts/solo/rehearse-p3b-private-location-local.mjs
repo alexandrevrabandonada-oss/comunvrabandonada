@@ -60,7 +60,7 @@ try {
   assert.notDeepEqual(rows.rows[0].nonce, rows.rows[1].nonce);
   assert.notDeepEqual(rows.rows[0].encrypted_value, rows.rows[1].encrypted_value);
   assert.deepEqual(decrypt({ ciphertext: rows.rows[0].encrypted_value, nonce: rows.rows[0].nonce, authTag: rows.rows[0].auth_tag }, protocols[0]), { longitude: synthetic[0].longitude, latitude: synthetic[0].latitude, accuracyMeters: null });
-  const wrongCookie = cookie.replace(/comun_relata_receipt_v1=[^;]+/, "comun_relata_receipt_v1=invalid");
+  const wrongCookie = "comun_relata_receipt_v1=invalid";
   const denied = await http("/api/comun/relata/evidence/location", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ longitude: 0, latitude: 0, origin: "device" }) }, wrongCookie);
   assert.equal(denied.status, 404);
   const state = await http("/api/comun/relata/evidence");
