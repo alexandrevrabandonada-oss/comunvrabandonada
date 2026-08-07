@@ -68,7 +68,7 @@ try {
     if (walletIds.length) {
       await db.query("delete from private.comun_participation_wallet_events where wallet_id = any($1::uuid[])", [walletIds]);
       await db.query("delete from private.comun_participation_wallet_account_links where wallet_id = any($1::uuid[])", [walletIds]).catch(() => {});
-      await db.query("delete from private.comun_participation_wallet_recovery_credentials where wallet_id = any($1::uuid[])");
+      await db.query("delete from private.comun_participation_wallet_recovery_credentials where wallet_id = any($1::uuid[])", [walletIds]);
       await db.query("delete from private.comun_participation_wallet_items where wallet_id = any($1::uuid[])");
       await db.query("delete from private.comun_participation_wallets where id = any($1::uuid[])");
     }
