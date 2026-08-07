@@ -9,16 +9,23 @@
 3. Ativar Quick Capture; confirmar a superfície textual e a ausência de foto,
    localização, mapa e APIs de evidência.
 
-## Estado desta branch
+## Estado final
 
-O smoke de Production só será executado após o merge e deployment desta PR.
-Nenhuma flag P2 foi alterada nesta etapa e nenhum registro sintético foi criado
-em Production.
+PR #181 foi mesclada em `15ce47426bd9693a799faef4475cbe3762dc38d2`.
+Foram executados três deployments staged, sem POST de relato real e sem
+registro sintético remoto:
+
+- flags P2 off: `dpl_7yFy7adBNW5LENNAmXC6tpUQJrzC`;
+- persistência canônica on / UI legacy: `dpl_ApZnWSgcneebNzJyPs9Q6EEnsxJn`;
+- Quick Capture textual on: `dpl_542s3DLmDyTDur11Z4v3cxNBBt6k`.
 
 Expected post-activation:
 
-- `/comun/relatar`: Quick Capture textual.
-- `/comun/relatar?modo=detalhado`: fallback preservado.
-- `/api/comun/relata/evidence/*`: `404`.
-- Ônibus, forwarding, território e Google: desligados.
-- `launch_publicly=false`.
+- `/comun/relatar`: 200 com `data-comun-quick-capture-v2`, sem foto ou
+  localização.
+- `/comun/relatar?modo=detalhado`: 200 e fallback preservado.
+- `/comun`, `/comun/minha-participacao` e `/comun/calcadas`: 200.
+- `/api/comun/relata` (GET), `/api/comun/relata/evidence/attachments` e
+  `/api/comun/relata/evidence/location`: `404`.
+- `/comun/onibus`: `404`; nenhum envio externo ou acesso ao canal ocorreu.
+- `launch_publicly=false`; território, Google, foto e localização desligados.

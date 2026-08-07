@@ -1,5 +1,5 @@
 {
-  "result": "COMUN_48_1B_P2_IMPLEMENTATION_READY_FOR_DISPOSABLE_E2E",
+  "result": "COMUN_48_1B_P2_RELATA_TEXT_PRIVATE_DOMAIN_GREEN_EVIDENCE_OFF",
   "baseline": "76687bf06491b82b7062d99c2d6ba26b8c10574a",
   "branch": "codex/48-1b-p2-relata-text-domain",
   "account": "enabled",
@@ -23,10 +23,35 @@
     "topology": "green",
     "release": "green",
     "privileges": "green",
-    "disposableRuntimeE2E": "harness-green-orphan-process-fix-retry-required",
-    "latestCiRun": "31188219109",
-    "latestCiRunResult": "cancelled_after_harness_green_orphan_process",
+    "disposableRuntimeE2E": "green",
+    "latestCiRun": "31191438888",
+    "latestCiRunResult": "COMUN_P2_RELATA_TEXT_DISPOSABLE_E2E_GREEN",
     "artifactSanitizer": "storage-key-table-redaction-added",
-    "localDocker": "unavailable"
+    "artifact": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/31191438888/artifacts/",
+    "localDocker": "unavailable",
+    "remoteDryRun": "empty_after_external_ledger_quarantine",
+    "remoteDryRunExternalException": "20260724233256_sidewalk_external_ledger_absent_cli_history",
+    "remoteWrite": false
+  },
+  "merge": {
+    "pr": 181,
+    "head": "af095db1fc52cfc76a4eeba113b731e6fcfd5c5a",
+    "mergeCommit": "15ce47426bd9693a799faef4475cbe3762dc38d2"
+  },
+  "production": {
+    "flags": {
+      "COMMUNITY_REGISTRATION_MODE": "open",
+      "COMUN_PARTICIPATION_WALLET_ENABLED": "enabled",
+      "COMUN_RELATA_PERSISTENCE_ENABLED": "enabled",
+      "COMUN_QUICK_CAPTURE_V2": "enabled",
+      "COMUN_RELATA_LOCAL_EVIDENCE": "disabled",
+      "COMUN_TERRITORY_PROFILE_ENABLED": "disabled",
+      "COMUN_GOOGLE_AUTH_ENABLED": "disabled"
+    },
+    "deployFlagsOff": "dpl_7yFy7adBNW5LENNAmXC6tpUQJrzC",
+    "deployPersistenceOn": "dpl_ApZnWSgcneebNzJyPs9Q6EEnsxJn",
+    "deployQuickCaptureOn": "dpl_542s3DLmDyTDur11Z4v3cxNBBt6k",
+    "domain": "https://comunsocial.online",
+    "launchPublicly": false
   }
 }

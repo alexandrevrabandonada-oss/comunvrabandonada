@@ -1011,15 +1011,19 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
 - Unitários 506/506, typecheck, lint, build, topologia, release, privileges e
   contrato estático da lane P2 verdes.
 - Foi adicionada lane CI descartável `COMUN P2 / private textual Relata E2E`,
-  sem credenciais remotas, com cleanup obrigatório. No run `31188219109`, o
-  harness passou (`COMUN_P2_RELATA_TEXT_DISPOSABLE_E2E_GREEN`, sem snapshot
-  público e sem anexos), mas `npm/next-server` ficou órfão e a etapa foi
-  cancelada antes do cleanup. O patch seguinte usa grupo de processos para
-  encerrar o servidor e aguarda a saída; o redator também passou a mascarar
-  chaves no formato tabular do Storage. Docker/Supabase local não respondeu no
-  host.
+  sem credenciais remotas, com cleanup obrigatório. O run final `31191438888`
+  passou com `COMUN_P2_RELATA_TEXT_DISPOSABLE_E2E_GREEN`, sem snapshot público,
+  sem anexos e sem resíduo; o artifact foi sanitizado após corrigir o redator
+  para chaves tabulares do Storage. Docker/Supabase local não respondeu no host;
+  a prova de runtime veio do laboratório CI efêmero.
 - Nenhuma migration, escrita remota, flag de Production ou registro sintético
   remoto foi criado nesta etapa.
-- Estado: implementação pronta para novo retry focal do E2E descartável e PR; Conta e Carteira ON,
-  Relata textual ainda OFF em Production, evidências/território/Google/Ônibus/
-  forwarding OFF, `launch_publicly=false`.
+- PR #181 foi mesclada em `15ce47426bd9693a799faef4475cbe3762dc38d2`.
+- Deployments staged: flags-off `dpl_7yFy7adBNW5LENNAmXC6tpUQJrzC`, persistência
+  ON `dpl_ApZnWSgcneebNzJyPs9Q6EEnsxJn`, Quick Capture textual ON
+  `dpl_542s3DLmDyTDur11Z4v3cxNBBt6k`.
+- Smoke `https://comunsocial.online`: Quick Capture V2 200 sem foto/localização;
+  modo detalhado 200; Conta, Carteira e Calçadas 200; Ônibus e APIs de evidência
+  404; nenhum POST real. Estado: Conta ON, Carteira ON, Relata textual ON,
+  evidências/território/Google/Ônibus/forwarding/publicação OFF,
+  `launch_publicly=false`.
