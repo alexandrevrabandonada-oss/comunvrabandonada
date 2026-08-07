@@ -21,7 +21,7 @@ function absorb(response) {
 }
 async function http(path, init = {}) {
   const headers = new Headers(init.headers);
-  if (cookie) headers.set("cookie", cookie);
+  if (cookie && !headers.has("cookie")) headers.set("cookie", cookie);
   const response = await fetch(`${base}${path}`, { ...init, headers });
   absorb(response);
   return response;
