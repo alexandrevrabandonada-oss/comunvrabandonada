@@ -64,7 +64,7 @@ try {
   const idempotencyKey = token();
   const receiptSecret = token();
   const payload = {
-    text: "A calçada está bloqueada por entulho e impede a passagem.",
+    text: "A calçada está totalmente bloqueada por entulho e impede a passagem.",
     answers: { blocked: "sim" },
     captureMode: "quick_v2",
     hasPhoto: false,
