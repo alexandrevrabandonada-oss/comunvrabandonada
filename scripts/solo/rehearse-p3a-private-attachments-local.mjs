@@ -19,7 +19,7 @@ async function stop() { if (server.exitCode !== null) return; try { if (process.
 try {
   for (let i = 0; i < 90; i++) { try { const response = await fetch(`${base}/comun/relatar`); if (response.status < 500) break; } catch {} await new Promise((resolve) => setTimeout(resolve, 1000)); if (server.exitCode !== null) throw new Error(`COMUN_P3A_SERVER_EXIT_${server.exitCode}`); }
   const receiptSecret = token();
-  const created = await http("/api/comun/relata", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "Fixture sintética P3A para testar fotografia privada.", answers: {}, captureMode: "quick_v2", idempotencyKey: token(), receiptSecret }) });
+  const created = await http("/api/comun/relata", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "A calçada está totalmente bloqueada por entulho e impede a passagem.", answers: { blocked: "sim" }, captureMode: "quick_v2", idempotencyKey: token(), receiptSecret }) });
   const createdBody = await created.json();
   assert.equal(created.status, 201, JSON.stringify(createdBody));
   const protocol = createdBody.receipt.protocol;
