@@ -76,6 +76,16 @@
 
 # Estado atual do COMUN
 
+## 48.1B-P3B — localização privada criptografada — em validação CI, não ativada
+
+- branch `codex/48-1b-p3b-private-location` criada a partir de `origin/main=fd99b55e98c9941f8bfc956f82501af3e3ac8a3d`;
+- P3A permanece `COMUN_48_1B_P3A_PRIVATE_ATTACHMENTS_DOMAIN_GREEN_LOCATION_OFF`;
+- localização desacoplada da chave HMAC espacial; coletivos permanecem desligados;
+- ponto/precisão não são persistidos no `sessionStorage`, receipt, Carteira, telemetria ou resposta;
+- teste local de código, typecheck, lint e build verdes; Docker local não respondeu, portanto a prova de banco segue na lane CI descartável;
+- Production ainda não recebeu flag nem chave P3B; `launch_publicly=false`.
+
+
 ## Tijolo 48.0H — encaminhamento institucional compartilhado — candidata local
 
 - baseline `origin/main` confirmado em `7a4ebaa5ab9b59323fe55cd7c9f0dd87c8c28ffe`; branch isolada `codex/tijolo-48-0h-forwarding-fiscaliza`;

@@ -191,15 +191,12 @@ export function ReportForm({
     try {
       const raw = sessionStorage.getItem("comun_capture_draft_v1");
       if (!raw) return;
-      const draft = JSON.parse(raw) as { text?: string; point?: [number, number] | null };
+      const draft = JSON.parse(raw) as { text?: string; hasPrivateLocation?: boolean };
       // The draft is an external, user-owned resume source; hydrate once on mount.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setValues((current) => ({
         ...current,
         rawText: typeof draft.text === "string" ? draft.text : current.rawText,
-        latitude: draft.point?.[1] != null ? String(draft.point[1]) : current.latitude,
-        longitude: draft.point?.[0] != null ? String(draft.point[0]) : current.longitude,
-        locationSource: draft.point ? "capture_v2" : current.locationSource,
       }));
     } catch {
       // Rascunho local inválido não bloqueia o formulário detalhado.

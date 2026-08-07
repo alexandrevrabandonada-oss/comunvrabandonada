@@ -17,7 +17,7 @@ import type {
 import {
   COMUN_RELATA_LOCATION_KEY,
   COMUN_RELATA_SPATIAL_KEY,
-  isComunRelataEvidenceEnabled,
+  isComunRelataLocationEnabled,
 } from "./comun-relata-evidence-feature";
 
 export const COMUN_RELATA_EVIDENCE_BUCKET = "comun-relata-private" as const;
@@ -62,12 +62,20 @@ function readLocalKey(
   name: string,
   env: Record<string, string | undefined> = process.env,
 ) {
-  if (!isComunRelataEvidenceEnabled(env))
-    throw new Error("COMUN_RELATA_LOCAL_EVIDENCE_REQUIRED");
+  if (!isComunRelataLocationEnabled(env))
+    throw new Error("COMUN_RELATA_LOCATION_DISABLED");
   const value = env[name];
   const key = value ? Buffer.from(value, "base64url") : Buffer.alloc(0);
   if (key.byteLength !== 32)
     throw new Error("COMUN_RELATA_EVIDENCE_KEY_INVALID");
+  return key;
+}
+
+function readSpatialKey(env: Record<string, string | undefined> = process.env) {
+  const value = env[COMUN_RELATA_SPATIAL_KEY];
+  const key = value ? Buffer.from(value, "base64url") : Buffer.alloc(0);
+  if (key.byteLength !== 32)
+    throw new Error("COMUN_RELATA_SPATIAL_KEY_INVALID");
   return key;
 }
 
@@ -196,7 +204,7 @@ export function deriveComunRelataMatchPlan(
       windowStart: new Date(Date.now() - 24 * 60 * 60 * 1000),
     };
   assertCoordinates(input.longitude, input.latitude);
-  const key = readLocalKey(COMUN_RELATA_SPATIAL_KEY, env);
+  const key = readSpatialKey(env);
   const x = Math.floor((input.longitude + 180) / config.cellDegrees);
   const y = Math.floor((input.latitude + 90) / config.cellDegrees);
   const spatialKeys: Buffer[] = [];

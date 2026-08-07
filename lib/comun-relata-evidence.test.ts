@@ -7,6 +7,7 @@ const env = {
   COMUN_RELATA_PREVIEW: "enabled",
   COMUN_RELATA_LOCAL_PERSISTENCE: "enabled",
   COMUN_RELATA_LOCAL_EVIDENCE: "enabled",
+  COMUN_RELATA_LOCATION_ENABLED: "enabled",
   NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
   SUPABASE_SERVICE_ROLE_KEY: "local-only",
   COMUN_RELATA_LOCATION_ENCRYPTION_KEY: Buffer.alloc(32, 11).toString(
@@ -48,7 +49,7 @@ describe("COMUN Relata private location", () => {
         protocol,
         { ...env, COMUN_RELATA_LOCATION_ENCRYPTION_KEY: undefined },
       ),
-    ).toThrow("COMUN_RELATA_LOCAL_EVIDENCE_REQUIRED");
+    ).toThrow("COMUN_RELATA_LOCATION_DISABLED");
   });
 
   it("derives overlapping opaque neighbor keys without exposing cells", () => {

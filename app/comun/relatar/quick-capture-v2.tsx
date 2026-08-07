@@ -46,6 +46,7 @@ export function QuickCaptureV2({ attachmentsEnabled = false, locationEnabled = f
   const [answer, setAnswer] = useState<string | undefined>();
   const [receipt, setReceipt] = useState<ComunRelataReceipt | null>(null);
   const [walletRecoveryCode, setWalletRecoveryCode] = useState<string | null>(null);
+  const [privateLocationSaved, setPrivateLocationSaved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [interactions, setInteractions] = useState(0);
@@ -85,7 +86,7 @@ export function QuickCaptureV2({ attachmentsEnabled = false, locationEnabled = f
   function chooseLocation(mode: "device" | "map" | "skip") {
     setInteractions((value) => value + 1);
     setLocationMode(mode);
-    if (mode === "skip") { setShowMap(false); return; }
+    if (mode === "skip") { setShowMap(false); setPoint(null); setAccuracy(null); return; }
     if (mode === "map") { setShowMap(true); return; }
     if (!navigator.geolocation) { setNotice("Este aparelho não oferece localização. Você pode marcar aproximadamente ou pular."); return; }
     setNotice("A permissão só será pedida agora, depois do seu toque.");
@@ -97,24 +98,38 @@ export function QuickCaptureV2({ attachmentsEnabled = false, locationEnabled = f
   }
 
   async function persistEvidence() {
-    if (!attachmentsEnabled && !locationEnabled) return;
+    const outcome = { photo: false, location: false };
     if (photo && attachmentsEnabled) {
-      const start = await fetch(`${EVIDENCE_ENDPOINT}/attachments`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mimeType: photo.type, sizeBytes: photo.size }) });
-      if (!start.ok) throw new Error("photo_start_failed");
-      const upload = (await start.json()) as { upload: { url: string; method: "PUT"; contentType?: string; finalizeUrl?: string } };
-      const result = await fetch(upload.upload.url, { method: upload.upload.method, headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "", authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""}`, "content-type": upload.upload.contentType ?? photo.type, "cache-control": "max-age=3600", "x-upsert": "false" }, body: photo });
-      if (!result.ok) throw new Error("photo_upload_failed");
-      const finalizeUrl = upload.upload.finalizeUrl;
-      if (!finalizeUrl) throw new Error("photo_finalize_missing");
-      const finalized = await fetch(finalizeUrl, { method: "POST", cache: "no-store" });
-      if (!finalized.ok) throw new Error("photo_finalize_failed");
-      sendMetric("photo_added");
+      try {
+        const start = await fetch(`${EVIDENCE_ENDPOINT}/attachments`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mimeType: photo.type, sizeBytes: photo.size }) });
+        if (!start.ok) throw new Error("photo_start_failed");
+        const upload = (await start.json()) as { upload: { url: string; method: "PUT"; contentType?: string; finalizeUrl?: string } };
+        const result = await fetch(upload.upload.url, { method: upload.upload.method, headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "", authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""}`, "content-type": upload.upload.contentType ?? photo.type, "cache-control": "max-age=3600", "x-upsert": "false" }, body: photo });
+        if (!result.ok) throw new Error("photo_upload_failed");
+        if (!upload.upload.finalizeUrl) throw new Error("photo_finalize_missing");
+        const finalized = await fetch(upload.upload.finalizeUrl, { method: "POST", cache: "no-store" });
+        if (!finalized.ok) throw new Error("photo_finalize_failed");
+        outcome.photo = true;
+        sendMetric("photo_added");
+      } catch {
+        // Photo failure is independent from report and location persistence.
+      }
     }
     if (locationEnabled && point && locationMode !== "skip") {
-      const result = await fetch(`${EVIDENCE_ENDPOINT}/location`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ longitude: point[0], latitude: point[1], origin: locationMode === "device" ? "device" : "map_pin", accuracyMeters: accuracy, capturedAt: new Date().toISOString() }) });
-      if (!result.ok) throw new Error("location_failed");
-      sendMetric("location_added");
+      try {
+        const result = await fetch(`${EVIDENCE_ENDPOINT}/location`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ longitude: point[0], latitude: point[1], origin: locationMode === "device" ? "device" : "map_pin", accuracyMeters: accuracy, capturedAt: new Date().toISOString() }) });
+        if (!result.ok) throw new Error("location_failed");
+        outcome.location = true;
+        setPoint(null);
+        setAccuracy(null);
+        setLocationMode("skip");
+        setShowMap(false);
+        sendMetric("location_added");
+      } catch {
+        // Location failure is independent from report and photo persistence.
+      }
     }
+    return outcome;
   }
 
   async function save() {
@@ -128,9 +143,18 @@ export function QuickCaptureV2({ attachmentsEnabled = false, locationEnabled = f
       const value = (await response.json()) as { receipt: ComunRelataReceipt; walletRecoveryCode?: string };
       setReceipt(value.receipt);
       setWalletRecoveryCode(value.walletRecoveryCode ?? null);
-      sessionStorage.setItem("comun_capture_draft_v1", JSON.stringify({ text: safeText, category: value.receipt.category, point, hasPhoto: Boolean(photo) }));
       sendMetric("protocol_issued");
-      try { await persistEvidence(); } catch { setNotice("O relato foi guardado. A evidência opcional poderá ser adicionada depois pelo recibo."); }
+      const hadLocation = Boolean(locationEnabled && point && locationMode !== "skip");
+      const evidenceOutcome = await persistEvidence();
+      setPrivateLocationSaved(evidenceOutcome.location);
+      sessionStorage.setItem("comun_capture_draft_v1", JSON.stringify({ text: safeText, category: value.receipt.category, hasPhoto: evidenceOutcome.photo, hasPrivateLocation: evidenceOutcome.location }));
+      const photoFailed = Boolean(photo && attachmentsEnabled && !evidenceOutcome.photo);
+      const locationFailed = Boolean(hadLocation && !evidenceOutcome.location);
+      if (photoFailed || locationFailed) {
+        setNotice(evidenceOutcome.photo || evidenceOutcome.location
+          ? "O relato foi guardado. Uma das evidências foi adicionada; a outra poderá ser tentada depois pelo recibo."
+          : "O relato foi guardado. As evidências opcionais não foram adicionadas e podem ser tentadas depois pelo recibo.");
+      }
       sendMetric("capture_completed");
     } catch { setNotice("Não foi possível guardar agora. Nenhum órgão recebeu a manifestação; tente novamente."); sendMetric("capture_error", { errorCode: "save_failed" }); }
     finally { setBusy(false); }
@@ -147,7 +171,7 @@ export function QuickCaptureV2({ attachmentsEnabled = false, locationEnabled = f
             {locationEnabled ? <section className="grid gap-3 border-2 border-comun-black bg-[#f8f2e6] p-4" aria-labelledby="capture-location"><h2 id="capture-location" className="text-xl font-black">Onde foi?</h2><p className="text-sm leading-6">O local é opcional. A coordenada, se usada, fica criptografada e nunca aparece exata no recibo.</p><div className="grid gap-2 sm:grid-cols-3"><button type="button" onClick={() => chooseLocation("device")} className={`min-h-11 border-2 border-comun-black px-3 py-2 text-sm font-black ${locationMode === "device" ? "bg-comun-yellow" : "bg-white"}`}>Usar localização</button><button type="button" onClick={() => chooseLocation("map")} className={`min-h-11 border-2 border-comun-black px-3 py-2 text-sm font-black ${locationMode === "map" ? "bg-comun-yellow" : "bg-white"}`}>Marcar aproximadamente</button><button type="button" onClick={() => chooseLocation("skip")} className={`min-h-11 border-2 border-comun-black px-3 py-2 text-sm font-black ${locationMode === "skip" ? "bg-comun-yellow" : "bg-white"}`}>Pular</button></div>{showMap ? <div className="grid gap-3"><SidewalkRealPointPicker point={point} accuracy={accuracy} onChange={setPoint} /><p className="text-xs font-bold">Arraste com as setas ou ajuste o ponto aproximado. Não é um mapa público do relato.</p></div> : null}</section> : null}
             {needsAdaptiveQuestion ? <section className="grid gap-3 border-2 border-comun-black bg-white p-4" aria-live="polite"><h2 className="text-xl font-black">Uma confirmação rápida</h2><p className="leading-7">{needsAdaptiveQuestion === DARK_STREET_QUESTION ? DARK_STREET_QUESTION : needsAdaptiveQuestion}</p><div className="grid gap-2 sm:grid-cols-2"><button type="button" onClick={() => { setAnswer("sim"); setInteractions((value) => value + 1); setDecision(routeRelata({ text, answers: { homes_power: "sim" } })); }} className="min-h-11 border-2 border-comun-black bg-comun-yellow px-3 py-2 text-left text-sm font-black">Sim</button><button type="button" onClick={() => { setAnswer("nao"); setInteractions((value) => value + 1); setDecision(routeRelata({ text, answers: { homes_power: "nao" } })); }} className="min-h-11 border-2 border-comun-black bg-white px-3 py-2 text-left text-sm font-black">Não sei / não</button></div></section> : null}
             {decision && !needsAdaptiveQuestion ? <section className={`grid gap-4 border-2 border-comun-black p-4 ${isEmergency ? "bg-comun-red text-white" : "bg-comun-asphalt text-comun-paper"}`} aria-live="polite"><div><p className="text-xs font-black uppercase tracking-[0.14em] text-comun-yellow">Próximo passo</p><h2 className="mt-1 text-2xl font-black">{decision.explanation}</h2></div>{isEmergency ? <p className="border-2 border-comun-yellow bg-comun-black p-3 text-sm font-bold">Afaste-se do perigo e procure o serviço de emergência. O COMUN não faz essa chamada.</p> : null}<button type="button" disabled={busy} onClick={save} className="min-h-12 border-2 border-comun-paper bg-comun-yellow px-4 py-3 text-sm font-black text-comun-black">{busy ? "Guardando…" : "Guardar agora"}</button></section> : null}
-          </> : <section className="grid gap-4 border-2 border-comun-black bg-white p-4 shadow-[5px_5px_0_#0b0b0a]" aria-live="polite"><p className="text-xs font-black uppercase tracking-[0.14em] text-comun-muted">Status</p><h2 className="text-3xl font-black">{labelForState(receipt.state)}</h2><div className="border-2 border-comun-black bg-comun-yellow p-4"><p className="text-xs font-black uppercase">Protocolo COMUN</p><p className="mt-1 break-all font-mono text-xl font-black">{receipt.protocol}</p></div><p className="border-l-4 border-comun-yellow bg-comun-paper p-3 font-black">Ainda não encaminhado. Nada foi publicado.</p><div className="grid gap-2 sm:grid-cols-2"><Link href="/comun/relatar?modo=detalhado" className="inline-flex min-h-11 items-center justify-center border-2 border-comun-black bg-comun-yellow px-4 py-2 text-sm font-black" onClick={() => { sessionStorage.setItem("comun_capture_draft_v1", JSON.stringify({ text, category: receipt.category, point, hasPhoto: Boolean(photo) })); sendMetric("follow_up_started"); }}>Completar agora</Link><button type="button" onClick={() => sendMetric("capture_completed")} className="min-h-11 border-2 border-comun-black bg-white px-4 py-2 text-sm font-black">Fazer depois</button></div>{(attachmentsEnabled || locationEnabled) ? <p className="text-sm leading-6">As evidências opcionais permanecem privadas. Você pode complementar pelo recibo.</p> : null}</section>}
+          </> : <section className="grid gap-4 border-2 border-comun-black bg-white p-4 shadow-[5px_5px_0_#0b0b0a]" aria-live="polite"><p className="text-xs font-black uppercase tracking-[0.14em] text-comun-muted">Status</p><h2 className="text-3xl font-black">{labelForState(receipt.state)}</h2><div className="border-2 border-comun-black bg-comun-yellow p-4"><p className="text-xs font-black uppercase">Protocolo COMUN</p><p className="mt-1 break-all font-mono text-xl font-black">{receipt.protocol}</p></div><p className="border-l-4 border-comun-yellow bg-comun-paper p-3 font-black">Ainda não encaminhado. Nada foi publicado.</p><div className="grid gap-2 sm:grid-cols-2"><Link href="/comun/relatar?modo=detalhado" className="inline-flex min-h-11 items-center justify-center border-2 border-comun-black bg-comun-yellow px-4 py-2 text-sm font-black" onClick={() => { sessionStorage.setItem("comun_capture_draft_v1", JSON.stringify({ text, category: receipt.category, hasPhoto: Boolean(photo), hasPrivateLocation: privateLocationSaved })); sendMetric("follow_up_started"); }}>Completar agora</Link><button type="button" onClick={() => sendMetric("capture_completed")} className="min-h-11 border-2 border-comun-black bg-white px-4 py-2 text-sm font-black">Fazer depois</button></div>{(attachmentsEnabled || locationEnabled) ? <p className="text-sm leading-6">As evidências opcionais permanecem privadas. Você pode complementar pelo recibo.</p> : null}</section>}
           {receipt && (attachmentsEnabled || locationEnabled) ? <RelataEvidencePanel withdrawn={receipt.state === "withdrawn"} attachmentsEnabled={attachmentsEnabled} locationEnabled={locationEnabled} /> : null}
           {walletRecoveryCode ? <section className="border-2 border-comun-black bg-[#f8f2e6] p-4" aria-live="polite"><p className="text-xs font-black uppercase">Código de recuperação da carteira</p><p className="mt-2 break-all font-mono text-lg font-black tracking-wider">{walletRecoveryCode}</p><p className="mt-2 text-sm">Salve agora. Ele aparece somente neste momento e não está no protocolo.</p></section> : null}
           {notice ? <p role="alert" className="border-l-4 border-comun-red bg-white p-3 text-sm font-bold">{notice}</p> : null}
