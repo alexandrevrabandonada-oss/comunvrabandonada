@@ -948,3 +948,15 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
 - O contrato estático de Quality Performance foi atualizado para a nova forma
   isolada de a11y; `npm run quality:test` permanece verde.
 - Próximo gate: nova execução CI no head deste patch; ainda não marcar READY.
+
+### 48.1B-P1-CI1 — resultado do retry (2026-08-07)
+
+- Head: `6cf606ed728ff2201d8f520f63e0a44bacf0e0da`; run: `31144115752`.
+- `COMUN Quality / isolated a11y` ficou verde; `pr-lane` e a lane territorial
+  falharam antes das suítes por `502` do Supabase descartável durante restart
+  dos containers.
+- Um único retry focal reproduziu o mesmo erro upstream. Não houve novo retry,
+  escrita remota ou mudança de produto.
+- Resultado atual: `COMUN_48_1B_P1_BLOCKED_CI_RUNTIME_INFRASTRUCTURE`.
+- PR #179 continua draft; Conta, Carteira, território, Google, Relata novo,
+  Ônibus, forwarding, flags públicas e `launch_publicly` permanecem fechados.

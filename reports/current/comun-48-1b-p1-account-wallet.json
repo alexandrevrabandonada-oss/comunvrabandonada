@@ -1,5 +1,5 @@
 {
-  "result": "COMUN_48_1B_P1_ACCOUNT_WALLET_DOMAIN_GREEN_TERRITORY_OFF_GOOGLE_OFF",
+  "result": "COMUN_48_1B_P1_BLOCKED_CI_RUNTIME_INFRASTRUCTURE",
   "baseline": "903c7519658395eba7e9b0437c1cb236ffbaea38",
   "migration": "none",
   "remoteDryRun": "empty_after_known_external_sidewalk_quarantine",
@@ -7,7 +7,13 @@
   "wallet": { "canonicalFlag": "COMUN_PARTICIPATION_WALLET_ENABLED", "localAliasPreserved": true, "explicitAccountLink": true },
   "territory": "off",
   "relata": "off",
-  "production": { "flags": "staged_off", "launchPublicly": false },
-  "runtimeE2E": "pending_ci_disposable_lane",
+  "production": { "flags": "unchanged_off", "launchPublicly": false },
+  "runtimeE2E": "green_prior_evidence_31138922028",
+  "ci1": {
+    "head": "6cf606ed728ff2201d8f520f63e0a44bacf0e0da",
+    "run": "31144115752",
+    "isolatedA11y": "green",
+    "qualityPrLane": "blocked_supabase_disposable_502_after_one_retry"
+  },
   "remoteWrites": 0
 }

@@ -40,3 +40,14 @@ o runner focal ficou preso na etapa de acessibilidade de outras superfícies.
 - Smoke local do executor: `COMUN_P1_CI_A11Y_TARGETED_GREEN`.
 - O contrato `disposableSidewalkLedgerExact` foi ajustado para reconhecer o
   comando isolado sem aceitar remoção da cobertura de Calçadas.
+
+### Resultado CI1 no head `6cf606e` (2026-08-07)
+
+- Run `31144115752`: `COMUN Quality / isolated a11y` verde, com health gate,
+  servidor monitorado e cleanup (`COMUN_P1_CI_A11Y_TARGETED_GREEN`).
+- `pr-lane` e a lane territorial falharam antes das suítes por `502` do
+  Supabase descartável durante restart dos containers.
+- Um único retry focal repetiu o `502` (`invalid response received from the
+  upstream server`); nenhum Playwright funcional foi iniciado nessa tentativa.
+- Resultado: `COMUN_48_1B_P1_BLOCKED_CI_RUNTIME_INFRASTRUCTURE`.
+- PR #179 permanece draft; sem READY, merge ou ativação Vercel.
