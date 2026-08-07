@@ -896,4 +896,4 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
 - SHA-256: `1173bbddeafdcb929bee4eb7594e74fa6465af87421c0b0fe7ca7c549f11a1f5`.
 - A migration local-only `20260805090000` não foi movida nem promovida.
 - Flags, Google, piloto e `launch_publicly` continuam fechados.
-- Promoção remota ainda pendente de CI, PR e dry-run exato.
+- CI, lane descartável e dry-run exato verdes; PR #177 permanece draft até a promoção remota controlada.
