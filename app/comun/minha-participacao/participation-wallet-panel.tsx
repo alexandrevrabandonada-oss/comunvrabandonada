@@ -160,7 +160,9 @@ export function ParticipationWalletPanel({
       );
       if (!response.ok) throw new Error("unlink_failed");
       setAccountLinked(false);
-      setNotice("Vínculo removido. A Carteira e seus itens continuam existindo.");
+      setNotice(
+        "Vínculo removido. A Carteira e seus itens continuam existindo.",
+      );
     } catch {
       setNotice("Não foi possível remover o vínculo agora.");
     } finally {
@@ -292,7 +294,9 @@ export function ParticipationWalletPanel({
           <button
             type="button"
             disabled={busy}
-            onClick={() => void (accountLinked ? unlinkAccount() : linkAccount())}
+            onClick={() =>
+              void (accountLinked ? unlinkAccount() : linkAccount())
+            }
             className="min-h-11 w-fit border-2 border-comun-black bg-comun-yellow px-3 font-black"
           >
             {accountLinked
@@ -414,7 +418,10 @@ export function ParticipationWalletPanel({
           )
         : null}
       {notice ? (
-        <p role="status" className="border-l-4 border-comun-yellow bg-white p-3 text-sm">
+        <p
+          role="status"
+          className="border-l-4 border-comun-yellow bg-white p-3 text-sm"
+        >
           {notice}
         </p>
       ) : null}

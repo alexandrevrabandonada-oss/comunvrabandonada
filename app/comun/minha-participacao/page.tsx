@@ -181,7 +181,9 @@ export default async function MinhaAreaPage({
       </ComunSection>
       {walletEnabled ? (
         <ComunSection>
-          <ParticipationWalletPanel accountAvailable={Boolean(optionalCommunitySession?.user)} />
+          <ParticipationWalletPanel
+            accountAvailable={Boolean(optionalCommunitySession?.user)}
+          />
         </ComunSection>
       ) : null}
       <nav

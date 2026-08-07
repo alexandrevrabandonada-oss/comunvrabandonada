@@ -1140,7 +1140,9 @@ export async function createCommunityAccount(_: unknown, formData: FormData) {
         "Conta criada. Confira seu e-mail para confirmar o acesso e continuar.",
     };
   redirect(
-    communityOnboardingHref(parsed.data.returnTo ?? "/comun/minha-participacao"),
+    communityOnboardingHref(
+      parsed.data.returnTo ?? "/comun/minha-participacao",
+    ),
   );
 }
 
