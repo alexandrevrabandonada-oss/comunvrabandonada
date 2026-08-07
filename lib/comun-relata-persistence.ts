@@ -2,6 +2,8 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { RelataStatus } from "./comun-relata-contract";
 
 export const COMUN_RELATA_PERSISTENCE_FLAG =
+  "COMUN_RELATA_PERSISTENCE_ENABLED" as const;
+export const COMUN_RELATA_LOCAL_PERSISTENCE_FLAG =
   "COMUN_RELATA_LOCAL_PERSISTENCE" as const;
 export const COMUN_RELATA_RECEIPT_COOKIE = "comun_relata_receipt_v1" as const;
 
@@ -34,15 +36,29 @@ export function isLoopbackSupabaseUrl(value: string | undefined) {
   }
 }
 
+export function isHttpsSupabaseUrl(value: string | undefined) {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && Boolean(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 export function isComunRelataPersistenceEnabled(
   env: Record<string, string | undefined> = process.env,
 ) {
-  return (
-    env.COMUN_RELATA_PREVIEW === "enabled" &&
-    env[COMUN_RELATA_PERSISTENCE_FLAG] === "enabled" &&
+  const local =
+    env.ALLOW_LOCAL_TESTS === "true" &&
+    env[COMUN_RELATA_LOCAL_PERSISTENCE_FLAG] === "enabled" &&
     isLoopbackSupabaseUrl(env.NEXT_PUBLIC_SUPABASE_URL) &&
-    Boolean(env.SUPABASE_SERVICE_ROLE_KEY)
-  );
+    Boolean(env.SUPABASE_SERVICE_ROLE_KEY);
+  const production =
+    env[COMUN_RELATA_PERSISTENCE_FLAG] === "enabled" &&
+    isHttpsSupabaseUrl(env.NEXT_PUBLIC_SUPABASE_URL) &&
+    Boolean(env.SUPABASE_SERVICE_ROLE_KEY);
+  return local || production;
 }
 
 export function createComunRelataPersistenceClient(
@@ -56,7 +72,7 @@ export function createComunRelataPersistenceClient(
     env.SUPABASE_SERVICE_ROLE_KEY!,
     {
       auth: { persistSession: false, autoRefreshToken: false },
-      global: { headers: { "x-comun-scope": "relata-local-48-0b" } },
+      global: { headers: { "x-comun-scope": "relata-server-v1" } },
     },
   );
 }

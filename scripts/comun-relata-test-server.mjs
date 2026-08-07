@@ -11,6 +11,7 @@ const child = spawn(command, ["run", "dev", "--", "-p", "3137"], {
   env: {
     ...process.env,
     COMUN_RELATA_PREVIEW: "enabled",
+    ALLOW_LOCAL_TESTS: "true",
     COMUN_RELATA_LOCAL_PERSISTENCE: "enabled",
     COMUN_RELATA_LOCAL_EVIDENCE: "enabled",
     COMUN_RELATA_LOCAL_PUBLIC_MAP: "enabled",
