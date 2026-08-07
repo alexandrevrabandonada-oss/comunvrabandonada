@@ -254,7 +254,7 @@ jobs:
             ! docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA' | grep -q .
           }
           trap cleanup EXIT
-          supabase start >"$artifact/supabase-start.log" 2>&1
+          node scripts/solo/r2a-supabase-startup.mjs >"$artifact/supabase-start.log" 2>&1
           supabase db reset --local --yes >"$artifact/db-reset.log" 2>&1
           status_file="$(mktemp)"
           supabase status -o env >"$status_file"

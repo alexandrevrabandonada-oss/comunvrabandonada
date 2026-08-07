@@ -1011,10 +1011,12 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
 - Unitários 506/506, typecheck, lint, build, topologia, release, privileges e
   contrato estático da lane P2 verdes.
 - Foi adicionada lane CI descartável `COMUN P2 / private textual Relata E2E`,
-  sem credenciais remotas, com cleanup obrigatório. Docker/Supabase local não
-  respondeu no host; o E2E runtime permanece exigido na CI.
+  sem credenciais remotas, com cleanup obrigatório. O primeiro replay corrigiu
+  um fixture de triagem; o run seguinte parou antes do harness por `502` no
+  restart do Supabase descartável e a lane foi alinhada ao startup canônico para
+  um retry focal. Docker/Supabase local não respondeu no host.
 - Nenhuma migration, escrita remota, flag de Production ou registro sintético
   remoto foi criado nesta etapa.
-- Estado: implementação pronta para E2E descartável e PR; Conta e Carteira ON,
+- Estado: implementação pronta para retry focal do E2E descartável e PR; Conta e Carteira ON,
   Relata textual ainda OFF em Production, evidências/território/Google/Ônibus/
   forwarding OFF, `launch_publicly=false`.

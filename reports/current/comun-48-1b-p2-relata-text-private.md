@@ -20,8 +20,10 @@
 - Topologia de migrations e release: verde.
 - Privileges lint: verde.
 - Contrato estático da lane P2: verde.
-- Rehearsal runtime: lane CI descartável adicionada; execução local bloqueada pelo
-  daemon Docker indisponível.
+- Rehearsal runtime: lane CI descartável adicionada. O primeiro replay funcional
+  foi corrigido no fixture e o terceiro run parou antes do harness por `502` no
+  restart do Supabase descartável; a lane foi alinhada ao startup canônico para
+  um retry focal. Execução local permanece bloqueada pelo daemon Docker.
 
 ## Segurança
 
