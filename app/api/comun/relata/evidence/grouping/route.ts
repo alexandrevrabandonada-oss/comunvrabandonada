@@ -9,7 +9,7 @@ import {
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  const local = getComunRelataEvidenceRuntime(request);
+  const local = getComunRelataEvidenceRuntime(request, "grouping");
   if (!local)
     return NextResponse.json(
       { code: "grouping_unavailable" },

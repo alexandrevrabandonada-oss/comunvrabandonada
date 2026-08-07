@@ -14,7 +14,9 @@ import {
 } from "./comun-relata-evidence";
 import {
   isComunRelataCollectiveEnabled,
+  isComunRelataAttachmentsEnabled,
   isComunRelataEvidenceEnabled,
+  isComunRelataLocationEnabled,
 } from "./comun-relata-evidence-feature";
 
 export const COMUN_RELATA_EVIDENCE_NO_STORE = {
@@ -22,8 +24,19 @@ export const COMUN_RELATA_EVIDENCE_NO_STORE = {
   "x-content-type-options": "nosniff",
 };
 
-export function getComunRelataEvidenceRuntime(request: NextRequest) {
-  if (!isComunRelataEvidenceEnabled()) return null;
+export function getComunRelataEvidenceRuntime(
+  request: NextRequest,
+  capability: "evidence" | "attachments" | "location" | "grouping" = "evidence",
+) {
+  const enabled =
+    capability === "attachments"
+      ? isComunRelataAttachmentsEnabled()
+      : capability === "location"
+        ? isComunRelataLocationEnabled()
+        : capability === "grouping"
+          ? isComunRelataCollectiveEnabled()
+          : isComunRelataEvidenceEnabled();
+  if (!enabled) return null;
   const proof = decodeComunRelataReceiptCookie(
     request.cookies.get(COMUN_RELATA_RECEIPT_COOKIE)?.value,
   );

@@ -34,7 +34,7 @@ function groupingLabel(state: ComunRelataEvidenceState["grouping"]) {
   }[state];
 }
 
-export function RelataEvidencePanel({ withdrawn }: { withdrawn: boolean }) {
+export function RelataEvidencePanel({ withdrawn, attachmentsEnabled, locationEnabled }: { withdrawn: boolean; attachmentsEnabled: boolean; locationEnabled: boolean }) {
   const [evidence, setEvidence] = useState<ComunRelataEvidenceState | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -140,17 +140,20 @@ export function RelataEvidencePanel({ withdrawn }: { withdrawn: boolean }) {
       });
       if (!start.ok) throw new Error("start_failed");
       const started = (await start.json()) as {
-        upload: { label: string; url: string; method: "PUT" };
+        upload: { label: string; url: string; method: "PUT"; contentType?: string; finalizeUrl?: string };
       };
       setNotice(`${started.upload.label} está sendo validada privadamente…`);
       const upload = await fetch(started.upload.url, {
         method: started.upload.method,
-        headers: { "content-type": file.type || "application/octet-stream" },
+        headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "", authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""}`, "content-type": started.upload.contentType ?? (file.type || "application/octet-stream"), "cache-control": "max-age=3600", "x-upsert": "false" },
         cache: "no-store",
         body: file,
       });
       if (!upload.ok) throw new Error("upload_failed");
-      const value = (await upload.json()) as {
+      if (!started.upload.finalizeUrl) throw new Error("finalize_missing");
+      const finalized = await fetch(started.upload.finalizeUrl, { method: "POST", cache: "no-store" });
+      if (!finalized.ok) throw new Error("finalize_failed");
+      const value = (await finalized.json()) as {
         evidence: ComunRelataEvidenceState;
       };
       setEvidence(value.evidence);
@@ -192,12 +195,12 @@ export function RelataEvidencePanel({ withdrawn }: { withdrawn: boolean }) {
   return (
     <section aria-labelledby="relata-evidence-title" className="grid gap-5 border-2 border-comun-black bg-[#f8f2e6] p-4">
       <div>
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-comun-muted">Somente neste laboratório local</p>
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-comun-muted">Evidência privada</p>
         <h2 id="relata-evidence-title" className="text-2xl font-black">Evidências</h2>
-        <p className="mt-1 text-sm leading-6">Localização e fotos são opcionais, privadas e vinculadas apenas ao seu recibo.</p>
+        <p className="mt-1 text-sm leading-6">{locationEnabled && attachmentsEnabled ? "Localização e fotos são opcionais, privadas e vinculadas apenas ao seu recibo." : locationEnabled ? "A localização é opcional, privada e vinculada apenas ao seu recibo." : "As fotos são opcionais, privadas e vinculadas apenas ao seu recibo."}</p>
       </div>
 
-      <div className="grid gap-3 border-t-2 border-comun-black pt-4">
+      {locationEnabled ? <div className="grid gap-3 border-t-2 border-comun-black pt-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div><h3 className="font-black">Localização</h3><p className="text-sm">{locationLabel(evidence.location)}</p></div>
           {!withdrawn && evidence.location !== "withdrawn" ? <span className="bg-comun-black px-2 py-1 text-xs font-black text-comun-yellow">Privada</span> : null}
@@ -218,9 +221,9 @@ export function RelataEvidencePanel({ withdrawn }: { withdrawn: boolean }) {
             <button type="button" disabled={!mapPoint || busy} onClick={() => mapPoint && void saveLocation(mapPoint[0], mapPoint[1], "map_pin", null)} className="min-h-11 border-2 border-comun-black bg-comun-yellow px-3 py-2 text-sm font-black disabled:opacity-50">Guardar ponto privadamente</button>
           </div>
         ) : null}
-      </div>
+      </div> : null}
 
-      <div className="grid gap-3 border-t-2 border-comun-black pt-4">
+      {attachmentsEnabled ? <div className="grid gap-3 border-t-2 border-comun-black pt-4">
         <div><h3 className="font-black">Fotografias</h3><p className="text-sm">{evidence.photos.length} de 3 adicionadas</p></div>
         <ul className="grid gap-3">
           {evidence.photos.map((photo) => (
@@ -242,7 +245,7 @@ export function RelataEvidencePanel({ withdrawn }: { withdrawn: boolean }) {
             <button type="button" disabled={busy} onClick={() => inputRef.current?.click()} className="min-h-11 justify-self-start border-2 border-comun-black bg-comun-yellow px-4 py-2 text-sm font-black">Adicionar foto</button>
           </>
         ) : null}
-      </div>
+      </div> : null}
 
       <div className="grid gap-1 border-t-2 border-comun-black pt-4 text-sm">
         <h3 className="font-black">Agrupamento</h3>

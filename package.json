@@ -89,6 +89,7 @@
     "relata:release:test": "node scripts/relata/validate-local-release.mjs",
     "relata:topology:test": "node --test scripts/relata/migration-topology.node-test.mjs",
     "relata:r2a:private:e2e:local": "node scripts/solo/rehearse-r2a-private-evidence-account-local.mjs",
+    "relata:p3a:private:attachments:e2e:local": "node scripts/solo/rehearse-p3a-private-attachments-local.mjs",
     "relata:p2:text:e2e:local": "node scripts/solo/rehearse-p2-relata-text-private-local.mjs",
     "relata:r2a:attachment-fix:test": "node scripts/solo/r2a-attachment-rpc-fix-local.mjs",
     "relata:r2a:wallet-account-fix:test": "node scripts/solo/r2a-wallet-account-rpc-fix-local.mjs",

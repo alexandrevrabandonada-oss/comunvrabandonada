@@ -1027,3 +1027,40 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
   404; nenhum POST real. Estado: Conta ON, Carteira ON, Relata textual ON,
   evidências/território/Google/Ônibus/forwarding/publicação OFF,
   `launch_publicly=false`.
+
+## 48.1B-P3A — Fotos privadas (2026-08-07)
+
+- Branch de implementação: `codex/48-1b-p3a-private-attachments`, baseada em
+  `origin/main=9f00890c61e9cf15f5527524e40b43c0e16ddf4f`.
+- O fluxo foi separado por capacidade: fotos usam
+  `COMUN_RELATA_ATTACHMENTS_ENABLED`; localização e agrupamento continuam
+  independentes e desligados.
+- O início de upload agora usa signed upload URL para o bucket privado; os
+  bytes não atravessam a Function. A finalização server-side valida a
+  quarentena e publica somente derivada privada WebP.
+- Unitários 507/507, typecheck, lint e build verdes. Foi adicionada lane CI
+  descartável `COMUN P3A / private attachments E2E` com cleanup obrigatório.
+- O dry-run remoto foi vazio após a quarentena temporária e restauração íntegra
+  da migration externa de Calçadas.
+- O preflight de Storage/RLS/RPCs remoto não pôde ser concluído porque a sessão
+  Vercel não entregou valor utilizável para `SUPABASE_SERVICE_ROLE_KEY`.
+  Resultado: `COMUN_P3A_BLOCKED_REMOTE_ATTACHMENT_PREFLIGHT_PERMISSION`.
+- Não houve deployment, flag, migration, fixture ou escrita remota. P3B não foi
+  iniciado. `launch_publicly=false`.
+- Head atual `545dd71` publicado na PR draft `#183`; a lane CI descartável
+  passou nos runs `31205708682` e `31206331155`
+  (`COMUN_P3A_ATTACHMENTS_DISPOSABLE_E2E_GREEN`).
+  A PR permanece draft porque a prova remota do bucket/RLS/grants/RPC ainda
+  está bloqueada por credencial server-side não disponível nesta sessão.
+- O responsável informou rotação da chave `service_role` no Supabase, mas a
+  nova credencial ainda não foi comprovada no ambiente seguro de execução; não
+  usar chaves coladas no chat.
+- Em 2026-08-07 houve uma tentativa de deploy a partir do worktree P3A por
+  falha de troca para `main`; o alias foi revertido imediatamente para
+  `dpl_542s3DLmDyTDur11Z4v3cxNBBt6k`. Smoke pós-rollback ficou verde e nenhuma
+  fixture, migration, flag ou escrita remota ocorreu.
+- O preflight remoto P3A foi posteriormente executado em deployment Production
+  staged sem alias canônico (`dpl_J8Ksnhye8ztj6xnqmBrbRtY4KUHt`), usando a
+  service role somente no runtime server-side. Bucket privado, superfície RPC,
+  bloqueio anon e baseline R2A foram comprovados; o endpoint temporário foi
+  removido antes do merge. Resultado: `COMUN_P3A_REMOTE_ATTACHMENT_PREFLIGHT_GREEN`.

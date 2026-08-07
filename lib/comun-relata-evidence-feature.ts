@@ -1,7 +1,12 @@
 import { isLoopbackSupabaseUrl } from "./comun-relata-persistence";
+import { isComunRelataPersistenceEnabled, isHttpsSupabaseUrl } from "./comun-relata-persistence";
 
 export const COMUN_RELATA_EVIDENCE_FLAG =
   "COMUN_RELATA_LOCAL_EVIDENCE" as const;
+export const COMUN_RELATA_ATTACHMENTS_FLAG =
+  "COMUN_RELATA_ATTACHMENTS_ENABLED" as const;
+export const COMUN_RELATA_LOCATION_FLAG =
+  "COMUN_RELATA_LOCATION_ENABLED" as const;
 export const COMUN_RELATA_COLLECTIVE_FLAG =
   "COMUN_RELATA_COLLECTIVE_ENABLED" as const;
 export const COMUN_RELATA_LOCATION_KEY =
@@ -35,22 +40,60 @@ export function areComunRelataEvidenceFlagsEnabled(
   );
 }
 
+function localEvidenceRuntime(env: Record<string, string | undefined>) {
+  return (
+    env[COMUN_RELATA_EVIDENCE_FLAG] === "enabled" &&
+    env.COMUN_RELATA_PREVIEW === "enabled" &&
+    env.COMUN_RELATA_LOCAL_PERSISTENCE === "enabled" &&
+    isLoopbackSupabaseUrl(env.NEXT_PUBLIC_SUPABASE_URL) &&
+    Boolean(env.SUPABASE_SERVICE_ROLE_KEY)
+  );
+}
+
+export function isComunRelataAttachmentsEnabled(
+  env: Record<string, string | undefined> = process.env,
+) {
+  const production =
+    env[COMUN_RELATA_ATTACHMENTS_FLAG] === "enabled" &&
+    isComunRelataPersistenceEnabled(env) &&
+    isHttpsSupabaseUrl(env.NEXT_PUBLIC_SUPABASE_URL) &&
+    Boolean(env.SUPABASE_SERVICE_ROLE_KEY);
+  const local = localEvidenceRuntime(env)
+    ? validLocalKey(env[COMUN_RELATA_LOCATION_KEY]) &&
+      validLocalKey(env[COMUN_RELATA_SPATIAL_KEY]) &&
+      env[COMUN_RELATA_LOCATION_KEY] !== env[COMUN_RELATA_SPATIAL_KEY]
+    : false;
+  return production || local;
+}
+
+export function isComunRelataLocationEnabled(
+  env: Record<string, string | undefined> = process.env,
+) {
+  const production =
+    env[COMUN_RELATA_LOCATION_FLAG] === "enabled" &&
+    isComunRelataPersistenceEnabled(env) &&
+    isHttpsSupabaseUrl(env.NEXT_PUBLIC_SUPABASE_URL) &&
+    Boolean(env.SUPABASE_SERVICE_ROLE_KEY);
+  const hasDistinctKeys = () =>
+    validLocalKey(env[COMUN_RELATA_LOCATION_KEY]) &&
+    validLocalKey(env[COMUN_RELATA_SPATIAL_KEY]) &&
+    env[COMUN_RELATA_LOCATION_KEY] !== env[COMUN_RELATA_SPATIAL_KEY];
+  const local =
+    env[COMUN_RELATA_LOCATION_FLAG] === "enabled" &&
+    localEvidenceRuntime(env);
+  return (production || local) && hasDistinctKeys();
+}
+
 export function isComunRelataEvidenceEnabled(
   env: Record<string, string | undefined> = process.env,
 ) {
-  if (!areComunRelataEvidenceFlagsEnabled(env)) return false;
-  return (
-    Boolean(env.SUPABASE_SERVICE_ROLE_KEY) &&
-    validLocalKey(env[COMUN_RELATA_LOCATION_KEY]) &&
-    validLocalKey(env[COMUN_RELATA_SPATIAL_KEY]) &&
-    env[COMUN_RELATA_LOCATION_KEY] !== env[COMUN_RELATA_SPATIAL_KEY]
-  );
+  return isComunRelataAttachmentsEnabled(env) || isComunRelataLocationEnabled(env);
 }
 
 export function isComunRelataCollectiveEnabled(
   env: Record<string, string | undefined> = process.env,
 ) {
-  return isComunRelataEvidenceEnabled(env) &&
+  return isComunRelataLocationEnabled(env) &&
     env[COMUN_RELATA_COLLECTIVE_FLAG] === "enabled";
 }
 
@@ -61,7 +104,12 @@ export function shouldCloakComunRelataEvidenceApi(
   const isEvidenceApi =
     pathname === COMUN_RELATA_EVIDENCE_API_PREFIX ||
     pathname.startsWith(`${COMUN_RELATA_EVIDENCE_API_PREFIX}/`);
-  return isEvidenceApi && !isComunRelataEvidenceEnabled(env);
+  if (!isEvidenceApi) return false;
+  if (pathname === COMUN_RELATA_EVIDENCE_API_PREFIX) return !isComunRelataEvidenceEnabled(env);
+  if (pathname.startsWith(`${COMUN_RELATA_EVIDENCE_API_PREFIX}/attachments`)) return !isComunRelataAttachmentsEnabled(env);
+  if (pathname.startsWith(`${COMUN_RELATA_EVIDENCE_API_PREFIX}/location`)) return !isComunRelataLocationEnabled(env);
+  if (pathname.startsWith(`${COMUN_RELATA_EVIDENCE_API_PREFIX}/grouping`)) return !isComunRelataCollectiveEnabled(env);
+  return true;
 }
 
 export function areComunRelataPublicMapFlagsEnabled(

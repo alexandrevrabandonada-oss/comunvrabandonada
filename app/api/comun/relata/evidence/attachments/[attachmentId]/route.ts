@@ -59,7 +59,7 @@ async function readPhotoBody(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest, context: Context) {
-  const local = getComunRelataEvidenceRuntime(request);
+  const local = getComunRelataEvidenceRuntime(request, "attachments");
   if (!local) return unavailable();
   const { attachmentId } = await context.params;
   let paths: ReturnType<typeof comunRelataAttachmentPaths>;
@@ -153,8 +153,66 @@ export async function PUT(request: NextRequest, context: Context) {
   }
 }
 
+/** Finalizes a direct signed upload without sending the image bytes through Next/Vercel. */
+export async function POST(request: NextRequest, context: Context) {
+  const local = getComunRelataEvidenceRuntime(request, "attachments");
+  if (!local) return unavailable();
+  const { attachmentId } = await context.params;
+  let paths: ReturnType<typeof comunRelataAttachmentPaths>;
+  try {
+    paths = comunRelataAttachmentPaths(attachmentId);
+  } catch {
+    return unavailable();
+  }
+  const validating = await local.db.rpc("comun_relata_mark_attachment_validating", {
+    p_protocol: local.proof.protocol,
+    p_receipt_secret: local.proof.receiptSecret,
+    p_attachment_id: attachmentId,
+  });
+  if (validating.error || !Array.isArray(validating.data) || !validating.data[0]) return unavailable();
+  try {
+    const downloaded = await local.db.storage.from(COMUN_RELATA_EVIDENCE_BUCKET).download(paths.original);
+    if (downloaded.error || !downloaded.data) throw new Error("COMUN_RELATA_STORAGE_FAILURE");
+    const body = new Uint8Array(await downloaded.data.arrayBuffer());
+    const photo = await validateAndDeriveComunRelataPhoto(body);
+    if (photo.mimeType !== validating.data[0].declared_mime_type) throw new Error("COMUN_RELATA_PHOTO_TYPE_INVALID");
+    const derivativeUpload = await local.db.storage.from(COMUN_RELATA_EVIDENCE_BUCKET).upload(paths.derivative, photo.derivative, {
+      contentType: "image/webp",
+      cacheControl: "0",
+      upsert: false,
+    });
+    if (derivativeUpload.error) throw new Error("COMUN_RELATA_STORAGE_FAILURE");
+    const finalized = await local.db.rpc("comun_relata_finalize_attachment", {
+      p_protocol: local.proof.protocol,
+      p_receipt_secret: local.proof.receiptSecret,
+      p_attachment_id: attachmentId,
+      p_actual_mime_type: photo.mimeType,
+      p_actual_size_bytes: photo.originalSizeBytes,
+      p_derivative_size_bytes: photo.derivative.byteLength,
+      p_width: photo.width,
+      p_height: photo.height,
+      p_checksum_sha256: postgresBytea(photo.checksum),
+      p_derivative_checksum_sha256: postgresBytea(photo.derivativeChecksum),
+    });
+    if (finalized.error || !Array.isArray(finalized.data) || !finalized.data[0]) throw new Error("COMUN_RELATA_FINALIZATION_FAILURE");
+    if (finalized.data[0].attachment_state === "rejected") await removeComunRelataEvidenceObjects(local.db, attachmentId);
+    await local.db.storage.from(COMUN_RELATA_EVIDENCE_BUCKET).remove([paths.original]);
+    const evidence = await readComunRelataEvidenceState(local.db, local.proof);
+    return NextResponse.json({ evidence, noOfficialSend: true, nothingPublished: true }, { headers: COMUN_RELATA_EVIDENCE_NO_STORE });
+  } catch (error) {
+    await removeComunRelataEvidenceObjects(local.db, attachmentId).catch(() => undefined);
+    await local.db.rpc("comun_relata_reject_attachment", {
+      p_protocol: local.proof.protocol,
+      p_receipt_secret: local.proof.receiptSecret,
+      p_attachment_id: attachmentId,
+      p_rejection_code: rejectionCode(error),
+    });
+    return NextResponse.json({ code: "invalid_photo" }, { status: 400, headers: COMUN_RELATA_EVIDENCE_NO_STORE });
+  }
+}
+
 export async function GET(request: NextRequest, context: Context) {
-  const local = getComunRelataEvidenceRuntime(request);
+  const local = getComunRelataEvidenceRuntime(request, "attachments");
   if (!local) return unavailable();
   const { attachmentId } = await context.params;
   let paths: ReturnType<typeof comunRelataAttachmentPaths>;
@@ -192,7 +250,7 @@ export async function GET(request: NextRequest, context: Context) {
 }
 
 export async function DELETE(request: NextRequest, context: Context) {
-  const local = getComunRelataEvidenceRuntime(request);
+  const local = getComunRelataEvidenceRuntime(request, "attachments");
   if (!local) return unavailable();
   const { attachmentId } = await context.params;
   try {

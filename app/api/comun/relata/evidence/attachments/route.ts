@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { COMUN_RELATA_MAX_PHOTO_BYTES } from "@/lib/comun-relata-evidence";
+import { COMUN_RELATA_MAX_PHOTO_BYTES, comunRelataAttachmentPaths } from "@/lib/comun-relata-evidence";
 import {
   COMUN_RELATA_EVIDENCE_NO_STORE,
   getComunRelataEvidenceRuntime,
@@ -16,7 +16,7 @@ function unavailable() {
   );
 }
 export async function GET(request: NextRequest) {
-  const local = getComunRelataEvidenceRuntime(request);
+  const local = getComunRelataEvidenceRuntime(request, "attachments");
   if (!local) return unavailable();
   const evidence = await readComunRelataEvidenceState(local.db, local.proof);
   if (!evidence) return unavailable();
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const local = getComunRelataEvidenceRuntime(request);
+  const local = getComunRelataEvidenceRuntime(request, "attachments");
   if (!local) return unavailable();
   let body: Record<string, unknown>;
   try {
@@ -71,6 +71,19 @@ export async function POST(request: NextRequest) {
       { status: limit ? 409 : 404, headers: COMUN_RELATA_EVIDENCE_NO_STORE },
     );
   }
+  const paths = comunRelataAttachmentPaths(attachmentId);
+  const signed = await local.db.storage
+    .from("comun-relata-private")
+    .createSignedUploadUrl(paths.original, { upsert: false });
+  if (signed.error || !signed.data?.signedUrl) {
+    await local.db.rpc("comun_relata_reject_attachment", {
+      p_protocol: local.proof.protocol,
+      p_receipt_secret: local.proof.receiptSecret,
+      p_attachment_id: attachmentId,
+      p_rejection_code: "signed_upload_unavailable",
+    });
+    return unavailable();
+  }
   const started = data[0] as {
     label_index: number;
     attachment_state: string;
@@ -78,10 +91,13 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(
     {
       upload: {
+        attachmentId,
         label: `Foto ${started.label_index}`,
         state: started.attachment_state,
-        url: `/api/comun/relata/evidence/attachments/${attachmentId}`,
+        url: signed.data.signedUrl,
         method: "PUT",
+        contentType: declaredMimeType,
+        finalizeUrl: `/api/comun/relata/evidence/attachments/${attachmentId}/finalize`,
       },
       noOfficialSend: true,
       nothingPublished: true,

@@ -8,7 +8,7 @@ import {
 } from "@/lib/comun-relata-persistence";
 import { classifyRelataPrivacy } from "@/lib/comun-relata-privacy";
 import { routeRelata } from "@/lib/comun-relata-routing";
-import { isComunRelataEvidenceEnabled } from "@/lib/comun-relata-evidence-feature";
+import { isComunRelataAttachmentsEnabled } from "@/lib/comun-relata-evidence-feature";
 import { associateComunRelataCollective } from "@/lib/comun-relata-evidence-runtime";
 import { isComunQuickCaptureEnabled } from "@/lib/comun-capture-feature";
 import { isComunParticipationWalletEnabled } from "@/lib/comun-participation-wallet-feature";
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     typeof body.receiptSecret === "string" ? body.receiptSecret : "";
   const wantsQuickCapture = body.captureMode === "quick_v2";
   const quickCapture = wantsQuickCapture && isComunQuickCaptureEnabled();
-  const evidenceEnabled = isComunRelataEvidenceEnabled();
+  const attachmentsEnabled = isComunRelataAttachmentsEnabled();
   if (wantsQuickCapture && !quickCapture) return dormant();
   const allowedAnswerKeys = new Set([
     "homes_power",
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (body.captureMode === "quick_v2" && body.hasPhoto === true && !evidenceEnabled) {
+  if (body.captureMode === "quick_v2" && body.hasPhoto === true && !attachmentsEnabled) {
     return NextResponse.json(
       { code: "invalid_request" },
       { status: 400, headers: noStoreHeaders },
@@ -173,12 +173,10 @@ export async function POST(request: NextRequest) {
     );
   }
   const receipt = normalizeComunRelataReceipt(receiptResult.data[0]);
-  if (evidenceEnabled) {
-    await associateComunRelataCollective(db, {
-      protocol: receipt.protocol,
-      receiptSecret,
-    });
-  }
+  await associateComunRelataCollective(db, {
+    protocol: receipt.protocol,
+    receiptSecret,
+  });
   let walletRecoveryCode: string | undefined;
   let walletToken: string | null = null;
   if (quickCapture && isComunParticipationWalletEnabled()) {
