@@ -901,3 +901,18 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
 - RLS/grants preservados e smoke de domínio verde.
 - Relata, Google, piloto e `launch_publicly` permanecem fechados.
 - Resultado: `COMUN_48_1B_P1T_REMOTE_TERRITORY_SCHEMA_GREEN_FLAG_OFF`.
+
+## 48.1B-P1 — Conta e Carteira reais no domínio (2026-08-06)
+
+- branch de implementação: `codex/48-1b-p1-account-wallet-domain`;
+- baseline: `903c7519658395eba7e9b0437c1cb236ffbaea38`;
+- sem nova migration: o schema remoto de Conta, perfil e Carteira já foi comprovado;
+- cadastro passou a exigir `COMMUNITY_REGISTRATION_MODE=open` explicitamente e trata confirmação de e-mail sem falso redirecionamento;
+- refresh de sessão foi ampliado para autenticação comunitária, Minha Participação e APIs da Carteira;
+- Carteira passou a aceitar flag canônica de produção, mantendo alias local-only e cookie Secure em produção;
+- vínculo Conta–Carteira e desvinculação são explícitos;
+- território permanece desligado; Google permanece desligado; Relata novo, Ônibus, forwarding e coletivos permanecem dormentes;
+- `migration list --linked` e `db push --linked --dry-run` ficaram vazios após quarentena temporária apenas da release externa de Calçadas, restaurada com SHA íntegro;
+- Docker local não respondeu; E2E descartável foi adicionado à CI sem credenciais remotas;
+- status: `COMUN_48_1B_P1_REMOTE_PREFLIGHT_GREEN_SCHEMA_PRESENT`, aguardando CI E2E, PR e ativação staged;
+- nenhum dado remoto foi criado ou alterado nesta etapa.

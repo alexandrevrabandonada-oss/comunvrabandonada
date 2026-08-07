@@ -70,9 +70,12 @@ export default async function MinhaAreaPage({
   )
     ? requested!
     : "contribuicoes";
-  if (isComunParticipationWalletEnabled()) {
-    const optional = await getCommunitySession();
-    if (!optional?.user) return <WalletOnlyPage />;
+  const walletEnabled = isComunParticipationWalletEnabled();
+  const optionalCommunitySession = walletEnabled
+    ? await getCommunitySession()
+    : null;
+  if (walletEnabled) {
+    if (!optionalCommunitySession?.user) return <WalletOnlyPage />;
   }
   const { user, profile } = await requireCommunitySession(
     withComunAppV2(`/comun/minha-participacao?secao=${selected}`, appV2),
@@ -119,6 +122,8 @@ export default async function MinhaAreaPage({
         archiveContributions={archiveContributions}
         collectiveTaskAssignments={collectiveTaskAssignments}
         attention={attention}
+        walletEnabled={walletEnabled}
+        accountAvailable={Boolean(optionalCommunitySession?.user)}
       />
     );
   return (
@@ -174,9 +179,9 @@ export default async function MinhaAreaPage({
           </Link>
         </div>
       </ComunSection>
-      {isComunParticipationWalletEnabled() ? (
+      {walletEnabled ? (
         <ComunSection>
-          <ParticipationWalletPanel />
+          <ParticipationWalletPanel accountAvailable={Boolean(optionalCommunitySession?.user)} />
         </ComunSection>
       ) : null}
       <nav
@@ -470,6 +475,8 @@ function MinhaAreaAppV2({
   archiveContributions,
   collectiveTaskAssignments,
   attention,
+  walletEnabled,
+  accountAvailable,
 }: {
   profile: any;
   center: any;
@@ -478,6 +485,8 @@ function MinhaAreaAppV2({
   archiveContributions: any[];
   collectiveTaskAssignments: any[];
   attention: any[];
+  walletEnabled: boolean;
+  accountAvailable: boolean;
 }) {
   const tabs = [
     ["contribuicoes", "Participações"],
@@ -517,8 +526,8 @@ function MinhaAreaAppV2({
           Histórico, vínculos e continuidade. Mensagens que pedem ação ficam
           somente na Caixa.
         </p>
-        {isComunParticipationWalletEnabled() ? (
-          <ParticipationWalletPanel />
+        {walletEnabled ? (
+          <ParticipationWalletPanel accountAvailable={accountAvailable} />
         ) : null}
         <div
           className="mt-5 grid grid-cols-3 gap-2"
@@ -859,7 +868,7 @@ function CollectiveActionsPreviewParticipation() {
 function WalletOnlyPage() {
   return (
     <ComunShell
-      appBar={{ title: "Minha Participação", contextLabel: "Carteira local" }}
+      appBar={{ title: "Minha Participação", contextLabel: "Carteira" }}
     >
       <div className="comun-v2-page" data-comun-app-v2-page="wallet-only">
         <ParticipationWalletPanel standalone />

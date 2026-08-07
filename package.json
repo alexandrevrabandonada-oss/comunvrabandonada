@@ -103,6 +103,7 @@
     "capture:db:test": "node scripts/comun-local-env.mjs run node scripts/rehearse-comun-capture-local.mjs",
     "capture:e2e": "node scripts/comun-local-env.mjs run playwright test -c playwright.comun-capture.config.ts",
     "wallet:db:test": "node scripts/comun-local-env.mjs run node scripts/rehearse-comun-participation-wallet-local.mjs",
+    "account:wallet:e2e:local": "node scripts/comun-local-env.mjs run node scripts/solo/rehearse-p1-account-wallet-local.mjs",
     "wallet:e2e": "node scripts/comun-local-env.mjs run playwright test -c playwright.comun-participation-wallet.config.ts",
     "wallet:a11y": "node scripts/comun-local-env.mjs run playwright test -c playwright.comun-participation-wallet.config.ts --grep @a11y",
     "forwarding:db:test": "node scripts/comun-local-env.mjs run node scripts/rehearse-comun-forwarding-local.mjs",

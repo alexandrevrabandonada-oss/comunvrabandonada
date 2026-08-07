@@ -44,6 +44,7 @@ import {
 import { generateProtocol } from "@/lib/protocol";
 import { isValidProtocol, normalizeProtocol } from "@/lib/reports";
 import { isComunTerritoryProfileEnabled } from "@/lib/comun-territory-profile";
+import { isCommunityRegistrationOpen } from "@/lib/community-registration";
 import {
   createPublicSupabaseClient,
   createServiceSupabaseClient,
@@ -1095,7 +1096,7 @@ export async function createCommunityAccount(_: unknown, formData: FormData) {
     parsed.data.password !== parsed.data.password_confirmation
   )
     return { ok: false, error: "Não foi possível concluir o cadastro." };
-  if ((process.env.COMMUNITY_REGISTRATION_MODE ?? "open") !== "open")
+  if (!isCommunityRegistrationOpen())
     return {
       ok: false,
       error: "Cadastros comunitários não estão abertos agora.",
@@ -1131,10 +1132,15 @@ export async function createCommunityAccount(_: unknown, formData: FormData) {
       ok: false,
       error: "Conta criada, mas o perfil precisa ser concluído mais tarde.",
     };
+  if (!data.session)
+    return {
+      ok: true,
+      status: "confirmation_required",
+      message:
+        "Conta criada. Confira seu e-mail para confirmar o acesso e continuar.",
+    };
   redirect(
-    communityOnboardingHref(
-      parsed.data.returnTo ?? "/comun/minha-participacao",
-    ),
+    communityOnboardingHref(parsed.data.returnTo ?? "/comun/minha-participacao"),
   );
 }
 

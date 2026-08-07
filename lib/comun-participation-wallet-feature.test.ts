@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  isComunParticipationWalletLocalEnabled,
   isComunParticipationWalletEnabled,
   shouldCloakComunParticipationWallet,
 } from "./comun-participation-wallet-feature";
@@ -17,6 +18,19 @@ describe("participation wallet local barrier", () => {
     expect(isComunParticipationWalletEnabled({ ...local, ALLOW_LOCAL_TESTS: "false" })).toBe(false);
     expect(isComunParticipationWalletEnabled({ ...local, NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co" })).toBe(false);
     expect(isComunParticipationWalletEnabled({ ...local, SUPABASE_SERVICE_ROLE_KEY: undefined })).toBe(false);
+  });
+
+  it("accepts the canonical flag only for a production HTTPS Supabase runtime", () => {
+    const production = {
+      VERCEL_ENV: "production",
+      COMUN_PARTICIPATION_WALLET_ENABLED: "enabled",
+      NEXT_PUBLIC_SUPABASE_URL: "https://nvmdszymrtacfehdynpg.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "server-only",
+    };
+    expect(isComunParticipationWalletEnabled(production)).toBe(true);
+    expect(isComunParticipationWalletEnabled({ ...production, NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321" })).toBe(false);
+    expect(isComunParticipationWalletEnabled({ ...production, VERCEL_ENV: "preview" })).toBe(false);
+    expect(isComunParticipationWalletLocalEnabled(local)).toBe(true);
   });
 
   it("cloaks every wallet endpoint when the flag is off", () => {

@@ -1,0 +1,13 @@
+{
+  "result": "COMUN_48_1B_P1_ACCOUNT_WALLET_DOMAIN_GREEN_TERRITORY_OFF_GOOGLE_OFF",
+  "baseline": "903c7519658395eba7e9b0437c1cb236ffbaea38",
+  "migration": "none",
+  "remoteDryRun": "empty_after_known_external_sidewalk_quarantine",
+  "account": { "registration": "explicit_flag", "sessionRefresh": true, "google": "off" },
+  "wallet": { "canonicalFlag": "COMUN_PARTICIPATION_WALLET_ENABLED", "localAliasPreserved": true, "explicitAccountLink": true },
+  "territory": "off",
+  "relata": "off",
+  "production": { "flags": "staged_off", "launchPublicly": false },
+  "runtimeE2E": "pending_ci_disposable_lane",
+  "remoteWrites": 0
+}
