@@ -1047,3 +1047,5 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
   Resultado: `COMUN_P3A_BLOCKED_REMOTE_ATTACHMENT_PREFLIGHT_PERMISSION`.
 - Não houve deployment, flag, migration, fixture ou escrita remota. P3B não foi
   iniciado. `launch_publicly=false`.
+- Commit `330bafc` publicado na PR draft `#183`; a PR permanece draft até que a
+  prova remota do bucket/RLS/grants/RPC e a lane CI descartável estejam verdes.

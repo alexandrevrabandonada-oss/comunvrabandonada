@@ -14,7 +14,11 @@ Implementação preparada na branch `codex/48-1b-p3a-private-attachments`:
 - flags de Production ainda não existem/estão desligadas.
 
 Verificação local: unitários focais 14/14, unitários completos 507/507,
-typecheck, lint e build verdes. A lane descartável `COMUN P3A / private
-attachments E2E` foi adicionada, mas ainda aguarda execução CI no head publicado.
+typecheck, lint, build, YAML do workflow e `git diff --check` verdes. A lane
+descartável `COMUN P3A / private attachments E2E` foi adicionada e aguarda
+execução CI no head publicado.
+
+Commit: `330bafc`.
+PR draft: `#183` — `48.1B-P3A — fotos privadas por signed upload`.
 
 Resultado parcial: `COMUN_P3A_IMPLEMENTATION_READY_REMOTE_PREFLIGHT_BLOCKED`.

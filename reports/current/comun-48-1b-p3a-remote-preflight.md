@@ -2,6 +2,9 @@
 
 Data: 2026-08-07
 
+Branch/PR: `codex/48-1b-p3a-private-attachments`, PR draft `#183`, commit
+`330bafc`.
+
 ## Estado
 
 - Baseline: `origin/main=9f00890c61e9cf15f5527524e40b43c0e16ddf4f`.
