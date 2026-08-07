@@ -102,7 +102,7 @@ export function QuickCaptureV2({ attachmentsEnabled = false, locationEnabled = f
       const start = await fetch(`${EVIDENCE_ENDPOINT}/attachments`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mimeType: photo.type, sizeBytes: photo.size }) });
       if (!start.ok) throw new Error("photo_start_failed");
       const upload = (await start.json()) as { upload: { url: string; method: "PUT"; contentType?: string; finalizeUrl?: string } };
-      const result = await fetch(upload.upload.url, { method: upload.upload.method, headers: { "content-type": upload.upload.contentType ?? photo.type, "cache-control": "max-age=3600", "x-upsert": "false" }, body: photo });
+      const result = await fetch(upload.upload.url, { method: upload.upload.method, headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "", authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""}`, "content-type": upload.upload.contentType ?? photo.type, "cache-control": "max-age=3600", "x-upsert": "false" }, body: photo });
       if (!result.ok) throw new Error("photo_upload_failed");
       const finalizeUrl = upload.upload.finalizeUrl;
       if (!finalizeUrl) throw new Error("photo_finalize_missing");
