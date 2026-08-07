@@ -28,7 +28,7 @@ try {
     const startedBody = await started.json();
     assert.equal(started.status, 201, JSON.stringify(startedBody));
     const upload = startedBody.upload;
-    assert.match(upload.url, /^https:\/\//);
+    assert.match(upload.url, /^https?:\/\/(?:127\.0\.0\.1|localhost):/);
     assert.ok(upload.finalizeUrl);
     const uploaded = await fetch(upload.url, { method: "PUT", headers: { "content-type": "image/png", "x-upsert": "false" }, body: png });
     assert.equal(uploaded.status, 200);
