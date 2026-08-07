@@ -16,6 +16,8 @@ test("P2 textual Relata lane is isolated and evidence-off", () => {
   assert.match(workflow, /supabase stop --no-backup/);
   assert.match(workflow, /timeout -k 10s 120s supabase stop --no-backup/);
   assert.match(harness, /COMUN_P2_RELATA_TEXT_DISPOSABLE_E2E_GREEN/);
+  assert.match(harness, /detached: process\.platform !== "win32"/);
+  assert.match(harness, /process\.kill\(-server\.pid, signal\)/);
   assert.match(harness, /data-comun-quick-capture-v2/);
   assert.match(harness, /public_snapshot_count|publicSnapshotCount/);
   assert.match(harness, /evidence\/attachments/);

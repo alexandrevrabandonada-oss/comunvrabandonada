@@ -41,13 +41,38 @@ async function waitForServer() {
 const server = spawn(
   process.platform === "win32" ? "npm.cmd" : "npm",
   ["run", process.env.COMUN_R2A_USE_BUILT_SERVER === "1" ? "start" : "dev", "--", "-p", new URL(base).port],
-  { cwd: process.cwd(), env: process.env, shell: process.platform === "win32", stdio: ["ignore", "pipe", "pipe"] },
+  {
+    cwd: process.cwd(),
+    env: process.env,
+    shell: process.platform === "win32",
+    detached: process.platform !== "win32",
+    stdio: ["ignore", "pipe", "pipe"],
+  },
 );
 server.stdout.on("data", (chunk) => { output.push(String(chunk)); if (output.length > 80) output.shift(); });
 server.stderr.on("data", (chunk) => { output.push(String(chunk)); if (output.length > 80) output.shift(); });
 function stop(signal = "SIGTERM") {
   if (server.exitCode !== null) return;
-  try { server.kill(signal); } catch {}
+  try {
+    if (process.platform !== "win32" && server.pid) {
+      process.kill(-server.pid, signal);
+    } else {
+      server.kill(signal);
+    }
+  } catch {
+    try { server.kill(signal); } catch {}
+  }
+}
+
+async function waitForExit(timeoutMs = 5000) {
+  if (server.exitCode !== null) return true;
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => resolve(false), timeoutMs);
+    server.once("exit", () => {
+      clearTimeout(timeout);
+      resolve(true);
+    });
+  });
 }
 
 try {
@@ -121,7 +146,9 @@ try {
   console.log(JSON.stringify({ result: "COMUN_P2_RELATA_TEXT_DISPOSABLE_E2E_GREEN", evidenceEnabled: false, publicSnapshotCount: 0, attachmentCount: 0 }));
 } finally {
   stop();
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  if (server.exitCode === null) stop("SIGKILL");
+  if (!(await waitForExit())) {
+    stop("SIGKILL");
+    await waitForExit(2000);
+  }
   if (output.length > 0 && process.exitCode) process.stderr.write(output.slice(-20).join(""));
 }

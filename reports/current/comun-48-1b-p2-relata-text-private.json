@@ -23,7 +23,10 @@
     "topology": "green",
     "release": "green",
     "privileges": "green",
-    "disposableRuntimeE2E": "harness-green-cleanup-timeout-retry",
+    "disposableRuntimeE2E": "harness-green-orphan-process-fix-retry-required",
+    "latestCiRun": "31188219109",
+    "latestCiRunResult": "cancelled_after_harness_green_orphan_process",
+    "artifactSanitizer": "storage-key-table-redaction-added",
     "localDocker": "unavailable"
   }
 }

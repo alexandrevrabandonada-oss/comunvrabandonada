@@ -20,11 +20,13 @@
 - Topologia de migrations e release: verde.
 - Privileges lint: verde.
 - Contrato estático da lane P2: verde.
-- Rehearsal runtime: lane CI descartável adicionada. O harness já passou no
-  rehearsal cancelado (`COMUN_P2_RELATA_TEXT_DISPOSABLE_E2E_GREEN`, sem snapshot
-  público e sem anexos), mas o job ficou preso no cleanup de `supabase stop`.
-  A lane recebeu timeout de cleanup para validar encerramento completo no retry.
-  Execução local permanece bloqueada pelo daemon Docker.
+- Rehearsal runtime: no run `31188219109`, o harness passou
+  (`COMUN_P2_RELATA_TEXT_DISPOSABLE_E2E_GREEN`, sem snapshot público e sem
+  anexos), mas o processo `npm/next-server` ficou órfão e a etapa foi cancelada
+  antes do cleanup. O patch seguinte encerra o servidor por grupo de processos
+  e aguarda sua saída antes de parar o Supabase. O mesmo artifact revelou que o
+  redator precisava mascarar chaves no formato tabular do Storage; essa correção
+  também foi incluída. A lane permanece pendente de um retry novo.
 
 ## Segurança
 
