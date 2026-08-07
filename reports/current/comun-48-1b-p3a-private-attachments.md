@@ -23,10 +23,22 @@ cleanup ausentes e preservação do trigger append-only durante a remoção da
 fixture descartável.
 
 Commits relevantes: `330bafc`, `68f9d13`, `790a847`, `20a7a29`, `545dd71`, `bab8ff7`.
-PR draft: `#183` — `48.1B-P3A — fotos privadas por signed upload`.
+PR `#183` foi mesclada em `6571c75acc49a234a1258ac8a588ee52ba76600d`.
 
 Resultado técnico: `COMUN_P3A_ATTACHMENTS_DISPOSABLE_E2E_GREEN`.
-Resultado operacional parcial: `COMUN_P3A_IMPLEMENTATION_READY_REMOTE_PREFLIGHT_BLOCKED`.
-O preflight remoto de Storage/RLS/grants/RPCs continua bloqueado por ausência
-de credencial server-side utilizável nesta sessão; não houve deploy, flags,
-fixture ou escrita em Production.
+Resultado remoto: `COMUN_P3A_REMOTE_ATTACHMENT_PREFLIGHT_GREEN`.
+
+Após o merge, `COMUN_RELATA_ATTACHMENTS_ENABLED=enabled` foi ativada isoladamente;
+`COMUN_RELATA_LOCATION_ENABLED=disabled` e `COMUN_RELATA_COLLECTIVE_ENABLED=disabled`
+permaneceram desligadas. O domínio exibiu o controle de foto e não exibiu o
+controle de localização.
+
+Prova sintética real em Production: criação privada, início 201, signed upload
+direto 200, finalização 200, leitura autorizada 200 (`image/webp`), leitura com
+recibo inválido 404 e retirada 200. A fixture usou imagem gerada pelo navegador
+e nenhum dado pessoal. O objeto de quarentena e a derivada foram removidos por
+runner server-side temporário, com `quarantineResidual=0` e `sealedResidual=0`.
+O histórico retirado permanece conforme a política de retenção; a Carteira ficou
+com zero itens ativos.
+
+Resultado terminal P3A: `COMUN_48_1B_P3A_PRIVATE_ATTACHMENTS_DOMAIN_GREEN_LOCATION_OFF`.

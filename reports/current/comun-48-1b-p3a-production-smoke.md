@@ -35,3 +35,16 @@ por `vercel curl`, sem receber o alias `comunsocial.online`. O bucket foi
 confirmado privado, 6/6 RPCs foram observadas e a leitura privada por anon foi
 bloqueada. O endpoint diagnóstico retornou 404 no domínio canônico e foi
 removido antes do merge. Nenhuma capacidade P3A foi ativada em Production.
+
+Atualização pós-merge: PR #183 foi mesclada em
+`6571c75acc49a234a1258ac8a588ee52ba76600d`. O deployment flags-off foi
+`https://comunvrabandonada-2xvm0l8e5-alexandrevrabandonada-oss-projects.vercel.app`;
+depois, `COMUN_RELATA_ATTACHMENTS_ENABLED` foi ativada isoladamente no
+deployment `https://comunvrabandonada-ffzy079n8-alexandrevrabandonada-oss-projects.vercel.app`.
+
+Smoke P3A ativo: `/comun/relatar=200` com botão de foto; localização ausente;
+`/api/comun/relata/evidence/location=404`; foto sintética percorreu signed upload,
+finalização e leitura privada; recibo inválido recebeu 404. A fixture foi
+retirada e seus objetos Storage foram removidos/verificados por deployment
+staged temporário. Conta, Carteira e Relata textual permaneceram ativos; Google,
+território, Ônibus, forwarding, coletivos e `launch_publicly` permaneceram off.

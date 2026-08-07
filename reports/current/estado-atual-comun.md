@@ -1064,3 +1064,18 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
   service role somente no runtime server-side. Bucket privado, superfície RPC,
   bloqueio anon e baseline R2A foram comprovados; o endpoint temporário foi
   removido antes do merge. Resultado: `COMUN_P3A_REMOTE_ATTACHMENT_PREFLIGHT_GREEN`.
+
+### 48.1B-P3A — ativação de fotos privadas (2026-08-07)
+
+- PR #183 mesclada em `6571c75acc49a234a1258ac8a588ee52ba76600d`.
+- `COMUN_RELATA_ATTACHMENTS_ENABLED=enabled` ativada isoladamente no domínio;
+  `COMUN_RELATA_LOCATION_ENABLED=disabled` e `COMUN_RELATA_COLLECTIVE_ENABLED=disabled`.
+- `/comun/relatar` 200 com botão de foto; localização, agrupamento e seus endpoints
+  permaneceram 404. Conta, Carteira e Relata textual continuaram ativos.
+- A fixture sintética percorreu signed upload, Storage privado, finalização,
+  leitura autorizada e retirada. Recibo inválido recebeu 404. O cleanup server-side
+  confirmou zero objeto residual de quarentena/derivada e zero item ativo na
+  Carteira; histórico retirado foi preservado por retenção.
+- Resultado terminal: `COMUN_48_1B_P3A_PRIVATE_ATTACHMENTS_DOMAIN_GREEN_LOCATION_OFF`.
+- P3B ainda não foi iniciado. Território, Google, Ônibus, forwarding, coletivos,
+  publicação automática e `launch_publicly` permanecem desligados.
