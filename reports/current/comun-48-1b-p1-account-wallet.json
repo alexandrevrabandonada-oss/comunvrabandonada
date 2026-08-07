@@ -10,10 +10,12 @@
   "production": { "flags": "unchanged_off", "launchPublicly": false },
   "runtimeE2E": "green_prior_evidence_31138922028",
   "ci1": {
-    "head": "6cf606ed728ff2201d8f520f63e0a44bacf0e0da",
-    "run": "31144115752",
+    "head": "b715da904994ee65560c5002e5a255ad1a30a2ed",
+    "run": "31144761069",
     "isolatedA11y": "green",
-    "qualityPrLane": "blocked_supabase_disposable_502_after_one_retry"
+    "qualityPrLane": "blocked_integral_journey_environment_missing_registration_mode",
+    "classification": "COMUN_P1_CI_INTEGRAL_JOURNEY_ENVIRONMENT_MISCONFIGURED",
+    "patch": "COMMUNITY_REGISTRATION_MODE=open_scoped_to_pr_lane"
   },
   "remoteWrites": 0
 }

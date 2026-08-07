@@ -960,3 +960,16 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
 - Resultado atual: `COMUN_48_1B_P1_BLOCKED_CI_RUNTIME_INFRASTRUCTURE`.
 - PR #179 continua draft; Conta, Carteira, território, Google, Relata novo,
   Ônibus, forwarding, flags públicas e `launch_publicly` permanecem fechados.
+
+### 48.1B-P1-CI1 — diagnóstico da reexecução `31144761069` (2026-08-07)
+
+- O a11y isolado, rede e contratos territoriais ficaram verdes no head
+  `b715da904994ee65560c5002e5a255ad1a30a2ed`.
+- O `pr-lane` falhou somente na jornada integral: cinco viewports receberam
+  `/comun/criar-conta?returnTo=...` em vez do onboarding esperado. O servidor
+  estava vivo; não foi falha de processo nem `ERR_ABORTED`.
+- Diagnóstico: `COMMUNITY_REGISTRATION_MODE=open` foi aplicado à lane de rede,
+  mas não à `pr-lane`, que executa a jornada que cria a conta sintética.
+- Patch CI-only: adicionar o env à `pr-lane`; nenhuma funcionalidade, schema,
+  Auth, Carteira, migration, flag pública ou Production foi alterada.
+- PR #179 permanece draft até a execução completa no novo SHA.

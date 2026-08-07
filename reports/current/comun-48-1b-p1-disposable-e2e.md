@@ -51,3 +51,19 @@ o runner focal ficou preso na etapa de acessibilidade de outras superfícies.
   upstream server`); nenhum Playwright funcional foi iniciado nessa tentativa.
 - Resultado: `COMUN_48_1B_P1_BLOCKED_CI_RUNTIME_INFRASTRUCTURE`.
 - PR #179 permanece draft; sem READY, merge ou ativação Vercel.
+
+### Reexecução no head `b715da9` (2026-08-07)
+
+- Run `31144761069`: `COMUN Quality / isolated a11y`, rede e contratos
+  territoriais verdes; o Supabase descartável iniciou normalmente.
+- O `pr-lane` chegou às jornadas integrais, mas cinco viewports falharam no
+  mesmo ponto: o cenário esperava `/comun/onboarding?returnTo=`, enquanto o
+  processo permaneceu em `/comun/criar-conta?returnTo=...`.
+- O servidor estava respondendo e não houve `ERR_ABORTED`; a causa foi
+  configuração incompleta do ambiente descartável: `COMMUNITY_REGISTRATION_MODE`
+  estava definido apenas na lane de rede, não na `pr-lane` que executa a jornada.
+- Correção CI-only aplicada no próximo patch: `COMMUNITY_REGISTRATION_MODE=open`
+  no escopo da `pr-lane`; Production continua controlada por suas flags de
+  deployment.
+- Resultado permanece bloqueado até a nova execução no SHA corrigido; não houve
+  migration, escrita remota, ativação ou alteração funcional do P1.
