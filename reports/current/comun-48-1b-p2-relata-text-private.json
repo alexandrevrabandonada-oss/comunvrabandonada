@@ -1,0 +1,32 @@
+{
+  "result": "COMUN_48_1B_P2_IMPLEMENTATION_READY_FOR_DISPOSABLE_E2E",
+  "baseline": "76687bf06491b82b7062d99c2d6ba26b8c10574a",
+  "branch": "codex/48-1b-p2-relata-text-domain",
+  "account": "enabled",
+  "wallet": "enabled",
+  "relataPersistence": "canonical-production-flag",
+  "quickCapture": "text-only",
+  "evidence": "disabled",
+  "territory": "disabled",
+  "google": "disabled",
+  "bus": "disabled",
+  "forwarding": "disabled",
+  "publicProjection": false,
+  "externalSend": false,
+  "migrationCreated": false,
+  "remoteWrite": false,
+  "checks": {
+    "unit": "506/506",
+    "typecheck": "green",
+    "lint": "green",
+    "build": "green",
+    "topology": "green",
+    "release": "green",
+    "privileges": "green",
+    "disposableRuntimeE2E": "harness-green-orphan-process-fix-retry-required",
+    "latestCiRun": "31188219109",
+    "latestCiRunResult": "cancelled_after_harness_green_orphan_process",
+    "artifactSanitizer": "storage-key-table-redaction-added",
+    "localDocker": "unavailable"
+  }
+}

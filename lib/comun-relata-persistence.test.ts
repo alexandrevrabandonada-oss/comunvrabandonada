@@ -6,9 +6,10 @@ import {
   isLoopbackSupabaseUrl,
 } from "./comun-relata-persistence";
 
-describe("COMUN Relata local persistence guard", () => {
-  it("requires both flags, a loopback URL and a server-only key", () => {
+describe("COMUN Relata persistence guard", () => {
+  it("requires the local test envelope for loopback persistence", () => {
     const enabled = {
+      ALLOW_LOCAL_TESTS: "true",
       COMUN_RELATA_PREVIEW: "enabled",
       COMUN_RELATA_LOCAL_PERSISTENCE: "enabled",
       NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:56431",
@@ -24,7 +25,24 @@ describe("COMUN Relata local persistence guard", () => {
     expect(
       isComunRelataPersistenceEnabled({
         ...enabled,
-        COMUN_RELATA_PREVIEW: "disabled",
+        COMUN_RELATA_LOCAL_PERSISTENCE: "disabled",
+      }),
+    ).toBe(false);
+  });
+
+  it("accepts the canonical HTTPS Production flag without local aliases", () => {
+    expect(
+      isComunRelataPersistenceEnabled({
+        COMUN_RELATA_PERSISTENCE_ENABLED: "enabled",
+        NEXT_PUBLIC_SUPABASE_URL: "https://project.supabase.co",
+        SUPABASE_SERVICE_ROLE_KEY: "server-only",
+      }),
+    ).toBe(true);
+    expect(
+      isComunRelataPersistenceEnabled({
+        COMUN_RELATA_LOCAL_PERSISTENCE: "enabled",
+        NEXT_PUBLIC_SUPABASE_URL: "https://project.supabase.co",
+        SUPABASE_SERVICE_ROLE_KEY: "server-only",
       }),
     ).toBe(false);
   });

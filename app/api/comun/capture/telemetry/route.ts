@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isComunQuickCaptureEnabled } from "@/lib/comun-capture-feature";
+import { isComunRelataEvidenceEnabled } from "@/lib/comun-relata-evidence-feature";
 import { createComunRelataPersistenceClient } from "@/lib/comun-relata-persistence";
 
 export const runtime = "nodejs";
@@ -12,6 +13,8 @@ export async function POST(request: NextRequest) {
   const eventType = typeof body.eventType === "string" ? body.eventType : "";
   const allowed = new Set(["capture_started","photo_added","location_added","question_shown","protocol_issued","capture_abandoned","capture_completed","capture_error","follow_up_started"]);
   if (!allowed.has(eventType)) return NextResponse.json({ code: "invalid_request" }, { status: 400, headers: noStore });
+  if ((eventType === "photo_added" || eventType === "location_added") && !isComunRelataEvidenceEnabled())
+    return NextResponse.json({ code: "invalid_request" }, { status: 400, headers: noStore });
   const db = createComunRelataPersistenceClient();
   const { error } = await db.rpc("comun_relata_record_capture_event", {
     p_event_type: eventType,

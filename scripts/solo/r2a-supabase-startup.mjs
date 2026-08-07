@@ -11,6 +11,10 @@ const redact = (value) =>
   String(value ?? "")
     .split(/\r?\n/)
     .map((line) => {
+      const tableSecret = line.match(
+        /^(\s*(?:access|secret)\s+key\s*│\s*).+$/i,
+      );
+      if (tableSecret) return `${tableSecret[1]}[REDACTED]`;
       const secretLabel = line.match(
         /^(\s*(?:publishable|secret|access key|secret key)\b)/i,
       );

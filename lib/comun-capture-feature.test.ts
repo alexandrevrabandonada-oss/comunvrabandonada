@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { isComunQuickCaptureEnabled, shouldCloakComunQuickCaptureApi } from "./comun-capture-feature";
 
 const base = {
+  ALLOW_LOCAL_TESTS: "true",
   COMUN_RELATA_PREVIEW: "enabled",
   COMUN_RELATA_LOCAL_PERSISTENCE: "enabled",
   COMUN_RELATA_LOCAL_EVIDENCE: "enabled",
@@ -22,5 +23,16 @@ describe("quick capture local barrier", () => {
   it("cloaks telemetry while dormant", () => {
     expect(shouldCloakComunQuickCaptureApi("/api/comun/capture/telemetry", { ...base, COMUN_QUICK_CAPTURE_V2: "disabled" })).toBe(true);
     expect(shouldCloakComunQuickCaptureApi("/api/comun/capture/telemetry", base)).toBe(false);
+  });
+
+  it("allows the textual Production runtime without evidence capabilities", () => {
+    const production = {
+      COMUN_RELATA_PERSISTENCE_ENABLED: "enabled",
+      COMUN_QUICK_CAPTURE_V2: "enabled",
+      NEXT_PUBLIC_SUPABASE_URL: "https://project.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "server-only",
+    };
+    expect(isComunQuickCaptureEnabled(production)).toBe(true);
+    expect(isComunQuickCaptureEnabled({ ...production, COMUN_QUICK_CAPTURE_V2: "disabled" })).toBe(false);
   });
 });

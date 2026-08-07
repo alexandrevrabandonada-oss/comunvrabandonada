@@ -78,8 +78,10 @@ export async function POST(request: NextRequest) {
     typeof body.idempotencyKey === "string" ? body.idempotencyKey : "";
   const receiptSecret =
     typeof body.receiptSecret === "string" ? body.receiptSecret : "";
-  const quickCapture =
-    body.captureMode === "quick_v2" && isComunQuickCaptureEnabled();
+  const wantsQuickCapture = body.captureMode === "quick_v2";
+  const quickCapture = wantsQuickCapture && isComunQuickCaptureEnabled();
+  const evidenceEnabled = isComunRelataEvidenceEnabled();
+  if (wantsQuickCapture && !quickCapture) return dormant();
   const allowedAnswerKeys = new Set([
     "homes_power",
     "smoke_active",
@@ -101,6 +103,13 @@ export async function POST(request: NextRequest) {
         (key === "homes_power" && !["sim", "nao"].includes(answers[key])),
     )
   ) {
+    return NextResponse.json(
+      { code: "invalid_request" },
+      { status: 400, headers: noStoreHeaders },
+    );
+  }
+
+  if (body.captureMode === "quick_v2" && body.hasPhoto === true && !evidenceEnabled) {
     return NextResponse.json(
       { code: "invalid_request" },
       { status: 400, headers: noStoreHeaders },
@@ -164,7 +173,7 @@ export async function POST(request: NextRequest) {
     );
   }
   const receipt = normalizeComunRelataReceipt(receiptResult.data[0]);
-  if (isComunRelataEvidenceEnabled()) {
+  if (evidenceEnabled) {
     await associateComunRelataCollective(db, {
       protocol: receipt.protocol,
       receiptSecret,

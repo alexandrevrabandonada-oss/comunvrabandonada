@@ -993,3 +993,33 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
   nem disparar e-mail externo sem cleanup administrativo seguro.
 - Estado: Conta e superfície da Carteira ativas; piloto de Relata, território,
   Google e `launch_publicly` continuam fechados.
+
+## 48.1B-P2 — Relata textual privado (2026-08-07)
+
+- Branch de implementação: `codex/48-1b-p2-relata-text-domain`, baseada no
+  `origin/main` `76687bf06491b82b7062d99c2d6ba26b8c10574a`.
+- Persistência ganhou a flag canônica `COMUN_RELATA_PERSISTENCE_ENABLED` para
+  Production; o alias `COMUN_RELATA_LOCAL_PERSISTENCE` ficou restrito a testes
+  locais com loopback e `ALLOW_LOCAL_TESTS=true`.
+- Quick Capture V2 passou a renderizar texto sem foto, localização, mapa ou
+  chaves de evidência quando `evidenceEnabled=false`.
+- POST textual mantém classificação determinística, pergunta adaptativa,
+  `captured_private`, protocolo COMUN, `noOfficialSend=true`, idempotência e
+  associação compensável à Carteira.
+- Tentativas de `hasPhoto=true` e telemetria de foto/localização são rejeitadas
+  com a capacidade de evidência desligada; APIs de evidência permanecem 404.
+- Unitários 506/506, typecheck, lint, build, topologia, release, privileges e
+  contrato estático da lane P2 verdes.
+- Foi adicionada lane CI descartável `COMUN P2 / private textual Relata E2E`,
+  sem credenciais remotas, com cleanup obrigatório. No run `31188219109`, o
+  harness passou (`COMUN_P2_RELATA_TEXT_DISPOSABLE_E2E_GREEN`, sem snapshot
+  público e sem anexos), mas `npm/next-server` ficou órfão e a etapa foi
+  cancelada antes do cleanup. O patch seguinte usa grupo de processos para
+  encerrar o servidor e aguarda a saída; o redator também passou a mascarar
+  chaves no formato tabular do Storage. Docker/Supabase local não respondeu no
+  host.
+- Nenhuma migration, escrita remota, flag de Production ou registro sintético
+  remoto foi criado nesta etapa.
+- Estado: implementação pronta para novo retry focal do E2E descartável e PR; Conta e Carteira ON,
+  Relata textual ainda OFF em Production, evidências/território/Google/Ônibus/
+  forwarding OFF, `launch_publicly=false`.
