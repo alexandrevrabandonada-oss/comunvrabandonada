@@ -20,5 +20,12 @@
   "policies": "none_observed",
   "historicalLocalMigrationInRemoteLedger": false,
   "valuesRead": false,
-  "remoteWrite": false
+  "remoteWrite": true,
+  "remotePromotion": {
+    "mergeCommit": "c49d00878915c1559ec3e09fa2762ba91c2f4f9b",
+    "migration": "20260806235454_comun_member_profile_optional_territory.sql",
+    "migrationSha256": "1173bbddeafdcb929bee4eb7594e74fa6465af87421c0b0fe7ca7c549f11a1f5",
+    "historicalLocalMigrationPromoted": false,
+    "flagsEnabled": false
+  }
 }

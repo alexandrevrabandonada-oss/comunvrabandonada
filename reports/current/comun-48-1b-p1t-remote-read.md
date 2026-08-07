@@ -18,6 +18,8 @@ Classificação: `COMUN_P1T_REMOTE_TERRITORY_ABSENT`.
 - A migration local-only `20260805090000_comun_member_profile_territory_selection.sql` não está no ledger remoto `public.comun_schema_releases`.
 - Nenhum valor individual de perfil foi lido.
 
+Após o merge, o dry-run remoto retornou exatamente uma migration e a promoção aplicou a release `20260806235454` sem `--include-all`, seed ou repair.
+
 ## Decisão
 
 Prosseguir com uma migration nova, aditiva e forward-only. A migration local-only histórica não será movida nem promovida.
