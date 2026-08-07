@@ -1,13 +1,11 @@
 import { createHash, randomBytes } from "node:crypto";
+import { createClient } from "@supabase/supabase-js";
 import type { NextRequest, NextResponse } from "next/server";
 import {
   COMUN_PARTICIPATION_WALLET_COOKIE,
+  isComunParticipationWalletLocalEnabled,
   isComunParticipationWalletEnabled,
 } from "./comun-participation-wallet-feature";
-import {
-  createComunRelataPersistenceClient,
-  isLoopbackSupabaseUrl,
-} from "./comun-relata-persistence";
 
 export function walletSecretHash(value: string) {
   return createHash("sha256").update(`comun-wallet-v1:${value}`).digest("hex");
@@ -38,7 +36,10 @@ export function readWalletToken(request: NextRequest) {
 export function setWalletCookie(response: NextResponse, token: string) {
   response.cookies.set(COMUN_PARTICIPATION_WALLET_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.COMUN_BASE_URL?.startsWith("https://") ?? false,
+    secure:
+      process.env.VERCEL_ENV === "production" ||
+      process.env.NODE_ENV === "production" ||
+      process.env.COMUN_BASE_URL?.startsWith("https://") === true,
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
@@ -46,15 +47,30 @@ export function setWalletCookie(response: NextResponse, token: string) {
 }
 
 export function walletRuntimeAvailable() {
-  return (
-    isComunParticipationWalletEnabled() &&
-    isLoopbackSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL)
-  );
+  return isComunParticipationWalletEnabled();
+}
+
+export function createComunParticipationWalletClient(
+  env: Record<string, string | undefined> = process.env,
+) {
+  if (!isComunParticipationWalletEnabled(env))
+    throw new Error("COMUN_PARTICIPATION_WALLET_DISABLED");
+  if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY)
+    throw new Error("COMUN_PARTICIPATION_WALLET_CONFIG_INVALID");
+  if (
+    !isComunParticipationWalletLocalEnabled(env) &&
+    (!env.VERCEL_ENV || env.VERCEL_ENV !== "production")
+  )
+    throw new Error("COMUN_PARTICIPATION_WALLET_PRODUCTION_REQUIRED");
+  return createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { "x-comun-scope": "participation-wallet" } },
+  });
 }
 
 export function walletDb() {
-  if (!walletRuntimeAvailable()) throw new Error("COMUN_PARTICIPATION_WALLET_LOCAL_REQUIRED");
-  return createComunRelataPersistenceClient();
+  if (!walletRuntimeAvailable()) throw new Error("COMUN_PARTICIPATION_WALLET_DISABLED");
+  return createComunParticipationWalletClient();
 }
 
 export async function createWallet(db: ReturnType<typeof walletDb>) {

@@ -1,0 +1,21 @@
+{
+  "result": "COMUN_48_1B_P1_BLOCKED_CI_RUNTIME_INFRASTRUCTURE",
+  "baseline": "903c7519658395eba7e9b0437c1cb236ffbaea38",
+  "migration": "none",
+  "remoteDryRun": "empty_after_known_external_sidewalk_quarantine",
+  "account": { "registration": "explicit_flag", "sessionRefresh": true, "google": "off" },
+  "wallet": { "canonicalFlag": "COMUN_PARTICIPATION_WALLET_ENABLED", "localAliasPreserved": true, "explicitAccountLink": true },
+  "territory": "off",
+  "relata": "off",
+  "production": { "flags": "unchanged_off", "launchPublicly": false },
+  "runtimeE2E": "green_prior_evidence_31138922028",
+  "ci1": {
+    "head": "b715da904994ee65560c5002e5a255ad1a30a2ed",
+    "run": "31144761069",
+    "isolatedA11y": "green",
+    "qualityPrLane": "blocked_integral_journey_environment_missing_registration_mode",
+    "classification": "COMUN_P1_CI_INTEGRAL_JOURNEY_ENVIRONMENT_MISCONFIGURED",
+    "patch": "COMMUNITY_REGISTRATION_MODE=open_scoped_to_pr_lane"
+  },
+  "remoteWrites": 0
+}

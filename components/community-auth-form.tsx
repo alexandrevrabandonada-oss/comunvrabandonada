@@ -180,7 +180,13 @@ export function CommunitySignupForm({
           <input name="privacy" type="checkbox" required /> Li a política de
           privacidade.
         </label>
-        {state?.error && <p role="alert">{state.error}</p>}
+        {state?.error ? <p role="alert">{state.error}</p> : null}
+        {state?.status === "confirmation_required" ? (
+          <p role="status" tabIndex={-1}>
+            {state.message ??
+              "Conta criada. Confira seu e-mail para confirmar o acesso e continuar."}
+          </p>
+        ) : null}
         <button className="min-h-11 bg-comun-yellow font-black uppercase">
           Criar conta
         </button>

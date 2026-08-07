@@ -27,8 +27,10 @@ function statusLabel(item: WalletItem) {
 
 export function ParticipationWalletPanel({
   standalone = false,
+  accountAvailable = false,
 }: {
   standalone?: boolean;
+  accountAvailable?: boolean;
 }) {
   const [items, setItems] = useState<WalletItem[]>([]);
   const [present, setPresent] = useState(false);
@@ -37,6 +39,7 @@ export function ParticipationWalletPanel({
   const [legacyProtocol, setLegacyProtocol] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [accountLinked, setAccountLinked] = useState(false);
 
   async function refresh() {
     const response = await fetch("/api/comun/participation-wallet", {
@@ -71,9 +74,9 @@ export function ParticipationWalletPanel({
       if (!response.ok) throw new Error(value.code ?? "wallet_create_failed");
       setPresent(true);
       setRecoveryCode(value.recoveryCode ?? null);
-      setNotice("Carteira criada localmente. Salve o código antes de fechar.");
+      setNotice("Carteira criada. Salve o código antes de fechar.");
     } catch {
-      setNotice("A carteira local não está disponível neste laboratório.");
+      setNotice("A Carteira não está disponível agora.");
     } finally {
       setBusy(false);
     }
@@ -124,6 +127,44 @@ export function ParticipationWalletPanel({
       await refresh();
     } catch {
       setNotice("Não foi possível adicionar esse protocolo acompanhado.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function linkAccount() {
+    setBusy(true);
+    setNotice(null);
+    try {
+      const response = await fetch(
+        "/api/comun/participation-wallet/account/link",
+        { method: "POST" },
+      );
+      if (!response.ok) throw new Error("link_failed");
+      setAccountLinked(true);
+      setNotice("Carteira vinculada à sua conta. Nenhum item foi duplicado.");
+    } catch {
+      setNotice("Não foi possível vincular a Carteira agora.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function unlinkAccount() {
+    setBusy(true);
+    setNotice(null);
+    try {
+      const response = await fetch(
+        "/api/comun/participation-wallet/account/unlink",
+        { method: "POST" },
+      );
+      if (!response.ok) throw new Error("unlink_failed");
+      setAccountLinked(false);
+      setNotice(
+        "Vínculo removido. A Carteira e seus itens continuam existindo.",
+      );
+    } catch {
+      setNotice("Não foi possível remover o vínculo agora.");
     } finally {
       setBusy(false);
     }
@@ -216,7 +257,7 @@ export function ParticipationWalletPanel({
             onClick={createWallet}
             className="min-h-11 border-2 border-comun-black bg-white px-4 py-2 text-left font-black"
           >
-            Criar carteira local
+            Criar carteira
           </button>
           <label
             className="grid gap-1 text-sm font-bold"
@@ -240,6 +281,27 @@ export function ParticipationWalletPanel({
             className="min-h-11 border-2 border-comun-black bg-comun-asphalt px-4 py-2 text-left font-black text-comun-paper"
           >
             Recuperar carteira
+          </button>
+        </div>
+      ) : null}
+      {accountAvailable && present ? (
+        <div className="grid gap-2 border-2 border-comun-black/20 bg-white p-4 text-sm">
+          <p className="font-black">Conta e Carteira</p>
+          <p>
+            O vínculo é opcional e só acontece quando você pedir. A Carteira
+            continua recuperável pelo código se o vínculo for removido.
+          </p>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() =>
+              void (accountLinked ? unlinkAccount() : linkAccount())
+            }
+            className="min-h-11 w-fit border-2 border-comun-black bg-comun-yellow px-3 font-black"
+          >
+            {accountLinked
+              ? "Remover vínculo com minha conta"
+              : "Vincular esta carteira à minha conta"}
           </button>
         </div>
       ) : null}
@@ -355,6 +417,14 @@ export function ParticipationWalletPanel({
             ) : null,
           )
         : null}
+      {notice ? (
+        <p
+          role="status"
+          className="border-l-4 border-comun-yellow bg-white p-3 text-sm"
+        >
+          {notice}
+        </p>
+      ) : null}
       {present ? (
         <div className="grid gap-2 border-t-2 border-comun-black/20 pt-4">
           <h3 className="font-black normal-case">Protocolos oficiais</h3>

@@ -901,3 +901,75 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
 - RLS/grants preservados e smoke de domínio verde.
 - Relata, Google, piloto e `launch_publicly` permanecem fechados.
 - Resultado: `COMUN_48_1B_P1T_REMOTE_TERRITORY_SCHEMA_GREEN_FLAG_OFF`.
+
+## 48.1B-P1 — Conta e Carteira reais no domínio (2026-08-06)
+
+- branch de implementação: `codex/48-1b-p1-account-wallet-domain`;
+- baseline: `903c7519658395eba7e9b0437c1cb236ffbaea38`;
+- sem nova migration: o schema remoto de Conta, perfil e Carteira já foi comprovado;
+- cadastro passou a exigir `COMMUNITY_REGISTRATION_MODE=open` explicitamente e trata confirmação de e-mail sem falso redirecionamento;
+- refresh de sessão foi ampliado para autenticação comunitária, Minha Participação e APIs da Carteira;
+- Carteira passou a aceitar flag canônica de produção, mantendo alias local-only e cookie Secure em produção;
+- vínculo Conta–Carteira e desvinculação são explícitos;
+- território permanece desligado; Google permanece desligado; Relata novo, Ônibus, forwarding e coletivos permanecem dormentes;
+- `migration list --linked` e `db push --linked --dry-run` ficaram vazios após quarentena temporária apenas da release externa de Calçadas, restaurada com SHA íntegro;
+- Docker local não respondeu; E2E descartável foi adicionado à CI sem credenciais remotas;
+- status: `COMUN_48_1B_P1_REMOTE_PREFLIGHT_GREEN_SCHEMA_PRESENT`, aguardando CI E2E, PR e ativação staged;
+- nenhum dado remoto foi criado ou alterado nesta etapa.
+
+### 48.1B-P1 — checkpoint de integração (2026-08-07)
+
+- PR #179 permanece draft no head `e0bfedbc71ee890ac8e321004f055779b89474f9`.
+- Correção mecânica de Prettier aplicada em `app/actions.ts` e no painel/página
+  de Minha Participação; unitários (504), typecheck, lint e build verdes.
+- Lane CI descartável de Conta/Carteira verde no run `31139892110`.
+- O único gate restante falhou por infraestrutura do runner: a suíte funcional
+  de Núcleo passou 14/14, mas a etapa a11y perdeu o servidor local (`ERR_ABORTED`)
+  em seis navegações; o retry focal ficou preso sem logs por mais de 16 minutos
+  e foi cancelado.
+- Não marcar READY, não mesclar e não executar ativação Vercel enquanto esse
+  gate não estiver verde. Território, Google, Relata novo, flags e `launch_publicly`
+  permanecem desligados; nenhuma migration ou escrita remota foi feita.
+- Resultado atual: `COMUN_48_1B_P1_BLOCKED_CI_RUNTIME_INFRASTRUCTURE`.
+
+### 48.1B-P1-CI1 — isolamento Quality Performance (2026-08-07)
+
+- Adicionado `scripts/quality/run-isolated-a11y.mjs` com health gate inicial,
+  monitor de vida, snapshots sanitizados de recursos, classificação de saída e
+  cleanup por processo/grupo.
+- Criada lane obrigatória `COMUN Quality / isolated a11y` na Quality Performance;
+  a cobertura completa permanece obrigatória.
+- Suítes a11y focais e WCAG do mega-job passaram a usar servidor explícito na
+  porta `3037`, sem `PLAYWRIGHT webServer` concorrente.
+- Build, unitários (504), typecheck, lint, sintaxe e formatação verdes; smoke
+  local do executor verde.
+- Nenhuma funcionalidade P1, migration, RPC, flag, Google ou Production foi
+  alterada.
+- O contrato estático de Quality Performance foi atualizado para a nova forma
+  isolada de a11y; `npm run quality:test` permanece verde.
+- Próximo gate: nova execução CI no head deste patch; ainda não marcar READY.
+
+### 48.1B-P1-CI1 — resultado do retry (2026-08-07)
+
+- Head: `6cf606ed728ff2201d8f520f63e0a44bacf0e0da`; run: `31144115752`.
+- `COMUN Quality / isolated a11y` ficou verde; `pr-lane` e a lane territorial
+  falharam antes das suítes por `502` do Supabase descartável durante restart
+  dos containers.
+- Um único retry focal reproduziu o mesmo erro upstream. Não houve novo retry,
+  escrita remota ou mudança de produto.
+- Resultado atual: `COMUN_48_1B_P1_BLOCKED_CI_RUNTIME_INFRASTRUCTURE`.
+- PR #179 continua draft; Conta, Carteira, território, Google, Relata novo,
+  Ônibus, forwarding, flags públicas e `launch_publicly` permanecem fechados.
+
+### 48.1B-P1-CI1 — diagnóstico da reexecução `31144761069` (2026-08-07)
+
+- O a11y isolado, rede e contratos territoriais ficaram verdes no head
+  `b715da904994ee65560c5002e5a255ad1a30a2ed`.
+- O `pr-lane` falhou somente na jornada integral: cinco viewports receberam
+  `/comun/criar-conta?returnTo=...` em vez do onboarding esperado. O servidor
+  estava vivo; não foi falha de processo nem `ERR_ABORTED`.
+- Diagnóstico: `COMMUNITY_REGISTRATION_MODE=open` foi aplicado à lane de rede,
+  mas não à `pr-lane`, que executa a jornada que cria a conta sintética.
+- Patch CI-only: adicionar o env à `pr-lane`; nenhuma funcionalidade, schema,
+  Auth, Carteira, migration, flag pública ou Production foi alterada.
+- PR #179 permanece draft até a execução completa no novo SHA.

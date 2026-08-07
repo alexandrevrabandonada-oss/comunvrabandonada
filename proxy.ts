@@ -14,6 +14,23 @@ import { shouldCloakComunParticipationWallet } from "@/lib/comun-participation-w
 import { shouldCloakComunForwarding } from "@/lib/comun-forwarding-feature";
 import { updateSession } from "@/lib/supabase/middleware";
 
+function shouldRefreshCommunitySession(pathname: string) {
+  return (
+    pathname === "/comun/entrar" ||
+    pathname === "/comun/criar-conta" ||
+    pathname === "/comun/onboarding" ||
+    pathname === "/comun/minha-participacao" ||
+    pathname.startsWith("/comun/minha-participacao/") ||
+    pathname === "/comun/conta" ||
+    pathname.startsWith("/comun/conta/") ||
+    pathname === "/comun/completar-conta" ||
+    pathname === "/comun/recuperar-acesso" ||
+    pathname === "/comun/redefinir-acesso" ||
+    pathname === "/api/comun/participation-wallet" ||
+    pathname.startsWith("/api/comun/participation-wallet/")
+  );
+}
+
 export async function proxy(request: NextRequest) {
   if (
     shouldCloakComunRelataEvidenceApi(request.nextUrl.pathname) ||
@@ -51,9 +68,10 @@ export async function proxy(request: NextRequest) {
   const isAdminRoute =
     request.nextUrl.pathname === "/comun/admin" ||
     request.nextUrl.pathname.startsWith("/comun/admin/");
-  const response = isAdminRoute
-    ? await updateSession(request)
-    : NextResponse.next({ request });
+  const response =
+    isAdminRoute || shouldRefreshCommunitySession(request.nextUrl.pathname)
+      ? await updateSession(request)
+      : NextResponse.next({ request });
 
   if (requestedExperience === "app-v2" || requestedExperience === "legacy") {
     const canonicalPath = canonicalComunHref(
