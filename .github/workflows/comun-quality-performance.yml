@@ -68,6 +68,10 @@ jobs:
       # territory extension. The dedicated territory lane opts in explicitly.
       COMUN_TERRITORY_PROFILE_ENABLED: disabled
       COMUN_TERRITORY_CATALOG_LOCAL: disabled
+      # The integral journey creates a synthetic account and must be able to
+      # complete onboarding. This is scoped to the disposable CI lane only;
+      # Production registration remains controlled by its deployment flags.
+      COMMUNITY_REGISTRATION_MODE: open
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
