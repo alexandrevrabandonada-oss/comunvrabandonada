@@ -19,4 +19,8 @@ Escopo:
 
 O host local não possui Docker disponível nesta execução. A prova runtime é obrigatória na lane CI efêmera, sem credenciais ou projeto remoto.
 
-Resultado aguardado: `COMUN_48_1B_P1_ACCOUNT_WALLET_DISPOSABLE_E2E_GREEN`.
+Resultado CI: `COMUN_48_1B_P1_ACCOUNT_WALLET_DISPOSABLE_E2E_GREEN` (run `31139892110`, head `8df5057d`).
+
+O host local permaneceu sem Docker. A regressão da lane Quality Performance no novo
+head `e0bfedb` não atingiu o E2E P1: a suíte P1 foi marcada como pendente enquanto
+o runner focal ficou preso na etapa de acessibilidade de outras superfícies.

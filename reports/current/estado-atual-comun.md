@@ -916,3 +916,18 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
 - Docker local não respondeu; E2E descartável foi adicionado à CI sem credenciais remotas;
 - status: `COMUN_48_1B_P1_REMOTE_PREFLIGHT_GREEN_SCHEMA_PRESENT`, aguardando CI E2E, PR e ativação staged;
 - nenhum dado remoto foi criado ou alterado nesta etapa.
+
+### 48.1B-P1 — checkpoint de integração (2026-08-07)
+
+- PR #179 permanece draft no head `e0bfedbc71ee890ac8e321004f055779b89474f9`.
+- Correção mecânica de Prettier aplicada em `app/actions.ts` e no painel/página
+  de Minha Participação; unitários (504), typecheck, lint e build verdes.
+- Lane CI descartável de Conta/Carteira verde no run `31139892110`.
+- O único gate restante falhou por infraestrutura do runner: a suíte funcional
+  de Núcleo passou 14/14, mas a etapa a11y perdeu o servidor local (`ERR_ABORTED`)
+  em seis navegações; o retry focal ficou preso sem logs por mais de 16 minutos
+  e foi cancelado.
+- Não marcar READY, não mesclar e não executar ativação Vercel enquanto esse
+  gate não estiver verde. Território, Google, Relata novo, flags e `launch_publicly`
+  permanecem desligados; nenhuma migration ou escrita remota foi feita.
+- Resultado atual: `COMUN_48_1B_P1_BLOCKED_CI_RUNTIME_INFRASTRUCTURE`.

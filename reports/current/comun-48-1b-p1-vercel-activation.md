@@ -10,3 +10,10 @@ Plano staged, ainda não executado:
 6. smoke sintético de Carteira e cleanup administrativo.
 
 Não usar `NEXT_PUBLIC_*` para secrets. Não ativar Relata, Calçadas, Ônibus, coletivos ou encaminhamento.
+
+## Estado desta execução
+
+A ativação staged não foi iniciada. A PR #179 permanece draft porque o retry
+focal do Quality Performance ficou preso no runner após falhas `ERR_ABORTED` de
+Playwright na acessibilidade de Núcleo/Calçadas. Nenhuma variável Production foi
+alterada, nenhum redeploy de ativação ocorreu e nenhum dado remoto foi criado.
