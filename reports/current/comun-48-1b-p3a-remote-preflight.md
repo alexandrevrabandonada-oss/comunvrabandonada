@@ -38,3 +38,9 @@ no painel do Supabase. A rotação não foi usada nem registrada nesta sessão e
 ainda não foi comprovada no ambiente server-side da Vercel/agente. O bloqueio
 permanece até que a nova chave seja configurada no ambiente seguro e permita
 uma consulta read-only sanitizada.
+
+Após o redeploy informado, `vercel env run -e production` foi executado com o
+`.env.local` temporariamente isolado e restaurado por SHA. O URL Supabase e o
+project ref foram injetados, mas `SUPABASE_SERVICE_ROLE_KEY` permaneceu ausente
+no processo filho. A prova remota continua bloqueada; nenhum valor de chave foi
+impresso.
