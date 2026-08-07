@@ -4,6 +4,8 @@ import {
   COMUN_RELATA_LOCATION_KEY,
   COMUN_RELATA_SPATIAL_KEY,
   isComunRelataEvidenceEnabled,
+  isComunRelataAttachmentsEnabled,
+  isComunRelataLocationEnabled,
   shouldCloakComunRelataEvidenceApi,
   areComunRelataPublicMapFlagsEnabled,
   isComunRelataPublicMapEnabled,
@@ -26,6 +28,18 @@ function enabledEnv() {
 }
 
 describe("COMUN Relata evidence flags", () => {
+  it("separates production attachments from location capability", () => {
+    const env = {
+      COMUN_RELATA_PERSISTENCE_ENABLED: "enabled",
+      COMUN_RELATA_ATTACHMENTS_ENABLED: "enabled",
+      NEXT_PUBLIC_SUPABASE_URL: "https://project.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "server-only",
+    };
+    expect(isComunRelataAttachmentsEnabled(env)).toBe(true);
+    expect(isComunRelataLocationEnabled(env)).toBe(false);
+    expect(shouldCloakComunRelataEvidenceApi("/api/comun/relata/evidence/attachments", env)).toBe(false);
+    expect(shouldCloakComunRelataEvidenceApi("/api/comun/relata/evidence/location", env)).toBe(true);
+  });
   it("requires the cumulative fourth map barrier and cloaks page/API uniformly", () => {
     expect(isComunRelataPublicMapEnabled({ ...enabledEnv(), COMUN_RELATA_LOCAL_PUBLIC_MAP: "enabled" })).toBe(true);
     const dormant = { ...enabledEnv(), COMUN_RELATA_LOCAL_PUBLIC_MAP: "disabled" };

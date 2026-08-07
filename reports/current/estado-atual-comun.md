@@ -1027,3 +1027,23 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
   404; nenhum POST real. Estado: Conta ON, Carteira ON, Relata textual ON,
   evidências/território/Google/Ônibus/forwarding/publicação OFF,
   `launch_publicly=false`.
+
+## 48.1B-P3A — Fotos privadas (2026-08-07)
+
+- Branch de implementação: `codex/48-1b-p3a-private-attachments`, baseada em
+  `origin/main=9f00890c61e9cf15f5527524e40b43c0e16ddf4f`.
+- O fluxo foi separado por capacidade: fotos usam
+  `COMUN_RELATA_ATTACHMENTS_ENABLED`; localização e agrupamento continuam
+  independentes e desligados.
+- O início de upload agora usa signed upload URL para o bucket privado; os
+  bytes não atravessam a Function. A finalização server-side valida a
+  quarentena e publica somente derivada privada WebP.
+- Unitários 507/507, typecheck, lint e build verdes. Foi adicionada lane CI
+  descartável `COMUN P3A / private attachments E2E` com cleanup obrigatório.
+- O dry-run remoto foi vazio após a quarentena temporária e restauração íntegra
+  da migration externa de Calçadas.
+- O preflight de Storage/RLS/RPCs remoto não pôde ser concluído porque a sessão
+  Vercel não entregou valor utilizável para `SUPABASE_SERVICE_ROLE_KEY`.
+  Resultado: `COMUN_P3A_BLOCKED_REMOTE_ATTACHMENT_PREFLIGHT_PERMISSION`.
+- Não houve deployment, flag, migration, fixture ou escrita remota. P3B não foi
+  iniciado. `launch_publicly=false`.

@@ -205,18 +205,20 @@ try {
     }),
   });
   assert.equal(oversize.status, 400);
-  const uploaded = await http(upload.url, {
+  const uploadedToStorage = await fetch(upload.url, {
     method: "PUT",
     headers: {
       "content-type": "image/png",
-      "content-length": String(png.byteLength),
+      "x-upsert": "false",
     },
     body: png,
   });
+  assert.equal(uploadedToStorage.status, 200);
+  const uploaded = await http(upload.finalizeUrl, { method: "POST" });
   assert.equal(uploaded.status, 200);
   const attachmentBody = await uploaded.json();
   assert.equal(attachmentBody.noOfficialSend, true);
-  const attachmentId = upload.url.split("/").pop();
+  const attachmentId = upload.attachmentId;
   const downloaded = await http(
     `/api/comun/relata/evidence/attachments/${attachmentId}`,
   );

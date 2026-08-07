@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { isComunRelataPersistenceEnabled } from "@/lib/comun-relata-persistence";
-import { isComunRelataEvidenceEnabled } from "@/lib/comun-relata-evidence-feature";
+import { isComunRelataAttachmentsEnabled, isComunRelataLocationEnabled } from "@/lib/comun-relata-evidence-feature";
 import { RelataPreview } from "./relata-preview";
 
 export const metadata = {
@@ -9,5 +9,5 @@ export const metadata = {
 
 export default function RelataPage() {
   if (!isComunRelataPersistenceEnabled()) notFound();
-  return <RelataPreview evidenceEnabled={isComunRelataEvidenceEnabled()} />;
+  return <RelataPreview attachmentsEnabled={isComunRelataAttachmentsEnabled()} locationEnabled={isComunRelataLocationEnabled()} />;
 }

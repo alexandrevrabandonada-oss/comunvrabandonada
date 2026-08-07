@@ -21,7 +21,7 @@ function unavailable() {
 }
 
 export async function POST(request: NextRequest) {
-  const local = getComunRelataEvidenceRuntime(request);
+  const local = getComunRelataEvidenceRuntime(request, "location");
   if (!local) return unavailable();
   let body: Record<string, unknown>;
   try {
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const local = getComunRelataEvidenceRuntime(request);
+  const local = getComunRelataEvidenceRuntime(request, "location");
   if (!local) return unavailable();
   const { data, error } = await local.db.rpc("comun_relata_withdraw_location", {
     p_protocol: local.proof.protocol,

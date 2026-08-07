@@ -38,7 +38,8 @@ function stateLabel(state: string) {
   );
 }
 
-export function RelataPreview({ evidenceEnabled }: { evidenceEnabled: boolean }) {
+export function RelataPreview({ attachmentsEnabled, locationEnabled }: { attachmentsEnabled: boolean; locationEnabled: boolean }) {
+  const evidenceEnabled = attachmentsEnabled || locationEnabled;
   const [text, setText] = useState("");
   const [answer, setAnswer] = useState<string | undefined>();
   const [decision, setDecision] = useState<RoutingDecision | null>(null);
@@ -395,7 +396,7 @@ export function RelataPreview({ evidenceEnabled }: { evidenceEnabled: boolean })
                   ))}
                 </ol>
               </div>
-              {evidenceEnabled ? <RelataEvidencePanel withdrawn={receipt.state === "withdrawn"} /> : null}
+              {evidenceEnabled ? <RelataEvidencePanel withdrawn={receipt.state === "withdrawn"} attachmentsEnabled={attachmentsEnabled} locationEnabled={locationEnabled} /> : null}
               {receipt.state !== "withdrawn" && !confirmWithdrawal ? (
                 <button
                   type="button"
