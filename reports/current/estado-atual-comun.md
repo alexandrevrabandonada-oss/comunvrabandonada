@@ -1052,3 +1052,6 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
   (`COMUN_P3A_ATTACHMENTS_DISPOSABLE_E2E_GREEN`).
   A PR permanece draft porque a prova remota do bucket/RLS/grants/RPC ainda
   está bloqueada por credencial server-side não disponível nesta sessão.
+- O responsável informou rotação da chave `service_role` no Supabase, mas a
+  nova credencial ainda não foi comprovada no ambiente seguro de execução; não
+  usar chaves coladas no chat.

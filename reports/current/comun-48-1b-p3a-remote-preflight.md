@@ -30,3 +30,11 @@ O E2E descartável da PR passou nos runs `31205708682` e `31206331155`, mas isso
 prova do bucket e das políticas no projeto remoto. Não houve escrita remota,
 criação de fixture, alteração de migration, ativação de flag ou acesso a
 objetos reais.
+
+## Atualização de credencial
+
+Em 2026-08-07, o responsável informou ter rotacionado a chave `service_role`
+no painel do Supabase. A rotação não foi usada nem registrada nesta sessão e
+ainda não foi comprovada no ambiente server-side da Vercel/agente. O bloqueio
+permanece até que a nova chave seja configurada no ambiente seguro e permita
+uma consulta read-only sanitizada.
