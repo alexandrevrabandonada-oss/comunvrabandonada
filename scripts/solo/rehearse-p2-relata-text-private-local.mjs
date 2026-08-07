@@ -111,7 +111,7 @@ try {
     assert.equal(privateRow.rowCount, 1);
     assert.equal(privateRow.rows[0].retention_class, "private_unsubmitted");
     assert.notEqual(privateRow.rows[0].privacy_class, "high_risk");
-    const publicSnapshot = await client.query("select count(*)::int as count from public.comun_relata_public_snapshots where report_id in (select id from private.comun_relata_reports where original_text = $1)", [payload.text]);
+    const publicSnapshot = await client.query("select count(*)::int as count from public.comun_relata_public_snapshots s join public.comun_relata_cases c on c.id = s.case_id join private.comun_relata_reports r on r.id = c.report_id where r.original_text = $1", [payload.text]);
     assert.equal(publicSnapshot.rows[0].count, 0);
     const evidence = await client.query("select count(*)::int as count from private.comun_relata_attachments a join private.comun_relata_reports r on r.id = a.report_id where r.original_text = $1", [payload.text]);
     assert.equal(evidence.rows[0].count, 0);
