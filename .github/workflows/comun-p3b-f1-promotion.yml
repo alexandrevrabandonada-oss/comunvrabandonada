@@ -1,0 +1,148 @@
+name: COMUN P3B F1 promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact main SHA to validate
+        required: true
+      mode:
+        description: Read-only preflight, one-migration promotion, or postflight
+        required: true
+        type: choice
+        options: [preflight, promote, postflight]
+
+concurrency:
+  group: comun-p3b-f1-promotion
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  F1_MIGRATION: 20260808043000_comun_relata_location_readd_state_fix.sql
+  F1_MANIFEST: supabase/releases/20260808043000-comun-relata-location-readd-state-fix.json
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+      - run: npm ci --ignore-scripts
+      - name: Validate immutable checkout and F1 manifest
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          npm run solo:sql:validate -- --release-manifest="$F1_MANIFEST"
+          test "$(node -e "const m=require('./$F1_MANIFEST'); process.stdout.write(m.migration)")" = "supabase/migrations/$F1_MIGRATION"
+          test "$(sha256sum "supabase/migrations/$F1_MIGRATION" | awk '{print $1}')" = "5a0b9ba71ac63d8ca578049963158e335183d580f920667cd803c6bfb2c6a5a5"
+      - name: Reconciled remote plan (read-only)
+        id: plan
+        if: inputs.mode == 'preflight' || inputs.mode == 'promote'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          mkdir -p .ci-artifacts/p3b-f1
+          set +e
+          supabase migration list --db-url "$SUPABASE_DB_URL" > .ci-artifacts/p3b-f1/migration-list.txt 2>&1
+          list_status=$?
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run > .ci-artifacts/p3b-f1/dry-run.txt 2>&1
+          dry_status=$?
+          set -e
+          test "$list_status" -eq 0
+          test "$dry_status" -eq 0
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p3b-f1/dry-run.txt | sort -u || true)
+          test "${#planned[@]}" -eq 1
+          test "${planned[0]}" = "$F1_MIGRATION"
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const target = process.env.F1_MIGRATION;
+          const dry = fs.readFileSync('.ci-artifacts/p3b-f1/dry-run.txt', 'utf8');
+          const list = fs.readFileSync('.ci-artifacts/p3b-f1/migration-list.txt', 'utf8');
+          fs.writeFileSync('.ci-artifacts/p3b-f1/plan.json', JSON.stringify({
+            result: 'COMUN_P3B_F1_REMOTE_PLAN_EXACT_ONE',
+            migration: target,
+            dryRunTargetPresent: dry.includes(target),
+            migrationListRead: true,
+            outputLines: list.split(/\r?\n/).filter(Boolean).length,
+          }, null, 2) + '\n');
+          NODE
+          echo COMUN_P3B_F1_REMOTE_PLAN_EXACT_ONE >> "$GITHUB_STEP_SUMMARY"
+      - name: Apply exactly the reconciled F1 migration
+        if: inputs.mode == 'promote'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db push --db-url "$SUPABASE_DB_URL"
+      - name: Verify F1 function and privileges without reading data
+        if: inputs.mode == 'promote' || inputs.mode == 'postflight'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/p3b-f1
+          psql "$SUPABASE_DB_URL" -XAt -v ON_ERROR_STOP=1 > .ci-artifacts/p3b-f1/postflight.txt <<'SQL'
+          with f as (
+            select p.oid, p.prosecdef, p.proconfig,
+                   has_function_privilege('public', p.oid, 'EXECUTE') as public_exec,
+                   has_function_privilege('anon', p.oid, 'EXECUTE') as anon_exec,
+                   has_function_privilege('authenticated', p.oid, 'EXECUTE') as authenticated_exec,
+                   has_function_privilege('service_role', p.oid, 'EXECUTE') as service_role_exec
+            from pg_proc p
+            join pg_namespace n on n.oid = p.pronamespace
+            where n.nspname = 'public'
+              and p.proname = 'comun_relata_add_location'
+              and pg_get_function_identity_arguments(p.oid) = 'text, text, text, text, timestamp with time zone, bytea, bytea, bytea, text, text, text, text'
+          )
+          select json_build_object(
+            'functionPresent', count(*) = 1,
+            'securityDefiner', bool_and(prosecdef),
+            'searchPathLocked', bool_and(coalesce(array_to_string(proconfig, ',') like '%search_path=pg_catalog, private, public%', false)),
+            'publicExecute', bool_or(public_exec),
+            'anonExecute', bool_or(anon_exec),
+            'authenticatedExecute', bool_or(authenticated_exec),
+            'serviceRoleExecute', bool_and(service_role_exec)
+          )
+          from f;
+          select json_build_object(
+            'migrationHistoryPresent', exists (select 1 from supabase_migrations.schema_migrations where version = '20260808043000'),
+            'locationFlagMustRemainDisabled', true
+          );
+          SQL
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const rows = fs.readFileSync('.ci-artifacts/p3b-f1/postflight.txt', 'utf8').trim().split(/\r?\n/).filter(Boolean).map(JSON.parse);
+          const f = rows[0];
+          const m = rows[1];
+          if (!f.functionPresent || !f.securityDefiner || !f.searchPathLocked || f.publicExecute || f.anonExecute || f.authenticatedExecute || !f.serviceRoleExecute) throw new Error('COMUN_P3B_F1_PRIVILEGE_POSTFLIGHT_FAILED');
+          if (!m.migrationHistoryPresent) throw new Error('COMUN_P3B_F1_MIGRATION_HISTORY_MISSING');
+          fs.writeFileSync('.ci-artifacts/p3b-f1/postflight.json', JSON.stringify({ result: 'COMUN_P3B_F1_REMOTE_PROMOTED_LOCATION_OFF', function: f, migration: m }, null, 2) + '\n');
+          NODE
+          echo COMUN_P3B_F1_REMOTE_PROMOTED_LOCATION_OFF >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-p3b-f1-promotion-${{ github.run_id }}
+          path: .ci-artifacts/p3b-f1
+          retention-days: 14
+          if-no-files-found: ignore
