@@ -1099,3 +1099,20 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
 - Conta, Carteira, Relata textual e fotos privadas permanecem ativos; localização,
   coletivos, mapa público, território, Google, Ônibus, forwarding e
   `launch_publicly` permanecem desligados.
+
+### 48.1B-P3B-C2 — F1 promovida, localização ainda bloqueada (2026-08-08)
+
+- F1 `20260808043000_comun_relata_location_readd_state_fix.sql` foi promovida
+  remotamente pelo runner dedicado e passou no postflight `31243106898`;
+- o cleanup da fixture órfã permanece comprovadamente verde (`31239240233`),
+  sem hard delete e sem leitura de plaintext;
+- o workflow de reativação foi integrado, mas o smoke real retornou `404` na
+  rota de localização mesmo com os nomes das variáveis server-side presentes;
+- a flag foi revertida no run `31244127100`; fotos continuam ON e localização
+  continua OFF/404;
+- nenhum segredo foi exposto, nenhum valor de chave foi lido e nenhum dado real
+  foi criado.
+
+Resultado terminal atual: `COMUN_P3B_BLOCKED_LOCATION_RUNTIME_KEY_INVALID_OR_UNAVAILABLE`.
+O piloto permanece sem localização até que a chave server-side atual seja
+comprovadamente válida e um novo smoke com `finally`/recovery passe.
