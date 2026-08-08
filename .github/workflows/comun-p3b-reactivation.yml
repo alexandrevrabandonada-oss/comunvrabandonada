@@ -102,19 +102,23 @@ jobs:
         run: |
           set -euo pipefail
           test -n "${VERCEL_TOKEN:-}"
-          npx --yes vercel@50.28.0 deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-deploy.out 2>/tmp/comun-p3b-vercel-deploy.err
+          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-deploy.out 2>/tmp/comun-p3b-vercel-deploy.err
           deployment_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-p3b-vercel-deploy.out | tail -n 1 | tr -d '\r')"
           case "$deployment_url" in
             https://*.vercel.app) ;;
             *) echo COMUN_P3B_DEPLOYMENT_URL_UNAVAILABLE; exit 1 ;;
           esac
           printf 'deployment_url=%s\n' "$deployment_url" >> "$GITHUB_OUTPUT"
-          for _ in $(seq 1 90); do
-            status=$(curl -fsS -o /dev/null -w '%{http_code}' https://comunsocial.online/comun || true)
-            if [ "$status" = 200 ]; then exit 0; fi
-            sleep 2
-          done
-          exit 1
+
+      - name: Promote the exact deployment to canonical Production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment_url }}
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          npx --yes vercel@50.28.0 promote "$DEPLOYMENT_URL" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-promote.out 2>/tmp/comun-p3b-vercel-promote.err
+          echo COMUN_P3B_CANONICAL_PROMOTION_COMPLETED
 
       - name: Verify canonical alias points to the new deployment
         env:
@@ -221,7 +225,13 @@ jobs:
         run: |
           set -euo pipefail
           printf '%s' disabled | npx --yes vercel@50.28.0 env update COMUN_RELATA_LOCATION_ENABLED production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-env-auto-rollback.out 2>/tmp/comun-p3b-vercel-env-auto-rollback.err
-          npx --yes vercel@50.28.0 deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-auto-rollback-deploy.out 2>/tmp/comun-p3b-vercel-auto-rollback-deploy.err
+          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-auto-rollback-deploy.out 2>/tmp/comun-p3b-vercel-auto-rollback-deploy.err
+          rollback_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-p3b-vercel-auto-rollback-deploy.out | tail -n 1 | tr -d '\r')"
+          case "$rollback_url" in
+            https://*.vercel.app) ;;
+            *) echo COMUN_P3B_ROLLBACK_DEPLOYMENT_URL_UNAVAILABLE; exit 1 ;;
+          esac
+          npx --yes vercel@50.28.0 promote "$rollback_url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-auto-rollback-promote.out 2>/tmp/comun-p3b-vercel-auto-rollback-promote.err
           echo COMUN_P3B_LOCATION_ROLLED_BACK_AFTER_FAILED_SMOKE >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload sanitized Production evidence
