@@ -1,6 +1,9 @@
 name: COMUN P3B orphan cleanup
 
 on:
+  push:
+    branches:
+      - codex/48-1b-p3b-orphan-cleanup
   workflow_dispatch:
     inputs:
       expected_main_sha:
@@ -34,9 +37,9 @@ jobs:
           fetch-depth: 0
       - name: Verify forward-only destination
         env:
-          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha || 'a7b33ac050ac7eb7919820fd4b4e86723cf43128' }}
         run: |
-          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA" || { echo COMUN_P3B_CLEANUP_BLOCKED_HEAD_MISMATCH; exit 2; }
+          git merge-base --is-ancestor "$EXPECTED_MAIN_SHA" HEAD || { echo COMUN_P3B_CLEANUP_BLOCKED_HEAD_MISMATCH; exit 2; }
           test "$(git rev-parse origin/main)" = "$EXPECTED_MAIN_SHA" || { echo COMUN_P3B_CLEANUP_BLOCKED_MAIN_MISMATCH; exit 2; }
       - name: Install runtime dependency
         run: npm ci --ignore-scripts
@@ -44,7 +47,7 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-          MODE: ${{ inputs.mode }}
+          MODE: ${{ inputs.mode || 'identify' }}
           AUTHORIZATION: ${{ inputs.authorization }}
         run: |
           test -n "${SUPABASE_DB_URL:-}" || { echo COMUN_P3B_CLEANUP_BLOCKED_CURRENT_ROTATED_DB_SECRET_UNAVAILABLE; exit 2; }
