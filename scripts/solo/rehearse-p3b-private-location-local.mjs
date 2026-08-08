@@ -80,7 +80,7 @@ try {
   assert.notDeepEqual(readdedRow.nonce, firstLocation.nonce);
   assert.notDeepEqual(readdedRow.auth_tag, firstLocation.auth_tag);
   assert.equal(readdedRow.origin, "device");
-  assert.equal(readdedRow.accuracy_class, "device_accuracy");
+  assert.equal(readdedRow.accuracy_class, "under_25m");
   assert.equal(new Date(readdedRow.captured_at).toISOString(), "2026-08-07T12:05:00.000Z");
   const withdrawnReadded = await http("/api/comun/relata/evidence/location", { method: "DELETE" }, readdCookie);
   assert.equal(withdrawnReadded.status, 200, await withdrawnReadded.text());
