@@ -22,6 +22,8 @@ permissions:
 env:
   F1_MIGRATION: 20260808043000_comun_relata_location_readd_state_fix.sql
   F1_MANIFEST: supabase/releases/20260808043000-comun-relata-location-readd-state-fix.json
+  EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+  EXTERNAL_EXCEPTION: supabase/migration-exceptions/20260724233256-sidewalk-external-ledger.json
 
 jobs:
   run:
@@ -59,6 +61,16 @@ jobs:
         run: |
           set -euo pipefail
           test -n "${SUPABASE_DB_URL:-}"
+          test "$(node -e "const e=require('./$EXTERNAL_EXCEPTION'); process.stdout.write(e.path)")" = "$EXTERNAL_MIGRATION"
+          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          quarantine="${RUNNER_TEMP}/comun-p3b-f1-external-migration.sql"
+          test ! -e "$quarantine"
+          mv "$EXTERNAL_MIGRATION" "$quarantine"
+          restore_external() {
+            if test -e "$quarantine"; then mv "$quarantine" "$EXTERNAL_MIGRATION"; fi
+            test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          }
+          trap restore_external EXIT
           mkdir -p .ci-artifacts/p3b-f1
           set +e
           supabase migration list --db-url "$SUPABASE_DB_URL" > .ci-artifacts/p3b-f1/migration-list.txt 2>&1
@@ -84,15 +96,10 @@ jobs:
             outputLines: list.split(/\r?\n/).filter(Boolean).length,
           }, null, 2) + '\n');
           NODE
+          if test "${{ inputs.mode }}" = promote; then
+            supabase db push --db-url "$SUPABASE_DB_URL"
+          fi
           echo COMUN_P3B_F1_REMOTE_PLAN_EXACT_ONE >> "$GITHUB_STEP_SUMMARY"
-      - name: Apply exactly the reconciled F1 migration
-        if: inputs.mode == 'promote'
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          supabase db push --db-url "$SUPABASE_DB_URL"
       - name: Verify F1 function and privileges without reading data
         if: inputs.mode == 'promote' || inputs.mode == 'postflight'
         env:
