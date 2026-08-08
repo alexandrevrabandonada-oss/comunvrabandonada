@@ -136,7 +136,8 @@ jobs:
           deployment_id="$(node --input-type=module <<'NODE'
           import fs from "node:fs";
           const deployment = JSON.parse(fs.readFileSync("/tmp/comun-p3b-deployment.json", "utf8"));
-          if (deployment.project?.id !== process.env.VERCEL_PROJECT_ID
+          const deploymentProjectId = deployment.projectId || deployment.project?.id;
+          if (deploymentProjectId !== process.env.VERCEL_PROJECT_ID
             || typeof deployment.uid !== "string"
             || !/^(?:dpl_)?[A-Za-z0-9]{8,128}$/.test(deployment.uid)) {
             console.error("COMUN_P3B_DEPLOYMENT_ID_INVALID");

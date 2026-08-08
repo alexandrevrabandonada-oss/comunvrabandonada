@@ -162,3 +162,14 @@ Pelo schema OpenAPI oficial, `deploymentId` no recurso Alias é anulável e o id
 - escrita Supabase: nenhuma.
 
 O runner passa a emitir, somente em falha, uma matriz booleana sanitizada sobre alias, projeto, presença/coincidência dos dois campos de deployment e existência de redirect. Nenhum alias alternativo, ID, URL ou payload bruto é publicado.
+
+## Execução 31268705756
+
+- deployment, promoção e atribuição do domínio: verdes;
+- validação do deployment alvo: bloqueada por ler apenas `project.id`;
+- marcador sanitizado: `COMUN_P3B_DEPLOYMENT_ID_INVALID`;
+- UI e fixture: não executadas;
+- rollback: verde;
+- escrita Supabase: nenhuma.
+
+O contrato de deployment aceita o project ID tanto em `projectId` quanto em `project.id`, sem aceitar outro valor. O UID continua validado separadamente e nunca é publicado.
