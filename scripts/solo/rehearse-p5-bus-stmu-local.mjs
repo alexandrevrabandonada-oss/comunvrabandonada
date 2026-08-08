@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { spawn } from "node:child_process";
 import pg from "pg";
 
@@ -12,7 +12,18 @@ if (process.env.COMUN_RELATA_COLLECTIVE_ENABLED === "enabled") throw new Error("
 const token = () => randomBytes(32).toString("base64url");
 const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
 let cookie = "";
-function absorb(response) { const raw = response.headers.get("set-cookie") ?? ""; for (const part of raw.split(/,(?=[^;]+?=)/)) cookie += `${cookie ? "; " : ""}${part.split(";", 1)[0]}`; }
+const cookieJar = new Map();
+function absorb(response) {
+  const values = typeof response.headers.getSetCookie === "function"
+    ? response.headers.getSetCookie()
+    : [response.headers.get("set-cookie") ?? ""];
+  for (const value of values) for (const part of value.split(/,(?=[^;,]+=)/)) {
+    const pair = part.split(";", 1)[0];
+    const separator = pair.indexOf("=");
+    if (separator > 0) cookieJar.set(pair.slice(0, separator), pair.slice(separator + 1));
+  }
+  cookie = [...cookieJar].map(([name, value]) => `${name}=${value}`).join("; ");
+}
 async function http(path, init = {}, supplied = cookie) { const headers = new Headers(init.headers); if (supplied) headers.set("cookie", supplied); const response = await fetch(`${base}${path}`, { ...init, headers }); absorb(response); return response; }
 
 const output = [];
@@ -56,6 +67,14 @@ try {
 
   const wallet = await db.query("select id,wallet_id from private.comun_participation_wallet_items where item_type='relata_report' and subject_ref=$1", [caseId]);
   assert.equal(wallet.rowCount, 1); const walletItemId = wallet.rows[0].id; walletId = wallet.rows[0].wallet_id;
+  const walletToken = cookieJar.get("comun_participation_wallet_v1");
+  assert.ok(walletToken);
+  const resolvedWallet = await db.query("select private.comun_p5_wallet_id($1) id", [
+    createHash("sha256").update(`comun-wallet-v1:${walletToken}`).digest("hex"),
+  ]);
+  assert.equal(resolvedWallet.rows[0].id, walletId);
+  const beforePrepare = await http(`/api/comun/stmu-assisted/packages/${walletItemId}`);
+  assert.equal(beforePrepare.status, 200, await beforePrepare.text());
   const prepared = await http(`/api/comun/stmu-assisted/packages/${walletItemId}/prepare`, { method: "POST" });
   assert.equal(prepared.status, 201, await prepared.text()); packageId = (await db.query("select id from private.comun_forwarding_packages where relata_case_id=$1", [caseId])).rows[0].id;
   const opened = await http(`/api/comun/stmu-assisted/packages/${packageId}/open`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ channel: "whatsapp" }) });

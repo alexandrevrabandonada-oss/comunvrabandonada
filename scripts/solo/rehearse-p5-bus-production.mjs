@@ -14,13 +14,18 @@ if (!/^P5-SMOKE-[A-Za-z0-9._:-]{8,180}$/.test(attemptId)) throw new Error("COMUN
 
 const db = new pg.Client({ connectionString: dbUrl });
 let cookie = "";
+const cookieJar = new Map();
 
 function absorbCookie(response) {
-  const value = response.headers.get("set-cookie") ?? "";
-  for (const part of value.split(/,(?=[^;]+=)/)) {
+  const values = typeof response.headers.getSetCookie === "function"
+    ? response.headers.getSetCookie()
+    : [response.headers.get("set-cookie") ?? ""];
+  for (const value of values) for (const part of value.split(/,(?=[^;,]+=)/)) {
     const pair = part.split(";", 1)[0];
-    if (/^[^=]+=/.test(pair)) cookie = cookie ? `${cookie}; ${pair}` : pair;
+    const separator = pair.indexOf("=");
+    if (separator > 0) cookieJar.set(pair.slice(0, separator), pair.slice(separator + 1));
   }
+  cookie = [...cookieJar].map(([name, value]) => `${name}=${value}`).join("; ");
 }
 
 async function request(path, init = {}) {
