@@ -15,6 +15,7 @@ const R2A_PRODUCTION_BUNDLE_RELEASE = "20260805130000-comun-production-pilot-cor
 const R2A_ATTACHMENT_RPC_FIX_RELEASE = "20260805201000-comun-production-pilot-attachment-rpc-fix";
 const R2A_WALLET_ACCOUNT_RPC_FIX_RELEASE = "20260805212659-comun-production-pilot-wallet-account-rpc-fix";
 const P1T_OPTIONAL_TERRITORY_RELEASE = "20260806235454-comun-member-profile-optional-territory";
+const P3B_LOCATION_READD_RELEASE = "20260808043000-comun-relata-location-readd-state-fix";
 
 export function selectReleaseManifest(value = arg?.slice(19) ?? process.env.COMUN_RELEASE_MANIFEST) {
   if (!value) {
@@ -44,7 +45,8 @@ export function validateForwardOnlySqlText(release, migration) {
     release.release !== R2A_PRODUCTION_BUNDLE_RELEASE &&
     release.release !== R2A_ATTACHMENT_RPC_FIX_RELEASE &&
     release.release !== R2A_WALLET_ACCOUNT_RPC_FIX_RELEASE &&
-    release.release !== P1T_OPTIONAL_TERRITORY_RELEASE;
+    release.release !== P1T_OPTIONAL_TERRITORY_RELEASE &&
+    release.release !== P3B_LOCATION_READD_RELEASE;
   const allowedStatements = [
     ...(requiresSidewalkSummaryException ? [ALLOWED_PUBLIC_SUMMARY_NULLABILITY] : []),
     ...(requiresLegacyGrantRepair ? [ALLOWED_LEGACY_GRANT_REPAIR] : []),
