@@ -96,12 +96,19 @@ jobs:
           printf '%s\n' enabled | npx --yes vercel@50.28.0 env add COMUN_RELATA_LOCATION_ENABLED production --force --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-env.out 2>/tmp/comun-p3b-vercel-env.err
 
       - name: Redeploy canonical Production with current server-side secrets
+        id: deploy
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -euo pipefail
           test -n "${VERCEL_TOKEN:-}"
           npx --yes vercel@50.28.0 deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-deploy.out 2>/tmp/comun-p3b-vercel-deploy.err
+          deployment_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-p3b-vercel-deploy.out | tail -n 1 | tr -d '\r')"
+          case "$deployment_url" in
+            https://*.vercel.app) ;;
+            *) echo COMUN_P3B_DEPLOYMENT_URL_UNAVAILABLE; exit 1 ;;
+          esac
+          printf 'deployment_url=%s\n' "$deployment_url" >> "$GITHUB_OUTPUT"
           for _ in $(seq 1 90); do
             status=$(curl -fsS -o /dev/null -w '%{http_code}' https://comunsocial.online/comun || true)
             if [ "$status" = 200 ]; then exit 0; fi
@@ -119,8 +126,21 @@ jobs:
           set -euo pipefail
           page=$(mktemp)
           trap 'rm -f "$page"' EXIT
-          curl -fsS https://comunsocial.online/comun/relatar > "$page"
-          grep -q 'Usar localização' "$page" || { echo COMUN_P3B_BLOCKED_NEW_KEY_NOT_VISIBLE_TO_RUNTIME; exit 1; }
+          found=0
+          for _ in $(seq 1 90); do
+            for target in "${{ steps.deploy.outputs.deployment_url }}" "https://comunsocial.online"; do
+              curl -fsS -H 'Cache-Control: no-cache' "$target/comun/relatar?__p3b_runtime_gate=$GITHUB_RUN_ID" > "$page" || continue
+              if grep -q 'Usar localização' "$page"; then
+                found=1
+                break 2
+              fi
+            done
+            sleep 2
+          done
+          if [ "$found" != 1 ]; then
+            echo COMUN_P3B_BLOCKED_NEW_KEY_NOT_VISIBLE_TO_RUNTIME
+            exit 1
+          fi
 
       - name: Allocate sanitized attempt marker
         id: attempt
