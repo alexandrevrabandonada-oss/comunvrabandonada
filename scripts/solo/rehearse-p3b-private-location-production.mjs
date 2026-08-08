@@ -145,9 +145,9 @@ async function smoke(client) {
     assert.equal(active.rows[0].attachment_count, 0);
     assert.equal(active.rows[0].public_snapshot_count, 0);
     assert.equal(active.rows[0].wallet_item_count, 0);
-    firstMetadata = (await client.query("select encrypted_value, nonce, auth_tag, origin, accuracy_class, captured_at, evidence_state, withdrawn_at from private.comun_relata_private_locations l join private.comun_relata_reports r on r.id=l.report_id where r.original_text=$1", [fixtureText])).rows[0];
+    firstMetadata = (await client.query("select l.encrypted_value, l.nonce, l.auth_tag, l.origin, l.accuracy_class, l.captured_at, l.evidence_state, l.withdrawn_at as location_withdrawn_at from private.comun_relata_private_locations l join private.comun_relata_reports r on r.id=l.report_id where r.original_text=$1", [fixtureText])).rows[0];
     assert.equal(firstMetadata.evidence_state, "added_private");
-    assert.equal(firstMetadata.withdrawn_at, null);
+    assert.equal(firstMetadata.location_withdrawn_at, null);
 
     const firstRead = await request("/api/comun/relata/evidence");
     const firstReadBody = await firstRead.text();
@@ -166,9 +166,9 @@ async function smoke(client) {
     const readdedBody = await readdedResponse.text();
     if (readdedResponse.status !== 200) throw new Error(`COMUN_P3B_PRODUCTION_LOCATION_READD_FAILED:${readdedResponse.status}`);
     assert.ok(!readdedBody.includes(String(readdedPoint.longitude)) && !readdedBody.includes(String(readdedPoint.latitude)));
-    const secondMetadata = (await client.query("select encrypted_value, nonce, auth_tag, origin, accuracy_class, captured_at, evidence_state, withdrawn_at from private.comun_relata_private_locations l join private.comun_relata_reports r on r.id=l.report_id where r.original_text=$1", [fixtureText])).rows[0];
+    const secondMetadata = (await client.query("select l.encrypted_value, l.nonce, l.auth_tag, l.origin, l.accuracy_class, l.captured_at, l.evidence_state, l.withdrawn_at as location_withdrawn_at from private.comun_relata_private_locations l join private.comun_relata_reports r on r.id=l.report_id where r.original_text=$1", [fixtureText])).rows[0];
     assert.equal(secondMetadata.evidence_state, "added_private");
-    assert.equal(secondMetadata.withdrawn_at, null);
+    assert.equal(secondMetadata.location_withdrawn_at, null);
     assert.notDeepEqual(secondMetadata.encrypted_value, firstMetadata.encrypted_value);
     assert.notDeepEqual(secondMetadata.nonce, firstMetadata.nonce);
     assert.notDeepEqual(secondMetadata.auth_tag, firstMetadata.auth_tag);

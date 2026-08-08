@@ -7,6 +7,10 @@ const workflow = fs.readFileSync(
   new URL("../../.github/workflows/comun-p3b-reactivation.yml", import.meta.url),
   "utf8",
 );
+const productionSmoke = fs.readFileSync(
+  new URL("./rehearse-p3b-private-location-production.mjs", import.meta.url),
+  "utf8",
+);
 
 test("canonical alias proof resolves nullable deploymentId through deployment.id", () => {
   assert.match(workflow, /deploy --prod --skip-domain --yes/);
@@ -74,4 +78,14 @@ test("crash recovery requires an allocated non-empty synthetic attempt", () => {
   assert.match(recovery, /steps\.attempt\.outputs\.attempt_id != ''/);
   assert.match(recovery, /steps\.smoke\.outcome != 'success'/);
   assert.match(recovery, /ATTEMPT_ID: \$\{\{ steps\.attempt\.outputs\.attempt_id \}\}/);
+});
+
+test("production smoke qualifies location withdrawal metadata across joins", () => {
+  assert.match(productionSmoke, /l\.withdrawn_at as location_withdrawn_at/);
+  assert.match(productionSmoke, /firstMetadata\.location_withdrawn_at/);
+  assert.match(productionSmoke, /secondMetadata\.location_withdrawn_at/);
+  assert.doesNotMatch(
+    productionSmoke,
+    /select encrypted_value, nonce, auth_tag, origin, accuracy_class, captured_at, evidence_state, withdrawn_at from/,
+  );
 });

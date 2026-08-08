@@ -196,3 +196,17 @@ O contrato oficial de `GET /v13/deployments/{idOrUrl}` define o identificador ca
 - escrita Supabase: nenhuma.
 
 O heredoc usado dentro do `if` mantinha indentacao residual apos o strip do bloco YAML, impedindo o Bash de reconhecer seu delimitador final. O trecho passa a usar `node -e` e ganha validacao `bash -n` sobre o script efetivamente extraido do step.
+
+## Execucao 31269740911
+
+- deployment, promocao, alias canonico e controles de localizacao: verdes;
+- fixture sintetica: criada somente depois dos gates anteriores;
+- primeira localizacao privada: persistida;
+- leitura de auditoria do harness: falhou por `withdrawn_at` ambiguo em um `JOIN`;
+- cleanup HTTP e crash recovery: verdes;
+- postflight sanitizado: `activeLocation=0`, `activeCase=0`, `activeReport=0`, `activeWalletItem=0`, `attachmentCount=0`, `publicSnapshotCount=0`;
+- retencao esperada: uma localizacao, um caso e um relato retirados;
+- `hardDeletes=0`; `plaintextLocationRead=false`;
+- rollback da localizacao: verde.
+
+O finding pertence exclusivamente a consulta read-only do harness: tanto `private.comun_relata_private_locations` quanto `private.comun_relata_reports` possuem `withdrawn_at`. A correcao qualifica todas as colunas de localizacao e renomeia a coluna auditada para `location_withdrawn_at`; schema e runtime de produto permanecem inalterados.
