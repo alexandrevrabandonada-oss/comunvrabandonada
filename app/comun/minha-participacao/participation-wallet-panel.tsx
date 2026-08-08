@@ -407,7 +407,13 @@ export function ParticipationWalletPanel({
                     </div>
                     {item.item_type === "relata_report" ? (
                       item.category === "public_transport" ? (
-                        stmuAssistedEnabled ? <ComunStmuAssistedPanel walletItemId={item.item_id} /> : <ComunStmuMultichannelPanel relataCaseId={item.item_id} />
+                        stmuAssistedEnabled ? (
+                          <ComunStmuAssistedPanel walletItemId={item.item_id} />
+                        ) : (
+                          <ComunStmuMultichannelPanel
+                            relataCaseId={item.item_id}
+                          />
+                        )
                       ) : (
                         <ComunForwardingPanel relataCaseId={item.item_id} />
                       )
