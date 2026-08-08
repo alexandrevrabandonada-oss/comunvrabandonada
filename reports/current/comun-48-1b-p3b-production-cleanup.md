@@ -1,6 +1,6 @@
 # COMUN 48.1B-P3B — cleanup
 
-Status: candidata identificada exatamente uma vez; mutação ainda bloqueada aguardando autorização vinculada ao fingerprint.
+Status: cleanup autorizado, mas pós-voo não comprovado; localização permanece desligada.
 
 Identificação read-only (workflow `31231647886`):
 
@@ -14,7 +14,15 @@ Identificação read-only (workflow `31231647886`):
 - snapshot público, coletivo e forwarding: zero;
 - fingerprint: `8ca45163ecef27c671f68313673d567f512e5a95e8945e16c0a72d6ba0bc7c06`.
 
-Nenhuma escrita foi executada. O modo `cleanup` exige a autorização exata
+Cleanup autorizado (workflow `31239000256`) falhou no pós-voo com
+`operator does not exist: text = uuid`. O erro ocorreu na consulta de
+verificação de carteira, que comparava `subject_ref` (texto) com `case_id`
+(UUID). O log mostra que o comando `COMMIT` foi alcançado antes da consulta;
+por isso não se afirma GREEN sem uma verificação read-only posterior. O
+artifact sanitizado ficou vazio porque o pipeline com `tee` não propagava o
+exit code; isso também foi corrigido no runner. Não houve retry automático.
+
+O cleanup exige a autorização exata
 `AUTORIZO_P3B_SYNTHETIC_CLEANUP_<fingerprint>` e reidentifica a fixture dentro
 da própria transação antes de qualquer alteração.
 
@@ -33,3 +41,5 @@ O cleanup deverá operar apenas por IDs exatos da fixture, retirar localização
 Não usar SQL manual em Production para apagar histórico append-only. Reabrir a ativação somente com uma capacidade server-side auditada que consiga localizar a fixture por escopo exato e retirar o relato/localização sem tocar em dados legítimos.
 
 Resultado: `COMUN_P3B_BLOCKED_SYNTHETIC_CLEANUP_UNPROVEN`.
+O F1 e a reativação da localização permanecem bloqueados até uma prova
+read-only do pós-voo com o runner corrigido.
