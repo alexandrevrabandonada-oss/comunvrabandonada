@@ -118,7 +118,9 @@ async function smoke(client) {
     }),
   });
   const createdBody = await createdResponse.json().catch(() => ({}));
-  assert.equal(createdResponse.status, 201, "COMUN_P3B_PRODUCTION_CREATE_FAILED");
+  if (createdResponse.status !== 201) {
+    throw new Error(`COMUN_P3B_PRODUCTION_CREATE_FAILED:${createdResponse.status}:${typeof createdBody.code === "string" ? createdBody.code : "unknown"}`);
+  }
   assert.equal(createdBody.noOfficialSend, true);
   assert.ok(createdBody.receipt?.protocol);
   created = true;
@@ -129,12 +131,12 @@ async function smoke(client) {
     body: JSON.stringify({ ...syntheticPoint, origin: "map_pin", accuracyMeters: null, capturedAt: "2026-08-08T12:00:00.000Z" }),
   });
   const locationBody = await locationResponse.text();
-  assert.equal(locationResponse.status, 200, "COMUN_P3B_PRODUCTION_LOCATION_FAILED");
+  if (locationResponse.status !== 200) throw new Error(`COMUN_P3B_PRODUCTION_LOCATION_FAILED:${locationResponse.status}`);
   assert.ok(!locationBody.includes(String(syntheticPoint.longitude)) && !locationBody.includes(String(syntheticPoint.latitude)));
 
   const evidenceResponse = await request("/api/comun/relata/evidence");
   const evidenceBody = await evidenceResponse.text();
-  assert.equal(evidenceResponse.status, 200, "COMUN_P3B_PRODUCTION_EVIDENCE_READ_FAILED");
+  if (evidenceResponse.status !== 200) throw new Error(`COMUN_P3B_PRODUCTION_EVIDENCE_READ_FAILED:${evidenceResponse.status}`);
   assert.ok(!evidenceBody.includes(String(syntheticPoint.longitude)) && !evidenceBody.includes(String(syntheticPoint.latitude)));
 
   const active = await queryFixture(client, attemptId);
