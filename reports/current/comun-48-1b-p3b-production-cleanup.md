@@ -71,3 +71,24 @@ Nenhum UUID, texto integral, coordenada, segredo ou connection string foi
 publicado. Não houve hard delete. A flag de localização permanece desligada.
 
 Resultado: `COMUN_P3B_BLOCKED_LOCATION_RUNTIME_KEY_INVALID_OR_UNAVAILABLE`.
+
+## Cleanup final C4
+
+O run `31270085605` terminou com o postflight sanitizado:
+
+- `candidateCount=1`;
+- `activeLocation=0`, `withdrawnLocation=1`;
+- `activeCase=0`, `withdrawnCase=1`;
+- `activeReport=0`, `reportWithdrawn=1`;
+- `activeWalletItem=0`;
+- `attachmentCount=0`;
+- `publicSnapshotCount=0`;
+- `f1ReaddExercised=true`;
+- `hardDeletes=0`;
+- `plaintextLocationRead=false`.
+
+As linhas retiradas permanecem apenas pela retencao append-only esperada. Nao
+ha residuo sintetico ativo nem projecao publica. Nenhum UUID, texto, protocolo,
+coordenada, segredo ou material criptografico foi registrado.
+
+Resultado: `COMUN_P3B_PRODUCTION_SYNTHETIC_CLEANUP_GREEN`.

@@ -1132,3 +1132,23 @@ comprovadamente válida e um novo smoke com `finally`/recovery passe.
 Resultado terminal: `COMUN_P3B_BLOCKED_NEW_KEY_NOT_VISIBLE_TO_RUNTIME`.
 Não emitir `COMUN_48_1B_P3_PRIVATE_EVIDENCE_DOMAIN_GREEN` nem iniciar P4 até
 comprovar a disponibilidade da chave/capacidade no runtime sem expor segredo.
+
+### 48.1B-P3B-C4 — evidencias privadas completas no dominio (2026-08-08)
+
+- O diagnostico separou metadata Vercel, env de execucao, runtime staged e
+  runtime canonico. Nenhum valor sensivel foi lido ou publicado.
+- PRs #223 e #224 corrigiram o identificador canonico do deployment e o gate
+  shell do alias; PR #225 corrigiu somente a consulta read-only do harness.
+- O run intermediario `31269740911` criou uma localizacao sintetica, encontrou
+  ambiguidade apenas no SQL de auditoria e concluiu recovery com zero residuo
+  ativo e rollback verde.
+- O run final `31270085605` comprovou no dominio: add A, withdraw, readd B,
+  withdraw, retirada do relato e postflight verde.
+- Cleanup final: zero localizacao/caso/relato/Carteira/anexo/snapshot sintetico
+  ativo, `hardDeletes=0`, `plaintextLocationRead=false`.
+- Estado final: Conta ON; Carteira ON; Relata textual ON; fotos privadas ON;
+  localizacao privada ON. Mapa publico, coletivos, territorio, Google, Onibus,
+  forwarding e publicacao automatica OFF; `launch_publicly=false`.
+
+Resultado terminal: `COMUN_48_1B_P3_PRIVATE_EVIDENCE_DOMAIN_GREEN`.
+Proximo tijolo elegivel: `48.1B-P4 — Calcadas real`.
