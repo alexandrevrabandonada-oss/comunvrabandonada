@@ -1,0 +1,125 @@
+name: COMUN P5 remote preflight
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/comun-p5-remote-preflight.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comun-p5-remote-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  catalog:
+    name: COMUN P5 / remote catalog read-only
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate credential boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          case "$SUPABASE_DB_URL" in
+            *localhost*|*127.0.0.1*) exit 1 ;;
+          esac
+
+      - name: Read scoped catalog without business rows
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/p5-preflight
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/p5-preflight/catalog.json <<'SQL'
+          begin read only;
+          with wanted_tables(name) as (values
+            ('comun_bus_relata_intakes'),
+            ('comun_forwarding_packages'),
+            ('comun_forwarding_attempts'),
+            ('comun_forwarding_events'),
+            ('comun_official_protocols'),
+            ('comun_institutional_responses')
+          ), tables as (
+            select n.nspname as schema_name, c.relname, c.oid,
+              c.relrowsecurity, c.relforcerowsecurity
+            from pg_catalog.pg_class c
+            join pg_catalog.pg_namespace n on n.oid=c.relnamespace
+            join wanted_tables w on w.name=c.relname
+            where c.relkind in ('r','p')
+          )
+          select json_build_object(
+            'result', 'COMUN_P5_REMOTE_PREFLIGHT_CATALOG_CAPTURED',
+            'tables', coalesce((
+              select json_agg(json_build_object(
+                'schema', t.schema_name,
+                'name', t.relname,
+                'rls', t.relrowsecurity,
+                'forceRls', t.relforcerowsecurity,
+                'columns', (
+                  select json_agg(json_build_object(
+                    'name', a.attname,
+                    'type', pg_catalog.format_type(a.atttypid,a.atttypmod),
+                    'notNull', a.attnotnull
+                  ) order by a.attnum)
+                  from pg_catalog.pg_attribute a
+                  where a.attrelid=t.oid and a.attnum>0 and not a.attisdropped
+                ),
+                'policyCount', (select count(*) from pg_catalog.pg_policy p where p.polrelid=t.oid),
+                'publicCrud', has_table_privilege('public',t.oid,'SELECT') or has_table_privilege('public',t.oid,'INSERT') or has_table_privilege('public',t.oid,'UPDATE') or has_table_privilege('public',t.oid,'DELETE'),
+                'anonCrud', has_table_privilege('anon',t.oid,'SELECT') or has_table_privilege('anon',t.oid,'INSERT') or has_table_privilege('anon',t.oid,'UPDATE') or has_table_privilege('anon',t.oid,'DELETE'),
+                'authenticatedCrud', has_table_privilege('authenticated',t.oid,'SELECT') or has_table_privilege('authenticated',t.oid,'INSERT') or has_table_privilege('authenticated',t.oid,'UPDATE') or has_table_privilege('authenticated',t.oid,'DELETE'),
+                'serviceRoleCrud', has_table_privilege('service_role',t.oid,'SELECT') and has_table_privilege('service_role',t.oid,'INSERT') and has_table_privilege('service_role',t.oid,'UPDATE')
+              ) order by t.schema_name,t.relname) from tables t
+            ), '[]'::json),
+            'functions', coalesce((
+              select json_agg(json_build_object(
+                'schema', n.nspname,
+                'name', p.proname,
+                'arguments', pg_catalog.pg_get_function_identity_arguments(p.oid),
+                'securityDefiner', p.prosecdef,
+                'searchPathPinned', coalesce(array_to_string(p.proconfig,','),'') like 'search_path=%',
+                'publicExecute', has_function_privilege('public',p.oid,'EXECUTE'),
+                'anonExecute', has_function_privilege('anon',p.oid,'EXECUTE'),
+                'authenticatedExecute', has_function_privilege('authenticated',p.oid,'EXECUTE'),
+                'serviceRoleExecute', has_function_privilege('service_role',p.oid,'EXECUTE')
+              ) order by n.nspname,p.proname,pg_catalog.pg_get_function_identity_arguments(p.oid))
+              from pg_catalog.pg_proc p
+              join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+              where n.nspname in ('public','private') and (
+                p.proname like 'comun_bus_%' or
+                p.proname like 'comun_forwarding_%' or
+                p.proname like 'comun_stmu_%'
+              )
+            ), '[]'::json),
+            'businessRowsRead', false,
+            'transactionReadOnly', true
+          );
+          rollback;
+          SQL
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const result = JSON.parse(fs.readFileSync('.ci-artifacts/p5-preflight/catalog.json','utf8'));
+          if (result.businessRowsRead !== false || result.transactionReadOnly !== true) process.exit(1);
+          fs.writeFileSync('.ci-artifacts/p5-preflight/summary.json', JSON.stringify({
+            result: result.result,
+            tableCount: result.tables.length,
+            functionCount: result.functions.length,
+            businessRowsRead: false,
+            transactionReadOnly: true,
+          }, null, 2) + '\n');
+          NODE
+          echo COMUN_P5_REMOTE_PREFLIGHT_READ_ONLY >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-p5-remote-preflight-${{ github.run_id }}
+          path: .ci-artifacts/p5-preflight
+          retention-days: 7

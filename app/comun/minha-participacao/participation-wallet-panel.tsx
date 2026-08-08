@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ComunForwardingPanel } from "./comun-forwarding-panel";
 import { ComunStmuMultichannelPanel } from "./comun-stmu-multichannel-panel";
+import { ComunStmuAssistedPanel } from "./comun-stmu-assisted-panel";
 
 type WalletItem = {
   item_id: string;
@@ -28,9 +29,11 @@ function statusLabel(item: WalletItem) {
 export function ParticipationWalletPanel({
   standalone = false,
   accountAvailable = false,
+  stmuAssistedEnabled = false,
 }: {
   standalone?: boolean;
   accountAvailable?: boolean;
+  stmuAssistedEnabled?: boolean;
 }) {
   const [items, setItems] = useState<WalletItem[]>([]);
   const [present, setPresent] = useState(false);
@@ -404,9 +407,13 @@ export function ParticipationWalletPanel({
                     </div>
                     {item.item_type === "relata_report" ? (
                       item.category === "public_transport" ? (
-                        <ComunStmuMultichannelPanel
-                          relataCaseId={item.item_id}
-                        />
+                        stmuAssistedEnabled ? (
+                          <ComunStmuAssistedPanel walletItemId={item.item_id} />
+                        ) : (
+                          <ComunStmuMultichannelPanel
+                            relataCaseId={item.item_id}
+                          />
+                        )
                       ) : (
                         <ComunForwardingPanel relataCaseId={item.item_id} />
                       )

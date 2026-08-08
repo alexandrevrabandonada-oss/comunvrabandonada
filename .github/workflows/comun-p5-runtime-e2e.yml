@@ -1,0 +1,97 @@
+name: COMUN P5 private bus and STMU runtime
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/api/comun/onibus/**"
+      - "app/api/comun/stmu-assisted/**"
+      - "app/comun/onibus/**"
+      - "app/comun/minha-participacao/**"
+      - "components/comun-bus-relata-intake.tsx"
+      - "lib/comun-bus-**"
+      - "lib/comun-stmu-assisted-feature.ts"
+      - "lib/comun-p5-operations.test.ts"
+      - "scripts/solo/rehearse-p5-bus-stmu-local.mjs"
+      - "supabase/migrations/20260808220000_comun_bus_stmu_assisted.sql"
+      - "supabase/releases/20260808220000-comun-bus-stmu-assisted.json"
+      - ".github/workflows/comun-p5-runtime-e2e.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  private-runtime-e2e:
+    name: COMUN P5 / private bus and STMU E2E
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
+      - run: npm ci --ignore-scripts
+      - name: Assert isolated unlinked runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${SUPABASE_PROJECT_REF:-}"
+          test -z "${SUPABASE_DB_URL:-}"
+          test -z "${VERCEL_TOKEN:-}"
+          grep -q '^project_id = "COMUM_VR_ABANDONADA"' supabase/config.toml
+      - name: Start disposable Supabase and exercise P5
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact="$GITHUB_WORKSPACE/.ci-artifacts/p5-runtime"
+          mkdir -p "$artifact"
+          cleanup() {
+            set +e
+            supabase stop --no-backup >/dev/null 2>&1
+            ids=$(docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA')
+            test -z "$ids" || docker rm -f $ids >/dev/null 2>&1
+            test -z "$(docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA')"
+          }
+          trap cleanup EXIT
+          supabase start >"$artifact/startup.log" 2>&1
+          supabase db reset --local --yes >>"$artifact/startup.log" 2>&1
+          status_file=$(mktemp)
+          trap 'rm -f "$status_file"; cleanup' EXIT
+          supabase status -o env >"$status_file"
+          export NEXT_PUBLIC_SUPABASE_URL=$(sed -n 's/^API_URL="\(.*\)"$/\1/p' "$status_file")
+          export NEXT_PUBLIC_SUPABASE_ANON_KEY=$(sed -n 's/^ANON_KEY="\(.*\)"$/\1/p' "$status_file")
+          export SUPABASE_SERVICE_ROLE_KEY=$(sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"$/\1/p' "$status_file")
+          export COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL=$(sed -n 's/^DB_URL="\(.*\)"$/\1/p' "$status_file")
+          rm -f "$status_file"
+          export ALLOW_LOCAL_TESTS=true
+          export COMUN_BASE_URL=http://127.0.0.1:3155
+          export NEXT_PUBLIC_SITE_URL="$COMUN_BASE_URL"
+          export COMUN_RELATA_LOCAL_PERSISTENCE=enabled
+          export COMUN_RELATA_PREVIEW=enabled
+          export COMUN_RELATA_LOCAL_EVIDENCE=enabled
+          export COMUN_RELATA_LOCATION_ENABLED=enabled
+          export COMUN_RELATA_LOCATION_ENCRYPTION_KEY=$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("base64url"))')
+          export COMUN_RELATA_COLLECTIVE_ENABLED=disabled
+          export COMUN_PARTICIPATION_WALLET_LOCAL=enabled
+          export COMUN_BUS_LOCAL_PILOT=enabled
+          export COMUN_STMU_ASSISTED_ENABLED=enabled
+          export COMUN_R2A_USE_BUILT_SERVER=1
+          npm run build >"$artifact/build.log" 2>&1
+          npm run relata:p5:bus-stmu:e2e:local >"$artifact/e2e.log" 2>&1
+          grep -q COMUN_P5A_BUS_PRIVATE_INTAKE_E2E_GREEN "$artifact/e2e.log"
+          grep -q COMUN_P5B_STMU_ASSISTED_E2E_GREEN "$artifact/e2e.log"
+          ! grep -Eqi 'https://wa.me/.+\?|mailto:.+\?' "$artifact/e2e.log"
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-p5-runtime-${{ github.run_id }}
+          path: .ci-artifacts/p5-runtime
+          retention-days: 14
+          if-no-files-found: warn

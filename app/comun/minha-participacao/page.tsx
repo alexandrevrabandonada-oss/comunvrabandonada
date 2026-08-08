@@ -37,6 +37,7 @@ import {
 } from "@/lib/comun-journey-status";
 import { isComunParticipationWalletEnabled } from "@/lib/comun-participation-wallet-feature";
 import { ParticipationWalletPanel } from "./participation-wallet-panel";
+import { isComunStmuAssistedEnabled } from "@/lib/comun-stmu-assisted-feature";
 
 export const dynamic = "force-dynamic";
 
@@ -71,11 +72,13 @@ export default async function MinhaAreaPage({
     ? requested!
     : "contribuicoes";
   const walletEnabled = isComunParticipationWalletEnabled();
+  const stmuAssistedEnabled = isComunStmuAssistedEnabled();
   const optionalCommunitySession = walletEnabled
     ? await getCommunitySession()
     : null;
   if (walletEnabled) {
-    if (!optionalCommunitySession?.user) return <WalletOnlyPage />;
+    if (!optionalCommunitySession?.user)
+      return <WalletOnlyPage stmuAssistedEnabled={stmuAssistedEnabled} />;
   }
   const { user, profile } = await requireCommunitySession(
     withComunAppV2(`/comun/minha-participacao?secao=${selected}`, appV2),
@@ -124,6 +127,7 @@ export default async function MinhaAreaPage({
         attention={attention}
         walletEnabled={walletEnabled}
         accountAvailable={Boolean(optionalCommunitySession?.user)}
+        stmuAssistedEnabled={stmuAssistedEnabled}
       />
     );
   return (
@@ -183,6 +187,7 @@ export default async function MinhaAreaPage({
         <ComunSection>
           <ParticipationWalletPanel
             accountAvailable={Boolean(optionalCommunitySession?.user)}
+            stmuAssistedEnabled={stmuAssistedEnabled}
           />
         </ComunSection>
       ) : null}
@@ -479,6 +484,7 @@ function MinhaAreaAppV2({
   attention,
   walletEnabled,
   accountAvailable,
+  stmuAssistedEnabled,
 }: {
   profile: any;
   center: any;
@@ -489,6 +495,7 @@ function MinhaAreaAppV2({
   attention: any[];
   walletEnabled: boolean;
   accountAvailable: boolean;
+  stmuAssistedEnabled: boolean;
 }) {
   const tabs = [
     ["contribuicoes", "Participações"],
@@ -529,7 +536,10 @@ function MinhaAreaAppV2({
           somente na Caixa.
         </p>
         {walletEnabled ? (
-          <ParticipationWalletPanel accountAvailable={accountAvailable} />
+          <ParticipationWalletPanel
+            accountAvailable={accountAvailable}
+            stmuAssistedEnabled={stmuAssistedEnabled}
+          />
         ) : null}
         <div
           className="mt-5 grid grid-cols-3 gap-2"
@@ -867,13 +877,20 @@ function CollectiveActionsPreviewParticipation() {
   );
 }
 
-function WalletOnlyPage() {
+function WalletOnlyPage({
+  stmuAssistedEnabled,
+}: {
+  stmuAssistedEnabled: boolean;
+}) {
   return (
     <ComunShell
       appBar={{ title: "Minha Participação", contextLabel: "Carteira" }}
     >
       <div className="comun-v2-page" data-comun-app-v2-page="wallet-only">
-        <ParticipationWalletPanel standalone />
+        <ParticipationWalletPanel
+          standalone
+          stmuAssistedEnabled={stmuAssistedEnabled}
+        />
       </div>
     </ComunShell>
   );

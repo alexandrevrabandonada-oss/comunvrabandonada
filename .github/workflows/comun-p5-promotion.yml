@@ -1,0 +1,109 @@
+name: COMUN P5 schema promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA
+        required: true
+        type: string
+      mode:
+        description: Read-only preflight, exact-one promotion, or postflight
+        required: true
+        type: choice
+        options: [preflight, promote, postflight]
+
+concurrency:
+  group: comun-p5-schema-promotion
+  cancel-in-progress: false
+permissions:
+  contents: read
+
+env:
+  P5_MIGRATION: 20260808220000_comun_bus_stmu_assisted.sql
+  P5_MANIFEST: supabase/releases/20260808220000-comun-bus-stmu-assisted.json
+  P5_SHA256: 88b5d6821edd3984e6c08eddfd924efc6c90dfe37dce45fd6f3c01a71d539a41
+  EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+  EXTERNAL_EXCEPTION: supabase/migration-exceptions/20260724233256-sidewalk-external-ledger.json
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
+      - run: npm ci --ignore-scripts
+      - name: Validate immutable P5 release
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          npm run solo:sql:validate -- --release-manifest="$P5_MANIFEST"
+          test "$(node -e "const m=require('./$P5_MANIFEST'); process.stdout.write(m.migration)")" = "supabase/migrations/$P5_MIGRATION"
+          test "$(sha256sum "supabase/migrations/$P5_MIGRATION" | awk '{print $1}')" = "$P5_SHA256"
+      - name: Reconcile external ledger and prove exact-one plan
+        if: inputs.mode == 'preflight' || inputs.mode == 'promote'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          test "$(node -e "const e=require('./$EXTERNAL_EXCEPTION'); process.stdout.write(e.path)")" = "$EXTERNAL_MIGRATION"
+          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          held="$RUNNER_TEMP/comun-p5-external-ledger.sql"
+          mv "$EXTERNAL_MIGRATION" "$held"
+          restore() { test ! -e "$held" || mv "$held" "$EXTERNAL_MIGRATION"; test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"; }
+          trap restore EXIT
+          mkdir -p .ci-artifacts/p5-promotion
+          supabase migration list --db-url "$SUPABASE_DB_URL" >.ci-artifacts/p5-promotion/migration-list.txt 2>&1
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p5-promotion/dry-run.txt 2>&1
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p5-promotion/dry-run.txt | sort -u || true)
+          test "${#planned[@]}" -eq 1
+          test "${planned[0]}" = "$P5_MIGRATION"
+          ! grep -Eq -- '--include-all|migration repair|seed' .ci-artifacts/p5-promotion/dry-run.txt
+          printf '{"result":"COMUN_P5_REMOTE_PLAN_EXACT_ONE","migration":"%s","includeAll":false,"repair":false,"seed":false}\n' "$P5_MIGRATION" >.ci-artifacts/p5-promotion/plan.json
+          if test "${{ inputs.mode }}" = promote; then supabase db push --db-url "$SUPABASE_DB_URL"; fi
+          echo COMUN_P5_REMOTE_PLAN_EXACT_ONE >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify schema, RLS, grants and RPCs
+        if: inputs.mode == 'promote' || inputs.mode == 'postflight'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/p5-promotion
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/p5-promotion/postflight.jsonl <<'SQL'
+          with expected(name) as (values ('comun_bus_relata_intakes'),('comun_forwarding_packages'),('comun_forwarding_attempts'),('comun_forwarding_events')), observed as (
+            select e.name,c.oid,c.relrowsecurity,c.relforcerowsecurity from expected e left join pg_class c on c.relname=e.name and c.relnamespace='private'::regnamespace
+          ) select json_build_object('migrationHistoryPresent',exists(select 1 from supabase_migrations.schema_migrations where version='20260808220000'),'expected',4,'observed',count(oid),'allRls',bool_and(relrowsecurity),'allForceRls',bool_and(relforcerowsecurity),'publicCrud',bool_or(has_table_privilege('public',oid,'SELECT') or has_table_privilege('public',oid,'INSERT') or has_table_privilege('public',oid,'UPDATE') or has_table_privilege('public',oid,'DELETE')),'anonCrud',bool_or(has_table_privilege('anon',oid,'SELECT') or has_table_privilege('anon',oid,'INSERT') or has_table_privilege('anon',oid,'UPDATE') or has_table_privilege('anon',oid,'DELETE')),'authenticatedCrud',bool_or(has_table_privilege('authenticated',oid,'SELECT') or has_table_privilege('authenticated',oid,'INSERT') or has_table_privilege('authenticated',oid,'UPDATE') or has_table_privilege('authenticated',oid,'DELETE'))) from observed;
+          with expected(name) as (values ('comun_bus_intake_create'),('comun_bus_intake_withdraw'),('comun_stmu_assisted_prepare'),('comun_stmu_assisted_list'),('comun_stmu_assisted_open'),('comun_stmu_assisted_declare_sent'),('comun_stmu_assisted_record_response')), observed as (
+            select e.name,p.oid,p.prosecdef,coalesce(array_to_string(p.proconfig,','),'') config from expected e left join pg_proc p on p.proname=e.name and p.pronamespace='public'::regnamespace
+          ) select json_build_object('expected',7,'observed',count(oid),'allSecurityDefiner',bool_and(prosecdef),'allSearchPathPinned',bool_and(config='search_path=pg_catalog, private, public'),'publicExecute',bool_or(has_function_privilege('public',oid,'EXECUTE')),'anonExecute',bool_or(has_function_privilege('anon',oid,'EXECUTE')),'authenticatedExecute',bool_or(has_function_privilege('authenticated',oid,'EXECUTE')),'serviceRoleExecuteAll',bool_and(has_function_privilege('service_role',oid,'EXECUTE'))) from observed;
+          SQL
+          node - <<'NODE'
+          const fs=require('node:fs'); const rows=fs.readFileSync('.ci-artifacts/p5-promotion/postflight.jsonl','utf8').trim().split(/\r?\n/).map(JSON.parse); const [tables,rpcs]=rows;
+          if(!tables.migrationHistoryPresent||tables.expected!==4||tables.observed!==4||!tables.allRls||!tables.allForceRls||tables.publicCrud||tables.anonCrud||tables.authenticatedCrud) throw new Error('COMUN_P5_REMOTE_RLS_POSTFLIGHT_FAILED');
+          if(rpcs.expected!==7||rpcs.observed!==7||!rpcs.allSecurityDefiner||!rpcs.allSearchPathPinned||rpcs.publicExecute||rpcs.anonExecute||rpcs.authenticatedExecute||!rpcs.serviceRoleExecuteAll) throw new Error('COMUN_P5_REMOTE_RPC_POSTFLIGHT_FAILED');
+          fs.writeFileSync('.ci-artifacts/p5-promotion/postflight.json',JSON.stringify({result:'COMUN_P5_REMOTE_SCHEMA_PROMOTED_FLAGS_OFF',tables,rpcs,flagsChanged:false},null,2)+'\n');
+          NODE
+          echo COMUN_P5_REMOTE_SCHEMA_PROMOTED_FLAGS_OFF >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-p5-promotion-${{ github.run_id }}
+          path: .ci-artifacts/p5-promotion
+          retention-days: 14
+          if-no-files-found: ignore
