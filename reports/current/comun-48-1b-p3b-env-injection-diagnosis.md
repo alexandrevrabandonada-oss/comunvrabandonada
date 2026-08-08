@@ -55,3 +55,17 @@ O workflow passa a atualizar a flag com `env update` e entrada sem newline apena
 - flag restaurada para `disabled`: verde.
 
 O acesso staged passa a usar `vercel curl`, mecanismo autenticado da plataforma que produz um bypass efêmero de Deployment Protection. Nenhum bypass secret novo é criado, lido ou armazenado.
+
+## Execução 31264517323
+
+- metadata: `COMUN_P3B_VERCEL_ENV_METADATA_GREEN`;
+- ambiente legível: verde;
+- chave e service role sensíveis: válidas no runtime staged;
+- staged runtime: `COMUN_P3B_STAGED_RUNTIME_LOCATION_GATE_GREEN`;
+- staged UI: `COMUN_P3B_STAGED_UI_LOCATION_GREEN`;
+- capability coletiva: ausente;
+- domínio canônico: não promovido;
+- fixture: não criada;
+- flag restaurada para `disabled`: verde.
+
+O endpoint temporário foi removido antes da candidata de ativação. O runner canônico foi atualizado para usar `env update` sem newline ambíguo e exigir que `comunsocial.online` esteja associado ao deployment recém-criado antes de qualquer fixture.
