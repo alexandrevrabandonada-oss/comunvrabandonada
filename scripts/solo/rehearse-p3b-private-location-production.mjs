@@ -8,6 +8,7 @@ const runId = process.env.RUN_ID ?? "unknown";
 const mode = process.argv.includes("--recover") ? "recover" : "smoke";
 const attemptId = process.env.ATTEMPT_ID || `P3B-SMOKE-${runId}-${randomUUID()}`;
 const syntheticPoint = { longitude: -44.100123, latitude: -22.520123 };
+const fixtureText = `A calçada está totalmente bloqueada por entulho e impede a passagem. ${attemptId}`;
 
 if (!/^https:\/\//i.test(base)) throw new Error("COMUN_P3B_PRODUCTION_HTTPS_REQUIRED");
 if (!/^postgres(?:ql)?:\/\//.test(dbUrl)) throw new Error("COMUN_P3B_CURRENT_DB_SECRET_REQUIRED");
@@ -34,7 +35,7 @@ async function request(path, init = {}, suppliedCookie = cookie) {
   return response;
 }
 
-async function queryFixture(client, text) {
+async function queryFixture(client, text = fixtureText) {
   return client.query(
     `select
        r.id as report_id,
@@ -83,11 +84,11 @@ async function postflight(client) {
 }
 
 async function recover(client) {
-  const before = await queryFixture(client, attemptId);
+  const before = await queryFixture(client);
   if (before.rows.length !== 1) throw new Error("COMUN_P3B_RECOVERY_FIXTURE_NOT_UNIQUE");
   await client.query("begin");
   try {
-    const locked = await queryFixture(client, attemptId);
+    const locked = await queryFixture(client);
     if (locked.rows.length !== 1) throw new Error("COMUN_P3B_RECOVERY_FIXTURE_NOT_UNIQUE");
     const row = locked.rows[0];
     if (row.attachment_count !== 0 || row.public_snapshot_count !== 0 || row.wallet_item_count !== 0) throw new Error("COMUN_P3B_RECOVERY_UNEXPECTED_RELATED_DATA");
@@ -111,7 +112,7 @@ async function smoke(client) {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
-      text: attemptId,
+      text: fixtureText,
       answers: { blocked: "sim" },
       idempotencyKey: randomBytes(32).toString("base64url"),
       receiptSecret: secret,
@@ -139,7 +140,7 @@ async function smoke(client) {
   if (evidenceResponse.status !== 200) throw new Error(`COMUN_P3B_PRODUCTION_EVIDENCE_READ_FAILED:${evidenceResponse.status}`);
   assert.ok(!evidenceBody.includes(String(syntheticPoint.longitude)) && !evidenceBody.includes(String(syntheticPoint.latitude)));
 
-  const active = await queryFixture(client, attemptId);
+  const active = await queryFixture(client);
   assert.equal(active.rows.length, 1, "COMUN_P3B_PRODUCTION_FIXTURE_NOT_UNIQUE");
   assert.equal(active.rows[0].evidence_state, "added_private");
   assert.equal(active.rows[0].state, "stored_private");
