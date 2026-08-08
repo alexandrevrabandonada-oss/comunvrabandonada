@@ -136,7 +136,9 @@ jobs:
           deployment_id="$(node --input-type=module <<'NODE'
           import fs from "node:fs";
           const deployment = JSON.parse(fs.readFileSync("/tmp/comun-p3b-deployment.json", "utf8"));
-          if (typeof deployment.uid !== "string" || !/^(?:dpl_)?[A-Za-z0-9]{8,128}$/.test(deployment.uid)) {
+          if (deployment.project?.id !== process.env.VERCEL_PROJECT_ID
+            || typeof deployment.uid !== "string"
+            || !/^(?:dpl_)?[A-Za-z0-9]{8,128}$/.test(deployment.uid)) {
             console.error("COMUN_P3B_DEPLOYMENT_ID_INVALID");
             process.exit(1);
           }
@@ -147,14 +149,15 @@ jobs:
           for _ in $(seq 1 45); do
             if curl --fail-with-body --silent --show-error \
               --header "Authorization: Bearer $VERCEL_TOKEN" \
-              "https://api.vercel.com/v13/deployments/comunsocial.online?teamId=$VERCEL_ORG_ID" \
+              "https://api.vercel.com/v4/aliases/comunsocial.online?teamId=$VERCEL_ORG_ID" \
               > /tmp/comun-p3b-canonical-deployment.json; then
               if EXPECTED_DEPLOYMENT_ID="$deployment_id" node --input-type=module <<'NODE'
               import fs from "node:fs";
-              const canonical = JSON.parse(fs.readFileSync("/tmp/comun-p3b-canonical-deployment.json", "utf8"));
+              const alias = JSON.parse(fs.readFileSync("/tmp/comun-p3b-canonical-deployment.json", "utf8"));
               const normalize = (value) => typeof value === "string" ? value.replace(/^dpl_/, "") : "";
-              const exact = canonical.project?.id === process.env.VERCEL_PROJECT_ID
-                && normalize(canonical.uid) === normalize(process.env.EXPECTED_DEPLOYMENT_ID);
+              const resolvedDeploymentId = alias.deploymentId || alias.deployment?.id;
+              const exact = alias.alias === "comunsocial.online"
+                && normalize(resolvedDeploymentId) === normalize(process.env.EXPECTED_DEPLOYMENT_ID);
               process.exit(exact ? 0 : 1);
               NODE
               then
