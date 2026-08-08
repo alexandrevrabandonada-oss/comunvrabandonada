@@ -29,6 +29,8 @@ function decrypt(encrypted, protocol) {
 const db = new pg.Client({ connectionString: dbUrl });
 const reportIds = [];
 const protocols = [];
+let readdReportId = null;
+let readdCookie = "";
 try {
   for (let i = 0; i < 90; i++) { try { const response = await fetch(`${base}/comun/relatar`); if (response.status < 500) break; } catch {} await new Promise((resolve) => setTimeout(resolve, 1000)); if (server.exitCode !== null) throw new Error(`COMUN_P3B_SERVER_EXIT_${server.exitCode}`); }
   await db.connect();
@@ -38,6 +40,7 @@ try {
     const body = await created.json();
     assert.equal(created.status, 201, JSON.stringify(body));
     const protocol = body.receipt.protocol;
+    const reportCookie = cookie;
     protocols.push(protocol);
     const location = await http("/api/comun/relata/evidence/location", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ longitude: point.longitude, latitude: point.latitude, origin: "map_pin", accuracyMeters: null, capturedAt: "2026-08-07T12:00:00.000Z" }) });
     const locationText = await location.text();
@@ -50,6 +53,10 @@ try {
     assert.equal(caseRow.rowCount, 1);
     assert.equal(reportRow.rowCount, 1);
     reportIds.push(reportRow.rows[0].id);
+    if (readdReportId === null) {
+      readdReportId = reportRow.rows[0].id;
+      readdCookie = reportCookie;
+    }
   }
   const rows = await db.query("select report_id, encrypted_value, nonce, auth_tag, key_version, evidence_state from private.comun_relata_private_locations where report_id = any($1::uuid[])", [reportIds]);
   assert.equal(rows.rowCount, 2);
@@ -60,6 +67,23 @@ try {
   assert.notDeepEqual(rows.rows[0].nonce, rows.rows[1].nonce);
   assert.notDeepEqual(rows.rows[0].encrypted_value, rows.rows[1].encrypted_value);
   assert.deepEqual(decrypt({ ciphertext: rows.rows[0].encrypted_value, nonce: rows.rows[0].nonce, authTag: rows.rows[0].auth_tag }, protocols[0]), { longitude: synthetic[0].longitude, latitude: synthetic[0].latitude, accuracyMeters: null });
+  const firstLocation = rows.rows.find((row) => row.report_id === readdReportId);
+  assert.ok(firstLocation);
+  const withdrawnFirst = await http("/api/comun/relata/evidence/location", { method: "DELETE" }, readdCookie);
+  assert.equal(withdrawnFirst.status, 200, await withdrawnFirst.text());
+  const readded = await http("/api/comun/relata/evidence/location", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ longitude: -44.1002, latitude: -22.5202, origin: "device", accuracyMeters: 18, capturedAt: "2026-08-07T12:05:00.000Z" }) }, readdCookie);
+  assert.equal(readded.status, 200, await readded.text());
+  const readdedRow = (await db.query("select encrypted_value, nonce, auth_tag, origin, accuracy_class, captured_at, evidence_state, withdrawn_at from private.comun_relata_private_locations where report_id=$1", [readdReportId])).rows[0];
+  assert.equal(readdedRow.evidence_state, "added_private");
+  assert.equal(readdedRow.withdrawn_at, null);
+  assert.notDeepEqual(readdedRow.encrypted_value, firstLocation.encrypted_value);
+  assert.notDeepEqual(readdedRow.nonce, firstLocation.nonce);
+  assert.notDeepEqual(readdedRow.auth_tag, firstLocation.auth_tag);
+  assert.equal(readdedRow.origin, "device");
+  assert.equal(readdedRow.accuracy_class, "device_accuracy");
+  assert.equal(new Date(readdedRow.captured_at).toISOString(), "2026-08-07T12:05:00.000Z");
+  const withdrawnReadded = await http("/api/comun/relata/evidence/location", { method: "DELETE" }, readdCookie);
+  assert.equal(withdrawnReadded.status, 200, await withdrawnReadded.text());
   const wrongCookie = "comun_relata_receipt_v1=invalid";
   const denied = await http("/api/comun/relata/evidence/location", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ longitude: 0, latitude: 0, origin: "device" }) }, wrongCookie);
   assert.equal(denied.status, 404);
@@ -69,8 +93,8 @@ try {
   const withdrawn = await http("/api/comun/relata/evidence/location", { method: "DELETE" });
   assert.equal(withdrawn.status, 200);
   const retained = await db.query("select count(*)::int as count from private.comun_relata_private_locations where report_id = any($1::uuid[]) and evidence_state='withdrawn' and withdrawn_at is not null", [reportIds]);
-  assert.equal(retained.rows[0].count, 1);
-  console.log(JSON.stringify({ result: "COMUN_P3B_LOCATION_DISPOSABLE_E2E_GREEN", plaintextInResponse: false, nonceBytes: 12, authTagBytes: 16, ciphertextPresent: true, samePositionDifferentCiphertext: true, collective: "disabled", publicProjection: 0, withdrawal: "history_retained" }));
+  assert.equal(retained.rows[0].count, 2);
+  console.log(JSON.stringify({ result: "COMUN_P3B_LOCATION_READD_E2E_GREEN", plaintextInResponse: false, nonceBytes: 12, authTagBytes: 16, ciphertextPresent: true, readdStateRestored: true, metadataReplaced: true, collective: "disabled", publicProjection: 0, withdrawal: "history_retained" }));
 } finally {
   if (db._connected) {
     for (const reportId of reportIds) {

@@ -1087,13 +1087,15 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
   confirmou zero objeto residual de quarentena/derivada e zero item ativo na
   Carteira; histórico retirado foi preservado por retenção.
 - Resultado terminal: `COMUN_48_1B_P3A_PRIVATE_ATTACHMENTS_DOMAIN_GREEN_LOCATION_OFF`.
-- P3B foi integrado e validado em CI, mas a ativação Production foi revertida
-  após cleanup remoto não comprovável. Território, Google, Ônibus, forwarding,
-  coletivos, publicação automática e `launch_publicly` permanecem desligados.
-- 48.1B-P3B: código integrado e E2E descartável verde, mas a ativação remota de
-  localização foi revertida para `disabled` porque a limpeza exata de uma
-  fixture sintética não pôde ser comprovada com o REST/MCP disponível.
-- Estado P3B atual: `COMUN_P3B_BLOCKED_SYNTHETIC_CLEANUP_UNPROVEN`.
+- 48.1B-P3B-C2: o cleanup autorizado foi comprovado por verificação read-only no
+  run `31239240233`; localização/caso/relato ficaram retirados, carteira
+  revogada, sem snapshots/coletivos/forwarding, `hardDeletes=0` e
+  `plaintextLocationRead=false`.
+- Foi criada a migration forward-only F1
+  `20260808043000_comun_relata_location_readd_state_fix.sql`, ainda não
+  aplicada remotamente. A flag de localização permanece `disabled` até CI,
+  dry-run exato, promoção e postflight.
+- Estado P3B atual: `COMUN_P3B_SYNTHETIC_CLEANUP_GREEN_F1_PENDING`.
 - Conta, Carteira, Relata textual e fotos privadas permanecem ativos; localização,
   coletivos, mapa público, território, Google, Ônibus, forwarding e
   `launch_publicly` permanecem desligados.

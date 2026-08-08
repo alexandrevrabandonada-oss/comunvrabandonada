@@ -136,7 +136,10 @@ jobs:
       (
         github.event_name == 'pull_request' &&
         github.event.action != 'closed' &&
-        startsWith(github.event.pull_request.head.ref, 'codex/48-1b-p3b-private-location')
+         (
+           startsWith(github.event.pull_request.head.ref, 'codex/48-1b-p3b-private-location') ||
+           startsWith(github.event.pull_request.head.ref, 'codex/48-1b-p3b-location-readd-fix')
+         )
       ) || (
         github.event_name == 'workflow_dispatch' &&
         inputs.force_full == true

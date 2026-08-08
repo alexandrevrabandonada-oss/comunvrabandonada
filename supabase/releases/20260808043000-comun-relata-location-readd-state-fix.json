@@ -1,0 +1,19 @@
+{
+  "release": "20260808043000-comun-relata-location-readd-state-fix",
+  "migration": "supabase/migrations/20260808043000_comun_relata_location_readd_state_fix.sql",
+  "migrationSha256": "5a0b9ba71ac63d8ca578049963158e335183d580f920667cd803c6bfb2c6a5a5",
+  "path": "supabase/migrations/20260808043000_comun_relata_location_readd_state_fix.sql",
+  "sha256": "5a0b9ba71ac63d8ca578049963158e335183d580f920667cd803c6bfb2c6a5a5",
+  "requiresPromotion": true,
+  "remotePromotionAllowed": true,
+  "scope": "production",
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "releaseLedger": "public.comun_schema_releases",
+  "dependsOn": ["20260805130000-comun-production-pilot-core-bundle"],
+  "destructiveSql": false,
+  "dataMutation": false,
+  "publicProjection": false,
+  "externalForwarding": false,
+  "reason": "restore_private_location_state_on_authorized_readdition"
+}
