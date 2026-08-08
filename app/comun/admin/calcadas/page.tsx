@@ -26,7 +26,10 @@ export default async function Page() {
           {SIDEWALK_OPERATIONAL_PAUSED_MESSAGE}
         </p>
         {isComunSidewalkRelataEnabled() ? (
-          <Link className="btn mt-4 inline-flex" href="/comun/admin/calcadas/relatos">
+          <Link
+            className="btn mt-4 inline-flex"
+            href="/comun/admin/calcadas/relatos"
+          >
             Abrir relatos P4 em revisão
           </Link>
         ) : null}
