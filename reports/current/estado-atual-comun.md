@@ -85,7 +85,6 @@
 - teste local de código, typecheck, lint e build verdes; Docker local não respondeu, portanto a prova de banco segue na lane CI descartável;
 - Production ainda não recebeu flag nem chave P3B; `launch_publicly=false`.
 
-
 ## Tijolo 48.0H — encaminhamento institucional compartilhado — candidata local
 
 - baseline `origin/main` confirmado em `7a4ebaa5ab9b59323fe55cd7c9f0dd87c8c28ffe`; branch isolada `codex/tijolo-48-0h-forwarding-fiscaliza`;
@@ -576,6 +575,7 @@ Decisão vigente: `NO_GO_VERCEL_PREVIEW_CREDENTIAL`. A PR #30 permanece aberta,
 sem merge e sem label de promoção; o gate humano permanece 0/3 e o piloto
 público continua fechado.
 Adendo Tijolo 43.1: FAST no SHA `5503e02` ficou verde e o rehearsal confirmou a rede interna em `db:5432`; a falha posterior era somente um delimitador de fingerprint no runner, já corrigido com teste de regressão. A decisão permanece `COMUN_CALCADAS_FAST_PATCH_REQUIRED`, sem FULL, promoção ou escrita remota.
+
 # Tijolo 48.0E — COMUN Ônibus (local-only)
 
 Em 2026-08-04, a branch `codex/tijolo-48-0e-comun-bus-foundation` foi criada a partir de `origin/main` em `f8efa8e1eb8370613a35e605ddb8d346b90a4676`. A fundação local do COMUN Ônibus está implementada e validada em Supabase descartável, com fixture sintética `FIX-01`, horários versionados, sessões de espera, observações e vínculo privado com Relata.
@@ -583,6 +583,7 @@ Em 2026-08-04, a branch `codex/tijolo-48-0e-comun-bus-foundation` foi criada a p
 Estado: pronta para PR draft, ainda não integrada. `COMUN_BUS_LOCAL_PILOT` permanece desligada fora do laboratório. Não houve consulta ou escrita no Supabase remoto, envio para STMU, publicação de mapa ou acionamento de `launch_publicly`. Production continua dormente e `/comun/onibus` permanece 404 fora do ambiente local permitido.
 
 Evidência: 20 tabelas privadas com RLS forçada, RPCs sem execução pública, 470 testes unitários, 5 viewports Playwright, zero rota desconhecida, zero `legacy_rendered` e zero P0/P1. Próximo gate é CI/Preview da PR; nenhum ensaio humano foi iniciado.
+
 # Tijolo 48.0I — verificação Fiscaliza VR (04/08/2026)
 
 O 48.0I está implementado em branch local-only a partir de `origin/main` `3beab754d99ab2048430a5124960b960cbf4a518`. As fontes foram reconciliadas: prazo geral atual `not_stated`, iluminação `30 dias` como estimativa de realização não legal e menção histórica de `48 horas` excluída de vencimentos. A entrada pública municipal redirecionou para `fiscalizavr.citysystems.com.br`, indisponível por DNS; não houve autenticação, preenchimento, submissão ou protocolo real. O resultado técnico é `COMUN_FISCALIZA_OPERATIONAL_OBSERVATION_PARTIAL`.
@@ -771,6 +772,7 @@ O resultado R2 anterior permanece apenas como histórico. Não houve migration,
 flag, Google, allowlist, deployment de piloto, escrita remota ou
 `launch_publicly`. O próximo gate é validar duas rehearsals locais em bancos
 descartáveis, E2E do runtime, auditoria RLS/grants, rollback e dry-run exato.
+
 ## 48.1B-R2A-R2 — checkpoint atual (2026-08-05)
 
 - branch: `codex/tijolo-48-1b-production-domain-pilot`;
@@ -1153,16 +1155,27 @@ comprovar a disponibilidade da chave/capacidade no runtime sem expor segredo.
 Resultado terminal: `COMUN_48_1B_P3_PRIVATE_EVIDENCE_DOMAIN_GREEN`.
 Proximo tijolo elegivel: `48.1B-P4 — Calcadas real`.
 
-### 48.1B-P4 — Calçadas real — candidato em CI (2026-08-08)
+### 48.1B-P4 — Calcadas real no dominio (2026-08-08)
 
-- baseline exato `origin/main=e9aded8f486843e888473172c59eb58a4d7e1335`;
-- preflight remoto read-only confirmou núcleo P3 íntegro e ausência do adapter P4;
-- dry-run reconciliado planeja exatamente `20260808180246_comun_sidewalk_relata_real.sql`;
-- SHA-256 candidato `6ed799985fe9270ae9a8406d043d566520c2f9c89002493393c37d7076d9c494`;
-- intake privado, Carteira, fila admin e projeção aproximada revisada foram implementados sob flags separadas;
-- testes focais, typecheck, lint e build verdes; Docker local indisponível;
-- P4A/P4B integral verde no Supabase descartável do run `31272121500`, job `93139744374`;
-- runners fail-closed de promoção exata e ativação em duas ondas preparados para execução somente após merge;
-- nenhuma migration aplicada, flag alterada, fixture remota criada ou deployment promovido.
+- baseline inicial `origin/main=e9aded8f486843e888473172c59eb58a4d7e1335`;
+- migration unica `20260808180246_comun_sidewalk_relata_real.sql`, SHA-256
+  `6ed799985fe9270ae9a8406d043d566520c2f9c89002493393c37d7076d9c494`;
+- PRs #227, #228, #229 e #230 integradas; main funcional final
+  `97ad858c92c8694adf7514d0df8cfe8d2c90754f`;
+- preflight remoto `31275553224`, promocao exata `31275588586` e postflight
+  RLS/grants `31275651342` verdes;
+- deployment flags-off `31278490774` verde;
+- intake privado real P4A `31278576840` verde, com foto/localizacao privadas,
+  `hardDeletes=0` e zero residuo sintetico ativo;
+- capacidade editorial P4B `31278723422` verde em leitura: zero intake pendente,
+  zero publicacao automatica e nenhum registro publico sintetico;
+- `/comun`, `/comun/relatar`, `/comun/calcadas` e
+  `/comun/calcadas/contribuir` respondem `200`; fila admin exige autenticacao;
+- Conta, Carteira, Relata, fotos e localizacao permanecem ON; intake P4 ON;
+  revisao/projecao P4 ON somente por gesto editorial;
+- ponto exato publico, publicacao automatica, mapa publico geral do Relata,
+  coletivos, territorio, Google, Onibus e forwarding permanecem OFF;
+  `launch_publicly=false`.
 
-Resultado atual: `COMUN_P4_DISPOSABLE_RUNTIME_GREEN_AGGREGATE_CI_PENDING`.
+Resultado terminal:
+`COMUN_48_1B_P4_SIDEWALK_REAL_DOMAIN_GREEN_REVIEWED_MAP_ONLY`.
