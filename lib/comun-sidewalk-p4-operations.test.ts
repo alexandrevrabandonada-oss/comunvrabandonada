@@ -25,6 +25,18 @@ describe("P4 operational boundaries", () => {
     expect(workflow).toContain(
       "Roll back private intake automatically after failed smoke",
     );
+    expect(workflow).toContain(
+      "env add COMUN_SIDEWALK_RELATA_ENABLED production --force",
+    );
+    expect(workflow).toContain(
+      "env add COMUN_SIDEWALK_PUBLIC_PROJECTION_ENABLED production --force",
+    );
+    expect(workflow).not.toContain(
+      "env update COMUN_SIDEWALK_RELATA_ENABLED",
+    );
+    expect(workflow).not.toContain(
+      "env update COMUN_SIDEWALK_PUBLIC_PROJECTION_ENABLED",
+    );
   });
 
   it("uses soft cleanup and removes private attachment objects", () => {

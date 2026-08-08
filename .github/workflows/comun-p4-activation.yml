@@ -72,8 +72,8 @@ jobs:
             flags-off|rollback-intake) ;;
             *) echo COMUN_P4_ACTIVATION_MODE_INVALID; exit 1 ;;
           esac
-          printf '%s' "$intake" | npx --yes vercel@50.28.0 env update COMUN_SIDEWALK_RELATA_ENABLED production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-intake-env.out 2>/tmp/comun-p4-intake-env.err
-          printf '%s' "$projection" | npx --yes vercel@50.28.0 env update COMUN_SIDEWALK_PUBLIC_PROJECTION_ENABLED production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-projection-env.out 2>/tmp/comun-p4-projection-env.err
+          printf '%s' "$intake" | npx --yes vercel@50.28.0 env add COMUN_SIDEWALK_RELATA_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-intake-env.out 2>/tmp/comun-p4-intake-env.err
+          printf '%s' "$projection" | npx --yes vercel@50.28.0 env add COMUN_SIDEWALK_PUBLIC_PROJECTION_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-projection-env.out 2>/tmp/comun-p4-projection-env.err
 
       - name: Deploy exact main with current Production environment
         id: deploy
@@ -170,8 +170,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          printf '%s' disabled | npx --yes vercel@50.28.0 env update COMUN_SIDEWALK_RELATA_ENABLED production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-intake.out 2>/tmp/comun-p4-auto-rollback-intake.err
-          printf '%s' disabled | npx --yes vercel@50.28.0 env update COMUN_SIDEWALK_PUBLIC_PROJECTION_ENABLED production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-projection.out 2>/tmp/comun-p4-auto-rollback-projection.err
+          printf '%s' disabled | npx --yes vercel@50.28.0 env add COMUN_SIDEWALK_RELATA_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-intake.out 2>/tmp/comun-p4-auto-rollback-intake.err
+          printf '%s' disabled | npx --yes vercel@50.28.0 env add COMUN_SIDEWALK_PUBLIC_PROJECTION_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-projection.out 2>/tmp/comun-p4-auto-rollback-projection.err
           npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-deploy.out 2>/tmp/comun-p4-auto-rollback-deploy.err
           rollback_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-p4-auto-rollback-deploy.out | tail -n 1 | tr -d '\r')"
           case "$rollback_url" in https://*.vercel.app) ;; *) exit 1 ;; esac
@@ -208,7 +208,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          printf '%s' disabled | npx --yes vercel@50.28.0 env update COMUN_SIDEWALK_PUBLIC_PROJECTION_ENABLED production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-projection.out 2>/tmp/comun-p4-auto-rollback-projection.err
+          printf '%s' disabled | npx --yes vercel@50.28.0 env add COMUN_SIDEWALK_PUBLIC_PROJECTION_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-projection.out 2>/tmp/comun-p4-auto-rollback-projection.err
           npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-projection-deploy.out 2>/tmp/comun-p4-auto-rollback-projection-deploy.err
           rollback_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-p4-auto-rollback-projection-deploy.out | tail -n 1 | tr -d '\r')"
           case "$rollback_url" in https://*.vercel.app) ;; *) exit 1 ;; esac
