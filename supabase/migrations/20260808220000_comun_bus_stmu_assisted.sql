@@ -140,8 +140,10 @@ begin
   select c.* into v_case from private.comun_participation_wallet_items wi join public.comun_relata_cases c on c.id=wi.subject_ref::uuid
     where wi.id=p_wallet_item_id and wi.wallet_id=v_wallet and wi.item_type='relata_report' and wi.category='public_transport' and wi.archived_at is null and c.state<>'withdrawn';
   if not found then return; end if;
-  select * into v_report from private.comun_relata_reports where id=v_case.report_id and withdrawn_at is null; if not found then return; end if;
-  select * into v_bus from private.comun_bus_relata_intakes where case_id=v_case.id and state<>'withdrawn'; if not found then return; end if;
+  select report.* into v_report from private.comun_relata_reports as report
+    where report.id=v_case.report_id and report.withdrawn_at is null; if not found then return; end if;
+  select bus.* into v_bus from private.comun_bus_relata_intakes as bus
+    where bus.case_id=v_case.id and bus.state<>'withdrawn'; if not found then return; end if;
   v_body:='Olá. Gostaria de registrar uma reclamação sobre o transporte coletivo.'||E'\n\nLinha: '||coalesce(v_bus.line_label,'não informada')||E'\nSentido: '||coalesce(v_bus.direction,'não informado')||E'\nData e horário: '||to_char(v_bus.observed_at at time zone 'America/Sao_Paulo','DD/MM/YYYY HH24:MI')||E'\nNúmero de ordem do veículo: '||coalesce(v_bus.vehicle_order,'não observado')||E'\nOcorrência: '||v_bus.issue_type||E'\nDescrição: '||v_report.original_text||E'\n\nSolicito, por favor, o registro da reclamação e o número de protocolo.';
   insert into private.comun_forwarding_packages as current(wallet_id,relata_case_id,bus_intake_id,state,subject,institutional_text)
   values(v_wallet,v_case.id,v_bus.id,'ready_for_forwarding','Reclamação sobre transporte coletivo',v_body)

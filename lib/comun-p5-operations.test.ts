@@ -25,7 +25,9 @@ describe("COMUN P5 operational boundary", () => {
     expect(sql).toContain("to service_role");
     expect(sql).not.toContain("grant execute on function public.comun_stmu_assisted_open(text,uuid,text) to anon");
     expect(sql).toContain("where bus.id=v_bus.id and bus.state='ready_for_forwarding'");
+    expect(sql).toContain("where bus.case_id=v_case.id and bus.state<>'withdrawn'");
     expect(sql).not.toContain("where id=v_bus.id and state='ready_for_forwarding'");
+    expect(sql).not.toContain("where case_id=v_case.id and state<>'withdrawn'");
   });
 
   it("pins destinations without message-bearing query strings", () => {
