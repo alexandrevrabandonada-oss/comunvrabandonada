@@ -7,19 +7,20 @@ const workflow = fs.readFileSync(
   "utf8",
 );
 
-test("canonical alias proof resolves the domain to the exact deployment", () => {
+test("canonical host proof resolves the domain to the exact deployment", () => {
   assert.match(workflow, /deploy --prod --skip-domain --yes/);
   assert.match(workflow, /promote "\$DEPLOYMENT_URL" --yes --timeout=5m/);
   assert.match(workflow, /alias set "\$DEPLOYMENT_URL" comunsocial\.online/);
   assert.match(workflow, /\/v13\/deployments\/\$deployment_host\?teamId=/);
   assert.match(workflow, /\(\?:dpl_\)\?\[A-Za-z0-9\]\{8,128\}/);
-  assert.match(workflow, /\/v4\/aliases\/comunsocial\.online\?teamId=/);
-  assert.match(workflow, /alias\.projectId === process\.env\.VERCEL_PROJECT_ID/);
-  assert.match(workflow, /normalize\(alias\.deploymentId\) === normalize\(process\.env\.EXPECTED_DEPLOYMENT_ID\)/);
+  assert.match(workflow, /\/v13\/deployments\/comunsocial\.online\?teamId=/);
+  assert.match(workflow, /canonical\.project\?\.id === process\.env\.VERCEL_PROJECT_ID/);
+  assert.match(workflow, /normalize\(canonical\.uid\) === normalize\(process\.env\.EXPECTED_DEPLOYMENT_ID\)/);
   assert.match(workflow, /COMUN_P3B_CANONICAL_ALIAS_GREEN/);
   assert.match(workflow, /COMUN_P3B_BLOCKED_CANONICAL_ALIAS_STALE/);
   assert.doesNotMatch(workflow, /deployment\.alias/);
   assert.doesNotMatch(workflow, /\/v2\/deployments\/\$deployment_id\/aliases/);
+  assert.doesNotMatch(workflow, /\/v4\/aliases\/comunsocial\.online/);
 });
 
 test("automatic rollback explicitly promotes the flags-off deployment", () => {
