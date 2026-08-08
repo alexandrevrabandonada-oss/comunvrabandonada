@@ -138,12 +138,12 @@ jobs:
           const deployment = JSON.parse(fs.readFileSync("/tmp/comun-p3b-deployment.json", "utf8"));
           const deploymentProjectId = deployment.projectId || deployment.project?.id;
           if (deploymentProjectId !== process.env.VERCEL_PROJECT_ID
-            || typeof deployment.uid !== "string"
-            || !/^(?:dpl_)?[A-Za-z0-9]{8,128}$/.test(deployment.uid)) {
+            || typeof deployment.id !== "string"
+            || !/^dpl_[A-Za-z0-9]{8,128}$/.test(deployment.id)) {
             console.error("COMUN_P3B_DEPLOYMENT_ID_INVALID");
             process.exit(1);
           }
-          process.stdout.write(deployment.uid);
+          process.stdout.write(deployment.id);
           NODE
           )"
           test -n "$deployment_id"
