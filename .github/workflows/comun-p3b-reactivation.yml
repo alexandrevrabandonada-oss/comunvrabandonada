@@ -11,7 +11,7 @@ on:
         description: Enable and smoke, or roll back the location flag
         required: true
         type: choice
-        options: [activate-smoke, rollback]
+        options: [rotate-key-activate-smoke, activate-smoke, rollback]
 
 concurrency:
   group: comun-p3b-location-reactivation
@@ -58,7 +58,7 @@ jobs:
           printf '%s\n' disabled | npx --yes vercel@50.28.0 env add COMUN_RELATA_LOCATION_ENABLED production --force --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-env-rollback.out 2>/tmp/comun-p3b-vercel-env-rollback.err
 
       - name: Verify server-side location capability names without reading values
-        if: inputs.mode == 'activate-smoke'
+        if: inputs.mode == 'activate-smoke' || inputs.mode == 'rotate-key-activate-smoke'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
@@ -69,8 +69,25 @@ jobs:
           done
           echo COMUN_P3B_SERVER_ENV_NAMES_PRESENT >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Generate and rotate location key entirely in runner memory
+        if: inputs.mode == 'rotate-key-activate-smoke'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          LOCATION_KEY="$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("base64url"))')"
+          LOCATION_KEY="$LOCATION_KEY" node - <<'NODE'
+          const value = process.env.LOCATION_KEY;
+          if (!value || Buffer.from(value, 'base64url').byteLength !== 32 || !/^[A-Za-z0-9_-]+$/.test(value)) process.exit(1);
+          console.log('COMUN_P3B_NEW_LOCATION_KEY_VALID_32_BYTES');
+          NODE
+          printf '%s' "$LOCATION_KEY" | npx --yes vercel@50.28.0 env add COMUN_RELATA_LOCATION_ENCRYPTION_KEY production --force --yes --sensitive --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-key-config.out 2>/tmp/comun-p3b-key-config.err
+          unset LOCATION_KEY
+          echo COMUN_P3B_LOCATION_KEY_ROTATED_SERVER_SIDE >> "$GITHUB_STEP_SUMMARY"
+
       - name: Enable location flag in Vercel Production
-        if: inputs.mode == 'activate-smoke'
+        if: inputs.mode == 'activate-smoke' || inputs.mode == 'rotate-key-activate-smoke'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
@@ -96,9 +113,18 @@ jobs:
         if: inputs.mode == 'rollback'
         run: echo COMUN_P3B_LOCATION_FLAG_ROLLED_BACK_OFF >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Verify location controls are rendered before creating a fixture
+        if: inputs.mode == 'activate-smoke' || inputs.mode == 'rotate-key-activate-smoke'
+        run: |
+          set -euo pipefail
+          page=$(mktemp)
+          trap 'rm -f "$page"' EXIT
+          curl -fsS https://comunsocial.online/comun/relatar > "$page"
+          grep -q 'Usar localização' "$page" || { echo COMUN_P3B_BLOCKED_NEW_KEY_NOT_VISIBLE_TO_RUNTIME; exit 1; }
+
       - name: Allocate sanitized attempt marker
         id: attempt
-        if: inputs.mode == 'activate-smoke'
+        if: inputs.mode == 'activate-smoke' || inputs.mode == 'rotate-key-activate-smoke'
         run: |
           set -euo pipefail
           marker="P3B-SMOKE-${GITHUB_RUN_ID}-$(node -e 'process.stdout.write(require("node:crypto").randomUUID())')"
@@ -106,7 +132,7 @@ jobs:
 
       - name: Run real synthetic Production smoke with finally cleanup
         id: smoke
-        if: inputs.mode == 'activate-smoke'
+        if: inputs.mode == 'activate-smoke' || inputs.mode == 'rotate-key-activate-smoke'
         env:
           COMUN_BASE_URL: https://comunsocial.online
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
@@ -118,7 +144,7 @@ jobs:
           node scripts/solo/rehearse-p3b-private-location-production.mjs > .ci-artifacts/p3b-production/smoke.json
 
       - name: Crash recovery for the exact synthetic attempt
-        if: always() && inputs.mode == 'activate-smoke' && steps.smoke.outcome != 'success'
+        if: always() && (inputs.mode == 'activate-smoke' || inputs.mode == 'rotate-key-activate-smoke') && steps.smoke.outcome != 'success'
         env:
           COMUN_BASE_URL: https://comunsocial.online
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
@@ -128,6 +154,16 @@ jobs:
           test -n "${SUPABASE_DB_URL:-}"
           mkdir -p .ci-artifacts/p3b-production
           node scripts/solo/rehearse-p3b-private-location-production.mjs --recover > .ci-artifacts/p3b-production/recovery.json
+
+      - name: Roll back location after failed activation or smoke
+        if: always() && (inputs.mode == 'activate-smoke' || inputs.mode == 'rotate-key-activate-smoke') && steps.smoke.outcome != 'success'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          printf '%s\n' disabled | npx --yes vercel@50.28.0 env add COMUN_RELATA_LOCATION_ENABLED production --force --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-env-auto-rollback.out 2>/tmp/comun-p3b-vercel-env-auto-rollback.err
+          npx --yes vercel@50.28.0 deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-auto-rollback-deploy.out 2>/tmp/comun-p3b-vercel-auto-rollback-deploy.err
+          echo COMUN_P3B_LOCATION_ROLLED_BACK_AFTER_FAILED_SMOKE >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload sanitized Production evidence
         if: always()
@@ -139,5 +175,5 @@ jobs:
           if-no-files-found: ignore
 
       - name: Emit terminal marker
-        if: success() && inputs.mode == 'activate-smoke'
+        if: success() && (inputs.mode == 'activate-smoke' || inputs.mode == 'rotate-key-activate-smoke')
         run: echo COMUN_P3B_PRIVATE_EVIDENCE_DOMAIN_GREEN >> "$GITHUB_STEP_SUMMARY"
