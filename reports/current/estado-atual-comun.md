@@ -1116,3 +1116,19 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
 Resultado terminal atual: `COMUN_P3B_BLOCKED_LOCATION_RUNTIME_KEY_INVALID_OR_UNAVAILABLE`.
 O piloto permanece sem localização até que a chave server-side atual seja
 comprovadamente válida e um novo smoke com `finally`/recovery passe.
+
+### 48.1B-P3B-C3 — rotação server-side bloqueada no gate de runtime (2026-08-08)
+
+- A rotação de chave foi executada exclusivamente dentro do runner, sem leitura
+  ou registro do valor. O workflow permaneceu sem migrations e sem produto novo.
+- Após redeploy, o controle de localização não apareceu no deployment nem no
+  domínio canônico dentro do gate. Os runs `31260199454`, `31260510529`,
+  `31260965396` e `31261385771` fizeram rollback automático e não criaram
+  fixtures.
+- Smoke read-only final: `/comun/relatar=200`, localização ausente e POST da
+  rota de localização `404`; fotos continuam ON e demais capacidades continuam
+  OFF. `launch_publicly=false`.
+
+Resultado terminal: `COMUN_P3B_BLOCKED_NEW_KEY_NOT_VISIBLE_TO_RUNTIME`.
+Não emitir `COMUN_48_1B_P3_PRIVATE_EVIDENCE_DOMAIN_GREEN` nem iniciar P4 até
+comprovar a disponibilidade da chave/capacidade no runtime sem expor segredo.
