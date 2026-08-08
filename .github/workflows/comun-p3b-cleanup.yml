@@ -49,10 +49,11 @@ jobs:
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           MODE: ${{ inputs.mode || 'identify' }}
           AUTHORIZATION: ${{ inputs.authorization }}
+          FIXTURE_FINGERPRINT: ${{ inputs.fixture_fingerprint }}
         run: |
           test -n "${SUPABASE_DB_URL:-}" || { echo COMUN_P3B_CLEANUP_BLOCKED_CURRENT_ROTATED_DB_SECRET_UNAVAILABLE; exit 2; }
           test -n "${SUPABASE_PROJECT_REF:-}" || { echo COMUN_P3B_CLEANUP_BLOCKED_CURRENT_ROTATED_DB_SECRET_UNAVAILABLE; exit 2; }
-          node scripts/solo/p3b-orphan-cleanup.mjs --mode "$MODE" --authorization "$AUTHORIZATION" | tee p3b-cleanup-result.json
+          node scripts/solo/p3b-orphan-cleanup.mjs --mode "$MODE" --fixture-fingerprint "$FIXTURE_FINGERPRINT" --authorization "$AUTHORIZATION" | tee p3b-cleanup-result.json
       - name: Publish sanitized result
         uses: actions/upload-artifact@v4
         with:

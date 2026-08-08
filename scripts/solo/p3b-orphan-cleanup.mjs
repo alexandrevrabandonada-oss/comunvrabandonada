@@ -107,6 +107,7 @@ function sanitized(row, rows) {
 async function main() {
   const mode = arg("mode") ?? "identify";
   const authorization = arg("authorization") ?? "";
+  const expectedFingerprint = arg("fixture-fingerprint");
   const connection = validateConnection();
   if (!connection) return;
   const client = new pg.Client({ connectionString: connection, application_name: "comun-p3b-orphan-cleanup" });
@@ -121,7 +122,9 @@ async function main() {
       return console.log(JSON.stringify({ result: "COMUN_P3B_ORPHAN_FIXTURE_IDENTIFIED_EXACTLY_ONE", ...sanitized(row, rows) }));
     }
     if (mode !== "cleanup") return fail("COMUN_P3B_CLEANUP_BLOCKED_INVALID_MODE");
+    if (expectedFingerprint !== fixtureFingerprint) return fail("COMUN_P3B_CLEANUP_BLOCKED_FINGERPRINT_MISMATCH");
     if (authorization !== `AUTORIZO_P3B_SYNTHETIC_CLEANUP_${fixtureFingerprint}`) return fail("COMUN_P3B_CLEANUP_BLOCKED_AUTHORIZATION_MISMATCH");
+    if (row.wallet_item_count !== 1 || row.wallet_item_total !== 1 || row.wallet_count !== 1 || row.account_link_count !== 0) return fail("COMUN_P3B_CLEANUP_BLOCKED_WALLET_NOT_EXCLUSIVELY_SYNTHETIC");
     if (row.collective_count !== 0 || row.forwarding_count !== 0 || row.attachment_count !== 0) return fail("COMUN_P3B_CLEANUP_BLOCKED_UNEXPECTED_RELATION");
 
     await client.query("begin");
@@ -133,8 +136,19 @@ async function main() {
       where r.id=$1 and c.id=$2 and l.id=$3
         and c.state='stored_private' and c.withdrawn_at is null
         and r.withdrawn_at is null and l.evidence_state='added_private' and l.withdrawn_at is null
-      for update`, [row.report_id, row.case_id, row.location_id])).rows;
+      for update of r,c,l`, [row.report_id, row.case_id, row.location_id])).rows;
     if (locked.length !== 1) throw new Error("COMUN_P3B_CLEANUP_BLOCKED_STATE_CHANGED");
+    const inTxn = await client.query(`
+      select
+        (select count(*)::int from private.comun_relata_attachments where report_id=$1) as attachment_count,
+        (select count(*)::int from public.comun_relata_public_snapshots where case_id=$2) as public_snapshot_count,
+        (select count(*)::int from public.comun_relata_evidence_consents where case_id=$2 and consent_kind='collective_grouping' and active) as collective_count,
+        case when to_regclass('public.comun_sidewalk_forwardings') is null then 0 else (select count(*)::int from public.comun_sidewalk_forwardings where report_id=$1) end as forwarding_count,
+        (select count(*)::int from private.comun_participation_wallet_items where item_type='relata_report' and subject_ref=$2::text) as wallet_item_total,
+        (select count(*)::int from private.comun_participation_wallets w join private.comun_participation_wallet_items wi on wi.wallet_id=w.id where wi.item_type='relata_report' and wi.subject_ref=$2::text) as wallet_count,
+        (select count(*)::int from private.comun_participation_wallet_account_links al join private.comun_participation_wallet_items wi on wi.wallet_id=al.wallet_id where wi.item_type='relata_report' and wi.subject_ref=$2::text and al.revoked_at is null) as account_link_count`, [row.report_id, row.case_id]);
+    const txnState = inTxn.rows[0];
+    if (txnState.attachment_count !== 0 || txnState.public_snapshot_count !== 0 || txnState.collective_count !== 0 || txnState.forwarding_count !== 0 || txnState.wallet_item_total !== 1 || txnState.wallet_count !== 1 || txnState.account_link_count !== 0) throw new Error("COMUN_P3B_CLEANUP_BLOCKED_REMOTE_STATE_CHANGED");
     const now = new Date();
     const locationUpdate = await client.query(`update private.comun_relata_private_locations set evidence_state='withdrawn', withdrawn_at=coalesce(withdrawn_at,$1) where id=$2`, [now, row.location_id]);
     if (locationUpdate.rowCount !== 1) throw new Error("COMUN_P3B_CLEANUP_BLOCKED_LOCATION_UPDATE");
@@ -163,10 +177,17 @@ async function main() {
         (select count(*)::int from private.comun_relata_private_locations where id=$1 and evidence_state='withdrawn' and withdrawn_at is not null) as withdrawn_location,
         (select count(*)::int from public.comun_relata_cases where id=$2 and state='withdrawn' and withdrawn_at is not null) as withdrawn_case,
         (select count(*)::int from private.comun_relata_reports where id=$3 and retention_class='withdrawn' and withdrawn_at is not null) as withdrawn_report,
-        (select count(*)::int from private.comun_participation_wallet_items where item_type='relata_report' and subject_ref=$2 and archived_at is null) as active_wallet_item`, [row.location_id, row.case_id, row.report_id]);
+        (select count(*)::int from private.comun_participation_wallet_items where item_type='relata_report' and subject_ref=$2 and archived_at is null) as active_wallet_item,
+        (select count(*)::int from private.comun_participation_wallet_items where item_type='relata_report' and subject_ref=$2) as wallet_item_total,
+        (select count(*)::int from private.comun_participation_wallets w join private.comun_participation_wallet_items wi on wi.wallet_id=w.id where wi.item_type='relata_report' and wi.subject_ref=$2 and w.status='revoked') as revoked_wallet,
+        (select count(*)::int from private.comun_participation_wallet_recovery_credentials rc join private.comun_participation_wallet_items wi on wi.wallet_id=rc.wallet_id where wi.item_type='relata_report' and wi.subject_ref=$2 and rc.active) as active_recovery_credentials,
+        (select count(*)::int from private.comun_participation_wallet_account_links al join private.comun_participation_wallet_items wi on wi.wallet_id=al.wallet_id where wi.item_type='relata_report' and wi.subject_ref=$2 and al.revoked_at is null) as active_account_links,
+        (select count(*)::int from public.comun_relata_public_snapshots where case_id=$2) as public_snapshot_count,
+        (select count(*)::int from public.comun_relata_evidence_consents where case_id=$2 and consent_kind='collective_grouping' and active) as collective_count,
+        case when to_regclass('public.comun_sidewalk_forwardings') is null then 0 else (select count(*)::int from public.comun_sidewalk_forwardings where report_id=$3) end as forwarding_count`, [row.location_id, row.case_id, row.report_id]);
     const v = verify.rows[0];
-    if (v.active_location !== 0 || v.withdrawn_location !== 1 || v.withdrawn_case !== 1 || v.withdrawn_report !== 1 || v.active_wallet_item !== 0) throw new Error("COMUN_P3B_CLEANUP_BLOCKED_POSTFLIGHT");
-    console.log(JSON.stringify({ result: "COMUN_P3B_SYNTHETIC_CLEANUP_GREEN", fixtureFingerprint, candidateCount: 1, activeLocationCount: 0, withdrawnLocationCount: 1, withdrawnCaseCount: 1, withdrawnReportCount: 1, activeWalletItemCount: 0, transactionCommitted: true, hardDeletes: 0, plaintextLocationRead: false }));
+    if (v.active_location !== 0 || v.withdrawn_location !== 1 || v.withdrawn_case !== 1 || v.withdrawn_report !== 1 || v.active_wallet_item !== 0 || v.wallet_item_total !== 1 || v.revoked_wallet !== 1 || v.active_recovery_credentials !== 0 || v.active_account_links !== 0 || v.public_snapshot_count !== 0 || v.collective_count !== 0 || v.forwarding_count !== 0) throw new Error("COMUN_P3B_CLEANUP_BLOCKED_POSTFLIGHT");
+    console.log(JSON.stringify({ result: "COMUN_P3B_SYNTHETIC_CLEANUP_GREEN", fixtureFingerprint, candidateCount: 1, activeLocationCount: 0, withdrawnLocationCount: 1, withdrawnCaseCount: 1, withdrawnReportCount: 1, activeWalletItemCount: 0, revokedWalletCount: 1, activeRecoveryCredentialCount: 0, activeAccountLinkCount: 0, publicSnapshotCount: 0, collectiveCount: 0, forwardingCount: 0, transactionCommitted: true, hardDeletes: 0, plaintextLocationRead: false }));
   } catch (error) {
     await client.query("rollback").catch(() => {});
     throw error;
