@@ -166,11 +166,14 @@ jobs:
       - name: Probe staged runtime environment
         env:
           STAGED_URL: ${{ steps.staged.outputs.staged_url }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -euo pipefail
-          curl --fail-with-body --silent --show-error --connect-timeout 5 --max-time 15 \
-            -H 'Cache-Control: no-cache' \
-            "$STAGED_URL/api/comun/internal/p3b-runtime-env-check?run=$GITHUB_RUN_ID" \
+          npx --yes vercel@50.28.0 curl \
+            "/api/comun/internal/p3b-runtime-env-check?run=$GITHUB_RUN_ID" \
+            --deployment "$STAGED_URL" \
+            --token "$VERCEL_TOKEN" \
+            --scope "$VERCEL_ORG_ID" \
             > .ci-artifacts/p3b-env-diagnosis/staged-runtime.json
           node --input-type=module <<'NODE'
           import fs from "node:fs";
@@ -185,11 +188,14 @@ jobs:
       - name: Verify staged UI capability
         env:
           STAGED_URL: ${{ steps.staged.outputs.staged_url }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -euo pipefail
-          curl --fail-with-body --silent --show-error --connect-timeout 5 --max-time 15 \
-            -H 'Cache-Control: no-cache' \
-            "$STAGED_URL/comun/relatar?__p3b_env_diagnosis=$GITHUB_RUN_ID" \
+          npx --yes vercel@50.28.0 curl \
+            "/comun/relatar?__p3b_env_diagnosis=$GITHUB_RUN_ID" \
+            --deployment "$STAGED_URL" \
+            --token "$VERCEL_TOKEN" \
+            --scope "$VERCEL_ORG_ID" \
             > /tmp/comun-p3b-staged-relatar.html
           grep -q 'Usar localização' /tmp/comun-p3b-staged-relatar.html
           if grep -q 'caso coletivo\|coletivo' /tmp/comun-p3b-staged-relatar.html; then
