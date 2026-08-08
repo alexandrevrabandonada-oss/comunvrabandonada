@@ -129,3 +129,14 @@ O projeto não reassocia automaticamente o custom domain mesmo após `vercel pro
 - escrita Supabase: nenhuma.
 
 O contrato canônico precisa provar a relação na direção solicitada: domínio para deployment. A validação passa a consultar `GET /v4/aliases/comunsocial.online` e exige simultaneamente alias exato, project ID canônico e deployment ID exato, normalizando apenas o prefixo opcional `dpl_`. Nenhuma resposta bruta é registrada.
+
+## Execução 31267912745
+
+- deployment, promoção e atribuição do domínio: verdes;
+- resolução pelo recurso Alias: divergente no contrato de representação;
+- UI e fixture: não executadas;
+- recovery: ignorado;
+- rollback explícito: executado;
+- escrita Supabase: nenhuma.
+
+A prova final passa a resolver o próprio hostname pelo endpoint canônico de deployments: `GET /v13/deployments/comunsocial.online`. O gate exige que o deployment servido pertença ao project ID esperado e possua o mesmo UID do deployment recém-criado, normalizando somente o prefixo opcional `dpl_`.
