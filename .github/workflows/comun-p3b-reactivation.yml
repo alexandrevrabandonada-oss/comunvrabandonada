@@ -129,7 +129,7 @@ jobs:
           found=0
           for _ in $(seq 1 20); do
             for target in "${{ steps.deploy.outputs.deployment_url }}" "https://comunsocial.online"; do
-              curl --connect-timeout 2 --max-time 3 -fsS -H 'Cache-Control: no-cache' "$target/comun/relatar?__p3b_runtime_gate=$GITHUB_RUN_ID" > "$page" || continue
+              curl --connect-timeout 2 --max-time 3 -L -fsS -H 'Cache-Control: no-cache' "$target/comun/relatar?__p3b_runtime_gate=$GITHUB_RUN_ID" > "$page" || continue
               if grep -q 'Usar localização' "$page"; then
                 found=1
                 break 2
