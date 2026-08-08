@@ -1,0 +1,29 @@
+{
+  "release": "20260808220000-comun-bus-stmu-assisted",
+  "migration": "supabase/migrations/20260808220000_comun_bus_stmu_assisted.sql",
+  "migrationSha256": "dd4d2ff6071aa6ada2909ec55896e9cefb1e9acd95a267b485cf214c49e19afa",
+  "path": "supabase/migrations/20260808220000_comun_bus_stmu_assisted.sql",
+  "sha256": "dd4d2ff6071aa6ada2909ec55896e9cefb1e9acd95a267b485cf214c49e19afa",
+  "requiresPromotion": true,
+  "remotePromotionAllowed": true,
+  "scope": "production",
+  "dependsOn": [
+    "20260805130000-comun-production-pilot-core-bundle",
+    "20260808043000-comun-relata-location-readd-state-fix",
+    "20260808180246-comun-sidewalk-relata-real"
+  ],
+  "destructiveSql": false,
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "releaseLedger": "public.comun_schema_releases",
+  "dataMutation": false,
+  "publicProjection": false,
+  "publicProjectionAutomatic": false,
+  "externalForwarding": false,
+  "assistedOpeningOnly": true,
+  "featureFlags": [
+    "COMUN_BUS_RELATA_ENABLED",
+    "COMUN_STMU_ASSISTED_ENABLED"
+  ],
+  "reason": "private_bus_relata_adapter_and_person_controlled_stmu_assistance"
+}

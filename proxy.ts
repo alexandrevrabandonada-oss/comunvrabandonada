@@ -13,6 +13,7 @@ import { shouldCloakComunQuickCaptureApi } from "@/lib/comun-capture-feature";
 import { shouldCloakComunParticipationWallet } from "@/lib/comun-participation-wallet-feature";
 import { shouldCloakComunForwarding } from "@/lib/comun-forwarding-feature";
 import { shouldCloakComunSidewalkP4 } from "@/lib/comun-sidewalk-p4-feature";
+import { shouldCloakComunStmuAssisted } from "@/lib/comun-stmu-assisted-feature";
 import { updateSession } from "@/lib/supabase/middleware";
 
 function shouldRefreshCommunitySession(pathname: string) {
@@ -40,6 +41,7 @@ export async function proxy(request: NextRequest) {
     shouldCloakComunQuickCaptureApi(request.nextUrl.pathname) ||
     shouldCloakComunParticipationWallet(request.nextUrl.pathname) ||
     shouldCloakComunForwarding(request.nextUrl.pathname) ||
+    shouldCloakComunStmuAssisted(request.nextUrl.pathname) ||
     shouldCloakComunSidewalkP4(request.nextUrl.pathname)
   ) {
     return NextResponse.json(
@@ -98,6 +100,7 @@ export const config = {
     "/api/comun/participation-wallet",
     "/api/comun/participation-wallet/:path*",
     "/api/comun/forwarding/:path*",
+    "/api/comun/stmu-assisted/:path*",
     "/api/comun/calcadas/intake",
     "/api/comun/calcadas/intake/:path*",
     "/api/comun/relata/sidewalk/finalize",

@@ -1,4 +1,17 @@
-# Estado atual — atualização 48.0M (05/08/2026)
+# Estado atual — atualização 48.1B-P5 (08/08/2026)
+
+## 48.1B-P5 — Ônibus + STMU assistida — candidata em validação
+
+- baseline: `origin/main=6b037d6dd3ffc617c6c47d26adb466eaaf7639bd`;
+- preflight remoto read-only: `COMUN_P5_REMOTE_PREFLIGHT_GREEN`, run `31279521086`, zero leitura de conteúdo e zero escrita;
+- schema P5 não existe remotamente; uma única migration forward-only foi criada, sem importar as migrations local-only 48.0E/H/K/L;
+- Relata permanece fonte da verdade, categoria `public_transport`, um protocolo COMUN e um item canônico de Carteira;
+- forwarding é somente assistido: copiar e abrir dependem de gesto; abertura é `prepared`, nunca `sent`;
+- WhatsApp e mailto não recebem mensagem em query; 72 horas só começa após declaração explícita da pessoa;
+- validator SQL, privileges lint, 8 testes focais, typecheck, lint e build verdes;
+- Docker local indisponível; lane Supabase descartável sem secrets remotos criada para o E2E funcional;
+- PR draft #232; migration, flags, deployment e Production ainda inalterados;
+- `launch_publicly=false`; coletivos, território e Google permanecem desligados.
 
 ## Tijolo 48.0M — ensaio humano integrado — integrado, técnico dormente, humano pendente
 

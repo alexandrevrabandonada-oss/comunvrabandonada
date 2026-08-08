@@ -92,6 +92,7 @@
     "relata:p3a:private:attachments:e2e:local": "node scripts/solo/rehearse-p3a-private-attachments-local.mjs",
     "relata:p3b:private:location:e2e:local": "node scripts/solo/rehearse-p3b-private-location-local.mjs",
     "relata:p4:sidewalk:e2e:local": "node scripts/solo/rehearse-p4-sidewalk-relata-local.mjs",
+    "relata:p5:bus-stmu:e2e:local": "node scripts/solo/rehearse-p5-bus-stmu-local.mjs",
     "relata:p2:text:e2e:local": "node scripts/solo/rehearse-p2-relata-text-private-local.mjs",
     "relata:r2a:attachment-fix:test": "node scripts/solo/r2a-attachment-rpc-fix-local.mjs",
     "relata:r2a:wallet-account-fix:test": "node scripts/solo/r2a-wallet-account-rpc-fix-local.mjs",

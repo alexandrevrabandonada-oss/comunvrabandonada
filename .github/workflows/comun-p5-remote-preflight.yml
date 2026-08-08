@@ -37,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .ci-artifacts/p5-preflight
-          psql "$SUPABASE_DB_URL" -XAt -v ON_ERROR_STOP=1 >.ci-artifacts/p5-preflight/catalog.json <<'SQL'
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/p5-preflight/catalog.json <<'SQL'
           begin read only;
           with wanted_tables(name) as (values
             ('comun_bus_relata_intakes'),

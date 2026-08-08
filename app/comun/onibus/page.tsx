@@ -1,13 +1,17 @@
 import { notFound } from "next/navigation";
 import { ComunShell } from "@/components/comun-shell";
 import { isComunBusLocalPilotEnabled } from "@/lib/comun-bus-feature";
+import { isComunBusRelataEnabled } from "@/lib/comun-bus-feature";
 import { createComunBusClient } from "@/lib/comun-bus-runtime";
 import { ComunBusLocalPilot } from "@/components/comun-bus-local-pilot";
+import { ComunBusRelataIntake } from "@/components/comun-bus-relata-intake";
+import { isComunRelataAttachmentsEnabled, isComunRelataLocationEnabled } from "@/lib/comun-relata-evidence-feature";
 
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false, follow: false } };
 
 export default async function ComunBusPage() {
+  if (isComunBusRelataEnabled()) return <ComunShell showSyntheticNotice={false}><ComunBusRelataIntake attachmentsEnabled={isComunRelataAttachmentsEnabled()} locationEnabled={isComunRelataLocationEnabled()} /></ComunShell>;
   if (!isComunBusLocalPilotEnabled()) notFound();
   const db = createComunBusClient();
   const [linesResult, stopsResult, observatoryResult, channelResult] = await Promise.all([
