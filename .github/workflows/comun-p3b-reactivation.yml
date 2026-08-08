@@ -123,20 +123,39 @@ jobs:
         run: |
           set -euo pipefail
           deployment_host="${DEPLOYMENT_URL#https://}"
+          trap 'rm -f /tmp/comun-p3b-deployment.json /tmp/comun-p3b-aliases.json' EXIT
           curl --fail-with-body --silent --show-error \
             --header "Authorization: Bearer $VERCEL_TOKEN" \
             "https://api.vercel.com/v13/deployments/$deployment_host?teamId=$VERCEL_ORG_ID" \
             > /tmp/comun-p3b-deployment.json
-          node --input-type=module <<'NODE'
+          deployment_id="$(node --input-type=module <<'NODE'
           import fs from "node:fs";
           const deployment = JSON.parse(fs.readFileSync("/tmp/comun-p3b-deployment.json", "utf8"));
-          const aliases = Array.isArray(deployment.alias) ? deployment.alias : [];
-          if (typeof deployment.uid !== "string" || !aliases.includes("comunsocial.online")) {
-            console.error("COMUN_P3B_BLOCKED_CANONICAL_ALIAS_STALE");
-            process.exit(1);
-          }
-          console.log("COMUN_P3B_CANONICAL_ALIAS_GREEN");
+          if (typeof deployment.uid !== "string" || !/^dpl_[A-Za-z0-9]+$/.test(deployment.uid)) process.exit(1);
+          process.stdout.write(deployment.uid);
           NODE
+          )"
+          test -n "$deployment_id"
+          for _ in $(seq 1 45); do
+            if curl --fail-with-body --silent --show-error \
+              --header "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v2/deployments/$deployment_id/aliases?teamId=$VERCEL_ORG_ID" \
+              > /tmp/comun-p3b-aliases.json; then
+              if node --input-type=module <<'NODE'
+              import fs from "node:fs";
+              const response = JSON.parse(fs.readFileSync("/tmp/comun-p3b-aliases.json", "utf8"));
+              const aliases = Array.isArray(response.aliases) ? response.aliases : [];
+              process.exit(aliases.some((entry) => entry?.alias === "comunsocial.online") ? 0 : 1);
+              NODE
+              then
+                echo COMUN_P3B_CANONICAL_ALIAS_GREEN
+                exit 0
+              fi
+            fi
+            sleep 2
+          done
+          echo COMUN_P3B_BLOCKED_CANONICAL_ALIAS_STALE
+          exit 1
 
       - name: Stop after rollback deployment
         if: inputs.mode == 'rollback'
@@ -184,7 +203,7 @@ jobs:
           node scripts/solo/rehearse-p3b-private-location-production.mjs > .ci-artifacts/p3b-production/smoke.json
 
       - name: Crash recovery for the exact synthetic attempt
-        if: always() && (inputs.mode == 'activate-smoke' || inputs.mode == 'rotate-key-activate-smoke') && steps.smoke.outcome != 'success'
+        if: always() && (inputs.mode == 'activate-smoke' || inputs.mode == 'rotate-key-activate-smoke') && steps.attempt.outcome == 'success' && steps.attempt.outputs.attempt_id != '' && steps.smoke.outcome != 'success'
         env:
           COMUN_BASE_URL: https://comunsocial.online
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
