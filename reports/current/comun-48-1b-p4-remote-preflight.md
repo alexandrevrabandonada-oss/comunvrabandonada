@@ -4,7 +4,7 @@ Data: 2026-08-08
 
 ## Resultado
 
-`COMUN_P4_REMOTE_PREFLIGHT_GREEN_ADAPTER_MIGRATION_REQUIRED`
+`COMUN_P4_REMOTE_SCHEMA_PROMOTED_FLAGS_OFF`
 
 - `origin/main`: `e9aded8f486843e888473172c59eb58a4d7e1335`.
 - Projeto Supabase vinculado: estado `ACTIVE_HEALTHY`; PostgreSQL `17.6.1.084`.
@@ -29,3 +29,20 @@ Plano remoto exato:
 Nenhuma fixture, seed, migration local-only, `--include-all`, repair ou reset foi usado.
 
 Resultado: `COMUN_P4_REMOTE_PLAN_EXACT_ONE`.
+
+## Promoção e postflight
+
+- PR funcional #227 integrada em `96c05de6776c61c4034e02a75551646c04e44094`.
+- O contrato canônico do manifesto foi corrigido pela PR #228, integrada em
+  `b9bcb0be743a7e6e5a319d474709a07c15eaaac3`; os bytes e o SHA-256 da
+  migration permaneceram imutáveis.
+- Preflight remoto exato e sem escrita: run `31275553224`.
+- Promoção da única migration planejada: run `31275588586`.
+- Postflight independente: run `31275651342`.
+- O histórico remoto contém a migration P4; a tabela adapter existe vazia,
+  com RLS habilitada e forçada.
+- `PUBLIC`, `anon` e `authenticated` têm zero CRUD direto; `service_role`
+  preserva o acesso server-side esperado.
+- As quatro RPCs do adapter estão presentes, são `security definer`, usam
+  `search_path` fixado e concedem execução somente a `service_role`.
+- Nenhuma fixture, seed, repair, reset ou migration adicional foi aplicada.
