@@ -1192,3 +1192,29 @@ Proximo tijolo elegivel: `48.1B-P4 — Calcadas real`.
 
 Resultado terminal:
 `COMUN_48_1B_P4_SIDEWALK_REAL_DOMAIN_GREEN_REVIEWED_MAP_ONLY`.
+
+### 48.1B-P5 — Ônibus real e STMU assistida (2026-08-08)
+
+- PR #232 mesclada em `87db9f7e5e76eed73a261fed5044393d719e42c4`;
+- migration única `20260808220000_comun_bus_stmu_assisted.sql`, SHA-256
+  `88b5d6821edd3984e6c08eddfd924efc6c90dfe37dce45fd6f3c01a71d539a41`;
+- preflight `31284013965`, promoção `31284042454` e postflight
+  `31284102583` verdes, sem migrations históricas local-only;
+- P5A/Ônibus ativada no run `31284226667`, com Relata privado, protocolo COMUN,
+  adapter mínimo, Carteira e cleanup sintético em `finally`;
+- a primeira ativação P5B (`31284318553`) fez rollback automático por uma
+  assertion CI-only de destino composto; nenhum envio ou tentativa foi criado;
+- hotfix operacional PR #233 mesclado em
+  `dd8fca19c074f77c145148bbf5ca5bc39f4eb058`;
+- ativação final P5B `31284607662` verde, com cinco RPCs, destinos exatos sem
+  query, zero request externo, zero auto-send e tentativas invariáveis;
+- Conta, Carteira, Relata, fotos, localização, Calçadas, Ônibus e STMU assistida
+  estão ON;
+- forwarding automático, publicação automática, mapa público geral, coletivos,
+  território e Google permanecem OFF; `launch_publicly=false`.
+
+Resultado terminal:
+`COMUN_48_1B_P5_BUS_STMU_ASSISTED_DOMAIN_GREEN_NO_AUTO_SEND`.
+
+Próximo ciclo elegível: `48.1C — piloto humano contínuo no domínio real`. Não
+iniciar outro miniapp antes de medir a fricção do fluxo integrado.
