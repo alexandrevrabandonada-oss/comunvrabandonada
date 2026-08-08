@@ -11,6 +11,7 @@ test("canonical alias proof uses the deployment-scoped aliases endpoint", () => 
   assert.match(workflow, /deploy --prod --skip-domain --yes/);
   assert.match(workflow, /promote "\$DEPLOYMENT_URL" --yes --timeout=5m/);
   assert.match(workflow, /\/v13\/deployments\/\$deployment_host\?teamId=/);
+  assert.match(workflow, /\(\?:dpl_\)\?\[A-Za-z0-9\]\{8,128\}/);
   assert.match(workflow, /\/v2\/deployments\/\$deployment_id\/aliases\?teamId=/);
   assert.match(workflow, /entry\?\.alias === "comunsocial\.online"/);
   assert.match(workflow, /COMUN_P3B_CANONICAL_ALIAS_GREEN/);

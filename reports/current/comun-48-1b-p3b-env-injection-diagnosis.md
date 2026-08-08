@@ -92,3 +92,15 @@ A prova consultava o campo resumido `alias` do objeto de deployment, que não é
 - escrita Supabase: nenhuma.
 
 O projeto permanece em estado de promoção manual após os rollbacks anteriores. O runner passa a criar explicitamente um deployment Production sem domínio e, em etapa separada, usar `vercel promote` para torná-lo corrente. A mesma promoção explícita passa a proteger o deployment de rollback; a API de aliases continua sendo o gate exato antes da UI e da fixture.
+
+## Execução 31266946949
+
+- deployment Production: criado e pronto;
+- promoção explícita: verde;
+- validação do identificador: bloqueada antes da consulta de aliases por aceitar apenas o formato prefixado `dpl_`;
+- UI e fixture: não executadas;
+- recovery: ignorado por ausência de marcador;
+- rollback explícito e promovido: verde;
+- escrita Supabase: nenhuma.
+
+O endpoint da Vercel devolveu o UID em formato base58 sem prefixo. O contrato foi corrigido para aceitar de forma fechada tanto `dpl_<base58>` quanto `<base58>`, ainda com tamanho limitado e sem publicar o identificador. A associação do domínio continua sendo comprovada apenas pela lista de aliases do deployment exato.
