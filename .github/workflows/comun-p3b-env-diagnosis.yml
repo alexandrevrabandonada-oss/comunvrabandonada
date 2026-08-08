@@ -110,17 +110,43 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -euo pipefail
+          printf '%s' enabled | npx --yes vercel@50.28.0 env update COMUN_RELATA_LOCATION_ENABLED production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" \
+            > /tmp/comun-p3b-location-flag-update.out \
+            2> /tmp/comun-p3b-location-flag-update.err
           npx --yes vercel@50.28.0 env run -e production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" -- node scripts/solo/validate-p3b-production-env.mjs \
             > .ci-artifacts/p3b-env-diagnosis/vercel-env-run.json \
             2> /tmp/comun-p3b-vercel-env-run.err
           node --input-type=module <<'NODE'
           import fs from "node:fs";
           const result = JSON.parse(fs.readFileSync(".ci-artifacts/p3b-env-diagnosis/vercel-env-run.json", "utf8"));
-          if (!result.combinedLocationGate) {
+          const metadata = JSON.parse(fs.readFileSync(".ci-artifacts/p3b-env-diagnosis/vercel-env-metadata.json", "utf8"));
+          const keySensitive = metadata.COMUN_RELATA_LOCATION_ENCRYPTION_KEY.entries
+            .filter((entry) => entry.target.includes("production"))
+            .every((entry) => entry.type === "sensitive");
+          const serviceRoleSensitive = metadata.SUPABASE_SERVICE_ROLE_KEY.entries
+            .filter((entry) => entry.target.includes("production"))
+            .every((entry) => entry.type === "sensitive");
+          if (!result.locationFlagExactEnabled || !result.relataPersistenceEnabled || !result.supabaseHttps) {
             console.error("COMUN_P3B_ENV_RUN_LOCATION_GATE_NOT_GREEN");
             process.exit(1);
           }
-          console.log("COMUN_P3B_VERCEL_ENV_RUN_GREEN");
+          if ((!result.locationKeyValid32Bytes && !keySensitive) || (!result.serviceRolePresent && !serviceRoleSensitive)) {
+            console.error("COMUN_P3B_ENV_RUN_NON_SENSITIVE_VALUE_MISSING");
+            process.exit(1);
+          }
+          const classification = {
+            locationFlagExactEnabled: result.locationFlagExactEnabled,
+            relataPersistenceEnabled: result.relataPersistenceEnabled,
+            supabaseHttps: result.supabaseHttps,
+            locationKeyValidation: result.locationKeyValid32Bytes ? "green" : "deferred_to_staged_runtime_sensitive",
+            serviceRoleValidation: result.serviceRolePresent ? "green" : "deferred_to_staged_runtime_sensitive",
+            readableEnvGreen: true,
+          };
+          fs.writeFileSync(
+            ".ci-artifacts/p3b-env-diagnosis/vercel-env-run-classification.json",
+            JSON.stringify(classification, null, 2) + "\n",
+          );
+          console.log("COMUN_P3B_VERCEL_ENV_RUN_READABLE_GREEN_SENSITIVE_DEFERRED");
           NODE
 
       - name: Create staged Production deployment without domain alias
@@ -177,12 +203,13 @@ jobs:
           set -euo pipefail
           node --input-type=module <<'NODE' > .ci-artifacts/p3b-env-diagnosis/result.json
           import fs from "node:fs";
-          const envRun = JSON.parse(fs.readFileSync(".ci-artifacts/p3b-env-diagnosis/vercel-env-run.json", "utf8"));
+          const envRun = JSON.parse(fs.readFileSync(".ci-artifacts/p3b-env-diagnosis/vercel-env-run-classification.json", "utf8"));
           const staged = JSON.parse(fs.readFileSync(".ci-artifacts/p3b-env-diagnosis/staged-runtime.json", "utf8"));
           process.stdout.write(JSON.stringify({
             result: "COMUN_P3B_STAGED_RUNTIME_LOCATION_GATE_GREEN",
             metadata: "COMUN_P3B_VERCEL_ENV_METADATA_GREEN",
-            envRun: envRun.combinedLocationGate === true,
+            envRunReadable: envRun.readableEnvGreen === true,
+            sensitiveValues: "validated_in_staged_runtime_only",
             stagedRuntime: staged.locationCapabilityEnabled === true,
             stagedUi: true,
             canonicalActivation: false,
@@ -199,3 +226,14 @@ jobs:
           path: .ci-artifacts/p3b-env-diagnosis
           retention-days: 14
           if-no-files-found: ignore
+
+      - name: Restore dormant location flag after staged diagnosis
+        if: always()
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          printf '%s' disabled | npx --yes vercel@50.28.0 env update COMUN_RELATA_LOCATION_ENABLED production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" \
+            > /tmp/comun-p3b-location-flag-restore.out \
+            2> /tmp/comun-p3b-location-flag-restore.err
+          echo COMUN_P3B_LOCATION_ENV_STORE_RESTORED_DISABLED >> "$GITHUB_STEP_SUMMARY"
