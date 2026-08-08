@@ -81,3 +81,14 @@ O endpoint temporário foi removido antes da candidata de ativação. O runner c
 - recovery: chamado indevidamente sem `ATTEMPT_ID`, sem mutação, classificado como defeito do runner.
 
 A prova consultava o campo resumido `alias` do objeto de deployment, que não é o contrato canônico de enumeração dos aliases associados. O runner passa a obter o identificador exato do deployment e consultar `GET /v2/deployments/{id}/aliases`, com espera limitada, exigindo `comunsocial.online` dentro da lista escopada àquele deployment. O recovery também passa a exigir que o marcador sintético tenha sido alocado com sucesso e seja não vazio.
+
+## Execução 31266686216
+
+- deployment Production: criado e pronto;
+- API de aliases escopada: `comunsocial.online` ausente no deployment novo;
+- UI e fixture: não executadas;
+- recovery sem marcador: corretamente ignorado;
+- rollback da flag: executado;
+- escrita Supabase: nenhuma.
+
+O projeto permanece em estado de promoção manual após os rollbacks anteriores. O runner passa a criar explicitamente um deployment Production sem domínio e, em etapa separada, usar `vercel promote` para torná-lo corrente. A mesma promoção explícita passa a proteger o deployment de rollback; a API de aliases continua sendo o gate exato antes da UI e da fixture.
