@@ -69,3 +69,15 @@ O acesso staged passa a usar `vercel curl`, mecanismo autenticado da plataforma 
 - flag restaurada para `disabled`: verde.
 
 O endpoint temporário foi removido antes da candidata de ativação. O runner canônico foi atualizado para usar `env update` sem newline ambíguo e exigir que `comunsocial.online` esteja associado ao deployment recém-criado antes de qualquer fixture.
+
+## Execução 31266107357
+
+- flag de localização: habilitada somente para a tentativa;
+- deployment Production: criado e pronto;
+- prova do alias: bloqueada antes da UI e da fixture;
+- fixture: não criada;
+- escrita Supabase: nenhuma;
+- rollback automático: verde, com localização novamente desligada;
+- recovery: chamado indevidamente sem `ATTEMPT_ID`, sem mutação, classificado como defeito do runner.
+
+A prova consultava o campo resumido `alias` do objeto de deployment, que não é o contrato canônico de enumeração dos aliases associados. O runner passa a obter o identificador exato do deployment e consultar `GET /v2/deployments/{id}/aliases`, com espera limitada, exigindo `comunsocial.online` dentro da lista escopada àquele deployment. O recovery também passa a exigir que o marcador sintético tenha sido alocado com sucesso e seja não vazio.
