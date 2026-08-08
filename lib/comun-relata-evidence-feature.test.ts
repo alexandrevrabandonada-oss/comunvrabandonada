@@ -50,11 +50,13 @@ describe("COMUN Relata evidence flags", () => {
     }
     expect(shouldCloakComunRelataPublicMap("/api/comun/relata/publicity", dormant)).toBe(false);
   });
-  it("requires all three flags, loopback, service role and distinct 256-bit keys", () => {
+  it("allows location with only its own 256-bit key and reserves HMAC for collective grouping", () => {
     expect(isComunRelataEvidenceEnabled(enabledEnv())).toBe(true);
     expect(isComunRelataEvidenceEnabled({ ...enabledEnv(), COMUN_RELATA_LOCAL_EVIDENCE: "disabled" })).toBe(false);
     expect(isComunRelataEvidenceEnabled({ ...enabledEnv(), NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co" })).toBe(false);
-    expect(isComunRelataEvidenceEnabled({ ...enabledEnv(), [COMUN_RELATA_SPATIAL_KEY]: key(1) })).toBe(false);
+    expect(isComunRelataLocationEnabled({ ...enabledEnv(), [COMUN_RELATA_SPATIAL_KEY]: undefined })).toBe(true);
+    expect(isComunRelataCollectiveEnabled({ ...enabledEnv(), COMUN_RELATA_COLLECTIVE_ENABLED: "enabled", [COMUN_RELATA_SPATIAL_KEY]: undefined })).toBe(false);
+    expect(isComunRelataCollectiveEnabled({ ...enabledEnv(), COMUN_RELATA_COLLECTIVE_ENABLED: "enabled" })).toBe(true);
   });
   it("fails before reading cryptographic secrets when a flag is off", () => {
     let secretReads = 0;

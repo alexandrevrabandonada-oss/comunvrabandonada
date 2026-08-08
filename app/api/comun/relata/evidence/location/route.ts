@@ -10,6 +10,7 @@ import {
   postgresBytea,
   readComunRelataEvidenceState,
 } from "@/lib/comun-relata-evidence-runtime";
+import { isComunRelataCollectiveEnabled } from "@/lib/comun-relata-evidence-feature";
 
 export const runtime = "nodejs";
 
@@ -66,10 +67,12 @@ export async function POST(request: NextRequest) {
       p_geographic_risk: "unreviewed",
     });
     if (error || !Array.isArray(data) || !data[0]) return unavailable();
-    await associateComunRelataCollective(local.db, local.proof, {
-      longitude,
-      latitude,
-    });
+    if (isComunRelataCollectiveEnabled()) {
+      await associateComunRelataCollective(local.db, local.proof, {
+        longitude,
+        latitude,
+      });
+    }
     const evidence = await readComunRelataEvidenceState(local.db, local.proof);
     return NextResponse.json(
       { evidence, noOfficialSend: true, nothingPublished: true },

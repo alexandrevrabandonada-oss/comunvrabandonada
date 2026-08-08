@@ -29,6 +29,14 @@ function validLocalKey(value: string | undefined) {
     return false;
   }
 }
+
+function hasValidLocationKey(env: Record<string, string | undefined>) {
+  return validLocalKey(env[COMUN_RELATA_LOCATION_KEY]);
+}
+
+function hasValidSpatialKey(env: Record<string, string | undefined>) {
+  return validLocalKey(env[COMUN_RELATA_SPATIAL_KEY]);
+}
 export function areComunRelataEvidenceFlagsEnabled(
   env: Record<string, string | undefined> = process.env,
 ) {
@@ -59,9 +67,7 @@ export function isComunRelataAttachmentsEnabled(
     isHttpsSupabaseUrl(env.NEXT_PUBLIC_SUPABASE_URL) &&
     Boolean(env.SUPABASE_SERVICE_ROLE_KEY);
   const local = localEvidenceRuntime(env)
-    ? validLocalKey(env[COMUN_RELATA_LOCATION_KEY]) &&
-      validLocalKey(env[COMUN_RELATA_SPATIAL_KEY]) &&
-      env[COMUN_RELATA_LOCATION_KEY] !== env[COMUN_RELATA_SPATIAL_KEY]
+    ? true
     : false;
   return production || local;
 }
@@ -74,14 +80,12 @@ export function isComunRelataLocationEnabled(
     isComunRelataPersistenceEnabled(env) &&
     isHttpsSupabaseUrl(env.NEXT_PUBLIC_SUPABASE_URL) &&
     Boolean(env.SUPABASE_SERVICE_ROLE_KEY);
-  const hasDistinctKeys = () =>
-    validLocalKey(env[COMUN_RELATA_LOCATION_KEY]) &&
-    validLocalKey(env[COMUN_RELATA_SPATIAL_KEY]) &&
-    env[COMUN_RELATA_LOCATION_KEY] !== env[COMUN_RELATA_SPATIAL_KEY];
   const local =
     env[COMUN_RELATA_LOCATION_FLAG] === "enabled" &&
-    localEvidenceRuntime(env);
-  return (production || local) && hasDistinctKeys();
+    localEvidenceRuntime(env) &&
+    hasValidLocationKey(env);
+  const productionWithKey = production && hasValidLocationKey(env);
+  return productionWithKey || local;
 }
 
 export function isComunRelataEvidenceEnabled(
@@ -93,8 +97,12 @@ export function isComunRelataEvidenceEnabled(
 export function isComunRelataCollectiveEnabled(
   env: Record<string, string | undefined> = process.env,
 ) {
-  return isComunRelataLocationEnabled(env) &&
-    env[COMUN_RELATA_COLLECTIVE_FLAG] === "enabled";
+  if (env[COMUN_RELATA_COLLECTIVE_FLAG] !== "enabled") return false;
+  if (!isComunRelataLocationEnabled(env)) return false;
+  return (
+    hasValidSpatialKey(env) &&
+    env[COMUN_RELATA_LOCATION_KEY] !== env[COMUN_RELATA_SPATIAL_KEY]
+  );
 }
 
 export function shouldCloakComunRelataEvidenceApi(

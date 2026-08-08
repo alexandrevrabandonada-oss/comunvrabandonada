@@ -97,6 +97,7 @@ export function RelataEvidencePanel({ withdrawn, attachmentsEnabled, locationEna
       };
       setEvidence(value.evidence);
       setShowMap(false);
+      setMapPoint(null);
       setNotice("Local guardado privadamente. A coordenada exata não será exibida.");
     } catch {
       setNotice("Não foi possível guardar o local. O relato continua salvo sem localização.");
