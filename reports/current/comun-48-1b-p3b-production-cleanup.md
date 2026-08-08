@@ -40,6 +40,15 @@ O cleanup deverá operar apenas por IDs exatos da fixture, retirar localização
 
 Não usar SQL manual em Production para apagar histórico append-only. Reabrir a ativação somente com uma capacidade server-side auditada que consiga localizar a fixture por escopo exato e retirar o relato/localização sem tocar em dados legítimos.
 
+## C3 — cleanup
+
+Os runs `31260049930`, `31260199454`, `31260510529` e `31260965396` foram
+bloqueados antes da criação da fixture pelo gate de capacidade. O run final
+`31261385771` também parou antes do smoke e executou rollback automático.
+Consequentemente não houve fixture nova, não houve cleanup necessário e não há
+resíduo sintético adicional. O cleanup órfão anterior continua comprovado pelo
+run `31239240233`, com `hardDeletes=0` e `plaintextLocationRead=false`.
+
 ## Recovery concluído e smoke C2
 
 O runner foi integrado na main pelos PRs #186 e #187. A verificação read-only do
