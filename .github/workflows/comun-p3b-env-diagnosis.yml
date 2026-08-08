@@ -1,0 +1,201 @@
+name: COMUN P3B environment injection diagnosis
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact main SHA to diagnose
+        required: true
+        type: string
+      mode:
+        description: Run the three-layer diagnosis
+        required: true
+        default: diagnose
+        type: choice
+        options: [diagnose]
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+
+      - name: Verify exact main and tooling
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          npm ci --ignore-scripts
+          node --check scripts/solo/validate-p3b-production-env.mjs
+          mkdir -p .ci-artifacts/p3b-env-diagnosis
+
+      - name: Read Vercel environment metadata without decrypting values
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env?decrypt=false&limit=100" \
+            > /tmp/comun-p3b-vercel-env-metadata.json
+          node --input-type=module <<'NODE' > .ci-artifacts/p3b-env-diagnosis/vercel-env-metadata.json
+          import fs from "node:fs";
+          const payload = JSON.parse(fs.readFileSync("/tmp/comun-p3b-vercel-env-metadata.json", "utf8"));
+          const names = new Set([
+            "COMUN_RELATA_LOCATION_ENCRYPTION_KEY",
+            "COMUN_RELATA_LOCATION_ENABLED",
+            "COMUN_RELATA_PERSISTENCE_ENABLED",
+            "SUPABASE_SERVICE_ROLE_KEY",
+            "NEXT_PUBLIC_SUPABASE_URL",
+          ]);
+          const envs = Array.isArray(payload.envs) ? payload.envs : [];
+          const result = {};
+          for (const name of names) {
+            const entries = envs.filter((entry) => entry.key === name);
+            result[name] = {
+              count: entries.length,
+              productionCount: entries.filter((entry) => Array.isArray(entry.target) && entry.target.includes("production")).length,
+              entries: entries.map((entry) => ({
+                target: Array.isArray(entry.target) ? entry.target : [],
+                gitBranchScoped: Boolean(entry.gitBranch),
+                type: typeof entry.type === "string" ? entry.type : null,
+              })),
+            };
+          }
+          process.stdout.write(JSON.stringify(result, null, 2) + "\n");
+          NODE
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const value = JSON.parse(fs.readFileSync(".ci-artifacts/p3b-env-diagnosis/vercel-env-metadata.json", "utf8"));
+          for (const key of ["COMUN_RELATA_LOCATION_ENCRYPTION_KEY", "COMUN_RELATA_LOCATION_ENABLED"]) {
+            if (value[key].productionCount > 1) {
+              console.error("COMUN_P3B_BLOCKED_DUPLICATE_VERCEL_ENV_METADATA");
+              process.exit(1);
+            }
+          }
+          const locationKey = value.COMUN_RELATA_LOCATION_ENCRYPTION_KEY;
+          const locationFlag = value.COMUN_RELATA_LOCATION_ENABLED;
+          const productionEntries = (entry) => entry.target.includes("production");
+          if (locationKey.productionCount !== 1 || locationKey.entries.filter(productionEntries).some((entry) => entry.gitBranchScoped)) {
+            console.error("COMUN_P3B_BLOCKED_LOCATION_KEY_METADATA_NOT_CANONICAL");
+            process.exit(1);
+          }
+          if (locationFlag.productionCount !== 1 || locationFlag.entries.filter(productionEntries).some((entry) => entry.gitBranchScoped)) {
+            console.error("COMUN_P3B_BLOCKED_LOCATION_FLAG_METADATA_NOT_CANONICAL");
+            process.exit(1);
+          }
+          console.log("COMUN_P3B_VERCEL_ENV_METADATA_GREEN");
+          NODE
+
+      - name: Validate effective Production env without exposing values
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          npx --yes vercel@50.28.0 env run -e production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" -- node scripts/solo/validate-p3b-production-env.mjs \
+            > .ci-artifacts/p3b-env-diagnosis/vercel-env-run.json \
+            2> /tmp/comun-p3b-vercel-env-run.err
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const result = JSON.parse(fs.readFileSync(".ci-artifacts/p3b-env-diagnosis/vercel-env-run.json", "utf8"));
+          if (!result.combinedLocationGate) {
+            console.error("COMUN_P3B_ENV_RUN_LOCATION_GATE_NOT_GREEN");
+            process.exit(1);
+          }
+          console.log("COMUN_P3B_VERCEL_ENV_RUN_GREEN");
+          NODE
+
+      - name: Create staged Production deployment without domain alias
+        id: staged
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" \
+            > /tmp/comun-p3b-staged-deploy.out \
+            2> /tmp/comun-p3b-staged-deploy.err
+          staged_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-p3b-staged-deploy.out | tail -n 1 | tr -d '\r')"
+          case "$staged_url" in https://*.vercel.app) ;; *) echo COMUN_P3B_STAGED_DEPLOYMENT_URL_UNAVAILABLE; exit 1 ;; esac
+          printf 'staged_url=%s\n' "$staged_url" >> "$GITHUB_OUTPUT"
+          echo "COMUN_P3B_STAGED_PRODUCTION_READY"
+
+      - name: Probe staged runtime environment
+        env:
+          STAGED_URL: ${{ steps.staged.outputs.staged_url }}
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error --connect-timeout 5 --max-time 15 \
+            -H 'Cache-Control: no-cache' \
+            "$STAGED_URL/api/comun/internal/p3b-runtime-env-check?run=$GITHUB_RUN_ID" \
+            > .ci-artifacts/p3b-env-diagnosis/staged-runtime.json
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const result = JSON.parse(fs.readFileSync(".ci-artifacts/p3b-env-diagnosis/staged-runtime.json", "utf8"));
+          if (!result.locationCapabilityEnabled) {
+            console.error("COMUN_P3B_BLOCKED_VERCEL_RUNTIME_ENV_INJECTION");
+            process.exit(1);
+          }
+          console.log("COMUN_P3B_STAGED_RUNTIME_LOCATION_GATE_GREEN");
+          NODE
+
+      - name: Verify staged UI capability
+        env:
+          STAGED_URL: ${{ steps.staged.outputs.staged_url }}
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error --connect-timeout 5 --max-time 15 \
+            -H 'Cache-Control: no-cache' \
+            "$STAGED_URL/comun/relatar?__p3b_env_diagnosis=$GITHUB_RUN_ID" \
+            > /tmp/comun-p3b-staged-relatar.html
+          grep -q 'Usar localização' /tmp/comun-p3b-staged-relatar.html
+          if grep -q 'caso coletivo\|coletivo' /tmp/comun-p3b-staged-relatar.html; then
+            echo COMUN_P3B_BLOCKED_STAGED_COLLECTIVE_CAPABILITY_VISIBLE
+            exit 1
+          fi
+          echo COMUN_P3B_STAGED_UI_LOCATION_GREEN
+
+      - name: Emit sanitized diagnosis
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE' > .ci-artifacts/p3b-env-diagnosis/result.json
+          import fs from "node:fs";
+          const envRun = JSON.parse(fs.readFileSync(".ci-artifacts/p3b-env-diagnosis/vercel-env-run.json", "utf8"));
+          const staged = JSON.parse(fs.readFileSync(".ci-artifacts/p3b-env-diagnosis/staged-runtime.json", "utf8"));
+          process.stdout.write(JSON.stringify({
+            result: "COMUN_P3B_STAGED_RUNTIME_LOCATION_GATE_GREEN",
+            metadata: "COMUN_P3B_VERCEL_ENV_METADATA_GREEN",
+            envRun: envRun.combinedLocationGate === true,
+            stagedRuntime: staged.locationCapabilityEnabled === true,
+            stagedUi: true,
+            canonicalActivation: false,
+            fixtureCreated: false,
+          }, null, 2) + "\n");
+          NODE
+          echo COMUN_P3B_ENV_DIAGNOSIS_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized diagnosis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-p3b-env-diagnosis-${{ github.run_id }}
+          path: .ci-artifacts/p3b-env-diagnosis
+          retention-days: 14
+          if-no-files-found: ignore
