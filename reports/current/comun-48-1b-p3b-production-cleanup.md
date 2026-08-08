@@ -40,6 +40,25 @@ O cleanup deverá operar apenas por IDs exatos da fixture, retirar localização
 
 Não usar SQL manual em Production para apagar histórico append-only. Reabrir a ativação somente com uma capacidade server-side auditada que consiga localizar a fixture por escopo exato e retirar o relato/localização sem tocar em dados legítimos.
 
-Resultado: `COMUN_P3B_BLOCKED_SYNTHETIC_CLEANUP_UNPROVEN`.
-O F1 e a reativação da localização permanecem bloqueados até uma prova
-read-only do pós-voo com o runner corrigido.
+## Recovery concluído e smoke C2
+
+O runner foi integrado na main pelos PRs #186 e #187. A verificação read-only do
+run `31239240233` comprovou exatamente uma fixture retirada:
+
+- `activeLocationCount=0`, `withdrawnLocationCount=1`;
+- `withdrawnCaseCount=1`, `withdrawnReportCount=1`;
+- `activeWalletItemCount=0`, `revokedWalletCount=1`;
+- `activeRecoveryCredentialCount=0`, `activeAccountLinkCount=0`;
+- `hardDeletes=0`, `plaintextLocationRead=false`.
+
+A migration F1 foi promovida separadamente e validada no run `31243106898`.
+No C2, a primeira fixture de smoke falhou antes de adicionar localização por
+triagem incompleta; a recuperação retirou o relato sem criar localização. A
+segunda tentativa usou texto classificável, mas a rota de localização retornou
+`404`, indicando que a chave server-side não passou no gate de validade. O
+rollback foi executado no run `31244127100`.
+
+Nenhum UUID, texto integral, coordenada, segredo ou connection string foi
+publicado. Não houve hard delete. A flag de localização permanece desligada.
+
+Resultado: `COMUN_P3B_BLOCKED_LOCATION_RUNTIME_KEY_INVALID_OR_UNAVAILABLE`.
