@@ -75,6 +75,21 @@ try {
   assert.equal(resolvedWallet.rows[0].id, walletId);
   const beforePrepare = await http(`/api/comun/stmu-assisted/packages/${walletItemId}`);
   assert.equal(beforePrepare.status, 200, await beforePrepare.text());
+  const walletHash = createHash("sha256").update(`comun-wallet-v1:${walletToken}`).digest("hex");
+  await db.query("begin");
+  try {
+    await db.query("set local role service_role");
+    const probe = await db.query("select * from public.comun_stmu_assisted_prepare($1,$2)", [walletHash, walletItemId]);
+    assert.equal(probe.rowCount, 1);
+    await db.query("rollback");
+  } catch (error) {
+    await db.query("rollback").catch(() => {});
+    const code = typeof error === "object" && error && "code" in error ? String(error.code) : "UNKNOWN";
+    const message = typeof error === "object" && error && "message" in error
+      ? String(error.message).replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/gi, "[uuid]").slice(0, 240)
+      : "unavailable";
+    throw new Error(`COMUN_P5_PREPARE_RPC_PROBE_${code}:${message}`);
+  }
   const prepared = await http(`/api/comun/stmu-assisted/packages/${walletItemId}/prepare`, { method: "POST" });
   assert.equal(prepared.status, 201, await prepared.text()); packageId = (await db.query("select id from private.comun_forwarding_packages where relata_case_id=$1", [caseId])).rows[0].id;
   const opened = await http(`/api/comun/stmu-assisted/packages/${packageId}/open`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ channel: "whatsapp" }) });
