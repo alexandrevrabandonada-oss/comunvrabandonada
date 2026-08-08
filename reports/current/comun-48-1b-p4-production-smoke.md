@@ -18,4 +18,6 @@ Gates futuros, em ordem:
 4. ativação de `COMUN_SIDEWALK_PUBLIC_PROJECTION_ENABLED`, sem publicação sintética;
 5. prova read-only da fila administrativa e do mapa histórico.
 
+Os runners operacionais estão versionados, usam apenas secrets atuais por nome e não expõem valores. O smoke P4A remove localização, anexo, relato e Carteira sintética em `finally`; recovery de crash é escopado pelo marcador `P4-SMOKE-*` e usa somente retirada lógica, sem hard delete.
+
 Não emitir o terminal P4 antes desses gates.

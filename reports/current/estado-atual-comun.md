@@ -1160,7 +1160,9 @@ Proximo tijolo elegivel: `48.1B-P4 — Calcadas real`.
 - dry-run reconciliado planeja exatamente `20260808180246_comun_sidewalk_relata_real.sql`;
 - SHA-256 candidato `6ed799985fe9270ae9a8406d043d566520c2f9c89002493393c37d7076d9c494`;
 - intake privado, Carteira, fila admin e projeção aproximada revisada foram implementados sob flags separadas;
-- testes focais, typecheck, lint e build verdes; Docker local indisponível, rehearsal integral delegado à lane CI Supabase descartável;
+- testes focais, typecheck, lint e build verdes; Docker local indisponível;
+- P4A/P4B integral verde no Supabase descartável do run `31272121500`, job `93139744374`;
+- runners fail-closed de promoção exata e ativação em duas ondas preparados para execução somente após merge;
 - nenhuma migration aplicada, flag alterada, fixture remota criada ou deployment promovido.
 
-Resultado atual: `COMUN_P4_IMPLEMENTED_REMOTE_PLAN_EXACT_ONE_CI_RUNTIME_PENDING`.
+Resultado atual: `COMUN_P4_DISPOSABLE_RUNTIME_GREEN_AGGREGATE_CI_PENDING`.

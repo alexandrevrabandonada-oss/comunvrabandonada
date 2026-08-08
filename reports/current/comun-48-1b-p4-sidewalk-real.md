@@ -1,6 +1,6 @@
 # COMUN 48.1B-P4 — Calçadas sobre Relata e Carteira
 
-Estado: candidato P4 implementado; integração e ativação pendentes da lane descartável e da CI do head exato.
+Estado: candidato P4 implementado; lane descartável P4A/P4B verde; integração e ativação remota ainda pendentes da CI do head final.
 
 ## P4A — entrada privada
 
@@ -42,5 +42,8 @@ Estado: candidato P4 implementado; integração e ativação pendentes da lane d
 - dry-run remoto: exatamente uma migration;
 - Docker Desktop local: daemon não respondeu dentro do limite; nenhuma limpeza ampla foi executada;
 - rehearsal SQL/HTTP completo: transferido para a lane descartável `COMUN P4 / sidewalk Relata review E2E`, sem secrets remotos.
+- rehearsal descartável P4A/P4B: verde no run `31272121500`, job `93139744374`;
+- runner de promoção: exato-one, com quarentena/restauração da release externa de Calçadas;
+- runner de ativação: flags-off → P4A com fixture privada/cleanup → P4B read-only, com rollback por flag.
 
-Resultado provisório: `COMUN_P4_IMPLEMENTED_REMOTE_PLAN_EXACT_ONE_CI_RUNTIME_PENDING`.
+Resultado provisório: `COMUN_P4A_SIDEWALK_PRIVATE_INTAKE_E2E_GREEN` + `COMUN_P4B_SIDEWALK_REVIEW_PROJECTION_E2E_GREEN`; checks agregados do novo head pendentes.
