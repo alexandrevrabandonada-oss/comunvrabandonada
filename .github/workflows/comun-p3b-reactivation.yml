@@ -48,15 +48,6 @@ jobs:
           npm ci --ignore-scripts
           node --check scripts/solo/rehearse-p3b-private-location-production.mjs
 
-      - name: Enable location flag in Vercel Production
-        if: inputs.mode == 'activate-smoke'
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          set -euo pipefail
-          test -n "${VERCEL_TOKEN:-}"
-          printf '%s\n' enabled | npx --yes vercel@50.28.0 env add COMUN_RELATA_LOCATION_ENABLED production --force --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-env.out 2>/tmp/comun-p3b-vercel-env.err
-
       - name: Roll back location flag in Vercel Production
         if: inputs.mode == 'rollback'
         env:
@@ -77,6 +68,15 @@ jobs:
             grep -q "$name" /tmp/comun-p3b-vercel-env-list.out || { echo "COMUN_P3B_MISSING_SERVER_ENV_NAME:$name"; exit 1; }
           done
           echo COMUN_P3B_SERVER_ENV_NAMES_PRESENT >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Enable location flag in Vercel Production
+        if: inputs.mode == 'activate-smoke'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          printf '%s\n' enabled | npx --yes vercel@50.28.0 env add COMUN_RELATA_LOCATION_ENABLED production --force --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-env.out 2>/tmp/comun-p3b-vercel-env.err
 
       - name: Redeploy canonical Production with current server-side secrets
         env:
