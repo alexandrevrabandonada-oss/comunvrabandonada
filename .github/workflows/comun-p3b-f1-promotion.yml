@@ -119,7 +119,8 @@ jobs:
             join pg_namespace n on n.oid = p.pronamespace
             where n.nspname = 'public'
               and p.proname = 'comun_relata_add_location'
-              and pg_get_function_identity_arguments(p.oid) = 'text, text, text, text, timestamp with time zone, bytea, bytea, bytea, text, text, text, text'
+              and p.pronargs = 12
+              and regexp_replace(pg_get_function_identity_arguments(p.oid), '\\s+', '', 'g') = 'text,text,text,text,timestampwithtimezone,bytea,bytea,bytea,text,text,text,text'
           )
           select json_build_object(
             'functionPresent', count(*) = 1,
@@ -128,7 +129,8 @@ jobs:
             'publicExecute', bool_or(public_exec),
             'anonExecute', bool_or(anon_exec),
             'authenticatedExecute', bool_or(authenticated_exec),
-            'serviceRoleExecute', bool_and(service_role_exec)
+            'serviceRoleExecute', bool_and(service_role_exec),
+            'identityArguments', coalesce(max(pg_get_function_identity_arguments(oid)), '')
           )
           from f;
           select json_build_object(
