@@ -11,10 +11,10 @@ on:
         required: true
         type: string
       mode:
-        description: Read-only identify or exact cleanup
+        description: Read-only identify, verify, or exact cleanup
         required: true
         type: choice
-        options: [identify, cleanup]
+        options: [identify, verify, cleanup]
       fixture_fingerprint:
         description: Fingerprint from identify (required only for cleanup)
         required: false
@@ -51,6 +51,7 @@ jobs:
           AUTHORIZATION: ${{ inputs.authorization }}
           FIXTURE_FINGERPRINT: ${{ inputs.fixture_fingerprint }}
         run: |
+          set -o pipefail
           test -n "${SUPABASE_DB_URL:-}" || { echo COMUN_P3B_CLEANUP_BLOCKED_CURRENT_ROTATED_DB_SECRET_UNAVAILABLE; exit 2; }
           test -n "${SUPABASE_PROJECT_REF:-}" || { echo COMUN_P3B_CLEANUP_BLOCKED_CURRENT_ROTATED_DB_SECRET_UNAVAILABLE; exit 2; }
           node scripts/solo/p3b-orphan-cleanup.mjs --mode "$MODE" --fixture-fingerprint "$FIXTURE_FINGERPRINT" --authorization "$AUTHORIZATION" | tee p3b-cleanup-result.json

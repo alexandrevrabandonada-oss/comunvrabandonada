@@ -77,8 +77,30 @@ with candidates as (
 select * from enriched order by report_created_at, report_id;
 `;
 
-async function findCandidates(client) {
-  const result = await client.query(candidateSql, [REPORT_FROM, REPORT_TO, LOCATION_FROM, LOCATION_TO]);
+const withdrawnCandidateSql = candidateSql
+  .replace("l.evidence_state = 'added_private' and l.withdrawn_at is null", "l.evidence_state = 'withdrawn' and l.withdrawn_at is not null")
+  .replace("c.state <> 'withdrawn' and c.withdrawn_at is null", "c.state = 'withdrawn' and c.withdrawn_at is not null")
+  .replace("and not exists (select 1 from public.comun_relata_public_snapshots ps where ps.case_id = c.id)", "and r.retention_class = 'withdrawn' and r.withdrawn_at is not null\n    and not exists (select 1 from public.comun_relata_public_snapshots ps where ps.case_id = c.id)");
+
+const postflightSql = `
+select
+  (select count(*)::int from private.comun_relata_private_locations where id=$1 and evidence_state='added_private' and withdrawn_at is null) as active_location,
+  (select count(*)::int from private.comun_relata_private_locations where id=$1 and evidence_state='withdrawn' and withdrawn_at is not null) as withdrawn_location,
+  (select count(*)::int from public.comun_relata_cases where id=$2 and state='withdrawn' and withdrawn_at is not null) as withdrawn_case,
+  (select count(*)::int from private.comun_relata_reports where id=$3 and retention_class='withdrawn' and withdrawn_at is not null) as withdrawn_report,
+  (select count(*)::int from private.comun_participation_wallet_items where item_type='relata_report' and subject_ref=$2::text and archived_at is null) as active_wallet_item,
+  (select count(*)::int from private.comun_participation_wallet_items where item_type='relata_report' and subject_ref=$2::text) as wallet_item_total,
+  (select count(*)::int from private.comun_participation_wallets w join private.comun_participation_wallet_items wi on wi.wallet_id=w.id where wi.item_type='relata_report' and wi.subject_ref=$2::text and w.status='revoked') as revoked_wallet,
+  (select count(*)::int from private.comun_participation_wallet_recovery_credentials rc join private.comun_participation_wallet_items wi on wi.wallet_id=rc.wallet_id where wi.item_type='relata_report' and wi.subject_ref=$2::text and rc.active) as active_recovery_credentials,
+  (select count(*)::int from private.comun_participation_wallet_account_links al join private.comun_participation_wallet_items wi on wi.wallet_id=al.wallet_id where wi.item_type='relata_report' and wi.subject_ref=$2::text and al.revoked_at is null) as active_account_links,
+  (select count(*)::int from public.comun_relata_public_snapshots where case_id=$2) as public_snapshot_count,
+  (select count(*)::int from public.comun_relata_evidence_consents where case_id=$2 and consent_kind='collective_grouping' and active) as collective_count,
+  case when to_regclass('public.comun_sidewalk_forwardings') is null then 0 else (select count(*)::int from public.comun_sidewalk_forwardings where report_id=$3) end as forwarding_count;
+`;
+
+async function findCandidates(client, mode) {
+  const sql = mode === "verify" ? withdrawnCandidateSql : candidateSql;
+  const result = await client.query(sql, [REPORT_FROM, REPORT_TO, LOCATION_FROM, LOCATION_TO]);
   return result.rows;
 }
 
@@ -113,7 +135,8 @@ async function main() {
   const client = new pg.Client({ connectionString: connection, application_name: "comun-p3b-orphan-cleanup" });
   await client.connect();
   try {
-    const rows = await findCandidates(client);
+    if (!["identify", "cleanup", "verify"].includes(mode)) return fail("COMUN_P3B_CLEANUP_BLOCKED_INVALID_MODE");
+    const rows = await findCandidates(client, mode);
     if (rows.length === 0) return console.log(JSON.stringify({ result: "COMUN_P3B_CLEANUP_BLOCKED_FIXTURE_NOT_FOUND", ...sanitized(null, rows) }));
     if (rows.length !== 1) return console.log(JSON.stringify({ result: "COMUN_P3B_CLEANUP_BLOCKED_FIXTURE_NOT_UNIQUE", ...sanitized(rows[0], rows) }));
     const row = rows[0];
@@ -121,8 +144,13 @@ async function main() {
     if (mode === "identify") {
       return console.log(JSON.stringify({ result: "COMUN_P3B_ORPHAN_FIXTURE_IDENTIFIED_EXACTLY_ONE", ...sanitized(row, rows) }));
     }
-    if (mode !== "cleanup") return fail("COMUN_P3B_CLEANUP_BLOCKED_INVALID_MODE");
     if (expectedFingerprint !== fixtureFingerprint) return fail("COMUN_P3B_CLEANUP_BLOCKED_FINGERPRINT_MISMATCH");
+    if (mode === "verify") {
+      const v = (await client.query(postflightSql, [row.location_id, row.case_id, row.report_id])).rows[0];
+      if (v.active_location !== 0 || v.withdrawn_location !== 1 || v.withdrawn_case !== 1 || v.withdrawn_report !== 1 || v.active_wallet_item !== 0 || v.wallet_item_total !== 1 || v.revoked_wallet !== 1 || v.active_recovery_credentials !== 0 || v.active_account_links !== 0 || v.public_snapshot_count !== 0 || v.collective_count !== 0 || v.forwarding_count !== 0) return fail("COMUN_P3B_CLEANUP_BLOCKED_POSTFLIGHT");
+      return console.log(JSON.stringify({ result: "COMUN_P3B_SYNTHETIC_CLEANUP_GREEN", fixtureFingerprint, candidateCount: 1, activeLocationCount: 0, withdrawnLocationCount: 1, withdrawnCaseCount: 1, withdrawnReportCount: 1, activeWalletItemCount: 0, revokedWalletCount: 1, activeRecoveryCredentialCount: 0, activeAccountLinkCount: 0, forwardingCount: 0, transactionCommitted: true, hardDeletes: 0, plaintextLocationRead: false, verificationOnly: true }));
+    }
+    if (mode !== "cleanup") return fail("COMUN_P3B_CLEANUP_BLOCKED_INVALID_MODE");
     if (authorization !== `AUTORIZO_P3B_SYNTHETIC_CLEANUP_${fixtureFingerprint}`) return fail("COMUN_P3B_CLEANUP_BLOCKED_AUTHORIZATION_MISMATCH");
     if (row.wallet_item_count !== 1 || row.wallet_item_total !== 1 || row.wallet_count !== 1 || row.account_link_count !== 0) return fail("COMUN_P3B_CLEANUP_BLOCKED_WALLET_NOT_EXCLUSIVELY_SYNTHETIC");
     if (row.collective_count !== 0 || row.forwarding_count !== 0 || row.attachment_count !== 0) return fail("COMUN_P3B_CLEANUP_BLOCKED_UNEXPECTED_RELATION");
@@ -170,23 +198,10 @@ async function main() {
       await client.query(`update private.comun_participation_wallets set status='revoked', revoked_at=coalesce(revoked_at,$1) where id=$2 and status='active'`, [now, wallet.wallet_id]);
       await client.query(`update private.comun_participation_wallet_recovery_credentials set active=false, revoked_at=coalesce(revoked_at,$1) where wallet_id=$2 and active=true`, [now, wallet.wallet_id]);
     }
-    await client.query("commit");
-    const verify = await client.query(`
-      select
-        (select count(*)::int from private.comun_relata_private_locations where id=$1 and evidence_state='added_private' and withdrawn_at is null) as active_location,
-        (select count(*)::int from private.comun_relata_private_locations where id=$1 and evidence_state='withdrawn' and withdrawn_at is not null) as withdrawn_location,
-        (select count(*)::int from public.comun_relata_cases where id=$2 and state='withdrawn' and withdrawn_at is not null) as withdrawn_case,
-        (select count(*)::int from private.comun_relata_reports where id=$3 and retention_class='withdrawn' and withdrawn_at is not null) as withdrawn_report,
-        (select count(*)::int from private.comun_participation_wallet_items where item_type='relata_report' and subject_ref=$2 and archived_at is null) as active_wallet_item,
-        (select count(*)::int from private.comun_participation_wallet_items where item_type='relata_report' and subject_ref=$2) as wallet_item_total,
-        (select count(*)::int from private.comun_participation_wallets w join private.comun_participation_wallet_items wi on wi.wallet_id=w.id where wi.item_type='relata_report' and wi.subject_ref=$2 and w.status='revoked') as revoked_wallet,
-        (select count(*)::int from private.comun_participation_wallet_recovery_credentials rc join private.comun_participation_wallet_items wi on wi.wallet_id=rc.wallet_id where wi.item_type='relata_report' and wi.subject_ref=$2 and rc.active) as active_recovery_credentials,
-        (select count(*)::int from private.comun_participation_wallet_account_links al join private.comun_participation_wallet_items wi on wi.wallet_id=al.wallet_id where wi.item_type='relata_report' and wi.subject_ref=$2 and al.revoked_at is null) as active_account_links,
-        (select count(*)::int from public.comun_relata_public_snapshots where case_id=$2) as public_snapshot_count,
-        (select count(*)::int from public.comun_relata_evidence_consents where case_id=$2 and consent_kind='collective_grouping' and active) as collective_count,
-        case when to_regclass('public.comun_sidewalk_forwardings') is null then 0 else (select count(*)::int from public.comun_sidewalk_forwardings where report_id=$3) end as forwarding_count`, [row.location_id, row.case_id, row.report_id]);
+    const verify = await client.query(postflightSql, [row.location_id, row.case_id, row.report_id]);
     const v = verify.rows[0];
     if (v.active_location !== 0 || v.withdrawn_location !== 1 || v.withdrawn_case !== 1 || v.withdrawn_report !== 1 || v.active_wallet_item !== 0 || v.wallet_item_total !== 1 || v.revoked_wallet !== 1 || v.active_recovery_credentials !== 0 || v.active_account_links !== 0 || v.public_snapshot_count !== 0 || v.collective_count !== 0 || v.forwarding_count !== 0) throw new Error("COMUN_P3B_CLEANUP_BLOCKED_POSTFLIGHT");
+    await client.query("commit");
     console.log(JSON.stringify({ result: "COMUN_P3B_SYNTHETIC_CLEANUP_GREEN", fixtureFingerprint, candidateCount: 1, activeLocationCount: 0, withdrawnLocationCount: 1, withdrawnCaseCount: 1, withdrawnReportCount: 1, activeWalletItemCount: 0, revokedWalletCount: 1, activeRecoveryCredentialCount: 0, activeAccountLinkCount: 0, publicSnapshotCount: 0, collectiveCount: 0, forwardingCount: 0, transactionCommitted: true, hardDeletes: 0, plaintextLocationRead: false }));
   } catch (error) {
     await client.query("rollback").catch(() => {});
