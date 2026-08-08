@@ -1,0 +1,110 @@
+name: COMUN P3B location reactivation
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact main SHA to deploy and test
+        required: true
+        type: string
+
+concurrency:
+  group: comun-p3b-location-reactivation
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+
+jobs:
+  reactivate-and-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+
+      - name: Verify exact main and smoke tooling
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          npm ci --ignore-scripts
+          node --check scripts/solo/rehearse-p3b-private-location-production.mjs
+
+      - name: Enable location flag in Vercel Production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          printf '%s\n' enabled | npx --yes vercel@50.28.0 env add COMUN_RELATA_LOCATION_ENABLED production --force --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-env.out 2>/tmp/comun-p3b-vercel-env.err
+
+      - name: Redeploy canonical Production with current server-side secrets
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          npx --yes vercel@50.28.0 deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-deploy.out 2>/tmp/comun-p3b-vercel-deploy.err
+          for _ in $(seq 1 90); do
+            status=$(curl -fsS -o /dev/null -w '%{http_code}' https://comunsocial.online/comun || true)
+            if [ "$status" = 200 ]; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Allocate sanitized attempt marker
+        id: attempt
+        run: |
+          set -euo pipefail
+          marker="P3B-SMOKE-${GITHUB_RUN_ID}-$(node -e 'process.stdout.write(require("node:crypto").randomUUID())')"
+          printf 'attempt_id=%s\n' "$marker" >> "$GITHUB_OUTPUT"
+
+      - name: Run real synthetic Production smoke with finally cleanup
+        id: smoke
+        env:
+          COMUN_BASE_URL: https://comunsocial.online
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          ATTEMPT_ID: ${{ steps.attempt.outputs.attempt_id }}
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          mkdir -p .ci-artifacts/p3b-production
+          node scripts/solo/rehearse-p3b-private-location-production.mjs > .ci-artifacts/p3b-production/smoke.json
+
+      - name: Crash recovery for the exact synthetic attempt
+        if: always() && steps.smoke.outcome != 'success'
+        env:
+          COMUN_BASE_URL: https://comunsocial.online
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          ATTEMPT_ID: ${{ steps.attempt.outputs.attempt_id }}
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          mkdir -p .ci-artifacts/p3b-production
+          node scripts/solo/rehearse-p3b-private-location-production.mjs --recover > .ci-artifacts/p3b-production/recovery.json
+
+      - name: Upload sanitized Production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-p3b-production-${{ github.run_id }}
+          path: .ci-artifacts/p3b-production
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Emit terminal marker
+        if: success()
+        run: echo COMUN_P3B_PRIVATE_EVIDENCE_DOMAIN_GREEN >> "$GITHUB_STEP_SUMMARY"
