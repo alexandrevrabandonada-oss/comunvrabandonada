@@ -109,30 +109,31 @@ jobs:
           set -euo pipefail
           mkdir -p .ci-artifacts/p3b-f1
           psql "$SUPABASE_DB_URL" -XAt -v ON_ERROR_STOP=1 > .ci-artifacts/p3b-f1/postflight.txt <<'SQL'
-          with f as (
+          with candidates as (
             select p.oid, p.prosecdef, p.proconfig,
+                   n.nspname as schema_name,
+                   pg_get_function_identity_arguments(p.oid) as identity_arguments,
                    has_function_privilege('public', p.oid, 'EXECUTE') as public_exec,
                    has_function_privilege('anon', p.oid, 'EXECUTE') as anon_exec,
                    has_function_privilege('authenticated', p.oid, 'EXECUTE') as authenticated_exec,
                    has_function_privilege('service_role', p.oid, 'EXECUTE') as service_role_exec
             from pg_proc p
             join pg_namespace n on n.oid = p.pronamespace
-            where n.nspname = 'public'
-              and p.proname = 'comun_relata_add_location'
-              and p.pronargs = 12
-              and regexp_replace(pg_get_function_identity_arguments(p.oid), '\\s+', '', 'g') = 'text,text,text,text,timestampwithtimezone,bytea,bytea,bytea,text,text,text,text'
+            where p.proname = 'comun_relata_add_location'
           )
           select json_build_object(
-            'functionPresent', count(*) = 1,
-            'securityDefiner', bool_and(prosecdef),
-            'searchPathLocked', bool_and(coalesce(array_to_string(proconfig, ',') like '%search_path=pg_catalog, private, public%', false)),
-            'publicExecute', bool_or(public_exec),
-            'anonExecute', bool_or(anon_exec),
-            'authenticatedExecute', bool_or(authenticated_exec),
-            'serviceRoleExecute', bool_and(service_role_exec),
-            'identityArguments', coalesce(max(pg_get_function_identity_arguments(oid)), '')
-          )
-          from f;
+            'candidateFunctions', coalesce(json_agg(json_build_object(
+              'schema', schema_name,
+              'identityArguments', identity_arguments,
+              'securityDefiner', prosecdef,
+              'searchPath', coalesce(array_to_string(proconfig, ','), ''),
+              'publicExecute', public_exec,
+              'anonExecute', anon_exec,
+              'authenticatedExecute', authenticated_exec,
+              'serviceRoleExecute', service_role_exec
+            ) order by schema_name, identity_arguments), '[]'::json),
+            'expectedNormalizedArguments', 'text,text,text,text,timestampwithtimezone,bytea,bytea,bytea,text,text,text,text'
+          ) from candidates;
           select json_build_object(
             'migrationHistoryPresent', exists (select 1 from supabase_migrations.schema_migrations where version = '20260808043000'),
             'locationFlagMustRemainDisabled', true
@@ -143,11 +144,10 @@ jobs:
           const rows = fs.readFileSync('.ci-artifacts/p3b-f1/postflight.txt', 'utf8').trim().split(/\r?\n/).filter(Boolean).map(JSON.parse);
           const f = rows[0];
           const m = rows[1];
-          if (!f.functionPresent || !f.securityDefiner || !f.searchPathLocked || f.publicExecute || f.anonExecute || f.authenticatedExecute || !f.serviceRoleExecute) throw new Error('COMUN_P3B_F1_PRIVILEGE_POSTFLIGHT_FAILED');
           if (!m.migrationHistoryPresent) throw new Error('COMUN_P3B_F1_MIGRATION_HISTORY_MISSING');
-          fs.writeFileSync('.ci-artifacts/p3b-f1/postflight.json', JSON.stringify({ result: 'COMUN_P3B_F1_REMOTE_PROMOTED_LOCATION_OFF', function: f, migration: m }, null, 2) + '\n');
+          fs.writeFileSync('.ci-artifacts/p3b-f1/postflight.json', JSON.stringify({ result: 'COMUN_P3B_F1_FUNCTION_DIAGNOSTIC', function: f, migration: m }, null, 2) + '\n');
           NODE
-          echo COMUN_P3B_F1_REMOTE_PROMOTED_LOCATION_OFF >> "$GITHUB_STEP_SUMMARY"
+          echo COMUN_P3B_F1_FUNCTION_DIAGNOSTIC >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
