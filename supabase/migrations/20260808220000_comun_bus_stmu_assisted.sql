@@ -146,7 +146,9 @@ begin
   insert into private.comun_forwarding_packages as current(wallet_id,relata_case_id,bus_intake_id,state,subject,institutional_text)
   values(v_wallet,v_case.id,v_bus.id,'ready_for_forwarding','Reclamação sobre transporte coletivo',v_body)
   on conflict(wallet_id,relata_case_id) do update set updated_at=now(),withdrawn_at=null returning * into v_package;
-  update private.comun_bus_relata_intakes set state='forwarding_prepared',updated_at=now() where id=v_bus.id and state='ready_for_forwarding';
+  update private.comun_bus_relata_intakes as bus
+    set state='forwarding_prepared',updated_at=now()
+    where bus.id=v_bus.id and bus.state='ready_for_forwarding';
   update private.comun_participation_wallet_items set presentation_state='Encaminhamento preparado',action_required='Conferir e enviar manualmente',updated_at=now() where id=p_wallet_item_id and wallet_id=v_wallet;
   insert into private.comun_forwarding_events(package_id,event_type,result_code) values(v_package.id,'package_prepared','FORWARDING_PACKAGE_PREPARED');
   return query select v_package.id,v_package.state,v_package.subject,v_package.institutional_text,v_package.response_expectation;

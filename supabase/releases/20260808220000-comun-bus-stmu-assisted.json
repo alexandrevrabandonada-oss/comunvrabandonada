@@ -1,9 +1,9 @@
 {
   "release": "20260808220000-comun-bus-stmu-assisted",
   "migration": "supabase/migrations/20260808220000_comun_bus_stmu_assisted.sql",
-  "migrationSha256": "dd4d2ff6071aa6ada2909ec55896e9cefb1e9acd95a267b485cf214c49e19afa",
+  "migrationSha256": "05b588808eb4a53c2689959a1e837dfe9518d976ff96f6fad269025346b89785",
   "path": "supabase/migrations/20260808220000_comun_bus_stmu_assisted.sql",
-  "sha256": "dd4d2ff6071aa6ada2909ec55896e9cefb1e9acd95a267b485cf214c49e19afa",
+  "sha256": "05b588808eb4a53c2689959a1e837dfe9518d976ff96f6fad269025346b89785",
   "requiresPromotion": true,
   "remotePromotionAllowed": true,
   "scope": "production",
