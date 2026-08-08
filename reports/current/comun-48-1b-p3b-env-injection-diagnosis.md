@@ -185,3 +185,14 @@ O contrato de deployment aceita o project ID tanto em `projectId` quanto em `pro
 - escrita Supabase: nenhuma.
 
 O contrato oficial de `GET /v13/deployments/{idOrUrl}` define o identificador canonico no campo `id`. O runner validava `uid`, que nao pertence a essa resposta. A correcao passa a aceitar exclusivamente `id` no formato `dpl_...`, preserva a coincidencia exata do projeto e nao publica o identificador.
+
+## Execucao 31269400414
+
+- deployment, promocao, atribuicao do dominio e validacao do deployment alvo: verdes;
+- gate do alias: interrompido por erro de sintaxe shell no heredoc aninhado;
+- UI e fixture: nao executadas;
+- crash recovery: ignorado por ausencia de attempt id;
+- rollback de flag, deployment, promocao e alias: verde;
+- escrita Supabase: nenhuma.
+
+O heredoc usado dentro do `if` mantinha indentacao residual apos o strip do bloco YAML, impedindo o Bash de reconhecer seu delimitador final. O trecho passa a usar `node -e` e ganha validacao `bash -n` sobre o script efetivamente extraido do step.
