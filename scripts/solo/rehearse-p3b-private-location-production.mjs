@@ -61,12 +61,13 @@ async function queryFixture(client, text = fixtureText) {
 }
 
 async function postflight(client) {
-  const result = await queryFixture(client, attemptId);
+  const result = await queryFixture(client);
   const rows = result.rows;
   const activeLocation = rows.filter((row) => row.evidence_state === "added_private" && !row.location_withdrawn_at).length;
   const withdrawnLocation = rows.filter((row) => row.evidence_state === "withdrawn" && row.location_withdrawn_at).length;
   const activeCase = rows.filter((row) => row.state !== "withdrawn" && !row.case_withdrawn_at).length;
   const withdrawnCase = rows.filter((row) => row.state === "withdrawn" && row.case_withdrawn_at).length;
+  const activeReport = rows.filter((row) => !row.report_withdrawn_at && row.retention_class !== "withdrawn").length;
   const activeWalletItem = rows.reduce((sum, row) => sum + Number(row.wallet_item_count ?? 0), 0);
   const reportWithdrawn = rows.filter((row) => row.retention_class === "withdrawn" && row.report_withdrawn_at).length;
   return {
@@ -75,6 +76,7 @@ async function postflight(client) {
     withdrawnLocation,
     activeCase,
     withdrawnCase,
+    activeReport,
     reportWithdrawn,
     activeWalletItem,
     attachmentCount: rows.reduce((sum, row) => sum + Number(row.attachment_count ?? 0), 0),
@@ -102,7 +104,7 @@ async function recover(client) {
     throw error;
   }
   const after = await postflight(client);
-  if (after.candidateCount !== 1 || after.activeLocation !== 0 || after.withdrawnLocation !== 1 || after.activeCase !== 0 || after.withdrawnCase !== 1 || after.reportWithdrawn !== 1 || after.activeWalletItem !== 0) throw new Error("COMUN_P3B_RECOVERY_POSTFLIGHT_FAILED");
+  if (after.candidateCount !== 1 || after.activeLocation !== 0 || after.withdrawnLocation !== 1 || after.activeCase !== 0 || after.withdrawnCase !== 1 || after.activeReport !== 0 || after.reportWithdrawn !== 1 || after.activeWalletItem !== 0) throw new Error("COMUN_P3B_RECOVERY_POSTFLIGHT_FAILED");
   return { result: "COMUN_P3B_PRODUCTION_RECOVERY_GREEN", ...after, hardDeletes: 0, plaintextLocationRead: false };
 }
 
@@ -125,42 +127,78 @@ async function smoke(client) {
   assert.equal(createdBody.noOfficialSend, true);
   assert.ok(createdBody.receipt?.protocol);
   created = true;
+  let firstMetadata;
+  let smokeError;
+  try {
+    const locationResponse = await request("/api/comun/relata/evidence/location", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...syntheticPoint, origin: "map_pin", accuracyMeters: null, capturedAt: "2026-08-08T12:00:00.000Z" }),
+    });
+    const locationBody = await locationResponse.text();
+    if (locationResponse.status !== 200) throw new Error(`COMUN_P3B_PRODUCTION_LOCATION_FAILED:${locationResponse.status}`);
+    assert.ok(!locationBody.includes(String(syntheticPoint.longitude)) && !locationBody.includes(String(syntheticPoint.latitude)));
+    const active = await queryFixture(client);
+    assert.equal(active.rows.length, 1, "COMUN_P3B_PRODUCTION_FIXTURE_NOT_UNIQUE");
+    assert.equal(active.rows[0].evidence_state, "added_private");
+    assert.equal(active.rows[0].state, "stored_private");
+    assert.equal(active.rows[0].attachment_count, 0);
+    assert.equal(active.rows[0].public_snapshot_count, 0);
+    assert.equal(active.rows[0].wallet_item_count, 0);
+    firstMetadata = (await client.query("select encrypted_value, nonce, auth_tag, origin, accuracy_class, captured_at, evidence_state, withdrawn_at from private.comun_relata_private_locations l join private.comun_relata_reports r on r.id=l.report_id where r.original_text=$1", [fixtureText])).rows[0];
+    assert.equal(firstMetadata.evidence_state, "added_private");
+    assert.equal(firstMetadata.withdrawn_at, null);
 
-  const locationResponse = await request("/api/comun/relata/evidence/location", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ ...syntheticPoint, origin: "map_pin", accuracyMeters: null, capturedAt: "2026-08-08T12:00:00.000Z" }),
-  });
-  const locationBody = await locationResponse.text();
-  if (locationResponse.status !== 200) throw new Error(`COMUN_P3B_PRODUCTION_LOCATION_FAILED:${locationResponse.status}`);
-  assert.ok(!locationBody.includes(String(syntheticPoint.longitude)) && !locationBody.includes(String(syntheticPoint.latitude)));
+    const firstRead = await request("/api/comun/relata/evidence");
+    const firstReadBody = await firstRead.text();
+    if (firstRead.status !== 200) throw new Error(`COMUN_P3B_PRODUCTION_EVIDENCE_READ_FAILED:${firstRead.status}`);
+    assert.ok(!firstReadBody.includes(String(syntheticPoint.longitude)) && !firstReadBody.includes(String(syntheticPoint.latitude)));
 
-  const evidenceResponse = await request("/api/comun/relata/evidence");
-  const evidenceBody = await evidenceResponse.text();
-  if (evidenceResponse.status !== 200) throw new Error(`COMUN_P3B_PRODUCTION_EVIDENCE_READ_FAILED:${evidenceResponse.status}`);
-  assert.ok(!evidenceBody.includes(String(syntheticPoint.longitude)) && !evidenceBody.includes(String(syntheticPoint.latitude)));
+    const withdrawnFirst = await request("/api/comun/relata/evidence/location", { method: "DELETE" });
+    assert.equal(withdrawnFirst.status, 200, "COMUN_P3B_PRODUCTION_LOCATION_WITHDRAW_FAILED");
 
-  const active = await queryFixture(client);
-  assert.equal(active.rows.length, 1, "COMUN_P3B_PRODUCTION_FIXTURE_NOT_UNIQUE");
-  assert.equal(active.rows[0].evidence_state, "added_private");
-  assert.equal(active.rows[0].state, "stored_private");
-  assert.equal(active.rows[0].attachment_count, 0);
-  assert.equal(active.rows[0].public_snapshot_count, 0);
-  assert.equal(active.rows[0].wallet_item_count, 0);
+    const readdedPoint = { longitude: -44.100223, latitude: -22.520223 };
+    const readdedResponse = await request("/api/comun/relata/evidence/location", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...readdedPoint, origin: "device", accuracyMeters: 18, capturedAt: "2026-08-08T12:05:00.000Z" }),
+    });
+    const readdedBody = await readdedResponse.text();
+    if (readdedResponse.status !== 200) throw new Error(`COMUN_P3B_PRODUCTION_LOCATION_READD_FAILED:${readdedResponse.status}`);
+    assert.ok(!readdedBody.includes(String(readdedPoint.longitude)) && !readdedBody.includes(String(readdedPoint.latitude)));
+    const secondMetadata = (await client.query("select encrypted_value, nonce, auth_tag, origin, accuracy_class, captured_at, evidence_state, withdrawn_at from private.comun_relata_private_locations l join private.comun_relata_reports r on r.id=l.report_id where r.original_text=$1", [fixtureText])).rows[0];
+    assert.equal(secondMetadata.evidence_state, "added_private");
+    assert.equal(secondMetadata.withdrawn_at, null);
+    assert.notDeepEqual(secondMetadata.encrypted_value, firstMetadata.encrypted_value);
+    assert.notDeepEqual(secondMetadata.nonce, firstMetadata.nonce);
+    assert.notDeepEqual(secondMetadata.auth_tag, firstMetadata.auth_tag);
+    assert.equal(secondMetadata.origin, "device");
+    assert.equal(secondMetadata.accuracy_class, "under_25m");
+    assert.equal(new Date(secondMetadata.captured_at).toISOString(), "2026-08-08T12:05:00.000Z");
 
-  const withdrawnLocation = await request("/api/comun/relata/evidence/location", { method: "DELETE" });
-  assert.equal(withdrawnLocation.status, 200, "COMUN_P3B_PRODUCTION_LOCATION_WITHDRAW_FAILED");
-  const withdrawnReport = await request("/api/comun/relata/receipt", { method: "DELETE" });
-  assert.equal(withdrawnReport.status, 200, "COMUN_P3B_PRODUCTION_REPORT_WITHDRAW_FAILED");
+    const secondRead = await request("/api/comun/relata/evidence");
+    const secondReadBody = await secondRead.text();
+    if (secondRead.status !== 200) throw new Error(`COMUN_P3B_PRODUCTION_EVIDENCE_READD_READ_FAILED:${secondRead.status}`);
+    assert.ok(!secondReadBody.includes(String(readdedPoint.longitude)) && !secondReadBody.includes(String(readdedPoint.latitude)));
+  } catch (error) {
+    smokeError = error;
+  } finally {
+    if (created) {
+      await request("/api/comun/relata/evidence/location", { method: "DELETE" }).catch(() => {});
+      await request("/api/comun/relata/receipt", { method: "DELETE" }).catch(() => {});
+    }
+  }
+  if (smokeError) throw smokeError;
   const after = await postflight(client);
   assert.equal(after.candidateCount, 1);
   assert.equal(after.activeLocation, 0);
   assert.equal(after.withdrawnLocation, 1);
   assert.equal(after.activeCase, 0);
   assert.equal(after.withdrawnCase, 1);
+  assert.equal(after.activeReport, 0);
   assert.equal(after.reportWithdrawn, 1);
   assert.equal(after.activeWalletItem, 0);
-  return { result: "COMUN_P3B_PRODUCTION_SYNTHETIC_CLEANUP_GREEN", ...after, hardDeletes: 0, plaintextLocationRead: false };
+  return { result: "COMUN_P3B_PRODUCTION_SYNTHETIC_CLEANUP_GREEN", ...after, f1ReaddExercised: true, hardDeletes: 0, plaintextLocationRead: false };
 }
 
 await db.connect();
