@@ -43,3 +43,15 @@ O probe temporário responde somente no hostname específico do deployment stage
 - escrita Supabase: nenhuma.
 
 O workflow passa a atualizar a flag com `env update` e entrada sem newline apenas para formar o snapshot staged. Ao final, inclusive em falha, restaura a configuração da flag para `disabled`. A chave não é rotacionada nem lida.
+
+## Execução 31264172214
+
+- metadata: verde;
+- ambiente legível via `env run`: verde;
+- secrets sensíveis: deferidos ao staged runtime;
+- deployment Production sem domínio: criado e pronto;
+- probe do app: não alcançado porque Deployment Protection respondeu com redirecionamento SSO;
+- fixture: não criada;
+- flag restaurada para `disabled`: verde.
+
+O acesso staged passa a usar `vercel curl`, mecanismo autenticado da plataforma que produz um bypass efêmero de Deployment Protection. Nenhum bypass secret novo é criado, lido ou armazenado.
