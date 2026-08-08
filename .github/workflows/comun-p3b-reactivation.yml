@@ -7,6 +7,11 @@ on:
         description: Exact main SHA to deploy and test
         required: true
         type: string
+      mode:
+        description: Enable and smoke, or roll back the location flag
+        required: true
+        type: choice
+        options: [activate-smoke, rollback]
 
 concurrency:
   group: comun-p3b-location-reactivation
@@ -44,12 +49,34 @@ jobs:
           node --check scripts/solo/rehearse-p3b-private-location-production.mjs
 
       - name: Enable location flag in Vercel Production
+        if: inputs.mode == 'activate-smoke'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -euo pipefail
           test -n "${VERCEL_TOKEN:-}"
           printf '%s\n' enabled | npx --yes vercel@50.28.0 env add COMUN_RELATA_LOCATION_ENABLED production --force --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-env.out 2>/tmp/comun-p3b-vercel-env.err
+
+      - name: Roll back location flag in Vercel Production
+        if: inputs.mode == 'rollback'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          printf '%s\n' disabled | npx --yes vercel@50.28.0 env add COMUN_RELATA_LOCATION_ENABLED production --force --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-env-rollback.out 2>/tmp/comun-p3b-vercel-env-rollback.err
+
+      - name: Verify server-side location capability names without reading values
+        if: inputs.mode == 'activate-smoke'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          npx --yes vercel@50.28.0 env ls production --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-env-list.out 2>/tmp/comun-p3b-vercel-env-list.err
+          for name in COMUN_RELATA_LOCATION_ENCRYPTION_KEY SUPABASE_SERVICE_ROLE_KEY COMUN_RELATA_PERSISTENCE_ENABLED NEXT_PUBLIC_SUPABASE_URL; do
+            grep -q "$name" /tmp/comun-p3b-vercel-env-list.out || { echo "COMUN_P3B_MISSING_SERVER_ENV_NAME:$name"; exit 1; }
+          done
+          echo COMUN_P3B_SERVER_ENV_NAMES_PRESENT >> "$GITHUB_STEP_SUMMARY"
 
       - name: Redeploy canonical Production with current server-side secrets
         env:
@@ -65,8 +92,13 @@ jobs:
           done
           exit 1
 
+      - name: Stop after rollback deployment
+        if: inputs.mode == 'rollback'
+        run: echo COMUN_P3B_LOCATION_FLAG_ROLLED_BACK_OFF >> "$GITHUB_STEP_SUMMARY"
+
       - name: Allocate sanitized attempt marker
         id: attempt
+        if: inputs.mode == 'activate-smoke'
         run: |
           set -euo pipefail
           marker="P3B-SMOKE-${GITHUB_RUN_ID}-$(node -e 'process.stdout.write(require("node:crypto").randomUUID())')"
@@ -74,6 +106,7 @@ jobs:
 
       - name: Run real synthetic Production smoke with finally cleanup
         id: smoke
+        if: inputs.mode == 'activate-smoke'
         env:
           COMUN_BASE_URL: https://comunsocial.online
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
@@ -85,7 +118,7 @@ jobs:
           node scripts/solo/rehearse-p3b-private-location-production.mjs > .ci-artifacts/p3b-production/smoke.json
 
       - name: Crash recovery for the exact synthetic attempt
-        if: always() && steps.smoke.outcome != 'success'
+        if: always() && inputs.mode == 'activate-smoke' && steps.smoke.outcome != 'success'
         env:
           COMUN_BASE_URL: https://comunsocial.online
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
@@ -106,5 +139,5 @@ jobs:
           if-no-files-found: ignore
 
       - name: Emit terminal marker
-        if: success()
+        if: success() && inputs.mode == 'activate-smoke'
         run: echo COMUN_P3B_PRIVATE_EVIDENCE_DOMAIN_GREEN >> "$GITHUB_STEP_SUMMARY"
