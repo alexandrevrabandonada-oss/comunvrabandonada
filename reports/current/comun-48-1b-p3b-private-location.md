@@ -15,4 +15,10 @@
 
 Testes focais de evidência e contrato P3B: verdes. Typecheck, lint e build: verdes. A lane descartável testa duas localizações sintéticas na mesma posição, ciphertext/nonce distintos, round-trip server-side, acesso incorreto negado, retirada append-only e ausência de projeção coletiva.
 
-Resultado de código: `COMUN_P3B_CODE_READY_CI_RUNTIME_PENDING`.
+Resultado de código: `COMUN_P3B_RUNTIME_E2E_GREEN`.
+
+## Estado remoto
+
+O código foi integrado dormente em `fa98aa860e17a65e27ead852257d6201666152b4`. A chave de localização foi configurada somente no ambiente server-side da Vercel e a flag foi testada de forma isolada. A superfície respondeu corretamente com localização desligada e ligada, mas a ativação foi revertida porque o cleanup da fixture Production não pôde ser provado com as permissões disponíveis.
+
+Não houve migration, seed, publicação, associação coletiva, envio externo ou alteração de chave espacial.

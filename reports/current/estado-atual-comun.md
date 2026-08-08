@@ -1087,5 +1087,13 @@ piloto ou `launch_publicly`. A PR #174 permanece draft.
   confirmou zero objeto residual de quarentena/derivada e zero item ativo na
   Carteira; histórico retirado foi preservado por retenção.
 - Resultado terminal: `COMUN_48_1B_P3A_PRIVATE_ATTACHMENTS_DOMAIN_GREEN_LOCATION_OFF`.
-- P3B ainda não foi iniciado. Território, Google, Ônibus, forwarding, coletivos,
-  publicação automática e `launch_publicly` permanecem desligados.
+- P3B foi integrado e validado em CI, mas a ativação Production foi revertida
+  após cleanup remoto não comprovável. Território, Google, Ônibus, forwarding,
+  coletivos, publicação automática e `launch_publicly` permanecem desligados.
+- 48.1B-P3B: código integrado e E2E descartável verde, mas a ativação remota de
+  localização foi revertida para `disabled` porque a limpeza exata de uma
+  fixture sintética não pôde ser comprovada com o REST/MCP disponível.
+- Estado P3B atual: `COMUN_P3B_BLOCKED_SYNTHETIC_CLEANUP_UNPROVEN`.
+- Conta, Carteira, Relata textual e fotos privadas permanecem ativos; localização,
+  coletivos, mapa público, território, Google, Ônibus, forwarding e
+  `launch_publicly` permanecem desligados.
