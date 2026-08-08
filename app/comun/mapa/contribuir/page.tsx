@@ -6,6 +6,8 @@ import {
   SIDEWALK_OPERATIONAL_PAUSED_MESSAGE,
 } from "@/lib/sidewalk-operational-release";
 import { submitTerritorialContribution } from "./actions";
+import { redirect } from "next/navigation";
+import { isComunSidewalkRelataEnabled } from "@/lib/comun-sidewalk-p4-feature";
 export const dynamic = "force-dynamic";
 const types = [
   ["new_point", "Informar novo ponto"],
@@ -32,6 +34,7 @@ export default async function Page({
 }) {
   const p = await searchParams;
   if (p.origem === "calcadas") {
+    if (isComunSidewalkRelataEnabled()) redirect("/comun/calcadas/contribuir");
     const sidewalkOperational = await getSidewalkOperationalRelease();
     return (
       <ComunShell showSyntheticNotice={false}>

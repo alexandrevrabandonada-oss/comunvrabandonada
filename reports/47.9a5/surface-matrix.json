@@ -1,12 +1,12 @@
 {
   "summary": {
-    "generated_at": "2026-08-05T03:24:17.397Z",
-    "total": 193,
+    "generated_at": "2026-08-08T18:23:29.556Z",
+    "total": 195,
     "duplicate_routes": [],
     "shell_modes": {
-      "admin": 88,
+      "admin": 89,
       "auth": 6,
-      "immersive": 18,
+      "immersive": 19,
       "institutional": 8,
       "member_nested": 26,
       "member_root": 5,
@@ -14,25 +14,25 @@
     },
     "by_wave": {
       "1": 73,
-      "2": 32,
-      "3": 76,
+      "2": 33,
+      "3": 77,
       "4": 12
     },
     "by_decision": {
-      "compatibility_v2": 105,
-      "redirect_canonical": 67,
+      "compatibility_v2": 104,
+      "redirect_canonical": 70,
       "retain_v2": 21
     },
     "legacy_rendered": 0,
-    "p2_p3_compatibility_debt": 93,
+    "p2_p3_compatibility_debt": 92,
     "p0_p1": 0,
     "unknown_routes": 0,
     "structural_incompatibilities": 0,
     "generic_admin_app_bars": 0,
-    "admin_wave3": 76,
+    "admin_wave3": 77,
     "admin_wave4": 12,
     "admin_tables": 3,
-    "admin_forms": 53
+    "admin_forms": 54
   },
   "routes": [
     {
@@ -2495,6 +2495,40 @@
       "source": "app/comun/admin/calcadas/prioridade/page.tsx"
     },
     {
+      "route": "/comun/admin/calcadas/relatos",
+      "family": "calcadas",
+      "shell_mode": "admin",
+      "public": false,
+      "auth_required": true,
+      "visual_state": "not_rendered",
+      "main_component": "Page",
+      "shell_component": "AdminShell",
+      "legacy_components": [
+        "generic-white-panel"
+      ],
+      "contextual_app_bar": true,
+      "primary_action": "/comun/admin",
+      "empty_state": true,
+      "requires_entity_context": true,
+      "preserves_filters_or_return": true,
+      "admin_domain": "calcadas",
+      "admin_surface_type": "queue",
+      "has_table": false,
+      "has_form": true,
+      "accessible_table_contract": true,
+      "filter_return_contract": true,
+      "platform_domain": null,
+      "platform_access": null,
+      "platform_shell": null,
+      "preserves_app_v2_flag": null,
+      "member_bottom_navigation": null,
+      "compatibility_severity": "P2",
+      "compatibility_justification": "Markup preservado para rollback; shell V2 neutraliza material legado e adiciona navegação, foco e semântica operacional.",
+      "decision": "redirect_canonical",
+      "wave": 3,
+      "source": "app/comun/admin/calcadas/relatos/page.tsx"
+    },
+    {
       "route": "/comun/admin/comunidades",
       "family": "comunidades",
       "shell_mode": "admin",
@@ -4436,6 +4470,38 @@
       "source": "app/comun/calcadas/page.tsx"
     },
     {
+      "route": "/comun/calcadas/contribuir",
+      "family": "calcadas",
+      "shell_mode": "immersive",
+      "public": false,
+      "auth_required": false,
+      "visual_state": "not_rendered",
+      "main_component": "Page",
+      "shell_component": "route_or_layout_shell",
+      "legacy_components": [],
+      "contextual_app_bar": true,
+      "primary_action": "/comun/calcadas",
+      "empty_state": false,
+      "requires_entity_context": false,
+      "preserves_filters_or_return": false,
+      "admin_domain": null,
+      "admin_surface_type": "collection",
+      "has_table": false,
+      "has_form": false,
+      "accessible_table_contract": true,
+      "filter_return_contract": true,
+      "platform_domain": null,
+      "platform_access": null,
+      "platform_shell": null,
+      "preserves_app_v2_flag": null,
+      "member_bottom_navigation": null,
+      "compatibility_severity": "none",
+      "compatibility_justification": null,
+      "decision": "redirect_canonical",
+      "wave": 2,
+      "source": "app/comun/calcadas/contribuir/page.tsx"
+    },
+    {
       "route": "/comun/calcadas/mobilizacao",
       "family": "calcadas",
       "shell_mode": "immersive",
@@ -5130,7 +5196,7 @@
       "shell_mode": "immersive",
       "public": false,
       "auth_required": false,
-      "visual_state": "v2_compatibility",
+      "visual_state": "not_rendered",
       "main_component": "Page",
       "shell_component": "ComunShell",
       "legacy_components": [
@@ -5155,7 +5221,7 @@
       "member_bottom_navigation": null,
       "compatibility_severity": "P2",
       "compatibility_justification": "Markup preservado para rollback; shell V2 neutraliza material legado e adiciona navegação, foco e semântica operacional.",
-      "decision": "compatibility_v2",
+      "decision": "redirect_canonical",
       "wave": 2,
       "source": "app/comun/mapa/contribuir/page.tsx"
     },

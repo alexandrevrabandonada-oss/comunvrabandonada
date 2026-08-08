@@ -1,0 +1,25 @@
+{
+  "release": "20260808180246-comun-sidewalk-relata-real",
+  "migration": "supabase/migrations/20260808180246_comun_sidewalk_relata_real.sql",
+  "migrationSha256": "6ed799985fe9270ae9a8406d043d566520c2f9c89002493393c37d7076d9c494",
+  "path": "supabase/migrations/20260808180246_comun_sidewalk_relata_real.sql",
+  "sha256": "6ed799985fe9270ae9a8406d043d566520c2f9c89002493393c37d7076d9c494",
+  "requiresPromotion": true,
+  "remotePromotionAllowed": true,
+  "scope": "production",
+  "dependsOn": [
+    "20260805130000-comun-production-pilot-core-bundle",
+    "20260808043000-comun-relata-location-readd-state-fix",
+    "20260724233256-comun-sidewalk-operational-hardening"
+  ],
+  "destructiveSql": false,
+  "dataMutation": false,
+  "publicProjection": true,
+  "publicProjectionAutomatic": false,
+  "externalForwarding": false,
+  "featureFlags": [
+    "COMUN_SIDEWALK_RELATA_ENABLED",
+    "COMUN_SIDEWALK_PUBLIC_PROJECTION_ENABLED"
+  ],
+  "reason": "private_sidewalk_relata_adapter_and_human_reviewed_approximate_projection"
+}

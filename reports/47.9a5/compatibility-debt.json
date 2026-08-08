@@ -779,17 +779,6 @@
     "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
   },
   {
-    "code": "A5-P2-2-COMUN-MAPA-CONTRIBUIR",
-    "severity": "P2",
-    "route": "/comun/mapa/contribuir",
-    "components": [
-      "legacy-shell",
-      "paper-panel"
-    ],
-    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
-    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
-  },
-  {
     "code": "A5-P2-1-COMUN-OBSERVATORIOS",
     "severity": "P2",
     "route": "/comun/observatorios",

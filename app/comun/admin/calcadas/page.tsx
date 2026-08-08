@@ -12,6 +12,8 @@ import {
   getSidewalkOperationalRelease,
   SIDEWALK_OPERATIONAL_PAUSED_MESSAGE,
 } from "@/lib/sidewalk-operational-release";
+import Link from "next/link";
+import { isComunSidewalkRelataEnabled } from "@/lib/comun-sidewalk-p4-feature";
 export const dynamic = "force-dynamic";
 export default async function Page() {
   const session = await requireComunAdmin({ roles: ["admin", "editor"] });
@@ -23,6 +25,11 @@ export default async function Page() {
         <p className="mt-4 border-l-4 border-comun-yellow bg-comun-paper/10 p-4">
           {SIDEWALK_OPERATIONAL_PAUSED_MESSAGE}
         </p>
+        {isComunSidewalkRelataEnabled() ? (
+          <Link className="btn mt-4 inline-flex" href="/comun/admin/calcadas/relatos">
+            Abrir relatos P4 em revisão
+          </Link>
+        ) : null}
       </AdminShell>
     );
   }

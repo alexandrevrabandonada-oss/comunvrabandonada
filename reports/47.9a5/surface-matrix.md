@@ -1,8 +1,8 @@
 # Matriz canônica de superfícies — 47.9A5
 
-Gerada em: 2026-08-05T03:24:17.397Z
+Gerada em: 2026-08-08T18:23:29.556Z
 
-Total: **193** · ondas: 1=73 · 2=32 · 3=76 · 4=12
+Total: **195** · ondas: 1=73 · 2=33 · 3=77 · 4=12
 
 | Rota | Família | Shell | Visual | Componente | Decisão | Onda |
 | --- | --- | --- | --- | --- | --- | ---: |
@@ -78,6 +78,7 @@ Total: **193** · ondas: 1=73 · 2=32 · 3=76 · 4=12
 | `/comun/admin/calcadas/operacao` | calcadas | admin | v2_compatibility | SidewalkOperationsPage | compatibility_v2 | 3 |
 | `/comun/admin/calcadas/piloto` | calcadas | admin | v2_compatibility | SidewalkPilotPage | compatibility_v2 | 3 |
 | `/comun/admin/calcadas/prioridade` | calcadas | admin | not_rendered | Page | redirect_canonical | 3 |
+| `/comun/admin/calcadas/relatos` | calcadas | admin | not_rendered | Page | redirect_canonical | 3 |
 | `/comun/admin/comunidades` | comunidades | admin | v2_compatibility | CommunityAdministrationPage | compatibility_v2 | 3 |
 | `/comun/admin/dossies` | dossies | admin | v2_compatibility | AdminDossiesPage | compatibility_v2 | 3 |
 | `/comun/admin/dossies/[id]` | dossies | admin | not_rendered | AdminDossierDetailPage | redirect_canonical | 3 |
@@ -136,6 +137,7 @@ Total: **193** · ondas: 1=73 · 2=32 · 3=76 · 4=12
 | `/comun/c/[slug]/participar` | comunidades | member_nested | not_rendered | Page | redirect_canonical | 1 |
 | `/comun/caixa-de-entrada` | caixa-de-entrada | member_root | mixed | Page | retain_v2 | 1 |
 | `/comun/calcadas` | calcadas | immersive | v2_compatibility | Page | compatibility_v2 | 2 |
+| `/comun/calcadas/contribuir` | calcadas | immersive | not_rendered | Page | redirect_canonical | 2 |
 | `/comun/calcadas/mobilizacao` | calcadas | immersive | not_rendered | Page | redirect_canonical | 2 |
 | `/comun/calcadas/pressao/[id]` | calcadas | immersive | not_rendered | Page | redirect_canonical | 2 |
 | `/comun/calcadas/prioridades` | calcadas | immersive | not_rendered | Page | redirect_canonical | 2 |
@@ -156,7 +158,7 @@ Total: **193** · ondas: 1=73 · 2=32 · 3=76 · 4=12
 | `/comun/explorar` | explorar | member_root | mixed | ExplorarPage | retain_v2 | 1 |
 | `/comun/mapa` | mapa | immersive | v2_compatibility | Page | compatibility_v2 | 2 |
 | `/comun/mapa/[slug]` | mapa | immersive | not_rendered | Page | redirect_canonical | 2 |
-| `/comun/mapa/contribuir` | mapa | immersive | v2_compatibility | Page | compatibility_v2 | 2 |
+| `/comun/mapa/contribuir` | mapa | immersive | not_rendered | Page | redirect_canonical | 2 |
 | `/comun/mapa/contribuir/confirmacao` | mapa | immersive | mixed | Confirmation | retain_v2 | 2 |
 | `/comun/minha-participacao` | minha-participacao | member_root | mixed | MinhaAreaPage | retain_v2 | 1 |
 | `/comun/observatorios` | observatorios | public_web | v2_compatibility | Page | compatibility_v2 | 1 |
