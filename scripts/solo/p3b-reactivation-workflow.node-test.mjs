@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import test from "node:test";
 
@@ -32,6 +33,22 @@ test("canonical alias proof resolves nullable deploymentId through deployment.id
   assert.doesNotMatch(workflow, /deployment\.alias/);
   assert.doesNotMatch(workflow, /\/v2\/deployments\/\$deployment_id\/aliases/);
   assert.doesNotMatch(workflow, /\/v13\/deployments\/comunsocial\.online/);
+});
+
+test("canonical alias shell step is syntactically valid", () => {
+  const stepMarker = "      - name: Verify canonical alias points to the new deployment";
+  const stepStart = workflow.indexOf(stepMarker);
+  const runStart = workflow.indexOf("        run: |\n", stepStart) + "        run: |\n".length;
+  const runEnd = workflow.indexOf("\n\n      - name:", runStart);
+  assert.ok(stepStart >= 0 && runStart >= 0 && runEnd > runStart);
+
+  const shell = workflow
+    .slice(runStart, runEnd)
+    .split("\n")
+    .map((line) => line.startsWith("          ") ? line.slice(10) : line)
+    .join("\n");
+  const syntax = spawnSync("bash", ["-n"], { input: shell, encoding: "utf8" });
+  assert.equal(syntax.status, 0, syntax.stderr);
 });
 
 test("automatic rollback explicitly promotes the flags-off deployment", () => {

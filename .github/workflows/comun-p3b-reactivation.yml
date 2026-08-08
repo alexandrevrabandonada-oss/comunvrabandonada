@@ -152,16 +152,15 @@ jobs:
               --header "Authorization: Bearer $VERCEL_TOKEN" \
               "https://api.vercel.com/v4/aliases/comunsocial.online?teamId=$VERCEL_ORG_ID" \
               > /tmp/comun-p3b-canonical-deployment.json; then
-              if EXPECTED_DEPLOYMENT_ID="$deployment_id" node --input-type=module <<'NODE'
-              import fs from "node:fs";
-              const alias = JSON.parse(fs.readFileSync("/tmp/comun-p3b-canonical-deployment.json", "utf8"));
-              const normalize = (value) => typeof value === "string" ? value.replace(/^dpl_/, "") : "";
-              const resolvedDeploymentId = alias.deploymentId || alias.deployment?.id;
-              const exact = alias.alias === "comunsocial.online"
-                && normalize(resolvedDeploymentId) === normalize(process.env.EXPECTED_DEPLOYMENT_ID);
-              process.exit(exact ? 0 : 1);
-              NODE
-              then
+              if EXPECTED_DEPLOYMENT_ID="$deployment_id" node --input-type=module -e '
+                import fs from "node:fs";
+                const alias = JSON.parse(fs.readFileSync("/tmp/comun-p3b-canonical-deployment.json", "utf8"));
+                const normalize = (value) => typeof value === "string" ? value.replace(/^dpl_/, "") : "";
+                const resolvedDeploymentId = alias.deploymentId || alias.deployment?.id;
+                const exact = alias.alias === "comunsocial.online"
+                  && normalize(resolvedDeploymentId) === normalize(process.env.EXPECTED_DEPLOYMENT_ID);
+                process.exit(exact ? 0 : 1);
+              '; then
                 echo COMUN_P3B_CANONICAL_ALIAS_GREEN
                 exit 0
               fi
