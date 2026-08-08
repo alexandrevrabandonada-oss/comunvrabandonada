@@ -173,3 +173,15 @@ O runner passa a emitir, somente em falha, uma matriz booleana sanitizada sobre 
 - escrita Supabase: nenhuma.
 
 O contrato de deployment aceita o project ID tanto em `projectId` quanto em `project.id`, sem aceitar outro valor. O UID continua validado separadamente e nunca é publicado.
+
+## Execucao 31268988576
+
+- deployment, promocao e atribuicao explicita do dominio: verdes;
+- validacao do deployment alvo: bloqueada antes da consulta do alias;
+- marcador sanitizado: `COMUN_P3B_DEPLOYMENT_ID_INVALID`;
+- UI e fixture: nao executadas;
+- recovery: ignorado por ausencia de attempt id;
+- rollback de flag, deployment, promocao e alias: verde;
+- escrita Supabase: nenhuma.
+
+O contrato oficial de `GET /v13/deployments/{idOrUrl}` define o identificador canonico no campo `id`. O runner validava `uid`, que nao pertence a essa resposta. A correcao passa a aceitar exclusivamente `id` no formato `dpl_...`, preserva a coincidencia exata do projeto e nao publica o identificador.
