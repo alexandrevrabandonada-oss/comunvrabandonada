@@ -264,6 +264,14 @@ export async function DELETE(request: NextRequest, context: Context) {
     p_attachment_id: attachmentId,
   });
   if (withdrawn.error || withdrawn.data !== true) return unavailable();
+  try {
+    await removeComunRelataEvidenceObjects(local.db, attachmentId);
+  } catch {
+    return NextResponse.json(
+      { code: "attachment_cleanup_pending" },
+      { status: 503, headers: COMUN_RELATA_EVIDENCE_NO_STORE },
+    );
+  }
   const evidence = await readComunRelataEvidenceState(local.db, local.proof);
   return NextResponse.json(
     { evidence, noOfficialSend: true, nothingPublished: true },

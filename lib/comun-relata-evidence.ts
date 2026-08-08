@@ -119,7 +119,7 @@ export function encryptComunRelataLocation(
   };
 }
 
-export function decryptComunRelataLocationForLocalTest(
+export function decryptComunRelataLocationForServer(
   encrypted: { ciphertext: Buffer; nonce: Buffer; authTag: Buffer },
   protocol: string,
   env: Record<string, string | undefined> = process.env,
@@ -135,6 +135,11 @@ export function decryptComunRelataLocationForLocalTest(
     ]).toString("utf8"),
   ) as { longitude: number; latitude: number; accuracyMeters: number | null };
 }
+
+// Backward-compatible test name. Production callers use the neutral,
+// server-only contract above; the key never crosses this module boundary.
+export const decryptComunRelataLocationForLocalTest =
+  decryptComunRelataLocationForServer;
 
 function assertCoordinates(longitude: number, latitude: number) {
   if (

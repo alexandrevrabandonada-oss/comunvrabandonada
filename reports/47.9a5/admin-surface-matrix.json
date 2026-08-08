@@ -1,9 +1,9 @@
 {
   "summary": {
-    "wave3": 76,
+    "wave3": 77,
     "wave4": 12,
     "tables": 3,
-    "forms": 53,
+    "forms": 54,
     "p0_p1": 0
   },
   "routes": [
@@ -1494,6 +1494,40 @@
       "decision": "redirect_canonical",
       "wave": 3,
       "source": "app/comun/admin/calcadas/prioridade/page.tsx"
+    },
+    {
+      "route": "/comun/admin/calcadas/relatos",
+      "family": "calcadas",
+      "shell_mode": "admin",
+      "public": false,
+      "auth_required": true,
+      "visual_state": "not_rendered",
+      "main_component": "Page",
+      "shell_component": "AdminShell",
+      "legacy_components": [
+        "generic-white-panel"
+      ],
+      "contextual_app_bar": true,
+      "primary_action": "/comun/admin",
+      "empty_state": true,
+      "requires_entity_context": true,
+      "preserves_filters_or_return": true,
+      "admin_domain": "calcadas",
+      "admin_surface_type": "queue",
+      "has_table": false,
+      "has_form": true,
+      "accessible_table_contract": true,
+      "filter_return_contract": true,
+      "platform_domain": null,
+      "platform_access": null,
+      "platform_shell": null,
+      "preserves_app_v2_flag": null,
+      "member_bottom_navigation": null,
+      "compatibility_severity": "P2",
+      "compatibility_justification": "Markup preservado para rollback; shell V2 neutraliza material legado e adiciona navegação, foco e semântica operacional.",
+      "decision": "redirect_canonical",
+      "wave": 3,
+      "source": "app/comun/admin/calcadas/relatos/page.tsx"
     },
     {
       "route": "/comun/admin/comunidades",

@@ -1152,3 +1152,17 @@ comprovar a disponibilidade da chave/capacidade no runtime sem expor segredo.
 
 Resultado terminal: `COMUN_48_1B_P3_PRIVATE_EVIDENCE_DOMAIN_GREEN`.
 Proximo tijolo elegivel: `48.1B-P4 — Calcadas real`.
+
+### 48.1B-P4 — Calçadas real — candidato em CI (2026-08-08)
+
+- baseline exato `origin/main=e9aded8f486843e888473172c59eb58a4d7e1335`;
+- preflight remoto read-only confirmou núcleo P3 íntegro e ausência do adapter P4;
+- dry-run reconciliado planeja exatamente `20260808180246_comun_sidewalk_relata_real.sql`;
+- SHA-256 candidato `6ed799985fe9270ae9a8406d043d566520c2f9c89002493393c37d7076d9c494`;
+- intake privado, Carteira, fila admin e projeção aproximada revisada foram implementados sob flags separadas;
+- testes focais, typecheck, lint e build verdes; Docker local indisponível;
+- P4A/P4B integral verde no Supabase descartável do run `31272121500`, job `93139744374`;
+- runners fail-closed de promoção exata e ativação em duas ondas preparados para execução somente após merge;
+- nenhuma migration aplicada, flag alterada, fixture remota criada ou deployment promovido.
+
+Resultado atual: `COMUN_P4_DISPOSABLE_RUNTIME_GREEN_AGGREGATE_CI_PENDING`.

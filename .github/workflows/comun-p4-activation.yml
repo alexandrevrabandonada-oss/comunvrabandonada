@@ -1,0 +1,234 @@
+name: COMUN P4 domain activation
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA to deploy
+        required: true
+        type: string
+      mode:
+        description: Deploy flags off, activate intake with smoke, activate projection read-only, or roll back
+        required: true
+        type: choice
+        options:
+          [
+            flags-off,
+            activate-intake-smoke,
+            activate-projection-readonly,
+            rollback-intake,
+            rollback-projection,
+          ]
+
+concurrency:
+  group: comun-p4-domain-activation
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+  COMUN_BASE_URL: https://comunsocial.online
+
+jobs:
+  activate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+
+      - name: Verify exact main and operational tooling
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          npm ci --ignore-scripts
+          node --check scripts/solo/rehearse-p4-sidewalk-production.mjs
+
+      - name: Set P4 flags without reading Production values
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          intake=disabled
+          projection=disabled
+          case "${{ inputs.mode }}" in
+            activate-intake-smoke) intake=enabled ;;
+            activate-projection-readonly) intake=enabled; projection=enabled ;;
+            rollback-projection) intake=enabled ;;
+            flags-off|rollback-intake) ;;
+            *) echo COMUN_P4_ACTIVATION_MODE_INVALID; exit 1 ;;
+          esac
+          printf '%s' "$intake" | npx --yes vercel@50.28.0 env update COMUN_SIDEWALK_RELATA_ENABLED production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-intake-env.out 2>/tmp/comun-p4-intake-env.err
+          printf '%s' "$projection" | npx --yes vercel@50.28.0 env update COMUN_SIDEWALK_PUBLIC_PROJECTION_ENABLED production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-projection-env.out 2>/tmp/comun-p4-projection-env.err
+
+      - name: Deploy exact main with current Production environment
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-deploy.out 2>/tmp/comun-p4-deploy.err
+          deployment_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-p4-deploy.out | tail -n 1 | tr -d '\r')"
+          case "$deployment_url" in https://*.vercel.app) ;; *) echo COMUN_P4_DEPLOYMENT_URL_UNAVAILABLE; exit 1 ;; esac
+          printf 'deployment_url=%s\n' "$deployment_url" >> "$GITHUB_OUTPUT"
+
+      - name: Promote exact deployment to canonical domain
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@50.28.0 promote "$DEPLOYMENT_URL" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-promote.out 2>/tmp/comun-p4-promote.err
+          npx --yes vercel@50.28.0 alias set "$DEPLOYMENT_URL" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-alias.out 2>/tmp/comun-p4-alias.err
+
+      - name: Verify canonical pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in /comun /comun/relatar /comun/calcadas; do
+            test "$(curl -L -sS -o /dev/null -w '%{http_code}' --retry 8 --retry-delay 2 "$COMUN_BASE_URL$path")" = 200
+          done
+
+      - name: Verify flags-off cloak
+        if: inputs.mode == 'flags-off' || inputs.mode == 'rollback-intake'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for method in GET POST PUT PATCH DELETE HEAD OPTIONS; do
+            test "$(curl -sS -o /dev/null -w '%{http_code}' -X "$method" "$COMUN_BASE_URL/api/comun/calcadas/intake")" = 404
+          done
+          test "$(curl -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL/comun/calcadas/contribuir")" = 404
+          echo COMUN_P4_CODE_DEPLOYED_FLAGS_OFF >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify private intake UI before creating fixture
+        if: inputs.mode == 'activate-intake-smoke'
+        shell: bash
+        run: |
+          set -euo pipefail
+          page="$(mktemp)"
+          trap 'rm -f "$page"' EXIT
+          curl -L -fsS --retry 8 --retry-delay 2 "$COMUN_BASE_URL/comun/calcadas/contribuir?__p4_gate=$GITHUB_RUN_ID" >"$page"
+          grep -q 'data-comun-sidewalk-p4="intake"' "$page"
+          grep -q 'só aparece no mapa depois de revisão humana' "$page"
+
+      - name: Allocate synthetic attempt marker
+        id: attempt
+        if: inputs.mode == 'activate-intake-smoke'
+        shell: bash
+        run: |
+          set -euo pipefail
+          marker="P4-SMOKE-${GITHUB_RUN_ID}-$(node -e 'process.stdout.write(require("node:crypto").randomUUID())')"
+          printf 'attempt_id=%s\n' "$marker" >> "$GITHUB_OUTPUT"
+
+      - name: Run real private intake smoke with finally cleanup
+        id: smoke
+        if: inputs.mode == 'activate-intake-smoke'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          ATTEMPT_ID: ${{ steps.attempt.outputs.attempt_id }}
+          P4_RECOVERY_FILE: ${{ runner.temp }}/comun-p4-recovery.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/p4-production
+          node scripts/solo/rehearse-p4-sidewalk-production.mjs >.ci-artifacts/p4-production/smoke.json
+          test ! -e "$P4_RECOVERY_FILE"
+
+      - name: Recover exact synthetic attempt after a process failure
+        if: always() && inputs.mode == 'activate-intake-smoke' && steps.attempt.outcome == 'success' && steps.attempt.outputs.attempt_id != '' && steps.smoke.outcome != 'success'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          ATTEMPT_ID: ${{ steps.attempt.outputs.attempt_id }}
+          P4_RECOVERY_FILE: ${{ runner.temp }}/comun-p4-recovery.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/p4-production
+          node scripts/solo/rehearse-p4-sidewalk-production.mjs --recover >.ci-artifacts/p4-production/recovery.json
+          rm -f "$P4_RECOVERY_FILE"
+
+      - name: Roll back private intake automatically after failed smoke
+        if: always() && inputs.mode == 'activate-intake-smoke' && steps.smoke.outcome != 'success'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' disabled | npx --yes vercel@50.28.0 env update COMUN_SIDEWALK_RELATA_ENABLED production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-intake.out 2>/tmp/comun-p4-auto-rollback-intake.err
+          printf '%s' disabled | npx --yes vercel@50.28.0 env update COMUN_SIDEWALK_PUBLIC_PROJECTION_ENABLED production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-projection.out 2>/tmp/comun-p4-auto-rollback-projection.err
+          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-deploy.out 2>/tmp/comun-p4-auto-rollback-deploy.err
+          rollback_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-p4-auto-rollback-deploy.out | tail -n 1 | tr -d '\r')"
+          case "$rollback_url" in https://*.vercel.app) ;; *) exit 1 ;; esac
+          npx --yes vercel@50.28.0 promote "$rollback_url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-promote.out 2>/tmp/comun-p4-auto-rollback-promote.err
+          npx --yes vercel@50.28.0 alias set "$rollback_url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-alias.out 2>/tmp/comun-p4-auto-rollback-alias.err
+          echo COMUN_P4_INTAKE_ROLLED_BACK_AFTER_FAILED_SMOKE >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify projection activation is read-only
+        id: projection_check
+        if: inputs.mode == 'activate-projection-readonly'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/p4-production
+          test "$(curl -L -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL/comun/calcadas")" = 200
+          admin_status="$(curl -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL/comun/admin/calcadas/relatos")"
+          case "$admin_status" in 200|302|303|307|308) ;; *) exit 1 ;; esac
+          psql "$SUPABASE_DB_URL" -XAt -v ON_ERROR_STOP=1 >.ci-artifacts/p4-production/projection-readonly.json <<'SQL'
+          select json_build_object(
+            'result','COMUN_P4B_PROJECTION_CAPABILITY_READ_ONLY_GREEN',
+            'pendingIntakes',(select count(*) from private.comun_sidewalk_relata_intakes where review_state in ('pending_review','needs_information')),
+            'automaticallyPublished',0,
+            'syntheticPublicRecordCreated',false
+          );
+          SQL
+          echo COMUN_P4B_PROJECTION_CAPABILITY_READ_ONLY_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Roll back projection automatically after a failed read-only gate
+        if: always() && inputs.mode == 'activate-projection-readonly' && steps.projection_check.outcome != 'success'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' disabled | npx --yes vercel@50.28.0 env update COMUN_SIDEWALK_PUBLIC_PROJECTION_ENABLED production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-projection.out 2>/tmp/comun-p4-auto-rollback-projection.err
+          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-projection-deploy.out 2>/tmp/comun-p4-auto-rollback-projection-deploy.err
+          rollback_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-p4-auto-rollback-projection-deploy.out | tail -n 1 | tr -d '\r')"
+          case "$rollback_url" in https://*.vercel.app) ;; *) exit 1 ;; esac
+          npx --yes vercel@50.28.0 promote "$rollback_url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-projection-promote.out 2>/tmp/comun-p4-auto-rollback-projection-promote.err
+          npx --yes vercel@50.28.0 alias set "$rollback_url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p4-auto-rollback-projection-alias.out 2>/tmp/comun-p4-auto-rollback-projection-alias.err
+          echo COMUN_P4_PROJECTION_ROLLED_BACK_AFTER_FAILED_GATE >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-p4-domain-${{ github.run_id }}
+          path: .ci-artifacts/p4-production
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Emit P4A marker
+        if: success() && inputs.mode == 'activate-intake-smoke'
+        run: echo COMUN_P4A_PRODUCTION_PRIVATE_INTAKE_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Emit terminal marker
+        if: success() && inputs.mode == 'activate-projection-readonly'
+        run: echo COMUN_48_1B_P4_SIDEWALK_REAL_DOMAIN_GREEN_REVIEWED_MAP_ONLY >> "$GITHUB_STEP_SUMMARY"
