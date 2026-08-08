@@ -135,7 +135,10 @@ jobs:
           deployment_id="$(node --input-type=module <<'NODE'
           import fs from "node:fs";
           const deployment = JSON.parse(fs.readFileSync("/tmp/comun-p3b-deployment.json", "utf8"));
-          if (typeof deployment.uid !== "string" || !/^dpl_[A-Za-z0-9]+$/.test(deployment.uid)) process.exit(1);
+          if (typeof deployment.uid !== "string" || !/^(?:dpl_)?[A-Za-z0-9]{8,128}$/.test(deployment.uid)) {
+            console.error("COMUN_P3B_DEPLOYMENT_ID_INVALID");
+            process.exit(1);
+          }
           process.stdout.write(deployment.uid);
           NODE
           )"
