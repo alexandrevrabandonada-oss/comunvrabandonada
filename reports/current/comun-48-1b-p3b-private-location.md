@@ -86,3 +86,23 @@ sem uma chave server-side atual válida e um novo smoke com cleanup comprovado.
 Resultado terminal C3: `COMUN_P3B_BLOCKED_NEW_KEY_NOT_VISIBLE_TO_RUNTIME`.
 P3 permanece bloqueado; investigar a disponibilidade da chave/flags no runtime
 sem ler qualquer segredo antes de nova tentativa.
+
+## C4 — runtime canonico e P3B verde (2026-08-08)
+
+- O diagnostico em tres camadas comprovou metadata, env de execucao, runtime
+  staged e runtime canonico sem ler o valor da chave.
+- Os PRs #223 e #224 corrigiram somente o contrato do deployment Vercel e a
+  sintaxe shell do gate de alias; nenhuma migration foi criada.
+- O run `31269740911` chegou a primeira localizacao real e encontrou uma coluna
+  `withdrawn_at` nao qualificada apenas na consulta read-only do harness. O
+  recovery comprovou zero residuo ativo e a flag foi revertida.
+- O PR #225 qualificou a consulta de auditoria, sem alterar produto ou schema.
+- O run final `31270085605` executou localizacao A, retirada, readicao B e nova
+  retirada. Ciphertext, nonce e metadata foram renovados, comprovando a F1 em
+  Production sem expor coordenada ou material criptografico.
+- A flag `COMUN_RELATA_LOCATION_ENABLED=enabled` permanece ativa; fotos privadas
+  continuam ativas e independentes.
+- Mapa publico, coletivos, territorio, Google, Onibus, forwarding e publicacao
+  automatica permanecem desligados.
+
+Resultado terminal: `COMUN_48_1B_P3_PRIVATE_EVIDENCE_DOMAIN_GREEN`.

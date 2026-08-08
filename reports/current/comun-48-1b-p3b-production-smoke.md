@@ -47,3 +47,25 @@ Resultado: `COMUN_P3B_BLOCKED_LOCATION_RUNTIME_KEY_INVALID_OR_UNAVAILABLE`.
   quatro runs; não há dado sintético novo nem envio externo.
 
 Resultado C3: `COMUN_P3B_BLOCKED_NEW_KEY_NOT_VISIBLE_TO_RUNTIME`.
+
+## C4 — smoke real concluido
+
+Run final: `31270085605`.
+
+- deployment da main `dd34ed77608d115ab96d2bfa995f7bf9af444e19` ficou READY;
+- promocao e alias de `comunsocial.online` foram comprovados contra o mesmo
+  deployment antes da fixture;
+- `/comun`, `/comun/relatar` e `/comun/minha-participacao`: 200;
+- foto, `Usar localizacao` e `Marcar aproximadamente`: presentes;
+- relato sintetico: criado sem Carteira automatica;
+- localizacao A: adicionada privadamente;
+- localizacao A: retirada;
+- localizacao B: readicionada como `added_private`, exercitando a F1;
+- localizacao B e relato: retirados no `finally`;
+- nenhum payload de resposta expos coordenada, ciphertext, nonce, auth tag ou
+  chave;
+- nenhum envio externo ocorreu.
+
+Artifact sanitizado: `comun-p3b-production-31270085605`.
+
+Resultado: `COMUN_P3B_PRODUCTION_SYNTHETIC_CLEANUP_GREEN`.

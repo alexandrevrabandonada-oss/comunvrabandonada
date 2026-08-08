@@ -210,3 +210,18 @@ O heredoc usado dentro do `if` mantinha indentacao residual apos o strip do bloc
 - rollback da localizacao: verde.
 
 O finding pertence exclusivamente a consulta read-only do harness: tanto `private.comun_relata_private_locations` quanto `private.comun_relata_reports` possuem `withdrawn_at`. A correcao qualifica todas as colunas de localizacao e renomeia a coluna auditada para `location_withdrawn_at`; schema e runtime de produto permanecem inalterados.
+
+## Fechamento C4 — run 31270085605
+
+- metadata do projeto e nomes das variaveis: verdes, sem leitura de valores;
+- env de execucao e runtime staged: verdes;
+- deployment Production exato: promovido e vinculado ao dominio canonico;
+- `/comun/relatar`: 200 com foto, `Usar localizacao` e `Marcar aproximadamente`;
+- smoke real: localizacao A, retirada, localizacao B e retirada;
+- F1 de readicao: exercitada em Production;
+- postflight: zero localizacao, caso, relato, item de Carteira, anexo ou snapshot sintetico ativo;
+- `hardDeletes=0`; `plaintextLocationRead=false`;
+- nenhuma projecao publica, coletivo, territorio, Google, Onibus ou forwarding ativado;
+- `launch_publicly=false`.
+
+Resultado: `COMUN_48_1B_P3_PRIVATE_EVIDENCE_DOMAIN_GREEN`.
