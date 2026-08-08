@@ -118,6 +118,7 @@ jobs:
           set -euo pipefail
           test -n "${VERCEL_TOKEN:-}"
           npx --yes vercel@50.28.0 promote "$DEPLOYMENT_URL" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-promote.out 2>/tmp/comun-p3b-vercel-promote.err
+          npx --yes vercel@50.28.0 alias set "$DEPLOYMENT_URL" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-alias.out 2>/tmp/comun-p3b-vercel-alias.err
           echo COMUN_P3B_CANONICAL_PROMOTION_COMPLETED
 
       - name: Verify canonical alias points to the new deployment
@@ -235,6 +236,7 @@ jobs:
             *) echo COMUN_P3B_ROLLBACK_DEPLOYMENT_URL_UNAVAILABLE; exit 1 ;;
           esac
           npx --yes vercel@50.28.0 promote "$rollback_url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-auto-rollback-promote.out 2>/tmp/comun-p3b-vercel-auto-rollback-promote.err
+          npx --yes vercel@50.28.0 alias set "$rollback_url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p3b-vercel-auto-rollback-alias.out 2>/tmp/comun-p3b-vercel-auto-rollback-alias.err
           echo COMUN_P3B_LOCATION_ROLLED_BACK_AFTER_FAILED_SMOKE >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload sanitized Production evidence
