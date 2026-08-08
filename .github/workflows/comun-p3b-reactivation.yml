@@ -128,7 +128,7 @@ jobs:
         run: |
           set -euo pipefail
           deployment_host="${DEPLOYMENT_URL#https://}"
-          trap 'rm -f /tmp/comun-p3b-deployment.json /tmp/comun-p3b-aliases.json' EXIT
+          trap 'rm -f /tmp/comun-p3b-deployment.json /tmp/comun-p3b-alias.json' EXIT
           curl --fail-with-body --silent --show-error \
             --header "Authorization: Bearer $VERCEL_TOKEN" \
             "https://api.vercel.com/v13/deployments/$deployment_host?teamId=$VERCEL_ORG_ID" \
@@ -147,13 +147,16 @@ jobs:
           for _ in $(seq 1 45); do
             if curl --fail-with-body --silent --show-error \
               --header "Authorization: Bearer $VERCEL_TOKEN" \
-              "https://api.vercel.com/v2/deployments/$deployment_id/aliases?teamId=$VERCEL_ORG_ID" \
-              > /tmp/comun-p3b-aliases.json; then
-              if node --input-type=module <<'NODE'
+              "https://api.vercel.com/v4/aliases/comunsocial.online?teamId=$VERCEL_ORG_ID" \
+              > /tmp/comun-p3b-alias.json; then
+              if EXPECTED_DEPLOYMENT_ID="$deployment_id" node --input-type=module <<'NODE'
               import fs from "node:fs";
-              const response = JSON.parse(fs.readFileSync("/tmp/comun-p3b-aliases.json", "utf8"));
-              const aliases = Array.isArray(response.aliases) ? response.aliases : [];
-              process.exit(aliases.some((entry) => entry?.alias === "comunsocial.online") ? 0 : 1);
+              const alias = JSON.parse(fs.readFileSync("/tmp/comun-p3b-alias.json", "utf8"));
+              const normalize = (value) => typeof value === "string" ? value.replace(/^dpl_/, "") : "";
+              const exact = alias.alias === "comunsocial.online"
+                && alias.projectId === process.env.VERCEL_PROJECT_ID
+                && normalize(alias.deploymentId) === normalize(process.env.EXPECTED_DEPLOYMENT_ID);
+              process.exit(exact ? 0 : 1);
               NODE
               then
                 echo COMUN_P3B_CANONICAL_ALIAS_GREEN

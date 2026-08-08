@@ -117,3 +117,15 @@ O endpoint da Vercel devolveu o UID em formato base58 sem prefixo. O contrato fo
 - escrita Supabase: nenhuma.
 
 O projeto não reassocia automaticamente o custom domain mesmo após `vercel promote`, coerente com um estado de promoção manual pós-rollback. O runner passa a atribuir explicitamente apenas `comunsocial.online` ao deployment exato com `vercel alias set`; o rollback faz a mesma atribuição ao deployment flags-off. A mutação de alias permanece sujeita ao gate read-only da API escopada antes de qualquer UI ou fixture.
+
+## Execução 31267635831
+
+- deployment e promoção: verdes;
+- atribuição explícita de `comunsocial.online`: verde;
+- listagem reversa de aliases do deployment: não refletiu o custom domain;
+- UI e fixture: não executadas;
+- recovery: ignorado por ausência de marcador;
+- rollback explícito: executado;
+- escrita Supabase: nenhuma.
+
+O contrato canônico precisa provar a relação na direção solicitada: domínio para deployment. A validação passa a consultar `GET /v4/aliases/comunsocial.online` e exige simultaneamente alias exato, project ID canônico e deployment ID exato, normalizando apenas o prefixo opcional `dpl_`. Nenhuma resposta bruta é registrada.
