@@ -6,6 +6,7 @@ import { STMU_EMAIL_CHANNEL } from "./comun-stmu-multichannel";
 
 const migrationPath = "supabase/migrations/20260808220000_comun_bus_stmu_assisted.sql";
 const sql = readFileSync(migrationPath, "utf8");
+const intakeRoute = readFileSync("app/api/comun/onibus/intake/route.ts", "utf8");
 
 describe("COMUN P5 operational boundary", () => {
   it("uses one additive private-schema migration with forced RLS", () => {
@@ -31,5 +32,10 @@ describe("COMUN P5 operational boundary", () => {
     expect(STMU_EMAIL_CHANNEL.destination).toBe("mailto:stmu@voltaredonda.rj.gov.br");
     expect(STMU_EMAIL_CHANNEL.destination).not.toContain("?");
     expect(sql).toContain("72 horas é uma referência de acompanhamento do COMUN, não prazo legal nem garantia de resposta.");
+  });
+
+  it("uses the canonical private Relata privacy class for bus intake", () => {
+    expect(intakeRoute).toContain('p_privacy_class: "restricted"');
+    expect(intakeRoute).not.toContain('p_privacy_class: "private"');
   });
 });

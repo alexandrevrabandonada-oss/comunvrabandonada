@@ -68,7 +68,9 @@ export async function POST(request: NextRequest) {
     p_urgency: issueType === "accessibility" ? "attention" : "routine",
     p_rule_version: "relata-routing-v1",
     p_decision: { category: "public_transport", source: "bus_structured_server_route", captureMode: "bus_p5" },
-    p_privacy_class: "private",
+    // Use the canonical Relata privacy taxonomy. This remains private at rest
+    // and cannot create a public projection without a separate review.
+    p_privacy_class: "restricted",
     p_consent_version: "relata-consent-v1",
   });
   if (created.error || !Array.isArray(created.data) || !created.data[0]) {
