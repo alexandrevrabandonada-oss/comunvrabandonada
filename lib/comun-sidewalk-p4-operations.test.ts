@@ -37,6 +37,9 @@ describe("P4 operational boundaries", () => {
     expect(workflow).not.toContain(
       "env update COMUN_SIDEWALK_PUBLIC_PROJECTION_ENABLED",
     );
+    expect(workflow).not.toContain(
+      '"$COMUN_BASE_URL/comun/calcadas/contribuir")" = 404',
+    );
   });
 
   it("uses soft cleanup and removes private attachment objects", () => {

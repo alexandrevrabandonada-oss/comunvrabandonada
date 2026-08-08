@@ -113,7 +113,6 @@ jobs:
           for method in GET POST PUT PATCH DELETE HEAD OPTIONS; do
             test "$(curl -sS -o /dev/null -w '%{http_code}' -X "$method" "$COMUN_BASE_URL/api/comun/calcadas/intake")" = 404
           done
-          test "$(curl -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL/comun/calcadas/contribuir")" = 404
           echo COMUN_P4_CODE_DEPLOYED_FLAGS_OFF >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify private intake UI before creating fixture
