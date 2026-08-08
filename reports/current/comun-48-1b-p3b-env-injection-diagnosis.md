@@ -140,3 +140,14 @@ O contrato canônico precisa provar a relação na direção solicitada: domíni
 - escrita Supabase: nenhuma.
 
 A prova final passa a resolver o próprio hostname pelo endpoint canônico de deployments: `GET /v13/deployments/comunsocial.online`. O gate exige que o deployment servido pertença ao project ID esperado e possua o mesmo UID do deployment recém-criado, normalizando somente o prefixo opcional `dpl_`.
+
+## Execução 31268181636
+
+- deployment, promoção e atribuição do domínio: verdes;
+- resolução do hostname pelo endpoint de deployments: não aplicável ao custom alias;
+- UI e fixture: não executadas;
+- recovery: ignorado;
+- rollback: verde;
+- escrita Supabase: nenhuma.
+
+Pelo schema OpenAPI oficial, `deploymentId` no recurso Alias é anulável e o identificador efetivo também pode aparecer em `deployment.id`. O gate volta ao recurso Alias, usa `deploymentId || deployment.id`, exige o alias e UID exatos e valida separadamente que o deployment alvo pertence ao project ID canônico.
