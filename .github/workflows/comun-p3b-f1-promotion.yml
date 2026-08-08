@@ -147,7 +147,7 @@ jobs:
           if (!m.migrationHistoryPresent) throw new Error('COMUN_P3B_F1_MIGRATION_HISTORY_MISSING');
           const expected = f.expectedNormalizedArguments;
           const candidates = f.candidateFunctions ?? [];
-          const exact = candidates.filter((candidate) => candidate.schema === 'public' && candidate.securityDefiner && candidate.searchPath === 'search_path=pg_catalog, private, public' && !candidate.publicExecute && !candidate.anonExecute && !candidate.authenticatedExecute && candidate.serviceRoleExecute && candidate.identityArguments.replace(/\s+/g, '') === expected);
+          const exact = candidates.filter((candidate) => candidate.schema === 'public' && candidate.securityDefiner && candidate.searchPath === 'search_path=pg_catalog, private, public' && !candidate.publicExecute && !candidate.anonExecute && !candidate.authenticatedExecute && candidate.serviceRoleExecute && candidate.identityArguments.replace(/\bp_[a-z0-9_]+\s+/g, '').replace(/\s+/g, '') === expected);
           if (exact.length !== 1) throw new Error('COMUN_P3B_F1_PRIVILEGE_POSTFLIGHT_FAILED');
           fs.writeFileSync('.ci-artifacts/p3b-f1/postflight.json', JSON.stringify({ result: 'COMUN_P3B_F1_REMOTE_PROMOTED_LOCATION_OFF', function: { exactCount: exact.length, candidateCount: candidates.length, exact: exact[0] }, migration: m }, null, 2) + '\n');
           NODE
