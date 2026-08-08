@@ -29,3 +29,17 @@ O probe temporário responde somente no hostname específico do deployment stage
 - fixture: nenhuma;
 - deploy: pendente da lane sanitizada;
 - resultado: `COMUN_P3B_ENV_DIAGNOSIS_IMPLEMENTED_STAGED_EXECUTION_PENDING`.
+
+## Execução 31263803904
+
+- metadata: `COMUN_P3B_VERCEL_ENV_METADATA_GREEN`;
+- chave de localização: uma entrada Production, sem `gitBranch`, tipo `sensitive`;
+- flag de localização: uma entrada Production, sem `gitBranch`;
+- persistência e URL HTTPS: visíveis e válidas em `vercel env run`;
+- chave de localização e service role: não legíveis em `vercel env run` por serem `sensitive`, cuja prova de valor é postergada ao runtime staged;
+- flag: `disabled`, coerente com o rollback seguro anterior;
+- deployment staged: não criado;
+- fixture: não criada;
+- escrita Supabase: nenhuma.
+
+O workflow passa a atualizar a flag com `env update` e entrada sem newline apenas para formar o snapshot staged. Ao final, inclusive em falha, restaura a configuração da flag para `disabled`. A chave não é rotacionada nem lida.
