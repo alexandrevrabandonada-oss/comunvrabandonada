@@ -12,7 +12,8 @@ test("canonical alias proof resolves nullable deploymentId through deployment.id
   assert.match(workflow, /promote "\$DEPLOYMENT_URL" --yes --timeout=5m/);
   assert.match(workflow, /alias set "\$DEPLOYMENT_URL" comunsocial\.online/);
   assert.match(workflow, /\/v13\/deployments\/\$deployment_host\?teamId=/);
-  assert.match(workflow, /deployment\.project\?\.id !== process\.env\.VERCEL_PROJECT_ID/);
+  assert.match(workflow, /deployment\.projectId \|\| deployment\.project\?\.id/);
+  assert.match(workflow, /deploymentProjectId !== process\.env\.VERCEL_PROJECT_ID/);
   assert.match(workflow, /\(\?:dpl_\)\?\[A-Za-z0-9\]\{8,128\}/);
   assert.match(workflow, /\/v4\/aliases\/comunsocial\.online\?teamId=/);
   assert.match(workflow, /alias\.deploymentId \|\| alias\.deployment\?\.id/);
