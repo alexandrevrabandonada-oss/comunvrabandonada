@@ -39,3 +39,20 @@ test("validator rejects a broadened grant-repair allowlist", () => {
     /SOLO_LEGACY_GRANT_REPAIR_EXCEPTION_INVALID/,
   );
 });
+
+test("validator accepts the additive P4 release without the historical sidewalk summary exception", () => {
+  const p4Release = {
+    release: "20260808180246-comun-sidewalk-relata-real",
+    destructiveSql: false,
+    expectedBlockingFindings: 0,
+    platformObservationsAllowed: true,
+    releaseLedger: "public.comun_schema_releases",
+  };
+
+  assert.doesNotThrow(() =>
+    validateForwardOnlySqlText(
+      p4Release,
+      "begin; create table private.comun_sidewalk_relata_intakes (id uuid primary key); commit;",
+    ),
+  );
+});
