@@ -11,7 +11,14 @@ on:
         description: Deploy flags off, activate one wave, or roll back one capability
         required: true
         type: choice
-        options: [flags-off, activate-bus-smoke, activate-stmu-readonly, rollback-bus, rollback-stmu]
+        options:
+          [
+            flags-off,
+            activate-bus-smoke,
+            activate-stmu-readonly,
+            rollback-bus,
+            rollback-stmu,
+          ]
 
 concurrency:
   group: comun-p5-domain-activation
@@ -158,7 +165,8 @@ jobs:
           test "$(curl -L -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL/comun/onibus")" = 200
           test "$(curl -L -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL/comun/minha-participacao")" = 200
           grep -q 'https://wa.me/5524992958558' lib/comun-stmu-whatsapp.ts
-          grep -q 'mailto:stmu@voltaredonda.rj.gov.br' lib/comun-stmu-multichannel.ts
+          grep -q 'STMU_OFFICIAL_EMAIL = "stmu@voltaredonda.rj.gov.br"' lib/comun-stmu-multichannel.ts
+          grep -q 'destination: `mailto:${STMU_OFFICIAL_EMAIL}`' lib/comun-stmu-multichannel.ts
           ! grep -Eq 'https://wa.me/5524992958558\?|mailto:stmu@voltaredonda.rj.gov.br\?' lib/comun-stmu-whatsapp.ts lib/comun-stmu-multichannel.ts
           before="$(psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 -c 'select count(*) from private.comun_forwarding_attempts')"
           psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/p5-production/stmu-readonly.json <<'SQL'
