@@ -18,6 +18,12 @@ test("canonical alias proof resolves nullable deploymentId through deployment.id
   assert.match(workflow, /alias\.deploymentId \|\| alias\.deployment\?\.id/);
   assert.match(workflow, /normalize\(resolvedDeploymentId\) === normalize\(process\.env\.EXPECTED_DEPLOYMENT_ID\)/);
   assert.match(workflow, /COMUN_P3B_CANONICAL_ALIAS_GREEN/);
+  assert.match(workflow, /COMUN_P3B_CANONICAL_ALIAS_SANITIZED_DIAGNOSTIC/);
+  assert.match(workflow, /topLevelDeploymentIdPresent/);
+  assert.match(workflow, /nestedDeploymentIdPresent/);
+  assert.match(workflow, /topLevelDeploymentExact/);
+  assert.match(workflow, /nestedDeploymentExact/);
+  assert.match(workflow, /redirectPresent/);
   assert.match(workflow, /COMUN_P3B_BLOCKED_CANONICAL_ALIAS_STALE/);
   assert.doesNotMatch(workflow, /deployment\.alias/);
   assert.doesNotMatch(workflow, /\/v2\/deployments\/\$deployment_id\/aliases/);

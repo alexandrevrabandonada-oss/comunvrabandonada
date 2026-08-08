@@ -167,6 +167,22 @@ jobs:
             fi
             sleep 2
           done
+          EXPECTED_DEPLOYMENT_ID="$deployment_id" node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const alias = JSON.parse(fs.readFileSync("/tmp/comun-p3b-canonical-deployment.json", "utf8"));
+          const normalize = (value) => typeof value === "string" ? value.replace(/^dpl_/, "") : "";
+          const diagnostic = {
+            result: "COMUN_P3B_CANONICAL_ALIAS_SANITIZED_DIAGNOSTIC",
+            aliasExact: alias.alias === "comunsocial.online",
+            projectExact: alias.projectId === process.env.VERCEL_PROJECT_ID,
+            topLevelDeploymentIdPresent: typeof alias.deploymentId === "string",
+            nestedDeploymentIdPresent: typeof alias.deployment?.id === "string",
+            topLevelDeploymentExact: normalize(alias.deploymentId) === normalize(process.env.EXPECTED_DEPLOYMENT_ID),
+            nestedDeploymentExact: normalize(alias.deployment?.id) === normalize(process.env.EXPECTED_DEPLOYMENT_ID),
+            redirectPresent: typeof alias.redirect === "string" && alias.redirect.length > 0,
+          };
+          console.error(JSON.stringify(diagnostic));
+          NODE
           echo COMUN_P3B_BLOCKED_CANONICAL_ALIAS_STALE
           exit 1
 
