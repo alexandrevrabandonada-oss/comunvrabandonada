@@ -1216,5 +1216,18 @@ Resultado terminal:
 Resultado terminal:
 `COMUN_48_1B_P5_BUS_STMU_ASSISTED_DOMAIN_GREEN_NO_AUTO_SEND`.
 
+### 48.1B-F1 — Motorola Pass (2026-08-08)
+
+- revisão transversal iniciada a partir de `633ded9b6dac89998d77234b74b6c4c41ef15c7a`;
+- navegação central mobile e CTA da Home levam ao Relata em um gesto, sem modal nem login;
+- Calçadas usa a rota canônica P4 `/comun/calcadas/contribuir` nas entradas App V2;
+- Ônibus não presume tipo de problema e recolhe detalhes opcionais;
+- Minha Participação apresenta “Meus registros” como linguagem primária;
+- zero migration, zero mudança de backend e dry-run remoto reconciliado vazio;
+- unitários, typecheck, lint e build locais verdes;
+- integração e smoke de Production ainda pendentes.
+
+Estado atual: `COMUN_48_1B_F1_MOTOROLA_PASS_READY_FOR_CI`.
+
 Próximo ciclo elegível: `48.1C — piloto humano contínuo no domínio real`. Não
 iniciar outro miniapp antes de medir a fricção do fluxo integrado.

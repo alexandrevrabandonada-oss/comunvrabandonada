@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 
 test("Carteira local cria recuperação, preserva linguagem e é acessível @a11y", async ({ page }) => {
   await page.goto("/comun/minha-participacao", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "Carteira de participação" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Meus registros" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Criar carteira local" })).toBeVisible();
   await page.getByRole("button", { name: "Criar carteira local" }).click();
   await expect(page.getByText("Código exibido uma vez")).toBeVisible();

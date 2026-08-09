@@ -8,7 +8,7 @@ test("adaptador Fiscaliza permanece explícito, sem envio automático e acessív
     waitUntil: "domcontentloaded",
   });
   await expect(
-    page.getByRole("heading", { name: "Carteira de participação" }),
+    page.getByRole("heading", { name: "Meus registros" }),
   ).toBeVisible();
   await expect(page.locator('a[href*="voltaredonda"]')).toHaveCount(0);
   await page.getByRole("button", { name: "Criar carteira local" }).click();

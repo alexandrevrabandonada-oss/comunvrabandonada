@@ -10,8 +10,7 @@ export const sidewalkMiniappDefinition = defineMiniapp({
   canonicalModuleType: "map",
   routes: {
     home: "/comun/calcadas",
-    contribution:
-      "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao",
+    contribution: "/comun/calcadas/contribuir",
     textAlternative: "/comun/calcadas?visualizacao=lista",
     participation: "/comun/minha-participacao",
     inbox: "/comun/inbox",
@@ -28,8 +27,7 @@ export const sidewalkMiniappDefinition = defineMiniapp({
   },
   primaryAction: {
     label: "Registrar calçada",
-    route:
-      "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao",
+    route: "/comun/calcadas/contribuir",
   },
   contribution: {
     mode: "anonymous_limited",

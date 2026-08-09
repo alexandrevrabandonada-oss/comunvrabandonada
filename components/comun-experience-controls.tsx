@@ -9,12 +9,16 @@ import {
   type ComunJourneyIntent,
   withComunJourneyContext,
 } from "@/lib/comun-journey-context";
+import {
+  COMUN_MOTOROLA_PRIMARY_ACTION,
+  COMUN_MOTOROLA_SIDEWALK_CONTRIBUTION_HREF,
+} from "@/lib/comun-motorola-contract";
 
 type Way = {
   title: string;
   href: string;
-  time: string;
-  account: string;
+  time?: string;
+  account?: string;
   purpose?: string;
   after?: string;
   note?: string;
@@ -30,7 +34,7 @@ const legacyMobileWays: Way[] = [
   {
     title: "Registrar uma calçada",
     href: "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao",
-    time: "5–10 min",
+    time: "Pode completar depois",
     account: "Conta necessária",
     purpose: "Fotografar e avaliar um trecho.",
     after: "O registro segue para revisão antes de aparecer no mapa.",
@@ -38,7 +42,7 @@ const legacyMobileWays: Way[] = [
   {
     title: "Enviar relato",
     href: "/comun/relatar",
-    time: "5–10 min",
+    time: "Rápido",
     account: "Conta não obrigatória",
     purpose: "Contar um problema vivido no território.",
     after: "A equipe recebe o relato e informa os próximos passos possíveis.",
@@ -72,30 +76,30 @@ const legacyMobileWays: Way[] = [
 
 const mobileWays: Way[] = [
   {
-    title: "Registrar calçada",
-    href: "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao",
-    time: "5–10 min",
-    account: "Conta necessária",
-    purpose: "Fotografar e avaliar um trecho.",
+    title: "Vi um problema",
+    href: COMUN_MOTOROLA_PRIMARY_ACTION.href,
+    time: "Rápido",
+    account: "Sem conta obrigatória",
+    purpose: "Conte o que aconteceu e complete depois, se precisar.",
+    group: "Resolver um problema",
+    intent: "send_report",
+  },
+  {
+    title: "Calçada",
+    href: COMUN_MOTOROLA_SIDEWALK_CONTRIBUTION_HREF,
+    time: "Pode completar depois",
+    account: "Sem conta obrigatória",
+    purpose: "Registrar uma barreira ou problema na calçada.",
     after: "O registro segue para revisão antes de aparecer no mapa.",
     group: "Resolver um problema",
     intent: "register_sidewalk",
   },
   {
-    title: "Contribuir com pauta",
-    href: "/comun/pautas",
-    time: "5–20 min",
-    account: "Conforme a pauta",
-    purpose: "Enviar relato, evidência, proposta ou contraponto.",
-    group: "Resolver um problema",
-    intent: "contribute_pauta",
-  },
-  {
-    title: "Enviar relato",
-    href: "/comun/relatar",
-    time: "5–10 min",
-    account: "Conta não obrigatória",
-    purpose: "Contar um problema vivido para triagem segura.",
+    title: "Ônibus",
+    href: "/comun/onibus",
+    time: "Pode completar depois",
+    account: "Sem conta obrigatória",
+    purpose: "Guardar um problema observado no transporte.",
     group: "Resolver um problema",
     intent: "send_report",
   },
@@ -205,7 +209,7 @@ function contextualWays(path: string): Way[] {
     {
       title: "Contar um problema",
       href: "/comun/relatar",
-      time: "5–10 min",
+      time: "Rápido",
       account: "Conta não obrigatória",
     },
     {
@@ -231,16 +235,14 @@ function contextualWays(path: string): Way[] {
     return [
       {
         title: "Registrar problema na calçada",
-        href: `/comun/entrar?returnTo=${encodeURIComponent("/comun/mapa/contribuir")}`,
-        time: "5–10 min",
-        account: "Conta necessária",
-        note: "Você volta ao formulário depois do acesso.",
+        href: COMUN_MOTOROLA_SIDEWALK_CONTRIBUTION_HREF,
+        time: "Pode completar depois",
+        account: "Sem conta obrigatória",
       },
       {
         title: "Contribuir com evidência",
-        href: "/comun/mapa/contribuir",
-        time: "10 min",
-        account: "Conforme o registro",
+        href: COMUN_MOTOROLA_SIDEWALK_CONTRIBUTION_HREF,
+        account: "Sem conta obrigatória",
       },
       ...generic.slice(1, 3),
     ];
@@ -249,7 +251,7 @@ function contextualWays(path: string): Way[] {
       {
         title: "Enviar relato nesta comunidade",
         href: `/comun/relatar?comunidade=${path.split("/")[3] ?? ""}`,
-        time: "5–10 min",
+        time: "Rápido",
         account: "Conta não obrigatória",
       },
       {
@@ -460,12 +462,11 @@ export function ParticipateSheet({
                   <span className="flex items-center justify-between gap-4 font-black">
                     <span>{way.title}</span>
                     <small className="text-right text-xs normal-case font-bold">
-                      {way.time}
+                      {way.time ?? null}
                     </small>
                   </span>
                   <span className="mt-1 block text-xs font-bold text-comun-concrete">
-                    {way.account}
-                    {way.note ? ` · ${way.note}` : ""}
+                    {[way.account, way.note].filter(Boolean).join(" · ")}
                   </span>
                   {way.purpose ? (
                     <span className="mt-2 block text-sm">{way.purpose}</span>

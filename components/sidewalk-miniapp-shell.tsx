@@ -9,6 +9,7 @@ import { useSearchParams } from "next/navigation";
 import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
 import { ComunRelationRail } from "@/components/comun-relational";
 import type { EntityRelation } from "@/lib/comun-entity-context";
+import { COMUN_MOTOROLA_SIDEWALK_CONTRIBUTION_HREF } from "@/lib/comun-motorola-contract";
 
 const localNavigation = [
   { href: "/comun/calcadas", label: "Mapa" },
@@ -102,7 +103,7 @@ export function MiniAppExperienceShell({
           </div>
           <Link
             href={withComunAppV2(
-              "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao",
+              COMUN_MOTOROLA_SIDEWALK_CONTRIBUTION_HREF,
               appV2,
             )}
             className="inline-flex min-h-11 items-center justify-center border-2 border-comun-black bg-comun-yellow px-5 font-black shadow-[3px_3px_0_#0b0b0a]"
@@ -209,7 +210,7 @@ export function MiniAppExperienceShell({
         </Link>
         <Link
           href={withComunAppV2(
-            "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao",
+            COMUN_MOTOROLA_SIDEWALK_CONTRIBUTION_HREF,
             appV2,
           )}
           className="inline-flex min-h-11 items-center justify-center border-2 border-comun-black bg-comun-yellow px-4 font-black"

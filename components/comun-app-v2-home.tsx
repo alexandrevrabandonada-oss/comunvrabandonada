@@ -2,9 +2,9 @@ import Link from "next/link";
 import {
   Archive,
   ArrowRight,
+  BusFront,
   MapPinned,
   Radio,
-  Search,
   Users,
 } from "lucide-react";
 import {
@@ -15,6 +15,10 @@ import {
   ComunResultCard,
 } from "@/components/comun-cards";
 import { withComunAppV2 } from "@/lib/comun-shell-contract";
+import {
+  COMUN_MOTOROLA_PRIMARY_ACTION,
+  COMUN_MOTOROLA_SIDEWALK_CONTRIBUTION_HREF,
+} from "@/lib/comun-motorola-contract";
 
 export function ComunAppV2Home({
   center,
@@ -57,6 +61,23 @@ export function ComunAppV2Home({
             : "O que precisa de atenção?"}
         </h1>
       </header>
+
+      <Link
+        href={withComunAppV2(COMUN_MOTOROLA_PRIMARY_ACTION.href)}
+        prefetch={false}
+        data-comun-motorola-primary-action="true"
+        className="flex min-h-14 items-center justify-between gap-4 rounded-[var(--comun-radius-card)] border-2 border-comun-black bg-comun-yellow px-4 py-3 text-comun-black shadow-[4px_4px_0_#0b0b0a]"
+      >
+        <span>
+          <strong className="block text-xl leading-tight">
+            {COMUN_MOTOROLA_PRIMARY_ACTION.label}
+          </strong>
+          <small className="mt-1 block text-sm font-bold">
+            Conte o que aconteceu. Você não precisa saber quem é o responsável.
+          </small>
+        </span>
+        <ArrowRight className="shrink-0" aria-hidden="true" />
+      </Link>
 
       {civicIntelligencePilot ? (
         <section
@@ -179,19 +200,19 @@ export function ComunAppV2Home({
           Atalhos
         </h2>
         <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <Shortcut href="/comun/explorar" label="Explorar" icon={<Search />} />
-          <Shortcut
-            href="/comun/comunidades"
-            label="Comunidades"
-            icon={<Users />}
-          />
           <Shortcut
             href="/comun/calcadas"
             label="Calçadas"
             icon={<MapPinned />}
           />
-          <Shortcut href="/comun/radio" label="Rádio" icon={<Radio />} />
+          <Shortcut href="/comun/onibus" label="Ônibus" icon={<BusFront />} />
+          <Shortcut
+            href="/comun/comunidades"
+            label="Comunidades"
+            icon={<Users />}
+          />
           <Shortcut href="/comun/acervo" label="Acervo" icon={<Archive />} />
+          <Shortcut href="/comun/radio" label="Rádio" icon={<Radio />} />
         </div>
       </section>
 
@@ -256,7 +277,7 @@ export function ComunAppV2Home({
         <ComunMiniappCard
           href={withComunAppV2("/comun/calcadas")}
           contributionHref={withComunAppV2(
-            "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao",
+            COMUN_MOTOROLA_SIDEWALK_CONTRIBUTION_HREF,
           )}
           title="Mapa das Calçadas"
           objective="Registrar barreiras e acompanhar prioridades"
@@ -282,6 +303,7 @@ function Shortcut({
   return (
     <Link
       href={withComunAppV2(href)}
+      prefetch={false}
       className="flex min-h-24 min-w-24 snap-start flex-col items-center justify-center gap-2 rounded-[var(--comun-radius-card)] border border-comun-black/20 bg-comun-paper p-3 text-center text-xs font-black"
     >
       <span className="grid size-10 place-items-center rounded-[var(--comun-radius-control)] bg-comun-black text-comun-paper [&>svg]:size-5">

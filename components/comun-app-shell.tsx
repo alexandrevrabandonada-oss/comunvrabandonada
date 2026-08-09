@@ -23,6 +23,7 @@ import {
   COMUN_LEGACY_EXPERIENCE,
   withComunExperience,
 } from "@/lib/comun-experience";
+import { COMUN_MOTOROLA_PRIMARY_ACTION } from "@/lib/comun-motorola-contract";
 
 export function ComunAppShell({
   children,
@@ -270,6 +271,18 @@ function DesktopHeader({ experienceV2 = false }: { experienceV2?: boolean }) {
         </Link>
         <ComunPrimaryNavigation experienceV2={experienceV2} />
         <div className="flex items-center gap-1 sm:gap-2">
+          {experienceV2 ? (
+            <Link
+              href={withComunExperience(
+                COMUN_MOTOROLA_PRIMARY_ACTION.href,
+                COMUN_APP_V2_EXPERIENCE,
+              )}
+              prefetch={false}
+              className="inline-flex min-h-11 items-center border-2 border-comun-yellow bg-comun-yellow px-3 text-xs font-black text-comun-black hover:bg-comun-paper"
+            >
+              {COMUN_MOTOROLA_PRIMARY_ACTION.label}
+            </Link>
+          ) : null}
           <ComunMemberNavigation experienceV2={experienceV2} />
           <ComunShareButton title="COMUN VR Abandonada" />
           <ParticipateSheet experienceV2={experienceV2} />

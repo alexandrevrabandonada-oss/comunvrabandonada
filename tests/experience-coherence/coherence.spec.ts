@@ -45,7 +45,7 @@ test("@a11y Home comparável declara propósito e uma ação principal", async (
   ).toEqual([]);
 });
 
-test("pauta piloto mantém contexto, estado, retorno e deep link", async ({
+test("pauta piloto mantém contexto, estado, retorno e deep link canônico", async ({
   page,
 }) => {
   await page.goto("/comun/pautas/calcadas-em-circulacao?experiencia=coerencia");
@@ -67,8 +67,11 @@ test("pauta piloto mantém contexto, estado, retorno e deep link", async ({
       links.map((link) => link.getAttribute("href") ?? ""),
     );
     expect(
-      hrefs.some((href) => href.includes("pauta=calcadas-em-circulacao")),
+      hrefs.some((href) => href.includes("/comun/calcadas/contribuir")),
     ).toBe(true);
+    expect(hrefs.some((href) => href.includes("/comun/mapa/contribuir"))).toBe(
+      false,
+    );
   }
   await expectNoOverflow(page);
 });

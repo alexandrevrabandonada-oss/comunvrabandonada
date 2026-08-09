@@ -21,9 +21,16 @@ type WalletItem = {
 
 function statusLabel(item: WalletItem) {
   if (item.action_required) return "Precisa de você";
-  if (item.presentation_state === "withdrawn") return "Retirado";
-  if (item.presentation_state === "Acompanhando") return "Acompanhando";
-  return item.presentation_state || "Guardado";
+  const labels: Record<string, string> = {
+    captured_private: "Guardado",
+    pending_review: "Em revisão",
+    person_declared_sent: "Enviado por você",
+    waiting_response: "Aguardando retorno",
+    published: "Publicado",
+    withdrawn: "Retirado",
+    Acompanhando: "Acompanhando",
+  };
+  return labels[item.presentation_state] ?? "Guardado";
 }
 
 export function ParticipationWalletPanel({
@@ -77,7 +84,9 @@ export function ParticipationWalletPanel({
       if (!response.ok) throw new Error(value.code ?? "wallet_create_failed");
       setPresent(true);
       setRecoveryCode(value.recoveryCode ?? null);
-      setNotice("Carteira criada. Salve o código antes de fechar.");
+      setNotice(
+        "Seus registros estão prontos. Guarde o código antes de fechar.",
+      );
     } catch {
       setNotice("A Carteira não está disponível agora.");
     } finally {
@@ -240,19 +249,18 @@ export function ParticipationWalletPanel({
       aria-labelledby="wallet-title"
     >
       <header className="grid gap-2">
-        <p className="comun-v2-eyebrow">Minha Participação</p>
+        <p className="comun-v2-eyebrow">Minha área</p>
         <h2 id="wallet-title" className="text-2xl font-black normal-case">
-          Carteira de participação
+          Meus registros
         </h2>
         <p className="text-sm leading-6">
-          Reúne relatos, observações e acompanhamentos sem exigir conta. O
-          servidor guarda somente hashes e referências protegidas.
+          Relatos e acompanhamentos guardados neste aparelho.
         </p>
       </header>
       {!present ? (
         <div className="grid gap-3 border-2 border-comun-black bg-comun-yellow p-4 text-comun-black">
           <p className="font-black">
-            Ainda não há uma carteira neste navegador.
+            Você ainda não tem registros neste navegador.
           </p>
           <button
             type="button"
@@ -260,7 +268,7 @@ export function ParticipationWalletPanel({
             onClick={createWallet}
             className="min-h-11 border-2 border-comun-black bg-white px-4 py-2 text-left font-black"
           >
-            Criar carteira
+            Começar meus registros
           </button>
           <label
             className="grid gap-1 text-sm font-bold"
@@ -283,7 +291,7 @@ export function ParticipationWalletPanel({
             onClick={recoverWallet}
             className="min-h-11 border-2 border-comun-black bg-comun-asphalt px-4 py-2 text-left font-black text-comun-paper"
           >
-            Recuperar carteira
+            Recuperar meus registros
           </button>
         </div>
       ) : null}
@@ -310,7 +318,10 @@ export function ParticipationWalletPanel({
       ) : null}
       {recoveryCode ? (
         <div className="grid gap-2 border-2 border-comun-black bg-[#f8f2e6] p-4">
-          <p className="text-xs font-black uppercase">Código exibido uma vez</p>
+          <p className="text-lg font-black">Guardar código de recuperação</p>
+          <p className="text-sm">
+            Ele permite recuperar seus registros em outro aparelho.
+          </p>
           <p className="break-all font-mono text-lg font-black tracking-wider">
             {recoveryCode}
           </p>
@@ -330,9 +341,6 @@ export function ParticipationWalletPanel({
               Salvar arquivo
             </button>
           </div>
-          <p className="text-xs">
-            Não há URL, QR ou segredo na lista de itens.
-          </p>
         </div>
       ) : null}
       {present && attention.length ? (
@@ -472,7 +480,7 @@ export function ParticipationWalletPanel({
       ) : null}
       {present && !items.length ? (
         <p className="border-2 border-comun-black/20 bg-white p-4 text-sm">
-          Sua carteira está vazia. Relatos novos, observações e casos
+          Você ainda não tem registros. Relatos novos, observações e casos
           acompanhados aparecerão aqui.
         </p>
       ) : null}
@@ -485,8 +493,8 @@ export function ParticipationWalletPanel({
         </p>
       ) : null}
       <p className="text-xs text-comun-black/60">
-        Nenhum relato é encaminhado por esta tela. A carteira não substitui o
-        protocolo COMUN.
+        Nenhum relato é encaminhado por esta tela. A Carteira é a proteção de
+        recuperação dos seus registros e não substitui o protocolo COMUN.
       </p>
     </section>
   );

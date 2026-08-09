@@ -32,15 +32,18 @@ test("shell modes keep footer, roots and nested navigation coherent", async ({
   await expect(page.locator("footer")).toHaveCount(0);
   const nav = page.getByRole("navigation", { name: "Navegação principal" });
   await expect(nav).toBeVisible();
-  await expect(nav.getByRole("link")).toHaveCount(4);
+  await expect(nav.getByRole("link")).toHaveCount(5);
+  await expect(
+    nav.getByRole("link", { name: "Vi um problema" }),
+  ).toHaveAttribute("href", /\/comun\/relatar/);
   await expect(
     nav.getByRole("button", { name: "Abrir formas de participar" }),
-  ).toHaveCount(1);
+  ).toHaveCount(0);
 
   await page.goto(`/comun/participar?${flag}`);
   await expect(
-    page.getByRole("button", { name: "Abrir formas de participar" }),
-  ).toHaveAttribute("aria-current", "page");
+    page.getByRole("heading", { name: "Como você quer contribuir?" }),
+  ).toHaveCount(1);
 
   await page.goto(`/comun/comunidades?${flag}`);
   await expect(page.locator("[data-comun-shell-mode]")).toHaveAttribute(
@@ -64,10 +67,9 @@ test("shell modes keep footer, roots and nested navigation coherent", async ({
 test("participation panel is allowlisted, progressive and mutation-free", async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto(`/comun?${flag}`);
-  await page
-    .getByRole("button", { name: "Abrir formas de participar" })
-    .click();
+  await page.getByRole("button", { name: "Participar agora" }).click();
   const dialog = page.getByRole("dialog", {
     name: "Escolha uma forma de participar",
   });
@@ -77,9 +79,9 @@ test("participation panel is allowlisted, progressive and mutation-free", async 
     .getByRole("button", { name: "Ver cultura, memória e direitos" })
     .click();
   for (const label of [
-    "Registrar calçada",
-    "Contribuir com pauta",
-    "Enviar relato",
+    "Vi um problema",
+    "Calçada",
+    "Ônibus",
     "Registrar resposta institucional",
     "Entrar em comunidade",
     "Assumir tarefa",

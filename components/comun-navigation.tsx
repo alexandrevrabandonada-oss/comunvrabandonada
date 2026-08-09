@@ -13,6 +13,7 @@ import {
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { ParticipateSheet } from "./comun-experience-controls";
+import { COMUN_MOTOROLA_PRIMARY_ACTION } from "@/lib/comun-motorola-contract";
 import {
   COMUN_ROOT_TABS,
   resolveComunShellRoute,
@@ -177,7 +178,21 @@ export function ComunMobileNavigation({
           experienceV2={experienceV2}
           onNavigate={saveCurrentScroll}
         />
-        <ParticipateSheet variant="mobile-nav" experienceV2={experienceV2} />
+        {experienceV2 ? (
+          <Link
+            href={withComunAppV2(COMUN_MOTOROLA_PRIMARY_ACTION.href, true)}
+            prefetch={false}
+            aria-label={COMUN_MOTOROLA_PRIMARY_ACTION.accessibleLabel}
+            className="relative flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-center text-[10px] font-black leading-tight text-comun-yellow"
+          >
+            <span className="grid size-10 place-items-center rounded-full bg-comun-yellow text-comun-black shadow-[0_0_0_3px_#0b0b0a]">
+              <CirclePlus size={24} strokeWidth={2.5} aria-hidden="true" />
+            </span>
+            <span>{COMUN_MOTOROLA_PRIMARY_ACTION.mobileLabel}</span>
+          </Link>
+        ) : (
+          <ParticipateSheet variant="mobile-nav" experienceV2={false} />
+        )}
         <MobileItem
           tab="caixa"
           Icon={mobileNav[2][1]}
