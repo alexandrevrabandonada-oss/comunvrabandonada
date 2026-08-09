@@ -441,7 +441,7 @@ export function SidewalkRealMap({
             <RecordSheet record={selected} onClose={() => setSelected(null)} />
           ) : null}
           <Link
-            href="/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao"
+            href="/comun/calcadas/contribuir"
             className="fixed bottom-24 right-4 z-10 inline-flex min-h-12 items-center border-2 border-comun-black bg-comun-yellow px-4 font-black shadow-[3px_3px_0_#0b0b0a] md:hidden"
           >
             Registrar
