@@ -1216,7 +1216,7 @@ Resultado terminal:
 Resultado terminal:
 `COMUN_48_1B_P5_BUS_STMU_ASSISTED_DOMAIN_GREEN_NO_AUTO_SEND`.
 
-### 48.1B-F1 — Motorola Pass (2026-08-08)
+### 48.1B-F1 — Motorola Pass (2026-08-09)
 
 - revisão transversal iniciada a partir de `633ded9b6dac89998d77234b74b6c4c41ef15c7a`;
 - navegação central mobile e CTA da Home levam ao Relata em um gesto, sem modal nem login;
@@ -1224,10 +1224,20 @@ Resultado terminal:
 - Ônibus não presume tipo de problema e recolhe detalhes opcionais;
 - Minha Participação apresenta “Meus registros” como linguagem primária;
 - zero migration, zero mudança de backend e dry-run remoto reconciliado vazio;
-- unitários, typecheck, lint e build locais verdes;
-- integração e smoke de Production ainda pendentes.
+- unitários, typecheck, lint, build, Quality Performance, Segurança,
+  acessibilidade, no-leak e jornadas integrais verdes;
+- PR #235 mesclada em `8fd3565ed101ee5bd765fc554c789fada0229b50`;
+- deployment Production `dpl_YDC6Lvkbc73fnAD1GfYwMR3hKPVg` READY;
+- `/comun`, `/comun/relatar`, `/comun/calcadas`,
+  `/comun/calcadas/contribuir`, `/comun/onibus` e
+  `/comun/minha-participacao` respondem `200`;
+- no domínio real, centro mobile e Home chegam ao Relata em um gesto;
+  Calçadas usa a rota P4; Ônibus começa sem tipo falso e com detalhes
+  recolhidos; “Meus registros” é a linguagem primária;
+- nenhuma fixture, escrita Supabase, migration, mudança de flag ou envio
+  externo ocorreu; `launch_publicly=false`.
 
-Estado atual: `COMUN_48_1B_F1_MOTOROLA_PASS_READY_FOR_CI`.
+Estado atual: `COMUN_48_1B_F1_MOTOROLA_PASS_DOMAIN_GREEN`.
 
 Próximo ciclo elegível: `48.1C — piloto humano contínuo no domínio real`. Não
 iniciar outro miniapp antes de medir a fricção do fluxo integrado.
