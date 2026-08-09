@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { ComunShell } from "@/components/comun-shell";
 import type { ComunRelataReceipt } from "@/lib/comun-relata-persistence";
 import type {
   SidewalkAffectedGroup,
@@ -307,78 +306,144 @@ export function SidewalkRelataIntakeForm({
 
   if (receipt && (!progressiveCaptureEnabled || queued)) {
     return (
-      <ComunShell
-        showSyntheticNotice={false}
-        appBar={{ title: "Calçadas", contextLabel: "Mapa comunitário" }}
-      >
-        <main className="mx-auto grid min-h-[70dvh] max-w-2xl content-start gap-5 px-4 py-8">
-          <p className="comun-v2-eyebrow">Status</p>
-          <h1 className="text-4xl font-black">Guardado no COMUN</h1>
-          <section className="border-2 border-comun-black bg-comun-yellow p-4">
-            <p className="text-xs font-black uppercase">Protocolo COMUN</p>
-            <p className="mt-1 break-all font-mono text-xl font-black">
-              {receipt.protocol}
-            </p>
-          </section>
-          <p className="border-l-4 border-comun-yellow bg-white p-4 font-bold">
-            {queued
-              ? "Seu registro entrou na fila de revisão do Mapa das Calçadas."
-              : "Seu relato está guardado, mas ainda precisa ser completado para entrar na fila."}
+      <main className="mx-auto grid min-h-[70dvh] max-w-2xl content-start gap-5 px-4 py-8">
+        <p className="comun-v2-eyebrow">Status</p>
+        <h1 className="text-4xl font-black">Guardado no COMUN</h1>
+        <section className="border-2 border-comun-black bg-comun-yellow p-4">
+          <p className="text-xs font-black uppercase">Protocolo COMUN</p>
+          <p className="mt-1 break-all font-mono text-xl font-black">
+            {receipt.protocol}
           </p>
-          <p>Ainda não foi publicado. Nenhum órgão recebeu automaticamente.</p>
-          {notice ? (
-            <p
-              role="alert"
-              className="border-2 border-comun-black bg-white p-3"
-            >
-              {notice}
-            </p>
-          ) : null}
-          <Link className="btn w-fit" href="/comun/minha-participacao">
-            Ver em Minha Participação
-          </Link>
-          {walletRecoveryCode ? (
-            <section className="border-2 bg-white p-4">
-              <b>Código de recuperação da Carteira</b>
-              <p className="mt-2 break-all font-mono">{walletRecoveryCode}</p>
-              <small>Salve agora. Ele aparece somente neste momento.</small>
-            </section>
-          ) : null}
-        </main>
-      </ComunShell>
+        </section>
+        <p className="border-l-4 border-comun-yellow bg-white p-4 font-bold">
+          {queued
+            ? "Seu registro entrou na fila de revisão do Mapa das Calçadas."
+            : "Seu relato está guardado, mas ainda precisa ser completado para entrar na fila."}
+        </p>
+        <p>Ainda não foi publicado. Nenhum órgão recebeu automaticamente.</p>
+        {notice ? (
+          <p role="alert" className="border-2 border-comun-black bg-white p-3">
+            {notice}
+          </p>
+        ) : null}
+        <Link className="btn w-fit" href="/comun/minha-participacao">
+          Ver em Minha Participação
+        </Link>
+        {walletRecoveryCode ? (
+          <section className="border-2 bg-white p-4">
+            <b>Código de recuperação da Carteira</b>
+            <p className="mt-2 break-all font-mono">{walletRecoveryCode}</p>
+            <small>Salve agora. Ele aparece somente neste momento.</small>
+          </section>
+        ) : null}
+      </main>
     );
   }
 
   return (
-    <ComunShell
-      showSyntheticNotice={false}
-      appBar={{ title: "Calçadas", contextLabel: "Mapa comunitário" }}
+    <main
+      className="mx-auto grid max-w-2xl gap-6 px-4 py-6"
+      data-comun-sidewalk-p4="intake"
     >
-      <main
-        className="mx-auto grid max-w-2xl gap-6 px-4 py-6"
-        data-comun-sidewalk-p4="intake"
-      >
-        <header>
-          <p className="comun-v2-eyebrow">Mapa das Calçadas</p>
-          <h1 className="text-3xl font-black sm:text-4xl">
-            Registrar problema na calçada
-          </h1>
-          <p className="mt-2">
-            O relato fica privado e só aparece no mapa depois de revisão humana.
-          </p>
-        </header>
-        {progressiveCaptureEnabled && !capturedPhoto ? (
-          <section
-            className="grid gap-4 border-2 bg-white p-4"
-            data-comun-sidewalk-c1="photo-first"
+      <header>
+        <p className="comun-v2-eyebrow">Mapa das Calçadas</p>
+        <h1 className="text-3xl font-black sm:text-4xl">
+          Registrar problema na calçada
+        </h1>
+        <p className="mt-2">
+          O relato fica privado e só aparece no mapa depois de revisão humana.
+        </p>
+      </header>
+      {progressiveCaptureEnabled && !capturedPhoto ? (
+        <section
+          className="grid gap-4 border-2 bg-white p-4"
+          data-comun-sidewalk-c1="photo-first"
+        >
+          <div>
+            <h2 className="text-xl font-black">1. Guarde a foto primeiro</h2>
+            <p>
+              Você completa condição, impacto e local depois. Nenhum valor será
+              presumido.
+            </p>
+          </div>
+          <label className="inline-flex min-h-12 cursor-pointer items-center justify-center border-2 bg-comun-yellow px-4 font-black">
+            <input
+              className="sr-only"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              capture="environment"
+              onChange={(event) => setPhoto(event.target.files?.[0] ?? null)}
+            />
+            {photo
+              ? `Foto privada pronta (${Math.round(photo.size / 1024)} KB)`
+              : "Tirar ou escolher foto"}
+          </label>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={captureFirst}
+            className="min-h-12 border-2 bg-comun-yellow px-5 py-3 font-black shadow-[4px_4px_0_#0b0b0a]"
           >
-            <div>
-              <h2 className="text-xl font-black">1. Guarde a foto primeiro</h2>
-              <p>
-                Você completa condição, impacto e local depois. Nenhum valor
-                será presumido.
-              </p>
-            </div>
+            {busy
+              ? "Guardando…"
+              : receipt
+                ? "Tentar anexar foto novamente"
+                : "Guardar foto e continuar"}
+          </button>
+          {receipt ? (
+            <p className="break-all border-l-4 border-comun-yellow p-3 font-mono text-sm">
+              Protocolo guardado: {receipt.protocol}
+            </p>
+          ) : null}
+          {walletRecoveryCode ? (
+            <p className="break-all text-sm">
+              <b>Código de recuperação:</b>{" "}
+              <span className="font-mono">{walletRecoveryCode}</span>
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+      {!progressiveCaptureEnabled || capturedPhoto ? (
+        <>
+          {progressiveCaptureEnabled ? (
+            <h2 className="text-2xl font-black">2. Complete para o mapa</h2>
+          ) : null}
+          <Choice
+            title="Condição"
+            items={conditions}
+            values={condition ? [condition] : []}
+            single
+            onToggle={(value) => setCondition(value as SidewalkCondition)}
+          />
+          <Choice
+            title="Problemas"
+            items={problems}
+            values={selectedProblems}
+            onToggle={(value) =>
+              setProblems(toggle(selectedProblems, value as SidewalkProblem))
+            }
+          />
+          <Choice
+            title="Impacto"
+            items={groups}
+            values={selectedGroups}
+            onToggle={(value) =>
+              setGroups(toggle(selectedGroups, value as SidewalkAffectedGroup))
+            }
+          />
+          {!progressiveCaptureEnabled ? (
+            <label className="grid gap-2 font-bold">
+              Descrição opcional
+              <textarea
+                className="min-h-24 border-2 p-3 font-normal"
+                maxLength={300}
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Inclua somente o contexto necessário; não escreva nome, telefone ou endereço completo."
+              />
+            </label>
+          ) : null}
+          {!progressiveCaptureEnabled ? (
             <label className="inline-flex min-h-12 cursor-pointer items-center justify-center border-2 bg-comun-yellow px-4 font-black">
               <input
                 className="sr-only"
@@ -389,161 +454,78 @@ export function SidewalkRelataIntakeForm({
               />
               {photo
                 ? `Foto privada pronta (${Math.round(photo.size / 1024)} KB)`
-                : "Tirar ou escolher foto"}
+                : "Tirar ou escolher foto (opcional)"}
             </label>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={captureFirst}
-              className="min-h-12 border-2 bg-comun-yellow px-5 py-3 font-black shadow-[4px_4px_0_#0b0b0a]"
-            >
-              {busy
-                ? "Guardando…"
-                : receipt
-                  ? "Tentar anexar foto novamente"
-                  : "Guardar foto e continuar"}
-            </button>
-            {receipt ? (
-              <p className="break-all border-l-4 border-comun-yellow p-3 font-mono text-sm">
-                Protocolo guardado: {receipt.protocol}
-              </p>
+          ) : null}
+          <section className="grid gap-3 border-2 bg-white p-4">
+            <h2 className="text-xl font-black">Local obrigatório</h2>
+            <p>
+              A coordenada ficará criptografada. O mapa público receberá somente
+              outro ponto, aproximado, após revisão.
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                className={`btn ${locationMode === "device" ? "bg-comun-yellow" : ""}`}
+                onClick={useDeviceLocation}
+              >
+                Usar localização
+              </button>
+              <button
+                type="button"
+                className={`btn ${locationMode === "map" ? "bg-comun-yellow" : ""}`}
+                onClick={() => {
+                  setLocationMode("map");
+                  setPoint(point);
+                  setNotice(null);
+                }}
+              >
+                Marcar no mapa
+              </button>
+            </div>
+            {locationMode === "map" ? (
+              <SidewalkRealPointPicker
+                point={point}
+                accuracy={accuracy}
+                onChange={(value) => {
+                  setPoint(value);
+                  setAccuracy(null);
+                }}
+              />
             ) : null}
-            {walletRecoveryCode ? (
-              <p className="break-all text-sm">
-                <b>Código de recuperação:</b>{" "}
-                <span className="font-mono">{walletRecoveryCode}</span>
+            {point ? (
+              <p className="text-sm font-bold">
+                Local selecionado privadamente.
               </p>
             ) : null}
           </section>
-        ) : null}
-        {!progressiveCaptureEnabled || capturedPhoto ? (
-          <>
-            {progressiveCaptureEnabled ? (
-              <h2 className="text-2xl font-black">2. Complete para o mapa</h2>
-            ) : null}
-            <Choice
-              title="Condição"
-              items={conditions}
-              values={condition ? [condition] : []}
-              single
-              onToggle={(value) => setCondition(value as SidewalkCondition)}
-            />
-            <Choice
-              title="Problemas"
-              items={problems}
-              values={selectedProblems}
-              onToggle={(value) =>
-                setProblems(toggle(selectedProblems, value as SidewalkProblem))
-              }
-            />
-            <Choice
-              title="Impacto"
-              items={groups}
-              values={selectedGroups}
-              onToggle={(value) =>
-                setGroups(
-                  toggle(selectedGroups, value as SidewalkAffectedGroup),
-                )
-              }
-            />
-            {!progressiveCaptureEnabled ? (
-              <label className="grid gap-2 font-bold">
-                Descrição opcional
-                <textarea
-                  className="min-h-24 border-2 p-3 font-normal"
-                  maxLength={300}
-                  value={description}
-                  onChange={(event) => setDescription(event.target.value)}
-                  placeholder="Inclua somente o contexto necessário; não escreva nome, telefone ou endereço completo."
-                />
-              </label>
-            ) : null}
-            {!progressiveCaptureEnabled ? (
-              <label className="inline-flex min-h-12 cursor-pointer items-center justify-center border-2 bg-comun-yellow px-4 font-black">
-                <input
-                  className="sr-only"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  capture="environment"
-                  onChange={(event) =>
-                    setPhoto(event.target.files?.[0] ?? null)
-                  }
-                />
-                {photo
-                  ? `Foto privada pronta (${Math.round(photo.size / 1024)} KB)`
-                  : "Tirar ou escolher foto (opcional)"}
-              </label>
-            ) : null}
-            <section className="grid gap-3 border-2 bg-white p-4">
-              <h2 className="text-xl font-black">Local obrigatório</h2>
-              <p>
-                A coordenada ficará criptografada. O mapa público receberá
-                somente outro ponto, aproximado, após revisão.
-              </p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                <button
-                  type="button"
-                  className={`btn ${locationMode === "device" ? "bg-comun-yellow" : ""}`}
-                  onClick={useDeviceLocation}
-                >
-                  Usar localização
-                </button>
-                <button
-                  type="button"
-                  className={`btn ${locationMode === "map" ? "bg-comun-yellow" : ""}`}
-                  onClick={() => {
-                    setLocationMode("map");
-                    setPoint(point);
-                    setNotice(null);
-                  }}
-                >
-                  Marcar no mapa
-                </button>
-              </div>
-              {locationMode === "map" ? (
-                <SidewalkRealPointPicker
-                  point={point}
-                  accuracy={accuracy}
-                  onChange={(value) => {
-                    setPoint(value);
-                    setAccuracy(null);
-                  }}
-                />
-              ) : null}
-              {point ? (
-                <p className="text-sm font-bold">
-                  Local selecionado privadamente.
-                </p>
-              ) : null}
-            </section>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={save}
-              className="min-h-12 border-2 bg-comun-yellow px-5 py-3 font-black shadow-[4px_4px_0_#0b0b0a]"
-            >
-              {busy
-                ? "Guardando…"
-                : progressiveCaptureEnabled
-                  ? "Completar e entrar na fila"
-                  : "Guardar e entrar na fila"}
-            </button>
-          </>
-        ) : null}
-        {notice ? (
-          <p
-            role="alert"
-            className="border-l-4 border-comun-red bg-white p-3 font-bold"
+          <button
+            type="button"
+            disabled={busy}
+            onClick={save}
+            className="min-h-12 border-2 bg-comun-yellow px-5 py-3 font-black shadow-[4px_4px_0_#0b0b0a]"
           >
-            {notice}
-          </p>
-        ) : null}
-        <aside className="border-2 bg-comun-asphalt p-4 text-comun-paper">
-          <b className="text-comun-yellow">Sem publicação automática</b>
-          <p>Nenhum órgão será acionado e nenhum ponto exato será publicado.</p>
-        </aside>
-      </main>
-    </ComunShell>
+            {busy
+              ? "Guardando…"
+              : progressiveCaptureEnabled
+                ? "Completar e entrar na fila"
+                : "Guardar e entrar na fila"}
+          </button>
+        </>
+      ) : null}
+      {notice ? (
+        <p
+          role="alert"
+          className="border-l-4 border-comun-red bg-white p-3 font-bold"
+        >
+          {notice}
+        </p>
+      ) : null}
+      <aside className="border-2 bg-comun-asphalt p-4 text-comun-paper">
+        <b className="text-comun-yellow">Sem publicação automática</b>
+        <p>Nenhum órgão será acionado e nenhum ponto exato será publicado.</p>
+      </aside>
+    </main>
   );
 }
 
