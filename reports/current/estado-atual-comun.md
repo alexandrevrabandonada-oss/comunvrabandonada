@@ -8,7 +8,9 @@
 - resultado M1:
   `COMUN_48_1B_F2_M1_SEMANTIC_TEXT_ABSENCE_REMOTE_GREEN_RUNTIME_OFF`;
 - R1 foi iniciado automaticamente na branch
-  `codex/48-1b-f2-r1-photo-first-runtime`, sem migration adicional;
+  `codex/48-1b-f2-r1-photo-first-runtime`; uma migration de substituição da RPC
+  prepara apenas o domínio `other|sidewalk_accessibility`, deixando o C1 sem
+  migration pendente;
 - nova flag `COMUN_RELATA_PHOTO_ONLY_ENABLED` permanece fora de Production até
   merge e deploy inicial OFF;
 - runtime candidato reutiliza attachment P3, recibo e Carteira, sem placeholder,

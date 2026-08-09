@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   createComunRelataPhotoOnlyDecision,
@@ -82,5 +83,37 @@ describe("COMUN Relata photo-first runtime", () => {
       captureState: "captured_private",
       missingInformation: [],
     });
+  });
+
+  it("widens only the photo-first domain category contract for C1", () => {
+    const normalize = (value: string) => value.replaceAll("\r\n", "\n");
+    const m1 = normalize(
+      readFileSync(
+        "supabase/migrations/20260809045302_comun_relata_semantic_text_absence.sql",
+        "utf8",
+      ),
+    );
+    const r1 = normalize(
+      readFileSync(
+        "supabase/migrations/20260809055800_comun_relata_photo_first_domain_categories.sql",
+        "utf8",
+      ),
+    );
+    const start = m1.indexOf(
+      "create or replace function public.comun_relata_create(",
+    );
+    const end = m1.lastIndexOf("commit;");
+    const expectedBody = m1
+      .slice(start, end)
+      .trim()
+      .replace(
+        "p_category <> 'other'",
+        "p_category not in ('other', 'sidewalk_accessibility')",
+      )
+      .replace("'category', 'other',", "'category', p_category,");
+    expect(r1.trimEnd()).toBe(`begin;\n\n${expectedBody}\n\ncommit;`.trimEnd());
+    expect(r1).not.toContain("comun_sidewalk_intake_create");
+    expect(r1).not.toContain("alter table");
+    expect(r1).not.toMatch(/\bupdate\s+(?:private|public)\./i);
   });
 });

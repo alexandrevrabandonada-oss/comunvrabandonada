@@ -255,7 +255,6 @@ try {
      from public.comun_relata_cases c join private.comun_relata_reports r on r.id=c.report_id where c.protocol=$1`,
     [protocol],
   );
-  await db.end();
   assert.equal(audit.rows[0].original_text, null);
   assert.equal(audit.rows[0].privacy_class, "sensitive");
   assert.equal(audit.rows[0].category, "other");
@@ -270,6 +269,41 @@ try {
   assert.equal(audit.rows[0].forwarding, 0);
   assert.equal(audit.rows[0].sealed_photos, 1);
 
+  await db.query("begin");
+  try {
+    const sidewalkReady = await db.query(
+      `select * from public.comun_relata_create($1,$2,null,$3::jsonb,'sidewalk_accessibility','attention','relata-routing-v1',$4::jsonb,'sensitive','relata-consent-v1')`,
+      [
+        token(),
+        token(),
+        JSON.stringify({}),
+        JSON.stringify({
+          captureBasis: "photo_only",
+          semanticTextState: "absent",
+          captureState: "captured_private",
+          requiresEnrichment: true,
+        }),
+      ],
+    );
+    assert.equal(sidewalkReady.rows[0].category, "sidewalk_accessibility");
+    const sidewalkRow = await db.query(
+      "select r.original_text,c.routing_decision from public.comun_relata_cases c join private.comun_relata_reports r on r.id=c.report_id where c.protocol=$1",
+      [sidewalkReady.rows[0].protocol],
+    );
+    assert.equal(sidewalkRow.rows[0].original_text, null);
+    assert.equal(
+      sidewalkRow.rows[0].routing_decision.category,
+      "sidewalk_accessibility",
+    );
+    assert.equal(
+      sidewalkRow.rows[0].routing_decision.automaticForwarding,
+      false,
+    );
+  } finally {
+    await db.query("rollback");
+  }
+  await db.end();
+
   await http(`/api/comun/relata/evidence/attachments/${attachmentId}`, {
     method: "DELETE",
   });
@@ -280,6 +314,7 @@ try {
       result: "COMUN_48_1B_F2_R1_PHOTO_FIRST_DISPOSABLE_GREEN",
       semanticText: null,
       category: "other",
+      sidewalkCategoryReady: true,
       privacy: "sensitive",
       review: "required",
       attachment: "p3_sealed_private_after_retry",

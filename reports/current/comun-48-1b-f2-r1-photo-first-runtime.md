@@ -8,7 +8,13 @@ Data: 2026-08-09
   `COMUN_48_1B_F2_M1_SEMANTIC_TEXT_ABSENCE_REMOTE_GREEN_RUNTIME_OFF`;
 - `origin/main`: `8f26cdaa852e678a256c6ddcc948c7f6eefd2067`;
 - branch: `codex/48-1b-f2-r1-photo-first-runtime`;
-- nenhuma migration adicional esperada.
+- uma migration R1 de substituição da RPC amplia o domínio photo-only somente
+  para `other|sidewalk_accessibility`; nenhuma migration ficará pendente para
+  o C1;
+- plano remoto reconciliado: exatamente
+  `20260809055800_comun_relata_photo_first_domain_categories.sql`, sem
+  `--include-all`, repair, reset ou seed
+  (`COMUN_F2_R1_REMOTE_PLAN_EXACT_ONE`).
 
 ## Contrato R1
 
@@ -25,6 +31,9 @@ Data: 2026-08-09
 - publicação e forwarding automáticos permanecem proibidos;
 - `routeRelata` continua estritamente textual;
 - a UI não fabrica descrição nem persiste placeholder;
+- a RPC preserva integralmente o caminho textual M1 e permite que o C1 use
+  `sidewalk_accessibility` com o mesmo bloqueio de automação, sem criar adapter
+  antecipadamente;
 - se o upload falhar, o Relata privado, o recibo e a Carteira preservam o
   caminho de nova tentativa no painel P3.
 

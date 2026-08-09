@@ -97,6 +97,7 @@
     "relata:f2:m1:semantic-text-absence:local": "node scripts/comun-local-env.mjs run node scripts/solo/rehearse-f2-m1-semantic-text-absence-local.mjs",
     "relata:f2:m1:remote-plan": "node scripts/solo/run-f2-m1-reconciled-dry-run.mjs",
     "relata:f2:r1:photo-first:e2e:local": "node scripts/solo/rehearse-f2-r1-photo-first-runtime-local.mjs",
+    "relata:f2:r1:remote-plan": "node scripts/solo/run-f2-r1-reconciled-dry-run.mjs",
     "relata:r2a:attachment-fix:test": "node scripts/solo/r2a-attachment-rpc-fix-local.mjs",
     "relata:r2a:wallet-account-fix:test": "node scripts/solo/r2a-wallet-account-rpc-fix-local.mjs",
     "relata:r2a:private:e2e:workflow:test": "node --test scripts/solo/r2a-private-runtime-e2e-workflow.node-test.mjs",
