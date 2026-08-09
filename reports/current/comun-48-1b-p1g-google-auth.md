@@ -11,8 +11,8 @@ Atualizado em 09/08/2026.
 - branch nova: `codex/48-1b-p1g-google-auth`;
 - nenhum arquivo não rastreado preexistente foi alterado ou incluído;
 - nenhuma migration P1G foi criada;
-- Production continua com Google oculto e e-mail/senha + navegação anônima
-  disponíveis;
+- Production está com Google tecnicamente ativo; e-mail/senha e navegação
+  anônima permanecem disponíveis;
 - estado terminal P1G ainda não foi emitido.
 
 ## Arquitetura preservada
@@ -135,7 +135,8 @@ metadados e booleans:
 
 As credenciais foram transferidas diretamente entre os dois painéis e apagadas
 da sessão de automação imediatamente após a confirmação. A flag
-`COMUN_GOOGLE_AUTH_ENABLED` continua OFF em Production.
+`COMUN_GOOGLE_AUTH_ENABLED` foi ativada em Production depois do deploy
+controlado flags-off.
 
 ## Promoção e gate humano restantes
 
@@ -150,10 +151,12 @@ anônima e rotas essenciais. Falha no smoke de ativação desliga a flag e promo
 novo deploy de rollback. A automação não conclui login Google e não emite o
 terminal P1G.
 
-Ainda são obrigatórios: novo preflight metadata verde, CI completa, merge
-exact-head, deploy com flag OFF, ativação controlada, início automatizado que
-pare no domínio legítimo e, por fim, login humano real, retorno seguro,
-onboarding quando aplicável, Minha Participação e logout. Só então pode ser
-emitido `COMUN_48_1B_P1G_GOOGLE_AUTH_DOMAIN_GREEN`.
+O preflight final `31326891817`, a CI completa, o merge exact-head
+`ab9e9434a12f778c04ea9baf5760b89cf5ffdf4b`, o deploy flags-off
+`31328211730` e a ativação técnica `31328303003` estão verdes. O único gate
+restante é humano: login real, retorno seguro, onboarding quando aplicável,
+Minha Participação, logout, segundo login sem repetição do onboarding e segundo
+logout. Só então pode ser emitido
+`COMUN_48_1B_P1G_GOOGLE_AUTH_DOMAIN_GREEN`.
 
 Próximo passo após P1G: `48.1C — Piloto Humano Motorola`. Não iniciar P6B.

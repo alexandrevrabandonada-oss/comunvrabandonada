@@ -74,6 +74,7 @@
     "pilot:human-readiness:check": "node scripts/check-comun-pilot-human-readiness.mjs",
     "pilot:go-no-go:local": "node scripts/comun-pilot-go-no-go-local.mjs",
     "pilot:human-test:local": "node scripts/comun-local-env.mjs run node scripts/pilot-human-test-local.mjs",
+    "pilot:48-1c:prep:test": "node --test scripts/solo/motorola-pilot-prep.node-test.mjs",
     "test:e2e:sidewalk-pilot": "playwright test -c playwright.sidewalk-pilot.config.ts",
     "test:e2e:comun-sidewalk-real-map": "node scripts/comun-local-env.mjs run playwright test -c playwright.sidewalk-real-map.config.ts",
     "test:e2e:comun-calcadas-operacional": "node scripts/comun-local-env.mjs run playwright test -c playwright.sidewalk-operational.config.ts",

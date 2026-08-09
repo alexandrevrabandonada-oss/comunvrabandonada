@@ -1,6 +1,25 @@
-# Estado atual — 48.1B-P1G pronto para promoção controlada (09/08/2026)
+# Estado atual — 48.1C-PREP em preparação, P1G humano pendente (09/08/2026)
 
-## 48.1B-P1G — Google Auth — provider configurado, flag OFF
+## 48.1C-PREP — protocolo humano Motorola, sem sessões iniciadas
+
+- branch `codex/48-1c-motorola-pilot-prep` parte de
+  `origin/main=ab9e9434a12f778c04ea9baf5760b89cf5ffdf4b`;
+- preparação estritamente documental e de test harness, sem feature visual,
+  conteúdo Production ou migration;
+- sete jornadas canônicas, métricas manuais, score Motorola, severidades e
+  regra de ajuda definidos;
+- template admite apenas campos sanitizados e códigos `P01`, `P02` etc. fora
+  do produto;
+- checklist exige soft cleanup, zero publicação, coletivo, envio/request
+  externo e hard delete;
+- participantes contabilizados: `0`; estado: `PREPARED — NO HUMAN SESSIONS
+YET`;
+- P1G humano permanece separado e pendente; `launch_publicly=false`;
+- P6B continua proibido; depois do primeiro ciclo humano, 48.1D tem prioridade.
+
+Detalhes: `reports/current/comun-48-1c-motorola-pilot.md`.
+
+## 48.1B-P1G — Google Auth — tecnicamente ativo, micro-gate humano pendente
 
 - baseline `origin/main=09ab579b658e3ef1e6964b932ef8faba081e574a` e
   estado inicial P6A terminal confirmados;
@@ -15,8 +34,8 @@
   Google ou persistência de provider token;
 - testes focais 20/20, contrato dos workflows 4/4, E2E local 2/2 com Auth falso
   loopback e zero contato externo, Axe/typecheck/lint verdes;
-- Production observada com Google oculto, e-mail disponível e navegação
-  anônima preservada;
+- Production observada com Google ativo, e-mail disponível e navegação anônima
+  preservada;
 - preflight read-only `31322898529` confirmou P6A, provider Google público
   desabilitado e plano remoto de zero migration, sem leitura de negócio ou
   segredo;
@@ -27,10 +46,12 @@
 - Supabase Production: Site URL e redirect exatos, provider Google ON, Client
   ID/Secret presentes apenas no cofre do provider, Skip nonce OFF e contas sem
   e-mail OFF; nenhum segredo foi registrado;
-- workflow de ativação exact-head versionado com modos flag OFF, enable e
-  rollback; Production segue com a flag Google OFF;
-- gate atual: CI completa, merge exact-head, deploy OFF, ativação controlada e
-  login/logout humano real;
+- preflight final `31326891817`, CI completa e merge exact-head
+  `ab9e9434a12f778c04ea9baf5760b89cf5ffdf4b` verdes;
+- deploy flags-off `31328211730` e ativação técnica `31328303003` verdes, com
+  e-mail/senha e navegação anônima preservados;
+- gate atual: login/logout humano real em dois ciclos, com onboarding apenas no
+  primeiro quando aplicável;
 - não emitir ainda `COMUN_48_1B_P1G_GOOGLE_AUTH_DOMAIN_GREEN`.
 
 Detalhes: `reports/current/comun-48-1b-p1g-google-auth.md`.

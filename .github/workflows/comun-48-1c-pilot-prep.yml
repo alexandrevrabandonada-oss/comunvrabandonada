@@ -1,0 +1,74 @@
+name: COMUN 48.1C pilot prep
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/comun-48-1c-pilot-prep.yml"
+      - "docs/comun-48-1c-motorola-pilot-*.md"
+      - "docs/comun-motorola-friction-contract.md"
+      - "reports/templates/comun-48-1c-human-session.template.md"
+      - "reports/current/comun-48-1c-motorola-pilot.md"
+      - "scripts/solo/motorola-pilot-prep.node-test.mjs"
+      - "package.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comun-48-1c-pilot-prep-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prep-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Verify zero migration diff
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          base="${BASE_SHA:-$(git merge-base HEAD origin/main)}"
+          if git diff --name-only "$base" HEAD | grep -Eq '^supabase/(migrations|local-migrations)/'; then
+            echo COMUN_48_1C_PREP_BLOCKED_UNEXPECTED_MIGRATION_PLAN
+            exit 1
+          fi
+          echo COMUN_48_1C_PREP_ZERO_MIGRATION_DIFF >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify sanitized pilot contract
+        run: npm run pilot:48-1c:prep:test
+
+      - name: Production GET-only smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in \
+            /comun \
+            /comun/relatar \
+            /comun/calcadas \
+            /comun/calcadas/contribuir \
+            /comun/onibus \
+            /comun/minha-participacao \
+            /comun/entrar; do
+            status="$(curl --location --silent --show-error --output /dev/null \
+              --write-out '%{http_code}' --retry 3 --retry-delay 2 \
+              "https://comunsocial.online${path}")"
+            test "$status" = 200 || { echo "route unavailable: $path ($status)"; exit 1; }
+          done
+          echo COMUN_48_1C_PREP_PRODUCTION_READ_ONLY_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Emit preparation gate
+        run: echo COMUN_48_1C_PREP_TECHNICAL_GATE_GREEN >> "$GITHUB_STEP_SUMMARY"
