@@ -60,3 +60,26 @@ O Share Target permanece adiado:
 
 O terminal `COMUN_48_1B_F2_CAPTURE_FIRST_DOMAIN_GREEN` não foi emitido e o
 48.1B-P6A não foi iniciado.
+
+## Fechamento posterior
+
+O bloqueio acima foi resolvido pelo M1, sem placeholder e sem backfill. A
+ausência de texto passou a ser representada por `original_text IS NULL`, com
+RPC restrita ao contrato photo-only explícito. Depois disso:
+
+- R1 ativou foto-first genérico com categoria `other`, P3, receipt e Carteira;
+- C1 ativou captura progressiva de Calçadas no mesmo protocolo, usando o
+  adapter existente somente após condition/problems/groups;
+- a localização privada e o finalize conduzem o intake a `pending_review`;
+- nenhum default falso, segundo protocolo, adapter novo ou migration C1 foi
+  criado;
+- o primeiro shortcut PWA passou a ser `Vi um problema` → `/comun/relatar`;
+- Web Share Target continua adiado em
+  `COMUN_F2_SHARE_TARGET_DEFERRED_FILE_LIFECYCLE_REQUIRED`.
+
+Os smokes Production de R1 e C1 criaram somente fixtures sintéticas exatas e
+confirmaram cleanup de banco e Storage. O estado terminal vigente passa a ser:
+
+`COMUN_48_1B_F2_CAPTURE_FIRST_DOMAIN_GREEN`.
+
+Próximo tijolo: `48.1B-P6A — ÁGUA + ENERGIA + ILUMINAÇÃO`.

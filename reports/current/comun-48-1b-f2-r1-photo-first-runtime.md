@@ -37,13 +37,28 @@ Data: 2026-08-09
 - se o upload falhar, o Relata privado, o recibo e a Carteira preservam o
   caminho de nova tentativa no painel P3.
 
-## Prova descartável planejada
+## Prova descartável
 
 O job `COMUN F2 R1 / photo-first runtime E2E` usa Supabase loopback, sem
-credenciais remotas. Ele deve provar `original_text IS NULL`, decisão segura,
-retry do upload P3, foto privada selada, vínculo na Carteira, zero snapshot,
-zero forwarding e cleanup exato da fixture.
+credenciais remotas. O head exato `e02fd0600d916dc8bdb450bb94506cf7e20a5dce`
+provou `original_text IS NULL`, decisão segura, retry do upload P3, foto privada
+selada, vínculo na Carteira, zero snapshot, zero forwarding e cleanup exato da
+fixture:
+`COMUN_48_1B_F2_R1_PHOTO_FIRST_DISPOSABLE_GREEN`.
 
-## Estado
+## Merge, promoção e Production
 
-Implementação local em validação. Production ainda não recebeu a flag R1.
+- PR `#239` mesclada no head exato
+  `e02fd0600d916dc8bdb450bb94506cf7e20a5dce`; merge
+  `af95039a4c29c90f803d4c8910d0d569e6458253`;
+- migration `20260809055800_comun_relata_photo_first_domain_categories.sql`
+  promovida exatamente uma vez e postflight de função/grants verde;
+- deploy inicial OFF: `dpl_EQjXm1r6BCdkRyJJyXvtwU9xzFjj`;
+- deploy ativado: `dpl_ApC89L6EimuvRCoj1ukePhiJvEde`;
+- PR operacional `#240`, merge
+  `f57cfc8a9700a176c85836fa27b072e9e9b2fec0`;
+- fixture Production e cleanup exato: run `31299281446`, sem recovery de
+  emergência, com zero publicação e forwarding.
+
+Resultado:
+`COMUN_48_1B_F2_R1_PHOTO_FIRST_PRODUCTION_GREEN_CLEANUP`.
