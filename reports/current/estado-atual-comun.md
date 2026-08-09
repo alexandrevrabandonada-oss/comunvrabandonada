@@ -20,9 +20,13 @@
 - preflight read-only `31322898529` confirmou P6A, provider Google público
   desabilitado e plano remoto de zero migration, sem leitura de negócio ou
   segredo;
-- gate atual: a conta Google Cloud exige aceite humano dos Termos antes de
-  listar/criar OAuth clients, e a conta Supabase conectada não acessa o projeto
-  Production;
+- termos Google Cloud aceitos pela pessoa responsável;
+- Supabase Production revalidado no Dashboard: provider Google OFF e Client
+  ID/Secret ausentes; Site URL corrigida para `https://comunsocial.online` e
+  allowlist reduzida ao redirect exato `/comun/auth/callback`, sem wildcard;
+- gate atual: selecionar/criar conscientemente o projeto Google e o OAuth
+  Client Web; o seletor de recursos do Console retornou erro e nenhum projeto
+  foi criado automaticamente;
 - resultado vigente:
   `COMUN_P1G_PROVIDER_CONFIGURATION_HUMAN_ACTION_REQUIRED`;
 - não emitir ainda `COMUN_48_1B_P1G_GOOGLE_AUTH_DOMAIN_GREEN`.

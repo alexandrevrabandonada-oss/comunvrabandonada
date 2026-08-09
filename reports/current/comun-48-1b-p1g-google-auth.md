@@ -96,29 +96,50 @@ Run read-only `31322898529`: verde.
 - endpoint read-only de configuração Auth:
   https://supabase.com/docs/reference/api/v1-get-auth-service-config.
 
+## Configuração Supabase realizada
+
+Após o aceite humano dos Termos do Google Cloud, o acesso autenticado ao
+projeto Production do Supabase foi revalidado diretamente no Dashboard:
+
+- Google provider: desabilitado;
+- Client ID: não configurado;
+- Client Secret: não configurado, conferido apenas como boolean;
+- callback oficial do projeto: disponível no painel e não copiado para
+  artifacts;
+- Site URL anterior: loopback local;
+- Redirect URLs anteriores: nenhuma.
+
+Foram então aplicadas somente as duas configurações não secretas autorizadas:
+
+- Site URL: `https://comunsocial.online`;
+- Redirect allowlist: exatamente
+  `https://comunsocial.online/comun/auth/callback`.
+
+O Dashboard confirmou um único redirect e não há wildcard Production. O
+provider permaneceu OFF; nenhum Client ID ou Secret foi inventado ou exposto.
+
 ## Gate humano único
 
 Resultado atual: `COMUN_P1G_PROVIDER_CONFIGURATION_HUMAN_ACTION_REQUIRED`.
 
-A conta aberta no Google Cloud mostra o aceite inicial dos Termos de Serviço
-como requisito anterior à lista de clientes. Esse aceite é uma decisão humana
-e não foi realizado automaticamente. A conta Supabase conectada ao ambiente de
-trabalho também não possui acesso ao projeto Production.
+A pessoa responsável aceitou os Termos do Google Cloud. Depois disso, o seletor
+de projetos ainda não carregou recursos disponíveis e informou erro. Como não
+há Client ID/Secret no Supabase, a criação ou seleção consciente do projeto e
+do OAuth Client Web continua sendo a ação interativa restante. Nenhum projeto
+Google foi criado automaticamente.
 
 Ação mínima do responsável, sem enviar qualquer segredo ao COMUN ou ao agente:
 
-1. na aba Google Cloud já aberta, revisar e aceitar os Termos de Serviço;
-2. selecionar o projeto do COMUN e criar/confirmar um cliente OAuth do tipo
+1. na aba Google Cloud já aberta, selecionar um projeto existente do COMUN ou
+   criar conscientemente um projeto próprio para ele;
+2. criar/confirmar um cliente OAuth do tipo
    **Web application**;
 3. registrar origem JavaScript `https://comunsocial.online`;
 4. registrar como redirect Google o callback exibido pelo provider Supabase,
    no formato `https://<project-ref>.supabase.co/auth/v1/callback`;
-5. no projeto Production do Supabase, definir Site URL
-   `https://comunsocial.online` e redirect exato
-   `https://comunsocial.online/comun/auth/callback`;
-6. inserir Client ID e Client Secret somente no provider Google do Supabase e
+5. inserir Client ID e Client Secret somente no provider Google do Supabase e
    habilitá-lo;
-7. informar apenas que a configuração terminou — não copiar Client ID, Client
+6. informar apenas que a configuração terminou — não copiar Client ID, Client
    Secret, código OAuth, token, cookie, e-mail ou nome para esta tarefa.
 
 Depois desse gate, ainda são obrigatórios: preflight metadata verde, merge
