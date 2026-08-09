@@ -68,13 +68,17 @@ test("session template exposes only the allowed observation fields", async () =>
   );
 });
 
-test("aggregate report is empty and does not start the pilot", async () => {
+test("aggregate report records the paused P1 without counting a journey success", async () => {
   const report = await read("reports/current/comun-48-1c-motorola-pilot.md");
-  assert.match(report, /PREPARED — NO HUMAN SESSIONS YET/);
-  assert.match(report, /participantes contabilizados: `0`/);
-  assert.match(report, /sessões humanas iniciadas: `0`/);
+  assert.match(report, /PILOTO PAUSADO FOCALMENTE — J1\/J3/);
+  assert.match(report, /participantes completos contabilizados: `0`/);
+  assert.match(report, /tentativas humanas iniciadas: `1`/);
+  assert.match(report, /MOTOROLA-P1-001 — aberto/);
+  assert.match(report, /P01 \/ J1.*P01 \/ J3/s);
+  assert.match(report, /não conta como sucesso da jornada/);
+  assert.match(report, /reteste: pendente/);
   assert.match(report, /migrations 48\.1C: `0`/);
-  assert.doesNotMatch(report, /48\.1C `IN_PROGRESS`\s*(?:está|foi|iniciado)/i);
+  assert.match(report, /P6B permanece proibido/);
 });
 
 test("cleanup is logical, complete and blocks external actions", async () => {
