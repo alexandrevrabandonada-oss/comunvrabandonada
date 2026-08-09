@@ -14,6 +14,12 @@
 - catálogo institucional server-side verificado em fontes oficiais; nenhum
   canal foi acionado;
 - uma migration P6A generaliza o núcleo P5 e preserva wrappers STMU;
+- E2E descartável P6A `31319072956` verde no head
+  `95b4869748629baedb844f8ab987da7a99ad3b58`: três serviços, uma decisão na
+  ambiguidade, transição do mesmo relato photo-only, segurança, screenshot
+  mobile, Axe, zero request externo, zero publicação e zero hard delete;
+- regressão P5/STMU `31319072950` verde no mesmo head, preservando
+  `bus_intake_id` e `prepared != sent`;
 - `prepared` continua diferente de `sent`; auto-send, publicação, mapa público,
   coletivos, território, Google e `launch_publicly` permanecem desligados;
 - PR `#243` está em draft; Production e schema remoto ainda inalterados;

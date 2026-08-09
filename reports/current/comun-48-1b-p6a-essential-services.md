@@ -113,10 +113,30 @@ exact head:
    sintética de envio;
 7. rollback focal automático se um gate falhar.
 
+## Evidências descartáveis no candidato
+
+No head `95b4869748629baedb844f8ab987da7a99ad3b58`:
+
+- E2E P6A `31319072956`:
+  `COMUN_P6A_ESSENTIAL_SERVICES_DISPOSABLE_E2E_GREEN`;
+- água percorreu protocolo, Carteira, pacote SAAE, abertura `prepared`,
+  declaração da pessoa e resposta manual somente no laboratório;
+- energia e iluminação selecionaram Light e Prefeitura, respectivamente, e
+  permaneceram `prepared`;
+- a ambiguidade exigiu uma decisão e produziu um protocolo; foto-only mudou o
+  mesmo relato/caso/protocolo;
+- receipt inválido e outra Carteira receberam `404`; grants, RLS/FORCE RLS,
+  idempotência, sequência de attempts e ausência de coordenadas foram
+  verificados;
+- browser real em 390×844, screenshot e Axe sem violações serious/critical;
+- `externalRequests=0`, `automaticSend=false`, `publicSnapshots=0` e
+  `hardDeletes=0`;
+- regressão P5/STMU `31319072950` verde no mesmo head, preservando
+  `bus_intake_id` e `prepared != sent`.
+
 ## Evidências pendentes para fechamento
 
-- E2E descartável no head final;
-- CI completa e Preview visual;
+- CI completa e Preview do head final;
 - merge exact-head;
 - dry-run, promoção e postflight;
 - ondas 1 e 2 e cleanup Production.
