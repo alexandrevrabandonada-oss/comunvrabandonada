@@ -12,6 +12,8 @@ describe("48.1D-S1 unified Relata intake contracts", () => {
     expect(page).toContain("<QuickCaptureV2");
     expect(page).not.toContain("ReportForm");
     expect(page).not.toContain("searchParams.modo");
+    expect(page).not.toContain("isComunQuickCaptureEnabled");
+    expect(page).not.toContain("notFound()");
 
     const legacyForm = read("app/comun/relatar/report-form.tsx");
     expect(legacyForm).toContain("LEGACY_INTAKE_NOT_CANONICAL");

@@ -1,6 +1,4 @@
-import { notFound } from "next/navigation";
 import { QuickCaptureV2 } from "@/app/comun/relatar/quick-capture-v2";
-import { isComunQuickCaptureEnabled } from "@/lib/comun-capture-feature";
 import {
   isComunRelataAttachmentsEnabled,
   isComunRelataLocationEnabled,
@@ -14,8 +12,6 @@ import {
 export default function ReportPage() {
   // The canonical intake is never allowed to fall back to the legacy writer.
   // Query strings such as ?modo=detalhado are intentionally ignored.
-  if (!isComunQuickCaptureEnabled()) notFound();
-
   return (
     <QuickCaptureV2
       attachmentsEnabled={isComunRelataAttachmentsEnabled()}
