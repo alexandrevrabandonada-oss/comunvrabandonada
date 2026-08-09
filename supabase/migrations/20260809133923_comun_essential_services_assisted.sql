@@ -388,8 +388,8 @@ begin
   perform 1 from private.comun_forwarding_packages
     where id=p_package_id and wallet_id=v_wallet and withdrawn_at is null for update;
   if not found then return; end if;
-  select * into v_attempt from private.comun_forwarding_attempts
-    where package_id=p_package_id and channel=p_channel and state='prepared';
+  select a.* into v_attempt from private.comun_forwarding_attempts a
+    where a.package_id=p_package_id and a.channel=p_channel and a.state='prepared';
   if not found then
     select coalesce(max(a.sequence_no),0)+1 into v_sequence
       from private.comun_forwarding_attempts a where a.package_id=p_package_id;
