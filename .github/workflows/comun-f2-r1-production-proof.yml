@@ -1,0 +1,90 @@
+name: COMUN F2 R1 Production proof
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA to verify
+        required: true
+        type: string
+      authorization:
+        description: Type RUN_F2_R1_PRODUCTION_FIXTURE
+        required: true
+        type: string
+
+concurrency:
+  group: comun-f2-r1-production-proof
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  proof:
+    if: inputs.authorization == 'RUN_F2_R1_PRODUCTION_FIXTURE'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+
+      - name: Verify exact main SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ inputs.expected_main_sha }}"
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "${{ inputs.expected_main_sha }}"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+
+      - name: Allocate synthetic attempt
+        id: attempt
+        shell: bash
+        run: printf 'attempt_id=F2-R1-SMOKE-%s-%s\n' "$GITHUB_RUN_ID" "$(node -e 'process.stdout.write(require("node:crypto").randomUUID())')" >> "$GITHUB_OUTPUT"
+
+      - name: Run exact Production fixture and cleanup
+        id: smoke
+        env:
+          COMUN_BASE_URL: https://comunsocial.online
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          ATTEMPT_ID: ${{ steps.attempt.outputs.attempt_id }}
+          F2_R1_RECOVERY_FILE: ${{ runner.temp }}/comun-f2-r1-recovery.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          mkdir -p .ci-artifacts/f2-r1-production
+          node scripts/solo/rehearse-f2-r1-photo-first-production.mjs > .ci-artifacts/f2-r1-production/smoke.json
+          test ! -e "$F2_R1_RECOVERY_FILE"
+
+      - name: Recover exact fixture after process failure
+        if: always() && steps.attempt.outcome == 'success' && steps.smoke.outcome != 'success'
+        env:
+          COMUN_BASE_URL: https://comunsocial.online
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          ATTEMPT_ID: ${{ steps.attempt.outputs.attempt_id }}
+          F2_R1_RECOVERY_FILE: ${{ runner.temp }}/comun-f2-r1-recovery.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          mkdir -p .ci-artifacts/f2-r1-production
+          node scripts/solo/rehearse-f2-r1-photo-first-production.mjs --recover > .ci-artifacts/f2-r1-production/recovery.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-f2-r1-production-proof-${{ github.run_id }}
+          path: .ci-artifacts/f2-r1-production
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Emit marker
+        if: success()
+        run: echo COMUN_48_1B_F2_R1_PHOTO_FIRST_PRODUCTION_GREEN_CLEANUP >> "$GITHUB_STEP_SUMMARY"
