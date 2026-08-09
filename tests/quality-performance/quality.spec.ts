@@ -73,13 +73,14 @@ test("@a11y autenticação aceita gerenciador, colagem e retorno explícito", as
   page,
 }) => {
   await page.goto("/comun/entrar?returnTo=%2Fcomun%2Fminha-participacao");
-  const email = page.getByLabel("E-mail");
-  const password = page.getByLabel("Senha");
+  const loginForm = page.getByRole("form", { name: "Entrar no COMUN" });
+  const email = loginForm.getByLabel("E-mail");
+  const password = loginForm.getByLabel("Senha");
   await expect(email).toHaveAttribute("autocomplete", "email");
   await expect(password).toHaveAttribute("autocomplete", "current-password");
   await email.fill("pessoa.sintetica@example.invalid");
   await password.fill("senha-sintetica-nao-real");
-  await expect(page.locator('input[name="returnTo"]')).toHaveValue(
+  await expect(loginForm.locator('input[name="returnTo"]')).toHaveValue(
     "/comun/minha-participacao",
   );
 });
