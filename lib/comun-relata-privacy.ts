@@ -1,20 +1,26 @@
-import type { PrivacyClass, RelataInput } from "./comun-relata-contract";
+import type { PrivacyClass, RelataCaptureInput } from "./comun-relata-contract";
 
 const HIGH_RISK = /\b(criança|menor|ameaça|retaliação|vingança|violência|agressão|suicídio|autoagressão|documento|cpf|senha|doença|diagnóstico|nome completo)\b/i;
 const SENSITIVE = /\b(casa|residência|apartamento|endereço|telefone|email|placa|escola|hospital|pessoa|vizinho)\b/i;
 
-export function classifyRelataPrivacy(input: RelataInput): PrivacyClass {
+export function classifyRelataPrivacy(input: RelataCaptureInput): PrivacyClass {
+  const text = input.text ?? "";
   if (
     input.includesChildData ||
     input.includesHealthData ||
     input.includesThreatOrRetaliation ||
-    HIGH_RISK.test(input.text)
+    HIGH_RISK.test(text)
   )
     return "high_risk";
-  if (input.hasExactLocation || input.includesPersonData || input.hasAttachment)
+  if (
+    input.hasExactLocation ||
+    input.includesPersonData ||
+    input.hasAttachment ||
+    input.text === null
+  )
     return "sensitive";
-  if (SENSITIVE.test(input.text)) return "restricted";
-  return input.text.trim().length >= 12
+  if (SENSITIVE.test(text)) return "restricted";
+  return text.trim().length >= 12
     ? "public_after_sanitization"
     : "public_safe";
 }

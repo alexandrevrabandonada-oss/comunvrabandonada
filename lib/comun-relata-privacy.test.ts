@@ -19,6 +19,13 @@ describe("COMUN Relata privacy", () => {
     expect(classifyRelataPrivacy({ text: "Criança ameaçada", includesChildData: true })).toBe("high_risk");
   });
 
+  it("classifies semantic-text absence as sensitive and never automatic", () => {
+    const privacy = classifyRelataPrivacy({ text: null, hasAttachment: true });
+    expect(privacy).toBe("sensitive");
+    expect(canRelataAutoRoute(privacy)).toBe(false);
+    expect(canRelataConsiderForMap(privacy)).toBe(false);
+  });
+
   it("removes contact and document-like values from a summary", () => {
     expect(sanitizeRelataSummary("Falar com pessoa@example.com, CPF 123.456.789-00")).not.toMatch(/example|123/);
   });

@@ -251,3 +251,7 @@ export type RelataInput = {
   includesThreatOrRetaliation?: boolean;
   hasAttachment?: boolean;
 };
+
+export type RelataCaptureInput = Omit<RelataInput, "text"> & {
+  text: string | null;
+};

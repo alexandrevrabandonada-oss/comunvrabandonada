@@ -556,6 +556,76 @@ jobs:
           include-hidden-files: true
           if-no-files-found: warn
 
+  f2-m1-semantic-text-absence-e2e:
+    name: COMUN F2 M1 / semantic text absence E2E
+    if: >-
+      (
+        github.event_name == 'pull_request' &&
+        github.event.action != 'closed' &&
+        github.event.pull_request.head.ref == 'codex/48-1b-f2-m1-semantic-text-absence'
+      ) || (
+        github.event_name == 'workflow_dispatch' &&
+        inputs.force_full == true
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
+      - name: Assert no remote credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${SUPABASE_PROJECT_REF:-}"
+          test -z "${SUPABASE_DB_URL:-}"
+          test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
+      - run: npm ci --ignore-scripts
+      - name: Start disposable Supabase and verify semantic text absence
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact="$GITHUB_WORKSPACE/.ci-artifacts/f2-m1-semantic-text-absence"
+          mkdir -p "$artifact"
+          cleanup() {
+            local status=0
+            timeout -k 10s 120s supabase stop --no-backup >/dev/null 2>&1 || status=$?
+            if docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA' | grep -q .; then
+              docker rm -f $(docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA') >/dev/null 2>&1 || true
+            fi
+            test "$status" -eq 0
+            ! docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA' | grep -q .
+          }
+          trap cleanup EXIT
+          node scripts/solo/r2a-supabase-startup.mjs >"$artifact/supabase-start.log" 2>&1
+          supabase db reset --local --yes >"$artifact/db-reset.log" 2>&1
+          status_file="$(mktemp)"
+          supabase status -o env >"$status_file"
+          db_url="$(sed -n 's/^DB_URL="\(.*\)"$/\1/p' "$status_file")"
+          printf '%s\n' '{"mode":"local","remoteCredentials":"absent","supabase":"loopback","secrets":"redacted"}' >"$artifact/environment.json"
+          export COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL="$db_url"
+          npm run relata:f2:m1:semantic-text-absence:local >"$artifact/e2e.log" 2>&1
+          cat "$artifact/e2e.log"
+      - name: Upload sanitized M1 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-f2-m1-semantic-text-absence-${{ github.run_id }}
+          path: .ci-artifacts/f2-m1-semantic-text-absence
+          include-hidden-files: true
+          if-no-files-found: warn
+
   p1-account-wallet-runtime-e2e:
     name: COMUN P1 / account and wallet runtime E2E
     if: >-
