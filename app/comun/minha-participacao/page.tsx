@@ -38,6 +38,10 @@ import {
 import { isComunParticipationWalletEnabled } from "@/lib/comun-participation-wallet-feature";
 import { ParticipationWalletPanel } from "./participation-wallet-panel";
 import { isComunStmuAssistedEnabled } from "@/lib/comun-stmu-assisted-feature";
+import {
+  isComunEssentialForwardingAssistedEnabled,
+  isComunEssentialServicesEnabled,
+} from "@/lib/comun-essential-services-feature";
 
 export const dynamic = "force-dynamic";
 
@@ -73,12 +77,21 @@ export default async function MinhaAreaPage({
     : "contribuicoes";
   const walletEnabled = isComunParticipationWalletEnabled();
   const stmuAssistedEnabled = isComunStmuAssistedEnabled();
+  const essentialServicesEnabled = isComunEssentialServicesEnabled();
+  const essentialForwardingEnabled =
+    isComunEssentialForwardingAssistedEnabled();
   const optionalCommunitySession = walletEnabled
     ? await getCommunitySession()
     : null;
   if (walletEnabled) {
     if (!optionalCommunitySession?.user)
-      return <WalletOnlyPage stmuAssistedEnabled={stmuAssistedEnabled} />;
+      return (
+        <WalletOnlyPage
+          stmuAssistedEnabled={stmuAssistedEnabled}
+          essentialServicesEnabled={essentialServicesEnabled}
+          essentialForwardingEnabled={essentialForwardingEnabled}
+        />
+      );
   }
   const { user, profile } = await requireCommunitySession(
     withComunAppV2(`/comun/minha-participacao?secao=${selected}`, appV2),
@@ -128,6 +141,8 @@ export default async function MinhaAreaPage({
         walletEnabled={walletEnabled}
         accountAvailable={Boolean(optionalCommunitySession?.user)}
         stmuAssistedEnabled={stmuAssistedEnabled}
+        essentialServicesEnabled={essentialServicesEnabled}
+        essentialForwardingEnabled={essentialForwardingEnabled}
       />
     );
   return (
@@ -188,6 +203,8 @@ export default async function MinhaAreaPage({
           <ParticipationWalletPanel
             accountAvailable={Boolean(optionalCommunitySession?.user)}
             stmuAssistedEnabled={stmuAssistedEnabled}
+            essentialServicesEnabled={essentialServicesEnabled}
+            essentialForwardingEnabled={essentialForwardingEnabled}
           />
         </ComunSection>
       ) : null}
@@ -485,6 +502,8 @@ function MinhaAreaAppV2({
   walletEnabled,
   accountAvailable,
   stmuAssistedEnabled,
+  essentialServicesEnabled,
+  essentialForwardingEnabled,
 }: {
   profile: any;
   center: any;
@@ -496,6 +515,8 @@ function MinhaAreaAppV2({
   walletEnabled: boolean;
   accountAvailable: boolean;
   stmuAssistedEnabled: boolean;
+  essentialServicesEnabled: boolean;
+  essentialForwardingEnabled: boolean;
 }) {
   const tabs = [
     ["contribuicoes", "Participações"],
@@ -539,6 +560,8 @@ function MinhaAreaAppV2({
           <ParticipationWalletPanel
             accountAvailable={accountAvailable}
             stmuAssistedEnabled={stmuAssistedEnabled}
+            essentialServicesEnabled={essentialServicesEnabled}
+            essentialForwardingEnabled={essentialForwardingEnabled}
           />
         ) : null}
         <div
@@ -879,8 +902,12 @@ function CollectiveActionsPreviewParticipation() {
 
 function WalletOnlyPage({
   stmuAssistedEnabled,
+  essentialServicesEnabled,
+  essentialForwardingEnabled,
 }: {
   stmuAssistedEnabled: boolean;
+  essentialServicesEnabled: boolean;
+  essentialForwardingEnabled: boolean;
 }) {
   return (
     <ComunShell
@@ -890,6 +917,8 @@ function WalletOnlyPage({
         <ParticipationWalletPanel
           standalone
           stmuAssistedEnabled={stmuAssistedEnabled}
+          essentialServicesEnabled={essentialServicesEnabled}
+          essentialForwardingEnabled={essentialForwardingEnabled}
         />
       </div>
     </ComunShell>

@@ -1,0 +1,31 @@
+{
+  "release": "20260809133923-comun-essential-services-assisted",
+  "migration": "supabase/migrations/20260809133923_comun_essential_services_assisted.sql",
+  "migrationSha256": "58e8739624d7cdee0d138ab45debd2eabaff443e0b0937560e2d775e359294dc",
+  "path": "supabase/migrations/20260809133923_comun_essential_services_assisted.sql",
+  "sha256": "58e8739624d7cdee0d138ab45debd2eabaff443e0b0937560e2d775e359294dc",
+  "requiresPromotion": true,
+  "remotePromotionAllowed": true,
+  "scope": "production",
+  "dependsOn": [
+    "20260808180246-comun-sidewalk-relata-real",
+    "20260808220000-comun-bus-stmu-assisted",
+    "20260809055800-comun-relata-photo-first-domain-categories"
+  ],
+  "destructiveSql": false,
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "releaseLedger": "public.comun_schema_releases",
+  "dataMutation": false,
+  "technicalBackfill": "forwarding_source_domain_bus_only",
+  "historicalTextRead": false,
+  "publicProjection": false,
+  "publicProjectionAutomatic": false,
+  "externalForwarding": false,
+  "assistedOpeningOnly": true,
+  "featureFlags": [
+    "COMUN_ESSENTIAL_SERVICES_ENABLED",
+    "COMUN_ESSENTIAL_FORWARDING_ASSISTED_ENABLED"
+  ],
+  "reason": "single_door_essential_services_and_person_controlled_assistance"
+}

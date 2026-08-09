@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { ComunForwardingPanel } from "./comun-forwarding-panel";
 import { ComunStmuMultichannelPanel } from "./comun-stmu-multichannel-panel";
 import { ComunStmuAssistedPanel } from "./comun-stmu-assisted-panel";
+import { ComunEssentialServicesPanel } from "./comun-essential-services-panel";
+import { isEssentialServiceCategory } from "@/lib/comun-essential-services-feature";
 
 type WalletItem = {
   item_id: string;
@@ -20,27 +22,42 @@ type WalletItem = {
 };
 
 function statusLabel(item: WalletItem) {
-  if (item.action_required) return "Precisa de você";
   const labels: Record<string, string> = {
+    Guardado: "Guardado",
+    "Pronto para encaminhar": "Pronto para encaminhar",
+    "Encaminhamento preparado": "Encaminhamento preparado",
+    "Enviado por você": "Enviado por você",
+    "Aguardando retorno": "Aguardando retorno",
+    "Resposta registrada": "Resposta registrada",
+    Retirado: "Retirado",
     captured_private: "Guardado",
-    pending_review: "Em revisão",
+    ready_to_forward: "Pronto para encaminhar",
+    forwarding_prepared: "Encaminhamento preparado",
     person_declared_sent: "Enviado por você",
     waiting_response: "Aguardando retorno",
+    responded: "Resposta registrada",
     published: "Publicado",
     withdrawn: "Retirado",
     Acompanhando: "Acompanhando",
   };
-  return labels[item.presentation_state] ?? "Guardado";
+  return (
+    labels[item.presentation_state] ??
+    (item.action_required ? "Precisa de você" : "Guardado")
+  );
 }
 
 export function ParticipationWalletPanel({
   standalone = false,
   accountAvailable = false,
   stmuAssistedEnabled = false,
+  essentialServicesEnabled = false,
+  essentialForwardingEnabled = false,
 }: {
   standalone?: boolean;
   accountAvailable?: boolean;
   stmuAssistedEnabled?: boolean;
+  essentialServicesEnabled?: boolean;
+  essentialForwardingEnabled?: boolean;
 }) {
   const [items, setItems] = useState<WalletItem[]>([]);
   const [present, setPresent] = useState(false);
@@ -421,6 +438,18 @@ export function ParticipationWalletPanel({
                           <ComunStmuMultichannelPanel
                             relataCaseId={item.item_id}
                           />
+                        )
+                      ) : essentialServicesEnabled &&
+                        isEssentialServiceCategory(item.category) ? (
+                        essentialForwardingEnabled ? (
+                          <ComunEssentialServicesPanel
+                            walletItemId={item.item_id}
+                          />
+                        ) : (
+                          <p className="mt-3 border-t-2 pt-3 text-sm font-bold">
+                            Guardado no COMUN. O encaminhamento assistido ainda
+                            não está ativo.
+                          </p>
                         )
                       ) : (
                         <ComunForwardingPanel relataCaseId={item.item_id} />

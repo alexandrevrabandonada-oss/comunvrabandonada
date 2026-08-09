@@ -8,6 +8,11 @@ import { DARK_STREET_QUESTION, routeRelata } from "@/lib/comun-relata-routing";
 import type { ComunRelataReceipt } from "@/lib/comun-relata-persistence";
 import type { RoutingDecision } from "@/lib/comun-relata-contract";
 import { createComunRelataPhotoOnlyDecision } from "@/lib/comun-relata-photo-first";
+import {
+  applyComunEssentialServicesRoutingGate,
+  isEssentialServiceCategory,
+} from "@/lib/comun-essential-services-feature";
+import { ComunEssentialServicesPanel } from "@/app/comun/minha-participacao/comun-essential-services-panel";
 
 const SidewalkRealPointPicker = dynamic(
   () =>
@@ -58,10 +63,14 @@ export function QuickCaptureV2({
   attachmentsEnabled = false,
   locationEnabled = false,
   photoOnlyEnabled = false,
+  essentialServicesEnabled = false,
+  essentialForwardingEnabled = false,
 }: {
   attachmentsEnabled?: boolean;
   locationEnabled?: boolean;
   photoOnlyEnabled?: boolean;
+  essentialServicesEnabled?: boolean;
+  essentialForwardingEnabled?: boolean;
 }) {
   const [startedAt] = useState(() => Date.now());
   const proofRef = useRef<{
@@ -81,7 +90,8 @@ export function QuickCaptureV2({
   const [walletRecoveryCode, setWalletRecoveryCode] = useState<string | null>(
     null,
   );
-  const [privateLocationSaved, setPrivateLocationSaved] = useState(false);
+  const [walletItemId, setWalletItemId] = useState<string | null>(null);
+  const [semanticContext, setSemanticContext] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [interactions, setInteractions] = useState(0);
@@ -133,7 +143,10 @@ export function QuickCaptureV2({
   function decisionForCapture(value: string, file: File | null) {
     const trimmed = value.trim();
     if (trimmed.length >= 8) {
-      return routeRelata({ text: trimmed, hasAttachment: Boolean(file) });
+      return applyComunEssentialServicesRoutingGate(
+        routeRelata({ text: trimmed, hasAttachment: Boolean(file) }),
+        essentialServicesEnabled,
+      );
     }
     if (trimmed.length === 0 && file && photoOnlyEnabled) {
       return createComunRelataPhotoOnlyDecision();
@@ -276,15 +289,16 @@ export function QuickCaptureV2({
       const value = (await response.json()) as {
         receipt: ComunRelataReceipt;
         walletRecoveryCode?: string;
+        walletItemId?: string;
       };
       setReceipt(value.receipt);
       setWalletRecoveryCode(value.walletRecoveryCode ?? null);
+      setWalletItemId(value.walletItemId ?? null);
       sendMetric("protocol_issued");
       const hadLocation = Boolean(
         locationEnabled && point && locationMode !== "skip",
       );
       const evidenceOutcome = await persistEvidence();
-      setPrivateLocationSaved(evidenceOutcome.location);
       sessionStorage.setItem(
         "comun_capture_draft_v1",
         JSON.stringify({
@@ -313,6 +327,35 @@ export function QuickCaptureV2({
         "Não foi possível guardar agora. Nenhum órgão recebeu a manifestação; tente novamente.",
       );
       sendMetric("capture_error", { errorCode: "save_failed" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function classifyPhotoOnly() {
+    if (!receipt || semanticContext.trim().length < 8 || busy) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const response = await fetch("/api/comun/relata/classification", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text: semanticContext.trim() }),
+      });
+      const value = (await response.json()) as {
+        classification?: { category?: string; protocol?: string };
+        code?: string;
+      };
+      if (!response.ok || !value.classification?.category)
+        throw new Error(value.code ?? "classification_failed");
+      setReceipt({ ...receipt, category: value.classification.category });
+      setNotice(
+        "Contexto acrescentado ao mesmo relato e ao mesmo protocolo COMUN.",
+      );
+    } catch {
+      setNotice(
+        "Esse contexto ainda não permitiu classificar o serviço. O relato original continua guardado.",
+      );
     } finally {
       setBusy(false);
     }
@@ -529,7 +572,9 @@ export function QuickCaptureV2({
                 Status
               </p>
               <h2 className="text-3xl font-black">
-                {labelForState(receipt.state)}
+                {receipt.state === "captured_private"
+                  ? "Guardado no COMUN"
+                  : labelForState(receipt.state)}
               </h2>
               <div className="border-2 border-comun-black bg-comun-yellow p-4">
                 <p className="text-xs font-black uppercase">Protocolo COMUN</p>
@@ -540,24 +585,45 @@ export function QuickCaptureV2({
               <p className="border-l-4 border-comun-yellow bg-comun-paper p-3 font-black">
                 Ainda não encaminhado. Nada foi publicado.
               </p>
+              {essentialServicesEnabled &&
+              receipt.category === "other" &&
+              isPhotoOnly ? (
+                <div className="grid gap-2 border-2 border-comun-black p-3">
+                  <p className="font-black">Completar o contexto da foto</p>
+                  <p className="text-sm">
+                    A foto continua sem interpretação automática. Acrescente uma
+                    frase para classificar este mesmo relato, sem criar outro
+                    protocolo.
+                  </p>
+                  <label className="grid gap-1 text-sm font-bold">
+                    O que a foto mostra?
+                    <textarea
+                      value={semanticContext}
+                      onChange={(event) =>
+                        setSemanticContext(event.target.value)
+                      }
+                      minLength={8}
+                      maxLength={600}
+                      className="border-2 border-comun-black p-3 font-normal"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    disabled={busy || semanticContext.trim().length < 8}
+                    onClick={classifyPhotoOnly}
+                    className="min-h-11 w-fit border-2 border-comun-black bg-comun-yellow px-4 font-black"
+                  >
+                    Acrescentar ao mesmo relato
+                  </button>
+                </div>
+              ) : null}
               <div className="grid gap-2 sm:grid-cols-2">
                 <Link
-                  href="/comun/relatar?modo=detalhado"
+                  href="/comun/minha-participacao"
                   className="inline-flex min-h-11 items-center justify-center border-2 border-comun-black bg-comun-yellow px-4 py-2 text-sm font-black"
-                  onClick={() => {
-                    sessionStorage.setItem(
-                      "comun_capture_draft_v1",
-                      JSON.stringify({
-                        text,
-                        category: receipt.category,
-                        hasPhoto: Boolean(photo),
-                        hasPrivateLocation: privateLocationSaved,
-                      }),
-                    );
-                    sendMetric("follow_up_started");
-                  }}
+                  onClick={() => sendMetric("follow_up_started")}
                 >
-                  Completar agora
+                  Ver andamento
                 </Link>
                 <button
                   type="button"
@@ -567,6 +633,11 @@ export function QuickCaptureV2({
                   Fazer depois
                 </button>
               </div>
+              {essentialForwardingEnabled &&
+              walletItemId &&
+              isEssentialServiceCategory(receipt.category) ? (
+                <ComunEssentialServicesPanel walletItemId={walletItemId} />
+              ) : null}
               {attachmentsEnabled || locationEnabled ? (
                 <p className="text-sm leading-6">
                   As evidências opcionais permanecem privadas. Você pode

@@ -18,6 +18,8 @@ const P1T_OPTIONAL_TERRITORY_RELEASE = "20260806235454-comun-member-profile-opti
 const P3B_LOCATION_READD_RELEASE = "20260808043000-comun-relata-location-readd-state-fix";
 const P4_SIDEWALK_RELATA_RELEASE = "20260808180246-comun-sidewalk-relata-real";
 const P5_BUS_STMU_RELEASE = "20260808220000-comun-bus-stmu-assisted";
+const P6A_ESSENTIAL_SERVICES_RELEASE =
+  "20260809133923-comun-essential-services-assisted";
 
 export function selectReleaseManifest(value = arg?.slice(19) ?? process.env.COMUN_RELEASE_MANIFEST) {
   if (!value) {
@@ -50,7 +52,8 @@ export function validateForwardOnlySqlText(release, migration) {
     release.release !== P1T_OPTIONAL_TERRITORY_RELEASE &&
     release.release !== P3B_LOCATION_READD_RELEASE &&
     release.release !== P4_SIDEWALK_RELATA_RELEASE &&
-    release.release !== P5_BUS_STMU_RELEASE;
+    release.release !== P5_BUS_STMU_RELEASE &&
+    release.release !== P6A_ESSENTIAL_SERVICES_RELEASE;
   const allowedStatements = [
     ...(requiresSidewalkSummaryException ? [ALLOWED_PUBLIC_SUMMARY_NULLABILITY] : []),
     ...(requiresLegacyGrantRepair ? [ALLOWED_LEGACY_GRANT_REPAIR] : []),

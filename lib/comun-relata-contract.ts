@@ -3,6 +3,7 @@ export const COMUN_RELATA_RULE_VERSION = "relata-routing-v1" as const;
 export type RelataCategory =
   | "public_lighting"
   | "power_distribution"
+  | "water_supply"
   | "public_transport"
   | "electrical_hazard"
   | "active_fire"
@@ -101,6 +102,7 @@ export type Agency = {
   kind:
     | "public_lighting"
     | "power_distribution"
+    | "water_sanitation"
     | "public_transport"
     | "emergency"
     | "environmental"
