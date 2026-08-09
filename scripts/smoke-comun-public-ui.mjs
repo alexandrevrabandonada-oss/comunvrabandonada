@@ -98,11 +98,13 @@ const checks = [
   },
   {
     path: "/comun/relatar",
-    required: [
-      "Relato rapido",
+    required: ["Vi um problema", "O que aconteceu?"],
+    forbidden: [
+      "Relato rápido",
       "Relato detalhado",
-      "Foto opcional",
-      "Usar minha localizacao aproximada",
+      "Categoria rápida",
+      "Enviar relato rápido",
+      "Abrir formulário detalhado",
     ],
     allowFormFieldNames: true,
   },
@@ -141,6 +143,12 @@ for (const check of checks) {
   for (const requiredText of check.required) {
     if (!html.includes(normalize(requiredText))) {
       fail(`${check.path} nao contem o texto esperado: ${requiredText}`);
+    }
+  }
+
+  for (const forbiddenText of check.forbidden ?? []) {
+    if (html.includes(normalize(forbiddenText))) {
+      fail(`${check.path} contem intake legado: ${forbiddenText}`);
     }
   }
 

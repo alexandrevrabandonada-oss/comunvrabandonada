@@ -110,6 +110,11 @@ export async function POST(request: NextRequest) {
     "unit",
     "school_type",
   ]);
+  const binaryAdaptiveAnswerKeys = new Set([
+    "homes_power",
+    "smoke_active",
+    "blocked",
+  ]);
 
   if (
     (!photoOnly && text.length < 8) ||
@@ -119,7 +124,8 @@ export async function POST(request: NextRequest) {
     Object.keys(answers).some(
       (key) =>
         !allowedAnswerKeys.has(key) ||
-        (key === "homes_power" && !["sim", "nao"].includes(answers[key])),
+        (binaryAdaptiveAnswerKeys.has(key) &&
+          !["sim", "nao"].includes(answers[key])),
     )
   ) {
     return NextResponse.json(
@@ -150,12 +156,6 @@ export async function POST(request: NextRequest) {
     routedDecision,
     isComunEssentialServicesEnabled(),
   );
-  if (decision.missingInformation.length > 0) {
-    return NextResponse.json(
-      { code: "triage_incomplete" },
-      { status: 409, headers: noStoreHeaders },
-    );
-  }
 
   const db = createComunRelataPersistenceClient();
   const { data, error } = await db.rpc("comun_relata_create", {

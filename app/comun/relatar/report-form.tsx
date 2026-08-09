@@ -1,5 +1,8 @@
 "use client";
 
+// LEGACY_INTAKE_NOT_CANONICAL: retained temporarily for historical tests and
+// future cleanup work. No public route renders this writer.
+
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useFormState } from "react-dom";

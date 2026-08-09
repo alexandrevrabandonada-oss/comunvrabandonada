@@ -33,6 +33,7 @@ export function createComunRelataPhotoOnlyDecision(): ComunRelataPhotoOnlyDecisi
     explanation: "Foto guardada privadamente para revisão",
     nextStep: "Você pode acrescentar uma descrição agora ou pela Carteira.",
     missingInformation: [],
+    adaptiveQuestions: [],
     privacyClass: "sensitive",
     publication: "never_automatic",
     requiresHumanReview: true,

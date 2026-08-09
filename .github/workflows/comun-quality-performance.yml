@@ -220,13 +220,16 @@ jobs:
           node scripts/comun-local-env.mjs run npm run test:e2e:territorial-art
           node scripts/comun-local-env.mjs run npm run test:a11y:territorial-art
       - name: Smokes HTTP contra release local isolada
+        env:
+          COMUN_BASE_URL: http://127.0.0.1:3049
+          NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3049
         run: |
-          node scripts/comun-local-env.mjs run npm run start -- -p 3000 > /tmp/comun-quality-server.log 2>&1 &
+          node scripts/comun-local-env.mjs run npm run start -- -p 3049 > /tmp/comun-quality-server.log 2>&1 &
           server_pid=$!
           cleanup() { kill "$server_pid" 2>/dev/null || true; }
           trap cleanup EXIT
           for attempt in $(seq 1 30); do
-            if curl --silent --fail http://127.0.0.1:3000/comun >/dev/null; then break; fi
+            if curl --silent --fail http://127.0.0.1:3049/comun >/dev/null; then break; fi
             if [ "$attempt" = 30 ]; then echo "COMUN_LOCAL_RELEASE_NOT_READY"; exit 1; fi
             sleep 2
           done
