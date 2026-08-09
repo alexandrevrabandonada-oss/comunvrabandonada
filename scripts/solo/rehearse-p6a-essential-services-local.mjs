@@ -142,9 +142,10 @@ try {
   assert.equal(ready, true, output.join(""));
 
   uiBrowser = await chromium.launch({ headless: true });
-  const page = await uiBrowser.newPage({
+  const uiContext = await uiBrowser.newContext({
     viewport: { width: 390, height: 844 },
   });
+  const page = await uiContext.newPage();
   await page.goto(`${base}/comun/relatar`, { waitUntil: "domcontentloaded" });
   await page.locator("[data-comun-quick-capture-v2='true']").waitFor();
   const textInput = page.getByLabel(/Uma frase basta|A descrição é opcional/);
@@ -173,6 +174,7 @@ try {
       path: process.env.P6A_SCREENSHOT_PATH,
       fullPage: true,
     });
+  await uiContext.close();
   await uiBrowser.close();
   uiBrowser = undefined;
 
