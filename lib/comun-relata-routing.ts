@@ -1,5 +1,6 @@
 import {
   COMUN_RELATA_RULE_VERSION,
+  type AdaptiveQuestion,
   type RelataInput,
   type RelataCategory,
   type RoutingDecision,
@@ -12,6 +13,31 @@ import {
 
 const DARK_STREET_QUESTION =
   "As casas também estão sem energia ou apenas as luminárias da rua?";
+
+const DARK_STREET_ADAPTIVE_QUESTION: AdaptiveQuestion = {
+  id: "dark_street_power_scope",
+  prompt: DARK_STREET_QUESTION,
+  answerKey: "homes_power",
+  options: [
+    { value: "sim", label: "As casas também estão sem energia" },
+    { value: "nao", label: "Apenas as luminárias da rua" },
+  ],
+  blocking: false,
+};
+
+const SMOKE_ACTIVE_QUESTION =
+  "O fogo ainda está ativo ou restou apenas fumaça/vestígio?";
+
+const SMOKE_ACTIVE_ADAPTIVE_QUESTION: AdaptiveQuestion = {
+  id: "smoke_active_state",
+  prompt: SMOKE_ACTIVE_QUESTION,
+  answerKey: "smoke_active",
+  options: [
+    { value: "sim", label: "Ainda há fogo ou chamas" },
+    { value: "nao", label: "Só fumaça ou vestígio" },
+  ],
+  blocking: false,
+};
 
 function normalized(input: RelataInput) {
   return `${input.text} ${Object.values(input.answers ?? {}).join(" ")}`.toLocaleLowerCase(
@@ -37,6 +63,7 @@ function baseDecision(
       "O COMUN precisa confirmar o contexto antes de indicar o próximo passo.",
     nextStep: "Responda à pergunta de triagem para continuar.",
     missingInformation: [],
+    adaptiveQuestions: [],
     privacyClass,
     publication:
       privacyClass === "public_safe" ? "public_safe" : "never_automatic",
@@ -59,8 +86,11 @@ export function routeRelata(input: RelataInput): RoutingDecision {
     "rua inteira esta sem luz",
     "rua toda está sem luz",
     "rua toda esta sem luz",
+    "rua está toda sem luz",
+    "rua esta toda sem luz",
   ]);
   const homesAnswer = input.answers?.homes_power;
+  const smokeActiveAnswer = input.answers?.smoke_active;
 
   // A fotografia, por si só, já é conteúdo mínimo válido. Não inventamos uma
   // categoria: guardamos como "other" e deixamos a classificação para depois.
@@ -115,12 +145,7 @@ export function routeRelata(input: RelataInput): RoutingDecision {
       explanation:
         "A descrição aponta para uma barreira de calçada ou acessibilidade.",
       nextStep: "Confirme se a passagem está totalmente bloqueada, se puder.",
-      missingInformation: hasAny(value, [
-        "totalmente bloqueada",
-        "totalmente bloqueado",
-      ])
-        ? []
-        : ["A passagem está totalmente bloqueada?"],
+      missingInformation: [],
       confidence: "medium",
       publication: "never_automatic",
     });
@@ -185,7 +210,7 @@ export function routeRelata(input: RelataInput): RoutingDecision {
       agencyKind: "community_review",
       explanation: "A descrição aponta para uma situação de trabalho.",
       nextStep:
-        "O formulário detalhado continua disponível para contexto sensível.",
+        "O relato pode ser guardado agora e receber contexto com cuidado depois.",
       confidence: "low",
       privacyClass: "sensitive",
       publication: "never_automatic",
@@ -255,14 +280,18 @@ export function routeRelata(input: RelataInput): RoutingDecision {
   }
 
   if (darkStreet && !homesAnswer) {
-    return baseDecision("public_lighting", input, {
+    return baseDecision("other", input, {
       urgency: "attention",
-      agencyKind: "public_lighting",
+      agencyKind: "community_review",
       explanation:
         "A descrição pode indicar iluminação pública ou uma falha de distribuição de energia.",
       missingInformation: [DARK_STREET_QUESTION],
-      nextStep: DARK_STREET_QUESTION,
+      adaptiveQuestions: [DARK_STREET_ADAPTIVE_QUESTION],
+      nextStep:
+        "Você pode responder para melhorar a classificação ou guardar agora para revisão.",
       confidence: "low",
+      requiresHumanReview: true,
+      publication: "never_automatic",
     });
   }
 
@@ -295,6 +324,18 @@ export function routeRelata(input: RelataInput): RoutingDecision {
     "fogo apagado",
     "não há fogo",
   ]);
+  if (smokeActiveAnswer === "sim") {
+    return baseDecision("active_fire", input, {
+      urgency: "emergency",
+      agencyKind: "emergency",
+      explanation: "A pessoa confirmou fogo ativo.",
+      nextStep:
+        "Mantenha distância e procure imediatamente o serviço de emergência local.",
+      confidence: "high",
+      requiresHumanReview: true,
+      publication: "never_automatic",
+    });
+  }
   if (
     !explicitlyInactive &&
     hasAny(value, [
@@ -333,11 +374,13 @@ export function routeRelata(input: RelataInput): RoutingDecision {
       agencyKind: "environmental",
       explanation: "Há fumaça ou vestígio sem confirmação de fogo ativo.",
       nextStep:
-        "Informe se ainda há chamas, de onde vem a fumaça e se alguém corre risco.",
-      missingInformation: [
-        "O fogo ainda está ativo ou restou apenas fumaça/vestígio?",
-      ],
+        "Você pode informar se ainda há chamas, mas o relato já pode ser guardado.",
+      missingInformation:
+        smokeActiveAnswer === "nao" ? [] : [SMOKE_ACTIVE_QUESTION],
+      adaptiveQuestions:
+        smokeActiveAnswer === "nao" ? [] : [SMOKE_ACTIVE_ADAPTIVE_QUESTION],
       confidence: "medium",
+      publication: "never_automatic",
     });
   }
 
@@ -413,11 +456,11 @@ export function routeRelata(input: RelataInput): RoutingDecision {
   }
 
   return baseDecision("other", input, {
-    nextStep:
-      "Descreva o local de forma aproximada e o que precisa acontecer em seguida.",
-    missingInformation: [
-      "Qual é o tipo de situação e há risco imediato para alguém?",
-    ],
+    nextStep: "O relato pode ser guardado agora. Você pode acrescentar contexto depois.",
+    missingInformation: [],
+    adaptiveQuestions: [],
+    requiresHumanReview: true,
+    publication: "never_automatic",
   });
 }
 

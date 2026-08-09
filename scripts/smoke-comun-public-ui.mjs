@@ -99,10 +99,10 @@ const checks = [
   {
     path: "/comun/relatar",
     required: [
-      "Relato rapido",
-      "Relato detalhado",
-      "Foto opcional",
-      "Usar minha localizacao aproximada",
+      "Vi um problema",
+      "O que aconteceu?",
+      "Tirar ou escolher foto",
+      "Usar localização",
     ],
     allowFormFieldNames: true,
   },

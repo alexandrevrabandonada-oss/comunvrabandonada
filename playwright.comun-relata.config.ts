@@ -27,7 +27,7 @@ export default defineConfig({
   webServer: {
     command:
       "node scripts/comun-local-env.mjs run node scripts/comun-relata-test-server.mjs",
-    url: `${baseURL}/comun/relata`,
+    url: `${baseURL}/comun/relatar`,
     reuseExistingServer: false,
     timeout: 120_000,
   },

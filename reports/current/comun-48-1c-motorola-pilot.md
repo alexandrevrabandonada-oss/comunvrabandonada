@@ -1,6 +1,6 @@
 # COMUN 48.1C — piloto humano Motorola
 
-## PREPARED — NO HUMAN SESSIONS YET
+## PILOTO PAUSADO FOCALMENTE — J1/J3
 
 Atualizado em 09/08/2026.
 
@@ -9,14 +9,14 @@ Atualizado em 09/08/2026.
 - Google Auth está tecnicamente ativo em Production, mas o micro-gate humano
   completo de P1G permanece pendente;
 - `launch_publicly=false`;
-- participantes contabilizados: `0`;
-- sessões humanas iniciadas: `0`;
+- participantes completos contabilizados: `0`;
+- tentativas humanas iniciadas: `1` (`P01`), sem sucesso de jornada contado;
+- jornadas afetadas pausadas: `P01 / J1` e `P01 / J3`;
 - conteúdo criado em Production por esta preparação: `0`;
 - migrations 48.1C: `0`.
 
-Este documento não declara 48.1C `IN_PROGRESS`. A preferência operacional é
-concluir primeiro o micro-gate humano P1G; sessões anônimas antes disso exigem
-decisão explícita.
+48.1C permanece em andamento, com pausa focal somente nas jornadas afetadas.
+O finding não autoriza P6B nem amplia o piloto.
 
 ## Protocolo e privacidade
 
@@ -31,11 +31,13 @@ de erro interno. Nenhum campo de identidade ou conteúdo foi adicionado.
 
 ## Participantes completos
 
-`0` — nenhum participante foi contabilizado na preparação.
+`0` — `P01` iniciou a tentativa, mas o finding P1 interrompeu J1/J3 antes de
+uma jornada completa; a tentativa não é contada como sucesso.
 
 ## Jornadas executadas
 
-Nenhuma. J1–J7 estão apenas preparadas.
+`P01 / J1` e `P01 / J3` foram tentadas e pausadas pelo finding abaixo. As
+demais jornadas não foram iniciadas neste registro.
 
 ## Mediana e buckets
 
@@ -52,7 +54,17 @@ Sem dados humanos.
 
 ## Findings P0/P1/P2/P3
 
-Nenhum finding humano: o piloto ainda não começou.
+### MOTOROLA-P1-001 — aberto
+
+- participante/jornadas: `P01 / J1` e `P01 / J3`;
+- tipo: `form/navigation`;
+- observado: o QuickCapture podia retirar a ação `Guardar` depois de uma
+  pergunta adaptativa; em Calçadas a resposta era tratada pela chave errada e
+  a pessoa era empurrada para “Abrir formulário detalhado”, pertencente a outro
+  pipeline de persistência;
+- ação: jornadas pausadas até o patch `48.1D-S1` ficar verde em Production;
+- contagem: a tentativa que encontrou o P1 não conta como sucesso da jornada;
+- reteste: pendente, primeiro em `P01 / J1` e depois em `P01 / J3`.
 
 ## Decisões
 
@@ -60,8 +72,9 @@ Nenhum finding humano: o piloto ainda não começou.
 - não misturar o micro-gate Google às sete jornadas;
 - não abrir canais externos em cenários sintéticos;
 - priorizar celular no primeiro ciclo;
-- após uso real, 48.1D tem prioridade sobre P6B.
+- o finding humano acionou 48.1D-S1 antes de qualquer P6B.
 
-## Próximos patches
+## Próximo passo operacional
 
-Nenhum patch de experiência antes de existirem findings humanos.
+Concluir 48.1D-S1, retestar `P01 / J1` e `P01 / J3` e somente então continuar
+as demais jornadas do piloto. P6B permanece proibido.

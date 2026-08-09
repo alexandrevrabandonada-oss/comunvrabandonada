@@ -12,7 +12,10 @@ on:
       - "lib/comun-forwarding-runtime.ts"
       - "lib/comun-relata-**"
       - "lib/server/comun-institutional-channel-catalog*"
+      - "package.json"
       - "scripts/solo/rehearse-p6a-essential-services-local.mjs"
+      - "tests/comun-capture/**"
+      - "tests/comun-relata/**"
       - "supabase/migrations/20260809133923_comun_essential_services_assisted.sql"
       - ".github/workflows/comun-p6a-runtime-e2e.yml"
   workflow_dispatch:
@@ -87,6 +90,8 @@ jobs:
           npm run build >"$artifact/build.log" 2>&1
           npm run relata:p6a:essential-services:e2e:local >"$artifact/e2e.log" 2>&1
           grep -q COMUN_P6A_ESSENTIAL_SERVICES_DISPOSABLE_E2E_GREEN "$artifact/e2e.log"
+          grep -q COMUN_48_1D_S1_SIDEWALK_P1_FIXED "$artifact/e2e.log"
+          grep -q '"legacyWriteDelta":0' "$artifact/e2e.log"
           grep -q '"externalRequests":0' "$artifact/e2e.log"
           grep -q '"hardDeletes":0' "$artifact/e2e.log"
           ! grep -Eqi 'Bearer [A-Za-z0-9._-]{20,}|service_role|receiptSecret|idempotencyKey' "$artifact/e2e.log"

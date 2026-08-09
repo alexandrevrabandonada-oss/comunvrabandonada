@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ComunRelataReceipt } from "@/lib/comun-relata-persistence";
 import type {
   SidewalkAffectedGroup,
@@ -58,8 +58,10 @@ function toggle<T extends string>(values: T[], value: T) {
 
 export function SidewalkRelataIntakeForm({
   progressiveCaptureEnabled,
+  continueExistingReport = false,
 }: {
   progressiveCaptureEnabled: boolean;
+  continueExistingReport?: boolean;
 }) {
   const proofs = useRef<{
     idempotencyKey: string;
@@ -82,7 +84,29 @@ export function SidewalkRelataIntakeForm({
     null,
   );
   const [capturedPhoto, setCapturedPhoto] = useState(false);
+  const [existingCaptureLoaded, setExistingCaptureLoaded] = useState(false);
   const [queued, setQueued] = useState(false);
+
+  useEffect(() => {
+    if (!continueExistingReport || !progressiveCaptureEnabled) return;
+    fetch("/api/comun/relata/receipt", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("receipt_unavailable");
+        return (await response.json()) as { receipt: ComunRelataReceipt };
+      })
+      .then(({ receipt: currentReceipt }) => {
+        if (currentReceipt.category !== "sidewalk_accessibility") {
+          throw new Error("wrong_category");
+        }
+        setReceipt(currentReceipt);
+        setExistingCaptureLoaded(true);
+      })
+      .catch(() =>
+        setNotice(
+          "Não foi possível recuperar o relato atual. Volte a Meus registros e tente novamente.",
+        ),
+      );
+  }, [continueExistingReport, progressiveCaptureEnabled]);
 
   function useDeviceLocation() {
     setLocationMode("device");
@@ -354,7 +378,9 @@ export function SidewalkRelataIntakeForm({
           O relato fica privado e só aparece no mapa depois de revisão humana.
         </p>
       </header>
-      {progressiveCaptureEnabled && !capturedPhoto ? (
+      {progressiveCaptureEnabled &&
+      !capturedPhoto &&
+      !existingCaptureLoaded ? (
         <section
           className="grid gap-4 border-2 bg-white p-4"
           data-comun-sidewalk-c1="photo-first"
@@ -403,10 +429,14 @@ export function SidewalkRelataIntakeForm({
           ) : null}
         </section>
       ) : null}
-      {!progressiveCaptureEnabled || capturedPhoto ? (
+      {!progressiveCaptureEnabled || capturedPhoto || existingCaptureLoaded ? (
         <>
           {progressiveCaptureEnabled ? (
-            <h2 className="text-2xl font-black">2. Complete para o mapa</h2>
+            <h2 className="text-2xl font-black">
+              {existingCaptureLoaded
+                ? "Complete este relato para o mapa"
+                : "2. Complete para o mapa"}
+            </h2>
           ) : null}
           <Choice
             title="Condição"

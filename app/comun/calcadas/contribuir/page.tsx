@@ -5,11 +5,15 @@ import { isComunSidewalkProgressiveCaptureEnabled } from "@/lib/comun-sidewalk-p
 
 export const dynamic = "force-dynamic";
 
-export default function Page() {
+export default async function Page(props: {
+  searchParams: Promise<{ continuar?: string }>;
+}) {
   if (!isComunSidewalkRelataEnabled()) notFound();
+  const searchParams = await props.searchParams;
   return (
     <SidewalkRelataIntakeForm
       progressiveCaptureEnabled={isComunSidewalkProgressiveCaptureEnabled()}
+      continueExistingReport={searchParams.continuar === "relato-atual"}
     />
   );
 }

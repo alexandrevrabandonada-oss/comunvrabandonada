@@ -1,4 +1,4 @@
-import { ReportForm } from "@/app/comun/relatar/report-form";
+import { notFound } from "next/navigation";
 import { QuickCaptureV2 } from "@/app/comun/relatar/quick-capture-v2";
 import { isComunQuickCaptureEnabled } from "@/lib/comun-capture-feature";
 import {
@@ -11,77 +11,18 @@ import {
   isComunEssentialServicesEnabled,
 } from "@/lib/comun-essential-services-feature";
 
-type TopicChoice =
-  "trabalho" | "escolas" | "saude" | "meio-ambiente" | "cidade" | "outro";
-
-const allowedTopics = new Set([
-  "trabalho",
-  "escolas",
-  "saude",
-  "meio-ambiente",
-  "cidade",
-  "outro",
-]);
-const allowedCampaignCategories = new Set([
-  "pressao-psicologica",
-  "assedio-moral",
-  "burnout",
-  "atraso-salarial",
-  "fgts-atrasado",
-  "terceirizacao",
-  "jornada-abusiva",
-  "ferias-impostas",
-  "risco-de-acidente",
-  "insalubridade-periculosidade",
-  "medo-de-denunciar",
-  "retaliacao",
-]);
-
-export default async function ReportPage(props: {
-  searchParams: Promise<{
-    comunidade?: string;
-    pauta?: string;
-    categoria?: string;
-    modo?: string;
-  }>;
-}) {
-  const searchParams = await props.searchParams;
-  if (isComunQuickCaptureEnabled() && searchParams.modo !== "detalhado") {
-    return (
-      <QuickCaptureV2
-        attachmentsEnabled={isComunRelataAttachmentsEnabled()}
-        locationEnabled={isComunRelataLocationEnabled()}
-        photoOnlyEnabled={isComunRelataPhotoOnlyEnabled()}
-        essentialServicesEnabled={isComunEssentialServicesEnabled()}
-        essentialForwardingEnabled={isComunEssentialForwardingAssistedEnabled()}
-      />
-    );
-  }
-  const initialTopicChoice: TopicChoice =
-    searchParams.comunidade && allowedTopics.has(searchParams.comunidade)
-      ? (searchParams.comunidade as TopicChoice)
-      : "trabalho";
-
-  const initialIssueSlug =
-    searchParams.pauta === "trabalho-burnout-volta-redonda" ||
-    searchParams.pauta === "falta-profissionais-escolas" ||
-    searchParams.pauta === "fila-cirurgias-exames" ||
-    searchParams.pauta === "po-preto-fumaca-cheiro-forte" ||
-    searchParams.pauta === "buracos-calcadas-abandono-bairros"
-      ? searchParams.pauta
-      : "";
-
-  const initialCategory =
-    searchParams.categoria &&
-    allowedCampaignCategories.has(searchParams.categoria)
-      ? searchParams.categoria
-      : "";
+export default function ReportPage() {
+  // The canonical intake is never allowed to fall back to the legacy writer.
+  // Query strings such as ?modo=detalhado are intentionally ignored.
+  if (!isComunQuickCaptureEnabled()) notFound();
 
   return (
-    <ReportForm
-      initialCategory={initialCategory}
-      initialIssueSlug={initialIssueSlug}
-      initialTopicChoice={initialTopicChoice}
+    <QuickCaptureV2
+      attachmentsEnabled={isComunRelataAttachmentsEnabled()}
+      locationEnabled={isComunRelataLocationEnabled()}
+      photoOnlyEnabled={isComunRelataPhotoOnlyEnabled()}
+      essentialServicesEnabled={isComunEssentialServicesEnabled()}
+      essentialForwardingEnabled={isComunEssentialForwardingAssistedEnabled()}
     />
   );
 }

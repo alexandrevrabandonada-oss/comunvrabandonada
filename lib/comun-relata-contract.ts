@@ -162,6 +162,22 @@ export type RoutingRule = {
   requiresHumanReview: boolean;
 };
 
+export type AllowedAdaptiveAnswerKey =
+  | "homes_power"
+  | "smoke_active"
+  | "blocked";
+
+export type AdaptiveQuestion = {
+  id: "dark_street_power_scope" | "smoke_active_state";
+  prompt: string;
+  answerKey: AllowedAdaptiveAnswerKey;
+  options: Array<{
+    value: string;
+    label: string;
+  }>;
+  blocking: false;
+};
+
 export type RoutingDecision = {
   category: RelataCategory;
   urgency: RelataUrgency;
@@ -169,6 +185,7 @@ export type RoutingDecision = {
   explanation: string;
   nextStep: string;
   missingInformation: string[];
+  adaptiveQuestions: AdaptiveQuestion[];
   privacyClass: PrivacyClass;
   publication: "never_automatic" | "sanitized_candidate" | "public_safe";
   requiresHumanReview: boolean;
@@ -245,7 +262,8 @@ export type EscalationRule = {
 
 export type RelataInput = {
   text: string;
-  answers?: Record<string, string>;
+  answers?: Partial<Record<AllowedAdaptiveAnswerKey, string>> &
+    Record<string, string>;
   hasExactLocation?: boolean;
   includesPersonData?: boolean;
   includesChildData?: boolean;

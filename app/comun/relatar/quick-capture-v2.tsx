@@ -2,11 +2,14 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ComunShell } from "@/components/comun-shell";
-import { DARK_STREET_QUESTION, routeRelata } from "@/lib/comun-relata-routing";
+import { routeRelata } from "@/lib/comun-relata-routing";
 import type { ComunRelataReceipt } from "@/lib/comun-relata-persistence";
-import type { RoutingDecision } from "@/lib/comun-relata-contract";
+import type {
+  AllowedAdaptiveAnswerKey,
+  RoutingDecision,
+} from "@/lib/comun-relata-contract";
 import { createComunRelataPhotoOnlyDecision } from "@/lib/comun-relata-photo-first";
 import {
   applyComunEssentialServicesRoutingGate,
@@ -59,6 +62,17 @@ function labelForState(state: string) {
       : "Guardado privadamente";
 }
 
+const CATEGORY_LABELS: Partial<Record<string, string>> = {
+  sidewalk_accessibility: "Calçada e acessibilidade",
+  public_transport: "Transporte coletivo",
+  water_supply: "Abastecimento de água",
+  power_distribution: "Distribuição de energia",
+  public_lighting: "Iluminação pública",
+  electrical_hazard: "Risco elétrico",
+  environmental_pollution: "Questão ambiental",
+  smoke_or_environmental_trace: "Fumaça ou vestígio ambiental",
+};
+
 export function QuickCaptureV2({
   attachmentsEnabled = false,
   locationEnabled = false,
@@ -73,6 +87,7 @@ export function QuickCaptureV2({
   essentialForwardingEnabled?: boolean;
 }) {
   const [startedAt] = useState(() => Date.now());
+  const captureRootRef = useRef<HTMLElement | null>(null);
   const proofRef = useRef<{
     idempotencyKey: string;
     receiptSecret: string;
@@ -85,7 +100,9 @@ export function QuickCaptureV2({
   const [point, setPoint] = useState<[number, number] | null>(null);
   const [accuracy, setAccuracy] = useState<number | null>(null);
   const [decision, setDecision] = useState<RoutingDecision | null>(null);
-  const [answer, setAnswer] = useState<string | undefined>();
+  const [answers, setAnswers] = useState<
+    Partial<Record<AllowedAdaptiveAnswerKey, string>>
+  >({});
   const [receipt, setReceipt] = useState<ComunRelataReceipt | null>(null);
   const [walletRecoveryCode, setWalletRecoveryCode] = useState<string | null>(
     null,
@@ -116,6 +133,7 @@ export function QuickCaptureV2({
   };
 
   useEffect(() => {
+    captureRootRef.current?.setAttribute("data-comun-capture-hydrated", "true");
     sendMetric("capture_started");
     fetch(RECEIPT_ENDPOINT, { cache: "no-store" })
       .then(async (response) =>
@@ -132,19 +150,24 @@ export function QuickCaptureV2({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const needsAdaptiveQuestion = useMemo(
-    () => decision?.missingInformation[0] ?? null,
-    [decision],
-  );
+  const adaptiveQuestion = decision?.adaptiveQuestions[0] ?? null;
   const isEmergency = decision?.urgency === "emergency";
   const isPhotoOnly =
     photoOnlyEnabled && Boolean(photo) && text.trim().length === 0;
 
-  function decisionForCapture(value: string, file: File | null) {
+  function decisionForCapture(
+    value: string,
+    file: File | null,
+    currentAnswers: Partial<Record<AllowedAdaptiveAnswerKey, string>> = {},
+  ) {
     const trimmed = value.trim();
     if (trimmed.length >= 8) {
       return applyComunEssentialServicesRoutingGate(
-        routeRelata({ text: trimmed, hasAttachment: Boolean(file) }),
+        routeRelata({
+          text: trimmed,
+          hasAttachment: Boolean(file),
+          answers: currentAnswers,
+        }),
         essentialServicesEnabled,
       );
     }
@@ -156,8 +179,8 @@ export function QuickCaptureV2({
 
   function updateText(value: string) {
     setText(value);
-    setDecision(decisionForCapture(value, photo));
-    setAnswer(undefined);
+    setAnswers({});
+    setDecision(decisionForCapture(value, photo, {}));
     proofRef.current = null;
   }
 
@@ -267,7 +290,7 @@ export function QuickCaptureV2({
   }
 
   async function save() {
-    if (!decision || needsAdaptiveQuestion || busy) return;
+    if (!decision || busy) return;
     setBusy(true);
     setNotice(null);
     try {
@@ -278,7 +301,7 @@ export function QuickCaptureV2({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           text: isPhotoOnly ? null : safeText,
-          answers: isPhotoOnly ? {} : answer ? { homes_power: answer } : {},
+          answers: isPhotoOnly ? {} : answers,
           hasPhoto: Boolean(photo),
           captureMode: "quick_v2",
           idempotencyKey: proofRef.current.idempotencyKey,
@@ -368,8 +391,10 @@ export function QuickCaptureV2({
     >
       <div className="min-h-[calc(100dvh-4rem)] bg-comun-paper px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-6 text-comun-black sm:px-6">
         <main
+          ref={captureRootRef}
           className="mx-auto grid w-full max-w-2xl gap-5"
           data-comun-quick-capture-v2="true"
+          data-comun-capture-hydrated="false"
         >
           <header className="grid gap-2">
             <p className="comun-v2-eyebrow">COMUN Relata</p>
@@ -417,8 +442,8 @@ export function QuickCaptureV2({
                       onChange={(event) => {
                         const file = event.target.files?.[0] ?? null;
                         setPhoto(file);
-                        setDecision(decisionForCapture(text, file));
-                        setAnswer(undefined);
+                        setAnswers({});
+                        setDecision(decisionForCapture(text, file, {}));
                         proofRef.current = null;
                         setInteractions((value) => value + 1);
                       }}
@@ -486,54 +511,41 @@ export function QuickCaptureV2({
                   ) : null}
                 </section>
               ) : null}
-              {needsAdaptiveQuestion ? (
+              {adaptiveQuestion ? (
                 <section
                   className="grid gap-3 border-2 border-comun-black bg-white p-4"
                   aria-live="polite"
                 >
-                  <h2 className="text-xl font-black">Uma confirmação rápida</h2>
-                  <p className="leading-7">
-                    {needsAdaptiveQuestion === DARK_STREET_QUESTION
-                      ? DARK_STREET_QUESTION
-                      : needsAdaptiveQuestion}
-                  </p>
+                  <h2 className="text-xl font-black">Se quiser, esclareça</h2>
+                  <p className="leading-7">{adaptiveQuestion.prompt}</p>
                   <div className="grid gap-2 sm:grid-cols-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAnswer("sim");
-                        setInteractions((value) => value + 1);
-                        setDecision(
-                          routeRelata({
-                            text,
-                            answers: { homes_power: "sim" },
-                          }),
-                        );
-                      }}
-                      className="min-h-11 border-2 border-comun-black bg-comun-yellow px-3 py-2 text-left text-sm font-black"
-                    >
-                      Sim
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAnswer("nao");
-                        setInteractions((value) => value + 1);
-                        setDecision(
-                          routeRelata({
-                            text,
-                            answers: { homes_power: "nao" },
-                          }),
-                        );
-                      }}
-                      className="min-h-11 border-2 border-comun-black bg-white px-3 py-2 text-left text-sm font-black"
-                    >
-                      Não sei / não
-                    </button>
+                    {adaptiveQuestion.options.map((option, index) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => {
+                          const nextAnswers = {
+                            ...answers,
+                            [adaptiveQuestion.answerKey]: option.value,
+                          };
+                          setAnswers(nextAnswers);
+                          setInteractions((value) => value + 1);
+                          setDecision(
+                            decisionForCapture(text, photo, nextAnswers),
+                          );
+                        }}
+                        className={`min-h-11 border-2 border-comun-black px-3 py-2 text-left text-sm font-black ${index === 0 ? "bg-comun-yellow" : "bg-white"}`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
                   </div>
+                  <p className="text-sm font-bold">
+                    Isso é opcional. Você já pode guardar o relato.
+                  </p>
                 </section>
               ) : null}
-              {decision && !needsAdaptiveQuestion ? (
+              {decision ? (
                 <section
                   className={`grid gap-4 border-2 border-comun-black p-4 ${isEmergency ? "bg-comun-red text-white" : "bg-comun-asphalt text-comun-paper"}`}
                   aria-live="polite"
@@ -560,6 +572,9 @@ export function QuickCaptureV2({
                   >
                     {busy ? "Guardando…" : "Guardar"}
                   </button>
+                  <p className="text-sm font-bold">
+                    Seu relato fica privado até você decidir o próximo passo.
+                  </p>
                 </section>
               ) : null}
             </>
@@ -585,6 +600,27 @@ export function QuickCaptureV2({
               <p className="border-l-4 border-comun-yellow bg-comun-paper p-3 font-black">
                 Ainda não encaminhado. Nada foi publicado.
               </p>
+              {receipt.category !== "other" &&
+              decision?.confidence !== "low" ? (
+                <p className="border-2 border-comun-black bg-comun-paper p-3 font-bold">
+                  Entendi como: {CATEGORY_LABELS[receipt.category] ?? receipt.category}
+                </p>
+              ) : null}
+              {receipt.category === "sidewalk_accessibility" ? (
+                <section className="grid gap-2 border-2 border-comun-black p-3">
+                  <p className="font-black">Quer completar para entrar no Mapa das Calçadas?</p>
+                  <p className="text-sm">
+                    Condição, impacto e local serão acrescentados a este mesmo
+                    relato e protocolo. Nada será publicado sem revisão humana.
+                  </p>
+                  <Link
+                    href="/comun/calcadas/contribuir?continuar=relato-atual"
+                    className="inline-flex min-h-11 w-fit items-center border-2 border-comun-black bg-white px-4 py-2 text-sm font-black"
+                  >
+                    Completar para o mapa
+                  </Link>
+                </section>
+              ) : null}
               {essentialServicesEnabled &&
               receipt.category === "other" &&
               isPhotoOnly ? (
@@ -689,12 +725,6 @@ export function QuickCaptureV2({
                 As evidências ativadas continuam privadas e opcionais.
               </p>
             ) : null}
-            <Link
-              href="/comun/relatar?modo=detalhado"
-              className="mt-3 inline-flex underline"
-            >
-              Abrir formulário detalhado
-            </Link>
           </aside>
         </main>
       </div>

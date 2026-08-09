@@ -147,13 +147,13 @@ try {
   });
   const page = await uiContext.newPage();
   await page.goto(`${base}/comun/relatar`, { waitUntil: "domcontentloaded" });
-  await page.locator("[data-comun-quick-capture-v2='true']").waitFor();
+  await page.locator("[data-comun-capture-hydrated='true']").waitFor();
   const textInput = page.getByLabel(/Uma frase basta|A descrição é opcional/);
   await textInput.fill("Estamos sem água desde ontem.");
-  assert.equal(await page.getByText("Uma confirmação rápida").count(), 0);
+  assert.equal(await page.getByText("Se quiser, esclareça").count(), 0);
   assert.equal(await page.getByRole("button", { name: "Guardar" }).count(), 1);
   await textInput.fill("A rua inteira está sem luz.");
-  assert.equal(await page.getByText("Uma confirmação rápida").count(), 1);
+  assert.equal(await page.getByText("Se quiser, esclareça").count(), 1);
   assert.equal(
     await page
       .getByText(
@@ -179,6 +179,28 @@ try {
   uiBrowser = undefined;
 
   await db.connect();
+
+  const legacyBefore = await db.query(
+    "select (select count(*)::int from public.comun_reports) reports, (select count(*)::int from public.comun_report_attachments) attachments",
+  );
+
+  const sidewalk = await capture("A calçada está bloqueada por entulho.");
+  assert.equal(sidewalk.response.status, 201, JSON.stringify(sidewalk.body));
+  assert.equal(sidewalk.body.receipt.category, "sidewalk_accessibility");
+  assert.ok(sidewalk.body.walletItemId);
+
+  const unknown = await capture("Tem uma coisa estranha acontecendo aqui.");
+  assert.equal(unknown.response.status, 201, JSON.stringify(unknown.body));
+  assert.equal(unknown.body.receipt.category, "other");
+
+  const smoke = await capture("Há fumaça e vestígios no terreno.");
+  assert.equal(smoke.response.status, 201, JSON.stringify(smoke.body));
+  assert.equal(smoke.body.receipt.category, "smoke_or_environmental_trace");
+
+  const legacyAfter = await db.query(
+    "select (select count(*)::int from public.comun_reports) reports, (select count(*)::int from public.comun_report_attachments) attachments",
+  );
+  assert.deepEqual(legacyAfter.rows[0], legacyBefore.rows[0]);
 
   const water = await capture("Estamos sem água desde ontem.");
   assert.equal(water.response.status, 201, JSON.stringify(water.body));
@@ -316,37 +338,22 @@ try {
     ),
   );
 
-  const ambiguousProof = { idempotencyKey: secret(), receiptSecret: secret() };
-  const ambiguous = await http("/api/comun/relata", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      text: "A rua inteira está sem luz.",
-      answers: {},
-      hasPhoto: false,
-      captureMode: "quick_v2",
-      ...ambiguousProof,
-    }),
-  });
-  assert.equal(ambiguous.status, 409);
-  assert.equal((await ambiguous.json()).code, "triage_incomplete");
-  const beforeAnswer = await db.query(
-    "select count(*)::int count from private.comun_relata_reports where idempotency_hash=extensions.digest('relata-idempotency-v1:'||$1,'sha256')",
-    [ambiguousProof.idempotencyKey],
+  const ambiguous = await capture("A rua inteira está sem luz.");
+  assert.equal(ambiguous.response.status, 201);
+  assert.equal(ambiguous.body.receipt.category, "other");
+  assert.equal(
+    (
+      await db.query(
+        "select count(*)::int count from public.comun_relata_cases where protocol=$1",
+        [ambiguous.body.receipt.protocol],
+      )
+    ).rows[0].count,
+    1,
   );
-  assert.equal(beforeAnswer.rows[0].count, 0);
-  const ambiguousYes = await http("/api/comun/relata", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      text: "A rua inteira está sem luz.",
-      answers: { homes_power: "sim" },
-      hasPhoto: false,
-      captureMode: "quick_v2",
-      ...ambiguousProof,
-    }),
+  const ambiguousYes = await capture("A rua inteira está sem luz.", {
+    homes_power: "sim",
   });
-  const ambiguousYesBody = await ambiguousYes.json();
+  const ambiguousYesBody = ambiguousYes.body;
   assert.equal(ambiguousYesBody.receipt.category, "power_distribution");
   assert.equal(
     (
@@ -458,6 +465,8 @@ try {
   console.log(
     JSON.stringify({
       result: "COMUN_P6A_ESSENTIAL_SERVICES_DISPOSABLE_E2E_GREEN",
+      unifiedRelata: "COMUN_48_1D_S1_SIDEWALK_P1_FIXED",
+      legacyWriteDelta: 0,
       water: "prepared_then_person_declared_sent_then_response",
       energy: "prepared",
       lighting: "prepared",

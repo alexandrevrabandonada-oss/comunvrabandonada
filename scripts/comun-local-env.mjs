@@ -75,6 +75,7 @@ export function printSafeEnvironment(env) {
 
 function values() {
   const isWindows = process.platform === "win32";
+  const localProjectId = "COMUM_VR_ABANDONADA";
   const statusCommand = isWindows ? "powershell" : "npx";
   const statusArgs = isWindows
     ? [
@@ -86,7 +87,13 @@ function values() {
   const raw = execFileSync(statusCommand, statusArgs, {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "inherit"],
-    env: process.env,
+    env: {
+      ...process.env,
+      // .env.local contains the Production project reference. The local CLI
+      // must resolve only containers named by supabase/config.toml.
+      SUPABASE_PROJECT_ID: localProjectId,
+      SUPABASE_PROJECT_REF: localProjectId,
+    },
   });
   return buildLocalEnvironment(parseLocalStatus(raw));
 }
