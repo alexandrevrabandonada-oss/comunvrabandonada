@@ -1,4 +1,41 @@
-# Estado atual — 48.1B-P6A verde no domínio (09/08/2026)
+# Estado atual — 48.1B-P1G pronto para promoção controlada (09/08/2026)
+
+## 48.1B-P1G — Google Auth — provider configurado, flag OFF
+
+- baseline `origin/main=09ab579b658e3ef1e6964b932ef8faba081e574a` e
+  estado inicial P6A terminal confirmados;
+- branch nova `codex/48-1b-p1g-google-auth`, zero migration e arquivos não
+  rastreados preexistentes preservados;
+- Supabase Auth SSR/PKCE existente foi endurecido sem criar auth paralelo;
+- Production fixa `https://comunsocial.online`; Preview autorizado permanece
+  isolado; `returnTo` externo/codificado falha fechado;
+- perfis bloqueados não entram; conta nova confirma nome/termos/política sem
+  território; Carteira anônima só vincula após gesto explícito;
+- escopos Google limitados a `openid email profile`, sem offline access, APIs
+  Google ou persistência de provider token;
+- testes focais 20/20, contrato dos workflows 4/4, E2E local 2/2 com Auth falso
+  loopback e zero contato externo, Axe/typecheck/lint verdes;
+- Production observada com Google oculto, e-mail disponível e navegação
+  anônima preservada;
+- preflight read-only `31322898529` confirmou P6A, provider Google público
+  desabilitado e plano remoto de zero migration, sem leitura de negócio ou
+  segredo;
+- preflight pós-configuração `31325453756` confirmou provider Google público
+  habilitado e plano remoto ainda vazio, sem ler credenciais ou negócio;
+- termos Google Cloud aceitos; projeto `COMUN`, app OAuth externo e cliente Web
+  Production criados com origem/callback exatos e somente escopos básicos;
+- Supabase Production: Site URL e redirect exatos, provider Google ON, Client
+  ID/Secret presentes apenas no cofre do provider, Skip nonce OFF e contas sem
+  e-mail OFF; nenhum segredo foi registrado;
+- workflow de ativação exact-head versionado com modos flag OFF, enable e
+  rollback; Production segue com a flag Google OFF;
+- gate atual: CI completa, merge exact-head, deploy OFF, ativação controlada e
+  login/logout humano real;
+- não emitir ainda `COMUN_48_1B_P1G_GOOGLE_AUTH_DOMAIN_GREEN`.
+
+Detalhes: `reports/current/comun-48-1b-p1g-google-auth.md`.
+
+Depois de concluir P1G: `48.1C — Piloto Humano Motorola`. Não iniciar P6B.
 
 ## 48.1B-P6A — serviços essenciais — concluída
 

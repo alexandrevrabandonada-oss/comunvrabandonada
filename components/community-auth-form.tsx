@@ -32,7 +32,7 @@ export function CommunityLoginForm({
       ) : null}
       {googleAuthEnabled ? (
         <div
-          className="flex items-center gap-3 text-xs font-black uppercase text-comun-concrete"
+          className="flex items-center gap-3 text-xs font-black uppercase text-comun-black"
           role="separator"
           aria-label="ou entre com e-mail"
         >

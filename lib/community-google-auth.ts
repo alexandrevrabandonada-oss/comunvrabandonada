@@ -58,14 +58,36 @@ export function trustedCommunityOrigins(
 export function trustedCommunityOrigin(
   env: Record<string, string | undefined> = process.env,
 ) {
-  const configured = env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
-  if (configured && trustedCommunityOrigins(env).includes(configured))
-    return configured.replace(/\/$/, "");
+  // Production OAuth callbacks are deliberately pinned to the canonical host.
+  // A stale or accidentally local NEXT_PUBLIC_SITE_URL must never redirect a
+  // production authorization response away from comunsocial.online.
+  if (env.VERCEL_ENV === "production") return DEFAULT_ORIGIN;
   if (env.VERCEL_ENV === "preview" && env.VERCEL_URL) {
     const preview = `https://${env.VERCEL_URL}`;
     if (trustedCommunityOrigins(env).includes(preview)) return preview;
   }
+  const configured = env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
+  if (configured && trustedCommunityOrigins(env).includes(configured))
+    return configured.replace(/\/$/, "");
   return DEFAULT_ORIGIN;
+}
+
+export type GoogleProfileAccess = "active" | "complete_account" | "denied";
+
+export function googleProfileAccess(
+  profile:
+    | { status: string; onboarding_completed_at: string | null }
+    | null
+    | undefined,
+): GoogleProfileAccess {
+  if (
+    !profile ||
+    ["suspended", "deactivation_requested", "deactivated", "archived"].includes(
+      profile.status,
+    )
+  )
+    return "denied";
+  return profile.onboarding_completed_at ? "active" : "complete_account";
 }
 
 export function googleCallbackUrl(

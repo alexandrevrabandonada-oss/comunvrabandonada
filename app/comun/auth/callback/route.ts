@@ -3,6 +3,7 @@ import { createServiceSupabaseClient, createSupabaseServerClient } from "@/lib/s
 import {
   googleAuthErrorHref,
   googleCompletionHref,
+  googleProfileAccess,
   isGoogleAuthEnabled,
   suggestedCommunityName,
   trustedCommunityOrigin,
@@ -71,11 +72,12 @@ export async function GET(request: Request) {
     profile = insertedProfile as typeof profile;
   }
 
-  if (!profile || ["suspended", "deactivation_requested", "deactivated", "archived"].includes(profile.status)) {
+  const access = googleProfileAccess(profile);
+  if (access === "denied") {
     await supabase.auth.signOut();
     return errorRedirect();
   }
-  if (!profile.onboarding_completed_at)
+  if (access === "complete_account")
     return NextResponse.redirect(
       new URL(googleCompletionHref(returnTo), trustedCommunityOrigin()),
     );

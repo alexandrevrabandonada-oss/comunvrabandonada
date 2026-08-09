@@ -1,0 +1,156 @@
+name: COMUN P1G Google Auth activation
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA to deploy
+        required: true
+        type: string
+      mode:
+        description: Deploy with Google hidden, enable Google, or roll it back
+        required: true
+        type: choice
+        options: [flags-off, enable-google, rollback-google]
+
+concurrency:
+  group: comun-p1g-google-auth-activation
+  cancel-in-progress: false
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+  COMUN_BASE_URL: https://comunsocial.online
+
+jobs:
+  activate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - name: Verify exact main and zero-migration P1G
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          npm ci --ignore-scripts
+          test -z "$(git diff --name-only 09ab579b658e3ef1e6964b932ef8faba081e574a...HEAD -- supabase/migrations)"
+          node --test scripts/solo/p1g-google-auth-workflow.node-test.mjs
+
+      - name: Verify Google provider public metadata before activation
+        if: inputs.mode == 'enable-google'
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_PROJECT_REF:-}"
+          test -n "${SUPABASE_SERVICE_ROLE_KEY:-}"
+          settings="$RUNNER_TEMP/comun-p1g-public-auth-settings.json"
+          curl -fsS --retry 3 --header "apikey: $SUPABASE_SERVICE_ROLE_KEY" "https://${SUPABASE_PROJECT_REF}.supabase.co/auth/v1/settings" >"$settings"
+          SETTINGS_FILE="$settings" node - <<'NODE'
+          const fs = require('node:fs');
+          const settings = JSON.parse(fs.readFileSync(process.env.SETTINGS_FILE, 'utf8'));
+          if (settings?.external?.google !== true) throw new Error('COMUN_P1G_PROVIDER_CONFIGURATION_REQUIRED');
+          NODE
+
+      - name: Set Google Auth flag without reading Production values
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          google=disabled
+          case "${{ inputs.mode }}" in
+            enable-google) google=enabled ;;
+            flags-off|rollback-google) ;;
+            *) echo COMUN_P1G_ACTIVATION_MODE_INVALID; exit 1 ;;
+          esac
+          printf '%s' "$google" | npx --yes vercel@50.28.0 env add COMUN_GOOGLE_AUTH_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p1g-google-env.out 2>/tmp/comun-p1g-google-env.err
+
+      - name: Deploy exact main with current Production environment
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p1g-deploy.out 2>/tmp/comun-p1g-deploy.err
+          deployment_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-p1g-deploy.out | tail -n 1 | tr -d '\r')"
+          case "$deployment_url" in https://*.vercel.app) ;; *) echo COMUN_P1G_DEPLOYMENT_URL_UNAVAILABLE; exit 1 ;; esac
+          printf 'deployment_url=%s\n' "$deployment_url" >> "$GITHUB_OUTPUT"
+
+      - name: Promote exact deployment to canonical domain
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@50.28.0 promote "$DEPLOYMENT_URL" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p1g-promote.out 2>/tmp/comun-p1g-promote.err
+          npx --yes vercel@50.28.0 alias set "$DEPLOYMENT_URL" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p1g-alias.out 2>/tmp/comun-p1g-alias.err
+
+      - name: Verify preserved anonymous and password access
+        shell: bash
+        run: |
+          set -euo pipefail
+          page="$(mktemp)"
+          trap 'rm -f "$page"' EXIT
+          curl -L -fsS --retry 8 --retry-delay 2 "$COMUN_BASE_URL/comun/entrar?__p1g_gate=$GITHUB_RUN_ID" >"$page"
+          grep -q 'Entrar no COMUN' "$page"
+          grep -q 'Continuar explorando sem entrar' "$page"
+          for path in /comun /comun/relatar /comun/minha-participacao; do
+            test "$(curl -L -sS -o /dev/null -w '%{http_code}' --retry 8 --retry-delay 2 "$COMUN_BASE_URL$path")" = 200
+          done
+
+      - name: Verify Google remains hidden
+        if: inputs.mode == 'flags-off' || inputs.mode == 'rollback-google'
+        shell: bash
+        run: |
+          set -euo pipefail
+          page="$(mktemp)"
+          trap 'rm -f "$page"' EXIT
+          curl -L -fsS --retry 8 --retry-delay 2 "$COMUN_BASE_URL/comun/entrar?__p1g_off=$GITHUB_RUN_ID" >"$page"
+          ! grep -q 'Continuar com Google' "$page"
+          echo COMUN_P1G_CODE_DEPLOYED_FLAG_OFF >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify Google entry point without completing OAuth
+        id: google_smoke
+        if: inputs.mode == 'enable-google'
+        shell: bash
+        run: |
+          set -euo pipefail
+          page="$(mktemp)"
+          trap 'rm -f "$page"' EXIT
+          curl -L -fsS --retry 8 --retry-delay 2 "$COMUN_BASE_URL/comun/entrar?__p1g_on=$GITHUB_RUN_ID" >"$page"
+          grep -q 'Continuar com Google' "$page"
+          grep -q 'ou entre com e-mail' "$page"
+          echo COMUN_P1G_GOOGLE_AUTH_PRODUCTION_READY_FOR_HUMAN_GATE >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Roll back Google after failed activation smoke
+        if: always() && inputs.mode == 'enable-google' && steps.google_smoke.outcome != 'success'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' disabled | npx --yes vercel@50.28.0 env add COMUN_GOOGLE_AUTH_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p1g-rollback-env.out 2>/tmp/comun-p1g-rollback-env.err
+          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p1g-rollback-deploy.out 2>/tmp/comun-p1g-rollback-deploy.err
+          rollback_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-p1g-rollback-deploy.out | tail -n 1 | tr -d '\r')"
+          case "$rollback_url" in https://*.vercel.app) ;; *) exit 1 ;; esac
+          npx --yes vercel@50.28.0 promote "$rollback_url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p1g-rollback-promote.out 2>/tmp/comun-p1g-rollback-promote.err
+          npx --yes vercel@50.28.0 alias set "$rollback_url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p1g-rollback-alias.out 2>/tmp/comun-p1g-rollback-alias.err
+          echo COMUN_P1G_GOOGLE_AUTH_ROLLED_BACK_AFTER_FAILED_GATE >> "$GITHUB_STEP_SUMMARY"
