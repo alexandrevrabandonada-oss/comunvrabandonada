@@ -1241,3 +1241,20 @@ Estado atual: `COMUN_48_1B_F1_MOTOROLA_PASS_DOMAIN_GREEN`.
 
 Próximo ciclo elegível: `48.1C — piloto humano contínuo no domínio real`. Não
 iniciar outro miniapp antes de medir a fricção do fluxo integrado.
+
+### 48.1B-F2 — Capture First — bloqueado pelo contrato textual (2026-08-09)
+
+- baseline pós-PR #236: `origin/main=533a129e3cd979f7001a95b4881c4696d2a3c9ed`;
+- o schema promovido exige `original_text NOT NULL` e entre 8 e 600 caracteres;
+- a RPC `comun_relata_create` e a rota server-side repetem a mesma exigência;
+- anexos P3 só podem ser associados depois da criação do Relata, portanto não
+  existe caminho canônico para foto-only sem inventar texto semântico;
+- dry-run remoto reconciliado vazio, migration externa de Calçadas restaurada
+  com SHA canônico;
+- nenhuma migration, alteração de produto, flag, fixture, escrita remota,
+  publicação ou envio externo foi executado; `launch_publicly=false`.
+
+Estado: `COMUN_F2_BLOCKED_EXISTING_SCHEMA_REQUIRES_FALSE_DATA`.
+O Share Target permanece
+`COMUN_F2_SHARE_TARGET_DEFERRED_FILE_LIFECYCLE_REQUIRED`; F2 terminal e P6A não
+foram iniciados.
