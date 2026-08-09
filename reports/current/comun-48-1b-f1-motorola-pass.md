@@ -1,6 +1,6 @@
 # COMUN 48.1B-F1 — Motorola Pass
 
-Data: 2026-08-08
+Data: 2026-08-09
 
 ## Baseline
 
@@ -24,7 +24,7 @@ Data: 2026-08-08
 ## Verificação
 
 - unitários: `536/536` verdes;
-- contratos Motorola focais: `5/5` verdes;
+- contratos Motorola focais: `6/6` verdes;
 - E2E focal de shell/participação: `3/3` verdes;
 - typecheck: verde;
 - lint: verde;
@@ -34,7 +34,24 @@ Data: 2026-08-08
 - dry-run Supabase reconciliado: `COMUN_F1_REMOTE_MIGRATION_PLAN_EMPTY`;
 - migration externa de Calçadas restaurada com SHA canônico após o dry-run.
 
-O runner Playwright local que tenta iniciar novamente o laboratório Supabase excedeu o tempo de inicialização antes de executar testes; isso foi classificado como infraestrutura local, sem finding funcional. A lane canônica Quality Performance da PR permanece responsável pelo E2E completo em ambiente reproduzível.
+O runner Playwright local que tenta iniciar novamente o laboratório Supabase excedeu o tempo de inicialização antes de executar testes; isso foi classificado como infraestrutura local, sem finding funcional. A lane canônica Quality Performance executou o E2E completo em ambiente reproduzível e terminou verde no run `31292753213`.
+
+## Integração e Production
+
+- PR #235 mesclada com proteção pelo head
+  `31536414eaece3efeb1e9d41854960604182dfca`;
+- merge em `8fd3565ed101ee5bd765fc554c789fada0229b50`;
+- deployment Production `dpl_YDC6Lvkbc73fnAD1GfYwMR3hKPVg`: `READY`;
+- `/comun`, `/comun/relatar`, `/comun/calcadas`,
+  `/comun/calcadas/contribuir`, `/comun/onibus` e
+  `/comun/minha-participacao`: `200`;
+- domínio real em `390x844`: centro mobile e CTA da Home chegam a
+  `/comun/relatar` em um gesto, sem modal e sem login;
+- Calçadas chega a `/comun/calcadas/contribuir`, sem rota legada ou login;
+- Ônibus inicia sem tipo selecionado e com detalhes opcionais recolhidos;
+- Minha Participação apresenta a região “Meus registros” e o subtítulo
+  “Relatos e acompanhamentos guardados neste aparelho.”;
+- nenhuma fixture de Production foi criada durante o smoke.
 
 ## Segurança e limites
 
@@ -47,4 +64,4 @@ O runner Playwright local que tenta iniciar novamente o laboratório Supabase ex
 
 ## Resultado
 
-Estado de integração: pendente de PR/CI/merge/smoke de Production.
+`COMUN_48_1B_F1_MOTOROLA_PASS_DOMAIN_GREEN`
