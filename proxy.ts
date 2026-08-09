@@ -14,6 +14,7 @@ import { shouldCloakComunParticipationWallet } from "@/lib/comun-participation-w
 import { shouldCloakComunForwarding } from "@/lib/comun-forwarding-feature";
 import { shouldCloakComunSidewalkP4 } from "@/lib/comun-sidewalk-p4-feature";
 import { shouldCloakComunStmuAssisted } from "@/lib/comun-stmu-assisted-feature";
+import { shouldCloakComunEssentialServices } from "@/lib/comun-essential-services-feature";
 import { updateSession } from "@/lib/supabase/middleware";
 
 function shouldRefreshCommunitySession(pathname: string) {
@@ -42,6 +43,7 @@ export async function proxy(request: NextRequest) {
     shouldCloakComunParticipationWallet(request.nextUrl.pathname) ||
     shouldCloakComunForwarding(request.nextUrl.pathname) ||
     shouldCloakComunStmuAssisted(request.nextUrl.pathname) ||
+    shouldCloakComunEssentialServices(request.nextUrl.pathname) ||
     shouldCloakComunSidewalkP4(request.nextUrl.pathname)
   ) {
     return NextResponse.json(

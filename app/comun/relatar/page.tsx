@@ -6,6 +6,10 @@ import {
   isComunRelataLocationEnabled,
 } from "@/lib/comun-relata-evidence-feature";
 import { isComunRelataPhotoOnlyEnabled } from "@/lib/comun-relata-photo-first";
+import {
+  isComunEssentialForwardingAssistedEnabled,
+  isComunEssentialServicesEnabled,
+} from "@/lib/comun-essential-services-feature";
 
 type TopicChoice =
   "trabalho" | "escolas" | "saude" | "meio-ambiente" | "cidade" | "outro";
@@ -48,6 +52,8 @@ export default async function ReportPage(props: {
         attachmentsEnabled={isComunRelataAttachmentsEnabled()}
         locationEnabled={isComunRelataLocationEnabled()}
         photoOnlyEnabled={isComunRelataPhotoOnlyEnabled()}
+        essentialServicesEnabled={isComunEssentialServicesEnabled()}
+        essentialForwardingEnabled={isComunEssentialForwardingAssistedEnabled()}
       />
     );
   }

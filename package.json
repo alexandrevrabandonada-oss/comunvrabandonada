@@ -93,6 +93,7 @@
     "relata:p3b:private:location:e2e:local": "node scripts/solo/rehearse-p3b-private-location-local.mjs",
     "relata:p4:sidewalk:e2e:local": "node scripts/solo/rehearse-p4-sidewalk-relata-local.mjs",
     "relata:p5:bus-stmu:e2e:local": "node scripts/solo/rehearse-p5-bus-stmu-local.mjs",
+    "relata:p6a:essential-services:e2e:local": "node scripts/solo/rehearse-p6a-essential-services-local.mjs",
     "relata:p2:text:e2e:local": "node scripts/solo/rehearse-p2-relata-text-private-local.mjs",
     "relata:f2:m1:semantic-text-absence:local": "node scripts/comun-local-env.mjs run node scripts/solo/rehearse-f2-m1-semantic-text-absence-local.mjs",
     "relata:f2:m1:remote-plan": "node scripts/solo/run-f2-m1-reconciled-dry-run.mjs",

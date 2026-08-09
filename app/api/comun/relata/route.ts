@@ -23,6 +23,11 @@ import {
   setWalletCookie,
   walletSecretHash,
 } from "@/lib/comun-participation-wallet-runtime";
+import {
+  applyComunEssentialServicesRoutingGate,
+  isComunEssentialServicesEnabled,
+  isEssentialServiceCategory,
+} from "@/lib/comun-essential-services-feature";
 
 export const runtime = "nodejs";
 
@@ -138,9 +143,13 @@ export async function POST(request: NextRequest) {
     answers,
     hasAttachment: quickCapture && hasPhoto,
   };
-  const decision = photoOnly
+  const routedDecision = photoOnly
     ? createComunRelataPhotoOnlyDecision()
     : routeRelata({ ...input, text });
+  const decision = applyComunEssentialServicesRoutingGate(
+    routedDecision,
+    isComunEssentialServicesEnabled(),
+  );
   if (decision.missingInformation.length > 0) {
     return NextResponse.json(
       { code: "triage_incomplete" },
@@ -198,6 +207,7 @@ export async function POST(request: NextRequest) {
   });
   let walletRecoveryCode: string | undefined;
   let walletToken: string | null = null;
+  let walletItemId: string | undefined;
   if (quickCapture && isComunParticipationWalletEnabled()) {
     try {
       const existingToken = readWalletToken(request);
@@ -209,11 +219,33 @@ export async function POST(request: NextRequest) {
         walletRecoveryCode = createdWallet.recoveryCode;
       }
       if (walletToken) {
-        await db.rpc("comun_participation_wallet_attach_relata", {
-          p_token_hash_hex: walletSecretHash(walletToken),
-          p_protocol: receipt.protocol,
-          p_receipt_secret: receiptSecret,
-        });
+        const attached = await db.rpc(
+          "comun_participation_wallet_attach_relata",
+          {
+            p_token_hash_hex: walletSecretHash(walletToken),
+            p_protocol: receipt.protocol,
+            p_receipt_secret: receiptSecret,
+          },
+        );
+        const attachedItem = Array.isArray(attached.data)
+          ? attached.data[0]
+          : null;
+        if (
+          !attached.error &&
+          attachedItem &&
+          typeof attachedItem.item_id === "string"
+        ) {
+          walletItemId = attachedItem.item_id;
+          if (
+            isComunEssentialServicesEnabled() &&
+            isEssentialServiceCategory(receipt.category)
+          ) {
+            await db.rpc("comun_essential_wallet_mark_ready", {
+              p_token_hash_hex: walletSecretHash(walletToken),
+              p_wallet_item_id: walletItemId,
+            });
+          }
+        }
       }
     } catch {
       // A wallet association is compensable; the already-created Relata receipt is not rolled back.
@@ -224,6 +256,7 @@ export async function POST(request: NextRequest) {
       receipt,
       noOfficialSend: true,
       ...(walletRecoveryCode ? { walletRecoveryCode } : {}),
+      ...(walletItemId ? { walletItemId } : {}),
     },
     { status: 201, headers: noStoreHeaders },
   );
