@@ -87,7 +87,7 @@ export function QuickCaptureV2({
   essentialForwardingEnabled?: boolean;
 }) {
   const [startedAt] = useState(() => Date.now());
-  const captureRootRef = useRef<HTMLElement | null>(null);
+  const [hydrated, setHydrated] = useState(false);
   const proofRef = useRef<{
     idempotencyKey: string;
     receiptSecret: string;
@@ -133,7 +133,7 @@ export function QuickCaptureV2({
   };
 
   useEffect(() => {
-    captureRootRef.current?.setAttribute("data-comun-capture-hydrated", "true");
+    const hydrationFrame = window.requestAnimationFrame(() => setHydrated(true));
     sendMetric("capture_started");
     fetch(RECEIPT_ENDPOINT, { cache: "no-store" })
       .then(async (response) =>
@@ -144,6 +144,7 @@ export function QuickCaptureV2({
       .then((value) => value && setReceipt(value))
       .catch(() => undefined);
     return () => {
+      window.cancelAnimationFrame(hydrationFrame);
       if (!receipt) sendMetric("capture_abandoned");
     };
     // This is an intentionally single-start telemetry event.
@@ -391,10 +392,9 @@ export function QuickCaptureV2({
     >
       <div className="min-h-[calc(100dvh-4rem)] bg-comun-paper px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-6 text-comun-black sm:px-6">
         <main
-          ref={captureRootRef}
           className="mx-auto grid w-full max-w-2xl gap-5"
           data-comun-quick-capture-v2="true"
-          data-comun-capture-hydrated="false"
+          data-comun-capture-hydrated={hydrated ? "true" : "false"}
         >
           <header className="grid gap-2">
             <p className="comun-v2-eyebrow">COMUN Relata</p>
