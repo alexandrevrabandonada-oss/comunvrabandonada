@@ -1,11 +1,23 @@
 import { ReportForm } from "@/app/comun/relatar/report-form";
 import { QuickCaptureV2 } from "@/app/comun/relatar/quick-capture-v2";
 import { isComunQuickCaptureEnabled } from "@/lib/comun-capture-feature";
-import { isComunRelataAttachmentsEnabled, isComunRelataLocationEnabled } from "@/lib/comun-relata-evidence-feature";
+import {
+  isComunRelataAttachmentsEnabled,
+  isComunRelataLocationEnabled,
+} from "@/lib/comun-relata-evidence-feature";
+import { isComunRelataPhotoOnlyEnabled } from "@/lib/comun-relata-photo-first";
 
-type TopicChoice = "trabalho" | "escolas" | "saude" | "meio-ambiente" | "cidade" | "outro";
+type TopicChoice =
+  "trabalho" | "escolas" | "saude" | "meio-ambiente" | "cidade" | "outro";
 
-const allowedTopics = new Set(["trabalho", "escolas", "saude", "meio-ambiente", "cidade", "outro"]);
+const allowedTopics = new Set([
+  "trabalho",
+  "escolas",
+  "saude",
+  "meio-ambiente",
+  "cidade",
+  "outro",
+]);
 const allowedCampaignCategories = new Set([
   "pressao-psicologica",
   "assedio-moral",
@@ -21,14 +33,23 @@ const allowedCampaignCategories = new Set([
   "retaliacao",
 ]);
 
-export default async function ReportPage(
-  props: {
-    searchParams: Promise<{ comunidade?: string; pauta?: string; categoria?: string; modo?: string }>;
-  }
-) {
+export default async function ReportPage(props: {
+  searchParams: Promise<{
+    comunidade?: string;
+    pauta?: string;
+    categoria?: string;
+    modo?: string;
+  }>;
+}) {
   const searchParams = await props.searchParams;
   if (isComunQuickCaptureEnabled() && searchParams.modo !== "detalhado") {
-    return <QuickCaptureV2 attachmentsEnabled={isComunRelataAttachmentsEnabled()} locationEnabled={isComunRelataLocationEnabled()} />;
+    return (
+      <QuickCaptureV2
+        attachmentsEnabled={isComunRelataAttachmentsEnabled()}
+        locationEnabled={isComunRelataLocationEnabled()}
+        photoOnlyEnabled={isComunRelataPhotoOnlyEnabled()}
+      />
+    );
   }
   const initialTopicChoice: TopicChoice =
     searchParams.comunidade && allowedTopics.has(searchParams.comunidade)
@@ -45,7 +66,10 @@ export default async function ReportPage(
       : "";
 
   const initialCategory =
-    searchParams.categoria && allowedCampaignCategories.has(searchParams.categoria) ? searchParams.categoria : "";
+    searchParams.categoria &&
+    allowedCampaignCategories.has(searchParams.categoria)
+      ? searchParams.categoria
+      : "";
 
   return (
     <ReportForm

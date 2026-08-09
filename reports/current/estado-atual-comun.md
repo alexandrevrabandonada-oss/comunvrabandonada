@@ -1,4 +1,18 @@
-# Estado atual — atualização 48.1B-P5 (08/08/2026)
+# Estado atual — atualização 48.1B-F2-R1 (09/08/2026)
+
+## 48.1B-F2 — capture first
+
+- M1 foi mesclado no PR `#238` e promovido como exatamente uma migration;
+- catálogo remoto, grants, RLS e seis rotas públicas passaram no pós-flight;
+- nenhum relato foi lido, nenhum backfill ou fixture M1 foi criado;
+- resultado M1:
+  `COMUN_48_1B_F2_M1_SEMANTIC_TEXT_ABSENCE_REMOTE_GREEN_RUNTIME_OFF`;
+- R1 foi iniciado automaticamente na branch
+  `codex/48-1b-f2-r1-photo-first-runtime`, sem migration adicional;
+- nova flag `COMUN_RELATA_PHOTO_ONLY_ENABLED` permanece fora de Production até
+  merge e deploy inicial OFF;
+- runtime candidato reutiliza attachment P3, recibo e Carteira, sem placeholder,
+  publicação ou forwarding automático.
 
 ## 48.1B-P5 — Ônibus + STMU assistida — candidata em validação
 
