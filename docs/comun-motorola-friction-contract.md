@@ -17,13 +17,25 @@ O gesto de referência é: **vi um problema → um gesto → estou registrando**
 
 Meta verificável: **Home ou navegação mobile → Relata = 1 gesto**.
 
-## F2 — captura futura
+## F2 — Capture First ativo
 
-Meta: **captura básica com até três ações obrigatórias**. F1 não habilita foto-only, não altera os campos obrigatórios de Calçadas e não muda o contrato de persistência.
+- A captura básica aceita **foto ou frase** e guarda antes de pedir detalhes que
+  não mudam o destino.
+- Foto sem frase preserva `original_text IS NULL`; não há visão computacional,
+  texto inventado, publicação ou encaminhamento automático.
+- Calçadas usa enriquecimento progressivo: guardar o Relata é diferente de
+  concluir a entrada especializada na fila do mapa.
+- O primeiro shortcut do PWA é “Vi um problema” e abre `/comun/relatar`.
+
+Meta técnica preservada: **captura básica com até três ações obrigatórias**.
+F2 está concluído; a medição humana de tempo e compreensão pertence a 48.1C.
 
 ## 48.1C — observação humana
 
-Meta de observação: **mediana da captura menor que 30 segundos**. Esta meta ainda não foi medida nem atingida por declaração.
+Meta de observação: **mediana da captura menor que 30 segundos**. Esta meta
+ainda não foi medida nem atingida. O piloto deve verificar se a pessoa vai da
+intenção ao resultado sem precisar aprender a arquitetura do COMUN, inclusive
+se entende “Guardado” e consegue reencontrar o registro.
 
 ## Telemetria sanitizada
 
@@ -34,9 +46,11 @@ A captura atual registra apenas evento, contagem de interações e faixa de dura
 - Home → Ônibus → Guardado;
 - Meus registros → item aberto.
 
-## Inventário PWA (somente leitura em F1)
+## Inventário PWA
 
 - Manifesto existente: `app/manifest.ts`.
-- Shortcuts atuais: Participar, Territórios, Comunidades e Minha área.
+- Primeiro shortcut: “Vi um problema” → `/comun/relatar`.
+- Demais shortcuts: Participar, Territórios, Comunidades e Minha área.
 - Share Target: não configurado.
-- Recomendação para F2: avaliar shortcut “Vi um problema” e Web Share Target sem habilitar captura por movimento, shake ou gesto físico obrigatório.
+- Web Share Target permanece fora do contrato atual; não existe captura por
+  movimento, shake ou gesto físico obrigatório.
