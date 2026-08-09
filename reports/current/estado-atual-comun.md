@@ -1,4 +1,4 @@
-# Estado atual — atualização 48.1B-F2-R1 (09/08/2026)
+# Estado atual — atualização 48.1B-F2 concluída (09/08/2026)
 
 ## 48.1B-F2 — capture first
 
@@ -7,14 +7,20 @@
 - nenhum relato foi lido, nenhum backfill ou fixture M1 foi criado;
 - resultado M1:
   `COMUN_48_1B_F2_M1_SEMANTIC_TEXT_ABSENCE_REMOTE_GREEN_RUNTIME_OFF`;
-- R1 foi iniciado automaticamente na branch
-  `codex/48-1b-f2-r1-photo-first-runtime`; uma migration de substituição da RPC
-  prepara apenas o domínio `other|sidewalk_accessibility`, deixando o C1 sem
-  migration pendente;
-- nova flag `COMUN_RELATA_PHOTO_ONLY_ENABLED` permanece fora de Production até
-  merge e deploy inicial OFF;
-- runtime candidato reutiliza attachment P3, recibo e Carteira, sem placeholder,
-  publicação ou forwarding automático.
+- R1 foi mesclado no PR `#239`, promovido e ativado em Production; a fixture
+  exata do run `31299281446` confirmou foto P3 privada, receipt, Carteira, zero
+  publicação/forwarding e cleanup;
+- C1 foi mesclado no PR `#241`, sem migration ou adapter novo; o run descartável
+  `31300536511` comprovou `NULL`, categoria `sidewalk_accessibility`, um
+  protocolo e `pending_review`;
+- deploy C1 OFF (`31300837241`) e ativação com fixture/cleanup
+  (`31300951155`) passaram no merge `be08800ac7a13a7f9d29a481b5a3d85e6856733d`;
+- o primeiro shortcut PWA é `Vi um problema` → `/comun/relatar`;
+- Share Target permanece em
+  `COMUN_F2_SHARE_TARGET_DEFERRED_FILE_LIFECYCLE_REQUIRED`;
+- resultado terminal vigente:
+  `COMUN_48_1B_F2_CAPTURE_FIRST_DOMAIN_GREEN`;
+- próximo tijolo: `48.1B-P6A — ÁGUA + ENERGIA + ILUMINAÇÃO`.
 
 ## 48.1B-P5 — Ônibus + STMU assistida — candidata em validação
 
