@@ -349,6 +349,8 @@ export function routeRelata(input: RelataInput): RoutingDecision {
       "casas aqui estao sem luz",
       "quarteirão sem energia",
       "bairro sem energia",
+      "bairro está sem energia",
+      "bairro esta sem energia",
       "bairro inteiro está sem energia",
       "bairro inteiro esta sem energia",
       "falta de energia",

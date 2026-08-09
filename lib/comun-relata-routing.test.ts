@@ -31,6 +31,9 @@ describe("COMUN Relata deterministic routing", () => {
     expect(
       routeRelata({ text: "O bairro inteiro está sem energia" }).category,
     ).toBe("power_distribution");
+    expect(routeRelata({ text: "O bairro está sem energia" }).category).toBe(
+      "power_distribution",
+    );
     expect(routeRelata({ text: "As casas aqui estão sem luz" }).category).toBe(
       "power_distribution",
     );
