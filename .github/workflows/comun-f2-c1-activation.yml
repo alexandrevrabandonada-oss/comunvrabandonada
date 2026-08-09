@@ -1,0 +1,195 @@
+name: COMUN F2 C1 activation
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA to deploy and verify
+        required: true
+        type: string
+      mode:
+        description: Deploy dormant, activate with smoke, or roll back
+        required: true
+        type: choice
+        options: [flags-off, activate-smoke, rollback]
+      authorization:
+        description: Type RUN_F2_C1_PRODUCTION
+        required: true
+        type: string
+
+concurrency:
+  group: comun-f2-c1-activation
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+  COMUN_BASE_URL: https://comunsocial.online
+
+jobs:
+  activate:
+    if: inputs.authorization == 'RUN_F2_C1_PRODUCTION'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+
+      - name: Verify exact main and tooling
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$EXPECTED_MAIN_SHA"
+          npm ci --ignore-scripts
+          node --check scripts/solo/rehearse-f2-c1-sidewalk-progressive-production.mjs
+
+      - name: Set progressive flag without reading Production values
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          value=disabled
+          case "${{ inputs.mode }}" in
+            activate-smoke) value=enabled ;;
+            flags-off|rollback) ;;
+            *) echo COMUN_F2_C1_ACTIVATION_MODE_INVALID; exit 1 ;;
+          esac
+          printf '%s' "$value" | npx --yes vercel@50.28.0 env add COMUN_SIDEWALK_PROGRESSIVE_CAPTURE_ENABLED production --sensitive --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-f2-c1-env.out 2>/tmp/comun-f2-c1-env.err
+
+      - name: Deploy exact main with current Production environment
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-f2-c1-deploy.out 2>/tmp/comun-f2-c1-deploy.err
+          deployment_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-f2-c1-deploy.out | tail -n 1 | tr -d '\r')"
+          case "$deployment_url" in https://*.vercel.app) ;; *) echo COMUN_F2_C1_DEPLOYMENT_URL_UNAVAILABLE; exit 1 ;; esac
+          npx --yes vercel@50.28.0 inspect "$deployment_url" --wait --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-f2-c1-inspect.out
+          printf 'deployment_url=%s\n' "$deployment_url" >> "$GITHUB_OUTPUT"
+
+      - name: Promote exact deployment to canonical domain
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@50.28.0 promote "$DEPLOYMENT_URL" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-f2-c1-promote.out 2>/tmp/comun-f2-c1-promote.err
+          npx --yes vercel@50.28.0 alias set "$DEPLOYMENT_URL" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-f2-c1-alias.out 2>/tmp/comun-f2-c1-alias.err
+
+      - name: Verify canonical pages and PWA shortcut
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in /comun /comun/relatar /comun/calcadas /comun/calcadas/contribuir /comun/onibus /comun/minha-participacao; do
+            test "$(curl -L -sS -o /dev/null -w '%{http_code}' --retry 8 --retry-delay 2 "$COMUN_BASE_URL$path")" = 200
+          done
+          node - <<'NODE'
+          const response = await fetch(`${process.env.COMUN_BASE_URL}/manifest.webmanifest`, { cache: "no-store" });
+          if (!response.ok) process.exit(1);
+          const manifest = await response.json();
+          if (manifest.shortcuts?.[0]?.name !== "Vi um problema" || manifest.shortcuts[0].url !== "/comun/relatar") process.exit(1);
+          if (manifest.share_target !== undefined) process.exit(1);
+          NODE
+
+      - name: Verify dormant progressive UI
+        if: inputs.mode == 'flags-off' || inputs.mode == 'rollback'
+        shell: bash
+        run: |
+          set -euo pipefail
+          page="$(mktemp)"
+          trap 'rm -f "$page"' EXIT
+          curl -L -fsS --retry 8 --retry-delay 2 "$COMUN_BASE_URL/comun/calcadas/contribuir?__f2_c1_off=$GITHUB_RUN_ID" >"$page"
+          ! grep -q 'data-comun-sidewalk-c1="photo-first"' "$page"
+          status="$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' --data '{"phase":"capture","text":null,"hasPhoto":true}' "$COMUN_BASE_URL/api/comun/calcadas/intake")"
+          test "$status" = 404
+          echo COMUN_F2_C1_PRODUCTION_DEPLOY_OFF_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify progressive UI before fixture
+        if: inputs.mode == 'activate-smoke'
+        shell: bash
+        run: |
+          set -euo pipefail
+          page="$(mktemp)"
+          trap 'rm -f "$page"' EXIT
+          curl -L -fsS --retry 8 --retry-delay 2 "$COMUN_BASE_URL/comun/calcadas/contribuir?__f2_c1_on=$GITHUB_RUN_ID" >"$page"
+          grep -q 'data-comun-sidewalk-c1="photo-first"' "$page"
+          grep -q 'Guarde a foto primeiro' "$page"
+          grep -q 'Nenhum valor será presumido' "$page"
+
+      - name: Allocate synthetic attempt
+        id: attempt
+        if: inputs.mode == 'activate-smoke'
+        shell: bash
+        run: printf 'attempt_id=F2-C1-SMOKE-%s-%s\n' "$GITHUB_RUN_ID" "$(node -e 'process.stdout.write(require("node:crypto").randomUUID())')" >> "$GITHUB_OUTPUT"
+
+      - name: Run exact Production progressive fixture and cleanup
+        id: smoke
+        if: inputs.mode == 'activate-smoke'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          ATTEMPT_ID: ${{ steps.attempt.outputs.attempt_id }}
+          F2_C1_RECOVERY_FILE: ${{ runner.temp }}/comun-f2-c1-recovery.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          mkdir -p .ci-artifacts/f2-c1-production
+          node scripts/solo/rehearse-f2-c1-sidewalk-progressive-production.mjs >.ci-artifacts/f2-c1-production/smoke.json
+          test ! -e "$F2_C1_RECOVERY_FILE"
+
+      - name: Recover exact fixture after process failure
+        if: always() && inputs.mode == 'activate-smoke' && steps.attempt.outcome == 'success' && steps.smoke.outcome != 'success'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          ATTEMPT_ID: ${{ steps.attempt.outputs.attempt_id }}
+          F2_C1_RECOVERY_FILE: ${{ runner.temp }}/comun-f2-c1-recovery.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          mkdir -p .ci-artifacts/f2-c1-production
+          node scripts/solo/rehearse-f2-c1-sidewalk-progressive-production.mjs --recover >.ci-artifacts/f2-c1-production/recovery.json
+
+      - name: Roll back progressive flag after failed smoke
+        if: always() && inputs.mode == 'activate-smoke' && steps.smoke.outcome != 'success'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' disabled | npx --yes vercel@50.28.0 env add COMUN_SIDEWALK_PROGRESSIVE_CAPTURE_ENABLED production --sensitive --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-f2-c1-rollback-env.out 2>/tmp/comun-f2-c1-rollback-env.err
+          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-f2-c1-rollback-deploy.out 2>/tmp/comun-f2-c1-rollback-deploy.err
+          rollback_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-f2-c1-rollback-deploy.out | tail -n 1 | tr -d '\r')"
+          case "$rollback_url" in https://*.vercel.app) ;; *) exit 1 ;; esac
+          npx --yes vercel@50.28.0 promote "$rollback_url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-f2-c1-rollback-promote.out 2>/tmp/comun-f2-c1-rollback-promote.err
+          npx --yes vercel@50.28.0 alias set "$rollback_url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-f2-c1-rollback-alias.out 2>/tmp/comun-f2-c1-rollback-alias.err
+          echo COMUN_F2_C1_ROLLED_BACK_AFTER_FAILED_SMOKE >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-f2-c1-production-${{ github.run_id }}
+          path: .ci-artifacts/f2-c1-production
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Emit terminal C1 marker
+        if: success() && inputs.mode == 'activate-smoke'
+        run: echo COMUN_48_1B_F2_C1_SIDEWALK_PROGRESSIVE_PRODUCTION_GREEN_CLEANUP >> "$GITHUB_STEP_SUMMARY"
