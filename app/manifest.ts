@@ -25,6 +25,11 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       {
+        name: "Vi um problema",
+        short_name: "Relatar",
+        url: "/comun/relatar",
+      },
+      {
         name: "Participar",
         short_name: "Participar",
         url: "/comun/participar",

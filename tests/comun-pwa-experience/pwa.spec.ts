@@ -16,7 +16,12 @@ test("manifest válido, escopo e atalhos seguros", async ({ request }) => {
       (icon: { purpose?: string }) => icon.purpose === "maskable",
     ),
   ).toBeTruthy();
-  expect(manifest.shortcuts).toHaveLength(4);
+  expect(manifest.shortcuts).toHaveLength(5);
+  expect(manifest.shortcuts[0]).toMatchObject({
+    name: "Vi um problema",
+    url: "/comun/relatar",
+  });
+  expect(manifest.share_target).toBeUndefined();
 });
 
 test("shell registra service worker e não tem violações Axe graves", async ({
