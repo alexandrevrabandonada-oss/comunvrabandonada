@@ -51,7 +51,13 @@ function call(input) {
 }
 
 async function rejects(input, pattern) {
-  await assert.rejects(call(input), pattern);
+  await client.query("savepoint expected_rejection");
+  try {
+    await assert.rejects(call(input), pattern);
+  } finally {
+    await client.query("rollback to savepoint expected_rejection");
+    await client.query("release savepoint expected_rejection");
+  }
 }
 
 await client.connect();
