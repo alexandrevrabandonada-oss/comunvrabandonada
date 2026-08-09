@@ -82,6 +82,8 @@ jobs:
           export COMUN_ESSENTIAL_SERVICES_ENABLED=enabled
           export COMUN_ESSENTIAL_FORWARDING_ASSISTED_ENABLED=enabled
           export COMUN_R2A_USE_BUILT_SERVER=1
+          export P6A_SCREENSHOT_PATH="$artifact/relatar-ambiguity.png"
+          npx playwright install --with-deps chromium >"$artifact/playwright-install.log" 2>&1
           npm run build >"$artifact/build.log" 2>&1
           npm run relata:p6a:essential-services:e2e:local >"$artifact/e2e.log" 2>&1
           grep -q COMUN_P6A_ESSENTIAL_SERVICES_DISPOSABLE_E2E_GREEN "$artifact/e2e.log"

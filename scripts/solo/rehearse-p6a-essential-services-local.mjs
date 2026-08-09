@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { spawn } from "node:child_process";
+import { chromium } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 import pg from "pg";
 
 const base = (process.env.COMUN_BASE_URL ?? "http://127.0.0.1:3156").replace(
@@ -121,6 +123,7 @@ async function stop() {
 
 const primary = new Jar();
 const db = new pg.Client({ connectionString: dbUrl });
+let uiBrowser;
 try {
   let ready = false;
   for (let i = 0; i < 90; i++) {
@@ -137,6 +140,42 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
   assert.equal(ready, true, output.join(""));
+
+  uiBrowser = await chromium.launch({ headless: true });
+  const page = await uiBrowser.newPage({
+    viewport: { width: 390, height: 844 },
+  });
+  await page.goto(`${base}/comun/relatar`, { waitUntil: "networkidle" });
+  await page.locator("[data-comun-quick-capture-v2='true']").waitFor();
+  const textInput = page.getByLabel(/Uma frase basta|A descrição é opcional/);
+  await textInput.fill("Estamos sem água desde ontem.");
+  assert.equal(await page.getByText("Uma confirmação rápida").count(), 0);
+  assert.equal(await page.getByRole("button", { name: "Guardar" }).count(), 1);
+  await textInput.fill("A rua inteira está sem luz.");
+  assert.equal(await page.getByText("Uma confirmação rápida").count(), 1);
+  assert.equal(
+    await page
+      .getByText(
+        "As casas também estão sem energia ou apenas as luminárias da rua?",
+      )
+      .count(),
+    1,
+  );
+  const accessibility = await new AxeBuilder({ page }).analyze();
+  assert.equal(
+    accessibility.violations.filter((item) =>
+      ["serious", "critical"].includes(item.impact ?? ""),
+    ).length,
+    0,
+  );
+  if (process.env.P6A_SCREENSHOT_PATH)
+    await page.screenshot({
+      path: process.env.P6A_SCREENSHOT_PATH,
+      fullPage: true,
+    });
+  await uiBrowser.close();
+  uiBrowser = undefined;
+
   await db.connect();
 
   const water = await capture("Estamos sem água desde ontem.");
@@ -429,6 +468,7 @@ try {
     }),
   );
 } finally {
+  if (uiBrowser) await uiBrowser.close().catch(() => {});
   if (db._connected) await db.end();
   await stop();
 }
