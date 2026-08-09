@@ -1,6 +1,6 @@
-# Estado atual — 48.1B-P1G no gate humano do provider (09/08/2026)
+# Estado atual — 48.1B-P1G pronto para promoção controlada (09/08/2026)
 
-## 48.1B-P1G — Google Auth — configuração humana pendente
+## 48.1B-P1G — Google Auth — provider configurado, flag OFF
 
 - baseline `origin/main=09ab579b658e3ef1e6964b932ef8faba081e574a` e
   estado inicial P6A terminal confirmados;
@@ -13,22 +13,22 @@
   território; Carteira anônima só vincula após gesto explícito;
 - escopos Google limitados a `openid email profile`, sem offline access, APIs
   Google ou persistência de provider token;
-- testes focais 20/20, contrato de workflow 3/3, E2E local 2/2 com Auth falso
+- testes focais 20/20, contrato dos workflows 4/4, E2E local 2/2 com Auth falso
   loopback e zero contato externo, Axe/typecheck/lint verdes;
 - Production observada com Google oculto, e-mail disponível e navegação
   anônima preservada;
 - preflight read-only `31322898529` confirmou P6A, provider Google público
   desabilitado e plano remoto de zero migration, sem leitura de negócio ou
   segredo;
-- termos Google Cloud aceitos pela pessoa responsável;
-- Supabase Production revalidado no Dashboard: provider Google OFF e Client
-  ID/Secret ausentes; Site URL corrigida para `https://comunsocial.online` e
-  allowlist reduzida ao redirect exato `/comun/auth/callback`, sem wildcard;
-- gate atual: selecionar/criar conscientemente o projeto Google e o OAuth
-  Client Web; o seletor de recursos do Console retornou erro e nenhum projeto
-  foi criado automaticamente;
-- resultado vigente:
-  `COMUN_P1G_PROVIDER_CONFIGURATION_HUMAN_ACTION_REQUIRED`;
+- termos Google Cloud aceitos; projeto `COMUN`, app OAuth externo e cliente Web
+  Production criados com origem/callback exatos e somente escopos básicos;
+- Supabase Production: Site URL e redirect exatos, provider Google ON, Client
+  ID/Secret presentes apenas no cofre do provider, Skip nonce OFF e contas sem
+  e-mail OFF; nenhum segredo foi registrado;
+- workflow de ativação exact-head versionado com modos flag OFF, enable e
+  rollback; Production segue com a flag Google OFF;
+- gate atual: CI completa, merge exact-head, deploy OFF, ativação controlada e
+  login/logout humano real;
 - não emitir ainda `COMUN_48_1B_P1G_GOOGLE_AUTH_DOMAIN_GREEN`.
 
 Detalhes: `reports/current/comun-48-1b-p1g-google-auth.md`.

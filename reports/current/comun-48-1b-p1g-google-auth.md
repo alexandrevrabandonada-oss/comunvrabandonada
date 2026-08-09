@@ -55,7 +55,7 @@ em loopback e interrompe o percurso antes do Google.
 - callback inválido usa erro genérico e não aceita `evil.example`;
 - Axe: zero violações na tela exercitada;
 - testes focais de Auth/retorno: 20/20;
-- contrato do workflow: 3/3;
+- contrato dos workflows: 4/4;
 - E2E local: 2/2;
 - typecheck e lint: verdes.
 
@@ -76,7 +76,8 @@ Run read-only `31322898529`: verde.
 
 - estado P6A remoto confirmado por metadata;
 - nenhuma linha de negócio lida e transação read-only confirmada;
-- endpoint público de Auth informa `googleProviderEnabled=false`;
+- endpoint público de Auth informava `googleProviderEnabled=false` antes da
+  configuração do provider;
 - Client ID, Client Secret e provider tokens não foram lidos;
 - Management API indisponível porque não há token configurado no ambiente;
 - resultado do dry-run reconciliado:
@@ -96,55 +97,56 @@ Run read-only `31322898529`: verde.
 - endpoint read-only de configuração Auth:
   https://supabase.com/docs/reference/api/v1-get-auth-service-config.
 
-## Configuração Supabase realizada
+## Configuração Google Cloud e Supabase realizada
 
-Após o aceite humano dos Termos do Google Cloud, o acesso autenticado ao
-projeto Production do Supabase foi revalidado diretamente no Dashboard:
+Após o aceite humano dos Termos do Google Cloud, foi criado e selecionado o
+projeto Google Cloud `COMUN` e configurado o Google Auth Platform para público
+externo.
 
-- Google provider: desabilitado;
-- Client ID: não configurado;
-- Client Secret: não configurado, conferido apenas como boolean;
-- callback oficial do projeto: disponível no painel e não copiado para
-  artifacts;
-- Site URL anterior: loopback local;
-- Redirect URLs anteriores: nenhuma.
+- app OAuth: `COMUN`;
+- cliente: Web application, `COMUN Web Production`;
+- origem JavaScript: exatamente `https://comunsocial.online`;
+- redirect Google: exatamente
+  `https://nvmdszymrtacfehdynpg.supabase.co/auth/v1/callback`;
+- acesso a dados limitado a `openid`, `userinfo.email` e `userinfo.profile`;
+- nenhuma API Google adicional, offline access ou escopo adicional foi
+  habilitado;
+- nenhum Client ID, Client Secret, e-mail, código, token ou cookie foi escrito
+  no repositório, artifact ou relatório.
 
-Foram então aplicadas somente as duas configurações não secretas autorizadas:
+No Supabase Production, a configuração final foi conferida somente como
+metadados e booleans:
 
+- Google provider: habilitado;
+- Client ID: configurado;
+- Client Secret: configurado;
+- Skip nonce: desabilitado;
+- contas sem e-mail: desabilitadas;
 - Site URL: `https://comunsocial.online`;
-- Redirect allowlist: exatamente
-  `https://comunsocial.online/comun/auth/callback`.
+- redirect allowlist: exatamente
+  `https://comunsocial.online/comun/auth/callback`, sem wildcard.
 
-O Dashboard confirmou um único redirect e não há wildcard Production. O
-provider permaneceu OFF; nenhum Client ID ou Secret foi inventado ou exposto.
+As credenciais foram transferidas diretamente entre os dois painéis e apagadas
+da sessão de automação imediatamente após a confirmação. A flag
+`COMUN_GOOGLE_AUTH_ENABLED` continua OFF em Production.
 
-## Gate humano único
+## Promoção e gate humano restantes
 
-Resultado atual: `COMUN_P1G_PROVIDER_CONFIGURATION_HUMAN_ACTION_REQUIRED`.
+O blocker `COMUN_P1G_PROVIDER_CONFIGURATION_HUMAN_ACTION_REQUIRED` foi
+resolvido. O provider está configurado; o estado terminal ainda não foi
+emitido.
 
-A pessoa responsável aceitou os Termos do Google Cloud. Depois disso, o seletor
-de projetos ainda não carregou recursos disponíveis e informou erro. Como não
-há Client ID/Secret no Supabase, a criação ou seleção consciente do projeto e
-do OAuth Client Web continua sendo a ação interativa restante. Nenhum projeto
-Google foi criado automaticamente.
+O workflow versionado `comun-p1g-activation.yml` exige exact-head e oferece
+somente `flags-off`, `enable-google` e `rollback-google`. Antes de ligar a flag,
+ele confirma o provider público; depois preserva e-mail/senha, navegação
+anônima e rotas essenciais. Falha no smoke de ativação desliga a flag e promove
+novo deploy de rollback. A automação não conclui login Google e não emite o
+terminal P1G.
 
-Ação mínima do responsável, sem enviar qualquer segredo ao COMUN ou ao agente:
-
-1. na aba Google Cloud já aberta, selecionar um projeto existente do COMUN ou
-   criar conscientemente um projeto próprio para ele;
-2. criar/confirmar um cliente OAuth do tipo
-   **Web application**;
-3. registrar origem JavaScript `https://comunsocial.online`;
-4. registrar como redirect Google o callback exibido pelo provider Supabase,
-   no formato `https://<project-ref>.supabase.co/auth/v1/callback`;
-5. inserir Client ID e Client Secret somente no provider Google do Supabase e
-   habilitá-lo;
-6. informar apenas que a configuração terminou — não copiar Client ID, Client
-   Secret, código OAuth, token, cookie, e-mail ou nome para esta tarefa.
-
-Depois desse gate, ainda são obrigatórios: preflight metadata verde, merge
-exact-head, deploy com flag OFF, ativação da flag, login humano novo e
-existente, retorno seguro, logout e regressões Production. Só então pode ser
+Ainda são obrigatórios: novo preflight metadata verde, CI completa, merge
+exact-head, deploy com flag OFF, ativação controlada, início automatizado que
+pare no domínio legítimo e, por fim, login humano real, retorno seguro,
+onboarding quando aplicável, Minha Participação e logout. Só então pode ser
 emitido `COMUN_48_1B_P1G_GOOGLE_AUTH_DOMAIN_GREEN`.
 
 Próximo passo após P1G: `48.1C — Piloto Humano Motorola`. Não iniciar P6B.

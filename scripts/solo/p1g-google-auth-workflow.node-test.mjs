@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const workflow = readFileSync(".github/workflows/comun-p1g-preflight.yml", "utf8");
+const activation = readFileSync(".github/workflows/comun-p1g-activation.yml", "utf8");
 const actions = readFileSync("app/actions.ts", "utf8");
 const callback = readFileSync("app/comun/auth/callback/route.ts", "utf8");
 const wallet = readFileSync("app/api/comun/participation-wallet/[...path]/route.ts", "utf8");
@@ -38,4 +39,16 @@ test("preflight is read-only and permits exactly zero migrations", () => {
     false,
   );
   assert.doesNotMatch(workflow, /external_google_secret[^\n]*(console|stdout|writeFileSync)/);
+});
+
+test("activation is exact-head, provider-gated, reversible, and human-completed", () => {
+  assert.match(activation, /test "\$\(git rev-parse HEAD\)" = "\$EXPECTED_MAIN_SHA"/);
+  assert.match(activation, /external\?\.google !== true/);
+  assert.match(activation, /COMUN_GOOGLE_AUTH_ENABLED production/);
+  assert.match(activation, /options: \[flags-off, enable-google, rollback-google\]/);
+  assert.match(activation, /Continuar explorando sem entrar/);
+  assert.match(activation, /COMUN_P1G_GOOGLE_AUTH_PRODUCTION_READY_FOR_HUMAN_GATE/);
+  assert.match(activation, /COMUN_P1G_GOOGLE_AUTH_ROLLED_BACK_AFTER_FAILED_GATE/);
+  assert.doesNotMatch(activation, /person_declared_sent|provider_token|provider_refresh_token/);
+  assert.doesNotMatch(activation, /COMUN_48_1B_P1G_GOOGLE_AUTH_DOMAIN_GREEN/);
 });
