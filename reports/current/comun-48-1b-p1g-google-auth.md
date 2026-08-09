@@ -72,7 +72,16 @@ O workflow `comun-p1g-preflight.yml`:
    remoto vazio;
 5. proíbe `--include-all`, repair, reset e seed.
 
-Resultados de run e artefato serão acrescentados após a execução no PR.
+Run read-only `31322898529`: verde.
+
+- estado P6A remoto confirmado por metadata;
+- nenhuma linha de negócio lida e transação read-only confirmada;
+- endpoint público de Auth informa `googleProviderEnabled=false`;
+- Client ID, Client Secret e provider tokens não foram lidos;
+- Management API indisponível porque não há token configurado no ambiente;
+- resultado do dry-run reconciliado:
+  `COMUN_P1G_REMOTE_MIGRATION_PLAN_EMPTY`, com zero migration, zero
+  `--include-all`, repair, reset ou seed.
 
 ## Fontes oficiais atuais
 

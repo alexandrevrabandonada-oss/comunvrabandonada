@@ -17,6 +17,9 @@
   loopback e zero contato externo, Axe/typecheck/lint verdes;
 - Production observada com Google oculto, e-mail disponível e navegação
   anônima preservada;
+- preflight read-only `31322898529` confirmou P6A, provider Google público
+  desabilitado e plano remoto de zero migration, sem leitura de negócio ou
+  segredo;
 - gate atual: a conta Google Cloud exige aceite humano dos Termos antes de
   listar/criar OAuth clients, e a conta Supabase conectada não acessa o projeto
   Production;
