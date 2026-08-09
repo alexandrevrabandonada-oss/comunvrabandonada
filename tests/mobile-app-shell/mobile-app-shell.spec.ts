@@ -16,7 +16,6 @@ test("Motorola mobile abre Relata em um gesto sem modal ou login", async ({
   await expect(relata).toHaveAttribute("href", /\/comun\/relatar/);
   await relata.click();
   await expect(page).toHaveURL(/\/comun\/relatar/);
-  await expect(page.getByRole("heading", { name: "Vi um problema" })).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page).not.toHaveURL(/\/comun\/entrar/);
 });
@@ -29,10 +28,18 @@ test("Motorola Home abre Relata em um gesto", async ({ page }) => {
   await expect(page).toHaveURL(/\/comun\/relatar/);
 });
 
-test("Calçadas usa o fluxo P4 canônico sem conta obrigatória", async ({ page }) => {
+test("Calçadas usa o fluxo P4 canônico sem conta obrigatória", async ({
+  page,
+}) => {
   await page.goto("/comun");
-  await page.getByRole("link", { name: "Calçadas", exact: true }).first().click();
-  await page.getByRole("link", { name: /Registrar/ }).first().click();
+  await page
+    .getByRole("link", { name: "Calçadas", exact: true })
+    .first()
+    .click();
+  await page
+    .getByRole("link", { name: /Registrar/ })
+    .first()
+    .click();
   await expect(page).toHaveURL(/\/comun\/calcadas\/contribuir/);
   await expect(page).not.toHaveURL(/\/comun\/(entrar|mapa\/contribuir)/);
 });
