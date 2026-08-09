@@ -1,9 +1,9 @@
 {
   "release": "20260809133923-comun-essential-services-assisted",
   "migration": "supabase/migrations/20260809133923_comun_essential_services_assisted.sql",
-  "migrationSha256": "07ba7c3d09fb856dca6990e4dba396660175cdfac5664aedfce3199d161f25f0",
+  "migrationSha256": "58e8739624d7cdee0d138ab45debd2eabaff443e0b0937560e2d775e359294dc",
   "path": "supabase/migrations/20260809133923_comun_essential_services_assisted.sql",
-  "sha256": "07ba7c3d09fb856dca6990e4dba396660175cdfac5664aedfce3199d161f25f0",
+  "sha256": "58e8739624d7cdee0d138ab45debd2eabaff443e0b0937560e2d775e359294dc",
   "requiresPromotion": true,
   "remotePromotionAllowed": true,
   "scope": "production",

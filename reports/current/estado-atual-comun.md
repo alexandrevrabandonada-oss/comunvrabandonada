@@ -1,4 +1,25 @@
-# Estado atual — atualização 48.1B-F2 concluída (09/08/2026)
+# Estado atual — 48.1B-P6A em validação (09/08/2026)
+
+## 48.1B-P6A — serviços essenciais — candidata em CI
+
+- baseline canônico confirmado em
+  `origin/main=7ee7123dbd3c66b8713e3238d35a422734f029b6` e branch nova
+  `codex/48-1b-p6a-essential-services`;
+- preflight remoto `COMUN_P6A_REMOTE_PREFLIGHT_GREEN`: categorias, RPCs,
+  constraints, grants, RLS/FORCE RLS e migrations conferidos sem leitura de
+  conteúdo;
+- `water_supply` é a única categoria nova; energia, iluminação, risco elétrico
+  e Capture First permanecem separados;
+- porta única `/comun/relatar`, um protocolo e um item de Carteira;
+- catálogo institucional server-side verificado em fontes oficiais; nenhum
+  canal foi acionado;
+- uma migration P6A generaliza o núcleo P5 e preserva wrappers STMU;
+- `prepared` continua diferente de `sent`; auto-send, publicação, mapa público,
+  coletivos, território, Google e `launch_publicly` permanecem desligados;
+- PR `#243` está em draft; Production e schema remoto ainda inalterados;
+- plano de promoção exact-one, ondas separadas e soft cleanup está registrado em
+  `comun-48-1b-p6a-essential-services.md`;
+- terminal P6A ainda não emitido.
 
 ## 48.1B-F2 — capture first
 

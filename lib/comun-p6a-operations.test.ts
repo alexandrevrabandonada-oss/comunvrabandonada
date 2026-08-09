@@ -50,6 +50,7 @@ describe("P6A migration contract", () => {
       "comun_relata_classification_transition",
       "comun_essential_wallet_mark_ready",
       "comun_essential_assisted_prepare",
+      "comun_assisted_wallet_item_category",
       "comun_assisted_forwarding_list",
       "comun_assisted_forwarding_open",
       "comun_assisted_forwarding_declare_sent",

@@ -351,6 +351,18 @@ begin
 end;
 $$;
 
+create or replace function public.comun_assisted_wallet_item_category(
+  p_token_hash_hex text,p_wallet_item_id uuid
+)
+returns table(category text)
+language sql stable security definer set search_path=pg_catalog,private,public as $$
+  select wi.category
+  from private.comun_participation_wallet_items wi
+  where wi.id=p_wallet_item_id
+    and wi.wallet_id=private.comun_assisted_wallet_id(p_token_hash_hex)
+    and wi.item_type='relata_report' and wi.archived_at is null;
+$$;
+
 create or replace function public.comun_assisted_forwarding_list(
   p_token_hash_hex text,p_wallet_item_id uuid
 )
@@ -525,6 +537,7 @@ revoke all on function public.comun_relata_classification_transition(text,text,t
 revoke all on function private.comun_assisted_wallet_id(text) from public,anon,authenticated;
 revoke all on function public.comun_essential_wallet_mark_ready(text,uuid) from public,anon,authenticated;
 revoke all on function public.comun_essential_assisted_prepare(text,uuid) from public,anon,authenticated;
+revoke all on function public.comun_assisted_wallet_item_category(text,uuid) from public,anon,authenticated;
 revoke all on function public.comun_assisted_forwarding_list(text,uuid) from public,anon,authenticated;
 revoke all on function public.comun_assisted_forwarding_open(text,uuid,text) from public,anon,authenticated;
 revoke all on function public.comun_assisted_forwarding_declare_sent(text,uuid,boolean) from public,anon,authenticated;
@@ -534,6 +547,7 @@ grant execute on function public.comun_relata_create(text,text,text,jsonb,text,t
 grant execute on function public.comun_relata_classification_transition(text,text,text,text,jsonb) to service_role;
 grant execute on function public.comun_essential_wallet_mark_ready(text,uuid) to service_role;
 grant execute on function public.comun_essential_assisted_prepare(text,uuid) to service_role;
+grant execute on function public.comun_assisted_wallet_item_category(text,uuid) to service_role;
 grant execute on function public.comun_assisted_forwarding_list(text,uuid) to service_role;
 grant execute on function public.comun_assisted_forwarding_open(text,uuid,text) to service_role;
 grant execute on function public.comun_assisted_forwarding_declare_sent(text,uuid,boolean) to service_role;

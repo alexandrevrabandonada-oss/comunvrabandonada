@@ -61,16 +61,26 @@ export async function GET(
   const walletItemId = path[0] === "packages" ? uuid(path[1]) : null;
   if (!walletItemId || path.length !== 2) return dormant();
   try {
+    const access = await forwardingDb().rpc(
+      "comun_assisted_wallet_item_category",
+      {
+        p_token_hash_hex: tokenHash,
+        p_wallet_item_id: walletItemId,
+      },
+    );
+    const category = Array.isArray(access.data)
+      ? access.data[0]?.category
+      : null;
+    if (access.error || !isEssentialServiceCategory(category)) return dormant();
     const result = await forwardingDb().rpc("comun_assisted_forwarding_list", {
       p_token_hash_hex: tokenHash,
       p_wallet_item_id: walletItemId,
     });
     if (result.error) return dormant();
     const packages = Array.isArray(result.data) ? result.data : [];
-    const category = packages[0]?.category;
     return json({
       packages,
-      channels: typeof category === "string" ? channelView(category) : [],
+      channels: channelView(category),
       noOfficialSend: true,
     });
   } catch {

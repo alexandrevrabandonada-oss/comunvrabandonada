@@ -22,7 +22,7 @@ permissions:
 env:
   P6A_MIGRATION: 20260809133923_comun_essential_services_assisted.sql
   P6A_MANIFEST: supabase/releases/20260809133923-comun-essential-services-assisted.json
-  P6A_SHA256: 07ba7c3d09fb856dca6990e4dba396660175cdfac5664aedfce3199d161f25f0
+  P6A_SHA256: 58e8739624d7cdee0d138ab45debd2eabaff443e0b0937560e2d775e359294dc
   EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
   EXTERNAL_EXCEPTION: supabase/migration-exceptions/20260724233256-sidewalk-external-ledger.json
 
@@ -109,16 +109,16 @@ jobs:
           with expected(name) as (values ('comun_forwarding_packages'),('comun_forwarding_attempts'),('comun_forwarding_events'),('comun_relata_classification_events')), observed as (
             select e.name,c.oid,c.relrowsecurity,c.relforcerowsecurity from expected e left join pg_class c on c.relname=e.name and c.relnamespace='private'::regnamespace
           ) select json_build_object('expected',4,'observed',count(oid),'allRls',bool_and(relrowsecurity),'allForceRls',bool_and(relforcerowsecurity),'publicCrud',bool_or(has_table_privilege('public',oid,'SELECT') or has_table_privilege('public',oid,'INSERT') or has_table_privilege('public',oid,'UPDATE') or has_table_privilege('public',oid,'DELETE')),'anonCrud',bool_or(has_table_privilege('anon',oid,'SELECT') or has_table_privilege('anon',oid,'INSERT') or has_table_privilege('anon',oid,'UPDATE') or has_table_privilege('anon',oid,'DELETE')),'authenticatedCrud',bool_or(has_table_privilege('authenticated',oid,'SELECT') or has_table_privilege('authenticated',oid,'INSERT') or has_table_privilege('authenticated',oid,'UPDATE') or has_table_privilege('authenticated',oid,'DELETE'))) from observed;
-          with expected(name) as (values ('comun_relata_classification_transition'),('comun_essential_wallet_mark_ready'),('comun_essential_assisted_prepare'),('comun_assisted_forwarding_list'),('comun_assisted_forwarding_open'),('comun_assisted_forwarding_declare_sent'),('comun_assisted_forwarding_record_response'),('comun_assisted_forwarding_withdraw'),('comun_stmu_assisted_prepare'),('comun_stmu_assisted_open')), observed as (
+          with expected(name) as (values ('comun_relata_classification_transition'),('comun_essential_wallet_mark_ready'),('comun_essential_assisted_prepare'),('comun_assisted_wallet_item_category'),('comun_assisted_forwarding_list'),('comun_assisted_forwarding_open'),('comun_assisted_forwarding_declare_sent'),('comun_assisted_forwarding_record_response'),('comun_assisted_forwarding_withdraw'),('comun_stmu_assisted_prepare'),('comun_stmu_assisted_open')), observed as (
             select e.name,p.oid,p.prosecdef,coalesce(array_to_string(p.proconfig,','),'') config from expected e left join pg_proc p on p.proname=e.name and p.pronamespace='public'::regnamespace
-          ) select json_build_object('expected',10,'observed',count(oid),'allSecurityDefiner',bool_and(prosecdef),'allSearchPathPinned',bool_and(config like 'search_path=pg_catalog%'),'publicExecute',bool_or(has_function_privilege('public',oid,'EXECUTE')),'anonExecute',bool_or(has_function_privilege('anon',oid,'EXECUTE')),'authenticatedExecute',bool_or(has_function_privilege('authenticated',oid,'EXECUTE')),'serviceRoleExecuteAll',bool_and(has_function_privilege('service_role',oid,'EXECUTE'))) from observed;
+          ) select json_build_object('expected',11,'observed',count(oid),'allSecurityDefiner',bool_and(prosecdef),'allSearchPathPinned',bool_and(config like 'search_path=pg_catalog%'),'publicExecute',bool_or(has_function_privilege('public',oid,'EXECUTE')),'anonExecute',bool_or(has_function_privilege('anon',oid,'EXECUTE')),'authenticatedExecute',bool_or(has_function_privilege('authenticated',oid,'EXECUTE')),'serviceRoleExecuteAll',bool_and(has_function_privilege('service_role',oid,'EXECUTE'))) from observed;
           SQL
           node - <<'NODE'
           const fs=require('node:fs'); const rows=fs.readFileSync('.ci-artifacts/p6a-promotion/postflight.jsonl','utf8').trim().split(/\r?\n/).map(JSON.parse); const [category,generalized,tables,rpcs]=rows;
           if(!category.migrationHistoryPresent||!category.waterConstraintPresent) throw new Error('COMUN_P6A_REMOTE_CATEGORY_POSTFLIGHT_FAILED');
           if(!generalized.sourceDomainNotNull||generalized.sourceDomainDefault!=="'bus'::text"||!generalized.busIntakeNullable||!generalized.sourceReferenceConstraint||!generalized.webAllowed) throw new Error('COMUN_P6A_REMOTE_FORWARDING_POSTFLIGHT_FAILED');
           if(tables.expected!==4||tables.observed!==4||!tables.allRls||!tables.allForceRls||tables.publicCrud||tables.anonCrud||tables.authenticatedCrud) throw new Error('COMUN_P6A_REMOTE_RLS_POSTFLIGHT_FAILED');
-          if(rpcs.expected!==10||rpcs.observed!==10||!rpcs.allSecurityDefiner||!rpcs.allSearchPathPinned||rpcs.publicExecute||rpcs.anonExecute||rpcs.authenticatedExecute||!rpcs.serviceRoleExecuteAll) throw new Error('COMUN_P6A_REMOTE_RPC_POSTFLIGHT_FAILED');
+          if(rpcs.expected!==11||rpcs.observed!==11||!rpcs.allSecurityDefiner||!rpcs.allSearchPathPinned||rpcs.publicExecute||rpcs.anonExecute||rpcs.authenticatedExecute||!rpcs.serviceRoleExecuteAll) throw new Error('COMUN_P6A_REMOTE_RPC_POSTFLIGHT_FAILED');
           fs.writeFileSync('.ci-artifacts/p6a-promotion/postflight.json',JSON.stringify({result:'COMUN_P6A_REMOTE_SCHEMA_PROMOTED_FLAGS_OFF',category,generalized,tables,rpcs,reportContentRead:false,flagsChanged:false},null,2)+'\n');
           NODE
           echo COMUN_P6A_REMOTE_SCHEMA_PROMOTED_FLAGS_OFF >> "$GITHUB_STEP_SUMMARY"
