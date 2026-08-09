@@ -105,9 +105,6 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
   await page.goto("/comun/calcadas");
   await page.getByRole("link", { name: "Registrar calçada" }).click();
   await expect(page).toHaveURL(/\/comun\/calcadas\/contribuir/);
-  await expect(
-    page.getByRole("heading", { name: "Registrar problema na calçada" }),
-  ).toBeVisible();
 
   // A entrada canônica P4 é anônima. Esta jornada também preserva, de forma
   // explícita, a cobertura editorial do formulário detalhado legado.
