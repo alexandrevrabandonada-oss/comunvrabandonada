@@ -9,6 +9,11 @@ import {
 import { classifyRelataPrivacy } from "@/lib/comun-relata-privacy";
 import { routeRelata } from "@/lib/comun-relata-routing";
 import { isComunRelataAttachmentsEnabled } from "@/lib/comun-relata-evidence-feature";
+import {
+  createComunRelataPhotoOnlyDecision,
+  isComunRelataPhotoOnlyCapture,
+  isComunRelataPhotoOnlyEnabled,
+} from "@/lib/comun-relata-photo-first";
 import { associateComunRelataCollective } from "@/lib/comun-relata-evidence-runtime";
 import { isComunQuickCaptureEnabled } from "@/lib/comun-capture-feature";
 import { isComunParticipationWalletEnabled } from "@/lib/comun-participation-wallet-feature";
@@ -81,6 +86,15 @@ export async function POST(request: NextRequest) {
   const wantsQuickCapture = body.captureMode === "quick_v2";
   const quickCapture = wantsQuickCapture && isComunQuickCaptureEnabled();
   const attachmentsEnabled = isComunRelataAttachmentsEnabled();
+  const hasPhoto = body.hasPhoto === true;
+  const photoOnlyEnabled = isComunRelataPhotoOnlyEnabled();
+  const photoOnly = isComunRelataPhotoOnlyCapture({
+    text,
+    semanticTextAbsent: body.text === null,
+    hasPhoto,
+    quickCapture,
+    photoOnlyEnabled,
+  });
   if (wantsQuickCapture && !quickCapture) return dormant();
   const allowedAnswerKeys = new Set([
     "homes_power",
@@ -93,7 +107,7 @@ export async function POST(request: NextRequest) {
   ]);
 
   if (
-    text.length < 8 ||
+    (!photoOnly && text.length < 8) ||
     text.length > 600 ||
     !/^[A-Za-z0-9_-]{32,160}$/.test(idempotencyKey) ||
     !/^[A-Za-z0-9_-]{32,160}$/.test(receiptSecret) ||
@@ -109,7 +123,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (body.captureMode === "quick_v2" && body.hasPhoto === true && !attachmentsEnabled) {
+  if (
+    (body.captureMode === "quick_v2" && hasPhoto && !attachmentsEnabled) ||
+    (photoOnly && Object.keys(answers).length > 0)
+  ) {
     return NextResponse.json(
       { code: "invalid_request" },
       { status: 400, headers: noStoreHeaders },
@@ -117,11 +134,13 @@ export async function POST(request: NextRequest) {
   }
 
   const input = {
-    text,
+    text: photoOnly ? null : text,
     answers,
-    hasAttachment: quickCapture && body.hasPhoto === true,
+    hasAttachment: quickCapture && hasPhoto,
   };
-  const decision = routeRelata(input);
+  const decision = photoOnly
+    ? createComunRelataPhotoOnlyDecision()
+    : routeRelata({ ...input, text });
   if (decision.missingInformation.length > 0) {
     return NextResponse.json(
       { code: "triage_incomplete" },
@@ -133,7 +152,7 @@ export async function POST(request: NextRequest) {
   const { data, error } = await db.rpc("comun_relata_create", {
     p_idempotency_key: idempotencyKey,
     p_receipt_secret: receiptSecret,
-    p_original_text: text,
+    p_original_text: photoOnly ? null : text,
     p_answers: answers,
     p_category: decision.category,
     p_urgency: decision.urgency,
