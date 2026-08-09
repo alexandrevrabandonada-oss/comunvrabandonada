@@ -47,4 +47,3 @@ O runner Playwright local que tenta iniciar novamente o laboratório Supabase ex
 ## Resultado
 
 Estado de integração: pendente de PR/CI/merge/smoke de Production.
-
