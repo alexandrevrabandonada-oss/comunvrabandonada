@@ -22,7 +22,7 @@ permissions:
 jobs:
   proof:
     if: inputs.authorization == 'RUN_F2_R1_PRODUCTION_FIXTURE'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -38,7 +38,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.18.0
           cache: npm
 
       - run: npm ci --ignore-scripts
