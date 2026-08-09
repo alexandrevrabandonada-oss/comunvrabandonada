@@ -64,6 +64,7 @@ export function ComunAppV2Home({
 
       <Link
         href={withComunAppV2(COMUN_MOTOROLA_PRIMARY_ACTION.href)}
+        prefetch={false}
         data-comun-motorola-primary-action="true"
         className="flex min-h-14 items-center justify-between gap-4 rounded-[var(--comun-radius-card)] border-2 border-comun-black bg-comun-yellow px-4 py-3 text-comun-black shadow-[4px_4px_0_#0b0b0a]"
       >
@@ -302,6 +303,7 @@ function Shortcut({
   return (
     <Link
       href={withComunAppV2(href)}
+      prefetch={false}
       className="flex min-h-24 min-w-24 snap-start flex-col items-center justify-center gap-2 rounded-[var(--comun-radius-card)] border border-comun-black/20 bg-comun-paper p-3 text-center text-xs font-black"
     >
       <span className="grid size-10 place-items-center rounded-[var(--comun-radius-control)] bg-comun-black text-comun-paper [&>svg]:size-5">

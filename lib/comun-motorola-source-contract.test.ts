@@ -35,4 +35,14 @@ describe("contratos de fonte do Motorola Pass", () => {
     expect(navigation).toContain('["Participar", "/comun/participar"');
     expect(controls).toContain('href={withComunAppV2("/comun/participar"');
   });
+
+  it("só inicia as navegações da Home depois do gesto da pessoa", () => {
+    const home = source("components/comun-app-v2-home.tsx");
+    expect(home).toContain(
+      "href={withComunAppV2(COMUN_MOTOROLA_PRIMARY_ACTION.href)}\n        prefetch={false}",
+    );
+    expect(home).toContain(
+      "href={withComunAppV2(href)}\n      prefetch={false}",
+    );
+  });
 });
