@@ -1,6 +1,6 @@
-# Estado atual — 48.1B-P6A em validação (09/08/2026)
+# Estado atual — 48.1B-P6A verde no domínio (09/08/2026)
 
-## 48.1B-P6A — serviços essenciais — candidata em CI
+## 48.1B-P6A — serviços essenciais — concluída
 
 - baseline canônico confirmado em
   `origin/main=7ee7123dbd3c66b8713e3238d35a422734f029b6` e branch nova
@@ -14,18 +14,31 @@
 - catálogo institucional server-side verificado em fontes oficiais; nenhum
   canal foi acionado;
 - uma migration P6A generaliza o núcleo P5 e preserva wrappers STMU;
-- E2E descartável P6A `31319072956` verde no head
-  `95b4869748629baedb844f8ab987da7a99ad3b58`: três serviços, uma decisão na
+- E2E descartável P6A `31319369615` verde no head
+  `982a5312a1bd5e4c0c92fe222dc03fc60bd2efee`: três serviços, uma decisão na
   ambiguidade, transição do mesmo relato photo-only, segurança, screenshot
   mobile, Axe, zero request externo, zero publicação e zero hard delete;
-- regressão P5/STMU `31319072950` verde no mesmo head, preservando
+- regressão P5/STMU `31319369666` verde no mesmo head, preservando
   `bus_intake_id` e `prepared != sent`;
 - `prepared` continua diferente de `sent`; auto-send, publicação, mapa público,
   coletivos, território, Google e `launch_publicly` permanecem desligados;
-- PR `#243` está em draft; Production e schema remoto ainda inalterados;
-- plano de promoção exact-one, ondas separadas e soft cleanup está registrado em
-  `comun-48-1b-p6a-essential-services.md`;
-- terminal P6A ainda não emitido.
+- PR `#243` mesclado por exact-head em
+  `0a4ada3f54d29dd7d48a71363a9f406b03edfcdd`;
+- preflight `31320178811`, promoção única `31320220765`, postflight
+  `31320276479`, deploy flags-off `31320322317`, onda 1 `31320434158`, onda 2
+  `31320554100` e postflight final `31320680060` verdes;
+- cleanup final: zero relatos/casos/itens/wallets/pacotes/tentativas sintéticos
+  ativos, zero snapshot, coletivo, request/envio externo e hard delete;
+- Conta, Carteira, Relata, Photo First, localização privada, Calçadas, Ônibus,
+  STMU assistida, serviços essenciais e forwarding assistido estão ON;
+- auto-send, publicação automática, mapa público geral, coletivos, perfil
+  territorial e Google estão OFF; `launch_publicly=false`.
+
+Resultado terminal:
+`COMUN_48_1B_P6A_ESSENTIAL_SERVICES_DOMAIN_GREEN_NO_AUTO_SEND`.
+
+Próximo passo: `P1G — Google Auth`; depois,
+`48.1C — Piloto Humano Motorola`. Não iniciar P6B antes de 48.1C.
 
 ## 48.1B-F2 — capture first
 

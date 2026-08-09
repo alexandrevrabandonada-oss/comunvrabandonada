@@ -7,8 +7,10 @@ Atualizado em 09/08/2026.
 - baseline confirmado: `origin/main=7ee7123dbd3c66b8713e3238d35a422734f029b6`;
 - estado inicial confirmado: `COMUN_48_1B_F2_CAPTURE_FIRST_DOMAIN_GREEN`;
 - branch nova: `codex/48-1b-p6a-essential-services`;
-- PR funcional: `#243`, mantido em draft até CI completa;
-- Production e schema remoto permanecem inalterados durante a implementação;
+- PR funcional `#243` mesclado por exact-head em
+  `0a4ada3f54d29dd7d48a71363a9f406b03edfcdd`;
+- schema e runtime Production foram alterados somente depois do plano de
+  promoção registrado, com gates separados e rollback focal;
 - arquivos não rastreados preexistentes foram inventariados e preservados.
 
 ## Preflight remoto
@@ -97,27 +99,31 @@ separados. CPF, matrícula, instalação, titularidade, telefone e credenciais d
 cliente devem ser informados diretamente ao serviço e não são persistidos no
 COMUN.
 
-## Plano de promoção e ativação
+## Promoção e ativação realizadas
 
-Nenhuma etapa abaixo ocorre antes de CI completa, PR pronta, revisão e merge no
-exact head:
+Todas as etapas usaram o exact-main
+`0a4ada3f54d29dd7d48a71363a9f406b03edfcdd`:
 
-1. preflight remoto com plano exato de uma migration;
-2. promoção com as duas flags OFF;
-3. postflight somente de metadata, RLS, grants, RPCs, categoria e P5;
-4. deploy exact-main com flags OFF e cloak;
-5. onda 1: `COMUN_ESSENTIAL_SERVICES_ENABLED=enabled`, forwarding OFF, smoke
-   privado e soft cleanup em `finally`;
-6. onda 2: `COMUN_ESSENTIAL_FORWARDING_ASSISTED_ENABLED=enabled`, pacote e
-   tentativa somente `prepared`, sem abrir o destino real e sem declaração
+1. preflight remoto `31320178811`: plano exato de uma migration, sem
+   `--include-all`, repair, reset ou seed;
+2. promoção `31320220765`: exatamente a migration P6A, com as duas flags OFF;
+3. postflight `31320276479`: metadata, RLS/FORCE RLS, grants, RPCs, categoria e
+   compatibilidade P5 verdes, sem leitura de relatos;
+4. deploy flags-off e cloak `31320322317` verdes;
+5. onda 1 `31320434158`: serviços essenciais ON, forwarding OFF, uma suíte
+   sintética privada com quatro casos de classificação e soft cleanup em
+   `finally`;
+6. onda 2 `31320554100`: forwarding assistido ON, uma fixture de água, package
+   e tentativa somente `prepared`, sem abrir o destino real e sem declaração
    sintética de envio;
-7. rollback focal automático se um gate falhar.
+7. postflight read-only final `31320680060` verde; nenhum rollback foi
+   necessário.
 
 ## Evidências descartáveis no candidato
 
-No head `95b4869748629baedb844f8ab987da7a99ad3b58`:
+No head funcional final `982a5312a1bd5e4c0c92fe222dc03fc60bd2efee`:
 
-- E2E P6A `31319072956`:
+- E2E P6A `31319369615`:
   `COMUN_P6A_ESSENTIAL_SERVICES_DISPOSABLE_E2E_GREEN`;
 - água percorreu protocolo, Carteira, pacote SAAE, abertura `prepared`,
   declaração da pessoa e resposta manual somente no laboratório;
@@ -131,19 +137,26 @@ No head `95b4869748629baedb844f8ab987da7a99ad3b58`:
 - browser real em 390×844, screenshot e Axe sem violações serious/critical;
 - `externalRequests=0`, `automaticSend=false`, `publicSnapshots=0` e
   `hardDeletes=0`;
-- regressão P5/STMU `31319072950` verde no mesmo head, preservando
+- regressão P5/STMU `31319369666` verde no mesmo head, preservando
   `bus_intake_id` e `prepared != sent`.
 
-## Evidências pendentes para fechamento
+## Fechamento Production
 
-- CI completa e Preview do head final;
-- merge exact-head;
-- dry-run, promoção e postflight;
-- ondas 1 e 2 e cleanup Production.
+O cleanup final comprovou:
 
-O marcador terminal
-`COMUN_48_1B_P6A_ESSENTIAL_SERVICES_DOMAIN_GREEN_NO_AUTO_SEND` só será emitido
-quando todas essas evidências estiverem verdes.
+- active synthetic reports/cases/wallet items/wallets/packages/attempts: `0`;
+- public snapshots: `0`;
+- collectives: `0`;
+- external sends e external requests: `0`;
+- hard deletes: `0`.
+
+Estado final: Conta, Carteira, Relata, Photo First, localização privada,
+Calçadas, Ônibus, STMU assistida, serviços essenciais e forwarding assistido
+estão ON. Auto-send, publicação automática, mapa público geral, coletivos,
+perfil territorial e Google permanecem OFF; `launch_publicly=false`.
+
+Resultado terminal:
+`COMUN_48_1B_P6A_ESSENTIAL_SERVICES_DOMAIN_GREEN_NO_AUTO_SEND`.
 
 Próximo passo depois de P6A: `P1G — Google Auth`; depois,
 `48.1C — Piloto Humano Motorola`. P6B não deve começar antes de 48.1C.
