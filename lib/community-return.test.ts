@@ -14,7 +14,11 @@ describe("safeCommunityReturn", () => {
 
   it.each([
     "https://evil.example/comun",
+    "javascript:alert(1)",
     "//evil.example/comun",
+    "%2F%2Fevil.example%2Fcomun",
+    "/%2F%2Fevil.example/comun",
+    "/comun%2F..%2F..%2Fadmin",
     "/comun/admin",
     "/comun/admin/operacao",
     "/comun/entrar?returnTo=/comun",

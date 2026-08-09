@@ -1,4 +1,32 @@
-# Estado atual — 48.1B-P6A verde no domínio (09/08/2026)
+# Estado atual — 48.1B-P1G no gate humano do provider (09/08/2026)
+
+## 48.1B-P1G — Google Auth — configuração humana pendente
+
+- baseline `origin/main=09ab579b658e3ef1e6964b932ef8faba081e574a` e
+  estado inicial P6A terminal confirmados;
+- branch nova `codex/48-1b-p1g-google-auth`, zero migration e arquivos não
+  rastreados preexistentes preservados;
+- Supabase Auth SSR/PKCE existente foi endurecido sem criar auth paralelo;
+- Production fixa `https://comunsocial.online`; Preview autorizado permanece
+  isolado; `returnTo` externo/codificado falha fechado;
+- perfis bloqueados não entram; conta nova confirma nome/termos/política sem
+  território; Carteira anônima só vincula após gesto explícito;
+- escopos Google limitados a `openid email profile`, sem offline access, APIs
+  Google ou persistência de provider token;
+- testes focais 20/20, contrato de workflow 3/3, E2E local 2/2 com Auth falso
+  loopback e zero contato externo, Axe/typecheck/lint verdes;
+- Production observada com Google oculto, e-mail disponível e navegação
+  anônima preservada;
+- gate atual: a conta Google Cloud exige aceite humano dos Termos antes de
+  listar/criar OAuth clients, e a conta Supabase conectada não acessa o projeto
+  Production;
+- resultado vigente:
+  `COMUN_P1G_PROVIDER_CONFIGURATION_HUMAN_ACTION_REQUIRED`;
+- não emitir ainda `COMUN_48_1B_P1G_GOOGLE_AUTH_DOMAIN_GREEN`.
+
+Detalhes: `reports/current/comun-48-1b-p1g-google-auth.md`.
+
+Depois de concluir P1G: `48.1C — Piloto Humano Motorola`. Não iniciar P6B.
 
 ## 48.1B-P6A — serviços essenciais — concluída
 
