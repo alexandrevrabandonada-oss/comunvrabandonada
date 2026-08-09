@@ -145,7 +145,7 @@ try {
   const page = await uiBrowser.newPage({
     viewport: { width: 390, height: 844 },
   });
-  await page.goto(`${base}/comun/relatar`, { waitUntil: "networkidle" });
+  await page.goto(`${base}/comun/relatar`, { waitUntil: "domcontentloaded" });
   await page.locator("[data-comun-quick-capture-v2='true']").waitFor();
   const textInput = page.getByLabel(/Uma frase basta|A descrição é opcional/);
   await textInput.fill("Estamos sem água desde ontem.");
