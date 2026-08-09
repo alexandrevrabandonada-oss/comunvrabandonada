@@ -251,14 +251,14 @@ export function ComunPwaRuntime({
           </div>
         </aside>
       ) : null}
-      <nav aria-label="Ajuda de conexão">
+      <aside aria-label="Ajuda de conexão">
         <Link
           href="/comun/offline"
           className="sr-only focus:not-sr-only focus:fixed focus:right-3 focus:top-20 focus:z-50 focus:bg-comun-yellow focus:p-3 focus:text-comun-black"
         >
           Ver ajuda de conexão
         </Link>
-      </nav>
+      </aside>
     </>
   );
 }
