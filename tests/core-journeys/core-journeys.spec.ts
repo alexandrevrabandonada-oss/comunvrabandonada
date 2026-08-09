@@ -60,6 +60,15 @@ test("Participar abre intenções agrupadas em um passo e sem mutation", async (
 test("autenticação preserva intenção e bloqueia returnTo externo ou expirado", async ({
   page,
 }) => {
+  const expectAuthPathsToPreserve = async (expected: string | RegExp) => {
+    const returnToInputs = page.locator('input[name="returnTo"]');
+    const authPathCount = await returnToInputs.count();
+    expect(authPathCount).toBeGreaterThanOrEqual(1);
+    expect(authPathCount).toBeLessThanOrEqual(2);
+    for (let index = 0; index < authPathCount; index += 1) {
+      await expect(returnToInputs.nth(index)).toHaveValue(expected);
+    }
+  };
   const intended =
     "/comun/calcadas/contribuir?experiencia=app-v2%26intencao=register_sidewalk";
   await page.goto(
@@ -68,15 +77,11 @@ test("autenticação preserva intenção e bloqueia returnTo externo ou expirado
   await expect(
     page.getByText("você volta à ação escolhida", { exact: false }),
   ).toBeVisible();
-  await expect(page.locator('input[name="returnTo"]')).toHaveValue(
-    /\/comun\/calcadas\/contribuir/,
-  );
+  await expectAuthPathsToPreserve(/\/comun\/calcadas\/contribuir/);
   await page.goto(
     `/comun/entrar?${flag}&returnTo=${encodeURIComponent("https://example.com/private")}`,
   );
-  await expect(page.locator('input[name="returnTo"]')).toHaveValue(
-    "/comun/minha-participacao",
-  );
+  await expectAuthPathsToPreserve("/comun/minha-participacao");
 
   const expired = Math.floor(Date.now() / 1000) - 10;
   await page.goto(
