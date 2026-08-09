@@ -84,6 +84,13 @@ Run read-only `31322898529`: verde.
   `COMUN_P1G_REMOTE_MIGRATION_PLAN_EMPTY`, com zero migration, zero
   `--include-all`, repair, reset ou seed.
 
+Run pós-configuração `31325453756`: verde.
+
+- endpoint público confirmou `googleProviderEnabled=true`;
+- Client ID, Client Secret e provider tokens continuaram não lidos;
+- Management API permaneceu indisponível por ausência do token opcional;
+- plano remoto permaneceu vazio e nenhuma linha de negócio foi lida.
+
 ## Fontes oficiais atuais
 
 - guia Supabase de login Google:

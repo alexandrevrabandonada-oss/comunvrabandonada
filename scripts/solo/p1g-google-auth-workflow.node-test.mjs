@@ -39,6 +39,8 @@ test("preflight is read-only and permits exactly zero migrations", () => {
     false,
   );
   assert.doesNotMatch(workflow, /external_google_secret[^\n]*(console|stdout|writeFileSync)/);
+  assert.match(workflow, /COMUN_P1G_MANAGEMENT_METADATA_UNAVAILABLE/);
+  assert.match(workflow, /COMUN_P1G_PROVIDER_PUBLIC_METADATA_GREEN/);
 });
 
 test("activation is exact-head, provider-gated, reversible, and human-completed", () => {

@@ -20,6 +20,8 @@
 - preflight read-only `31322898529` confirmou P6A, provider Google público
   desabilitado e plano remoto de zero migration, sem leitura de negócio ou
   segredo;
+- preflight pós-configuração `31325453756` confirmou provider Google público
+  habilitado e plano remoto ainda vazio, sem ler credenciais ou negócio;
 - termos Google Cloud aceitos; projeto `COMUN`, app OAuth externo e cliente Web
   Production criados com origem/callback exatos e somente escopos básicos;
 - Supabase Production: Site URL e redirect exatos, provider Google ON, Client

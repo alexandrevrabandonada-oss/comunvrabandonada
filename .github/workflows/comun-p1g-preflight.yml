@@ -113,7 +113,7 @@ jobs:
         run: |
           set -euo pipefail
           if test -z "${SUPABASE_ACCESS_TOKEN:-}"; then
-            printf '%s\n' '{"managementMetadataAccessible":false,"result":"COMUN_P1G_PROVIDER_CONFIGURATION_HUMAN_ACTION_REQUIRED"}' >.ci-artifacts/p1g-preflight/management-auth.json
+            printf '%s\n' '{"managementMetadataAccessible":false,"result":"COMUN_P1G_MANAGEMENT_METADATA_UNAVAILABLE"}' >.ci-artifacts/p1g-preflight/management-auth.json
             exit 0
           fi
           config="$RUNNER_TEMP/comun-p1g-management-auth-config.json"
@@ -172,6 +172,8 @@ jobs:
         run: |
           if grep -q '"configurationGreen":true' .ci-artifacts/p1g-preflight/management-auth.json; then
             echo COMUN_P1G_PROVIDER_CONFIGURATION_METADATA_GREEN >> "$GITHUB_STEP_SUMMARY"
+          elif grep -q '"googleProviderEnabled": true' .ci-artifacts/p1g-preflight/public-auth.json; then
+            echo COMUN_P1G_PROVIDER_PUBLIC_METADATA_GREEN >> "$GITHUB_STEP_SUMMARY"
           else
             echo COMUN_P1G_PROVIDER_CONFIGURATION_HUMAN_ACTION_REQUIRED >> "$GITHUB_STEP_SUMMARY"
           fi
