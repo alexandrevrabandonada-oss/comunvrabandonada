@@ -84,7 +84,9 @@ export function ParticipationWalletPanel({
       if (!response.ok) throw new Error(value.code ?? "wallet_create_failed");
       setPresent(true);
       setRecoveryCode(value.recoveryCode ?? null);
-      setNotice("Seus registros estão prontos. Guarde o código antes de fechar.");
+      setNotice(
+        "Seus registros estão prontos. Guarde o código antes de fechar.",
+      );
     } catch {
       setNotice("A Carteira não está disponível agora.");
     } finally {
