@@ -25,6 +25,7 @@ Data: 2026-08-08
 
 - unitários: `536/536` verdes;
 - contratos Motorola focais: `5/5` verdes;
+- E2E focal de shell/participação: `3/3` verdes;
 - typecheck: verde;
 - lint: verde;
 - build: verde (`117/117` páginas estáticas geradas);

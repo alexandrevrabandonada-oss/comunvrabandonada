@@ -10,6 +10,7 @@ describe("contratos de fonte do Motorola Pass", () => {
     for (const path of [
       "components/comun-app-v2-home.tsx",
       "components/sidewalk-miniapp-shell.tsx",
+      "app/comun/participar/page.tsx",
       "lib/sidewalk-miniapp-definition.ts",
     ]) {
       expect(source(path), path).not.toContain(
@@ -20,9 +21,7 @@ describe("contratos de fonte do Motorola Pass", () => {
 
   it("não seleciona semanticamente um problema de ônibus por padrão", () => {
     const bus = source("components/comun-bus-relata-intake.tsx");
-    expect(bus).toContain(
-      "useState<ComunBusIssueType | null>(null)",
-    );
+    expect(bus).toContain("useState<ComunBusIssueType | null>(null)");
     expect(bus).toContain("Adicionar detalhes (opcional)");
     expect(bus).toContain("aria-expanded={detailsOpen}");
     expect(bus).not.toContain(

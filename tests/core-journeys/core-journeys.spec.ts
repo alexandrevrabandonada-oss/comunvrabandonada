@@ -26,15 +26,14 @@ test.beforeEach(async ({ page }, testInfo) => {
 test("Participar abre intenções agrupadas em um passo e sem mutation", async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
   const mutations: string[] = [];
   page.on("request", (request) => {
     if (request.headers()["next-action"])
       mutations.push(request.headers()["next-action"]);
   });
   await page.goto(`/comun?${flag}`);
-  await page
-    .getByRole("button", { name: "Abrir formas de participar" })
-    .click();
+  await page.getByRole("button", { name: "Participar agora" }).click();
   const dialog = page.getByRole("dialog", {
     name: "Escolha uma forma de participar",
   });
@@ -48,7 +47,11 @@ test("Participar abre intenções agrupadas em um passo e sem mutation", async (
     "Corrigir ou proteger",
   ])
     await expect(dialog).toContainText(group);
-  const sidewalk = dialog.getByRole("link", { name: /Registrar calçada/ });
+  const sidewalk = dialog.getByRole("link", { name: /^Calçada(?:\s|$)/ });
+  await expect(sidewalk).toHaveAttribute(
+    "href",
+    /\/comun\/calcadas\/contribuir/,
+  );
   await expect(sidewalk).toHaveAttribute("href", /intencao=register_sidewalk/);
   await expect(sidewalk).toHaveAttribute("href", /etapa=participate/);
   expect(mutations).toEqual([]);
@@ -58,7 +61,7 @@ test("autenticação preserva intenção e bloqueia returnTo externo ou expirado
   page,
 }) => {
   const intended =
-    "/comun/mapa/contribuir?experiencia=app-v2%26intencao=register_sidewalk";
+    "/comun/calcadas/contribuir?experiencia=app-v2%26intencao=register_sidewalk";
   await page.goto(
     `/comun/entrar?${flag}&returnTo=${encodeURIComponent(intended)}`,
   );
@@ -66,7 +69,7 @@ test("autenticação preserva intenção e bloqueia returnTo externo ou expirado
     page.getByText("você volta à ação escolhida", { exact: false }),
   ).toBeVisible();
   await expect(page.locator('input[name="returnTo"]')).toHaveValue(
-    /\/comun\/mapa\/contribuir/,
+    /\/comun\/calcadas\/contribuir/,
   );
   await page.goto(
     `/comun/entrar?${flag}&returnTo=${encodeURIComponent("https://example.com/private")}`,
