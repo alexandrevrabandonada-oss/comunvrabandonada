@@ -1,0 +1,166 @@
+name: COMUN P6A remote preflight
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/comun-p6a-remote-preflight.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comun-p6a-remote-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  catalog:
+    name: COMUN P6A / remote schema read-only
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate credential boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          case "$SUPABASE_DB_URL" in
+            *localhost*|*127.0.0.1*) exit 1 ;;
+          esac
+
+      - name: Capture metadata without reading reports
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/p6a-preflight
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/p6a-preflight/catalog.json <<'SQL'
+          begin read only;
+          with wanted_tables(schema_name, table_name) as (values
+            ('public','comun_relata_cases'),
+            ('private','comun_forwarding_packages'),
+            ('private','comun_forwarding_attempts'),
+            ('private','comun_forwarding_events')
+          ), tables as (
+            select n.nspname as schema_name, c.relname, c.oid,
+              c.relrowsecurity, c.relforcerowsecurity
+            from pg_catalog.pg_class c
+            join pg_catalog.pg_namespace n on n.oid=c.relnamespace
+            join wanted_tables w on w.schema_name=n.nspname and w.table_name=c.relname
+            where c.relkind in ('r','p')
+          )
+          select json_build_object(
+            'result', 'COMUN_P6A_REMOTE_PREFLIGHT_CATALOG_CAPTURED',
+            'tables', coalesce((
+              select json_agg(json_build_object(
+                'schema', t.schema_name,
+                'name', t.relname,
+                'rls', t.relrowsecurity,
+                'forceRls', t.relforcerowsecurity,
+                'columns', (
+                  select json_agg(json_build_object(
+                    'name', a.attname,
+                    'type', pg_catalog.format_type(a.atttypid,a.atttypmod),
+                    'notNull', a.attnotnull
+                  ) order by a.attnum)
+                  from pg_catalog.pg_attribute a
+                  where a.attrelid=t.oid and a.attnum>0 and not a.attisdropped
+                ),
+                'constraints', (
+                  select coalesce(json_agg(json_build_object(
+                    'name', con.conname,
+                    'type', con.contype,
+                    'definition', pg_catalog.pg_get_constraintdef(con.oid, true)
+                  ) order by con.conname),'[]'::json)
+                  from pg_catalog.pg_constraint con where con.conrelid=t.oid
+                ),
+                'publicCrud', has_table_privilege('public',t.oid,'SELECT') or has_table_privilege('public',t.oid,'INSERT') or has_table_privilege('public',t.oid,'UPDATE') or has_table_privilege('public',t.oid,'DELETE'),
+                'anonCrud', has_table_privilege('anon',t.oid,'SELECT') or has_table_privilege('anon',t.oid,'INSERT') or has_table_privilege('anon',t.oid,'UPDATE') or has_table_privilege('anon',t.oid,'DELETE'),
+                'authenticatedCrud', has_table_privilege('authenticated',t.oid,'SELECT') or has_table_privilege('authenticated',t.oid,'INSERT') or has_table_privilege('authenticated',t.oid,'UPDATE') or has_table_privilege('authenticated',t.oid,'DELETE'),
+                'serviceRoleSelect', has_table_privilege('service_role',t.oid,'SELECT'),
+                'serviceRoleInsert', has_table_privilege('service_role',t.oid,'INSERT'),
+                'serviceRoleUpdate', has_table_privilege('service_role',t.oid,'UPDATE')
+              ) order by t.schema_name,t.relname) from tables t
+            ), '[]'::json),
+            'functions', coalesce((
+              select json_agg(json_build_object(
+                'schema', n.nspname,
+                'name', p.proname,
+                'identityArguments', pg_catalog.pg_get_function_identity_arguments(p.oid),
+                'result', pg_catalog.pg_get_function_result(p.oid),
+                'securityDefiner', p.prosecdef,
+                'searchPathPinned', coalesce(array_to_string(p.proconfig,','),'') like 'search_path=%',
+                'publicExecute', has_function_privilege('public',p.oid,'EXECUTE'),
+                'anonExecute', has_function_privilege('anon',p.oid,'EXECUTE'),
+                'authenticatedExecute', has_function_privilege('authenticated',p.oid,'EXECUTE'),
+                'serviceRoleExecute', has_function_privilege('service_role',p.oid,'EXECUTE')
+              ) order by n.nspname,p.proname,pg_catalog.pg_get_function_identity_arguments(p.oid))
+              from pg_catalog.pg_proc p
+              join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+              where n.nspname in ('public','private') and (
+                p.proname='comun_relata_create' or
+                p.proname like 'comun_bus_%' or
+                p.proname like 'comun_forwarding_%' or
+                p.proname like 'comun_stmu_%'
+              )
+            ), '[]'::json),
+            'migrations', coalesce((
+              select json_agg(json_build_object('version',version,'name',name) order by version)
+              from supabase_migrations.schema_migrations
+            ), '[]'::json),
+            'businessRowsRead', false,
+            'transactionReadOnly', true
+          );
+          rollback;
+          SQL
+
+      - name: Assert expected P6A baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const result = JSON.parse(fs.readFileSync('.ci-artifacts/p6a-preflight/catalog.json','utf8'));
+          const fail = (message) => { console.error(message); process.exitCode = 1; };
+          const table = (schema, name) => result.tables.find((entry) => entry.schema === schema && entry.name === name);
+          const cases = table('public','comun_relata_cases');
+          const packages = table('private','comun_forwarding_packages');
+          const attempts = table('private','comun_forwarding_attempts');
+          const events = table('private','comun_forwarding_events');
+          if (!cases || !packages || !attempts || !events) fail('COMUN_P6A_BLOCKED_REMOTE_SCHEMA_DRIFT:table');
+          const category = cases?.constraints.find((entry) => entry.name === 'comun_relata_cases_category_check')?.definition ?? '';
+          if (!category.includes('public_lighting') || !category.includes('power_distribution') || category.includes('water_supply')) fail('COMUN_P6A_BLOCKED_REMOTE_SCHEMA_DRIFT:category');
+          const busIntake = packages?.columns.find((entry) => entry.name === 'bus_intake_id');
+          if (!busIntake?.notNull) fail('COMUN_P6A_BLOCKED_REMOTE_SCHEMA_DRIFT:bus_intake_id');
+          for (const entry of [packages,attempts,events]) {
+            if (!entry?.rls || !entry?.forceRls || entry.publicCrud || entry.anonCrud || entry.authenticatedCrud) fail(`COMUN_P6A_BLOCKED_REMOTE_SCHEMA_DRIFT:grants:${entry?.name}`);
+          }
+          const create = result.functions.find((entry) => entry.schema === 'public' && entry.name === 'comun_relata_create');
+          if (!create || create.identityArguments !== 'p_idempotency_key text, p_receipt_secret text, p_original_text text, p_answers jsonb, p_category text, p_urgency text, p_rule_version text, p_decision jsonb, p_privacy_class text, p_consent_version text') fail('COMUN_P6A_BLOCKED_REMOTE_SCHEMA_DRIFT:comun_relata_create');
+          const required = ['comun_stmu_assisted_prepare','comun_stmu_assisted_list','comun_stmu_assisted_open','comun_stmu_assisted_declare_sent','comun_stmu_assisted_record_response'];
+          for (const name of required) {
+            const fn = result.functions.find((entry) => entry.schema === 'public' && entry.name === name);
+            if (!fn?.securityDefiner || !fn.searchPathPinned || fn.publicExecute || fn.anonExecute || fn.authenticatedExecute || !fn.serviceRoleExecute) fail(`COMUN_P6A_BLOCKED_REMOTE_SCHEMA_DRIFT:function:${name}`);
+          }
+          if (result.businessRowsRead !== false || result.transactionReadOnly !== true) fail('COMUN_P6A_BLOCKED_REMOTE_SCHEMA_DRIFT:read_boundary');
+          if (process.exitCode) process.exit(process.exitCode);
+          fs.writeFileSync('.ci-artifacts/p6a-preflight/summary.json', JSON.stringify({
+            result: 'COMUN_P6A_REMOTE_PREFLIGHT_GREEN',
+            categories: { public_lighting: 'existing', power_distribution: 'existing', water_supply: 'absent' },
+            busIntakeCoupling: 'required',
+            migrationCount: result.migrations.length,
+            businessRowsRead: false,
+            transactionReadOnly: true,
+          }, null, 2) + '\n');
+          NODE
+          echo COMUN_P6A_REMOTE_PREFLIGHT_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-p6a-remote-preflight-${{ github.run_id }}
+          path: .ci-artifacts/p6a-preflight
+          retention-days: 7
