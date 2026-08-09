@@ -278,4 +278,3 @@ revoke all on function public.comun_relata_create(text, text, text, jsonb, text,
 grant execute on function public.comun_relata_create(text, text, text, jsonb, text, text, text, jsonb, text, text) to service_role;
 
 commit;
-
