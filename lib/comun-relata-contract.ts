@@ -28,6 +28,17 @@ export type PrivacyClass =
   | "sensitive"
   | "high_risk";
 
+export type HealthIssueType =
+  | "access_or_waiting"
+  | "exam_or_procedure"
+  | "medicine_or_supply"
+  | "staff_or_service_availability"
+  | "facility_or_accessibility"
+  | "care_conduct"
+  | "transfer_or_health_transport"
+  | "information_or_followup"
+  | "other_health_service";
+
 export type RelataStatus =
   | "captured_private"
   | "draft"
@@ -171,6 +182,7 @@ export type AllowedAdaptiveAnswerKey =
   | "smoke_active"
   | "flood_active_risk"
   | "tree_state"
+  | "health_issue_type"
   | "blocked";
 
 export type AdaptiveQuestion = {
@@ -178,7 +190,8 @@ export type AdaptiveQuestion = {
     | "dark_street_power_scope"
     | "smoke_active_state"
     | "flood_active_risk"
-    | "tree_fall_state";
+    | "tree_fall_state"
+    | "health_issue_type";
   prompt: string;
   answerKey: AllowedAdaptiveAnswerKey;
   options: Array<{
@@ -208,6 +221,7 @@ export type RoutingDecision = {
   }>;
   adaptiveQuestion?: AdaptiveQuestion | null;
   routingVersion?: string;
+  healthIssueType?: HealthIssueType;
 };
 
 export type Submission = {

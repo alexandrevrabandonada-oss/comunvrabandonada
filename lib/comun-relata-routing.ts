@@ -15,6 +15,7 @@ import {
   hasTreeHazardSignal,
   routeUrbanIncidentV3,
 } from "./comun-urban-routing-v3";
+import { routeHealthServiceV1 } from "./comun-health-service-routing-v1";
 
 const DARK_STREET_QUESTION =
   "As casas também estão sem energia ou apenas as luminárias da rua?";
@@ -33,6 +34,7 @@ const DARK_STREET_ADAPTIVE_QUESTION: AdaptiveQuestion = {
 export type RouteRelataOptions = {
   environmentalIncidentsEnabled?: boolean;
   urbanIncidentsEnabled?: boolean;
+  publicHealthSensitiveRoutingEnabled?: boolean;
 };
 
 const SMOKE_ACTIVE_QUESTION =
@@ -230,6 +232,33 @@ export function routeRelata(
       adaptiveQuestion: environmental.adaptiveQuestion,
       routingVersion: environmental.routingVersion,
     });
+  }
+
+  if (options.publicHealthSensitiveRoutingEnabled) {
+    const health = routeHealthServiceV1(input);
+    if (health) {
+      return baseDecision("public_health", input, {
+        urgency: health.urgency,
+        agencyKind: health.urgency === "emergency" ? "emergency" : "community_review",
+        explanation: health.explanation,
+        nextStep: health.nextStep,
+        missingInformation: [],
+        adaptiveQuestions: health.adaptiveQuestion
+          ? [health.adaptiveQuestion]
+          : [],
+        privacyClass: health.privacyClass,
+        publication: "never_automatic",
+        requiresHumanReview: true,
+        confidence: health.confidence,
+        selectedCategory: "public_health",
+        categoryCandidates: [
+          { category: "public_health", confidence: health.confidence },
+        ],
+        adaptiveQuestion: health.adaptiveQuestion,
+        routingVersion: health.routingVersion,
+        healthIssueType: health.healthIssueType,
+      });
+    }
   }
 
   if (

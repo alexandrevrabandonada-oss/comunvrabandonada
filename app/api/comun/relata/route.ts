@@ -6,7 +6,6 @@ import {
   isComunRelataPersistenceEnabled,
   normalizeComunRelataReceipt,
 } from "@/lib/comun-relata-persistence";
-import { classifyRelataPrivacy } from "@/lib/comun-relata-privacy";
 import { routeRelata } from "@/lib/comun-relata-routing";
 import { isComunRelataAttachmentsEnabled } from "@/lib/comun-relata-evidence-feature";
 import {
@@ -30,6 +29,7 @@ import {
 } from "@/lib/comun-essential-services-feature";
 import { isComunEnvironmentalIncidentsEnabled } from "@/lib/comun-environmental-incidents-feature";
 import { isComunUrbanIncidentsEnabled } from "@/lib/comun-urban-incidents-feature";
+import { isComunPublicHealthSensitiveRoutingEnabled } from "@/lib/comun-public-health-sensitive-feature";
 
 export const runtime = "nodejs";
 
@@ -108,6 +108,7 @@ export async function POST(request: NextRequest) {
     "smoke_active",
     "flood_active_risk",
     "tree_state",
+    "health_issue_type",
     "blocked",
     "line",
     "direction",
@@ -131,7 +132,19 @@ export async function POST(request: NextRequest) {
         (key === "flood_active_risk" &&
           !["sim", "nao", "nao_sei"].includes(answers[key])) ||
         (key === "tree_state" &&
-          !["caiu", "em_pe", "nao_sei"].includes(answers[key])),
+          !["caiu", "em_pe", "nao_sei"].includes(answers[key])) ||
+        (key === "health_issue_type" &&
+          ![
+            "access_or_waiting",
+            "exam_or_procedure",
+            "medicine_or_supply",
+            "staff_or_service_availability",
+            "facility_or_accessibility",
+            "care_conduct",
+            "transfer_or_health_transport",
+            "information_or_followup",
+            "other_health_service",
+          ].includes(answers[key])),
     )
   ) {
     return NextResponse.json(
@@ -163,6 +176,8 @@ export async function POST(request: NextRequest) {
           environmentalIncidentsEnabled:
             isComunEnvironmentalIncidentsEnabled(),
           urbanIncidentsEnabled: isComunUrbanIncidentsEnabled(),
+          publicHealthSensitiveRoutingEnabled:
+            isComunPublicHealthSensitiveRoutingEnabled(),
         },
       );
   const decision = applyComunEssentialServicesRoutingGate(
@@ -186,7 +201,7 @@ export async function POST(request: NextRequest) {
           captureState: "captured_private",
         }
       : decision,
-    p_privacy_class: classifyRelataPrivacy(input),
+    p_privacy_class: decision.privacyClass,
     p_consent_version: "relata-consent-v1",
   });
 

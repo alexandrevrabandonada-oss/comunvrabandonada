@@ -17,6 +17,8 @@ import {
 } from "@/lib/comun-essential-services-feature";
 import { ComunEssentialServicesPanel } from "@/app/comun/minha-participacao/comun-essential-services-panel";
 import { COMUN_RELATA_CATEGORY_LABELS } from "@/lib/comun-wallet-relata-action";
+import { HEALTH_ISSUE_TYPE_LABELS } from "@/lib/comun-health-service-routing-v1";
+import { ComunHealthChannelsPanel } from "./comun-health-channels-panel";
 
 const SidewalkRealPointPicker = dynamic(
   () =>
@@ -71,6 +73,7 @@ export function QuickCaptureV2({
   essentialForwardingEnabled = false,
   environmentalIncidentsEnabled = false,
   urbanIncidentsEnabled = false,
+  publicHealthSensitiveRoutingEnabled = false,
 }: {
   attachmentsEnabled?: boolean;
   locationEnabled?: boolean;
@@ -79,6 +82,7 @@ export function QuickCaptureV2({
   essentialForwardingEnabled?: boolean;
   environmentalIncidentsEnabled?: boolean;
   urbanIncidentsEnabled?: boolean;
+  publicHealthSensitiveRoutingEnabled?: boolean;
 }) {
   const [startedAt] = useState(() => Date.now());
   const [hydrated, setHydrated] = useState(false);
@@ -164,7 +168,11 @@ export function QuickCaptureV2({
             hasAttachment: Boolean(file),
             answers: currentAnswers,
           },
-          { environmentalIncidentsEnabled, urbanIncidentsEnabled },
+          {
+            environmentalIncidentsEnabled,
+            urbanIncidentsEnabled,
+            publicHealthSensitiveRoutingEnabled,
+          },
         ),
         essentialServicesEnabled,
       );
@@ -542,6 +550,29 @@ export function QuickCaptureV2({
                   </p>
                 </section>
               ) : null}
+              {decision?.category === "public_health" ? (
+                <section className="grid gap-2 border-2 border-comun-black bg-white p-4">
+                  <p className="font-black">
+                    Evite incluir nome de paciente, documento, diagnóstico ou
+                    prontuário.
+                  </p>
+                  {photo ? (
+                    <p className="text-sm font-bold">
+                      Não fotografe pacientes, cartões, receitas, exames, telas
+                      ou prontuários.
+                    </p>
+                  ) : null}
+                  <details className="text-sm">
+                    <summary className="cursor-pointer font-black underline">
+                      Como protegemos informações de saúde
+                    </summary>
+                    <p className="mt-2 leading-6">
+                      O relato fica privado, não entra em mapa, busca pública ou
+                      coletivo e não é enviado a nenhum serviço pelo COMUN.
+                    </p>
+                  </details>
+                </section>
+              ) : null}
               {decision ? (
                 <section
                   className={`grid gap-4 border-2 border-comun-black p-4 ${isEmergency ? "bg-comun-red text-white" : "bg-comun-asphalt text-comun-paper"}`}
@@ -557,8 +588,9 @@ export function QuickCaptureV2({
                   </div>
                   {isEmergency ? (
                     <p className="border-2 border-comun-yellow bg-comun-black p-3 text-sm font-bold">
-                      Afaste-se do perigo e procure o serviço de emergência. O
-                      COMUN não faz essa chamada.
+                      {decision.category === "public_health"
+                        ? "Procure atendimento de urgência. Em risco imediato à vida, o SAMU 192 é o canal emergencial. O COMUN não faz essa chamada."
+                        : "Afaste-se do perigo e procure o serviço de emergência. O COMUN não faz essa chamada."}
                     </p>
                   ) : null}
                   <button
@@ -605,6 +637,18 @@ export function QuickCaptureV2({
                     receipt.category as keyof typeof COMUN_RELATA_CATEGORY_LABELS
                   ] ?? "Categoria em revisão"}
                 </p>
+              ) : null}
+              {receipt.category === "public_health" &&
+              decision?.healthIssueType ? (
+                <p className="text-sm font-bold">
+                  {HEALTH_ISSUE_TYPE_LABELS[decision.healthIssueType]}
+                </p>
+              ) : null}
+              {publicHealthSensitiveRoutingEnabled &&
+              receipt.category === "public_health" ? (
+                <ComunHealthChannelsPanel
+                  emergency={receipt.urgency === "emergency"}
+                />
               ) : null}
               {receipt.category === "sidewalk_accessibility" ? (
                 <section className="grid gap-2 border-2 border-comun-black p-3">

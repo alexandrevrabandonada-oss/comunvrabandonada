@@ -1,4 +1,8 @@
 import { isEssentialServiceCategory } from "./comun-essential-services-feature";
+import {
+  HEALTH_ISSUE_TYPE_LABELS,
+} from "./comun-health-service-routing-v1";
+import type { HealthIssueType } from "./comun-relata-contract";
 
 export const COMUN_RELATA_CATEGORY_LABELS = {
   sidewalk_accessibility: "Calçada e acessibilidade",
@@ -33,6 +37,7 @@ export type WalletRelataFeatureFlags = {
 export type WalletRelataAction = {
   route: WalletRelataRoute;
   categoryLabel: string;
+  detailLabel: string | null;
   statusOverride: string | null;
   stateMessage: string | null;
   nextStep: string | null;
@@ -116,6 +121,7 @@ function baseAction(
   return {
     route,
     categoryLabel: categoryLabel(input.category),
+    detailLabel: null,
     statusOverride: null,
     stateMessage: null,
     nextStep: null,
@@ -173,6 +179,23 @@ export function resolveWalletRelataAction(
 
   if (input.category === "sidewalk_accessibility") {
     return sidewalkPresentation(input);
+  }
+
+  if (input.category === "public_health") {
+    const healthIssueType =
+      typeof input.metadata.healthIssueType === "string"
+        ? (input.metadata.healthIssueType as HealthIssueType)
+        : null;
+    return baseAction("no_verified_forwarding", input, {
+      detailLabel:
+        healthIssueType && healthIssueType in HEALTH_ISSUE_TYPE_LABELS
+          ? HEALTH_ISSUE_TYPE_LABELS[healthIssueType]
+          : null,
+      stateMessage: "Guardado no COMUN.",
+      nextStep: "Você pode consultar os canais oficiais do SUS.",
+      availabilityMessage:
+        "O encaminhamento sensível permanece desativado. Nenhum dado de saúde foi enviado.",
+    });
   }
 
   if (

@@ -11,6 +11,7 @@ import {
 import { routeRelata } from "@/lib/comun-relata-routing";
 import { isComunEnvironmentalIncidentsEnabled } from "@/lib/comun-environmental-incidents-feature";
 import { isComunUrbanIncidentsEnabled } from "@/lib/comun-urban-incidents-feature";
+import { isComunPublicHealthSensitiveRoutingEnabled } from "@/lib/comun-public-health-sensitive-feature";
 
 export const runtime = "nodejs";
 const headers = { "cache-control": "private, no-store, max-age=0" };
@@ -21,7 +22,8 @@ export async function POST(request: NextRequest) {
   const essentialEnabled = isComunEssentialServicesEnabled();
   const environmentalEnabled = isComunEnvironmentalIncidentsEnabled();
   const urbanEnabled = isComunUrbanIncidentsEnabled();
-  if (!essentialEnabled && !environmentalEnabled && !urbanEnabled)
+  const healthEnabled = isComunPublicHealthSensitiveRoutingEnabled();
+  if (!essentialEnabled && !environmentalEnabled && !urbanEnabled && !healthEnabled)
     return dormant();
   const proof = decodeComunRelataReceiptCookie(
     request.cookies.get(COMUN_RELATA_RECEIPT_COOKIE)?.value,
@@ -40,6 +42,7 @@ export async function POST(request: NextRequest) {
     {
       environmentalIncidentsEnabled: environmentalEnabled,
       urbanIncidentsEnabled: urbanEnabled,
+      publicHealthSensitiveRoutingEnabled: healthEnabled,
     },
   );
   const transitionCategories = new Set([
@@ -57,6 +60,7 @@ export async function POST(request: NextRequest) {
     ...(urbanEnabled
       ? ["urban_flooding", "stormwater_drainage", "tree_hazard"]
       : []),
+    ...(healthEnabled ? ["public_health"] : []),
   ]);
   if (
     !transitionCategories.has(decision.category) ||
