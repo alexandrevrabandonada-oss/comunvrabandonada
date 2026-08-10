@@ -4,15 +4,19 @@ import test from "node:test";
 
 const read = (path) => readFileSync(path, "utf8");
 
-test("P6C-B1 preflight is metadata-only and expects one authorized migration", () => {
+test("P6C-B1 preflight is metadata-only and preserves B1 while B2 is planned", () => {
   const workflow = read(".github/workflows/comun-p6c-b1-preflight.yml");
   assert.match(workflow, /begin read only/);
   assert.match(workflow, /publicHealthPresent/);
   assert.match(workflow, /publicEducationPreserved/);
   assert.match(workflow, /workplacePreserved/);
-  assert.match(workflow, /educationRoutingVersionPending/);
+  assert.match(workflow, /educationRoutingVersionPresent/);
+  assert.match(workflow, /educationSubtypePersistencePresent/);
   assert.match(workflow, /businessRowsRead/);
-  assert.match(workflow, /COMUN_P6C_B1_REMOTE_PLAN_EXACT_ONE/);
+  assert.match(
+    workflow,
+    /COMUN_P6C_B1_BASELINE_PRESERVED_P6C_B2_PLAN_EXACT_ONE/,
+  );
   assert.doesNotMatch(
     workflow,
     /supabase db push[^\n]*--include-all|supabase migration repair|supabase db reset|seed\.sql/,

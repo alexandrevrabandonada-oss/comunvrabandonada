@@ -12,6 +12,7 @@ export type RelataCategory =
   | "waste_or_debris"
   | "public_health"
   | "public_education"
+  | "child_protection"
   | "workplace"
   | "environmental_pollution"
   | "urban_flooding"
@@ -49,6 +50,14 @@ export type EducationIssueType =
   | "discrimination_or_bullying"
   | "information_or_management"
   | "other_education_service";
+
+export type ChildProtectionIssueType =
+  | "immediate_danger"
+  | "violence_or_abuse_concern"
+  | "neglect_or_abandonment_concern"
+  | "exploitation_or_rights_violation"
+  | "institutional_protection_failure"
+  | "other_child_protection";
 
 export type RelataStatus =
   | "captured_private"
@@ -195,6 +204,7 @@ export type AllowedAdaptiveAnswerKey =
   | "tree_state"
   | "health_issue_type"
   | "education_issue_type"
+  | "child_immediate_danger"
   | "blocked";
 
 export type AdaptiveQuestion = {
@@ -204,7 +214,8 @@ export type AdaptiveQuestion = {
     | "flood_active_risk"
     | "tree_fall_state"
     | "health_issue_type"
-    | "education_issue_type";
+    | "education_issue_type"
+    | "child_immediate_danger";
   prompt: string;
   answerKey: AllowedAdaptiveAnswerKey;
   options: Array<{
@@ -237,6 +248,8 @@ export type RoutingDecision = {
   healthIssueType?: HealthIssueType;
   educationIssueType?: EducationIssueType;
   childSafetySignal?: boolean;
+  childProtectionIssueType?: ChildProtectionIssueType;
+  immediateDanger?: boolean | null;
 };
 
 export type Submission = {

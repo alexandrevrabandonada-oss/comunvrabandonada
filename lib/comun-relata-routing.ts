@@ -17,6 +17,7 @@ import {
 } from "./comun-urban-routing-v3";
 import { routeHealthServiceV1 } from "./comun-health-service-routing-v1";
 import { routeEducationServiceV1 } from "./comun-education-service-routing-v1";
+import { routeChildProtectionV1 } from "./comun-child-protection-routing-v1";
 
 const DARK_STREET_QUESTION =
   "As casas também estão sem energia ou apenas as luminárias da rua?";
@@ -37,6 +38,7 @@ export type RouteRelataOptions = {
   urbanIncidentsEnabled?: boolean;
   publicHealthSensitiveRoutingEnabled?: boolean;
   publicEducationSensitiveRoutingEnabled?: boolean;
+  childProtectionPrivateRoutingEnabled?: boolean;
 };
 
 const SMOKE_ACTIVE_QUESTION =
@@ -184,6 +186,40 @@ export function routeRelata(
   const environmental = options.environmentalIncidentsEnabled
     ? environmentalCandidate
     : null;
+
+  if (options.childProtectionPrivateRoutingEnabled) {
+    const childProtection = routeChildProtectionV1(input);
+    if (childProtection) {
+      return baseDecision("child_protection", input, {
+        urgency: childProtection.urgency,
+        agencyKind:
+          childProtection.urgency === "emergency"
+            ? "emergency"
+            : "community_review",
+        explanation: childProtection.explanation,
+        nextStep: childProtection.nextStep,
+        missingInformation: [],
+        adaptiveQuestions: childProtection.adaptiveQuestion
+          ? [childProtection.adaptiveQuestion]
+          : [],
+        privacyClass: "high_risk",
+        publication: "never_automatic",
+        requiresHumanReview: true,
+        confidence: childProtection.confidence,
+        selectedCategory: "child_protection",
+        categoryCandidates: [
+          {
+            category: "child_protection",
+            confidence: childProtection.confidence,
+          },
+        ],
+        adaptiveQuestion: childProtection.adaptiveQuestion,
+        routingVersion: childProtection.routingVersion,
+        childProtectionIssueType: childProtection.childProtectionIssueType,
+        immediateDanger: childProtection.immediateDanger,
+      });
+    }
+  }
 
   if (options.urbanIncidentsEnabled) {
     const urban = routeUrbanIncidentV3(input);

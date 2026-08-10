@@ -1,0 +1,113 @@
+name: COMUN P6C-B2 private child protection runtime
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-p6c-b2-*.yml"
+      - "app/api/comun/child-protection-channels/**"
+      - "app/api/comun/participation-wallet/**"
+      - "app/api/comun/relata/**"
+      - "app/comun/relatar/**"
+      - "app/comun/minha-participacao/**"
+      - "lib/comun-child-protection-**"
+      - "lib/comun-relata-**"
+      - "lib/comun-wallet-relata-action*"
+      - "lib/server/comun-child-protection-**"
+      - "package.json"
+      - "scripts/solo/rehearse-p6c-b2-child-protection-private-local.mjs"
+      - "supabase/migrations/20260810171448_comun_child_protection_private_routing.sql"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-runtime-e2e:
+    name: COMUN P6C-B2 / private child protection disposable E2E
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
+      - run: npm ci --ignore-scripts
+      - name: Assert isolated unlinked runtime and the single P6C-B2 migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${SUPABASE_PROJECT_REF:-}"
+          test -z "${SUPABASE_DB_URL:-}"
+          test -z "${VERCEL_TOKEN:-}"
+          grep -q '^project_id = "COMUM_VR_ABANDONADA"' supabase/config.toml
+          test "$(find supabase/migrations -maxdepth 1 -type f | grep -Ei 'child_protection_private_routing' | wc -l)" -eq 1
+          test -f supabase/migrations/20260810171448_comun_child_protection_private_routing.sql
+      - name: Start disposable Supabase and exercise P6C-B2
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact="$GITHUB_WORKSPACE/.ci-artifacts/p6c-b2-runtime"
+          mkdir -p "$artifact"
+          cleanup() {
+            set +e
+            supabase stop --no-backup >/dev/null 2>&1
+            ids=$(docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA')
+            test -z "$ids" || docker rm -f $ids >/dev/null 2>&1
+            test -z "$(docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA')"
+          }
+          trap cleanup EXIT
+          # Supabase start prints disposable credentials. Keep that output in
+          # runner-temporary storage so it can never enter the evidence artifact.
+          supabase start >"$RUNNER_TEMP/p6c-b2-supabase-startup.log" 2>&1
+          status_file=$(mktemp)
+          trap 'rm -f "$status_file"; cleanup' EXIT
+          supabase status -o env >"$status_file"
+          export NEXT_PUBLIC_SUPABASE_URL=$(sed -n 's/^API_URL="\(.*\)"$/\1/p' "$status_file")
+          export NEXT_PUBLIC_SUPABASE_ANON_KEY=$(sed -n 's/^ANON_KEY="\(.*\)"$/\1/p' "$status_file")
+          export SUPABASE_SERVICE_ROLE_KEY=$(sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"$/\1/p' "$status_file")
+          export COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL=$(sed -n 's/^DB_URL="\(.*\)"$/\1/p' "$status_file")
+          rm -f "$status_file"
+          export ALLOW_LOCAL_TESTS=true
+          export COMUN_BASE_URL=http://127.0.0.1:3160
+          export NEXT_PUBLIC_SITE_URL="$COMUN_BASE_URL"
+          export COMUN_RELATA_LOCAL_PERSISTENCE=enabled
+          export COMUN_RELATA_PREVIEW=enabled
+          export COMUN_QUICK_CAPTURE_V2=enabled
+          export COMUN_RELATA_LOCAL_EVIDENCE=enabled
+          export COMUN_RELATA_LOCATION_ENABLED=enabled
+          export COMUN_RELATA_PHOTO_ONLY_ENABLED=enabled
+          export COMUN_RELATA_LOCATION_ENCRYPTION_KEY=$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("base64url"))')
+          export COMUN_RELATA_COLLECTIVE_ENABLED=disabled
+          export COMUN_PARTICIPATION_WALLET_LOCAL=enabled
+          export COMUN_ESSENTIAL_SERVICES_ENABLED=enabled
+          export COMUN_ESSENTIAL_FORWARDING_ASSISTED_ENABLED=enabled
+          export COMUN_ENVIRONMENTAL_INCIDENTS_ENABLED=enabled
+          export COMUN_ENVIRONMENTAL_FORWARDING_ASSISTED_ENABLED=disabled
+          export COMUN_URBAN_INCIDENTS_ENABLED=enabled
+          export COMUN_URBAN_INCIDENTS_FORWARDING_ASSISTED_ENABLED=disabled
+          export COMUN_PUBLIC_HEALTH_SENSITIVE_ROUTING_ENABLED=enabled
+          export COMUN_PUBLIC_EDUCATION_SENSITIVE_ROUTING_ENABLED=enabled
+          export COMUN_CHILD_PROTECTION_PRIVATE_ROUTING_ENABLED=enabled
+          export COMUN_SENSITIVE_FORWARDING_ASSISTED_ENABLED=disabled
+          export COMUN_R2A_USE_BUILT_SERVER=1
+          npx playwright install --with-deps chromium >"$artifact/playwright-install.log" 2>&1
+          npm run build >"$artifact/build.log" 2>&1
+          npm run relata:p6c-b2:child-protection:e2e:local >"$artifact/e2e.log" 2>&1
+          grep -q COMUN_P6C_B2_CHILD_PROTECTION_PRIVATE_DISPOSABLE_E2E_GREEN "$artifact/e2e.log"
+          grep -q '"externalRequests":0' "$artifact/e2e.log"
+          grep -q '"hardDeletes":0' "$artifact/e2e.log"
+          ! grep -Eqi 'Bearer [A-Za-z0-9._-]{20,}|service_role|receiptSecret|idempotencyKey|original_text' "$artifact/e2e.log"
+      - name: Upload sanitized evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-p6c-b2-runtime-${{ github.run_id }}
+          path: .ci-artifacts/p6c-b2-runtime
+          retention-days: 14
+          if-no-files-found: warn

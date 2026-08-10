@@ -1,0 +1,27 @@
+{
+  "release": "20260810171448-comun-child-protection-private-routing",
+  "migration": "supabase/migrations/20260810171448_comun_child_protection_private_routing.sql",
+  "migrationSha256": "92fb622d38ddf259d91529aecd52f07e52d34132b5ae7601c4799feaede7282b",
+  "path": "supabase/migrations/20260810171448_comun_child_protection_private_routing.sql",
+  "sha256": "92fb622d38ddf259d91529aecd52f07e52d34132b5ae7601c4799feaede7282b",
+  "requiresPromotion": true,
+  "remotePromotionAllowed": true,
+  "scope": "production",
+  "dependsOn": ["20260810155310-comun-public-education-sensitive-routing"],
+  "destructiveSql": false,
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "releaseLedger": "public.comun_schema_releases",
+  "dataMutation": false,
+  "technicalBackfill": null,
+  "historicalTextRead": false,
+  "publicProjection": false,
+  "publicProjectionAutomatic": false,
+  "externalForwarding": false,
+  "assistedOpeningOnly": false,
+  "featureFlags": [
+    "COMUN_CHILD_PROTECTION_PRIVATE_ROUTING_ENABLED",
+    "COMUN_SENSITIVE_FORWARDING_ASSISTED_ENABLED"
+  ],
+  "reason": "private_child_protection_routing_without_sensitive_forwarding"
+}

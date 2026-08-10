@@ -1,0 +1,173 @@
+name: COMUN P6C-B2 child protection preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-p6c-b2-preflight.yml"
+      - "app/api/comun/child-protection-channels/**"
+      - "app/api/comun/relata/**"
+      - "app/comun/**"
+      - "lib/comun-child-protection-**"
+      - "lib/comun-relata-**"
+      - "lib/comun-wallet-**"
+      - "lib/server/comun-child-protection-**"
+      - "supabase/migrations/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
+      - name: Validate read-only Production target and bounded migration scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          test -n "${SUPABASE_PROJECT_REF:-}"
+          case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
+          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+          test "${#changed[@]}" -le 1 || { echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+          if test "${#changed[@]}" -eq 1; then
+            case "${changed[0]}" in
+              supabase/migrations/*_comun_child_protection_private_routing.sql) ;;
+              *) echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1 ;;
+            esac
+          fi
+      - name: Inspect P6C-B2 schema metadata without business-row reads
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/p6c-b2-preflight
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/p6c-b2-preflight/schema.json <<'SQL'
+          begin read only;
+          select json_build_object(
+            'childProtectionAbsent', not exists(
+              select 1 from pg_catalog.pg_constraint
+              where conrelid='public.comun_relata_cases'::regclass
+                and conname='comun_relata_cases_category_check'
+                and pg_catalog.pg_get_constraintdef(oid) like '%child_protection%'
+            ),
+            'publicEducationPresent', exists(
+              select 1 from pg_catalog.pg_constraint
+              where conrelid='public.comun_relata_cases'::regclass
+                and conname='comun_relata_cases_category_check'
+                and pg_catalog.pg_get_constraintdef(oid) like '%public_education%'
+            ),
+            'publicHealthPresent', exists(
+              select 1 from pg_catalog.pg_constraint
+              where conrelid='public.comun_relata_cases'::regclass
+                and conname='comun_relata_cases_category_check'
+                and pg_catalog.pg_get_constraintdef(oid) like '%public_health%'
+            ),
+            'workplacePresent', exists(
+              select 1 from pg_catalog.pg_constraint
+              where conrelid='public.comun_relata_cases'::regclass
+                and conname='comun_relata_cases_category_check'
+                and pg_catalog.pg_get_constraintdef(oid) like '%workplace%'
+            ),
+            'createPresent', to_regprocedure('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)') is not null,
+            'transitionPresent', to_regprocedure('public.comun_relata_classification_transition(text,text,text,text,jsonb)') is not null,
+            'educationRoutingPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%comun-education-service-routing-v1%',
+            'healthRoutingPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%comun-health-service-routing-v1%',
+            'childSafetySignalPresent', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%childSafetySignal%',
+            'childRoutingAbsent', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) not like '%comun-child-protection-routing-v1%',
+            'privacyValidationPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) ~ 'restricted.*sensitive.*high_risk',
+            'publicationNeverPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%never%',
+            'casesRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='public.comun_relata_cases'::regclass),
+            'reportsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_relata_reports'::regclass),
+            'eventsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='public.comun_relata_status_events'::regclass),
+            'classificationEventsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_relata_classification_events'::regclass),
+            'walletsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_participation_wallets'::regclass),
+            'walletItemsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_participation_wallet_items'::regclass),
+            'anonCreate', has_function_privilege('anon','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
+            'authenticatedCreate', has_function_privilege('authenticated','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
+            'serviceCreate', has_function_privilege('service_role','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
+            'anonTransition', has_function_privilege('anon','public.comun_relata_classification_transition(text,text,text,text,jsonb)','EXECUTE'),
+            'authenticatedTransition', has_function_privilege('authenticated','public.comun_relata_classification_transition(text,text,text,text,jsonb)','EXECUTE'),
+            'serviceTransition', has_function_privilege('service_role','public.comun_relata_classification_transition(text,text,text,text,jsonb)','EXECUTE'),
+            'anonWalletAttach', has_function_privilege('anon','public.comun_participation_wallet_attach_relata(text,text,text)','EXECUTE'),
+            'authenticatedWalletAttach', has_function_privilege('authenticated','public.comun_participation_wallet_attach_relata(text,text,text)','EXECUTE'),
+            'serviceWalletAttach', has_function_privilege('service_role','public.comun_participation_wallet_attach_relata(text,text,text)','EXECUTE'),
+            'anonReportsSelect', has_table_privilege('anon','private.comun_relata_reports','SELECT'),
+            'authenticatedReportsSelect', has_table_privilege('authenticated','private.comun_relata_reports','SELECT'),
+            'anonEventsSelect', has_table_privilege('anon','public.comun_relata_status_events','SELECT'),
+            'authenticatedEventsSelect', has_table_privilege('authenticated','public.comun_relata_status_events','SELECT'),
+            'anonClassificationEventsSelect', has_table_privilege('anon','private.comun_relata_classification_events','SELECT'),
+            'authenticatedClassificationEventsSelect', has_table_privilege('authenticated','private.comun_relata_classification_events','SELECT'),
+            'sourceDomainsUnchanged', exists(
+              select 1 from pg_catalog.pg_constraint
+              where conrelid='private.comun_forwarding_packages'::regclass
+                and pg_catalog.pg_get_constraintdef(oid) like '%essential_service%'
+                and pg_catalog.pg_get_constraintdef(oid) like '%bus%'
+            ),
+            'businessRowsRead', false,
+            'transactionReadOnly', true
+          );
+          rollback;
+          SQL
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const s=JSON.parse(fs.readFileSync('.ci-artifacts/p6c-b2-preflight/schema.json','utf8'));
+          const required=[
+            'childProtectionAbsent','publicEducationPresent','publicHealthPresent','workplacePresent',
+            'createPresent','transitionPresent','educationRoutingPreserved','healthRoutingPreserved',
+            'childSafetySignalPresent','childRoutingAbsent','privacyValidationPreserved',
+            'publicationNeverPreserved','casesRlsForced','reportsRlsForced','eventsRlsForced',
+            'classificationEventsRlsForced',
+            'walletsRlsForced','walletItemsRlsForced','serviceCreate','serviceTransition',
+            'serviceWalletAttach','sourceDomainsUnchanged','transactionReadOnly'
+          ];
+          if(required.some((key)=>s[key]!==true)||s.anonCreate||s.authenticatedCreate||s.anonTransition||s.authenticatedTransition||s.anonWalletAttach||s.authenticatedWalletAttach||s.anonReportsSelect||s.authenticatedReportsSelect||s.anonEventsSelect||s.authenticatedEventsSelect||s.anonClassificationEventsSelect||s.authenticatedClassificationEventsSelect||s.businessRowsRead!==false) throw new Error('COMUN_P6C_B2_BLOCKED_REMOTE_SCHEMA_DRIFT');
+          NODE
+      - name: Reconcile Calçadas and prove the bounded remote migration plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          held="$RUNNER_TEMP/comun-p6cb2-external-ledger.sql"
+          mv "$EXTERNAL_MIGRATION" "$held"
+          restore() {
+            test ! -e "$held" || mv "$held" "$EXTERNAL_MIGRATION"
+            test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          }
+          trap restore EXIT
+          supabase migration list --db-url "$SUPABASE_DB_URL" >.ci-artifacts/p6c-b2-preflight/migration-list.txt 2>&1
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p6c-b2-preflight/dry-run.txt 2>&1
+          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p6c-b2-preflight/dry-run.txt | sort -u || true)
+          if test "${#changed[@]}" -eq 0; then
+            test "${#planned[@]}" -eq 0 || { echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+            printf '%s\n' '{"result":"COMUN_P6C_B2_REMOTE_BASELINE_PLAN_EMPTY","migrationCount":0,"businessRowsRead":false}' >.ci-artifacts/p6c-b2-preflight/migration-plan.json
+          else
+            test "${#planned[@]}" -eq 1 || { echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+            test "${planned[0]}" = "$(basename "${changed[0]}")" || { echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+            printf '%s\n' '{"result":"COMUN_P6C_B2_REMOTE_PLAN_EXACT_ONE","migrationCount":1,"businessRowsRead":false}' >.ci-artifacts/p6c-b2-preflight/migration-plan.json
+          fi
+          ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/p6c-b2-preflight/dry-run.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-p6c-b2-preflight-${{ github.run_id }}
+          path: .ci-artifacts/p6c-b2-preflight
+          retention-days: 14
+          if-no-files-found: error
+      - name: Emit bounded result
+        if: success()
+        run: echo COMUN_P6C_B2_REMOTE_SCHEMA_GREEN >> "$GITHUB_STEP_SUMMARY"

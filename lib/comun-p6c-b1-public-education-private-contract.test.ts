@@ -81,15 +81,13 @@ describe("COMUN P6C-B1 private public Education contract", () => {
     expect(projection).toContain('"public_education"');
   });
 
-  it("preserves the paused human pilot and forbids the next brick", () => {
+  it("preserves the paused human pilot while B2 remains the only next brick", () => {
     const current = read("reports/current/estado-atual-comun.md");
     expect(current).toContain(
       "COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION",
     );
     expect(
-      readdirSync(join(root, "lib")).some((name) =>
-        /p6c-b2|child-protection-routing/i.test(name),
-      ),
+      readdirSync(join(root, "lib")).some((name) => /p6c-c/i.test(name)),
     ).toBe(false);
   });
 });

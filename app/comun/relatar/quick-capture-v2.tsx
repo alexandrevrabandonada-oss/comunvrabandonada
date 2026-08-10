@@ -21,6 +21,7 @@ import { HEALTH_ISSUE_TYPE_LABELS } from "@/lib/comun-health-service-routing-v1"
 import { EDUCATION_ISSUE_TYPE_LABELS } from "@/lib/comun-education-service-routing-v1";
 import { ComunHealthChannelsPanel } from "./comun-health-channels-panel";
 import { ComunEducationChannelsPanel } from "./comun-education-channels-panel";
+import { ComunChildProtectionChannelsPanel } from "./comun-child-protection-channels-panel";
 
 const SidewalkRealPointPicker = dynamic(
   () =>
@@ -77,6 +78,7 @@ export function QuickCaptureV2({
   urbanIncidentsEnabled = false,
   publicHealthSensitiveRoutingEnabled = false,
   publicEducationSensitiveRoutingEnabled = false,
+  childProtectionPrivateRoutingEnabled = false,
 }: {
   attachmentsEnabled?: boolean;
   locationEnabled?: boolean;
@@ -87,6 +89,7 @@ export function QuickCaptureV2({
   urbanIncidentsEnabled?: boolean;
   publicHealthSensitiveRoutingEnabled?: boolean;
   publicEducationSensitiveRoutingEnabled?: boolean;
+  childProtectionPrivateRoutingEnabled?: boolean;
 }) {
   const [startedAt] = useState(() => Date.now());
   const [hydrated, setHydrated] = useState(false);
@@ -179,6 +182,7 @@ export function QuickCaptureV2({
             urbanIncidentsEnabled,
             publicHealthSensitiveRoutingEnabled,
             publicEducationSensitiveRoutingEnabled,
+            childProtectionPrivateRoutingEnabled,
           },
         ),
         essentialServicesEnabled,
@@ -603,6 +607,20 @@ export function QuickCaptureV2({
                   </details>
                 </section>
               ) : null}
+              {decision?.category === "child_protection" ? (
+                <section className="grid gap-2 border-2 border-comun-black bg-white p-4">
+                  <p className="font-black">
+                    Não inclua nome, documento, endereço ou outras informações
+                    que identifiquem uma criança ou adolescente.
+                  </p>
+                  {photo ? (
+                    <p className="text-sm font-bold">
+                      Não fotografe crianças, documentos, conversas,
+                      prontuários, listas ou telas.
+                    </p>
+                  ) : null}
+                </section>
+              ) : null}
               {decision ? (
                 <section
                   className={`grid gap-4 border-2 border-comun-black p-4 ${isEmergency ? "bg-comun-red text-white" : "bg-comun-asphalt text-comun-paper"}`}
@@ -618,12 +636,14 @@ export function QuickCaptureV2({
                   </div>
                   {isEmergency ? (
                     <p className="border-2 border-comun-yellow bg-comun-black p-3 text-sm font-bold">
-                      {decision.category === "public_health"
-                        ? "Procure atendimento de urgência. Em risco imediato à vida, o SAMU 192 é o canal emergencial. O COMUN não faz essa chamada."
-                        : decision.category === "public_education" &&
-                            decision.childSafetySignal
-                          ? "Procure a rede de proteção adequada. Se houver perigo imediato, afaste-se do risco e peça ajuda. O COMUN não acionou ninguém."
-                          : "Afaste-se do perigo e procure o serviço de emergência. O COMUN não faz essa chamada."}
+                      {decision.category === "child_protection"
+                        ? "Procure ajuda de emergência e mantenha-se em segurança. O COMUN não acionou nenhum serviço."
+                        : decision.category === "public_health"
+                          ? "Procure atendimento de urgência. Em risco imediato à vida, o SAMU 192 é o canal emergencial. O COMUN não faz essa chamada."
+                          : decision.category === "public_education" &&
+                              decision.childSafetySignal
+                            ? "Procure a rede de proteção adequada. Se houver perigo imediato, afaste-se do risco e peça ajuda. O COMUN não acionou ninguém."
+                            : "Afaste-se do perigo e procure o serviço de emergência. O COMUN não faz essa chamada."}
                     </p>
                   ) : null}
                   <button
@@ -683,6 +703,14 @@ export function QuickCaptureV2({
                   {EDUCATION_ISSUE_TYPE_LABELS[decision.educationIssueType]}
                 </p>
               ) : null}
+              {receipt.category === "child_protection" ? (
+                <div className="grid gap-2 border-2 border-comun-black bg-comun-paper p-3">
+                  <p className="font-black">Guardado com proteção reforçada</p>
+                  <p className="text-sm font-bold">
+                    Este registro não será publicado.
+                  </p>
+                </div>
+              ) : null}
               {publicHealthSensitiveRoutingEnabled &&
               receipt.category === "public_health" ? (
                 <ComunHealthChannelsPanel
@@ -694,6 +722,12 @@ export function QuickCaptureV2({
                 <ComunEducationChannelsPanel
                   childSafetySignal={Boolean(decision?.childSafetySignal)}
                   emergency={receipt.urgency === "emergency"}
+                />
+              ) : null}
+              {childProtectionPrivateRoutingEnabled &&
+              receipt.category === "child_protection" ? (
+                <ComunChildProtectionChannelsPanel
+                  immediateDanger={decision?.immediateDanger === true}
                 />
               ) : null}
               {receipt.category === "sidewalk_accessibility" ? (
@@ -715,7 +749,8 @@ export function QuickCaptureV2({
               ) : null}
               {(essentialServicesEnabled ||
                 publicHealthSensitiveRoutingEnabled ||
-                publicEducationSensitiveRoutingEnabled) &&
+                publicEducationSensitiveRoutingEnabled ||
+                childProtectionPrivateRoutingEnabled) &&
               receipt.category === "other" &&
               isPhotoOnly ? (
                 <div className="grid gap-2 border-2 border-comun-black p-3">

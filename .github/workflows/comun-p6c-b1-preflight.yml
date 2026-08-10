@@ -19,6 +19,7 @@ permissions:
 env:
   EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
   P6C_B1_MIGRATION: supabase/migrations/20260810155310_comun_public_education_sensitive_routing.sql
+  P6C_B2_MIGRATION: supabase/migrations/20260810171448_comun_child_protection_private_routing.sql
 
 jobs:
   preflight:
@@ -34,14 +35,14 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: 2.113.0
-      - name: Validate the one authorized migration and read-only Production target
+      - name: Validate the later authorized B2 migration and read-only Production target
         shell: bash
         run: |
           set -euo pipefail
           test -n "${SUPABASE_DB_URL:-}"
           test -n "${SUPABASE_PROJECT_REF:-}"
           case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
-          test "$(git diff --name-only origin/main...HEAD -- supabase/migrations)" = "$P6C_B1_MIGRATION"
+          test "$(git diff --name-only origin/main...HEAD -- supabase/migrations)" = "$P6C_B2_MIGRATION"
       - name: Inspect P6C-B1 schema metadata without business-row reads
         shell: bash
         run: |
@@ -56,8 +57,8 @@ jobs:
             'createPresent', to_regprocedure('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)') is not null,
             'transitionPresent', to_regprocedure('public.comun_relata_classification_transition(text,text,text,text,jsonb)') is not null,
             'healthRoutingPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%comun-health-service-routing-v1%',
-            'educationRoutingVersionPending', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) not like '%comun-education-service-routing-v1%',
-            'educationSubtypePersistencePending', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) not like '%educationIssueType%',
+            'educationRoutingVersionPresent', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%comun-education-service-routing-v1%',
+            'educationSubtypePersistencePresent', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%educationIssueType%',
             'casesRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='public.comun_relata_cases'::regclass),
             'reportsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_relata_reports'::regclass),
             'anonCreate', has_function_privilege('anon','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
@@ -78,7 +79,7 @@ jobs:
           node - <<'NODE'
           const fs=require('node:fs');
           const s=JSON.parse(fs.readFileSync('.ci-artifacts/p6c-b1-preflight/schema.json','utf8'));
-          if(!s.publicHealthPresent||!s.publicEducationPreserved||!s.workplacePreserved||!s.createPresent||!s.transitionPresent||!s.healthRoutingPreserved||!s.educationRoutingVersionPending||!s.educationSubtypePersistencePending||!s.casesRlsForced||!s.reportsRlsForced||s.anonCreate||s.authenticatedCreate||!s.serviceCreate||s.anonTransition||s.authenticatedTransition||!s.serviceTransition||s.anonWalletAttach||s.authenticatedWalletAttach||!s.serviceWalletAttach||!s.sourceDomainsUnchanged||s.businessRowsRead!==false||s.transactionReadOnly!==true) throw new Error('COMUN_P6C_B1_REMOTE_ROUTING_CONTRACT_DRIFT');
+          if(!s.publicHealthPresent||!s.publicEducationPreserved||!s.workplacePreserved||!s.createPresent||!s.transitionPresent||!s.healthRoutingPreserved||!s.educationRoutingVersionPresent||!s.educationSubtypePersistencePresent||!s.casesRlsForced||!s.reportsRlsForced||s.anonCreate||s.authenticatedCreate||!s.serviceCreate||s.anonTransition||s.authenticatedTransition||!s.serviceTransition||s.anonWalletAttach||s.authenticatedWalletAttach||!s.serviceWalletAttach||!s.sourceDomainsUnchanged||s.businessRowsRead!==false||s.transactionReadOnly!==true) throw new Error('COMUN_P6C_B1_REMOTE_ROUTING_CONTRACT_DRIFT');
           NODE
       - name: Reconcile Calçadas and prove the exact remote migration plan
         shell: bash
@@ -96,9 +97,9 @@ jobs:
           supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p6c-b1-preflight/dry-run.txt 2>&1
           mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p6c-b1-preflight/dry-run.txt | sort -u || true)
           test "${#planned[@]}" -eq 1 || { echo COMUN_P6C_B1_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
-          test "${planned[0]}" = "$(basename "$P6C_B1_MIGRATION")" || { echo COMUN_P6C_B1_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+          test "${planned[0]}" = "$(basename "$P6C_B2_MIGRATION")" || { echo COMUN_P6C_B1_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
           ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/p6c-b1-preflight/dry-run.txt
-          printf '%s\n' '{"result":"COMUN_P6C_B1_REMOTE_PLAN_EXACT_ONE","migrationCount":1,"businessRowsRead":false}' >.ci-artifacts/p6c-b1-preflight/migration-plan.json
+          printf '%s\n' '{"result":"COMUN_P6C_B1_BASELINE_PRESERVED_P6C_B2_PLAN_EXACT_ONE","migrationCount":1,"businessRowsRead":false}' >.ci-artifacts/p6c-b1-preflight/migration-plan.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -106,6 +107,6 @@ jobs:
           path: .ci-artifacts/p6c-b1-preflight
           retention-days: 14
           if-no-files-found: error
-      - name: Emit bounded result
+      - name: Emit preserved baseline result
         if: success()
-        run: echo COMUN_P6C_B1_REMOTE_SCHEMA_GREEN_PLAN_EXACT_ONE >> "$GITHUB_STEP_SUMMARY"
+        run: echo COMUN_P6C_B1_REMOTE_BASELINE_PRESERVED_WITH_P6C_B2_PLAN_EXACT_ONE >> "$GITHUB_STEP_SUMMARY"
