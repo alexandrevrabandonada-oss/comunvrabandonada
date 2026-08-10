@@ -42,7 +42,7 @@ jobs:
           test -n "${SUPABASE_DB_URL:-}"
           test -n "${SUPABASE_PROJECT_REF:-}"
           case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
-          test "$(git diff --name-only origin/main...HEAD -- supabase/migrations)" = "$P6C_B2_MIGRATION"
+          test -z "$(git diff --name-only origin/main...HEAD -- "$P6C_B1_MIGRATION" "$P6C_B2_MIGRATION")"
       - name: Inspect P6C-B1 schema metadata without business-row reads
         shell: bash
         run: |
@@ -96,8 +96,11 @@ jobs:
           supabase migration list --db-url "$SUPABASE_DB_URL" >.ci-artifacts/p6c-b1-preflight/migration-list.txt 2>&1
           supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p6c-b1-preflight/dry-run.txt 2>&1
           mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p6c-b1-preflight/dry-run.txt | sort -u || true)
-          test "${#planned[@]}" -eq 1 || { echo COMUN_P6C_B1_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
-          test "${planned[0]}" = "$(basename "$P6C_B2_MIGRATION")" || { echo COMUN_P6C_B1_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations | sort)
+          test "${#planned[@]}" -eq "${#changed[@]}" || { echo COMUN_P6C_B1_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+          for index in "${!planned[@]}"; do
+            test "${planned[$index]}" = "$(basename "${changed[$index]}")" || { echo COMUN_P6C_B1_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+          done
           ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/p6c-b1-preflight/dry-run.txt
           printf '%s\n' '{"result":"COMUN_P6C_B1_BASELINE_PRESERVED_P6C_B2_PLAN_EXACT_ONE","migrationCount":1,"businessRowsRead":false}' >.ci-artifacts/p6c-b1-preflight/migration-plan.json
       - uses: actions/upload-artifact@v4
