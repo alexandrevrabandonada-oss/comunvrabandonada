@@ -409,6 +409,11 @@ export function ParticipationWalletPanel({
                         atualizado em{" "}
                         {new Date(item.updated_at).toLocaleDateString("pt-BR")}
                       </p>
+                      {relataAction?.detailLabel ? (
+                        <p className="text-sm font-bold">
+                          {relataAction.detailLabel}
+                        </p>
+                      ) : null}
                       {relataAction?.stateMessage ? (
                         <p className="text-sm font-bold text-comun-black/80">
                           {relataAction.stateMessage}

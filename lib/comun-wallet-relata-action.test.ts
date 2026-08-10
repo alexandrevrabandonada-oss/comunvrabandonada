@@ -114,7 +114,6 @@ describe("category-aware Participation Wallet", () => {
 
   it.each([
     "other",
-    "public_health",
     "public_education",
     "workplace",
     "environmental_pollution",
@@ -161,6 +160,31 @@ describe("category-aware Participation Wallet", () => {
     ).toMatchObject({
       nextStep: "Situação que pode exigir atendimento imediato.",
     });
+  });
+
+  it("shows only a sanitized health subtype and no forwarding adapter", () => {
+    expect(
+      resolve("public_health", {
+        metadata: { healthIssueType: "medicine_or_supply" },
+      }),
+    ).toMatchObject({
+      route: "no_verified_forwarding",
+      categoryLabel: "Saúde pública",
+      detailLabel: "Medicamento ou insumo",
+      stateMessage: "Guardado no COMUN.",
+      nextStep: "Você pode consultar os canais oficiais do SUS.",
+      showStmuAssisted: false,
+      showStmuMultichannel: false,
+      showEssentialServices: false,
+    });
+  });
+
+  it("does not expose an invalid health subtype", () => {
+    expect(
+      resolve("public_health", {
+        metadata: { healthIssueType: "patient_name_or_diagnosis" },
+      }).detailLabel,
+    ).toBeNull();
   });
 
   it("uses the complete canonical human label map", () => {

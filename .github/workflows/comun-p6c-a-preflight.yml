@@ -1,0 +1,99 @@
+name: COMUN P6C-A private SUS preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-p6c-a-preflight.yml"
+      - "app/api/comun/health-channels/**"
+      - "app/api/comun/relata/**"
+      - "lib/comun-health-**"
+      - "lib/comun-public-health-**"
+      - "lib/server/comun-health-**"
+      - "supabase/migrations/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
+      - name: Validate zero migration and read-only Production target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          test -n "${SUPABASE_PROJECT_REF:-}"
+          case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
+          test -z "$(git diff --name-only origin/main...HEAD -- supabase/migrations)"
+      - name: Inspect P6C-A schema metadata without business-row reads
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/p6c-a-preflight
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/p6c-a-preflight/schema.json <<'SQL'
+          begin read only;
+          select json_build_object(
+            'publicHealthPresent', exists(select 1 from pg_catalog.pg_constraint where conrelid='public.comun_relata_cases'::regclass and conname='comun_relata_cases_category_check' and pg_catalog.pg_get_constraintdef(oid) like '%public_health%'),
+            'publicEducationPreserved', exists(select 1 from pg_catalog.pg_constraint where conrelid='public.comun_relata_cases'::regclass and conname='comun_relata_cases_category_check' and pg_catalog.pg_get_constraintdef(oid) like '%public_education%'),
+            'createPresent', to_regprocedure('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)') is not null,
+            'transitionPresent', to_regprocedure('public.comun_relata_classification_transition(text,text,text,text,jsonb)') is not null,
+            'casesRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='public.comun_relata_cases'::regclass),
+            'reportsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_relata_reports'::regclass),
+            'anonCreate', has_function_privilege('anon','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
+            'authenticatedCreate', has_function_privilege('authenticated','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
+            'serviceCreate', has_function_privilege('service_role','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
+            'sourceDomainsUnchanged', exists(select 1 from pg_catalog.pg_constraint where conrelid='private.comun_forwarding_packages'::regclass and pg_catalog.pg_get_constraintdef(oid) like '%essential_service%' and pg_catalog.pg_get_constraintdef(oid) like '%bus%'),
+            'businessRowsRead', false,
+            'transactionReadOnly', true
+          );
+          rollback;
+          SQL
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const s=JSON.parse(fs.readFileSync('.ci-artifacts/p6c-a-preflight/schema.json','utf8'));
+          if(!s.publicHealthPresent||!s.publicEducationPreserved||!s.createPresent||!s.transitionPresent||!s.casesRlsForced||!s.reportsRlsForced||s.anonCreate||s.authenticatedCreate||!s.serviceCreate||!s.sourceDomainsUnchanged||s.businessRowsRead!==false||s.transactionReadOnly!==true) throw new Error('COMUN_P6C_A_BLOCKED_REMOTE_SCHEMA_DRIFT');
+          NODE
+      - name: Reconcile Calçadas and prove empty remote migration plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          held="$RUNNER_TEMP/comun-p6ca-external-ledger.sql"
+          mv "$EXTERNAL_MIGRATION" "$held"
+          restore() {
+            test ! -e "$held" || mv "$held" "$EXTERNAL_MIGRATION"
+            test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          }
+          trap restore EXIT
+          supabase migration list --db-url "$SUPABASE_DB_URL" >.ci-artifacts/p6c-a-preflight/migration-list.txt 2>&1
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p6c-a-preflight/dry-run.txt 2>&1
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p6c-a-preflight/dry-run.txt | sort -u || true)
+          test "${#planned[@]}" -eq 0 || { echo COMUN_P6C_A_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+          ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/p6c-a-preflight/dry-run.txt
+          printf '%s\n' '{"result":"COMUN_P6C_A_REMOTE_MIGRATION_PLAN_EMPTY","migrationCount":0,"businessRowsRead":false}' >.ci-artifacts/p6c-a-preflight/migration-plan.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-p6c-a-preflight-${{ github.run_id }}
+          path: .ci-artifacts/p6c-a-preflight
+          retention-days: 14
+          if-no-files-found: error
+      - name: Emit bounded result
+        if: success()
+        run: echo COMUN_P6C_A_REMOTE_SCHEMA_GREEN_PLAN_EMPTY >> "$GITHUB_STEP_SUMMARY"
