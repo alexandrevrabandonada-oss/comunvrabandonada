@@ -125,10 +125,10 @@ jobs:
           begin read only;
           select json_build_object(
             'migrationPresent',exists(select 1 from supabase_migrations.schema_migrations where version='20260810045610'),
-            'urbanFloodingPresent',pg_get_constraintdef(oid) like '%urban_flooding%',
-            'stormwaterDrainagePresent',pg_get_constraintdef(oid) like '%stormwater_drainage%',
-            'treeHazardPresent',pg_get_constraintdef(oid) like '%tree_hazard%',
-            'p6bAPreserved',pg_get_constraintdef(oid) like '%active_fire%' and pg_get_constraintdef(oid) like '%environmental_pollution%',
+            'urbanFloodingPresent',pg_get_constraintdef(k.oid) like '%urban_flooding%',
+            'stormwaterDrainagePresent',pg_get_constraintdef(k.oid) like '%stormwater_drainage%',
+            'treeHazardPresent',pg_get_constraintdef(k.oid) like '%tree_hazard%',
+            'p6bAPreserved',pg_get_constraintdef(k.oid) like '%active_fire%' and pg_get_constraintdef(k.oid) like '%environmental_pollution%',
             'createServiceRoleExecute',has_function_privilege('service_role','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
             'createAnonExecute',has_function_privilege('anon','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
             'createAuthenticatedExecute',has_function_privilege('authenticated','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
