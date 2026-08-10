@@ -316,7 +316,7 @@ try {
     healthRouting: "subtypes_private",
     privacy: "sensitive_or_high_risk_never_public",
     urgentCare: "samu_guidance_no_call",
-    photoOnly: "other_original_text_null",
+    photoOnly: "other_semantic_text_absent",
     photoOnlyEnrichment: "same_report_case_protocol_wallet",
     wrongReceipt: "denied",
     otherWallet: "isolated",
