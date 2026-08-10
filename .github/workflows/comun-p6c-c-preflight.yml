@@ -1,0 +1,143 @@
+name: COMUN P6C-C sensitive forwarding preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-p6c-c-preflight.yml"
+      - "app/api/comun/sensitive-forwarding/**"
+      - "app/comun/minha-participacao/**"
+      - "lib/comun-sensitive-forwarding-**"
+      - "lib/comun-wallet-relata-action*"
+      - "lib/server/comun-*-institutional-channel-catalog*"
+      - "lib/server/comun-child-protection-channel-catalog*"
+      - "supabase/migrations/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
+      - name: Validate Production target and bounded migration scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          test -n "${SUPABASE_PROJECT_REF:-}"
+          case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
+          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+          test "${#changed[@]}" -le 1 || { echo COMUN_P6C_C_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+          if test "${#changed[@]}" -eq 1; then
+            case "${changed[0]}" in
+              supabase/migrations/*_comun_sensitive_assisted_forwarding.sql) ;;
+              *) echo COMUN_P6C_C_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1 ;;
+            esac
+          fi
+      - name: Inspect forwarding metadata without business-row reads
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/p6c-c-preflight
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/p6c-c-preflight/schema.json <<'SQL'
+          begin read only;
+          select json_build_object(
+            'packagesPresent', to_regclass('private.comun_forwarding_packages') is not null,
+            'attemptsPresent', to_regclass('private.comun_forwarding_attempts') is not null,
+            'eventsPresent', to_regclass('private.comun_forwarding_events') is not null,
+            'packagesRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_forwarding_packages'::regclass),
+            'attemptsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_forwarding_attempts'::regclass),
+            'eventsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_forwarding_events'::regclass),
+            'institutionalTextNotNull', (select attnotnull from pg_catalog.pg_attribute where attrelid='private.comun_forwarding_packages'::regclass and attname='institutional_text' and not attisdropped),
+            'sourceDomainsBusEssentialOnly', exists(
+              select 1 from pg_catalog.pg_constraint
+              where conrelid='private.comun_forwarding_packages'::regclass
+                and conname='comun_forwarding_packages_source_domain_check'
+                and pg_catalog.pg_get_constraintdef(oid) like '%bus%'
+                and pg_catalog.pg_get_constraintdef(oid) like '%essential_service%'
+                and pg_catalog.pg_get_constraintdef(oid) not like '%sensitive_service%'
+            ),
+            'webAttemptAllowed', exists(
+              select 1 from pg_catalog.pg_constraint
+              where conrelid='private.comun_forwarding_attempts'::regclass
+                and conname='comun_forwarding_attempts_channel_check'
+                and pg_catalog.pg_get_constraintdef(oid) like '%web%'
+            ),
+            'p5PreparePresent', to_regprocedure('public.comun_stmu_assisted_prepare(text,uuid)') is not null,
+            'p5OpenPresent', to_regprocedure('public.comun_stmu_assisted_open(text,uuid,text)') is not null,
+            'essentialPreparePresent', to_regprocedure('public.comun_essential_service_forwarding_prepare(text,uuid)') is not null,
+            'genericOpenPresent', to_regprocedure('public.comun_assisted_forwarding_open(text,uuid,text)') is not null,
+            'genericSentPresent', to_regprocedure('public.comun_assisted_forwarding_declare_sent(text,uuid,boolean)') is not null,
+            'genericResponsePresent', to_regprocedure('public.comun_assisted_forwarding_record_response(text,uuid,text,text,boolean)') is not null,
+            'genericWithdrawPresent', to_regprocedure('public.comun_assisted_forwarding_withdraw(text,uuid)') is not null,
+            'withdrawKeepsContent', pg_catalog.pg_get_functiondef('public.comun_assisted_forwarding_withdraw(text,uuid)'::regprocedure) not like '%institutional_text=%',
+            'healthPresent', exists(select 1 from pg_catalog.pg_constraint where conrelid='public.comun_relata_cases'::regclass and conname='comun_relata_cases_category_check' and pg_catalog.pg_get_constraintdef(oid) like '%public_health%'),
+            'educationPresent', exists(select 1 from pg_catalog.pg_constraint where conrelid='public.comun_relata_cases'::regclass and conname='comun_relata_cases_category_check' and pg_catalog.pg_get_constraintdef(oid) like '%public_education%'),
+            'childProtectionPresent', exists(select 1 from pg_catalog.pg_constraint where conrelid='public.comun_relata_cases'::regclass and conname='comun_relata_cases_category_check' and pg_catalog.pg_get_constraintdef(oid) like '%child_protection%'),
+            'routingContractsPresent', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%comun-health-service-routing-v1%' and pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%comun-education-service-routing-v1%' and pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%comun-child-protection-routing-v1%',
+            'anonPackagesSelect', has_table_privilege('anon','private.comun_forwarding_packages','SELECT'),
+            'authenticatedPackagesSelect', has_table_privilege('authenticated','private.comun_forwarding_packages','SELECT'),
+            'anonGenericOpen', has_function_privilege('anon','public.comun_assisted_forwarding_open(text,uuid,text)','EXECUTE'),
+            'authenticatedGenericOpen', has_function_privilege('authenticated','public.comun_assisted_forwarding_open(text,uuid,text)','EXECUTE'),
+            'serviceGenericOpen', has_function_privilege('service_role','public.comun_assisted_forwarding_open(text,uuid,text)','EXECUTE'),
+            'businessRowsRead', false,
+            'transactionReadOnly', true
+          );
+          rollback;
+          SQL
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const s=JSON.parse(fs.readFileSync('.ci-artifacts/p6c-c-preflight/schema.json','utf8'));
+          const required=['packagesPresent','attemptsPresent','eventsPresent','packagesRlsForced','attemptsRlsForced','eventsRlsForced','institutionalTextNotNull','sourceDomainsBusEssentialOnly','webAttemptAllowed','p5PreparePresent','p5OpenPresent','essentialPreparePresent','genericOpenPresent','genericSentPresent','genericResponsePresent','genericWithdrawPresent','withdrawKeepsContent','healthPresent','educationPresent','childProtectionPresent','routingContractsPresent','serviceGenericOpen','transactionReadOnly'];
+          if(required.some((key)=>s[key]!==true)||s.anonPackagesSelect||s.authenticatedPackagesSelect||s.anonGenericOpen||s.authenticatedGenericOpen||s.businessRowsRead!==false) throw new Error('COMUN_P6C_C_BLOCKED_REMOTE_SCHEMA_DRIFT');
+          NODE
+      - name: Reconcile Calçadas and prove bounded remote migration plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          held="$RUNNER_TEMP/comun-p6cc-external-ledger.sql"
+          mv "$EXTERNAL_MIGRATION" "$held"
+          restore() {
+            test ! -e "$held" || mv "$held" "$EXTERNAL_MIGRATION"
+            test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          }
+          trap restore EXIT
+          supabase migration list --db-url "$SUPABASE_DB_URL" >.ci-artifacts/p6c-c-preflight/migration-list.txt 2>&1
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p6c-c-preflight/dry-run.txt 2>&1
+          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p6c-c-preflight/dry-run.txt | sort -u || true)
+          if test "${#changed[@]}" -eq 0; then
+            test "${#planned[@]}" -eq 0 || { echo COMUN_P6C_C_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+            printf '%s\n' '{"result":"COMUN_P6C_C_REMOTE_BASELINE_PLAN_EMPTY","migrationCount":0,"businessRowsRead":false}' >.ci-artifacts/p6c-c-preflight/migration-plan.json
+          else
+            test "${#planned[@]}" -eq 1 || { echo COMUN_P6C_C_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+            test "${planned[0]}" = "$(basename "${changed[0]}")" || { echo COMUN_P6C_C_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+            printf '%s\n' '{"result":"COMUN_P6C_C_REMOTE_PLAN_EXACT_ONE","migrationCount":1,"businessRowsRead":false}' >.ci-artifacts/p6c-c-preflight/migration-plan.json
+          fi
+          ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/p6c-c-preflight/dry-run.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-p6c-c-preflight-${{ github.run_id }}
+          path: .ci-artifacts/p6c-c-preflight
+          retention-days: 14
+          if-no-files-found: error
+      - name: Emit bounded result
+        if: success()
+        run: echo COMUN_P6C_C_REMOTE_SCHEMA_GREEN >> "$GITHUB_STEP_SUMMARY"
