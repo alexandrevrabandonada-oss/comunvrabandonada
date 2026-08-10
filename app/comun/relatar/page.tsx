@@ -9,6 +9,7 @@ import {
   isComunEssentialForwardingAssistedEnabled,
   isComunEssentialServicesEnabled,
 } from "@/lib/comun-essential-services-feature";
+import { isComunEnvironmentalIncidentsEnabled } from "@/lib/comun-environmental-incidents-feature";
 
 export default function ReportPage() {
   // The canonical intake is never allowed to fall back to the legacy writer.
@@ -31,6 +32,7 @@ export default function ReportPage() {
         photoOnlyEnabled={isComunRelataPhotoOnlyEnabled()}
         essentialServicesEnabled={isComunEssentialServicesEnabled()}
         essentialForwardingEnabled={isComunEssentialForwardingAssistedEnabled()}
+        environmentalIncidentsEnabled={isComunEnvironmentalIncidentsEnabled()}
       />
     </Suspense>
   );
