@@ -1,4 +1,48 @@
-# Estado atual — 48.1B-P6C-B1 em Production, piloto humano pausado (10/08/2026)
+# Estado atual — 48.1B-P6C-B2 em Production, piloto humano pausado (10/08/2026)
+
+## 48.1B-P6C-B2 — proteção privada de crianças e adolescentes
+
+- 48.1C permanece não concluído e pausado por decisão de produto:
+  `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`;
+- PR funcional `#262`, head exato
+  `0527f9a1281a765afb00c49bfeb6355dc9ed5166`, mesclada no merge
+  `7fc5de4ea36fcd212a95b3ee2b236e66488b2655`;
+- `/comun/relatar` segue como entrada única; nenhum miniapp de proteção foi
+  criado;
+- categoria `child_protection` e roteador
+  `comun-child-protection-routing-v1` separam proteção de Educação
+  administrativa e Trabalho;
+- todo caso é `high_risk`, exige revisão humana e tem publicação
+  `never_automatic`;
+- Carteira sanitizada não mostra subtipo, texto, escola, criança, foto,
+  localização, documento ou detalhe do risco;
+- foto-only permanece `original_text=NULL` e `category=other`;
+- uma migration forward-only, SHA-256
+  `92fb622d38ddf259d91529aecd52f07e52d34132b5ae7601c4799feaede7282b`;
+- dry-run remoto exato `31415876505` e E2E descartável `31415876592` verdes;
+- 38 checks verdes no head final, Vercel Preview verde, zero review thread;
+- run flags-OFF `31419481470`: migration, postflight de RLS/grants e deploy
+  verdes, sem leitura de negócio;
+- onda privada `31419755484`: routing de proteção ON e forwarding sensível
+  OFF;
+- deployment final READY `dpl_8rfmUtHn9q39fzJneSf31JGrdRAe` promovido ao
+  domínio canônico;
+- cinco rotas canônicas `200`; cleanup Production com zero fixture ativa,
+  package, attempt, snapshot, coletivo, request/envio externo ou hard delete;
+- Conselho Tutelar ficou `source_conflict` por fontes municipais divergentes;
+  demais fontes são `source_verified`, todas `operationally_unchecked` e sem
+  automação;
+- acesso canônico high-risk permanece service-role-only; nenhuma superfície
+  pública, editorial genérica, comunitária ou de moderador comum ganhou acesso;
+- auto-send, forwarding sensível, publicação automática, mapa público geral,
+  coletivos e `launch_publicly` permanecem desligados;
+- P6C-C não foi iniciado.
+
+Resultado terminal:
+`COMUN_48_1B_P6C_B2_CHILD_PROTECTION_PRIVATE_DOMAIN_GREEN_FORWARDING_OFF`.
+
+Detalhes:
+`reports/current/comun-48-1b-p6c-b2-child-protection-private.md`.
 
 ## 48.1B-P6C-B1 — Educação pública privada e segura
 
