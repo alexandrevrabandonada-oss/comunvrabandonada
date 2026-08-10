@@ -29,6 +29,7 @@ import {
   isEssentialServiceCategory,
 } from "@/lib/comun-essential-services-feature";
 import { isComunEnvironmentalIncidentsEnabled } from "@/lib/comun-environmental-incidents-feature";
+import { isComunUrbanIncidentsEnabled } from "@/lib/comun-urban-incidents-feature";
 
 export const runtime = "nodejs";
 
@@ -105,6 +106,8 @@ export async function POST(request: NextRequest) {
   const allowedAnswerKeys = new Set([
     "homes_power",
     "smoke_active",
+    "flood_active_risk",
+    "tree_state",
     "blocked",
     "line",
     "direction",
@@ -124,7 +127,11 @@ export async function POST(request: NextRequest) {
         (binaryAdaptiveAnswerKeys.has(key) &&
           !["sim", "nao"].includes(answers[key])) ||
         (key === "smoke_active" &&
-          !["sim", "nao", "nao_sei"].includes(answers[key])),
+          !["sim", "nao", "nao_sei"].includes(answers[key])) ||
+        (key === "flood_active_risk" &&
+          !["sim", "nao", "nao_sei"].includes(answers[key])) ||
+        (key === "tree_state" &&
+          !["caiu", "em_pe", "nao_sei"].includes(answers[key])),
     )
   ) {
     return NextResponse.json(
@@ -155,6 +162,7 @@ export async function POST(request: NextRequest) {
         {
           environmentalIncidentsEnabled:
             isComunEnvironmentalIncidentsEnabled(),
+          urbanIncidentsEnabled: isComunUrbanIncidentsEnabled(),
         },
       );
   const decision = applyComunEssentialServicesRoutingGate(

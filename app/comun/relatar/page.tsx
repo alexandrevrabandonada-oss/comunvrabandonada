@@ -10,6 +10,7 @@ import {
   isComunEssentialServicesEnabled,
 } from "@/lib/comun-essential-services-feature";
 import { isComunEnvironmentalIncidentsEnabled } from "@/lib/comun-environmental-incidents-feature";
+import { isComunUrbanIncidentsEnabled } from "@/lib/comun-urban-incidents-feature";
 
 export default function ReportPage() {
   // The canonical intake is never allowed to fall back to the legacy writer.
@@ -33,6 +34,7 @@ export default function ReportPage() {
         essentialServicesEnabled={isComunEssentialServicesEnabled()}
         essentialForwardingEnabled={isComunEssentialForwardingAssistedEnabled()}
         environmentalIncidentsEnabled={isComunEnvironmentalIncidentsEnabled()}
+        urbanIncidentsEnabled={isComunUrbanIncidentsEnabled()}
       />
     </Suspense>
   );

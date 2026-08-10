@@ -70,6 +70,7 @@ export function QuickCaptureV2({
   essentialServicesEnabled = false,
   essentialForwardingEnabled = false,
   environmentalIncidentsEnabled = false,
+  urbanIncidentsEnabled = false,
 }: {
   attachmentsEnabled?: boolean;
   locationEnabled?: boolean;
@@ -77,6 +78,7 @@ export function QuickCaptureV2({
   essentialServicesEnabled?: boolean;
   essentialForwardingEnabled?: boolean;
   environmentalIncidentsEnabled?: boolean;
+  urbanIncidentsEnabled?: boolean;
 }) {
   const [startedAt] = useState(() => Date.now());
   const [hydrated, setHydrated] = useState(false);
@@ -162,7 +164,7 @@ export function QuickCaptureV2({
             hasAttachment: Boolean(file),
             answers: currentAnswers,
           },
-          { environmentalIncidentsEnabled },
+          { environmentalIncidentsEnabled, urbanIncidentsEnabled },
         ),
         essentialServicesEnabled,
       );
@@ -423,7 +425,7 @@ export function QuickCaptureV2({
                   rows={4}
                   maxLength={600}
                   className="min-h-28 border-2 border-comun-black p-3 text-base"
-                  placeholder="Ex.: estamos sem água, há fumaça no morro ou jogaram entulho na rua"
+                  placeholder="Ex.: a rua alagou, o bueiro está entupido ou uma árvore caiu"
                 />
               </section>
               {attachmentsEnabled ? (

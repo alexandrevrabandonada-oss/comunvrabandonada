@@ -1,0 +1,144 @@
+name: COMUN P6B-B urban incidents activation
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA to deploy
+        required: true
+        type: string
+      mode:
+        description: Deploy flag off, activate classification, or roll it back
+        required: true
+        type: choice
+        options: [flags-off, wave1-classification, rollback-classification]
+
+concurrency:
+  group: comun-p6b-b-urban-activation
+  cancel-in-progress: false
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+  COMUN_BASE_URL: https://comunsocial.online
+
+jobs:
+  activate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - name: Verify exact main and scoped activation plan
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          npm ci --ignore-scripts
+          node --check scripts/solo/rehearse-p6b-b-urban-incidents-production.mjs
+          test "$(find supabase/migrations -maxdepth 1 -name '*_comun_flood_drainage_tree_categories.sql' | wc -l)" -eq 1
+          ! grep -Eqi 'window\.open|wa\.me|mailto:|fetch\([^)]*(fiscaliza|voltaredonda)' scripts/solo/rehearse-p6b-b-urban-incidents-production.mjs
+          ! grep -Eqi '\bdelete[[:space:]]+from\b' scripts/solo/rehearse-p6b-b-urban-incidents-production.mjs
+      - name: Set P6B-B flags without reading Production values
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          classification=disabled
+          case "${{ inputs.mode }}" in
+            wave1-classification) classification=enabled ;;
+            flags-off|rollback-classification) ;;
+            *) echo COMUN_P6B_B_ACTIVATION_MODE_INVALID; exit 1 ;;
+          esac
+          printf '%s' "$classification" | npx --yes vercel@50.28.0 env add COMUN_URBAN_INCIDENTS_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6bb-classification-env.out 2>/tmp/comun-p6bb-classification-env.err
+          printf '%s' disabled | npx --yes vercel@50.28.0 env add COMUN_URBAN_INCIDENTS_FORWARDING_ASSISTED_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6bb-forwarding-env.out 2>/tmp/comun-p6bb-forwarding-env.err
+      - name: Deploy exact main with current Production environment
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6bb-deploy.out 2>/tmp/comun-p6bb-deploy.err
+          deployment_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-p6bb-deploy.out | tail -n 1 | tr -d '\r')"
+          case "$deployment_url" in https://*.vercel.app) ;; *) echo COMUN_P6B_B_DEPLOYMENT_URL_UNAVAILABLE; exit 1 ;; esac
+          printf 'deployment_url=%s\n' "$deployment_url" >> "$GITHUB_OUTPUT"
+      - name: Promote exact deployment to canonical domain
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@50.28.0 promote "$DEPLOYMENT_URL" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6bb-promote.out 2>/tmp/comun-p6bb-promote.err
+          npx --yes vercel@50.28.0 alias set "$DEPLOYMENT_URL" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6bb-alias.out 2>/tmp/comun-p6bb-alias.err
+      - name: Verify preserved domain surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in /comun /comun/relatar /comun/calcadas /comun/onibus /comun/minha-participacao; do
+            test "$(curl -L -sS -o /dev/null -w '%{http_code}' --retry 8 --retry-delay 2 "$COMUN_BASE_URL$path")" = 200
+          done
+      - name: Confirm flags-off deployment
+        if: inputs.mode == 'flags-off' || inputs.mode == 'rollback-classification'
+        shell: bash
+        run: echo COMUN_P6B_B_CODE_DEPLOYED_FLAGS_OFF >> "$GITHUB_STEP_SUMMARY"
+      - name: Allocate synthetic smoke marker
+        id: attempt
+        if: inputs.mode == 'wave1-classification'
+        shell: bash
+        run: |
+          marker="P6BB-SMOKE-${GITHUB_RUN_ID}-$(node -e 'process.stdout.write(require("node:crypto").randomUUID())')"
+          printf 'attempt_id=%s\n' "$marker" >> "$GITHUB_OUTPUT"
+      - name: Run wave 1 private Production smoke with finally cleanup
+        id: wave1
+        if: inputs.mode == 'wave1-classification'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          ATTEMPT_ID: ${{ steps.attempt.outputs.attempt_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/p6bb-production
+          node scripts/solo/rehearse-p6b-b-urban-incidents-production.mjs >.ci-artifacts/p6bb-production/wave1.json
+          grep -q COMUN_P6B_B_URBAN_INCIDENTS_WAVE1_PRODUCTION_GREEN .ci-artifacts/p6bb-production/wave1.json
+          grep -q '"externalRequests":0' .ci-artifacts/p6bb-production/wave1.json
+          grep -q '"hardDeletes":0' .ci-artifacts/p6bb-production/wave1.json
+      - name: Roll back urban classification after failed gate
+        if: always() && inputs.mode == 'wave1-classification' && steps.wave1.outcome != 'success'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' disabled | npx --yes vercel@50.28.0 env add COMUN_URBAN_INCIDENTS_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6bb-rollback-classification.out 2>/tmp/comun-p6bb-rollback-classification.err
+          printf '%s' disabled | npx --yes vercel@50.28.0 env add COMUN_URBAN_INCIDENTS_FORWARDING_ASSISTED_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6bb-rollback-forwarding.out 2>/tmp/comun-p6bb-rollback-forwarding-env.err
+          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6bb-rollback-deploy.out 2>/tmp/comun-p6bb-rollback-deploy.err
+          rollback_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-p6bb-rollback-deploy.out | tail -n 1 | tr -d '\r')"
+          case "$rollback_url" in https://*.vercel.app) ;; *) exit 1 ;; esac
+          npx --yes vercel@50.28.0 promote "$rollback_url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6bb-rollback-promote.out 2>/tmp/comun-p6bb-rollback-promote.err
+          npx --yes vercel@50.28.0 alias set "$rollback_url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6bb-rollback-alias.out 2>/tmp/comun-p6bb-rollback-alias.err
+          echo COMUN_P6B_B_CLASSIFICATION_ROLLED_BACK_AFTER_FAILED_GATE >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-p6b-b-domain-${{ github.run_id }}
+          path: .ci-artifacts/p6bb-production
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Emit wave marker
+        if: success() && inputs.mode == 'wave1-classification'
+        shell: bash
+        run: echo COMUN_48_1B_P6B_B_FLOOD_DRAINAGE_TREE_DOMAIN_GREEN_NO_AUTO_SEND >> "$GITHUB_STEP_SUMMARY"

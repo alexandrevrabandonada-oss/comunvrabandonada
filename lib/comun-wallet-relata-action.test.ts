@@ -140,6 +140,29 @@ describe("category-aware Participation Wallet", () => {
     });
   });
 
+  it.each([
+    ["urban_flooding", "Alagamento ou enchente"],
+    ["stormwater_drainage", "Drenagem, bueiro ou canal"],
+    ["tree_hazard", "Árvore, galho ou risco de queda"],
+  ])("keeps urban category %s fail-closed", (category, label) => {
+    expect(resolve(category)).toMatchObject({
+      route: "no_verified_forwarding",
+      categoryLabel: label,
+      stateMessage: "Guardado no COMUN.",
+      showStmuAssisted: false,
+      showStmuMultichannel: false,
+      showEssentialServices: false,
+    });
+  });
+
+  it("shows an immediate-attention message only when urgency metadata proves it", () => {
+    expect(
+      resolve("urban_flooding", { metadata: { urgency: "emergency" } }),
+    ).toMatchObject({
+      nextStep: "Situação que pode exigir atendimento imediato.",
+    });
+  });
+
   it("uses the complete canonical human label map", () => {
     expect(COMUN_RELATA_CATEGORY_LABELS).toEqual({
       sidewalk_accessibility: "Calçada e acessibilidade",
@@ -155,6 +178,9 @@ describe("category-aware Participation Wallet", () => {
       public_education: "Educação pública",
       workplace: "Trabalho",
       environmental_pollution: "Poluição ambiental",
+      urban_flooding: "Alagamento ou enchente",
+      stormwater_drainage: "Drenagem, bueiro ou canal",
+      tree_hazard: "Árvore, galho ou risco de queda",
       other: "A classificar",
     });
   });
