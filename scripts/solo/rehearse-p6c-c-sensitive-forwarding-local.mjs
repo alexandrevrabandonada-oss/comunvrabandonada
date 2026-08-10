@@ -132,7 +132,7 @@ try {
       on wi.subject_ref=c.id::text and wi.id=$1 where c.protocol=$2`,
     [health.walletItemId, health.receipt.protocol]);
   assert.equal(healthRows.rowCount, 1);
-  await db.query(`select * from public.comun_relata_begin_attachment($1,$2,$3,'image/jpeg','small')`,
+  await db.query(`select * from public.comun_relata_begin_attachment($1,$2,$3,'image/jpeg','under_1mb')`,
     [health.receipt.protocol, health.receiptSecret, photoSentinel]);
   await db.query(`insert into private.comun_participation_wallet_account_links(wallet_id,user_id,link_method)
     values($1,$2,'explicit_account_link')`, [healthRows.rows[0].wallet_id, accountSentinel]);
