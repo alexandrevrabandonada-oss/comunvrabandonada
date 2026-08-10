@@ -80,7 +80,7 @@ jobs:
             ),
             'p5PreparePresent', to_regprocedure('public.comun_stmu_assisted_prepare(text,uuid)') is not null,
             'p5OpenPresent', to_regprocedure('public.comun_stmu_assisted_open(text,uuid,text)') is not null,
-            'essentialPreparePresent', to_regprocedure('public.comun_essential_service_forwarding_prepare(text,uuid)') is not null,
+            'essentialPreparePresent', to_regprocedure('public.comun_essential_assisted_prepare(text,uuid)') is not null,
             'genericOpenPresent', to_regprocedure('public.comun_assisted_forwarding_open(text,uuid,text)') is not null,
             'genericSentPresent', to_regprocedure('public.comun_assisted_forwarding_declare_sent(text,uuid,boolean)') is not null,
             'genericResponsePresent', to_regprocedure('public.comun_assisted_forwarding_record_response(text,uuid,text,text,boolean)') is not null,
