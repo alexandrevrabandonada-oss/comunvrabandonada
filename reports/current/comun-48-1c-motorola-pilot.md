@@ -1,8 +1,8 @@
 # COMUN 48.1C — piloto humano Motorola
 
-## PILOTO PAUSADO FOCALMENTE — J1/J3
+## PILOTO PAUSADO FOCALMENTE — J1/J3/J7
 
-Atualizado em 09/08/2026.
+Atualizado em 10/08/2026.
 
 - baseline de preparação: `origin/main=ab9e9434a12f778c04ea9baf5760b89cf5ffdf4b`;
 - P6A está terminal e ativo, sem auto-send;
@@ -11,7 +11,7 @@ Atualizado em 09/08/2026.
 - `launch_publicly=false`;
 - participantes completos contabilizados: `0`;
 - tentativas humanas iniciadas: `1` (`P01`), sem sucesso de jornada contado;
-- jornadas afetadas pausadas: `P01 / J1` e `P01 / J3`;
+- jornadas afetadas pausadas: `P01 / J1`, `P01 / J3` e `P01 / J7`;
 - conteúdo criado em Production por esta preparação: `0`;
 - migrations 48.1C: `0`.
 
@@ -66,6 +66,25 @@ Sem dados humanos.
 - contagem: a tentativa que encontrou o P1 não conta como sucesso da jornada;
 - reteste: pendente, primeiro em `P01 / J1` e depois em `P01 / J3`.
 
+### MOTOROLA-P1-003 — patch Production verde, reteste humano pendente
+
+- jornada: reencontro na Carteira / `J7`;
+- tipo: `next-step/institutional-routing`;
+- observado: um item `sidewalk_accessibility` apareceu em Meus registros, mas
+  ofereceu “Preparar Fiscaliza VR”; esse adapter pertence à iluminação pública
+  e não pode ser fallback institucional;
+- nenhuma ação institucional foi acionada;
+- classificação da tentativa: reencontro bem-sucedido, compreensão parcial e
+  finding P1 de próximo passo;
+- ação técnica: `48.1D-S3` mesclado no SHA
+  `357c85100958f2cbe1b9b6a6ca9eb9c9a2b1ca02`, Production READY, zero migration
+  e zero fixture Production;
+- prova descartável: `COMUN_48_1D_S3_SIDEWALK_WALLET_ROUTING_GREEN`;
+- reteste pendente: confirmar somente registro encontrado, label humano,
+  ausência de Fiscaliza VR e compreensão do próximo passo;
+- nenhum protocolo, receipt, conteúdo ou identidade deve entrar no registro do
+  reteste.
+
 ## Decisões
 
 - não ampliar analytics nem schema;
@@ -76,5 +95,6 @@ Sem dados humanos.
 
 ## Próximo passo operacional
 
-Concluir 48.1D-S1, retestar `P01 / J1` e `P01 / J3` e somente então continuar
-as demais jornadas do piloto. P6B permanece proibido.
+Retestar focalmente a Carteira após `48.1D-S3`; depois retomar `P01 / J1`,
+`P01 / J3` e `P01 / J7` e somente então continuar as demais jornadas do piloto.
+P6B permanece proibido.

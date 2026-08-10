@@ -1,4 +1,35 @@
-# Estado atual — 48.1C-PREP em preparação, P1G humano pendente (09/08/2026)
+# Estado atual — 48.1D-S3 em Production, reteste humano focal pendente (10/08/2026)
+
+## 48.1D-S3 — Carteira orientada pela categoria
+
+- finding `MOTOROLA-P1-003`: um relato de Calçadas recebia o adapter legado de
+  iluminação `Fiscaliza VR` como fallback incorreto;
+- PR `#251` mesclada por exact-head
+  `ef577fdd75396dc50c4cd0a7931b53a9a5c202b0` no merge
+  `357c85100958f2cbe1b9b6a6ca9eb9c9a2b1ca02`;
+- resolver único e fail-closed separa STMU, serviços essenciais, Calçadas e
+  categorias sem encaminhamento verificado;
+- Calçadas não renderiza Fiscaliza VR, STMU ou Essential panel; categoria
+  desconhecida fica “Categoria em revisão” e sem canal;
+- labels humanos substituem enums; um item é renderizado uma vez; próximo passo
+  só aparece quando metadata suficiente o comprova;
+- `ComunForwardingPanel` ficou congelado como adapter legado específico e saiu
+  do fallback da Carteira canônica;
+- retomada segura por item não foi improvisada:
+  `COMUN_WALLET_SIDEWALK_RESUME_CAPABILITY_PENDING`;
+- E2E focal run `31348386321`, P5 `31348386320`, P6A `31348386316`, Experience
+  `31348386313` e Quality `31348386309` verdes;
+- CI: 31 checks verdes; plano remoto `[]`; zero migration S3;
+- Production `dpl_6kdi6MwdPdfUtxnJjTVuKfrsJG6w` READY no merge exato;
+- smoke read-only `/comun`, `/comun/relatar`, `/comun/minha-participacao`,
+  `/comun/calcadas` e `/comun/onibus` = `200`; zero erro observado;
+- zero fixture/escrita Production, envio externo, publicação ou hard delete;
+- reteste humano focal da Carteira atual ainda deve confirmar somente registro,
+  label, ausência de Fiscaliza e compreensão do próximo passo;
+- depois do reteste, retomar `J1`, `J3` e `J7`; P6B continua proibido;
+- auto-send, publicação automática e `launch_publicly` permanecem desligados.
+
+Detalhes: `reports/current/comun-48-1d-s3-category-aware-wallet.md`.
 
 ## 48.1C-PREP — protocolo humano Motorola, sem sessões iniciadas
 
