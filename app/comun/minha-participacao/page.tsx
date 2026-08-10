@@ -38,6 +38,7 @@ import {
 import { isComunParticipationWalletEnabled } from "@/lib/comun-participation-wallet-feature";
 import { ParticipationWalletPanel } from "./participation-wallet-panel";
 import { isComunStmuAssistedEnabled } from "@/lib/comun-stmu-assisted-feature";
+import { isComunStmuMultichannelEnabled } from "@/lib/comun-stmu-multichannel-feature";
 import {
   isComunEssentialForwardingAssistedEnabled,
   isComunEssentialServicesEnabled,
@@ -77,6 +78,7 @@ export default async function MinhaAreaPage({
     : "contribuicoes";
   const walletEnabled = isComunParticipationWalletEnabled();
   const stmuAssistedEnabled = isComunStmuAssistedEnabled();
+  const stmuMultichannelEnabled = isComunStmuMultichannelEnabled();
   const essentialServicesEnabled = isComunEssentialServicesEnabled();
   const essentialForwardingEnabled =
     isComunEssentialForwardingAssistedEnabled();
@@ -88,6 +90,7 @@ export default async function MinhaAreaPage({
       return (
         <WalletOnlyPage
           stmuAssistedEnabled={stmuAssistedEnabled}
+          stmuMultichannelEnabled={stmuMultichannelEnabled}
           essentialServicesEnabled={essentialServicesEnabled}
           essentialForwardingEnabled={essentialForwardingEnabled}
         />
@@ -141,6 +144,7 @@ export default async function MinhaAreaPage({
         walletEnabled={walletEnabled}
         accountAvailable={Boolean(optionalCommunitySession?.user)}
         stmuAssistedEnabled={stmuAssistedEnabled}
+        stmuMultichannelEnabled={stmuMultichannelEnabled}
         essentialServicesEnabled={essentialServicesEnabled}
         essentialForwardingEnabled={essentialForwardingEnabled}
       />
@@ -203,6 +207,7 @@ export default async function MinhaAreaPage({
           <ParticipationWalletPanel
             accountAvailable={Boolean(optionalCommunitySession?.user)}
             stmuAssistedEnabled={stmuAssistedEnabled}
+            stmuMultichannelEnabled={stmuMultichannelEnabled}
             essentialServicesEnabled={essentialServicesEnabled}
             essentialForwardingEnabled={essentialForwardingEnabled}
           />
@@ -502,6 +507,7 @@ function MinhaAreaAppV2({
   walletEnabled,
   accountAvailable,
   stmuAssistedEnabled,
+  stmuMultichannelEnabled,
   essentialServicesEnabled,
   essentialForwardingEnabled,
 }: {
@@ -515,6 +521,7 @@ function MinhaAreaAppV2({
   walletEnabled: boolean;
   accountAvailable: boolean;
   stmuAssistedEnabled: boolean;
+  stmuMultichannelEnabled: boolean;
   essentialServicesEnabled: boolean;
   essentialForwardingEnabled: boolean;
 }) {
@@ -560,6 +567,7 @@ function MinhaAreaAppV2({
           <ParticipationWalletPanel
             accountAvailable={accountAvailable}
             stmuAssistedEnabled={stmuAssistedEnabled}
+            stmuMultichannelEnabled={stmuMultichannelEnabled}
             essentialServicesEnabled={essentialServicesEnabled}
             essentialForwardingEnabled={essentialForwardingEnabled}
           />
@@ -902,10 +910,12 @@ function CollectiveActionsPreviewParticipation() {
 
 function WalletOnlyPage({
   stmuAssistedEnabled,
+  stmuMultichannelEnabled,
   essentialServicesEnabled,
   essentialForwardingEnabled,
 }: {
   stmuAssistedEnabled: boolean;
+  stmuMultichannelEnabled: boolean;
   essentialServicesEnabled: boolean;
   essentialForwardingEnabled: boolean;
 }) {
@@ -917,6 +927,7 @@ function WalletOnlyPage({
         <ParticipationWalletPanel
           standalone
           stmuAssistedEnabled={stmuAssistedEnabled}
+          stmuMultichannelEnabled={stmuMultichannelEnabled}
           essentialServicesEnabled={essentialServicesEnabled}
           essentialForwardingEnabled={essentialForwardingEnabled}
         />

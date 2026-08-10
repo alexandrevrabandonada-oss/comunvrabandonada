@@ -58,6 +58,11 @@ function CopyField({
   );
 }
 
+/**
+ * LEGACY_VR_FISCALIZA_LIGHTING_ADAPTER.
+ * This panel is not a canonical Wallet fallback. Keep only for explicit
+ * historical flows that are already bound to vr-fiscaliza-lighting-v1.
+ */
 export function ComunForwardingPanel({
   relataCaseId,
 }: {

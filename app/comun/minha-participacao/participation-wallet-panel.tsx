@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ComunForwardingPanel } from "./comun-forwarding-panel";
 import { ComunStmuMultichannelPanel } from "./comun-stmu-multichannel-panel";
 import { ComunStmuAssistedPanel } from "./comun-stmu-assisted-panel";
 import { ComunEssentialServicesPanel } from "./comun-essential-services-panel";
-import { isEssentialServiceCategory } from "@/lib/comun-essential-services-feature";
+import { resolveWalletRelataAction } from "@/lib/comun-wallet-relata-action";
 
 type WalletItem = {
   item_id: string;
@@ -50,12 +49,14 @@ export function ParticipationWalletPanel({
   standalone = false,
   accountAvailable = false,
   stmuAssistedEnabled = false,
+  stmuMultichannelEnabled = false,
   essentialServicesEnabled = false,
   essentialForwardingEnabled = false,
 }: {
   standalone?: boolean;
   accountAvailable?: boolean;
   stmuAssistedEnabled?: boolean;
+  stmuMultichannelEnabled?: boolean;
   essentialServicesEnabled?: boolean;
   essentialForwardingEnabled?: boolean;
 }) {
@@ -235,7 +236,6 @@ export function ParticipationWalletPanel({
     URL.revokeObjectURL(link.href);
   }
 
-  const attention = items.filter((item) => item.action_required);
   const grouped = [
     [
       "Meus relatos",
@@ -360,103 +360,98 @@ export function ParticipationWalletPanel({
           </div>
         </div>
       ) : null}
-      {present && attention.length ? (
-        <div className="grid gap-2 border-2 border-comun-black bg-comun-yellow p-4 text-comun-black">
-          <p className="text-xs font-black uppercase">Precisa de você</p>
-          {attention.map((item) => (
-            <div
-              key={item.item_id}
-              className="flex items-center justify-between gap-3"
-            >
-              <span>
-                <strong className="block">{item.title_template}</strong>
-                <small>{item.action_required}</small>
-              </span>
-              <button
-                type="button"
-                onClick={() => removeItem(item.item_id)}
-                className="min-h-11 border-2 border-comun-black bg-white px-3 text-sm font-black"
-              >
-                Arquivar
-              </button>
-            </div>
-          ))}
-        </div>
-      ) : null}
       {present
         ? grouped.map(([title, group]) =>
             group.length ? (
               <div key={title} className="grid gap-2">
                 <h3 className="font-black normal-case">{title}</h3>
-                {group.map((item) => (
-                  <article
-                    key={item.item_id}
-                    className="grid gap-2 border-2 border-comun-black/30 bg-white p-4"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-xs font-black uppercase">
-                        {statusLabel(item)}
-                      </span>
-                      {item.protocol_masked ? (
-                        <span className="font-mono text-xs">
-                          {item.protocol_masked}
+                {group.map((item) => {
+                  const relataAction =
+                    item.item_type === "relata_report"
+                      ? resolveWalletRelataAction({
+                          category: item.category,
+                          presentationState: item.presentation_state,
+                          actionRequired: item.action_required,
+                          metadata: item.metadata ?? {},
+                          featureFlags: {
+                            stmuAssistedEnabled,
+                            stmuMultichannelEnabled,
+                            essentialServicesEnabled,
+                            essentialForwardingEnabled,
+                          },
+                        })
+                      : null;
+                  return (
+                    <article
+                      key={item.item_id}
+                      data-wallet-item-id={item.item_id}
+                      className={`grid gap-2 border-2 bg-white p-4 ${
+                        relataAction?.nextStep
+                          ? "border-comun-black"
+                          : "border-comun-black/30"
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-xs font-black uppercase">
+                          {relataAction?.statusOverride ?? statusLabel(item)}
                         </span>
-                      ) : null}
-                    </div>
-                    <h4 className="font-black normal-case">
-                      {item.title_template}
-                    </h4>
-                    <p className="text-sm text-comun-black/70">
-                      {item.category ?? item.source_domain} · atualizado em{" "}
-                      {new Date(item.updated_at).toLocaleDateString("pt-BR")}
-                    </p>
-                    {item.metadata?.relatedDomain === "sidewalks" ? (
-                      <p className="text-sm font-bold text-comun-black/80">
-                        Relacionado ao Mapa das Calçadas · observação e relato
-                        permanecem separados.
+                        {item.protocol_masked ? (
+                          <span className="font-mono text-xs">
+                            {item.protocol_masked}
+                          </span>
+                        ) : null}
+                      </div>
+                      <h4 className="font-black normal-case">
+                        {item.title_template}
+                      </h4>
+                      <p className="text-sm text-comun-black/70">
+                        {relataAction?.categoryLabel ?? item.title_template} ·
+                        atualizado em{" "}
+                        {new Date(item.updated_at).toLocaleDateString("pt-BR")}
                       </p>
-                    ) : null}
-                    <div className="flex flex-wrap gap-3">
-                      <button
-                        type="button"
-                        onClick={() => removeItem(item.item_id)}
-                        className="min-h-11 font-black underline"
-                      >
-                        Arquivar ou retirar
-                      </button>
-                      {item.action_required ? (
-                        <span className="min-h-11 border-2 border-comun-black px-3 py-2 text-sm font-black">
-                          {item.action_required}
-                        </span>
+                      {relataAction?.stateMessage ? (
+                        <p className="text-sm font-bold text-comun-black/80">
+                          {relataAction.stateMessage}
+                        </p>
                       ) : null}
-                    </div>
-                    {item.item_type === "relata_report" ? (
-                      item.category === "public_transport" ? (
-                        stmuAssistedEnabled ? (
+                      <div className="flex flex-wrap gap-3">
+                        <button
+                          type="button"
+                          onClick={() => removeItem(item.item_id)}
+                          className="min-h-11 font-black underline"
+                        >
+                          Arquivar ou retirar
+                        </button>
+                      </div>
+                      {relataAction?.nextStep ? (
+                        <div className="border-l-4 border-comun-yellow bg-[#f8f2e6] p-3 text-sm">
+                          <p className="font-black">Próximo passo</p>
+                          <p>{relataAction.nextStep}</p>
+                        </div>
+                      ) : null}
+                      {relataAction?.availabilityMessage ? (
+                        <p className="border-t-2 pt-3 text-sm font-bold">
+                          {relataAction.availabilityMessage}
+                        </p>
+                      ) : null}
+                      {relataAction?.route === "bus" ? (
+                        relataAction.showStmuAssisted ? (
                           <ComunStmuAssistedPanel walletItemId={item.item_id} />
-                        ) : (
+                        ) : relataAction.showStmuMultichannel ? (
                           <ComunStmuMultichannelPanel
                             relataCaseId={item.item_id}
                           />
-                        )
-                      ) : essentialServicesEnabled &&
-                        isEssentialServiceCategory(item.category) ? (
-                        essentialForwardingEnabled ? (
+                        ) : null
+                      ) : relataAction?.route === "essential_service" ? (
+                        relataAction.showEssentialServices ? (
                           <ComunEssentialServicesPanel
                             walletItemId={item.item_id}
                           />
-                        ) : (
-                          <p className="mt-3 border-t-2 pt-3 text-sm font-bold">
-                            Guardado no COMUN. O encaminhamento assistido ainda
-                            não está ativo.
-                          </p>
-                        )
-                      ) : (
-                        <ComunForwardingPanel relataCaseId={item.item_id} />
-                      )
-                    ) : null}
-                  </article>
-                ))}
+                        ) : null
+                      ) : null}
+                    </article>
+                  );
+                })}
               </div>
             ) : null,
           )
