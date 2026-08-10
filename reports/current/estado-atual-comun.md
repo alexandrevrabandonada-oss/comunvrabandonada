@@ -1378,3 +1378,46 @@ Estado: `COMUN_F2_BLOCKED_EXISTING_SCHEMA_REQUIRES_FALSE_DATA`.
 O Share Target permanece
 `COMUN_F2_SHARE_TARGET_DEFERRED_FILE_LIFECYCLE_REQUIRED`; F2 terminal e P6A não
 foram iniciados.
+
+### 48.1D-S1 — Relata único (2026-08-09)
+
+- esta seção posterior substitui o estado intermediário F2 bloqueado acima;
+  F2, P6A e P1G permanecem verdes conforme seus relatórios próprios;
+- o finding humano `MOTOROLA-P1-001` foi registrado em 48.1C e pausou somente
+  `P01 / J1` e `P01 / J3` até esta correção;
+- PR funcional `#248`, head exato
+  `f249a868d6f7fe352fce3d10e3d10394a4d1f4b4`, mesclada em
+  `5e888dc99f5ce10fb414f0be4e8ab21dd53191fd`;
+- follow-up Auth/Quality `#249`, sem mudança de backend Auth, mesclado no main
+  final `643b489fe07126ae7cc372704457279b2d7d5ac6`;
+- `/comun/relatar` é a única entrada pública de novos relatos;
+  `?modo=detalhado` não reativa `ReportForm`, e `/comun/relata` redireciona
+  permanentemente para a rota canônica;
+- perguntas adaptativas são tipadas e não bloqueiam captura; Calçadas,
+  fallback `other`, fumaça, luz ambígua e foto-only podem ser guardados sem
+  abrir outro pipeline;
+- `ReportForm` e `submitReport` permanecem apenas como legado/histórico; o E2E
+  descartável comprovou `legacyWriteDelta=0`, um protocolo e um item na
+  Carteira;
+- zero migration, plano remoto `[]`, zero migração histórica e zero mudança de
+  Auth ou flags;
+- CI funcional, P6A descartável, Quality, acessibilidade, Security, no-leak,
+  Core Journeys e Preview verdes;
+- Production no merge exato respondeu `200` nas sete rotas de smoke; as duas
+  variantes do Relata mostraram a experiência canônica sem rótulos legacy;
+- com Google ON, o formulário de e-mail/senha ficou inequivocamente escopado
+  para acessibilidade e Quality; nove viewports passaram no domínio final, sem
+  submit ou sessão;
+- Quality, Experience Coherence, Core Journeys, Civic Graph e CI post-merge
+  passaram no SHA final; um retry de Experience foi necessário após `502`
+  transitório do Supabase CLI antes das jornadas;
+- nenhuma fixture foi necessária em Production, portanto a promoção realizou
+  zero escrita de negócio, zero publicação, zero envio externo e zero hard
+  delete;
+- auto-send e publicação automática permanecem OFF;
+  `launch_publicly=false`.
+
+Estado atual: `COMUN_48_1D_S1_UNIFIED_RELATA_INTAKE_GREEN`.
+
+Próximo passo: retomar primeiro `P01 / J1` e `P01 / J3` no piloto 48.1C. A
+tentativa que encontrou o P1 não conta como sucesso. P6B permanece proibido.
