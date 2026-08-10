@@ -9,6 +9,8 @@ import {
   isEssentialServiceCategory,
 } from "@/lib/comun-essential-services-feature";
 import { routeRelata } from "@/lib/comun-relata-routing";
+import { isComunEnvironmentalIncidentsEnabled } from "@/lib/comun-environmental-incidents-feature";
+import { isComunUrbanIncidentsEnabled } from "@/lib/comun-urban-incidents-feature";
 
 export const runtime = "nodejs";
 const headers = { "cache-control": "private, no-store, max-age=0" };
@@ -16,7 +18,11 @@ const dormant = () =>
   NextResponse.json({ code: "not_found" }, { status: 404, headers });
 
 export async function POST(request: NextRequest) {
-  if (!isComunEssentialServicesEnabled()) return dormant();
+  const essentialEnabled = isComunEssentialServicesEnabled();
+  const environmentalEnabled = isComunEnvironmentalIncidentsEnabled();
+  const urbanEnabled = isComunUrbanIncidentsEnabled();
+  if (!essentialEnabled && !environmentalEnabled && !urbanEnabled)
+    return dormant();
   const proof = decodeComunRelataReceiptCookie(
     request.cookies.get(COMUN_RELATA_RECEIPT_COOKIE)?.value,
   );
@@ -29,11 +35,32 @@ export async function POST(request: NextRequest) {
   }
   const text = typeof input.text === "string" ? input.text.trim() : "";
   if (text.length < 8 || text.length > 600) return dormant();
-  const decision = routeRelata({ text, answers: {} });
+  const decision = routeRelata(
+    { text, answers: {} },
+    {
+      environmentalIncidentsEnabled: environmentalEnabled,
+      urbanIncidentsEnabled: urbanEnabled,
+    },
+  );
+  const transitionCategories = new Set([
+    ...(essentialEnabled
+      ? ["water_supply", "power_distribution", "public_lighting"]
+      : []),
+    ...(environmentalEnabled
+      ? [
+          "active_fire",
+          "smoke_or_environmental_trace",
+          "environmental_pollution",
+          "waste_or_debris",
+        ]
+      : []),
+    ...(urbanEnabled
+      ? ["urban_flooding", "stormwater_drainage", "tree_hazard"]
+      : []),
+  ]);
   if (
-    !isEssentialServiceCategory(decision.category) ||
-    decision.missingInformation.length > 0 ||
-    decision.urgency === "emergency"
+    !transitionCategories.has(decision.category) ||
+    (isEssentialServiceCategory(decision.category) && !essentialEnabled)
   )
     return NextResponse.json(
       { code: "classification_requires_context" },

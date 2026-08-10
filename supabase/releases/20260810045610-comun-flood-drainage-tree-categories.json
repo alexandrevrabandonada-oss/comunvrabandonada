@@ -1,0 +1,29 @@
+{
+  "release": "20260810045610-comun-flood-drainage-tree-categories",
+  "migration": "supabase/migrations/20260810045610_comun_flood_drainage_tree_categories.sql",
+  "migrationSha256": "3e1f85b83332c9f52561c9d87ff7f54ad3b929e52e5097d798e175d4efcc06ac",
+  "path": "supabase/migrations/20260810045610_comun_flood_drainage_tree_categories.sql",
+  "sha256": "3e1f85b83332c9f52561c9d87ff7f54ad3b929e52e5097d798e175d4efcc06ac",
+  "requiresPromotion": true,
+  "remotePromotionAllowed": true,
+  "scope": "production",
+  "dependsOn": [
+    "20260809133923-comun-essential-services-assisted"
+  ],
+  "destructiveSql": false,
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "releaseLedger": "public.comun_schema_releases",
+  "dataMutation": false,
+  "technicalBackfill": null,
+  "historicalTextRead": false,
+  "publicProjection": false,
+  "publicProjectionAutomatic": false,
+  "externalForwarding": false,
+  "assistedOpeningOnly": false,
+  "featureFlags": [
+    "COMUN_URBAN_INCIDENTS_ENABLED",
+    "COMUN_URBAN_INCIDENTS_FORWARDING_ASSISTED_ENABLED"
+  ],
+  "reason": "unified_relata_flood_drainage_tree_classification_without_forwarding"
+}

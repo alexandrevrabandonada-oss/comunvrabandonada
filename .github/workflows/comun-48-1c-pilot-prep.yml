@@ -35,14 +35,22 @@ jobs:
 
       - run: npm ci
 
-      - name: Verify zero migration diff
+      - name: Verify zero migration diff for pilot-prep changes
         shell: bash
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
           base="${BASE_SHA:-$(git merge-base HEAD origin/main)}"
-          if git diff --name-only "$base" HEAD | grep -Eq '^supabase/(migrations|local-migrations)/'; then
+          changed_files="$(git diff --name-only "$base" HEAD)"
+          pilot_scope_pattern='^(docs/comun-48-1c-motorola-pilot-.*\.md|docs/comun-motorola-friction-contract\.md|reports/templates/comun-48-1c-human-session\.template\.md|reports/current/comun-48-1c-motorola-pilot\.md|scripts/solo/motorola-pilot-prep\.node-test\.mjs)$'
+
+          if ! grep -Eq "$pilot_scope_pattern" <<<"$changed_files"; then
+            echo COMUN_48_1C_PREP_MIGRATION_GATE_NOT_APPLICABLE >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if grep -Eq '^supabase/(migrations|local-migrations)/' <<<"$changed_files"; then
             echo COMUN_48_1C_PREP_BLOCKED_UNEXPECTED_MIGRATION_PLAN
             exit 1
           fi

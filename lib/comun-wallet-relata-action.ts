@@ -14,6 +14,9 @@ export const COMUN_RELATA_CATEGORY_LABELS = {
   public_education: "Educação pública",
   workplace: "Trabalho",
   environmental_pollution: "Poluição ambiental",
+  urban_flooding: "Alagamento ou enchente",
+  stormwater_drainage: "Drenagem, bueiro ou canal",
+  tree_hazard: "Árvore, galho ou risco de queda",
   other: "A classificar",
 } as const;
 
@@ -170,6 +173,23 @@ export function resolveWalletRelataAction(
 
   if (input.category === "sidewalk_accessibility") {
     return sidewalkPresentation(input);
+  }
+
+  if (
+    input.category === "urban_flooding" ||
+    input.category === "stormwater_drainage" ||
+    input.category === "tree_hazard"
+  ) {
+    const urgent = ["urgent", "emergency"].includes(
+      String(input.metadata.urgency ?? ""),
+    );
+    return baseAction("no_verified_forwarding", input, {
+      stateMessage: "Guardado no COMUN.",
+      nextStep: urgent
+        ? "Situação que pode exigir atendimento imediato."
+        : null,
+      availabilityMessage: NO_VERIFIED_FORWARDING,
+    });
   }
 
   const isPhotoOnly =

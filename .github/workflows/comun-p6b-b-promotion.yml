@@ -1,0 +1,163 @@
+name: COMUN P6B-B schema promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA
+        required: true
+        type: string
+      mode:
+        description: Read-only preflight, exact-one promotion, or postflight
+        required: true
+        type: choice
+        options: [preflight, promote, postflight]
+
+concurrency:
+  group: comun-p6b-b-schema-promotion
+  cancel-in-progress: false
+permissions:
+  contents: read
+
+env:
+  P6B_B_MIGRATION: 20260810045610_comun_flood_drainage_tree_categories.sql
+  P6B_B_MANIFEST: supabase/releases/20260810045610-comun-flood-drainage-tree-categories.json
+  P6B_B_SHA256: 3e1f85b83332c9f52561c9d87ff7f54ad3b929e52e5097d798e175d4efcc06ac
+  EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+  EXTERNAL_EXCEPTION: supabase/migration-exceptions/20260724233256-sidewalk-external-ledger.json
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
+      - run: npm ci --ignore-scripts
+      - name: Validate immutable P6B-B release
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          npm run solo:sql:validate -- --release-manifest="$P6B_B_MANIFEST"
+          test "$(node -e "const m=require('./$P6B_B_MANIFEST'); process.stdout.write(m.migration)")" = "supabase/migrations/$P6B_B_MIGRATION"
+          test "$(sha256sum "supabase/migrations/$P6B_B_MIGRATION" | awk '{print $1}')" = "$P6B_B_SHA256"
+      - name: Confirm pre-migration metadata without report reads
+        if: inputs.mode == 'preflight'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/p6b-b-promotion
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/p6b-b-promotion/preflight.json <<'SQL'
+          begin read only;
+          select json_build_object(
+            'migrationAbsent',not exists(select 1 from supabase_migrations.schema_migrations where version='20260810045610'),
+            'urbanFloodingAbsent',pg_get_constraintdef(oid) not like '%urban_flooding%',
+            'stormwaterDrainageAbsent',pg_get_constraintdef(oid) not like '%stormwater_drainage%',
+            'treeHazardAbsent',pg_get_constraintdef(oid) not like '%tree_hazard%',
+            'createFunctionPresent',to_regprocedure('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)') is not null,
+            'transitionPresent',to_regprocedure('public.comun_relata_classification_transition(text,text,text,text,jsonb)') is not null,
+            'sourceDomainUnchanged',(
+              select pg_get_constraintdef(oid) like '%bus%' and pg_get_constraintdef(oid) like '%essential_service%'
+                and pg_get_constraintdef(oid) not like '%urban%'
+              from pg_constraint where conrelid='private.comun_forwarding_packages'::regclass
+                and conname='comun_forwarding_packages_source_domain_check'
+            ),
+            'businessRowsRead',false,'transactionReadOnly',true
+          ) from pg_constraint
+          where conrelid='public.comun_relata_cases'::regclass
+            and conname='comun_relata_cases_category_check';
+          rollback;
+          SQL
+          node - <<'NODE'
+          const fs=require('node:fs'); const s=JSON.parse(fs.readFileSync('.ci-artifacts/p6b-b-promotion/preflight.json','utf8'));
+          if(!s.migrationAbsent||!s.urbanFloodingAbsent||!s.stormwaterDrainageAbsent||!s.treeHazardAbsent||!s.createFunctionPresent||!s.transitionPresent||!s.sourceDomainUnchanged||s.businessRowsRead!==false||s.transactionReadOnly!==true) throw new Error('COMUN_P6B_B_BLOCKED_REMOTE_SCHEMA_DRIFT');
+          NODE
+      - name: Reconcile Calçadas ledger and prove exact-one plan
+        if: inputs.mode == 'preflight' || inputs.mode == 'promote'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          test "$(node -e "const e=require('./$EXTERNAL_EXCEPTION'); process.stdout.write(e.path)")" = "$EXTERNAL_MIGRATION"
+          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          held="$RUNNER_TEMP/comun-p6b-b-external-ledger.sql"
+          mv "$EXTERNAL_MIGRATION" "$held"
+          restore() {
+            test ! -e "$held" || mv "$held" "$EXTERNAL_MIGRATION"
+            test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          }
+          trap restore EXIT
+          mkdir -p .ci-artifacts/p6b-b-promotion
+          supabase migration list --db-url "$SUPABASE_DB_URL" >.ci-artifacts/p6b-b-promotion/migration-list.txt 2>&1
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p6b-b-promotion/dry-run.txt 2>&1
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p6b-b-promotion/dry-run.txt | sort -u || true)
+          test "${#planned[@]}" -eq 1 || { echo COMUN_P6B_B_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+          test "${planned[0]}" = "$P6B_B_MIGRATION" || { echo COMUN_P6B_B_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+          ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/p6b-b-promotion/dry-run.txt
+          printf '{"result":"COMUN_P6B_B_REMOTE_PLAN_EXACT_ONE","migration":"%s","includeAll":false,"repair":false,"reset":false,"seed":false}\n' "$P6B_B_MIGRATION" >.ci-artifacts/p6b-b-promotion/plan.json
+          if test "${{ inputs.mode }}" = promote; then supabase db push --db-url "$SUPABASE_DB_URL"; fi
+          echo COMUN_P6B_B_REMOTE_PLAN_EXACT_ONE >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify postflight metadata, RLS and grants without report reads
+        if: inputs.mode == 'promote' || inputs.mode == 'postflight'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/p6b-b-promotion
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/p6b-b-promotion/postflight.json <<'SQL'
+          begin read only;
+          select json_build_object(
+            'migrationPresent',exists(select 1 from supabase_migrations.schema_migrations where version='20260810045610'),
+            'urbanFloodingPresent',pg_get_constraintdef(oid) like '%urban_flooding%',
+            'stormwaterDrainagePresent',pg_get_constraintdef(oid) like '%stormwater_drainage%',
+            'treeHazardPresent',pg_get_constraintdef(oid) like '%tree_hazard%',
+            'p6bAPreserved',pg_get_constraintdef(oid) like '%active_fire%' and pg_get_constraintdef(oid) like '%environmental_pollution%',
+            'createServiceRoleExecute',has_function_privilege('service_role','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
+            'createAnonExecute',has_function_privilege('anon','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
+            'createAuthenticatedExecute',has_function_privilege('authenticated','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
+            'transitionServiceRoleExecute',has_function_privilege('service_role','public.comun_relata_classification_transition(text,text,text,text,jsonb)','EXECUTE'),
+            'transitionAnonExecute',has_function_privilege('anon','public.comun_relata_classification_transition(text,text,text,text,jsonb)','EXECUTE'),
+            'transitionAuthenticatedExecute',has_function_privilege('authenticated','public.comun_relata_classification_transition(text,text,text,text,jsonb)','EXECUTE'),
+            'sourceDomainUnchanged',(
+              select pg_get_constraintdef(oid) like '%bus%' and pg_get_constraintdef(oid) like '%essential_service%'
+                and pg_get_constraintdef(oid) not like '%urban%'
+              from pg_constraint where conrelid='private.comun_forwarding_packages'::regclass
+                and conname='comun_forwarding_packages_source_domain_check'
+            ),
+            'classificationEventsRls',c.relrowsecurity,'classificationEventsForceRls',c.relforcerowsecurity,
+            'businessRowsRead',false,'transactionReadOnly',true
+          ) from pg_constraint k
+          join pg_class c on c.oid='private.comun_relata_classification_events'::regclass
+          where k.conrelid='public.comun_relata_cases'::regclass
+            and k.conname='comun_relata_cases_category_check';
+          rollback;
+          SQL
+          node - <<'NODE'
+          const fs=require('node:fs'); const s=JSON.parse(fs.readFileSync('.ci-artifacts/p6b-b-promotion/postflight.json','utf8'));
+          if(!s.migrationPresent||!s.urbanFloodingPresent||!s.stormwaterDrainagePresent||!s.treeHazardPresent||!s.p6bAPreserved||!s.createServiceRoleExecute||s.createAnonExecute||s.createAuthenticatedExecute||!s.transitionServiceRoleExecute||s.transitionAnonExecute||s.transitionAuthenticatedExecute||!s.sourceDomainUnchanged||!s.classificationEventsRls||!s.classificationEventsForceRls||s.businessRowsRead!==false||s.transactionReadOnly!==true) throw new Error('COMUN_P6B_B_REMOTE_POSTFLIGHT_FAILED');
+          NODE
+          echo COMUN_P6B_B_SCHEMA_PROMOTED_FLAGS_OFF >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-p6b-b-promotion-${{ github.run_id }}
+          path: .ci-artifacts/p6b-b-promotion
+          retention-days: 14
+          if-no-files-found: ignore

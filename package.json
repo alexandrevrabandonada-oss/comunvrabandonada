@@ -97,6 +97,8 @@
     "relata:p6a:essential-services:e2e:local": "node scripts/solo/rehearse-p6a-essential-services-local.mjs",
     "relata:p6b-a:environmental:e2e:local": "node scripts/solo/rehearse-p6b-a-environmental-incidents-local.mjs",
     "relata:p6b-a:environmental:production": "node scripts/solo/rehearse-p6b-a-environmental-incidents-production.mjs",
+    "relata:p6b-b:urban:e2e:local": "node scripts/solo/rehearse-p6b-b-urban-incidents-local.mjs",
+    "relata:p6b-b:urban:production": "node scripts/solo/rehearse-p6b-b-urban-incidents-production.mjs",
     "relata:s1:unified-intake:e2e:local": "node scripts/solo/rehearse-p6a-essential-services-local.mjs",
     "auth:p1g:google:e2e:local": "playwright test -c playwright.google-auth-local.config.ts",
     "relata:p2:text:e2e:local": "node scripts/solo/rehearse-p2-relata-text-private-local.mjs",

@@ -11,6 +11,10 @@ import {
   requiresRelataHumanReview,
 } from "./comun-relata-privacy";
 import { routeEnvironmentalIncidentV2 } from "./comun-environmental-routing-v2";
+import {
+  hasTreeHazardSignal,
+  routeUrbanIncidentV3,
+} from "./comun-urban-routing-v3";
 
 const DARK_STREET_QUESTION =
   "As casas também estão sem energia ou apenas as luminárias da rua?";
@@ -28,6 +32,7 @@ const DARK_STREET_ADAPTIVE_QUESTION: AdaptiveQuestion = {
 
 export type RouteRelataOptions = {
   environmentalIncidentsEnabled?: boolean;
+  urbanIncidentsEnabled?: boolean;
 };
 
 const SMOKE_ACTIVE_QUESTION =
@@ -115,16 +120,21 @@ export function routeRelata(
     });
   }
 
-  if (
-    hasAny(value, [
-      "fio caído",
-      "fio eletrico caído",
-      "fio elétrico caído",
-      "cabo caído",
-      "faísca",
-      "choque",
-    ])
-  ) {
+  const electricalHazard = hasAny(value, [
+    "fio caído",
+    "fio eletrico caído",
+    "fio elétrico caído",
+    "cabo caído",
+    "cabo energizado",
+    "faísca",
+    "choque",
+    "poste danificado",
+    "rede elétrica danificada",
+    "rede eletrica danificada",
+  ]);
+  if (electricalHazard) {
+    const treeSecondary =
+      options.urbanIncidentsEnabled && hasTreeHazardSignal(input.text);
     return baseDecision("electrical_hazard", input, {
       urgency: "emergency",
       agencyKind: "emergency",
@@ -134,38 +144,92 @@ export function routeRelata(
       confidence: "high",
       requiresHumanReview: true,
       publication: "never_automatic",
+      selectedCategory: "electrical_hazard",
+      categoryCandidates: [
+        { category: "electrical_hazard", confidence: "high" },
+        ...(treeSecondary
+          ? [{ category: "tree_hazard" as const, confidence: "high" as const }]
+          : []),
+      ],
+      routingVersion: treeSecondary
+        ? "relata-routing-v3-urban-incidents"
+        : undefined,
     });
   }
 
-  if (options.environmentalIncidentsEnabled) {
-    const environmental = routeEnvironmentalIncidentV2(input);
-    if (environmental) {
-      return baseDecision(environmental.selectedCategory, input, {
-        urgency: environmental.urgency,
+  const environmentalCandidate = routeEnvironmentalIncidentV2(input);
+  if (environmentalCandidate?.selectedCategory === "active_fire") {
+    return baseDecision(environmentalCandidate.selectedCategory, input, {
+      urgency: environmentalCandidate.urgency,
+      agencyKind: "emergency",
+      explanation: environmentalCandidate.explanation,
+      nextStep: environmentalCandidate.nextStep,
+      missingInformation: [],
+      adaptiveQuestions: environmentalCandidate.adaptiveQuestion
+        ? [environmentalCandidate.adaptiveQuestion]
+        : [],
+      requiresHumanReview: true,
+      confidence: environmentalCandidate.confidence,
+      publication: "never_automatic",
+      selectedCategory: environmentalCandidate.selectedCategory,
+      categoryCandidates: environmentalCandidate.categoryCandidates,
+      adaptiveQuestion: environmentalCandidate.adaptiveQuestion,
+      routingVersion: environmentalCandidate.routingVersion,
+    });
+  }
+  const environmental = options.environmentalIncidentsEnabled
+    ? environmentalCandidate
+    : null;
+
+  if (options.urbanIncidentsEnabled) {
+    const urban = routeUrbanIncidentV3(input);
+    if (urban) {
+      return baseDecision(urban.selectedCategory, input, {
+        urgency: urban.urgency,
         agencyKind:
-          environmental.selectedCategory === "active_fire"
-            ? "emergency"
-            : environmental.selectedCategory === "other"
-              ? "community_review"
-              : "environmental",
-        explanation: environmental.explanation,
-        nextStep: environmental.nextStep,
+          urban.urgency === "emergency" ? "emergency" : "urban_resilience",
+        explanation: urban.explanation,
+        nextStep: urban.nextStep,
         missingInformation: [],
-        adaptiveQuestions: environmental.adaptiveQuestion
-          ? [environmental.adaptiveQuestion]
+        adaptiveQuestions: urban.adaptiveQuestion
+          ? [urban.adaptiveQuestion]
           : [],
         requiresHumanReview:
-          environmental.requiresHumanReview ||
-          baseDecision(environmental.selectedCategory, input)
-            .requiresHumanReview,
-        confidence: environmental.confidence,
+          urban.requiresHumanReview ||
+          baseDecision(urban.selectedCategory, input).requiresHumanReview,
+        confidence: urban.confidence,
         publication: "never_automatic",
-        selectedCategory: environmental.selectedCategory,
-        categoryCandidates: environmental.categoryCandidates,
-        adaptiveQuestion: environmental.adaptiveQuestion,
-        routingVersion: environmental.routingVersion,
+        selectedCategory: urban.selectedCategory,
+        categoryCandidates: urban.categoryCandidates,
+        adaptiveQuestion: urban.adaptiveQuestion,
+        routingVersion: urban.routingVersion,
       });
     }
+  }
+
+  if (environmental) {
+    return baseDecision(environmental.selectedCategory, input, {
+      urgency: environmental.urgency,
+      agencyKind:
+        environmental.selectedCategory === "other"
+          ? "community_review"
+          : "environmental",
+      explanation: environmental.explanation,
+      nextStep: environmental.nextStep,
+      missingInformation: [],
+      adaptiveQuestions: environmental.adaptiveQuestion
+        ? [environmental.adaptiveQuestion]
+        : [],
+      requiresHumanReview:
+        environmental.requiresHumanReview ||
+        baseDecision(environmental.selectedCategory, input).requiresHumanReview,
+      confidence: environmental.confidence,
+      publication: "never_automatic",
+      selectedCategory: environmental.selectedCategory,
+      categoryCandidates: environmental.categoryCandidates,
+      adaptiveQuestion: environmental.adaptiveQuestion,
+      routingVersion: environmental.routingVersion,
+    });
   }
 
   if (

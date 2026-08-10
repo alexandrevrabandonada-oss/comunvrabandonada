@@ -14,6 +14,9 @@ export type RelataCategory =
   | "public_education"
   | "workplace"
   | "environmental_pollution"
+  | "urban_flooding"
+  | "stormwater_drainage"
+  | "tree_hazard"
   | "other";
 
 export type RelataUrgency = "routine" | "attention" | "urgent" | "emergency";
@@ -106,6 +109,7 @@ export type Agency = {
     | "public_transport"
     | "emergency"
     | "environmental"
+    | "urban_resilience"
     | "community_review";
   displayName: string;
   sphere:
@@ -165,10 +169,16 @@ export type RoutingRule = {
 export type AllowedAdaptiveAnswerKey =
   | "homes_power"
   | "smoke_active"
+  | "flood_active_risk"
+  | "tree_state"
   | "blocked";
 
 export type AdaptiveQuestion = {
-  id: "dark_street_power_scope" | "smoke_active_state";
+  id:
+    | "dark_street_power_scope"
+    | "smoke_active_state"
+    | "flood_active_risk"
+    | "tree_fall_state";
   prompt: string;
   answerKey: AllowedAdaptiveAnswerKey;
   options: Array<{
