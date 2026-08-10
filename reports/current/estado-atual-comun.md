@@ -1,4 +1,38 @@
-# Estado atual — 48.1B-P6B-A em Production, piloto humano pausado (10/08/2026)
+# Estado atual — 48.1B-P6B-B em Production, piloto humano pausado (10/08/2026)
+
+## 48.1B-P6B-B — alagamento, drenagem e risco de árvores
+
+- 48.1C permanece não concluído e pausado por decisão de produto:
+  `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`;
+- PR funcional `#255`, head exato
+  `2b82156020ad7d8e958aa61a536fa444b2c70883`, mesclada no merge
+  `29bf5fbac1ad8abc538d4d220ead2a932cf25ef4`;
+- hotfix de postflight `#256`, sem DDL, mesclado no merge
+  `baa5b3139f79f910492aab161fe6a11c9aeb27cd`;
+- `/comun/relatar` segue como entrada única; nenhum miniapp de alagamento,
+  drenagem ou árvores foi criado;
+- routing V3 reconhece alagamento/enchente, drenagem/bueiro/canal e
+  árvore/galho em risco, com negações, dominância elétrica e perguntas
+  opcionais sem bloquear Guardar;
+- foto-only permanece `original_text=NULL` e `category=other`;
+- uma única migration, SHA-256
+  `3e1f85b83332c9f52561c9d87ff7f54ad3b929e52e5097d798e175d4efcc06ac`;
+- dry-run `31361880718`: `COMUN_P6B_B_REMOTE_PLAN_EXACT_ONE`;
+- postflight read-only `31362446006`: categorias, RPCs, grants, RLS/FORCE
+  RLS e P6B-A preservados, sem leitura de negócio;
+- E2E descartável `31359162103` e 33 checks do head funcional verdes;
+- deploy flags-OFF `31362536123` e onda 1 `31362722810` verdes;
+- Production final `dpl_D8YtJ9YXnzHNmVVWwa8CncHz4xjB` READY;
+- classificação urbana ON; forwarding urbano e ambiental OFF;
+- cinco rotas canônicas `200`; cleanup Production com zero fixture ativa,
+  package, attempt, snapshot, coletivo, request/envio externo ou hard delete;
+- auto-send, publicação automática, mapa público geral, coletivos e
+  `launch_publicly` permanecem desligados.
+
+Resultado terminal:
+`COMUN_48_1B_P6B_B_FLOOD_DRAINAGE_TREE_DOMAIN_GREEN_NO_AUTO_SEND`.
+
+Detalhes: `reports/current/comun-48-1b-p6b-b-flood-drainage-tree.md`.
 
 ## 48.1B-P6B-A — incidentes ambientais e territoriais
 
