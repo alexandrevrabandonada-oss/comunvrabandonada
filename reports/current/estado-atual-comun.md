@@ -1,4 +1,51 @@
-# Estado atual — 48.1B-P6C-B2 em Production, piloto humano pausado (10/08/2026)
+# Estado atual — 48.1B-P6C-C em Production, piloto humano pausado (10/08/2026)
+
+## 48.1B-P6C-C — encaminhamento assistido sensível
+
+- 48.1C permanece não concluído e pausado por decisão de produto:
+  `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`;
+- PR funcional `#264`, head exato
+  `eded4abb47af433c9a1c7b7a05d0b22310a81b74`, mesclada no merge
+  `0b4e17dadf7ca3cd010e73da21191456c16f9b58`;
+- Saúde e Educação usam disclosure mínimo explícito; nenhum campo opcional vem
+  selecionado e o relato original nunca preenche a mensagem institucional;
+- Proteção de criança ou adolescente opera somente em channel-only, sem texto,
+  resumo, subtipo, escola, foto, localização ou identidade no package;
+- preview obrigatório distingue exatamente o que será e não será
+  compartilhado; autorização curta e assinada fica vinculada à Carteira, item,
+  categoria e disclosure normalizado;
+- valores não selecionados são descartados antes da assinatura e persistência;
+- opening por gesto é `prepared`; somente “Sim, enviei” declara envio;
+- protocolo oficial e retorno são manuais; Saúde/Educação aceitam nota curta e
+  Proteção aceita somente estados allowlisted, sem nota livre;
+- `due_at=NULL` para `sensitive_service`; 72h continua exclusiva de STMU;
+- exatamente uma migration forward-only, SHA-256
+  `483cac71e342a69f906dc702ae7e7e75efe23dc214d0dc3236b465d68b943c2d`;
+- preflight metadata-only `31435526208` e E2E descartável `31436411640`
+  verdes, com no-leak de texto, foto, GPS, identidade e dado não selecionado;
+- 222 check-runs concluídos no head final, zero falha/pendência, Preview verde
+  e zero review thread;
+- promoção flags-OFF `31438994969`: plano remoto exato de uma migration,
+  postflight de schema/RLS/grants e cinco rotas `200`;
+- wave 1 `31439260082`: Saúde + Educação ON, prepared-only e cleanup exato;
+- wave 2 `31439448933`: Proteção channel-only ON, prepared-only e cleanup
+  exato;
+- todas as fixtures sintéticas terminaram com zero report, case, Carteira,
+  package, attempt, snapshot ou coletivo ativo, zero request externo e zero
+  hard delete;
+- fontes municipais conflitantes de Saúde e Conselho Tutelar falham fechadas;
+  demais canais ativos estão `source_verified`, todos
+  `operationally_unchecked` e sem automação;
+- `COMUN_SENSITIVE_FORWARDING_ASSISTED_ENABLED=enabled`;
+- `COMUN_CHILD_PROTECTION_CHANNEL_ONLY_ENABLED=enabled`;
+- forwarding ambiental/urbano, auto-send, publicação automática, mapa público
+  geral e coletivos permanecem OFF; `launch_publicly=false`.
+
+Resultado terminal:
+`COMUN_48_1B_P6C_C_SENSITIVE_ASSISTED_FORWARDING_DOMAIN_GREEN_NO_AUTO_SEND`.
+
+Detalhes:
+`reports/current/comun-48-1b-p6c-c-sensitive-assisted-forwarding.md`.
 
 ## 48.1B-P6C-B2 — proteção privada de crianças e adolescentes
 
@@ -36,7 +83,8 @@
   pública, editorial genérica, comunitária ou de moderador comum ganhou acesso;
 - auto-send, forwarding sensível, publicação automática, mapa público geral,
   coletivos e `launch_publicly` permanecem desligados;
-- P6C-C não foi iniciado.
+- no fechamento histórico de B2, P6C-C ainda não havia sido iniciado; o estado
+  atual concluído está registrado na seção anterior.
 
 Resultado terminal:
 `COMUN_48_1B_P6C_B2_CHILD_PROTECTION_PRIVATE_DOMAIN_GREEN_FORWARDING_OFF`.
