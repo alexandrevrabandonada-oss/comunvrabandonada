@@ -69,7 +69,7 @@ async function capture(text, jar = primary, extra = {}) {
   assert.equal(response.status, 201, JSON.stringify(value));
   assert.ok(value.walletItemId);
   assert.equal(value.noOfficialSend, true);
-  assert.equal(value.receipt.evidence.activeReportsInCollective, 0);
+  assert.equal(value.evidence.activeReportsInCollective, 0);
   return { ...value, receiptSecret };
 }
 
