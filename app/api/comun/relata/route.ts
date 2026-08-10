@@ -31,6 +31,7 @@ import { isComunEnvironmentalIncidentsEnabled } from "@/lib/comun-environmental-
 import { isComunUrbanIncidentsEnabled } from "@/lib/comun-urban-incidents-feature";
 import { isComunPublicHealthSensitiveRoutingEnabled } from "@/lib/comun-public-health-sensitive-feature";
 import { isComunPublicEducationSensitiveRoutingEnabled } from "@/lib/comun-public-education-sensitive-feature";
+import { isComunChildProtectionPrivateRoutingEnabled } from "@/lib/comun-child-protection-feature";
 
 export const runtime = "nodejs";
 
@@ -111,6 +112,7 @@ export async function POST(request: NextRequest) {
     "tree_state",
     "health_issue_type",
     "education_issue_type",
+    "child_immediate_danger",
     "blocked",
     "line",
     "direction",
@@ -158,7 +160,9 @@ export async function POST(request: NextRequest) {
             "discrimination_or_bullying",
             "information_or_management",
             "other_education_service",
-          ].includes(answers[key])),
+          ].includes(answers[key])) ||
+        (key === "child_immediate_danger" &&
+          !["sim", "nao", "nao_sei"].includes(answers[key])),
     )
   ) {
     return NextResponse.json(
@@ -193,6 +197,8 @@ export async function POST(request: NextRequest) {
             isComunPublicHealthSensitiveRoutingEnabled(),
           publicEducationSensitiveRoutingEnabled:
             isComunPublicEducationSensitiveRoutingEnabled(),
+          childProtectionPrivateRoutingEnabled:
+            isComunChildProtectionPrivateRoutingEnabled(),
         },
       );
   const decision = applyComunEssentialServicesRoutingGate(

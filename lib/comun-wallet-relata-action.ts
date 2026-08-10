@@ -16,6 +16,7 @@ export const COMUN_RELATA_CATEGORY_LABELS = {
   waste_or_debris: "Lixo ou entulho",
   public_health: "Saúde pública",
   public_education: "Educação pública",
+  child_protection: "Proteção de criança ou adolescente",
   workplace: "Trabalho",
   environmental_pollution: "Poluição ambiental",
   urban_flooding: "Alagamento ou enchente",
@@ -215,6 +216,20 @@ export function resolveWalletRelataAction(
         : "Você pode consultar os canais oficiais da Educação.",
       availabilityMessage:
         "O encaminhamento sensível permanece desativado. Nenhum dado educacional foi enviado.",
+    });
+  }
+
+  if (input.category === "child_protection") {
+    return baseAction("no_verified_forwarding", input, {
+      detailLabel: null,
+      statusOverride: "Guardado com proteção reforçada",
+      stateMessage: "Este registro não será publicado.",
+      nextStep:
+        input.metadata.immediateDanger === true
+          ? "Situação que pode exigir ajuda imediata."
+          : "Canais de proteção estão disponíveis para consulta.",
+      availabilityMessage:
+        "O encaminhamento sensível permanece desativado. Nenhum dado foi enviado.",
     });
   }
 

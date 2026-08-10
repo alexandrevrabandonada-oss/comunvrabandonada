@@ -223,6 +223,28 @@ describe("category-aware Participation Wallet", () => {
     ).toBeNull();
   });
 
+  it("renders child protection once with reinforced privacy and no details", () => {
+    expect(
+      resolve("child_protection", {
+        metadata: {
+          immediateDanger: true,
+          childProtectionIssueType: "immediate_danger",
+          school: "must-not-render",
+        },
+      }),
+    ).toMatchObject({
+      route: "no_verified_forwarding",
+      categoryLabel: "Proteção de criança ou adolescente",
+      detailLabel: null,
+      statusOverride: "Guardado com proteção reforçada",
+      stateMessage: "Este registro não será publicado.",
+      nextStep: "Situação que pode exigir ajuda imediata.",
+      showStmuAssisted: false,
+      showStmuMultichannel: false,
+      showEssentialServices: false,
+    });
+  });
+
   it("uses the complete canonical human label map", () => {
     expect(COMUN_RELATA_CATEGORY_LABELS).toEqual({
       sidewalk_accessibility: "Calçada e acessibilidade",
@@ -236,6 +258,7 @@ describe("category-aware Participation Wallet", () => {
       waste_or_debris: "Lixo ou entulho",
       public_health: "Saúde pública",
       public_education: "Educação pública",
+      child_protection: "Proteção de criança ou adolescente",
       workplace: "Trabalho",
       environmental_pollution: "Poluição ambiental",
       urban_flooding: "Alagamento ou enchente",

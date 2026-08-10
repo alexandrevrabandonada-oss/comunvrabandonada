@@ -13,6 +13,7 @@ import { isComunEnvironmentalIncidentsEnabled } from "@/lib/comun-environmental-
 import { isComunUrbanIncidentsEnabled } from "@/lib/comun-urban-incidents-feature";
 import { isComunPublicHealthSensitiveRoutingEnabled } from "@/lib/comun-public-health-sensitive-feature";
 import { isComunPublicEducationSensitiveRoutingEnabled } from "@/lib/comun-public-education-sensitive-feature";
+import { isComunChildProtectionPrivateRoutingEnabled } from "@/lib/comun-child-protection-feature";
 
 export default function ReportPage() {
   // The canonical intake is never allowed to fall back to the legacy writer.
@@ -39,6 +40,7 @@ export default function ReportPage() {
         urbanIncidentsEnabled={isComunUrbanIncidentsEnabled()}
         publicHealthSensitiveRoutingEnabled={isComunPublicHealthSensitiveRoutingEnabled()}
         publicEducationSensitiveRoutingEnabled={isComunPublicEducationSensitiveRoutingEnabled()}
+        childProtectionPrivateRoutingEnabled={isComunChildProtectionPrivateRoutingEnabled()}
       />
     </Suspense>
   );

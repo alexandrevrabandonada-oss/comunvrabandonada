@@ -13,6 +13,7 @@ import { isComunEnvironmentalIncidentsEnabled } from "@/lib/comun-environmental-
 import { isComunUrbanIncidentsEnabled } from "@/lib/comun-urban-incidents-feature";
 import { isComunPublicHealthSensitiveRoutingEnabled } from "@/lib/comun-public-health-sensitive-feature";
 import { isComunPublicEducationSensitiveRoutingEnabled } from "@/lib/comun-public-education-sensitive-feature";
+import { isComunChildProtectionPrivateRoutingEnabled } from "@/lib/comun-child-protection-feature";
 
 export const runtime = "nodejs";
 const headers = { "cache-control": "private, no-store, max-age=0" };
@@ -25,12 +26,14 @@ export async function POST(request: NextRequest) {
   const urbanEnabled = isComunUrbanIncidentsEnabled();
   const healthEnabled = isComunPublicHealthSensitiveRoutingEnabled();
   const educationEnabled = isComunPublicEducationSensitiveRoutingEnabled();
+  const childProtectionEnabled = isComunChildProtectionPrivateRoutingEnabled();
   if (
     !essentialEnabled &&
     !environmentalEnabled &&
     !urbanEnabled &&
     !healthEnabled &&
-    !educationEnabled
+    !educationEnabled &&
+    !childProtectionEnabled
   )
     return dormant();
   const proof = decodeComunRelataReceiptCookie(
@@ -52,6 +55,7 @@ export async function POST(request: NextRequest) {
       urbanIncidentsEnabled: urbanEnabled,
       publicHealthSensitiveRoutingEnabled: healthEnabled,
       publicEducationSensitiveRoutingEnabled: educationEnabled,
+      childProtectionPrivateRoutingEnabled: childProtectionEnabled,
     },
   );
   const transitionCategories = new Set([
@@ -71,6 +75,7 @@ export async function POST(request: NextRequest) {
       : []),
     ...(healthEnabled ? ["public_health"] : []),
     ...(educationEnabled ? ["public_education"] : []),
+    ...(childProtectionEnabled ? ["child_protection"] : []),
   ]);
   if (
     !transitionCategories.has(decision.category) ||

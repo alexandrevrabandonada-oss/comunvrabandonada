@@ -1,9 +1,8 @@
-export const COMUN_RELATA_PUBLIC_PROJECTION_POLICY = "relata-public-projection-v1" as const;
+export const COMUN_RELATA_PUBLIC_PROJECTION_POLICY =
+  "relata-public-projection-v1" as const;
 
 export type PublicProjectionCategory =
-  | "public_lighting"
-  | "power_distribution"
-  | "smoke_or_environmental_trace";
+  "public_lighting" | "power_distribution" | "smoke_or_environmental_trace";
 
 export type ProjectionState =
   | "blocked"
@@ -22,26 +21,35 @@ export const PUBLIC_PROJECTION_RULES: Record<
 > = {
   public_lighting: {
     title: "Iluminação pública no território",
-    summary: "Relatos organizados sobre iluminação pública, em localização aproximada.",
+    summary:
+      "Relatos organizados sobre iluminação pública, em localização aproximada.",
     gridMeters: 300,
     minimumReports: 1,
   },
   power_distribution: {
     title: "Distribuição de energia no território",
-    summary: "Relatos organizados sobre distribuição de energia, em localização aproximada.",
+    summary:
+      "Relatos organizados sobre distribuição de energia, em localização aproximada.",
     gridMeters: 800,
     minimumReports: 2,
   },
   smoke_or_environmental_trace: {
     title: "Vestígio ambiental no território",
-    summary: "Relatos organizados sobre vestígio ambiental; não indica fogo ativo nem sua origem.",
+    summary:
+      "Relatos organizados sobre vestígio ambiental; não indica fogo ativo nem sua origem.",
     gridMeters: 1000,
     minimumReports: 1,
   },
 };
 
-export function isPublicProjectionCategory(value: unknown): value is PublicProjectionCategory {
-  return value === "public_lighting" || value === "power_distribution" || value === "smoke_or_environmental_trace";
+export function isPublicProjectionCategory(
+  value: unknown,
+): value is PublicProjectionCategory {
+  return (
+    value === "public_lighting" ||
+    value === "power_distribution" ||
+    value === "smoke_or_environmental_trace"
+  );
 }
 
 export type PublicCell = {
@@ -59,7 +67,10 @@ function mercatorX(longitude: number) {
 function mercatorY(latitude: number) {
   const safe = Math.max(-85.05112878, Math.min(85.05112878, latitude));
   const radians = (safe * Math.PI) / 180;
-  return ((1 - Math.log(Math.tan(radians) + 1 / Math.cos(radians)) / Math.PI) / 2) * WORLD_METERS;
+  return (
+    ((1 - Math.log(Math.tan(radians) + 1 / Math.cos(radians)) / Math.PI) / 2) *
+    WORLD_METERS
+  );
 }
 
 function longitudeFromX(x: number) {
@@ -77,20 +88,34 @@ export function deriveComunRelataPublicCell(
   latitude: number,
   declaredAccuracyMeters?: number | null,
 ): PublicCell {
-  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) throw new Error("RELATA_PUBLIC_LONGITUDE_INVALID");
-  if (!Number.isFinite(latitude) || latitude < -85.05112878 || latitude > 85.05112878) throw new Error("RELATA_PUBLIC_LATITUDE_INVALID");
+  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180)
+    throw new Error("RELATA_PUBLIC_LONGITUDE_INVALID");
+  if (
+    !Number.isFinite(latitude) ||
+    latitude < -85.05112878 ||
+    latitude > 85.05112878
+  )
+    throw new Error("RELATA_PUBLIC_LATITUDE_INVALID");
   const gridMeters = PUBLIC_PROJECTION_RULES[category].gridMeters;
   const cellX = Math.floor(mercatorX(longitude) / gridMeters);
   const cellY = Math.floor(mercatorY(latitude) / gridMeters);
   const centerX = (cellX + 0.5) * gridMeters;
   const centerY = (cellY + 0.5) * gridMeters;
-  const diagonal = Math.sqrt(2) * gridMeters / 2;
+  const diagonal = (Math.sqrt(2) * gridMeters) / 2;
   return {
     cellX,
     cellY,
     gridMeters,
-    center: { latitude: latitudeFromY(centerY), longitude: longitudeFromX(centerX) },
-    uncertaintyRadiusMeters: Math.max(diagonal, Number.isFinite(declaredAccuracyMeters) ? Number(declaredAccuracyMeters) : 0),
+    center: {
+      latitude: latitudeFromY(centerY),
+      longitude: longitudeFromX(centerX),
+    },
+    uncertaintyRadiusMeters: Math.max(
+      diagonal,
+      Number.isFinite(declaredAccuracyMeters)
+        ? Number(declaredAccuracyMeters)
+        : 0,
+    ),
   };
 }
 
@@ -101,7 +126,10 @@ export function preserveComunRelataPublicPrecision(
 ) {
   return {
     ...next,
-    uncertaintyRadiusMeters: Math.max(previous.uncertaintyRadiusMeters, next.uncertaintyRadiusMeters),
+    uncertaintyRadiusMeters: Math.max(
+      previous.uncertaintyRadiusMeters,
+      next.uncertaintyRadiusMeters,
+    ),
   };
 }
 
@@ -117,8 +145,22 @@ export type EligibilityInput = {
 };
 
 const BLOCKED_CATEGORIES = new Set([
-  "electrical_hazard", "active_fire", "emergency", "other", "violence", "health", "public_health", "education", "public_education", "children",
-  "individualized_accusation", "retaliation_risk", "sensitive", "high_risk", "public_after_sanitization",
+  "electrical_hazard",
+  "active_fire",
+  "emergency",
+  "other",
+  "violence",
+  "health",
+  "public_health",
+  "education",
+  "public_education",
+  "child_protection",
+  "children",
+  "individualized_accusation",
+  "retaliation_risk",
+  "sensitive",
+  "high_risk",
+  "public_after_sanitization",
   "restricted",
 ]);
 
@@ -126,15 +168,35 @@ export function evaluateComunRelataPublicEligibility(input: EligibilityInput): {
   state: ProjectionState;
   reason: string;
 } {
-  if (!isPublicProjectionCategory(input.category) || BLOCKED_CATEGORIES.has(input.category)) return { state: "blocked", reason: "category_not_allowlisted" };
-  if (input.active === false) return { state: "inactive", reason: "no_active_membership" };
-  if (input.urgency === "emergency" || input.privacyClass && BLOCKED_CATEGORIES.has(input.privacyClass)) return { state: "blocked", reason: "safety_boundary" };
-  if (input.confidence === "blocked") return { state: "blocked", reason: "match_blocked" };
-  if (!input.hasLocationCandidate) return { state: "suppressed", reason: "approximate_location_required" };
+  if (
+    !isPublicProjectionCategory(input.category) ||
+    BLOCKED_CATEGORIES.has(input.category)
+  )
+    return { state: "blocked", reason: "category_not_allowlisted" };
+  if (input.active === false)
+    return { state: "inactive", reason: "no_active_membership" };
+  if (
+    input.urgency === "emergency" ||
+    (input.privacyClass && BLOCKED_CATEGORIES.has(input.privacyClass))
+  )
+    return { state: "blocked", reason: "safety_boundary" };
+  if (input.confidence === "blocked")
+    return { state: "blocked", reason: "match_blocked" };
+  if (!input.hasLocationCandidate)
+    return { state: "suppressed", reason: "approximate_location_required" };
   const rule = PUBLIC_PROJECTION_RULES[input.category];
-  if (input.reportCount < rule.minimumReports) return { state: "suppressed", reason: "minimum_report_count_not_reached" };
-  if (input.reviewState === "future_review_required") return { state: "review_required", reason: "future_review_required" };
-  return { state: input.confidence === "high" ? "eligible_auto_local" : "review_required", reason: input.confidence === "high" ? "allowlisted_rule" : "confidence_requires_review" };
+  if (input.reportCount < rule.minimumReports)
+    return { state: "suppressed", reason: "minimum_report_count_not_reached" };
+  if (input.reviewState === "future_review_required")
+    return { state: "review_required", reason: "future_review_required" };
+  return {
+    state:
+      input.confidence === "high" ? "eligible_auto_local" : "review_required",
+    reason:
+      input.confidence === "high"
+        ? "allowlisted_rule"
+        : "confidence_requires_review",
+  };
 }
 
 export type PublicProjectionRow = {
@@ -158,7 +220,8 @@ export type PublicProjectionRow = {
 };
 
 export function sanitizeComunRelataPublicProjection(row: PublicProjectionRow) {
-  if (!isPublicProjectionCategory(row.category)) throw new Error("RELATA_PUBLIC_CATEGORY_INVALID");
+  if (!isPublicProjectionCategory(row.category))
+    throw new Error("RELATA_PUBLIC_CATEGORY_INVALID");
   const rule = PUBLIC_PROJECTION_RULES[row.category];
   return {
     publicId: row.public_id,
@@ -170,7 +233,11 @@ export function sanitizeComunRelataPublicProjection(row: PublicProjectionRow) {
     confirmationCount: Math.max(0, Math.trunc(row.confirmation_count)),
     firstSeenDate: row.first_seen_date.slice(0, 10),
     lastActivityDate: row.last_activity_date.slice(0, 10),
-    location: { latitude: row.public_latitude, longitude: row.public_longitude, uncertaintyRadiusMeters: row.uncertainty_radius_meters },
+    location: {
+      latitude: row.public_latitude,
+      longitude: row.public_longitude,
+      uncertaintyRadiusMeters: row.uncertainty_radius_meters,
+    },
     policyVersion: COMUN_RELATA_PUBLIC_PROJECTION_POLICY,
     eligibilityReason: row.eligibility_reason,
     projectionState: row.projection_state,
