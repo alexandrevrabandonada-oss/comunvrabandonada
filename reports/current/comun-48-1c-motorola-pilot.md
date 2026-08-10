@@ -1,6 +1,6 @@
 # COMUN 48.1C — piloto humano Motorola
 
-## PILOTO PAUSADO FOCALMENTE — J1/J3/J7
+## PILOTO PAUSADO POR DECISÃO DE PRODUTO
 
 Atualizado em 10/08/2026.
 
@@ -15,8 +15,13 @@ Atualizado em 10/08/2026.
 - conteúdo criado em Production por esta preparação: `0`;
 - migrations 48.1C: `0`.
 
-48.1C permanece em andamento, com pausa focal somente nas jornadas afetadas.
-O finding não autoriza P6B nem amplia o piloto.
+48.1C não foi concluído. As sessões humanas não serão reiniciadas
+automaticamente. O estado vigente é:
+
+`COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`.
+
+A decisão de produto autorizou P6B-A como expansão separada, sem transformar
+essa autorização em resultado humano nem ampliar as métricas do piloto.
 
 ## Protocolo e privacidade
 
@@ -91,10 +96,12 @@ Sem dados humanos.
 - não misturar o micro-gate Google às sete jornadas;
 - não abrir canais externos em cenários sintéticos;
 - priorizar celular no primeiro ciclo;
-- o finding humano acionou 48.1D-S1 antes de qualquer P6B.
+- o finding humano acionou 48.1D-S1; depois de S3, a decisão de produto pausou
+  o piloto e autorizou P6B-A separadamente.
 
 ## Próximo passo operacional
 
-Retestar focalmente a Carteira após `48.1D-S3`; depois retomar `P01 / J1`,
-`P01 / J3` e `P01 / J7` e somente então continuar as demais jornadas do piloto.
-P6B permanece proibido.
+Manter 48.1C pausado até nova decisão explícita de produto. Quando houver
+retomada, retestar focalmente a Carteira após `48.1D-S3`; depois retomar
+`P01 / J1`, `P01 / J3` e `P01 / J7` antes das demais jornadas. P6B-A não conta
+como conclusão nem como sucesso do piloto.

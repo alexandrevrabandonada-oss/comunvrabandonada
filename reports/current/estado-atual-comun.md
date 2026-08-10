@@ -1,4 +1,36 @@
-# Estado atual — 48.1D-S3 em Production, reteste humano focal pendente (10/08/2026)
+# Estado atual — 48.1B-P6B-A em Production, piloto humano pausado (10/08/2026)
+
+## 48.1B-P6B-A — incidentes ambientais e territoriais
+
+- 48.1C permanece não concluído e pausado por decisão de produto:
+  `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`;
+- PR funcional `#253`, head exato
+  `997c9de1c07ffcdb161535bf18fe0d26bfda3b1d`, mesclada no merge
+  `bc0e627988176afec0b06721f714a89db867b480`;
+- `/comun/relatar` continua sendo a única entrada; não foram criados miniapps
+  ambientais;
+- o roteador determinístico V2 reconhece fogo ativo, fumaça/vestígio,
+  poluição e lixo/entulho, com negações, dominância de risco e pergunta de
+  chamas opcional, sem bloquear Guardar;
+- foto-only permanece `original_text=NULL` e `category=other`, sem visão
+  computacional ou frase inventada;
+- Carteira usa labels humanos e nenhum adapter institucional como fallback;
+- E2E descartável `31354428041`, regressão P6A `31354428057` e 26 checks do
+  head final verdes;
+- zero migration; dry-run remoto `31354873210` com plano `[]`;
+- deployment flags-OFF `31354964511` e onda 1 `31355068551` verdes no merge
+  exato; Production final `dpl_5htbwyTaw7nCXN6zxEpPnSa9g6dq` READY;
+- classificação ambiental ON; forwarding ambiental OFF e diferido porque
+  `source_domain` exigiria extensão de schema;
+- cleanup Production: zero fixture sintética ativa, package, attempt,
+  snapshot, coletivo, request/envio externo ou hard delete;
+- auto-send, publicação automática, mapa público geral, coletivos e
+  `launch_publicly` permanecem desligados.
+
+Resultado terminal:
+`COMUN_48_1B_P6B_A_ENVIRONMENTAL_INCIDENTS_DOMAIN_GREEN_NO_AUTO_SEND`.
+
+Detalhes: `reports/current/comun-48-1b-p6b-a-environmental-incidents.md`.
 
 ## 48.1D-S3 — Carteira orientada pela categoria
 
@@ -26,7 +58,8 @@
 - zero fixture/escrita Production, envio externo, publicação ou hard delete;
 - reteste humano focal da Carteira atual ainda deve confirmar somente registro,
   label, ausência de Fiscaliza e compreensão do próximo passo;
-- depois do reteste, retomar `J1`, `J3` e `J7`; P6B continua proibido;
+- depois do reteste, a regra S3 previa retomar `J1`, `J3` e `J7` antes de P6B;
+  a decisão de produto posterior autorizou P6B-A e pausou o piloto;
 - auto-send, publicação automática e `launch_publicly` permanecem desligados.
 
 Detalhes: `reports/current/comun-48-1d-s3-category-aware-wallet.md`.
@@ -46,7 +79,8 @@ Detalhes: `reports/current/comun-48-1d-s3-category-aware-wallet.md`.
 - participantes contabilizados: `0`; estado: `PREPARED — NO HUMAN SESSIONS
 YET`;
 - P1G humano permanece separado e pendente; `launch_publicly=false`;
-- P6B continua proibido; depois do primeiro ciclo humano, 48.1D tem prioridade.
+- este era o gate de preparação anterior à decisão de produto que autorizou
+  P6B-A e pausou o piloto.
 
 Detalhes: `reports/current/comun-48-1c-motorola-pilot.md`.
 
@@ -87,7 +121,8 @@ Detalhes: `reports/current/comun-48-1c-motorola-pilot.md`.
 
 Detalhes: `reports/current/comun-48-1b-p1g-google-auth.md`.
 
-Depois de concluir P1G: `48.1C — Piloto Humano Motorola`. Não iniciar P6B.
+Este encadeamento foi substituído pela decisão de produto registrada na seção
+P6B-A acima; 48.1C continua não concluído.
 
 ## 48.1B-P6A — serviços essenciais — concluída
 
@@ -126,8 +161,8 @@ Depois de concluir P1G: `48.1C — Piloto Humano Motorola`. Não iniciar P6B.
 Resultado terminal:
 `COMUN_48_1B_P6A_ESSENTIAL_SERVICES_DOMAIN_GREEN_NO_AUTO_SEND`.
 
-Próximo passo: `P1G — Google Auth`; depois,
-`48.1C — Piloto Humano Motorola`. Não iniciar P6B antes de 48.1C.
+Este próximo passo era o gate vigente ao concluir P6A. A decisão de produto
+posterior autorizou P6B-A sem concluir 48.1C.
 
 ## 48.1B-F2 — capture first
 
@@ -1450,5 +1485,6 @@ foram iniciados.
 
 Estado atual: `COMUN_48_1D_S1_UNIFIED_RELATA_INTAKE_GREEN`.
 
-Próximo passo: retomar primeiro `P01 / J1` e `P01 / J3` no piloto 48.1C. A
-tentativa que encontrou o P1 não conta como sucesso. P6B permanece proibido.
+Esse próximo passo era o gate vigente ao concluir S1. A tentativa que encontrou
+o P1 não conta como sucesso; a decisão de produto posterior pausou 48.1C e
+autorizou P6B-A separadamente.
