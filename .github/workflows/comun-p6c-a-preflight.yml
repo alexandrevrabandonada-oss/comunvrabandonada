@@ -18,6 +18,7 @@ permissions:
 
 env:
   EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+  P6C_A_MIGRATION: supabase/migrations/20260810143000_comun_public_health_sensitive_routing.sql
 
 jobs:
   preflight:
@@ -33,14 +34,14 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: 2.113.0
-      - name: Validate zero migration and read-only Production target
+      - name: Validate the one authorized migration and read-only Production target
         shell: bash
         run: |
           set -euo pipefail
           test -n "${SUPABASE_DB_URL:-}"
           test -n "${SUPABASE_PROJECT_REF:-}"
           case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
-          test -z "$(git diff --name-only origin/main...HEAD -- supabase/migrations)"
+          test "$(git diff --name-only origin/main...HEAD -- supabase/migrations)" = "$P6C_A_MIGRATION"
       - name: Inspect P6C-A schema metadata without business-row reads
         shell: bash
         run: |
@@ -53,11 +54,16 @@ jobs:
             'publicEducationPreserved', exists(select 1 from pg_catalog.pg_constraint where conrelid='public.comun_relata_cases'::regclass and conname='comun_relata_cases_category_check' and pg_catalog.pg_get_constraintdef(oid) like '%public_education%'),
             'createPresent', to_regprocedure('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)') is not null,
             'transitionPresent', to_regprocedure('public.comun_relata_classification_transition(text,text,text,text,jsonb)') is not null,
+            'healthRoutingVersionPending', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) not like '%comun-health-service-routing-v1%',
+            'healthSubtypePersistencePending', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) not like '%healthIssueType%',
             'casesRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='public.comun_relata_cases'::regclass),
             'reportsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_relata_reports'::regclass),
             'anonCreate', has_function_privilege('anon','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
             'authenticatedCreate', has_function_privilege('authenticated','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
             'serviceCreate', has_function_privilege('service_role','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
+            'anonTransition', has_function_privilege('anon','public.comun_relata_classification_transition(text,text,text,text,jsonb)','EXECUTE'),
+            'authenticatedTransition', has_function_privilege('authenticated','public.comun_relata_classification_transition(text,text,text,text,jsonb)','EXECUTE'),
+            'serviceTransition', has_function_privilege('service_role','public.comun_relata_classification_transition(text,text,text,text,jsonb)','EXECUTE'),
             'sourceDomainsUnchanged', exists(select 1 from pg_catalog.pg_constraint where conrelid='private.comun_forwarding_packages'::regclass and pg_catalog.pg_get_constraintdef(oid) like '%essential_service%' and pg_catalog.pg_get_constraintdef(oid) like '%bus%'),
             'businessRowsRead', false,
             'transactionReadOnly', true
@@ -67,9 +73,9 @@ jobs:
           node - <<'NODE'
           const fs=require('node:fs');
           const s=JSON.parse(fs.readFileSync('.ci-artifacts/p6c-a-preflight/schema.json','utf8'));
-          if(!s.publicHealthPresent||!s.publicEducationPreserved||!s.createPresent||!s.transitionPresent||!s.casesRlsForced||!s.reportsRlsForced||s.anonCreate||s.authenticatedCreate||!s.serviceCreate||!s.sourceDomainsUnchanged||s.businessRowsRead!==false||s.transactionReadOnly!==true) throw new Error('COMUN_P6C_A_BLOCKED_REMOTE_SCHEMA_DRIFT');
+          if(!s.publicHealthPresent||!s.publicEducationPreserved||!s.createPresent||!s.transitionPresent||!s.healthRoutingVersionPending||!s.healthSubtypePersistencePending||!s.casesRlsForced||!s.reportsRlsForced||s.anonCreate||s.authenticatedCreate||!s.serviceCreate||s.anonTransition||s.authenticatedTransition||!s.serviceTransition||!s.sourceDomainsUnchanged||s.businessRowsRead!==false||s.transactionReadOnly!==true) throw new Error('COMUN_P6C_A_BLOCKED_REMOTE_SCHEMA_DRIFT');
           NODE
-      - name: Reconcile Calçadas and prove empty remote migration plan
+      - name: Reconcile Calçadas and prove the exact remote migration plan
         shell: bash
         run: |
           set -euo pipefail
@@ -84,9 +90,10 @@ jobs:
           supabase migration list --db-url "$SUPABASE_DB_URL" >.ci-artifacts/p6c-a-preflight/migration-list.txt 2>&1
           supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p6c-a-preflight/dry-run.txt 2>&1
           mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p6c-a-preflight/dry-run.txt | sort -u || true)
-          test "${#planned[@]}" -eq 0 || { echo COMUN_P6C_A_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+          test "${#planned[@]}" -eq 1 || { echo COMUN_P6C_A_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+          test "${planned[0]}" = "$(basename "$P6C_A_MIGRATION")" || { echo COMUN_P6C_A_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
           ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/p6c-a-preflight/dry-run.txt
-          printf '%s\n' '{"result":"COMUN_P6C_A_REMOTE_MIGRATION_PLAN_EMPTY","migrationCount":0,"businessRowsRead":false}' >.ci-artifacts/p6c-a-preflight/migration-plan.json
+          printf '%s\n' '{"result":"COMUN_P6C_A_REMOTE_PLAN_EXACT_ONE","migrationCount":1,"businessRowsRead":false}' >.ci-artifacts/p6c-a-preflight/migration-plan.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -96,4 +103,4 @@ jobs:
           if-no-files-found: error
       - name: Emit bounded result
         if: success()
-        run: echo COMUN_P6C_A_REMOTE_SCHEMA_GREEN_PLAN_EMPTY >> "$GITHUB_STEP_SUMMARY"
+        run: echo COMUN_P6C_A_REMOTE_SCHEMA_GREEN_PLAN_EXACT_ONE >> "$GITHUB_STEP_SUMMARY"

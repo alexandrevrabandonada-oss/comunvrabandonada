@@ -8,10 +8,10 @@ on:
         required: true
         type: string
       mode:
-        description: Deploy flags off, activate private SUS routing, or roll it back
+        description: Promote migration with flags off, deploy flags off, activate private SUS routing, or roll it back
         required: true
         type: choice
-        options: [flags-off, wave1-private-routing, rollback-private-routing]
+        options: [promote-migration-flags-off, flags-off, wave1-private-routing, rollback-private-routing]
 
 concurrency:
   group: comun-p6c-a-private-sus-activation
@@ -20,6 +20,8 @@ permissions:
   contents: read
 
 env:
+  EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+  P6C_A_MIGRATION: supabase/migrations/20260810143000_comun_public_health_sensitive_routing.sql
   VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
   VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
   COMUN_BASE_URL: https://comunsocial.online
@@ -37,7 +39,10 @@ jobs:
         with:
           node-version: 22.18.0
           cache: npm
-      - name: Verify exact main and zero-migration activation plan
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
+      - name: Verify exact main and scoped activation plan
         env:
           EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
         shell: bash
@@ -46,9 +51,68 @@ jobs:
           test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
           npm ci --ignore-scripts
           node --check scripts/solo/rehearse-p6c-a-sus-private-production.mjs
-          test "$(find supabase/migrations -maxdepth 1 -type f | grep -Ei 'p6c|sus|health' | wc -l)" -eq 0
+          test "$(find supabase/migrations -maxdepth 1 -type f | grep -Ei 'p6c|sus|health' | wc -l)" -eq 1
+          test -f "$P6C_A_MIGRATION"
           ! grep -Eqi 'window\.open|wa\.me|mailto:|person_declared_sent' scripts/solo/rehearse-p6c-a-sus-private-production.mjs
           ! grep -Eqi '\bdelete[[:space:]]+from\b' scripts/solo/rehearse-p6c-a-sus-private-production.mjs
+      - name: Promote the exact forward-only P6C-A migration
+        if: inputs.mode == 'promote-migration-flags-off'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
+          mkdir -p .ci-artifacts/p6ca-production
+          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          held="$RUNNER_TEMP/comun-p6ca-external-ledger.sql"
+          mv "$EXTERNAL_MIGRATION" "$held"
+          restore() {
+            test ! -e "$held" || mv "$held" "$EXTERNAL_MIGRATION"
+            test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          }
+          trap restore EXIT
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p6ca-production/migration-dry-run.txt 2>&1
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p6ca-production/migration-dry-run.txt | sort -u || true)
+          test "${#planned[@]}" -eq 1
+          test "${planned[0]}" = "$(basename "$P6C_A_MIGRATION")"
+          ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/p6ca-production/migration-dry-run.txt
+          supabase db push --db-url "$SUPABASE_DB_URL" >.ci-artifacts/p6ca-production/migration-push.txt 2>&1
+          restore
+          trap - EXIT
+      - name: Postflight P6C-A schema without business-row reads
+        if: inputs.mode == 'promote-migration-flags-off'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/p6ca-production/schema-postflight.json <<'SQL'
+          begin read only;
+          select json_build_object(
+            'migrationApplied', exists(select 1 from supabase_migrations.schema_migrations where version='20260810143000'),
+            'healthRoutingVersionAccepted', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%comun-health-service-routing-v1%',
+            'healthSubtypePreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%healthIssueType%',
+            'healthTransitionAccepted', pg_catalog.pg_get_functiondef('public.comun_relata_classification_transition(text,text,text,text,jsonb)'::regprocedure) like '%public_health%',
+            'casesRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='public.comun_relata_cases'::regclass),
+            'reportsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_relata_reports'::regclass),
+            'anonCreate', has_function_privilege('anon','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
+            'authenticatedCreate', has_function_privilege('authenticated','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
+            'serviceCreate', has_function_privilege('service_role','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
+            'anonTransition', has_function_privilege('anon','public.comun_relata_classification_transition(text,text,text,text,jsonb)','EXECUTE'),
+            'authenticatedTransition', has_function_privilege('authenticated','public.comun_relata_classification_transition(text,text,text,text,jsonb)','EXECUTE'),
+            'serviceTransition', has_function_privilege('service_role','public.comun_relata_classification_transition(text,text,text,text,jsonb)','EXECUTE'),
+            'businessRowsRead', false
+          );
+          rollback;
+          SQL
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const s=JSON.parse(fs.readFileSync('.ci-artifacts/p6ca-production/schema-postflight.json','utf8'));
+          if(!s.migrationApplied||!s.healthRoutingVersionAccepted||!s.healthSubtypePreserved||!s.healthTransitionAccepted||!s.casesRlsForced||!s.reportsRlsForced||s.anonCreate||s.authenticatedCreate||!s.serviceCreate||s.anonTransition||s.authenticatedTransition||!s.serviceTransition||s.businessRowsRead!==false) throw new Error('COMUN_P6C_A_POSTFLIGHT_FAILED');
+          NODE
+          psql "$SUPABASE_DB_URL" -qX -v ON_ERROR_STOP=1 -c "notify pgrst, 'reload schema';"
       - name: Set P6C-A flags without reading Production values
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -59,7 +123,7 @@ jobs:
           classification=disabled
           case "${{ inputs.mode }}" in
             wave1-private-routing) classification=enabled ;;
-            flags-off|rollback-private-routing) ;;
+            promote-migration-flags-off|flags-off|rollback-private-routing) ;;
             *) echo COMUN_P6C_A_ACTIVATION_MODE_INVALID; exit 1 ;;
           esac
           printf '%s' "$classification" | npx --yes vercel@50.28.0 env add COMUN_PUBLIC_HEALTH_SENSITIVE_ROUTING_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6ca-classification-env.out 2>/tmp/comun-p6ca-classification-env.err
@@ -92,7 +156,7 @@ jobs:
             test "$(curl -L -sS -o /dev/null -w '%{http_code}' --retry 8 --retry-delay 2 "$COMUN_BASE_URL$path")" = 200
           done
       - name: Confirm flags-off deployment
-        if: inputs.mode == 'flags-off' || inputs.mode == 'rollback-private-routing'
+        if: inputs.mode == 'promote-migration-flags-off' || inputs.mode == 'flags-off' || inputs.mode == 'rollback-private-routing'
         run: echo COMUN_P6C_A_CODE_DEPLOYED_FLAGS_OFF >> "$GITHUB_STEP_SUMMARY"
       - name: Allocate synthetic smoke marker
         id: attempt

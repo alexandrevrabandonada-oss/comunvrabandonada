@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
     ...(urbanEnabled
       ? ["urban_flooding", "stormwater_drainage", "tree_hazard"]
       : []),
+    ...(healthEnabled ? ["public_health"] : []),
   ]);
   if (
     !transitionCategories.has(decision.category) ||

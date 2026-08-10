@@ -6,9 +6,18 @@ const root = process.cwd();
 const read = (path: string) => readFileSync(join(root, path), "utf8");
 
 describe("COMUN P6C-A private SUS contract", () => {
-  it("adds no migration or health miniapp", () => {
+  it("adds exactly one narrow health routing migration and no health miniapp", () => {
     const migrations = readdirSync(join(root, "supabase/migrations"));
-    expect(migrations.some((name) => /p6c|health|sus/i.test(name))).toBe(false);
+    expect(migrations.filter((name) => /p6c|health|sus/i.test(name))).toEqual([
+      "20260810143000_comun_public_health_sensitive_routing.sql",
+    ]);
+    const migration = read(
+      "supabase/migrations/20260810143000_comun_public_health_sensitive_routing.sql",
+    );
+    expect(migration).toContain("comun-health-service-routing-v1");
+    expect(migration).toContain("healthIssueType");
+    expect(migration).toContain("grant execute on function public.comun_relata_create");
+    expect(migration).not.toMatch(/create table|backfill|insert into public\.comun_relata_cases\s+select/i);
     expect(() => read("app/comun/sus/page.tsx")).toThrow();
     expect(() => read("app/comun/saude/denunciar/page.tsx")).toThrow();
     expect(() => read("app/comun/hospital/page.tsx")).toThrow();

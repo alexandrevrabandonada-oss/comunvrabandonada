@@ -37,7 +37,7 @@ jobs:
         with:
           version: 2.113.0
       - run: npm ci --ignore-scripts
-      - name: Assert isolated unlinked runtime and zero P6C-A migrations
+      - name: Assert isolated unlinked runtime and the authorized P6C-A migration
         shell: bash
         run: |
           set -euo pipefail
@@ -46,7 +46,8 @@ jobs:
           test -z "${SUPABASE_DB_URL:-}"
           test -z "${VERCEL_TOKEN:-}"
           grep -q '^project_id = "COMUM_VR_ABANDONADA"' supabase/config.toml
-          test "$(find supabase/migrations -maxdepth 1 -type f | grep -Ei 'p6c|sus|health' | wc -l)" -eq 0
+          test "$(find supabase/migrations -maxdepth 1 -type f | grep -Ei 'p6c|sus|health' | wc -l)" -eq 1
+          test -f supabase/migrations/20260810143000_comun_public_health_sensitive_routing.sql
       - name: Start disposable Supabase and exercise P6C-A
         shell: bash
         run: |

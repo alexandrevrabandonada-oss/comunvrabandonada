@@ -214,6 +214,44 @@ try {
     }
   }
 
+  const beforeHealthEnrichment = await db.query(
+    `select r.id report_id,c.id case_id,c.protocol,
+      (select count(*)::int from private.comun_participation_wallet_items wi
+        where wi.subject_ref=c.id::text and wi.item_type='relata_report') wallet_items
+     from public.comun_relata_cases c
+     join private.comun_relata_reports r on r.id=c.report_id
+     where c.protocol=$1`,
+    [photoOnly.receipt.protocol],
+  );
+  assert.equal(beforeHealthEnrichment.rowCount, 1);
+  const healthEnrichment = await http("/api/comun/relata/classification", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text: "A UBS está sem médico hoje." }),
+  });
+  assert.equal(healthEnrichment.status, 200, await healthEnrichment.text());
+  const afterHealthEnrichment = await db.query(
+    `select r.id report_id,r.original_text,r.privacy_class,c.id case_id,c.protocol,c.category,c.routing_decision,
+      (select count(*)::int from private.comun_participation_wallet_items wi
+        where wi.subject_ref=c.id::text and wi.item_type='relata_report') wallet_items,
+      (select count(*)::int from private.comun_relata_classification_events e
+        where e.case_id=c.id and e.previous_category='other' and e.next_category='public_health') transition_events
+     from public.comun_relata_cases c
+     join private.comun_relata_reports r on r.id=c.report_id
+     where c.protocol=$1`,
+    [photoOnly.receipt.protocol],
+  );
+  assert.equal(afterHealthEnrichment.rowCount, 1);
+  assert.equal(afterHealthEnrichment.rows[0].report_id, beforeHealthEnrichment.rows[0].report_id);
+  assert.equal(afterHealthEnrichment.rows[0].case_id, beforeHealthEnrichment.rows[0].case_id);
+  assert.equal(afterHealthEnrichment.rows[0].protocol, beforeHealthEnrichment.rows[0].protocol);
+  assert.equal(afterHealthEnrichment.rows[0].wallet_items, beforeHealthEnrichment.rows[0].wallet_items);
+  assert.equal(afterHealthEnrichment.rows[0].category, "public_health");
+  assert.equal(afterHealthEnrichment.rows[0].privacy_class, "sensitive");
+  assert.equal(afterHealthEnrichment.rows[0].routing_decision.healthIssueType, "staff_or_service_availability");
+  assert.equal(afterHealthEnrichment.rows[0].routing_decision.routingVersion, "comun-health-service-routing-v1");
+  assert.equal(afterHealthEnrichment.rows[0].transition_events, 1);
+
   const walletResponse = await http("/api/comun/participation-wallet");
   const walletBody = await walletResponse.json();
   assert.equal(walletResponse.status, 200);
@@ -279,6 +317,7 @@ try {
     privacy: "sensitive_or_high_risk_never_public",
     urgentCare: "samu_guidance_no_call",
     photoOnly: "other_original_text_null",
+    photoOnlyEnrichment: "same_report_case_protocol_wallet",
     wrongReceipt: "denied",
     otherWallet: "isolated",
     sensitiveForwarding: "explicit_consent_required_off",
