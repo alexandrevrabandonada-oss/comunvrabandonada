@@ -199,7 +199,7 @@ try {
   assert.equal(alteredAuthorization.status, 404);
   const healthDb = await db.query(`select p.*,c.category,r.original_text,
       (select count(*)::int from private.comun_relata_attachments a where a.report_id=r.id) attachments,
-      (select count(*)::int from private.comun_relata_private_locations l where l.report_id=r.id and l.state='active') locations,
+      (select count(*)::int from private.comun_relata_private_locations l where l.report_id=r.id and l.evidence_state='added_private') locations,
       (select count(*)::int from private.comun_participation_wallet_account_links al where al.wallet_id=p.wallet_id and al.user_id=$2) account_links
     from private.comun_forwarding_packages p join public.comun_relata_cases c on c.id=p.relata_case_id
     join private.comun_relata_reports r on r.id=c.report_id where p.id=$1`, [healthPackage, accountSentinel]);
