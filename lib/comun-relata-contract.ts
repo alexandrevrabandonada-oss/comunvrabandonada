@@ -191,6 +191,13 @@ export type RoutingDecision = {
   requiresHumanReview: boolean;
   ruleVersion: string;
   confidence: "high" | "medium" | "low";
+  selectedCategory?: RelataCategory;
+  categoryCandidates?: Array<{
+    category: RelataCategory;
+    confidence: "high" | "medium" | "low";
+  }>;
+  adaptiveQuestion?: AdaptiveQuestion | null;
+  routingVersion?: string;
 };
 
 export type Submission = {

@@ -10,6 +10,7 @@ import {
   classifyRelataPrivacy,
   requiresRelataHumanReview,
 } from "./comun-relata-privacy";
+import { routeEnvironmentalIncidentV2 } from "./comun-environmental-routing-v2";
 
 const DARK_STREET_QUESTION =
   "As casas também estão sem energia ou apenas as luminárias da rua?";
@@ -25,9 +26,12 @@ const DARK_STREET_ADAPTIVE_QUESTION: AdaptiveQuestion = {
   blocking: false,
 };
 
+export type RouteRelataOptions = {
+  environmentalIncidentsEnabled?: boolean;
+};
+
 const SMOKE_ACTIVE_QUESTION =
   "O fogo ainda está ativo ou restou apenas fumaça/vestígio?";
-
 const SMOKE_ACTIVE_ADAPTIVE_QUESTION: AdaptiveQuestion = {
   id: "smoke_active_state",
   prompt: SMOKE_ACTIVE_QUESTION,
@@ -76,7 +80,10 @@ function baseDecision(
   };
 }
 
-export function routeRelata(input: RelataInput): RoutingDecision {
+export function routeRelata(
+  input: RelataInput,
+  options: RouteRelataOptions = {},
+): RoutingDecision {
   const value = normalized(input);
   const darkStreet = hasAny(value, [
     "rua toda escura",
@@ -106,6 +113,59 @@ export function routeRelata(input: RelataInput): RoutingDecision {
       confidence: "low",
       publication: "never_automatic",
     });
+  }
+
+  if (
+    hasAny(value, [
+      "fio caído",
+      "fio eletrico caído",
+      "fio elétrico caído",
+      "cabo caído",
+      "faísca",
+      "choque",
+    ])
+  ) {
+    return baseDecision("electrical_hazard", input, {
+      urgency: "emergency",
+      agencyKind: "emergency",
+      explanation: "Há indicação de risco elétrico imediato.",
+      nextStep:
+        "Afaste-se, não toque no fio e procure o serviço de emergência local.",
+      confidence: "high",
+      requiresHumanReview: true,
+      publication: "never_automatic",
+    });
+  }
+
+  if (options.environmentalIncidentsEnabled) {
+    const environmental = routeEnvironmentalIncidentV2(input);
+    if (environmental) {
+      return baseDecision(environmental.selectedCategory, input, {
+        urgency: environmental.urgency,
+        agencyKind:
+          environmental.selectedCategory === "active_fire"
+            ? "emergency"
+            : environmental.selectedCategory === "other"
+              ? "community_review"
+              : "environmental",
+        explanation: environmental.explanation,
+        nextStep: environmental.nextStep,
+        missingInformation: [],
+        adaptiveQuestions: environmental.adaptiveQuestion
+          ? [environmental.adaptiveQuestion]
+          : [],
+        requiresHumanReview:
+          environmental.requiresHumanReview ||
+          baseDecision(environmental.selectedCategory, input)
+            .requiresHumanReview,
+        confidence: environmental.confidence,
+        publication: "never_automatic",
+        selectedCategory: environmental.selectedCategory,
+        categoryCandidates: environmental.categoryCandidates,
+        adaptiveQuestion: environmental.adaptiveQuestion,
+        routingVersion: environmental.routingVersion,
+      });
+    }
   }
 
   if (

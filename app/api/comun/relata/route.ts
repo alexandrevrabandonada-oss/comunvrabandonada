@@ -28,6 +28,7 @@ import {
   isComunEssentialServicesEnabled,
   isEssentialServiceCategory,
 } from "@/lib/comun-essential-services-feature";
+import { isComunEnvironmentalIncidentsEnabled } from "@/lib/comun-environmental-incidents-feature";
 
 export const runtime = "nodejs";
 
@@ -110,11 +111,7 @@ export async function POST(request: NextRequest) {
     "unit",
     "school_type",
   ]);
-  const binaryAdaptiveAnswerKeys = new Set([
-    "homes_power",
-    "smoke_active",
-    "blocked",
-  ]);
+  const binaryAdaptiveAnswerKeys = new Set(["homes_power", "blocked"]);
 
   if (
     (!photoOnly && text.length < 8) ||
@@ -125,7 +122,9 @@ export async function POST(request: NextRequest) {
       (key) =>
         !allowedAnswerKeys.has(key) ||
         (binaryAdaptiveAnswerKeys.has(key) &&
-          !["sim", "nao"].includes(answers[key])),
+          !["sim", "nao"].includes(answers[key])) ||
+        (key === "smoke_active" &&
+          !["sim", "nao", "nao_sei"].includes(answers[key])),
     )
   ) {
     return NextResponse.json(
@@ -151,7 +150,13 @@ export async function POST(request: NextRequest) {
   };
   const routedDecision = photoOnly
     ? createComunRelataPhotoOnlyDecision()
-    : routeRelata({ ...input, text });
+    : routeRelata(
+        { ...input, text },
+        {
+          environmentalIncidentsEnabled:
+            isComunEnvironmentalIncidentsEnabled(),
+        },
+      );
   const decision = applyComunEssentialServicesRoutingGate(
     routedDecision,
     isComunEssentialServicesEnabled(),

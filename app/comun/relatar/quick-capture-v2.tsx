@@ -16,6 +16,7 @@ import {
   isEssentialServiceCategory,
 } from "@/lib/comun-essential-services-feature";
 import { ComunEssentialServicesPanel } from "@/app/comun/minha-participacao/comun-essential-services-panel";
+import { COMUN_RELATA_CATEGORY_LABELS } from "@/lib/comun-wallet-relata-action";
 
 const SidewalkRealPointPicker = dynamic(
   () =>
@@ -62,29 +63,20 @@ function labelForState(state: string) {
       : "Guardado privadamente";
 }
 
-const CATEGORY_LABELS: Partial<Record<string, string>> = {
-  sidewalk_accessibility: "Calçada e acessibilidade",
-  public_transport: "Transporte coletivo",
-  water_supply: "Abastecimento de água",
-  power_distribution: "Distribuição de energia",
-  public_lighting: "Iluminação pública",
-  electrical_hazard: "Risco elétrico",
-  environmental_pollution: "Questão ambiental",
-  smoke_or_environmental_trace: "Fumaça ou vestígio ambiental",
-};
-
 export function QuickCaptureV2({
   attachmentsEnabled = false,
   locationEnabled = false,
   photoOnlyEnabled = false,
   essentialServicesEnabled = false,
   essentialForwardingEnabled = false,
+  environmentalIncidentsEnabled = false,
 }: {
   attachmentsEnabled?: boolean;
   locationEnabled?: boolean;
   photoOnlyEnabled?: boolean;
   essentialServicesEnabled?: boolean;
   essentialForwardingEnabled?: boolean;
+  environmentalIncidentsEnabled?: boolean;
 }) {
   const [startedAt] = useState(() => Date.now());
   const [hydrated, setHydrated] = useState(false);
@@ -164,11 +156,14 @@ export function QuickCaptureV2({
     const trimmed = value.trim();
     if (trimmed.length >= 8) {
       return applyComunEssentialServicesRoutingGate(
-        routeRelata({
-          text: trimmed,
-          hasAttachment: Boolean(file),
-          answers: currentAnswers,
-        }),
+        routeRelata(
+          {
+            text: trimmed,
+            hasAttachment: Boolean(file),
+            answers: currentAnswers,
+          },
+          { environmentalIncidentsEnabled },
+        ),
         essentialServicesEnabled,
       );
     }
@@ -428,7 +423,7 @@ export function QuickCaptureV2({
                   rows={4}
                   maxLength={600}
                   className="min-h-28 border-2 border-comun-black p-3 text-base"
-                  placeholder="Ex.: a calçada está bloqueada por entulho"
+                  placeholder="Ex.: estamos sem água, há fumaça no morro ou jogaram entulho na rua"
                 />
               </section>
               {attachmentsEnabled ? (
@@ -603,7 +598,10 @@ export function QuickCaptureV2({
               {receipt.category !== "other" &&
               decision?.confidence !== "low" ? (
                 <p className="border-2 border-comun-black bg-comun-paper p-3 font-bold">
-                  Entendi como: {CATEGORY_LABELS[receipt.category] ?? receipt.category}
+                  Entendi como:{" "}
+                  {COMUN_RELATA_CATEGORY_LABELS[
+                    receipt.category as keyof typeof COMUN_RELATA_CATEGORY_LABELS
+                  ] ?? "Categoria em revisão"}
                 </p>
               ) : null}
               {receipt.category === "sidewalk_accessibility" ? (
