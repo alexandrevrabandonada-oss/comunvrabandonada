@@ -1,4 +1,37 @@
-# Estado atual — 48.1B-P6B-B em Production, piloto humano pausado (10/08/2026)
+# Estado atual — 48.1B-P6C-A em Production, piloto humano pausado (10/08/2026)
+
+## 48.1B-P6C-A — SUS privado e seguro
+
+- 48.1C permanece não concluído e pausado por decisão de produto:
+  `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`;
+- PR funcional `#258`, head exato
+  `3737f217171c2003147f3ee4a9b81f16d6ce8aa3`, mesclada no merge
+  `5f016adfd12d08e7a2f89f515b64387be5a80f86`;
+- `/comun/relatar` segue como entrada única; nenhum miniapp SUS foi criado;
+- roteador `comun-health-service-routing-v1` reconhece problemas do serviço e
+  subtipos privados, sem diagnosticar pessoa ou condição clínica;
+- todo `public_health` é `sensitive` ou `high_risk`, com publicação `never`;
+- foto-only permanece `original_text=NULL` e `category=other`;
+- o drift estrutural do RPC foi comprovado no E2E e corrigido após autorização
+  explícita com exatamente uma migration forward-only, SHA-256
+  `6bcf50652b436a66ce110ef90a66e09249663c35055514d6e506f88054938d4f`;
+- run flags-OFF `31401299502`: plano remoto exato, migration, postflight de
+  RLS/grants e deploy verdes, sem leitura de negócio;
+- onda 1 `31401563130`: routing privado ON e forwarding sensível OFF;
+- 179 check-runs concluídos no head final, sem falha ou pendência; E2E
+  descartável `COMUN_P6C_A_SUS_PRIVATE_DISPOSABLE_E2E_GREEN`;
+- cinco rotas canônicas `200`; cleanup Production com zero fixture ativa,
+  package, attempt, snapshot, coletivo, request/envio externo ou hard delete;
+- catálogo oficial server-side, sem automação; conflito municipal 302/572
+  registrado, demais fontes `source_verified` e todos os canais
+  `operationally_unchecked`;
+- auto-send, forwarding sensível, publicação automática, mapa público geral,
+  coletivos e `launch_publicly` permanecem desligados.
+
+Resultado terminal:
+`COMUN_48_1B_P6C_A_SUS_PRIVATE_DOMAIN_GREEN_FORWARDING_OFF`.
+
+Detalhes: `reports/current/comun-48-1b-p6c-a-sus-private.md`.
 
 ## 48.1B-P6B-B — alagamento, drenagem e risco de árvores
 
