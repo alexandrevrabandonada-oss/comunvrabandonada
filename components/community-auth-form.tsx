@@ -34,7 +34,6 @@ export function CommunityLoginForm({
         <div
           className="flex items-center gap-3 text-xs font-black uppercase text-comun-black"
           role="separator"
-          aria-label="ou entre com e-mail"
         >
           <span className="h-px flex-1 bg-current/30" aria-hidden="true" />
           <span>ou entre com e-mail</span>
