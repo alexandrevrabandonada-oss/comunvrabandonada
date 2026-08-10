@@ -16,6 +16,7 @@ import {
   routeUrbanIncidentV3,
 } from "./comun-urban-routing-v3";
 import { routeHealthServiceV1 } from "./comun-health-service-routing-v1";
+import { routeEducationServiceV1 } from "./comun-education-service-routing-v1";
 
 const DARK_STREET_QUESTION =
   "As casas também estão sem energia ou apenas as luminárias da rua?";
@@ -35,6 +36,7 @@ export type RouteRelataOptions = {
   environmentalIncidentsEnabled?: boolean;
   urbanIncidentsEnabled?: boolean;
   publicHealthSensitiveRoutingEnabled?: boolean;
+  publicEducationSensitiveRoutingEnabled?: boolean;
 };
 
 const SMOKE_ACTIVE_QUESTION =
@@ -234,12 +236,42 @@ export function routeRelata(
     });
   }
 
+  if (options.publicEducationSensitiveRoutingEnabled) {
+    const education = routeEducationServiceV1(input);
+    if (education) {
+      return baseDecision("public_education", input, {
+        urgency: education.urgency,
+        agencyKind:
+          education.urgency === "emergency" ? "emergency" : "community_review",
+        explanation: education.explanation,
+        nextStep: education.nextStep,
+        missingInformation: [],
+        adaptiveQuestions: education.adaptiveQuestion
+          ? [education.adaptiveQuestion]
+          : [],
+        privacyClass: education.privacyClass,
+        publication: "never_automatic",
+        requiresHumanReview: true,
+        confidence: education.confidence,
+        selectedCategory: "public_education",
+        categoryCandidates: [
+          { category: "public_education", confidence: education.confidence },
+        ],
+        adaptiveQuestion: education.adaptiveQuestion,
+        routingVersion: education.routingVersion,
+        educationIssueType: education.educationIssueType,
+        childSafetySignal: education.childSafetySignal,
+      });
+    }
+  }
+
   if (options.publicHealthSensitiveRoutingEnabled) {
     const health = routeHealthServiceV1(input);
     if (health) {
       return baseDecision("public_health", input, {
         urgency: health.urgency,
-        agencyKind: health.urgency === "emergency" ? "emergency" : "community_review",
+        agencyKind:
+          health.urgency === "emergency" ? "emergency" : "community_review",
         explanation: health.explanation,
         nextStep: health.nextStep,
         missingInformation: [],
@@ -335,7 +367,22 @@ export function routeRelata(
   }
 
   if (
-    hasAny(value, ["escola", "creche", "merenda", "professor", "sala de aula"])
+    hasAny(value, [
+      "escola",
+      "creche",
+      "merenda",
+      "professor",
+      "sala de aula",
+    ]) &&
+    !hasAny(value, [
+      "salário",
+      "salario",
+      "fgts",
+      "direitos trabalhistas",
+      "jornada de trabalho",
+      "assédio laboral",
+      "assedio laboral",
+    ])
   ) {
     return baseDecision("public_education", input, {
       agencyKind: "community_review",
@@ -609,7 +656,8 @@ export function routeRelata(
   }
 
   return baseDecision("other", input, {
-    nextStep: "O relato pode ser guardado agora. Você pode acrescentar contexto depois.",
+    nextStep:
+      "O relato pode ser guardado agora. Você pode acrescentar contexto depois.",
     missingInformation: [],
     adaptiveQuestions: [],
     requiresHumanReview: true,

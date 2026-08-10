@@ -22,6 +22,8 @@ const P6A_ESSENTIAL_SERVICES_RELEASE =
   "20260809133923-comun-essential-services-assisted";
 const P6B_B_URBAN_INCIDENTS_RELEASE =
   "20260810045610-comun-flood-drainage-tree-categories";
+const P6C_B1_PUBLIC_EDUCATION_RELEASE =
+  "20260810155310-comun-public-education-sensitive-routing";
 
 export function selectReleaseManifest(value = arg?.slice(19) ?? process.env.COMUN_RELEASE_MANIFEST) {
   if (!value) {
@@ -56,7 +58,8 @@ export function validateForwardOnlySqlText(release, migration) {
     release.release !== P4_SIDEWALK_RELATA_RELEASE &&
     release.release !== P5_BUS_STMU_RELEASE &&
     release.release !== P6A_ESSENTIAL_SERVICES_RELEASE &&
-    release.release !== P6B_B_URBAN_INCIDENTS_RELEASE;
+    release.release !== P6B_B_URBAN_INCIDENTS_RELEASE &&
+    release.release !== P6C_B1_PUBLIC_EDUCATION_RELEASE;
   const allowedStatements = [
     ...(requiresSidewalkSummaryException ? [ALLOWED_PUBLIC_SUMMARY_NULLABILITY] : []),
     ...(requiresLegacyGrantRepair ? [ALLOWED_LEGACY_GRANT_REPAIR] : []),

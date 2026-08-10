@@ -30,6 +30,7 @@ import {
 import { isComunEnvironmentalIncidentsEnabled } from "@/lib/comun-environmental-incidents-feature";
 import { isComunUrbanIncidentsEnabled } from "@/lib/comun-urban-incidents-feature";
 import { isComunPublicHealthSensitiveRoutingEnabled } from "@/lib/comun-public-health-sensitive-feature";
+import { isComunPublicEducationSensitiveRoutingEnabled } from "@/lib/comun-public-education-sensitive-feature";
 
 export const runtime = "nodejs";
 
@@ -109,6 +110,7 @@ export async function POST(request: NextRequest) {
     "flood_active_risk",
     "tree_state",
     "health_issue_type",
+    "education_issue_type",
     "blocked",
     "line",
     "direction",
@@ -144,6 +146,18 @@ export async function POST(request: NextRequest) {
             "transfer_or_health_transport",
             "information_or_followup",
             "other_health_service",
+          ].includes(answers[key])) ||
+        (key === "education_issue_type" &&
+          ![
+            "staff_or_service_availability",
+            "infrastructure_or_climate",
+            "school_meals_or_supplies",
+            "school_transport_or_access",
+            "accessibility_or_inclusion",
+            "enrollment_or_attendance",
+            "discrimination_or_bullying",
+            "information_or_management",
+            "other_education_service",
           ].includes(answers[key])),
     )
   ) {
@@ -173,11 +187,12 @@ export async function POST(request: NextRequest) {
     : routeRelata(
         { ...input, text },
         {
-          environmentalIncidentsEnabled:
-            isComunEnvironmentalIncidentsEnabled(),
+          environmentalIncidentsEnabled: isComunEnvironmentalIncidentsEnabled(),
           urbanIncidentsEnabled: isComunUrbanIncidentsEnabled(),
           publicHealthSensitiveRoutingEnabled:
             isComunPublicHealthSensitiveRoutingEnabled(),
+          publicEducationSensitiveRoutingEnabled:
+            isComunPublicEducationSensitiveRoutingEnabled(),
         },
       );
   const decision = applyComunEssentialServicesRoutingGate(

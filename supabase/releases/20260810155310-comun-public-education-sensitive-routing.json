@@ -1,0 +1,27 @@
+{
+  "release": "20260810155310-comun-public-education-sensitive-routing",
+  "migration": "supabase/migrations/20260810155310_comun_public_education_sensitive_routing.sql",
+  "migrationSha256": "10e629df1e7d31806588e44d6276d70b35e2b2f843467cae4f8d699cfa238dfe",
+  "path": "supabase/migrations/20260810155310_comun_public_education_sensitive_routing.sql",
+  "sha256": "10e629df1e7d31806588e44d6276d70b35e2b2f843467cae4f8d699cfa238dfe",
+  "requiresPromotion": true,
+  "remotePromotionAllowed": true,
+  "scope": "production",
+  "dependsOn": ["20260810143000-comun-public-health-sensitive-routing"],
+  "destructiveSql": false,
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "releaseLedger": "public.comun_schema_releases",
+  "dataMutation": false,
+  "technicalBackfill": null,
+  "historicalTextRead": false,
+  "publicProjection": false,
+  "publicProjectionAutomatic": false,
+  "externalForwarding": false,
+  "assistedOpeningOnly": false,
+  "featureFlags": [
+    "COMUN_PUBLIC_EDUCATION_SENSITIVE_ROUTING_ENABLED",
+    "COMUN_SENSITIVE_FORWARDING_ASSISTED_ENABLED"
+  ],
+  "reason": "private_public_education_service_routing_without_sensitive_forwarding"
+}

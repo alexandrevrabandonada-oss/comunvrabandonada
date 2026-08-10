@@ -117,7 +117,7 @@ export type EligibilityInput = {
 };
 
 const BLOCKED_CATEGORIES = new Set([
-  "electrical_hazard", "active_fire", "emergency", "other", "violence", "health", "children",
+  "electrical_hazard", "active_fire", "emergency", "other", "violence", "health", "public_health", "education", "public_education", "children",
   "individualized_accusation", "retaliation_risk", "sensitive", "high_risk", "public_after_sanitization",
   "restricted",
 ]);

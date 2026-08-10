@@ -18,7 +18,9 @@ import {
 import { ComunEssentialServicesPanel } from "@/app/comun/minha-participacao/comun-essential-services-panel";
 import { COMUN_RELATA_CATEGORY_LABELS } from "@/lib/comun-wallet-relata-action";
 import { HEALTH_ISSUE_TYPE_LABELS } from "@/lib/comun-health-service-routing-v1";
+import { EDUCATION_ISSUE_TYPE_LABELS } from "@/lib/comun-education-service-routing-v1";
 import { ComunHealthChannelsPanel } from "./comun-health-channels-panel";
+import { ComunEducationChannelsPanel } from "./comun-education-channels-panel";
 
 const SidewalkRealPointPicker = dynamic(
   () =>
@@ -74,6 +76,7 @@ export function QuickCaptureV2({
   environmentalIncidentsEnabled = false,
   urbanIncidentsEnabled = false,
   publicHealthSensitiveRoutingEnabled = false,
+  publicEducationSensitiveRoutingEnabled = false,
 }: {
   attachmentsEnabled?: boolean;
   locationEnabled?: boolean;
@@ -83,6 +86,7 @@ export function QuickCaptureV2({
   environmentalIncidentsEnabled?: boolean;
   urbanIncidentsEnabled?: boolean;
   publicHealthSensitiveRoutingEnabled?: boolean;
+  publicEducationSensitiveRoutingEnabled?: boolean;
 }) {
   const [startedAt] = useState(() => Date.now());
   const [hydrated, setHydrated] = useState(false);
@@ -131,7 +135,9 @@ export function QuickCaptureV2({
   };
 
   useEffect(() => {
-    const hydrationFrame = window.requestAnimationFrame(() => setHydrated(true));
+    const hydrationFrame = window.requestAnimationFrame(() =>
+      setHydrated(true),
+    );
     sendMetric("capture_started");
     fetch(RECEIPT_ENDPOINT, { cache: "no-store" })
       .then(async (response) =>
@@ -172,6 +178,7 @@ export function QuickCaptureV2({
             environmentalIncidentsEnabled,
             urbanIncidentsEnabled,
             publicHealthSensitiveRoutingEnabled,
+            publicEducationSensitiveRoutingEnabled,
           },
         ),
         essentialServicesEnabled,
@@ -573,6 +580,29 @@ export function QuickCaptureV2({
                   </details>
                 </section>
               ) : null}
+              {decision?.category === "public_education" ? (
+                <section className="grid gap-2 border-2 border-comun-black bg-white p-4">
+                  <p className="font-black">
+                    Evite incluir nome de estudante, turma, matrícula, documento
+                    ou endereço residencial.
+                  </p>
+                  {photo ? (
+                    <p className="text-sm font-bold">
+                      Não fotografe estudantes, listas, boletins, documentos,
+                      telas ou matrículas.
+                    </p>
+                  ) : null}
+                  <details className="text-sm">
+                    <summary className="cursor-pointer font-black underline">
+                      Como protegemos informações de Educação
+                    </summary>
+                    <p className="mt-2 leading-6">
+                      O relato fica privado, não entra em mapa, busca pública ou
+                      coletivo e não é enviado a nenhum serviço pelo COMUN.
+                    </p>
+                  </details>
+                </section>
+              ) : null}
               {decision ? (
                 <section
                   className={`grid gap-4 border-2 border-comun-black p-4 ${isEmergency ? "bg-comun-red text-white" : "bg-comun-asphalt text-comun-paper"}`}
@@ -590,7 +620,10 @@ export function QuickCaptureV2({
                     <p className="border-2 border-comun-yellow bg-comun-black p-3 text-sm font-bold">
                       {decision.category === "public_health"
                         ? "Procure atendimento de urgência. Em risco imediato à vida, o SAMU 192 é o canal emergencial. O COMUN não faz essa chamada."
-                        : "Afaste-se do perigo e procure o serviço de emergência. O COMUN não faz essa chamada."}
+                        : decision.category === "public_education" &&
+                            decision.childSafetySignal
+                          ? "Procure a rede de proteção adequada. Se houver perigo imediato, afaste-se do risco e peça ajuda. O COMUN não acionou ninguém."
+                          : "Afaste-se do perigo e procure o serviço de emergência. O COMUN não faz essa chamada."}
                     </p>
                   ) : null}
                   <button
@@ -644,15 +677,30 @@ export function QuickCaptureV2({
                   {HEALTH_ISSUE_TYPE_LABELS[decision.healthIssueType]}
                 </p>
               ) : null}
+              {receipt.category === "public_education" &&
+              decision?.educationIssueType ? (
+                <p className="text-sm font-bold">
+                  {EDUCATION_ISSUE_TYPE_LABELS[decision.educationIssueType]}
+                </p>
+              ) : null}
               {publicHealthSensitiveRoutingEnabled &&
               receipt.category === "public_health" ? (
                 <ComunHealthChannelsPanel
                   emergency={receipt.urgency === "emergency"}
                 />
               ) : null}
+              {publicEducationSensitiveRoutingEnabled &&
+              receipt.category === "public_education" ? (
+                <ComunEducationChannelsPanel
+                  childSafetySignal={Boolean(decision?.childSafetySignal)}
+                  emergency={receipt.urgency === "emergency"}
+                />
+              ) : null}
               {receipt.category === "sidewalk_accessibility" ? (
                 <section className="grid gap-2 border-2 border-comun-black p-3">
-                  <p className="font-black">Quer completar para entrar no Mapa das Calçadas?</p>
+                  <p className="font-black">
+                    Quer completar para entrar no Mapa das Calçadas?
+                  </p>
                   <p className="text-sm">
                     Condição, impacto e local serão acrescentados a este mesmo
                     relato e protocolo. Nada será publicado sem revisão humana.
@@ -665,7 +713,9 @@ export function QuickCaptureV2({
                   </Link>
                 </section>
               ) : null}
-              {essentialServicesEnabled &&
+              {(essentialServicesEnabled ||
+                publicHealthSensitiveRoutingEnabled ||
+                publicEducationSensitiveRoutingEnabled) &&
               receipt.category === "other" &&
               isPhotoOnly ? (
                 <div className="grid gap-2 border-2 border-comun-black p-3">
