@@ -19,6 +19,7 @@ describe("COMUN health institutional evidence catalog", () => {
     expect(municipal).toMatchObject({
       sourceStatus: "conflicting_sources",
       identificationRequirement: "source_conflict",
+      destination: null,
     });
   });
 

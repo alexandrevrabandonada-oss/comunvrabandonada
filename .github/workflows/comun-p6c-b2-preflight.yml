@@ -43,13 +43,7 @@ jobs:
           test -n "${SUPABASE_PROJECT_REF:-}"
           case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
           mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
-          test "${#changed[@]}" -le 1 || { echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
-          if test "${#changed[@]}" -eq 1; then
-            case "${changed[0]}" in
-              supabase/migrations/*_comun_child_protection_private_routing.sql) ;;
-              *) echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1 ;;
-            esac
-          fi
+          test -z "$(git diff --name-only origin/main...HEAD -- supabase/migrations/20260810171448_comun_child_protection_private_routing.sql)"
       - name: Inspect P6C-B2 schema metadata without business-row reads
         shell: bash
         run: |
@@ -58,7 +52,7 @@ jobs:
           psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/p6c-b2-preflight/schema.json <<'SQL'
           begin read only;
           select json_build_object(
-            'childProtectionAbsent', not exists(
+            'childProtectionPresent', exists(
               select 1 from pg_catalog.pg_constraint
               where conrelid='public.comun_relata_cases'::regclass
                 and conname='comun_relata_cases_category_check'
@@ -87,7 +81,7 @@ jobs:
             'educationRoutingPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%comun-education-service-routing-v1%',
             'healthRoutingPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%comun-health-service-routing-v1%',
             'childSafetySignalPresent', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%childSafetySignal%',
-            'childRoutingAbsent', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) not like '%comun-child-protection-routing-v1%',
+            'childRoutingPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%comun-child-protection-routing-v1%',
             'privacyValidationPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) ~ 'restricted.*sensitive.*high_risk',
             'publicationNeverPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%never%',
             'casesRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='public.comun_relata_cases'::regclass),
@@ -126,9 +120,9 @@ jobs:
           const fs=require('node:fs');
           const s=JSON.parse(fs.readFileSync('.ci-artifacts/p6c-b2-preflight/schema.json','utf8'));
           const required=[
-            'childProtectionAbsent','publicEducationPresent','publicHealthPresent','workplacePresent',
+            'childProtectionPresent','publicEducationPresent','publicHealthPresent','workplacePresent',
             'createPresent','transitionPresent','educationRoutingPreserved','healthRoutingPreserved',
-            'childSafetySignalPresent','childRoutingAbsent','privacyValidationPreserved',
+            'childSafetySignalPresent','childRoutingPreserved','privacyValidationPreserved',
             'publicationNeverPreserved','casesRlsForced','reportsRlsForced','eventsRlsForced',
             'classificationEventsRlsForced',
             'walletsRlsForced','walletItemsRlsForced','serviceCreate','serviceTransition',
@@ -152,14 +146,11 @@ jobs:
           supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p6c-b2-preflight/dry-run.txt 2>&1
           mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
           mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p6c-b2-preflight/dry-run.txt | sort -u || true)
-          if test "${#changed[@]}" -eq 0; then
-            test "${#planned[@]}" -eq 0 || { echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
-            printf '%s\n' '{"result":"COMUN_P6C_B2_REMOTE_BASELINE_PLAN_EMPTY","migrationCount":0,"businessRowsRead":false}' >.ci-artifacts/p6c-b2-preflight/migration-plan.json
-          else
-            test "${#planned[@]}" -eq 1 || { echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
-            test "${planned[0]}" = "$(basename "${changed[0]}")" || { echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
-            printf '%s\n' '{"result":"COMUN_P6C_B2_REMOTE_PLAN_EXACT_ONE","migrationCount":1,"businessRowsRead":false}' >.ci-artifacts/p6c-b2-preflight/migration-plan.json
-          fi
+          test "${#planned[@]}" -eq "${#changed[@]}" || { echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+          for index in "${!planned[@]}"; do
+            test "${planned[$index]}" = "$(basename "${changed[$index]}")" || { echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+          done
+          printf '%s\n' "{\"result\":\"COMUN_P6C_B2_REMOTE_PLAN_MATCHES_CURRENT_DIFF\",\"migrationCount\":${#planned[@]},\"businessRowsRead\":false}" >.ci-artifacts/p6c-b2-preflight/migration-plan.json
           ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/p6c-b2-preflight/dry-run.txt
       - uses: actions/upload-artifact@v4
         if: always()

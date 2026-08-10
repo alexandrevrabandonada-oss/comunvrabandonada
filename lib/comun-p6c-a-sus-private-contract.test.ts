@@ -29,11 +29,14 @@ describe("COMUN P6C-A private SUS contract", () => {
     expect(route).not.toContain("p_privacy_class: classifyRelataPrivacy(input)");
   });
 
-  it("keeps health forwarding hard-disabled and channels outside SQL", () => {
+  it("keeps capture-time health forwarding off and channels outside SQL", () => {
     const feature = read("lib/comun-public-health-sensitive-feature.ts");
+    const forwarding = read("lib/comun-sensitive-forwarding-feature.ts");
     const catalog = read("lib/server/comun-health-institutional-channel-catalog.ts");
-    expect(feature).toContain("return false");
-    expect(feature).toContain("COMUN_SENSITIVE_FORWARDING_ASSISTED_ENABLED");
+    expect(feature).toContain("COMUN_SENSITIVE_FORWARDING_ASSISTED_FLAG");
+    expect(forwarding).toContain("COMUN_SENSITIVE_FORWARDING_ASSISTED_ENABLED");
+    expect(forwarding).toContain("isComunSensitiveForwardingAssistedEnabled");
+    expect(forwarding).toContain("child_protection");
     expect(catalog).toContain("automationAllowed: false");
     expect(catalog).toContain("operationally_unchecked");
     expect(
@@ -49,7 +52,7 @@ describe("COMUN P6C-A private SUS contract", () => {
     expect(projection).toContain('"health"');
   });
 
-  it("does not create a sensitive forwarding package or external request", () => {
+  it("does not create a sensitive package or external request during capture", () => {
     const quickCapture = read("app/comun/relatar/quick-capture-v2.tsx");
     const channelRoute = read("app/api/comun/health-channels/route.ts");
     expect(quickCapture).toContain("ComunHealthChannelsPanel");

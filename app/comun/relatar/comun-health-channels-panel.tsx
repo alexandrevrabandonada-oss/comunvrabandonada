@@ -8,7 +8,7 @@ type HealthChannel = {
   institution: string;
   sphere: "municipal" | "state" | "federal" | "emergency";
   channelType: "web" | "phone" | "email" | "in_person";
-  destination: string;
+  destination: string | null;
   sourceStatus: "source_verified" | "conflicting_sources";
   operationalStatus: "operationally_unchecked";
   identificationRequirement: string;
@@ -86,9 +86,9 @@ export function ComunHealthChannelsPanel({ emergency }: { emergency: boolean }) 
         {visible.map((channel) => (
           <article key={channel.id} className="grid gap-2 border-2 border-comun-black bg-white p-3">
             <h4 className="font-black">{channel.institution}</h4>
-            {channel.channelType === "phone" ? (
+            {channel.channelType === "phone" && channel.destination ? (
               <p className="text-lg font-black">Telefone {channel.destination}</p>
-            ) : (
+            ) : channel.destination ? (
               <a
                 href={channel.destination}
                 target="_blank"
@@ -97,7 +97,7 @@ export function ComunHealthChannelsPanel({ emergency }: { emergency: boolean }) 
               >
                 Consultar canal oficial
               </a>
-            )}
+            ) : null}
             {channel.sourceStatus === "conflicting_sources" ? (
               <p className="border-l-4 border-comun-yellow pl-3 text-sm font-bold">
                 Fontes municipais oficiais divergem. Confira os requisitos na
