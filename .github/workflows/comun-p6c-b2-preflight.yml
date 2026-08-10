@@ -92,7 +92,8 @@ jobs:
             'publicationNeverPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%never%',
             'casesRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='public.comun_relata_cases'::regclass),
             'reportsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_relata_reports'::regclass),
-            'eventsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_relata_status_events'::regclass),
+            'eventsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='public.comun_relata_status_events'::regclass),
+            'classificationEventsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_relata_classification_events'::regclass),
             'walletsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_participation_wallets'::regclass),
             'walletItemsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_participation_wallet_items'::regclass),
             'anonCreate', has_function_privilege('anon','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
@@ -106,8 +107,10 @@ jobs:
             'serviceWalletAttach', has_function_privilege('service_role','public.comun_participation_wallet_attach_relata(text,text,text)','EXECUTE'),
             'anonReportsSelect', has_table_privilege('anon','private.comun_relata_reports','SELECT'),
             'authenticatedReportsSelect', has_table_privilege('authenticated','private.comun_relata_reports','SELECT'),
-            'anonEventsSelect', has_table_privilege('anon','private.comun_relata_status_events','SELECT'),
-            'authenticatedEventsSelect', has_table_privilege('authenticated','private.comun_relata_status_events','SELECT'),
+            'anonEventsSelect', has_table_privilege('anon','public.comun_relata_status_events','SELECT'),
+            'authenticatedEventsSelect', has_table_privilege('authenticated','public.comun_relata_status_events','SELECT'),
+            'anonClassificationEventsSelect', has_table_privilege('anon','private.comun_relata_classification_events','SELECT'),
+            'authenticatedClassificationEventsSelect', has_table_privilege('authenticated','private.comun_relata_classification_events','SELECT'),
             'sourceDomainsUnchanged', exists(
               select 1 from pg_catalog.pg_constraint
               where conrelid='private.comun_forwarding_packages'::regclass
@@ -127,10 +130,11 @@ jobs:
             'createPresent','transitionPresent','educationRoutingPreserved','healthRoutingPreserved',
             'childSafetySignalPresent','childRoutingAbsent','privacyValidationPreserved',
             'publicationNeverPreserved','casesRlsForced','reportsRlsForced','eventsRlsForced',
+            'classificationEventsRlsForced',
             'walletsRlsForced','walletItemsRlsForced','serviceCreate','serviceTransition',
             'serviceWalletAttach','sourceDomainsUnchanged','transactionReadOnly'
           ];
-          if(required.some((key)=>s[key]!==true)||s.anonCreate||s.authenticatedCreate||s.anonTransition||s.authenticatedTransition||s.anonWalletAttach||s.authenticatedWalletAttach||s.anonReportsSelect||s.authenticatedReportsSelect||s.anonEventsSelect||s.authenticatedEventsSelect||s.businessRowsRead!==false) throw new Error('COMUN_P6C_B2_BLOCKED_REMOTE_SCHEMA_DRIFT');
+          if(required.some((key)=>s[key]!==true)||s.anonCreate||s.authenticatedCreate||s.anonTransition||s.authenticatedTransition||s.anonWalletAttach||s.authenticatedWalletAttach||s.anonReportsSelect||s.authenticatedReportsSelect||s.anonEventsSelect||s.authenticatedEventsSelect||s.anonClassificationEventsSelect||s.authenticatedClassificationEventsSelect||s.businessRowsRead!==false) throw new Error('COMUN_P6C_B2_BLOCKED_REMOTE_SCHEMA_DRIFT');
           NODE
       - name: Reconcile Calçadas and prove the bounded remote migration plan
         shell: bash
