@@ -4,13 +4,12 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - ".github/workflows/comun-p6c-a-preflight.yml"
       - "app/api/comun/health-channels/**"
-      - "app/api/comun/relata/**"
+      - "app/comun/relatar/comun-health-channels-panel.tsx"
       - "lib/comun-health-**"
       - "lib/comun-public-health-**"
       - "lib/server/comun-health-**"
-      - "supabase/migrations/**"
+      - "supabase/migrations/20260810143000_comun_public_health_sensitive_routing.sql"
   workflow_dispatch:
 
 permissions:
