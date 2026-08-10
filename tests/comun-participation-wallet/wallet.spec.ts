@@ -11,10 +11,10 @@ test("Carteira local cria recuperação, preserva linguagem e é acessível @a11
     page.getByRole("heading", { name: "Meus registros" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Criar carteira local" }),
+    page.getByRole("button", { name: "Começar meus registros" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Criar carteira local" }).click();
-  await expect(page.getByText("Código exibido uma vez")).toBeVisible();
+  await page.getByRole("button", { name: "Começar meus registros" }).click();
+  await expect(page.getByText("Guardar código de recuperação")).toBeVisible();
   await expect(
     page.getByText(/^[A-HJ-NP-Z2-9]{4}(?:-[A-HJ-NP-Z2-9]{4}){5}$/),
   ).toBeVisible();
