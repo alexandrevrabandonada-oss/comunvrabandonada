@@ -223,7 +223,9 @@ export default async function MinhaAreaPage({
             essentialServicesEnabled={essentialServicesEnabled}
             essentialForwardingEnabled={essentialForwardingEnabled}
             sensitiveForwardingEnabled={sensitiveForwardingEnabled}
-            childProtectionChannelOnlyEnabled={childProtectionChannelOnlyEnabled}
+            childProtectionChannelOnlyEnabled={
+              childProtectionChannelOnlyEnabled
+            }
           />
         </ComunSection>
       ) : null}
@@ -589,7 +591,9 @@ function MinhaAreaAppV2({
             essentialServicesEnabled={essentialServicesEnabled}
             essentialForwardingEnabled={essentialForwardingEnabled}
             sensitiveForwardingEnabled={sensitiveForwardingEnabled}
-            childProtectionChannelOnlyEnabled={childProtectionChannelOnlyEnabled}
+            childProtectionChannelOnlyEnabled={
+              childProtectionChannelOnlyEnabled
+            }
           />
         ) : null}
         <div
