@@ -26,13 +26,19 @@ export const COMUN_RELATA_CATEGORY_LABELS = {
 } as const;
 
 export type WalletRelataRoute =
-  "bus" | "essential_service" | "sidewalk" | "no_verified_forwarding";
+  | "bus"
+  | "essential_service"
+  | "sensitive_service"
+  | "sidewalk"
+  | "no_verified_forwarding";
 
 export type WalletRelataFeatureFlags = {
   stmuAssistedEnabled: boolean;
   stmuMultichannelEnabled: boolean;
   essentialServicesEnabled: boolean;
   essentialForwardingEnabled: boolean;
+  sensitiveForwardingEnabled?: boolean;
+  childProtectionChannelOnlyEnabled?: boolean;
 };
 
 export type WalletRelataAction = {
@@ -46,6 +52,7 @@ export type WalletRelataAction = {
   showStmuAssisted: boolean;
   showStmuMultichannel: boolean;
   showEssentialServices: boolean;
+  showSensitiveForwarding: boolean;
 };
 
 type WalletRelataActionInput = {
@@ -130,6 +137,7 @@ function baseAction(
     showStmuAssisted: false,
     showStmuMultichannel: false,
     showEssentialServices: false,
+    showSensitiveForwarding: false,
     ...overrides,
   };
 }
@@ -141,6 +149,16 @@ function baseAction(
 export function resolveWalletRelataAction(
   input: WalletRelataActionInput,
 ): WalletRelataAction {
+  if (
+    input.presentationState === "withdrawn" ||
+    input.presentationState === "Retirado"
+  ) {
+    return baseAction("no_verified_forwarding", input, {
+      statusOverride: "Retirado",
+      stateMessage: "Retirado.",
+    });
+  }
+
   if (input.category === "public_transport") {
     const ready = ["Pronto para encaminhar", "ready_to_forward"].includes(
       input.presentationState,
@@ -187,16 +205,25 @@ export function resolveWalletRelataAction(
       typeof input.metadata.healthIssueType === "string"
         ? (input.metadata.healthIssueType as HealthIssueType)
         : null;
-    return baseAction("no_verified_forwarding", input, {
+    return baseAction(
+      input.featureFlags.sensitiveForwardingEnabled
+        ? "sensitive_service"
+        : "no_verified_forwarding",
+      input,
+      {
       detailLabel:
         healthIssueType && healthIssueType in HEALTH_ISSUE_TYPE_LABELS
           ? HEALTH_ISSUE_TYPE_LABELS[healthIssueType]
           : null,
       stateMessage: "Guardado no COMUN.",
       nextStep: "Você pode consultar os canais oficiais do SUS.",
-      availabilityMessage:
-        "O encaminhamento sensível permanece desativado. Nenhum dado de saúde foi enviado.",
-    });
+        availabilityMessage: input.featureFlags.sensitiveForwardingEnabled
+          ? null
+          : "O encaminhamento sensível permanece desativado. Nenhum dado de saúde foi enviado.",
+        showSensitiveForwarding:
+          input.featureFlags.sensitiveForwardingEnabled,
+      },
+    );
   }
 
   if (input.category === "public_education") {
@@ -205,7 +232,12 @@ export function resolveWalletRelataAction(
         ? (input.metadata.educationIssueType as EducationIssueType)
         : null;
     const childSafetySignal = input.metadata.childSafetySignal === true;
-    return baseAction("no_verified_forwarding", input, {
+    return baseAction(
+      input.featureFlags.sensitiveForwardingEnabled
+        ? "sensitive_service"
+        : "no_verified_forwarding",
+      input,
+      {
       detailLabel:
         educationIssueType && educationIssueType in EDUCATION_ISSUE_TYPE_LABELS
           ? EDUCATION_ISSUE_TYPE_LABELS[educationIssueType]
@@ -214,13 +246,20 @@ export function resolveWalletRelataAction(
       nextStep: childSafetySignal
         ? "Consulte a rede de proteção; um canal educacional não é suficiente para este sinal."
         : "Você pode consultar os canais oficiais da Educação.",
-      availabilityMessage:
-        "O encaminhamento sensível permanece desativado. Nenhum dado educacional foi enviado.",
-    });
+        availabilityMessage: input.featureFlags.sensitiveForwardingEnabled
+          ? null
+          : "O encaminhamento sensível permanece desativado. Nenhum dado educacional foi enviado.",
+        showSensitiveForwarding:
+          input.featureFlags.sensitiveForwardingEnabled,
+      },
+    );
   }
 
   if (input.category === "child_protection") {
-    return baseAction("no_verified_forwarding", input, {
+    const available =
+      input.featureFlags.sensitiveForwardingEnabled &&
+      input.featureFlags.childProtectionChannelOnlyEnabled;
+    return baseAction(available ? "sensitive_service" : "no_verified_forwarding", input, {
       detailLabel: null,
       statusOverride: "Guardado com proteção reforçada",
       stateMessage: "Este registro não será publicado.",
@@ -228,8 +267,10 @@ export function resolveWalletRelataAction(
         input.metadata.immediateDanger === true
           ? "Situação que pode exigir ajuda imediata."
           : "Canais de proteção estão disponíveis para consulta.",
-      availabilityMessage:
-        "O encaminhamento sensível permanece desativado. Nenhum dado foi enviado.",
+      availabilityMessage: available
+        ? null
+        : "O encaminhamento sensível permanece desativado. Nenhum dado foi enviado.",
+      showSensitiveForwarding: available,
     });
   }
 

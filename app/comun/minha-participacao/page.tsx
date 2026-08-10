@@ -43,6 +43,10 @@ import {
   isComunEssentialForwardingAssistedEnabled,
   isComunEssentialServicesEnabled,
 } from "@/lib/comun-essential-services-feature";
+import {
+  isComunChildProtectionChannelOnlyEnabled,
+  isComunSensitiveForwardingAssistedEnabled,
+} from "@/lib/comun-sensitive-forwarding-feature";
 
 export const dynamic = "force-dynamic";
 
@@ -82,6 +86,10 @@ export default async function MinhaAreaPage({
   const essentialServicesEnabled = isComunEssentialServicesEnabled();
   const essentialForwardingEnabled =
     isComunEssentialForwardingAssistedEnabled();
+  const sensitiveForwardingEnabled =
+    isComunSensitiveForwardingAssistedEnabled();
+  const childProtectionChannelOnlyEnabled =
+    isComunChildProtectionChannelOnlyEnabled();
   const optionalCommunitySession = walletEnabled
     ? await getCommunitySession()
     : null;
@@ -93,6 +101,8 @@ export default async function MinhaAreaPage({
           stmuMultichannelEnabled={stmuMultichannelEnabled}
           essentialServicesEnabled={essentialServicesEnabled}
           essentialForwardingEnabled={essentialForwardingEnabled}
+          sensitiveForwardingEnabled={sensitiveForwardingEnabled}
+          childProtectionChannelOnlyEnabled={childProtectionChannelOnlyEnabled}
         />
       );
   }
@@ -147,6 +157,8 @@ export default async function MinhaAreaPage({
         stmuMultichannelEnabled={stmuMultichannelEnabled}
         essentialServicesEnabled={essentialServicesEnabled}
         essentialForwardingEnabled={essentialForwardingEnabled}
+        sensitiveForwardingEnabled={sensitiveForwardingEnabled}
+        childProtectionChannelOnlyEnabled={childProtectionChannelOnlyEnabled}
       />
     );
   return (
@@ -210,6 +222,8 @@ export default async function MinhaAreaPage({
             stmuMultichannelEnabled={stmuMultichannelEnabled}
             essentialServicesEnabled={essentialServicesEnabled}
             essentialForwardingEnabled={essentialForwardingEnabled}
+            sensitiveForwardingEnabled={sensitiveForwardingEnabled}
+            childProtectionChannelOnlyEnabled={childProtectionChannelOnlyEnabled}
           />
         </ComunSection>
       ) : null}
@@ -510,6 +524,8 @@ function MinhaAreaAppV2({
   stmuMultichannelEnabled,
   essentialServicesEnabled,
   essentialForwardingEnabled,
+  sensitiveForwardingEnabled,
+  childProtectionChannelOnlyEnabled,
 }: {
   profile: any;
   center: any;
@@ -524,6 +540,8 @@ function MinhaAreaAppV2({
   stmuMultichannelEnabled: boolean;
   essentialServicesEnabled: boolean;
   essentialForwardingEnabled: boolean;
+  sensitiveForwardingEnabled: boolean;
+  childProtectionChannelOnlyEnabled: boolean;
 }) {
   const tabs = [
     ["contribuicoes", "Participações"],
@@ -570,6 +588,8 @@ function MinhaAreaAppV2({
             stmuMultichannelEnabled={stmuMultichannelEnabled}
             essentialServicesEnabled={essentialServicesEnabled}
             essentialForwardingEnabled={essentialForwardingEnabled}
+            sensitiveForwardingEnabled={sensitiveForwardingEnabled}
+            childProtectionChannelOnlyEnabled={childProtectionChannelOnlyEnabled}
           />
         ) : null}
         <div
@@ -913,11 +933,15 @@ function WalletOnlyPage({
   stmuMultichannelEnabled,
   essentialServicesEnabled,
   essentialForwardingEnabled,
+  sensitiveForwardingEnabled,
+  childProtectionChannelOnlyEnabled,
 }: {
   stmuAssistedEnabled: boolean;
   stmuMultichannelEnabled: boolean;
   essentialServicesEnabled: boolean;
   essentialForwardingEnabled: boolean;
+  sensitiveForwardingEnabled: boolean;
+  childProtectionChannelOnlyEnabled: boolean;
 }) {
   return (
     <ComunShell
@@ -930,6 +954,8 @@ function WalletOnlyPage({
           stmuMultichannelEnabled={stmuMultichannelEnabled}
           essentialServicesEnabled={essentialServicesEnabled}
           essentialForwardingEnabled={essentialForwardingEnabled}
+          sensitiveForwardingEnabled={sensitiveForwardingEnabled}
+          childProtectionChannelOnlyEnabled={childProtectionChannelOnlyEnabled}
         />
       </div>
     </ComunShell>

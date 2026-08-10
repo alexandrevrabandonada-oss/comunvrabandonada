@@ -10,7 +10,7 @@ export type ComunHealthInstitutionalChannel = {
   sphere: ComunHealthChannelSphere;
   categories: readonly ["public_health"];
   channelType: "web" | "phone" | "email" | "in_person";
-  destination: string;
+  destination: string | null;
   sourceUrl: string;
   reviewedAt: "2026-08-10";
   sourceStatus: "source_verified" | "conflicting_sources";
@@ -35,7 +35,7 @@ export const COMUN_HEALTH_INSTITUTIONAL_CHANNEL_CATALOG = [
     sphere: "municipal",
     categories: ["public_health"],
     channelType: "web",
-    destination: "https://servicos.voltaredonda.rj.gov.br/cartaServicos/302/",
+    destination: null,
     sourceUrl: "https://servicos.voltaredonda.rj.gov.br/cartaServicos/302/",
     reviewedAt: "2026-08-10",
     sourceStatus: "conflicting_sources",

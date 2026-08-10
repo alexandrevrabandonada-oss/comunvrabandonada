@@ -245,6 +245,60 @@ describe("category-aware Participation Wallet", () => {
     });
   });
 
+  it("enables sensitive adapters only through their explicit wave flags", () => {
+    expect(
+      resolve("public_health", {
+        featureFlags: { ...flags, sensitiveForwardingEnabled: true },
+      }),
+    ).toMatchObject({
+      route: "sensitive_service",
+      showSensitiveForwarding: true,
+    });
+    expect(
+      resolve("public_education", {
+        featureFlags: { ...flags, sensitiveForwardingEnabled: true },
+      }),
+    ).toMatchObject({
+      route: "sensitive_service",
+      showSensitiveForwarding: true,
+    });
+    expect(
+      resolve("child_protection", {
+        featureFlags: {
+          ...flags,
+          sensitiveForwardingEnabled: true,
+          childProtectionChannelOnlyEnabled: false,
+        },
+      }).route,
+    ).toBe("no_verified_forwarding");
+    expect(
+      resolve("child_protection", {
+        featureFlags: {
+          ...flags,
+          sensitiveForwardingEnabled: true,
+          childProtectionChannelOnlyEnabled: true,
+        },
+      }),
+    ).toMatchObject({
+      route: "sensitive_service",
+      showSensitiveForwarding: true,
+    });
+  });
+
+  it("never offers a forwarding adapter again after withdrawal", () => {
+    expect(
+      resolve("public_health", {
+        presentationState: "Retirado",
+        featureFlags: { ...flags, sensitiveForwardingEnabled: true },
+      }),
+    ).toMatchObject({
+      route: "no_verified_forwarding",
+      statusOverride: "Retirado",
+      stateMessage: "Retirado.",
+      showSensitiveForwarding: false,
+    });
+  });
+
   it("uses the complete canonical human label map", () => {
     expect(COMUN_RELATA_CATEGORY_LABELS).toEqual({
       sidewalk_accessibility: "Calçada e acessibilidade",

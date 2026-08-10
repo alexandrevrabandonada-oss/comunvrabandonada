@@ -1,0 +1,222 @@
+name: COMUN P6C-C sensitive assisted forwarding activation
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA to deploy
+        required: true
+        type: string
+      mode:
+        description: Promotion, deployment, activation wave, or isolated rollback
+        required: true
+        type: choice
+        options:
+          [promote-migration-flags-off, flags-off, wave1-sensitive, wave2-child, rollback-sensitive, rollback-child]
+
+concurrency:
+  group: comun-p6c-c-sensitive-forwarding-activation
+  cancel-in-progress: false
+permissions:
+  contents: read
+
+env:
+  EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+  P6C_C_MIGRATION: supabase/migrations/20260810194054_comun_sensitive_assisted_forwarding.sql
+  P6C_C_MIGRATION_SHA256: 483cac71e342a69f906dc702ae7e7e75efe23dc214d0dc3236b465d68b943c2d
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+  COMUN_BASE_URL: https://comunsocial.online
+
+jobs:
+  activate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
+      - name: Verify exact main and scoped activation plan
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          npm ci --ignore-scripts
+          node --check scripts/solo/rehearse-p6c-c-sensitive-forwarding-production.mjs
+          test "$(find supabase/migrations -maxdepth 1 -type f | grep -Ei 'comun_sensitive_assisted_forwarding' | wc -l)" -eq 1
+          test -f "$P6C_C_MIGRATION"
+          test "$(sha256sum "$P6C_C_MIGRATION" | awk '{print $1}')" = "$P6C_C_MIGRATION_SHA256"
+          ! grep -Eqi 'window\.open|wa\.me|mailto:|person_declared_sent|declare-sent' scripts/solo/rehearse-p6c-c-sensitive-forwarding-production.mjs
+          ! grep -Eqi '\bdelete[[:space:]]+from\b' scripts/solo/rehearse-p6c-c-sensitive-forwarding-production.mjs
+      - name: Promote the exact forward-only P6C-C migration
+        if: inputs.mode == 'promote-migration-flags-off'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
+          mkdir -p .ci-artifacts/p6cc-production
+          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          held="$RUNNER_TEMP/comun-p6cc-external-ledger.sql"
+          mv "$EXTERNAL_MIGRATION" "$held"
+          restore() {
+            test ! -e "$held" || mv "$held" "$EXTERNAL_MIGRATION"
+            test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          }
+          trap restore EXIT
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p6cc-production/migration-dry-run.txt 2>&1
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p6cc-production/migration-dry-run.txt | sort -u || true)
+          test "${#planned[@]}" -eq 1
+          test "${planned[0]}" = "$(basename "$P6C_C_MIGRATION")"
+          ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/p6cc-production/migration-dry-run.txt
+          echo COMUN_P6C_C_REMOTE_PLAN_EXACT_ONE >> "$GITHUB_STEP_SUMMARY"
+          supabase db push --db-url "$SUPABASE_DB_URL" >.ci-artifacts/p6cc-production/migration-push.txt 2>&1
+          restore
+          trap - EXIT
+      - name: Postflight P6C-C schema without business-row reads
+        if: inputs.mode == 'promote-migration-flags-off'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/p6cc-production/schema-postflight.json <<'SQL'
+          begin read only;
+          select json_build_object(
+            'migrationApplied', exists(select 1 from supabase_migrations.schema_migrations where version='20260810194054'),
+            'sensitiveSourceDomain', exists(select 1 from pg_catalog.pg_constraint where conrelid='private.comun_forwarding_packages'::regclass and conname='comun_forwarding_packages_source_domain_check' and pg_catalog.pg_get_constraintdef(oid) like '%sensitive_service%'),
+            'policyColumn', exists(select 1 from information_schema.columns where table_schema='private' and table_name='comun_forwarding_packages' and column_name='policy_identifier'),
+            'manifestColumn', exists(select 1 from information_schema.columns where table_schema='private' and table_name='comun_forwarding_packages' and column_name='disclosure_manifest' and data_type='jsonb'),
+            'withdrawalColumn', exists(select 1 from information_schema.columns where table_schema='private' and table_name='comun_forwarding_packages' and column_name='content_withdrawn_at'),
+            'prepareFunction', to_regprocedure('public.comun_sensitive_assisted_prepare(text,uuid,boolean,boolean,text,boolean,text,boolean,text,boolean,text,boolean)') is not null,
+            'listFunction', to_regprocedure('public.comun_sensitive_assisted_list(text,uuid)') is not null,
+            'responseFunction', to_regprocedure('public.comun_sensitive_assisted_record_response(text,uuid,text,text,text)') is not null,
+            'packagesRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_forwarding_packages'::regclass),
+            'attemptsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_forwarding_attempts'::regclass),
+            'eventsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_forwarding_events'::regclass),
+            'anonPrepare', has_function_privilege('anon','public.comun_sensitive_assisted_prepare(text,uuid,boolean,boolean,text,boolean,text,boolean,text,boolean,text,boolean)','EXECUTE'),
+            'authenticatedPrepare', has_function_privilege('authenticated','public.comun_sensitive_assisted_prepare(text,uuid,boolean,boolean,text,boolean,text,boolean,text,boolean,text,boolean)','EXECUTE'),
+            'servicePrepare', has_function_privilege('service_role','public.comun_sensitive_assisted_prepare(text,uuid,boolean,boolean,text,boolean,text,boolean,text,boolean,text,boolean)','EXECUTE'),
+            'p5Wrapper', to_regprocedure('public.comun_stmu_assisted_prepare(text,uuid)') is not null,
+            'p6aPrepare', to_regprocedure('public.comun_essential_assisted_prepare(text,uuid)') is not null,
+            'businessRowsRead', false
+          );
+          rollback;
+          SQL
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const s=JSON.parse(fs.readFileSync('.ci-artifacts/p6cc-production/schema-postflight.json','utf8'));
+          const required=['migrationApplied','sensitiveSourceDomain','policyColumn','manifestColumn','withdrawalColumn','prepareFunction','listFunction','responseFunction','packagesRlsForced','attemptsRlsForced','eventsRlsForced','servicePrepare','p5Wrapper','p6aPrepare'];
+          if(required.some((key)=>s[key]!==true)||s.anonPrepare||s.authenticatedPrepare||s.businessRowsRead!==false) throw new Error('COMUN_P6C_C_POSTFLIGHT_FAILED');
+          NODE
+          psql "$SUPABASE_DB_URL" -qX -v ON_ERROR_STOP=1 -c "notify pgrst, 'reload schema';"
+      - name: Set P6C-C flags without reading Production values
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          sensitive=disabled
+          child=disabled
+          case "${{ inputs.mode }}" in
+            wave1-sensitive|rollback-child) sensitive=enabled ;;
+            wave2-child) sensitive=enabled; child=enabled ;;
+            promote-migration-flags-off|flags-off|rollback-sensitive) ;;
+            *) echo COMUN_P6C_C_ACTIVATION_MODE_INVALID; exit 1 ;;
+          esac
+          printf '%s' "$sensitive" | npx --yes vercel@50.28.0 env add COMUN_SENSITIVE_FORWARDING_ASSISTED_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6cc-sensitive-env.out 2>/tmp/comun-p6cc-sensitive-env.err
+          printf '%s' "$child" | npx --yes vercel@50.28.0 env add COMUN_CHILD_PROTECTION_CHANNEL_ONLY_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6cc-child-env.out 2>/tmp/comun-p6cc-child-env.err
+      - name: Deploy exact main with current Production environment
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6cc-deploy.out 2>/tmp/comun-p6cc-deploy.err
+          deployment_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-p6cc-deploy.out | tail -n 1 | tr -d '\r')"
+          case "$deployment_url" in https://*.vercel.app) ;; *) echo COMUN_P6C_C_DEPLOYMENT_URL_UNAVAILABLE; exit 1 ;; esac
+          printf 'deployment_url=%s\n' "$deployment_url" >> "$GITHUB_OUTPUT"
+      - name: Promote exact deployment to canonical domain
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@50.28.0 promote "$DEPLOYMENT_URL" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6cc-promote.out 2>/tmp/comun-p6cc-promote.err
+          npx --yes vercel@50.28.0 alias set "$DEPLOYMENT_URL" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6cc-alias.out 2>/tmp/comun-p6cc-alias.err
+      - name: Verify preserved domain surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in /comun /comun/relatar /comun/calcadas /comun/onibus /comun/minha-participacao; do
+            test "$(curl -L -sS -o /dev/null -w '%{http_code}' --retry 8 --retry-delay 2 "$COMUN_BASE_URL$path")" = 200
+          done
+      - name: Allocate synthetic smoke marker
+        id: attempt
+        if: inputs.mode == 'wave1-sensitive' || inputs.mode == 'wave2-child'
+        shell: bash
+        run: |
+          marker="P6CC-SMOKE-${GITHUB_RUN_ID}-$(node -e 'process.stdout.write(require("node:crypto").randomUUID())')"
+          printf 'attempt_id=%s\n' "$marker" >> "$GITHUB_OUTPUT"
+      - name: Run prepared-only Production proof with finally cleanup
+        id: smoke
+        if: inputs.mode == 'wave1-sensitive' || inputs.mode == 'wave2-child'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          ATTEMPT_ID: ${{ steps.attempt.outputs.attempt_id }}
+          P6CC_WAVE: ${{ inputs.mode == 'wave1-sensitive' && 'wave1' || 'wave2' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/p6cc-production
+          node scripts/solo/rehearse-p6c-c-sensitive-forwarding-production.mjs >.ci-artifacts/p6cc-production/${P6CC_WAVE}.json
+          if test "$P6CC_WAVE" = wave1; then
+            grep -q COMUN_P6C_C_SENSITIVE_FORWARDING_WAVE1_PRODUCTION_GREEN .ci-artifacts/p6cc-production/${P6CC_WAVE}.json
+          else
+            grep -q COMUN_P6C_C_CHILD_CHANNEL_ONLY_WAVE2_PRODUCTION_GREEN .ci-artifacts/p6cc-production/${P6CC_WAVE}.json
+          fi
+          grep -q '"externalRequests":0' .ci-artifacts/p6cc-production/${P6CC_WAVE}.json
+          grep -q '"hardDeletes":0' .ci-artifacts/p6cc-production/${P6CC_WAVE}.json
+          grep -q '"preparedOnly":true' .ci-artifacts/p6cc-production/${P6CC_WAVE}.json
+          grep -q '"personDeclaredSent":false' .ci-artifacts/p6cc-production/${P6CC_WAVE}.json
+      - name: Roll back only the failed wave
+        if: always() && (inputs.mode == 'wave1-sensitive' || inputs.mode == 'wave2-child') && steps.smoke.outcome != 'success'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sensitive=disabled
+          if test "${{ inputs.mode }}" = wave2-child; then sensitive=enabled; fi
+          printf '%s' "$sensitive" | npx --yes vercel@50.28.0 env add COMUN_SENSITIVE_FORWARDING_ASSISTED_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6cc-rollback-sensitive.out 2>/tmp/comun-p6cc-rollback-sensitive.err
+          printf '%s' disabled | npx --yes vercel@50.28.0 env add COMUN_CHILD_PROTECTION_CHANNEL_ONLY_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6cc-rollback-child.out 2>/tmp/comun-p6cc-rollback-child.err
+          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6cc-rollback-deploy.out 2>/tmp/comun-p6cc-rollback-deploy.err
+          rollback_url="$(grep -Eo 'https://[^[:space:]]+' /tmp/comun-p6cc-rollback-deploy.out | tail -n 1 | tr -d '\r')"
+          case "$rollback_url" in https://*.vercel.app) ;; *) exit 1 ;; esac
+          npx --yes vercel@50.28.0 promote "$rollback_url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6cc-rollback-promote.out 2>/tmp/comun-p6cc-rollback-promote.err
+          npx --yes vercel@50.28.0 alias set "$rollback_url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/comun-p6cc-rollback-alias.out 2>/tmp/comun-p6cc-rollback-alias.err
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-p6c-c-domain-${{ github.run_id }}
+          path: .ci-artifacts/p6cc-production
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Emit wave marker
+        if: success() && (inputs.mode == 'wave1-sensitive' || inputs.mode == 'wave2-child')
+        run: echo "COMUN_P6C_C_${{ inputs.mode }}_GREEN" >> "$GITHUB_STEP_SUMMARY"

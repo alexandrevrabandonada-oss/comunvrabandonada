@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { ComunStmuMultichannelPanel } from "./comun-stmu-multichannel-panel";
 import { ComunStmuAssistedPanel } from "./comun-stmu-assisted-panel";
 import { ComunEssentialServicesPanel } from "./comun-essential-services-panel";
+import { ComunSensitiveForwardingPanel } from "./comun-sensitive-forwarding-panel";
+import { isSensitiveForwardingCategory } from "@/lib/comun-sensitive-forwarding-feature";
 import { resolveWalletRelataAction } from "@/lib/comun-wallet-relata-action";
 
 type WalletItem = {
@@ -52,6 +54,8 @@ export function ParticipationWalletPanel({
   stmuMultichannelEnabled = false,
   essentialServicesEnabled = false,
   essentialForwardingEnabled = false,
+  sensitiveForwardingEnabled = false,
+  childProtectionChannelOnlyEnabled = false,
 }: {
   standalone?: boolean;
   accountAvailable?: boolean;
@@ -59,6 +63,8 @@ export function ParticipationWalletPanel({
   stmuMultichannelEnabled?: boolean;
   essentialServicesEnabled?: boolean;
   essentialForwardingEnabled?: boolean;
+  sensitiveForwardingEnabled?: boolean;
+  childProtectionChannelOnlyEnabled?: boolean;
 }) {
   const [items, setItems] = useState<WalletItem[]>([]);
   const [present, setPresent] = useState(false);
@@ -378,6 +384,8 @@ export function ParticipationWalletPanel({
                             stmuMultichannelEnabled,
                             essentialServicesEnabled,
                             essentialForwardingEnabled,
+                            sensitiveForwardingEnabled,
+                            childProtectionChannelOnlyEnabled,
                           },
                         })
                       : null;
@@ -453,6 +461,13 @@ export function ParticipationWalletPanel({
                             walletItemId={item.item_id}
                           />
                         ) : null
+                      ) : relataAction?.route === "sensitive_service" &&
+                        relataAction.showSensitiveForwarding &&
+                        isSensitiveForwardingCategory(item.category) ? (
+                        <ComunSensitiveForwardingPanel
+                          walletItemId={item.item_id}
+                          category={item.category}
+                        />
                       ) : null}
                     </article>
                   );
