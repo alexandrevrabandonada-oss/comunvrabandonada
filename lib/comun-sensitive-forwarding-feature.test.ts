@@ -57,6 +57,15 @@ describe("COMUN sensitive assisted forwarding feature", () => {
     expect(sensitiveDisclosureWarnings("(24) 99999-1234")).toContain("phone");
   });
 
+  it("discards unselected values before preview authorization", () => {
+    expect(
+      validateSensitiveDisclosureInput("public_health", {
+        ...empty,
+        unitLabel: "Não selecionada 24999991234",
+      }),
+    ).toMatchObject({ ok: true, value: { unitLabel: "" } });
+  });
+
   it("forbids every content field in child-protection channel-only mode", () => {
     expect(
       validateSensitiveDisclosureInput("child_protection", {

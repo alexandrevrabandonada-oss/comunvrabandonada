@@ -97,10 +97,31 @@ export function validateSensitiveDisclosureInput(
   category: SensitiveForwardingCategory,
   input: SensitiveDisclosureInput,
 ) {
-  const unitLabel = input.unitLabel.trim();
-  const networkLabel = input.networkLabel.trim();
-  const approximatePeriod = input.approximatePeriod.trim();
-  const personAuthoredSummary = input.personAuthoredSummary.trim();
+  const rawUnitLabel = input.unitLabel.trim();
+  const rawNetworkLabel = input.networkLabel.trim();
+  const rawApproximatePeriod = input.approximatePeriod.trim();
+  const rawPersonAuthoredSummary = input.personAuthoredSummary.trim();
+  if (
+    category === "child_protection" &&
+    (input.includeIssueType ||
+      input.includeUnitLabel ||
+      input.includeNetworkLabel ||
+      input.includeApproximatePeriod ||
+      input.includePersonAuthoredSummary ||
+      rawUnitLabel ||
+      rawNetworkLabel ||
+      rawApproximatePeriod ||
+      rawPersonAuthoredSummary)
+  )
+    return { ok: false as const, code: "channel_only" };
+  const unitLabel = input.includeUnitLabel ? rawUnitLabel : "";
+  const networkLabel = input.includeNetworkLabel ? rawNetworkLabel : "";
+  const approximatePeriod = input.includeApproximatePeriod
+    ? rawApproximatePeriod
+    : "";
+  const personAuthoredSummary = input.includePersonAuthoredSummary
+    ? rawPersonAuthoredSummary
+    : "";
   if (
     unitLabel.length > 120 ||
     networkLabel.length > 40 ||
@@ -115,19 +136,6 @@ export function validateSensitiveDisclosureInput(
     (input.includePersonAuthoredSummary && !personAuthoredSummary)
   )
     return { ok: false as const, code: "missing_selected_value" };
-  if (
-    category === "child_protection" &&
-    (input.includeIssueType ||
-      input.includeUnitLabel ||
-      input.includeNetworkLabel ||
-      input.includeApproximatePeriod ||
-      input.includePersonAuthoredSummary ||
-      unitLabel ||
-      networkLabel ||
-      approximatePeriod ||
-      personAuthoredSummary)
-  )
-    return { ok: false as const, code: "channel_only" };
   const warnings = sensitiveDisclosureWarnings(
     [unitLabel, networkLabel, approximatePeriod, personAuthoredSummary].join(" "),
   );
