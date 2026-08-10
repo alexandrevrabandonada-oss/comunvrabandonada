@@ -810,7 +810,10 @@ jobs:
       (
         github.event_name == 'pull_request' &&
         github.event.action != 'closed' &&
-        github.event.pull_request.head.ref == 'codex/48-1b-p1-account-wallet-domain'
+        (
+          github.event.pull_request.head.ref == 'codex/48-1b-p1-account-wallet-domain' ||
+          github.event.pull_request.head.ref == 'codex/48-1d-s3-category-aware-wallet'
+        )
       ) || (
         github.event_name == 'workflow_dispatch' &&
         inputs.force_full == true
@@ -880,6 +883,12 @@ jobs:
           npm run build >"$artifact/build.log" 2>&1
           npm run account:wallet:e2e:local >"$artifact/e2e.log" 2>&1
           grep -q 'COMUN_48_1B_P1_ACCOUNT_WALLET_DISPOSABLE_E2E_GREEN' "$artifact/e2e.log"
+          if [ "${GITHUB_HEAD_REF:-}" = "codex/48-1d-s3-category-aware-wallet" ]; then
+            npx playwright install --with-deps chromium >"$artifact/s3-playwright-install.log" 2>&1
+            npm run wallet:e2e >"$artifact/s3-wallet-e2e.log" 2>&1
+            grep -q 'Carteira roteia Calçadas pela categoria sem fallback institucional' "$artifact/s3-wallet-e2e.log"
+            echo 'COMUN_48_1D_S3_SIDEWALK_WALLET_ROUTING_GREEN'
+          fi
       - name: Upload sanitized P1 evidence
         if: always()
         uses: actions/upload-artifact@v4
