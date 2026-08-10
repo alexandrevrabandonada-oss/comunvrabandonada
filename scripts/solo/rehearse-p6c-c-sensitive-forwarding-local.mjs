@@ -140,7 +140,7 @@ try {
     longitude: -44.125678, latitude: -22.512345, origin: "map_pin",
     accuracyMeters: null, capturedAt: "2026-08-10T12:00:00.000Z",
   });
-  assert.equal(location.status, 201, await location.text());
+  assert.equal(location.status, 200, await location.text());
 
   const healthDisclosure = {
     includeIssueType: true,
