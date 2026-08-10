@@ -114,7 +114,6 @@ describe("category-aware Participation Wallet", () => {
 
   it.each([
     "other",
-    "public_education",
     "workplace",
     "environmental_pollution",
     "smoke_or_environmental_trace",
@@ -183,6 +182,43 @@ describe("category-aware Participation Wallet", () => {
     expect(
       resolve("public_health", {
         metadata: { healthIssueType: "patient_name_or_diagnosis" },
+      }).detailLabel,
+    ).toBeNull();
+  });
+
+  it("shows only a sanitized education subtype and no forwarding adapter", () => {
+    expect(
+      resolve("public_education", {
+        metadata: { educationIssueType: "school_meals_or_supplies" },
+      }),
+    ).toMatchObject({
+      route: "no_verified_forwarding",
+      categoryLabel: "Educação pública",
+      detailLabel: "Merenda, material ou insumo",
+      stateMessage: "Guardado no COMUN.",
+      nextStep: "Você pode consultar os canais oficiais da Educação.",
+      showStmuAssisted: false,
+      showStmuMultichannel: false,
+      showEssentialServices: false,
+    });
+  });
+
+  it("keeps child protection separate from an ordinary education channel", () => {
+    expect(
+      resolve("public_education", {
+        metadata: { childSafetySignal: true },
+      }),
+    ).toMatchObject({
+      route: "no_verified_forwarding",
+      nextStep:
+        "Consulte a rede de proteção; um canal educacional não é suficiente para este sinal.",
+    });
+  });
+
+  it("does not expose an invalid education subtype", () => {
+    expect(
+      resolve("public_education", {
+        metadata: { educationIssueType: "student_name_or_school" },
       }).detailLabel,
     ).toBeNull();
   });

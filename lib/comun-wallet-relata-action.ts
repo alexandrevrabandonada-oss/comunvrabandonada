@@ -1,8 +1,8 @@
 import { isEssentialServiceCategory } from "./comun-essential-services-feature";
-import {
-  HEALTH_ISSUE_TYPE_LABELS,
-} from "./comun-health-service-routing-v1";
+import { HEALTH_ISSUE_TYPE_LABELS } from "./comun-health-service-routing-v1";
 import type { HealthIssueType } from "./comun-relata-contract";
+import { EDUCATION_ISSUE_TYPE_LABELS } from "./comun-education-service-routing-v1";
+import type { EducationIssueType } from "./comun-relata-contract";
 
 export const COMUN_RELATA_CATEGORY_LABELS = {
   sidewalk_accessibility: "Calçada e acessibilidade",
@@ -195,6 +195,26 @@ export function resolveWalletRelataAction(
       nextStep: "Você pode consultar os canais oficiais do SUS.",
       availabilityMessage:
         "O encaminhamento sensível permanece desativado. Nenhum dado de saúde foi enviado.",
+    });
+  }
+
+  if (input.category === "public_education") {
+    const educationIssueType =
+      typeof input.metadata.educationIssueType === "string"
+        ? (input.metadata.educationIssueType as EducationIssueType)
+        : null;
+    const childSafetySignal = input.metadata.childSafetySignal === true;
+    return baseAction("no_verified_forwarding", input, {
+      detailLabel:
+        educationIssueType && educationIssueType in EDUCATION_ISSUE_TYPE_LABELS
+          ? EDUCATION_ISSUE_TYPE_LABELS[educationIssueType]
+          : null,
+      stateMessage: "Guardado no COMUN.",
+      nextStep: childSafetySignal
+        ? "Consulte a rede de proteção; um canal educacional não é suficiente para este sinal."
+        : "Você pode consultar os canais oficiais da Educação.",
+      availabilityMessage:
+        "O encaminhamento sensível permanece desativado. Nenhum dado educacional foi enviado.",
     });
   }
 

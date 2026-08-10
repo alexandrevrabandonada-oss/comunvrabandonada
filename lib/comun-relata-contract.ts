@@ -39,6 +39,17 @@ export type HealthIssueType =
   | "information_or_followup"
   | "other_health_service";
 
+export type EducationIssueType =
+  | "staff_or_service_availability"
+  | "infrastructure_or_climate"
+  | "school_meals_or_supplies"
+  | "school_transport_or_access"
+  | "accessibility_or_inclusion"
+  | "enrollment_or_attendance"
+  | "discrimination_or_bullying"
+  | "information_or_management"
+  | "other_education_service";
+
 export type RelataStatus =
   | "captured_private"
   | "draft"
@@ -183,6 +194,7 @@ export type AllowedAdaptiveAnswerKey =
   | "flood_active_risk"
   | "tree_state"
   | "health_issue_type"
+  | "education_issue_type"
   | "blocked";
 
 export type AdaptiveQuestion = {
@@ -191,7 +203,8 @@ export type AdaptiveQuestion = {
     | "smoke_active_state"
     | "flood_active_risk"
     | "tree_fall_state"
-    | "health_issue_type";
+    | "health_issue_type"
+    | "education_issue_type";
   prompt: string;
   answerKey: AllowedAdaptiveAnswerKey;
   options: Array<{
@@ -222,6 +235,8 @@ export type RoutingDecision = {
   adaptiveQuestion?: AdaptiveQuestion | null;
   routingVersion?: string;
   healthIssueType?: HealthIssueType;
+  educationIssueType?: EducationIssueType;
+  childSafetySignal?: boolean;
 };
 
 export type Submission = {
