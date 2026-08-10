@@ -52,7 +52,7 @@ jobs:
           psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/p6c-b2-preflight/schema.json <<'SQL'
           begin read only;
           select json_build_object(
-            'childProtectionAbsent', not exists(
+            'childProtectionPresent', exists(
               select 1 from pg_catalog.pg_constraint
               where conrelid='public.comun_relata_cases'::regclass
                 and conname='comun_relata_cases_category_check'
@@ -81,7 +81,7 @@ jobs:
             'educationRoutingPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%comun-education-service-routing-v1%',
             'healthRoutingPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%comun-health-service-routing-v1%',
             'childSafetySignalPresent', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%childSafetySignal%',
-            'childRoutingAbsent', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) not like '%comun-child-protection-routing-v1%',
+            'childRoutingPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%comun-child-protection-routing-v1%',
             'privacyValidationPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) ~ 'restricted.*sensitive.*high_risk',
             'publicationNeverPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%never%',
             'casesRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='public.comun_relata_cases'::regclass),
@@ -120,9 +120,9 @@ jobs:
           const fs=require('node:fs');
           const s=JSON.parse(fs.readFileSync('.ci-artifacts/p6c-b2-preflight/schema.json','utf8'));
           const required=[
-            'childProtectionAbsent','publicEducationPresent','publicHealthPresent','workplacePresent',
+            'childProtectionPresent','publicEducationPresent','publicHealthPresent','workplacePresent',
             'createPresent','transitionPresent','educationRoutingPreserved','healthRoutingPreserved',
-            'childSafetySignalPresent','childRoutingAbsent','privacyValidationPreserved',
+            'childSafetySignalPresent','childRoutingPreserved','privacyValidationPreserved',
             'publicationNeverPreserved','casesRlsForced','reportsRlsForced','eventsRlsForced',
             'classificationEventsRlsForced',
             'walletsRlsForced','walletItemsRlsForced','serviceCreate','serviceTransition',

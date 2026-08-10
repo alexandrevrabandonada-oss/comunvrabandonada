@@ -53,8 +53,8 @@ jobs:
             'publicEducationPreserved', exists(select 1 from pg_catalog.pg_constraint where conrelid='public.comun_relata_cases'::regclass and conname='comun_relata_cases_category_check' and pg_catalog.pg_get_constraintdef(oid) like '%public_education%'),
             'createPresent', to_regprocedure('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)') is not null,
             'transitionPresent', to_regprocedure('public.comun_relata_classification_transition(text,text,text,text,jsonb)') is not null,
-            'healthRoutingVersionPending', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) not like '%comun-health-service-routing-v1%',
-            'healthSubtypePersistencePending', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) not like '%healthIssueType%',
+            'healthRoutingVersionPreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%comun-health-service-routing-v1%',
+            'healthSubtypePersistencePreserved', pg_catalog.pg_get_functiondef('public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)'::regprocedure) like '%healthIssueType%',
             'casesRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='public.comun_relata_cases'::regclass),
             'reportsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_relata_reports'::regclass),
             'anonCreate', has_function_privilege('anon','public.comun_relata_create(text,text,text,jsonb,text,text,text,jsonb,text,text)','EXECUTE'),
@@ -72,7 +72,7 @@ jobs:
           node - <<'NODE'
           const fs=require('node:fs');
           const s=JSON.parse(fs.readFileSync('.ci-artifacts/p6c-a-preflight/schema.json','utf8'));
-          if(!s.publicHealthPresent||!s.publicEducationPreserved||!s.createPresent||!s.transitionPresent||!s.healthRoutingVersionPending||!s.healthSubtypePersistencePending||!s.casesRlsForced||!s.reportsRlsForced||s.anonCreate||s.authenticatedCreate||!s.serviceCreate||s.anonTransition||s.authenticatedTransition||!s.serviceTransition||!s.sourceDomainsUnchanged||s.businessRowsRead!==false||s.transactionReadOnly!==true) throw new Error('COMUN_P6C_A_BLOCKED_REMOTE_SCHEMA_DRIFT');
+          if(!s.publicHealthPresent||!s.publicEducationPreserved||!s.createPresent||!s.transitionPresent||!s.healthRoutingVersionPreserved||!s.healthSubtypePersistencePreserved||!s.casesRlsForced||!s.reportsRlsForced||s.anonCreate||s.authenticatedCreate||!s.serviceCreate||s.anonTransition||s.authenticatedTransition||!s.serviceTransition||!s.sourceDomainsUnchanged||s.businessRowsRead!==false||s.transactionReadOnly!==true) throw new Error('COMUN_P6C_A_BLOCKED_REMOTE_SCHEMA_DRIFT');
           NODE
       - name: Reconcile Calçadas and prove the exact remote migration plan
         shell: bash
