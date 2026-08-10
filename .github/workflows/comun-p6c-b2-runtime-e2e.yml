@@ -62,7 +62,9 @@ jobs:
             test -z "$(docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA')"
           }
           trap cleanup EXIT
-          supabase start >"$artifact/startup.log" 2>&1
+          # Supabase start prints disposable credentials. Keep that output in
+          # runner-temporary storage so it can never enter the evidence artifact.
+          supabase start >"$RUNNER_TEMP/p6c-b2-supabase-startup.log" 2>&1
           status_file=$(mktemp)
           trap 'rm -f "$status_file"; cleanup' EXIT
           supabase status -o env >"$status_file"

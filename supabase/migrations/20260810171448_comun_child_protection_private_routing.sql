@@ -1,5 +1,28 @@
 begin;
 
+-- The original transition ledger was introduced for photo-only enrichment and
+-- therefore required previous_text_absent=true. B2 also records the explicitly
+-- authorized public_education -> child_protection transition. The column stays
+-- NOT NULL and the table stays append-only through its existing trigger.
+alter table private.comun_relata_classification_events
+  drop constraint if exists comun_relata_classification_events_previous_text_absent_check;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_catalog.pg_trigger
+    where tgrelid = 'private.comun_relata_classification_events'::regclass
+      and tgname = 'comun_relata_classification_events_append_only'
+      and not tgisinternal
+  ) then
+    raise exception using
+      errcode = '55000',
+      message = 'COMUN_P6C_B2_CLASSIFICATION_EVENT_APPEND_ONLY_TRIGGER_REQUIRED';
+  end if;
+end;
+$$;
+
 alter table public.comun_relata_cases
   drop constraint comun_relata_cases_category_check;
 

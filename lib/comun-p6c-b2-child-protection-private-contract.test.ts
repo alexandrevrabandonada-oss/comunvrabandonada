@@ -18,6 +18,12 @@ describe("COMUN P6C-B2 child protection private contract", () => {
     expect(migration).toContain("never_automatic");
     expect(migration).toContain("requiresHumanReview");
     expect(migration).toContain("private.comun_relata_classification_events");
+    expect(migration).toContain(
+      "drop constraint if exists comun_relata_classification_events_previous_text_absent_check",
+    );
+    expect(migration).toContain(
+      "tgname = 'comun_relata_classification_events_append_only'",
+    );
     expect(migration).toContain("grant execute");
     expect(migration).not.toMatch(
       /create table|backfill|delete from|truncate|private\.comun_forwarding_packages\s*\(/i,

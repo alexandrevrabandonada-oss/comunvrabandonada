@@ -34,6 +34,8 @@ test("P6C-B2 disposable runtime is isolated and forbids sensitive forwarding", (
     workflow,
     /COMUN_P6C_B2_CHILD_PROTECTION_PRIVATE_DISPOSABLE_E2E_GREEN/,
   );
+  assert.match(workflow, /RUNNER_TEMP\/p6c-b2-supabase-startup\.log/);
+  assert.doesNotMatch(workflow, /artifact\/startup\.log/);
   assert.match(script, /otherWallet: "isolated"/);
   assert.match(script, /externalRequests: 0/);
   assert.match(script, /hardDeletes/);

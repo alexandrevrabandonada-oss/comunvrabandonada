@@ -1,9 +1,9 @@
 {
   "release": "20260810171448-comun-child-protection-private-routing",
   "migration": "supabase/migrations/20260810171448_comun_child_protection_private_routing.sql",
-  "migrationSha256": "894d42f64e0ba34faf325e33ba65d3b3d1baa12520037dfa0d5d30bf18688dac",
+  "migrationSha256": "92fb622d38ddf259d91529aecd52f07e52d34132b5ae7601c4799feaede7282b",
   "path": "supabase/migrations/20260810171448_comun_child_protection_private_routing.sql",
-  "sha256": "894d42f64e0ba34faf325e33ba65d3b3d1baa12520037dfa0d5d30bf18688dac",
+  "sha256": "92fb622d38ddf259d91529aecd52f07e52d34132b5ae7601c4799feaede7282b",
   "requiresPromotion": true,
   "remotePromotionAllowed": true,
   "scope": "production",
