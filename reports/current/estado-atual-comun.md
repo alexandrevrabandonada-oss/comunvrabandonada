@@ -1,4 +1,42 @@
-# Estado atual — 48.1B-P6C-A em Production, piloto humano pausado (10/08/2026)
+# Estado atual — 48.1B-P6C-B1 em Production, piloto humano pausado (10/08/2026)
+
+## 48.1B-P6C-B1 — Educação pública privada e segura
+
+- 48.1C permanece não concluído e pausado por decisão de produto:
+  `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`;
+- PR funcional `#260`, head exato
+  `f3dc4aad41f9ff5c737671b25fab67579b0fa047`, mesclada no merge
+  `111e0f1d09b6cf26ab07ebcaf6375d1c70adee2e`;
+- `/comun/relatar` segue como entrada única; nenhum miniapp de Educação foi
+  criado;
+- roteador `comun-education-service-routing-v1` reconhece problemas do serviço
+  e subtipos privados, separando Educação de Trabalho e transporte coletivo;
+- todo `public_education` é no mínimo `restricted`, exige revisão humana e tem
+  publicação `never`; sinais individualizáveis elevam para `sensitive` ou
+  `high_risk`;
+- `childSafetySignal` separa proteção infantil da reclamação administrativa,
+  sem categoria silenciosa ou acionamento automático;
+- foto-only permanece `original_text=NULL` e `category=other`;
+- exatamente uma migration forward-only, SHA-256
+  `10e629df1e7d31806588e44d6276d70b35e2b2f843467cae4f8d699cfa238dfe`;
+- run flags-OFF `31409363505`: plano remoto exato, migration, postflight de
+  RLS/grants e deploy verdes, sem leitura de negócio;
+- onda privada `31409690559`: routing educacional ON e forwarding sensível OFF;
+- 31 checks verdes no head final; E2E descartável
+  `COMUN_P6C_B1_PUBLIC_EDUCATION_PRIVATE_DISPOSABLE_E2E_GREEN`;
+- cinco rotas canônicas `200`; cleanup Production com zero fixture ativa,
+  package, attempt, snapshot, coletivo, request/envio externo ou hard delete;
+- catálogo oficial server-side, sem automação; fontes `source_verified` e
+  canais `operationally_unchecked`;
+- `COMUN_P6C_B1_CHILD_PROTECTION_ROUTING_DEFERRED_TO_B2`;
+- auto-send, forwarding sensível, publicação automática, mapa público geral,
+  coletivos e `launch_publicly` permanecem desligados.
+
+Resultado terminal:
+`COMUN_48_1B_P6C_B1_PUBLIC_EDUCATION_PRIVATE_DOMAIN_GREEN_FORWARDING_OFF`.
+
+Detalhes:
+`reports/current/comun-48-1b-p6c-b1-public-education-private.md`.
 
 ## 48.1B-P6C-A — SUS privado e seguro
 
