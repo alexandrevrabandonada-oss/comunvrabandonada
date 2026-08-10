@@ -69,6 +69,7 @@ async function capture(text, jar = primary, extra = {}) {
   assert.equal(response.status, 201, JSON.stringify(value));
   assert.ok(value.walletItemId);
   assert.equal(value.noOfficialSend, true);
+  assert.equal(value.receipt.evidence.activeReportsInCollective, 0);
   return { ...value, receiptSecret };
 }
 
@@ -116,6 +117,7 @@ try {
 
   const initial = await db.query(`select
     (select count(*)::int from public.comun_relata_public_snapshots) public_snapshots,
+    (select count(*)::int from public.comun_collective_actions) collectives,
     (select count(*)::int from private.comun_forwarding_packages) packages,
     (select count(*)::int from private.comun_forwarding_attempts) attempts`);
 
@@ -372,8 +374,9 @@ try {
 
   const finalState = await db.query(`select
     (select count(*)::int from public.comun_relata_public_snapshots) public_snapshots,
-    (select count(*)::int from public.comun_collective_cases) collectives`);
+    (select count(*)::int from public.comun_collective_actions) collectives`);
   assert.equal(finalState.rows[0].public_snapshots, initial.rows[0].public_snapshots);
+  assert.equal(finalState.rows[0].collectives, initial.rows[0].collectives);
   assert.equal(hardDeletes, 0);
   assert.ok(requested.every((url) => url.startsWith(`${base}/`)));
 
