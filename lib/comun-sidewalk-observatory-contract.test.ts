@@ -76,7 +76,7 @@ describe("48.2-B sidewalk observatory public contract", () => {
     expect(ui).toContain("automática continua desligada");
   });
 
-  it("locks the merge-triggered Production rollout to a one-time two-wave sequence", async () => {
+  it("locks the merge-triggered flags-off rollout and keeps Wave 1 explicitly dispatched", async () => {
     const workflow = await source(
       "../.github/workflows/comun-48-2-b-activation.yml",
     );
@@ -91,15 +91,13 @@ describe("48.2-B sidewalk observatory public contract", () => {
       '".github/workflows/comun-48-2-b-activation.yml"',
     );
     expect(workflow).toContain("auto-flags-off:");
-    expect(workflow).toContain("auto-wave1-sidewalk-analytics:");
-    expect(workflow).toContain("needs: auto-flags-off");
     expect(workflow).toContain("git diff --diff-filter=A");
     expect(workflow).toContain(
       "run-48-2-b-production-wave.sh flags-off",
     );
-    expect(workflow).toContain(
-      "run-48-2-b-production-wave.sh wave1-sidewalk-analytics",
-    );
+    expect(workflow).not.toContain("auto-wave1-sidewalk-analytics:");
+    expect(workflow).toContain("manual-recovery-or-replay:");
+    expect(workflow).toContain('MODE: ${{ inputs.mode }}');
     expect(workflow).toContain(
       "options: [flags-off, wave1-sidewalk-analytics]",
     );
@@ -116,6 +114,7 @@ describe("48.2-B sidewalk observatory public contract", () => {
     expect(runner).toContain(
       "set_vercel_flag COMUN_OBSERVATORY_SIDEWALK_ANALYTICS_ENABLED enabled",
     );
+    expect(runner).toContain("wave1-sidewalk-analytics");
     expect(runner).toContain("restore_48_2_a_baseline");
     expect(runner).toContain(
       "COMUN_48_2_B_FLAGS_OFF_PRODUCTION_48_2_A_GREEN",

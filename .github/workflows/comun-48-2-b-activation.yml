@@ -72,54 +72,6 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: bash scripts/observatories/run-48-2-b-production-wave.sh flags-off
 
-  auto-wave1-sidewalk-analytics:
-    if: github.event_name == 'push'
-    needs: auto-flags-off
-    runs-on: ubuntu-24.04
-    timeout-minutes: 40
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 0
-
-      - name: Reconfirm exact main before Wave 1
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch origin main
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          test "$(git rev-parse origin/main)" = "$GITHUB_SHA" || {
-            echo COMUN_48_2_B_BLOCKED_MAIN_ADVANCED_AFTER_FLAGS_OFF >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          }
-          test -z "$(git diff --name-only "$COMUN_48_2_B_BASELINE_SHA"...HEAD -- supabase/migrations)" || {
-            echo COMUN_48_2_B_BLOCKED_UNEXPECTED_MIGRATION >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          }
-
-      - name: Install project dependencies
-        run: npm ci --ignore-scripts
-
-      - name: Install Chromium for read-only Production proof
-        run: npx playwright install --with-deps chromium
-
-      - name: Verify canonical Vercel project binding read-only
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -n "${VERCEL_TOKEN:-}"
-          npx --yes vercel@50.28.0 project inspect "$VERCEL_PROJECT_ID" \
-            --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
-          echo COMUN_48_2_B_VERCEL_PROJECT_BINDING_GREEN >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Activate reviewed-only analytics and prove Production
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: bash scripts/observatories/run-48-2-b-production-wave.sh wave1-sidewalk-analytics
-
   manual-recovery-or-replay:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
