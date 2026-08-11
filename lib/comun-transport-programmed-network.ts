@@ -1,8 +1,9 @@
-import manifestJson from "@/data/comun/transport/source-manifest-v1.json";
-import networkJson from "@/data/comun/transport/programmed-network-v1.json";
+import activeSnapshotJson from "@/data/comun/transport/active-snapshot.json";
+import manifestJson from "@/data/comun/transport/source-manifest-v2.json";
+import networkJson from "@/data/comun/transport/programmed-network-v2.json";
 
 export const COMUN_TRANSPORT_PROGRAMMED_METHODOLOGY_VERSION =
-  "comun-transport-programmed-network-v1" as const;
+  "comun-transport-programmed-network-v2" as const;
 export const COMUN_TRANSPORT_OFFICIAL_DOMAINS = [
   "www.voltaredonda.rj.gov.br",
 ] as const;
@@ -17,7 +18,8 @@ export type TransportSource = {
   sourceId: string; sourceType: TransportSourceType; officialUrl: string; sha256: string;
   retrievedAt: string; publisher: string; lineCode?: string; orderNumber?: string;
   sourceUpdatedAt?: string; effectiveFrom?: string; parserVersion: string;
-  qualityState: TransportQualityState; status: TransportSourceStatus;
+  qualityState: TransportQualityState; status: TransportSourceStatus; semanticSha256?: string;
+  normalizationVersion?: string;
 };
 export type Departure = { time: string; serviceDayOffset: 0 | 1; variantCode: string | null; noteCodes: string[] };
 export type ServicePattern = { serviceDayType: ServiceDayType; originLabel: string; directionLabel: string | null; departures: Departure[] };
@@ -28,10 +30,17 @@ export type TransportLine = {
   itineraryStatus: TimetableStatus; servicePatterns: ServicePattern[]; itineraryVariants: ItineraryVariant[];
   notes: { code: string; text: string }[];
 };
-export type TransportSnapshot = { snapshotId: string; snapshotDate: string; verifiedAt: string; catalogSourceId: string; methodologyVersion: string; lineCount: number; qualityState: TransportQualityState; lines: TransportLine[] };
+export type TransportSnapshot = {
+  snapshotId: string; snapshotDate: string; verifiedAt: string; catalogSourceId: string;
+  methodologyVersion: string; lineCount: number; qualityState: TransportQualityState; lines: TransportLine[];
+  previousSnapshotId?: string;
+  sourceHistory?: { previousCatalogSourceId: string; activeCatalogSourceId: string };
+  changeSummary?: Record<string, string | number | boolean>;
+};
 
 const manifest = manifestJson as { manifestVersion: string; sources: TransportSource[] };
 const rawNetwork = networkJson as Omit<TransportSnapshot, "lines"> & { lines: Array<Partial<TransportLine> & Pick<TransportLine, "lineCode" | "routeLabel" | "operator">> };
+const activeSnapshot = activeSnapshotJson as { activeSnapshotId: string; previousSnapshotId: string; snapshotFile: string; manifestFile: string; normalizedCatalogFile: string };
 
 function isOfficialUrl(value: string) {
   try {
@@ -42,6 +51,7 @@ function isOfficialUrl(value: string) {
 function hasValidTime(value: string) { return /^([01]\d|2[0-3]):[0-5]\d$/.test(value); }
 
 export const COMUN_TRANSPORT_SOURCE_MANIFEST = manifest;
+export const COMUN_TRANSPORT_ACTIVE_SNAPSHOT = activeSnapshot;
 export const COMUN_TRANSPORT_SNAPSHOT: TransportSnapshot = {
   ...rawNetwork,
   lines: rawNetwork.lines.map((line) => ({
@@ -65,6 +75,7 @@ export function validateTransportProgrammedNetwork(snapshot = COMUN_TRANSPORT_SN
     if (!isOfficialUrl(source.officialUrl)) errors.push(`non_official_url:${source.sourceId}`);
   }
   if (!sourceIds.has(snapshot.catalogSourceId)) errors.push("missing_catalog_source");
+  if (activeSnapshot.activeSnapshotId !== snapshot.snapshotId || activeSnapshot.snapshotFile !== "programmed-network-v2.json" || activeSnapshot.manifestFile !== "source-manifest-v2.json") errors.push("active_snapshot_pointer_mismatch");
   if (snapshot.lineCount !== snapshot.lines.length) errors.push("line_count_mismatch");
   const lineIds = new Set<string>();
   for (const line of snapshot.lines) {
