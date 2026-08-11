@@ -1,7 +1,7 @@
 # COMUN — 48.2-B: Observatório de Calçadas
 
 Data: 11/08/2026
-Status: candidato funcional; aguardando CI, Preview, plano remoto, merge exact-head e ativação em ondas.
+Status: promovido em Production, somente leitura reviewed-only.
 
 ## Baseline
 
@@ -87,19 +87,29 @@ O DTO público não contém bairro público confiável. Não há reverse-geocode
 - nenhuma fixture Production;
 - business writes planejados neste tijolo: `0`.
 
-## Gates ainda não satisfeitos
+## Promoção e prova Production
 
-O terminal final não pode ser emitido antes de:
+- PR funcional #270: head `c87de27e84d056278d4022db1d69798437fbb4dd`,
+  merge `76712a1cafaa275b1a0442119cba074d0b7ca659`;
+- CI completa e Preview verdes, preflight remoto com plano `[]`, sem review
+  thread bloqueante e sem migration;
+- flags-off: run `31498463736`, mantendo Foundation e adapter P4 ativos,
+  analytics cloaked e rota dedicada `404`;
+- a primeira wave encontrou projeção pública vazia, estado válido do contrato,
+  sem criar fixture; a correção focal #271 (merge
+  `159cb38360eba186fd154f47cbfd8ca377d26258`) tornou a prova compatível com
+  esse empty state;
+- wave 1 read-only: run `31505161183` verde no main exato, com página e APIs
+  `200`, metodologia/empty state visíveis e zero business writes;
+- nenhum relato, Carteira, ponto P4, snapshot, package, attempt, coletivo,
+  request externo ou hard delete foi criado.
 
-1. CI verde;
-2. Preview verde;
-3. remote plan `[]`;
-4. zero review thread bloqueante;
-5. merge exact-head;
-6. deploy com analytics OFF comprovando regressão 48.2-A verde e rota B cloaked;
-7. wave 1 com analytics ON;
-8. Production proof read-only usando somente projeção pública existente.
+Flags atuais:
 
-Somente após esses gates poderá ser emitido:
+- `COMUN_OBSERVATORIES_FOUNDATION_ENABLED=enabled`;
+- `COMUN_OBSERVATORY_SIDEWALK_ADAPTER_ENABLED=enabled`;
+- `COMUN_OBSERVATORY_SIDEWALK_ANALYTICS_ENABLED=enabled`.
+
+Resultado terminal:
 
 `COMUN_48_2_B_SIDEWALK_OBSERVATORY_GREEN_REVIEWED_ONLY`.
