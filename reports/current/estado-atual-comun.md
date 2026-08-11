@@ -1,4 +1,30 @@
-# Estado atual — 48.2-C2 Sistema em números do Transporte em Production (11/08/2026)
+# Estado atual — 48.2-D0 Contrato público de dados ambientais (11/08/2026)
+
+## 48.2-D0 — Auditoria para o futuro Observatório Ambiental
+
+- auditoria documental concluída sem rota, flag, migration, adapter, snapshot
+  de produto, importação, deploy ou escrita de negócio;
+- não há dataset ambiental canônico pronto no workspace; categorias de Relata,
+  localização, anexos, Carteira, encaminhamento e agregados privados seguem
+  excluídos pelo firewall;
+- fontes oficiais foram classificadas sem rebatizar o produto: INEA/SIGQAr e
+  IQAr, INEA hidrometeorológico, INMET, IBGE e ANA possuem uso futuro
+  condicionado a snapshot versionado e revisão; Dados Abertos RJ e Prefeitura
+  ainda exigem revalidação de dataset aderente;
+- D1 qualidade do ar está `PARTIAL_D1`; D2 meteorologia e D3 exposição
+  territorial estão parciais: há fontes públicas, mas faltam fotografia,
+  cobertura, estação ou contrato de cruzamento explicitamente revisados; D4
+  água permanece `USE_LATER`;
+- runtime futuro permanece offline das fontes e não haverá atualização ou
+  publicação automática; `COMUN_48_2_C3_REALTIME_DEFERRED_NO_PUBLIC_API_CONTRACT`
+  e `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` permanecem.
+
+Resultado terminal:
+`COMUN_48_2_D0_ENVIRONMENTAL_DATA_CONTRACT_GREEN`.
+
+Detalhes: `reports/current/comun-48-2-d0-environmental-data-audit.md`.
+
+# Estado anterior — 48.2-C2 Sistema em números do Transporte em Production (11/08/2026)
 
 ## 48.2-C2 — Indicadores oficiais periódicos do sistema de transporte
 
