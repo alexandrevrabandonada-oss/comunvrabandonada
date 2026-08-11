@@ -1,6 +1,5 @@
 import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 async function source(relative: string) {
@@ -125,19 +124,10 @@ describe("48.2-B sidewalk observatory public contract", () => {
     expect(runner).toContain("businessWrites=0");
     expect(combined).not.toMatch(/psql|supabase\s+(db|migration|functions)/i);
 
-    const scriptPath = fileURLToPath(
-      new URL(
-        "../scripts/observatories/run-48-2-b-production-wave.sh",
-        import.meta.url,
-      ),
-    );
-    const bashPath =
-      process.platform === "win32"
-        ? scriptPath
-            .replace(/^([A-Za-z]):/, (_match, drive: string) => `/${drive.toLowerCase()}`)
-            .replaceAll("\\", "/")
-        : scriptPath;
-    execFileSync("bash", ["-n", bashPath]);
+    execFileSync("bash", [
+      "-n",
+      "scripts/observatories/run-48-2-b-production-wave.sh",
+    ]);
   });
 
   it("keeps the Production browser proof read-only and checks map/list/filter equivalence", async () => {
