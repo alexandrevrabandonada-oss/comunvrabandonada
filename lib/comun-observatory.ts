@@ -1,3 +1,8 @@
+import type {
+  SidewalkCondition,
+  SidewalkProblem,
+} from "./comun-sidewalk-p4-contract";
+
 export const COMUN_OBSERVATORY_METHODOLOGY_VERSION =
   "comun-observatory-foundation-v1" as const;
 
@@ -64,10 +69,9 @@ export type ObservatorySourceDescriptor = {
   automaticPublicationAllowed: false;
 };
 
-export type PublicObservation = {
+type PublicObservationBase = {
   id: string;
   observatoryId: ObservatoryId;
-  kind: string;
   label: string;
   value: string | number | null;
   unit: string | null;
@@ -84,6 +88,17 @@ export type PublicObservation = {
   freshness: ObservatoryFreshness;
   methodologyVersion: string;
 };
+
+export type SidewalkPublicObservation = PublicObservationBase & {
+  observatoryId: "sidewalks";
+  kind: "sidewalk_condition";
+  attributes: {
+    condition: SidewalkCondition | "unknown";
+    problems: SidewalkProblem[];
+  };
+};
+
+export type PublicObservation = SidewalkPublicObservation;
 
 const forbiddenSourceKinds = new Set([
   "private_report_aggregate",
@@ -189,10 +204,20 @@ export const COMUN_OBSERVATORY_REGISTRY = [
   },
 ] as const satisfies readonly ObservatoryRegistryEntry[];
 
-export function getPublicObservatoryRegistry(sidewalkAvailable: boolean) {
-  return COMUN_OBSERVATORY_REGISTRY.map((entry) =>
-    entry.id === "sidewalks" && !sidewalkAvailable
-      ? { ...entry, status: "preparing" as const, publicRoute: null }
-      : entry,
-  );
+export function getPublicObservatoryRegistry(
+  sidewalkAvailable: boolean,
+  sidewalkAnalyticsEnabled = false,
+) {
+  return COMUN_OBSERVATORY_REGISTRY.map((entry) => {
+    if (entry.id !== "sidewalks") return entry;
+    if (!sidewalkAvailable) {
+      return { ...entry, status: "preparing" as const, publicRoute: null };
+    }
+    return {
+      ...entry,
+      publicRoute: sidewalkAnalyticsEnabled
+        ? "/comun/observatorios/calcadas"
+        : "/comun/calcadas",
+    };
+  });
 }

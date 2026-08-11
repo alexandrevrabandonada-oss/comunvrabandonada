@@ -1,0 +1,228 @@
+name: COMUN 48.2-B sidewalk observatory activation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-2-b-activation.yml"
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact current main SHA to deploy
+        required: true
+        type: string
+      mode:
+        description: Preserve 48.2-A with analytics off or activate reviewed-only analytics
+        required: true
+        type: choice
+        options: [flags-off, wave1-sidewalk-analytics]
+
+permissions:
+  contents: read
+  statuses: write
+
+env:
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+  COMUN_BASE_URL: https://comunsocial.online
+  COMUN_48_2_B_BASELINE_SHA: d399ee0611773ed8e87cedb6a6a640413419b085
+
+jobs:
+  auto-flags-off:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify one-time exact-main activation trigger and zero migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse origin/main)" = "$GITHUB_SHA"
+          git merge-base --is-ancestor "$COMUN_48_2_B_BASELINE_SHA" HEAD
+          test "$(git diff --diff-filter=A --name-only HEAD^..HEAD -- .github/workflows/comun-48-2-b-activation.yml)" = ".github/workflows/comun-48-2-b-activation.yml"
+          test -z "$(git diff --name-only "$COMUN_48_2_B_BASELINE_SHA"...HEAD -- supabase/migrations)" || {
+            echo COMUN_48_2_B_BLOCKED_UNEXPECTED_MIGRATION >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          }
+          echo COMUN_48_2_B_AUTO_TRIGGER_EXACT_MAIN_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo COMUN_48_2_B_ZERO_MIGRATION_GATE_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install project dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Verify canonical Vercel project binding read-only
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          npx --yes vercel@50.28.0 project inspect "$VERCEL_PROJECT_ID" \
+            --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+          echo COMUN_48_2_B_VERCEL_PROJECT_BINDING_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Deploy exact main with analytics disabled and prove 48.2-A
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: bash scripts/observatories/run-48-2-b-production-wave.sh flags-off
+
+      - name: Publish flags-off success status
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'success',
+              context: 'COMUN/48.2-B flags-off',
+              description: '48.2-A green; analytics disabled; business writes 0'
+            })
+
+      - name: Publish flags-off failure status
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'failure',
+              context: 'COMUN/48.2-B flags-off',
+              description: 'Flags-off or 48.2-A Production proof failed'
+            })
+
+  auto-wave1-sidewalk-analytics:
+    if: github.event_name == 'push'
+    needs: auto-flags-off
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Reconfirm exact main before Wave 1
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse origin/main)" = "$GITHUB_SHA" || {
+            echo COMUN_48_2_B_BLOCKED_MAIN_ADVANCED_AFTER_FLAGS_OFF >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          }
+          test -z "$(git diff --name-only "$COMUN_48_2_B_BASELINE_SHA"...HEAD -- supabase/migrations)" || {
+            echo COMUN_48_2_B_BLOCKED_UNEXPECTED_MIGRATION >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          }
+
+      - name: Install project dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install Chromium for read-only Production proof
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify canonical Vercel project binding read-only
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          npx --yes vercel@50.28.0 project inspect "$VERCEL_PROJECT_ID" \
+            --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+          echo COMUN_48_2_B_VERCEL_PROJECT_BINDING_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Activate reviewed-only analytics and prove Production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: bash scripts/observatories/run-48-2-b-production-wave.sh wave1-sidewalk-analytics
+
+      - name: Publish Wave 1 success status
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'success',
+              context: 'COMUN/48.2-B wave1',
+              description: 'Reviewed-only Production proof green; business writes 0'
+            })
+
+      - name: Publish Wave 1 failure status
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: 'failure',
+              context: 'COMUN/48.2-B wave1',
+              description: 'Wave 1 failed; 48.2-A rollback is required or completed'
+            })
+
+  manual-recovery-or-replay:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Verify requested exact main and zero migrations
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          test "$(git rev-parse origin/main)" = "$EXPECTED_MAIN_SHA"
+          git merge-base --is-ancestor "$COMUN_48_2_B_BASELINE_SHA" HEAD
+          test -z "$(git diff --name-only "$COMUN_48_2_B_BASELINE_SHA"...HEAD -- supabase/migrations)" || {
+            echo COMUN_48_2_B_BLOCKED_UNEXPECTED_MIGRATION >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          }
+          echo COMUN_48_2_B_ZERO_MIGRATION_GATE_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install project dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install Chromium for Wave 1 read-only browser proof
+        if: inputs.mode == 'wave1-sidewalk-analytics'
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify canonical Vercel project binding read-only
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          npx --yes vercel@50.28.0 project inspect "$VERCEL_PROJECT_ID" \
+            --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+          echo COMUN_48_2_B_VERCEL_PROJECT_BINDING_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run selected read-only Production wave
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          MODE: ${{ inputs.mode }}
+        run: bash scripts/observatories/run-48-2-b-production-wave.sh "$MODE"
