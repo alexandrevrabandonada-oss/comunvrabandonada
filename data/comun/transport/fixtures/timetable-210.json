@@ -1,0 +1,15 @@
+{
+  "lineCode": "210",
+  "patterns": [
+    {
+      "serviceDayType": "weekday",
+      "originLabel": "Três Poços",
+      "directionLabel": "Ponte Alta",
+      "departures": [
+        { "time": "21:00", "serviceDayOffset": 0, "variantCode": null, "noteCodes": [] },
+        { "time": "23:30", "serviceDayOffset": 0, "variantCode": null, "noteCodes": [] },
+        { "time": "00:20", "serviceDayOffset": 1, "variantCode": "B", "noteCodes": ["B"] }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+import { NextResponse } from "next/server";
+import { COMUN_TRANSPORT_SNAPSHOT, COMUN_TRANSPORT_SOURCE_MANIFEST, getTransportOperators } from "@/lib/comun-transport-programmed-network";
+import { isComunObservatoryTransportProgrammedEnabled } from "@/lib/comun-observatory-feature";
+export const runtime = "nodejs";
+const publicHeaders = { "cache-control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600", vary: "Accept" }; const noStore = { "cache-control": "no-store, max-age=0" };
+function dormant() { return NextResponse.json({ code: "not_found" }, { status: 404, headers: noStore }); }
+function denied() { return NextResponse.json({ code: "method_not_allowed" }, { status: 405, headers: { ...noStore, allow: "GET, HEAD" } }); }
+export function GET() { if (!isComunObservatoryTransportProgrammedEnabled()) return dormant(); return NextResponse.json({ snapshot: { snapshotId: COMUN_TRANSPORT_SNAPSHOT.snapshotId, snapshotDate: COMUN_TRANSPORT_SNAPSHOT.snapshotDate, verifiedAt: COMUN_TRANSPORT_SNAPSHOT.verifiedAt, lineCount: COMUN_TRANSPORT_SNAPSHOT.lineCount, qualityState: COMUN_TRANSPORT_SNAPSHOT.qualityState }, source: { catalogSourceId: COMUN_TRANSPORT_SNAPSHOT.catalogSourceId, officialSourceUrl: "/comun/observatorios/transporte/fontes" }, operators: getTransportOperators(), lines: COMUN_TRANSPORT_SNAPSHOT.lines.map(({ servicePatterns, itineraryVariants, notes, ...line }) => line), methodology: { version: COMUN_TRANSPORT_SNAPSHOT.methodologyVersion, programmedNotObserved: true, realtime: "deferred_no_public_api_contract", stops: "deferred_no_public_dataset" }, freshness: { verifiedAt: COMUN_TRANSPORT_SNAPSHOT.verifiedAt, sourceCount: COMUN_TRANSPORT_SOURCE_MANIFEST.sources.length } }, { headers: publicHeaders }); }
+export function HEAD() { return isComunObservatoryTransportProgrammedEnabled() ? new NextResponse(null, { status: 200, headers: publicHeaders }) : new NextResponse(null, { status: 404, headers: noStore }); }
+export const POST = denied; export const PUT = denied; export const PATCH = denied; export const DELETE = denied; export const OPTIONS = denied;

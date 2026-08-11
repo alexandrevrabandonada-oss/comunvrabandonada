@@ -47,6 +47,19 @@ describe("observatory public firewall", () => {
     );
   });
 
+  it("only exposes programmed transport through its isolated C1 flag", () => {
+    expect(getPublicObservatoryRegistry(true, true, false)[1]).toMatchObject({
+      id: "transport",
+      status: "preparing",
+      publicRoute: null,
+    });
+    expect(getPublicObservatoryRegistry(true, true, true)[1]).toMatchObject({
+      id: "transport",
+      status: "available",
+      publicRoute: "/comun/observatorios/transporte",
+    });
+  });
+
   it("labels old sources without hiding them", () => {
     expect(
       freshnessForUpdatedAt(

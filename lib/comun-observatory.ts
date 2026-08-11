@@ -207,8 +207,14 @@ export const COMUN_OBSERVATORY_REGISTRY = [
 export function getPublicObservatoryRegistry(
   sidewalkAvailable: boolean,
   sidewalkAnalyticsEnabled = false,
+  transportProgrammedEnabled = false,
 ) {
   return COMUN_OBSERVATORY_REGISTRY.map((entry) => {
+    if (entry.id === "transport") {
+      return transportProgrammedEnabled
+        ? { ...entry, status: "available" as const, publicRoute: "/comun/observatorios/transporte", description: "Linhas, horários e itinerários programados publicados oficialmente." }
+        : entry;
+    }
     if (entry.id !== "sidewalks") return entry;
     if (!sidewalkAvailable) {
       return { ...entry, status: "preparing" as const, publicRoute: null };

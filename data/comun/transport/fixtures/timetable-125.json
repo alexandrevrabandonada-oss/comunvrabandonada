@@ -1,0 +1,15 @@
+{
+  "lineCode": "125",
+  "patterns": [
+    {
+      "serviceDayType": "weekday",
+      "originLabel": "Cajueiro",
+      "directionLabel": "Roma I",
+      "departures": [
+        { "time": "05:00", "serviceDayOffset": 0, "variantCode": null, "noteCodes": [] },
+        { "time": "07:10", "serviceDayOffset": 0, "variantCode": null, "noteCodes": [] },
+        { "time": "17:05", "serviceDayOffset": 0, "variantCode": null, "noteCodes": [] }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,622 @@
+{
+  "snapshotId": "comun-transport-programmed-network-v1-20260811",
+  "snapshotDate": "2026-08-11",
+  "verifiedAt": "2026-08-11T15:45:00.000Z",
+  "catalogSourceId": "pmvr-bus-catalog-20260811",
+  "methodologyVersion": "comun-transport-programmed-network-v1",
+  "lineCount": 48,
+  "qualityState": "partial",
+  "lines": [
+    {
+      "lineCode": "125",
+      "routeLabel": "Ponte Alta × Roma I",
+      "operator": "Viação Cidade do Aço",
+      "timetableSourceId": "pmvr-125-timetable-20260130",
+      "itinerarySourceId": null,
+      "timetableStatus": "partial",
+      "itineraryStatus": "not_normalized",
+      "servicePatterns": [
+        {
+          "serviceDayType": "weekday",
+          "originLabel": "Cajueiro",
+          "directionLabel": "Roma I",
+          "departures": [
+            {
+              "time": "05:00",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "07:10",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "09:40",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "12:00",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "14:30",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "17:05",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            }
+          ]
+        },
+        {
+          "serviceDayType": "weekday",
+          "originLabel": "Roma I",
+          "directionLabel": "Cajueiro",
+          "departures": [
+            {
+              "time": "06:00",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "08:20",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "10:40",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "13:20",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "15:50",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "18:40",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            }
+          ]
+        },
+        {
+          "serviceDayType": "saturday",
+          "originLabel": "Cajueiro",
+          "directionLabel": "Roma I",
+          "departures": [
+            {
+              "time": "05:00",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "07:10",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "14:30",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "17:05",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            }
+          ]
+        },
+        {
+          "serviceDayType": "sunday_holiday",
+          "originLabel": "Roma I",
+          "directionLabel": "Cajueiro",
+          "departures": [
+            {
+              "time": "06:00",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "08:20",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "15:50",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "18:40",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            }
+          ]
+        }
+      ],
+      "itineraryVariants": [],
+      "notes": []
+    },
+    {
+      "lineCode": "205A",
+      "routeLabel": "Morada da Colina × Padre Josimo",
+      "operator": "Viação Elite",
+      "timetableSourceId": "pmvr-205a-timetable-20250121",
+      "itinerarySourceId": null,
+      "timetableStatus": "partial",
+      "itineraryStatus": "not_normalized",
+      "servicePatterns": [
+        {
+          "serviceDayType": "weekday",
+          "originLabel": "Morada da Colina",
+          "directionLabel": "Padre Josimo",
+          "departures": [
+            {
+              "time": "06:10",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "08:50",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "11:15",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "13:40",
+              "serviceDayOffset": 0,
+              "variantCode": "A",
+              "noteCodes": ["A"]
+            },
+            {
+              "time": "16:00",
+              "serviceDayOffset": 0,
+              "variantCode": "B",
+              "noteCodes": ["B"]
+            },
+            {
+              "time": "18:30",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "20:50",
+              "serviceDayOffset": 0,
+              "variantCode": "D",
+              "noteCodes": ["D"]
+            }
+          ]
+        },
+        {
+          "serviceDayType": "saturday",
+          "originLabel": "Padre Josimo",
+          "directionLabel": "Morada da Colina",
+          "departures": [
+            {
+              "time": "07:20",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "10:05",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "12:35",
+              "serviceDayOffset": 0,
+              "variantCode": "C",
+              "noteCodes": ["C"]
+            },
+            {
+              "time": "14:55",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "17:20",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "19:50",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            }
+          ]
+        }
+      ],
+      "itineraryVariants": [],
+      "notes": [
+        {
+          "code": "A",
+          "text": "Via ICT"
+        },
+        {
+          "code": "B",
+          "text": "Via Rua Rio Negro"
+        },
+        {
+          "code": "C",
+          "text": "Via Jaraguá"
+        },
+        {
+          "code": "D",
+          "text": "Morada da Colina / Vila"
+        }
+      ]
+    },
+    {
+      "lineCode": "210",
+      "routeLabel": "Três Poços × Conforto",
+      "operator": "Viação Pinheiral",
+      "timetableSourceId": "pmvr-210-timetable-20260625",
+      "itinerarySourceId": null,
+      "timetableStatus": "partial",
+      "itineraryStatus": "not_normalized",
+      "servicePatterns": [
+        {
+          "serviceDayType": "weekday",
+          "originLabel": "Três Poços",
+          "directionLabel": "Ponte Alta",
+          "departures": [
+            {
+              "time": "21:00",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "22:10",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "23:30",
+              "serviceDayOffset": 0,
+              "variantCode": null,
+              "noteCodes": []
+            },
+            {
+              "time": "00:20",
+              "serviceDayOffset": 1,
+              "variantCode": "B",
+              "noteCodes": ["B"]
+            }
+          ]
+        }
+      ],
+      "itineraryVariants": [],
+      "notes": [
+        {
+          "code": "A",
+          "text": "Via Vila Rica"
+        },
+        {
+          "code": "B",
+          "text": "Via Nova Primavera"
+        },
+        {
+          "code": "C",
+          "text": "Via Barreira Cravo"
+        }
+      ]
+    },
+    {
+      "lineCode": "230",
+      "routeLabel": "Santo Agostinho × Conforto",
+      "operator": "Viação Elite",
+      "timetableSourceId": null,
+      "itinerarySourceId": "pmvr-230-itinerary-20210803",
+      "timetableStatus": "not_normalized",
+      "itineraryStatus": "available",
+      "servicePatterns": [],
+      "itineraryVariants": [
+        {
+          "variantId": "ida",
+          "label": "Saída Santo Agostinho",
+          "direction": "Santo Agostinho → Conforto",
+          "streetSequence": [
+            "Terminal Rua Bartolomeu Bueno da Ribeira",
+            "Rua Rubens Simões",
+            "Rua Soldado Francisco A. Rocha",
+            "Rua Jaime Martins",
+            "Rua Curitiba",
+            "Rua Alfredo Moreira",
+            "Rodovia Lúcio Meira",
+            "Avenida Amaral Peixoto",
+            "Avenida dos Trabalhadores",
+            "Rodovia Dr. Sérgio Braga"
+          ],
+          "distanceKm": null,
+          "sourceId": "pmvr-230-itinerary-20210803"
+        },
+        {
+          "variantId": "domingo-volta",
+          "label": "Saída Conforto – Domingo",
+          "direction": "Conforto → Santo Agostinho",
+          "streetSequence": [
+            "Terminal Castelo Branco",
+            "Rodovia Dr. Sérgio Braga",
+            "Rodovia Lúcio Meira",
+            "Avenida Dr. Nelson dos Santos Gonçalves",
+            "Viaduto Nossa Senhora das Graças",
+            "Avenida Lucas Evangelista",
+            "Rua Luiz Alves Pereira",
+            "Avenida 7 de Setembro",
+            "Rua Jaime Pantaleão de Moraes",
+            "Rua Bartolomeu Bueno da Ribeira"
+          ],
+          "distanceKm": null,
+          "sourceId": "pmvr-230-itinerary-20210803"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "lineCode": "180",
+      "routeLabel": "Santa Barbara",
+      "operator": "Viação Cidade do Aço"
+    },
+    {
+      "lineCode": "520",
+      "routeLabel": "Belmonte Circular",
+      "operator": "Viação Cidade do Aço"
+    },
+    {
+      "lineCode": "550",
+      "routeLabel": "Siderlândia Circular",
+      "operator": "Viação Cidade do Aço"
+    },
+    {
+      "lineCode": "100",
+      "routeLabel": "Cajueiro × Monte Castelo",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "105",
+      "routeLabel": "Jd. Ponte Alta × Jd. Amália II",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "120",
+      "routeLabel": "Eucaliptal × Jardim Belvedere",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "150",
+      "routeLabel": "208 × Vila Rica",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "155",
+      "routeLabel": "Circular 15 × Vila Americana",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "205",
+      "routeLabel": "Água Limpa × Conforto",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "205B",
+      "routeLabel": "Pedreira × Conforto",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "215",
+      "routeLabel": "Nova Primavera × Conforto",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "215A",
+      "routeLabel": "Nova Primavera × Vila",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "220",
+      "routeLabel": "Dom Bosco × São Carlos",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "225",
+      "routeLabel": "Açude × São Sebastião",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "250",
+      "routeLabel": "Água Limpa × Padre Josimo",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "255",
+      "routeLabel": "Caviana × Vila",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "260",
+      "routeLabel": "Circular Caieira × Vila",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "300",
+      "routeLabel": "Santa Rita do Zarur × Conforto",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "305",
+      "routeLabel": "Santa Rita do Zarur × Vila",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "310",
+      "routeLabel": "Santa Rita do Zarur × Retiro",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "315",
+      "routeLabel": "Candelária × Conforto",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "320",
+      "routeLabel": "Dom Bosco × Conforto",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "320A",
+      "routeLabel": "São Sebastião × Conforto",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "325",
+      "routeLabel": "Santa Cruz × Conforto",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "400",
+      "routeLabel": "Vila Brasília × Vila Elmira",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "405",
+      "routeLabel": "Coqueiros × Vila Elmira",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "415",
+      "routeLabel": "Belo Horizonte × Conforto",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "450",
+      "routeLabel": "Nova Esperança × Jardim Amália I",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "450A",
+      "routeLabel": "Nova Esperança × Circular Rua 6",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "455",
+      "routeLabel": "Fazendinha × Ponte Alta",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "500",
+      "routeLabel": "Açude × Conforto",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "500A",
+      "routeLabel": "Açude 4 × Conforto",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "505",
+      "routeLabel": "Santa Rita de Cássia × Conforto",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "510",
+      "routeLabel": "Padre Josimo Circular",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "515",
+      "routeLabel": "Fundação Beatriz Gama × Santa Rosa",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "525",
+      "routeLabel": "Açude × Vila (Via Jardim Amália I)",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "525A",
+      "routeLabel": "Praça Cafezal × Vila (Via Jd Amália I)",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "530",
+      "routeLabel": "Açude × Vila Rica (Via Park Sul)",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "540",
+      "routeLabel": "Açude × Santo Agostinho",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "545",
+      "routeLabel": "Siderlândia Circular",
+      "operator": "Viação Elite"
+    },
+    {
+      "lineCode": "210B",
+      "routeLabel": "Três Poços × Vila (via Rodovia do Contorno)",
+      "operator": "Viação Pinheiral"
+    },
+    {
+      "lineCode": "210C",
+      "routeLabel": "Três Poços (via Radial Leste)",
+      "operator": "Viação Pinheiral"
+    },
+    {
+      "lineCode": "245",
+      "routeLabel": "Nova Primavera × Conforto",
+      "operator": "Viação Pinheiral"
+    },
+    {
+      "lineCode": "420",
+      "routeLabel": "Três Poços × Vila (via Aterrado × Aero × Barreira Cravo)",
+      "operator": "Viação Pinheiral"
+    }
+  ]
+}

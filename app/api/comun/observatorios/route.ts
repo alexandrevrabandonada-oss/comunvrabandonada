@@ -3,6 +3,7 @@ import {
   isComunObservatoriesFoundationEnabled,
   isComunObservatorySidewalkAdapterEnabled,
   isComunObservatorySidewalkAnalyticsEnabled,
+  isComunObservatoryTransportProgrammedEnabled,
 } from "@/lib/comun-observatory-feature";
 import { getPublicObservatoryRegistry } from "@/lib/comun-observatory";
 
@@ -36,6 +37,7 @@ export function GET() {
       observatories: getPublicObservatoryRegistry(
         isComunObservatorySidewalkAdapterEnabled(),
         isComunObservatorySidewalkAnalyticsEnabled(),
+        isComunObservatoryTransportProgrammedEnabled(),
       ),
     },
     { headers: publicHeaders },

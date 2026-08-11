@@ -1,0 +1,9 @@
+import { NextResponse } from "next/server";
+import { getTransportLine, getTransportSource } from "@/lib/comun-transport-programmed-network";
+import { isComunObservatoryTransportProgrammedEnabled } from "@/lib/comun-observatory-feature";
+export const runtime = "nodejs";
+const headers = { "cache-control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600", vary: "Accept" }; const noStore = { "cache-control": "no-store, max-age=0" };
+function denied() { return NextResponse.json({ code: "method_not_allowed" }, { status: 405, headers: { ...noStore, allow: "GET, HEAD" } }); }
+export async function GET(_: Request, { params }: { params: Promise<{ lineCode: string }> }) { if (!isComunObservatoryTransportProgrammedEnabled()) return NextResponse.json({ code: "not_found" }, { status: 404, headers: noStore }); const line = getTransportLine((await params).lineCode); if (!line) return NextResponse.json({ code: "not_found" }, { status: 404, headers: noStore }); return NextResponse.json({ line, sources: [line.timetableSourceId, line.itinerarySourceId, line.catalogSourceId].map(getTransportSource).filter(Boolean).map((source) => ({ sourceId: source!.sourceId, officialUrl: source!.officialUrl, orderNumber: source!.orderNumber ?? null, effectiveFrom: source!.effectiveFrom ?? null, retrievedAt: source!.retrievedAt, qualityState: source!.qualityState })) }, { headers }); }
+export async function HEAD(_: Request, { params }: { params: Promise<{ lineCode: string }> }) { return isComunObservatoryTransportProgrammedEnabled() && getTransportLine((await params).lineCode) ? new NextResponse(null, { status: 200, headers }) : new NextResponse(null, { status: 404, headers: noStore }); }
+export const POST = denied; export const PUT = denied; export const PATCH = denied; export const DELETE = denied; export const OPTIONS = denied;
