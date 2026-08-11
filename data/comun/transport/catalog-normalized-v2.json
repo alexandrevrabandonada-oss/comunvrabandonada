@@ -1,0 +1,356 @@
+{
+  "catalogId": "pmvr-bus-catalog-20260811-r1",
+  "previousCatalogId": "pmvr-bus-catalog-20260811",
+  "retrievedAt": "2026-08-11T17:45:06.728Z",
+  "rawSha256": "9a2be27efe7fda122533e418c5ca6c2b8e1cc617e93ba871368ecd246e3222eb",
+  "semanticSha256": "c851aa9499cf37193da8526c76ad15f56ec2b113a1567f1e6247ef5255e1030b",
+  "normalizationVersion": "transport-catalog-normalizer-v1",
+  "changeSummary": {
+    "addedLines": 0,
+    "removedLines": 0,
+    "changedOperators": 0,
+    "changedLabels": 0,
+    "changedTimetables": 0,
+    "changedItineraries": 0,
+    "urlComparison": "unavailable_for_v1_catalog_capture",
+    "semanticDiffEmpty": true
+  },
+  "records": [
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "100",
+      "lineLabel": "Cajueiro x Monte Castelo",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20100%20-%20Cajueiro%20x%20Monte%20Castelo/Linha%20100%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20100%20-%20Cajueiro%20x%20Monte%20Castelo/Linha%20100%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "105",
+      "lineLabel": "Jd. Ponte Alta x Jd. Amália II",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20105%20-%20Jd.%20Ponte%20Alta%20x%20Jd.%20Am%C3%A1lia%20II/Linha%20105%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20105%20-%20Jd.%20Ponte%20Alta%20x%20Jd.%20Am%C3%A1lia%20II/Linha%20105%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "120",
+      "lineLabel": "Eucaliptal x Jardim Belvedere",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20120%20-%20Eucaliptal%20x%20Jardim%20Belvedere/Linha%20120%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20120%20-%20Eucaliptal%20x%20Jardim%20Belvedere/Linha%20120%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO CIDADE DO AÇO",
+      "lineCode": "125",
+      "lineLabel": "Ponte Alta x Roma I",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Cidade%20do%20A%C3%A7o/Linha%20125%20-%20Ponte%20Alta%20x%20Roma%20I/Linha%20125%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Cidade%20do%20A%C3%A7o/Linha%20125%20-%20Ponte%20Alta%20x%20Roma%20I/Linha%20125%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "150",
+      "lineLabel": "208 x Vila Rica",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20150%20-%20208%20x%20Vila%20Rica/Linha%20150%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20150%20-%20208%20x%20Vila%20Rica/Linha%20150%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "155",
+      "lineLabel": "Circular 15 x Vila Americana",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20155%20-%20Circular%2015%20x%20Vila%20Americana/Linha%20155%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20155%20-%20Circular%2015%20x%20Vila%20Americana/Linha%20155%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO CIDADE DO AÇO",
+      "lineCode": "180",
+      "lineLabel": "Santa Barbara",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Cidade%20do%20A%C3%A7o/Linha%20180%20-%20Santa%20Barbara/Linha%20180%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Cidade%20do%20A%C3%A7o/Linha%20180%20-%20Santa%20Barbara/Linha%20180%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "205",
+      "lineLabel": "Água Limpa x Conforto",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20205%20-%20%C3%81gua%20Limpa%20x%20Conforto/Linha%20205%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20205%20-%20%C3%81gua%20Limpa%20x%20Conforto/Linha%20205%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "205A",
+      "lineLabel": "Morada da Colina x Padre Josimo",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20205A%20-%20Morada%20da%20Colina%20x%20Padre%20Josimo/Linha%20205A%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20205A%20-%20Morada%20da%20Colina%20x%20Padre%20Josimo/Linha%20205A%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "205B",
+      "lineLabel": "Pedreira x Conforto",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20205B%20-%20Pedreira%20x%20Conforto/Linha%20205B%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20205B%20-%20Pedreira%20x%20Conforto/Linha%20205B%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO PINHEIRAL",
+      "lineCode": "210",
+      "lineLabel": "Três Poços x Conforto",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Pinheiral/Linha%20210%20-%20Tr%C3%AAs%20Po%C3%A7os%20x%20Conforto/Linha%20210%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Pinheiral/Linha%20210%20-%20Tr%C3%AAs%20Po%C3%A7os%20x%20Conforto/Linha%20210%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO PINHEIRAL",
+      "lineCode": "210B",
+      "lineLabel": "Três Poços x Vila (via Rodovia do Contorno)",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Pinheiral/Linha%20210B%20-%20Tr%C3%AAs%20Po%C3%A7os%20x%20Vila%20(via%20Rodovia%20do%20Contorno)/Linha%20210B%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Pinheiral/Linha%20210B%20-%20Tr%C3%AAs%20Po%C3%A7os%20x%20Vila%20(via%20Rodovia%20do%20Contorno)/Linha%20210B%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO PINHEIRAL",
+      "lineCode": "210C",
+      "lineLabel": "Três Poços (via Radial Leste)",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Pinheiral/Linha%20210C%20-%20Tr%C3%AAs%20Po%C3%A7os%20(via%20Radial%20Leste)/Linha%20210C%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Pinheiral/Linha%20210C%20-%20Tr%C3%AAs%20Po%C3%A7os%20(via%20Radial%20Leste)/Linha%20210C%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "215",
+      "lineLabel": "Nova Primavera x Conforto",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20215%20-%20Nova%20Primavera%20x%20Conforto/Linha%20215%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20215%20-%20Nova%20Primavera%20x%20Conforto/Linha%20215%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "215A",
+      "lineLabel": "Nova Primavera x Vila",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20215A%20-%20Nova%20Primavera%20x%20Vila/Linha%20215A%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20215A%20-%20Nova%20Primavera%20x%20Vila/Linha%20215A%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "220",
+      "lineLabel": "Dom Bosco x São Carlos",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20220%20-%20Dom%20Bosco%20x%20S%C3%A3o%20Carlos/Linha%20220%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20220%20-%20Dom%20Bosco%20x%20S%C3%A3o%20Carlos/Linha%20220%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "225",
+      "lineLabel": "Açude x São Sebastião",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20225%20-%20A%C3%A7ude%20x%20S%C3%A3o%20Sebasti%C3%A3o/Linha%20225%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20225%20-%20A%C3%A7ude%20x%20S%C3%A3o%20Sebasti%C3%A3o/Linha%20225%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "230",
+      "lineLabel": "Santo Agostinho x Conforto",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20230%20-%20Santo%20Agostinho%20x%20Conforto/Linha%20230%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20230%20-%20Santo%20Agostinho%20x%20Conforto/Linha%20230%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO PINHEIRAL",
+      "lineCode": "245",
+      "lineLabel": "Nova Primavera x Conforto",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Pinheiral/Linha%20245%20-%20Nova%20Primavera%20x%20Conforto/Linha%20245%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Pinheiral/Linha%20245%20-%20Nova%20Primavera%20x%20Conforto/Linha%20245%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "250",
+      "lineLabel": "Água Limpa x Padre Josimo",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20250%20-%20%C3%81gua%20Limpa%20x%20Padre%20Josimo/Linha%20250%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20250%20-%20%C3%81gua%20Limpa%20x%20Padre%20Josimo/Linha%20250%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "255",
+      "lineLabel": "Caviana x Vila",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20255%20-%20Caviana%20x%20Vila/Linha%20255%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20255%20-%20Caviana%20x%20Vila/Linha%20255%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "260",
+      "lineLabel": "Circular Caieira x Vila",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20260%20-%20Circular%20Caieira%20x%20Vila/Linha%20260%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20260%20-%20Circular%20Caieira%20x%20Vila/Linha%20260%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "300",
+      "lineLabel": "Santa Rita do Zarur x Conforto",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20300%20-%20Santa%20Rita%20do%20Zarur%20x%20Conforto/Linha%20300%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20300%20-%20Santa%20Rita%20do%20Zarur%20x%20Conforto/Linha%20300%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "305",
+      "lineLabel": "Santa Rita do Zarur x Vila",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20305%20-%20Santa%20Rita%20do%20Zarur%20x%20Vila/Linha%20305%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20305%20-%20Santa%20Rita%20do%20Zarur%20x%20Vila/Linha%20305%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "310",
+      "lineLabel": "Santa Rita do Zarur x Retiro",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20310%20-%20Santa%20Rita%20do%20Zarur%20x%20Retiro/Linha%20310%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20310%20-%20Santa%20Rita%20do%20Zarur%20x%20Retiro/Linha%20310%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "315",
+      "lineLabel": "Candelária x Conforto",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20315%20-%20Candel%C3%A1ria%20x%20Conforto/Linha%20315%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20315%20-%20Candel%C3%A1ria%20x%20Conforto/Linha%20315%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "320",
+      "lineLabel": "Dom Bosco x Conforto",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20320%20-%20Dom%20Bosco%20x%20Conforto/Linha%20320%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20320%20-%20Dom%20Bosco%20x%20Conforto/Linha%20320%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "320A",
+      "lineLabel": "São Sebastião x Conforto",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20320A%20-%20S%C3%A3o%20Sebasti%C3%A3o%20x%20Conforto/Linha%20320A%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20320A%20-%20S%C3%A3o%20Sebasti%C3%A3o%20x%20Conforto/Linha%20320A%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "325",
+      "lineLabel": "Santa Cruz x Conforto",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20325%20-%20Santa%20Cruz%20x%20Conforto/Linha%20325%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20325%20-%20Santa%20Cruz%20x%20Conforto/Linha%20325%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "400",
+      "lineLabel": "Vila Brasília x Vila Elmira",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20400%20-%20Vila%20Bras%C3%ADlia%20x%20Vila%20Elmira/Linha%20400%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20400%20-%20Vila%20Bras%C3%ADlia%20x%20Vila%20Elmira/Linha%20400%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "405",
+      "lineLabel": "Coqueiros x Vila Elmira",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20405%20-%20Coqueiros%20x%20Vila%20Elmira/Linha%20405%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20405%20-%20Coqueiros%20x%20Vila%20Elmira/Linha%20405%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "415",
+      "lineLabel": "Belo Horizonte x Conforto",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20415%20-%20Belo%20Horizonte%20x%20Conforto/Linha%20415%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20415%20-%20Belo%20Horizonte%20x%20Conforto/Linha%20415%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO PINHEIRAL",
+      "lineCode": "420",
+      "lineLabel": "Três Poços x Vila (via Aterrado x Aero x Barreira Cravo)",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Pinheiral/Linha%20420%20-%20Tr%C3%AAs%20Po%C3%A7os%20x%20Vila%20(via%20Aterrado%20x%20Aero%20x%20Barreira%20Cravo)/Linha%20420%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Pinheiral/Linha%20420%20-%20Tr%C3%AAs%20Po%C3%A7os%20x%20Vila%20(via%20Aterrado%20x%20Aero%20x%20Barreira%20Cravo)/Linha%20420%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "450",
+      "lineLabel": "Nova Esperança x Jardim Amália I",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20450%20-%20Nova%20Esperan%C3%A7a%20x%20Jardim%20Am%C3%A1lia%20I/Linha%20450%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20450%20-%20Nova%20Esperan%C3%A7a%20x%20Jardim%20Am%C3%A1lia%20I/Linha%20450%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "450A",
+      "lineLabel": "Nova Esperança x Circular Rua 6",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20450A%20-%20Nova%20Esperan%C3%A7a%20x%20Circular%20Rua%206/Linha%20450A%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20450A%20-%20Nova%20Esperan%C3%A7a%20x%20Circular%20Rua%206/Linha%20450A%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "455",
+      "lineLabel": "Fazendinha x Ponte Alta",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20455%20-%20Fazendinha%20x%20Ponte%20Alta/Linha%20455%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20455%20-%20Fazendinha%20x%20Ponte%20Alta/Linha%20455%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "500",
+      "lineLabel": "Açude x Conforto",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20500%20-%20A%C3%A7ude%20x%20Conforto/Linha%20500%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20500%20-%20A%C3%A7ude%20x%20Conforto/Linha%20500%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "500A",
+      "lineLabel": "Açude 4 x Conforto",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20500A%20-%20A%C3%A7ude%204%20x%20Conforto/Linha%20500A%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20500A%20-%20A%C3%A7ude%204%20x%20Conforto/Linha%20500A%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "505",
+      "lineLabel": "Santa Rita de Cássia x Conforto",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20505%20-%20Santa%20Rita%20de%20C%C3%A1ssia%20x%20Conforto/Linha%20505%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20505%20-%20Santa%20Rita%20de%20C%C3%A1ssia%20x%20Conforto/Linha%20505%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "510",
+      "lineLabel": "Padre Josimo Circular",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20510%20-%20Padre%20Josimo%20Circular/Linha%20510%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20510%20-%20Padre%20Josimo%20Circular/Linha%20510%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "515",
+      "lineLabel": "Fundação Beatriz Gama x Santa Rosa",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20515%20-%20Funda%C3%A7%C3%A3o%20Beatriz%20Gama%20x%20Santa%20Rosa/Linha%20515%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20515%20-%20Funda%C3%A7%C3%A3o%20Beatriz%20Gama%20x%20Santa%20Rosa/Linha%20515%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO CIDADE DO AÇO",
+      "lineCode": "520",
+      "lineLabel": "Belmonte Circular",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Cidade%20do%20A%C3%A7o/Linha%20520%20-%20Belmonte%20Circular/Linha%20520%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Cidade%20do%20A%C3%A7o/Linha%20520%20-%20Belmonte%20Circular/Linha%20520%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "525",
+      "lineLabel": "Açude x Vila (Via Jardim Amália I)",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20525%20%20-%20A%C3%A7ude%20x%20Vila%20(Via%20Jardim%20Am%C3%A1lia%20I)/Linha%20525%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20525%20%20-%20A%C3%A7ude%20x%20Vila%20(Via%20Jardim%20Am%C3%A1lia%20I)/Linha%20525%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "525A",
+      "lineLabel": "Praça Cafezal x Vila (Via Jd Amalia I)",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20525A%20-%20Pra%C3%A7a%20Cafezal%20x%20Vila%20(Via%20Jd%20Amalia%20I)/Linha%20525A%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20525A%20-%20Pra%C3%A7a%20Cafezal%20x%20Vila%20(Via%20Jd%20Amalia%20I)/Linha%20525A%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "530",
+      "lineLabel": "Açude x Vila Rica (Via Park Sul)",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20530%20-%20A%C3%A7ude%20x%20Vila%20Rica%20(Via%20Park%20Sul)/Linha%20530%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20530%20-%20A%C3%A7ude%20x%20Vila%20Rica%20(Via%20Park%20Sul)/Linha%20530%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "540",
+      "lineLabel": "Açude x Santo Agostinho",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20540%20-%20A%C3%A7ude%20x%20Santo%20Agostinho/Linha%20540%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20540%20-%20A%C3%A7ude%20x%20Santo%20Agostinho/Linha%20540%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO ELITE",
+      "lineCode": "545",
+      "lineLabel": "Siderlândia Circular",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20545%20-%20Siderl%C3%A2ndia%20Circular/Linha%20545%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20545%20-%20Siderl%C3%A2ndia%20Circular/Linha%20545%20-%20itiner%C3%A1rios.pdf"
+    },
+    {
+      "operator": "VIAÇÃO CIDADE DO AÇO",
+      "lineCode": "550",
+      "lineLabel": "Siderlândia Circular",
+      "timetableUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Cidade%20do%20A%C3%A7o/Linha%20550%20-%20Siderl%C3%A2ndia%20Circular/Linha%20550%20-%20hor%C3%A1rios.pdf",
+      "itineraryUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Cidade%20do%20A%C3%A7o/Linha%20550%20-%20Siderl%C3%A2ndia%20Circular/Linha%20550%20-%20itiner%C3%A1rios.pdf"
+    }
+  ]
+}

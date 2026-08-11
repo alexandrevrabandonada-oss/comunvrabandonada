@@ -3,8 +3,9 @@ import { readFile } from "node:fs/promises";
 const readJson = async (relativePath) =>
   JSON.parse(await readFile(new URL(relativePath, import.meta.url)));
 
-const manifest = await readJson("../../data/comun/transport/source-manifest-v1.json");
-const snapshot = await readJson("../../data/comun/transport/programmed-network-v1.json");
+const manifest = await readJson("../../data/comun/transport/source-manifest-v2.json");
+const snapshot = await readJson("../../data/comun/transport/programmed-network-v2.json");
+const pointer = await readJson("../../data/comun/transport/active-snapshot.json");
 
 const sourceIds = new Set(manifest.sources.map((source) => source.sourceId));
 const missingReferences = snapshot.lines.flatMap((line) =>
@@ -14,7 +15,7 @@ const missingReferences = snapshot.lines.flatMap((line) =>
     .map((sourceId) => `${line.lineCode}:${sourceId}`),
 );
 
-if (snapshot.lineCount !== snapshot.lines.length || missingReferences.length > 0) {
+if (pointer.activeSnapshotId !== snapshot.snapshotId || snapshot.previousSnapshotId !== "comun-transport-programmed-network-v1-20260811" || snapshot.lineCount !== snapshot.lines.length || missingReferences.length > 0) {
   throw new Error("COMUN_48_2_C1_SNAPSHOT_CONTRACT_INVALID");
 }
 

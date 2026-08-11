@@ -1,0 +1,90 @@
+{
+  "manifestVersion": "comun-transport-source-manifest-v2",
+  "previousManifestVersion": "comun-transport-source-manifest-v1",
+  "sources": [
+    {
+      "sourceId": "pmvr-bus-catalog-20260811",
+      "sourceType": "catalog_html",
+      "officialUrl": "https://www.voltaredonda.rj.gov.br/horario-de-onibus/",
+      "sha256": "7836acc17c837c74efa53089095c5cbc20cc38f326cf97deebe433f859293563",
+      "retrievedAt": "2026-08-11T15:45:00.000Z",
+      "publisher": "PMVR/STMU",
+      "parserVersion": "transport-source-parser-v1",
+      "qualityState": "verified_source",
+      "status": "superseded"
+    },
+    {
+      "sourceId": "pmvr-205a-timetable-20250121",
+      "sourceType": "timetable_pdf",
+      "officialUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Elite/Linha%20205A%20-%20Morada%20da%20Colina%20x%20Padre%20Josimo/Linha%20205A%20-%20hor%C3%A1rios.pdf",
+      "sha256": "61c62c735907122d4ed32d9e76f8e2a921712b6490f9c3a0a570687c38a12ff3",
+      "retrievedAt": "2026-08-11T15:45:00.000Z",
+      "publisher": "PMVR/STMU",
+      "lineCode": "205A",
+      "orderNumber": "010/2025",
+      "sourceUpdatedAt": "2025-01-21",
+      "effectiveFrom": "2025-01-27",
+      "parserVersion": "transport-source-parser-v1",
+      "qualityState": "verified_source",
+      "status": "active"
+    },
+    {
+      "sourceId": "pmvr-125-timetable-20260130",
+      "sourceType": "timetable_pdf",
+      "officialUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Cidade%20do%20A%C3%A7o/Linha%20125%20-%20Ponte%20Alta%20x%20Roma%20I/Linha%20125%20-%20hor%C3%A1rios.pdf",
+      "sha256": "0e31aafdb64fba7dc9632363b1595542c686a1f1cf03a66ac0a83fe12817b5d8",
+      "retrievedAt": "2026-08-11T15:45:00.000Z",
+      "publisher": "PMVR/STMU",
+      "lineCode": "125",
+      "orderNumber": "002/2026",
+      "sourceUpdatedAt": "2026-01-30",
+      "effectiveFrom": "2026-02-02",
+      "parserVersion": "transport-source-parser-v1",
+      "qualityState": "verified_source",
+      "status": "active"
+    },
+    {
+      "sourceId": "pmvr-210-timetable-20260625",
+      "sourceType": "timetable_pdf",
+      "officialUrl": "https://www.voltaredonda.rj.gov.br/horario-onibus/Via%C3%A7%C3%A3o%20Pinheiral/Linha%20210%20-%20Tr%C3%AAs%20Po%C3%A7os%20x%20Conforto/Linha%20210%20-%20hor%C3%A1rios.pdf",
+      "sha256": "4b9b48078ca8bec9b5c24c43a9df091e835e75f7db342b9b6a26b781143cc2d4",
+      "retrievedAt": "2026-08-11T15:45:00.000Z",
+      "publisher": "PMVR/STMU",
+      "lineCode": "210",
+      "orderNumber": "046/2026",
+      "sourceUpdatedAt": "2026-06-25",
+      "effectiveFrom": "2026-06-29",
+      "parserVersion": "transport-source-parser-v1",
+      "qualityState": "verified_source",
+      "status": "active"
+    },
+    {
+      "sourceId": "pmvr-230-itinerary-20210803",
+      "sourceType": "itinerary_pdf",
+      "officialUrl": "https://www.voltaredonda.rj.gov.br/images/Documentos/HorarioOnibus/Via%C3%A7%C3%A3o%20Elite/Linha%20230%20-%20Santo%20Agostinho%20x%20Conforto/Linha%20230%20itin.pdf",
+      "sha256": "4a3e9330a40f1d8793b67b31e00b5492c41c15c2c423e37a0610eb665cd176aa",
+      "retrievedAt": "2026-08-11T15:45:00.000Z",
+      "publisher": "PMVR/STMU",
+      "lineCode": "230",
+      "orderNumber": "036/2021",
+      "sourceUpdatedAt": "2021-08-03",
+      "effectiveFrom": "2021-08-05",
+      "parserVersion": "transport-source-parser-v1",
+      "qualityState": "verified_source",
+      "status": "active"
+    },
+    {
+      "sourceId": "pmvr-bus-catalog-20260811-r1",
+      "sourceType": "catalog_html",
+      "officialUrl": "https://www.voltaredonda.rj.gov.br/horario-de-onibus/",
+      "sha256": "9a2be27efe7fda122533e418c5ca6c2b8e1cc617e93ba871368ecd246e3222eb",
+      "retrievedAt": "2026-08-11T17:45:06.728Z",
+      "publisher": "PMVR/STMU",
+      "parserVersion": "transport-source-parser-v1",
+      "qualityState": "verified_source",
+      "status": "active",
+      "semanticSha256": "c851aa9499cf37193da8526c76ad15f56ec2b113a1567f1e6247ef5255e1030b",
+      "normalizationVersion": "transport-catalog-normalizer-v1"
+    }
+  ]
+}

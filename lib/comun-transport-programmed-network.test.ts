@@ -4,6 +4,7 @@ import fixture210 from "@/data/comun/transport/fixtures/timetable-210.json";
 import fixture230 from "@/data/comun/transport/fixtures/itinerary-230.json";
 import { describe, expect, it } from "vitest";
 import {
+  COMUN_TRANSPORT_ACTIVE_SNAPSHOT,
   COMUN_TRANSPORT_OFFICIAL_DOMAINS,
   COMUN_TRANSPORT_SNAPSHOT,
   COMUN_TRANSPORT_SOURCE_MANIFEST,
@@ -37,6 +38,14 @@ describe("transport programmed network C1", () => {
       expect(source.sha256).toMatch(/^[a-f0-9]{64}$/);
       expect(COMUN_TRANSPORT_OFFICIAL_DOMAINS).toContain(new URL(source.officialUrl).hostname);
     }
+    expect(COMUN_TRANSPORT_ACTIVE_SNAPSHOT).toMatchObject({
+      activeSnapshotId: "comun-transport-programmed-network-v2-20260811",
+      previousSnapshotId: "comun-transport-programmed-network-v1-20260811",
+    });
+    expect(COMUN_TRANSPORT_SOURCE_MANIFEST.sources).toEqual(expect.arrayContaining([
+      expect.objectContaining({ sourceId: "pmvr-bus-catalog-20260811", status: "superseded" }),
+      expect.objectContaining({ sourceId: "pmvr-bus-catalog-20260811-r1", status: "active", semanticSha256: expect.stringMatching(/^[a-f0-9]{64}$/) }),
+    ]));
   });
 
   it("keeps operator versioned as an attribute, never as a line identity", () => {
