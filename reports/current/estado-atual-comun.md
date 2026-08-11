@@ -1,4 +1,30 @@
-# Estado atual — 48.2-C1 Rede programada oficial de transporte em Production (11/08/2026)
+# Estado atual — 48.2-C1-R1 Reconciliação do catálogo PMVR em Production (11/08/2026)
+
+## 48.2-C1-R1 — Drift de fonte reconciliado
+
+- PR #277 foi mesclada exact-head em
+  `1ef309a3fe89cd2fc7381ee66d8ca026cacc096c`, sem migration;
+- o drift bruto do catálogo PMVR/STMU foi comparado semanticamente: 48 linhas
+  permanecem iguais, sem adições, remoções, troca de operadora ou label;
+- o snapshot ativo passou a ser
+  `comun-transport-programmed-network-v2-20260811`, preservando v1 como
+  predecessor e registrando URLs por linha para revisões futuras;
+- `COMUN_48_2_C1_CATALOG_RENDERING_DRIFT_SEMANTICS_CURRENT` e
+  `COMUN_48_2_C1_OFFICIAL_SOURCES_CURRENT` foram comprovados sem atualização
+  automática; o runtime continua sem acesso à PMVR;
+- deploy/onda C1 `31525123463` e smoke Production read-only verdes: hub,
+  transporte, fontes e APIs `200`, `POST` `405`, snapshot v2 com 48 linhas e
+  linha 210 preservando `+1` dia;
+- zero business write, publicação, snapshot, coletivo, package, attempt,
+  request externo ou hard delete; `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`
+  permanece.
+
+Resultado terminal:
+`COMUN_48_2_C1_R1_TRANSPORT_SOURCE_DRIFT_RECONCILED_GREEN`.
+
+Detalhes: `reports/current/comun-48-2-c1-r1-source-drift.md`.
+
+# Estado anterior — 48.2-C1 Rede programada oficial de transporte em Production (11/08/2026)
 
 ## 48.2-C1 — Observatório do Transporte (rede programada oficial)
 
