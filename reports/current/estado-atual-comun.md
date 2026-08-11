@@ -1,4 +1,25 @@
-# Estado atual — 48.2-D0 Contrato público de dados ambientais (11/08/2026)
+# Estado atual — 48.2-D1A aguardando fonte oficial atual de qualidade do ar (11/08/2026)
+
+## 48.2-D1A — Captura oficial de qualidade do ar
+
+- a auditoria controlada confirmou que o portal SIGQAr está acessível, mas sua
+  página pública é dinâmica e não contém inventário atual verificável de
+  estações de Volta Redonda;
+- a página pública IQAr do INEA permanece acessível e sustenta a metodologia,
+  mas o boletim diário que ela incorpora retorna HTTP 404;
+- não foram criados snapshot, rota, UI, API, flag, migration, importação,
+  deploy ou escrita de negócio; dados históricos não foram usados como estado
+  atual e Relata privado permanece fora do escopo;
+- D1 continua `PARTIAL_D1` e aguarda fonte pública atual estável; o bloqueio
+  preserva `COMUN_48_2_C3_REALTIME_DEFERRED_NO_PUBLIC_API_CONTRACT` e
+  `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`.
+
+Resultado atual:
+`COMUN_48_2_D1A_BLOCKED_CURRENT_OFFICIAL_SOURCE_UNAVAILABLE`.
+
+Detalhes: `reports/current/comun-48-2-d1a-air-quality-source-snapshot.md`.
+
+# Estado anterior — 48.2-D0 Contrato público de dados ambientais (11/08/2026)
 
 ## 48.2-D0 — Auditoria para o futuro Observatório Ambiental
 
