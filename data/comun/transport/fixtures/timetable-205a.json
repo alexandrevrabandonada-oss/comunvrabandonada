@@ -1,0 +1,15 @@
+{
+  "lineCode": "205A",
+  "patterns": [
+    {
+      "serviceDayType": "weekday",
+      "originLabel": "Morada da Colina",
+      "directionLabel": "Padre Josimo",
+      "departures": [
+        { "time": "06:10", "serviceDayOffset": 0, "variantCode": null, "noteCodes": [] },
+        { "time": "13:40", "serviceDayOffset": 0, "variantCode": "A", "noteCodes": ["A"] },
+        { "time": "20:50", "serviceDayOffset": 0, "variantCode": "D", "noteCodes": ["D"] }
+      ]
+    }
+  ]
+}

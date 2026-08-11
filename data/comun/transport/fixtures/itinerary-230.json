@@ -1,0 +1,13 @@
+{
+  "lineCode": "230",
+  "variants": [
+    {
+      "variantId": "ida",
+      "label": "Saída Santo Agostinho",
+      "direction": "Santo Agostinho → Conforto",
+      "streetSequence": ["Terminal Rua Bartolomeu Bueno da Ribeira", "Rua Rubens Simões"],
+      "distanceKm": null,
+      "sourceId": "pmvr-230-itinerary-20210803"
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import {
   isComunObservatoriesFoundationEnabled,
   isComunObservatorySidewalkAdapterEnabled,
   isComunObservatorySidewalkAnalyticsEnabled,
+  isComunObservatoryTransportProgrammedEnabled,
 } from "./comun-observatory-feature";
 
 const p4 = {
@@ -27,6 +28,21 @@ describe("observatory feature flags", () => {
     expect(isComunObservatoriesFoundationEnabled({})).toBe(false);
     expect(isComunObservatorySidewalkAdapterEnabled({})).toBe(false);
     expect(isComunObservatorySidewalkAnalyticsEnabled({})).toBe(false);
+    expect(isComunObservatoryTransportProgrammedEnabled({})).toBe(false);
+  });
+
+  it("requires only the public foundation and its own C1 flag for programmed transport", () => {
+    expect(
+      isComunObservatoryTransportProgrammedEnabled({
+        COMUN_OBSERVATORIES_FOUNDATION_ENABLED: "enabled",
+        COMUN_OBSERVATORY_TRANSPORT_PROGRAMMED_ENABLED: "enabled",
+      }),
+    ).toBe(true);
+    expect(
+      isComunObservatoryTransportProgrammedEnabled({
+        COMUN_OBSERVATORY_TRANSPORT_PROGRAMMED_ENABLED: "enabled",
+      }),
+    ).toBe(false);
   });
 
   it("requires the P4 public capability for the sidewalk adapter", () => {
