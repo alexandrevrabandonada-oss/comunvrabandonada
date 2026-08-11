@@ -54,7 +54,13 @@ jobs:
         run: |
           set -euo pipefail
           test -n "${VERCEL_TOKEN:-}"
-          npx --yes vercel@50.28.0 project inspect "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+          output="$(mktemp)"; errors="$(mktemp)"
+          if ! npx --yes vercel@50.28.0 project inspect "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >"$output" 2>"$errors"; then
+            rm -f "$output" "$errors"
+            echo COMUN_48_2_C1_BLOCKED_VERCEL_PROJECT_BINDING >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          rm -f "$output" "$errors"
           echo COMUN_48_2_C1_VERCEL_PROJECT_BINDING_GREEN >> "$GITHUB_STEP_SUMMARY"
 
       - name: Deploy exact main and run selected read-only wave
