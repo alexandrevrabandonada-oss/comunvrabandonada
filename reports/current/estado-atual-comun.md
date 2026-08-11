@@ -1,4 +1,33 @@
-# Estado atual — 48.2-A Observatórios em Production (11/08/2026)
+# Estado atual — 48.2-B Observatório de Calçadas em Production (11/08/2026)
+
+## 48.2-B — Observatório de Calçadas (promovido)
+
+- PR #270 mesclada exact-head em `76712a1cafaa275b1a0442119cba074d0b7ca659`;
+- analytics de Calçadas deriva somente a projeção pública P4 reviewed-only,
+  com paginação bounded, condição, problemas allowlisted, recência por
+  `last_observed_at`, mapa aproximado, lista equivalente e metodologia
+  explícita de não-censo;
+- nenhum dado de Relata privado, Wallet, foto, localização exata, Saúde,
+  Educação, Proteção ou forwarding entra no observatório;
+- flags-off `31498463736` preservou 48.2-A e cloak da rota dedicada; a wave 1
+  inicial encontrou corretamente uma projeção pública vazia;
+- correção #271 mesclada em `159cb38360eba186fd154f47cbfd8ca377d26258` passou
+  a validar o empty state sem fixture; replay read-only `31505161183` verde;
+- página e APIs dedicadas respondem `200`; zero business write, envio externo,
+  publicação automática, snapshot, coletivo ou hard delete;
+- `COMUN_48_2_B_TIME_SERIES_DEFERRED_NO_PUBLIC_HISTORY` e
+  `COMUN_48_2_B_NEIGHBORHOOD_ANALYTICS_DEFERRED_NO_PUBLIC_BOUNDARY_MODEL`
+  permanecem débitos explícitos, não blockers;
+- `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` permanece
+  preservado; auto-publicação OFF, mapa geral Relata OFF, coletivos OFF e
+  `launch_publicly=false`.
+
+Resultado terminal:
+`COMUN_48_2_B_SIDEWALK_OBSERVATORY_GREEN_REVIEWED_ONLY`.
+
+Detalhes: `reports/current/comun-48-2-b-sidewalk-observatory.md`.
+
+# Estado anterior — 48.2-A Observatórios em Production (11/08/2026)
 
 ## 48.2-A — Fundação dos Observatórios (promovida)
 
