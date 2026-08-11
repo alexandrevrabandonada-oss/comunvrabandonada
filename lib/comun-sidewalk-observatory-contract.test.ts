@@ -61,8 +61,8 @@ describe("48.2-B sidewalk observatory public contract", () => {
 
   it("keeps the permanent non-census language and unified Relata CTA", async () => {
     const ui = await source("../components/comun-sidewalk-observatory.tsx");
-    expect(ui).toContain(
-      "Não são um levantamento completo de todas as calçadas da cidade.",
+    expect(ui).toMatch(
+      /Não são um levantamento completo de todas as calçadas da\s+cidade\./,
     );
     expect(ui).toContain('href="/comun/relatar"');
     expect(ui).toContain("Publicação");
