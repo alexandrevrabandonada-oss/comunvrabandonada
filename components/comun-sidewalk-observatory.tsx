@@ -126,14 +126,34 @@ export function ComunSidewalkObservatory({
     () => presentSidewalkProblemFacets(allIndicators),
     [allIndicators],
   );
+  const visibleProblemFacets = useMemo(
+    () => presentSidewalkProblemFacets(visibleIndicators),
+    [visibleIndicators],
+  );
+  const conditionOptions = useMemo<[string, string][]>(() => {
+    const options: [string, string][] = [
+      ["good", "Boa"],
+      ["regular", "Regular"],
+      ["bad", "Ruim"],
+      ["terrible", "Muito ruim"],
+    ];
+    if (allIndicators.conditionCounts.unknown > 0) {
+      options.push(["unknown", "Sem classificação"]);
+    }
+    return options;
+  }, [allIndicators.conditionCounts.unknown]);
+  const problemOptions = useMemo<[string, string][]>(
+    () => problemFacets.map((facet) => [facet.value, facet.label]),
+    [problemFacets],
+  );
   const onSelect = useCallback((observation: PublicObservation) => {
     setSelected(observation);
   }, []);
 
-  const change = <K extends keyof SidewalkObservatoryFilters>(
+  function change<K extends keyof SidewalkObservatoryFilters>(
     key: K,
     value: SidewalkObservatoryFilters[K],
-  ) => {
+  ) {
     const next = { ...filters, [key]: value };
     setFilters(next);
     setSelected(null);
@@ -141,7 +161,13 @@ export function ComunSidewalkObservatory({
     router.replace(`${pathname}${query.size ? `?${query.toString()}` : ""}`, {
       scroll: false,
     });
-  };
+  }
+
+  const reviewedValue = partial
+    ? hasFilters(filters)
+      ? `${visibleIndicators.reviewedPointCount} carregados`
+      : `Mais de ${visibleIndicators.reviewedPointCount}`
+    : String(visibleIndicators.reviewedPointCount);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6 text-comun-black sm:py-10">
@@ -169,12 +195,14 @@ export function ComunSidewalkObservatory({
       >
         <IndicatorCard
           label="Pontos revisados"
-          value={
+          value={reviewedValue}
+          detail={
             partial
-              ? `Mais de ${visibleIndicators.reviewedPointCount}`
-              : String(visibleIndicators.reviewedPointCount)
+              ? hasFilters(filters)
+                ? "Seleção dentro da parcela carregada"
+                : "Parcela carregada com limite defensivo"
+              : "Projeção pública elegível"
           }
-          detail={partial ? "Parcela carregada com limite defensivo" : "Projeção pública elegível"}
         />
         <IndicatorCard
           label="Últimos 30 dias"
@@ -207,7 +235,11 @@ export function ComunSidewalkObservatory({
             <button
               type="button"
               onClick={() => {
-                const next = { condition: null, problem: null, period: null };
+                const next: SidewalkObservatoryFilters = {
+                  condition: null,
+                  problem: null,
+                  period: null,
+                };
                 setFilters(next);
                 setSelected(null);
                 router.replace(pathname, { scroll: false });
@@ -230,29 +262,27 @@ export function ComunSidewalkObservatory({
                   : null,
               )
             }
-            options={[
-              ["good", "Boa"],
-              ["regular", "Regular"],
-              ["bad", "Ruim"],
-              ["terrible", "Muito ruim"],
-              ...(allIndicators.conditionCounts.unknown > 0
-                ? ([['unknown', 'Sem classificação']] as [string, string][])
-                : []),
-            ]}
+            options={conditionOptions}
           />
           <FilterSelect
             label="Problema"
             value={filters.problem ?? ""}
             onChange={(value) =>
-              change("problem", value ? (value as SidewalkObservatoryFilters["problem"]) : null)
+              change(
+                "problem",
+                value ? (value as SidewalkObservatoryFilters["problem"]) : null,
+              )
             }
-            options={problemFacets.map((facet) => [facet.value, facet.label])}
+            options={problemOptions}
           />
           <FilterSelect
             label="Recência"
             value={filters.period ?? ""}
             onChange={(value) =>
-              change("period", value ? (value as SidewalkObservatoryFilters["period"]) : null)
+              change(
+                "period",
+                value ? (value as SidewalkObservatoryFilters["period"]) : null,
+              )
             }
             options={[
               ["30d", "Últimos 30 dias"],
@@ -386,9 +416,9 @@ export function ComunSidewalkObservatory({
           Um mesmo ponto pode ter mais de um problema. Por isso, a soma das
           frequências pode ser maior que o número de pontos revisados.
         </p>
-        {presentSidewalkProblemFacets(visibleIndicators).length ? (
+        {visibleProblemFacets.length ? (
           <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {presentSidewalkProblemFacets(visibleIndicators).map((facet) => (
+            {visibleProblemFacets.map((facet) => (
               <div
                 key={facet.value}
                 className="border-2 border-comun-black/25 bg-comun-paper p-4"
@@ -434,8 +464,8 @@ export function ComunSidewalkObservatory({
               automática continua desligada.
             </p>
             <p className="mt-3">
-              <strong>Fonte:</strong> Fonte comunitária revisada. <strong>Atualidade:</strong>{" "}
-              {freshnessLabel(source)}.
+              <strong>Fonte:</strong> Fonte comunitária revisada.{" "}
+              <strong>Atualidade:</strong> {freshnessLabel(source)}.
             </p>
             {partial ? (
               <p className="mt-3 font-bold">
