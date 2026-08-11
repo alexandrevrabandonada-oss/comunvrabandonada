@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
-import { isComunObservatoriesFoundationEnabled } from "@/lib/comun-observatory-feature";
+import {
+  isComunObservatoriesFoundationEnabled,
+  isComunObservatorySidewalkAdapterEnabled,
+  isComunObservatorySidewalkAnalyticsEnabled,
+} from "@/lib/comun-observatory-feature";
 import { getPublicObservatoryRegistry } from "@/lib/comun-observatory";
-import { isComunObservatorySidewalkAdapterEnabled } from "@/lib/comun-observatory-feature";
 
 export const runtime = "nodejs";
 
@@ -12,7 +15,10 @@ const publicHeaders = {
 const noStoreHeaders = { "cache-control": "no-store, max-age=0" };
 
 function dormant() {
-  return NextResponse.json({ code: "not_found" }, { status: 404, headers: noStoreHeaders });
+  return NextResponse.json(
+    { code: "not_found" },
+    { status: 404, headers: noStoreHeaders },
+  );
 }
 
 function methodNotAllowed() {
@@ -29,6 +35,7 @@ export function GET() {
       methodologyVersion: "comun-observatory-foundation-v1",
       observatories: getPublicObservatoryRegistry(
         isComunObservatorySidewalkAdapterEnabled(),
+        isComunObservatorySidewalkAnalyticsEnabled(),
       ),
     },
     { headers: publicHeaders },
@@ -36,7 +43,9 @@ export function GET() {
 }
 
 export function HEAD() {
-  if (!isComunObservatoriesFoundationEnabled()) return new NextResponse(null, { status: 404, headers: noStoreHeaders });
+  if (!isComunObservatoriesFoundationEnabled()) {
+    return new NextResponse(null, { status: 404, headers: noStoreHeaders });
+  }
   return new NextResponse(null, { status: 200, headers: publicHeaders });
 }
 
