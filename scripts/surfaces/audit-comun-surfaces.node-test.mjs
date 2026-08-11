@@ -4,9 +4,10 @@ import { auditComunSurfaces } from "./audit-comun-surfaces.mjs";
 
 test("classifies every COMUN page into the seven-shell migration matrix", async () => {
   const { summary, routes } = await auditComunSurfaces({ write: false });
-  // Dormant/feature-flagged routes, including the reviewed-only sidewalk observatory,
-  // and the Google completion step are part of the full matrix.
-  assert.equal(summary.total, 196);
+  // Dormant/feature-flagged routes, including the reviewed-only sidewalk and
+  // programmed-transport observatories, and the Google completion step are part
+  // of the full matrix.
+  assert.equal(summary.total, 199);
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
     "admin",
