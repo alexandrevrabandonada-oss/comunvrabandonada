@@ -1,4 +1,29 @@
-# Estado atual — 48.1B-P6C-C em Production, piloto humano pausado (10/08/2026)
+# Estado atual — 48.2-A em validação local; Production preserva P6C-C (10/08/2026)
+
+## 48.2-A — Fundação dos Observatórios (não promovida)
+
+- branch local `codex/48-2-a-observatory-foundation`, baseada em
+  `38068376ddefb0b05c3c36f8c2ef16204d4063d2`;
+- hub `/comun/observatorios`, registry versionado, proveniência, freshness e
+  disclosure acessível implementados de forma fail-closed;
+- Calçadas é o único adapter previsto e só lê a projeção pública P4
+  reviewed-only; Transporte, Ambiente e serviços essenciais continuam “Em
+  preparação”, sem números inventados;
+- Saúde, Educação, Proteção de crianças e qualquer agregado de Relata privado
+  estão excluídos do registry, API, cards, mapas e totais;
+- duas flags novas permanecem sem alteração em Production:
+  `COMUN_OBSERVATORIES_FOUNDATION_ENABLED` e
+  `COMUN_OBSERVATORY_SIDEWALK_ADAPTER_ENABLED`;
+- zero migrations, zero escrita Production, zero fixture, zero publicação,
+  zero coletivos, zero mapa geral e zero envio externo;
+- 721 testes unitários, typecheck, lint e build locais verdes; smoke local
+  comprovou cloak em flags OFF e API somente leitura;
+- a reconciliação remota read-only está pendente após
+  `LegacyDbConfigLoginRoleNetworkError`; nenhuma promoção pode ser inferida
+  desse estado.
+
+O terminal 48.2-A ainda não foi emitido. Detalhes:
+`reports/current/comun-48-2-a-observatory-foundation.md`.
 
 ## 48.1B-P6C-C — encaminhamento assistido sensível
 

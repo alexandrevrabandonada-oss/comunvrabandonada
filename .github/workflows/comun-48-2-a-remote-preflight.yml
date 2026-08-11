@@ -1,0 +1,145 @@
+name: COMUN 48.2-A remote read-only preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-2-a-remote-preflight.yml"
+      - "app/api/comun/observatorios/**"
+      - "app/comun/observatorios/**"
+      - "app/comun/explorar/page.tsx"
+      - "components/comun-observatory-hub.tsx"
+      - "lib/comun-observatory-*.ts"
+      - "reports/current/comun-48-2-a-observatory-foundation.md"
+      - "reports/current/estado-atual-comun.md"
+      - "supabase/migrations/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+  EXTERNAL_MIGRATION_SHA256: 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
+  P6C_C_MIGRATION_VERSION: "20260810194054"
+
+jobs:
+  remote-read-only-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate bounded scope and configured transport
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          test -n "${SUPABASE_PROJECT_REF:-}"
+          case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
+          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "$EXTERNAL_MIGRATION_SHA256"
+          test -z "$(git diff --name-only origin/main...HEAD -- supabase/migrations)" || {
+            echo COMUN_48_2_A_BLOCKED_UNEXPECTED_MIGRATION
+            exit 1
+          }
+
+      - name: Reconcile remote migration metadata in a read-only transaction
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/48-2-a-preflight "$RUNNER_TEMP/comun-48-2-a"
+          remote_versions="$RUNNER_TEMP/comun-48-2-a/remote-migrations.txt"
+          local_versions="$RUNNER_TEMP/comun-48-2-a/local-migrations.txt"
+          pending_versions="$RUNNER_TEMP/comun-48-2-a/pending-normal-migrations.txt"
+          unknown_versions="$RUNNER_TEMP/comun-48-2-a/unknown-remote-migrations.txt"
+
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >"$remote_versions" <<'SQL'
+          begin read only;
+          select version
+          from supabase_migrations.schema_migrations
+          order by version;
+          rollback;
+          SQL
+
+          find supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' \
+            | sed -nE 's/^([0-9]{14})_.*/\1/p' \
+            | grep -vx '20260724233256' \
+            | sort -u >"$local_versions"
+          grep -E '^[0-9]{14}$' "$remote_versions" | sort -u >"$remote_versions.filtered"
+          mv "$remote_versions.filtered" "$remote_versions"
+
+          comm -23 "$local_versions" "$remote_versions" >"$pending_versions"
+          comm -13 "$local_versions" "$remote_versions" >"$unknown_versions"
+
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/48-2-a-preflight/schema.json <<'SQL'
+          begin read only;
+          select json_build_object(
+            'dbTransportAvailable', true,
+            'psqlReadOnlyAvailable', current_setting('transaction_read_only') = 'on',
+            'p4ProjectionPresent', to_regclass('public.comun_sidewalk_records') is not null,
+            'p4ProjectionRlsEnabled', (
+              select relrowsecurity
+              from pg_catalog.pg_class
+              where oid = 'public.comun_sidewalk_records'::regclass
+            ),
+            'p4PublicGeometryPresent', exists(
+              select 1
+              from pg_catalog.pg_attribute
+              where attrelid = 'public.comun_sidewalk_records'::regclass
+                and attname = 'public_geometry_geojson'
+                and not attisdropped
+            ),
+            'p6cCApplied', exists(
+              select 1
+              from supabase_migrations.schema_migrations
+              where version = '20260810194054'
+            ),
+            'businessRowsRead', false,
+            'transactionReadOnly', true
+          );
+          rollback;
+          SQL
+
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const schema = JSON.parse(fs.readFileSync('.ci-artifacts/48-2-a-preflight/schema.json', 'utf8'));
+          const read = (file) => fs.readFileSync(file, 'utf8').trim().split('\n').filter(Boolean);
+          const pending = read(process.env.RUNNER_TEMP + '/comun-48-2-a/pending-normal-migrations.txt');
+          const unknown = read(process.env.RUNNER_TEMP + '/comun-48-2-a/unknown-remote-migrations.txt');
+          const observatoryMigrations = require('node:child_process')
+            .execFileSync('git', ['diff', '--name-only', 'origin/main...HEAD', '--', 'supabase/migrations'], { encoding: 'utf8' })
+            .trim().split('\n').filter(Boolean);
+          const required = ['dbTransportAvailable', 'psqlReadOnlyAvailable', 'p4ProjectionPresent', 'p4ProjectionRlsEnabled', 'p4PublicGeometryPresent', 'p6cCApplied', 'transactionReadOnly'];
+          if (required.some((key) => schema[key] !== true) || schema.businessRowsRead !== false || pending.length || unknown.length || observatoryMigrations.length) {
+            throw new Error('COMUN_48_2_A_BLOCKED_REMOTE_SCHEMA_DRIFT');
+          }
+          fs.writeFileSync('.ci-artifacts/48-2-a-preflight/migration-proof.json', JSON.stringify({
+            dbTransportAvailable: true,
+            psqlReadOnlyAvailable: true,
+            supabaseCliDryRunAvailable: false,
+            linkedCliAvailable: false,
+            migrationProofAvailable: true,
+            pendingNormalMigrations: [],
+            unknownRemoteMigrations: [],
+            observatoryMigrations: [],
+            businessRowsRead: false,
+            result: 'COMUN_48_2_A_REMOTE_PLAN_EMPTY_GREEN'
+          }) + '\n');
+          NODE
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-2-a-remote-preflight-${{ github.run_id }}
+          path: .ci-artifacts/48-2-a-preflight
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Emit remote plan result
+        if: success()
+        run: echo COMUN_48_2_A_REMOTE_PLAN_EMPTY_GREEN >> "$GITHUB_STEP_SUMMARY"

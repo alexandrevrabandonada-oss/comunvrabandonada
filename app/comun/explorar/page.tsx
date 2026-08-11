@@ -3,8 +3,26 @@ import { SlidersHorizontal } from "lucide-react";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { ComunStatePanel } from "@/components/comun-state-panel";
 import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
+import { isComunObservatoriesFoundationEnabled } from "@/lib/comun-observatory-feature";
 
-const categories = [
+type ExploreCategory = readonly [
+  string,
+  string,
+  string,
+  (
+    | "territorios"
+    | "comunidades"
+    | "pautas"
+    | "ferramentas"
+    | "resultados"
+    | "acervo"
+    | "radio"
+    | "arte"
+    | "observatorios"
+  ),
+];
+
+const categories: readonly ExploreCategory[] = [
   [
     "Territórios",
     "Onde os processos acontecem.",
@@ -50,7 +68,14 @@ const categories = [
   ],
 ] as const;
 
-const categorySurfaces: Record<(typeof categories)[number][3], string> = {
+const observatoriesCategory: ExploreCategory = [
+  "Observatórios",
+  "Dados públicos e informações revisadas sobre o território.",
+  "/comun/observatorios",
+  "observatorios",
+] as const;
+
+const categorySurfaces: Record<ExploreCategory[3], string> = {
   territorios:
     "surface-base rounded-[var(--comun-radius-cultural)] border-comun-black text-comun-paper",
   comunidades:
@@ -66,6 +91,8 @@ const categorySurfaces: Record<(typeof categories)[number][3], string> = {
   radio:
     "surface-action rounded-[var(--comun-radius-cultural)] border-comun-black/25",
   arte: "surface-memory rounded-[var(--comun-radius-community)] border-comun-rust/40",
+  observatorios:
+    "surface-result rounded-[var(--comun-radius-card)] border-comun-yellow/70",
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -77,7 +104,11 @@ export default async function ExplorarPage({
 }) {
   const params = await searchParams;
   const appV2 = isComunAppV2(params.experiencia);
-  if (appV2) return <ExploreAppV2 params={params} />;
+  const availableCategories = isComunObservatoriesFoundationEnabled()
+    ? [...categories, observatoriesCategory]
+    : categories;
+  if (appV2)
+    return <ExploreAppV2 params={params} categories={availableCategories} />;
   return (
     <ComunShell>
       <Section>
@@ -106,7 +137,7 @@ export default async function ExplorarPage({
           </button>
         </form>
         <div className="mt-7 grid gap-3 sm:grid-cols-2">
-          {categories.map(([title, description, href]) => (
+          {availableCategories.map(([title, description, href]) => (
             <Link
               key={href}
               href={href}
@@ -127,13 +158,19 @@ export default async function ExplorarPage({
   );
 }
 
-function ExploreAppV2({ params }: { params: SearchParams }) {
+function ExploreAppV2({
+  params,
+  categories: availableCategories,
+}: {
+  params: SearchParams;
+  categories: readonly ExploreCategory[];
+}) {
   const category =
     typeof params.categoria === "string" ? params.categoria : "tudo";
   const activeCategories =
     category === "tudo"
-      ? categories
-      : categories.filter((item) => item[3] === category);
+      ? availableCategories
+      : availableCategories.filter((item) => item[3] === category);
   return (
     <ComunShell>
       <div className="comun-v2-page" data-comun-app-v2-page="explore">
@@ -160,7 +197,7 @@ function ExploreAppV2({ params }: { params: SearchParams }) {
           className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           <FilterChip label="Tudo" value="tudo" active={category === "tudo"} />
-          {categories.slice(0, 4).map(([title, , , value]) => (
+          {availableCategories.slice(0, 5).map(([title, , , value]) => (
             <FilterChip
               key={value}
               label={title}
@@ -205,7 +242,8 @@ function ExploreAppV2({ params }: { params: SearchParams }) {
         {category !== "tudo" ? (
           <div className="mt-3 flex items-center gap-3">
             <span className="comun-v2-chip surface-action">
-              {categories.find((item) => item[3] === category)?.[0] ?? category}
+              {availableCategories.find((item) => item[3] === category)?.[0] ??
+                category}
             </span>
             <Link
               href={withComunAppV2("/comun/explorar")}
