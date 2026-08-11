@@ -17,18 +17,21 @@ permissions:
   contents: read
 
 env:
+  # Canonical binding already used by the COMUN Production activation workflows.
   VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
   COMUN_BASE_URL: https://comunsocial.online
 
 jobs:
   activate:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
+
       - name: Verify exact main and zero-migration scope
         env:
           EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
@@ -37,50 +40,225 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
           test -z "$(git diff --name-only HEAD^..HEAD -- supabase/migrations)"
-      - name: Set observatory flags without reading Production values
+
+      - name: Verify canonical Vercel project binding read-only
+        id: binding
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
+          classify_error() {
+            local command_name="$1" exit_code="$2" error_file="$3" error_class=unknown
+            if grep -Eqi 'unauthorized|invalid token|authentication|token' "$error_file"; then
+              error_class=auth
+            elif grep -Eqi 'project.*(not found|not linked)|project id|no project' "$error_file"; then
+              error_class=project_binding
+            elif grep -Eqi 'forbidden|permission|not authorized' "$error_file"; then
+              error_class=permission
+            elif grep -Eqi 'ENOTFOUND|ECONN|network|timeout|TLS' "$error_file"; then
+              error_class=network
+            elif grep -Eqi 'vercel|npm|node' "$error_file"; then
+              error_class=cli
+            fi
+            printf 'command=%s\nexitCode=%s\nerrorClass=%s\n' "$command_name" "$exit_code" "$error_class" >> "$GITHUB_STEP_SUMMARY"
+          }
           test -n "${VERCEL_TOKEN:-}"
+          test -n "${VERCEL_ORG_ID:-}"
+          test -n "${VERCEL_PROJECT_ID:-}"
+          output="$(mktemp)"; errors="$(mktemp)"
+          set +e
+          npx --yes vercel@50.28.0 project inspect "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >"$output" 2>"$errors"
+          status=$?
+          set -e
+          rm -f "$output"
+          if [ "$status" -ne 0 ]; then
+            classify_error project_inspect "$status" "$errors"
+            rm -f "$errors"
+            echo COMUN_48_2_A_BLOCKED_VERCEL_PROJECT_BINDING >> "$GITHUB_STEP_SUMMARY"
+            exit "$status"
+          fi
+          rm -f "$errors"
+          echo COMUN_48_2_A_VERCEL_PROJECT_BINDING_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set flags, deploy exact main, and run anonymous smoke
+        id: activate
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          MODE: ${{ inputs.mode }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          flags_started=false
+          rollback_complete=false
+
+          classify_error() {
+            local command_name="$1" exit_code="$2" error_file="$3" error_class=unknown
+            if grep -Eqi 'unauthorized|invalid token|authentication|token' "$error_file"; then
+              error_class=auth
+            elif grep -Eqi 'project.*(not found|not linked)|project id|no project' "$error_file"; then
+              error_class=project_binding
+            elif grep -Eqi 'forbidden|permission|not authorized' "$error_file"; then
+              error_class=permission
+            elif grep -Eqi 'ENOTFOUND|ECONN|network|timeout|TLS' "$error_file"; then
+              error_class=network
+            elif grep -Eqi 'vercel|npm|node' "$error_file"; then
+              error_class=cli
+            fi
+            printf 'command=%s\nexitCode=%s\nerrorClass=%s\n' "$command_name" "$exit_code" "$error_class" >> "$GITHUB_STEP_SUMMARY"
+          }
+
+          # This is the sole writer for these two operational flags. Values are never logged.
+          set_vercel_flag() {
+            local name="$1" value="$2" output errors status
+            output="$(mktemp)"; errors="$(mktemp)"
+            if printf '%s' "$value" | npx --yes vercel@50.28.0 env add "$name" production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >"$output" 2>"$errors"; then
+              status=0
+            else
+              status=${PIPESTATUS[1]}
+            fi
+            rm -f "$output"
+            if [ "$status" -ne 0 ]; then
+              classify_error "env_add_${name}" "$status" "$errors"
+              rm -f "$errors"
+              return "$status"
+            fi
+            rm -f "$errors"
+          }
+
+          run_vercel() {
+            local command_name="$1"; shift
+            VERCEL_LAST_OUTPUT="$(mktemp)"
+            VERCEL_LAST_ERRORS="$(mktemp)"
+            if "$@" >"$VERCEL_LAST_OUTPUT" 2>"$VERCEL_LAST_ERRORS"; then
+              VERCEL_LAST_STATUS=0
+            else
+              VERCEL_LAST_STATUS=$?
+            fi
+            if [ "$VERCEL_LAST_STATUS" -ne 0 ]; then
+              classify_error "$command_name" "$VERCEL_LAST_STATUS" "$VERCEL_LAST_ERRORS"
+              rm -f "$VERCEL_LAST_OUTPUT" "$VERCEL_LAST_ERRORS"
+              return "$VERCEL_LAST_STATUS"
+            fi
+            rm -f "$VERCEL_LAST_ERRORS"
+          }
+
+          deploy_promote_and_alias() {
+            local deployment_url
+            run_vercel deploy npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || return $?
+            deployment_url="$(grep -Eo 'https://[^[:space:]]+' "$VERCEL_LAST_OUTPUT" | tail -n 1 | tr -d '\r')"
+            rm -f "$VERCEL_LAST_OUTPUT"
+            case "$deployment_url" in
+              https://*.vercel.app) ;;
+              *) printf 'command=deploy\nexitCode=1\nerrorClass=unknown\n' >> "$GITHUB_STEP_SUMMARY"; return 1 ;;
+            esac
+            run_vercel inspect npx --yes vercel@50.28.0 inspect "$deployment_url" --wait --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || return $?
+            rm -f "$VERCEL_LAST_OUTPUT"
+            run_vercel promote npx --yes vercel@50.28.0 promote "$deployment_url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || return $?
+            rm -f "$VERCEL_LAST_OUTPUT"
+            run_vercel alias npx --yes vercel@50.28.0 alias set "$deployment_url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || return $?
+            rm -f "$VERCEL_LAST_OUTPUT"
+          }
+
+          rollback() {
+            set +e
+            set_vercel_flag COMUN_OBSERVATORIES_FOUNDATION_ENABLED disabled
+            foundation_status=$?
+            set_vercel_flag COMUN_OBSERVATORY_SIDEWALK_ADAPTER_ENABLED disabled
+            sidewalk_status=$?
+            if [ "$foundation_status" -ne 0 ] || [ "$sidewalk_status" -ne 0 ]; then
+              return 1
+            fi
+            deploy_promote_and_alias
+            deploy_status=$?
+            set -e
+            if [ "$deploy_status" -ne 0 ]; then return 1; fi
+            rollback_complete=true
+            echo COMUN_48_2_A_FLAGS_ROLLED_BACK_TO_OFF >> "$GITHUB_STEP_SUMMARY"
+          }
+
+          fail_after_flag_write() {
+            local failure_status="$1"
+            if ! rollback; then
+              echo COMUN_48_2_A_BLOCKED_VERCEL_ROLLBACK_REQUIRED >> "$GITHUB_STEP_SUMMARY"
+            fi
+            exit "$failure_status"
+          }
+
+          unexpected_failure() {
+            local failure_status="$?"
+            trap - ERR
+            if [ "$flags_started" = true ] && [ "$rollback_complete" != true ]; then
+              if ! rollback; then
+                echo COMUN_48_2_A_BLOCKED_VERCEL_ROLLBACK_REQUIRED >> "$GITHUB_STEP_SUMMARY"
+              fi
+            fi
+            exit "$failure_status"
+          }
+          trap unexpected_failure ERR
+
+          test -n "${VERCEL_TOKEN:-}"
+          test -n "${VERCEL_ORG_ID:-}"
+          test -n "${VERCEL_PROJECT_ID:-}"
           foundation=disabled
           sidewalk=disabled
-          case "${{ inputs.mode }}" in
+          case "$MODE" in
             flags-off) ;;
             wave1-foundation) foundation=enabled ;;
             wave2-sidewalk) foundation=enabled; sidewalk=enabled ;;
-            *) exit 1 ;;
+            *) echo COMUN_48_2_A_ACTIVATION_MODE_INVALID >> "$GITHUB_STEP_SUMMARY"; exit 1 ;;
           esac
-          printf '%s' "$foundation" | npx --yes vercel@50.28.0 env add COMUN_OBSERVATORIES_FOUNDATION_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/observatories-foundation-env.out 2>/tmp/observatories-foundation-env.err
-          printf '%s' "$sidewalk" | npx --yes vercel@50.28.0 env add COMUN_OBSERVATORY_SIDEWALK_ADAPTER_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/observatories-sidewalk-env.out 2>/tmp/observatories-sidewalk-env.err
-      - name: Deploy and promote exact main
-        id: deploy
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/observatories-deploy.out 2>/tmp/observatories-deploy.err
-          url="$(grep -Eo 'https://[^[:space:]]+' /tmp/observatories-deploy.out | tail -n 1 | tr -d '\r')"
-          case "$url" in https://*.vercel.app) ;; *) exit 1 ;; esac
-          npx --yes vercel@50.28.0 promote "$url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/observatories-promote.out 2>/tmp/observatories-promote.err
-          npx --yes vercel@50.28.0 alias set "$url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/observatories-alias.out 2>/tmp/observatories-alias.err
-      - name: Run anonymous read-only smoke
-        shell: bash
-        run: |
-          set -euo pipefail
+
+          flags_started=true
+          set_vercel_flag COMUN_OBSERVATORIES_FOUNDATION_ENABLED "$foundation" || fail_after_flag_write $?
+          set_vercel_flag COMUN_OBSERVATORY_SIDEWALK_ADAPTER_ENABLED "$sidewalk" || fail_after_flag_write $?
+          deploy_promote_and_alias || fail_after_flag_write $?
+
           for path in /comun /comun/relatar /comun/minha-participacao /comun/calcadas /comun/onibus; do
-            test "$(curl -L -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL$path")" = 200
+            test "$(curl -L -sS -o /dev/null -w '%{http_code}' --retry 8 --retry-delay 2 "$COMUN_BASE_URL$path")" = 200 || fail_after_flag_write 1
           done
-          mode='${{ inputs.mode }}'
-          observatories="$(curl -L -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL/comun/observatorios")"
-          registry="$(curl -L -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL/api/comun/observatorios")"
-          sidewalk="$(curl -L -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL/api/comun/observatorios/calcadas")"
-          case "$mode" in
-            flags-off) test "$observatories" = 404; test "$registry" = 404; test "$sidewalk" = 404 ;;
-            wave1-foundation) test "$observatories" = 200; test "$registry" = 200; test "$sidewalk" = 404 ;;
-            wave2-sidewalk) test "$observatories" = 200; test "$registry" = 200; test "$sidewalk" = 200 ;;
+          observatories="$(curl -L -sS -o /dev/null -w '%{http_code}' --retry 8 --retry-delay 2 "$COMUN_BASE_URL/comun/observatorios")"
+          registry="$(curl -L -sS -o /dev/null -w '%{http_code}' --retry 8 --retry-delay 2 "$COMUN_BASE_URL/api/comun/observatorios")"
+          sidewalk_status="$(curl -L -sS -o /dev/null -w '%{http_code}' --retry 8 --retry-delay 2 "$COMUN_BASE_URL/api/comun/observatorios/calcadas")"
+          case "$MODE" in
+            flags-off)
+              test "$observatories" = 404 && test "$registry" = 404 && test "$sidewalk_status" = 404 || fail_after_flag_write 1
+              echo COMUN_48_2_A_FLAGS_OFF_PRODUCTION_READ_ONLY_GREEN >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            wave1-foundation)
+              test "$observatories" = 200 && test "$registry" = 200 && test "$sidewalk_status" = 404 || fail_after_flag_write 1
+              registry_body="$(mktemp)"
+              curl -L -fsS --retry 8 --retry-delay 2 "$COMUN_BASE_URL/api/comun/observatorios" >"$registry_body" || fail_after_flag_write 1
+              node - "$registry_body" <<'NODE' || exit_code=$?
+          const fs = require("node:fs");
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+          const ids = payload.observatories?.map((entry) => entry.id).join(",");
+          if (ids !== "sidewalks,transport,environment,essential_services") process.exit(1);
+          if (payload.observatories[0].status !== "preparing" || payload.observatories[0].publicRoute !== null) process.exit(1);
+          if (payload.observatories.some((entry) => entry.sensitivityPolicy !== "public-origin-only")) process.exit(1);
+          NODE
+              test "${exit_code:-0}" = 0 || fail_after_flag_write "$exit_code"
+              rm -f "$registry_body"
+              echo COMUN_48_2_A_WAVE1_FOUNDATION_PRODUCTION_GREEN >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            wave2-sidewalk)
+              test "$observatories" = 200 && test "$registry" = 200 && test "$sidewalk_status" = 200 || fail_after_flag_write 1
+              sidewalk_body="$(mktemp)"
+              curl -L -fsS --retry 8 --retry-delay 2 "$COMUN_BASE_URL/api/comun/observatorios/calcadas" >"$sidewalk_body" || fail_after_flag_write 1
+              node - "$sidewalk_body" <<'NODE' || exit_code=$?
+          const fs = require("node:fs");
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+          const source = payload.source;
+          if (payload.observatoryId !== "sidewalks" || !source) process.exit(1);
+          if (source.sourceKind !== "reviewed_community_projection" || source.publicSafe !== true) process.exit(1);
+          if (!source.methodology || !source.freshness || !source.sourceReference) process.exit(1);
+          const serialized = JSON.stringify(payload);
+          if (/comun_relata_reports|wallet|private_location|private_attachment|sensitive_service/i.test(serialized)) process.exit(1);
+          if ((payload.observations ?? []).some((item) => item.geography?.level !== "reviewed_public_point")) process.exit(1);
+          NODE
+              test "${exit_code:-0}" = 0 || fail_after_flag_write "$exit_code"
+              rm -f "$sidewalk_body"
+              echo COMUN_48_2_A_WAVE2_SIDEWALK_PRODUCTION_GREEN >> "$GITHUB_STEP_SUMMARY"
+              ;;
           esac
-          test "$(curl -L -sS -o /dev/null -w '%{http_code}' -X POST "$COMUN_BASE_URL/api/comun/observatorios")" = 405
-          echo "COMUN_48_2_A_${mode}_PRODUCTION_READ_ONLY_GREEN" >> "$GITHUB_STEP_SUMMARY"
+          test "$(curl -L -sS -o /dev/null -w '%{http_code}' -X POST "$COMUN_BASE_URL/api/comun/observatorios")" = 405 || fail_after_flag_write 1
