@@ -1,0 +1,29 @@
+{
+  "manifestVersion": "comun-hydrometeorology-source-manifest-v1",
+  "sources": [
+    {
+      "sourceId": "inea-hydromet-methodology-page-20260811",
+      "sourceType": "historical_access_documentation",
+      "originalPublisher": "INEA",
+      "officialUrl": "https://www.inea.rj.gov.br/ar-agua-e-solo/monitoramento-hidrometeorologico/",
+      "rawSha256": "297f00d82824aa6d03dca8ffe90de32fbde5b03e006d4a215e352481effb8734",
+      "retrievedAt": "2026-08-11T23:03:28.137Z",
+      "reportedAt": null,
+      "parserVersion": "comun-hydrometeorology-source-parser-v1",
+      "qualityState": "verified_source",
+      "status": "active"
+    },
+    {
+      "sourceId": "inea-hydromet-operational-inventory-20260811",
+      "sourceType": "operational_station_inventory",
+      "originalPublisher": "INEA",
+      "officialUrl": "https://www.inea.rj.gov.br/wp-content/uploads/2020/12/Invent%C3%A1rioEsta%C3%A7%C3%B5esHidrometeorol%C3%B3gicas.xlsx",
+      "rawSha256": "57336c34972860bc62bcd3b7695f2258b7934c92a77111c0be06b6cd1eeebc42",
+      "retrievedAt": "2026-08-11T23:01:15.442Z",
+      "reportedAt": null,
+      "parserVersion": "comun-hydrometeorology-source-parser-v1",
+      "qualityState": "verified_source",
+      "status": "active"
+    }
+  ]
+}
