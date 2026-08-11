@@ -9,7 +9,17 @@ type ExploreCategory = readonly [
   string,
   string,
   string,
-  "territorios" | "comunidades" | "pautas" | "ferramentas" | "resultados" | "acervo" | "radio" | "arte" | "observatorios",
+  (
+    | "territorios"
+    | "comunidades"
+    | "pautas"
+    | "ferramentas"
+    | "resultados"
+    | "acervo"
+    | "radio"
+    | "arte"
+    | "observatorios"
+  ),
 ];
 
 const categories: readonly ExploreCategory[] = [
@@ -97,7 +107,8 @@ export default async function ExplorarPage({
   const availableCategories = isComunObservatoriesFoundationEnabled()
     ? [...categories, observatoriesCategory]
     : categories;
-  if (appV2) return <ExploreAppV2 params={params} categories={availableCategories} />;
+  if (appV2)
+    return <ExploreAppV2 params={params} categories={availableCategories} />;
   return (
     <ComunShell>
       <Section>
@@ -231,7 +242,8 @@ function ExploreAppV2({
         {category !== "tudo" ? (
           <div className="mt-3 flex items-center gap-3">
             <span className="comun-v2-chip surface-action">
-              {availableCategories.find((item) => item[3] === category)?.[0] ?? category}
+              {availableCategories.find((item) => item[3] === category)?.[0] ??
+                category}
             </span>
             <Link
               href={withComunAppV2("/comun/explorar")}
