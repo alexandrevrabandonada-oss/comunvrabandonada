@@ -16,8 +16,9 @@ describe("48.2-B sidewalk observatory public contract", () => {
     expect(api).toContain('allow: "GET, HEAD"');
   });
 
-  it("cloaks the dedicated route behind the analytics flag and has distinct empty state", async () => {
+  it("cloaks the dedicated route behind the analytics flag and keeps the public registry in sync", async () => {
     const page = await source("../app/comun/observatorios/calcadas/page.tsx");
+    const registryApi = await source("../app/api/comun/observatorios/route.ts");
     expect(page).toContain("isComunObservatorySidewalkAnalyticsEnabled");
     expect(page).toContain("notFound()");
     expect(page).toContain(
@@ -25,6 +26,10 @@ describe("48.2-B sidewalk observatory public contract", () => {
     );
     expect(page).toContain(
       "Não há pontos revisados publicados neste momento.",
+    );
+    expect(registryApi).toContain("isComunObservatorySidewalkAnalyticsEnabled");
+    expect(registryApi).toMatch(
+      /getPublicObservatoryRegistry\([\s\S]*isComunObservatorySidewalkAdapterEnabled\(\)[\s\S]*isComunObservatorySidewalkAnalyticsEnabled\(\)[\s\S]*\)/,
     );
   });
 
