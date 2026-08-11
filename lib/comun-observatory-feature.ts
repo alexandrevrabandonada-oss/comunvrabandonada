@@ -4,6 +4,8 @@ export const COMUN_OBSERVATORIES_FOUNDATION_FLAG =
   "COMUN_OBSERVATORIES_FOUNDATION_ENABLED" as const;
 export const COMUN_OBSERVATORY_SIDEWALK_ADAPTER_FLAG =
   "COMUN_OBSERVATORY_SIDEWALK_ADAPTER_ENABLED" as const;
+export const COMUN_OBSERVATORY_SIDEWALK_ANALYTICS_FLAG =
+  "COMUN_OBSERVATORY_SIDEWALK_ANALYTICS_ENABLED" as const;
 
 export function isComunObservatoriesFoundationEnabled(
   env: Record<string, string | undefined> = process.env,
@@ -18,5 +20,14 @@ export function isComunObservatorySidewalkAdapterEnabled(
     isComunObservatoriesFoundationEnabled(env) &&
     env[COMUN_OBSERVATORY_SIDEWALK_ADAPTER_FLAG] === "enabled" &&
     isComunSidewalkPublicProjectionEnabled(env)
+  );
+}
+
+export function isComunObservatorySidewalkAnalyticsEnabled(
+  env: Record<string, string | undefined> = process.env,
+) {
+  return (
+    isComunObservatorySidewalkAdapterEnabled(env) &&
+    env[COMUN_OBSERVATORY_SIDEWALK_ANALYTICS_FLAG] === "enabled"
   );
 }
