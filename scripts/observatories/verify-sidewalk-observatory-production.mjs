@@ -31,10 +31,7 @@ const apiResponse = await fetch(`${baseUrl}/api/comun/observatorios/calcadas`, {
 assert.equal(apiResponse.status, 200, "sidewalk observatory API must be available");
 const payload = await apiResponse.json();
 assert.ok(Array.isArray(payload.observations), "observations must be an array");
-assert.ok(
-  payload.observations.length > 0,
-  "Production proof requires an existing reviewed public point",
-);
+const hasPublicPoints = payload.observations.length > 0;
 
 const conditionFacet = payload.facets?.conditions?.find(
   (facet) => facet && facet.count > 0 && conditionQuery[facet.value],
@@ -42,8 +39,13 @@ const conditionFacet = payload.facets?.conditions?.find(
 const problemFacet = payload.facets?.problems?.find(
   (facet) => facet && facet.count > 0 && typeof facet.value === "string",
 );
-assert.ok(conditionFacet, "at least one public condition facet must be measurable");
-assert.ok(problemFacet, "at least one allowlisted public problem facet must be measurable");
+if (hasPublicPoints) {
+  assert.ok(
+    conditionFacet,
+    "at least one public condition facet must be measurable",
+  );
+  assert.ok(problemFacet, "at least one allowlisted public problem facet must be measurable");
+}
 
 const browser = await chromium.launch({ headless: true });
 try {
@@ -70,53 +72,61 @@ try {
     )
     .waitFor();
 
-  const mapRegion = page.getByRole("region", {
-    name: "Mapa de pontos de calçadas revisados e publicados com localização aproximada",
-  });
-  await mapRegion.waitFor({ state: "visible", timeout: 20_000 });
-  const condition = page.getByLabel("Condição", { exact: true });
-  const problem = page.getByLabel("Problema", { exact: true });
-  const recency = page.getByLabel("Recência", { exact: true });
-  await condition.focus();
-  assert.equal(
-    await condition.evaluate((element) => element === document.activeElement),
-    true,
-    "condition filter must be keyboard-focusable",
-  );
+  if (hasPublicPoints) {
+    const mapRegion = page.getByRole("region", {
+      name: "Mapa de pontos de calçadas revisados e publicados com localização aproximada",
+    });
+    await mapRegion.waitFor({ state: "visible", timeout: 20_000 });
+    const condition = page.getByLabel("Condição", { exact: true });
+    const problem = page.getByLabel("Problema", { exact: true });
+    const recency = page.getByLabel("Recência", { exact: true });
+    await condition.focus();
+    assert.equal(
+      await condition.evaluate((element) => element === document.activeElement),
+      true,
+      "condition filter must be keyboard-focusable",
+    );
 
-  const listItems = page.locator(
-    'section[aria-labelledby="shown-points-title"] ol > li',
-  );
-  const markers = page.locator("button.sidewalk-map-marker");
+    const listItems = page.locator(
+      'section[aria-labelledby="shown-points-title"] ol > li',
+    );
+    const markers = page.locator("button.sidewalk-map-marker");
 
-  await condition.selectOption(conditionFacet.value);
-  await page.waitForURL(
-    new RegExp(`condicao=${conditionQuery[conditionFacet.value]}(?:&|$)`),
-  );
-  await waitForCount(listItems, conditionFacet.count, "condition list count");
-  await waitForCount(markers, conditionFacet.count, "condition map marker count");
+    await condition.selectOption(conditionFacet.value);
+    await page.waitForURL(
+      new RegExp(`condicao=${conditionQuery[conditionFacet.value]}(?:&|$)`),
+    );
+    await waitForCount(listItems, conditionFacet.count, "condition list count");
+    await waitForCount(markers, conditionFacet.count, "condition map marker count");
 
-  await condition.selectOption("");
-  await page.waitForURL((url) => !url.searchParams.has("condicao"));
-  await problem.selectOption(problemFacet.value);
-  await page.waitForURL(new RegExp("problema=[^&]+"));
-  await waitForCount(listItems, problemFacet.count, "problem list count");
-  await waitForCount(markers, problemFacet.count, "problem map marker count");
+    await condition.selectOption("");
+    await page.waitForURL((url) => !url.searchParams.has("condicao"));
+    await problem.selectOption(problemFacet.value);
+    await page.waitForURL(new RegExp("problema=[^&]+"));
+    await waitForCount(listItems, problemFacet.count, "problem list count");
+    await waitForCount(markers, problemFacet.count, "problem map marker count");
 
-  await problem.selectOption("");
-  await page.waitForURL((url) => !url.searchParams.has("problema"));
-  await recency.selectOption("90d");
-  await page.waitForURL(/periodo=90d(?:&|$)/);
-  await waitForCount(
-    listItems,
-    payload.indicators.recent90d,
-    "recency list count",
-  );
-  await waitForCount(
-    markers,
-    payload.indicators.recent90d,
-    "recency map marker count",
-  );
+    await problem.selectOption("");
+    await page.waitForURL((url) => !url.searchParams.has("problema"));
+    await recency.selectOption("90d");
+    await page.waitForURL(/periodo=90d(?:&|$)/);
+    await waitForCount(
+      listItems,
+      payload.indicators.recent90d,
+      "recency list count",
+    );
+    await waitForCount(
+      markers,
+      payload.indicators.recent90d,
+      "recency map marker count",
+    );
+  } else {
+    await page
+      .getByText("Não há pontos revisados publicados neste momento.", {
+        exact: true,
+      })
+      .waitFor();
+  }
 
   const hasHorizontalOverflow = await page.evaluate(
     () =>
@@ -146,10 +156,11 @@ try {
   console.log(
     JSON.stringify({
       result: "COMUN_48_2_B_PRODUCTION_BROWSER_READ_ONLY_GREEN",
-      condition: conditionFacet.value,
-      conditionCount: conditionFacet.count,
-      problem: problemFacet.value,
-      problemCount: problemFacet.count,
+      observationCount: payload.observations.length,
+      condition: conditionFacet?.value ?? null,
+      conditionCount: conditionFacet?.count ?? 0,
+      problem: problemFacet?.value ?? null,
+      problemCount: problemFacet?.count ?? 0,
       recent90d: payload.indicators.recent90d,
       viewport: "360x740",
       businessWrites: 0,

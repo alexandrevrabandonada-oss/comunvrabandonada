@@ -147,6 +147,8 @@ describe("48.2-B sidewalk observatory public contract", () => {
     expect(proof).toContain("problem map marker count");
     expect(proof).toContain("recency map marker count");
     expect(proof).toContain("mobile observatory must not overflow horizontally");
+    expect(proof).toContain("Não há pontos revisados publicados neste momento.");
+    expect(proof).toContain("const hasPublicPoints = payload.observations.length > 0");
     expect(proof).toContain("businessWrites: 0");
     expect(proof).not.toMatch(/request\.(post|put|patch|delete)|fetch\([^\n]+method:/i);
   });
