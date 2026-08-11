@@ -31,7 +31,10 @@ const apiResponse = await fetch(`${baseUrl}/api/comun/observatorios/calcadas`, {
 assert.equal(apiResponse.status, 200, "sidewalk observatory API must be available");
 const payload = await apiResponse.json();
 assert.ok(Array.isArray(payload.observations), "observations must be an array");
-assert.ok(payload.observations.length > 0, "Production proof requires an existing reviewed public point");
+assert.ok(
+  payload.observations.length > 0,
+  "Production proof requires an existing reviewed public point",
+);
 
 const conditionFacet = payload.facets?.conditions?.find(
   (facet) => facet && facet.count > 0 && conditionQuery[facet.value],
@@ -52,8 +55,14 @@ try {
   const navigation = await page.goto(`${baseUrl}/comun/observatorios/calcadas`, {
     waitUntil: "domcontentloaded",
   });
-  assert.equal(navigation?.status(), 200, "dedicated observatory page must return 200");
-  await page.getByRole("heading", { name: "Observatório de Calçadas", level: 1 }).waitFor();
+  assert.equal(
+    navigation?.status(),
+    200,
+    "dedicated observatory page must return 200",
+  );
+  await page
+    .getByRole("heading", { name: "Observatório de Calçadas", level: 1 })
+    .waitFor();
   await page
     .getByText(
       "Estes dados representam apenas pontos observados, revisados e publicados. Não são um levantamento completo de todas as calçadas da cidade.",
@@ -66,6 +75,8 @@ try {
   });
   await mapRegion.waitFor({ state: "visible", timeout: 20_000 });
   const condition = page.getByLabel("Condição", { exact: true });
+  const problem = page.getByLabel("Problema", { exact: true });
+  const recency = page.getByLabel("Recência", { exact: true });
   await condition.focus();
   assert.equal(
     await condition.evaluate((element) => element === document.activeElement),
@@ -73,7 +84,9 @@ try {
     "condition filter must be keyboard-focusable",
   );
 
-  const listItems = page.locator('section[aria-labelledby="shown-points-title"] ol > li');
+  const listItems = page.locator(
+    'section[aria-labelledby="shown-points-title"] ol > li',
+  );
   const markers = page.locator("button.sidewalk-map-marker");
 
   await condition.selectOption(conditionFacet.value);
@@ -84,21 +97,37 @@ try {
   await waitForCount(markers, conditionFacet.count, "condition map marker count");
 
   await condition.selectOption("");
-  await page.getByLabel("Problema", { exact: true }).selectOption(problemFacet.value);
+  await page.waitForURL((url) => !url.searchParams.has("condicao"));
+  await problem.selectOption(problemFacet.value);
   await page.waitForURL(new RegExp("problema=[^&]+"));
   await waitForCount(listItems, problemFacet.count, "problem list count");
   await waitForCount(markers, problemFacet.count, "problem map marker count");
 
-  await page.getByLabel("Problema", { exact: true }).selectOption("");
-  await page.getByLabel("Recência", { exact: true }).selectOption("90d");
+  await problem.selectOption("");
+  await page.waitForURL((url) => !url.searchParams.has("problema"));
+  await recency.selectOption("90d");
   await page.waitForURL(/periodo=90d(?:&|$)/);
-  await waitForCount(listItems, payload.indicators.recent90d, "recency list count");
-  await waitForCount(markers, payload.indicators.recent90d, "recency map marker count");
+  await waitForCount(
+    listItems,
+    payload.indicators.recent90d,
+    "recency list count",
+  );
+  await waitForCount(
+    markers,
+    payload.indicators.recent90d,
+    "recency map marker count",
+  );
 
   const hasHorizontalOverflow = await page.evaluate(
-    () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+    () =>
+      document.documentElement.scrollWidth >
+      document.documentElement.clientWidth + 1,
   );
-  assert.equal(hasHorizontalOverflow, false, "mobile observatory must not overflow horizontally");
+  assert.equal(
+    hasHorizontalOverflow,
+    false,
+    "mobile observatory must not overflow horizontally",
+  );
 
   const browserText = await page.locator("body").innerText();
   for (const sentinel of [
@@ -107,7 +136,11 @@ try {
     "PRIVATE_ATTACHMENT_SENTINEL",
     "PRIVATE_WALLET_SENTINEL",
   ]) {
-    assert.equal(browserText.includes(sentinel), false, `${sentinel} must not reach browser text`);
+    assert.equal(
+      browserText.includes(sentinel),
+      false,
+      `${sentinel} must not reach browser text`,
+    );
   }
 
   console.log(
