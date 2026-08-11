@@ -1,0 +1,86 @@
+name: COMUN 48.2-A observatory activation
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA to deploy
+        required: true
+        type: string
+      mode:
+        description: Flags-off deployment or one activation wave
+        required: true
+        type: choice
+        options: [flags-off, wave1-foundation, wave2-sidewalk]
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  COMUN_BASE_URL: https://comunsocial.online
+
+jobs:
+  activate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Verify exact main and zero-migration scope
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          test -z "$(git diff --name-only HEAD^..HEAD -- supabase/migrations)"
+      - name: Set observatory flags without reading Production values
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          foundation=disabled
+          sidewalk=disabled
+          case "${{ inputs.mode }}" in
+            flags-off) ;;
+            wave1-foundation) foundation=enabled ;;
+            wave2-sidewalk) foundation=enabled; sidewalk=enabled ;;
+            *) exit 1 ;;
+          esac
+          printf '%s' "$foundation" | npx --yes vercel@50.28.0 env add COMUN_OBSERVATORIES_FOUNDATION_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/observatories-foundation-env.out 2>/tmp/observatories-foundation-env.err
+          printf '%s' "$sidewalk" | npx --yes vercel@50.28.0 env add COMUN_OBSERVATORY_SIDEWALK_ADAPTER_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/observatories-sidewalk-env.out 2>/tmp/observatories-sidewalk-env.err
+      - name: Deploy and promote exact main
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/observatories-deploy.out 2>/tmp/observatories-deploy.err
+          url="$(grep -Eo 'https://[^[:space:]]+' /tmp/observatories-deploy.out | tail -n 1 | tr -d '\r')"
+          case "$url" in https://*.vercel.app) ;; *) exit 1 ;; esac
+          npx --yes vercel@50.28.0 promote "$url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/observatories-promote.out 2>/tmp/observatories-promote.err
+          npx --yes vercel@50.28.0 alias set "$url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/tmp/observatories-alias.out 2>/tmp/observatories-alias.err
+      - name: Run anonymous read-only smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in /comun /comun/relatar /comun/minha-participacao /comun/calcadas /comun/onibus; do
+            test "$(curl -L -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL$path")" = 200
+          done
+          mode='${{ inputs.mode }}'
+          observatories="$(curl -L -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL/comun/observatorios")"
+          registry="$(curl -L -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL/api/comun/observatorios")"
+          sidewalk="$(curl -L -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL/api/comun/observatorios/calcadas")"
+          case "$mode" in
+            flags-off) test "$observatories" = 404; test "$registry" = 404; test "$sidewalk" = 404 ;;
+            wave1-foundation) test "$observatories" = 200; test "$registry" = 200; test "$sidewalk" = 404 ;;
+            wave2-sidewalk) test "$observatories" = 200; test "$registry" = 200; test "$sidewalk" = 200 ;;
+          esac
+          test "$(curl -L -sS -o /dev/null -w '%{http_code}' -X POST "$COMUN_BASE_URL/api/comun/observatorios")" = 405
+          echo "COMUN_48_2_A_${mode}_PRODUCTION_READ_ONLY_GREEN" >> "$GITHUB_STEP_SUMMARY"
