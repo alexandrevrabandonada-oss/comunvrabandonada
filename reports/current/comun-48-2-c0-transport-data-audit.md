@@ -33,7 +33,8 @@ packages ou attempts. A separação P5 continua absoluta.
 | [Decreto 19.858/2026](https://www.voltaredonda.rj.gov.br/images/Documentos/VRDestaques/2024/2026-01-30_2285-extra.pdf) — PMVR/VR em Destaque | `official_public_legal_record` | sim | PDF | tarifa vigente a partir de 01/02/2026 | número, data e edição identificáveis | baixo | ato oficial; não usar como previsão de tarifa futura | referência tarifária C2 | `USE_C2` |
 | [Tarifa Zero](https://mobilidadeurbana.voltaredonda.rj.gov.br/tarifa-zero) e [Carta de Serviços](https://servicos.voltaredonda.rj.gov.br/cartaServicos/568/) — PMVR | `official_public_service` | sim | HTML | serviço próprio, não substituto da rede convencional | páginas institucionais, com horários/pontos declarados | baixo | deve ser modelado separadamente, inclusive por ser gratuito | serviço específico futuro | `DEFER` |
 | [VRBus](https://www.voltaredonda.rj.gov.br/comunicacao/noticias/41-stmu/6358-volta-redonda-passa-a-contar-com-aplicativo-pr%C3%B3prio-para-usu%C3%A1rio-conferir-hor%C3%A1rios-de-%C3%B4nibus/) / CittaMobi anunciado — PMVR/STMU | `official_public_app_announcement` | sim | não há contrato de dados documentado | promete horários/chegadas e mapa de pontos em tempo real | notícia institucional, não especificação de API | baixo | prova existência do serviço ao usuário, não autorização de integrar dados | somente link informativo | `DEFER` |
-| [Fiscalização de acessibilidade de 2026](https://mobilidadeurbana.voltaredonda.rj.gov.br/stmu-realiza-fiscalizacao-de-rampas-de-acessibilidade-em-onibus-do-transporte-coletivo) — STMU | `official_public_report` | sim | HTML narrativo | amostra de fiscalização, não série completa | publicada e datada; não contém microdados reutilizáveis | baixo | útil como contexto, não indicador recorrente | C2 somente se séries oficiais forem publicadas | `DEFER` |
+| Relatórios públicos STMU de 2024 e 2025 | `official_public_report` | não localizado como relatório periódico/reutilizável | não | sem série pública identificada | busca read-only no portal oficial; não substituir por notícias ou queixas | baixo | ausência de contrato/dataset | não calcular tendência, desempenho ou total | `DEFER` |
+| [Fiscalização de acessibilidade de 2026](https://mobilidadeurbana.voltaredonda.rj.gov.br/stmu-realiza-fiscalizacao-de-rampas-de-acessibilidade-em-onibus-do-transporte-coletivo) — STMU | `official_public_report` | sim | HTML narrativo | amostra de fiscalização, não série completa | publicada em 12/02/2026; não contém microdados reutilizáveis | baixo | útil como contexto, não indicador recorrente | C2 somente se séries oficiais forem publicadas | `DEFER` |
 | Dados geográficos de pontos | — | não encontrados em formato oficial reutilizável | não | faltam `stopId`, nome, latitude, longitude e linhas atendidas | — | — | a notícia do app cita mapa, mas não publica dataset | não criar pontos por geocoding/scraping | `DEFER` |
 
 Fontes consultadas são somente PMVR/STMU e Diário Oficial municipal. Fontes
@@ -98,10 +99,14 @@ resolvido por heurística silenciosa.
   oficial com `stopId,name,lat,lon,servedLines`. A lista histórica de QR codes
   não satisfaz o contrato e não deve virar geografia do Observatório. Isto não
   bloqueia C1.
-- Relatórios de fiscalização/frota/acessibilidade encontrados são narrativos
-  ou amostrais. A fiscalização de 04/02/2026 informou 12 veículos, cerca de
-  10% da frota então em circulação; isso não é denominador estável para
-  indicador do sistema. Requer série oficial e escopo/metodologia publicados.
+- A busca read-only do portal oficial não localizou relatório periódico ou
+  dataset reutilizável de transporte para 2024/2025. Para 2026, a fonte
+  localizada é uma notícia de fiscalização, em HTML narrativo, datada de
+  12/02/2026. Ela informa fiscalização em 04/02/2026 de 12 veículos, cerca de
+  10% da frota então em circulação. Não é relatório de frota, não tem
+  microdados e não fornece denominador estável para indicador do sistema.
+  Relatório futuro só será elegível se publicar período, unidade,
+  metodologia, privacidade e possibilidade de agregação.
 - A notícia/reunião de 21/01/2026 confirma estudo tarifário e encaminhamento
   para 2026. O decreto 19.858 define valor e vigência; o estudo técnico é
   documento separado. Nenhum dos dois deve ser confundido com tarifa em tempo

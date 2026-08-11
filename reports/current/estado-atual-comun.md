@@ -15,6 +15,9 @@
 - nenhum dataset geográfico público oficial de pontos com identificador,
   coordenadas e linhas atendidas foi encontrado:
   `COMUN_48_2_C0_PUBLIC_STOPS_DATASET_NOT_FOUND`;
+- não há relatório periódico público reutilizável de STMU localizado para
+  2024/2025; a fonte de acessibilidade de 2026 é narrativa/amostral e não
+  serve como série de desempenho;
 - C1 está limitado à rede programada oriunda de artefatos oficiais versionados;
   C2 tratará números oficiais com metodologia; C3 depende de API/GTFS
   documentado; C4, se existir, será agregado e posterior;
