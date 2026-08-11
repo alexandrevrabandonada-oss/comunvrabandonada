@@ -183,9 +183,9 @@ export function ComunSidewalkObservatory({
           pelo COMUN.
         </p>
         <p className="mt-4 max-w-3xl border-l-4 border-comun-yellow pl-4 text-sm font-bold">
-          Estes dados representam apenas pontos observados, revisados e
-          publicados. Não são um levantamento completo de todas as calçadas da
-          cidade.
+          {
+            "Estes dados representam apenas pontos observados, revisados e publicados. Não são um levantamento completo de todas as calçadas da cidade."
+          }
         </p>
       </header>
 
@@ -344,7 +344,10 @@ export function ComunSidewalkObservatory({
       <section className="mt-8" aria-labelledby="shown-points-title">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
-            <h2 id="shown-points-title" className="text-2xl font-black uppercase">
+            <h2
+              id="shown-points-title"
+              className="text-2xl font-black uppercase"
+            >
               Pontos mostrados
             </h2>
             <p className="mt-1 text-sm text-comun-black/70">
@@ -385,7 +388,10 @@ export function ComunSidewalkObservatory({
       </section>
 
       <section className="mt-8" aria-labelledby="condition-distribution-title">
-        <h2 id="condition-distribution-title" className="text-2xl font-black uppercase">
+        <h2
+          id="condition-distribution-title"
+          className="text-2xl font-black uppercase"
+        >
           Distribuição por condição
         </h2>
         <p className="mt-1 text-sm text-comun-black/70">
@@ -409,7 +415,10 @@ export function ComunSidewalkObservatory({
       </section>
 
       <section className="mt-8" aria-labelledby="problem-distribution-title">
-        <h2 id="problem-distribution-title" className="text-2xl font-black uppercase">
+        <h2
+          id="problem-distribution-title"
+          className="text-2xl font-black uppercase"
+        >
           Problemas observados
         </h2>
         <p className="mt-1 max-w-3xl text-sm text-comun-black/70">
@@ -441,7 +450,10 @@ export function ComunSidewalkObservatory({
         className="mt-8 border-t-2 border-comun-black/20 pt-6"
         aria-labelledby="sidewalk-methodology-title"
       >
-        <h2 id="sidewalk-methodology-title" className="text-2xl font-black uppercase">
+        <h2
+          id="sidewalk-methodology-title"
+          className="text-2xl font-black uppercase"
+        >
           Sobre estes dados
         </h2>
         <div className="mt-3 grid gap-4 text-sm sm:grid-cols-2">
@@ -469,8 +481,8 @@ export function ComunSidewalkObservatory({
             </p>
             {partial ? (
               <p className="mt-3 font-bold">
-                Cobertura técnica parcial: o limite defensivo de carregamento foi
-                atingido; totais completos não são afirmados.
+                Cobertura técnica parcial: o limite defensivo de carregamento
+                foi atingido; totais completos não são afirmados.
               </p>
             ) : null}
           </div>
@@ -479,7 +491,9 @@ export function ComunSidewalkObservatory({
 
       <section className="mt-8 flex flex-wrap gap-3 border-t-2 border-comun-black/20 pt-6">
         <div className="mr-auto max-w-xl">
-          <h2 className="text-xl font-black">Encontrou um problema de calçada?</h2>
+          <h2 className="text-xl font-black">
+            Encontrou um problema de calçada?
+          </h2>
           <p className="mt-1 text-sm text-comun-black/70">
             O registro começa no Relata. O Observatório não cria um intake
             paralelo nem publica automaticamente a contribuição.
@@ -513,7 +527,9 @@ function IndicatorCard({
 }) {
   return (
     <article className="border-2 border-comun-black bg-comun-paper p-4">
-      <p className="text-xs font-black uppercase text-comun-black/65">{label}</p>
+      <p className="text-xs font-black uppercase text-comun-black/65">
+        {label}
+      </p>
       <p className="mt-2 text-2xl font-black leading-tight">{value}</p>
       <p className="mt-2 text-xs text-comun-black/65">{detail}</p>
     </article>
