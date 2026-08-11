@@ -1,2 +1,29 @@
-import Link from'next/link';import{ComunShell}from'@/components/comun-shell';import{ObservatoryHero}from'@/components/observatory-ui';import{getPublicObservatories}from'@/lib/observatories';
-export const dynamic='force-dynamic';export default async function Page(){const rows=await getPublicObservatories();return <ComunShell><ObservatoryHero title="Observatórios Populares" summary="Observação comunitária, metodologia pública e ação coletiva — sem confundir relato com dado oficial." status="motor comum"/><div className="observatory-grid">{rows.map(x=><Link className="hub-card" href={`/comun/observatorios/${x.slug}`} key={x.id}><b>{x.title}</b><p>{x.public_summary}</p><span>Ver observatório →</span></Link>)}</div></ComunShell>}
+import { notFound } from "next/navigation";
+import { ComunShell } from "@/components/comun-shell";
+import { ObservatoryHub } from "@/components/comun-observatory-hub";
+import { getPublicObservatoryRegistry } from "@/lib/comun-observatory";
+import {
+  isComunObservatoriesFoundationEnabled,
+  isComunObservatorySidewalkAdapterEnabled,
+} from "@/lib/comun-observatory-feature";
+import { getSidewalkReviewedProjectionForObservatory } from "@/lib/comun-observatory-sidewalk-adapter";
+
+export const dynamic = "force-dynamic";
+
+export default async function ObservatoryPage() {
+  if (!isComunObservatoriesFoundationEnabled()) notFound();
+  const sidewalkAdapterEnabled = isComunObservatorySidewalkAdapterEnabled();
+  const projection = sidewalkAdapterEnabled
+    ? await getSidewalkReviewedProjectionForObservatory()
+    : null;
+  const sidewalkAvailable = Boolean(projection?.available);
+  return (
+    <ComunShell>
+      <ObservatoryHub
+        observatories={getPublicObservatoryRegistry(sidewalkAvailable)}
+        sidewalkSource={projection?.source ?? null}
+        sidewalkCount={projection?.observations.length ?? null}
+      />
+    </ComunShell>
+  );
+}
