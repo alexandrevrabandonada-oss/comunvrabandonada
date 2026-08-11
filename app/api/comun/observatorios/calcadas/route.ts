@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
-import { isComunObservatorySidewalkAdapterEnabled } from "@/lib/comun-observatory-feature";
-import { getSidewalkReviewedProjectionForObservatory } from "@/lib/comun-observatory-sidewalk-adapter";
+import {
+  isComunObservatorySidewalkAdapterEnabled,
+  isComunObservatorySidewalkAnalyticsEnabled,
+} from "@/lib/comun-observatory-feature";
+import {
+  getSidewalkReviewedProjectionForObservatory,
+  SIDEWALK_OBSERVATORY_SAFETY_CAP,
+} from "@/lib/comun-observatory-sidewalk-adapter";
+import { COMUN_OBSERVATORY_METHODOLOGY_VERSION } from "@/lib/comun-observatory";
+import {
+  deriveSidewalkObservatoryIndicators,
+  presentSidewalkConditionFacets,
+  presentSidewalkProblemFacets,
+} from "@/lib/comun-sidewalk-observatory";
 
 export const runtime = "nodejs";
 
@@ -30,18 +42,50 @@ export async function GET() {
       { status: 503, headers: noStoreHeaders },
     );
   }
+
+  if (!isComunObservatorySidewalkAnalyticsEnabled()) {
+    const partial = projection.coverageState === "partial_due_to_safety_cap";
+    return NextResponse.json(
+      {
+        observatoryId: "sidewalks",
+        source: projection.source,
+        indicators: [
+          {
+            id: "reviewed-sidewalk-points",
+            label: "Pontos revisados",
+            value: partial
+              ? `mais de ${projection.observations.length}`
+              : projection.observations.length,
+            unit: "pontos",
+          },
+        ],
+        observations: projection.observations,
+      },
+      { headers: publicHeaders },
+    );
+  }
+
+  const indicators = deriveSidewalkObservatoryIndicators(
+    projection.observations,
+    projection.coverageState,
+  );
   return NextResponse.json(
     {
       observatoryId: "sidewalks",
+      methodologyVersion: COMUN_OBSERVATORY_METHODOLOGY_VERSION,
       source: projection.source,
-      indicators: [
-        {
-          id: "reviewed-sidewalk-points",
-          label: "Pontos revisados",
-          value: projection.observations.length,
-          unit: "pontos",
-        },
-      ],
+      coverage: {
+        state: projection.coverageState,
+        loadedCount: projection.observations.length,
+        safetyCap: SIDEWALK_OBSERVATORY_SAFETY_CAP,
+        qualityState: projection.source.qualityState,
+        diagnostics: projection.qualityDiagnostics,
+      },
+      indicators,
+      facets: {
+        conditions: presentSidewalkConditionFacets(indicators),
+        problems: presentSidewalkProblemFacets(indicators),
+      },
       observations: projection.observations,
     },
     { headers: publicHeaders },
@@ -49,7 +93,9 @@ export async function GET() {
 }
 
 export function HEAD() {
-  if (!isComunObservatorySidewalkAdapterEnabled()) return new NextResponse(null, { status: 404, headers: noStoreHeaders });
+  if (!isComunObservatorySidewalkAdapterEnabled()) {
+    return new NextResponse(null, { status: 404, headers: noStoreHeaders });
+  }
   return new NextResponse(null, { status: 200, headers: publicHeaders });
 }
 
