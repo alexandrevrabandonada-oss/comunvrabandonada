@@ -68,4 +68,43 @@ describe("48.2-B sidewalk observatory public contract", () => {
     expect(ui).toContain("Publicação");
     expect(ui).toContain("automática continua desligada");
   });
+
+  it("locks the Production rollout to the 48.2-A baseline before enabling analytics", async () => {
+    const workflow = await source(
+      "../.github/workflows/comun-48-2-b-activation.yml",
+    );
+    expect(workflow).toContain(
+      "options: [flags-off, wave1-sidewalk-analytics]",
+    );
+    expect(workflow).toContain(
+      "set_vercel_flag COMUN_OBSERVATORIES_FOUNDATION_ENABLED enabled",
+    );
+    expect(workflow).toContain(
+      "set_vercel_flag COMUN_OBSERVATORY_SIDEWALK_ADAPTER_ENABLED enabled",
+    );
+    expect(workflow).toContain(
+      'set_vercel_flag COMUN_OBSERVATORY_SIDEWALK_ANALYTICS_ENABLED "$analytics"',
+    );
+    expect(workflow).toContain("restore_48_2_a_baseline");
+    expect(workflow).toContain(
+      "COMUN_48_2_B_FLAGS_OFF_PRODUCTION_48_2_A_GREEN",
+    );
+    expect(workflow).toContain(
+      "COMUN_48_2_B_WAVE1_PRODUCTION_REVIEWED_ONLY_GREEN",
+    );
+    expect(workflow).toContain("businessWrites=0");
+    expect(workflow).not.toMatch(/psql|supabase\s+(db|migration|functions)/i);
+  });
+
+  it("keeps the Production browser proof read-only and checks map/list/filter equivalence", async () => {
+    const proof = await source(
+      "../scripts/observatories/verify-sidewalk-observatory-production.mjs",
+    );
+    expect(proof).toContain("condition map marker count");
+    expect(proof).toContain("problem map marker count");
+    expect(proof).toContain("recency map marker count");
+    expect(proof).toContain("mobile observatory must not overflow horizontally");
+    expect(proof).toContain("businessWrites: 0");
+    expect(proof).not.toMatch(/request\.(post|put|patch|delete)|fetch\([^\n]+method:/i);
+  });
 });
