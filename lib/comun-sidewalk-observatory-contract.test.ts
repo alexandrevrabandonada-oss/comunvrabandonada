@@ -124,10 +124,12 @@ describe("48.2-B sidewalk observatory public contract", () => {
     expect(runner).toContain("businessWrites=0");
     expect(combined).not.toMatch(/psql|supabase\s+(db|migration|functions)/i);
 
-    execFileSync("bash", [
-      "-n",
-      "scripts/observatories/run-48-2-b-production-wave.sh",
-    ]);
+    if (process.platform !== "win32") {
+      execFileSync("bash", [
+        "-n",
+        "scripts/observatories/run-48-2-b-production-wave.sh",
+      ]);
+    }
   });
 
   it("keeps the Production browser proof read-only and checks map/list/filter equivalence", async () => {
