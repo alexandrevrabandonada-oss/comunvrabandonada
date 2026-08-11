@@ -1,0 +1,29 @@
+{
+  "manifestVersion": "comun-transport-system-metrics-sources-v1",
+  "sources": [
+    {
+      "sourceId": "stmu-tariff-methodology-2026",
+      "sourceType": "system_metrics_pdf",
+      "publisher": "PMVR/STMU",
+      "officialUrl": "https://mobilidadeurbana.voltaredonda.rj.gov.br/storage/posts/68/files/rApvDXuPmUrNRm8BwxDjFwDWZeMoB9fGDIiiTwzH.pdf",
+      "sha256": "8be3933d24bb5007df659594cbe589d0af909973aaf74fefb7b08f50b277683a",
+      "retrievedAt": "2026-08-11T19:31:56.000Z",
+      "documentYear": 2026,
+      "methodology": "Procedimentos de Apropriação de Custos e Cálculo Tarifário de Serviços de Transporte Coletivo por Ônibus no Município de Volta Redonda",
+      "qualityState": "verified_source",
+      "sourceStatus": "active"
+    },
+    {
+      "sourceId": "pmvr-decree-19858-2026",
+      "sourceType": "tariff_decree",
+      "publisher": "Prefeitura Municipal de Volta Redonda",
+      "officialUrl": "https://www.voltaredonda.rj.gov.br/images/Documentos/VRDestaques/2024/2026-01-30_2285-extra.pdf",
+      "sha256": "4b1abfd038b55767b1ccc2ce12f217d6f7842e1f231c7e9b96c6c9e1f2f30726",
+      "retrievedAt": "2026-08-11T19:31:56.000Z",
+      "documentYear": 2026,
+      "methodology": "Decreto Municipal nº 19.858/2026, publicado na edição nº 2285 - EXTRA",
+      "qualityState": "verified_source",
+      "sourceStatus": "active"
+    }
+  ]
+}
