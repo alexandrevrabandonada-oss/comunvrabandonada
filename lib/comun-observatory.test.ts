@@ -35,14 +35,34 @@ describe("observatory public firewall", () => {
     });
   });
 
+  it("preserves the 48.2-A miniapp route while analytics is disabled", () => {
+    expect(getPublicObservatoryRegistry(true, false)[0].publicRoute).toBe(
+      "/comun/calcadas",
+    );
+  });
+
+  it("routes the sidewalk hub card to the dedicated observatory only when analytics is enabled", () => {
+    expect(getPublicObservatoryRegistry(true, true)[0].publicRoute).toBe(
+      "/comun/observatorios/calcadas",
+    );
+  });
+
   it("labels old sources without hiding them", () => {
-    expect(freshnessForUpdatedAt("2025-01-01T00:00:00.000Z", Date.UTC(2026, 7, 10))).toBe("stale");
+    expect(
+      freshnessForUpdatedAt(
+        "2025-01-01T00:00:00.000Z",
+        Date.UTC(2026, 7, 10),
+      ),
+    ).toBe("stale");
   });
 
   it("does not register sensitive Relata domains as public observatory sources", () => {
-    const registry = JSON.stringify(getPublicObservatoryRegistry(true));
-    ["public_health", "public_education", "child_protection", "private_report_aggregate"].forEach(
-      (forbidden) => expect(registry).not.toContain(forbidden),
-    );
+    const registry = JSON.stringify(getPublicObservatoryRegistry(true, true));
+    [
+      "public_health",
+      "public_education",
+      "child_protection",
+      "private_report_aggregate",
+    ].forEach((forbidden) => expect(registry).not.toContain(forbidden));
   });
 });
