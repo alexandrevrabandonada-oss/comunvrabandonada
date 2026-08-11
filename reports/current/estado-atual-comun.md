@@ -1,4 +1,28 @@
-# Estado atual — 48.2-D1A aguardando fonte oficial atual de qualidade do ar (11/08/2026)
+# Estado atual — 48.2-D2A inventário hidrometeorológico oficial parcial (11/08/2026)
+
+## 48.2-D2A — Hidrometeorologia oficial sem UI
+
+- o XLSX operacional publicado pelo INEA está acessível e foi normalizado com
+  hash e proveniência: possui 108 registros, cinco estações `Plu/Flu` na RH
+  III - Médio Paraíba do Sul e nenhuma em Volta Redonda;
+- chuva e nível estão vinculados às estações do inventário, mas não há valores,
+  unidades, horários ou freshness atuais verificáveis por contrato público
+  estável; o mapa dinâmico não foi submetido a engenharia reversa;
+- o repositório ganhou um snapshot versionado somente do inventário e testes de
+  allowlist, identidade, coordenadas, ausência, atraso, drift, firewall e rede
+  runtime; não existe active snapshot de medições;
+- decisão `PARTIAL_D2A`; não houve UI, rota, API, flag, migration, deploy,
+  leitura privada ou escrita Production;
+- D1 permanece `PARTIAL_D1` com
+  `COMUN_48_2_D1A_BLOCKED_CURRENT_OFFICIAL_SOURCE_UNAVAILABLE`, e o piloto
+  continua `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`.
+
+Resultado atual:
+`COMUN_48_2_D2A_NO_OPERATIONAL_STATION_IN_VOLTA_REDONDA`.
+
+Detalhes: `reports/current/comun-48-2-d2a-hydrometeorology-source-snapshot.md`.
+
+# Estado anterior — 48.2-D1A aguardando fonte oficial atual de qualidade do ar (11/08/2026)
 
 ## 48.2-D1A — Captura oficial de qualidade do ar
 
