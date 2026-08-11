@@ -1,4 +1,34 @@
-# Estado atual — 48.2-B Observatório de Calçadas em Production (11/08/2026)
+# Estado atual — 48.2-C0 Auditoria de dados do transporte concluída (11/08/2026)
+
+## 48.2-C0 — Auditoria de dados do transporte (sem implementação pública)
+
+- baseline remoto confirmado em `457bfc3bc2b81e356e3a610166cd532d1ba38ad9`;
+- catálogo municipal de linhas, PDFs oficiais de horários/itinerários, estudo
+  tarifário de 2026, Decreto 19.858/2026 e Tarifa Zero foram revalidados em
+  fontes oficiais PMVR/STMU;
+- a fundação 48.0E permanece `historical_local_private`, com migration
+  local-only em quarentena e promoção proibida; P5/STMU, Relata de transporte,
+  Carteira, forwarding e sessões de espera permanecem `private_operational` e
+  excluídos de qualquer Observatório;
+- nenhum contrato público de API/GTFS/GTFS-Realtime foi encontrado:
+  `COMUN_48_2_C0_REALTIME_DEFERRED_NO_PUBLIC_API_CONTRACT`;
+- nenhum dataset geográfico público oficial de pontos com identificador,
+  coordenadas e linhas atendidas foi encontrado:
+  `COMUN_48_2_C0_PUBLIC_STOPS_DATASET_NOT_FOUND`;
+- C1 está limitado à rede programada oriunda de artefatos oficiais versionados;
+  C2 tratará números oficiais com metodologia; C3 depende de API/GTFS
+  documentado; C4, se existir, será agregado e posterior;
+- zero migration, rota, flag, importação, escrita Production, publicação,
+  coleta de observações, request externo operacional ou mudança de P5/48.0E;
+- `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` permanece
+  preservado.
+
+Resultado terminal:
+`COMUN_48_2_C0_TRANSPORT_DATA_CONTRACT_GREEN`.
+
+Detalhes: `reports/current/comun-48-2-c0-transport-data-audit.md`.
+
+# Estado anterior — 48.2-B Observatório de Calçadas em Production (11/08/2026)
 
 ## 48.2-B — Observatório de Calçadas (promovido)
 
