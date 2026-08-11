@@ -1,4 +1,36 @@
-# Estado atual — 48.2-C1-R1 Reconciliação do catálogo PMVR em Production (11/08/2026)
+# Estado atual — 48.2-C2 Sistema em números do Transporte em Production (11/08/2026)
+
+## 48.2-C2 — Indicadores oficiais periódicos do sistema de transporte
+
+- PR funcional #279 foi mesclada exact-head em
+  `b0485702c1c1ff241d3e25aa4955312e9a0caa57`, sem migration;
+- a seção “O sistema em números” usa somente o snapshot versionado
+  `comun-transport-system-metrics-v1-20260811`, derivado do estudo tarifário
+  oficial da STMU e do Decreto Municipal nº 19.858/2026;
+- demanda, quilometragem, frota, IPK, parâmetros de custo e tarifa técnica
+  têm proveniência por métrica; tarifa pública é separada e não há cálculo de
+  subsídio;
+- fonte oficial periódica não é monitoramento em tempo real: GPS, Cittamobi,
+  VRBus, scraping runtime, Relata/P5 privado, Carteira, sessões, localização,
+  anexos e dado comunitário estão excluídos;
+- PMM permanece adiado por ambiguidade de unidade e não há tendência com um
+  único snapshot comparável;
+- flags-off `31532627378` preservou C1 com C2 ausente; wave 1
+  `31532943667` ativou apenas
+  `COMUN_OBSERVATORY_TRANSPORT_SYSTEM_METRICS_ENABLED`, com página/API 200,
+  `POST` 405 e invariantes públicos confirmados;
+- os dois runs foram read-only sobre dados de negócio: zero relato, Carteira,
+  snapshot, package, attempt, coletivo, request externo runtime ou hard
+  delete; auto-publicação OFF, mapa geral Relata OFF, coletivos OFF e
+  `launch_publicly=false`;
+- `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` permanece.
+
+Resultado terminal:
+`COMUN_48_2_C2_TRANSPORT_SYSTEM_INDICATORS_GREEN_OFFICIAL_ONLY`.
+
+Detalhes: `reports/current/comun-48-2-c2-transport-system-indicators.md`.
+
+# Estado anterior — 48.2-C1-R1 Reconciliação do catálogo PMVR em Production (11/08/2026)
 
 ## 48.2-C1-R1 — Drift de fonte reconciliado
 
