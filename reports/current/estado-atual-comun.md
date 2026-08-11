@@ -1,29 +1,38 @@
-# Estado atual — 48.2-A em validação local; Production preserva P6C-C (10/08/2026)
+# Estado atual — 48.2-A Observatórios em Production (11/08/2026)
 
-## 48.2-A — Fundação dos Observatórios (não promovida)
+## 48.2-A — Fundação dos Observatórios (promovida)
 
-- branch local `codex/48-2-a-observatory-foundation`, baseada em
-  `38068376ddefb0b05c3c36f8c2ef16204d4063d2`;
-- hub `/comun/observatorios`, registry versionado, proveniência, freshness e
-  disclosure acessível implementados de forma fail-closed;
-- Calçadas é o único adapter previsto e só lê a projeção pública P4
-  reviewed-only; Transporte, Ambiente e serviços essenciais continuam “Em
-  preparação”, sem números inventados;
-- Saúde, Educação, Proteção de crianças e qualquer agregado de Relata privado
-  estão excluídos do registry, API, cards, mapas e totais;
-- duas flags novas permanecem sem alteração em Production:
-  `COMUN_OBSERVATORIES_FOUNDATION_ENABLED` e
-  `COMUN_OBSERVATORY_SIDEWALK_ADAPTER_ENABLED`;
-- zero migrations, zero escrita Production, zero fixture, zero publicação,
-  zero coletivos, zero mapa geral e zero envio externo;
-- 721 testes unitários, typecheck, lint e build locais verdes; smoke local
-  comprovou cloak em flags OFF e API somente leitura;
-- a reconciliação remota read-only está pendente após
-  `LegacyDbConfigLoginRoleNetworkError`; nenhuma promoção pode ser inferida
-  desse estado.
+- PR funcional #266 mesclada exact-head em
+  `17047c8464e89c5f09ba8f96902d1e30428ecac6`; o preflight remoto read-only
+  `31454677904` comprovou `COMUN_48_2_A_REMOTE_PLAN_EMPTY_GREEN`;
+- zero migration, sem alteração de schema, e a exceção histórica de Calçadas
+  continua reconciliada apenas pelo ledger externo;
+- a primeira automação de ativação (#267) falhou no primeiro `env add`, antes
+  de deploy ou onda, sem evidência de ativação parcial;
+- PR operacional R1 #268 mesclada exact-head em
+  `8346947eafc5abf70ee342604acef2ec4fda51ee`: restaurou o binding explícito
+  do projeto Vercel, preflight read-only, diagnóstico sanitizado e rollback
+  para as duas flags; nenhum segredo ou valor de ambiente foi registrado;
+- flags-off `31457723317`, wave 1 `31457865057` e wave 2
+  `31457990389` concluíram verdes, todos com smoke anônimo e sem escrita de
+  negócio;
+- `/comun/observatorios`, registry e adapter de Calçadas estão ativos;
+  Calçadas lê somente a projeção pública P4 reviewed-only, com proveniência,
+  freshness e metodologia; Transporte, Ambiente e Água e serviços seguem “Em
+  preparação”;
+- Saúde, Educação, Proteção de crianças, Relata privado, Carteira, localização
+  privada, fotos, identidade e forwarding estão excluídos de API, contagem,
+  cards e cache público;
+- `COMUN_OBSERVATORIES_FOUNDATION_ENABLED=enabled` e
+  `COMUN_OBSERVATORY_SIDEWALK_ADAPTER_ENABLED=enabled`;
+- zero fixtures, reports, Carteiras, records, snapshots, packages, attempts,
+  coletivos, requests externos e hard deletes; auto-publicação OFF, mapa geral
+  Relata OFF, coletivos OFF e `launch_publicly=false`.
 
-O terminal 48.2-A ainda não foi emitido. Detalhes:
-`reports/current/comun-48-2-a-observatory-foundation.md`.
+Resultado terminal:
+`COMUN_48_2_A_OBSERVATORY_FOUNDATION_PUBLIC_FIREWALL_GREEN`.
+
+Detalhes: `reports/current/comun-48-2-a-observatory-foundation.md`.
 
 ## 48.1B-P6C-C — encaminhamento assistido sensível
 
