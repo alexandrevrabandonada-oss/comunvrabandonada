@@ -5,6 +5,7 @@ import { getPublicObservatoryRegistry } from "@/lib/comun-observatory";
 import {
   isComunObservatoriesFoundationEnabled,
   isComunObservatorySidewalkAdapterEnabled,
+  isComunObservatorySidewalkAnalyticsEnabled,
 } from "@/lib/comun-observatory-feature";
 import { getSidewalkReviewedProjectionForObservatory } from "@/lib/comun-observatory-sidewalk-adapter";
 
@@ -13,6 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function ObservatoryPage() {
   if (!isComunObservatoriesFoundationEnabled()) notFound();
   const sidewalkAdapterEnabled = isComunObservatorySidewalkAdapterEnabled();
+  const sidewalkAnalyticsEnabled = isComunObservatorySidewalkAnalyticsEnabled();
   const projection = sidewalkAdapterEnabled
     ? await getSidewalkReviewedProjectionForObservatory()
     : null;
@@ -20,9 +22,13 @@ export default async function ObservatoryPage() {
   return (
     <ComunShell>
       <ObservatoryHub
-        observatories={getPublicObservatoryRegistry(sidewalkAvailable)}
+        observatories={getPublicObservatoryRegistry(
+          sidewalkAvailable,
+          sidewalkAnalyticsEnabled,
+        )}
         sidewalkSource={projection?.source ?? null}
         sidewalkCount={projection?.observations.length ?? null}
+        sidewalkCoverageState={projection?.coverageState ?? null}
       />
     </ComunShell>
   );
