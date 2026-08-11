@@ -1,4 +1,32 @@
-# Estado atual — 48.2-C0 Auditoria de dados do transporte concluída (11/08/2026)
+# Estado atual — 48.2-C1 Rede programada oficial de transporte em Production (11/08/2026)
+
+## 48.2-C1 — Observatório do Transporte (rede programada oficial)
+
+- PR #275 foi mesclada exact-head em
+  `2a4332f3c715768bc78b7e61fb103a3017c9f47c`, sem migration;
+- a rede pública é um snapshot versionado de 48 linhas e cinco artefatos
+  oficiais PMVR/STMU; não é feed em tempo real nem experiência comunitária;
+- flags-off `31514616408` preservou o cloak C1; a wave 1 `31514842414` ativou
+  apenas `COMUN_OBSERVATORY_TRANSPORT_PROGRAMMED_ENABLED`;
+- hub, página de transporte, fontes e APIs públicas respondem `200`; métodos
+  mutáveis continuam `405`; a linha 210 preserva `00:20 +1` e declara grade
+  parcial sem completar dados por inferência;
+- Relata/P5/STMU, Carteira, localização, anexos, encaminhamentos, GPS, paradas
+  e tempo real não entram na UI, API ou cache públicos;
+- a mudança posterior no catálogo oficial foi detectada sem atualização
+  automática: `COMUN_48_2_C1_OFFICIAL_SOURCE_DRIFT_DETECTED` exige ciclo de
+  revisão separado;
+- não houve escrita de negócio, envio externo, publicação, snapshot, coletivo
+  ou hard delete; auto-publicação OFF, mapa geral Relata OFF, coletivos OFF e
+  `launch_publicly=false`;
+- `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` permanece.
+
+Resultado terminal:
+`COMUN_48_2_C1_TRANSPORT_PROGRAMMED_NETWORK_GREEN_OFFICIAL_ONLY`.
+
+Detalhes: `reports/current/comun-48-2-c1-transport-programmed-network.md`.
+
+# Estado anterior — 48.2-C0 Auditoria de dados do transporte concluída (11/08/2026)
 
 ## 48.2-C0 — Auditoria de dados do transporte (sem implementação pública)
 
