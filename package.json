@@ -179,6 +179,8 @@
     "transport:source-drift:reconcile": "node scripts/observatories/reconcile-transport-programmed-source-drift.mjs",
     "transport:source-drift:test": "node --test scripts/observatories/transport-catalog-normalizer.node-test.mjs",
     "transport:source-drift:materialize-v2": "node scripts/observatories/materialize-transport-programmed-network-v2.mjs --write-reviewed-v2",
+    "transport:system-metrics:verify": "node scripts/observatories/verify-transport-system-metrics-sources.mjs",
+    "transport:system-metrics:audit": "node scripts/observatories/audit-transport-system-metrics-snapshot.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

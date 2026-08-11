@@ -1,0 +1,67 @@
+{
+  "snapshotId": "comun-transport-system-metrics-v1-20260811",
+  "snapshotDate": "2026-08-11",
+  "verifiedAt": "2026-08-11T19:31:56.000Z",
+  "methodologyVersion": "comun-transport-system-metrics-v1",
+  "sources": ["stmu-tariff-methodology-2026", "pmvr-decree-19858-2026"],
+  "previousSnapshotId": null,
+  "metrics": {
+    "passengers": {
+      "sourceReportedPeriod": "Média (12 meses)",
+      "items": [
+        { "metricId": "gratuitous_passengers", "label": "Gratuidades", "value": 8421707, "unit": "passageiros", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 18, "sourceSection": "5.1 Passageiros transportados", "sourceReportedPeriod": "Total reportado no estudo; janela não especificada", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Não é contagem em tempo real." },
+        { "metricId": "half_fare_passengers", "label": "Meia passagem", "value": 1069763, "unit": "passageiros", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 18, "sourceSection": "5.1 Passageiros transportados", "sourceReportedPeriod": "Total reportado no estudo; janela não especificada", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Não é contagem em tempo real." },
+        { "metricId": "paying_passengers", "label": "Pagantes", "value": 14223537, "unit": "passageiros", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 18, "sourceSection": "5.1 Passageiros transportados", "sourceReportedPeriod": "Total reportado no estudo; janela não especificada", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Não é contagem em tempo real." },
+        { "metricId": "total_transported_passengers", "label": "Total transportado", "value": 23715007, "unit": "passageiros", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 18, "sourceSection": "5.1 Passageiros transportados", "sourceReportedPeriod": "Total reportado no estudo; janela não especificada", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Total reportado pelo estudo; não é dado diário." },
+        { "metricId": "equivalent_passengers", "label": "Passageiros equivalentes", "value": 14758419, "unit": "passageiros equivalentes", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 18, "sourceSection": "5.1 Passageiros transportados", "sourceReportedPeriod": "Total reportado no estudo; janela não especificada", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Não é sinônimo de total transportado." },
+        { "metricId": "average_monthly_transported", "label": "Média mensal transportada", "value": 1976251, "unit": "passageiros por mês", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 18, "sourceSection": "5.1 Passageiros transportados", "sourceReportedPeriod": "Média (12 meses)", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "O documento não identifica os meses que compõem a média." },
+        { "metricId": "average_monthly_equivalent", "label": "Média mensal equivalente", "value": 1229868, "unit": "passageiros equivalentes por mês", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 18, "sourceSection": "5.1 Passageiros transportados", "sourceReportedPeriod": "Média (12 meses)", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "O documento não identifica os meses que compõem a média." }
+      ],
+      "derivedComposition": [
+        { "metricId": "share_gratuities", "label": "Participação de gratuidades", "value": 35.513019, "unit": "percentual", "derived": true, "denominatorMetricId": "total_transported_passengers", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 18 },
+        { "metricId": "share_half_fare", "label": "Participação de meia passagem", "value": 4.511792, "unit": "percentual", "derived": true, "denominatorMetricId": "total_transported_passengers", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 18 },
+        { "metricId": "share_paying", "label": "Participação de pagantes", "value": 59.975189, "unit": "percentual", "derived": true, "denominatorMetricId": "total_transported_passengers", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 18 }
+      ]
+    },
+    "kilometers": {
+      "items": [
+        { "metricId": "productive_kilometers_monthly", "label": "Quilometragem produtiva", "value": 806616.01, "unit": "km por mês", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 19, "sourceSection": "5.2.1 Quilometragem produtiva", "sourceReportedPeriod": "km/mês", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Percorrida na prestação do serviço, conforme definição do estudo." },
+        { "metricId": "unproductive_kilometers_monthly", "label": "Quilometragem improdutiva", "value": 40330.8, "unit": "km por mês", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 19, "sourceSection": "5.2.2 Quilometragem improdutiva", "sourceReportedPeriod": "km/mês", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Deslocamento sem geração de receita, como garagem-terminal." },
+        { "metricId": "ipk", "label": "IPK", "value": 1.4521, "unit": "passageiros equivalentes por km", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 19, "sourceSection": "5.2.4 IPK - Índice de passageiros por quilômetro", "sourceReportedPeriod": "Parâmetro do estudo", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Indicador operacional/tarifário; não mede qualidade do serviço." }
+      ]
+    },
+    "fleet": {
+      "total": { "metricId": "fleet_total", "label": "Frota considerada no estudo tarifário", "value": 132, "unit": "veículos", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 20, "sourceSection": "5.3.1 Frota por tipo de veículo", "sourceReportedPeriod": "Frota considerada no estudo tarifário; determinação de frota operante - ano 2025", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Não representa ônibus rodando agora." },
+      "operating": { "metricId": "fleet_operating", "label": "Frota operante", "value": 120, "unit": "veículos", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 20, "sourceSection": "5.3.1 Frota por tipo de veículo", "sourceReportedPeriod": "Frota considerada no estudo tarifário; determinação de frota operante - ano 2025", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Parâmetro do estudo tarifário." },
+      "reserve": { "metricId": "fleet_reserve", "label": "Frota reserva", "value": 12, "unit": "veículos", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 20, "sourceSection": "5.3.1 Frota por tipo de veículo", "sourceReportedPeriod": "Frota considerada no estudo tarifário; determinação de frota operante - ano 2025", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Parâmetro do estudo tarifário." },
+      "byAgeRange": [
+        { "range": "0-1", "lightVehicles": 8, "heavyVehicles": 6 }, { "range": "1-2", "lightVehicles": 2, "heavyVehicles": 15 }, { "range": "2-3", "lightVehicles": 4, "heavyVehicles": 0 }, { "range": "3-4", "lightVehicles": 0, "heavyVehicles": 0 }, { "range": "4-5", "lightVehicles": 0, "heavyVehicles": 0 }, { "range": "5-6", "lightVehicles": 0, "heavyVehicles": 12 }, { "range": "6-7", "lightVehicles": 6, "heavyVehicles": 16 }, { "range": "7-8", "lightVehicles": 9, "heavyVehicles": 15 }, { "range": "8-9", "lightVehicles": 3, "heavyVehicles": 7 }, { "range": "9-10", "lightVehicles": 4, "heavyVehicles": 4 }, { "range": "10-11", "lightVehicles": 0, "heavyVehicles": 4 }, { "range": "11-12", "lightVehicles": 0, "heavyVehicles": 6 }, { "range": "more_than_12", "lightVehicles": 0, "heavyVehicles": 11 }
+      ]
+    },
+    "costs": {
+      "variableMonthly": { "metricId": "variable_cost_monthly", "label": "Custo variável total", "value": 2822616.22, "unit": "BRL por mês", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 25, "sourceSection": "Resumo do cálculo final da tarifa", "sourceReportedPeriod": "Parâmetro mensal do cálculo tarifário", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Parâmetro do cálculo tarifário oficial; não é gasto efetivamente pago pela prefeitura." },
+      "fixedMonthly": { "metricId": "fixed_cost_monthly", "label": "Custo fixo total", "value": 3995405.63, "unit": "BRL por mês", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 25, "sourceSection": "Resumo do cálculo final da tarifa", "sourceReportedPeriod": "Parâmetro mensal do cálculo tarifário", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Parâmetro do cálculo tarifário oficial; não é gasto efetivamente pago pela prefeitura." },
+      "totalMonthly": { "metricId": "total_cost_monthly", "label": "Custo total", "value": 6818021.85, "unit": "BRL por mês", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 25, "sourceSection": "Resumo do cálculo final da tarifa", "sourceReportedPeriod": "Parâmetro mensal do cálculo tarifário", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Parâmetro do cálculo tarifário oficial; não é gasto efetivamente pago pela prefeitura." },
+      "perKilometer": { "metricId": "cost_per_kilometer", "label": "Custo por quilômetro", "value": 8.0501, "unit": "BRL por km", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 25, "sourceSection": "Resumo do cálculo final da tarifa", "sourceReportedPeriod": "Parâmetro do cálculo tarifário", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Valor original do estudo." },
+      "perKilometerWithTaxes": { "metricId": "cost_per_kilometer_with_taxes", "label": "Custo por quilômetro com tributos", "value": 8.619, "unit": "BRL por km", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 25, "sourceSection": "Resumo do cálculo final da tarifa", "sourceReportedPeriod": "Parâmetro do cálculo tarifário", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Valor original do estudo." },
+      "components": [
+        { "metricId": "fuel", "label": "Combustível", "monthlyValue": 1883842.76, "percentageOfTotal": 27.6303 },
+        { "metricId": "lubricants", "label": "Lubrificantes", "monthlyValue": 180188.78, "percentageOfTotal": 2.6428 },
+        { "metricId": "tires", "label": "Rodagem", "monthlyValue": 183182.5, "percentageOfTotal": 2.6867 },
+        { "metricId": "parts_accessories", "label": "Peças e acessórios", "monthlyValue": 575402.18, "percentageOfTotal": 8.4394 },
+        { "metricId": "depreciation", "label": "Depreciação", "monthlyValue": 637201.36, "percentageOfTotal": 9.35 },
+        { "metricId": "remuneration", "label": "Remuneração", "monthlyValue": 588286.39, "percentageOfTotal": 8.63 },
+        { "metricId": "personnel", "label": "Despesas com pessoal", "monthlyValue": 2396348.64, "percentageOfTotal": 35.15 },
+        { "metricId": "administrative", "label": "Despesas administrativas", "monthlyValue": 373569.24, "percentageOfTotal": 5.48 }
+      ]
+    },
+    "technicalFare": { "metricId": "technical_calculated_fare", "label": "Tarifa técnica calculada no estudo", "value": 5.9354, "unit": "BRL", "sourceId": "stmu-tariff-methodology-2026", "sourcePage": 25, "sourceSection": "Resumo do cálculo final da tarifa", "sourceReportedPeriod": "Cálculo tarifário 2026", "periodStart": null, "periodEnd": null, "qualityState": "verified_source", "notes": "Valor técnico original; não é o preço da passagem." },
+    "publicFare": { "value": 5.9, "effectiveFrom": "2026-02-01", "decreeNumber": "19.858/2026", "sourceId": "pmvr-decree-19858-2026", "sourcePage": 6, "sourceSection": "Art. 1º", "qualityState": "verified_source" }
+  },
+  "limitations": [
+    "COMUN_48_2_C2_PMM_DEFERRED_SOURCE_FORMAT_AMBIGUITY",
+    "COMUN_48_2_C2_TREND_ANALYTICS_DEFERRED_SINGLE_COMPARABLE_SNAPSHOT",
+    "O estudo oficial não informa as datas inicial e final que compõem a média de 12 meses.",
+    "Os indicadores são parâmetros e períodos reportados pelo estudo oficial; não são dados em tempo real."
+  ]
+}

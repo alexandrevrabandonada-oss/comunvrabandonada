@@ -4,7 +4,8 @@ import {
   COMUN_TRANSPORT_SOURCE_MANIFEST,
   COMUN_TRANSPORT_SNAPSHOT,
 } from "@/lib/comun-transport-programmed-network";
-import { isComunObservatoryTransportProgrammedEnabled } from "@/lib/comun-observatory-feature";
+import { COMUN_TRANSPORT_SYSTEM_METRICS_SOURCE_MANIFEST } from "@/lib/comun-transport-system-metrics";
+import { isComunObservatoryTransportProgrammedEnabled, isComunObservatoryTransportSystemMetricsEnabled } from "@/lib/comun-observatory-feature";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,7 @@ export default function Page() {
             </article>
           ))}
         </section>
+        {isComunObservatoryTransportSystemMetricsEnabled() ? <section className="mt-8 space-y-3" aria-labelledby="system-metrics-sources"><h2 id="system-metrics-sources" className="text-2xl font-black uppercase">Sistema em números</h2><p>Fontes versionadas para os parâmetros periódicos do estudo tarifário. Não são monitoramento em tempo real.</p>{COMUN_TRANSPORT_SYSTEM_METRICS_SOURCE_MANIFEST.sources.map((source) => <article className="border-2 border-comun-paper/35 bg-comun-paper p-4 text-comun-black" key={source.sourceId}><h3 className="font-black">{source.sourceType}</h3><p>{source.publisher} · documento {source.documentYear}</p><p className="text-sm">SHA-256 da captura: <code className="break-all">{source.sha256}</code></p><a className="mt-2 inline-block font-bold underline" href={source.officialUrl} target="_blank" rel="noreferrer">Abrir fonte oficial</a></article>)}</section> : null}
         <section className="mt-8 border-l-4 border-comun-yellow pl-4 text-sm">
           <h2 className="font-black uppercase">Limitações</h2>
           <p className="mt-2">Programado não é realizado. Não há tempo real, previsão de chegada, GPS, geografia de pontos, relatos P5, Carteira, sessões 48.0E ou dados de encaminhamento. O catálogo é revisado por conteúdo semântico; uma mudança de rede exige revisão e novo snapshot.</p>

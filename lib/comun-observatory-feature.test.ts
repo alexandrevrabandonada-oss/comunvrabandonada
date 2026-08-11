@@ -4,6 +4,7 @@ import {
   isComunObservatorySidewalkAdapterEnabled,
   isComunObservatorySidewalkAnalyticsEnabled,
   isComunObservatoryTransportProgrammedEnabled,
+  isComunObservatoryTransportSystemMetricsEnabled,
 } from "./comun-observatory-feature";
 
 const p4 = {
@@ -29,6 +30,7 @@ describe("observatory feature flags", () => {
     expect(isComunObservatorySidewalkAdapterEnabled({})).toBe(false);
     expect(isComunObservatorySidewalkAnalyticsEnabled({})).toBe(false);
     expect(isComunObservatoryTransportProgrammedEnabled({})).toBe(false);
+    expect(isComunObservatoryTransportSystemMetricsEnabled({})).toBe(false);
   });
 
   it("requires only the public foundation and its own C1 flag for programmed transport", () => {
@@ -43,6 +45,21 @@ describe("observatory feature flags", () => {
         COMUN_OBSERVATORY_TRANSPORT_PROGRAMMED_ENABLED: "enabled",
       }),
     ).toBe(false);
+  });
+
+  it("keeps C1 public while C2 system metrics stays cloaked", () => {
+    const c1 = {
+      COMUN_OBSERVATORIES_FOUNDATION_ENABLED: "enabled",
+      COMUN_OBSERVATORY_TRANSPORT_PROGRAMMED_ENABLED: "enabled",
+    };
+    expect(isComunObservatoryTransportProgrammedEnabled(c1)).toBe(true);
+    expect(isComunObservatoryTransportSystemMetricsEnabled(c1)).toBe(false);
+    expect(
+      isComunObservatoryTransportSystemMetricsEnabled({
+        ...c1,
+        COMUN_OBSERVATORY_TRANSPORT_SYSTEM_METRICS_ENABLED: "enabled",
+      }),
+    ).toBe(true);
   });
 
   it("requires the P4 public capability for the sidewalk adapter", () => {
