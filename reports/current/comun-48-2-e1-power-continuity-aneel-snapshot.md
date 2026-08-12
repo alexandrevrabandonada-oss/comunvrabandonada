@@ -1,6 +1,6 @@
 # 48.2-E1 — Continuidade da Energia: auditoria de snapshot ANEEL
 
-Data da auditoria: 2026-08-12  
+Data da auditoria: 2026-08-12
 Baseline: `bc8de783483366bace7c6e9bd43042f7d7c6324f`
 
 ## Decisão
