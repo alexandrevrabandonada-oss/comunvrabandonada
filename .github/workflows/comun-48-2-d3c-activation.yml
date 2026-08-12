@@ -1,0 +1,72 @@
+name: COMUN 48.2-D3C territorial context activation
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA to deploy
+        required: true
+        type: string
+      mode:
+        description: Cloak the territorial context first, then activate it in a separate read-only wave
+        required: true
+        type: choice
+        options: [flags-off, wave1-territorial-context]
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+  COMUN_BASE_URL: https://comunsocial.online
+  COMUN_48_2_D3C_BASELINE_SHA: 26a7f32d7c948124d919291db335f92e7cd2aee0
+
+jobs:
+  activate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Verify exact main, snapshot-only scope and zero migration diff
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          test "$(git rev-parse origin/main)" = "$EXPECTED_MAIN_SHA"
+          git merge-base --is-ancestor "$COMUN_48_2_D3C_BASELINE_SHA" HEAD
+          test -z "$(git diff --name-only "$COMUN_48_2_D3C_BASELINE_SHA"...HEAD -- supabase/migrations)" || {
+            echo COMUN_48_2_D3C_BLOCKED_UNEXPECTED_MIGRATION >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          }
+          echo COMUN_48_2_D3C_ZERO_MIGRATION_GATE_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify canonical Vercel project binding read-only
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          output="$(mktemp)"; errors="$(mktemp)"
+          if ! npx --yes vercel@50.28.0 project inspect "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >"$output" 2>"$errors"; then
+            rm -f "$output" "$errors"
+            echo COMUN_48_2_D3C_BLOCKED_VERCEL_PROJECT_BINDING >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          rm -f "$output" "$errors"
+          echo COMUN_48_2_D3C_VERCEL_PROJECT_BINDING_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Deploy exact main and run selected read-only wave
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          MODE: ${{ inputs.mode }}
+        shell: bash
+        run: bash scripts/observatories/run-48-2-d3c-production-wave.sh "$MODE"
