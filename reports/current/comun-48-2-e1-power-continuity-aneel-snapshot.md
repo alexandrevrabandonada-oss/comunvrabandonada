@@ -8,6 +8,10 @@ Baseline: `bc8de783483366bace7c6e9bd43042f7d7c6324f`
 `PARTIAL_E1_POWER`
 
 Não foi promovido `active-snapshot.json` e não há superfície pública E1.
+O E1 revisou a prontidão preliminar `READY_E1_POWER` do E0 para
+`PARTIAL_E1_POWER` após a materialização da fonte revelar ausência de uma
+relação município–conjunto válida por período. Isso é correção metodológica,
+não regressão.
 Os dados oficiais de indicadores existem, mas não há relação oficial
 município–conjunto histórica por período que permita afirmar que um conjunto
 da série de 2020-01 a 2026-06 pertencia a Volta Redonda naquele mesmo período.

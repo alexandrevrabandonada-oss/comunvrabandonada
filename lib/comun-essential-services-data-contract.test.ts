@@ -9,6 +9,7 @@ import {
   type PublicLightingServiceDescriptor,
   type WaterSupplyOfficialNotice,
 } from "./comun-essential-services-data-contract";
+import { COMUN_POWER_CONTINUITY_ANEEL_CANDIDATE } from "./comun-power-continuity-aneel";
 
 describe("essential services public data contract E0", () => {
   it("keeps the three essential-service domains separate with honest readiness", () => {
@@ -18,7 +19,7 @@ describe("essential services public data contract E0", () => {
       "public_lighting_service",
     ]);
     expect(COMUN_ESSENTIAL_SERVICES_DATA_CONTRACT.decisions).toEqual({
-      power_distribution_continuity: "READY_E1_POWER",
+      power_distribution_continuity: "PARTIAL_E1_POWER",
       water_supply_service: "PARTIAL_E_WATER_OFFICIAL_NOTICES_ONLY",
       public_lighting_service: "PARTIAL_E_LIGHTING_SERVICE_AND_PROJECTS_ONLY",
     });
@@ -36,14 +37,24 @@ describe("essential services public data contract E0", () => {
     expect(isOfficialEssentialServicesSourceUrl("https://example.test/source")).toBe(false);
   });
 
-  it("requires ANEEL official set identity and utility identity without event inference", () => {
+  it("reconciles E0 with E1 and keeps ANEEL identities only as a non-historical sanity baseline", () => {
     const power = COMUN_ESSENTIAL_SERVICES_DATA_CONTRACT.domains.power_distribution_continuity as unknown as {
-      stableIdentity: { utilityId: string; utilityName: string; verifiedElectricalSets: Array<{ electricalSetId: string; electricalSetName: string }> };
+      candidateSnapshotAllowed: boolean;
+      stableIdentity: {
+        utilityId: string;
+        utilityName: string;
+        municipalityRelation: string;
+        sanityBaselineElectricalSets: Array<{ electricalSetId: string; electricalSetName: string }>;
+      };
       semantics: { eventInferenceAllowed: boolean; municipalityAggregateAllowed: boolean };
     };
+    expect(power.candidateSnapshotAllowed).toBe(false);
     expect(power.stableIdentity.utilityId).toBe("CNPJ:60444437000146");
     expect(power.stableIdentity.utilityName).toBe("LIGHT SESA");
-    expect(power.stableIdentity.verifiedElectricalSets).toEqual(
+    expect(power.stableIdentity.municipalityRelation).toBe(
+      "current_official_materialization_not_historical_membership",
+    );
+    expect(power.stableIdentity.sanityBaselineElectricalSets).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ electricalSetId: "8570", electricalSetName: "VOLTA REDONDA" }),
         expect.objectContaining({ electricalSetId: "8571", electricalSetName: "VOLTA REDONDA NAO URBANO" }),
@@ -53,6 +64,26 @@ describe("essential services public data contract E0", () => {
     expect(power.semantics.eventInferenceAllowed).toBe(false);
     expect(power.semantics.municipalityAggregateAllowed).toBe(false);
     expect(canUsePowerContinuityAsOutageEvents()).toBe(false);
+    expect(COMUN_POWER_CONTINUITY_ANEEL_CANDIDATE.decision).toBe(
+      COMUN_ESSENTIAL_SERVICES_DATA_CONTRACT.decisions.power_distribution_continuity,
+    );
+    expect(COMUN_POWER_CONTINUITY_ANEEL_CANDIDATE.activeSnapshot).toBe(false);
+    expect(COMUN_POWER_CONTINUITY_ANEEL_CANDIDATE.coreLatestComparablePeriod).toBeNull();
+
+    const relation = (COMUN_ESSENTIAL_SERVICES_DATA_CONTRACT.domains
+      .power_distribution_continuity as unknown as {
+      sources: Array<{
+        sourceId: string;
+        coveragePeriod: string;
+        temporalGranularity: string;
+        completeness: string;
+      }>;
+    }).sources.find((source) => source.sourceId === "aneel-indqual-municipality-relation-20260812");
+    expect(relation).toMatchObject({
+      coveragePeriod: "single captured materialization reported 2026-08-05",
+      temporalGranularity: "materialization_date_only",
+      completeness: "current_relation_materialization_only",
+    });
   });
 
   it("fails closed for incomplete water notices and preserves forecast versus actual resumption", () => {

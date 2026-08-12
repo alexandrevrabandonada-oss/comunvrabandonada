@@ -10,20 +10,20 @@
   "automaticPublicationAllowed": false,
   "runtimeExternalFetchAllowed": false,
   "decisions": {
-    "power_distribution_continuity": "READY_E1_POWER",
+    "power_distribution_continuity": "PARTIAL_E1_POWER",
     "water_supply_service": "PARTIAL_E_WATER_OFFICIAL_NOTICES_ONLY",
     "public_lighting_service": "PARTIAL_E_LIGHTING_SERVICE_AND_PROJECTS_ONLY"
   },
   "domains": {
     "power_distribution_continuity": {
       "canonicalDomain": "power_distribution_continuity",
-      "decision": "READY_E1_POWER",
-      "candidateSnapshotAllowed": true,
+      "decision": "PARTIAL_E1_POWER",
+      "candidateSnapshotAllowed": false,
       "stableIdentity": {
         "utilityId": "CNPJ:60444437000146",
         "utilityName": "LIGHT SESA",
-        "municipalityRelation": "official_set_to_municipality_relation_required",
-        "verifiedElectricalSets": [
+        "municipalityRelation": "current_official_materialization_not_historical_membership",
+        "sanityBaselineElectricalSets": [
           {
             "electricalSetId": "14995",
             "electricalSetName": "RETIRO"
@@ -83,20 +83,20 @@
         {
           "sourceId": "aneel-indqual-municipality-relation-20260812",
           "publisher": "ANEEL",
-          "officialUrl": "https://dadosabertos.aneel.gov.br/api/3/action/package_show?id=indqual-municipio",
+          "officialUrl": "https://dadosabertos.aneel.gov.br/dataset/db9c9f60-b3b5-4504-9dfe-2637922d53ce/resource/3f841488-80a8-42f2-a6ca-e0c593b228de/download/indqual-municipio.csv",
           "resourceCatalogUrl": "https://dadosabertos.aneel.gov.br/dataset/indqual-municipio",
-          "contentType": "application/json",
-          "retrievedAt": "2026-08-12T21:32:04.194Z",
-          "rawSha256": "3b6d422a59d1fca8b93aea0a7f5292f5b51a4633e08e03e2c95036bd80476e2e",
+          "contentType": "text/csv",
+          "retrievedAt": "2026-08-12T23:05:33Z",
+          "rawSha256": "ca21e65595eff64077967a4e53aebe4c980ba319e4a314eec837b8807d8596ba",
           "semanticSha256": null,
-          "coveragePeriod": "2001-01 through the latest ANEEL-published monthly reference in the catalog",
+          "coveragePeriod": "single captured materialization reported 2026-08-05",
           "geographicGranularity": "municipality to official consumer-unit-set relation",
-          "temporalGranularity": "monthly",
-          "completeness": "official_relation_series",
-          "updateFrequency": "monthly_reported_by_catalog",
+          "temporalGranularity": "materialization_date_only",
+          "completeness": "current_relation_materialization_only",
+          "updateFrequency": "not_established_from_captured_materialization",
           "publicSafe": true,
           "runtimeSuitable": false,
-          "recommendedUse": "mandatory official municipality relation before selecting a continuity set for Volta Redonda"
+          "recommendedUse": "current-relationship sanity only; never establish historic municipality membership or retrospectively select a continuity set"
         }
       ],
       "requiredOfficialResources": [

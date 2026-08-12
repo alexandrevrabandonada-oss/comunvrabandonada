@@ -2183,11 +2183,12 @@ Preservados: `COMUN_48_2_D3A_ENVIRONMENTAL_EXPOSURE_DEFERRED_NO_CURRENT_ENVIRONM
 - contrato público versionado para três domínios semanticamente separados:
   `power_distribution_continuity`, `water_supply_service` e
   `public_lighting_service`;
-- a auditoria da ANEEL confirmou a distribuidora `LIGHT SESA`, a relação
-  oficial conjunto-município de Volta Redonda e uma série mensal de
-  DEC/FEC, limites, atributos e compensações; DEC/FEC seguem
-  como indicadores coletivos por conjunto, nunca como lista de apagões;
-- energia ficou `READY_E1_POWER`; água ficou
+- a auditoria da ANEEL confirmou a distribuidora `LIGHT SESA` e uma série
+  mensal de DEC/FEC por conjunto; a relação município–conjunto posteriormente
+  materializada pelo E1 revelou-se atual, não histórica; DEC/FEC seguem como
+  indicadores coletivos por conjunto, nunca como lista de apagões;
+- energia ficou preliminarmente `READY_E1_POWER` e foi reconciliada pelo E1
+  para `PARTIAL_E1_POWER`; água ficou
   `PARTIAL_E_WATER_OFFICIAL_NOTICES_ONLY`, pois comunicados SAAE-VR não
   comprovam registro completo de eventos; iluminação ficou
   `PARTIAL_E_LIGHTING_SERVICE_AND_PROJECTS_ONLY`, pois a Carta 158 e obras
@@ -2197,11 +2198,11 @@ Preservados: `COMUN_48_2_D3A_ENVIRONMENTAL_EXPOSURE_DEFERRED_NO_CURRENT_ENVIRONM
 - `drinking_water_quality=PARTIAL_D4`, auto-publicação, mapa geral Relata e
   coletivos permanecem preservados; `launch_publicly=false`.
 
-Estado atual:
+Estado E0 preservado:
 `COMUN_48_2_E0_ESSENTIAL_SERVICES_PUBLIC_DATA_CONTRACT_GREEN`.
 
-Próximo bloco elegível: `48.2-E1 — Continuidade da Energia: snapshot ANEEL`.
-Não iniciar E1 neste ciclo.
+O E1 somente pode produzir snapshot quando houver uma relação oficial
+município–conjunto válida no mesmo período dos indicadores.
 
 ### 48.2-E1 — Continuidade da Energia: auditoria ANEEL (2026-08-12)
 
@@ -2221,6 +2222,11 @@ Não iniciar E1 neste ciclo.
   exceder 1 GB; nenhum direito de compensação foi inferido.
 
 Estado atual: `PARTIAL_E1_POWER`.
+
+O E1 revisou explicitamente a prontidão preliminar `READY_E1_POWER` do E0
+para `PARTIAL_E1_POWER`: a materialização capturada não contém relação
+município–conjunto válida por período. É uma correção metodológica, não uma
+regressão de produto.
 
 Uma revisão E1-R1 exige relação oficial temporalmente válida de
 município–conjunto antes de qualquer snapshot ou Observatório de energia.

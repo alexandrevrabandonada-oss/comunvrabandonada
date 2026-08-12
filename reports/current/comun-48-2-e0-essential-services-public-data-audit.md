@@ -7,7 +7,7 @@ Baseline: `901ee60d84d11044c8410caf70987635b8a4beb8`
 
 ```json
 {
-  "power_distribution_continuity": "READY_E1_POWER",
+  "power_distribution_continuity": "PARTIAL_E1_POWER",
   "water_supply_service": "PARTIAL_E_WATER_OFFICIAL_NOTICES_ONLY",
   "public_lighting_service": "PARTIAL_E_LIGHTING_SERVICE_AND_PROJECTS_ONLY"
 }
@@ -21,7 +21,7 @@ Production ou captura em runtime.
 
 | Domínio | Fonte oficial auditada | Identidade estável | Formato | Tempo / geografia | Completude | Uso recomendado | Decisão |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `power_distribution_continuity` | ANEEL, Indicadores Coletivos de Continuidade DEC/FEC | CNPJ da distribuidora + conjunto de unidades consumidoras | catálogo CKAN, ZIP/CSV/Parquet e dicionários | mensal; conjunto de unidades consumidoras com relação oficial a município | série oficial de indicadores coletivos | snapshot controlado futuro de DEC/FEC, limites, atributos e compensações | `READY_E1_POWER` |
+| `power_distribution_continuity` | ANEEL, Indicadores Coletivos de Continuidade DEC/FEC | CNPJ da distribuidora + conjunto de unidades consumidoras | catálogo CKAN, ZIP/CSV/Parquet e dicionários | mensal por conjunto; a relação municipal capturada é somente uma materialização atual | série oficial de indicadores, sem associação municipal histórica comprovada | retenção de evidência candidata; nenhum snapshot municipal ativo | `PARTIAL_E1_POWER` |
 | `water_supply_service` | SAAE-VR, comunicados públicos | identificador da notícia oficial | HTML | específico de cada aviso; rótulos de áreas afetadas quando publicados | `official_notices_only` | contrato futuro opcional de avisos, sem estatística de todos os eventos | `PARTIAL_E_WATER_OFFICIAL_NOTICES_ONLY` |
 | `public_lighting_service` | PMVR/SMI, Carta de Serviços 158 e publicações de obras | URL institucional / publicação | HTML | serviço municipal ou projeto publicado | descrição de serviço e projetos, não ocorrências | responsabilidades, canal e projetos de infraestrutura separados | `PARTIAL_E_LIGHTING_SERVICE_AND_PROJECTS_ONLY` |
 
@@ -29,10 +29,11 @@ Production ou captura em runtime.
 
 O catálogo ANEEL informa DEC e FEC apurados e seus limites, parcelas
 desagregadas, compensações e atributos dos conjuntos. A captura controlada de
-12 de agosto confirmou `LIGHT SESA` (CNPJ `60444437000146`). A relação
-oficial município-conjunto associa Volta Redonda a sete conjuntos: `8570`,
-`8571`, `14995`, `15003`, `15007`, `15084` e `15086`. O próximo bloco deve
-usar essa relação oficial, nunca semelhança de nome ou proximidade.
+12 de agosto confirmou `LIGHT SESA` (CNPJ `60444437000146`). O E0 registrou
+sete identidades como baseline de sanidade, mas o E1 verificou que a relação
+município–conjunto efetivamente capturada é apenas uma materialização de
+2026-08-05. Ela não prova membership histórico dos conjuntos e não pode ser
+aplicada à série de 2020–2026.
 
 DEC é duração equivalente agregada por unidade consumidora; FEC é frequência
 equivalente agregada. Eles não são uma lista de apagões, uma contagem de
@@ -41,8 +42,9 @@ necessariamente todo o município. O período permanece mensal e não é dado em
 tempo real. Compensações preservam o significado publicado pela ANEEL, sem
 atribuição a apagão específico.
 
-O histórico publicado permite auditar comparabilidade em 12, 24 e 60 meses em
-E1, mas E0 não produz tendência, juízo editorial ou snapshot ativo.
+Os indicadores publicados permanecem candidatos versionados, mas não permitem
+comparabilidade municipal em 12, 24 ou 60 meses sem relação oficial válida no
+mesmo período. E0/E1 não produzem tendência, juízo editorial ou snapshot ativo.
 
 ## Abastecimento de água — avisos oficiais, não série completa
 
@@ -100,7 +102,10 @@ consumo continua `PARTIAL_D4`.
 - auto-publicação, mapa geral Relata e coletivos permanecem OFF;
   `launch_publicly=false`.
 
-Como energia está `READY_E1_POWER`, o próximo bloco elegível é somente
-**48.2-E1 — Continuidade da Energia: snapshot ANEEL**. Este E0 não inicia E1.
+O E1 revisou a prontidão preliminar de energia de `READY_E1_POWER` para
+`PARTIAL_E1_POWER` depois que a materialização revelou a ausência de relação
+município–conjunto válida por período. Isso é correção metodológica, não
+regressão de produto. Uma revisão futura exige fonte temporalmente válida;
+nenhum Observatório de energia é iniciado antes disso.
 
 Resultado: `COMUN_48_2_E0_ESSENTIAL_SERVICES_PUBLIC_DATA_CONTRACT_GREEN`.
