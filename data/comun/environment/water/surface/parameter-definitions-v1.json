@@ -1,0 +1,15 @@
+{
+  "definitionVersion": "comun-surface-water-rh-iii-parameter-definitions-v1",
+  "parameters": [
+    {"canonicalId":"biochemical_oxygen_demand","officialLabel":"Demanda Bioquímica de Oxigênio (DBO)","officialUnit":"mg/L","sourceColumn":"DBO"},
+    {"canonicalId":"total_phosphorus","officialLabel":"Fósforo Total (PT)","officialUnit":"mg/L","sourceColumn":"Fósforo Total (PT)"},
+    {"canonicalId":"ammoniacal_nitrogen","officialLabel":"Nitrogênio Amoniacal (NH3)","officialUnit":"mg/L","sourceColumn":"Nitrogênio Amoniacal (NH3)"},
+    {"canonicalId":"dissolved_oxygen","officialLabel":"Oxigênio Dissolvido (OD)","officialUnit":"mg/L","sourceColumn":"Oxigênio Dissolvido (OD)"},
+    {"canonicalId":"ph","officialLabel":"Potencial Hidrogeniônico (pH)","officialUnit":null,"sourceColumn":"Potencial Hidrogeniônico (pH)"},
+    {"canonicalId":"turbidity","officialLabel":"Turbidez (T)","officialUnit":"UNT","sourceColumn":"Turbidez (T)"},
+    {"canonicalId":"escherichia_coli","officialLabel":"Escherichia coli","officialUnit":"NMP/100mL","sourceColumn":"Escherichia coli"},
+    {"canonicalId":"total_dissolved_solids","officialLabel":"Sólidos Dissolvidos Totais (SDT)","officialUnit":"mg/L","sourceColumn":"Sólidos Dissolvidos Totais (SDT)"},
+    {"canonicalId":"water_temperature","officialLabel":"Temperatura da água","officialUnit":"°C","sourceColumn":"Temperatura da água"},
+    {"canonicalId":"air_temperature","officialLabel":"Temperatura do ar","officialUnit":"°C","sourceColumn":"Temperatura do ar"}
+  ]
+}

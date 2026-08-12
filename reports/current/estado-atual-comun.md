@@ -1,4 +1,30 @@
-# Estado atual — 48.2-D4A Água: contrato público de dados (12/08/2026)
+# Estado atual — 48.2-D4B0 Qualidade dos rios: dados brutos RH III (12/08/2026)
+
+## 48.2-D4B0 — Snapshot INEA 2025, sem superfície pública
+
+- o primeiro snapshot de `surface_water_quality` usa exclusivamente o PDF
+  oficial “Dados Brutos RH III — Consolidado 2025”, com hash, parser
+  versionado, pointer ativo e sem consulta externa durante runtime;
+- `PS0419` e `PS0421`, ambos no Rio Paraíba do Sul em Volta Redonda, foram
+  identificados pela fonte. As 24 coletas mensais originam 240 medições de dez
+  parâmetros, e o IQA NSF oficial ficou separado em 24 índices;
+- qualificadores como `<` e `>` foram preservados; coordenadas não publicadas
+  seguem nulas, sem geocoding. O PDF de 2024 confirmou os mesmos pontos e
+  schema, com drift apenas de largura/posição de tabela;
+- o snapshot de 2025 não é estado atual, tempo real, potabilidade ou decisão
+  de conformidade legal. `drinking_water_quality` permanece `PARTIAL_D4` e
+  Sisagua não foi tocado;
+- não houve UI, rota, API, flag, migration, deploy, runtime externo ou escrita
+  Production. Os estados D1, D2A, D3A, D3C, Educação e piloto humano continuam
+  preservados.
+
+Resultado terminal:
+`COMUN_48_2_D4B0_SURFACE_WATER_RAW_SOURCE_SNAPSHOT_GREEN`.
+
+Detalhes:
+`reports/current/comun-48-2-d4b0-surface-water-raw-source-snapshot.md`.
+
+# Estado anterior — 48.2-D4A Água: contrato público de dados (12/08/2026)
 
 ## 48.2-D4A — Qualidade de rios ≠ água para consumo humano
 

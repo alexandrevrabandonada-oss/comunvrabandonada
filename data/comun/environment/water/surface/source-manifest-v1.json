@@ -1,0 +1,38 @@
+{
+  "manifestVersion": "comun-surface-water-rh-iii-source-manifest-v1",
+  "domain": "surface_water_quality",
+  "automaticPublicationAllowed": false,
+  "sources": [
+    {
+      "sourceId": "inea-rh-iii-raw-2025",
+      "originalPublisher": "INEA",
+      "sourceKind": "official_pdf_table",
+      "officialUrl": "https://www.inea.rj.gov.br/wp-content/uploads/2026/01/Dados-Brutos-2025-RH-III_ver-1.pdf",
+      "contentType": "application/pdf",
+      "rawSha256": "4c061d12c0f546345db4f2d4bbce499d7166e68074bb84bdca002e9dc8f4ca33",
+      "retrievedAt": "2026-08-12T00:00:00.000Z",
+      "reportedYear": 2025,
+      "parserVersion": "inea-rh-iii-pdf-table-v1",
+      "qualityState": "verified_source"
+    },
+    {
+      "sourceId": "inea-rh-iii-raw-2024",
+      "originalPublisher": "INEA",
+      "sourceKind": "official_pdf_table",
+      "officialUrl": "https://www.inea.rj.gov.br/wp-content/uploads/2025/02/Dados-Brutos-2024-RH-III_ver-1.pdf",
+      "contentType": "application/pdf",
+      "rawSha256": "1d9bc2c180b965e9924dc68a2e4520a4b0180c472289820bba63c7a0dda46354",
+      "retrievedAt": "2026-08-12T00:00:00.000Z",
+      "reportedYear": 2024,
+      "parserVersion": "inea-rh-iii-pdf-table-v1",
+      "qualityState": "verified_source"
+    }
+  ],
+  "drift2024To2025": {
+    "stationAdded": [],
+    "stationRemoved": [],
+    "parametersAdded": [],
+    "parametersRemoved": [],
+    "columnDrift": "page_width_only"
+  }
+}
