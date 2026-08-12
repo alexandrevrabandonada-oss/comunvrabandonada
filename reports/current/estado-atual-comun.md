@@ -1,3 +1,35 @@
+# Estado atual — 48.2-D3A Base Territorial Pública Censo 2022 (11/08/2026)
+
+## 48.2-D3A — Geografia e agregados oficiais, sem exposição ambiental
+
+- a malha definitiva do Censo 2022 foi capturada exclusivamente de fontes
+  oficiais IBGE, recortada pelo código municipal `3306305` e versionada com
+  hashes de fonte e de geometria;
+- o snapshot contém 739 setores únicos de Volta Redonda, todos com geometria
+  poligonal oficial normalizada sem simplificação, fusão ou eliminação;
+- somente `V0001` (261.563 pessoas) e `V0002` (115.652 domicílios) entram no
+  contrato; as somas setoriais coincidem com os agregados municipais do mesmo
+  universo e valores ausentes continuam `null`;
+- setor censitário não foi rebatizado como bairro; renda, raça/cor, idade,
+  deficiência, saneamento, densidade, índice social e equipamentos públicos
+  permanecem fora do snapshot;
+- nenhum índice de exposição, risco, vulnerabilidade ou impacto ambiental foi
+  calculado; `COMUN_48_2_D3A_ENVIRONMENTAL_EXPOSURE_DEFERRED_NO_CURRENT_ENVIRONMENTAL_LAYER`
+  permanece como adiamento explícito;
+- não houve UI, rota, API, flag, migration, deploy, consulta runtime ao IBGE,
+  dado privado ou escrita Production;
+- D1 permanece `PARTIAL_D1` e bloqueado; D2A permanece `PARTIAL_D2A`, sem
+  estação operacional em Volta Redonda; o piloto humano continua pausado por
+  decisão de produto.
+
+Resultado terminal:
+`COMUN_48_2_D3A_TERRITORIAL_PUBLIC_BASE_GREEN_IBGE_AGGREGATED_ONLY`.
+
+Próximo passo autorizado: `48.2-D3B — Equipamentos e serviços públicos no
+território`.
+
+Detalhes: `reports/current/comun-48-2-d3a-territorial-public-base.md`.
+
 # Estado atual — 48.2-D2A inventário hidrometeorológico oficial parcial (11/08/2026)
 
 ## 48.2-D2A — Hidrometeorologia oficial sem UI

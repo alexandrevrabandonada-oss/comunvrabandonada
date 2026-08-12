@@ -1,0 +1,50 @@
+{
+  "manifestVersion": "comun-territorial-public-source-manifest-v1",
+  "sources": [
+    {
+      "sourceId": "ibge-census-2022-rj-sector-geometry-basic-20241113",
+      "sourceType": "census_sector_geometry",
+      "originalPublisher": "IBGE",
+      "officialUrl": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/malha_com_atributos/setores/shp/UF/RJ/RJ_setores_CD2022.zip",
+      "contentType": "application/zip",
+      "retrievedAt": "2026-08-12T00:07:42.557Z",
+      "rawSha256": "59e79f1e87b6f21c798baabdfb09a9b0beb2f812e26d0eda9fddc6144e375f8d",
+      "datasetYear": 2022,
+      "geographyVersion": "Censo 2022 - setores definitivos",
+      "sourceKind": "official_public_data",
+      "automaticPublicationAllowed": false,
+      "qualityState": "verified_source",
+      "status": "active"
+    },
+    {
+      "sourceId": "ibge-census-2022-aggregate-dictionary-20260520",
+      "sourceType": "census_aggregate_dictionary",
+      "originalPublisher": "IBGE",
+      "officialUrl": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/dicionario_de_dados_agregados_por_setores_censitarios_20260520.xlsx",
+      "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "retrievedAt": "2026-08-12T00:09:32.410Z",
+      "rawSha256": "0b8aedece57f6125d785b6aa2234cfd587e92dfb6ce5ca6ace8c67f140831344",
+      "datasetYear": 2022,
+      "geographyVersion": "Censo 2022 - setores definitivos",
+      "sourceKind": "official_public_data",
+      "automaticPublicationAllowed": false,
+      "qualityState": "verified_source",
+      "status": "active"
+    },
+    {
+      "sourceId": "ibge-census-2022-municipal-basic-20260520",
+      "sourceType": "census_sector_aggregates",
+      "originalPublisher": "IBGE",
+      "officialUrl": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Municipio_csv/Agregados_por_municipios_basico_BR_20260520.zip",
+      "contentType": "application/zip",
+      "retrievedAt": "2026-08-12T00:12:08.570Z",
+      "rawSha256": "0adc228eba0869dfbc2487e19481b96acabe5c2537a2837f1d5235a8dc0232c5",
+      "datasetYear": 2022,
+      "geographyVersion": "Censo 2022 - setores definitivos",
+      "sourceKind": "official_public_data",
+      "automaticPublicationAllowed": false,
+      "qualityState": "verified_source",
+      "status": "active"
+    }
+  ]
+}
