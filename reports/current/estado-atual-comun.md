@@ -2177,3 +2177,28 @@ Preservados: `COMUN_48_2_D3A_ENVIRONMENTAL_EXPOSURE_DEFERRED_NO_CURRENT_ENVIRONM
 `COMUN_48_2_D1A_BLOCKED_CURRENT_OFFICIAL_SOURCE_UNAVAILABLE`, `PARTIAL_D1`,
 `PARTIAL_D2A`, `COMUN_48_2_D2A_NO_OPERATIONAL_STATION_IN_VOLTA_REDONDA` e
 `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`.
+
+### 48.2-E0 — Serviços Essenciais: contrato público de dados (2026-08-12)
+
+- contrato público versionado para três domínios semanticamente separados:
+  `power_distribution_continuity`, `water_supply_service` e
+  `public_lighting_service`;
+- a auditoria da ANEEL confirmou a distribuidora `LIGHT SESA`, a relação
+  oficial conjunto-município de Volta Redonda e uma série mensal de
+  DEC/FEC, limites, atributos e compensações; DEC/FEC seguem
+  como indicadores coletivos por conjunto, nunca como lista de apagões;
+- energia ficou `READY_E1_POWER`; água ficou
+  `PARTIAL_E_WATER_OFFICIAL_NOTICES_ONLY`, pois comunicados SAAE-VR não
+  comprovam registro completo de eventos; iluminação ficou
+  `PARTIAL_E_LIGHTING_SERVICE_AND_PROJECTS_ONLY`, pois a Carta 158 e obras
+  oficiais não constituem métricas de performance ou inventário de falhas;
+- zero UI, rota, API, flag, migration, deploy, escrita de negócio, leitura de
+  Relata/Carteira/localização/anexos ou fetch externo em runtime;
+- `drinking_water_quality=PARTIAL_D4`, auto-publicação, mapa geral Relata e
+  coletivos permanecem preservados; `launch_publicly=false`.
+
+Estado atual:
+`COMUN_48_2_E0_ESSENTIAL_SERVICES_PUBLIC_DATA_CONTRACT_GREEN`.
+
+Próximo bloco elegível: `48.2-E1 — Continuidade da Energia: snapshot ANEEL`.
+Não iniciar E1 neste ciclo.

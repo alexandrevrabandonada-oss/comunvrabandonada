@@ -1,0 +1,223 @@
+{
+  "contractVersion": "comun-essential-services-public-data-contract-v1",
+  "auditedAt": "2026-08-12T21:32:04.194Z",
+  "municipality": {
+    "ibgeCode": "3306305",
+    "name": "Volta Redonda",
+    "state": "RJ"
+  },
+  "sourceKind": "official_public_data",
+  "automaticPublicationAllowed": false,
+  "runtimeExternalFetchAllowed": false,
+  "decisions": {
+    "power_distribution_continuity": "READY_E1_POWER",
+    "water_supply_service": "PARTIAL_E_WATER_OFFICIAL_NOTICES_ONLY",
+    "public_lighting_service": "PARTIAL_E_LIGHTING_SERVICE_AND_PROJECTS_ONLY"
+  },
+  "domains": {
+    "power_distribution_continuity": {
+      "canonicalDomain": "power_distribution_continuity",
+      "decision": "READY_E1_POWER",
+      "candidateSnapshotAllowed": true,
+      "stableIdentity": {
+        "utilityId": "CNPJ:60444437000146",
+        "utilityName": "LIGHT SESA",
+        "municipalityRelation": "official_set_to_municipality_relation_required",
+        "verifiedElectricalSets": [
+          {
+            "electricalSetId": "14995",
+            "electricalSetName": "RETIRO"
+          },
+          {
+            "electricalSetId": "15003",
+            "electricalSetName": "VIGARIO"
+          },
+          {
+            "electricalSetId": "15007",
+            "electricalSetName": "FONTINELE"
+          },
+          {
+            "electricalSetId": "15084",
+            "electricalSetName": "VOLTA REDONDA AEREO AT/MT"
+          },
+          {
+            "electricalSetId": "15086",
+            "electricalSetName": "VOLTA REDONDA AEREO MT/MT"
+          },
+          {
+            "electricalSetId": "8570",
+            "electricalSetName": "VOLTA REDONDA"
+          },
+          {
+            "electricalSetId": "8571",
+            "electricalSetName": "VOLTA REDONDA NAO URBANO"
+          }
+        ]
+      },
+      "semantics": {
+        "dec": "Dura\u00e7\u00e3o Equivalente de Interrup\u00e7\u00e3o por Unidade Consumidora, agregada por conjunto e per\u00edodo.",
+        "fec": "Frequ\u00eancia Equivalente de Interrup\u00e7\u00e3o por Unidade Consumidora, agregada por conjunto e per\u00edodo.",
+        "eventInferenceAllowed": false,
+        "municipalityAggregateAllowed": false,
+        "realtime": false
+      },
+      "sources": [
+        {
+          "sourceId": "aneel-collective-continuity-catalog-20260812",
+          "publisher": "ANEEL",
+          "officialUrl": "https://dadosabertos.aneel.gov.br/api/3/action/package_show?id=d5f0712e-62f6-4736-8dff-9991f10758a7",
+          "resourceCatalogUrl": "https://dadosabertos.aneel.gov.br/dataset/indicadores-coletivos-de-continuidade-dec-e-fec",
+          "contentType": "application/json",
+          "retrievedAt": "2026-08-12T21:32:04.194Z",
+          "rawSha256": "e7b9b25df814ab061c61f84cd9745f76defba43a90493689613462278f3325a1",
+          "semanticSha256": null,
+          "coveragePeriod": "2000-01 through the latest ANEEL-published monthly reference in the catalog",
+          "geographicGranularity": "conjunto de unidades consumidoras; official relation to municipalities required",
+          "temporalGranularity": "monthly",
+          "completeness": "official_collective_indicator_series",
+          "updateFrequency": "monthly_reported_by_catalog",
+          "publicSafe": true,
+          "runtimeSuitable": false,
+          "recommendedUse": "controlled capture of DEC/FEC, limits, compensation and attributes; never an outage-event feed"
+        },
+        {
+          "sourceId": "aneel-indqual-municipality-relation-20260812",
+          "publisher": "ANEEL",
+          "officialUrl": "https://dadosabertos.aneel.gov.br/api/3/action/package_show?id=indqual-municipio",
+          "resourceCatalogUrl": "https://dadosabertos.aneel.gov.br/dataset/indqual-municipio",
+          "contentType": "application/json",
+          "retrievedAt": "2026-08-12T21:32:04.194Z",
+          "rawSha256": "3b6d422a59d1fca8b93aea0a7f5292f5b51a4633e08e03e2c95036bd80476e2e",
+          "semanticSha256": null,
+          "coveragePeriod": "2001-01 through the latest ANEEL-published monthly reference in the catalog",
+          "geographicGranularity": "municipality to official consumer-unit-set relation",
+          "temporalGranularity": "monthly",
+          "completeness": "official_relation_series",
+          "updateFrequency": "monthly_reported_by_catalog",
+          "publicSafe": true,
+          "runtimeSuitable": false,
+          "recommendedUse": "mandatory official municipality relation before selecting a continuity set for Volta Redonda"
+        }
+      ],
+      "requiredOfficialResources": [
+        "indicadores-continuidade-coletivos-2020-2029",
+        "indicadores-continuidade-coletivos-limite",
+        "indicadores-continuidade-coletivos-compensacao-2020-2029",
+        "indicadores-continuidade-coletivos-atributos"
+      ],
+      "limitations": [
+        "A set of consumer units is not a neighborhood, census sector, or necessarily the whole municipality.",
+        "DEC and FEC are collective continuity indicators, not a count or list of individual outages.",
+        "The source is captured in a controlled process; public runtime must remain offline from ANEEL."
+      ]
+    },
+    "water_supply_service": {
+      "canonicalDomain": "water_supply_service",
+      "decision": "PARTIAL_E_WATER_OFFICIAL_NOTICES_ONLY",
+      "candidateSnapshotAllowed": false,
+      "separateFrom": ["drinking_water_quality", "surface_water_quality"],
+      "noticeContract": {
+        "completeness": "official_notices_only",
+        "affectedAreaMeaning": "published_label_not_analytical_boundary",
+        "expectedResumeMeaning": "forecast_not_confirmation",
+        "actualResumeMeaning": "only when the notice explicitly reports resumption",
+        "gradualResumptionPreserved": true,
+        "powerDependencyRemainsWaterEvent": true
+      },
+      "sources": [
+        {
+          "sourceId": "saae-vr-treatment-interruption-notice-29604-20260812",
+          "publisher": "SAAE-VR",
+          "officialUrl": "https://www.saaevr.com.br/noticias_detalhes.asp?cod=29604",
+          "contentType": "text/html",
+          "retrievedAt": "2026-08-12T21:32:04.194Z",
+          "rawSha256": "bd0b9e57c68b707cb321ba6cdda8d89cd45ebb71f37bdc8e49a0368938c3211b",
+          "semanticSha256": null,
+          "coveragePeriod": "single official notice published 2026-05-12",
+          "geographicGranularity": "affected-area labels when published",
+          "temporalGranularity": "notice-specific",
+          "completeness": "official_notices_only",
+          "updateFrequency": "not_reported",
+          "publicSafe": true,
+          "runtimeSuitable": false,
+          "recommendedUse": "shape validation for an optional future notice record, never complete interruption statistics"
+        },
+        {
+          "sourceId": "saae-vr-energy-dependency-notice-9528-20260812",
+          "publisher": "SAAE-VR",
+          "officialUrl": "https://www.saaevr.com.br/noticias_detalhes.asp?cod=9528",
+          "contentType": "text/html",
+          "retrievedAt": "2026-08-12T21:32:04.194Z",
+          "rawSha256": "94d507848ba1bf63b4d7169d7b98a614e95606cd332f7a0ba936b683130ebcc9",
+          "semanticSha256": null,
+          "coveragePeriod": "single official notice published 2024-07-22",
+          "geographicGranularity": "affected-area labels when published",
+          "temporalGranularity": "notice-specific",
+          "completeness": "official_notices_only",
+          "updateFrequency": "not_reported",
+          "publicSafe": true,
+          "runtimeSuitable": false,
+          "recommendedUse": "semantic validation that an officially reported power dependency remains a water-supply notice"
+        }
+      ],
+      "limitations": [
+        "No systematic, complete public event registry was established.",
+        "Published neighborhood labels are not territorial boundaries and must not be mapped to census sectors.",
+        "No water-supply notice may be counted as a power-distribution outage."
+      ]
+    },
+    "public_lighting_service": {
+      "canonicalDomain": "public_lighting_service",
+      "decision": "PARTIAL_E_LIGHTING_SERVICE_AND_PROJECTS_ONLY",
+      "candidateSnapshotAllowed": false,
+      "serviceContract": {
+        "administrativeServiceEstimateDays": 30,
+        "estimateIsSla": false,
+        "officialChannelReference": "Fiscaliza VR",
+        "incidentDatasetEstablished": false,
+        "projectIsMaintenanceIncident": false
+      },
+      "sources": [
+        {
+          "sourceId": "pmvr-lighting-service-charter-158-20260812",
+          "publisher": "Prefeitura Municipal de Volta Redonda / SMI",
+          "officialUrl": "https://servicos.voltaredonda.rj.gov.br/cartaServicos/158/",
+          "contentType": "text/html; charset=utf-8",
+          "retrievedAt": "2026-08-12T21:32:04.194Z",
+          "rawSha256": "e3b2477cd4f6158f4f1046da5ef72f1d5a5f816aaae52cd6e242094bbaff38af",
+          "semanticSha256": null,
+          "coveragePeriod": "current service charter at retrieval",
+          "geographicGranularity": "municipal service",
+          "temporalGranularity": "administrative estimate",
+          "completeness": "service_description_only",
+          "updateFrequency": "not_reported",
+          "publicSafe": true,
+          "runtimeSuitable": false,
+          "recommendedUse": "responsibility and channel reference only; not operational-performance data"
+        },
+        {
+          "sourceId": "pmvr-beira-rio-lighting-project-20260603",
+          "publisher": "Prefeitura Municipal de Volta Redonda / DEIP",
+          "officialUrl": "https://www.voltaredonda.rj.gov.br/comunicacao/noticias/25-secom/11990-volta-redonda-inicia-revitaliza%C3%A7%C3%A3o-da-ilumina%C3%A7%C3%A3o-da-avenida-beira-rio/",
+          "contentType": "text/html",
+          "retrievedAt": "2026-08-12T21:32:04.194Z",
+          "rawSha256": "e03effabe922d24af035ea721ad57f6443eaf345cb4da93b60ce16efa099d992",
+          "semanticSha256": null,
+          "coveragePeriod": "project notice published 2026-06-03",
+          "geographicGranularity": "published project location label",
+          "temporalGranularity": "project-specific",
+          "completeness": "public_infrastructure_projects_only",
+          "updateFrequency": "not_reported",
+          "publicSafe": true,
+          "runtimeSuitable": false,
+          "recommendedUse": "optional future public-infrastructure project descriptor; never a maintenance-incident count"
+        }
+      ],
+      "limitations": [
+        "The Carta de Servi\u00e7os establishes responsibility and an administrative estimate, not a legal deadline, SLA, average resolution time, or open-call inventory.",
+        "Fiscaliza VR is an official channel reference, not an automatically readable dataset in this contract.",
+        "Published lighting projects are not maintenance incidents and must not be aggregated as service failures."
+      ]
+    }
+  }
+}
