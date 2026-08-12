@@ -215,7 +215,7 @@ export function getTerritorialContextPublicDto(): TerritorialContextPublicDto {
     sources: allowedSources(),
     limitations: [
       "Setores censitários não são bairros.",
-      "A presença de equipamentos não mede cobertura, capacidade, distância ou suficiência de serviços.",
+      "A presença de equipamentos não mede disponibilidade, capacidade, distância ou suficiência de serviços.",
       "Assistência Social permanece somente em lista: as fontes ativas não fornecem ponto oficial para mapa ou vínculo censitário.",
       "Educação continua em validação de fontes e não compõe esta leitura.",
       "Nenhuma camada ambiental, indicador de exposição ou inferência de risco integra esta superfície.",
