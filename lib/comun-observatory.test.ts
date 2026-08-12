@@ -73,6 +73,11 @@ describe("observatory public firewall", () => {
     });
   });
 
+  it("only exposes the environmental hub through its isolated D4B flag", () => {
+    expect(getPublicObservatoryRegistry(true, true, true, true, false)[3]).toMatchObject({ id: "environment", status: "preparing", publicRoute: null });
+    expect(getPublicObservatoryRegistry(true, true, true, true, true)[3]).toMatchObject({ id: "environment", status: "available", publicRoute: "/comun/observatorios/ambiente" });
+  });
+
   it("labels old sources without hiding them", () => {
     expect(
       freshnessForUpdatedAt(

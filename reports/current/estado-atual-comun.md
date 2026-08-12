@@ -1,4 +1,23 @@
-# Estado atual — 48.2-D4B0 Qualidade dos rios: dados brutos RH III (12/08/2026)
+# Estado atual — 48.2-D4B Qualidade dos rios: superfície oficial (12/08/2026)
+
+## 48.2-D4B — Observatório Ambiental, referência 2025
+
+- a superfície pública é fail-closed e deriva apenas do snapshot INEA RH III
+  de 2025, sem fetch externo em runtime;
+- mostra os pontos `PS0419` e `PS0421`, 24 coletas, 240 medições e IQA
+  publicado separado, sem mapa ou coordenada inventada;
+- não infere potabilidade, conformidade legal, poluidor, qualidade atual ou
+  água distribuída para consumo;
+- `drinking_water_quality` permanece `PARTIAL_D4`; D1, D2A, Educação e o
+  piloto humano preservam seus estados anteriores.
+
+Resultado esperado:
+`COMUN_48_2_D4B_SURFACE_WATER_OBSERVATORY_GREEN_OFFICIAL_2025`.
+
+Detalhes:
+`reports/current/comun-48-2-d4b-surface-water-observatory.md`.
+
+# Estado anterior — 48.2-D4B0 Qualidade dos rios: dados brutos RH III (12/08/2026)
 
 ## 48.2-D4B0 — Snapshot INEA 2025, sem superfície pública
 

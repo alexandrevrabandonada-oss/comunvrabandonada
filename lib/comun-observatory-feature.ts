@@ -12,6 +12,8 @@ export const COMUN_OBSERVATORY_TRANSPORT_SYSTEM_METRICS_FLAG =
   "COMUN_OBSERVATORY_TRANSPORT_SYSTEM_METRICS_ENABLED" as const;
 export const COMUN_OBSERVATORY_TERRITORIAL_CONTEXT_FLAG =
   "COMUN_OBSERVATORY_TERRITORIAL_CONTEXT_ENABLED" as const;
+export const COMUN_OBSERVATORY_ENVIRONMENT_SURFACE_WATER_FLAG =
+  "COMUN_OBSERVATORY_ENVIRONMENT_SURFACE_WATER_ENABLED" as const;
 
 export function isComunObservatoriesFoundationEnabled(
   env: Record<string, string | undefined> = process.env,
@@ -63,4 +65,10 @@ export function isComunObservatoryTerritorialContextEnabled(
     isComunObservatoriesFoundationEnabled(env) &&
     env[COMUN_OBSERVATORY_TERRITORIAL_CONTEXT_FLAG] === "enabled"
   );
+}
+
+export function isComunObservatoryEnvironmentSurfaceWaterEnabled(
+  env: Record<string, string | undefined> = process.env,
+) {
+  return isComunObservatoriesFoundationEnabled(env) && env[COMUN_OBSERVATORY_ENVIRONMENT_SURFACE_WATER_FLAG] === "enabled";
 }
