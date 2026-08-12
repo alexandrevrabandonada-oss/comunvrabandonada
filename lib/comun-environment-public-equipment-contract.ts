@@ -1,8 +1,7 @@
 import sourceAuditJson from "@/data/comun/environment/public-equipment/source-audit-v1.json";
-import type {
-  TerritorialPosition,
-  TerritorialPublicGeometry,
-} from "./comun-environment-territorial-base";
+import { locateOfficialPointInTerritorialSector } from "./comun-public-equipment-sector-locator.mjs";
+export type { SectorLocatorInput } from "./comun-public-equipment-sector-locator.mjs";
+export { locateOfficialPointInTerritorialSector };
 
 export const COMUN_PUBLIC_EQUIPMENT_CONTRACT_VERSION =
   "comun-public-equipment-data-contract-v1" as const;
@@ -21,6 +20,7 @@ export const COMUN_PUBLIC_EQUIPMENT_SOURCE_DOMAINS = [
   "www.voltaredonda.rj.gov.br",
   "servicos.voltaredonda.rj.gov.br",
   "aplicacoes.mds.gov.br",
+  "concla.ibge.gov.br",
 ] as const;
 export const COMUN_PUBLIC_CNES_LEGAL_NATURE_CODES = [
   "1023",
@@ -243,105 +243,6 @@ export function isPublicCnesLegalNature(code: string | number | null) {
   return COMUN_PUBLIC_CNES_LEGAL_NATURE_CODES.includes(
     String(code ?? "") as (typeof COMUN_PUBLIC_CNES_LEGAL_NATURE_CODES)[number],
   );
-}
-
-function pointOnSegment(
-  point: TerritorialPosition,
-  start: TerritorialPosition,
-  end: TerritorialPosition,
-) {
-  const [x, y] = point;
-  const [x1, y1] = start;
-  const [x2, y2] = end;
-  const lengthSquared = (x2 - x1) ** 2 + (y2 - y1) ** 2;
-  if (lengthSquared <= 1e-20) {
-    return Math.abs(x - x1) <= 1e-10 && Math.abs(y - y1) <= 1e-10;
-  }
-  const cross = (y - y1) * (x2 - x1) - (x - x1) * (y2 - y1);
-  if (Math.abs(cross) > 1e-10) return false;
-  const dot = (x - x1) * (x2 - x1) + (y - y1) * (y2 - y1);
-  if (dot < 0) return false;
-  return dot <= lengthSquared;
-}
-
-function classifyPointInRing(
-  point: TerritorialPosition,
-  ring: readonly TerritorialPosition[],
-) {
-  let inside = false;
-  for (
-    let current = 0, previous = ring.length - 1;
-    current < ring.length;
-    previous = current++
-  ) {
-    const a = ring[previous];
-    const b = ring[current];
-    if (pointOnSegment(point, a, b)) return "boundary" as const;
-    const intersects =
-      a[1] > point[1] !== b[1] > point[1] &&
-      point[0] < ((b[0] - a[0]) * (point[1] - a[1])) / (b[1] - a[1]) + a[0];
-    if (intersects) inside = !inside;
-  }
-  return inside ? ("inside" as const) : ("outside" as const);
-}
-
-function classifyPointInPolygon(
-  point: TerritorialPosition,
-  rings: readonly (readonly TerritorialPosition[])[],
-) {
-  if (rings.length === 0) return "outside" as const;
-  const outer = classifyPointInRing(point, rings[0]);
-  if (outer !== "inside") return outer;
-  for (const hole of rings.slice(1)) {
-    const inHole = classifyPointInRing(point, hole);
-    if (inHole === "boundary") return "boundary" as const;
-    if (inHole === "inside") return "outside" as const;
-  }
-  return "inside" as const;
-}
-
-function classifyPointInGeometry(
-  point: TerritorialPosition,
-  geometry: TerritorialPublicGeometry,
-) {
-  const polygons =
-    geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates;
-  let inside = false;
-  for (const polygon of polygons) {
-    const result = classifyPointInPolygon(point, polygon);
-    if (result === "boundary") return "boundary" as const;
-    if (result === "inside") inside = true;
-  }
-  return inside ? ("inside" as const) : ("outside" as const);
-}
-
-export type SectorLocatorInput = {
-  sectorCode: string;
-  geography: { geometry: TerritorialPublicGeometry };
-};
-
-export function locateOfficialPointInTerritorialSector(
-  point: { latitude: number; longitude: number },
-  sectors: readonly SectorLocatorInput[],
-) {
-  if (!validPublicCoordinate(point.latitude, point.longitude)) {
-    return { state: "outside_or_geometry_gap" as const };
-  }
-  const position: TerritorialPosition = [point.longitude, point.latitude];
-  const matches: string[] = [];
-  let boundary = false;
-  for (const sector of sectors) {
-    const result = classifyPointInGeometry(position, sector.geography.geometry);
-    if (result === "boundary") boundary = true;
-    if (result === "inside") matches.push(sector.sectorCode);
-  }
-  if (boundary || matches.length > 1) {
-    return { state: "boundary_ambiguous" as const };
-  }
-  if (matches.length === 1) {
-    return { state: "matched" as const, sectorCode: matches[0] };
-  }
-  return { state: "outside_or_geometry_gap" as const };
 }
 
 export function validatePublicEquipmentRecords(

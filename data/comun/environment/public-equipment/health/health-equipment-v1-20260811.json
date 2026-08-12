@@ -1,0 +1,3311 @@
+{
+  "snapshotId": "comun-public-health-equipment-v1-20260811",
+  "previousSnapshotId": null,
+  "methodologyVersion": "comun-public-health-equipment-snapshot-v1",
+  "verifiedAt": "2026-08-12T02:43:28.638Z",
+  "municipality": {
+    "ibgeCode": "3306305",
+    "cnesCode": "330630",
+    "name": "Volta Redonda",
+    "stateCode": "33"
+  },
+  "sourceIds": [
+    "ms-cnes-establishments-vr-active-20260811",
+    "ms-cnes-unit-types-20260811",
+    "ibge-concla-legal-nature-2021-20260811"
+  ],
+  "territorialSnapshotId": "comun-territorial-public-base-v1-20260811",
+  "equipmentCount": 102,
+  "officialPointCount": 102,
+  "addressOnlyCount": 0,
+  "sectorMatchedCount": 97,
+  "boundaryAmbiguousCount": 1,
+  "outsideOrGeometryGapCount": 4,
+  "diagnostics": {
+    "recordsFetched": 1103,
+    "recordsMunicipality": 1103,
+    "recordsActive": 1103,
+    "recordsPublicLegalNature": 102,
+    "recordsRejectedPrivateNature": 1001,
+    "recordsWithOfficialPoint": 102,
+    "recordsAddressOnly": 0,
+    "recordsMatchedToSector": 97,
+    "recordsBoundaryAmbiguous": 1,
+    "recordsOutsideGeometry": 4
+  },
+  "records": [
+    {
+      "equipmentId": "health:cnes:2270986",
+      "cnesCode": "2270986",
+      "officialName": "CEO J TIRADENTES VER JOSE ISRAEL DOS ANJOS CLIN ESP ODONT",
+      "cnesUnitTypeCode": "36",
+      "cnesUnitTypeLabel": "CLINICA/CENTRO DE ESPECIALIDADE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA OITOCENTOS E CINQUENTA A",
+        "number": "10",
+        "complement": null,
+        "neighborhoodLabel": "JARDIM TIRADENTES",
+        "postalCode": "27258360"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.538166,
+        "longitude": -44.075346,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000334"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24554",
+      "cnesCode": "24554",
+      "officialName": "UBSF VILA MURY FERNANDO MARIO NETTO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV AMAZONAS",
+        "number": "267",
+        "complement": null,
+        "neighborhoodLabel": "VILA MURY",
+        "postalCode": "27253610"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.499949266732973,
+        "longitude": -44.10414218902588,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000020"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24562",
+      "cnesCode": "24562",
+      "officialName": "UBSF VILA RICA TRES POCOS VINICIUS BOBINS S SILVA",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA UM",
+        "number": "483",
+        "complement": null,
+        "neighborhoodLabel": "VILA RICA",
+        "postalCode": "27280000"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4834681,
+        "longitude": -44.1260532,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000177"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24589",
+      "cnesCode": "24589",
+      "officialName": "UBSF AGUA LIMPA JOSE RIBEIRO DE SOUZA JUNIOR",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA FELIPE DOS SANTOS",
+        "number": "545",
+        "complement": null,
+        "neighborhoodLabel": "AGUA LIMPA",
+        "postalCode": "27280000"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4691494,
+        "longitude": -44.4616784,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "outside_or_geometry_gap",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24597",
+      "cnesCode": "24597",
+      "officialName": "UBSF TRES POCOS FOA PROF AMERICA ALVARENGA BRAVO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV PAULO ERLEI ALVES ABRANTES",
+        "number": "1325",
+        "complement": null,
+        "neighborhoodLabel": "TRES POCOS",
+        "postalCode": "27240560"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4962661,
+        "longitude": -44.0462474,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000398"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24600",
+      "cnesCode": "24600",
+      "officialName": "CMI CENTRO MUNICIPAL DE INFECTOLOGIA DR LUIZ GONZAGA DE SOUZ",
+      "cnesUnitTypeCode": "4",
+      "cnesUnitTypeLabel": "POLICLINICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "DIONEIA FARIA",
+        "number": "329",
+        "complement": null,
+        "neighborhoodLabel": "ATERRADO",
+        "postalCode": "27215530"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5034558,
+        "longitude": -44.0926075,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000003"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24619",
+      "cnesCode": "24619",
+      "officialName": "CENTRO REGIONAL SAUDE DO TRABALHADOR",
+      "cnesUnitTypeCode": "36",
+      "cnesUnitTypeLabel": "CLINICA/CENTRO DE ESPECIALIDADE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "DEPUTADO GERALDO DI BIASE",
+        "number": "282",
+        "complement": null,
+        "neighborhoodLabel": "ATERRADO",
+        "postalCode": "27213080"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.50700654152225,
+        "longitude": -44.08785581588745,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000009"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24627",
+      "cnesCode": "24627",
+      "officialName": "UBSF ACUDE II GEORGE FURTADO VIEIRA PANDEIRINHO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA QUATRO",
+        "number": "056",
+        "complement": null,
+        "neighborhoodLabel": "ACUDE II",
+        "postalCode": "27280000"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4985163,
+        "longitude": -44.0403995,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000488"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24635",
+      "cnesCode": "24635",
+      "officialName": "UBSF ACUDE I CELIA MOREN NETTO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA VEREADOR ACACIO DA ROCHA",
+        "number": "84",
+        "complement": null,
+        "neighborhoodLabel": "ACUDE I",
+        "postalCode": "27276385"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4972621,
+        "longitude": -44.1420532,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000352"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24651",
+      "cnesCode": "24651",
+      "officialName": "UBSF RETIRO II DR JADER BOECHAT",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV GRANDES LOJAS",
+        "number": "77",
+        "complement": null,
+        "neighborhoodLabel": "RETIRO",
+        "postalCode": "27250150"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.510118764561383,
+        "longitude": -44.093499183654785,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000493"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24678",
+      "cnesCode": "24678",
+      "officialName": "UBSF BELO HORIZONTE EDITH RODRIGUES DE SOUZA",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA NESTORIO",
+        "number": "311",
+        "complement": null,
+        "neighborhoodLabel": "BELO HORIZONTE",
+        "postalCode": "27281030"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.510158410262864,
+        "longitude": -44.093520641326904,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000493"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24686",
+      "cnesCode": "24686",
+      "officialName": "UBSF COQUEIROS FRANCISCO DE NOVAES",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA D",
+        "number": "45",
+        "complement": null,
+        "neighborhoodLabel": "COQUEIROS",
+        "postalCode": "27280450"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4912391,
+        "longitude": -44.0850181,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000571"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24694",
+      "cnesCode": "24694",
+      "officialName": "UBSF MARIANA TORRES DURSESO JOSE RIBEIRO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "ALAMEDA 32",
+        "number": "111",
+        "complement": null,
+        "neighborhoodLabel": "MARIANA TORRES",
+        "postalCode": "27279410"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.51007911884854,
+        "longitude": -44.09358501434326,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000493"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24716",
+      "cnesCode": "24716",
+      "officialName": "UBSF SIDERLANDIA JOSE DOMINGOS MACEDO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA ONZE",
+        "number": "20",
+        "complement": null,
+        "neighborhoodLabel": "SIDERLANDIA",
+        "postalCode": "27273280"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5414502,
+        "longitude": -44.0659945,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000828"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24724",
+      "cnesCode": "24724",
+      "officialName": "UBSF BELMONTE VEREADOR ADAO PEDRO ALVES",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AVENIDA PELOTAS",
+        "number": "149",
+        "complement": null,
+        "neighborhoodLabel": "BELMONTE",
+        "postalCode": "27277330"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.511116729694347,
+        "longitude": -44.13591354884633,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000153"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24732",
+      "cnesCode": "24732",
+      "officialName": "UBSF JARDIM CIDADE DO ACO ELIAS ALVES DE OLIVEIRA",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA GRANDES LOJAS",
+        "number": "77",
+        "complement": null,
+        "neighborhoodLabel": "RETIRO",
+        "postalCode": "27275420"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5012422,
+        "longitude": -44.12026295,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000568"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24740",
+      "cnesCode": "24740",
+      "officialName": "CAPS USINA DE SONHOS CENTRO DE ATENCAO PSICISSOCIAL",
+      "cnesUnitTypeCode": "70",
+      "cnesUnitTypeLabel": "CENTRO DE ATENCAO PSICOSSOCIAL",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA GENERAL MIGUEL COSTA",
+        "number": "31",
+        "complement": null,
+        "neighborhoodLabel": "VILA MURY",
+        "postalCode": "27281540"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4969441,
+        "longitude": -44.1024864,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000024"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24775",
+      "cnesCode": "24775",
+      "officialName": "COC VILA BRASILIA MARIA DIAS ASSIS CLIN ODONT CONCENT",
+      "cnesUnitTypeCode": "36",
+      "cnesUnitTypeLabel": "CLINICA/CENTRO DE ESPECIALIDADE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA NOVA BRASILIA",
+        "number": "324",
+        "complement": null,
+        "neighborhoodLabel": "VILA BRASILIA",
+        "postalCode": "27280740"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.51009894170638,
+        "longitude": -44.09339189529419,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000493"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24783",
+      "cnesCode": "24783",
+      "officialName": "CAPS VIVA VIDA CENTRO DE ATENCAO PSICOSSOCIAL INFANTIL",
+      "cnesUnitTypeCode": "70",
+      "cnesUnitTypeLabel": "CENTRO DE ATENCAO PSICOSSOCIAL",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AVENIDA AMAZONAS",
+        "number": "175",
+        "complement": null,
+        "neighborhoodLabel": "VILA MURY",
+        "postalCode": "27264730"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.499869969464815,
+        "longitude": -44.104270935058594,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000020"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24791",
+      "cnesCode": "24791",
+      "officialName": "UBS RUSTICO JOSE GASPAR ABREU GUIMARAES",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA SETENTA E CINCO",
+        "number": "80",
+        "complement": null,
+        "neighborhoodLabel": "RUSTICO",
+        "postalCode": "27262470"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5208424,
+        "longitude": -44.1124083,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000094"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24813",
+      "cnesCode": "24813",
+      "officialName": "SPA CONFORTO JORNALISTA DICLER SIMOES SOARES",
+      "cnesUnitTypeCode": "20",
+      "cnesUnitTypeLabel": "PRONTO SOCORRO GERAL",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA DOIS",
+        "number": "264",
+        "complement": null,
+        "neighborhoodLabel": "CONFORTO",
+        "postalCode": "27262030"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.521176,
+        "longitude": -44.120085,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000747"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24821",
+      "cnesCode": "24821",
+      "officialName": "UBS MONTE CASTELO MARIA DO CARMO OLIVEIRA RIOS TIA CARMEM",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA TREZENTOS E DEZOITO",
+        "number": "98",
+        "complement": null,
+        "neighborhoodLabel": "SESSENTA",
+        "postalCode": "27256270"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5238481,
+        "longitude": -44.0925638,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000081"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24848",
+      "cnesCode": "24848",
+      "officialName": "UBSF SAO GERALDO MARIA NILCE FAGUNDES COSTA",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA CAPITAO BENEDITO LOPES BRAGANCA",
+        "number": "796",
+        "complement": null,
+        "neighborhoodLabel": "SAO GERALDO",
+        "postalCode": "27253510"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5159393,
+        "longitude": -44.0847568,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000663"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:24953",
+      "cnesCode": "24953",
+      "officialName": "UBSF SANTA RITA DO ZARUR MARCILIA CANDIDA DE OLIVEIRA",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA LAMBARI",
+        "number": "215",
+        "complement": null,
+        "neighborhoodLabel": "SANTA RITA ZARUR",
+        "postalCode": "27288190"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4663753,
+        "longitude": -44.1058134,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000409"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:25135",
+      "cnesCode": "25135",
+      "officialName": "HOSPITAL MUNICIPAL SAO JOAO BATISTA",
+      "cnesUnitTypeCode": "5",
+      "cnesUnitTypeLabel": "HOSPITAL GERAL",
+      "legalNatureCode": "1120",
+      "legalNatureLabel": "Autarquia Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA NOSSA SENHORA DAS GRACAS",
+        "number": "235",
+        "complement": null,
+        "neighborhoodLabel": "SAO GERALDO",
+        "postalCode": "27253610"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5008898,
+        "longitude": -44.0514597,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000846"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:25143",
+      "cnesCode": "25143",
+      "officialName": "HOSPITAL MUNICIPAL DR MUNIR RAFFUL",
+      "cnesUnitTypeCode": "5",
+      "cnesUnitTypeLabel": "HOSPITAL GERAL",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV JARAGUA",
+        "number": "1020",
+        "complement": null,
+        "neighborhoodLabel": "RETIRO",
+        "postalCode": "27277130"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4994878,
+        "longitude": -44.122840027650305,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000780"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:25208",
+      "cnesCode": "25208",
+      "officialName": "LABORATORIO MUNICIPAL",
+      "cnesUnitTypeCode": "39",
+      "cnesUnitTypeLabel": "UNIDADE DE APOIO DIAGNOSE E TERAPIA (SADT ISOLADO)",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA DEPUTADO GERALDO DE BIASI",
+        "number": "282",
+        "complement": null,
+        "neighborhoodLabel": "ATERRADO",
+        "postalCode": "27215070"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.510019650257966,
+        "longitude": -44.093499183654785,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000493"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:25925",
+      "cnesCode": "25925",
+      "officialName": "POLICLINICA DA MULHER DR JULIO PEREIRA GOMES",
+      "cnesUnitTypeCode": "4",
+      "cnesUnitTypeLabel": "POLICLINICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "LUIS ALVES PEREIRA",
+        "number": "30",
+        "complement": null,
+        "neighborhoodLabel": "ATERRADO",
+        "postalCode": "27213240"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.506243,
+        "longitude": -44.0918277,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000713"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:25941",
+      "cnesCode": "25941",
+      "officialName": "CENTRO DE ATENCAO AOS PORTADORES DE DEFICIENCIA",
+      "cnesUnitTypeCode": "22",
+      "cnesUnitTypeLabel": "CONSULTORIO ISOLADO",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "NAO",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV MARIANO DO CARMO NOGUEIRA REIS",
+        "number": "289",
+        "complement": null,
+        "neighborhoodLabel": "VILA MURY",
+        "postalCode": "27285520"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.500758,
+        "longitude": -44.108522,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000018"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:25968",
+      "cnesCode": "25968",
+      "officialName": "CAPS VILA ESPERANCA",
+      "cnesUnitTypeCode": "70",
+      "cnesUnitTypeLabel": "CENTRO DE ATENCAO PSICOSSOCIAL",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA NOVENTA E TRES C",
+        "number": "193",
+        "complement": null,
+        "neighborhoodLabel": "VILA SANTA CECILIA",
+        "postalCode": "27261170"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5266444,
+        "longitude": -44.1058198,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000935"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:26034",
+      "cnesCode": "26034",
+      "officialName": "FOLLOW UP DE DESENVOLVIMENTO INFANTIL GABRIEL ARSENIO MENEZE",
+      "cnesUnitTypeCode": "4",
+      "cnesUnitTypeLabel": "POLICLINICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA GOV LUIZ MONTEIRO PORTELA",
+        "number": "282",
+        "complement": null,
+        "neighborhoodLabel": "ATERRADO",
+        "postalCode": "27213080"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.508909,
+        "longitude": -44.090062,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000009"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2696428",
+      "cnesCode": "2696428",
+      "officialName": "COC ATERRADO DR DEBER PERES CABRAL CLIN ODONT CONCENTRADA",
+      "cnesUnitTypeCode": "36",
+      "cnesUnitTypeLabel": "CLINICA/CENTRO DE ESPECIALIDADE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA DEPUTADO GERALDO DI BIASE",
+        "number": "S/N",
+        "complement": null,
+        "neighborhoodLabel": "ATERRADO",
+        "postalCode": "27281540"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.506966894917024,
+        "longitude": -44.08783435821533,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000009"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2696436",
+      "cnesCode": "2696436",
+      "officialName": "COC RETIRO GILTON AZEVEDO LIMA CLIN ODONT CONCENT",
+      "cnesUnitTypeCode": "36",
+      "cnesUnitTypeLabel": "CLINICA/CENTRO DE ESPECIALIDADE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "TEJO",
+        "number": "10",
+        "complement": null,
+        "neighborhoodLabel": "RETIRO",
+        "postalCode": "27281230"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.499433833677386,
+        "longitude": -44.103262424468994,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000021"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2708078",
+      "cnesCode": "2708078",
+      "officialName": "HOSPITAL DR NELSON DOS SANTOS GONCALVES",
+      "cnesUnitTypeCode": "5",
+      "cnesUnitTypeLabel": "HOSPITAL GERAL",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA DEPUTADO GERALDO DI BIASE",
+        "number": "S/N",
+        "complement": null,
+        "neighborhoodLabel": "ATERRADO",
+        "postalCode": "27213080"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5070076,
+        "longitude": -44.0878168,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000009"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2708086",
+      "cnesCode": "2708086",
+      "officialName": "DIVISAO DE FISCALIZACAO SANITARIA VOLTA REDONDA",
+      "cnesUnitTypeCode": "50",
+      "cnesUnitTypeLabel": "UNIDADE DE VIGILANCIA EM SAUDE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "NAO",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA DEPUTADO GERALDO DI BIASI",
+        "number": "282",
+        "complement": null,
+        "neighborhoodLabel": "ATERRADO",
+        "postalCode": "27213080"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.507227,
+        "longitude": -44.088051,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000009"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2797089",
+      "cnesCode": "2797089",
+      "officialName": "UBSF VILA BRASILIA MARIA DIAS DE ASSIS",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA NOVA BRASILIA",
+        "number": "424",
+        "complement": null,
+        "neighborhoodLabel": "VILA BRASILIA",
+        "postalCode": "27280000"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.50999982738875,
+        "longitude": -44.093263149261475,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000493"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2797097",
+      "cnesCode": "2797097",
+      "officialName": "UBSF SIDEROPOLIS CARLOS ALBERTO LUCAS",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA SESSENTA",
+        "number": "2000",
+        "complement": null,
+        "neighborhoodLabel": "SIDEROPOLIS",
+        "postalCode": "27256140"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5255359,
+        "longitude": -44.104989,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000934"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2797100",
+      "cnesCode": "2797100",
+      "officialName": "UBSF 249 MERCES MARIA PORTELA",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV EUROPA",
+        "number": "745",
+        "complement": null,
+        "neighborhoodLabel": "249",
+        "postalCode": "27261110"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5281406,
+        "longitude": -44.1271889,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000141"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2797119",
+      "cnesCode": "2797119",
+      "officialName": "UBS CAIEIRAS WILSON LEMOS COELHO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV IMPRENSA",
+        "number": "1150",
+        "complement": null,
+        "neighborhoodLabel": "CAIEIRAS",
+        "postalCode": "27220030"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.480005900000002,
+        "longitude": -44.055643179664585,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000264"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2797127",
+      "cnesCode": "2797127",
+      "officialName": "UBS DOM BOSCO JOSE HENRIQUE SOBRINHO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA DEODORO DA FONSECA",
+        "number": "43",
+        "complement": null,
+        "neighborhoodLabel": "DOM BOSCO",
+        "postalCode": "27286020"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4753885,
+        "longitude": -44.0569018,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000555"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2797135",
+      "cnesCode": "2797135",
+      "officialName": "UBSF VOLTA GRANDE GOTARDO FIRMINO NETTO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA SARGENTO PAULO MOREIRA",
+        "number": "200",
+        "complement": null,
+        "neighborhoodLabel": "VOLTA GRANDE 3",
+        "postalCode": "27211150"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4848919,
+        "longitude": -44.0805414,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000793"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2797143",
+      "cnesCode": "2797143",
+      "officialName": "UBS SAO LUIZ FRANCISCO DE ASSIS MACIEL DA SILVEIRA",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV FRANCISCO CRISOSTONOS TORRES",
+        "number": "88",
+        "complement": null,
+        "neighborhoodLabel": "SAO LUIZ",
+        "postalCode": "27286440"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.47532528131408,
+        "longitude": -44.06594753265381,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000552"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2797151",
+      "cnesCode": "2797151",
+      "officialName": "UBS CANDELARIA ZARIFO FERNANDES COELHO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA MAURO FRANCISCO TORRES",
+        "number": "850",
+        "complement": null,
+        "neighborhoodLabel": "CANDELARIA",
+        "postalCode": "27286390"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4725958,
+        "longitude": -44.075112,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000241"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2797178",
+      "cnesCode": "2797178",
+      "officialName": "UBSF SANTA CRUZ GUANAHYRO FERREIRA NETTO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV ORLANDO JERONIMO TELLES",
+        "number": "130",
+        "complement": null,
+        "neighborhoodLabel": "SANTA CRUZ",
+        "postalCode": "27288070"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.510178233109333,
+        "longitude": -44.09358501434326,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000001"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2797186",
+      "cnesCode": "2797186",
+      "officialName": "UBSF VILA AMERICANA ROGERIO LEOPOLDO TOLEDO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA ESTADOS UNIDOS",
+        "number": "324",
+        "complement": null,
+        "neighborhoodLabel": "VILA AMERICANA",
+        "postalCode": "27212160"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4962971,
+        "longitude": -44.0748064,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000811"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2797208",
+      "cnesCode": "2797208",
+      "officialName": "UBSF SAO LUCAS JOAO LOUREIRO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA VEREADOR FRANCISCO EVANGELISTA DELGADO",
+        "number": "S/N",
+        "complement": null,
+        "neighborhoodLabel": "SAO LUCAS",
+        "postalCode": "27265050"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5320814,
+        "longitude": -44.1168847,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000750"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2797216",
+      "cnesCode": "2797216",
+      "officialName": "UBSF SAO CARLOS SATIRO VICENTE PEREIRA",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV FLORESTAL",
+        "number": "195",
+        "complement": null,
+        "neighborhoodLabel": "SAO CARLOS",
+        "postalCode": "27265270"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5282604,
+        "longitude": -44.1266969,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000141"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2797267",
+      "cnesCode": "2797267",
+      "officialName": "POLICLINICA DA CIDADANIA BERNADINO DE SOUZA",
+      "cnesUnitTypeCode": "4",
+      "cnesUnitTypeLabel": "POLICLINICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA QUINHENTOS E QUARENTA E CINCO",
+        "number": "120",
+        "complement": null,
+        "neighborhoodLabel": "ATERRADO",
+        "postalCode": "27215180"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5081747,
+        "longitude": -44.0954085,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000012"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2797291",
+      "cnesCode": "2797291",
+      "officialName": "UBSF CONFORTO SEBASTIAO RODRIGUES FERREIRA",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA NOSSA SENHORA DA CONCEICAO",
+        "number": "363",
+        "complement": null,
+        "neighborhoodLabel": "CONFORTO",
+        "postalCode": "27262030"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5235431,
+        "longitude": -44.1229217,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000097"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:29149",
+      "cnesCode": "29149",
+      "officialName": "UBSF ROMA I SEBASTIAO ALBANO DA SILVA",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA BAOBA",
+        "number": "73",
+        "complement": null,
+        "neighborhoodLabel": "ROMA I",
+        "postalCode": "27257505"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5958817,
+        "longitude": -44.0780644,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000448"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:29157",
+      "cnesCode": "29157",
+      "officialName": "UBSF ROMA II ELZA FELIX DE OLIVEIRA",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA SETE",
+        "number": "139",
+        "complement": null,
+        "neighborhoodLabel": "ROMA II",
+        "postalCode": "27257785"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4958697,
+        "longitude": -44.0834248,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000037"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:2926865",
+      "cnesCode": "2926865",
+      "officialName": "FARMACIA VIVA SEBASTIAO LIMA COELHO",
+      "cnesUnitTypeCode": "43",
+      "cnesUnitTypeLabel": "FARMACIA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "NAO",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AVENIDA ENGENHEIRO FRANCISCO SABOIA BRBOSA FILHO",
+        "number": "3000",
+        "complement": null,
+        "neighborhoodLabel": "RETIRO",
+        "postalCode": "27277225"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.509997349529897,
+        "longitude": -44.0935555100441,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000493"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:3008258",
+      "cnesCode": "3008258",
+      "officialName": "UBS JARDIM PARAIBA SEBASTIAO DA SILVEIRA GUIMARAES",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA QUINHENTOS E QUARENTA E SEIS",
+        "number": "95",
+        "complement": null,
+        "neighborhoodLabel": "JARDIM PARAIBA",
+        "postalCode": "27215170"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5104143,
+        "longitude": -44.09574685,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000012"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:317381",
+      "cnesCode": "317381",
+      "officialName": "CATI CA",
+      "cnesUnitTypeCode": "4",
+      "cnesUnitTypeLabel": "POLICLINICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AVENIDA AMAZONAS",
+        "number": "275",
+        "complement": null,
+        "neighborhoodLabel": "VILA MURY",
+        "postalCode": "27281060"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.499909618104578,
+        "longitude": -44.104206562042236,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000020"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:3252930",
+      "cnesCode": "3252930",
+      "officialName": "CADEIA PUBLICA FRANZ DE CASTRO HOLZWARTH",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV DOS METALURGICOS",
+        "number": "S/N",
+        "complement": null,
+        "neighborhoodLabel": "ROMA",
+        "postalCode": "27211130"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4878804,
+        "longitude": -44.0249157,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "outside_or_geometry_gap",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:3269892",
+      "cnesCode": "3269892",
+      "officialName": "UBSF VILA RICA JARDIM TIRADENTES DR OSWALDO RICHIERI",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA VINTE",
+        "number": "354",
+        "complement": null,
+        "neighborhoodLabel": "CONJ HAB VILA RICA",
+        "postalCode": "27259480"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4955629,
+        "longitude": -44.0816985,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000725"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:3282767",
+      "cnesCode": "3282767",
+      "officialName": "CEO SANTO AGOSTINHO PEDRO JOAO CARRARO CLIN ODONT CONC",
+      "cnesUnitTypeCode": "36",
+      "cnesUnitTypeLabel": "CLINICA/CENTRO DE ESPECIALIDADE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA MANAUS",
+        "number": "268",
+        "complement": null,
+        "neighborhoodLabel": "SANTO AGOSTINHO",
+        "postalCode": "27210120"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4888546,
+        "longitude": -44.0745346,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000279"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:3471004",
+      "cnesCode": "3471004",
+      "officialName": "CERIII",
+      "cnesUnitTypeCode": "36",
+      "cnesUnitTypeLabel": "CLINICA/CENTRO DE ESPECIALIDADE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV NOSSA SENHORA DO AMPARO",
+        "number": "S/N",
+        "complement": null,
+        "neighborhoodLabel": "VOLDAC",
+        "postalCode": "27283370"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.50994035876407,
+        "longitude": -44.093499183654785,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000493"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:3553299",
+      "cnesCode": "3553299",
+      "officialName": "UBSF JARDIM BELMONTE JULIO BERTHOLDO FILHO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA CONCEICAO DE MACABU",
+        "number": "151",
+        "complement": null,
+        "neighborhoodLabel": "SIDERLANDIA",
+        "postalCode": "27274265"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.512556954051437,
+        "longitude": -44.1046142578125,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000092"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:3794245",
+      "cnesCode": "3794245",
+      "officialName": "SALA DE IMUNIZACAO PARK SUL",
+      "cnesUnitTypeCode": "85",
+      "cnesUnitTypeLabel": "CENTRO DE IMUNIZACAO",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RODOVIA DOS METALURGICOS",
+        "number": "1189",
+        "complement": null,
+        "neighborhoodLabel": "SAO GERALDO",
+        "postalCode": "27253005"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5230488,
+        "longitude": -44.0777038,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000664"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:4046692",
+      "cnesCode": "4046692",
+      "officialName": "UBSF PADRE JOSIMO ANTONIO CARLOS FERRARO ARAUJO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA QUINZE",
+        "number": "501",
+        "complement": null,
+        "neighborhoodLabel": "PADRE JOSIMO",
+        "postalCode": "27276260"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.512993048451072,
+        "longitude": -44.14572715759277,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000769"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:4083431",
+      "cnesCode": "4083431",
+      "officialName": "SERVICO DE ATENDIMENTO DOMICILIAR",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA SAO JOAO BATISTA",
+        "number": "35",
+        "complement": null,
+        "neighborhoodLabel": "NITEROI",
+        "postalCode": "27283060"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.500167333986013,
+        "longitude": -44.087727069854736,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000724"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:4206541",
+      "cnesCode": "4206541",
+      "officialName": "CENTRO CARDIOLOGICO CAMILO RIKER FURTADO",
+      "cnesUnitTypeCode": "4",
+      "cnesUnitTypeLabel": "POLICLINICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA DESEMBARGADOR CESAR SALAMONT",
+        "number": "191",
+        "complement": null,
+        "neighborhoodLabel": "ATERRADO",
+        "postalCode": "27215522"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.50992053588348,
+        "longitude": -44.093520641326904,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000493"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:4373774",
+      "cnesCode": "4373774",
+      "officialName": "CENTRAL DE AMBULANCIA",
+      "cnesUnitTypeCode": "40",
+      "cnesUnitTypeLabel": "UNIDADE MOVEL TERRESTRE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "NAO",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA POLASTRI FILHO",
+        "number": "S/N",
+        "complement": null,
+        "neighborhoodLabel": "VOLDAC",
+        "postalCode": "27213090"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.50999982738875,
+        "longitude": -44.093520641326904,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000493"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:471607",
+      "cnesCode": "471607",
+      "officialName": "CENTRAL MUNICIPAL DE REDE DE FRIO CMRF VOLTA REDONDA",
+      "cnesUnitTypeCode": "84",
+      "cnesUnitTypeLabel": "CENTRAL DE ABASTECIMENTO",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA 566",
+        "number": "31",
+        "complement": null,
+        "neighborhoodLabel": "NOSSA SENHORA DAS GR",
+        "postalCode": "27215390"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5042839,
+        "longitude": -44.0947176,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000013"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:4779452",
+      "cnesCode": "4779452",
+      "officialName": "SAMU USB 3",
+      "cnesUnitTypeCode": "42",
+      "cnesUnitTypeLabel": "UNIDADE MOVEL DE NIVEL PRE-HOSPITALAR NA AREA DE URGENCIA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "NAO",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AVENIDA ALM ADALBERTO DE BARROS NUNES",
+        "number": "S/N",
+        "complement": null,
+        "neighborhoodLabel": "BEIRA RIO RETIRO",
+        "postalCode": "27274200"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.502137,
+        "longitude": -44.103949,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000020"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:5015359",
+      "cnesCode": "5015359",
+      "officialName": "POLICLINICA DA MELHOR IDADE",
+      "cnesUnitTypeCode": "4",
+      "cnesUnitTypeLabel": "POLICLINICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA QUINHENTOS E QUARENTA E OITO",
+        "number": "95",
+        "complement": null,
+        "neighborhoodLabel": "JARDIM PARAIBA",
+        "postalCode": "27213200"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.523003018888605,
+        "longitude": -44.103498458862305,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000086"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:5015847",
+      "cnesCode": "5015847",
+      "officialName": "UBSF VERDE VALE LOURIVAL FERREIRA PEIXOTO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA DAS PALMEIRAS",
+        "number": "154",
+        "complement": null,
+        "neighborhoodLabel": "VERDE VALE",
+        "postalCode": "27279740"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4866837,
+        "longitude": -44.1171972,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000866"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:5076315",
+      "cnesCode": "5076315",
+      "officialName": "CAPS AD II LUCIA MARIA BESSADA",
+      "cnesUnitTypeCode": "70",
+      "cnesUnitTypeLabel": "CENTRO DE ATENCAO PSICOSSOCIAL",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA DOIS",
+        "number": "101",
+        "complement": null,
+        "neighborhoodLabel": "CONFORTO",
+        "postalCode": "27260240"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.494794849754417,
+        "longitude": -44.08684730529785,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000502"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:5134153",
+      "cnesCode": "5134153",
+      "officialName": "CEO SIDERLANDIA DR ANTONIO D APARECIDA BAPTISTA E SILVA",
+      "cnesUnitTypeCode": "36",
+      "cnesUnitTypeLabel": "CLINICA/CENTRO DE ESPECIALIDADE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV ALMIRANTE ADALBERTO DE BARROS NUNES",
+        "number": "6670",
+        "complement": null,
+        "neighborhoodLabel": "SIDERLANDIA",
+        "postalCode": "27273010"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.522224,
+        "longitude": -44.135055,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000165"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:5446376",
+      "cnesCode": "5446376",
+      "officialName": "UBSF EUCALIPTAL ADALZIRA TERTULIANO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA VEREADOR RAIMUNDO DIOGO",
+        "number": "341",
+        "complement": null,
+        "neighborhoodLabel": "EUCALIPTAL",
+        "postalCode": "27263090"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4886737,
+        "longitude": -44.0819322,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000297"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:5519616",
+      "cnesCode": "5519616",
+      "officialName": "UBSF NOVA PRIMAVERA IRMA TEREZINHA DE CASTRO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA PONCIANO GUIMARAES",
+        "number": "12",
+        "complement": null,
+        "neighborhoodLabel": "NOVA PRIMAVERA",
+        "postalCode": "27214615"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.510039473124326,
+        "longitude": -44.09356355667114,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000493"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:5987938",
+      "cnesCode": "5987938",
+      "officialName": "UBSF SANTO AGOSTINHO DRA PAULA HERICA ROCHA DE AZEVEDO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA SOLDADO FRANCISCO ALVES DA ROCHA",
+        "number": "20",
+        "complement": null,
+        "neighborhoodLabel": "SANTO AGOSTINHO",
+        "postalCode": "27210070"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.489560937570783,
+        "longitude": -44.07491683959961,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000805"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:6086381",
+      "cnesCode": "6086381",
+      "officialName": "SECRETARIA MUNICIPAL DE SAUDE DE VOLTA REDONDA",
+      "cnesUnitTypeCode": "68",
+      "cnesUnitTypeLabel": "CENTRAL DE GESTAO EM SAUDE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA SAO JOAO BATISTA",
+        "number": "55",
+        "complement": null,
+        "neighborhoodLabel": "NITEROI",
+        "postalCode": "27283240"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4999988,
+        "longitude": -44.0877472,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000724"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:6125107",
+      "cnesCode": "6125107",
+      "officialName": "UBSF RETIRO FABRICIO COSTA CURY",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV ANTONIO DE ALMEIDA",
+        "number": "1938",
+        "complement": null,
+        "neighborhoodLabel": "RETIRO",
+        "postalCode": "27275040"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.50064311589025,
+        "longitude": -44.12304639816284,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000204"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:6272320",
+      "cnesCode": "6272320",
+      "officialName": "UPA 24 HS VOLTA REDONDA",
+      "cnesUnitTypeCode": "73",
+      "cnesUnitTypeLabel": "PRONTO ATENDIMENTO",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA MIL E DEZESSETE",
+        "number": "660",
+        "complement": null,
+        "neighborhoodLabel": "STO AGOSTINHO",
+        "postalCode": "27210240"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4882741,
+        "longitude": -44.0716486,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000287"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:6469418",
+      "cnesCode": "6469418",
+      "officialName": "UBSF PONTE ALTA VICTOR JOSE ROSTIROLLA CESAR",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA AURORA BEZERRA",
+        "number": "463",
+        "complement": null,
+        "neighborhoodLabel": "PONTE ALTA",
+        "postalCode": "27267550"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5285305,
+        "longitude": -44.1327117,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000705"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:6478697",
+      "cnesCode": "6478697",
+      "officialName": "CAPS DR SERGIO SIBILIO FRITSCH",
+      "cnesUnitTypeCode": "70",
+      "cnesUnitTypeLabel": "CENTRO DE ATENCAO PSICOSSOCIAL",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA ALIMO ANTONIO FRANCISCO",
+        "number": "243",
+        "complement": null,
+        "neighborhoodLabel": "JARDIM BELVEDERE",
+        "postalCode": "27240260"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.90780345105838,
+        "longitude": -44.351806640625,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "outside_or_geometry_gap",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:6573266",
+      "cnesCode": "6573266",
+      "officialName": "CENTRO DE IMAGENS GECY VIEIRA GONCALVES",
+      "cnesUnitTypeCode": "39",
+      "cnesUnitTypeLabel": "UNIDADE DE APOIO DIAGNOSE E TERAPIA (SADT ISOLADO)",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA 41",
+        "number": "434",
+        "complement": null,
+        "neighborhoodLabel": "VILA SANTA CECILIA",
+        "postalCode": "27215530"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.521615541519726,
+        "longitude": -44.101738929748535,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000709"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:6577075",
+      "cnesCode": "6577075",
+      "officialName": "FARMACIA MUNICIPAL OLEZIO GALLOTI",
+      "cnesUnitTypeCode": "43",
+      "cnesUnitTypeLabel": "FARMACIA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA EDSON PASSOS",
+        "number": "271",
+        "complement": null,
+        "neighborhoodLabel": "ATERRADO",
+        "postalCode": "27215550"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.506633,
+        "longitude": -44.0933246,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "boundary_ambiguous",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:6832164",
+      "cnesCode": "6832164",
+      "officialName": "ESPACO DE CUIDADO EM SAUDE JOSE SALVINO DE PAIVA OLIVEIRA",
+      "cnesUnitTypeCode": "4",
+      "cnesUnitTypeLabel": "POLICLINICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA 545",
+        "number": "S/N",
+        "complement": null,
+        "neighborhoodLabel": "CONFORTO",
+        "postalCode": "27260240"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.522963376871417,
+        "longitude": -44.103970527648926,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000086"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:6844855",
+      "cnesCode": "6844855",
+      "officialName": "SMS CENTRAL DE REGULACAO VOLTA REDONDA",
+      "cnesUnitTypeCode": "81",
+      "cnesUnitTypeLabel": "CENTRAL DE REGULACAO DO ACESSO",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "SAO JOAO BATISTA",
+        "number": "55",
+        "complement": null,
+        "neighborhoodLabel": "NITEROI",
+        "postalCode": "27250160"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5094043,
+        "longitude": -44.0951299,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000012"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:7024037",
+      "cnesCode": "7024037",
+      "officialName": "COC CONFORTO YOLANDO OURIQUE FILHO",
+      "cnesUnitTypeCode": "36",
+      "cnesUnitTypeLabel": "CLINICA/CENTRO DE ESPECIALIDADE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA NOSSA SENHORA DA CONCEICAO",
+        "number": "361",
+        "complement": null,
+        "neighborhoodLabel": "CONFORTO",
+        "postalCode": "27262150"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5099601816418,
+        "longitude": -44.09339189529419,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000493"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:7080530",
+      "cnesCode": "7080530",
+      "officialName": "COC EUCALIPTAL OSWALDO HENRIQUE DE ABREU",
+      "cnesUnitTypeCode": "36",
+      "cnesUnitTypeLabel": "CLINICA/CENTRO DE ESPECIALIDADE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA DUZENTOS E VINTE E OITO A",
+        "number": "32",
+        "complement": null,
+        "neighborhoodLabel": "CONFORTO",
+        "postalCode": "27263400"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.524445,
+        "longitude": -44.1218917,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000748"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:7119356",
+      "cnesCode": "7119356",
+      "officialName": "CRMU MP",
+      "cnesUnitTypeCode": "76",
+      "cnesUnitTypeLabel": "CENTRAL DE REGULACAO MEDICA DAS URGENCIAS",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA VINTE E DOIS",
+        "number": "349",
+        "complement": null,
+        "neighborhoodLabel": "VILA RICA",
+        "postalCode": "27259240"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.544984,
+        "longitude": -44.0701023,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000349"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:7123183",
+      "cnesCode": "7123183",
+      "officialName": "SAMU VR USA",
+      "cnesUnitTypeCode": "42",
+      "cnesUnitTypeLabel": "UNIDADE MOVEL DE NIVEL PRE-HOSPITALAR NA AREA DE URGENCIA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "NAO",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AVENIDA NOSSA SENHORA DA CONCEICAO",
+        "number": "S/N",
+        "complement": null,
+        "neighborhoodLabel": "CONFORTO",
+        "postalCode": "27265432"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.523508,
+        "longitude": -44.12311,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000097"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:7123191",
+      "cnesCode": "7123191",
+      "officialName": "SAMU VR USB 2",
+      "cnesUnitTypeCode": "42",
+      "cnesUnitTypeLabel": "UNIDADE MOVEL DE NIVEL PRE-HOSPITALAR NA AREA DE URGENCIA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "NAO",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AVENIDA NOSSA SENHORA DA CONCEICAO",
+        "number": "S/N",
+        "complement": null,
+        "neighborhoodLabel": "CONFORTO",
+        "postalCode": "27265060"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.524313,
+        "longitude": -44.125205,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000749"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:7123205",
+      "cnesCode": "7123205",
+      "officialName": "SAMU VR USB I",
+      "cnesUnitTypeCode": "42",
+      "cnesUnitTypeLabel": "UNIDADE MOVEL DE NIVEL PRE-HOSPITALAR NA AREA DE URGENCIA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "NAO",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AVENIDA ALEXANDRE POLASTRE FILHO",
+        "number": "S/N",
+        "complement": null,
+        "neighborhoodLabel": "VOLDAC",
+        "postalCode": "27211117"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.491751,
+        "longitude": -44.088585,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000443"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:7401884",
+      "cnesCode": "7401884",
+      "officialName": "POLO I OSTOMIZADOS",
+      "cnesUnitTypeCode": "36",
+      "cnesUnitTypeLabel": "CLINICA/CENTRO DE ESPECIALIDADE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "NAO",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA A",
+        "number": "40",
+        "complement": null,
+        "neighborhoodLabel": "PARQUE DAS ILHAS",
+        "postalCode": "27250150"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.3639516,
+        "longitude": -43.8659547,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "outside_or_geometry_gap",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:7580274",
+      "cnesCode": "7580274",
+      "officialName": "CLINICA DOS OLHOS PREFEITO MARINO CLINGER",
+      "cnesUnitTypeCode": "4",
+      "cnesUnitTypeLabel": "POLICLINICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA ALEXANDRE POLADTRI FILHO",
+        "number": "791",
+        "complement": null,
+        "neighborhoodLabel": "VOLDAC",
+        "postalCode": "27215180"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.491226,
+        "longitude": -44.088413,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000443"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:7689039",
+      "cnesCode": "7689039",
+      "officialName": "ACADEMIA DE SAUDE VILA BRASILIA",
+      "cnesUnitTypeCode": "74",
+      "cnesUnitTypeLabel": "POLO ACADEMIA DA SAUDE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "NAO",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA NOVA BRASILIA",
+        "number": "S/N",
+        "complement": null,
+        "neighborhoodLabel": "VILA BRASILIA",
+        "postalCode": "27250150"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.509880890113795,
+        "longitude": -44.093477725982666,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000493"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:7693524",
+      "cnesCode": "7693524",
+      "officialName": "UBSF SAO JOAO EBER GOMES",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA ARARIBOIA",
+        "number": "332",
+        "complement": null,
+        "neighborhoodLabel": "SAO JOAO",
+        "postalCode": "27250150"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5180134,
+        "longitude": -44.0925428,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000515"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:7795394",
+      "cnesCode": "7795394",
+      "officialName": "COORDENADORIA DE VIGILANCIA AMBIENTAL",
+      "cnesUnitTypeCode": "50",
+      "cnesUnitTypeLabel": "UNIDADE DE VIGILANCIA EM SAUDE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "NAO",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA ERIKA BERBETE",
+        "number": "0",
+        "complement": null,
+        "neighborhoodLabel": "VILA RICA TRES POC",
+        "postalCode": "27240550"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.510059295987855,
+        "longitude": -44.09339189529419,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000493"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:9074457",
+      "cnesCode": "9074457",
+      "officialName": "SES RJ HOSP REGIONAL MEDIO PARAIBA DRA ZILDA ARNS NEUMANN",
+      "cnesUnitTypeCode": "5",
+      "cnesUnitTypeLabel": "HOSPITAL GERAL",
+      "legalNatureCode": "1023",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Estadual ou do Distrito Federal",
+      "managementSphere": "ESTADUAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RODOVIA PRESIDENTE DUTRA",
+        "number": "S/N",
+        "complement": null,
+        "neighborhoodLabel": "RIO DAS FLORES",
+        "postalCode": "27257420"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.592101565058712,
+        "longitude": -44.08009886741638,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000437"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:9093451",
+      "cnesCode": "9093451",
+      "officialName": "UBSF JARDIM BELVEDERE VEREADOR ONICIO ZAMBOTI",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV CRISTOVAO MOREIRA DA SILVA",
+        "number": "240",
+        "complement": null,
+        "neighborhoodLabel": "JARDIM BELVEDERE",
+        "postalCode": "27258030"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5297383,
+        "longitude": -44.0687786,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000483"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:9121137",
+      "cnesCode": "9121137",
+      "officialName": "ACADEMIA DE SAUDE VOLTA GRANDE",
+      "cnesUnitTypeCode": "74",
+      "cnesUnitTypeLabel": "POLO ACADEMIA DA SAUDE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "NAO",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "MIL E VINTE E CINCO",
+        "number": "176",
+        "complement": null,
+        "neighborhoodLabel": "VOLTA GRANDE",
+        "postalCode": "27211810"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4832818,
+        "longitude": -44.0803299,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000267"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:9143041",
+      "cnesCode": "9143041",
+      "officialName": "COC SANTA CRUZ NILTON DE SOUZA",
+      "cnesUnitTypeCode": "36",
+      "cnesUnitTypeLabel": "CLINICA/CENTRO DE ESPECIALIDADE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AV BENEDDITO VITALINO",
+        "number": "105",
+        "complement": null,
+        "neighborhoodLabel": "SANTA CRUZ",
+        "postalCode": "27288010"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.50992053588348,
+        "longitude": -44.09358501434326,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000493"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:939757",
+      "cnesCode": "939757",
+      "officialName": "OFICINA ORTOPEDICA CER III VOLTA REDONDA",
+      "cnesUnitTypeCode": "79",
+      "cnesUnitTypeLabel": "OFICINA ORTOPEDICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "AVENIDA NOSSA SENHORA DO AMPARO",
+        "number": "S/N",
+        "complement": null,
+        "neighborhoodLabel": "VOLDAC",
+        "postalCode": "27283370"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4873946,
+        "longitude": -44.0921018,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000877"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:9555447",
+      "cnesCode": "9555447",
+      "officialName": "UBSF AGUA LIMPA II CARLOS GOMES DE FREITAS",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "VIOLETAS",
+        "number": "214",
+        "complement": null,
+        "neighborhoodLabel": "AGUA LIMPA",
+        "postalCode": "27250240"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.506106,
+        "longitude": -44.072278,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000319"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:9566309",
+      "cnesCode": "9566309",
+      "officialName": "POLO EEST DE DISP DE MED DO COMP ESP DO SUS DE V RDONDA",
+      "cnesUnitTypeCode": "43",
+      "cnesUnitTypeLabel": "FARMACIA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "NAO",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "QUINHENTOS E SETENTA E QUATRO",
+        "number": "99",
+        "complement": null,
+        "neighborhoodLabel": "N S DAS GRACAS",
+        "postalCode": "27215430"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.5014186,
+        "longitude": -44.0936443,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000014"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:9719717",
+      "cnesCode": "9719717",
+      "officialName": "UBS SAO SEBASTIAO LLEONIDIA MAIA DE ABREU CORDEIRO",
+      "cnesUnitTypeCode": "2",
+      "cnesUnitTypeLabel": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA DOIS",
+        "number": "S/N",
+        "complement": null,
+        "neighborhoodLabel": "SAO SEBATIAO",
+        "postalCode": "27286490"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.4947957,
+        "longitude": -44.086733,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000503"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    },
+    {
+      "equipmentId": "health:cnes:972258",
+      "cnesCode": "972258",
+      "officialName": "CENTRO DE REABILITACAO MEDICA TUFFI RAFFUL",
+      "cnesUnitTypeCode": "36",
+      "cnesUnitTypeLabel": "CLINICA/CENTRO DE ESPECIALIDADE",
+      "legalNatureCode": "1031",
+      "legalNatureLabel": "Órgão Público do Poder Executivo Municipal",
+      "managementSphere": "MUNICIPAL",
+      "susRelation": "SIM",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "RUA 545",
+        "number": "48",
+        "complement": null,
+        "neighborhoodLabel": "NOSSA SENHORA DAS GR",
+        "postalCode": "27283370"
+      },
+      "geography": {
+        "level": "official_public_point",
+        "latitude": -22.510019650257966,
+        "longitude": -44.098241329193115,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "matched",
+        "sectorCode": "330630505000012"
+      },
+      "status": "active_reported",
+      "sourceId": "ms-cnes-establishments-vr-active-20260811"
+    }
+  ],
+  "qualityState": "verified_official_public_data",
+  "readiness": "READY_D3C_HEALTH",
+  "limitations": [
+    "A camada contém somente estabelecimentos ativos cuja natureza jurídica está na allowlist pública D3B0.",
+    "Prestadores privados, filantrópicos ou conveniados não entram apenas por atenderem ao SUS.",
+    "Coordenadas são preservadas da fonte CNES; nenhuma geocodificação ou correção manual é aplicada.",
+    "Vínculo territorial usa apenas ponto oficial e setor censitário D3A; endereço não atribui setor.",
+    "Presença territorial não mede cobertura, capacidade, distância, déficit ou exposição ambiental."
+  ]
+}
