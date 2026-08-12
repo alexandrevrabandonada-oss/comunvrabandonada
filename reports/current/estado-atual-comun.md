@@ -1,4 +1,33 @@
-# Estado atual — 48.2-D3A Base Territorial Pública Censo 2022 (11/08/2026)
+# Estado atual — 48.2-D3B0 Contrato de equipamentos públicos (11/08/2026)
+
+## 48.2-D3B0 — Saúde pronta; Educação e Assistência parciais
+
+- fontes oficiais de Saúde, Educação e Assistência Social foram auditadas sem
+  ler dados privados e sem consulta runtime futura;
+- Saúde ficou `READY_D3B1`: CNES fornece identidade, natureza jurídica, tipos,
+  endereço, status e coordenadas oficiais; a seleção pública usa allowlist
+  jurídica explícita e não infere propriedade por esfera ou relação SUS;
+- Educação ficou `PARTIAL_D3B`: INEP fornece ID, dependência e situação, mas os
+  campos territoriais foram removidos do microdado 2025; o catálogo SME exige
+  reconciliação e possui conflito de 105 páginas versus 101 unidades reportadas;
+- Assistência ficou `PARTIAL_D3B`: CadSUAS fornece identidade e endereço
+  públicos, sem coordenadas; gestão e situação precisam de revisão por tipo;
+- `official_public_point`, `address_only` e `derived_geocoded_point` foram
+  separados; o último está proibido no D3B0 e setor só pode ser atribuído a
+  ponto oficial por point-in-polygon determinístico;
+- não houve snapshot ativo, UI, API, flag, migration, deploy, geocoding ou
+  escrita Production; exposição ambiental continua explicitamente deferida;
+- D1/D2A e o piloto humano permanecem nos estados anteriores, sem regressão.
+
+Resultado terminal:
+`COMUN_48_2_D3B0_PUBLIC_EQUIPMENT_DATA_CONTRACT_GREEN`.
+
+Próximo passo autorizado: `48.2-D3B1 — Saúde`, primeiro domínio classificado
+`READY_D3B1`.
+
+Detalhes: `reports/current/comun-48-2-d3b0-public-equipment-data-audit.md`.
+
+# Estado anterior — 48.2-D3A Base Territorial Pública Censo 2022 (11/08/2026)
 
 ## 48.2-D3A — Geografia e agregados oficiais, sem exposição ambiental
 
