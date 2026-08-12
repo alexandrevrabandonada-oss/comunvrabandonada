@@ -60,6 +60,19 @@ describe("observatory public firewall", () => {
     });
   });
 
+  it("keeps territory cloaked until its isolated flag is enabled", () => {
+    expect(getPublicObservatoryRegistry(true, true, true, false)[2]).toMatchObject({
+      id: "territory",
+      status: "preparing",
+      publicRoute: null,
+    });
+    expect(getPublicObservatoryRegistry(true, true, true, true)[2]).toMatchObject({
+      id: "territory",
+      status: "available",
+      publicRoute: "/comun/observatorios/territorio",
+    });
+  });
+
   it("labels old sources without hiding them", () => {
     expect(
       freshnessForUpdatedAt(
