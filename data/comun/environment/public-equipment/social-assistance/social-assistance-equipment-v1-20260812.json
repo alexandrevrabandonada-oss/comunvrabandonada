@@ -1,0 +1,512 @@
+{
+  "snapshotId": "comun-public-social-assistance-equipment-v1-20260812",
+  "previousSnapshotId": null,
+  "methodologyVersion": "comun-public-social-assistance-equipment-snapshot-v1",
+  "verifiedAt": "2026-08-12T04:04:20.261Z",
+  "municipality": {
+    "ibgeCode": "3306305",
+    "name": "Volta Redonda"
+  },
+  "sourceIds": [
+    "mds-cadsuas-vr-public-directory-20260812",
+    "pmvr-smas-units-directory-20260812",
+    "pmvr-smas-cras-activity-2026-06-10",
+    "pmvr-smas-creas-activity-2026-05-25"
+  ],
+  "equipmentCount": 16,
+  "addressOnlyCount": 16,
+  "officialPointCount": 0,
+  "sectorMatchedCount": 0,
+  "boundaryAmbiguousCount": 0,
+  "outsideOrGeometryGapCount": 0,
+  "diagnostics": {
+    "cadsuasRows": 89,
+    "municipalDirectoryRows": 56,
+    "recordsWithCadsuasId": 89,
+    "recordsMatchedMunicipalDirectory": 16,
+    "recordsActiveReported": 16,
+    "recordsPublicManagement": 16,
+    "recordsAddressPublic": 16,
+    "recordsAddressRestricted": 0,
+    "recordsAddressUnknown": 0,
+    "recordsAddressOnly": 16,
+    "recordsWithOfficialPoint": 0,
+    "recordsWithoutSectorBinding": 16,
+    "excludedNoMunicipalCorroboration": 73,
+    "sourceConflicts": 1
+  },
+  "records": [
+    {
+      "equipmentId": "social-assistance:cadsuas:137466",
+      "cadsuasCode": "137466",
+      "officialName": "CRAS Santo Agostinho",
+      "equipmentType": "cras",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Rua Itamaracá",
+        "number": "79",
+        "complement": null,
+        "neighborhoodLabel": null,
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    },
+    {
+      "equipmentId": "social-assistance:cadsuas:137470",
+      "cadsuasCode": "137470",
+      "officialName": "CRAS Siderlândia",
+      "equipmentType": "cras",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Rua",
+        "number": "10",
+        "complement": null,
+        "neighborhoodLabel": "nº 20",
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    },
+    {
+      "equipmentId": "social-assistance:cadsuas:223337",
+      "cadsuasCode": "223337",
+      "officialName": "CREAS -Centro de Referência Especializado deAssistência Social",
+      "equipmentType": "creas",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Rua Antônio Barreiros",
+        "number": "222",
+        "complement": null,
+        "neighborhoodLabel": "Nossa Senhora das Graças",
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    },
+    {
+      "equipmentId": "social-assistance:cadsuas:260124",
+      "cadsuasCode": "260124",
+      "officialName": "CRAS Retiro",
+      "equipmentType": "cras",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Rua Grandes Lojas",
+        "number": "107",
+        "complement": null,
+        "neighborhoodLabel": null,
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    },
+    {
+      "equipmentId": "social-assistance:cadsuas:260127",
+      "cadsuasCode": "260127",
+      "officialName": "CRAS Santa Cruz",
+      "equipmentType": "cras",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Av. Ex Combatente, s n°",
+        "number": null,
+        "complement": null,
+        "neighborhoodLabel": null,
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    },
+    {
+      "equipmentId": "social-assistance:cadsuas:260130",
+      "cadsuasCode": "260130",
+      "officialName": "CRAS Vila Americana",
+      "equipmentType": "cras",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Rua Estados Unidos",
+        "number": "380",
+        "complement": null,
+        "neighborhoodLabel": null,
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    },
+    {
+      "equipmentId": "social-assistance:cadsuas:260136",
+      "cadsuasCode": "260136",
+      "officialName": "CRAS Candelária",
+      "equipmentType": "cras",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Rua: Torres",
+        "number": "45",
+        "complement": null,
+        "neighborhoodLabel": null,
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    },
+    {
+      "equipmentId": "social-assistance:cadsuas:260137",
+      "cadsuasCode": "260137",
+      "officialName": "CRAS Dom Bosco",
+      "equipmentType": "cras",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Rua Deodoro da Fonseca",
+        "number": "53",
+        "complement": null,
+        "neighborhoodLabel": null,
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    },
+    {
+      "equipmentId": "social-assistance:cadsuas:260138",
+      "cadsuasCode": "260138",
+      "officialName": "CRAS Açude",
+      "equipmentType": "cras",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Av.Francisco Antonio Francisco, S Nº",
+        "number": null,
+        "complement": null,
+        "neighborhoodLabel": null,
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    },
+    {
+      "equipmentId": "social-assistance:cadsuas:363310",
+      "cadsuasCode": "363310",
+      "officialName": "CRAS São Sebastião",
+      "equipmentType": "cras",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Rua B9, s nº",
+        "number": null,
+        "complement": null,
+        "neighborhoodLabel": null,
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    },
+    {
+      "equipmentId": "social-assistance:cadsuas:491351",
+      "cadsuasCode": "491351",
+      "officialName": "CRAS Volta Grande",
+      "equipmentType": "cras",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Rua",
+        "number": "1054",
+        "complement": null,
+        "neighborhoodLabel": "nº 159",
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    },
+    {
+      "equipmentId": "social-assistance:cadsuas:492869",
+      "cadsuasCode": "492869",
+      "officialName": "CRAS Jardim Ponte Alta",
+      "equipmentType": "cras",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Rua D",
+        "number": "155",
+        "complement": null,
+        "neighborhoodLabel": null,
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    },
+    {
+      "equipmentId": "social-assistance:cadsuas:492870",
+      "cadsuasCode": "492870",
+      "officialName": "CRAS Coqueiros",
+      "equipmentType": "cras",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Rua J",
+        "number": "50",
+        "complement": null,
+        "neighborhoodLabel": null,
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    },
+    {
+      "equipmentId": "social-assistance:cadsuas:492871",
+      "cadsuasCode": "492871",
+      "officialName": "CRAS Mariana Torres",
+      "equipmentType": "cras",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Rua D, s n°",
+        "number": null,
+        "complement": null,
+        "neighborhoodLabel": null,
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    },
+    {
+      "equipmentId": "social-assistance:cadsuas:495789",
+      "cadsuasCode": "495789",
+      "officialName": "CRAS Santa Rita de Cássia",
+      "equipmentType": "cras",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Estrada da Granja",
+        "number": "40",
+        "complement": null,
+        "neighborhoodLabel": null,
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    },
+    {
+      "equipmentId": "social-assistance:cadsuas:503012",
+      "cadsuasCode": "503012",
+      "officialName": "CRAS Ponte Alta",
+      "equipmentType": "cras",
+      "management": "public_municipal",
+      "municipalityCode": "3306305",
+      "municipalityName": "Volta Redonda",
+      "address": {
+        "street": "Rua Dom Pedro I",
+        "number": "22",
+        "complement": null,
+        "neighborhoodLabel": "Ponte Alta",
+        "postalCode": null
+      },
+      "addressPublication": "public",
+      "geography": {
+        "level": "address_only",
+        "latitude": null,
+        "longitude": null,
+        "source": "official_source"
+      },
+      "territorialBinding": {
+        "state": "not_applicable_address_only",
+        "sectorCode": null
+      },
+      "status": "active_reported",
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812"
+    }
+  ],
+  "qualityState": "verified_official_public_data",
+  "readiness": "READY_D3C_SOCIAL_ASSISTANCE",
+  "limitations": [
+    "Somente unidades com identidade CadSUAS, diretório municipal e evidência municipal recente de atividade entram nesta versão.",
+    "Não há coordenadas oficiais: todos os registros são address_only e não recebem setor censitário.",
+    "Centro POP foi excluído por conflito de endereço entre fontes oficiais até revisão específica.",
+    "Endereços restritos por fonte não são reconstruídos nem inferidos."
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "manifestVersion": "comun-public-social-assistance-equipment-source-manifest-v1",
+  "sources": [
+    {
+      "sourceId": "mds-cadsuas-vr-public-directory-20260812",
+      "sourceType": "cadsuas_public_directory",
+      "originalPublisher": "Ministério do Desenvolvimento e Assistência Social, Família e Combate à Fome",
+      "officialUrl": "https://aplicacoes.mds.gov.br/cadsuas/pesquisarConsultaExterna.html",
+      "rawSha256": "173307518cc20208ec258693aae1567b0732df83cb1c89e152a9440d887b70f7",
+      "semanticSha256": "c6edad807aa529ba438ef28048b147f222c05a666c940f790aa98c6d555b59c8",
+      "retrievedAt": "2026-08-12T04:04:20.261Z",
+      "datasetVersion": "CadSUAS consulta externa — Volta Redonda/RJ",
+      "parserVersion": "comun-public-social-assistance-equipment-capture-v1",
+      "status": "verified",
+      "previousSourceId": null
+    },
+    {
+      "sourceId": "pmvr-smas-units-directory-20260812",
+      "sourceType": "municipal_units_directory",
+      "originalPublisher": "Secretaria Municipal de Assistência Social de Volta Redonda",
+      "officialUrl": "https://smas.voltaredonda.rj.gov.br/a-secretaria/telefones-das-unidades",
+      "rawSha256": "f32c8283dbba59c7d0b73a031782ea28a6d3d05ef09cd6a44c10f630ae6549ff",
+      "semanticSha256": "9b8f81372fa2b5a7d155d03ebe41e3eb9960df2024cb0e59a3006e09a1f7b320",
+      "retrievedAt": "2026-08-12T04:04:20.261Z",
+      "datasetVersion": "Diretório público de unidades SMAS",
+      "parserVersion": "comun-public-social-assistance-equipment-capture-v1",
+      "status": "verified",
+      "previousSourceId": null
+    },
+    {
+      "sourceId": "pmvr-smas-cras-activity-2026-06-10",
+      "sourceType": "municipal_current_activity_publication",
+      "originalPublisher": "Prefeitura Municipal de Volta Redonda / SMAS",
+      "officialUrl": "https://www.voltaredonda.rj.gov.br/comunicacao/noticias/15-smac/12021-prefeitura-de-volta-redonda-promove-temporada-de-festas-juninas-e-julinas-nos-cras-e-centros-de-conviv%C3%AAncia/",
+      "rawSha256": "e4e8f710ae382d2f52356052b5c32d39986753e1ae815c4a2144cf9b6f716e87",
+      "semanticSha256": "02a12afc5e87ec2c15df13c077b8e96718145e242ed7713e8388a0521926df40",
+      "retrievedAt": "2026-08-12T04:04:20.261Z",
+      "datasetVersion": "Publicação municipal de atividade CRAS em 2026",
+      "parserVersion": "comun-public-social-assistance-equipment-capture-v1",
+      "status": "verified",
+      "previousSourceId": null
+    },
+    {
+      "sourceId": "pmvr-smas-creas-activity-2026-05-25",
+      "sourceType": "municipal_current_activity_publication",
+      "originalPublisher": "Prefeitura Municipal de Volta Redonda / SMAS",
+      "officialUrl": "https://www.voltaredonda.rj.gov.br/comunicacao/noticias/15-smac/11943-creas-de-volta-redonda-j%C3%A1-realizou-mais-de-mil-atendimentos-em-2026-e-fortalece-prote%C3%A7%C3%A3o-social-no-munic%C3%ADpio/",
+      "rawSha256": "fe77c8538c223b1a0dd4a42e550ce9d1bb49ce96adafc258f1722680a855bf00",
+      "semanticSha256": "6bbe6ca9df29669c5ce0c567ff8d3a33acfc26e028441dd5a8b847285ec8a201",
+      "retrievedAt": "2026-08-12T04:04:20.261Z",
+      "datasetVersion": "Publicação municipal de atividade CREAS em 2026",
+      "parserVersion": "comun-public-social-assistance-equipment-capture-v1",
+      "status": "verified",
+      "previousSourceId": null
+    }
+  ],
+  "automaticPublicationAllowed": false
+}

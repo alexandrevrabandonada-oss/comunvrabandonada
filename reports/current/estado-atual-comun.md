@@ -1,4 +1,27 @@
-# Estado atual — 48.2-D3B1 Equipamentos públicos de Saúde (11/08/2026)
+# Estado atual — 48.2-D3B2 Equipamentos públicos de Assistência Social (12/08/2026)
+
+## 48.2-D3B2 — Snapshot oficial CadSUAS + SMAS, sem geocoding
+
+- fotografia ativa com 16 unidades municipais de Assistência Social: 15 CRAS e
+  1 CREAS, cada uma com identidade CadSUAS estável e presença corroborada por
+  fonte municipal atual;
+- somente `public_municipal` e `active_reported` entram; 73 dos 89 registros
+  CadSUAS permanecem excluídos por falta de prova suficiente;
+- todos os registros são `address_only`: não há coordenada, geocoding ou
+  vínculo a setor censitário;
+- um conflito oficial de endereço do Centro POP foi mantido fora da fotografia,
+  sem escolha silenciosa;
+- sem UI, API, flag, migration, deploy, dado privado, runtime externo ou
+  escrita Production; Educação segue `PARTIAL_D3B`;
+- D1/D2A, a exposição ambiental deferida e o piloto humano permanecem nos
+  estados anteriores.
+
+Resultado terminal:
+`COMUN_48_2_D3B2_PUBLIC_SOCIAL_ASSISTANCE_EQUIPMENT_SNAPSHOT_GREEN_OFFICIAL_ONLY`.
+
+Detalhes: `reports/current/comun-48-2-d3b2-public-social-assistance-equipment-snapshot.md`.
+
+# Estado anterior — 48.2-D3B1 Equipamentos públicos de Saúde (11/08/2026)
 
 ## 48.2-D3B1 — Snapshot CNES oficial com vínculo seguro aos setores
 
