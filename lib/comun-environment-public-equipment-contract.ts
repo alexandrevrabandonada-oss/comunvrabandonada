@@ -18,6 +18,7 @@ export const COMUN_PUBLIC_EQUIPMENT_SOURCE_DOMAINS = [
   "www.gov.br",
   "www2.voltaredonda.rj.gov.br",
   "www.voltaredonda.rj.gov.br",
+  "smas.voltaredonda.rj.gov.br",
   "servicos.voltaredonda.rj.gov.br",
   "aplicacoes.mds.gov.br",
   "concla.ibge.gov.br",
