@@ -4,6 +4,11 @@ Data da captura: 12/08/2026
 Natureza: snapshot de dados oficiais versionados, sem UI, API, flag, migration,
 deploy ou escrita Production.
 
+Baseline: `3adf70101acc599cf509b1375eaaaf4fbc0b8916`.
+Commit funcional: `026742913f1b9f02a1d3ab70e6846f00a026b435`.
+Os PDFs baixados para a auditoria permaneceram somente como arquivos locais
+temporários e não entram neste commit nem no snapshot.
+
 ## Decisão
 
 `surface_water_quality = READY_D4B`.
