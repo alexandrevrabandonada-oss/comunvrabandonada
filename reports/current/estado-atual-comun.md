@@ -1,4 +1,28 @@
-# Estado atual — 48.2-D3B2 Equipamentos públicos de Assistência Social (12/08/2026)
+# Estado atual — 48.2-D4A Água: contrato público de dados (12/08/2026)
+
+## 48.2-D4A — Qualidade de rios ≠ água para consumo humano
+
+- `surface_water_quality` e `drinking_water_quality` agora possuem
+  descriptors, manifests candidatos, hashes e proveniência próprios; não há
+  tipo de dataset genérico que permita misturar as duas semânticas;
+- INEA/RH III confirmou no boletim de 2023 o ponto `PS0419` do Rio Paraíba do
+  Sul em Volta Redonda e IQA/IQANSF oficiais, porém sem inventário local
+  completo, coordenadas ou dados brutos normalizados: `PARTIAL_D4`;
+- Sisagua confirmou catálogos abertos separados para Controle, Vigilância e
+  Captação, mas nenhum sistema SAAE-VR foi identificado por ID oficial nem
+  foram importados resultados: `PARTIAL_D4`;
+- nenhum índice próprio, potabilidade, conformidade legal, coleta residencial,
+  Relata, carteira, localização privada ou runtime externo foi criado;
+- não houve UI, rota, API, flag, migration, deploy ou escrita Production. Os
+  estados D1, D2A, D3A, D3C, Educação e piloto humano permanecem preservados,
+  incluindo `COMUN_48_2_D3C_TERRITORIAL_CONTEXT_GREEN_OFFICIAL_PUBLIC_ONLY`.
+
+Resultado terminal:
+`COMUN_48_2_D4A_WATER_DATA_CONTRACT_GREEN_DOMAINS_SEPARATED`.
+
+Detalhes: `reports/current/comun-48-2-d4a-water-data-audit.md`.
+
+# Estado anterior — 48.2-D3B2 Equipamentos públicos de Assistência Social (12/08/2026)
 
 ## 48.2-D3B2 — Snapshot oficial CadSUAS + SMAS, sem geocoding
 
