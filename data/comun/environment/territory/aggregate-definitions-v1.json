@@ -1,0 +1,20 @@
+[
+  {
+    "variableId": "populationTotal",
+    "sourceVariableCode": "V0001",
+    "label": "Total de pessoas",
+    "description": "Total de pessoas recenseadas no setor censitário segundo o agregado básico do Censo 2022.",
+    "unit": "people",
+    "universe": "Pessoas recenseadas no setor censitário",
+    "sourceId": "ibge-census-2022-aggregate-dictionary-20260520"
+  },
+  {
+    "variableId": "householdsTotal",
+    "sourceVariableCode": "V0002",
+    "label": "Total de domicílios",
+    "description": "Total de domicílios: DPPO + DPPV + DPPUO + DPIO + DCCM + DCSM, conforme definição oficial.",
+    "unit": "households",
+    "universe": "Domicílios particulares e coletivos do setor censitário",
+    "sourceId": "ibge-census-2022-aggregate-dictionary-20260520"
+  }
+]
