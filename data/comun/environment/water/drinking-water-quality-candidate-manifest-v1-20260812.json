@@ -1,0 +1,56 @@
+{
+  "manifestVersion": "comun-drinking-water-quality-candidate-manifest-v1",
+  "domain": "drinking_water_quality",
+  "decision": "PARTIAL_D4",
+  "automaticPublicationAllowed": false,
+  "activeSnapshot": false,
+  "retrievedAt": "2026-08-12T00:00:00.000Z",
+  "sources": [
+    {
+      "sourceId": "sisagua-control-monthly-basic-20260812",
+      "originalPublisher": "Ministério da Saúde / Vigiagua / Sisagua",
+      "sourceKind": "official_open_dataset_catalog",
+      "sourceUrl": "https://dadosabertos.saude.gov.br/dataset/sisagua-controle-mensal-parametros-basicos",
+      "rawSha256": "5c5cb1f011aaece1a16ff8cfb99a7b4319b4496dab4a78b52b3330b83bd8652b",
+      "semanticSha256": null,
+      "period": "Recursos anuais publicados; a cobertura municipal ainda não foi capturada",
+      "qualityState": "verified_source",
+      "publicSafe": "requires_field_audit"
+    },
+    {
+      "sourceId": "sisagua-surveillance-basic-20260812",
+      "originalPublisher": "Ministério da Saúde / Vigiagua / Sisagua",
+      "sourceKind": "official_open_dataset_catalog",
+      "sourceUrl": "https://dadosabertos.saude.gov.br/dataset/sisagua-vigilancia-parametros-basicos",
+      "rawSha256": "06a7abb0d9325175bee0257095a6b44122ae3c6f153fad574c26d660da24a9d8",
+      "semanticSha256": null,
+      "period": "Recursos anuais publicados; a cobertura municipal ainda não foi capturada",
+      "qualityState": "verified_source",
+      "publicSafe": "requires_field_audit"
+    },
+    {
+      "sourceId": "sisagua-captation-points-20260812",
+      "originalPublisher": "Ministério da Saúde / Vigiagua / Sisagua",
+      "sourceKind": "official_open_dataset_catalog",
+      "sourceUrl": "https://dadosabertos.saude.gov.br/dataset/sisagua-pontos-de-captacao",
+      "rawSha256": "ad3a30a6c0327839cc1b0a336fba220480baf25f0b4bc9b4c85cee496c5108b3",
+      "semanticSha256": null,
+      "period": "Cadastro de pontos de captação; não é ponto de amostragem de distribuição",
+      "qualityState": "verified_source",
+      "publicSafe": "requires_field_audit"
+    }
+  ],
+  "controlKinds": ["control", "surveillance"],
+  "supplySystemIdentity": {
+    "municipalityCode": "3306305",
+    "municipalityName": "Volta Redonda",
+    "saaeVrSystemId": null,
+    "status": "not_verified",
+    "reason": "A identidade precisa vir do identificador oficial Sisagua; nome textual não é critério suficiente."
+  },
+  "limitations": [
+    "Os recursos abertos foram auditados como catálogo, sem importar resultados, endereços ou registros individualizáveis.",
+    "Controle do prestador e vigilância sanitária permanecem séries distintas.",
+    "Não há norma de potabilidade aplicada, leitura de conformidade legal ou identificação SAAE-VR promovida neste contrato."
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "manifestVersion": "comun-surface-water-quality-candidate-manifest-v1",
+  "domain": "surface_water_quality",
+  "decision": "PARTIAL_D4",
+  "automaticPublicationAllowed": false,
+  "activeSnapshot": false,
+  "retrievedAt": "2026-08-12T00:00:00.000Z",
+  "sources": [
+    {
+      "sourceId": "inea-rh-iii-quality-page-20260812",
+      "originalPublisher": "INEA",
+      "sourceKind": "official_public_page",
+      "sourceUrl": "https://www.inea.rj.gov.br/rh-iii-medio-paraiba-do-sul/",
+      "rawSha256": "6c9f13da676e395d6ffc0de62998ed9810ebdf1a29990bc92e9346ce15a2e9d2",
+      "semanticSha256": null,
+      "period": "Página de boletins; período de dados não extraído nesta auditoria",
+      "qualityState": "partial",
+      "publicSafe": true
+    },
+    {
+      "sourceId": "inea-rh-iii-iqa-2023-n12",
+      "originalPublisher": "INEA",
+      "sourceKind": "official_quality_bulletin_pdf",
+      "sourceUrl": "https://www.inea.rj.gov.br/wp-content/uploads/2024/01/Boletim-IQA-RH-III-2023-N12.pdf",
+      "rawSha256": "8ae7e6efe37e76b16c4295df882a1025d94f2eadf8af43a7253ff7cc22a9078c",
+      "semanticSha256": null,
+      "period": "2023",
+      "qualityState": "verified_source",
+      "publicSafe": true
+    },
+    {
+      "sourceId": "ana-rnqa-quality-portal-20260812",
+      "originalPublisher": "ANA",
+      "sourceKind": "official_public_portal",
+      "sourceUrl": "https://qualidadedaagua.ana.gov.br/",
+      "rawSha256": "e9e3397084ab5ffd0b419e29970c5e119eb4f2fc6f52d603d9a3b3895b55be41",
+      "semanticSha256": null,
+      "period": "Séries oficiais informadas pelo portal; não capturadas neste contrato",
+      "qualityState": "partial",
+      "publicSafe": true
+    }
+  ],
+  "verifiedStations": [
+    {
+      "stationId": "surface-water:inea:PS0419",
+      "officialCode": "PS0419",
+      "officialName": null,
+      "waterBody": "Rio Paraíba do Sul",
+      "municipality": "Volta Redonda",
+      "latitude": null,
+      "longitude": null,
+      "hydrographicRegion": "RH III — Médio Paraíba do Sul",
+      "firstVerifiedSampleAt": null,
+      "lastVerifiedSampleAt": null,
+      "sourceIds": ["inea-rh-iii-iqa-2023-n12"]
+    }
+  ],
+  "limitations": [
+    "O boletim confirmado publica índice oficial, não uma tabela de amostras brutas normalizada.",
+    "A coordenada oficial e o inventário exaustivo dos pontos relevantes de Volta Redonda ainda não foram capturados por contrato estável.",
+    "O período 2023 não é apresentado como condição atual, em tempo real ou como potabilidade."
+  ]
+}
