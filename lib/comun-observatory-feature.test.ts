@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  isComunObservatoryEnvironmentSurfaceWaterEnabled,
   isComunObservatoriesFoundationEnabled,
   isComunObservatorySidewalkAdapterEnabled,
   isComunObservatorySidewalkAnalyticsEnabled,
@@ -47,6 +48,11 @@ describe("observatory feature flags", () => {
         COMUN_OBSERVATORY_TERRITORIAL_CONTEXT_ENABLED: "enabled",
       }),
     ).toBe(true);
+  });
+
+  it("keeps environmental surface water cloaked until its isolated flag is enabled", () => {
+    expect(isComunObservatoryEnvironmentSurfaceWaterEnabled({ COMUN_OBSERVATORIES_FOUNDATION_ENABLED: "enabled" })).toBe(false);
+    expect(isComunObservatoryEnvironmentSurfaceWaterEnabled({ COMUN_OBSERVATORIES_FOUNDATION_ENABLED: "enabled", COMUN_OBSERVATORY_ENVIRONMENT_SURFACE_WATER_ENABLED: "enabled" })).toBe(true);
   });
 
   it("requires only the public foundation and its own C1 flag for programmed transport", () => {

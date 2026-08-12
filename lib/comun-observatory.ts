@@ -227,6 +227,7 @@ export function getPublicObservatoryRegistry(
   sidewalkAnalyticsEnabled = false,
   transportProgrammedEnabled = false,
   territorialContextEnabled = false,
+  environmentSurfaceWaterEnabled = false,
 ) {
   return COMUN_OBSERVATORY_REGISTRY.map((entry) => {
     if (entry.id === "transport") {
@@ -243,6 +244,11 @@ export function getPublicObservatoryRegistry(
             description:
               "Setores censitários e registros oficiais de Saúde e Assistência Social.",
           }
+        : entry;
+    }
+    if (entry.id === "environment") {
+      return environmentSurfaceWaterEnabled
+        ? { ...entry, status: "available" as const, publicRoute: "/comun/observatorios/ambiente", description: "Dados oficiais de 2025 sobre a qualidade do Rio Paraíba do Sul." }
         : entry;
     }
     if (entry.id !== "sidewalks") return entry;
