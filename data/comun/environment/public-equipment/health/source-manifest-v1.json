@@ -1,0 +1,267 @@
+{
+  "manifestVersion": "comun-public-health-equipment-source-manifest-v1",
+  "sources": [
+    {
+      "sourceId": "ms-cnes-establishments-vr-active-20260811",
+      "sourceType": "cnes_active_establishments",
+      "originalPublisher": "Ministério da Saúde / DATASUS",
+      "officialUrl": "https://apidadosabertos.saude.gov.br/cnes/estabelecimentos",
+      "queryContract": {
+        "codigo_uf": "33",
+        "codigo_municipio": "330630",
+        "status": "1",
+        "pageSize": 20
+      },
+      "rawSha256": "fb5f1f1d7b6e58c34d0e2ce700190d14791dcc91a54849afddafea5ea961e382",
+      "semanticSha256": "c0bcbcee2a23aa904ee8543e18b9f7b502f4f72a6baf63d35179880854051e1a",
+      "retrievedAt": "2026-08-12T02:43:28.638Z",
+      "sourceReportedFrom": "2025-09-03",
+      "sourceReportedThrough": "2026-08-11",
+      "datasetVersion": "CNES API active establishments",
+      "parserVersion": "comun-public-health-equipment-capture-v1",
+      "status": "verified",
+      "previousSourceId": null
+    },
+    {
+      "sourceId": "ms-cnes-unit-types-20260811",
+      "sourceType": "cnes_unit_type_dictionary",
+      "originalPublisher": "Ministério da Saúde / DATASUS",
+      "officialUrl": "https://apidadosabertos.saude.gov.br/cnes/tipounidades",
+      "rawSha256": "7bc378ed7d877f7fb6d1e860c1ff79dfa76eb0b6b7aebcb783df5f2af0a4b381",
+      "semanticSha256": "6955439a3d7a0d95bda658cb4d19a1ec763b0b52f93c80c7e06044f4d4bebf2b",
+      "retrievedAt": "2026-08-12T02:43:28.638Z",
+      "datasetVersion": "CNES unit type dictionary",
+      "parserVersion": "comun-public-health-equipment-capture-v1",
+      "status": "verified",
+      "previousSourceId": null
+    },
+    {
+      "sourceId": "ibge-concla-legal-nature-2021-20260811",
+      "sourceType": "legal_nature_dictionary",
+      "originalPublisher": "IBGE / CONCLA",
+      "officialUrl": "https://concla.ibge.gov.br/estrutura/natjur-estrutura/natureza-juridica-2021",
+      "rawSha256": "8c40363ccf2bd0e1073322a35f73f1fd189a7f8e58f8fdbdbae32b5910024f97",
+      "semanticSha256": "dc52f03c25f9aadcb98d0c1d380048bde48a9b0edfee80291e43d1bc02aa9cdc",
+      "retrievedAt": "2026-08-12T02:43:28.638Z",
+      "datasetVersion": "Tabela de Natureza Jurídica 2021",
+      "parserVersion": "comun-public-health-equipment-capture-v1",
+      "status": "verified",
+      "previousSourceId": null
+    }
+  ],
+  "legalNatureDefinitions": [
+    {
+      "code": "1023",
+      "label": "Órgão Público do Poder Executivo Estadual ou do Distrito Federal",
+      "sourceId": "ibge-concla-legal-nature-2021-20260811"
+    },
+    {
+      "code": "1031",
+      "label": "Órgão Público do Poder Executivo Municipal",
+      "sourceId": "ibge-concla-legal-nature-2021-20260811"
+    },
+    {
+      "code": "1120",
+      "label": "Autarquia Municipal",
+      "sourceId": "ibge-concla-legal-nature-2021-20260811"
+    }
+  ],
+  "unitTypeDefinitions": [
+    {
+      "code": "1",
+      "label": "POSTO DE SAUDE",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "15",
+      "label": "UNIDADE MISTA",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "2",
+      "label": "CENTRO DE SAUDE/UNIDADE BASICA",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "20",
+      "label": "PRONTO SOCORRO GERAL",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "21",
+      "label": "PRONTO SOCORRO ESPECIALIZADO",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "22",
+      "label": "CONSULTORIO ISOLADO",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "32",
+      "label": "UNIDADE MOVEL FLUVIAL",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "36",
+      "label": "CLINICA/CENTRO DE ESPECIALIDADE",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "39",
+      "label": "UNIDADE DE APOIO DIAGNOSE E TERAPIA (SADT ISOLADO)",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "4",
+      "label": "POLICLINICA",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "40",
+      "label": "UNIDADE MOVEL TERRESTRE",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "42",
+      "label": "UNIDADE MOVEL DE NIVEL PRE-HOSPITALAR NA AREA DE URGENCIA",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "43",
+      "label": "FARMACIA",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "5",
+      "label": "HOSPITAL GERAL",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "50",
+      "label": "UNIDADE DE VIGILANCIA EM SAUDE",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "60",
+      "label": "COOPERATIVA OU EMPRESA DE CESSAO DE TRABALHADORES NA SAUDE",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "61",
+      "label": "CENTRO DE PARTO NORMAL - ISOLADO",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "62",
+      "label": "HOSPITAL/DIA - ISOLADO",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "64",
+      "label": "CENTRAL DE REGULACAO DE SERVICOS DE SAUDE",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "67",
+      "label": "LABORATORIO CENTRAL DE SAUDE PUBLICA LACEN",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "68",
+      "label": "CENTRAL DE GESTAO EM SAUDE",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "69",
+      "label": "CENTRO DE ATENCAO HEMOTERAPIA E OU HEMATOLOGICA",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "7",
+      "label": "HOSPITAL ESPECIALIZADO",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "70",
+      "label": "CENTRO DE ATENCAO PSICOSSOCIAL",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "71",
+      "label": "CENTRO DE APOIO A SAUDE DA FAMILIA",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "72",
+      "label": "UNIDADE DE ATENCAO A SAUDE INDIGENA",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "73",
+      "label": "PRONTO ATENDIMENTO",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "74",
+      "label": "POLO ACADEMIA DA SAUDE",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "75",
+      "label": "TELESSAUDE",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "76",
+      "label": "CENTRAL DE REGULACAO MEDICA DAS URGENCIAS",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "77",
+      "label": "SERVICO DE ATENCAO DOMICILIAR ISOLADO(HOME CARE)",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "78",
+      "label": "UNIDADE DE ATENCAO EM REGIME RESIDENCIAL",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "79",
+      "label": "OFICINA ORTOPEDICA",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "80",
+      "label": "LABORATORIO DE SAUDE PUBLICA",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "81",
+      "label": "CENTRAL DE REGULACAO DO ACESSO",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "82",
+      "label": "CENTRAL DE NOTIFICACAO,CAPTACAO E DISTRIB DE ORGAOS ESTADUAL",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "83",
+      "label": "POLO DE PREVENCAO DE DOENCAS E AGRAVOS E PROMOCAO DA SAUDE",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "84",
+      "label": "CENTRAL DE ABASTECIMENTO",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    },
+    {
+      "code": "85",
+      "label": "CENTRO DE IMUNIZACAO",
+      "sourceId": "ms-cnes-unit-types-20260811"
+    }
+  ],
+  "automaticPublicationAllowed": false
+}

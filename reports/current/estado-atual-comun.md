@@ -1,4 +1,35 @@
-# Estado atual — 48.2-D3B0 Contrato de equipamentos públicos (11/08/2026)
+# Estado atual — 48.2-D3B1 Equipamentos públicos de Saúde (11/08/2026)
+
+## 48.2-D3B1 — Snapshot CNES oficial com vínculo seguro aos setores
+
+- o recorte oficial CNES usa UF `33`, município `330630`, status ativo e a
+  allowlist jurídica D3B0 (`1023`, `1031`, `1120`), sem inferir propriedade por
+  nome, esfera administrativa ou relação SUS;
+- entre 1.103 registros ativos municipais, 102 são equipamentos públicos pela
+  allowlist e 1.001 naturezas privadas/fora do contrato foram rejeitadas;
+- os 102 registros possuem coordenadas oficiais CNES: 97 foram ligados de
+  forma única aos 739 setores D3A, 1 permaneceu ambíguo na borda e 4 ficaram
+  `outside_or_geometry_gap`, sem correção ou geocoding;
+- identidade CNES, tipos oficiais e definições jurídicas estão versionados;
+  telefone, e-mail, CNPJ, profissionais e outros campos desnecessários foram
+  excluídos pelo contrato de minimização;
+- o runtime permanece offline das fontes; não houve migration, UI, API, flag,
+  deploy, dado privado ou escrita Production;
+- `READY_D3C_HEALTH` foi atingido; Educação e Assistência continuam
+  `PARTIAL_D3B` e não foram alteradas;
+- exposição ambiental segue deferida; D1/D2A e o piloto humano preservam seus
+  estados anteriores.
+
+Resultado terminal:
+`COMUN_48_2_D3B1_PUBLIC_HEALTH_EQUIPMENT_SNAPSHOT_GREEN_OFFICIAL_ONLY`.
+
+Próxima decisão: resolver Educação ou Assistência antes de uma superfície
+territorial integrada, sem iniciá-las automaticamente.
+
+Detalhes:
+`reports/current/comun-48-2-d3b1-public-health-equipment-snapshot.md`.
+
+# Estado anterior — 48.2-D3B0 Contrato de equipamentos públicos (11/08/2026)
 
 ## 48.2-D3B0 — Saúde pronta; Educação e Assistência parciais
 
