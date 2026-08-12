@@ -1,0 +1,56 @@
+{
+  "candidateVersion": "comun-power-continuity-candidate-v1-20260812",
+  "sourceKind": "official_public_data",
+  "decision": "PARTIAL_E1_POWER",
+  "activeSnapshot": false,
+  "automaticPublicationAllowed": false,
+  "runtimeExternalFetchAllowed": false,
+  "utility": {
+    "name": "LIGHT SESA",
+    "cnpj": "60444437000146"
+  },
+  "municipality": {
+    "ibgeCode": "3306305",
+    "name": "Volta Redonda"
+  },
+  "indicators": {
+    "allowed": ["DEC", "FEC"],
+    "firstObservedPeriod": "2020-01",
+    "latestObservedPeriod": "2026-06",
+    "periodCount": 78,
+    "decRecordCount": 390,
+    "fecRecordCount": 390,
+    "recordCount": 780,
+    "electricalSetIdsWithIndicators": ["14995", "15003", "15007", "15084", "15086"]
+  },
+  "currentMunicipalityRelation": {
+    "reportedAt": "2026-08-05",
+    "temporalCoverage": "single_current_materialization",
+    "electricalSetIds": ["554", "1856", "8570", "8571", "14995", "15003", "15007", "15084", "15086"],
+    "electricalSetIdsWithoutObservedDecFec": ["554", "1856", "8570", "8571"]
+  },
+  "coreLatestComparablePeriod": null,
+  "limits": {
+    "available": true,
+    "periodJoinState": "deferred_no_monthly_period_in_captured_schema",
+    "normativeClassificationAllowed": false
+  },
+  "compensation": {
+    "available": false,
+    "captureState": "deferred_large_source_not_materialized",
+    "municipalityIdentityVerified": false
+  },
+  "semantics": {
+    "municipalityAggregateAllowed": false,
+    "outageEventInferenceAllowed": false,
+    "neighborhoodInferenceAllowed": false,
+    "geographicProjectionAllowed": false,
+    "privateDataAllowed": false
+  },
+  "limitations": [
+    "The available official municipality-to-electrical-set relation is a single 2026-08-05 materialization, not a historical relation by indicator period.",
+    "The 2020-01 to 2026-06 DEC/FEC series cannot be retrospectively assigned to Volta Redonda by applying the 2026 relation.",
+    "Four electrical sets in the current relation have no observed DEC/FEC records in the captured indicator series.",
+    "No municipal DEC/FEC aggregate, outage event, compliance classification, compensation claim, or public surface is produced."
+  ]
+}

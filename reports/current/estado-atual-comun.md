@@ -2202,3 +2202,28 @@ Estado atual:
 
 Próximo bloco elegível: `48.2-E1 — Continuidade da Energia: snapshot ANEEL`.
 Não iniciar E1 neste ciclo.
+
+### 48.2-E1 — Continuidade da Energia: auditoria ANEEL (2026-08-12)
+
+- a captura controlada encontrou 780 indicadores coletivos: 390 DEC e 390
+  FEC, de 2020-01 a 2026-06; eles continuam separados e não representam uma
+  lista de apagões;
+- a relação oficial `IndQual Município` para Volta Redonda (IBGE `3306305`)
+  está disponível apenas como materialização atual com geração em 2026-08-05,
+  sem relação equivalente por período histórico;
+- por isso, não foi aplicado o vínculo de 2026 retroativamente à série. Não
+  houve `active-snapshot`, agregado municipal, classificação normativa,
+  compensação, UI, API, flag, migration, deploy ou escrita de negócio;
+- quatro conjuntos da relação atual (`554`, `1856`, `8570` e `8571`) não têm
+  observação DEC/FEC no recorte capturado; a diferença para a lista de
+  sanidade E0 foi registrada sem afirmar mudança histórica;
+- a fonte de compensação foi identificada, mas ficou não materializada por
+  exceder 1 GB; nenhum direito de compensação foi inferido.
+
+Estado atual: `PARTIAL_E1_POWER`.
+
+Uma revisão E1-R1 exige relação oficial temporalmente válida de
+município–conjunto antes de qualquer snapshot ou Observatório de energia.
+Permanecem preservados `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`,
+auto-publicação OFF, mapa geral Relata OFF, coletivos OFF e
+`launch_publicly=false`.

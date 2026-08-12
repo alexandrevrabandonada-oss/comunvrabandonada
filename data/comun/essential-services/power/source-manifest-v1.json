@@ -1,0 +1,60 @@
+{
+  "manifestVersion": "comun-power-continuity-aneel-source-manifest-v1",
+  "sourceKind": "official_public_data",
+  "originalPublisher": "Agência Nacional de Energia Elétrica (ANEEL)",
+  "retrievedAt": "2026-08-12T23:05:33Z",
+  "runtimeExternalFetchAllowed": false,
+  "automaticPublicationAllowed": false,
+  "sources": [
+    {
+      "sourceId": "aneel-indqual-municipality-20260805",
+      "sourceType": "municipality_electrical_set_relation",
+      "officialUrl": "https://dadosabertos.aneel.gov.br/dataset/db9c9f60-b3b5-4504-9dfe-2637922d53ce/resource/3f841488-80a8-42f2-a6ca-e0c593b228de/download/indqual-municipio.csv",
+      "contentType": "text/csv",
+      "rawSha256": "ca21e65595eff64077967a4e53aebe4c980ba319e4a314eec837b8807d8596ba",
+      "reportedCoverage": "single materialization generated 2026-08-05",
+      "qualityState": "current_relation_only_not_temporal_series",
+      "materialized": true
+    },
+    {
+      "sourceId": "aneel-collective-continuity-indicators-2020-2029-20260806",
+      "sourceType": "collective_dec_fec_indicators",
+      "officialUrl": "https://dadosabertos.aneel.gov.br/dataset/d5f0712e-62f6-4736-8dff-9991f10758a7/resource/4493985c-baea-429c-9df5-3030422c71d7/download/indicadores-continuidade-coletivos-2020-2029.zip",
+      "contentType": "application/zip",
+      "rawSha256": "597bf06384edd12bcf4044c1c4555ff1a8b975a39be25041ca019d6b95d4c8f4",
+      "reportedCoverage": "2020-01 through 2026-06 in the captured CSV",
+      "qualityState": "source_verified",
+      "materialized": true
+    },
+    {
+      "sourceId": "aneel-collective-continuity-attributes-20260812",
+      "sourceType": "electrical_set_attributes",
+      "officialUrl": "https://dadosabertos.aneel.gov.br/dataset/d5f0712e-62f6-4736-8dff-9991f10758a7/resource/3c780aca-38cf-406d-9d45-f07a9216eef2/download/indicadores-continuidade-coletivos-atributos.csv",
+      "contentType": "text/csv",
+      "rawSha256": "dc6ffb1168d29c3fb72aa67c5a3cf58a2f854baf9bff96b5c4749bb657f146d1",
+      "reportedCoverage": "captured source attributes",
+      "qualityState": "source_verified",
+      "materialized": true
+    },
+    {
+      "sourceId": "aneel-collective-continuity-limits-20260812",
+      "sourceType": "collective_continuity_limits",
+      "officialUrl": "https://dadosabertos.aneel.gov.br/dataset/d5f0712e-62f6-4736-8dff-9991f10758a7/resource/fd69e1dd-fd66-4269-b60c-cc0b7eb221b4/download/indicadores-continuidade-coletivos-limite.csv",
+      "contentType": "text/csv",
+      "rawSha256": "7044dd8b448954473b44d950d8af11f2e75ef4049b6071f4fdeaa7ec2737d5d2",
+      "reportedCoverage": "annual limits; the captured schema has no monthly period field",
+      "qualityState": "source_verified_unlinked_to_candidate_periods",
+      "materialized": true
+    },
+    {
+      "sourceId": "aneel-collective-continuity-compensation-2020-2029",
+      "sourceType": "compensation",
+      "officialUrl": "https://dadosabertos.aneel.gov.br/dataset/d5f0712e-62f6-4736-8dff-9991f10758a7/resource/364d945e-a18b-4111-ab1b-73aa0f7b06b1/download/indicadores-continuidade-coletivos-compensacao-2020-2029.csv",
+      "contentType": "text/csv",
+      "rawSha256": null,
+      "reportedCoverage": "not materialized: the official resource is larger than 1 GB",
+      "qualityState": "capture_deferred_large_source",
+      "materialized": false
+    }
+  ]
+}

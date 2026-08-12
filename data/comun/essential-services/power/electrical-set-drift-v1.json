@@ -1,0 +1,13 @@
+{
+  "driftVersion": "comun-electrical-set-drift-v1",
+  "comparisonState": "not_comparable_no_historical_municipality_relation_series",
+  "e0SanityBaselineSetIds": ["8570", "8571", "14995", "15003", "15007", "15084", "15086"],
+  "currentRelationReportedAt": "2026-08-05",
+  "currentRelationSetIds": ["554", "1856", "8570", "8571", "14995", "15003", "15007", "15084", "15086"],
+  "relationOnlyCurrentSetIds": ["554", "1856"],
+  "historicalDrift": null,
+  "limitations": [
+    "This artifact records a difference between the E0 sanity list and the captured current relation. It does not prove that a set was added or removed at any historical period.",
+    "No active snapshot may use this artifact to backfill municipality membership."
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "methodologyVersion": "comun-power-continuity-aneel-methodology-v1",
+  "sourceKind": "official_public_data",
+  "selection": {
+    "municipalityIbgeCode": "3306305",
+    "utilityName": "LIGHT SESA",
+    "utilityCnpj": "60444437000146",
+    "indicatorAllowlist": ["DEC", "FEC"],
+    "recordStatus": "candidate_only"
+  },
+  "csvNormalization": {
+    "delimiter": ";",
+    "encoding": "utf-8",
+    "decimalSeparator": ",",
+    "emptyValue": null,
+    "referencePeriod": "AnoIndice + NumPeriodoIndice, with period constrained to 1..12"
+  },
+  "identityRule": "An indicator is eligible for an active municipal snapshot only when the official municipality-to-electrical-set relation is explicitly valid for the same reference period.",
+  "prohibitedDerivations": [
+    "municipality aggregate",
+    "outage event",
+    "service restoration",
+    "neighborhood or sector metric",
+    "geographic inference",
+    "legal compliance classification",
+    "compensation entitlement"
+  ],
+  "currentDecision": "PARTIAL_E1_POWER"
+}
