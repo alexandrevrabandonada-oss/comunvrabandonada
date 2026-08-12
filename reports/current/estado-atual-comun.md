@@ -2149,6 +2149,30 @@ autorizou P6B-A separadamente.
 Estado atual:
 `COMUN_48_2_D3C_TERRITORIAL_CONTEXT_GREEN_OFFICIAL_PUBLIC_ONLY`.
 
+### 48.2-D4B — Observatório Ambiental: Qualidade dos Rios (2026-08-12)
+
+- PR #293: head funcional exato
+  `460fed0aa555c4dcc232c394372826a838990edb`, merge
+  `631fd84564eb217980dde008cc6a41311545e53f`;
+- a superfície pública read-only está ativa em
+  `/comun/observatorios/ambiente/qualidade-dos-rios`, com página de fontes e
+  API limitada a `GET`/`HEAD`; métodos mutáveis retornam `405`;
+- a fonte é exclusivamente o snapshot INEA RH III 2025 já revisado: PS0419 e
+  PS0421 no Rio Paraíba do Sul, Volta Redonda, 24 coletas, 240 medições e 24
+  IQA oficiais mantidos separados; não há mapa porque a fonte não publicou
+  coordenadas;
+- não há fetch ao INEA em runtime, Relata, Carteira, localização privada,
+  anexo, identidade, Sisagua, potabilidade, conformidade legal, tendência ou
+  atribuição causal;
+- flags-off Production verde no run `31639691495`; wave 1 verde no run
+  `31639948201`, com main exato, zero migration, binding Vercel comprovado,
+  páginas/API em `200`, `POST=405` e zero business write;
+- `drinking_water_quality` permanece `PARTIAL_D4`; auto-publicação, mapa geral
+  Relata e coletivos continuam OFF; `launch_publicly=false`.
+
+Estado atual:
+`COMUN_48_2_D4B_SURFACE_WATER_OBSERVATORY_GREEN_OFFICIAL_2025`.
+
 Preservados: `COMUN_48_2_D3A_ENVIRONMENTAL_EXPOSURE_DEFERRED_NO_CURRENT_ENVIRONMENTAL_LAYER`,
 `COMUN_48_2_D1A_BLOCKED_CURRENT_OFFICIAL_SOURCE_UNAVAILABLE`, `PARTIAL_D1`,
 `PARTIAL_D2A`, `COMUN_48_2_D2A_NO_OPERATIONAL_STATION_IN_VOLTA_REDONDA` e

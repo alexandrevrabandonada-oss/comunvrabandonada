@@ -24,10 +24,26 @@ identidade, anexo, encaminhamento ou água para consumo humano.
   poluidor;
 - `drinking_water_quality` permanece `PARTIAL_D4`.
 
-## Rollout planejado
+## Promoção e rollout concluídos
 
-1. flags-off: as três rotas e a API permanecem 404;
-2. wave 1: habilitar somente a flag ambiental e provar GET/HEAD 200, métodos
-   mutáveis 405 e `businessWrites=0`.
+PR #293 foi mesclada com o head funcional exato
+`460fed0aa555c4dcc232c394372826a838990edb` no commit de merge
+`631fd84564eb217980dde008cc6a41311545e53f`.
 
-Resultado esperado: `COMUN_48_2_D4B_SURFACE_WATER_OBSERVATORY_GREEN_OFFICIAL_2025`.
+1. flags-off, run `31639691495`: a flag ficou `disabled`; rotas e API novas
+   foram comprovadamente cloaked (`404`) e as rotas canônicas continuaram
+   disponíveis;
+2. wave 1, run `31639948201`: somente
+   `COMUN_OBSERVATORY_ENVIRONMENT_SURFACE_WATER_ENABLED=enabled`; páginas,
+   fontes e API responderam `200`, `HEAD` respondeu `200` e `POST` respondeu
+   `405`;
+3. o smoke validou o DTO público ativo: referência de 2025, `PS0419` e
+   `PS0421`, 24 coletas, 240 medições, 24 índices IQA oficiais separados e
+   coordenadas não publicadas.
+
+Os dois workflows comprovaram o main exato, o binding canônico da Vercel e
+zero migration. Não houve fixture, escrita de negócio, leitura privada,
+requisição runtime ao INEA, publicação automática, mapa geral Relata,
+coletivo, envio externo ou hard delete.
+
+Resultado terminal: `COMUN_48_2_D4B_SURFACE_WATER_OBSERVATORY_GREEN_OFFICIAL_2025`.
