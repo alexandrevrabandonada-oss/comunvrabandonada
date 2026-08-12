@@ -5,8 +5,8 @@ import { auditExperience } from "./audit-comun-experience-coherence.mjs";
 test("contrato de coerência cobre rotas, pilotos, tokens e roadmap", async () => {
   const report = await auditExperience();
   // The dormant, feature-flagged /comun/relata and /comun/onibus routes are part of the App Router inventory.
-  // Includes the feature-flagged read-only observatories for Calçadas and Transporte.
-  assert.equal(report.routeInventory.totalPages, 201);
+  // Includes feature-flagged read-only observatories for Calçadas, Transporte and Ambiente.
+  assert.equal(report.routeInventory.totalPages, 204);
   assert.equal(report.routeInventory.missingRequiredRoutes, 0);
   assert.equal(report.routeInventory.knownCompatibleRedirects, 1);
   assert.deepEqual(report.pilots.levels, [0, 1, 2]);
