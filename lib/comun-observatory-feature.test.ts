@@ -5,6 +5,7 @@ import {
   isComunObservatorySidewalkAnalyticsEnabled,
   isComunObservatoryTransportProgrammedEnabled,
   isComunObservatoryTransportSystemMetricsEnabled,
+  isComunObservatoryTerritorialContextEnabled,
 } from "./comun-observatory-feature";
 
 const p4 = {
@@ -31,6 +32,21 @@ describe("observatory feature flags", () => {
     expect(isComunObservatorySidewalkAnalyticsEnabled({})).toBe(false);
     expect(isComunObservatoryTransportProgrammedEnabled({})).toBe(false);
     expect(isComunObservatoryTransportSystemMetricsEnabled({})).toBe(false);
+    expect(isComunObservatoryTerritorialContextEnabled({})).toBe(false);
+  });
+
+  it("requires the observatory foundation and an explicit territorial flag", () => {
+    expect(
+      isComunObservatoryTerritorialContextEnabled({
+        COMUN_OBSERVATORY_TERRITORIAL_CONTEXT_ENABLED: "enabled",
+      }),
+    ).toBe(false);
+    expect(
+      isComunObservatoryTerritorialContextEnabled({
+        COMUN_OBSERVATORIES_FOUNDATION_ENABLED: "enabled",
+        COMUN_OBSERVATORY_TERRITORIAL_CONTEXT_ENABLED: "enabled",
+      }),
+    ).toBe(true);
   });
 
   it("requires only the public foundation and its own C1 flag for programmed transport", () => {

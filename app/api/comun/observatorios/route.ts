@@ -4,6 +4,7 @@ import {
   isComunObservatorySidewalkAdapterEnabled,
   isComunObservatorySidewalkAnalyticsEnabled,
   isComunObservatoryTransportProgrammedEnabled,
+  isComunObservatoryTerritorialContextEnabled,
 } from "@/lib/comun-observatory-feature";
 import { getPublicObservatoryRegistry } from "@/lib/comun-observatory";
 
@@ -38,6 +39,7 @@ export function GET() {
         isComunObservatorySidewalkAdapterEnabled(),
         isComunObservatorySidewalkAnalyticsEnabled(),
         isComunObservatoryTransportProgrammedEnabled(),
+        isComunObservatoryTerritorialContextEnabled(),
       ),
     },
     { headers: publicHeaders },

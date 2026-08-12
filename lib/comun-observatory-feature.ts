@@ -10,6 +10,8 @@ export const COMUN_OBSERVATORY_TRANSPORT_PROGRAMMED_FLAG =
   "COMUN_OBSERVATORY_TRANSPORT_PROGRAMMED_ENABLED" as const;
 export const COMUN_OBSERVATORY_TRANSPORT_SYSTEM_METRICS_FLAG =
   "COMUN_OBSERVATORY_TRANSPORT_SYSTEM_METRICS_ENABLED" as const;
+export const COMUN_OBSERVATORY_TERRITORIAL_CONTEXT_FLAG =
+  "COMUN_OBSERVATORY_TERRITORIAL_CONTEXT_ENABLED" as const;
 
 export function isComunObservatoriesFoundationEnabled(
   env: Record<string, string | undefined> = process.env,
@@ -51,5 +53,14 @@ export function isComunObservatoryTransportSystemMetricsEnabled(
   return (
     isComunObservatoryTransportProgrammedEnabled(env) &&
     env[COMUN_OBSERVATORY_TRANSPORT_SYSTEM_METRICS_FLAG] === "enabled"
+  );
+}
+
+export function isComunObservatoryTerritorialContextEnabled(
+  env: Record<string, string | undefined> = process.env,
+) {
+  return (
+    isComunObservatoriesFoundationEnabled(env) &&
+    env[COMUN_OBSERVATORY_TERRITORIAL_CONTEXT_FLAG] === "enabled"
   );
 }

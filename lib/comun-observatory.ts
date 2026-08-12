@@ -29,6 +29,7 @@ export type ObservatoryGeographyLevel =
 export type ObservatoryId =
   | "sidewalks"
   | "transport"
+  | "territory"
   | "environment"
   | "essential_services";
 export type ObservatoryStatus = "available" | "preparing";
@@ -173,6 +174,23 @@ export const COMUN_OBSERVATORY_REGISTRY = [
     automaticPublicationAllowed: false,
   },
   {
+    id: "territory",
+    slug: "territorio",
+    label: "Território e Serviços Públicos",
+    description:
+      "Dados oficiais agregados sobre setores censitários e equipamentos públicos.",
+    status: "preparing",
+    publicRoute: null,
+    sourceKindsAllowed: ["official_public_data"],
+    methodologyVersion: COMUN_OBSERVATORY_METHODOLOGY_VERSION,
+    lastReviewedAt: "2026-08-12T00:00:00.000Z",
+    freshnessPolicy:
+      "Cada fonte mantém sua própria data de referência e verificação.",
+    geographyMode: ["city", "district"],
+    sensitivityPolicy: "public-origin-only",
+    automaticPublicationAllowed: false,
+  },
+  {
     id: "environment",
     slug: "ambiente",
     label: "Ambiente",
@@ -208,11 +226,23 @@ export function getPublicObservatoryRegistry(
   sidewalkAvailable: boolean,
   sidewalkAnalyticsEnabled = false,
   transportProgrammedEnabled = false,
+  territorialContextEnabled = false,
 ) {
   return COMUN_OBSERVATORY_REGISTRY.map((entry) => {
     if (entry.id === "transport") {
       return transportProgrammedEnabled
         ? { ...entry, status: "available" as const, publicRoute: "/comun/observatorios/transporte", description: "Linhas, horários e itinerários programados publicados oficialmente." }
+        : entry;
+    }
+    if (entry.id === "territory") {
+      return territorialContextEnabled
+        ? {
+            ...entry,
+            status: "available" as const,
+            publicRoute: "/comun/observatorios/territorio",
+            description:
+              "Setores censitários e registros oficiais de Saúde e Assistência Social.",
+          }
         : entry;
     }
     if (entry.id !== "sidewalks") return entry;
