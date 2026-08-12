@@ -2053,3 +2053,34 @@ Estado atual: `COMUN_48_1D_S1_UNIFIED_RELATA_INTAKE_GREEN`.
 Esse próximo passo era o gate vigente ao concluir S1. A tentativa que encontrou
 o P1 não conta como sucesso; a decisão de produto posterior pausou 48.1C e
 autorizou P6B-A separadamente.
+
+### 48.2-D3C — Território e Serviços Públicos (2026-08-12)
+
+- PR funcional #288: head `e867c9038ddfc3978c61dd90fa08646c718f5705`,
+  merge `55b5e12fb698d9f165d59b809b601737e798200e`; PR operacional #289:
+  head `7b1ce943b26664c55aa21136cfa54d89059277fe`, merge
+  `cfbf73c1226d8658398a672e73553c5e5d2c7a25`;
+- nova leitura pública read-only em `/comun/observatorios/territorio`, com
+  fontes/metodologia e API somente `GET`/`HEAD`; writes retornam `405`;
+- snapshots ativos mostram 739 setores censitários, 261.563 pessoas e
+  115.652 domicílios do Censo 2022; 102 equipamentos públicos de Saúde, dos
+  quais 97 vinculados unicamente a setor, 1 ambíguo e 4 sem vínculo seguro;
+  e 16 unidades públicas de Assistência Social somente por endereço;
+- Assistência não recebe marcador, geocoding ou vínculo de setor; Educação não
+  entra enquanto permanece `PARTIAL_D3B`; nenhum indicador de cobertura,
+  suficiência, vulnerabilidade, exposição ou risco foi calculado;
+- payload de geometria integral dos setores foi adiado pelo orçamento de
+  transferência: `COMUN_48_2_D3C_SECTOR_MAP_DEFERRED_PAYLOAD_BUDGET`;
+- zero migration, zero dado privado, zero request runtime às fontes, zero
+  business write em Production e `launch_publicly=false`;
+- flags-off Production verde no run `31608934047`; wave 1 verde no run
+  `31609144980`, com página/fontes/API em `200`, `POST=405` e valores dos
+  snapshots ativos conferidos.
+
+Estado atual:
+`COMUN_48_2_D3C_TERRITORIAL_CONTEXT_GREEN_OFFICIAL_PUBLIC_ONLY`.
+
+Preservados: `COMUN_48_2_D3A_ENVIRONMENTAL_EXPOSURE_DEFERRED_NO_CURRENT_ENVIRONMENTAL_LAYER`,
+`COMUN_48_2_D1A_BLOCKED_CURRENT_OFFICIAL_SOURCE_UNAVAILABLE`, `PARTIAL_D1`,
+`PARTIAL_D2A`, `COMUN_48_2_D2A_NO_OPERATIONAL_STATION_IN_VOLTA_REDONDA` e
+`COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`.
