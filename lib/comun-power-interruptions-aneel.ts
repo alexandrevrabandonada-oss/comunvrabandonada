@@ -8,9 +8,10 @@ export const COMUN_POWER_INTERRUPTION_ANEEL_OFFICIAL_HOST =
   "dadosabertos.aneel.gov.br" as const;
 export const COMUN_POWER_INTERRUPTION_MUNICIPALITY_CODE = "3306305" as const;
 
-type InterruptionRecord = {
+export type PowerInterruptionAneelRecord = {
   interruptionKey: string;
   durationSeconds: number;
+  DatGeracaoConjuntoDados: string;
   NumCNPJDistribuidora: string;
   NomAgente: string;
   SigAgente: string;
@@ -24,10 +25,18 @@ type InterruptionRecord = {
   CodSubestacao: number | string | null;
   AnoCompetencia: number;
   MesCompetencia: number;
+  DscLocalizacaoInterrupcao: string | null;
+  DscMotivoExpurgo: string | null;
   DatInicioInterrupcao: string;
   DatFimInterrupcao: string;
+  DscFatoGeradorOrigem: string | null;
+  DscFatoGeradorTipo: string | null;
+  DscFatoGeradorCausa: string | null;
+  DscFatoGeradorDetalhe: string | null;
+  NumNivelTensao: number | null;
   QtdConsumidoresAfetados: number | null;
   QtdConsumidoresAtivos: number | null;
+  DscTipoElementoInterrompido: string | null;
 };
 
 type Snapshot = {
@@ -49,7 +58,7 @@ type Snapshot = {
     geographicProjectionAllowed: boolean;
     privateDataAllowed: boolean;
   };
-  records: InterruptionRecord[];
+  records: PowerInterruptionAneelRecord[];
 };
 
 type ActiveSnapshot = {
@@ -62,9 +71,16 @@ type ActiveSnapshot = {
 
 type SourceManifest = {
   sourceKind: "official_public_data";
+  retrievedAt: string;
   runtimeExternalFetchAllowed: boolean;
   automaticPublicationAllowed: boolean;
-  sources: Array<{ sourceId: string; officialUrl: string; rawSha256: string | null; materialized: boolean }>;
+  sources: Array<{
+    sourceId: string;
+    officialUrl: string;
+    rawSha256: string | null;
+    materialized: boolean;
+    retrievedAt?: string | null;
+  }>;
 };
 
 export const COMUN_POWER_INTERRUPTION_ANEEL_SNAPSHOT = snapshotJson as Snapshot;

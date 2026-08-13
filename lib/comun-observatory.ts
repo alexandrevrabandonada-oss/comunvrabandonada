@@ -207,9 +207,9 @@ export const COMUN_OBSERVATORY_REGISTRY = [
   },
   {
     id: "essential_services",
-    slug: "agua-e-servicos",
-    label: "Água e serviços",
-    description: "Dados públicos sobre serviços essenciais.",
+    slug: "servicos-essenciais",
+    label: "Serviços Essenciais",
+    description: "Dados oficiais sobre serviços essenciais.",
     status: "preparing",
     publicRoute: null,
     sourceKindsAllowed: ["official_public_data", "editorial_public_data"],
@@ -228,38 +228,44 @@ export function getPublicObservatoryRegistry(
   transportProgrammedEnabled = false,
   territorialContextEnabled = false,
   environmentSurfaceWaterEnabled = false,
-) {
-  return COMUN_OBSERVATORY_REGISTRY.map((entry) => {
+  essentialPowerInterruptionEnabled = false,
+): ObservatoryRegistryEntry[] {
+  return COMUN_OBSERVATORY_REGISTRY.flatMap<ObservatoryRegistryEntry>((entry) => {
     if (entry.id === "transport") {
       return transportProgrammedEnabled
-        ? { ...entry, status: "available" as const, publicRoute: "/comun/observatorios/transporte", description: "Linhas, horários e itinerários programados publicados oficialmente." }
-        : entry;
+        ? [{ ...entry, status: "available" as const, publicRoute: "/comun/observatorios/transporte", description: "Linhas, horários e itinerários programados publicados oficialmente." }]
+        : [entry];
     }
     if (entry.id === "territory") {
       return territorialContextEnabled
-        ? {
+        ? [{
             ...entry,
             status: "available" as const,
             publicRoute: "/comun/observatorios/territorio",
             description:
               "Setores censitários e registros oficiais de Saúde e Assistência Social.",
-          }
-        : entry;
+          }]
+        : [entry];
     }
     if (entry.id === "environment") {
       return environmentSurfaceWaterEnabled
-        ? { ...entry, status: "available" as const, publicRoute: "/comun/observatorios/ambiente", description: "Dados oficiais de 2025 sobre a qualidade do Rio Paraíba do Sul." }
-        : entry;
+        ? [{ ...entry, status: "available" as const, publicRoute: "/comun/observatorios/ambiente", description: "Dados oficiais de 2025 sobre a qualidade do Rio Paraíba do Sul." }]
+        : [entry];
     }
-    if (entry.id !== "sidewalks") return entry;
+    if (entry.id === "essential_services") {
+      return essentialPowerInterruptionEnabled
+        ? [{ ...entry, status: "available" as const, publicRoute: "/comun/observatorios/servicos-essenciais", description: "Registros oficiais sobre interrupções de energia elétrica." }]
+        : [];
+    }
+    if (entry.id !== "sidewalks") return [entry];
     if (!sidewalkAvailable) {
-      return { ...entry, status: "preparing" as const, publicRoute: null };
+      return [{ ...entry, status: "preparing" as const, publicRoute: null }];
     }
-    return {
+    return [{
       ...entry,
       publicRoute: sidewalkAnalyticsEnabled
         ? "/comun/observatorios/calcadas"
         : "/comun/calcadas",
-    };
+    }];
   });
 }

@@ -9,6 +9,7 @@ import {
   isComunObservatoryTransportProgrammedEnabled,
   isComunObservatoryTerritorialContextEnabled,
   isComunObservatoryEnvironmentSurfaceWaterEnabled,
+  isComunObservatoryEssentialPowerInterruptionEnabled,
 } from "@/lib/comun-observatory-feature";
 import { getSidewalkReviewedProjectionForObservatory } from "@/lib/comun-observatory-sidewalk-adapter";
 
@@ -31,6 +32,7 @@ export default async function ObservatoryPage() {
           isComunObservatoryTransportProgrammedEnabled(),
           isComunObservatoryTerritorialContextEnabled(),
           isComunObservatoryEnvironmentSurfaceWaterEnabled(),
+          isComunObservatoryEssentialPowerInterruptionEnabled(),
         )}
         sidewalkSource={projection?.source ?? null}
         sidewalkCount={projection?.observations.length ?? null}
