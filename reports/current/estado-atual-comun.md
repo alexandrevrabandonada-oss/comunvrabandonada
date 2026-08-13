@@ -1,4 +1,25 @@
-# Estado atual — 48.2-F Panorama de Volta Redonda (13/08/2026)
+# Estado atual — 48.3-A0 Pautas Vivas (13/08/2026)
+
+## 48.3-A0 — Reconciliação da arquitetura existente
+
+- `comun_pauta_spaces` foi confirmado como a raiz canônica mais próxima de uma Pauta Viva; a decisão é `pauta_spaces_with_extension`, sem nova tabela neste tijolo;
+- Dossiês são sínteses editoriais derivadas, com revisão factual/editorial e snapshots de publicação separados da organização normal;
+- contribuições, sínteses, evidências, círculos, comunidades, tarefas, ações coletivas, action cycle, resultados e memória foram mapeados sem copiar snapshots nem criar identidade paralela;
+- `PublicEvidenceReferenceV1` é compatível com a ponte futura, mas precisa fixar versão/snapshot antes de persistência durável;
+- a auditoria remota do schema/RLS não foi executada porque nenhuma configuração Supabase estava disponível; não houve tentativa de conexão por fallback nem escrita remota;
+- não houve UI, API, flag, migration, deploy ou escrita de negócio.
+
+Estado atual:
+`COMUN_48_3_A0_PAUTAS_VIVAS_RECONCILIATION_CONTRACT_GREEN`.
+
+Detalhes:
+`reports/current/comun-48-3-a0-pautas-vivas-reconciliation.md`.
+
+Preservados: `COMUN_48_2_F_CROSS_OBSERVATORY_CITY_PANORAMA_GREEN_PUBLIC_SAFE`,
+observatórios especializados, `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`,
+auto-publicação OFF, mapa geral Relata OFF, coletivos OFF e `launch_publicly=false`.
+
+# Estado anterior — 48.2-F Panorama de Volta Redonda (13/08/2026)
 
 ## 48.2-F — Síntese pública cross-observatory
 
