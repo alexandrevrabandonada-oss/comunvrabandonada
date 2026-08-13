@@ -1,6 +1,6 @@
 # COMUN 48.3-B0 — Reconciliação de Comunidades e Rodas
 
-**Estado:** contrato candidato; terminal condicionado ao preflight remoto e à CI
+**Estado:** contrato candidato; preflight remoto verde, terminal condicionado à CI e ao merge
 
 **Baseline:** `e0840fb677203e8ccd7a160edefa21d10d665e2d`
 
@@ -165,6 +165,10 @@ Resultado esperado na PR:
 
 Nenhum conteúdo social, identidade, contribuição, contato, relato, localização, anexo, Wallet ou forwarding é lido.
 
+O run `31727259904` confirmou os dois resultados: 17 tabelas auditadas,
+`transactionReadOnly=true`, `businessContentRead=false`, RLS habilitado,
+`clientWritePaths=0` e `migrationCount=0`.
+
 ## Próxima fatia recomendada
 
 **48.3-B1 — Experiência canônica de Roda**, com escopo estreito:
@@ -190,6 +194,6 @@ B1 só deverá criar migration se essas duas lacunas forem comprovadamente neces
 
 ## Terminal
 
-Após preflight remoto, plano vazio e CI verdes:
+Após CI e merge exact-head verdes:
 
 `COMUN_48_3_B0_COMMUNITIES_RODAS_RECONCILIATION_CONTRACT_GREEN`

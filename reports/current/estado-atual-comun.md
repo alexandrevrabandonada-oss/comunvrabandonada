@@ -8,7 +8,7 @@
 - `comun_circle_contributions` é canônica dentro de uma Roda; `comun_pauta_contributions` fica em compatibilidade para participação geral, sem dual-write;
 - a relação Comunidade–Pauta continua limitada ao slug textual legado e a projeção pública de rodas ainda precisa filtrar estados dos filhos; ambas ficam explicitamente para B1;
 - `community-experience.ts` foi classificado como narrativa de compatibilidade, não fonte canônica;
-- o preflight focal audita somente metadata social em transação read-only e exige remote plan vazio; nenhum conteúdo de negócio é consultado;
+- o preflight focal run `31727259904` auditou 17 tabelas somente por metadata em transação read-only, confirmou RLS, `clientWritePaths=0`, `businessContentRead=false` e remote plan vazio;
 - não houve UI, API, flag, deploy funcional, migration ou escrita de negócio.
 
 Estado candidato, condicionado à CI e ao preflight remoto:
