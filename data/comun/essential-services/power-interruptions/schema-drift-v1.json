@@ -1,0 +1,8 @@
+{
+  "schemaDriftVersion": "comun-power-interruptions-aneel-schema-drift-v1",
+  "activeResourceYear": 2026,
+  "expectedColumns": ["DatGeracaoConjuntoDados","NumCNPJDistribuidora","NomAgente","SigAgente","CodMunicipioIBGE","CodInterrupcao","CodEvento","CodOcorrencia","CodConjUnidadeConsumidora","DscConjuntoUnidadeConsumidora","CodAlimentador","CodSubestacao","AnoCompetencia","MesCompetencia","DscLocalizacaoInterrupcao","DscMotivoExpurgo","DatInicioInterrupcao","DatFimInterrupcao","DscFatoGeradorOrigem","DscFatoGeradorTipo","DscFatoGeradorCausa","DscFatoGeradorDetalhe","NumNivelTensao","QtdConsumidoresAfetados","QtdConsumidoresAtivos","DscTipoElementoInterrompido"],
+  "activeSchemaState": "exact_match",
+  "futureCapturePolicy": "fail_closed_on_added_removed_or_reordered_columns_until_reviewed",
+  "historicalResourceInventory": {"firstYear":2017,"lastCataloguedYear":2026,"materializedYears":[2026],"notMaterializedYears":[2017,2018,2019,2020,2021,2022,2023,2024,2025]}
+}

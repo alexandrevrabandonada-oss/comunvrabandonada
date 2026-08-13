@@ -1,0 +1,32 @@
+{
+  "methodologyVersion": "comun-power-interruptions-aneel-methodology-v1",
+  "sourceKind": "official_public_data",
+  "selection": {
+    "municipalityField": "CodMunicipioIBGE",
+    "municipalityValue": "3306305",
+    "municipalityName": "Volta Redonda",
+    "distributorValidation": {
+      "NumCNPJDistribuidora": "60444437000146",
+      "NomAgente": "LIGHT SERVICOS DE ELETRICIDADE S A",
+      "SigAgente": "LIGHT SESA"
+    }
+  },
+  "identityRule": "resource year + distributor CNPJ + published interruption code + feeder + substation + start + end",
+  "durationRule": "DatFimInterrupcao minus DatInicioInterrupcao only when both source values are valid; original values remain unchanged.",
+  "privacy": {
+    "publicSafe": true,
+    "forbiddenFields": ["consumer_name", "cpf", "account", "residential_address", "individual_consumer_unit"],
+    "fieldAudit": "the official 2026 schema contains only the reviewed technical, temporal, municipal, distributor, cause and aggregate-consumer fields"
+  },
+  "prohibitedDerivations": [
+    "DEC/FEC municipality aggregate",
+    "unique people affected",
+    "neighborhood or census-sector assignment",
+    "geocoding",
+    "outage responsibility attribution",
+    "cause reclassification",
+    "legal or compensation entitlement"
+  ],
+  "runtimeExternalFetchAllowed": false,
+  "automaticPublicationAllowed": false
+}

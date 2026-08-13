@@ -2228,6 +2228,33 @@ para `PARTIAL_E1_POWER`: a materialização capturada não contém relação
 município–conjunto válida por período. É uma correção metodológica, não uma
 regressão de produto.
 
+### 48.2-E1-R2 — Interrupções oficiais de energia ANEEL (2026-08-13)
+
+- a fonte oficial ANEEL de interrupções é semanticamente separada de DEC/FEC
+  e permite seleção direta pelo campo `CodMunicipioIBGE=3306305`, sem usar a
+  relação IndQual Município;
+- snapshot público de fundação promovido a partir do Parquet ANEEL de 2026:
+  5.676 registros de Volta Redonda, todos validados no próprio registro para
+  CNPJ `60444437000146`, nome `LIGHT SERVICOS DE ELETRICIDADE S A` e sigla
+  `LIGHT SESA`;
+- a fotografia registra competências `2026-01`, `2026-03`, `2026-04`,
+  `2026-05` e `2026-06`. Não chama 2026 de ano completo e não cria série ou
+  tendência; o catálogo 2017–2026 foi auditado, mas somente 2026 foi
+  materializado nesta versão;
+- início/fim, duração derivada, códigos de interrupção/evento/ocorrência,
+  expurgo e causa são preservados conforme a fonte; consumidores afetados não
+  são pessoas ou consumidores únicos e conjuntos não são bairros;
+- zero dado privado, geocoding, Relata, Carteira, UI, API, flag, migration,
+  deploy, runtime fetch ou escrita de negócio.
+
+Estado atual:
+`COMUN_48_2_E1_R2_POWER_INTERRUPTION_ANEEL_SNAPSHOT_GREEN_OFFICIAL_ONLY`.
+
+`PARTIAL_E1_POWER` continua válido exclusivamente para os indicadores
+regulatórios históricos DEC/FEC; ele não bloqueia o snapshot independente de
+interrupções. O próximo bloco elegível é 48.2-E2, que deverá manter os dois
+domínios separados.
+
 Uma revisão E1-R1 exige relação oficial temporalmente válida de
 município–conjunto antes de qualquer snapshot ou Observatório de energia.
 Permanecem preservados `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`,
