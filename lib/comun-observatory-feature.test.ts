@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   isComunObservatoryEnvironmentSurfaceWaterEnabled,
+  isComunObservatoryCityPanoramaEnabled,
   isComunObservatoryEssentialPowerInterruptionEnabled,
   isComunObservatoriesFoundationEnabled,
   isComunObservatorySidewalkAdapterEnabled,
@@ -36,6 +37,12 @@ describe("observatory feature flags", () => {
     expect(isComunObservatoryTransportSystemMetricsEnabled({})).toBe(false);
     expect(isComunObservatoryTerritorialContextEnabled({})).toBe(false);
     expect(isComunObservatoryEssentialPowerInterruptionEnabled({})).toBe(false);
+    expect(isComunObservatoryCityPanoramaEnabled({})).toBe(false);
+  });
+
+  it("keeps the city panorama cloaked until its isolated flag is enabled", () => {
+    expect(isComunObservatoryCityPanoramaEnabled({ COMUN_OBSERVATORIES_FOUNDATION_ENABLED: "enabled" })).toBe(false);
+    expect(isComunObservatoryCityPanoramaEnabled({ COMUN_OBSERVATORIES_FOUNDATION_ENABLED: "enabled", COMUN_OBSERVATORY_CITY_PANORAMA_ENABLED: "enabled" })).toBe(true);
   });
 
   it("keeps the essential-power interruption observatory cloaked until explicit activation", () => {

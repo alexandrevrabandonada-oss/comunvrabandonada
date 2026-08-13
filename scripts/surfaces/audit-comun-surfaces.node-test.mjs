@@ -7,7 +7,7 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   // Dormant/feature-flagged routes, including the reviewed-only sidewalk,
   // transport, and surface-water observatories, plus the Google completion
   // step, are part of the full matrix.
-  assert.equal(summary.total, 207);
+  assert.equal(summary.total, 208);
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
     "admin",

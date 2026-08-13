@@ -44,7 +44,7 @@ export type SidewalkProjectionQualityDiagnostic = {
   count: number;
 };
 
-type ProjectionResult = {
+export type ProjectionResult = {
   source: ObservatorySourceDescriptor;
   observations: PublicObservation[];
   available: boolean;
