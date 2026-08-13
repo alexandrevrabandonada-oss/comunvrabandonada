@@ -28,10 +28,7 @@ export type PublicRodaStatus = (typeof publicRodaStatuses)[number];
 export type PublicRoundStatus = (typeof publicRoundStatuses)[number];
 export type RodaContributionType = (typeof rodaContributionTypes)[number];
 export type RodaParticipationMode =
-  | "moderated_public"
-  | "registered_members"
-  | "invited_group"
-  | "internal";
+  "moderated_public" | "registered_members" | "invited_group" | "internal";
 
 export type PublicRodaContributionV1 = {
   id: string;
@@ -67,9 +64,7 @@ export type PublicRodaRoundV1 = {
   contributions: readonly PublicRodaContributionV1[];
   contributionsTruncated: boolean;
   synthesis:
-    | PublicRodaSynthesisV1
-    | { state: "none" }
-    | { state: "unavailable" };
+    PublicRodaSynthesisV1 | { state: "none" } | { state: "unavailable" };
 };
 
 export type PublicRodaV1 = {
@@ -161,10 +156,16 @@ export async function assessRodaContributionSafety(input: {
       if (now - value.startedAt >= windowMs) rodaRateWindows.delete(candidate);
     }
   }
-  return { allowed: current.count <= 5, reason: current.count <= 5 ? "ok" as const : "rate_limit" as const };
+  return {
+    allowed: current.count <= 5,
+    reason: current.count <= 5 ? ("ok" as const) : ("rate_limit" as const),
+  };
 }
 
-function included<T extends readonly string[]>(values: T, value: string): value is T[number] {
+function included<T extends readonly string[]>(
+  values: T,
+  value: string,
+): value is T[number] {
   return values.includes(value as T[number]);
 }
 
@@ -187,13 +188,23 @@ export function projectPublicRodaV1(input: {
   const { circle } = input;
   if (
     !included(publicRodaStatuses, circle.status) ||
-    !(["moderated_public", "registered_members", "invited_group", "internal"] as const).includes(
-      circle.participation_mode as RodaParticipationMode,
-    )
-  ) return null;
+    !(
+      [
+        "moderated_public",
+        "registered_members",
+        "invited_group",
+        "internal",
+      ] as const
+    ).includes(circle.participation_mode as RodaParticipationMode)
+  )
+    return null;
 
   const rounds = input.rounds
-    .filter((round) => round.circle_id === circle.id && included(publicRoundStatuses, round.status))
+    .filter(
+      (round) =>
+        round.circle_id === circle.id &&
+        included(publicRoundStatuses, round.status),
+    )
     .sort((a, b) => a.position - b.position)
     .map((round): PublicRodaRoundV1 => {
       const visible = input.contributions
@@ -206,7 +217,10 @@ export function projectPublicRodaV1(input: {
         )
         .sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
       const published = input.syntheses.filter(
-        (item) => item.circle_id === circle.id && item.round_id === round.id && item.status === "published",
+        (item) =>
+          item.circle_id === circle.id &&
+          item.round_id === round.id &&
+          item.status === "published",
       );
       let synthesis: PublicRodaRoundV1["synthesis"] = { state: "none" };
       if (published.length === 1) {
@@ -264,50 +278,74 @@ export function projectPublicRodaV1(input: {
     pastRounds: rounds.filter((round) => !round.isCurrent),
     publishedSynthesisState: synthesisStates.includes("unavailable")
       ? "unavailable"
-      : synthesisStates.includes("published") ? "published" : "none",
+      : synthesisStates.includes("published")
+        ? "published"
+        : "none",
   };
 }
 
 async function loadPublicRodaRows(pautaId: string, circleId?: string) {
   const service = createServiceSupabaseClient();
-  if (!service) return { circles: [], rounds: [], contributions: [], syntheses: [] };
+  if (!service)
+    return { circles: [], rounds: [], contributions: [], syntheses: [] };
   let circlesQuery = service
     .from("comun_construction_circles" as never)
-    .select("id,pauta_id,title,public_question,public_context,status,participation_mode,current_round_id,starts_at,closes_at")
+    .select(
+      "id,pauta_id,title,public_question,public_context,status,participation_mode,current_round_id,starts_at,closes_at",
+    )
     .eq("pauta_id" as never, pautaId)
     .in("status" as never, [...publicRodaStatuses]);
   if (circleId) circlesQuery = circlesQuery.eq("id" as never, circleId);
   const { data: circleData, error: circleError } = await circlesQuery;
-  if (circleError || !circleData) return { circles: [], rounds: [], contributions: [], syntheses: [] };
+  if (circleError || !circleData)
+    return { circles: [], rounds: [], contributions: [], syntheses: [] };
   const circles = circleData as unknown as RawRodaCircle[];
   const ids = circles.map((circle) => circle.id);
-  if (!ids.length) return { circles, rounds: [], contributions: [], syntheses: [] };
+  if (!ids.length)
+    return { circles, rounds: [], contributions: [], syntheses: [] };
   const [roundResult, synthesisResult] = await Promise.all([
-    service.from("comun_construction_circle_rounds" as never)
-      .select("id,circle_id,title,public_prompt,public_guidance,status,position,opens_at,closes_at")
-      .in("circle_id" as never, ids).in("status" as never, [...publicRoundStatuses])
+    service
+      .from("comun_construction_circle_rounds" as never)
+      .select(
+        "id,circle_id,title,public_prompt,public_guidance,status,position,opens_at,closes_at",
+      )
+      .in("circle_id" as never, ids)
+      .in("status" as never, [...publicRoundStatuses])
       .order("position" as never, { ascending: true }),
-    service.from("comun_circle_syntheses" as never)
-      .select("id,circle_id,round_id,public_summary,agreements,disagreements,open_questions,missing_evidence,proposed_next_steps,status,published_at")
-      .in("circle_id" as never, ids).eq("status" as never, "published"),
+    service
+      .from("comun_circle_syntheses" as never)
+      .select(
+        "id,circle_id,round_id,public_summary,agreements,disagreements,open_questions,missing_evidence,proposed_next_steps,status,published_at",
+      )
+      .in("circle_id" as never, ids)
+      .eq("status" as never, "published"),
   ]);
   if (roundResult.error || synthesisResult.error) {
     return { circles: [], rounds: [], contributions: [], syntheses: [] };
   }
   const currentRoundIds = circleId
-    ? circles.map((circle) => circle.current_round_id).filter((id): id is string => Boolean(id))
+    ? circles
+        .map((circle) => circle.current_round_id)
+        .filter((id): id is string => Boolean(id))
     : [];
   const contributionResult = currentRoundIds.length
-    ? await service.from("comun_circle_contributions" as never)
-      .select("id,circle_id,round_id,contribution_type,public_body,author_display_name,anonymous_publication,status,created_at")
-      .in("round_id" as never, currentRoundIds).in("status" as never, ["visible", "incorporated"])
-      .order("created_at" as never, { ascending: true }).limit(contributionLimit + 1)
+    ? await service
+        .from("comun_circle_contributions" as never)
+        .select(
+          "id,circle_id,round_id,contribution_type,public_body,author_display_name,anonymous_publication,status,created_at",
+        )
+        .in("round_id" as never, currentRoundIds)
+        .in("status" as never, ["visible", "incorporated"])
+        .order("created_at" as never, { ascending: true })
+        .limit(contributionLimit + 1)
     : { data: [], error: null };
-  if (contributionResult.error) return { circles: [], rounds: [], contributions: [], syntheses: [] };
+  if (contributionResult.error)
+    return { circles: [], rounds: [], contributions: [], syntheses: [] };
   return {
     circles,
     rounds: (roundResult.data ?? []) as unknown as RawRodaRound[],
-    contributions: (contributionResult.data ?? []) as unknown as RawRodaContribution[],
+    contributions: (contributionResult.data ??
+      []) as unknown as RawRodaContribution[],
     syntheses: (synthesisResult.data ?? []) as unknown as RawRodaSynthesis[],
   };
 }
@@ -315,13 +353,31 @@ async function loadPublicRodaRows(pautaId: string, circleId?: string) {
 export async function listPublicRodasForPauta(pautaId: string) {
   const rows = await loadPublicRodaRows(pautaId);
   return rows.circles
-    .map((circle) => projectPublicRodaV1({ circle, rounds: rows.rounds, contributions: rows.contributions, syntheses: rows.syntheses }))
+    .map((circle) =>
+      projectPublicRodaV1({
+        circle,
+        rounds: rows.rounds,
+        contributions: rows.contributions,
+        syntheses: rows.syntheses,
+      }),
+    )
     .filter((roda): roda is PublicRodaV1 => roda !== null)
-    .sort((a, b) => publicRodaStatuses.indexOf(a.status) - publicRodaStatuses.indexOf(b.status));
+    .sort(
+      (a, b) =>
+        publicRodaStatuses.indexOf(a.status) -
+        publicRodaStatuses.indexOf(b.status),
+    );
 }
 
 export async function getPublicRodaForPauta(pautaId: string, circleId: string) {
   const rows = await loadPublicRodaRows(pautaId, circleId);
   const circle = rows.circles[0];
-  return circle ? projectPublicRodaV1({ circle, rounds: rows.rounds, contributions: rows.contributions, syntheses: rows.syntheses }) : null;
+  return circle
+    ? projectPublicRodaV1({
+        circle,
+        rounds: rows.rounds,
+        contributions: rows.contributions,
+        syntheses: rows.syntheses,
+      })
+    : null;
 }

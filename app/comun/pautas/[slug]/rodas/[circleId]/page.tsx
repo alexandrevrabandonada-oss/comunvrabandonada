@@ -12,11 +12,21 @@ export default async function RodaVivaPage(props: {
   params: Promise<{ slug: string; circleId: string }>;
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  if (!isComunPautasVivasCoreEnabled() || !isComunRodasVivasEnabled()) notFound();
-  const [{ slug, circleId }, searchParams] = await Promise.all([props.params, props.searchParams]);
+  if (!isComunPautasVivasCoreEnabled() || !isComunRodasVivasEnabled())
+    notFound();
+  const [{ slug, circleId }, searchParams] = await Promise.all([
+    props.params,
+    props.searchParams,
+  ]);
   const pauta = await getPublicPautaSpaceBySlug(slug);
   if (!pauta) notFound();
   const roda = await getPublicRodaForPauta(pauta.id, circleId);
   if (!roda || roda.pautaId !== pauta.id) notFound();
-  return <ComunRodaViva pauta={pauta} roda={roda} contributionReceived={searchParams.contribuicao === "recebida"} />;
+  return (
+    <ComunRodaViva
+      pauta={pauta}
+      roda={roda}
+      contributionReceived={searchParams.contribuicao === "recebida"}
+    />
+  );
 }
