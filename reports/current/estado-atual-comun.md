@@ -4,12 +4,16 @@
 
 - preflight remoto metadata-only executado antes da migration no run `31716044656`: schema canônico compatível, RLS ativo, policy pública preservada, escrita de evidence restrita a `service_role` e nenhum conteúdo de negócio lido;
 - `comun_pauta_spaces` permanece a raiz única e não recebe DDL;
-- uma migration aditiva candidata estende somente `comun_pauta_evidence_items` com referência, versão SHA-256 e payload público allowlisted, sem backfill;
+- uma migration aditiva promovida estende somente `comun_pauta_evidence_items` com referência, versão SHA-256 e payload público allowlisted, sem backfill;
 - o resolver lê apenas DTOs públicos do Panorama e o attach server-side recebe somente `pautaId + refId`, com idempotência por versão;
 - a evolução das rotas existentes está protegida por `COMUN_PAUTAS_VIVAS_CORE_ENABLED`; OFF preserva a experiência antiga;
-- não existe criação pública nova, attach público, conversão de Relata, comunidade/roda nova, IA ou publicação automática.
+- não existe criação pública nova, attach público, conversão de Relata, comunidade/roda nova, IA ou publicação automática;
+- PR #304 mesclada por exact-head `3108288abd9f8f87e8181b18f58b77b14cabece9`, merge `39065abd4689c5cd2b1e29184cba0a5bd868e72b`;
+- promoção, postflight e flags-off verdes no run `31723844180`; wave 1 verde no run `31724079385`, com `businessWrites=0`;
+- `COMUN_PAUTAS_VIVAS_CORE_ENABLED=enabled` em Production; piloto Motorola, auto-publicação, mapa geral Relata, coletivos e `launch_publicly=false` permanecem inalterados.
 
-Estado da entrega: candidata na PR #304; terminal A1 depende de CI, promoção remota, flags-off e wave 1.
+Estado atual:
+`COMUN_48_3_A1_PAUTAS_VIVAS_PUBLIC_CORE_GREEN_VERSIONED_EVIDENCE`.
 
 Detalhes: `reports/current/comun-48-3-a1-pautas-vivas-public-core.md`.
 

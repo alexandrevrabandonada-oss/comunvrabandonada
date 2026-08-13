@@ -45,11 +45,19 @@ jobs:
           test -n "${SUPABASE_PROJECT_REF:-}"
           case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
           mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
-          test "${#changed[@]}" -eq 1 || { echo COMUN_48_3_A1_BLOCKED_MIGRATION_SCOPE; exit 1; }
-          case "${changed[0]}" in
-            supabase/migrations/*_comun_pautas_vivas_public_evidence.sql) ;;
-            *) echo COMUN_48_3_A1_BLOCKED_MIGRATION_SCOPE; exit 1 ;;
-          esac
+          if [ "${#changed[@]}" -eq 1 ]; then
+            case "${changed[0]}" in
+              supabase/migrations/*_comun_pautas_vivas_public_evidence.sql)
+                echo A1_PREFLIGHT_MODE=candidate >> "$GITHUB_ENV"
+                ;;
+              *) echo COMUN_48_3_A1_BLOCKED_MIGRATION_SCOPE; exit 1 ;;
+            esac
+          elif [ "${#changed[@]}" -eq 0 ] && [ -f supabase/migrations/20260813124308_comun_pautas_vivas_public_evidence.sql ]; then
+            echo A1_PREFLIGHT_MODE=promoted >> "$GITHUB_ENV"
+          else
+            echo COMUN_48_3_A1_BLOCKED_MIGRATION_SCOPE
+            exit 1
+          fi
 
       - name: Inspect canonical pauta metadata in a read-only transaction
         shell: bash
@@ -182,11 +190,32 @@ jobs:
                   'public_evidence_payload'
                 )
             ),
+            'publicEvidenceColumnsPresent', (
+              select count(*) = 3
+              from information_schema.columns
+              where table_schema = 'public'
+                and table_name = 'comun_pauta_evidence_items'
+                and column_name in (
+                  'public_evidence_ref_id',
+                  'public_evidence_version',
+                  'public_evidence_payload'
+                )
+            ),
             'publicEvidenceSourceTypeAbsent', exists (
               select 1 from pg_catalog.pg_constraint constraint_row
               where constraint_row.conrelid = 'public.comun_pauta_evidence_items'::regclass
                 and constraint_row.conname = 'comun_pauta_evidence_source_type_check'
                 and pg_catalog.pg_get_constraintdef(constraint_row.oid) not like '%public_evidence%'
+            ),
+            'publicEvidenceSourceTypePresent', exists (
+              select 1 from pg_catalog.pg_constraint constraint_row
+              where constraint_row.conrelid = 'public.comun_pauta_evidence_items'::regclass
+                and constraint_row.conname = 'comun_pauta_evidence_source_type_check'
+                and pg_catalog.pg_get_constraintdef(constraint_row.oid) like '%public_evidence%'
+            ),
+            'publicEvidenceMigrationApplied', exists (
+              select 1 from supabase_migrations.schema_migrations
+              where version = '20260813124308'
             ),
             'publicEvidencePolicyPreserved', exists (
               select 1 from pg_catalog.pg_policies policies
@@ -215,18 +244,26 @@ jobs:
           const fs = require('node:fs');
           const path = '.ci-artifacts/48-3-a1-preflight/schema.json';
           const schema = JSON.parse(fs.readFileSync(path, 'utf8'));
-          const required = [
+          const shared = [
             'transactionReadOnly',
             'tablesPresent',
             'expectedPautaColumnsPresent',
             'rlsEnabled',
-            'publicEvidenceColumnsAbsent',
-            'publicEvidenceSourceTypeAbsent',
             'publicEvidencePolicyPreserved',
             'serviceEvidenceInsert'
           ];
+          const mode = process.env.A1_PREFLIGHT_MODE;
+          const lifecycleValid = mode === 'candidate'
+            ? schema.publicEvidenceColumnsAbsent === true &&
+              schema.publicEvidenceSourceTypeAbsent === true &&
+              schema.publicEvidenceMigrationApplied === false
+            : mode === 'promoted' &&
+              schema.publicEvidenceColumnsPresent === true &&
+              schema.publicEvidenceSourceTypePresent === true &&
+              schema.publicEvidenceMigrationApplied === true;
           if (
-            required.some((key) => schema[key] !== true) ||
+            shared.some((key) => schema[key] !== true) ||
+            !lifecycleValid ||
             schema.anonEvidenceInsert !== false ||
             schema.authenticatedEvidenceInsert !== false ||
             schema.businessContentRead !== false
@@ -245,7 +282,9 @@ jobs:
               transactionReadOnly: true,
               businessContentRead: false,
               tablesAudited: 5,
-              schemaReadyForAdditiveMigration: true
+              lifecycleMode: mode,
+              schemaReadyForAdditiveMigration: mode === 'candidate',
+              promotedSchemaVerified: mode === 'promoted'
             }) + '\n'
           );
           NODE
@@ -262,13 +301,19 @@ jobs:
           restore() { test ! -e "$held" || mv "$held" "$external"; }
           trap restore EXIT
           supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-3-a1-preflight/dry-run.txt 2>&1
-          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
           mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-3-a1-preflight/dry-run.txt | sort -u || true)
-          test "${#changed[@]}" -eq 1
-          test "${#planned[@]}" -eq 1
-          test "${planned[0]}" = "$(basename "${changed[0]}")"
+          if [ "$A1_PREFLIGHT_MODE" = candidate ]; then
+            mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+            test "${#changed[@]}" -eq 1
+            test "${#planned[@]}" -eq 1
+            test "${planned[0]}" = "$(basename "${changed[0]}")"
+            result=COMUN_48_3_A1_REMOTE_PLAN_EXACT_ONE
+          else
+            test "${#planned[@]}" -eq 0
+            result=COMUN_48_3_A1_REMOTE_PLAN_EMPTY_POST_PROMOTION
+          fi
           ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/48-3-a1-preflight/dry-run.txt
-          printf '%s\n' '{"result":"COMUN_48_3_A1_REMOTE_PLAN_EXACT_ONE","migrationCount":1,"businessContentRead":false}' >.ci-artifacts/48-3-a1-preflight/migration-plan.json
+          printf '{"result":"%s","migrationCount":%s,"businessContentRead":false}\n' "$result" "${#planned[@]}" >.ci-artifacts/48-3-a1-preflight/migration-plan.json
           restore
           trap - EXIT
 

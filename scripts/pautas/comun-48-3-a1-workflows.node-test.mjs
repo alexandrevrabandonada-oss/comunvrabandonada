@@ -9,9 +9,13 @@ const wave = readFileSync("scripts/pautas/run-48-3-a1-production-wave.sh", "utf8
 const observatoryPreflight = readFileSync(".github/workflows/comun-48-2-a-remote-preflight.yml", "utf8");
 const forwardingPreflight = readFileSync(".github/workflows/comun-p6c-c-preflight.yml", "utf8");
 
-test("A1 preflight is read-only and proves one bounded remote migration", () => {
+test("A1 preflight is read-only across candidate and promoted lifecycle", () => {
   assert.match(preflight, /begin read only;/);
   assert.match(preflight, /REMOTE_PLAN_EXACT_ONE/);
+  assert.match(preflight, /REMOTE_PLAN_EMPTY_POST_PROMOTION/);
+  assert.match(preflight, /A1_PREFLIGHT_MODE=candidate/);
+  assert.match(preflight, /A1_PREFLIGHT_MODE=promoted/);
+  assert.match(preflight, /publicEvidenceMigrationApplied/);
   assert.match(preflight, /\*_comun_pautas_vivas_public_evidence\.sql/);
   assert.doesNotMatch(preflight, /supabase[^\n]*--include-all|supabase migration repair|supabase db reset/);
 });
