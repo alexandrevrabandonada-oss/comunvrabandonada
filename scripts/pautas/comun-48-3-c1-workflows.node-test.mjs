@@ -60,6 +60,8 @@ test("C1 rollout binds exact main, preserves prior routes, and rolls back fail c
   assert.match(wave, /parentFlagConfigured=/);
   assert.match(wave, /databaseUrlConfigured=/);
   assert.match(wave, /parentGateRuntimeReady=/);
+  assert.match(wave, /COMUN_48_3_C1_BLOCKED_PARENT_RELEASE_GATE/);
+  assert.match(wave, /tee -a "\$GITHUB_STEP_SUMMARY"/);
   assert.match(wave, /Caderno público de ações em preparação/);
   assert.match(wave, /failedPhase=/);
   assert.match(wave, /COMUN_48_3_C1_VERCEL_ROLLBACK_GREEN/);
