@@ -1,0 +1,255 @@
+name: COMUN 48.3-A1 remote read-only preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-3-a1-*.yml"
+      - "app/comun/pautas/**"
+      - "components/comun-pauta-*.tsx"
+      - "lib/comun-public-evidence-*.ts"
+      - "lib/pauta-spaces.ts"
+      - "lib/types.ts"
+      - "reports/current/comun-48-3-a1-pautas-vivas-public-core.md"
+      - "reports/current/estado-atual-comun.md"
+      - "supabase/migrations/*_comun_pautas_vivas_public_evidence.sql"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remote-read-only-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Production transport and pre-migration scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          test -n "${SUPABASE_PROJECT_REF:-}"
+          case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
+          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+          test "${#changed[@]}" -eq 0 || {
+            echo COMUN_48_3_A1_PREFLIGHT_MUST_PRECEDE_MIGRATION
+            exit 1
+          }
+
+      - name: Inspect canonical pauta metadata in a read-only transaction
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/48-3-a1-preflight
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 \
+            >.ci-artifacts/48-3-a1-preflight/schema.json <<'SQL'
+          begin read only;
+          with scoped_tables(table_name) as (
+            values
+              ('comun_pauta_spaces'),
+              ('comun_pauta_evidence_items'),
+              ('comun_pauta_contributions'),
+              ('comun_pauta_memberships'),
+              ('comun_pauta_synthesis_versions')
+          ), expected_pauta_columns(column_name) as (
+            values
+              ('id'), ('slug'), ('title'), ('summary'), ('problem_public'),
+              ('demand_public'), ('proposals_public'), ('participation_public'),
+              ('territory_id'), ('public_synthesis'), ('next_step'),
+              ('public_status'), ('status'), ('visibility')
+          )
+          select json_build_object(
+            'transactionReadOnly', current_setting('transaction_read_only') = 'on',
+            'tablesPresent', (
+              select count(*) = 5
+              from scoped_tables scoped
+              where to_regclass('public.' || scoped.table_name) is not null
+            ),
+            'expectedPautaColumnsPresent', (
+              select count(*) = 14
+              from expected_pauta_columns expected
+              where exists (
+                select 1 from information_schema.columns columns
+                where columns.table_schema = 'public'
+                  and columns.table_name = 'comun_pauta_spaces'
+                  and columns.column_name = expected.column_name
+              )
+            ),
+            'rlsEnabled', (
+              select coalesce(bool_and(class.relrowsecurity), false)
+              from scoped_tables scoped
+              join pg_catalog.pg_class class
+                on class.oid = to_regclass('public.' || scoped.table_name)
+            ),
+            'rlsForcedByTable', (
+              select json_object_agg(scoped.table_name, class.relforcerowsecurity order by scoped.table_name)
+              from scoped_tables scoped
+              join pg_catalog.pg_class class
+                on class.oid = to_regclass('public.' || scoped.table_name)
+            ),
+            'columns', (
+              select coalesce(json_agg(json_build_object(
+                'table', columns.table_name,
+                'name', columns.column_name,
+                'type', columns.data_type,
+                'nullable', columns.is_nullable
+              ) order by columns.table_name, columns.ordinal_position), '[]'::json)
+              from information_schema.columns columns
+              join scoped_tables scoped on scoped.table_name = columns.table_name
+              where columns.table_schema = 'public'
+            ),
+            'constraints', (
+              select coalesce(json_agg(json_build_object(
+                'table', scoped.table_name,
+                'name', constraint_row.conname,
+                'type', constraint_row.contype,
+                'definition', pg_catalog.pg_get_constraintdef(constraint_row.oid)
+              ) order by scoped.table_name, constraint_row.conname), '[]'::json)
+              from scoped_tables scoped
+              join pg_catalog.pg_constraint constraint_row
+                on constraint_row.conrelid = to_regclass('public.' || scoped.table_name)
+            ),
+            'indexes', (
+              select coalesce(json_agg(json_build_object(
+                'table', indexes.tablename,
+                'name', indexes.indexname,
+                'definition', indexes.indexdef
+              ) order by indexes.tablename, indexes.indexname), '[]'::json)
+              from pg_catalog.pg_indexes indexes
+              join scoped_tables scoped on scoped.table_name = indexes.tablename
+              where indexes.schemaname = 'public'
+            ),
+            'policies', (
+              select coalesce(json_agg(json_build_object(
+                'table', policies.tablename,
+                'name', policies.policyname,
+                'roles', policies.roles,
+                'command', policies.cmd,
+                'usingPresent', policies.qual is not null,
+                'checkPresent', policies.with_check is not null
+              ) order by policies.tablename, policies.policyname), '[]'::json)
+              from pg_catalog.pg_policies policies
+              join scoped_tables scoped on scoped.table_name = policies.tablename
+              where policies.schemaname = 'public'
+            ),
+            'grants', (
+              select coalesce(json_agg(json_build_object(
+                'table', grants.table_name,
+                'grantee', grants.grantee,
+                'privilege', grants.privilege_type
+              ) order by grants.table_name, grants.grantee, grants.privilege_type), '[]'::json)
+              from information_schema.role_table_grants grants
+              join scoped_tables scoped on scoped.table_name = grants.table_name
+              where grants.table_schema = 'public'
+                and grants.grantee in ('anon', 'authenticated', 'service_role')
+            ),
+            'relevantRpcs', (
+              select coalesce(json_agg(json_build_object(
+                'name', procedures.proname,
+                'arguments', pg_catalog.pg_get_function_identity_arguments(procedures.oid),
+                'securityDefiner', procedures.prosecdef,
+                'anonExecute', has_function_privilege('anon', procedures.oid, 'EXECUTE'),
+                'authenticatedExecute', has_function_privilege('authenticated', procedures.oid, 'EXECUTE'),
+                'serviceExecute', has_function_privilege('service_role', procedures.oid, 'EXECUTE')
+              ) order by procedures.proname, pg_catalog.pg_get_function_identity_arguments(procedures.oid)), '[]'::json)
+              from pg_catalog.pg_proc procedures
+              join pg_catalog.pg_namespace namespace on namespace.oid = procedures.pronamespace
+              where namespace.nspname = 'public'
+                and procedures.proname like 'comun%pauta%'
+            ),
+            'publicEvidenceColumnsAbsent', not exists (
+              select 1 from information_schema.columns
+              where table_schema = 'public'
+                and table_name = 'comun_pauta_evidence_items'
+                and column_name in (
+                  'public_evidence_ref_id',
+                  'public_evidence_version',
+                  'public_evidence_payload'
+                )
+            ),
+            'publicEvidenceSourceTypeAbsent', exists (
+              select 1 from pg_catalog.pg_constraint constraint_row
+              where constraint_row.conrelid = 'public.comun_pauta_evidence_items'::regclass
+                and constraint_row.conname = 'comun_pauta_evidence_source_type_check'
+                and pg_catalog.pg_get_constraintdef(constraint_row.oid) not like '%public_evidence%'
+            ),
+            'publicEvidencePolicyPreserved', exists (
+              select 1 from pg_catalog.pg_policies policies
+              where policies.schemaname = 'public'
+                and policies.tablename = 'comun_pauta_evidence_items'
+                and policies.cmd = 'SELECT'
+                and policies.qual like '%approved%'
+                and policies.qual like '%public_safe%'
+            ),
+            'anonEvidenceInsert', has_table_privilege('anon', 'public.comun_pauta_evidence_items', 'INSERT'),
+            'authenticatedEvidenceInsert', has_table_privilege('authenticated', 'public.comun_pauta_evidence_items', 'INSERT'),
+            'serviceEvidenceInsert', has_table_privilege('service_role', 'public.comun_pauta_evidence_items', 'INSERT'),
+            'safeAggregateCounts', json_build_object(
+              'pautas', (select count(*) from public.comun_pauta_spaces),
+              'evidenceItems', (select count(*) from public.comun_pauta_evidence_items),
+              'contributions', (select count(*) from public.comun_pauta_contributions),
+              'memberships', (select count(*) from public.comun_pauta_memberships),
+              'synthesisVersions', (select count(*) from public.comun_pauta_synthesis_versions)
+            ),
+            'businessContentRead', false
+          );
+          rollback;
+          SQL
+
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const path = '.ci-artifacts/48-3-a1-preflight/schema.json';
+          const schema = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const required = [
+            'transactionReadOnly',
+            'tablesPresent',
+            'expectedPautaColumnsPresent',
+            'rlsEnabled',
+            'publicEvidenceColumnsAbsent',
+            'publicEvidenceSourceTypeAbsent',
+            'publicEvidencePolicyPreserved',
+            'serviceEvidenceInsert'
+          ];
+          if (
+            required.some((key) => schema[key] !== true) ||
+            schema.anonEvidenceInsert !== false ||
+            schema.authenticatedEvidenceInsert !== false ||
+            schema.businessContentRead !== false
+          ) {
+            throw new Error('COMUN_48_3_A1_BLOCKED_REMOTE_SCHEMA_DRIFT');
+          }
+          if (!Array.isArray(schema.columns) || !Array.isArray(schema.constraints) ||
+              !Array.isArray(schema.indexes) || !Array.isArray(schema.policies) ||
+              !Array.isArray(schema.grants) || !Array.isArray(schema.relevantRpcs)) {
+            throw new Error('COMUN_48_3_A1_BLOCKED_REMOTE_SCHEMA_DRIFT');
+          }
+          fs.writeFileSync(
+            '.ci-artifacts/48-3-a1-preflight/result.json',
+            JSON.stringify({
+              result: 'COMUN_48_3_A1_REMOTE_PREFLIGHT_GREEN',
+              transactionReadOnly: true,
+              businessContentRead: false,
+              tablesAudited: 5,
+              schemaReadyForAdditiveMigration: true
+            }) + '\n'
+          );
+          NODE
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-3-a1-remote-preflight-${{ github.run_id }}
+          path: .ci-artifacts/48-3-a1-preflight
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Emit sanitized preflight result
+        if: success()
+        run: echo COMUN_48_3_A1_REMOTE_PREFLIGHT_GREEN >> "$GITHUB_STEP_SUMMARY"
