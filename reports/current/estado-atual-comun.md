@@ -1,4 +1,37 @@
-# Estado atual — 48.2-D4B Qualidade dos rios: superfície oficial (12/08/2026)
+# Estado atual — 48.2-E2 Interrupções oficiais de energia elétrica (13/08/2026)
+
+## 48.2-E2 — Observatório de Energia, ANEEL, somente leitura
+
+- PR funcional #298 foi mesclada exact-head em
+  `4a5c5d4d776cada38e532027f531ee553dc26554`; a correção operacional #299,
+  sem produto/schema/dados, foi mesclada em
+  `2e391fc6d3f4ef262dad84c8b8e736ec09bfd9b9`;
+- a superfície pública está ativa em
+  `/comun/observatorios/servicos-essenciais/energia`, com página de fontes,
+  resumo oficial e API somente `GET`/`HEAD`; writes retornam `405`;
+- o snapshot ANEEL versionado contém 5.676 registros publicados de interrupção
+  para Volta Redonda nas competências `2026-01`, `2026-03` a `2026-06`; não
+  é ano completo, tempo real, contagem de apagões únicos ou de pessoas;
+- registros são paginados e bounded; não há mapa, geocoding, bairro, setor
+  censitário, Relata, Carteira, localização privada, anexo, identidade ou
+  encaminhamento;
+- DEC/FEC continuam fora da superfície porque não há agregado municipal
+  comparável; causa e campos técnicos preservam a semântica da fonte sem
+  atribuição pelo COMUN;
+- flags-off `31660990853` e wave 1 `31661122386` foram verdes com zero
+  migration, zero business write e zero request runtime à ANEEL.
+
+Estado atual:
+`COMUN_48_2_E2_ESSENTIAL_POWER_INTERRUPTION_OBSERVATORY_GREEN_OFFICIAL_ONLY`.
+
+Detalhes:
+`reports/current/comun-48-2-e2-power-interruption-observatory.md`.
+
+Preservados: `PARTIAL_E1_POWER`, auto-publicação OFF, mapa geral Relata OFF,
+coletivos OFF, `launch_publicly=false` e
+`COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`.
+
+# Estado anterior — 48.2-D4B Qualidade dos rios: superfície oficial (12/08/2026)
 
 ## 48.2-D4B — Observatório Ambiental, referência 2025
 
