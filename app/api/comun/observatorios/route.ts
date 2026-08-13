@@ -7,6 +7,7 @@ import {
   isComunObservatoryTerritorialContextEnabled,
   isComunObservatoryEnvironmentSurfaceWaterEnabled,
   isComunObservatoryEssentialPowerInterruptionEnabled,
+  isComunObservatoryCityPanoramaEnabled,
 } from "@/lib/comun-observatory-feature";
 import { getPublicObservatoryRegistry } from "@/lib/comun-observatory";
 
@@ -44,6 +45,7 @@ export function GET() {
         isComunObservatoryTerritorialContextEnabled(),
         isComunObservatoryEnvironmentSurfaceWaterEnabled(),
         isComunObservatoryEssentialPowerInterruptionEnabled(),
+        isComunObservatoryCityPanoramaEnabled(),
       ),
     },
     { headers: publicHeaders },

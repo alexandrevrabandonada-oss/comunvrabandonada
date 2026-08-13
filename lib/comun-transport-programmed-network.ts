@@ -103,6 +103,31 @@ export function findTransportLines(search = "", operator = "") {
   return COMUN_TRANSPORT_SNAPSHOT.lines.filter((line) => (!query || [line.lineCode, line.routeLabel, line.operator].some((value) => normalizeTransportSearch(value).includes(query))) && (!operatorQuery || normalizeTransportSearch(line.operator) === operatorQuery));
 }
 export function getTransportOperators() { return [...new Set(COMUN_TRANSPORT_SNAPSHOT.lines.map((line) => line.operator))].sort((a, b) => a.localeCompare(b, "pt-BR")); }
+export function getTransportProgrammedNetworkPublicDto() {
+  return {
+    snapshot: {
+      snapshotId: COMUN_TRANSPORT_SNAPSHOT.snapshotId,
+      snapshotDate: COMUN_TRANSPORT_SNAPSHOT.snapshotDate,
+      verifiedAt: COMUN_TRANSPORT_SNAPSHOT.verifiedAt,
+      lineCount: COMUN_TRANSPORT_SNAPSHOT.lineCount,
+      qualityState: COMUN_TRANSPORT_SNAPSHOT.qualityState,
+    },
+    source: {
+      catalogSourceId: COMUN_TRANSPORT_SNAPSHOT.catalogSourceId,
+      officialSourceUrl: "/comun/observatorios/transporte/fontes",
+    },
+    methodology: {
+      version: COMUN_TRANSPORT_SNAPSHOT.methodologyVersion,
+      programmedNotObserved: true,
+      realtime: "deferred_no_public_api_contract",
+      stops: "deferred_no_public_dataset",
+    },
+    freshness: {
+      verifiedAt: COMUN_TRANSPORT_SNAPSHOT.verifiedAt,
+      sourceCount: COMUN_TRANSPORT_SOURCE_MANIFEST.sources.length,
+    },
+  };
+}
 export function deriveScheduledGaps(departures: readonly Departure[]) {
   const minutes = departures.map((item) => item.serviceDayOffset * 1440 + Number(item.time.slice(0, 2)) * 60 + Number(item.time.slice(3)));
   const gaps = minutes.slice(1).map((value, index) => value - minutes[index]).filter((gap) => gap > 0);

@@ -16,6 +16,8 @@ export const COMUN_OBSERVATORY_ENVIRONMENT_SURFACE_WATER_FLAG =
   "COMUN_OBSERVATORY_ENVIRONMENT_SURFACE_WATER_ENABLED" as const;
 export const COMUN_OBSERVATORY_ESSENTIAL_POWER_INTERRUPTION_FLAG =
   "COMUN_OBSERVATORY_ESSENTIAL_POWER_INTERRUPTION_ENABLED" as const;
+export const COMUN_OBSERVATORY_CITY_PANORAMA_FLAG =
+  "COMUN_OBSERVATORY_CITY_PANORAMA_ENABLED" as const;
 
 export function isComunObservatoriesFoundationEnabled(
   env: Record<string, string | undefined> = process.env,
@@ -81,5 +83,14 @@ export function isComunObservatoryEssentialPowerInterruptionEnabled(
   return (
     isComunObservatoriesFoundationEnabled(env) &&
     env[COMUN_OBSERVATORY_ESSENTIAL_POWER_INTERRUPTION_FLAG] === "enabled"
+  );
+}
+
+export function isComunObservatoryCityPanoramaEnabled(
+  env: Record<string, string | undefined> = process.env,
+) {
+  return (
+    isComunObservatoriesFoundationEnabled(env) &&
+    env[COMUN_OBSERVATORY_CITY_PANORAMA_FLAG] === "enabled"
   );
 }

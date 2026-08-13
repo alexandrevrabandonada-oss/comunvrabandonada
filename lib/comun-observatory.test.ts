@@ -78,6 +78,14 @@ describe("observatory public firewall", () => {
     expect(getPublicObservatoryRegistry(true, true, true, true, true)[3]).toMatchObject({ id: "environment", status: "available", publicRoute: "/comun/observatorios/ambiente" });
   });
 
+  it("adds the Panorama card only through its isolated feature flag", () => {
+    expect(getPublicObservatoryRegistry(true, true, true, true, true, true).find((item) => item.id === "panorama")).toBeUndefined();
+    expect(getPublicObservatoryRegistry(true, true, true, true, true, true, true).find((item) => item.id === "panorama")).toMatchObject({
+      status: "available",
+      publicRoute: "/comun/observatorios/panorama",
+    });
+  });
+
   it("labels old sources without hiding them", () => {
     expect(
       freshnessForUpdatedAt(

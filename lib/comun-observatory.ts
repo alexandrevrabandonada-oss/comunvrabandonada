@@ -27,6 +27,7 @@ export type ObservatoryGeographyLevel =
   | "approximate_area"
   | "reviewed_public_point";
 export type ObservatoryId =
+  | "panorama"
   | "sidewalks"
   | "transport"
   | "territory"
@@ -220,6 +221,26 @@ export const COMUN_OBSERVATORY_REGISTRY = [
     sensitivityPolicy: "public-origin-only",
     automaticPublicationAllowed: false,
   },
+  {
+    id: "panorama",
+    slug: "panorama",
+    label: "Panorama de Volta Redonda",
+    description:
+      "Veja juntas as diferentes camadas públicas que o COMUN já consegue organizar sobre a cidade.",
+    status: "preparing",
+    publicRoute: null,
+    sourceKindsAllowed: [
+      "official_public_data",
+      "reviewed_community_projection",
+    ],
+    methodologyVersion: COMUN_OBSERVATORY_METHODOLOGY_VERSION,
+    lastReviewedAt: "2026-08-13T00:00:00.000Z",
+    freshnessPolicy:
+      "Cada camada preserva seu próprio período, geografia e data de verificação.",
+    geographyMode: ["city", "district", "approximate_area", "reviewed_public_point"],
+    sensitivityPolicy: "public-origin-only",
+    automaticPublicationAllowed: false,
+  },
 ] as const satisfies readonly ObservatoryRegistryEntry[];
 
 export function getPublicObservatoryRegistry(
@@ -229,8 +250,14 @@ export function getPublicObservatoryRegistry(
   territorialContextEnabled = false,
   environmentSurfaceWaterEnabled = false,
   essentialPowerInterruptionEnabled = false,
+  cityPanoramaEnabled = false,
 ): ObservatoryRegistryEntry[] {
   return COMUN_OBSERVATORY_REGISTRY.flatMap<ObservatoryRegistryEntry>((entry) => {
+    if (entry.id === "panorama") {
+      return cityPanoramaEnabled
+        ? [{ ...entry, status: "available" as const, publicRoute: "/comun/observatorios/panorama" }]
+        : [];
+    }
     if (entry.id === "transport") {
       return transportProgrammedEnabled
         ? [{ ...entry, status: "available" as const, publicRoute: "/comun/observatorios/transporte", description: "Linhas, horários e itinerários programados publicados oficialmente." }]
