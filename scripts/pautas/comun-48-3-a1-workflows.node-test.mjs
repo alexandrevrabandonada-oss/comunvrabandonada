@@ -6,6 +6,8 @@ const preflight = readFileSync(".github/workflows/comun-48-3-a1-preflight.yml", 
 const disposable = readFileSync(".github/workflows/comun-48-3-a1-disposable.yml", "utf8");
 const activation = readFileSync(".github/workflows/comun-48-3-a1-activation.yml", "utf8");
 const wave = readFileSync("scripts/pautas/run-48-3-a1-production-wave.sh", "utf8");
+const observatoryPreflight = readFileSync(".github/workflows/comun-48-2-a-remote-preflight.yml", "utf8");
+const forwardingPreflight = readFileSync(".github/workflows/comun-p6c-c-preflight.yml", "utf8");
 
 test("A1 preflight is read-only and proves one bounded remote migration", () => {
   assert.match(preflight, /begin read only;/);
@@ -30,4 +32,11 @@ test("A1 activation is exact-head, one migration and flags off before wave 1", (
   assert.match(wave, /COMUN_PAUTAS_VIVAS_CORE_ENABLED production/);
   assert.match(wave, /businessWrites=0/);
   assert.match(wave, /rollback/);
+});
+
+test("historical preflights classify the scoped A1 migration as unrelated", () => {
+  assert.match(observatoryPreflight, /COMUN_48_2_A_UNRELATED_MIGRATION_NOT_APPLICABLE/);
+  assert.match(forwardingPreflight, /COMUN_P6C_C_UNRELATED_MIGRATION_NOT_APPLICABLE/);
+  assert.match(observatoryPreflight, /_comun_pautas_vivas_public_evidence\.sql/);
+  assert.match(forwardingPreflight, /_comun_pautas_vivas_public_evidence\.sql/);
 });

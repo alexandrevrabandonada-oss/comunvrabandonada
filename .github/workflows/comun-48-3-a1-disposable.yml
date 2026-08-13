@@ -32,9 +32,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          admin='postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+          admin="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '\"')"
+          test -n "$admin"
           psql "$admin" -v ON_ERROR_STOP=1 -c 'create database comun_a1_disposable'
-          db='postgresql://postgres:postgres@127.0.0.1:54322/comun_a1_disposable'
+          db="${admin%/*}/comun_a1_disposable"
           migration="$RUNNER_TEMP/a1.sql"
           psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
           create role anon nologin;
