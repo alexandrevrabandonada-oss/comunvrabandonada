@@ -1,4 +1,27 @@
-# Estado atual — 48.3-A1 Pautas Vivas (13/08/2026)
+# Estado atual — 48.3-B0 Comunidades e Rodas (13/08/2026)
+
+## 48.3-B0 — Reconciliação da experiência social
+
+- a arquitetura social foi reconciliada sem criar `Community v2`, `Circle v2`, `Thread v2`, `Feed v2`, tabela ou migration;
+- `comun_communities` permanece a Comunidade canônica; `comun_pauta_spaces`, a Pauta; `comun_construction_circles`, a Roda; rounds, contribuições, sínteses, grupos e ações preservam identidades distintas;
+- memberships de Comunidade, Pauta e Grupo são vínculos independentes, sem propagação automática de papéis, conteúdo ou publicação;
+- `comun_circle_contributions` é canônica dentro de uma Roda; `comun_pauta_contributions` fica em compatibilidade para participação geral, sem dual-write;
+- a relação Comunidade–Pauta continua limitada ao slug textual legado e a projeção pública de rodas ainda precisa filtrar estados dos filhos; ambas ficam explicitamente para B1;
+- `community-experience.ts` foi classificado como narrativa de compatibilidade, não fonte canônica;
+- o preflight focal run `31727259904` auditou 17 tabelas somente por metadata em transação read-only, confirmou RLS, `clientWritePaths=0`, `businessContentRead=false` e remote plan vazio;
+- não houve UI, API, flag, deploy funcional, migration ou escrita de negócio.
+
+Estado candidato, condicionado à CI e ao preflight remoto:
+`COMUN_48_3_B0_COMMUNITIES_RODAS_RECONCILIATION_CONTRACT_GREEN`.
+
+Detalhes: `reports/current/comun-48-3-b0-communities-rodas-reconciliation.md`.
+
+Preservados: `COMUN_48_3_A1_PAUTAS_VIVAS_PUBLIC_CORE_GREEN_VERSIONED_EVIDENCE`,
+`COMUN_48_2_F_CROSS_OBSERVATORY_CITY_PANORAMA_GREEN_PUBLIC_SAFE`,
+`COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e
+`launch_publicly=false`.
+
+# Estado anterior — 48.3-A1 Pautas Vivas (13/08/2026)
 
 ## 48.3-A1 — Núcleo público + evidência pública versionada
 
