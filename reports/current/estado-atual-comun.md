@@ -1,4 +1,22 @@
-# Estado atual — 48.3-B0 Comunidades e Rodas (13/08/2026)
+# Estado candidato — 48.3-B1 Rodas Vivas (13/08/2026)
+
+## 48.3-B1 — Experiência canônica de conversa coletiva
+
+- `comun_construction_circles` permanece a Roda canônica e ganhou projeção pública fail-closed, sem schema paralelo;
+- Rodas públicas vivem na Pauta, etapas `planned/archived`, contribuições não moderadas e sínteses não publicadas ficam fora da superfície;
+- a ação existente agora valida Pauta, Roda, rodada atual, modo, tipo, limites e safety antes do único insert `pending`;
+- a nova rota focal e o CTA da Pauta são protegidos por `COMUN_RODAS_VIVAS_ENABLED`; OFF preserva A1 integralmente;
+- zero migration, API nova, grant público, membership automático, dual-write, ação automática ou publicação automática;
+- o débito de contraste do componente tocado foi corrigido no patch; a prova final e os identificadores remotos serão registrados após CI/rollout.
+
+Estado candidato:
+`COMUN_48_3_B1_RODAS_VIVAS_CANONICAL_EXPERIENCE_GREEN_MODERATED_PUBLIC`.
+
+Detalhes: `reports/current/comun-48-3-b1-rodas-vivas-canonical-experience.md`.
+
+Preservados: `COMUN_48_3_A1_PAUTAS_VIVAS_PUBLIC_CORE_GREEN_VERSIONED_EVIDENCE`, `COMUN_48_2_F_CROSS_OBSERVATORY_CITY_PANORAMA_GREEN_PUBLIC_SAFE`, `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e `launch_publicly=false`.
+
+# Estado anterior — 48.3-B0 Comunidades e Rodas (13/08/2026)
 
 ## 48.3-B0 — Reconciliação da experiência social
 

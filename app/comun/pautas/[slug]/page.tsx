@@ -53,6 +53,8 @@ import {
 } from "@/components/comun-relational";
 import { isComunPautasVivasCoreEnabled } from "@/lib/comun-pautas-vivas-feature";
 import { PautaVivaDetail } from "@/components/comun-pautas-vivas";
+import { isComunRodasVivasEnabled } from "@/lib/comun-rodas-vivas-feature";
+import { listPublicRodasForPauta } from "@/lib/comun-rodas-vivas";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -82,11 +84,12 @@ export default async function PautaPage(props: {
     );
 
   if (isComunPautasVivasCoreEnabled()) {
-    const [evidence, tasks, contributions, dossiers] = await Promise.all([
+    const [evidence, tasks, contributions, dossiers, rodas] = await Promise.all([
       listPublicPautaEvidence(space.id, 8),
       listPublicPautaTasks(space.id, 6),
       listApprovedPautaContributions(space.id, 6),
       listPublishedPautaDossiersByPauta(space.id),
+      isComunRodasVivasEnabled() ? listPublicRodasForPauta(space.id) : Promise.resolve([]),
     ]);
     return (
       <PautaVivaDetail
@@ -95,6 +98,8 @@ export default async function PautaPage(props: {
         tasks={tasks}
         contributions={contributions}
         dossiers={dossiers.slice(0, 4)}
+        rodas={rodas}
+        rodasEnabled={isComunRodasVivasEnabled()}
       />
     );
   }
