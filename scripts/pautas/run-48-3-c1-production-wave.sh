@@ -25,18 +25,21 @@ if [ "$MODE" = wave1-canonical-actions ]; then
   parent_flag_configured=false; database_url_configured=false
   grep -q 'COMUN_COLLECTIVE_ACTIONS_V1' "$VERCEL_LAST_OUTPUT" && parent_flag_configured=true
   grep -q 'COMUN_COLLECTIVE_ACTIONS_DATABASE_URL' "$VERCEL_LAST_OUTPUT" && database_url_configured=true
-  printf 'parentFlagConfigured=%s\ndatabaseUrlConfigured=%s\n' "$parent_flag_configured" "$database_url_configured" >> "$GITHUB_STEP_SUMMARY"
-  test "$parent_flag_configured" = true
-  test "$database_url_configured" = true
+  printf 'parentFlagConfigured=%s\ndatabaseUrlConfigured=%s\n' "$parent_flag_configured" "$database_url_configured" | tee -a "$GITHUB_STEP_SUMMARY"
+  if [ "$parent_flag_configured" != true ] || [ "$database_url_configured" != true ]; then
+    echo COMUN_48_3_C1_BLOCKED_PARENT_RELEASE_GATE | tee -a "$GITHUB_STEP_SUMMARY"
+    false
+  fi
 
   current_phase=parent_gate_runtime
   parent_gate_page="$(mktemp)"; remember "$parent_gate_page"
   curl -L -fsS --retry 8 --retry-delay 2 "$COMUN_BASE_URL/comun/acoes" > "$parent_gate_page"
   if grep -q 'Caderno público de ações em preparação' "$parent_gate_page"; then
-    echo parentGateRuntimeReady=false >> "$GITHUB_STEP_SUMMARY"
+    echo parentGateRuntimeReady=false | tee -a "$GITHUB_STEP_SUMMARY"
+    echo COMUN_48_3_C1_BLOCKED_PARENT_RELEASE_GATE | tee -a "$GITHUB_STEP_SUMMARY"
     false
   fi
-  echo parentGateRuntimeReady=true >> "$GITHUB_STEP_SUMMARY"
+  echo parentGateRuntimeReady=true | tee -a "$GITHUB_STEP_SUMMARY"
 fi
 
 current_phase=env_add_canonical_experience
