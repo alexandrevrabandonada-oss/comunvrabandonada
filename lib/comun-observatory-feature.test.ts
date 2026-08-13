@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   isComunObservatoryEnvironmentSurfaceWaterEnabled,
+  isComunObservatoryEssentialPowerInterruptionEnabled,
   isComunObservatoriesFoundationEnabled,
   isComunObservatorySidewalkAdapterEnabled,
   isComunObservatorySidewalkAnalyticsEnabled,
@@ -34,6 +35,21 @@ describe("observatory feature flags", () => {
     expect(isComunObservatoryTransportProgrammedEnabled({})).toBe(false);
     expect(isComunObservatoryTransportSystemMetricsEnabled({})).toBe(false);
     expect(isComunObservatoryTerritorialContextEnabled({})).toBe(false);
+    expect(isComunObservatoryEssentialPowerInterruptionEnabled({})).toBe(false);
+  });
+
+  it("keeps the essential-power interruption observatory cloaked until explicit activation", () => {
+    expect(
+      isComunObservatoryEssentialPowerInterruptionEnabled({
+        COMUN_OBSERVATORIES_FOUNDATION_ENABLED: "enabled",
+      }),
+    ).toBe(false);
+    expect(
+      isComunObservatoryEssentialPowerInterruptionEnabled({
+        COMUN_OBSERVATORIES_FOUNDATION_ENABLED: "enabled",
+        COMUN_OBSERVATORY_ESSENTIAL_POWER_INTERRUPTION_ENABLED: "enabled",
+      }),
+    ).toBe(true);
   });
 
   it("requires the observatory foundation and an explicit territorial flag", () => {
