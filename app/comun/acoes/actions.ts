@@ -1,9 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireCommunitySession } from "@/lib/community-auth";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { requireCollectiveActionsRelease } from "@/lib/collective-actions-release";
+import { isComunCollectiveActionsCanonicalExperienceEnabled } from "@/lib/comun-collective-actions-canonical-feature";
 
 const participationStates = new Set([
   "interested",
@@ -16,6 +18,19 @@ const participationStates = new Set([
 
 function value(form: FormData, name: string) {
   return String(form.get(name) ?? "").trim();
+}
+
+function finishCanonicalMutation(
+  form: FormData,
+  slug: string,
+  confirmation: string,
+) {
+  if (
+    value(form, "canonical_experience") === "1" &&
+    isComunCollectiveActionsCanonicalExperienceEnabled()
+  ) {
+    redirect(`/comun/acoes/${slug}?confirmacao=${confirmation}`);
+  }
 }
 
 async function memberAction(form: FormData) {
@@ -76,6 +91,11 @@ export async function updateCollectiveActionParticipation(form: FormData) {
   if (error) throw new Error("Não foi possível registrar sua participação.");
   revalidatePath(`/comun/acoes/${slug}`);
   revalidatePath("/comun/minha-participacao");
+  finishCanonicalMutation(
+    form,
+    slug,
+    status === "contributed" ? "note" : status,
+  );
 }
 
 export async function claimCollectiveActionTask(form: FormData) {
@@ -122,6 +142,7 @@ export async function claimCollectiveActionTask(form: FormData) {
   }
   revalidatePath(`/comun/acoes/${slug}`);
   revalidatePath("/comun/minha-participacao");
+  finishCanonicalMutation(form, slug, "task_claimed");
 }
 
 export async function releaseCollectiveActionTask(form: FormData) {
@@ -144,4 +165,5 @@ export async function releaseCollectiveActionTask(form: FormData) {
   if (error) throw new Error("Não foi possível liberar esta tarefa.");
   revalidatePath(`/comun/acoes/${slug}`);
   revalidatePath("/comun/minha-participacao");
+  finishCanonicalMutation(form, slug, "task_released");
 }

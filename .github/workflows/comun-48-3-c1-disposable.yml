@@ -1,0 +1,88 @@
+name: COMUN 48.3-C1 disposable collective action member journey
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-3-c1-disposable.yml"
+      - "app/comun/acoes/actions.ts"
+      - "lib/comun-collective-actions-canonical*.ts"
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.113.0 }
+      - name: Start disposable Supabase and prove participation and task guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor >"$RUNNER_TEMP/c1-supabase-start.log" 2>&1; then
+            echo COMUN_48_3_C1_BLOCKED_DISPOSABLE_SUPABASE_START
+            exit 1
+          fi
+          db="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '"')"
+          test -n "$db"
+          psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
+          begin;
+          insert into auth.users(id,aud,role,email) values
+            ('c1000000-0000-4000-8000-000000000001','authenticated','authenticated','c1-a@example.invalid'),
+            ('c1000000-0000-4000-8000-000000000002','authenticated','authenticated','c1-b@example.invalid');
+          insert into public.comun_pauta_spaces(id,slug,title,status,visibility) values
+            ('c1000000-0000-4000-8000-000000000003','c1-disposable','C1 disposable','organizing','public');
+          insert into public.comun_collective_actions(id,slug,title,summary,objective,action_type,status,visibility,pauta_id) values
+            ('c1000000-0000-4000-8000-000000000004','c1-disposable-action','Ação C1','Resumo público da ação descartável.','Objetivo público da ação descartável.','mutual_aid','open','public','c1000000-0000-4000-8000-000000000003');
+          insert into public.comun_collective_action_tasks(id,action_id,title,description,desired_count,state,due_at) values
+            ('c1000000-0000-4000-8000-000000000005','c1000000-0000-4000-8000-000000000004','Tarefa aberta','Tarefa com uma vaga.',1,'open',now()+interval '1 day'),
+            ('c1000000-0000-4000-8000-000000000006','c1000000-0000-4000-8000-000000000004','Tarefa vencida','Tarefa indisponível.',1,'open',now()-interval '1 day');
+          insert into public.comun_collective_action_participations(action_id,member_user_id,status) values
+            ('c1000000-0000-4000-8000-000000000004','c1000000-0000-4000-8000-000000000001','participating'),
+            ('c1000000-0000-4000-8000-000000000004','c1000000-0000-4000-8000-000000000002','participating');
+          insert into public.comun_collective_action_task_assignments(task_id,member_user_id,status) values
+            ('c1000000-0000-4000-8000-000000000005','c1000000-0000-4000-8000-000000000001','active');
+          do $$ begin
+            begin
+              insert into public.comun_collective_action_task_assignments(task_id,member_user_id,status) values ('c1000000-0000-4000-8000-000000000005','c1000000-0000-4000-8000-000000000002','active');
+              raise exception 'capacity guard accepted second claim';
+            exception when raise_exception then
+              if sqlerrm='capacity guard accepted second claim' then raise; end if;
+            end;
+          end $$;
+          update public.comun_collective_action_task_assignments set status='released',released_at=now() where task_id='c1000000-0000-4000-8000-000000000005' and member_user_id='c1000000-0000-4000-8000-000000000001';
+          do $$ begin
+            begin
+              insert into public.comun_collective_action_task_assignments(task_id,member_user_id,status) values ('c1000000-0000-4000-8000-000000000006','c1000000-0000-4000-8000-000000000001','active');
+              raise exception 'expired task accepted claim';
+            exception when raise_exception then
+              if sqlerrm='expired task accepted claim' then raise; end if;
+            end;
+          end $$;
+          insert into public.comun_construction_circles(id,pauta_id,title,public_question,status,participation_mode) values
+            ('c1000000-0000-4000-8000-000000000007','c1000000-0000-4000-8000-000000000003','Roda C1','Pergunta pública C1','open','moderated_public');
+          insert into public.comun_construction_circle_rounds(id,circle_id,round_type,title,public_prompt,position,status) values
+            ('c1000000-0000-4000-8000-000000000008','c1000000-0000-4000-8000-000000000007','listening','Rodada C1','Contribua',1,'closed');
+          insert into public.comun_circle_syntheses(circle_id,round_id,public_summary,status,published_at) values
+            ('c1000000-0000-4000-8000-000000000007','c1000000-0000-4000-8000-000000000008','Síntese pública C1','published',now());
+          do $$ begin
+            if (select count(*) from public.comun_collective_actions where pauta_id='c1000000-0000-4000-8000-000000000003') <> 1 then raise exception 'automatic collective action created'; end if;
+            if (select count(*) from public.comun_pauta_memberships where pauta_id='c1000000-0000-4000-8000-000000000003') <> 0 then raise exception 'pauta membership side effect'; end if;
+            if (select count(*) from public.comun_community_memberships where member_user_id in ('c1000000-0000-4000-8000-000000000001','c1000000-0000-4000-8000-000000000002')) <> 0 then raise exception 'community membership side effect'; end if;
+            if (select count(*) from public.comun_community_role_assignments) <> 0 then raise exception 'role side effect'; end if;
+            if (select count(*) from public.comun_mobilization_actions) <> 0 then raise exception 'legacy write'; end if;
+            if (select count(*) from public.comun_collective_action_participations where action_id='c1000000-0000-4000-8000-000000000004') <> 2 then raise exception 'participation failed'; end if;
+            if (select count(*) from public.comun_collective_action_task_assignments where task_id='c1000000-0000-4000-8000-000000000005' and status='released') <> 1 then raise exception 'release failed'; end if;
+          end $$;
+          rollback;
+          SQL
+          echo COMUN_48_3_C1_DISPOSABLE_MEMBER_JOURNEY_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo pautaMembershipsCreated=0 >> "$GITHUB_STEP_SUMMARY"
+          echo communityMembershipsCreated=0 >> "$GITHUB_STEP_SUMMARY"
+          echo rolesCreated=0 >> "$GITHUB_STEP_SUMMARY"
+          echo legacyWrites=0 >> "$GITHUB_STEP_SUMMARY"
+          echo automaticActionsCreated=0 >> "$GITHUB_STEP_SUMMARY"

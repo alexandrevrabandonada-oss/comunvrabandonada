@@ -31,6 +31,9 @@ import {
   type EntityRelation,
 } from "@/lib/comun-entity-context";
 import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
+import { isComunCollectiveActionsCanonicalExperienceEnabled } from "@/lib/comun-collective-actions-canonical-feature";
+import { projectPublicCollectiveActionDetail } from "@/lib/comun-collective-actions-canonical";
+import { CollectiveActionCanonicalDetail } from "@/components/comun-collective-actions-canonical";
 
 export const dynamic = "force-dynamic";
 
@@ -39,10 +42,14 @@ export default async function CollectiveActionDetailPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ experiencia?: string }>;
+  searchParams: Promise<{
+    experiencia?: string;
+    confirmacao?: string;
+  }>;
 }) {
   const { slug } = await params;
-  const appV2 = isComunAppV2((await searchParams).experiencia);
+  const query = await searchParams;
+  const appV2 = isComunAppV2(query.experiencia);
   const previewFixtures = isCollectiveActionsPreviewFixturesEnabled();
   const release = previewFixtures
     ? { enabled: false }
@@ -52,6 +59,17 @@ export default async function CollectiveActionDetailPage({
     ? getCollectiveActionsPreviewFixture(slug)
     : await getPublicCollectiveAction(slug);
   if (!action) notFound();
+  if (isComunCollectiveActionsCanonicalExperienceEnabled()) {
+    const canonicalAction = projectPublicCollectiveActionDetail(action);
+    if (!canonicalAction) notFound();
+    return (
+      <CollectiveActionCanonicalDetail
+        action={canonicalAction}
+        acknowledgement={canonicalAcknowledgement(query.confirmacao)}
+        previewFixtures={previewFixtures}
+      />
+    );
+  }
   if (appV2)
     return (
       <ActionDetailV2
@@ -383,6 +401,18 @@ export default async function CollectiveActionDetailPage({
       ) : null}
     </ComunShell>
   );
+}
+
+function canonicalAcknowledgement(value: string | undefined) {
+  const messages: Record<string, string> = {
+    participating: "Participação registrada.",
+    interested: "Ação adicionada ao seu acompanhamento.",
+    note: "Nota recebida. Ela fica privada e não será publicada automaticamente.",
+    withdrew: "Saída registrada. Você pode participar novamente depois.",
+    task_claimed: "Tarefa assumida.",
+    task_released: "Tarefa liberada para outra pessoa.",
+  };
+  return value ? messages[value] : undefined;
 }
 
 function ActionDetailV2({
