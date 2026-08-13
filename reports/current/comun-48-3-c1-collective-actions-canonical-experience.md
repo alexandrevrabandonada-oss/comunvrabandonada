@@ -1,6 +1,6 @@
 # COMUN 48.3-C1 — Ações Coletivas canônicas
 
-Data: 13/08/2026  
+Data: 13/08/2026
 Baseline: `f6145af3addaa22e69ced2f32ea749dd403ac200`
 
 ## Decisão
