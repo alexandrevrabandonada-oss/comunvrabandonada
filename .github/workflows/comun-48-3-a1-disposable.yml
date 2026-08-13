@@ -38,9 +38,6 @@ jobs:
           db="${admin%/*}/comun_a1_disposable"
           migration="$RUNNER_TEMP/a1.sql"
           psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
-          create role anon nologin;
-          create role authenticated nologin;
-          create role service_role nologin bypassrls;
           create table public.comun_pauta_spaces (
             id uuid primary key,
             visibility text not null,
