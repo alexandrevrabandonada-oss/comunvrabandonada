@@ -11,7 +11,8 @@ on:
         required: true
         type: choice
         options: [flags-off, wave1-power-interruptions]
-permissions: { contents: read }
+permissions:
+  contents: read
 env:
   VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
   VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
@@ -23,9 +24,12 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-        with: { ref: main, fetch-depth: 0 }
+        with:
+          ref: main
+          fetch-depth: 0
       - name: Verify exact main and zero migration diff
-        env: { EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }} }
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -36,7 +40,8 @@ jobs:
           test -z "$(git diff --name-only "$COMUN_48_2_E2_BASELINE_SHA"...HEAD -- supabase/migrations)" || { echo COMUN_48_2_E2_BLOCKED_UNEXPECTED_MIGRATION >> "$GITHUB_STEP_SUMMARY"; exit 1; }
           echo COMUN_48_2_E2_ZERO_MIGRATION_GATE_GREEN >> "$GITHUB_STEP_SUMMARY"
       - name: Verify canonical Vercel project binding read-only
-        env: { VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }} }
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
@@ -45,6 +50,8 @@ jobs:
           if ! npx --yes vercel@50.28.0 project inspect "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >"$output" 2>"$errors"; then rm -f "$output" "$errors"; echo COMUN_48_2_E2_BLOCKED_VERCEL_PROJECT_BINDING >> "$GITHUB_STEP_SUMMARY"; exit 1; fi
           rm -f "$output" "$errors"; echo COMUN_48_2_E2_VERCEL_PROJECT_BINDING_GREEN >> "$GITHUB_STEP_SUMMARY"
       - name: Deploy exact main and run selected read-only wave
-        env: { VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}, MODE: ${{ inputs.mode }} }
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          MODE: ${{ inputs.mode }}
         shell: bash
         run: bash scripts/observatories/run-48-2-e2-power-interruptions-production-wave.sh "$MODE"
