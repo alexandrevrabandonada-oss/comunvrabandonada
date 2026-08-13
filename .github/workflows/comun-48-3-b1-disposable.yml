@@ -20,7 +20,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          if ! supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor >"$RUNNER_TEMP/b1-supabase-start.log" 2>&1; then
+            echo COMUN_48_3_B1_BLOCKED_DISPOSABLE_SUPABASE_START
+            exit 1
+          fi
           db="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '"')"
           test -n "$db"
           psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
@@ -38,7 +41,9 @@ jobs:
             begin
               insert into public.comun_circle_contributions(circle_id,round_id,contribution_type,public_body,status) values ('b1000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000099','proposal','Round inexistente','pending');
               raise exception 'missing round accepted';
-            exception when foreign_key_violation then null; end;
+            exception when raise_exception then
+              if sqlerrm <> 'round_id must belong to circle_id' then raise; end if;
+            end;
           end $$;
           update public.comun_construction_circle_rounds set status='closed' where id='b1000000-0000-4000-8000-000000000003';
           do $$ begin
