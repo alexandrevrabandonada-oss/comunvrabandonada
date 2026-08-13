@@ -64,8 +64,8 @@ export function PautasVivasIndex({
           ) : null}
         </div>
         <p className="mt-5 max-w-3xl text-sm text-comun-paper/65">
-          A ordem segue a atualização pública mais recente. Não há ranking de
-          popularidade.
+          A ordem segue a atualização pública mais recente.{" "}
+          {"Não há ranking de popularidade."}
         </p>
       </Section>
     </ComunShell>
