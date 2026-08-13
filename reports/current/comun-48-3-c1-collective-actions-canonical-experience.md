@@ -49,18 +49,19 @@ Antes da PR:
 - o Browser integrado falhou antes da navegação por indisponibilidade de assets locais; o fallback Playwright do repositório executou a prova renderizada;
 - migration diff vazio.
 
-Os campos de fechamento abaixo serão atualizados somente após os gates reais:
+Fechamento promovido:
 
-- functionalHead: `PENDING_PR`
-- PR: `PENDING_PR`
-- mergeSha/mainSha: `PENDING_MERGE`
-- preflight remoto/remote plan: `PENDING_CI`
-- descartável: `PENDING_CI`
-- flags-off: `PENDING_ROLLOUT`
-- wave 1: `PENDING_ROLLOUT`
-- Production businessWrites: `PENDING_ROLLOUT`
+- functionalHead: `b9c9f35af3816aa42845c89213b9f2949cc14aef`;
+- PR funcional: `#309`, merge exact-head `d69c2b851a84e5936b2a073b955384ded1ff3c1c`;
+- preflight remoto: run `31747677539`, metadata-only e `COMUN_48_3_C1_REMOTE_PLAN_EMPTY_GREEN`;
+- prova descartável: run `31747677643`, jornada de participação/tarefas e rollback integral;
+- flags-off final: run `31751592047`, exact-main `e735bf4723231943bee63137aecf27c4e3572dc3`;
+- wave 1: run `31751732584`, `parentGateRuntimeReady=true` e composição canônica ativa;
+- Production: `/comun/acoes=200`, DTO sem marcadores privados, empty state público legítimo e `businessWrites=0`.
 
-Estado candidato, ainda não terminal:
+Durante a primeira onda, o gate estrutural permaneceu fechado porque `COMUN_COLLECTIVE_ACTIONS_DATABASE_URL` não estava materializada no projeto Vercel. O rollback restaurou C1 desativado sem ativação parcial. As PRs operacionais `#310`, `#311` e `#312` acrescentaram diagnóstico sanitizado, blocker explícito e o binding sensível da conexão já estabelecida em `secrets.SUPABASE_DB_URL`, sem alterar `COMUN_COLLECTIVE_ACTIONS_V1`. A wave final criou a variável server-only com `--sensitive`; nenhum valor apareceu em logs ou no repositório.
+
+Estado terminal:
 
 `COMUN_48_3_C1_COLLECTIVE_ACTIONS_CANONICAL_EXPERIENCE_GREEN_MEMBER_PARTICIPATION`
 
