@@ -62,6 +62,14 @@ jobs:
             'memberJourneyTrigger', exists(select 1 from pg_trigger where tgrelid='public.comun_collective_action_participations'::regclass and tgname='comun_collective_action_member_journey_guard' and not tgisinternal),
             'capacityFunctionClosed', not has_function_privilege('anon','public.comun_collective_action_task_capacity_guard()','EXECUTE') and not has_function_privilege('authenticated','public.comun_collective_action_task_capacity_guard()','EXECUTE'),
             'releaseLedgerPresent', exists(select 1 from public.comun_schema_releases where release='20260726133409-comun-collective-actions-foundation' and status='applied'),
+            'releaseTablesPresent', (
+              select count(*)=8 from (values
+                ('comun_collective_actions'),('comun_collective_action_participations'),
+                ('comun_collective_action_tasks'),('comun_collective_action_task_assignments'),
+                ('comun_collective_action_updates'),('comun_collective_action_sidewalk_records'),
+                ('comun_collective_action_forwardings'),('comun_collective_action_memory_assets')
+              ) release_table(name) where to_regclass('public.'||name) is not null
+            ),
             'serviceRoleWritePath', (select bool_and(has_table_privilege('service_role','public.'||name,'INSERT,UPDATE,DELETE')) from canonical),
             'businessContentRead', false
           );
@@ -69,8 +77,9 @@ jobs:
           SQL
           node - <<'NODE'
           const s=JSON.parse(require('node:fs').readFileSync('.ci-artifacts/48-3-c1-preflight/schema.json','utf8'));
-          const requiredTrue=['transactionReadOnly','canonicalTablesPresent','legacyTablePresent','rlsEnabled','publicActionSelectPolicy','ownJourneyPolicies','capacityTrigger','memberJourneyTrigger','capacityFunctionClosed','releaseLedgerPresent','serviceRoleWritePath'];
+          const requiredTrue=['transactionReadOnly','canonicalTablesPresent','legacyTablePresent','rlsEnabled','publicActionSelectPolicy','ownJourneyPolicies','capacityTrigger','memberJourneyTrigger','capacityFunctionClosed','serviceRoleWritePath'];
           const failed=requiredTrue.filter(key=>s[key]!==true);
+          if(s.releaseLedgerPresent!==true && s.releaseTablesPresent!==true) failed.push('releaseCapabilityValid');
           if(s.businessContentRead!==false) failed.push('businessContentRead');
           if(failed.length) {
             console.error(`failedChecks=${failed.join(',')}`);
