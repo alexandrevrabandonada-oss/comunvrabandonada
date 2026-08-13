@@ -84,13 +84,17 @@ export default async function PautaPage(props: {
     );
 
   if (isComunPautasVivasCoreEnabled()) {
-    const [evidence, tasks, contributions, dossiers, rodas] = await Promise.all([
-      listPublicPautaEvidence(space.id, 8),
-      listPublicPautaTasks(space.id, 6),
-      listApprovedPautaContributions(space.id, 6),
-      listPublishedPautaDossiersByPauta(space.id),
-      isComunRodasVivasEnabled() ? listPublicRodasForPauta(space.id) : Promise.resolve([]),
-    ]);
+    const [evidence, tasks, contributions, dossiers, rodas] = await Promise.all(
+      [
+        listPublicPautaEvidence(space.id, 8),
+        listPublicPautaTasks(space.id, 6),
+        listApprovedPautaContributions(space.id, 6),
+        listPublishedPautaDossiersByPauta(space.id),
+        isComunRodasVivasEnabled()
+          ? listPublicRodasForPauta(space.id)
+          : Promise.resolve([]),
+      ],
+    );
     return (
       <PautaVivaDetail
         space={space}
