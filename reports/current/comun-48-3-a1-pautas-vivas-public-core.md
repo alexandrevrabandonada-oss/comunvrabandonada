@@ -1,6 +1,6 @@
 # COMUN 48.3-A1 — Pautas Vivas: núcleo público
 
-**Estado:** implementação candidata em validação
+**Estado:** Production green
 
 **Baseline:** `0ca8c3805f314e19749bc256b12c280d0d4adc99`
 
@@ -46,6 +46,19 @@ A listagem usa atualização pública mais recente, sem popularidade. O detalhe 
 - wave 1: somente Pautas Vivas enabled;
 - Production: smoke read-only, sem fixture e `businessWrites=0`.
 
+Resultado operacional:
+
+- PR funcional: [#304](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/304);
+- head funcional exacto: `3108288abd9f8f87e8181b18f58b77b14cabece9`;
+- merge SHA: `39065abd4689c5cd2b1e29184cba0a5bd868e72b`;
+- migration promovida: `20260813124308_comun_pautas_vivas_public_evidence.sql`;
+- SHA-256 da migration: `b7027078860d9e6385d2fafbe0d5b35abf54ceff725ba04929a55aca198a1aea`;
+- flags-off + promoção + postflight: run `31723844180`, verde;
+- wave 1: run `31724079385`, verde;
+- CI do PR: 884 testes unitários, typecheck, lint, build, acessibilidade, segurança, no-leak, jornadas integrais, Supabase descartável e Preview verdes;
+- o único rerun foi de uma falha transitória `502` durante reset local posterior a um ensaio já verde; o rerun isolado concluiu verde sem mudança de código;
+- smoke Production: rotas existentes preservadas com a flag OFF; mesmas rotas exibindo Pautas Vivas com a flag ON; `businessWrites=0`.
+
 ## Invariantes preservados
 
 - nenhuma tabela-raiz nova;
@@ -56,4 +69,6 @@ A listagem usa atualização pública mais recente, sem popularidade. O detalhe 
 - nenhuma nova comunidade, roda, sistema de ação, IA ou publicação automática;
 - piloto Motorola permanece pausado e `launch_publicly=false`.
 
-O terminal `COMUN_48_3_A1_PAUTAS_VIVAS_PUBLIC_CORE_GREEN_VERSIONED_EVIDENCE` só será registrado após CI, promoção remota, flags-off e wave 1 verdes.
+Estado terminal:
+
+`COMUN_48_3_A1_PAUTAS_VIVAS_PUBLIC_CORE_GREEN_VERSIONED_EVIDENCE`.
