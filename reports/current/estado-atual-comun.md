@@ -1,4 +1,38 @@
-# Estado atual — 48.2-E2 Interrupções oficiais de energia elétrica (13/08/2026)
+# Estado atual — 48.2-F Panorama de Volta Redonda (13/08/2026)
+
+## 48.2-F — Síntese pública cross-observatory
+
+- o Panorama de Volta Redonda está ativo em
+  `/comun/observatorios/panorama`, protegido por flag própria e composto
+  exclusivamente pelos DTOs públicos já existentes de Território, Calçadas
+  P4 reviewed-only, Transporte, Qualidade dos Rios e Energia;
+- não há score, ranking, mapa unificado, causalidade, correlação entre
+  períodos, join por label ou leitura de qualquer dado privado; cada camada
+  mostra período, geografia, proveniência e limitações próprias;
+- lacunas de qualidade do ar, hidrometeorologia local, água para consumo,
+  falta d'água, iluminação, Educação, transporte em tempo real e DEC/FEC
+  municipal comparável permanecem explicitamente registradas;
+- PR #301 foi mesclada exact-head em
+  `760a176b2f20d626e93ff086790d524e763daaef`; CI, preflight remoto, Preview,
+  flags-off `31664529501` e wave 1 `31664650933` ficaram verdes;
+- a ativação não alterou flags das camadas especializadas, não criou migration
+  nem escrita de negócio, e confirmou `businessWrites=0` e
+  `externalRuntimeRequests=0`.
+
+Estado atual:
+`COMUN_48_2_F_CROSS_OBSERVATORY_CITY_PANORAMA_GREEN_PUBLIC_SAFE`.
+
+Detalhes:
+`reports/current/comun-48-2-f-city-panorama.md`.
+
+Preservados: `PARTIAL_E1_POWER`, `PARTIAL_E_WATER_OFFICIAL_NOTICES_ONLY`,
+`PARTIAL_E_LIGHTING_SERVICE_AND_PROJECTS_ONLY`,
+`COMUN_48_2_D1A_BLOCKED_CURRENT_OFFICIAL_SOURCE_UNAVAILABLE`, `PARTIAL_D2A`,
+`education = PARTIAL_D3B`, auto-publicação OFF, mapa geral Relata OFF,
+coletivos OFF, `launch_publicly=false` e
+`COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`.
+
+# Estado anterior — 48.2-E2 Interrupções oficiais de energia elétrica (13/08/2026)
 
 ## 48.2-E2 — Observatório de Energia, ANEEL, somente leitura
 
