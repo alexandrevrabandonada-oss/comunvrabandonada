@@ -1,6 +1,6 @@
 # COMUN 48.3-B1 — Rodas Vivas
 
-**Estado:** implementação candidata; promoção condicionada a CI, preflight remoto, merge exact-head e rollout.
+**Estado:** Production green em 13/08/2026.
 
 **Baseline:** `a8d2c95e64cdf98a2d8751034ddec7ee25391c22`
 
@@ -28,15 +28,20 @@ O DTO público seleciona explicitamente apenas texto público, tipo, rótulo de 
 - nenhum acesso direto do cliente às tabelas sociais;
 - nenhum dual-write;
 - nenhuma publicação automática;
-- Production rollout será read-only e sem fixture (`businessWrites=0`).
+- Production rollout foi read-only e sem fixture (`businessWrites=0`).
 
 ## Validações e rollout
 
-Os identificadores de head funcional, PR, merge, runs de preflight, flags-off e wave 1 serão preenchidos após a execução remota. O workflow focal comprova metadata/RLS/grants/guards em transação read-only, plano remoto vazio e escrita descartável com rollback.
+- PR funcional [#307](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/307), exact-head `acfbe06ab3d8d40b5bf3186707db2c09d32d30fc`, merge `e6af0d64877f1fe268a4a5f5d89510dcf7d3a2db`;
+- CI completa no exact-head: 33 checks verdes e nenhum gate pendente ou bloqueante;
+- preflight remoto metadata-only: run `31740964422`, com RLS/FORCE RLS, grants, constraints, guard de rodada atual e plano de migrations vazio;
+- Supabase descartável: run `31740964399`, com um insert `pending`, nenhum dual-write e rollback integral;
+- flags-off: run `31742234273`, A1 preservado, B1 oculto e `businessWrites=0`;
+- wave 1: run `31742466100`, somente `COMUN_RODAS_VIVAS_ENABLED=enabled`, rota focal/empty state verdes e `businessWrites=0`.
 
 ## Acessibilidade e contraste
 
-O fluxo possui headings, `fieldset`/`legend`, labels, navegação por teclado e confirmação anunciada com foco pós-submit. Como B1 tocou o componente A1 responsável pelo débito 4,45:1, os rótulos em papel foram elevados de `text-comun-asphalt/60` para `/70`; a prova renderizada permanece condicionada ao gate de navegador.
+O fluxo possui headings, `fieldset`/`legend`, labels, navegação por teclado e confirmação anunciada com foco pós-submit. Como B1 tocou o componente A1 responsável pelo débito 4,45:1, os rótulos em papel foram elevados de `text-comun-asphalt/60` para `/70`; a prova renderizada mobile e os gates de navegador ficaram verdes.
 
 ## Débitos explícitos
 
@@ -44,5 +49,5 @@ O fluxo possui headings, `fieldset`/`legend`, labels, navegação por teclado e 
 
 A relação N:N Comunidade↔Pauta não é necessária para Rodas, que pertencem canonicamente à Pauta. B1 não aumenta o schema.
 
-Estado terminal somente após Production:
+Estado terminal:
 `COMUN_48_3_B1_RODAS_VIVAS_CANONICAL_EXPERIENCE_GREEN_MODERATED_PUBLIC`.

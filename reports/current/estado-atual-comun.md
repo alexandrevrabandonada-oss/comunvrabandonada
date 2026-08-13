@@ -1,4 +1,4 @@
-# Estado candidato — 48.3-B1 Rodas Vivas (13/08/2026)
+# Estado atual — 48.3-B1 Rodas Vivas (13/08/2026)
 
 ## 48.3-B1 — Experiência canônica de conversa coletiva
 
@@ -7,9 +7,12 @@
 - a ação existente agora valida Pauta, Roda, rodada atual, modo, tipo, limites e safety antes do único insert `pending`;
 - a nova rota focal e o CTA da Pauta são protegidos por `COMUN_RODAS_VIVAS_ENABLED`; OFF preserva A1 integralmente;
 - zero migration, API nova, grant público, membership automático, dual-write, ação automática ou publicação automática;
-- o débito de contraste do componente tocado foi corrigido no patch; a prova final e os identificadores remotos serão registrados após CI/rollout.
+- o débito de contraste do componente tocado foi corrigido e os gates mobile/acessibilidade ficaram verdes;
+- PR #307 mesclada por exact-head `acfbe06ab3d8d40b5bf3186707db2c09d32d30fc`, merge `e6af0d64877f1fe268a4a5f5d89510dcf7d3a2db`;
+- preflight remoto e descartável verdes nos runs `31740964422` e `31740964399`, com remote plan vazio, RLS/grants preservados, um insert `pending` e rollback integral;
+- flags-off verde no run `31742234273`; wave 1 verde no run `31742466100`, com somente `COMUN_RODAS_VIVAS_ENABLED=enabled` e `businessWrites=0` nas duas ondas.
 
-Estado candidato:
+Estado atual:
 `COMUN_48_3_B1_RODAS_VIVAS_CANONICAL_EXPERIENCE_GREEN_MODERATED_PUBLIC`.
 
 Detalhes: `reports/current/comun-48-3-b1-rodas-vivas-canonical-experience.md`.
