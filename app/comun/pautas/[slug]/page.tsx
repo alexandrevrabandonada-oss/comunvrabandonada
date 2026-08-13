@@ -51,6 +51,8 @@ import {
   ComunRelatedSection,
   ComunRelationRail,
 } from "@/components/comun-relational";
+import { isComunPautasVivasCoreEnabled } from "@/lib/comun-pautas-vivas-feature";
+import { PautaVivaDetail } from "@/components/comun-pautas-vivas";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -78,6 +80,24 @@ export default async function PautaPage(props: {
     return (
       <LegacyIssuePage slug={params.slug} experiencePilot={experiencePilot} />
     );
+
+  if (isComunPautasVivasCoreEnabled()) {
+    const [evidence, tasks, contributions, dossiers] = await Promise.all([
+      listPublicPautaEvidence(space.id, 8),
+      listPublicPautaTasks(space.id, 6),
+      listApprovedPautaContributions(space.id, 6),
+      listPublishedPautaDossiersByPauta(space.id),
+    ]);
+    return (
+      <PautaVivaDetail
+        space={space}
+        evidence={evidence}
+        tasks={tasks}
+        contributions={contributions}
+        dossiers={dossiers.slice(0, 4)}
+      />
+    );
+  }
 
   const isEditorialFallback = space.source === "editorial_fallback";
   const modules = isEditorialFallback

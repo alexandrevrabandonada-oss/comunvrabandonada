@@ -310,8 +310,11 @@ export type PautaSynthesisVersion = {
 export type PautaEvidenceItem = {
   id: string;
   pauta_id: string;
-  source_type: "contribution" | "report" | "official_protocol" | "manual" | "external_reference";
+  source_type: "contribution" | "report" | "official_protocol" | "manual" | "external_reference" | "public_evidence";
   source_id: string | null;
+  public_evidence_ref_id: string | null;
+  public_evidence_version: string | null;
+  public_evidence_payload: Record<string, unknown> | null;
   title: string;
   summary: string | null;
   evidence_type: "relato" | "foto_segura" | "protocolo" | "resposta_oficial" | "dado_agregado" | "documento" | "testemunho" | "outro";

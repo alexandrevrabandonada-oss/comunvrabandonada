@@ -46,10 +46,16 @@ jobs:
           if test "${#changed[@]}" -eq 1; then
             case "${changed[0]}" in
               supabase/migrations/*_comun_sensitive_assisted_forwarding.sql) ;;
+              supabase/migrations/*_comun_pautas_vivas_public_evidence.sql)
+                mkdir -p .ci-artifacts/p6c-c-preflight
+                printf '%s\n' '{"result":"COMUN_P6C_C_UNRELATED_MIGRATION_NOT_APPLICABLE","businessRowsRead":false}' >.ci-artifacts/p6c-c-preflight/migration-plan.json
+                echo COMUN_P6C_C_UNRELATED_MIGRATION=true >> "$GITHUB_ENV"
+                ;;
               *) echo COMUN_P6C_C_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1 ;;
             esac
           fi
       - name: Inspect forwarding metadata without business-row reads
+        if: env.COMUN_P6C_C_UNRELATED_MIGRATION != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -107,6 +113,7 @@ jobs:
           if(required.some((key)=>s[key]!==true)||s.anonPackagesSelect||s.authenticatedPackagesSelect||s.anonGenericOpen||s.authenticatedGenericOpen||s.businessRowsRead!==false) throw new Error('COMUN_P6C_C_BLOCKED_REMOTE_SCHEMA_DRIFT');
           NODE
       - name: Reconcile Calçadas and prove bounded remote migration plan
+        if: env.COMUN_P6C_C_UNRELATED_MIGRATION != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -140,4 +147,9 @@ jobs:
           if-no-files-found: error
       - name: Emit bounded result
         if: success()
-        run: echo COMUN_P6C_C_REMOTE_SCHEMA_GREEN >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          if test "${COMUN_P6C_C_UNRELATED_MIGRATION:-}" = true; then
+            echo COMUN_P6C_C_UNRELATED_MIGRATION_NOT_APPLICABLE >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo COMUN_P6C_C_REMOTE_SCHEMA_GREEN >> "$GITHUB_STEP_SUMMARY"
+          fi
