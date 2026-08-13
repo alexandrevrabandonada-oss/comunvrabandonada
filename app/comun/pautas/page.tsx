@@ -7,6 +7,8 @@ import {
   ComunEmptyStateV2,
 } from "@/components/comun-relational";
 import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
+import { isComunPautasVivasCoreEnabled } from "@/lib/comun-pautas-vivas-feature";
+import { PautasVivasIndex } from "@/components/comun-pautas-vivas";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -18,6 +20,9 @@ export default async function PautaSpacesPage({
 }) {
   const spaces = await listPublicPautaSpaces();
   const appV2 = isComunAppV2((await searchParams).experiencia);
+
+  if (isComunPautasVivasCoreEnabled())
+    return <PautasVivasIndex spaces={spaces} />;
 
   if (appV2)
     return (

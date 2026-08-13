@@ -1,4 +1,23 @@
-# Estado atual — 48.3-A0 Pautas Vivas (13/08/2026)
+# Estado atual — 48.3-A1 Pautas Vivas (13/08/2026)
+
+## 48.3-A1 — Núcleo público + evidência pública versionada
+
+- preflight remoto metadata-only executado antes da migration no run `31716044656`: schema canônico compatível, RLS ativo, policy pública preservada, escrita de evidence restrita a `service_role` e nenhum conteúdo de negócio lido;
+- `comun_pauta_spaces` permanece a raiz única e não recebe DDL;
+- uma migration aditiva candidata estende somente `comun_pauta_evidence_items` com referência, versão SHA-256 e payload público allowlisted, sem backfill;
+- o resolver lê apenas DTOs públicos do Panorama e o attach server-side recebe somente `pautaId + refId`, com idempotência por versão;
+- a evolução das rotas existentes está protegida por `COMUN_PAUTAS_VIVAS_CORE_ENABLED`; OFF preserva a experiência antiga;
+- não existe criação pública nova, attach público, conversão de Relata, comunidade/roda nova, IA ou publicação automática.
+
+Estado da entrega: candidata na PR #304; terminal A1 depende de CI, promoção remota, flags-off e wave 1.
+
+Detalhes: `reports/current/comun-48-3-a1-pautas-vivas-public-core.md`.
+
+Preservados: `COMUN_48_2_F_CROSS_OBSERVATORY_CITY_PANORAMA_GREEN_PUBLIC_SAFE`,
+`COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`, auto-publicação OFF,
+mapa geral Relata OFF, coletivos OFF e `launch_publicly=false`.
+
+# Estado anterior — 48.3-A0 Pautas Vivas (13/08/2026)
 
 ## 48.3-A0 — Reconciliação da arquitetura existente
 

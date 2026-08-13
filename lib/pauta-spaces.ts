@@ -59,12 +59,16 @@ export type PublicPautaEvidenceItem = Pick<
   PautaEvidenceItem,
   | "id"
   | "pauta_id"
+  | "source_type"
   | "title"
   | "summary"
   | "evidence_type"
   | "sensitivity"
   | "status"
   | "public_note"
+  | "public_evidence_ref_id"
+  | "public_evidence_version"
+  | "public_evidence_payload"
   | "created_at"
 >;
 export type PautaContributionSafetyDecision = {
@@ -241,11 +245,11 @@ export async function getAdminPautaSpace(id: string) {
   return withPautaStats(data as PautaSpace);
 }
 
-export async function listApprovedPautaContributions(pautaId: string) {
+export async function listApprovedPautaContributions(pautaId: string, limit?: number) {
   const supabase = createServiceSupabaseClient();
   if (!supabase) return [] as PublicPautaContribution[];
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("comun_pauta_contributions")
     .select(
       "id, pauta_id, contribution_type, author_alias, body, status, created_at",
@@ -253,6 +257,8 @@ export async function listApprovedPautaContributions(pautaId: string) {
     .eq("pauta_id", pautaId)
     .eq("status", "approved")
     .order("created_at", { ascending: false });
+  if (limit) query = query.limit(limit);
+  const { data, error } = await query;
 
   if (error || !data) return [];
   return data as PublicPautaContribution[];
@@ -325,11 +331,11 @@ export async function listAdminPautaContributionQueue(
   >;
 }
 
-export async function listPublicPautaTasks(pautaId: string) {
+export async function listPublicPautaTasks(pautaId: string, limit?: number) {
   const supabase = createServiceSupabaseClient();
   if (!supabase) return [] as PublicPautaTask[];
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("comun_pauta_tasks")
     .select(
       "id, pauta_id, title, description, status, help_needed, owner_alias, due_at, created_at",
@@ -337,24 +343,50 @@ export async function listPublicPautaTasks(pautaId: string) {
     .eq("pauta_id", pautaId)
     .neq("status", "archived")
     .order("created_at", { ascending: false });
+  if (limit) query = query.limit(limit);
+  const { data, error } = await query;
 
   if (error || !data) return [];
   return data as PublicPautaTask[];
 }
 
-export async function listPublicPautaEvidence(pautaId: string) {
+export async function listPublicPautaEvidence(pautaId: string, limit?: number) {
   const supabase = createServiceSupabaseClient();
   if (!supabase) return [] as PublicPautaEvidenceItem[];
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("comun_pauta_evidence_items")
     .select(
-      "id, pauta_id, title, summary, evidence_type, sensitivity, status, public_note, created_at",
+      "id, pauta_id, source_type, title, summary, evidence_type, sensitivity, status, public_note, public_evidence_ref_id, public_evidence_version, public_evidence_payload, created_at",
     )
     .eq("pauta_id", pautaId)
     .eq("status", "approved")
     .eq("sensitivity", "public_safe")
     .order("created_at", { ascending: false });
+  if (limit) query = query.limit(limit);
+  let { data, error } = await query;
+
+  // Keep the flag-off/preview path compatible until the additive migration is promoted.
+  if (error) {
+    let legacyQuery = supabase
+      .from("comun_pauta_evidence_items")
+      .select(
+        "id, pauta_id, source_type, title, summary, evidence_type, sensitivity, status, public_note, created_at",
+      )
+      .eq("pauta_id", pautaId)
+      .eq("status", "approved")
+      .eq("sensitivity", "public_safe")
+      .order("created_at", { ascending: false });
+    if (limit) legacyQuery = legacyQuery.limit(limit);
+    const legacy = await legacyQuery;
+    data = legacy.data?.map((item) => ({
+      ...item,
+      public_evidence_ref_id: null,
+      public_evidence_version: null,
+      public_evidence_payload: null,
+    })) as typeof data;
+    error = legacy.error;
+  }
 
   if (error || !data) return [];
   return data as PublicPautaEvidenceItem[];
@@ -364,13 +396,30 @@ export async function listAdminPautaEvidence(pautaId: string) {
   const supabase = createServiceSupabaseClient();
   if (!supabase) return [] as PautaEvidenceItem[];
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("comun_pauta_evidence_items")
     .select(
-      "id, pauta_id, source_type, source_id, title, summary, evidence_type, sensitivity, status, public_note, internal_note, created_at, updated_at",
+      "id, pauta_id, source_type, source_id, title, summary, evidence_type, sensitivity, status, public_note, internal_note, public_evidence_ref_id, public_evidence_version, public_evidence_payload, created_at, updated_at",
     )
     .eq("pauta_id", pautaId)
     .order("created_at", { ascending: false });
+
+  if (error) {
+    const legacy = await supabase
+      .from("comun_pauta_evidence_items")
+      .select(
+        "id, pauta_id, source_type, source_id, title, summary, evidence_type, sensitivity, status, public_note, internal_note, created_at, updated_at",
+      )
+      .eq("pauta_id", pautaId)
+      .order("created_at", { ascending: false });
+    data = legacy.data?.map((item) => ({
+      ...item,
+      public_evidence_ref_id: null,
+      public_evidence_version: null,
+      public_evidence_payload: null,
+    })) as typeof data;
+    error = legacy.error;
+  }
 
   if (error || !data) return [];
   return data as PautaEvidenceItem[];

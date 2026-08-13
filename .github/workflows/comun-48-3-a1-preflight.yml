@@ -7,7 +7,11 @@ on:
       - ".github/workflows/comun-48-3-a1-*.yml"
       - "app/comun/pautas/**"
       - "components/comun-pauta-*.tsx"
+      - "components/comun-pautas-vivas.tsx"
       - "lib/comun-public-evidence-*.ts"
+      - "lib/comun-public-evidence.ts"
+      - "lib/comun-pauta-public-evidence.ts"
+      - "lib/comun-pautas-vivas-*.ts"
       - "lib/pauta-spaces.ts"
       - "lib/types.ts"
       - "reports/current/comun-48-3-a1-pautas-vivas-public-core.md"
@@ -29,6 +33,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
 
       - name: Validate Production transport and pre-migration scope
         shell: bash
@@ -38,10 +45,11 @@ jobs:
           test -n "${SUPABASE_PROJECT_REF:-}"
           case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
           mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
-          test "${#changed[@]}" -eq 0 || {
-            echo COMUN_48_3_A1_PREFLIGHT_MUST_PRECEDE_MIGRATION
-            exit 1
-          }
+          test "${#changed[@]}" -eq 1 || { echo COMUN_48_3_A1_BLOCKED_MIGRATION_SCOPE; exit 1; }
+          case "${changed[0]}" in
+            supabase/migrations/*_comun_pautas_vivas_public_evidence.sql) ;;
+            *) echo COMUN_48_3_A1_BLOCKED_MIGRATION_SCOPE; exit 1 ;;
+          esac
 
       - name: Inspect canonical pauta metadata in a read-only transaction
         shell: bash
@@ -241,6 +249,28 @@ jobs:
             }) + '\n'
           );
           NODE
+
+      - name: Prove the remote plan contains exactly the A1 migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/48-3-a1-preflight
+          external="supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql"
+          test "$(sha256sum "$external" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          held="$RUNNER_TEMP/comun-a1-external-ledger.sql"
+          mv "$external" "$held"
+          restore() { test ! -e "$held" || mv "$held" "$external"; }
+          trap restore EXIT
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-3-a1-preflight/dry-run.txt 2>&1
+          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-3-a1-preflight/dry-run.txt | sort -u || true)
+          test "${#changed[@]}" -eq 1
+          test "${#planned[@]}" -eq 1
+          test "${planned[0]}" = "$(basename "${changed[0]}")"
+          ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/48-3-a1-preflight/dry-run.txt
+          printf '%s\n' '{"result":"COMUN_48_3_A1_REMOTE_PLAN_EXACT_ONE","migrationCount":1,"businessContentRead":false}' >.ci-artifacts/48-3-a1-preflight/migration-plan.json
+          restore
+          trap - EXIT
 
       - uses: actions/upload-artifact@v4
         if: always()
