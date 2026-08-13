@@ -57,6 +57,10 @@ test("C1 rollout binds exact main, preserves prior routes, and rolls back fail c
   assert.match(wave, /COMUN_48_3_C1_WAVE1_CANONICAL_ACTIONS_PRODUCTION_GREEN/);
   assert.match(wave, /COMUN_COLLECTIVE_ACTIONS_V1/);
   assert.match(wave, /COMUN_COLLECTIVE_ACTIONS_DATABASE_URL/);
+  assert.match(activation, /SUPABASE_DB_URL:\s*\$\{\{ secrets\.SUPABASE_DB_URL \}\}/);
+  assert.match(wave, /env add COMUN_COLLECTIVE_ACTIONS_DATABASE_URL production --sensitive/);
+  assert.match(wave, /databaseUrlMaterialized=/);
+  assert.match(wave, /env rm COMUN_COLLECTIVE_ACTIONS_DATABASE_URL production --yes/);
   assert.match(wave, /parentFlagConfigured=/);
   assert.match(wave, /databaseUrlConfigured=/);
   assert.match(wave, /parentGateRuntimeReady=/);
@@ -65,7 +69,7 @@ test("C1 rollout binds exact main, preserves prior routes, and rolls back fail c
   assert.match(wave, /Caderno público de ações em preparação/);
   assert.match(wave, /failedPhase=/);
   assert.match(wave, /COMUN_48_3_C1_VERCEL_ROLLBACK_GREEN/);
-  assert.doesNotMatch(wave, /env pull|env rm/);
+  assert.doesNotMatch(wave, /env pull/);
   assert.match(wave, /rollback/);
   assert.match(wave, /businessWrites=0/);
 });

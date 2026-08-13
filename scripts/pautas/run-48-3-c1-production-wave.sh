@@ -8,14 +8,16 @@ MODE="${1:-}"
 : "${COMUN_BASE_URL:?COMUN_BASE_URL is required}"
 case "$MODE" in flags-off|wave1-canonical-actions) ;; *) echo COMUN_48_3_C1_ACTIVATION_MODE_INVALID >> "$GITHUB_STEP_SUMMARY"; exit 1;; esac
 
-temps=(); flags_started=false; rollback_complete=false; current_phase=preflight
+temps=(); flags_started=false; database_url_created=false; rollback_complete=false; current_phase=preflight
 remember() { temps+=("$1"); }
 cleanup() { rm -f "${temps[@]:-}" || true; }
 trap cleanup EXIT
 run_vercel() { local output errors status; output="$(mktemp)"; errors="$(mktemp)"; remember "$output"; remember "$errors"; if "$@" >"$output" 2>"$errors"; then status=0; else status=$?; fi; test "$status" -eq 0 || { printf 'phase=%s\ncommand=vercel\nexitCode=%s\nerrorClass=sanitized\n' "$current_phase" "$status" >> "$GITHUB_STEP_SUMMARY"; return "$status"; }; VERCEL_LAST_OUTPUT="$output"; }
 set_flag() { local value="$1"; run_vercel bash -c 'printf "%s" "$1" | npx --yes vercel@50.28.0 env add COMUN_COLLECTIVE_ACTIONS_CANONICAL_EXPERIENCE_ENABLED production --force --yes --token "$2" --scope "$3"' -- "$value" "$VERCEL_TOKEN" "$VERCEL_ORG_ID"; }
+set_parent_database_url() { run_vercel bash -c 'printf "%s" "$1" | npx --yes vercel@50.28.0 env add COMUN_COLLECTIVE_ACTIONS_DATABASE_URL production --sensitive --yes --token "$2" --scope "$3"' -- "$SUPABASE_DB_URL" "$VERCEL_TOKEN" "$VERCEL_ORG_ID"; }
+remove_parent_database_url() { run_vercel npx --yes vercel@50.28.0 env rm COMUN_COLLECTIVE_ACTIONS_DATABASE_URL production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"; }
 deploy() { run_vercel npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || return $?; local url; url="$(grep -Eo 'https://[^[:space:]]+' "$VERCEL_LAST_OUTPUT" | tail -n1 | tr -d '\r')"; case "$url" in https://*.vercel.app) ;; *) return 1;; esac; run_vercel npx --yes vercel@50.28.0 inspect "$url" --wait --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || return $?; run_vercel npx --yes vercel@50.28.0 promote "$url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || return $?; run_vercel npx --yes vercel@50.28.0 alias set "$url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"; }
-rollback() { trap - ERR; set +e; current_phase=rollback_flag; set_flag disabled; local a=$?; current_phase=rollback_deploy; deploy; local b=$?; set -e; if [ "$a" -ne 0 ] || [ "$b" -ne 0 ]; then echo COMUN_48_3_C1_BLOCKED_VERCEL_ROLLBACK_REQUIRED >> "$GITHUB_STEP_SUMMARY"; return 1; fi; rollback_complete=true; echo COMUN_48_3_C1_VERCEL_ROLLBACK_GREEN >> "$GITHUB_STEP_SUMMARY"; }
+rollback() { trap - ERR; set +e; current_phase=rollback_flag; set_flag disabled; local a=$?; local c=0; if [ "$database_url_created" = true ]; then current_phase=rollback_parent_database_url; remove_parent_database_url; c=$?; fi; current_phase=rollback_deploy; deploy; local b=$?; set -e; if [ "$a" -ne 0 ] || [ "$b" -ne 0 ] || [ "$c" -ne 0 ]; then echo COMUN_48_3_C1_BLOCKED_VERCEL_ROLLBACK_REQUIRED >> "$GITHUB_STEP_SUMMARY"; return 1; fi; rollback_complete=true; echo COMUN_48_3_C1_VERCEL_ROLLBACK_GREEN >> "$GITHUB_STEP_SUMMARY"; }
 on_error() { local status="$?"; trap - ERR; printf 'failedPhase=%s\nexitCode=%s\n' "$current_phase" "$status" >> "$GITHUB_STEP_SUMMARY"; if [ "$flags_started" = true ] && [ "$rollback_complete" != true ]; then rollback || true; fi; exit "$status"; }
 trap on_error ERR
 
@@ -26,9 +28,21 @@ if [ "$MODE" = wave1-canonical-actions ]; then
   grep -q 'COMUN_COLLECTIVE_ACTIONS_V1' "$VERCEL_LAST_OUTPUT" && parent_flag_configured=true
   grep -q 'COMUN_COLLECTIVE_ACTIONS_DATABASE_URL' "$VERCEL_LAST_OUTPUT" && database_url_configured=true
   printf 'parentFlagConfigured=%s\ndatabaseUrlConfigured=%s\n' "$parent_flag_configured" "$database_url_configured" | tee -a "$GITHUB_STEP_SUMMARY"
-  if [ "$parent_flag_configured" != true ] || [ "$database_url_configured" != true ]; then
+  if [ "$parent_flag_configured" != true ]; then
     echo COMUN_48_3_C1_BLOCKED_PARENT_RELEASE_GATE | tee -a "$GITHUB_STEP_SUMMARY"
     false
+  fi
+  if [ "$database_url_configured" != true ]; then
+    : "${SUPABASE_DB_URL:?SUPABASE_DB_URL is required to materialize the established parent runtime binding}"
+    current_phase=parent_database_binding
+    set_parent_database_url
+    database_url_created=true
+    flags_started=true
+    echo databaseUrlMaterialized=true | tee -a "$GITHUB_STEP_SUMMARY"
+    current_phase=parent_database_deploy
+    deploy
+  else
+    echo databaseUrlMaterialized=false | tee -a "$GITHUB_STEP_SUMMARY"
   fi
 
   current_phase=parent_gate_runtime

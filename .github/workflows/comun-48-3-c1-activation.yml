@@ -53,6 +53,7 @@ jobs:
       - name: Deploy selected C1 wave read-only
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           MODE: ${{ inputs.mode }}
         shell: bash
         run: bash scripts/pautas/run-48-3-c1-production-wave.sh "$MODE"
