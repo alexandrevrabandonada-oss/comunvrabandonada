@@ -44,6 +44,7 @@ import {
 import { generateProtocol } from "@/lib/protocol";
 import { isValidProtocol, normalizeProtocol } from "@/lib/reports";
 import { isComunTerritoryProfileEnabled } from "@/lib/comun-territory-profile";
+import { assessRodaContributionSafety } from "@/lib/comun-rodas-vivas";
 import { isCommunityRegistrationOpen } from "@/lib/community-registration";
 import {
   createPublicSupabaseClient,
@@ -1429,8 +1430,31 @@ export async function submitCircleContributionAction(formData: FormData) {
   const contact = String(formData.get("private_contact") ?? "")
     .trim()
     .slice(0, 160);
-  if (!circleId || !roundId || !pautaSlug || body.length < 24)
+  const contributionType = String(
+    formData.get("contribution_type") ?? "testimony",
+  );
+  const allowedTypes = [
+    "testimony",
+    "question",
+    "evidence",
+    "correction",
+    "proposal",
+    "counterpoint",
+    "task_offer",
+    "support_offer",
+    "update",
+    "memory",
+  ];
+  if (
+    !circleId ||
+    !roundId ||
+    !pautaSlug ||
+    body.length < 24 ||
+    body.length > 6000
+  )
     throw new Error("A contribuição precisa ter pelo menos 24 caracteres.");
+  if (!allowedTypes.includes(contributionType))
+    throw new Error("Tipo de contribuição inválido.");
   if (
     String(formData.get("company_website") ?? "").trim() ||
     String(formData.get("human_check") ?? "") !== "5"
@@ -1447,15 +1471,73 @@ export async function submitCircleContributionAction(formData: FormData) {
     )
   )
     throw new Error("Conta indisponível para contribuir.");
+  const { data: circle } = await supabase
+    .from("comun_construction_circles" as never)
+    .select("id,pauta_id,current_round_id,status,participation_mode" as never)
+    .eq("id" as never, circleId)
+    .maybeSingle();
+  if (!circle) throw new Error("Roda indisponível.");
+  const circleRow = circle as unknown as {
+    pauta_id: string;
+    current_round_id: string | null;
+    status: string;
+    participation_mode: string;
+  };
+  const { data: pauta } = await supabase
+    .from("comun_pauta_spaces" as never)
+    .select("id" as never)
+    .eq("id" as never, circleRow.pauta_id)
+    .eq("slug" as never, pautaSlug)
+    .eq("visibility" as never, "public")
+    .neq("status" as never, "archived")
+    .maybeSingle();
+  const { data: round } = await supabase
+    .from("comun_construction_circle_rounds" as never)
+    .select("id,circle_id,status" as never)
+    .eq("id" as never, roundId)
+    .eq("circle_id" as never, circleId)
+    .eq("status" as never, "open")
+    .maybeSingle();
+  if (
+    !pauta ||
+    !round ||
+    circleRow.current_round_id !== roundId ||
+    circleRow.status !== "open"
+  )
+    throw new Error("Esta rodada não está aberta para participação.");
+  if (circleRow.participation_mode === "registered_members") {
+    if (!community?.user.id)
+      throw new Error("Entre na sua conta para participar desta roda.");
+    const { data: membership } = await supabase
+      .from("comun_pauta_memberships" as never)
+      .select("pauta_id" as never)
+      .eq("pauta_id" as never, circleRow.pauta_id)
+      .eq("member_user_id" as never, community.user.id)
+      .eq("status" as never, "active")
+      .maybeSingle();
+    if (!membership)
+      throw new Error("Esta roda é restrita a participantes da pauta.");
+  } else if (circleRow.participation_mode !== "moderated_public") {
+    throw new Error("Esta roda não recebe contribuições públicas.");
+  }
+  const safety = await assessRodaContributionSafety({
+    body,
+    honeypot: String(formData.get("company_website") ?? ""),
+    challengeAnswer: String(formData.get("human_check") ?? ""),
+  });
+  if (!safety.allowed)
+    throw new Error(
+      safety.reason === "rate_limit"
+        ? "Muitas contribuições recentes. Aguarde antes de tentar novamente."
+        : "Não foi possível receber esta contribuição.",
+    );
   const protocol = `RODA-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
   const { error } = await supabase
     .from("comun_circle_contributions" as never)
     .insert({
       circle_id: circleId,
       round_id: roundId,
-      contribution_type: String(
-        formData.get("contribution_type") ?? "testimony",
-      ),
+      contribution_type: contributionType,
       public_body: body,
       author_display_name: alias || null,
       author_member_id: community?.user.id ?? null,
@@ -1472,6 +1554,12 @@ export async function submitCircleContributionAction(formData: FormData) {
     metadata: { protocol, body_length: body.length },
   });
   revalidatePath(`/comun/pautas/${pautaSlug}`);
+  revalidatePath(`/comun/pautas/${pautaSlug}/rodas/${circleId}`);
+  if (formData.get("roda_viva") === "1") {
+    redirect(
+      `/comun/pautas/${pautaSlug}/rodas/${circleId}?contribuicao=recebida`,
+    );
+  }
   const experience = resolveComunExperience(
     String(formData.get("experiencia") ?? ""),
   );

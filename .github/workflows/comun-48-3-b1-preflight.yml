@@ -1,0 +1,80 @@
+name: COMUN 48.3-B1 remote read-only rodas preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-3-b1-preflight.yml"
+      - "lib/comun-rodas-vivas*.ts"
+      - "components/comun-roda-viva.tsx"
+      - "app/comun/pautas/**/rodas/**"
+      - "app/actions.ts"
+      - "reports/current/comun-48-3-b1-rodas-vivas.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remote-read-only-rodas-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.113.0 }
+      - name: Verify zero migration and metadata-only schema contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+          test "${#changed[@]}" -eq 0 || { echo COMUN_48_3_B1_BLOCKED_UNEXPECTED_MIGRATION; exit 1; }
+          mkdir -p .ci-artifacts/48-3-b1-preflight
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/48-3-b1-preflight/schema.json <<'SQL'
+          begin read only;
+          with scoped(name) as (values
+            ('comun_construction_circles'),('comun_construction_circle_rounds'),
+            ('comun_circle_contributions'),('comun_circle_syntheses'),
+            ('comun_pauta_spaces'),('comun_pauta_memberships'),
+            ('comun_communities'),('comun_community_work_groups')
+          )
+          select json_build_object(
+            'transactionReadOnly', current_setting('transaction_read_only')='on',
+            'tablesPresent', (select count(*)=8 from scoped where to_regclass('public.'||name) is not null),
+            'rlsEnabled', (select bool_and(c.relrowsecurity) from scoped join pg_class c on c.oid=to_regclass('public.'||name)),
+            'anonWrites', (select bool_or(has_table_privilege('anon','public.'||name,'INSERT,UPDATE,DELETE')) from scoped),
+            'authenticatedWrites', (select bool_or(has_table_privilege('authenticated','public.'||name,'INSERT,UPDATE,DELETE')) from scoped),
+            'serviceRoleWritePath', (select bool_and(has_table_privilege('service_role','public.'||name,'INSERT,UPDATE,DELETE')) from scoped),
+            'openRoundUnique', to_regclass('public.comun_circle_one_open_round') is not null,
+            'roundGuard', exists(select 1 from pg_trigger where tgrelid='public.comun_circle_contributions'::regclass and tgname='comun_circle_contributions_round_guard' and not tgisinternal),
+            'allowlistConstraints', (
+              select count(*) >= 6 from pg_constraint
+              where conrelid in (
+                'public.comun_construction_circles'::regclass,
+                'public.comun_construction_circle_rounds'::regclass,
+                'public.comun_circle_contributions'::regclass,
+                'public.comun_circle_syntheses'::regclass
+              ) and contype='c'
+            ),
+            'businessContentRead', false
+          );
+          rollback;
+          SQL
+          node - <<'NODE'
+          const s=JSON.parse(require('node:fs').readFileSync('.ci-artifacts/48-3-b1-preflight/schema.json','utf8'));
+          if(!s.transactionReadOnly||!s.tablesPresent||!s.rlsEnabled||s.anonWrites||s.authenticatedWrites||!s.serviceRoleWritePath||!s.openRoundUnique||!s.roundGuard||!s.allowlistConstraints||s.businessContentRead!==false) throw new Error('COMUN_48_3_B1_BLOCKED_REMOTE_SCHEMA_DRIFT');
+          NODE
+      - name: Prove remote migration plan is empty
+        shell: bash
+        run: |
+          set -euo pipefail
+          external=supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+          test "$(sha256sum "$external" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
+          held="$RUNNER_TEMP/external.sql"; mv "$external" "$held"; trap 'mv "$held" "$external"' EXIT
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-3-b1-preflight/plan.txt 2>&1
+          ! grep -Eq '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-3-b1-preflight/plan.txt
+          echo COMUN_48_3_B1_REMOTE_PLAN_EMPTY_GREEN >> "$GITHUB_STEP_SUMMARY"

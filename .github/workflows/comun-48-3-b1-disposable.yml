@@ -1,0 +1,67 @@
+name: COMUN 48.3-B1 disposable rodas proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      [
+        ".github/workflows/comun-48-3-b1-disposable.yml",
+        "lib/comun-rodas-vivas*.ts",
+        "app/actions.ts",
+      ]
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.113.0 }
+      - name: Start disposable Supabase and prove guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor >"$RUNNER_TEMP/b1-supabase-start.log" 2>&1; then
+            echo COMUN_48_3_B1_BLOCKED_DISPOSABLE_SUPABASE_START
+            exit 1
+          fi
+          db="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '"')"
+          test -n "$db"
+          psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
+          begin;
+          insert into public.comun_pauta_spaces(id,slug,title,status,visibility) values ('b1000000-0000-4000-8000-000000000001','b1-disposable','B1 disposable','organizing','public');
+          insert into public.comun_construction_circles(id,pauta_id,title,public_question,status,participation_mode) values ('b1000000-0000-4000-8000-000000000002','b1000000-0000-4000-8000-000000000001','Roda','Pergunta pública','open','moderated_public');
+          insert into public.comun_construction_circle_rounds(id,circle_id,round_type,title,public_prompt,position,status) values ('b1000000-0000-4000-8000-000000000003','b1000000-0000-4000-8000-000000000002','listening','Escuta','Contribua',1,'open');
+          update public.comun_construction_circles set current_round_id='b1000000-0000-4000-8000-000000000003' where id='b1000000-0000-4000-8000-000000000002';
+          insert into public.comun_circle_contributions(circle_id,round_id,contribution_type,public_body,status,public_protocol) values ('b1000000-0000-4000-8000-000000000002','b1000000-0000-4000-8000-000000000003','proposal','Contribuição descartável B1','pending','RODA-B1-DISPOSABLE');
+          do $$ begin
+            if (select count(*) from public.comun_circle_contributions where public_protocol='RODA-B1-DISPOSABLE') <> 1 then raise exception 'single write failed'; end if;
+            if (select count(*) from public.comun_pauta_contributions where pauta_id='b1000000-0000-4000-8000-000000000001') <> 0 then raise exception 'dual write'; end if;
+            if (select count(*) from public.comun_pauta_memberships where pauta_id='b1000000-0000-4000-8000-000000000001') <> 0 then raise exception 'membership side effect'; end if;
+            if (select count(*) from public.comun_collective_actions where pauta_id='b1000000-0000-4000-8000-000000000001') <> 0 then raise exception 'action side effect'; end if;
+            begin
+              insert into public.comun_circle_contributions(circle_id,round_id,contribution_type,public_body,status) values ('b1000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000099','proposal','Round inexistente','pending');
+              raise exception 'missing round accepted';
+            exception when raise_exception then
+              if sqlerrm <> 'round_id must belong to circle_id' then raise; end if;
+            end;
+          end $$;
+          update public.comun_construction_circle_rounds set status='closed' where id='b1000000-0000-4000-8000-000000000003';
+          do $$ begin
+            begin
+              insert into public.comun_circle_contributions(circle_id,round_id,contribution_type,public_body,status) values ('b1000000-0000-4000-8000-000000000002','b1000000-0000-4000-8000-000000000003','proposal','Round fechada','pending');
+              raise exception 'closed round accepted';
+            exception when raise_exception then
+              if sqlerrm = 'closed round accepted' then raise; end if;
+            end;
+          end $$;
+          rollback;
+          SQL
+          echo COMUN_48_3_B1_DISPOSABLE_SUBMISSION_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo dualWrite=false >> "$GITHUB_STEP_SUMMARY"
+          echo membershipCreated=false >> "$GITHUB_STEP_SUMMARY"
+          echo actionCreated=false >> "$GITHUB_STEP_SUMMARY"
