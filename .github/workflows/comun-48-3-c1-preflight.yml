@@ -69,7 +69,13 @@ jobs:
           SQL
           node - <<'NODE'
           const s=JSON.parse(require('node:fs').readFileSync('.ci-artifacts/48-3-c1-preflight/schema.json','utf8'));
-          if(!s.transactionReadOnly||!s.canonicalTablesPresent||!s.legacyTablePresent||!s.rlsEnabled||!s.publicActionSelectPolicy||!s.ownJourneyPolicies||!s.capacityTrigger||!s.memberJourneyTrigger||!s.capacityFunctionClosed||!s.releaseLedgerPresent||!s.serviceRoleWritePath||s.businessContentRead!==false) throw new Error('COMUN_48_3_C1_BLOCKED_REMOTE_SCHEMA_DRIFT');
+          const requiredTrue=['transactionReadOnly','canonicalTablesPresent','legacyTablePresent','rlsEnabled','publicActionSelectPolicy','ownJourneyPolicies','capacityTrigger','memberJourneyTrigger','capacityFunctionClosed','releaseLedgerPresent','serviceRoleWritePath'];
+          const failed=requiredTrue.filter(key=>s[key]!==true);
+          if(s.businessContentRead!==false) failed.push('businessContentRead');
+          if(failed.length) {
+            console.error(`failedChecks=${failed.join(',')}`);
+            throw new Error('COMUN_48_3_C1_BLOCKED_REMOTE_SCHEMA_DRIFT');
+          }
           NODE
       - name: Prove remote migration plan is empty
         shell: bash

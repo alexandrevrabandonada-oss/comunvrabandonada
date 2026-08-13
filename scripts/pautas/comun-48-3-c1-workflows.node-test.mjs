@@ -23,6 +23,7 @@ test("C1 preflight is metadata-only and requires an empty migration plan", () =>
   assert.match(preflight, /begin read only;/);
   assert.match(preflight, /businessContentRead', false/);
   assert.match(preflight, /COMUN_48_3_C1_REMOTE_PLAN_EMPTY_GREEN/);
+  assert.match(preflight, /failedChecks=/);
   assert.match(preflight, /comun_mobilization_actions/);
   assert.doesNotMatch(preflight, /select\s+\*\s+from/i);
   assert.doesNotMatch(
