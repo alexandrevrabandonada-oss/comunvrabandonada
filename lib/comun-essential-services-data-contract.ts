@@ -17,6 +17,7 @@ export const COMUN_ESSENTIAL_SERVICES_OFFICIAL_SOURCE_DOMAINS = [
 export type EssentialServicesDomain = (typeof COMUN_ESSENTIAL_SERVICES_DOMAINS)[number];
 export type EssentialServicesReadiness =
   | "READY_E1_POWER"
+  | "PARTIAL_E1_POWER"
   | "PARTIAL_E_POWER"
   | "READY_E1_WATER"
   | "PARTIAL_E_WATER_OFFICIAL_NOTICES_ONLY"
@@ -64,7 +65,12 @@ type EssentialServicesContract = {
   automaticPublicationAllowed: false;
   runtimeExternalFetchAllowed: false;
   decisions: Record<EssentialServicesDomain, EssentialServicesReadiness>;
-  domains: Record<EssentialServicesDomain, { canonicalDomain: EssentialServicesDomain; decision: EssentialServicesReadiness; sources: EssentialServicesSource[] }>;
+  domains: Record<EssentialServicesDomain, {
+    canonicalDomain: EssentialServicesDomain;
+    decision: EssentialServicesReadiness;
+    candidateSnapshotAllowed?: boolean;
+    sources: EssentialServicesSource[];
+  }>;
 };
 
 export const COMUN_ESSENTIAL_SERVICES_DATA_CONTRACT =
@@ -116,8 +122,11 @@ export function validateEssentialServicesDataContract(
     }
   }
 
-  if (contract.decisions.power_distribution_continuity !== "READY_E1_POWER") {
-    errors.push("power_readiness_unexpected");
+  if (contract.decisions.power_distribution_continuity !== "PARTIAL_E1_POWER") {
+    errors.push("power_readiness_not_fail_closed");
+  }
+  if (contract.domains.power_distribution_continuity?.candidateSnapshotAllowed !== false) {
+    errors.push("power_candidate_snapshot_must_remain_disabled");
   }
   if (contract.decisions.water_supply_service !== "PARTIAL_E_WATER_OFFICIAL_NOTICES_ONLY") {
     errors.push("water_completeness_not_fail_closed");
