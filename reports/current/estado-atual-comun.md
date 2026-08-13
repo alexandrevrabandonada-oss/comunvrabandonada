@@ -1,4 +1,4 @@
-# Estado candidato — 48.3-C1 Ações Coletivas (13/08/2026)
+# Estado atual — 48.3-C1 Ações Coletivas (13/08/2026)
 
 ## 48.3-C1 — Experiência canônica Pauta → Ação
 
@@ -7,9 +7,13 @@
 - Pautas Vivas usam somente `comun_collective_actions.pauta_id` no bloco `O que estamos fazendo`;
 - `COMUN_COLLECTIVE_ACTIONS_CANONICAL_EXPERIENCE_ENABLED` preserva a experiência anterior quando OFF e depende do release estrutural existente;
 - zero migration, API nova, membership, papel, dual-write, criação automática de ação ou publicação automática;
-- CI remota, merge e ondas Production ainda estão pendentes; o terminal não foi emitido.
+- PR funcional `#309`, head `b9c9f35af3816aa42845c89213b9f2949cc14aef`, merge exact-head `d69c2b851a84e5936b2a073b955384ded1ff3c1c`;
+- preflight remoto `31747677539` e descartável `31747677643` verdes, com remote plan vazio e rollback integral;
+- flags-off final `31751592047` e wave 1 `31751732584` verdes no exact-main `e735bf4723231943bee63137aecf27c4e3572dc3`;
+- o binding server-only ausente foi materializado a partir do secret canônico existente, sem revelar o valor e sem alterar `COMUN_COLLECTIVE_ACTIONS_V1`;
+- Production `/comun/acoes=200`, composição canônica ativa, nenhum marcador privado, nenhuma fixture e `businessWrites=0`.
 
-Estado candidato:
+Estado atual:
 `COMUN_48_3_C1_COLLECTIVE_ACTIONS_CANONICAL_EXPERIENCE_GREEN_MEMBER_PARTICIPATION`.
 
 Detalhes: `reports/current/comun-48-3-c1-collective-actions-canonical-experience.md`.
