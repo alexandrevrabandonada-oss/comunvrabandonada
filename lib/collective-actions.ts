@@ -81,7 +81,7 @@ export async function listPublicCollectiveActions(filters?: {
   let query = db
     .from("comun_collective_actions")
     .select(
-      "id,slug,title,summary,objective,action_type,status,territory_label,meeting_place,starts_at,ends_at,participation_mode,published_at,completed_at,result_status,result_summary,memory_summary,participant_count_aggregate,tasks_completed_aggregate,learned_summary,next_steps_summary,memory_published_at,pauta:comun_pauta_spaces(slug,title),community:comun_communities(slug,name)",
+      "id,slug,title,summary,objective,action_type,status,visibility,territory_label,meeting_place,starts_at,ends_at,participation_mode,published_at,completed_at,result_status,result_summary,memory_summary,participant_count_aggregate,tasks_completed_aggregate,learned_summary,next_steps_summary,memory_published_at,pauta:comun_pauta_spaces(slug,title),community:comun_communities(slug,name)",
     )
     .eq("visibility", "public")
     .in("status", publicStatuses)
@@ -133,44 +133,52 @@ export async function getPublicCollectiveAction(slug: string) {
     .in("status", publicStatuses)
     .maybeSingle();
   if (!action) return null;
-  const [tasksResult, updatesResult, linksResult, participationResult, forwardingResult, memoryAssetsResult] =
-    await Promise.all([
-      db
-        .from("comun_collective_action_tasks")
-        .select(
-          "id,title,description,desired_count,due_at,state,effort_level,participation_mode",
-        )
-        .eq("action_id", action.id)
-        .in("state", ["open", "in_progress", "done"])
-        .order("due_at", { ascending: true, nullsFirst: false }),
-      db
-        .from("comun_collective_action_updates")
-        .select("id,update_type,title,public_summary,occurred_at")
-        .eq("action_id", action.id)
-        .eq("visibility", "public")
-        .order("occurred_at", { ascending: true }),
-      db
-        .from("comun_collective_action_sidewalk_records")
-        .select("sidewalk_record_id")
-        .eq("action_id", action.id),
-      db
-        .from("comun_collective_action_participations")
-        .select("status")
-        .eq("action_id", action.id),
-      db
-        .from("comun_collective_action_forwardings")
-        .select("recipient_name,public_summary,sent_at,protocol_code,expected_response_at,state,response_public,public_document_url,public_document_label")
-        .eq("action_id", action.id)
-        .eq("public_visible", true)
-        .maybeSingle(),
-      db
-        .from("comun_collective_action_memory_assets")
-        .select("id,asset_kind,title,public_url")
-        .eq("action_id", action.id)
-        .eq("public_visible", true)
-        .not("reviewed_at", "is", null)
-        .order("created_at", { ascending: true }),
-    ]);
+  const [
+    tasksResult,
+    updatesResult,
+    linksResult,
+    participationResult,
+    forwardingResult,
+    memoryAssetsResult,
+  ] = await Promise.all([
+    db
+      .from("comun_collective_action_tasks")
+      .select(
+        "id,title,description,desired_count,due_at,state,effort_level,participation_mode",
+      )
+      .eq("action_id", action.id)
+      .in("state", ["open", "in_progress", "done"])
+      .order("due_at", { ascending: true, nullsFirst: false }),
+    db
+      .from("comun_collective_action_updates")
+      .select("id,update_type,title,public_summary,occurred_at,visibility")
+      .eq("action_id", action.id)
+      .eq("visibility", "public")
+      .order("occurred_at", { ascending: true }),
+    db
+      .from("comun_collective_action_sidewalk_records")
+      .select("sidewalk_record_id")
+      .eq("action_id", action.id),
+    db
+      .from("comun_collective_action_participations")
+      .select("status")
+      .eq("action_id", action.id),
+    db
+      .from("comun_collective_action_forwardings")
+      .select(
+        "recipient_name,public_summary,sent_at,protocol_code,expected_response_at,state,response_public,public_document_url,public_document_label,public_visible",
+      )
+      .eq("action_id", action.id)
+      .eq("public_visible", true)
+      .maybeSingle(),
+    db
+      .from("comun_collective_action_memory_assets")
+      .select("id,asset_kind,title,public_url,public_visible,reviewed_at")
+      .eq("action_id", action.id)
+      .eq("public_visible", true)
+      .not("reviewed_at", "is", null)
+      .order("created_at", { ascending: true }),
+  ]);
   const tasks = tasksResult.data ?? [];
   const taskIds = tasks.map((task: any) => task.id);
   const sidewalkRecordIds = (linksResult.data ?? []).map(
@@ -237,7 +245,14 @@ export async function getPublicCollectiveAction(slug: string) {
 export async function listAdminCollectiveActions() {
   const db = service();
   if (!db) return [];
-  const [actionsResult, tasksResult, updatesResult, forwardingResult, assetsResult, participationResult] = await Promise.all([
+  const [
+    actionsResult,
+    tasksResult,
+    updatesResult,
+    forwardingResult,
+    assetsResult,
+    participationResult,
+  ] = await Promise.all([
     db
       .from("comun_collective_actions")
       .select(
@@ -246,18 +261,26 @@ export async function listAdminCollectiveActions() {
       .order("created_at", { ascending: false }),
     db
       .from("comun_collective_action_tasks")
-      .select("id,action_id,title,description,desired_count,due_at,state,effort_level,participation_mode,updated_at")
+      .select(
+        "id,action_id,title,description,desired_count,due_at,state,effort_level,participation_mode,updated_at",
+      )
       .order("created_at", { ascending: true }),
     db
       .from("comun_collective_action_updates")
-      .select("id,action_id,event_key,update_type,title,public_summary,occurred_at,visibility")
+      .select(
+        "id,action_id,event_key,update_type,title,public_summary,occurred_at,visibility",
+      )
       .order("occurred_at", { ascending: true }),
     db
       .from("comun_collective_action_forwardings")
-      .select("id,action_id,recipient_name,public_summary,sent_at,protocol_code,expected_response_at,state,response_public,public_document_url,public_document_label,public_visible,updated_at"),
+      .select(
+        "id,action_id,recipient_name,public_summary,sent_at,protocol_code,expected_response_at,state,response_public,public_document_url,public_document_label,public_visible,updated_at",
+      ),
     db
       .from("comun_collective_action_memory_assets")
-      .select("id,action_id,asset_kind,title,public_url,public_visible,reviewed_at")
+      .select(
+        "id,action_id,asset_kind,title,public_url,public_visible,reviewed_at",
+      )
       .order("created_at", { ascending: true }),
     db
       .from("comun_collective_action_participations")
@@ -265,14 +288,17 @@ export async function listAdminCollectiveActions() {
   ]);
   const rowsByAction = <T extends { action_id: string }>(rows: T[] | null) => {
     const mapped = new Map<string, T[]>();
-    for (const row of rows ?? []) mapped.set(row.action_id, [...(mapped.get(row.action_id) ?? []), row]);
+    for (const row of rows ?? [])
+      mapped.set(row.action_id, [...(mapped.get(row.action_id) ?? []), row]);
     return mapped;
   };
   const tasksByAction = rowsByAction(tasksResult.data);
   const updatesByAction = rowsByAction(updatesResult.data);
   const assetsByAction = rowsByAction(assetsResult.data);
   const participationByAction = rowsByAction(participationResult.data);
-  const forwardingByAction = new Map((forwardingResult.data ?? []).map((row: any) => [row.action_id, row]));
+  const forwardingByAction = new Map(
+    (forwardingResult.data ?? []).map((row: any) => [row.action_id, row]),
+  );
   return (actionsResult.data ?? []).map((action: any) => {
     const participation = participationByAction.get(action.id) ?? [];
     return {
@@ -281,7 +307,9 @@ export async function listAdminCollectiveActions() {
       updates: updatesByAction.get(action.id) ?? [],
       forwarding: forwardingByAction.get(action.id) ?? null,
       memoryAssets: assetsByAction.get(action.id) ?? [],
-      participantCount: participation.filter((row: any) => row.status !== "withdrew").length,
+      participantCount: participation.filter(
+        (row: any) => row.status !== "withdrew",
+      ).length,
     };
   });
 }

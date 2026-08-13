@@ -17,6 +17,12 @@ import {
   ComunEmptyStateV2,
 } from "@/components/comun-relational";
 import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
+import { isComunCollectiveActionsCanonicalExperienceEnabled } from "@/lib/comun-collective-actions-canonical-feature";
+import {
+  listPublicCollectiveActionsCanonical,
+  projectPublicCollectiveActionSummary,
+} from "@/lib/comun-collective-actions-canonical";
+import { CollectiveActionsCanonicalIndex } from "@/components/comun-collective-actions-canonical";
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +74,31 @@ export default async function CollectiveActionsPage({
     ) : (
       <CollectiveActionsPaused />
     );
+  if (isComunCollectiveActionsCanonicalExperienceEnabled()) {
+    const canonicalActions = previewFixtures
+      ? collectiveActionsPreviewFixtures
+          .map(projectPublicCollectiveActionSummary)
+          .filter((action) =>
+            Boolean(
+              action &&
+                (!filters.territorio ||
+                  action.territoryLabel === filters.territorio) &&
+                (!filters.tipo || action.actionType === filters.tipo),
+            ),
+          )
+          .filter((action) => action !== null)
+      : await listPublicCollectiveActionsCanonical({
+          territory: filters.territorio,
+          type: filters.tipo,
+        });
+    return (
+      <CollectiveActionsCanonicalIndex
+        actions={canonicalActions}
+        territory={filters.territorio}
+        type={filters.tipo}
+      />
+    );
+  }
   const [actions, options] = previewFixtures
     ? [
         collectiveActionsPreviewFixtures.filter(

@@ -55,6 +55,8 @@ import { isComunPautasVivasCoreEnabled } from "@/lib/comun-pautas-vivas-feature"
 import { PautaVivaDetail } from "@/components/comun-pautas-vivas";
 import { isComunRodasVivasEnabled } from "@/lib/comun-rodas-vivas-feature";
 import { listPublicRodasForPauta } from "@/lib/comun-rodas-vivas";
+import { isComunCollectiveActionsCanonicalExperienceEnabled } from "@/lib/comun-collective-actions-canonical-feature";
+import { listPublicCollectiveActionsByPauta } from "@/lib/comun-collective-actions-canonical";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -84,8 +86,11 @@ export default async function PautaPage(props: {
     );
 
   if (isComunPautasVivasCoreEnabled()) {
-    const [evidence, tasks, contributions, dossiers, rodas] = await Promise.all(
-      [
+    const canonicalActionsEnabled =
+      isComunCollectiveActionsCanonicalExperienceEnabled() &&
+      (await getCollectiveActionsRelease()).enabled;
+    const [evidence, tasks, contributions, dossiers, rodas, collectiveActions] =
+      await Promise.all([
         listPublicPautaEvidence(space.id, 8),
         listPublicPautaTasks(space.id, 6),
         listApprovedPautaContributions(space.id, 6),
@@ -93,8 +98,10 @@ export default async function PautaPage(props: {
         isComunRodasVivasEnabled()
           ? listPublicRodasForPauta(space.id)
           : Promise.resolve([]),
-      ],
-    );
+        canonicalActionsEnabled
+          ? listPublicCollectiveActionsByPauta(space.id)
+          : Promise.resolve([]),
+      ]);
     return (
       <PautaVivaDetail
         space={space}
@@ -104,6 +111,8 @@ export default async function PautaPage(props: {
         dossiers={dossiers.slice(0, 4)}
         rodas={rodas}
         rodasEnabled={isComunRodasVivasEnabled()}
+        collectiveActions={collectiveActions}
+        collectiveActionsEnabled={canonicalActionsEnabled}
       />
     );
   }

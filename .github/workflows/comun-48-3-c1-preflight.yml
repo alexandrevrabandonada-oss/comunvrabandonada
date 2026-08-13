@@ -1,0 +1,84 @@
+name: COMUN 48.3-C1 remote read-only collective actions preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-3-c1-preflight.yml"
+      - "lib/comun-collective-actions-canonical*.ts"
+      - "components/comun-collective-actions-canonical.tsx"
+      - "app/comun/acoes/**"
+      - "app/comun/pautas/**"
+      - "reports/current/comun-48-3-c1-collective-actions-canonical-experience.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remote-read-only-collective-actions-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.113.0 }
+      - name: Verify zero migration and metadata-only schema contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          test -z "$(git diff --name-only origin/main...HEAD -- supabase/migrations)" || { echo COMUN_48_3_C1_BLOCKED_UNEXPECTED_MIGRATION; exit 1; }
+          mkdir -p .ci-artifacts/48-3-c1-preflight
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/48-3-c1-preflight/schema.json <<'SQL'
+          begin read only;
+          with canonical(name) as (values
+            ('comun_collective_actions'),('comun_collective_action_participations'),
+            ('comun_collective_action_tasks'),('comun_collective_action_task_assignments'),
+            ('comun_collective_action_updates'),('comun_collective_action_forwardings'),
+            ('comun_collective_action_memory_assets'),('comun_pauta_spaces'),
+            ('comun_pauta_action_cycles')
+          ), own_policies as (
+            select count(*) as count from pg_policies where schemaname='public' and policyname in (
+              'Members can read own collective participation',
+              'Members can create own collective participation',
+              'Members can update own collective participation',
+              'Members can read own collective task assignment',
+              'Members can claim own collective task',
+              'Members can release own collective task'
+            )
+          )
+          select json_build_object(
+            'transactionReadOnly', current_setting('transaction_read_only')='on',
+            'canonicalTablesPresent', (select count(*)=9 from canonical where to_regclass('public.'||name) is not null),
+            'legacyTablePresent', to_regclass('public.comun_mobilization_actions') is not null,
+            'rlsEnabled', (select bool_and(c.relrowsecurity) from canonical join pg_class c on c.oid=to_regclass('public.'||name)),
+            'publicActionSelectPolicy', exists(select 1 from pg_policies where schemaname='public' and tablename='comun_collective_actions' and policyname='Public can read published collective actions'),
+            'ownJourneyPolicies', (select count=6 from own_policies),
+            'capacityTrigger', exists(select 1 from pg_trigger where tgrelid='public.comun_collective_action_task_assignments'::regclass and tgname='comun_collective_action_task_capacity_guard' and not tgisinternal),
+            'memberJourneyTrigger', exists(select 1 from pg_trigger where tgrelid='public.comun_collective_action_participations'::regclass and tgname='comun_collective_action_member_journey_guard' and not tgisinternal),
+            'capacityFunctionClosed', not has_function_privilege('anon','public.comun_collective_action_task_capacity_guard()','EXECUTE') and not has_function_privilege('authenticated','public.comun_collective_action_task_capacity_guard()','EXECUTE'),
+            'releaseLedgerPresent', exists(select 1 from public.comun_schema_releases where release='20260726133409-comun-collective-actions-foundation' and status='applied'),
+            'serviceRoleWritePath', (select bool_and(has_table_privilege('service_role','public.'||name,'INSERT,UPDATE,DELETE')) from canonical),
+            'businessContentRead', false
+          );
+          rollback;
+          SQL
+          node - <<'NODE'
+          const s=JSON.parse(require('node:fs').readFileSync('.ci-artifacts/48-3-c1-preflight/schema.json','utf8'));
+          if(!s.transactionReadOnly||!s.canonicalTablesPresent||!s.legacyTablePresent||!s.rlsEnabled||!s.publicActionSelectPolicy||!s.ownJourneyPolicies||!s.capacityTrigger||!s.memberJourneyTrigger||!s.capacityFunctionClosed||!s.releaseLedgerPresent||!s.serviceRoleWritePath||s.businessContentRead!==false) throw new Error('COMUN_48_3_C1_BLOCKED_REMOTE_SCHEMA_DRIFT');
+          NODE
+      - name: Prove remote migration plan is empty
+        shell: bash
+        run: |
+          set -euo pipefail
+          external=supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+          test "$(sha256sum "$external" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
+          held="$RUNNER_TEMP/external.sql"; mv "$external" "$held"; trap 'mv "$held" "$external"' EXIT
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-3-c1-preflight/plan.txt 2>&1
+          ! grep -Eq '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-3-c1-preflight/plan.txt
+          echo migrationCount=0 >> "$GITHUB_STEP_SUMMARY"
+          echo COMUN_48_3_C1_REMOTE_PLAN_EMPTY_GREEN >> "$GITHUB_STEP_SUMMARY"

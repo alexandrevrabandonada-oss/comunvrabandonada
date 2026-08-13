@@ -9,6 +9,8 @@ import type {
 import type { PublishedPautaDossierSnapshot } from "@/lib/pauta-dossiers";
 import { isPublicEvidenceCitationV1 } from "@/lib/comun-public-evidence";
 import type { PublicRodaV1 } from "@/lib/comun-rodas-vivas";
+import type { PublicCollectiveActionSummaryV1 } from "@/lib/comun-collective-actions-canonical";
+import { PautaCollectiveActions } from "./comun-collective-actions-canonical";
 
 export function PautasVivasIndex({
   spaces,
@@ -80,6 +82,8 @@ export function PautaVivaDetail({
   dossiers,
   rodas = [],
   rodasEnabled = false,
+  collectiveActions = [],
+  collectiveActionsEnabled = false,
 }: {
   space: PublicPautaSpace;
   evidence: readonly PublicPautaEvidenceItem[];
@@ -88,6 +92,8 @@ export function PautaVivaDetail({
   dossiers: readonly PublishedPautaDossierSnapshot[];
   rodas?: readonly PublicRodaV1[];
   rodasEnabled?: boolean;
+  collectiveActions?: readonly PublicCollectiveActionSummaryV1[];
+  collectiveActionsEnabled?: boolean;
 }) {
   const hasOpenRoda = rodas.some((roda) => roda.status === "open");
   return (
@@ -191,6 +197,13 @@ export function PautaVivaDetail({
           ) : null}
         </div>
       </Section>
+
+      {collectiveActionsEnabled ? (
+        <PautaCollectiveActions
+          pautaSlug={space.slug}
+          actions={collectiveActions}
+        />
+      ) : null}
 
       <Section>
         <h2 className="text-2xl font-black uppercase text-comun-yellow">

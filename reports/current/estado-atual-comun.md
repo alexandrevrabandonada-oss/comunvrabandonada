@@ -1,3 +1,21 @@
+# Estado candidato — 48.3-C1 Ações Coletivas (13/08/2026)
+
+## 48.3-C1 — Experiência canônica Pauta → Ação
+
+- `comun_collective_actions` permanece a raiz única; `comun_mobilization_actions` fica em compatibilidade, sem leitura/escrita no caminho C1;
+- DTOs públicos fail-closed, uma CTA dominante, tarefas com guard de capacidade, atualizações públicas e memória revisada compõem as rotas existentes;
+- Pautas Vivas usam somente `comun_collective_actions.pauta_id` no bloco `O que estamos fazendo`;
+- `COMUN_COLLECTIVE_ACTIONS_CANONICAL_EXPERIENCE_ENABLED` preserva a experiência anterior quando OFF e depende do release estrutural existente;
+- zero migration, API nova, membership, papel, dual-write, criação automática de ação ou publicação automática;
+- CI remota, merge e ondas Production ainda estão pendentes; o terminal não foi emitido.
+
+Estado candidato:
+`COMUN_48_3_C1_COLLECTIVE_ACTIONS_CANONICAL_EXPERIENCE_GREEN_MEMBER_PARTICIPATION`.
+
+Detalhes: `reports/current/comun-48-3-c1-collective-actions-canonical-experience.md`.
+
+Preservados: `COMUN_48_3_B1_RODAS_VIVAS_CANONICAL_EXPERIENCE_GREEN_MODERATED_PUBLIC`, `COMUN_48_3_A1_PAUTAS_VIVAS_PUBLIC_CORE_GREEN_VERSIONED_EVIDENCE`, `COMUN_48_2_F_CROSS_OBSERVATORY_CITY_PANORAMA_GREEN_PUBLIC_SAFE`, `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e `launch_publicly=false`.
+
 # Estado atual — 48.3-B1 Rodas Vivas (13/08/2026)
 
 ## 48.3-B1 — Experiência canônica de conversa coletiva

@@ -1,20 +1,270 @@
-const timeline = (id: string, event_key: string, title: string, public_summary: string, occurred_at: string) => ({ id, event_key, update_type: event_key, title, public_summary, occurred_at });
+const previewUpdateType = (eventKey: string) => {
+  if (eventKey.includes("protocol")) return "protocol";
+  if (eventKey.includes("response")) return "response";
+  if (eventKey.includes("result")) return "result";
+  if (eventKey.includes("memory")) return "memory";
+  if (eventKey.includes("forward")) return "progress";
+  return "announcement";
+};
+
+const timeline = (
+  id: string,
+  event_key: string,
+  title: string,
+  public_summary: string,
+  occurred_at: string,
+) => ({
+  id,
+  event_key,
+  update_type: previewUpdateType(event_key),
+  title,
+  public_summary,
+  occurred_at,
+  visibility: "public",
+});
 
 export const collectiveActionsPreviewFixtures = [
   {
-    id: "preview-preparing", slug: "caderno-em-preparacao", title: "Caderno para o encontro do bairro", summary: "Uma ação sintética ainda em preparação, sem dados reais.", objective: "Organizar um encontro público com passos pequenos e claros.", action_type: "public_meeting", status: "preparing", territory_label: "Território demonstração", meeting_place: "a confirmar", starts_at: "2026-08-08T18:00:00Z", participation_mode: "hybrid", tasks: [], updates: [], sidewalkRecords: [], counts: { interested: 0, participating: 0, tasksAssumed: 0, updates: 0, results: 0 }, pauta: null, community: null, admin_next_step: "Abrir tarefas e revisar a publicação.", memoryAssets: [],
+    id: "preview-preparing",
+    slug: "caderno-em-preparacao",
+    title: "Caderno para o encontro do bairro",
+    summary: "Uma ação sintética ainda em preparação, sem dados reais.",
+    objective: "Organizar um encontro público com passos pequenos e claros.",
+    action_type: "public_meeting",
+    status: "preparing",
+    visibility: "public",
+    territory_label: "Território demonstração",
+    meeting_place: "a confirmar",
+    starts_at: "2026-08-08T18:00:00Z",
+    participation_mode: "hybrid",
+    tasks: [],
+    updates: [],
+    sidewalkRecords: [],
+    counts: {
+      interested: 0,
+      participating: 0,
+      tasksAssumed: 0,
+      updates: 0,
+      results: 0,
+    },
+    pauta: null,
+    community: null,
+    admin_next_step: "Abrir tarefas e revisar a publicação.",
+    memoryAssets: [],
   },
   {
-    id: "preview-open", slug: "mutirao-caminho-seguro", title: "Mutirão pelo caminho seguro", summary: "Uma ação sintética de demonstração, sem dados reais.", objective: "Organizar uma caminhada coletiva para registrar barreiras e construir próximos passos.", action_type: "community_inspection", status: "open", territory_label: "Território demonstração", meeting_place: "Praça de demonstração", starts_at: "2026-08-02T13:00:00Z", participation_mode: "hybrid", tasks: [{ id: "preview-task", title: "Fotografar pontos críticos", description: "Registrar a caminhada sem expor pessoas.", desired_count: 2, assumed_count: 1, state: "open", effort_level: "small", participation_mode: "in_person", due_at: "2026-08-01T18:00:00Z" }], updates: [timeline("preview-published", "action_published", "Ação publicada", "As tarefas estão abertas para participação.", "2026-07-26T12:00:00Z"), timeline("preview-task-open", "task_opened", "Tarefa aberta", "A caminhada precisa de duas pessoas para registrar os pontos críticos.", "2026-07-27T12:00:00Z")], sidewalkRecords: [], counts: { interested: 8, participating: 5, tasksAssumed: 1, updates: 2, results: 0 }, pauta: null, community: null, admin_next_step: "Acompanhar a atividade e registrar o que aconteceu.", memoryAssets: [],
+    id: "preview-open",
+    slug: "mutirao-caminho-seguro",
+    title: "Mutirão pelo caminho seguro",
+    summary: "Uma ação sintética de demonstração, sem dados reais.",
+    objective:
+      "Organizar uma caminhada coletiva para registrar barreiras e construir próximos passos.",
+    action_type: "community_inspection",
+    status: "open",
+    visibility: "public",
+    territory_label: "Território demonstração",
+    meeting_place: "Praça de demonstração",
+    starts_at: "2026-08-02T13:00:00Z",
+    participation_mode: "hybrid",
+    tasks: [
+      {
+        id: "preview-task",
+        title: "Fotografar pontos críticos",
+        description: "Registrar a caminhada sem expor pessoas.",
+        desired_count: 2,
+        assumed_count: 1,
+        state: "open",
+        effort_level: "small",
+        participation_mode: "in_person",
+        due_at: "2026-08-01T18:00:00Z",
+      },
+    ],
+    updates: [
+      timeline(
+        "preview-published",
+        "action_published",
+        "Ação publicada",
+        "As tarefas estão abertas para participação.",
+        "2026-07-26T12:00:00Z",
+      ),
+      timeline(
+        "preview-task-open",
+        "task_opened",
+        "Tarefa aberta",
+        "A caminhada precisa de duas pessoas para registrar os pontos críticos.",
+        "2026-07-27T12:00:00Z",
+      ),
+    ],
+    sidewalkRecords: [],
+    counts: {
+      interested: 8,
+      participating: 5,
+      tasksAssumed: 1,
+      updates: 2,
+      results: 0,
+    },
+    pauta: null,
+    community: null,
+    admin_next_step: "Acompanhar a atividade e registrar o que aconteceu.",
+    memoryAssets: [],
   },
   {
-    id: "preview-forwarding", slug: "encaminhamento-iluminacao", title: "Encaminhamento coletivo da iluminação", summary: "Uma ação sintética aguardando resposta, sem dados reais.", objective: "Encaminhar ao órgão responsável uma demanda revisada pelo território.", action_type: "collective_forwarding", status: "awaiting_result", territory_label: "Território demonstração", meeting_place: null, starts_at: "2026-07-18T14:00:00Z", participation_mode: "remote", tasks: [{ id: "preview-forward-task", title: "Acompanhar protocolo", description: "Conferir o retorno público sem expor contatos.", desired_count: 1, assumed_count: 1, state: "in_progress", effort_level: "small", participation_mode: "remote", due_at: null }], updates: [timeline("preview-forward-sent", "forwarding_sent", "Encaminhamento enviado", "A demanda revisada foi enviada ao órgão destinatário.", "2026-07-20T14:00:00Z"), timeline("preview-protocol", "protocol_registered", "Protocolo registrado", "O código público do protocolo foi conferido.", "2026-07-21T14:00:00Z"), timeline("preview-response", "response_received", "Resposta recebida", "Uma resposta foi recebida e será verificada no território.", "2026-07-25T14:00:00Z")], sidewalkRecords: [], counts: { interested: 6, participating: 4, tasksAssumed: 1, updates: 3, results: 0 }, pauta: null, community: null, forwarding: { recipient_name: "Órgão de demonstração", public_summary: "Pedido coletivo revisado para melhoria da iluminação.", sent_at: "2026-07-20T14:00:00Z", protocol_code: "PROTOCOLO-DEMO-44", expected_response_at: "2026-08-20T14:00:00Z", state: "response_received", response_public: "O órgão informou que fará uma vistoria técnica.", public_document_url: "https://example.invalid/documento-publico", public_document_label: "Documento público de demonstração" }, admin_next_step: "Verificar a resposta no território e registrar o resultado.", memoryAssets: [],
+    id: "preview-forwarding",
+    slug: "encaminhamento-iluminacao",
+    title: "Encaminhamento coletivo da iluminação",
+    summary: "Uma ação sintética aguardando resposta, sem dados reais.",
+    objective:
+      "Encaminhar ao órgão responsável uma demanda revisada pelo território.",
+    action_type: "collective_forwarding",
+    status: "awaiting_result",
+    visibility: "public",
+    territory_label: "Território demonstração",
+    meeting_place: null,
+    starts_at: "2026-07-18T14:00:00Z",
+    participation_mode: "remote",
+    tasks: [
+      {
+        id: "preview-forward-task",
+        title: "Acompanhar protocolo",
+        description: "Conferir o retorno público sem expor contatos.",
+        desired_count: 1,
+        assumed_count: 1,
+        state: "in_progress",
+        effort_level: "small",
+        participation_mode: "remote",
+        due_at: null,
+      },
+    ],
+    updates: [
+      timeline(
+        "preview-forward-sent",
+        "forwarding_sent",
+        "Encaminhamento enviado",
+        "A demanda revisada foi enviada ao órgão destinatário.",
+        "2026-07-20T14:00:00Z",
+      ),
+      timeline(
+        "preview-protocol",
+        "protocol_registered",
+        "Protocolo registrado",
+        "O código público do protocolo foi conferido.",
+        "2026-07-21T14:00:00Z",
+      ),
+      timeline(
+        "preview-response",
+        "response_received",
+        "Resposta recebida",
+        "Uma resposta foi recebida e será verificada no território.",
+        "2026-07-25T14:00:00Z",
+      ),
+    ],
+    sidewalkRecords: [],
+    counts: {
+      interested: 6,
+      participating: 4,
+      tasksAssumed: 1,
+      updates: 3,
+      results: 0,
+    },
+    pauta: null,
+    community: null,
+    forwarding: {
+      recipient_name: "Órgão de demonstração",
+      public_summary: "Pedido coletivo revisado para melhoria da iluminação.",
+      sent_at: "2026-07-20T14:00:00Z",
+      protocol_code: "PROTOCOLO-DEMO-44",
+      expected_response_at: "2026-08-20T14:00:00Z",
+      state: "response_received",
+      response_public: "O órgão informou que fará uma vistoria técnica.",
+      public_document_url: "https://example.invalid/documento-publico",
+      public_document_label: "Documento público de demonstração",
+      public_visible: true,
+    },
+    admin_next_step:
+      "Verificar a resposta no território e registrar o resultado.",
+    memoryAssets: [],
   },
   {
-    id: "preview-completed", slug: "memoria-do-mutirao", title: "Memória do mutirão", summary: "Uma ação concluída sintética para auditoria visual.", objective: "Reunir aprendizados do cuidado coletivo no território.", action_type: "mutual_aid", status: "completed", territory_label: "Território demonstração", meeting_place: null, starts_at: "2026-07-10T13:00:00Z", participation_mode: "in_person", tasks: [{ id: "preview-completed-task", title: "Organizar materiais", description: "Separar os materiais usados no mutirão.", desired_count: 2, assumed_count: 2, state: "done", effort_level: "small", participation_mode: "in_person", due_at: null }], updates: [timeline("preview-result", "result_verified", "Resultado verificado", "Os pontos prioritários foram registrados e compartilhados.", "2026-07-12T10:00:00Z"), timeline("preview-memory", "memory_completed", "Memória concluída", "A memória preserva objetivo, resultado e próximos desdobramentos.", "2026-07-12T12:00:00Z")], sidewalkRecords: [], counts: { interested: 12, participating: 9, tasksAssumed: 4, updates: 2, results: 1 }, pauta: null, community: null, result_status: "achieved", result_summary: "O grupo registrou os pontos prioritários e combinou um novo encontro.", participant_count_aggregate: 9, tasks_completed_aggregate: 1, memory_summary: "Aprendemos que tarefas pequenas e retorno público facilitam a participação.", learned_summary: "Preparação compartilhada reduz barreiras para entrar na ação.", next_steps_summary: "Acompanhar os compromissos assumidos e manter o caderno atualizado.", memory_published_at: "2026-07-12T12:00:00Z", memoryAssets: [{ id: "preview-photo", asset_kind: "photograph", title: "Fotografia pública de demonstração", public_url: "https://example.invalid/foto-publica" }], admin_next_step: "A memória está preservada e disponível publicamente.",
+    id: "preview-completed",
+    slug: "memoria-do-mutirao",
+    title: "Memória do mutirão",
+    summary: "Uma ação concluída sintética para auditoria visual.",
+    objective: "Reunir aprendizados do cuidado coletivo no território.",
+    action_type: "mutual_aid",
+    status: "completed",
+    visibility: "public",
+    territory_label: "Território demonstração",
+    meeting_place: null,
+    starts_at: "2026-07-10T13:00:00Z",
+    participation_mode: "in_person",
+    tasks: [
+      {
+        id: "preview-completed-task",
+        title: "Organizar materiais",
+        description: "Separar os materiais usados no mutirão.",
+        desired_count: 2,
+        assumed_count: 2,
+        state: "done",
+        effort_level: "small",
+        participation_mode: "in_person",
+        due_at: null,
+      },
+    ],
+    updates: [
+      timeline(
+        "preview-result",
+        "result_verified",
+        "Resultado verificado",
+        "Os pontos prioritários foram registrados e compartilhados.",
+        "2026-07-12T10:00:00Z",
+      ),
+      timeline(
+        "preview-memory",
+        "memory_completed",
+        "Memória concluída",
+        "A memória preserva objetivo, resultado e próximos desdobramentos.",
+        "2026-07-12T12:00:00Z",
+      ),
+    ],
+    sidewalkRecords: [],
+    counts: {
+      interested: 12,
+      participating: 9,
+      tasksAssumed: 4,
+      updates: 2,
+      results: 1,
+    },
+    pauta: null,
+    community: null,
+    result_status: "achieved",
+    result_summary:
+      "O grupo registrou os pontos prioritários e combinou um novo encontro.",
+    participant_count_aggregate: 9,
+    tasks_completed_aggregate: 1,
+    memory_summary:
+      "Aprendemos que tarefas pequenas e retorno público facilitam a participação.",
+    learned_summary:
+      "Preparação compartilhada reduz barreiras para entrar na ação.",
+    next_steps_summary:
+      "Acompanhar os compromissos assumidos e manter o caderno atualizado.",
+    memory_published_at: "2026-07-12T12:00:00Z",
+    memoryAssets: [
+      {
+        id: "preview-photo",
+        asset_kind: "photograph",
+        title: "Fotografia pública de demonstração",
+        public_url: "https://example.invalid/foto-publica",
+        public_visible: true,
+        reviewed_at: "2026-07-12T12:00:00Z",
+      },
+    ],
+    admin_next_step: "A memória está preservada e disponível publicamente.",
   },
 ] as const;
 
 export function getCollectiveActionsPreviewFixture(slug: string) {
-  return collectiveActionsPreviewFixtures.find((action) => action.slug === slug) ?? null;
+  return (
+    collectiveActionsPreviewFixtures.find((action) => action.slug === slug) ??
+    null
+  );
 }
