@@ -25,7 +25,7 @@ export type CreatePautaState =
 export const initialCreatePautaState: CreatePautaState = { state: "idle" };
 
 export async function createLowFrictionPautaAction(
-  _previous: CreatePautaState,
+  previous: CreatePautaState,
   formData: FormData,
 ): Promise<CreatePautaState> {
   if (!isComunPautaLowFrictionCreationEnabled())
@@ -63,7 +63,9 @@ export async function createLowFrictionPautaAction(
 
   const evidenceRef = String(formData.get("evidence_ref") ?? "").trim();
   const keepEvidence = formData.get("keep_evidence") === "on";
-  const allowWithoutEvidence = formData.get("allow_without_evidence") === "1";
+  const allowWithoutEvidence =
+    formData.get("allow_without_evidence") === "1" &&
+    previous.state === "evidence_changed";
   let citation = null;
   if (evidenceRef && keepEvidence) {
     citation = await resolveCurrentPublicEvidenceReference(evidenceRef);
@@ -92,7 +94,9 @@ export async function createLowFrictionPautaAction(
     p_slug_base: derivePautaSlug(title),
     p_request_key: requestKey,
     p_fingerprint_hash: fingerprintHash,
-    p_allow_duplicate: formData.get("allow_duplicate") === "1",
+    p_allow_duplicate:
+      formData.get("allow_duplicate") === "1" &&
+      previous.state === "duplicate",
     p_public_evidence: citation,
   });
   if (error || !Array.isArray(data) || !data[0])

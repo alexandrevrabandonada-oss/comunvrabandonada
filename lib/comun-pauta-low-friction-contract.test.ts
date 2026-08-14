@@ -44,6 +44,15 @@ describe("E3 database and server boundary", () => {
     expect(form).not.toContain("public_evidence_payload");
   });
 
+  it("accepts exceptional confirmations only after their server-returned state", () => {
+    expect(action).toMatch(
+      /formData\.get\("allow_duplicate"\) === "1" &&\s+previous\.state === "duplicate"/,
+    );
+    expect(action).toMatch(
+      /formData\.get\("allow_without_evidence"\) === "1" &&\s+previous\.state === "evidence_changed"/,
+    );
+  });
+
   it("preserves the pre-auth draft locally without auto-submit", () => {
     expect(form).toContain("sessionStorage.setItem(DRAFT_KEY, question)");
     expect(form).toContain("window.location.assign(loginHref)");
