@@ -132,7 +132,9 @@ test("Panorama oferece somente pontes exatas e preserva o próximo passo da Paut
         name: "Pautas relacionadas a esta evidência",
       }),
     ).toBeVisible();
-    const pautaLink = page.getByRole("link", { name: "Acompanhar pauta" }).first();
+    const pautaLink = page
+      .getByRole("link", { name: "Acompanhar pauta" })
+      .first();
     if (await pautaLink.isVisible().catch(() => false)) await pautaLink.click();
   }
 
