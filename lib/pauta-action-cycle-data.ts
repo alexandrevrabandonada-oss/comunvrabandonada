@@ -98,7 +98,55 @@ export async function getAdminPautaActionCycle(pautaId: string) {
   };
 }
 
-export async function getPublicPautaActionCycle(pautaId: string) {
+export type PublicPautaActionCycleV1 = {
+  currentStage: string;
+  nextAction: string | null;
+  blockingReason: string | null;
+  responsibleRole: string | null;
+  lastTransitionAt: string | null;
+  memoryPublishedAt: string | null;
+  timeline: readonly {
+    id: string;
+    from_stage: string | null;
+    to_stage: string;
+    public_summary: string;
+    state_version: number;
+    occurred_at: string;
+  }[];
+  decision: {
+    public_title: string;
+    public_summary: string;
+    public_justification: string | null;
+    decided_at: string | null;
+    published_at: string | null;
+  } | null;
+  action: {
+    slug: string;
+    title: string;
+    summary: string;
+    status: string;
+  } | null;
+  protocol: {
+    comun_protocol: string;
+    official_protocol_number: string | null;
+    status: string;
+    expected_response_at: string | null;
+    public_summary: string | null;
+    response_received_at: string | null;
+  } | null;
+  result: {
+    title: string;
+    result_type: string;
+    public_summary: string;
+    verification_status: string;
+    occurred_at: string | null;
+    evidence_summary_public: string | null;
+  } | null;
+};
+
+export async function getPublicPautaActionCycle(
+  pautaId: string,
+): Promise<PublicPautaActionCycleV1 | null> {
   const db = service();
   if (!db) return null;
   const { data: cycle } = await db

@@ -163,11 +163,13 @@ describe("COMUN 48.3-C1 canonical collective action projection", () => {
       memory_summary: "Memória pública.",
       learned_summary: "Aprendizado público.",
       next_steps_summary: "Próximo passo público.",
+      memory_published_at: "2026-08-20T16:00:00Z",
     });
     expect(detail?.tasks).toHaveLength(1);
     expect(detail?.tasks[0].availability).toBe("available");
     expect(detail?.publicUpdates).toHaveLength(1);
     expect(detail?.aggregateCounts.participating).toBe(2);
+    expect(detail?.publicMemory.publishedAt).toBe("2026-08-20T16:00:00Z");
     const serialized = JSON.stringify(detail);
     for (const forbidden of [
       "PRIVATE_ADMIN_SENTINEL",
@@ -186,6 +188,38 @@ describe("COMUN 48.3-C1 canonical collective action projection", () => {
     ]) {
       expect(serialized).not.toContain(forbidden);
     }
+  });
+
+  it("does not expose operational memory before explicit publication", () => {
+    const detail = projectPublicCollectiveActionDetail({
+      ...action,
+      status: "completed",
+      result_summary: "PRIVATE_DRAFT_RESULT_SENTINEL",
+      memory_summary: "PRIVATE_DRAFT_MEMORY_SENTINEL",
+      learned_summary: "PRIVATE_DRAFT_LEARNING_SENTINEL",
+      next_steps_summary: "PRIVATE_DRAFT_NEXT_SENTINEL",
+      memory_published_at: null,
+      memoryAssets: [
+        {
+          id: "reviewed-but-memory-draft",
+          title: "PRIVATE_DRAFT_ASSET_SENTINEL",
+          public_url: "https://example.org/draft.pdf",
+          asset_kind: "document",
+          public_visible: true,
+          reviewed_at: "2026-08-20T15:00:00Z",
+        },
+      ],
+    });
+    expect(detail?.publicMemory).toEqual({
+      publishedAt: null,
+      resultStatus: null,
+      resultSummary: null,
+      memorySummary: null,
+      learnedSummary: null,
+      nextStepsSummary: null,
+      assets: [],
+    });
+    expect(JSON.stringify(detail)).not.toContain("PRIVATE_DRAFT_");
   });
 
   it("fails closed for non-public updates, forwarding, and unreviewed memory", () => {

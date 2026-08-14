@@ -95,6 +95,7 @@ export type PublicCollectiveActionDetailV1 = PublicCollectiveActionSummaryV1 & {
   publicUpdates: readonly PublicCollectiveActionUpdateV1[];
   publicForwarding: PublicCollectiveActionForwardingV1 | null;
   publicMemory: {
+    publishedAt: string | null;
     resultStatus: string | null;
     resultSummary: string | null;
     memorySummary: string | null;
@@ -183,9 +184,9 @@ export function collectiveActionProcessOrder(
   return { open: 0, active: 1, awaiting_result: 2, completed: 3 }[status];
 }
 
-export function sortPublicCollectiveActions(
-  actions: readonly PublicCollectiveActionSummaryV1[],
-) {
+export function sortPublicCollectiveActions<
+  T extends PublicCollectiveActionSummaryV1,
+>(actions: readonly T[]) {
   return [...actions].sort((a, b) => {
     const state =
       collectiveActionProcessOrder(a.status) -
@@ -319,12 +320,23 @@ export function projectPublicCollectiveActionDetail(
         }
       : null,
     publicMemory: {
-      resultStatus: text(item.result_status),
-      resultSummary: text(item.result_summary),
-      memorySummary: text(item.memory_summary),
-      learnedSummary: text(item.learned_summary),
-      nextStepsSummary: text(item.next_steps_summary),
-      assets,
+      publishedAt: text(item.memory_published_at),
+      resultStatus: text(item.memory_published_at)
+        ? text(item.result_status)
+        : null,
+      resultSummary: text(item.memory_published_at)
+        ? text(item.result_summary)
+        : null,
+      memorySummary: text(item.memory_published_at)
+        ? text(item.memory_summary)
+        : null,
+      learnedSummary: text(item.memory_published_at)
+        ? text(item.learned_summary)
+        : null,
+      nextStepsSummary: text(item.memory_published_at)
+        ? text(item.next_steps_summary)
+        : null,
+      assets: text(item.memory_published_at) ? assets : [],
     },
     aggregateCounts: {
       interested: count(counts?.interested),
@@ -378,6 +390,77 @@ export async function listPublicCollectiveActionsByPauta(
   return sortPublicCollectiveActions(
     (data ?? []).flatMap(
       (item: unknown) => projectPublicCollectiveActionSummary(item) ?? [],
+    ),
+  );
+}
+
+export async function listPublicCollectiveActionMemoryDetailsByPauta(
+  pautaId: string,
+  limit = 8,
+): Promise<PublicCollectiveActionDetailV1[]> {
+  const client = createServiceSupabaseClient();
+  if (!client || !pautaId) return [];
+  const { data: actions } = await client
+    .from("comun_collective_actions")
+    .select(
+      "id,slug,title,summary,objective,action_type,status,visibility,territory_label,meeting_place,starts_at,ends_at,participation_mode,result_status,result_summary,memory_summary,learned_summary,next_steps_summary,memory_published_at,pauta:comun_pauta_spaces(slug,title),community:comun_communities(slug,name)",
+    )
+    .eq("pauta_id", pautaId)
+    .eq("visibility", "public")
+    .in("status", publicCollectiveActionStatuses)
+    .order("starts_at", { ascending: true, nullsFirst: false })
+    .limit(Math.min(Math.max(limit, 1), 8));
+  const actionRows = (actions ?? []) as UnknownRow[];
+  const actionIds = actionRows.flatMap((action) => text(action.id) ?? []);
+  if (!actionIds.length) return [];
+
+  const [updatesResult, forwardingsResult, assetsResult] = await Promise.all([
+    client
+      .from("comun_collective_action_updates")
+      .select("id,action_id,update_type,title,public_summary,occurred_at,visibility")
+      .in("action_id", actionIds)
+      .eq("visibility", "public")
+      .order("occurred_at", { ascending: false })
+      .limit(48),
+    client
+      .from("comun_collective_action_forwardings")
+      .select(
+        "action_id,recipient_name,public_summary,sent_at,protocol_code,expected_response_at,state,response_public,public_document_url,public_document_label,public_visible",
+      )
+      .in("action_id", actionIds)
+      .eq("public_visible", true),
+    client
+      .from("comun_collective_action_memory_assets")
+      .select(
+        "id,action_id,asset_kind,title,public_url,public_visible,reviewed_at",
+      )
+      .in("action_id", actionIds)
+      .eq("public_visible", true)
+      .not("reviewed_at", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(48),
+  ]);
+  const updates = (updatesResult.data ?? []) as UnknownRow[];
+  const forwardings = (forwardingsResult.data ?? []) as UnknownRow[];
+  const assets = (assetsResult.data ?? []) as UnknownRow[];
+
+  return sortPublicCollectiveActions(
+    actionRows.flatMap((action) =>
+      projectPublicCollectiveActionDetail({
+        ...action,
+        tasks: [],
+        updates: updates.filter(
+          (update) => text(update.action_id) === text(action.id),
+        ),
+        forwarding:
+          forwardings.find(
+            (forwarding) => text(forwarding.action_id) === text(action.id),
+          ) ?? null,
+        memoryAssets: assets.filter(
+          (asset) => text(asset.action_id) === text(action.id),
+        ),
+        counts: {},
+      }) ?? [],
     ),
   );
 }

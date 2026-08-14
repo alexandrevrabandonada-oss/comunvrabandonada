@@ -1,0 +1,79 @@
+name: COMUN 48.3-D1 disposable canonical cycle memory
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-3-d1-disposable.yml"
+      - "lib/comun-pauta-cycle-memory*.ts"
+      - "lib/comun-collective-actions-canonical*.ts"
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.113.0 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Start disposable Supabase and prove canonical source chain
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor >"$RUNNER_TEMP/d1-supabase-start.log" 2>&1; then
+            echo COMUN_48_3_D1_BLOCKED_DISPOSABLE_SUPABASE_START
+            exit 1
+          fi
+          db="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '"')"; test -n "$db"
+          psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
+          begin;
+          insert into public.comun_admin_users(id,user_id,email,role,is_active) values
+            ('d1000000-0000-4000-8000-000000000001',gen_random_uuid(),'d1-editor@example.invalid','editor',true),
+            ('d1000000-0000-4000-8000-000000000002',gen_random_uuid(),'d1-admin@example.invalid','admin',true);
+          insert into public.comun_pauta_spaces(id,slug,title,summary,status,visibility,problem_public,demand_public,next_step) values
+            ('d1000000-0000-4000-8000-000000000003','d1-disposable','D1 descartável','História pública descartável.','organizing','public','Qual era a questão?','Construir resposta pública.','Acompanhar o resultado.');
+          insert into public.comun_construction_circles(id,pauta_id,title,public_question,status,participation_mode) values
+            ('d1000000-0000-4000-8000-000000000004','d1000000-0000-4000-8000-000000000003','Roda D1','O que aprendemos?','completed','moderated_public');
+          insert into public.comun_construction_circle_rounds(id,circle_id,round_type,title,public_prompt,position,status) values
+            ('d1000000-0000-4000-8000-000000000005','d1000000-0000-4000-8000-000000000004','listening','Escuta','O que ocorreu?',1,'synthesized');
+          insert into public.comun_circle_syntheses(circle_id,round_id,public_summary,agreements,open_questions,proposed_next_steps,status,published_at) values
+            ('d1000000-0000-4000-8000-000000000004','d1000000-0000-4000-8000-000000000005','Síntese pública descartável.',array['Acordo público'],array['Questão aberta'],array['Próximo passo'],'published',now());
+          insert into public.comun_pauta_synthesis_versions(id,pauta_id,new_public_synthesis,new_next_step,editor_note) values
+            ('d1000000-0000-4000-8000-000000000006','d1000000-0000-4000-8000-000000000003','Síntese pública da pauta.','Publicar decisão.','Fixture descartável');
+          insert into public.comun_pauta_decisions(id,pauta_id,synthesis_version_id,circle_id,public_title,public_summary,public_justification,status,created_by_admin_id,published_by_admin_id,decided_at,published_at) values
+            ('d1000000-0000-4000-8000-000000000007','d1000000-0000-4000-8000-000000000003','d1000000-0000-4000-8000-000000000006','d1000000-0000-4000-8000-000000000004','Decisão pública','A decisão pública delimitou a ação.','A síntese pública sustentou a decisão.','published','d1000000-0000-4000-8000-000000000001','d1000000-0000-4000-8000-000000000002',now(),now());
+          insert into public.comun_collective_actions(id,slug,title,summary,objective,action_type,status,visibility,pauta_id,result_status,result_summary,memory_summary,learned_summary,next_steps_summary,memory_published_at,completed_at) values
+            ('d1000000-0000-4000-8000-000000000008','d1-action','Ação pública D1','Ação pública delimitada.','Executar etapa concreta.','mutual_aid','completed','public','d1000000-0000-4000-8000-000000000003','partial','Resultado público parcial.','Memória pública da ação.','Aprendizado público.','Acompanhar próxima etapa.',now(),now());
+          insert into public.comun_collective_action_updates(action_id,update_type,title,public_summary,visibility) values
+            ('d1000000-0000-4000-8000-000000000008','progress','Etapa realizada','Atualização pública da ação.','public');
+          insert into public.comun_hub_results(id,pauta_id,slug,title,result_type,public_summary,verification_status,visibility,occurred_at,evidence_summary_public) values
+            ('d1000000-0000-4000-8000-000000000009','d1000000-0000-4000-8000-000000000003','d1-result','Resultado verificado','partial_change','Resultado verificado separadamente.','verified','public',now(),'Evidência pública revisada.');
+          insert into public.comun_pauta_action_cycles(id,pauta_id,current_stage,decision_id,collective_action_id,result_id,next_action_public,responsible_role,public_visible,cycle_scope,memory_published_at) values
+            ('d1000000-0000-4000-8000-000000000010','d1000000-0000-4000-8000-000000000003','memory','d1000000-0000-4000-8000-000000000007','d1000000-0000-4000-8000-000000000008','d1000000-0000-4000-8000-000000000009','Reavaliar nova evidência.','editor',true,'production',now());
+          insert into public.comun_pauta_action_cycle_events(cycle_id,idempotency_key,from_stage,to_stage,actor_admin_id,actor_role,public_summary,public_visible,state_version) values
+            ('d1000000-0000-4000-8000-000000000010','d1-memory-published','result','memory','d1000000-0000-4000-8000-000000000002','admin','Memória publicada.',true,2);
+          insert into public.comun_search_documents(domain,source_type,source_key,source_version,canonical_route,title,public_text,pauta_id,content_checksum,search_vector) values
+            ('pauta','pauta','d1-divergent','1','/comun/pautas/d1-disposable','Índice divergente','DIVERGENT_SEARCH_INDEX_SENTINEL','d1000000-0000-4000-8000-000000000003',md5('DIVERGENT_SEARCH_INDEX_SENTINEL'),to_tsvector('simple','DIVERGENT_SEARCH_INDEX_SENTINEL'));
+          do $$ begin
+            if (select count(*) from public.comun_pauta_spaces where id='d1000000-0000-4000-8000-000000000003') <> 1 then raise exception 'pauta fixture missing'; end if;
+            if (select count(*) from public.comun_circle_syntheses where circle_id='d1000000-0000-4000-8000-000000000004' and status='published') <> 1 then raise exception 'published synthesis missing'; end if;
+            if (select count(*) from public.comun_pauta_decisions where pauta_id='d1000000-0000-4000-8000-000000000003' and status='published') <> 1 then raise exception 'published decision missing'; end if;
+            if (select count(*) from public.comun_collective_actions where pauta_id='d1000000-0000-4000-8000-000000000003' and status='completed' and memory_published_at is not null) <> 1 then raise exception 'published action memory missing'; end if;
+            if (select count(*) from public.comun_hub_results where pauta_id='d1000000-0000-4000-8000-000000000003' and verification_status='verified') <> 1 then raise exception 'verified result missing'; end if;
+            if (select count(*) from public.comun_pauta_action_cycles where pauta_id='d1000000-0000-4000-8000-000000000003' and decision_id is not null and collective_action_id is not null and result_id is not null) <> 1 then raise exception 'explicit cycle links missing'; end if;
+            if (select count(*) from public.comun_search_documents where pauta_id='d1000000-0000-4000-8000-000000000003' and public_text='DIVERGENT_SEARCH_INDEX_SENTINEL') <> 1 then raise exception 'divergent discovery fixture missing'; end if;
+          end $$;
+          rollback;
+          SQL
+          npm run test:unit -- --run lib/comun-pauta-cycle-memory.test.ts
+          echo COMUN_48_3_D1_DISPOSABLE_CANONICAL_MEMORY_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo searchIndexCanonical=false >> "$GITHUB_STEP_SUMMARY"
+          echo businessWritesAfterRollback=0 >> "$GITHUB_STEP_SUMMARY"
