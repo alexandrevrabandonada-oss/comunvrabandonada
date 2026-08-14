@@ -36,6 +36,9 @@ describe("Pautas Vivas A1 contract", () => {
   });
 
   it("keeps public evidence, participation and editorial synthesis distinct", () => {
+    expect(detail).toContain(
+      'data-comun-app-v2-page="pautas-vivas-collection"',
+    );
     expect(detail).toContain("Evidências públicas");
     expect(detail).toContain("Participação");
     expect(detail).toContain("Síntese editorial");
