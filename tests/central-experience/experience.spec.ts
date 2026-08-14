@@ -34,9 +34,18 @@ test("visitante entende navegacao finita", async ({ page }) => {
   await page.goto("/comun");
   await expect(page.getByRole("navigation").first()).toBeVisible();
   await expect(page.locator('[data-comun-app-v2-page="home"]')).toBeVisible();
+  await expect(page.locator('[data-comun-primary-action="true"]')).toHaveCount(
+    1,
+  );
   await expect(
-    page.getByRole("heading", { name: "Pede atenção" }),
-  ).toBeVisible();
+    page.getByRole("link", { name: /Entender a cidade/ }),
+  ).toHaveAttribute("href", "/comun/observatorios/panorama");
+  await expect(
+    page.getByRole("link", { name: /Participar do que está acontecendo/ }),
+  ).toHaveAttribute("href", "/comun/pautas");
+  await expect(
+    page.getByRole("link", { name: /Minha participação/ }).first(),
+  ).toHaveAttribute("href", "/comun/minha-participacao");
   await page.goto("/comun/participar");
   await expect(page).toHaveURL(/\/comun\/participar/);
   await expect(page.locator("h1")).toContainText("Como você quer contribuir?");
