@@ -83,7 +83,9 @@ test("participation door opens Pautas directly and remains mutation-free", async
   expect(mutations).toEqual([]);
 });
 
-test("tab scroll and Explore filters survive tab changes", async ({ page }) => {
+test("secondary Explore deep links survive while Entender stays canonical", async ({
+  page,
+}) => {
   await page.addInitScript(() => {
     addEventListener("DOMContentLoaded", () => {
       const style = document.createElement("style");
@@ -97,32 +99,22 @@ test("tab scroll and Explore filters survive tab changes", async ({ page }) => {
       .getByRole("navigation", { name: "Filtros principais" })
       .getByRole("link", { name: "Comunidades", exact: true }),
   ).toBeVisible();
+  const exploreHref = page.url();
   const nav = page.getByRole("navigation", { name: "Navegação principal" });
   await nav.getByRole("link", { name: "Início", exact: true }).press("Enter");
   await page
     .getByRole("navigation", { name: "Navegação principal" })
-    .getByRole("link", { name: "Explorar", exact: true })
+    .getByRole("link", { name: "Entender", exact: true })
     .press("Enter");
-  await expect(page).toHaveURL(/categoria=comunidades/);
+  await expect(page).toHaveURL(/\/comun\/observatorios\/panorama/);
 
-  await page.evaluate(() =>
-    window.scrollTo(
-      0,
-      Math.min(600, document.documentElement.scrollHeight - innerHeight),
-    ),
-  );
-  const saved = await page.evaluate(() => window.scrollY);
-  await page
-    .getByRole("navigation", { name: "Navegação principal" })
-    .getByRole("link", { name: "Início", exact: true })
-    .press("Enter");
-  await page
-    .getByRole("navigation", { name: "Navegação principal" })
-    .getByRole("link", { name: "Explorar", exact: true })
-    .press("Enter");
-  await expect
-    .poll(() => page.evaluate(() => window.scrollY))
-    .toBeGreaterThanOrEqual(Math.max(0, saved - 2));
+  await page.goto(exploreHref);
+  await expect(page).toHaveURL(/categoria=comunidades/);
+  await expect(
+    page
+      .getByRole("navigation", { name: "Filtros principais" })
+      .getByRole("link", { name: "Comunidades", exact: true }),
+  ).toBeVisible();
 });
 
 test("community and miniapp cards use distinct semantic grammars", async ({
