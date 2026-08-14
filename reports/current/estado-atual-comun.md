@@ -1,4 +1,22 @@
-# Estado atual — 48.3-E1 Coerência Integrada da Experiência (14/08/2026)
+# Estado candidato — 48.3-E2 Pontes Naturais de Organização (14/08/2026)
+
+## 48.3-E2 — Evidência pública → Pauta existente
+
+- o Panorama ganhou pontes contextuais derivadas somente de `public_evidence_ref_id` persistido, sem matching textual, busca, embedding, IA, recomendação ou ranking;
+- uma consulta batched resolve todas as relações, filtrando evidência `approved/public_safe` e Pautas públicas não arquivadas;
+- versões atuais e históricas permanecem distintas e nenhuma relação é atualizada automaticamente;
+- uma Pauta ligada abre diretamente; múltiplas usam o recorte canônico `/comun/pautas?evidencia=<refId>`; zero relações não produz CTA morta;
+- o recorte resolve referências no servidor, falha fechado para refs inválidas e preserva a volta à fonte pública;
+- zero rota, API, flag, migration, auto-create, auto-attach ou leitura de Relata privado;
+- débito explícito: `COMUN_48_3_E2_RELATA_TO_PAUTA_DEFERRED_PRIVATE_BOUNDARY`.
+
+Estado terminal ainda não emitido: candidato sujeito a CI, exact-head merge e smoke read-only de Production.
+
+Detalhes: `reports/current/comun-48-3-e2-natural-organization-bridges.md`.
+
+Preservados: `COMUN_48_3_E1_INTEGRATED_EXPERIENCE_COHERENCE_GREEN_STREAMLINED_NAVIGATION`, `COMUN_48_3_D1_COLLECTIVE_CYCLE_MEMORY_GREEN_CANONICAL_PUBLIC_NARRATIVE`, `COMUN_48_3_C1_COLLECTIVE_ACTIONS_CANONICAL_EXPERIENCE_GREEN_MEMBER_PARTICIPATION`, `COMUN_48_3_B1_RODAS_VIVAS_CANONICAL_EXPERIENCE_GREEN_MODERATED_PUBLIC`, `COMUN_48_3_A1_PAUTAS_VIVAS_PUBLIC_CORE_GREEN_VERSIONED_EVIDENCE`, `COMUN_48_2_F_CROSS_OBSERVATORY_CITY_PANORAMA_GREEN_PUBLIC_SAFE`, `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e `launch_publicly=false`.
+
+# Estado anterior — 48.3-E1 Coerência Integrada da Experiência (14/08/2026)
 
 ## 48.3-E1 — Menos portas e um próximo passo claro
 

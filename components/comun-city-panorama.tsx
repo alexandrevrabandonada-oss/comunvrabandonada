@@ -1,12 +1,56 @@
 import Link from "next/link";
 import type { CityPanoramaPublicDto, PanoramaLayer } from "@/lib/comun-city-panorama";
+import type { PublicOrganizationBridgeV1 } from "@/lib/comun-organization-bridges";
+import { publicOrganizationBridgeHref } from "@/lib/comun-organization-bridges";
 
 const sourceKindLabel = {
   official_public_data: "Dados oficiais",
   reviewed_community_projection: "Observações comunitárias revisadas",
 } as const;
 
-function LayerCard({ layer }: { layer: PanoramaLayer }) {
+function OrganizationBridgeLink({
+  bridge,
+}: {
+  bridge: PublicOrganizationBridgeV1 | undefined;
+}) {
+  const href = publicOrganizationBridgeHref(bridge);
+  if (!bridge?.pautas.length || !href) return null;
+  const singlePauta = bridge.pautas.length === 1 ? bridge.pautas[0] : null;
+  const hasHistoricalVersion = bridge.pautas.some(
+    (pauta) => pauta.relationVersionState === "historical_version",
+  );
+  return (
+    <div
+      className="mt-5 border-t border-comun-black/15 pt-4"
+      data-comun-organization-bridge="exact-public-evidence"
+      data-comun-evidence-ref={bridge.evidenceRefId}
+    >
+      <Link
+        href={href}
+        className="inline-flex min-h-11 items-center font-black underline decoration-2 underline-offset-4"
+      >
+        {singlePauta
+          ? "Ver pauta relacionada"
+          : `Ver ${bridge.pautas.length} pautas relacionadas`}
+      </Link>
+      {hasHistoricalVersion ? (
+        <p className="mt-1 text-xs text-comun-black/65">
+          {singlePauta
+            ? "Esta pauta possui uma versão anterior desta evidência."
+            : "Há pautas ligadas a uma versão anterior desta evidência."}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function LayerCard({
+  layer,
+  bridge,
+}: {
+  layer: PanoramaLayer;
+  bridge: PublicOrganizationBridgeV1 | undefined;
+}) {
   const available = layer.availability === "available";
   return (
     <article className="border-2 border-comun-black/25 bg-comun-paper p-5">
@@ -31,6 +75,7 @@ function LayerCard({ layer }: { layer: PanoramaLayer }) {
           <Link href={layer.publicPath} className="mt-5 inline-flex min-h-11 items-center font-black underline decoration-2 underline-offset-4">
             Ver observatório
           </Link>
+          <OrganizationBridgeLink bridge={bridge} />
         </>
       ) : (
         <p className="mt-5 border-l-4 border-comun-yellow pl-3 text-sm">
@@ -41,7 +86,16 @@ function LayerCard({ layer }: { layer: PanoramaLayer }) {
   );
 }
 
-export function ComunCityPanorama({ dto }: { dto: CityPanoramaPublicDto }) {
+export function ComunCityPanorama({
+  dto,
+  organizationBridges = [],
+}: {
+  dto: CityPanoramaPublicDto;
+  organizationBridges?: readonly PublicOrganizationBridgeV1[];
+}) {
+  const bridgesByRef = new Map(
+    organizationBridges.map((bridge) => [bridge.evidenceRefId, bridge]),
+  );
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 text-comun-black sm:py-12">
       <header className="max-w-4xl">
@@ -61,7 +115,13 @@ export function ComunCityPanorama({ dto }: { dto: CityPanoramaPublicDto }) {
       <section className="mt-10" aria-labelledby="panorama-visible-title">
         <h2 id="panorama-visible-title" className="text-3xl font-black uppercase">O que já conseguimos enxergar</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          {dto.layers.map((layer) => <LayerCard key={layer.id} layer={layer} />)}
+          {dto.layers.map((layer) => (
+            <LayerCard
+              key={layer.id}
+              layer={layer}
+              bridge={bridgesByRef.get(`panorama:${layer.id}:coverage`)}
+            />
+          ))}
         </div>
       </section>
 
@@ -76,7 +136,20 @@ export function ComunCityPanorama({ dto }: { dto: CityPanoramaPublicDto }) {
         <h2 id="panorama-gaps-title" className="text-3xl font-black uppercase">O que ainda não conseguimos afirmar</h2>
         <p className="mt-3">Estas lacunas não significam ausência absoluta de dados: significam que o contrato atual do COMUN ainda não permite uma leitura pública segura.</p>
         <ul className="mt-5 grid gap-3">
-          {dto.knownGaps.map((gap) => <li key={gap.reasonCode} className="border-2 border-comun-black/20 bg-comun-paper p-4"><h3 className="font-black">{gap.domain}</h3><p className="mt-1 text-sm">{gap.humanDescription}</p></li>)}
+          {dto.knownGaps.map((gap) => (
+            <li
+              key={gap.reasonCode}
+              className="border-2 border-comun-black/20 bg-comun-paper p-4"
+            >
+              <h3 className="font-black">{gap.domain}</h3>
+              <p className="mt-1 text-sm">{gap.humanDescription}</p>
+              <OrganizationBridgeLink
+                bridge={bridgesByRef.get(
+                  `panorama:gap:${gap.reasonCode}`,
+                )}
+              />
+            </li>
+          ))}
         </ul>
       </section>
 

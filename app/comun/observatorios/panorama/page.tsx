@@ -11,6 +11,7 @@ import {
   isComunObservatoryTransportSystemMetricsEnabled,
 } from "@/lib/comun-observatory-feature";
 import { getCityPanoramaPublicDto } from "@/lib/comun-city-panorama";
+import { listPublicOrganizationBridgesForReferences } from "@/lib/comun-organization-bridges";
 
 export const dynamic = "force-dynamic";
 
@@ -24,5 +25,14 @@ export default async function CityPanoramaPage() {
     surfaceWaterEnabled: isComunObservatoryEnvironmentSurfaceWaterEnabled(),
     essentialPowerInterruptionEnabled: isComunObservatoryEssentialPowerInterruptionEnabled(),
   });
-  return <ComunShell><ComunCityPanorama dto={dto} /></ComunShell>;
+  const organizationBridges =
+    await listPublicOrganizationBridgesForReferences(dto.evidenceReferences);
+  return (
+    <ComunShell>
+      <ComunCityPanorama
+        dto={dto}
+        organizationBridges={organizationBridges}
+      />
+    </ComunShell>
+  );
 }

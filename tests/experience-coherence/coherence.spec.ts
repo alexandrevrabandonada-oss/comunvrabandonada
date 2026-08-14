@@ -99,6 +99,51 @@ test("Pauta mantém uma próxima ação e a Roda retorna ao seu contexto", async
   await expectNoOverflow(page);
 });
 
+test("Panorama oferece somente pontes exatas e preserva o próximo passo da Pauta", async ({
+  page,
+}) => {
+  await page.goto("/comun/observatorios/panorama");
+  await expectAtMostOnePrimaryAction(page);
+
+  const bridges = page.locator(
+    '[data-comun-organization-bridge="exact-public-evidence"]',
+  );
+  if ((await bridges.count()) === 0) {
+    await expect(page.locator("body")).not.toContainText(
+      /Pautas recomendadas|Talvez você goste|Criar pauta/i,
+    );
+    await expectNoOverflow(page);
+    return;
+  }
+
+  const firstBridge = bridges.first();
+  const evidenceRef = await firstBridge.getAttribute("data-comun-evidence-ref");
+  expect(evidenceRef).toMatch(/^panorama:/);
+  const link = firstBridge.getByRole("link", {
+    name: /Ver (?:\d+ )?pautas? relacionadas?/,
+  });
+  const href = await link.getAttribute("href");
+  expect(href).toMatch(/^\/comun\/pautas(?:\/|\?evidencia=)/);
+  await link.click();
+
+  if (href?.startsWith("/comun/pautas?evidencia=")) {
+    await expect(
+      page.getByRole("heading", {
+        name: "Pautas relacionadas a esta evidência",
+      }),
+    ).toBeVisible();
+    const pautaLink = page
+      .getByRole("link", { name: "Acompanhar pauta" })
+      .first();
+    if (await pautaLink.isVisible().catch(() => false)) await pautaLink.click();
+  }
+
+  await expect(page).toHaveURL(/\/comun\/pautas\//);
+  await expect(page.locator("h1")).toHaveCount(1);
+  await expectAtMostOnePrimaryAction(page);
+  await expectNoOverflow(page);
+});
+
 test("alias, filtros, retorno e rollback legado preservam contexto", async ({
   page,
 }) => {

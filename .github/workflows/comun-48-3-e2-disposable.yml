@@ -1,0 +1,88 @@
+name: COMUN 48.3-E2 disposable exact evidence bridges proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-3-e2-disposable.yml"
+      - "lib/comun-organization-bridges*.ts"
+      - "components/comun-city-panorama.tsx"
+      - "components/comun-pautas-vivas.tsx"
+      - "app/comun/observatorios/panorama/**"
+      - "app/comun/pautas/**"
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.113.0 }
+      - name: Start disposable Supabase and prove exact persisted relations
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor >"$RUNNER_TEMP/e2-supabase-start.log" 2>&1; then
+            echo COMUN_48_3_E2_BLOCKED_DISPOSABLE_SUPABASE_START
+            exit 1
+          fi
+          db="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '"')"
+          test -n "$db"
+          psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
+          begin;
+          insert into public.comun_pauta_spaces(id,slug,title,status,visibility,public_status,updated_at) values
+            ('e2000000-0000-4000-8000-000000000001','e2-current','Mesmo título público','organizing','public','triage','2026-08-14T12:00:00Z'),
+            ('e2000000-0000-4000-8000-000000000002','e2-historical','Pauta histórica','organizing','public','triage','2026-08-13T12:00:00Z'),
+            ('e2000000-0000-4000-8000-000000000003','e2-internal','Pauta interna','organizing','internal','triage','2026-08-14T12:00:00Z'),
+            ('e2000000-0000-4000-8000-000000000004','e2-archived','Pauta arquivada','archived','public','archived','2026-08-14T12:00:00Z'),
+            ('e2000000-0000-4000-8000-000000000005','e2-rejected','Pauta rejeitada','organizing','public','triage','2026-08-14T12:00:00Z'),
+            ('e2000000-0000-4000-8000-000000000006','e2-private','Pauta privada','organizing','public','triage','2026-08-14T12:00:00Z'),
+            ('e2000000-0000-4000-8000-000000000007','e2-no-match','Mesmo título público','organizing','public','triage','2026-08-14T12:00:00Z');
+          insert into public.comun_pauta_evidence_items(
+            pauta_id,source_type,title,evidence_type,sensitivity,status,
+            public_evidence_ref_id,public_evidence_version,public_evidence_payload
+          ) values
+            ('e2000000-0000-4000-8000-000000000001','public_evidence','Território','dado_agregado','public_safe','approved','panorama:territory:coverage','sha256:'||repeat('a',64),'{}'),
+            ('e2000000-0000-4000-8000-000000000002','public_evidence','Território','dado_agregado','public_safe','approved','panorama:territory:coverage','sha256:'||repeat('b',64),'{}'),
+            ('e2000000-0000-4000-8000-000000000003','public_evidence','Território','dado_agregado','public_safe','approved','panorama:territory:coverage','sha256:'||repeat('c',64),'{}'),
+            ('e2000000-0000-4000-8000-000000000004','public_evidence','Território','dado_agregado','public_safe','approved','panorama:territory:coverage','sha256:'||repeat('d',64),'{}'),
+            ('e2000000-0000-4000-8000-000000000005','public_evidence','Território','dado_agregado','public_safe','rejected','panorama:territory:coverage','sha256:'||repeat('e',64),'{}'),
+            ('e2000000-0000-4000-8000-000000000006','public_evidence','Território','dado_agregado','private_only','approved','panorama:territory:coverage','sha256:'||repeat('f',64),'{}'),
+            ('e2000000-0000-4000-8000-000000000007','public_evidence','Mesmo título público','dado_agregado','public_safe','approved','panorama:transport:coverage','sha256:'||repeat('1',64),'{}');
+          do $$
+          declare exact_count integer; current_count integer; historical_count integer; no_match_count integer;
+          begin
+            select count(*),
+              count(*) filter(where e.public_evidence_version='sha256:'||repeat('a',64)),
+              count(*) filter(where e.public_evidence_version='sha256:'||repeat('b',64))
+            into exact_count,current_count,historical_count
+            from public.comun_pauta_evidence_items e
+            join public.comun_pauta_spaces p on p.id=e.pauta_id
+            where e.source_type='public_evidence' and e.status='approved'
+              and e.sensitivity='public_safe'
+              and e.public_evidence_ref_id='panorama:territory:coverage'
+              and p.visibility='public' and p.status<>'archived';
+            select count(*) into no_match_count
+            from public.comun_pauta_evidence_items e
+            where e.public_evidence_ref_id='panorama:territory:coverage'
+              and e.pauta_id='e2000000-0000-4000-8000-000000000007';
+            if exact_count<>2 or current_count<>1 or historical_count<>1 then raise exception 'exact bridge projection failed'; end if;
+            if no_match_count<>0 then raise exception 'title/category fuzzy match detected'; end if;
+          end $$;
+          rollback;
+          select case when
+            (select count(*) from public.comun_pauta_spaces where id::text like 'e2000000-%')=0
+            and (select count(*) from public.comun_pauta_evidence_items where pauta_id::text like 'e2000000-%')=0
+          then 'rollback_green' else 'rollback_failed' end;
+          SQL
+          echo COMUN_48_3_E2_DISPOSABLE_EXACT_BRIDGES_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo currentVersionRelations=1 >> "$GITHUB_STEP_SUMMARY"
+          echo historicalVersionRelations=1 >> "$GITHUB_STEP_SUMMARY"
+          echo privateOrArchivedRelations=0 >> "$GITHUB_STEP_SUMMARY"
+          echo fuzzyMatches=0 >> "$GITHUB_STEP_SUMMARY"
+          echo automaticPautasCreated=0 >> "$GITHUB_STEP_SUMMARY"
+          echo businessWritesAfterRollback=0 >> "$GITHUB_STEP_SUMMARY"

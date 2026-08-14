@@ -9,6 +9,7 @@ import {
 import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
 import { isComunPautasVivasCoreEnabled } from "@/lib/comun-pautas-vivas-feature";
 import { PautasVivasIndex } from "@/components/comun-pautas-vivas";
+import { resolvePublicOrganizationBridgeFilter } from "@/lib/comun-organization-bridges";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -16,13 +17,38 @@ export const revalidate = 0;
 export default async function PautaSpacesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ experiencia?: string }>;
+  searchParams: Promise<{
+    experiencia?: string | string[];
+    evidencia?: string | string[];
+  }>;
 }) {
-  const spaces = await listPublicPautaSpaces();
-  const appV2 = isComunAppV2((await searchParams).experiencia);
+  const params = await searchParams;
+  const experience =
+    typeof params.experiencia === "string" ? params.experiencia : undefined;
+  const appV2 = isComunAppV2(experience);
 
-  if (isComunPautasVivasCoreEnabled())
+  if (isComunPautasVivasCoreEnabled()) {
+    if (Object.hasOwn(params, "evidencia")) {
+      const evidenceFilter =
+        typeof params.evidencia === "string"
+          ? await resolvePublicOrganizationBridgeFilter(params.evidencia)
+          : null;
+      return (
+        <PautasVivasIndex
+          spaces={[]}
+          evidenceFilter={
+            evidenceFilter
+              ? { state: "valid", value: evidenceFilter }
+              : { state: "invalid" }
+          }
+        />
+      );
+    }
+    const spaces = await listPublicPautaSpaces();
     return <PautasVivasIndex spaces={spaces} />;
+  }
+
+  const spaces = await listPublicPautaSpaces();
 
   if (appV2)
     return (
