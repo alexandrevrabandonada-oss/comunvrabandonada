@@ -23,56 +23,58 @@ export function PautasVivasIndex({
     (a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at),
   );
   return (
-    <ComunShell>
-      <Section>
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-comun-paper/65">
-          Organização coletiva
-        </p>
-        <h1 className="mt-2 text-3xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">
-          Pautas Vivas
-        </h1>
-        <p className="comun-prose mt-3 max-w-3xl text-comun-paper/78">
-          Espaços duráveis para entender um problema ou uma proposta, reunir
-          evidências públicas e acompanhar próximos passos.
-        </p>
-        <div className="mt-7 grid gap-4 lg:grid-cols-2">
-          {ordered.map((space) => (
-            <article
-              key={space.id}
-              className="paper-panel flex flex-col border-2 border-comun-black p-5"
-            >
-              <p className="text-xs font-black uppercase text-comun-asphalt/70">
-                {publicState(space)}
-              </p>
-              <h2 className="comun-prose mt-2 text-xl font-black uppercase">
-                {space.title}
-              </h2>
-              <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">
-                {primaryQuestion(space)}
-              </p>
-              <p className="mt-4 border-l-4 border-comun-yellow pl-3 text-sm text-comun-asphalt/75">
-                <strong>Próximo passo:</strong>{" "}
-                {space.next_step ??
-                  "Conhecer a pauta e suas formas de participação."}
-              </p>
-              <Link
-                href={`/comun/pautas/${space.slug}`}
-                className="mt-5 inline-flex min-h-11 w-fit items-center border-2 border-comun-black bg-comun-yellow px-4 text-sm font-black uppercase"
+    <div data-comun-app-v2-page="pautas-vivas-collection">
+      <ComunShell>
+        <Section>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-comun-paper/65">
+            Organização coletiva
+          </p>
+          <h1 className="mt-2 text-3xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">
+            Pautas Vivas
+          </h1>
+          <p className="comun-prose mt-3 max-w-3xl text-comun-paper/78">
+            Espaços duráveis para entender um problema ou uma proposta, reunir
+            evidências públicas e acompanhar próximos passos.
+          </p>
+          <div className="mt-7 grid gap-4 lg:grid-cols-2">
+            {ordered.map((space) => (
+              <article
+                key={space.id}
+                className="paper-panel flex flex-col border-2 border-comun-black p-5"
               >
-                Acompanhar pauta
-              </Link>
-            </article>
-          ))}
-          {!ordered.length ? (
-            <Empty text="Ainda não há Pautas Vivas públicas neste momento." />
-          ) : null}
-        </div>
-        <p className="mt-5 max-w-3xl text-sm text-comun-paper/65">
-          A ordem segue a atualização pública mais recente.{" "}
-          {"Não há ranking de popularidade."}
-        </p>
-      </Section>
-    </ComunShell>
+                <p className="text-xs font-black uppercase text-comun-asphalt/70">
+                  {publicState(space)}
+                </p>
+                <h2 className="comun-prose mt-2 text-xl font-black uppercase">
+                  {space.title}
+                </h2>
+                <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">
+                  {primaryQuestion(space)}
+                </p>
+                <p className="mt-4 border-l-4 border-comun-yellow pl-3 text-sm text-comun-asphalt/75">
+                  <strong>Próximo passo:</strong>{" "}
+                  {space.next_step ??
+                    "Conhecer a pauta e suas formas de participação."}
+                </p>
+                <Link
+                  href={`/comun/pautas/${space.slug}`}
+                  className="mt-5 inline-flex min-h-11 w-fit items-center border-2 border-comun-black bg-comun-yellow px-4 text-sm font-black uppercase"
+                >
+                  Acompanhar pauta
+                </Link>
+              </article>
+            ))}
+            {!ordered.length ? (
+              <Empty text="Ainda não há Pautas Vivas públicas neste momento." />
+            ) : null}
+          </div>
+          <p className="mt-5 max-w-3xl text-sm text-comun-paper/65">
+            A ordem segue a atualização pública mais recente.{" "}
+            {"Não há ranking de popularidade."}
+          </p>
+        </Section>
+      </ComunShell>
+    </div>
   );
 }
 
@@ -276,34 +278,36 @@ export function PautaVivaDetail({
         <PautaCycleMemory memory={cycleMemory} />
       ) : null}
 
-      {!cycleMemoryEnabled ? <Section>
-        <h2 className="text-2xl font-black uppercase text-comun-yellow">
-          Memória
-        </h2>
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          {dossiers.map((dossier) => (
-            <Link
-              key={dossier.id}
-              href={`/comun/dossies/${dossier.public_slug}`}
-              className="paper-panel border-2 border-comun-black p-4"
-            >
-              <p className="text-xs font-black uppercase text-comun-asphalt/70">
-                Síntese editorial ·{" "}
-                {dossier.public_version_label || "versão publicada"}
-              </p>
-              <h3 className="comun-prose mt-2 font-black uppercase">
-                {dossier.public_title}
-              </h3>
-              <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">
-                {dossier.public_summary}
-              </p>
-            </Link>
-          ))}
-          {!dossiers.length ? (
-            <Empty text="Ainda não há síntese editorial publicada para esta pauta." />
-          ) : null}
-        </div>
-      </Section> : null}
+      {!cycleMemoryEnabled ? (
+        <Section>
+          <h2 className="text-2xl font-black uppercase text-comun-yellow">
+            Memória
+          </h2>
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            {dossiers.map((dossier) => (
+              <Link
+                key={dossier.id}
+                href={`/comun/dossies/${dossier.public_slug}`}
+                className="paper-panel border-2 border-comun-black p-4"
+              >
+                <p className="text-xs font-black uppercase text-comun-asphalt/70">
+                  Síntese editorial ·{" "}
+                  {dossier.public_version_label || "versão publicada"}
+                </p>
+                <h3 className="comun-prose mt-2 font-black uppercase">
+                  {dossier.public_title}
+                </h3>
+                <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">
+                  {dossier.public_summary}
+                </p>
+              </Link>
+            ))}
+            {!dossiers.length ? (
+              <Empty text="Ainda não há síntese editorial publicada para esta pauta." />
+            ) : null}
+          </div>
+        </Section>
+      ) : null}
     </ComunShell>
   );
 }
