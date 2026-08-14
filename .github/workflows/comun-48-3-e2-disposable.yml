@@ -35,13 +35,13 @@ jobs:
           psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
           begin;
           insert into public.comun_pauta_spaces(id,slug,title,status,visibility,public_status,updated_at) values
-            ('e2000000-0000-4000-8000-000000000001','e2-current','Mesmo título público','organizing','public','Em organização','2026-08-14T12:00:00Z'),
-            ('e2000000-0000-4000-8000-000000000002','e2-historical','Pauta histórica','organizing','public','Em organização','2026-08-13T12:00:00Z'),
-            ('e2000000-0000-4000-8000-000000000003','e2-internal','Pauta interna','organizing','internal','Interna','2026-08-14T12:00:00Z'),
-            ('e2000000-0000-4000-8000-000000000004','e2-archived','Pauta arquivada','archived','public','Arquivada','2026-08-14T12:00:00Z'),
-            ('e2000000-0000-4000-8000-000000000005','e2-rejected','Pauta rejeitada','organizing','public','Em organização','2026-08-14T12:00:00Z'),
-            ('e2000000-0000-4000-8000-000000000006','e2-private','Pauta privada','organizing','public','Em organização','2026-08-14T12:00:00Z'),
-            ('e2000000-0000-4000-8000-000000000007','e2-no-match','Mesmo título público','organizing','public','Em organização','2026-08-14T12:00:00Z');
+            ('e2000000-0000-4000-8000-000000000001','e2-current','Mesmo título público','organizing','public','triage','2026-08-14T12:00:00Z'),
+            ('e2000000-0000-4000-8000-000000000002','e2-historical','Pauta histórica','organizing','public','triage','2026-08-13T12:00:00Z'),
+            ('e2000000-0000-4000-8000-000000000003','e2-internal','Pauta interna','organizing','internal','triage','2026-08-14T12:00:00Z'),
+            ('e2000000-0000-4000-8000-000000000004','e2-archived','Pauta arquivada','archived','public','archived','2026-08-14T12:00:00Z'),
+            ('e2000000-0000-4000-8000-000000000005','e2-rejected','Pauta rejeitada','organizing','public','triage','2026-08-14T12:00:00Z'),
+            ('e2000000-0000-4000-8000-000000000006','e2-private','Pauta privada','organizing','public','triage','2026-08-14T12:00:00Z'),
+            ('e2000000-0000-4000-8000-000000000007','e2-no-match','Mesmo título público','organizing','public','triage','2026-08-14T12:00:00Z');
           insert into public.comun_pauta_evidence_items(
             pauta_id,source_type,title,evidence_type,sensitivity,status,
             public_evidence_ref_id,public_evidence_version,public_evidence_payload
