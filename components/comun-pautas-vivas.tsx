@@ -13,12 +13,22 @@ import type { PublicCollectiveActionSummaryV1 } from "@/lib/comun-collective-act
 import { PautaCollectiveActions } from "./comun-collective-actions-canonical";
 import { PautaCycleMemory } from "./comun-pauta-cycle-memory";
 import type { PublicPautaCycleMemoryV1 } from "@/lib/comun-pauta-cycle-memory";
+import type { PublicOrganizationBridgeFilterV1 } from "@/lib/comun-organization-bridges";
+
+export type PublicPautaEvidenceFilterStateV1 =
+  | { state: "valid"; value: PublicOrganizationBridgeFilterV1 }
+  | { state: "invalid" };
 
 export function PautasVivasIndex({
   spaces,
+  evidenceFilter,
 }: {
   spaces: readonly PublicPautaSpace[];
+  evidenceFilter?: PublicPautaEvidenceFilterStateV1;
 }) {
+  if (evidenceFilter) {
+    return <EvidenceFilteredPautasIndex filter={evidenceFilter} />;
+  }
   const ordered = [...spaces].sort(
     (a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at),
   );
@@ -80,6 +90,116 @@ export function PautasVivasIndex({
             A ordem segue a atualização pública mais recente.{" "}
             {"Não há ranking de popularidade."}
           </p>
+        </Section>
+      </ComunShell>
+    </div>
+  );
+}
+
+function EvidenceFilteredPautasIndex({
+  filter,
+}: {
+  filter: PublicPautaEvidenceFilterStateV1;
+}) {
+  if (filter.state === "invalid") {
+    return (
+      <div data-comun-app-v2-page="pautas-vivas-evidence-filter-invalid">
+        <ComunShell>
+          <Section>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-comun-paper/65">
+              Organização coletiva
+            </p>
+            <h1 className="mt-2 text-3xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">
+              Esta referência pública não está disponível.
+            </h1>
+            <p className="comun-prose mt-3 max-w-3xl text-comun-paper/78">
+              O recorte falhou fechado e nenhuma associação foi inferida por
+              texto, categoria ou semelhança.
+            </p>
+            <Link
+              href="/comun/pautas"
+              className="mt-6 inline-flex min-h-11 items-center font-black underline decoration-2 underline-offset-4"
+            >
+              Ver todas as pautas
+            </Link>
+          </Section>
+        </ComunShell>
+      </div>
+    );
+  }
+
+  const { citation, bridge } = filter.value;
+  return (
+    <div data-comun-app-v2-page="pautas-vivas-evidence-filter">
+      <ComunShell>
+        <Section>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-comun-paper/65">
+            Organização coletiva
+          </p>
+          <h1 className="mt-2 text-3xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">
+            Pautas relacionadas a esta evidência
+          </h1>
+          <div className="mt-5 max-w-3xl border-l-4 border-comun-yellow pl-4">
+            <p className="text-xs font-black uppercase text-comun-paper/65">
+              {evidenceBadge(citation.sourceKind, citation.claimKind)}
+            </p>
+            <h2 className="comun-prose mt-1 text-xl font-black">
+              {citation.title}
+            </h2>
+            <p className="comun-prose mt-1 text-sm text-comun-paper/75">
+              Período: {citation.referencePeriod}
+            </p>
+            <Link
+              href={citation.publicPath}
+              className="mt-3 inline-flex min-h-10 items-center font-black underline decoration-2 underline-offset-4"
+            >
+              Ver fonte no COMUN
+            </Link>
+          </div>
+
+          <div className="mt-7 grid gap-4 lg:grid-cols-2">
+            {bridge.pautas.map((pauta) => (
+              <article
+                key={pauta.pautaId}
+                className="paper-panel flex flex-col border-2 border-comun-black p-5"
+              >
+                <p className="text-xs font-black uppercase text-comun-asphalt/70">
+                  {pauta.publicStatus}
+                </p>
+                <h2 className="comun-prose mt-2 text-xl font-black uppercase">
+                  {pauta.title}
+                </h2>
+                <p className="comun-prose mt-2 text-sm text-comun-asphalt/75">
+                  {pauta.summary ?? "Pauta pública ligada a esta evidência."}
+                </p>
+                <p className="mt-4 border-l-4 border-comun-yellow pl-3 text-sm text-comun-asphalt/75">
+                  <strong>Próximo passo:</strong>{" "}
+                  {pauta.nextStep ??
+                    "Conhecer a pauta e suas formas de participação."}
+                </p>
+                {pauta.relationVersionState === "historical_version" ? (
+                  <p className="mt-3 text-xs text-comun-asphalt/65">
+                    Esta pauta possui uma versão anterior desta evidência.
+                  </p>
+                ) : null}
+                <Link
+                  href={`/comun/pautas/${pauta.slug}`}
+                  className="mt-5 inline-flex min-h-11 w-fit items-center border-2 border-comun-black bg-comun-yellow px-4 text-sm font-black uppercase"
+                >
+                  Acompanhar pauta
+                </Link>
+              </article>
+            ))}
+            {!bridge.pautas.length ? (
+              <Empty text="Ainda não há pauta pública ligada a esta evidência." />
+            ) : null}
+          </div>
+          <Link
+            href="/comun/pautas"
+            className="mt-6 inline-flex min-h-11 items-center font-black underline decoration-2 underline-offset-4"
+          >
+            Ver todas as pautas
+          </Link>
         </Section>
       </ComunShell>
     </div>
@@ -366,7 +486,7 @@ function EvidenceCard({ item }: { item: PublicPautaEvidenceItem }) {
           href={citation.publicPath}
           className="mt-4 inline-flex min-h-10 items-center font-black uppercase underline decoration-2 underline-offset-4"
         >
-          Ver evidência pública
+          Ver fonte no COMUN
         </Link>
       ) : null}
     </article>

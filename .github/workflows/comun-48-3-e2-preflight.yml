@@ -1,0 +1,103 @@
+name: COMUN 48.3-E2 remote read-only organization bridges preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-3-e2-preflight.yml"
+      - "lib/comun-organization-bridges*.ts"
+      - "lib/comun-public-evidence*.ts"
+      - "components/comun-city-panorama.tsx"
+      - "components/comun-pautas-vivas.tsx"
+      - "app/comun/observatorios/panorama/**"
+      - "app/comun/pautas/**"
+      - "reports/current/comun-48-3-e2-natural-organization-bridges.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remote-read-only-organization-bridges-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.113.0 }
+      - name: Verify metadata-only exact evidence relation contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          test -z "$(git diff --name-only origin/main...HEAD -- supabase/migrations)" || { echo COMUN_48_3_E2_BLOCKED_UNEXPECTED_MIGRATION; exit 1; }
+          mkdir -p .ci-artifacts/48-3-e2-preflight
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/48-3-e2-preflight/schema.json <<'SQL'
+          begin read only;
+          select json_build_object(
+            'transactionReadOnly', current_setting('transaction_read_only')='on',
+            'canonicalTablesPresent', to_regclass('public.comun_pauta_evidence_items') is not null and to_regclass('public.comun_pauta_spaces') is not null,
+            'citationColumnsPresent', (
+              select count(*)=3 from information_schema.columns
+              where table_schema='public' and table_name='comun_pauta_evidence_items'
+                and column_name in ('public_evidence_ref_id','public_evidence_version','public_evidence_payload')
+            ),
+            'sourceTypeAllowsPublicEvidence', exists(
+              select 1 from pg_constraint
+              where conrelid='public.comun_pauta_evidence_items'::regclass
+                and conname='comun_pauta_evidence_source_type_check'
+                and pg_get_constraintdef(oid) like '%public_evidence%'
+            ),
+            'rlsEnabled', (
+              select bool_and(relrowsecurity) from pg_class
+              where oid in ('public.comun_pauta_evidence_items'::regclass,'public.comun_pauta_spaces'::regclass)
+            ),
+            'publicEvidencePolicy', exists(
+              select 1 from pg_policies
+              where schemaname='public' and tablename='comun_pauta_evidence_items'
+                and policyname='Public can read public safe approved pauta evidence'
+                and qual like '%approved%'
+                and qual like '%public_safe%'
+                and qual like '%visibility%'
+                and qual like '%archived%'
+            ),
+            'versionUniqueIndex', exists(
+              select 1 from pg_indexes
+              where schemaname='public' and tablename='comun_pauta_evidence_items'
+                and indexname='comun_pauta_public_evidence_version_unique_idx'
+                and indexdef like '%public_evidence_ref_id%'
+                and indexdef like '%public_evidence_version%'
+            ),
+            'publicReadOnlyGrants',
+              has_table_privilege('anon','public.comun_pauta_evidence_items','SELECT')
+              and has_table_privilege('anon','public.comun_pauta_spaces','SELECT')
+              and not has_table_privilege('anon','public.comun_pauta_evidence_items','INSERT')
+              and not has_table_privilege('anon','public.comun_pauta_evidence_items','UPDATE')
+              and not has_table_privilege('anon','public.comun_pauta_evidence_items','DELETE'),
+            'businessContentRead', false
+          );
+          rollback;
+          SQL
+          node - <<'NODE'
+          const s=JSON.parse(require('node:fs').readFileSync('.ci-artifacts/48-3-e2-preflight/schema.json','utf8'));
+          const required=['transactionReadOnly','canonicalTablesPresent','citationColumnsPresent','sourceTypeAllowsPublicEvidence','rlsEnabled','publicEvidencePolicy','versionUniqueIndex','publicReadOnlyGrants'];
+          const failed=required.filter(key=>s[key]!==true);
+          if(s.businessContentRead!==false) failed.push('businessContentRead');
+          if(failed.length){console.error(`failedChecks=${failed.join(',')}`);throw new Error('COMUN_48_3_E2_BLOCKED_REMOTE_SCHEMA_DRIFT');}
+          NODE
+          echo businessContentRead=false >> "$GITHUB_STEP_SUMMARY"
+          echo COMUN_48_3_E2_REMOTE_METADATA_GREEN >> "$GITHUB_STEP_SUMMARY"
+      - name: Prove remote migration plan is empty
+        shell: bash
+        run: |
+          set -euo pipefail
+          external=supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+          test "$(sha256sum "$external" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
+          held="$RUNNER_TEMP/external.sql"; mv "$external" "$held"; trap 'mv "$held" "$external"' EXIT
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-3-e2-preflight/plan.txt 2>&1
+          ! grep -Eq '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-3-e2-preflight/plan.txt
+          echo migrationCount=0 >> "$GITHUB_STEP_SUMMARY"
+          echo COMUN_48_3_E2_REMOTE_PLAN_EMPTY_GREEN >> "$GITHUB_STEP_SUMMARY"
