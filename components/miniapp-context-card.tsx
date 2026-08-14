@@ -94,7 +94,7 @@ export function ContinueMiniappCard() {
         href={sidewalkMiniappDefinition.routes.participation}
         className="mt-3 inline-flex font-black underline"
       >
-        Abrir Minha área
+        Abrir Minha participação
       </Link>
     </article>
   );

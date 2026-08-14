@@ -290,7 +290,7 @@ export default async function ComunHomePage({
             />
             <PathCard
               href="/comun/minha-participacao"
-              title="Minha área"
+              title="Minha participação"
               text="Retome ações, tarefas, contribuições e resultados."
             />
             <PathCard
@@ -459,7 +459,7 @@ export default async function ComunHomePage({
                 href="/comun/entrar"
                 className="inline-flex min-h-12 items-center border-2 border-comun-black px-5 font-black uppercase"
               >
-                Entrar na minha área
+                Entrar em Minha participação
               </Link>
             </div>
           </div>
@@ -565,7 +565,7 @@ function AuthenticatedHome({
           mobileHidden
           title="Pautas que acompanha"
           href="/comun/minha-participacao"
-          action="Ver Minha área"
+          action="Ver Minha participação"
           rows={center.memberships.slice(0, 3).map((item: any) => ({
             id: item.id,
             title: item.pauta?.title,

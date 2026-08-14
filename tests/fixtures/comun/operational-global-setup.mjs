@@ -47,7 +47,7 @@ export async function operationalGlobalSetup({suite="authenticated"}={}){
    const page=await context.newPage();
    const participant=entry.persona==="participant";
    const redirect=participant?"/comun/minha-participacao":"/comun/admin/acervo";
-   const heading=participant?"Minha área":"Acervo";
+   const heading=participant?"Minha participação":"Acervo";
    await page.goto(`${base}${participant?"/comun/entrar":"/comun/admin/login"}?${participant?"returnTo":"redirectTo"}=${encodeURIComponent(redirect)}`);
    await page.getByLabel("E-mail").fill(entry.email);
    await page.getByLabel("Senha").fill(fixtures.operationalPassword);

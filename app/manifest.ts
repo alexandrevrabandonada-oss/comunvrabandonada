@@ -45,8 +45,8 @@ export default function manifest(): MetadataRoute.Manifest {
         url: "/comun/comunidades",
       },
       {
-        name: "Minha área",
-        short_name: "Minha área",
+        name: "Minha participação",
+        short_name: "Participação",
         url: "/comun/minha-participacao",
       },
     ],

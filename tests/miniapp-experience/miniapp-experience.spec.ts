@@ -79,7 +79,9 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
   await page.getByLabel("Senha").fill("comun-local-fixture-only");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await page.waitForURL("**/comun/minha-participacao");
-  await expect(page.getByRole("heading", { name: "Minha área" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Minha participação" }),
+  ).toBeVisible();
   await screenshot(page, "minha-area", testInfo.project.name);
   await page.goto("/comun/calcadas/prioridades");
   await expect(

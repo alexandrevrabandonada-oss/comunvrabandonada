@@ -214,7 +214,7 @@ export default async function SidewalkPilotPage() {
           <li>1. Convidar de 10 a 20 pessoas em até três territórios.</li>
           <li>2. Conferir o cockpit ao menos uma vez por dia.</li>
           <li>3. Moderar cada contribuição em até 24 horas.</li>
-          <li>4. Retornar à pessoa pela Minha área ou Caixa de entrada.</li>
+          <li>4. Retornar à pessoa por Minha participação ou Caixa de entrada.</li>
           <li>5. Encerrar com relatório sanitizado e entrevistas curtas.</li>
         </ol>
       </section>

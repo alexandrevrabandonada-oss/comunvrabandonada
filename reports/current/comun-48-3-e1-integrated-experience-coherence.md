@@ -48,6 +48,7 @@ Comunidades, ferramentas especializadas, Caixa, Acervo e Rádio continuam acess�
 - Pauta: a CTA aponta diretamente para a única Roda ou Ação ativa quando isso é determinístico; múltiplas opções levam à seção correspondente; a segunda CTA concorrente foi removida.
 - Roda e Ação: mantêm uma CTA dominante e retorno explícito à Pauta.
 - Minha participação: “Meus registros”, “Estou acompanhando”, “Minhas conversas”, “Ações em que estou” e “Meus compromissos”; contadores dominantes e tela de transição foram removidos.
+- o rótulo legado “Minha área” foi removido das superfícies públicas, do manifesto, das confirmações e dos contratos de jornada; a rota canônica permanece `/comun/minha-participacao`.
 - App bar: Roda → Pauta, Ação → Pautas quando não há contexto de jornada, Observatório específico → Panorama.
 - autenticação: o `returnTo` interno existente foi preservado e comprovado.
 

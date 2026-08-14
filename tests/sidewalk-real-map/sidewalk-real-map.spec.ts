@@ -92,7 +92,7 @@ test("rotas locais preservam contexto e deep links", async ({ page }) => {
       }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Minha área", exact: true }),
+      page.getByRole("link", { name: "Minha participação", exact: true }),
     ).toBeVisible();
   }
 });

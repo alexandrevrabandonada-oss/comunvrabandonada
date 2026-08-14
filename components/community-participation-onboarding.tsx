@@ -159,7 +159,7 @@ export function CommunityParticipationOnboarding({
             href="/comun/minha-participacao"
             className="font-black underline"
           >
-            Ver em Minha área
+            Ver em Minha participação
           </Link>
           {state && state !== "left" ? (
             <form action={changeCommunityMembership}>

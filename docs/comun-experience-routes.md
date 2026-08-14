@@ -51,9 +51,9 @@ Legenda de público: público, pessoal autenticado ou administrativo autorizado.
 | `/comun/seguranca`                              | Segurança e privacidade  | público         | explicar fronteiras e direitos        | rodapé/ajuda / entender proteção        | Início                             | auditoria admin é separada                             | manter                      |
 | `/comun/ajuda`                                  | Ajuda                    | público         | orientar tarefa, conexão e direitos   | rodapé / escolher um caminho            | Início                             | conteúdo governado será aprofundado no 47.10           | manter                      |
 | `/comun/offline`                                | Ajuda de conexão         | público         | estado e recuperação de rede          | banner runtime / tentar novamente       | origem/Início                      | deep link PWA                                          | manter                      |
-| `/comun/minha-participacao`                     | Minha área               | pessoal         | acompanhar contribuições e tarefas    | navegação / retomar próxima ação        | origem contextual                  | login preserva retorno                                 | manter                      |
-| `/comun/caixa-de-entrada`                       | Caixa de entrada         | pessoal         | avisos acionáveis                     | shell pessoal / abrir item              | origem/Minha área                  | Inbox não é feed                                       | manter                      |
-| `/comun/conta*`                                 | Conta e privacidade      | pessoal         | preferências e direitos               | shell / salvar ou solicitar             | Minha área                         | privacidade própria                                    | manter                      |
+| `/comun/minha-participacao`                     | Minha participação       | pessoal         | acompanhar contribuições e tarefas    | navegação / retomar próxima ação        | origem contextual                  | login preserva retorno                                 | manter                      |
+| `/comun/caixa-de-entrada`                       | Caixa de entrada         | pessoal         | avisos acionáveis                     | shell pessoal / abrir item              | origem/Minha participação          | Inbox não é feed                                       | manter                      |
+| `/comun/conta*`                                 | Conta e privacidade      | pessoal         | preferências e direitos               | shell / salvar ou solicitar             | Minha participação                 | privacidade própria                                    | manter                      |
 | `/comun/onboarding`                             | Primeiros passos         | pessoal         | contexto mínimo e progressivo         | cadastro / continuar origem             | `returnTo` allowlisted             | variante mínima Calçadas                               | manter                      |
 | `/comun/admin`                                  | Administração            | administrativo  | hub autorizado                        | login / abrir superfície                | Central ou logout                  | nunca na navegação pública                             | manter                      |
 | `/comun/admin/operacao*`                        | Central Operacional      | administrativo  | projeção sanitizada de cuidado        | admin / abrir item prioritário          | recorte/filtros preservados        | detalhes e superfícies                                 | manter + piloto N0          |
@@ -79,7 +79,7 @@ Início
 ├─ Participar ─ forma ─ contexto ─ retorno à origem
 ├─ Buscar ─ tipo ─ entidade ─ contexto
 ├─ Cultura ─ Acervo/Rádio/Arte ─ pauta/território
-└─ Minha área (autenticação) ─ próxima ação/Inbox/tarefa
+└─ Minha participação (autenticação) ─ próxima ação/Inbox/tarefa
 
 Admin (fora da navegação pública)
 └─ Central ─ recorte ─ item ─ retorno ao mesmo recorte
@@ -103,7 +103,7 @@ Admin (fora da navegação pública)
 1. Descobrir pauta: Início/Território/Buscar → Pautas.
 2. Entender pauta: Pauta → estado, problema, evidência e próxima ação.
 3. Contribuir: Pauta → ferramenta → formulário → confirmação.
-4. Acompanhar: confirmação/Minha área → item e estado.
+4. Acompanhar: confirmação/Minha participação → item e estado.
 5. Participar de ação: Pauta/Participar → Ação → tarefa ou presença.
 6. Encontrar resultado: Pauta/Home → Resultados → processo de origem.
 7. Encontrar memória: resultado/pauta → memória ou Acervo.

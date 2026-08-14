@@ -162,7 +162,7 @@ export function MiniAppExperienceShell({
                 href={withComunAppV2("/comun/minha-participacao", appV2)}
                 className="ml-auto font-bold underline"
               >
-                Acompanhar em Minha área
+                Acompanhar em Minha participação
               </Link>
             </div>
           </div>
