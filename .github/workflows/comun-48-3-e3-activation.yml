@@ -1,0 +1,120 @@
+name: COMUN 48.3-E3 low-friction Pauta activation
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA
+        required: true
+        type: string
+      mode:
+        description: Promote schema cloaked, repeat cloak, or enable E3
+        required: true
+        type: choice
+        options: [promote-migration-flags-off, flags-off, wave1-low-friction-pauta]
+
+concurrency:
+  group: comun-48-3-e3-activation
+  cancel-in-progress: false
+permissions:
+  contents: read
+env:
+  E3_BASELINE_SHA: a5073893ffe548b3ee3d9a562ef090c5ccf56412
+  E3_MIGRATION: supabase/migrations/20260814160000_comun_pauta_low_friction_creation.sql
+  E3_MIGRATION_SHA256: 45bbebd810d5ba1e4a682880fcd37f8dc90721a9e4c8adf994a32fa74a6240fe
+  EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+  COMUN_BASE_URL: https://comunsocial.online
+
+jobs:
+  activate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
+      - name: Verify exact main and bounded E3 migration
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          test "$(git rev-parse origin/main)" = "$EXPECTED_MAIN_SHA"
+          git merge-base --is-ancestor "$E3_BASELINE_SHA" HEAD
+          test "$(sha256sum "$E3_MIGRATION" | awk '{print $1}')" = "$E3_MIGRATION_SHA256"
+          mapfile -t changed < <(git diff --name-only "$E3_BASELINE_SHA"...HEAD -- supabase/migrations)
+          test "${#changed[@]}" -eq 1 && test "${changed[0]}" = "$E3_MIGRATION"
+      - name: Promote exact forward-only E3 migration
+        if: inputs.mode == 'promote-migration-flags-off'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1;; esac
+          mkdir -p .ci-artifacts/48-3-e3-production
+          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          held="$RUNNER_TEMP/comun-e3-external-ledger.sql"
+          mv "$EXTERNAL_MIGRATION" "$held"
+          restore() { test ! -e "$held" || mv "$held" "$EXTERNAL_MIGRATION"; }
+          trap restore EXIT
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-3-e3-production/dry-run.txt 2>&1
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-3-e3-production/dry-run.txt | sort -u || true)
+          test "${#planned[@]}" -eq 1 && test "${planned[0]}" = "$(basename "$E3_MIGRATION")"
+          ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/48-3-e3-production/dry-run.txt
+          supabase db push --db-url "$SUPABASE_DB_URL" >.ci-artifacts/48-3-e3-production/push.txt 2>&1
+          restore
+          trap - EXIT
+      - name: Metadata-only postflight
+        if: inputs.mode == 'promote-migration-flags-off'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/48-3-e3-production/postflight.json <<'SQL'
+          begin read only;
+          select json_build_object(
+            'migrationApplied', exists(select 1 from supabase_migrations.schema_migrations where version='20260814160000'),
+            'ledgerExists', to_regclass('private.comun_pauta_creation_requests') is not null,
+            'ledgerRls', coalesce((select relrowsecurity from pg_class where oid=to_regclass('private.comun_pauta_creation_requests')), false),
+            'rpcExists', to_regprocedure('public.comun_create_pauta_low_friction_v1(uuid,text,text,text,text,text,text,boolean,jsonb)') is not null,
+            'serviceRoleExecute', has_function_privilege('service_role','public.comun_create_pauta_low_friction_v1(uuid,text,text,text,text,text,text,boolean,jsonb)','EXECUTE'),
+            'anonExecute', has_function_privilege('anon','public.comun_create_pauta_low_friction_v1(uuid,text,text,text,text,text,text,boolean,jsonb)','EXECUTE'),
+            'authenticatedExecute', has_function_privilege('authenticated','public.comun_create_pauta_low_friction_v1(uuid,text,text,text,text,text,text,boolean,jsonb)','EXECUTE'),
+            'anonLedger', has_table_privilege('anon','private.comun_pauta_creation_requests','SELECT,INSERT,UPDATE,DELETE'),
+            'authenticatedLedger', has_table_privilege('authenticated','private.comun_pauta_creation_requests','SELECT,INSERT,UPDATE,DELETE'),
+            'businessRowsRead', false
+          );
+          rollback;
+          SQL
+          node - <<'NODE'
+          const s=JSON.parse(require('node:fs').readFileSync('.ci-artifacts/48-3-e3-production/postflight.json','utf8'));
+          if(!s.migrationApplied||!s.ledgerExists||!s.ledgerRls||!s.rpcExists||!s.serviceRoleExecute||s.anonExecute||s.authenticatedExecute||s.anonLedger||s.authenticatedLedger||s.businessRowsRead!==false) process.exit(1);
+          NODE
+          echo COMUN_48_3_E3_REMOTE_MIGRATION_GREEN >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify canonical Vercel project binding read-only
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${VERCEL_TOKEN:-}"
+          npx --yes vercel@50.28.0 project inspect "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null 2>/dev/null
+      - name: Deploy selected E3 wave read-only
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          MODE: ${{ inputs.mode }}
+        shell: bash
+        run: |
+          wave="$MODE"
+          test "$wave" != promote-migration-flags-off || wave=flags-off
+          bash scripts/pautas/run-48-3-e3-production-wave.sh "$wave"
