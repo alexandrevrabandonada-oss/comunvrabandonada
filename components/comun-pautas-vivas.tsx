@@ -65,7 +65,15 @@ export function PautasVivasIndex({
               </article>
             ))}
             {!ordered.length ? (
-              <Empty text="Ainda não há Pautas Vivas públicas neste momento." />
+              <div>
+                <Empty text="Ainda não há Pautas Vivas públicas neste momento. Isso não significa que não existam questões coletivas em Volta Redonda." />
+                <Link
+                  href="/comun/observatorios/panorama"
+                  className="mt-4 inline-flex min-h-11 items-center font-black underline decoration-2 underline-offset-4"
+                >
+                  Enquanto isso, entender o que os dados mostram
+                </Link>
+              </div>
             ) : null}
           </div>
           <p className="mt-5 max-w-3xl text-sm text-comun-paper/65">
@@ -103,9 +111,35 @@ export function PautaVivaDetail({
   cycleMemory?: PublicPautaCycleMemoryV1 | null;
   cycleMemoryEnabled?: boolean;
 }) {
-  const hasOpenRoda = rodas.some((roda) => roda.status === "open");
+  const openRodas = rodas.filter((roda) => roda.status === "open");
+  const hasOpenRoda = openRodas.length > 0;
+  const activeActions = collectiveActions.filter(
+    (action) => action.status === "open" || action.status === "active",
+  );
   const memoryIsPrimary =
     cycleMemoryEnabled && cycleMemory?.currentState === "concluded";
+  const primaryHref = memoryIsPrimary
+    ? "#historia"
+    : openRodas.length === 1
+      ? `/comun/pautas/${space.slug}/rodas/${openRodas[0].id}`
+      : hasOpenRoda
+        ? "#rodas-vivas"
+        : activeActions.length === 1
+          ? `/comun/acoes/${activeActions[0].slug}`
+          : activeActions.length > 1
+            ? "#acoes-desta-pauta"
+            : "/comun/participar";
+  const primaryLabel = memoryIsPrimary
+    ? "Ler o que aconteceu"
+    : openRodas.length === 1
+      ? "Entrar na roda"
+      : hasOpenRoda
+        ? "Ver rodas abertas"
+        : activeActions.length === 1
+          ? "Participar da ação"
+          : activeActions.length > 1
+            ? "Ver ações abertas"
+            : "Participar desta pauta";
   return (
     <ComunShell>
       <div className="mx-auto max-w-7xl px-4 pt-5">
@@ -135,21 +169,7 @@ export function PautaVivaDetail({
           </p>
         </div>
         <div className="mt-6">
-          <PrimaryLink
-            href={
-              memoryIsPrimary
-                ? "#historia"
-                : hasOpenRoda
-                  ? "#rodas-vivas"
-                  : "/comun/participar"
-            }
-          >
-            {memoryIsPrimary
-              ? "Ler o que aconteceu"
-              : hasOpenRoda
-                ? "Ver rodas abertas"
-                : "Participar desta pauta"}
-          </PrimaryLink>
+          <PrimaryLink href={primaryHref}>{primaryLabel}</PrimaryLink>
         </div>
       </Section>
 
@@ -268,9 +288,12 @@ export function PautaVivaDetail({
               : "A conversa coletiva ainda está começando.")}
         </p>
         <div className="mt-5">
-          <PrimaryLink href="/comun/participar">
+          <Link
+            href="/comun/participar"
+            className="inline-flex min-h-11 items-center font-black underline decoration-2 underline-offset-4"
+          >
             Ver formas de participar
-          </PrimaryLink>
+          </Link>
         </div>
       </Section>
 

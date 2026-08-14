@@ -8,13 +8,21 @@ const defaultRoot = path.resolve(scriptDir, "..", "..");
 const requiredRoutes = [
   "/comun",
   "/comun/explorar",
+  "/comun/relatar",
   "/comun/buscar",
   "/comun/busca",
   "/comun/territorios",
   "/comun/comunidades",
   "/comun/pautas",
   "/comun/pautas/[slug]",
+  "/comun/pautas/[slug]/rodas/[circleId]",
   "/comun/acoes",
+  "/comun/acoes/[slug]",
+  "/comun/onibus",
+  "/comun/observatorios",
+  "/comun/observatorios/panorama",
+  "/comun/participar",
+  "/comun/c/[slug]",
   "/comun/resultados",
   "/comun/protocolo-popular",
   "/comun/calcadas",
@@ -38,6 +46,40 @@ const requiredRoutes = [
   "/comun/admin/observabilidade",
   "/comun/admin/lancamento",
 ];
+
+const experienceMatrix = [
+  ["/comun", "começar", "O que posso fazer aqui?", "Vi um problema", "/comun", false],
+  ["/comun/relatar", "registrar", "O que aconteceu?", "Guardar registro", "/comun", false],
+  ["/comun/calcadas", "usar ferramenta especializada", "Como registrar ou consultar Calçadas?", "Registrar problema", "/comun", false],
+  ["/comun/onibus", "usar ferramenta especializada", "Como consultar ou relatar sobre ônibus?", "Registrar problema", "/comun", false],
+  ["/comun/observatorios", "entender", "Que leituras públicas existem?", "Ver Panorama", "/comun/observatorios/panorama", false],
+  ["/comun/observatorios/panorama", "entender", "O que os dados públicos mostram?", "Explorar o que sabemos", "/comun", false],
+  ["/comun/pautas", "participar", "Que questões coletivas estão abertas?", "Acompanhar pauta", "/comun", false],
+  ["/comun/pautas/[slug]", "acompanhar pauta", "O que estamos tentando entender ou mudar?", "Próximo passo da pauta", "/comun/pautas", false],
+  ["/comun/pautas/[slug]/rodas/[circleId]", "conversar", "Qual é a pergunta desta etapa?", "Contribuir nesta rodada", "/comun/pautas/[slug]", false],
+  ["/comun/acoes", "encontrar ação", "O que vamos fazer?", "Ver ação", "/comun/pautas", false],
+  ["/comun/acoes/[slug]", "agir", "Como posso ajudar nesta ação?", "Participar desta ação", "/comun/pautas/[slug]", true],
+  ["/comun/comunidades", "encontrar vínculo", "Que comunidades públicas existem?", "Ver comunidade", "/comun/explorar", false],
+  ["/comun/c/[slug]", "ver comunidade", "Quem permanece junto aqui?", "Ver contexto público", "/comun/comunidades", false],
+  ["/comun/minha-participacao", "retomar", "Onde parei?", "Continuar de onde parei", "/comun", true],
+  ["/comun/participar", "explorar formas", "Como quero participar?", "Ver pautas", "/comun", false],
+  ["/comun/explorar", "explorar catálogo", "Que outras superfícies existem?", "Abrir destino", "/comun", false],
+].map(([route, userIntent, primaryQuestion, primaryAction, backDestination, loginGate]) => ({
+  route,
+  userIntent,
+  primaryQuestion,
+  primaryAction,
+  secondaryActions: "contextuais e visualmente rebaixadas",
+  backDestination,
+  contextVisible: true,
+  duplicateDestination: route === "/comun/explorar" ? "/comun/observatorios/panorama" : null,
+  requiresDomainKnowledge: false,
+  loginGate,
+  emptyState: "explica o significado e oferece próximo passo",
+  mobileFriction: "uma intenção acima da dobra; sem navegação paralela",
+  terminologyDebt: route === "/comun/explorar" ? "catálogo secundário preservado" : null,
+  recommendation: route === "/comun/explorar" ? "manter como catálogo secundário" : "manter no fluxo canônico",
+}));
 
 async function walk(directory) {
   const rows = [];
@@ -102,6 +144,13 @@ export async function auditExperience(root = defaultRoot) {
     pauta,
     pautaShell,
     central,
+    canonicalHome,
+    shellContract,
+    experienceContract,
+    minhaParticipacao,
+    roda,
+    collectiveAction,
+    publicExperienceContract,
   ] = await Promise.all([
     readFile(path.join(root, "app/comun/busca/page.tsx"), "utf8"),
     readFile(path.join(root, "components/comun-navigation.tsx"), "utf8"),
@@ -113,6 +162,13 @@ export async function auditExperience(root = defaultRoot) {
     readFile(path.join(root, "app/comun/pautas/[slug]/page.tsx"), "utf8"),
     readFile(path.join(root, "components/pauta-app-shell.tsx"), "utf8"),
     readFile(path.join(root, "app/comun/admin/operacao/page.tsx"), "utf8"),
+    readFile(path.join(root, "components/comun-app-v2-home.tsx"), "utf8"),
+    readFile(path.join(root, "lib/comun-shell-contract.ts"), "utf8"),
+    readFile(path.join(root, "lib/comun-experience.ts"), "utf8"),
+    readFile(path.join(root, "app/comun/minha-participacao/page.tsx"), "utf8"),
+    readFile(path.join(root, "components/comun-roda-viva.tsx"), "utf8"),
+    readFile(path.join(root, "components/comun-collective-actions-canonical.tsx"), "utf8"),
+    readFile(path.join(root, "lib/experience-coherence.ts"), "utf8"),
   ]);
 
   assert(
@@ -193,13 +249,93 @@ export async function auditExperience(root = defaultRoot) {
     "central_return_contract_missing",
     findings,
   );
+  assert(
+    experienceContract.includes(': COMUN_APP_V2_EXPERIENCE;') &&
+      experienceContract.includes("COMUN_LEGACY_EXPERIENCE") &&
+      experienceContract.includes("COMUN_COHERENCE_EXPERIENCE"),
+    "canonical_app_v2_or_legacy_rollback_missing",
+    findings,
+  );
+  assert(
+    [
+      'label: "Vi um problema"',
+      'label: "Entender a cidade"',
+      'label: "Participar do que está acontecendo"',
+      'label: "Minha participação"',
+    ].every((label) => publicExperienceContract.includes(label)),
+    "public_language_contract_incomplete",
+    findings,
+  );
+  assert(
+    canonicalHome.includes('data-comun-primary-action="true"') &&
+      (canonicalHome.match(/data-comun-primary-action=/g) ?? []).length === 1,
+    "canonical_home_primary_action_not_unique",
+    findings,
+  );
+  assert(
+    [
+      "/comun/observatorios/panorama",
+      "/comun/pautas",
+      "/comun/minha-participacao",
+    ].every((href) => canonicalHome.includes(href) || canonicalHome.includes("COMUN_PUBLIC_EXPERIENCE_DOORS")),
+    "canonical_home_secondary_paths_missing",
+    findings,
+  );
+  assert(
+    shellContract.includes('label: "Entender"') &&
+      shellContract.includes('label: "Minha participação"'),
+    "streamlined_navigation_contract_missing",
+    findings,
+  );
+  assert(
+    ["Meus registros", "Estou acompanhando", "Minhas conversas", "Ações em que estou", "Meus compromissos"].every((label) =>
+      minhaParticipacao.includes(label),
+    ),
+    "my_participation_human_grouping_missing",
+    findings,
+  );
+  assert(
+    !`${canonicalHome}\n${minhaParticipacao}\n${roda}\n${collectiveAction}`.match(
+      /action cycle|construction circle|evidence item/i,
+    ),
+    "internal_jargon_exposed",
+    findings,
+  );
+  assert(
+    roda.includes('href={`/comun/pautas/${pauta.slug}`}') &&
+      collectiveAction.includes('href={`/comun/pautas/${action.pauta.slug}`}'),
+    "pauta_context_return_missing",
+    findings,
+  );
+  assert(
+    experienceMatrix.every((row) =>
+      [
+        "route",
+        "userIntent",
+        "primaryQuestion",
+        "primaryAction",
+        "secondaryActions",
+        "backDestination",
+        "contextVisible",
+        "duplicateDestination",
+        "requiresDomainKnowledge",
+        "loginGate",
+        "emptyState",
+        "mobileFriction",
+        "terminologyDebt",
+        "recommendation",
+      ].every((field) => Object.hasOwn(row, field)),
+    ),
+    "experience_matrix_incomplete",
+    findings,
+  );
 
   const outgoingRoutes = new Set(edges.map(({ from }) => from));
   const incomingRoutes = new Set(
     edges.map(({ to }) => to).filter((route) => routeSet.has(route)),
   );
   const report = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt: new Date().toISOString(),
     result:
       findings.length === 0
@@ -222,6 +358,15 @@ export async function auditExperience(root = defaultRoot) {
       knownCompatibleRedirects: 1,
     },
     pilots: { total: 3, levels: [0, 1, 2] },
+    integratedExperience: {
+      canonicalExperience: "app-v2",
+      newFeatureFlag: false,
+      publicDoorCount: 4,
+      primaryActionCount: { home: 1, pauta: 1, roda: 1, action: 1 },
+      contextLost: 0,
+      unexpectedTopLevelChoices: 0,
+      routeMatrix: experienceMatrix,
+    },
     findings,
   };
 

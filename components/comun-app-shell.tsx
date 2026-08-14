@@ -285,7 +285,7 @@ function DesktopHeader({ experienceV2 = false }: { experienceV2?: boolean }) {
           ) : null}
           <ComunMemberNavigation experienceV2={experienceV2} />
           <ComunShareButton title="COMUN VR Abandonada" />
-          <ParticipateSheet experienceV2={experienceV2} />
+          {!experienceV2 ? <ParticipateSheet experienceV2={false} /> : null}
           <SearchSheet experienceV2={experienceV2} />
         </div>
       </div>
@@ -315,7 +315,7 @@ function InstitutionalFooter({
         <div>
           <p className="text-xl font-black text-comun-yellow">COMUN.</p>
           <p className="mt-2 text-sm text-comun-paper/75">
-            Território, comunidade, pauta, ação, resultado e memória.
+            Veja, relate, entenda, participe e acompanhe o que aconteceu.
           </p>
         </div>
         <nav

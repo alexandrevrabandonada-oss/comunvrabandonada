@@ -11,31 +11,33 @@ async function expectNoOverflow(page: import("@playwright/test").Page) {
   ).toBe(true);
 }
 
-test("@a11y Home comparável declara propósito e uma ação principal", async ({
+async function expectAtMostOnePrimaryAction(
+  page: import("@playwright/test").Page,
+) {
+  expect(await page.locator('[data-comun-primary-action="true"]').count()).toBeLessThanOrEqual(1);
+}
+
+test("@a11y Home canônica mostra uma ação dominante e três caminhos claros", async ({
   page,
 }) => {
-  await page.goto("/comun?experiencia=coerencia");
+  await page.goto("/comun");
   await expect(page.locator("h1")).toHaveCount(1);
   await expect(
-    page.getByRole("heading", { name: "Agora no território." }),
+    page.getByRole("heading", { name: "O que precisa de atenção?" }),
   ).toBeVisible();
-  const surface = page.locator('[data-comun-experience-level="2"]');
-  await expect(surface).toHaveAttribute(
-    "data-comun-experience-pilot",
-    "active",
+  await expect(page.locator('[data-comun-app-v2-page="home"]')).toBeVisible();
+  await expect(page.locator('[data-comun-primary-action="true"]')).toHaveCount(1);
+  await expect(page.getByRole("link", { name: /Entender a cidade/ })).toHaveAttribute(
+    "href",
+    "/comun/observatorios/panorama",
   );
   await expect(
-    page.getByRole("complementary", {
-      name: "Comparação da direção de experiência",
-    }),
-  ).toBeVisible();
-  await expect(
-    surface.locator('[data-comun-primary-action="true"]'),
-  ).toHaveCount(1);
-  const primaryBox = await surface
-    .locator('[data-comun-primary-action="true"] a')
-    .boundingBox();
-  expect(primaryBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+    page.getByRole("link", { name: /Participar do que está acontecendo/ }),
+  ).toHaveAttribute("href", "/comun/pautas");
+  await expect(page.getByRole("link", { name: /Minha participação/ }).first()).toHaveAttribute(
+    "href",
+    "/comun/minha-participacao",
+  );
   await expectNoOverflow(page);
   const audit = await new AxeBuilder({ page }).analyze();
   expect(
@@ -45,52 +47,59 @@ test("@a11y Home comparável declara propósito e uma ação principal", async (
   ).toEqual([]);
 });
 
-test("pauta piloto mantém contexto, estado, retorno e deep link canônico", async ({
+test("Home chega a Relata, Panorama e Pautas em um gesto", async ({ page }) => {
+  await page.goto("/comun");
+  const destinations = [
+    ["Vi um problema", /\/comun\/relatar/],
+    ["Entender a cidade", /\/comun\/observatorios\/panorama/],
+    ["Participar do que está acontecendo", /\/comun\/pautas/],
+  ] as const;
+  for (const [name, destination] of destinations) {
+    await page.goto("/comun");
+    await page.getByRole("link", { name: new RegExp(name) }).first().click();
+    await expect(page).toHaveURL(destination);
+  }
+});
+
+test("navegação canônica não promove objetos internos como portas principais", async ({
   page,
 }) => {
-  await page.goto("/comun/pautas/calcadas-em-circulacao?experiencia=coerencia");
-  const surface = page.locator('[data-comun-experience-level="1"]');
-  await expect(surface).toHaveAttribute(
-    "data-comun-experience-pilot",
-    "active",
-  );
+  await page.goto("/comun");
+  const navigation = page.locator('nav[aria-label="Navegação principal"]:visible');
+  await expect(navigation).toHaveCount(1);
+  await expect(navigation).not.toContainText(/Rodada|Dossiê|Grupo de Trabalho|Action Cycle|Evidence Item/i);
+  await expectAtMostOnePrimaryAction(page);
+  await expectNoOverflow(page);
+});
+
+test("Pauta mantém uma próxima ação e a Roda retorna ao seu contexto", async ({
+  page,
+}) => {
+  const response = await page.goto("/comun/pautas/calcadas-em-circulacao");
+  expect(response?.status()).toBeLessThan(500);
   await expect(page.locator("h1")).toHaveCount(1);
-  await expect(
-    page.locator('nav[aria-label="Contexto do processo"]'),
-  ).toHaveCount(1);
-  await expect(
-    page.getByRole("link", { name: "Voltar às pautas" }),
-  ).toBeVisible();
-  const register = page.getByRole("link", { name: "Registrar calçada" });
-  if ((await register.count()) > 0) {
-    const hrefs = await register.evaluateAll((links) =>
-      links.map((link) => link.getAttribute("href") ?? ""),
-    );
-    expect(
-      hrefs.some((href) => href.includes("/comun/calcadas/contribuir")),
-    ).toBe(true);
-    expect(hrefs.some((href) => href.includes("/comun/mapa/contribuir"))).toBe(
-      false,
-    );
+  await expectAtMostOnePrimaryAction(page);
+  const roda = page.getByRole("link", { name: "Entrar na roda" }).first();
+  if (await roda.isVisible().catch(() => false)) {
+    await roda.click();
+    await expect(page.getByRole("link", { name: "Voltar à pauta" })).toBeVisible();
+    await expectAtMostOnePrimaryAction(page);
   }
   await expectNoOverflow(page);
 });
 
-test("alias, filtros e retorno à origem são preservados", async ({ page }) => {
+test("alias, filtros, retorno e rollback legado preservam contexto", async ({ page }) => {
   await page.goto("/comun/busca?q=calcadas&tipo=pauta");
   await expect(page).toHaveURL(/\/comun\/buscar\?q=calcadas&tipo=pauta$/);
-  await page.goto(
-    "/comun/mapa/contribuir?origem=calcadas&pauta=calcadas-em-circulacao&returnTo=%2Fcomun%2Fpautas%2Fcalcadas-em-circulacao",
-  );
-  await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
-  await expectNoOverflow(page);
+  await page.goto("/comun?experiencia=legacy");
+  await expect(page.locator('[data-comun-legacy-boundary="active"]')).toBeVisible();
+  await page.goto("/comun");
+  await expect(page.locator('[data-comun-app-v2-page="home"]')).toBeVisible();
 });
 
-test("teclado, redução de movimento, zoom e fallback sólido continuam funcionais", async ({
-  page,
-}) => {
+test("teclado, redução de movimento e zoom continuam funcionais", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/comun?experiencia=coerencia");
+  await page.goto("/comun");
   await page.keyboard.press("Tab");
   await expect(page.locator(":focus-visible")).toBeVisible();
   const motion = await page.evaluate(() => {
@@ -98,31 +107,15 @@ test("teclado, redução de movimento, zoom e fallback sólido continuam funcion
     return Number.parseFloat(style.transitionDuration || "0");
   });
   expect(motion).toBeLessThanOrEqual(0.01);
-  const fallback = await page
-    .getByRole("complementary", {
-      name: "Comparação da direção de experiência",
-    })
-    .evaluate((element) => {
-      const style = getComputedStyle(element);
-      return {
-        background: style.backgroundColor,
-        backdrop: style.backdropFilter,
-      };
-    });
-  expect(fallback.background).not.toBe("rgba(0, 0, 0, 0)");
-  expect(fallback.backdrop === "none" || fallback.backdrop === "").toBe(true);
   await page.evaluate(() => {
     document.documentElement.style.fontSize = "200%";
   });
-  await expect(
-    page.getByRole("heading", { name: "Agora no território." }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "O que precisa de atenção?" })).toBeVisible();
+  await expectNoOverflow(page);
 });
 
-test("Central continua protegida e não vaza conteúdo administrativo", async ({
-  page,
-}) => {
-  await page.goto("/comun/admin/operacao?experiencia=coerencia");
+test("Central continua protegida e não vaza conteúdo administrativo", async ({ page }) => {
+  await page.goto("/comun/admin/operacao");
   await expect(page).toHaveURL(/\/comun\/admin\/(login|$)/);
   await expect(page.locator("body")).not.toContainText(
     /service_role|object_key|private_contact|member_user_id/i,

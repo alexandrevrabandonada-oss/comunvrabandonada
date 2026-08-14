@@ -62,6 +62,8 @@ export default async function MinhaAreaPage({
   const appV2 = isComunAppV2(rawSearchParams.experiencia);
   const v2Sections = [
     "contribuicoes",
+    "conversas",
+    "acoes",
     "comunidades",
     "tarefas",
     "acompanhando",
@@ -149,6 +151,7 @@ export default async function MinhaAreaPage({
         selected={selected}
         contributions={contributions}
         archiveContributions={archiveContributions}
+        collectiveActions={collectiveActions}
         collectiveTaskAssignments={collectiveTaskAssignments}
         attention={attention}
         walletEnabled={walletEnabled}
@@ -165,10 +168,13 @@ export default async function MinhaAreaPage({
     <ComunShell>
       <ComunSection>
         <ComunBreadcrumbs
-          items={[{ label: "Início", href: "/comun" }, { label: "Minha área" }]}
+          items={[
+            { label: "Início", href: "/comun" },
+            { label: "Minha participação" },
+          ]}
         />
         <h1 className="text-4xl font-black uppercase text-comun-yellow sm:text-6xl">
-          Minha área
+          Minha participação
         </h1>
         <div className="mt-5 flex items-center gap-4 border-y-2 border-comun-paper/20 py-4">
           <span className="grid size-12 place-items-center rounded-lg bg-comun-yellow font-black text-comun-black">
@@ -230,7 +236,7 @@ export default async function MinhaAreaPage({
         </ComunSection>
       ) : null}
       <nav
-        aria-label="Seções de Minha área"
+        aria-label="Seções de Minha participação"
         className="mx-auto flex max-w-7xl overflow-x-auto px-4 [scrollbar-width:none]"
       >
         <AreaTab
@@ -518,6 +524,7 @@ function MinhaAreaAppV2({
   selected,
   contributions,
   archiveContributions,
+  collectiveActions,
   collectiveTaskAssignments,
   attention,
   walletEnabled,
@@ -534,6 +541,7 @@ function MinhaAreaAppV2({
   selected: string;
   contributions: any[];
   archiveContributions: any[];
+  collectiveActions: any[];
   collectiveTaskAssignments: any[];
   attention: any[];
   walletEnabled: boolean;
@@ -546,20 +554,18 @@ function MinhaAreaAppV2({
   childProtectionChannelOnlyEnabled: boolean;
 }) {
   const tabs = [
-    ["contribuicoes", "Participações"],
-    ["comunidades", "Comunidades"],
-    ["tarefas", "Tarefas"],
-    ["acompanhando", "Acompanhamentos"],
-    ["resultados", "Resultados"],
-    ["cultura", "Cultura"],
-    ["configuracoes", "Configurações"],
+    ["contribuicoes", "Meus registros"],
+    ["acompanhando", "Estou acompanhando"],
+    ["conversas", "Minhas conversas"],
+    ["acoes", "Ações em que estou"],
+    ["tarefas", "Meus compromissos"],
   ] as const;
   return (
     <ComunShell
       inboxBadge={attention.length}
       appBar={{
-        title: "Minha área",
-        contextLabel: "Sua relação com os processos",
+        title: "Minha participação",
+        contextLabel: "Continue de onde parou",
       }}
     >
       <div className="comun-v2-page" data-comun-app-v2-page="my-area">
@@ -573,15 +579,15 @@ function MinhaAreaAppV2({
               .toUpperCase()}
           </span>
           <div>
-            <h1 className="comun-v2-title normal-case">Minha área</h1>
+            <h1 className="comun-v2-title normal-case">Minha participação</h1>
             <p className="mt-1 text-sm text-comun-black/60">
               {profile?.display_name ?? "Identidade comunitária"} · área privada
             </p>
           </div>
         </header>
         <p className="mt-5 max-w-2xl text-comun-black/70">
-          Histórico, vínculos e continuidade. Mensagens que pedem ação ficam
-          somente na Caixa.
+          Reencontre o que você registrou, as conversas em que participou e os
+          compromissos que assumiu.
         </p>
         {walletEnabled ? (
           <ParticipationWalletPanel
@@ -596,41 +602,17 @@ function MinhaAreaAppV2({
             }
           />
         ) : null}
-        <div
-          className="mt-5 grid grid-cols-3 gap-2"
-          aria-label="Resumo da sua área"
-        >
-          <AreaMetric
-            label="Ativas"
-            value={
-              contributions.filter(
-                (item) =>
-                  !["completed", "withdrawn", "archived"].includes(item.status),
-              ).length
-            }
-          />
-          <AreaMetric
-            label="Vínculos"
-            value={(center.communities ?? []).length}
-          />
-          <AreaMetric
-            label="Resultados"
-            value={(center.results ?? []).length}
-          />
-        </div>
         {attention.length ? (
           <Link
             href={withComunAppV2("/comun/caixa-de-entrada")}
             className="surface-alert mt-4 flex min-h-12 items-center justify-between rounded-[var(--comun-radius-card)] border border-comun-black/20 px-4 font-black"
           >
-            <span>
-              {attention.length} mensagem(ns) pedem compreensão ou ação
-            </span>
+            <span>Continuar de onde parei</span>
             <span aria-hidden="true">→</span>
           </Link>
         ) : null}
         <nav
-          aria-label="Seções de Minha área"
+          aria-label="Seções de Minha participação"
           className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {tabs.map(([value, label]) => (
@@ -746,6 +728,104 @@ function MinhaAreaAppV2({
                   nextAction={item.pauta?.next_step ?? "Ver atualização"}
                 />
               ))}
+              {!(center.memberships ?? []).length ? (
+                <ComunStatePanel
+                  state="empty"
+                  actionHref={withComunAppV2("/comun/pautas")}
+                  actionLabel="Encontrar uma pauta"
+                >
+                  Você ainda não acompanha uma pauta. Isso é normal: escolha
+                  uma questão quando quiser receber seus próximos passos.
+                </ComunStatePanel>
+              ) : null}
+            </div>
+          ) : null}
+          {selected === "conversas" ? (
+            <div className="grid gap-3 lg:grid-cols-2">
+              {(center.circles ?? []).slice(0, 6).map((item: any) => {
+                const pauta = (center.memberships ?? []).find(
+                  (membership: any) => membership.pauta_id === item.pauta_id,
+                )?.pauta;
+                return (
+                  <article
+                    key={item.id}
+                    className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
+                  >
+                    <p className="comun-v2-status text-comun-rust">
+                      {item.status === "open"
+                        ? "Conversa aberta"
+                        : "Síntese em preparação"}
+                    </p>
+                    <h2 className="mt-2 text-lg font-black normal-case">
+                      {item.title}
+                    </h2>
+                    <p className="mt-2 text-sm text-comun-black/65">
+                      {item.public_question ??
+                        "Retome a conversa e veja em qual etapa ela está."}
+                    </p>
+                    {pauta?.slug ? (
+                      <Link
+                        href={withComunAppV2(
+                          `/comun/pautas/${pauta.slug}/rodas/${item.id}`,
+                        )}
+                        className="mt-3 inline-flex min-h-11 items-center font-black underline"
+                      >
+                        Continuar conversa
+                      </Link>
+                    ) : null}
+                  </article>
+                );
+              })}
+              {!(center.circles ?? []).length ? (
+                <ComunStatePanel
+                  state="empty"
+                  actionHref={withComunAppV2("/comun/pautas")}
+                  actionLabel="Ver pautas abertas"
+                >
+                  Você ainda não participa de uma conversa. Entre por uma
+                  pauta quando houver uma roda aberta.
+                </ComunStatePanel>
+              ) : null}
+            </div>
+          ) : null}
+          {selected === "acoes" ? (
+            <div className="grid gap-3 lg:grid-cols-2">
+              {collectiveActions.slice(0, 6).map((participation: any) => (
+                <article
+                  key={participation.id}
+                  className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
+                >
+                  <p className="comun-v2-status text-comun-rust">
+                    {participation.action?.status ?? "Em andamento"}
+                  </p>
+                  <h2 className="mt-2 text-lg font-black normal-case">
+                    {participation.action?.title ?? "Ação coletiva"}
+                  </h2>
+                  <p className="mt-2 text-sm text-comun-black/65">
+                    {participation.action?.summary ??
+                      "Veja o estado atual e o próximo passo desta ação."}
+                  </p>
+                  <Link
+                    href={withComunAppV2(
+                      participation.action_url ??
+                        `/comun/acoes/${participation.action?.slug}`,
+                    )}
+                    className="mt-3 inline-flex min-h-11 items-center font-black underline"
+                  >
+                    Continuar nesta ação
+                  </Link>
+                </article>
+              ))}
+              {!collectiveActions.length ? (
+                <ComunStatePanel
+                  state="empty"
+                  actionHref={withComunAppV2("/comun/pautas")}
+                  actionLabel="Encontrar uma pauta"
+                >
+                  Você ainda não participa de uma ação. As ações aparecem no
+                  contexto das pautas que as organizam.
+                </ComunStatePanel>
+              ) : null}
             </div>
           ) : null}
           {selected === "tarefas" ? (
@@ -849,25 +929,10 @@ function MinhaAreaAppV2({
             </div>
           ) : null}
         </section>
-        <Link
-          href="/comun/minha-participacao"
-          className="mt-8 inline-flex min-h-11 items-center text-sm font-black underline"
-        >
-          Abrir versão atual completa
-        </Link>
       </div>
     </ComunShell>
   );
 }
-function AreaMetric({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-3">
-      <strong className="block text-2xl font-black">{value}</strong>
-      <span className="text-xs font-bold text-comun-black/60">{label}</span>
-    </div>
-  );
-}
-
 function AreaSettingsLink({
   href,
   children,
@@ -890,7 +955,7 @@ function CollectiveActionsPreviewParticipation() {
     <ComunShell>
       <ComunSection>
         <h1 className="text-4xl font-black uppercase text-comun-yellow">
-          Minha área
+          Minha participação
         </h1>
         <p className="mt-3 text-comun-paper/75">
           Demonstração de Preview com participação sintética e sem dados

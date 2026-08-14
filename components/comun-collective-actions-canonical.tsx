@@ -275,8 +275,8 @@ export function CollectiveActionCanonicalDetail({
             Participar
           </h2>
           <p className="comun-prose mt-2 max-w-3xl text-comun-paper/78">
-            Sua participação não cria membership de Pauta ou Comunidade e não
-            aparece como contagem de popularidade.
+            Sua participação fica ligada somente a esta ação e não aparece como
+            contagem de popularidade.
           </p>
           {previewFixtures ? (
             <p role="status" className="mt-4 border-2 border-comun-yellow p-4">
@@ -291,7 +291,10 @@ export function CollectiveActionCanonicalDetail({
                 <input type="hidden" name="slug" value={action.slug} />
                 <input type="hidden" name="status" value="participating" />
                 <input type="hidden" name="canonical_experience" value="1" />
-                <button className="min-h-12 border-2 border-comun-black bg-comun-yellow px-5 font-black uppercase text-comun-black focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2">
+                <button
+                  data-comun-primary-action="true"
+                  className="min-h-12 border-2 border-comun-black bg-comun-yellow px-5 font-black uppercase text-comun-black focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2"
+                >
                   Participar desta ação
                 </button>
               </form>

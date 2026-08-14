@@ -29,10 +29,12 @@ describe("contratos de fonte do Motorola Pass", () => {
     );
   });
 
-  it("mantém Participar disponível fora do gesto central mobile", () => {
+  it("mantém Participar disponível pela entrada canônica de Pautas", () => {
     const navigation = source("components/comun-navigation.tsx");
     const controls = source("components/comun-experience-controls.tsx");
-    expect(navigation).toContain('["Participar", "/comun/participar"');
+    expect(navigation).toContain('["Participar", "/comun/pautas"');
+    // A folha legada continua disponível como compatibilidade, sem competir
+    // com a entrada principal da experiência canônica.
     expect(controls).toContain('href={withComunAppV2("/comun/participar"');
   });
 

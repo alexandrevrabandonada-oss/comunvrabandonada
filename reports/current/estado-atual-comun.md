@@ -1,4 +1,23 @@
-# Estado atual — 48.3-D1 Memória Coletiva do Ciclo (14/08/2026)
+# Estado candidato — 48.3-E1 Coerência Integrada da Experiência (14/08/2026)
+
+## 48.3-E1 — Menos portas e um próximo passo claro
+
+- o App V2 existente foi convergido sem App V3, objeto, API, flag, schema ou migration;
+- Home e navegação expressam quatro intenções: relatar, entender, participar e reencontrar a própria participação;
+- Panorama é a entrada canônica para entendimento; Pautas, para organização; ferramentas e Comunidades permanecem contextuais;
+- Pauta/Roda/Ação/Memória preservam uma CTA dominante e retorno ao contexto;
+- Minha participação usa agrupamentos humanos, preserva `returnTo` e remove contadores dominantes e tela de transição;
+- 941 testes unitários, 35 testes Playwright em cinco viewports, typecheck, lint e build verdes;
+- zero migration, API, flag, business write ou alteração semântica de dados.
+
+Estado candidato condicionado a PR, CI, exact-head merge e smoke Production read-only:
+`COMUN_48_3_E1_INTEGRATED_EXPERIENCE_COHERENCE_GREEN_STREAMLINED_NAVIGATION`.
+
+Detalhes: `reports/current/comun-48-3-e1-integrated-experience-coherence.md`.
+
+Preservados: `COMUN_48_3_D1_COLLECTIVE_CYCLE_MEMORY_GREEN_CANONICAL_PUBLIC_NARRATIVE`, `COMUN_48_3_C1_COLLECTIVE_ACTIONS_CANONICAL_EXPERIENCE_GREEN_MEMBER_PARTICIPATION`, `COMUN_48_3_B1_RODAS_VIVAS_CANONICAL_EXPERIENCE_GREEN_MODERATED_PUBLIC`, `COMUN_48_3_A1_PAUTAS_VIVAS_PUBLIC_CORE_GREEN_VERSIONED_EVIDENCE`, `COMUN_48_2_F_CROSS_OBSERVATORY_CITY_PANORAMA_GREEN_PUBLIC_SAFE`, `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e `launch_publicly=false`.
+
+# Estado anterior — 48.3-D1 Memória Coletiva do Ciclo (14/08/2026)
 
 ## 48.3-D1 — Narrativa pública canônica do ciclo
 

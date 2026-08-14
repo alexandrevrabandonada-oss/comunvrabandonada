@@ -28,7 +28,7 @@ function LayerCard({ layer }: { layer: PanoramaLayer }) {
             ))}
           </dl>
           <p className="mt-5 border-l-4 border-comun-yellow pl-3 text-sm">{layer.coverageStatement}</p>
-          <Link href={layer.publicPath} className="mt-5 inline-flex min-h-11 items-center bg-comun-yellow px-4 font-black uppercase">
+          <Link href={layer.publicPath} className="mt-5 inline-flex min-h-11 items-center font-black underline decoration-2 underline-offset-4">
             Ver observatório
           </Link>
         </>
@@ -49,6 +49,13 @@ export function ComunCityPanorama({ dto }: { dto: CityPanoramaPublicDto }) {
         <h1 className="mt-2 text-4xl font-black uppercase tracking-[-.04em] sm:text-6xl">Panorama de Volta Redonda</h1>
         <p className="mt-4 text-lg">O que conseguimos enxergar hoje sobre Volta Redonda usando as fontes públicas já organizadas pelo COMUN.</p>
         <p className="mt-4 border-l-4 border-comun-yellow pl-4 text-sm font-bold">Cada camada preserva seu próprio período, geografia, proveniência e limitações. O Panorama não cria uma nota única da cidade.</p>
+        <Link
+          href="#panorama-visible-title"
+          data-comun-primary-action="true"
+          className="mt-6 inline-flex min-h-12 items-center border-2 border-comun-black bg-comun-yellow px-5 font-black uppercase shadow-[4px_4px_0_#0b0b0a]"
+        >
+          Explorar o que sabemos
+        </Link>
       </header>
 
       <section className="mt-10" aria-labelledby="panorama-visible-title">
