@@ -4,7 +4,7 @@ Data: 14/08/2026
 
 Baseline: `50613f49d76e8dd236cbb36db211c8a6cb24f48e`
 
-Estado: candidato funcional em validação. O estado terminal só será registrado após CI, merge exact-head e smoke read-only em Production.
+Estado: green em Production, com merge exact-head e prova read-only concluídos.
 
 ## Decisão
 
@@ -82,7 +82,31 @@ Validação local pré-PR:
 - navegador real: Panorama e recorte filtrado sem overflow em mobile/desktop, uma ação primária no Panorama, ref inválida fail-closed e empty state válido sem associação falsa;
 - migration diff vazio.
 
-Os campos de head, PR, CI, preflight, merge, deploy e smoke Production serão preenchidos após as respectivas provas. Até lá, o terminal E2 não é emitido.
+Promoção concluída:
+
+- PR funcional `#322`, head exato `a21ddf2f1f42a27dd3887e1157a3dc06cdbf5356`;
+- 139 checks de PR concluídos sem falha ou pendência e zero review thread bloqueante;
+- preflight remoto `31833796298` verde, metadata-only em transação read-only, `businessContentRead=false` e `migrationCount=0`;
+- descartável `31833796300` verde para versões atual/histórica, exclusões fail-closed, não-match textual e rollback integral;
+- merge exact-head `ab4fe8e416e96a9c4b67822d86162baf7fcc2695`, confirmado como `origin/main` imediatamente após a integração;
+- deploy Vercel `GTB5XNXFqEsm69mcJQYzn8g1j2rn` concluído no mesmo SHA;
+- CI pós-merge `31834740686`, Core Journeys `31834740690`, Quality Performance `31834740622`, Experience Coherence `31834740647` e Civic Graph `31834740646` verdes;
+- o único rerun foi do job Production do Civic Graph: o Chromium encerrou com `SIGSEGV` após 37/40 cenários, foi classificado como falha transitória de runner e passou integralmente no segundo attempt sem alteração de código;
+- consulta do bridge permanece uma leitura batched por conjunto de refs (`bridgeQueryCount=1`), sem N+1, busca aproximada ou write;
+- migration diff contra o baseline permaneceu vazio.
+
+Smoke read-only em `https://comunsocial.online`:
+
+- GET e HEAD `200` em `/comun`, `/comun/observatorios/panorama`, `/comun/pautas`, `/comun/pautas?evidencia=panorama%3Aterritory%3Acoverage` e `/comun/pautas/calcadas-em-circulacao`;
+- a referência pública válida sem ligação real mostrou o empty state contratual, sem criar fixture ou associação falsa;
+- referência inválida falhou fechada e ofereceu somente retorno a todas as Pautas;
+- Panorama preservou uma única ação primária e não exibiu criação de Pauta;
+- HTML/DTO não continham marcadores privados auditados;
+- `businessWrites=0`, auto-create `0`, auto-attach `0` e fixtures Production `0`.
+
+Estado terminal:
+
+`COMUN_48_3_E2_NATURAL_ORGANIZATION_BRIDGES_GREEN_PUBLIC_EVIDENCE_TO_PAUTA_NO_AUTO_CREATE`
 
 ## Próximo tijolo
 
