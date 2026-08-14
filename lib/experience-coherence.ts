@@ -8,7 +8,8 @@ export const COMUN_PUBLIC_EXPERIENCE_DOORS = [
   {
     id: "report",
     label: "Vi um problema",
-    description: "Registrar primeiro, sem precisar descobrir o órgão responsável.",
+    description:
+      "Registrar primeiro, sem precisar descobrir o órgão responsável.",
     href: "/comun/relatar",
   },
   {

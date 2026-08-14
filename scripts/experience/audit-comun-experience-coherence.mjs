@@ -48,38 +48,164 @@ const requiredRoutes = [
 ];
 
 const experienceMatrix = [
-  ["/comun", "começar", "O que posso fazer aqui?", "Vi um problema", "/comun", false],
-  ["/comun/relatar", "registrar", "O que aconteceu?", "Guardar registro", "/comun", false],
-  ["/comun/calcadas", "usar ferramenta especializada", "Como registrar ou consultar Calçadas?", "Registrar problema", "/comun", false],
-  ["/comun/onibus", "usar ferramenta especializada", "Como consultar ou relatar sobre ônibus?", "Registrar problema", "/comun", false],
-  ["/comun/observatorios", "entender", "Que leituras públicas existem?", "Ver Panorama", "/comun/observatorios/panorama", false],
-  ["/comun/observatorios/panorama", "entender", "O que os dados públicos mostram?", "Explorar o que sabemos", "/comun", false],
-  ["/comun/pautas", "participar", "Que questões coletivas estão abertas?", "Acompanhar pauta", "/comun", false],
-  ["/comun/pautas/[slug]", "acompanhar pauta", "O que estamos tentando entender ou mudar?", "Próximo passo da pauta", "/comun/pautas", false],
-  ["/comun/pautas/[slug]/rodas/[circleId]", "conversar", "Qual é a pergunta desta etapa?", "Contribuir nesta rodada", "/comun/pautas/[slug]", false],
-  ["/comun/acoes", "encontrar ação", "O que vamos fazer?", "Ver ação", "/comun/pautas", false],
-  ["/comun/acoes/[slug]", "agir", "Como posso ajudar nesta ação?", "Participar desta ação", "/comun/pautas/[slug]", true],
-  ["/comun/comunidades", "encontrar vínculo", "Que comunidades públicas existem?", "Ver comunidade", "/comun/explorar", false],
-  ["/comun/c/[slug]", "ver comunidade", "Quem permanece junto aqui?", "Ver contexto público", "/comun/comunidades", false],
-  ["/comun/minha-participacao", "retomar", "Onde parei?", "Continuar de onde parei", "/comun", true],
-  ["/comun/participar", "explorar formas", "Como quero participar?", "Ver pautas", "/comun", false],
-  ["/comun/explorar", "explorar catálogo", "Que outras superfícies existem?", "Abrir destino", "/comun", false],
-].map(([route, userIntent, primaryQuestion, primaryAction, backDestination, loginGate]) => ({
-  route,
-  userIntent,
-  primaryQuestion,
-  primaryAction,
-  secondaryActions: "contextuais e visualmente rebaixadas",
-  backDestination,
-  contextVisible: true,
-  duplicateDestination: route === "/comun/explorar" ? "/comun/observatorios/panorama" : null,
-  requiresDomainKnowledge: false,
-  loginGate,
-  emptyState: "explica o significado e oferece próximo passo",
-  mobileFriction: "uma intenção acima da dobra; sem navegação paralela",
-  terminologyDebt: route === "/comun/explorar" ? "catálogo secundário preservado" : null,
-  recommendation: route === "/comun/explorar" ? "manter como catálogo secundário" : "manter no fluxo canônico",
-}));
+  [
+    "/comun",
+    "começar",
+    "O que posso fazer aqui?",
+    "Vi um problema",
+    "/comun",
+    false,
+  ],
+  [
+    "/comun/relatar",
+    "registrar",
+    "O que aconteceu?",
+    "Guardar registro",
+    "/comun",
+    false,
+  ],
+  [
+    "/comun/calcadas",
+    "usar ferramenta especializada",
+    "Como registrar ou consultar Calçadas?",
+    "Registrar problema",
+    "/comun",
+    false,
+  ],
+  [
+    "/comun/onibus",
+    "usar ferramenta especializada",
+    "Como consultar ou relatar sobre ônibus?",
+    "Registrar problema",
+    "/comun",
+    false,
+  ],
+  [
+    "/comun/observatorios",
+    "entender",
+    "Que leituras públicas existem?",
+    "Ver Panorama",
+    "/comun/observatorios/panorama",
+    false,
+  ],
+  [
+    "/comun/observatorios/panorama",
+    "entender",
+    "O que os dados públicos mostram?",
+    "Explorar o que sabemos",
+    "/comun",
+    false,
+  ],
+  [
+    "/comun/pautas",
+    "participar",
+    "Que questões coletivas estão abertas?",
+    "Acompanhar pauta",
+    "/comun",
+    false,
+  ],
+  [
+    "/comun/pautas/[slug]",
+    "acompanhar pauta",
+    "O que estamos tentando entender ou mudar?",
+    "Próximo passo da pauta",
+    "/comun/pautas",
+    false,
+  ],
+  [
+    "/comun/pautas/[slug]/rodas/[circleId]",
+    "conversar",
+    "Qual é a pergunta desta etapa?",
+    "Contribuir nesta rodada",
+    "/comun/pautas/[slug]",
+    false,
+  ],
+  [
+    "/comun/acoes",
+    "encontrar ação",
+    "O que vamos fazer?",
+    "Ver ação",
+    "/comun/pautas",
+    false,
+  ],
+  [
+    "/comun/acoes/[slug]",
+    "agir",
+    "Como posso ajudar nesta ação?",
+    "Participar desta ação",
+    "/comun/pautas/[slug]",
+    true,
+  ],
+  [
+    "/comun/comunidades",
+    "encontrar vínculo",
+    "Que comunidades públicas existem?",
+    "Ver comunidade",
+    "/comun/explorar",
+    false,
+  ],
+  [
+    "/comun/c/[slug]",
+    "ver comunidade",
+    "Quem permanece junto aqui?",
+    "Ver contexto público",
+    "/comun/comunidades",
+    false,
+  ],
+  [
+    "/comun/minha-participacao",
+    "retomar",
+    "Onde parei?",
+    "Continuar de onde parei",
+    "/comun",
+    true,
+  ],
+  [
+    "/comun/participar",
+    "explorar formas",
+    "Como quero participar?",
+    "Ver pautas",
+    "/comun",
+    false,
+  ],
+  [
+    "/comun/explorar",
+    "explorar catálogo",
+    "Que outras superfícies existem?",
+    "Abrir destino",
+    "/comun",
+    false,
+  ],
+].map(
+  ([
+    route,
+    userIntent,
+    primaryQuestion,
+    primaryAction,
+    backDestination,
+    loginGate,
+  ]) => ({
+    route,
+    userIntent,
+    primaryQuestion,
+    primaryAction,
+    secondaryActions: "contextuais e visualmente rebaixadas",
+    backDestination,
+    contextVisible: true,
+    duplicateDestination:
+      route === "/comun/explorar" ? "/comun/observatorios/panorama" : null,
+    requiresDomainKnowledge: false,
+    loginGate,
+    emptyState: "explica o significado e oferece próximo passo",
+    mobileFriction: "uma intenção acima da dobra; sem navegação paralela",
+    terminologyDebt:
+      route === "/comun/explorar" ? "catálogo secundário preservado" : null,
+    recommendation:
+      route === "/comun/explorar"
+        ? "manter como catálogo secundário"
+        : "manter no fluxo canônico",
+  }),
+);
 
 async function walk(directory) {
   const rows = [];
@@ -167,7 +293,10 @@ export async function auditExperience(root = defaultRoot) {
     readFile(path.join(root, "lib/comun-experience.ts"), "utf8"),
     readFile(path.join(root, "app/comun/minha-participacao/page.tsx"), "utf8"),
     readFile(path.join(root, "components/comun-roda-viva.tsx"), "utf8"),
-    readFile(path.join(root, "components/comun-collective-actions-canonical.tsx"), "utf8"),
+    readFile(
+      path.join(root, "components/comun-collective-actions-canonical.tsx"),
+      "utf8",
+    ),
     readFile(path.join(root, "lib/experience-coherence.ts"), "utf8"),
   ]);
 
@@ -250,7 +379,7 @@ export async function auditExperience(root = defaultRoot) {
     findings,
   );
   assert(
-    experienceContract.includes(': COMUN_APP_V2_EXPERIENCE;') &&
+    experienceContract.includes(": COMUN_APP_V2_EXPERIENCE;") &&
       experienceContract.includes("COMUN_LEGACY_EXPERIENCE") &&
       experienceContract.includes("COMUN_COHERENCE_EXPERIENCE"),
     "canonical_app_v2_or_legacy_rollback_missing",
@@ -277,7 +406,11 @@ export async function auditExperience(root = defaultRoot) {
       "/comun/observatorios/panorama",
       "/comun/pautas",
       "/comun/minha-participacao",
-    ].every((href) => canonicalHome.includes(href) || canonicalHome.includes("COMUN_PUBLIC_EXPERIENCE_DOORS")),
+    ].every(
+      (href) =>
+        canonicalHome.includes(href) ||
+        canonicalHome.includes("COMUN_PUBLIC_EXPERIENCE_DOORS"),
+    ),
     "canonical_home_secondary_paths_missing",
     findings,
   );
@@ -288,9 +421,13 @@ export async function auditExperience(root = defaultRoot) {
     findings,
   );
   assert(
-    ["Meus registros", "Estou acompanhando", "Minhas conversas", "Ações em que estou", "Meus compromissos"].every((label) =>
-      minhaParticipacao.includes(label),
-    ),
+    [
+      "Meus registros",
+      "Estou acompanhando",
+      "Minhas conversas",
+      "Ações em que estou",
+      "Meus compromissos",
+    ].every((label) => minhaParticipacao.includes(label)),
     "my_participation_human_grouping_missing",
     findings,
   );
@@ -302,8 +439,8 @@ export async function auditExperience(root = defaultRoot) {
     findings,
   );
   assert(
-    roda.includes('href={`/comun/pautas/${pauta.slug}`}') &&
-      collectiveAction.includes('href={`/comun/pautas/${action.pauta.slug}`}'),
+    roda.includes("href={`/comun/pautas/${pauta.slug}`}") &&
+      collectiveAction.includes("href={`/comun/pautas/${action.pauta.slug}`}"),
     "pauta_context_return_missing",
     findings,
   );

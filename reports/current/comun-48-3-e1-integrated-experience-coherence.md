@@ -63,6 +63,8 @@ Comunidades, ferramentas especializadas, Caixa, Acervo e Rádio continuam acess�
 - typecheck, lint integral e build Next.js com 129 páginas verdes;
 - migration diff vazio; API nova = 0; feature flag nova = 0; business write = 0.
 
+Durante a primeira execução da PR, o preflight legado P6C-C apontou drift porque ainda exigia apenas os domínios `bus` e `essential_service` e proibia qualquer tratamento de retirada do texto institucional. O gate foi reconciliado com a migration sensível já promovida: agora exige também `sensitive_service`, preserva o texto nos domínios não sensíveis e comprova a redação segura somente na retirada sensível. A correção é exclusivamente operacional, sem alteração de schema, função, RLS ou política de segurança.
+
 ## Limites preservados
 
 Nenhuma semântica de RLS, Relata, evidência, moderação de Roda, capacidade de Ação, causalidade da Memória ou proveniência dos Observatórios foi alterada. O piloto humano Motorola permanece `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`; E1 usa automação/QA e não reabre o piloto. `launch_publicly=false`.

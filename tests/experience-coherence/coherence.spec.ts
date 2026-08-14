@@ -14,7 +14,9 @@ async function expectNoOverflow(page: import("@playwright/test").Page) {
 async function expectAtMostOnePrimaryAction(
   page: import("@playwright/test").Page,
 ) {
-  expect(await page.locator('[data-comun-primary-action="true"]').count()).toBeLessThanOrEqual(1);
+  expect(
+    await page.locator('[data-comun-primary-action="true"]').count(),
+  ).toBeLessThanOrEqual(1);
 }
 
 test("@a11y Home canônica mostra uma ação dominante e três caminhos claros", async ({
@@ -26,18 +28,18 @@ test("@a11y Home canônica mostra uma ação dominante e três caminhos claros",
     page.getByRole("heading", { name: "O que precisa de atenção?" }),
   ).toBeVisible();
   await expect(page.locator('[data-comun-app-v2-page="home"]')).toBeVisible();
-  await expect(page.locator('[data-comun-primary-action="true"]')).toHaveCount(1);
-  await expect(page.getByRole("link", { name: /Entender a cidade/ })).toHaveAttribute(
-    "href",
-    "/comun/observatorios/panorama",
+  await expect(page.locator('[data-comun-primary-action="true"]')).toHaveCount(
+    1,
   );
+  await expect(
+    page.getByRole("link", { name: /Entender a cidade/ }),
+  ).toHaveAttribute("href", "/comun/observatorios/panorama");
   await expect(
     page.getByRole("link", { name: /Participar do que está acontecendo/ }),
   ).toHaveAttribute("href", "/comun/pautas");
-  await expect(page.getByRole("link", { name: /Minha participação/ }).first()).toHaveAttribute(
-    "href",
-    "/comun/minha-participacao",
-  );
+  await expect(
+    page.getByRole("link", { name: /Minha participação/ }).first(),
+  ).toHaveAttribute("href", "/comun/minha-participacao");
   await expectNoOverflow(page);
   const audit = await new AxeBuilder({ page }).analyze();
   expect(
@@ -56,7 +58,10 @@ test("Home chega a Relata, Panorama e Pautas em um gesto", async ({ page }) => {
   ] as const;
   for (const [name, destination] of destinations) {
     await page.goto("/comun");
-    await page.getByRole("link", { name: new RegExp(name) }).first().click();
+    await page
+      .getByRole("link", { name: new RegExp(name) })
+      .first()
+      .click();
     await expect(page).toHaveURL(destination);
   }
 });
@@ -65,9 +70,13 @@ test("navegação canônica não promove objetos internos como portas principais
   page,
 }) => {
   await page.goto("/comun");
-  const navigation = page.locator('nav[aria-label="Navegação principal"]:visible');
+  const navigation = page.locator(
+    'nav[aria-label="Navegação principal"]:visible',
+  );
   await expect(navigation).toHaveCount(1);
-  await expect(navigation).not.toContainText(/Rodada|Dossiê|Grupo de Trabalho|Action Cycle|Evidence Item/i);
+  await expect(navigation).not.toContainText(
+    /Rodada|Dossiê|Grupo de Trabalho|Action Cycle|Evidence Item/i,
+  );
   await expectAtMostOnePrimaryAction(page);
   await expectNoOverflow(page);
 });
@@ -82,22 +91,30 @@ test("Pauta mantém uma próxima ação e a Roda retorna ao seu contexto", async
   const roda = page.getByRole("link", { name: "Entrar na roda" }).first();
   if (await roda.isVisible().catch(() => false)) {
     await roda.click();
-    await expect(page.getByRole("link", { name: "Voltar à pauta" })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Voltar à pauta" }),
+    ).toBeVisible();
     await expectAtMostOnePrimaryAction(page);
   }
   await expectNoOverflow(page);
 });
 
-test("alias, filtros, retorno e rollback legado preservam contexto", async ({ page }) => {
+test("alias, filtros, retorno e rollback legado preservam contexto", async ({
+  page,
+}) => {
   await page.goto("/comun/busca?q=calcadas&tipo=pauta");
   await expect(page).toHaveURL(/\/comun\/buscar\?q=calcadas&tipo=pauta$/);
   await page.goto("/comun?experiencia=legacy");
-  await expect(page.locator('[data-comun-legacy-boundary="active"]')).toBeVisible();
+  await expect(
+    page.locator('[data-comun-legacy-boundary="active"]'),
+  ).toBeVisible();
   await page.goto("/comun");
   await expect(page.locator('[data-comun-app-v2-page="home"]')).toBeVisible();
 });
 
-test("teclado, redução de movimento e zoom continuam funcionais", async ({ page }) => {
+test("teclado, redução de movimento e zoom continuam funcionais", async ({
+  page,
+}) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/comun");
   await page.keyboard.press("Tab");
@@ -110,11 +127,15 @@ test("teclado, redução de movimento e zoom continuam funcionais", async ({ pag
   await page.evaluate(() => {
     document.documentElement.style.fontSize = "200%";
   });
-  await expect(page.getByRole("heading", { name: "O que precisa de atenção?" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "O que precisa de atenção?" }),
+  ).toBeVisible();
   await expectNoOverflow(page);
 });
 
-test("Central continua protegida e não vaza conteúdo administrativo", async ({ page }) => {
+test("Central continua protegida e não vaza conteúdo administrativo", async ({
+  page,
+}) => {
   await page.goto("/comun/admin/operacao");
   await expect(page).toHaveURL(/\/comun\/admin\/(login|$)/);
   await expect(page.locator("body")).not.toContainText(
