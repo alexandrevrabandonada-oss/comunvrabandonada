@@ -41,7 +41,7 @@ export function PautasVivasIndex({
               key={space.id}
               className="paper-panel flex flex-col border-2 border-comun-black p-5"
             >
-              <p className="text-xs font-black uppercase text-comun-asphalt/60">
+              <p className="text-xs font-black uppercase text-comun-asphalt/70">
                 {publicState(space)}
               </p>
               <h2 className="comun-prose mt-2 text-xl font-black uppercase">
