@@ -56,7 +56,12 @@ import { PautaVivaDetail } from "@/components/comun-pautas-vivas";
 import { isComunRodasVivasEnabled } from "@/lib/comun-rodas-vivas-feature";
 import { listPublicRodasForPauta } from "@/lib/comun-rodas-vivas";
 import { isComunCollectiveActionsCanonicalExperienceEnabled } from "@/lib/comun-collective-actions-canonical-feature";
-import { listPublicCollectiveActionsByPauta } from "@/lib/comun-collective-actions-canonical";
+import {
+  listPublicCollectiveActionMemoryDetailsByPauta,
+  listPublicCollectiveActionsByPauta,
+} from "@/lib/comun-collective-actions-canonical";
+import { isComunPautaCycleMemoryEnabled } from "@/lib/comun-pauta-cycle-memory-feature";
+import { derivePublicPautaCycleMemoryV1 } from "@/lib/comun-pauta-cycle-memory";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -89,6 +94,7 @@ export default async function PautaPage(props: {
     const canonicalActionsEnabled =
       isComunCollectiveActionsCanonicalExperienceEnabled() &&
       (await getCollectiveActionsRelease()).enabled;
+    const cycleMemoryEnabled = isComunPautaCycleMemoryEnabled();
     const [evidence, tasks, contributions, dossiers, rodas, collectiveActions] =
       await Promise.all([
         listPublicPautaEvidence(space.id, 8),
@@ -102,6 +108,40 @@ export default async function PautaPage(props: {
           ? listPublicCollectiveActionsByPauta(space.id)
           : Promise.resolve([]),
       ]);
+    const [collectiveActionDetails, publicActionCycle] = cycleMemoryEnabled
+      ? await Promise.all([
+          canonicalActionsEnabled
+            ? listPublicCollectiveActionMemoryDetailsByPauta(space.id, 8)
+            : Promise.resolve([]),
+          canonicalActionsEnabled
+            ? getPublicPautaActionCycle(space.id)
+            : Promise.resolve(null),
+        ])
+      : [[], null];
+    const cycleMemory = cycleMemoryEnabled
+      ? derivePublicPautaCycleMemoryV1({
+          pauta: space,
+          evidence,
+          rodas,
+          actions: collectiveActionDetails,
+          actionCycle: publicActionCycle,
+          dossiers: dossiers.flatMap((dossier) =>
+            dossier.public_slug &&
+            dossier.public_title &&
+            dossier.public_summary
+              ? [
+                  {
+                    id: dossier.id,
+                    public_slug: dossier.public_slug,
+                    public_title: dossier.public_title,
+                    public_summary: dossier.public_summary,
+                    public_version_label: dossier.public_version_label,
+                  },
+                ]
+              : [],
+          ),
+        })
+      : null;
     return (
       <PautaVivaDetail
         space={space}
@@ -113,6 +153,8 @@ export default async function PautaPage(props: {
         rodasEnabled={isComunRodasVivasEnabled()}
         collectiveActions={collectiveActions}
         collectiveActionsEnabled={canonicalActionsEnabled}
+        cycleMemory={cycleMemory}
+        cycleMemoryEnabled={cycleMemoryEnabled}
       />
     );
   }

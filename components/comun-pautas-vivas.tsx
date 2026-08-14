@@ -11,6 +11,8 @@ import { isPublicEvidenceCitationV1 } from "@/lib/comun-public-evidence";
 import type { PublicRodaV1 } from "@/lib/comun-rodas-vivas";
 import type { PublicCollectiveActionSummaryV1 } from "@/lib/comun-collective-actions-canonical";
 import { PautaCollectiveActions } from "./comun-collective-actions-canonical";
+import { PautaCycleMemory } from "./comun-pauta-cycle-memory";
+import type { PublicPautaCycleMemoryV1 } from "@/lib/comun-pauta-cycle-memory";
 
 export function PautasVivasIndex({
   spaces,
@@ -84,6 +86,8 @@ export function PautaVivaDetail({
   rodasEnabled = false,
   collectiveActions = [],
   collectiveActionsEnabled = false,
+  cycleMemory = null,
+  cycleMemoryEnabled = false,
 }: {
   space: PublicPautaSpace;
   evidence: readonly PublicPautaEvidenceItem[];
@@ -94,8 +98,12 @@ export function PautaVivaDetail({
   rodasEnabled?: boolean;
   collectiveActions?: readonly PublicCollectiveActionSummaryV1[];
   collectiveActionsEnabled?: boolean;
+  cycleMemory?: PublicPautaCycleMemoryV1 | null;
+  cycleMemoryEnabled?: boolean;
 }) {
   const hasOpenRoda = rodas.some((roda) => roda.status === "open");
+  const memoryIsPrimary =
+    cycleMemoryEnabled && cycleMemory?.currentState === "concluded";
   return (
     <ComunShell>
       <div className="mx-auto max-w-7xl px-4 pt-5">
@@ -126,12 +134,26 @@ export function PautaVivaDetail({
         </div>
         <div className="mt-6">
           <PrimaryLink
-            href={hasOpenRoda ? "#rodas-vivas" : "/comun/participar"}
+            href={
+              memoryIsPrimary
+                ? "#historia"
+                : hasOpenRoda
+                  ? "#rodas-vivas"
+                  : "/comun/participar"
+            }
           >
-            {hasOpenRoda ? "Ver rodas abertas" : "Participar desta pauta"}
+            {memoryIsPrimary
+              ? "Ler o que aconteceu"
+              : hasOpenRoda
+                ? "Ver rodas abertas"
+                : "Participar desta pauta"}
           </PrimaryLink>
         </div>
       </Section>
+
+      {memoryIsPrimary && cycleMemory ? (
+        <PautaCycleMemory memory={cycleMemory} primary />
+      ) : null}
 
       {rodasEnabled ? (
         <Section>
@@ -250,7 +272,11 @@ export function PautaVivaDetail({
         </div>
       </Section>
 
-      <Section>
+      {cycleMemoryEnabled && cycleMemory && !memoryIsPrimary ? (
+        <PautaCycleMemory memory={cycleMemory} />
+      ) : null}
+
+      {!cycleMemoryEnabled ? <Section>
         <h2 className="text-2xl font-black uppercase text-comun-yellow">
           Memória
         </h2>
@@ -277,7 +303,7 @@ export function PautaVivaDetail({
             <Empty text="Ainda não há síntese editorial publicada para esta pauta." />
           ) : null}
         </div>
-      </Section>
+      </Section> : null}
     </ComunShell>
   );
 }

@@ -1,0 +1,58 @@
+name: COMUN 48.3-D1 collective cycle memory activation
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA
+        required: true
+        type: string
+      mode:
+        description: Keep D1 off or enable canonical memory
+        required: true
+        type: choice
+        options: [flags-off, wave1-cycle-memory]
+
+concurrency:
+  group: comun-48-3-d1-activation
+  cancel-in-progress: false
+permissions:
+  contents: read
+env:
+  D1_BASELINE_SHA: cc8899d4e28324e607891a01866c19fb7b8802bc
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+  COMUN_BASE_URL: https://comunsocial.online
+
+jobs:
+  activate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Verify exact main and zero migration
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          test "$(git rev-parse origin/main)" = "$EXPECTED_MAIN_SHA"
+          git merge-base --is-ancestor "$D1_BASELINE_SHA" HEAD
+          test -z "$(git diff --name-only "$D1_BASELINE_SHA"...HEAD -- supabase/migrations)"
+      - name: Verify canonical Vercel project binding read-only
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          test -n "${VERCEL_TOKEN:-}"
+          npx --yes vercel@50.28.0 project inspect "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null 2>/dev/null
+      - name: Deploy selected D1 wave read-only
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          MODE: ${{ inputs.mode }}
+        shell: bash
+        run: bash scripts/pautas/run-48-3-d1-production-wave.sh "$MODE"
