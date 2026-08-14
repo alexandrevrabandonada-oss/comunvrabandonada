@@ -23,9 +23,7 @@ test.beforeEach(async ({ page }, testInfo) => {
     });
 });
 
-test("Participar abre intenções agrupadas em um passo e sem mutation", async ({
-  page,
-}) => {
+test("Participar abre Pautas em um passo e sem mutation", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   const mutations: string[] = [];
   page.on("request", (request) => {
@@ -33,27 +31,12 @@ test("Participar abre intenções agrupadas em um passo e sem mutation", async (
       mutations.push(request.headers()["next-action"]);
   });
   await page.goto(`/comun?${flag}`);
-  await page.getByRole("button", { name: "Participar agora" }).click();
-  const dialog = page.getByRole("dialog", {
-    name: "Escolha uma forma de participar",
-  });
-  await expect(dialog).toContainText("Resolver um problema");
-  await dialog
-    .getByRole("button", { name: "Ver cultura, memória e direitos" })
+  await page
+    .getByRole("link", { name: /participar do que está acontecendo/i })
     .click();
-  for (const group of [
-    "Construir junto",
-    "Preservar memória e cultura",
-    "Corrigir ou proteger",
-  ])
-    await expect(dialog).toContainText(group);
-  const sidewalk = dialog.getByRole("link", { name: /^Calçada(?:\s|$)/ });
-  await expect(sidewalk).toHaveAttribute(
-    "href",
-    /\/comun\/calcadas\/contribuir/,
-  );
-  await expect(sidewalk).toHaveAttribute("href", /intencao=register_sidewalk/);
-  await expect(sidewalk).toHaveAttribute("href", /etapa=participate/);
+  await expect(page).toHaveURL(/\/comun\/pautas/);
+  await expect(page.getByRole("heading", { name: /pautas/i })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   expect(mutations).toEqual([]);
 });
 
