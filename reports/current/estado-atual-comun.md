@@ -1,4 +1,4 @@
-# Estado candidato — 48.3-E1 Coerência Integrada da Experiência (14/08/2026)
+# Estado atual — 48.3-E1 Coerência Integrada da Experiência (14/08/2026)
 
 ## 48.3-E1 — Menos portas e um próximo passo claro
 
@@ -8,9 +8,12 @@
 - Pauta/Roda/Ação/Memória preservam uma CTA dominante e retorno ao contexto;
 - Minha participação usa agrupamentos humanos, preserva `returnTo` e remove contadores dominantes e tela de transição;
 - 941 testes unitários, 35 testes Playwright em cinco viewports, typecheck, lint e build verdes;
-- zero migration, API, flag, business write ou alteração semântica de dados.
+- PR funcional `#320`, head `6bd28c56f15cfa2782aef69dacfd19f13f831c93`, integrada exact-head no merge/main `798c79b4c2a9103fb23f399a07422f771f4135d0`;
+- CI, Communities, Core Journeys, Experience Coherence, Quality Performance e Civic Graph pós-merge verdes; o único rerun foi um `SIGSEGV` transitório do Chromium, sem alteração de código;
+- deployment Production `5908690635` concluído no SHA exato; oito rotas focais responderam `200` em GET e HEAD no domínio canônico;
+- zero migration, API, flag, fixture, business write ou alteração semântica de dados; `businessWrites=0`.
 
-Estado candidato condicionado a PR, CI, exact-head merge e smoke Production read-only:
+Estado terminal:
 `COMUN_48_3_E1_INTEGRATED_EXPERIENCE_COHERENCE_GREEN_STREAMLINED_NAVIGATION`.
 
 Detalhes: `reports/current/comun-48-3-e1-integrated-experience-coherence.md`.

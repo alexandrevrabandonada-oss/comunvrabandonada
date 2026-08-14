@@ -4,7 +4,7 @@ Data: 14/08/2026
 
 Baseline: `1ae567276074685c6319057b95ec90e4b105ab7a`
 
-Estado do candidato: validação local verde; promoção GitHub e smoke Production pendentes.
+Estado final: integrado e comprovado em Production, com navegação convergida, gates verdes e zero escrita de negócio.
 
 ## Decisão
 
@@ -21,24 +21,24 @@ Comunidades, ferramentas especializadas, Caixa, Acervo e Rádio continuam acess�
 
 ## Matriz de experiência
 
-| route | userIntent | primaryQuestion | primaryAction | secondaryActions | backDestination | contextVisible | duplicateDestination | requiresDomainKnowledge | loginGate | emptyState | mobileFriction | terminologyDebt | recommendation |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `/comun` | começar | O que posso fazer aqui? | Vi um problema | três caminhos rebaixados | `/comun` | sim | — | não | não | explica e orienta | ação + caminhos acima da dobra | — | manter como início |
-| `/comun/relatar` | registrar | O que aconteceu? | Guardar registro | detalhes opcionais | `/comun` | sim | — | não | não | orienta captura | um gesto desde Home | — | preservar capture first |
-| `/comun/calcadas` | ferramenta especializada | Como registrar/consultar? | Registrar problema | leitura especializada | `/comun` | sim | Relata | não | não | explica ausência | secundária | miniapp | manter contextual |
-| `/comun/onibus` | ferramenta especializada | Como consultar/relatar? | Registrar problema | leitura especializada | `/comun` | sim | Relata | não | não | explica ausência | secundária | miniapp | manter contextual |
-| `/comun/observatorios` | entender | Que leituras existem? | Ver Panorama | observatórios específicos | Panorama | sim | Panorama | não | não | orienta Panorama | catálogo secundário | hub intermediário | manter como aprofundamento |
-| `/comun/observatorios/panorama` | entender | O que os dados mostram? | Explorar o que sabemos | camadas especializadas | `/comun` | sim | — | não | não | camada degradada não derruba página | sem overflow | — | entrada canônica de entendimento |
-| `/comun/pautas` | participar | Que questões estão abertas? | Acompanhar pauta | catálogo de pautas | `/comun` | sim | — | não | não | ausência não significa ausência de questões | um gesto desde Home | — | entrada canônica de organização |
-| `/comun/pautas/[slug]` | acompanhar | O que queremos entender ou mudar? | próxima etapa real | evidência, atividade e memória | `/comun/pautas` | sim | — | não | não | explica cada ausência | uma CTA por estado | — | manter narrativa de ciclo |
-| `/comun/pautas/[slug]/rodas/[circleId]` | conversar | Qual é a pergunta atual? | Contribuir nesta rodada | síntese e histórico | Pauta | sim | — | não | conforme modo | explica rodada indisponível | uma CTA | — | Roda somente na Pauta |
-| `/comun/acoes` | encontrar ação | O que vamos fazer? | Ver ação | filtros | `/comun/pautas` | sim | Pautas | não | não | explica etapa vazia | secundária | catálogo | manter como aprofundamento |
-| `/comun/acoes/[slug]` | agir | Como posso ajudar? | Participar desta ação | acompanhar/sair | Pauta quando ligada | sim | — | não | mutação | explica participação fechada | uma CTA | — | continuação da Pauta |
-| `/comun/comunidades` | encontrar vínculo | Que comunidades existem? | Ver comunidade | exploração | `/comun/explorar` | sim | — | não | não | explica ausência | secundária | conceito social | manter contextual |
-| `/comun/c/[slug]` | ver comunidade | Quem permanece junto aqui? | Ver contexto público | grupos públicos | Comunidades | sim | — | não | não | explica ausência | secundária | — | não inferir Pauta/Roda |
-| `/comun/minha-participacao` | retomar | Onde parei? | Continuar de onde parei | registros, pautas, conversas, ações, compromissos | `/comun` | sim | Caixa/Conta | não | sim | normaliza ausência e oferece caminho | um gesto desde Home | “Minha área” removido | manter agrupamento humano |
-| `/comun/participar` | explorar formas | Como quero participar? | Ver pautas | compatibilidade | `/comun` | sim | Pautas | não | não | orienta escolha | não necessária para tarefa comum | tela intermediária | manter compatibilidade |
-| `/comun/explorar` | catálogo | Que outras superfícies existem? | Abrir destino | catálogo completo | `/comun` | sim | Panorama | não | não | orienta exploração | não necessária para tarefa comum | catálogo secundário | preservar, sem promover |
+| route                                   | userIntent               | primaryQuestion                   | primaryAction           | secondaryActions                                  | backDestination     | contextVisible | duplicateDestination | requiresDomainKnowledge | loginGate     | emptyState                                  | mobileFriction                   | terminologyDebt       | recommendation                   |
+| --------------------------------------- | ------------------------ | --------------------------------- | ----------------------- | ------------------------------------------------- | ------------------- | -------------- | -------------------- | ----------------------- | ------------- | ------------------------------------------- | -------------------------------- | --------------------- | -------------------------------- |
+| `/comun`                                | começar                  | O que posso fazer aqui?           | Vi um problema          | três caminhos rebaixados                          | `/comun`            | sim            | —                    | não                     | não           | explica e orienta                           | ação + caminhos acima da dobra   | —                     | manter como início               |
+| `/comun/relatar`                        | registrar                | O que aconteceu?                  | Guardar registro        | detalhes opcionais                                | `/comun`            | sim            | —                    | não                     | não           | orienta captura                             | um gesto desde Home              | —                     | preservar capture first          |
+| `/comun/calcadas`                       | ferramenta especializada | Como registrar/consultar?         | Registrar problema      | leitura especializada                             | `/comun`            | sim            | Relata               | não                     | não           | explica ausência                            | secundária                       | miniapp               | manter contextual                |
+| `/comun/onibus`                         | ferramenta especializada | Como consultar/relatar?           | Registrar problema      | leitura especializada                             | `/comun`            | sim            | Relata               | não                     | não           | explica ausência                            | secundária                       | miniapp               | manter contextual                |
+| `/comun/observatorios`                  | entender                 | Que leituras existem?             | Ver Panorama            | observatórios específicos                         | Panorama            | sim            | Panorama             | não                     | não           | orienta Panorama                            | catálogo secundário              | hub intermediário     | manter como aprofundamento       |
+| `/comun/observatorios/panorama`         | entender                 | O que os dados mostram?           | Explorar o que sabemos  | camadas especializadas                            | `/comun`            | sim            | —                    | não                     | não           | camada degradada não derruba página         | sem overflow                     | —                     | entrada canônica de entendimento |
+| `/comun/pautas`                         | participar               | Que questões estão abertas?       | Acompanhar pauta        | catálogo de pautas                                | `/comun`            | sim            | —                    | não                     | não           | ausência não significa ausência de questões | um gesto desde Home              | —                     | entrada canônica de organização  |
+| `/comun/pautas/[slug]`                  | acompanhar               | O que queremos entender ou mudar? | próxima etapa real      | evidência, atividade e memória                    | `/comun/pautas`     | sim            | —                    | não                     | não           | explica cada ausência                       | uma CTA por estado               | —                     | manter narrativa de ciclo        |
+| `/comun/pautas/[slug]/rodas/[circleId]` | conversar                | Qual é a pergunta atual?          | Contribuir nesta rodada | síntese e histórico                               | Pauta               | sim            | —                    | não                     | conforme modo | explica rodada indisponível                 | uma CTA                          | —                     | Roda somente na Pauta            |
+| `/comun/acoes`                          | encontrar ação           | O que vamos fazer?                | Ver ação                | filtros                                           | `/comun/pautas`     | sim            | Pautas               | não                     | não           | explica etapa vazia                         | secundária                       | catálogo              | manter como aprofundamento       |
+| `/comun/acoes/[slug]`                   | agir                     | Como posso ajudar?                | Participar desta ação   | acompanhar/sair                                   | Pauta quando ligada | sim            | —                    | não                     | mutação       | explica participação fechada                | uma CTA                          | —                     | continuação da Pauta             |
+| `/comun/comunidades`                    | encontrar vínculo        | Que comunidades existem?          | Ver comunidade          | exploração                                        | `/comun/explorar`   | sim            | —                    | não                     | não           | explica ausência                            | secundária                       | conceito social       | manter contextual                |
+| `/comun/c/[slug]`                       | ver comunidade           | Quem permanece junto aqui?        | Ver contexto público    | grupos públicos                                   | Comunidades         | sim            | —                    | não                     | não           | explica ausência                            | secundária                       | —                     | não inferir Pauta/Roda           |
+| `/comun/minha-participacao`             | retomar                  | Onde parei?                       | Continuar de onde parei | registros, pautas, conversas, ações, compromissos | `/comun`            | sim            | Caixa/Conta          | não                     | sim           | normaliza ausência e oferece caminho        | um gesto desde Home              | “Minha área” removido | manter agrupamento humano        |
+| `/comun/participar`                     | explorar formas          | Como quero participar?            | Ver pautas              | compatibilidade                                   | `/comun`            | sim            | Pautas               | não                     | não           | orienta escolha                             | não necessária para tarefa comum | tela intermediária    | manter compatibilidade           |
+| `/comun/explorar`                       | catálogo                 | Que outras superfícies existem?   | Abrir destino           | catálogo completo                                 | `/comun`            | sim            | Panorama             | não                     | não           | orienta exploração                          | não necessária para tarefa comum | catálogo secundário   | preservar, sem promover          |
 
 ## Mudanças de composição
 
@@ -74,12 +74,14 @@ Nenhuma semântica de RLS, Relata, evidência, moderação de Roda, capacidade d
 
 ## Promoção
 
-Preencher após CI/merge/smoke read-only:
+- PR funcional `#320`, head exato `6bd28c56f15cfa2782aef69dacfd19f13f831c93`, integrada no merge/main `798c79b4c2a9103fb23f399a07422f771f4135d0`;
+- 45 checks aplicáveis verdes no head da PR; 93 checks foram ignorados por escopo; zero review ou thread bloqueante;
+- workflows pós-merge verdes: CI `31813860571`/`31813942102`, Communities `31813860428`, Core Journeys `31813860582`, Experience Coherence `31813860502` e Quality Performance `31813860505`; Civic Intelligence `31813860619` foi corretamente ignorado por escopo;
+- Civic Graph `31813860554` sofreu um `SIGSEGV` transitório do Chromium após 39/40 cenários verdes; o único rerun permitido, attempt 2, concluiu verde sem mudança de código;
+- deployment GitHub/Vercel Production `5908690635` concluído com sucesso no SHA exato, URL imutável `https://comunvrabandonada-7a4967kp2-alexandrevrabandonada-oss-projects.vercel.app` e domínio canônico `https://comunsocial.online` ativo;
+- smoke Production estritamente GET/HEAD: `/comun`, `/comun/relatar`, `/comun/observatorios`, `/comun/observatorios/panorama`, `/comun/pautas`, `/comun/pautas/calcadas-em-circulacao`, `/comun/acoes` e `/comun/minha-participacao` responderam `200` nos dois métodos;
+- Home comprovou as quatro intenções e seus links canônicos; Panorama, Pauta, Memória e Minha participação preservaram a linguagem pública; `action cycle` e `construction circle` não apareceram nas superfícies auditadas;
+- nenhuma flag nova, fixture, mutation, chamada de write ou ativação paralela foi executada: `businessWrites=0`;
+- migration diff permaneceu vazio; o piloto Motorola permaneceu pausado e `launch_publicly=false`.
 
-- PR/head/merge: pendente;
-- Preview: pendente;
-- Production exact main: pendente;
-- smoke GET-only: pendente;
-- `businessWrites=0`: pendente de prova final.
-
-O terminal `COMUN_48_3_E1_INTEGRATED_EXPERIENCE_COHERENCE_GREEN_STREAMLINED_NAVIGATION` só será emitido após essa promoção.
+Estado terminal: `COMUN_48_3_E1_INTEGRATED_EXPERIENCE_COHERENCE_GREEN_STREAMLINED_NAVIGATION`.
