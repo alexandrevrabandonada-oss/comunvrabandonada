@@ -1,4 +1,4 @@
-# Estado em validação — 48.3-E3 Criação de Pauta com baixíssima fricção (14/08/2026)
+# Estado atual — 48.3-E3 Criação de Pauta com baixíssima fricção (14/08/2026)
 
 ## 48.3-E3 — Uma pergunta, salvar e organizar depois
 
@@ -7,7 +7,15 @@
 - uma única função transacional cria Pauta pública `observing/received/normal`, membership `participant` e evidência pública opcional revalidada no servidor;
 - a função é executável somente pela `service_role`; o ledger privado contém hashes para idempotência e rate limit, sem IP bruto ou autoria pública;
 - PII/alto risco falham fechados, duplicata forte exige confirmação e o fluxo não cria automaticamente comunidade, Roda, Ação, grupo, mobilização ou Dossiê;
-- uma migration forward-only é necessária; preflight, CI, rollout e Production ainda precisam fechar antes do terminal.
+- a única migration forward-only foi promovida; ledger/RLS/RPC permanecem fechados e a execução é exclusiva da `service_role`;
+- PR funcional `#324`, head `855fbef978367bf215780d594bf489606f807897`, integrada exact-head no merge `8b5c4dbe68b9b37de914d81eec24f6449b509f00`;
+- correções focais de smoke `#325` e `#326` foram integradas exact-head; main funcional final `87107b3f0d5e4e33acc7be505c84c22b1fd5d8c9`;
+- Wave 0 `31844450823` preservou a rota cloaked e as superfícies existentes; Wave 1 final `31845840116` ativou somente a flag E3 e ficou verde;
+- preflight pós-promoção `31846083045` confirmou metadata-only, `businessContentRead=false` e remote plan vazio;
+- GET/HEAD Production responderam `200` nas cinco superfícies focais, sem marcador privado, fixture ou mutação; `businessWrites=0`.
+
+Estado terminal:
+`COMUN_48_3_E3_LOW_FRICTION_PAUTA_CREATION_GREEN_PUBLIC_SAFE_NO_AUTO_ORGANIZATION`.
 
 Detalhes: `reports/current/comun-48-3-e3-low-friction-pauta-creation.md`.
 
