@@ -10,6 +10,7 @@ import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
 import { isComunPautasVivasCoreEnabled } from "@/lib/comun-pautas-vivas-feature";
 import { PautasVivasIndex } from "@/components/comun-pautas-vivas";
 import { resolvePublicOrganizationBridgeFilter } from "@/lib/comun-organization-bridges";
+import { isComunPautaLowFrictionCreationEnabled } from "@/lib/comun-pauta-low-friction";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -36,6 +37,7 @@ export default async function PautaSpacesPage({
       return (
         <PautasVivasIndex
           spaces={[]}
+          creationEnabled={isComunPautaLowFrictionCreationEnabled()}
           evidenceFilter={
             evidenceFilter
               ? { state: "valid", value: evidenceFilter }
@@ -45,7 +47,7 @@ export default async function PautaSpacesPage({
       );
     }
     const spaces = await listPublicPautaSpaces();
-    return <PautasVivasIndex spaces={spaces} />;
+    return <PautasVivasIndex spaces={spaces} creationEnabled={isComunPautaLowFrictionCreationEnabled()} />;
   }
 
   const spaces = await listPublicPautaSpaces();

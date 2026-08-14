@@ -1,0 +1,94 @@
+name: COMUN 48.3-E3 remote read-only preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-3-e3-*.yml"
+      - "app/comun/pautas/**"
+      - "components/comun-pauta*.tsx"
+      - "lib/comun-pauta-low-friction*.ts"
+      - "supabase/migrations/*_comun_pauta_low_friction_creation.sql"
+      - "reports/current/comun-48-3-e3-low-friction-pauta-creation.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remote-metadata-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.113.0 }
+      - name: Inspect canonical metadata without business content
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          mkdir -p .ci-artifacts/48-3-e3-preflight
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/48-3-e3-preflight/schema.json <<'SQL'
+          begin read only;
+          select json_build_object(
+            'transactionReadOnly', current_setting('transaction_read_only')='on',
+            'canonicalTablesPresent', to_regclass('public.comun_pauta_spaces') is not null
+              and to_regclass('public.comun_pauta_memberships') is not null
+              and to_regclass('public.comun_pauta_evidence_items') is not null,
+            'rlsEnabled', (select bool_and(relrowsecurity) from pg_class where oid in (
+              'public.comun_pauta_spaces'::regclass,
+              'public.comun_pauta_memberships'::regclass,
+              'public.comun_pauta_evidence_items'::regclass
+            )),
+            'participantRoleAllowed', exists(select 1 from pg_constraint where conrelid='public.comun_pauta_memberships'::regclass and pg_get_constraintdef(oid) like '%participant%'),
+            'membershipUnique', exists(select 1 from pg_indexes where schemaname='public' and tablename='comun_pauta_memberships' and indexdef like '%pauta_id, member_user_id%'),
+            'publicEvidenceColumns', (select count(*)=3 from information_schema.columns where table_schema='public' and table_name='comun_pauta_evidence_items' and column_name in ('public_evidence_ref_id','public_evidence_version','public_evidence_payload')),
+            'clientWritesClosed', not has_table_privilege('anon','public.comun_pauta_spaces','INSERT')
+              and not has_table_privilege('authenticated','public.comun_pauta_spaces','INSERT')
+              and not has_table_privilege('anon','public.comun_pauta_memberships','INSERT')
+              and not has_table_privilege('authenticated','public.comun_pauta_memberships','INSERT'),
+            'rpcPresent', to_regprocedure('public.comun_create_pauta_low_friction_v1(uuid,text,text,text,text,text,text,boolean,jsonb)') is not null,
+            'requestLedgerPresent', to_regclass('private.comun_pauta_creation_requests') is not null,
+            'businessContentRead', false
+          );
+          rollback;
+          SQL
+          node - <<'NODE'
+          const s=JSON.parse(require('node:fs').readFileSync('.ci-artifacts/48-3-e3-preflight/schema.json','utf8'));
+          for(const key of ['transactionReadOnly','canonicalTablesPresent','rlsEnabled','participantRoleAllowed','membershipUnique','publicEvidenceColumns','clientWritesClosed']) if(s[key]!==true) throw new Error(`COMUN_48_3_E3_BLOCKED_REMOTE_SCHEMA_DRIFT:${key}`);
+          if(s.businessContentRead!==false) throw new Error('COMUN_48_3_E3_BLOCKED_BUSINESS_CONTENT_READ');
+          const promoted=s.rpcPresent===true&&s.requestLedgerPresent===true;
+          const candidate=s.rpcPresent===false&&s.requestLedgerPresent===false;
+          if(!promoted&&!candidate) throw new Error('COMUN_48_3_E3_BLOCKED_PARTIAL_REMOTE_SCHEMA');
+          require('node:fs').writeFileSync('.ci-artifacts/48-3-e3-preflight/mode', promoted?'promoted':'candidate');
+          NODE
+      - name: Prove exact migration plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          external=supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+          test "$(sha256sum "$external" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
+          held="$RUNNER_TEMP/external.sql"; mv "$external" "$held"; trap 'mv "$held" "$external"' EXIT
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-3-e3-preflight/plan.txt 2>&1
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-3-e3-preflight/plan.txt | sort -u || true)
+          mode="$(cat .ci-artifacts/48-3-e3-preflight/mode)"
+          if [ "$mode" = candidate ]; then
+            test "${#planned[@]}" -eq 1
+            test "${planned[0]}" = 20260814160000_comun_pauta_low_friction_creation.sql
+          else
+            test "${#planned[@]}" -eq 0
+          fi
+          ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/48-3-e3-preflight/plan.txt
+          echo "migrationCount=${#planned[@]}" >> "$GITHUB_STEP_SUMMARY"
+          echo businessContentRead=false >> "$GITHUB_STEP_SUMMARY"
+          echo COMUN_48_3_E3_REMOTE_PREFLIGHT_GREEN >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-3-e3-preflight-${{ github.run_id }}
+          path: .ci-artifacts/48-3-e3-preflight
+          retention-days: 14

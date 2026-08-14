@@ -155,6 +155,10 @@ export default async function PautaPage(props: {
         collectiveActionsEnabled={canonicalActionsEnabled}
         cycleMemory={cycleMemory}
         cycleMemoryEnabled={cycleMemoryEnabled}
+        creationFeedback={{
+          created: searchParams.pauta === "criada",
+          evidenceAdded: searchParams.evidencia === "adicionada",
+        }}
       />
     );
   }

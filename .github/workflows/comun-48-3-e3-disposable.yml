@@ -1,0 +1,105 @@
+name: COMUN 48.3-E3 disposable atomic creation proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-3-e3-disposable.yml"
+      - "supabase/migrations/*_comun_pauta_low_friction_creation.sql"
+      - "lib/comun-pauta-low-friction*.ts"
+      - "app/comun/pautas/nova/**"
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.113.0 }
+      - name: Prove atomic, idempotent, bounded creation
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          db="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '"')"
+          test -n "$db"
+          psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
+          begin;
+          do $$
+          declare
+            before_communities integer := (select count(*) from public.comun_communities);
+            before_circles integer := (select count(*) from public.comun_construction_circles);
+            before_actions integer := (select count(*) from public.comun_collective_actions);
+            before_dossiers integer := (select count(*) from public.comun_pauta_dossiers);
+            normal record; repeated record; duplicate_candidate record; duplicate_created record; with_evidence record; limited record;
+            citation jsonb := jsonb_build_object(
+              'contractVersion','comun.public-evidence-citation.v1','namespace','comun.panorama',
+              'refId','panorama:territory:coverage','versionId','sha256:'||repeat('a',64),
+              'publicPath','/comun/observatorios/territorio','title','Território',
+              'referencePeriod','Censo 2022','limitations',jsonb_build_array('Não é bairro.')
+            );
+          begin
+            select * into normal from public.comun_create_pauta_low_friction_v1(
+              'e3000000-0000-4000-8000-000000000001','Como melhorar o ônibus à noite no Retiro?',
+              'como melhorar o ônibus à noite no retiro?','Como melhorar o ônibus à noite no Retiro?',
+              'como-melhorar-o-onibus-a-noite-no-retiro',repeat('1',64),repeat('2',64),false,null);
+            if normal.result<>'created' then raise exception 'normal creation failed'; end if;
+            select * into repeated from public.comun_create_pauta_low_friction_v1(
+              'e3000000-0000-4000-8000-000000000001','Como melhorar o ônibus à noite no Retiro?',
+              'como melhorar o ônibus à noite no retiro?','Como melhorar o ônibus à noite no Retiro?',
+              'como-melhorar-o-onibus-a-noite-no-retiro',repeat('1',64),repeat('2',64),false,null);
+            if not repeated.idempotent or repeated.pauta_id<>normal.pauta_id then raise exception 'idempotency failed'; end if;
+            if (select count(*) from public.comun_pauta_memberships where pauta_id=normal.pauta_id and role='participant' and status='active')<>1 then raise exception 'membership failed'; end if;
+            if (select count(*) from public.comun_pauta_spaces where id=normal.pauta_id and status='observing' and public_status='received' and visibility='public' and risk_level='normal')<>1 then raise exception 'initial state failed'; end if;
+
+            select * into duplicate_candidate from public.comun_create_pauta_low_friction_v1(
+              'e3000000-0000-4000-8000-000000000002','Como melhorar o ônibus à noite no Retiro?',
+              'como melhorar o ônibus à noite no retiro?','Como melhorar o ônibus à noite no Retiro?',
+              'como-melhorar-o-onibus-a-noite-no-retiro',repeat('3',64),repeat('4',64),false,null);
+            if duplicate_candidate.result<>'duplicate_candidate' then raise exception 'strong duplicate did not stop'; end if;
+            select * into duplicate_created from public.comun_create_pauta_low_friction_v1(
+              'e3000000-0000-4000-8000-000000000002','Como melhorar o ônibus à noite no Retiro?',
+              'como melhorar o ônibus à noite no retiro?','Como melhorar o ônibus à noite no Retiro?',
+              'como-melhorar-o-onibus-a-noite-no-retiro',repeat('3',64),repeat('4',64),true,null);
+            if duplicate_created.result<>'created' then raise exception 'explicit duplicate confirmation failed'; end if;
+
+            select * into with_evidence from public.comun_create_pauta_low_friction_v1(
+              'e3000000-0000-4000-8000-000000000003','Como ampliar o acesso a dados territoriais?',
+              'como ampliar o acesso a dados territoriais?','Como ampliar o acesso a dados territoriais?',
+              'como-ampliar-o-acesso-a-dados-territoriais',repeat('5',64),repeat('6',64),false,citation);
+            if with_evidence.result<>'created' or (select count(*) from public.comun_pauta_evidence_items where pauta_id=with_evidence.pauta_id and source_type='public_evidence' and public_evidence_version='sha256:'||repeat('a',64))<>1 then raise exception 'versioned evidence failed'; end if;
+
+            begin
+              perform * from public.comun_create_pauta_low_friction_v1(
+                'e3000000-0000-4000-8000-000000000004','Como preservar uma referência que mudou?',
+                'como preservar uma referência que mudou?','Como preservar uma referência que mudou?',
+                'como-preservar-uma-referencia-que-mudou',repeat('7',64),repeat('8',64),false,'{"refId":"invalid"}'::jsonb);
+              raise exception 'invalid evidence accepted';
+            exception when sqlstate '22023' then null; end;
+
+            perform * from public.comun_create_pauta_low_friction_v1('e3000000-0000-4000-8000-000000000005','Questão pública número um','questão pública número um','Questão pública número um','questao-publica-numero-um',repeat('9',64),repeat('a',64),false,null);
+            perform * from public.comun_create_pauta_low_friction_v1('e3000000-0000-4000-8000-000000000005','Questão pública número dois','questão pública número dois','Questão pública número dois','questao-publica-numero-dois',repeat('b',64),repeat('a',64),false,null);
+            perform * from public.comun_create_pauta_low_friction_v1('e3000000-0000-4000-8000-000000000005','Questão pública número três','questão pública número três','Questão pública número três','questao-publica-numero-tres',repeat('c',64),repeat('a',64),false,null);
+            select * into limited from public.comun_create_pauta_low_friction_v1('e3000000-0000-4000-8000-000000000005','Questão pública número quatro','questão pública número quatro','Questão pública número quatro','questao-publica-numero-quatro',repeat('d',64),repeat('a',64),false,null);
+            if limited.result<>'rate_limited' then raise exception 'rate limit failed'; end if;
+
+            begin
+              perform * from public.comun_create_pauta_low_friction_v1(null,'Questão sem pessoa autenticada','questão sem pessoa autenticada','Questão sem pessoa autenticada','questao-sem-pessoa-autenticada',repeat('e',64),repeat('f',64),false,null);
+              raise exception 'unauthenticated actor accepted';
+            exception when sqlstate '22023' then null; end;
+
+            if (select count(*) from public.comun_communities)<>before_communities
+              or (select count(*) from public.comun_construction_circles)<>before_circles
+              or (select count(*) from public.comun_collective_actions)<>before_actions
+              or (select count(*) from public.comun_pauta_dossiers)<>before_dossiers
+            then raise exception 'automatic organization detected'; end if;
+          end $$;
+          rollback;
+          SQL
+          echo COMUN_48_3_E3_DISPOSABLE_ATOMIC_CREATION_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo businessWritesAfterRollback=0 >> "$GITHUB_STEP_SUMMARY"
+          echo automaticOrganizationWrites=0 >> "$GITHUB_STEP_SUMMARY"

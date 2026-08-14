@@ -30,5 +30,10 @@ export default defineConfig({
           url: `${process.env.COMUN_BASE_URL ?? "http://127.0.0.1:3000"}/comun`,
           reuseExistingServer: true,
           timeout: 120_000,
+          env: {
+            ...process.env,
+            COMUN_PAUTAS_VIVAS_CORE_ENABLED: "enabled",
+            COMUN_PAUTA_LOW_FRICTION_CREATION_ENABLED: "enabled",
+          },
         },
 });

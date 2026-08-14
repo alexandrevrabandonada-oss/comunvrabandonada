@@ -66,6 +66,28 @@ test("Home chega a Relata, Panorama e Pautas em um gesto", async ({ page }) => {
   }
 });
 
+test("Pautas permite escrever antes do login e preserva a intenção sem auto-submit", async ({
+  page,
+}) => {
+  await page.goto("/comun");
+  await page
+    .getByRole("link", { name: /Participar do que está acontecendo/ })
+    .click();
+  await page.getByRole("link", { name: "Começar uma pauta" }).click();
+  await expect(page).toHaveURL(/\/comun\/pautas\/nova$/);
+  const question = "Como melhorar o ônibus à noite no Retiro?";
+  await page.getByLabel("O que você quer entender ou mudar?").fill(question);
+  await page.getByRole("button", { name: "Entrar e continuar" }).click();
+  await expect(page).toHaveURL(
+    /\/comun\/entrar\?returnTo=%2Fcomun%2Fpautas%2Fnova/,
+  );
+  await page.goBack();
+  await expect(
+    page.getByLabel("O que você quer entender ou mudar?"),
+  ).toHaveValue(question);
+  await expectNoOverflow(page);
+});
+
 test("navegação canônica não promove objetos internos como portas principais", async ({
   page,
 }) => {

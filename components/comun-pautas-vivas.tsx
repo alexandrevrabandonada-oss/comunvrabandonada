@@ -14,6 +14,7 @@ import { PautaCollectiveActions } from "./comun-collective-actions-canonical";
 import { PautaCycleMemory } from "./comun-pauta-cycle-memory";
 import type { PublicPautaCycleMemoryV1 } from "@/lib/comun-pauta-cycle-memory";
 import type { PublicOrganizationBridgeFilterV1 } from "@/lib/comun-organization-bridges";
+import { ComunPautaCreationDraftClear } from "./comun-pauta-creation-draft-clear";
 
 export type PublicPautaEvidenceFilterStateV1 =
   | { state: "valid"; value: PublicOrganizationBridgeFilterV1 }
@@ -22,12 +23,14 @@ export type PublicPautaEvidenceFilterStateV1 =
 export function PautasVivasIndex({
   spaces,
   evidenceFilter,
+  creationEnabled = false,
 }: {
   spaces: readonly PublicPautaSpace[];
   evidenceFilter?: PublicPautaEvidenceFilterStateV1;
+  creationEnabled?: boolean;
 }) {
   if (evidenceFilter) {
-    return <EvidenceFilteredPautasIndex filter={evidenceFilter} />;
+    return <EvidenceFilteredPautasIndex filter={evidenceFilter} creationEnabled={creationEnabled} />;
   }
   const ordered = [...spaces].sort(
     (a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at),
@@ -46,6 +49,14 @@ export function PautasVivasIndex({
             Espaços duráveis para entender um problema ou uma proposta, reunir
             evidências públicas e acompanhar próximos passos.
           </p>
+          {creationEnabled ? (
+            <Link
+              href="/comun/pautas/nova"
+              className="mt-5 inline-flex min-h-11 items-center font-black underline decoration-2 underline-offset-4"
+            >
+              Começar uma pauta
+            </Link>
+          ) : null}
           <div className="mt-7 grid gap-4 lg:grid-cols-2">
             {ordered.map((space) => (
               <article
@@ -98,8 +109,10 @@ export function PautasVivasIndex({
 
 function EvidenceFilteredPautasIndex({
   filter,
+  creationEnabled,
 }: {
   filter: PublicPautaEvidenceFilterStateV1;
+  creationEnabled: boolean;
 }) {
   if (filter.state === "invalid") {
     return (
@@ -191,7 +204,17 @@ function EvidenceFilteredPautasIndex({
               </article>
             ))}
             {!bridge.pautas.length ? (
-              <Empty text="Ainda não há pauta pública ligada a esta evidência." />
+              <div>
+                <Empty text="Ainda não há pauta pública ligada a esta evidência." />
+                {creationEnabled ? (
+                  <Link
+                    href={`/comun/pautas/nova?evidencia=${encodeURIComponent(citation.refId)}`}
+                    className="mt-4 inline-flex min-h-11 items-center font-black underline decoration-2 underline-offset-4"
+                  >
+                    Começar uma pauta sobre isso
+                  </Link>
+                ) : null}
+              </div>
             ) : null}
           </div>
           <Link
@@ -218,6 +241,7 @@ export function PautaVivaDetail({
   collectiveActionsEnabled = false,
   cycleMemory = null,
   cycleMemoryEnabled = false,
+  creationFeedback,
 }: {
   space: PublicPautaSpace;
   evidence: readonly PublicPautaEvidenceItem[];
@@ -230,6 +254,7 @@ export function PautaVivaDetail({
   collectiveActionsEnabled?: boolean;
   cycleMemory?: PublicPautaCycleMemoryV1 | null;
   cycleMemoryEnabled?: boolean;
+  creationFeedback?: { created: boolean; evidenceAdded: boolean };
 }) {
   const openRodas = rodas.filter((roda) => roda.status === "open");
   const hasOpenRoda = openRodas.length > 0;
@@ -270,6 +295,16 @@ export function PautaVivaDetail({
           ← Pautas Vivas
         </Link>
       </div>
+      {creationFeedback?.created ? (
+        <div className="mx-auto mt-4 max-w-7xl px-4" role="status">
+          <ComunPautaCreationDraftClear />
+          <div className="border-2 border-comun-yellow bg-comun-black p-4 text-comun-paper">
+            <p className="font-black">Pauta criada.</p>
+            <p className="mt-1 text-sm">Você já está acompanhando esta pauta.</p>
+            {creationFeedback.evidenceAdded ? <p className="mt-1 text-sm">A evidência pública foi adicionada como contexto.</p> : null}
+          </div>
+        </div>
+      ) : null}
       <Section>
         <p className="text-xs font-black uppercase tracking-[0.18em] text-comun-paper/65">
           Pauta Viva · {publicState(space)}
