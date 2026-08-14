@@ -11,6 +11,8 @@ test("D1 preflight is metadata-only and requires an empty migration plan", () =>
   assert.match(preflight, /begin read only;/);
   assert.match(preflight, /businessContentRead', false/);
   assert.match(preflight, /searchDeclaredDiscoveryOnly/);
+  assert.match(preflight, /anonWritesRevoked/);
+  assert.match(preflight, /PublicPolicyCount/);
   assert.match(preflight, /COMUN_48_3_D1_REMOTE_PLAN_EMPTY_GREEN/);
   assert.doesNotMatch(preflight, /select\s+\*\s+from/i);
   assert.doesNotMatch(preflight, /migration repair|db reset|--include-all|\bseed\b/i);
