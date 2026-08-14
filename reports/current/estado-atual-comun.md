@@ -1,4 +1,4 @@
-# Estado candidato — 48.3-E2 Pontes Naturais de Organização (14/08/2026)
+# Estado atual — 48.3-E2 Pontes Naturais de Organização (14/08/2026)
 
 ## 48.3-E2 — Evidência pública → Pauta existente
 
@@ -9,8 +9,14 @@
 - o recorte resolve referências no servidor, falha fechado para refs inválidas e preserva a volta à fonte pública;
 - zero rota, API, flag, migration, auto-create, auto-attach ou leitura de Relata privado;
 - débito explícito: `COMUN_48_3_E2_RELATA_TO_PAUTA_DEFERRED_PRIVATE_BOUNDARY`.
+- PR funcional `#322`, head `a21ddf2f1f42a27dd3887e1157a3dc06cdbf5356`, integrada exact-head no merge/main `ab4fe8e416e96a9c4b67822d86162baf7fcc2695`;
+- preflight `31833796298` e descartável `31833796300` verdes, com leitura metadata-only, `businessContentRead=false`, remote plan vazio e rollback integral;
+- CI, Core Journeys, Quality Performance, Experience Coherence e Civic Graph pós-merge verdes; o único rerun foi um `SIGSEGV` transitório do Chromium, sem alteração de código;
+- deploy Production exato concluído e GET/HEAD `200` nas cinco superfícies focais; a ref pública válida sem relação mostrou empty state legítimo, sem fixture;
+- `bridgeQueryCount=1`, nenhuma leitura aproximada, nenhum marcador privado e `businessWrites=0`.
 
-Estado terminal ainda não emitido: candidato sujeito a CI, exact-head merge e smoke read-only de Production.
+Estado terminal:
+`COMUN_48_3_E2_NATURAL_ORGANIZATION_BRIDGES_GREEN_PUBLIC_EVIDENCE_TO_PAUTA_NO_AUTO_CREATE`.
 
 Detalhes: `reports/current/comun-48-3-e2-natural-organization-bridges.md`.
 
