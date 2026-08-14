@@ -1,4 +1,25 @@
-# Estado atual — 48.3-C1 Ações Coletivas (13/08/2026)
+# Estado atual — 48.3-D1 Memória Coletiva do Ciclo (14/08/2026)
+
+## 48.3-D1 — Narrativa pública canônica do ciclo
+
+- a Pauta Viva agora organiza, em projeção pública read-only, questão, aprendizados, Rodas/sínteses, decisão, Ações, resultados, memória publicada e próximo passo;
+- causalidade exige vínculo explícito no action cycle; compartilhar a mesma Pauta é apresentado apenas como contexto;
+- busca permanece somente descoberta e nunca fonte de verdade da memória;
+- DTOs fail-closed excluem dados privados, estados não publicados, resultados superseded e memória sem `memory_published_at`;
+- zero migration, tabela, rota, API, feed, ranking, IA, publicação automática ou business write;
+- PR funcional `#314` e correções focais `#315`–`#318` foram mescladas exact-head; exact main ativado `769f7bc1b0da029daa1cbbfa404237d1fc373a6c`;
+- preflight `31772092012` e descartável `31772092045` verdes, com remote plan vazio e rollback integral;
+- flags-off `31785572587` e wave 1 `31785805806` verdes, somente GET, `businessWrites=0`;
+- Production comprovada em `/comun/pautas/calcadas-em-circulacao`, sem índice divergente ou marcadores privados.
+
+Estado atual:
+`COMUN_48_3_D1_COLLECTIVE_CYCLE_MEMORY_GREEN_CANONICAL_PUBLIC_NARRATIVE`.
+
+Detalhes: `reports/current/comun-48-3-d1-collective-cycle-memory.md`.
+
+Preservados: `COMUN_48_3_C1_COLLECTIVE_ACTIONS_CANONICAL_EXPERIENCE_GREEN_MEMBER_PARTICIPATION`, `COMUN_48_3_B1_RODAS_VIVAS_CANONICAL_EXPERIENCE_GREEN_MODERATED_PUBLIC`, `COMUN_48_3_A1_PAUTAS_VIVAS_PUBLIC_CORE_GREEN_VERSIONED_EVIDENCE`, `COMUN_48_2_F_CROSS_OBSERVATORY_CITY_PANORAMA_GREEN_PUBLIC_SAFE`, `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e `launch_publicly=false`.
+
+# Estado anterior — 48.3-C1 Ações Coletivas (13/08/2026)
 
 ## 48.3-C1 — Experiência canônica Pauta → Ação
 
