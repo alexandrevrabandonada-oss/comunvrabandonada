@@ -14,6 +14,7 @@ const requiredRoutes = [
   "/comun/territorios",
   "/comun/comunidades",
   "/comun/pautas",
+  "/comun/pautas/nova",
   "/comun/pautas/[slug]",
   "/comun/pautas/[slug]/rodas/[circleId]",
   "/comun/acoes",
@@ -111,6 +112,14 @@ const experienceMatrix = [
     "Próximo passo da pauta",
     "/comun/pautas",
     false,
+  ],
+  [
+    "/comun/pautas/nova",
+    "começar pauta",
+    "O que você quer entender ou mudar?",
+    "Criar pauta",
+    "/comun/pautas",
+    true,
   ],
   [
     "/comun/pautas/[slug]/rodas/[circleId]",

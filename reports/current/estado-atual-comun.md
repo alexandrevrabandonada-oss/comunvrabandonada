@@ -1,4 +1,19 @@
-# Estado atual — 48.3-E2 Pontes Naturais de Organização (14/08/2026)
+# Estado em validação — 48.3-E3 Criação de Pauta com baixíssima fricção (14/08/2026)
+
+## 48.3-E3 — Uma pergunta, salvar e organizar depois
+
+- `/comun/pautas/nova` faz somente a pergunta “O que você quer entender ou mudar?”, sem categoria, território, comunidade, Roda, Ação ou Dossiê antes do save;
+- preenchimento ocorre antes do login; o draft fica somente em `sessionStorage`, o `returnTo` é preservado e não existe auto-submit;
+- uma única função transacional cria Pauta pública `observing/received/normal`, membership `participant` e evidência pública opcional revalidada no servidor;
+- a função é executável somente pela `service_role`; o ledger privado contém hashes para idempotência e rate limit, sem IP bruto ou autoria pública;
+- PII/alto risco falham fechados, duplicata forte exige confirmação e o fluxo não cria automaticamente comunidade, Roda, Ação, grupo, mobilização ou Dossiê;
+- uma migration forward-only é necessária; preflight, CI, rollout e Production ainda precisam fechar antes do terminal.
+
+Detalhes: `reports/current/comun-48-3-e3-low-friction-pauta-creation.md`.
+
+Preservados: `COMUN_48_3_E2_NATURAL_ORGANIZATION_BRIDGES_GREEN_PUBLIC_EVIDENCE_TO_PAUTA_NO_AUTO_CREATE`, `COMUN_48_3_E1_INTEGRATED_EXPERIENCE_COHERENCE_GREEN_STREAMLINED_NAVIGATION`, `COMUN_48_3_D1_COLLECTIVE_CYCLE_MEMORY_GREEN_CANONICAL_PUBLIC_NARRATIVE`, `COMUN_48_3_C1_COLLECTIVE_ACTIONS_CANONICAL_EXPERIENCE_GREEN_MEMBER_PARTICIPATION`, `COMUN_48_3_B1_RODAS_VIVAS_CANONICAL_EXPERIENCE_GREEN_MODERATED_PUBLIC`, `COMUN_48_3_A1_PAUTAS_VIVAS_PUBLIC_CORE_GREEN_VERSIONED_EVIDENCE`, `COMUN_48_2_F_CROSS_OBSERVATORY_CITY_PANORAMA_GREEN_PUBLIC_SAFE`, `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e `launch_publicly=false`.
+
+# Estado anterior — 48.3-E2 Pontes Naturais de Organização (14/08/2026)
 
 ## 48.3-E2 — Evidência pública → Pauta existente
 
