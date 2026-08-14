@@ -149,84 +149,89 @@ export function ComunAppV2Home({
         </section>
       ) : null}
 
-      {center ? <section aria-labelledby="home-attention" className="mt-7">
-        <div className="mb-3 flex items-end justify-between gap-4">
-          <h2 id="home-attention" className="comun-v2-section-title">
-            Pede atenção
-          </h2>
-          <Link
-            href={withComunAppV2("/comun/caixa-de-entrada")}
-            className="inline-flex min-h-11 items-center text-sm font-black underline"
-          >
-            Ver Caixa
-          </Link>
-        </div>
-        {attention[0] ? (
-          <Link
-            href={withComunAppV2(attention[0].action_url)}
-            className="surface-alert flex min-h-24 items-center gap-4 rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
-          >
-            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-comun-yellow text-xl font-black">
-              !
-            </span>
-            <span className="min-w-0 flex-1">
-              <strong className="block text-lg leading-tight">
-                {attention[0].title}
-              </strong>
-              <small className="mt-1 block text-comun-black/70">
-                {attention[0].summary}
-              </small>
-            </span>
-            <ArrowRight className="shrink-0" aria-hidden="true" />
-          </Link>
-        ) : (
-          <div className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4">
-            <p className="font-black">Nenhum retorno urgente agora.</p>
-            <p className="mt-1 text-sm text-comun-black/65">
-              Você pode explorar processos públicos sem criar um feed pessoal.
-            </p>
+      {center ? (
+        <section aria-labelledby="home-attention" className="mt-7">
+          <div className="mb-3 flex items-end justify-between gap-4">
+            <h2 id="home-attention" className="comun-v2-section-title">
+              Pede atenção
+            </h2>
+            <Link
+              href={withComunAppV2("/comun/caixa-de-entrada")}
+              className="inline-flex min-h-11 items-center text-sm font-black underline"
+            >
+              Ver Caixa
+            </Link>
           </div>
-        )}
-      </section> : null}
+          {attention[0] ? (
+            <Link
+              href={withComunAppV2(attention[0].action_url)}
+              className="surface-alert flex min-h-24 items-center gap-4 rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
+            >
+              <span className="grid size-12 shrink-0 place-items-center rounded-full bg-comun-yellow text-xl font-black">
+                !
+              </span>
+              <span className="min-w-0 flex-1">
+                <strong className="block text-lg leading-tight">
+                  {attention[0].title}
+                </strong>
+                <small className="mt-1 block text-comun-black/70">
+                  {attention[0].summary}
+                </small>
+              </span>
+              <ArrowRight className="shrink-0" aria-hidden="true" />
+            </Link>
+          ) : (
+            <div className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4">
+              <p className="font-black">Nenhum retorno urgente agora.</p>
+              <p className="mt-1 text-sm text-comun-black/65">
+                Você pode explorar processos públicos sem criar um feed pessoal.
+              </p>
+            </div>
+          )}
+        </section>
+      ) : null}
 
-      {center ? <section aria-labelledby="home-next" className="mt-7">
-        <h2 id="home-next" className="comun-v2-section-title mb-3">
-          Próxima ação
-        </h2>
-        {attention[0] ? (
-          <ComunActionCard
-            href={withComunAppV2(attention[0].action_url)}
-            title={attention[0].title}
-            description={attention[0].summary}
-            action={attention[0].action_label ?? "Abrir pedido"}
-          />
-        ) : firstTask ? (
-          <ComunActionCard
-            href={withComunAppV2(
-              firstTask.action_url ?? "/comun/minha-participacao?secao=tarefas",
-            )}
-            title={firstTask.title}
-            description={
-              firstTask.result_public ??
-              "Confira responsabilidade, prazo e resultado esperado."
-            }
-            action="Abrir tarefa"
-          />
-        ) : firstAction ? (
-          <ComunActionCard
-            href={withComunAppV2(
-              firstAction.action_url ?? `/comun/acoes/${firstAction.slug}`,
-            )}
-            title={firstAction.title}
-            description={
-              firstAction.participation_public ??
-              firstAction.objective_public ??
-              "Confira o compromisso antes de participar."
-            }
-            action="Ver ação"
-          />
-        ) : null}
-      </section> : null}
+      {center ? (
+        <section aria-labelledby="home-next" className="mt-7">
+          <h2 id="home-next" className="comun-v2-section-title mb-3">
+            Próxima ação
+          </h2>
+          {attention[0] ? (
+            <ComunActionCard
+              href={withComunAppV2(attention[0].action_url)}
+              title={attention[0].title}
+              description={attention[0].summary}
+              action={attention[0].action_label ?? "Abrir pedido"}
+            />
+          ) : firstTask ? (
+            <ComunActionCard
+              href={withComunAppV2(
+                firstTask.action_url ??
+                  "/comun/minha-participacao?secao=tarefas",
+              )}
+              title={firstTask.title}
+              description={
+                firstTask.result_public ??
+                "Confira responsabilidade, prazo e resultado esperado."
+              }
+              action="Abrir tarefa"
+            />
+          ) : firstAction ? (
+            <ComunActionCard
+              href={withComunAppV2(
+                firstAction.action_url ?? `/comun/acoes/${firstAction.slug}`,
+              )}
+              title={firstAction.title}
+              description={
+                firstAction.participation_public ??
+                firstAction.objective_public ??
+                "Confira o compromisso antes de participar."
+              }
+              action="Ver ação"
+            />
+          ) : null}
+        </section>
+      ) : null}
 
       <section aria-labelledby="home-shortcuts" className="mt-8">
         <h2 id="home-shortcuts" className="comun-v2-section-title mb-3">

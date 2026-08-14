@@ -734,8 +734,8 @@ function MinhaAreaAppV2({
                   actionHref={withComunAppV2("/comun/pautas")}
                   actionLabel="Encontrar uma pauta"
                 >
-                  Você ainda não acompanha uma pauta. Isso é normal: escolha
-                  uma questão quando quiser receber seus próximos passos.
+                  Você ainda não acompanha uma pauta. Isso é normal: escolha uma
+                  questão quando quiser receber seus próximos passos.
                 </ComunStatePanel>
               ) : null}
             </div>
@@ -782,8 +782,8 @@ function MinhaAreaAppV2({
                   actionHref={withComunAppV2("/comun/pautas")}
                   actionLabel="Ver pautas abertas"
                 >
-                  Você ainda não participa de uma conversa. Entre por uma
-                  pauta quando houver uma roda aberta.
+                  Você ainda não participa de uma conversa. Entre por uma pauta
+                  quando houver uma roda aberta.
                 </ComunStatePanel>
               ) : null}
             </div>

@@ -152,8 +152,8 @@ export default async function Confirmation({
             </p>
           ) : (
             <p role="alert" className="mt-5 border-l-4 border-comun-red pl-3">
-              <strong>Não encontramos este registro.</strong> Abra Minha participação
-              para retomar com segurança.
+              <strong>Não encontramos este registro.</strong> Abra Minha
+              participação para retomar com segurança.
             </p>
           )}
           <div className="mt-6 flex flex-wrap gap-3">
