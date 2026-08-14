@@ -117,11 +117,11 @@ jobs:
           done
           exit 1
       - name: 2. Jornadas públicas
-        run: npm run journeys:e2e
+        run: bash scripts/quality/run-with-chromium-crash-retry.sh npm run journeys:e2e
       - name: 3. Autenticação sintética sem publicar dados
         run: node scripts/quality/remote-comun-quality-rehearsal.mjs
       - name: 4. Qualidade focal, PWA e performance
-        run: npm run journeys:quality-regression
+        run: bash scripts/quality/run-with-chromium-crash-retry.sh npm run journeys:quality-regression
       - name: 5. No-leak
         run: npm run smoke:no-leak-http
       - name: 6. Cleanup e coleta sanitizada
