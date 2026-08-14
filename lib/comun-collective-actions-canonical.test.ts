@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
@@ -11,6 +13,11 @@ import {
   sortPublicCollectiveActions,
 } from "./comun-collective-actions-canonical";
 import { isComunCollectiveActionsCanonicalExperienceEnabled } from "./comun-collective-actions-canonical-feature";
+
+const canonicalExperience = readFileSync(
+  join(process.cwd(), "components/comun-collective-actions-canonical.tsx"),
+  "utf8",
+);
 
 const action = {
   id: "action-1",
@@ -31,6 +38,12 @@ const action = {
 };
 
 describe("COMUN 48.3-C1 canonical collective action projection", () => {
+  it("preserves the relational page marker when the canonical experience is active", () => {
+    expect(canonicalExperience).toContain(
+      'data-comun-app-v2-page="collective-actions-canonical"',
+    );
+  });
+
   it("is fail closed behind the exact feature flag", () => {
     expect(isComunCollectiveActionsCanonicalExperienceEnabled({})).toBe(false);
     expect(
