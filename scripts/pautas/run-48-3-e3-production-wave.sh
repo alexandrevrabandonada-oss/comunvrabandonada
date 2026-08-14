@@ -16,7 +16,7 @@ run_vercel() { local output errors status; output="$(mktemp)"; errors="$(mktemp)
 set_flag() { local value="$1"; run_vercel bash -c 'printf "%s" "$1" | npx --yes vercel@50.28.0 env add COMUN_PAUTA_LOW_FRICTION_CREATION_ENABLED production --force --yes --token "$2" --scope "$3"' -- "$value" "$VERCEL_TOKEN" "$VERCEL_ORG_ID"; }
 deploy() { run_vercel npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || return $?; local url; url="$(grep -Eo 'https://[^[:space:]]+' "$VERCEL_LAST_OUTPUT" | tail -n1 | tr -d '\r')"; case "$url" in https://*.vercel.app) ;; *) return 1;; esac; run_vercel npx --yes vercel@50.28.0 inspect "$url" --wait --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || return $?; run_vercel npx --yes vercel@50.28.0 promote "$url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || return $?; run_vercel npx --yes vercel@50.28.0 alias set "$url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"; }
 rollback() { trap - ERR; set +e; current_phase=rollback_flag; set_flag disabled; local a=$?; current_phase=rollback_deploy; deploy; local b=$?; set -e; if [ "$a" -ne 0 ] || [ "$b" -ne 0 ]; then echo COMUN_48_3_E3_BLOCKED_VERCEL_ROLLBACK_REQUIRED >> "$GITHUB_STEP_SUMMARY"; return 1; fi; rollback_complete=true; echo COMUN_48_3_E3_VERCEL_ROLLBACK_GREEN >> "$GITHUB_STEP_SUMMARY"; }
-on_error() { local status="$?"; trap - ERR; printf 'failedPhase=%s\nexitCode=%s\n' "$current_phase" "$status" >> "$GITHUB_STEP_SUMMARY"; if [ "$flags_started" = true ] && [ "$rollback_complete" != true ]; then rollback || true; fi; exit "$status"; }
+on_error() { local status="$?"; trap - ERR; printf 'failedPhase=%s\nexitCode=%s\n' "$current_phase" "$status" | tee -a "$GITHUB_STEP_SUMMARY" >&2; if [ "$flags_started" = true ] && [ "$rollback_complete" != true ]; then rollback || true; fi; exit "$status"; }
 trap on_error ERR
 
 current_phase=env_add_low_friction_pauta
@@ -47,7 +47,7 @@ else
   grep -q 'id="pauta-question"' "$page"
   grep -q 'name="question"' "$page"
   grep -q 'pauta-privacy-hint' "$page"
-  grep -q 'Criar pauta' "$page"
+  grep -q 'Entrar e continuar' "$page"
   ! grep -Eqi 'original_text|receipt|wallet|private_location|forwarding|user_id|private_contact' "$page"
   echo COMUN_48_3_E3_WAVE1_LOW_FRICTION_PAUTA_PRODUCTION_GREEN >> "$GITHUB_STEP_SUMMARY"
 fi
