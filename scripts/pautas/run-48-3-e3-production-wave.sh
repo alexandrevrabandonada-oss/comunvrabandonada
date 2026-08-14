@@ -44,8 +44,10 @@ else
   test "$(status_head /comun/pautas/nova)" = 200
   page="$(mktemp)"; remember "$page"
   curl -L -fsS --retry 8 --retry-delay 2 "$COMUN_BASE_URL/comun/pautas/nova" > "$page"
-  grep -q 'O que você quer entender ou mudar?' "$page"
-  grep -q 'Pautas são públicas' "$page"
+  grep -q 'id="pauta-question"' "$page"
+  grep -q 'name="question"' "$page"
+  grep -q 'pauta-privacy-hint' "$page"
+  grep -q 'Criar pauta' "$page"
   ! grep -Eqi 'original_text|receipt|wallet|private_location|forwarding|user_id|private_contact' "$page"
   echo COMUN_48_3_E3_WAVE1_LOW_FRICTION_PAUTA_PRODUCTION_GREEN >> "$GITHUB_STEP_SUMMARY"
 fi
