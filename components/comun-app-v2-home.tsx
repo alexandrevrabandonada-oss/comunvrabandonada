@@ -3,6 +3,8 @@ import {
   Archive,
   ArrowRight,
   BusFront,
+  Eye,
+  History,
   MapPinned,
   Radio,
   Users,
@@ -19,6 +21,14 @@ import {
   COMUN_MOTOROLA_PRIMARY_ACTION,
   COMUN_MOTOROLA_SIDEWALK_CONTRIBUTION_HREF,
 } from "@/lib/comun-motorola-contract";
+import { COMUN_PUBLIC_EXPERIENCE_DOORS } from "@/lib/experience-coherence";
+
+const doorIcons = {
+  report: MapPinned,
+  understand: Eye,
+  participate: Users,
+  my_participation: History,
+} as const;
 
 export function ComunAppV2Home({
   center,
@@ -66,6 +76,7 @@ export function ComunAppV2Home({
         href={withComunAppV2(COMUN_MOTOROLA_PRIMARY_ACTION.href)}
         prefetch={false}
         data-comun-motorola-primary-action="true"
+        data-comun-primary-action="true"
         className="flex min-h-14 items-center justify-between gap-4 rounded-[var(--comun-radius-card)] border-2 border-comun-black bg-comun-yellow px-4 py-3 text-comun-black shadow-[4px_4px_0_#0b0b0a]"
       >
         <span>
@@ -78,6 +89,35 @@ export function ComunAppV2Home({
         </span>
         <ArrowRight className="shrink-0" aria-hidden="true" />
       </Link>
+
+      <section aria-labelledby="home-next-paths" className="mt-6">
+        <h2 id="home-next-paths" className="comun-v2-section-title">
+          O que você quer fazer?
+        </h2>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          {COMUN_PUBLIC_EXPERIENCE_DOORS.slice(1).map((door) => {
+            const Icon = doorIcons[door.id];
+            return (
+              <Link
+                key={door.id}
+                href={withComunAppV2(door.href)}
+                prefetch={false}
+                className="surface-paper flex min-h-24 items-start gap-3 rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2"
+              >
+                <span className="grid size-10 shrink-0 place-items-center rounded-[var(--comun-radius-control)] bg-comun-black text-comun-paper">
+                  <Icon size={20} aria-hidden="true" />
+                </span>
+                <span>
+                  <strong className="block leading-tight">{door.label}</strong>
+                  <small className="mt-1 block text-comun-black/65">
+                    {door.description}
+                  </small>
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
 
       {civicIntelligencePilot ? (
         <section
@@ -109,95 +149,93 @@ export function ComunAppV2Home({
         </section>
       ) : null}
 
-      <section aria-labelledby="home-attention" className="mt-2">
-        <div className="mb-3 flex items-end justify-between gap-4">
-          <h2 id="home-attention" className="comun-v2-section-title">
-            Pede atenção
-          </h2>
-          <Link
-            href={withComunAppV2("/comun/caixa-de-entrada")}
-            className="inline-flex min-h-11 items-center text-sm font-black underline"
-          >
-            Ver Caixa
-          </Link>
-        </div>
-        {attention[0] ? (
-          <Link
-            href={withComunAppV2(attention[0].action_url)}
-            className="surface-alert flex min-h-24 items-center gap-4 rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
-          >
-            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-comun-yellow text-xl font-black">
-              !
-            </span>
-            <span className="min-w-0 flex-1">
-              <strong className="block text-lg leading-tight">
-                {attention[0].title}
-              </strong>
-              <small className="mt-1 block text-comun-black/70">
-                {attention[0].summary}
-              </small>
-            </span>
-            <ArrowRight className="shrink-0" aria-hidden="true" />
-          </Link>
-        ) : (
-          <div className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4">
-            <p className="font-black">Nenhum retorno urgente agora.</p>
-            <p className="mt-1 text-sm text-comun-black/65">
-              Você pode explorar processos públicos sem criar um feed pessoal.
-            </p>
+      {center ? (
+        <section aria-labelledby="home-attention" className="mt-7">
+          <div className="mb-3 flex items-end justify-between gap-4">
+            <h2 id="home-attention" className="comun-v2-section-title">
+              Pede atenção
+            </h2>
+            <Link
+              href={withComunAppV2("/comun/caixa-de-entrada")}
+              className="inline-flex min-h-11 items-center text-sm font-black underline"
+            >
+              Ver Caixa
+            </Link>
           </div>
-        )}
-      </section>
+          {attention[0] ? (
+            <Link
+              href={withComunAppV2(attention[0].action_url)}
+              className="surface-alert flex min-h-24 items-center gap-4 rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
+            >
+              <span className="grid size-12 shrink-0 place-items-center rounded-full bg-comun-yellow text-xl font-black">
+                !
+              </span>
+              <span className="min-w-0 flex-1">
+                <strong className="block text-lg leading-tight">
+                  {attention[0].title}
+                </strong>
+                <small className="mt-1 block text-comun-black/70">
+                  {attention[0].summary}
+                </small>
+              </span>
+              <ArrowRight className="shrink-0" aria-hidden="true" />
+            </Link>
+          ) : (
+            <div className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4">
+              <p className="font-black">Nenhum retorno urgente agora.</p>
+              <p className="mt-1 text-sm text-comun-black/65">
+                Você pode explorar processos públicos sem criar um feed pessoal.
+              </p>
+            </div>
+          )}
+        </section>
+      ) : null}
 
-      <section aria-labelledby="home-next" className="mt-7">
-        <h2 id="home-next" className="comun-v2-section-title mb-3">
-          Próxima ação
-        </h2>
-        {attention[0] ? (
-          <ComunActionCard
-            href={withComunAppV2(attention[0].action_url)}
-            title={attention[0].title}
-            description={attention[0].summary}
-            action={attention[0].action_label ?? "Abrir pedido"}
-          />
-        ) : firstTask ? (
-          <ComunActionCard
-            href={withComunAppV2(
-              firstTask.action_url ?? "/comun/minha-participacao?secao=tarefas",
-            )}
-            title={firstTask.title}
-            description={
-              firstTask.result_public ??
-              "Confira responsabilidade, prazo e resultado esperado."
-            }
-            action="Abrir tarefa"
-          />
-        ) : firstAction ? (
-          <ComunActionCard
-            href={withComunAppV2(
-              firstAction.action_url ?? `/comun/acoes/${firstAction.slug}`,
-            )}
-            title={firstAction.title}
-            description={
-              firstAction.participation_public ??
-              firstAction.objective_public ??
-              "Confira o compromisso antes de participar."
-            }
-            action="Ver ação"
-          />
-        ) : (
-          <ComunActionCard
-            href={withComunAppV2("/comun/participar")}
-            title="Escolha como começar"
-            description="Não há pendência agora. Explore um processo público ou abra uma intenção concreta."
-            action="Ver formas de participar"
-          />
-        )}
-      </section>
+      {center ? (
+        <section aria-labelledby="home-next" className="mt-7">
+          <h2 id="home-next" className="comun-v2-section-title mb-3">
+            Próxima ação
+          </h2>
+          {attention[0] ? (
+            <ComunActionCard
+              href={withComunAppV2(attention[0].action_url)}
+              title={attention[0].title}
+              description={attention[0].summary}
+              action={attention[0].action_label ?? "Abrir pedido"}
+            />
+          ) : firstTask ? (
+            <ComunActionCard
+              href={withComunAppV2(
+                firstTask.action_url ??
+                  "/comun/minha-participacao?secao=tarefas",
+              )}
+              title={firstTask.title}
+              description={
+                firstTask.result_public ??
+                "Confira responsabilidade, prazo e resultado esperado."
+              }
+              action="Abrir tarefa"
+            />
+          ) : firstAction ? (
+            <ComunActionCard
+              href={withComunAppV2(
+                firstAction.action_url ?? `/comun/acoes/${firstAction.slug}`,
+              )}
+              title={firstAction.title}
+              description={
+                firstAction.participation_public ??
+                firstAction.objective_public ??
+                "Confira o compromisso antes de participar."
+              }
+              action="Ver ação"
+            />
+          ) : null}
+        </section>
+      ) : null}
 
       <section aria-labelledby="home-shortcuts" className="mt-8">
         <h2 id="home-shortcuts" className="comun-v2-section-title mb-3">
-          Atalhos
+          Ferramentas para explorar
         </h2>
         <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <Shortcut

@@ -272,7 +272,7 @@ export function ParticipationWalletPanel({
       aria-labelledby="wallet-title"
     >
       <header className="grid gap-2">
-        <p className="comun-v2-eyebrow">Minha área</p>
+        <p className="comun-v2-eyebrow">Minha participação</p>
         <h2 id="wallet-title" className="text-2xl font-black normal-case">
           Meus registros
         </h2>

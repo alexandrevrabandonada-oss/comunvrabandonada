@@ -1,6 +1,68 @@
 export const COMUN_EXPERIENCE_COHERENCE_RESULT =
   "COMUN_EXPERIENCE_COHERENCE_READY_FOR_USABILITY_REHEARSAL" as const;
 
+export const COMUN_INTEGRATED_EXPERIENCE_RESULT =
+  "COMUN_48_3_E1_INTEGRATED_EXPERIENCE_COHERENCE_GREEN_STREAMLINED_NAVIGATION" as const;
+
+export const COMUN_PUBLIC_EXPERIENCE_DOORS = [
+  {
+    id: "report",
+    label: "Vi um problema",
+    description:
+      "Registrar primeiro, sem precisar descobrir o órgão responsável.",
+    href: "/comun/relatar",
+  },
+  {
+    id: "understand",
+    label: "Entender a cidade",
+    description: "Começar pelo Panorama e aprofundar quando fizer sentido.",
+    href: "/comun/observatorios/panorama",
+  },
+  {
+    id: "participate",
+    label: "Participar do que está acontecendo",
+    description: "Encontrar uma questão coletiva e seu próximo passo.",
+    href: "/comun/pautas",
+  },
+  {
+    id: "my_participation",
+    label: "Minha participação",
+    description: "Retomar registros, conversas, ações e compromissos.",
+    href: "/comun/minha-participacao",
+  },
+] as const;
+
+export const COMUN_PUBLIC_LANGUAGE = {
+  relata: { label: "Vi um problema", meaning: "Registrar o que aconteceu." },
+  panorama: {
+    label: "Entender a cidade",
+    meaning: "Ler dados públicos com contexto e limites.",
+  },
+  pauta: {
+    label: "Pauta",
+    meaning: "Uma questão coletiva que queremos entender ou mudar.",
+  },
+  roda: {
+    label: "Roda",
+    meaning: "Uma conversa estruturada dentro de uma pauta.",
+  },
+  action: {
+    label: "Ação",
+    meaning: "Algo concreto que vamos fazer.",
+  },
+  memory: {
+    label: "Memória",
+    meaning: "O caminho da pauta e o que aconteceu.",
+  },
+} as const;
+
+export const COMUN_PUBLIC_NAVIGATION_DESTINATIONS = [
+  "/comun",
+  "/comun/observatorios/panorama",
+  "/comun/pautas",
+  "/comun/minha-participacao",
+] as const;
+
 export const COMUN_EXPERIENCE_ROADMAP = [
   "47.9D — Ensaio humano, aparelhos reais e consolidação visual",
   "47.10 — Conteúdo, ajuda e governança",

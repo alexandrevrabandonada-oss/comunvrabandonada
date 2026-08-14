@@ -16,8 +16,11 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
   await page.goto("/comun");
   await expect(page.locator('[data-comun-app-v2-page="home"]')).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Próxima ação" }),
+    page.getByRole("heading", { name: "O que você quer fazer?" }),
   ).toBeVisible();
+  await expect(page.locator('[data-comun-primary-action="true"]')).toHaveCount(
+    1,
+  );
   await screenshot(page, "home", testInfo.project.name);
   await page.goto("/comun/pautas/calcadas-em-circulacao");
   await expect(
@@ -76,7 +79,9 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
   await page.getByLabel("Senha").fill("comun-local-fixture-only");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await page.waitForURL("**/comun/minha-participacao");
-  await expect(page.getByRole("heading", { name: "Minha área" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Minha participação" }),
+  ).toBeVisible();
   await screenshot(page, "minha-area", testInfo.project.name);
   await page.goto("/comun/calcadas/prioridades");
   await expect(

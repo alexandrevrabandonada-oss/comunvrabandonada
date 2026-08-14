@@ -31,8 +31,8 @@ const labels: Array<[RegExp, string, string, string]> = [
   [/\/caixa-de-entrada/, "Caixa", "Mudanças que pedem atenção", "/comun"],
   [
     /\/minha-participacao/,
-    "Minha área",
-    "Sua relação com os processos",
+    "Minha participação",
+    "Continue de onde parou",
     "/comun",
   ],
   [/\/explorar/, "Explorar", "Territórios, comunidades e pautas", "/comun"],
@@ -86,7 +86,7 @@ export function ComunMobileAppBar({
     ...actions,
     ...overflowActions,
     { href: "/comun/buscar", label: "Buscar" },
-    { href: "/comun/participar", label: "Todas as ações" },
+    { href: "/comun/pautas", label: "Participar" },
   ].filter(
     (action, index, all) =>
       all.findIndex((candidate) => candidate.href === action.href) === index,

@@ -6,9 +6,7 @@ import {
   CirclePlus,
   Compass,
   Home,
-  MapPinned,
   UserRound,
-  Users,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -24,10 +22,9 @@ import {
 
 const primaryNav = [
   ["Início", "/comun", Home],
-  ["Comunidades", "/comun/comunidades", Users],
-  ["Participar", "/comun/participar", CirclePlus],
-  ["Territórios", "/comun/territorios", MapPinned],
-  ["Minha área", "/comun/minha-participacao", UserRound],
+  ["Entender", "/comun/observatorios/panorama", Compass],
+  ["Participar", "/comun/pautas", CirclePlus],
+  ["Minha participação", "/comun/minha-participacao", UserRound],
 ] as const;
 
 const memberNav = [
@@ -38,7 +35,7 @@ const memberNav = [
 const mobileNav = [
   ["inicio", Home],
   ["explorar", Compass],
-  ["caixa", Bell],
+  ["participar", CirclePlus],
   ["minha_area", UserRound],
 ] as const satisfies ReadonlyArray<readonly [ComunRootTab, typeof Home]>;
 
@@ -194,12 +191,11 @@ export function ComunMobileNavigation({
           <ParticipateSheet variant="mobile-nav" experienceV2={false} />
         )}
         <MobileItem
-          tab="caixa"
+          tab="participar"
           Icon={mobileNav[2][1]}
           currentTab={route.rootTab}
           experienceV2={experienceV2}
           onNavigate={saveCurrentScroll}
-          badge={badge}
         />
         <MobileItem
           tab="minha_area"
@@ -207,6 +203,7 @@ export function ComunMobileNavigation({
           currentTab={route.rootTab}
           experienceV2={experienceV2}
           onNavigate={saveCurrentScroll}
+          badge={badge}
         />
       </div>
     </nav>

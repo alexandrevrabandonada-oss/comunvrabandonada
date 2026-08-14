@@ -8,7 +8,7 @@ Em mobile e desktop, a navegação principal tem cinco destinos:
 2. **Comunidades** — pessoas, grupos e vínculos públicos.
 3. **Participar** — escolha por objetivo, tempo e consequência.
 4. **Territórios** — leitura situada de pautas, ações e memória.
-5. **Minha área** — acompanhamento pessoal autenticado.
+5. **Minha participação** — acompanhamento pessoal autenticado.
 
 ## Navegação complementar
 

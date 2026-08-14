@@ -50,10 +50,13 @@ export const COMUN_ROOT_TABS: Record<
   { href: string; label: string }
 > = {
   inicio: { href: "/comun", label: "Início" },
-  explorar: { href: "/comun/explorar", label: "Explorar" },
-  participar: { href: "/comun/participar", label: "Participar" },
+  explorar: { href: "/comun/observatorios/panorama", label: "Entender" },
+  participar: { href: "/comun/pautas", label: "Participar" },
   caixa: { href: "/comun/caixa-de-entrada", label: "Caixa" },
-  minha_area: { href: "/comun/minha-participacao", label: "Minha área" },
+  minha_area: {
+    href: "/comun/minha-participacao",
+    label: "Minha participação",
+  },
 };
 
 export const COMUN_SHELL_CONTRACTS: Record<ComunShellMode, ComunShellContract> =

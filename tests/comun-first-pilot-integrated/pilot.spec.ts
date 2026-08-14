@@ -125,8 +125,10 @@ test("pessoa nova acompanha contribui consulta inbox e sai", async ({
     fullPage: true,
   });
 
-  await page.getByRole("link", { name: "Ver em Minha área" }).click();
-  await expect(page.getByRole("heading", { name: "Minha área" })).toBeVisible();
+  await page.getByRole("link", { name: "Ver em Minha participação" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Minha participação" }),
+  ).toBeVisible();
   await expect(page.getByText(/calçada/i).first()).toBeVisible();
   await assertAccessible(page);
   await page.goto("/comun/caixa-de-entrada");

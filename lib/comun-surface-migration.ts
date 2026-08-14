@@ -49,8 +49,8 @@ const MEMBER_ROOTS: Record<
     contextLabel: "Mudanças que pedem atenção",
   },
   "/comun/minha-participacao": {
-    contextualTitle: "Minha área",
-    contextLabel: "Sua relação com os processos",
+    contextualTitle: "Minha participação",
+    contextLabel: "Continue de onde parou",
   },
 };
 
@@ -198,8 +198,19 @@ function parentFor(route: string, shellMode: ComunShellMode) {
   }
   if (shellMode === "auth" || shellMode === "institutional") return "/comun";
   const segments = routeSegments(route);
+  if (route === "/comun/pautas") return "/comun";
+  if (route === "/comun/acoes") return "/comun/pautas";
+  if (route === "/comun/observatorios")
+    return "/comun/observatorios/panorama";
   if (segments.length <= 2) return "/comun/explorar";
   if (segments[1] === "c") return "/comun/comunidades";
+  if (segments[1] === "pautas" && segments[3] === "rodas")
+    return `/${segments.slice(0, 3).join("/")}`;
+  if (segments[1] === "acoes") return "/comun/pautas";
+  if (segments[1] === "observatorios")
+    return segments.length > 3
+      ? `/${segments.slice(0, -1).join("/")}`
+      : "/comun/observatorios/panorama";
   return `/${segments.slice(0, -1).join("/")}`;
 }
 

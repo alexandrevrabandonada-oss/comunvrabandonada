@@ -103,7 +103,7 @@ export default async function Confirmation({
               },
             ),
           )}
-          trackingLabel="Ver em Minha área"
+          trackingLabel="Ver em Minha participação"
           returnHref={withComunAppV2(returnTo)}
           returnLabel="Voltar à pauta"
           correctionHref={withComunAppV2(
@@ -148,12 +148,12 @@ export default async function Confirmation({
           </p>
           {data ? (
             <p className="mt-5 border-l-4 border-comun-yellow pl-3">
-              <strong>Próxima ação:</strong> acompanhar em Minha área.
+              <strong>Próxima ação:</strong> acompanhar em Minha participação.
             </p>
           ) : (
             <p role="alert" className="mt-5 border-l-4 border-comun-red pl-3">
-              <strong>Não encontramos este registro.</strong> Abra Minha área
-              para retomar com segurança.
+              <strong>Não encontramos este registro.</strong> Abra Minha
+              participação para retomar com segurança.
             </p>
           )}
           <div className="mt-6 flex flex-wrap gap-3">
@@ -161,7 +161,7 @@ export default async function Confirmation({
               href="/comun/minha-participacao"
               className="inline-flex min-h-12 items-center bg-comun-yellow px-4 font-black uppercase"
             >
-              Ver em Minha área
+              Ver em Minha participação
             </Link>
             <Link
               href={returnTo}

@@ -1,8 +1,41 @@
 import { describe, expect, it } from "vitest";
 import {
+  COMUN_ROOT_TABS,
   resolveComunShellContract,
   resolveComunShellRoute,
 } from "./comun-shell-contract";
+
+describe("navegação pública integrada", () => {
+  it("mantém as quatro intenções públicas sem criar outra camada de navegação", () => {
+    expect(COMUN_ROOT_TABS.inicio).toEqual({ href: "/comun", label: "Início" });
+    expect(COMUN_ROOT_TABS.explorar).toEqual({
+      href: "/comun/observatorios/panorama",
+      label: "Entender",
+    });
+    expect(COMUN_ROOT_TABS.participar).toEqual({
+      href: "/comun/pautas",
+      label: "Participar",
+    });
+    expect(COMUN_ROOT_TABS.minha_area).toEqual({
+      href: "/comun/minha-participacao",
+      label: "Minha participação",
+    });
+  });
+
+  it("devolve cada detalhe ao contexto canônico", () => {
+    expect(
+      resolveComunShellRoute(
+        "/comun/pautas/calcadas-em-circulacao/rodas/roda-1",
+      ).parentHref,
+    ).toBe("/comun/pautas/calcadas-em-circulacao");
+    expect(resolveComunShellRoute("/comun/acoes/mutirao-1").parentHref).toBe(
+      "/comun/pautas",
+    );
+    expect(
+      resolveComunShellRoute("/comun/observatorios/transporte").parentHref,
+    ).toBe("/comun/observatorios/panorama");
+  });
+});
 
 describe("shells de autenticação, institucionais e imersivos", () => {
   it.each([

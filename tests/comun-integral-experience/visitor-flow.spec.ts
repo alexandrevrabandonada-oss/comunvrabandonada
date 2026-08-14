@@ -162,7 +162,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     page.getByRole("heading", { name: /Recebemos seu registro/ }),
   ).toBeVisible();
   await auditSurface(page, "confirmacao", testInfo.project.name);
-  await page.getByRole("link", { name: "Ver em Minha área" }).click();
+  await page.getByRole("link", { name: "Ver em Minha participação" }).click();
   await expect(page.getByText(/em revisão/i).first()).toBeVisible();
   await auditSurface(page, "minha-area-pendente", testInfo.project.name);
   const service = db(),

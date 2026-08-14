@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-01T20:14:46.757Z",
+  "generatedAt": "2026-08-14T12:50:20.165Z",
   "scope": "TIJOLO 47.9A3",
   "classification": "technical_audit_not_human_rehearsal",
   "journeys": [
@@ -7,11 +7,14 @@
       "id": 1,
       "intention": "Encontrar uma pauta",
       "entry": "/comun/explorar",
-      "screens": ["Explorar", "Pauta"],
+      "screens": [
+        "Explorar",
+        "Pauta"
+      ],
       "action": "Abrir pauta",
       "auth": "Livre",
       "confirmation": "Não se aplica",
-      "tracking": "Pauta ou Minha área",
+      "tracking": "Pauta ou Minha participação",
       "return": "Explorar com recorte",
       "intermediate": "Índice /comun/pautas permanece compatível",
       "duplicates": "Home e Explorar repetiam descoberta",
@@ -27,11 +30,14 @@
       "id": 2,
       "intention": "Contribuir com pauta",
       "entry": "/comun/pautas/[slug]",
-      "screens": ["Pauta", "Formulário"],
+      "screens": [
+        "Pauta",
+        "Formulário"
+      ],
       "action": "Enviar contribuição",
       "auth": "Informada conforme ação",
       "confirmation": "Canônica no V2",
-      "tracking": "Minha área",
+      "tracking": "Minha participação",
       "return": "Pauta de origem",
       "intermediate": "Participar vira lançador, não landing obrigatória",
       "duplicates": "CTAs concorrentes reduzidos a uma ação principal",
@@ -47,7 +53,10 @@
       "id": 3,
       "intention": "Criar conta",
       "entry": "/comun/criar-conta",
-      "screens": ["Cadastro", "Onboarding"],
+      "screens": [
+        "Cadastro",
+        "Onboarding"
+      ],
       "action": "Criar conta",
       "auth": "Próprio fluxo",
       "confirmation": "Retorno seguro",
@@ -67,7 +76,10 @@
       "id": 4,
       "intention": "Retornar à intenção",
       "entry": "/comun/entrar",
-      "screens": ["Login", "Ação original"],
+      "screens": [
+        "Login",
+        "Ação original"
+      ],
       "action": "Entrar",
       "auth": "Obrigatória",
       "confirmation": "Explica destino",
@@ -87,11 +99,14 @@
       "id": 5,
       "intention": "Enviar contribuição",
       "entry": "/comun/pautas/[slug]",
-      "screens": ["Formulário", "Confirmação"],
+      "screens": [
+        "Formulário",
+        "Confirmação"
+      ],
       "action": "Enviar",
       "auth": "Conforme pauta",
       "confirmation": "Canônica",
-      "tracking": "Minha área",
+      "tracking": "Minha participação",
       "return": "Pauta",
       "intermediate": "Confirmação redundante removida",
       "duplicates": "Nenhuma no V2",
@@ -107,7 +122,9 @@
       "id": 6,
       "intention": "Entender confirmação",
       "entry": "/comun/participar/confirmacao?experiencia=app-v2",
-      "screens": ["Confirmação"],
+      "screens": [
+        "Confirmação"
+      ],
       "action": "Acompanhar participação",
       "auth": "Já resolvida quando necessária",
       "confirmation": "O quê, privacidade e próximo passo",
@@ -127,7 +144,9 @@
       "id": 7,
       "intention": "Ver contribuição",
       "entry": "/comun/minha-participacao",
-      "screens": ["Participações"],
+      "screens": [
+        "Participações"
+      ],
       "action": "Abrir acompanhamento",
       "auth": "Obrigatória",
       "confirmation": "Estado público",
@@ -147,7 +166,9 @@
       "id": 8,
       "intention": "Ler pedido de complemento",
       "entry": "/comun/caixa-de-entrada",
-      "screens": ["Caixa"],
+      "screens": [
+        "Caixa"
+      ],
       "action": "Abrir origem",
       "auth": "Obrigatória",
       "confirmation": "Leitura explícita",
@@ -167,11 +188,14 @@
       "id": 9,
       "intention": "Responder complemento",
       "entry": "/comun/caixa-de-entrada",
-      "screens": ["Caixa", "Origem"],
+      "screens": [
+        "Caixa",
+        "Origem"
+      ],
       "action": "Responder",
       "auth": "Obrigatória",
       "confirmation": "Canônica da mutation existente",
-      "tracking": "Minha área",
+      "tracking": "Minha participação",
       "return": "Caixa preservada",
       "intermediate": "Nenhuma",
       "duplicates": "Origem não precisa ser reencontrada",
@@ -187,7 +211,10 @@
       "id": 10,
       "intention": "Ver publicação ou encerramento",
       "entry": "/comun/minha-participacao",
-      "screens": ["Participações", "Resultado"],
+      "screens": [
+        "Participações",
+        "Resultado"
+      ],
       "action": "Abrir consequência",
       "auth": "Obrigatória",
       "confirmation": "Estado público",
@@ -207,7 +234,10 @@
       "id": 11,
       "intention": "Encontrar resultado",
       "entry": "/comun/explorar?categoria=resultados",
-      "screens": ["Explorar", "Resultado"],
+      "screens": [
+        "Explorar",
+        "Resultado"
+      ],
       "action": "Ver consequência e fonte",
       "auth": "Livre",
       "confirmation": "Não se aplica",
@@ -227,7 +257,10 @@
       "id": 12,
       "intention": "Preservar resultado na memória",
       "entry": "/comun/resultados",
-      "screens": ["Resultado", "Memória"],
+      "screens": [
+        "Resultado",
+        "Memória"
+      ],
       "action": "Ver memória relacionada",
       "auth": "Livre",
       "confirmation": "Não se aplica",
@@ -247,11 +280,15 @@
       "id": 13,
       "intention": "Registrar Calçada",
       "entry": "/comun/participar",
-      "screens": ["Painel", "Ferramenta", "Confirmação"],
+      "screens": [
+        "Painel",
+        "Ferramenta",
+        "Confirmação"
+      ],
       "action": "Registrar calçada",
       "auth": "Obrigatória no envio",
       "confirmation": "Canônica no V2",
-      "tracking": "Minha área",
+      "tracking": "Minha participação",
       "return": "Pauta Calçadas",
       "intermediate": "Landings repetidas ignoradas",
       "duplicates": "Contexto territorial preservado",
@@ -267,11 +304,15 @@
       "id": 14,
       "intention": "Entrar em comunidade",
       "entry": "/comun/participar",
-      "screens": ["Painel", "Comunidades", "Comunidade"],
+      "screens": [
+        "Painel",
+        "Comunidades",
+        "Comunidade"
+      ],
       "action": "Solicitar entrada",
       "auth": "Obrigatória",
       "confirmation": "Estado do vínculo",
-      "tracking": "Minha área / Comunidades",
+      "tracking": "Minha participação / Comunidades",
       "return": "Comunidade",
       "intermediate": "Índice é seleção real",
       "duplicates": "Nenhuma",
@@ -287,11 +328,14 @@
       "id": 15,
       "intention": "Assumir tarefa",
       "entry": "/comun/participar",
-      "screens": ["Painel", "Ação"],
+      "screens": [
+        "Painel",
+        "Ação"
+      ],
       "action": "Assumir tarefa",
       "auth": "Obrigatória",
       "confirmation": "Mutation existente",
-      "tracking": "Minha área / Tarefas",
+      "tracking": "Minha participação / Tarefas",
       "return": "Ação",
       "intermediate": "Índice /comun/acoes é escolha real",
       "duplicates": "Caixa não duplicada",
@@ -307,11 +351,15 @@
       "id": 16,
       "intention": "Enviar material cultural",
       "entry": "/comun/participar",
-      "screens": ["Painel", "Formulário cultural", "Confirmação"],
+      "screens": [
+        "Painel",
+        "Formulário cultural",
+        "Confirmação"
+      ],
       "action": "Enviar item, áudio ou obra",
       "auth": "Opcional conforme canal",
       "confirmation": "Canônica quando integrada",
-      "tracking": "Minha área / Cultura ou protocolo",
+      "tracking": "Minha participação / Cultura ou protocolo",
       "return": "Acervo, Rádio ou Arte",
       "intermediate": "Landing detalhada preservada por compatibilidade",
       "duplicates": "Três intenções distintas",
@@ -327,7 +375,10 @@
       "id": 17,
       "intention": "Pedir correção",
       "entry": "/comun/participar",
-      "screens": ["Painel", "Direitos"],
+      "screens": [
+        "Painel",
+        "Direitos"
+      ],
       "action": "Pedir correção",
       "auth": "Canal protegido",
       "confirmation": "Protocolo existente",
@@ -347,7 +398,10 @@
       "id": 18,
       "intention": "Pedir retirada",
       "entry": "/comun/participar",
-      "screens": ["Painel", "Direitos"],
+      "screens": [
+        "Painel",
+        "Direitos"
+      ],
       "action": "Pedir retirada",
       "auth": "Canal protegido",
       "confirmation": "Protocolo existente",

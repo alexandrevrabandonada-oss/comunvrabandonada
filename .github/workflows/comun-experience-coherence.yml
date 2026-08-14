@@ -58,9 +58,23 @@ jobs:
       - name: Check formatted files introduced by this lane
         run: npx prettier --check components/comun-experience-pilot.tsx lib/experience-coherence.ts docs/comun-experience-coherence.md docs/comun-experience-routes.md scripts/experience playwright.experience-coherence.config.ts tests/experience-coherence .github/workflows/comun-experience-coherence.yml
       - name: Start disposable local Supabase stack
+        shell: bash
         run: |
+          set -euo pipefail
           node scripts/run-pauta-action-cycle-local-reset.mjs start
-          node scripts/run-pauta-action-cycle-local-reset.mjs reset
+          reset_output="$(mktemp)"
+          trap 'rm -f "$reset_output"' EXIT
+          set +e
+          node scripts/run-pauta-action-cycle-local-reset.mjs reset >"$reset_output" 2>&1
+          reset_status=$?
+          set -e
+          if ((reset_status != 0)) && grep -q "Error status 502" "$reset_output"; then
+            echo COMUN_EXPERIENCE_COHERENCE_LOCAL_RESET_502_SINGLE_RETRY
+            node scripts/run-pauta-action-cycle-local-reset.mjs reset
+          elif ((reset_status != 0)); then
+            cat "$reset_output"
+            exit "$reset_status"
+          fi
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e:experience-coherence
       - run: npm run build

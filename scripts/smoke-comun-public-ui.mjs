@@ -58,10 +58,11 @@ const checks = [
     path: "/comun",
     required: [
       "O que precisa de atenção?",
-      "Escolha como começar",
-      "Atalhos",
-      "Acompanhamentos",
-      "Mapa das Calçadas",
+      "Vi um problema",
+      "O que você quer fazer?",
+      "Entender a cidade",
+      "Participar do que está acontecendo",
+      "Minha participação",
     ],
   },
   {

@@ -50,6 +50,7 @@ export function PrimaryLink({
   return (
     <Link
       href={href}
+      data-comun-primary-action="true"
       className="inline-flex min-h-12 items-center justify-center border-2 border-comun-black bg-comun-yellow px-5 py-3 text-center text-sm font-black uppercase leading-tight text-comun-black shadow-[4px_4px_0_#0b0b0a]"
     >
       {children}

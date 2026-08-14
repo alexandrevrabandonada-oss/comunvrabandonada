@@ -256,7 +256,7 @@ export default async function ParticiparPage({
                 className="inline-flex min-h-12 items-center bg-comun-black px-4 font-black uppercase text-comun-paper"
                 href="/comun/minha-participacao"
               >
-                Ver em Minha área
+                Ver em Minha participação
               </Link>
               <Link
                 className="inline-flex min-h-12 items-center border-2 border-comun-black px-4 font-black uppercase"

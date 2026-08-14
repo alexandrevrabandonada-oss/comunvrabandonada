@@ -70,13 +70,13 @@ jobs:
             'attemptsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_forwarding_attempts'::regclass),
             'eventsRlsForced', (select relrowsecurity and relforcerowsecurity from pg_catalog.pg_class where oid='private.comun_forwarding_events'::regclass),
             'institutionalTextNotNull', (select attnotnull from pg_catalog.pg_attribute where attrelid='private.comun_forwarding_packages'::regclass and attname='institutional_text' and not attisdropped),
-            'sourceDomainsBusEssentialOnly', exists(
+            'sourceDomainsAllowlisted', exists(
               select 1 from pg_catalog.pg_constraint
               where conrelid='private.comun_forwarding_packages'::regclass
                 and conname='comun_forwarding_packages_source_domain_check'
                 and pg_catalog.pg_get_constraintdef(oid) like '%bus%'
                 and pg_catalog.pg_get_constraintdef(oid) like '%essential_service%'
-                and pg_catalog.pg_get_constraintdef(oid) not like '%sensitive_service%'
+                and pg_catalog.pg_get_constraintdef(oid) like '%sensitive_service%'
             ),
             'webAttemptAllowed', exists(
               select 1 from pg_catalog.pg_constraint
@@ -91,7 +91,12 @@ jobs:
             'genericSentPresent', to_regprocedure('public.comun_assisted_forwarding_declare_sent(text,uuid,boolean)') is not null,
             'genericResponsePresent', to_regprocedure('public.comun_assisted_forwarding_record_response(text,uuid,text,text,boolean)') is not null,
             'genericWithdrawPresent', to_regprocedure('public.comun_assisted_forwarding_withdraw(text,uuid)') is not null,
-            'withdrawKeepsContent', pg_catalog.pg_get_functiondef('public.comun_assisted_forwarding_withdraw(text,uuid)'::regprocedure) not like '%institutional_text=%',
+            'withdrawPreservesOrRedactsByDomain',
+              lower(pg_catalog.pg_get_functiondef('public.comun_assisted_forwarding_withdraw(text,uuid)'::regprocedure)) like '%institutional_text%'
+              and lower(pg_catalog.pg_get_functiondef('public.comun_assisted_forwarding_withdraw(text,uuid)'::regprocedure)) like '%sensitive_service%'
+              and pg_catalog.pg_get_functiondef('public.comun_assisted_forwarding_withdraw(text,uuid)'::regprocedure) like '%Conteúdo retirado pela pessoa.%'
+              and lower(pg_catalog.pg_get_functiondef('public.comun_assisted_forwarding_withdraw(text,uuid)'::regprocedure)) like '%else institutional_text%'
+              and lower(pg_catalog.pg_get_functiondef('public.comun_assisted_forwarding_withdraw(text,uuid)'::regprocedure)) not like '%else null%',
             'healthPresent', exists(select 1 from pg_catalog.pg_constraint where conrelid='public.comun_relata_cases'::regclass and conname='comun_relata_cases_category_check' and pg_catalog.pg_get_constraintdef(oid) like '%public_health%'),
             'educationPresent', exists(select 1 from pg_catalog.pg_constraint where conrelid='public.comun_relata_cases'::regclass and conname='comun_relata_cases_category_check' and pg_catalog.pg_get_constraintdef(oid) like '%public_education%'),
             'childProtectionPresent', exists(select 1 from pg_catalog.pg_constraint where conrelid='public.comun_relata_cases'::regclass and conname='comun_relata_cases_category_check' and pg_catalog.pg_get_constraintdef(oid) like '%child_protection%'),
@@ -109,7 +114,7 @@ jobs:
           node - <<'NODE'
           const fs=require('node:fs');
           const s=JSON.parse(fs.readFileSync('.ci-artifacts/p6c-c-preflight/schema.json','utf8'));
-          const required=['packagesPresent','attemptsPresent','eventsPresent','packagesRlsForced','attemptsRlsForced','eventsRlsForced','institutionalTextNotNull','sourceDomainsBusEssentialOnly','webAttemptAllowed','p5PreparePresent','p5OpenPresent','essentialPreparePresent','genericOpenPresent','genericSentPresent','genericResponsePresent','genericWithdrawPresent','withdrawKeepsContent','healthPresent','educationPresent','childProtectionPresent','routingContractsPresent','serviceGenericOpen','transactionReadOnly'];
+          const required=['packagesPresent','attemptsPresent','eventsPresent','packagesRlsForced','attemptsRlsForced','eventsRlsForced','institutionalTextNotNull','sourceDomainsAllowlisted','webAttemptAllowed','p5PreparePresent','p5OpenPresent','essentialPreparePresent','genericOpenPresent','genericSentPresent','genericResponsePresent','genericWithdrawPresent','withdrawPreservesOrRedactsByDomain','healthPresent','educationPresent','childProtectionPresent','routingContractsPresent','serviceGenericOpen','transactionReadOnly'];
           if(required.some((key)=>s[key]!==true)||s.anonPackagesSelect||s.authenticatedPackagesSelect||s.anonGenericOpen||s.authenticatedGenericOpen||s.businessRowsRead!==false) throw new Error('COMUN_P6C_C_BLOCKED_REMOTE_SCHEMA_DRIFT');
           NODE
       - name: Reconcile Calçadas and prove bounded remote migration plan

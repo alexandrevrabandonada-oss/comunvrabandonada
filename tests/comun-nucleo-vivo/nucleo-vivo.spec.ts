@@ -1,21 +1,19 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-test("jornada central liga home, participação e mapa", async ({ page }) => {
+test("jornada central liga home, Pautas e mapa", async ({ page }) => {
   await page.goto("/comun");
   await expect(
     page.getByRole("heading", { name: "O que precisa de atenção?" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Próxima ação" }),
-  ).toBeVisible();
-  await page.getByRole("link", { name: /formas de participar/i }).click();
-  await expect(
-    page.getByRole("heading", { name: /como você quer contribuir/i }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: /registrar uma calçada/i }),
-  ).toBeVisible();
+  await expect(page.locator('[data-comun-primary-action="true"]')).toHaveCount(
+    1,
+  );
+  await page
+    .getByRole("link", { name: /participar do que está acontecendo/i })
+    .click();
+  await expect(page).toHaveURL(/\/comun\/pautas/);
+  await expect(page.getByRole("heading", { name: /pautas/i })).toBeVisible();
 });
 
 test("mapa mantém vínculo explícito com a pauta", async ({ page }) => {

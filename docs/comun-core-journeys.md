@@ -22,7 +22,7 @@ diferentes depois da revisão.
 | Explorar   | descoberta pública e territorial                                          | conteúdo privado ou personalização comportamental |
 | Participar | lançar uma intenção allowlisted em um passo                               | mutation ou landing obrigatória                   |
 | Caixa      | comunicações significativas que pedem compreensão ou ação                 | log técnico ou histórico pessoal completo         |
-| Minha área | histórico, vínculos, tarefas, acompanhamentos, resultados e configurações | segunda Caixa                                     |
+| Minha participação | histórico, vínculos, tarefas, acompanhamentos, resultados e configurações | segunda Caixa                                     |
 
 ## Continuidade
 

@@ -64,43 +64,28 @@ test("shell modes keep footer, roots and nested navigation coherent", async ({
   await expect(page.locator("footer")).toBeVisible();
 });
 
-test("participation panel is allowlisted, progressive and mutation-free", async ({
+test("participation door opens Pautas directly and remains mutation-free", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto(`/comun?${flag}`);
-  await page.getByRole("button", { name: "Participar agora" }).click();
-  const dialog = page.getByRole("dialog", {
-    name: "Escolha uma forma de participar",
+  const mutations: string[] = [];
+  page.on("request", (request) => {
+    if (request.headers()["next-action"])
+      mutations.push(request.headers()["next-action"]);
   });
-  await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole("link")).toHaveCount(5);
-  await dialog
-    .getByRole("button", { name: "Ver cultura, memória e direitos" })
+  await page.goto(`/comun?${flag}`);
+  await page
+    .getByRole("link", { name: /participar do que está acontecendo/i })
     .click();
-  for (const label of [
-    "Vi um problema",
-    "Calçada",
-    "Ônibus",
-    "Registrar resposta institucional",
-    "Entrar em comunidade",
-    "Assumir tarefa",
-    "Participar de ação",
-    "Acompanhar pauta",
-    "Enviar item ao Acervo",
-    "Enviar áudio à Rádio",
-    "Enviar obra",
-    "Pedir correção",
-    "Pedir retirada",
-    "Relatar problema de privacidade",
-  ])
-    await expect(
-      dialog.getByRole("link", { name: new RegExp(`^${label}(?:\\s|$)`) }),
-    ).toBeVisible();
-  await expect(dialog.locator("form")).toHaveCount(0);
+  await expect(page).toHaveURL(/\/comun\/pautas/);
+  await expect(page.getByRole("heading", { name: /pautas/i })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect(mutations).toEqual([]);
 });
 
-test("tab scroll and Explore filters survive tab changes", async ({ page }) => {
+test("secondary Explore deep links survive while Entender stays canonical", async ({
+  page,
+}) => {
   await page.addInitScript(() => {
     addEventListener("DOMContentLoaded", () => {
       const style = document.createElement("style");
@@ -114,32 +99,22 @@ test("tab scroll and Explore filters survive tab changes", async ({ page }) => {
       .getByRole("navigation", { name: "Filtros principais" })
       .getByRole("link", { name: "Comunidades", exact: true }),
   ).toBeVisible();
+  const exploreHref = page.url();
   const nav = page.getByRole("navigation", { name: "Navegação principal" });
   await nav.getByRole("link", { name: "Início", exact: true }).press("Enter");
   await page
     .getByRole("navigation", { name: "Navegação principal" })
-    .getByRole("link", { name: "Explorar", exact: true })
+    .getByRole("link", { name: "Entender", exact: true })
     .press("Enter");
-  await expect(page).toHaveURL(/categoria=comunidades/);
+  await expect(page).toHaveURL(/\/comun\/observatorios\/panorama/);
 
-  await page.evaluate(() =>
-    window.scrollTo(
-      0,
-      Math.min(600, document.documentElement.scrollHeight - innerHeight),
-    ),
-  );
-  const saved = await page.evaluate(() => window.scrollY);
-  await page
-    .getByRole("navigation", { name: "Navegação principal" })
-    .getByRole("link", { name: "Início", exact: true })
-    .press("Enter");
-  await page
-    .getByRole("navigation", { name: "Navegação principal" })
-    .getByRole("link", { name: "Explorar", exact: true })
-    .press("Enter");
-  await expect
-    .poll(() => page.evaluate(() => window.scrollY))
-    .toBeGreaterThanOrEqual(Math.max(0, saved - 2));
+  await page.goto(exploreHref);
+  await expect(page).toHaveURL(/categoria=comunidades/);
+  await expect(
+    page
+      .getByRole("navigation", { name: "Filtros principais" })
+      .getByRole("link", { name: "Comunidades", exact: true }),
+  ).toBeVisible();
 });
 
 test("community and miniapp cards use distinct semantic grammars", async ({

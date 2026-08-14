@@ -232,7 +232,10 @@ function ContributionForm({
         Não envie CPF, telefone, endereço completo ou dados sensíveis de
         terceiros.
       </p>
-      <button className="min-h-12 border-2 border-comun-black bg-comun-yellow px-5 font-black uppercase focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2">
+      <button
+        data-comun-primary-action="true"
+        className="min-h-12 border-2 border-comun-black bg-comun-yellow px-5 font-black uppercase focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2"
+      >
         Contribuir nesta rodada
       </button>
     </form>
