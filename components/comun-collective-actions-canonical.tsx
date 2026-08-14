@@ -43,7 +43,10 @@ export function CollectiveActionsCanonicalIndex({
         <p className="text-xs font-black uppercase tracking-[0.18em] text-comun-paper/70">
           Organização coletiva
         </p>
-        <h1 className="mt-2 text-3xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">
+        <h1
+          data-comun-app-v2-page="collective-actions-canonical"
+          className="mt-2 text-3xl font-black uppercase text-comun-yellow min-[390px]:text-4xl"
+        >
           Ações coletivas
         </h1>
         <p className="comun-prose mt-3 max-w-3xl text-comun-paper/80">
