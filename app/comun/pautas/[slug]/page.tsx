@@ -126,7 +126,9 @@ export default async function PautaPage(props: {
           actions: collectiveActionDetails,
           actionCycle: publicActionCycle,
           dossiers: dossiers.flatMap((dossier) =>
-            dossier.public_slug && dossier.public_title && dossier.public_summary
+            dossier.public_slug &&
+            dossier.public_title &&
+            dossier.public_summary
               ? [
                   {
                     id: dossier.id,
