@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { auditExperience } from "./audit-comun-experience-coherence.mjs";
 
@@ -16,4 +17,23 @@ test("contrato de coerência cobre rotas, pilotos, tokens e roadmap", async () =
     "COMUN_EXPERIENCE_COHERENCE_READY_FOR_USABILITY_REHEARSAL",
   );
   assert.equal(report.humanUsabilityRehearsal, "required");
+});
+
+test("workflow limita a uma repetição o reset descartável após 502", () => {
+  const workflow = readFileSync(
+    ".github/workflows/comun-experience-coherence.yml",
+    "utf8",
+  );
+
+  assert.match(workflow, /grep -q "Error status 502"/);
+  assert.match(
+    workflow,
+    /COMUN_EXPERIENCE_COHERENCE_LOCAL_RESET_502_SINGLE_RETRY/,
+  );
+  assert.equal(
+    workflow.match(
+      /node scripts\/run-pauta-action-cycle-local-reset\.mjs reset/g,
+    )?.length,
+    2,
+  );
 });
