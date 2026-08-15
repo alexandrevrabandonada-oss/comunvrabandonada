@@ -4,7 +4,7 @@ Data: 15/08/2026
 
 Baseline obrigatório: `443c560117622dc3e0509a767cefbf4c5e4c54cd`
 
-Estado deste relatório: implementação candidata; promoção e evidência de Production serão registradas após merge exact-head.
+Estado deste relatório: **GREEN em Production**, com schema promovido, Wave 0 cloaked e Wave 1 habilitada sobre o mesmo `main` exato.
 
 ## Resultado funcional
 
@@ -101,11 +101,37 @@ O workflow de ativação exige main exato, SHA da migration, plano remoto unitá
 - SHA da migration conferido contra o workflow de ativação;
 - delta de schema limitado à migration A2.
 
-O Supabase local não pôde iniciar porque o Docker Desktop não está disponível no runner Windows. O workflow descartável versionado executará o SQL real na CI: primeiro vínculo, idempotência, aprovação da plataforma, editor, bloqueio de governança por editor, revogação, promoção, bloqueio entre facilitadores, saída do último facilitador, retorno à plataforma, sentinelas privadas e zero propagação. O preflight remoto permanece `BEGIN READ ONLY`, sem leitura de conteúdo de negócio.
+O Supabase local não pôde iniciar porque o Docker Desktop não estava disponível no runner Windows. O workflow descartável executou o SQL real duas vezes na CI, inclusive no head final: primeiro vínculo, idempotência, aprovação da plataforma, editor, bloqueio de governança por editor, revogação, promoção, bloqueio entre facilitadores, saída do último facilitador, retorno à plataforma, sentinelas privadas e zero propagação. O preflight remoto permaneceu `BEGIN READ ONLY`, sem leitura de conteúdo de negócio.
+
+## PR, CI e promoção
+
+- PR funcional: `#332` — **48.4-A2 — Identidade e governança das organizações**;
+- head funcional exato: `f40b39c3a772bf93d098d6096e1831cd088889b4`;
+- merge/main exato: `c817d155b1fa7667683363857b6f30986f8b71f7`;
+- preflight remoto A2 no head final: run `31915046864`, verde e metadata-only;
+- disposable Supabase A2 no head final: run `31915046927`, verde;
+- CI aplicável verde: unit, typecheck, lint, build, Full Surface Migration, Core Journeys, Experience Coherence, Civic Intelligence, Security Resilience e Vercel Preview;
+- nenhuma review ou thread bloqueante; exatamente uma migration no delta contra o baseline.
+
+Os preflights históricos A0/A1/48.2-A/48.3/P6C-C continuaram vermelhos porque seus contratos antigos rejeitam qualquer migration fora do próprio slice. Os logs registraram `BLOCKED_UNEXPECTED_MIGRATION`; essas falhas globais não foram mascaradas nem classificadas como green, mas não eram gates aplicáveis ao A2. Os gates A2 e as suítes compartilhadas aplicáveis ficaram verdes.
+
+## Production
+
+Wave 0: run `31915517971`, verde.
+
+- confirmou o `main` exato, ancestry, hash e plano remoto unitário;
+- promoveu somente `20260815223006_comun_solidarity_organization_access.sql`;
+- postflight metadata-only confirmou RLS/FORCE RLS, ausência de grants de tabela/RPC para `anon` e `authenticated`, acesso exclusivo de `service_role` e índice de unicidade vivo;
+- implantou `COMUN_SOLIDARITY_ORGANIZATION_GOVERNANCE_ENABLED=disabled` e preservou A1 ativa/cloaked para A2.
+
+Wave 1: run `31915638733`, verde.
+
+- habilitou somente `COMUN_SOLIDARITY_ORGANIZATION_GOVERNANCE_ENABLED=enabled` sobre o mesmo `main` exato;
+- GET/HEAD responderam `200` em `/comun`, `/comun/participar` e `/comun/cooperativas`;
+- Production não possuía organização econômica elegível no momento do smoke, portanto o detalhe ficou no empty state legítimo `empty_state_no_eligible_organization`, sem fixture ou relaxamento do gate;
+- nenhuma string privada foi publicada, nenhum pedido sintético foi criado e `businessWrites=0` durante o rollout.
 
 ## Estado terminal
-
-O terminal final só será emitido depois de PR, CI, merge exact-head, promoção e Production verde:
 
 `COMUN_48_4_A2_ORGANIZATION_IDENTITY_GOVERNANCE_GREEN_REVOCABLE_ACCESS_NO_OWNER`
 
