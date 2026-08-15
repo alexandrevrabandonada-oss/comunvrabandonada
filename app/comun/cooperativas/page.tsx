@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { formatSolidarityPriceBRL, isComunSolidarityEconomyPublicCoreEnabled, type PublicSolidarityNeedV1, type PublicSolidarityOfferV1, type PublicSolidarityOrganizationV1 } from "@/lib/comun-solidarity-economy";
+import { isComunSolidarityOrganizationGovernanceEnabled } from "@/lib/comun-solidarity-organization-governance";
 import { listPublicMapData } from "@/lib/popular-map";
 import { getPublicSolidarityEconomyDirectory } from "@/lib/server/comun-solidarity-economy-directory";
 import { Card, CTA, Hero, Metrics } from "../reciclagem/page";
@@ -48,7 +49,8 @@ function NeedCard({ need }: { need: PublicSolidarityNeedV1 }) {
 }
 
 function OrganizationCard({ organization }: { organization: PublicSolidarityOrganizationV1 }) {
-  return <article className="border-2 border-comun-black bg-white p-5"><p className="text-xs font-black uppercase text-comun-rust">Organização verificada</p><h3 className="mt-1 text-xl font-black">{organization.publicName}</h3>{organization.presentation ? <p className="mt-2 text-sm">{organization.presentation}</p> : null}{organization.services.length ? <p className="mt-3 text-sm"><strong>Atuação:</strong> {organization.services.join(", ")}</p> : null}{organization.serviceTerritory ? <p className="mt-2 text-sm"><strong>Território de atuação informado:</strong> {organization.serviceTerritory}</p> : null}{organization.publicContact ? <p className="mt-2 text-sm"><strong>Contato público autorizado:</strong> {organization.publicContact}</p> : null}<Link className="mt-4 inline-flex min-h-11 items-center font-black underline" href={`/comun/mapa/${organization.slug}`}>Ver contexto público da organização</Link></article>;
+  const governanceEnabled = isComunSolidarityOrganizationGovernanceEnabled();
+  return <article className="border-2 border-comun-black bg-white p-5"><p className="text-xs font-black uppercase text-comun-rust">Organização verificada</p><h3 className="mt-1 text-xl font-black">{organization.publicName}</h3>{organization.presentation ? <p className="mt-2 text-sm">{organization.presentation}</p> : null}{organization.services.length ? <p className="mt-3 text-sm"><strong>Atuação:</strong> {organization.services.join(", ")}</p> : null}{organization.serviceTerritory ? <p className="mt-2 text-sm"><strong>Território de atuação informado:</strong> {organization.serviceTerritory}</p> : null}{organization.publicContact ? <p className="mt-2 text-sm"><strong>Contato público autorizado:</strong> {organization.publicContact}</p> : null}<Link className="mt-4 inline-flex min-h-11 items-center font-black underline" href={governanceEnabled ? `/comun/cooperativas/${organization.slug}` : `/comun/mapa/${organization.slug}`}>{governanceEnabled ? "Ver organização" : "Ver contexto público da organização"}</Link></article>;
 }
 
 function formatDate(value: string) { return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeZone: "America/Sao_Paulo" }).format(new Date(value)); }

@@ -1,4 +1,20 @@
-# Estado atual — 48.4-A1 Núcleo público de economia solidária (15/08/2026)
+# Estado atual — 48.4-A2 Identidade e governança das organizações (15/08/2026)
+
+## 48.4-A2 — Relação privada e revogável, sem dono
+
+- implementação candidata baseada em `private.comun_solidarity_organization_access`, única nova raiz e única migration do ciclo;
+- uma pessoa autenticada pode pedir acesso para agir no COMUN por organização A1 elegível, sem afirmar propriedade, seller account, representação legal, relação de trabalho ou associação no mundo real;
+- o primeiro vínculo é `facilitator/platform`; vínculos seguintes são `editor/organization`; a pessoa não escolhe papel;
+- editor não governa; facilitador analisa editores, pode promovê-los e revogá-los, mas não revoga facilitador par; admin canônico mantém a exceção de revogação;
+- o último facilitador pode sair e o próximo pedido retorna à plataforma; pedido e acesso nunca alteram status/verificação da organização, Oferta, Necessidade, Comunidade, Pauta ou Ação;
+- `/comun/cooperativas/[slug]` organiza perfil, ofertas, necessidades e CTA contextual; Minha Participação recebe a seção Organizações sem nova aba de topo;
+- tabela e RPCs são service-role-only, com RLS/FORCE RLS; nenhum dado de acesso entra em HTML/DTO público;
+- `COMUN_48_4_A2_ECONOMIC_CONTENT_WRITES_DEFERRED_TO_A3`, `COMUN_48_4_A2_NEW_ORGANIZATION_ONBOARDING_DEFERRED` e `launch_publicly=false` preservados;
+- promoção/Production ainda pendentes; o terminal A2 não foi emitido nesta etapa candidata.
+
+Detalhes: `reports/current/comun-48-4-a2-organization-identity-governance.md`.
+
+# Estado anterior — 48.4-A1 Núcleo público de economia solidária (15/08/2026)
 
 ## 48.4-A1 — Organizações + Ofertas + Necessidades
 

@@ -1,0 +1,108 @@
+name: COMUN 48.4-A2 disposable organization governance proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-4-a2-disposable.yml"
+      - "supabase/migrations/*_comun_solidarity_organization_access.sql"
+      - "lib/comun-solidarity-organization-governance*.ts"
+      - "lib/server/comun-solidarity-organization-governance.ts"
+
+permissions: { contents: read }
+
+jobs:
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.114.0 }
+      - name: Prove revocable access without ownership or propagation
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          db="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '"')"; test -n "$db"
+          psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
+          begin;
+          insert into auth.users(id,aud,role,email) values
+            ('a2000000-0000-4000-8000-000000000001','authenticated','authenticated','a2-admin@example.invalid'),
+            ('a2000000-0000-4000-8000-000000000002','authenticated','authenticated','a2-first@example.invalid'),
+            ('a2000000-0000-4000-8000-000000000003','authenticated','authenticated','a2-editor@example.invalid'),
+            ('a2000000-0000-4000-8000-000000000004','authenticated','authenticated','a2-third@example.invalid');
+          insert into public.comun_admin_users(user_id,email,role,is_active) values
+            ('a2000000-0000-4000-8000-000000000001','a2-admin@example.invalid','admin',true);
+          insert into public.comun_member_profiles(user_id,display_name,status) values
+            ('a2000000-0000-4000-8000-000000000002','Pessoa primeira','active'),
+            ('a2000000-0000-4000-8000-000000000003','Pessoa editora','active'),
+            ('a2000000-0000-4000-8000-000000000004','Pessoa terceira','active')
+          on conflict(user_id) do update set display_name=excluded.display_name,status='active';
+          insert into public.comun_hub_territories(id,slug,name,territory_type,status,visibility,verification_status) values
+            ('a2000000-0000-4000-8000-000000000011','a2-organizacao-um','Organização um','cooperative','active','public','verified'),
+            ('a2000000-0000-4000-8000-000000000012','a2-organizacao-dois','Organização dois','cooperative','active','public','verified');
+          insert into public.comun_territorial_organizations(territory_id,public_name,organization_type,status,verification_status) values
+            ('a2000000-0000-4000-8000-000000000011','Organização um','cooperative','active','verified'),
+            ('a2000000-0000-4000-8000-000000000012','Organização dois','cooperative','forming','source_checked');
+
+          do $$
+          declare first_id uuid; duplicate_id uuid; editor_id uuid; third_id uuid; second_org_first uuid; next_first uuid; v_role text; v_scope text;
+          begin
+            select access_id,requested_role,review_scope into first_id,v_role,v_scope
+              from public.comun_request_solidarity_organization_access('a2000000-0000-4000-8000-000000000011','a2000000-0000-4000-8000-000000000002','A2_REQUEST_NOTE_PRIVATE_SENTINEL — participo das atividades coletivas.');
+            if v_role <> 'facilitator' or v_scope <> 'platform' then raise exception 'first request gate failed'; end if;
+            select access_id into duplicate_id from public.comun_request_solidarity_organization_access('a2000000-0000-4000-8000-000000000011','a2000000-0000-4000-8000-000000000002','Outra nota que não pode criar duplicidade viva.');
+            if duplicate_id <> first_id or (select count(*) from private.comun_solidarity_organization_access where organization_territory_id='a2000000-0000-4000-8000-000000000011' and member_user_id='a2000000-0000-4000-8000-000000000002' and state in('pending','active')) <> 1 then raise exception 'idempotency failed'; end if;
+            perform public.comun_review_solidarity_organization_access(first_id,'a2000000-0000-4000-8000-000000000011','a2000000-0000-4000-8000-000000000001','approve','A2_REVIEW_NOTE_PRIVATE_SENTINEL');
+            if not exists(select 1 from public.comun_territorial_organizations where territory_id='a2000000-0000-4000-8000-000000000011' and status='active' and verification_status='verified') then raise exception 'organization gate changed as side effect'; end if;
+
+            select access_id,requested_role,review_scope into editor_id,v_role,v_scope
+              from public.comun_request_solidarity_organization_access('a2000000-0000-4000-8000-000000000011','a2000000-0000-4000-8000-000000000003','Participo das atividades de comunicação desta organização.');
+            if v_role <> 'editor' or v_scope <> 'organization' then raise exception 'editor request gate failed'; end if;
+            perform public.comun_review_solidarity_organization_access(editor_id,'a2000000-0000-4000-8000-000000000011','a2000000-0000-4000-8000-000000000002','approve',null);
+
+            select access_id into third_id from public.comun_request_solidarity_organization_access('a2000000-0000-4000-8000-000000000011','a2000000-0000-4000-8000-000000000004','Participo regularmente da organização em atividades locais.');
+            begin
+              perform public.comun_review_solidarity_organization_access(third_id,'a2000000-0000-4000-8000-000000000011','a2000000-0000-4000-8000-000000000003','approve',null);
+              raise exception 'editor governed access';
+            exception when raise_exception then
+              if sqlerrm='editor governed access' then raise; end if;
+            end;
+            perform public.comun_review_solidarity_organization_access(third_id,'a2000000-0000-4000-8000-000000000011','a2000000-0000-4000-8000-000000000002','approve',null);
+            perform public.comun_govern_solidarity_organization_access(editor_id,'a2000000-0000-4000-8000-000000000011','a2000000-0000-4000-8000-000000000002','revoke',null);
+            perform public.comun_govern_solidarity_organization_access(third_id,'a2000000-0000-4000-8000-000000000011','a2000000-0000-4000-8000-000000000002','promote',null);
+            begin
+              perform public.comun_govern_solidarity_organization_access(first_id,'a2000000-0000-4000-8000-000000000011','a2000000-0000-4000-8000-000000000004','revoke',null);
+              raise exception 'peer facilitator revoked';
+            exception when raise_exception then
+              if sqlerrm='peer facilitator revoked' then raise; end if;
+            end;
+
+            select access_id into second_org_first from public.comun_request_solidarity_organization_access('a2000000-0000-4000-8000-000000000012','a2000000-0000-4000-8000-000000000002','Participo da segunda organização em atividades comunitárias.');
+            perform public.comun_review_solidarity_organization_access(second_org_first,'a2000000-0000-4000-8000-000000000012','a2000000-0000-4000-8000-000000000001','approve',null);
+            if not public.comun_leave_solidarity_organization_access('a2000000-0000-4000-8000-000000000012','a2000000-0000-4000-8000-000000000002') then raise exception 'last facilitator could not leave'; end if;
+            select access_id,review_scope into next_first,v_scope from public.comun_request_solidarity_organization_access('a2000000-0000-4000-8000-000000000012','a2000000-0000-4000-8000-000000000003','Participo agora da segunda organização e posso facilitar.');
+            if v_scope <> 'platform' then raise exception 'next first request did not return to platform'; end if;
+
+            if (select count(*) from public.comun_solidarity_offers where organization_territory_id in('a2000000-0000-4000-8000-000000000011','a2000000-0000-4000-8000-000000000012')) <> 0 then raise exception 'offer propagated'; end if;
+            if (select count(*) from public.comun_territorial_needs where organization_territory_id in('a2000000-0000-4000-8000-000000000011','a2000000-0000-4000-8000-000000000012')) <> 0 then raise exception 'need propagated'; end if;
+            if (select count(*) from public.comun_community_memberships where member_user_id in('a2000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000003','a2000000-0000-4000-8000-000000000004')) <> 0 then raise exception 'community membership propagated'; end if;
+            if (select count(*) from public.comun_pauta_memberships where member_user_id in('a2000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000003','a2000000-0000-4000-8000-000000000004')) <> 0 then raise exception 'pauta membership propagated'; end if;
+            if (select count(*) from public.comun_collective_action_participations where member_user_id in('a2000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000003','a2000000-0000-4000-8000-000000000004')) <> 0 then raise exception 'collective action participation propagated'; end if;
+            if (select count(*) from public.comun_community_work_group_members work_group_member join public.comun_community_memberships membership on membership.id=work_group_member.membership_id where membership.member_user_id in('a2000000-0000-4000-8000-000000000002','a2000000-0000-4000-8000-000000000003','a2000000-0000-4000-8000-000000000004')) <> 0 then raise exception 'work group membership propagated'; end if;
+            if exists(select 1 from public.comun_search_documents where coalesce(title,'') || coalesce(summary,'') || coalesce(public_text,'') like '%A2_%_PRIVATE_SENTINEL%') then raise exception 'private sentinel indexed'; end if;
+          end $$;
+
+          do $$ begin
+            if not (select relrowsecurity and relforcerowsecurity from pg_class where oid='private.comun_solidarity_organization_access'::regclass) then raise exception 'rls not forced'; end if;
+            if has_table_privilege('anon','private.comun_solidarity_organization_access','SELECT,INSERT,UPDATE,DELETE') or has_table_privilege('authenticated','private.comun_solidarity_organization_access','SELECT,INSERT,UPDATE,DELETE') then raise exception 'client table access open'; end if;
+            if not has_table_privilege('service_role','private.comun_solidarity_organization_access','SELECT,INSERT,UPDATE,DELETE') then raise exception 'service table access missing'; end if;
+            if has_function_privilege('anon','public.comun_request_solidarity_organization_access(uuid,uuid,text)','EXECUTE') or has_function_privilege('authenticated','public.comun_request_solidarity_organization_access(uuid,uuid,text)','EXECUTE') then raise exception 'client rpc open'; end if;
+          end $$;
+          rollback;
+          SQL
+          echo COMUN_48_4_A2_DISPOSABLE_GOVERNANCE_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo businessWritesAfterRollback=0 >> "$GITHUB_STEP_SUMMARY"
+          echo ownerConceptCreated=false >> "$GITHUB_STEP_SUMMARY"
+          echo economicContentWrites=0 >> "$GITHUB_STEP_SUMMARY"

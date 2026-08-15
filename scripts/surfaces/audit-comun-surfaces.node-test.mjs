@@ -6,8 +6,9 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   const { summary, routes } = await auditComunSurfaces({ write: false });
   // Dormant/feature-flagged routes, including the reviewed-only sidewalk,
   // transport, and surface-water observatories, plus the Google completion
-  // step and low-friction Pauta creation, are part of the full matrix.
-  assert.equal(summary.total, 210);
+  // step, low-friction Pauta creation, and the organization detail are part
+  // of the full matrix.
+  assert.equal(summary.total, 211);
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
     "admin",
@@ -63,6 +64,10 @@ test("keeps roots, nested routes, immersive tools and admin surfaces distinct", 
   const byRoute = new Map(routes.map((route) => [route.route, route]));
   assert.equal(byRoute.get("/comun")?.shell_mode, "member_root");
   assert.equal(byRoute.get("/comun/explorar")?.shell_mode, "member_root");
+  assert.equal(
+    byRoute.get("/comun/cooperativas/[slug]")?.shell_mode,
+    "public_web",
+  );
   assert.equal(
     byRoute.get("/comun/pautas/[slug]")?.shell_mode,
     "member_nested",
