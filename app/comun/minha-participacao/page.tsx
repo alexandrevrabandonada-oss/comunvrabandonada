@@ -121,18 +121,23 @@ export default async function MinhaAreaPage({
     withComunAppV2(`/comun/minha-participacao?secao=${selected}`, appV2),
   );
   const collectiveActionsRelease = await getCollectiveActionsRelease();
-  const [center, submissions, archiveContributions, collectiveActions, organizationAccesses] =
-    await Promise.all([
-      getPersonalCenter(user.id),
-      listMyParticipation(user.id),
-      listMyIdentificationContributions(user.id),
-      collectiveActionsRelease.enabled
-        ? listMemberCollectiveActions(user.id)
-        : Promise.resolve([]),
-      organizationGovernanceEnabled
-        ? listMySolidarityOrganizationAccess(user.id)
-        : Promise.resolve([]),
-    ]);
+  const [
+    center,
+    submissions,
+    archiveContributions,
+    collectiveActions,
+    organizationAccesses,
+  ] = await Promise.all([
+    getPersonalCenter(user.id),
+    listMyParticipation(user.id),
+    listMyIdentificationContributions(user.id),
+    collectiveActionsRelease.enabled
+      ? listMemberCollectiveActions(user.id)
+      : Promise.resolve([]),
+    organizationGovernanceEnabled
+      ? listMySolidarityOrganizationAccess(user.id)
+      : Promise.resolve([]),
+  ]);
   const contributions = [
     ...submissions.contributions,
     ...submissions.artworkSubmissions,
@@ -736,9 +741,21 @@ function MinhaAreaAppV2({
           ) : null}
           {selected === "acompanhando" ? (
             <div className="grid gap-4 lg:grid-cols-2">
-              {organizationAccesses.length ? <h2 className="comun-v2-subtitle lg:col-span-2">Organizações</h2> : null}
-              {organizationAccesses.map((access) => <OrganizationAccessCard access={access} key={access.accessId} appV2 />)}
-              {organizationAccesses.length ? <h2 className="comun-v2-subtitle mt-3 lg:col-span-2">Pautas</h2> : null}
+              {organizationAccesses.length ? (
+                <h2 className="comun-v2-subtitle lg:col-span-2">
+                  Organizações
+                </h2>
+              ) : null}
+              {organizationAccesses.map((access) => (
+                <OrganizationAccessCard
+                  access={access}
+                  key={access.accessId}
+                  appV2
+                />
+              ))}
+              {organizationAccesses.length ? (
+                <h2 className="comun-v2-subtitle mt-3 lg:col-span-2">Pautas</h2>
+              ) : null}
               {(center.memberships ?? []).slice(0, 6).map((item: any) => (
                 <ComunPautaCard
                   key={item.id}
@@ -1003,11 +1020,23 @@ function OrganizationAccessCard({
           : "border-2 border-comun-yellow p-5"
       }
     >
-      <p className={appV2 ? "comun-v2-status text-comun-rust" : "text-xs font-black uppercase text-comun-yellow"}>
+      <p
+        className={
+          appV2
+            ? "comun-v2-status text-comun-rust"
+            : "text-xs font-black uppercase text-comun-yellow"
+        }
+      >
         {solidarityOrganizationAccessStateLabel(access.state)}
       </p>
       <h3 className="mt-2 text-lg font-black">{access.organizationName}</h3>
-      <p className={appV2 ? "mt-2 text-sm text-comun-black/65" : "mt-2 text-sm text-comun-paper/75"}>
+      <p
+        className={
+          appV2
+            ? "mt-2 text-sm text-comun-black/65"
+            : "mt-2 text-sm text-comun-paper/75"
+        }
+      >
         {access.state === "active" && access.role
           ? `Papel no COMUN: ${solidarityOrganizationAccessRoleLabel(access.role)}.`
           : access.state === "pending" && access.reviewScope === "platform"
