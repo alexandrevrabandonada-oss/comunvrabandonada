@@ -4,7 +4,7 @@ Data: 15/08/2026
 
 Baseline obrigatório: `9df17371c9ff703e73d561142f6a5fa317b3e3a5`
 
-Estado deste relatório: implementação funcional em validação; promoção remota e rollout ainda não registrados.
+Estado deste relatório: funcional, promovido e verificado em Production.
 
 ## Resultado funcional
 
@@ -84,15 +84,43 @@ A Home não recebe uma quinta porta e nenhuma API nova foi criada.
 Não há leitura de Relata, Wallet, conta, localização privada, anexos, contatos
 privados ou interesses. `launch_publicly=false` permanece preservado.
 
-## Validação local registrada
+## Validação e promoção registradas
 
 - testes focais: 19 verdes;
 - suíte unitária completa: 191 arquivos e 996 testes verdes;
 - typecheck global: verde;
 - lint global: verde;
 - build de produção: verde, com `/comun/cooperativas` dinâmica;
-- migration delta esperado: exatamente um arquivo A1;
-- preflight remoto, descartável, PR, merge e Production: pendentes de registro neste ponto.
+- migration delta: exatamente `20260815184529_comun_solidarity_offers.sql`,
+  SHA-256 `6fbd403c45307dfa0d1910690c4e5c9b0ba90fc96654ea1376e0814f9b47d43d`;
+- preflight remoto metadata-only `31903726270`: verde, sem leitura de conteúdo de negócio;
+- prova descartável `31903726266`: verde, com constraints, RLS, grants e rollback;
+- PR funcional `#330`, head exato
+  `064a8ceaa2a6f97589f1572b7f1d5e2e34e0c505`, integrada no merge/main
+  `8e9471472a86c38c7f5ceb86649e4253b7263379`;
+- CI, Civic Graph, Full Surface Migration, Core Journeys, Security, Experience
+  Coherence e Quality Performance verdes;
+- Quality Performance teve um único rerun por timeout transitório de inicialização
+  do webserver Playwright; o segundo passe `31903726314`, tentativa 2, ficou verde
+  sem alteração de código;
+- dois preflights históricos não aplicáveis (48.2-A e P6C-C) rejeitaram a migration
+  por allowlists próprias de ciclos antigos; não houve regressão de produto nem
+  relaxamento desses workflows;
+- Wave 0 `31906435689`: promoveu somente a migration A1, confirmou RLS/grants em
+  pós-flight metadata-only e publicou exact-main com a flag desligada;
+- Wave 1 `31906556867`: habilitou somente
+  `COMUN_SOLIDARITY_ECONOMY_PUBLIC_CORE_ENABLED=enabled` e publicou o mesmo main;
+- Production: GET `200` em `/comun`, `/comun/participar` e
+  `/comun/cooperativas`; HEAD `200` na Feirinha; as três áreas públicas presentes;
+  nenhum marcador privado encontrado;
+- nenhum seed ou Oferta sintética foi criado; empty state permanece legítimo;
+- `businessWrites=0` durante preflight, rollout e smoke;
+- `launch_publicly=false` preservado.
 
-O terminal green somente poderá ser emitido depois dos gates remotos e do
-rollout exact-main com `businessWrites=0`.
+## Decisão final
+
+`COMUN_48_4_A1_SOLIDARITY_ECONOMY_PUBLIC_CORE_GREEN_OFFERS_NEEDS_NO_MARKETPLACE`
+
+O A1 encerra com Oferta canônica, Organização e Necessidade projetadas por
+gates fail-closed e Feirinha pública de descoberta, sem marketplace ou writes
+econômicos públicos.
