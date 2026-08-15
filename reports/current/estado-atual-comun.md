@@ -1,4 +1,26 @@
-# Estado atual — 48.4-A0 Feirinha / Economia Solidária (15/08/2026)
+# Estado atual — 48.4-A1 Núcleo público de economia solidária (15/08/2026)
+
+## 48.4-A1 — Organizações + Ofertas + Necessidades
+
+- `/comun/cooperativas` foi recomposta como **Feirinha — Trocas e economia solidária**, uma superfície de descoberta e não um marketplace;
+- `comun_territorial_organizations` e `comun_territorial_needs` permanecem canônicas; somente `comun_solidarity_offers` foi criado como nova entidade;
+- Oferta pertence obrigatoriamente a organização, possui modalidades explícitas, preço opcional e só é pública quando revisada, publicada e não vencida;
+- organizações e territórios passam por allowlists fail-closed de status/verificação; contato privado nunca é selecionado nem usado como fallback;
+- interesses permanecem privados e restritos a necessidades; não existem checkout, pedido, pagamento, rating, chat, produtor individual ou publicação econômica pelo usuário;
+- PR funcional `#330`, head exato `064a8ceaa2a6f97589f1572b7f1d5e2e34e0c505`, integrada no merge/main `8e9471472a86c38c7f5ceb86649e4253b7263379`;
+- preflight remoto `31903726270` e descartável `31903726266` verdes; CI ampla verde, com um único rerun transitório de webserver Playwright em Quality Performance;
+- Wave 0 `31906435689` promoveu somente a migration A1 e comprovou RLS/grants metadata-only; Wave 1 `31906556867` habilitou somente a flag A1;
+- Production respondeu `200` em `/comun`, `/comun/participar` e `/comun/cooperativas`, HEAD `200` na Feirinha, sem marcador privado, seed, fixture ou write;
+- `businessWrites=0`, `COMUN_48_4_A1_INDIVIDUAL_PRODUCERS_DEFERRED_FIRST_CYCLE`, `COMUN_48_4_A1_PUBLIC_ECONOMIC_WRITES_DEFERRED_UNTIL_IDENTITY_CLAIM_CONTRACT` e `launch_publicly=false` preservados.
+
+Estado terminal:
+`COMUN_48_4_A1_SOLIDARITY_ECONOMY_PUBLIC_CORE_GREEN_OFFERS_NEEDS_NO_MARKETPLACE`.
+
+Detalhes: `reports/current/comun-48-4-a1-solidarity-economy-public-core.md`.
+
+Preservados: `COMUN_48_3_E3_LOW_FRICTION_PAUTA_CREATION_GREEN_PUBLIC_SAFE_NO_AUTO_ORGANIZATION`, `COMUN_48_3_E2_NATURAL_ORGANIZATION_BRIDGES_GREEN_PUBLIC_EVIDENCE_TO_PAUTA_NO_AUTO_CREATE`, `COMUN_48_3_E1_INTEGRATED_EXPERIENCE_COHERENCE_GREEN_STREAMLINED_NAVIGATION`, `COMUN_48_3_D1_COLLECTIVE_CYCLE_MEMORY_GREEN_CANONICAL_PUBLIC_NARRATIVE`, `COMUN_48_3_C1_COLLECTIVE_ACTIONS_CANONICAL_EXPERIENCE_GREEN_MEMBER_PARTICIPATION`, `COMUN_48_3_B1_RODAS_VIVAS_CANONICAL_EXPERIENCE_GREEN_MODERATED_PUBLIC`, `COMUN_48_2_F_CROSS_OBSERVATORY_CITY_PANORAMA_GREEN_PUBLIC_SAFE`, `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e `launch_publicly=false`.
+
+# Estado anterior — 48.4-A0 Feirinha / Economia Solidária (15/08/2026)
 
 ## 48.4-A0 — Reconciliação da arquitetura econômica
 
