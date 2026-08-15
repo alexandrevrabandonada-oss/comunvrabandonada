@@ -1,0 +1,50 @@
+name: COMUN 48.4-A1 disposable Offer proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-4-a1-disposable.yml"
+      - "supabase/migrations/*_comun_solidarity_offers.sql"
+      - "lib/comun-solidarity-economy*.ts"
+
+permissions: { contents: read }
+
+jobs:
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.113.0 }
+      - name: Prove Offer contract and closed clients
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          db="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '"')"; test -n "$db"
+          psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
+          begin;
+          do $$
+          declare territory uuid:=gen_random_uuid();
+          begin
+            insert into public.comun_hub_territories(id,name,slug,territory_type,status,visibility,verification_status) values(territory,'Rede teste','rede-teste-a1','cooperative','active','public','verified');
+            insert into public.comun_territorial_organizations(territory_id,public_name,organization_type,status,verification_status) values(territory,'Rede teste','cooperative','active','verified');
+            insert into public.comun_solidarity_offers(slug,organization_territory_id,title,public_summary,offer_kind,modalities,status,reviewed_at,published_at,valid_until) values('oferta-a1',territory,'Oferta pública','Resumo público verificável da oferta.','service',array['exchange','cooperation'],'published',now(),now(),now()+interval '30 days');
+            if (select count(*) from public.comun_solidarity_offers where slug='oferta-a1')<>1 then raise exception 'offer missing'; end if;
+            begin
+              insert into public.comun_solidarity_offers(slug,organization_territory_id,title,public_summary,offer_kind,modalities,status) values('oferta-sem-revisao',territory,'Oferta inválida','Resumo público que não pode ser publicado.','good',array['sale'],'published');
+              raise exception 'unreviewed publication accepted';
+            exception when check_violation then null; end;
+            begin
+              insert into public.comun_solidarity_offers(slug,organization_territory_id,title,public_summary,offer_kind,modalities) values('oferta-modalidade-invalida',territory,'Oferta inválida','Resumo público que não pode ser publicado.','good',array['auction']);
+              raise exception 'unknown modality accepted';
+            exception when check_violation then null; end;
+            if has_table_privilege('anon','public.comun_solidarity_offers','SELECT,INSERT,UPDATE,DELETE') or has_table_privilege('authenticated','public.comun_solidarity_offers','SELECT,INSERT,UPDATE,DELETE') then raise exception 'client privilege open'; end if;
+            if not has_table_privilege('service_role','public.comun_solidarity_offers','SELECT,INSERT,UPDATE,DELETE') then raise exception 'service role missing'; end if;
+          end $$;
+          rollback;
+          SQL
+          echo COMUN_48_4_A1_DISPOSABLE_OFFER_CONTRACT_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo businessWritesAfterRollback=0 >> "$GITHUB_STEP_SUMMARY"

@@ -1,4 +1,17 @@
-# Estado atual — 48.4-A0 Feirinha / Economia Solidária (15/08/2026)
+# Estado atual em trabalho — 48.4-A1 Feirinha / Economia Solidária (15/08/2026)
+
+## 48.4-A1 — Núcleo público em validação
+
+- implementação funcional criada sobre o baseline exato `9df17371c9ff703e73d561142f6a5fa317b3e3a5`;
+- uma única entidade nova, `comun_solidarity_offers`, sem produto, estoque, pedido, pagamento, troca concluída ou marketplace;
+- adapter econômico próprio com gates fail-closed de território e organização, expiração read-only e DTO público explícito;
+- `/comun/cooperativas` é recomposta como **Feirinha** somente quando `COMUN_SOLIDARITY_ECONOMY_PUBLIC_CORE_ENABLED=enabled`; OFF preserva a experiência anterior;
+- nenhuma publicação econômica pública, produtor individual, interesse em Oferta, API ou quinta porta na Home foi criada;
+- promoção remota, PR, merge e rollout ainda não estão registrados; o terminal A1 ainda não foi emitido.
+
+Detalhes: `reports/current/comun-48-4-a1-solidarity-economy-public-core.md`.
+
+# Estado anterior — 48.4-A0 Feirinha / Economia Solidária (15/08/2026)
 
 ## 48.4-A0 — Reconciliação da arquitetura econômica
 
