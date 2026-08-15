@@ -4,7 +4,7 @@ Data: 15/08/2026
 
 Baseline: `3d1d8da654cf83570858b5f534b485fd27f28f0d`
 
-Estado: contrato local concluído; preflight remoto e promoção ainda não registrados.
+Estado: contrato reconciliado, preflight remoto verde e PR funcional integrado exact-head.
 
 ## Decisão executiva
 
@@ -130,5 +130,26 @@ O primeiro gesto futuro deve poder começar por “Preciso disso” ou “Posso 
 - plano remoto esperado `[]`, preservando o external-ledger de Calçadas;
 - contrato e testes estáticos para fronteiras, lacunas e decisões.
 
-O estado terminal só será emitido depois do preflight remoto, CI e merge. A1 não foi iniciado.
+## Fechamento remoto
+
+- PR funcional: `#328`;
+- functional head: `ca49f1f7aa9b2b7e8340a2eef6f529ffa21ae9de`;
+- merge/main: `9ad47e881f7e2e5ba4a8c764a3a116daac015970`;
+- preflight remoto: workflow `31888711059`, job `95021647390`;
+- `transactionReadOnly=true` e `businessContentRead=false`;
+- 10 tabelas auditadas por metadata, com RLS ativo e clientes diretos fechados;
+- `public_contact_authorized` confirmado como `text`;
+- organização filha confirmada sem `visibility` própria;
+- FK legada de necessidade para `comun_mobilization_actions` confirmada e ausência de FK para `comun_collective_actions` preservada como dívida;
+- nenhuma raiz canônica de oferta encontrada;
+- plano remoto `[]`, `migrationCount=0`, preservando o external-ledger de Calçadas;
+- CI, Civic Graph, Full Surface Migration, Core Journeys e Quality Performance verdes;
+- zero UI, API, flag, deploy funcional, dado privado ou business write;
+- `launch_publicly=false`.
+
+Estado terminal:
+
+`COMUN_48_4_A0_SOLIDARITY_ECONOMY_RECONCILIATION_CONTRACT_GREEN`
+
+A1 não foi iniciado.
 
