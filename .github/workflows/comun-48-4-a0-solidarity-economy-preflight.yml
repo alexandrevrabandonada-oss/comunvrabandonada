@@ -1,0 +1,303 @@
+name: COMUN 48.4-A0 solidarity economy reconciliation preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-4-a0-solidarity-economy-preflight.yml"
+      - "lib/comun-solidarity-economy-architecture.ts"
+      - "lib/comun-solidarity-economy-architecture.test.ts"
+      - "reports/current/comun-48-4-a0-solidarity-economy-reconciliation.md"
+      - "reports/current/estado-atual-comun.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remote-metadata-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
+
+      - name: Validate baseline and zero migration scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          test -n "${SUPABASE_PROJECT_REF:-}"
+          case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
+          git merge-base --is-ancestor 3d1d8da654cf83570858b5f534b485fd27f28f0d HEAD
+          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+          if [ "${#changed[@]}" -ne 0 ]; then
+            echo COMUN_48_4_A0_BLOCKED_UNEXPECTED_MIGRATION
+            exit 1
+          fi
+
+      - name: Inspect economic metadata in a read-only transaction
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/48-4-a0-preflight
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 \
+            >.ci-artifacts/48-4-a0-preflight/schema.json <<'SQL'
+          begin read only;
+          with scoped_tables(table_name) as (
+            values
+              ('comun_hub_territories'),
+              ('comun_territorial_organizations'),
+              ('comun_territorial_organization_materials'),
+              ('comun_territorial_needs'),
+              ('comun_territorial_need_interests'),
+              ('comun_territorial_layers'),
+              ('comun_territory_layers'),
+              ('comun_recycling_materials'),
+              ('comun_recycling_points'),
+              ('comun_collection_routes')
+          ), scoped_columns(table_name, column_name) as (
+            values
+              ('comun_territorial_organizations', 'status'),
+              ('comun_territorial_organizations', 'verification_status'),
+              ('comun_territorial_organizations', 'public_contact_authorized'),
+              ('comun_territorial_organizations', 'private_contact'),
+              ('comun_territorial_needs', 'visibility'),
+              ('comun_territorial_needs', 'action_id'),
+              ('comun_territorial_need_interests', 'contact_private'),
+              ('comun_territorial_need_interests', 'offer_private'),
+              ('comun_territorial_need_interests', 'consent_to_contact')
+          )
+          select json_build_object(
+            'transactionReadOnly', current_setting('transaction_read_only') = 'on',
+            'businessContentRead', false,
+            'tablesPresent', (
+              select count(*) = 10 from scoped_tables scoped
+              where to_regclass('public.' || scoped.table_name) is not null
+            ),
+            'columnsPresent', (
+              select count(*) = 9 from scoped_columns scoped
+              join information_schema.columns columns
+                on columns.table_schema = 'public'
+               and columns.table_name = scoped.table_name
+               and columns.column_name = scoped.column_name
+            ),
+            'rlsEnabled', (
+              select coalesce(bool_and(class.relrowsecurity), false)
+              from scoped_tables scoped
+              join pg_catalog.pg_class class
+                on class.oid = to_regclass('public.' || scoped.table_name)
+            ),
+            'forceRlsByTable', (
+              select json_object_agg(scoped.table_name, class.relforcerowsecurity order by scoped.table_name)
+              from scoped_tables scoped
+              join pg_catalog.pg_class class
+                on class.oid = to_regclass('public.' || scoped.table_name)
+            ),
+            'directClientsClosed', (
+              select bool_and(
+                not has_table_privilege('anon', 'public.' || scoped.table_name, 'SELECT')
+                and not has_table_privilege('anon', 'public.' || scoped.table_name, 'INSERT')
+                and not has_table_privilege('anon', 'public.' || scoped.table_name, 'UPDATE')
+                and not has_table_privilege('anon', 'public.' || scoped.table_name, 'DELETE')
+                and not has_table_privilege('authenticated', 'public.' || scoped.table_name, 'SELECT')
+                and not has_table_privilege('authenticated', 'public.' || scoped.table_name, 'INSERT')
+                and not has_table_privilege('authenticated', 'public.' || scoped.table_name, 'UPDATE')
+                and not has_table_privilege('authenticated', 'public.' || scoped.table_name, 'DELETE')
+              ) from scoped_tables scoped
+            ),
+            'serviceRoleCrud', (
+              select bool_and(
+                has_table_privilege('service_role', 'public.' || scoped.table_name, 'SELECT')
+                and has_table_privilege('service_role', 'public.' || scoped.table_name, 'INSERT')
+                and has_table_privilege('service_role', 'public.' || scoped.table_name, 'UPDATE')
+                and has_table_privilege('service_role', 'public.' || scoped.table_name, 'DELETE')
+              ) from scoped_tables scoped
+            ),
+            'publicContactAuthorizedType', (
+              select data_type from information_schema.columns
+              where table_schema = 'public'
+                and table_name = 'comun_territorial_organizations'
+                and column_name = 'public_contact_authorized'
+            ),
+            'organizationHasOwnVisibility', exists (
+              select 1 from information_schema.columns
+              where table_schema = 'public'
+                and table_name = 'comun_territorial_organizations'
+                and column_name = 'visibility'
+            ),
+            'organizationParentFk', exists (
+              select 1 from pg_catalog.pg_constraint constraint_row
+              where constraint_row.conrelid = 'public.comun_territorial_organizations'::regclass
+                and constraint_row.contype = 'f'
+                and pg_catalog.pg_get_constraintdef(constraint_row.oid) like '%comun_hub_territories%'
+            ),
+            'needPautaFk', exists (
+              select 1 from pg_catalog.pg_constraint constraint_row
+              where constraint_row.conrelid = 'public.comun_territorial_needs'::regclass
+                and constraint_row.contype = 'f'
+                and pg_catalog.pg_get_constraintdef(constraint_row.oid) like '%(pauta_id)%comun_pauta_spaces%'
+            ),
+            'needLegacyActionFk', exists (
+              select 1 from pg_catalog.pg_constraint constraint_row
+              where constraint_row.conrelid = 'public.comun_territorial_needs'::regclass
+                and constraint_row.contype = 'f'
+                and pg_catalog.pg_get_constraintdef(constraint_row.oid) like '%(action_id)%comun_mobilization_actions%'
+            ),
+            'needCollectiveActionFk', exists (
+              select 1 from pg_catalog.pg_constraint constraint_row
+              where constraint_row.conrelid = 'public.comun_territorial_needs'::regclass
+                and constraint_row.contype = 'f'
+                and pg_catalog.pg_get_constraintdef(constraint_row.oid) like '%comun_collective_actions%'
+            ),
+            'offerRootPresent', exists (
+              select 1 from pg_catalog.pg_class class
+              join pg_catalog.pg_namespace namespace on namespace.oid = class.relnamespace
+              where namespace.nspname = 'public'
+                and class.relkind in ('r', 'p')
+                and class.relname in (
+                  'comun_offers', 'comun_offer_listings', 'comun_listings',
+                  'comun_products', 'comun_marketplace_items', 'comun_exchanges'
+                )
+            ),
+            'constraints', (
+              select coalesce(json_agg(json_build_object(
+                'table', scoped.table_name,
+                'name', constraint_row.conname,
+                'type', constraint_row.contype,
+                'definition', pg_catalog.pg_get_constraintdef(constraint_row.oid)
+              ) order by scoped.table_name, constraint_row.conname), '[]'::json)
+              from scoped_tables scoped
+              join pg_catalog.pg_constraint constraint_row
+                on constraint_row.conrelid = to_regclass('public.' || scoped.table_name)
+            ),
+            'indexes', (
+              select coalesce(json_agg(json_build_object(
+                'table', indexes.tablename,
+                'name', indexes.indexname,
+                'definition', indexes.indexdef
+              ) order by indexes.tablename, indexes.indexname), '[]'::json)
+              from pg_catalog.pg_indexes indexes
+              join scoped_tables scoped on scoped.table_name = indexes.tablename
+              where indexes.schemaname = 'public'
+            ),
+            'policies', (
+              select coalesce(json_agg(json_build_object(
+                'table', policies.tablename,
+                'name', policies.policyname,
+                'roles', policies.roles,
+                'command', policies.cmd,
+                'usingPresent', policies.qual is not null,
+                'checkPresent', policies.with_check is not null
+              ) order by policies.tablename, policies.policyname), '[]'::json)
+              from pg_catalog.pg_policies policies
+              join scoped_tables scoped on scoped.table_name = policies.tablename
+              where policies.schemaname = 'public'
+            ),
+            'grants', (
+              select coalesce(json_agg(json_build_object(
+                'table', grants.table_name,
+                'grantee', grants.grantee,
+                'privilege', grants.privilege_type
+              ) order by grants.table_name, grants.grantee, grants.privilege_type), '[]'::json)
+              from information_schema.role_table_grants grants
+              join scoped_tables scoped on scoped.table_name = grants.table_name
+              where grants.table_schema = 'public'
+                and grants.grantee in ('anon', 'authenticated', 'service_role')
+            )
+          );
+          rollback;
+          SQL
+
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const path = '.ci-artifacts/48-4-a0-preflight/schema.json';
+          const schema = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const requiredTrue = [
+            'transactionReadOnly',
+            'tablesPresent',
+            'columnsPresent',
+            'rlsEnabled',
+            'directClientsClosed',
+            'serviceRoleCrud',
+            'organizationParentFk',
+            'needPautaFk',
+            'needLegacyActionFk'
+          ];
+          if (requiredTrue.some((key) => schema[key] !== true)) {
+            throw new Error('COMUN_48_4_A0_BLOCKED_REMOTE_ECONOMIC_SCHEMA_DRIFT');
+          }
+          if (
+            schema.businessContentRead !== false ||
+            schema.publicContactAuthorizedType !== 'text' ||
+            schema.organizationHasOwnVisibility !== false ||
+            schema.needCollectiveActionFk !== false ||
+            schema.offerRootPresent !== false
+          ) {
+            throw new Error('COMUN_48_4_A0_BLOCKED_REMOTE_ECONOMIC_SCHEMA_DRIFT');
+          }
+          for (const key of ['forceRlsByTable', 'constraints', 'indexes', 'policies', 'grants']) {
+            if (schema[key] === null || typeof schema[key] !== 'object') {
+              throw new Error('COMUN_48_4_A0_BLOCKED_REMOTE_ECONOMIC_SCHEMA_DRIFT');
+            }
+          }
+          fs.writeFileSync(
+            '.ci-artifacts/48-4-a0-preflight/result.json',
+            JSON.stringify({
+              result: 'COMUN_48_4_A0_REMOTE_METADATA_GREEN',
+              transactionReadOnly: true,
+              businessContentRead: false,
+              tablesAudited: 10,
+              rlsEnabled: true,
+              directClientsClosed: true,
+              publicContactAuthorizedType: 'text',
+              organizationHasOwnVisibility: false,
+              needLegacyActionFk: true,
+              needCollectiveActionFk: false,
+              offerRootPresent: false
+            }) + '\n'
+          );
+          NODE
+
+      - name: Prove remote migration plan is empty
+        shell: bash
+        run: |
+          set -euo pipefail
+          external="supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql"
+          test "$(sha256sum "$external" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          held="$RUNNER_TEMP/comun-48-4-a0-external-ledger.sql"
+          mv "$external" "$held"
+          restore() { test ! -e "$held" || mv "$held" "$external"; }
+          trap restore EXIT
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-4-a0-preflight/dry-run.txt 2>&1
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-4-a0-preflight/dry-run.txt | sort -u || true)
+          test "${#planned[@]}" -eq 0
+          printf '{"result":"COMUN_48_4_A0_REMOTE_PLAN_EMPTY_GREEN","migrationCount":0,"businessContentRead":false}\n' \
+            >.ci-artifacts/48-4-a0-preflight/migration-plan.json
+          restore
+          trap - EXIT
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-4-a0-remote-preflight-${{ github.run_id }}
+          path: .ci-artifacts/48-4-a0-preflight
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Emit sanitized preflight result
+        if: success()
+        run: |
+          echo "transactionReadOnly=true" >> "$GITHUB_STEP_SUMMARY"
+          echo "businessContentRead=false" >> "$GITHUB_STEP_SUMMARY"
+          echo "migrationCount=0" >> "$GITHUB_STEP_SUMMARY"
+          echo "COMUN_48_4_A0_REMOTE_METADATA_GREEN" >> "$GITHUB_STEP_SUMMARY"
+
