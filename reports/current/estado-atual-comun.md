@@ -1,4 +1,27 @@
-# Estado atual — 48.3-E3 Criação de Pauta com baixíssima fricção (14/08/2026)
+# Estado atual — 48.4-A0 Feirinha / Economia Solidária (15/08/2026)
+
+## 48.4-A0 — Reconciliação da arquitetura econômica
+
+- Feirinha foi definida como superfície de descoberta, não como nova raiz, marketplace, loja ou objeto social;
+- `comun_territorial_organizations` e `comun_territorial_needs` serão reutilizadas com extensão; interesses atuais continuam canônicos somente para necessidades;
+- não existe objeto canônico de Oferta: `offer=NEEDS_NEW_CANONICAL_OBJECT`, a ser tratado somente no A1;
+- território é contexto opcional, Comunidade/Pauta/Ação permanecem objetos distintos e nenhuma relação inexistente foi inventada;
+- a rota futura preservada é `/comun/cooperativas`, a ser recomposta sem criar `/feirinha-v2`;
+- pagamentos e pedidos foram deferidos; ratings ficam proibidos no primeiro ciclo;
+- o adapter econômico futuro permanece bloqueado até possuir gate explícito da organização filha, pois o runtime atual herda somente o gate do território pai;
+- PR funcional `#328`, head `ca49f1f7aa9b2b7e8340a2eef6f529ffa21ae9de`, integrada exact-head no merge/main `9ad47e881f7e2e5ba4a8c764a3a116daac015970`;
+- preflight remoto `31888711059` confirmou `BEGIN READ ONLY`, `businessContentRead=false`, 10 tabelas metadata-only, RLS ativo e remote plan vazio;
+- CI, Civic Graph, Full Surface Migration, Core Journeys e Quality Performance ficaram verdes;
+- zero migration, UI, API, flag, deploy funcional, dado privado ou business write; `launch_publicly=false`.
+
+Estado terminal:
+`COMUN_48_4_A0_SOLIDARITY_ECONOMY_RECONCILIATION_CONTRACT_GREEN`.
+
+Detalhes: `reports/current/comun-48-4-a0-solidarity-economy-reconciliation.md`.
+
+Preservados: `COMUN_48_3_E3_LOW_FRICTION_PAUTA_CREATION_GREEN_PUBLIC_SAFE_NO_AUTO_ORGANIZATION`, `COMUN_48_3_E2_NATURAL_ORGANIZATION_BRIDGES_GREEN_PUBLIC_EVIDENCE_TO_PAUTA_NO_AUTO_CREATE`, `COMUN_48_3_E1_INTEGRATED_EXPERIENCE_COHERENCE_GREEN_STREAMLINED_NAVIGATION`, `COMUN_48_3_D1_COLLECTIVE_CYCLE_MEMORY_GREEN_CANONICAL_PUBLIC_NARRATIVE`, `COMUN_48_3_C1_COLLECTIVE_ACTIONS_CANONICAL_EXPERIENCE_GREEN_MEMBER_PARTICIPATION`, `COMUN_48_3_B1_RODAS_VIVAS_CANONICAL_EXPERIENCE_GREEN_MODERATED_PUBLIC`, `COMUN_48_3_A1_PAUTAS_VIVAS_PUBLIC_CORE_GREEN_VERSIONED_EVIDENCE`, `COMUN_48_2_F_CROSS_OBSERVATORY_CITY_PANORAMA_GREEN_PUBLIC_SAFE`, `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e `launch_publicly=false`.
+
+# Estado anterior — 48.3-E3 Criação de Pauta com baixíssima fricção (14/08/2026)
 
 ## 48.3-E3 — Uma pergunta, salvar e organizar depois
 
