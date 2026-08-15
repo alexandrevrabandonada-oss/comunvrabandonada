@@ -1,0 +1,82 @@
+name: COMUN 48.4-A1 remote read-only preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-4-a1-*.yml"
+      - "app/comun/cooperativas/**"
+      - "app/comun/participar/**"
+      - "lib/comun-solidarity-economy*.ts"
+      - "lib/server/comun-solidarity-economy-directory.ts"
+      - "supabase/migrations/*_comun_solidarity_offers.sql"
+      - "reports/current/comun-48-4-a1-solidarity-economy-public-core.md"
+  workflow_dispatch:
+
+permissions: { contents: read }
+
+jobs:
+  remote-metadata-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      MIGRATION: supabase/migrations/20260815184529_comun_solidarity_offers.sql
+      EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.113.0 }
+      - name: Inspect economic metadata without business content
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          mkdir -p .ci-artifacts/48-4-a1-preflight
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/48-4-a1-preflight/schema.json <<'SQL'
+          begin read only;
+          select json_build_object(
+            'transactionReadOnly', current_setting('transaction_read_only')='on',
+            'rootsPresent', to_regclass('public.comun_hub_territories') is not null
+              and to_regclass('public.comun_territorial_organizations') is not null
+              and to_regclass('public.comun_territorial_needs') is not null,
+            'rootsRls', (select bool_and(relrowsecurity) from pg_class where oid in (
+              'public.comun_hub_territories'::regclass,
+              'public.comun_territorial_organizations'::regclass,
+              'public.comun_territorial_needs'::regclass
+            )),
+            'organizationFields', (select count(*)=5 from information_schema.columns where table_schema='public' and table_name='comun_territorial_organizations' and column_name in ('territory_id','status','verification_status','public_contact_authorized','private_contact')),
+            'needFields', (select count(*)=5 from information_schema.columns where table_schema='public' and table_name='comun_territorial_needs' and column_name in ('visibility','status','territory_id','organization_territory_id','action_id')),
+            'offerTablePresent', to_regclass('public.comun_solidarity_offers') is not null,
+            'businessContentRead', false
+          );
+          rollback;
+          SQL
+          node - <<'NODE'
+          const fs=require('node:fs'); const s=JSON.parse(fs.readFileSync('.ci-artifacts/48-4-a1-preflight/schema.json','utf8'));
+          for(const key of ['transactionReadOnly','rootsPresent','rootsRls','organizationFields','needFields']) if(s[key]!==true) throw new Error(`COMUN_48_4_A1_BLOCKED_REMOTE_SCHEMA_DRIFT:${key}`);
+          if(s.businessContentRead!==false) throw new Error('COMUN_48_4_A1_BLOCKED_BUSINESS_CONTENT_READ');
+          fs.writeFileSync('.ci-artifacts/48-4-a1-preflight/mode',s.offerTablePresent?'promoted':'candidate');
+          NODE
+      - name: Prove exact migration plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
+          held="$RUNNER_TEMP/external.sql"; mv "$EXTERNAL_MIGRATION" "$held"; trap 'mv "$held" "$EXTERNAL_MIGRATION"' EXIT
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-4-a1-preflight/plan.txt 2>&1
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-4-a1-preflight/plan.txt | sort -u || true)
+          if [ "$(cat .ci-artifacts/48-4-a1-preflight/mode)" = candidate ]; then
+            test "${#planned[@]}" -eq 1 && test "${planned[0]}" = "$(basename "$MIGRATION")"
+          else test "${#planned[@]}" -eq 0; fi
+          ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/48-4-a1-preflight/plan.txt
+          echo "migrationCount=${#planned[@]}" >> "$GITHUB_STEP_SUMMARY"
+          echo businessContentRead=false >> "$GITHUB_STEP_SUMMARY"
+          echo COMUN_48_4_A1_REMOTE_PREFLIGHT_GREEN >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-4-a1-preflight-${{ github.run_id }}
+          path: .ci-artifacts/48-4-a1-preflight
+          retention-days: 14

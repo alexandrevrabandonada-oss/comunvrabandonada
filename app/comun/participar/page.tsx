@@ -22,6 +22,7 @@ import {
   parseComunJourneyContext,
   withComunJourneyContext,
 } from "@/lib/comun-journey-context";
+import { isComunSolidarityEconomyPublicCoreEnabled } from "@/lib/comun-solidarity-economy";
 
 const ways = [
   {
@@ -148,6 +149,18 @@ const ways = [
   },
 ];
 
+const solidarityEconomyWay = {
+  group: "organize",
+  icon: HandHeart,
+  title: "Conhecer a Feirinha",
+  href: "/comun/cooperativas",
+  goal: "Descobrir ofertas, necessidades e organizações da economia solidária.",
+  time: "Livre",
+  account: "Sem conta",
+  moderation: "Dados públicos revisados",
+  result: "Contato e descoberta, sem pedido ou pagamento pelo COMUN.",
+};
+
 const intentionGroups = [
   {
     id: "report",
@@ -177,6 +190,9 @@ export default async function ParticiparPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
+  const availableWays = isComunSolidarityEconomyPublicCoreEnabled()
+    ? [...ways, solidarityEconomyWay]
+    : ways;
   const appV2 = isComunAppV2(params.experiencia);
   const journey = parseComunJourneyContext(params);
   const returnTo = safeCommunityReturn(params.returnTo, "/comun/pautas");
@@ -220,7 +236,7 @@ export default async function ParticiparPage({
                 <p className="comun-text-muted text-xs">{group.description}</p>
               </header>
               <div className="comun-intention-list">
-                {ways
+                {availableWays
                   .filter((way) => way.group === group.id)
                   .map((way) => (
                     <CompactIntentionCard key={way.title} way={way} />
@@ -286,7 +302,7 @@ export default async function ParticiparPage({
           intro="Não é um mural genérico: cada contribuição entra em um processo definido."
         />
         <div className="grid gap-4 md:grid-cols-2">
-          {ways.map((way) => (
+          {availableWays.map((way) => (
             <article
               className="border-2 border-comun-yellow p-5"
               key={way.title}
