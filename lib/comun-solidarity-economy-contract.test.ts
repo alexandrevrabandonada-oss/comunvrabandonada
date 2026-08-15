@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const migration = readFileSync(resolve("supabase/migrations/20260815184529_comun_solidarity_offers.sql"), "utf8");
 const adapter = readFileSync(resolve("lib/server/comun-solidarity-economy-directory.ts"), "utf8");
+const rlsMatrixAudit = readFileSync(resolve("scripts/audit-comun-rls-matrix.mjs"), "utf8");
 
 describe("48.4-A1 storage and server boundary", () => {
   it("creates exactly the canonical Offer object with lifecycle, validity, and modality constraints", () => {
@@ -22,6 +23,9 @@ describe("48.4-A1 storage and server boundary", () => {
     expect(migration).toContain("from public, anon, authenticated");
     expect(migration).toContain("to service_role");
     expect(migration).not.toMatch(/create policy/i);
+    expect(rlsMatrixAudit).toMatch(
+      /comun_solidarity_offers:\s*\{[\s\S]*?decision:\s*"service_role_only"/,
+    );
   });
 
   it("uses one bounded batched server projection and never selects private economy fields", () => {

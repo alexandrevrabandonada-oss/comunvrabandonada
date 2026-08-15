@@ -740,6 +740,12 @@ const classifications = {
     sensitive: "Contato e notas privadas.",
     expected: "Servidor remove contato privado e não cria ranking.",
   },
+  comun_solidarity_offers: {
+    decision: "service_role_only",
+    purpose: "Ofertas temporárias de economia solidária.",
+    sensitive: "Revisão editorial e ciclo operacional.",
+    expected: "Servidor expõe somente ofertas publicadas, revisadas e vigentes.",
+  },
   comun_territorial_organization_materials: {
     decision: "service_role_only",
     purpose: "Materiais de organizações.",
