@@ -47,6 +47,13 @@ import {
   isComunChildProtectionChannelOnlyEnabled,
   isComunSensitiveForwardingAssistedEnabled,
 } from "@/lib/comun-sensitive-forwarding-feature";
+import {
+  isComunSolidarityOrganizationGovernanceEnabled,
+  solidarityOrganizationAccessRoleLabel,
+  solidarityOrganizationAccessStateLabel,
+  type PrivateSolidarityOrganizationAccessV1,
+} from "@/lib/comun-solidarity-organization-governance";
+import { listMySolidarityOrganizationAccess } from "@/lib/server/comun-solidarity-organization-governance";
 
 export const dynamic = "force-dynamic";
 
@@ -92,6 +99,8 @@ export default async function MinhaAreaPage({
     isComunSensitiveForwardingAssistedEnabled();
   const childProtectionChannelOnlyEnabled =
     isComunChildProtectionChannelOnlyEnabled();
+  const organizationGovernanceEnabled =
+    isComunSolidarityOrganizationGovernanceEnabled();
   const optionalCommunitySession = walletEnabled
     ? await getCommunitySession()
     : null;
@@ -112,13 +121,16 @@ export default async function MinhaAreaPage({
     withComunAppV2(`/comun/minha-participacao?secao=${selected}`, appV2),
   );
   const collectiveActionsRelease = await getCollectiveActionsRelease();
-  const [center, submissions, archiveContributions, collectiveActions] =
+  const [center, submissions, archiveContributions, collectiveActions, organizationAccesses] =
     await Promise.all([
       getPersonalCenter(user.id),
       listMyParticipation(user.id),
       listMyIdentificationContributions(user.id),
       collectiveActionsRelease.enabled
         ? listMemberCollectiveActions(user.id)
+        : Promise.resolve([]),
+      organizationGovernanceEnabled
+        ? listMySolidarityOrganizationAccess(user.id)
         : Promise.resolve([]),
     ]);
   const contributions = [
@@ -152,6 +164,7 @@ export default async function MinhaAreaPage({
         contributions={contributions}
         archiveContributions={archiveContributions}
         collectiveActions={collectiveActions}
+        organizationAccesses={organizationAccesses}
         collectiveTaskAssignments={collectiveTaskAssignments}
         attention={attention}
         walletEnabled={walletEnabled}
@@ -254,6 +267,11 @@ export default async function MinhaAreaPage({
       </nav>
       {selected === "acompanhando" ? (
         <MyCommunitySummary memberships={center.communities} />
+      ) : null}
+      {selected === "acompanhando" && organizationAccesses.length ? (
+        <Area title="Organizações">
+          <OrganizationAccessCards accesses={organizationAccesses} />
+        </Area>
       ) : null}
       {selected === "tarefas" && attention.length ? (
         <Area title="Precisa da sua atenção">
@@ -496,7 +514,8 @@ export default async function MinhaAreaPage({
       ) : null}
       {selected === "acompanhando" &&
       !center.memberships.length &&
-      !collectiveActions.length ? (
+      !collectiveActions.length &&
+      !organizationAccesses.length ? (
         <SingleEmpty href="/comun/explorar" title="Nada acompanhado">
           Explorar comunidades
         </SingleEmpty>
@@ -525,6 +544,7 @@ function MinhaAreaAppV2({
   contributions,
   archiveContributions,
   collectiveActions,
+  organizationAccesses,
   collectiveTaskAssignments,
   attention,
   walletEnabled,
@@ -542,6 +562,7 @@ function MinhaAreaAppV2({
   contributions: any[];
   archiveContributions: any[];
   collectiveActions: any[];
+  organizationAccesses: PrivateSolidarityOrganizationAccessV1[];
   collectiveTaskAssignments: any[];
   attention: any[];
   walletEnabled: boolean;
@@ -715,6 +736,9 @@ function MinhaAreaAppV2({
           ) : null}
           {selected === "acompanhando" ? (
             <div className="grid gap-4 lg:grid-cols-2">
+              {organizationAccesses.length ? <h2 className="comun-v2-subtitle lg:col-span-2">Organizações</h2> : null}
+              {organizationAccesses.map((access) => <OrganizationAccessCard access={access} key={access.accessId} appV2 />)}
+              {organizationAccesses.length ? <h2 className="comun-v2-subtitle mt-3 lg:col-span-2">Pautas</h2> : null}
               {(center.memberships ?? []).slice(0, 6).map((item: any) => (
                 <ComunPautaCard
                   key={item.id}
@@ -948,6 +972,57 @@ function AreaSettingsLink({
       <span>{children}</span>
       <span aria-hidden="true">→</span>
     </Link>
+  );
+}
+function OrganizationAccessCards({
+  accesses,
+}: {
+  accesses: PrivateSolidarityOrganizationAccessV1[];
+}) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {accesses.map((access) => (
+        <OrganizationAccessCard access={access} key={access.accessId} />
+      ))}
+    </div>
+  );
+}
+function OrganizationAccessCard({
+  access,
+  appV2 = false,
+}: {
+  access: PrivateSolidarityOrganizationAccessV1;
+  appV2?: boolean;
+}) {
+  const href = `/comun/cooperativas/${access.organizationSlug}`;
+  return (
+    <article
+      className={
+        appV2
+          ? "surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
+          : "border-2 border-comun-yellow p-5"
+      }
+    >
+      <p className={appV2 ? "comun-v2-status text-comun-rust" : "text-xs font-black uppercase text-comun-yellow"}>
+        {solidarityOrganizationAccessStateLabel(access.state)}
+      </p>
+      <h3 className="mt-2 text-lg font-black">{access.organizationName}</h3>
+      <p className={appV2 ? "mt-2 text-sm text-comun-black/65" : "mt-2 text-sm text-comun-paper/75"}>
+        {access.state === "active" && access.role
+          ? `Papel no COMUN: ${solidarityOrganizationAccessRoleLabel(access.role)}.`
+          : access.state === "pending" && access.reviewScope === "platform"
+            ? "Aguardando análise do primeiro vínculo pela equipe do COMUN."
+            : access.state === "pending"
+              ? "Aguardando análise da facilitação da organização."
+              : "O histórico deste vínculo permanece preservado."}
+      </p>
+      <Link
+        className="mt-3 inline-flex min-h-11 items-center font-black underline"
+        href={appV2 ? withComunAppV2(href) : href}
+      >
+        Ver organização
+      </Link>
+    </article>
   );
 }
 function CollectiveActionsPreviewParticipation() {
