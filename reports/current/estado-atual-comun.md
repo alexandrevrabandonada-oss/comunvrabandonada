@@ -2,7 +2,7 @@
 
 ## 48.4-A2 — Relação privada e revogável, sem dono
 
-- implementação candidata baseada em `private.comun_solidarity_organization_access`, única nova raiz e única migration do ciclo;
+- implementação ativa baseada em `private.comun_solidarity_organization_access`, única nova raiz e única migration do ciclo;
 - uma pessoa autenticada pode pedir acesso para agir no COMUN por organização A1 elegível, sem afirmar propriedade, seller account, representação legal, relação de trabalho ou associação no mundo real;
 - o primeiro vínculo é `facilitator/platform`; vínculos seguintes são `editor/organization`; a pessoa não escolhe papel;
 - editor não governa; facilitador analisa editores, pode promovê-los e revogá-los, mas não revoga facilitador par; admin canônico mantém a exceção de revogação;
@@ -10,7 +10,14 @@
 - `/comun/cooperativas/[slug]` organiza perfil, ofertas, necessidades e CTA contextual; Minha Participação recebe a seção Organizações sem nova aba de topo;
 - tabela e RPCs são service-role-only, com RLS/FORCE RLS; nenhum dado de acesso entra em HTML/DTO público;
 - `COMUN_48_4_A2_ECONOMIC_CONTENT_WRITES_DEFERRED_TO_A3`, `COMUN_48_4_A2_NEW_ORGANIZATION_ONBOARDING_DEFERRED` e `launch_publicly=false` preservados;
-- promoção/Production ainda pendentes; o terminal A2 não foi emitido nesta etapa candidata.
+- PR funcional `#332`, head exato `f40b39c3a772bf93d098d6096e1831cd088889b4`, integrada exact-head no merge/main `c817d155b1fa7667683363857b6f30986f8b71f7`;
+- preflight remoto A2 `31915046864` e disposable Supabase `31915046927` verdes; CI aplicável, jornadas, superfícies, coerência, inteligência e resiliência verdes;
+- Wave 0 `31915517971` promoveu somente a migration A2 e comprovou RLS/grants metadata-only com a flag desligada; Wave 1 `31915638733` habilitou somente a governança A2;
+- Production respondeu GET/HEAD `200` em `/comun`, `/comun/participar` e `/comun/cooperativas`; sem organização elegível, o detalhe permaneceu em empty state real, sem fixture;
+- `businessWrites=0`, nenhuma exposição privada e `launch_publicly=false` preservado.
+
+Estado terminal:
+`COMUN_48_4_A2_ORGANIZATION_IDENTITY_GOVERNANCE_GREEN_REVOCABLE_ACCESS_NO_OWNER`.
 
 Detalhes: `reports/current/comun-48-4-a2-organization-identity-governance.md`.
 
