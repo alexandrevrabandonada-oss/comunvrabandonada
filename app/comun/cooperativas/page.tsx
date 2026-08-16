@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { formatSolidarityPriceBRL, isComunSolidarityEconomyPublicCoreEnabled, type PublicSolidarityNeedV1, type PublicSolidarityOfferV1, type PublicSolidarityOrganizationV1 } from "@/lib/comun-solidarity-economy";
 import { isComunSolidarityOrganizationGovernanceEnabled } from "@/lib/comun-solidarity-organization-governance";
+import { isComunSolidarityOrganizationOnboardingEnabled } from "@/lib/comun-solidarity-organization-onboarding";
 import { listPublicMapData } from "@/lib/popular-map";
 import { getPublicSolidarityEconomyDirectory } from "@/lib/server/comun-solidarity-economy-directory";
 import { Card, CTA, Hero, Metrics } from "../reciclagem/page";
@@ -20,6 +21,7 @@ export default async function Page() {
       <h1 className="mt-2 text-4xl font-black uppercase sm:text-6xl">Feirinha</h1>
       <p className="mt-3 max-w-2xl text-base font-bold sm:text-lg">Descubra o que organizações disponibilizam, do que a rede precisa e quem faz economia solidária por aqui.</p>
       <p className="mt-3 max-w-2xl text-sm">Esta é uma área de descoberta. O COMUN não recebe pedidos, pagamentos, avaliações ou contratações.</p>
+      {isComunSolidarityOrganizationOnboardingEnabled() ? <Link className="mt-5 inline-flex min-h-11 items-center border-2 border-comun-black bg-white px-4 font-black" href="/comun/cooperativas/nova">Incluir uma organização</Link> : null}
     </header>
     <Section>
       {directory.sourceState === "unavailable" ? <div role="status" className="border-2 border-comun-black bg-white p-5"><h2 className="text-xl font-black">Feirinha temporariamente indisponível</h2><p className="mt-2">Não exibimos dados antigos ou incompletos quando a fonte interna não pode ser verificada.</p></div> :

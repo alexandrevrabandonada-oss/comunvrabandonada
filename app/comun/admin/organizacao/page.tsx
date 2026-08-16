@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { AdminShell } from "@/components/admin-shell";
 import { SolidarityOrganizationAccessAdminSection } from "@/components/comun-solidarity-organization-access-admin-section";
+import { SolidarityOrganizationOnboardingAdminSection } from "@/components/comun-solidarity-organization-onboarding-admin-section";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { isComunSolidarityOrganizationGovernanceEnabled } from "@/lib/comun-solidarity-organization-governance";
+import { isComunSolidarityOrganizationOnboardingEnabled } from "@/lib/comun-solidarity-organization-onboarding";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { createCommunicationMaterial, createHubAction, createHubResult } from "./actions";
 
@@ -56,6 +58,7 @@ export default async function Page() {
       </section>
       <Grid title="Resultados recentes" rows={(results.data ?? []).map((item: any) => ({ id: item.id, title: item.title, meta: `${item.result_type} · ${new Date(item.occurred_at).toLocaleDateString("pt-BR")}`, href: "/comun/resultados" }))} />
       {isComunSolidarityOrganizationGovernanceEnabled() ? <SolidarityOrganizationAccessAdminSection actorUserId={session.user.id} /> : null}
+      {isComunSolidarityOrganizationOnboardingEnabled() && session.admin.role === "admin" ? <SolidarityOrganizationOnboardingAdminSection actorUserId={session.user.id} /> : null}
     </AdminShell>
   );
 }

@@ -1,0 +1,83 @@
+name: COMUN 48.4-A4 remote read-only preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-4-a4-*.yml"
+      - "app/comun/cooperativas/**"
+      - "app/comun/admin/organizacao/**"
+      - "app/comun/minha-participacao/page.tsx"
+      - "components/comun-solidarity-organization-onboarding*.tsx"
+      - "lib/comun-solidarity-organization-onboarding*.ts"
+      - "lib/server/comun-solidarity-organization-onboarding.ts"
+      - "supabase/migrations/*_comun_solidarity_organization_onboarding.sql"
+      - "reports/current/comun-48-4-a4-organization-onboarding.md"
+
+permissions: { contents: read }
+
+jobs:
+  remote-metadata-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      MIGRATION: supabase/migrations/20260816181040_comun_solidarity_organization_onboarding.sql
+      EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.114.0 }
+      - name: Inspect only A1, A2, A3 and review metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          mkdir -p .ci-artifacts/48-4-a4-preflight
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/48-4-a4-preflight/schema.json <<'SQL'
+          begin read only;
+          select json_build_object(
+            'transactionReadOnly', current_setting('transaction_read_only')='on',
+            'organizationRoot', to_regclass('public.comun_territorial_organizations') is not null,
+            'territoryRoot', to_regclass('public.comun_hub_territories') is not null,
+            'sourceRoot', to_regclass('public.comun_territorial_sources') is not null,
+            'legacyContributionRoot', to_regclass('public.comun_territorial_contributions') is not null,
+            'accessRoot', to_regclass('private.comun_solidarity_organization_access') is not null,
+            'a3AuditRoot', to_regclass('private.comun_solidarity_economic_content_events') is not null,
+            'adminAuthority', to_regclass('public.comun_admin_users') is not null,
+            'onboardingPresent', to_regclass('private.comun_solidarity_organization_onboarding') is not null,
+            'organizationRls', coalesce((select relrowsecurity from pg_class where oid='public.comun_territorial_organizations'::regclass),false),
+            'accessForcedRls', coalesce((select relrowsecurity and relforcerowsecurity from pg_class where oid='private.comun_solidarity_organization_access'::regclass),false),
+            'businessContentRead', false
+          );
+          rollback;
+          SQL
+          node - <<'NODE'
+          const fs=require('node:fs'); const state=JSON.parse(fs.readFileSync('.ci-artifacts/48-4-a4-preflight/schema.json','utf8'));
+          for(const key of ['transactionReadOnly','organizationRoot','territoryRoot','sourceRoot','legacyContributionRoot','accessRoot','a3AuditRoot','adminAuthority','organizationRls','accessForcedRls']) if(state[key]!==true) throw new Error(`COMUN_48_4_A4_BLOCKED_REMOTE_SCHEMA_DRIFT:${key}`);
+          if(state.businessContentRead!==false) throw new Error('COMUN_48_4_A4_BLOCKED_BUSINESS_CONTENT_READ');
+          fs.writeFileSync('.ci-artifacts/48-4-a4-preflight/mode',state.onboardingPresent?'promoted':'candidate');
+          NODE
+      - name: Prove exactly one bounded A4 migration plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
+          held="$RUNNER_TEMP/external.sql"; mv "$EXTERNAL_MIGRATION" "$held"; trap 'mv "$held" "$EXTERNAL_MIGRATION"' EXIT
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-4-a4-preflight/plan.txt 2>&1
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-4-a4-preflight/plan.txt | sort -u || true)
+          if [ "$(cat .ci-artifacts/48-4-a4-preflight/mode)" = candidate ]; then
+            test "${#planned[@]}" -eq 1 && test "${planned[0]}" = "$(basename "$MIGRATION")"
+          else test "${#planned[@]}" -eq 0; fi
+          ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/48-4-a4-preflight/plan.txt
+          echo "migrationCount=${#planned[@]}" >> "$GITHUB_STEP_SUMMARY"
+          echo businessContentRead=false >> "$GITHUB_STEP_SUMMARY"
+          echo legacyTerritorialContribution=LEGACY_KEEP_COMPAT >> "$GITHUB_STEP_SUMMARY"
+          echo COMUN_48_4_A4_REMOTE_PREFLIGHT_GREEN >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-4-a4-preflight-${{ github.run_id }}
+          path: .ci-artifacts/48-4-a4-preflight
+          retention-days: 14
