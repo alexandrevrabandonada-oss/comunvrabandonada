@@ -4,7 +4,7 @@ Data da implementação: 16/08/2026
 
 Baseline: `3aca11f0cfc1893d3e77e935318f2a08af7ddb52`
 
-Estado: implementação funcional concluída; promoção remota, Wave 0, Wave 1 e smoke Production permanecem gates obrigatórios antes do terminal.
+Estado: Production green; migration promovida com a superfície cloaked na Wave 0 e onboarding habilitado isoladamente na Wave 1.
 
 ## Resultado funcional
 
@@ -80,13 +80,25 @@ Nenhum DTO público recebeu `applicant_user_id`, `participation_note_private`, `
 
 Aprovar uma organização não cria Oferta, Necessidade, Comunidade, membership, Pauta, Roda, Ação ou Grupo de Trabalho. O primeiro acesso é facilitação operacional revogável no COMUN; não prova fundação, representação jurídica ou vínculo trabalhista.
 
-## Gates de promoção
+## Gates de promoção e rollout concluído
 
 - preflight remoto: metadata-only em `BEGIN READ ONLY`, `businessContentRead=false` e plano 0/1 restrito à migration A4;
 - descartável: draft, submit, needs changes, reject, withdraw, duplicata, idempotência, contato público, primeiro facilitator, RLS/grants, privacidade e propagação zero, sempre com rollback;
 - Wave 0: promover a migration exata com A4 `disabled` e provar a rota cloaked;
 - Wave 1: habilitar somente A4 e executar smoke GET/HEAD;
 - nenhuma fixture ou write de negócio em Production.
+
+Evidência final:
+
+- PR funcional `#336`;
+- head funcional exato `b4038ccc4ffb4d1ecea2c92ecfa56bc2cd94016b`;
+- merge/main exato `810e9f944b37490f201f01ad1dc0cebbbbf54085`;
+- preflight remoto A4 `31972719160` e prova descartável A4 `31972719126` verdes;
+- todos os gates aplicáveis de produto, superfície, segurança, qualidade, coerência e jornadas verdes no exact-head;
+- oito preflights históricos de plano global vazio foram classificados como não aplicáveis à PR com a única migration A4 deliberada; nenhum foi relabelado como green;
+- Wave 0 `31974384419`: migration exata aplicada, postflight metadata-only verde, flag A4 desligada e rotas cloaked;
+- Wave 1 `31974507739`: somente `COMUN_SOLIDARITY_ORGANIZATION_ONBOARDING_ENABLED=enabled`, GET/HEAD verdes nas rotas A4 e dependências A1/A2 preservadas;
+- `businessWrites=0` durante o rollout e zero fixture em Production.
 
 O Docker local encontrou falha de infraestrutura na imagem Supabase antes do ensaio SQL. A prova descartável Linux do PR permanece obrigatória e não será substituída por green documental.
 
@@ -97,6 +109,6 @@ O Docker local encontrou falha de infraestrutura na imagem Supabase antes do ens
 - onboarding não cria conteúdo econômico automaticamente;
 - `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e `launch_publicly=false` permanecem.
 
-Terminal alvo, ainda não emitido:
+Estado terminal:
 
 `COMUN_48_4_A4_ORGANIZATION_ONBOARDING_GREEN_VERIFIED_FIRST_FACILITATOR_NO_OWNER`
