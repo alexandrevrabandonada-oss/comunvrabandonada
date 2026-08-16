@@ -57,7 +57,7 @@ export const SOLIDARITY_ORGANIZATION_GOVERNANCE_DEFERRED = {
   economicContentWrites:
     "COMUN_48_4_A3_AUTHORIZED_ORGANIZATION_WRITES_AVAILABLE",
   newOrganizationOnboarding:
-    "COMUN_48_4_A2_NEW_ORGANIZATION_ONBOARDING_DEFERRED",
+    "COMUN_48_4_A4_ORGANIZATION_ONBOARDING_IMPLEMENTED",
 } as const;
 
 export function isComunSolidarityOrganizationGovernanceEnabled(

@@ -1,0 +1,126 @@
+name: COMUN 48.4-A4 disposable organization onboarding proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-4-a4-disposable.yml"
+      - "supabase/migrations/*_comun_solidarity_organization_onboarding.sql"
+      - "lib/comun-solidarity-organization-onboarding*.ts"
+
+permissions: { contents: read }
+
+jobs:
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.114.0 }
+      - name: Prove save-first, review, atomic approval and zero propagation
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          db="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '"')"; test -n "$db"
+          psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
+          begin;
+          insert into auth.users(id,aud,role,email) values
+            ('a4000000-0000-4000-8000-000000000001','authenticated','authenticated','applicant@example.invalid'),
+            ('a4000000-0000-4000-8000-000000000002','authenticated','authenticated','second@example.invalid'),
+            ('a4000000-0000-4000-8000-000000000003','authenticated','authenticated','admin@example.invalid'),
+            ('a4000000-0000-4000-8000-000000000004','authenticated','authenticated','editor@example.invalid');
+          insert into public.comun_admin_users(user_id,email,role,is_active) values
+            ('a4000000-0000-4000-8000-000000000003','admin@example.invalid','admin',true),
+            ('a4000000-0000-4000-8000-000000000004','editor@example.invalid','editor',true);
+
+          do $$
+          declare
+            onboarding_id uuid; token uuid; token_again uuid; v_state text; v_idempotent boolean;
+            created_territory_id uuid; access_id uuid; territory_again uuid; access_again uuid; organization_slug text;
+            public_before bigint; organization_before bigint; access_before bigint;
+          begin
+            select count(*) into public_before from public.comun_hub_territories;
+            select count(*) into organization_before from public.comun_territorial_organizations;
+            select count(*) into access_before from private.comun_solidarity_organization_access;
+            select x.onboarding_id,x.continuation_token,x.state,x.idempotent into onboarding_id,token,v_state,v_idempotent
+              from public.comun_create_solidarity_organization_onboarding_draft_v1(
+                'a4000000-0000-4000-8000-000000000101','a4000000-0000-4000-8000-000000000001','Rede Solidária A4') x;
+            if v_state<>'draft' or v_idempotent then raise exception 'save first failed'; end if;
+            if (select count(*) from public.comun_hub_territories)<>public_before
+              or (select count(*) from public.comun_territorial_organizations)<>organization_before
+              or (select count(*) from private.comun_solidarity_organization_access)<>access_before then
+              raise exception 'draft created public object';
+            end if;
+            select x.continuation_token,x.idempotent into token_again,v_idempotent
+              from public.comun_create_solidarity_organization_onboarding_draft_v1(
+                'a4000000-0000-4000-8000-000000000101','a4000000-0000-4000-8000-000000000001','Rede Solidária A4') x;
+            if token_again<>token or not v_idempotent or (select count(*) from private.comun_solidarity_organization_onboarding where applicant_user_id='a4000000-0000-4000-8000-000000000001')<>1 then raise exception 'draft idempotency failed'; end if;
+
+            perform public.comun_update_solidarity_organization_onboarding_v1(
+              'a4000000-0000-4000-8000-000000000102',token,'a4000000-0000-4000-8000-000000000001',
+              'Rede Solidária A4','collective','Produção comunitária e apoio mútuo no território.','Volta Redonda',null,false,'https://example.invalid/rede-a4','Participo da coordenação comunitária desta rede.');
+            perform public.comun_submit_solidarity_organization_onboarding_v1('a4000000-0000-4000-8000-000000000103',token,'a4000000-0000-4000-8000-000000000001');
+            if (select state from private.comun_solidarity_organization_onboarding where id=onboarding_id)<>'submitted' then raise exception 'submit failed'; end if;
+            if (select count(*) from public.comun_territorial_organizations)<>organization_before then raise exception 'submit created organization'; end if;
+
+            begin
+              perform public.comun_review_solidarity_organization_onboarding_v1('a4000000-0000-4000-8000-000000000104',onboarding_id,'a4000000-0000-4000-8000-000000000004','needs_changes','Ajuste a apresentação.');
+              raise exception 'editor approved review gate';
+            exception when raise_exception then if sqlerrm='editor approved review gate' then raise; end if; end;
+            perform public.comun_review_solidarity_organization_onboarding_v1('a4000000-0000-4000-8000-000000000105',onboarding_id,'a4000000-0000-4000-8000-000000000003','needs_changes','Explique melhor a atuação territorial.');
+            perform public.comun_update_solidarity_organization_onboarding_v1(
+              'a4000000-0000-4000-8000-000000000106',token,'a4000000-0000-4000-8000-000000000001',
+              'Rede Solidária A4','collective','Produção comunitária, formação e apoio mútuo em Volta Redonda.','Volta Redonda',null,false,'https://example.invalid/rede-a4','Participo da coordenação comunitária desta rede.');
+            perform public.comun_submit_solidarity_organization_onboarding_v1('a4000000-0000-4000-8000-000000000107',token,'a4000000-0000-4000-8000-000000000001');
+            select x.territory_id,x.organization_slug,x.access_id,x.idempotent into created_territory_id,organization_slug,access_id,v_idempotent
+              from public.comun_approve_solidarity_organization_onboarding_v1(
+                'a4000000-0000-4000-8000-000000000108',onboarding_id,'a4000000-0000-4000-8000-000000000003','collective','public_url',
+                'Fonte pública da Rede A4','https://example.invalid/rede-a4','Identidade e atuação conferidas para exibição pública.',null) x;
+            if v_idempotent or created_territory_id is null or access_id is null then raise exception 'approval failed'; end if;
+            if (select state from private.comun_solidarity_organization_onboarding where id=onboarding_id)<>'approved' then raise exception 'onboarding not approved'; end if;
+            if not exists(select 1 from public.comun_hub_territories where id=created_territory_id and territory_type='solidarity_collective' and status='monitoring' and visibility='public' and verification_status='source_checked' and location_precision='hidden') then raise exception 'territory gate failed'; end if;
+            if not exists(select 1 from public.comun_territorial_organizations where territory_id=created_territory_id and status='forming' and verification_status='source_checked' and public_contact_authorized is null and private_contact is null) then raise exception 'organization gate or contact fallback failed'; end if;
+            if not exists(select 1 from private.comun_solidarity_organization_access where id=access_id and organization_territory_id=created_territory_id and member_user_id='a4000000-0000-4000-8000-000000000001' and role='facilitator' and state='active' and review_scope='platform') then raise exception 'first facilitator failed'; end if;
+            if not exists(select 1 from public.comun_territorial_sources where territory_id=created_territory_id and review_status='reviewed' and source_url_public='https://example.invalid/rede-a4') then raise exception 'source provenance failed'; end if;
+            select x.territory_id,x.access_id,x.idempotent into territory_again,access_again,v_idempotent
+              from public.comun_approve_solidarity_organization_onboarding_v1(
+                'a4000000-0000-4000-8000-000000000108',onboarding_id,'a4000000-0000-4000-8000-000000000003','collective','public_url',
+                'Fonte pública da Rede A4','https://example.invalid/rede-a4','Identidade e atuação conferidas para exibição pública.',null) x;
+            if not v_idempotent or territory_again<>created_territory_id or access_again<>access_id then raise exception 'approval idempotency failed'; end if;
+            if (select count(*) from public.comun_territorial_organizations where territory_id=created_territory_id)<>1
+              or (select count(*) from private.comun_solidarity_organization_access where organization_territory_id=created_territory_id)<>1 then raise exception 'approval duplicated roots'; end if;
+            if exists(select 1 from public.comun_solidarity_offers where organization_territory_id=created_territory_id)
+              or exists(select 1 from public.comun_territorial_needs where organization_territory_id=created_territory_id)
+              or exists(select 1 from public.comun_pauta_memberships where member_user_id='a4000000-0000-4000-8000-000000000001')
+              or exists(select 1 from public.comun_community_memberships where member_user_id='a4000000-0000-4000-8000-000000000001')
+              or exists(select 1 from public.comun_collective_action_participations where member_user_id='a4000000-0000-4000-8000-000000000001') then raise exception 'approval propagated'; end if;
+          end $$;
+
+          do $$
+          declare id_reject uuid; token_reject uuid; id_withdraw uuid; token_withdraw uuid; duplicate_state text; duplicate_slug text;
+          begin
+            select onboarding_id,continuation_token into id_reject,token_reject from public.comun_create_solidarity_organization_onboarding_draft_v1('a4000000-0000-4000-8000-000000000201','a4000000-0000-4000-8000-000000000002','Coletivo para rejeitar');
+            perform public.comun_update_solidarity_organization_onboarding_v1('a4000000-0000-4000-8000-000000000202',token_reject,'a4000000-0000-4000-8000-000000000002','Coletivo para rejeitar','collective','Apresentação pública suficiente.','Volta Redonda',null,false,null,'Participo desta organização há bastante tempo.');
+            perform public.comun_submit_solidarity_organization_onboarding_v1('a4000000-0000-4000-8000-000000000203',token_reject,'a4000000-0000-4000-8000-000000000002');
+            perform public.comun_review_solidarity_organization_onboarding_v1('a4000000-0000-4000-8000-000000000204',id_reject,'a4000000-0000-4000-8000-000000000003','reject','A evidência apresentada não foi suficiente.');
+            if exists(select 1 from public.comun_territorial_organizations where public_name='Coletivo para rejeitar') then raise exception 'reject created organization'; end if;
+            select onboarding_id,continuation_token into id_withdraw,token_withdraw from public.comun_create_solidarity_organization_onboarding_draft_v1('a4000000-0000-4000-8000-000000000205','a4000000-0000-4000-8000-000000000002','Coletivo para retirar');
+            perform public.comun_withdraw_solidarity_organization_onboarding_v1('a4000000-0000-4000-8000-000000000206',token_withdraw,'a4000000-0000-4000-8000-000000000002');
+            if (select state from private.comun_solidarity_organization_onboarding where id=id_withdraw)<>'withdrawn' then raise exception 'withdraw failed'; end if;
+            select state,existing_organization_slug into duplicate_state,duplicate_slug from public.comun_create_solidarity_organization_onboarding_draft_v1('a4000000-0000-4000-8000-000000000207','a4000000-0000-4000-8000-000000000002','Rede Solidária A4');
+            if duplicate_state<>'existing_organization' or duplicate_slug is null then raise exception 'strong duplicate failed'; end if;
+          end $$;
+
+          do $$ begin
+            if not (select relrowsecurity and relforcerowsecurity from pg_class where oid='private.comun_solidarity_organization_onboarding'::regclass) then raise exception 'onboarding rls not forced'; end if;
+            if has_table_privilege('anon','private.comun_solidarity_organization_onboarding','SELECT,INSERT,UPDATE,DELETE') or has_table_privilege('authenticated','private.comun_solidarity_organization_onboarding','SELECT,INSERT,UPDATE,DELETE') then raise exception 'onboarding client access open'; end if;
+            if has_function_privilege('anon','public.comun_create_solidarity_organization_onboarding_draft_v1(uuid,uuid,text)','EXECUTE') or has_function_privilege('authenticated','public.comun_approve_solidarity_organization_onboarding_v1(uuid,uuid,uuid,text,text,text,text,text,text)','EXECUTE') then raise exception 'onboarding client rpc open'; end if;
+          end $$;
+          rollback;
+          SQL
+          echo COMUN_48_4_A4_DISPOSABLE_ORGANIZATION_ONBOARDING_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo businessWritesAfterRollback=0 >> "$GITHUB_STEP_SUMMARY"
+          echo publicRootsBeforeApproval=0 >> "$GITHUB_STEP_SUMMARY"
+          echo firstFacilitatorRole=facilitator >> "$GITHUB_STEP_SUMMARY"

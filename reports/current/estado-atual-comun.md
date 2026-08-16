@@ -1,4 +1,19 @@
-# Estado atual — 48.4-A3 Conteúdo econômico autorizado (16/08/2026)
+# Estado em promoção — 48.4-A4 Onboarding de organizações (16/08/2026)
+
+## 48.4-A4 — Save first, uma verificação e primeiro facilitator
+
+- baseline funcional `3aca11f0cfc1893d3e77e935318f2a08af7ddb52`;
+- uma única migration adiciona o workflow privado de onboarding e RPCs service-role-only; as raízes públicas A1 e a governança A2 são reutilizadas;
+- primeiro save autenticado guarda apenas o nome em `draft`; `submitted` continua com território, organização, acesso, Oferta e Necessidade em zero;
+- somente admin canônico da plataforma pode revisar; aprovação atômica cria território e organização `source_checked`, fonte revisada e primeiro acesso `facilitator/active/platform`;
+- a Feirinha recebe entrada secundária, Minha Participação reutiliza Organizações e a fila vive na Sala de Organização; Home continua sem nova porta;
+- `comun_territorial_contributions` permanece `LEGACY_KEEP_COMPAT`, sem dual-write;
+- flag `COMUN_SOLIDARITY_ORGANIZATION_ONBOARDING_ENABLED` depende de A1+A2 e nasce fail-closed;
+- promoção remota, descartável, Wave 0, Wave 1 e smoke Production ainda precisam ficar verdes antes do terminal A4.
+
+Detalhes: `reports/current/comun-48-4-a4-organization-onboarding.md`.
+
+# Estado anterior — 48.4-A3 Conteúdo econômico autorizado (16/08/2026)
 
 ## 48.4-A3 — Ofertas e Necessidades pela organização, sem seller
 

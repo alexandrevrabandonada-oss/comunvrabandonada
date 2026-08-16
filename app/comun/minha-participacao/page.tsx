@@ -54,6 +54,12 @@ import {
   type PrivateSolidarityOrganizationAccessV1,
 } from "@/lib/comun-solidarity-organization-governance";
 import { listMySolidarityOrganizationAccess } from "@/lib/server/comun-solidarity-organization-governance";
+import {
+  isComunSolidarityOrganizationOnboardingEnabled,
+  solidarityOnboardingStateLabel,
+  type PrivateSolidarityOrganizationOnboardingSummaryV1,
+} from "@/lib/comun-solidarity-organization-onboarding";
+import { listMySolidarityOrganizationOnboardings } from "@/lib/server/comun-solidarity-organization-onboarding";
 
 export const dynamic = "force-dynamic";
 
@@ -101,6 +107,8 @@ export default async function MinhaAreaPage({
     isComunChildProtectionChannelOnlyEnabled();
   const organizationGovernanceEnabled =
     isComunSolidarityOrganizationGovernanceEnabled();
+  const organizationOnboardingEnabled =
+    isComunSolidarityOrganizationOnboardingEnabled();
   const optionalCommunitySession = walletEnabled
     ? await getCommunitySession()
     : null;
@@ -127,6 +135,7 @@ export default async function MinhaAreaPage({
     archiveContributions,
     collectiveActions,
     organizationAccesses,
+    organizationOnboardings,
   ] = await Promise.all([
     getPersonalCenter(user.id),
     listMyParticipation(user.id),
@@ -136,6 +145,9 @@ export default async function MinhaAreaPage({
       : Promise.resolve([]),
     organizationGovernanceEnabled
       ? listMySolidarityOrganizationAccess(user.id)
+      : Promise.resolve([]),
+    organizationOnboardingEnabled
+      ? listMySolidarityOrganizationOnboardings(user.id)
       : Promise.resolve([]),
   ]);
   const contributions = [
@@ -170,6 +182,7 @@ export default async function MinhaAreaPage({
         archiveContributions={archiveContributions}
         collectiveActions={collectiveActions}
         organizationAccesses={organizationAccesses}
+        organizationOnboardings={organizationOnboardings}
         collectiveTaskAssignments={collectiveTaskAssignments}
         attention={attention}
         walletEnabled={walletEnabled}
@@ -276,6 +289,16 @@ export default async function MinhaAreaPage({
       {selected === "acompanhando" && organizationAccesses.length ? (
         <Area title="Organizações">
           <OrganizationAccessCards accesses={organizationAccesses} />
+        </Area>
+      ) : null}
+      {selected === "acompanhando" &&
+      organizationOnboardings.some((item) => item.state !== "approved") ? (
+        <Area title="Inclusão de organizações">
+          <OrganizationOnboardingCards
+            onboardings={organizationOnboardings.filter(
+              (item) => item.state !== "approved",
+            )}
+          />
         </Area>
       ) : null}
       {selected === "tarefas" && attention.length ? (
@@ -520,7 +543,8 @@ export default async function MinhaAreaPage({
       {selected === "acompanhando" &&
       !center.memberships.length &&
       !collectiveActions.length &&
-      !organizationAccesses.length ? (
+      !organizationAccesses.length &&
+      !organizationOnboardings.length ? (
         <SingleEmpty href="/comun/explorar" title="Nada acompanhado">
           Explorar comunidades
         </SingleEmpty>
@@ -550,6 +574,7 @@ function MinhaAreaAppV2({
   archiveContributions,
   collectiveActions,
   organizationAccesses,
+  organizationOnboardings,
   collectiveTaskAssignments,
   attention,
   walletEnabled,
@@ -568,6 +593,7 @@ function MinhaAreaAppV2({
   archiveContributions: any[];
   collectiveActions: any[];
   organizationAccesses: PrivateSolidarityOrganizationAccessV1[];
+  organizationOnboardings: PrivateSolidarityOrganizationOnboardingSummaryV1[];
   collectiveTaskAssignments: any[];
   attention: any[];
   walletEnabled: boolean;
@@ -741,11 +767,23 @@ function MinhaAreaAppV2({
           ) : null}
           {selected === "acompanhando" ? (
             <div className="grid gap-4 lg:grid-cols-2">
-              {organizationAccesses.length ? (
+              {organizationAccesses.length ||
+              organizationOnboardings.some(
+                (item) => item.state !== "approved",
+              ) ? (
                 <h2 className="comun-v2-subtitle lg:col-span-2">
                   Organizações
                 </h2>
               ) : null}
+              {organizationOnboardings
+                .filter((item) => item.state !== "approved")
+                .map((onboarding) => (
+                  <OrganizationOnboardingCard
+                    onboarding={onboarding}
+                    key={onboarding.onboardingId}
+                    appV2
+                  />
+                ))}
               {organizationAccesses.map((access) => (
                 <OrganizationAccessCard
                   access={access}
@@ -1002,6 +1040,69 @@ function OrganizationAccessCards({
         <OrganizationAccessCard access={access} key={access.accessId} />
       ))}
     </div>
+  );
+}
+function OrganizationOnboardingCards({
+  onboardings,
+}: {
+  onboardings: PrivateSolidarityOrganizationOnboardingSummaryV1[];
+}) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {onboardings.map((onboarding) => (
+        <OrganizationOnboardingCard
+          onboarding={onboarding}
+          key={onboarding.onboardingId}
+        />
+      ))}
+    </div>
+  );
+}
+function OrganizationOnboardingCard({
+  onboarding,
+  appV2 = false,
+}: {
+  onboarding: PrivateSolidarityOrganizationOnboardingSummaryV1;
+  appV2?: boolean;
+}) {
+  const editable =
+    onboarding.state === "draft" || onboarding.state === "needs_changes";
+  return (
+    <article
+      className={
+        appV2
+          ? "surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
+          : "border-2 border-comun-yellow p-5"
+      }
+    >
+      <p
+        className={
+          appV2
+            ? "comun-v2-status text-comun-rust"
+            : "text-xs font-black uppercase text-comun-yellow"
+        }
+      >
+        {solidarityOnboardingStateLabel(onboarding.state)}
+      </p>
+      <h3 className="mt-2 text-lg font-black">{onboarding.organizationName}</h3>
+      {onboarding.reviewMessagePrivate ? (
+        <p
+          className={
+            appV2
+              ? "mt-2 text-sm text-comun-black/65"
+              : "mt-2 text-sm text-comun-paper/75"
+          }
+        >
+          {onboarding.reviewMessagePrivate}
+        </p>
+      ) : null}
+      <Link
+        className="mt-3 inline-flex min-h-11 items-center font-black underline"
+        href={`/comun/cooperativas/nova/${onboarding.continuationToken}`}
+      >
+        {editable ? "Continuar pedido" : "Ver pedido"}
+      </Link>
+    </article>
   );
 }
 function OrganizationAccessCard({
