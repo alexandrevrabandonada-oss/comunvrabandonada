@@ -38,7 +38,7 @@ jobs:
           do $$
           declare
             onboarding_id uuid; token uuid; token_again uuid; v_state text; v_idempotent boolean;
-            territory_id uuid; access_id uuid; territory_again uuid; access_again uuid; organization_slug text;
+            created_territory_id uuid; access_id uuid; territory_again uuid; access_again uuid; organization_slug text;
             public_before bigint; organization_before bigint; access_before bigint;
           begin
             select count(*) into public_before from public.comun_hub_territories;
@@ -74,25 +74,25 @@ jobs:
               'a4000000-0000-4000-8000-000000000106',token,'a4000000-0000-4000-8000-000000000001',
               'Rede Solidária A4','collective','Produção comunitária, formação e apoio mútuo em Volta Redonda.','Volta Redonda',null,false,'https://example.invalid/rede-a4','Participo da coordenação comunitária desta rede.');
             perform public.comun_submit_solidarity_organization_onboarding_v1('a4000000-0000-4000-8000-000000000107',token,'a4000000-0000-4000-8000-000000000001');
-            select x.territory_id,x.organization_slug,x.access_id,x.idempotent into territory_id,organization_slug,access_id,v_idempotent
+            select x.territory_id,x.organization_slug,x.access_id,x.idempotent into created_territory_id,organization_slug,access_id,v_idempotent
               from public.comun_approve_solidarity_organization_onboarding_v1(
                 'a4000000-0000-4000-8000-000000000108',onboarding_id,'a4000000-0000-4000-8000-000000000003','collective','public_url',
                 'Fonte pública da Rede A4','https://example.invalid/rede-a4','Identidade e atuação conferidas para exibição pública.',null) x;
-            if v_idempotent or territory_id is null or access_id is null then raise exception 'approval failed'; end if;
+            if v_idempotent or created_territory_id is null or access_id is null then raise exception 'approval failed'; end if;
             if (select state from private.comun_solidarity_organization_onboarding where id=onboarding_id)<>'approved' then raise exception 'onboarding not approved'; end if;
-            if not exists(select 1 from public.comun_hub_territories where id=territory_id and territory_type='solidarity_collective' and status='monitoring' and visibility='public' and verification_status='source_checked' and location_precision='hidden') then raise exception 'territory gate failed'; end if;
-            if not exists(select 1 from public.comun_territorial_organizations where territory_id=territory_id and status='forming' and verification_status='source_checked' and public_contact_authorized is null and private_contact is null) then raise exception 'organization gate or contact fallback failed'; end if;
-            if not exists(select 1 from private.comun_solidarity_organization_access where id=access_id and organization_territory_id=territory_id and member_user_id='a4000000-0000-4000-8000-000000000001' and role='facilitator' and state='active' and review_scope='platform') then raise exception 'first facilitator failed'; end if;
-            if not exists(select 1 from public.comun_territorial_sources where territory_id=territory_id and review_status='reviewed' and source_url_public='https://example.invalid/rede-a4') then raise exception 'source provenance failed'; end if;
+            if not exists(select 1 from public.comun_hub_territories where id=created_territory_id and territory_type='solidarity_collective' and status='monitoring' and visibility='public' and verification_status='source_checked' and location_precision='hidden') then raise exception 'territory gate failed'; end if;
+            if not exists(select 1 from public.comun_territorial_organizations where territory_id=created_territory_id and status='forming' and verification_status='source_checked' and public_contact_authorized is null and private_contact is null) then raise exception 'organization gate or contact fallback failed'; end if;
+            if not exists(select 1 from private.comun_solidarity_organization_access where id=access_id and organization_territory_id=created_territory_id and member_user_id='a4000000-0000-4000-8000-000000000001' and role='facilitator' and state='active' and review_scope='platform') then raise exception 'first facilitator failed'; end if;
+            if not exists(select 1 from public.comun_territorial_sources where territory_id=created_territory_id and review_status='reviewed' and source_url_public='https://example.invalid/rede-a4') then raise exception 'source provenance failed'; end if;
             select x.territory_id,x.access_id,x.idempotent into territory_again,access_again,v_idempotent
               from public.comun_approve_solidarity_organization_onboarding_v1(
                 'a4000000-0000-4000-8000-000000000108',onboarding_id,'a4000000-0000-4000-8000-000000000003','collective','public_url',
                 'Fonte pública da Rede A4','https://example.invalid/rede-a4','Identidade e atuação conferidas para exibição pública.',null) x;
-            if not v_idempotent or territory_again<>territory_id or access_again<>access_id then raise exception 'approval idempotency failed'; end if;
-            if (select count(*) from public.comun_territorial_organizations where territory_id=territory_id)<>1
-              or (select count(*) from private.comun_solidarity_organization_access where organization_territory_id=territory_id)<>1 then raise exception 'approval duplicated roots'; end if;
-            if exists(select 1 from public.comun_solidarity_offers where organization_territory_id=territory_id)
-              or exists(select 1 from public.comun_territorial_needs where organization_territory_id=territory_id)
+            if not v_idempotent or territory_again<>created_territory_id or access_again<>access_id then raise exception 'approval idempotency failed'; end if;
+            if (select count(*) from public.comun_territorial_organizations where territory_id=created_territory_id)<>1
+              or (select count(*) from private.comun_solidarity_organization_access where organization_territory_id=created_territory_id)<>1 then raise exception 'approval duplicated roots'; end if;
+            if exists(select 1 from public.comun_solidarity_offers where organization_territory_id=created_territory_id)
+              or exists(select 1 from public.comun_territorial_needs where organization_territory_id=created_territory_id)
               or exists(select 1 from public.comun_pauta_memberships where member_user_id='a4000000-0000-4000-8000-000000000001')
               or exists(select 1 from public.comun_community_memberships where member_user_id='a4000000-0000-4000-8000-000000000001')
               or exists(select 1 from public.comun_collective_action_participations where member_user_id='a4000000-0000-4000-8000-000000000001') then raise exception 'approval propagated'; end if;
