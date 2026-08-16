@@ -4,7 +4,7 @@ Data da implementação: 16/08/2026
 
 Baseline: `7669f8157826cb2cb63affd6e70b3bae856f3dc5`
 
-Estado: candidato funcional; promoção Production depende de PR, CI e exact-head merge.
+Estado: promovido em Production, com schema cloaked antes da ativação e smoke final read-only verde.
 
 ## Resultado
 
@@ -71,13 +71,25 @@ Feature flag: `COMUN_SOLIDARITY_ECONOMIC_CONTENT_WRITES_ENABLED`, fail-closed e 
 
 O Docker Desktop não estava disponível no Windows local. A prova SQL real fica obrigatória no workflow descartável Supabase antes do merge.
 
+## Fechamento de promoção
+
+- PR funcional: `#334`;
+- head funcional exato: `7e6a346acd133a18ec7b8ee58733cf2085b86bac`;
+- merge squash/main: `f63957fd7016b962b9aea1b567a482f2a0398618`, sem alteração do conteúdo aprovado do head funcional;
+- preflight remoto A3 `31956271757` e prova descartável Supabase A3 `31956271710` verdes;
+- CI aplicável, segurança, jornadas, superfícies, coerência, inteligência e qualidade/performance verdes no head funcional e novamente no `main` pós-merge;
+- Wave 0 `31958532076`: migration exata promovida, postflight metadata-only verde, A3 `disabled`, GET/HEAD smoke verde e `businessWrites=0`;
+- Wave 1 `31958676222`: somente A3 `enabled`, Production no exact-main, GET/HEAD `200` em `/comun`, `/comun/participar`, `/comun/cooperativas` e `/comun/minha-participacao`, `HEAD /comun/cooperativas=200` e `businessWrites=0`;
+- a Feirinha permaneceu sem fixture Production, com empty states reais; nenhum conteúdo econômico foi criado durante o rollout;
+- os preflights históricos de slices anteriores que bloqueiam qualquer migration nova foram classificados como não aplicáveis ao A3; os gates específicos A3 provaram a única migration intencional.
+
+Estado terminal:
+
+`COMUN_48_4_A3_AUTHORIZED_ECONOMIC_CONTENT_WRITES_GREEN_OFFERS_NEEDS_NO_SELLER`
+
 ## Preservados e deferidos
 
 - `COMUN_48_4_A2_NEW_ORGANIZATION_ONBOARDING_DEFERRED`;
 - `COMUN_48_4_A1_INDIVIDUAL_PRODUCERS_DEFERRED_FIRST_CYCLE`;
 - pedidos, pagamentos, ratings, exchange transacional e cadastro público de organização continuam fora do A3;
 - `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e `launch_publicly=false` permanecem.
-
-Terminal somente após merge, gates e Production green:
-
-`COMUN_48_4_A3_AUTHORIZED_ECONOMIC_CONTENT_WRITES_GREEN_OFFERS_NEEDS_NO_SELLER`
