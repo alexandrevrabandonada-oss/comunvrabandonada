@@ -1,4 +1,22 @@
-# Estado atual — 48.4-A2 Identidade e governança das organizações (15/08/2026)
+# Estado atual — 48.4-A3 Conteúdo econômico autorizado (16/08/2026)
+
+## 48.4-A3 — Ofertas e Necessidades pela organização, sem seller
+
+- candidato funcional sobre o baseline `7669f8157826cb2cb63affd6e70b3bae856f3dc5`;
+- acesso A2 ativo `editor` ou `facilitator` pode manter Ofertas e Necessidades somente da própria organização; todos os gates A1/A2 são revalidados no banco;
+- única migration forward-only adiciona ledger privado auditável e quatro RPCs service-role-only, com idempotência e rate limit, sem nova entidade econômica;
+- formulários mínimos vivem na ficha da organização, preservam draft local e não criam seller dashboard, owner, pedido, pagamento, marketplace ou propagação social;
+- Oferta publica normalmente por 30 dias e admite editar, pausar, retomar, renovar e arquivar; Necessidade admite editar, parcialmente atendida, atendida, cancelada e reaberta;
+- conteúdo público continua vindo exclusivamente dos DTOs A1 fail-closed; ator, acesso e auditoria nunca entram em HTML/DTO;
+- `COMUN_SOLIDARITY_ECONOMIC_CONTENT_WRITES_ENABLED` depende das flags A1 e A2; `COMUN_48_4_A2_NEW_ORGANIZATION_ONBOARDING_DEFERRED`, piloto Motorola pausado e `launch_publicly=false` preservados;
+- PR, CI, exact-head merge e rollout Production ainda pendentes neste candidato.
+
+Terminal após promoção completa:
+`COMUN_48_4_A3_AUTHORIZED_ECONOMIC_CONTENT_WRITES_GREEN_OFFERS_NEEDS_NO_SELLER`.
+
+Detalhes: `reports/current/comun-48-4-a3-authorized-economic-content-writes.md`.
+
+# Estado anterior — 48.4-A2 Identidade e governança das organizações (15/08/2026)
 
 ## 48.4-A2 — Relação privada e revogável, sem dono
 

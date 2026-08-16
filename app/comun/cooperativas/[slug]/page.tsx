@@ -1,12 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ComunShell, Section } from "@/components/comun-shell";
+import { SolidarityEconomicTransitionForm } from "@/components/comun-solidarity-economic-content-form";
 import { getCommunitySession } from "@/lib/community-auth";
 import { communityLoginHref } from "@/lib/community-return";
+import {
+  isComunSolidarityEconomicContentWritesEnabled,
+} from "@/lib/comun-solidarity-economic-content";
 import {
   formatSolidarityPriceBRL,
   type PublicSolidarityNeedV1,
   type PublicSolidarityOfferV1,
+  type PublicSolidarityOrganizationV1,
 } from "@/lib/comun-solidarity-economy";
 import {
   isComunSolidarityOrganizationGovernanceEnabled,
@@ -19,11 +24,17 @@ import {
   listSolidarityOrganizationGovernance,
 } from "@/lib/server/comun-solidarity-organization-governance";
 import {
+  listSolidarityOrganizationEconomicContent,
+  type PrivateSolidarityNeedEditorV1,
+  type PrivateSolidarityOfferEditorV1,
+} from "@/lib/server/comun-solidarity-economic-content";
+import {
   governOrganizationAccessAction,
   leaveOrganizationAccessAction,
   requestOrganizationAccessAction,
   withdrawOrganizationAccessAction,
 } from "./actions";
+import { mutateSolidarityNeedAction, mutateSolidarityOfferAction } from "./economic-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -78,6 +89,10 @@ export default async function SolidarityOrganizationPage({
           session.user.id,
         )
       : [];
+  const economicContent =
+    session?.user && access?.state === "active" && isComunSolidarityEconomicContentWritesEnabled()
+      ? await listSolidarityOrganizationEconomicContent(slug, session.user.id)
+      : null;
   const statusMessage = query.acesso ? STATUS_MESSAGES[query.acesso] : null;
   return (
     <ComunShell>
@@ -97,12 +112,13 @@ export default async function SolidarityOrganizationPage({
       <Section>
         {statusMessage ? <p role="status" className="mb-6 border-2 border-comun-black bg-white p-4 font-bold">{statusMessage}</p> : null}
         <div className="grid gap-10">
-          <OrganizationCollection title="O que está disponível" empty="Por enquanto não há ofertas públicas ativas desta organização.">
-            {detail.offers.map((offer) => <Offer key={offer.id} offer={offer} />)}
+          <OrganizationCollection title="O que está disponível" empty="Por enquanto não há ofertas públicas ativas desta organização." action={economicContent ? <Link className="min-h-11 font-black underline" href={`/comun/cooperativas/${slug}/ofertas/nova`}>Oferecer algo</Link> : null}>
+            {detail.offers.map((offer) => <Offer key={offer.id} offer={offer} editHref={economicContent ? `/comun/cooperativas/${slug}/ofertas/${offer.slug}/editar` : null} />)}
           </OrganizationCollection>
-          <OrganizationCollection title="Do que esta organização precisa" empty="Não há necessidades públicas abertas desta organização neste momento.">
-            {detail.needs.map((need) => <Need key={need.id} need={need} />)}
+          <OrganizationCollection title="Do que esta organização precisa" empty="Não há necessidades públicas abertas desta organização neste momento." action={economicContent ? <Link className="min-h-11 font-black underline" href={`/comun/cooperativas/${slug}/necessidades/nova`}>Registrar uma necessidade</Link> : null}>
+            {detail.needs.map((need) => <Need key={need.id} need={need} editHref={economicContent ? `/comun/cooperativas/${slug}/necessidades/${need.slug}/editar` : null} />)}
           </OrganizationCollection>
+          {economicContent ? <EconomicContentPanel organization={detail.organization} offers={economicContent.offers} needs={economicContent.needs} /> : null}
           <AccessSection
             access={access}
             loggedIn={Boolean(session?.user)}
@@ -177,17 +193,35 @@ function OrganizationHiddenFields({ slug, territoryId }: { slug: string; territo
   return <><input type="hidden" name="organization_slug" value={slug} /><input type="hidden" name="organization_territory_id" value={territoryId} /></>;
 }
 
-function OrganizationCollection({ title, empty, children }: { title: string; empty: string; children: React.ReactNode[] }) {
-  return <section><h2 className="text-2xl font-black uppercase">{title}</h2><div className="mt-4 grid gap-4 md:grid-cols-2">{children.length ? children : <p className="border-2 border-dashed border-comun-black/40 bg-white p-5">{empty}</p>}</div></section>;
+function OrganizationCollection({ title, empty, action, children }: { title: string; empty: string; action?: React.ReactNode; children: React.ReactNode[] }) {
+  return <section><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-black uppercase">{title}</h2>{action}</div><div className="mt-4 grid gap-4 md:grid-cols-2">{children.length ? children : <p className="border-2 border-dashed border-comun-black/40 bg-white p-5">{empty}</p>}</div></section>;
 }
 
-function Offer({ offer }: { offer: PublicSolidarityOfferV1 }) {
+function Offer({ offer, editHref }: { offer: PublicSolidarityOfferV1; editHref: string | null }) {
   const price = formatSolidarityPriceBRL(offer.priceAmountCents);
-  return <article className="border-2 border-comun-black bg-white p-5"><h3 className="text-xl font-black">{offer.title}</h3><p className="mt-2 text-sm">{offer.summary}</p><p className="mt-3 text-sm font-bold">{offer.modalities.map((modality) => MODALITY_LABELS[modality]).join(" · ")}</p>{price ? <p className="mt-2 font-black">{price}{offer.priceNote ? ` · ${offer.priceNote}` : ""}</p> : null}{offer.availability ? <p className="mt-2 text-sm">{offer.availability}</p> : null}</article>;
+  return <article className="border-2 border-comun-black bg-white p-5"><h3 className="text-xl font-black">{offer.title}</h3><p className="mt-2 text-sm">{offer.summary}</p><p className="mt-3 text-sm font-bold">{offer.modalities.map((modality) => MODALITY_LABELS[modality]).join(" · ")}</p>{price ? <p className="mt-2 font-black">{price}{offer.priceNote ? ` · ${offer.priceNote}` : ""}</p> : null}{offer.availability ? <p className="mt-2 text-sm">{offer.availability}</p> : null}{editHref ? <Link className="mt-3 inline-flex min-h-11 items-center font-black underline" href={editHref}>Editar oferta</Link> : null}</article>;
 }
 
-function Need({ need }: { need: PublicSolidarityNeedV1 }) {
-  return <article className="border-2 border-comun-black bg-white p-5"><h3 className="text-xl font-black">{need.title}</h3><p className="mt-2 text-sm">{need.summary}</p></article>;
+function Need({ need, editHref }: { need: PublicSolidarityNeedV1; editHref: string | null }) {
+  return <article className="border-2 border-comun-black bg-white p-5"><h3 className="text-xl font-black">{need.title}</h3><p className="mt-2 text-sm">{need.summary}</p>{editHref ? <Link className="mt-3 inline-flex min-h-11 items-center font-black underline" href={editHref}>Editar necessidade</Link> : null}</article>;
+}
+
+function EconomicContentPanel({ organization, offers, needs }: {
+  organization: PublicSolidarityOrganizationV1;
+  offers: PrivateSolidarityOfferEditorV1[];
+  needs: PrivateSolidarityNeedEditorV1[];
+}) {
+  const hiddenOffers = offers.filter((offer) => offer.status !== "published" || offer.isExpired);
+  const closedNeeds = needs.filter((need) => !["open", "partially_met"].includes(need.status));
+  if (!hiddenOffers.length && !closedNeeds.length) return null;
+  return <section className="border-2 border-comun-black bg-comun-paper p-5" aria-labelledby="economic-maintenance-title">
+    <h2 id="economic-maintenance-title" className="text-2xl font-black">Conteúdo da organização fora da Feirinha</h2>
+    <p className="mt-2 text-sm">Área privada para manutenção. O conteúdo pertence à organização, não à conta que o criou.</p>
+    <div className="mt-4 grid gap-4">
+      {hiddenOffers.map((offer) => <article className="border border-comun-black/40 bg-white p-4" key={offer.id}><h3 className="font-black">{offer.title}</h3><p className="mt-1 text-sm">{offer.isExpired ? "Vencida" : offer.status === "paused" ? "Pausada" : offer.status}</p><div className="mt-3 flex flex-wrap gap-2"><Link className="inline-flex min-h-11 items-center font-black underline" href={`/comun/cooperativas/${organization.slug}/ofertas/${offer.slug}/editar`}>Editar</Link>{offer.isExpired ? <SolidarityEconomicTransitionForm action={mutateSolidarityOfferAction} organization={organization} entity={{ kind: "offer", id: offer.id }} operation="renew" label="Renovar por 30 dias" validityDays={30} /> : offer.status === "paused" ? <SolidarityEconomicTransitionForm action={mutateSolidarityOfferAction} organization={organization} entity={{ kind: "offer", id: offer.id }} operation="resume" label="Retomar" /> : null}</div></article>)}
+      {closedNeeds.map((need) => <article className="border border-comun-black/40 bg-white p-4" key={need.id}><h3 className="font-black">{need.title}</h3><p className="mt-1 text-sm">{need.status === "met" ? "Atendida" : need.status === "cancelled" ? "Cancelada" : need.status}</p><div className="mt-3 flex flex-wrap gap-2"><Link className="inline-flex min-h-11 items-center font-black underline" href={`/comun/cooperativas/${organization.slug}/necessidades/${need.slug}/editar`}>Editar</Link>{["met", "cancelled"].includes(need.status) ? <SolidarityEconomicTransitionForm action={mutateSolidarityNeedAction} organization={organization} entity={{ kind: "need", id: need.id }} operation="reopen" label="Reabrir" /> : null}</div></article>)}
+    </div>
+  </section>;
 }
 
 function formatPrivateDate(value: string) {

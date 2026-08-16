@@ -9,7 +9,8 @@ test("contrato de coerência cobre rotas, pilotos, tokens e roadmap", async () =
   // Includes feature-flagged read-only observatories for Calçadas, Transporte and Ambiente.
   // Includes the fail-closed, feature-flagged low-friction Pauta creation route.
   // Includes the fail-closed organization detail in the existing Feirinha root.
-  assert.equal(report.routeInventory.totalPages, 211);
+  // Includes four fail-closed A3 write routes scoped to an authorized organization.
+  assert.equal(report.routeInventory.totalPages, 215);
   assert.equal(report.routeInventory.missingRequiredRoutes, 0);
   assert.equal(report.routeInventory.knownCompatibleRedirects, 1);
   assert.deepEqual(report.pilots.levels, [0, 1, 2]);

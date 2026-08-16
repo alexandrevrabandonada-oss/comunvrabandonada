@@ -1,0 +1,86 @@
+name: COMUN 48.4-A3 disposable economic content proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-4-a3-disposable.yml"
+      - "supabase/migrations/*_comun_solidarity_economic_content_writes.sql"
+      - "lib/comun-solidarity-economic-content*.ts"
+
+permissions: { contents: read }
+
+jobs:
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.114.0 }
+      - name: Prove authorized writes, idempotency and lifecycle
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          db="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '"')"; test -n "$db"
+          psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
+          begin;
+          insert into auth.users(id,aud,role,email) values
+            ('a3000000-0000-4000-8000-000000000001','authenticated','authenticated','editor@example.invalid'),
+            ('a3000000-0000-4000-8000-000000000002','authenticated','authenticated','facilitator@example.invalid'),
+            ('a3000000-0000-4000-8000-000000000003','authenticated','authenticated','pending@example.invalid');
+          insert into public.comun_member_profiles(user_id,display_name,status) values
+            ('a3000000-0000-4000-8000-000000000001','Pessoa editora','active'),
+            ('a3000000-0000-4000-8000-000000000002','Pessoa facilitadora','active'),
+            ('a3000000-0000-4000-8000-000000000003','Pessoa pendente','active')
+          on conflict(user_id) do update set display_name=excluded.display_name,status='active';
+          insert into public.comun_hub_territories(id,slug,name,territory_type,status,visibility,verification_status) values
+            ('a3000000-0000-4000-8000-000000000011','a3-organizacao-um','Organização um','cooperative','active','public','verified'),
+            ('a3000000-0000-4000-8000-000000000012','a3-organizacao-dois','Organização dois','cooperative','active','public','verified');
+          insert into public.comun_territorial_organizations(territory_id,public_name,organization_type,status,verification_status) values
+            ('a3000000-0000-4000-8000-000000000011','Organização um','cooperative','active','verified'),
+            ('a3000000-0000-4000-8000-000000000012','Organização dois','cooperative','active','verified');
+          insert into private.comun_solidarity_organization_access(organization_territory_id,member_user_id,requested_role,role,state,review_scope,request_note_private,reviewed_at,activated_at) values
+            ('a3000000-0000-4000-8000-000000000011','a3000000-0000-4000-8000-000000000001','editor','editor','active','organization','Participo da edição desta organização.',now(),now()),
+            ('a3000000-0000-4000-8000-000000000011','a3000000-0000-4000-8000-000000000002','facilitator','facilitator','active','platform','Participo da facilitação desta organização.',now(),now()),
+            ('a3000000-0000-4000-8000-000000000011','a3000000-0000-4000-8000-000000000003','editor',null,'pending','organization','Aguardo acesso a esta organização.',null,null);
+
+          do $$
+          declare offer_id uuid; offer_id_again uuid; need_id uuid; v_state text; v_idempotent boolean;
+          begin
+            select subject_id,state,idempotent into offer_id,v_state,v_idempotent from public.comun_create_solidarity_offer_by_access_v1(
+              'a3000000-0000-4000-8000-000000000101','a3000000-0000-4000-8000-000000000011','a3000000-0000-4000-8000-000000000001','costura-solidaria','Costura solidária','Peças produzidas pela organização.',array['sale','exchange'],'good',null,'Valor a combinar','Sob encomenda',30);
+            if v_state<>'published' or v_idempotent then raise exception 'editor create failed'; end if;
+            select subject_id,idempotent into offer_id_again,v_idempotent from public.comun_create_solidarity_offer_by_access_v1(
+              'a3000000-0000-4000-8000-000000000101','a3000000-0000-4000-8000-000000000011','a3000000-0000-4000-8000-000000000001','costura-solidaria','Costura solidária','Peças produzidas pela organização.',array['sale','exchange'],'good',null,'Valor a combinar','Sob encomenda',30);
+            if offer_id_again<>offer_id or not v_idempotent or (select count(*) from public.comun_solidarity_offers where id=offer_id)<>1 then raise exception 'offer idempotency failed'; end if;
+            perform public.comun_mutate_solidarity_offer_by_access_v1('a3000000-0000-4000-8000-000000000102','a3000000-0000-4000-8000-000000000011','a3000000-0000-4000-8000-000000000002',offer_id,'pause');
+            perform public.comun_mutate_solidarity_offer_by_access_v1('a3000000-0000-4000-8000-000000000103','a3000000-0000-4000-8000-000000000011','a3000000-0000-4000-8000-000000000002',offer_id,'resume');
+            perform public.comun_mutate_solidarity_offer_by_access_v1('a3000000-0000-4000-8000-000000000104','a3000000-0000-4000-8000-000000000011','a3000000-0000-4000-8000-000000000002',offer_id,'renew',null,null,null,null,null,null,null,45);
+            select subject_id into need_id from public.comun_create_solidarity_need_by_access_v1('a3000000-0000-4000-8000-000000000111','a3000000-0000-4000-8000-000000000011','a3000000-0000-4000-8000-000000000002','maquina-costura','Máquina de costura','A organização precisa ampliar a produção.','equipment',null);
+            perform public.comun_mutate_solidarity_need_by_access_v1('a3000000-0000-4000-8000-000000000112','a3000000-0000-4000-8000-000000000011','a3000000-0000-4000-8000-000000000001',need_id,'partially_met');
+            perform public.comun_mutate_solidarity_need_by_access_v1('a3000000-0000-4000-8000-000000000113','a3000000-0000-4000-8000-000000000011','a3000000-0000-4000-8000-000000000001',need_id,'met');
+            perform public.comun_mutate_solidarity_need_by_access_v1('a3000000-0000-4000-8000-000000000114','a3000000-0000-4000-8000-000000000011','a3000000-0000-4000-8000-000000000002',need_id,'reopen');
+            begin
+              perform public.comun_mutate_solidarity_offer_by_access_v1('a3000000-0000-4000-8000-000000000120','a3000000-0000-4000-8000-000000000012','a3000000-0000-4000-8000-000000000001',offer_id,'pause');
+              raise exception 'wrong organization accepted';
+            exception when raise_exception then if sqlerrm='wrong organization accepted' then raise; end if; end;
+            begin
+              perform public.comun_create_solidarity_need_by_access_v1('a3000000-0000-4000-8000-000000000121','a3000000-0000-4000-8000-000000000011','a3000000-0000-4000-8000-000000000003','bloqueada','Necessidade bloqueada','Este acesso ainda está pendente.','other',null);
+              raise exception 'pending access accepted';
+            exception when raise_exception then if sqlerrm='pending access accepted' then raise; end if; end;
+            if exists(select 1 from private.comun_solidarity_economic_content_events event where event.operation='offer.create' and event.subject_id=offer_id and to_jsonb(event)::text like '%Costura solidária%') then raise exception 'public body copied to audit'; end if;
+            if (select count(*) from public.comun_pauta_memberships where member_user_id in ('a3000000-0000-4000-8000-000000000001','a3000000-0000-4000-8000-000000000002'))<>0 then raise exception 'pauta membership propagated'; end if;
+          end $$;
+
+          do $$ begin
+            if not (select relrowsecurity and relforcerowsecurity from pg_class where oid='private.comun_solidarity_economic_content_events'::regclass) then raise exception 'audit rls not forced'; end if;
+            if has_table_privilege('anon','private.comun_solidarity_economic_content_events','SELECT,INSERT,UPDATE,DELETE') or has_table_privilege('authenticated','private.comun_solidarity_economic_content_events','SELECT,INSERT,UPDATE,DELETE') then raise exception 'audit client access open'; end if;
+            if has_function_privilege('anon','public.comun_create_solidarity_offer_by_access_v1(uuid,uuid,uuid,text,text,text,text[],text,bigint,text,text,integer)','EXECUTE') or has_function_privilege('authenticated','public.comun_create_solidarity_need_by_access_v1(uuid,uuid,uuid,text,text,text,text,timestamptz)','EXECUTE') then raise exception 'client rpc open'; end if;
+          end $$;
+          rollback;
+          SQL
+          echo COMUN_48_4_A3_DISPOSABLE_ECONOMIC_CONTENT_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo businessWritesAfterRollback=0 >> "$GITHUB_STEP_SUMMARY"
+          echo sellerOwnerConceptCreated=false >> "$GITHUB_STEP_SUMMARY"

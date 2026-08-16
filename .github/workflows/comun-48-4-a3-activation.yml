@@ -1,0 +1,94 @@
+name: COMUN 48.4-A3 authorized economic content activation
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA
+        required: true
+        type: string
+      mode:
+        description: Promote schema cloaked, repeat cloak, or enable A3
+        required: true
+        type: choice
+        options: [promote-migration-flags-off, flags-off, wave1-authorized-economic-writes]
+
+concurrency: { group: comun-48-4-a3-activation, cancel-in-progress: false }
+permissions: { contents: read }
+env:
+  A3_BASELINE_SHA: 7669f8157826cb2cb63affd6e70b3bae856f3dc5
+  A3_MIGRATION: supabase/migrations/20260816011500_comun_solidarity_economic_content_writes.sql
+  A3_MIGRATION_SHA256: 219aa75e024bdbcf1d0740aac54f607f9b9d2cfcffbeaaf99ad166aede5fb0f0
+  EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+  COMUN_BASE_URL: https://comunsocial.online
+
+jobs:
+  activate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main, fetch-depth: 0 }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.114.0 }
+      - name: Verify exact main and one bounded migration
+        env: { EXPECTED_MAIN_SHA: "${{ inputs.expected_main_sha }}" }
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA" && test "$(git rev-parse origin/main)" = "$EXPECTED_MAIN_SHA"
+          git merge-base --is-ancestor "$A3_BASELINE_SHA" HEAD
+          test "$(sha256sum "$A3_MIGRATION" | awk '{print $1}')" = "$A3_MIGRATION_SHA256"
+          mapfile -t changed < <(git diff --name-only "$A3_BASELINE_SHA"...HEAD -- supabase/migrations)
+          test "${#changed[@]}" -eq 1 && test "${changed[0]}" = "$A3_MIGRATION"
+      - name: Promote exact forward-only migration
+        if: inputs.mode == 'promote-migration-flags-off'
+        env: { SUPABASE_DB_URL: "${{ secrets.SUPABASE_DB_URL }}" }
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"; case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1;; esac
+          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
+          held="$RUNNER_TEMP/external.sql"; mv "$EXTERNAL_MIGRATION" "$held"; trap 'mv "$held" "$EXTERNAL_MIGRATION"' EXIT
+          plan="$RUNNER_TEMP/a3-plan.txt"; supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >"$plan" 2>&1
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' "$plan" | sort -u || true)
+          test "${#planned[@]}" -eq 1 && test "${planned[0]}" = "$(basename "$A3_MIGRATION")"
+          ! grep -Eq -- '--include-all|migration repair|db reset|seed' "$plan"
+          supabase db push --db-url "$SUPABASE_DB_URL"
+          mv "$held" "$EXTERNAL_MIGRATION"; trap - EXIT
+      - name: Metadata-only postflight
+        if: inputs.mode == 'promote-migration-flags-off'
+        env: { SUPABASE_DB_URL: "${{ secrets.SUPABASE_DB_URL }}" }
+        shell: bash
+        run: |
+          set -euo pipefail
+          result="$(psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 <<'SQL'
+          begin read only;
+          select (
+            to_regclass('private.comun_solidarity_economic_content_events') is not null
+            and (select relrowsecurity and relforcerowsecurity from pg_class where oid='private.comun_solidarity_economic_content_events'::regclass)
+            and not has_table_privilege('anon','private.comun_solidarity_economic_content_events','SELECT,INSERT,UPDATE,DELETE')
+            and not has_table_privilege('authenticated','private.comun_solidarity_economic_content_events','SELECT,INSERT,UPDATE,DELETE')
+            and has_table_privilege('service_role','private.comun_solidarity_economic_content_events','SELECT,INSERT')
+            and not has_function_privilege('anon','public.comun_create_solidarity_offer_by_access_v1(uuid,uuid,uuid,text,text,text,text[],text,bigint,text,text,integer)','EXECUTE')
+            and not has_function_privilege('authenticated','public.comun_create_solidarity_need_by_access_v1(uuid,uuid,uuid,text,text,text,text,timestamptz)','EXECUTE')
+            and has_function_privilege('service_role','public.comun_create_solidarity_offer_by_access_v1(uuid,uuid,uuid,text,text,text,text[],text,bigint,text,text,integer)','EXECUTE')
+          );
+          rollback;
+          SQL
+          )"; test "$result" = t
+          echo COMUN_48_4_A3_REMOTE_MIGRATION_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo businessContentRead=false >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify Vercel binding
+        env: { VERCEL_TOKEN: "${{ secrets.VERCEL_TOKEN }}" }
+        run: npx --yes vercel@50.28.0 project inspect "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null 2>/dev/null
+      - name: Deploy selected wave
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          MODE: ${{ inputs.mode }}
+        shell: bash
+        run: |
+          wave="$MODE"; test "$wave" != promote-migration-flags-off || wave=flags-off
+          bash scripts/economy/run-48-4-a3-production-wave.sh "$wave"

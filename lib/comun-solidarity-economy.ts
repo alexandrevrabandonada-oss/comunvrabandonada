@@ -48,7 +48,7 @@ const ORGANIZATION_TYPES = [
   "network",
   "other",
 ] as const;
-const NEED_TYPES = [
+export const SOLIDARITY_NEED_TYPES = [
   "equipment",
   "vehicle",
   "space",
@@ -121,7 +121,7 @@ export type PublicSolidarityNeedV1 = {
   slug: string;
   title: string;
   summary: string;
-  needType: (typeof NEED_TYPES)[number];
+  needType: (typeof SOLIDARITY_NEED_TYPES)[number];
   status: (typeof PUBLIC_SOLIDARITY_NEED_STATUSES)[number];
   dueAt: string | null;
   organization: PublicSolidarityOfferOrganizationV1 | null;
@@ -139,7 +139,7 @@ export type PublicSolidarityEconomyDirectoryV1 = {
   limitations: readonly string[];
   deferred: {
     individualProducers: "COMUN_48_4_A1_INDIVIDUAL_PRODUCERS_DEFERRED_FIRST_CYCLE";
-    publicWrites: "COMUN_48_4_A1_PUBLIC_ECONOMIC_WRITES_DEFERRED_UNTIL_IDENTITY_CLAIM_CONTRACT";
+    publicWrites: "COMUN_48_4_A3_AUTHORIZED_ORGANIZATION_WRITES_AVAILABLE";
     exchange: "DEFERRED_UNTIL_EXPLICIT_CONSENT_FLOW";
   };
 };
@@ -208,7 +208,7 @@ export type RawSolidarityDirectoryRows = {
 
 const PUBLIC_LIMITATIONS = [
   "A Feirinha é uma superfície de descoberta, não um marketplace.",
-  "Ofertas só aparecem depois de revisão e deixam a projeção pública ao vencer.",
+  "Ofertas só aparecem depois de passar pelos gates de publicação do COMUN e deixam a projeção pública ao vencer.",
   "Necessidades publicadas não representam todas as necessidades do território.",
   "A presença de uma organização não mede capacidade, qualidade ou cobertura.",
   "Não há pedido, pagamento, contratação, ranking, avaliação ou chat nesta experiência.",
@@ -217,8 +217,7 @@ const PUBLIC_LIMITATIONS = [
 const DEFERRED = {
   individualProducers:
     "COMUN_48_4_A1_INDIVIDUAL_PRODUCERS_DEFERRED_FIRST_CYCLE",
-  publicWrites:
-    "COMUN_48_4_A1_PUBLIC_ECONOMIC_WRITES_DEFERRED_UNTIL_IDENTITY_CLAIM_CONTRACT",
+  publicWrites: "COMUN_48_4_A3_AUTHORIZED_ORGANIZATION_WRITES_AVAILABLE",
   exchange: "DEFERRED_UNTIL_EXPLICIT_CONSENT_FLOW",
 } as const;
 
@@ -383,7 +382,7 @@ function projectNeed(
   const slug = asPublicText(row.slug, 120);
   const title = asPublicText(row.title, 200);
   const summary = asPublicText(row.public_summary, 1200);
-  const needType = asAllowlisted(row.need_type, NEED_TYPES);
+  const needType = asAllowlisted(row.need_type, SOLIDARITY_NEED_TYPES);
   if (!id || !slug || !title || !summary || !needType) return null;
   return {
     id,

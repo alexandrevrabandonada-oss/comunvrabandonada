@@ -55,7 +55,7 @@ export type PrivateSolidarityOrganizationGovernanceRecordV1 = {
 
 export const SOLIDARITY_ORGANIZATION_GOVERNANCE_DEFERRED = {
   economicContentWrites:
-    "COMUN_48_4_A2_ECONOMIC_CONTENT_WRITES_DEFERRED_TO_A3",
+    "COMUN_48_4_A3_AUTHORIZED_ORGANIZATION_WRITES_AVAILABLE",
   newOrganizationOnboarding:
     "COMUN_48_4_A2_NEW_ORGANIZATION_ONBOARDING_DEFERRED",
 } as const;
