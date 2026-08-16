@@ -7,8 +7,9 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   // Dormant/feature-flagged routes, including the reviewed-only sidewalk,
   // transport, and surface-water observatories, plus the Google completion
   // step, low-friction Pauta creation, organization detail and four A3
-  // organization-scoped write routes are part of the full matrix.
-  assert.equal(summary.total, 215);
+  // organization-scoped write routes, plus the two A4 onboarding routes, are
+  // part of the full matrix.
+  assert.equal(summary.total, 217);
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
     "admin",
