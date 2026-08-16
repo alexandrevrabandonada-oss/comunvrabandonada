@@ -70,7 +70,7 @@ jobs:
               perform public.comun_create_solidarity_need_by_access_v1('a3000000-0000-4000-8000-000000000121','a3000000-0000-4000-8000-000000000011','a3000000-0000-4000-8000-000000000003','bloqueada','Necessidade bloqueada','Este acesso ainda está pendente.','other',null);
               raise exception 'pending access accepted';
             exception when raise_exception then if sqlerrm='pending access accepted' then raise; end if; end;
-            if exists(select 1 from private.comun_solidarity_economic_content_events where operation='offer.create' and subject_id=offer_id and to_jsonb(private.comun_solidarity_economic_content_events)::text like '%Costura solidária%') then raise exception 'public body copied to audit'; end if;
+            if exists(select 1 from private.comun_solidarity_economic_content_events event where event.operation='offer.create' and event.subject_id=offer_id and to_jsonb(event)::text like '%Costura solidária%') then raise exception 'public body copied to audit'; end if;
             if (select count(*) from public.comun_pauta_memberships where member_user_id in ('a3000000-0000-4000-8000-000000000001','a3000000-0000-4000-8000-000000000002'))<>0 then raise exception 'pauta membership propagated'; end if;
           end $$;
 
