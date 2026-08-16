@@ -19,7 +19,7 @@ Não existe publicação automática, seller, loja, pedido, pagamento, chat, ofe
 ## Migration e contrato privado
 
 - única migration forward-only: `20260816181040_comun_solidarity_organization_onboarding.sql`;
-- SHA-256: `f60eb50a696bc69a7628be445e010bfb747e50369da80ddf8bde4896e5594ce9`;
+- SHA-256: `3a0d882f0efd10e4db6d8e3269b9a130c018499c13c178fbef382209e2d67a0b`;
 - estados: `draft`, `submitted`, `needs_changes`, `approved`, `rejected`, `withdrawn`;
 - RLS e FORCE RLS ativos; `public`, `anon` e `authenticated` não possuem grants na tabela;
 - RPCs com `SECURITY DEFINER`, `search_path=pg_catalog`, relações qualificadas e execução apenas por `service_role`;

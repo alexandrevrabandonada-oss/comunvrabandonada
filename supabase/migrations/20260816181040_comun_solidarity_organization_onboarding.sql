@@ -538,9 +538,12 @@ begin
     raise exception 'COMUN_SOLIDARITY_ONBOARDING_EXISTING_ORGANIZATION';
   end if;
 
-  v_slug_base := pg_catalog.trim(both '-' from pg_catalog.regexp_replace(
-    pg_catalog.lower(v_onboarding.organization_name_candidate), '[^a-z0-9]+', '-', 'g'
-  ));
+  v_slug_base := pg_catalog.btrim(
+    pg_catalog.regexp_replace(
+      pg_catalog.lower(v_onboarding.organization_name_candidate), '[^a-z0-9]+', '-', 'g'
+    ),
+    '-'
+  );
   if pg_catalog.char_length(v_slug_base) < 3 then v_slug_base := 'organizacao-solidaria'; end if;
   v_slug_base := pg_catalog.left(v_slug_base, 70);
   v_slug := v_slug_base;
