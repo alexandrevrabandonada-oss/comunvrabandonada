@@ -2,16 +2,19 @@
 
 ## 48.4-A3 — Ofertas e Necessidades pela organização, sem seller
 
-- candidato funcional sobre o baseline `7669f8157826cb2cb63affd6e70b3bae856f3dc5`;
+- promoção Production concluída sobre o baseline `7669f8157826cb2cb63affd6e70b3bae856f3dc5`;
 - acesso A2 ativo `editor` ou `facilitator` pode manter Ofertas e Necessidades somente da própria organização; todos os gates A1/A2 são revalidados no banco;
 - única migration forward-only adiciona ledger privado auditável e quatro RPCs service-role-only, com idempotência e rate limit, sem nova entidade econômica;
 - formulários mínimos vivem na ficha da organização, preservam draft local e não criam seller dashboard, owner, pedido, pagamento, marketplace ou propagação social;
 - Oferta publica normalmente por 30 dias e admite editar, pausar, retomar, renovar e arquivar; Necessidade admite editar, parcialmente atendida, atendida, cancelada e reaberta;
 - conteúdo público continua vindo exclusivamente dos DTOs A1 fail-closed; ator, acesso e auditoria nunca entram em HTML/DTO;
 - `COMUN_SOLIDARITY_ECONOMIC_CONTENT_WRITES_ENABLED` depende das flags A1 e A2; `COMUN_48_4_A2_NEW_ORGANIZATION_ONBOARDING_DEFERRED`, piloto Motorola pausado e `launch_publicly=false` preservados;
-- PR, CI, exact-head merge e rollout Production ainda pendentes neste candidato.
+- PR funcional `#334`, head exato `7e6a346acd133a18ec7b8ee58733cf2085b86bac`, incorporada no merge/main `f63957fd7016b962b9aea1b567a482f2a0398618`;
+- preflight remoto A3 `31956271757`, descartável Supabase `31956271710` e todos os gates aplicáveis verdes; gates pós-merge também verdes no exact-main;
+- Wave 0 `31958532076` promoveu somente a migration A3 com a flag desligada e postflight metadata-only verde; Wave 1 `31958676222` habilitou somente os writes econômicos autorizados;
+- Production respondeu GET/HEAD `200` nas superfícies canônicas, manteve empty state real sem fixture e registrou `businessWrites=0` nas duas ondas.
 
-Terminal após promoção completa:
+Estado terminal:
 `COMUN_48_4_A3_AUTHORIZED_ECONOMIC_CONTENT_WRITES_GREEN_OFFERS_NEEDS_NO_SELLER`.
 
 Detalhes: `reports/current/comun-48-4-a3-authorized-economic-content-writes.md`.
