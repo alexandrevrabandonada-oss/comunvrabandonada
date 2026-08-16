@@ -18,8 +18,8 @@ A3 resolve `COMUN_48_4_A2_ECONOMIC_CONTENT_WRITES_DEFERRED_TO_A3` com uma fronte
 - RLS e FORCE RLS ativos; `public`, `anon` e `authenticated` sem grants; tabela e quatro RPCs acessíveis somente por `service_role`;
 - `request_id` UUID único e advisory lock tornam cada create/transição idempotente no banco;
 - rate limits usam somente identidade privada já autenticada: 20 creates/24h e 100 edições/transições/h; nenhum IP bruto é persistido;
-- todas as RPCs são `SECURITY DEFINER`, usam `search_path=''`, revalidam acesso A2, gates A1 e pertencimento do conteúdo à organização;
-- migration SHA-256: `88961331f28a9eed6f5b88f3460902ba4d9f4f43ff46c508543de0a7906aa643`.
+- todas as RPCs são `SECURITY DEFINER`, fixam `search_path=pg_catalog`, usam relações qualificadas e revalidam acesso A2, gates A1 e pertencimento do conteúdo à organização;
+- migration SHA-256: `219aa75e024bdbcf1d0740aac54f607f9b9d2cfcffbeaaf99ad166aede5fb0f0`.
 
 ## Gates preservados
 

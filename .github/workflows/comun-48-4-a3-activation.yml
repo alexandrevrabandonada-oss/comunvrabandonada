@@ -18,7 +18,7 @@ permissions: { contents: read }
 env:
   A3_BASELINE_SHA: 7669f8157826cb2cb63affd6e70b3bae856f3dc5
   A3_MIGRATION: supabase/migrations/20260816011500_comun_solidarity_economic_content_writes.sql
-  A3_MIGRATION_SHA256: 88961331f28a9eed6f5b88f3460902ba4d9f4f43ff46c508543de0a7906aa643
+  A3_MIGRATION_SHA256: 219aa75e024bdbcf1d0740aac54f607f9b9d2cfcffbeaaf99ad166aede5fb0f0
   EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
   VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
   VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X

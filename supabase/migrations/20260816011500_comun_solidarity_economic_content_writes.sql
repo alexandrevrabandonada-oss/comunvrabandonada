@@ -42,7 +42,7 @@ returns boolean
 language sql
 immutable
 security invoker
-set search_path = ''
+set search_path = pg_catalog
 as $$
   select
     coalesce(p_text, '') !~* '[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}'
@@ -60,7 +60,7 @@ create or replace function private.comun_require_solidarity_economic_access(
 returns uuid
 language plpgsql
 security invoker
-set search_path = ''
+set search_path = pg_catalog
 as $$
 declare
   v_access_id uuid;
@@ -115,7 +115,7 @@ create or replace function public.comun_create_solidarity_offer_by_access_v1(
 returns table(subject_id uuid, subject_slug text, state text, idempotent boolean)
 language plpgsql
 security definer
-set search_path = ''
+set search_path = pg_catalog
 as $$
 declare
   v_event private.comun_solidarity_economic_content_events%rowtype;
@@ -216,7 +216,7 @@ create or replace function public.comun_mutate_solidarity_offer_by_access_v1(
 returns table(subject_id uuid, subject_slug text, state text, idempotent boolean)
 language plpgsql
 security definer
-set search_path = ''
+set search_path = pg_catalog
 as $$
 declare
   v_event private.comun_solidarity_economic_content_events%rowtype;
@@ -329,7 +329,7 @@ create or replace function public.comun_create_solidarity_need_by_access_v1(
 returns table(subject_id uuid, subject_slug text, state text, idempotent boolean)
 language plpgsql
 security definer
-set search_path = ''
+set search_path = pg_catalog
 as $$
 declare
   v_event private.comun_solidarity_economic_content_events%rowtype;
@@ -399,7 +399,7 @@ create or replace function public.comun_mutate_solidarity_need_by_access_v1(
 returns table(subject_id uuid, subject_slug text, state text, idempotent boolean)
 language plpgsql
 security definer
-set search_path = ''
+set search_path = pg_catalog
 as $$
 declare
   v_event private.comun_solidarity_economic_content_events%rowtype;
