@@ -9,7 +9,8 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   // step, low-friction Pauta creation, organization detail and four A3
   // organization-scoped write routes, plus the two A4 onboarding routes, are
   // part of the full matrix.
-  assert.equal(summary.total, 217);
+  // A5 adds two fail-closed contextual connection routes under the existing Feirinha root.
+  assert.equal(summary.total, 219);
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
     "admin",
