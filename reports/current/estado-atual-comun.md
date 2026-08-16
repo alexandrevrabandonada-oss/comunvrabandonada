@@ -1,4 +1,4 @@
-# Estado em promoção — 48.4-A4 Onboarding de organizações (16/08/2026)
+# Estado atual — 48.4-A4 Onboarding de organizações (16/08/2026)
 
 ## 48.4-A4 — Save first, uma verificação e primeiro facilitator
 
@@ -8,8 +8,15 @@
 - somente admin canônico da plataforma pode revisar; aprovação atômica cria território e organização `source_checked`, fonte revisada e primeiro acesso `facilitator/active/platform`;
 - a Feirinha recebe entrada secundária, Minha Participação reutiliza Organizações e a fila vive na Sala de Organização; Home continua sem nova porta;
 - `comun_territorial_contributions` permanece `LEGACY_KEEP_COMPAT`, sem dual-write;
-- flag `COMUN_SOLIDARITY_ORGANIZATION_ONBOARDING_ENABLED` depende de A1+A2 e nasce fail-closed;
-- promoção remota, descartável, Wave 0, Wave 1 e smoke Production ainda precisam ficar verdes antes do terminal A4.
+- flag `COMUN_SOLIDARITY_ORGANIZATION_ONBOARDING_ENABLED` depende de A1+A2, nasceu fail-closed e foi habilitada isoladamente após a prova cloaked;
+- PR `#336`, head funcional exato `b4038ccc4ffb4d1ecea2c92ecfa56bc2cd94016b` e merge/main exato `810e9f944b37490f201f01ad1dc0cebbbbf54085`;
+- preflight remoto `31972719160` e descartável Supabase `31972719126` verdes no exact-head;
+- Wave 0 `31974384419` promoveu somente a migration A4, confirmou o postflight metadata-only e manteve as rotas cloaked;
+- Wave 1 `31974507739` habilitou somente o onboarding, com GET/HEAD Production verdes, zero fixture e `businessWrites=0` durante o rollout;
+- `COMUN_48_4_A2_NEW_ORGANIZATION_ONBOARDING_DEFERRED` foi resolvido; produtores individuais, A5, piloto Motorola e `launch_publicly=false` permanecem preservados.
+
+Estado terminal:
+`COMUN_48_4_A4_ORGANIZATION_ONBOARDING_GREEN_VERIFIED_FIRST_FACILITATOR_NO_OWNER`.
 
 Detalhes: `reports/current/comun-48-4-a4-organization-onboarding.md`.
 
