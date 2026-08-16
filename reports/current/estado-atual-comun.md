@@ -1,4 +1,26 @@
-# Estado atual — 48.4-A4 Onboarding de organizações (16/08/2026)
+# Estado atual — 48.4-A5 Conexão privada e consentida (16/08/2026)
+
+## 48.4-A5 — Interesse em Oferta e ajuda em Necessidade, sem marketplace
+
+- o contrato funcional usa uma única migration forward-only e reutiliza
+  `comun_territorial_need_interests`, criando somente o root privado ausente
+  para interesses em Ofertas;
+- o contato é protegido por consentimento versionado e somente fica visível
+  após aceite por acesso A2 ativo da mesma organização;
+- rejeição e retirada removem o contato protegido; nenhum pedido, pagamento,
+  chat, reserva, contrato, rating ou vínculo social é criado;
+- a UI inclui **Tenho interesse**, **Posso ajudar**, Conexões privadas da
+  organização e **Interesses e ajudas** em Minha participação;
+- preflight, CI, merge e rollout exact-head ainda precisam fechar antes da
+  emissão do terminal A5.
+
+Estado em validação: `COMUN_48_4_A5_PRIVATE_CONNECTIONS_CANDIDATE`.
+
+Preservados: A1–A4, flags correspondentes habilitadas em Production,
+`COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e
+`launch_publicly=false`.
+
+# Estado anterior — 48.4-A4 Onboarding de organizações (16/08/2026)
 
 ## 48.4-A4 — Save first, uma verificação e primeiro facilitator
 

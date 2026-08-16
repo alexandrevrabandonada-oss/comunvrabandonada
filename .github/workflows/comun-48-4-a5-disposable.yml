@@ -1,0 +1,129 @@
+name: COMUN 48.4-A5 disposable private connections proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-4-a5-disposable.yml"
+      - "supabase/migrations/*_comun_solidarity_private_connections.sql"
+      - "lib/comun-solidarity-private-connections*.ts"
+
+permissions: { contents: read }
+
+jobs:
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.114.0 }
+      - name: Prove consent, authority, redaction and zero propagation
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          db="$(supabase status -o env|sed -n 's/^DB_URL=//p'|tr -d '"')";test -n "$db"
+          psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
+          begin;
+          insert into auth.users(id,aud,role,email) values
+            ('a5000000-0000-4000-8000-000000000001','authenticated','authenticated','member@example.invalid'),
+            ('a5000000-0000-4000-8000-000000000002','authenticated','authenticated','editor@example.invalid'),
+            ('a5000000-0000-4000-8000-000000000003','authenticated','authenticated','facilitator@example.invalid'),
+            ('a5000000-0000-4000-8000-000000000004','authenticated','authenticated','pending@example.invalid'),
+            ('a5000000-0000-4000-8000-000000000005','authenticated','authenticated','revoked@example.invalid'),
+            ('a5000000-0000-4000-8000-000000000006','authenticated','authenticated','left@example.invalid');
+          insert into public.comun_member_profiles(user_id,display_name,status) values
+            ('a5000000-0000-4000-8000-000000000001','Pessoa interessada','active'),
+            ('a5000000-0000-4000-8000-000000000002','Pessoa editora','active');
+          insert into public.comun_hub_territories(id,slug,name,territory_type,status,visibility,verification_status) values
+            ('a5000000-0000-4000-8000-000000000011','a5-organizacao-um','Organização um','cooperative','active','public','verified'),
+            ('a5000000-0000-4000-8000-000000000012','a5-organizacao-dois','Organização dois','cooperative','active','public','verified');
+          insert into public.comun_territorial_organizations(territory_id,public_name,organization_type,status,verification_status) values
+            ('a5000000-0000-4000-8000-000000000011','Organização um','cooperative','active','verified'),
+            ('a5000000-0000-4000-8000-000000000012','Organização dois','cooperative','active','verified');
+          insert into private.comun_solidarity_organization_access(organization_territory_id,member_user_id,requested_role,role,state,review_scope,request_note_private,reviewed_at,activated_at) values
+            ('a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000002','editor','editor','active','organization','Edito conteúdo desta organização.',now(),now()),
+            ('a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000003','facilitator','facilitator','active','platform','Facilito esta organização.',now(),now()),
+            ('a5000000-0000-4000-8000-000000000012','a5000000-0000-4000-8000-000000000002','editor','editor','active','organization','Edito conteúdo da segunda organização.',now(),now()),
+            ('a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000004','editor',null,'pending','organization','Aguardo acesso desta organização.',null,null);
+          insert into private.comun_solidarity_organization_access(organization_territory_id,member_user_id,requested_role,role,state,review_scope,request_note_private,reviewed_at,activated_at,revoked_at,left_at) values
+            ('a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000005','editor','editor','revoked','organization','Meu acesso foi revogado para esta prova.',now(),now()-interval '2 days',now()-interval '1 day',null),
+            ('a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000006','editor','editor','left','organization','Saí voluntariamente deste acesso.',now(),now()-interval '2 days',null,now()-interval '1 day');
+          insert into public.comun_solidarity_offers(id,slug,organization_territory_id,title,public_summary,offer_kind,modalities,status,reviewed_at,published_at,valid_until) values
+            ('a5000000-0000-4000-8000-000000000021','oferta-a5','a5000000-0000-4000-8000-000000000011','Oferta A5','Oferta pública para conexão consentida.','service',array['cooperation'],'published',now(),now(),now()+interval '30 days'),
+            ('a5000000-0000-4000-8000-000000000024','oferta-facilitador','a5000000-0000-4000-8000-000000000011','Oferta para facilitador','Oferta pública para prova de autoridade.','service',array['cooperation'],'published',now(),now(),now()+interval '30 days'),
+            ('a5000000-0000-4000-8000-000000000025','oferta-arquivada','a5000000-0000-4000-8000-000000000011','Oferta arquivável','Oferta pública antes do arquivamento.','service',array['cooperation'],'published',now(),now(),now()+interval '30 days'),
+            ('a5000000-0000-4000-8000-000000000026','oferta-org-inelegivel','a5000000-0000-4000-8000-000000000011','Oferta com organização inelegível','Oferta para prova fail-closed.','service',array['cooperation'],'published',now(),now(),now()+interval '30 days'),
+            ('a5000000-0000-4000-8000-000000000027','oferta-rate-target','a5000000-0000-4000-8000-000000000011','Oferta alvo de limite','Oferta para prova do limite.','service',array['cooperation'],'published',now(),now(),now()+interval '30 days');
+          insert into public.comun_territorial_needs(id,slug,title,public_summary,need_type,status,territory_id,organization_territory_id,visibility) values
+            ('a5000000-0000-4000-8000-000000000022','necessidade-a5','Necessidade A5','Necessidade pública para ajuda consentida.','other','open','a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000011','public'),
+            ('a5000000-0000-4000-8000-000000000023','necessidade-territorial','Necessidade territorial','Sem organização associada.','other','open','a5000000-0000-4000-8000-000000000011',null,'public');
+          do $$
+          declare offer_interest uuid;offer_again uuid;facilitator_interest uuid;archived_interest uuid;need_interest uuid;v_state text;v_idempotent boolean;
+          begin
+            select interest_id,connection_state,idempotent into offer_interest,v_state,v_idempotent from public.comun_create_solidarity_offer_interest_v1('a5000000-0000-4000-8000-000000000101','a5000000-0000-4000-8000-000000000021','a5000000-0000-4000-8000-000000000001','Quero entender como colaborar com esta oferta.','member@example.invalid','comun.solidarity-contact-consent.v1',true);
+            if v_state<>'pending' or v_idempotent then raise exception 'offer create failed';end if;
+            select interest_id,idempotent into offer_again,v_idempotent from public.comun_create_solidarity_offer_interest_v1('a5000000-0000-4000-8000-000000000101','a5000000-0000-4000-8000-000000000021','a5000000-0000-4000-8000-000000000001','Quero entender como colaborar com esta oferta.','member@example.invalid','comun.solidarity-contact-consent.v1',true);
+            if offer_again<>offer_interest or not v_idempotent then raise exception 'offer idempotency failed';end if;
+            select interest_id,idempotent into offer_again,v_idempotent from public.comun_create_solidarity_offer_interest_v1('a5000000-0000-4000-8000-000000000109','a5000000-0000-4000-8000-000000000021','a5000000-0000-4000-8000-000000000001','Esta segunda requisição não deve duplicar.','member@example.invalid','comun.solidarity-contact-consent.v1',true);
+            if offer_again<>offer_interest or not v_idempotent then raise exception 'live offer identity failed';end if;
+            if exists(select 1 from public.comun_list_solidarity_organization_connections_v1('a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000002') where interest_id=offer_interest and contact_private is not null) then raise exception 'pending contact leaked';end if;
+            begin perform public.comun_review_solidarity_connection_v1('offer',offer_interest,'a5000000-0000-4000-8000-000000000012','a5000000-0000-4000-8000-000000000002','accept');raise exception 'cross organization reviewed';exception when raise_exception then if sqlerrm='cross organization reviewed' then raise;end if;end;
+            begin perform public.comun_review_solidarity_connection_v1('offer',offer_interest,'a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000004','accept');raise exception 'pending access reviewed';exception when raise_exception then if sqlerrm='pending access reviewed' then raise;end if;end;
+            begin perform public.comun_review_solidarity_connection_v1('offer',offer_interest,'a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000005','accept');raise exception 'revoked access reviewed';exception when raise_exception then if sqlerrm='revoked access reviewed' then raise;end if;end;
+            begin perform public.comun_review_solidarity_connection_v1('offer',offer_interest,'a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000006','reject');raise exception 'left access reviewed';exception when raise_exception then if sqlerrm='left access reviewed' then raise;end if;end;
+            update public.comun_solidarity_offers set status='paused' where id='a5000000-0000-4000-8000-000000000021';
+            if not exists(select 1 from public.comun_list_solidarity_organization_connections_v1('a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000002') where interest_id=offer_interest and not subject_is_public) then raise exception 'subject state not preserved';end if;
+            perform public.comun_review_solidarity_connection_v1('offer',offer_interest,'a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000002','accept');
+            if not exists(select 1 from private.comun_solidarity_offer_interests interest join private.comun_solidarity_organization_access access on access.id=interest.reviewed_by_access_id where interest.id=offer_interest and access.member_user_id='a5000000-0000-4000-8000-000000000002') then raise exception 'editor review access not recorded';end if;
+            if not exists(select 1 from public.comun_list_solidarity_organization_connections_v1('a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000003') where interest_id=offer_interest and contact_private='member@example.invalid') then raise exception 'accepted contact unavailable';end if;
+            update private.comun_solidarity_organization_access set state='revoked',revoked_at=now() where organization_territory_id='a5000000-0000-4000-8000-000000000011' and member_user_id='a5000000-0000-4000-8000-000000000002' and state='active';
+            begin perform public.comun_list_solidarity_organization_connections_v1('a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000002');raise exception 'revoked reader retained contact';exception when raise_exception then if sqlerrm='revoked reader retained contact' then raise;end if;end;
+            perform public.comun_withdraw_solidarity_connection_v1('offer',offer_interest,'a5000000-0000-4000-8000-000000000001');
+            if exists(select 1 from private.comun_solidarity_offer_interests where id=offer_interest and (contact_private is not null or consent_to_contact)) then raise exception 'withdraw did not redact';end if;
+            if exists(select 1 from public.comun_list_solidarity_organization_connections_v1('a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000003') where interest_id=offer_interest) then raise exception 'withdrawn connection still visible';end if;
+            select interest_id into facilitator_interest from public.comun_create_solidarity_offer_interest_v1('a5000000-0000-4000-8000-000000000110','a5000000-0000-4000-8000-000000000024','a5000000-0000-4000-8000-000000000001','Quero colaborar com a segunda oferta pública.','@contato-seguro','comun.solidarity-contact-consent.v1',true);
+            perform public.comun_review_solidarity_connection_v1('offer',facilitator_interest,'a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000003','accept');
+            if not exists(select 1 from private.comun_solidarity_offer_interests interest join private.comun_solidarity_organization_access access on access.id=interest.reviewed_by_access_id where interest.id=facilitator_interest and access.member_user_id='a5000000-0000-4000-8000-000000000003') then raise exception 'facilitator review access not recorded';end if;
+            perform public.comun_withdraw_solidarity_connection_v1('offer',facilitator_interest,'a5000000-0000-4000-8000-000000000001');
+            select interest_id into need_interest from public.comun_create_solidarity_need_interest_v1('a5000000-0000-4000-8000-000000000102','a5000000-0000-4000-8000-000000000022','a5000000-0000-4000-8000-000000000001','Posso apoiar esta necessidade da organização.','@contato-seguro','comun.solidarity-contact-consent.v1',true);
+            if not exists(select 1 from public.comun_territorial_need_interests where id=need_interest and member_user_id='a5000000-0000-4000-8000-000000000001' and offer_private='Posso apoiar esta necessidade da organização.' and contact_private='@contato-seguro' and consent_to_contact and status='pending') then raise exception 'need mapping failed';end if;
+            update public.comun_territorial_organizations set status='paused' where territory_id='a5000000-0000-4000-8000-000000000011';
+            begin perform public.comun_review_solidarity_connection_v1('need',need_interest,'a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000003','accept');raise exception 'ineligible organization accepted';exception when raise_exception then if sqlerrm='ineligible organization accepted' then raise;end if;end;
+            begin perform public.comun_create_solidarity_offer_interest_v1('a5000000-0000-4000-8000-000000000111','a5000000-0000-4000-8000-000000000026','a5000000-0000-4000-8000-000000000001','Não deve passar com organização inelegível.','@contato-seguro','comun.solidarity-contact-consent.v1',true);raise exception 'ineligible organization created';exception when raise_exception then if sqlerrm='ineligible organization created' then raise;end if;end;
+            perform public.comun_review_solidarity_connection_v1('need',need_interest,'a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000003','reject');
+            if exists(select 1 from public.comun_territorial_need_interests where id=need_interest and (contact_private is not null or consent_to_contact)) then raise exception 'reject did not redact';end if;
+            update public.comun_territorial_organizations set status='active' where territory_id='a5000000-0000-4000-8000-000000000011';
+            begin perform public.comun_create_solidarity_need_interest_v1('a5000000-0000-4000-8000-000000000112','a5000000-0000-4000-8000-000000000022','a5000000-0000-4000-8000-000000000001','Novo pedido cedo demais após a recusa.','@contato-seguro','comun.solidarity-contact-consent.v1',true);raise exception 'cooldown not enforced';exception when raise_exception then if sqlerrm='cooldown not enforced' then raise;end if;end;
+            begin perform public.comun_create_solidarity_need_interest_v1('a5000000-0000-4000-8000-000000000103','a5000000-0000-4000-8000-000000000023','a5000000-0000-4000-8000-000000000001','Posso apoiar esta necessidade territorial.','@contato-seguro','comun.solidarity-contact-consent.v1',true);raise exception 'territory-only need accepted';exception when raise_exception then if sqlerrm='territory-only need accepted' then raise;end if;end;
+            select interest_id into archived_interest from public.comun_create_solidarity_offer_interest_v1('a5000000-0000-4000-8000-000000000113','a5000000-0000-4000-8000-000000000025','a5000000-0000-4000-8000-000000000001','Interesse criado antes do arquivamento.','@contato-seguro','comun.solidarity-contact-consent.v1',true);
+            update public.comun_solidarity_offers set status='archived' where id='a5000000-0000-4000-8000-000000000025';
+            begin perform public.comun_review_solidarity_connection_v1('offer',archived_interest,'a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000003','accept');raise exception 'archived subject accepted';exception when raise_exception then if sqlerrm='archived subject accepted' then raise;end if;end;
+            perform public.comun_review_solidarity_connection_v1('offer',archived_interest,'a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000003','reject');
+            insert into public.comun_territorial_need_interests(need_id,public_alias,contact_private,offer_private,consent_to_contact,status) values('a5000000-0000-4000-8000-000000000022','Legado','contato legado','Ajuda histórica',false,'contacted');
+            if not exists(select 1 from public.comun_territorial_need_interests where status='contacted' and member_user_id is null) then raise exception 'legacy contacted invalidated';end if;
+            insert into public.comun_solidarity_offers(slug,organization_territory_id,title,public_summary,offer_kind,modalities,status,reviewed_at,published_at,valid_until)
+              select 'a5-pending-rate-'||g,'a5000000-0000-4000-8000-000000000011','Oferta limite '||g,'Oferta descartável para limite pendente.','service',array['cooperation'],'published',now(),now(),now()+interval '30 days' from generate_series(1,10) g;
+            insert into private.comun_solidarity_offer_interests(offer_id,organization_territory_id,member_user_id,create_request_id,message_private,contact_private,consent_to_contact,consent_version,consented_at,state)
+              select id,'a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000001',gen_random_uuid(),'Mensagem segura para testar limite.','@contato-seguro',true,'comun.solidarity-contact-consent.v1',now(),'pending' from public.comun_solidarity_offers where slug like 'a5-pending-rate-%';
+            begin perform public.comun_create_solidarity_offer_interest_v1('a5000000-0000-4000-8000-000000000114','a5000000-0000-4000-8000-000000000027','a5000000-0000-4000-8000-000000000001','A décima primeira pendente deve falhar.','@contato-seguro','comun.solidarity-contact-consent.v1',true);raise exception 'pending limit not enforced';exception when raise_exception then if sqlerrm='pending limit not enforced' then raise;end if;end;
+            update private.comun_solidarity_offer_interests set state='withdrawn',contact_private=null,consent_to_contact=false,withdrawn_at=now() where member_user_id='a5000000-0000-4000-8000-000000000001' and state='pending';
+            insert into public.comun_solidarity_offers(slug,organization_territory_id,title,public_summary,offer_kind,modalities,status,reviewed_at,published_at,valid_until)
+              select 'a5-daily-rate-'||g,'a5000000-0000-4000-8000-000000000011','Oferta diária '||g,'Oferta descartável para limite diário.','service',array['cooperation'],'published',now(),now(),now()+interval '30 days' from generate_series(1,20) g;
+            insert into private.comun_solidarity_offer_interests(offer_id,organization_territory_id,member_user_id,create_request_id,message_private,contact_private,consent_to_contact,consent_version,consented_at,state,withdrawn_at)
+              select id,'a5000000-0000-4000-8000-000000000011','a5000000-0000-4000-8000-000000000001',gen_random_uuid(),'Mensagem segura para limite diário.',null,false,'comun.solidarity-contact-consent.v1',now(),'withdrawn',now() from public.comun_solidarity_offers where slug like 'a5-daily-rate-%';
+            begin perform public.comun_create_solidarity_offer_interest_v1('a5000000-0000-4000-8000-000000000115','a5000000-0000-4000-8000-000000000027','a5000000-0000-4000-8000-000000000001','A conexão acima do limite diário falha.','@contato-seguro','comun.solidarity-contact-consent.v1',true);raise exception 'daily limit not enforced';exception when raise_exception then if sqlerrm='daily limit not enforced' then raise;end if;end;
+            if exists(select 1 from private.comun_solidarity_offer_interests where offer_id='a5000000-0000-4000-8000-000000000027') then raise exception 'rate limit wrote partial row';end if;
+            if exists(select 1 from public.comun_pauta_memberships where member_user_id='a5000000-0000-4000-8000-000000000001') or exists(select 1 from public.comun_community_memberships where member_user_id='a5000000-0000-4000-8000-000000000001') or exists(select 1 from public.comun_collective_action_participations where member_user_id='a5000000-0000-4000-8000-000000000001') then raise exception 'social propagation';end if;
+          end $$;
+          do $$ begin
+            if not(select relrowsecurity and relforcerowsecurity from pg_class where oid='private.comun_solidarity_offer_interests'::regclass) then raise exception 'offer interest rls open';end if;
+            if has_table_privilege('anon','private.comun_solidarity_offer_interests','SELECT,INSERT,UPDATE,DELETE') or has_table_privilege('authenticated','public.comun_territorial_need_interests','SELECT,INSERT,UPDATE,DELETE') then raise exception 'client table access open';end if;
+            if has_function_privilege('anon','public.comun_create_solidarity_offer_interest_v1(uuid,uuid,uuid,text,text,text,boolean)','EXECUTE') or has_function_privilege('authenticated','public.comun_review_solidarity_connection_v1(text,uuid,uuid,uuid,text)','EXECUTE') then raise exception 'client rpc open';end if;
+          end $$;
+          rollback;
+          SQL
+          echo COMUN_48_4_A5_DISPOSABLE_PRIVATE_CONNECTIONS_GREEN >>"$GITHUB_STEP_SUMMARY"
+          echo businessWritesAfterRollback=0 >>"$GITHUB_STEP_SUMMARY"
+          echo ordersPaymentsChatsCreated=0 >>"$GITHUB_STEP_SUMMARY"
