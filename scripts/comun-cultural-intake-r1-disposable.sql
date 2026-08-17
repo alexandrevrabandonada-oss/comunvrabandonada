@@ -12,7 +12,7 @@ create temporary table r1_specialized_counts (table_name text primary key, row_c
 do $$
 declare v_table text; v_count bigint;
 begin
-  foreach v_table in array['comun_archive_submissions','comun_archive_artwork_submissions','comun_archive_oral_history_suggestions','comun_radio_contributions','comun_archive_items'] loop
+  foreach v_table in array array['comun_archive_submissions','comun_archive_artwork_submissions','comun_archive_oral_history_suggestions','comun_radio_contributions','comun_archive_items'] loop
     if to_regclass('public.' || v_table) is not null then
       execute format('select count(*) from public.%I', v_table) into v_count;
       insert into r1_specialized_counts values (v_table, v_count);
@@ -66,7 +66,7 @@ begin
     raise exception 'forbidden authorization/output field in read RPC: %', v_forbidden;
   end if;
 
-  foreach v_protocol in array['photo_or_document','art','oral_history','radio','unknown'] loop
+  foreach v_protocol in array array['photo_or_document','art','oral_history','radio','unknown'] loop
     select * into v_created
       from public.comun_create_cultural_contribution_intake_v1(
         'Rota descartável ' || v_protocol, 'r1-disposable', gen_random_uuid(),
@@ -84,7 +84,7 @@ begin
     raise exception 'specialized target was created in A2-R1';
   end if;
 
-  foreach v_table in array['comun_archive_submissions','comun_archive_artwork_submissions','comun_archive_oral_history_suggestions','comun_radio_contributions','comun_archive_items'] loop
+  foreach v_table in array array['comun_archive_submissions','comun_archive_artwork_submissions','comun_archive_oral_history_suggestions','comun_radio_contributions','comun_archive_items'] loop
     if to_regclass('public.' || v_table) is not null then
       select row_count into v_before from r1_specialized_counts where table_name = v_table;
       execute format('select count(*) from public.%I', v_table) into v_after;
