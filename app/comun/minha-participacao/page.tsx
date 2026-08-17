@@ -123,8 +123,7 @@ export default async function MinhaAreaPage({
     isComunSolidarityOrganizationOnboardingEnabled();
   const privateConnectionsEnabled =
     isComunSolidarityPrivateConnectionsEnabled();
-  const solidarityEconomyEnabled =
-    isComunSolidarityEconomyPublicCoreEnabled();
+  const solidarityEconomyEnabled = isComunSolidarityEconomyPublicCoreEnabled();
   const optionalCommunitySession = walletEnabled
     ? await getCommunitySession()
     : null;
@@ -573,8 +572,15 @@ export default async function MinhaAreaPage({
       !organizationAccesses.length &&
       !solidarityConnections.length &&
       !organizationOnboardings.length ? (
-        <SingleEmpty href={solidarityEconomyEnabled ? "/comun/cooperativas" : "/comun/explorar"} title="Nada acompanhado">
-          {solidarityEconomyEnabled ? "Conhecer a Feirinha" : "Explorar comunidades"}
+        <SingleEmpty
+          href={
+            solidarityEconomyEnabled ? "/comun/cooperativas" : "/comun/explorar"
+          }
+          title="Nada acompanhado"
+        >
+          {solidarityEconomyEnabled
+            ? "Conhecer a Feirinha"
+            : "Explorar comunidades"}
         </SingleEmpty>
       ) : null}
       {selected === "tarefas" &&
@@ -838,13 +844,17 @@ function MinhaAreaAppV2({
               {solidarityEconomyEnabled &&
               !organizationAccesses.length &&
               !solidarityConnections.length &&
-              !organizationOnboardings.some((item) => item.state !== "approved") ? (
+              !organizationOnboardings.some(
+                (item) => item.state !== "approved",
+              ) ? (
                 <ComunStatePanel
                   state="empty"
                   actionHref={withComunAppV2("/comun/cooperativas")}
                   actionLabel="Conhecer a Feirinha"
                 >
-                  Você ainda não participa de uma organização nem acompanha interesses ou ajudas. Isso não significa que não existam iniciativas: conheça o que já foi publicado no COMUN.
+                  Você ainda não participa de uma organização nem acompanha
+                  interesses ou ajudas. Isso não significa que não existam
+                  iniciativas: conheça o que já foi publicado no COMUN.
                 </ComunStatePanel>
               ) : null}
               {organizationAccesses.length ? (
