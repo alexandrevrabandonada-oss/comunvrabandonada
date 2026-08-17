@@ -3,6 +3,7 @@ import { listPublicArtworks } from "@/lib/archive/territorial-art";
 import { listPublicOralHistories } from "@/lib/archive/oral-history";
 import { listPublicReleases } from "@/lib/archive/local-music";
 import { listPublicRadio } from "@/lib/radio";
+import { isPublicArchiveAssetEligible } from "@/lib/archive/public-gates";
 
 export type PublicMemoryAssetV1 = {
   id: string;
@@ -45,14 +46,13 @@ export type PublicMemoryCollectionV1 = {
 
 export type PublicMemoryDirectoryV1 = {
   artifacts: PublicMemoryArtifactV1[];
-  collections: PublicMemoryCollectionV1[];
   availability: "available" | "partially_available" | "unavailable";
   limitations: string[];
 };
 
 function assetDto(asset: ArchiveAsset): PublicMemoryAssetV1 | null {
-  if (asset.bucket_scope !== "public_safe" || asset.review_status !== "approved" || !asset.public_url) return null;
-  return { id: asset.id, role: asset.asset_role, publicUrl: asset.public_url, mimeType: asset.mime_type, altText: asset.alt_text, credits: asset.credits };
+  if (!isPublicArchiveAssetEligible(asset)) return null;
+  return { id: asset.id, role: asset.asset_role, publicUrl: asset.public_url!, mimeType: asset.mime_type, altText: asset.alt_text, credits: asset.credits };
 }
 
 function genericArtifact(item: ArchiveItem & { assets: ArchiveAsset[] }): PublicMemoryArtifactV1 {
@@ -65,6 +65,13 @@ function genericArtifact(item: ArchiveItem & { assets: ArchiveAsset[] }): Public
     canonicalHref: item.item_type === "territorial_artwork" ? `/comun/acervo/arte/${item.slug}` : `/comun/acervo/${item.slug}`,
     specialization: "generic", limitations: [],
   };
+}
+
+function specializedArtifact(row: Record<string, unknown>, specialization: PublicMemoryArtifactV1["specialization"], hrefPrefix: string): PublicMemoryArtifactV1 | null {
+  const item = (row.item ?? row) as Record<string, unknown>;
+  const id = String(item.id ?? row.archive_item_id ?? ""); const slug = String(item.slug ?? row.slug_public ?? row.public_slug ?? ""); const title = String(item.title ?? row.title_public ?? row.interview_title ?? "");
+  if (!id || !slug || !title) return null;
+  return { id, slug, kind: specialization, title, summary: (item.summary ?? row.summary_public ?? row.public_summary ?? null) as string | null, description: (item.description ?? row.description_public ?? null) as string | null, approximateDate: (item.approximate_date ?? row.interview_date_approximate ?? null) as string | null, yearStart: (item.year_start ?? null) as number | null, yearEnd: (item.year_end ?? null) as number | null, circa: Boolean(item.circa), place: (item.place_name ?? null) as string | null, territory: ((row.territory as Record<string, unknown> | null)?.name ?? null) as string | null, source: (item.source_name ?? null) as string | null, credits: (item.credits ?? null) as string | null, rights: "public", assets: [], canonicalHref: `${hrefPrefix}/${slug}`, specialization, limitations: [] };
 }
 
 /** Canonical, server-only public projection. Specialized readers remain authoritative. */
@@ -82,10 +89,13 @@ export async function getPublicMemoryDirectory(input: { page?: number; pageSize?
   const radioIds = new Set((radio.episodes ?? []).map((x: { archive_item_id?: string }) => x.archive_item_id));
   const artifacts = (root as Array<ArchiveItem & { assets: ArchiveAsset[] }>)
     .filter((item) => !specialized.has(item.id) && !oralIds.has(item.id) && !musicIds.has(item.id) && !radioIds.has(item.id))
-    .map(genericArtifact);
+    .map(genericArtifact)
+    .concat((art.items ?? []).flatMap((x: Record<string, unknown>) => { const v = specializedArtifact(x, "art", "/comun/acervo/arte"); return v ? [v] : []; }))
+    .concat((music.items ?? []).flatMap((x: Record<string, unknown>) => { const v = specializedArtifact(x, "music", "/comun/acervo/musica"); return v ? [v] : []; }))
+    .concat((oral.items ?? []).flatMap((x: Record<string, unknown>) => { const v = specializedArtifact(x, "oral_history", "/comun/acervo/historias-orais"); return v ? [v] : []; }))
+    .concat((radio.episodes ?? []).flatMap((x: Record<string, unknown>) => { const v = specializedArtifact(x, "radio", "/comun/radio/episodios"); return v ? [v] : []; }));
   return {
     artifacts,
-    collections: [],
     availability: root.length || art.items?.length || oral.items?.length || music.items?.length || radio.episodes?.length ? "available" : "partially_available",
     limitations: ["Especializações só aparecem quando seus próprios direitos, consentimentos e segurança estão validados."],
   };

@@ -133,6 +133,12 @@ Preservados: A1–A4, flags correspondentes habilitadas em Production,
 `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e
 `launch_publicly=false`.
 
+## 48.5-A1-R1
+
+Revisão de hardening do Acervo Vivo: paridade list/detail, direitos explícitos
+de assets, gates especializados de Rádio/Arte/Música, coleções sem bypass e
+projeção especializada fail-closed. A2 permanece bloqueado até o terminal R1.
+
 ## 48.5-A1 — Acervo Vivo
 
 Após o A0, `comun_archive_items` permanece a raiz canônica de memória e a

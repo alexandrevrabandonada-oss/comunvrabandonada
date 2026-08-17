@@ -1,4 +1,5 @@
 import { RADIO_V1_MEDIA_PROFILE } from "./radio-media-profile.mjs";
+import { isPublicArchiveAssetEligible, resolvePublicRadioEpisodeEligibility } from "@/lib/archive/public-gates";
 
 export const radioFormats = [
   "news",
@@ -75,7 +76,7 @@ export async function listPublicRadio() {
       db
         .from("comun_radio_episodes")
         .select(
-          "archive_item_id,program_item_id,title_public,slug_public,summary_public,published_at,duration_seconds,transcript_status,territory:comun_hub_territories(slug,name,visibility,status),pauta:comun_pauta_spaces(slug,title,visibility,status),action:comun_mobilization_actions(slug,title,visibility,status),comun_archive_assets(asset_role,bucket_scope,public_url,review_status)",
+          "archive_item_id,program_item_id,title_public,slug_public,summary_public,published_at,duration_seconds,transcript_status,territory:comun_hub_territories(slug,name,visibility,status),pauta:comun_pauta_spaces(slug,title,visibility,status),action:comun_mobilization_actions(slug,title,visibility,status),comun_archive_assets(asset_role,bucket_scope,public_url,rights_status,review_status)",
         )
         .eq("publication_status", "published")
         .order("published_at", { ascending: false })
@@ -98,7 +99,7 @@ export async function listPublicRadio() {
   const consentById = new Map<string, any[]>(); for (const row of consents ?? []) consentById.set(row.episode_item_id, [...(consentById.get(row.episode_item_id) ?? []), row]);
   const musicById = new Map<string, any[]>(); for (const row of music ?? []) musicById.set(row.episode_item_id, [...(musicById.get(row.episode_item_id) ?? []), row]);
   const safetyById = new Map((safety ?? []).map((x: any) => [x.episode_item_id, x]));
-  const eligibleEpisode = (episode: any) => { const root = rootById.get(episode.archive_item_id); const c = consentById.get(episode.archive_item_id) ?? []; const m = musicById.get(episode.archive_item_id) ?? []; const s = safetyById.get(episode.archive_item_id); return Boolean(root?.status === "published" && root.visibility === "public" && root.published_at && c.length && c.every((x) => x.consent_status === "approved" && x.allow_comun_audio) && m.every((x) => ["approved", "public_domain_verified"].includes(x.rights_status) && x.allow_streaming) && (!s || s.reinforced_review_status === "not_required" || s.reinforced_review_status === "approved")); };
+  const eligibleEpisode = (episode: any) => resolvePublicRadioEpisodeEligibility({ root: rootById.get(episode.archive_item_id), publicationStatus: episode.publication_status ?? "published", consents: consentById.get(episode.archive_item_id), music: musicById.get(episode.archive_item_id), safetyStatus: safetyById.get(episode.archive_item_id)?.reinforced_review_status, hasPublicAsset: (episode.comun_archive_assets ?? []).some(isPublicArchiveAssetEligible), transcriptStatus: episode.transcript_status });
   return {
     programs: (programs ?? []).filter(
       (program: any) =>
@@ -110,9 +111,7 @@ export async function listPublicRadio() {
         ...episode,
         comun_archive_assets: (episode.comun_archive_assets ?? []).filter(
           (asset: any) =>
-            asset.bucket_scope === "public_safe" &&
-            asset.review_status === "approved" &&
-            Boolean(asset.public_url),
+            isPublicArchiveAssetEligible(asset),
         ),
       }))
       .filter(
@@ -168,7 +167,7 @@ export async function getPublicEpisode(slug: string) {
       .maybeSingle(),
     db
       .from("comun_archive_assets")
-      .select("asset_role,public_url,review_status")
+      .select("id,asset_role,public_url,rights_status,bucket_scope,review_status")
       .eq("archive_item_id", e.archive_item_id)
       .eq("bucket_scope", "public_safe")
       .eq("review_status", "approved")
@@ -198,6 +197,13 @@ export async function getPublicEpisode(slug: string) {
       .eq("episode_item_id", e.archive_item_id)
       .order("position"),
   ]);
+  const [{ data: root }, { data: consents }, { data: musicUses }, { data: safety }] = await Promise.all([
+    db.from("comun_archive_items").select("status,visibility,published_at").eq("id", e.archive_item_id).maybeSingle(),
+    db.from("comun_radio_voice_consents").select("consent_status,allow_comun_audio,valid_from,valid_until").eq("episode_item_id", e.archive_item_id),
+    db.from("comun_radio_music_uses").select("rights_status,allow_streaming").eq("episode_item_id", e.archive_item_id),
+    db.from("comun_radio_safety_reviews").select("reinforced_review_status").eq("episode_item_id", e.archive_item_id).maybeSingle(),
+  ]);
+  if (!resolvePublicRadioEpisodeEligibility({ root, publicationStatus: "published", consents: consents ?? [], music: musicUses ?? [], safetyStatus: safety?.reinforced_review_status, hasPublicAsset: (assets ?? []).some(isPublicArchiveAssetEligible), transcriptStatus: e.transcript_status })) return null;
   return {
     ...e,
     comun_radio_programs: program,
