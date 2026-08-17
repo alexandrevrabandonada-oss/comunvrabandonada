@@ -1,0 +1,187 @@
+name: COMUN 48.5-A0 culture memory radio reconciliation preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-5-a0-culture-memory-radio-preflight.yml"
+      - "lib/comun-culture-memory-architecture.ts"
+      - "lib/comun-culture-memory-architecture.test.ts"
+      - "reports/current/comun-48-5-a0-culture-memory-radio-reconciliation.md"
+      - "reports/current/estado-atual-comun.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remote-metadata-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
+
+      - name: Validate exact baseline and zero migration scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_DB_URL:-}"
+          test -n "${SUPABASE_PROJECT_REF:-}"
+          case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
+          git merge-base --is-ancestor acd90657c221b7159b70f9ca1d91c9f36a5358b9 HEAD
+          mapfile -t changed < <(git diff --name-only acd90657c221b7159b70f9ca1d91c9f36a5358b9...HEAD -- supabase/migrations)
+          if [ "${#changed[@]}" -ne 0 ]; then
+            echo COMUN_48_5_A0_BLOCKED_UNEXPECTED_MIGRATION
+            exit 1
+          fi
+
+      - name: Inspect culture metadata in a read-only transaction
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/48-5-a0-preflight
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/48-5-a0-preflight/schema.json <<'SQL'
+          begin read only;
+          with scoped_tables(table_name) as (
+            values
+              ('comun_archive_items'), ('comun_archive_assets'),
+              ('comun_archive_collections'), ('comun_archive_collection_items'), ('comun_archive_relations'),
+              ('comun_archive_submissions'), ('comun_archive_submission_assets'),
+              ('comun_archive_item_suggestions'), ('comun_archive_rights_removal_requests'),
+              ('comun_archive_processing_jobs'), ('comun_archive_artist_profiles'),
+              ('comun_archive_music_releases'), ('comun_archive_music_tracks'),
+              ('comun_archive_music_rights_reviews'), ('comun_archive_oral_histories'),
+              ('comun_archive_oral_history_participants'), ('comun_archive_oral_history_consents'),
+              ('comun_archive_oral_history_transcript_versions'), ('comun_archive_oral_history_segments'),
+              ('comun_archive_oral_history_withdrawals'), ('comun_archive_agents'),
+              ('comun_archive_artworks'), ('comun_archive_artwork_credits'),
+              ('comun_archive_artwork_rights'), ('comun_archive_artwork_safety_reviews'),
+              ('comun_archive_artwork_submissions'), ('comun_archive_identification_campaigns'),
+              ('comun_archive_identification_items'), ('comun_radio_programs'),
+              ('comun_radio_episodes'), ('comun_radio_voice_consents'),
+              ('comun_radio_music_uses'), ('comun_radio_transcript_versions'),
+              ('comun_radio_schedule_entries'), ('comun_radio_contributions'),
+              ('comun_hub_archive_links'), ('comun_search_documents')
+          ), scoped_buckets(bucket_id) as (
+            values ('artwork-private-originals'), ('artwork-public-derivatives'),
+                   ('radio-private-originals'), ('radio-public-audio')
+          )
+          select json_build_object(
+            'transactionReadOnly', current_setting('transaction_read_only') = 'on',
+            'businessContentRead', false,
+            'mediaContentRead', false,
+            'tablesPresent', (select count(*) = 37 from scoped_tables s where to_regclass('public.' || s.table_name) is not null),
+            'rlsEnabled', (
+              select coalesce(bool_and(c.relrowsecurity), false)
+              from scoped_tables s join pg_catalog.pg_class c on c.oid = to_regclass('public.' || s.table_name)
+            ),
+            'tableMetadata', (
+              select json_agg(json_build_object(
+                'table', s.table_name, 'rls', c.relrowsecurity, 'forceRls', c.relforcerowsecurity,
+                'anonSelect', has_table_privilege('anon', 'public.' || s.table_name, 'SELECT'),
+                'authenticatedSelect', has_table_privilege('authenticated', 'public.' || s.table_name, 'SELECT'),
+                'anonWrite', has_table_privilege('anon', 'public.' || s.table_name, 'INSERT,UPDATE,DELETE'),
+                'authenticatedWrite', has_table_privilege('authenticated', 'public.' || s.table_name, 'INSERT,UPDATE,DELETE')
+              ) order by s.table_name)
+              from scoped_tables s join pg_catalog.pg_class c on c.oid = to_regclass('public.' || s.table_name)
+            ),
+            'clientWritesClosed', (
+              select bool_and(
+                not has_table_privilege('anon', 'public.' || s.table_name, 'INSERT') and
+                not has_table_privilege('anon', 'public.' || s.table_name, 'UPDATE') and
+                not has_table_privilege('anon', 'public.' || s.table_name, 'DELETE') and
+                not has_table_privilege('authenticated', 'public.' || s.table_name, 'INSERT') and
+                not has_table_privilege('authenticated', 'public.' || s.table_name, 'UPDATE') and
+                not has_table_privilege('authenticated', 'public.' || s.table_name, 'DELETE')
+              ) from scoped_tables s
+            ),
+            'foreignKeys', (
+              select coalesce(json_agg(json_build_object('table', s.table_name, 'name', k.conname, 'definition', pg_get_constraintdef(k.oid)) order by s.table_name, k.conname), '[]'::json)
+              from scoped_tables s join pg_constraint k on k.conrelid = to_regclass('public.' || s.table_name) and k.contype = 'f'
+            ),
+            'constraints', (
+              select coalesce(json_agg(json_build_object('table', s.table_name, 'name', k.conname, 'type', k.contype, 'definition', pg_get_constraintdef(k.oid)) order by s.table_name, k.conname), '[]'::json)
+              from scoped_tables s join pg_constraint k on k.conrelid = to_regclass('public.' || s.table_name)
+            ),
+            'indexes', (
+              select coalesce(json_agg(json_build_object('table', i.tablename, 'name', i.indexname, 'definition', i.indexdef) order by i.tablename, i.indexname), '[]'::json)
+              from pg_indexes i join scoped_tables s on s.table_name = i.tablename where i.schemaname = 'public'
+            ),
+            'policies', (
+              select coalesce(json_agg(json_build_object('schema', p.schemaname, 'table', p.tablename, 'name', p.policyname, 'roles', p.roles, 'command', p.cmd, 'usingPresent', p.qual is not null, 'checkPresent', p.with_check is not null) order by p.tablename, p.policyname), '[]'::json)
+              from pg_policies p where (p.schemaname = 'public' and p.tablename in (select table_name from scoped_tables)) or (p.schemaname = 'storage' and p.tablename = 'objects')
+            ),
+            'functions', (
+              select coalesce(json_agg(json_build_object('schema', n.nspname, 'name', p.proname, 'securityDefiner', p.prosecdef) order by p.proname), '[]'::json)
+              from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+              where n.nspname = 'public' and (p.proname like '%archive%' or p.proname like '%radio%' or p.proname like '%search%')
+            ),
+            'bucketsPresent', (select count(*) = 4 from scoped_buckets s join storage.buckets b on b.id = s.bucket_id),
+            'bucketMetadata', (
+              select json_agg(json_build_object('id', b.id, 'public', b.public, 'fileSizeLimit', b.file_size_limit, 'allowedMimeTypes', b.allowed_mime_types) order by b.id)
+              from scoped_buckets s join storage.buckets b on b.id = s.bucket_id
+            )
+          );
+          rollback;
+          SQL
+
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const state = JSON.parse(fs.readFileSync('.ci-artifacts/48-5-a0-preflight/schema.json', 'utf8'));
+          for (const key of ['transactionReadOnly','tablesPresent','rlsEnabled','clientWritesClosed','bucketsPresent']) {
+            if (state[key] !== true) throw new Error(`COMUN_48_5_A0_BLOCKED_REMOTE_SCHEMA_DRIFT:${key}`);
+          }
+          if (state.businessContentRead !== false || state.mediaContentRead !== false) {
+            throw new Error('COMUN_48_5_A0_BLOCKED_REMOTE_CONTENT_READ');
+          }
+          for (const key of ['tableMetadata','foreignKeys','constraints','indexes','policies','functions','bucketMetadata']) {
+            if (!Array.isArray(state[key])) throw new Error(`COMUN_48_5_A0_BLOCKED_REMOTE_METADATA_MISSING:${key}`);
+          }
+          fs.writeFileSync('.ci-artifacts/48-5-a0-preflight/result.json', JSON.stringify({
+            result: 'COMUN_48_5_A0_REMOTE_METADATA_GREEN', transactionReadOnly: true,
+            businessContentRead: false, mediaContentRead: false, tablesAudited: 37,
+            storageBucketsAudited: 4, clientWritesClosed: true
+          }) + '\n');
+          NODE
+
+      - name: Prove remote migration plan is empty
+        shell: bash
+        run: |
+          set -euo pipefail
+          external="supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql"
+          test "$(sha256sum "$external" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+          held="$RUNNER_TEMP/comun-48-5-a0-external-ledger.sql"
+          mv "$external" "$held"
+          restore() { test ! -e "$held" || mv "$held" "$external"; }
+          trap restore EXIT
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-5-a0-preflight/dry-run.txt 2>&1
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-5-a0-preflight/dry-run.txt | sort -u || true)
+          test "${#planned[@]}" -eq 0
+          printf '{"result":"COMUN_48_5_A0_REMOTE_PLAN_EMPTY_GREEN","migrationCount":0,"businessContentRead":false,"mediaContentRead":false}\n' >.ci-artifacts/48-5-a0-preflight/migration-plan.json
+          restore
+          trap - EXIT
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-5-a0-remote-preflight-${{ github.run_id }}
+          path: .ci-artifacts/48-5-a0-preflight
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Emit sanitized preflight result
+        if: success()
+        run: |
+          echo "transactionReadOnly=true" >> "$GITHUB_STEP_SUMMARY"
+          echo "businessContentRead=false" >> "$GITHUB_STEP_SUMMARY"
+          echo "mediaContentRead=false" >> "$GITHUB_STEP_SUMMARY"
+          echo "migrationCount=0" >> "$GITHUB_STEP_SUMMARY"
+          echo "COMUN_48_5_A0_REMOTE_METADATA_GREEN" >> "$GITHUB_STEP_SUMMARY"

@@ -1,4 +1,38 @@
-# Estado atual — 48.4-A7 Fechamento da economia solidária (17/08/2026)
+# Estado atual — 48.5-A0 Reconciliação de cultura, memória e rádio (17/08/2026)
+
+## 48.5-A0 — Inventário antes de construir
+
+- `comun_archive_items` foi comprovado como substrato canônico compartilhado;
+  Arte, Música, História Oral, Programa e Episódio de Rádio são
+  especializações com gates próprios;
+- `/comun/acervo` é a superfície canônica de memória;
+  `/comun/acervo/arte` é a superfície canônica de Arte e `/comun/arte`
+  permanece rota de compatibilidade até merge futuro explícito;
+- Rádio é superfície editorial cultural canônica: programa, episódio e grade
+  continuam semanticamente distintos;
+- direitos, licença de reutilização, consentimento, storage e publicação são
+  fronteiras independentes e fail-closed;
+- História Oral mantém material bruto/transcrição privada separados de
+  trechos, áudio e identidade consentidos;
+- pesquisa acadêmica reutiliza `document` com extensão bibliográfica futura;
+- Civic Search permanece derivado; Pauta memory, território, comunidade e
+  ação só se ligam por relação explícita, sem IA ou join textual;
+- child-gate gaps de Arte, Rádio, facets de Música e claims de identificação
+  estão registrados para A1, sem correção silenciosa;
+- zero migration, schema, UI, API, flag, deploy funcional, upload, publicação,
+  alteração de rights ou business write;
+- próximo slice decidido: `48.5-A1 — Acervo Vivo, núcleo público canônico de
+memória`.
+
+Detalhes:
+`reports/current/comun-48-5-a0-culture-memory-radio-reconciliation.md`.
+
+Estado terminal condicionado ao merge e preflight remoto verde:
+`COMUN_48_5_A0_CULTURE_MEMORY_RADIO_RECONCILIATION_CONTRACT_GREEN`.
+
+A1 não foi iniciado.
+
+# Estado anterior — 48.4-A7 Fechamento da economia solidária (17/08/2026)
 
 ## 48.4-A7 — Coerência ponta a ponta, sem novo domínio
 
