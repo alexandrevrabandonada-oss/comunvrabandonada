@@ -2796,3 +2796,22 @@ município–conjunto antes de qualquer snapshot ou Observatório de energia.
 Permanecem preservados `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`,
 auto-publicação OFF, mapa geral Relata OFF, coletivos OFF e
 `launch_publicly=false`.
+### 48.5-A2-R1 — Intake cultural save-first operacional (2026-08-17)
+
+Estado atual: `COMUN_48_5_A2_R1_CULTURAL_SAVE_FIRST_OPERATIONAL_GREEN_PRIVATE_RESUME_ROUTE_SELECTION`.
+
+- A2 significa somente `SAVE-FIRST_PRIVATE_INTAKE` e `EXPLICIT_ROUTE_SELECTION`;
+  não cria alvo ou submissão cultural especializada.
+- A retomada privada usa RPC service-role-only com cookie HttpOnly ou conta
+  vinculada; protocolo sem autorização, token errado e outra conta retornam
+  404 sem vazamento.
+- Rotas conhecidas passam a `routed`; `unknown` permanece `routing`.
+  `target_kind` e `target_id` ficam nulos e todos os contadores de handoff
+  especializado permanecem inalterados.
+- Migration R1: `20260817170000_comun_cultural_contribution_intakes_r1.sql`.
+  `COMUN_48_5_A2_SPECIALIZED_TARGET_HANDOFF_DEFERRED_TO_A3`.
+- Wave 0 foi mantida com flag OFF e Wave 1 habilita somente
+  `COMUN_CULTURAL_SAVE_FIRST_INTAKE_ENABLED`; Production usa GET/HEAD e
+  businessWrites=0.
+
+### 48.5-A2 — Intake cultural save-first
