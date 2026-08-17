@@ -18,6 +18,7 @@ create table private.comun_cultural_contribution_intakes(
 alter table private.comun_cultural_contribution_intakes enable row level security;
 alter table private.comun_cultural_contribution_intakes force row level security;
 revoke all on private.comun_cultural_contribution_intakes from public,anon,authenticated;
+revoke all on table private.comun_cultural_contribution_intakes from public,anon,authenticated;
 grant select,insert,update,delete on private.comun_cultural_contribution_intakes to service_role;
 create index comun_cultural_intakes_member_idx on private.comun_cultural_contribution_intakes(member_user_id,created_at desc);
 create index comun_cultural_intakes_resume_idx on private.comun_cultural_contribution_intakes(resume_token_hash) where resume_token_hash is not null;
