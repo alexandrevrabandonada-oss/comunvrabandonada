@@ -14,12 +14,29 @@
   são impostos no banco;
 - rota única `/comun/cooperativas/[slug]/editar-perfil`, uma tela, draft local,
   `returnTo` e flag fail-closed dependente somente de A1+A2;
-- preflight, descartável, CI, merge e rollout permanecem pendentes antes do
-  terminal A6;
+- PR funcional `#340`, head exato
+  `6ebb894ae99a6c2a4e75c4318689814ce93a9200`, integrada no merge/main
+  `3d974b0d610425469a473a8d2a10e384fd898002`;
+- preflight metadata-only `31986701720` e prova Supabase descartável
+  `31986701685` verdes; 1.069 testes, typecheck, lint, build e gates aplicáveis
+  do head funcional verdes;
+- Wave 0 `31988907854` promoveu somente a migration A6, comprovou o postflight
+  e manteve a flag desligada; Wave 1 `31989059174` habilitou somente a
+  autogestão do perfil;
+- smokes Production `GET/HEAD` verdes, `businessWrites=0`, zero fixture e
+  empty state real por ausência de organização pública elegível;
+- QA visual 390×844 e 1440×900 confirmou Feirinha íntegra, sem overflow nem
+  campos privados no HTML; o fluxo autenticado foi validado no descartável,
+  sem fabricar sujeito em Production;
 - A1–A5, piloto Motorola pausado e `launch_publicly=false` permanecem
   preservados.
 
 Detalhes: `reports/current/comun-48-4-a6-organization-profile-self-management.md`.
+
+Estado terminal:
+`COMUN_48_4_A6_ORGANIZATION_PROFILE_SELF_MANAGEMENT_GREEN_LOW_RISK_FIELDS_NO_IDENTITY_MUTATION`.
+
+A7 não foi iniciado.
 
 # Estado anterior — 48.4-A5 Conexão privada e consentida (16/08/2026)
 
