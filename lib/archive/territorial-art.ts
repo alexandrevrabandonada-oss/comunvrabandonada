@@ -166,7 +166,7 @@ export async function listPublicArtworks(
   let query = db
     .from("comun_archive_items" as never)
     .select(
-      "id,slug,title,summary,published_at,comun_archive_artworks!inner(artwork_type,title_public,description_public,context_public,creation_year,creation_period_public,technique_public,materials_public,territory_id,long_description_public,territory:comun_hub_territories(id,slug,name,visibility)),comun_archive_assets(id,asset_role,bucket_scope,review_status,public_url,alt_text,credits,width,height),comun_archive_artwork_credits(public_credit,credit_role,position),comun_archive_artwork_rights(required_credit_public,license_public,allow_download,allow_social_media)" as never,
+      "id,slug,title,summary,published_at,comun_archive_artworks!inner(artwork_type,title_public,description_public,context_public,creation_year,creation_period_public,technique_public,materials_public,territory_id,long_description_public,territory:comun_hub_territories(id,slug,name,visibility)),comun_archive_assets(id,asset_role,bucket_scope,review_status,public_url,alt_text,credits,width,height),comun_archive_artwork_credits(public_credit,credit_role,position),comun_archive_artwork_rights(consent_status,allow_comun_display,valid_from,valid_until,embargo_until,required_credit_public,license_public,allow_download,allow_social_media),comun_archive_artwork_safety_reviews(reinforced_review_status)" as never,
       { count: "exact" },
     )
     .eq("item_type" as never, "territorial_artwork")
@@ -189,7 +189,10 @@ export async function listPublicArtworks(
       territoryId,
     );
   const { data, count } = await query;
-  const items = ((data || []) as any[]).map((item) => ({
+  const items = ((data || []) as any[]).filter((item) => {
+    const rights = item.comun_archive_artwork_rights?.[0]; const safety = item.comun_archive_artwork_safety_reviews?.[0];
+    return rights && rights.allow_comun_display && ["granted", "partially_granted"].includes(rights.consent_status) && (!rights.embargo_until || new Date(rights.embargo_until).getTime() <= Date.now()) && (!rights.valid_until || rights.valid_until >= new Date().toISOString().slice(0, 10)) && (!safety || ["not_required", "approved"].includes(safety.reinforced_review_status));
+  }).map((item) => ({
     ...item,
     comun_archive_assets: (item.comun_archive_assets || []).filter(
       (asset: any) =>
@@ -219,7 +222,7 @@ export async function getPublicArtwork(slug: string) {
   const { data } = await db
     .from("comun_archive_items" as never)
     .select(
-      "id,slug,title,summary,description,neighborhood,approximate_date,published_at,comun_archive_artworks!inner(*,territory:comun_hub_territories(id,slug,name,visibility)),comun_archive_assets(id,asset_role,bucket_scope,review_status,public_url,alt_text,credits,width,height),comun_archive_artwork_credits(public_credit,credit_role,position,agent:comun_archive_agents(public_name,public_slug,public_bio,public_visibility,status)),comun_archive_artwork_rights(required_credit_public,license_public,allow_download,allow_social_media,allow_print,allow_exhibition,allow_educational_use,allow_campaign_use),comun_archive_artwork_relations(relation_type,target_type,target_id,public_note)" as never,
+      "id,slug,title,summary,description,neighborhood,approximate_date,published_at,comun_archive_artworks!inner(*,territory:comun_hub_territories(id,slug,name,visibility)),comun_archive_assets(id,asset_role,bucket_scope,review_status,public_url,alt_text,credits,width,height),comun_archive_artwork_credits(public_credit,credit_role,position,agent:comun_archive_agents(public_name,public_slug,public_bio,public_visibility,status)),comun_archive_artwork_rights(consent_status,allow_comun_display,valid_from,valid_until,embargo_until,required_credit_public,license_public,allow_download,allow_social_media,allow_print,allow_exhibition,allow_educational_use,allow_campaign_use),comun_archive_artwork_safety_reviews(reinforced_review_status),comun_archive_artwork_relations(relation_type,target_type,target_id,public_note)" as never,
     )
     .eq("slug" as never, slug)
     .eq("item_type" as never, "territorial_artwork")
@@ -228,6 +231,8 @@ export async function getPublicArtwork(slug: string) {
     .maybeSingle();
   if (!data) return null;
   const item = data as any;
+  const rights = (item.comun_archive_artwork_rights || [])[0]; const safety = (item.comun_archive_artwork_safety_reviews || [])[0];
+  if (!rights || !rights.allow_comun_display || !["granted", "partially_granted"].includes(rights.consent_status) || (safety && !["not_required", "approved"].includes(safety.reinforced_review_status))) return null;
   return {
     ...item,
     comun_archive_assets: (item.comun_archive_assets || []).filter(

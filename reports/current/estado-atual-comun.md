@@ -133,6 +133,15 @@ Preservados: A1–A4, flags correspondentes habilitadas em Production,
 `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e
 `launch_publicly=false`.
 
+## 48.5-A1 — Acervo Vivo
+
+Após o A0, `comun_archive_items` permanece a raiz canônica de memória e a
+projeção pública especializada foi endurecida com gates fail-closed para Arte,
+Música, História Oral, Rádio, assets, coleções, relações e identificação. O
+DTO público é server-only e tipado; não houve migration, write de negócio,
+mudança de bucket, API ou reindex. O antigo fallback numérico de identificação
+(incluindo `860`) foi removido. Estado: `COMUN_48_5_A1_ACERVO_VIVO_PUBLIC_MEMORY_CORE_GREEN_SPECIALIZED_GATES_FAIL_CLOSED`.
+
 # Estado anterior — 48.4-A4 Onboarding de organizações (16/08/2026)
 
 ## 48.4-A4 — Save first, uma verificação e primeiro facilitator

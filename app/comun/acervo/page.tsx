@@ -78,7 +78,7 @@ export default async function ArchivePage(props: {
                 Fotografias antigas de Volta Redonda
               </h2>
               <p className="mt-2 max-w-3xl text-comun-paper/75">
-                {identification.total || 860} memórias aguardam a ajuda da
+                {identification.total} memórias aguardam a ajuda da
                 comunidade para identificar lugares, pessoas, datas e
                 acontecimentos. Os títulos são provisórios e toda contribuição
                 passa por revisão.
@@ -88,7 +88,7 @@ export default async function ArchivePage(props: {
               href="/comun/acervo/identificar"
               className="inline-flex min-h-11 shrink-0 items-center justify-center bg-comun-yellow px-4 font-black uppercase text-comun-black"
             >
-              Ver as {identification.total || 860} fotografias
+                Ver as fotografias disponíveis
             </Link>
           </div>
 

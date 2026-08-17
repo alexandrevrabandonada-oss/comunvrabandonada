@@ -138,7 +138,7 @@ async function attachPublicAssets(items: ArchiveItem[]) {
   return items.map((i) => ({
     ...i,
     assets: ((data ?? []) as ArchiveAsset[]).filter(
-      (a) => a.archive_item_id === i.id,
+      (a) => a.archive_item_id === i.id && Boolean(a.public_url),
     ),
   }));
 }
