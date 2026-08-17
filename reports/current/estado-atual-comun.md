@@ -1,4 +1,33 @@
-# Estado atual — 48.4-A6 Autogestão segura do perfil (16/08/2026)
+# Estado atual — 48.4-A7 Fechamento da economia solidária (17/08/2026)
+
+## 48.4-A7 — Coerência ponta a ponta, sem novo domínio
+
+- decisão arquitetural: `48.4_FIRST_CYCLE_CLOSED`;
+- a jornada canônica é Participar → Feirinha → Organização →
+  Oferta/Necessidade → Interesse/Ajuda → conexão consentida → Minha
+  participação;
+- a matriz A7 versiona oito grupos de rota e os comportamentos de visitante,
+  pessoa autenticada sem vínculo, `pending`, `editor` e `facilitator`;
+- onboarding aprovado continua diretamente na organização, com fallback seguro
+  para Minha participação;
+- manutenção da organização, vínculo e conexões possuem fronteira privada
+  explícita; estados internos desconhecidos não vazam como copy pública;
+- empty states não confundem zero publicações no COMUN com ausência do
+  fenômeno;
+- zero entidade, migration, API, pagamento, pedido, chat, ranking, avaliação,
+  seller account ou propagação social;
+- produtores individuais, busca econômica e mutação de identidade permanecem
+  deferidos sem bloquear o primeiro ciclo;
+- rollout é exact-main, sem mudança de flags ou schema, com GET/HEAD e
+  `businessWrites=0`.
+
+Detalhes:
+`reports/current/comun-48-4-a7-solidarity-economy-integrated-experience.md`.
+
+Estado terminal condicionado ao merge e Production green:
+`COMUN_48_4_A7_SOLIDARITY_ECONOMY_INTEGRATED_EXPERIENCE_GREEN_FIRST_CYCLE_CLOSED`.
+
+# Estado anterior — 48.4-A6 Autogestão segura do perfil (16/08/2026)
 
 ## 48.4-A6 — Campos cotidianos, sem mutação de identidade
 

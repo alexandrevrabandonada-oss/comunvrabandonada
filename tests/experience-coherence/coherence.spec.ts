@@ -66,6 +66,52 @@ test("Home chega a Relata, Panorama e Pautas em um gesto", async ({ page }) => {
   }
 });
 
+test("@a11y A7 mantém Feirinha dentro de Participar e preserva descoberta pública", async ({
+  page,
+}) => {
+  await page.goto("/comun");
+  await expect(page.locator("body")).not.toContainText("Feirinha", {
+    useInnerText: true,
+  });
+  await page.goto("/comun/participar");
+  const feirinha = page.getByRole("link", { name: "Conhecer a Feirinha" });
+  await expect(feirinha).toHaveAttribute("href", "/comun/cooperativas");
+  await feirinha.click();
+  await expect(page).toHaveURL(/\/comun\/cooperativas$/);
+  await expect(
+    page.getByRole("heading", { name: "Feirinha", exact: true }),
+  ).toBeVisible();
+  const unavailable = page.getByRole("heading", {
+    name: "Feirinha temporariamente indisponível",
+  });
+  if (await unavailable.isVisible().catch(() => false)) {
+    await expect(page.locator("body")).toContainText(
+      "Não exibimos dados antigos ou incompletos",
+    );
+  } else {
+    await expect(
+      page.getByRole("heading", { name: "O que está disponível" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Do que estamos precisando" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Quem faz parte da rede" }),
+    ).toBeVisible();
+  }
+  await expect(page.locator("body")).not.toContainText(
+    /private_contact|contact_private|request_note_private|member_user_id|seller center|checkout/i,
+  );
+  await expectAtMostOnePrimaryAction(page);
+  await expectNoOverflow(page);
+  const audit = await new AxeBuilder({ page }).analyze();
+  expect(
+    audit.violations.filter((item) =>
+      ["serious", "critical"].includes(item.impact ?? ""),
+    ),
+  ).toEqual([]);
+});
+
 test("Pautas permite escrever antes do login e preserva a intenção sem auto-submit", async ({
   page,
 }) => {

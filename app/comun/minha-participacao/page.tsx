@@ -67,6 +67,7 @@ import {
 } from "@/lib/comun-solidarity-private-connections";
 import { listMySolidarityConnections } from "@/lib/server/comun-solidarity-private-connections";
 import { withdrawSolidarityConnectionAction } from "@/app/comun/cooperativas/[slug]/connection-actions";
+import { isComunSolidarityEconomyPublicCoreEnabled } from "@/lib/comun-solidarity-economy";
 
 export const dynamic = "force-dynamic";
 
@@ -122,6 +123,7 @@ export default async function MinhaAreaPage({
     isComunSolidarityOrganizationOnboardingEnabled();
   const privateConnectionsEnabled =
     isComunSolidarityPrivateConnectionsEnabled();
+  const solidarityEconomyEnabled = isComunSolidarityEconomyPublicCoreEnabled();
   const optionalCommunitySession = walletEnabled
     ? await getCommunitySession()
     : null;
@@ -201,6 +203,7 @@ export default async function MinhaAreaPage({
         organizationAccesses={organizationAccesses}
         organizationOnboardings={organizationOnboardings}
         solidarityConnections={solidarityConnections}
+        solidarityEconomyEnabled={solidarityEconomyEnabled}
         collectiveTaskAssignments={collectiveTaskAssignments}
         attention={attention}
         walletEnabled={walletEnabled}
@@ -569,8 +572,15 @@ export default async function MinhaAreaPage({
       !organizationAccesses.length &&
       !solidarityConnections.length &&
       !organizationOnboardings.length ? (
-        <SingleEmpty href="/comun/explorar" title="Nada acompanhado">
-          Explorar comunidades
+        <SingleEmpty
+          href={
+            solidarityEconomyEnabled ? "/comun/cooperativas" : "/comun/explorar"
+          }
+          title="Nada acompanhado"
+        >
+          {solidarityEconomyEnabled
+            ? "Conhecer a Feirinha"
+            : "Explorar comunidades"}
         </SingleEmpty>
       ) : null}
       {selected === "tarefas" &&
@@ -600,6 +610,7 @@ function MinhaAreaAppV2({
   organizationAccesses,
   organizationOnboardings,
   solidarityConnections,
+  solidarityEconomyEnabled,
   collectiveTaskAssignments,
   attention,
   walletEnabled,
@@ -620,6 +631,7 @@ function MinhaAreaAppV2({
   organizationAccesses: PrivateSolidarityOrganizationAccessV1[];
   organizationOnboardings: PrivateSolidarityOrganizationOnboardingSummaryV1[];
   solidarityConnections: PrivateSolidarityMemberConnectionV1[];
+  solidarityEconomyEnabled: boolean;
   collectiveTaskAssignments: any[];
   attention: any[];
   walletEnabled: boolean;
@@ -829,6 +841,22 @@ function MinhaAreaAppV2({
                   appV2
                 />
               ))}
+              {solidarityEconomyEnabled &&
+              !organizationAccesses.length &&
+              !solidarityConnections.length &&
+              !organizationOnboardings.some(
+                (item) => item.state !== "approved",
+              ) ? (
+                <ComunStatePanel
+                  state="empty"
+                  actionHref={withComunAppV2("/comun/cooperativas")}
+                  actionLabel="Conhecer a Feirinha"
+                >
+                  Você ainda não participa de uma organização nem acompanha
+                  interesses ou ajudas. Isso não significa que não existam
+                  iniciativas: conheça o que já foi publicado no COMUN.
+                </ComunStatePanel>
+              ) : null}
               {organizationAccesses.length ? (
                 <h2 className="comun-v2-subtitle mt-3 lg:col-span-2">Pautas</h2>
               ) : null}

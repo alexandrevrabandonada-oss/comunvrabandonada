@@ -1,0 +1,80 @@
+name: COMUN 48.4-A7 closure preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-4-a7-*.yml"
+      - "app/comun/cooperativas/**"
+      - "app/comun/minha-participacao/page.tsx"
+      - "app/comun/participar/page.tsx"
+      - "lib/comun-solidarity-economy-experience*.ts"
+      - "tests/experience-coherence/**"
+      - "playwright.experience-coherence.config.ts"
+      - "scripts/economy/run-48-4-a7-production.sh"
+      - "reports/current/comun-48-4-a7-*"
+
+permissions: { contents: read }
+
+jobs:
+  zero-schema-metadata-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      BASELINE_SHA: a7bfce43e73ee751ebb9a69b2bd5eb861c2aade4
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.114.0 }
+      - name: Prove zero migration and inspect metadata read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$BASELINE_SHA" HEAD
+          test -z "$(git diff --name-only "$BASELINE_SHA"...HEAD -- supabase/migrations)"
+          test -n "${SUPABASE_DB_URL:-}"
+          mkdir -p .ci-artifacts/48-4-a7-preflight
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/48-4-a7-preflight/schema.json <<'SQL'
+          begin read only;
+          select json_build_object(
+            'transactionReadOnly',current_setting('transaction_read_only')='on',
+            'territoryRoot',to_regclass('public.comun_hub_territories') is not null,
+            'organizationRoot',to_regclass('public.comun_territorial_organizations') is not null,
+            'offerRoot',to_regclass('public.comun_solidarity_offers') is not null,
+            'needRoot',to_regclass('public.comun_territorial_needs') is not null,
+            'accessRoot',to_regclass('private.comun_solidarity_organization_access') is not null,
+            'onboardingRoot',to_regclass('private.comun_solidarity_organization_onboarding') is not null,
+            'offerInterestRoot',to_regclass('private.comun_solidarity_offer_interests') is not null,
+            'auditRoot',to_regclass('private.comun_solidarity_economic_content_events') is not null,
+            'privateRootsForcedRls',(select bool_and(relrowsecurity and relforcerowsecurity) from pg_class where oid in ('private.comun_solidarity_organization_access'::regclass,'private.comun_solidarity_organization_onboarding'::regclass,'private.comun_solidarity_offer_interests'::regclass,'private.comun_solidarity_economic_content_events'::regclass)),
+            'businessContentRead',false
+          );
+          rollback;
+          SQL
+          node - <<'NODE'
+          const fs=require('node:fs');const state=JSON.parse(fs.readFileSync('.ci-artifacts/48-4-a7-preflight/schema.json'));
+          for(const [key,value] of Object.entries(state))if(key!=='businessContentRead'&&value!==true)throw new Error(`COMUN_48_4_A7_BLOCKED_REMOTE_SCHEMA_DRIFT:${key}`);
+          if(state.businessContentRead!==false)throw new Error('COMUN_48_4_A7_BLOCKED_BUSINESS_CONTENT_READ');
+          NODE
+      - name: Prove remote migration plan remains empty
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(sha256sum "$EXTERNAL_MIGRATION"|awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
+          held="$RUNNER_TEMP/external.sql";mv "$EXTERNAL_MIGRATION" "$held";trap 'mv "$held" "$EXTERNAL_MIGRATION"' EXIT
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-4-a7-preflight/plan.txt 2>&1
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-4-a7-preflight/plan.txt|sort -u||true)
+          test "${#planned[@]}" -eq 0
+          ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/48-4-a7-preflight/plan.txt
+          echo migrationCount=0 >>"$GITHUB_STEP_SUMMARY"
+          echo businessContentRead=false >>"$GITHUB_STEP_SUMMARY"
+          echo COMUN_48_4_A7_REMOTE_PREFLIGHT_GREEN >>"$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-4-a7-preflight-${{ github.run_id }}
+          path: .ci-artifacts/48-4-a7-preflight
+          retention-days: 14

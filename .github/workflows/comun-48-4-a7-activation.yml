@@ -1,0 +1,40 @@
+name: COMUN 48.4-A7 integrated experience activation
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA
+        required: true
+        type: string
+
+concurrency: { group: comun-48-4-a7-activation, cancel-in-progress: false }
+permissions: { contents: read }
+env:
+  A7_BASELINE_SHA: a7bfce43e73ee751ebb9a69b2bd5eb861c2aade4
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+  COMUN_BASE_URL: https://comunsocial.online
+
+jobs:
+  deploy-exact-main:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main, fetch-depth: 0 }
+      - name: Verify exact main and zero schema
+        env: { EXPECTED_MAIN_SHA: "${{ inputs.expected_main_sha }}" }
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          test "$(git rev-parse origin/main)" = "$EXPECTED_MAIN_SHA"
+          git merge-base --is-ancestor "$A7_BASELINE_SHA" HEAD
+          test -z "$(git diff --name-only "$A7_BASELINE_SHA"...HEAD -- supabase/migrations)"
+      - name: Verify Vercel binding
+        env: { VERCEL_TOKEN: "${{ secrets.VERCEL_TOKEN }}" }
+        run: npx --yes vercel@50.28.0 project inspect "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null 2>/dev/null
+      - name: Deploy and smoke exact main without changing flags
+        env: { VERCEL_TOKEN: "${{ secrets.VERCEL_TOKEN }}" }
+        run: bash scripts/economy/run-48-4-a7-production.sh
