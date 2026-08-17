@@ -1,5 +1,8 @@
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
-import { isPublicArtworkEligible, isPublicArchiveAssetEligible } from "@/lib/archive/public-gates";
+import {
+  isPublicArtworkEligible,
+  isPublicArchiveAssetEligible,
+} from "@/lib/archive/public-gates";
 
 export const artworkTypes = [
   "drawing",
@@ -190,16 +193,18 @@ export async function listPublicArtworks(
       territoryId,
     );
   const { data, count } = await query;
-  const items = ((data || []) as any[]).filter((item) => {
-    const rights = item.comun_archive_artwork_rights?.[0]; const safety = item.comun_archive_artwork_safety_reviews?.[0];
-    return isPublicArtworkEligible(rights, safety?.reinforced_review_status);
-  }).map((item) => ({
-    ...item,
-    comun_archive_assets: (item.comun_archive_assets || []).filter(
-      (asset: any) =>
-        isPublicArchiveAssetEligible(asset),
-    ),
-  }));
+  const items = ((data || []) as any[])
+    .filter((item) => {
+      const rights = item.comun_archive_artwork_rights?.[0];
+      const safety = item.comun_archive_artwork_safety_reviews?.[0];
+      return isPublicArtworkEligible(rights, safety?.reinforced_review_status);
+    })
+    .map((item) => ({
+      ...item,
+      comun_archive_assets: (item.comun_archive_assets || []).filter(
+        (asset: any) => isPublicArchiveAssetEligible(asset),
+      ),
+    }));
   return { items, count: count || 0 };
 }
 
@@ -230,13 +235,14 @@ export async function getPublicArtwork(slug: string) {
     .maybeSingle();
   if (!data) return null;
   const item = data as any;
-  const rights = (item.comun_archive_artwork_rights || [])[0]; const safety = (item.comun_archive_artwork_safety_reviews || [])[0];
-  if (!isPublicArtworkEligible(rights, safety?.reinforced_review_status)) return null;
+  const rights = (item.comun_archive_artwork_rights || [])[0];
+  const safety = (item.comun_archive_artwork_safety_reviews || [])[0];
+  if (!isPublicArtworkEligible(rights, safety?.reinforced_review_status))
+    return null;
   return {
     ...item,
     comun_archive_assets: (item.comun_archive_assets || []).filter(
-      (asset: any) =>
-        isPublicArchiveAssetEligible(asset),
+      (asset: any) => isPublicArchiveAssetEligible(asset),
     ),
   };
 }

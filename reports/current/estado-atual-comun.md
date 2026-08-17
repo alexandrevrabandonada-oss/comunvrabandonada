@@ -133,6 +133,14 @@ Preservados: A1–A4, flags correspondentes habilitadas em Production,
 `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e
 `launch_publicly=false`.
 
+## 48.5-A2 — Contribuição Cultural Save-first
+
+Foi adicionada a migration privada de intake cultural com RPC service-role-only,
+idempotência por request, retomada anônima por cookie opaco/hash e seleção
+explícita de continuidade. O primeiro save não cria memória pública, mídia,
+Acervo ou Search. A experiência é protegida por
+`COMUN_CULTURAL_SAVE_FIRST_INTAKE_ENABLED`; A3 permanece fora deste ciclo.
+
 ## 48.5-A1-R1
 
 Revisão de hardening do Acervo Vivo: paridade list/detail, direitos explícitos
