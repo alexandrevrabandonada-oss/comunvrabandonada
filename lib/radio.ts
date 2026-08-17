@@ -87,6 +87,18 @@ export async function listPublicRadio() {
         .order("starts_at")
         .limit(30),
     ]);
+  const episodeIds = (episodes ?? []).map((episode: any) => episode.archive_item_id).filter(Boolean);
+  const [{ data: roots }, { data: consents }, { data: music }, { data: safety }] = episodeIds.length ? await Promise.all([
+    db.from("comun_archive_items").select("id,status,visibility,published_at").in("id", episodeIds),
+    db.from("comun_radio_voice_consents").select("episode_item_id,consent_status,allow_comun_audio,valid_from,valid_until").in("episode_item_id", episodeIds),
+    db.from("comun_radio_music_uses").select("episode_item_id,rights_status,allow_streaming").in("episode_item_id", episodeIds),
+    db.from("comun_radio_safety_reviews").select("episode_item_id,reinforced_review_status").in("episode_item_id", episodeIds),
+  ]) : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }];
+  const rootById = new Map((roots ?? []).map((x: any) => [x.id, x]));
+  const consentById = new Map<string, any[]>(); for (const row of consents ?? []) consentById.set(row.episode_item_id, [...(consentById.get(row.episode_item_id) ?? []), row]);
+  const musicById = new Map<string, any[]>(); for (const row of music ?? []) musicById.set(row.episode_item_id, [...(musicById.get(row.episode_item_id) ?? []), row]);
+  const safetyById = new Map((safety ?? []).map((x: any) => [x.episode_item_id, x]));
+  const eligibleEpisode = (episode: any) => { const root = rootById.get(episode.archive_item_id); const c = consentById.get(episode.archive_item_id) ?? []; const m = musicById.get(episode.archive_item_id) ?? []; const s = safetyById.get(episode.archive_item_id); return Boolean(root?.status === "published" && root.visibility === "public" && root.published_at && c.length && c.every((x) => x.consent_status === "approved" && x.allow_comun_audio) && m.every((x) => ["approved", "public_domain_verified"].includes(x.rights_status) && x.allow_streaming) && (!s || s.reinforced_review_status === "not_required" || s.reinforced_review_status === "approved")); };
   return {
     programs: (programs ?? []).filter(
       (program: any) =>
@@ -105,6 +117,7 @@ export async function listPublicRadio() {
       }))
       .filter(
         (episode: any) =>
+          eligibleEpisode(episode) &&
           (!episode.territory || episode.territory.visibility === "public") &&
           (!episode.pauta || episode.pauta.visibility === "public") &&
           (!episode.action || episode.action.visibility === "public"),
