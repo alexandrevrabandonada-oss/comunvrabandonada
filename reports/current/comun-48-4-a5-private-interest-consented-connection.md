@@ -70,7 +70,8 @@ pública, marketing, preenchimento por dados de conta ou contato global.
 ## Validação
 
 - testes focais de contrato e segurança: verdes;
-- `typecheck` e lint focal: verdes;
+- suíte completa: 1.053 testes unitários verdes, `typecheck`, lint e build
+  verdes;
 - o bootstrap completo do Supabase CLI 2.114.0 no Windows permaneceu
   bloqueado por `LegacyDbSetupError` dentro do container Realtime; como prova
   local equivalente, um PostgreSQL Supabase descartável recebeu todas as
@@ -78,12 +79,27 @@ pública, marketing, preenchimento por dados de conta ou contato global.
   consentimento, redaction, autoridades editor/facilitator, acessos
   pending/revoked/left, cross-org, mudança de subject, organização inelegível,
   cooldown, limites, legado `contacted`, RLS e zero propagação social;
-- nenhuma escrita remota foi tentada; a mesma prova transacional Linux segue
-  obrigatória no workflow descartável do PR antes do merge;
+- a prova transacional Linux descartável repetiu o cenário no head exato e
+  fechou verde no run `31980016750`;
 - preflight remoto é metadata-only, `BEGIN READ ONLY` e
-  `businessContentRead=false`;
-- merge, Wave 0, Wave 1, smoke Production e `businessWrites=0`: pendentes do
-  fluxo exact-head.
+  `businessContentRead=false`; run `31980016768` verde;
+- CI, Civic Graph, Civic Intelligence, Core Journeys, Experience Coherence,
+  Full Surface, Quality Performance e Security Resilience ficaram verdes no
+  head funcional exato;
+- PR funcional `#338`, head exato
+  `352e08cee861f27473e550e45917e3f08eff0ae6`, integrada por squash no
+  merge/main `ea92046d81cd5fd9b35a5058aa2a9ac6a9ccdf8b`;
+- Wave 0 `31982145313` promoveu somente a migration A5, comprovou
+  RLS/grants/RPCs por postflight metadata-only e implantou Production com a
+  flag A5 desligada;
+- Wave 1 `31982297402` habilitou somente
+  `COMUN_SOLIDARITY_PRIVATE_CONNECTIONS_ENABLED` no mesmo main exato;
+- Production respondeu GET/HEAD `200` em `/comun`, `/comun/participar`,
+  `/comun/cooperativas` e `/comun/minha-participacao`;
+- não havia Oferta/Necessidade pública elegível para exercer a conexão sem
+  fixture; o diretório preservou empty state real, com zero link A5 sintético;
+- `businessWrites=0` durante rollout e smoke; nenhuma conexão foi criada em
+  Production.
 
 ## Débitos preservados
 
@@ -91,3 +107,7 @@ pública, marketing, preenchimento por dados de conta ou contato global.
 - nenhuma notificação externa é enviada;
 - nenhuma conexão sintética será criada em Production;
 - A6 (autogestão de perfil) não foi iniciado.
+
+## Estado terminal
+
+`COMUN_48_4_A5_PRIVATE_INTEREST_CONSENTED_CONNECTION_GREEN_NO_ORDER_NO_CHAT`

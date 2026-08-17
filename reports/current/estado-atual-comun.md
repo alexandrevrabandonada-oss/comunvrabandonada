@@ -11,10 +11,20 @@
   chat, reserva, contrato, rating ou vínculo social é criado;
 - a UI inclui **Tenho interesse**, **Posso ajudar**, Conexões privadas da
   organização e **Interesses e ajudas** em Minha participação;
-- preflight, CI, merge e rollout exact-head ainda precisam fechar antes da
-  emissão do terminal A5.
+- PR funcional `#338`, head exato
+  `352e08cee861f27473e550e45917e3f08eff0ae6`, integrada no merge/main
+  `ea92046d81cd5fd9b35a5058aa2a9ac6a9ccdf8b`;
+- preflight remoto A5 `31980016768` e prova Supabase descartável
+  `31980016750` verdes, junto de todos os gates aplicáveis exact-head;
+- Wave 0 `31982145313` promoveu somente a migration A5 e manteve a nova flag
+  desligada; Wave 1 `31982297402` habilitou somente as conexões privadas;
+- Production respondeu GET/HEAD `200` nas quatro superfícies canônicas, sem
+  fixture e com empty state real por ausência de sujeito público elegível;
+- `businessWrites=0`, A1–A4 intactos, piloto Motorola pausado,
+  `launch_publicly=false` e A6 não iniciado.
 
-Estado em validação: `COMUN_48_4_A5_PRIVATE_CONNECTIONS_CANDIDATE`.
+Estado terminal:
+`COMUN_48_4_A5_PRIVATE_INTEREST_CONSENTED_CONNECTION_GREEN_NO_ORDER_NO_CHAT`.
 
 Preservados: A1–A4, flags correspondentes habilitadas em Production,
 `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION` e
