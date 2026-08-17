@@ -39,3 +39,22 @@ transcrições brutas, notas editoriais e IDs de autenticação não entram no D
 - smoke e performance devem usar a projeção bounded, sem download de mídia.
 
 Próximo slice: `48.5-A2` (sem iniciar neste branch).
+
+## A1-R1 — fechamento real dos gates
+
+O primeiro A1 revelou bypasses de detalhe/listagem e uma projeção que ainda
+descartava especializações. Esta revisão corrigiu-os sem migration:
+
+- `isPublicArtworkEligible` é a única regra de Arte para lista e detalhe;
+- `isPublicArchiveAssetEligible` exige bucket público seguro, aprovação, URL e
+  direito explícito (`licensed`, `permission_granted` ou `public_domain`);
+- `resolvePublicRadioEpisodeEligibility` é compartilhado por lista e detalhe,
+  incluindo raiz, voz, música, safety, asset e transcript;
+- coleções removem filhos especializados inelegíveis;
+- Música aplica o mesmo gate de asset no detalhe;
+- o diretório canônico agora inclui Arte, Música, História Oral e Rádio com
+  `specialization` correto e nunca rebaixa falha especializada para `generic`;
+- testes focais cobrem asset rights, datas de Arte e paridade Rádio.
+
+O fallback `860` permanece removido. A1-R1 continua sem A2, uploads, conteúdo
+de produção, API nova, buckets, migration ou business write.

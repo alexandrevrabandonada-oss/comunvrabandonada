@@ -1,5 +1,10 @@
 import { isPublicContentDeliverable } from "@/lib/public-content-readiness";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isPublicArchiveAssetEligible } from "@/lib/archive/public-gates";
+import { listPublicArtworks } from "@/lib/archive/territorial-art";
+import { listPublicOralHistories } from "@/lib/archive/oral-history";
+import { listPublicReleases } from "@/lib/archive/local-music";
+import { listPublicRadio } from "@/lib/radio";
 
 export type ArchiveItem = {
   id: string;
@@ -138,7 +143,7 @@ async function attachPublicAssets(items: ArchiveItem[]) {
   return items.map((i) => ({
     ...i,
     assets: ((data ?? []) as ArchiveAsset[]).filter(
-      (a) => a.archive_item_id === i.id && Boolean(a.public_url),
+      (a) => a.archive_item_id === i.id && isPublicArchiveAssetEligible(a),
     ),
   }));
 }
@@ -226,10 +231,18 @@ export async function getPublicCollection(slug: string) {
     .in("id", ids)
     .eq("status", "published")
     .eq("visibility", "public");
+  const [art, oral, music, radio] = await Promise.all([listPublicArtworks({ page: 1, limit: 24 }), listPublicOralHistories({}), listPublicReleases({ page: "1", pageSize: "24" }), listPublicRadio()]);
+  const eligibleSpecialized = new Set<string>([
+    ...(art.items ?? []).map((x: { id: string }) => x.id),
+    ...(oral.items ?? []).map((x: { id?: string; archive_item_id?: string }) => x.id ?? x.archive_item_id).filter((x): x is string => Boolean(x)),
+    ...(music.items ?? []).map((x: { id?: string; archive_item_id?: string }) => x.id ?? x.archive_item_id).filter((x: string | undefined): x is string => Boolean(x)),
+    ...(radio.episodes ?? []).map((x: { archive_item_id?: string }) => x.archive_item_id).filter((x): x is string => Boolean(x)),
+  ]);
+  const safeItems = ((items ?? []) as ArchiveItem[]).filter((item) => !["territorial_artwork", "oral_history", "music_release", "community_radio_episode"].includes(item.item_type) || eligibleSpecialized.has(item.id));
   return {
     collection: c as ArchiveCollection,
     items: await attachPublicAssets(
-      ((items ?? []) as ArchiveItem[]).filter(isPublicContentDeliverable),
+      safeItems.filter(isPublicContentDeliverable),
     ),
   };
 }

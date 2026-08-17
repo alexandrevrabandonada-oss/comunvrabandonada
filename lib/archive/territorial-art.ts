@@ -1,4 +1,5 @@
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isPublicArtworkEligible, isPublicArchiveAssetEligible } from "@/lib/archive/public-gates";
 
 export const artworkTypes = [
   "drawing",
@@ -191,14 +192,12 @@ export async function listPublicArtworks(
   const { data, count } = await query;
   const items = ((data || []) as any[]).filter((item) => {
     const rights = item.comun_archive_artwork_rights?.[0]; const safety = item.comun_archive_artwork_safety_reviews?.[0];
-    return rights && rights.allow_comun_display && ["granted", "partially_granted"].includes(rights.consent_status) && (!rights.embargo_until || new Date(rights.embargo_until).getTime() <= Date.now()) && (!rights.valid_until || rights.valid_until >= new Date().toISOString().slice(0, 10)) && (!safety || ["not_required", "approved"].includes(safety.reinforced_review_status));
+    return isPublicArtworkEligible(rights, safety?.reinforced_review_status);
   }).map((item) => ({
     ...item,
     comun_archive_assets: (item.comun_archive_assets || []).filter(
       (asset: any) =>
-        asset.bucket_scope === "public_safe" &&
-        asset.review_status === "approved" &&
-        Boolean(asset.public_url),
+        isPublicArchiveAssetEligible(asset),
     ),
   }));
   return { items, count: count || 0 };
@@ -232,14 +231,12 @@ export async function getPublicArtwork(slug: string) {
   if (!data) return null;
   const item = data as any;
   const rights = (item.comun_archive_artwork_rights || [])[0]; const safety = (item.comun_archive_artwork_safety_reviews || [])[0];
-  if (!rights || !rights.allow_comun_display || !["granted", "partially_granted"].includes(rights.consent_status) || (safety && !["not_required", "approved"].includes(safety.reinforced_review_status))) return null;
+  if (!isPublicArtworkEligible(rights, safety?.reinforced_review_status)) return null;
   return {
     ...item,
     comun_archive_assets: (item.comun_archive_assets || []).filter(
       (asset: any) =>
-        asset.bucket_scope === "public_safe" &&
-        asset.review_status === "approved" &&
-        Boolean(asset.public_url),
+        isPublicArchiveAssetEligible(asset),
     ),
   };
 }
