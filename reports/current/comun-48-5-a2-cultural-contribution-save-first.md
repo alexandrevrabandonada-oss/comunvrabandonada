@@ -1,6 +1,6 @@
 # COMUN 48.5-A2 — Contribuição Cultural Save-first
 
-Status: `COMUN_48_5_A2_R1_CULTURAL_SAVE_FIRST_OPERATIONAL_GREEN_PRIVATE_RESUME_ROUTE_SELECTION`
+Status: `COMUN_48_5_A2_R1_CANDIDATE_GREEN_PENDING_MERGE_AND_ROLLOUT`
 
 Baseline: `fcccf0de0bf82b105f520bbf14a6291b6f4cedae`.
 
@@ -48,11 +48,18 @@ Migration R1: `20260817170000_comun_cultural_contribution_intakes_r1.sql`.
 O handoff especializado e a conclusão progressiva estão explicitamente
 deferidos: `COMUN_48_5_A2_SPECIALIZED_TARGET_HANDOFF_DEFERRED_TO_A3`.
 
-Rollout: preflight remoto metadata-only, Wave 0 com a flag desligada, aplicação
-das migrations aprovadas, postflight sem migrations pendentes e Wave 1 com
-`COMUN_CULTURAL_SAVE_FIRST_INTAKE_ENABLED=enabled`. Production foi validado
-somente por GET/HEAD; não houve intake sintético nem business write. A copy da
-rota usa `Guardar uma memória | Acervo Vivo` também no metadata.
+Rollout pós-merge pendente. O plano documentado é: preflight metadata-only,
+Wave 0 com a flag desligada, aplicação somente das migrations aprovadas,
+postflight e então Wave 1 com `COMUN_CULTURAL_SAVE_FIRST_INTAKE_ENABLED=enabled`.
+Ainda não há run ID de aplicação em Production, postflight `[]` ou validação
+Production que possa ser declarada como concluída. A copy da rota usa
+`Guardar uma memória | Acervo Vivo` também no metadata.
+
+O teste focal reproduzível está em
+`scripts/comun-cultural-intake-r1-disposable.sql`, executado pelo workflow
+`.github/workflows/comun-48-5-a2-r1-disposable.yml`. Ele cobre autorização,
+retomada por token/conta, status de rota, idempotência, rate limit, grants
+service-role-only, ausência de campos sensíveis e zero handoff especializado.
 
 ## Privacidade e escopo
 
@@ -61,6 +68,7 @@ Search ou HTML público. Não houve seed, upload, bucket change, API pública de
 dados, auto-publicação, A2 cultural especializado ou business write de
 Production.
 
-Validações locais: typecheck, testes focais, lint e build. O plano R1 contém
-somente a migration nova acima sobre a migration A2 já aplicada. Próximo
-slice: `48.5-A3`.
+Validações locais: typecheck, testes unitários e lint focal. O plano R1 contém
+somente a migration nova acima sobre a migration A2 já aplicada. Preflights
+históricos de outros tijolos são `HISTORICAL_PREFLIGHT_NOT_A2_R1_GATE` e não
+foram alterados. Próximo slice: `48.5-A3`.

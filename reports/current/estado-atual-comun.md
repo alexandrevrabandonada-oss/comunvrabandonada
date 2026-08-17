@@ -2815,3 +2815,23 @@ Estado atual: `COMUN_48_5_A2_R1_CULTURAL_SAVE_FIRST_OPERATIONAL_GREEN_PRIVATE_RE
   businessWrites=0.
 
 ### 48.5-A2 — Intake cultural save-first
+# Estado atual — 48.5-A2-R1 Intake cultural operacional (candidato; 17/08/2026)
+
+Estado atual: `COMUN_48_5_A2_R1_CANDIDATE_GREEN_PENDING_MERGE_AND_ROLLOUT`.
+
+- A2-R1 corrige a retomada privada via RPC service-role-only e a semântica de
+  rota (`routed` para caminhos conhecidos; `routing` para `unknown`), sem criar
+  handoff especializado;
+- o teste SQL descartável versionado cobre autorização por hash/conta,
+  idempotência, rate limit, grants, campos não retornados e zero alterações
+  nos pipelines especializados;
+- a #347 ainda não foi merged. Rollout pós-merge, Wave 0, Wave 1, postflight
+  e Production GET/HEAD continuam pendentes; `businessWrites=0` até aqui;
+- preflights históricos de outros tijolos são
+  `HISTORICAL_PREFLIGHT_NOT_A2_R1_GATE` e não devem ser alterados para aceitar
+  esta migration.
+
+A3 não foi iniciado. O terminal Production só poderá ser emitido depois do
+  merge exact-head e da evidência real de rollout.
+
+# Estado atual — 48.5-A0 Reconciliação de cultura, memória e rádio (17/08/2026)
