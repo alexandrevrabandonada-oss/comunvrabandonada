@@ -114,13 +114,15 @@ begin
     return;
   end if;
 
-  update private.comun_cultural_contribution_intakes
+   update private.comun_cultural_contribution_intakes
      set route_kind = p_route_kind,
          status = case when p_route_kind = 'unknown' then 'routing' else 'routed' end,
          routed_at = coalesce(routed_at, now()),
          updated_at = now()
-   where id = v.id
-   returning id, public_protocol, status, route_kind into v.id, v.public_protocol, v.status, v.route_kind;
+   where id = v.id;
+  select i.* into v
+    from private.comun_cultural_contribution_intakes as i
+   where i.id = v.id;
 
   return query select v.id, v.public_protocol, v.status, v.route_kind;
 end
