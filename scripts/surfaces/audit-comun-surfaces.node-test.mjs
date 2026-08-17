@@ -10,7 +10,8 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   // organization-scoped write routes, plus the two A4 onboarding routes, are
   // part of the full matrix.
   // A5 adds two fail-closed contextual connection routes under the existing Feirinha root.
-  assert.equal(summary.total, 219);
+  // A6 adds one fail-closed organization profile self-management route.
+  assert.equal(summary.total, 220);
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
     "admin",

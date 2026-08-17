@@ -12,7 +12,8 @@ test("contrato de coerência cobre rotas, pilotos, tokens e roadmap", async () =
   // Includes four fail-closed A3 write routes scoped to an authorized organization.
   // Includes the fail-closed A4 onboarding start and continuation routes.
   // Includes the two fail-closed A5 contextual connection routes.
-  assert.equal(report.routeInventory.totalPages, 219);
+  // Includes the fail-closed A6 organization profile self-management route.
+  assert.equal(report.routeInventory.totalPages, 220);
   assert.equal(report.routeInventory.missingRequiredRoutes, 0);
   assert.equal(report.routeInventory.knownCompatibleRedirects, 1);
   assert.deepEqual(report.pilots.levels, [0, 1, 2]);

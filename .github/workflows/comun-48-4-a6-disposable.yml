@@ -1,0 +1,130 @@
+name: COMUN 48.4-A6 disposable profile self-management proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-4-a6-disposable.yml"
+      - "supabase/migrations/*_comun_solidarity_organization_profile_self_management.sql"
+      - "lib/comun-solidarity-organization-profile*.ts"
+
+permissions: { contents: read }
+
+jobs:
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.114.0 }
+      - name: Prove authority, consent, concurrency, audit and zero propagation
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          db="$(supabase status -o env|sed -n 's/^DB_URL=//p'|tr -d '"')";test -n "$db"
+          psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
+          begin;
+          insert into auth.users(id,aud,role,email) values
+            ('a6000000-0000-4000-8000-000000000001','authenticated','authenticated','editor@example.invalid'),
+            ('a6000000-0000-4000-8000-000000000002','authenticated','authenticated','facilitator@example.invalid'),
+            ('a6000000-0000-4000-8000-000000000003','authenticated','authenticated','pending@example.invalid'),
+            ('a6000000-0000-4000-8000-000000000004','authenticated','authenticated','revoked@example.invalid'),
+            ('a6000000-0000-4000-8000-000000000005','authenticated','authenticated','left@example.invalid'),
+            ('a6000000-0000-4000-8000-000000000006','authenticated','authenticated','rate@example.invalid');
+          insert into public.comun_hub_territories(id,slug,name,territory_type,status,visibility,verification_status) values
+            ('a6000000-0000-4000-8000-000000000011','a6-organizacao-um','Organização um','cooperative','active','public','verified'),
+            ('a6000000-0000-4000-8000-000000000012','a6-organizacao-dois','Organização dois','cooperative','active','public','verified');
+          insert into public.comun_territorial_organizations(territory_id,public_name,organization_type,status,verification_status,presentation_public,services_public,service_territory_public,public_contact_authorized,private_contact,last_verified_at,internal_notes) values
+            ('a6000000-0000-4000-8000-000000000011','Organização um','cooperative','active','verified','Apresentação original.',array['Costura'],'Volta Redonda',null,'NUNCA_PUBLICAR','2026-08-01T12:00:00Z','NOTA_INTERNA'),
+            ('a6000000-0000-4000-8000-000000000012','Organização dois','association','active','source_checked','Outra apresentação.',array['Formação'],'Médio Paraíba',null,'PRIVADO_DOIS','2026-08-02T12:00:00Z','NOTA_DOIS');
+          insert into private.comun_solidarity_organization_access(organization_territory_id,member_user_id,requested_role,role,state,review_scope,request_note_private,reviewed_at,activated_at) values
+            ('a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000001','editor','editor','active','organization','Edito esta organização no COMUN.',now(),now()),
+            ('a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000002','facilitator','facilitator','active','platform','Facilito esta organização no COMUN.',now(),now()),
+            ('a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000003','editor',null,'pending','organization','Aguardo acesso para esta prova.',null,null),
+            ('a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000006','editor','editor','active','organization','Testo limites desta organização.',now(),now());
+          insert into private.comun_solidarity_organization_access(organization_territory_id,member_user_id,requested_role,role,state,review_scope,request_note_private,reviewed_at,activated_at,revoked_at,left_at) values
+            ('a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000004','editor','editor','revoked','organization','Acesso revogado para esta prova.',now(),now()-interval '2 days',now(),null),
+            ('a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000005','editor','editor','left','organization','Acesso encerrado para esta prova.',now(),now()-interval '2 days',null,now());
+
+          do $$
+          declare v_updated timestamptz;v_next timestamptz;v_retry boolean;v_events integer;v_last_verified timestamptz;v_public_name text;v_type text;v_verification text;
+          begin
+            select updated_at,last_verified_at,public_name,organization_type,verification_status into v_updated,v_last_verified,v_public_name,v_type,v_verification from public.comun_territorial_organizations where territory_id='a6000000-0000-4000-8000-000000000011';
+            select organization_updated_at,idempotent into v_next,v_retry from public.comun_update_solidarity_organization_profile_by_access_v1(
+              'a6000000-0000-4000-8000-000000000101','a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000001',v_updated,
+              'Apresentação atualizada pela organização.',array[' Costura ','costura','Formação popular'],'Volta   Redonda e região','(24) 99999-0000',true);
+            if v_retry or v_next=v_updated then raise exception 'editor update failed';end if;
+            if not exists(select 1 from public.comun_territorial_organizations where territory_id='a6000000-0000-4000-8000-000000000011' and presentation_public='Apresentação atualizada pela organização.' and services_public=array['Costura','Formação popular'] and service_territory_public='Volta Redonda e região' and public_contact_authorized='(24) 99999-0000' and public_name=v_public_name and organization_type=v_type and verification_status=v_verification and last_verified_at=v_last_verified and private_contact='NUNCA_PUBLICAR' and internal_notes='NOTA_INTERNA') then raise exception 'editable or protected fields invalid';end if;
+            if not exists(select 1 from private.comun_solidarity_economic_content_events where request_id='a6000000-0000-4000-8000-000000000101' and subject_type='organization_profile' and subject_id='a6000000-0000-4000-8000-000000000011' and operation='organization_profile.edit' and before_payload_private ?& array['presentation_public','services_public','service_territory_public','public_contact_authorized'] and after_payload_private ?& array['presentation_public','services_public','service_territory_public','public_contact_authorized'] and (select count(*) from jsonb_object_keys(before_payload_private))=4 and (select count(*) from jsonb_object_keys(after_payload_private))=4 and before_payload_private::text not like '%NUNCA_PUBLICAR%' and after_payload_private::text not like '%NUNCA_PUBLICAR%') then raise exception 'private bounded audit failed';end if;
+            select idempotent into v_retry from public.comun_update_solidarity_organization_profile_by_access_v1(
+              'a6000000-0000-4000-8000-000000000101','a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000001',v_updated,
+              'Conteúdo ignorado no retry idempotente.',array['Outro'],'Outro lugar',null,false);
+            if not v_retry or (select count(*) from private.comun_solidarity_economic_content_events where request_id='a6000000-0000-4000-8000-000000000101')<>1 then raise exception 'idempotency failed';end if;
+
+            select updated_at into v_updated from public.comun_territorial_organizations where territory_id='a6000000-0000-4000-8000-000000000011';
+            perform public.comun_update_solidarity_organization_profile_by_access_v1('a6000000-0000-4000-8000-000000000102','a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000002',v_updated,'Facilitação e edição têm a mesma autoridade.',array['Reciclagem'],'Volta Redonda e região','(24) 99999-0000',false);
+
+            for v_events in 3..5 loop
+              begin
+                select updated_at into v_updated from public.comun_territorial_organizations where territory_id='a6000000-0000-4000-8000-000000000011';
+                perform public.comun_update_solidarity_organization_profile_by_access_v1(('a6000000-0000-4000-8000-00000000010'||v_events)::uuid,'a6000000-0000-4000-8000-000000000011',('a6000000-0000-4000-8000-00000000000'||v_events)::uuid,v_updated,'Tentativa que deve ser rejeitada.',array['Serviço'],'Volta Redonda',null,false);
+                raise exception 'inactive access accepted';
+              exception when raise_exception then if sqlerrm='inactive access accepted' then raise;end if;end;
+            end loop;
+
+            select updated_at into v_updated from public.comun_territorial_organizations where territory_id='a6000000-0000-4000-8000-000000000012';
+            begin perform public.comun_update_solidarity_organization_profile_by_access_v1('a6000000-0000-4000-8000-000000000106','a6000000-0000-4000-8000-000000000012','a6000000-0000-4000-8000-000000000001',v_updated,'Tentativa entre organizações.',array['Serviço'],'Volta Redonda',null,false);raise exception 'cross organization accepted';exception when raise_exception then if sqlerrm='cross organization accepted' then raise;end if;end;
+
+            update public.comun_territorial_organizations set status='paused' where territory_id='a6000000-0000-4000-8000-000000000011';
+            select updated_at into v_updated from public.comun_territorial_organizations where territory_id='a6000000-0000-4000-8000-000000000011';
+            begin perform public.comun_update_solidarity_organization_profile_by_access_v1('a6000000-0000-4000-8000-000000000107','a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000001',v_updated,'Organização pausada não edita.',array['Serviço'],'Volta Redonda',null,false);raise exception 'ineligible organization accepted';exception when raise_exception then if sqlerrm='ineligible organization accepted' then raise;end if;end;
+            update public.comun_territorial_organizations set status='active',updated_at=clock_timestamp() where territory_id='a6000000-0000-4000-8000-000000000011';
+
+            select updated_at into v_updated from public.comun_territorial_organizations where territory_id='a6000000-0000-4000-8000-000000000011';
+            begin perform public.comun_update_solidarity_organization_profile_by_access_v1('a6000000-0000-4000-8000-000000000108','a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000001',v_updated,'Ligue para (24) 99999-0000.',array['Serviço'],'Volta Redonda',null,false);raise exception 'phone bypassed prose safety';exception when raise_exception then if sqlerrm='phone bypassed prose safety' then raise;end if;end;
+            begin perform public.comun_update_solidarity_organization_profile_by_access_v1('a6000000-0000-4000-8000-000000000109','a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000001',v_updated,'Apresentação pública segura.',array['CPF 123.456.789-00'],'Volta Redonda',null,false);raise exception 'cpf bypassed service safety';exception when raise_exception then if sqlerrm='cpf bypassed service safety' then raise;end if;end;
+            begin perform public.comun_update_solidarity_organization_profile_by_access_v1('a6000000-0000-4000-8000-000000000110','a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000001',v_updated,'Apresentação pública segura.',array['Serviço'],'Volta Redonda','rede@example.org',false);raise exception 'contact changed without consent';exception when raise_exception then if sqlerrm='contact changed without consent' then raise;end if;end;
+
+            perform public.comun_update_solidarity_organization_profile_by_access_v1('a6000000-0000-4000-8000-000000000111','a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000001',v_updated,'Apresentação pública segura.',array['Serviço'],'Volta Redonda','rede@example.org',true);
+            select updated_at into v_updated from public.comun_territorial_organizations where territory_id='a6000000-0000-4000-8000-000000000011';
+            perform public.comun_update_solidarity_organization_profile_by_access_v1('a6000000-0000-4000-8000-000000000112','a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000001',v_updated,'Apresentação pública segura.',array['Serviço'],'Volta Redonda','rede@example.org',false);
+            select updated_at into v_updated from public.comun_territorial_organizations where territory_id='a6000000-0000-4000-8000-000000000011';
+            perform public.comun_update_solidarity_organization_profile_by_access_v1('a6000000-0000-4000-8000-000000000113','a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000001',v_updated,'Apresentação pública segura.',array['Serviço'],'Volta Redonda',null,false);
+            if not exists(select 1 from public.comun_territorial_organizations where territory_id='a6000000-0000-4000-8000-000000000011' and public_contact_authorized is null and private_contact='NUNCA_PUBLICAR') then raise exception 'contact removal or account fallback failed';end if;
+
+            select updated_at into v_updated from public.comun_territorial_organizations where territory_id='a6000000-0000-4000-8000-000000000011';
+            perform public.comun_update_solidarity_organization_profile_by_access_v1('a6000000-0000-4000-8000-000000000114','a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000002',v_updated,'Alteração concorrente da facilitação.',array['Serviço'],'Volta Redonda',null,false);
+            select count(*) into v_events from private.comun_solidarity_economic_content_events;
+            begin perform public.comun_update_solidarity_organization_profile_by_access_v1('a6000000-0000-4000-8000-000000000115','a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000001',v_updated,'Sobrescrita concorrente proibida.',array['Serviço'],'Volta Redonda',null,false);raise exception 'stale update accepted';exception when raise_exception then if sqlerrm='stale update accepted' then raise;end if;end;
+            if (select count(*) from private.comun_solidarity_economic_content_events)<>v_events then raise exception 'conflict wrote event';end if;
+
+            begin perform public.comun_update_solidarity_organization_profile_by_access_v1('a6000000-0000-4000-8000-000000000101','a6000000-0000-4000-8000-000000000012','a6000000-0000-4000-8000-000000000001',v_updated,'Mismatch idempotente.',array['Serviço'],'Volta Redonda',null,false);raise exception 'request mismatch accepted';exception when raise_exception then if sqlerrm='request mismatch accepted' then raise;end if;end;
+          end $$;
+
+          insert into private.comun_solidarity_economic_content_events(request_id,organization_territory_id,actor_access_id,actor_member_user_id,subject_type,subject_id,operation,from_state,to_state,occurred_at)
+          select gen_random_uuid(),'a6000000-0000-4000-8000-000000000011',access.id,'a6000000-0000-4000-8000-000000000006','organization_profile','a6000000-0000-4000-8000-000000000011','organization_profile.edit','current','updated',now()
+          from private.comun_solidarity_organization_access access cross join generate_series(1,10)
+          where access.organization_territory_id='a6000000-0000-4000-8000-000000000011' and access.member_user_id='a6000000-0000-4000-8000-000000000006' and access.state='active';
+          do $$ declare v_updated timestamptz;v_count integer;begin
+            select updated_at into v_updated from public.comun_territorial_organizations where territory_id='a6000000-0000-4000-8000-000000000011';select count(*) into v_count from private.comun_solidarity_economic_content_events;
+            begin perform public.comun_update_solidarity_organization_profile_by_access_v1('a6000000-0000-4000-8000-000000000120','a6000000-0000-4000-8000-000000000011','a6000000-0000-4000-8000-000000000006',v_updated,'Limite deve bloquear esta alteração.',array['Serviço'],'Volta Redonda',null,false);raise exception 'rate limit accepted';exception when raise_exception then if sqlerrm='rate limit accepted' then raise;end if;end;
+            if (select count(*) from private.comun_solidarity_economic_content_events)<>v_count then raise exception 'rate limit partial write';end if;
+          end $$;
+
+          insert into private.comun_solidarity_economic_content_events(request_id,organization_territory_id,actor_access_id,actor_member_user_id,subject_type,subject_id,operation,to_state)
+          select 'a6000000-0000-4000-8000-000000000121','a6000000-0000-4000-8000-000000000011',id,'a6000000-0000-4000-8000-000000000001','offer',gen_random_uuid(),'offer.edit','published' from private.comun_solidarity_organization_access where organization_territory_id='a6000000-0000-4000-8000-000000000011' and member_user_id='a6000000-0000-4000-8000-000000000001' and state='active';
+          insert into private.comun_solidarity_economic_content_events(request_id,organization_territory_id,actor_access_id,actor_member_user_id,subject_type,subject_id,operation,to_state)
+          select 'a6000000-0000-4000-8000-000000000122','a6000000-0000-4000-8000-000000000011',id,'a6000000-0000-4000-8000-000000000001','need',gen_random_uuid(),'need.edit','open' from private.comun_solidarity_organization_access where organization_territory_id='a6000000-0000-4000-8000-000000000011' and member_user_id='a6000000-0000-4000-8000-000000000001' and state='active';
+          do $$ begin
+            if not(select relrowsecurity and relforcerowsecurity from pg_class where oid='private.comun_solidarity_economic_content_events'::regclass) then raise exception 'audit rls open';end if;
+            if has_table_privilege('anon','private.comun_solidarity_economic_content_events','SELECT,INSERT,UPDATE,DELETE') or has_table_privilege('authenticated','private.comun_solidarity_economic_content_events','SELECT,INSERT,UPDATE,DELETE') then raise exception 'audit client access open';end if;
+            if has_function_privilege('anon','public.comun_update_solidarity_organization_profile_by_access_v1(uuid,uuid,uuid,timestamptz,text,text[],text,text,boolean)','EXECUTE') or has_function_privilege('authenticated','public.comun_update_solidarity_organization_profile_by_access_v1(uuid,uuid,uuid,timestamptz,text,text[],text,text,boolean)','EXECUTE') then raise exception 'client rpc open';end if;
+            if exists(select 1 from public.comun_pauta_memberships where member_user_id::text like 'a6000000-%') or exists(select 1 from public.comun_community_memberships where member_user_id::text like 'a6000000-%') or exists(select 1 from public.comun_collective_action_participations where member_user_id::text like 'a6000000-%') then raise exception 'social propagation';end if;
+          end $$;
+          rollback;
+          SQL
+          echo COMUN_48_4_A6_DISPOSABLE_PROFILE_SELF_MANAGEMENT_GREEN >>"$GITHUB_STEP_SUMMARY"
+          echo businessWritesAfterRollback=0 >>"$GITHUB_STEP_SUMMARY"
+          echo protectedIdentityMutations=0 >>"$GITHUB_STEP_SUMMARY"

@@ -287,7 +287,7 @@ function projectOrganization(
     presentation: asPublicText(row.presentation_public, 1200),
     services,
     serviceTerritory: asPublicText(row.service_territory_public, 300),
-    publicContact: asPublicText(row.public_contact_authorized, 300),
+    publicContact: asPublicText(row.public_contact_authorized, 200),
     lastVerifiedAt: asIsoDate(row.last_verified_at),
     territory,
   } satisfies PublicSolidarityOrganizationV1;
