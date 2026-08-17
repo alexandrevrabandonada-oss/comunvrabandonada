@@ -75,7 +75,7 @@ begin
     insert into r1_intake_ids(route_kind, intake_id, public_protocol, resume_token_hash, member_user_id)
       values(v_protocol, v_created.intake_id, v_created.public_protocol, 'r1-hash-' || v_protocol, 'a2f10000-0000-4000-8000-000000000001'::uuid);
     select * into v_replay from public.comun_route_cultural_contribution_intake_v1(v_created.public_protocol, v_protocol, 'r1-hash-' || v_protocol, null);
-    if v_replay.status <> case when v_protocol = 'unknown' then 'routing' else 'routed' end then
+    if v_replay.status <> (case when v_protocol = 'unknown' then 'routing' else 'routed' end) then
       raise exception 'wrong route status for %: %', v_protocol, v_replay.status;
     end if;
   end loop;
