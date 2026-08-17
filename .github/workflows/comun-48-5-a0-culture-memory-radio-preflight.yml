@@ -71,7 +71,7 @@ jobs:
               ('comun_radio_schedule_entries'), ('comun_radio_contributions'),
               ('comun_hub_archive_links'), ('comun_search_documents')
           ), scoped_buckets(bucket_id) as (
-            values ('artwork-private-originals'), ('artwork-public-derivatives'),
+            values ('archive-private-originals'), ('archive-public-derivatives'),
                    ('radio-private-originals'), ('radio-public-audio')
           )
           select json_build_object(

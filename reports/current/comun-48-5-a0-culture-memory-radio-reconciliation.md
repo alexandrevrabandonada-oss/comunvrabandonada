@@ -77,7 +77,7 @@ Consentimento de publicação nunca vira licença Creative Commons. URL pública
 ## Storage e processamento
 
 - Acervo: assets distinguem `private_original` de `public_safe`, com role, checksum, MIME, tamanho, derivada, integridade e review.
-- Arte: buckets privados de originais e públicos de derivadas, MIME de imagem e 30 MiB; upload operacional é server-only.
+- Arte: buckets `archive-private-originals` e `archive-public-derivatives`, MIME de imagem e limites próprios; upload operacional é server-only.
 - Rádio: `radio-private-originals` e `radio-public-audio`, limite/MIME versionados pelo perfil v1; originals não são públicos.
 - História Oral reutiliza assets e custody events, mantendo consent evidence e material bruto privados.
 - Photo processing possui jobs/attempts/events, idempotência, retry/dead-letter e heartbeats; Música possui link checks/observabilidade; Rádio não introduz live/transcoding novo neste contrato.
