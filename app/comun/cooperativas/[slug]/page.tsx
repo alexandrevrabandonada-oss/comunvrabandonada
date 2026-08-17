@@ -28,6 +28,10 @@ import {
   type PrivateSolidarityNeedEditorV1,
   type PrivateSolidarityOfferEditorV1,
 } from "@/lib/server/comun-solidarity-economic-content";
+import { isComunSolidarityPrivateConnectionsEnabled } from "@/lib/comun-solidarity-private-connections";
+import {
+  listSolidarityOrganizationConnections,
+} from "@/lib/server/comun-solidarity-private-connections";
 import {
   governOrganizationAccessAction,
   leaveOrganizationAccessAction,
@@ -35,6 +39,7 @@ import {
   withdrawOrganizationAccessAction,
 } from "./actions";
 import { mutateSolidarityNeedAction, mutateSolidarityOfferAction } from "./economic-actions";
+import { reviewSolidarityConnectionAction } from "./connection-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +63,8 @@ const STATUS_MESSAGES: Record<string, string> = {
   retirado: "Seu pedido foi retirado.",
   saiu: "Você saiu do acesso desta organização no COMUN.",
   "governanca-atualizada": "A governança da organização foi atualizada.",
+  aceita: "Conexão aceita. O contato protegido agora está disponível nesta área privada.",
+  recusada: "A conexão não seguirá. O contato protegido foi removido.",
   erro: "Não foi possível concluir esta ação agora. Nenhuma alteração parcial foi feita.",
 };
 
@@ -66,7 +73,7 @@ export default async function SolidarityOrganizationPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ acesso?: string }>;
+  searchParams: Promise<{ acesso?: string; conexao?: string }>;
 }) {
   if (!isComunSolidarityOrganizationGovernanceEnabled()) notFound();
   const [{ slug }, query, session] = await Promise.all([
@@ -93,7 +100,19 @@ export default async function SolidarityOrganizationPage({
     session?.user && access?.state === "active" && isComunSolidarityEconomicContentWritesEnabled()
       ? await listSolidarityOrganizationEconomicContent(slug, session.user.id)
       : null;
-  const statusMessage = query.acesso ? STATUS_MESSAGES[query.acesso] : null;
+  const privateConnectionsEnabled = isComunSolidarityPrivateConnectionsEnabled();
+  const organizationConnections =
+    privateConnectionsEnabled && session?.user && access?.state === "active"
+      ? await listSolidarityOrganizationConnections(
+          detail.organization.territoryId,
+          session.user.id,
+        )
+      : [];
+  const statusMessage = query.conexao
+    ? STATUS_MESSAGES[query.conexao]
+    : query.acesso
+      ? STATUS_MESSAGES[query.acesso]
+      : null;
   return (
     <ComunShell>
       <header className="border-b-2 border-comun-black bg-comun-yellow px-4 py-9 text-comun-black sm:px-8">
@@ -113,12 +132,13 @@ export default async function SolidarityOrganizationPage({
         {statusMessage ? <p role="status" className="mb-6 border-2 border-comun-black bg-white p-4 font-bold">{statusMessage}</p> : null}
         <div className="grid gap-10">
           <OrganizationCollection title="O que está disponível" empty="Por enquanto não há ofertas públicas ativas desta organização." action={economicContent ? <Link className="min-h-11 font-black underline" href={`/comun/cooperativas/${slug}/ofertas/nova`}>Oferecer algo</Link> : null}>
-            {detail.offers.map((offer) => <Offer key={offer.id} offer={offer} editHref={economicContent ? `/comun/cooperativas/${slug}/ofertas/${offer.slug}/editar` : null} />)}
+            {detail.offers.map((offer) => <Offer key={offer.id} offer={offer} editHref={economicContent ? `/comun/cooperativas/${slug}/ofertas/${offer.slug}/editar` : null} interestHref={privateConnectionsEnabled ? `/comun/cooperativas/${slug}/ofertas/${offer.slug}/interesse` : null} />)}
           </OrganizationCollection>
           <OrganizationCollection title="Do que esta organização precisa" empty="Não há necessidades públicas abertas desta organização neste momento." action={economicContent ? <Link className="min-h-11 font-black underline" href={`/comun/cooperativas/${slug}/necessidades/nova`}>Registrar uma necessidade</Link> : null}>
-            {detail.needs.map((need) => <Need key={need.id} need={need} editHref={economicContent ? `/comun/cooperativas/${slug}/necessidades/${need.slug}/editar` : null} />)}
+            {detail.needs.map((need) => <Need key={need.id} need={need} editHref={economicContent ? `/comun/cooperativas/${slug}/necessidades/${need.slug}/editar` : null} helpHref={privateConnectionsEnabled && need.organization ? `/comun/cooperativas/${slug}/necessidades/${need.slug}/ajudar` : null} />)}
           </OrganizationCollection>
           {economicContent ? <EconomicContentPanel organization={detail.organization} offers={economicContent.offers} needs={economicContent.needs} /> : null}
+          {organizationConnections.length ? <OrganizationConnectionsPanel organizationSlug={detail.organization.slug} organizationTerritoryId={detail.organization.territoryId} connections={organizationConnections} /> : null}
           <AccessSection
             access={access}
             loggedIn={Boolean(session?.user)}
@@ -197,13 +217,50 @@ function OrganizationCollection({ title, empty, action, children }: { title: str
   return <section><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-black uppercase">{title}</h2>{action}</div><div className="mt-4 grid gap-4 md:grid-cols-2">{children.length ? children : <p className="border-2 border-dashed border-comun-black/40 bg-white p-5">{empty}</p>}</div></section>;
 }
 
-function Offer({ offer, editHref }: { offer: PublicSolidarityOfferV1; editHref: string | null }) {
+function Offer({ offer, editHref, interestHref }: { offer: PublicSolidarityOfferV1; editHref: string | null; interestHref: string | null }) {
   const price = formatSolidarityPriceBRL(offer.priceAmountCents);
-  return <article className="border-2 border-comun-black bg-white p-5"><h3 className="text-xl font-black">{offer.title}</h3><p className="mt-2 text-sm">{offer.summary}</p><p className="mt-3 text-sm font-bold">{offer.modalities.map((modality) => MODALITY_LABELS[modality]).join(" · ")}</p>{price ? <p className="mt-2 font-black">{price}{offer.priceNote ? ` · ${offer.priceNote}` : ""}</p> : null}{offer.availability ? <p className="mt-2 text-sm">{offer.availability}</p> : null}{editHref ? <Link className="mt-3 inline-flex min-h-11 items-center font-black underline" href={editHref}>Editar oferta</Link> : null}</article>;
+  return <article className="border-2 border-comun-black bg-white p-5"><h3 className="text-xl font-black">{offer.title}</h3><p className="mt-2 text-sm">{offer.summary}</p><p className="mt-3 text-sm font-bold">{offer.modalities.map((modality) => MODALITY_LABELS[modality]).join(" · ")}</p>{price ? <p className="mt-2 font-black">{price}{offer.priceNote ? ` · ${offer.priceNote}` : ""}</p> : null}{offer.availability ? <p className="mt-2 text-sm">{offer.availability}</p> : null}<div className="mt-3 flex flex-wrap gap-4">{interestHref ? <Link className="inline-flex min-h-11 items-center border-2 border-comun-black bg-comun-yellow px-4 font-black" href={interestHref}>Tenho interesse</Link> : null}{editHref ? <Link className="inline-flex min-h-11 items-center font-black underline" href={editHref}>Editar oferta</Link> : null}</div></article>;
 }
 
-function Need({ need, editHref }: { need: PublicSolidarityNeedV1; editHref: string | null }) {
-  return <article className="border-2 border-comun-black bg-white p-5"><h3 className="text-xl font-black">{need.title}</h3><p className="mt-2 text-sm">{need.summary}</p>{editHref ? <Link className="mt-3 inline-flex min-h-11 items-center font-black underline" href={editHref}>Editar necessidade</Link> : null}</article>;
+function Need({ need, editHref, helpHref }: { need: PublicSolidarityNeedV1; editHref: string | null; helpHref: string | null }) {
+  return <article className="border-2 border-comun-black bg-white p-5"><h3 className="text-xl font-black">{need.title}</h3><p className="mt-2 text-sm">{need.summary}</p><div className="mt-3 flex flex-wrap gap-4">{helpHref ? <Link className="inline-flex min-h-11 items-center border-2 border-comun-black bg-comun-yellow px-4 font-black" href={helpHref}>Posso ajudar</Link> : null}{editHref ? <Link className="inline-flex min-h-11 items-center font-black underline" href={editHref}>Editar necessidade</Link> : null}</div></article>;
+}
+
+function OrganizationConnectionsPanel({ organizationSlug, organizationTerritoryId, connections }: {
+  organizationSlug: string;
+  organizationTerritoryId: string;
+  connections: Awaited<ReturnType<typeof listSolidarityOrganizationConnections>>;
+}) {
+  const pending = connections.filter((item) => item.state !== "accepted");
+  const accepted = connections.filter((item) => item.state === "accepted");
+  return <section className="border-2 border-comun-black bg-comun-paper p-5" aria-labelledby="connections-title">
+    <p className="text-xs font-black uppercase text-comun-rust">Área privada da organização</p>
+    <h2 id="connections-title" className="mt-1 text-2xl font-black">Conexões</h2>
+    <p className="mt-2 text-sm">Ao aceitar, o contato informado pela pessoa será disponibilizado na área privada desta organização. Isso não cria pedido, compra, reserva ou compromisso.</p>
+    <ConnectionGroup title="Aguardando resposta" connections={pending} organizationSlug={organizationSlug} organizationTerritoryId={organizationTerritoryId} />
+    <ConnectionGroup title="Aceitas" connections={accepted} organizationSlug={organizationSlug} organizationTerritoryId={organizationTerritoryId} />
+  </section>;
+}
+
+function ConnectionGroup({ title, connections, organizationSlug, organizationTerritoryId }: {
+  title: string;
+  connections: Awaited<ReturnType<typeof listSolidarityOrganizationConnections>>;
+  organizationSlug: string;
+  organizationTerritoryId: string;
+}) {
+  if (!connections.length) return null;
+  return <div className="mt-5"><h3 className="text-lg font-black uppercase">{title}</h3><div className="mt-3 grid gap-3">{connections.map((connection) => <article key={connection.interestId} className="border border-comun-black/40 bg-white p-4">
+    <p className="text-xs font-black uppercase text-comun-rust">{connection.kind === "offer_interest" ? "Interesse em oferta" : "Ajuda para necessidade"}</p>
+    <h4 className="mt-1 font-black">{connection.subjectTitle}</h4>
+    <p className="mt-1 text-sm">{connection.memberLabel} · {formatPrivateDate(connection.createdAt)}</p>
+    <p className="mt-3 whitespace-pre-wrap text-sm">{connection.messagePrivate}</p>
+    {!connection.subjectIsPublic ? <p className="mt-2 text-sm font-bold">Este item não está mais público.</p> : null}
+    {connection.state === "accepted" ? <div className="mt-3 border-l-4 border-comun-yellow pl-3"><p className="font-black">Contato protegido</p><p className="break-words">{connection.contactPrivate ?? "Contato indisponível"}</p><p className="mt-1 text-xs">Use este contato somente para esta conexão. A pessoa pode retirar a autorização no COMUN, embora cópias feitas fora daqui não possam ser recolhidas automaticamente.</p></div> : <p className="mt-3 font-bold">Contato ainda protegido</p>}
+    {connection.state !== "accepted" ? <form action={reviewSolidarityConnectionAction} className="mt-4 flex flex-wrap gap-3">
+      <input type="hidden" name="organization_slug" value={organizationSlug} /><input type="hidden" name="organization_territory_id" value={organizationTerritoryId} /><input type="hidden" name="interest_id" value={connection.interestId} /><input type="hidden" name="subject_kind" value={connection.kind === "offer_interest" ? "offer" : "need"} />
+      <button className="min-h-11 border-2 border-comun-black bg-comun-yellow px-4 font-black" name="decision" value="accept">Aceitar e liberar contato</button><button className="min-h-11 border-2 border-comun-black px-4 font-black" name="decision" value="reject">Não seguir</button>
+    </form> : null}
+  </article>)}</div></div>;
 }
 
 function EconomicContentPanel({ organization, offers, needs }: {
