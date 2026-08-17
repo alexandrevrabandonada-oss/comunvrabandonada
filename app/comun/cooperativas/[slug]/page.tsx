@@ -14,6 +14,10 @@ import {
   type PublicSolidarityOrganizationV1,
 } from "@/lib/comun-solidarity-economy";
 import {
+  solidarityNeedStatusLabel,
+  solidarityOfferStatusLabel,
+} from "@/lib/comun-solidarity-economy-experience";
+import {
   isComunSolidarityOrganizationGovernanceEnabled,
   solidarityOrganizationAccessRoleLabel,
   solidarityOrganizationAccessStateLabel,
@@ -132,19 +136,19 @@ export default async function SolidarityOrganizationPage({
           <div><dt className="font-black">Situação no diretório</dt><dd>Organização verificada para exibição pública</dd></div>
         </dl>
         <Link className="mt-5 inline-flex min-h-11 items-center font-black underline" href={`/comun/mapa/${detail.organization.slug}`}>Ver contexto no mapa</Link>
-        {profileSelfEditEnabled && access?.state === "active" && access.role ? <Link className="ml-5 mt-5 inline-flex min-h-11 items-center font-black underline" href={`/comun/cooperativas/${slug}/editar-perfil`}>Editar perfil da organização</Link> : null}
       </header>
       <Section>
-        {statusMessage ? <p role="status" className="mb-6 border-2 border-comun-black bg-white p-4 font-bold">{statusMessage}</p> : null}
+        {statusMessage ? <p role="status" className="mb-6 border-2 border-comun-black bg-white p-4 font-bold text-comun-black">{statusMessage}</p> : null}
         <div className="grid gap-10">
-          <OrganizationCollection title="O que está disponível" empty="Por enquanto não há ofertas públicas ativas desta organização." action={economicContent ? <Link className="min-h-11 font-black underline" href={`/comun/cooperativas/${slug}/ofertas/nova`}>Oferecer algo</Link> : null}>
+          {access?.state === "active" && access.role ? <OrganizationMaintenanceNavigation organizationSlug={slug} profileEnabled={profileSelfEditEnabled} economicContentEnabled={Boolean(economicContent)} /> : null}
+          <OrganizationCollection title="O que está disponível" empty="Por enquanto não há ofertas públicas ativas desta organização publicadas no COMUN.">
             {detail.offers.map((offer) => <Offer key={offer.id} offer={offer} editHref={economicContent ? `/comun/cooperativas/${slug}/ofertas/${offer.slug}/editar` : null} interestHref={privateConnectionsEnabled ? `/comun/cooperativas/${slug}/ofertas/${offer.slug}/interesse` : null} />)}
           </OrganizationCollection>
-          <OrganizationCollection title="Do que esta organização precisa" empty="Não há necessidades públicas abertas desta organização neste momento." action={economicContent ? <Link className="min-h-11 font-black underline" href={`/comun/cooperativas/${slug}/necessidades/nova`}>Registrar uma necessidade</Link> : null}>
+          <OrganizationCollection title="Do que esta organização precisa" empty="Por enquanto não há necessidades públicas abertas desta organização publicadas no COMUN.">
             {detail.needs.map((need) => <Need key={need.id} need={need} editHref={economicContent ? `/comun/cooperativas/${slug}/necessidades/${need.slug}/editar` : null} helpHref={privateConnectionsEnabled && need.organization ? `/comun/cooperativas/${slug}/necessidades/${need.slug}/ajudar` : null} />)}
           </OrganizationCollection>
           {economicContent ? <EconomicContentPanel organization={detail.organization} offers={economicContent.offers} needs={economicContent.needs} /> : null}
-          {organizationConnections.length ? <OrganizationConnectionsPanel organizationSlug={detail.organization.slug} organizationTerritoryId={detail.organization.territoryId} connections={organizationConnections} /> : null}
+          {privateConnectionsEnabled && access?.state === "active" ? <OrganizationConnectionsPanel organizationSlug={detail.organization.slug} organizationTerritoryId={detail.organization.territoryId} connections={organizationConnections} /> : null}
           <AccessSection
             access={access}
             loggedIn={Boolean(session?.user)}
@@ -163,6 +167,23 @@ export default async function SolidarityOrganizationPage({
   );
 }
 
+function OrganizationMaintenanceNavigation({ organizationSlug, profileEnabled, economicContentEnabled }: {
+  organizationSlug: string;
+  profileEnabled: boolean;
+  economicContentEnabled: boolean;
+}) {
+  return <nav aria-label="Manutenção privada da organização" className="border-2 border-comun-black bg-comun-paper p-5 text-comun-black">
+    <p className="text-xs font-black uppercase text-comun-rust">Área privada da organização</p>
+    <h2 className="mt-1 text-2xl font-black">Manter informações da organização</h2>
+    <p className="mt-2 max-w-2xl text-sm">Use estes atalhos para manter o perfil e o conteúdo da organização. A leitura pública da ficha continua abaixo.</p>
+    <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+      {profileEnabled ? <Link className="inline-flex min-h-11 items-center font-black underline" href={`/comun/cooperativas/${organizationSlug}/editar-perfil`}>Editar perfil</Link> : null}
+      {economicContentEnabled ? <Link className="inline-flex min-h-11 items-center font-black underline" href={`/comun/cooperativas/${organizationSlug}/ofertas/nova`}>Oferecer algo</Link> : null}
+      {economicContentEnabled ? <Link className="inline-flex min-h-11 items-center font-black underline" href={`/comun/cooperativas/${organizationSlug}/necessidades/nova`}>Registrar necessidade</Link> : null}
+    </div>
+  </nav>;
+}
+
 function AccessSection({ access, loggedIn, organizationSlug, organizationTerritoryId }: {
   access: Awaited<ReturnType<typeof getMySolidarityOrganizationAccess>>;
   loggedIn: boolean;
@@ -170,8 +191,9 @@ function AccessSection({ access, loggedIn, organizationSlug, organizationTerrito
   organizationTerritoryId: string;
 }) {
   const returnTo = `/comun/cooperativas/${organizationSlug}`;
-  return <section aria-labelledby="access-title" className="border-2 border-comun-black bg-comun-paper p-5">
-    <h2 id="access-title" className="text-2xl font-black">Você participa desta organização?</h2>
+  return <section aria-labelledby="access-title" className="border-2 border-comun-black bg-comun-paper p-5 text-comun-black">
+    {access ? <p className="text-xs font-black uppercase text-comun-rust">Área privada de participação</p> : null}
+    <h2 id="access-title" className="text-2xl font-black">{access ? "Seu vínculo com esta organização" : "Você participa desta organização?"}</h2>
     {!loggedIn ? <div className="mt-3"><p>Entre para pedir um vínculo revogável dentro do COMUN.</p><Link className="mt-4 inline-flex min-h-11 items-center border-2 border-comun-black bg-comun-yellow px-4 font-black" href={communityLoginHref(returnTo)}>Tenho vínculo com esta organização</Link></div> : null}
     {loggedIn && !access ? <form action={requestOrganizationAccessAction} className="mt-4 grid max-w-2xl gap-3">
       <input type="hidden" name="organization_slug" value={organizationSlug} />
@@ -196,7 +218,7 @@ function GovernancePanel({ organizationSlug, organizationTerritoryId, records }:
   organizationTerritoryId: string;
   records: Awaited<ReturnType<typeof listSolidarityOrganizationGovernance>>;
 }) {
-  return <section aria-labelledby="governance-title" className="border-2 border-comun-black bg-white p-5">
+  return <section aria-labelledby="governance-title" className="border-2 border-comun-black bg-white p-5 text-comun-black">
     <h2 id="governance-title" className="text-2xl font-black">Acessos da organização no COMUN</h2>
     <p className="mt-2 text-sm">Área privada da facilitação. Ela não altera a verificação pública da organização.</p>
     <div className="mt-4 grid gap-3">
@@ -220,8 +242,8 @@ function OrganizationHiddenFields({ slug, territoryId }: { slug: string; territo
   return <><input type="hidden" name="organization_slug" value={slug} /><input type="hidden" name="organization_territory_id" value={territoryId} /></>;
 }
 
-function OrganizationCollection({ title, empty, action, children }: { title: string; empty: string; action?: React.ReactNode; children: React.ReactNode[] }) {
-  return <section><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-black uppercase">{title}</h2>{action}</div><div className="mt-4 grid gap-4 md:grid-cols-2">{children.length ? children : <p className="border-2 border-dashed border-comun-black/40 bg-white p-5">{empty}</p>}</div></section>;
+function OrganizationCollection({ title, empty, children }: { title: string; empty: string; children: React.ReactNode[] }) {
+  return <section><h2 className="text-2xl font-black uppercase">{title}</h2><div className="mt-4 grid gap-4 text-comun-black md:grid-cols-2">{children.length ? children : <p className="border-2 border-dashed border-comun-black/40 bg-white p-5">{empty}</p>}</div></section>;
 }
 
 function Offer({ offer, editHref, interestHref }: { offer: PublicSolidarityOfferV1; editHref: string | null; interestHref: string | null }) {
@@ -240,10 +262,11 @@ function OrganizationConnectionsPanel({ organizationSlug, organizationTerritoryI
 }) {
   const pending = connections.filter((item) => item.state !== "accepted");
   const accepted = connections.filter((item) => item.state === "accepted");
-  return <section className="border-2 border-comun-black bg-comun-paper p-5" aria-labelledby="connections-title">
+  return <section className="border-2 border-comun-black bg-comun-paper p-5 text-comun-black" aria-labelledby="connections-title">
     <p className="text-xs font-black uppercase text-comun-rust">Área privada da organização</p>
     <h2 id="connections-title" className="mt-1 text-2xl font-black">Conexões</h2>
     <p className="mt-2 text-sm">Ao aceitar, o contato informado pela pessoa será disponibilizado na área privada desta organização. Isso não cria pedido, compra, reserva ou compromisso.</p>
+    {!connections.length ? <p className="mt-4 border-2 border-dashed border-comun-black/40 bg-white p-4">Por enquanto não há interesses ou ajudas aguardando resposta nesta organização no COMUN.</p> : null}
     <ConnectionGroup title="Aguardando resposta" connections={pending} organizationSlug={organizationSlug} organizationTerritoryId={organizationTerritoryId} />
     <ConnectionGroup title="Aceitas" connections={accepted} organizationSlug={organizationSlug} organizationTerritoryId={organizationTerritoryId} />
   </section>;
@@ -278,12 +301,12 @@ function EconomicContentPanel({ organization, offers, needs }: {
   const hiddenOffers = offers.filter((offer) => offer.status !== "published" || offer.isExpired);
   const closedNeeds = needs.filter((need) => !["open", "partially_met"].includes(need.status));
   if (!hiddenOffers.length && !closedNeeds.length) return null;
-  return <section className="border-2 border-comun-black bg-comun-paper p-5" aria-labelledby="economic-maintenance-title">
+  return <section className="border-2 border-comun-black bg-comun-paper p-5 text-comun-black" aria-labelledby="economic-maintenance-title">
     <h2 id="economic-maintenance-title" className="text-2xl font-black">Conteúdo da organização fora da Feirinha</h2>
     <p className="mt-2 text-sm">Área privada para manutenção. O conteúdo pertence à organização, não à conta que o criou.</p>
     <div className="mt-4 grid gap-4">
-      {hiddenOffers.map((offer) => <article className="border border-comun-black/40 bg-white p-4" key={offer.id}><h3 className="font-black">{offer.title}</h3><p className="mt-1 text-sm">{offer.isExpired ? "Vencida" : offer.status === "paused" ? "Pausada" : offer.status}</p><div className="mt-3 flex flex-wrap gap-2"><Link className="inline-flex min-h-11 items-center font-black underline" href={`/comun/cooperativas/${organization.slug}/ofertas/${offer.slug}/editar`}>Editar</Link>{offer.isExpired ? <SolidarityEconomicTransitionForm action={mutateSolidarityOfferAction} organization={organization} entity={{ kind: "offer", id: offer.id }} operation="renew" label="Renovar por 30 dias" validityDays={30} /> : offer.status === "paused" ? <SolidarityEconomicTransitionForm action={mutateSolidarityOfferAction} organization={organization} entity={{ kind: "offer", id: offer.id }} operation="resume" label="Retomar" /> : null}</div></article>)}
-      {closedNeeds.map((need) => <article className="border border-comun-black/40 bg-white p-4" key={need.id}><h3 className="font-black">{need.title}</h3><p className="mt-1 text-sm">{need.status === "met" ? "Atendida" : need.status === "cancelled" ? "Cancelada" : need.status}</p><div className="mt-3 flex flex-wrap gap-2"><Link className="inline-flex min-h-11 items-center font-black underline" href={`/comun/cooperativas/${organization.slug}/necessidades/${need.slug}/editar`}>Editar</Link>{["met", "cancelled"].includes(need.status) ? <SolidarityEconomicTransitionForm action={mutateSolidarityNeedAction} organization={organization} entity={{ kind: "need", id: need.id }} operation="reopen" label="Reabrir" /> : null}</div></article>)}
+      {hiddenOffers.map((offer) => <article className="border border-comun-black/40 bg-white p-4" key={offer.id}><h3 className="font-black">{offer.title}</h3><p className="mt-1 text-sm">{solidarityOfferStatusLabel(offer.status, offer.isExpired)}</p><div className="mt-3 flex flex-wrap gap-2"><Link className="inline-flex min-h-11 items-center font-black underline" href={`/comun/cooperativas/${organization.slug}/ofertas/${offer.slug}/editar`}>Editar</Link>{offer.isExpired ? <SolidarityEconomicTransitionForm action={mutateSolidarityOfferAction} organization={organization} entity={{ kind: "offer", id: offer.id }} operation="renew" label="Renovar por 30 dias" validityDays={30} /> : offer.status === "paused" ? <SolidarityEconomicTransitionForm action={mutateSolidarityOfferAction} organization={organization} entity={{ kind: "offer", id: offer.id }} operation="resume" label="Retomar" /> : null}</div></article>)}
+      {closedNeeds.map((need) => <article className="border border-comun-black/40 bg-white p-4" key={need.id}><h3 className="font-black">{need.title}</h3><p className="mt-1 text-sm">{solidarityNeedStatusLabel(need.status)}</p><div className="mt-3 flex flex-wrap gap-2"><Link className="inline-flex min-h-11 items-center font-black underline" href={`/comun/cooperativas/${organization.slug}/necessidades/${need.slug}/editar`}>Editar</Link>{["met", "cancelled"].includes(need.status) ? <SolidarityEconomicTransitionForm action={mutateSolidarityNeedAction} organization={organization} entity={{ kind: "need", id: need.id }} operation="reopen" label="Reabrir" /> : null}</div></article>)}
     </div>
   </section>;
 }

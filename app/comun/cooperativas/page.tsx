@@ -24,10 +24,10 @@ export default async function Page() {
       {isComunSolidarityOrganizationOnboardingEnabled() ? <Link className="mt-5 inline-flex min-h-11 items-center border-2 border-comun-black bg-white px-4 font-black" href="/comun/cooperativas/nova">Incluir uma organização</Link> : null}
     </header>
     <Section>
-      {directory.sourceState === "unavailable" ? <div role="status" className="border-2 border-comun-black bg-white p-5"><h2 className="text-xl font-black">Feirinha temporariamente indisponível</h2><p className="mt-2">Não exibimos dados antigos ou incompletos quando a fonte interna não pode ser verificada.</p></div> :
+      {directory.sourceState === "unavailable" ? <div role="status" className="border-2 border-comun-black bg-white p-5 text-comun-black"><h2 className="text-xl font-black">Feirinha temporariamente indisponível</h2><p className="mt-2">Não exibimos dados antigos ou incompletos quando a fonte interna não pode ser verificada.</p></div> :
         <div className="grid gap-12">
-          <DirectorySection title="O que está disponível" empty="Por enquanto não há ofertas públicas ativas.">{directory.offers.map((offer) => <OfferCard key={offer.id} offer={offer} />)}</DirectorySection>
-          <DirectorySection title="Do que estamos precisando" empty="Não há necessidades públicas abertas neste momento.">{directory.needs.map((need) => <NeedCard key={need.id} need={need} />)}</DirectorySection>
+          <DirectorySection title="O que está disponível" empty="Por enquanto não há ofertas públicas ativas publicadas no COMUN.">{directory.offers.map((offer) => <OfferCard key={offer.id} offer={offer} />)}</DirectorySection>
+          <DirectorySection title="Do que estamos precisando" empty="Por enquanto não há necessidades públicas abertas publicadas no COMUN.">{directory.needs.map((need) => <NeedCard key={need.id} need={need} />)}</DirectorySection>
           <DirectorySection title="Quem faz parte da rede" empty="O diretório público de organizações ainda está sendo verificado.">{directory.organizations.map((organization) => <OrganizationCard key={organization.territoryId} organization={organization} />)}</DirectorySection>
           {directory.coverageState === "partial_due_to_safety_cap" ? <p role="status" className="border-l-4 border-comun-yellow pl-4 text-sm">A listagem atingiu o limite seguro desta página. Parte dos registros públicos não foi carregada.</p> : null}
           <aside aria-labelledby="limitations-title" className="border-t-2 border-comun-black pt-6"><h2 id="limitations-title" className="text-xl font-black">O que esta página não faz</h2><ul className="mt-3 list-disc space-y-2 pl-5 text-sm">{directory.limitations.map((item) => <li key={item}>{item}</li>)}</ul></aside>
@@ -38,7 +38,7 @@ export default async function Page() {
 
 function DirectorySection({ title, empty, children }: { title: string; empty: string; children: ReactNode[] }) {
   const id = `section-${title.toLowerCase().replaceAll(" ", "-")}`;
-  return <section aria-labelledby={id}><h2 id={id} className="text-3xl font-black uppercase">{title}</h2><div className="mt-5 grid gap-4 md:grid-cols-2">{children.length ? children : <p className="border-2 border-dashed border-comun-black/50 bg-white p-5">{empty}</p>}</div></section>;
+  return <section aria-labelledby={id}><h2 id={id} className="text-3xl font-black uppercase">{title}</h2><div className="mt-5 grid gap-4 text-comun-black md:grid-cols-2">{children.length ? children : <p className="border-2 border-dashed border-comun-black/50 bg-white p-5">{empty}</p>}</div></section>;
 }
 
 function OfferCard({ offer }: { offer: PublicSolidarityOfferV1 }) {

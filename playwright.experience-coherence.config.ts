@@ -12,6 +12,7 @@ export default defineConfig({
   projects: [
     { name: "360x800", use: { viewport: { width: 360, height: 800 } } },
     { name: "390x844", use: { viewport: { width: 390, height: 844 } } },
+    { name: "430x932", use: { viewport: { width: 430, height: 932 } } },
     { name: "768x1024", use: { viewport: { width: 768, height: 1024 } } },
     { name: "1024x768", use: { viewport: { width: 1024, height: 768 } } },
     {
@@ -19,6 +20,13 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1366, height: 768 },
+      },
+    },
+    {
+      name: "1440x900",
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
       },
     },
   ],
@@ -34,6 +42,7 @@ export default defineConfig({
             ...process.env,
             COMUN_PAUTAS_VIVAS_CORE_ENABLED: "enabled",
             COMUN_PAUTA_LOW_FRICTION_CREATION_ENABLED: "enabled",
+            COMUN_SOLIDARITY_ECONOMY_PUBLIC_CORE_ENABLED: "enabled",
           },
         },
 });
