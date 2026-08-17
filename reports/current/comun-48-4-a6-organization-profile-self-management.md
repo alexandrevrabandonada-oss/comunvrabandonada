@@ -73,16 +73,45 @@ representa propriedade, representação legal nem nova verificação pelo COMUN.
 ## Validação
 
 - testes focais de normalização, flags, consentimento, contrato SQL, privacidade
-  e ausência de propagação: verdes;
-- `typecheck` e lint: verdes;
+  e ausência de propagação: 16 verdes;
+- suíte completa: 200 arquivos e 1.069 testes verdes;
+- `typecheck`, lint e build: verdes;
 - o bootstrap local completo do Supabase CLI 2.114.0 no Windows encontrou
   `LegacyDbSetupError` no container Realtime antes da prova A6; a prova Linux
   descartável do PR é o gate transacional autoritativo;
-- preflight remoto: pendente no PR, sempre metadata-only, `BEGIN READ ONLY` e
+- preflight remoto metadata-only `31986701720`: verde, `BEGIN READ ONLY` e
   `businessContentRead=false`;
-- prova descartável: pendente no PR, com rollback integral;
-- suíte completa, build, PR exact-head, Wave 0, Wave 1 e Production smoke:
-  pendentes antes da promoção.
+- prova Supabase descartável `31986701685`: verde, cobrindo autorização,
+  idempotência, concorrência, rate limits, campos protegidos, consentimento,
+  revogação, organização errada, no-propagation e rollback integral;
+- CI, Security, Quality Performance, Full Surface, Experience Coherence,
+  Core Journeys, Civic Graph e Preview do head funcional exato: verdes;
+- os dois ajustes de inventário de rotas registram a nova rota 220 sem relaxar
+  qualquer gate.
+
+## Promoção e Production
+
+- PR funcional `#340`;
+- head funcional exato:
+  `6ebb894ae99a6c2a4e75c4318689814ce93a9200`;
+- merge/main funcional:
+  `3d974b0d610425469a473a8d2a10e384fd898002`;
+- Wave 0 `31988907854`: migration exata promovida, postflight metadata-only
+  verde, nova flag `disabled`, deploy flags-off e smokes verdes;
+- Wave 1 `31989059174`: habilitou somente
+  `COMUN_SOLIDARITY_ORGANIZATION_PROFILE_SELF_EDIT_ENABLED`, fez deploy do
+  mesmo main exato e concluiu smokes `GET/HEAD` com `businessWrites=0`;
+- `/comun`, `/comun/participar`, `/comun/cooperativas` e
+  `/comun/minha-participacao` responderam `200`; `HEAD` da Feirinha respondeu
+  `200`;
+- o HTML público não contém payloads privados, ator, acesso, `request_id` ou
+  contato privado;
+- QA visual no domínio real em 390×844 e 1440×900 confirmou heading e regiões
+  acessíveis, ausência de overflow e os empty states reais de Ofertas,
+  Necessidades e Organizações;
+- não havia organização pública elegível em Production. Nenhuma fixture foi
+  criada e nenhuma mutação autenticada foi tentada; o fluxo de edição ficou
+  comprovado na prova descartável e nos testes transacionais.
 
 ## Contratos preservados
 
@@ -97,5 +126,6 @@ representa propriedade, representação legal nem nova verificação pelo COMUN.
 
 ## Estado terminal
 
-O terminal A6 somente será registrado depois de merge exact-head, Wave 0,
-Wave 1 e smoke Production com `businessWrites=0`.
+`COMUN_48_4_A6_ORGANIZATION_PROFILE_SELF_MANAGEMENT_GREEN_LOW_RISK_FIELDS_NO_IDENTITY_MUTATION`
+
+A7 não foi iniciado.
