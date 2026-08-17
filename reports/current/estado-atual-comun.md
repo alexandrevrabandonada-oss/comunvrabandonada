@@ -1,4 +1,27 @@
-# Estado atual — 48.4-A5 Conexão privada e consentida (16/08/2026)
+# Estado atual — 48.4-A6 Autogestão segura do perfil (16/08/2026)
+
+## 48.4-A6 — Campos cotidianos, sem mutação de identidade
+
+- acesso A2 ativo `editor` ou `facilitator` pode manter apresentação, serviços,
+  território de atuação textual e contato público autorizado;
+- nome, tipo, status, verificação, `last_verified_at`, contato privado,
+  território e proveniência continuam protegidos;
+- uma única migration estende o ledger privado A3 e adiciona a RPC atômica
+  service-role-only, sem nova entidade econômica;
+- contato público novo exige consentimento explícito; remoção não exige; nunca
+  existe fallback por conta, `private_contact`, A5, Wallet ou Relata;
+- idempotência, concorrência otimista, rate limit e snapshots privados bounded
+  são impostos no banco;
+- rota única `/comun/cooperativas/[slug]/editar-perfil`, uma tela, draft local,
+  `returnTo` e flag fail-closed dependente somente de A1+A2;
+- preflight, descartável, CI, merge e rollout permanecem pendentes antes do
+  terminal A6;
+- A1–A5, piloto Motorola pausado e `launch_publicly=false` permanecem
+  preservados.
+
+Detalhes: `reports/current/comun-48-4-a6-organization-profile-self-management.md`.
+
+# Estado anterior — 48.4-A5 Conexão privada e consentida (16/08/2026)
 
 ## 48.4-A5 — Interesse em Oferta e ajuda em Necessidade, sem marketplace
 

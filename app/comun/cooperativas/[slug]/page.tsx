@@ -29,6 +29,7 @@ import {
   type PrivateSolidarityOfferEditorV1,
 } from "@/lib/server/comun-solidarity-economic-content";
 import { isComunSolidarityPrivateConnectionsEnabled } from "@/lib/comun-solidarity-private-connections";
+import { isComunSolidarityOrganizationProfileSelfEditEnabled } from "@/lib/comun-solidarity-organization-profile";
 import {
   listSolidarityOrganizationConnections,
 } from "@/lib/server/comun-solidarity-private-connections";
@@ -73,7 +74,7 @@ export default async function SolidarityOrganizationPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ acesso?: string; conexao?: string }>;
+  searchParams: Promise<{ acesso?: string; conexao?: string; perfil?: string }>;
 }) {
   if (!isComunSolidarityOrganizationGovernanceEnabled()) notFound();
   const [{ slug }, query, session] = await Promise.all([
@@ -101,6 +102,8 @@ export default async function SolidarityOrganizationPage({
       ? await listSolidarityOrganizationEconomicContent(slug, session.user.id)
       : null;
   const privateConnectionsEnabled = isComunSolidarityPrivateConnectionsEnabled();
+  const profileSelfEditEnabled =
+    isComunSolidarityOrganizationProfileSelfEditEnabled();
   const organizationConnections =
     privateConnectionsEnabled && session?.user && access?.state === "active"
       ? await listSolidarityOrganizationConnections(
@@ -108,7 +111,9 @@ export default async function SolidarityOrganizationPage({
           session.user.id,
         )
       : [];
-  const statusMessage = query.conexao
+  const statusMessage = query.perfil === "atualizado"
+    ? "Perfil atualizado. As informações públicas já refletem as alterações."
+    : query.conexao
     ? STATUS_MESSAGES[query.conexao]
     : query.acesso
       ? STATUS_MESSAGES[query.acesso]
@@ -127,6 +132,7 @@ export default async function SolidarityOrganizationPage({
           <div><dt className="font-black">Situação no diretório</dt><dd>Organização verificada para exibição pública</dd></div>
         </dl>
         <Link className="mt-5 inline-flex min-h-11 items-center font-black underline" href={`/comun/mapa/${detail.organization.slug}`}>Ver contexto no mapa</Link>
+        {profileSelfEditEnabled && access?.state === "active" && access.role ? <Link className="ml-5 mt-5 inline-flex min-h-11 items-center font-black underline" href={`/comun/cooperativas/${slug}/editar-perfil`}>Editar perfil da organização</Link> : null}
       </header>
       <Section>
         {statusMessage ? <p role="status" className="mb-6 border-2 border-comun-black bg-white p-4 font-bold">{statusMessage}</p> : null}
@@ -149,6 +155,7 @@ export default async function SolidarityOrganizationPage({
           <aside className="border-t-2 border-comun-black pt-5 text-sm">
             <h2 className="text-xl font-black">O que este vínculo significa</h2>
             <p className="mt-2 max-w-3xl">O acesso permite colaborar na representação da organização dentro do COMUN. Ele é privado, revogável e não comprova propriedade, representação legal, relação de trabalho ou pertencimento no mundo real.</p>
+            <p className="mt-2 max-w-3xl">As informações de apresentação podem ser mantidas pela própria organização no COMUN. Nome, tipo e verificação continuam protegidos.</p>
           </aside>
         </div>
       </Section>
