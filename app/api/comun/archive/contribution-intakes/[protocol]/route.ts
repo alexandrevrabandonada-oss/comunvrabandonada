@@ -11,9 +11,11 @@ export async function GET(request: Request, context: { params: Promise<{ protoco
   if (!isComunCulturalSaveFirstIntakeEnabled()) return NextResponse.json({ error: "Indisponível" }, { status: 404 });
   const db = createServiceSupabaseClient(); if (!db) return NextResponse.json({ error: "Serviço indisponível." }, { status: 503 });
   const auth = await createSupabaseServerClient(); const { data: userData } = auth ? await auth.auth.getUser() : { data: { user: null } }; const cookie = request.headers.get("cookie")?.match(new RegExp(`${COOKIE}=([^;]+)`))?.[1] ?? null;
-  const { data } = await db.from("comun_cultural_contribution_intakes").select("public_protocol,status,route_kind,intent_text_private,created_at").eq("public_protocol", (await context.params).protocol).or(`resume_token_hash.eq.${cookie ? walletSecretHash(cookie) : "__none__"}${userData.user?.id ? `,member_user_id.eq.${userData.user.id}` : ""}`).maybeSingle();
-  if (!data) return NextResponse.json({ error: "Não encontrado." }, { status: 404 });
-  return NextResponse.json({ protocol: data.public_protocol, status: data.status, routeKind: data.route_kind, intentText: data.intent_text_private, createdAt: data.created_at });
+  const { data, error } = await db.rpc("comun_get_cultural_contribution_intake_v1", { p_public_protocol: (await context.params).protocol, p_resume_token_hash: cookie ? walletSecretHash(cookie) : null, p_member_user_id: userData.user?.id ?? null });
+  if (error) return NextResponse.json({ error: "Não encontrado." }, { status: 404 });
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return NextResponse.json({ error: "Não encontrado." }, { status: 404 });
+  return NextResponse.json({ protocol: row.public_protocol, status: row.status, routeKind: row.route_kind, intentText: row.intent_text_private, createdAt: row.created_at });
 }
 
 export async function POST(request: Request, context: { params: Promise<{ protocol: string }> }) {
@@ -23,5 +25,7 @@ export async function POST(request: Request, context: { params: Promise<{ protoc
   const auth = await createSupabaseServerClient(); const { data: userData } = auth ? await auth.auth.getUser() : { data: { user: null } }; const cookie = request.headers.get("cookie")?.match(new RegExp(`${COOKIE}=([^;]+)`))?.[1] ?? null;
   const { data, error } = await db.rpc("comun_route_cultural_contribution_intake_v1", { p_public_protocol: (await context.params).protocol, p_route_kind: parsed.data.routeKind, p_resume_token_hash: cookie ? walletSecretHash(cookie) : null, p_member_user_id: userData.user?.id ?? null });
   if (error) return NextResponse.json({ error: "Este envio não está disponível neste dispositivo ou conta." }, { status: 404 });
-  const row = Array.isArray(data) ? data[0] : data; return NextResponse.json({ protocol: row?.public_protocol, status: row?.status, routeKind: row?.route_kind });
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return NextResponse.json({ error: "Este envio não está disponível neste dispositivo ou conta." }, { status: 404 });
+  return NextResponse.json({ protocol: row.public_protocol, status: row.status, routeKind: row.route_kind });
 }

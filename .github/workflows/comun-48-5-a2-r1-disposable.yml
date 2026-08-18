@@ -1,0 +1,33 @@
+name: COMUN 48.5-A2-R1 disposable intake authorization proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-5-a2-r1-disposable.yml"
+      - "supabase/migrations/20260817160000_comun_cultural_contribution_intakes.sql"
+      - "supabase/migrations/20260817170000_comun_cultural_contribution_intakes_r1.sql"
+      - "scripts/comun-cultural-intake-r1-disposable.sql"
+  workflow_dispatch:
+
+permissions: { contents: read }
+
+jobs:
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.114.0 }
+      - name: Prove private authorization, routing and no handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          db="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '"')"
+          test -n "$db"
+          psql "$db" -v ON_ERROR_STOP=1 -f scripts/comun-cultural-intake-r1-disposable.sql
+          echo COMUN_48_5_A2_R1_DISPOSABLE_PRIVATE_RESUME_ROUTE_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo specializedHandoff=false >> "$GITHUB_STEP_SUMMARY"
+          echo businessWritesAfterRollback=0 >> "$GITHUB_STEP_SUMMARY"

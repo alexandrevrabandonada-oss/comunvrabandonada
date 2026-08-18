@@ -2,7 +2,7 @@ import { ComunShell, Section } from "@/components/comun-shell";
 import { PhotoSubmissionForm } from "./photo-submission-form";
 import { CulturalIntakeForm } from "./cultural-intake-form";
 import { isComunCulturalSaveFirstIntakeEnabled } from "@/lib/comun-cultural-contribution-feature";
-export const metadata = { title: "Contribuir com fotografia | Acervo Vivo" };
+export const metadata = { title: "Guardar uma memória | Acervo Vivo" };
 export default function ContributePhotoPage() {
   const saveFirst = isComunCulturalSaveFirstIntakeEnabled();
   return (
