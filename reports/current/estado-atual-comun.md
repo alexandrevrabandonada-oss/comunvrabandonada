@@ -1,3 +1,19 @@
+## Estado atual — 48.5-A3-R2-Retry1 Wave 0 concluída (19/08/2026)
+
+Estado terminal: `COMUN_48_5_A3_R2_SCHEMA_GREEN_FLAG_OFF`.
+
+- `origin/main=106913e9fc9c5f41f263f38940fac4a607657e8d`; A3 funcional ancestral confirmado;
+- runner operacional com lock de rollout e modo `wave0-only`; não houve Wave 1;
+- D1 final `32303796951` GREEN, CI `32303736046` GREEN e Wave 0 `32303958299` GREEN;
+- o plano Supabase retornou `Remote database is up to date.`; postflight confirmou a migration A3 e todos os RPCs/grants/RLS esperados. O receipt registra `migrationA3=already_applied`, portanto nenhum `supabase db push` foi executado nesta Retry1;
+- a origem do write que colocou a migration no histórico antes do run final não foi determinada; não há evidência de que tenha sido qualquer tentativa Retry1;
+- flag `COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED` continua OFF, única project-level Production, sem shared env, duplicata ou override;
+- `businessWrites=0`, `fixtures=0`, `publications=0`; nenhum intake, target, asset, Search ou coleção foi criado;
+- oito smokes GET/HEAD passaram com HTTP 200 e as respostas não expuseram IDs, hashes, identidade privada ou traces SQL;
+- Production Vercel está READY no deployment `dpl_Ez2dfM6Mybf6HUHotaaY8Yd7Qohs` do SHA `106913e9`.
+
+Próximo passo: Wave 1 em execução separada, com flag ainda OFF até novo preflight deliberado.
+
 ## Estado atual — 48.5-A3-R2-D1 proveniência do drift (19/08/2026)
 
 Estado terminal do D1: `COMUN_48_5_A3_R2_FLAG_DRIFT_PROVENANCE_GREEN_READY_TO_RETRY_WAVE0`.

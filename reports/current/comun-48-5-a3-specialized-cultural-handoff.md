@@ -1,5 +1,53 @@
 # 48.5-A3 — Handoff Especializado da Contribuição Cultural
 
+## A3-R2-Retry1 — Wave 0 pós-D1 (19/08/2026)
+
+### Resultado terminal
+
+`COMUN_48_5_A3_R2_SCHEMA_GREEN_FLAG_OFF`
+
+- `origin/main` foi confirmado em `106913e9fc9c5f41f263f38940fac4a607657e8d`; o commit funcional A3 `a7a55861458be833048ecb20ec3b5d2ba7b4bb84` permanece ancestral;
+- o runner operacional ficou protegido por `concurrency.group=comun-48-5-a3-r2-production-rollout` com `cancel-in-progress=false` e recebeu o modo explícito `wave0-only`;
+- Production Vercel ficou `READY` no deployment `dpl_Ez2dfM6Mybf6HUHotaaY8Yd7Qohs`, correspondente ao SHA `106913e9`;
+- D1 read-only do SHA final: run `32303796951`, GREEN; CI do SHA final: run `32303736046`, GREEN;
+- Wave 0 final: run `32303958299`, GREEN; Wave 1 não foi executada.
+
+### Tentativas e plano Supabase
+
+- `32302815528` parou antes de qualquer write remoto por bug local no cleanup do `dry-run`: o `trap` acessava variáveis locais já fora do escopo. Não houve `migration-push.txt`, postflight ou alteração remota;
+- `32303370859` passou o preflight, mas o plano retornou exatamente `Remote database is up to date.`. O runner parou conservadoramente antes do postflight, sem executar `supabase db push`;
+- o runner foi endurecido para aceitar plano vazio somente com essa mensagem exata e exigir postflight completo. Em `32303958299`, o postflight confirmou `migrationApplied=true`; o resultado foi `migrationA3=already_applied`;
+- portanto a migration A3 já estava aplicada antes do run final, mas não foi aplicada por nenhuma das tentativas Retry1 observadas. A origem temporal desse write Supabase permanece não determinada; não foi inventada atribuição causal;
+- boundary remoto efetivo: `authorizedRemoteWrite=migration-only`; write de migration nesta execução: `0`.
+
+### Postflight metadata-only
+
+O artifact sanitizado do run `32303958299` confirmou:
+
+- `transactionReadOnly=true`;
+- migration A3, RPC de handoff e RPC de rota presentes;
+- `serviceRoleOnly=true` e `routeServiceRoleOnly=true`;
+- constraint de estado e RLS do intake privado presentes;
+- `publicObjectsCreated=false`, `businessWrites=false`, `fixturesCreated=false`, `publicationsCreated=false`;
+- receipt de entrada: flag `OFF`, uma variável Production, `sharedEnvCount=0`, fingerprint de env preservado, sem valor bruto/token;
+- revalidação pós-migration: flag permaneceu `OFF`.
+
+### Smokes e privacidade
+
+GET e HEAD read-only nas oito superfícies passaram com `200`:
+
+`/comun/acervo`, `/comun/acervo/contribuir`, `/comun/acervo/arte`, `/comun/acervo/arte/contribuir`, `/comun/acervo/historias-orais`, `/comun/acervo/historias-orais/contribuir`, `/comun/radio`, `/comun/radio/contribuir`.
+
+As oito respostas HTML não continham `resume_token_hash`, `target_id`, `member_user_id`, `private.comun_`, `public_protocol` ou traces SQL. Nenhum POST, upload, RPC funcional, intake, target, asset, Search, coleção ou publicação foi criado.
+
+### Receipt e estado de saída
+
+O receipt final registra `phase=wave0_complete`, `migrationA3=already_applied`, `flag=OFF`, `businessWrites=0`, `fixtures=0`, `publications=0` e `productionHealthy=true`. O checkpoint é:
+
+`COMUN_48_5_A3_R2_SCHEMA_GREEN_FLAG_OFF`
+
+A capability A3 continua desligada. A próxima ação, em execução separada, é avaliar a Wave 1; este Retry1 terminou deliberadamente antes dela.
+
 ## A3-R2-D1 — Proveniência do drift da flag Production (19/08/2026)
 
 ### Resultado terminal
