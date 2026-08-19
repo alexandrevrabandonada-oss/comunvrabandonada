@@ -6,11 +6,13 @@ Estado atual: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_GREEN_BROWSER_CI_STABLE_AWAIT
 
 - causa-raiz: seis workflows ativos da PR executavam, em quinze jobs, `npx playwright install --with-deps chromium` de forma independente; os bloqueios observados ocorreram no provisionamento compartilhado antes da execução das suítes, sem evidência de defeito do A4;
 - patch: a action local `.github/actions/setup-playwright-browser` restaura `~/.cache/ms-playwright` com chave exata por `runner.os`, `runner.arch`, versão real `@playwright/test` (`1.61.1`) e hash de `package-lock.json`; dependências de sistema continuam sendo garantidas separadamente;
-- o helper `scripts/ci/install-playwright-browser.mjs` usa `npx --no-install`, timeout focal de 8 minutos e no máximo duas tentativas somente para falhas classificadas como rede/download; falha emite `COMUN_BROWSER_PROVISIONING_FAILED` e mantém o check vermelho;
+- o helper `scripts/ci/install-playwright-browser.mjs` usa `npx --no-install`, timeout focal de 8 minutos e no máximo duas tentativas somente para falhas classificadas como rede/download, incluindo timeout explícito do processo de provisionamento; falha emite `COMUN_BROWSER_PROVISIONING_FAILED` e mantém o check vermelho;
 - Quality Performance, Experience Coherence, Core Journeys, Civic Graph, Civic Intelligence e Full Surface Migration passaram a usar a action compartilhada. Workflows de outros domínios ou caminhos não envolvidos no bloqueio não foram alterados cegamente;
 - contrato estrutural local: `COMUN_BROWSER_PROVISIONING_CONTRACT_GREEN`; A4 focal `40/40`; typecheck, lint, build, unitário `207` arquivos/`1140` testes e `git diff --check` verdes;
 - o script de contrato é executado explicitamente por Node e não é coletado como suíte Vitest. O workflow A4 disposable permanece local-only no CI e continua sem fixture Production;
 - pendentes neste candidato: novo Preview exato/freshness, CI remoto com as suítes após provisionamento, A4 disposable, Cultural Deliverability, Quality/Experience e merge da PR #351.
+
+Após o primeiro checkpoint, quatro jobs Civic Graph confirmaram o caso de timeout do apt mirror; a correção passou a registrar `result.error` no classificador para que o retry limitado possa atuar. Esse ajuste exige novo checkpoint antes da reexecução remota.
 
 Migration A4 continua pendente em Production e `COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED` continua OFF. Nenhuma escrita Production, publicação, Search, asset ou rollout foi realizado.
 

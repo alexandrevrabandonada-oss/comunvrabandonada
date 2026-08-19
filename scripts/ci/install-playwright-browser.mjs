@@ -49,7 +49,10 @@ function runPlaywright(args, label) {
     maxBuffer: 4 * 1024 * 1024,
     windowsHide: true,
   });
-  const output = `${result.stdout || ""}\n${result.stderr || ""}`;
+  const processError = result.error
+    ? `${result.error.code || "spawn_error"}: ${result.error.message || result.error}`
+    : "";
+  const output = `${result.stdout || ""}\n${result.stderr || ""}\n${processError}`;
   writeFileSync(logPath, sanitizedOutput(output));
   return { ...result, output };
 }
