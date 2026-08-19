@@ -1,4 +1,37 @@
-# Estado atual — 48.5-A0 Reconciliação de cultura, memória e rádio (17/08/2026)
+## A3-R1 — Provas Supabase locais e lanes históricas saneadas (18/08/2026)
+
+Estado de implementação local: `COMUN_48_5_A3_R1_EXACT_PREVIEW_AND_DISPOSABLE_GREEN_PENDING_MERGE`.
+
+- baseline remoto reconfirmado: `origin/main=67b8fa9fcfd9adb07552d2a5776a3c7783f1a3a0`; entrada do R1 em `27d1abc0e407b5f88bc536f3244dad811ea35498`;
+- workflow disposable A3 dedicado executa somente Supabase local no runner, aplica a cadeia A2/A2-R1/A3 por reset local e publica marker sanitizado; nenhum remoto, fixture Production, publicação ou ativação de flag foi usado;
+- os seis preflights históricos agora usam paths/manifesto de lane ownership: known-other é N/A, unknown e mistura continuam FAIL CLOSED; não houve remoção de required check nem bypass de branch protection;
+- A3 continua transacional 1:1 para Foto/Documento, Arte, História Oral e Rádio; `unknown` não cria alvo, Música fica fora, alvos permanecem draft/pending e a flag `COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED` continua OFF;
+- contrato R1 local: `6 passed`; prova disposable Supabase, exact Preview/freshness, CI remoto, merge e Production continuam pendentes até execução no SHA candidato;
+- a primeira prova CI local-only foi executada no run `32206329698` e encontrou um defeito real de compilação do RPC de rota (`status` ambíguo); a correção foi aplicada e a reexecução GREEN `32207385217` confirmou o handoff descartável, sem aplicar nada em Production;
+- a segunda prova `32206689457` alcançou o rollback e encontrou uma falha de baseline do harness, não do produto; o baseline agora é capturado após os quatro handoffs esperados para medir exclusivamente o rollback-only;
+- A1 também revelou um defeito operacional de leitura de `GITHUB_ENV`; a correção foi aplicada e o preflight `32207385183` ficou GREEN/N/A. Os demais lanes históricos aplicáveis ficaram GREEN/N/A no mesmo ciclo;
+- checkpoint final `a0b3bc93092ee2571d8ca9f05ba2887bc7f40d2b` tem Preview Vercel READY e COST-02 GREEN; A3 disposable `32208583635`, COMUN CI `32208583833`, Cultural Deliverability `32208583751` e preflights de lane estão GREEN;
+- migração A3 ainda não foi aplicada em Production, a flag continua OFF e o rollout controlado não começou; merge aguarda somente as suítes gerais restantes e a confirmação final de mergeability.
+
+Checkpoint pré-merge reservado: `COMUN_48_5_A3_R1_SPECIALIZED_HANDOFF_PROOFS_GREEN_LEGACY_LANES_SCOPED`.
+
+# Estado atual — 48.5-A3 Handoff especializado da contribuição cultural (18/08/2026)
+
+Estado de implementação local: `COMUN_48_5_A3_SPECIALIZED_HANDOFF_CANDIDATE_PENDING_VERIFY`.
+
+- baseline remoto confirmado: `origin/main=67b8fa9fcfd9adb07552d2a5776a3c7783f1a3a0`; a divergência histórica dos blocos A2 abaixo permanece registrada e não foi reescrita;
+- o A3 reutiliza as raízes `comun_archive_submissions`, `comun_archive_artwork_submissions`, `comun_archive_oral_history_suggestions` e `comun_radio_contributions`; não cria entidade cultural genérica, bucket, `comun_archive_items`, Search, coleção, feed ou publicação;
+- a migration `20260818120000_comun_cultural_specialized_handoff.sql` estende somente estados do envelope A2, torna a escolha de rota imutável após seleção e adiciona RPC service-role-only transacional com lock do intake;
+- o RPC cria no máximo um alvo especializado por intake, registra `target_kind/target_id` somente no envelope privado, retorna apenas `target_kind`/estado e mantém os alvos em `draft` ou `pending`; `target_id`, hashes, identidade, consentimento e rights não entram em DTO/HTML;
+- `unknown` continua sem alvo; Música permanece fora do seletor; flag nova `COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED` nasce OFF e, desligada, preserva o comportamento A2;
+- a UI devolve continuidade para os formulários canônicos de Foto/Documento, Arte, História Oral e Rádio, sem promessa de publicação; direitos, consentimento, storage e revisão continuam nos pipelines especializados;
+- disposable proof, testes A1/A2, gates locais, CI/Preview e rollout ainda estão pendentes. Nenhum write remoto, fixture Production, ativação de flag ou publicação foi realizado.
+
+Detalhes: `reports/current/comun-48-5-a3-specialized-cultural-handoff.md`.
+
+O estado só poderá ser terminal após prova descartável, exact Preview/freshness, CI e rollout controlado.
+
+# Estado anterior — 48.5-A0 Reconciliação de cultura, memória e rádio (17/08/2026)
 
 ## 48.5-A0 — Inventário antes de construir
 
@@ -2831,7 +2864,6 @@ Estado atual: `COMUN_48_5_A2_R1_CANDIDATE_GREEN_PENDING_MERGE_AND_ROLLOUT`.
   `HISTORICAL_PREFLIGHT_NOT_A2_R1_GATE` e não devem ser alterados para aceitar
   esta migration.
 
-A3 não foi iniciado. O terminal Production só poderá ser emitido depois do
-  merge exact-head e da evidência real de rollout.
+À data registrada nesta seção histórica, A3 ainda não havia sido iniciado; esse estado foi superado pelo bloco corrente no topo. O terminal Production continua condicionado ao merge exact-head e à evidência real de rollout.
 
 # Estado atual — 48.5-A0 Reconciliação de cultura, memória e rádio (17/08/2026)

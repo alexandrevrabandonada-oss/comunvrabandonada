@@ -11,7 +11,7 @@ on:
       - "lib/comun-wallet-relata-action*"
       - "lib/server/comun-*-institutional-channel-catalog*"
       - "lib/server/comun-child-protection-channel-catalog*"
-      - "supabase/migrations/**"
+      - "scripts/ci/classify-migration-lane.mjs"
   workflow_dispatch:
 
 permissions:
@@ -34,28 +34,22 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: 2.113.0
-      - name: Validate Production target and bounded migration scope
+      - name: Validate Production target and lane migration scope
         shell: bash
         run: |
           set -euo pipefail
           test -n "${SUPABASE_DB_URL:-}"
           test -n "${SUPABASE_PROJECT_REF:-}"
           case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
+          mkdir -p .ci-artifacts/p6c-c-preflight
           mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
-          test "${#changed[@]}" -le 1 || { echo COMUN_P6C_C_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
-          if test "${#changed[@]}" -eq 1; then
-            case "${changed[0]}" in
-              supabase/migrations/*_comun_sensitive_assisted_forwarding.sql) ;;
-              supabase/migrations/*_comun_pautas_vivas_public_evidence.sql)
-                mkdir -p .ci-artifacts/p6c-c-preflight
-                printf '%s\n' '{"result":"COMUN_P6C_C_UNRELATED_MIGRATION_NOT_APPLICABLE","businessRowsRead":false}' >.ci-artifacts/p6c-c-preflight/migration-plan.json
-                echo COMUN_P6C_C_UNRELATED_MIGRATION=true >> "$GITHUB_ENV"
-                ;;
-              *) echo COMUN_P6C_C_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1 ;;
-            esac
+          node scripts/ci/classify-migration-lane.mjs --lane p6c-c --files "${changed[@]}" | tee .ci-artifacts/p6c-c-preflight/migration-classification.env
+          cat .ci-artifacts/p6c-c-preflight/migration-classification.env >> "$GITHUB_ENV"
+          if test "${COMUN_MIGRATION_LANE_MODE:-}" = not_applicable; then
+            printf '%s\n' '{"result":"COMUN_P6C_C_UNRELATED_MIGRATION_NOT_APPLICABLE","businessRowsRead":false}' >.ci-artifacts/p6c-c-preflight/migration-plan.json
           fi
       - name: Inspect forwarding metadata without business-row reads
-        if: env.COMUN_P6C_C_UNRELATED_MIGRATION != 'true'
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail
@@ -118,7 +112,7 @@ jobs:
           if(required.some((key)=>s[key]!==true)||s.anonPackagesSelect||s.authenticatedPackagesSelect||s.anonGenericOpen||s.authenticatedGenericOpen||s.businessRowsRead!==false) throw new Error('COMUN_P6C_C_BLOCKED_REMOTE_SCHEMA_DRIFT');
           NODE
       - name: Reconcile Calçadas and prove bounded remote migration plan
-        if: env.COMUN_P6C_C_UNRELATED_MIGRATION != 'true'
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail
@@ -153,7 +147,7 @@ jobs:
       - name: Emit bounded result
         if: success()
         run: |
-          if test "${COMUN_P6C_C_UNRELATED_MIGRATION:-}" = true; then
+          if test "${COMUN_MIGRATION_LANE_MODE:-}" = not_applicable; then
             echo COMUN_P6C_C_UNRELATED_MIGRATION_NOT_APPLICABLE >> "$GITHUB_STEP_SUMMARY"
           else
             echo COMUN_P6C_C_REMOTE_SCHEMA_GREEN >> "$GITHUB_STEP_SUMMARY"

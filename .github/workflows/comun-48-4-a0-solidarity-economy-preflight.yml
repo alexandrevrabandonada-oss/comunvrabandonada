@@ -8,7 +8,7 @@ on:
       - "lib/comun-solidarity-economy-architecture.ts"
       - "lib/comun-solidarity-economy-architecture.test.ts"
       - "reports/current/comun-48-4-a0-solidarity-economy-reconciliation.md"
-      - "reports/current/estado-atual-comun.md"
+      - "scripts/ci/classify-migration-lane.mjs"
   workflow_dispatch:
 
 permissions:
@@ -30,7 +30,7 @@ jobs:
         with:
           version: 2.113.0
 
-      - name: Validate baseline and zero migration scope
+      - name: Validate baseline and lane migration scope
         shell: bash
         run: |
           set -euo pipefail
@@ -38,13 +38,16 @@ jobs:
           test -n "${SUPABASE_PROJECT_REF:-}"
           case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
           git merge-base --is-ancestor 3d1d8da654cf83570858b5f534b485fd27f28f0d HEAD
+          mkdir -p .ci-artifacts/48-4-a0-preflight
           mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
-          if [ "${#changed[@]}" -ne 0 ]; then
-            echo COMUN_48_4_A0_BLOCKED_UNEXPECTED_MIGRATION
-            exit 1
+          node scripts/ci/classify-migration-lane.mjs --lane 48-4-a0 --files "${changed[@]}" | tee .ci-artifacts/48-4-a0-preflight/migration-classification.env
+          cat .ci-artifacts/48-4-a0-preflight/migration-classification.env >> "$GITHUB_ENV"
+          if test "${COMUN_MIGRATION_LANE_MODE:-}" = not_applicable; then
+            printf '%s\n' '{"result":"COMUN_48_4_A0_UNRELATED_MIGRATION_NOT_APPLICABLE","businessContentRead":false}' >.ci-artifacts/48-4-a0-preflight/migration-plan.json
           fi
 
       - name: Inspect economic metadata in a read-only transaction
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail
@@ -268,6 +271,7 @@ jobs:
           NODE
 
       - name: Prove remote migration plan is empty
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail

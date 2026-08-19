@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient, createServiceSupabaseClient } from "@/lib/supabase/server";
 import { isComunCulturalSaveFirstIntakeEnabled } from "@/lib/comun-cultural-contribution-feature";
+import { isComunCulturalSpecializedHandoffEnabled, specializedHandoffPath } from "@/lib/comun-cultural-handoff-feature";
 import { walletSecretHash } from "@/lib/comun-participation-wallet-runtime";
 
 const COOKIE = "comun_cultural_resume_v1";
@@ -27,5 +28,19 @@ export async function POST(request: Request, context: { params: Promise<{ protoc
   if (error) return NextResponse.json({ error: "Este envio não está disponível neste dispositivo ou conta." }, { status: 404 });
   const row = Array.isArray(data) ? data[0] : data;
   if (!row) return NextResponse.json({ error: "Este envio não está disponível neste dispositivo ou conta." }, { status: 404 });
-  return NextResponse.json({ protocol: row.public_protocol, status: row.status, routeKind: row.route_kind });
+  let handoff: any = null;
+  if (isComunCulturalSpecializedHandoffEnabled()) {
+    const result = await db.rpc("comun_prepare_cultural_contribution_handoff_v1", { p_public_protocol: row.public_protocol, p_resume_token_hash: cookie ? walletSecretHash(cookie) : null, p_member_user_id: userData.user?.id ?? null });
+    handoff = Array.isArray(result.data) ? result.data[0] : result.data;
+    if (result.error || !handoff) return NextResponse.json({ error: "Continuidade indisponível." }, { status: 503 });
+  }
+  return NextResponse.json({
+    protocol: row.public_protocol,
+    status: handoff?.status ?? row.status,
+    routeKind: handoff?.route_kind ?? row.route_kind,
+    handoffState: handoff?.handoff_state ?? "routed",
+    targetKind: handoff?.target_kind ?? null,
+    targetCreated: handoff?.target_created === true,
+    continuationPath: handoff?.target_created ? specializedHandoffPath(handoff.route_kind, row.public_protocol) : null,
+  });
 }

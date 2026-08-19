@@ -8,7 +8,7 @@ on:
       - "lib/comun-culture-memory-architecture.ts"
       - "lib/comun-culture-memory-architecture.test.ts"
       - "reports/current/comun-48-5-a0-culture-memory-radio-reconciliation.md"
-      - "reports/current/estado-atual-comun.md"
+      - "scripts/ci/classify-migration-lane.mjs"
   workflow_dispatch:
 
 permissions:
@@ -29,7 +29,7 @@ jobs:
         with:
           version: 2.113.0
 
-      - name: Validate exact baseline and zero migration scope
+      - name: Validate exact baseline and lane migration scope
         shell: bash
         run: |
           set -euo pipefail
@@ -37,13 +37,16 @@ jobs:
           test -n "${SUPABASE_PROJECT_REF:-}"
           case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
           git merge-base --is-ancestor acd90657c221b7159b70f9ca1d91c9f36a5358b9 HEAD
+          mkdir -p .ci-artifacts/48-5-a0-preflight
           mapfile -t changed < <(git diff --name-only acd90657c221b7159b70f9ca1d91c9f36a5358b9...HEAD -- supabase/migrations)
-          if [ "${#changed[@]}" -ne 0 ]; then
-            echo COMUN_48_5_A0_BLOCKED_UNEXPECTED_MIGRATION
-            exit 1
+          node scripts/ci/classify-migration-lane.mjs --lane 48-5-a0 --files "${changed[@]}" | tee .ci-artifacts/48-5-a0-preflight/migration-classification.env
+          cat .ci-artifacts/48-5-a0-preflight/migration-classification.env >> "$GITHUB_ENV"
+          if test "${COMUN_MIGRATION_LANE_MODE:-}" = not_applicable; then
+            printf '%s\n' '{"result":"COMUN_48_5_A0_UNRELATED_MIGRATION_NOT_APPLICABLE","businessContentRead":false}' >.ci-artifacts/48-5-a0-preflight/migration-plan.json
           fi
 
       - name: Inspect culture metadata in a read-only transaction
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail
@@ -153,6 +156,7 @@ jobs:
           NODE
 
       - name: Prove remote migration plan is empty
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail

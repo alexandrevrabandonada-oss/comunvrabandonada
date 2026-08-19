@@ -3,8 +3,10 @@ import { PhotoSubmissionForm } from "./photo-submission-form";
 import { CulturalIntakeForm } from "./cultural-intake-form";
 import { isComunCulturalSaveFirstIntakeEnabled } from "@/lib/comun-cultural-contribution-feature";
 export const metadata = { title: "Guardar uma memória | Acervo Vivo" };
-export default function ContributePhotoPage() {
+export default async function ContributePhotoPage({ searchParams }: { searchParams: Promise<{ specialized?: string; intake?: string }> }) {
+  const params = await searchParams;
   const saveFirst = isComunCulturalSaveFirstIntakeEnabled();
+  const specializedPhoto = params.specialized === "photo" && Boolean(params.intake);
   return (
     <ComunShell>
       <Section>
@@ -14,7 +16,7 @@ export default function ContributePhotoPage() {
           {saveFirst ? "Guardamos seu envio de forma privada. Antes de qualquer publicação, direitos e contexto serão verificados." : "Ajude a preservar a memoria de sua cidade. O original fica privado, e somente uma versao revisada pode ser publicada."}
         </p>
         <div className="mt-8">
-          {saveFirst ? <CulturalIntakeForm /> : <PhotoSubmissionForm />}
+          {saveFirst && !specializedPhoto ? <CulturalIntakeForm /> : <PhotoSubmissionForm />}
         </div>
       </Section>
     </ComunShell>
