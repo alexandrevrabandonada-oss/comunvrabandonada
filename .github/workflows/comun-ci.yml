@@ -14,7 +14,7 @@ on:
         closed,
       ]
   push:
-    branches: [main, "codex/**"]
+    branches: [main]
   deployment_status:
   workflow_call:
     inputs:
@@ -309,6 +309,20 @@ jobs:
 
   r2a-production-candidate-contract:
     name: COMUN R2A / production candidate topology
+    if: >-
+      (
+        github.event_name == 'pull_request' &&
+        github.event.action != 'closed' &&
+        github.event.pull_request.base.ref == 'main'
+      ) || (
+        github.event_name == 'push' &&
+        github.ref_name == 'main'
+      ) || (
+        github.event_name == 'workflow_call'
+      ) || (
+        github.event_name == 'workflow_dispatch' &&
+        inputs.force_full == true
+      )
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -1779,6 +1793,39 @@ jobs:
         run: echo 'COMUN_CI_GREEN' >> "$GITHUB_STEP_SUMMARY"
       - if: always() && steps.deduplicate.outputs.should_run == 'true'
         run: supabase stop --no-backup || true
+
+  cost-02-preview-freshness:
+    name: COST-02 / exact checkpoint Preview
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      github.event.pull_request.base.ref == 'main' &&
+      startsWith(github.event.pull_request.head.ref, 'codex/')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      deployments: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Refresh canonical main reference
+        run: git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+      - name: Verify exact Preview checkpoint and freshness
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: node scripts/ci/verify-codex-preview-checkpoint.mjs
 
   process-retro-unit:
     name: COMUN RETRO / unit
