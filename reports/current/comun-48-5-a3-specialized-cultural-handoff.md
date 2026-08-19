@@ -23,11 +23,12 @@
 
 ### Evidência remota R1
 
-- disposable run ID: `32207385217`, job `95933132305`, GREEN; o resumo remoto confirmou o marker A3 e `businessWritesAfterRollback=0`, `autoPublication=false`, `publicAssetWrites=0`, `searchWrites=0`, além de `concurrentRace=one-target`;
-- preflights históricos reexecutados no mesmo candidato: 48.2-A `32207385210`, 48.3-A1 `32207385183`, 48.3-B0 `32207385239`, 48.4-A0 `32207385233`, 48.5-A0 `32207385198` e P6C-C `32207385225`, todos GREEN/N/A conforme lane ownership;
-- Preview SHA/freshness: pendente até o novo checkpoint `[comun-preview]` do candidato R1;
+- disposable run IDs: `32207385217`/`95933132305` (recheck) e `32208583635`/`95936534370` (checkpoint final), ambos GREEN; o último resumo remoto confirmou o marker A3 e `businessWritesAfterRollback=0`, `autoPublication=false`, `publicAssetWrites=0`, `searchWrites=0`, além de `concurrentRace=one-target`;
+- preflights históricos reexecutados no checkpoint final: 48.2-A `32208583761`, 48.3-A1 `32208583742`, 48.3-B0 `32208583663`, 48.4-A0 `32208583756`, 48.5-A0 `32208583747` e P6C-C `32208583644`, todos GREEN/N/A conforme lane ownership;
+- Preview exato/freshness: checkpoint `a0b3bc93092ee2571d8ca9f05ba2887bc7f40d2b`, deployment Vercel READY `dpl_Ftb4qzP4YiVoDG5B9AsudPyw3Uip` (`comunvrabandonada-ov1fpnelj-alexandrevrabandonada-oss-projects.vercel.app`); o gate COST-02 `32208583833/95936537057` ficou GREEN;
+- CI remoto: COMUN CI `32208583833` GREEN; Cultural Deliverability `32208583751` GREEN;
 - CI local: `npm run test:unit` verde, 205 arquivos/1.100 testes; contratos R1 locais `6 passed`; typecheck, lint, build, privileges lint e diff check verdes;
-- CI remoto/Cultural Deliverability: execução do candidato em andamento; a prova dedicada e os preflights de lane já estão verdes;
+- as suítes gerais de entregabilidade ainda estavam em execução no momento deste registro; nenhuma falha foi observada;
 - merge SHA e Production SHA: não existem neste R1; a migration A3 ainda não foi promovida e o rollout não foi iniciado;
 - checkpoint pré-merge reservado: `COMUN_48_5_A3_R1_SPECIALIZED_HANDOFF_PROOFS_GREEN_LEGACY_LANES_SCOPED`.
 
