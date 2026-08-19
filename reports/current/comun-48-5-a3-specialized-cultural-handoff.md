@@ -11,6 +11,7 @@
 - nenhuma evidência de conflito real C foi encontrada: a migration A3 só foi classificada como `culture-a3` e não altera contrato de observatório, economia solidária, social, Pautas ou forwarding sensível.
 - a primeira execução real do workflow encontrou e isolou um defeito genuíno no RPC de rota (`status` ambíguo entre parâmetro de saída e coluna); a migration foi corrigida para usar `v.status`, e a prova deve ser repetida no novo SHA.
 - a segunda execução avançou até o rollback e encontrou um erro de medição do harness: o baseline pós-rollback ainda era pré-handoff; o script agora captura o baseline depois dos quatro alvos esperados e mede somente o bloco rollback-only.
+- no recheck dos lanes, o A1 revelou um bug operacional da própria etapa: `GITHUB_ENV` só fica disponível no passo seguinte; a etapa agora carrega explicitamente o resultado do classificador antes do `case`, preservando o N/A fail-closed.
 
 ### Alterações R1
 

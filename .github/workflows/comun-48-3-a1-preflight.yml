@@ -48,6 +48,7 @@ jobs:
           mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
           node scripts/ci/classify-migration-lane.mjs --lane 48-3-a1 --files "${changed[@]}" | tee .ci-artifacts/48-3-a1-preflight/migration-classification.env
           cat .ci-artifacts/48-3-a1-preflight/migration-classification.env >> "$GITHUB_ENV"
+          source .ci-artifacts/48-3-a1-preflight/migration-classification.env
           case "${COMUN_MIGRATION_LANE_MODE:-}" in
             candidate) echo A1_PREFLIGHT_MODE=candidate >> "$GITHUB_ENV" ;;
             not_applicable) printf '%s\n' '{"result":"COMUN_48_3_A1_UNRELATED_MIGRATION_NOT_APPLICABLE","businessRowsRead":false}' >.ci-artifacts/48-3-a1-preflight/migration-proof.json ;;
