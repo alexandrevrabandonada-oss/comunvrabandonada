@@ -59,6 +59,9 @@ function sanitizeEnvRow(row) {
     customEnvironmentIds: custom,
     createdAt: safeTimestamp(row.createdAt ?? row.created),
     updatedAt: safeTimestamp(row.updatedAt ?? row.updated),
+    createdBy: fingerprint(row.createdBy),
+    updatedBy: fingerprint(row.updatedBy),
+    lastEditedByDisplayName: fingerprint(row.lastEditedByDisplayName),
     comment: sanitizeComment(row.comment),
     sourceType: row.ownerId || row.projectId ? "shared-or-project-metadata" : "project-metadata",
   };
