@@ -1,4 +1,20 @@
-# Estado atual — 48.5-A0 Reconciliação de cultura, memória e rádio (17/08/2026)
+# Estado atual — 48.5-A3 Handoff especializado da contribuição cultural (18/08/2026)
+
+Estado de implementação local: `COMUN_48_5_A3_SPECIALIZED_HANDOFF_CANDIDATE_PENDING_VERIFY`.
+
+- baseline remoto confirmado: `origin/main=67b8fa9fcfd9adb07552d2a5776a3c7783f1a3a0`; a divergência histórica dos blocos A2 abaixo permanece registrada e não foi reescrita;
+- o A3 reutiliza as raízes `comun_archive_submissions`, `comun_archive_artwork_submissions`, `comun_archive_oral_history_suggestions` e `comun_radio_contributions`; não cria entidade cultural genérica, bucket, `comun_archive_items`, Search, coleção, feed ou publicação;
+- a migration `20260818120000_comun_cultural_specialized_handoff.sql` estende somente estados do envelope A2, torna a escolha de rota imutável após seleção e adiciona RPC service-role-only transacional com lock do intake;
+- o RPC cria no máximo um alvo especializado por intake, registra `target_kind/target_id` somente no envelope privado, retorna apenas `target_kind`/estado e mantém os alvos em `draft` ou `pending`; `target_id`, hashes, identidade, consentimento e rights não entram em DTO/HTML;
+- `unknown` continua sem alvo; Música permanece fora do seletor; flag nova `COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED` nasce OFF e, desligada, preserva o comportamento A2;
+- a UI devolve continuidade para os formulários canônicos de Foto/Documento, Arte, História Oral e Rádio, sem promessa de publicação; direitos, consentimento, storage e revisão continuam nos pipelines especializados;
+- disposable proof, testes A1/A2, gates locais, CI/Preview e rollout ainda estão pendentes. Nenhum write remoto, fixture Production, ativação de flag ou publicação foi realizado.
+
+Detalhes: `reports/current/comun-48-5-a3-specialized-cultural-handoff.md`.
+
+O estado só poderá ser terminal após prova descartável, exact Preview/freshness, CI e rollout controlado.
+
+# Estado anterior — 48.5-A0 Reconciliação de cultura, memória e rádio (17/08/2026)
 
 ## 48.5-A0 — Inventário antes de construir
 

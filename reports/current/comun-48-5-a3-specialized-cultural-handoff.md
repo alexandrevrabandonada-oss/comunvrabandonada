@@ -1,0 +1,66 @@
+# 48.5-A3 — Handoff Especializado da Contribuição Cultural
+
+## Baseline e escopo
+
+- Repositório: `alexandrevrabandonada-oss/comunvrabandonada`.
+- `origin/main` confirmado em `67b8fa9fcfd9adb07552d2a5776a3c7783f1a3a0` antes do trabalho.
+- Worktree original sujo preservado; implementação isolada em worktree limpo.
+- A3 não altera Música, publicação, Search, coleção, feed, território, Pauta, Comunidade, notificações ou ranking.
+
+## Inventário dos quatro pipelines
+
+| route_kind | raiz especializada real | entrada existente | estado inicial do handoff | gates que permanecem fora do handoff |
+|---|---|---|---|---|
+| `photo_or_document` | `public.comun_archive_submissions` + `comun_archive_submission_assets` | `/comun/acervo/contribuir` e APIs de upload/confirm | `draft`, sem asset criado | autoria, campos fotográficos, upload validado, rights, revisão e derivados |
+| `art` | `public.comun_archive_artwork_submissions` | `/comun/acervo/arte/contribuir` + `submitArtworkContribution` | `pending`, autoria/autorização ainda não declaradas | autoria, licença, direitos, imagem, identificação, safety e curadoria |
+| `oral_history` | `public.comun_archive_oral_history_suggestions`; item/áudio/transcrição são etapas posteriores | `/comun/acervo/historias-orais/contribuir` + API de sugestões | `pending`, apenas sugestão privada de triagem | entrevista, identidade, consentimento, bruto, transcrição, anonimização e publicação |
+| `radio` | `public.comun_radio_contributions`; programa/episódio/grade são raízes editoriais distintas | `/comun/radio/contribuir` + `submitRadioContribution` | `pending`, proposta editorial | direitos, voz, música, safety, programa/episódio, grade e publicação |
+
+Nenhuma dessas raízes é exposta a `anon`/`authenticated`; o acesso operacional segue service-role e os gates especializados existentes. Não foi criado pipeline improvisado.
+
+## Arquitetura e vínculo
+
+O handoff é um orquestrador entre o envelope privado A2 e as raízes já existentes. A migration `20260818120000_comun_cultural_specialized_handoff.sql`:
+
+1. adiciona `handoff_pending`, `handed_off` e `completed` sem rename destrutivo;
+2. bloqueia troca de `route_kind` depois da primeira escolha;
+3. usa `SELECT ... FOR UPDATE` no intake;
+4. se `target_id` já existe, devolve o mesmo resultado sem inserir novamente;
+5. para rotas conhecidas cria exatamente uma raiz especializada em `draft`/`pending` e salva `target_kind/target_id` apenas no intake privado;
+6. para `unknown` não cria alvo e mantém `routing`/`handoff_pending`;
+7. não cria archive item público, asset, bucket, Search, coleção, relação, feed ou notificação.
+
+O RPC `comun_prepare_cultural_contribution_handoff_v1` é service-role-only. A API nunca devolve o `target_id`, hash de retomada ou `member_user_id`; devolve apenas protocolo, estado, tipo de alvo e caminho do pipeline canônico.
+
+## Autorização e idempotência
+
+O handoff reutiliza o cookie opaco `comun_cultural_resume_v1` por hash ou conta vinculada. Protocolo isolado, cookie incorreto e conta diferente permanecem sem acesso indistinguível. O lock do intake torna double-click, reload, retry, duas abas e POST concorrente 1:1; a rota é imutável após escolha.
+
+## Feature flag e UI
+
+`COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED` é específica, default OFF, independente da ativação da publicação. OFF mantém A2 intacto. ON apresenta “Continuar no fluxo especializado” para os quatro destinos reais; a copy afirma que nada foi publicado. Música e `unknown` não recebem caminho fabricado.
+
+As páginas canônicas são preservadas em 390×844 e 1440×900 como gate de verificação; o link de continuidade não expõe IDs internos.
+
+## Direitos, consentimento e storage
+
+O handoff não presume autoria, licença, consentimento, localização, data, programa ou episódio. Não cria upload nem URL; Foto conserva upload privado separado. História Oral mantém texto bruto/triagem separados de entrevista, áudio e transcrição consentidos. Arte e Rádio continuam sob seus child-gates de rights, safety, consentimento e revisão.
+
+## Testes e disposable proof
+
+O contrato unitário cobre flag fail-closed, mapeamento dos quatro destinos e ausência de caminho para `unknown`/Música. A prova SQL descartável A3 deve ser adicionada antes do merge e executar em banco local/branch descartável, cobrindo autorização, grants, target 1:1, retries/race, imutabilidade, ausência de publicação e `businessWritesAfterRollback=0`. Nenhuma fixture deve ser criada em Production.
+
+Gates locais executados nesta etapa: contratos A3 `10 passed`, `npm run typecheck` verde, `npm run lint` verde, `npm run build` verde e `git diff --check` verde. `npm run db:privileges:lint` também passou (`COMUN_EXPLICIT_PRIVILEGE_CONTRACT_OK migrations=39`). Não houve script JavaScript alterado que exigisse `node --check`; a prova SQL é deliberadamente um artefato SQL.
+
+`npm run solo:sql:validate` foi executado e parou no erro baseline `SOLO_RELEASE_MANIFEST_COUNT_INVALID`; ele não apontou para a migration A3 e não foi mascarado. O CLI Supabase não está instalado, o daemon Docker não está disponível e não há projeto remoto compatível conectado para executar a prova. Portanto a prova A3 continua pendente e nenhum banco remoto foi tocado.
+
+## Preview, rollout e rollback
+
+Ainda pendentes: PR draft, checkpoint único `[comun-preview]`, Preview exato do SHA, freshness gate e CI remoto. Pós-merge deve confirmar main exato, promover migration com flag OFF em Wave 0, validar metadata-only, e somente então habilitar A3 em Wave 1. Business writes devem permanecer zero durante rollout; falha de qualquer invariante exige flag OFF e STOP.
+
+## Gaps/deferimentos
+
+- os formulários especializados legados ainda não recebem todos os campos A2 como edição contextual; o handoff preserva o contexto no alvo privado e encaminha para o formulário canônico;
+- não há alvo musical neste A3;
+- publicação, projeção no Acervo, Search, coleções, relações territoriais, pauta, comunidade, feed e notificações permanecem fora do tijolo;
+- autorização de contribuição continua separada da revisão editorial e não é convertida em publicação.
