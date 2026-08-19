@@ -6,7 +6,7 @@
 
 `COMUN_48_5_A3_R2_FLAG_DRIFT_PROVENANCE_GREEN_READY_TO_RETRY_WAVE0`
 
-O baseline pedido foi confirmado antes do diagnóstico: `origin/main=94849abef55a1592b2112cd9c26b229ec62ae1c4`, com `a7a55861458be833048ecb20ec3b5d2ba7b4bb84` ancestral. O diagnóstico GET-only foi incorporado e executado no main posterior `21893f89d8d20c743688d96c8fa530f449510a8f`; essa divergência é somente o próprio hardening/telemetria D1.
+O baseline pedido foi confirmado antes do diagnóstico: `origin/main=94849abef55a1592b2112cd9c26b229ec62ae1c4`, com `a7a55861458be833048ecb20ec3b5d2ba7b4bb84` ancestral. O diagnóstico GET-only foi incorporado e executado no main posterior `21893f89d8d20c743688d96c8fa530f449510a8f`; o hardening final está no commit `26173e37ed99d38ca56a0312a912e4cbfa937f47`. Essas divergências são somente D1, sem mudança funcional A3.
 
 ### Linha do tempo e causa
 
@@ -38,6 +38,7 @@ O baseline pedido foi confirmado antes do diagnóstico: `origin/main=94849abef55
 
 - contratos D1 locais: `6 passed` incluindo transitions, duplicate/shared guard, writer ownership e receipts;
 - run de auditoria Vercel D1: `32299571546` GREEN; runs anteriores de auditoria com correção de bootstrap: `32298938398` falhou apenas por `.vercel` ausente e `32299139591` GREEN;
+- deployment Production final do hardening: `dpl_85ZWuNG4XDEd3tKfRwYGTTWAXkYF`, READY no SHA `26173e37`; COMUN CI `32300089793` e `32300177137` GREEN;
 - `businessWrites=0`, `fixtures=0`, `targets=0`, `publications=0`; nenhuma migration, RPC, fixture Production ou alteração Supabase ocorreu;
 - flag Production final confirmada OFF; migration A3 continua pending; Wave 0 e Wave 1 não foram executadas;
 - checkpoint: `COMUN_48_5_A3_R2_FLAG_DRIFT_PROVENANCE_GREEN_READY_TO_RETRY_WAVE0`.
