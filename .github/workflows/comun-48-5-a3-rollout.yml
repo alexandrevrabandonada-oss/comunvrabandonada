@@ -1,0 +1,77 @@
+name: COMUN 48.5-A3-R2 controlled specialized handoff rollout
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact main SHA for this rollout
+        required: true
+        type: string
+
+concurrency:
+  group: comun-48-5-a3-r2-production-rollout
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  A3_BASELINE_SHA: a7a55861458be833048ecb20ec3b5d2ba7b4bb84
+  A3_MIGRATION: supabase/migrations/20260818120000_comun_cultural_specialized_handoff.sql
+  A3_MIGRATION_SHA256: 0cadb9ada699b5f75160f2ce142cea0fe8b09f63da514bba17dc75479662518
+  A4_MIGRATION: supabase/migrations/20260819130000_comun_cultural_progressive_rights.sql
+  A4_MIGRATION_SHA256: 43b7b966b55c8429f021def0c60b80979a0110de27e39de6dc553ef97e891519
+  SIDEWALK_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+  SIDEWALK_MIGRATION_SHA256: 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+  COMUN_BASE_URL: https://comunsocial.online
+
+jobs:
+  rollout:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+      - name: Assert exact main and production bindings
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/main" || test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          test -n "$SUPABASE_PROJECT_REF" -a -n "$VERCEL_TOKEN" -a -n "$SUPABASE_DB_URL"
+          case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1;; esac
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
+      - name: Execute Wave 0 then Wave 1 with fail-closed rollback
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        shell: bash
+        run: bash scripts/run-48-5-a3-production-rollout.sh rollout
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-5-a3-r2-production-${{ github.run_id }}
+          path: .ci-artifacts/48-5-a3-r2-production/
+          retention-days: 30
+          if-no-files-found: warn
