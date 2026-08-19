@@ -18,7 +18,7 @@ permissions:
 env:
   A3_BASELINE_SHA: a7a55861458be833048ecb20ec3b5d2ba7b4bb84
   A3_MIGRATION: supabase/migrations/20260818120000_comun_cultural_specialized_handoff.sql
-  A3_MIGRATION_SHA256: 0cadb9ada699b5f75160f2ce142cea0fe8b09f63da514bba17dc75479662518
+  A3_MIGRATION_SHA256: 0cadb9ada699b5f75160f2ce142cea0fe8b09f63da514bbaa17dc75479662518
   A4_MIGRATION: supabase/migrations/20260819130000_comun_cultural_progressive_rights.sql
   A4_MIGRATION_SHA256: 43b7b966b55c8429f021def0c60b80979a0110de27e39de6dc553ef97e891519
   SIDEWALK_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
