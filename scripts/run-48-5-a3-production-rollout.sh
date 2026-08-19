@@ -74,7 +74,10 @@ NODE
 
 pull_production_env() {
   local output="$1"
+  stage env_pull_started
   npx --yes vercel@50.28.0 env pull "$output" --environment=production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+  test -s "$output"
+  stage env_pulled
 }
 
 env_value() {
@@ -85,7 +88,11 @@ env_value() {
 assert_a3_flag_off() {
   local env_file="$1" value
   value="$(env_value "$env_file" COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED || true)"
-  test "$value" != "enabled"
+  if test "$value" = "enabled"; then
+    stage a3_flag_unexpectedly_on
+    return 1
+  fi
+  stage a3_flag_value_verified_off
   if test "$(env_value "$env_file" COMUN_CULTURAL_SAVE_FIRST_INTAKE_ENABLED || true)" = "enabled"; then
     summary "a2SaveFirstFlag=enabled"
   else
