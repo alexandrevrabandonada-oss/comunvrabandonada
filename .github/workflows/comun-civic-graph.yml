@@ -11,6 +11,8 @@ on:
       - "tests/civic-graph/**"
       - "playwright.civic-graph.config.ts"
       - "package*.json"
+      - ".github/actions/setup-playwright-browser/**"
+      - "scripts/ci/install-playwright-browser.mjs"
       - ".github/workflows/comun-civic-graph.yml"
   push:
     branches: [main]
@@ -22,6 +24,8 @@ on:
       - "tests/civic-graph/**"
       - "playwright.civic-graph.config.ts"
       - "package*.json"
+      - ".github/actions/setup-playwright-browser/**"
+      - "scripts/ci/install-playwright-browser.mjs"
       - ".github/workflows/comun-civic-graph.yml"
   workflow_dispatch:
 
@@ -92,7 +96,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22.19.0", cache: npm }
       - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/setup-playwright-browser
       - run: npm run civic-graph:e2e -- --grep "coleções|não há campos"
 
   relations:
@@ -104,7 +108,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22.19.0", cache: npm }
       - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/setup-playwright-browser
       - run: npm run civic-graph:test
       - run: npm run civic-graph:e2e -- --grep "deep link|Calçadas|estado vazio|filtros"
 
@@ -117,7 +121,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22.19.0", cache: npm }
       - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/setup-playwright-browser
       - run: npm run civic-graph:a11y
 
   performance:
@@ -129,7 +133,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22.19.0", cache: npm }
       - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/setup-playwright-browser
       - run: npm run quality:test
       - run: npm run quality:performance
 
@@ -160,7 +164,7 @@ jobs:
             sleep 20
           done
           exit 1
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/setup-playwright-browser
         if: github.event_name == 'push'
       - run: npm run civic-graph:e2e
         if: github.event_name == 'push'

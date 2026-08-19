@@ -20,6 +20,8 @@ on:
       - "playwright.quality-network.config.ts"
       - "playwright.comun-pwa-experience.config.ts"
       - "package*.json"
+      - ".github/actions/setup-playwright-browser/**"
+      - "scripts/ci/install-playwright-browser.mjs"
       - ".github/workflows/comun-quality-performance.yml"
   push:
     branches: [main]
@@ -40,6 +42,8 @@ on:
       - "playwright.quality-network.config.ts"
       - "playwright.comun-pwa-experience.config.ts"
       - "package*.json"
+      - ".github/actions/setup-playwright-browser/**"
+      - "scripts/ci/install-playwright-browser.mjs"
       - ".github/workflows/comun-quality-performance.yml"
   workflow_dispatch:
     inputs:
@@ -81,7 +85,7 @@ jobs:
       - name: Envelope sanitizado do laboratório focal
         run: mkdir -p .ci-artifacts/quality-performance && node -e "require('node:fs').writeFileSync('.ci-artifacts/quality-performance/00-envelope.json',JSON.stringify({status:'started',scope:'network_focal_disposable',containsPersonalData:false,containsQueries:false,containsSecrets:false},null,2))"
       - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/setup-playwright-browser
       - name: Rede degradada em Chromium low-Android isolado
         run: |
           npm run quality:network:runner-test
@@ -129,7 +133,7 @@ jobs:
           supabase start
           supabase db reset --local --yes
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/setup-playwright-browser
       - name: Núcleo a11y com servidor isolado e monitorado
         run: |
           node scripts/quality/run-isolated-a11y.mjs npm run test:a11y:comun-nucleo-vivo
@@ -185,7 +189,7 @@ jobs:
           supabase db reset --local --yes
           node scripts/comun-local-env.mjs run node scripts/solo/apply-forward-only.mjs --adopt-local-validation-ledger
           npm run audit:rls-matrix
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/setup-playwright-browser
       - name: Build único para servidores a11y focais
         run: npm run build
       - name: Regressões focais de Núcleo, Calçadas e Rádio
@@ -411,7 +415,7 @@ jobs:
       - name: Envelope remoto sanitizado
         run: mkdir -p .ci-artifacts/quality-performance && node -e "require('node:fs').writeFileSync('.ci-artifacts/quality-performance/00-envelope.json',JSON.stringify({status:'started',scope:'allowlisted_remote',containsPersonalData:false,containsQueries:false,containsSecrets:false},null,2))"
       - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/setup-playwright-browser
       - name: 1. Production preflight do SHA esperado
         run: |
           for attempt in $(seq 1 30); do

@@ -12,6 +12,8 @@ on:
       - "tests/experience-coherence/**"
       - "playwright.experience-coherence.config.ts"
       - "package.json"
+      - ".github/actions/setup-playwright-browser/**"
+      - "scripts/ci/install-playwright-browser.mjs"
       - ".github/workflows/comun-experience-coherence.yml"
   push:
     branches: [main]
@@ -24,6 +26,8 @@ on:
       - "tests/experience-coherence/**"
       - "playwright.experience-coherence.config.ts"
       - "package.json"
+      - ".github/actions/setup-playwright-browser/**"
+      - "scripts/ci/install-playwright-browser.mjs"
       - ".github/workflows/comun-experience-coherence.yml"
   workflow_dispatch:
 
@@ -75,7 +79,7 @@ jobs:
             cat "$reset_output"
             exit "$reset_status"
           fi
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/setup-playwright-browser
       - run: npm run test:e2e:experience-coherence
       - run: npm run build
       - name: Stop disposable local stack

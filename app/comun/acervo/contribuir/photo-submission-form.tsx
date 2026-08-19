@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-export function PhotoSubmissionForm() {
+export function PhotoSubmissionForm({ progressiveRightsEnabled = false }: { progressiveRightsEnabled?: boolean }) {
   const [busy, setBusy] = useState(false),
     [progress, setProgress] = useState(""),
     [protocol, setProtocol] = useState<string | null>(null),
@@ -157,16 +157,41 @@ export function PhotoSubmissionForm() {
           placeholder="Como a fotografia chegou ate voce?"
           className="border-2 border-comun-black p-3"
         />
-        <textarea
-          required
-          name="rightsDeclaration"
-          placeholder="Explique por que voce pode compartilhar este material"
-          className="border-2 border-comun-black p-3"
-        />
-        <label className="flex gap-2">
-          <input required type="checkbox" name="permissionConfirmed" /> Confirmo
-          que posso compartilhar esta fotografia para avaliacao.
-        </label>
+        {progressiveRightsEnabled ? <>
+          <label>Como este material chegou até você?
+            <select required name="rightsBasis" defaultValue="" className="border-2 border-comun-black p-3">
+              <option value="" disabled>Escolha uma situação</option>
+              <option value="own_creation">Eu produzi o material</option>
+              <option value="authorized_by_rightsholder">Tenho autorização do titular</option>
+              <option value="public_official_material">É material público/oficial, sem presumir licença privada</option>
+              <option value="historical_unknown">Material histórico; titular ainda não identificado</option>
+              <option value="third_party_unverified">É de terceiro e ainda não tenho confirmação suficiente</option>
+            </select>
+          </label>
+          <label>O que você autoriza nesta etapa?
+            <select required name="publicationScope" defaultValue="review_only" className="border-2 border-comun-black p-3">
+              <option value="review_only">Somente avaliação privada</option>
+              <option value="comun_display">Exibição futura no Acervo, após revisão</option>
+              <option value="comun_display_and_reuse">Exibição e reutilização conforme licença informada</option>
+            </select>
+          </label>
+          <label>Reutilização fora da exibição
+            <select required name="reusePermission" defaultValue="not_defined" className="border-2 border-comun-black p-3">
+              <option value="not_defined">Ainda não definida</option>
+              <option value="comun_only">Somente usos definidos pelo COMUN</option>
+              <option value="licensed_reuse">Permitida sob a licença informada</option>
+            </select>
+          </label>
+          <label>Licença existente, se houver
+            <select name="licenseCode" defaultValue="not_defined" className="border-2 border-comun-black p-3">
+              <option value="not_defined">Não definida</option><option value="none">Sem licença de reutilização</option><option value="cc_by_4_0">CC BY 4.0</option><option value="cc_by_sa_4_0">CC BY-SA 4.0</option><option value="external_license">Licença externa; será conferida</option>
+            </select>
+          </label>
+          <p className="border-l-4 border-comun-yellow pl-3 text-sm">Guardar não autoriza publicação nem reutilização. Material de terceiro ou de autoria desconhecida permanece em revisão de direitos.</p>
+        </> : <>
+          <textarea required name="rightsDeclaration" placeholder="Explique por que voce pode compartilhar este material" className="border-2 border-comun-black p-3" />
+          <label className="flex gap-2"><input required type="checkbox" name="permissionConfirmed" /> Confirmo que posso compartilhar esta fotografia para avaliacao.</label>
+        </>}
         <select
           name="contributorCreditPreference"
           defaultValue="anonymous"

@@ -1,0 +1,33 @@
+name: COMUN Playwright browser provisioning
+description: Cache and provision the exact Playwright Chromium required by CI
+
+outputs:
+  cache-hit:
+    description: Whether the exact Playwright browser cache was restored
+    value: ${{ steps.browser-cache.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve Playwright version
+      id: playwright-version
+      shell: bash
+      run: |
+        set -euo pipefail
+        version="$(node -p "require('@playwright/test/package.json').version")"
+        test -n "$version"
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+        echo "COMUN_BROWSER_PROVISIONING_VERSION=$version" >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Restore exact Playwright browser cache
+      id: browser-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: comun-playwright-${{ runner.os }}-${{ runner.arch }}-${{ steps.playwright-version.outputs.version }}-${{ hashFiles('package-lock.json') }}
+
+    - name: Provision Chromium and system dependencies
+      shell: bash
+      env:
+        PLAYWRIGHT_CACHE_HIT: ${{ steps.browser-cache.outputs.cache-hit }}
+      run: node scripts/ci/install-playwright-browser.mjs

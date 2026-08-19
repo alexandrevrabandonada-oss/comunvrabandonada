@@ -4,6 +4,7 @@ import { z } from "zod";
 import { logComunAdminAction } from "@/lib/admin-audit";
 import { hashSubmitter } from "@/lib/historical-photo";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { CULTURAL_RIGHTS_CONTRACT_VERSION, decidePhotoRights, isComunCulturalProgressiveRightsEnabled } from "@/lib/comun-cultural-progressive-rights";
 
 const schema = z.object({
   titleSuggestion: z.string().min(2).max(160),
@@ -16,8 +17,8 @@ const schema = z.object({
   relationshipToMaterial: z.string().min(2).max(500),
   sourceName: z.string().min(2).max(300),
   sourceStory: z.string().max(2000).optional(),
-  rightsDeclaration: z.string().min(10).max(1000),
-  permissionConfirmed: z.literal(true),
+  rightsDeclaration: z.string().max(1000).optional(),
+  permissionConfirmed: z.boolean().optional(),
   contributorCreditPreference: z.enum([
     "anonymous",
     "contributor_name",
@@ -29,6 +30,10 @@ const schema = z.object({
   contactAuthorized: z.boolean().default(false),
   website: z.string().max(0),
   challengeAnswer: z.literal("7"),
+  rightsBasis: z.string().optional(),
+  publicationScope: z.string().optional(),
+  reusePermission: z.string().optional(),
+  licenseCode: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -76,6 +81,12 @@ export async function POST(request: Request) {
     );
   }
   const d = parsed.data;
+  const progressive = isComunCulturalProgressiveRightsEnabled();
+  if (!progressive && (d.permissionConfirmed !== true || !d.rightsDeclaration || d.rightsDeclaration.trim().length < 10))
+    return NextResponse.json({ error: "Revise a declaração de direitos." }, { status: 400 });
+  const rights = progressive ? decidePhotoRights({ rightsBasis: d.rightsBasis ?? "", publicationScope: d.publicationScope ?? "", reusePermission: d.reusePermission ?? "", licenseCode: d.licenseCode }) : null;
+  if (progressive && !rights)
+    return NextResponse.json({ error: "Escolha explicitamente a origem, o escopo e a reutilização." }, { status: 400 });
   const { data, error } = await db
     .from("comun_archive_submissions")
     .insert({
@@ -90,13 +101,14 @@ export async function POST(request: Request) {
       relationship_to_material: d.relationshipToMaterial.trim(),
       source_name: d.sourceName.trim(),
       source_story: d.sourceStory?.trim() || null,
-      rights_declaration: d.rightsDeclaration.trim(),
-      permission_confirmed: true,
+      rights_declaration: progressive ? null : d.rightsDeclaration?.trim(),
+      permission_confirmed: progressive ? false : true,
       contributor_credit_preference: d.contributorCreditPreference,
       public_credit: d.publicCredit?.trim() || null,
       contributor_name: d.contributorName?.trim() || null,
       contributor_contact_private: d.contributorContactPrivate?.trim() || null,
       contact_authorized: d.contactAuthorized,
+      ...(progressive ? { rights_basis: d.rightsBasis, publication_scope: d.publicationScope, reuse_permission: d.reusePermission, license_code: d.licenseCode, rights_state: rights?.state, rights_contract_version: CULTURAL_RIGHTS_CONTRACT_VERSION, rights_declared_at: new Date().toISOString() } : {}),
       submitter_hash: submitterHash,
     })
     .select("id")
