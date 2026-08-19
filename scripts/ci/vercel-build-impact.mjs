@@ -8,6 +8,8 @@ const SAFE_MARKDOWN_ROOTS = new Set([
 
 const SAFE_TEST_FILE = /(?:^|\/)[^/]+\.(?:test|spec)\.(?:ts|tsx)$/;
 const SAFE_OPERATIONAL_SCRIPT = /^scripts\/(?:solo|audit|diagnostics)\//;
+const CODEX_BRANCH_PREFIX = "codex/";
+export const PREVIEW_CHECKPOINT_MARKER = "[comun-preview]";
 
 const BUILD_PREFIXES = [
   "app/",
@@ -39,6 +41,18 @@ function normalizePath(file) {
     .trim()
     .replaceAll("\\", "/")
     .replace(/^\.\//, "");
+}
+
+function normalizeRef(value) {
+  return String(value ?? "").replace(/^refs\/heads\//, "");
+}
+
+export function isCodexBranch(commitRef) {
+  return normalizeRef(commitRef).startsWith(CODEX_BRANCH_PREFIX);
+}
+
+export function hasPreviewCheckpoint(commitMessage) {
+  return String(commitMessage ?? "").includes(PREVIEW_CHECKPOINT_MARKER);
 }
 
 function isProduction({ vercelEnv, commitRef }) {
@@ -76,6 +90,8 @@ export function classifyBuildImpact({
   diffAvailable = true,
   vercelEnv = "",
   commitRef = "",
+  commitMessageAvailable = true,
+  commitMessage = "",
 }) {
   if (vercelEnv !== "preview" && vercelEnv !== "production") {
     return { decision: "BUILD", reason: "environment-inconsistent" };
@@ -105,7 +121,20 @@ export function classifyBuildImpact({
     (file) => !isSafeNoRuntimePath(file),
   );
   if (unsafeFile) {
-    return { decision: "BUILD", reason: buildReason(unsafeFile) };
+    const reason = buildReason(unsafeFile);
+    if (isCodexBranch(commitRef) && reason === "runtime-path-change") {
+      if (!commitMessageAvailable) {
+        return { decision: "BUILD", reason: "commit-message-unavailable" };
+      }
+      if (hasPreviewCheckpoint(commitMessage)) {
+        return { decision: "BUILD", reason: "codex-preview-checkpoint" };
+      }
+      return {
+        decision: "IGNORE",
+        reason: "codex-runtime-awaiting-preview-checkpoint",
+      };
+    }
+    return { decision: "BUILD", reason };
   }
 
   return { decision: "IGNORE", reason: "no-runtime-allowlist" };
@@ -134,6 +163,16 @@ export function changedFilesFromDiff({
       .map(normalizePath)
       .filter(Boolean),
   };
+}
+
+export function commitMessageFromGit({ head, spawn = defaultSpawn }) {
+  if (!head) return { available: false, message: "" };
+  const result = spawn("git", ["show", "-s", "--format=%B", head]);
+  const message = String(result.stdout ?? "");
+  if (result.status !== 0 || !message.trim()) {
+    return { available: false, message: "" };
+  }
+  return { available: true, message };
 }
 
 function defaultSpawn(command, args) {

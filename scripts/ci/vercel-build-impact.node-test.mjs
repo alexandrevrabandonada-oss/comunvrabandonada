@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   changedFilesFromDiff,
   classifyBuildImpact,
+  commitMessageFromGit,
 } from "./vercel-build-impact.mjs";
 
 const preview = (files) =>
@@ -135,4 +136,120 @@ test("git diff falls back closed on invalid revisions", () => {
     spawn: () => ({ status: 128, stdout: "" }),
   });
   assert.deepEqual(result, { available: false, files: [] });
+});
+
+test("codex runtime without checkpoint is ignored", () => {
+  assert.deepEqual(
+    classifyBuildImpact({
+      files: ["app/page.tsx"],
+      vercelEnv: "preview",
+      commitRef: "codex/cost-02",
+      commitMessageAvailable: true,
+      commitMessage: "fix: accumulate coherent changes",
+    }),
+    { decision: "IGNORE", reason: "codex-runtime-awaiting-preview-checkpoint" },
+  );
+});
+
+test("codex runtime checkpoint requires a Preview build", () => {
+  assert.deepEqual(
+    classifyBuildImpact({
+      files: ["app/page.tsx"],
+      vercelEnv: "preview",
+      commitRef: "codex/cost-02",
+      commitMessageAvailable: true,
+      commitMessage: "feat: checkpoint [comun-preview]",
+    }),
+    { decision: "BUILD", reason: "codex-preview-checkpoint" },
+  );
+});
+
+test("production and main remain BUILD regardless of checkpoint", () => {
+  assert.equal(
+    classifyBuildImpact({
+      files: ["app/page.tsx"],
+      vercelEnv: "production",
+      commitRef: "codex/cost-02",
+      commitMessage: "[comun-preview]",
+    }).decision,
+    "BUILD",
+  );
+  assert.equal(
+    classifyBuildImpact({
+      files: ["app/page.tsx"],
+      vercelEnv: "preview",
+      commitRef: "main",
+      commitMessage: "[comun-preview]",
+    }).decision,
+    "BUILD",
+  );
+});
+
+test("codex migrations, dependencies, CI scripts, config and unknown stay BUILD", () => {
+  for (const file of [
+    "supabase/migrations/20260819_cost02.sql",
+    "package-lock.json",
+    "scripts/ci/verify-codex-preview-checkpoint.mjs",
+    "vercel.json",
+    "unknown/file.bin",
+  ]) {
+    assert.equal(
+      classifyBuildImpact({
+        files: [file],
+        vercelEnv: "preview",
+        commitRef: "codex/cost-02",
+        commitMessage: "fix: no checkpoint",
+      }).decision,
+      "BUILD",
+      file,
+    );
+  }
+});
+
+test("codex safe docs and tests remain IGNORE", () => {
+  assert.equal(
+    classifyBuildImpact({
+      files: ["docs/cost-02.md"],
+      vercelEnv: "preview",
+      commitRef: "codex/cost-02",
+    }).decision,
+    "IGNORE",
+  );
+  assert.equal(
+    classifyBuildImpact({
+      files: ["tests/cost-02.test.ts"],
+      vercelEnv: "preview",
+      commitRef: "codex/cost-02",
+    }).decision,
+    "IGNORE",
+  );
+});
+
+test("runtime with unavailable commit message fails closed", () => {
+  assert.deepEqual(
+    classifyBuildImpact({
+      files: ["app/page.tsx"],
+      vercelEnv: "preview",
+      commitRef: "codex/cost-02",
+      commitMessageAvailable: false,
+    }),
+    { decision: "BUILD", reason: "commit-message-unavailable" },
+  );
+});
+
+test("commit message lookup fails closed and preserves the message", () => {
+  assert.deepEqual(
+    commitMessageFromGit({
+      head: "bad-sha",
+      spawn: () => ({ status: 128, stdout: "" }),
+    }),
+    { available: false, message: "" },
+  );
+  assert.deepEqual(
+    commitMessageFromGit({
+      head: "good-sha",
+      spawn: () => ({ status: 0, stdout: "feat: checkpoint [comun-preview]\n" }),
+    }),
+    { available: true, message: "feat: checkpoint [comun-preview]\n" },
+  );
 });
