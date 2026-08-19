@@ -22,6 +22,9 @@ test("Wave 0 excludes later A4 and external ledger files before planning", () =>
   assert.match(runner, /supabase db push --db-url.*--dry-run/);
   assert.doesNotMatch(runner, /supabase db push[^\n]*--include-all/);
   assert.doesNotMatch(runner, /supabase (migration repair|db reset)/);
+  assert.match(runner, /MIGRATION_PLAN_HELD_A4/);
+  assert.match(runner, /MIGRATION_PLAN_HELD_SIDEWALK/);
+  assert.doesNotMatch(runner, /local held_a[34]|local held_sidewalk/);
 });
 
 test("the rollout changes only the A3 Vercel flag and never submits production data", () => {

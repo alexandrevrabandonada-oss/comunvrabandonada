@@ -128,18 +128,17 @@ assert_a3_flag_off() {
 }
 
 assert_exact_migration_plan() {
-  local held_a3="$RUNNER_TEMP/comun-a3-migration.sql"
-  local held_a4="$RUNNER_TEMP/comun-a4-migration.sql"
-  local held_sidewalk="$RUNNER_TEMP/comun-sidewalk-migration.sql"
+  MIGRATION_PLAN_HELD_A4="$RUNNER_TEMP/comun-a3-r2-held-a4.sql"
+  MIGRATION_PLAN_HELD_SIDEWALK="$RUNNER_TEMP/comun-a3-r2-held-sidewalk.sql"
   local plan="$ARTIFACT_DIR/migration-plan.txt"
-  test ! -e "$held_a4" && test ! -e "$held_sidewalk"
+  test ! -e "$MIGRATION_PLAN_HELD_A4" && test ! -e "$MIGRATION_PLAN_HELD_SIDEWALK"
   test "$(sha256sum "$A4_MIGRATION" | awk '{print $1}')" = "$A4_MIGRATION_SHA256"
   test "$(sha256sum "$SIDEWALK_MIGRATION" | awk '{print $1}')" = "$SIDEWALK_MIGRATION_SHA256"
-  mv "$A4_MIGRATION" "$held_a4"
-  mv "$SIDEWALK_MIGRATION" "$held_sidewalk"
+  mv "$A4_MIGRATION" "$MIGRATION_PLAN_HELD_A4"
+  mv "$SIDEWALK_MIGRATION" "$MIGRATION_PLAN_HELD_SIDEWALK"
   restore() {
-    test ! -e "$held_a4" || mv "$held_a4" "$A4_MIGRATION"
-    test ! -e "$held_sidewalk" || mv "$held_sidewalk" "$SIDEWALK_MIGRATION"
+    test ! -e "$MIGRATION_PLAN_HELD_A4" || mv "$MIGRATION_PLAN_HELD_A4" "$A4_MIGRATION"
+    test ! -e "$MIGRATION_PLAN_HELD_SIDEWALK" || mv "$MIGRATION_PLAN_HELD_SIDEWALK" "$SIDEWALK_MIGRATION"
   }
   trap restore EXIT
   supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >"$plan" 2>&1
