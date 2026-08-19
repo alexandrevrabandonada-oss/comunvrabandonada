@@ -1,5 +1,5 @@
 import { mkdirSync, writeFileSync } from "node:fs";
-import { spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
 
@@ -43,24 +43,56 @@ function sanitizedOutput(value) {
 
 function runPlaywright(args, label) {
   const logPath = path.join(artifactDir, `${label}.log`);
-  const result = spawnSync(npx, ["--no-install", "playwright", ...args], {
-    encoding: "utf8",
-    timeout: COMMAND_TIMEOUT_MS,
-    maxBuffer: 4 * 1024 * 1024,
-    windowsHide: true,
+  return new Promise((resolve) => {
+    const child = spawn(npx, ["--no-install", "playwright", ...args], {
+      detached: process.platform !== "win32",
+      windowsHide: true,
+    });
+    let output = "";
+    let timedOut = false;
+    let forceKillTimer;
+    const append = (chunk) => {
+      output += chunk.toString();
+    };
+    child.stdout.on("data", append);
+    child.stderr.on("data", append);
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      const message = `ETIMEDOUT: provisioning command exceeded ${COMMAND_TIMEOUT_MS}ms`;
+      output += `\n${message}`;
+      try {
+        if (process.platform === "win32") child.kill();
+        else process.kill(-child.pid, "SIGTERM");
+      } catch {
+        child.kill();
+      }
+      forceKillTimer = setTimeout(() => {
+        try {
+          if (process.platform === "win32") child.kill();
+          else process.kill(-child.pid, "SIGKILL");
+        } catch {
+          child.kill();
+        }
+      }, 5_000);
+    }, COMMAND_TIMEOUT_MS);
+    const finish = (status, error = "") => {
+      clearTimeout(timeout);
+      if (forceKillTimer) clearTimeout(forceKillTimer);
+      if (error) output += `\n${error}`;
+      writeFileSync(logPath, sanitizedOutput(output));
+      resolve({ status: timedOut ? null : status, output });
+    };
+    child.once("error", (error) => {
+      finish(null, `${error.code || "spawn_error"}: ${error.message}`);
+    });
+    child.once("close", (status) => finish(status));
   });
-  const processError = result.error
-    ? `${result.error.code || "spawn_error"}: ${result.error.message || result.error}`
-    : "";
-  const output = `${result.stdout || ""}\n${result.stderr || ""}\n${processError}`;
-  writeFileSync(logPath, sanitizedOutput(output));
-  return { ...result, output };
 }
 
-function runWithLimitedRetry(args, label) {
+async function runWithLimitedRetry(args, label) {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     console.log(`COMUN_BROWSER_PROVISIONING_STEP=${label} attempt=${attempt}`);
-    const result = runPlaywright(args, `${label}-${attempt}`);
+    const result = await runPlaywright(args, `${label}-${attempt}`);
     if (result.status === 0) return true;
     const retryable = retryableNetworkFailure(result.output);
     if (!retryable || attempt === MAX_ATTEMPTS) {
@@ -87,15 +119,15 @@ summary(
 );
 summary(`COMUN_BROWSER_PROVISIONING_VERSION=${version}`);
 
-if (!runWithLimitedRetry(["install-deps", "chromium"], "system-dependencies")) {
+if (!(await runWithLimitedRetry(["install-deps", "chromium"], "system-dependencies"))) {
   process.exit(1);
 }
 
-const installed = runPlaywright(["install", "--list"], "browser-list");
+const installed = await runPlaywright(["install", "--list"], "browser-list");
 const hasChromium =
   installed.status === 0 && /chromium/i.test(installed.output);
 if (process.env.PLAYWRIGHT_CACHE_HIT !== "true" || !hasChromium) {
-  if (!runWithLimitedRetry(["install", "chromium"], "chromium")) {
+  if (!(await runWithLimitedRetry(["install", "chromium"], "chromium"))) {
     process.exit(1);
   }
 } else {

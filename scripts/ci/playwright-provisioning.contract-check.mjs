@@ -37,7 +37,9 @@ assert.match(provisioner, /COMMAND_TIMEOUT_MS = 8 \* 60 \* 1000/);
 assert.match(provisioner, /COMUN_BROWSER_PROVISIONING_FAILED/);
 assert.match(provisioner, /COMUN_BROWSER_PROVISIONING_GREEN/);
 assert.match(provisioner, /retryableNetworkFailure/);
-assert.match(provisioner, /processError/);
+assert.match(provisioner, /ETIMEDOUT/);
+assert.match(provisioner, /detached: process\.platform !== "win32"/);
+assert.match(provisioner, /process\.kill\(-child\.pid/);
 assert.match(provisioner, /--no-install/);
 
 for (const workflowName of workflows) {
