@@ -7,7 +7,7 @@ const runner = fs.readFileSync("scripts/run-48-5-a3-production-rollout.sh", "utf
 
 test("A3 R2 rollout is bound to exact main and the exact A3 migration", () => {
   assert.match(workflow, /workflow_dispatch:/);
-  assert.match(workflow, /options: \[rollout, disable-only\]/);
+  assert.match(workflow, /options: \[wave0-only, rollout, disable-only\]/);
   assert.match(workflow, /ref: \$\{\{ inputs\.expected_main_sha \}\}/);
   assert.match(workflow, /20260818120000_comun_cultural_specialized_handoff\.sql/);
   assert.match(workflow, /A3_MIGRATION_SHA256: 0cadb9/);
@@ -36,4 +36,13 @@ test("the rollout changes only the A3 Vercel flag and never submits production d
   assert.match(runner, /productionRequests=GET_HEAD_ONLY/);
   assert.match(runner, /rollback_flag/);
   assert.match(runner, /COMUN_48_5_A3_R2_PRECHECK_FLAG_RESTORED_OFF/);
+});
+
+test("wave0-only applies schema, rechecks OFF, and exits before Wave 1", () => {
+  assert.match(workflow, /wave0-only/);
+  assert.match(runner, /if test "\$MODE" = "wave0-only"; then/);
+  assert.match(runner, /flag_off_post_migration_verified/);
+  assert.match(runner, /a3-wave0-final-receipt\.json/);
+  assert.match(runner, /exit 0/);
+  assert.match(runner, /flag_started=true/);
 });

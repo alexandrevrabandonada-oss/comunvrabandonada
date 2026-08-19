@@ -18,7 +18,7 @@ MODE="${1:-}"
 : "${COMUN_BASE_URL:?COMUN_BASE_URL is required}"
 
 case "$MODE" in
-  rollout|disable-only) ;;
+  rollout|wave0-only|disable-only) ;;
   *) echo COMUN_48_5_A3_R2_INVALID_MODE >> "$GITHUB_STEP_SUMMARY"; exit 1 ;;
 esac
 
@@ -201,6 +201,39 @@ wave0_smoke() {
   summary "productionRequests=GET_HEAD_ONLY"
 }
 
+write_wave0_final_receipt() {
+  local receipt="$ARTIFACT_DIR/a3-wave0-final-receipt.json"
+  node - "$receipt" "$ARTIFACT_DIR/a3-flag-write-receipt-enabled-preflight.json" <<'NODE'
+const crypto = require("node:crypto");
+const fs = require("node:fs");
+const [output, preflightPath] = process.argv.slice(2);
+const fingerprint = (value) => typeof value === "string" && value.length > 0
+  ? `sha256:${crypto.createHash("sha256").update(value).digest("hex").slice(0, 16)}`
+  : null;
+const preflight = JSON.parse(fs.readFileSync(preflightPath, "utf8"));
+const receipt = {
+  formatVersion: 1,
+  writer: "comun-48-5-a3-r2",
+  workflow: process.env.GITHUB_WORKFLOW ?? null,
+  runId: /^[0-9]+$/.test(String(process.env.GITHUB_RUN_ID ?? "")) ? String(process.env.GITHUB_RUN_ID) : null,
+  sha: /^[0-9a-f]{7,64}$/i.test(String(process.env.EXPECTED_MAIN_SHA ?? "")) ? process.env.EXPECTED_MAIN_SHA : null,
+  mainSha: process.env.EXPECTED_MAIN_SHA ?? null,
+  project: fingerprint(process.env.SUPABASE_PROJECT_REF),
+  flagId: preflight.envId ?? null,
+  phase: "wave0_complete",
+  migrationA3: "applied",
+  flag: "OFF",
+  businessWrites: 0,
+  fixtures: 0,
+  publications: 0,
+  productionHealthy: true,
+  rawValuePersisted: false,
+  tokenPersisted: false,
+};
+fs.writeFileSync(output, `${JSON.stringify(receipt, null, 2)}\n`, "utf8");
+NODE
+}
+
 set_a3_flag() {
   local value="$1"
   verify_a3_writer_contract "$A3_PREVIOUS_FLAG_STATE" "$value" before_write
@@ -292,6 +325,8 @@ pull_production_env "$pre_env"
 remember "$pre_env"
 assert_a3_flag_off "$pre_env"
 stage flag_off_verified
+verify_a3_writer_contract "$A3_PREVIOUS_FLAG_STATE" enabled preflight
+stage writer_ownership_verified
 test -z "${SUPABASE_ACCESS_TOKEN:-}"
 test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
 summary "productionProjectRef=$SUPABASE_PROJECT_REF"
@@ -303,8 +338,21 @@ supabase db push --db-url "$SUPABASE_DB_URL" >"$ARTIFACT_DIR/migration-push.txt"
 stage migration_applied
 metadata_postflight
 stage schema_postflight_green
+post_env="$RUNNER_TEMP/comun-a3-post-migration.env"
+pull_production_env "$post_env"
+remember "$post_env"
+assert_a3_flag_off "$post_env"
+stage flag_off_post_migration_verified
 wave0_smoke
 stage wave0_green
+
+if test "$MODE" = "wave0-only"; then
+  write_wave0_final_receipt
+  summary "migrationA3=applied"
+  summary "flag=OFF"
+  summary "productionHealthy=true"
+  exit 0
+fi
 
 flag_started=true
 set_a3_flag enabled

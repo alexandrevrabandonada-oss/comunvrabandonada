@@ -8,11 +8,11 @@ on:
         required: true
         type: string
       mode:
-        description: Full rollout or restore the A3 flag to OFF
+        description: Wave 0 only, full rollout, or restore the A3 flag to OFF
         required: true
         default: rollout
         type: choice
-        options: [rollout, disable-only]
+        options: [wave0-only, rollout, disable-only]
 
 concurrency:
   group: comun-48-5-a3-r2-production-rollout
@@ -65,7 +65,7 @@ jobs:
           case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1;; esac
           test -z "${SUPABASE_ACCESS_TOKEN:-}"
           test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
-      - name: Execute Wave 0 then Wave 1 with fail-closed rollback
+      - name: Execute requested A3 rollout mode with fail-closed boundaries
         env:
           EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
           MODE: ${{ inputs.mode }}

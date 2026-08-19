@@ -11,6 +11,7 @@ import {
 test("A3 writer allows only the controlled transitions", () => {
   assert.equal(assertA3Transition({ mode: "rollout", currentState: "OFF", desiredState: "enabled" }).allowed, true);
   assert.equal(assertA3Transition({ mode: "rollout", currentState: "ABSENT", desiredState: "enabled" }).allowed, true);
+  assert.equal(assertA3Transition({ mode: "wave0-only", currentState: "OFF", desiredState: "enabled" }).allowed, true);
   assert.equal(assertA3Transition({ mode: "disable-only", currentState: "ON", desiredState: "disabled" }).allowed, true);
   assert.equal(assertA3Transition({ mode: "disable-only", currentState: "OFF", desiredState: "disabled" }).allowed, true);
   assert.throws(() => assertA3Transition({ mode: "rollout", currentState: "ON", desiredState: "enabled" }), /TRANSITION_BLOCKED/);

@@ -13,7 +13,7 @@ export function assertA3Transition({ mode, currentState, desiredState }) {
   const current = String(currentState ?? "").toUpperCase();
   const desired = String(desiredState ?? "").toLowerCase();
   if (!["ON", "OFF", "ABSENT"].includes(current)) throw new Error("A3_FLAG_CURRENT_STATE_UNKNOWN");
-  if (mode === "rollout" && desired === "enabled" && !["ON"].includes(current)) return { current, desired, allowed: true };
+  if (["rollout", "wave0-only"].includes(mode) && desired === "enabled" && !["ON"].includes(current)) return { current, desired, allowed: true };
   if (mode === "disable-only" && desired === "disabled" && ["ON", "OFF"].includes(current)) return { current, desired, allowed: true };
   throw new Error(`A3_FLAG_TRANSITION_BLOCKED:${mode}:${current}:${desired}`);
 }
