@@ -1,4 +1,5 @@
 alter table private.comun_cultural_contribution_intakes
+-- A3-R1 exact-preview checkpoint: release metadata only; no SQL behavior change.
   drop constraint if exists comun_cultural_contribution_intakes_status_check;
 
 alter table private.comun_cultural_contribution_intakes
