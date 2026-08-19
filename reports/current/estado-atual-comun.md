@@ -1,6 +1,6 @@
 ## A3-R1 — Provas Supabase locais e lanes históricas saneadas (18/08/2026)
 
-Estado de implementação local: `COMUN_48_5_A3_R1_EXACT_PREVIEW_AND_DISPOSABLE_GREEN_PENDING_MERGE`.
+Estado atual: `COMUN_48_5_A3_R1_MERGED_GREEN_AWAITING_CONTROLLED_ROLLOUT`.
 
 - baseline remoto reconfirmado: `origin/main=67b8fa9fcfd9adb07552d2a5776a3c7783f1a3a0`; entrada do R1 em `27d1abc0e407b5f88bc536f3244dad811ea35498`;
 - workflow disposable A3 dedicado executa somente Supabase local no runner, aplica a cadeia A2/A2-R1/A3 por reset local e publica marker sanitizado; nenhum remoto, fixture Production, publicação ou ativação de flag foi usado;
@@ -11,7 +11,9 @@ Estado de implementação local: `COMUN_48_5_A3_R1_EXACT_PREVIEW_AND_DISPOSABLE_
 - a segunda prova `32206689457` alcançou o rollback e encontrou uma falha de baseline do harness, não do produto; o baseline agora é capturado após os quatro handoffs esperados para medir exclusivamente o rollback-only;
 - A1 também revelou um defeito operacional de leitura de `GITHUB_ENV`; a correção foi aplicada e o preflight `32207385183` ficou GREEN/N/A. Os demais lanes históricos aplicáveis ficaram GREEN/N/A no mesmo ciclo;
 - checkpoint final `a0b3bc93092ee2571d8ca9f05ba2887bc7f40d2b` tem Preview Vercel READY e COST-02 GREEN; A3 disposable `32208583635`, COMUN CI `32208583833`, Cultural Deliverability `32208583751` e preflights de lane estão GREEN;
-- migração A3 ainda não foi aplicada em Production, a flag continua OFF e o rollout controlado não começou; merge aguarda somente as suítes gerais restantes e a confirmação final de mergeability.
+- merge #350 confirmado em `a7a55861458be833048ecb20ec3b5d2ba7b4bb84`; `origin/main` e Production Vercel READY estão no mesmo SHA;
+- CI pós-merge COMUN CI `32210155889`/`32210215010` e Cultural Deliverability `32210156007` GREEN; as suítes gerais pós-merge restantes seguem independentes do gate R1;
+- migration A3 ainda não foi aplicada em Production, a flag `COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED` continua OFF e o rollout controlado não começou.
 
 Checkpoint pré-merge reservado: `COMUN_48_5_A3_R1_SPECIALIZED_HANDOFF_PROOFS_GREEN_LEGACY_LANES_SCOPED`.
 

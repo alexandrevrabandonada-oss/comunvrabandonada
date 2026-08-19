@@ -29,7 +29,10 @@
 - CI remoto: COMUN CI `32208583833` GREEN; Cultural Deliverability `32208583751` GREEN;
 - CI local: `npm run test:unit` verde, 205 arquivos/1.100 testes; contratos R1 locais `6 passed`; typecheck, lint, build, privileges lint e diff check verdes;
 - as suítes gerais de entregabilidade ainda estavam em execução no momento deste registro; nenhuma falha foi observada;
-- merge SHA e Production SHA: não existem neste R1; a migration A3 ainda não foi promovida e o rollout não foi iniciado;
+- merge SHA: `a7a55861458be833048ecb20ec3b5d2ba7b4bb84`; `origin/main` confirmado no mesmo SHA;
+- Production SHA/deployment: `a7a55861458be833048ecb20ec3b5d2ba7b4bb84` em `dpl_DS9hJjsh8g5DUzoojm4CHMxuA96q`, READY (`comunvrabandonada-dwx8xqsie-alexandrevrabandonada-oss-projects.vercel.app`);
+- CI pós-merge: COMUN CI `32210155889` e `32210215010` GREEN; Cultural Deliverability `32210156007` GREEN;
+- a migration A3 não foi promovida/aplicada em Production, a flag `COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED` permanece OFF e o rollout Wave 0/1 não foi iniciado;
 - checkpoint pré-merge reservado: `COMUN_48_5_A3_R1_SPECIALIZED_HANDOFF_PROOFS_GREEN_LEGACY_LANES_SCOPED`.
 
 ## Baseline e escopo
