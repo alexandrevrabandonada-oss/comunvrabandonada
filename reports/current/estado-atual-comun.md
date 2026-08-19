@@ -1,3 +1,15 @@
+## Estado atual — 48.5-A4-R2-Wave0 bloqueada com flag ausente (19/08/2026)
+
+Estado terminal: `COMUN_48_5_A4_R2_FLAG_ABSENT_BLOCKED_SAFE_OFF`.
+
+- `origin/main=01d28b1e942736d7db0909c86cbb23d2e4ab34fb`; o baseline esperado `9074f132c48ad58cd34c06f73bf74f4f24aa3583` foi confirmado antes dos patches operacionais; o A4 funcional `27c441a4fa03857ece2e022f6f64516d5188989d` continua ancestral;
+- Production Vercel está `READY` no deployment `dpl_Cc7WCKjdLPQUC4ZRCgHGjwphG7Nr`, SHA `01d28b1e`;
+- Wave 0 A4 não avançou: o diagnóstico `32314228096` confirmou que `COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED` está ausente em Production, em vez de existir como uma chave project-level única `disabled`;
+- nenhuma migration Supabase foi aplicada, nenhum comando Supabase de leitura ou escrita foi alcançado após o bloqueio, e nenhuma flag foi alterada. A3 continua ativo e fora do escopo;
+- não criar a chave automaticamente nesta execução. Não executar Wave 0 novamente, não habilitar A4 e não iniciar A5 até a ausência ser explicada/regularizada em diagnóstico focal.
+
+Relatório detalhado: `reports/current/comun-48-5-a4-progressive-cultural-rights.md`.
+
 ## Estado atual — 48.5-A3-R2-Wave1 ativa em Production (19/08/2026)
 
 Estado terminal: `COMUN_48_5_A3_SPECIALIZED_CULTURAL_HANDOFF_GREEN_PRODUCTION_ACTIVE_NO_AUTO_PUBLICATION`.

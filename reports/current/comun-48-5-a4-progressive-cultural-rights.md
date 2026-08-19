@@ -1,5 +1,21 @@
 # 48.5-A4 — Direitos Progressivos da Memória Cultural
 
+## A4-R2-Wave0 — Preflight bloqueado por flag Production ausente (19/08/2026)
+
+Estado terminal desta tentativa: `COMUN_48_5_A4_R2_FLAG_ABSENT_BLOCKED_SAFE_OFF`.
+
+- o `origin/main` esperado `9074f132c48ad58cd34c06f73bf74f4f24aa3583` foi confirmado antes do patch operacional; o runner foi publicado no `e5034489729ed7bf6e942c5054f9da4f2b387e76` e a correção de classificação no `01d28b1e942736d7db0909c86cbb23d2e4ab34fb`; o ancestral funcional A4 `27c441a4fa03857ece2e022f6f64516d5188989d` permanece presente;
+- Production Vercel ficou `READY` no deployment `dpl_Cc7WCKjdLPQUC4ZRCgHGjwphG7Nr` do SHA `01d28b1e`; COMUN CI do primeiro patch `32313692758` ficou verde;
+- Wave 0 `32313832470` parou fail-closed na auditoria de ambiente: o helper inicial só informou chave Production não única. A correção tornou a classificação explícita;
+- diagnóstico focal `32314123097` foi abortado antes da auditoria porque o novo deployment ainda estava `BUILDING`; ele não alcançou Supabase nem escreveu Vercel;
+- diagnóstico focal final `32314228096` confirmou `COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED_PRODUCTION_ENV_ABSENT`. A chave não existe como env project-level Production. Não foi criada automaticamente, conforme o contrato. Shared env/overrides não foram aceitos como verdes porque a ausência já bloqueia o preflight;
+- o runner não chegou a `supabase migration list`, `db push`, snapshot ou postflight em nenhuma dessas execuções. A migration `20260819130000_comun_cultural_progressive_rights.sql` não foi aplicada nesta tentativa;
+- nenhum insert/update funcional, fixture, upload, target, archive item, asset, Search, coleção ou publicação foi criado. `businessWrites=0` por interrupção antes da fronteira Supabase; nenhuma flag foi mutada;
+- `COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED` não foi alterada pelo runner A4; A3 permanece ativo conforme o estado Production anterior. A ausência A4 é tratada como bloqueador operacional, não como OFF operacionalmente satisfatório;
+- a aplicação trata ausência como `false`, mas o rollout exige uma chave Production única, explícita e `disabled`. O próximo passo deve ser um diagnóstico/regularização focal da proveniência da ausência; não repetir Wave 0, não criar env automaticamente e não aplicar migration até isso ser resolvido.
+
+O checkpoint verde `COMUN_48_5_A4_R2_SCHEMA_GREEN_PROGRESSIVE_RIGHTS_FLAG_OFF` **não foi atingido**.
+
 ## A4-R1 — Provisionamento Chromium de CI endurecido (19/08/2026)
 
 Estado atual: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_GREEN_BROWSER_CI_STABLE_AWAITING_ROLLOUT` — PR #351 integrada; aguardando somente rollout controlado A4.
