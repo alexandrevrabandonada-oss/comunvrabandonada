@@ -40,6 +40,7 @@ assert.match(provisioner, /retryableNetworkFailure/);
 assert.match(provisioner, /ETIMEDOUT/);
 assert.match(provisioner, /detached: process\.platform !== "win32"/);
 assert.match(provisioner, /process\.kill\(-child\.pid/);
+assert.match(provisioner, /process group did not exit cleanly/);
 assert.match(provisioner, /--no-install/);
 
 for (const workflowName of workflows) {

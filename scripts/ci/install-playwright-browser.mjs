@@ -50,6 +50,7 @@ function runPlaywright(args, label) {
     });
     let output = "";
     let timedOut = false;
+    let finished = false;
     let forceKillTimer;
     const append = (chunk) => {
       output += chunk.toString();
@@ -71,11 +72,14 @@ function runPlaywright(args, label) {
           if (process.platform === "win32") child.kill();
           else process.kill(-child.pid, "SIGKILL");
         } catch {
-          child.kill();
+          child.kill("SIGKILL");
         }
+        finish(null, "ETIMEDOUT: provisioning process group did not exit cleanly");
       }, 5_000);
     }, COMMAND_TIMEOUT_MS);
     const finish = (status, error = "") => {
+      if (finished) return;
+      finished = true;
       clearTimeout(timeout);
       if (forceKillTimer) clearTimeout(forceKillTimer);
       if (error) output += `\n${error}`;
