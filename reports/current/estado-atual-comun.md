@@ -2869,3 +2869,17 @@ Estado atual: `COMUN_48_5_A2_R1_CANDIDATE_GREEN_PENDING_MERGE_AND_ROLLOUT`.
 À data registrada nesta seção histórica, A3 ainda não havia sido iniciado; esse estado foi superado pelo bloco corrente no topo. O terminal Production continua condicionado ao merge exact-head e à evidência real de rollout.
 
 # Estado atual — 48.5-A0 Reconciliação de cultura, memória e rádio (17/08/2026)
+## A4 — Direitos progressivos da memória cultural (DIAG → PATCH, 19/08/2026)
+
+Estado atual: `COMUN_48_5_A4_PROGRESSIVE_CULTURAL_RIGHTS_CANDIDATE_PENDING_VERIFY`.
+
+- baseline confirmado: `origin/main=826587f3e32177de68a288ed63bf231a91cd3425`; A3 funcional `a7a55861458be833048ecb20ec3b5d2ba7b4bb84` permanece ancestral;
+- DIAG encontrou gates especializados já existentes e uma lacuna na entrada: Foto, Arte e Rádio usavam declaração binária/genérica; História Oral já separava consentimentos e a etapa de sugestão não autoriza gravação;
+- patch A4 adiciona migration forward-only com campos tipados de direitos progressivos nas três raízes de contribuição, versão `a4-20260819-v1`, estado `rights_incomplete/rights_declared/rights_review_required/rights_approved` e flag `COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED` OFF;
+- autoria desconhecida, material de terceiro não confirmado e licença ausente para reutilização permanecem fail-closed; `review_only` não autoriza publicação;
+- A3 continua intacto: Foto/Documento, Arte, História Oral e Rádio seguem handoff especializado; Música segue fora; unknown não ganha target; publicação/Search/assets/coleções continuam separados;
+- nenhuma migration foi aplicada em Production, nenhuma fixture foi criada e nenhuma flag A4 foi ativada.
+
+Detalhes: `reports/current/comun-48-5-a4-progressive-cultural-rights.md`.
+
+O estado só poderá avançar após testes focados, proof Supabase local/CI, exact Preview/freshness, CI verde e rollout controlado Wave 0/1.

@@ -4,6 +4,7 @@ import { requireComunAdmin } from "@/lib/admin-auth";
 import { logComunAdminAction } from "@/lib/admin-audit";
 import { enqueueHistoricalPhotoDerivativeJob } from "@/lib/archive/photo-processing-queue";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isComunCulturalProgressiveRightsEnabled } from "@/lib/comun-cultural-progressive-rights";
 
 export async function updateSubmissionStatus(formData: FormData) {
   const session = await requireComunAdmin({ roles: ["admin", "editor"] });
@@ -60,8 +61,14 @@ export async function createArchiveItemFromSubmission(formData: FormData) {
     .select("*")
     .eq("id", id)
     .single();
-  if (!s || !s.permission_confirmed)
+  if (!s)
     throw new Error("Contribuicao sem declaracao de direitos.");
+  if (isComunCulturalProgressiveRightsEnabled()) {
+    if (s.rights_state !== "rights_declared" || s.publication_scope === "review_only")
+      throw new Error("Direitos declarados apenas para revisão; publicação exige confirmação especializada.");
+  } else if (!s.permission_confirmed) {
+    throw new Error("Contribuicao sem declaracao de direitos.");
+  }
   const slug = `${String(s.title_suggestion || "fotografia")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")

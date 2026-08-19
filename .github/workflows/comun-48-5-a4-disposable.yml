@@ -1,0 +1,68 @@
+name: COMUN 48.5-A4 disposable progressive rights proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-5-a4-disposable.yml"
+      - "supabase/migrations/20260819130000_comun_cultural_progressive_rights.sql"
+      - "scripts/comun-cultural-progressive-rights-a4-disposable.sql"
+      - "lib/comun-cultural-progressive-rights.ts"
+      - "lib/comun-cultural-progressive-rights.test.ts"
+  workflow_dispatch:
+
+permissions: { contents: read }
+
+jobs:
+  disposable-supabase:
+    name: A4 / local Supabase progressive rights proof
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.114.0 }
+      - name: Assert no remote Supabase credentials are available
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${SUPABASE_DB_URL:-}"
+          test -z "${SUPABASE_PROJECT_REF:-}"
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
+      - name: Start and reset local disposable Supabase
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/48-5-a4-disposable
+          cleanup() { timeout -k 10s 120s supabase stop --no-backup >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          supabase db reset --local --yes
+          db="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '"')"
+          test -n "$db"
+          case "$db" in *supabase.co*|*localhost*|*127.0.0.1*) ;; *) echo COMUN_48_5_A4_BLOCKED_NONLOCAL_DB; exit 1 ;; esac
+          psql "$db" -v ON_ERROR_STOP=1 -f scripts/comun-cultural-progressive-rights-a4-disposable.sql | tee .ci-artifacts/48-5-a4-disposable/proof.log
+          grep -q COMUN_48_5_A4_PROGRESSIVE_CULTURAL_RIGHTS_DISPOSABLE_GREEN .ci-artifacts/48-5-a4-disposable/proof.log
+          grep -q businessWritesAfterRollback=0 .ci-artifacts/48-5-a4-disposable/proof.log
+          grep -q autoPublication=false .ci-artifacts/48-5-a4-disposable/proof.log
+          grep -q publicAssetWrites=0 .ci-artifacts/48-5-a4-disposable/proof.log
+          grep -q searchWrites=0 .ci-artifacts/48-5-a4-disposable/proof.log
+      - name: Publish sanitized A4 proof summary
+        if: success()
+        run: |
+          echo COMUN_48_5_A4_PROGRESSIVE_CULTURAL_RIGHTS_DISPOSABLE_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo rightsVersion=a4-20260819-v1 >> "$GITHUB_STEP_SUMMARY"
+          echo rightsIncompleteFailClosed=true >> "$GITHUB_STEP_SUMMARY"
+          echo businessWritesAfterRollback=0 >> "$GITHUB_STEP_SUMMARY"
+          echo autoPublication=false >> "$GITHUB_STEP_SUMMARY"
+          echo publicAssetWrites=0 >> "$GITHUB_STEP_SUMMARY"
+          echo searchWrites=0 >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-5-a4-disposable-${{ github.run_id }}
+          path: .ci-artifacts/48-5-a4-disposable
+          retention-days: 14
+          if-no-files-found: error
