@@ -1,3 +1,13 @@
+## A4-R1 — Provisionamento Chromium de CI fechado, aguardando rollout A4 (19/08/2026)
+
+Estado atual: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_GREEN_BROWSER_CI_STABLE_AWAITING_ROLLOUT`.
+
+- PR #351 foi mesclada em `27c441a4fa03857ece2e022f6f64516d5188989d`; `origin/main` e Production Vercel estão no mesmo SHA, com deployment `dpl_AdzYY7S6VrhmUTNypfm3LoXpCtdr` em `READY`;
+- a action compartilhada de Chromium usa cache exato por OS/arquitetura/versão real Playwright/lockfile, retry limitado e cleanup de grupo, descendentes e locks apt/dpkg; nenhum teste foi removido ou relaxado;
+- Preview exato `dpl_73czMy9gNUAxAV9mmTsXZnY1EssX` e os gates do candidato ficaram verdes; pós-merge COMUN CI, Cultural, Quality, Experience, Core, Civic Graph e CAPTCHA também ficaram verdes;
+- a migration `20260819130000_comun_cultural_progressive_rights.sql` continua pendente em Production; `COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED` continua OFF; nenhuma fixture, publicação, Search, asset ou escrita funcional foi criada;
+- próximo passo único: rollout controlado A4 em Wave 0/Wave 1, fora deste R1.
+
 ## A3-R1 — Provas Supabase locais e lanes históricas saneadas (18/08/2026)
 
 Estado atual: `COMUN_48_5_A3_R1_MERGED_GREEN_AWAITING_CONTROLLED_ROLLOUT`.

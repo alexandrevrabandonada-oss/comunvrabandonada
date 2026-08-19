@@ -2,7 +2,7 @@
 
 ## A4-R1 — Provisionamento Chromium de CI endurecido (19/08/2026)
 
-Estado atual: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_GREEN_BROWSER_CI_STABLE_AWAITING_ROLLOUT` reservado para o candidato; validação remota e merge ainda pendentes.
+Estado atual: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_GREEN_BROWSER_CI_STABLE_AWAITING_ROLLOUT` — PR #351 integrada; aguardando somente rollout controlado A4.
 
 - causa-raiz: seis workflows ativos da PR executavam, em quinze jobs, `npx playwright install --with-deps chromium` de forma independente; os bloqueios observados ocorreram no provisionamento compartilhado antes da execução das suítes, sem evidência de defeito do A4;
 - patch: a action local `.github/actions/setup-playwright-browser` restaura `~/.cache/ms-playwright` com chave exata por `runner.os`, `runner.arch`, versão real `@playwright/test` (`1.61.1`) e hash de `package-lock.json`; dependências de sistema continuam sendo garantidas separadamente;
@@ -10,11 +10,19 @@ Estado atual: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_GREEN_BROWSER_CI_STABLE_AWAIT
 - Quality Performance, Experience Coherence, Core Journeys, Civic Graph, Civic Intelligence e Full Surface Migration passaram a usar a action compartilhada. Workflows de outros domínios ou caminhos não envolvidos no bloqueio não foram alterados cegamente;
 - contrato estrutural local: `COMUN_BROWSER_PROVISIONING_CONTRACT_GREEN`; A4 focal `40/40`; typecheck, lint, build, unitário `207` arquivos/`1140` testes e `git diff --check` verdes;
 - o script de contrato é executado explicitamente por Node e não é coletado como suíte Vitest. O workflow A4 disposable permanece local-only no CI e continua sem fixture Production;
-- pendentes neste candidato: novo Preview exato/freshness, CI remoto com as suítes após provisionamento, A4 disposable, Cultural Deliverability, Quality/Experience e merge da PR #351.
+- fechamento remoto: Preview exato `dpl_73czMy9gNUAxAV9mmTsXZnY1EssX` (`READY`, SHA `cc491f8ae16586ef0767270d5e33c94a68895011`), COST-02/CI `32280469519`, A4 disposable `32280469668`, Cultural `32280469488`, Quality `32280469534`, Experience `32280469448`, Core `32280469535`, Civic Graph `32280469743`, Civic Intelligence `32280469423` e Full Surface `32280469457` verdes;
+- PR #351 foi marcada ready e mesclada no merge SHA `27c441a4fa03857ece2e022f6f64516d5188989d`; pós-merge COMUN CI `32284486940`/`32284594532`, Cultural `32284486924`, Quality `32284486879`, Experience `32284486935`, Core `32284486892`, Civic Graph `32284486908` e CAPTCHA `32284486941` verdes;
 
 Após os primeiros checkpoints, quatro jobs Civic Graph e o job administrativo confirmaram timeout do apt mirror; as correções de grupo e descendentes não alcançaram o `apt-get` reparentado, que segurou o lock no retry. O candidato corretivo, somente após timeout, encerra o grupo, percorre descendentes Linux por PID e libera exclusivamente os dois lockfiles de apt/dpkg com `fuser`; resolve a falha após uma janela adicional de 5 segundos mesmo se `close` não chegar. Lock transitório também é retryable, com o mesmo limite de duas tentativas.
 
 Migration A4 continua pendente em Production e `COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED` continua OFF. Nenhuma escrita Production, publicação, Search, asset ou rollout foi realizado.
+
+## A4-R1 — Fechamento pós-merge
+
+- `origin/main` e Production estão no SHA `27c441a4fa03857ece2e022f6f64516d5188989d`; deployment Production `dpl_AdzYY7S6VrhmUTNypfm3LoXpCtdr` está `READY`;
+- o cache Chromium foi reutilizado com Playwright `1.61.1`, seguido de provisioning verde; a correção mantém retry limitado, encerra grupos/descendentes e libera somente locks apt/dpkg após timeout;
+- migration `20260819130000_comun_cultural_progressive_rights.sql` permanece não aplicada em Production e `COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED` permanece OFF;
+- estado terminal: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_GREEN_BROWSER_CI_STABLE_AWAITING_ROLLOUT`; nenhum write Production, fixture, publicação, Search, asset ou rollout A4 ocorreu.
 
 ## Estado do trabalho
 
