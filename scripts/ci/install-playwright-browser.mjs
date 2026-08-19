@@ -1,5 +1,5 @@
 import { mkdirSync, writeFileSync } from "node:fs";
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
 
@@ -41,6 +41,40 @@ function sanitizedOutput(value) {
     .slice(-12000);
 }
 
+function descendantPids(pid) {
+  if (process.platform === "win32") return [];
+  try {
+    return execFileSync("pgrep", ["-P", String(pid)], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    })
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map(Number);
+  } catch {
+    return [];
+  }
+}
+
+function terminateProcessTree(pid, signal) {
+  for (const childPid of descendantPids(pid)) {
+    terminateProcessTree(childPid, signal);
+  }
+  try {
+    process.kill(pid, signal);
+  } catch {
+    // The child may have exited between discovery and termination.
+  }
+  if (process.platform !== "win32") {
+    try {
+      process.kill(-pid, signal);
+    } catch {
+      // The process group may already be gone.
+    }
+  }
+}
+
 function runPlaywright(args, label) {
   const logPath = path.join(artifactDir, `${label}.log`);
   return new Promise((resolve) => {
@@ -61,19 +95,9 @@ function runPlaywright(args, label) {
       timedOut = true;
       const message = `ETIMEDOUT: provisioning command exceeded ${COMMAND_TIMEOUT_MS}ms`;
       output += `\n${message}`;
-      try {
-        if (process.platform === "win32") child.kill();
-        else process.kill(-child.pid, "SIGTERM");
-      } catch {
-        child.kill();
-      }
+      terminateProcessTree(child.pid, "SIGTERM");
       forceKillTimer = setTimeout(() => {
-        try {
-          if (process.platform === "win32") child.kill();
-          else process.kill(-child.pid, "SIGKILL");
-        } catch {
-          child.kill("SIGKILL");
-        }
+        terminateProcessTree(child.pid, "SIGKILL");
         finish(null, "ETIMEDOUT: provisioning process group did not exit cleanly");
       }, 5_000);
     }, COMMAND_TIMEOUT_MS);
