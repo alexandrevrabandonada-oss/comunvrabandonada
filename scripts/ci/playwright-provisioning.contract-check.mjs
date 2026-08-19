@@ -40,6 +40,8 @@ assert.match(provisioner, /retryableNetworkFailure/);
 assert.match(provisioner, /ETIMEDOUT/);
 assert.match(provisioner, /detached: process\.platform !== "win32"/);
 assert.match(provisioner, /execFileSync\("pgrep"/);
+assert.match(provisioner, /execFileSync\("fuser"/);
+assert.match(provisioner, /\/var\/lib\/apt\/lists\/lock/);
 assert.match(provisioner, /terminateProcessTree/);
 assert.match(provisioner, /process\.kill\(-pid/);
 assert.match(provisioner, /process group did not exit cleanly/);

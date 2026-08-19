@@ -2893,6 +2893,6 @@ Estado atual: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_CANDIDATE_PENDING_REMOTE_VERI
 - retries são limitados a duas tentativas e somente para rede/download; falha emite `COMUN_BROWSER_PROVISIONING_FAILED` e não é mascarada;
 - validação local verde: contrato de provisionamento, A4 `40/40`, typecheck, lint, build, unitário `207/1140` e diff check. O candidato ainda aguarda Preview/CI remoto e não pode ser declarado merged;
 - migration `20260819130000_comun_cultural_progressive_rights.sql` permanece não aplicada em Production e `COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED` permanece OFF; business writes, fixtures e publicação continuam em zero.
-- as três primeiras execuções remotas encontraram timeout/lock no apt mirror durante `install-deps`; a terceira confirmou que um descendente `apt-get` fora do grupo ainda segurava o lock. O novo candidato percorre descendentes por PID, força a resolução após 5 segundos se necessário, mantém duas tentativas e segue fail-closed.
+- as quatro primeiras execuções remotas encontraram timeout/lock no apt mirror durante `install-deps`; a quarta confirmou que um `apt-get` reparentado ainda segurava o lock. O novo candidato, somente após timeout, percorre descendentes, libera os lockfiles apt/dpkg por PID de holder com `fuser`, força a resolução após 5 segundos se necessário, mantém duas tentativas e segue fail-closed.
 
 Checkpoint pré-merge reservado: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_GREEN_BROWSER_CI_STABLE_AWAITING_ROLLOUT`.

@@ -29,7 +29,7 @@ function summary(line) {
 }
 
 function retryableNetworkFailure(output) {
-  return /EAI_AGAIN|ECONNRESET|ECONNREFUSED|ETIMEDOUT|ENETUNREACH|network|socket hang up|download|502|503|504/i.test(
+  return /EAI_AGAIN|ECONNRESET|ECONNREFUSED|ETIMEDOUT|ENETUNREACH|network|socket hang up|download|Could not get lock|Unable to lock|apt.*lock|502|503|504/i.test(
     output,
   );
 }
@@ -75,6 +75,22 @@ function terminateProcessTree(pid, signal) {
   }
 }
 
+function releasePackageManagerLocks() {
+  if (process.platform === "win32") return;
+  for (const lockPath of [
+    "/var/lib/apt/lists/lock",
+    "/var/lib/dpkg/lock-frontend",
+  ]) {
+    try {
+      execFileSync("fuser", ["-k", "-TERM", lockPath], {
+        stdio: "ignore",
+      });
+    } catch {
+      // No holder or fuser is unavailable; the bounded retry still fails closed.
+    }
+  }
+}
+
 function runPlaywright(args, label) {
   const logPath = path.join(artifactDir, `${label}.log`);
   return new Promise((resolve) => {
@@ -96,8 +112,10 @@ function runPlaywright(args, label) {
       const message = `ETIMEDOUT: provisioning command exceeded ${COMMAND_TIMEOUT_MS}ms`;
       output += `\n${message}`;
       terminateProcessTree(child.pid, "SIGTERM");
+      releasePackageManagerLocks();
       forceKillTimer = setTimeout(() => {
         terminateProcessTree(child.pid, "SIGKILL");
+        releasePackageManagerLocks();
         finish(null, "ETIMEDOUT: provisioning process group did not exit cleanly");
       }, 5_000);
     }, COMMAND_TIMEOUT_MS);

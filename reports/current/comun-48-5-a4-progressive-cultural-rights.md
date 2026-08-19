@@ -12,7 +12,7 @@ Estado atual: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_GREEN_BROWSER_CI_STABLE_AWAIT
 - o script de contrato é executado explicitamente por Node e não é coletado como suíte Vitest. O workflow A4 disposable permanece local-only no CI e continua sem fixture Production;
 - pendentes neste candidato: novo Preview exato/freshness, CI remoto com as suítes após provisionamento, A4 disposable, Cultural Deliverability, Quality/Experience e merge da PR #351.
 
-Após os primeiros checkpoints, quatro jobs Civic Graph e o job administrativo confirmaram timeout do apt mirror; a primeira correção classificou o timeout, mas o processo filho `apt-get` ficou órfão e segurou o lock do dpkg no retry. O candidato corretivo encerra o grupo, percorre descendentes Linux por PID e resolve a falha após uma janela adicional de 5 segundos mesmo se `close` não chegar; essa alteração exige novo checkpoint antes da reexecução remota.
+Após os primeiros checkpoints, quatro jobs Civic Graph e o job administrativo confirmaram timeout do apt mirror; as correções de grupo e descendentes não alcançaram o `apt-get` reparentado, que segurou o lock no retry. O candidato corretivo, somente após timeout, encerra o grupo, percorre descendentes Linux por PID e libera exclusivamente os dois lockfiles de apt/dpkg com `fuser`; resolve a falha após uma janela adicional de 5 segundos mesmo se `close` não chegar. Lock transitório também é retryable, com o mesmo limite de duas tentativas.
 
 Migration A4 continua pendente em Production e `COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED` continua OFF. Nenhuma escrita Production, publicação, Search, asset ou rollout foi realizado.
 
