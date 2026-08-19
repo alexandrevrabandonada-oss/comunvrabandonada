@@ -24,6 +24,11 @@ esac
 
 ARTIFACT_DIR="${COMUN_A3_ARTIFACT_DIR:-.ci-artifacts/48-5-a3-r2-production}"
 mkdir -p "$ARTIFACT_DIR"
+stage() {
+  printf '%s\n' "$1" >> "$ARTIFACT_DIR/stage.txt"
+  printf 'stage=%s\n' "$1" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+}
+stage initialized
 TEMP_FILES=()
 remember() { TEMP_FILES+=("$1"); }
 cleanup() { rm -f "${TEMP_FILES[@]:-}"; }
@@ -208,29 +213,40 @@ rollback_flag() {
 }
 
 assert_main
+stage main_verified
 assert_project_binding
+stage project_verified
 assert_production_ready
+stage production_verified
 pre_env="$RUNNER_TEMP/comun-a3-pre.env"
 pull_production_env "$pre_env"
 remember "$pre_env"
 assert_a3_flag_off "$pre_env"
+stage flag_off_verified
 test -z "${SUPABASE_ACCESS_TOKEN:-}"
 test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
 summary "productionProjectRef=$SUPABASE_PROJECT_REF"
 summary "mainSha=$EXPECTED_MAIN_SHA"
 
 assert_exact_migration_plan
+stage migration_plan_exact
 supabase db push --db-url "$SUPABASE_DB_URL" >"$ARTIFACT_DIR/migration-push.txt" 2>&1
+stage migration_applied
 metadata_postflight
+stage schema_postflight_green
 wave0_smoke
+stage wave0_green
 
 flag_started=true
 set_a3_flag enabled
+stage flag_enabled
 if ! deploy_production; then
   rollback_flag || true
   exit 1
 fi
+stage production_deploy_green
 if ! wave1_smoke; then
   rollback_flag || true
   exit 1
 fi
+stage wave1_green
