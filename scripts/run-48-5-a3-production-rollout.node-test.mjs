@@ -26,6 +26,10 @@ test("Wave 0 excludes later A4 and external ledger files before planning", () =>
 
 test("the rollout changes only the A3 Vercel flag and never submits production data", () => {
   assert.match(runner, /COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED production/);
+  assert.match(runner, /a3-flag-writer-contract\.mjs/);
+  assert.match(runner, /api\.vercel\.com\/v10\/projects/);
+  assert.match(runner, /api\.vercel\.com\/v1\/env/);
+  assert.match(runner, /a3-flag-write-receipt/);
   assert.doesNotMatch(runner, /COMUN_CULTURAL_SAVE_FIRST_INTAKE_ENABLED production/);
   assert.doesNotMatch(runner, /-X POST| -X POST|curl[^\n]*POST/);
   assert.match(runner, /newTargets=0/);

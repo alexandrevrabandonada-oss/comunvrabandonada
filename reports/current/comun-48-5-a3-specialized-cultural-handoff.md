@@ -1,5 +1,51 @@
 # 48.5-A3 — Handoff Especializado da Contribuição Cultural
 
+## A3-R2-D1 — Proveniência do drift da flag Production (19/08/2026)
+
+### Resultado terminal
+
+`COMUN_48_5_A3_R2_FLAG_DRIFT_PROVENANCE_GREEN_READY_TO_RETRY_WAVE0`
+
+O baseline pedido foi confirmado antes do diagnóstico: `origin/main=94849abef55a1592b2112cd9c26b229ec62ae1c4`, com `a7a55861458be833048ecb20ec3b5d2ba7b4bb84` ancestral. O diagnóstico GET-only foi incorporado e executado no main posterior `21893f89d8d20c743688d96c8fa530f449510a8f`; essa divergência é somente o próprio hardening/telemetria D1.
+
+### Linha do tempo e causa
+
+- T0: a metadata Vercel mostra uma única variável project-level Production, sem `gitBranch` e sem `customEnvironmentIds`, criada em `2026-08-19T11:22:08.363Z`;
+- T1: o deployment Vercel imediatamente correlato foi `source=cli`, `createdAt=2026-08-19T11:22:22.677Z`, no SHA documental `826587f3e32177de68a288ed63bf231a91cd3425`. Não havia writer dessa chave no repositório nessa hora;
+- T2: todas as seis execuções A3-R2 foram auditadas. `32295948001` parou em `a3_flag_unexpectedly_on`; nenhuma execução alcançou `flag_enabled` ou chamou `set_a3_flag enabled`;
+- T3: `32296284347` foi a única operação A3 posterior que escreveu a chave: `disable-only`, atualizando-a para OFF. A metadata registra `updatedAt=2026-08-19T20:02:20.183Z`, compatível com essa recuperação;
+- T4: auditoria D1 `32299571546` ficou GREEN: valor efetivo Production OFF, uma chave project-level, zero shared env, zero duplicata, sem branch-specific override, sem valor bruto persistido e sem token persistido.
+
+`createdBy` e `updatedBy` da variável têm o mesmo fingerprint e coincidem com o membro Vercel `alexandrevrabandonada-oss`. Portanto a classificação é `ROOT_CAUSE_HIGH_CONFIDENCE`: o ON nasceu fora das execuções A3-R2, em contexto Vercel/CLI associado a esse membro. A API consultada não oferece audit event suficiente para distinguir CLI manual de outra automação usando o mesmo contexto; essa é a única parte residual não confirmável.
+
+### Writers, ambientes e deployments
+
+- A busca em HEAD e no histórico Git, inclusive paths removidos, encontrou a chave somente no runner A3-R2, nos contratos da feature e nos relatórios; não há outro workflow/script que escreva essa chave;
+- existem outras automações com `VERCEL_TOKEN` e writes de suas próprias variáveis/deployments, mas nenhuma referencia `COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED`;
+- metadata sanitizada da chave: `id=sha256:c0afffb6250e7dcf`, `target=production`, `type=encrypted`, `gitBranch=null`, `customEnvironmentIds=[]`, `comment=null`, `createdBy=sha256:8c4dca7ce47bbc91`, `updatedBy=sha256:8c4dca7ce47bbc91`;
+- shared env: endpoint `v1/env` HTTP 200, nenhum match da chave; project env HTTP 200, exatamente um match;
+- deployments Production no intervalo: deployment CLI de `826587f` em `11:22:22Z`; deployments A3-R2 de `5c67fc50`, `115d8882`, `3f0432fa`, `6b001419`, `84383721` foram Git/READY e somente leram preflight; recovery CLI `b456edc6` ocorreu em `20:02:25Z`; o runtime final posterior permaneceu READY e OFF.
+
+### Hardening aplicado
+
+- criado `.github/workflows/comun-48-5-a3-r2-d1-flag-drift.yml`, que faz somente GET da Vercel, `env pull` read-only e artifact sanitizado;
+- criado `scripts/ci/a3-flag-writer-contract.mjs`: ownership explícito `comun-48-5-a3-r2`, transições fail-closed, guarda de duplicata Production/shared env e receipt com fingerprint de env ID, run e SHA;
+- o runner A3-R2 agora consulta metadata project/shared antes de qualquer write, rejeita duplicata/conflito, aceita somente `OFF/ABSENT → enabled` no rollout e `ON → disabled`/`OFF` idempotente no disable-only;
+- receipts nunca persistem valor bruto, token ou identidade privada; não foi usado `vercel env add --force` durante o D1. A troca futura para PATCH por ID continua deferida, pois não foi necessária para fechar o drift e não foi testada em mutation;
+- o Environment `production` do GitHub foi auditado: não há reviewers, wait timer ou deployment branch policy configurados; nenhum gate foi alterado.
+
+### Gates e segurança
+
+- contratos D1 locais: `6 passed` incluindo transitions, duplicate/shared guard, writer ownership e receipts;
+- run de auditoria Vercel D1: `32299571546` GREEN; runs anteriores de auditoria com correção de bootstrap: `32298938398` falhou apenas por `.vercel` ausente e `32299139591` GREEN;
+- `businessWrites=0`, `fixtures=0`, `targets=0`, `publications=0`; nenhuma migration, RPC, fixture Production ou alteração Supabase ocorreu;
+- flag Production final confirmada OFF; migration A3 continua pending; Wave 0 e Wave 1 não foram executadas;
+- checkpoint: `COMUN_48_5_A3_R2_FLAG_DRIFT_PROVENANCE_GREEN_READY_TO_RETRY_WAVE0`.
+
+### Risco residual e próximo passo
+
+O risco residual é a ausência de audit event Vercel que diferencie ação manual CLI de automação externa no mesmo usuário. O writer do repositório está agora isolado e fail-closed. A próxima execução deve ser uma nova tentativa limpa do A3-R2; este D1 não autoriza nem executa Wave 0.
+
 ## A3-R2 — Rollout controlado interrompido por drift de flag (19/08/2026)
 
 ### Estado terminal desta tentativa

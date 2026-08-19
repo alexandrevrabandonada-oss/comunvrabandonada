@@ -85,9 +85,35 @@ env_value() {
   awk -F= -v key="$key" '$1 == key {sub(/^[^=]*=/,"",$0); sub(/^"/,"",$0); sub(/"$/,"",$0); print; exit}' "$file"
 }
 
+A3_PREVIOUS_FLAG_STATE="UNKNOWN"
+verify_a3_writer_contract() {
+  local current_state="$1" desired_state="$2" phase="$3"
+  local project_json="$RUNNER_TEMP/comun-a3-flag-project-metadata.json"
+  local shared_json="$RUNNER_TEMP/comun-a3-flag-shared-metadata.json"
+  local receipt="$ARTIFACT_DIR/a3-flag-write-receipt-${desired_state}-${phase}.json"
+  curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" \
+    "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env?teamId=$VERCEL_ORG_ID&decrypt=false&limit=100" > "$project_json"
+  curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" \
+    "https://api.vercel.com/v1/env?teamId=$VERCEL_ORG_ID&search=COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED&limit=100" > "$shared_json"
+  EXPECTED_MAIN_SHA="$EXPECTED_MAIN_SHA" GITHUB_RUN_ID="${GITHUB_RUN_ID:-}" \
+    node scripts/ci/a3-flag-writer-contract.mjs \
+      --project-json "$project_json" \
+      --shared-json "$shared_json" \
+      --mode "$MODE" \
+      --current-state "$current_state" \
+      --desired-state "$desired_state" \
+      --phase "$phase" \
+      --receipt "$receipt"
+}
+
 assert_a3_flag_off() {
   local env_file="$1" value
   value="$(env_value "$env_file" COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED || true)"
+  if test "$value" = "enabled"; then A3_PREVIOUS_FLAG_STATE=ON
+  elif test "$value" = "disabled"; then A3_PREVIOUS_FLAG_STATE=OFF
+  elif test -z "$value"; then A3_PREVIOUS_FLAG_STATE=ABSENT
+  else A3_PREVIOUS_FLAG_STATE=UNKNOWN
+  fi
   if test "$value" = "enabled"; then
     stage a3_flag_unexpectedly_on
     return 1
@@ -177,7 +203,9 @@ wave0_smoke() {
 
 set_a3_flag() {
   local value="$1"
+  verify_a3_writer_contract "$A3_PREVIOUS_FLAG_STATE" "$value" before_write
   printf '%s' "$value" | npx --yes vercel@50.28.0 env add COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+  verify_a3_writer_contract "$A3_PREVIOUS_FLAG_STATE" "$value" after_write
 }
 
 deploy_production() {
@@ -229,6 +257,18 @@ if test "$MODE" = "disable-only"; then
   assert_main
   assert_project_binding
   assert_production_ready
+  disable_pre_env="$RUNNER_TEMP/comun-a3-disable-pre.env"
+  pull_production_env "$disable_pre_env"
+  disable_value="$(env_value "$disable_pre_env" COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED || true)"
+  if test "$disable_value" = "disabled"; then
+    summary COMUN_48_5_A3_R2_PRECHECK_FLAG_ALREADY_OFF
+    summary "schemaMigrationApplied=false"
+    summary "businessWrites=0"
+    summary "productionRequests=GET_HEAD_ONLY"
+    exit 0
+  fi
+  test "$disable_value" = "enabled"
+  A3_PREVIOUS_FLAG_STATE=ON
   set_a3_flag disabled
   deploy_production
   disabled_env="$RUNNER_TEMP/comun-a3-disabled.env"

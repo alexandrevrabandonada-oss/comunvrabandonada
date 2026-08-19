@@ -1,3 +1,18 @@
+## Estado atual — 48.5-A3-R2-D1 proveniência do drift (19/08/2026)
+
+Estado terminal do D1: `COMUN_48_5_A3_R2_FLAG_DRIFT_PROVENANCE_GREEN_READY_TO_RETRY_WAVE0`.
+
+- baseline inicial confirmado: `origin/main=94849abef55a1592b2112cd9c26b229ec62ae1c4`; o diagnóstico foi executado no main posterior `21893f89d8d20c743688d96c8fa530f449510a8f`, divergência causada somente pelo hardening D1;
+- o drift ON não veio de nenhuma execução A3-R2: `32295948001` parou antes de `flag_enabled`; `32296284347` foi a recuperação OFF, com metadata `updatedAt` compatível;
+- a variável Production é única, project-level, sem branch/custom env, sem shared env; `createdAt=2026-08-19T11:22:08.363Z`, autor Vercel `alexandrevrabandonada-oss`, e deployment CLI correlato em `11:22:22Z` no SHA `826587f`;
+- causa classificada como `ROOT_CAUSE_HIGH_CONFIDENCE` para ação externa ao runner A3-R2, mantendo residual apenas a distinção CLI manual versus automação externa no mesmo contexto;
+- workflow D1 read-only e contrato de writer foram adicionados; duplicatas/shared env e transições inesperadas agora falham fechadas, com receipts sanitizados;
+- auditoria D1 `32299571546` GREEN; flag Production OFF; Production permaneceu READY; `businessWrites=0`, fixtures/targets/publicações=0;
+- migration `20260818120000_comun_cultural_specialized_handoff.sql` continua pending em Production; nenhuma Wave 0/Wave 1 foi executada;
+- próximo passo: nova tentativa limpa do A3-R2, sem executar rollout dentro do D1.
+
+Relatório detalhado: `reports/current/comun-48-5-a3-specialized-cultural-handoff.md`.
+
 ## Estado atual — 48.5-A3-R2 rollout controlado (19/08/2026)
 
 Estado terminal desta tentativa: `COMUN_48_5_A3_R2_SCHEMA_GREEN_RUNTIME_ROLLED_BACK_FLAG_OFF`.
