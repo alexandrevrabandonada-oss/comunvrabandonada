@@ -18,7 +18,7 @@ MODE="${1:-}"
 : "${COMUN_BASE_URL:?COMUN_BASE_URL is required}"
 
 case "$MODE" in
-  rollout) ;;
+  rollout|disable-only) ;;
   *) echo COMUN_48_5_A3_R2_INVALID_MODE >> "$GITHUB_STEP_SUMMARY"; exit 1 ;;
 esac
 
@@ -224,6 +224,22 @@ rollback_flag() {
   if test "$status" -eq 0; then summary COMUN_48_5_A3_R2_RUNTIME_ROLLED_BACK_FLAG_OFF; fi
   return "$status"
 }
+
+if test "$MODE" = "disable-only"; then
+  assert_main
+  assert_project_binding
+  assert_production_ready
+  set_a3_flag disabled
+  deploy_production
+  disabled_env="$RUNNER_TEMP/comun-a3-disabled.env"
+  pull_production_env "$disabled_env"
+  test "$(env_value "$disabled_env" COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED || true)" != "enabled"
+  summary COMUN_48_5_A3_R2_PRECHECK_FLAG_RESTORED_OFF
+  summary "schemaMigrationApplied=false"
+  summary "businessWrites=0"
+  summary "productionRequests=GET_HEAD_ONLY"
+  exit 0
+fi
 
 assert_main
 stage main_verified

@@ -7,6 +7,12 @@ on:
         description: Exact main SHA for this rollout
         required: true
         type: string
+      mode:
+        description: Full rollout or restore the A3 flag to OFF
+        required: true
+        default: rollout
+        type: choice
+        options: [rollout, disable-only]
 
 concurrency:
   group: comun-48-5-a3-r2-production-rollout
@@ -62,12 +68,13 @@ jobs:
       - name: Execute Wave 0 then Wave 1 with fail-closed rollback
         env:
           EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          MODE: ${{ inputs.mode }}
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
         shell: bash
-        run: bash scripts/run-48-5-a3-production-rollout.sh rollout
+        run: bash scripts/run-48-5-a3-production-rollout.sh "$MODE"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
