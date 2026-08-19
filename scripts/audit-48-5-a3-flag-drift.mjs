@@ -141,11 +141,12 @@ export async function auditA3FlagDrift({
     try { payload = await response.json(); } catch { /* status evidence is enough */ }
     return { status: statusOf(response), payload };
   };
-  const [project, env, shared, deployments] = await Promise.all([
+  const [project, env, shared, deployments, user] = await Promise.all([
     get(endpoint("v9", `projects/${projectId}`, { teamId })),
     get(endpoint("v10", `projects/${projectId}/env`, { teamId, decrypt: "false", limit: "100" })),
     get(endpoint("v1", "env", { teamId, search: A3_FLAG, limit: "100" })),
     get(endpoint("v6", "deployments", { projectId, teamId, target: "production", limit: "100" })),
+    get(endpoint("v2", "user", {})),
   ]);
   const rawProjectRows = env.status === 200 ? projectEnvRows(env.payload) : [];
   const rawSharedRows = shared.status === 200 ? sharedEnvRows(shared.payload) : [];
@@ -174,6 +175,11 @@ export async function auditA3FlagDrift({
     environmentHttpStatus: env.status,
     sharedEnvironmentHttpStatus: shared.status,
     deploymentsHttpStatus: deployments.status,
+    tokenActor: user.status === 200 ? {
+      id: fingerprint(user.payload?.id ?? user.payload?.uid),
+      username: typeof user.payload?.username === "string" ? user.payload.username : null,
+      namePresent: typeof user.payload?.name === "string",
+    } : { id: null, username: null, namePresent: false },
     productionValueState,
     projectEnvMatches: relevantProjectRows,
     sharedEnvMatches: relevantSharedRows,
