@@ -12,7 +12,11 @@ import {
   validateArtworkImage,
 } from "@/lib/archive/artwork-storage";
 import { logComunAdminAction } from "@/lib/admin-audit";
-import { CULTURAL_RIGHTS_CONTRACT_VERSION, decideArtworkRights, isComunCulturalProgressiveRightsEnabled } from "@/lib/comun-cultural-progressive-rights";
+import {
+  CULTURAL_RIGHTS_CONTRACT_VERSION,
+  decideArtworkRights,
+  isComunCulturalProgressiveRightsEnabled,
+} from "@/lib/comun-cultural-progressive-rights";
 
 export async function submitArtworkContribution(
   _: unknown,
@@ -37,12 +41,24 @@ export async function submitArtworkContribution(
     formData.get("truth") !== "on" ||
     formData.get("moderation") !== "on" ||
     formData.get("withdrawal") !== "on" ||
-    (!isComunCulturalProgressiveRightsEnabled() && formData.get("authorized") !== "on")
+    (!isComunCulturalProgressiveRightsEnabled() &&
+      formData.get("authorized") !== "on")
   )
     return { error: "Revise os campos e as quatro declarações obrigatórias." };
   const progressive = isComunCulturalProgressiveRightsEnabled();
-  const rights = progressive ? decideArtworkRights({ authorshipBasis: String(formData.get("authorshipBasis") || ""), publicationScope: String(formData.get("publicationScope") || ""), reusePermission: String(formData.get("reusePermission") || ""), identityPreference: String(formData.get("identityPreference") || ""), licenseCode: String(formData.get("licenseCode") || "") }) : null;
-  if (progressive && !rights) return { error: "Complete as escolhas de autoria, identificação e escopo de uso." };
+  const rights = progressive
+    ? decideArtworkRights({
+        authorshipBasis: String(formData.get("authorshipBasis") || ""),
+        publicationScope: String(formData.get("publicationScope") || ""),
+        reusePermission: String(formData.get("reusePermission") || ""),
+        identityPreference: String(formData.get("identityPreference") || ""),
+        licenseCode: String(formData.get("licenseCode") || ""),
+      })
+    : null;
+  if (progressive && !rights)
+    return {
+      error: "Complete as escolhas de autoria, identificação e escopo de uso.",
+    };
   const protocol = `ARTE-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
   const { error } = await db
     .from("comun_archive_artwork_submissions" as never)
@@ -67,7 +83,18 @@ export async function submitArtworkContribution(
       information_true_declared: true,
       moderation_understood: true,
       correction_withdrawal_understood: true,
-      ...(progressive ? { authorship_basis: formData.get("authorshipBasis"), publication_scope: formData.get("publicationScope"), reuse_permission: formData.get("reusePermission"), license_code: formData.get("licenseCode"), identity_preference: formData.get("identityPreference"), rights_state: rights?.state, rights_contract_version: CULTURAL_RIGHTS_CONTRACT_VERSION, rights_declared_at: new Date().toISOString() } : {}),
+      ...(progressive
+        ? {
+            authorship_basis: formData.get("authorshipBasis"),
+            publication_scope: formData.get("publicationScope"),
+            reuse_permission: formData.get("reusePermission"),
+            license_code: formData.get("licenseCode"),
+            identity_preference: formData.get("identityPreference"),
+            rights_state: rights?.state,
+            rights_contract_version: CULTURAL_RIGHTS_CONTRACT_VERSION,
+            rights_declared_at: new Date().toISOString(),
+          }
+        : {}),
       next_action_public: "Aguardar triagem da curadoria.",
     } as never);
   if (error) return { error: "Não foi possível registrar a contribuição." };
