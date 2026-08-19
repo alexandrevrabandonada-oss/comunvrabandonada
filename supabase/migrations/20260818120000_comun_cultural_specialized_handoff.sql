@@ -26,7 +26,7 @@ begin
   if v.route_kind is not null and v.route_kind <> p_route_kind and v.route_kind <> 'unknown' then raise exception 'route_locked'; end if;
   update private.comun_cultural_contribution_intakes
      set route_kind=p_route_kind,
-         status=case when p_route_kind='unknown' then 'routing' else coalesce(nullif(status,'draft'),'routed') end,
+         status=case when p_route_kind='unknown' then 'routing' else coalesce(nullif(v.status,'draft'),'routed') end,
          routed_at=coalesce(routed_at,now()), updated_at=now()
    where id=v.id returning * into v;
   return query select v.id,v.public_protocol,v.status,v.route_kind;
