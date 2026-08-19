@@ -3,6 +3,7 @@ begin;
 
 create temporary table a3_intakes(route_kind text primary key, protocol text not null, resume_hash text not null, target_kind text, target_id uuid);
 create temporary table a3_baseline(table_name text primary key, row_count bigint not null);
+create temporary table a3_business_baseline(table_name text primary key, row_count bigint not null);
 
 do $$
 declare t text; n bigint;
@@ -91,6 +92,19 @@ begin
   end loop;
 end $$;
 
+do $$
+declare t text; n bigint;
+begin
+  foreach t in array array[
+    'comun_archive_submissions','comun_archive_artwork_submissions','comun_archive_oral_history_suggestions','comun_radio_contributions',
+    'comun_archive_items','comun_archive_assets','comun_archive_collections','comun_archive_collection_items','comun_archive_relations',
+    'comun_hub_archive_links','comun_search_documents'
+  ] loop
+    execute format('select count(*) from public.%I', t) into n;
+    insert into a3_business_baseline values(t,n);
+  end loop;
+end $$;
+
 savepoint a3_business_rollback;
 do $$
 declare r record; h text := 'a3-rollback-only';
@@ -110,7 +124,7 @@ begin
     'comun_archive_items','comun_archive_assets','comun_archive_collections','comun_archive_collection_items','comun_archive_relations',
     'comun_hub_archive_links','comun_search_documents'
   ] loop
-    execute format('select row_count from a3_baseline where table_name=%L',t) into before_count;
+    execute format('select row_count from a3_business_baseline where table_name=%L',t) into before_count;
     execute format('select count(*) from public.%I',t) into after_count;
     if after_count <> before_count then raise exception 'businessWritesAfterRollback for %',t; end if;
   end loop;

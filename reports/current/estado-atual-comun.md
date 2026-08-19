@@ -8,6 +8,7 @@ Estado de implementação local: `COMUN_48_5_A3_R1_CANDIDATE_PENDING_EXACT_HEAD_
 - A3 continua transacional 1:1 para Foto/Documento, Arte, História Oral e Rádio; `unknown` não cria alvo, Música fica fora, alvos permanecem draft/pending e a flag `COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED` continua OFF;
 - contrato R1 local: `6 passed`; prova disposable Supabase, exact Preview/freshness, CI remoto, merge e Production continuam pendentes até execução no SHA candidato;
 - a primeira prova CI local-only foi executada no run `32206329698` e encontrou um defeito real de compilação do RPC de rota (`status` ambíguo); a correção foi aplicada e a prova será repetida, sem aplicar nada em Production;
+- a segunda prova `32206689457` alcançou o rollback e encontrou uma falha de baseline do harness, não do produto; o baseline agora é capturado após os quatro handoffs esperados para medir exclusivamente o rollback-only;
 - migração A3 ainda não foi aplicada em Production e o rollout controlado não começou.
 
 Checkpoint pré-merge reservado: `COMUN_48_5_A3_R1_SPECIALIZED_HANDOFF_PROOFS_GREEN_LEGACY_LANES_SCOPED`.
