@@ -86,6 +86,7 @@ env_value() {
 }
 
 A3_PREVIOUS_FLAG_STATE="UNKNOWN"
+A3_MIGRATION_RESULT="pending"
 verify_a3_writer_contract() {
   local current_state="$1" desired_state="$2" phase="$3"
   local project_json="$RUNNER_TEMP/comun-a3-flag-project-metadata.json"
@@ -143,8 +144,16 @@ assert_exact_migration_plan() {
   trap restore EXIT
   supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >"$plan" 2>&1
   mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' "$plan" | sort -u || true)
-  test "${#planned[@]}" -eq 1
-  test "${planned[0]}" = "$(basename "$A3_MIGRATION")"
+  if test "${#planned[@]}" -eq 0; then
+    grep -Fqx 'Remote database is up to date.' "$plan"
+    A3_MIGRATION_RESULT="already_applied"
+    summary "migrationPlan=already_applied"
+  else
+    test "${#planned[@]}" -eq 1
+    test "${planned[0]}" = "$(basename "$A3_MIGRATION")"
+    A3_MIGRATION_RESULT="pending"
+    summary "migrationPlan=exact_a3_pending"
+  fi
   ! grep -Eqi -- '--include-all|migration repair|db reset|seed' "$plan"
   restore
   trap - EXIT
@@ -202,7 +211,7 @@ wave0_smoke() {
 
 write_wave0_final_receipt() {
   local receipt="$ARTIFACT_DIR/a3-wave0-final-receipt.json"
-  node - "$receipt" "$ARTIFACT_DIR/a3-flag-write-receipt-enabled-preflight.json" <<'NODE'
+  A3_MIGRATION_RESULT="$A3_MIGRATION_RESULT" node - "$receipt" "$ARTIFACT_DIR/a3-flag-write-receipt-enabled-preflight.json" <<'NODE'
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const [output, preflightPath] = process.argv.slice(2);
@@ -220,7 +229,7 @@ const receipt = {
   project: fingerprint(process.env.SUPABASE_PROJECT_REF),
   flagId: preflight.envId ?? null,
   phase: "wave0_complete",
-  migrationA3: "applied",
+  migrationA3: process.env.A3_MIGRATION_RESULT === "already_applied" ? "already_applied" : "applied",
   flag: "OFF",
   businessWrites: 0,
   fixtures: 0,
@@ -333,8 +342,13 @@ summary "mainSha=$EXPECTED_MAIN_SHA"
 
 assert_exact_migration_plan
 stage migration_plan_exact
-supabase db push --db-url "$SUPABASE_DB_URL" >"$ARTIFACT_DIR/migration-push.txt" 2>&1
-stage migration_applied
+if test "$A3_MIGRATION_RESULT" = "pending"; then
+  supabase db push --db-url "$SUPABASE_DB_URL" >"$ARTIFACT_DIR/migration-push.txt" 2>&1
+  A3_MIGRATION_RESULT="applied"
+  stage migration_applied
+else
+  stage migration_already_applied_verified
+fi
 metadata_postflight
 stage schema_postflight_green
 post_env="$RUNNER_TEMP/comun-a3-post-migration.env"
@@ -347,7 +361,7 @@ stage wave0_green
 
 if test "$MODE" = "wave0-only"; then
   write_wave0_final_receipt
-  summary "migrationA3=applied"
+  summary "migrationA3=$A3_MIGRATION_RESULT"
   summary "flag=OFF"
   summary "productionHealthy=true"
   exit 0

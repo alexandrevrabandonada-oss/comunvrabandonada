@@ -14,6 +14,8 @@ test("A3 R2 rollout is bound to exact main and the exact A3 migration", () => {
   assert.match(runner, /git merge-base --is-ancestor/);
   assert.match(runner, /productionReady=true/);
   assert.match(runner, /planned\[0\].*basename \"\$A3_MIGRATION\"/s);
+  assert.match(runner, /Remote database is up to date\./);
+  assert.match(runner, /migration_already_applied_verified/);
 });
 
 test("Wave 0 excludes later A4 and external ledger files before planning", () => {
