@@ -1,0 +1,61 @@
+name: COMUN 48.5-A3-R2-D1 flag drift provenance
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact origin/main SHA to audit
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+  A3_BASELINE_SHA: a7a55861458be833048ecb20ec3b5d2ba7b4bb84
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+      - name: Assert main ancestry and canonical Vercel binding
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = "$EXPECTED_MAIN_SHA"
+          git merge-base --is-ancestor "$A3_BASELINE_SHA" "$EXPECTED_MAIN_SHA"
+          test -n "$VERCEL_TOKEN"
+      - name: Read Production environment and capture sanitized Vercel metadata
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          COMUN_A3_PRODUCTION_ENV_FILE: ${{ runner.temp }}/comun-a3-r2-d1-production.env
+          COMUN_A3_ARTIFACT_DIRECTORY: .ci-artifacts/48-5-a3-r2-d1
+        shell: bash
+        run: |
+          set -euo pipefail
+          trap 'rm -f "$COMUN_A3_PRODUCTION_ENV_FILE"' EXIT
+          printf '%s\n' '{"orgId":"'"$VERCEL_ORG_ID"'","projectId":"'"$VERCEL_PROJECT_ID"'"}' > .vercel/project.json
+          npx --yes vercel@50.28.0 env pull "$COMUN_A3_PRODUCTION_ENV_FILE" --environment=production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+          node scripts/audit-48-5-a3-flag-drift.mjs
+      - name: Publish sanitized audit artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-48-5-a3-r2-d1-flag-drift-${{ github.run_id }}
+          path: .ci-artifacts/48-5-a3-r2-d1/
+          retention-days: 30
+          if-no-files-found: warn
