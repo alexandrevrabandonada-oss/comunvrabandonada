@@ -2883,3 +2883,15 @@ Estado atual: `COMUN_48_5_A4_PROGRESSIVE_CULTURAL_RIGHTS_CANDIDATE_PENDING_VERIF
 Detalhes: `reports/current/comun-48-5-a4-progressive-cultural-rights.md`.
 
 O estado só poderá avançar após testes focados, proof Supabase local/CI, exact Preview/freshness, CI verde e rollout controlado Wave 0/1.
+## A4-R1 — Provisionamento Chromium de CI endurecido (19/08/2026)
+
+Estado atual: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_CANDIDATE_PENDING_REMOTE_VERIFY`.
+
+- PR #351 continua sem novo Tijolo funcional e preserva integralmente o contrato A4 de direitos progressivos, fail-closed e flag OFF;
+- o bloqueio operacional foi isolado nos jobs que executavam `npx playwright install --with-deps chromium` independentemente: quinze pontos nos seis workflows ativos escopados;
+- foi criada uma action compartilhada com cache exato de `~/.cache/ms-playwright` por sistema, arquitetura, versão real do Playwright e lockfile; dependências de sistema continuam separadas;
+- retries são limitados a duas tentativas e somente para rede/download; falha emite `COMUN_BROWSER_PROVISIONING_FAILED` e não é mascarada;
+- validação local verde: contrato de provisionamento, A4 `40/40`, typecheck, lint, build, unitário `207/1140` e diff check. O candidato ainda aguarda Preview/CI remoto e não pode ser declarado merged;
+- migration `20260819130000_comun_cultural_progressive_rights.sql` permanece não aplicada em Production e `COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED` permanece OFF; business writes, fixtures e publicação continuam em zero.
+
+Checkpoint pré-merge reservado: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_GREEN_BROWSER_CI_STABLE_AWAITING_ROLLOUT`.

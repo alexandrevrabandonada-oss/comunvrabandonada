@@ -13,6 +13,8 @@ on:
       - "playwright.app-shell-v2.config.ts"
       - "playwright.admin-surfaces-v2.config.ts"
       - "package*.json"
+      - ".github/actions/setup-playwright-browser/**"
+      - "scripts/ci/install-playwright-browser.mjs"
       - ".github/workflows/comun-full-surface-migration.yml"
   workflow_dispatch:
 
@@ -57,7 +59,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/setup-playwright-browser
       - run: npm run surfaces:e2e
       - run: npm run surfaces:a11y
 
@@ -75,7 +77,7 @@ jobs:
         with:
           version: 2.109.1
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/setup-playwright-browser
       - run: supabase start
       - name: Reset disposable Supabase stack
         shell: bash

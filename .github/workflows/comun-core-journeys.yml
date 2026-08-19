@@ -11,6 +11,8 @@ on:
       - "tests/core-journeys/**"
       - "playwright.core-journeys.config.ts"
       - "package*.json"
+      - ".github/actions/setup-playwright-browser/**"
+      - "scripts/ci/install-playwright-browser.mjs"
       - ".github/workflows/comun-core-journeys.yml"
   push:
     branches: [main]
@@ -22,6 +24,8 @@ on:
       - "tests/core-journeys/**"
       - "playwright.core-journeys.config.ts"
       - "package*.json"
+      - ".github/actions/setup-playwright-browser/**"
+      - "scripts/ci/install-playwright-browser.mjs"
       - ".github/workflows/comun-core-journeys.yml"
   workflow_dispatch:
 
@@ -46,7 +50,7 @@ jobs:
       - name: Abrir envelope sanitizado
         run: mkdir -p .ci-artifacts/core-journeys && node -e "require('node:fs').writeFileSync('.ci-artifacts/core-journeys/00-envelope.json',JSON.stringify({scope:'pull_request',containsPersonalData:false,containsQueries:false,containsContacts:false,containsCookies:false,containsSessions:false,containsPrivateScreenshots:false},null,2))"
       - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/setup-playwright-browser
       - name: Auditoria, contratos e matriz negativa
         run: |
           npm run journeys:audit
@@ -106,7 +110,7 @@ jobs:
           cache: npm
       - run: mkdir -p .ci-artifacts/core-journeys
       - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/setup-playwright-browser
       - name: 1. Preflight do SHA em Production
         run: |
           for attempt in $(seq 1 30); do
