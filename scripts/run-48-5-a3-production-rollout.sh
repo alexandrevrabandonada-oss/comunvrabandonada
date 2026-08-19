@@ -37,11 +37,17 @@ trap cleanup EXIT
 summary() { printf '%s\n' "$*" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"; }
 
 assert_main() {
+  stage assert_main_started
   test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+  stage head_sha_verified
   git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+  stage origin_fetched
   test "$(git rev-parse refs/remotes/origin/main)" = "$EXPECTED_MAIN_SHA"
+  stage origin_main_verified
   git merge-base --is-ancestor "$A3_BASELINE_SHA" HEAD
+  stage a3_ancestor_verified
   test "$(sha256sum "$A3_MIGRATION" | awk '{print $1}')" = "$A3_MIGRATION_SHA256"
+  stage a3_checksum_verified
 }
 
 assert_project_binding() {
