@@ -9,7 +9,7 @@
 - os triggers agora removem `supabase/migrations/**` e o `estado-atual-comun.md` dos lanes históricos quando não são parte do contrato específico; a prova manual continua protegida;
 - `scripts/ci/classify-migration-lane.mjs` usa manifesto explícito versionado. Migration conhecida de outra lane resulta em `not_applicable`; migration desconhecida ou mistura de lanes resulta em bloqueio fail-closed. Nenhuma falha foi marcada manualmente ou ignorada;
 - nenhuma evidência de conflito real C foi encontrada: a migration A3 só foi classificada como `culture-a3` e não altera contrato de observatório, economia solidária, social, Pautas ou forwarding sensível.
-- a primeira execução real do workflow encontrou e isolou um defeito genuíno no RPC de rota (`status` ambíguo entre parâmetro de saída e coluna); a migration foi corrigida para usar `v.status`, e a prova deve ser repetida no novo SHA.
+- a primeira execução real do workflow encontrou e isolou um defeito genuíno no RPC de rota (`status` ambíguo entre parâmetro de saída e coluna); a migration foi corrigida para usar `v.status`, e a reexecução posterior passou.
 - a segunda execução avançou até o rollback e encontrou um erro de medição do harness: o baseline pós-rollback ainda era pré-handoff; o script agora captura o baseline depois dos quatro alvos esperados e mede somente o bloco rollback-only.
 - no recheck dos lanes, o A1 revelou um bug operacional da própria etapa: `GITHUB_ENV` só fica disponível no passo seguinte; a etapa agora carrega explicitamente o resultado do classificador antes do `case`, preservando o N/A fail-closed.
 
@@ -23,9 +23,11 @@
 
 ### Evidência remota R1
 
-- disposable run ID: pendente até o workflow dedicado executar no SHA candidato;
+- disposable run ID: `32207385217`, job `95933132305`, GREEN; o resumo remoto confirmou o marker A3 e `businessWritesAfterRollback=0`, `autoPublication=false`, `publicAssetWrites=0`, `searchWrites=0`, além de `concurrentRace=one-target`;
+- preflights históricos reexecutados no mesmo candidato: 48.2-A `32207385210`, 48.3-A1 `32207385183`, 48.3-B0 `32207385239`, 48.4-A0 `32207385233`, 48.5-A0 `32207385198` e P6C-C `32207385225`, todos GREEN/N/A conforme lane ownership;
 - Preview SHA/freshness: pendente até o novo checkpoint `[comun-preview]` do candidato R1;
-- CI IDs, Cultural Deliverability e preflights aplicáveis: pendentes de execução exact-head;
+- CI local: `npm run test:unit` verde, 205 arquivos/1.100 testes; contratos R1 locais `6 passed`; typecheck, lint, build, privileges lint e diff check verdes;
+- CI remoto/Cultural Deliverability: execução do candidato em andamento; a prova dedicada e os preflights de lane já estão verdes;
 - merge SHA e Production SHA: não existem neste R1; a migration A3 ainda não foi promovida e o rollout não foi iniciado;
 - checkpoint pré-merge reservado: `COMUN_48_5_A3_R1_SPECIALIZED_HANDOFF_PROOFS_GREEN_LEGACY_LANES_SCOPED`.
 

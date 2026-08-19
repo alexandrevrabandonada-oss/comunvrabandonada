@@ -1,14 +1,15 @@
 ## A3-R1 — Provas Supabase locais e lanes históricas saneadas (18/08/2026)
 
-Estado de implementação local: `COMUN_48_5_A3_R1_CANDIDATE_PENDING_EXACT_HEAD_REMOTE_PROOF`.
+Estado de implementação local: `COMUN_48_5_A3_R1_DISPOSABLE_GREEN_PENDING_EXACT_PREVIEW_AND_MERGE`.
 
 - baseline remoto reconfirmado: `origin/main=67b8fa9fcfd9adb07552d2a5776a3c7783f1a3a0`; entrada do R1 em `27d1abc0e407b5f88bc536f3244dad811ea35498`;
 - workflow disposable A3 dedicado executa somente Supabase local no runner, aplica a cadeia A2/A2-R1/A3 por reset local e publica marker sanitizado; nenhum remoto, fixture Production, publicação ou ativação de flag foi usado;
 - os seis preflights históricos agora usam paths/manifesto de lane ownership: known-other é N/A, unknown e mistura continuam FAIL CLOSED; não houve remoção de required check nem bypass de branch protection;
 - A3 continua transacional 1:1 para Foto/Documento, Arte, História Oral e Rádio; `unknown` não cria alvo, Música fica fora, alvos permanecem draft/pending e a flag `COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED` continua OFF;
 - contrato R1 local: `6 passed`; prova disposable Supabase, exact Preview/freshness, CI remoto, merge e Production continuam pendentes até execução no SHA candidato;
-- a primeira prova CI local-only foi executada no run `32206329698` e encontrou um defeito real de compilação do RPC de rota (`status` ambíguo); a correção foi aplicada e a prova será repetida, sem aplicar nada em Production;
+- a primeira prova CI local-only foi executada no run `32206329698` e encontrou um defeito real de compilação do RPC de rota (`status` ambíguo); a correção foi aplicada e a reexecução GREEN `32207385217` confirmou o handoff descartável, sem aplicar nada em Production;
 - a segunda prova `32206689457` alcançou o rollback e encontrou uma falha de baseline do harness, não do produto; o baseline agora é capturado após os quatro handoffs esperados para medir exclusivamente o rollback-only;
+- A1 também revelou um defeito operacional de leitura de `GITHUB_ENV`; a correção foi aplicada e o preflight `32207385183` ficou GREEN/N/A. Os demais lanes históricos aplicáveis ficaram GREEN/N/A no mesmo ciclo;
 - migração A3 ainda não foi aplicada em Production e o rollout controlado não começou.
 
 Checkpoint pré-merge reservado: `COMUN_48_5_A3_R1_SPECIALIZED_HANDOFF_PROOFS_GREEN_LEGACY_LANES_SCOPED`.
