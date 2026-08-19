@@ -8,11 +8,11 @@ on:
         required: true
         type: string
       mode:
-        description: Wave 0 only, full rollout, or restore the A3 flag to OFF
+        description: Wave 1 only, Wave 0 only, full rollout, or restore the A3 flag to OFF
         required: true
         default: rollout
         type: choice
-        options: [wave0-only, rollout, disable-only]
+        options: [wave1-only, wave0-only, rollout, disable-only]
 
 concurrency:
   group: comun-48-5-a3-r2-production-rollout

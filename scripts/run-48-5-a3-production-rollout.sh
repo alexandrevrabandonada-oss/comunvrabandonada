@@ -18,7 +18,7 @@ MODE="${1:-}"
 : "${COMUN_BASE_URL:?COMUN_BASE_URL is required}"
 
 case "$MODE" in
-  rollout|wave0-only|disable-only) ;;
+  rollout|wave0-only|wave1-only|disable-only) ;;
   *) echo COMUN_48_5_A3_R2_INVALID_MODE >> "$GITHUB_STEP_SUMMARY"; exit 1 ;;
 esac
 
@@ -105,6 +105,29 @@ verify_a3_writer_contract() {
       --desired-state "$desired_state" \
       --phase "$phase" \
       --receipt "$receipt"
+}
+
+verify_a3_flag_metadata() {
+  local project_json="$RUNNER_TEMP/comun-a3-flag-project-metadata.json"
+  local shared_json="$RUNNER_TEMP/comun-a3-flag-shared-metadata.json"
+  curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" \
+    "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env?teamId=$VERCEL_ORG_ID&decrypt=false&limit=100" > "$project_json"
+  curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" \
+    "https://api.vercel.com/v1/env?teamId=$VERCEL_ORG_ID&search=COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED&limit=100" > "$shared_json"
+  node - "$project_json" "$shared_json" <<'NODE'
+const fs = require("node:fs");
+const key = "COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED";
+const project = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+const shared = JSON.parse(fs.readFileSync(process.argv[3], "utf8"));
+const projectRows = Array.isArray(project?.envs) ? project.envs : Array.isArray(project?.data) ? project.data : [];
+const sharedRows = Array.isArray(shared?.envs) ? shared.envs : Array.isArray(shared?.data) ? shared.data : [];
+const production = projectRows.filter((row) => row?.key === key && Array.isArray(row.target) && row.target.includes("production"));
+if (production.length !== 1) throw new Error("A3_FLAG_POST_DEPLOY_PRODUCTION_KEY_NOT_UNIQUE");
+const row = production[0];
+if (sharedRows.some((candidate) => candidate?.key === key)) throw new Error("A3_FLAG_POST_DEPLOY_SHARED_CONFLICT");
+if (row.gitBranch !== null && row.gitBranch !== undefined) throw new Error("A3_FLAG_POST_DEPLOY_BRANCH_OVERRIDE");
+if (Array.isArray(row.customEnvironmentIds) && row.customEnvironmentIds.length > 0) throw new Error("A3_FLAG_POST_DEPLOY_CUSTOM_OVERRIDE");
+NODE
 }
 
 assert_a3_flag_off() {
@@ -245,8 +268,70 @@ NODE
 set_a3_flag() {
   local value="$1"
   verify_a3_writer_contract "$A3_PREVIOUS_FLAG_STATE" "$value" before_write
-  printf '%s' "$value" | npx --yes vercel@50.28.0 env add COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED production --force --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+  local project_json="$RUNNER_TEMP/comun-a3-flag-project-metadata.json"
+  local env_id
+  env_id="$(node - "$project_json" <<'NODE'
+const fs = require("node:fs");
+const key = "COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED";
+const payload = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+const rows = Array.isArray(payload?.envs) ? payload.envs : Array.isArray(payload?.data) ? payload.data : [];
+const matches = rows.filter((row) => row?.key === key && Array.isArray(row.target) && row.target.length === 1 && row.target[0] === "production" && (row.gitBranch === null || row.gitBranch === undefined) && (!Array.isArray(row.customEnvironmentIds) || row.customEnvironmentIds.length === 0));
+if (matches.length !== 1 || typeof matches[0].id !== "string" || matches[0].id.length === 0) throw new Error("A3_FLAG_WRITE_TARGET_NOT_UNIQUE");
+process.stdout.write(matches[0].id);
+NODE
+)"
+  local response="$RUNNER_TEMP/comun-a3-flag-patch-response.json"
+  printf '{"value":"%s"}\n' "$value" > "$RUNNER_TEMP/comun-a3-flag-patch-body.json"
+  curl -fsS -X PATCH \
+    -H "Authorization: Bearer $VERCEL_TOKEN" \
+    -H "Content-Type: application/json" \
+    --data-binary "@$RUNNER_TEMP/comun-a3-flag-patch-body.json" \
+    "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env/$env_id?teamId=$VERCEL_ORG_ID" > "$response"
   verify_a3_writer_contract "$A3_PREVIOUS_FLAG_STATE" "$value" after_write
+}
+
+zero_write_snapshot() {
+  local output="$1"
+  psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 > "$output" <<'SQL'
+begin read only;
+select json_build_object(
+  'intakes', (select count(*) from private.comun_cultural_contribution_intakes),
+  'targets', (select count(*) from public.comun_archive_submissions) +
+             (select count(*) from public.comun_archive_artwork_submissions) +
+             (select count(*) from public.comun_archive_oral_history_suggestions) +
+             (select count(*) from public.comun_radio_contributions),
+  'archiveItems', (select count(*) from public.comun_archive_items),
+  'searchDocuments', (select count(*) from public.comun_search_documents),
+  'assets', (select count(*) from public.comun_archive_assets),
+  'collections', (select count(*) from public.comun_archive_collections),
+  'publications', (select count(*) from public.comun_archive_items where status = 'published') +
+                  (select count(*) from public.comun_archive_collections where status = 'published') +
+                  (select count(*) from public.comun_radio_programs where publication_status = 'published') +
+                  (select count(*) from public.comun_radio_episodes where publication_status = 'published')
+);
+rollback;
+SQL
+}
+
+assert_zero_write_delta() {
+  local before="$1" after="$2" delta="$ARTIFACT_DIR/zero-write-delta.json"
+  node - "$before" "$after" "$delta" <<'NODE'
+const fs = require("node:fs");
+const before = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+const after = JSON.parse(fs.readFileSync(process.argv[3], "utf8"));
+const keys = ["intakes", "targets", "archiveItems", "searchDocuments", "assets", "collections", "publications"];
+const result = Object.fromEntries(keys.map((key) => [key, Number(after[key]) - Number(before[key])]));
+if (keys.some((key) => result[key] !== 0)) throw new Error(`A3_WAVE1_BUSINESS_WRITE_DELTA:${JSON.stringify(result)}`);
+fs.writeFileSync(process.argv[4], `${JSON.stringify(result, null, 2)}\n`, "utf8");
+NODE
+  summary "businessWrites=0"
+  summary "newIntakes=0"
+  summary "newTargets=0"
+  summary "newArchiveItems=0"
+  summary "newSearchDocuments=0"
+  summary "newAssets=0"
+  summary "newCollections=0"
+  summary "publications=0"
 }
 
 deploy_production() {
@@ -272,6 +357,12 @@ wave1_smoke() {
   done
   curl -L -fsS --retry 8 --retry-delay 2 "$COMUN_BASE_URL/comun/acervo/contribuir" >"$page"
   ! grep -Eqi 'resume_token_hash|target_id|member_user_id|private\.comun_|public_protocol=[A-Za-z0-9_-]{8,}' "$page"
+  local bundle="$RUNNER_TEMP/comun-a3-wave1-bundle.js"
+  : > "$bundle"
+  while IFS= read -r asset; do curl -L -fsS --retry 8 --retry-delay 2 "$COMUN_BASE_URL$asset" >> "$bundle"; done < <(grep -oE '/_next/static/[^" ]+\.js' "$page" | sort -u)
+  for marker in 'Continuar no fluxo especializado' 'Nada foi publicado' 'Uma foto ou documento' 'Uma obra de arte' 'Uma pessoa ou história para entrevistar' 'Algo para a Rádio' 'Ainda não sei'; do grep -Fq "$marker" "$bundle"; done
+  ! grep -Fq 'Música' "$bundle"
+  summary "featureDetection=handoff_bundle_markers_green"
   summary "COMUN_48_5_A3_SPECIALIZED_CULTURAL_HANDOFF_GREEN_PRODUCTION_ACTIVE_NO_AUTO_PUBLICATION"
   summary "a3Flag=enabled"
   summary "businessWrites=0"
@@ -339,6 +430,31 @@ test -z "${SUPABASE_ACCESS_TOKEN:-}"
 test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
 summary "productionProjectRef=$SUPABASE_PROJECT_REF"
 summary "mainSha=$EXPECTED_MAIN_SHA"
+
+if test "$MODE" = "wave1-only"; then
+  metadata_postflight
+  stage schema_preflight_green
+  wave1_before="$ARTIFACT_DIR/zero-write-before.json"
+  wave1_after="$ARTIFACT_DIR/zero-write-after.json"
+  zero_write_snapshot "$wave1_before"
+  set_a3_flag enabled
+  stage flag_enabled
+  if ! deploy_production; then
+    rollback_flag || true
+    exit 1
+  fi
+  stage production_deploy_green
+  verify_a3_flag_metadata
+  stage flag_post_deploy_verified_enabled
+  if ! wave1_smoke; then
+    rollback_flag || true
+    exit 1
+  fi
+  zero_write_snapshot "$wave1_after"
+  assert_zero_write_delta "$wave1_before" "$wave1_after"
+  stage wave1_green
+  exit 0
+fi
 
 assert_exact_migration_plan
 stage migration_plan_exact

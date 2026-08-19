@@ -18,6 +18,12 @@ test("A3 writer allows only the controlled transitions", () => {
   assert.throws(() => assertA3Transition({ mode: "disable-only", currentState: "ABSENT", desiredState: "disabled" }), /TRANSITION_BLOCKED/);
 });
 
+test("wave1-only accepts only the exact OFF to enabled transition", () => {
+  assert.equal(assertA3Transition({ mode: "wave1-only", currentState: "OFF", desiredState: "enabled" }).allowed, true);
+  assert.throws(() => assertA3Transition({ mode: "wave1-only", currentState: "ABSENT", desiredState: "enabled" }), /TRANSITION_BLOCKED/);
+  assert.throws(() => assertA3Transition({ mode: "wave1-only", currentState: "ON", desiredState: "enabled" }), /TRANSITION_BLOCKED/);
+});
+
 test("A3 writer fails closed on duplicate or shared Production ownership", () => {
   const row = { key: "COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED", target: ["production"], id: "env_a" };
   assert.equal(assertA3MetadataOwnership({ projectRows: [row], sharedRows: [] }).projectEnvCount, 1);

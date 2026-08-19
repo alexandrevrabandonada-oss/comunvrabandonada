@@ -7,7 +7,7 @@ const runner = fs.readFileSync("scripts/run-48-5-a3-production-rollout.sh", "utf
 
 test("A3 R2 rollout is bound to exact main and the exact A3 migration", () => {
   assert.match(workflow, /workflow_dispatch:/);
-  assert.match(workflow, /options: \[wave0-only, rollout, disable-only\]/);
+  assert.match(workflow, /options: \[wave1-only, wave0-only, rollout, disable-only\]/);
   assert.match(workflow, /ref: \$\{\{ inputs\.expected_main_sha \}\}/);
   assert.match(workflow, /20260818120000_comun_cultural_specialized_handoff\.sql/);
   assert.match(workflow, /A3_MIGRATION_SHA256: 0cadb9/);
@@ -30,7 +30,8 @@ test("Wave 0 excludes later A4 and external ledger files before planning", () =>
 });
 
 test("the rollout changes only the A3 Vercel flag and never submits production data", () => {
-  assert.match(runner, /COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED production/);
+  assert.match(runner, /v9\/projects\/\$VERCEL_PROJECT_ID\/env\/\$env_id\?teamId=/);
+  assert.doesNotMatch(runner, /env add COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED production --force/);
   assert.match(runner, /a3-flag-writer-contract\.mjs/);
   assert.match(runner, /api\.vercel\.com\/v10\/projects/);
   assert.match(runner, /api\.vercel\.com\/v1\/env/);
@@ -50,4 +51,14 @@ test("wave0-only applies schema, rechecks OFF, and exits before Wave 1", () => {
   assert.match(runner, /a3-wave0-final-receipt\.json/);
   assert.match(runner, /exit 0/);
   assert.match(runner, /flag_started=true/);
+});
+
+test("wave1-only has an independent no-migration path and read-only smoke proof", () => {
+  assert.match(workflow, /wave1-only/);
+  assert.match(runner, /if test "\$MODE" = "wave1-only"; then/);
+  assert.match(runner, /schema_preflight_green/);
+  assert.match(runner, /zero_write_snapshot/);
+  assert.match(runner, /featureDetection=handoff_bundle_markers_green/);
+  assert.match(runner, /verify_a3_flag_metadata/);
+  assert.doesNotMatch(runner.split('if test "$MODE" = "wave1-only"; then')[1].split('\nassert_exact_migration_plan')[0], /supabase db push/);
 });
