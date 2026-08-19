@@ -15,8 +15,8 @@ on:
       - "lib/pauta-spaces.ts"
       - "lib/types.ts"
       - "reports/current/comun-48-3-a1-pautas-vivas-public-core.md"
-      - "reports/current/estado-atual-comun.md"
       - "supabase/migrations/*_comun_pautas_vivas_public_evidence.sql"
+      - "scripts/ci/classify-migration-lane.mjs"
   workflow_dispatch:
 
 permissions:
@@ -44,22 +44,26 @@ jobs:
           test -n "${SUPABASE_DB_URL:-}"
           test -n "${SUPABASE_PROJECT_REF:-}"
           case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
+          mkdir -p .ci-artifacts/48-3-a1-preflight
           mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
-          if [ "${#changed[@]}" -eq 1 ]; then
-            case "${changed[0]}" in
-              supabase/migrations/*_comun_pautas_vivas_public_evidence.sql)
-                echo A1_PREFLIGHT_MODE=candidate >> "$GITHUB_ENV"
-                ;;
-              *) echo COMUN_48_3_A1_BLOCKED_MIGRATION_SCOPE; exit 1 ;;
-            esac
-          elif [ "${#changed[@]}" -eq 0 ] && [ -f supabase/migrations/20260813124308_comun_pautas_vivas_public_evidence.sql ]; then
-            echo A1_PREFLIGHT_MODE=promoted >> "$GITHUB_ENV"
-          else
-            echo COMUN_48_3_A1_BLOCKED_MIGRATION_SCOPE
-            exit 1
-          fi
+          node scripts/ci/classify-migration-lane.mjs --lane 48-3-a1 --files "${changed[@]}" | tee .ci-artifacts/48-3-a1-preflight/migration-classification.env
+          cat .ci-artifacts/48-3-a1-preflight/migration-classification.env >> "$GITHUB_ENV"
+          case "${COMUN_MIGRATION_LANE_MODE:-}" in
+            candidate) echo A1_PREFLIGHT_MODE=candidate >> "$GITHUB_ENV" ;;
+            not_applicable) printf '%s\n' '{"result":"COMUN_48_3_A1_UNRELATED_MIGRATION_NOT_APPLICABLE","businessRowsRead":false}' >.ci-artifacts/48-3-a1-preflight/migration-proof.json ;;
+            none)
+              if [ -f supabase/migrations/20260813124308_comun_pautas_vivas_public_evidence.sql ]; then
+                echo A1_PREFLIGHT_MODE=promoted >> "$GITHUB_ENV"
+              else
+                echo COMUN_48_3_A1_BLOCKED_MIGRATION_SCOPE
+                exit 1
+              fi
+              ;;
+            *) echo COMUN_48_3_A1_BLOCKED_MIGRATION_SCOPE; exit 1 ;;
+          esac
 
       - name: Inspect canonical pauta metadata in a read-only transaction
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail
@@ -290,6 +294,7 @@ jobs:
           NODE
 
       - name: Prove the remote plan contains exactly the A1 migration
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail

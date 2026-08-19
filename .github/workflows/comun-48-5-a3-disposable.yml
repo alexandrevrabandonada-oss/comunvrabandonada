@@ -1,0 +1,89 @@
+name: COMUN 48.5-A3 disposable specialized handoff proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-5-a3-disposable.yml"
+      - "supabase/migrations/20260817160000_comun_cultural_contribution_intakes.sql"
+      - "supabase/migrations/20260817170000_comun_cultural_contribution_intakes_r1.sql"
+      - "supabase/migrations/20260818120000_comun_cultural_specialized_handoff.sql"
+      - "scripts/comun-cultural-handoff-a3-disposable.sql"
+  workflow_dispatch:
+
+permissions: { contents: read }
+
+jobs:
+  disposable-supabase:
+    name: A3 / local Supabase disposable proof
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+      - name: Assert the proof cannot use remote infrastructure
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${SUPABASE_DB_URL:-}"
+          test -z "${SUPABASE_PROJECT_REF:-}"
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
+      - name: Start local Supabase and reset the disposable database
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/48-5-a3-disposable
+          cleanup() {
+            timeout -k 10s 120s supabase stop --no-backup >/dev/null 2>&1 || true
+            mapfile -t residual_ids < <(docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA')
+            if (( ${#residual_ids[@]} )); then
+              docker rm -f "${residual_ids[@]}" >/dev/null 2>&1 || true
+            fi
+          }
+          trap cleanup EXIT
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          supabase db reset --local --yes
+          db="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '"')"
+          test -n "$db"
+          case "$db" in *supabase.co*|*localhost*|*127.0.0.1*) ;; *) echo COMUN_48_5_A3_BLOCKED_NONLOCAL_DB; exit 1 ;; esac
+          psql "$db" -v ON_ERROR_STOP=1 -f scripts/comun-cultural-handoff-a3-disposable.sql \
+            | tee .ci-artifacts/48-5-a3-disposable/proof.log
+          grep -q COMUN_48_5_A3_DISPOSABLE_SPECIALIZED_HANDOFF_GREEN .ci-artifacts/48-5-a3-disposable/proof.log
+          grep -q businessWritesAfterRollback=0 .ci-artifacts/48-5-a3-disposable/proof.log
+          grep -q autoPublication=false .ci-artifacts/48-5-a3-disposable/proof.log
+          grep -q publicAssetWrites=0 .ci-artifacts/48-5-a3-disposable/proof.log
+          grep -q searchWrites=0 .ci-artifacts/48-5-a3-disposable/proof.log
+          race_protocol="$(psql "$db" -qXAt -F '|' -v ON_ERROR_STOP=1 -c "select * from public.comun_create_cultural_contribution_intake_v1('A3 concurrent synthetic memory','a3-disposable',gen_random_uuid(),'a3-race-token',null)" | cut -d'|' -f2)"
+          test -n "$race_protocol"
+          psql "$db" -qXAt -v ON_ERROR_STOP=1 -c "select * from public.comun_route_cultural_contribution_intake_v1('$race_protocol','radio','a3-race-token',null)" >/dev/null
+          race_sql="$RUNNER_TEMP/comun-a3-race.sql"
+          printf "select * from public.comun_prepare_cultural_contribution_handoff_v1('%s','a3-race-token',null);\n" "$race_protocol" >"$race_sql"
+          psql "$db" -qXAt -v ON_ERROR_STOP=1 -f "$race_sql" >.ci-artifacts/48-5-a3-disposable/race-1.txt 2>&1 & race_one=$!
+          psql "$db" -qXAt -v ON_ERROR_STOP=1 -f "$race_sql" >.ci-artifacts/48-5-a3-disposable/race-2.txt 2>&1 & race_two=$!
+          wait "$race_one"
+          wait "$race_two"
+          grep -q 'handed_off.*t' .ci-artifacts/48-5-a3-disposable/race-1.txt
+          grep -q 'handed_off.*t' .ci-artifacts/48-5-a3-disposable/race-2.txt
+          test "$(psql "$db" -qXAt -v ON_ERROR_STOP=1 -c "select count(*) || '|' || count(distinct target_id) from private.comun_cultural_contribution_intakes where public_protocol='$race_protocol' and target_id is not null")" = "1|1"
+          psql "$db" -qXAt -v ON_ERROR_STOP=1 -c "delete from public.comun_radio_contributions where id=(select target_id from private.comun_cultural_contribution_intakes where public_protocol='$race_protocol'); delete from private.comun_cultural_contribution_intakes where public_protocol='$race_protocol';" >/dev/null
+      - name: Publish the sanitized proof summary
+        if: success()
+        run: |
+          echo COMUN_48_5_A3_DISPOSABLE_SPECIALIZED_HANDOFF_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo businessWritesAfterRollback=0 >> "$GITHUB_STEP_SUMMARY"
+          echo autoPublication=false >> "$GITHUB_STEP_SUMMARY"
+          echo publicAssetWrites=0 >> "$GITHUB_STEP_SUMMARY"
+          echo searchWrites=0 >> "$GITHUB_STEP_SUMMARY"
+          echo concurrentRace=one-target >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-5-a3-disposable-${{ github.run_id }}
+          path: .ci-artifacts/48-5-a3-disposable
+          retention-days: 14
+          if-no-files-found: error

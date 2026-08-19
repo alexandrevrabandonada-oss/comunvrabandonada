@@ -1,5 +1,31 @@
 # 48.5-A3 — Handoff Especializado da Contribuição Cultural
 
+## A3-R1 — Fechamento das provas Supabase e saneamento de preflights legados (18/08/2026)
+
+### Diagnóstico e regra de lane ownership
+
+- baseline remoto reconfirmado antes do R1: `origin/main=67b8fa9fcfd9adb07552d2a5776a3c7783f1a3a0`; head de entrada da PR #350: `27d1abc0e407b5f88bc536f3244dad811ea35498`;
+- os false negatives eram de classe A/B: os gates 48.2-A, 48.3-A1, 48.3-B0, 48.4-A0, 48.5-A0 e P6C-C inferiam autoridade global a partir de qualquer migration futura ou eram ativados pelo relatório compartilhado;
+- os triggers agora removem `supabase/migrations/**` e o `estado-atual-comun.md` dos lanes históricos quando não são parte do contrato específico; a prova manual continua protegida;
+- `scripts/ci/classify-migration-lane.mjs` usa manifesto explícito versionado. Migration conhecida de outra lane resulta em `not_applicable`; migration desconhecida ou mistura de lanes resulta em bloqueio fail-closed. Nenhuma falha foi marcada manualmente ou ignorada;
+- nenhuma evidência de conflito real C foi encontrada: a migration A3 só foi classificada como `culture-a3` e não altera contrato de observatório, economia solidária, social, Pautas ou forwarding sensível.
+
+### Alterações R1
+
+- criado `.github/workflows/comun-48-5-a3-disposable.yml`, com `actions/checkout`, `supabase/setup-cli`, Supabase local no runner, `supabase db reset --local --yes`, prova SQL A3 e cleanup; não aceita `SUPABASE_DB_URL`, project link, access token ou service-role remoto;
+- a prova A3 passou a verificar grants service-role-only dos alvos, autorização por token/conta já exercida no RPC, retry, 1:1, rota unknown, as quatro especializações, imutabilidade, ausência de archive/Search/asset/coleção/relação pública e rollback;
+- o workflow também reproduz duas sessões concorrentes contra o mesmo intake e exige um único `target_id`, além do marker `COMUN_48_5_A3_DISPOSABLE_SPECIALIZED_HANDOFF_GREEN` e dos quatro contadores de escrita zero;
+- contratos de lane ownership cobrem A3 fora dos lanes históricos, migration própria como candidate, unknown fail-closed e mistura de lanes. Execução local do contrato R1: `6 passed`;
+- A2/A2-R1 e o contrato funcional A3 não foram redesenhados. Música permanece fora, a flag A3 permanece OFF e nenhuma migration foi aplicada em Production.
+
+### Evidência remota R1
+
+- disposable run ID: pendente até o workflow dedicado executar no SHA candidato;
+- Preview SHA/freshness: pendente até o novo checkpoint `[comun-preview]` do candidato R1;
+- CI IDs, Cultural Deliverability e preflights aplicáveis: pendentes de execução exact-head;
+- merge SHA e Production SHA: não existem neste R1; a migration A3 ainda não foi promovida e o rollout não foi iniciado;
+- checkpoint pré-merge reservado: `COMUN_48_5_A3_R1_SPECIALIZED_HANDOFF_PROOFS_GREEN_LEGACY_LANES_SCOPED`.
+
 ## Baseline e escopo
 
 - Repositório: `alexandrevrabandonada-oss/comunvrabandonada`.
@@ -48,7 +74,7 @@ O handoff não presume autoria, licença, consentimento, localização, data, pr
 
 ## Testes e disposable proof
 
-O contrato unitário cobre flag fail-closed, mapeamento dos quatro destinos e ausência de caminho para `unknown`/Música. A prova SQL descartável A3 deve ser adicionada antes do merge e executar em banco local/branch descartável, cobrindo autorização, grants, target 1:1, retries/race, imutabilidade, ausência de publicação e `businessWritesAfterRollback=0`. Nenhuma fixture deve ser criada em Production.
+O contrato unitário cobre flag fail-closed, mapeamento dos quatro destinos e ausência de caminho para `unknown`/Música. O workflow SQL descartável A3 foi adicionado para executar em banco local/branch descartável, cobrindo autorização, grants, target 1:1, retries/race, imutabilidade, ausência de publicação e `businessWritesAfterRollback=0`. Nenhuma fixture deve ser criada em Production.
 
 Gates locais executados nesta etapa: contratos A3 `10 passed`, `npm run typecheck` verde, `npm run lint` verde, `npm run build` verde e `git diff --check` verde. `npm run db:privileges:lint` também passou (`COMUN_EXPLICIT_PRIVILEGE_CONTRACT_OK migrations=39`). Não houve script JavaScript alterado que exigisse `node --check`; a prova SQL é deliberadamente um artefato SQL.
 

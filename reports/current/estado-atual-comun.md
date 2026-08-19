@@ -1,3 +1,16 @@
+## A3-R1 — Provas Supabase locais e lanes históricas saneadas (18/08/2026)
+
+Estado de implementação local: `COMUN_48_5_A3_R1_CANDIDATE_PENDING_EXACT_HEAD_REMOTE_PROOF`.
+
+- baseline remoto reconfirmado: `origin/main=67b8fa9fcfd9adb07552d2a5776a3c7783f1a3a0`; entrada do R1 em `27d1abc0e407b5f88bc536f3244dad811ea35498`;
+- workflow disposable A3 dedicado executa somente Supabase local no runner, aplica a cadeia A2/A2-R1/A3 por reset local e publica marker sanitizado; nenhum remoto, fixture Production, publicação ou ativação de flag foi usado;
+- os seis preflights históricos agora usam paths/manifesto de lane ownership: known-other é N/A, unknown e mistura continuam FAIL CLOSED; não houve remoção de required check nem bypass de branch protection;
+- A3 continua transacional 1:1 para Foto/Documento, Arte, História Oral e Rádio; `unknown` não cria alvo, Música fica fora, alvos permanecem draft/pending e a flag `COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED` continua OFF;
+- contrato R1 local: `6 passed`; prova disposable Supabase, exact Preview/freshness, CI remoto, merge e Production continuam pendentes até execução no SHA candidato;
+- migração A3 ainda não foi aplicada em Production e o rollout controlado não começou.
+
+Checkpoint pré-merge reservado: `COMUN_48_5_A3_R1_SPECIALIZED_HANDOFF_PROOFS_GREEN_LEGACY_LANES_SCOPED`.
+
 # Estado atual — 48.5-A3 Handoff especializado da contribuição cultural (18/08/2026)
 
 Estado de implementação local: `COMUN_48_5_A3_SPECIALIZED_HANDOFF_CANDIDATE_PENDING_VERIFY`.
@@ -2847,7 +2860,6 @@ Estado atual: `COMUN_48_5_A2_R1_CANDIDATE_GREEN_PENDING_MERGE_AND_ROLLOUT`.
   `HISTORICAL_PREFLIGHT_NOT_A2_R1_GATE` e não devem ser alterados para aceitar
   esta migration.
 
-A3 não foi iniciado. O terminal Production só poderá ser emitido depois do
-  merge exact-head e da evidência real de rollout.
+À data registrada nesta seção histórica, A3 ainda não havia sido iniciado; esse estado foi superado pelo bloco corrente no topo. O terminal Production continua condicionado ao merge exact-head e à evidência real de rollout.
 
 # Estado atual — 48.5-A0 Reconciliação de cultura, memória e rádio (17/08/2026)

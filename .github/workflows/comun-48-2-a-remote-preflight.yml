@@ -11,8 +11,7 @@ on:
       - "components/comun-observatory-hub.tsx"
       - "lib/comun-observatory-*.ts"
       - "reports/current/comun-48-2-a-observatory-foundation.md"
-      - "reports/current/estado-atual-comun.md"
-      - "supabase/migrations/**"
+      - "scripts/ci/classify-migration-lane.mjs"
   workflow_dispatch:
 
 permissions:
@@ -43,20 +42,16 @@ jobs:
           test -n "${SUPABASE_PROJECT_REF:-}"
           case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
           test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "$EXTERNAL_MIGRATION_SHA256"
+          mkdir -p .ci-artifacts/48-2-a-preflight
           mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
-          if test "${#changed[@]}" -eq 1 && [[ "${changed[0]}" == supabase/migrations/*_comun_pautas_vivas_public_evidence.sql ]]; then
-            mkdir -p .ci-artifacts/48-2-a-preflight
+          node scripts/ci/classify-migration-lane.mjs --lane 48-2-a --files "${changed[@]}" | tee .ci-artifacts/48-2-a-preflight/migration-classification.env
+          cat .ci-artifacts/48-2-a-preflight/migration-classification.env >> "$GITHUB_ENV"
+          if test "${COMUN_MIGRATION_LANE_MODE:-}" = not_applicable; then
             printf '%s\n' '{"result":"COMUN_48_2_A_UNRELATED_MIGRATION_NOT_APPLICABLE","businessRowsRead":false}' >.ci-artifacts/48-2-a-preflight/migration-proof.json
-            echo COMUN_48_2_A_UNRELATED_MIGRATION=true >> "$GITHUB_ENV"
-            exit 0
           fi
-          test -z "$(git diff --name-only origin/main...HEAD -- supabase/migrations)" || {
-            echo COMUN_48_2_A_BLOCKED_UNEXPECTED_MIGRATION
-            exit 1
-          }
 
       - name: Reconcile remote migration metadata in a read-only transaction
-        if: env.COMUN_48_2_A_UNRELATED_MIGRATION != 'true'
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail
@@ -151,7 +146,7 @@ jobs:
       - name: Emit remote plan result
         if: success()
         run: |
-          if test "${COMUN_48_2_A_UNRELATED_MIGRATION:-}" = true; then
+          if test "${COMUN_MIGRATION_LANE_MODE:-}" = not_applicable; then
             echo COMUN_48_2_A_UNRELATED_MIGRATION_NOT_APPLICABLE >> "$GITHUB_STEP_SUMMARY"
           else
             echo COMUN_48_2_A_REMOTE_PLAN_EMPTY_GREEN >> "$GITHUB_STEP_SUMMARY"
