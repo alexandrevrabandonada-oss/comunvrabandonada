@@ -141,12 +141,13 @@ export async function auditA3FlagDrift({
     try { payload = await response.json(); } catch { /* status evidence is enough */ }
     return { status: statusOf(response), payload };
   };
-  const [project, env, shared, deployments, user] = await Promise.all([
+  const [project, env, shared, deployments, user, members] = await Promise.all([
     get(endpoint("v9", `projects/${projectId}`, { teamId })),
     get(endpoint("v10", `projects/${projectId}/env`, { teamId, decrypt: "false", limit: "100" })),
     get(endpoint("v1", "env", { teamId, search: A3_FLAG, limit: "100" })),
     get(endpoint("v6", "deployments", { projectId, teamId, target: "production", limit: "100" })),
     get(endpoint("v2", "user", {})),
+    get(endpoint("v2", `teams/${teamId}/members`, { limit: "100" })),
   ]);
   const rawProjectRows = env.status === 200 ? projectEnvRows(env.payload) : [];
   const rawSharedRows = shared.status === 200 ? sharedEnvRows(shared.payload) : [];
@@ -156,6 +157,11 @@ export async function auditA3FlagDrift({
   const relevantSharedRows = rawSharedRows
     .filter((row) => row.key === A3_FLAG)
     .map(sanitizeEnvRow);
+  const memberRows = Array.isArray(members.payload?.members)
+    ? members.payload.members
+    : Array.isArray(members.payload?.data)
+      ? members.payload.data
+      : [];
   const productionValueState = parsePulledValue(productionEnvText);
   const classification = classifyAudit({
     projectStatus: project.status,
@@ -180,6 +186,15 @@ export async function auditA3FlagDrift({
       username: typeof user.payload?.username === "string" ? user.payload.username : null,
       namePresent: typeof user.payload?.name === "string",
     } : { id: null, username: null, namePresent: false },
+    teamMemberMatches: members.status === 200
+      ? memberRows
+        .map((member) => ({
+          id: fingerprint(member.user?.uid ?? member.user?.id ?? member.uid ?? member.id),
+          username: member.user?.username ?? member.username ?? null,
+        }))
+        .filter((member) => relevantProjectRows.some((row) => row.createdBy === member.id || row.updatedBy === member.id))
+      : [],
+    teamMembersHttpStatus: members.status,
     productionValueState,
     projectEnvMatches: relevantProjectRows,
     sharedEnvMatches: relevantSharedRows,
