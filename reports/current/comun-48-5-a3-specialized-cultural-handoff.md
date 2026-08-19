@@ -1,5 +1,64 @@
 # 48.5-A3 — Handoff Especializado da Contribuição Cultural
 
+## A3-R2-Wave1 — Ativação Production isolada (19/08/2026)
+
+### Resultado terminal
+
+`COMUN_48_5_A3_SPECIALIZED_CULTURAL_HANDOFF_GREEN_PRODUCTION_ACTIVE_NO_AUTO_PUBLICATION`
+
+- o precheck começou no `origin/main=e0486ea28c0f7810f37be103ff5cf9d59e894619`; para cumprir a exigência de modo `wave1-only` sem qualquer caminho de migration, foi publicado o patch operacional `ce2743c2fab32e1926a4ae2724fc3f67ab9c47c5`, mantendo o ancestral funcional A3 `a7a55861458be833048ecb20ec3b5d2ba7b4bb84`;
+- o CI do SHA operacional `32311310860` ficou GREEN e o deployment Production do SHA `ce2743c2` ficou READY antes da escrita da flag;
+- D1 read-only antes: run `32311512590`, GREEN; exatamente uma chave project-level Production, `sharedMatches=0`, `duplicateMatches=0`, sem `gitBranch` ou custom environment override, `effectiveValue=OFF`;
+- Wave 1: run `32311576931`, GREEN, com lock `concurrency.group=comun-48-5-a3-r2-production-rollout` e modo `wave1-only`;
+- D1 read-only depois: run `32311824447`, GREEN, `productionValueState=ON`, uma chave única, sem shared env ou overrides;
+- nenhum rollback foi necessário.
+
+### Preflight, schema e writer receipt
+
+- o modo dedicado não chama `supabase db push`, não planeja migration e não aceita `ABSENT → enabled` ou `ON → enabled`;
+- o postflight Supabase foi read-only e confirmou `transactionReadOnly=true`, `migrationApplied=true`, RPCs A3 presentes, grants service-role-only, constraint de estado e RLS privada verdes;
+- a migration A3 já estava aplicada antes deste run, portanto Wave 1 não alterou schema nem migration history;
+- receipts sanitizados `before_write` e `after_write` registram `previousState=OFF`, `desiredState=enabled`, `mode=wave1-only`, SHA `ce2743c2`, fingerprint de env `sha256:c0afffb6250e7dcf`, sem valor bruto ou token;
+- a escrita usou PATCH no ID único da env Production, sem `vercel env add --force`, sem shared env e sem alteração Preview/Development.
+
+### Deployment e runtime
+
+- deployment automático do SHA `ce2743c2`: GitHub deployment `5992554663`, Production, `READY`;
+- deployment necessário após a transição: GitHub deployment `5992585536`, `SUCCESS`, associado ao run `32311576931`; URL de checkpoint: `https://comunvrabandonada-ilauklgrr-alexandrevrabandonada-oss-projects.vercel.app`;
+- auditoria pós-deploy confirmou flag efetiva `enabled`, exatamente uma chave Production, `sharedMatches=0`, `duplicateMatches=0`, sem branch/custom override;
+- a flag `COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED` é a única configuração alterada.
+
+### Smokes read-only, feature detection e privacidade
+
+As oito superfícies passaram GET e HEAD com `200`:
+
+`/comun/acervo`, `/comun/acervo/contribuir`, `/comun/acervo/arte`, `/comun/acervo/arte/contribuir`, `/comun/acervo/historias-orais`, `/comun/acervo/historias-orais/contribuir`, `/comun/radio`, `/comun/radio/contribuir`.
+
+O bundle/runtime expôs os marcadores dos quatro caminhos canônicos — Foto/Documento, Arte, História Oral e Rádio —, `Continuar no fluxo especializado`, `Nada foi publicado` e `Ainda não sei`; o marcador de Música permaneceu ausente. Nenhum POST, upload, RPC funcional ou submissão real foi executado.
+
+As respostas HTML não continham `resume_token_hash`, `target_id`, `member_user_id`, `private.comun_`, `public_protocol` ou traces SQL.
+
+### Zero-write delta
+
+Snapshots read-only antes/depois do smoke no run `32311576931`:
+
+```text
+intakes=0
+targets=0
+archiveItems=0
+searchDocuments=0
+assets=0
+collections=0
+publications=0
+businessWrites=0
+fixtures=0
+autoPublication=false
+```
+
+Os totais observados permaneceram estáveis: `archiveItems=872`, `searchDocuments=10`, `assets=2586`, `collections=2`, `publications=3`; esses números não são conteúdo exportado e foram usados somente para calcular delta zero.
+
+Checkpoint: `COMUN_48_5_A3_SPECIALIZED_CULTURAL_HANDOFF_GREEN_PRODUCTION_ACTIVE_NO_AUTO_PUBLICATION`.
+
 ## A3-R2-Retry1 — Wave 0 pós-D1 (19/08/2026)
 
 ### Resultado terminal

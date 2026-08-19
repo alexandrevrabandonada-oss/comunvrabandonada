@@ -1,3 +1,20 @@
+## Estado atual — 48.5-A3-R2-Wave1 ativa em Production (19/08/2026)
+
+Estado terminal: `COMUN_48_5_A3_SPECIALIZED_CULTURAL_HANDOFF_GREEN_PRODUCTION_ACTIVE_NO_AUTO_PUBLICATION`.
+
+- precheck inicial confirmou `origin/main=e0486ea28c0f7810f37be103ff5cf9d59e894619`; o modo seguro `wave1-only` foi publicado no SHA operacional `ce2743c2fab32e1926a4ae2724fc3f67ab9c47c5`, com A3 funcional ancestral presente;
+- CI `32311310860` GREEN e Production READY antes da ativação;
+- D1 antes `32311512590` GREEN: flag OFF, uma chave Production, zero shared, zero duplicatas e zero overrides;
+- Wave 1 `32311576931` GREEN: schema postflight read-only GREEN, transição exclusiva OFF→enabled, deployment pós-write SUCCESS `5992585536` e runtime servido no SHA esperado;
+- D1 depois `32311824447` GREEN: flag efetiva ON, chave única, sem shared env, duplicata, branch ou custom override;
+- migration A3 continua instalada e consistente; nenhuma migration foi aplicada durante a Wave 1;
+- oito superfícies GET/HEAD passaram com HTTP 200; bundle confirmou Foto/Documento, Arte, História Oral e Rádio, manteve Música ausente e copy de não publicação;
+- delta read-only: `businessWrites=0`, `newIntakes=0`, `newTargets=0`, `newArchiveItems=0`, `newSearchDocuments=0`, `newAssets=0`, `newCollections=0`, `publications=0`, `fixtures=0`;
+- nenhum upload, POST, RPC funcional, intake, target, Search, asset público, coleção, feed, notificação ou publicação foi criado;
+- flag `COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED=enabled`; as demais flags e ambientes não foram alterados.
+
+A3 está ativo somente como continuidade para os pipelines especializados. Publicação continua separada e fail-closed; não executar submissão real em Production para teste.
+
 ## Estado atual — 48.5-A3-R2-Retry1 Wave 0 concluída (19/08/2026)
 
 Estado terminal: `COMUN_48_5_A3_R2_SCHEMA_GREEN_FLAG_OFF`.
