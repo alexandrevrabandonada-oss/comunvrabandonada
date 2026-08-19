@@ -19,7 +19,7 @@ Migration A4 continua pendente em Production e `COMUN_CULTURAL_PROGRESSIVE_RIGHT
 
 ## A4-R1 — Fechamento pós-merge
 
-- `origin/main` e Production estão no SHA `27c441a4fa03857ece2e022f6f64516d5188989d`; deployment Production `dpl_AdzYY7S6VrhmUTNypfm3LoXpCtdr` está `READY`;
+- o merge funcional foi concluído no SHA `27c441a4fa03857ece2e022f6f64516d5188989d`; o deployment Production correspondente `dpl_AdzYY7S6VrhmUTNypfm3LoXpCtdr` ficou `READY`; o fechamento documental posterior não altera o runtime;
 - o cache Chromium foi reutilizado com Playwright `1.61.1`, seguido de provisioning verde; a correção mantém retry limitado, encerra grupos/descendentes e libera somente locks apt/dpkg após timeout;
 - migration `20260819130000_comun_cultural_progressive_rights.sql` permanece não aplicada em Production e `COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED` permanece OFF;
 - estado terminal: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_GREEN_BROWSER_CI_STABLE_AWAITING_ROLLOUT`; nenhum write Production, fixture, publicação, Search, asset ou rollout A4 ocorreu.

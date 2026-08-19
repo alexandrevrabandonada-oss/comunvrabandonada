@@ -2,7 +2,7 @@
 
 Estado atual: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_GREEN_BROWSER_CI_STABLE_AWAITING_ROLLOUT`.
 
-- PR #351 foi mesclada em `27c441a4fa03857ece2e022f6f64516d5188989d`; `origin/main` e Production Vercel estão no mesmo SHA, com deployment `dpl_AdzYY7S6VrhmUTNypfm3LoXpCtdr` em `READY`;
+- PR #351 foi mesclada funcionalmente em `27c441a4fa03857ece2e022f6f64516d5188989d`; o deployment Production correspondente `dpl_AdzYY7S6VrhmUTNypfm3LoXpCtdr` ficou `READY`; o fechamento documental posterior não altera o runtime;
 - a action compartilhada de Chromium usa cache exato por OS/arquitetura/versão real Playwright/lockfile, retry limitado e cleanup de grupo, descendentes e locks apt/dpkg; nenhum teste foi removido ou relaxado;
 - Preview exato `dpl_73czMy9gNUAxAV9mmTsXZnY1EssX` e os gates do candidato ficaram verdes; pós-merge COMUN CI, Cultural, Quality, Experience, Core, Civic Graph e CAPTCHA também ficaram verdes;
 - a migration `20260819130000_comun_cultural_progressive_rights.sql` continua pendente em Production; `COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED` continua OFF; nenhuma fixture, publicação, Search, asset ou escrita funcional foi criada;
