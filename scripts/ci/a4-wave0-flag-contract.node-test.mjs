@@ -41,7 +41,16 @@ test("A4 ON is fail-closed", () => {
 });
 
 test("duplicate Production key is fail-closed", () => {
-  assert.throws(() => run(fixture({ duplicateA4: true })), /PRODUCTION_ENV_NOT_UNIQUE/);
+  assert.throws(() => run(fixture({ duplicateA4: true })), /PRODUCTION_ENV_DUPLICATE/);
+});
+
+test("absent Production key is classified and fail-closed", () => {
+  const input = fixture();
+  input.env.delete("COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED");
+  input.envs = input.envs?.filter((row) => row.key !== "COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED");
+  input.envs = input.envs ?? [];
+  input.envs.push(...[]);
+  assert.throws(() => run({ ...input, env: input.env }), /PRODUCTION_ENV_ABSENT/);
 });
 
 test("shared A4 key is fail-closed", () => {

@@ -53,7 +53,8 @@ function auditKey({ key, projectRows, sharedRows, env, expectedState }) {
   const projectMatches = projectRows.filter((row) => row?.key === key);
   const production = projectMatches.filter((row) => Array.isArray(row?.target) && row.target.includes("production"));
   const sharedMatches = sharedRows.filter((row) => row?.key === key);
-  if (production.length !== 1) throw new Error(`${key}_PRODUCTION_ENV_NOT_UNIQUE`);
+  if (production.length === 0) throw new Error(`${key}_PRODUCTION_ENV_ABSENT`);
+  if (production.length > 1) throw new Error(`${key}_PRODUCTION_ENV_DUPLICATE`);
   if (sharedMatches.length > 0) throw new Error(`${key}_SHARED_ENV_CONFLICT`);
   const productionRow = production[0];
   if (productionRow.gitBranch !== null && productionRow.gitBranch !== undefined) throw new Error(`${key}_PRODUCTION_BRANCH_OVERRIDE`);
