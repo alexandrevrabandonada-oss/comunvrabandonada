@@ -1,3 +1,16 @@
+## Estado atual — 48.5-A3-R2 rollout controlado (19/08/2026)
+
+Estado terminal desta tentativa: `COMUN_48_5_A3_R2_SCHEMA_GREEN_RUNTIME_ROLLED_BACK_FLAG_OFF`.
+
+- `origin/main` foi confirmado em `b456edc683b5b83cd3036a3afddc1283251d4ed3`; o esperado histórico `826587f` divergiu legitimamente por fechamentos posteriores, e o commit funcional A3 `a7a55861458be833048ecb20ec3b5d2ba7b4bb84` permanece ancestral;
+- Production final está `READY` em `dpl_4r8HCrjzNNVo71oXYUx47CvNFXVf`, no código de `main` `b456edc6` e com a flag A3 restaurada para OFF;
+- o preflight encontrou `COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED` previamente ON, embora o estado de entrada declarasse OFF. O rollout parou fail-closed; a ação `32296284347` desligou somente essa flag e confirmou o estado OFF;
+- a migration `20260818120000_comun_cultural_specialized_handoff.sql` não foi aplicada em Production nesta tentativa; nenhum plano remoto foi aceito, nenhuma RPC foi chamada e nenhum dado funcional foi criado;
+- smokes GET/HEAD das superfícies culturais canônicas passaram, sem IDs, hashes ou identidade privada no HTML; `businessWrites=0`, fixtures e publicações continuam zero;
+- Wave 0 e Wave 1 permanecem não executadas. Não declarar A3 ativo nem rollout concluído; o próximo passo é revalidar a origem do drift da flag e repetir o preflight somente com OFF confirmado.
+
+Relatório detalhado: `reports/current/comun-48-5-a3-specialized-cultural-handoff.md`.
+
 ## A4-R1 — Provisionamento Chromium de CI fechado, aguardando rollout A4 (19/08/2026)
 
 Estado atual: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_GREEN_BROWSER_CI_STABLE_AWAITING_ROLLOUT`.

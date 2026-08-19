@@ -1,5 +1,25 @@
 # 48.5-A3 — Handoff Especializado da Contribuição Cultural
 
+## A3-R2 — Rollout controlado interrompido por drift de flag (19/08/2026)
+
+### Estado terminal desta tentativa
+
+- o SHA histórico esperado `826587f` não era mais o `origin/main` real: o preflight encontrou `88a096559471f84d2ea9aca794359ed15448d40b`, com o commit funcional A3 `a7a55861458be833048ecb20ec3b5d2ba7b4bb84` como ancestral; o fechamento operacional terminou em `origin/main=b456edc683b5b83cd3036a3afddc1283251d4ed3`;
+- Production Vercel foi confirmado `READY` no SHA operacional final, em `dpl_BQhxMPJVCvFx1pUB29sZmmbq3PAy`, antes do runner; após a restauração da flag, o deployment final ficou `READY` em `dpl_4r8HCrjzNNVo71oXYUx47CvNFXVf`;
+- o preflight remoto leu a configuração sanitizada e encontrou `COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED=enabled`, contrariando o estado de entrada esperado OFF. Por isso o plano Supabase não foi consultado e nenhuma migration foi aplicada;
+- a ação focal `32296284347` executou somente a recuperação autorizada da flag: gravou `disabled`, fez novo deploy/promote e confirmou OFF por novo `env pull`; não alterou outras flags;
+- smokes finais read-only nas superfícies `/comun/acervo`, `/comun/acervo/contribuir`, `/comun/acervo/arte`, `/comun/acervo/historias-orais` e `/comun/radio`: GET/HEAD `200`; nenhum marcador de ID/hash/identidade privada apareceu no HTML;
+- `businessWrites=0`, `newIntakes=0`, `newTargets=0`, `newArchiveItems=0`, `newSearchDocuments=0`, `newAssets=0`, `newCollections=0`, `fixturesCreated=0` e `publicationsCreated=0`;
+- Wave 0 não começou: migration A3 continua pendente conforme o estado de entrada e não foi promovida; Wave 1 não começou; A3 permanece OFF;
+- checkpoint terminal: `COMUN_48_5_A3_R2_SCHEMA_GREEN_RUNTIME_ROLLED_BACK_FLAG_OFF`.
+
+### Runs e diagnóstico operacional
+
+- `32294800847` e `32295190923` falharam antes de qualquer ação remota mutável, durante o runner operacional; `32295455078` isolou checksum declarado incorreto; `32295948001` confirmou que o bloqueio restante era a flag já ON;
+- o checksum foi corrigido para o conteúdo real da migration A3 e os testes do runner ficaram verdes; os quatro runs anteriores não chegaram ao plano/push Supabase;
+- não houve tentativa de contornar branch protection, aplicar todas as migrations, criar fixture, chamar RPC com intake ou executar POST de contribuição;
+- o próximo retry exige novo preflight independente e só pode avançar se a flag estiver OFF antes do plano exato. O drift de flag deve ser explicado/aceito operacionalmente antes de uma nova Wave 0.
+
 ## A3-R1 — Fechamento das provas Supabase e saneamento de preflights legados (18/08/2026)
 
 ### Diagnóstico e regra de lane ownership
