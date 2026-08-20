@@ -23,6 +23,10 @@ test("Only the exact A4 migration can be planned and applied", () => {
   assert.doesNotMatch(runner, /supabase (?:db reset|migration repair)/);
 });
 
+test("Snapshot phase is initialized before its derived artifact path", () => {
+  assert.match(runner, /local phase="\$1"\s+local output="\$ARTIFACT_DIR\/\$\{phase\}-snapshot\.json"/);
+});
+
 test("Migration is schema-only and remains fail-closed", () => {
   assert.doesNotMatch(migration, /\b(?:insert\s+into|update\s+public\.|delete\s+from|truncate)\b/i);
   assert.match(migration, /default 'rights_incomplete'/);
