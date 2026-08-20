@@ -96,6 +96,10 @@ export function repairPayload() {
   return { key: A4_KEY, type: "encrypted", value: "disabled", target: ["production"] };
 }
 
+export function replacementCreatePayload() {
+  return [{ key: A4_KEY, type: "encrypted", value: "disabled", target: ["production"] }];
+}
+
 export function sanitizePatchResult({ status, payload, headers = "" }) {
   const number = Number(status);
   const error = payload && typeof payload === "object" ? payload.error ?? payload : {};
@@ -108,7 +112,7 @@ export function sanitizePatchResult({ status, payload, headers = "" }) {
     requestId: safe(String(headers).match(/^(?:x-vercel-id|x-request-id):\s*(.+)$/im)?.[1]?.trim()),
     contentType: safe(String(headers).match(/^content-type:\s*(.+)$/im)?.[1]?.trim()),
     payloadShape: ["key", "type", "value", "target"],
-    successful: number === 200,
+    successful: number >= 200 && number < 300,
     rawValuePersisted: false,
     tokenPersisted: false,
   };

@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { A3_KEY, A4_KEY, assertRepairPreconditions, inspect, repairPayload, sanitizePatchResult } from "./a4-d0-r1-env-repair-contract.mjs";
+import { A3_KEY, A4_KEY, assertRepairPreconditions, inspect, repairPayload, replacementCreatePayload, sanitizePatchResult } from "./a4-d0-r1-env-repair-contract.mjs";
 
 function fixture({ a4Type = "sensitive", a4Value = "", policy = false, duplicate = false, shared = false } = {}) {
   const project = { envs: [
@@ -20,6 +20,7 @@ test("canonical opaque sensitive row is eligible for the one recovery transition
   const input = fixture();
   assert.equal(assertRepairPreconditions(input).transition, "OPAQUE_SENSITIVE_TO_ENCRYPTED_DISABLED");
   assert.deepEqual(repairPayload(), { key: A4_KEY, type: "encrypted", value: "disabled", target: ["production"] });
+  assert.deepEqual(replacementCreatePayload(), [{ key: A4_KEY, type: "encrypted", value: "disabled", target: ["production"] }]);
 });
 
 test("opaque value and team-policy metadata are not interpreted; scope drift fails closed", () => {
