@@ -15,6 +15,7 @@ on:
       - ".github/workflows/comun-48-5-a4-r2-d0-r2-replacement.yml"
       - "scripts/run-48-5-a4-d0-r2-replacement.sh"
       - "scripts/ci/a4-d0-r1-env-repair-contract.mjs"
+      - "scripts/ci/a4-d0-r1-env-repair-contract.node-test.mjs"
 
 concurrency:
   group: comun-48-5-a4-r2-production
@@ -30,18 +31,56 @@ env:
 
 jobs:
   replacement:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[a4-d0-r2-run]')
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 60
     environment: production
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.expected_main_sha || github.sha }}
           fetch-depth: 0
+
+      - name: Require one-shot marker on push
+        if: github.event_name == 'push'
+        run: git log -1 --format=%B | grep -F '[a4-d0-r2-run]'
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22.18.0
+
+      - name: Wait for conflicting production Actions to settle
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SELF_RUN_ID: ${{ github.run_id }}
+        run: |
+          node <<'NODE'
+          const owner = 'alexandrevrabandonada-oss';
+          const repo = 'comunvrabandonada';
+          const own = Number(process.env.SELF_RUN_ID || 0);
+          const deadline = Date.now() + 12 * 60 * 1000;
+          const conflict = (run) => run.id !== own && (
+            /48\.5-A4-R2/.test(run.name || '') ||
+            /(production|deploy|rollout|activation)/i.test(run.name || '')
+          );
+          while (true) {
+            const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs?status=in_progress&per_page=100`, {
+              headers: {
+                Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+                Accept: 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2022-11-28',
+              },
+            });
+            if (!response.ok) throw new Error(`A4_D0_R2_ACTIONS_WAIT_HTTP_${response.status}`);
+            const data = await response.json();
+            const conflicts = (data.workflow_runs || []).filter(conflict);
+            if (conflicts.length === 0) break;
+            if (Date.now() >= deadline) {
+              throw new Error(`A4_D0_R2_ACTIONS_WAIT_TIMEOUT_${conflicts.map((run) => run.id).join('_')}`);
+            }
+            await new Promise((resolve) => setTimeout(resolve, 15000));
+          }
+          NODE
+
       - name: Replace A4 only behind an explicit OFF containment deployment
         env:
           EXPECTED_MAIN_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.expected_main_sha || github.sha }}
@@ -49,6 +88,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
         run: bash scripts/run-48-5-a4-d0-r2-replacement.sh
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:

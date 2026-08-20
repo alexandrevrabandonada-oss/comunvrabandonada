@@ -3,7 +3,16 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { A3_KEY, A4_KEY, assertRepairPreconditions, inspect, repairPayload, replacementCreatePayload, sanitizePatchResult } from "./a4-d0-r1-env-repair-contract.mjs";
+import {
+  A3_KEY,
+  A4_KEY,
+  A4_REPLACEMENT_CONTAINMENT,
+  assertRepairPreconditions,
+  inspect,
+  repairPayload,
+  replacementCreatePayload,
+  sanitizePatchResult,
+} from "./a4-d0-r1-env-repair-contract.mjs";
 
 function fixture({ a4Type = "sensitive", a4Value = "", policy = false, duplicate = false, shared = false } = {}) {
   const project = { envs: [
@@ -21,6 +30,26 @@ test("canonical opaque sensitive row is eligible for the one recovery transition
   assert.equal(assertRepairPreconditions(input).transition, "OPAQUE_SENSITIVE_TO_ENCRYPTED_DISABLED");
   assert.deepEqual(repairPayload(), { key: A4_KEY, type: "encrypted", value: "disabled", target: ["production"] });
   assert.deepEqual(replacementCreatePayload(), [{ key: A4_KEY, type: "encrypted", value: "disabled", target: ["production"] }]);
+});
+
+test("replacement containment is explicitly OFF before any delete", () => {
+  assert.deepEqual(A4_REPLACEMENT_CONTAINMENT, {
+    buildState: "OFF",
+    runtimeState: "OFF",
+    mustPromoteBeforeDelete: true,
+    failureState: "runtime_contained_off",
+  });
+});
+
+test("one-shot workflow validates the push marker after checkout and waits before mutation", () => {
+  const workflow = fs.readFileSync(".github/workflows/comun-48-5-a4-r2-d0-r2-replacement.yml", "utf8");
+  assert.match(workflow, /name: Require one-shot marker on push/);
+  assert.match(workflow, /git log -1 --format=%B \| grep -F '\[a4-d0-r2-run\]'/);
+  assert.match(workflow, /name: Wait for conflicting production Actions to settle/);
+  assert.match(workflow, /name: Replace A4 only behind an explicit OFF containment deployment/);
+  assert.doesNotMatch(workflow, /replacement:\s*\n\s+if:/);
+  assert.ok(workflow.indexOf("Require one-shot marker on push") < workflow.indexOf("Replace A4 only behind an explicit OFF containment deployment"));
+  assert.ok(workflow.indexOf("Wait for conflicting production Actions to settle") < workflow.indexOf("Replace A4 only behind an explicit OFF containment deployment"));
 });
 
 test("opaque value and team-policy metadata are not interpreted; scope drift fails closed", () => {
