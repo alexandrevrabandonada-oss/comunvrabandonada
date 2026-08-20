@@ -1,12 +1,19 @@
-name: COMUN 48.5-A4-R2-D0-R2 deployment-isolated A4 replacement
+name: COMUN 48.5-A4-R2-D0-R2 deployment-contained A4 replacement
 
 on:
   workflow_dispatch:
     inputs:
       expected_main_sha:
-        description: Exact origin/main SHA for the deployment-isolated replacement
+        description: Exact origin/main SHA for the deployment-contained replacement
         required: true
         type: string
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/comun-48-5-a4-r2-d0-r2-replacement.yml"
+      - "scripts/run-48-5-a4-d0-r2-replacement.sh"
+      - "scripts/ci/a4-d0-r1-env-repair-contract.mjs"
 
 concurrency:
   group: comun-48-5-a4-r2-production
@@ -22,20 +29,21 @@ env:
 
 jobs:
   replacement:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[a4-d0-r2-run]')
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     environment: production
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.expected_main_sha }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.expected_main_sha || github.sha }}
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22.18.0
-      - name: Replace A4 only while deployment-isolated
+      - name: Replace A4 only behind an explicit OFF containment deployment
         env:
-          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          EXPECTED_MAIN_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.expected_main_sha || github.sha }}
           GITHUB_TOKEN: ${{ github.token }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
