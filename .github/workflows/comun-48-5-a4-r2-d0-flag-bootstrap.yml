@@ -1,0 +1,57 @@
+name: COMUN 48.5-A4-R2-D0 explicit Production flag bootstrap
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact origin/main SHA for the A4 OFF bootstrap
+        required: true
+        type: string
+
+concurrency:
+  group: comun-48-5-a4-r2-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  A4_FUNCTIONAL_ANCESTOR: 27c441a4fa03857ece2e022f6f64516d5188989d
+  A4_MIGRATION: supabase/migrations/20260819130000_comun_cultural_progressive_rights.sql
+  A4_MIGRATION_SHA256: 43b7b966b55c8429f021def0c60b80979a0110de27e39de6dc553ef97e891519
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+  COMUN_BASE_URL: https://comunsocial.online
+
+jobs:
+  bootstrap:
+    name: A4 / explicit OFF bootstrap only
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+      - name: Bootstrap exactly one A4 Production flag as disabled
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          GITHUB_TOKEN: ${{ github.token }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        shell: bash
+        run: bash scripts/run-48-5-a4-flag-bootstrap.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-5-a4-r2-d0-flag-bootstrap-${{ github.run_id }}
+          path: .ci-artifacts/48-5-a4-r2-d0/
+          retention-days: 30
+          if-no-files-found: warn
