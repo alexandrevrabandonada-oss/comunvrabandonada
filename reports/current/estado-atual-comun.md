@@ -1,4 +1,15 @@
-## Estado atual — 48.5-A4-R2-D0-R3: A4 encrypted OFF recuperada (20/08/2026)
+## Estado atual — 48.5-A4-R2-Wave0-G0: schema A4 GREEN, flag OFF (20/08/2026)
+
+Estado terminal: `COMUN_48_5_A4_R2_SCHEMA_GREEN_PROGRESSIVE_RIGHTS_FLAG_OFF`.
+
+- Wave 0 `32430306663` GREEN no SHA `f239fcc4244ef3eb4272ae9f0632f11c878b0342`, após bridge E1 terminal GREEN e Production READY;
+- a migration A4 já constava uma vez no histórico remoto antes do run final. O plano estava vazio, o runner registrou `migrationApply=noop_already_applied` e não reaplicou schema; a proveniência histórica permanece não determinada;
+- postflight read-only confirmou schema/RLS/grants e `legacyRightsInferred=false`; deltas de negócio, Search, assets, coleções, fixtures e publicações permaneceram zero;
+- A4 continua encrypted/OFF e única; A3 continua encrypted/ON e única. Os oito smokes read-only passaram. Wave 1 não foi executada.
+
+Relatório detalhado: `reports/current/comun-48-5-a4-progressive-cultural-rights.md`.
+
+## Estado histórico — 48.5-A4-R2-D0-R3: A4 encrypted OFF recuperada (20/08/2026)
 
 Estado terminal: `COMUN_48_5_A4_R2_FLAG_RECOVERED_ENCRYPTED_EXPLICIT_OFF_READY_FOR_WAVE0`.
 

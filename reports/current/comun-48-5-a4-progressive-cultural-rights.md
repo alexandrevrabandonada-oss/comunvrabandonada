@@ -1,5 +1,16 @@
 # 48.5-A4 — Direitos Progressivos da Memória Cultural
 
+## A4-R2-Wave0-G0 — E1 terminal integrado e schema Production confirmado (20/08/2026)
+
+Estado terminal: `COMUN_48_5_A4_R2_SCHEMA_GREEN_PROGRESSIVE_RIGHTS_FLAG_OFF`.
+
+- o gate Wave 0 agora executa o bridge E1 antes de quarentenar a migration externa de calçadas e só continua quando o artifact confirma `COMUN_SIDEWALK_EXTERNAL_LEDGER_EVOLVED_SCOPE_GREEN`, prova histórica exata, invariantes release-owned, grants seguros, service role operacional e `zeroRemoteWrites=true`;
+- os runs `32429602534`, `32429859490` e `32430101274` falharam de modo fail-closed antes de qualquer migration nova: primeiro pelo escopo efêmero do caminho de quarentena, depois porque Production já indicava A4 aplicada, e por fim porque a comparação ainda esperava `0→1`. Os patches `7c679c56`, `a8f4d12d` e `f239fcc4` corrigiram somente o runner e seus contratos;
+- a execução terminal `32430306663`, no SHA `f239fcc4244ef3eb4272ae9f0632f11c878b0342`, ficou GREEN. Ela encontrou `20260819130000` já registrada exatamente uma vez antes da execução; o dry-run não planejou migrations e o runner fez `migrationApply=noop_already_applied`. A proveniência dessa aplicação histórica não foi determinada neste slice e nenhuma tentativa Wave 0 a reaplicou;
+- o postflight read-only confirmou as 24 colunas/contratos esperados, constraints de licença, defaults, RLS/grants (`aclClosedToClients=true`, `serviceRoleCanOperate=true`), `rightsBackfillZero=true`, nenhum bucket/policy novo e nenhum objeto público adicional;
+- snapshots before/after são idênticos para os contadores de negócio: `businessWrites=0`, `publicAssetWrites=0`, `searchWrites=0`, `publicationsCreated=0`, sem fixtures, intakes, targets, assets, coleções ou publicação. O bridge E1 permaneceu GREEN e read-only;
+- a auditoria pós-flight confirma A4 única, encrypted e OFF, sem shared/duplicata/branch/custom override; A3 única, encrypted e ON. Production está READY e os oito smokes GET/HEAD terminaram verdes. Wave 1 não foi executada.
+
 ## A4-R2-D0-R3 — Recuperação determinística da flag A4 ausente (20/08/2026)
 
 Estado terminal: `COMUN_48_5_A4_R2_FLAG_RECOVERED_ENCRYPTED_EXPLICIT_OFF_READY_FOR_WAVE0`.
