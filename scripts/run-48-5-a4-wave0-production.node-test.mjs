@@ -20,6 +20,7 @@ test("Only the exact A4 migration can be planned and applied", () => {
   assert.match(runner, /migration_plan_exact_a4_pending/);
   assert.match(runner, /migration_plan_a4_already_applied/);
   assert.match(runner, /migrationApply=noop_already_applied/);
+  assert.match(runner, /A4_ALREADY_APPLIED="\$A4_ALREADY_APPLIED" node/);
   assert.match(runner, /planned\[0\].*basename.*A4_MIGRATION/);
   assert.doesNotMatch(runner, /supabase db push --include-all/);
   assert.doesNotMatch(runner, /supabase (?:db reset|migration repair)/);

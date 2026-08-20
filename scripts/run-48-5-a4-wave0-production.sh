@@ -240,12 +240,16 @@ NODE
 }
 
 compare_business_counts() {
-  node - "$ARTIFACT_DIR/before-snapshot.json" "$ARTIFACT_DIR/after-snapshot.json" <<'NODE'
+  A4_ALREADY_APPLIED="$A4_ALREADY_APPLIED" node - "$ARTIFACT_DIR/before-snapshot.json" "$ARTIFACT_DIR/after-snapshot.json" <<'NODE'
 const fs = require("node:fs");
 const before = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
 const after = JSON.parse(fs.readFileSync(process.argv[3], "utf8"));
 if (JSON.stringify(before.businessCounts) !== JSON.stringify(after.businessCounts)) throw new Error("COMUN_48_5_A4_R2_BUSINESS_COUNTS_CHANGED");
-if (before.a4MigrationCount !== 0 || after.a4MigrationCount !== 1 || after.migrationCount !== before.migrationCount + 1) throw new Error("COMUN_48_5_A4_R2_MIGRATION_HISTORY_DRIFT");
+if (process.env.A4_ALREADY_APPLIED === "true") {
+  if (before.a4MigrationCount !== 1 || after.a4MigrationCount !== 1 || after.migrationCount !== before.migrationCount) throw new Error("COMUN_48_5_A4_R2_MIGRATION_HISTORY_DRIFT");
+} else if (before.a4MigrationCount !== 0 || after.a4MigrationCount !== 1 || after.migrationCount !== before.migrationCount + 1) {
+  throw new Error("COMUN_48_5_A4_R2_MIGRATION_HISTORY_DRIFT");
+}
 NODE
   summary "businessCountDelta=0"
   stage business_counts_unchanged
