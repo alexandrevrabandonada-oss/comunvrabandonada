@@ -24,7 +24,14 @@ test("Only the exact A4 migration can be planned and applied", () => {
 });
 
 test("External-ledger bridge is proven before its CLI quarantine and A4 apply", () => {
-  assert.ok(runner.indexOf('assert_external_ledger_bridge') < runner.indexOf('assert_exact_pending_plan'));
+  const bridgeInvocation = runner.lastIndexOf('\nassert_external_ledger_bridge\n');
+  const snapshotBefore = runner.lastIndexOf('\ncapture_snapshot before\n');
+  const quarantineInvocation = runner.lastIndexOf('\nassert_exact_pending_plan\n');
+  const applyInvocation = runner.lastIndexOf('\napply_a4\n');
+
+  assert.ok(bridgeInvocation > snapshotBefore);
+  assert.ok(bridgeInvocation < quarantineInvocation);
+  assert.ok(bridgeInvocation < applyInvocation);
   assert.match(runner, /externalLedgerBridge=GREEN/);
 });
 
