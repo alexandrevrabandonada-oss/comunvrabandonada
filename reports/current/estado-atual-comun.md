@@ -1,3 +1,14 @@
+## Estado atual — 48.5-A4-R2-D0-R3: A4 encrypted OFF recuperada (20/08/2026)
+
+Estado terminal: `COMUN_48_5_A4_R2_FLAG_RECOVERED_ENCRYPTED_EXPLICIT_OFF_READY_FOR_WAVE0`.
+
+- a recuperação `32394666050` criou uma única env Production A4 `encrypted` com valor efetivo OFF após a barreira runtime no deployment Production READY do SHA `927b11ead665b7569460fb32dfdcd79441c7d5e3`;
+- o POST único retornou `HTTP 201`; não há shared env, duplicata, branch ou custom override. A3 permanece encrypted e ON;
+- os oito smokes GET/HEAD passaram. `businessWrites=0`; não houve Supabase, migration A4, Wave 0/1, fixture, publicação, Search, asset, target ou coleção;
+- a migration `20260819130000_comun_cultural_progressive_rights.sql` ainda está pendente. O próximo slice permitido é Wave 0 limpa; A4 permanece explicitamente OFF até lá.
+
+Relatório detalhado: `reports/current/comun-48-5-a4-progressive-cultural-rights.md`.
+
 ## Estado atual — 48.5-A4-R2-D0-R1: transição de tipo proibida (20/08/2026)
 
 Estado terminal: `COMUN_48_5_A4_R2_FLAG_TYPE_TRANSITION_BLOCKED_NEEDS_ATOMIC_REPLACEMENT_DESIGN`.

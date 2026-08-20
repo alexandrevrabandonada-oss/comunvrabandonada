@@ -1,5 +1,16 @@
 # 48.5-A4 — Direitos Progressivos da Memória Cultural
 
+## A4-R2-D0-R3 — Recuperação determinística da flag A4 ausente (20/08/2026)
+
+Estado terminal: `COMUN_48_5_A4_R2_FLAG_RECOVERED_ENCRYPTED_EXPLICIT_OFF_READY_FOR_WAVE0`.
+
+- `origin/main` começou no SHA confirmado `9d017247b633becb180770d791785200fe0a9063`; o checkpoint de recuperação foi integrado como `927b11ead665b7569460fb32dfdcd79441c7d5e3`;
+- a causa do bloqueio D0-R2 foi corrigida: o corpo do `POST /v10/projects/{project}/env` era um array e não continha `key` no nível exigido. O payload R3 é exatamente o objeto `{key,type,value,target}` e seu contrato impede array;
+- a barreira runtime foi o deployment Production `dpl_5Lneths916NKs4UKWNCH6DpEEPSy`, READY no SHA R3 enquanto A4 estava ausente. Isso comprovou `ABSENT => OFF` antes da única mutação permitida;
+- run `32394666050` passou. O POST único recebeu `HTTP 201`; a nova env tem fingerprint `sha256:b5156714a5f7cca3`, `type=encrypted`, target somente Production, valor efetivo OFF, sem shared env, duplicata, branch ou custom-environment override;
+- a auditoria pós-deployment confirmou A4 OFF/encrypted/única, A3 ON/encrypted e `businessWrites=0`. Os oito GET/HEAD culturais passaram; não houve acesso Supabase, migration A4, Wave 0/1, fixture, target, asset, Search, coleção ou publicação;
+- o rollback operacional é manter A4 OFF. A migration `20260819130000_comun_cultural_progressive_rights.sql` continua pendente. Este slice termina aqui: Wave 0 deve ocorrer somente em execução posterior e limpa.
+
 ## A4-R2-D0-R1 — Normalização da flag opaca bloqueada pela Vercel (20/08/2026)
 
 Estado terminal: `COMUN_48_5_A4_R2_FLAG_TYPE_TRANSITION_BLOCKED_NEEDS_ATOMIC_REPLACEMENT_DESIGN`.
