@@ -25,6 +25,7 @@ EXTERNAL_EXCEPTION="supabase/migration-exceptions/20260724233256-sidewalk-extern
 EXTERNAL_SHA256="6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
 TEMP_ROOT="${RUNNER_TEMP:-$(mktemp -d)}"
 HELD_EXTERNAL_MIGRATION=""
+A4_ALREADY_APPLIED=false
 mkdir -p "$ARTIFACT_DIR"
 summary() { printf '%s\n' "$*" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"; }
 stage() { printf 'stage=%s\n' "$1" >> "$ARTIFACT_DIR/stage.txt"; summary "stage=$1"; }
@@ -129,17 +130,31 @@ assert_exact_pending_plan() {
   trap restore_external EXIT
   local plan="$ARTIFACT_DIR/migration-plan.txt"
   supabase migration list --db-url "$SUPABASE_DB_URL" > "$ARTIFACT_DIR/migration-list.txt" 2>&1
+  local remote_count
+  remote_count="$(psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 -c "begin read only; select count(*) from supabase_migrations.schema_migrations where version = '20260819130000'; rollback;" | tr -d '[:space:]')"
+  test "$remote_count" = 0 -o "$remote_count" = 1
+  if test "$remote_count" = 1; then A4_ALREADY_APPLIED=true; fi
   supabase db push --db-url "$SUPABASE_DB_URL" --dry-run > "$plan" 2>&1
   mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' "$plan" | sort -u || true)
-  test "${#planned[@]}" -eq 1
-  test "${planned[0]}" = "$(basename "$A4_MIGRATION")"
+  if test "$A4_ALREADY_APPLIED" = true; then
+    test "${#planned[@]}" -eq 0
+  else
+    test "${#planned[@]}" -eq 1
+    test "${planned[0]}" = "$(basename "$A4_MIGRATION")"
+  fi
   if grep -Eqi -- '--include-all|migration repair|db reset|seed' "$plan"; then
     echo COMUN_48_5_A4_R2_UNSAFE_MIGRATION_PLAN
     exit 1
   fi
-  printf '%s\n' 'result=exact_a4_pending' "planned=${planned[0]}" > "$ARTIFACT_DIR/migration-plan.json"
-  stage migration_plan_exact_a4_pending
-  summary "migrationPlan=exact_a4_pending"
+  if test "$A4_ALREADY_APPLIED" = true; then
+    printf '%s\n' 'result=a4_already_applied' 'planned=none' > "$ARTIFACT_DIR/migration-plan.json"
+    stage migration_plan_a4_already_applied
+    summary "migrationPlan=a4_already_applied"
+  else
+    printf '%s\n' 'result=exact_a4_pending' "planned=${planned[0]}" > "$ARTIFACT_DIR/migration-plan.json"
+    stage migration_plan_exact_a4_pending
+    summary "migrationPlan=exact_a4_pending"
+  fi
 }
 
 assert_external_ledger_bridge() {
@@ -155,6 +170,11 @@ NODE
 }
 
 apply_a4() {
+  if test "$A4_ALREADY_APPLIED" = true; then
+    stage migration_apply_noop_already_applied
+    summary "migrationApply=noop_already_applied"
+    return
+  fi
   stage migration_apply_started
   supabase db push --db-url "$SUPABASE_DB_URL" > "$ARTIFACT_DIR/migration-apply.log" 2>&1
   stage migration_apply_finished
