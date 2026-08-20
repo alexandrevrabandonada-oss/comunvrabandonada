@@ -86,19 +86,17 @@ export function assertRepairPreconditions(input) {
   if (view.a4.sharedMatches !== 0) throw new Error("A4_D0_R1_A4_SHARED_CONFLICT");
   assertExactProductionRow(a4Rows[0], A4_KEY);
   if (a4Rows[0].type !== "sensitive") throw new Error("A4_D0_R1_A4_EXPECTED_SENSITIVE");
-  if (view.a4.valueState !== "ABSENT") throw new Error("A4_D0_R1_A4_EXPECTED_ABSENT");
   if (a3Rows.length !== 1 || view.a3.sharedMatches !== 0) throw new Error("A4_D0_R1_A3_NOT_CANONICAL");
   assertExactProductionRow(a3Rows[0], A3_KEY);
   if (a3Rows[0].type !== "encrypted" || view.a3.valueState !== "ON") throw new Error("A4_D0_R1_A3_NOT_INTACT");
-  if (view.teamSensitivePolicy !== "disabled") throw new Error("A4_D0_R1_TEAM_SENSITIVE_POLICY_NOT_DISABLED");
-  return view;
+  return { ...view, transition: "OPAQUE_SENSITIVE_TO_ENCRYPTED_DISABLED" };
 }
 
 export function repairPayload() {
-  return { type: "encrypted", value: "disabled", target: ["production"] };
+  return { key: A4_KEY, type: "encrypted", value: "disabled", target: ["production"] };
 }
 
-export function sanitizePatchResult({ status, payload }) {
+export function sanitizePatchResult({ status, payload, headers = "" }) {
   const number = Number(status);
   const error = payload && typeof payload === "object" ? payload.error ?? payload : {};
   const safe = (value) => typeof value === "string" ? value.replace(/(?:Bearer\s+)?[A-Za-z0-9_-]{24,}/g, "[redacted]").slice(0, 240) : null;
@@ -106,6 +104,10 @@ export function sanitizePatchResult({ status, payload }) {
     httpStatus: Number.isInteger(number) ? number : null,
     errorCode: safe(error.code),
     errorMessage: safe(error.message),
+    errorAction: safe(error.action),
+    requestId: safe(String(headers).match(/^(?:x-vercel-id|x-request-id):\s*(.+)$/im)?.[1]?.trim()),
+    contentType: safe(String(headers).match(/^content-type:\s*(.+)$/im)?.[1]?.trim()),
+    payloadShape: ["key", "type", "value", "target"],
     successful: number === 200,
     rawValuePersisted: false,
     tokenPersisted: false,

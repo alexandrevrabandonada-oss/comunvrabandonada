@@ -16,17 +16,17 @@ function fixture({ a4Type = "sensitive", a4Value = "", policy = false, duplicate
   return { project, shared: { envs: shared ? [{ key: A4_KEY, target: ["production"] }] : [] }, envFile, team: { enforceSensitiveEnvironmentVariables: policy } };
 }
 
-test("canonical sensitive/absent row is eligible only with policy disabled", () => {
+test("canonical opaque sensitive row is eligible for the one recovery transition", () => {
   const input = fixture();
-  assert.equal(assertRepairPreconditions(input).a4.valueState, "ABSENT");
-  assert.deepEqual(repairPayload(), { type: "encrypted", value: "disabled", target: ["production"] });
+  assert.equal(assertRepairPreconditions(input).transition, "OPAQUE_SENSITIVE_TO_ENCRYPTED_DISABLED");
+  assert.deepEqual(repairPayload(), { key: A4_KEY, type: "encrypted", value: "disabled", target: ["production"] });
 });
 
-test("unknown/enforced team policy, duplicate, shared, A3 drift and non-absent state fail closed", () => {
-  assert.throws(() => assertRepairPreconditions(fixture({ policy: true })), /POLICY/);
+test("opaque value and team-policy metadata are not interpreted; scope drift fails closed", () => {
+  assert.equal(assertRepairPreconditions(fixture({ policy: true })).a4.valueState, "ABSENT");
   assert.throws(() => assertRepairPreconditions(fixture({ duplicate: true })), /NOT_UNIQUE/);
   assert.throws(() => assertRepairPreconditions(fixture({ shared: true })), /SHARED/);
-  assert.throws(() => assertRepairPreconditions(fixture({ a4Value: "disabled" })), /EXPECTED_ABSENT/);
+  assert.equal(assertRepairPreconditions(fixture({ a4Value: "opaque" })).a4.valueState, "UNKNOWN");
   const a3Drift = fixture();
   fs.writeFileSync(a3Drift.envFile, `${A3_KEY}=disabled\n`);
   assert.throws(() => assertRepairPreconditions(a3Drift), /A3_NOT_INTACT/);
@@ -36,6 +36,6 @@ test("inspection and PATCH receipt keep values and tokens out", () => {
   const receipt = inspect(fixture());
   assert.equal(receipt.rawValuePersisted, false);
   assert.doesNotMatch(JSON.stringify(receipt), /"value"\s*:/);
-  const failure = sanitizePatchResult({ status: 400, payload: { error: { code: "bad_request", message: "invalid target" } } });
-  assert.deepEqual(failure, { httpStatus: 400, errorCode: "bad_request", errorMessage: "invalid target", successful: false, rawValuePersisted: false, tokenPersisted: false });
+  const failure = sanitizePatchResult({ status: 400, payload: { error: { code: "bad_request", message: "invalid target" } }, headers: "content-type: application/json\nx-vercel-id: iad1::abc\n" });
+  assert.deepEqual(failure, { httpStatus: 400, errorCode: "bad_request", errorMessage: "invalid target", errorAction: null, requestId: "iad1::abc", contentType: "application/json", payloadShape: ["key", "type", "value", "target"], successful: false, rawValuePersisted: false, tokenPersisted: false });
 });

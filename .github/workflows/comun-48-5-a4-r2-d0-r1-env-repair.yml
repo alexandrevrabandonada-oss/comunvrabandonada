@@ -20,6 +20,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 env:
   VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
@@ -41,6 +42,7 @@ jobs:
       - name: Diagnose or repair exactly one A4 project Production variable
         env:
           EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          GITHUB_TOKEN: ${{ github.token }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
         run: bash scripts/run-48-5-a4-d0-r1-env-repair.sh "${{ inputs.mode }}"
