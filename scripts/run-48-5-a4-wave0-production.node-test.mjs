@@ -23,6 +23,11 @@ test("Only the exact A4 migration can be planned and applied", () => {
   assert.doesNotMatch(runner, /supabase (?:db reset|migration repair)/);
 });
 
+test("External-ledger bridge is proven before its CLI quarantine and A4 apply", () => {
+  assert.ok(runner.indexOf('assert_external_ledger_bridge') < runner.indexOf('assert_exact_pending_plan'));
+  assert.match(runner, /externalLedgerBridge=GREEN/);
+});
+
 test("Snapshot phase is initialized before its derived artifact path", () => {
   assert.match(runner, /local phase="\$1"\s+local output="\$ARTIFACT_DIR\/\$\{phase\}-snapshot\.json"/);
 });

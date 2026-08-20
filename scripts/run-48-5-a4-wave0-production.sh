@@ -141,6 +141,18 @@ assert_exact_pending_plan() {
   summary "migrationPlan=exact_a4_pending"
 }
 
+assert_external_ledger_bridge() {
+  stage external_ledger_bridge_started
+  node scripts/solo/verify-sidewalk-external-ledger-evolved-scope.mjs
+  node - "$ARTIFACT_DIR/external-ledger-bridge.json" <<'NODE'
+const fs=require('node:fs'); const source='.ci-artifacts/a4-external-ledger-e1/bridge.json'; const x=JSON.parse(fs.readFileSync(source,'utf8'));
+const c=x.current||{}; if(x.result!=='COMUN_SIDEWALK_EXTERNAL_LEDGER_EVOLVED_SCOPE_GREEN'||x.historicalExactScopedProof!==true||x.releaseOwnedSecurityInvariantsPreserved!==true||x.grantStateSafeOrMoreRestrictive!==true||x.serviceRoleOperational!==true||x.zeroRemoteWrites!==true||c.transactionReadOnly!==true||c.ledgerExact!==true||c.requiredStatesPresent!==true||c.missingColumns?.length!==0||c.clientCrudClosed!==true||c.serviceRoleRequiredPrivileges!==true||c.legacyUnsafeCount!==0||c.migrationShaExact!==true) throw new Error('COMUN_48_5_A4_R2_EXTERNAL_LEDGER_BRIDGE_BLOCKED_FLAG_OFF'); fs.copyFileSync(source,process.argv[2]);
+NODE
+  stage external_ledger_bridge_green
+  summary externalLedgerBridge=GREEN
+  summary externalLedgerZeroWrites=true
+}
+
 apply_a4() {
   stage migration_apply_started
   supabase db push --db-url "$SUPABASE_DB_URL" > "$ARTIFACT_DIR/migration-apply.log" 2>&1
@@ -249,6 +261,7 @@ assert_main
 assert_production_ready
 audit_flags preflight
 capture_snapshot before
+assert_external_ledger_bridge
 assert_exact_pending_plan
 apply_a4
 capture_snapshot after
