@@ -102,7 +102,7 @@ export function repairPayload() {
 }
 
 export function replacementCreatePayload() {
-  return [{ key: A4_KEY, type: "encrypted", value: "disabled", target: ["production"] }];
+  return { key: A4_KEY, type: "encrypted", value: "disabled", target: ["production"] };
 }
 
 export function sanitizePatchResult({ status, payload, headers = "" }) {

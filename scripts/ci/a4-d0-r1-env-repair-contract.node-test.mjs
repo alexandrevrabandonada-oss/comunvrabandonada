@@ -29,7 +29,8 @@ test("canonical opaque sensitive row is eligible for the one recovery transition
   const input = fixture();
   assert.equal(assertRepairPreconditions(input).transition, "OPAQUE_SENSITIVE_TO_ENCRYPTED_DISABLED");
   assert.deepEqual(repairPayload(), { key: A4_KEY, type: "encrypted", value: "disabled", target: ["production"] });
-  assert.deepEqual(replacementCreatePayload(), [{ key: A4_KEY, type: "encrypted", value: "disabled", target: ["production"] }]);
+  assert.equal(Array.isArray(replacementCreatePayload()), false);
+  assert.deepEqual(replacementCreatePayload(), { key: A4_KEY, type: "encrypted", value: "disabled", target: ["production"] });
 });
 
 test("replacement containment is explicitly OFF before any delete", () => {

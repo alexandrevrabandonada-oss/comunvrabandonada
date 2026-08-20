@@ -1,0 +1,49 @@
+name: COMUN 48.5-A4-R2-D0-R3 deterministic absent A4 recovery
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact main SHA whose READY Production deployment is the ABSENT=>OFF barrier
+        required: true
+        type: string
+
+concurrency:
+  group: comun-48-5-a4-r2-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+
+jobs:
+  recover-absent-a4:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+      - name: Recover exactly one absent A4 project Production environment variable
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          GITHUB_TOKEN: ${{ github.token }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        run: bash scripts/run-48-5-a4-d0-r3-absent-recovery.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-5-a4-r2-d0-r3-absent-recovery-${{ github.run_id }}
+          path: .ci-artifacts/48-5-a4-r2-d0-r3/
+          retention-days: 30
+          if-no-files-found: warn
