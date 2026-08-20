@@ -2,7 +2,7 @@
 set -euo pipefail
 
 MODE="${1:-bootstrap}"
-case "$MODE" in bootstrap|verify-only) ;; *) echo COMUN_48_5_A4_R2_D0_INVALID_MODE; exit 1;; esac
+case "$MODE" in bootstrap|verify-only|audit-only) ;; *) echo COMUN_48_5_A4_R2_D0_INVALID_MODE; exit 1;; esac
 
 : "${EXPECTED_MAIN_SHA:?EXPECTED_MAIN_SHA is required}"
 : "${A4_FUNCTIONAL_ANCESTOR:?A4_FUNCTIONAL_ANCESTOR is required}"
@@ -195,6 +195,13 @@ assert_main_and_schema_pending
 assert_no_concurrent_a4_writer
 assert_production_ready
 pull_and_list_env
+if test "$MODE" = audit-only; then
+  write_receipt audit "$ARTIFACT_DIR/a4-flag-read-only-audit.json"
+  summary "migrationA4=pending"
+  summary "a4FlagAudit=read_only"
+  stage audit_only_complete
+  exit 0
+fi
 if test "$MODE" = bootstrap; then
   write_receipt bootstrap-pre "$ARTIFACT_DIR/a4-flag-bootstrap-pre-receipt.json"
   stage a4_flag_absent_preflight_green

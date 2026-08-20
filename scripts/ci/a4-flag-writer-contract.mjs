@@ -138,6 +138,17 @@ export function createA4Receipt({ phase, runId, sha, projectId, before, after })
   };
 }
 
+export function observeA4FlagState({ projectRows, sharedRows, env }) {
+  const observe = (key) => ({
+    key,
+    valueState: valueState(env.get(key)),
+    projectMatches: keyRows(projectRows, key).map(metadata),
+    productionMatches: productionRows(projectRows, key).map(metadata),
+    sharedMatches: keyRows(sharedRows, key).length,
+  });
+  return { formatVersion: 1, phase: 'read-only-observed-state', a4: observe(A4_FLAG_KEY), a3: observe(A3_FLAG_KEY), rawValuePersisted: false, tokenPersisted: false };
+}
+
 export function sanitizeA4CreateResponse(payload) {
   const matches = [];
   const visit = (value) => {
@@ -164,7 +175,14 @@ if (process.argv[1]?.endsWith('a4-flag-writer-contract.mjs')) {
     ? assertA4BootstrapPreconditions({ projectRows, sharedRows, env })
     : phase === 'bootstrap-post'
       ? assertA4BootstrapPostconditions({ projectRows, sharedRows, env })
-      : (() => { throw new Error('A4_FLAG_RECEIPT_PHASE_INVALID'); })();
+      : phase === 'audit'
+        ? observeA4FlagState({ projectRows, sharedRows, env })
+        : (() => { throw new Error('A4_FLAG_RECEIPT_PHASE_INVALID'); })();
+  if (phase === 'audit') {
+    fs.writeFileSync(args.get('--output'), `${JSON.stringify(outcome, null, 2)}\n`, 'utf8');
+    console.log(`A4_FLAG_READ_ONLY_AUDIT a4=${outcome.a4.valueState} a3=${outcome.a3.valueState} a4ProductionMatches=${outcome.a4.productionMatches.length} a4SharedMatches=${outcome.a4.sharedMatches}`);
+    process.exit(0);
+  }
   const receipt = createA4Receipt({
     phase,
     runId: process.env.GITHUB_RUN_ID,

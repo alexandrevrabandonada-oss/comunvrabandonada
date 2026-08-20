@@ -8,11 +8,11 @@ on:
         required: true
         type: string
       mode:
-        description: Bootstrap the absent key once, or verify the signed OFF recovery state without an env write
+        description: Bootstrap once, verify signed OFF recovery, or run a read-only state audit
         required: true
         default: bootstrap
         type: choice
-        options: [bootstrap, verify-only]
+        options: [bootstrap, verify-only, audit-only]
 
 concurrency:
   group: comun-48-5-a4-r2-production

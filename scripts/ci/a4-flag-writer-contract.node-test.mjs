@@ -7,6 +7,7 @@ import {
   assertA4BootstrapPreconditions,
   assertA4Transition,
   createA4Receipt,
+  observeA4FlagState,
   sanitizeA4CreateResponse,
 } from './a4-flag-writer-contract.mjs';
 
@@ -66,4 +67,12 @@ test('creation response retains only the returned environment ID fingerprint', (
   assert.match(sanitized.envId, /^sha256:[0-9a-f]{16}$/);
   assert.doesNotMatch(JSON.stringify(sanitized), /a4-created-id|disabled/);
   assert.throws(() => sanitizeA4CreateResponse({ created: [] }), /NOT_UNIQUE/);
+});
+
+test('read-only audit records only sanitized scope and state metadata', () => {
+  const observed = observeA4FlagState(fixture({ a4: 'disabled' }));
+  assert.equal(observed.a4.valueState, 'OFF');
+  assert.equal(observed.a4.productionMatches.length, 1);
+  assert.equal(observed.a4.sharedMatches, 0);
+  assert.equal(observed.rawValuePersisted, false);
 });
