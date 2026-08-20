@@ -3,6 +3,12 @@ import fs from "node:fs";
 
 export const A4_KEY = "COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED";
 export const A3_KEY = "COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED";
+export const A4_REPLACEMENT_CONTAINMENT = Object.freeze({
+  buildState: "OFF",
+  runtimeState: "OFF",
+  mustPromoteBeforeDelete: true,
+  failureState: "runtime_contained_off",
+});
 
 export function fingerprint(value) {
   if (typeof value !== "string" || value.length === 0) return null;
@@ -64,7 +70,6 @@ export function parseSensitivePolicy(team) {
 }
 
 export function inspect({ project, shared, envFile, team }) {
-  const projectRows = rows(project);
   const sharedRows = rows(shared).filter((row) => row?.key === A4_KEY);
   const a4Rows = productionRows(project, A4_KEY);
   const a3Rows = productionRows(project, A3_KEY);
