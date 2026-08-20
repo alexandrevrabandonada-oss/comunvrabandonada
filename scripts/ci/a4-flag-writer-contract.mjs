@@ -42,6 +42,7 @@ function metadata(row) {
     updatedAt: row?.updatedAt ?? null,
     gitBranch: row?.gitBranch ?? null,
     customEnvironmentIds: Array.isArray(row?.customEnvironmentIds) ? row.customEnvironmentIds.map(fingerprint) : [],
+    managedByA4Writer: typeof row?.comment === 'string' && row.comment.includes(`managed-by=${A4_FLAG_WRITER_ID}`),
     sourceType: "project",
   };
 }
@@ -103,6 +104,7 @@ export function assertA4BootstrapPostconditions({ projectRows, sharedRows, env }
   if (a4Shared.length !== 0) throw new Error('A4_FLAG_SHARED_ENV_CONFLICT');
   assertProductionOnly(a4Production[0], A4_FLAG_KEY);
   assertNoOverrides(a4Production[0], A4_FLAG_KEY);
+  if (typeof a4Production[0].comment !== 'string' || !a4Production[0].comment.includes(`managed-by=${A4_FLAG_WRITER_ID}`)) throw new Error('A4_FLAG_BOOTSTRAP_WRITER_PROVENANCE_MISSING');
   if (valueState(env.get(A4_FLAG_KEY)) !== 'OFF') throw new Error('A4_FLAG_BOOTSTRAP_EFFECTIVE_VALUE_NOT_OFF');
 
   const a3Production = productionRows(projectRows, A3_FLAG_KEY);
@@ -129,6 +131,7 @@ export function createA4Receipt({ phase, runId, sha, projectId, before, after })
     projectMatches: before?.a4?.projectMatches ?? (after ? 1 : null),
     sharedMatches: before?.a4?.sharedMatches ?? 0,
     envId: after?.a4?.id ?? null,
+    writerProvenance: after?.a4?.managedByA4Writer ?? false,
     a3State: before?.a3?.state ?? 'ON',
     rawValuePersisted: false,
     tokenPersisted: false,

@@ -15,7 +15,7 @@ const A3 = 'COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED';
 
 function fixture({ a4 = 'absent', a3 = 'enabled', shared = false, duplicate = false, override = false } = {}) {
   const projectRows = [{ id: 'a3-id', key: A3, target: ['production'], gitBranch: null, customEnvironmentIds: [] }];
-  if (a4 !== 'absent') projectRows.push({ id: 'a4-id', key: A4, target: ['production'], gitBranch: override ? 'feature/x' : null, customEnvironmentIds: [] });
+  if (a4 !== 'absent') projectRows.push({ id: 'a4-id', key: A4, target: ['production'], gitBranch: override ? 'feature/x' : null, customEnvironmentIds: [], comment: 'managed-by=comun-48-5-a4-r2; phase=a4-r2-d0; state=off' });
   if (duplicate) projectRows.push({ id: 'a4-id-two', key: A4, target: ['production'], gitBranch: null, customEnvironmentIds: [] });
   const env = new Map([[A3, a3]]);
   if (a4 !== 'absent') env.set(A4, a4);
@@ -46,6 +46,9 @@ test('bootstrap postflight requires one ordinary Production row and effective OF
   assert.throws(() => assertA4BootstrapPostconditions(fixture({ a4: 'disabled', duplicate: true })), /NOT_UNIQUE/);
   assert.throws(() => assertA4BootstrapPostconditions(fixture({ a4: 'disabled', override: true })), /BRANCH_OVERRIDE/);
   assert.throws(() => assertA4BootstrapPostconditions(fixture({ a4: 'enabled' })), /NOT_OFF/);
+  const missingWriter = fixture({ a4: 'disabled' });
+  delete missingWriter.projectRows[1].comment;
+  assert.throws(() => assertA4BootstrapPostconditions(missingWriter), /WRITER_PROVENANCE_MISSING/);
 });
 
 test('receipts are sanitized and identify the dedicated A4 writer', () => {

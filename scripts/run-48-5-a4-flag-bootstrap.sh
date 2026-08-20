@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+MODE="${1:-bootstrap}"
+case "$MODE" in bootstrap|verify-only) ;; *) echo COMUN_48_5_A4_R2_D0_INVALID_MODE; exit 1;; esac
+
 : "${EXPECTED_MAIN_SHA:?EXPECTED_MAIN_SHA is required}"
 : "${A4_FUNCTIONAL_ANCESTOR:?A4_FUNCTIONAL_ANCESTOR is required}"
 : "${A4_MIGRATION:?A4_MIGRATION is required}"
@@ -102,16 +105,20 @@ write_receipt() {
 }
 
 create_a4_flag_once() {
-  cat > "$CREATE_BODY" <<'JSON'
-[{"key":"COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED","value":"disabled","type":"sensitive","target":["production"],"comment":"managed-by=comun-48-5-a4-r2; phase=a4-r2-d0; state=off"}]
-JSON
+  node - "$CREATE_BODY" <<'NODE'
+const fs = require('node:fs');
+const run = String(process.env.GITHUB_RUN_ID ?? '').replace(/[^0-9]/g, '');
+const sha = String(process.env.EXPECTED_MAIN_SHA ?? '').replace(/[^a-f0-9]/gi, '').slice(0, 40);
+const comment = `managed-by=comun-48-5-a4-r2; phase=a4-r2-d0; run=${run || 'unknown'}; sha=${sha || 'unknown'}; state=off`;
+fs.writeFileSync(process.argv[2], JSON.stringify([{ key: 'COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED', value: 'disabled', type: 'sensitive', target: ['production'], comment }]));
+NODE
   curl -fsS -X POST -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
     --data-binary "@$CREATE_BODY" \
     "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env?teamId=$VERCEL_ORG_ID" > "$CREATE_RESPONSE"
   test -s "$CREATE_RESPONSE"
   node --input-type=module - "$CREATE_RESPONSE" "$ARTIFACT_DIR/a4-flag-create-response-receipt.json" <<'NODE'
-const fs = require('node:fs');
-const { sanitizeA4CreateResponse } = await import('./scripts/ci/a4-flag-writer-contract.mjs');
+import fs from 'node:fs';
+import { sanitizeA4CreateResponse } from './scripts/ci/a4-flag-writer-contract.mjs';
 const receipt = sanitizeA4CreateResponse(JSON.parse(fs.readFileSync(process.argv[2], 'utf8')));
 fs.writeFileSync(process.argv[3], `${JSON.stringify({ formatVersion: 1, phase: 'create-response', ...receipt }, null, 2)}\n`);
 NODE
@@ -188,18 +195,24 @@ assert_main_and_schema_pending
 assert_no_concurrent_a4_writer
 assert_production_ready
 pull_and_list_env
-write_receipt bootstrap-pre "$ARTIFACT_DIR/a4-flag-bootstrap-pre-receipt.json"
-stage a4_flag_absent_preflight_green
-business_snapshot "$ARTIFACT_DIR/business-before.json"
-create_a4_flag_once
-pull_and_list_env
-write_receipt bootstrap-post "$ARTIFACT_DIR/a4-flag-bootstrap-post-receipt.json"
-node - "$ARTIFACT_DIR/a4-flag-create-response-receipt.json" "$ARTIFACT_DIR/a4-flag-bootstrap-post-receipt.json" <<'NODE'
+if test "$MODE" = bootstrap; then
+  write_receipt bootstrap-pre "$ARTIFACT_DIR/a4-flag-bootstrap-pre-receipt.json"
+  stage a4_flag_absent_preflight_green
+  business_snapshot "$ARTIFACT_DIR/business-before.json"
+  create_a4_flag_once
+  pull_and_list_env
+  write_receipt bootstrap-post "$ARTIFACT_DIR/a4-flag-bootstrap-post-receipt.json"
+  node - "$ARTIFACT_DIR/a4-flag-create-response-receipt.json" "$ARTIFACT_DIR/a4-flag-bootstrap-post-receipt.json" <<'NODE'
 const fs = require('node:fs');
 const create = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const post = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));
 if (create.envId !== post.envId) throw new Error('COMUN_48_5_A4_R2_D0_CREATED_ENV_ID_MISMATCH');
 NODE
+else
+  write_receipt bootstrap-post "$ARTIFACT_DIR/a4-flag-recovery-pre-receipt.json"
+  stage a4_flag_recovery_off_preflight_green
+  business_snapshot "$ARTIFACT_DIR/business-before.json"
+fi
 stage a4_flag_off_metadata_green
 deploy_production
 assert_production_ready

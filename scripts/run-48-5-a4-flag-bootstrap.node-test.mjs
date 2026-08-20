@@ -8,6 +8,7 @@ const contract = fs.readFileSync('scripts/ci/a4-flag-writer-contract.mjs', 'utf8
 
 test('D0 is dispatch-only, serializes with A4 Wave 0, and requires exact main', () => {
   assert.match(workflow, /workflow_dispatch:/);
+  assert.match(workflow, /options: \[bootstrap, verify-only\]/);
   assert.match(workflow, /group: comun-48-5-a4-r2-production/);
   assert.match(workflow, /ref: \$\{\{ inputs\.expected_main_sha \}\}/);
   assert.match(runner, /git rev-parse refs\/remotes\/origin\/main/);
@@ -16,8 +17,8 @@ test('D0 is dispatch-only, serializes with A4 Wave 0, and requires exact main', 
 
 test('D0 can create only the exact project Production A4 flag and no second key', () => {
   assert.match(runner, /COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED/);
-  assert.match(runner, /"value":"disabled"/);
-  assert.match(runner, /"target":\["production"\]/);
+  assert.match(runner, /value: 'disabled'/);
+  assert.match(runner, /target: \['production'\]/);
   assert.match(runner, /api\.vercel\.com\/v10\/projects\/\$VERCEL_PROJECT_ID\/env/);
   assert.match(contract, /A4_FLAG_BOOTSTRAP_KEY_ALREADY_PRESENT/);
   assert.match(contract, /A4_FLAG_SHARED_ENV_CONFLICT/);
@@ -38,6 +39,7 @@ test('D0 emits sanitized before and after receipts and stops before Wave 0', () 
   assert.match(runner, /a4-flag-bootstrap-pre-receipt\.json/);
   assert.match(runner, /a4-flag-create-response-receipt\.json/);
   assert.match(runner, /a4-flag-runtime-post-receipt\.json/);
+  assert.match(runner, /a4-flag-recovery-pre-receipt\.json/);
   assert.match(contract, /rawValuePersisted: false/);
   assert.match(contract, /tokenPersisted: false/);
   assert.match(runner, /COMUN_48_5_A4_R2_FLAG_BOOTSTRAP_GREEN_EXPLICIT_OFF_READY_FOR_WAVE0/);

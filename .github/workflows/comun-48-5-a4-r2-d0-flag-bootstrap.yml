@@ -7,6 +7,12 @@ on:
         description: Exact origin/main SHA for the A4 OFF bootstrap
         required: true
         type: string
+      mode:
+        description: Bootstrap the absent key once, or verify the signed OFF recovery state without an env write
+        required: true
+        default: bootstrap
+        type: choice
+        options: [bootstrap, verify-only]
 
 concurrency:
   group: comun-48-5-a4-r2-production
@@ -47,7 +53,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
         shell: bash
-        run: bash scripts/run-48-5-a4-flag-bootstrap.sh
+        run: bash scripts/run-48-5-a4-flag-bootstrap.sh "${{ inputs.mode }}"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
