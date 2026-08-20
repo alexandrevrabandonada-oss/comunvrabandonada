@@ -1,5 +1,20 @@
 # 48.5-A4 — Direitos Progressivos da Memória Cultural
 
+## A4-R2-D0 — Bootstrap Production bloqueado após reparo por ID rejeitado (20/08/2026)
+
+Estado terminal desta execução: `COMUN_48_5_A4_R2_FLAG_BOOTSTRAP_BLOCKED_SAFE_ABSENT`.
+
+- `origin/main` começou no `768cb85d7a13cd5b6d9cb472f60cc7db53a60025`; os runners D0 foram publicados em `d92c0b93`, `9969a6eb`, `45779dcb`, `1688fd6a` e `46cd7d2f`. O ancestral funcional A4 `27c441a4fa03857ece2e022f6f64516d5188989d` continua presente e a migration A4 permanece pendente;
+- o primeiro D0 `32316035837` confirmou ausência total inicial e A3 ON, executou o POST de criação e falhou somente ao sanitizar a resposta por uma incompatibilidade `require`/top-level `await`; não chegou a Supabase, deployment manual ou smoke;
+- a reexecução somente-leitura `32316619914` e sua versão com metadata `32316811934` confirmaram uma única chave project-level Production A4, sem shared env, branch ou custom environment. Ela tem writer provenance `managed-by=comun-48-5-a4-r2`, ID somente em fingerprint, mas `type=sensitive` e resolução efetiva `ABSENT`; a chave A3 comparável permanece única, `type=encrypted` e efetiva ON;
+- o único reparo autorizado por ID, `32317096418`, passou todas as pré-condições e tentou `PATCH` exclusivamente na chave A4 assinada para `disabled`/`encrypted`. A API Vercel devolveu HTTP 400; não foi criada segunda chave, não houve delete, não houve alteração de A3 e o fluxo parou imediatamente;
+- deployments de código D0 ficaram READY antes das execuções; nenhum deployment manual de materialização foi iniciado depois da falha do PATCH;
+- nenhuma migration, RPC, fixture, intake, target, archive item, asset, Search, coleção ou publicação foi criado. Não houve write Supabase e os business writes permanecem zero;
+- contratos locais D0, typecheck, lint, sintaxe Bash/Node e `git diff --check` verdes. O patch registra ownership explícito, receipts sanitizados, auditoria de shared/duplicata/override e só permite correção por ID sob a pré-condição assinada;
+- a hipótese operacional mais forte é incompatibilidade de tipo da API (`sensitive` não é resolvida pelo mecanismo `env pull` adotado pelo projeto, enquanto a chave A3 usa `encrypted`), mas o HTTP 400 não foi exposto como resposta sanitizada no artifact. Não repetir POST, PATCH ou Wave 0 até capturar a mensagem/código Vercel de forma sanitizada e ajustar o payload canônico.
+
+Checkpoint verde `COMUN_48_5_A4_R2_FLAG_BOOTSTRAP_GREEN_EXPLICIT_OFF_READY_FOR_WAVE0` não foi atingido. A4 continua fail-closed pela resolução ausente; Wave 0/Wave 1 permanecem proibidas.
+
 ## A4-R2-Wave0 — Preflight bloqueado por flag Production ausente (19/08/2026)
 
 Estado terminal desta tentativa: `COMUN_48_5_A4_R2_FLAG_ABSENT_BLOCKED_SAFE_OFF`.

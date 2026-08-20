@@ -1,3 +1,12 @@
+## Estado atual — 48.5-A4-R2-D0 bloqueado com chave A4 sensível sem resolução efetiva (20/08/2026)
+
+Estado terminal: `COMUN_48_5_A4_R2_FLAG_BOOTSTRAP_BLOCKED_SAFE_ABSENT`.
+
+- bootstrap D0 criou uma única chave A4 Production assinada, sem shared env, duplicata, branch ou custom override, mas ela retornou como `type=sensitive` e estado efetivo `ABSENT` no mecanismo Production usado pelo projeto;
+- o reparo único por ID `32317096418`, limitado a `disabled`/`encrypted`, recebeu HTTP 400 da Vercel. Não houve segunda chave, delete, alteração de A3, migration, deployment manual, fixture ou business write;
+- A3 continua ON e intacto; a migration `20260819130000_comun_cultural_progressive_rights.sql` continua pendente. Não executar Wave 0, Wave 1 ou qualquer novo POST/PATCH A4 até diagnosticar de modo sanitizado o erro de payload da API;
+- os runs de auditoria `32316619914` e `32316811934` são read-only e confirmam o escopo seguro da chave existente. Relatório detalhado: `reports/current/comun-48-5-a4-progressive-cultural-rights.md`.
+
 ## Estado atual — 48.5-A4-R2-Wave0 bloqueada com flag ausente (19/08/2026)
 
 Estado terminal: `COMUN_48_5_A4_R2_FLAG_ABSENT_BLOCKED_SAFE_OFF`.
