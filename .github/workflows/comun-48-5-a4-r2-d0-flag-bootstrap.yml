@@ -8,11 +8,11 @@ on:
         required: true
         type: string
       mode:
-        description: Bootstrap once, verify signed OFF recovery, or run a read-only state audit
+        description: Bootstrap once, audit, verify, or repair the signed sensitive A4 row to OFF by its unique ID
         required: true
         default: bootstrap
         type: choice
-        options: [bootstrap, verify-only, audit-only]
+        options: [bootstrap, verify-only, audit-only, repair-off]
 
 concurrency:
   group: comun-48-5-a4-r2-production

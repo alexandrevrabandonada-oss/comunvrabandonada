@@ -2,7 +2,7 @@
 set -euo pipefail
 
 MODE="${1:-bootstrap}"
-case "$MODE" in bootstrap|verify-only|audit-only) ;; *) echo COMUN_48_5_A4_R2_D0_INVALID_MODE; exit 1;; esac
+case "$MODE" in bootstrap|verify-only|audit-only|repair-off) ;; *) echo COMUN_48_5_A4_R2_D0_INVALID_MODE; exit 1;; esac
 
 : "${EXPECTED_MAIN_SHA:?EXPECTED_MAIN_SHA is required}"
 : "${A4_FUNCTIONAL_ANCESTOR:?A4_FUNCTIONAL_ANCESTOR is required}"
@@ -125,6 +125,29 @@ NODE
   stage a4_flag_created_absent_to_disabled
 }
 
+repair_a4_flag_by_id() {
+  write_receipt repair-pre "$ARTIFACT_DIR/a4-flag-repair-pre-receipt.json"
+  local env_id
+  env_id="$(node - "$PROJECT_JSON" <<'NODE'
+const fs = require('node:fs');
+const rows = JSON.parse(fs.readFileSync(process.argv[2], 'utf8')).envs ?? [];
+const matches = rows.filter((row) => row?.key === 'COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED' && Array.isArray(row.target) && row.target.length === 1 && row.target[0] === 'production' && row?.type === 'sensitive' && typeof row?.comment === 'string' && row.comment.includes('managed-by=comun-48-5-a4-r2'));
+if (matches.length !== 1 || typeof matches[0].id !== 'string') throw new Error('COMUN_48_5_A4_R2_D0_REPAIR_TARGET_NOT_UNIQUE');
+process.stdout.write(matches[0].id);
+NODE
+)"
+  node - "$CREATE_BODY" <<'NODE'
+const fs = require('node:fs');
+const run = String(process.env.GITHUB_RUN_ID ?? '').replace(/[^0-9]/g, '');
+const sha = String(process.env.EXPECTED_MAIN_SHA ?? '').replace(/[^a-f0-9]/gi, '').slice(0, 40);
+fs.writeFileSync(process.argv[2], JSON.stringify({ value: 'disabled', type: 'encrypted', comment: `managed-by=comun-48-5-a4-r2; phase=a4-r2-d0-repair; run=${run || 'unknown'}; sha=${sha || 'unknown'}; state=off` }));
+NODE
+  curl -fsS -X PATCH -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" --data-binary "@$CREATE_BODY" \
+    "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env/$env_id?teamId=$VERCEL_ORG_ID" > "$CREATE_RESPONSE"
+  test -s "$CREATE_RESPONSE"
+  stage a4_flag_repaired_by_unique_id
+}
+
 deploy_production() {
   local output="$TEMP_ROOT/comun-a4-d0-deploy.txt"
   npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" > "$output"
@@ -215,6 +238,12 @@ const create = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const post = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));
 if (create.envId !== post.envId) throw new Error('COMUN_48_5_A4_R2_D0_CREATED_ENV_ID_MISMATCH');
 NODE
+elif test "$MODE" = repair-off; then
+  business_snapshot "$ARTIFACT_DIR/business-before.json"
+  repair_a4_flag_by_id
+  pull_and_list_env
+  write_receipt bootstrap-post "$ARTIFACT_DIR/a4-flag-repair-post-receipt.json"
+  stage a4_flag_repair_off_metadata_green
 else
   write_receipt bootstrap-post "$ARTIFACT_DIR/a4-flag-recovery-pre-receipt.json"
   stage a4_flag_recovery_off_preflight_green

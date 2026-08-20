@@ -118,6 +118,15 @@ export function assertA4BootstrapPostconditions({ projectRows, sharedRows, env }
   return { a4: metadata(a4Production[0]), a3: metadata(a3Production[0]) };
 }
 
+export function assertA4RepairOffPreconditions({ projectRows, sharedRows, env }) {
+  const a4 = assertA4BootstrapPostconditions({ projectRows, sharedRows, env: new Map([...env, [A4_FLAG_KEY, 'disabled']]) });
+  const row = productionRows(projectRows, A4_FLAG_KEY)[0];
+  if (valueState(env.get(A4_FLAG_KEY)) !== 'ABSENT') throw new Error('A4_FLAG_REPAIR_EXPECTED_EFFECTIVE_ABSENT');
+  if (row.type !== 'sensitive') throw new Error('A4_FLAG_REPAIR_EXPECTED_SENSITIVE_TYPE');
+  assertA4Transition({ mode: 'bootstrap', currentState: 'ABSENT', desiredState: 'disabled' });
+  return a4;
+}
+
 export function createA4Receipt({ phase, runId, sha, projectId, before, after }) {
   return {
     formatVersion: 1,
@@ -177,6 +186,8 @@ if (process.argv[1]?.endsWith('a4-flag-writer-contract.mjs')) {
     ? assertA4BootstrapPreconditions({ projectRows, sharedRows, env })
     : phase === 'bootstrap-post'
       ? assertA4BootstrapPostconditions({ projectRows, sharedRows, env })
+      : phase === 'repair-pre'
+        ? assertA4RepairOffPreconditions({ projectRows, sharedRows, env })
       : phase === 'audit'
         ? observeA4FlagState({ projectRows, sharedRows, env })
         : (() => { throw new Error('A4_FLAG_RECEIPT_PHASE_INVALID'); })();

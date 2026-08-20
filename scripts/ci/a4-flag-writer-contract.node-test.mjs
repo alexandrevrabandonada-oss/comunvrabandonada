@@ -5,6 +5,7 @@ import {
   A4_FLAG_WRITER_ID,
   assertA4BootstrapPostconditions,
   assertA4BootstrapPreconditions,
+  assertA4RepairOffPreconditions,
   assertA4Transition,
   createA4Receipt,
   observeA4FlagState,
@@ -76,4 +77,13 @@ test('read-only audit records only sanitized scope and state metadata', () => {
   assert.equal(observed.a4.sharedMatches, 0);
   assert.equal(observed.a4.productionMatches[0].type, null);
   assert.equal(observed.rawValuePersisted, false);
+});
+
+test('repair-off accepts only the signed sensitive row whose effective value is absent', () => {
+  const recovery = fixture({ a4: 'disabled' });
+  recovery.projectRows[1].type = 'sensitive';
+  recovery.env.delete(A4);
+  assert.match(assertA4RepairOffPreconditions(recovery).a4.id, /^sha256:/);
+  recovery.projectRows[1].type = 'encrypted';
+  assert.throws(() => assertA4RepairOffPreconditions(recovery), /EXPECTED_SENSITIVE_TYPE/);
 });
