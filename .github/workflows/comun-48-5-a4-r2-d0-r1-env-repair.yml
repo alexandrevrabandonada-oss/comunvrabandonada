@@ -1,0 +1,53 @@
+name: COMUN 48.5-A4-R2-D0-R1 canonical A4 env repair
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact origin/main SHA to audit or repair
+        required: true
+        type: string
+      mode:
+        description: Read-only diagnosis, or the one authorized canonical PATCH
+        required: true
+        default: diagnose-only
+        type: choice
+        options: [diagnose-only, repair-once]
+
+concurrency:
+  group: comun-48-5-a4-r2-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+      - name: Diagnose or repair exactly one A4 project Production variable
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        run: bash scripts/run-48-5-a4-d0-r1-env-repair.sh "${{ inputs.mode }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-5-a4-r2-d0-r1-env-repair-${{ github.run_id }}
+          path: .ci-artifacts/48-5-a4-r2-d0-r1/
+          retention-days: 30
+          if-no-files-found: warn
