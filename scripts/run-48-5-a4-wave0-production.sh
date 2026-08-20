@@ -20,6 +20,9 @@ test -z "${SUPABASE_ACCESS_TOKEN:-}"
 test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
 
 ARTIFACT_DIR="${COMUN_A4_ARTIFACT_DIR:-.ci-artifacts/48-5-a4-r2-wave0}"
+EXTERNAL_MIGRATION="supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql"
+EXTERNAL_EXCEPTION="supabase/migration-exceptions/20260724233256-sidewalk-external-ledger.json"
+EXTERNAL_SHA256="6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
 TEMP_ROOT="${RUNNER_TEMP:-$(mktemp -d)}"
 mkdir -p "$ARTIFACT_DIR"
 summary() { printf '%s\n' "$*" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"; }
@@ -117,6 +120,12 @@ NODE
 }
 
 assert_exact_pending_plan() {
+  node scripts/solo/validate-sidewalk-external-ledger-exception.mjs "$EXTERNAL_EXCEPTION"
+  test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "$EXTERNAL_SHA256"
+  local held="$TEMP_ROOT/comun-a4-external-ledger.sql"
+  mv "$EXTERNAL_MIGRATION" "$held"
+  restore_external() { test ! -e "$held" || mv "$held" "$EXTERNAL_MIGRATION"; test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "$EXTERNAL_SHA256"; }
+  trap restore_external EXIT
   local plan="$ARTIFACT_DIR/migration-plan.txt"
   supabase migration list --db-url "$SUPABASE_DB_URL" > "$ARTIFACT_DIR/migration-list.txt" 2>&1
   supabase db push --db-url "$SUPABASE_DB_URL" --dry-run > "$plan" 2>&1
