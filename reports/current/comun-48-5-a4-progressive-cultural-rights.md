@@ -1,5 +1,19 @@
 # 48.5-A4 — Direitos Progressivos da Memória Cultural
 
+## A4-R2-D0-R1 — Diagnóstico canônico da env A4 permanece bloqueado (20/08/2026)
+
+Estado terminal preservado: `COMUN_48_5_A4_R2_FLAG_BOOTSTRAP_BLOCKED_SAFE_ABSENT`.
+
+- `origin/main` foi confirmado no início como `7c22b803b97d72e873b48361ade3d42fad0d2f4b`; o runner Vercel-only D0-R1 foi integrado no SHA `d0f7f07afff9b04d12844d3ae244d08124375dc8`. Ele não recebe credenciais Supabase e não executa preflight, leitura ou write no banco;
+- a recuperação completa do run `32317096418` confirmou somente `HTTP 400`. O uso de `curl -f` e o cleanup do arquivo temporário apagaram a resposta antes da criação do artifact; portanto `error.code` e `error.message` não são recuperáveis de modo honesto. Nenhuma causa foi inferida a partir desse vazio;
+- a fonte oficial do endpoint confirma que `PATCH /v9/projects/{idOrName}/env/{id}` aceita `type`, `value` e `target`. O payload candidato registrado pelo runner é estritamente `{ "type": "encrypted", "value": "disabled", "target": ["production"] }`: sem `key`, `gitBranch`, `customEnvironmentIds` ou `comment`;
+- o diagnóstico read-only `32318723234` confirmou exatamente uma env A4 project-level Production, `type=sensitive`, sem shared env, duplicata, branch ou custom environment. A3 permaneceu única, `type=encrypted` e ON. IDs e atores foram registrados somente como fingerprints;
+- o mesmo diagnóstico demonstrou dois limites objetivos: a API de team disponível não revelou um valor reconhecível para a política **Enforce Sensitive Environment Variables** (`teamSensitivePolicy=unknown`) e `vercel env pull` devolveu a A4 sensível mascarada (`valueState=UNKNOWN`), em vez de produzir uma prova estável de `ABSENT`. O runner trata ambos como bloqueadores fail-closed;
+- por isso não houve novo PATCH, delete, POST, deployment, mudança de A3, migration A4, acesso Supabase, fixture ou escrita funcional. `businessWrites=0`, `fixtures=0`, `targets=0`, `assets=0`, `searchWrites=0`, `collections=0` e `publications=0`;
+- o hardening D0-R1 mantém a mutação limitada a uma só chamada por ID e captura, no próximo contexto que a autorize, apenas `httpStatus`, `error.code` e `error.message` sanitizados. Não há retry automático. A conversão `sensitive→encrypted` não foi marcada como suportada nem como proibida: falta a evidência de política/estado que o contrato exige.
+
+Próximo passo seguro: obter da Vercel uma prova administrativa read-only da política de sensitive e/ou uma resposta oficial que classifique a transição. Até lá, manter A4 fora de Wave 0; A3 permanece ON e a migration `20260819130000_comun_cultural_progressive_rights.sql` continua pendente.
+
 ## A4-R2-D0 — Bootstrap Production bloqueado após reparo por ID rejeitado (20/08/2026)
 
 Estado terminal desta execução: `COMUN_48_5_A4_R2_FLAG_BOOTSTRAP_BLOCKED_SAFE_ABSENT`.

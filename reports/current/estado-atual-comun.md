@@ -1,3 +1,13 @@
+## Estado atual — 48.5-A4-R2-D0-R1 bloqueado por prova Vercel insuficiente (20/08/2026)
+
+Estado terminal preservado: `COMUN_48_5_A4_R2_FLAG_BOOTSTRAP_BLOCKED_SAFE_ABSENT`.
+
+- o diagnóstico Vercel-only `32318723234`, no SHA `d0f7f07afff9b04d12844d3ae244d08124375dc8`, confirmou uma única chave A4 Production `sensitive`, sem shared/duplicata/branch/custom override, e A3 `encrypted` ON;
+- o HTTP 400 anterior é recuperável apenas como status: `curl -f` e cleanup apagaram o corpo antes do artifact. A política de sensitive do time não é classificável pela metadata API disponível e a leitura da env sensível está mascarada, então ambos permanecem `unknown` e bloqueiam o PATCH canônico;
+- nenhum PATCH adicional, deployment, migration, Supabase, fixture ou business write ocorreu. A4 continua OFF/fail-closed operacionalmente; A3 permanece intacta. Não executar Wave 0.
+
+Relatório detalhado: `reports/current/comun-48-5-a4-progressive-cultural-rights.md`.
+
 ## Estado atual — 48.5-A4-R2-D0 bloqueado com chave A4 sensível sem resolução efetiva (20/08/2026)
 
 Estado terminal: `COMUN_48_5_A4_R2_FLAG_BOOTSTRAP_BLOCKED_SAFE_ABSENT`.
