@@ -1,5 +1,16 @@
 # 48.5-A4 — Direitos Progressivos da Memória Cultural
 
+## A4-R2-D0-R1 — Normalização da flag opaca bloqueada pela Vercel (20/08/2026)
+
+Estado terminal: `COMUN_48_5_A4_R2_FLAG_TYPE_TRANSITION_BLOCKED_NEEDS_ATOMIC_REPLACEMENT_DESIGN`.
+
+- `origin/main` inicial `9c2447d49c8553f84f2846da22291ae420bb417e` foi confirmado; o recovery runner foi atualizado no SHA `1c988681dc62fdc4e0cdcec9f369124e6eab1cd7` e seu deployment Production ficou READY antes da chamada;
+- precheck do run `32359749167` confirmou a A4 pelo mesmo fingerprint de ID, única, project-level, Production-only, `type=sensitive`, sem shared env, duplicata, branch ou custom-environment override. A3 permaneceu `encrypted` e ON. A migration A4 continua pendente conforme o estado operacional de entrada e nenhum acesso Supabase foi feito;
+- a única mutação autorizada usou `PATCH /v9/projects/{project}/env/{id}` com o payload mínimo `key,type,value,target`, onde o estado desejado era encrypted/disabled/production. O recibo preservado antes de parsing registrou `HTTP 400`, `error.code=BAD_REQUEST`, request fingerprint sanitizado e a mensagem: `You cannot change the type of a Sensitive Environment Variable.`;
+- a resposta é prova direta de que a transição `sensitive → encrypted` não é permitida no mesmo ID. Não houve retry, payload alternativo, delete+create, segunda chave, alteração de A3, deployment manual, smoke ou mudança de runtime;
+- `businessWrites=0`, `fixtures=0`, `targets=0`, `archiveItems=0`, `assets=0`, `searchWrites=0`, `collections=0` e `publications=0`. A4 permanece opaca/fail-closed; A3 permanece íntegra e ativa;
+- o runner agora preserva status, code, message, action quando existir, content-type, request ID sanitizado e formato do payload. A próxima operação possível é apenas um novo slice de desenho para substituição atômica, com ID novo e sem janela de configuração parcial; Wave 0 e Wave 1 continuam proibidas.
+
 ## A4-R2-D0-R1 — Diagnóstico canônico da env A4 permanece bloqueado (20/08/2026)
 
 Estado terminal preservado: `COMUN_48_5_A4_R2_FLAG_BOOTSTRAP_BLOCKED_SAFE_ABSENT`.

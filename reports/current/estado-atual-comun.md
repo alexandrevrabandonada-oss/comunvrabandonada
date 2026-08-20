@@ -1,3 +1,13 @@
+## Estado atual — 48.5-A4-R2-D0-R1: transição de tipo proibida (20/08/2026)
+
+Estado terminal: `COMUN_48_5_A4_R2_FLAG_TYPE_TRANSITION_BLOCKED_NEEDS_ATOMIC_REPLACEMENT_DESIGN`.
+
+- o único PATCH por ID do run `32359749167` recebeu `HTTP 400 / BAD_REQUEST`: `You cannot change the type of a Sensitive Environment Variable.` A evidência sanitizada preserva request ID, content-type e formato do payload;
+- a A4 continua como única env Production `sensitive`, sem shared/duplicata/override. A3 continua `encrypted` e enabled. Não houve retry, delete, recriação, deployment manual, Supabase, migration ou Wave 0;
+- o próximo passo requer desenho separado para eventual substituição atômica. A4 continua fail-closed e a migration `20260819130000_comun_cultural_progressive_rights.sql` permanece pendente.
+
+Relatório detalhado: `reports/current/comun-48-5-a4-progressive-cultural-rights.md`.
+
 ## Estado atual — 48.5-A4-R2-D0-R1 bloqueado por prova Vercel insuficiente (20/08/2026)
 
 Estado terminal preservado: `COMUN_48_5_A4_R2_FLAG_BOOTSTRAP_BLOCKED_SAFE_ABSENT`.
