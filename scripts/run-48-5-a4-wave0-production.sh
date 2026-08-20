@@ -24,6 +24,7 @@ EXTERNAL_MIGRATION="supabase/migrations/20260724233256_comun_sidewalk_operationa
 EXTERNAL_EXCEPTION="supabase/migration-exceptions/20260724233256-sidewalk-external-ledger.json"
 EXTERNAL_SHA256="6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
 TEMP_ROOT="${RUNNER_TEMP:-$(mktemp -d)}"
+HELD_EXTERNAL_MIGRATION=""
 mkdir -p "$ARTIFACT_DIR"
 summary() { printf '%s\n' "$*" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"; }
 stage() { printf 'stage=%s\n' "$1" >> "$ARTIFACT_DIR/stage.txt"; summary "stage=$1"; }
@@ -122,9 +123,9 @@ NODE
 assert_exact_pending_plan() {
   node scripts/solo/validate-sidewalk-external-ledger-exception.mjs "$EXTERNAL_EXCEPTION"
   test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "$EXTERNAL_SHA256"
-  local held="$TEMP_ROOT/comun-a4-external-ledger.sql"
-  mv "$EXTERNAL_MIGRATION" "$held"
-  restore_external() { test ! -e "$held" || mv "$held" "$EXTERNAL_MIGRATION"; test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "$EXTERNAL_SHA256"; }
+  HELD_EXTERNAL_MIGRATION="$TEMP_ROOT/comun-a4-external-ledger.sql"
+  mv "$EXTERNAL_MIGRATION" "$HELD_EXTERNAL_MIGRATION"
+  restore_external() { test ! -e "$HELD_EXTERNAL_MIGRATION" || mv "$HELD_EXTERNAL_MIGRATION" "$EXTERNAL_MIGRATION"; test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "$EXTERNAL_SHA256"; }
   trap restore_external EXIT
   local plan="$ARTIFACT_DIR/migration-plan.txt"
   supabase migration list --db-url "$SUPABASE_DB_URL" > "$ARTIFACT_DIR/migration-list.txt" 2>&1

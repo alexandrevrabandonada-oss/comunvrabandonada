@@ -33,6 +33,8 @@ test("External-ledger bridge is proven before its CLI quarantine and A4 apply", 
   assert.ok(bridgeInvocation < quarantineInvocation);
   assert.ok(bridgeInvocation < applyInvocation);
   assert.match(runner, /externalLedgerBridge=GREEN/);
+  assert.match(runner, /HELD_EXTERNAL_MIGRATION=""/);
+  assert.match(runner, /restore_external\(\).*HELD_EXTERNAL_MIGRATION/);
 });
 
 test("Snapshot phase is initialized before its derived artifact path", () => {
