@@ -74,5 +74,6 @@ test('read-only audit records only sanitized scope and state metadata', () => {
   assert.equal(observed.a4.valueState, 'OFF');
   assert.equal(observed.a4.productionMatches.length, 1);
   assert.equal(observed.a4.sharedMatches, 0);
+  assert.equal(observed.a4.productionMatches[0].type, null);
   assert.equal(observed.rawValuePersisted, false);
 });

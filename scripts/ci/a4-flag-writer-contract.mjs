@@ -43,6 +43,8 @@ function metadata(row) {
     gitBranch: row?.gitBranch ?? null,
     customEnvironmentIds: Array.isArray(row?.customEnvironmentIds) ? row.customEnvironmentIds.map(fingerprint) : [],
     managedByA4Writer: typeof row?.comment === 'string' && row.comment.includes(`managed-by=${A4_FLAG_WRITER_ID}`),
+    type: typeof row?.type === 'string' ? row.type : null,
+    configurationId: fingerprint(row?.configurationId),
     sourceType: "project",
   };
 }
