@@ -1,23 +1,50 @@
 name: COMUN 48.5-A4-R2 E1 external ledger evolved scope
+
 on:
-  workflow_dispatch: {inputs: {expected_main_sha: {required: true, type: string}}}
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact main SHA to verify
+        required: true
+        type: string
   push:
-    branches: [main]
-permissions: {contents: read}
-concurrency: {group: comun-48-5-a4-r2-production, cancel-in-progress: false}
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comun-48-5-a4-r2-production
+  cancel-in-progress: false
 jobs:
   bridge:
-    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[a4-e1-run]') }}
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, '[a4-e1-run]')
     runs-on: ubuntu-24.04
     environment: production
     steps:
       - uses: actions/checkout@v4
-        with: {ref: '${{ github.event_name == 'workflow_dispatch' && inputs.expected_main_sha || github.sha }}', fetch-depth: 0}
+        with:
+          ref: ${{ inputs.expected_main_sha || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with: {node-version: 22.18.0}
       - name: Prove evolved release-owned scope read-only
-        env: {SUPABASE_DB_URL: '${{ secrets.SUPABASE_DB_URL }}', EXPECTED_MAIN_SHA: '${{ github.event_name == 'workflow_dispatch' && inputs.expected_main_sha || github.sha }}'}
-        run: bash -lc 'git fetch origin main; test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"; test "$(git rev-parse origin/main)" = "$EXPECTED_MAIN_SHA"; node scripts/solo/verify-sidewalk-external-ledger-evolved-scope.mjs'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha || github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          test "$(git rev-parse refs/remotes/origin/main)" = "$EXPECTED_MAIN_SHA"
+          node scripts/solo/verify-sidewalk-external-ledger-evolved-scope.mjs
       - uses: actions/upload-artifact@v4
         if: always()
-        with: {name: comun-a4-e1-${{ github.run_id }}, path: .ci-artifacts/a4-external-ledger-e1}
+        with:
+          name: comun-a4-e1-${{ github.run_id }}
+          path: .ci-artifacts/a4-external-ledger-e1
+          if-no-files-found: error
