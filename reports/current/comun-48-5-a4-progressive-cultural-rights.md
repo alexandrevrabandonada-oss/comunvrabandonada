@@ -1,5 +1,14 @@
 # 48.5-A4 — Direitos Progressivos da Memória Cultural
 
+## A4-R2-Wave1-R1 — Runtime boundary e rollback determinístico em preparação (21/08/2026)
+
+Estado local: gates focados verdes; A4 permanece Production `encrypted/OFF` e A3 permanece `encrypted/ON`.
+
+- Arte e Rádio passam a declarar `dynamic = "force-dynamic"`; Foto e a política global de cache não foram alteradas;
+- o runner passa a registrar `runtime-smoke.json` sanitizado por superfície/marcador, contendo apenas status HTTP, presença booleana e SHA-256 do corpo — nunca HTML ou valor de env;
+- toda falha após A4→ON agora entra em rollback explícito por estágio. O recibo `rollback.json` é criado antes do PATCH `enabled→disabled`, e o caminho dedicado exige A4 ON, A3 ON, identidade preservada, deployment exato e smoke OFF;
+- nenhuma nova Wave 1 pode ser disparada até a PR desta correção estar integrada, um novo deployment de código com A4 OFF estar READY e os gates completos passarem. Não houve mudança Supabase, migration, fixture ou business write neste patch local.
+
 ## A4-R2-Wave1 — Ativação Production interrompida e restaurada para OFF (21/08/2026)
 
 Estado terminal: `COMUN_48_5_A4_R2_WAVE1_RUNTIME_SMOKE_BLOCKED_ROLLED_BACK_FLAG_OFF`.

@@ -5,6 +5,8 @@ import {
   A4_FLAG_WRITER_ID,
   assertA4BootstrapPostconditions,
   assertA4BootstrapPreconditions,
+  assertA4DisablePostconditions,
+  assertA4DisablePreconditions,
   assertA4RepairOffPreconditions,
   assertA4Transition,
   assertA4Wave1Postconditions,
@@ -45,6 +47,13 @@ test('Wave 1 selects exactly the canonical A4 row and preserves A3', () => {
   assert.throws(() => assertA4Wave1Preconditions(fixture({ a4: 'disabled', shared: true })), /SHARED/);
   assert.throws(() => assertA4Wave1Preconditions(fixture({ a4: 'disabled', a3: 'disabled' })), /NOT_PRESERVED_ON/);
   assert.equal(assertA4Wave1Postconditions(fixture({ a4: 'enabled' })).a4.state, 'ON');
+});
+
+test('disable uses a dedicated ON to OFF contract', () => {
+  assert.equal(assertA4DisablePreconditions(fixture({ a4: 'enabled' })).a4.state, 'ON');
+  assert.equal(assertA4DisablePostconditions(fixture({ a4: 'disabled' })).a4.state, 'OFF');
+  assert.throws(() => assertA4DisablePreconditions(fixture({ a4: 'disabled' })), /EXPECTED_ON/);
+  assert.throws(() => assertA4DisablePostconditions(fixture({ a4: 'enabled' })), /EXPECTED_OFF/);
 });
 
 test('bootstrap accepts only total A4 absence and preserves A3 ON', () => {
