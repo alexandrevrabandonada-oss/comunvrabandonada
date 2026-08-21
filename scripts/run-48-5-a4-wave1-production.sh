@@ -76,13 +76,25 @@ deploy_exact(){
   npx --yes vercel@50.28.0 alias set "$url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
   production_ready; stage deployment_exact_green
 }
+assert_flag_identity(){ node - "$1" "$2" <<'NODE'
+const fs=require('node:fs'),pre=JSON.parse(fs.readFileSync(process.argv[2],'utf8')),post=JSON.parse(fs.readFileSync(process.argv[3],'utf8'));
+const same=(a,b,fields,label)=>{if(!a||!b||fields.some((field)=>JSON.stringify(a[field])!==JSON.stringify(b[field])))throw new Error(`A4_WAVE1_${label}_IDENTITY_CHANGED`)};
+same(pre.a4Metadata,post.a4Metadata,['id','type','target','createdAt'],'A4');
+same(pre.a3Metadata,post.a3Metadata,['id','type','target','createdAt','updatedAt'],'A3');
+NODE
+  stage flag_identity_preserved_green
+}
 smoke(){
+  local expected_state="${1:-enabled}"
   local routes=(/comun/acervo /comun/acervo/contribuir /comun/acervo/arte /comun/acervo/arte/contribuir /comun/acervo/historias-orais /comun/acervo/historias-orais/contribuir /comun/radio /comun/radio/contribuir) body="$TEMP_ROOT/body.html"
   for route in "${routes[@]}";do test "$(curl -L -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL$route")" = 200; test "$(curl -L -sS -I -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL$route")" = 200; curl -LfsS "$COMUN_BASE_URL$route" > "$body"; ! grep -Eqi 'member_user_id|resume_token_hash|target_id|private\.comun_|sqlstate|service.role|supabase.*key|raw transcript' "$body";done
-  curl -LfsS "$COMUN_BASE_URL/comun/acervo/contribuir?specialized=photo&intake=wave1-smoke" > "$body"; grep -Fq 'Como este material chegou até você?' "$body"; grep -Fq 'Guardar não autoriza publicação nem reutilização.' "$body"; grep -Fq 'historical_unknown' "$body"; grep -Fq 'licensed_reuse' "$body"
-  curl -LfsS "$COMUN_BASE_URL/comun/acervo/arte/contribuir" > "$body"; for x in 'Relação com a autoria' 'Identificação pública' 'Escopo nesta etapa' 'Reutilização' 'Licença, se houver' 'Autoria desconhecida ou obra de terceiro não vira pública automaticamente';do grep -Fq "$x" "$body";done
-  curl -LfsS "$COMUN_BASE_URL/comun/radio/contribuir" > "$body"; for x in 'De quem é a voz?' 'Origem do material' 'Escopo nesta etapa' 'Reutilização' 'Identidade pública' 'Música incorporada possui análise própria; esta declaração não concede licença musical.';do grep -Fq "$x" "$body";done
-  summary runtimeProgressiveRights=true; summary smokeMethods=GET_HEAD_ONLY; stage runtime_smoke_green
+  if test "$expected_state" = enabled; then
+    curl -LfsS "$COMUN_BASE_URL/comun/acervo/contribuir?specialized=photo&intake=wave1-smoke" > "$body"; grep -Fq 'Como este material chegou até você?' "$body"; grep -Fq 'Guardar não autoriza publicação nem reutilização.' "$body"; grep -Fq 'historical_unknown' "$body"; grep -Fq 'licensed_reuse' "$body"
+    curl -LfsS "$COMUN_BASE_URL/comun/acervo/arte/contribuir" > "$body"; for x in 'Relação com a autoria' 'Identificação pública' 'Escopo nesta etapa' 'Reutilização' 'Licença, se houver' 'Autoria desconhecida ou obra de terceiro não vira pública automaticamente';do grep -Fq "$x" "$body";done
+    curl -LfsS "$COMUN_BASE_URL/comun/radio/contribuir" > "$body"; for x in 'De quem é a voz?' 'Origem do material' 'Escopo nesta etapa' 'Reutilização' 'Identidade pública' 'Música incorporada possui análise própria; esta declaração não concede licença musical.';do grep -Fq "$x" "$body";done
+    summary runtimeProgressiveRights=true
+  fi
+  summary smokeMethods=GET_HEAD_ONLY; stage runtime_smoke_green
 }
 compare(){ node - "$ARTIFACT_DIR/baseline.json" "$ARTIFACT_DIR/postflight.json" <<'NODE'
 const fs=require('node:fs'),a=JSON.parse(fs.readFileSync(process.argv[2],'utf8')),b=JSON.parse(fs.readFileSync(process.argv[3],'utf8'));if(JSON.stringify(a)!==JSON.stringify(b))throw new Error('A4_WAVE1_BUSINESS_DELTA');
@@ -90,12 +102,12 @@ NODE
   summary businessWrites=0; summary publications=0; summary searchWrites=0; summary assetWrites=0; summary collectionWrites=0; }
 rollback(){
   if test "$ENABLED" != true || test "$ROLLBACK_ATTEMPTED" = true; then return; fi; ROLLBACK_ATTEMPTED=true; set +e
-  audit_flags disable-pre && patch_a4 disabled && audit_flags disable-post && deploy_exact && smoke
+  audit_flags disable-pre && patch_a4 disabled && audit_flags disable-post && assert_flag_identity "$ARTIFACT_DIR/flag-disable-pre.json" "$ARTIFACT_DIR/flag-disable-post.json" && deploy_exact && smoke disabled
   local ok=$?; set -e; if test "$ok" -ne 0; then summary COMUN_48_5_A4_R2_ROLLBACK_INCOMPLETE_REQUIRES_INTERVENTION; fi
 }
 on_error(){ local status=$?; rollback; exit "$status"; }; trap on_error ERR
 
 assert_main; production_ready; schema_preflight; snapshot baseline
-if test "$MODE" = disable-only; then audit_flags disable-pre; patch_a4 disabled; audit_flags disable-post; deploy_exact; smoke; summary A4_DISABLE_ONLY_GREEN; exit 0; fi
-audit_flags wave1-pre; patch_a4 enabled; ENABLED=true; audit_flags wave1-post; deploy_exact; smoke; snapshot postflight; compare
+if test "$MODE" = disable-only; then audit_flags disable-pre; patch_a4 disabled; audit_flags disable-post; assert_flag_identity "$ARTIFACT_DIR/flag-disable-pre.json" "$ARTIFACT_DIR/flag-disable-post.json"; deploy_exact; smoke disabled; summary A4_DISABLE_ONLY_GREEN; exit 0; fi
+audit_flags wave1-pre; patch_a4 enabled; ENABLED=true; audit_flags wave1-post; assert_flag_identity "$ARTIFACT_DIR/flag-wave1-pre.json" "$ARTIFACT_DIR/flag-wave1-post.json"; deploy_exact; smoke enabled; snapshot postflight; compare
 summary COMUN_48_5_A4_R2_PROGRESSIVE_CULTURAL_RIGHTS_GREEN_PRODUCTION_ACTIVE_NO_AUTO_PUBLICATION; stage terminal_green

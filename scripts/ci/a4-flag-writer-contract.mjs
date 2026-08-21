@@ -161,6 +161,7 @@ export function assertA4RepairOffPreconditions({ projectRows, sharedRows, env })
 
 export function createA4Receipt({ phase, runId, sha, projectId, before, after, desiredState = null }) {
   const receiptDesiredState = desiredState ?? (phase === 'bootstrap-pre' ? 'disabled' : null);
+  const observed = before ?? after;
   return {
     formatVersion: 1,
     writer: A4_FLAG_WRITER_ID,
@@ -171,12 +172,27 @@ export function createA4Receipt({ phase, runId, sha, projectId, before, after, d
     projectFingerprint: fingerprint(projectId),
     environment: 'production',
     previousState: before?.a4?.state ?? null,
+    currentState: observed?.a4?.state ?? null,
     desiredState: receiptDesiredState,
-    projectMatches: before?.a4?.projectMatches ?? (after ? 1 : null),
-    sharedMatches: before?.a4?.sharedMatches ?? 0,
-    envId: after?.a4?.id ?? null,
-    writerProvenance: after?.a4?.managedByA4Writer ?? false,
-    a3State: before?.a3?.state ?? 'ON',
+    projectMatches: observed?.a4?.projectMatches ?? null,
+    sharedMatches: observed?.a4?.sharedMatches ?? null,
+    envId: observed?.a4?.id ?? null,
+    writerProvenance: observed?.a4?.managedByA4Writer ?? false,
+    a4Metadata: observed?.a4 ? {
+      id: observed.a4.id,
+      type: observed.a4.type,
+      target: observed.a4.target,
+      createdAt: observed.a4.createdAt,
+      updatedAt: observed.a4.updatedAt,
+    } : null,
+    a3State: observed?.a3?.state ?? null,
+    a3Metadata: observed?.a3 ? {
+      id: observed.a3.id,
+      type: observed.a3.type,
+      target: observed.a3.target,
+      createdAt: observed.a3.createdAt,
+      updatedAt: observed.a3.updatedAt,
+    } : null,
     rawValuePersisted: false,
     tokenPersisted: false,
   };
