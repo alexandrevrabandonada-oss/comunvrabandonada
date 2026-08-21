@@ -118,6 +118,38 @@ export function assertA4BootstrapPostconditions({ projectRows, sharedRows, env }
   return { a4: metadata(a4Production[0]), a3: metadata(a3Production[0]) };
 }
 
+function assertA4Canonical({ projectRows, sharedRows, env, expectedA4State }) {
+  const a4All = keyRows(projectRows, A4_FLAG_KEY);
+  const a4Production = productionRows(projectRows, A4_FLAG_KEY);
+  const a4Shared = keyRows(sharedRows, A4_FLAG_KEY);
+  if (a4All.length !== 1 || a4Production.length !== 1) throw new Error('A4_FLAG_PRODUCTION_ENV_NOT_UNIQUE');
+  if (a4Shared.length !== 0) throw new Error('A4_FLAG_SHARED_ENV_CONFLICT');
+  const a4 = a4Production[0];
+  assertProductionOnly(a4, A4_FLAG_KEY);
+  assertNoOverrides(a4, A4_FLAG_KEY);
+  if (a4.type !== 'encrypted') throw new Error('A4_FLAG_EXPECTED_ENCRYPTED_TYPE');
+  if (valueState(env.get(A4_FLAG_KEY)) !== expectedA4State) throw new Error(`A4_FLAG_EXPECTED_${expectedA4State}`);
+
+  const a3Production = productionRows(projectRows, A3_FLAG_KEY);
+  const a3Shared = keyRows(sharedRows, A3_FLAG_KEY);
+  if (a3Production.length !== 1 || a3Shared.length !== 0) throw new Error('A3_FLAG_OWNERSHIP_CHANGED');
+  const a3 = a3Production[0];
+  assertProductionOnly(a3, A3_FLAG_KEY);
+  assertNoOverrides(a3, A3_FLAG_KEY);
+  if (a3.type !== 'encrypted' || valueState(env.get(A3_FLAG_KEY)) !== 'ON') throw new Error('A3_FLAG_NOT_PRESERVED_ON');
+  return { a4: { state: expectedA4State, ...metadata(a4), projectMatches: a4All.length, productionMatches: a4Production.length, sharedMatches: a4Shared.length }, a3: { state: 'ON', ...metadata(a3), projectMatches: a3Production.length, sharedMatches: a3Shared.length } };
+}
+
+export function assertA4Wave1Preconditions(input) {
+  const state = assertA4Canonical({ ...input, expectedA4State: 'OFF' });
+  assertA4Transition({ mode: 'wave1-only', currentState: state.a4.state, desiredState: 'enabled' });
+  return state;
+}
+
+export function assertA4Wave1Postconditions(input) {
+  return assertA4Canonical({ ...input, expectedA4State: 'ON' });
+}
+
 export function assertA4RepairOffPreconditions({ projectRows, sharedRows, env }) {
   const a4 = assertA4BootstrapPostconditions({ projectRows, sharedRows, env: new Map([...env, [A4_FLAG_KEY, 'disabled']]) });
   const row = productionRows(projectRows, A4_FLAG_KEY)[0];
@@ -127,7 +159,9 @@ export function assertA4RepairOffPreconditions({ projectRows, sharedRows, env })
   return a4;
 }
 
-export function createA4Receipt({ phase, runId, sha, projectId, before, after }) {
+export function createA4Receipt({ phase, runId, sha, projectId, before, after, desiredState = null }) {
+  const receiptDesiredState = desiredState ?? (phase === 'bootstrap-pre' ? 'disabled' : null);
+  const observed = before ?? after;
   return {
     formatVersion: 1,
     writer: A4_FLAG_WRITER_ID,
@@ -138,12 +172,27 @@ export function createA4Receipt({ phase, runId, sha, projectId, before, after })
     projectFingerprint: fingerprint(projectId),
     environment: 'production',
     previousState: before?.a4?.state ?? null,
-    desiredState: after ? 'disabled' : 'disabled',
-    projectMatches: before?.a4?.projectMatches ?? (after ? 1 : null),
-    sharedMatches: before?.a4?.sharedMatches ?? 0,
-    envId: after?.a4?.id ?? null,
-    writerProvenance: after?.a4?.managedByA4Writer ?? false,
-    a3State: before?.a3?.state ?? 'ON',
+    currentState: observed?.a4?.state ?? null,
+    desiredState: receiptDesiredState,
+    projectMatches: observed?.a4?.projectMatches ?? null,
+    sharedMatches: observed?.a4?.sharedMatches ?? null,
+    envId: observed?.a4?.id ?? null,
+    writerProvenance: observed?.a4?.managedByA4Writer ?? false,
+    a4Metadata: observed?.a4 ? {
+      id: observed.a4.id,
+      type: observed.a4.type,
+      target: observed.a4.target,
+      createdAt: observed.a4.createdAt,
+      updatedAt: observed.a4.updatedAt,
+    } : null,
+    a3State: observed?.a3?.state ?? null,
+    a3Metadata: observed?.a3 ? {
+      id: observed.a3.id,
+      type: observed.a3.type,
+      target: observed.a3.target,
+      createdAt: observed.a3.createdAt,
+      updatedAt: observed.a3.updatedAt,
+    } : null,
     rawValuePersisted: false,
     tokenPersisted: false,
   };
@@ -188,6 +237,14 @@ if (process.argv[1]?.endsWith('a4-flag-writer-contract.mjs')) {
       ? assertA4BootstrapPostconditions({ projectRows, sharedRows, env })
       : phase === 'repair-pre'
         ? assertA4RepairOffPreconditions({ projectRows, sharedRows, env })
+      : phase === 'wave1-pre'
+        ? assertA4Wave1Preconditions({ projectRows, sharedRows, env })
+      : phase === 'wave1-post'
+        ? assertA4Wave1Postconditions({ projectRows, sharedRows, env })
+      : phase === 'disable-pre'
+        ? assertA4Wave1Postconditions({ projectRows, sharedRows, env })
+      : phase === 'disable-post'
+        ? assertA4Wave1Preconditions({ projectRows, sharedRows, env })
       : phase === 'audit'
         ? observeA4FlagState({ projectRows, sharedRows, env })
         : (() => { throw new Error('A4_FLAG_RECEIPT_PHASE_INVALID'); })();
@@ -196,14 +253,16 @@ if (process.argv[1]?.endsWith('a4-flag-writer-contract.mjs')) {
     console.log(`A4_FLAG_READ_ONLY_AUDIT a4=${outcome.a4.valueState} a3=${outcome.a3.valueState} a4ProductionMatches=${outcome.a4.productionMatches.length} a4SharedMatches=${outcome.a4.sharedMatches}`);
     process.exit(0);
   }
+  const desiredState = phase === 'wave1-pre' ? 'enabled' : phase === 'disable-pre' ? 'disabled' : null;
   const receipt = createA4Receipt({
     phase,
     runId: process.env.GITHUB_RUN_ID,
     sha: process.env.EXPECTED_MAIN_SHA,
     projectId: process.env.VERCEL_PROJECT_ID,
-    before: phase === 'bootstrap-pre' ? outcome : undefined,
-    after: phase === 'bootstrap-post' ? outcome : undefined,
+    before: ['bootstrap-pre', 'wave1-pre', 'disable-pre'].includes(phase) ? outcome : undefined,
+    after: ['bootstrap-post', 'wave1-post', 'disable-post'].includes(phase) ? outcome : undefined,
+    desiredState,
   });
   fs.writeFileSync(args.get('--output'), `${JSON.stringify(receipt, null, 2)}\n`, 'utf8');
-  console.log(`A4_FLAG_WRITER_CONTRACT_GREEN phase=${phase} a4=${phase === 'bootstrap-pre' ? 'ABSENT' : 'OFF'} a3=ON`);
+  console.log(`A4_FLAG_WRITER_CONTRACT_GREEN phase=${phase} a4=${outcome.a4.state} a3=ON`);
 }

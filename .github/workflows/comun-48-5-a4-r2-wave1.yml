@@ -1,0 +1,53 @@
+name: COMUN 48.5-A4-R2 Wave 1 progressive rights activation
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact origin/main SHA
+        required: true
+        type: string
+      mode:
+        description: Runtime-only mode
+        required: true
+        default: wave1-only
+        type: choice
+        options: [wave1-only, disable-only]
+
+concurrency:
+  group: comun-48-5-a4-r2-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+  COMUN_BASE_URL: https://comunsocial.online
+
+jobs:
+  wave1:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: ${{ inputs.expected_main_sha }}, fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - name: Activate A4 runtime only
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        run: bash scripts/run-48-5-a4-wave1-production.sh ${{ inputs.mode }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-5-a4-r2-wave1-${{ github.run_id }}
+          path: .ci-artifacts/48-5-a4-r2-wave1/
+          retention-days: 30
+          if-no-files-found: warn
