@@ -1,5 +1,17 @@
 # 48.5-A4 — Direitos Progressivos da Memória Cultural
 
+## A4-R2-Wave1 — Ativação Production interrompida e restaurada para OFF (21/08/2026)
+
+Estado terminal: `COMUN_48_5_A4_R2_WAVE1_RUNTIME_SMOKE_BLOCKED_ROLLED_BACK_FLAG_OFF`.
+
+- a implementação isolada da Wave 1 foi integrada pelas PRs #354, #355, #356 e #357. Ela usa somente `workflow_dispatch`, valida o SHA exato, schema/read-only, snapshots, A4/A3 canônicas e muda exclusivamente a env A4 por `PATCH` no ID já existente; não contém migration nem comandos Supabase mutáveis;
+- o primeiro dispatch útil `32470001808`, no SHA `9ff9693e6a69a1c931eab2e17b07f2510e261fb4`, confirmou schema A4 uma vez, RLS/grants, ausência de backfill, História Oral granular, baseline read-only, A4 OFF/encrypted/única e A3 ON/encrypted/única. O PATCH A4→ON retornou `HTTP 200`; os receipts comprovam que A4 manteve ID, tipo, target e criação, e A3 manteve também `updatedAt`;
+- o deploy pós-write `dpl_3z947n9D67xc5kJJ5CYnUMxuthYd` ficou READY e foi promovido. O smoke GET/HEAD obrigatório falhou depois desse deploy, antes de `postflight.json` e do terminal GREEN. O log não identifica qual marcador obrigatório faltou, portanto a causa de runtime permanece não determinada e não foi inferida;
+- o trap de rollback não materializou recibos `disable-*`; isso é um defeito operacional do runner. Para retornar imediatamente ao estado seguro foi executado o modo canônico `disable-only`, e não um PATCH manual;
+- o dispatch de recuperação `32470635477` ficou GREEN: A4 ON→OFF recebeu `HTTP 200`, a mesma env permanece única/encrypted/Production-only, sem shared, duplicata, branch ou custom override; A3 continua ON com fingerprint e metadata inalterados. O deployment de recuperação `dpl_GeC3TXJxrhCgGe1kk8a9k4rePD2t` ficou READY e o smoke baseline GET/HEAD passou;
+- não houve migration, RPC, POST de contribuição, fixture, intake, target, asset, Search, coleção ou publicação. O baseline read-only continua com intakes/submissões/alvos de contribuição em zero; a tentativa encerrou sem `postflight` porque o smoke falhou. A4 permanece fail-closed OFF e nenhuma nova Wave 1 deve ser disparada até corrigir e comprovar o rollback automático e o marcador de smoke;
+- a migration A4 já permanece registrada uma vez conforme a Wave 0 anterior. A3 segue ativa; não iniciar A5.
+
 ## A4-R2-Wave0-G0 — E1 terminal integrado e schema Production confirmado (20/08/2026)
 
 Estado terminal: `COMUN_48_5_A4_R2_SCHEMA_GREEN_PROGRESSIVE_RIGHTS_FLAG_OFF`.
