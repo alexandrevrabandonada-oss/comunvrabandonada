@@ -37,9 +37,13 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v4
-        with: { ref: ${{ inputs.expected_main_sha }}, fetch-depth: 0 }
+        with:
+          ref: ${{ inputs.expected_main_sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v4
-        with: { node-version: 22.18.0, cache: npm }
+        with:
+          node-version: 22.18.0
+          cache: npm
       - name: Activate A4 runtime only
         env:
           EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
