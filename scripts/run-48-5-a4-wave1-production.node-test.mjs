@@ -4,7 +4,7 @@ import test from 'node:test';
 const runner=fs.readFileSync('scripts/run-48-5-a4-wave1-production.sh','utf8');
 const workflow=fs.readFileSync('.github/workflows/comun-48-5-a4-r2-wave1.yml','utf8');
 test('Wave 1 has only activation and disable-only modes',()=>{assert.match(runner,/wave1-only\|disable-only/);assert.doesNotMatch(runner,/db push|migration list|--include-all|db reset/);assert.match(workflow,/comun-48-5-a4-r2-production/);});
-test('push registration cannot execute the Wave 1 writer',()=>{assert.match(workflow,/push:\s*\n\s*branches:\s*\n\s*- main/);assert.match(workflow,/if: github\.event_name == 'workflow_dispatch'/);});
+test('workflow dispatch exposes a string mode that the runner validates',()=>{assert.match(workflow,/workflow_dispatch:/);assert.match(workflow,/mode:\s*\n\s*description: Runtime-only mode[\s\S]*type: string/);assert.doesNotMatch(workflow,/\n\s*push:/);});
 test('writer patch is ID-specific and minimal',()=>{assert.match(runner,/\/v9\/projects\/\$VERCEL_PROJECT_ID\/env\/\$id/);assert.match(runner,/--data "\{\\"value\\":\\"\$value\\"\}"/);assert.doesNotMatch(runner,/env add|--force|POST/);});
 test('post-write failures roll back only A4 before completing',()=>{assert.match(runner,/ENABLED=true; audit_flags wave1-post; assert_flag_identity .*deploy_exact; smoke enabled; snapshot postflight; compare/);assert.match(runner,/patch_a4 disabled/);assert.match(runner,/ROLLBACK_INCOMPLETE_REQUIRES_INTERVENTION/);});
 test('identity proof preserves A4 and A3 and rollback smoke expects A4 off',()=>{assert.match(runner,/\['id','type','target','createdAt'\],'A4'/);assert.match(runner,/\['id','type','target','createdAt','updatedAt'\],'A3'/);assert.match(runner,/smoke disabled/);assert.match(runner,/smoke enabled/);});
