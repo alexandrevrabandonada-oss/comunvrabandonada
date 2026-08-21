@@ -13,6 +13,9 @@ on:
         default: wave1-only
         type: choice
         options: [wave1-only, disable-only]
+  push:
+    branches:
+      - main
 
 concurrency:
   group: comun-48-5-a4-r2-production
@@ -28,6 +31,7 @@ env:
 
 jobs:
   wave1:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     environment: production
