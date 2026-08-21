@@ -1,4 +1,15 @@
-## Estado atual — 48.5-A4-R2-Wave0-G0: schema A4 GREEN, flag OFF (20/08/2026)
+## Estado atual — 48.5-A4-R2-Wave1: runtime smoke bloqueado, flag restaurada OFF (21/08/2026)
+
+Estado terminal: `COMUN_48_5_A4_R2_WAVE1_RUNTIME_SMOKE_BLOCKED_ROLLED_BACK_FLAG_OFF`.
+
+- Wave 1 `32470001808` passou preflight read-only, A4 OFF→ON por PATCH no ID canônico e deployment `dpl_3z947n9D67xc5kJJ5CYnUMxuthYd` READY, mas falhou no smoke pós-write antes do terminal;
+- os receipts comprovam identidade A4 preservada e A3 ON inalterada. O rollback automático não materializou recibo, por isso o modo canônico `disable-only` `32470635477` foi executado imediatamente;
+- recuperação GREEN: A4 está novamente encrypted/OFF, única e Production-only; A3 encrypted/ON; deployment `dpl_GeC3TXJxrhCgGe1kk8a9k4rePD2t` READY e smoke baseline GREEN;
+- sem migration, business write, fixture, intake, target, asset, Search, coleção ou publicação. Não repetir Wave 1 até corrigir o rollback automático e diagnosticar o marcador de smoke.
+
+Relatório detalhado: `reports/current/comun-48-5-a4-progressive-cultural-rights.md`.
+
+## Estado histórico — 48.5-A4-R2-Wave0-G0: schema A4 GREEN, flag OFF (20/08/2026)
 
 Estado terminal: `COMUN_48_5_A4_R2_SCHEMA_GREEN_PROGRESSIVE_RIGHTS_FLAG_OFF`.
 
