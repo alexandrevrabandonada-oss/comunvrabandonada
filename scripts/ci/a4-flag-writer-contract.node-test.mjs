@@ -7,6 +7,8 @@ import {
   assertA4BootstrapPreconditions,
   assertA4RepairOffPreconditions,
   assertA4Transition,
+  assertA4Wave1Postconditions,
+  assertA4Wave1Preconditions,
   createA4Receipt,
   observeA4FlagState,
   sanitizeA4CreateResponse,
@@ -16,8 +18,8 @@ const A4 = 'COMUN_CULTURAL_PROGRESSIVE_RIGHTS_ENABLED';
 const A3 = 'COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED';
 
 function fixture({ a4 = 'absent', a3 = 'enabled', shared = false, duplicate = false, override = false } = {}) {
-  const projectRows = [{ id: 'a3-id', key: A3, target: ['production'], gitBranch: null, customEnvironmentIds: [] }];
-  if (a4 !== 'absent') projectRows.push({ id: 'a4-id', key: A4, target: ['production'], gitBranch: override ? 'feature/x' : null, customEnvironmentIds: [], comment: 'managed-by=comun-48-5-a4-r2; phase=a4-r2-d0; state=off' });
+  const projectRows = [{ id: 'a3-id', key: A3, type: 'encrypted', target: ['production'], gitBranch: null, customEnvironmentIds: [] }];
+  if (a4 !== 'absent') projectRows.push({ id: 'a4-id', key: A4, type: 'encrypted', target: ['production'], gitBranch: override ? 'feature/x' : null, customEnvironmentIds: [], comment: 'managed-by=comun-48-5-a4-r2; phase=a4-r2-d0; state=off' });
   if (duplicate) projectRows.push({ id: 'a4-id-two', key: A4, target: ['production'], gitBranch: null, customEnvironmentIds: [] });
   const env = new Map([[A3, a3]]);
   if (a4 !== 'absent') env.set(A4, a4);
@@ -31,6 +33,18 @@ test('A4 writer allows only explicit ownership transitions', () => {
   assert.equal(assertA4Transition({ mode: 'disable-only', currentState: 'OFF', desiredState: 'disabled' }).allowed, true);
   assert.throws(() => assertA4Transition({ mode: 'bootstrap', currentState: 'OFF', desiredState: 'disabled' }), /TRANSITION_BLOCKED/);
   assert.throws(() => assertA4Transition({ mode: 'wave1-only', currentState: 'ABSENT', desiredState: 'enabled' }), /TRANSITION_BLOCKED/);
+  assert.throws(() => assertA4Transition({ mode: 'wave1-only', currentState: 'UNKNOWN', desiredState: 'enabled' }), /CURRENT_STATE_UNKNOWN/);
+  assert.throws(() => assertA4Transition({ mode: 'wave1-only', currentState: 'ON', desiredState: 'enabled' }), /TRANSITION_BLOCKED/);
+});
+
+test('Wave 1 selects exactly the canonical A4 row and preserves A3', () => {
+  const before = assertA4Wave1Preconditions(fixture({ a4: 'disabled' }));
+  assert.equal(before.a4.state, 'OFF');
+  assert.equal(before.a4.projectMatches, 1);
+  assert.throws(() => assertA4Wave1Preconditions(fixture({ a4: 'disabled', duplicate: true })), /NOT_UNIQUE/);
+  assert.throws(() => assertA4Wave1Preconditions(fixture({ a4: 'disabled', shared: true })), /SHARED/);
+  assert.throws(() => assertA4Wave1Preconditions(fixture({ a4: 'disabled', a3: 'disabled' })), /NOT_PRESERVED_ON/);
+  assert.equal(assertA4Wave1Postconditions(fixture({ a4: 'enabled' })).a4.state, 'ON');
 });
 
 test('bootstrap accepts only total A4 absence and preserves A3 ON', () => {
@@ -61,6 +75,9 @@ test('receipts are sanitized and identify the dedicated A4 writer', () => {
   assert.equal(receipt.tokenPersisted, false);
   assert.doesNotMatch(JSON.stringify(receipt), /project-id/);
   assert.match(JSON.stringify(receipt), /"desiredState":"disabled"/);
+  const wave1 = createA4Receipt({ phase: 'wave1-pre', runId: '123', sha: 'a'.repeat(40), projectId: 'project-id', before: assertA4Wave1Preconditions(fixture({ a4: 'disabled' })), desiredState: 'enabled' });
+  assert.match(JSON.stringify(wave1), /"previousState":"OFF"/);
+  assert.match(JSON.stringify(wave1), /"desiredState":"enabled"/);
 });
 
 test('creation response retains only the returned environment ID fingerprint', () => {
@@ -75,7 +92,7 @@ test('read-only audit records only sanitized scope and state metadata', () => {
   assert.equal(observed.a4.valueState, 'OFF');
   assert.equal(observed.a4.productionMatches.length, 1);
   assert.equal(observed.a4.sharedMatches, 0);
-  assert.equal(observed.a4.productionMatches[0].type, null);
+  assert.equal(observed.a4.productionMatches[0].type, 'encrypted');
   assert.equal(observed.rawValuePersisted, false);
 });
 
