@@ -1,4 +1,15 @@
-## Estado atual — 48.5-A4-R2-Wave1-R1: correção de runtime/rollback em preparação, A4 continua OFF (21/08/2026)
+## Estado atual — 48.5-A4-C0: baseline pós-ativação GREEN, A4 fechada (22/08/2026)
+
+Estado terminal: `COMUN_48_5_A4_C0_POST_ACTIVATION_BASELINE_GREEN_A4_CLOSED`.
+
+- A4 está encrypted/ON, única e Production-only; A3 permanece encrypted/ON, única e Production-only. Não há shared env, duplicata, branch ou custom-environment override para A4;
+- o baseline C0 [32593036170](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/32593036170) passou em transação explícita READ ONLY: migration A4 uma vez, schema/RLS/grants verdes, direitos legados não inferidos e consentimento granular de História Oral preservado;
+- o snapshot não teve delta funcional: intakes/submissions especializados permanecem zero; assets, Search, coleções, itens publicados e fingerprint de storage foram apenas registrados. Os oito GET/HEAD culturais retornaram HTTP 200 sem marcador privado no HTML;
+- `businessWrites=0`, `schemaWrites=0`, `envWrites=0`, `fixtures=0`, `publications=0`, `rollback=false`. A4 completa `SCHEMA_APPLIED → FLAG_OFF_VALIDATED → WAVE1_ACTIVATED → PRODUCTION_GREEN → CLOSED_BASELINE`; A5 não foi iniciada.
+
+Relatório: `reports/current/comun-48-5-a4-c0-post-activation-closeout.md`.
+
+## Estado histórico — 48.5-A4-R2-Wave1-R1: correção de runtime/rollback em preparação, A4 continua OFF (21/08/2026)
 
 - a correção local limita `force-dynamic` às rotas de contribuição de Arte e Rádio, acrescenta artifact sanitizado por marcador ao smoke e torna o rollback pós-enable determinístico, com receipt anterior ao PATCH de disable;
 - a implementação ainda aguarda os gates completos e integração; portanto Production não foi alterada. A4 permanece encrypted/OFF, única e Production-only, enquanto A3 permanece encrypted/ON;
