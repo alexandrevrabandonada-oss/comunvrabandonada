@@ -3,8 +3,44 @@ import { revalidatePath } from "next/cache";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { logComunAdminAction } from "@/lib/admin-audit";
 import { enqueueHistoricalPhotoDerivativeJob } from "@/lib/archive/photo-processing-queue";
+import {
+  isArchiveSubmissionTransitionAllowed,
+  resolveArchiveSubmissionReadiness,
+} from "@/lib/archive/cultural-curation-readiness";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
-import { isComunCulturalProgressiveRightsEnabled } from "@/lib/comun-cultural-progressive-rights";
+
+async function loadSubmissionReadiness(db: ReturnType<typeof createServiceSupabaseClient>, submission: any) {
+  if (!db) throw new Error("Supabase indisponivel.");
+  const [{ data: links }, { data: derivatives }] = await Promise.all([
+    db
+      .from("comun_archive_submission_assets")
+      .select("upload_status,comun_archive_assets(integrity_status,review_status)")
+      .eq("submission_id", submission.id),
+    submission.archive_item_id
+      ? db
+          .from("comun_archive_assets")
+          .select("id")
+          .eq("archive_item_id", submission.archive_item_id)
+          .eq("bucket_scope", "public_safe")
+          .eq("review_status", "approved")
+          .in("asset_role", ["thumbnail", "display"])
+      : Promise.resolve({ data: [] }),
+  ]);
+  const confirmedOriginal = (links ?? []).some((link: any) => {
+    const asset = Array.isArray(link.comun_archive_assets)
+      ? link.comun_archive_assets[0]
+      : link.comun_archive_assets;
+    return (
+      link.upload_status === "confirmed" &&
+      asset?.integrity_status === "verified" &&
+      asset?.review_status === "approved"
+    );
+  });
+  return resolveArchiveSubmissionReadiness(submission, {
+    confirmedOriginal,
+    derivativesReady: (derivatives ?? []).length >= 2,
+  });
+}
 
 export async function updateSubmissionStatus(formData: FormData) {
   const session = await requireComunAdmin({ roles: ["admin", "editor"] });
@@ -24,6 +60,20 @@ export async function updateSubmissionStatus(formData: FormData) {
     throw new Error("Status invalido.");
   const db = createServiceSupabaseClient();
   if (!db) throw new Error("Supabase indisponivel.");
+  const { data: submission } = await db
+    .from("comun_archive_submissions")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (!submission) throw new Error("Contribuicao nao encontrada.");
+  const readiness = await loadSubmissionReadiness(db, submission);
+  if (!isArchiveSubmissionTransitionAllowed(submission.status, status, readiness)) {
+    throw new Error(
+      status === "ready_for_editorial_review"
+        ? `A contribuicao ainda nao esta pronta: ${readiness.blockers.join(", ") || "revisao pendente"}.`
+        : "Transicao de curadoria invalida para o estado atual.",
+    );
+  }
   await db
     .from("comun_archive_submissions")
     .update({
@@ -63,13 +113,15 @@ export async function createArchiveItemFromSubmission(formData: FormData) {
     .single();
   if (!s)
     throw new Error("Contribuicao sem declaracao de direitos.");
-  if (isComunCulturalProgressiveRightsEnabled()) {
-    if (s.rights_state !== "rights_declared" || s.publication_scope === "review_only")
-      throw new Error("Direitos declarados apenas para revisão; publicação exige confirmação especializada.");
-  } else if (!s.permission_confirmed) {
-    throw new Error("Contribuicao sem declaracao de direitos.");
+  const readiness = await loadSubmissionReadiness(db, s);
+  if (!readiness.readyForDraftMaterialization) {
+    throw new Error(
+      `A contribuicao nao esta pronta para criar rascunho privado: ${readiness.blockers.join(", ")}.`,
+    );
   }
-  const slug = `${String(s.title_suggestion || "fotografia")
+  if (s.submission_type !== "historical_photo")
+    throw new Error("Este adapter so materializa contribuicoes fotograficas historicas.");
+  const slug = `${String(s.title_suggestion)
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
@@ -81,7 +133,7 @@ export async function createArchiveItemFromSubmission(formData: FormData) {
     .insert({
       slug,
       item_type: "photograph",
-      title: s.title_suggestion || "Fotografia sem titulo",
+      title: s.title_suggestion,
       description: s.description_suggestion,
       city: s.city,
       neighborhood: s.neighborhood,
@@ -94,11 +146,11 @@ export async function createArchiveItemFromSubmission(formData: FormData) {
         (s.contributor_credit_preference === "contributor_name"
           ? s.contributor_name
           : "Contribuicao anonima"),
-      rights_status: "permission_granted",
+      rights_status: "unknown",
       status: "draft",
       visibility: "private",
       editorial_notes:
-        "Criado a partir de contribuicao comunitaria; revisar certezas, fonte e direitos.",
+        "Rascunho privado criado a partir de contribuicao comunitaria; revisar contexto, direitos e editorial antes de qualquer publicacao.",
     })
     .select("id")
     .single();
@@ -107,7 +159,6 @@ export async function createArchiveItemFromSubmission(formData: FormData) {
     .from("comun_archive_assets")
     .update({
       archive_item_id: item.data.id,
-      rights_status: "permission_granted",
       credits: s.public_credit || null,
     })
     .in(
@@ -128,7 +179,11 @@ export async function createArchiveItemFromSubmission(formData: FormData) {
     action: "archive_submission_item_created",
     targetType: "archive_submission",
     targetId: id,
-    metadata: { archive_item_id: item.data.id },
+    metadata: {
+      archive_item_id: item.data.id,
+      materialization: "private_photo_draft",
+      publication: "not_authorized",
+    },
   });
   revalidatePath(`/comun/admin/acervo/contribuicoes/${id}`);
 }

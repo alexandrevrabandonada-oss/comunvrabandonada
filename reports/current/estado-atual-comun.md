@@ -3058,3 +3058,13 @@ Estado atual: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_CANDIDATE_PENDING_REMOTE_VERI
 - as quatro primeiras execuções remotas encontraram timeout/lock no apt mirror durante `install-deps`; a quarta confirmou que um `apt-get` reparentado ainda segurava o lock. O novo candidato, somente após timeout, percorre descendentes, libera os lockfiles apt/dpkg por PID de holder com `fuser`, força a resolução após 5 segundos se necessário, mantém duas tentativas e segue fail-closed.
 
 Checkpoint pré-merge reservado: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_GREEN_BROWSER_CI_STABLE_AWAITING_ROLLOUT`.
+## Estado atual — 48.5-A5-A0: contrato de curadoria unificado GREEN; delta A5-A1 necessário (22/08/2026)
+
+Estado terminal: `COMUN_48_5_A5_A0_CURATION_CONTRACT_GREEN_A5_A1_SCHEMA_DELTA_REQUIRED`.
+
+- A5-A0 reutiliza os envelopes especializados de Foto/Documento, Arte, História Oral e Rádio e adiciona um resolver único de readiness editorial; não foi criada fila/tabela cultural paralela e Música continua fora do intake A3;
+- `ready_for_editorial_review` agora é decidido no servidor pelo resolver, e o adapter fotográfico só materializa rascunho privado quando a prontidão permite. Nenhum caminho novo publica, escreve Search, coleção ou asset público, nem eleva direitos por inferência;
+- História Oral e Rádio ainda não possuem vínculo canônico de proveniência para uma materialização especializada auditável. Esse é o menor delta para A5-A1; A5-A0 não introduz migration nem adapter improvisado;
+- A3 e A4 permanecem ON/encrypted/Production-only. `migrations=0`, `ProductionBusinessWrites=0`, `ProductionSchemaWrites=0`, `ProductionEnvWrites=0`, `publications=0`.
+
+Relatório: `reports/current/comun-48-5-a5-a0-cultural-curation-readiness.md`.
