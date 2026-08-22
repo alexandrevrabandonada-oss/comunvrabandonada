@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 
 MODE="${1:-wave1-only}"
 case "$MODE" in wave1-only|disable-only) ;; *) exit 2 ;; esac
@@ -10,10 +10,12 @@ test -z "${SUPABASE_ACCESS_TOKEN:-}"; test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
 
 ARTIFACT_DIR="${COMUN_A4_WAVE1_ARTIFACT_DIR:-.ci-artifacts/48-5-a4-r2-wave1}"
 TEMP_ROOT="${RUNNER_TEMP:-$(mktemp -d)}"; mkdir -p "$ARTIFACT_DIR"
-PROJECT_JSON="$TEMP_ROOT/project.json"; SHARED_JSON="$TEMP_ROOT/shared.json"; ENV_FILE="$TEMP_ROOT/production.env"; ENABLED=false; ROLLBACK_ATTEMPTED=false
+PROJECT_JSON="$TEMP_ROOT/project.json"; SHARED_JSON="$TEMP_ROOT/shared.json"; ENV_FILE="$TEMP_ROOT/production.env"
+ENABLED=false; TERMINAL_GREEN=false; ROLLBACK_ATTEMPTED=false
+SMOKE_FILE="$ARTIFACT_DIR/runtime-smoke.json"; SMOKE_LAST_HTTP_STATUS=""
 summary(){ printf '%s\n' "$*" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"; }
 stage(){ printf 'stage=%s\n' "$1" >> "$ARTIFACT_DIR/stage.txt"; summary "stage=$1"; }
-cleanup(){ rm -f "$PROJECT_JSON" "$SHARED_JSON" "$ENV_FILE"; }; trap cleanup EXIT
+cleanup(){ rm -f "$PROJECT_JSON" "$SHARED_JSON" "$ENV_FILE"; }
 
 assert_main(){
   test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"; git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
@@ -84,30 +86,108 @@ same(pre.a3Metadata,post.a3Metadata,['id','type','target','createdAt','updatedAt
 NODE
   stage flag_identity_preserved_green
 }
+init_runtime_smoke(){
+  local expected="$1"
+  EXPECTED_STATE="$expected" node - "$SMOKE_FILE" <<'NODE'
+const fs=require('node:fs');fs.writeFileSync(process.argv[2],JSON.stringify({formatVersion:1,expectedState:process.env.EXPECTED_STATE,surfaces:{photo:{markers:[]},art:{markers:[]},radio:{markers:[]},oralHistory:{markers:[]}},failedSurface:null,failedMarker:null,rawHtmlPersisted:false},null,2)+'\n');
+NODE
+}
+record_runtime_check(){
+  local surface="$1" marker="$2" literal="$3" body="$4" expected="$5" present=false
+  grep -Fq "$literal" "$body" && present=true
+  CHECK_SURFACE="$surface" CHECK_MARKER="$marker" CHECK_EXPECTED="$expected" CHECK_PRESENT="$present" CHECK_STATUS="$SMOKE_LAST_HTTP_STATUS" node - "$SMOKE_FILE" "$body" <<'NODE'
+const crypto=require('node:crypto'),fs=require('node:fs'),out=process.argv[2],body=fs.readFileSync(process.argv[3]);const x=JSON.parse(fs.readFileSync(out,'utf8'));const surface=process.env.CHECK_SURFACE,marker=process.env.CHECK_MARKER,present=process.env.CHECK_PRESENT==='true',expected=process.env.CHECK_EXPECTED==='present',ok=expected===present;const row={markerId:marker,present,httpStatus:Number(process.env.CHECK_STATUS),bodySha256:crypto.createHash('sha256').update(body).digest('hex')};x.surfaces[surface]??={markers:[]};x.surfaces[surface].httpStatus=row.httpStatus;x.surfaces[surface].bodySha256=row.bodySha256;x.surfaces[surface].markers.push(row);if(!ok&&!x.failedMarker){x.failedSurface=surface;x.failedMarker=marker;x.result='BLOCKED';}fs.writeFileSync(out,JSON.stringify(x,null,2)+'\n');process.exit(ok?0:1);
+NODE
+}
+require_marker(){ record_runtime_check "$1" "$2" "$3" "$4" present; }
+forbid_marker(){ record_runtime_check "$1" "$2" "$3" "$4" absent; }
+fetch_runtime_surface(){
+  local surface="$1" route="$2" body="$3"
+  SMOKE_LAST_HTTP_STATUS="$(curl -L -sS -o "$body" -w '%{http_code}' "$COMUN_BASE_URL$route")"
+  if test "$SMOKE_LAST_HTTP_STATUS" != 200; then record_runtime_check "$surface" http_200 '__expected_http_200__' "$body" present || true; return 1; fi
+  test "$(curl -L -sS -I -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL$route")" = 200
+  if grep -Eqi 'member_user_id|resume_token_hash|target_id|private\.comun_|sqlstate|service.role|supabase.*key|raw transcript' "$body"; then record_runtime_check "$surface" privacy_no_private_identifiers 'member_user_id' "$body" absent; return 1; fi
+}
 smoke(){
-  local expected_state="${1:-enabled}"
-  local routes=(/comun/acervo /comun/acervo/contribuir /comun/acervo/arte /comun/acervo/arte/contribuir /comun/acervo/historias-orais /comun/acervo/historias-orais/contribuir /comun/radio /comun/radio/contribuir) body="$TEMP_ROOT/body.html"
-  for route in "${routes[@]}";do test "$(curl -L -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL$route")" = 200; test "$(curl -L -sS -I -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL$route")" = 200; curl -LfsS "$COMUN_BASE_URL$route" > "$body"; ! grep -Eqi 'member_user_id|resume_token_hash|target_id|private\.comun_|sqlstate|service.role|supabase.*key|raw transcript' "$body";done
+  local expected_state="${1:-enabled}" body="$TEMP_ROOT/body.html" route
+  local routes=(/comun/acervo /comun/acervo/contribuir /comun/acervo/arte /comun/acervo/arte/contribuir /comun/acervo/historias-orais /comun/acervo/historias-orais/contribuir /comun/radio /comun/radio/contribuir)
+  init_runtime_smoke "$expected_state"
+  for route in "${routes[@]}"; do
+    fetch_runtime_surface oralHistory "$route" "$body" || return 1
+  done
+  fetch_runtime_surface photo '/comun/acervo/contribuir?specialized=photo&intake=wave1-smoke' "$body" || return 1
   if test "$expected_state" = enabled; then
-    curl -LfsS "$COMUN_BASE_URL/comun/acervo/contribuir?specialized=photo&intake=wave1-smoke" > "$body"; grep -Fq 'Como este material chegou até você?' "$body"; grep -Fq 'Guardar não autoriza publicação nem reutilização.' "$body"; grep -Fq 'historical_unknown' "$body"; grep -Fq 'licensed_reuse' "$body"
-    curl -LfsS "$COMUN_BASE_URL/comun/acervo/arte/contribuir" > "$body"; for x in 'Relação com a autoria' 'Identificação pública' 'Escopo nesta etapa' 'Reutilização' 'Licença, se houver' 'Autoria desconhecida ou obra de terceiro não vira pública automaticamente';do grep -Fq "$x" "$body";done
-    curl -LfsS "$COMUN_BASE_URL/comun/radio/contribuir" > "$body"; for x in 'De quem é a voz?' 'Origem do material' 'Escopo nesta etapa' 'Reutilização' 'Identidade pública' 'Música incorporada possui análise própria; esta declaração não concede licença musical.';do grep -Fq "$x" "$body";done
-    summary runtimeProgressiveRights=true
+    require_marker photo relationship_source 'Como este material chegou até você?' "$body" || return 1
+    require_marker photo no_auto_publication 'Guardar não autoriza publicação nem reutilização.' "$body" || return 1
+    require_marker photo historical_unknown historical_unknown "$body" || return 1
+    require_marker photo licensed_reuse licensed_reuse "$body" || return 1
+  else
+    forbid_marker photo relationship_source 'Como este material chegou até você?' "$body" || return 1
   fi
-  summary smokeMethods=GET_HEAD_ONLY; stage runtime_smoke_green
+  fetch_runtime_surface art /comun/acervo/arte/contribuir "$body" || return 1
+  if test "$expected_state" = enabled; then
+    for pair in 'authorship|Relação com a autoria' 'identity|Identificação pública' 'scope|Escopo nesta etapa' 'reuse|Reutilização' 'license|Licença, se houver' 'no_auto_publication|Autoria desconhecida ou obra de terceiro não vira pública automaticamente'; do require_marker art "${pair%%|*}" "${pair#*|}" "$body" || return 1; done
+  else
+    forbid_marker art authorship 'Relação com a autoria' "$body" || return 1
+  fi
+  fetch_runtime_surface radio /comun/radio/contribuir "$body" || return 1
+  if test "$expected_state" = enabled; then
+    for pair in 'voice|De quem é a voz?' 'material|Origem do material' 'scope|Escopo nesta etapa' 'reuse|Reutilização' 'identity|Identidade pública' 'music_separate_rights|Música incorporada possui análise própria; esta declaração não concede licença musical.'; do require_marker radio "${pair%%|*}" "${pair#*|}" "$body" || return 1; done
+  else
+    forbid_marker radio voice 'De quem é a voz?' "$body" || return 1
+  fi
+  node - "$SMOKE_FILE" <<'NODE'
+const fs=require('node:fs'),x=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));x.result='GREEN';fs.writeFileSync(process.argv[2],JSON.stringify(x,null,2)+'\n');
+NODE
+  summary runtimeProgressiveRights="$([ "$expected_state" = enabled ] && echo true || echo false)"; summary smokeMethods=GET_HEAD_ONLY; stage runtime_smoke_green
 }
 compare(){ node - "$ARTIFACT_DIR/baseline.json" "$ARTIFACT_DIR/postflight.json" <<'NODE'
 const fs=require('node:fs'),a=JSON.parse(fs.readFileSync(process.argv[2],'utf8')),b=JSON.parse(fs.readFileSync(process.argv[3],'utf8'));if(JSON.stringify(a)!==JSON.stringify(b))throw new Error('A4_WAVE1_BUSINESS_DELTA');
 NODE
   summary businessWrites=0; summary publications=0; summary searchWrites=0; summary assetWrites=0; summary collectionWrites=0; }
-rollback(){
-  if test "$ENABLED" != true || test "$ROLLBACK_ATTEMPTED" = true; then return; fi; ROLLBACK_ATTEMPTED=true; set +e
-  audit_flags disable-pre && patch_a4 disabled && audit_flags disable-post && assert_flag_identity "$ARTIFACT_DIR/flag-disable-pre.json" "$ARTIFACT_DIR/flag-disable-post.json" && deploy_exact && smoke disabled
-  local ok=$?; set -e; if test "$ok" -ne 0; then summary COMUN_48_5_A4_R2_ROLLBACK_INCOMPLETE_REQUIRES_INTERVENTION; fi
+write_rollback_receipt(){
+  local status="$1" trigger="$2" failed_stage="${3:-null}"
+  ROLLBACK_STATUS="$status" ROLLBACK_TRIGGER="$trigger" ROLLBACK_STAGE="$failed_stage" node - "$ARTIFACT_DIR/rollback.json" <<'NODE'
+const fs=require('node:fs'),path=process.argv[2],old=fs.existsSync(path)?JSON.parse(fs.readFileSync(path,'utf8')):{};const stage=process.env.ROLLBACK_STAGE;Object.assign(old,{formatVersion:1,attempted:true,trigger:process.env.ROLLBACK_TRIGGER,mainSha:/^[0-9a-f]{7,64}$/i.test(process.env.EXPECTED_MAIN_SHA||'')?process.env.EXPECTED_MAIN_SHA:null,runId:/^\d+$/.test(process.env.GITHUB_RUN_ID||'')?process.env.GITHUB_RUN_ID:null,previousObservedState:'ON',status:process.env.ROLLBACK_STATUS,rawValuePersisted:false,tokenPersisted:false});if(stage!=='null')old.failedStage=stage;fs.writeFileSync(path,JSON.stringify(old,null,2)+'\n');
+NODE
 }
-on_error(){ local status=$?; rollback; exit "$status"; }; trap on_error ERR
+disable_a4(){
+  local trigger="$1" stage_name
+  if ! audit_flags disable-pre; then stage_name=disable_pre; write_rollback_receipt incomplete "$trigger" "$stage_name"; return 1; fi
+  if ! patch_a4 disabled; then stage_name=disable_patch; write_rollback_receipt incomplete "$trigger" "$stage_name"; return 1; fi
+  if ! audit_flags disable-post; then stage_name=disable_post; write_rollback_receipt incomplete "$trigger" "$stage_name"; return 1; fi
+  if ! assert_flag_identity "$ARTIFACT_DIR/flag-disable-pre.json" "$ARTIFACT_DIR/flag-disable-post.json"; then stage_name=disable_identity; write_rollback_receipt incomplete "$trigger" "$stage_name"; return 1; fi
+  if ! deploy_exact; then stage_name=disable_deployment; write_rollback_receipt incomplete "$trigger" "$stage_name"; return 1; fi
+  if ! smoke disabled; then stage_name=disable_smoke; write_rollback_receipt incomplete "$trigger" "$stage_name"; return 1; fi
+  ENABLED=false
+}
+rollback(){
+  local trigger="$1"
+  test "$ENABLED" = true && test "$ROLLBACK_ATTEMPTED" = false || return 0
+  ROLLBACK_ATTEMPTED=true; trap - ERR EXIT
+  write_rollback_receipt started "$trigger"
+  if ! disable_a4 "$trigger"; then summary COMUN_48_5_A4_R2_ROLLBACK_INCOMPLETE_REQUIRES_INTERVENTION; return 1; fi
+  write_rollback_receipt complete "$trigger"
+  summary COMUN_48_5_A4_R2_RUNTIME_ROLLED_BACK_FLAG_OFF
+}
+on_exit(){
+  local status=$?; trap - ERR EXIT
+  if test "$ENABLED" = true && test "$TERMINAL_GREEN" = false && test "$ROLLBACK_ATTEMPTED" = false; then rollback "unexpected_exit_${status}" || true; fi
+  cleanup; exit "$status"
+}
+fail_after_enable(){ rollback "$1" || true; exit 1; }
+trap on_exit EXIT
 
 assert_main; production_ready; schema_preflight; snapshot baseline
-if test "$MODE" = disable-only; then audit_flags disable-pre; patch_a4 disabled; audit_flags disable-post; assert_flag_identity "$ARTIFACT_DIR/flag-disable-pre.json" "$ARTIFACT_DIR/flag-disable-post.json"; deploy_exact; smoke disabled; summary A4_DISABLE_ONLY_GREEN; exit 0; fi
-audit_flags wave1-pre; patch_a4 enabled; ENABLED=true; audit_flags wave1-post; assert_flag_identity "$ARTIFACT_DIR/flag-wave1-pre.json" "$ARTIFACT_DIR/flag-wave1-post.json"; deploy_exact; smoke enabled; snapshot postflight; compare
+if test "$MODE" = disable-only; then
+  ENABLED=true; ROLLBACK_ATTEMPTED=true; disable_a4 disable_only || exit 1; summary A4_DISABLE_ONLY_GREEN; exit 0
+fi
+audit_flags wave1-pre; patch_a4 enabled; ENABLED=true
+if ! audit_flags wave1-post; then fail_after_enable flag_post_failed; fi
+if ! assert_flag_identity "$ARTIFACT_DIR/flag-wave1-pre.json" "$ARTIFACT_DIR/flag-wave1-post.json"; then fail_after_enable flag_identity_failed; fi
+if ! deploy_exact; then fail_after_enable deployment_failed; fi
+if ! smoke enabled; then fail_after_enable smoke_failed; fi
+if ! snapshot postflight; then fail_after_enable snapshot_failed; fi
+if ! compare; then fail_after_enable comparison_failed; fi
+TERMINAL_GREEN=true
 summary COMUN_48_5_A4_R2_PROGRESSIVE_CULTURAL_RIGHTS_GREEN_PRODUCTION_ACTIVE_NO_AUTO_PUBLICATION; stage terminal_green

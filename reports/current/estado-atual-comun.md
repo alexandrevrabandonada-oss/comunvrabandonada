@@ -1,4 +1,10 @@
-## Estado atual — 48.5-A4-R2-Wave1: runtime smoke bloqueado, flag restaurada OFF (21/08/2026)
+## Estado atual — 48.5-A4-R2-Wave1-R1: correção de runtime/rollback em preparação, A4 continua OFF (21/08/2026)
+
+- a correção local limita `force-dynamic` às rotas de contribuição de Arte e Rádio, acrescenta artifact sanitizado por marcador ao smoke e torna o rollback pós-enable determinístico, com receipt anterior ao PATCH de disable;
+- a implementação ainda aguarda os gates completos e integração; portanto Production não foi alterada. A4 permanece encrypted/OFF, única e Production-only, enquanto A3 permanece encrypted/ON;
+- sem migration, write Supabase, fixture, intake, target, asset, Search, coleção ou publicação.
+
+## Estado histórico — 48.5-A4-R2-Wave1: runtime smoke bloqueado, flag restaurada OFF (21/08/2026)
 
 Estado terminal: `COMUN_48_5_A4_R2_WAVE1_RUNTIME_SMOKE_BLOCKED_ROLLED_BACK_FLAG_OFF`.
 

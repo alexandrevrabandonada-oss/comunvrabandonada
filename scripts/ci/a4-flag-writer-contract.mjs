@@ -150,6 +150,17 @@ export function assertA4Wave1Postconditions(input) {
   return assertA4Canonical({ ...input, expectedA4State: 'ON' });
 }
 
+// A disable is a separate fail-closed transition, not an alias for Wave 1.
+export function assertA4DisablePreconditions(input) {
+  const state = assertA4Canonical({ ...input, expectedA4State: 'ON' });
+  assertA4Transition({ mode: 'disable-only', currentState: state.a4.state, desiredState: 'disabled' });
+  return state;
+}
+
+export function assertA4DisablePostconditions(input) {
+  return assertA4Canonical({ ...input, expectedA4State: 'OFF' });
+}
+
 export function assertA4RepairOffPreconditions({ projectRows, sharedRows, env }) {
   const a4 = assertA4BootstrapPostconditions({ projectRows, sharedRows, env: new Map([...env, [A4_FLAG_KEY, 'disabled']]) });
   const row = productionRows(projectRows, A4_FLAG_KEY)[0];
@@ -242,9 +253,9 @@ if (process.argv[1]?.endsWith('a4-flag-writer-contract.mjs')) {
       : phase === 'wave1-post'
         ? assertA4Wave1Postconditions({ projectRows, sharedRows, env })
       : phase === 'disable-pre'
-        ? assertA4Wave1Postconditions({ projectRows, sharedRows, env })
+        ? assertA4DisablePreconditions({ projectRows, sharedRows, env })
       : phase === 'disable-post'
-        ? assertA4Wave1Preconditions({ projectRows, sharedRows, env })
+        ? assertA4DisablePostconditions({ projectRows, sharedRows, env })
       : phase === 'audit'
         ? observeA4FlagState({ projectRows, sharedRows, env })
         : (() => { throw new Error('A4_FLAG_RECEIPT_PHASE_INVALID'); })();
