@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/admin-shell";
 import { requireComunAdmin } from "@/lib/admin-auth";
+import { resolveArchiveSubmissionReadiness } from "@/lib/archive/cultural-curation-readiness";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import {
   createArchiveItemFromSubmission,
@@ -28,6 +29,15 @@ export default async function SubmissionDetail(props: {
       .eq("submission_id", id),
   ]);
   if (!submission) notFound();
+  const { data: derivatives } = submission.archive_item_id
+    ? await db!
+        .from("comun_archive_assets")
+        .select("id")
+        .eq("archive_item_id", submission.archive_item_id)
+        .eq("bucket_scope", "public_safe")
+        .eq("review_status", "approved")
+        .in("asset_role", ["thumbnail", "display"])
+    : { data: [] };
   const original = links?.[0]?.comun_archive_assets as unknown as {
     id: string;
     checksum_sha256: string | null;
@@ -37,6 +47,25 @@ export default async function SubmissionDetail(props: {
     height: number;
     integrity_status: string;
   } | null;
+  const confirmedOriginal = (links ?? []).some((link: any) => {
+    const asset = Array.isArray(link.comun_archive_assets)
+      ? link.comun_archive_assets[0]
+      : link.comun_archive_assets;
+    return link.upload_status === "confirmed" && asset?.integrity_status === "verified" && asset?.review_status === "approved";
+  });
+  const readiness = resolveArchiveSubmissionReadiness(submission, {
+    confirmedOriginal,
+    derivativesReady: (derivatives ?? []).length >= 2,
+  });
+  const dimensions = [
+    ["Material", readiness.evidence.materialReady && readiness.evidence.assetReady],
+    ["Contexto e procedência", readiness.evidence.provenanceComplete],
+    ["Direitos", readiness.evidence.rightsReady],
+    ["Consentimentos", readiness.evidence.consentReady],
+    ["Safety", readiness.evidence.safetyReady],
+    ["Processamento/assets", readiness.evidence.derivativeReady],
+    ["Editorial", readiness.readyForEditorialReview],
+  ] as const;
   return (
     <AdminShell adminEmail={session.admin.email}>
       <p className="font-black uppercase text-comun-rust">
@@ -48,6 +77,29 @@ export default async function SubmissionDetail(props: {
       <p className="mt-2 font-black uppercase">
         {submission.status} · risco {submission.risk_level}
       </p>
+      <section className="mt-6 border-2 border-comun-black bg-comun-yellow p-5" aria-labelledby="readiness-heading">
+        <h2 id="readiness-heading" className="text-xl font-black uppercase">Prontidão de curadoria</h2>
+        <p className="mt-2">
+          {readiness.readyForEditorialReview
+            ? "PRONTO para revisão editorial. Isto não publica o conteúdo."
+            : "PENDENTE: complete somente as ações abaixo antes da revisão editorial."}
+        </p>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2" aria-label="Dimensões de prontidão">
+          {dimensions.map(([label, ready]) => (
+            <li key={label} className="border-2 border-comun-black bg-white p-3 font-bold">
+              {ready ? "PRONTO" : "BLOQUEADO"} · {label}
+            </li>
+          ))}
+        </ul>
+        {readiness.blockers.length ? (
+          <p className="mt-3 border-2 border-comun-rust bg-white p-3 text-sm">
+            Bloqueios: {readiness.blockers.join(" · ")}
+          </p>
+        ) : null}
+        <p className="mt-3 text-sm">
+          Próxima ação: {readiness.requiredActions.join(" · ") || "revisão editorial"}.
+        </p>
+      </section>
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         <section className="border-2 border-comun-black bg-white p-5">
           <h2 className="text-xl font-black uppercase">Material e contexto</h2>
@@ -122,11 +174,20 @@ export default async function SubmissionDetail(props: {
               </form>
             ),
           )}
-          {!submission.archive_item_id ? (
+          {readiness.readyForEditorialReview ? (
+            <form action={updateSubmissionStatus}>
+              <input type="hidden" name="id" value={id} />
+              <input type="hidden" name="status" value="ready_for_editorial_review" />
+              <button className="border-2 border-comun-black bg-white px-3 py-2 font-black uppercase">
+                Marcar pronto para revisão editorial
+              </button>
+            </form>
+          ) : null}
+          {!submission.archive_item_id && readiness.readyForDraftMaterialization ? (
             <form action={createArchiveItemFromSubmission}>
               <input type="hidden" name="id" value={id} />
               <button className="border-2 border-comun-black bg-white px-3 py-2 font-black uppercase">
-                Criar item do Acervo
+                Criar rascunho privado fotográfico
               </button>
             </form>
           ) : null}
