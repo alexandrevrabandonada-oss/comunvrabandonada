@@ -4,6 +4,7 @@ import {
   buildLocalEnvironment,
   parseLocalStatus,
   printSafeEnvironment,
+  readLocalStatus,
 } from "./comun-local-env.mjs";
 
 const local = {
@@ -79,4 +80,31 @@ test("status parsing has the same logical contract across Windows and Linux", ()
   ]) {
     assert.equal(windows[key], linux[key]);
   }
+});
+
+test("GitHub Actions routes only local status through the fail-closed retry reader", () => {
+  let calls = 0;
+  const raw = readLocalStatus({
+    platform: "linux",
+    inherited: { GITHUB_ACTIONS: "true" },
+    retryReader: ({ invoke }) => {
+      calls += 1;
+      assert.equal(typeof invoke, "function");
+      return { ok: true, output: 'API_URL="http://127.0.0.1:54321"' };
+    },
+  });
+  assert.equal(calls, 1);
+  assert.equal(raw, 'API_URL="http://127.0.0.1:54321"');
+});
+
+test("GitHub Actions fails closed when the retry reader cannot obtain status", () => {
+  assert.throws(
+    () =>
+      readLocalStatus({
+        platform: "linux",
+        inherited: { GITHUB_ACTIONS: "true" },
+        retryReader: () => ({ ok: false }),
+      }),
+    /COMUN_LOCAL_STATUS_RETRY_FAILED/,
+  );
 });

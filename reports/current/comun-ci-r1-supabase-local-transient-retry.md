@@ -8,7 +8,7 @@
 
 ## Contrato
 
-O helper `scripts/ci/read-supabase-local-env.mjs` é o único ajuste no bootstrap local dos contratos Territory local-only e P1T. Ele executa exclusivamente `supabase status -o env`, devolve o ambiente apenas para a substituição de comando que o consome e nunca o registra em diagnósticos.
+O helper `scripts/ci/read-supabase-local-env.mjs` cobre o bootstrap local dos contratos Territory local-only e P1T e, em GitHub Actions, a leitura interna do wrapper `scripts/comun-local-env.mjs` usado pela PR lane. Ele executa exclusivamente `supabase status -o env`, devolve o ambiente apenas para o processo que o consome e nunca o registra em diagnósticos. Desenvolvimento Windows/local continua usando o caminho `npx` existente.
 
 - Allowlist transitória: `UPSTREAM_502`, `UPSTREAM_503`, `UPSTREAM_504`, cada uma exigindo código e mensagem upstream explicitamente reconhecíveis.
 - Máximo: três tentativas totais, com backoff curto de 500 ms e 1000 ms.
@@ -21,6 +21,8 @@ O helper `scripts/ci/read-supabase-local-env.mjs` é o único ajuste no bootstra
 ## Limites preservados
 
 Não há retry em `supabase start`, `supabase db reset`, `psql`, migrations, assertions de contrato, testes, operações remotas ou deploys. O P1T continua aplicando a migration duas vezes e executando suas verificações de colunas, RLS, grants e script focal.
+
+O Quality run `32604733693` confirmou o mesmo `UPSTREAM_502` depois do reset/seed, no wrapper local da PR lane; este fechamento inclui esse último caminho CI, sem ampliar a allowlist nem repetir reset/migration.
 
 ## Reparos independentes revelados pela matriz real
 
