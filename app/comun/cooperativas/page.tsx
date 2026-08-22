@@ -9,6 +9,7 @@ import { getPublicSolidarityEconomyDirectory } from "@/lib/server/comun-solidari
 import { Card, CTA, Hero, Metrics } from "../reciclagem/page";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Feirinha | COMUN VR Abandonada" };
 
 const MODALITY_LABELS = { sale: "Venda", exchange: "Troca", donation: "Doação", loan: "Empréstimo", cession: "Cessão", mutual_aid: "Ajuda mútua", cooperation: "Cooperação", other: "Outra modalidade" } as const;
 
