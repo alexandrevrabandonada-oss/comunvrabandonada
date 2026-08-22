@@ -1,5 +1,14 @@
 # 48.5-A4 — Direitos Progressivos da Memória Cultural
 
+## A4-C0 — Fechamento pós-ativação e baseline de estabilidade (22/08/2026)
+
+Estado terminal: `COMUN_48_5_A4_C0_POST_ACTIVATION_BASELINE_GREEN_A4_CLOSED`.
+
+- a ativação canônica Wave 1 `32570311968`/`dpl_3jnrsGkHH4rAzEsdHQ8Le3jGkX5h` foi confirmada, e o verifier C0 `32593036170` passou integralmente sem write remoto;
+- A4 e A3 estão ON, encrypted, únicas e Production-only; a migration A4 consta uma vez com checksum canônico. Schema, RLS, grants, não-inferência de direitos legados, contrato de licença, separação review/publicação e consentimento granular de História Oral ficaram verdes;
+- o artifact sanitizado `9480830306` registra snapshot estável e oito GET/HEAD 200. Não armazena HTML ou valores de env; `businessWrites=0`, `schemaWrites=0`, `envWrites=0`, `fixtures=0`, `publications=0`, `rollback=false`;
+- relatório canônico de closeout: `reports/current/comun-48-5-a4-c0-post-activation-closeout.md`. A4 está fechada em `CLOSED_BASELINE`; A5 não foi iniciada.
+
 ## A4-R2-Wave1-R1 — Runtime boundary e rollback determinístico em preparação (21/08/2026)
 
 Estado local: gates focados verdes; A4 permanece Production `encrypted/OFF` e A3 permanece `encrypted/ON`.
