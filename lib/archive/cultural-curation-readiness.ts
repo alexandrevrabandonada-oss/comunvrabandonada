@@ -24,8 +24,15 @@ export type CurationBlockerCode =
   | "oral_history_recording_consent_missing"
   | "oral_history_voice_consent_missing"
   | "oral_history_transcription_consent_missing"
+  | "oral_history_publication_consent_missing"
+  | "oral_history_withdrawal_pending"
   | "radio_voice_consent_missing"
-  | "music_rights_incomplete";
+  | "music_rights_incomplete"
+  | "private_root_source_ineligible"
+  | "private_root_editorial_decision_required"
+  | "radio_private_root_destination_required"
+  | "radio_existing_target_reconciliation_required"
+  | "music_pipeline_required";
 
 export type CurationWarningCode =
   | "attention_risk_requires_editorial_attention"
@@ -43,8 +50,11 @@ export type CurationActionCode =
   | "confirm_private_original"
   | "process_derivatives"
   | "record_oral_history_consents"
+  | "resolve_oral_history_withdrawal"
   | "record_radio_voice_consent"
   | "resolve_music_rights"
+  | "choose_radio_private_root_destination"
+  | "reconcile_radio_existing_target"
   | "request_editorial_review";
 
 export type CulturalCurationReadinessInput = {
@@ -77,17 +87,40 @@ export type CulturalCurationReadinessInput = {
     transcriptionConsent?: boolean;
     editorialConsent?: boolean;
     publicPublicationConsent?: boolean;
+    withdrawalPending?: boolean;
   };
   radio?: {
     voiceConsent?: boolean;
     musicRightsRequired?: boolean;
     musicRightsComplete?: boolean;
+    withdrawalPending?: boolean;
+  };
+  /** Evidence available before any specialized root and its child gates exist. */
+  preMaterialization?: {
+    sourceStatus?: string | null;
+    explicitEditorialDecision?: boolean;
+    rootExists?: boolean;
+    radioContributionType?:
+      | "program_proposal"
+      | "pauta_proposal"
+      | "community_audio"
+      | "authorized_testimony"
+      | "own_music"
+      | "agenda"
+      | "correction"
+      | "complement"
+      | "withdrawal"
+      | null;
+    radioTargetKind?: "program" | "episode" | null;
+    radioProgramSelected?: boolean;
   };
 };
 
 export type CulturalCurationReadiness = {
   specialization: CulturalSpecialization | null;
   stage: string;
+  /** Does not require child consents or public derivatives that do not exist yet. */
+  readyForPrivateRootCreation: boolean;
   readyForEditorialReview: boolean;
   readyForDraftMaterialization: boolean;
   /** A5-A0 never authorizes publication. */
@@ -140,10 +173,23 @@ function actionFor(blocker: CurationBlockerCode): CurationActionCode {
     case "oral_history_voice_consent_missing":
     case "oral_history_transcription_consent_missing":
       return "record_oral_history_consents";
+    case "oral_history_publication_consent_missing":
+      return "record_oral_history_consents";
+    case "oral_history_withdrawal_pending":
+      return "resolve_oral_history_withdrawal";
     case "radio_voice_consent_missing":
       return "record_radio_voice_consent";
     case "music_rights_incomplete":
       return "resolve_music_rights";
+    case "radio_private_root_destination_required":
+      return "choose_radio_private_root_destination";
+    case "radio_existing_target_reconciliation_required":
+      return "reconcile_radio_existing_target";
+    case "music_pipeline_required":
+      return "resolve_music_rights";
+    case "private_root_source_ineligible":
+    case "private_root_editorial_decision_required":
+      return "request_editorial_review";
     case "missing_specialization":
       return "complete_handoff";
   }
@@ -205,8 +251,15 @@ export function resolveCulturalCurationReadiness(
       pushUnique(blockers, "oral_history_transcription_consent_missing");
       consentReady = false;
     }
-    if (!oral?.publicPublicationConsent)
+    if (!oral?.publicPublicationConsent) {
+      pushUnique(blockers, "oral_history_publication_consent_missing");
       pushUnique(warnings, "oral_history_publication_consent_missing");
+      consentReady = false;
+    }
+    if (oral?.withdrawalPending) {
+      pushUnique(blockers, "oral_history_withdrawal_pending");
+      consentReady = false;
+    }
   }
   if (input.specialization === "radio") {
     const radio = input.radio;
@@ -218,6 +271,10 @@ export function resolveCulturalCurationReadiness(
       pushUnique(blockers, "music_rights_incomplete");
       consentReady = false;
     }
+    if (radio?.withdrawalPending) {
+      pushUnique(blockers, "radio_existing_target_reconciliation_required");
+      consentReady = false;
+    }
   }
 
   const derivativeReady =
@@ -226,6 +283,45 @@ export function resolveCulturalCurationReadiness(
   const readyForDraftMaterialization = draftBlockers.length === 0;
   if (input.material.derivativeRequired && !derivativeReady)
     pushUnique(blockers, "derivative_not_ready");
+  const pre = input.preMaterialization;
+  const privateRootBlockers: CurationBlockerCode[] = [];
+  const sourceStatus = pre?.sourceStatus ?? input.stage;
+  const sourceIsEligible = !["rejected", "archived", "withdrawn", "published"].includes(sourceStatus);
+  const sourceEvidenceReady =
+    Boolean(input.specialization) &&
+    input.handoffComplete &&
+    materialReady &&
+    input.provenanceComplete;
+
+  if (!sourceIsEligible || !sourceEvidenceReady)
+    pushUnique(privateRootBlockers, "private_root_source_ineligible");
+  if ((input.specialization === "oral_history" || input.specialization === "radio") &&
+    !pre?.rootExists && pre?.explicitEditorialDecision !== true)
+    pushUnique(privateRootBlockers, "private_root_editorial_decision_required");
+
+  if (input.specialization === "radio" && !pre?.rootExists) {
+    const contributionType = pre?.radioContributionType;
+    const targetKind = pre?.radioTargetKind;
+    if (contributionType === "program_proposal") {
+      if (targetKind !== "program")
+        pushUnique(privateRootBlockers, "radio_private_root_destination_required");
+    } else if (["community_audio", "authorized_testimony"].includes(contributionType ?? "")) {
+      if (targetKind !== "episode" || !pre?.radioProgramSelected)
+        pushUnique(privateRootBlockers, "radio_private_root_destination_required");
+    } else if (contributionType === "own_music") {
+      pushUnique(privateRootBlockers, "music_pipeline_required");
+    } else if (["pauta_proposal", "agenda", "correction", "complement", "withdrawal"].includes(contributionType ?? "")) {
+      pushUnique(privateRootBlockers, "radio_existing_target_reconciliation_required");
+    } else {
+      pushUnique(privateRootBlockers, "radio_private_root_destination_required");
+    }
+  }
+
+  const readyForPrivateRootCreation =
+    input.specialization === "oral_history" || input.specialization === "radio"
+      ? privateRootBlockers.length === 0
+      : readyForDraftMaterialization;
+  for (const blocker of privateRootBlockers) pushUnique(blockers, blocker);
   const readyForEditorialReview = blockers.length === 0;
   const requiredActions = blockers.map(actionFor);
   if (readyForEditorialReview) requiredActions.push("request_editorial_review");
@@ -233,6 +329,7 @@ export function resolveCulturalCurationReadiness(
   return {
     specialization: input.specialization ?? null,
     stage: input.stage,
+    readyForPrivateRootCreation,
     readyForEditorialReview,
     readyForDraftMaterialization,
     publicationEligible: false,

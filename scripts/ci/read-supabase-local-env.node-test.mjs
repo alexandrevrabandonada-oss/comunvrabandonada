@@ -55,7 +55,7 @@ test("retries an allowlisted 502 once and succeeds", () => {
   const result = run([upstream502, { status: 0, stdout: sensitiveEnv, stderr: "" }]);
   assert.equal(result.ok, true);
   assert.equal(result.calls, 2);
-  assert.deepEqual(result.delays, [500]);
+  assert.deepEqual(result.delays, [1000]);
   assert.deepEqual(result.diagnostics, [
     "COMUN_SUPABASE_LOCAL_STATUS_TRANSIENT_RETRY",
     "attempt=1",
@@ -63,12 +63,25 @@ test("retries an allowlisted 502 once and succeeds", () => {
   ]);
 });
 
-test("exhausts only three allowlisted transient status attempts", () => {
-  const result = run([upstream502, upstream502, upstream502]);
+test("exhausts only the bounded allowlisted transient status attempts", () => {
+  const result = run(Array.from({ length: MAX_ATTEMPTS }, () => upstream502));
   assert.equal(result.ok, false);
   assert.equal(result.calls, MAX_ATTEMPTS);
   assert.equal(result.reason, "UPSTREAM_502");
   assert.ok(result.diagnostics.includes("COMUN_SUPABASE_LOCAL_STATUS_TRANSIENT_EXHAUSTED"));
+});
+
+test("accepts a local status that recovers within the bounded warm-up window", () => {
+  const result = run([
+    upstream502,
+    upstream502,
+    upstream502,
+    upstream502,
+    { status: 0, stdout: sensitiveEnv, stderr: "" },
+  ]);
+  assert.equal(result.ok, true);
+  assert.equal(result.calls, MAX_ATTEMPTS);
+  assert.deepEqual(result.delays, [1000, 2000, 3000, 4000]);
 });
 
 test("does not retry 401, SQL, malformed, or unknown failures", () => {

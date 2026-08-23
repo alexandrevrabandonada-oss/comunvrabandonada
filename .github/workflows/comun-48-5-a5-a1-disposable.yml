@@ -1,0 +1,81 @@
+name: COMUN 48.5-A5-A1 disposable specialized provenance proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-5-a5-a1-disposable.yml"
+      - "supabase/migrations/20260823003249_comun_cultural_specialized_provenance_readiness.sql"
+      - "scripts/comun-cultural-specialized-provenance-a5-a1-disposable.sql"
+      - "lib/archive/cultural-curation-readiness.ts"
+      - "lib/archive/cultural-curation-readiness.test.ts"
+      - "app/comun/admin/acervo/specialized-provenance-actions.ts"
+      - "app/comun/admin/acervo/historias-orais/actions.ts"
+  workflow_dispatch:
+
+permissions: { contents: read }
+
+jobs:
+  disposable-supabase:
+    name: A5-A1 / local Supabase provenance proof
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+      - name: Assert the proof cannot use remote infrastructure
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${SUPABASE_DB_URL:-}"
+          test -z "${SUPABASE_PROJECT_REF:-}"
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
+      - name: Start local Supabase and prove specialized provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/48-5-a5-a1-disposable
+          cleanup() {
+            timeout -k 10s 120s supabase stop --no-backup >/dev/null 2>&1 || true
+            mapfile -t residual_ids < <(docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA')
+            if (( ${#residual_ids[@]} )); then
+              docker rm -f "${residual_ids[@]}" >/dev/null 2>&1 || true
+            fi
+          }
+          trap cleanup EXIT
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          supabase db reset --local --yes
+          db="$(node scripts/ci/read-supabase-local-env.mjs | sed -n 's/^DB_URL=//p' | tr -d '\"')"
+          test -n "$db"
+          case "$db" in *supabase.co*|*localhost*|*127.0.0.1*) ;; *) echo COMUN_48_5_A5_A1_BLOCKED_NONLOCAL_DB; exit 1 ;; esac
+          psql "$db" -v ON_ERROR_STOP=1 -f scripts/comun-cultural-specialized-provenance-a5-a1-disposable.sql \
+            | tee .ci-artifacts/48-5-a5-a1-disposable/proof.log
+          grep -q COMUN_48_5_A5_A1_SPECIALIZED_PROVENANCE_DISPOSABLE_GREEN .ci-artifacts/48-5-a5-a1-disposable/proof.log
+          grep -q legacyBackfill=false .ci-artifacts/48-5-a5-a1-disposable/proof.log
+          grep -q autoPublication=false .ci-artifacts/48-5-a5-a1-disposable/proof.log
+          grep -q searchWrites=0 .ci-artifacts/48-5-a5-a1-disposable/proof.log
+          grep -q publicAssetPromotions=0 .ci-artifacts/48-5-a5-a1-disposable/proof.log
+      - name: Publish the sanitized proof summary
+        if: success()
+        run: |
+          echo COMUN_48_5_A5_A1_SPECIALIZED_PROVENANCE_DISPOSABLE_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo legacyBackfill=false >> "$GITHUB_STEP_SUMMARY"
+          echo autoPublication=false >> "$GITHUB_STEP_SUMMARY"
+          echo searchWrites=0 >> "$GITHUB_STEP_SUMMARY"
+          echo publicAssetPromotions=0 >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-5-a5-a1-disposable-${{ github.run_id }}
+          path: .ci-artifacts/48-5-a5-a1-disposable
+          retention-days: 14
+          if-no-files-found: error
