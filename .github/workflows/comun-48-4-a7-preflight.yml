@@ -22,6 +22,7 @@ jobs:
     timeout-minutes: 15
     env:
       BASELINE_SHA: a7bfce43e73ee751ebb9a69b2bd5eb861c2aade4
+      PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       EXTERNAL_MIGRATION: supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
     steps:
@@ -33,8 +34,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git merge-base --is-ancestor "$BASELINE_SHA" HEAD
-          test -z "$(git diff --name-only "$BASELINE_SHA"...HEAD -- supabase/migrations)"
+          test -n "${PR_BASE_SHA:-}"
+          git merge-base --is-ancestor "$BASELINE_SHA" "$PR_BASE_SHA"
+          git merge-base --is-ancestor "$PR_BASE_SHA" HEAD
+          test -z "$(git diff --name-only "$PR_BASE_SHA"...HEAD -- supabase/migrations)"
           test -n "${SUPABASE_DB_URL:-}"
           mkdir -p .ci-artifacts/48-4-a7-preflight
           psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/48-4-a7-preflight/schema.json <<'SQL'

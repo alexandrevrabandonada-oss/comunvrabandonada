@@ -10,6 +10,8 @@ on:
       - "public/sw.js"
       - "scripts/quality/**"
       - "scripts/quality/run-isolated-a11y.mjs"
+      - "scripts/ci/read-supabase-local-env.mjs"
+      - "scripts/ci/read-supabase-local-env.node-test.mjs"
       - "tests/quality-performance/**"
       - "tests/comun-pwa-experience/**"
       - "supabase/migrations/**"
@@ -32,6 +34,8 @@ on:
       - "public/sw.js"
       - "scripts/quality/**"
       - "scripts/quality/run-isolated-a11y.mjs"
+      - "scripts/ci/read-supabase-local-env.mjs"
+      - "scripts/ci/read-supabase-local-env.node-test.mjs"
       - "tests/quality-performance/**"
       - "tests/comun-pwa-experience/**"
       - "supabase/migrations/**"
@@ -292,6 +296,8 @@ jobs:
         with:
           version: 2.111.0
       - run: npm ci --ignore-scripts
+      - name: Validar contrato do helper de status local
+        run: node --test scripts/ci/read-supabase-local-env.node-test.mjs
       - name: Start disposable Supabase and apply territory extension explicitly
         shell: bash
         run: |
@@ -300,10 +306,10 @@ jobs:
           trap cleanup EXIT
           supabase start
           supabase db reset --local --yes
-          db_url="$(supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
+          db_url="$(node scripts/ci/read-supabase-local-env.mjs | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
           [[ "$db_url" =~ ^postgresql://postgres:postgres@127\.0\.0\.1:[0-9]+/postgres$ ]]
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/local-migrations/20260805090000_comun_member_profile_territory_selection.sql
-          local_env="$(supabase status -o env)"
+          local_env="$(node scripts/ci/read-supabase-local-env.mjs)"
           api_url="$(printf '%s\n' "$local_env" | sed -n 's/^API_URL="\(.*\)"$/\1/p')"
           anon_key="$(printf '%s\n' "$local_env" | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')"
           service_key="$(printf '%s\n' "$local_env" | sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"$/\1/p')"
@@ -338,6 +344,8 @@ jobs:
         with:
           version: 2.111.0
       - run: npm ci --ignore-scripts
+      - name: Validar contrato do helper de status local
+        run: node --test scripts/ci/read-supabase-local-env.node-test.mjs
       - name: Start disposable Supabase and apply only the P1T migration
         shell: bash
         run: |
@@ -347,7 +355,7 @@ jobs:
           trap cleanup EXIT
           supabase start
           supabase db reset --local --yes
-          db_url="$(supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
+          db_url="$(node scripts/ci/read-supabase-local-env.mjs | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
           [[ "$db_url" =~ ^postgresql://postgres:postgres@127\.0\.0\.1:[0-9]+/postgres$ ]]
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/migrations/20260806235454_comun_member_profile_optional_territory.sql
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/migrations/20260806235454_comun_member_profile_optional_territory.sql
@@ -376,7 +384,7 @@ jobs:
             if v_bad <> 0 then raise exception 'P1T public grants widened'; end if;
           end $$;
           SQL
-          local_env="$(supabase status -o env)"
+          local_env="$(node scripts/ci/read-supabase-local-env.mjs)"
           api_url="$(printf '%s\n' "$local_env" | sed -n 's/^API_URL="\(.*\)"$/\1/p')"
           anon_key="$(printf '%s\n' "$local_env" | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')"
           service_key="$(printf '%s\n' "$local_env" | sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"$/\1/p')"

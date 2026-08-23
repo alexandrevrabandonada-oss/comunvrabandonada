@@ -1,6 +1,7 @@
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { readSupabaseLocalEnv } from "./ci/read-supabase-local-env.mjs";
 
 const mode = process.argv[2] || "check";
 process.env.DO_NOT_TRACK = "1";
@@ -73,9 +74,32 @@ export function printSafeEnvironment(env) {
   };
 }
 
-function values() {
-  const isWindows = process.platform === "win32";
+export function readLocalStatus({
+  inherited = process.env,
+  platform = process.platform,
+  retryReader = readSupabaseLocalEnv,
+} = {}) {
+  const isWindows = platform === "win32";
   const localProjectId = "COMUM_VR_ABANDONADA";
+  const statusEnv = {
+    ...inherited,
+    // .env.local contains the Production project reference. The local CLI
+    // must resolve only containers named by supabase/config.toml.
+    SUPABASE_PROJECT_ID: localProjectId,
+    SUPABASE_PROJECT_REF: localProjectId,
+  };
+  if (!isWindows && inherited.GITHUB_ACTIONS === "true") {
+    const result = retryReader({
+      invoke: () =>
+        spawnSync("supabase", ["status", "-o", "env"], {
+          encoding: "utf8",
+          stdio: ["ignore", "pipe", "pipe"],
+          env: statusEnv,
+        }),
+    });
+    if (!result.ok) throw new Error("COMUN_LOCAL_STATUS_RETRY_FAILED");
+    return result.output;
+  }
   const statusCommand = isWindows ? "powershell" : "npx";
   const statusArgs = isWindows
     ? [
@@ -87,14 +111,13 @@ function values() {
   const raw = execFileSync(statusCommand, statusArgs, {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "inherit"],
-    env: {
-      ...process.env,
-      // .env.local contains the Production project reference. The local CLI
-      // must resolve only containers named by supabase/config.toml.
-      SUPABASE_PROJECT_ID: localProjectId,
-      SUPABASE_PROJECT_REF: localProjectId,
-    },
+    env: statusEnv,
   });
+  return raw;
+}
+
+function values() {
+  const raw = readLocalStatus();
   return buildLocalEnvironment(parseLocalStatus(raw));
 }
 
