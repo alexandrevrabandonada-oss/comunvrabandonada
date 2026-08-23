@@ -2,7 +2,10 @@ import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-export const MAX_ATTEMPTS = 3;
+// The local CLI can report an allowlisted upstream 502 briefly after
+// `supabase start` / `db reset` return. Keep this bounded and specific: all
+// other failures still fail on the first attempt.
+export const MAX_ATTEMPTS = 5;
 
 const REQUIRED_KEYS = ["API_URL", "ANON_KEY", "SERVICE_ROLE_KEY", "DB_URL"];
 
@@ -87,7 +90,7 @@ export function readSupabaseLocalEnv({
     diagnostics("COMUN_SUPABASE_LOCAL_STATUS_TRANSIENT_RETRY");
     diagnostics(`attempt=${attempt}`);
     diagnostics(`class=${transientClass}`);
-    sleep(attempt * 500);
+    sleep(attempt * 1000);
   }
 
   throw new Error("unreachable local Supabase status state");
