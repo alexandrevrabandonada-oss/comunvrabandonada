@@ -4,6 +4,7 @@ import test from "node:test";
 
 const runner = fs.readFileSync("scripts/run-48-5-a5-a1-r1-production.sh", "utf8");
 const workflow = fs.readFileSync(".github/workflows/comun-48-5-a5-a1-r1-production.yml", "utf8");
+const plannerBridgeWorkflow = fs.readFileSync(".github/workflows/comun-48-1b-r1c-external-ledger-planner-bridge.yml", "utf8");
 const flags = fs.readFileSync("scripts/ci/a5-a1-r1-flag-contract.mjs", "utf8");
 const migration = fs.readFileSync("supabase/migrations/20260823003249_comun_cultural_specialized_provenance_readiness.sql", "utf8");
 
@@ -22,6 +23,25 @@ test("A5-A1-R1 fails closed to the exact migration plan", () => {
   assert.match(runner, /planned\[0\].*basename.*A5_A1_MIGRATION/);
   assert.match(runner, /BLOCKED_NONEXACT_MIGRATION_PLAN/);
   assert.doesNotMatch(runner, /--include-all|migration repair|db reset|\bseed\b/);
+});
+
+test("A5-A1-R1 reconciles only the validated external sidewalk ledger during CLI planning", () => {
+  for (const marker of [
+    "20260724233256-sidewalk-external-ledger.json",
+    "20260724233256_comun_sidewalk_operational_hardening.sql",
+    "COMUN_SIDEWALK_EXTERNAL_LEDGER_EVOLVED_SCOPE_GREEN",
+    "quarantine_sidewalk_for_cli_planning",
+    "restore_sidewalk_migration",
+    "COMUN_48_1B_R1C_EXTERNAL_LEDGER_PLANNER_BRIDGE_GREEN_ZERO_REMOTE_WRITES",
+  ]) assert.match(runner, new RegExp(marker));
+  assert.match(runner, /trap cleanup EXIT/);
+  assert.match(runner, /test -z "\$\(git status --porcelain -- "\$SIDEWALK_MIGRATION"\)"/);
+  assert.match(runner, /assert_a5_schema_unapplied/);
+  assert.match(runner, /ProductionSchemaWrites":0/);
+  assert.doesNotMatch(runner, /--include-all|migration repair|db reset|\bseed\b/);
+  assert.match(plannerBridgeWorkflow, /A5_A1_EXECUTION_MODE: planner-bridge/);
+  assert.match(plannerBridgeWorkflow, /environment: production/);
+  assert.match(plannerBridgeWorkflow, /workflow_dispatch:/);
 });
 
 test("A5-A1-R1 contains a single persistent schema-write path", () => {
