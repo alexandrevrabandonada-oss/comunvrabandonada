@@ -3079,3 +3079,13 @@ Estado terminal: `COMUN_48_5_A5_A1_SPECIALIZED_PROVENANCE_SCHEMA_GREEN_PRODUCTIO
 - `A3=ON/preserved`; `A4=ON/preserved`; `autoPublication=false`; `ProductionBusinessWrites=0`; `ProductionSchemaWrites=0`; `ProductionEnvWrites=0`; `ProductionMigrationApplied=false`. Nenhum rollout A5-A1-R1 foi iniciado.
 
 Relatório: `reports/current/comun-48-5-a5-a1-specialized-provenance-readiness.md`.
+## Estado atual — 48.5-A5-A1-R1 bloqueado por plano remoto não exato (23/08/2026)
+
+Estado terminal: `COMUN_48_5_A5_A1_R1_BLOCKED_NONEXACT_MIGRATION_PLAN`.
+
+- o run Production [32636667277](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/32636667277), no main `477b301e1a8ac8c473d01b143cb602e9a9e00d04`, confirmou checksum A5-A1, deployment compatível e A3/A4 encrypted/ON sem overrides;
+- o snapshot explicitamente read-only confirmou A5-A1 ausente e sem schema parcial. O dry-run encontrou a migration anterior pendente `20260724233256_comun_sidewalk_operational_hardening.sql` e recusou avançar sem `--include-all`;
+- A5-A1 não foi aplicada: `ProductionSchemaWrites=0`, `ProductionBusinessWrites=0`, `ProductionEnvWrites=0`, sem fixture, target, asset, Search, coleção ou publicação. Não houve bypass, repair, reset, seed, quarentena ou mudança de ledger;
+- a próxima ação é a lane proprietária resolver a migration pendente. Só então uma nova tentativa A5-A1 poderá exigir o plano de uma única migration cultural.
+
+Relatório: `reports/current/comun-48-5-a5-a1-r1-production-rollout.md`.
