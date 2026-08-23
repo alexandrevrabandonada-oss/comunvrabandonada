@@ -31,6 +31,7 @@ test("A5-A1-R1 contains a single persistent schema-write path", () => {
   assert.match(runner, /ProductionBusinessWrites:0/);
   assert.match(runner, /ProductionSchemaWrites":"1_migration_only/);
   assert.match(runner, /local phase="\$1"\s+local output="\$ARTIFACT_DIR\/\$\{phase\}-snapshot\.json"/);
+  assert.match(runner, /c\.relname\|\|':'\|\|c\.relkind::text/);
 });
 
 test("A5-A1-R1 checks specialized schema, grants, legacy nulls and no-public effects", () => {

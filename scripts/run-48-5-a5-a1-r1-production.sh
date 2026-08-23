@@ -124,7 +124,7 @@ select json_build_object(
     'radioContributions',coalesce((select md5(string_agg(id::text,'|' order by id)) from public.comun_radio_contributions),md5('none')),
     'archiveItems',coalesce((select md5(string_agg(id::text||':'||status||':'||visibility,'|' order by id)) from public.comun_archive_items),md5('none')),
     'storageObjects',coalesce((select md5(string_agg(bucket_id||':'||name,'|' order by bucket_id,name)) from storage.objects),md5('none')),
-    'publicObjects',coalesce((select md5(string_agg(c.relname||':'||c.relkind,'|' order by c.relname)) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','v','m','f','p')),md5('none')),
+    'publicObjects',coalesce((select md5(string_agg(c.relname||':'||c.relkind::text,'|' order by c.relname)) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','v','m','f','p')),md5('none')),
     'storagePolicies',coalesce((select md5(string_agg(tablename||':'||policyname||':'||cmd,'|' order by tablename,policyname)) from pg_policies where schemaname='storage'),md5('none')),
     'envelopeGrants',coalesce((select md5(string_agg(role_name||':'||table_name||':'||has_table_privilege(role_name,'public.'||table_name,'SELECT')||':'||has_table_privilege(role_name,'public.'||table_name,'INSERT')||':'||has_table_privilege(role_name,'public.'||table_name,'UPDATE')||':'||has_table_privilege(role_name,'public.'||table_name,'DELETE'),'|' order by role_name,table_name)) from (values ('anon'),('authenticated'),('service_role')) r(role_name) cross join (values ('comun_archive_oral_history_suggestions'),('comun_radio_contributions')) t(table_name)),md5('none'))
   )
