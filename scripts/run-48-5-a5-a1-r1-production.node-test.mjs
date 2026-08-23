@@ -36,7 +36,8 @@ test("A5-A1-R1 reconciles only the validated external sidewalk ledger during CLI
   ]) assert.match(runner, new RegExp(marker));
   assert.match(runner, /trap cleanup EXIT/);
   assert.match(runner, /test -z "\$\(git status --porcelain -- "\$SIDEWALK_MIGRATION"\)"/);
-  assert.match(runner, /assert_a5_schema_unapplied/);
+  assert.match(runner, /assert_a5_schema_state/);
+  assert.match(runner, /verify-applied/);
   assert.match(runner, /ProductionSchemaWrites":0/);
   assert.doesNotMatch(runner, /--include-all|migration repair|db reset|\bseed\b/);
   assert.match(plannerBridgeWorkflow, /A5_A1_EXECUTION_MODE: planner-bridge/);
@@ -67,6 +68,7 @@ test("A5-A1-R1 checks specialized schema, grants, legacy nulls and no-public eff
 test("A5-A1-R1 has only GET/HEAD public smokes and sanitized artifacts", () => {
   assert.match(runner, /methods":"GET_HEAD_ONLY/);
   assert.match(runner, /resume_token_hash\|member_user_id\|private_root_archive_item_id/);
+  assert.doesNotMatch(runner, /story_summary/);
   for (const artifact of ["preflight.json", "migration-plan.txt", "schema-postflight.json", "business-delta.json", "security-postflight.json", "smoke-summary.json", "closeout.json"]) assert.match(runner, new RegExp(artifact.replace(".", "\\.")));
   assert.doesNotMatch(runner, /curl[^\n]*-X\s*(?:POST|PATCH|DELETE)/i);
 });

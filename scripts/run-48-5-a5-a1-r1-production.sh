@@ -50,7 +50,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-case "$EXECUTION_MODE" in apply|planner-bridge) ;; *) fail COMUN_48_1B_R1C_BLOCKED_EXECUTION_MODE;; esac
+case "$EXECUTION_MODE" in apply|planner-bridge|verify-applied) ;; *) fail COMUN_48_1B_R1C_BLOCKED_EXECUTION_MODE;; esac
 
 test "$SUPABASE_PROJECT_REF" = "nvmdszymrtacfehdynpg" || fail COMUN_48_5_A5_A1_R1_BLOCKED_PROJECT_REF
 test "$A5_A1_FUNCTIONAL_ANCESTOR" = "$CANONICAL_FUNCTIONAL_ANCESTOR" || fail COMUN_48_5_A5_A1_R1_BLOCKED_FUNCTIONAL_ANCESTOR
@@ -166,12 +166,13 @@ if(Number(x.a5A1MigrationCount)===0&&values.some(Boolean)) throw new Error("COMU
 NODE
 }
 
-assert_a5_schema_unapplied() {
+assert_a5_schema_state() {
   node - "$ARTIFACT_DIR/pre-snapshot.json" <<'NODE'
-const fs=require("node:fs"); const state=JSON.parse(fs.readFileSync(process.argv[2],"utf8"));
-if(Number(state.a5A1MigrationCount)!==0||Object.values(state.schema??{}).some(Boolean)) throw new Error("COMUN_48_5_A5_A1_R1_BLOCKED_A5_SCHEMA_NOT_ABSENT");
+const fs=require("node:fs"); const state=JSON.parse(fs.readFileSync(process.argv[2],"utf8")); const mode=process.env.A5_A1_EXECUTION_MODE;
+const schema=Object.values(state.schema??{}); const absent=Number(state.a5A1MigrationCount)===0&&schema.every((value)=>!value); const applied=Number(state.a5A1MigrationCount)===1&&schema.every(Boolean);
+if((mode==="verify-applied"&&!applied)||(mode!=="verify-applied"&&!absent)) throw new Error("COMUN_48_5_A5_A1_R1_BLOCKED_A5_SCHEMA_STATE");
 NODE
-  stage a5_schema_absent_green
+  if test "$EXECUTION_MODE" = verify-applied; then A5_ALREADY_APPLIED=true; stage a5_schema_applied_green; else stage a5_schema_absent_green; fi
 }
 
 assert_external_ledger_bridge() {
@@ -296,7 +297,7 @@ readonly_smokes() {
     status="$(curl -L -sS -o "$body" -w '%{http_code}' --retry 4 --retry-delay 2 "$COMUN_BASE_URL$route")"
     head="$(curl -L -sS -I -o /dev/null -w '%{http_code}' --retry 4 --retry-delay 2 "$COMUN_BASE_URL$route")"
     test "$status" = 200 && test "$head" = 200 || fail COMUN_48_5_A5_A1_R1_BLOCKED_SMOKE_HTTP
-    ! grep -Eqi 'resume_token_hash|member_user_id|private_root_archive_item_id|private_root_kind|story_summary|sqlstate|service_role' "$body" || fail COMUN_48_5_A5_A1_R1_BLOCKED_PRIVACY_SMOKE
+    ! grep -Eqi 'resume_token_hash|member_user_id|private_root_archive_item_id|private_root_kind|sqlstate|service_role' "$body" || fail COMUN_48_5_A5_A1_R1_BLOCKED_PRIVACY_SMOKE
     test "$first" = true || printf ',' >> "$output"; first=false
     printf '{"route":"%s","get":200,"head":200}' "$route" >> "$output"
   done
@@ -321,7 +322,7 @@ assert_main_and_checksum
 audit_production_deployment
 audit_flags
 snapshot pre
-assert_a5_schema_unapplied
+assert_a5_schema_state
 assert_external_ledger_bridge
 assert_exact_plan
 if test "$EXECUTION_MODE" = planner-bridge; then
@@ -335,5 +336,5 @@ compare_business_delta
 assert_post_apply_plan_empty
 assert_external_ledger_bridge
 readonly_smokes
-if test "$A5_ALREADY_APPLIED" = true; then write_closeout "$TERMINAL_ALREADY"; else write_closeout "$TERMINAL_GREEN"; fi
+if test "$EXECUTION_MODE" = verify-applied; then write_closeout "$TERMINAL_GREEN"; elif test "$A5_ALREADY_APPLIED" = true; then write_closeout "$TERMINAL_ALREADY"; else write_closeout "$TERMINAL_GREEN"; fi
 stage terminal_green

@@ -7,6 +7,14 @@ on:
         description: Exact main SHA to execute after rollout-tooling integration
         required: true
         type: string
+      execution_mode:
+        description: Apply the exact migration once, or verify an already-applied schema without writes
+        required: false
+        default: apply
+        type: choice
+        options:
+          - apply
+          - verify-applied
 
 concurrency:
   group: comun-48-5-a5-a1-r1-production
@@ -22,6 +30,7 @@ env:
   VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
   VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
   COMUN_BASE_URL: https://comunsocial.online
+  A5_A1_EXECUTION_MODE: ${{ inputs.execution_mode || 'apply' }}
 
 jobs:
   rollout:
