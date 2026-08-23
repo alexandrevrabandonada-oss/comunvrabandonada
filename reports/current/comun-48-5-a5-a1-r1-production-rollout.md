@@ -1,5 +1,21 @@
 # 48.5-A5-A1-R1 — rollout Production da proveniência cultural especializada
 
+## Closeout GREEN — 48.1B-R1C bridge e ativação A5-A1 (23/08/2026)
+
+Estado terminal: `COMUN_48_5_A5_A1_R1_SPECIALIZED_PROVENANCE_GREEN_PRODUCTION_ACTIVE_NO_BUSINESS_WRITES`.
+
+- Main de verificação: `c850590b7fa169ea5391ea7dc11d4bfbc54d0885`; o merge funcional A5-A1 `382a215e2828827596ed68bf2a7dfe1c2645361d` permanece ancestral.
+- O bridge [32672159693](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/32672159693) validou manifest e SHA da exceção de Calçadas, confirmou o ledger externo `APPLIED_EXACT_SCOPED`, isolou apenas a migration excepcional durante o planejamento e exigiu o plano contendo exclusivamente `20260823003249_comun_cultural_specialized_provenance_readiness.sql`. Terminal: `COMUN_48_1B_R1C_EXTERNAL_LEDGER_PLANNER_BRIDGE_GREEN_ZERO_REMOTE_WRITES`; artifact `9501673842`.
+- O apply [32672217287](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/32672217287) aplicou exatamente uma vez a migration cultural SHA-256 `771975081046474022764a8e69743cc6015ebb4a817c614719fa7d6dfc74bdfb`. Todos os postflights de schema, RLS, grants, bridge externo e delta de negócio passaram. O único bloqueio posterior foi um falso positivo no smoke: `story_summary` é um campo público do formulário de História Oral, não um marcador privado.
+- A verificação pós-apply [32672612144](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/32672612144) executou sem caminho de apply: schema/grants/RLS GREEN, `legacyBackfill=false`, planner reconciliado `planned=[]`, e nove GET/HEAD culturais retornaram 200 sem marcadores internos. Artifact sanitizado `9501789311`.
+- Ledger A5: `0 → 1`; CLI ledger da migration externa de Calçadas: `absent → absent`; ledger externo de Calçadas: `exact → exact`.
+- A3 e A4 continuam encrypted, Production-only e ON. Não houve alteração de env.
+- `ProductionBusinessWrites=0`, `ProductionEnvWrites=0`, `ProductionSchemaWrites=1_migration_only`, `privateRootsCreated=0`, `publications=0`, `SearchWrites=0`, `publicAssetPromotions=0`, `collectionWrites=0`.
+
+Não iniciar nova infraestrutura neste closeout. O próximo tijolo autorizado volta à funcionalidade cultural A5-A2.
+
+## Histórico — bloqueio inicial
+
 ## Estado terminal
 
 `COMUN_48_5_A5_A1_R1_BLOCKED_NONEXACT_MIGRATION_PLAN`

@@ -19,8 +19,19 @@ write de schema/dados/env, não usa `--include-all`, repair, reset ou seed, e
 aceita somente o plano formado por
 `20260823003249_comun_cultural_specialized_provenance_readiness.sql`.
 
-## Estado de integração
+## Execução Production read-only
 
-Esta mudança ainda requer a execução Production read-only do workflow
-`COMUN 48.1B-R1C external ledger planner bridge` no SHA integrado. Só depois
-do terminal GREEN o retry A5-A1-R1 poderá aplicar a migration cultural única.
+O workflow `COMUN 48.1B-R1C external ledger planner bridge` passou no run
+[32672159693](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/32672159693), no main
+`1ddc05296d171ab578feb384f70689fb7e3c5a04`.
+
+- Manifest e SHA da exceção foram exatos;
+- o verifier remoto retornou `COMUN_SIDEWALK_EXTERNAL_LEDGER_EVOLVED_SCOPE_GREEN`;
+- a migration excepcional foi restaurada com checksum íntegro depois do plano;
+- o planejamento mostrou exclusivamente
+  `20260823003249_comun_cultural_specialized_provenance_readiness.sql`;
+- `ProductionBusinessWrites=0`, `ProductionSchemaWrites=0` e
+  `ProductionEnvWrites=0`.
+
+Terminal: `COMUN_48_1B_R1C_EXTERNAL_LEDGER_PLANNER_BRIDGE_GREEN_ZERO_REMOTE_WRITES`.
+Artifact sanitizado: `9501673842`.

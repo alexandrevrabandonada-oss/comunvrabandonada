@@ -1,4 +1,15 @@
-## Estado atual — 48.5-A4-C0: baseline pós-ativação GREEN, A4 fechada (22/08/2026)
+## Estado atual — 48.5-A5-A1-R1: proveniência cultural especializada ativa em Production (23/08/2026)
+
+Estado terminal: `COMUN_48_5_A5_A1_R1_SPECIALIZED_PROVENANCE_GREEN_PRODUCTION_ACTIVE_NO_BUSINESS_WRITES`.
+
+- O bridge de planejamento [32672159693](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/32672159693) validou a exceção externa canônica de Calçadas (`cliHistory=absent`, ledger externo exato), isolou somente o arquivo excepcional durante o uso do CLI e confirmou o plano cultural único, sem write remoto;
+- a migration A5-A1 `20260823003249_comun_cultural_specialized_provenance_readiness.sql` foi aplicada uma única vez com SHA-256 `771975081046474022764a8e69743cc6015ebb4a817c614719fa7d6dfc74bdfb`; o run de verificação [32672612144](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/32672612144) confirmou schema/RLS/grants, `legacyBackfill=false`, planner reconciliado vazio e GET/HEAD GREEN;
+- A3 e A4 permanecem encrypted/ON e Production-only. `ProductionBusinessWrites=0`, `ProductionEnvWrites=0`, `ProductionSchemaWrites=1_migration_only`, sem private roots, publicação, Search, promoção de asset ou coleção;
+- o próximo slice permitido é funcional: A5-A2. Não iniciar infraestrutura adicional neste estado.
+
+Relatório: `reports/current/comun-48-5-a5-a1-r1-production-rollout.md`.
+
+## Estado histórico — 48.5-A4-C0: baseline pós-ativação GREEN, A4 fechada (22/08/2026)
 
 Estado terminal: `COMUN_48_5_A4_C0_POST_ACTIVATION_BASELINE_GREEN_A4_CLOSED`.
 
