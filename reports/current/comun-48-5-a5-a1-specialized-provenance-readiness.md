@@ -2,10 +2,12 @@
 
 ## Estado
 
-Candidate local para CI/PR. O rollout Production é deliberadamente separado.
+Integrado em `382a215e2828827596ed68bf2a7dfe1c2645361d` pelo merge da PR #364, após a matriz pré-merge verde no checkpoint `9bfaf8ec1d47faf4e3dc750a7a68ec3a19a5565d`. O rollout Production continua deliberadamente separado.
 
 - Parent main pós-#363: `d2f220d32c2dc5ca602719ecc44c6271af0002af`.
 - Branch: `codex/48-5-a5-a1-specialized-provenance-readiness`.
+- Commits funcionais: `3403aa11585c5d168838d8c43900761c5e4e40b2` e `9bfaf8ec1d47faf4e3dc750a7a68ec3a19a5565d`.
+- PR: [#364](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/364), merged; a árvore integrada confere com a árvore validada (`d385d34ed3bb863120a58871461609ba68426dca`).
 - Migration: `20260823003249_comun_cultural_specialized_provenance_readiness.sql`.
 - SHA-256: `771975081046474022764A8E69743CC6015EBB4A817C614719FA7D6DFC74BDFB`.
 - Production migrations, business/schema/environment writes, fixtures, publications, Search writes and public-asset promotions: `0`.
@@ -60,6 +62,8 @@ O contrato proíbe publication, `visibility=public`, `status=published`, Search,
 - Lint, typecheck, build e `git diff --check`: GREEN localmente.
 - Workflow dedicada: `.github/workflows/comun-48-5-a5-a1-disposable.yml`. Ela inicia apenas Supabase local no runner, faz reset/replay e executa `scripts/comun-cultural-specialized-provenance-a5-a1-disposable.sql`.
 - A prova valida fresh apply, replay, vínculos nulos de legado, alvo inválido/cross-domain, par parcial, retargeting, raízes privadas, grants/RLS e ausência de Search/assets/coleções; as fixtures são terminadas com `ROLLBACK`.
+- Prova descartável CI [32609596998](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/32609596998): GREEN no SHA do checkpoint, incluindo `COMUN_48_5_A5_A1_SPECIALIZED_PROVENANCE_DISPOSABLE_GREEN`.
+- CI, Cultural, Quality, Core Journeys, Full Surface, Civic Graph, Civic Intelligence, Experience Coherence, Security Resilience e os preflights aplicáveis ficaram GREEN. O Preview Vercel do SHA exato e o freshness gate COST-02 também ficaram GREEN.
 
 Neste host, a execução local do stack foi bloqueada antes de migrations por `LegacyDbSetupError`: uma imagem de suporte falha com `ERR_INVALID_PACKAGE_CONFIG` para `dotenv` sob Node `v24.19.0`. Nenhum schema nem dado local/remote foi aplicado nesse erro. A workflow CI é a prova descartável autoritativa desta migration.
 
@@ -67,6 +71,6 @@ Neste host, a execução local do stack foi bloqueada antes de migrations por `L
 
 `A5-A1-R1 — Production rollout` deverá, em execução separada, fazer preflight read-only, conferir o checksum acima, aplicar somente esta migration e manter A3/A4 inalteradas. Não usar `db push`, repair, reset, seed remoto ou `--include-all`.
 
-Estado esperado após CI/merge: `COMUN_48_5_A5_A1_SPECIALIZED_PROVENANCE_SCHEMA_GREEN_PRODUCTION_ROLLOUT_REQUIRED`.
+Estado terminal: `COMUN_48_5_A5_A1_SPECIALIZED_PROVENANCE_SCHEMA_GREEN_PRODUCTION_ROLLOUT_REQUIRED`.
 
 `A3=ON/preserved`; `A4=ON/preserved`; `autoPublication=false`; `ProductionBusinessWrites=0`; `ProductionSchemaWrites=0`; `ProductionEnvWrites=0`; `ProductionMigrationApplied=false`.
