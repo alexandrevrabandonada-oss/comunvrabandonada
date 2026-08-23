@@ -3068,3 +3068,14 @@ Estado terminal: `COMUN_48_5_A5_A0_CURATION_CONTRACT_GREEN_A5_A1_SCHEMA_DELTA_RE
 - A3 e A4 permanecem ON/encrypted/Production-only. `migrations=0`, `ProductionBusinessWrites=0`, `ProductionSchemaWrites=0`, `ProductionEnvWrites=0`, `publications=0`.
 
 Relatório: `reports/current/comun-48-5-a5-a0-cultural-curation-readiness.md`.
+## Estado atual — 48.5-A5-A1: proveniência especializada imutável integrada; rollout Production pendente (23/08/2026)
+
+Estado terminal: `COMUN_48_5_A5_A1_SPECIALIZED_PROVENANCE_SCHEMA_GREEN_PRODUCTION_ROLLOUT_REQUIRED`.
+
+- A PR [#364](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/364) foi integrada em `382a215e2828827596ed68bf2a7dfe1c2645361d`; a árvore merged é idêntica ao checkpoint validado `9bfaf8ec1d47faf4e3dc750a7a68ec3a19a5565d`;
+- a migration aditiva `20260823003249_comun_cultural_specialized_provenance_readiness.sql` tem SHA-256 `771975081046474022764A8E69743CC6015EBB4A817C614719FA7D6DFC74BDFB` e ainda não foi aplicada em Production;
+- a prova Supabase descartável [32609596998](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/32609596998), CI, Cultural, Quality, Core Journeys, Full Surface, Civic Graph, Civic Intelligence, Experience Coherence, Security Resilience, Preview exato e freshness COST-02 ficaram GREEN;
+- vínculos de proveniência de História Oral e Rádio são aditivos, privados, tipados, imutáveis e 1:1 por envelope; Arte reutiliza o vínculo existente. A readiness pré-raiz não achata consentimento granular de História Oral, e `publicationEligible` permanece sempre `false`;
+- `A3=ON/preserved`; `A4=ON/preserved`; `autoPublication=false`; `ProductionBusinessWrites=0`; `ProductionSchemaWrites=0`; `ProductionEnvWrites=0`; `ProductionMigrationApplied=false`. Nenhum rollout A5-A1-R1 foi iniciado.
+
+Relatório: `reports/current/comun-48-5-a5-a1-specialized-provenance-readiness.md`.
