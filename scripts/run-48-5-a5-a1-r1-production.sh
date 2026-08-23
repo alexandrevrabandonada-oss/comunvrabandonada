@@ -85,7 +85,8 @@ audit_flags() {
 }
 
 snapshot() {
-  local phase="$1" output="$ARTIFACT_DIR/${phase}-snapshot.json"
+  local phase="$1"
+  local output="$ARTIFACT_DIR/${phase}-snapshot.json"
   psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 > "$output" <<'SQL'
 begin read only;
 select json_build_object(
