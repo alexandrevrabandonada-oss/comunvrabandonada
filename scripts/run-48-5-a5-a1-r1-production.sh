@@ -14,19 +14,43 @@ set -euo pipefail
 
 readonly TERMINAL_GREEN="COMUN_48_5_A5_A1_R1_SPECIALIZED_PROVENANCE_GREEN_PRODUCTION_ACTIVE_NO_BUSINESS_WRITES"
 readonly TERMINAL_ALREADY="COMUN_48_5_A5_A1_R1_SPECIALIZED_PROVENANCE_ALREADY_APPLIED_VERIFIED_GREEN"
+readonly TERMINAL_PLANNER_BRIDGE="COMUN_48_1B_R1C_EXTERNAL_LEDGER_PLANNER_BRIDGE_GREEN_ZERO_REMOTE_WRITES"
 readonly CANONICAL_FUNCTIONAL_ANCESTOR="382a215e2828827596ed68bf2a7dfe1c2645361d"
 readonly CANONICAL_MIGRATION="supabase/migrations/20260823003249_comun_cultural_specialized_provenance_readiness.sql"
 readonly CANONICAL_MIGRATION_SHA256="771975081046474022764a8e69743cc6015ebb4a817c614719fa7d6dfc74bdfb"
 readonly ARTIFACT_DIR="${COMUN_A5_A1_R1_ARTIFACT_DIR:-.ci-artifacts/48-5-a5-a1-r1-production}"
-readonly TEMP_ROOT="${RUNNER_TEMP:-$(mktemp -d)}"
+readonly EXECUTION_MODE="${A5_A1_EXECUTION_MODE:-apply}"
+readonly SIDEWALK_EXCEPTION="supabase/migration-exceptions/20260724233256-sidewalk-external-ledger.json"
+readonly SIDEWALK_MIGRATION="supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql"
+readonly SIDEWALK_MIGRATION_SHA256="6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+readonly TEMP_ROOT="$(mktemp -d "${RUNNER_TEMP:-/tmp}/comun-a5-a1-r1.XXXXXX")"
 A5_ALREADY_APPLIED=false
+HELD_SIDEWALK_MIGRATION=""
+SIDEWALK_QUARANTINED=false
 
 mkdir -p "$ARTIFACT_DIR"
 summary() { printf '%s\n' "$*" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"; }
 stage() { printf 'stage=%s\n' "$1" >> "$ARTIFACT_DIR/stage.txt"; summary "stage=$1"; }
 fail() { printf 'terminal=%s\n' "$1" > "$ARTIFACT_DIR/closeout.json"; echo "$1" >&2; exit 1; }
-cleanup() { rm -rf "$TEMP_ROOT"; }
+restore_sidewalk_migration() {
+  if test "$SIDEWALK_QUARANTINED" = true; then
+    test -f "$HELD_SIDEWALK_MIGRATION" || return 1
+    test ! -e "$SIDEWALK_MIGRATION" || return 1
+    mv "$HELD_SIDEWALK_MIGRATION" "$SIDEWALK_MIGRATION"
+    SIDEWALK_QUARANTINED=false
+  fi
+  test "$(sha256sum "$SIDEWALK_MIGRATION" | awk '{print tolower($1)}')" = "$SIDEWALK_MIGRATION_SHA256"
+  test -z "$(git status --porcelain -- "$SIDEWALK_MIGRATION")"
+}
+cleanup() {
+  local status=$?
+  restore_sidewalk_migration || status=1
+  rm -rf "$TEMP_ROOT"
+  exit "$status"
+}
 trap cleanup EXIT
+
+case "$EXECUTION_MODE" in apply|planner-bridge) ;; *) fail COMUN_48_1B_R1C_BLOCKED_EXECUTION_MODE;; esac
 
 test "$SUPABASE_PROJECT_REF" = "nvmdszymrtacfehdynpg" || fail COMUN_48_5_A5_A1_R1_BLOCKED_PROJECT_REF
 test "$A5_A1_FUNCTIONAL_ANCESTOR" = "$CANONICAL_FUNCTIONAL_ANCESTOR" || fail COMUN_48_5_A5_A1_R1_BLOCKED_FUNCTIONAL_ANCESTOR
@@ -142,10 +166,52 @@ if(Number(x.a5A1MigrationCount)===0&&values.some(Boolean)) throw new Error("COMU
 NODE
 }
 
+assert_a5_schema_unapplied() {
+  node - "$ARTIFACT_DIR/pre-snapshot.json" <<'NODE'
+const fs=require("node:fs"); const state=JSON.parse(fs.readFileSync(process.argv[2],"utf8"));
+if(Number(state.a5A1MigrationCount)!==0||Object.values(state.schema??{}).some(Boolean)) throw new Error("COMUN_48_5_A5_A1_R1_BLOCKED_A5_SCHEMA_NOT_ABSENT");
+NODE
+  stage a5_schema_absent_green
+}
+
+assert_external_ledger_bridge() {
+  stage external_ledger_bridge_started
+  node scripts/solo/validate-sidewalk-external-ledger-exception.mjs "$SIDEWALK_EXCEPTION"
+  test "$(sha256sum "$SIDEWALK_MIGRATION" | awk '{print tolower($1)}')" = "$SIDEWALK_MIGRATION_SHA256" || fail COMUN_48_1B_R1C_EXTERNAL_LEDGER_EXCEPTION_CHECKSUM_DRIFT
+  node scripts/solo/verify-sidewalk-external-ledger-evolved-scope.mjs
+  node - ".ci-artifacts/a4-external-ledger-e1/bridge.json" "$ARTIFACT_DIR/external-ledger-bridge.json" <<'NODE'
+const fs=require("node:fs");
+const source=process.argv[2]; const destination=process.argv[3]; const result=JSON.parse(fs.readFileSync(source,"utf8")); const current=result.current??{};
+const ok=result.result==="COMUN_SIDEWALK_EXTERNAL_LEDGER_EVOLVED_SCOPE_GREEN"&&result.historicalExactScopedProof===true&&result.releaseOwnedSecurityInvariantsPreserved===true&&result.grantStateSafeOrMoreRestrictive===true&&result.serviceRoleOperational===true&&result.zeroRemoteWrites===true&&current.transactionReadOnly===true&&current.ledgerExact===true&&current.requiredStatesPresent===true&&current.missingColumns?.length===0&&current.clientCrudClosed===true&&current.serviceRoleRequiredPrivileges===true&&current.legacyUnsafeCount===0&&current.migrationShaExact===true;
+if(!ok) throw new Error("COMUN_48_1B_R1C_EXTERNAL_LEDGER_REMOTE_PROOF_BLOCKED");
+fs.copyFileSync(source,destination);
+NODE
+  stage external_ledger_bridge_green
+}
+
+quarantine_sidewalk_for_cli_planning() {
+  test "$SIDEWALK_QUARANTINED" = false || fail COMUN_48_1B_R1C_EXTERNAL_LEDGER_QUARANTINE_STATE_INVALID
+  test -f "$SIDEWALK_MIGRATION" || fail COMUN_48_1B_R1C_EXTERNAL_LEDGER_MIGRATION_MISSING
+  HELD_SIDEWALK_MIGRATION="$TEMP_ROOT/20260724233256_comun_sidewalk_operational_hardening.sql"
+  test ! -e "$HELD_SIDEWALK_MIGRATION" || fail COMUN_48_1B_R1C_EXTERNAL_LEDGER_QUARANTINE_COLLISION
+  mv "$SIDEWALK_MIGRATION" "$HELD_SIDEWALK_MIGRATION"
+  SIDEWALK_QUARANTINED=true
+}
+
+run_reconciled_cli_plan() {
+  local list="$1" plan="$2" status=0
+  quarantine_sidewalk_for_cli_planning
+  supabase migration list --db-url "$SUPABASE_DB_URL" > "$list" 2>&1 || status=$?
+  if test "$status" = 0; then
+    supabase db push --db-url "$SUPABASE_DB_URL" --dry-run > "$plan" 2>&1 || status=$?
+  fi
+  restore_sidewalk_migration || fail COMUN_48_1B_R1C_EXTERNAL_LEDGER_RESTORE_FAILED
+  test "$status" = 0 || fail COMUN_48_1B_R1C_EXTERNAL_LEDGER_PLANNER_BLOCKED
+}
+
 assert_exact_plan() {
   local plan="$ARTIFACT_DIR/migration-plan.txt" list="$ARTIFACT_DIR/migration-list.txt"
-  supabase migration list --db-url "$SUPABASE_DB_URL" > "$list" 2>&1
-  supabase db push --db-url "$SUPABASE_DB_URL" --dry-run > "$plan" 2>&1
+  run_reconciled_cli_plan "$list" "$plan"
   mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' "$plan" | sort -u || true)
   local before_count
   before_count="$(node -e "process.stdout.write(String(JSON.parse(require('node:fs').readFileSync('$ARTIFACT_DIR/pre-snapshot.json')).a5A1MigrationCount))")"
@@ -163,7 +229,11 @@ assert_exact_plan() {
 apply_exact_migration() {
   if test "$A5_ALREADY_APPLIED" = true; then stage migration_apply_already_applied; return; fi
   stage migration_apply_started
-  supabase db push --db-url "$SUPABASE_DB_URL" > "$TEMP_ROOT/migration-apply.log" 2>&1 || fail COMUN_48_5_A5_A1_R1_BLOCKED_MIGRATION_APPLY_FAILED
+  local status=0
+  quarantine_sidewalk_for_cli_planning
+  supabase db push --db-url "$SUPABASE_DB_URL" > "$TEMP_ROOT/migration-apply.log" 2>&1 || status=$?
+  restore_sidewalk_migration || fail COMUN_48_1B_R1C_EXTERNAL_LEDGER_RESTORE_FAILED
+  test "$status" = 0 || fail COMUN_48_5_A5_A1_R1_BLOCKED_MIGRATION_APPLY_FAILED
   stage migration_apply_green
 }
 
@@ -214,7 +284,7 @@ NODE
 }
 
 assert_post_apply_plan_empty() {
-  supabase db push --db-url "$SUPABASE_DB_URL" --dry-run > "$ARTIFACT_DIR/migration-plan-postapply.txt" 2>&1
+  run_reconciled_cli_plan "$ARTIFACT_DIR/migration-list-postapply.txt" "$ARTIFACT_DIR/migration-plan-postapply.txt"
   if grep -qE '20[0-9]{12}_[a-z0-9_]+\.sql' "$ARTIFACT_DIR/migration-plan-postapply.txt"; then fail COMUN_48_5_A5_A1_R1_BLOCKED_LEDGER_INCONSISTENT; fi
 }
 
@@ -240,16 +310,30 @@ write_closeout() {
   summary "$terminal"
 }
 
+write_planner_bridge_closeout() {
+  printf '{"terminal":"%s","main":"%s","migration":"%s","migrationSha256":"%s","sidewalkCliHistory":"absent","sidewalkExternalLedger":"applied_exact_scoped","planned":["%s"],"ProductionBusinessWrites":0,"ProductionSchemaWrites":0,"ProductionEnvWrites":0,"zeroRemoteWrites":true}\n' \
+    "$TERMINAL_PLANNER_BRIDGE" "$EXPECTED_MAIN_SHA" "$(basename "$A5_A1_MIGRATION")" "${A5_A1_MIGRATION_SHA256,,}" "$(basename "$A5_A1_MIGRATION")" > "$ARTIFACT_DIR/closeout.json"
+  summary "$TERMINAL_PLANNER_BRIDGE"
+}
+
 stage initialized
 assert_main_and_checksum
 audit_production_deployment
 audit_flags
 snapshot pre
+assert_a5_schema_unapplied
+assert_external_ledger_bridge
 assert_exact_plan
+if test "$EXECUTION_MODE" = planner-bridge; then
+  write_planner_bridge_closeout
+  stage terminal_planner_bridge_green
+  exit 0
+fi
 apply_exact_migration
 postflight_schema_and_security
 compare_business_delta
 assert_post_apply_plan_empty
+assert_external_ledger_bridge
 readonly_smokes
 if test "$A5_ALREADY_APPLIED" = true; then write_closeout "$TERMINAL_ALREADY"; else write_closeout "$TERMINAL_GREEN"; fi
 stage terminal_green
