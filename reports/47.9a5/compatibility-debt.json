@@ -265,6 +265,16 @@
     "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
   },
   {
+    "code": "A5-P2-3-COMUN-ADMIN-ACERVO-HISTORIAS-ORAIS-SUGESTOES",
+    "severity": "P2",
+    "route": "/comun/admin/acervo/historias-orais/sugestoes",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
     "code": "A5-P2-3-COMUN-ADMIN-ACERVO-HISTORIAS-ORAIS-TRANSCRICOES",
     "severity": "P2",
     "route": "/comun/admin/acervo/historias-orais/transcricoes",
@@ -752,6 +762,7 @@
     "severity": "P2",
     "route": "/comun/cooperativas",
     "components": [
+      "generic-white-panel",
       "legacy-shell"
     ],
     "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
@@ -772,16 +783,6 @@
     "code": "A5-P2-2-COMUN-MAPA",
     "severity": "P2",
     "route": "/comun/mapa",
-    "components": [
-      "legacy-shell"
-    ],
-    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
-    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
-  },
-  {
-    "code": "A5-P2-1-COMUN-OBSERVATORIOS",
-    "severity": "P2",
-    "route": "/comun/observatorios",
     "components": [
       "legacy-shell"
     ],
@@ -908,6 +909,16 @@
     "route": "/comun/redefinir-acesso",
     "components": [
       "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
+    "code": "A5-P2-1-COMUN-RELATAR",
+    "severity": "P2",
+    "route": "/comun/relatar",
+    "components": [
+      "generic-white-panel"
     ],
     "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
     "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"

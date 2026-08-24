@@ -1,8 +1,8 @@
 # Matriz canônica de superfícies — 47.9A5
 
-Gerada em: 2026-08-08T18:23:29.556Z
+Gerada em: 2026-08-24T02:22:08.876Z
 
-Total: **195** · ondas: 1=73 · 2=33 · 3=77 · 4=12
+Total: **225** · ondas: 1=98 · 2=33 · 3=82 · 4=12
 
 | Rota | Família | Shell | Visual | Componente | Decisão | Onda |
 | --- | --- | --- | --- | --- | --- | ---: |
@@ -40,6 +40,7 @@ Total: **195** · ondas: 1=73 · 2=33 · 3=77 · 4=12
 | `/comun/admin/acervo/arte` | acervo | admin | v2_compatibility | ArtAdmin | compatibility_v2 | 3 |
 | `/comun/admin/acervo/arte/[id]` | acervo | admin | not_rendered | EditArtwork | redirect_canonical | 3 |
 | `/comun/admin/acervo/arte/contribuicoes` | acervo | admin | v2_compatibility | ArtworkSubmissions | compatibility_v2 | 3 |
+| `/comun/admin/acervo/arte/contribuicoes/[id]` | acervo | admin | not_rendered | ArtworkContributionDetail | redirect_canonical | 3 |
 | `/comun/admin/acervo/arte/creditos` | acervo | admin | v2_compatibility | ArtworkCreditsQueue | compatibility_v2 | 3 |
 | `/comun/admin/acervo/arte/direitos` | acervo | admin | v2_compatibility | ArtworkRightsQueue | compatibility_v2 | 3 |
 | `/comun/admin/acervo/arte/novo` | acervo | admin | v2_compatibility | NewArtwork | compatibility_v2 | 3 |
@@ -56,6 +57,8 @@ Total: **195** · ondas: 1=73 · 2=33 · 3=77 · 4=12
 | `/comun/admin/acervo/historias-orais/consentimentos` | acervo | admin | v2_compatibility | Page | compatibility_v2 | 3 |
 | `/comun/admin/acervo/historias-orais/novo` | acervo | admin | v2_compatibility | Page | compatibility_v2 | 3 |
 | `/comun/admin/acervo/historias-orais/piloto` | acervo | admin | v2_compatibility | Page | compatibility_v2 | 3 |
+| `/comun/admin/acervo/historias-orais/sugestoes` | acervo | admin | v2_compatibility | OralSuggestionList | compatibility_v2 | 3 |
+| `/comun/admin/acervo/historias-orais/sugestoes/[id]` | acervo | admin | not_rendered | OralSuggestionDetail | redirect_canonical | 3 |
 | `/comun/admin/acervo/historias-orais/transcricoes` | acervo | admin | v2_compatibility | Page | compatibility_v2 | 3 |
 | `/comun/admin/acervo/historias-orais/transcricoes/trabalho` | acervo | admin | v2_compatibility | Page | compatibility_v2 | 3 |
 | `/comun/admin/acervo/identificacao` | acervo | admin | v2_compatibility | Page | compatibility_v2 | 3 |
@@ -112,12 +115,14 @@ Total: **195** · ondas: 1=73 · 2=33 · 3=77 · 4=12
 | `/comun/admin/radio` | radio | admin | v2_compatibility | Page | compatibility_v2 | 3 |
 | `/comun/admin/radio/consentimentos` | radio | admin | v2_compatibility | Page | compatibility_v2 | 3 |
 | `/comun/admin/radio/contribuicoes` | radio | admin | v2_compatibility | Page | compatibility_v2 | 3 |
+| `/comun/admin/radio/contribuicoes/[id]` | radio | admin | not_rendered | RadioContributionDetail | redirect_canonical | 3 |
 | `/comun/admin/radio/direitos` | radio | admin | v2_compatibility | Page | compatibility_v2 | 3 |
 | `/comun/admin/radio/episodios` | radio | admin | v2_compatibility | Page | compatibility_v2 | 3 |
 | `/comun/admin/radio/episodios/[id]` | radio | admin | not_rendered | Page | redirect_canonical | 3 |
 | `/comun/admin/radio/episodios/novo` | radio | admin | v2_compatibility | Page | compatibility_v2 | 3 |
 | `/comun/admin/radio/grade` | radio | admin | v2_compatibility | Page | compatibility_v2 | 3 |
 | `/comun/admin/radio/programas` | radio | admin | v2_compatibility | Page | compatibility_v2 | 3 |
+| `/comun/admin/radio/programas/[id]` | radio | admin | not_rendered | ProgramDetail | redirect_canonical | 3 |
 | `/comun/admin/radio/programas/novo` | radio | admin | v2_compatibility | Page | compatibility_v2 | 3 |
 | `/comun/admin/relatos` | relatos | admin | not_rendered | anonymous_page | redirect_canonical | 3 |
 | `/comun/admin/relatos/[id]` | relatos | admin | not_rendered | ReviewReportPage | redirect_canonical | 3 |
@@ -151,6 +156,16 @@ Total: **195** · ondas: 1=73 · 2=33 · 3=77 · 4=12
 | `/comun/conta` | conta | member_nested | v2_compatibility | Conta | compatibility_v2 | 1 |
 | `/comun/conta/privacidade` | conta | member_nested | v2_compatibility | PrivacidadePage | compatibility_v2 | 1 |
 | `/comun/cooperativas` | cooperativas | public_web | v2_compatibility | Page | compatibility_v2 | 1 |
+| `/comun/cooperativas/[slug]` | cooperativas | public_web | not_rendered | SolidarityOrganizationPage | redirect_canonical | 1 |
+| `/comun/cooperativas/[slug]/editar-perfil` | cooperativas | public_web | not_rendered | EditSolidarityOrganizationProfilePage | redirect_canonical | 1 |
+| `/comun/cooperativas/[slug]/necessidades/[needSlug]/ajudar` | cooperativas | public_web | not_rendered | NeedHelpPage | redirect_canonical | 1 |
+| `/comun/cooperativas/[slug]/necessidades/[needSlug]/editar` | cooperativas | public_web | not_rendered | EditSolidarityNeedPage | redirect_canonical | 1 |
+| `/comun/cooperativas/[slug]/necessidades/nova` | cooperativas | public_web | not_rendered | NewSolidarityNeedPage | redirect_canonical | 1 |
+| `/comun/cooperativas/[slug]/ofertas/[offerSlug]/editar` | cooperativas | public_web | not_rendered | EditSolidarityOfferPage | redirect_canonical | 1 |
+| `/comun/cooperativas/[slug]/ofertas/[offerSlug]/interesse` | cooperativas | public_web | not_rendered | OfferInterestPage | redirect_canonical | 1 |
+| `/comun/cooperativas/[slug]/ofertas/nova` | cooperativas | public_web | not_rendered | NewSolidarityOfferPage | redirect_canonical | 1 |
+| `/comun/cooperativas/nova` | cooperativas | public_web | not_rendered | Page | redirect_canonical | 1 |
+| `/comun/cooperativas/nova/[onboardingToken]` | cooperativas | public_web | not_rendered | Page | redirect_canonical | 1 |
 | `/comun/criar-conta` | criar-conta | auth | mixed | CriarConta | retain_v2 | 2 |
 | `/comun/dossies` | dossies | public_web | v2_compatibility | DossiersPage | compatibility_v2 | 1 |
 | `/comun/dossies/[slug]` | dossies | public_web | not_rendered | DossierPage | redirect_canonical | 1 |
@@ -161,7 +176,7 @@ Total: **195** · ondas: 1=73 · 2=33 · 3=77 · 4=12
 | `/comun/mapa/contribuir` | mapa | immersive | not_rendered | Page | redirect_canonical | 2 |
 | `/comun/mapa/contribuir/confirmacao` | mapa | immersive | mixed | Confirmation | retain_v2 | 2 |
 | `/comun/minha-participacao` | minha-participacao | member_root | mixed | MinhaAreaPage | retain_v2 | 1 |
-| `/comun/observatorios` | observatorios | public_web | v2_compatibility | Page | compatibility_v2 | 1 |
+| `/comun/observatorios` | observatorios | public_web | not_rendered | ObservatoryPage | redirect_canonical | 1 |
 | `/comun/observatorios/[slug]` | observatorios | public_web | not_rendered | Page | redirect_canonical | 1 |
 | `/comun/observatorios/[slug]/acoes` | observatorios | public_web | not_rendered | Page | redirect_canonical | 1 |
 | `/comun/observatorios/[slug]/campanhas/[campaignSlug]` | observatorios | public_web | not_rendered | Page | redirect_canonical | 1 |
@@ -169,6 +184,19 @@ Total: **195** · ondas: 1=73 · 2=33 · 3=77 · 4=12
 | `/comun/observatorios/[slug]/dados` | observatorios | immersive | not_rendered | Page | redirect_canonical | 2 |
 | `/comun/observatorios/[slug]/mapa` | observatorios | immersive | v2_compatibility | Page | compatibility_v2 | 2 |
 | `/comun/observatorios/[slug]/registrar` | observatorios | immersive | v2_compatibility | Page | compatibility_v2 | 2 |
+| `/comun/observatorios/ambiente` | observatorios | public_web | not_rendered | EnvironmentalHubPage | redirect_canonical | 1 |
+| `/comun/observatorios/ambiente/qualidade-dos-rios` | observatorios | public_web | not_rendered | SurfaceWaterPage | redirect_canonical | 1 |
+| `/comun/observatorios/ambiente/qualidade-dos-rios/fontes` | observatorios | public_web | not_rendered | SourcesPage | redirect_canonical | 1 |
+| `/comun/observatorios/calcadas` | observatorios | public_web | not_rendered | SidewalkObservatoryPage | redirect_canonical | 1 |
+| `/comun/observatorios/panorama` | observatorios | public_web | not_rendered | CityPanoramaPage | redirect_canonical | 1 |
+| `/comun/observatorios/servicos-essenciais` | observatorios | public_web | not_rendered | EssentialServicesObservatoryPage | redirect_canonical | 1 |
+| `/comun/observatorios/servicos-essenciais/energia` | observatorios | public_web | not_rendered | EssentialPowerPage | redirect_canonical | 1 |
+| `/comun/observatorios/servicos-essenciais/energia/fontes` | observatorios | public_web | not_rendered | EssentialPowerSourcesPage | redirect_canonical | 1 |
+| `/comun/observatorios/territorio` | observatorios | public_web | not_rendered | TerritorialContextPage | redirect_canonical | 1 |
+| `/comun/observatorios/territorio/fontes` | observatorios | public_web | not_rendered | TerritorialSourcesPage | redirect_canonical | 1 |
+| `/comun/observatorios/transporte` | observatorios | public_web | not_rendered | Page | redirect_canonical | 1 |
+| `/comun/observatorios/transporte/fontes` | observatorios | public_web | not_rendered | Page | redirect_canonical | 1 |
+| `/comun/observatorios/transporte/linhas/[lineCode]` | observatorios | public_web | not_rendered | Page | redirect_canonical | 1 |
 | `/comun/offline` | offline | institutional | v2_compatibility | OfflinePage | compatibility_v2 | 2 |
 | `/comun/onboarding` | onboarding | auth | v2_compatibility | Onboarding | compatibility_v2 | 2 |
 | `/comun/onibus` | onibus | member_nested | not_rendered | ComunBusPage | redirect_canonical | 1 |
@@ -178,6 +206,8 @@ Total: **195** · ondas: 1=73 · 2=33 · 3=77 · 4=12
 | `/comun/pautas/[slug]` | pautas | member_nested | not_rendered | PautaPage | redirect_canonical | 1 |
 | `/comun/pautas/[slug]/memoria/[memorySlug]` | pautas | member_nested | not_rendered | SidewalkMemoryPage | redirect_canonical | 1 |
 | `/comun/pautas/[slug]/registros/[recordSlug]` | pautas | member_nested | not_rendered | LegacySidewalkRecordPage | redirect_canonical | 1 |
+| `/comun/pautas/[slug]/rodas/[circleId]` | pautas | member_nested | not_rendered | RodaVivaPage | redirect_canonical | 1 |
+| `/comun/pautas/nova` | pautas | member_nested | not_rendered | NewPautaPage | redirect_canonical | 1 |
 | `/comun/preview/esteira-politica` | preview | immersive | not_rendered | PoliticalCyclePreviewPage | redirect_canonical | 2 |
 | `/comun/projetos` | projetos | public_web | v2_compatibility | Page | compatibility_v2 | 1 |
 | `/comun/projetos/[slug]` | projetos | public_web | not_rendered | Page | redirect_canonical | 1 |
