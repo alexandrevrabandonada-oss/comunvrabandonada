@@ -7,11 +7,14 @@ import { useFormStatus } from "react-dom";
 export function AdminLoginForm({
   redirectTo = "/comun/admin",
   googleAuthEnabled = false,
+  initialError = null,
 }: {
   redirectTo?: string;
   googleAuthEnabled?: boolean;
+  initialError?: string | null;
 }) {
   const [state, action] = useActionState(loginAdmin, null);
+  const error = state?.error ?? initialError;
 
   return (
     <div className="industrial-border mx-auto mt-10 grid max-w-md gap-4 bg-comun-paper p-5 text-comun-black">
@@ -33,12 +36,12 @@ export function AdminLoginForm({
       ) : null}
       <form action={action} className="grid gap-4">
         <input type="hidden" name="redirectTo" value={redirectTo} />
-        {state?.error ? (
+        {error ? (
           <p
             role="alert"
             className="border-2 border-comun-red p-3 text-sm font-bold text-comun-red"
           >
-            {state.error}
+            {error}
           </p>
         ) : null}
         <label className="grid gap-2">

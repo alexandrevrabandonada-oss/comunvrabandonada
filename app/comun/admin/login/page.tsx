@@ -2,7 +2,10 @@ import { redirect } from "next/navigation";
 import { AdminLoginForm } from "@/components/admin-login-form";
 import { logoutAdmin } from "@/app/actions";
 import { getComunAdminAccessState } from "@/lib/admin-auth";
-import { safeAdminReturn } from "@/lib/admin-google-auth";
+import {
+  adminLoginReasonMessage,
+  safeAdminReturn,
+} from "@/lib/admin-google-auth";
 import { isGoogleAuthEnabled } from "@/lib/community-google-auth";
 import {
   resolveComunExperience,
@@ -49,6 +52,7 @@ export default async function AdminLoginPage(props: {
     <AdminLoginForm
       redirectTo={redirectTo}
       googleAuthEnabled={isGoogleAuthEnabled()}
+      initialError={adminLoginReasonMessage(searchParams.reason)}
     />
   );
 }

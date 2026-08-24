@@ -4,6 +4,14 @@ const ADMIN_FALLBACK = "/comun/admin";
 export const COMUN_ADMIN_GOOGLE_CALLBACK_PATH =
   "/comun/admin/auth/callback" as const;
 
+export function adminLoginReasonMessage(reason: unknown) {
+  if (reason === "not-authorized")
+    return "A conta Google foi autenticada, mas ainda não possui autorização administrativa ativa no COMUN.";
+  if (reason === "google")
+    return "Não foi possível concluir o acesso com Google. Tente novamente.";
+  return null;
+}
+
 export function safeAdminReturn(value: unknown) {
   if (typeof value !== "string") return ADMIN_FALLBACK;
   const candidate = value.trim();
