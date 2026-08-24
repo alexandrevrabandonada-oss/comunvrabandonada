@@ -84,8 +84,8 @@ node scripts/solo/validate-sidewalk-external-ledger-exception.mjs "$SIDEWALK_EXC
 node scripts/solo/verify-sidewalk-external-ledger-evolved-scope.mjs
 grep -q 'COMUN_SIDEWALK_EXTERNAL_LEDGER_EVOLVED_SCOPE_GREEN' .ci-artifacts/a4-external-ledger-e1/bridge.json
 mv "$SIDEWALK_MIGRATION" "$TEMP_ROOT/sidewalk.sql"; HELD_SIDEWALK="$TEMP_ROOT/sidewalk.sql"
-supabase migration list --db-url "$SUPABASE_DB_URL" > "$ARTIFACT_DIR/migration-list-before.txt"
-supabase db push --db-url "$SUPABASE_DB_URL" --dry-run > "$ARTIFACT_DIR/planner-before.txt"
+supabase migration list --db-url "$SUPABASE_DB_URL" > "$ARTIFACT_DIR/migration-list-before.txt" 2>&1
+supabase db push --db-url "$SUPABASE_DB_URL" --dry-run > "$ARTIFACT_DIR/planner-before.txt" 2>&1
 mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' "$ARTIFACT_DIR/planner-before.txt" | sort -u || true)
 test "${#planned[@]}" -eq 1 && test "${planned[0]}" = "$(basename "$A5_A2_MIGRATION")" || fail COMUN_48_5_A5_A2_R1_BLOCKED_UNEXPECTED_MIGRATION_PLAN
 stage exact_plan_green
@@ -119,7 +119,7 @@ fs.writeFileSync('.ci-artifacts/48-5-a5-a2-r1-production/business-delta.json',JS
 NODE
 
 mv "$SIDEWALK_MIGRATION" "$TEMP_ROOT/sidewalk.sql"; HELD_SIDEWALK="$TEMP_ROOT/sidewalk.sql"
-supabase db push --db-url "$SUPABASE_DB_URL" --dry-run > "$ARTIFACT_DIR/planner-after.txt"
+supabase db push --db-url "$SUPABASE_DB_URL" --dry-run > "$ARTIFACT_DIR/planner-after.txt" 2>&1
 test -z "$(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' "$ARTIFACT_DIR/planner-after.txt" | sort -u)" || fail COMUN_48_5_A5_A2_R1_BLOCKED_PLANNER_AFTER
 restore_sidewalk
 printf '{"terminal":"COMUN_48_5_A5_A2_R1_SCHEMA_GREEN_READY_FOR_RUNTIME","plannerAfter":[],"ProductionSchemaWrites":"1_migration_only","ProductionBusinessWrites":0,"ProductionEnvWrites":0}\n' > "$ARTIFACT_DIR/closeout.json"
