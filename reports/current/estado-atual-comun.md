@@ -3100,3 +3100,21 @@ Estado terminal: `COMUN_48_5_A5_A1_R1_BLOCKED_NONEXACT_MIGRATION_PLAN`.
 - a próxima ação é a lane proprietária resolver a migration pendente. Só então uma nova tentativa A5-A1 poderá exigir o plano de uma única migration cultural.
 
 Relatório: `reports/current/comun-48-5-a5-a1-r1-production-rollout.md`.
+## Estado em implementação — 48.5-A5-A2: workspace de materialização privada especializada (24/08/2026)
+
+- História Oral e Rádio passam a ter workspace administrativo de triagem e materialização privada via as RPCs A5-A1 já atômicas; Música continua fora do fluxo Rádio e publicação não é autorizada;
+- Arte recebe readiness, UI de diagnóstico e migration aditiva ainda não aplicada (`20260824001340_comun_artwork_submission_private_materialization.sql`, SHA-256 `b9da07e8da93aa22d41119eb3a0f406176595bd4fbdf96bf1d75e16ddfd02354`). A CTA permanece dormente até o rollout específico;
+- A3/A4 ON e A5-A1 ativo permanecem preservados. Nenhum write Production, migration Production, env, publicação, Search, asset público ou coleção ocorreu neste slice;
+- a prova descartável de Arte está versionada para CI. O Docker local falhou antes de iniciar por erro de I/O da infraestrutura, sem aplicar schema/dados; não há retry remoto ou contorno manual.
+
+Relatório: `reports/current/comun-48-5-a5-a2-private-materialization-workspace.md`.
+## Estado atual — 48.5-A5-A2: materialização privada especializada pronta para integração (24/08/2026)
+
+Estado candidato: `COMUN_48_5_A5_A2_PRIVATE_MATERIALIZATION_GREEN_ART_SCHEMA_ROLLOUT_REQUIRED`.
+
+- A continuidade privada de História Oral e Rádio está integrada ao resolver canônico com readiness recalculada no servidor, RPCs atômicas existentes e auditoria administrativa; Arte tem somente schema/migration e prova descartável local preparados, sem CTA ativo antes do rollout separado;
+- os gates locais passaram: testes focais (18), unitários (1.165), typecheck, lint, build e `git diff --check`;
+- recuperação local conservadora atingiu 8,02 GiB livres: somente cache Docker regenerável e compactação reversível do cache `_npx`; `DockerVolumesRemoved=0`, `UserFilesRemoved=0`, `SourceFilesRemoved=0`;
+- A3 e A4 permanecem ON/preserved, A5-A1 permanece ativo/preservado. Não houve writes Production de negócio, schema ou env; não houve publicação, Search, promoção pública de asset ou coleção.
+
+Relatório: `reports/current/comun-48-5-a5-a2-private-materialization-workspace.md`.

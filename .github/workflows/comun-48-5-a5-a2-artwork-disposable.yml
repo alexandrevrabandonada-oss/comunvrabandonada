@@ -1,0 +1,73 @@
+name: COMUN 48.5-A5-A2 disposable artwork private-root proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-5-a5-a2-artwork-disposable.yml"
+      - "supabase/migrations/20260824001340_comun_artwork_submission_private_materialization.sql"
+      - "scripts/comun-artwork-private-materialization-a5-a2-disposable.sql"
+      - "lib/archive/cultural-curation-readiness.ts"
+      - "lib/archive/cultural-curation-readiness.test.ts"
+      - "app/comun/admin/acervo/specialized-provenance-actions.ts"
+      - "app/comun/admin/acervo/arte/contribuicoes/**"
+  workflow_dispatch:
+
+permissions: { contents: read }
+
+jobs:
+  disposable-supabase:
+    name: A5-A2 / local Supabase artwork proof
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.115.0 }
+      - name: Assert local-only proof boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${SUPABASE_DB_URL:-}"
+          test -z "${SUPABASE_PROJECT_REF:-}"
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
+      - name: Start local Supabase and prove Artwork materialization
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/48-5-a5-a2-artwork-disposable
+          cleanup() {
+            timeout -k 10s 120s supabase stop --no-backup >/dev/null 2>&1 || true
+            mapfile -t ids < <(docker ps -aq --filter 'label=com.supabase.cli.project=COMUM_VR_ABANDONADA')
+            if (( ${#ids[@]} )); then docker rm -f "${ids[@]}" >/dev/null 2>&1 || true; fi
+          }
+          trap cleanup EXIT
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          supabase db reset --local --yes
+          db="$(node scripts/ci/read-supabase-local-env.mjs | sed -n 's/^DB_URL=//p' | tr -d '\"')"
+          test -n "$db"
+          case "$db" in *supabase.co*|*localhost*|*127.0.0.1*) ;; *) echo COMUN_48_5_A5_A2_BLOCKED_NONLOCAL_DB; exit 1 ;; esac
+          psql "$db" -v ON_ERROR_STOP=1 -f scripts/comun-artwork-private-materialization-a5-a2-disposable.sql | tee .ci-artifacts/48-5-a5-a2-artwork-disposable/proof.log
+          grep -q COMUN_48_5_A5_A2_ARTWORK_PRIVATE_MATERIALIZATION_DISPOSABLE_GREEN .ci-artifacts/48-5-a5-a2-artwork-disposable/proof.log
+          grep -q legacyBackfill=false .ci-artifacts/48-5-a5-a2-artwork-disposable/proof.log
+          grep -q autoPublication=false .ci-artifacts/48-5-a5-a2-artwork-disposable/proof.log
+          grep -q searchWrites=0 .ci-artifacts/48-5-a5-a2-artwork-disposable/proof.log
+      - name: Publish sanitized proof summary
+        if: success()
+        run: |
+          echo COMUN_48_5_A5_A2_ARTWORK_PRIVATE_MATERIALIZATION_DISPOSABLE_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo legacyBackfill=false >> "$GITHUB_STEP_SUMMARY"
+          echo autoPublication=false >> "$GITHUB_STEP_SUMMARY"
+          echo searchWrites=0 >> "$GITHUB_STEP_SUMMARY"
+          echo publicAssetPromotions=0 >> "$GITHUB_STEP_SUMMARY"
+          echo collectionWrites=0 >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-5-a5-a2-artwork-disposable-${{ github.run_id }}
+          path: .ci-artifacts/48-5-a5-a2-artwork-disposable
+          retention-days: 14
+          if-no-files-found: error

@@ -32,6 +32,7 @@ export type CurationBlockerCode =
   | "private_root_editorial_decision_required"
   | "radio_private_root_destination_required"
   | "radio_existing_target_reconciliation_required"
+  | "artwork_existing_target_reconciliation_required"
   | "music_pipeline_required";
 
 export type CurationWarningCode =
@@ -55,6 +56,7 @@ export type CurationActionCode =
   | "resolve_music_rights"
   | "choose_radio_private_root_destination"
   | "reconcile_radio_existing_target"
+  | "reconcile_artwork_existing_target"
   | "request_editorial_review";
 
 export type CulturalCurationReadinessInput = {
@@ -113,6 +115,15 @@ export type CulturalCurationReadinessInput = {
       | null;
     radioTargetKind?: "program" | "episode" | null;
     radioProgramSelected?: boolean;
+    radioExistingTargetSelected?: boolean;
+    artworkSubmissionKind?:
+      | "own_work"
+      | "collective_work"
+      | "authorized_submission"
+      | "unknown_authorship"
+      | "existing_work_complement"
+      | "credit_correction"
+      | null;
   };
 };
 
@@ -121,6 +132,8 @@ export type CulturalCurationReadiness = {
   stage: string;
   /** Does not require child consents or public derivatives that do not exist yet. */
   readyForPrivateRootCreation: boolean;
+  /** Reconciliation only: points to an existing private root and never creates one. */
+  readyForExistingRootLink: boolean;
   readyForEditorialReview: boolean;
   readyForDraftMaterialization: boolean;
   /** A5-A0 never authorizes publication. */
@@ -185,6 +198,8 @@ function actionFor(blocker: CurationBlockerCode): CurationActionCode {
       return "choose_radio_private_root_destination";
     case "radio_existing_target_reconciliation_required":
       return "reconcile_radio_existing_target";
+    case "artwork_existing_target_reconciliation_required":
+      return "reconcile_artwork_existing_target";
     case "music_pipeline_required":
       return "resolve_music_rights";
     case "private_root_source_ineligible":
@@ -295,7 +310,7 @@ export function resolveCulturalCurationReadiness(
 
   if (!sourceIsEligible || !sourceEvidenceReady)
     pushUnique(privateRootBlockers, "private_root_source_ineligible");
-  if ((input.specialization === "oral_history" || input.specialization === "radio") &&
+  if ((input.specialization === "oral_history" || input.specialization === "radio" || input.specialization === "art") &&
     !pre?.rootExists && pre?.explicitEditorialDecision !== true)
     pushUnique(privateRootBlockers, "private_root_editorial_decision_required");
 
@@ -310,17 +325,30 @@ export function resolveCulturalCurationReadiness(
         pushUnique(privateRootBlockers, "radio_private_root_destination_required");
     } else if (contributionType === "own_music") {
       pushUnique(privateRootBlockers, "music_pipeline_required");
-    } else if (["pauta_proposal", "agenda", "correction", "complement", "withdrawal"].includes(contributionType ?? "")) {
+    } else if (["correction", "complement", "withdrawal"].includes(contributionType ?? "")) {
+      pushUnique(privateRootBlockers, "radio_existing_target_reconciliation_required");
+    } else if (["pauta_proposal", "agenda"].includes(contributionType ?? "")) {
       pushUnique(privateRootBlockers, "radio_existing_target_reconciliation_required");
     } else {
       pushUnique(privateRootBlockers, "radio_private_root_destination_required");
     }
   }
 
+  if (input.specialization === "art" && !pre?.rootExists &&
+    ["existing_work_complement", "credit_correction"].includes(pre?.artworkSubmissionKind ?? ""))
+    pushUnique(privateRootBlockers, "artwork_existing_target_reconciliation_required");
+
   const readyForPrivateRootCreation =
-    input.specialization === "oral_history" || input.specialization === "radio"
+    input.specialization === "oral_history" || input.specialization === "radio" || input.specialization === "art"
       ? privateRootBlockers.length === 0
       : readyForDraftMaterialization;
+  const readyForExistingRootLink =
+    input.specialization === "radio" &&
+    ["correction", "complement", "withdrawal"].includes(pre?.radioContributionType ?? "") &&
+    sourceIsEligible &&
+    sourceEvidenceReady &&
+    pre?.explicitEditorialDecision === true &&
+    pre?.radioExistingTargetSelected === true;
   for (const blocker of privateRootBlockers) pushUnique(blockers, blocker);
   const readyForEditorialReview = blockers.length === 0;
   const requiredActions = blockers.map(actionFor);
@@ -330,6 +358,7 @@ export function resolveCulturalCurationReadiness(
     specialization: input.specialization ?? null,
     stage: input.stage,
     readyForPrivateRootCreation,
+    readyForExistingRootLink,
     readyForEditorialReview,
     readyForDraftMaterialization,
     publicationEligible: false,
@@ -399,6 +428,158 @@ export function resolveArchiveSubmissionReadiness(
     safety: {
       reviewRequired: submission.risk_level === "high",
       attentionOnly: submission.risk_level === "attention",
+    },
+  });
+}
+
+export type OralHistorySuggestionReadinessSource = {
+  suggested_person_or_theme?: string | null;
+  story_summary?: string | null;
+  city?: string | null;
+  neighborhood?: string | null;
+  period_public?: string | null;
+  relationship_public?: string | null;
+  status?: string | null;
+  private_root_archive_item_id?: string | null;
+};
+
+/** The suggestion envelope is provenance; no participant or consent is inferred from it. */
+export function resolveOralHistorySuggestionReadiness(
+  suggestion: OralHistorySuggestionReadinessSource,
+  options: { explicitEditorialDecision: boolean; rootExists?: boolean },
+) {
+  return resolveCulturalCurationReadiness({
+    specialization: "oral_history",
+    stage: suggestion.status ?? "pending",
+    handoffComplete: true,
+    material: {
+      titlePresent: Boolean(suggestion.suggested_person_or_theme?.trim()),
+      narrativePresent: Boolean(suggestion.story_summary?.trim()),
+      assetReady: false,
+    },
+    provenanceComplete: Boolean(
+      suggestion.relationship_public?.trim() ||
+        suggestion.city?.trim() ||
+        suggestion.neighborhood?.trim() ||
+        suggestion.period_public?.trim() ||
+        suggestion.suggested_person_or_theme?.trim(),
+    ),
+    rights: { state: "rights_incomplete", publicationScope: "review_only" },
+    oralHistory: {},
+    preMaterialization: {
+      sourceStatus: suggestion.status,
+      explicitEditorialDecision: options.explicitEditorialDecision,
+      rootExists: options.rootExists ?? Boolean(suggestion.private_root_archive_item_id),
+    },
+  });
+}
+
+export type RadioContributionReadinessSource = {
+  public_protocol?: string | null;
+  contribution_type?: NonNullable<CulturalCurationReadinessInput["preMaterialization"]>["radioContributionType"];
+  title_suggestion?: string | null;
+  context_suggestion?: string | null;
+  status?: string | null;
+  rights_state?: string | null;
+  publication_scope?: string | null;
+  reuse_permission?: string | null;
+  license_code?: string | null;
+  voice_source?: string | null;
+  material_source?: string | null;
+  private_root_kind?: "program" | "episode" | null;
+  private_root_archive_item_id?: string | null;
+};
+
+export function resolveRadioContributionReadiness(
+  contribution: RadioContributionReadinessSource,
+  options: {
+    explicitEditorialDecision: boolean;
+    programSelected?: boolean;
+    targetKind?: "program" | "episode" | null;
+    existingTargetSelected?: boolean;
+    rootExists?: boolean;
+  },
+) {
+  return resolveCulturalCurationReadiness({
+    specialization: "radio",
+    stage: contribution.status ?? "pending",
+    handoffComplete: true,
+    material: {
+      titlePresent: Boolean(contribution.title_suggestion?.trim()),
+      narrativePresent: Boolean(contribution.context_suggestion?.trim()),
+      assetReady: false,
+    },
+    provenanceComplete: Boolean(contribution.public_protocol?.trim()),
+    rights: {
+      state: contribution.rights_state,
+      publicationScope: contribution.publication_scope,
+      reusePermission: contribution.reuse_permission,
+      licenseCode: contribution.license_code,
+    },
+    radio: {
+      voiceConsent: contribution.voice_source === "no_voice",
+      musicRightsRequired: contribution.material_source === "third_party_unverified",
+      musicRightsComplete: false,
+    },
+    preMaterialization: {
+      sourceStatus: contribution.status,
+      explicitEditorialDecision: options.explicitEditorialDecision,
+      rootExists: options.rootExists ?? Boolean(contribution.private_root_archive_item_id),
+      radioContributionType: contribution.contribution_type ?? null,
+      radioTargetKind: options.targetKind ?? contribution.private_root_kind ?? null,
+      radioProgramSelected: options.programSelected,
+      radioExistingTargetSelected: options.existingTargetSelected,
+    },
+  });
+}
+
+export type ArtworkSubmissionReadinessSource = {
+  public_protocol?: string | null;
+  submission_kind?: NonNullable<CulturalCurationReadinessInput["preMaterialization"]>["artworkSubmissionKind"];
+  title_suggestion?: string | null;
+  context_suggestion?: string | null;
+  territory_id?: string | null;
+  authorship_source?: string | null;
+  status?: string | null;
+  archive_item_id?: string | null;
+  rights_state?: string | null;
+  publication_scope?: string | null;
+  reuse_permission?: string | null;
+  license_code?: string | null;
+};
+
+/** Pre-root artwork readiness avoids child gates that cannot exist before the private root. */
+export function resolveArtworkSubmissionReadiness(
+  submission: ArtworkSubmissionReadinessSource,
+  options: { explicitEditorialDecision: boolean; rootExists?: boolean; assetReady?: boolean; safetyComplete?: boolean },
+) {
+  return resolveCulturalCurationReadiness({
+    specialization: "art",
+    stage: submission.status ?? "pending",
+    handoffComplete: true,
+    material: {
+      titlePresent: Boolean(submission.title_suggestion?.trim()),
+      narrativePresent: Boolean(submission.context_suggestion?.trim()),
+      assetReady: options.assetReady === true,
+    },
+    provenanceComplete: Boolean(
+      submission.public_protocol?.trim() ||
+        submission.authorship_source?.trim() ||
+        submission.territory_id,
+    ),
+    rights: {
+      state: submission.rights_state,
+      publicationScope: submission.publication_scope,
+      reusePermission: submission.reuse_permission,
+      licenseCode: submission.license_code,
+      authorshipConfirmed: false,
+    },
+    safety: { reviewRequired: options.safetyComplete === false, reviewComplete: options.safetyComplete },
+    preMaterialization: {
+      sourceStatus: submission.status,
+      explicitEditorialDecision: options.explicitEditorialDecision,
+      rootExists: options.rootExists ?? Boolean(submission.archive_item_id),
+      artworkSubmissionKind: submission.submission_kind ?? null,
     },
   });
 }

@@ -60,6 +60,45 @@ describe("cultural curation readiness", () => {
     );
   });
 
+  it("allows an artwork envelope to create a private root before child gates exist", () => {
+    const result = resolveCulturalCurationReadiness({
+      specialization: "art",
+      stage: "pending",
+      handoffComplete: true,
+      material: { titlePresent: true, narrativePresent: true, assetReady: false },
+      provenanceComplete: true,
+      rights: { state: "rights_incomplete", publicationScope: "review_only" },
+      preMaterialization: {
+        sourceStatus: "pending",
+        explicitEditorialDecision: true,
+        artworkSubmissionKind: "unknown_authorship",
+      },
+    });
+    expect(result.readyForPrivateRootCreation).toBe(true);
+    expect(result.readyForEditorialReview).toBe(false);
+    expect(result.blockers).toEqual(expect.arrayContaining([
+      "authorship_unconfirmed", "review_only", "asset_not_ready",
+    ]));
+  });
+
+  it("does not create a replacement artwork for complements or credit corrections", () => {
+    const result = resolveCulturalCurationReadiness({
+      specialization: "art",
+      stage: "pending",
+      handoffComplete: true,
+      material: { titlePresent: true, narrativePresent: true, assetReady: false },
+      provenanceComplete: true,
+      rights: { state: "rights_incomplete", publicationScope: "review_only" },
+      preMaterialization: {
+        sourceStatus: "pending",
+        explicitEditorialDecision: true,
+        artworkSubmissionKind: "credit_correction",
+      },
+    });
+    expect(result.readyForPrivateRootCreation).toBe(false);
+    expect(result.blockers).toContain("artwork_existing_target_reconciliation_required");
+  });
+
   it("keeps oral-history consent granular", () => {
     const result = resolveCulturalCurationReadiness({
       specialization: "oral_history",
@@ -186,6 +225,26 @@ describe("cultural curation readiness", () => {
     expect(audio.blockers).toEqual(expect.arrayContaining(["radio_voice_consent_missing"]));
     expect(music.readyForPrivateRootCreation).toBe(false);
     expect(music.blockers).toEqual(expect.arrayContaining(["music_pipeline_required"]));
+  });
+
+  it("keeps correction links separate from creating a new radio root", () => {
+    const result = resolveCulturalCurationReadiness({
+      specialization: "radio",
+      stage: "pending",
+      handoffComplete: true,
+      material: { titlePresent: true, narrativePresent: true, assetReady: false },
+      provenanceComplete: true,
+      rights: { state: "rights_incomplete", publicationScope: "review_only" },
+      preMaterialization: {
+        sourceStatus: "pending",
+        explicitEditorialDecision: true,
+        radioContributionType: "correction",
+        radioExistingTargetSelected: true,
+      },
+    });
+    expect(result.readyForPrivateRootCreation).toBe(false);
+    expect(result.readyForExistingRootLink).toBe(true);
+    expect(result.publicationEligible).toBe(false);
   });
 
   it("does not let a submitted status bypass the resolver", () => {
