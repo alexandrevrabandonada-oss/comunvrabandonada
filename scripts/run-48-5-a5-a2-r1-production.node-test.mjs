@@ -12,6 +12,8 @@ test("A5-A2-R1 is manual, exact-main and Production-bound",()=>{
 test("planner excludes only the validated Sidewalk exception and requires exact Art",()=>{
   for(const x of ["validate-sidewalk-external-ledger-exception","COMUN_SIDEWALK_EXTERNAL_LEDGER_EVOLVED_SCOPE_GREEN","BLOCKED_UNEXPECTED_MIGRATION_PLAN","trap cleanup EXIT"]) assert.match(runner,new RegExp(x));
   assert.match(workflow,/20260824001340_comun_artwork_submission_private_materialization\.sql/);
+  assert.match(runner,/planner-before\.txt" 2>&1/);
+  assert.match(runner,/planner-after\.txt" 2>&1/);
   assert.doesNotMatch(runner,/--include-all|migration repair|db reset|\bseed\b/);
 });
 test("the only persistent write is one migration apply",()=>{
