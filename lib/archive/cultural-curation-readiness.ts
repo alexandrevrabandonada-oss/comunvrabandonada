@@ -116,6 +116,7 @@ export type CulturalCurationReadinessInput = {
     radioTargetKind?: "program" | "episode" | null;
     radioProgramSelected?: boolean;
     radioExistingTargetSelected?: boolean;
+    artworkExistingTargetSelected?: boolean;
     artworkSubmissionKind?:
       | "own_work"
       | "collective_work"
@@ -343,12 +344,15 @@ export function resolveCulturalCurationReadiness(
       ? privateRootBlockers.length === 0
       : readyForDraftMaterialization;
   const readyForExistingRootLink =
-    input.specialization === "radio" &&
-    ["correction", "complement", "withdrawal"].includes(pre?.radioContributionType ?? "") &&
-    sourceIsEligible &&
-    sourceEvidenceReady &&
-    pre?.explicitEditorialDecision === true &&
-    pre?.radioExistingTargetSelected === true;
+    (input.specialization === "radio" &&
+      ["correction", "complement", "withdrawal"].includes(pre?.radioContributionType ?? "") &&
+      sourceIsEligible && sourceEvidenceReady &&
+      pre?.explicitEditorialDecision === true && pre?.radioExistingTargetSelected === true) ||
+    (input.specialization === "art" &&
+      ["existing_work_complement", "credit_correction"].includes(pre?.artworkSubmissionKind ?? "") &&
+      sourceIsEligible && sourceEvidenceReady &&
+      pre?.explicitEditorialDecision === true && pre?.artworkExistingTargetSelected === true &&
+      pre?.rootExists !== true);
   for (const blocker of privateRootBlockers) pushUnique(blockers, blocker);
   const readyForEditorialReview = blockers.length === 0;
   const requiredActions = blockers.map(actionFor);
@@ -551,7 +555,7 @@ export type ArtworkSubmissionReadinessSource = {
 /** Pre-root artwork readiness avoids child gates that cannot exist before the private root. */
 export function resolveArtworkSubmissionReadiness(
   submission: ArtworkSubmissionReadinessSource,
-  options: { explicitEditorialDecision: boolean; rootExists?: boolean; assetReady?: boolean; safetyComplete?: boolean },
+  options: { explicitEditorialDecision: boolean; rootExists?: boolean; assetReady?: boolean; safetyComplete?: boolean; existingTargetSelected?: boolean },
 ) {
   return resolveCulturalCurationReadiness({
     specialization: "art",
@@ -580,6 +584,7 @@ export function resolveArtworkSubmissionReadiness(
       explicitEditorialDecision: options.explicitEditorialDecision,
       rootExists: options.rootExists ?? Boolean(submission.archive_item_id),
       artworkSubmissionKind: submission.submission_kind ?? null,
+      artworkExistingTargetSelected: options.existingTargetSelected,
     },
   });
 }

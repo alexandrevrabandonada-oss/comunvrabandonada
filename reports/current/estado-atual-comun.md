@@ -3118,3 +3118,9 @@ Estado candidato: `COMUN_48_5_A5_A2_PRIVATE_MATERIALIZATION_GREEN_ART_SCHEMA_ROL
 - A3 e A4 permanecem ON/preserved, A5-A1 permanece ativo/preservado. Não houve writes Production de negócio, schema ou env; não houve publicação, Search, promoção pública de asset ou coleção.
 
 Relatório: `reports/current/comun-48-5-a5-a2-private-materialization-workspace.md`.
+## Estado atual — 48.5-A5-A2-R1: schema de Arte GREEN; ativação runtime em validação (24/08/2026)
+
+- A migration `20260824001340_comun_artwork_submission_private_materialization.sql`, SHA-256 `b9da07e8da93aa22d41119eb3a0f406176595bd4fbdf96bf1d75e16ddfd02354`, foi aplicada uma única vez no run `32686486554`.
+- O planner foi exato antes e vazio depois; a exceção external-ledger de Sidewalk permaneceu preservada. Grants/RLS ficaram fail-closed e todos os fingerprints de negócio permaneceram iguais: `ProductionBusinessWrites=0`, roots/children/publicações/Search/assets/coleções criados `=0`.
+- O runtime em validação habilita criação de rascunho privado para obra nova e escolha explícita de rascunho de Arte existente para complemento/correção. Nenhum desses caminhos publica.
+- `A3=ON/preserved`; `A4=ON/preserved`; `A5A1=ACTIVE/preserved`; Oral/Rádio preservados; `autoPublication=false`.
