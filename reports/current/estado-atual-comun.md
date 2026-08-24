@@ -1,9 +1,13 @@
-## Estado atual — 48.5-A5-A4: fronteira do primeiro ciclo Foto/Documento em validação (24/08/2026)
+## Estado atual — 48.5-A5-A4: patch GREEN; ciclo real bloqueado por sessão de operador (24/08/2026)
+
+Estado terminal: `COMUN_48_5_A5_A4_REAL_CYCLE_BLOCKED_OPERATOR_SESSION_REQUIRED`.
 
 - O publisher genérico passa a aceitar somente Foto/Documento e falha fechado diante de raízes especializadas, tipo sem publisher ou erro de classificação;
 - Arte, História Oral e Rádio mantêm seus próprios publishers e recebem CTAs para os editores canônicos;
 - o detalhe Foto/Documento reutiliza a copy humana A5-A3 e não expõe blocker/action codes;
-- sem migration, schema, flag ou write Production. O piloto real somente será inventariado após integração e Production READY.
+- PR #380 integrada no main `28f9240ae65453db28c752999d747553ed308281`, com Preview exato e todos os gates aplicáveis GREEN; Production está READY no deployment `DaQKgGeH7z4TxKcefzoXYeYkspwt`;
+- a sessão Supabase autenticada disponível não possui acesso ao projeto Production canônico do COMUN. O inventário e o ciclo real foram interrompidos fail-closed, sem leitura de dados privados e sem presumir candidato;
+- sem migration, schema, flag ou write Production: A3/A4 preservados, publicações, Search, assets públicos e coleções permaneceram zero.
 
 Relatório: `reports/current/comun-48-5-a5-a4-first-real-cultural-cycle.md`.
 
