@@ -43,3 +43,14 @@ Data: 24/08/2026.
 - `ProductionBusinessWrites=0`, `ProductionSchemaWrites=0`, `ProductionEnvWrites=0`, `publications=0`, `SearchWrites=0`.
 
 Estado terminal: `COMUN_48_5_A5_A4_REAL_CYCLE_BLOCKED_OPERATOR_SESSION_REQUIRED`.
+
+## A5-A4-R1 — continuidade de autenticação e autorização administrativa
+
+- O cadastro comunitário deixou de reapresentar o formulário para uma sessão já autenticada: contas Google incompletas seguem para onboarding; contas completas retomam o destino seguro.
+- O login administrativo ganhou um fluxo Google próprio, com callback fixado no host canônico e allowlist exclusiva de destinos `/comun/admin`.
+- Google Auth continua sendo apenas autenticação. O callback consulta `comun_admin_users` e só conclui acesso quando existe autorização ativa; nenhuma conta recebe papel administrativo automaticamente.
+- A pessoa autenticada sem autorização agora vê uma explicação explícita e fail-closed, em vez de retornar silenciosamente ao formulário. Criar outra conta não é apresentado como solução.
+- O cadastro duplicado e o acesso administrativo permanecem semanticamente separados. Nenhuma migration, alteração de env, concessão de papel ou write Production foi executada neste patch.
+- Verificação local: 23 testes focais GREEN; 1.221 testes unitários GREEN; typecheck, lint, build e `git diff --check` GREEN; login admin renderizado com Google e sem erros de console.
+
+O piloto Foto/Documento continua bloqueado até existir uma conta legitimamente autorizada na própria configuração administrativa do COMUN. O patch não contorna esse gate.

@@ -1,9 +1,16 @@
 import { redirect } from "next/navigation";
 import { getAdminProfileForUser } from "@/lib/admin-profiles";
 import { logComunAdminAction } from "@/lib/admin-audit";
-import { createServiceSupabaseClient, createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  createServiceSupabaseClient,
+  createSupabaseServerClient,
+} from "@/lib/supabase/server";
 import type { ComunAdminProfile } from "@/lib/types";
 import type { ComunAdminProfileRole } from "@/lib/types";
+import {
+  resolveComunAdminAccessKind,
+  type ComunAdminAccessKind,
+} from "@/lib/admin-access-state";
 
 export type ComunAdminRole = "admin" | "editor" | "viewer";
 
@@ -30,18 +37,22 @@ function loginRedirectPath() {
   return ADMIN_LOGIN_PATH;
 }
 
-export async function requireComunAdmin(options?: { roles?: ComunAdminRole[] }) {
+export type ComunAdminAccessState =
+  | { kind: "signed_out"; session: null }
+  | { kind: "authenticated_not_authorized"; session: null }
+  | { kind: "authorized"; session: ComunAdminSession };
+
+export async function getComunAdminAccessState(): Promise<ComunAdminAccessState> {
   const supabase = await createSupabaseServerClient();
-  if (!supabase) redirect(loginRedirectPath());
+  if (!supabase) return { kind: "signed_out", session: null };
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (!user) redirect(loginRedirectPath());
+  if (!user) return { kind: "signed_out", session: null };
 
   const service = createServiceSupabaseClient();
-  if (!service) throw new Error("Supabase service role nao configurado no servidor.");
+  if (!service) return { kind: "authenticated_not_authorized", session: null };
 
   const { data, error } = await service
     .from("comun_admin_users")
@@ -49,59 +60,47 @@ export async function requireComunAdmin(options?: { roles?: ComunAdminRole[] }) 
     .or(`user_id.eq.${user.id},email.eq.${user.email ?? ""}`)
     .eq("is_active", true)
     .maybeSingle();
-
   if (error) throw new Error(error.message);
-  if (!data) redirect(ADMIN_LOGIN_PATH);
 
-  const admin = data as ComunAdminRecord;
+  const kind: ComunAdminAccessKind = resolveComunAdminAccessKind({
+    hasUser: true,
+    hasActiveAdmin: Boolean(data),
+  });
+  if (kind !== "authorized" || !data)
+    return { kind: "authenticated_not_authorized", session: null };
+
+  const profile = await getAdminProfileForUser({
+    authUserId: user.id,
+    email: user.email ?? null,
+  });
+  return {
+    kind: "authorized",
+    session: {
+      user: { id: user.id, email: user.email ?? null },
+      admin: data as ComunAdminRecord,
+      profile,
+    },
+  };
+}
+
+export async function requireComunAdmin(options?: {
+  roles?: ComunAdminRole[];
+}) {
+  const access = await getComunAdminAccessState();
+  if (access.kind === "signed_out") redirect(loginRedirectPath());
+  if (access.kind === "authenticated_not_authorized")
+    redirect(`${ADMIN_LOGIN_PATH}?reason=not-authorized`);
+
+  const { admin } = access.session;
   if (options?.roles?.length && !options.roles.includes(admin.role)) {
     redirect("/comun/admin");
   }
-
-  const profile = await getAdminProfileForUser({ authUserId: user.id, email: user.email ?? null });
-
-  return {
-    user: {
-      id: user.id,
-      email: user.email ?? null,
-    },
-    admin,
-    profile,
-  } satisfies ComunAdminSession;
+  return access.session;
 }
 
 export async function getComunAdminSession() {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return null;
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return null;
-
-  const service = createServiceSupabaseClient();
-  if (!service) return null;
-
-  const { data } = await service
-    .from("comun_admin_users")
-    .select("id, user_id, email, role, is_active")
-    .or(`user_id.eq.${user.id},email.eq.${user.email ?? ""}`)
-    .eq("is_active", true)
-    .maybeSingle();
-
-  if (!data) return null;
-
-  const profile = await getAdminProfileForUser({ authUserId: user.id, email: user.email ?? null });
-
-  return {
-    user: {
-      id: user.id,
-      email: user.email ?? null,
-    },
-    admin: data as ComunAdminRecord,
-    profile,
-  } satisfies ComunAdminSession;
+  const access = await getComunAdminAccessState();
+  return access.kind === "authorized" ? access.session : null;
 }
 
 export async function requireComunAdminProfile() {
@@ -123,7 +122,9 @@ export async function requireComunAdminRole(roles: ComunAdminProfileRole[]) {
   if (!roles.includes(session.profile.role)) {
     await logComunAdminAction({
       session,
-      action: roles.includes("admin") ? "admin_team_access_denied" : "admin_permission_matrix_denied",
+      action: roles.includes("admin")
+        ? "admin_team_access_denied"
+        : "admin_permission_matrix_denied",
       targetType: "admin_profile",
       targetId: session.profile.id,
       metadata: { required_roles: roles, actual_role: session.profile.role },

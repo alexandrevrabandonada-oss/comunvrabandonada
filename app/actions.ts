@@ -416,6 +416,25 @@ export async function loginAdmin(_: unknown, formData: FormData) {
   redirect(redirectTo.startsWith("/comun/admin") ? redirectTo : "/comun/admin");
 }
 
+export async function signInAdminWithGoogle(formData: FormData) {
+  const { adminGoogleCallbackUrl, safeAdminReturn } =
+    await import("@/lib/admin-google-auth");
+  const { isGoogleAuthEnabled } = await import("@/lib/community-google-auth");
+  const returnTo = safeAdminReturn(formData.get("redirectTo"));
+  if (!isGoogleAuthEnabled()) redirect("/comun/admin/login?reason=google");
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) redirect("/comun/admin/login?reason=google");
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: adminGoogleCallbackUrl(returnTo),
+      scopes: "openid email profile",
+    },
+  });
+  if (error || !data.url) redirect("/comun/admin/login?reason=google");
+  redirect(data.url);
+}
+
 export async function logoutAdmin() {
   const session = await getComunAdminSession();
   await logComunAdminAction({ session, action: "admin_logout" });

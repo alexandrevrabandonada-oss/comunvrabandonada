@@ -1,4 +1,15 @@
-## Estado atual — 48.5-A5-A4: patch GREEN; ciclo real bloqueado por sessão de operador (24/08/2026)
+## Estado atual — 48.5-A5-A4-R1: autenticação corrigida; autorização admin permanece fail-closed (24/08/2026)
+
+- Cadastro comunitário autenticado não tenta mais recriar a mesma identidade; retoma onboarding ou destino seguro;
+- o admin agora possui Google OAuth próprio com callback canônico e retorno restrito a `/comun/admin`;
+- autenticação Google não promove conta a admin: sem registro ativo em `comun_admin_users`, a UI explica a falta de autorização e permanece bloqueada;
+- 23 testes focais, 1.221 unitários, typecheck, lint e build GREEN; migrations, env writes, schema writes e concessões Production permaneceram zero.
+
+O primeiro ciclo Foto/Documento ainda não foi executado. Próximo passo operacional: autorizar legitimamente uma conta editorial existente por um procedimento administrativo auditável; depois retomar a Mesa.
+
+Relatório: `reports/current/comun-48-5-a5-a4-first-real-cultural-cycle.md`.
+
+## Estado histórico — 48.5-A5-A4: patch GREEN; ciclo real bloqueado por sessão de operador (24/08/2026)
 
 Estado terminal: `COMUN_48_5_A5_A4_REAL_CYCLE_BLOCKED_OPERATOR_SESSION_REQUIRED`.
 
