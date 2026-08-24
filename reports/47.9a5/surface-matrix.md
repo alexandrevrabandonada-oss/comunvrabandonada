@@ -1,8 +1,8 @@
 # Matriz canônica de superfícies — 47.9A5
 
-Gerada em: 2026-08-24T02:22:08.876Z
+Gerada em: 2026-08-24T04:35:28.029Z
 
-Total: **225** · ondas: 1=98 · 2=33 · 3=82 · 4=12
+Total: **226** · ondas: 1=98 · 2=33 · 3=83 · 4=12
 
 | Rota | Família | Shell | Visual | Componente | Decisão | Onda |
 | --- | --- | --- | --- | --- | --- | ---: |
@@ -83,6 +83,7 @@ Total: **225** · ondas: 1=98 · 2=33 · 3=82 · 4=12
 | `/comun/admin/calcadas/prioridade` | calcadas | admin | not_rendered | Page | redirect_canonical | 3 |
 | `/comun/admin/calcadas/relatos` | calcadas | admin | not_rendered | Page | redirect_canonical | 3 |
 | `/comun/admin/comunidades` | comunidades | admin | v2_compatibility | CommunityAdministrationPage | compatibility_v2 | 3 |
+| `/comun/admin/curadoria` | curadoria | admin | v2_compatibility | CulturalCurationDesk | compatibility_v2 | 3 |
 | `/comun/admin/dossies` | dossies | admin | v2_compatibility | AdminDossiesPage | compatibility_v2 | 3 |
 | `/comun/admin/dossies/[id]` | dossies | admin | not_rendered | AdminDossierDetailPage | redirect_canonical | 3 |
 | `/comun/admin/dossies/[id]/preview` | dossies | admin | not_rendered | AdminDossierPreviewPage | redirect_canonical | 3 |

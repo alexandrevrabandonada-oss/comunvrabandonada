@@ -101,6 +101,7 @@ const ADMIN_CIVIC_PREFIXES = [
   "/comun/admin/anexos",
   "/comun/admin/calcadas",
   "/comun/admin/comunidades",
+  "/comun/admin/curadoria",
   "/comun/admin/dossies",
   "/comun/admin/notificacoes",
   "/comun/admin/observatorios",

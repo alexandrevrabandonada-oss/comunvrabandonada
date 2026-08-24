@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AdminShell } from "@/components/admin-shell";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { resolveArchiveSubmissionReadiness } from "@/lib/archive/cultural-curation-readiness";
+import { humanizeCurationBlocker } from "@/lib/archive/cultural-curation-copy";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 export default async function ArchiveSubmissionsPage(props: {
@@ -99,11 +100,11 @@ export default async function ArchiveSubmissionsPage(props: {
               <p className="text-sm">
                 {readiness.readyForEditorialReview
                   ? "Próxima ação: solicitar revisão editorial."
-                  : `Próxima ação: ${readiness.requiredActions[0]?.replaceAll("_", " ") ?? "revisar contribuição"}.`}
+                  : `Próxima ação: ${readiness.blockers[0] ? humanizeCurationBlocker(readiness.blockers[0]).nextAction : "revisar contribuição"}.`}
               </p>
               {readiness.blockers.length ? (
                 <p className="mt-1 text-sm text-comun-rust">
-                  Bloqueios: {readiness.blockers.slice(0, 3).join(" · ")}
+                  {readiness.blockers.slice(0, 3).map((code) => humanizeCurationBlocker(code).title).join(" · ")}
                 </p>
               ) : null}
             </Link>

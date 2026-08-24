@@ -1,10 +1,10 @@
 {
   "summary": {
-    "generated_at": "2026-08-24T02:22:08.876Z",
-    "total": 225,
+    "generated_at": "2026-08-24T04:35:28.029Z",
+    "total": 226,
     "duplicate_routes": [],
     "shell_modes": {
-      "admin": 94,
+      "admin": 95,
       "auth": 6,
       "immersive": 19,
       "institutional": 8,
@@ -15,24 +15,24 @@
     "by_wave": {
       "1": 98,
       "2": 33,
-      "3": 82,
+      "3": 83,
       "4": 12
     },
     "by_decision": {
-      "compatibility_v2": 104,
+      "compatibility_v2": 105,
       "redirect_canonical": 100,
       "retain_v2": 21
     },
     "legacy_rendered": 0,
-    "p2_p3_compatibility_debt": 93,
+    "p2_p3_compatibility_debt": 94,
     "p0_p1": 0,
     "unknown_routes": 0,
     "structural_incompatibilities": 0,
     "generic_admin_app_bars": 0,
-    "admin_wave3": 82,
+    "admin_wave3": 83,
     "admin_wave4": 12,
     "admin_tables": 3,
-    "admin_forms": 56
+    "admin_forms": 58
   },
   "routes": [
     {
@@ -1228,7 +1228,7 @@
       "admin_domain": "acervo",
       "admin_surface_type": "queue",
       "has_table": false,
-      "has_form": false,
+      "has_form": true,
       "accessible_table_contract": true,
       "filter_return_contract": true,
       "platform_domain": null,
@@ -2663,6 +2663,40 @@
       "decision": "compatibility_v2",
       "wave": 3,
       "source": "app/comun/admin/comunidades/page.tsx"
+    },
+    {
+      "route": "/comun/admin/curadoria",
+      "family": "curadoria",
+      "shell_mode": "admin",
+      "public": false,
+      "auth_required": true,
+      "visual_state": "v2_compatibility",
+      "main_component": "CulturalCurationDesk",
+      "shell_component": "AdminShell",
+      "legacy_components": [
+        "generic-white-panel"
+      ],
+      "contextual_app_bar": true,
+      "primary_action": "/comun/admin",
+      "empty_state": false,
+      "requires_entity_context": false,
+      "preserves_filters_or_return": true,
+      "admin_domain": "curadoria",
+      "admin_surface_type": "queue",
+      "has_table": false,
+      "has_form": true,
+      "accessible_table_contract": true,
+      "filter_return_contract": true,
+      "platform_domain": null,
+      "platform_access": null,
+      "platform_shell": null,
+      "preserves_app_v2_flag": null,
+      "member_bottom_navigation": null,
+      "compatibility_severity": "P2",
+      "compatibility_justification": "Markup preservado para rollback; shell V2 neutraliza material legado e adiciona navegação, foco e semântica operacional.",
+      "decision": "compatibility_v2",
+      "wave": 3,
+      "source": "app/comun/admin/curadoria/page.tsx"
     },
     {
       "route": "/comun/admin/dossies",

@@ -1,9 +1,9 @@
 {
   "summary": {
-    "wave3": 82,
+    "wave3": 83,
     "wave4": 12,
     "tables": 3,
-    "forms": 56,
+    "forms": 58,
     "p0_p1": 0
   },
   "routes": [
@@ -229,7 +229,7 @@
       "admin_domain": "acervo",
       "admin_surface_type": "queue",
       "has_table": false,
-      "has_form": false,
+      "has_form": true,
       "accessible_table_contract": true,
       "filter_return_contract": true,
       "platform_domain": null,
@@ -1664,6 +1664,40 @@
       "decision": "compatibility_v2",
       "wave": 3,
       "source": "app/comun/admin/comunidades/page.tsx"
+    },
+    {
+      "route": "/comun/admin/curadoria",
+      "family": "curadoria",
+      "shell_mode": "admin",
+      "public": false,
+      "auth_required": true,
+      "visual_state": "v2_compatibility",
+      "main_component": "CulturalCurationDesk",
+      "shell_component": "AdminShell",
+      "legacy_components": [
+        "generic-white-panel"
+      ],
+      "contextual_app_bar": true,
+      "primary_action": "/comun/admin",
+      "empty_state": false,
+      "requires_entity_context": false,
+      "preserves_filters_or_return": true,
+      "admin_domain": "curadoria",
+      "admin_surface_type": "queue",
+      "has_table": false,
+      "has_form": true,
+      "accessible_table_contract": true,
+      "filter_return_contract": true,
+      "platform_domain": null,
+      "platform_access": null,
+      "platform_shell": null,
+      "preserves_app_v2_flag": null,
+      "member_bottom_navigation": null,
+      "compatibility_severity": "P2",
+      "compatibility_justification": "Markup preservado para rollback; shell V2 neutraliza material legado e adiciona navegação, foco e semântica operacional.",
+      "decision": "compatibility_v2",
+      "wave": 3,
+      "source": "app/comun/admin/curadoria/page.tsx"
     },
     {
       "route": "/comun/admin/dossies",

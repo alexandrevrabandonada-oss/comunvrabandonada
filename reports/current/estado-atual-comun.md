@@ -1,3 +1,12 @@
+## Estado atual — 48.5-A5-A3: Mesa de curadoria cultural em integração (24/08/2026)
+
+- A rota admin/editor `/comun/admin/curadoria` agrega Foto/documento, Arte, História Oral e Rádio como projeção read-only em memória, reutilizando os quatro resolvers canônicos de readiness;
+- categorias, filtros, contadores, idade e próxima ação foram traduzidos para linguagem cotidiana; nenhum código interno é exibido, e os CTAs apenas abrem as superfícies especializadas;
+- não há migration, nova fila, estado persistido, ação mutável, flag, publicação, Search, promoção de asset ou coleção. A3, A4 e A5-A1 permanecem preservados;
+- gates locais: 1.189 testes unitários, typecheck, lint, build, auditoria e contratos de superfícies GREEN. Preview, visual review, CI e merge ainda serão registrados.
+
+Relatório: `reports/current/comun-48-5-a5-a3-cultural-curation-desk.md`.
+
 ## Estado atual — 48.5-A5-A1-R1: proveniência cultural especializada ativa em Production (23/08/2026)
 
 Estado terminal: `COMUN_48_5_A5_A1_R1_SPECIALIZED_PROVENANCE_GREEN_PRODUCTION_ACTIVE_NO_BUSINESS_WRITES`.
