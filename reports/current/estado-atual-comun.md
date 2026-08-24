@@ -3124,3 +3124,10 @@ Relatório: `reports/current/comun-48-5-a5-a2-private-materialization-workspace.
 - O planner foi exato antes e vazio depois; a exceção external-ledger de Sidewalk permaneceu preservada. Grants/RLS ficaram fail-closed e todos os fingerprints de negócio permaneceram iguais: `ProductionBusinessWrites=0`, roots/children/publicações/Search/assets/coleções criados `=0`.
 - O runtime em validação habilita criação de rascunho privado para obra nova e escolha explícita de rascunho de Arte existente para complemento/correção. Nenhum desses caminhos publica.
 - `A3=ON/preserved`; `A4=ON/preserved`; `A5A1=ACTIVE/preserved`; Oral/Rádio preservados; `autoPublication=false`.
+## Estado atual — 48.5-A5-A2-R1: Arte privada ativa em Production, sem publicação (24/08/2026)
+
+- Terminal: `COMUN_48_5_A5_A2_R1_ART_PRIVATE_MATERIALIZATION_GREEN_PRODUCTION_ACTIVE_NO_PUBLICATION`.
+- Schema de Arte aplicado uma vez no run `32686486554`; planner antes exato e depois vazio; Sidewalk external-ledger preservada; zero business writes/backfill/roots/children/publicações/Search/assets/coleções.
+- Runtime integrado pela PR #376 no main `1d6153591607ffa25de9590d1b54906ae45c3d18`; deployment Production `6056378513` success. Oito superfícies culturais retornaram GET/HEAD 200 sem marcadores privados.
+- Obra nova pode criar somente rascunho `draft/private`; complemento/correção exige escolha explícita de obra `territorial_artwork/draft/private`. Provenance é imutável e publicação permanece separada.
+- `A3=ON/preserved`; `A4=ON/preserved`; `A5A1=ACTIVE/preserved`; Oral/Rádio/Arte privados `ACTIVE`; `autoPublication=false`; `ProductionBusinessWrites=0`; `ProductionEnvWrites=0`.

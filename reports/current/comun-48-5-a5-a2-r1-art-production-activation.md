@@ -35,4 +35,18 @@ Data: 24/08/2026.
 
 `A3=ON/preserved`; `A4=ON/preserved`; `A5A1=ACTIVE/preserved`; Oral e Rádio preservados; `publicationEligible=false`; `autoPublication=false`.
 
-Os dados finais de PR, checkpoint, CI, Preview, merge e deployment Production serão anexados no closeout documental após integração do runtime.
+## Integração e Production
+
+- Runtime checkpoint: `287199470dee8802b54b57e7675de34fb6013041`, mensagem `[comun-preview] feat(a5): activate artwork private materialization`.
+- PR runtime: #376; merge/main final funcional: `1d6153591607ffa25de9590d1b54906ae45c3d18`.
+- COST-02 no run `32686939964`: Preview do SHA exato, success, URL `*.vercel.app` e checkpoint fresh.
+- Gates GREEN: COMUN CI `32686939964`; Cultural `32686940011`; Full Surface `32686940028`; Experience `32686940035`; Quality/Security `32686939967`; A5-A1 disposable `32686939996`; A5-A2 artwork disposable `32686939994`; demais deliverability/preflights aplicáveis verdes.
+- GitHub Production deployment `6056378513`, environment URL `https://comunvrabandonada-bz6ie8apq-alexandrevrabandonada-oss-projects.vercel.app`, status success, SHA `1d6153591607ffa25de9590d1b54906ae45c3d18`.
+- GET e HEAD em `/comun/acervo`, `/comun/acervo/contribuir`, `/comun/acervo/arte`, `/comun/acervo/arte/contribuir`, `/comun/acervo/historias-orais`, `/comun/acervo/historias-orais/contribuir`, `/comun/radio` e `/comun/radio/contribuir`: `200`; nenhum marcador privado/RPC interno no HTML.
+- Smoke pós-merge foi exclusivamente read-only. Nenhuma contribuição, root, child, publicação, Search, asset ou coleção foi criada.
+
+## Terminal
+
+`COMUN_48_5_A5_A2_R1_ART_PRIVATE_MATERIALIZATION_GREEN_PRODUCTION_ACTIVE_NO_PUBLICATION`
+
+`A3=ON/preserved`; `A4=ON/preserved`; `A5A1=ACTIVE/preserved`; `oralPrivateMaterialization=ACTIVE`; `radioPrivateMaterialization=ACTIVE`; `artPrivateMaterialization=ACTIVE`; `artExistingRootLink=ACTIVE`; `artSchemaRolloutRequired=false`; `autoPublication=false`; `publicationEligible=false`; `ProductionSchemaWrites=1_migration_only`; `ProductionBusinessWrites=0`; `ProductionEnvWrites=0`; `ProductionPrivateRootsCreated=0`; `ProductionArtworkChildrenCreated=0`; `publications=0`; `SearchWrites=0`; `publicAssetPromotions=0`; `collectionWrites=0`; `plannerAfter=[]`.
