@@ -425,6 +425,16 @@
     "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
   },
   {
+    "code": "A5-P2-3-COMUN-ADMIN-CURADORIA",
+    "severity": "P2",
+    "route": "/comun/admin/curadoria",
+    "components": [
+      "generic-white-panel"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
     "code": "A5-P2-3-COMUN-ADMIN-DOSSIES",
     "severity": "P2",
     "route": "/comun/admin/dossies",
