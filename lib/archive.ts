@@ -5,6 +5,7 @@ import { listPublicArtworks } from "@/lib/archive/territorial-art";
 import { listPublicOralHistories } from "@/lib/archive/oral-history";
 import { listPublicReleases } from "@/lib/archive/local-music";
 import { listPublicRadio } from "@/lib/radio";
+import { resolveArchivePublicationBoundary } from "@/lib/archive/generic-publication-boundary";
 
 export type ArchiveItem = {
   id: string;
@@ -173,7 +174,15 @@ export async function listAdminArchiveItems() {
 export async function getAdminArchiveItem(id: string) {
   const db = createServiceSupabaseClient();
   if (!db) return null;
-  const [{ data: item }, { data: assets }, { data: collections }] =
+  const [
+    { data: item },
+    { data: assets },
+    { data: collections },
+    artworkResult,
+    oralHistoryResult,
+    radioProgramResult,
+    radioEpisodeResult,
+  ] =
     await Promise.all([
       db.from("comun_archive_items").select("*").eq("id", id).maybeSingle(),
       db
@@ -182,12 +191,29 @@ export async function getAdminArchiveItem(id: string) {
         .eq("archive_item_id", id)
         .order("created_at", { ascending: false }),
       db.from("comun_archive_collections").select("*").order("title"),
+      db.from("comun_archive_artworks").select("archive_item_id").eq("archive_item_id", id).maybeSingle(),
+      db.from("comun_archive_oral_histories").select("archive_item_id").eq("archive_item_id", id).maybeSingle(),
+      db.from("comun_radio_programs").select("archive_item_id").eq("archive_item_id", id).maybeSingle(),
+      db.from("comun_radio_episodes").select("archive_item_id").eq("archive_item_id", id).maybeSingle(),
     ]);
   return item
     ? {
         item: item as ArchiveItem,
         assets: (assets ?? []) as ArchiveAsset[],
         collections: (collections ?? []) as ArchiveCollection[],
+        publicationBoundary: resolveArchivePublicationBoundary(id, {
+          itemType: item.item_type,
+          lookupFailed: Boolean(
+            artworkResult.error ||
+              oralHistoryResult.error ||
+              radioProgramResult.error ||
+              radioEpisodeResult.error,
+          ),
+          artwork: Boolean(artworkResult.data),
+          oralHistory: Boolean(oralHistoryResult.data),
+          radioProgram: Boolean(radioProgramResult.data),
+          radioEpisode: Boolean(radioEpisodeResult.data),
+        }),
       }
     : null;
 }

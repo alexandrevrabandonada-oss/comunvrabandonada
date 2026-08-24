@@ -1,3 +1,12 @@
+## Estado atual — 48.5-A5-A4: fronteira do primeiro ciclo Foto/Documento em validação (24/08/2026)
+
+- O publisher genérico passa a aceitar somente Foto/Documento e falha fechado diante de raízes especializadas, tipo sem publisher ou erro de classificação;
+- Arte, História Oral e Rádio mantêm seus próprios publishers e recebem CTAs para os editores canônicos;
+- o detalhe Foto/Documento reutiliza a copy humana A5-A3 e não expõe blocker/action codes;
+- sem migration, schema, flag ou write Production. O piloto real somente será inventariado após integração e Production READY.
+
+Relatório: `reports/current/comun-48-5-a5-a4-first-real-cultural-cycle.md`.
+
 ## Estado atual — 48.5-A5-A3: Mesa de curadoria cultural GREEN em Production (24/08/2026)
 
 Estado terminal: `COMUN_48_5_A5_A3_CULTURAL_CURATION_DESK_GREEN_PRODUCTION_ACTIVE_NO_SCHEMA_DELTA`.

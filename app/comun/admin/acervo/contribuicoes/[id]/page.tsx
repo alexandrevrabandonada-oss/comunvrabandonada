@@ -3,6 +3,7 @@ import { AdminShell } from "@/components/admin-shell";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { resolveArchiveSubmissionReadiness } from "@/lib/archive/cultural-curation-readiness";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { humanizeCurationAction, humanizeCurationBlocker } from "@/lib/archive/cultural-curation-copy";
 import {
   createArchiveItemFromSubmission,
   generateSubmissionDerivatives,
@@ -93,11 +94,11 @@ export default async function SubmissionDetail(props: {
         </ul>
         {readiness.blockers.length ? (
           <p className="mt-3 border-2 border-comun-rust bg-white p-3 text-sm">
-            Bloqueios: {readiness.blockers.join(" · ")}
+            Bloqueios: {readiness.blockers.map((code) => humanizeCurationBlocker(code).title).join(" · ")}
           </p>
         ) : null}
         <p className="mt-3 text-sm">
-          Próxima ação: {readiness.requiredActions.join(" · ") || "revisão editorial"}.
+          Próxima ação: {readiness.requiredActions.map(humanizeCurationAction).join(" · ") || "revisão editorial"}.
         </p>
       </section>
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
