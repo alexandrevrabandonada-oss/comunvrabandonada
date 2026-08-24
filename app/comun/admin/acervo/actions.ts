@@ -7,6 +7,7 @@ import { logComunAdminAction } from "@/lib/admin-audit";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { canPublishHistoricalPhoto } from "@/lib/historical-photo";
 import { getMediaStorage } from "@/lib/media-storage";
+import { resolveArchivePublicationBoundary } from "@/lib/archive/generic-publication-boundary";
 
 const types = [
   "photograph",
@@ -163,6 +164,48 @@ export async function setArchiveWorkflow(formData: FormData) {
     patch = { status: "review" };
     event = "archive_item_sent_to_review";
   } else if (action === "publish") {
+    const [artwork, oralHistory, radioProgram, radioEpisode] =
+      await Promise.all([
+        db
+          .from("comun_archive_artworks")
+          .select("archive_item_id")
+          .eq("archive_item_id", id)
+          .maybeSingle(),
+        db
+          .from("comun_archive_oral_histories")
+          .select("archive_item_id")
+          .eq("archive_item_id", id)
+          .maybeSingle(),
+        db
+          .from("comun_radio_programs")
+          .select("archive_item_id")
+          .eq("archive_item_id", id)
+          .maybeSingle(),
+        db
+          .from("comun_radio_episodes")
+          .select("archive_item_id")
+          .eq("archive_item_id", id)
+          .maybeSingle(),
+      ]);
+    const boundary = resolveArchivePublicationBoundary(id, {
+      itemType: item.item_type,
+      lookupFailed: Boolean(
+        artwork.error ||
+        oralHistory.error ||
+        radioProgram.error ||
+        radioEpisode.error,
+      ),
+      artwork: Boolean(artwork.data),
+      oralHistory: Boolean(oralHistory.data),
+      radioProgram: Boolean(radioProgram.data),
+      radioEpisode: Boolean(radioEpisode.data),
+    });
+    if (!boundary.genericPublisherAllowed)
+      throw new Error(
+        boundary.specializedKind
+          ? "Este conteúdo possui um fluxo especializado de publicação."
+          : "Este tipo de conteúdo não possui publicação neste editor.",
+      );
     const { data: assets } = await db
       .from("comun_archive_assets")
       .select(
