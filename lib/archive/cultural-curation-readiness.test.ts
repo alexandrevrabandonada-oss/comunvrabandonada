@@ -99,6 +99,45 @@ describe("cultural curation readiness", () => {
     expect(result.blockers).toContain("artwork_existing_target_reconciliation_required");
   });
 
+  it.each(["existing_work_complement", "credit_correction"] as const)(
+    "links %s only after explicit target selection and editorial decision",
+    (artworkSubmissionKind) => {
+      const base = {
+        specialization: "art" as const,
+        stage: "pending",
+        handoffComplete: true,
+        material: { titlePresent: true, narrativePresent: true, assetReady: false },
+        provenanceComplete: true,
+        rights: { state: "rights_incomplete", publicationScope: "review_only" },
+      };
+      const selected = resolveCulturalCurationReadiness({ ...base, preMaterialization: {
+        sourceStatus: "pending", explicitEditorialDecision: true,
+        artworkSubmissionKind, artworkExistingTargetSelected: true,
+      }});
+      const missingTarget = resolveCulturalCurationReadiness({ ...base, preMaterialization: {
+        sourceStatus: "pending", explicitEditorialDecision: true, artworkSubmissionKind,
+      }});
+      expect(selected.readyForPrivateRootCreation).toBe(false);
+      expect(selected.readyForExistingRootLink).toBe(true);
+      expect(missingTarget.readyForExistingRootLink).toBe(false);
+      expect(selected.publicationEligible).toBe(false);
+    },
+  );
+
+  it("rejects artwork linking from terminal source states", () => {
+    for (const sourceStatus of ["rejected", "archived", "withdrawn", "published"]) {
+      const result = resolveCulturalCurationReadiness({
+        specialization: "art", stage: sourceStatus, handoffComplete: true,
+        material: { titlePresent: true, narrativePresent: true, assetReady: false },
+        provenanceComplete: true,
+        rights: { state: "rights_incomplete", publicationScope: "review_only" },
+        preMaterialization: { sourceStatus, explicitEditorialDecision: true,
+          artworkSubmissionKind: "credit_correction", artworkExistingTargetSelected: true },
+      });
+      expect(result.readyForExistingRootLink).toBe(false);
+    }
+  });
+
   it("keeps oral-history consent granular", () => {
     const result = resolveCulturalCurationReadiness({
       specialization: "oral_history",

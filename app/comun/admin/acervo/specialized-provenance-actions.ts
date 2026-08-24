@@ -111,7 +111,6 @@ export async function linkRadioContributionPrivateRoot(formData: FormData) {
   redirect(targetKind === "program" ? `/comun/admin/radio/programas/${data}` : `/comun/admin/radio/episodios/${data}`);
 }
 
-/** Dormant until A5-A2-R1 installs the new Artwork RPC in Production. */
 export async function materializeArtworkSubmissionPrivateRoot(formData: FormData) {
   const session = await requireComunAdmin({ roles: ["admin", "editor"] });
   const db = createServiceSupabaseClient();
@@ -130,7 +129,42 @@ export async function materializeArtworkSubmissionPrivateRoot(formData: FormData
   if (error || !data) throw new Error(error?.message || "Não foi possível materializar a obra privada.");
   await logComunAdminAction({
     session, action: "artwork_private_root_materialized", targetType: "artwork_submission", targetId: submissionId,
-    metadata: { private_root_archive_item_id: data, readiness_contract: "a5-a2-v1", publication: "not_authorized" },
+    metadata: { private_root_archive_item_id: data, readiness_contract: "a5-a2-r1-v1", publication: "not_authorized", provenance: "immutable_specialized_link" },
+  });
+  revalidatePath("/comun/admin/acervo/arte/contribuicoes");
+  redirect(`/comun/admin/acervo/arte/${data}`);
+}
+
+export async function linkArtworkSubmissionPrivateRoot(formData: FormData) {
+  const session = await requireComunAdmin({ roles: ["admin", "editor"] });
+  const db = createServiceSupabaseClient();
+  if (!db) throw new Error("Banco indisponível.");
+  const submissionId = value(formData, "submission_id");
+  const targetId = value(formData, "target_id");
+  if (!targetId) throw new Error("Escolha explicitamente uma obra privada existente.");
+  const { data: submission } = await db.from("comun_archive_artwork_submissions")
+    .select("id,public_protocol,submission_kind,title_suggestion,artwork_type,context_suggestion,territory_id,authorship_source,status,archive_item_id,rights_state,publication_scope,reuse_permission,license_code")
+    .eq("id", submissionId).maybeSingle();
+  if (!submission) throw new Error("Contribuição de Arte não encontrada.");
+  if (!["existing_work_complement", "credit_correction"].includes(submission.submission_kind))
+    throw new Error("Somente complementos e correções podem ser vinculados a uma obra existente.");
+  const { data: target } = await db.from("comun_archive_items")
+    .select("id,item_type,status,visibility").eq("id", targetId)
+    .eq("item_type", "territorial_artwork").eq("status", "draft").eq("visibility", "private").maybeSingle();
+  if (!target) throw new Error("A obra escolhida não é um rascunho privado compatível.");
+  const { data: artwork } = await db.from("comun_archive_artworks")
+    .select("archive_item_id").eq("archive_item_id", targetId).maybeSingle();
+  if (!artwork) throw new Error("A raiz escolhida não possui uma obra de Arte válida.");
+  const readiness = resolveArtworkSubmissionReadiness(submission, { explicitEditorialDecision: true, existingTargetSelected: true });
+  if (!readiness.readyForExistingRootLink)
+    throw new Error("Precisamos de mais contexto antes de vincular esta contribuição.");
+  const { data, error } = await (db as any).rpc("comun_link_artwork_submission_private_root_v1", {
+    p_submission_id: submissionId, p_private_root_archive_item_id: targetId,
+  });
+  if (error || !data) throw new Error(error?.message || "Não foi possível vincular a obra privada.");
+  await logComunAdminAction({
+    session, action: "artwork_existing_root_linked", targetType: "artwork_submission", targetId: submissionId,
+    metadata: { private_root_archive_item_id: data, readiness_contract: "a5-a2-r1-v1", publication: "not_authorized", provenance: "immutable_specialized_link" },
   });
   revalidatePath("/comun/admin/acervo/arte/contribuicoes");
   redirect(`/comun/admin/acervo/arte/${data}`);

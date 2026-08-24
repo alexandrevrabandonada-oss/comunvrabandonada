@@ -38,9 +38,16 @@ describe("A5-A2 private materialization contract", () => {
     expect(actions).toContain("logComunAdminAction");
   });
 
-  it("keeps the pre-rollout artwork UI dormant", () => {
-    expect(artworkDetail).toContain("rollout A5-A2-R1");
-    expect(artworkDetail).not.toContain("materializeArtworkSubmissionPrivateRoot");
+  it("activates distinct private-create and explicit existing-root actions without publication", () => {
+    expect(artworkDetail).toContain("materializeArtworkSubmissionPrivateRoot");
+    expect(artworkDetail).toContain("linkArtworkSubmissionPrivateRoot");
+    expect(artworkDetail).toContain("Criar rascunho privado");
+    expect(artworkDetail).toContain("Vincular a uma obra existente");
+    expect(actions).toContain("artwork_existing_root_linked");
+    expect(actions).toContain("comun_link_artwork_submission_private_root_v1");
+    expect(actions).toContain('.eq("item_type", "territorial_artwork")');
+    expect(actions).toContain('.eq("status", "draft")');
+    expect(actions).toContain('.eq("visibility", "private")');
     expect(artworkDetail).toContain("Publicação não está autorizada");
   });
 });
