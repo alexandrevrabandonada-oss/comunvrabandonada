@@ -1,8 +1,5 @@
 export type SpecializedArchiveKind =
-  | "artwork"
-  | "oral_history"
-  | "radio_program"
-  | "radio_episode";
+  "artwork" | "oral_history" | "radio_program" | "radio_episode";
 
 export type ArchivePublicationSignals = {
   itemType: string;
@@ -71,7 +68,10 @@ function detectSpecializedKind(
 
 function specializedEditor(kind: SpecializedArchiveKind, id: string) {
   if (kind === "artwork")
-    return { editorHref: `/comun/admin/acervo/arte/${id}`, editorLabel: "Editar Arte" };
+    return {
+      editorHref: `/comun/admin/acervo/arte/${id}`,
+      editorLabel: "Editar Arte",
+    };
   if (kind === "oral_history")
     return {
       editorHref: `/comun/admin/acervo/historias-orais/${id}`,

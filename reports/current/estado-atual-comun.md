@@ -3026,6 +3026,7 @@ município–conjunto antes de qualquer snapshot ou Observatório de energia.
 Permanecem preservados `COMUN_48_1C_MOTOROLA_PILOT_PAUSED_BY_PRODUCT_DECISION`,
 auto-publicação OFF, mapa geral Relata OFF, coletivos OFF e
 `launch_publicly=false`.
+
 ### 48.5-A2-R1 — Intake cultural save-first operacional (2026-08-17)
 
 Estado atual: `COMUN_48_5_A2_R1_CULTURAL_SAVE_FIRST_OPERATIONAL_GREEN_PRIVATE_RESUME_ROUTE_SELECTION`.
@@ -3045,6 +3046,7 @@ Estado atual: `COMUN_48_5_A2_R1_CULTURAL_SAVE_FIRST_OPERATIONAL_GREEN_PRIVATE_RE
   businessWrites=0.
 
 ### 48.5-A2 — Intake cultural save-first
+
 # Estado atual — 48.5-A2-R1 Intake cultural operacional (candidato; 17/08/2026)
 
 Estado atual: `COMUN_48_5_A2_R1_CANDIDATE_GREEN_PENDING_MERGE_AND_ROLLOUT`.
@@ -3064,6 +3066,7 @@ Estado atual: `COMUN_48_5_A2_R1_CANDIDATE_GREEN_PENDING_MERGE_AND_ROLLOUT`.
 À data registrada nesta seção histórica, A3 ainda não havia sido iniciado; esse estado foi superado pelo bloco corrente no topo. O terminal Production continua condicionado ao merge exact-head e à evidência real de rollout.
 
 # Estado atual — 48.5-A0 Reconciliação de cultura, memória e rádio (17/08/2026)
+
 ## A4 — Direitos progressivos da memória cultural (DIAG → PATCH, 19/08/2026)
 
 Estado atual: `COMUN_48_5_A4_PROGRESSIVE_CULTURAL_RIGHTS_CANDIDATE_PENDING_VERIFY`.
@@ -3078,6 +3081,7 @@ Estado atual: `COMUN_48_5_A4_PROGRESSIVE_CULTURAL_RIGHTS_CANDIDATE_PENDING_VERIF
 Detalhes: `reports/current/comun-48-5-a4-progressive-cultural-rights.md`.
 
 O estado só poderá avançar após testes focados, proof Supabase local/CI, exact Preview/freshness, CI verde e rollout controlado Wave 0/1.
+
 ## A4-R1 — Provisionamento Chromium de CI endurecido (19/08/2026)
 
 Estado atual: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_CANDIDATE_PENDING_REMOTE_VERIFY`.
@@ -3091,6 +3095,7 @@ Estado atual: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_CANDIDATE_PENDING_REMOTE_VERI
 - as quatro primeiras execuções remotas encontraram timeout/lock no apt mirror durante `install-deps`; a quarta confirmou que um `apt-get` reparentado ainda segurava o lock. O novo candidato, somente após timeout, percorre descendentes, libera os lockfiles apt/dpkg por PID de holder com `fuser`, força a resolução após 5 segundos se necessário, mantém duas tentativas e segue fail-closed.
 
 Checkpoint pré-merge reservado: `COMUN_48_5_A4_R1_PROGRESSIVE_RIGHTS_GREEN_BROWSER_CI_STABLE_AWAITING_ROLLOUT`.
+
 ## Estado atual — 48.5-A5-A0: contrato de curadoria unificado GREEN; delta A5-A1 necessário (22/08/2026)
 
 Estado terminal: `COMUN_48_5_A5_A0_CURATION_CONTRACT_GREEN_A5_A1_SCHEMA_DELTA_REQUIRED`.
@@ -3101,6 +3106,7 @@ Estado terminal: `COMUN_48_5_A5_A0_CURATION_CONTRACT_GREEN_A5_A1_SCHEMA_DELTA_RE
 - A3 e A4 permanecem ON/encrypted/Production-only. `migrations=0`, `ProductionBusinessWrites=0`, `ProductionSchemaWrites=0`, `ProductionEnvWrites=0`, `publications=0`.
 
 Relatório: `reports/current/comun-48-5-a5-a0-cultural-curation-readiness.md`.
+
 ## Estado atual — 48.5-A5-A1: proveniência especializada imutável integrada; rollout Production pendente (23/08/2026)
 
 Estado terminal: `COMUN_48_5_A5_A1_SPECIALIZED_PROVENANCE_SCHEMA_GREEN_PRODUCTION_ROLLOUT_REQUIRED`.
@@ -3112,6 +3118,7 @@ Estado terminal: `COMUN_48_5_A5_A1_SPECIALIZED_PROVENANCE_SCHEMA_GREEN_PRODUCTIO
 - `A3=ON/preserved`; `A4=ON/preserved`; `autoPublication=false`; `ProductionBusinessWrites=0`; `ProductionSchemaWrites=0`; `ProductionEnvWrites=0`; `ProductionMigrationApplied=false`. Nenhum rollout A5-A1-R1 foi iniciado.
 
 Relatório: `reports/current/comun-48-5-a5-a1-specialized-provenance-readiness.md`.
+
 ## Estado atual — 48.5-A5-A1-R1 bloqueado por plano remoto não exato (23/08/2026)
 
 Estado terminal: `COMUN_48_5_A5_A1_R1_BLOCKED_NONEXACT_MIGRATION_PLAN`.
@@ -3122,6 +3129,7 @@ Estado terminal: `COMUN_48_5_A5_A1_R1_BLOCKED_NONEXACT_MIGRATION_PLAN`.
 - a próxima ação é a lane proprietária resolver a migration pendente. Só então uma nova tentativa A5-A1 poderá exigir o plano de uma única migration cultural.
 
 Relatório: `reports/current/comun-48-5-a5-a1-r1-production-rollout.md`.
+
 ## Estado em implementação — 48.5-A5-A2: workspace de materialização privada especializada (24/08/2026)
 
 - História Oral e Rádio passam a ter workspace administrativo de triagem e materialização privada via as RPCs A5-A1 já atômicas; Música continua fora do fluxo Rádio e publicação não é autorizada;
@@ -3130,6 +3138,7 @@ Relatório: `reports/current/comun-48-5-a5-a1-r1-production-rollout.md`.
 - a prova descartável de Arte está versionada para CI. O Docker local falhou antes de iniciar por erro de I/O da infraestrutura, sem aplicar schema/dados; não há retry remoto ou contorno manual.
 
 Relatório: `reports/current/comun-48-5-a5-a2-private-materialization-workspace.md`.
+
 ## Estado atual — 48.5-A5-A2: materialização privada especializada pronta para integração (24/08/2026)
 
 Estado candidato: `COMUN_48_5_A5_A2_PRIVATE_MATERIALIZATION_GREEN_ART_SCHEMA_ROLLOUT_REQUIRED`.
@@ -3140,12 +3149,14 @@ Estado candidato: `COMUN_48_5_A5_A2_PRIVATE_MATERIALIZATION_GREEN_ART_SCHEMA_ROL
 - A3 e A4 permanecem ON/preserved, A5-A1 permanece ativo/preservado. Não houve writes Production de negócio, schema ou env; não houve publicação, Search, promoção pública de asset ou coleção.
 
 Relatório: `reports/current/comun-48-5-a5-a2-private-materialization-workspace.md`.
+
 ## Estado atual — 48.5-A5-A2-R1: schema de Arte GREEN; ativação runtime em validação (24/08/2026)
 
 - A migration `20260824001340_comun_artwork_submission_private_materialization.sql`, SHA-256 `b9da07e8da93aa22d41119eb3a0f406176595bd4fbdf96bf1d75e16ddfd02354`, foi aplicada uma única vez no run `32686486554`.
 - O planner foi exato antes e vazio depois; a exceção external-ledger de Sidewalk permaneceu preservada. Grants/RLS ficaram fail-closed e todos os fingerprints de negócio permaneceram iguais: `ProductionBusinessWrites=0`, roots/children/publicações/Search/assets/coleções criados `=0`.
 - O runtime em validação habilita criação de rascunho privado para obra nova e escolha explícita de rascunho de Arte existente para complemento/correção. Nenhum desses caminhos publica.
 - `A3=ON/preserved`; `A4=ON/preserved`; `A5A1=ACTIVE/preserved`; Oral/Rádio preservados; `autoPublication=false`.
+
 ## Estado atual — 48.5-A5-A2-R1: Arte privada ativa em Production, sem publicação (24/08/2026)
 
 - Terminal: `COMUN_48_5_A5_A2_R1_ART_PRIVATE_MATERIALIZATION_GREEN_PRODUCTION_ACTIVE_NO_PUBLICATION`.

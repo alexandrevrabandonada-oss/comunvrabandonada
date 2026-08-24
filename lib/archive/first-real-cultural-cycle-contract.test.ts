@@ -18,7 +18,9 @@ describe("A5-A4 publication and copy contracts", () => {
     ])
       expect(source).toContain(`from(\"${table}\")`);
     expect(source).toContain("if (!boundary.genericPublisherAllowed)");
-    expect(source).toContain("Este conteúdo possui um fluxo especializado de publicação.");
+    expect(source).toContain(
+      "Este conteúdo possui um fluxo especializado de publicação.",
+    );
   });
 
   it("does not render raw readiness codes in the photo/document detail", () => {

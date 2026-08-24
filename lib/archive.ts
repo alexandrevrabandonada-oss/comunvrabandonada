@@ -182,20 +182,35 @@ export async function getAdminArchiveItem(id: string) {
     oralHistoryResult,
     radioProgramResult,
     radioEpisodeResult,
-  ] =
-    await Promise.all([
-      db.from("comun_archive_items").select("*").eq("id", id).maybeSingle(),
-      db
-        .from("comun_archive_assets")
-        .select("*")
-        .eq("archive_item_id", id)
-        .order("created_at", { ascending: false }),
-      db.from("comun_archive_collections").select("*").order("title"),
-      db.from("comun_archive_artworks").select("archive_item_id").eq("archive_item_id", id).maybeSingle(),
-      db.from("comun_archive_oral_histories").select("archive_item_id").eq("archive_item_id", id).maybeSingle(),
-      db.from("comun_radio_programs").select("archive_item_id").eq("archive_item_id", id).maybeSingle(),
-      db.from("comun_radio_episodes").select("archive_item_id").eq("archive_item_id", id).maybeSingle(),
-    ]);
+  ] = await Promise.all([
+    db.from("comun_archive_items").select("*").eq("id", id).maybeSingle(),
+    db
+      .from("comun_archive_assets")
+      .select("*")
+      .eq("archive_item_id", id)
+      .order("created_at", { ascending: false }),
+    db.from("comun_archive_collections").select("*").order("title"),
+    db
+      .from("comun_archive_artworks")
+      .select("archive_item_id")
+      .eq("archive_item_id", id)
+      .maybeSingle(),
+    db
+      .from("comun_archive_oral_histories")
+      .select("archive_item_id")
+      .eq("archive_item_id", id)
+      .maybeSingle(),
+    db
+      .from("comun_radio_programs")
+      .select("archive_item_id")
+      .eq("archive_item_id", id)
+      .maybeSingle(),
+    db
+      .from("comun_radio_episodes")
+      .select("archive_item_id")
+      .eq("archive_item_id", id)
+      .maybeSingle(),
+  ]);
   return item
     ? {
         item: item as ArchiveItem,
@@ -205,9 +220,9 @@ export async function getAdminArchiveItem(id: string) {
           itemType: item.item_type,
           lookupFailed: Boolean(
             artworkResult.error ||
-              oralHistoryResult.error ||
-              radioProgramResult.error ||
-              radioEpisodeResult.error,
+            oralHistoryResult.error ||
+            radioProgramResult.error ||
+            radioEpisodeResult.error,
           ),
           artwork: Boolean(artworkResult.data),
           oralHistory: Boolean(oralHistoryResult.data),
@@ -257,14 +272,39 @@ export async function getPublicCollection(slug: string) {
     .in("id", ids)
     .eq("status", "published")
     .eq("visibility", "public");
-  const [art, oral, music, radio] = await Promise.all([listPublicArtworks({ page: 1, limit: 24 }), listPublicOralHistories({}), listPublicReleases({ page: "1", pageSize: "24" }), listPublicRadio()]);
+  const [art, oral, music, radio] = await Promise.all([
+    listPublicArtworks({ page: 1, limit: 24 }),
+    listPublicOralHistories({}),
+    listPublicReleases({ page: "1", pageSize: "24" }),
+    listPublicRadio(),
+  ]);
   const eligibleSpecialized = new Set<string>([
     ...(art.items ?? []).map((x: { id: string }) => x.id),
-    ...(oral.items ?? []).map((x: { id?: string; archive_item_id?: string }) => x.id ?? x.archive_item_id).filter((x): x is string => Boolean(x)),
-    ...(music.items ?? []).map((x: { id?: string; archive_item_id?: string }) => x.id ?? x.archive_item_id).filter((x: string | undefined): x is string => Boolean(x)),
-    ...(radio.episodes ?? []).map((x: { archive_item_id?: string }) => x.archive_item_id).filter((x): x is string => Boolean(x)),
+    ...(oral.items ?? [])
+      .map(
+        (x: { id?: string; archive_item_id?: string }) =>
+          x.id ?? x.archive_item_id,
+      )
+      .filter((x): x is string => Boolean(x)),
+    ...(music.items ?? [])
+      .map(
+        (x: { id?: string; archive_item_id?: string }) =>
+          x.id ?? x.archive_item_id,
+      )
+      .filter((x: string | undefined): x is string => Boolean(x)),
+    ...(radio.episodes ?? [])
+      .map((x: { archive_item_id?: string }) => x.archive_item_id)
+      .filter((x): x is string => Boolean(x)),
   ]);
-  const safeItems = ((items ?? []) as ArchiveItem[]).filter((item) => !["territorial_artwork", "oral_history", "music_release", "community_radio_episode"].includes(item.item_type) || eligibleSpecialized.has(item.id));
+  const safeItems = ((items ?? []) as ArchiveItem[]).filter(
+    (item) =>
+      ![
+        "territorial_artwork",
+        "oral_history",
+        "music_release",
+        "community_radio_episode",
+      ].includes(item.item_type) || eligibleSpecialized.has(item.id),
+  );
   return {
     collection: c as ArchiveCollection,
     items: await attachPublicAssets(

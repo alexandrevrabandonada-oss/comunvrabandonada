@@ -164,19 +164,36 @@ export async function setArchiveWorkflow(formData: FormData) {
     patch = { status: "review" };
     event = "archive_item_sent_to_review";
   } else if (action === "publish") {
-    const [artwork, oralHistory, radioProgram, radioEpisode] = await Promise.all([
-      db.from("comun_archive_artworks").select("archive_item_id").eq("archive_item_id", id).maybeSingle(),
-      db.from("comun_archive_oral_histories").select("archive_item_id").eq("archive_item_id", id).maybeSingle(),
-      db.from("comun_radio_programs").select("archive_item_id").eq("archive_item_id", id).maybeSingle(),
-      db.from("comun_radio_episodes").select("archive_item_id").eq("archive_item_id", id).maybeSingle(),
-    ]);
+    const [artwork, oralHistory, radioProgram, radioEpisode] =
+      await Promise.all([
+        db
+          .from("comun_archive_artworks")
+          .select("archive_item_id")
+          .eq("archive_item_id", id)
+          .maybeSingle(),
+        db
+          .from("comun_archive_oral_histories")
+          .select("archive_item_id")
+          .eq("archive_item_id", id)
+          .maybeSingle(),
+        db
+          .from("comun_radio_programs")
+          .select("archive_item_id")
+          .eq("archive_item_id", id)
+          .maybeSingle(),
+        db
+          .from("comun_radio_episodes")
+          .select("archive_item_id")
+          .eq("archive_item_id", id)
+          .maybeSingle(),
+      ]);
     const boundary = resolveArchivePublicationBoundary(id, {
       itemType: item.item_type,
       lookupFailed: Boolean(
         artwork.error ||
-          oralHistory.error ||
-          radioProgram.error ||
-          radioEpisode.error,
+        oralHistory.error ||
+        radioProgram.error ||
+        radioEpisode.error,
       ),
       artwork: Boolean(artwork.data),
       oralHistory: Boolean(oralHistory.data),

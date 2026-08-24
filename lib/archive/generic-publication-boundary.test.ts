@@ -22,7 +22,10 @@ describe("generic archive publication boundary", () => {
         itemType: "photograph",
         artwork: true,
       }),
-    ).toMatchObject({ genericPublisherAllowed: false, specializedKind: "artwork" });
+    ).toMatchObject({
+      genericPublisherAllowed: false,
+      specializedKind: "artwork",
+    });
   });
 
   it("fails closed when specialized metadata cannot be classified", () => {
@@ -43,12 +46,23 @@ describe("generic archive publication boundary", () => {
     },
   );
 
-  it.each(["place", "artist", "music_release", "video", "poster", "newspaper", "other"])(
+  it.each([
+    "place",
+    "artist",
+    "music_release",
+    "video",
+    "poster",
+    "newspaper",
+    "other",
+  ])(
     "does not infer a generic publisher for unsupported type %s",
     (itemType) => {
       expect(
         resolveArchivePublicationBoundary("item-id", { itemType }),
-      ).toMatchObject({ genericPublisherAllowed: false, specializedKind: null });
+      ).toMatchObject({
+        genericPublisherAllowed: false,
+        specializedKind: null,
+      });
     },
   );
 });
