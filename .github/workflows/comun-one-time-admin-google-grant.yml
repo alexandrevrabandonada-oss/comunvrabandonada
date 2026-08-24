@@ -1,0 +1,98 @@
+name: COMUN one-time Google admin grant
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact main SHA authorized for this grant
+        required: true
+        type: string
+
+concurrency:
+  group: comun-one-time-admin-google-grant
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  grant:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: production
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      COMUN_BOOTSTRAP_ADMIN_EMAIL: ${{ secrets.COMUN_BOOTSTRAP_ADMIN_EMAIL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+
+      - name: Verify exact authority and sanitized inputs
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_ACTOR" = "alexandrevrabandonada-oss"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+          test -n "${SUPABASE_SERVICE_ROLE_KEY:-}"
+          test -n "${COMUN_BOOTSTRAP_ADMIN_EMAIL:-}"
+          echo "::add-mask::$COMUN_BOOTSTRAP_ADMIN_EMAIL"
+          npm ci --ignore-scripts
+
+      - name: Preflight existing Google identity and absent authorization
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { createClient } from '@supabase/supabase-js';
+          const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+          const email = process.env.COMUN_BOOTSTRAP_ADMIN_EMAIL.trim().toLowerCase();
+          const users = await db.auth.admin.listUsers({ page: 1, perPage: 1000 });
+          if (users.error) throw users.error;
+          const user = users.data.users.find((candidate) => candidate.email?.toLowerCase() === email);
+          if (!user) throw new Error('COMUN_ADMIN_GRANT_AUTH_USER_NOT_FOUND');
+          const providers = new Set([user.app_metadata?.provider, ...(user.app_metadata?.providers ?? [])].filter(Boolean));
+          if (!providers.has('google')) throw new Error('COMUN_ADMIN_GRANT_GOOGLE_IDENTITY_REQUIRED');
+          const existing = await db.from('comun_admin_users').select('user_id,role,is_active').eq('email', email).maybeSingle();
+          if (existing.error) throw existing.error;
+          if (existing.data?.is_active === true) throw new Error('COMUN_ADMIN_GRANT_ALREADY_ACTIVE_STOP');
+          console.log('COMUN_ADMIN_GRANT_PREFLIGHT_GREEN');
+          NODE
+
+      - name: Grant requested administrator with canonical bootstrap
+        shell: bash
+        run: npm run bootstrap:admin
+
+      - name: Verify exact active authorization
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { createClient } from '@supabase/supabase-js';
+          const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+          const email = process.env.COMUN_BOOTSTRAP_ADMIN_EMAIL.trim().toLowerCase();
+          const users = await db.auth.admin.listUsers({ page: 1, perPage: 1000 });
+          if (users.error) throw users.error;
+          const user = users.data.users.find((candidate) => candidate.email?.toLowerCase() === email);
+          const row = await db.from('comun_admin_users').select('user_id,role,is_active').eq('email', email).single();
+          if (row.error) throw row.error;
+          if (!user || row.data.user_id !== user.id || row.data.role !== 'admin' || row.data.is_active !== true)
+            throw new Error('COMUN_ADMIN_GRANT_POSTFLIGHT_FAILED');
+          console.log('COMUN_GOOGLE_ADMIN_AUTHORIZATION_GREEN');
+          NODE
+          {
+            echo 'COMUN_GOOGLE_ADMIN_AUTHORIZATION_GREEN'
+            echo 'authUserCreated=false'
+            echo 'passwordChanged=false'
+            echo 'schemaWrites=0'
+            echo 'authorizationRowsUpserted=1'
+          } >> "$GITHUB_STEP_SUMMARY"
