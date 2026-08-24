@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { adminGoogleCallbackUrl, safeAdminReturn } from "./admin-google-auth";
+import {
+  adminGoogleCallbackUrl,
+  adminLoginReasonMessage,
+  safeAdminReturn,
+} from "./admin-google-auth";
 
 describe("Google Auth administrativo", () => {
   it("aceita somente destinos administrativos internos", () => {
@@ -28,5 +32,12 @@ describe("Google Auth administrativo", () => {
     ).toBe(
       "https://comunsocial.online/comun/admin/auth/callback?returnTo=%2Fcomun%2Fadmin%2Fcuradoria",
     );
+  });
+
+  it("explica autorização ausente sem ecoar motivos arbitrários", () => {
+    expect(adminLoginReasonMessage("not-authorized")).toContain(
+      "não possui autorização administrativa ativa",
+    );
+    expect(adminLoginReasonMessage("attacker-controlled")).toBeNull();
   });
 });
