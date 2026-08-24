@@ -1,9 +1,13 @@
-## Estado atual — 48.5-A5-A3: Mesa de curadoria cultural em integração (24/08/2026)
+## Estado atual — 48.5-A5-A3: Mesa de curadoria cultural GREEN em Production (24/08/2026)
+
+Estado terminal: `COMUN_48_5_A5_A3_CULTURAL_CURATION_DESK_GREEN_PRODUCTION_ACTIVE_NO_SCHEMA_DELTA`.
 
 - A rota admin/editor `/comun/admin/curadoria` agrega Foto/documento, Arte, História Oral e Rádio como projeção read-only em memória, reutilizando os quatro resolvers canônicos de readiness;
 - categorias, filtros, contadores, idade e próxima ação foram traduzidos para linguagem cotidiana; nenhum código interno é exibido, e os CTAs apenas abrem as superfícies especializadas;
 - não há migration, nova fila, estado persistido, ação mutável, flag, publicação, Search, promoção de asset ou coleção. A3, A4 e A5-A1 permanecem preservados;
-- gates locais: 1.189 testes unitários, typecheck, lint, build, auditoria e contratos de superfícies GREEN. Preview, visual review, CI e merge ainda serão registrados.
+- gates locais: 1.189 testes unitários, typecheck, lint, build, auditoria e contratos de superfícies GREEN. Preview exato/COST-02, CI, contratos autenticados, acessibilidade, coerência, segurança e matrizes de deliverability fecharam GREEN;
+- PR #378 integrada no main `472d988c2744852c156a5229d94a305496ea3911`; tree do merge idêntico ao validado. Deployment Production `6056854565` READY e smoke canônico da rota confirmou redirect fail-closed para login admin;
+- `A3=ON/preserved`, `A4=ON/preserved`, `A5-A1=active/preserved`, `publicationEligible=false`, `autoPublication=false`; writes de negócio/schema/env em Production, publicações, Search, assets públicos e coleções permaneceram zero.
 
 Relatório: `reports/current/comun-48-5-a5-a3-cultural-curation-desk.md`.
 
