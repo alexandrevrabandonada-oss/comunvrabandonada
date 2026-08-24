@@ -30,10 +30,16 @@ Data: 24/08/2026.
 - Surfaces: 226 rotas, zero desconhecidas/incompatibilidades; 4 contratos Node + 28 testes Vitest GREEN.
 - Quality e Experience coherence: GREEN.
 - Browser local: a rota admin permaneceu fail-closed, redirecionando para login com `redirectTo` correto, sem erro/warning de console. A revisão autenticada do conteúdo será fechada no Preview/CI sem fabricar credenciais.
-- CI/Preview: a preencher no fechamento.
-- PR, merge, deployment Production e inventário real sanitizado: a preencher no fechamento.
+- Checkpoints: `194d4bd8` e `f1c0fb2b` (`[comun-preview]`); o segundo preservou o conteúdo funcional e corrigiu somente formatação.
+- PR [#380](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/380): Preview exato `6065769970` READY; COMUN CI, Cultural Deliverability, contratos autenticados, acessibilidade, segurança, Quality e demais matrizes aplicáveis GREEN.
+- Merge/main: `28f9240ae65453db28c752999d747553ed308281`; deployment Production `DaQKgGeH7z4TxKcefzoXYeYkspwt` com status success.
 
-## Piloto real
+## Piloto real — bloqueio operacional seguro
 
-- O inventário Production somente leitura será executado apenas depois do patch seguro estar integrado e READY.
-- Nenhum candidato, decisão editorial, write ou publicação foi presumido neste estágio.
+- O patch foi integrado e ficou READY antes de qualquer tentativa de inventário.
+- O conector Supabase recusou a leitura por falta de permissão. A sessão Supabase do Chrome autenticou via GitHub, mas a conta disponível enxerga somente os projetos `quilometrometro` e `VRNoPonto`; o projeto Production canônico do COMUN retornou `You do not have access to this project`.
+- Sem uma sessão de operador com acesso ao projeto canônico, não foi possível inventariar candidatos reais nem comprovar a existência de exatamente um candidato seguro. Nenhum ID, protocolo ou dado privado foi lido ou exposto.
+- O ciclo real não foi iniciado: nenhuma transição, materialização, associação, publicação, Search, coleção ou promoção de asset ocorreu.
+- `ProductionBusinessWrites=0`, `ProductionSchemaWrites=0`, `ProductionEnvWrites=0`, `publications=0`, `SearchWrites=0`.
+
+Estado terminal: `COMUN_48_5_A5_A4_REAL_CYCLE_BLOCKED_OPERATOR_SESSION_REQUIRED`.
