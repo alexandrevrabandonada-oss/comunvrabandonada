@@ -1,7 +1,10 @@
 import { ComunShell, Section } from "@/components/comun-shell";
+import { redirect } from "next/navigation";
 import { CommunitySignupForm } from "@/components/community-auth-form";
+import { getOptionalCommunitySession } from "@/lib/community-auth";
 import { isGoogleAuthEnabled } from "@/lib/community-google-auth";
 import { safeCommunityReturn } from "@/lib/community-return";
+import { resolveCommunitySignupDestination } from "@/lib/community-signup-continuity";
 import {
   COMUN_APP_V2_EXPERIENCE,
   COMUN_LEGACY_EXPERIENCE,
@@ -28,6 +31,13 @@ export default async function CriarConta({
   const returnTo = withComunExperience(safeReturnTo, experience);
   const appV2 = experience === COMUN_APP_V2_EXPERIENCE;
   const googleAuthEnabled = isGoogleAuthEnabled();
+  const session = await getOptionalCommunitySession();
+  const authenticatedDestination = resolveCommunitySignupDestination({
+    authenticated: Boolean(session?.user),
+    onboardingCompleted: Boolean(session?.profile?.onboarding_completed_at),
+    returnTo,
+  });
+  if (authenticatedDestination) redirect(authenticatedDestination);
   return (
     <ComunShell>
       <Section>
