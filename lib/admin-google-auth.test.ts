@@ -14,6 +14,7 @@ describe("Google Auth administrativo", () => {
     "/comun/minha-participacao",
     "/comun/admin/login",
     "/comun/admin/auth/callback",
+    "/comun/admin/auth/callback?code=secret-code&returnTo=/comun/admin",
   ])("bloqueia retorno impróprio %s", (value) => {
     expect(safeAdminReturn(value)).toBe("/comun/admin");
   });
