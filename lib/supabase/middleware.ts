@@ -6,13 +6,21 @@ import {
   withComunExperience,
 } from "@/lib/comun-experience";
 
+export function requiresAdminSession(pathname: string) {
+  const isAdminRoute =
+    pathname === "/comun/admin" || pathname.startsWith("/comun/admin/");
+  return (
+    isAdminRoute &&
+    pathname !== "/comun/admin/login" &&
+    pathname !== "/comun/admin/auth/callback"
+  );
+}
+
 export async function updateSession(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const { pathname, search } = request.nextUrl;
-  const isAdminRoute =
-    pathname === "/comun/admin" || pathname.startsWith("/comun/admin/");
-  const isLoginRoute = pathname === "/comun/admin/login";
+  const adminSessionRequired = requiresAdminSession(pathname);
   const isCollectiveActionsPreviewAdmin =
     pathname === "/comun/admin/acoes" &&
     process.env.VERCEL_ENV === "preview" &&
@@ -21,7 +29,7 @@ export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
   if (isCollectiveActionsPreviewAdmin) return response;
   if (!url || !anonKey)
-    return isAdminRoute && !isLoginRoute
+    return adminSessionRequired
       ? adminLoginRedirect(request, pathname, search)
       : response;
 
@@ -46,7 +54,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (isAdminRoute && !isLoginRoute && !user) {
+  if (adminSessionRequired && !user) {
     return adminLoginRedirect(request, pathname, search);
   }
 
