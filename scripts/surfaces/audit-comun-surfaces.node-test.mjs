@@ -11,7 +11,8 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   // part of the full matrix.
   // A5 adds two fail-closed contextual connection routes under the existing Feirinha root.
   // A6 adds one fail-closed organization profile self-management route.
-  assert.equal(summary.total, 220);
+  // A5-A2 adds five specialized administrative/editorial surfaces for private curation/materialization.
+  assert.equal(summary.total, 225);
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
     "admin",
@@ -27,7 +28,7 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   assert.ok(routes.every((route) => route.wave >= 1 && route.wave <= 4));
   assert.equal(summary.legacy_rendered, 0);
   assert.equal(summary.p0_p1, 0);
-  assert.equal(summary.admin_wave3, 77);
+  assert.equal(summary.admin_wave3, 82);
   assert.equal(summary.admin_wave4, 12);
   assert.equal(summary.unknown_routes, 0);
   assert.equal(summary.structural_incompatibilities, 0);
@@ -37,7 +38,7 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
 test("admin civic and editorial routes inherit navigation and table contracts", async () => {
   const { routes } = await auditComunSurfaces({ write: false });
   const wave3 = routes.filter((route) => route.wave === 3);
-  assert.equal(wave3.length, 77);
+  assert.equal(wave3.length, 82);
   assert.ok(wave3.every((route) => route.shell_mode === "admin"));
   assert.ok(wave3.every((route) => route.contextual_app_bar));
   assert.ok(wave3.every((route) => route.preserves_filters_or_return));
