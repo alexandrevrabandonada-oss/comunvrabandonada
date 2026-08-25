@@ -12,6 +12,7 @@ import {
   generateSubmissionDerivatives,
   updateSubmissionStatus,
 } from "../actions";
+import { RetryUploadConfirmation } from "./retry-upload-confirmation";
 export const dynamic = "force-dynamic";
 export default async function SubmissionDetail(props: {
   params: Promise<{ id: string }>;
@@ -42,7 +43,10 @@ export default async function SubmissionDetail(props: {
         .eq("review_status", "approved")
         .in("asset_role", ["thumbnail", "display"])
     : { data: [] };
-  const original = links?.[0]?.comun_archive_assets as unknown as {
+  const originalLink = links?.[0] as
+    | { upload_status: string; comun_archive_assets: unknown }
+    | undefined;
+  const original = originalLink?.comun_archive_assets as unknown as {
     id: string;
     checksum_sha256: string | null;
     mime_type: string;
@@ -182,6 +186,9 @@ export default async function SubmissionDetail(props: {
                 Checksum: {original.checksum_sha256 ? "registrado" : "ausente"}{" "}
                 · integridade {original.integrity_status}
               </p>
+              {originalLink?.upload_status !== "confirmed" ? (
+                <RetryUploadConfirmation submissionId={id} assetId={original.id} />
+              ) : null}
             </>
           ) : (
             <p>Nenhum original confirmado.</p>

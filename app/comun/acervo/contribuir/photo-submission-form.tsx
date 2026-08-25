@@ -28,7 +28,6 @@ export function PhotoSubmissionForm({ progressiveRightsEnabled = false }: { prog
       });
       let result = await response.json();
       if (!response.ok) throw new Error(result.error);
-      setProtocol(result.protocol);
       setProgress("Enviando o original para preservacao privada...");
       response = await fetch(
         `/api/comun/archive/submissions/${result.submissionId}/upload-url`,
@@ -61,6 +60,7 @@ export function PhotoSubmissionForm({ progressiveRightsEnabled = false }: { prog
       );
       const confirmed = await response.json();
       if (!response.ok) throw new Error(confirmed.error);
+      setProtocol(result.protocol);
       setDuplicate(Boolean(confirmed.duplicate));
       setProgress("Contribuicao recebida.");
     } catch (e) {
