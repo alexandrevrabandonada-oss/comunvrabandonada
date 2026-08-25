@@ -51,9 +51,18 @@ const cspReportOnly = [
 const nextConfig = {
   distDir: requestedDistDir || ".next",
   // `sharp` loads a platform-specific libvips binary at runtime. Keep it out of
-  // Turbopack's server bundle so Vercel's function trace includes the Linux
-  // optional dependency rather than trying to load a host-specific artifact.
+  // Turbopack's server bundle. Its optional Linux packages are resolved by
+  // `sharp` dynamically, so include them explicitly in every server trace.
+  // Without this, Vercel can deploy `sharp` without libvips and fail before a
+  // route handler gets a chance to return its JSON error response.
   serverExternalPackages: ["sharp"],
+  outputFileTracingIncludes: {
+    "/*": [
+      "./node_modules/sharp/**/*",
+      "./node_modules/@img/sharp-linux-x64/**/*",
+      "./node_modules/@img/sharp-libvips-linux-x64/**/*",
+    ],
+  },
   experimental: { serverActions: { bodySizeLimit: "31mb" } },
   poweredByHeader: false,
   allowedDevOrigins: ["127.0.0.1"],
