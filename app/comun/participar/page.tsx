@@ -28,8 +28,8 @@ const ways = [
   {
     group: "report",
     icon: MessageSquareWarning,
-    title: "Vi um problema",
-    href: "/comun/relatar",
+    title: "Denúncias e serviços públicos",
+    href: "/comun/denuncias",
     goal: "Conte o que aconteceu sem precisar saber quem é o responsável.",
     time: "Rápido",
     account: "Conta não obrigatória",

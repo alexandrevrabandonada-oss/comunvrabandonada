@@ -22,6 +22,7 @@ import { EDUCATION_ISSUE_TYPE_LABELS } from "@/lib/comun-education-service-routi
 import { ComunHealthChannelsPanel } from "./comun-health-channels-panel";
 import { ComunEducationChannelsPanel } from "./comun-education-channels-panel";
 import { ComunChildProtectionChannelsPanel } from "./comun-child-protection-channels-panel";
+import { ComunDenunciasRoutingGuidePanel } from "./comun-denuncias-routing-guide-panel";
 
 const SidewalkRealPointPicker = dynamic(
   () =>
@@ -711,6 +712,7 @@ export function QuickCaptureV2({
                   </p>
                 </div>
               ) : null}
+              {decision ? <ComunDenunciasRoutingGuidePanel decision={decision} /> : null}
               {publicHealthSensitiveRoutingEnabled &&
               receipt.category === "public_health" ? (
                 <ComunHealthChannelsPanel

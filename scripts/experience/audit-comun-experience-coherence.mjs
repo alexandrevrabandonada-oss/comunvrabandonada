@@ -8,6 +8,7 @@ const defaultRoot = path.resolve(scriptDir, "..", "..");
 const requiredRoutes = [
   "/comun",
   "/comun/explorar",
+  "/comun/denuncias",
   "/comun/relatar",
   "/comun/buscar",
   "/comun/busca",
@@ -54,6 +55,14 @@ const experienceMatrix = [
     "começar",
     "O que posso fazer aqui?",
     "Vi um problema",
+    "/comun",
+    false,
+  ],
+  [
+    "/comun/denuncias",
+    "resolver um problema",
+    "O que aconteceu?",
+    "Contar o que aconteceu",
     "/comun",
     false,
   ],
