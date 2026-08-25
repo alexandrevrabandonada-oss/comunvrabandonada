@@ -1,5 +1,18 @@
 # COMUN 48.6-A1 — Encaminhamento assistido multidomínio
 
+## Closeout Production
+
+- PR funcional: [#394](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/394), head validado `40d162ffdd82f6e987db44bb2329edf542997593`, merge `5643e788016fad902802e34b103d363f3a20542`.
+- Correção operacional do runner: [#395](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/395), merge `22101e35941b7944da328f181e3c3f582f6a5e03`.
+- `origin/main` final: `22101e35941b7944da328f181e3c3f582f6a5e03`.
+- A promoção inicial `32904955708` parou no checkout, antes de qualquer conexão ao banco; não houve write. O runner foi corrigido para checkout de `main` e asserção fail-closed do SHA.
+- Rollout GREEN: [run 32905325898](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/32905325898), executado no SHA exato de `main`.
+- Plano remoto: exatamente `20260825090000_comun_multidomain_assisted_forwarding.sql`; exceção externa de Calçadas restaurada com checksum; nenhum `include-all`, repair, reset ou seed.
+- Postflight remoto: migration presente; checks de source/reference, funções e grants verdes; cliente sem EXECUTE; `transactionReadOnly=true`; `businessWrites=0`; `envWrites=0`; `publicProjection=false`; `externalOfficialSends=0`.
+- Smokes read-only Production: `/comun/denuncias`, `/comun/relatar` e `/comun/minha-participacao` retornaram HTTP 200.
+- Estado terminal: `COMUN_48_6_A1_MULTIDOMAIN_ASSISTED_FORWARDING_GREEN_NO_AUTO_SEND_SCHEMA_ACTIVE`.
+- `ProductionSchemaWrites=1_migration_only`, `ProductionBusinessWrites=0`, `ProductionEnvWrites=0`, `externalOfficialSends=0`; A3/A4/A5 preservados; A2 não iniciado.
+
 ## Estado desta execução
 
 - Parent/main auditado: `fbaecb4d65dbc28c938bbde2bea3213c3afb670f`.
@@ -7,7 +20,7 @@
 - Implementação: projeção de experiência e adapter civic sobre o ledger de encaminhamento existente.
 - Migration única: `20260825090000_comun_multidomain_assisted_forwarding.sql`.
 - Migration SHA-256: `bef9f9d4bc38e07dcb16a07c6adff45f1bfb89f7ec4e3a0b46f7a1042f8c4bfd`.
-- Production migration: pendente de rollout controlado após merge; nenhum write Production nesta etapa.
+- Production migration: aplicada uma única vez no run `32905325898`; nenhum write de negócio, env write ou envio oficial.
 
 ## Arquitetura reutilizada
 
