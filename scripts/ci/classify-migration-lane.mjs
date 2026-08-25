@@ -23,7 +23,7 @@ export const MIGRATION_LANE_MANIFEST = Object.freeze({
 const NON_APPLICABLE_LANES = Object.freeze({
   "48-2-a": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "p6c-c"]),
   "48-3-a1": new Set(["48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a1", "p6c-c"]),
-  "48-3-b0": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "p6c-c"]),
+  "48-3-b0": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a1", "p6c-c"]),
   "48-4-a0": new Set(["48-3-a1", "48-4-a2", "48-4-a4", "48-4-a5", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a1", "p6c-c"]),
   "48-5-a0": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a1", "p6c-c"]),
   "p6c-c": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a1"]),

@@ -27,6 +27,10 @@ test("A1 culture migration is not applicable to the legacy 48.3-A1 gate", () => 
   assert.equal(classifyMigrationLane("48-3-a1", [a1]).mode, "not_applicable");
 });
 
+test("A1 culture migration is not applicable to the legacy 48.3-B0 gate", () => {
+  assert.equal(classifyMigrationLane("48-3-b0", [a1]).mode, "not_applicable");
+});
+
 test("lane-owned migration remains a candidate and does not become N/A", () => {
   assert.equal(classifyMigrationLane("48-4-a0", [solidarity]).mode, "candidate");
   assert.equal(classifyMigrationLane("48-3-a1", [pauta]).mode, "candidate");
