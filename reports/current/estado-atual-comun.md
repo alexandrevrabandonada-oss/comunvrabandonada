@@ -1,3 +1,17 @@
+## Estado atual — 48.6-A2-A0: auditoria de automatizabilidade GREEN, sem adapter direto seguro (25/08/2026)
+
+Estado terminal: `COMUN_48_6_A2_A0_AUTOMATION_AUDIT_GREEN_NO_SAFE_DIRECT_ADAPTER`.
+
+- A auditoria partiu do `main` `bdff355e4d33191a81127e05b8082d6e9b70daae`, confirmou o baseline A1 e revisou os catálogos canônicos e as fontes oficiais dos canais de Denúncias/Serviços Públicos.
+- Foram encontrados canais oficiais reais, mas nenhum possui simultaneamente autorização institucional de produção, contrato técnico, autenticação/consentimento, evidência de protocolo, idempotência e reconciliação suficientes para auto-envio seguro pelo COMUN.
+- Fala.BR possui API oficial documentada, porém depende de autorização administrativa, credenciais de sistema, escopo do órgão destinatário e contrato de produção ainda inexistentes neste projeto; portanto permanece candidato futuro não selecionado.
+- Fiscaliza VR, Light, SAAE, Saúde, Educação, proteção infantil, Ambiente, Trabalho e demais rotas permanecem `assisted_only`, `phone_only`, `escalation_only`, `emergency_only` ou `human_review_required` conforme o canal; nenhuma página GET foi confundida com atendimento operacional confirmado.
+- `automationAllowed=false`, `prepared != sent` e protocolo COMUN distinto do protocolo oficial permanecem preservados. Não houve POST externo, login/captcha, ligação, WhatsApp ou denúncia de teste.
+- `ProductionBusinessWrites=0`, `ProductionSchemaWrites=0`, `ProductionEnvWrites=0`, `externalOfficialSends=0`, `fixtures=0`, `publications=0`, `SearchWrites=0`.
+- A3 permanece ON/encrypted/Production-only; A4 permanece ON/encrypted/Production-only; A5 permanece preservado. Não iniciar A2-A1 ou A3 neste closeout.
+
+Relatório: `reports/current/comun-48-6-a2-a0-automation-audit.md`.
+
 ## Estado atual — 48.6-A1: encaminhamento assistido multidomínio ativo, sem auto-envio (25/08/2026)
 
 Estado terminal: `COMUN_48_6_A1_MULTIDOMAIN_ASSISTED_FORWARDING_GREEN_NO_AUTO_SEND_SCHEMA_ACTIVE`.
