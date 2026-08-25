@@ -1,3 +1,15 @@
+## Estado atual — 48.6-A1: encaminhamento assistido multidomínio ativo, sem auto-envio (25/08/2026)
+
+Estado terminal: `COMUN_48_6_A1_MULTIDOMAIN_ASSISTED_FORWARDING_GREEN_NO_AUTO_SEND_SCHEMA_ACTIVE`.
+
+- A projeção unificada reutiliza Relata, Carteira, packages/attempts, protocolos oficiais e os catálogos canônicos existentes; não foi criada segunda fila, wallet, protocolo, case model ou forwarding engine.
+- A migration `20260825090000_comun_multidomain_assisted_forwarding.sql` foi aplicada exatamente uma vez no run [32905325898](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/32905325898), no `main` `22101e35941b7944da328f181e3c3f582f6a5e03`, com plano remoto contendo somente essa migration e postflight GREEN.
+- O A1 mantém `automationAllowed=false`: preparar/abrir/copiar/ligar não significa enviado; `person_declared_sent` continua sendo a evidência contratual; protocolo COMUN e protocolo oficial permanecem distintos; proteção infantil continua channel-only; emergências não passam pela fila comum.
+- `businessWrites=0`, `envWrites=0`, `externalOfficialSends=0`, `publicProjection=false`; smokes GET/HEAD de `/comun/denuncias`, `/comun/relatar` e `/comun/minha-participacao` retornaram HTTP 200.
+- A3 permanece ON/encrypted/Production-only; A4 permanece ON/encrypted/Production-only; A5 permanece preservado. A2 não foi iniciado.
+
+Relatório: `reports/current/comun-48-6-a1-multidomain-assisted-forwarding.md`.
+
 ## Estado atual — 48.5-A5-A4-R3: frente Foto/Documento validada segura; nenhum candidato real publicável (25/08/2026)
 
 Estado terminal: `COMUN_48_5_A5_A4_VALIDATED_SAFE_NO_PUBLISHABLE_REAL_CANDIDATE_READY_FOR_48_6`.
