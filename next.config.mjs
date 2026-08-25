@@ -50,6 +50,10 @@ const cspReportOnly = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   distDir: requestedDistDir || ".next",
+  // `sharp` loads a platform-specific libvips binary at runtime. Keep it out of
+  // Turbopack's server bundle so Vercel's function trace includes the Linux
+  // optional dependency rather than trying to load a host-specific artifact.
+  serverExternalPackages: ["sharp"],
   experimental: { serverActions: { bodySizeLimit: "31mb" } },
   poweredByHeader: false,
   allowedDevOrigins: ["127.0.0.1"],
