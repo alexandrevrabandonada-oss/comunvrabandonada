@@ -1,5 +1,19 @@
 # 48.5-A5-A4 — Primeiro ciclo cultural real Foto/Documento
 
+## A5-A4-R3 — Última prova operacional: nenhum candidato real publicável
+
+Data: 25/08/2026.
+
+- Baseline confirmado: `097f6e8cd441b72580f73db19fbcb01c997102c0`.
+- O inventário ocorreu exclusivamente pela Mesa de curadoria autenticada, filtrado para Foto/documento. O protocolo já recuperado anteriormente permaneceu explicitamente excluído deste tijolo.
+- O único outro item ativo revelou, na própria Mesa, que ainda não possui autorização para uso editorial e exige revisão de autorização. Portanto ele não satisfaz o contrato de direitos para publicação e não foi selecionado.
+- `existingPublishablePhotoCandidates=0`. Não houve tentativa de materialização, processamento, edição de metadados/direitos, revisão ou publicação.
+- A ausência de candidato autorizado é um estado operacional seguro: não é regressão nem demanda código adicional. Direitos, licença, autoria e autorização não foram inferidos.
+- Não houve alterações de schema, env, conteúdo, assets, Search, coleção ou publicação em Production. `ProductionBusinessWrites=0`, `ProductionSchemaWrites=0`, `ProductionEnvWrites=0`, `publications=0`, `collectionWrites=0`.
+- A infraestrutura cultural permanece funcional e preservada. O próximo macrobloco autorizado é `48.6 — Denúncias / Serviços Públicos`; nenhum novo hardening cultural ou A5-A4B será iniciado nesta sequência.
+
+Estado terminal: `COMUN_48_5_A5_A4_VALIDATED_SAFE_NO_PUBLISHABLE_REAL_CANDIDATE_READY_FOR_48_6`.
+
 ## A5-A4-R2 — Recuperação do original existente e bloqueio editorial legítimo
 
 Data: 25/08/2026.
