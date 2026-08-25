@@ -39,6 +39,7 @@ export type WalletRelataFeatureFlags = {
   essentialForwardingEnabled: boolean;
   sensitiveForwardingEnabled?: boolean;
   childProtectionChannelOnlyEnabled?: boolean;
+  civicForwardingEnabled?: boolean;
 };
 
 export type WalletRelataAction = {
@@ -275,6 +276,9 @@ export function resolveWalletRelataAction(
   }
 
   if (
+    input.category === "waste_or_debris" ||
+    input.category === "smoke_or_environmental_trace" ||
+    input.category === "environmental_pollution" ||
     input.category === "urban_flooding" ||
     input.category === "stormwater_drainage" ||
     input.category === "tree_hazard"
@@ -282,12 +286,16 @@ export function resolveWalletRelataAction(
     const urgent = ["urgent", "emergency"].includes(
       String(input.metadata.urgency ?? ""),
     );
+    const civicAvailable =
+      input.featureFlags.civicForwardingEnabled === true && !urgent;
     return baseAction("no_verified_forwarding", input, {
       stateMessage: "Guardado no COMUN.",
       nextStep: urgent
         ? "Situação que pode exigir atendimento imediato."
-        : null,
-      availabilityMessage: NO_VERIFIED_FORWARDING,
+        : civicAvailable
+          ? "Você pode revisar o que será levado ao serviço."
+          : null,
+      availabilityMessage: civicAvailable ? null : NO_VERIFIED_FORWARDING,
     });
   }
 

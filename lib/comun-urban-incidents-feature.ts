@@ -1,4 +1,5 @@
 import { isComunRelataPersistenceEnabled } from "./comun-relata-persistence";
+import { isComunParticipationWalletEnabled } from "./comun-participation-wallet-feature";
 
 export const COMUN_URBAN_INCIDENTS_FLAG =
   "COMUN_URBAN_INCIDENTS_ENABLED" as const;
@@ -14,12 +15,13 @@ export function isComunUrbanIncidentsEnabled(
   );
 }
 
-/**
- * P6B-B deliberately ships classification without institutional forwarding.
- * Production source_domain does not yet have an urban incident adapter.
- */
 export function isComunUrbanIncidentsForwardingAssistedEnabled(
-  _env: Record<string, string | undefined> = process.env,
+  env: Record<string, string | undefined> = process.env,
 ) {
-  return false;
+  return (
+    env[COMUN_URBAN_INCIDENTS_FORWARDING_ASSISTED_FLAG] === "enabled" &&
+    isComunUrbanIncidentsEnabled(env) &&
+    isComunParticipationWalletEnabled(env) &&
+    Boolean(env.SUPABASE_SERVICE_ROLE_KEY)
+  );
 }

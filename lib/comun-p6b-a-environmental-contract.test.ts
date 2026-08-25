@@ -26,7 +26,7 @@ describe("COMUN P6B-A release contract", () => {
     expect(runtime).toContain("hardDeletes");
   });
 
-  it("keeps forwarding disabled independently from classification", () => {
+  it("keeps forwarding gated independently from classification", () => {
     const flags = read("lib/comun-environmental-incidents-feature.ts");
     const catalog = read(
       "lib/server/comun-environmental-channel-catalog.ts",
@@ -34,9 +34,10 @@ describe("COMUN P6B-A release contract", () => {
     expect(flags).toContain(
       '"COMUN_ENVIRONMENTAL_FORWARDING_ASSISTED_ENABLED"',
     );
-    expect(flags).toMatch(
-      /isComunEnvironmentalForwardingAssistedEnabled[\s\S]*return false/,
-    );
+    expect(flags).toContain("isComunEnvironmentalIncidentsEnabled(env)");
+    expect(flags).toContain("isComunParticipationWalletEnabled(env)");
+    expect(flags).toContain("Boolean(env.SUPABASE_SERVICE_ROLE_KEY)");
+    expect(flags).not.toMatch(/return false/);
     expect(catalog).toContain("automationAllowed: false");
     expect(catalog).not.toMatch(/Fiscaliza VR.*fallback/i);
   });
