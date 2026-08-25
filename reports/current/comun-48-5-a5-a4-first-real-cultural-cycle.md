@@ -1,5 +1,20 @@
 # 48.5-A5-A4 — Primeiro ciclo cultural real Foto/Documento
 
+## A5-A4-R2 — Recuperação do original existente e bloqueio editorial legítimo
+
+Data: 25/08/2026.
+
+- A recuperação ocorreu exclusivamente pela superfície administrativa autenticada do COMUN, sem SQL manual, service role, Dashboard Supabase ou novo envio.
+- O runtime anterior falhava antes do handler ao carregar a dependência nativa `sharp` no Linux. A correção de rastreamento de artefatos foi integrada pela PR [#389](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/389), commit de merge `b3016d428e023a0fde72dee6d379a414cf329a42`; Preview/COST-02 e gates aplicáveis ficaram GREEN, e o deployment Production correspondente ficou READY.
+- No protocolo `ACERVO-F40C413B`, a ação canônica **Confirmar original privado** foi executada uma vez. Após reload, o mesmo original privado permaneceu vinculado e passou a exibir checksum registrado, integridade verificada e metadados técnicos; não houve novo protocolo, submissão ou original duplicado.
+- A reavaliação de readiness permaneceu fail-closed: direitos estão restritos à revisão interna e não há evidência explícita suficiente para licença/autorização pública. Por isso não foram executadas materialização, processamento público, revisão editorial, publicação, Search, coleção ou promoção de asset.
+- O original continua privado. Não foram registradas URLs assinadas, cookies, tokens, contato privado ou notas editoriais.
+- `ProductionSchemaWrites=0`, `ProductionEnvWrites=0`, `publications=0`, `collectionWrites=0`. A única write de negócio confirmada foi a confirmação do original já existente do próprio protocolo.
+
+Estado terminal: `COMUN_48_5_A5_A4_ORIGINAL_RECOVERY_GREEN_REAL_CYCLE_BLOCKED_EDITORIAL_EVIDENCE_REQUIRED`.
+
+Para retomar este mesmo protocolo, é necessária evidência editorial explícita de direitos/licença/autorização; não é permitido inferi-la a partir da origem, crédito ou envio.
+
 Data: 24/08/2026.
 
 ## Baseline
