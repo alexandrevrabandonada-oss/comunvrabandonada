@@ -15,7 +15,8 @@ test("contrato de coerência cobre rotas, pilotos, tokens e roadmap", async () =
   // Includes the fail-closed A6 organization profile self-management route.
   // Includes the A5-A2 private curation workspaces for Oral History, Radio and Artwork.
   // Includes the A5-A3 read-only cultural curation desk.
-  assert.equal(report.routeInventory.totalPages, 226);
+  // Includes the public /comun/denuncias single door over the existing Relata engine.
+  assert.equal(report.routeInventory.totalPages, 227);
   assert.equal(report.routeInventory.missingRequiredRoutes, 0);
   assert.equal(report.routeInventory.knownCompatibleRedirects, 1);
   assert.deepEqual(report.pilots.levels, [0, 1, 2]);

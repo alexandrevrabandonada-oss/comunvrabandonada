@@ -13,7 +13,8 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   // A6 adds one fail-closed organization profile self-management route.
   // A5-A2 adds five specialized administrative/editorial surfaces for private curation/materialization.
   // A5-A3 adds the single read-only cultural curation desk.
-  assert.equal(summary.total, 226);
+  // A0 adds /comun/denuncias as a public semantic door over Relata.
+  assert.equal(summary.total, 227);
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
     "admin",
