@@ -33,7 +33,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.expected_main_sha }}
+          # Checkout the protected branch first; the next step is the
+          # fail-closed authority for the exact merged SHA.
+          ref: main
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
