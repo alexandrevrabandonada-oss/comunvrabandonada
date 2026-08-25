@@ -19,15 +19,16 @@ describe("COMUN P6B-B release contract", () => {
     );
   });
 
-  it("keeps forwarding disabled and institutional entries outside SQL", () => {
+  it("keeps forwarding gated and institutional entries outside SQL", () => {
     const feature = read("lib/comun-urban-incidents-feature.ts");
     const catalog = read("lib/server/comun-urban-incident-channel-catalog.ts");
     const sql = read(
       `supabase/migrations/${readdirSync("supabase/migrations").find((name) => /comun_flood_drainage_tree_categories/.test(name))}`,
     );
-    expect(feature).toMatch(
-      /isComunUrbanIncidentsForwardingAssistedEnabled[\s\S]*return false/,
-    );
+    expect(feature).toContain("isComunUrbanIncidentsEnabled(env)");
+    expect(feature).toContain("isComunParticipationWalletEnabled(env)");
+    expect(feature).toContain("Boolean(env.SUPABASE_SERVICE_ROLE_KEY)");
+    expect(feature).not.toMatch(/return false/);
     expect(catalog).toContain("automationAllowed: false");
     expect(sql).not.toMatch(/tel:|https?:\/\/|Fiscaliza|Defesa Civil/i);
   });

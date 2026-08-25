@@ -7,6 +7,9 @@ import { ComunEssentialServicesPanel } from "./comun-essential-services-panel";
 import { ComunSensitiveForwardingPanel } from "./comun-sensitive-forwarding-panel";
 import { isSensitiveForwardingCategory } from "@/lib/comun-sensitive-forwarding-feature";
 import { resolveWalletRelataAction } from "@/lib/comun-wallet-relata-action";
+import { resolveComunForwardingExperience } from "@/lib/comun-forwarding-experience";
+import { isCivicAssistedCategory } from "@/lib/comun-civic-forwarding-feature";
+import { ComunCivicForwardingPanel } from "./comun-civic-forwarding-panel";
 
 type WalletItem = {
   item_id: string;
@@ -56,6 +59,8 @@ export function ParticipationWalletPanel({
   essentialForwardingEnabled = false,
   sensitiveForwardingEnabled = false,
   childProtectionChannelOnlyEnabled = false,
+  civicEnvironmentalForwardingEnabled = false,
+  civicUrbanForwardingEnabled = false,
 }: {
   standalone?: boolean;
   accountAvailable?: boolean;
@@ -65,6 +70,8 @@ export function ParticipationWalletPanel({
   essentialForwardingEnabled?: boolean;
   sensitiveForwardingEnabled?: boolean;
   childProtectionChannelOnlyEnabled?: boolean;
+  civicEnvironmentalForwardingEnabled?: boolean;
+  civicUrbanForwardingEnabled?: boolean;
 }) {
   const [items, setItems] = useState<WalletItem[]>([]);
   const [present, setPresent] = useState(false);
@@ -386,7 +393,31 @@ export function ParticipationWalletPanel({
                             essentialForwardingEnabled,
                             sensitiveForwardingEnabled,
                             childProtectionChannelOnlyEnabled,
+                            civicForwardingEnabled:
+                              civicEnvironmentalForwardingEnabled ||
+                              civicUrbanForwardingEnabled,
                           },
+                        })
+                      : null;
+                  const experience =
+                    item.item_type === "relata_report"
+                      ? resolveComunForwardingExperience({
+                          category: item.category,
+                          urgency:
+                            typeof item.metadata?.urgency === "string"
+                              ? item.metadata.urgency
+                              : null,
+                          metadata: item.metadata ?? {},
+                          essentialForwardingEnabled:
+                            essentialServicesEnabled &&
+                            essentialForwardingEnabled,
+                          sensitiveForwardingEnabled,
+                          civicForwardingEnabled:
+                            (item.category === "waste_or_debris" ||
+                              item.category === "smoke_or_environmental_trace" ||
+                              item.category === "environmental_pollution")
+                              ? civicEnvironmentalForwardingEnabled
+                              : civicUrbanForwardingEnabled,
                         })
                       : null;
                   return (
@@ -447,6 +478,19 @@ export function ParticipationWalletPanel({
                           {relataAction.availabilityMessage}
                         </p>
                       ) : null}
+                      {experience ? (
+                        <section className="grid gap-1 border-t-2 pt-3" aria-label="Próximo caminho">
+                          <p className="text-xs font-black uppercase">Como resolver isso</p>
+                          <p className="font-black">{experience.headline}</p>
+                          <p className="text-sm">{experience.explanation}</p>
+                          {experience.privacyNote ? (
+                            <p className="text-xs font-bold">{experience.privacyNote}</p>
+                          ) : null}
+                          {experience.escalationNote ? (
+                            <p className="text-xs">{experience.escalationNote}</p>
+                          ) : null}
+                        </section>
+                      ) : null}
                       {relataAction?.route === "bus" ? (
                         relataAction.showStmuAssisted ? (
                           <ComunStmuAssistedPanel walletItemId={item.item_id} />
@@ -468,6 +512,15 @@ export function ParticipationWalletPanel({
                           walletItemId={item.item_id}
                           category={item.category}
                         />
+                      ) : null}
+                      {experience?.mode === "civic_assisted" &&
+                      ((item.category === "waste_or_debris" ||
+                        item.category === "smoke_or_environmental_trace" ||
+                        item.category === "environmental_pollution")
+                        ? civicEnvironmentalForwardingEnabled
+                        : civicUrbanForwardingEnabled) &&
+                      isCivicAssistedCategory(item.category) ? (
+                        <ComunCivicForwardingPanel walletItemId={item.item_id} />
                       ) : null}
                     </article>
                   );

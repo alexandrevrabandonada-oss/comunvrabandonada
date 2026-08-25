@@ -1,8 +1,8 @@
 # Matriz canônica de superfícies — 47.9A5
 
-Gerada em: 2026-08-24T04:35:28.029Z
+Gerada em: 2026-08-25T21:07:35.020Z
 
-Total: **226** · ondas: 1=98 · 2=33 · 3=83 · 4=12
+Total: **227** · ondas: 1=99 · 2=33 · 3=83 · 4=12
 
 | Rota | Família | Shell | Visual | Componente | Decisão | Onda |
 | --- | --- | --- | --- | --- | --- | ---: |
@@ -167,7 +167,8 @@ Total: **226** · ondas: 1=98 · 2=33 · 3=83 · 4=12
 | `/comun/cooperativas/[slug]/ofertas/nova` | cooperativas | public_web | not_rendered | NewSolidarityOfferPage | redirect_canonical | 1 |
 | `/comun/cooperativas/nova` | cooperativas | public_web | not_rendered | Page | redirect_canonical | 1 |
 | `/comun/cooperativas/nova/[onboardingToken]` | cooperativas | public_web | not_rendered | Page | redirect_canonical | 1 |
-| `/comun/criar-conta` | criar-conta | auth | mixed | CriarConta | retain_v2 | 2 |
+| `/comun/criar-conta` | criar-conta | auth | not_rendered | CriarConta | redirect_canonical | 2 |
+| `/comun/denuncias` | denuncias | member_nested | v2_compatibility | DenunciasPage | compatibility_v2 | 1 |
 | `/comun/dossies` | dossies | public_web | v2_compatibility | DossiersPage | compatibility_v2 | 1 |
 | `/comun/dossies/[slug]` | dossies | public_web | not_rendered | DossierPage | redirect_canonical | 1 |
 | `/comun/entrar` | entrar | auth | mixed | Entrar | retain_v2 | 2 |

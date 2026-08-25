@@ -47,6 +47,8 @@ import {
   isComunChildProtectionChannelOnlyEnabled,
   isComunSensitiveForwardingAssistedEnabled,
 } from "@/lib/comun-sensitive-forwarding-feature";
+import { isComunEnvironmentalForwardingAssistedEnabled } from "@/lib/comun-environmental-incidents-feature";
+import { isComunUrbanIncidentsForwardingAssistedEnabled } from "@/lib/comun-urban-incidents-feature";
 import {
   isComunSolidarityOrganizationGovernanceEnabled,
   solidarityOrganizationAccessRoleLabel,
@@ -117,6 +119,10 @@ export default async function MinhaAreaPage({
     isComunSensitiveForwardingAssistedEnabled();
   const childProtectionChannelOnlyEnabled =
     isComunChildProtectionChannelOnlyEnabled();
+  const civicEnvironmentalForwardingEnabled =
+    isComunEnvironmentalForwardingAssistedEnabled();
+  const civicUrbanForwardingEnabled =
+    isComunUrbanIncidentsForwardingAssistedEnabled();
   const organizationGovernanceEnabled =
     isComunSolidarityOrganizationGovernanceEnabled();
   const organizationOnboardingEnabled =
@@ -137,6 +143,8 @@ export default async function MinhaAreaPage({
           essentialForwardingEnabled={essentialForwardingEnabled}
           sensitiveForwardingEnabled={sensitiveForwardingEnabled}
           childProtectionChannelOnlyEnabled={childProtectionChannelOnlyEnabled}
+          civicEnvironmentalForwardingEnabled={civicEnvironmentalForwardingEnabled}
+          civicUrbanForwardingEnabled={civicUrbanForwardingEnabled}
         />
       );
   }
@@ -214,6 +222,8 @@ export default async function MinhaAreaPage({
         essentialForwardingEnabled={essentialForwardingEnabled}
         sensitiveForwardingEnabled={sensitiveForwardingEnabled}
         childProtectionChannelOnlyEnabled={childProtectionChannelOnlyEnabled}
+        civicEnvironmentalForwardingEnabled={civicEnvironmentalForwardingEnabled}
+        civicUrbanForwardingEnabled={civicUrbanForwardingEnabled}
       />
     );
   return (
@@ -284,6 +294,8 @@ export default async function MinhaAreaPage({
             childProtectionChannelOnlyEnabled={
               childProtectionChannelOnlyEnabled
             }
+            civicEnvironmentalForwardingEnabled={civicEnvironmentalForwardingEnabled}
+            civicUrbanForwardingEnabled={civicUrbanForwardingEnabled}
           />
         </ComunSection>
       ) : null}
@@ -621,6 +633,8 @@ function MinhaAreaAppV2({
   essentialForwardingEnabled,
   sensitiveForwardingEnabled,
   childProtectionChannelOnlyEnabled,
+  civicEnvironmentalForwardingEnabled,
+  civicUrbanForwardingEnabled,
 }: {
   profile: any;
   center: any;
@@ -642,6 +656,8 @@ function MinhaAreaAppV2({
   essentialForwardingEnabled: boolean;
   sensitiveForwardingEnabled: boolean;
   childProtectionChannelOnlyEnabled: boolean;
+  civicEnvironmentalForwardingEnabled: boolean;
+  civicUrbanForwardingEnabled: boolean;
 }) {
   const tabs = [
     ["contribuicoes", "Meus registros"],
@@ -690,6 +706,8 @@ function MinhaAreaAppV2({
             childProtectionChannelOnlyEnabled={
               childProtectionChannelOnlyEnabled
             }
+            civicEnvironmentalForwardingEnabled={civicEnvironmentalForwardingEnabled}
+            civicUrbanForwardingEnabled={civicUrbanForwardingEnabled}
           />
         ) : null}
         {attention.length ? (
@@ -1363,6 +1381,8 @@ function WalletOnlyPage({
   essentialForwardingEnabled,
   sensitiveForwardingEnabled,
   childProtectionChannelOnlyEnabled,
+  civicEnvironmentalForwardingEnabled,
+  civicUrbanForwardingEnabled,
 }: {
   stmuAssistedEnabled: boolean;
   stmuMultichannelEnabled: boolean;
@@ -1370,6 +1390,8 @@ function WalletOnlyPage({
   essentialForwardingEnabled: boolean;
   sensitiveForwardingEnabled: boolean;
   childProtectionChannelOnlyEnabled: boolean;
+  civicEnvironmentalForwardingEnabled: boolean;
+  civicUrbanForwardingEnabled: boolean;
 }) {
   return (
     <ComunShell
@@ -1384,6 +1406,8 @@ function WalletOnlyPage({
           essentialForwardingEnabled={essentialForwardingEnabled}
           sensitiveForwardingEnabled={sensitiveForwardingEnabled}
           childProtectionChannelOnlyEnabled={childProtectionChannelOnlyEnabled}
+          civicEnvironmentalForwardingEnabled={civicEnvironmentalForwardingEnabled}
+          civicUrbanForwardingEnabled={civicUrbanForwardingEnabled}
         />
       </div>
     </ComunShell>

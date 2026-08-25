@@ -4,8 +4,16 @@ import {
   isComunUrbanIncidentsForwardingAssistedEnabled,
 } from "./comun-urban-incidents-feature";
 
-const persistence = {
-  COMUN_RELATA_LOCAL_PERSISTENCE: "enabled",
+  const persistence = {
+    COMUN_URBAN_INCIDENTS_ENABLED: "enabled",
+    COMUN_RELATA_PERSISTENCE_ENABLED: "enabled",
+    COMUN_PARTICIPATION_WALLET_ENABLED: "enabled",
+    VERCEL_ENV: "production",
+    NEXT_PUBLIC_SUPABASE_URL: "https://project.supabase.co",
+    SUPABASE_SERVICE_ROLE_KEY: "fixture",
+  };
+  const localPersistence = {
+    COMUN_RELATA_LOCAL_PERSISTENCE: "enabled",
   ALLOW_LOCAL_TESTS: "true",
   NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
   SUPABASE_SERVICE_ROLE_KEY: "test-service-role",
@@ -15,18 +23,19 @@ describe("COMUN P6B-B flags", () => {
   it("requires explicit classification and persistence", () => {
     expect(
       isComunUrbanIncidentsEnabled({
-        ...persistence,
+        ...localPersistence,
         COMUN_URBAN_INCIDENTS_ENABLED: "enabled",
       }),
     ).toBe(true);
-    expect(isComunUrbanIncidentsEnabled(persistence)).toBe(false);
+    expect(isComunUrbanIncidentsEnabled(localPersistence)).toBe(false);
   });
 
   it("keeps urban forwarding fail-closed", () => {
     expect(
       isComunUrbanIncidentsForwardingAssistedEnabled({
+        ...persistence,
         COMUN_URBAN_INCIDENTS_FORWARDING_ASSISTED_ENABLED: "enabled",
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 });

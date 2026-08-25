@@ -779,6 +779,17 @@
     "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
   },
   {
+    "code": "A5-P2-1-COMUN-DENUNCIAS",
+    "severity": "P2",
+    "route": "/comun/denuncias",
+    "components": [
+      "generic-white-panel",
+      "legacy-shell"
+    ],
+    "justification": "O fallback mantém o markup; sob App V2 o shell substitui material, forma e ritmo por família sem duplicar a árvore interativa.",
+    "deadline": "47.9D após ensaio humano, antes de tornar App V2 padrão"
+  },
+  {
     "code": "A5-P2-1-COMUN-DOSSIES",
     "severity": "P2",
     "route": "/comun/dossies",

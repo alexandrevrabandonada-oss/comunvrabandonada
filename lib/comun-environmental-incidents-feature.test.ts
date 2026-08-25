@@ -7,6 +7,8 @@ import {
 const production = {
   COMUN_ENVIRONMENTAL_INCIDENTS_ENABLED: "enabled",
   COMUN_RELATA_PERSISTENCE_ENABLED: "enabled",
+  COMUN_PARTICIPATION_WALLET_ENABLED: "enabled",
+  VERCEL_ENV: "production",
   NEXT_PUBLIC_SUPABASE_URL: "https://project.supabase.co",
   SUPABASE_SERVICE_ROLE_KEY: "fixture",
 };
@@ -19,7 +21,7 @@ describe("COMUN environmental incidents flags", () => {
         ...production,
         COMUN_ENVIRONMENTAL_FORWARDING_ASSISTED_ENABLED: "enabled",
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it("keeps classification cloaked without its explicit flag", () => {
