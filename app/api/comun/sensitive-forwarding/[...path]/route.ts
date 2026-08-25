@@ -274,6 +274,7 @@ export async function POST(
         p_token_hash_hex: hash,
         p_package_id: path[2],
         p_channel: channel.channelType,
+        p_institutional_channel_id: channel.id,
       });
       if (result.error || !Array.isArray(result.data) || !result.data[0])
         return dormant();

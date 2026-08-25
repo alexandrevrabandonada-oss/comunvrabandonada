@@ -3252,3 +3252,15 @@ Estado de código: `COMUN_48_6_A1_MULTIDOMAIN_ASSISTED_FORWARDING_IMPLEMENTED_AW
 - A3/A4 permanecem ON e preservados; A5 permanece preservado. Próximo passo deste mesmo A1 é o rollout controlado da migration; não iniciar A2 antes do terminal GREEN.
 
 Relatório: `reports/current/comun-48-6-a1-multidomain-assisted-forwarding.md`.
+## Estado atual — 48.6-A3: acompanhamento, resposta e escalada (25/08/2026)
+
+Estado de implementação: `COMUN_48_6_A3_FOLLOWUP_ESCALATION_GREEN_SCHEMA_ACTIVE_NO_AUTO_SEND` pendente dos gates CI e do rollout controlado da migration; a flag de auto-envio permanece OFF/PARKED.
+
+- O ledger A1 foi evoluído sem novo case, fila, wallet, protocolo ou scheduler: tentativas agora podem guardar o ID canônico do canal institucional e o resultado explícito `resolved`/`unresolved`.
+- Respostas não resolvidas continuam com `state=responded`, mas permanecem acionáveis na Carteira; respostas históricas sem resultado não são inferidas.
+- `due_at` de 72 horas continua apenas compatibilidade/lembrete e nunca é prazo oficial, SLA ou atraso do órgão.
+- Acompanhamento, canal selecionado e histórico são projetados pelos RPCs existentes e pelo helper puro; cadeia de energia respeita Light → Ouvidoria Light → ANEEL, com protocolos prévios e sem ANEEL como primeiro passo.
+- `prepared != sent`, protocolo COMUN != protocolo oficial, `automationAllowed=false`, sem notificações/polling, sem mapa/agrupamento público e sem envio oficial externo.
+- `ProductionBusinessWrites=0`, `ProductionEnvWrites=0`, `externalOfficialSends=0`; nenhuma migration Production foi aplicada nesta execução.
+
+Relatório: `reports/current/comun-48-6-a3-followup-escalation.md`.
