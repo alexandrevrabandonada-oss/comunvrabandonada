@@ -9,23 +9,28 @@ export const MIGRATION_LANE_MANIFEST = Object.freeze({
   "20260810194054_comun_sensitive_assisted_forwarding.sql": "p6c-c",
   "20260813124308_comun_pautas_vivas_public_evidence.sql": "48-3-a1",
   "20260815184529_comun_solidarity_offers.sql": "48-4-a0",
-  "20260815223006_comun_solidarity_organization_access.sql": "48-4-a0",
+  "20260815223006_comun_solidarity_organization_access.sql": "48-4-a2",
   "20260816011500_comun_solidarity_economic_content_writes.sql": "48-4-a0",
-  "20260816181040_comun_solidarity_organization_onboarding.sql": "48-4-a0",
-  "20260816224228_comun_solidarity_private_connections.sql": "48-4-a0",
+  "20260816181040_comun_solidarity_organization_onboarding.sql": "48-4-a4",
+  "20260816224228_comun_solidarity_private_connections.sql": "48-4-a5",
   "20260817012247_comun_solidarity_organization_profile_self_management.sql": "48-4-a0",
   "20260817160000_comun_cultural_contribution_intakes.sql": "culture-a2",
   "20260817170000_comun_cultural_contribution_intakes_r1.sql": "culture-a2-r1",
-  "20260818120000_comun_cultural_specialized_handoff.sql": "culture-a3"
+  "20260818120000_comun_cultural_specialized_handoff.sql": "culture-a3",
+  "20260825090000_comun_multidomain_assisted_forwarding.sql": "culture-a1",
 });
 
 const NON_APPLICABLE_LANES = Object.freeze({
   "48-2-a": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "p6c-c"]),
   "48-3-a1": new Set(["48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "p6c-c"]),
   "48-3-b0": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "p6c-c"]),
-  "48-4-a0": new Set(["48-3-a1", "culture-a2", "culture-a2-r1", "culture-a3", "p6c-c"]),
-  "48-5-a0": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "p6c-c"]),
-  "p6c-c": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3"])
+  "48-4-a0": new Set(["48-3-a1", "48-4-a2", "48-4-a4", "48-4-a5", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a1", "p6c-c"]),
+  "48-5-a0": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a1", "p6c-c"]),
+  "p6c-c": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a1"]),
+  "48-4-a2": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a1", "p6c-c"]),
+  "48-4-a4": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a1", "p6c-c"]),
+  "48-4-a5": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a1", "p6c-c"]),
+  "48-4-a7": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a1", "p6c-c"])
 });
 
 function migrationBasename(file) {

@@ -3222,7 +3222,7 @@ Estado de código: `COMUN_48_6_A1_MULTIDOMAIN_ASSISTED_FORWARDING_IMPLEMENTED_AW
 - A1 reutiliza o único ledger de encaminhamento, a Carteira, Relata e os catálogos canônicos; não criou terceira engine, fila, wallet, protocolo ou projeção pública;
 - a experiência unificada cobre essential, sensitive, especializado, civic, emergência e revisão humana, preservando `prepared != sent`, `automationAllowed=false` e proteção channel-only de infância;
 - a migration única `20260825090000_comun_multidomain_assisted_forwarding.sql` está versionada e possui workflow de preflight/promoção/postflight com plano exato, quarentena temporária da exceção externa de Calçadas e restauração por checksum;
-- gates locais GREEN: 1.262 unitários, typecheck, lint, build, Experience, Journeys, Surfaces, Civic Graph e contratos focais. Nenhuma migration, write de negócio, write de env ou envio oficial foi executado nesta etapa;
+- gates locais GREEN: 1.262 unitários, typecheck, lint, build, Experience, Journeys, Surfaces, Civic Graph e contratos focais; false positives históricos de lane foram classificados e saneados com manifesto explícito, mantendo unknown fail-closed. Nenhuma migration, write de negócio, write de env ou envio oficial foi executado nesta etapa;
 - A3/A4 permanecem ON e preservados; A5 permanece preservado. Próximo passo deste mesmo A1 é o rollout controlado da migration; não iniciar A2 antes do terminal GREEN.
 
 Relatório: `reports/current/comun-48-6-a1-multidomain-assisted-forwarding.md`.

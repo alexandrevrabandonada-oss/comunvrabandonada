@@ -30,7 +30,18 @@ jobs:
         with: { fetch-depth: 0 }
       - uses: supabase/setup-cli@v1
         with: { version: 2.114.0 }
+      - name: Classify changed migration ownership
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/48-4-a7-preflight
+          mapfile -t changed < <(git diff --name-only "$PR_BASE_SHA"...HEAD -- supabase/migrations)
+          node scripts/ci/classify-migration-lane.mjs --lane 48-4-a7 --files "${changed[@]}" | tee .ci-artifacts/48-4-a7-preflight/migration-classification.env
+          cat .ci-artifacts/48-4-a7-preflight/migration-classification.env >> "$GITHUB_ENV"
       - name: Prove zero migration and inspect metadata read-only
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail
@@ -63,6 +74,7 @@ jobs:
           if(state.businessContentRead!==false)throw new Error('COMUN_48_4_A7_BLOCKED_BUSINESS_CONTENT_READ');
           NODE
       - name: Prove remote migration plan remains empty
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail

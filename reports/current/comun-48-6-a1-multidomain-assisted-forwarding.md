@@ -77,6 +77,21 @@ O workflow não usa `--include-all`, migration repair, reset, seed, credenciais
 de service role no processo ou qualquer write de negócio. O terminal de
 Production só pode ser declarado após o postflight remoto GREEN.
 
+## Saneamento de lanes históricas
+
+Os logs do primeiro head mostraram false positives em P6C-C e nos preflights
+48.4-A2/A4/A5/A7: eles assumiam que qualquer migration nova pertencia à sua
+lane, ou exigiam zero migrations desde um baseline histórico. A regra foi
+corrigida com o manifesto explícito `scripts/ci/classify-migration-lane.mjs`:
+`20260825090000_comun_multidomain_assisted_forwarding.sql` é `culture-a1` e
+fica N/A para essas lanes. A2/A4/A5/A7 agora classificam a mudança antes de
+validar o plano; P6C-C e A0 cultural reutilizam a mesma classificação.
+
+O comportamento permanece fail-closed: ownership desconhecido ou mistura de
+lanes bloqueia, e somente uma migration comprovadamente fora do domínio é
+marcada N/A. Não houve relaxamento de check, remoção de required status ou
+skip manual.
+
 ## Terminal esperado
 
 `COMUN_48_6_A1_MULTIDOMAIN_ASSISTED_FORWARDING_GREEN_NO_AUTO_SEND_SCHEMA_ACTIVE`
