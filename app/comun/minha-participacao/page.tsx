@@ -143,7 +143,9 @@ export default async function MinhaAreaPage({
           essentialForwardingEnabled={essentialForwardingEnabled}
           sensitiveForwardingEnabled={sensitiveForwardingEnabled}
           childProtectionChannelOnlyEnabled={childProtectionChannelOnlyEnabled}
-          civicEnvironmentalForwardingEnabled={civicEnvironmentalForwardingEnabled}
+          civicEnvironmentalForwardingEnabled={
+            civicEnvironmentalForwardingEnabled
+          }
           civicUrbanForwardingEnabled={civicUrbanForwardingEnabled}
         />
       );
@@ -222,7 +224,9 @@ export default async function MinhaAreaPage({
         essentialForwardingEnabled={essentialForwardingEnabled}
         sensitiveForwardingEnabled={sensitiveForwardingEnabled}
         childProtectionChannelOnlyEnabled={childProtectionChannelOnlyEnabled}
-        civicEnvironmentalForwardingEnabled={civicEnvironmentalForwardingEnabled}
+        civicEnvironmentalForwardingEnabled={
+          civicEnvironmentalForwardingEnabled
+        }
         civicUrbanForwardingEnabled={civicUrbanForwardingEnabled}
       />
     );
@@ -294,7 +298,9 @@ export default async function MinhaAreaPage({
             childProtectionChannelOnlyEnabled={
               childProtectionChannelOnlyEnabled
             }
-            civicEnvironmentalForwardingEnabled={civicEnvironmentalForwardingEnabled}
+            civicEnvironmentalForwardingEnabled={
+              civicEnvironmentalForwardingEnabled
+            }
             civicUrbanForwardingEnabled={civicUrbanForwardingEnabled}
           />
         </ComunSection>
@@ -706,7 +712,9 @@ function MinhaAreaAppV2({
             childProtectionChannelOnlyEnabled={
               childProtectionChannelOnlyEnabled
             }
-            civicEnvironmentalForwardingEnabled={civicEnvironmentalForwardingEnabled}
+            civicEnvironmentalForwardingEnabled={
+              civicEnvironmentalForwardingEnabled
+            }
             civicUrbanForwardingEnabled={civicUrbanForwardingEnabled}
           />
         ) : null}
@@ -1406,7 +1414,9 @@ function WalletOnlyPage({
           essentialForwardingEnabled={essentialForwardingEnabled}
           sensitiveForwardingEnabled={sensitiveForwardingEnabled}
           childProtectionChannelOnlyEnabled={childProtectionChannelOnlyEnabled}
-          civicEnvironmentalForwardingEnabled={civicEnvironmentalForwardingEnabled}
+          civicEnvironmentalForwardingEnabled={
+            civicEnvironmentalForwardingEnabled
+          }
           civicUrbanForwardingEnabled={civicUrbanForwardingEnabled}
         />
       </div>

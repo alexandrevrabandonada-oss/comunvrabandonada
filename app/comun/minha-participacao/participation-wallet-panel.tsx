@@ -413,9 +413,9 @@ export function ParticipationWalletPanel({
                             essentialForwardingEnabled,
                           sensitiveForwardingEnabled,
                           civicForwardingEnabled:
-                            (item.category === "waste_or_debris" ||
-                              item.category === "smoke_or_environmental_trace" ||
-                              item.category === "environmental_pollution")
+                            item.category === "waste_or_debris" ||
+                            item.category === "smoke_or_environmental_trace" ||
+                            item.category === "environmental_pollution"
                               ? civicEnvironmentalForwardingEnabled
                               : civicUrbanForwardingEnabled,
                         })
@@ -479,15 +479,24 @@ export function ParticipationWalletPanel({
                         </p>
                       ) : null}
                       {experience ? (
-                        <section className="grid gap-1 border-t-2 pt-3" aria-label="Próximo caminho">
-                          <p className="text-xs font-black uppercase">Como resolver isso</p>
+                        <section
+                          className="grid gap-1 border-t-2 pt-3"
+                          aria-label="Próximo caminho"
+                        >
+                          <p className="text-xs font-black uppercase">
+                            Como resolver isso
+                          </p>
                           <p className="font-black">{experience.headline}</p>
                           <p className="text-sm">{experience.explanation}</p>
                           {experience.privacyNote ? (
-                            <p className="text-xs font-bold">{experience.privacyNote}</p>
+                            <p className="text-xs font-bold">
+                              {experience.privacyNote}
+                            </p>
                           ) : null}
                           {experience.escalationNote ? (
-                            <p className="text-xs">{experience.escalationNote}</p>
+                            <p className="text-xs">
+                              {experience.escalationNote}
+                            </p>
                           ) : null}
                         </section>
                       ) : null}
@@ -514,13 +523,15 @@ export function ParticipationWalletPanel({
                         />
                       ) : null}
                       {experience?.mode === "civic_assisted" &&
-                      ((item.category === "waste_or_debris" ||
-                        item.category === "smoke_or_environmental_trace" ||
-                        item.category === "environmental_pollution")
+                      (item.category === "waste_or_debris" ||
+                      item.category === "smoke_or_environmental_trace" ||
+                      item.category === "environmental_pollution"
                         ? civicEnvironmentalForwardingEnabled
                         : civicUrbanForwardingEnabled) &&
                       isCivicAssistedCategory(item.category) ? (
-                        <ComunCivicForwardingPanel walletItemId={item.item_id} />
+                        <ComunCivicForwardingPanel
+                          walletItemId={item.item_id}
+                        />
                       ) : null}
                     </article>
                   );
