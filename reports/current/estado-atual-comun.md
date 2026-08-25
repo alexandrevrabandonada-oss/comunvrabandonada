@@ -1,3 +1,14 @@
+## Estado atual — 48.5-A5-A4-R2: original recuperado; ciclo bloqueado por evidência editorial (25/08/2026)
+
+Estado terminal: `COMUN_48_5_A5_A4_ORIGINAL_RECOVERY_GREEN_REAL_CYCLE_BLOCKED_EDITORIAL_EVIDENCE_REQUIRED`.
+
+- A recuperação do protocolo cultural existente foi concluída pelo próprio COMUN, uma vez, após a correção de trace Linux do `sharp` integrada na PR #389 (`main` `b3016d428e023a0fde72dee6d379a414cf329a42`);
+- o original preexistente foi reutilizado e voltou a exibir integridade verificada após reload; não houve novo protocolo, nova submissão ou duplicação de original;
+- a Mesa preservou o fail-closed: direitos restritos à revisão interna bloqueiam materialização, processamento público, revisão editorial e publicação até existir evidência explícita suficiente;
+- A3/A4 permanecem preservados. Sem schema/env write, publicação, Search, coleção ou asset público; a única write foi a confirmação do original existente.
+
+Relatório: `reports/current/comun-48-5-a5-a4-first-real-cultural-cycle.md`.
+
 ## Estado atual — 48.5-A5-A4-R1: autenticação corrigida; autorização admin permanece fail-closed (24/08/2026)
 
 - Cadastro comunitário autenticado não tenta mais recriar a mesma identidade; retoma onboarding ou destino seguro;
