@@ -3202,13 +3202,16 @@ Relatório: `reports/current/comun-48-5-a5-a2-private-materialization-workspace.
 - Runtime integrado pela PR #376 no main `1d6153591607ffa25de9590d1b54906ae45c3d18`; deployment Production `6056378513` success. Oito superfícies culturais retornaram GET/HEAD 200 sem marcadores privados.
 - Obra nova pode criar somente rascunho `draft/private`; complemento/correção exige escolha explícita de obra `territorial_artwork/draft/private`. Provenance é imutável e publicação permanece separada.
 - `A3=ON/preserved`; `A4=ON/preserved`; `A5A1=ACTIVE/preserved`; Oral/Rádio/Arte privados `ACTIVE`; `autoPublication=false`; `ProductionBusinessWrites=0`; `ProductionEnvWrites=0`.
-## Estado atual — 48.6-A0: Denúncias e serviços públicos conectados à infraestrutura Relata (25/08/2026)
+## Estado atual — 48.6-A0: Denúncias e serviços públicos GREEN em Production (25/08/2026)
 
-Estado em validação local: `COMUN_48_6_A0_DENUNCIAS_ROUTING_GUIDE_CANDIDATE`.
+Estado terminal: `COMUN_48_6_A0_DENUNCIAS_SINGLE_DOOR_ROUTING_FOUNDATION_GREEN_NO_AUTO_SEND`.
 
 - A nova porta pública `/comun/denuncias` inicia o mesmo fluxo de `/comun/relatar`; não criou uma tabela de denúncias, caso, protocolo, wallet, fila ou motor paralelo;
 - a projeção read-only de roteamento reúne os catálogos canônicos já existentes e mostra, depois da classificação, o próximo passo, fonte oficial, orientação de protocolo e escalada quando há base institucional;
 - `prepared != sent`, protocolo COMUN continua distinto do protocolo do órgão e `automationAllowed=false` em todos os caminhos; emergências seguem fora da burocracia normal;
 - sem migration, escrita de schema, env, Supabase, produção, Search, coleção ou publicação. O mapa público e os coletivos continuam fora deste A0.
+- contrato de experiência reconciliado para 227 superfícies; Preview exato e gates remotos verdes; merge `9b74252a4f8f70de9744ace4a6753f5cee2391b8`; Production deployment `6091466154` READY; smokes `/comun/denuncias` e `/comun/relatar` HTTP 200;
+- `A3=ON/preserved`, `A4=ON/preserved`, `A5=preserved`, `automaticOfficialSend=false`, `ProductionSchemaWrites=0`, `ProductionBusinessWrites=0`, `ProductionEnvWrites=0`, `externalOfficialSends=0`.
 
 Relatório: `reports/current/comun-48-6-a0-denuncias-routing-research.md`.
+Closeout: `reports/current/comun-48-6-a0-denuncias-single-door.md`.
