@@ -303,7 +303,12 @@ export function ComunCivicForwardingPanel({
   const followup = resolveDenunciasFollowup({
     category: pkg.category ?? "other",
     attempts: pkg.attempts,
-    selectedChannels: channels.map((channel) => ({ id: channel.id, label: channel.institution, sourceStatus: "source_verified", operationalStatus: "operationally_unchecked" })),
+    selectedChannels: channels.map((channel) => ({
+      id: channel.id,
+      label: channel.institution,
+      sourceStatus: "source_verified",
+      operationalStatus: "operationally_unchecked",
+    })),
   });
   return (
     <section
@@ -413,7 +418,9 @@ export function ComunCivicForwardingPanel({
                 A resposta resolveu o problema?
                 <select
                   value={resolved ? "resolved" : "unresolved"}
-                  onChange={(event) => setResolved(event.target.value === "resolved")}
+                  onChange={(event) =>
+                    setResolved(event.target.value === "resolved")
+                  }
                   className="min-h-11 border-2 p-2 font-normal"
                 >
                   <option value="unresolved">Não, ainda não resolveu</option>

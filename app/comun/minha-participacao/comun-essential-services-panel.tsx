@@ -195,7 +195,9 @@ export function ComunEssentialServicesPanel({
     value.attempts?.filter((item) =>
       ["person_declared_sent", "responded", "no_response"].includes(item.state),
     ) ?? [];
-  const latestAttempt = [...value.attempts].sort((a, b) => b.sequence - a.sequence)[0];
+  const latestAttempt = [...value.attempts].sort(
+    (a, b) => b.sequence - a.sequence,
+  )[0];
   const followup = resolveDenunciasFollowup({
     category: value.category,
     attempts: value.attempts,
@@ -204,7 +206,8 @@ export function ComunEssentialServicesPanel({
       label: channel.label,
       sourceStatus: channel.sourceStatus,
       operationalStatus: channel.operationalStatus,
-      protocolExpectation: channel.protocolExpectation as "expected" | "source_unclear",
+      protocolExpectation: channel.protocolExpectation as
+        "expected" | "source_unclear",
     })),
     now: new Date(),
     officialDeadlineAt: null,
@@ -337,7 +340,9 @@ export function ComunEssentialServicesPanel({
                 A resposta resolveu o problema?
                 <select
                   value={resolved ? "resolved" : "unresolved"}
-                  onChange={(event) => setResolved(event.target.value === "resolved")}
+                  onChange={(event) =>
+                    setResolved(event.target.value === "resolved")
+                  }
                   className="min-h-11 border-2 p-2 font-normal"
                 >
                   <option value="unresolved">Não, ainda não resolveu</option>

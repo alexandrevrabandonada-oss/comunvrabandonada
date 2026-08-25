@@ -330,7 +330,9 @@ export function ComunStmuAssistedPanel({
                 A resposta resolveu o problema?
                 <select
                   value={resolved ? "resolved" : "unresolved"}
-                  onChange={(event) => setResolved(event.target.value === "resolved")}
+                  onChange={(event) =>
+                    setResolved(event.target.value === "resolved")
+                  }
                   className="min-h-11 border-2 p-2 font-normal"
                 >
                   <option value="unresolved">Não, ainda não resolveu</option>

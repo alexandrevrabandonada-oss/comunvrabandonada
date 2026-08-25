@@ -377,7 +377,9 @@ export function ComunSensitiveForwardingPanel({
     pkg.attempts?.filter((attempt) => attempt.state === "prepared") ?? [];
   const sent =
     pkg.attempts?.filter((attempt) =>
-      ["person_declared_sent", "responded", "no_response"].includes(attempt.state),
+      ["person_declared_sent", "responded", "no_response"].includes(
+        attempt.state,
+      ),
     ) ?? [];
   const followup = resolveDenunciasFollowup({
     category,
