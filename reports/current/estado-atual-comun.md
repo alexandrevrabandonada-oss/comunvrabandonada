@@ -1,4 +1,16 @@
-## Estado atual — 48.5-A5-A4-R2: original recuperado; ciclo bloqueado por evidência editorial (25/08/2026)
+## Estado atual — 48.5-A5-A4-R3: frente Foto/Documento validada segura; nenhum candidato real publicável (25/08/2026)
+
+Estado terminal: `COMUN_48_5_A5_A4_VALIDATED_SAFE_NO_PUBLISHABLE_REAL_CANDIDATE_READY_FOR_48_6`.
+
+- A Mesa de curadoria autenticada foi inventariada exclusivamente pela superfície do produto, com filtro Foto/documento e exclusão explícita do protocolo já recuperado;
+- nenhum item restante possuía autorização editorial pública explícita; `existingPublishablePhotoCandidates=0`;
+- nenhuma autorização, licença, autoria ou crédito foi inferido. Não houve materialização, processamento, revisão, publicação, Search, coleção ou promoção de asset;
+- `ProductionBusinessWrites=0`, `ProductionSchemaWrites=0`, `ProductionEnvWrites=0`, `publications=0`, `collectionWrites=0`. A infraestrutura A5 cultural permanece preservada e não demanda novo hardening;
+- próxima fronteira de roadmap: `48.6 — Denúncias / Serviços Públicos`. Não iniciar 48.6 neste closeout.
+
+Relatório: `reports/current/comun-48-5-a5-a4-first-real-cultural-cycle.md`.
+
+## Estado histórico — 48.5-A5-A4-R2: original recuperado; ciclo bloqueado por evidência editorial (25/08/2026)
 
 Estado terminal: `COMUN_48_5_A5_A4_ORIGINAL_RECOVERY_GREEN_REAL_CYCLE_BLOCKED_EDITORIAL_EVIDENCE_REQUIRED`.
 
