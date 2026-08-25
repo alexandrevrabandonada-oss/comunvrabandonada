@@ -125,3 +125,8 @@ Terminal esperado após CI/migration rollout controlado:
 `COMUN_48_6_A3_FOLLOWUP_ESCALATION_GREEN_SCHEMA_ACTIVE_NO_AUTO_SEND`
 
 O próximo bloco 48.6-B0 não é iniciado neste tijolo.
+
+Durante a primeira matriz remota, o preflight histórico P6C-C bloqueou a
+candidate por ownership desconhecido da nova migration. O classificador foi
+corrigido de forma explícita para reconhecer esta migration como `culture-a3`,
+preservando `unknown => blocked`; nenhuma lane histórica foi relaxada.

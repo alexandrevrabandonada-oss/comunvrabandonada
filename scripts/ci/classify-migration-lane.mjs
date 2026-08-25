@@ -21,6 +21,7 @@ export const MIGRATION_LANE_MANIFEST = Object.freeze({
   "20260823003249_comun_cultural_specialized_provenance_readiness.sql": "culture-a5-a1",
   "20260824001340_comun_artwork_submission_private_materialization.sql": "culture-a5-a2",
   "20260825090000_comun_multidomain_assisted_forwarding.sql": "culture-a1",
+  "20260825120000_comun_followup_escalation_continuity.sql": "culture-a3",
 });
 
 const NON_APPLICABLE_LANES = Object.freeze({
