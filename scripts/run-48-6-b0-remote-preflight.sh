@@ -22,14 +22,7 @@ mkdir -p "$artifact_dir"
 # table and is wrapped in an explicit read-only transaction.
 psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >"$artifact_dir/schema.json" <<'SQL'
 begin read only;
-with old_local_tables(schema_name, table_name) as (
-  values
-    ('private','comun_relata_public_projection_candidates'),
-    ('private','comun_relata_public_projections'),
-    ('private','comun_relata_public_projection_events'),
-    ('private','comun_relata_public_confirmations'),
-    ('private','comun_relata_public_confirmation_events')
-), old_local_functions(signature) as (
+with legacy_local_functions(signature) as (
   values
     ('public.comun_relata_public_list'),
     ('public.comun_relata_public_get'),
@@ -51,15 +44,7 @@ with old_local_tables(schema_name, table_name) as (
 )
 select json_build_object(
   'transactionReadOnly', current_setting('transaction_read_only') = 'on',
-  'oldLocalMapTables', coalesce((
-    select json_agg(json_build_object(
-      'schema', t.schema_name,
-      'table', t.table_name,
-      'present', to_regclass(format('%I.%I', t.schema_name, t.table_name)) is not null
-    ) order by t.schema_name, t.table_name)
-    from old_local_tables t
-  ), '[]'::json),
-  'oldLocalMapFunctions', coalesce((
+  'legacyLocalMapFunctions', coalesce((
     select json_agg(json_build_object(
       'name', f.signature,
       'present', exists(
@@ -69,7 +54,7 @@ select json_build_object(
           and p.proname = split_part(f.signature, '.', 2)
       )
     ) order by f.signature)
-    from old_local_functions f
+    from legacy_local_functions f
   ), '[]'::json),
   'roots', coalesce((
     select json_agg(json_build_object(
@@ -163,6 +148,36 @@ select json_build_object(
        or version like '20260805%'
        or version like '20260823%'
   ), '[]'::json),
+  'b0MigrationCount', (select count(*) from supabase_migrations.schema_migrations where version='20260826090000'),
+  'b0SchemaTables', coalesce((
+    select json_agg(json_build_object(
+      'schema', t.schema_name,
+      'table', t.table_name,
+      'present', to_regclass(format('%I.%I', t.schema_name, t.table_name)) is not null
+    ) order by t.schema_name, t.table_name)
+    from (values
+      ('public','comun_relata_collective_cases'),
+      ('public','comun_relata_case_memberships'),
+      ('private','comun_relata_case_match_keys'),
+      ('public','comun_relata_case_match_events'),
+      ('private','comun_relata_public_projection_consents'),
+      ('private','comun_relata_public_projection_candidates'),
+      ('private','comun_relata_public_projections'),
+      ('private','comun_relata_public_projection_events'),
+      ('private','comun_relata_public_confirmations'),
+      ('private','comun_relata_public_confirmation_events')
+    ) as t(schema_name, table_name)
+  ), '[]'::json),
+  'b0PublicFunctions', coalesce((
+    select json_agg(json_build_object(
+      'name', f.signature,
+      'present', to_regprocedure(f.signature) is not null
+    ) order by f.signature)
+    from (values
+      ('public.comun_denuncias_public_list(text,integer)'),
+      ('public.comun_denuncias_public_get(uuid)')
+    ) as f(signature)
+  ), '[]'::json),
   'businessContentRead', false
 );
 rollback;
@@ -172,19 +187,29 @@ node --input-type=module <<'NODE'
 import fs from 'node:fs';
 const path = `${process.env.B0_ARTIFACT_DIR ?? '.ci-artifacts/48-6-b0-preflight'}/schema.json`;
 const schema = JSON.parse(fs.readFileSync(path, 'utf8'));
-const oldTables = schema.oldLocalMapTables ?? [];
-const oldFunctions = schema.oldLocalMapFunctions ?? [];
-const unexpectedOldObjects = [
-  ...oldTables.filter((entry) => entry.present).map((entry) => `${entry.schema}.${entry.table}`),
-  ...oldFunctions.filter((entry) => entry.present).map((entry) => entry.name),
+const legacyFunctions = schema.legacyLocalMapFunctions ?? [];
+const b0Tables = schema.b0SchemaTables ?? [];
+const b0Functions = schema.b0PublicFunctions ?? [];
+const unexpectedLegacyObjects = [
+  ...legacyFunctions.filter((entry) => entry.present).map((entry) => entry.name),
 ];
 if (schema.transactionReadOnly !== true || schema.businessContentRead !== false) {
   throw new Error('COMUN_48_6_B0_BLOCKED_READ_ONLY_PREFLIGHT');
 }
-if (unexpectedOldObjects.length > 0) {
+if (schema.b0MigrationCount !== 1 || b0Tables.some((entry) => entry.present !== true) || b0Functions.some((entry) => entry.present !== true)) {
+  fs.writeFileSync(`${process.env.B0_ARTIFACT_DIR ?? '.ci-artifacts/48-6-b0-preflight'}/result.json`, JSON.stringify({
+    result: 'COMUN_48_6_B0_BLOCKED_SCHEMA_NOT_RECONCILED',
+    b0MigrationCount: schema.b0MigrationCount,
+    b0Tables,
+    b0Functions,
+    businessContentRead: false,
+  }) + '\n');
+  throw new Error('COMUN_48_6_B0_BLOCKED_SCHEMA_NOT_RECONCILED');
+}
+if (unexpectedLegacyObjects.length > 0) {
   fs.writeFileSync(`${process.env.B0_ARTIFACT_DIR ?? '.ci-artifacts/48-6-b0-preflight'}/result.json`, JSON.stringify({
     result: 'COMUN_48_6_B0_BLOCKED_UNEXPECTED_PUBLIC_PROJECTION_SCHEMA_DRIFT',
-    unexpectedOldObjects,
+    unexpectedLegacyObjects,
     businessContentRead: false,
   }) + '\n');
   throw new Error('COMUN_48_6_B0_BLOCKED_UNEXPECTED_PUBLIC_PROJECTION_SCHEMA_DRIFT');
@@ -192,8 +217,9 @@ if (unexpectedOldObjects.length > 0) {
 fs.writeFileSync(`${process.env.B0_ARTIFACT_DIR ?? '.ci-artifacts/48-6-b0-preflight'}/result.json`, JSON.stringify({
   result: 'COMUN_48_6_B0_REMOTE_PREFLIGHT_GREEN',
   transactionReadOnly: true,
-  oldLocalMapMigrationApplied: false,
-  oldLocalMapObjectsPresent: false,
+  b0MigrationApplied: true,
+  b0SchemaReconciled: true,
+  legacyLocalMapObjectsPresent: false,
   businessContentRead: false,
   collectiveSchemaPresenceRecorded: true,
 }) + '\n');

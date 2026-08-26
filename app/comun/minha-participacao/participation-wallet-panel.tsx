@@ -10,6 +10,8 @@ import { resolveWalletRelataAction } from "@/lib/comun-wallet-relata-action";
 import { resolveComunForwardingExperience } from "@/lib/comun-forwarding-experience";
 import { isCivicAssistedCategory } from "@/lib/comun-civic-forwarding-feature";
 import { ComunCivicForwardingPanel } from "./comun-civic-forwarding-panel";
+import { PublicProjectionConsentPanel } from "./public-projection-consent-panel";
+import { isComunPublicProjectionOptInCategory } from "@/lib/comun-denuncias-public-opt-in";
 
 type WalletItem = {
   item_id: string;
@@ -499,6 +501,15 @@ export function ParticipationWalletPanel({
                             </p>
                           ) : null}
                         </section>
+                      ) : null}
+                      {item.item_type === "relata_report" &&
+                      isComunPublicProjectionOptInCategory(item.category) &&
+                      !["withdrawn", "Retirado"].includes(
+                        item.presentation_state,
+                      ) ? (
+                        <PublicProjectionConsentPanel
+                          walletItemId={item.item_id}
+                        />
                       ) : null}
                       {relataAction?.route === "bus" ? (
                         relataAction.showStmuAssisted ? (

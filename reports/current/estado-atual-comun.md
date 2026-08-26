@@ -1,3 +1,15 @@
+## Estado atual — 48.6-B1: opt-in explícito de projeção pública em preparação (26/08/2026)
+
+Estado de execução: implementação isolada a partir do main `f55b941a7f48d9fb30f4b9ebbd518395d01a4352`; o mapa Production permanece OFF e nenhum piloto real foi autorizado ou executado neste estágio.
+
+- O B1 reutiliza Carteira de Participação, Relata, consentimento B0, agrupamento coletivo e projeção sanitizada existentes; não cria segunda fila, case model, consent model ou matcher.
+- O navegador informa somente `walletItemId`; o servidor resolve e valida a posse pelo token/carteira/item canônicos. `case_id`, `report_id`, `collective_case_id` e `membership_id` não são autoridade do cliente nem aparecem no DTO.
+- O opt-in é opcional e não pré-marcado, limitado a `public_lighting`, `power_distribution` e `smoke_or_environmental_trace`. Consentimento de encaminhamento, localização, evidência ou participação não é tratado como consentimento de mapa.
+- O B1 mantém `confirmationRows=0`, `publicMapProduction=false`, `autoOfficialSend=false` e nenhum caminho de GET cria target ou projeção. Revogação e retirada continuam fail-closed.
+- A migration B1 não foi aplicada em Production nesta etapa; não houve env write, schema write remoto, fixture, publicação, Search, coleção ou projeção real.
+
+Relatório: `reports/current/comun-48-6-b1-public-optin-first-wave.md`.
+
 ## Estado atual — 48.6-B0: schema de projeção coletiva sanitizada ativo; mapa OFF (26/08/2026)
 
 Estado terminal: `COMUN_48_6_B0_SCHEMA_GREEN_MAP_OFF_NO_PROJECTION`.
@@ -3300,5 +3312,3 @@ Estado: `COMUN_48_6_B0_FOUNDATION_READY_MAP_OFF_PENDING_PRODUCTION_PROMOTION`.
 - A migration local `20260803200000_comun_relata_sanitized_local_map.sql` permanece laboratório, sem promoção. A migration nova B0 é fail-closed, sem backfill e sem projeção inicial.
 - A nova fronteira `COMUN_DENUNCIAS_PUBLIC_MAP_ENABLED` permanece ausente/OFF; `projectionRows=0`, `publicProjection=false`, `publicGeneralMap=false` e `publicCollectiveGrouping=false`. Nenhum env write, schema write ou business write Production foi feito nesta execução.
 - A0/A1/A2/A3, `prepared != sent`, protocolo COMUN distinto do protocolo oficial e todas as proteções de privacidade continuam preservados. Não iniciar B1.
-
-Relatórios: `reports/current/comun-48-6-b0-denuncias-public-collective-projection.md` e `reports/current/comun-48-6-b0-denuncias-public-collective-projection-rollout.md`.

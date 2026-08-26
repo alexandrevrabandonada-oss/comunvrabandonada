@@ -1,0 +1,69 @@
+name: COMUN 48.6-B1 disposable public opt-in proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20260826120000_comun_denuncias_public_projection_opt_in.sql"
+      - "scripts/comun-denuncias-b1-disposable.sql"
+      - "scripts/48-6-b1-contract.node-test.mjs"
+      - "lib/comun-denuncias-public-opt-in.ts"
+      - "app/api/comun/denuncias/public-projection-consent/route.ts"
+      - "app/comun/minha-participacao/public-projection-consent-panel.tsx"
+      - ".github/workflows/comun-48-6-b1-disposable.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/48-6-b1-contract.node-test.mjs
+
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+      - name: Start disposable local database
+        run: supabase start
+      - name: Execute B1 opt-in proof and verify rollback
+        shell: bash
+        run: |
+          set -euo pipefail
+          status_file="${RUNNER_TEMP}/comun-b1-supabase-status.env"
+          trap 'rm -f "$status_file"' EXIT
+          db=""
+          for attempt in $(seq 1 150); do
+            if supabase status -o env >"$status_file" 2>/dev/null; then
+              db="$(sed -n 's/^DB_URL=//p' "$status_file" | sed 's/^"//; s/"$//')"
+              if [ -n "$db" ] && pg_isready -d "$db" >/dev/null 2>&1; then break; fi
+            fi
+            if [ "$attempt" -eq 150 ]; then
+              echo B1_DISPOSABLE_POSTGRES_NOT_READY >&2
+              exit 1
+            fi
+            sleep 2
+          done
+          test -n "$db"
+          psql "$db" -v ON_ERROR_STOP=1 -f scripts/comun-denuncias-b1-disposable.sql
+          echo "## COMUN 48.6-B1 disposable proof"
+          echo
+          echo COMUN_48_6_B1_DISPOSABLE_OPT_IN_GREEN
+          echo projectionRows=0
+          echo confirmationRows=0
+          echo businessWrites=0
+          echo publicMapProduction=false
+      - if: always()
+        run: supabase stop --no-backup
