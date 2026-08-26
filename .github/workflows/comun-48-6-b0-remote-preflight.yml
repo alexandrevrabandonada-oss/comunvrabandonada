@@ -1,6 +1,13 @@
 name: COMUN 48.6-B0 remote read-only preflight
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-6-b0-remote-preflight.yml"
+      - "scripts/run-48-6-b0-remote-preflight.sh"
+      - "supabase/migrations/**"
+      - "supabase/local-migrations/20260803200000_comun_relata_sanitized_local_map.sql"
   workflow_dispatch:
     inputs:
       expected_main_sha:
