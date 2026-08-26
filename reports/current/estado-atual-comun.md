@@ -1,3 +1,15 @@
+## Estado atual — 48.6-B2-A0: opt-in contextual pós-relato ativo; mapa OFF (26/08/2026)
+
+Estado terminal: `COMUN_48_6_B2_A0_REPORT_TO_COLLECTIVE_OPTIN_GREEN_MAP_OFF`.
+
+- A confirmação pós-relato do Relata reutiliza o `walletItemId` devolvido após persistência e monta o painel de opt-in já existente do B1; não há nova API, tabela, migration, fila ou modelo coletivo.
+- A elegibilidade continua server-side pelo endpoint canônico de consentimento, com posse da Carteira, localização, categoria allowlisted e estado ativo; categorias sensíveis/emergenciais permanecem fora.
+- O opt-in continua opcional e não pré-marcado. Consentimento de mapa permanece distinto de encaminhamento, evidência, localização, publicação e envio oficial; `automationAllowed=false` e confirmações públicas continuam inativos.
+- Não houve relato real criado, consentimento Production, projeção, fixture, Search, coleção, publicação ou escrita de schema/env/negócio neste tijolo. A carteira disponível no navegador estava vazia.
+- A3 e A4 permanecem ON/encrypted/Production-only; B0 e B1 foram preservados. `publicMapProduction=false`, `projectionRows=0`, `confirmationRows=0`.
+
+Relatório: `reports/current/comun-48-6-b2-a0-report-to-collective-optin.md`.
+
 ## Estado atual — 48.6-B1: schema de opt-in ativo; mapa OFF; piloto real pendente de sessão do produto (26/08/2026)
 
 Estado de execução: implementação integrada no `origin/main` `60028f5ccbcca7d146b4fe4fa190c1966c3d1400`; migration B1 aplicada uma única vez no run `32968358945`; o mapa Production permanece OFF e nenhum piloto real foi autorizado ou executado neste estágio.
