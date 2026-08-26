@@ -3276,3 +3276,14 @@ Estado de implementação: `COMUN_48_6_A3_FOLLOWUP_ESCALATION_GREEN_SCHEMA_ACTIV
 - `ProductionBusinessWrites=0`, `ProductionEnvWrites=0`, `externalOfficialSends=0`; nenhuma migration Production foi aplicada nesta execução.
 
 Relatório: `reports/current/comun-48-6-a3-followup-escalation.md`.
+## Estado atual — 48.6-B0: fundação do mapa coletivo sanitizado em validação, mapa OFF (25/08/2026)
+
+Estado: `COMUN_48_6_B0_FOUNDATION_READY_MAP_OFF_PENDING_PRODUCTION_PROMOTION`.
+
+- `origin/main` confirmado em `d0da1bbfd75f7705890a5bb9a0dfb242b275ddb2`; branch isolada `codex/48-6-b0-public-collective-projection`; PR #402 em uso.
+- O preflight Production metadata-only `32918355042` confirmou que o protótipo local 48.0D e seus objetos não estão aplicados remotamente. O substrato coletivo Production ainda está ausente e será criado apenas pela nova migration B0 após CI e gate de promoção.
+- A migration local `20260803200000_comun_relata_sanitized_local_map.sql` permanece laboratório, sem promoção. A migration nova B0 é fail-closed, sem backfill e sem projeção inicial.
+- A nova fronteira `COMUN_DENUNCIAS_PUBLIC_MAP_ENABLED` permanece ausente/OFF; `projectionRows=0`, `publicProjection=false`, `publicGeneralMap=false` e `publicCollectiveGrouping=false`. Nenhum env write, schema write ou business write Production foi feito nesta execução.
+- A0/A1/A2/A3, `prepared != sent`, protocolo COMUN distinto do protocolo oficial e todas as proteções de privacidade continuam preservados. Não iniciar B1.
+
+Relatórios: `reports/current/comun-48-6-b0-denuncias-public-collective-projection.md` e `reports/current/comun-48-6-b0-denuncias-public-collective-projection-rollout.md`.

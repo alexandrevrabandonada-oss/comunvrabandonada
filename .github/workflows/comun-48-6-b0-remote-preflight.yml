@@ -1,0 +1,51 @@
+name: COMUN 48.6-B0 remote read-only preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-6-b0-remote-preflight.yml"
+      - "scripts/run-48-6-b0-remote-preflight.sh"
+      - "supabase/migrations/**"
+      - "supabase/local-migrations/20260803200000_comun_relata_sanitized_local_map.sql"
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact main SHA being audited
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comun-48-6-b0-remote-preflight
+  cancel-in-progress: false
+
+jobs:
+  remote-read-only-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          fetch-depth: 0
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+      - name: Run metadata-only Production preflight
+        env:
+          EXPECTED_MAIN_SHA: ${{ github.event.pull_request.base.sha || inputs.expected_main_sha }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          B0_ARTIFACT_DIR: .ci-artifacts/48-6-b0-preflight
+        shell: bash
+        run: bash scripts/run-48-6-b0-remote-preflight.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-6-b0-remote-preflight-${{ github.run_id }}
+          path: .ci-artifacts/48-6-b0-preflight
+          retention-days: 30
+          if-no-files-found: error
