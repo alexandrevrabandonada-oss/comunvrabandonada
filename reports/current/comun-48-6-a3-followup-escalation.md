@@ -1,5 +1,29 @@
 # COMUN 48.6-A3 — Acompanhamento, resposta e escalada
 
+## Closeout do rollout controlado
+
+O schema A3 está ativo em Production no `main` `759916f54faf287920437a10236f66ec1c8ef951`.
+O postflight read-only `32915248906` confirmou a migration uma única vez,
+as duas colunas opcionais, constraints, índice de idempotência, RPCs canônicos
+e legados, grants de `service_role`, bloqueio de leitura para `anon` e
+`authenticated`, `transactionReadOnly=true`, `businessWrites=0`,
+`envWrites=0`, `externalOfficialSends=0` e `publicProjection=false`.
+
+O promotion `32914674951` não foi repetido: ele aplicou a migration e parou
+na verificação da assinatura `responseRpc`. A causa foi exclusiva do runner:
+o contrato SQL usa `(text, uuid, text, text, boolean)`, mas o primeiro
+verificador consultava `(text, uuid, boolean, text, text)`. A correção mínima
+foi mergeada na PR #400; nenhum schema, env ou dado foi alterado pela correção.
+
+Terminal: `COMUN_48_6_A3_FOLLOWUP_ESCALATION_GREEN_SCHEMA_ACTIVE_NO_AUTO_SEND`.
+
+`ProductionSchemaWrites=1_migration_only`
+`ProductionBusinessWrites=0`
+`ProductionEnvWrites=0`
+`externalOfficialSends=0`
+`autoOfficialSend=false`
+`legacy72hIsNotOfficialSla=true`
+
 Data: 25/08/2026 (America/Sao_Paulo)  
 Repositório: `alexandrevrabandonada-oss/comunvrabandonada`  
 Parent/main: `dd0366bf7e2eb43c63afd2631a7a30f015685deb`  

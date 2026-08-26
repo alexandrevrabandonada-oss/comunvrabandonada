@@ -1,3 +1,15 @@
+## Estado atual — 48.6-A3: acompanhamento, resposta e escalada ativos em Production (26/08/2026)
+
+Estado terminal: `COMUN_48_6_A3_FOLLOWUP_ESCALATION_GREEN_SCHEMA_ACTIVE_NO_AUTO_SEND`.
+
+- `main` resultante: `759916f54faf287920437a10236f66ec1c8ef951`; a migration `20260825120000_comun_followup_escalation_continuity.sql` foi aplicada uma única vez no promotion `32914674951`.
+- O postflight corrigido `32915248906` confirmou schema, constraints, índice, RPCs, grants, RLS e transação read-only; `businessWrites=0`, `envWrites=0`, `externalOfficialSends=0` e `publicProjection=false`.
+- O primeiro postflight falhou somente por uma assinatura RPC incorreta no runner. A correção foi a PR #400 (`87f3a359e70126287ba33ba2628e6037d6b98fba`), mergeada sem reaplicar a migration ou alterar dados.
+- A3 mantém `prepared != sent`, protocolo COMUN distinto do protocolo oficial, respostas não resolvidas acionáveis, histórico de canal institucional e cadeia de energia com pré-requisitos. O `due_at` legado de 72 horas não é SLA oficial.
+- A0/A1, A3 cultural, A4 e A5 permanecem preservados; auto-envio oficial, mapa público geral e agrupamento coletivo público continuam desativados. Não iniciar 48.6-B0.
+
+Relatórios: `reports/current/comun-48-6-a3-followup-escalation.md` e `reports/current/comun-48-6-a3-rollout.md`.
+
 ## Estado atual — 48.6-A2-A0: auditoria de automatizabilidade GREEN, sem adapter direto seguro (25/08/2026)
 
 Estado terminal: `COMUN_48_6_A2_A0_AUTOMATION_AUDIT_GREEN_NO_SAFE_DIRECT_ADAPTER`.
