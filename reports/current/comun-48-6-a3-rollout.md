@@ -1,7 +1,18 @@
 # COMUN 48.6-A3 — Rollout de schema
 
-Status desta branch: candidato pré-rollout.  
-Main confirmado: `dd0366bf7e2eb43c63afd2631a7a30f015685deb`.  
+## Rollout Production concluído
+
+Estado terminal: `COMUN_48_6_A3_FOLLOWUP_ESCALATION_GREEN_SCHEMA_ACTIVE_NO_AUTO_SEND`.
+
+- `main` inicial do rollout: `5d124bc666389722a57fb24d06329268b46ac91c`; após a correção exclusiva do verificador, o merge SHA e `origin/main` são `759916f54faf287920437a10236f66ec1c8ef951`.
+- Preflight read-only `32914592460` confirmou migration A3 ausente, colunas ausentes, transação read-only e plano remoto contendo exatamente `20260825120000_comun_followup_escalation_continuity.sql`.
+- Promotion `32914674951` aplicou a migration uma única vez. Seu postflight inicial parou apenas porque o runner consultava a assinatura RPC com a ordem de parâmetros incorreta; o artefato sanitizado confirmou `migrationCount=1`, schema/constraints/index/RPCs/grants/RLS verdes e zero writes.
+- O verificador foi corrigido na PR #400, com commit `87f3a359e70126287ba33ba2628e6037d6b98fba`, sem alterar a migration. A PR foi mergeada em `759916f54faf287920437a10236f66ec1c8ef951`.
+- Postflight read-only corrigido `32915248906` confirmou: `responseRpc=true`, todos os invariantes de schema e segurança verdadeiros, `businessWrites=0`, `envWrites=0`, `externalOfficialSends=0` e `publicProjection=false`.
+- Não houve segunda aplicação da migration, migration repair, alteração de env, envio oficial, fixture ou mudança de dados de negócio. A migration permanece aplicada exatamente uma vez.
+
+Registro histórico pré-rollout.
+Main de planejamento: `dd0366bf7e2eb43c63afd2631a7a30f015685deb`.
 Migration única autorizada: `20260825120000_comun_followup_escalation_continuity.sql`.
 
 ## Limites
