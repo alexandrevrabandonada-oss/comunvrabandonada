@@ -1,0 +1,183 @@
+name: COMUN 48.6-B0 disposable collective projection proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20260826090000_comun_denuncias_public_collective_projection.sql"
+      - "scripts/48-6-b0-contract.node-test.mjs"
+      - ".github/workflows/comun-48-6-b0-disposable.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/48-6-b0-contract.node-test.mjs
+
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+      - name: Quarantine B0 migration for explicit local apply
+        shell: bash
+        run: |
+          set -euo pipefail
+          migration="supabase/migrations/20260826090000_comun_denuncias_public_collective_projection.sql"
+          held="${RUNNER_TEMP}/20260826090000_comun_denuncias_public_collective_projection.sql"
+          test -f "$migration"
+          test ! -e "$held"
+          mv "$migration" "$held"
+          echo "B0_MIGRATION_HELD=$held" >> "$GITHUB_ENV"
+      - name: Start disposable local database
+        run: supabase start
+      - name: Apply and verify B0 schema locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          migration="${B0_MIGRATION_HELD:?B0_MIGRATION_HELD is required}"
+          test -f "$migration"
+          status_file="${RUNNER_TEMP}/comun-b0-supabase-status.env"
+          trap 'rm -f "$status_file"' EXIT
+          db=""
+          for attempt in $(seq 1 150); do
+            if supabase status -o env >"$status_file" 2>/dev/null; then
+              db="$(sed -n 's/^DB_URL=//p' "$status_file" | sed 's/^"//; s/"$//')"
+              if [ -n "$db" ] && pg_isready -d "$db" >/dev/null 2>&1; then
+                break
+              fi
+            fi
+            if [ "$attempt" -eq 150 ]; then
+              echo "B0_DISPOSABLE_POSTGRES_NOT_READY_AFTER_5M" >&2
+              exit 1
+            fi
+            sleep 2
+          done
+          test -n "$db"
+          pg_isready -d "$db"
+          psql "$db" -v ON_ERROR_STOP=1 -f "$migration"
+          psql "$db" -qXAt -v ON_ERROR_STOP=1 <<'SQL'
+          begin;
+          do $$
+          declare
+            v_report uuid := gen_random_uuid();
+            v_case uuid := gen_random_uuid();
+            v_collective uuid := gen_random_uuid();
+            v_result record;
+            v_projection_state text;
+          begin
+            -- Build the disposable case through the canonical private/public roots.
+            -- This fixture is local-only and is rolled back below; it must not
+            -- bypass the same not-null/check contracts used by real intake.
+            insert into private.comun_relata_reports(
+              id,original_text,receipt_hash,actor_hash,idempotency_hash,
+              payload_hash,privacy_class)
+            values(
+              v_report,
+              'B0 local disposable proof',
+              extensions.digest('b0-report-proof','sha256'),
+              extensions.digest('b0-actor-proof','sha256'),
+              extensions.digest('b0-idempotency-proof','sha256'),
+              extensions.digest('b0-payload-proof','sha256'),
+              'public_after_sanitization');
+            insert into public.comun_relata_cases(
+              id,report_id,protocol,category,urgency,routing_rule_version,
+              routing_decision,state)
+            values(
+              v_case,
+              v_report,
+              'COMUN-RELATA-' || upper(substr(replace(v_case::text,'-',''),1,16)),
+              'public_lighting','routine','relata-routing-v1','{}'::jsonb,
+              'stored_private');
+            insert into public.comun_relata_collective_cases(
+              id,category,collective_urgency,state,match_rule,match_rule_version,
+              first_report_at,last_report_at,confidence_level,future_map_eligibility)
+            values(v_collective,'public_lighting','routine','active','local-proof',
+              'relata-match-v1',now(),now(),'high',true);
+            insert into public.comun_relata_case_memberships(
+              collective_case_id,individual_case_id,association_method,confidence,match_rule_version)
+            values(v_collective,v_case,'new_collective_case',1,'relata-match-v1');
+            insert into private.comun_relata_public_projection_consents(case_id,consent_version,scope)
+              values(v_case,'relata-public-projection-v1','collective_projection');
+            perform private.comun_relata_public_projection_set_candidate(
+              v_collective,1,1,300,-22.52,-44.10,300);
+            select * into v_result from private.comun_relata_public_projection_recompute(v_collective);
+            if v_result.result_code <> 'RELATA_PUBLIC_PROJECTION_READY'
+              or v_result.projection_state <> 'active' or v_result.eligible_report_count <> 1 then
+              raise exception 'B0_LOCAL_ACTIVE_PROJECTION_PROOF_FAILED';
+            end if;
+            update public.comun_relata_case_memberships
+              set active=false,ended_at=now(),end_reason='RELATA_WITHDRAWN'
+              where collective_case_id=v_collective and individual_case_id=v_case;
+            select * into v_result from private.comun_relata_public_projection_recompute(v_collective);
+            select projection_state into v_projection_state
+              from private.comun_relata_public_projections where collective_case_id=v_collective;
+            if v_result.result_code <> 'RELATA_PUBLIC_MINIMUM_NOT_MET'
+              or v_result.projection_state <> 'suppressed' or v_projection_state <> 'suppressed' then
+              raise exception 'B0_LOCAL_WITHDRAWAL_SUPPRESSION_PROOF_FAILED';
+            end if;
+          end;
+          $$;
+          rollback;
+          SQL
+          psql "$db" -qXAt -v ON_ERROR_STOP=1 <<'SQL'
+          begin read only;
+          select json_build_object(
+            'transactionReadOnly', current_setting('transaction_read_only')='on',
+            'collectiveTables', to_regclass('public.comun_relata_collective_cases') is not null
+              and to_regclass('public.comun_relata_case_memberships') is not null,
+            'projectionTables', to_regclass('private.comun_relata_public_projections') is not null
+              and to_regclass('private.comun_relata_public_projection_candidates') is not null,
+            'explicitConsentTable', to_regclass('private.comun_relata_public_projection_consents') is not null,
+            'rlsForced', (select bool_and(relrowsecurity and relforcerowsecurity) from pg_class
+              where oid in ('public.comun_relata_collective_cases'::regclass,
+                'public.comun_relata_case_memberships'::regclass,
+                'private.comun_relata_public_projections'::regclass,
+                'private.comun_relata_public_projection_consents'::regclass)),
+            'clientCrudClosed', has_table_privilege('anon','public.comun_relata_collective_cases','SELECT')=false
+              and has_table_privilege('authenticated','public.comun_relata_case_memberships','INSERT')=false,
+            'rowsCreated', (select count(*) from private.comun_relata_public_projections),
+            'confirmationRows', (select count(*) from private.comun_relata_public_confirmations),
+            'businessContentRead', false
+          );
+          rollback;
+          SQL
+          test "$(psql "$db" -qXAt -c 'select count(*) from private.comun_relata_public_projections')" = 0
+          test "$(psql "$db" -qXAt -c 'select count(*) from private.comun_relata_public_confirmations')" = 0
+          {
+            echo "## COMUN 48.6-B0 disposable proof"
+            echo
+            echo "COMUN_48_6_B0_DISPOSABLE_SCHEMA_CONTRACT_GREEN"
+            echo "projectionRows=0"
+            echo "confirmationRows=0"
+            echo "backfill=false"
+            echo "publicProjection=false"
+            echo "businessWrites=0"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "COMUN_48_6_B0_DISPOSABLE_SCHEMA_CONTRACT_GREEN"
+      - if: always()
+        run: supabase stop --no-backup
+      - if: always()
+        name: Restore B0 migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          migration="supabase/migrations/20260826090000_comun_denuncias_public_collective_projection.sql"
+          held="${B0_MIGRATION_HELD:?B0_MIGRATION_HELD is required}"
+          test ! -e "$migration"
+          test -f "$held"
+          mv "$held" "$migration"
+          test -f "$migration"

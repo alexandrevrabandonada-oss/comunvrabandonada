@@ -262,6 +262,7 @@
     "test:fixtures:cleanup": "node scripts/comun-local-env.mjs run node scripts/fixtures-comun.mjs cleanup",
     "test:fixtures:assert-clean": "node scripts/comun-local-env.mjs run node scripts/fixtures-comun.mjs assert-clean",
     "smoke:core-public-routes": "node scripts/smoke-comun-core-public-routes.mjs",
+    "test:b0:public-map": "node --test scripts/48-6-b0-contract.node-test.mjs scripts/run-48-6-b0-production.node-test.mjs",
     "smoke:pauta-miniapp": "node --experimental-strip-types scripts/smoke-comun-pauta-miniapp.mjs",
     "test:pauta-miniapp-local-db": "node scripts/test-pauta-miniapp-local-db.mjs",
     "smoke:protocol-follow": "node scripts/smoke-comun-protocol-follow.mjs",

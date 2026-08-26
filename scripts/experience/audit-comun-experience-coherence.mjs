@@ -9,6 +9,7 @@ const requiredRoutes = [
   "/comun",
   "/comun/explorar",
   "/comun/denuncias",
+  "/comun/denuncias/mapa",
   "/comun/relatar",
   "/comun/buscar",
   "/comun/busca",
@@ -64,6 +65,14 @@ const experienceMatrix = [
     "O que aconteceu?",
     "Contar o que aconteceu",
     "/comun",
+    false,
+  ],
+  [
+    "/comun/denuncias/mapa",
+    "entender o território",
+    "Que problemas aparecem no território?",
+    "Ver áreas aproximadas",
+    "/comun/denuncias",
     false,
   ],
   [
