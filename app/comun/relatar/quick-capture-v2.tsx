@@ -23,6 +23,8 @@ import { ComunHealthChannelsPanel } from "./comun-health-channels-panel";
 import { ComunEducationChannelsPanel } from "./comun-education-channels-panel";
 import { ComunChildProtectionChannelsPanel } from "./comun-child-protection-channels-panel";
 import { ComunDenunciasRoutingGuidePanel } from "./comun-denuncias-routing-guide-panel";
+import { PublicProjectionConsentPanel } from "@/app/comun/minha-participacao/public-projection-consent-panel";
+import { isComunPublicProjectionOptInCategory } from "@/lib/comun-denuncias-public-opt-in";
 
 const SidewalkRealPointPicker = dynamic(
   () =>
@@ -713,6 +715,11 @@ export function QuickCaptureV2({
                 </div>
               ) : null}
               {decision ? <ComunDenunciasRoutingGuidePanel decision={decision} /> : null}
+              {walletItemId &&
+              isComunPublicProjectionOptInCategory(receipt.category) &&
+              receipt.state !== "withdrawn" ? (
+                <PublicProjectionConsentPanel walletItemId={walletItemId} />
+              ) : null}
               {publicHealthSensitiveRoutingEnabled &&
               receipt.category === "public_health" ? (
                 <ComunHealthChannelsPanel
