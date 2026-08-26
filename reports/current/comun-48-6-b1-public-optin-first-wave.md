@@ -9,6 +9,8 @@ second queue, collective model, consent model, or matcher.
 - Parent/main: `f55b941a7f48d9fb30f4b9ebbd518395d01a4352`
 - Branch: `codex/48-6-b1-public-optin-first-wave`
 - Production: `https://comunsocial.online`
+- Corrective checksum PR: `#405`, merged as `60028f5ccbcca7d146b4fe4fa190c1966c3d1400`
+- Current Production main: `60028f5ccbcca7d146b4fe4fa190c1966c3d1400`
 - Production map flag: `COMUN_DENUNCIAS_PUBLIC_MAP_ENABLED=OFF|absent`
 - Production projection rows before rollout: `0` expected
 - Production confirmation rows before rollout: `0` expected
@@ -65,10 +67,9 @@ consent values, advisory transaction locking, and idempotent upsert/revoke
 behavior. Public/anonymous/authenticated execution grants are revoked; the
 server-side wallet client is the only application path that invokes them.
 
-The migration is intended for the local disposable proof and the canonical
-Production migration pipeline only after CI and the exact Preview are green.
-No Production migration, environment mutation, fixture, projection,
-publication, Search write, or business write is performed in this worktree.
+The migration was promoted through the canonical Production pipeline only
+after CI and the exact Preview were green. No environment mutation, fixture,
+projection, publication, Search write, or business write was performed.
 
 ## Files
 
@@ -79,6 +80,26 @@ publication, Search write, or business write is performed in this worktree.
 - `scripts/comun-denuncias-b1-disposable.sql`
 - `scripts/48-6-b1-contract.node-test.mjs`
 - `.github/workflows/comun-48-6-b1-disposable.yml`
+
+## Production schema rollout
+
+- Preflight run `32968275164`: GREEN on the exact main SHA; the remote plan
+  contained exactly `20260826120000_comun_denuncias_public_projection_opt_in.sql`.
+- Corrective checksum finding: the first preflight `32967700019` stopped before
+  any database mutation because the runner held a stale SHA-256. PR `#405`
+  corrected only that constant; no Supabase mutation occurred in the failed run.
+- Promotion run `32968358945`: GREEN; applied the B1 migration exactly once.
+- Postflight: `migrationCount=1`, consent status/set functions present,
+  withdrawal trigger present, forced RLS, anon/authenticated execute closed,
+  service-role execute available, `projectionRows=0`, `confirmationRows=0`,
+  `businessWrites=0`, `envWrites=0`, `schemaWrites=1_migration_only`, and
+  `publicMapProduction=false`.
+- The Production map flag remains OFF/absent. No real opt-in, grouping,
+  projection, confirmation, fixture, publication, Search write or collection
+  write was performed by the schema rollout.
+- Disposable proof run `32966549806`: GREEN on the pre-correction B1
+  implementation; its focused contract covered ownership, allowlist,
+  idempotence, revoke and fail-closed consent behavior without Production data.
 
 ## Verification status
 
@@ -94,9 +115,18 @@ publication, Search write, or business write is performed in this worktree.
 - lint: GREEN
 - build: GREEN (the correction changes only SQL/CI contracts; the prior successful build remains valid)
 - full unit suite: four unrelated pre-existing baseline failures remain in Motorola source line endings, sidewalk migration checksum, and solidarity organization profile exact-string contracts; B1-focused tests are green
-- local disposable Supabase proof: deferred to the dedicated GitHub Actions workflow because the local machine has no Supabase CLI/psql runtime
-- remote migration/env/data writes: `0`
+- disposable Supabase proof: GREEN in dedicated GitHub Actions run `32966549806`
+- remote migration: `1` schema migration only; env/data/business writes: `0`
 - real Production opt-in/projection: not attempted in this implementation phase
+
+## Real product pilot status
+
+The schema is ready, but the real wallet-controlled inventory was not claimed
+from an admin or SQL session. Browser control could not be initialized in this
+execution, so no report was selected and no consent was granted on behalf of a
+person. The next safe step is to resume an authenticated COMUN product session
+at `/comun/minha-participacao`, inspect only the holder's own allowlisted
+reports, and let the person decide the optional consent in the product.
 
 ## Required remote proof
 

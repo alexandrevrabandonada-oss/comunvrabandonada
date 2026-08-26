@@ -1,12 +1,13 @@
-## Estado atual — 48.6-B1: opt-in explícito de projeção pública em preparação (26/08/2026)
+## Estado atual — 48.6-B1: schema de opt-in ativo; mapa OFF; piloto real pendente de sessão do produto (26/08/2026)
 
-Estado de execução: implementação isolada a partir do main `f55b941a7f48d9fb30f4b9ebbd518395d01a4352`; o mapa Production permanece OFF e nenhum piloto real foi autorizado ou executado neste estágio.
+Estado de execução: implementação integrada no `origin/main` `60028f5ccbcca7d146b4fe4fa190c1966c3d1400`; migration B1 aplicada uma única vez no run `32968358945`; o mapa Production permanece OFF e nenhum piloto real foi autorizado ou executado neste estágio.
 
 - O B1 reutiliza Carteira de Participação, Relata, consentimento B0, agrupamento coletivo e projeção sanitizada existentes; não cria segunda fila, case model, consent model ou matcher.
 - O navegador informa somente `walletItemId`; o servidor resolve e valida a posse pelo token/carteira/item canônicos. `case_id`, `report_id`, `collective_case_id` e `membership_id` não são autoridade do cliente nem aparecem no DTO.
 - O opt-in é opcional e não pré-marcado, limitado a `public_lighting`, `power_distribution` e `smoke_or_environmental_trace`. Consentimento de encaminhamento, localização, evidência ou participação não é tratado como consentimento de mapa.
 - O B1 mantém `confirmationRows=0`, `publicMapProduction=false`, `autoOfficialSend=false` e nenhum caminho de GET cria target ou projeção. Revogação e retirada continuam fail-closed.
-- A migration B1 não foi aplicada em Production nesta etapa; não houve env write, schema write remoto, fixture, publicação, Search, coleção ou projeção real.
+- A migration B1 `20260826120000_comun_denuncias_public_projection_opt_in.sql` foi aplicada exatamente uma vez após preflight GREEN `32968275164`; postflight confirmou funções, trigger, RLS/grants e `projectionRows=0`, `confirmationRows=0`, `businessWrites=0`, `envWrites=0` e `publicMapProduction=false`. Não houve fixture, publicação, Search, coleção ou projeção real.
+- A primeira tentativa de preflight `32967700019` foi bloqueada antes de qualquer write por checksum stale do runner; a correção mínima foi mergeada na PR #405. O piloto real ainda requer sessão autenticada do próprio produto; a ponte de navegador não inicializou nesta execução, sem seleção ou consentimento administrativo.
 
 Relatório: `reports/current/comun-48-6-b1-public-optin-first-wave.md`.
 
