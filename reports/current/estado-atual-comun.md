@@ -1,3 +1,18 @@
+## Estado atual — 48.6-B0: schema de projeção coletiva sanitizada ativo; mapa OFF (26/08/2026)
+
+Estado terminal: `COMUN_48_6_B0_SCHEMA_GREEN_MAP_OFF_NO_PROJECTION`.
+
+- O B0 partiu do main `d0da1bbfd75f7705890a5bb9a0dfb242b275ddb2`, foi integrado pela PR #402 e fechou no `origin/main` `eb9cca290986332613044243d98a91c6843d34ba`.
+- A migration `20260826090000_comun_denuncias_public_collective_projection.sql` foi aplicada uma única vez no run `32926957445`, com SHA-256 `590fba97f44f549588b8e97b2dc88fc80a83844f4`; o deployment `6096559166` ficou Production READY.
+- Disposable Supabase `32923817061` e preflight remoto metadata-only `32923817049` ficaram GREEN. O postflight confirmou schema coletivo/projeção, RLS/FORCE RLS, clientes fechados e RPCs operacionais restritos.
+- O plano remoto continha somente a migration B0; não houve include-all, repair, reset, seed ou backfill. `projectionRows=0`, `confirmationRows=0`, `confirmationCount=0`.
+- A flag `COMUN_DENUNCIAS_PUBLIC_MAP_ENABLED` permanece ausente/OFF: a rota `/comun/denuncias/mapa` e a API permanecem 404/cloak. `/comun/denuncias` e `/comun/relatar` passaram GET/HEAD 200 e o HTML não expôs marcadores privados.
+- Delta Production deste tijolo: `ProductionBusinessWrites=0`, `ProductionSchemaWrites=1_migration_only`, `ProductionEnvWrites=0`, `fixtures=0`, `publications=0`, `SearchWrites=0`, `publicAssetPromotions=0`, `collectionWrites=0`.
+- A0, A1, A2 e A3 foram preservados; `autoOfficialSend=false`, `publicGeneralMap=false`, `publicCollectiveGrouping=false` e confirmações públicas continuam desativadas. B1 não foi iniciado.
+- O Quality Performance pós-merge `32926934090` teve um único erro por Chromium headless `SIGSEGV_MAPERR` no runner após 29 testes passarem; permanece classificado como infraestrutura isolada, sem reruns repetitivos e sem evidência de falha do contrato B0.
+
+Relatórios: `reports/current/comun-48-6-b0-denuncias-public-collective-projection.md` e `reports/current/comun-48-6-b0-denuncias-public-collective-projection-rollout.md`.
+
 ## Estado atual — 48.6-A3: acompanhamento, resposta e escalada ativos em Production (26/08/2026)
 
 Estado terminal: `COMUN_48_6_A3_FOLLOWUP_ESCALATION_GREEN_SCHEMA_ACTIVE_NO_AUTO_SEND`.
