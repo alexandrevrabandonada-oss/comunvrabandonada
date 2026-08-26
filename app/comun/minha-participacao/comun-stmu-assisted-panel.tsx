@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { resolveDenunciasFollowup } from "@/lib/comun-denuncias-followup";
+import { ComunFollowupSummary } from "./comun-followup-summary";
 
 type Attempt = {
   attemptId: string;
@@ -9,6 +11,7 @@ type Attempt = {
   state: string;
   declaredAt?: string | null;
   dueAt?: string | null;
+  resolutionOutcome?: "resolved" | "unresolved" | null;
   officialProtocolMasked?: string | null;
 };
 type Package = {
@@ -37,6 +40,7 @@ export function ComunStmuAssistedPanel({
   const [notice, setNotice] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [protocol, setProtocol] = useState("");
+  const [resolved, setResolved] = useState(false);
 
   const refresh = useCallback(async () => {
     const response = await fetch(
@@ -129,7 +133,7 @@ export function ComunStmuAssistedPanel({
         body: JSON.stringify({
           note,
           officialProtocol: protocol,
-          resolved: false,
+          resolved,
         }),
       },
     );
@@ -141,6 +145,7 @@ export function ComunStmuAssistedPanel({
     if (response.ok) {
       setNote("");
       setProtocol("");
+      setResolved(false);
       await refresh();
     }
     setBusy(false);
@@ -176,6 +181,12 @@ export function ComunStmuAssistedPanel({
     value.attempts?.filter((item) =>
       ["person_declared_sent", "responded", "no_response"].includes(item.state),
     ) ?? [];
+  const followup = resolveDenunciasFollowup({
+    category: "public_transport",
+    attempts: value.attempts,
+    officialDeadlineAt: null,
+    officialDeadlineSourceValid: false,
+  });
   return (
     <section
       className="mt-3 grid gap-3 border-t-2 pt-3"
@@ -188,6 +199,7 @@ export function ComunStmuAssistedPanel({
           e-mail ou telefone.
         </p>
       </header>
+      <ComunFollowupSummary projection={followup} />
       <div className="grid gap-2 border-2 bg-[#f8f2e6] p-3">
         <b>Assunto</b>
         <p>{value.subject}</p>
@@ -313,6 +325,19 @@ export function ComunStmuAssistedPanel({
                   maxLength={240}
                   className="border-2 p-2 font-normal"
                 />
+              </label>
+              <label className="grid gap-1 text-sm font-bold">
+                A resposta resolveu o problema?
+                <select
+                  value={resolved ? "resolved" : "unresolved"}
+                  onChange={(event) =>
+                    setResolved(event.target.value === "resolved")
+                  }
+                  className="min-h-11 border-2 p-2 font-normal"
+                >
+                  <option value="unresolved">Não, ainda não resolveu</option>
+                  <option value="resolved">Sim, resolveu</option>
+                </select>
               </label>
               <button
                 type="button"

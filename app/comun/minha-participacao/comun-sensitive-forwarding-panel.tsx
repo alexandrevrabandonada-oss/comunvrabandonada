@@ -6,12 +6,17 @@ import type {
   SensitiveDisclosureInput,
   SensitiveForwardingCategory,
 } from "@/lib/comun-sensitive-forwarding-feature";
+import { resolveDenunciasFollowup } from "@/lib/comun-denuncias-followup";
+import { ComunFollowupSummary } from "./comun-followup-summary";
 
 type Attempt = {
   attemptId: string;
   state: string;
   channel: string;
   sequence: number;
+  declaredAt?: string | null;
+  institutionalChannelId?: string | null;
+  resolutionOutcome?: "resolved" | "unresolved" | null;
   officialProtocolMasked?: string | null;
 };
 type Package = {
@@ -372,8 +377,20 @@ export function ComunSensitiveForwardingPanel({
     pkg.attempts?.filter((attempt) => attempt.state === "prepared") ?? [];
   const sent =
     pkg.attempts?.filter((attempt) =>
-      ["person_declared_sent", "no_response"].includes(attempt.state),
+      ["person_declared_sent", "responded", "no_response"].includes(
+        attempt.state,
+      ),
     ) ?? [];
+  const followup = resolveDenunciasFollowup({
+    category,
+    attempts: pkg.attempts,
+    selectedChannels: channels.map((channel) => ({
+      id: channel.id,
+      label: channel.institution,
+      sourceStatus: "source_verified",
+      operationalStatus: "operationally_unchecked",
+    })),
+  });
   return (
     <section
       className="mt-3 grid gap-3 border-t-2 pt-3"
@@ -386,6 +403,7 @@ export function ComunSensitiveForwardingPanel({
           manifestação.
         </p>
       </header>
+      <ComunFollowupSummary projection={followup} />
       {!channelOnly ? (
         <div className="grid gap-2 border-2 bg-[#f8f2e6] p-3">
           <b>Mensagem aprovada por você</b>

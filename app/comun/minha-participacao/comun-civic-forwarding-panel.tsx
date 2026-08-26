@@ -1,16 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { resolveDenunciasFollowup } from "@/lib/comun-denuncias-followup";
+import { ComunFollowupSummary } from "./comun-followup-summary";
 
 type Attempt = {
   attemptId: string;
   state: string;
+  sequence?: number;
+  declaredAt?: string | null;
+  institutionalChannelId?: string | null;
+  resolutionOutcome?: "resolved" | "unresolved" | null;
   officialProtocolMasked?: string | null;
 };
 
 type Package = {
   package_id: string;
   state: string;
+  category?: string | null;
   subject: string;
   institutional_text: string;
   attempts: Attempt[];
@@ -46,6 +53,7 @@ export function ComunCivicForwardingPanel({
   const [notice, setNotice] = useState<string | null>(null);
   const [responseNote, setResponseNote] = useState("");
   const [officialProtocol, setOfficialProtocol] = useState("");
+  const [resolved, setResolved] = useState(false);
 
   const refresh = useCallback(async () => {
     const response = await fetch(
@@ -172,7 +180,7 @@ export function ComunCivicForwardingPanel({
         body: JSON.stringify({
           note: responseNote,
           officialProtocol,
-          resolved: false,
+          resolved,
         }),
       },
     );
@@ -184,6 +192,7 @@ export function ComunCivicForwardingPanel({
     if (response.ok) {
       setResponseNote("");
       setOfficialProtocol("");
+      setResolved(false);
       await refresh();
     }
     setBusy(false);
@@ -291,6 +300,16 @@ export function ComunCivicForwardingPanel({
         attempt.state,
       ),
     ) ?? [];
+  const followup = resolveDenunciasFollowup({
+    category: pkg.category ?? "other",
+    attempts: pkg.attempts,
+    selectedChannels: channels.map((channel) => ({
+      id: channel.id,
+      label: channel.institution,
+      sourceStatus: "source_verified",
+      operationalStatus: "operationally_unchecked",
+    })),
+  });
   return (
     <section
       className="mt-3 grid gap-3 border-t-2 pt-3"
@@ -302,6 +321,7 @@ export function ComunCivicForwardingPanel({
           Nada foi enviado ainda. Você decide se quer abrir o canal oficial.
         </p>
       </header>
+      <ComunFollowupSummary projection={followup} />
       <div className="grid gap-2 border-2 bg-[#f8f2e6] p-3">
         <b>{pkg.subject}</b>
         <pre className="whitespace-pre-wrap text-sm">
@@ -394,6 +414,19 @@ export function ComunCivicForwardingPanel({
                 className="min-h-11 border-2 p-2"
                 placeholder="Protocolo do órgão (opcional)"
               />
+              <label className="grid gap-1 text-sm font-bold">
+                A resposta resolveu o problema?
+                <select
+                  value={resolved ? "resolved" : "unresolved"}
+                  onChange={(event) =>
+                    setResolved(event.target.value === "resolved")
+                  }
+                  className="min-h-11 border-2 p-2 font-normal"
+                >
+                  <option value="unresolved">Não, ainda não resolveu</option>
+                  <option value="resolved">Sim, resolveu</option>
+                </select>
+              </label>
               <button
                 type="button"
                 disabled={busy || !responseNote.trim()}

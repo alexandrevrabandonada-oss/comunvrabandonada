@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { resolveDenunciasFollowup } from "@/lib/comun-denuncias-followup";
+import { ComunFollowupSummary } from "./comun-followup-summary";
 
 type Attempt = {
   attemptId: string;
@@ -8,6 +10,9 @@ type Attempt = {
   channel: string;
   sequence: number;
   dueAt?: string | null;
+  declaredAt?: string | null;
+  institutionalChannelId?: string | null;
+  resolutionOutcome?: "resolved" | "unresolved" | null;
   officialProtocolMasked?: string | null;
 };
 
@@ -45,6 +50,7 @@ export function ComunEssentialServicesPanel({
   const [notice, setNotice] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [protocol, setProtocol] = useState("");
+  const [resolved, setResolved] = useState(false);
 
   const refresh = useCallback(async () => {
     const response = await fetch(
@@ -144,7 +150,7 @@ export function ComunEssentialServicesPanel({
         body: JSON.stringify({
           note,
           officialProtocol: protocol,
-          resolved: false,
+          resolved,
         }),
       },
     );
@@ -156,6 +162,7 @@ export function ComunEssentialServicesPanel({
     if (response.ok) {
       setNote("");
       setProtocol("");
+      setResolved(false);
       await refresh();
     }
     setBusy(false);
@@ -188,6 +195,24 @@ export function ComunEssentialServicesPanel({
     value.attempts?.filter((item) =>
       ["person_declared_sent", "responded", "no_response"].includes(item.state),
     ) ?? [];
+  const latestAttempt = [...value.attempts].sort(
+    (a, b) => b.sequence - a.sequence,
+  )[0];
+  const followup = resolveDenunciasFollowup({
+    category: value.category,
+    attempts: value.attempts,
+    selectedChannels: channels.map((channel) => ({
+      id: channel.id,
+      label: channel.label,
+      sourceStatus: channel.sourceStatus,
+      operationalStatus: channel.operationalStatus,
+      protocolExpectation: channel.protocolExpectation as
+        "expected" | "source_unclear",
+    })),
+    now: new Date(),
+    officialDeadlineAt: null,
+    officialDeadlineSourceValid: false,
+  });
 
   return (
     <section
@@ -201,6 +226,7 @@ export function ComunEssentialServicesPanel({
           concluir a solicitação.
         </p>
       </header>
+      {latestAttempt ? <ComunFollowupSummary projection={followup} /> : null}
       <div className="grid gap-2 border-2 bg-[#f8f2e6] p-3">
         <b>Mensagem preparada</b>
         <pre className="whitespace-pre-wrap text-sm">
@@ -309,6 +335,19 @@ export function ComunEssentialServicesPanel({
                   maxLength={240}
                   className="border-2 p-2 font-normal"
                 />
+              </label>
+              <label className="grid gap-1 text-sm font-bold">
+                A resposta resolveu o problema?
+                <select
+                  value={resolved ? "resolved" : "unresolved"}
+                  onChange={(event) =>
+                    setResolved(event.target.value === "resolved")
+                  }
+                  className="min-h-11 border-2 p-2 font-normal"
+                >
+                  <option value="unresolved">Não, ainda não resolveu</option>
+                  <option value="resolved">Sim, resolveu</option>
+                </select>
               </label>
               <button
                 type="button"

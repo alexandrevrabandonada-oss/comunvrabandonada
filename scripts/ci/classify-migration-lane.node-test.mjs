@@ -9,11 +9,17 @@ const a1 = "supabase/migrations/20260825090000_comun_multidomain_assisted_forwar
 const a4 = "supabase/migrations/20260819130000_comun_cultural_progressive_rights.sql";
 const a5a1 = "supabase/migrations/20260823003249_comun_cultural_specialized_provenance_readiness.sql";
 const a5a2 = "supabase/migrations/20260824001340_comun_artwork_submission_private_materialization.sql";
+const a3Followup = "supabase/migrations/20260825120000_comun_followup_escalation_continuity.sql";
 
 test("A3 culture migration is not applicable to historical observatory, social, solidarity or P6C-C gates", () => {
   for (const lane of ["48-2-a", "48-3-b0", "48-4-a0", "p6c-c"]) {
     assert.equal(classifyMigrationLane(lane, [a3]).mode, "not_applicable");
   }
+});
+
+test("A3 follow-up migration is classified as the existing cultural A3 lane", () => {
+  assert.equal(classifyMigrationLane("p6c-c", [a3Followup]).mode, "not_applicable");
+  assert.equal(classifyMigrationLane("48-5-a0", [a3Followup]).mode, "not_applicable");
 });
 
 test("A3 culture migration is not a historical A0 zero-migration failure", () => {

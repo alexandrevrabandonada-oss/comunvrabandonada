@@ -1,0 +1,71 @@
+name: COMUN 48.6-A3 disposable follow-up and escalation proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-48-6-a3-disposable.yml"
+      - "supabase/migrations/20260825120000_comun_followup_escalation_continuity.sql"
+      - "scripts/comun-48-6-a3-disposable.sql"
+      - "lib/comun-denuncias-followup.ts"
+      - "lib/comun-denuncias-followup.test.ts"
+      - "app/api/comun/essential-services/**"
+      - "app/api/comun/civic-forwarding/**"
+      - "app/api/comun/sensitive-forwarding/**"
+      - "app/comun/minha-participacao/comun-followup-summary.tsx"
+      - "app/comun/minha-participacao/comun-essential-services-panel.tsx"
+      - "app/comun/minha-participacao/comun-civic-forwarding-panel.tsx"
+      - "app/comun/minha-participacao/comun-sensitive-forwarding-panel.tsx"
+      - "app/comun/minha-participacao/comun-stmu-assisted-panel.tsx"
+  workflow_dispatch:
+
+permissions: { contents: read }
+
+jobs:
+  disposable-supabase:
+    name: A3 / local follow-up ledger proof
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.114.0 }
+      - name: Assert no remote database is available
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${SUPABASE_DB_URL:-}"
+          test -z "${SUPABASE_PROJECT_REF:-}"
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
+      - name: Start disposable local Supabase and run A3 proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/48-6-a3-disposable
+          cleanup() { timeout -k 10s 120s supabase stop --no-backup >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          supabase db reset --local --yes
+          db="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '"')"
+          test -n "$db"
+          case "$db" in *supabase.co*) echo "remote database rejected"; exit 1 ;; esac
+          psql "$db" -v ON_ERROR_STOP=1 -f scripts/comun-48-6-a3-disposable.sql | tee .ci-artifacts/48-6-a3-disposable/proof.log
+          grep -q COMUN_48_6_A3_DISPOSABLE_FOLLOWUP_ESCALATION_GREEN .ci-artifacts/48-6-a3-disposable/proof.log
+          grep -q businessWritesAfterRollback=0 .ci-artifacts/48-6-a3-disposable/proof.log
+          grep -q autoOfficialSend=false .ci-artifacts/48-6-a3-disposable/proof.log
+      - name: Publish proof summary
+        if: success()
+        run: |
+          echo COMUN_48_6_A3_DISPOSABLE_FOLLOWUP_ESCALATION_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo businessWritesAfterRollback=0 >> "$GITHUB_STEP_SUMMARY"
+          echo autoOfficialSend=false >> "$GITHUB_STEP_SUMMARY"
+          echo legacy72hIsNotOfficialSla=true >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-6-a3-disposable-${{ github.run_id }}
+          path: .ci-artifacts/48-6-a3-disposable
+          retention-days: 14
+          if-no-files-found: error
