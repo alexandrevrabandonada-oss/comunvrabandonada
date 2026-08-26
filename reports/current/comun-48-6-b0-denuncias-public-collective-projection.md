@@ -1,5 +1,22 @@
 # COMUN 48.6-B0 — Projeção coletiva pública sanitizada
 
+## A0 B0 — Fechamento pós-merge e Production
+
+- Parent/main de entrada: `d0da1bbfd75f7705890a5bb9a0dfb242b275ddb2`.
+- PR #402 foi integrada; `origin/main` final e o runtime validado estão em `eb9cca290986332613044243d98a91c6843d34ba`.
+- Prova descartável Supabase: run `32923817061`, GREEN; confirmou o contrato, idempotência, concorrência, retirada, RLS/grants e limpeza sem projeção real (`projectionRows=0`, `confirmationRows=0`).
+- Preflight remoto metadata-only: run `32923817049`, GREEN; nenhum conteúdo privado foi lido.
+- Migration aplicada em Production: `20260826090000_comun_denuncias_public_collective_projection.sql`, uma única vez, pelo run `32926957445`; SHA-256 do arquivo do main: `590fba97f44f549588b8e97b2dc88fc80a83844f4`.
+- O plano remoto foi exatamente a migration B0. Não foram usados `--include-all`, migration repair, reset ou seed.
+- Postflight Production: `migrationCount=1`, collective/projection/consent schema presentes, RLS e FORCE RLS ativos, `anon`/`authenticated` fechados e acesso operacional restrito a RPCs de service role.
+- Deployment Production `6096559166` ficou SUCCESS/READY no SHA final. O mapa permaneceu OFF: `/comun/denuncias/mapa` e sua API retornam 404/cloak, enquanto `/comun/denuncias` e `/comun/relatar` retornam 200 em GET/HEAD.
+- Estado pós-rollout: `projectionRows=0`, `confirmationRows=0`, `confirmationCount=0`, `businessWrites=0`, `schemaWrites=1_migration_only`, `envWrites=0`, `backfill=false`, sem fixtures, publicações, Search, assets ou coleções.
+- Smoke HTML não encontrou marcadores privados; nenhuma env foi alterada e `COMUN_DENUNCIAS_PUBLIC_MAP_ENABLED` permanece ausente/OFF.
+- A0–A3 continuam preservados: `autoOfficialSend=false`, `publicGeneralMap=false`, `publicCollectiveGrouping=false`, sem confirmação pública Production.
+- O Quality Performance pós-merge `32926934090` falhou somente em um teste por `Chromium headless ... signal 11 SEGV_MAPERR` após 29 testes passarem; foi classificado como falha de infraestrutura do runner, não como falha determinística do B0, e não houve rerun repetitivo.
+
+**Terminal:** `COMUN_48_6_B0_SCHEMA_GREEN_MAP_OFF_NO_PROJECTION`
+
 ## Estado da execução
 
 - Parent/main confirmado em `d0da1bbfd75f7705890a5bb9a0dfb242b275ddb2`.
