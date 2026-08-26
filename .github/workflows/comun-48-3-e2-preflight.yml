@@ -28,7 +28,30 @@ jobs:
         with: { fetch-depth: 0 }
       - uses: supabase/setup-cli@v1
         with: { version: 2.113.0 }
+      - name: Scope migration ownership
+        id: migration-scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          changed="$(git diff --name-only origin/main...HEAD -- supabase/migrations)"
+          if [ -z "$changed" ]; then
+            echo skip=false >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          set +e
+          classification="$(node scripts/ci/classify-migration-lane.mjs --lane 48-3-e2 --files $changed 2>&1)"
+          status=$?
+          set -e
+          printf '%s\n' "$classification"
+          test "$status" -eq 0
+          mode="$(printf '%s\n' "$classification" | awk -F= '/^COMUN_MIGRATION_LANE_MODE=/{print $2}')"
+          case "$mode" in
+            not_applicable|none) echo skip=true >> "$GITHUB_OUTPUT" ;;
+            candidate) echo skip=false >> "$GITHUB_OUTPUT" ;;
+            *) echo "unknown migration classification: $mode" >&2; exit 1 ;;
+          esac
       - name: Verify metadata-only exact evidence relation contract
+        if: steps.migration-scope.outputs.skip != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -91,6 +114,7 @@ jobs:
           echo businessContentRead=false >> "$GITHUB_STEP_SUMMARY"
           echo COMUN_48_3_E2_REMOTE_METADATA_GREEN >> "$GITHUB_STEP_SUMMARY"
       - name: Prove remote migration plan is empty
+        if: steps.migration-scope.outputs.skip != 'true'
         shell: bash
         run: |
           set -euo pipefail
