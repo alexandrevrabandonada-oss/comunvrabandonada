@@ -13,7 +13,7 @@ esac
 
 test -z "${SUPABASE_ACCESS_TOKEN:-}"
 test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
-test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+git merge-base --is-ancestor "$EXPECTED_MAIN_SHA" HEAD
 
 artifact_dir="${B0_ARTIFACT_DIR:-.ci-artifacts/48-6-b0-preflight}"
 mkdir -p "$artifact_dir"

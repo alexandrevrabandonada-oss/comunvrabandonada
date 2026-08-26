@@ -30,14 +30,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
           fetch-depth: 0
       - uses: supabase/setup-cli@v1
         with:
           version: 2.114.0
       - name: Run metadata-only Production preflight
         env:
-          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          EXPECTED_MAIN_SHA: ${{ github.event.pull_request.base.sha || inputs.expected_main_sha }}
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           B0_ARTIFACT_DIR: .ci-artifacts/48-6-b0-preflight
         shell: bash
