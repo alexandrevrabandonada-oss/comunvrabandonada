@@ -84,7 +84,7 @@ select json_build_object(
   'openCanonicalRpc', to_regprocedure('public.comun_assisted_forwarding_open(text,uuid,text,text)') is not null,
   'openLegacyRpc', to_regprocedure('public.comun_assisted_forwarding_open(text,uuid,text)') is not null,
   'listRpc', to_regprocedure('public.comun_assisted_forwarding_list(text,uuid)') is not null,
-  'responseRpc', to_regprocedure('public.comun_assisted_forwarding_record_response(text,uuid,boolean,text,text)') is not null,
+  'responseRpc', to_regprocedure('public.comun_assisted_forwarding_record_response(text,uuid,text,text,boolean)') is not null,
   'serviceRoleOpen', has_function_privilege('service_role','public.comun_assisted_forwarding_open(text,uuid,text,text)','EXECUTE'),
   'anonAttemptSelectClosed', not has_table_privilege('anon','private.comun_forwarding_attempts','SELECT'),
   'authenticatedAttemptSelectClosed', not has_table_privilege('authenticated','private.comun_forwarding_attempts','SELECT'),
