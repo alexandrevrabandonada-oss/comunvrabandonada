@@ -22,19 +22,21 @@ export const MIGRATION_LANE_MANIFEST = Object.freeze({
   "20260824001340_comun_artwork_submission_private_materialization.sql": "culture-a5-a2",
   "20260825090000_comun_multidomain_assisted_forwarding.sql": "culture-a1",
   "20260825120000_comun_followup_escalation_continuity.sql": "culture-a3",
+  "20260826090000_comun_denuncias_public_collective_projection.sql": "culture-b0",
+  "20260826120000_comun_denuncias_public_projection_opt_in.sql": "culture-b1",
 });
 
 const NON_APPLICABLE_LANES = Object.freeze({
-  "48-2-a": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "p6c-c"]),
-  "48-3-a1": new Set(["48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "p6c-c"]),
-  "48-3-b0": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "p6c-c"]),
-  "48-4-a0": new Set(["48-3-a1", "48-4-a2", "48-4-a4", "48-4-a5", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "p6c-c"]),
-  "48-5-a0": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "p6c-c"]),
-  "p6c-c": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1"]),
-  "48-4-a2": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "p6c-c"]),
-  "48-4-a4": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "p6c-c"]),
-  "48-4-a5": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "p6c-c"]),
-  "48-4-a7": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "p6c-c"])
+  "48-2-a": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "p6c-c"]),
+  "48-3-a1": new Set(["48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "p6c-c"]),
+  "48-3-b0": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "p6c-c"]),
+  "48-4-a0": new Set(["48-3-a1", "48-4-a2", "48-4-a4", "48-4-a5", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "p6c-c"]),
+  "48-5-a0": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "p6c-c"]),
+  "p6c-c": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1"]),
+  "48-4-a2": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "p6c-c"]),
+  "48-4-a4": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "p6c-c"]),
+  "48-4-a5": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "p6c-c"]),
+  "48-4-a7": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "p6c-c"])
 });
 
 function migrationBasename(file) {
