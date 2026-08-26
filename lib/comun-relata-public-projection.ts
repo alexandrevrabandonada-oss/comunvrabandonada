@@ -5,6 +5,7 @@ export type PublicProjectionCategory =
   "public_lighting" | "power_distribution" | "smoke_or_environmental_trace";
 
 export type ProjectionState =
+  | "active"
   | "blocked"
   | "eligible_auto_local"
   | "review_required"

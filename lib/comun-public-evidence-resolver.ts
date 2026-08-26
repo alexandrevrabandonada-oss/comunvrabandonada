@@ -11,12 +11,30 @@ import {
 import { getCityPanoramaPublicDto } from "./comun-city-panorama";
 import {
   createPublicEvidenceCitationV1,
+  createDenunciasPublicEvidenceCitationV1,
   type PublicEvidenceCitationV1,
 } from "./comun-public-evidence";
+import { isComunDenunciasPublicMapEnabled } from "./comun-denuncias-public-map-feature";
+import { getComunDenunciasPublicMapProblem } from "./server/comun-denuncias-public-map-runtime";
 
 export async function resolveCurrentPublicEvidenceReference(
   refId: string,
 ): Promise<PublicEvidenceCitationV1 | null> {
+  if (refId.startsWith("denuncias:")) {
+    if (!isComunDenunciasPublicMapEnabled()) return null;
+    const publicId = refId.slice("denuncias:".length);
+    const problem = await getComunDenunciasPublicMapProblem(publicId);
+    if (!problem) return null;
+    return createDenunciasPublicEvidenceCitationV1({
+      publicId: problem.publicId,
+      category: problem.category,
+      reportCount: problem.reportCount,
+      firstObservedDate: problem.firstSeenDate,
+      lastActivityDate: problem.lastActivityDate,
+      policyVersion: problem.policyVersion,
+      location: { uncertaintyRadiusMeters: problem.location.uncertaintyRadiusMeters },
+    });
+  }
   if (!isComunObservatoryCityPanoramaEnabled()) return null;
   if (!refId.startsWith("panorama:")) return null;
   const panorama = await getCityPanoramaPublicDto({
