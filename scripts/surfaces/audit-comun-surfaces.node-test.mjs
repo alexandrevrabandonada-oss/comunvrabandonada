@@ -15,7 +15,8 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   // A5-A3 adds the single read-only cultural curation desk.
   // A0 adds /comun/denuncias as a public semantic door over Relata.
   // B0 adds /comun/denuncias/mapa as the canonical, flag-cloaked public map surface.
-  assert.equal(summary.total, 228);
+  // B2-A1 adds the public problem detail surface over the existing map.
+  assert.equal(summary.total, 229);
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
     "admin",
