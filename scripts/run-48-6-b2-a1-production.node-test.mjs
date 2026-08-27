@@ -14,6 +14,10 @@ test("B2-A1 production rollout is exact, map-off, and quarantines only the exter
   assert.match(runner, /projectionRows.*0/);
   assert.match(runner, /confirmationRows.*0/);
   assert.match(runner, /COMUN_DENUNCIAS_PUBLIC_MAP_ENABLED/);
+  assert.match(runner, /decrypt=false/);
+  assert.match(runner, /vercel@50\.28\.0 env pull/);
+  assert.match(runner, /valueState: state\(env\.get\(key\)\)/);
+  assert.match(runner, /raw Vercel metadata is never used as the flag value source/);
   assert.doesNotMatch(runner, /supabase\s+db\s+push[^\n]*--include-all/);
   assert.doesNotMatch(runner, /supabase\s+(?:migration\s+repair|db\s+reset|seed)\b/);
 });
