@@ -55,7 +55,7 @@ begin
     id, original_text, receipt_hash, actor_hash, idempotency_hash,
     payload_hash, privacy_class
   ) values
-    (v_a_report, 'B2 A local disposable report', extensions.digest('relata-receipt-v1:b2-receipt-a', 'sha256'), extensions.digest('b2-actor-a', 'sha256'), extensions.digest('b2-id-a', 'sha256'), extensions.digest('b2-payload-a', 'sha256'), 'public_after_sanitization'),
+    (v_a_report, 'B2 A local disposable report', extensions.digest('relata-receipt-v1:b2-receipt-a-1234567890123456789012345678', 'sha256'), extensions.digest('b2-actor-a', 'sha256'), extensions.digest('b2-id-a', 'sha256'), extensions.digest('b2-payload-a', 'sha256'), 'public_after_sanitization'),
     (v_b_report, 'B2 B local disposable report', extensions.digest('b2-receipt-b', 'sha256'), extensions.digest('b2-actor-b', 'sha256'), extensions.digest('b2-id-b', 'sha256'), extensions.digest('b2-payload-b', 'sha256'), 'public_after_sanitization'),
     (v_c_report, 'B2 C distant local disposable report', extensions.digest('b2-receipt-c', 'sha256'), extensions.digest('b2-actor-c', 'sha256'), extensions.digest('b2-id-c', 'sha256'), extensions.digest('b2-payload-c', 'sha256'), 'public_after_sanitization'),
     (v_p1_report, 'B2 power A local disposable report', extensions.digest('b2-receipt-p1', 'sha256'), extensions.digest('b2-actor-p1', 'sha256'), extensions.digest('b2-id-p1', 'sha256'), extensions.digest('b2-payload-p1', 'sha256'), 'public_after_sanitization'),
@@ -182,7 +182,20 @@ begin
 
   -- Exercise the public withdrawal contract: the B2 trigger reconciles the
   -- count exactly once, while the action keeps append-only event history.
-  perform * from public.comun_relata_withdraw('COMUN-RELATA-5200000000000001', 'b2-receipt-a');
+  if not exists (
+    select 1 from public.comun_relata_cases c
+      join private.comun_relata_reports r on r.id=c.report_id
+     where c.protocol='COMUN-RELATA-5200000000000001'
+       and r.receipt_hash=extensions.digest(
+         'relata-receipt-v1:b2-receipt-a-1234567890123456789012345678', 'sha256'
+       )
+  ) then
+    raise exception 'B2_WITHDRAWAL_FIXTURE_RECEIPT_AUTH_FAILED';
+  end if;
+  perform * from public.comun_relata_withdraw(
+    'COMUN-RELATA-5200000000000001',
+    'b2-receipt-a-1234567890123456789012345678'
+  );
   if (select state from public.comun_relata_cases where id=v_a_case) <> 'withdrawn' then
     raise exception 'B2_WITHDRAWAL_CASE_STATE_FAILED';
   end if;
