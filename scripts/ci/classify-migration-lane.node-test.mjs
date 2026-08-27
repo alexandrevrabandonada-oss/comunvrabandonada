@@ -10,6 +10,7 @@ const a4 = "supabase/migrations/20260819130000_comun_cultural_progressive_rights
 const a5a1 = "supabase/migrations/20260823003249_comun_cultural_specialized_provenance_readiness.sql";
 const a5a2 = "supabase/migrations/20260824001340_comun_artwork_submission_private_materialization.sql";
 const a3Followup = "supabase/migrations/20260825120000_comun_followup_escalation_continuity.sql";
+const b2a1 = "supabase/migrations/20260826150000_comun_denuncias_public_evidence_pauta_bridge.sql";
 
 test("A3 culture migration is not applicable to historical observatory, social, solidarity or P6C-C gates", () => {
   for (const lane of ["48-2-a", "48-3-b0", "48-4-a0", "p6c-c"]) {
@@ -46,6 +47,16 @@ test("known later cultural migrations remain classified and non-applicable to A0
 
 test("A1 culture migration is not applicable to the legacy 48.2 observatory gate", () => {
   assert.equal(classifyMigrationLane("48-2-a", [a1]).mode, "not_applicable");
+});
+
+test("B2-A1 migration is not applicable to historical lanes or organization bridges", () => {
+  for (const lane of ["48-2-a", "48-3-a1", "48-3-b0", "48-3-e2", "48-4-a0", "48-4-a2", "48-4-a4", "48-4-a5", "48-4-a7", "48-5-a0", "p6c-c"]) {
+    assert.equal(classifyMigrationLane(lane, [b2a1]).mode, "not_applicable");
+  }
+});
+
+test("B2-A1 migration is owned by its own lane", () => {
+  assert.equal(classifyMigrationLane("culture-b2-a1", [b2a1]).mode, "candidate");
 });
 
 test("lane-owned migration remains a candidate and does not become N/A", () => {

@@ -2,6 +2,10 @@ import "server-only";
 
 import { createComunRelataPersistenceClient } from "../comun-relata-persistence";
 import { isComunDenunciasPublicMapEnabled } from "../comun-denuncias-public-map-feature";
+import {
+  sanitizeComunRelataPublicProjection,
+  type PublicProjectionRow,
+} from "../comun-relata-public-projection";
 
 export const COMUN_DENUNCIAS_PUBLIC_MAP_NO_STORE = {
   "cache-control": "private, no-store, max-age=0",
@@ -9,45 +13,12 @@ export const COMUN_DENUNCIAS_PUBLIC_MAP_NO_STORE = {
   "x-robots-tag": "noindex, nofollow, noarchive",
 };
 
-type ProjectionRow = {
-  public_id: string;
-  category: string;
-  community_state: string;
-  report_count: number;
-  confirmation_count: number;
-  first_seen_date: string;
-  last_activity_date: string;
-  public_latitude: number;
-  public_longitude: number;
-  uncertainty_radius_meters: number;
-  policy_version: string;
-  eligibility_reason: string;
-  projection_state: string;
-  created_at: string;
-  updated_at: string;
-};
+export type PublicDenunciasPublicProblem = ReturnType<typeof sanitizeComunRelataPublicProjection>;
+export type PublicDenunciasMapCase = Omit<PublicDenunciasPublicProblem, "category"> & { category: string };
 
-function sanitize(row: ProjectionRow) {
-  const label = {
-    public_lighting: "Iluminação pública no território",
-    power_distribution: "Distribuição de energia no território",
-    smoke_or_environmental_trace: "Vestígio ambiental no território",
-  }[row.category] ?? "Problema organizado no território";
-  return {
-    publicId: row.public_id,
-    category: label,
-    title: label,
-    summary: "Há relatos organizados sobre este tipo de problema em uma área aproximada.",
-    reportCount: row.report_count,
-    confirmationCount: row.confirmation_count,
-    firstObservedDate: row.first_seen_date,
-    lastActivityDate: row.last_activity_date,
-    location: {
-      latitude: row.public_latitude,
-      longitude: row.public_longitude,
-      uncertaintyRadiusMeters: row.uncertainty_radius_meters,
-    },
-  };
+function sanitize(row: PublicProjectionRow) {
+  const projected = sanitizeComunRelataPublicProjection(row);
+  return { ...projected, category: projected.title };
 }
 
 export async function listComunDenunciasPublicMapCases(category?: string) {
@@ -58,5 +29,23 @@ export async function listComunDenunciasPublicMapCases(category?: string) {
     p_limit: 100,
   });
   if (error || !Array.isArray(data)) throw new Error("COMUN_DENUNCIAS_PUBLIC_MAP_UNAVAILABLE");
-  return (data as ProjectionRow[]).map(sanitize);
+  return (data as PublicProjectionRow[]).map(sanitize);
+}
+
+export async function getComunDenunciasPublicMapProblem(
+  publicId: string,
+): Promise<PublicDenunciasPublicProblem | null> {
+  if (!isComunDenunciasPublicMapEnabled()) return null;
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(publicId)) return null;
+  const db = createComunRelataPersistenceClient();
+  const { data, error } = await db.rpc("comun_denuncias_public_get", { p_public_id: publicId });
+  if (error || !data) return null;
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row || typeof row !== "object") return null;
+  try {
+    const projected = sanitizeComunRelataPublicProjection(row as PublicProjectionRow);
+    return projected.projectionState === "active" ? projected : null;
+  } catch {
+    return null;
+  }
 }

@@ -3325,3 +3325,15 @@ Estado: `COMUN_48_6_B0_FOUNDATION_READY_MAP_OFF_PENDING_PRODUCTION_PROMOTION`.
 - A migration local `20260803200000_comun_relata_sanitized_local_map.sql` permanece laboratório, sem promoção. A migration nova B0 é fail-closed, sem backfill e sem projeção inicial.
 - A nova fronteira `COMUN_DENUNCIAS_PUBLIC_MAP_ENABLED` permanece ausente/OFF; `projectionRows=0`, `publicProjection=false`, `publicGeneralMap=false` e `publicCollectiveGrouping=false`. Nenhum env write, schema write ou business write Production foi feito nesta execução.
 - A0/A1/A2/A3, `prepared != sent`, protocolo COMUN distinto do protocolo oficial e todas as proteções de privacidade continuam preservados. Não iniciar B1.
+## Estado atual — 48.6-B2-A1: ponte de problema coletivo para Pauta viva ativa; mapa OFF (26/08/2026)
+
+Estado terminal: `COMUN_48_6_B2_A1_COLLECTIVE_PROBLEM_TO_PAUTA_ACTION_BRIDGE_GREEN_MAP_OFF`.
+
+- A evidência pública versionada aceita, além de Panorama preservado, somente DTO sanitizado `comun.denuncias` com referência opaca e categoria allowlisted; com o mapa OFF o resolver permanece cloaked.
+- `/comun/denuncias/problemas/[publicId]` é uma superfície futura fail-closed, com CTAs seguros para Relata e criação manual de Pauta. O detalhe não exibe coordenada, texto, pessoa, protocolo ou IDs privados.
+- O RPC existente de Pauta foi evoluído por uma única migration estreita, sem nova tabela ou fila. A Pauta exige pergunta humana em branco; Pauta, membership e evidence card continuam atômicos. Nenhuma Pauta ou Ação é criada automaticamente.
+- Pautas relacionadas reutilizam `comun_pauta_evidence_items`; Ações relacionadas reutilizam `pauta_id` e o helper canônico existente. `prepared != sent`, `automationAllowed=false` e protocolo COMUN distinto do oficial permanecem preservados.
+- `publicMapProduction=false`, `projectionRows=0`, `confirmationRows=0`, `automaticPautaCreation=false`, `automaticCollectiveActionCreation=false`, `ProductionBusinessWrites=0`, `ProductionEnvWrites=0` e nenhum caso real foi criado.
+- A3/A4/A5, A0/B0/B1/B2-A0 foram preservados. A única migration B2-A1 aguarda rollout canônico após os gates remotos; B2-A2 não foi iniciado.
+
+Relatório: `reports/current/comun-48-6-b2-a1-problem-to-pauta-action-bridge.md`.
