@@ -5,6 +5,7 @@ import test from "node:test";
 
 import {
   MAX_ATTEMPTS,
+  MAX_BACKOFF_MS,
   classifyTransientStatusFailure,
   hasRequiredLocalEnv,
   isMainModule,
@@ -55,7 +56,7 @@ test("retries an allowlisted 502 once and succeeds", () => {
   const result = run([upstream502, { status: 0, stdout: sensitiveEnv, stderr: "" }]);
   assert.equal(result.ok, true);
   assert.equal(result.calls, 2);
-  assert.deepEqual(result.delays, [1000]);
+  assert.deepEqual(result.delays, [2000]);
   assert.deepEqual(result.diagnostics, [
     "COMUN_SUPABASE_LOCAL_STATUS_TRANSIENT_RETRY",
     "attempt=1",
@@ -71,8 +72,10 @@ test("exhausts only the bounded allowlisted transient status attempts", () => {
   assert.ok(result.diagnostics.includes("COMUN_SUPABASE_LOCAL_STATUS_TRANSIENT_EXHAUSTED"));
 });
 
-test("accepts a local status that recovers within the bounded warm-up window", () => {
+test("accepts a local status that recovers late within the bounded warm-up window", () => {
   const result = run([
+    upstream502,
+    upstream502,
     upstream502,
     upstream502,
     upstream502,
@@ -80,8 +83,20 @@ test("accepts a local status that recovers within the bounded warm-up window", (
     { status: 0, stdout: sensitiveEnv, stderr: "" },
   ]);
   assert.equal(result.ok, true);
-  assert.equal(result.calls, MAX_ATTEMPTS);
-  assert.deepEqual(result.delays, [1000, 2000, 3000, 4000]);
+  assert.equal(result.calls, 7);
+  assert.deepEqual(result.delays, [2000, 4000, 6000, MAX_BACKOFF_MS, MAX_BACKOFF_MS, MAX_BACKOFF_MS]);
+});
+
+test("continues retrying allowlisted 503 and 504 failures", () => {
+  for (const failure of [
+    { status: 1, stdout: "", stderr: "Error status 503: service unavailable upstream" },
+    { status: 1, stdout: "", stderr: "Error status 504: upstream gateway timeout" },
+  ]) {
+    const result = run([failure, { status: 0, stdout: sensitiveEnv, stderr: "" }]);
+    assert.equal(result.ok, true, failure.stderr);
+    assert.equal(result.calls, 2, failure.stderr);
+    assert.deepEqual(result.delays, [2000], failure.stderr);
+  }
 });
 
 test("does not retry 401, SQL, malformed, or unknown failures", () => {
