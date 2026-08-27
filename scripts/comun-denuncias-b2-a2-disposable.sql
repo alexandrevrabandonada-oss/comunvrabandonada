@@ -142,7 +142,7 @@ begin
   if v_result.grouping_state <> 'new_collective_case' or v_result.active_members_count <> 1 then
     raise exception 'B2_DISTANT_CASE_WAS_LINKED';
   end if;
-  if (select count(*) from public.comun_relata_collective_cases where state='active') <> 3 then
+  if (select count(*) from public.comun_relata_collective_cases where state='active') <> 2 then
     raise exception 'B2_COLLECTIVE_COUNT_FAILED';
   end if;
   select * into v_result from public.comun_relata_collective_connection_for_wallet(v_b_token, v_b_item);
