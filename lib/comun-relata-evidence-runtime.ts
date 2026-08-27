@@ -6,10 +6,10 @@ import {
   COMUN_RELATA_RECEIPT_COOKIE,
   createComunRelataPersistenceClient,
   decodeComunRelataReceiptCookie,
-  normalizeComunRelataReceipt,
 } from "./comun-relata-persistence";
 import {
   deriveComunRelataMatchPlan,
+  decryptComunRelataLocationForServer,
   type ComunRelataEvidenceState,
 } from "./comun-relata-evidence";
 import {
@@ -18,6 +18,7 @@ import {
   isComunRelataEvidenceEnabled,
   isComunRelataLocationEnabled,
 } from "./comun-relata-evidence-feature";
+import { walletSecretHash } from "./comun-participation-wallet-runtime";
 
 export const COMUN_RELATA_EVIDENCE_NO_STORE = {
   "cache-control": "private, no-store, max-age=0",
@@ -50,6 +51,14 @@ export function postgresBytea(value: Uint8Array) {
   return `\\x${Buffer.from(value).toString("hex")}`;
 }
 
+function readPostgresBytea(value: unknown) {
+  if (Buffer.isBuffer(value)) return value;
+  if (typeof value === "string" && /^\\x[0-9a-f]*$/i.test(value))
+    return Buffer.from(value.slice(2), "hex");
+  if (value instanceof Uint8Array) return Buffer.from(value);
+  throw new Error("COMUN_RELATA_BYTEA_INVALID");
+}
+
 export async function readComunRelataEvidenceState(
   db: SupabaseClient,
   proof: { protocol: string; receiptSecret: string },
@@ -62,40 +71,66 @@ export async function readComunRelataEvidenceState(
   return (data[0] as { evidence: ComunRelataEvidenceState }).evidence;
 }
 
-export async function associateComunRelataCollective(
+export async function associateComunRelataCollectiveForWallet(
   db: SupabaseClient,
-  proof: { protocol: string; receiptSecret: string },
-  coordinates?: { longitude: number; latitude: number },
+  walletToken: string,
+  walletItemId: string,
 ) {
   if (!isComunRelataCollectiveEnabled()) return null;
-  const receiptResult = await db.rpc("comun_relata_get_receipt", {
-    p_protocol: proof.protocol,
-    p_receipt_secret: proof.receiptSecret,
-  });
+  const locationResult = await db.rpc(
+    "comun_relata_public_projection_owned_location",
+    {
+      p_token_hash_hex: walletSecretHash(walletToken),
+      p_wallet_item_id: walletItemId,
+    },
+  );
   if (
-    receiptResult.error ||
-    !Array.isArray(receiptResult.data) ||
-    !receiptResult.data[0]
+    locationResult.error ||
+    !Array.isArray(locationResult.data) ||
+    !locationResult.data[0]
   )
     return null;
-  const receipt = normalizeComunRelataReceipt(receiptResult.data[0]);
+  const location = locationResult.data[0] as {
+    protocol: string;
+    category: string;
+    urgency: string;
+    privacy_class: string;
+    encrypted_value: unknown;
+    nonce: unknown;
+    auth_tag: unknown;
+  };
+  const coordinates = decryptComunRelataLocationForServer(
+    {
+      ciphertext: readPostgresBytea(location.encrypted_value),
+      nonce: readPostgresBytea(location.nonce),
+      authTag: readPostgresBytea(location.auth_tag),
+    },
+    location.protocol,
+  );
   const plan = deriveComunRelataMatchPlan({
-    category: receipt.category as Parameters<
+    category: location.category as Parameters<
       typeof deriveComunRelataMatchPlan
     >[0]["category"],
-    urgency: receipt.urgency as Parameters<
+    urgency: location.urgency as Parameters<
       typeof deriveComunRelataMatchPlan
     >[0]["urgency"],
-    privacyClass: "public_after_sanitization",
-    ...coordinates,
+    privacyClass: location.privacy_class as Parameters<
+      typeof deriveComunRelataMatchPlan
+    >[0]["privacyClass"],
+    longitude: coordinates.longitude,
+    latitude: coordinates.latitude,
   });
-  const { data, error } = await db.rpc("comun_relata_associate_collective", {
-    p_protocol: proof.protocol,
-    p_receipt_secret: proof.receiptSecret,
-    p_requested_decision: plan.decision,
-    p_spatial_keys: plan.spatialKeys.map(postgresBytea),
-    p_window_start: plan.windowStart.toISOString(),
-  });
+  if (plan.decision !== "auto_link_high_confidence") return null;
+  const { data, error } = await db.rpc(
+    "comun_relata_associate_collective_for_wallet",
+    {
+      p_token_hash_hex: walletSecretHash(walletToken),
+      p_wallet_item_id: walletItemId,
+      p_requested_decision: plan.decision,
+      p_spatial_keys: plan.spatialKeys.map(postgresBytea),
+      p_window_start: plan.windowStart.toISOString(),
+    },
+  );
   if (error || !Array.isArray(data) || !data[0]) return null;
   return data[0] as {
     grouping_state: string;

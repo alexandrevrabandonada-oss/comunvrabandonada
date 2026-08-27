@@ -1,29 +1,76 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  associateComunRelataCollective,
+  associateComunRelataCollectiveForWallet,
   COMUN_RELATA_EVIDENCE_NO_STORE,
-  getComunRelataEvidenceRuntime,
-  readComunRelataEvidenceState,
 } from "@/lib/comun-relata-evidence-runtime";
+import {
+  readWalletToken,
+  walletDb,
+  walletSecretHash,
+} from "@/lib/comun-participation-wallet-runtime";
+import { isComunRelataCollectiveEnabled } from "@/lib/comun-relata-evidence-feature";
 
 export const runtime = "nodejs";
 
-export async function POST(request: NextRequest) {
-  const local = getComunRelataEvidenceRuntime(request, "grouping");
-  if (!local)
-    return NextResponse.json(
-      { code: "grouping_unavailable" },
-      { status: 404, headers: COMUN_RELATA_EVIDENCE_NO_STORE },
-    );
-  const grouping = await associateComunRelataCollective(local.db, local.proof);
-  const evidence = await readComunRelataEvidenceState(local.db, local.proof);
-  if (!grouping || !evidence)
-    return NextResponse.json(
-      { code: "grouping_unavailable" },
-      { status: 404, headers: COMUN_RELATA_EVIDENCE_NO_STORE },
-    );
+function unavailable() {
   return NextResponse.json(
-    { evidence, noOfficialSend: true, nothingPublished: true },
-    { headers: COMUN_RELATA_EVIDENCE_NO_STORE },
+    { code: "grouping_unavailable" },
+    { status: 404, headers: COMUN_RELATA_EVIDENCE_NO_STORE },
   );
+}
+
+function readWalletItemId(request: NextRequest) {
+  const value = request.nextUrl.searchParams.get("walletItemId");
+  return value && /^[0-9a-f-]{36}$/i.test(value) ? value : null;
+}
+
+export async function GET(request: NextRequest) {
+  if (!isComunRelataCollectiveEnabled()) return unavailable();
+  const token = readWalletToken(request);
+  const walletItemId = readWalletItemId(request);
+  if (!token || !walletItemId) return unavailable();
+  try {
+    const { data, error } = await walletDb().rpc(
+      "comun_relata_collective_connection_for_wallet",
+      {
+        p_token_hash_hex: walletSecretHash(token),
+        p_wallet_item_id: walletItemId,
+      },
+    );
+    const row = Array.isArray(data) ? data[0] : null;
+    if (error || !row || !["waiting", "matched"].includes(row.connection))
+      return unavailable();
+    return NextResponse.json(
+      { collectiveConnection: row.connection },
+      { headers: COMUN_RELATA_EVIDENCE_NO_STORE },
+    );
+  } catch {
+    return unavailable();
+  }
+}
+
+export async function POST(request: NextRequest) {
+  if (!isComunRelataCollectiveEnabled()) return unavailable();
+  const token = readWalletToken(request);
+  const walletItemId = readWalletItemId(request);
+  if (!token || !walletItemId) return unavailable();
+  try {
+    const grouping = await associateComunRelataCollectiveForWallet(
+      walletDb(),
+      token,
+      walletItemId,
+    );
+    if (!grouping) return unavailable();
+    return NextResponse.json(
+      {
+        collectiveConnection:
+          grouping.grouping_state === "auto_link_high_confidence"
+            ? "matched"
+            : "waiting",
+      },
+      { headers: COMUN_RELATA_EVIDENCE_NO_STORE },
+    );
+  } catch {
+    return unavailable();
+  }
 }

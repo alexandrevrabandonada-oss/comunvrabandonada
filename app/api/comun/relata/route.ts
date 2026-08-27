@@ -13,7 +13,6 @@ import {
   isComunRelataPhotoOnlyCapture,
   isComunRelataPhotoOnlyEnabled,
 } from "@/lib/comun-relata-photo-first";
-import { associateComunRelataCollective } from "@/lib/comun-relata-evidence-runtime";
 import { isComunQuickCaptureEnabled } from "@/lib/comun-capture-feature";
 import { isComunParticipationWalletEnabled } from "@/lib/comun-participation-wallet-feature";
 import {
@@ -250,10 +249,6 @@ export async function POST(request: NextRequest) {
     );
   }
   const receipt = normalizeComunRelataReceipt(receiptResult.data[0]);
-  await associateComunRelataCollective(db, {
-    protocol: receipt.protocol,
-    receiptSecret,
-  });
   let walletRecoveryCode: string | undefined;
   let walletToken: string | null = null;
   let walletItemId: string | undefined;

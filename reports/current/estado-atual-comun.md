@@ -1,3 +1,15 @@
+## Estado atual — 48.6-B2-A2: agrupamento coletivo privado determinístico em validação; mapa OFF (27/08/2026)
+
+Estado de execução: implementação local concluída sobre `origin/main` `7d9ec53a3e92b81a7c212eb121558924a2bbf3e9`; branch `codex/48-6-b2-a2-private-collective-matching`. A migration B2-A2 ainda não foi aplicada em Production, o mapa permanece OFF/ausente e nenhuma escrita remota foi feita neste slice.
+
+- O matcher reutiliza os modelos coletivos B0/B1 e `deriveComunRelataMatchPlan()` (`relata-match-v1`), sem tabela, fila, ontologia, embeddings, LLM ou comparação de texto. O cliente fornece somente `walletItemId`; ownership, consentimento B1, localização privada e elegibilidade são revalidados server-side.
+- O auto-match Production é limitado a `public_lighting`, `power_distribution` e `smoke_or_environmental_trace`, somente com opt-in público explícito ativo e decisão `auto_link_high_confidence`. Seeds B1 são reconciliados; medium/low confidence permanecem sem vínculo.
+- Revogação do opt-in e retirada do relato desativam memberships/chaves e recalculam coletivos sem apagar eventos. O painel mostra apenas `waiting`/`matched`, sem IDs ou contagens privadas.
+- A prova descartável real está codificada em workflow Supabase local; o runner de Production exige plano exato de uma única migration, preserva a exceção externa de Calçadas e mantém o mapa OFF. Docker local indisponível impediu execução local, sem transformar isso em prova GREEN.
+- Gates locais: contrato B2-A2 6/6, unit 1.282/1.282, typecheck, lint, build, `node --check` e `git diff --check` GREEN. CI/Preview/Production permanecem pendentes.
+
+Relatório: `reports/current/comun-48-6-b2-a2-private-collective-matching.md`.
+
 ## Estado atual — 48.6-B2-A1: ponte de problema coletivo para Pauta viva ativa; mapa OFF (27/08/2026)
 
 Estado terminal: `COMUN_48_6_B2_A1_COLLECTIVE_PROBLEM_TO_PAUTA_ACTION_BRIDGE_GREEN_MAP_OFF`.
