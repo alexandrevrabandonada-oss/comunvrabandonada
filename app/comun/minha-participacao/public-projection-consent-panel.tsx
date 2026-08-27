@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 type ConsentState = {
   active: boolean;
   available: boolean;
+  collectiveConnection: "waiting" | "matched" | null;
 };
 
 export function PublicProjectionConsentPanel({
@@ -15,6 +16,18 @@ export function PublicProjectionConsentPanel({
   const [state, setState] = useState<ConsentState | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+
+  async function readCollectiveConnection() {
+    const response = await fetch(
+      `/api/comun/relata/evidence/grouping?walletItemId=${encodeURIComponent(walletItemId)}`,
+      { cache: "no-store" },
+    );
+    if (!response.ok) return null;
+    const value = (await response.json()) as {
+      collectiveConnection?: "waiting" | "matched";
+    };
+    return value.collectiveConnection ?? null;
+  }
 
   async function refresh() {
     const response = await fetch(
@@ -32,9 +45,11 @@ export function PublicProjectionConsentPanel({
       setState(null);
       return;
     }
+    const active = Boolean(value.consent.active);
     setState({
-      active: Boolean(value.consent.active),
+      active,
       available: true,
+      collectiveConnection: active ? await readCollectiveConnection() : null,
     });
   }
 
@@ -58,7 +73,25 @@ export function PublicProjectionConsentPanel({
         consent?: { active?: boolean; available?: boolean };
       };
       if (!value.consent?.available) throw new Error("consent_unavailable");
-      setState({ active: Boolean(value.consent.active), available: true });
+      const consentActive = Boolean(value.consent.active);
+      let collectiveConnection: "waiting" | "matched" | null = null;
+      if (consentActive) {
+        const groupingResponse = await fetch(
+          `/api/comun/relata/evidence/grouping?walletItemId=${encodeURIComponent(walletItemId)}`,
+          { method: "POST", cache: "no-store" },
+        );
+        if (groupingResponse.ok) {
+          const grouping = (await groupingResponse.json()) as {
+            collectiveConnection?: "waiting" | "matched";
+          };
+          collectiveConnection = grouping.collectiveConnection ?? null;
+        }
+      }
+      setState({
+        active: consentActive,
+        available: true,
+        collectiveConnection,
+      });
       setNotice(
         active
           ? "Permissão registrada. O relato só poderá aparecer se todas as regras de segurança forem cumpridas."
@@ -94,6 +127,11 @@ export function PublicProjectionConsentPanel({
           >
             Não usar mais este relato no mapa
           </button>
+          <p className="text-sm font-bold" role="status">
+            {state.collectiveConnection === "matched"
+              ? "Encontramos outro relato compatível sobre este problema na região."
+              : "Seu relato está pronto para encontrar outros relatos parecidos."}
+          </p>
         </>
       ) : (
         <>

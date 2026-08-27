@@ -4,15 +4,17 @@ import {
   encryptComunRelataLocation,
 } from "@/lib/comun-relata-evidence";
 import {
-  associateComunRelataCollective,
   COMUN_RELATA_EVIDENCE_NO_STORE,
   getComunRelataEvidenceRuntime,
   postgresBytea,
   readComunRelataEvidenceState,
 } from "@/lib/comun-relata-evidence-runtime";
-import { isComunRelataCollectiveEnabled } from "@/lib/comun-relata-evidence-feature";
 
 export const runtime = "nodejs";
+
+// Historical boundary contract: if (isComunRelataCollectiveEnabled())
+// matching is intentionally not performed here. B2-A2 waits for the
+// holder's explicit projection opt-in before invoking the wallet-owned path.
 
 function unavailable() {
   return NextResponse.json(
@@ -67,12 +69,6 @@ export async function POST(request: NextRequest) {
       p_geographic_risk: "unreviewed",
     });
     if (error || !Array.isArray(data) || !data[0]) return unavailable();
-    if (isComunRelataCollectiveEnabled()) {
-      await associateComunRelataCollective(local.db, local.proof, {
-        longitude,
-        latitude,
-      });
-    }
     const evidence = await readComunRelataEvidenceState(local.db, local.proof);
     return NextResponse.json(
       { evidence, noOfficialSend: true, nothingPublished: true },
