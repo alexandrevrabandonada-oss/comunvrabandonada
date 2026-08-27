@@ -276,7 +276,7 @@ begin
     insert into private.comun_relata_case_match_keys(
       individual_case_id,collective_case_id,key_hash,match_rule_version
     )
-    select v_context.case_id,v_target,keys.key_hash,'relata-match-v1'
+    select distinct v_context.case_id,v_target,keys.key_hash,'relata-match-v1'
       from pg_catalog.unnest(p_spatial_keys) as keys(key_hash)
      where not exists(
        select 1 from private.comun_relata_case_match_keys existing
@@ -332,7 +332,7 @@ begin
   insert into private.comun_relata_case_match_keys(
     individual_case_id,collective_case_id,key_hash,match_rule_version
   )
-  select v_context.case_id,v_target,keys.key_hash,'relata-match-v1'
+  select distinct v_context.case_id,v_target,keys.key_hash,'relata-match-v1'
     from pg_catalog.unnest(p_spatial_keys) as keys(key_hash);
   select count(*)::integer into v_count
     from public.comun_relata_case_memberships
