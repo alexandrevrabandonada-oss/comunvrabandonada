@@ -1,4 +1,16 @@
-## Estado atual — 48.6-B2-A0: opt-in contextual pós-relato ativo; mapa OFF (26/08/2026)
+## Estado atual — 48.6-B2-A1: ponte de problema coletivo para Pauta viva ativa; mapa OFF (27/08/2026)
+
+Estado terminal: `COMUN_48_6_B2_A1_COLLECTIVE_PROBLEM_TO_PAUTA_ACTION_BRIDGE_GREEN_MAP_OFF`.
+
+- A correção operacional da PR #410 foi mergeada e o `origin/main` usado no rollout ficou em `f0f1fcb9271c5dfa87b6e4b191e49a50a4e07710`; o erro histórico do primeiro preflight foi classificado como leitura inadequada de env `encrypted` (`valueState=OTHER`), corrigido de forma fail-closed com `vercel env pull` temporário e sanitizado.
+- O preflight metadata/read-only `33028873990` confirmou plano exato de uma única migration B2-A1, A3/A4 `encrypted` e ON, mapa ausente/OFF, `projectionRows=0`, `confirmationRows=0`, `businessWrites=0` e `envWrites=0`.
+- A promoção controlada `33028969613` aplicou somente `20260826150000_comun_denuncias_public_evidence_pauta_bridge.sql`; o postflight confirmou o RPC com os ramos Panorama e Denúncias, grants `service_role`-only, `anon/authenticated=false`, histórico B2-A1 único e `schemaWrites=1_migration_only`.
+- Smokes GET/HEAD permaneceram verdes, sem Pauta/Ação automática, publicação, Search, coleção, projeção ou confirmação. A exceção externa de Calçadas foi preservada, sem include-all, repair, reset, seed ou fixture.
+- `ProductionBusinessWrites=0`, `ProductionEnvWrites=0`, `projectionRows=0`, `confirmationRows=0`, `publicMapProduction=false`, `automaticOfficialSend=false`; A3/A4/A5 e A0/B0/B1/B2-A0 permanecem preservados. B2-A2 não foi iniciado.
+
+Relatório: `reports/current/comun-48-6-b2-a1-problem-to-pauta-action-bridge.md`.
+
+## Estado anterior — 48.6-B2-A0: opt-in contextual pós-relato ativo; mapa OFF (26/08/2026)
 
 Estado terminal: `COMUN_48_6_B2_A0_REPORT_TO_COLLECTIVE_OPTIN_GREEN_MAP_OFF`.
 
