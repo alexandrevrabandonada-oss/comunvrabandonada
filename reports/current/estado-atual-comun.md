@@ -1,6 +1,12 @@
-## Estado atual — 48.6-B2-A2: agrupamento coletivo privado determinístico em validação; mapa OFF (27/08/2026)
+## Estado atual — 48.6-B2-A2: bloqueado com segurança por chave HMAC espacial não pronta; mapa OFF (27/08/2026)
 
-Estado de execução: implementação local concluída sobre `origin/main` `7d9ec53a3e92b81a7c212eb121558924a2bbf3e9`; branch `codex/48-6-b2-a2-private-collective-matching`. A migration B2-A2 ainda não foi aplicada em Production, o mapa permanece OFF/ausente e nenhuma escrita remota foi feita neste slice.
+Estado de execução: implementação local concluída e PRs #412/#414 integradas; o preflight Production `33090800027` foi executado contra `origin/main` `a264c4aabd71dfcf65cf25f7b5403d60105705e5`. A migration B2-A2 ainda não foi aplicada em Production, o mapa permanece OFF/ausente e nenhuma escrita remota foi feita neste slice.
+
+Terminal atual: `COMUN_48_6_B2_A2_BLOCKED_SPATIAL_HMAC_KEY_NOT_READY`.
+
+- O binding Vercel canônico passou; A3/A4 continuam ON, encrypted e Production-only, sem drift. A validação fail-closed não encontrou as chaves server-side em formato base64url de 32 bytes, especialmente a `COMUN_RELATA_SPATIAL_HMAC_KEY` necessária para matching privado. Nenhum valor foi exposto.
+- O runner parou antes de Supabase, migration, deployment e qualquer escrita; `ProductionSchemaWrites=0`, `ProductionBusinessWrites=0`, `ProductionEnvWrites=0`, fixtures=0, projections=0 e confirmations=0.
+- Não provisionar segredo em Git/código e não executar nova tentativa até as duas chaves distintas serem disponibilizadas pelo canal operacional autorizado. B2-A3 não foi iniciado.
 
 - O matcher reutiliza os modelos coletivos B0/B1 e `deriveComunRelataMatchPlan()` (`relata-match-v1`), sem tabela, fila, ontologia, embeddings, LLM ou comparação de texto. O cliente fornece somente `walletItemId`; ownership, consentimento B1, localização privada e elegibilidade são revalidados server-side.
 - O auto-match Production é limitado a `public_lighting`, `power_distribution` e `smoke_or_environmental_trace`, somente com opt-in público explícito ativo e decisão `auto_link_high_confidence`. Seeds B1 são reconciliados; medium/low confidence permanecem sem vínculo.

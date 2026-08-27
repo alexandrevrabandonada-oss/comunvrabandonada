@@ -57,3 +57,28 @@ O painel da Carteira expõe apenas `waiting` ou `matched`. `matched` significa r
 `COMUN_48_6_B2_A2_PRIVATE_COLLECTIVE_MATCHING_IMPLEMENTED_MAP_OFF_AWAITING_DISPOSABLE_CI`
 
 O terminal funcional só poderá ser declarado depois da prova Supabase descartável GREEN, gates remotos, rollout de schema controlado e postflight read-only. Nenhuma etapa B2-A3 foi iniciada.
+
+## Bloqueio de preflight Production — chave HMAC espacial não pronta
+
+O código e a prova descartável foram integrados no PR #412 e o ajuste
+operacional de binding Vercel foi integrado no PR #414 (`a264c4aabd71dfcf65cf25f7b5403d60105705e5`). O preflight Production foi
+disparado contra esse SHA exato no run `33090800027`.
+
+O runner confirmou o projeto Vercel canônico, o SHA exato, A3/A4 ON em
+Production-only, mapa OFF/ausente e collective sem drift. Em seguida, a
+validação sanitizada das chaves server-side falhou porque
+`COMUN_RELATA_LOCATION_ENCRYPTION_KEY` e/ou
+`COMUN_RELATA_SPATIAL_HMAC_KEY` não ficaram disponíveis em formato base64url
+de 32 bytes no ambiente de runtime. O valor nunca foi registrado.
+
+Esse é o terminal fail-closed previsto:
+
+`COMUN_48_6_B2_A2_BLOCKED_SPATIAL_HMAC_KEY_NOT_READY`
+
+Não houve conexão/consulta mutável ao Supabase, aplicação de migration,
+escrita de env, deployment, fixture, matching ou outro business write. A
+migration `20260827120000_comun_denuncias_private_collective_matching.sql`
+permanece pending e o mapa continua OFF. A próxima tentativa só é segura
+após provisionamento operacional das duas chaves distintas pelo canal de
+segredos já autorizado; nenhum segredo deve ser criado no Git, no relatório
+ou no código.
