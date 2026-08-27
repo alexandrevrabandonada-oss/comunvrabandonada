@@ -183,11 +183,17 @@ begin
   -- Exercise the public withdrawal contract: the B2 trigger reconciles the
   -- count exactly once, while the action keeps append-only event history.
   perform * from public.comun_relata_withdraw('COMUN-RELATA-5200000000000001', 'b2-receipt-a');
-  if (select state from public.comun_relata_cases where id=v_a_case) <> 'withdrawn'
-     or (select active_members_count from public.comun_relata_collective_cases where id=v_collective) <> 0
-     or (select state from public.comun_relata_collective_cases where id=v_collective) <> 'inactive'
-     or (select count(*) from public.comun_relata_case_match_events) < 1 then
-    raise exception 'B2_WITHDRAWAL_RECONCILIATION_FAILED';
+  if (select state from public.comun_relata_cases where id=v_a_case) <> 'withdrawn' then
+    raise exception 'B2_WITHDRAWAL_CASE_STATE_FAILED';
+  end if;
+  if (select active_members_count from public.comun_relata_collective_cases where id=v_collective) <> 0 then
+    raise exception 'B2_WITHDRAWAL_COUNT_FAILED';
+  end if;
+  if (select state from public.comun_relata_collective_cases where id=v_collective) <> 'inactive' then
+    raise exception 'B2_WITHDRAWAL_COLLECTIVE_STATE_FAILED';
+  end if;
+  if (select count(*) from public.comun_relata_case_match_events) < 1 then
+    raise exception 'B2_WITHDRAWAL_EVENT_HISTORY_FAILED';
   end if;
 
   if (select count(*) from private.comun_relata_public_projections) <> 0
