@@ -23,6 +23,9 @@ permissions:
 
 env:
   B2_A2_EXECUTION_MODE: ${{ inputs.execution_mode }}
+  # Canonical Vercel binding; these identifiers are non-secret project metadata.
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
 
 jobs:
   rollout:
