@@ -79,3 +79,26 @@ fixture Production foi executado.
 Após o checkpoint e gates remotos, esta única migration poderá ser promovida
 pelo pipeline canônico. O postflight deve manter mapa OFF, projeções e
 confirmações em zero. B2-A2 não foi iniciado.
+
+## B2-A1 — Rollout Production e fechamento
+
+O estado acima foi fechado pelo rollout controlado posterior, sem alteração
+do contrato funcional:
+
+- `origin/main` no início da promoção era `f0f1fcb9271c5dfa87b6e4b191e49a50a4e07710`, resultado da integração da correção operacional PR #410; a implementação funcional permaneceu no merge da PR #408 (`191bc3eea88bf51b6a55c696b5438bf1081b8130`) e a ponte operacional anterior no merge da PR #409 (`1c6cb58ec310000ce581c5e0a121cbc14a48af74`);
+- o primeiro preflight, run `33028253307`, foi bloqueado corretamente porque a API de metadados Vercel não entrega o valor descriptografado de envs `encrypted`; o runner lia esse campo como `OTHER` e parava antes de qualquer write. A correção na PR #410 passou a obter o valor somente pelo `vercel env pull` temporário, com limpeza e saída sanitizada; nenhum segredo foi persistido no artefato;
+- a correção foi validada no novo SHA com COMUN CI `33028549567`, COST-02/Preview exato e RETRO verdes, e então mergeada na PR #410 sem alteração de produto;
+- o preflight remoto metadata/read-only no run `33028873990` confirmou a identidade do `main`, as invariantes A3/A4, o mapa ausente/OFF, `projectionRows=0`, `confirmationRows=0`, `businessWrites=0` e `envWrites=0`. O plano continha exatamente uma migration: `20260826150000_comun_denuncias_public_evidence_pauta_bridge.sql`;
+- a promoção controlada no run `33028969613` aplicou exclusivamente essa migration. A exceção externa de Calçadas permaneceu fora do plano; não houve `include-all`, repair, reset, seed, fixture ou envio externo. O artefato de rollout foi o `comun-48-6-b2-a1-production-33028969613`, ID `9629457428`, com digest SHA-256 `1c36b2628b9a3940d64608d36236724774c7aeda22852070d8f413da9bb70322`;
+- o postflight confirmou a migration B2-A1 uma única vez, o RPC com os ramos Panorama e Denúncias, execução `service_role` exclusiva, `anon=false`, `authenticated=false`, `projectionRows=0`, `confirmationRows=0`, `businessWrites=0`, `schemaWrites=1_migration_only`, `envWrites=0` e `publicMapProduction=false`;
+- as envs A3 e A4 permaneceram únicas, `encrypted`, Production-only e efetivamente `ON`; `COMUN_DENUNCIAS_PUBLIC_MAP_ENABLED` permaneceu ausente. Os smokes read-only canônicos permaneceram verdes, incluindo `/comun/denuncias`, `/comun/relatar`, `/comun/pautas`, `/comun/pautas/nova` e detalhe desconhecido cloaked em 404;
+- não houve criação automática de Pauta ou Ação, publicação, Search write, coleção, projeção ou confirmação. `automaticPautaCreation=false`, `automaticCollectiveActionCreation=false`, `automaticOfficialSend=false`.
+
+Terminal do rollout:
+
+`COMUN_48_6_B2_A1_COLLECTIVE_PROBLEM_TO_PAUTA_ACTION_BRIDGE_GREEN_MAP_OFF`
+
+Resultado: `ProductionSchemaWrites=1_migration_only`, `ProductionBusinessWrites=0`,
+`ProductionEnvWrites=0`, `projectionRows=0`, `confirmationRows=0`,
+`publicMapProduction=false`, A3/A4/A5/A0/B0/B1/B2-A0 preservados. B2-A2 não foi
+iniciado.
