@@ -516,10 +516,6 @@ begin
     update private.comun_relata_attachments attachment
        set state='withdrawn',withdrawn_at=v_case.withdrawn_at,
            retention_class='withdrawn_evidence',
-           review_after=least(
-             attachment.review_after,
-             v_case.withdrawn_at+interval '30 days'
-           ),
            updated_at=pg_catalog.now()
      where attachment.report_id=v_report.id
        and attachment.state not in ('withdrawn','rejected');
