@@ -25,21 +25,23 @@ export const MIGRATION_LANE_MANIFEST = Object.freeze({
   "20260826090000_comun_denuncias_public_collective_projection.sql": "culture-b0",
   "20260826120000_comun_denuncias_public_projection_opt_in.sql": "culture-b1",
   "20260826150000_comun_denuncias_public_evidence_pauta_bridge.sql": "culture-b2-a1",
+  "20260827120000_comun_denuncias_private_collective_matching.sql": "culture-b2-a2",
 });
 
 const NON_APPLICABLE_LANES = Object.freeze({
-  "48-2-a": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "p6c-c"]),
-  "48-3-a1": new Set(["48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "p6c-c"]),
-  "48-3-b0": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "p6c-c"]),
-  "48-3-e2": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "p6c-c"]),
-  "48-4-a0": new Set(["48-3-a1", "48-4-a2", "48-4-a4", "48-4-a5", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "p6c-c"]),
-  "48-5-a0": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "p6c-c"]),
-  "p6c-c": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1"]),
-  "48-4-a2": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "p6c-c"]),
-  "48-4-a4": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "p6c-c"]),
-  "48-4-a5": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "p6c-c"]),
-  "48-4-a7": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "p6c-c"]),
-  "culture-b2-a1": new Set([])
+  "48-2-a": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "culture-b2-a2", "p6c-c"]),
+  "48-3-a1": new Set(["48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "culture-b2-a2", "p6c-c"]),
+  "48-3-b0": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "culture-b2-a2", "p6c-c"]),
+  "48-3-e2": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "culture-b2-a2", "p6c-c"]),
+  "48-4-a0": new Set(["48-3-a1", "48-4-a2", "48-4-a4", "48-4-a5", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "culture-b2-a2", "p6c-c"]),
+  "48-5-a0": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "culture-b2-a2", "p6c-c"]),
+  "p6c-c": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "culture-b2-a2"]),
+  "48-4-a2": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "culture-b2-a2", "p6c-c"]),
+  "48-4-a4": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "culture-b2-a2", "p6c-c"]),
+  "48-4-a5": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "culture-b2-a2", "p6c-c"]),
+  "48-4-a7": new Set(["48-3-a1", "48-4-a0", "culture-a2", "culture-a2-r1", "culture-a3", "culture-a4", "culture-a5-a1", "culture-a5-a2", "culture-a1", "culture-b0", "culture-b1", "culture-b2-a1", "culture-b2-a2", "p6c-c"]),
+  "culture-b2-a1": new Set(["culture-b2-a2"]),
+  "culture-b2-a2": new Set([])
 });
 
 function migrationBasename(file) {
