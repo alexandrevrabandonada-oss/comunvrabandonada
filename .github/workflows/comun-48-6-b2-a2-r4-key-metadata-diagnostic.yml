@@ -1,0 +1,102 @@
+name: COMUN 48.6-B2-A2-R4 key metadata diagnostic
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA for the metadata-only diagnostic
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: team_LBVwyK8FQMO7tA3hzVXXeumF
+  VERCEL_PROJECT_ID: prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X
+
+jobs:
+  diagnose:
+    name: B2-A2-R4 / Metadata only
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Assert exact merged main
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+
+      - name: Fetch Vercel metadata without secret values
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_TOKEN"
+          temp_root="$(mktemp -d "$RUNNER_TEMP/comun-b2-a2-r4.XXXXXX")"
+          trap 'rm -rf "$temp_root"' EXIT
+          project_response="$temp_root/project.json"
+          shared_location_response="$temp_root/shared-location.json"
+          shared_spatial_response="$temp_root/shared-spatial.json"
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error --max-time 8 --max-redirs 0 \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env?teamId=$VERCEL_ORG_ID&decrypt=false" \
+            > "$project_response"
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error --max-time 8 --max-redirs 0 -G \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            --data-urlencode "teamId=$VERCEL_ORG_ID" \
+            --data-urlencode "search=COMUN_RELATA_LOCATION_ENCRYPTION_KEY" \
+            --data-urlencode "limit=100" \
+            "https://api.vercel.com/v1/env" > "$shared_location_response"
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error --max-time 8 --max-redirs 0 -G \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            --data-urlencode "teamId=$VERCEL_ORG_ID" \
+            --data-urlencode "search=COMUN_RELATA_SPATIAL_HMAC_KEY" \
+            --data-urlencode "limit=100" \
+            "https://api.vercel.com/v1/env" > "$shared_spatial_response"
+          mkdir -p .ci-artifacts/comun-48-6-b2-a2-r4-key-metadata
+          node scripts/run-48-6-b2-a2-r4-key-metadata-diagnostic.mjs \
+            --project "$project_response" \
+            --shared-location "$shared_location_response" \
+            --shared-spatial "$shared_spatial_response" \
+            --output .ci-artifacts/comun-48-6-b2-a2-r4-key-metadata/diagnostic.json
+
+      - name: Verify artifact is sanitized
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(find .ci-artifacts/comun-48-6-b2-a2-r4-key-metadata -type f | wc -l)" = 1
+          ! rg -n -i 'value|token|password|ciphertext|hash|createdBy|updatedBy|owner|env.?id|shared.?id|prj_|team_' .ci-artifacts/comun-48-6-b2-a2-r4-key-metadata/diagnostic.json
+          jq -e '.productionWrites == 0' .ci-artifacts/comun-48-6-b2-a2-r4-key-metadata/diagnostic.json >/dev/null
+
+      - name: Publish sanitized diagnostic summary
+        env:
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo '## R4 — diagnóstico sanitizado de metadata Vercel'
+            echo
+            echo 'O artifact contém somente campos allowlisted; nenhuma resposta bruta foi persistida.'
+            echo
+            echo '```json'
+            cat .ci-artifacts/comun-48-6-b2-a2-r4-key-metadata/diagnostic.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-48-6-b2-a2-r4-key-metadata-${{ github.run_id }}
+          path: .ci-artifacts/comun-48-6-b2-a2-r4-key-metadata/diagnostic.json
+          retention-days: 30
+          if-no-files-found: error
