@@ -1,0 +1,69 @@
+name: COMUN 48.6-B2-A1 controlled Pauta bridge rollout
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA for the controlled B2-A1 rollout
+        required: true
+        type: string
+      execution_mode:
+        description: Read-only plan, exact migration promotion, or postflight
+        required: true
+        default: preflight
+        type: choice
+        options: [preflight, promote, postflight]
+
+concurrency:
+  group: comun-48-6-b2-a1-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  B2_A1_EXECUTION_MODE: ${{ inputs.execution_mode }}
+
+jobs:
+  rollout:
+    name: B2-A1 / exact Production schema rollout
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+      - name: Assert exact Production binding
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_DB_URL"
+          case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*|*::1*) exit 1;; esac
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+      - name: Execute exact B2-A1 preflight, promotion or postflight
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_CANONICAL_PROJECT_ID: ${{ secrets.VERCEL_CANONICAL_PROJECT_ID }}
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        shell: bash
+        run: bash scripts/run-48-6-b2-a1-production.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-48-6-b2-a1-production-${{ github.run_id }}
+          path: .ci-artifacts/comun-48-6-b2-a1-production/
+          retention-days: 30
+          if-no-files-found: warn
