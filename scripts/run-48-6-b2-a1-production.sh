@@ -19,6 +19,12 @@ esac
 mkdir -p "$ARTIFACT_DIR"
 summary() { printf '%s\n' "$*" >> "${GITHUB_STEP_SUMMARY:-/dev/stdout}"; }
 fail() { echo "$1" >&2; printf '{"terminal":"%s"}\n' "$1" > "$ARTIFACT_DIR/closeout.json"; exit 1; }
+TEMP_ROOT="${RUNNER_TEMP:-$(mktemp -d)}/comun-b2-a1-${GITHUB_RUN_ID:-local}-$$"
+mkdir -p "$TEMP_ROOT"
+VERCEL_META_FILE=".vercel/project.json"
+mkdir -p .vercel
+cleanup() { rm -rf "$TEMP_ROOT"; rm -f "$VERCEL_META_FILE"; rmdir .vercel 2>/dev/null || true; }
+trap cleanup EXIT
 
 test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA" || fail COMUN_48_6_B2_A1_BLOCKED_MAIN_DRIFT
 git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
@@ -41,11 +47,21 @@ NODE
 
 test -n "${VERCEL_TOKEN:-}" -a -n "${VERCEL_TEAM_ID:-}" -a -n "${VERCEL_CANONICAL_PROJECT_ID:-}" || fail COMUN_48_6_B2_A1_BLOCKED_VERCEL_BINDING
 curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" \
-  "https://api.vercel.com/v9/projects/$VERCEL_CANONICAL_PROJECT_ID/env?teamId=$VERCEL_TEAM_ID&decrypt=true" \
+  "https://api.vercel.com/v9/projects/$VERCEL_CANONICAL_PROJECT_ID/env?teamId=$VERCEL_TEAM_ID&decrypt=false" \
   > "$ARTIFACT_DIR/vercel-env.json"
-node - "$ARTIFACT_DIR/vercel-env.json" > "$ARTIFACT_DIR/flags.json" <<'NODE'
+printf '{"orgId":"%s","projectId":"%s"}\n' "$VERCEL_TEAM_ID" "$VERCEL_CANONICAL_PROJECT_ID" > "$VERCEL_META_FILE"
+npx --yes vercel@50.28.0 env pull "$TEMP_ROOT/production.env" --environment=production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_TEAM_ID" > /dev/null
+node - "$ARTIFACT_DIR/vercel-env.json" "$TEMP_ROOT/production.env" > "$ARTIFACT_DIR/flags.json" <<'NODE'
 const fs = require('node:fs');
 const body = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+const env = new Map();
+for (const line of fs.readFileSync(process.argv[3], 'utf8').split(/\r?\n/)) {
+  const match = line.match(/^([A-Z0-9_]+)=(.*)$/);
+  if (!match) continue;
+  let value = match[2];
+  if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1).replaceAll('\\"', '"');
+  env.set(match[1], value);
+}
 const rows = Array.isArray(body.envs) ? body.envs : [];
 const keys = [
   'COMUN_CULTURAL_SPECIALIZED_HANDOFF_ENABLED',
@@ -65,7 +81,8 @@ for (const key of keys) {
     target: project[0]?.target ?? [],
     gitBranch: project[0]?.gitBranch ?? null,
     customEnvironmentIds: project[0]?.customEnvironmentIds ?? [],
-    valueState: state(project[0]?.value),
+    // raw Vercel metadata is never used as the flag value source
+    valueState: state(env.get(key)),
     valid,
   };
 }
