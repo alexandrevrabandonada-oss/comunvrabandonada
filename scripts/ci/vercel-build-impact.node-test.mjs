@@ -7,8 +7,8 @@ import {
   commitMessageFromGit,
 } from "./vercel-build-impact.mjs";
 
-const preview = (files) =>
-  classifyBuildImpact({ files, vercelEnv: "preview", commitRef: "feature/test" });
+const preview = (files, overrides = {}) =>
+  classifyBuildImpact({ files, vercelEnv: "preview", commitRef: "feature/test", ...overrides });
 
 test("docs-only preview is ignored", () => {
   assert.deepEqual(preview(["docs/x.md"]), {
@@ -105,19 +105,19 @@ test("missing or unsupported Vercel environment requires build", () => {
   );
 });
 
-test("production always requires build", () => {
-  assert.equal(
+test("production classifies safe-only diffs after impact analysis", () => {
+  assert.deepEqual(
     classifyBuildImpact({
       files: ["docs/x.md"],
       vercelEnv: "production",
-      commitRef: "feature/test",
-    }).decision,
-    "BUILD",
+      commitRef: "main",
+    }),
+    { decision: "IGNORE", reason: "no-runtime-allowlist" },
   );
   assert.equal(
     classifyBuildImpact({
-      files: ["docs/x.md"],
-      vercelEnv: "preview",
+      files: ["app/page.tsx"],
+      vercelEnv: "production",
       commitRef: "main",
     }).decision,
     "BUILD",
@@ -138,7 +138,7 @@ test("git diff falls back closed on invalid revisions", () => {
   assert.deepEqual(result, { available: false, files: [] });
 });
 
-test("codex runtime without checkpoint is ignored", () => {
+test("Codex runtime without checkpoint is ignored", () => {
   assert.deepEqual(
     classifyBuildImpact({
       files: ["app/page.tsx"],
@@ -151,7 +151,7 @@ test("codex runtime without checkpoint is ignored", () => {
   );
 });
 
-test("codex runtime checkpoint requires a Preview build", () => {
+test("Codex runtime checkpoint requires a Preview build", () => {
   assert.deepEqual(
     classifyBuildImpact({
       files: ["app/page.tsx"],
@@ -164,7 +164,7 @@ test("codex runtime checkpoint requires a Preview build", () => {
   );
 });
 
-test("production and main remain BUILD regardless of checkpoint", () => {
+test("production and main classify by impact regardless of checkpoint", () => {
   assert.equal(
     classifyBuildImpact({
       files: ["app/page.tsx"],
@@ -176,12 +176,12 @@ test("production and main remain BUILD regardless of checkpoint", () => {
   );
   assert.equal(
     classifyBuildImpact({
-      files: ["app/page.tsx"],
+      files: ["docs/x.md"],
       vercelEnv: "preview",
       commitRef: "main",
       commitMessage: "[comun-preview]",
     }).decision,
-    "BUILD",
+    "IGNORE",
   );
 });
 
@@ -251,5 +251,37 @@ test("commit message lookup fails closed and preserves the message", () => {
       spawn: () => ({ status: 0, stdout: "feat: checkpoint [comun-preview]\n" }),
     }),
     { available: true, message: "feat: checkpoint [comun-preview]\n" },
+  );
+});
+
+test("cumulative diff retains docs and builds when runtime is accumulated", () => {
+  const cumulative = changedFilesFromDiff({
+    base: "deployed-a",
+    head: "head-c",
+    spawn(command, args) {
+      if (args[0] === "diff") return { status: 0, stdout: "docs/b.md\nreports/c.md\n" };
+      return { status: 0, stdout: "resolved\n" };
+    },
+  });
+  assert.deepEqual(cumulative, {
+    available: true,
+    files: ["docs/b.md", "reports/c.md"],
+  });
+  assert.equal(
+    classifyBuildImpact({ files: cumulative.files, vercelEnv: "production", commitRef: "main" }).decision,
+    "IGNORE",
+  );
+
+  const accumulatedRuntime = changedFilesFromDiff({
+    base: "deployed-a",
+    head: "head-c",
+    spawn(command, args) {
+      if (args[0] === "diff") return { status: 0, stdout: "docs/b.md\napp/page.tsx\n" };
+      return { status: 0, stdout: "resolved\n" };
+    },
+  });
+  assert.equal(
+    classifyBuildImpact({ files: accumulatedRuntime.files, vercelEnv: "production", commitRef: "main" }).decision,
+    "BUILD",
   );
 });
