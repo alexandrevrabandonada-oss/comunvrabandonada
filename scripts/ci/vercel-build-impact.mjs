@@ -55,14 +55,6 @@ export function hasPreviewCheckpoint(commitMessage) {
   return String(commitMessage ?? "").includes(PREVIEW_CHECKPOINT_MARKER);
 }
 
-function isProduction({ vercelEnv, commitRef }) {
-  return (
-    vercelEnv === "production" ||
-    commitRef === "main" ||
-    commitRef === "refs/heads/main"
-  );
-}
-
 function isSafeNoRuntimePath(file) {
   if (file.startsWith("docs/") || file.startsWith("reports/")) return true;
   if (file.startsWith(".github/workflows/")) return true;
@@ -97,10 +89,6 @@ export function classifyBuildImpact({
     return { decision: "BUILD", reason: "environment-inconsistent" };
   }
 
-  if (isProduction({ vercelEnv, commitRef })) {
-    return { decision: "BUILD", reason: "production-build" };
-  }
-
   if (!commitRef) {
     return { decision: "BUILD", reason: "environment-inconsistent" };
   }
@@ -122,7 +110,11 @@ export function classifyBuildImpact({
   );
   if (unsafeFile) {
     const reason = buildReason(unsafeFile);
-    if (isCodexBranch(commitRef) && reason === "runtime-path-change") {
+    if (
+      vercelEnv === "preview" &&
+      isCodexBranch(commitRef) &&
+      reason === "runtime-path-change"
+    ) {
       if (!commitMessageAvailable) {
         return { decision: "BUILD", reason: "commit-message-unavailable" };
       }
