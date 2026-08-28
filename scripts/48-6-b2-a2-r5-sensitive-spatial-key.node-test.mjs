@@ -34,6 +34,7 @@ test("R5 uses metadata-only race and postchecks with no artifact values", () => 
   assert.doesNotMatch(runner, /productionKey|secretValue|ciphertext/);
   assert.match(runner, /POSTCHECK_JSON/);
   assert.match(runner, /const written=writtenArg==='true'/);
+  assert.match(runner, /provenance:'r5_independent_random_32_bytes'/);
   assert.doesNotMatch(runner, /ARTIFACT_DIR\/postcheck\.json/);
 });
 
