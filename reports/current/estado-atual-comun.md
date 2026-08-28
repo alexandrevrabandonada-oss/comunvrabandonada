@@ -1,20 +1,14 @@
-## Estado atual — 48.6-B2-A2: bloqueado com segurança por chave HMAC espacial não pronta; mapa OFF (27/08/2026)
+## Estado atual — 48.6-B2-A2: matching coletivo privado ativo; mapa OFF (28/08/2026)
 
-Estado de execução: implementação local concluída e PRs #412/#414 integradas; o preflight Production `33090800027` foi executado contra `origin/main` `a264c4aabd71dfcf65cf25f7b5403d60105705e5`. A migration B2-A2 ainda não foi aplicada em Production, o mapa permanece OFF/ausente e nenhuma escrita remota foi feita neste slice.
+Terminal atual: `COMUN_48_6_B2_A2_PRIVATE_COLLECTIVE_MATCHING_GREEN_MAP_OFF`.
 
-Terminal atual: `COMUN_48_6_B2_A2_BLOCKED_SPATIAL_HMAC_KEY_NOT_READY`.
+- Main final: `8926a78080aeae9ebca7fdbe3df3f83f19a83e2f`. A migration B2-A2 foi aplicada exatamente uma vez no R6; o postflight R7 `33196364701` confirmou `migrationCount=1`, RPCs presentes, RLS/FORCE RLS e acesso direto de anon/authenticated fechado.
+- `COMUN_RELATA_LOCATION_ENABLED` e `COMUN_RELATA_COLLECTIVE_ENABLED` estão ON e Production-only. Location key e spatial HMAC key são `sensitive`; nenhum valor foi lido. O R7 não fez escrita de schema, env ou dados de negócio.
+- O smoke read-only sem cookie para grouping retorna `401 {"code":"wallet_authority_required"}`: runtime coletivo aberto e boundary de posse alcançado. Item válido sem ownership continua opaco; nenhum ID interno entra no DTO.
+- Mapa e API pública permanecem 404/cloaked; `projectionRows=0`, `confirmationRows=0`, `publicMapProduction=false`. Não houve relato, opt-in, associação real, Pauta, Ação, publicação ou envio oficial.
+- B2-A3 não foi iniciado. O próximo limite é o primeiro ciclo real, zero-code por padrão e somente com relatos reais/consentimento da própria pessoa.
 
-- O binding Vercel canônico passou; A3/A4 continuam ON, encrypted e Production-only, sem drift. A validação fail-closed não encontrou as chaves server-side em formato base64url de 32 bytes, especialmente a `COMUN_RELATA_SPATIAL_HMAC_KEY` necessária para matching privado. Nenhum valor foi exposto.
-- O runner parou antes de Supabase, migration, deployment e qualquer escrita; `ProductionSchemaWrites=0`, `ProductionBusinessWrites=0`, `ProductionEnvWrites=0`, fixtures=0, projections=0 e confirmations=0.
-- Não provisionar segredo em Git/código e não executar nova tentativa até as duas chaves distintas serem disponibilizadas pelo canal operacional autorizado. B2-A3 não foi iniciado.
-
-- O matcher reutiliza os modelos coletivos B0/B1 e `deriveComunRelataMatchPlan()` (`relata-match-v1`), sem tabela, fila, ontologia, embeddings, LLM ou comparação de texto. O cliente fornece somente `walletItemId`; ownership, consentimento B1, localização privada e elegibilidade são revalidados server-side.
-- O auto-match Production é limitado a `public_lighting`, `power_distribution` e `smoke_or_environmental_trace`, somente com opt-in público explícito ativo e decisão `auto_link_high_confidence`. Seeds B1 são reconciliados; medium/low confidence permanecem sem vínculo.
-- Revogação do opt-in e retirada do relato desativam memberships/chaves e recalculam coletivos sem apagar eventos. O painel mostra apenas `waiting`/`matched`, sem IDs ou contagens privadas.
-- A prova descartável real está codificada em workflow Supabase local; o runner de Production exige plano exato de uma única migration, preserva a exceção externa de Calçadas e mantém o mapa OFF. Docker local indisponível impediu execução local, sem transformar isso em prova GREEN.
-- Gates locais: contrato B2-A2 6/6, unit 1.282/1.282, typecheck, lint, build, `node --check` e `git diff --check` GREEN. CI/Preview/Production permanecem pendentes.
-
-Relatório: `reports/current/comun-48-6-b2-a2-private-collective-matching.md`.
+Relatórios: `reports/current/comun-48-6-b2-a2-private-collective-matching.md` e `reports/current/comun-48-6-b2-a2-rollout.md`.
 
 ## Estado atual — 48.6-B2-A1: ponte de problema coletivo para Pauta viva ativa; mapa OFF (27/08/2026)
 

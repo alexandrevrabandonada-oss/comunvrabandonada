@@ -1,12 +1,12 @@
 # COMUN 48.6-B2-A2 — Agrupamento coletivo privado determinístico
 
-## Estado desta entrega
+## Estado final — R7
 
-- Parent/main auditado: `7d9ec53a3e92b81a7c212eb121558924a2bbf3e9`.
-- Branch: `codex/48-6-b2-a2-private-collective-matching`.
-- Implementação em revisão; migration Production ainda não aplicada.
-- `COMUN_DENUNCIAS_PUBLIC_MAP_ENABLED`: preservada OFF/ausente.
-- `projectionRows=0`, `confirmationRows=0`; nenhum dado de Production foi usado como fixture ou alvo de matching.
+- Main final: `8926a78080aeae9ebca7fdbe3df3f83f19a83e2f` (merge da PR #422).
+- A migration `20260827120000_comun_denuncias_private_collective_matching.sql` foi aplicada exatamente uma vez pelo rollout R6; o postflight R7 confirmou `migrationCount=1` em transação read-only.
+- `COMUN_RELATA_LOCATION_ENABLED` e `COMUN_RELATA_COLLECTIVE_ENABLED` estão ON, canônicas e Production-only. A chave de localização permanece `sensitive` e preservada; a chave espacial permanece `sensitive`, provisionada no R5, sem readback.
+- O smoke canônico sem cookie nem carteira retornou `401 {"code":"wallet_authority_required"}`. Assim, feature fechada continua distinta de falta de autoridade, sem revelar posse ou existência de item.
+- `COMUN_DENUNCIAS_PUBLIC_MAP_ENABLED` permanece ausente/OFF; `projectionRows=0`, `confirmationRows=0`. Nenhum relato, opt-in, associação real, Pauta, Ação ou envio oficial foi criado.
 
 ## Decisão arquitetural
 
@@ -40,25 +40,21 @@ O painel da Carteira expõe apenas `waiting` ou `matched`. `matched` significa r
 - `future_map_eligibility` não é alterado.
 - Música, emergências, saúde, educação, proteção infantil, workplace, `other`, categorias sensíveis e riscos de retaliação permanecem fora do auto-match.
 
-## Verificação
+## Verificação final
 
-- `npm run test:b2-a2:contract`: GREEN, 6/6.
-- `npm run test:unit`: GREEN, 1.282/1.282 testes, 229 arquivos.
-- `npm run typecheck`: GREEN.
-- `npm run lint`: GREEN.
-- `npm run build`: GREEN; rotas B2-A2 compiladas.
-- `node --check scripts/48-6-b2-a2-contract.node-test.mjs`: GREEN.
-- `git diff --check`: GREEN.
-- Prova Supabase descartável: executada pelo workflow CI; não foi alegada localmente porque o daemon Docker desta máquina estava indisponível.
-- Production rollout: pendente de merge, preflight e plano exato; nenhuma escrita remota realizada nesta etapa.
+- R6 preflight `33188064971`, promote `33188221233` e postflight independente `33188568844`: GREEN no main `d56412929053ae288082c0a9db29ee633503af7c`.
+- R7: PR #422 validada no checkpoint `259aace3b276ac73e153b8baf04dabc30f2f1ec4`; 26 checks remotos success e 74 não aplicáveis skipped; merge `8926a78080aeae9ebca7fdbe3df3f83f19a83e2f`.
+- Testes locais R7: rota holder-only, contrato B2-A2, `test:unit` (1.287), typecheck, lint, build, experiência, jornadas, superfícies, segurança, qualidade, Civic Intelligence e Civic Graph: GREEN.
+- Smoke Production R7: grouping sem carteira `401 wallet_authority_required`; `/comun/denuncias`, `/comun/relatar` e `/comun/minha-participacao` retornaram 200; mapa e API pública do mapa retornaram 404/cloak.
+- Postflight R7 `33196364701`: GREEN/read-only, com RLS/FORCE RLS, grants service-role-only e zero projeções/confirmações.
 
-## Terminal de implementação
+## Terminal final
 
-`COMUN_48_6_B2_A2_PRIVATE_COLLECTIVE_MATCHING_IMPLEMENTED_MAP_OFF_AWAITING_DISPOSABLE_CI`
+`COMUN_48_6_B2_A2_PRIVATE_COLLECTIVE_MATCHING_GREEN_MAP_OFF`
 
-O terminal funcional só poderá ser declarado depois da prova Supabase descartável GREEN, gates remotos, rollout de schema controlado e postflight read-only. Nenhuma etapa B2-A3 foi iniciada.
+O próximo limite é B2-A3, zero-code por padrão. Ele não foi iniciado.
 
-## Bloqueio de preflight Production — chave HMAC espacial não pronta
+## Histórico — bloqueio inicial de preflight por chave HMAC espacial
 
 O código e a prova descartável foram integrados no PR #412 e o ajuste
 operacional de binding Vercel foi integrado no PR #414 (`a264c4aabd71dfcf65cf25f7b5403d60105705e5`). O preflight Production foi
