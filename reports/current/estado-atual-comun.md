@@ -28,6 +28,18 @@ Estado terminal: `COMUN_48_6_B2_A1_COLLECTIVE_PROBLEM_TO_PAUTA_ACTION_BRIDGE_GRE
 
 Relatório: `reports/current/comun-48-6-b2-a1-problem-to-pauta-action-bridge.md`.
 
+## Estado atual — 48.6-B2-A2-R5: chave espacial Production provisionada com contrato `sensitive` (28/08/2026)
+
+Terminal: `COMUN_48_6_B2_A2_R5_SPATIAL_SENSITIVE_KEY_PROVISIONED_READY_FOR_PREFLIGHT`.
+
+- PRs #418, #419 e #420 foram mergeadas; main final: `f2116b63045df3453de689a3eea52a6447217df4`.
+- `locationKeyType=sensitive`; `locationKeyProvenance=P3B_RUNTIME_VALIDATED`; `locationKeyWrites=0`.
+- `spatialKeyType=sensitive`; `spatialKeyGeneratedByR5=true`; Production-only, sem valor recuperado; `secretReadback=false`.
+- Houve exatamente uma escrita de env em Production, somente para `COMUN_RELATA_SPATIAL_HMAC_KEY`; as reruns posteriores foram reconciliações sem nova escrita. `ProductionSchemaWrites=0`; `ProductionBusinessWrites=0`; `B2A2MigrationCount=0`.
+- O sanitizer de artifact foi executado de fato por Node; nenhum valor de segredo, token, ciphertext ou material de chave foi persistido em artifact, summary ou relatório.
+- Deploy Production e smokes do run `33172112649` passaram. Coletivo e mapa continuam OFF; `projectionRows=0`; `confirmationRows=0`; não houve matcher, Pauta, Ação, envio oficial ou fixture Production.
+- A0–A3, A4 e A5 permanecem preservados. R6 não foi iniciado.
+
 ## Estado anterior — 48.6-B2-A0: opt-in contextual pós-relato ativo; mapa OFF (26/08/2026)
 
 Estado terminal: `COMUN_48_6_B2_A0_REPORT_TO_COLLECTIVE_OPTIN_GREEN_MAP_OFF`.
