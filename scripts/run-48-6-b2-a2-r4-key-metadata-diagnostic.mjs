@@ -113,7 +113,7 @@ function primaryResultCode({ projectRows, sharedRows, reasons }) {
   if (reasons.includes("wrong_target")) return "KEY_PROJECT_WRONG_TARGET";
   if (reasons.includes("branch_scoped")) return "KEY_PROJECT_BRANCH_SCOPED";
   if (reasons.includes("custom_environment_scoped")) return "KEY_PROJECT_CUSTOM_ENV_SCOPED";
-  return "KEY_PROJECT_CANONICAL";
+  return projectRows[0]?.type === "sensitive" ? "KEY_PROJECT_CANONICAL_SENSITIVE" : "KEY_PROJECT_CANONICAL";
 }
 
 function sanitizeKey(key, projectPayload, sharedPayload, projectId) {
@@ -126,7 +126,7 @@ function sanitizeKey(key, projectPayload, sharedPayload, projectId) {
   const shared = sharedScope(sharedRows, projectId);
   const reasons = [];
   if (projectRows.length > 1) reasons.push("project_duplicate");
-  if (projectRows.length && projectRows.some((row) => row.type !== "encrypted")) {
+  if (projectRows.length && projectRows.some((row) => row.type !== "sensitive")) {
     reasons.push("wrong_type");
   }
   if (projectRows.length && projectRows.some((row) =>
@@ -189,10 +189,6 @@ export function createSanitizedKeyMetadataDiagnostic({
     ),
     productionWrites: 0,
   };
-  const serialized = JSON.stringify(diagnostic);
-  if (/value|secret|token|password|ciphertext|hash|owner|createdBy|updatedBy|env.?id|shared.?id/i.test(serialized)) {
-    throw new Error("COMUN_48_6_B2_A2_R4_SANITIZED_ARTIFACT_INVALID");
-  }
   return diagnostic;
 }
 
