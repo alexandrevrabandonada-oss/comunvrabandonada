@@ -82,3 +82,14 @@ permanece pending e o mapa continua OFF. A próxima tentativa só é segura
 após provisionamento operacional das duas chaves distintas pelo canal de
 segredos já autorizado; nenhum segredo deve ser criado no Git, no relatório
 ou no código.
+
+## R5 — contrato `sensitive` e provisionamento write-only da chave espacial
+
+- Parent/main de entrada: `d97b225d4e731c4987e365c595a66363c7f058f6`; PR #418 foi mergeada e o novo main passou a `cf0130cba52c8a027c2903b002f038c782f5897a`.
+- O diagnóstico R4 corrigido foi executado contra esse main no run `33171352318`: location key canônica `sensitive`, Production-only, project-level; spatial key ausente; `productionWrites=0`; sanitizer Node realmente executado.
+- A primeira execução R5 (`33171402245`) gerou e provisionou uma única chave espacial aleatória de 32 bytes, `sensitive`, Production-only, sem readback. O workflow falhou somente no caminho interno do `postcheck.json`; o artifact confirmou o write sem conter o valor.
+- As correções mínimas foram mergeadas nos PRs #419 e #420. As reruns encontraram a chave existente e não fizeram novo write; o sanitizer também bloqueou corretamente um artifact incompleto antes da correção final.
+- A execução final foi o run `33172112649`, contra o main `f2116b63045df3453de689a3eea52a6447217df4`, e fechou GREEN com postcheck, deploy Production e smokes. O artifact confirma location `sensitive` preservada e não escrita; spatial `sensitive` Production-only com proveniência R5; `secretReadback=false`; sanitizer executado; schema/business writes `0` nessa reconciliação. O total do R5 foi exatamente `ProductionEnvWrites=1`, exclusivamente para a spatial key.
+- `B2A2MigrationCount=0`, `COMUN_RELATA_COLLECTIVE_ENABLED` permanece OFF, `COMUN_DENUNCIAS_PUBLIC_MAP_ENABLED` permanece OFF/ausente, `projectionRows=0`, `confirmationRows=0`, nenhum matcher real foi executado e nenhum envio oficial ocorreu. A location key não foi lida, rotacionada ou recriada.
+
+Terminal R5: `COMUN_48_6_B2_A2_R5_SPATIAL_SENSITIVE_KEY_PROVISIONED_READY_FOR_PREFLIGHT`.
