@@ -69,12 +69,22 @@ test("B2-A2 API and holder panel expose no internal relationship identifiers", (
   );
   assert.match(route, /walletItemId/);
   assert.match(route, /collectiveConnection/);
+  assert.match(route, /wallet_authority_required/);
+  assert.match(route, /wallet_item_required/);
   assert.doesNotMatch(route, /associate_collective\("/);
   assert.doesNotMatch(route, /case_id|report_id|membership_id|collective_case_id/);
   assert.match(panel, /waiting/);
   assert.match(panel, /matched/);
   assert.match(panel, /outro relato compatível/);
   assert.doesNotMatch(panel, /collective_case_id|membership_id|case_id|report_id/);
+});
+
+test("B2-A2 runtime smoke distinguishes the enabled feature from missing wallet authority", () => {
+  const runner = read("scripts/run-48-6-b2-a2-production.sh");
+  assert.match(runner, /api\/comun\/relata\/evidence\/grouping/);
+  assert.match(runner, /test "\$grouping_code" = 401/);
+  assert.match(runner, /wallet_authority_required/);
+  assert.doesNotMatch(runner, /test "\$grouping_code" = 404/);
 });
 
 test("B2-A2 stops implicit matching before explicit opt-in", () => {

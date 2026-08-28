@@ -220,6 +220,12 @@ NODE
   node - "$ARTIFACT_DIR/flags-post.json" <<'NODE'
 const fs=require('node:fs');const x=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));const exactOn=v=>v.projectCount===1&&v.sharedCount===0&&v.type==='encrypted'&&v.valueState==='ON'&&v.target.length===1&&v.target[0]==='production'&&v.valid;if(!exactOn(x.a3)||!exactOn(x.a4)||!exactOn(x.collective)||x.map.valueState==='ON')throw new Error('COMUN_48_6_B2_A2_BLOCKED_POST_DEPLOY_FLAG_STATE');
 NODE
+  grouping_smoke="$TEMP_ROOT/grouping-smoke.json"
+  grouping_code="$(curl -sS -o "$grouping_smoke" -w '%{http_code}' "$COMUN_BASE_URL/api/comun/relata/evidence/grouping")"
+  test "$grouping_code" = 401 || fail COMUN_48_6_B2_A2_R7_BLOCKED_AUTHORITY_STATE_NOT_DISTINCT
+  node - "$grouping_smoke" <<'NODE'
+const fs=require('node:fs');const x=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));if(x.code!=='wallet_authority_required')throw new Error('COMUN_48_6_B2_A2_R7_BLOCKED_AUTHORITY_STATE_NOT_DISTINCT');
+NODE
   for route in /comun/denuncias /comun/relatar /comun/minha-participacao; do code="$(curl -L -sS -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL$route")"; test "$code" = 200 || fail COMUN_48_6_B2_A2_SMOKE_FAILED; code="$(curl -L -sS -I -o /dev/null -w '%{http_code}' "$COMUN_BASE_URL$route")"; test "$code" = 200 || fail COMUN_48_6_B2_A2_SMOKE_FAILED; done
   summary 'COMUN_48_6_B2_A2_PRIVATE_COLLECTIVE_MATCHING_GREEN_MAP_OFF'
   summary 'projectionRows=0 confirmationRows=0 futureMapEligibilityUnchanged=true automaticPautaCreation=false automaticCollectiveActionCreation=false automaticOfficialSend=false ProductionBusinessWrites=0 externalOfficialSends=0'
