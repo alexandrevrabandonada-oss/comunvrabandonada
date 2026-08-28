@@ -26,6 +26,8 @@ TEMP_ROOT="${RUNNER_TEMP:-$(mktemp -d)}/comun-b2-a2-${GITHUB_RUN_ID:-local}-$$"
 mkdir -p "$TEMP_ROOT"
 PROJECT_JSON="$TEMP_ROOT/project.json"
 SHARED_JSON="$TEMP_ROOT/shared.json"
+SHARED_LOCATION_JSON="$TEMP_ROOT/shared-location.json"
+SHARED_SPATIAL_JSON="$TEMP_ROOT/shared-spatial.json"
 ENV_FILE="$TEMP_ROOT/production.env"
 HELD_SIDEWALK="$TEMP_ROOT/sidewalk.sql"
 SIDEEWALK_HELD=false
@@ -69,6 +71,10 @@ curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" \
   "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env?teamId=$VERCEL_ORG_ID&decrypt=false&limit=100" > "$PROJECT_JSON"
 curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" \
   "https://api.vercel.com/v1/env?teamId=$VERCEL_ORG_ID&search=COMUN_RELATA_COLLECTIVE_ENABLED&limit=100" > "$SHARED_JSON"
+curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" \
+  "https://api.vercel.com/v1/env?teamId=$VERCEL_ORG_ID&search=COMUN_RELATA_LOCATION_ENCRYPTION_KEY&limit=100" > "$SHARED_LOCATION_JSON"
+curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" \
+  "https://api.vercel.com/v1/env?teamId=$VERCEL_ORG_ID&search=COMUN_RELATA_SPATIAL_HMAC_KEY&limit=100" > "$SHARED_SPATIAL_JSON"
 npx --yes vercel@50.28.0 env pull "$ENV_FILE" --environment=production --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
 node - "$PROJECT_JSON" "$SHARED_JSON" "$ENV_FILE" "$ARTIFACT_DIR/flags-pre.json" <<'NODE'
 const fs=require('node:fs');
@@ -98,12 +104,15 @@ const map=x.COMUN_DENUNCIAS_PUBLIC_MAP_ENABLED;if(!(map.projectCount===0&&map.sh
 const collective=x.COMUN_RELATA_COLLECTIVE_ENABLED;if(!(collective.projectCount<=1&&collective.sharedCount===0&&collective.valid&&['ON','OFF','UNKNOWN'].includes(collective.valueState)))throw new Error('COMUN_48_6_B2_A2_BLOCKED_COLLECTIVE_ENV_DRIFT');
 NODE
 
-node - "$ENV_FILE" "$ARTIFACT_DIR/keys.json" <<'NODE'
-const fs=require('node:fs');const env={};for(const line of fs.readFileSync(process.argv[2],'utf8').split(/\r?\n/)){const m=line.match(/^([A-Z0-9_]+)=(.*)$/);if(m)env[m[1]]=m[2].replace(/^"|"$/g,'');}
-const valid=k=>{try{return Buffer.from(env[k]??'','base64url').length===32}catch{return false}};
-if(!valid('COMUN_RELATA_LOCATION_ENCRYPTION_KEY')||!valid('COMUN_RELATA_SPATIAL_HMAC_KEY'))throw new Error('COMUN_48_6_B2_A2_BLOCKED_SPATIAL_HMAC_KEY_NOT_READY');
-if(env.COMUN_RELATA_LOCATION_ENCRYPTION_KEY===env.COMUN_RELATA_SPATIAL_HMAC_KEY)throw new Error('COMUN_48_6_B2_A2_BLOCKED_IDENTICAL_KEYS');
-fs.writeFileSync(process.argv[3],JSON.stringify({locationKeyValid:true,spatialKeyValid:true,keysDistinct:true})+'\n');
+node - "$PROJECT_JSON" "$SHARED_LOCATION_JSON" "$SHARED_SPATIAL_JSON" "$ARTIFACT_DIR/keys.json" <<'NODE'
+const fs=require('node:fs');
+const project=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));const rows=project.envs??project.data??project;
+const shared=(file,key)=>{const x=JSON.parse(fs.readFileSync(file,'utf8'));return (x.envs??x.data??x).filter(v=>v.key===key).length;};
+const exact=(key)=>{const a=rows.filter(v=>v.key===key&&(v.target??[]).includes('production'));return a.length===1&&a[0].type==='sensitive'&&JSON.stringify(a[0].target??[])===JSON.stringify(['production'])&&a[0].gitBranch==null&&!(a[0].customEnvironmentIds??[]).length;};
+if(!exact('COMUN_RELATA_LOCATION_ENCRYPTION_KEY'))throw new Error('COMUN_48_6_B2_A2_R5_BLOCKED_LOCATION_KEY_METADATA_DRIFT');
+if(!exact('COMUN_RELATA_SPATIAL_HMAC_KEY'))throw new Error('COMUN_48_6_B2_A2_R5_BLOCKED_SPATIAL_HMAC_KEY_NOT_READY');
+if(shared(process.argv[3],'COMUN_RELATA_LOCATION_ENCRYPTION_KEY')!==0||shared(process.argv[4],'COMUN_RELATA_SPATIAL_HMAC_KEY')!==0)throw new Error('COMUN_48_6_B2_A2_R5_BLOCKED_SHARED_KEY_DUPLICATE');
+fs.writeFileSync(process.argv[5],JSON.stringify({locationKey:'VALIDATED_EXISTING_SENSITIVE',spatialKey:'VALIDATED_SENSITIVE',secretReadback:false,keysDistinct:'runtime_guard_preserved'})+'\n');
 NODE
 
 psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 > "$ARTIFACT_DIR/preflight.json" <<SQL

@@ -2,11 +2,13 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
+import { spawnSync } from "node:child_process";
 
 import {
   canonicalVercelBinding,
   createSanitizedKeyMetadataDiagnostic,
 } from "./run-48-6-b2-a2-r4-key-metadata-diagnostic.mjs";
+import { validateR4Artifact } from "./assert-sanitized-artifact.mjs";
 
 const location = "COMUN_RELATA_LOCATION_ENCRYPTION_KEY";
 const spatial = "COMUN_RELATA_SPATIAL_HMAC_KEY";
@@ -41,20 +43,21 @@ test("absence is classified without inventing metadata", () => {
 
 test("canonical project metadata is recognized", () => {
   const result = createSanitizedKeyMetadataDiagnostic({
-    projectPayload: baseProject([{ key: location, type: "encrypted", target: ["production"] }]),
+    projectPayload: baseProject([{ key: location, type: "sensitive", target: ["production"] }]),
     sharedLocationPayload: shared(),
     sharedSpatialPayload: shared(),
   });
   assert.deepEqual(result.locationKey.projectTargets, ["production"]);
-  assert.equal(result.locationKey.resultCode, "KEY_PROJECT_CANONICAL");
+  assert.equal(result.locationKey.resultCode, "KEY_PROJECT_CANONICAL_SENSITIVE");
+  validateR4Artifact(result);
 });
 
 test("preview combinations, plain values, branches, and custom environments are surfaced as reasons", () => {
   const result = createSanitizedKeyMetadataDiagnostic({
     projectPayload: baseProject([
-      { key: location, type: "encrypted", target: ["production", "preview"] },
+      { key: location, type: "sensitive", target: ["production", "preview"] },
       { key: spatial, type: "plain", target: ["production"], gitBranch: "feature/test" },
-      { key: spatial, type: "encrypted", target: ["production"], customEnvironmentIds: ["custom-1"] },
+      { key: spatial, type: "sensitive", target: ["production"], customEnvironmentIds: ["custom-1"] },
     ]),
     sharedLocationPayload: shared(),
     sharedSpatialPayload: shared(),
@@ -69,8 +72,8 @@ test("preview combinations, plain values, branches, and custom environments are 
 test("shared linkage is classified without exposing project identifiers", () => {
   const result = createSanitizedKeyMetadataDiagnostic({
     projectPayload: baseProject(),
-    sharedLocationPayload: shared([{ key: location, type: "encrypted", target: ["production"], projectIds: [canonicalVercelBinding.projectId] }]),
-    sharedSpatialPayload: shared([{ key: spatial, type: "encrypted", target: ["production"], projects: [{ id: "other-project" }, { id: canonicalVercelBinding.projectId }] }]),
+    sharedLocationPayload: shared([{ key: location, type: "sensitive", target: ["production"], projectIds: [canonicalVercelBinding.projectId] }]),
+    sharedSpatialPayload: shared([{ key: spatial, type: "sensitive", target: ["production"], projects: [{ id: "other-project" }, { id: canonicalVercelBinding.projectId }] }]),
   });
   assert.equal(result.locationKey.resultCode, "KEY_SHARED_ONLY");
   assert.equal(result.locationKey.sharedLinkedToThisProject, true);
@@ -82,7 +85,7 @@ test("shared linkage is classified without exposing project identifiers", () => 
 test("shared variables not linked to this project remain distinguishable", () => {
   const result = createSanitizedKeyMetadataDiagnostic({
     projectPayload: baseProject(),
-    sharedLocationPayload: shared([{ key: location, type: "encrypted", target: ["production"], projectId: ["other-project"] }]),
+    sharedLocationPayload: shared([{ key: location, type: "sensitive", target: ["production"], projectId: ["other-project"] }]),
     sharedSpatialPayload: shared(),
   });
   assert.equal(result.locationKey.resultCode, "KEY_SHARED_ONLY");
@@ -92,7 +95,7 @@ test("shared variables not linked to this project remain distinguishable", () =>
 
 test("project and shared together retain both sources", () => {
   const result = createSanitizedKeyMetadataDiagnostic({
-    projectPayload: baseProject([{ key: location, type: "encrypted", target: ["production"] }]),
+    projectPayload: baseProject([{ key: location, type: "sensitive", target: ["production"] }]),
     sharedLocationPayload: shared([{ key: location, target: ["production"], projectId: canonicalVercelBinding.projectId }]),
     sharedSpatialPayload: shared(),
   });
@@ -102,13 +105,21 @@ test("project and shared together retain both sources", () => {
 
 test("value and id-shaped fields are never propagated", () => {
   const result = createSanitizedKeyMetadataDiagnostic({
-    projectPayload: baseProject([{ key: location, type: "encrypted", target: ["production"], value: "secret-value", id: "env-secret" }]),
+    projectPayload: baseProject([{ key: location, type: "sensitive", target: ["production"], value: "secret-value", id: "env-secret" }]),
     sharedLocationPayload: shared([{ key: location, value: "shared-secret", id: "shared-secret-id", createdBy: "owner" }]),
     sharedSpatialPayload: shared(),
   });
   const serialized = JSON.stringify(result);
   assert.doesNotMatch(serialized, /secret-value|shared-secret|env-secret|shared-secret-id|createdBy|value/i);
   assert.equal(result.productionWrites, 0);
+});
+
+test("the real sanitizer rejects forbidden fields even when rg is unavailable", () => {
+  const file = path.resolve(import.meta.dirname, ".r5-forbidden-artifact-test.json");
+  fs.writeFileSync(file, JSON.stringify({ locationKey: { present: true, type: "sensitive", productionOnly: true, provenance: "p3b_runtime_validated", written: false }, spatialKey: { present: true, type: "sensitive", productionOnly: true, provenance: "r5_independent_random_32_bytes", generatedShape: "32_byte_base64url", written: true }, secretReadback: false, productionEnvWrites: 1, productionSchemaWrites: 0, productionBusinessWrites: 0, artifactSanitizerActuallyExecuted: true, value: "secret-value" }));
+  const result = spawnSync(process.execPath, [path.resolve(import.meta.dirname, "assert-sanitized-artifact.mjs"), file, "r5"], { env: { PATH: "" }, encoding: "utf8" });
+  fs.rmSync(file, { force: true });
+  assert.notEqual(result.status, 0);
 });
 
 test("decrypted responses fail closed", () => {

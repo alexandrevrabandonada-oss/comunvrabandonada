@@ -13,7 +13,7 @@ test("R1 is Production-only and uses the canonical project", () => {
   assert.match(workflow, /team_LBVwyK8FQMO7tA3hzVXXeumF/);
   assert.match(workflow, /prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X/);
   assert.match(workflow, /environment: production/);
-  assert.match(runner, /target: \["production"\]/);
+  assert.match(runner, /productionOnly/);
   assert.doesNotMatch(runner, /(?:target|environment|env add)[^\n]*(?:preview|development)/i);
 });
 
@@ -22,10 +22,11 @@ test("R1 never exposes or persists secret values", () => {
   assert.doesNotMatch(runner, /\.ci-artifacts[^\n]*(?:LOCATION|SPATIAL)_KEY_FILE/i);
   assert.doesNotMatch(runner, /summary\([^\n]*(?:LOCATION|SPATIAL)_KEY_FILE/i);
   assert.doesNotMatch(runner, /console\.log|process\.stdout\.write\(.*env|getenv/i);
-  assert.match(runner, /rm -f .*LOCATION_KEY_FILE/);
+  assert.match(runner, /rm -f .*SPATIAL_KEY_FILE/);
   assert.match(runner, /trap cleanup EXIT/);
-  assert.match(runner, /validShape/);
-  assert.match(runner, /keysDistinct/);
+  assert.doesNotMatch(runner, /vercel(?:@[^ ]+)?\s+env\s+pull/i);
+  assert.doesNotMatch(runner, /validShape|keysDistinct|Buffer\.from\([^\n]*LOCATION/i);
+  assert.match(runner, /secretReadback:false/);
 });
 
 test("R1 blocks key rotation when dependent rows exist", () => {
@@ -37,16 +38,17 @@ test("R1 blocks key rotation when dependent rows exist", () => {
 
 test("R1 has no schema migration, business write, or map enable", () => {
   assert.doesNotMatch(runner, /supabase db push|migration repair|db reset|seed/i);
-  assert.match(runner, /productionBusinessWrites=0/);
-  assert.match(runner, /productionSchemaWrites=0/);
-  assert.match(runner, /map=OFF_OR_ABSENT/);
+  assert.match(runner, /businessWrites.*0/);
+  assert.match(runner, /schemaWrites.*0/);
+  assert.match(runner, /map.*OFF_OR_ABSENT/);
   assert.doesNotMatch(runner, /COMUN_RELATA_COLLECTIVE_ENABLED.*enabled/);
 });
 
-test("R1 creates only encrypted Production envs and checks the result", () => {
-  assert.match(runner, /type: "encrypted"/);
+test("R1 treats both cryptographic keys as sensitive Production-only variables", () => {
+  assert.match(runner, /env add COMUN_RELATA_SPATIAL_HMAC_KEY production --sensitive/);
+  assert.doesNotMatch(runner, /type: "encrypted"/);
   assert.match(runner, /v10\/projects\/\$VERCEL_PROJECT_ID\/env\?teamId=/);
   assert.match(runner, /v10\/projects\/\$VERCEL_PROJECT_ID\/env\?teamId=.*decrypt=false/);
   assert.match(runner, /BLOCKED_KEY_POSTCHECK/);
-  assert.match(runner, /SECRET_PROVISIONING_GREEN_READY_FOR_PREFLIGHT/);
+  assert.match(runner, /SENSITIVE_KEYS_READY_FOR_PREFLIGHT/);
 });

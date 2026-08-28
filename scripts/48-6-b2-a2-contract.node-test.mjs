@@ -51,6 +51,17 @@ test("B2-A2 production rollout scopes the plan and flag mutation", () => {
   assert.match(workflow, /comun-48-6-b2-a2-production/);
 });
 
+test("future production runner validates crypto key metadata without secret readback", () => {
+  const runner = read("scripts/run-48-6-b2-a2-production.sh");
+  assert.match(runner, /type==='sensitive'/);
+  assert.match(runner, /R5_BLOCKED_LOCATION_KEY_METADATA_DRIFT/);
+  assert.match(runner, /R5_BLOCKED_SPATIAL_HMAC_KEY_NOT_READY/);
+  assert.match(runner, /secretReadback:false/);
+  assert.doesNotMatch(runner, /env\.get\(['"]COMUN_RELATA_(?:LOCATION_ENCRYPTION|SPATIAL_HMAC)_KEY/);
+  assert.doesNotMatch(runner, /Buffer\.from\(env\[/);
+  assert.doesNotMatch(runner, /keysDistinct\s*=|IDENTICAL_KEYS/);
+});
+
 test("B2-A2 API and holder panel expose no internal relationship identifiers", () => {
   const route = read("app/api/comun/relata/evidence/grouping/route.ts");
   const panel = read(

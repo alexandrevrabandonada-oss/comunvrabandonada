@@ -75,8 +75,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$(find .ci-artifacts/comun-48-6-b2-a2-r4-key-metadata -type f | wc -l)" = 1
-          ! rg -n -i 'value|token|password|ciphertext|hash|createdBy|updatedBy|owner|env.?id|shared.?id|prj_|team_' .ci-artifacts/comun-48-6-b2-a2-r4-key-metadata/diagnostic.json
-          jq -e '.productionWrites == 0' .ci-artifacts/comun-48-6-b2-a2-r4-key-metadata/diagnostic.json >/dev/null
+          node scripts/assert-sanitized-artifact.mjs .ci-artifacts/comun-48-6-b2-a2-r4-key-metadata/diagnostic.json r4
 
       - name: Publish sanitized diagnostic summary
         env:
