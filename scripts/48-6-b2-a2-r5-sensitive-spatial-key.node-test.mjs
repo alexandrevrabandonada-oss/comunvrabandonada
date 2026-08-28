@@ -32,6 +32,9 @@ test("R5 uses metadata-only race and postchecks with no artifact values", () => 
   assert.match(runner, /artifactSanitizerActuallyExecuted:true/);
   assert.doesNotMatch(runner, /--data[^\n]*@.*spatial\.key/);
   assert.doesNotMatch(runner, /productionKey|secretValue|ciphertext/);
+  assert.match(runner, /POSTCHECK_JSON/);
+  assert.match(runner, /const written=writtenArg==='true'/);
+  assert.doesNotMatch(runner, /ARTIFACT_DIR\/postcheck\.json/);
 });
 
 test("legacy R1 entrypoint has the write-only sensitive contract too", () => {

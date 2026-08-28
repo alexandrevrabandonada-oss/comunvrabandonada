@@ -13,6 +13,7 @@ SHARED_LOCATION_JSON="$TEMP_ROOT/shared-location.json"
 SHARED_SPATIAL_JSON="$TEMP_ROOT/shared-spatial.json"
 COUNTS_JSON="$TEMP_ROOT/counts.json"
 SPATIAL_KEY_FILE="$TEMP_ROOT/spatial.key"
+POSTCHECK_JSON="$TEMP_ROOT/postcheck.json"
 
 mkdir -p "$ARTIFACT_DIR" "$TEMP_ROOT"
 chmod 700 "$TEMP_ROOT"
@@ -90,11 +91,11 @@ else
 fi
 
 fetch_metadata || fail COMUN_48_6_B2_A2_R5_BLOCKED_VERCEL_READ
-node - "$PROJECT_JSON" "$SHARED_LOCATION_JSON" "$SHARED_SPATIAL_JSON" "$ARTIFACT_DIR/postcheck.json" <<'NODE'
-const fs=require('node:fs');const [projectPath,locationPath,spatialPath,outPath]=process.argv.slice(2);const p=JSON.parse(fs.readFileSync(projectPath,'utf8'));const rows=p.envs??p.data??p;const read=q=>{const x=JSON.parse(fs.readFileSync(q,'utf8'));return x.envs??x.data??x;};const count=(q,k)=>read(q).filter(x=>x.key===k).length;const exact=k=>{const a=rows.filter(x=>x.key===k&&(x.target??[]).includes('production'));return a.length===1&&a[0].type==='sensitive'&&JSON.stringify(a[0].target??[])===JSON.stringify(['production'])&&a[0].gitBranch==null&&!(a[0].customEnvironmentIds??[]).length;};if(!exact('COMUN_RELATA_LOCATION_ENCRYPTION_KEY')||!exact('COMUN_RELATA_SPATIAL_HMAC_KEY'))throw new Error('COMUN_48_6_B2_A2_R5_BLOCKED_KEY_POSTCHECK');if(count(locationPath,'COMUN_RELATA_LOCATION_ENCRYPTION_KEY')!==0||count(spatialPath,'COMUN_RELATA_SPATIAL_HMAC_KEY')!==0)throw new Error('COMUN_48_6_B2_A2_R5_BLOCKED_SHARED_KEY_DUPLICATE');fs.writeFileSync(outPath,JSON.stringify({locationKey:{present:true,type:'sensitive',productionOnly:true,provenance:'p3b_runtime_validated',written:false},spatialKey:{present:true,type:'sensitive',productionOnly:true,generatedShape:'32_byte_base64url',written:true},secretReadback:false},null,2)+'\n');
+node - "$PROJECT_JSON" "$SHARED_LOCATION_JSON" "$SHARED_SPATIAL_JSON" "$POSTCHECK_JSON" "$spatial_written" <<'NODE'
+const fs=require('node:fs');const [projectPath,locationPath,spatialPath,outPath,writtenArg]=process.argv.slice(2);const p=JSON.parse(fs.readFileSync(projectPath,'utf8'));const rows=p.envs??p.data??p;const read=q=>{const x=JSON.parse(fs.readFileSync(q,'utf8'));return x.envs??x.data??x;};const count=(q,k)=>read(q).filter(x=>x.key===k).length;const exact=k=>{const a=rows.filter(x=>x.key===k&&(x.target??[]).includes('production'));return a.length===1&&a[0].type==='sensitive'&&JSON.stringify(a[0].target??[])===JSON.stringify(['production'])&&a[0].gitBranch==null&&!(a[0].customEnvironmentIds??[]).length;};if(!exact('COMUN_RELATA_LOCATION_ENCRYPTION_KEY')||!exact('COMUN_RELATA_SPATIAL_HMAC_KEY'))throw new Error('COMUN_48_6_B2_A2_R5_BLOCKED_KEY_POSTCHECK');if(count(locationPath,'COMUN_RELATA_LOCATION_ENCRYPTION_KEY')!==0||count(spatialPath,'COMUN_RELATA_SPATIAL_HMAC_KEY')!==0)throw new Error('COMUN_48_6_B2_A2_R5_BLOCKED_SHARED_KEY_DUPLICATE');const written=writtenArg==='true';fs.writeFileSync(outPath,JSON.stringify({locationKey:{present:true,type:'sensitive',productionOnly:true,provenance:'p3b_runtime_validated',written:false},spatialKey:{present:true,type:'sensitive',productionOnly:true,generatedShape:'32_byte_base64url',written},secretReadback:false},null,2)+'\n');
 NODE
 
-node - "$TEMP_ROOT/postcheck.json" "$spatial_written" <<'NODE'
+node - "$POSTCHECK_JSON" "$spatial_written" <<'NODE'
 const fs=require('node:fs');const post=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));const wrote=process.argv[3]==='true';if(!post.locationKey.present||post.locationKey.written||post.spatialKey.written!==wrote)throw new Error('COMUN_48_6_B2_A2_R5_BLOCKED_POSTCHECK');const out={locationKey:post.locationKey,spatialKey:post.spatialKey,secretReadback:false,productionEnvWrites:wrote?1:0,productionSchemaWrites:0,productionBusinessWrites:0,artifactSanitizerActuallyExecuted:true};fs.writeFileSync('.ci-artifacts/comun-48-6-b2-a2-r5-spatial-key/diagnostic.json',JSON.stringify(out,null,2)+'\n');
 NODE
 node scripts/assert-sanitized-artifact.mjs "$ARTIFACT_DIR/diagnostic.json" r5 || fail COMUN_48_6_B2_A2_R5_BLOCKED_ARTIFACT_SANITIZER_NOT_EXECUTED
