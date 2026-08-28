@@ -1,3 +1,16 @@
+## Estado atual — 48.6-B2-A3: nenhum coletivo real formado; mapa OFF (28/08/2026)
+
+Terminal: `COMUN_48_6_B2_A3_NO_REAL_MATCHED_COLLECTIVE_YET_MAP_OFF`.
+
+- A capacidade de agrupamento privado determinístico continua pronta, mas a última evidência Production sanitizada do R7 registrou zero associação real entre relatos, zero projeções e zero confirmações.
+- O único avanço posterior foi documental: a PR #423 atualizou os relatórios e foi mesclada sem alteração funcional, schema, ambiente ou dados de negócio.
+- Não foi criado relato, consentimento, membership, coletivo, candidate, projection, confirmação, Pauta, Ação ou envio oficial durante este ciclo.
+- O mapa e sua API continuam fechados (`/comun/denuncias/mapa` e a API pública em `404`); `publicMapProduction=false`.
+- O inventário direto do banco foi tentado em modo read-only, mas o conector desta sessão recusou o projeto. Nenhum caminho alternativo foi usado e nenhum dado privado foi lido.
+- Próximo passo: adoção real do Relata. Não iniciar B2-A4 nem construir infraestrutura adicional até existir coletivo real formado pelo fluxo normal.
+
+Contagens sanitizadas confirmadas: `realMatchedCollectives=0`, `projectionRows=0`, `confirmationRows=0`, `ProductionSchemaWrites=0`, `ProductionEnvWrites=0`, `ProductionBusinessWrites=0`.
+
 ## Estado atual — 48.6-B2-A2: matching coletivo privado ativo; mapa OFF (28/08/2026)
 
 Terminal atual: `COMUN_48_6_B2_A2_PRIVATE_COLLECTIVE_MATCHING_GREEN_MAP_OFF`.
