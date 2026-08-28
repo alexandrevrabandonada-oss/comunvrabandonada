@@ -19,6 +19,20 @@ function unavailable() {
   );
 }
 
+function authorityRequired() {
+  return NextResponse.json(
+    { code: "wallet_authority_required" },
+    { status: 401, headers: COMUN_RELATA_EVIDENCE_NO_STORE },
+  );
+}
+
+function walletItemRequired() {
+  return NextResponse.json(
+    { code: "wallet_item_required" },
+    { status: 400, headers: COMUN_RELATA_EVIDENCE_NO_STORE },
+  );
+}
+
 function readWalletItemId(request: NextRequest) {
   const value = request.nextUrl.searchParams.get("walletItemId");
   return value && /^[0-9a-f-]{36}$/i.test(value) ? value : null;
@@ -28,7 +42,8 @@ export async function GET(request: NextRequest) {
   if (!isComunRelataCollectiveEnabled()) return unavailable();
   const token = readWalletToken(request);
   const walletItemId = readWalletItemId(request);
-  if (!token || !walletItemId) return unavailable();
+  if (!token) return authorityRequired();
+  if (!walletItemId) return walletItemRequired();
   try {
     const { data, error } = await walletDb().rpc(
       "comun_relata_collective_connection_for_wallet",
@@ -53,7 +68,8 @@ export async function POST(request: NextRequest) {
   if (!isComunRelataCollectiveEnabled()) return unavailable();
   const token = readWalletToken(request);
   const walletItemId = readWalletItemId(request);
-  if (!token || !walletItemId) return unavailable();
+  if (!token) return authorityRequired();
+  if (!walletItemId) return walletItemRequired();
   try {
     const grouping = await associateComunRelataCollectiveForWallet(
       walletDb(),
