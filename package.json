@@ -266,6 +266,7 @@
     "test:b2-a2:contract": "node --test scripts/48-6-b2-a2-contract.node-test.mjs scripts/48-6-b2-a2-r1-secret-provisioning.node-test.mjs",
     "test:b2-a2:r4:metadata": "node --test scripts/48-6-b2-a2-r4-key-metadata-diagnostic.node-test.mjs",
     "test:b2-a2:r5:secrets": "node --test scripts/48-6-b2-a2-r5-sensitive-spatial-key.node-test.mjs scripts/assert-sanitized-artifact.node-test.mjs",
+    "test:cost-04": "node --test scripts/ci/vercel-production-redeploy-causality.node-test.mjs scripts/ci/vercel-production-redeploy-causality-contract.node-test.mjs",
     "smoke:pauta-miniapp": "node --experimental-strip-types scripts/smoke-comun-pauta-miniapp.mjs",
     "test:pauta-miniapp-local-db": "node scripts/test-pauta-miniapp-local-db.mjs",
     "smoke:protocol-follow": "node scripts/smoke-comun-protocol-follow.mjs",

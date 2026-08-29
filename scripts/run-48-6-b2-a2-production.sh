@@ -29,6 +29,7 @@ SHARED_JSON="$TEMP_ROOT/shared.json"
 SHARED_LOCATION_JSON="$TEMP_ROOT/shared-location.json"
 SHARED_SPATIAL_JSON="$TEMP_ROOT/shared-spatial.json"
 ENV_FILE="$TEMP_ROOT/production.env"
+DEPLOYMENTS_JSON="$TEMP_ROOT/production-deployments.json"
 HELD_SIDEWALK="$TEMP_ROOT/sidewalk.sql"
 SIDEEWALK_HELD=false
 
@@ -152,6 +153,53 @@ plan_and_maybe_apply(){
   if [[ "$MODE" == promote ]]; then supabase db push --db-url "$SUPABASE_DB_URL" > "$ARTIFACT_DIR/push.txt" 2>&1; fi
   restore_sidewalk
 }
+
+create_production_deployment() {
+  local deploy_out url
+  deploy_out="$TEMP_ROOT/deploy.out"
+  npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" > "$deploy_out"
+  url="$(grep -Eo 'https://[^[:space:]]+' "$deploy_out" | tail -n1 | tr -d '\r')"
+  case "$url" in https://*.vercel.app) ;; *) fail COMUN_48_6_B2_A2_BLOCKED_DEPLOYMENT ;; esac
+  npx --yes vercel@50.28.0 inspect "$url" --wait --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+  npx --yes vercel@50.28.0 promote "$url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+  npx --yes vercel@50.28.0 alias set "$url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+}
+
+causal_production_redeploy() {
+  local env_key="$1" env_write="$2" decision_json decision needs_build needs_promotion url i
+  for i in $(seq 0 15); do
+    curl --proto '=https' --tlsv1.2 --fail --silent --show-error --max-time 10 --max-redirs 0 \
+      -G -H "Authorization: Bearer $VERCEL_TOKEN" \
+      --data-urlencode "projectId=$VERCEL_PROJECT_ID" --data-urlencode "teamId=$VERCEL_ORG_ID" \
+      --data-urlencode "target=production" --data-urlencode "limit=100" \
+      "https://api.vercel.com/v6/deployments" > "$DEPLOYMENTS_JSON" || fail COMUN_COST_04_BLOCKED_DEPLOYMENT_FRESHNESS_UNKNOWN
+    decision_json="$TEMP_ROOT/causal-decision.json"
+    node scripts/ci/vercel-production-redeploy-causality.mjs \
+      --deployments="$DEPLOYMENTS_JSON" --env-metadata="$PROJECT_JSON" --env-key="$env_key" \
+      --exact-sha="$EXPECTED_MAIN_SHA" --env-write="$env_write" --canonical-domain="$COMUN_BASE_URL" > "$decision_json"
+    decision="$(node -e "process.stdout.write(JSON.parse(require('node:fs').readFileSync('$decision_json')).decision)")"
+    needs_build="$(node -e "process.stdout.write(String(JSON.parse(require('node:fs').readFileSync('$decision_json')).needsBuild))")"
+    needs_promotion="$(node -e "process.stdout.write(String(JSON.parse(require('node:fs').readFileSync('$decision_json')).needsPromotion))")"
+    if [[ "$decision" == WAIT_FOR_EXISTING_EXACT_SHA ]]; then
+      if [[ "$i" -lt 15 ]]; then sleep 20; continue; fi
+      decision=BUILD_REQUIRED_WAIT_TIMEOUT
+      needs_build=true
+    fi
+    summary "cost04CausalDecision=$decision envKey=$env_key envWriteOccurred=$env_write"
+    if [[ "$needs_build" == true ]]; then
+      create_production_deployment
+      return 0
+    fi
+    url="$(node -e "const x=JSON.parse(require('node:fs').readFileSync('$decision_json'));process.stdout.write(x.deploymentUrl||'')")"
+    if [[ "$needs_promotion" == true ]]; then
+      case "$url" in https://*.vercel.app) ;; *) fail COMUN_COST_04_BLOCKED_DEPLOYMENT_FRESHNESS_UNKNOWN ;; esac
+      npx --yes vercel@50.28.0 promote "$url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+      npx --yes vercel@50.28.0 alias set "$url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+    fi
+    return 0
+  done
+  fail COMUN_COST_04_BLOCKED_DEPLOYMENT_FRESHNESS_UNKNOWN
+}
 if [[ "$MODE" == preflight || "$MODE" == promote ]]; then plan_and_maybe_apply; fi
 if [[ "$MODE" == preflight ]]; then summary 'COMUN_48_6_B2_A2_PREFLIGHT_GREEN_EXACT_ONE_OR_ALREADY_APPLIED'; exit 0; fi
 
@@ -203,11 +251,14 @@ NODE
     elif [[ "$collective_state" == ON ]]; then
       printf '{"envWrites":0,"desiredState":"ON","rawValuePersisted":false}\n' > "$ARTIFACT_DIR/collective-write.json"
     else fail COMUN_48_6_B2_A2_BLOCKED_COLLECTIVE_ENV_STATE; fi
-    npx --yes vercel@50.28.0 deploy --prod --skip-domain --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" > "$TEMP_ROOT/deploy.out"
-    url="$(grep -Eo 'https://[^[:space:]]+' "$TEMP_ROOT/deploy.out" | tail -n1 | tr -d '\r')"; case "$url" in https://*.vercel.app) ;; *) fail COMUN_48_6_B2_A2_BLOCKED_DEPLOYMENT ;; esac
-    npx --yes vercel@50.28.0 inspect "$url" --wait --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
-    npx --yes vercel@50.28.0 promote "$url" --yes --timeout=5m --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
-    npx --yes vercel@50.28.0 alias set "$url" comunsocial.online --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" >/dev/null
+    curl --proto '=https' --tlsv1.2 --fail --silent --show-error --max-time 10 --max-redirs 0 \
+      -H "Authorization: Bearer $VERCEL_TOKEN" \
+      "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env?teamId=$VERCEL_ORG_ID&decrypt=false&limit=100" > "$PROJECT_JSON" \
+      || fail COMUN_COST_04_BLOCKED_ENV_CAUSALITY_UNKNOWN
+    causal_production_redeploy COMUN_RELATA_COLLECTIVE_ENABLED "$(node - "$ARTIFACT_DIR/collective-write.json" <<'NODE'
+const fs=require('node:fs');process.stdout.write(JSON.parse(fs.readFileSync(process.argv[2],'utf8')).envWrites===1?'true':'false');
+NODE
+)"
   fi
   curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" \
     "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env?teamId=$VERCEL_ORG_ID&decrypt=false&limit=100" > "$PROJECT_JSON"
