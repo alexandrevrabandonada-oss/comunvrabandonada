@@ -121,6 +121,10 @@ export function QuickCaptureV2({
   const [notice, setNotice] = useState<string | null>(null);
   const [interactions, setInteractions] = useState(0);
   const [showMap, setShowMap] = useState(false);
+  const [postReportStep, setPostReportStep] = useState<
+    "summary" | "next_action"
+  >("summary");
+  const postReportNextStepRef = useRef<HTMLDivElement>(null);
 
   const sendMetric = (
     eventType: string,
@@ -337,6 +341,7 @@ export function QuickCaptureV2({
       setReceipt(value.receipt);
       setWalletRecoveryCode(value.walletRecoveryCode ?? null);
       setWalletItemId(value.walletItemId ?? null);
+      setPostReportStep("summary");
       sendMetric("protocol_issued");
       const hadLocation = Boolean(
         locationEnabled && point && locationMode !== "skip",
@@ -404,6 +409,21 @@ export function QuickCaptureV2({
     }
   }
 
+  const safetyFirst = Boolean(
+    receipt &&
+      (receipt.urgency === "emergency" ||
+        receipt.category === "child_protection" ||
+        decision?.childSafetySignal),
+  );
+  const nextActionVisible = postReportStep === "next_action" || safetyFirst;
+
+  function showNextAction() {
+    setPostReportStep("next_action");
+    window.requestAnimationFrame(() =>
+      postReportNextStepRef.current?.focus({ preventScroll: true }),
+    );
+  }
+
   return (
     <ComunShell
       showSyntheticNotice={false}
@@ -415,7 +435,7 @@ export function QuickCaptureV2({
           data-comun-quick-capture-v2="true"
           data-comun-capture-hydrated={hydrated ? "true" : "false"}
         >
-          <header className="grid gap-2">
+          {!receipt ? <header className="grid gap-2">
             <p className="comun-v2-eyebrow">COMUN Relata</p>
             <h1 className="text-3xl font-black leading-tight sm:text-4xl">
               Vi um problema
@@ -425,7 +445,7 @@ export function QuickCaptureV2({
                 ? "Conte com uma frase ou tire uma foto. Você pode completar depois."
                 : "Uma frase basta. Você pode completar depois."}
             </p>
-          </header>
+          </header> : null}
           {!receipt ? (
             <>
               <section
@@ -679,188 +699,139 @@ export function QuickCaptureV2({
               ) : null}
             </>
           ) : (
-            <section
-              className="grid gap-4 border-2 border-comun-black bg-white p-4 shadow-[5px_5px_0_#0b0b0a]"
-              aria-live="polite"
-            >
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-comun-muted">
-                Status
-              </p>
-              <h2 className="text-3xl font-black">
-                {receipt.state === "captured_private"
-                  ? "Guardado no COMUN"
-                  : labelForState(receipt.state)}
-              </h2>
-              <div className="border-2 border-comun-black bg-comun-yellow p-4">
-                <p className="text-xs font-black uppercase">Protocolo COMUN</p>
-                <p className="mt-1 break-all font-mono text-xl font-black">
-                  {receipt.protocol}
-                </p>
-              </div>
-              <p className="border-l-4 border-comun-yellow bg-comun-paper p-3 font-black">
-                Ainda não encaminhado. Nada foi publicado.
-              </p>
-              {receipt.category !== "other" &&
-              decision?.confidence !== "low" ? (
-                <p className="border-2 border-comun-black bg-comun-paper p-3 font-bold">
-                  Entendi como:{" "}
-                  {COMUN_RELATA_CATEGORY_LABELS[
-                    receipt.category as keyof typeof COMUN_RELATA_CATEGORY_LABELS
-                  ] ?? "Categoria em revisão"}
-                </p>
-              ) : null}
-              {receipt.category === "public_health" &&
-              decision?.healthIssueType ? (
-                <p className="text-sm font-bold">
-                  {HEALTH_ISSUE_TYPE_LABELS[decision.healthIssueType]}
-                </p>
-              ) : null}
-              {receipt.category === "public_education" &&
-              decision?.educationIssueType ? (
-                <p className="text-sm font-bold">
-                  {EDUCATION_ISSUE_TYPE_LABELS[decision.educationIssueType]}
-                </p>
-              ) : null}
-              {receipt.category === "child_protection" ? (
-                <div className="grid gap-2 border-2 border-comun-black bg-comun-paper p-3">
-                  <p className="font-black">Guardado com proteção reforçada</p>
-                  <p className="text-sm font-bold">
-                    Este registro não será publicado.
+            <>
+              <section
+                className="grid gap-4 border-2 border-comun-black bg-white p-4 shadow-[5px_5px_0_#0b0b0a]"
+                aria-live="polite"
+              >
+                <h2 className="text-3xl font-black">
+                  {receipt.state === "captured_private"
+                    ? "Guardado no COMUN"
+                    : labelForState(receipt.state)}
+                </h2>
+                <div className="border-2 border-comun-black bg-comun-yellow p-4">
+                  <p className="text-xs font-black uppercase">Protocolo COMUN</p>
+                  <p className="mt-1 break-all font-mono text-xl font-black">
+                    {receipt.protocol}
                   </p>
                 </div>
+                {walletRecoveryCode ? (
+                  <div className="border-2 border-comun-black bg-[#f8f2e6] p-4">
+                    <p className="text-xs font-black uppercase">
+                      Código de recuperação
+                    </p>
+                    <p className="mt-2 break-all font-mono text-lg font-black tracking-wider">
+                      {walletRecoveryCode}
+                    </p>
+                    <p className="mt-2 text-sm">
+                      Guarde este código para recuperar seus registros depois.
+                    </p>
+                  </div>
+                ) : null}
+                <p className="border-l-4 border-comun-yellow bg-comun-paper p-3 font-black">
+                  Nada foi enviado. Nada foi publicado.
+                </p>
+                {receipt.category !== "other" && decision?.confidence !== "low" ? (
+                  <div className="grid gap-1 border-2 border-comun-black bg-comun-paper p-3">
+                    <p className="text-xs font-black uppercase">Entendi como</p>
+                    <p className="font-black">
+                      {COMUN_RELATA_CATEGORY_LABELS[
+                        receipt.category as keyof typeof COMUN_RELATA_CATEGORY_LABELS
+                      ] ?? "Categoria em revisão"}
+                    </p>
+                    {receipt.category === "public_health" && decision?.healthIssueType ? (
+                      <p className="text-sm font-bold">
+                        {HEALTH_ISSUE_TYPE_LABELS[decision.healthIssueType]}
+                      </p>
+                    ) : null}
+                    {receipt.category === "public_education" && decision?.educationIssueType ? (
+                      <p className="text-sm font-bold">
+                        {EDUCATION_ISSUE_TYPE_LABELS[decision.educationIssueType]}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+                {receipt.category === "child_protection" ? (
+                  <div className="grid gap-2 border-2 border-comun-black bg-comun-paper p-3">
+                    <p className="font-black">Guardado com proteção reforçada</p>
+                    <p className="text-sm font-bold">Este registro não será publicado.</p>
+                  </div>
+                ) : null}
+                {!nextActionVisible ? (
+                  <div className="grid gap-3 border-2 border-comun-black bg-comun-asphalt p-4 text-comun-paper">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.14em] text-comun-yellow">
+                        Próximo passo
+                      </p>
+                      <p className="mt-1 text-lg font-black">
+                        {receipt.category === "public_education"
+                          ? "Precisamos saber qual rede atende essa escola."
+                          : "Veja a orientação mais útil para este caso."}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={showNextAction}
+                      className="min-h-12 w-fit border-2 border-comun-paper bg-comun-yellow px-5 py-3 text-sm font-black text-comun-black"
+                    >
+                      Continuar
+                    </button>
+                  </div>
+                ) : null}
+              </section>
+
+              {nextActionVisible ? (
+                <div ref={postReportNextStepRef} tabIndex={-1} className="grid gap-4 outline-none">
+                  {decision ? <ComunDenunciasRoutingGuidePanel decision={decision} /> : null}
+                  {publicHealthSensitiveRoutingEnabled && receipt.category === "public_health" ? (
+                    <ComunHealthChannelsPanel emergency={receipt.urgency === "emergency"} />
+                  ) : null}
+                  {publicEducationSensitiveRoutingEnabled && receipt.category === "public_education" ? (
+                    <ComunEducationChannelsPanel
+                      childSafetySignal={Boolean(decision?.childSafetySignal)}
+                      emergency={receipt.urgency === "emergency"}
+                    />
+                  ) : null}
+                  {childProtectionPrivateRoutingEnabled && receipt.category === "child_protection" ? (
+                    <ComunChildProtectionChannelsPanel immediateDanger={decision?.immediateDanger === true} />
+                  ) : null}
+                  {receipt.category === "sidewalk_accessibility" ? (
+                    <section className="grid gap-2 border-2 border-comun-black p-3">
+                      <p className="font-black">Quer completar para entrar no Mapa das Calçadas?</p>
+                      <p className="text-sm">Condição, impacto e local serão acrescentados a este mesmo relato e protocolo. Nada será publicado sem revisão humana.</p>
+                      <Link href="/comun/calcadas/contribuir?continuar=relato-atual" className="inline-flex min-h-11 w-fit items-center border-2 border-comun-black bg-white px-4 py-2 text-sm font-black">Completar para o mapa</Link>
+                    </section>
+                  ) : null}
+                  {(essentialServicesEnabled || publicHealthSensitiveRoutingEnabled || publicEducationSensitiveRoutingEnabled || childProtectionPrivateRoutingEnabled) && receipt.category === "other" && isPhotoOnly ? (
+                    <div className="grid gap-2 border-2 border-comun-black p-3">
+                      <p className="font-black">Completar o contexto da foto</p>
+                      <p className="text-sm">A foto continua sem interpretação automática. Acrescente uma frase para classificar este mesmo relato, sem criar outro protocolo.</p>
+                      <label className="grid gap-1 text-sm font-bold">O que a foto mostra?
+                        <textarea value={semanticContext} onChange={(event) => setSemanticContext(event.target.value)} minLength={8} maxLength={600} className="border-2 border-comun-black p-3 font-normal" />
+                      </label>
+                      <button type="button" disabled={busy || semanticContext.trim().length < 8} onClick={classifyPhotoOnly} className="min-h-11 w-fit border-2 border-comun-black bg-comun-yellow px-4 font-black">Acrescentar ao mesmo relato</button>
+                    </div>
+                  ) : null}
+                </div>
               ) : null}
-              {decision ? (
-                <ComunDenunciasRoutingGuidePanel decision={decision} />
-              ) : null}
-              {walletItemId &&
-              isComunPublicProjectionOptInCategory(receipt.category) &&
-              receipt.state !== "withdrawn" ? (
-                <PublicProjectionConsentPanel walletItemId={walletItemId} />
-              ) : null}
-              {publicHealthSensitiveRoutingEnabled &&
-              receipt.category === "public_health" ? (
-                <ComunHealthChannelsPanel
-                  emergency={receipt.urgency === "emergency"}
-                />
-              ) : null}
-              {publicEducationSensitiveRoutingEnabled &&
-              receipt.category === "public_education" ? (
-                <ComunEducationChannelsPanel
-                  childSafetySignal={Boolean(decision?.childSafetySignal)}
-                  emergency={receipt.urgency === "emergency"}
-                />
-              ) : null}
-              {childProtectionPrivateRoutingEnabled &&
-              receipt.category === "child_protection" ? (
-                <ComunChildProtectionChannelsPanel
-                  immediateDanger={decision?.immediateDanger === true}
-                />
-              ) : null}
-              {receipt.category === "sidewalk_accessibility" ? (
-                <section className="grid gap-2 border-2 border-comun-black p-3">
-                  <p className="font-black">
-                    Quer completar para entrar no Mapa das Calçadas?
-                  </p>
-                  <p className="text-sm">
-                    Condição, impacto e local serão acrescentados a este mesmo
-                    relato e protocolo. Nada será publicado sem revisão humana.
-                  </p>
-                  <Link
-                    href="/comun/calcadas/contribuir?continuar=relato-atual"
-                    className="inline-flex min-h-11 w-fit items-center border-2 border-comun-black bg-white px-4 py-2 text-sm font-black"
-                  >
-                    Completar para o mapa
-                  </Link>
+
+              {nextActionVisible ? (
+                <section className="grid gap-4 border-t-2 border-comun-black pt-4" aria-labelledby="post-report-later">
+                  <h2 id="post-report-later" className="text-lg font-black">Depois</h2>
+                  {attachmentsEnabled || locationEnabled ? (
+                    <RelataEvidencePanel withdrawn={receipt.state === "withdrawn"} attachmentsEnabled={attachmentsEnabled} locationEnabled={locationEnabled} />
+                  ) : null}
+                  {walletItemId && isComunPublicProjectionOptInCategory(receipt.category) && receipt.state !== "withdrawn" ? (
+                    <PublicProjectionConsentPanel walletItemId={walletItemId} />
+                  ) : null}
+                  {essentialForwardingEnabled && walletItemId && isEssentialServiceCategory(receipt.category) ? (
+                    <ComunEssentialServicesPanel walletItemId={walletItemId} />
+                  ) : null}
+                  <Link href="/comun/minha-participacao" className="inline-flex min-h-11 w-fit items-center border-2 border-comun-black bg-white px-4 py-2 text-sm font-black" onClick={() => sendMetric("follow_up_started")}>Ver andamento</Link>
                 </section>
               ) : null}
-              {(essentialServicesEnabled ||
-                publicHealthSensitiveRoutingEnabled ||
-                publicEducationSensitiveRoutingEnabled ||
-                childProtectionPrivateRoutingEnabled) &&
-              receipt.category === "other" &&
-              isPhotoOnly ? (
-                <div className="grid gap-2 border-2 border-comun-black p-3">
-                  <p className="font-black">Completar o contexto da foto</p>
-                  <p className="text-sm">
-                    A foto continua sem interpretação automática. Acrescente uma
-                    frase para classificar este mesmo relato, sem criar outro
-                    protocolo.
-                  </p>
-                  <label className="grid gap-1 text-sm font-bold">
-                    O que a foto mostra?
-                    <textarea
-                      value={semanticContext}
-                      onChange={(event) =>
-                        setSemanticContext(event.target.value)
-                      }
-                      minLength={8}
-                      maxLength={600}
-                      className="border-2 border-comun-black p-3 font-normal"
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    disabled={busy || semanticContext.trim().length < 8}
-                    onClick={classifyPhotoOnly}
-                    className="min-h-11 w-fit border-2 border-comun-black bg-comun-yellow px-4 font-black"
-                  >
-                    Acrescentar ao mesmo relato
-                  </button>
-                </div>
-              ) : null}
-              <div className="grid gap-2 sm:grid-cols-2">
-                <Link
-                  href="/comun/minha-participacao"
-                  className="inline-flex min-h-11 items-center justify-center border-2 border-comun-black bg-comun-yellow px-4 py-2 text-sm font-black"
-                  onClick={() => sendMetric("follow_up_started")}
-                >
-                  Ver andamento
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => sendMetric("capture_completed")}
-                  className="min-h-11 border-2 border-comun-black bg-white px-4 py-2 text-sm font-black"
-                >
-                  Fazer depois
-                </button>
-              </div>
-              {essentialForwardingEnabled &&
-              walletItemId &&
-              isEssentialServiceCategory(receipt.category) ? (
-                <ComunEssentialServicesPanel walletItemId={walletItemId} />
-              ) : null}
-              {attachmentsEnabled || locationEnabled ? (
-                <p className="text-sm leading-6">
-                  As evidências opcionais permanecem privadas. Você pode
-                  complementar pelo recibo.
-                </p>
-              ) : null}
-            </section>
+            </>
           )}
-          {receipt && (attachmentsEnabled || locationEnabled) ? (
-            <RelataEvidencePanel
-              withdrawn={receipt.state === "withdrawn"}
-              attachmentsEnabled={attachmentsEnabled}
-              locationEnabled={locationEnabled}
-            />
-          ) : null}
-          {walletRecoveryCode ? (
-            <section
-              className="border-2 border-comun-black bg-[#f8f2e6] p-4"
-              aria-live="polite"
-            >
-              <p className="text-xs font-black uppercase">
-                Código de recuperação da carteira
-              </p>
-              <p className="mt-2 break-all font-mono text-lg font-black tracking-wider">
-                {walletRecoveryCode}
-              </p>
-              <p className="mt-2 text-sm">
-                Salve agora. Ele aparece somente neste momento e não está no
-                protocolo.
-              </p>
-            </section>
-          ) : null}
           {notice ? (
             <p
               role="alert"
@@ -869,7 +840,7 @@ export function QuickCaptureV2({
               {notice}
             </p>
           ) : null}
-          <aside className="border-2 border-comun-black bg-comun-asphalt p-4 text-sm leading-6 text-comun-paper">
+          {!receipt ? <aside className="border-2 border-comun-black bg-comun-asphalt p-4 text-sm leading-6 text-comun-paper">
             <p className="font-black text-comun-yellow">Sem envio automático</p>
             <p>
               Nenhum órgão público recebeu esta manifestação. Se houver
@@ -880,7 +851,7 @@ export function QuickCaptureV2({
                 As evidências ativadas continuam privadas e opcionais.
               </p>
             ) : null}
-          </aside>
+          </aside> : null}
         </main>
       </div>
     </ComunShell>
