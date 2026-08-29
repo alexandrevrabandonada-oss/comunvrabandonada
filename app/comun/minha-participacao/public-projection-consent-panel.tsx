@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { buildComunDenunciasSafeShareData } from "@/lib/comun-denuncias-public-opt-in";
 
 type ConsentState = {
   active: boolean;
@@ -16,6 +17,7 @@ export function PublicProjectionConsentPanel({
   const [state, setState] = useState<ConsentState | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [shareNotice, setShareNotice] = useState<string | null>(null);
 
   async function readCollectiveConnection() {
     const response = await fetch(
@@ -94,8 +96,8 @@ export function PublicProjectionConsentPanel({
       });
       setNotice(
         active
-          ? "Permissão registrada. O relato só poderá aparecer se todas as regras de segurança forem cumpridas."
-          : "Este relato não será usado no mapa. O relato e os encaminhamentos continuam intactos.",
+          ? "Permissão registrada. O COMUN pode comparar este relato com outros compatíveis; ele só poderá ter uso territorial público se todas as regras de segurança forem cumpridas."
+          : "Permissão retirada. O relato e os encaminhamentos continuam intactos.",
       );
     } catch {
       setNotice("Não foi possível atualizar essa permissão agora.");
@@ -106,18 +108,47 @@ export function PublicProjectionConsentPanel({
 
   if (!state?.available) return null;
 
+  async function shareComun() {
+    setShareNotice(null);
+    const shareData = buildComunDenunciasSafeShareData();
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        setShareNotice(
+          "Link público do COMUN compartilhado. Seu relato não vai junto.",
+        );
+        return;
+      }
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareData.url);
+        setShareNotice("Link público copiado. Seu relato não vai junto.");
+        return;
+      }
+      setShareNotice(
+        "Copie este link público para compartilhar: " + shareData.url,
+      );
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setShareNotice(
+        "Não foi possível compartilhar agora. Seu relato não foi enviado.",
+      );
+    }
+  }
+
   return (
     <section
       className="grid gap-2 border-t-2 border-comun-black/20 pt-3"
-      aria-label="Uso anônimo no mapa"
+      aria-label="Encontrar relatos parecidos na região"
     >
       {state.active ? (
         <>
-          <p className="font-black">Permissão registrada</p>
+          <p className="font-black">
+            Vamos verificar se isso também está acontecendo por perto
+          </p>
           <p className="text-sm">
-            Seu relato pode ajudar o COMUN a mostrar uma área aproximada onde
-            esse problema acontece. Isso não significa que ele já esteja no
-            mapa.
+            Seu relato continua privado. Se aparecer outro relato compatível, o
+            COMUN poderá reconhecer que o problema não é isolado. Hoje seu
+            relato não entra em mapa público.
           </p>
           <button
             type="button"
@@ -125,24 +156,35 @@ export function PublicProjectionConsentPanel({
             onClick={() => void update(false)}
             className="min-h-11 w-fit font-black underline"
           >
-            Não usar mais este relato no mapa
+            Não usar mais este relato no uso territorial
           </button>
-          <p className="text-sm font-bold" role="status">
-            {state.collectiveConnection === "matched"
-              ? "Encontramos outro relato compatível sobre este problema na região."
-              : "Seu relato está pronto para encontrar outros relatos parecidos."}
-          </p>
+          <div className="grid gap-1" aria-live="polite" role="status">
+            <p className="font-black">
+              {state.collectiveConnection === "matched"
+                ? "Isso não parece ser um caso isolado."
+                : "Seu relato está pronto para encontrar outros relatos parecidos."}
+            </p>
+            {state.collectiveConnection === "matched" ? (
+              <p className="text-sm">
+                Encontramos outro relato compatível sobre esse tipo de problema
+                na região. Os relatos continuam privados.
+              </p>
+            ) : null}
+          </div>
         </>
       ) : (
         <>
-          <p className="font-black">
-            Ajude a mostrar este problema no território
-          </p>
+          <p className="font-black">Isso também está acontecendo por perto?</p>
           <p className="text-sm">
-            Se você quiser, seu relato pode ajudar o COMUN a mostrar que este
-            tipo de problema está acontecendo nesta região. O mapa usa uma área
-            aproximada. Não mostramos seu nome, endereço, texto original, fotos
-            nem protocolo.
+            Se você permitir, o COMUN pode comparar este relato com outros
+            relatos compatíveis da região. Usamos uma área aproximada: não
+            mostramos seu nome, endereço exato, texto original, fotos nem
+            protocolo.
+          </p>
+          <p className="text-sm font-bold">
+            Este consentimento também poderá permitir uso territorial anônimo se
+            uma visualização pública segura for aberta no futuro. Hoje não há
+            mapa público deste relato.
           </p>
           <div className="flex flex-wrap gap-2">
             <button
@@ -151,7 +193,7 @@ export function PublicProjectionConsentPanel({
               onClick={() => void update(true)}
               className="min-h-11 border-2 border-comun-black bg-comun-yellow px-3 font-black"
             >
-              Permitir uso anônimo no mapa
+              Permitir uso territorial anônimo
             </button>
             <button
               type="button"
@@ -164,6 +206,26 @@ export function PublicProjectionConsentPanel({
           </div>
         </>
       )}
+      <section className="grid gap-2 border-2 border-comun-black bg-comun-paper p-3">
+        <p className="font-black">
+          Conhece alguém passando pelo mesmo problema?
+        </p>
+        <p className="text-sm">
+          Compartilhe só a porta pública do COMUN. Seu relato não vai junto.
+        </p>
+        <button
+          type="button"
+          onClick={() => void shareComun()}
+          className="min-h-11 w-fit border-2 border-comun-black bg-white px-3 font-black"
+        >
+          Compartilhar o COMUN
+        </button>
+        {shareNotice ? (
+          <p className="text-sm font-bold" role="status">
+            {shareNotice}
+          </p>
+        ) : null}
+      </section>
       {notice ? (
         <p role="status" className="text-sm font-bold">
           {notice}

@@ -492,6 +492,21 @@ export function QuickCaptureV2({
                     O local é opcional. A coordenada, se usada, fica
                     criptografada e nunca aparece exata no recibo.
                   </p>
+                  {decision &&
+                  !isEmergency &&
+                  isComunPublicProjectionOptInCategory(decision.category) ? (
+                    <div className="border-l-4 border-comun-yellow bg-white p-3">
+                      <p className="font-black">
+                        Quer descobrir se outras pessoas relataram algo parecido
+                        por perto?
+                      </p>
+                      <p className="mt-1 text-sm leading-6">
+                        Uma localização aproximada ajuda o COMUN a comparar
+                        relatos sem mostrar seu endereço exato. Você pode pular
+                        esta etapa.
+                      </p>
+                    </div>
+                  ) : null}
                   <div className="grid gap-2 sm:grid-cols-3">
                     <button
                       type="button"
@@ -714,7 +729,9 @@ export function QuickCaptureV2({
                   </p>
                 </div>
               ) : null}
-              {decision ? <ComunDenunciasRoutingGuidePanel decision={decision} /> : null}
+              {decision ? (
+                <ComunDenunciasRoutingGuidePanel decision={decision} />
+              ) : null}
               {walletItemId &&
               isComunPublicProjectionOptInCategory(receipt.category) &&
               receipt.state !== "withdrawn" ? (
