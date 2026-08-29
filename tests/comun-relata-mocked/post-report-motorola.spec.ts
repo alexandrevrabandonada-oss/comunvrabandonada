@@ -147,7 +147,9 @@ test("390x844 keeps education post-save to one conscious next action", async ({
   await page.getByRole("button", { name: "Não sei", exact: true }).click();
   await expect(page.getByRole("link", { name: "Abrir canal oficial" })).toHaveCount(2);
 
-  const evidenceToggle = page.getByRole("button", { name: "Adicionar detalhes" });
+  const evidenceToggle = page.locator(
+    '[aria-controls="relata-evidence-details"]',
+  );
   await expect(evidenceToggle).toHaveAttribute("aria-expanded", "false");
   await evidenceToggle.click();
   await expect(evidenceToggle).toHaveAttribute("aria-expanded", "true");

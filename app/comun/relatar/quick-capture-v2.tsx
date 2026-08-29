@@ -419,6 +419,11 @@ export function QuickCaptureV2({
 
   function showNextAction() {
     setPostReportStep("next_action");
+    if (
+      receipt?.category === "public_education" &&
+      !decision?.childSafetySignal
+    )
+      return;
     window.requestAnimationFrame(() =>
       postReportNextStepRef.current?.focus({ preventScroll: true }),
     );

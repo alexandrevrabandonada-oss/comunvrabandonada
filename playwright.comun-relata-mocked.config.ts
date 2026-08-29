@@ -19,11 +19,18 @@ export default defineConfig({
         geolocation: { longitude: -44.101, latitude: -22.52, accuracy: 18 },
       },
     },
-    { name: "desktop", use: { viewport: { width: 1366, height: 768 } } },
+    {
+      name: "desktop",
+      use: {
+        viewport: { width: 1366, height: 768 },
+        permissions: ["geolocation"],
+        geolocation: { longitude: -44.101, latitude: -22.52, accuracy: 18 },
+      },
+    },
   ],
   use: { baseURL, trace: "retain-on-failure" },
   webServer: {
-    command: "npm run dev -- -p 3138",
+    command: "npm run dev -- --webpack -p 3138",
     url: `${baseURL}/comun/relatar`,
     reuseExistingServer: false,
     timeout: 120_000,

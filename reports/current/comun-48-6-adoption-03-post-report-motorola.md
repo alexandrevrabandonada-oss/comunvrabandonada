@@ -31,10 +31,26 @@ O recibo agora mantém confirmação, protocolo, código de recuperação e clas
 ## Validação local
 
 - `npm run test:unit -- --run lib/comun-48-6-adoption-03-post-report-motorola.test.ts lib/comun-relata-routing.test.ts lib/comun-education-service-routing-v1.test.ts lib/comun-relata-evidence.test.ts lib/server/comun-denuncias-routing-guide.test.ts`: **40 testes aprovados**.
-- `tsc --noEmit`: aprovado com dependências locais disponíveis.
-- `git diff --check`: aprovado.
-- E2E de `390x844`: não iniciou porque o harness local tentou obter `supabase` por `npx` e falhou com `UNABLE_TO_VERIFY_LEAF_SIGNATURE`. O navegador integrado também confirmou que `http://127.0.0.1:3137/comun/relatar` recusava conexão. Nenhum dado de produção foi criado.
-- `next build --webpack`: a compilação chegou a concluir, mas o typecheck global falhou em defeito pré-existente e fora deste escopo: `app/comun/reciclagem/page.ts` exporta `Hero`, que não é uma exportação de página válida. O Turbopack padrão também não aceita o `node_modules` compartilhado do worktree para esta validação local.
+- `npm run test:unit`: **1294 testes aprovados em 231 arquivos**.
+- `npm run typecheck`, `npm run lint` e `git diff --check`: aprovados.
+- `npm run build`: **GREEN** no `origin/main` e no Adoption-03 rebased, em worktrees limpos com dependências físicas.
+- O suposto blocker em `app/comun/reciclagem/page.tsx` não foi reproduzido: o `origin/main` atual compilou GREEN, portanto nenhum gate-repair foi criado nem integrado.
+- A primeira tentativa de e2e usou `NODE_OPTIONS=--use-system-ca`; a verificação TLS permaneceu ativa e o erro de certificado foi recuperado. O Supabase local continuou bloqueado porque o Docker Desktop não estava em execução.
+- `playwright.comun-relata-mocked.config.ts`: **4 cenários GREEN** (390x844 e desktop), com mocks locais de receipt, save, canais, evidências e agrupamento. Não houve banco, Supabase ou write de Production.
+
+## R1 — gate repair e validação final
+
+- `functionalImplementationCommit=f2824246`
+- `rebaseBase=7118a08b917f454a32afb094d0d59101636ad052`
+- `preExistingBuildBlocker=false`
+- `preExistingBuildBlockerFixedSeparately=false`
+- `recyclingGateRepairPR=not_required`
+- `globalBuildFinal=GREEN`
+- `localSupabaseTLS=RECOVERED_WITH_SYSTEM_CA`
+- `localE2EInfrastructureBlocked=true` (Docker Desktop indisponível)
+- `tlsVerificationDisabled=false`
+- `mobile390x844=GREEN_MOCKED_CONTRACT`
+- `mobile390x844Validated=true`
 
 ## Terminal final esperado
 
