@@ -4,13 +4,20 @@ export const COMUN_PUBLIC_PROJECTION_OPT_IN_CATEGORIES = [
   "smoke_or_environmental_trace",
 ] as const;
 
+export const COMUN_DENUNCIAS_PUBLIC_ENTRY_URL =
+  "https://comunsocial.online/comun/denuncias" as const;
+
+export function buildComunDenunciasSafeShareData() {
+  return { url: COMUN_DENUNCIAS_PUBLIC_ENTRY_URL } as const;
+}
+
 export type ComunPublicProjectionOptInCategory =
   (typeof COMUN_PUBLIC_PROJECTION_OPT_IN_CATEGORIES)[number];
 
 export function isComunPublicProjectionOptInCategory(
   category: string | null | undefined,
 ): category is ComunPublicProjectionOptInCategory {
-  return (COMUN_PUBLIC_PROJECTION_OPT_IN_CATEGORIES as readonly string[]).includes(
-    category ?? "",
-  );
+  return (
+    COMUN_PUBLIC_PROJECTION_OPT_IN_CATEGORIES as readonly string[]
+  ).includes(category ?? "");
 }

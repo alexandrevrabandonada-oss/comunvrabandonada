@@ -35,6 +35,19 @@ Estado terminal: `COMUN_48_6_B2_A1_COLLECTIVE_PROBLEM_TO_PAUTA_ACTION_BRIDGE_GRE
 
 Relatório: `reports/current/comun-48-6-b2-a1-problem-to-pauta-action-bridge.md`.
 
+## Estado atual — 48.6-ADOPTION-01: entrada coletiva no Relata (28/08/2026)
+
+Estado terminal: `COMUN_48_6_ADOPTION_01_RELATA_COLLECTIVE_ENTRY_GREEN_MAP_OFF`.
+
+- A porta `/comun/denuncias` agora explica o benefício potencial de encontrar relatos compatíveis sem prometer que já existem outras pessoas; a captura continua reutilizando `/comun/relatar`;
+- a localização permanece opcional e só recebe propósito coletivo para a allowlist canônica, enquanto o consentimento segue explícito, revogável e posterior ao recibo;
+- os estados `waiting` e `matched` foram humanizados sem expor contagem privada, IDs, localização, texto, identidade ou causalidade;
+- o compartilhamento é manual e limitado à URL pública genérica de Denúncias; nenhum dado do relato, protocolo, carteira ou recuperação é carregado;
+- `publicMap=false`, `projectionRows` e `confirmationRows` permanecem inalterados; `ProductionSchemaWrites=0`, `ProductionEnvWrites=0`, `ProductionBusinessWrites=0`; sem envio oficial, Pauta, Ação ou consentimento real;
+- COST-01 a COST-04, A0–A3 e o matcher privado determinístico foram preservados. Não iniciar B2-A4 antes de uso real.
+
+Relatório: `reports/current/comun-48-6-adoption-01-relata-collective-entry.md`.
+
 ## Estado atual — 48.6-B2-A2-R5: chave espacial Production provisionada com contrato `sensitive` (28/08/2026)
 
 Terminal: `COMUN_48_6_B2_A2_R5_SPATIAL_SENSITIVE_KEY_PROVISIONED_READY_FOR_PREFLIGHT`.

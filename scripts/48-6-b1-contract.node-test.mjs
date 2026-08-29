@@ -39,13 +39,16 @@ test("B1 is explicit, narrow, optional and map-off", () => {
   assert.match(category, /power_distribution/);
   assert.match(category, /smoke_or_environmental_trace/);
   assert.doesNotMatch(category, /public_health|child_protection|active_fire/);
-  assert.match(panel, /Permitir uso anônimo no mapa/);
+  assert.match(panel, /Permitir uso territorial anônimo/);
   assert.match(panel, /Agora não/);
+  assert.match(panel, /endereço exato/);
+  assert.match(panel, /texto original/);
+  assert.match(panel, /fotos nem/);
   assert.match(
     panel,
-    /Não mostramos seu nome, endereço, texto original,\s*fotos\s*nem protocolo/,
+    /Hoje (?:seu\s+relato não entra em mapa público|não\s+há mapa público deste relato)/,
   );
-  assert.match(panel, /não significa que ele já esteja no\s*\n?\s*mapa/);
+  assert.match(panel, /comparar este relato com outros\s+relatos compatíveis/);
   assert.doesNotMatch(panel, /checked=|defaultChecked/);
   assert.doesNotMatch(
     migration,
