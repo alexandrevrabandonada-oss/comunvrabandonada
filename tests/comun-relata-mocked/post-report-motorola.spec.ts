@@ -1,17 +1,21 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
+import type { ComunRelataEvidenceState } from "../../lib/comun-relata-evidence";
 
 const protocol = "COMUN-RELATA-ABCDEF0123456789";
 const walletItemId = "11111111-1111-4111-8111-111111111111";
-const emptyEvidence = {
-  location: "not_added",
-  locationApproximation: "none",
-  photos: [],
-  grouping: "case_individual",
-  groupingConfidence: "low",
-  activeReportsInCollective: 1,
-  noOfficialSend: true,
-  nothingPublished: true,
-};
+
+function createEmptyEvidence(): ComunRelataEvidenceState {
+  return {
+    location: "not_added",
+    locationApproximation: "none",
+    photos: [],
+    grouping: "case_individual",
+    groupingConfidence: "low",
+    activeReportsInCollective: 1,
+    noOfficialSend: true,
+    nothingPublished: true,
+  };
+}
 
 function receipt(category: string, urgency = "normal") {
   return {
@@ -35,7 +39,7 @@ async function fulfillJson(route: Route, body: unknown) {
 }
 
 async function mockReceipt(page: Page, category: string, urgency = "normal") {
-  let evidence = emptyEvidence;
+  let evidence = createEmptyEvidence();
   await page.route("**/api/comun/relata/receipt", (route) =>
     fulfillJson(route, {}),
   );
