@@ -33,7 +33,8 @@ test("canonical intake stores one private sidewalk report", async ({ page }) => 
   ).toBeVisible();
   const protocol = (await page.locator(".font-mono").first().textContent())?.trim();
   expect(protocol).toMatch(/^COMUN-RELATA-[A-F0-9]{16}$/);
-  await expect(page.getByText("Ainda não encaminhado. Nada foi publicado.")).toBeVisible();
+  await expect(page.getByText("Nada foi enviado. Nada foi publicado.")).toBeVisible();
+  await page.getByRole("button", { name: "Continuar", exact: true }).click();
   await expect(
     page.getByRole("link", { name: "Completar para o mapa" }),
   ).toHaveAttribute(
@@ -49,6 +50,42 @@ test("canonical intake stores one private sidewalk report", async ({ page }) => 
     return response.status;
   });
   expect(cleanup).toBe(200);
+});
+
+test("reveals education routing one decision at a time after the receipt", async ({
+  page,
+}) => {
+  await page.goto("/comun/relatar");
+  await page.locator("#capture-text").fill("Há um problema na escola pública.");
+  await page.getByRole("button", { name: "Guardar", exact: true }).click();
+
+  await expect(page.getByRole("heading", { name: "Guardado no COMUN" })).toBeVisible();
+  await expect(page.getByText("Educação pública", { exact: true })).toBeVisible();
+  await expect(page.getByText("Código de recuperação", { exact: false })).toBeVisible();
+  await expect(page.getByText("A escola é municipal, estadual ou você não sabe?")).toHaveCount(0);
+  await expect(page.getByText("Agrupamento", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Continuar", exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Continuar", exact: true }).click();
+  await expect(page.getByText("A escola é municipal, estadual ou você não sabe?")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Abrir canal oficial" })).toHaveCount(0);
+  await expect(page.locator("details[open]")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Municipal", exact: true }).click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Secretaria Municipal de Educação de Volta Redonda",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("Canal oficial verificado")).toBeVisible();
+
+  await page.getByRole("button", { name: "Estadual", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "SEEDUC-RJ / OuvERJ" }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Não sei", exact: true }).click();
+  await expect(page.getByRole("link", { name: "Abrir canal oficial" })).toHaveCount(2);
 });
 
 test("legacy aliases cannot reopen another intake", async ({ page }) => {

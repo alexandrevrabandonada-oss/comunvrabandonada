@@ -23,23 +23,13 @@ function locationLabel(state: ComunRelataEvidenceState["location"]) {
   }[state];
 }
 
-function groupingLabel(state: ComunRelataEvidenceState["grouping"]) {
-  return {
-    case_individual: "Caso individual",
-    auto_link_high_confidence: "Vinculado automaticamente",
-    candidate_medium_confidence: "Candidato não vinculado",
-    new_collective_case: "Novo caso coletivo privado",
-    never_auto_link: "Agrupamento bloqueado por segurança",
-    human_review_future: "Revisão futura, sem bloqueio",
-  }[state];
-}
-
 export function RelataEvidencePanel({ withdrawn, attachmentsEnabled, locationEnabled }: { withdrawn: boolean; attachmentsEnabled: boolean; locationEnabled: boolean }) {
   const [evidence, setEvidence] = useState<ComunRelataEvidenceState | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [mapPoint, setMapPoint] = useState<[number, number] | null>(null);
+  const [expanded, setExpanded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
@@ -193,14 +183,37 @@ export function RelataEvidencePanel({ withdrawn, attachmentsEnabled, locationEna
     );
   }
 
-  return (
-    <section aria-labelledby="relata-evidence-title" className="grid gap-5 border-2 border-comun-black bg-[#f8f2e6] p-4">
-      <div>
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-comun-muted">Evidência privada</p>
-        <h2 id="relata-evidence-title" className="text-2xl font-black">Evidências</h2>
-        <p className="mt-1 text-sm leading-6">{locationEnabled && attachmentsEnabled ? "Localização e fotos são opcionais, privadas e vinculadas apenas ao seu recibo." : locationEnabled ? "A localização é opcional, privada e vinculada apenas ao seu recibo." : "As fotos são opcionais, privadas e vinculadas apenas ao seu recibo."}</p>
-      </div>
+  const summary = [
+    locationEnabled && evidence.location !== "not_added" && evidence.location !== "withdrawn"
+      ? "Local adicionado"
+      : null,
+    attachmentsEnabled && evidence.photos.length > 0
+      ? `${evidence.photos.length} ${evidence.photos.length === 1 ? "foto adicionada" : "fotos adicionadas"}`
+      : null,
+  ].filter(Boolean);
 
+  return (
+    <section aria-labelledby="relata-evidence-title" className="grid gap-4 border-2 border-comun-black bg-[#f8f2e6] p-4">
+      <div>
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-comun-muted">Privado</p>
+        <h2 id="relata-evidence-title" className="text-xl font-black">Quer fortalecer este relato?</h2>
+        <p className="mt-1 text-sm leading-6">
+          {summary.length > 0
+            ? summary.join(" · ")
+            : "Adicionar local ou foto pode ajudar depois. Tudo continua privado."}
+        </p>
+      </div>
+      <button
+        type="button"
+        aria-expanded={expanded}
+        aria-controls="relata-evidence-details"
+        onClick={() => setExpanded((value) => !value)}
+        className="min-h-11 w-fit border-2 border-comun-black bg-white px-4 py-2 text-sm font-black"
+      >
+        {expanded ? "Ocultar detalhes" : "Adicionar detalhes"}
+      </button>
+
+      {expanded ? <div id="relata-evidence-details" className="grid gap-5">
       {locationEnabled ? <div className="grid gap-3 border-t-2 border-comun-black pt-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div><h3 className="font-black">Localização</h3><p className="text-sm">{locationLabel(evidence.location)}</p></div>
@@ -247,15 +260,9 @@ export function RelataEvidencePanel({ withdrawn, attachmentsEnabled, locationEna
           </>
         ) : null}
       </div> : null}
-
-      <div className="grid gap-1 border-t-2 border-comun-black pt-4 text-sm">
-        <h3 className="font-black">Agrupamento</h3>
-        <p>{groupingLabel(evidence.grouping)}</p>
-        <p className="text-comun-muted">Nenhum dado de outro relato é exibido.</p>
-      </div>
-
+      </div> : null}
       {notice ? <p role="status" aria-live="polite" className="border-l-4 border-comun-yellow bg-white p-3 text-sm font-bold">{notice}</p> : null}
-      <div className="grid gap-1 border-2 border-comun-black bg-comun-asphalt p-3 font-black text-comun-paper"><p>Nenhum órgão público recebeu esta manifestação.</p><p className="text-comun-yellow">Nada foi publicado no mapa.</p></div>
+      {expanded ? <div className="grid gap-1 border-2 border-comun-black bg-comun-asphalt p-3 font-black text-comun-paper"><p>Nenhum órgão público recebeu esta manifestação.</p><p className="text-comun-yellow">Nada foi publicado no mapa.</p></div> : null}
     </section>
   );
 }

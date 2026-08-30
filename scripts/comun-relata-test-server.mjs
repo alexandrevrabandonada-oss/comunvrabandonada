@@ -16,6 +16,7 @@ const child = spawn(command, ["run", "dev", "--", "-p", "3137"], {
     COMUN_RELATA_LOCAL_EVIDENCE: "enabled",
     COMUN_RELATA_LOCAL_PUBLIC_MAP: "enabled",
     COMUN_QUICK_CAPTURE_V2: "enabled",
+    COMUN_PUBLIC_EDUCATION_SENSITIVE_ROUTING_ENABLED: "enabled",
     COMUN_FORWARDING_LOCAL: "enabled",
     COMUN_FISCALIZA_ASSISTED_OPENING_LOCAL: "enabled",
     COMUN_PARTICIPATION_WALLET_LOCAL: "enabled",

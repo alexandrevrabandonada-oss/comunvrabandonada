@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-type Network = "municipal" | "state" | "unknown";
+type Network = "unanswered" | "municipal" | "state" | "unknown";
 type EducationChannel = {
   id: string;
   institution: string;
@@ -23,8 +23,9 @@ export function ComunEducationChannelsPanel({
   childSafetySignal: boolean;
   emergency: boolean;
 }) {
-  const [network, setNetwork] = useState<Network>("unknown");
+  const [network, setNetwork] = useState<Network>("unanswered");
   const [channels, setChannels] = useState<EducationChannel[]>([]);
+  const questionRef = useRef<HTMLFieldSetElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -44,21 +45,29 @@ export function ComunEducationChannelsPanel({
     };
   }, []);
 
+  useEffect(() => {
+    if (!childSafetySignal) questionRef.current?.focus({ preventScroll: true });
+  }, [childSafetySignal]);
+
   const visible = channels.filter((channel) => {
     if (childSafetySignal) {
       return channel.protectionOnly && (!channel.emergencyOnly || emergency);
     }
     if (channel.protectionOnly) return false;
+    if (network === "unanswered") return false;
     return network === "unknown" || channel.sphere === network;
   });
 
   return (
     <section className="grid gap-4 border-2 border-comun-black bg-comun-paper p-4">
       <div className="grid gap-1">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-comun-muted">
+          Próximo passo
+        </p>
         <h3 className="text-lg font-black">
           {childSafetySignal
             ? "Rede de proteção para consultar"
-            : "Canais oficiais que podem receber esta manifestação"}
+            : "Escolha a rede da escola"}
         </h3>
         <p className="text-sm">
           Nenhum texto, foto, escola, turma, localização ou dado de estudante
@@ -71,7 +80,11 @@ export function ComunEducationChannelsPanel({
           não acionou Conselho Tutelar, Disque 100, SAMU ou outro serviço.
         </p>
       ) : (
-        <fieldset className="grid gap-2">
+        <fieldset
+          ref={questionRef}
+          tabIndex={-1}
+          className="grid gap-2 outline-none"
+        >
           <legend className="font-black">
             A escola é municipal, estadual ou você não sabe?
           </legend>
@@ -94,7 +107,12 @@ export function ComunEducationChannelsPanel({
           </div>
         </fieldset>
       )}
-      <div className="grid gap-3">
+      {network === "unanswered" && !childSafetySignal ? (
+        <p className="text-sm font-bold">
+          Escolha uma opção para ver somente os canais correspondentes.
+        </p>
+      ) : null}
+      <div className="grid gap-3" aria-live="polite">
         {visible.map((channel) => (
           <article
             key={channel.id}
@@ -112,13 +130,20 @@ export function ComunEducationChannelsPanel({
                 rel="noreferrer"
                 className="w-fit font-black underline"
               >
-                Consultar canal oficial
+                Abrir canal oficial
               </a>
             )}
             <p className="text-sm">{channel.notes}</p>
-            <p className="text-xs font-bold">
-              Fonte revisada; operação não testada pelo COMUN.
-            </p>
+            {channel.sourceStatus === "source_verified" ? (
+              <div className="grid gap-1 text-xs">
+                <p className="font-black">Canal oficial verificado</p>
+                <p>O COMUN ainda não testou o envio por este canal.</p>
+              </div>
+            ) : (
+              <p className="text-xs font-bold">
+                A fonte deste canal ainda precisa de confirmação.
+              </p>
+            )}
           </article>
         ))}
       </div>
