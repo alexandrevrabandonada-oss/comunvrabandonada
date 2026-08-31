@@ -128,8 +128,8 @@ O Browser integrado não inicializou porque o runtime local não encontrou o cam
 - semanticPageHeadingRestored=true
 - semanticPageHeadingVisible=true
 - prettierGateGreen=true
-- miniappExperienceFiveViewportsGreen=REMOTE_PENDING
-- fullSurfaceResult=REMOTE_PENDING
+- miniappExperienceFiveViewportsGreen=true
+- fullSurfaceResult=GREEN
 - authWeakened=false
 - backendChanged=false
 - schemaChanged=false
@@ -141,3 +141,8 @@ GREEN em 390x844 e desktop (10/10). A execução local da matriz miniapp não
 chegou aos testes porque o global setup depende do Docker/Supabase local, que
 permanece indisponível; nenhum ajuste de infraestrutura, TLS ou autenticação
 foi feito.
+
+No runner remoto descartável, Core Journeys, Quality Performance e Full
+Surface Migration concluíram GREEN. O contrato de heading passou nos cinco
+viewports da matriz miniapp, e o fluxo autenticado de Full Surface não repetiu
+a falha anterior de fixture/auth.
