@@ -345,14 +345,8 @@ export function ParticipationWalletPanel({
     <section
       className={`grid gap-4 ${standalone ? "mx-auto w-full max-w-2xl" : "mt-6"}`}
       data-comun-participation-wallet="true"
-      aria-labelledby="wallet-title"
+      aria-label="Meus registros"
     >
-      <header className="grid gap-1">
-        <h1 id="wallet-title" className="comun-v2-title normal-case">
-          Minha participação
-        </h1>
-        <p className="text-sm text-comun-black/65">Continue de onde parou</p>
-      </header>
       {recoveryCode ? (
         <div className="grid gap-2 border-2 border-comun-black bg-[#f8f2e6] p-4">
           <p className="text-lg font-black">Guardar código de recuperação</p>
@@ -381,66 +375,81 @@ export function ParticipationWalletPanel({
         </div>
       ) : null}
       <section className="grid gap-3" aria-labelledby="attention-title">
-          <h2 id="attention-title" className="text-xl font-black normal-case">
-            Precisa de você
-          </h2>
-          {primaryAttention ? (
-            <article className="surface-alert grid gap-3 rounded-[var(--comun-radius-card)] border-2 border-comun-black p-4">
-              <p className="text-xs font-black uppercase">
-                {primaryAttention.relataAction?.categoryLabel ??
-                  primaryAttention.item.title_template}
-              </p>
-              <p className="font-black">
-                {isSafetyPriority(primaryAttention.item)
-                  ? primaryAttention.relataAction?.nextStep ??
-                    "Confira agora a orientação de segurança."
-                  : primaryAttention.relataAction?.nextStep ??
-                    primaryAttention.item.action_required}
-              </p>
-              <button
-                type="button"
-                data-primary-action="true"
-                onClick={() => openItem(primaryAttention.item.item_id)}
-                className="min-h-11 w-fit border-2 border-comun-black bg-comun-yellow px-4 py-2 font-black"
-              >
-                Continuar
-              </button>
-              {remainingAttentionCount > 0 ? (
-                <Link
-                  className="text-sm font-black underline"
-                  href={inboxAttention.length ? "/comun/caixa-de-entrada" : "#meus-registros"}
-                >
-                  Mais {remainingAttentionCount} {remainingAttentionCount === 1 ? "item pede" : "itens pedem"} atenção
-                </Link>
-              ) : null}
-            </article>
-          ) : inboxAttention[0] ? (
-            <article className="surface-alert grid gap-3 rounded-[var(--comun-radius-card)] border-2 border-comun-black p-4">
-              <p className="text-xs font-black uppercase">Atualização</p>
-              <p className="font-black">{inboxAttention[0].title}</p>
-              {inboxAttention[0].summary ? <p className="text-sm">{inboxAttention[0].summary}</p> : null}
-              <Link
-                href={inboxAttention[0].actionUrl}
-                data-primary-action="true"
-                className="inline-flex min-h-11 w-fit items-center border-2 border-comun-black bg-comun-yellow px-4 py-2 font-black"
-              >
-                Continuar
-              </Link>
-              {inboxAttention.length > 1 ? (
-                <Link className="text-sm font-black underline" href="/comun/caixa-de-entrada">
-                  Mais {inboxAttention.length - 1} {inboxAttention.length === 2 ? "item pede" : "itens pedem"} atenção
-                </Link>
-              ) : null}
-            </article>
-          ) : (
-            <p className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4 text-sm">
-              Nada precisa da sua atenção agora.
+        <h2 id="attention-title" className="text-xl font-black normal-case">
+          Precisa de você
+        </h2>
+        {primaryAttention ? (
+          <article className="surface-alert grid gap-3 rounded-[var(--comun-radius-card)] border-2 border-comun-black p-4">
+            <p className="text-xs font-black uppercase">
+              {primaryAttention.relataAction?.categoryLabel ??
+                primaryAttention.item.title_template}
             </p>
-          )}
+            <p className="font-black">
+              {isSafetyPriority(primaryAttention.item)
+                ? (primaryAttention.relataAction?.nextStep ??
+                  "Confira agora a orientação de segurança.")
+                : (primaryAttention.relataAction?.nextStep ??
+                  primaryAttention.item.action_required)}
+            </p>
+            <button
+              type="button"
+              data-primary-action="true"
+              onClick={() => openItem(primaryAttention.item.item_id)}
+              className="min-h-11 w-fit border-2 border-comun-black bg-comun-yellow px-4 py-2 font-black"
+            >
+              Continuar
+            </button>
+            {remainingAttentionCount > 0 ? (
+              <Link
+                className="text-sm font-black underline"
+                href={
+                  inboxAttention.length
+                    ? "/comun/caixa-de-entrada"
+                    : "#meus-registros"
+                }
+              >
+                Mais {remainingAttentionCount}{" "}
+                {remainingAttentionCount === 1 ? "item pede" : "itens pedem"}{" "}
+                atenção
+              </Link>
+            ) : null}
+          </article>
+        ) : inboxAttention[0] ? (
+          <article className="surface-alert grid gap-3 rounded-[var(--comun-radius-card)] border-2 border-comun-black p-4">
+            <p className="text-xs font-black uppercase">Atualização</p>
+            <p className="font-black">{inboxAttention[0].title}</p>
+            {inboxAttention[0].summary ? (
+              <p className="text-sm">{inboxAttention[0].summary}</p>
+            ) : null}
+            <Link
+              href={inboxAttention[0].actionUrl}
+              data-primary-action="true"
+              className="inline-flex min-h-11 w-fit items-center border-2 border-comun-black bg-comun-yellow px-4 py-2 font-black"
+            >
+              Continuar
+            </Link>
+            {inboxAttention.length > 1 ? (
+              <Link
+                className="text-sm font-black underline"
+                href="/comun/caixa-de-entrada"
+              >
+                Mais {inboxAttention.length - 1}{" "}
+                {inboxAttention.length === 2 ? "item pede" : "itens pedem"}{" "}
+                atenção
+              </Link>
+            ) : null}
+          </article>
+        ) : (
+          <p className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4 text-sm">
+            Nada precisa da sua atenção agora.
+          </p>
+        )}
       </section>
       {!present ? (
         <div className="grid gap-3 border-2 border-comun-black bg-comun-yellow p-4 text-comun-black">
-          <p className="font-black">Você ainda não tem registros neste navegador.</p>
+          <p className="font-black">
+            Você ainda não tem registros neste navegador.
+          </p>
           <button
             type="button"
             disabled={busy}
@@ -449,12 +458,17 @@ export function ParticipationWalletPanel({
           >
             Começar meus registros
           </button>
-          <label className="grid gap-1 text-sm font-bold" htmlFor="wallet-recovery">
+          <label
+            className="grid gap-1 text-sm font-bold"
+            htmlFor="wallet-recovery"
+          >
             Já tenho um código de recuperação
             <input
               id="wallet-recovery"
               value={recoveryInput}
-              onChange={(event) => setRecoveryInput(event.target.value.toUpperCase())}
+              onChange={(event) =>
+                setRecoveryInput(event.target.value.toUpperCase())
+              }
               className="min-h-11 border-2 border-comun-black bg-white p-3 font-mono"
               placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"
             />
@@ -470,167 +484,182 @@ export function ParticipationWalletPanel({
         </div>
       ) : null}
       {present ? (
-        <section id="meus-registros" className="grid gap-3" aria-labelledby="records-title">
-          <h2 id="records-title" className="text-xl font-black normal-case">
+        <section
+          id="meus-registros"
+          className="grid gap-3"
+          aria-labelledby="records-title"
+        >
+          <h2
+            id="wallet-records-title"
+            className="text-xl font-black normal-case"
+          >
             Meus registros
           </h2>
           {orderedItems.map(({ item, relataAction }) => {
-                  const experience =
-                    item.item_type === "relata_report"
-                      ? resolveComunForwardingExperience({
-                          category: item.category,
-                          urgency:
-                            typeof item.metadata?.urgency === "string"
-                              ? item.metadata.urgency
-                              : null,
-                          metadata: item.metadata ?? {},
-                          essentialForwardingEnabled:
-                            essentialServicesEnabled &&
-                            essentialForwardingEnabled,
-                          sensitiveForwardingEnabled,
-                          civicForwardingEnabled:
-                            item.category === "waste_or_debris" ||
-                            item.category === "smoke_or_environmental_trace" ||
-                            item.category === "environmental_pollution"
-                              ? civicEnvironmentalForwardingEnabled
-                              : civicUrbanForwardingEnabled,
-                        })
-                      : null;
-                  const open = openItemId === item.item_id;
-                  return (
-                    <article
-                      key={item.item_id}
-                      data-wallet-item-id={item.item_id}
-                      ref={(node) => { itemRefs.current[item.item_id] = node; }}
-                      tabIndex={-1}
-                      className="surface-paper grid gap-2 rounded-[var(--comun-radius-card)] border border-comun-black/25 p-4 focus:outline focus:outline-2 focus:outline-offset-2"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="text-xs font-black uppercase">
-                          {relataAction?.statusOverride ?? statusLabel(item)}
-                        </span>
-                        <time className="text-xs" dateTime={item.updated_at}>{itemDate(item)}</time>
-                      </div>
-                      <h3 className="font-black normal-case">
-                        {relataAction?.categoryLabel ?? item.title_template}
-                      </h3>
-                      {relataAction?.detailLabel ? (
-                        <p className="text-sm font-bold">
-                          {relataAction.detailLabel}
-                        </p>
-                      ) : null}
-                      {relataAction?.stateMessage ? (
-                        <p className="text-sm font-bold text-comun-black/80">
-                          {relataAction.stateMessage}
-                        </p>
-                      ) : null}
-                      {relataAction?.nextStep ? (
-                        <div className="border-l-4 border-comun-yellow pl-3 text-sm">
-                          <p className="font-black">Próximo passo</p>
-                          <p>{relataAction.nextStep}</p>
-                        </div>
-                      ) : null}
-                      <button
-                        type="button"
-                        aria-expanded={open}
-                        aria-controls={`wallet-item-details-${item.item_id}`}
-                        onClick={() => setOpenItemId(open ? null : item.item_id)}
-                        className="min-h-11 w-fit font-black underline"
-                      >
-                        {open ? "Fechar detalhes" : relataAction?.nextStep ? "Continuar" : "Ver detalhes"}
-                      </button>
-                      <div
-                        id={`wallet-item-details-${item.item_id}`}
-                        className={open ? "grid gap-3 border-t-2 border-comun-black/20 pt-3" : "hidden"}
-                      >
-                      {item.protocol_masked ? (
-                        <p className="text-sm"><span className="font-bold">Protocolo:</span> <span className="font-mono">{item.protocol_masked}</span></p>
-                      ) : null}
-                      <details>
-                        <summary className="min-h-11 cursor-pointer py-3 font-black underline">Opções do registro</summary>
-                        <div className="flex flex-wrap gap-3 pb-2">
-                        <button
-                          type="button"
-                          onClick={() => removeItem(item.item_id)}
-                          className="min-h-11 font-black underline"
-                        >
-                          Arquivar ou retirar
-                        </button>
-                        </div>
-                      </details>
-                      {relataAction?.availabilityMessage ? (
-                        <p className="border-t-2 pt-3 text-sm font-bold">
-                          {relataAction.availabilityMessage}
-                        </p>
-                      ) : null}
-                      {experience ? (
-                        <section
-                          className="grid gap-1 border-t-2 pt-3"
-                          aria-label="Próximo caminho"
-                        >
-                          <p className="text-xs font-black uppercase">
-                            Como resolver isso
-                          </p>
-                          <p className="font-black">{experience.headline}</p>
-                          <p className="text-sm">{experience.explanation}</p>
-                          {experience.privacyNote ? (
-                            <p className="text-xs font-bold">
-                              {experience.privacyNote}
-                            </p>
-                          ) : null}
-                          {experience.escalationNote ? (
-                            <p className="text-xs">
-                              {experience.escalationNote}
-                            </p>
-                          ) : null}
-                        </section>
-                      ) : null}
-                      {item.item_type === "relata_report" &&
-                      isComunPublicProjectionOptInCategory(item.category) &&
-                      !["withdrawn", "Retirado"].includes(
-                        item.presentation_state,
-                      ) ? (
-                        <PublicProjectionConsentPanel
-                          walletItemId={item.item_id}
-                        />
-                      ) : null}
-                      {relataAction?.route === "bus" ? (
-                        relataAction.showStmuAssisted ? (
-                          <ComunStmuAssistedPanel walletItemId={item.item_id} />
-                        ) : relataAction.showStmuMultichannel ? (
-                          <ComunStmuMultichannelPanel
-                            relataCaseId={item.item_id}
-                          />
-                        ) : null
-                      ) : relataAction?.route === "essential_service" ? (
-                        relataAction.showEssentialServices ? (
-                          <ComunEssentialServicesPanel
-                            walletItemId={item.item_id}
-                          />
-                        ) : null
-                      ) : relataAction?.route === "sensitive_service" &&
-                        relataAction.showSensitiveForwarding &&
-                        isSensitiveForwardingCategory(item.category) ? (
-                        <ComunSensitiveForwardingPanel
-                          walletItemId={item.item_id}
-                          category={item.category}
-                        />
-                      ) : null}
-                      {experience?.mode === "civic_assisted" &&
-                      (item.category === "waste_or_debris" ||
+            const experience =
+              item.item_type === "relata_report"
+                ? resolveComunForwardingExperience({
+                    category: item.category,
+                    urgency:
+                      typeof item.metadata?.urgency === "string"
+                        ? item.metadata.urgency
+                        : null,
+                    metadata: item.metadata ?? {},
+                    essentialForwardingEnabled:
+                      essentialServicesEnabled && essentialForwardingEnabled,
+                    sensitiveForwardingEnabled,
+                    civicForwardingEnabled:
+                      item.category === "waste_or_debris" ||
                       item.category === "smoke_or_environmental_trace" ||
                       item.category === "environmental_pollution"
                         ? civicEnvironmentalForwardingEnabled
-                        : civicUrbanForwardingEnabled) &&
-                      isCivicAssistedCategory(item.category) ? (
-                        <ComunCivicForwardingPanel
-                          walletItemId={item.item_id}
-                        />
+                        : civicUrbanForwardingEnabled,
+                  })
+                : null;
+            const open = openItemId === item.item_id;
+            return (
+              <article
+                key={item.item_id}
+                data-wallet-item-id={item.item_id}
+                ref={(node) => {
+                  itemRefs.current[item.item_id] = node;
+                }}
+                tabIndex={-1}
+                className="surface-paper grid gap-2 rounded-[var(--comun-radius-card)] border border-comun-black/25 p-4 focus:outline focus:outline-2 focus:outline-offset-2"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-black uppercase">
+                    {relataAction?.statusOverride ?? statusLabel(item)}
+                  </span>
+                  <time className="text-xs" dateTime={item.updated_at}>
+                    {itemDate(item)}
+                  </time>
+                </div>
+                <h3 className="font-black normal-case">
+                  {relataAction?.categoryLabel ?? item.title_template}
+                </h3>
+                {relataAction?.detailLabel ? (
+                  <p className="text-sm font-bold">
+                    {relataAction.detailLabel}
+                  </p>
+                ) : null}
+                {relataAction?.stateMessage ? (
+                  <p className="text-sm font-bold text-comun-black/80">
+                    {relataAction.stateMessage}
+                  </p>
+                ) : null}
+                {relataAction?.nextStep ? (
+                  <div className="border-l-4 border-comun-yellow pl-3 text-sm">
+                    <p className="font-black">Próximo passo</p>
+                    <p>{relataAction.nextStep}</p>
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  aria-controls={`wallet-item-details-${item.item_id}`}
+                  onClick={() => setOpenItemId(open ? null : item.item_id)}
+                  className="min-h-11 w-fit font-black underline"
+                >
+                  {open
+                    ? "Fechar detalhes"
+                    : relataAction?.nextStep
+                      ? "Continuar"
+                      : "Ver detalhes"}
+                </button>
+                <div
+                  id={`wallet-item-details-${item.item_id}`}
+                  className={
+                    open
+                      ? "grid gap-3 border-t-2 border-comun-black/20 pt-3"
+                      : "hidden"
+                  }
+                >
+                  {item.protocol_masked ? (
+                    <p className="text-sm">
+                      <span className="font-bold">Protocolo:</span>{" "}
+                      <span className="font-mono">{item.protocol_masked}</span>
+                    </p>
+                  ) : null}
+                  <details>
+                    <summary className="min-h-11 cursor-pointer py-3 font-black underline">
+                      Opções do registro
+                    </summary>
+                    <div className="flex flex-wrap gap-3 pb-2">
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.item_id)}
+                        className="min-h-11 font-black underline"
+                      >
+                        Arquivar ou retirar
+                      </button>
+                    </div>
+                  </details>
+                  {relataAction?.availabilityMessage ? (
+                    <p className="border-t-2 pt-3 text-sm font-bold">
+                      {relataAction.availabilityMessage}
+                    </p>
+                  ) : null}
+                  {experience ? (
+                    <section
+                      className="grid gap-1 border-t-2 pt-3"
+                      aria-label="Próximo caminho"
+                    >
+                      <p className="text-xs font-black uppercase">
+                        Como resolver isso
+                      </p>
+                      <p className="font-black">{experience.headline}</p>
+                      <p className="text-sm">{experience.explanation}</p>
+                      {experience.privacyNote ? (
+                        <p className="text-xs font-bold">
+                          {experience.privacyNote}
+                        </p>
                       ) : null}
-                      </div>
-                    </article>
-                  );
-                })}
+                      {experience.escalationNote ? (
+                        <p className="text-xs">{experience.escalationNote}</p>
+                      ) : null}
+                    </section>
+                  ) : null}
+                  {item.item_type === "relata_report" &&
+                  isComunPublicProjectionOptInCategory(item.category) &&
+                  !["withdrawn", "Retirado"].includes(
+                    item.presentation_state,
+                  ) ? (
+                    <PublicProjectionConsentPanel walletItemId={item.item_id} />
+                  ) : null}
+                  {relataAction?.route === "bus" ? (
+                    relataAction.showStmuAssisted ? (
+                      <ComunStmuAssistedPanel walletItemId={item.item_id} />
+                    ) : relataAction.showStmuMultichannel ? (
+                      <ComunStmuMultichannelPanel relataCaseId={item.item_id} />
+                    ) : null
+                  ) : relataAction?.route === "essential_service" ? (
+                    relataAction.showEssentialServices ? (
+                      <ComunEssentialServicesPanel
+                        walletItemId={item.item_id}
+                      />
+                    ) : null
+                  ) : relataAction?.route === "sensitive_service" &&
+                    relataAction.showSensitiveForwarding &&
+                    isSensitiveForwardingCategory(item.category) ? (
+                    <ComunSensitiveForwardingPanel
+                      walletItemId={item.item_id}
+                      category={item.category}
+                    />
+                  ) : null}
+                  {experience?.mode === "civic_assisted" &&
+                  (item.category === "waste_or_debris" ||
+                  item.category === "smoke_or_environmental_trace" ||
+                  item.category === "environmental_pollution"
+                    ? civicEnvironmentalForwardingEnabled
+                    : civicUrbanForwardingEnabled) &&
+                  isCivicAssistedCategory(item.category) ? (
+                    <ComunCivicForwardingPanel walletItemId={item.item_id} />
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
         </section>
       ) : null}
       {notice ? (
@@ -643,46 +672,55 @@ export function ParticipationWalletPanel({
       ) : null}
       {present ? (
         <details className="border-t-2 border-comun-black/20 pt-2">
-          <summary className="min-h-11 cursor-pointer py-3 font-black">Tenho um protocolo antigo</summary>
+          <summary className="min-h-11 cursor-pointer py-3 font-black">
+            Tenho um protocolo antigo
+          </summary>
           <div className="grid gap-2 pb-3">
-          <p className="text-sm">
-            Adicione um registro antigo para acompanhá-lo aqui.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <input
-              value={legacyProtocol}
-              onChange={(event) =>
-                setLegacyProtocol(event.target.value.toUpperCase())
-              }
-              className="min-h-11 min-w-0 flex-1 border-2 border-comun-black bg-white p-3 font-mono"
-              placeholder="COMUN-..."
-            />
-            <button
-              type="button"
-              disabled={busy || !legacyProtocol}
-              onClick={followLegacy}
-              className="min-h-11 border-2 border-comun-black bg-comun-yellow px-3 font-black"
-            >
-              Acompanhar
-            </button>
-          </div>
+            <p className="text-sm">
+              Adicione um registro antigo para acompanhá-lo aqui.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <input
+                value={legacyProtocol}
+                onChange={(event) =>
+                  setLegacyProtocol(event.target.value.toUpperCase())
+                }
+                className="min-h-11 min-w-0 flex-1 border-2 border-comun-black bg-white p-3 font-mono"
+                placeholder="COMUN-..."
+              />
+              <button
+                type="button"
+                disabled={busy || !legacyProtocol}
+                onClick={followLegacy}
+                className="min-h-11 border-2 border-comun-black bg-comun-yellow px-3 font-black"
+              >
+                Acompanhar
+              </button>
+            </div>
           </div>
         </details>
       ) : null}
       {accountAvailable && present ? (
         <details className="border-t-2 border-comun-black/20 pt-2">
-          <summary className="min-h-11 cursor-pointer py-3 font-black">Conta e recuperação</summary>
+          <summary className="min-h-11 cursor-pointer py-3 font-black">
+            Conta e recuperação
+          </summary>
           <div className="grid gap-2 pb-3 text-sm">
             <p>
-              Vincule seus registros à conta ou mantenha a recuperação por código.
+              Vincule seus registros à conta ou mantenha a recuperação por
+              código.
             </p>
             <button
               type="button"
               disabled={busy}
-              onClick={() => void (accountLinked ? unlinkAccount() : linkAccount())}
+              onClick={() =>
+                void (accountLinked ? unlinkAccount() : linkAccount())
+              }
               className="min-h-11 w-fit border-2 border-comun-black bg-comun-yellow px-3 font-black"
             >
-              {accountLinked ? "Remover vínculo com minha conta" : "Vincular meus registros à minha conta"}
+              {accountLinked
+                ? "Remover vínculo com minha conta"
+                : "Vincular meus registros à minha conta"}
             </button>
           </div>
         </details>

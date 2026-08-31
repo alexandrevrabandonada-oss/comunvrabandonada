@@ -686,6 +686,12 @@ function MinhaAreaAppV2({
       }}
     >
       <div className="comun-v2-page" data-comun-app-v2-page="my-area">
+        <header className="mb-4 grid gap-1">
+          <h1 className="text-2xl font-black normal-case">
+            Minha participação
+          </h1>
+          <p className="text-sm text-comun-black/65">Continue de onde parou</p>
+        </header>
         {walletEnabled ? (
           <ParticipationWalletPanel
             accountAvailable={accountAvailable}
@@ -1384,9 +1390,18 @@ function WalletOnlyPage({
 }) {
   return (
     <ComunShell
-      appBar={{ title: "Minha participação", contextLabel: "Continue de onde parou" }}
+      appBar={{
+        title: "Minha participação",
+        contextLabel: "Continue de onde parou",
+      }}
     >
       <div className="comun-v2-page" data-comun-app-v2-page="wallet-only">
+        <header className="mb-4 grid gap-1">
+          <h1 className="text-2xl font-black normal-case">
+            Minha participação
+          </h1>
+          <p className="text-sm text-comun-black/65">Continue de onde parou</p>
+        </header>
         <ParticipationWalletPanel
           standalone
           stmuAssistedEnabled={stmuAssistedEnabled}

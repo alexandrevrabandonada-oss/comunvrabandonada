@@ -121,3 +121,23 @@ O Browser integrado não inicializou porque o runtime local não encontrou o cam
 - A1/A2 iniciado=false
 
 `COMUN_49_0_A0_MINHA_PARTICIPACAO_MOTOROLA_GREEN`
+
+## R1 — Remote gate repair
+
+- R1RemoteGateRepair=true
+- semanticPageHeadingRestored=true
+- semanticPageHeadingVisible=true
+- prettierGateGreen=true
+- miniappExperienceFiveViewportsGreen=REMOTE_PENDING
+- fullSurfaceResult=REMOTE_PENDING
+- authWeakened=false
+- backendChanged=false
+- schemaChanged=false
+- routingChanged=false
+
+O `h1` visível e compacto agora pertence às duas variantes de página V2. O
+título interno “Meus registros” permanece `h2`. A matriz A0 mockada continuou
+GREEN em 390x844 e desktop (10/10). A execução local da matriz miniapp não
+chegou aos testes porque o global setup depende do Docker/Supabase local, que
+permanece indisponível; nenhum ajuste de infraestrutura, TLS ou autenticação
+foi feito.
