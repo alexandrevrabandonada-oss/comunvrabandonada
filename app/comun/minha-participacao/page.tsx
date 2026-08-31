@@ -302,6 +302,11 @@ export default async function MinhaAreaPage({
               civicEnvironmentalForwardingEnabled
             }
             civicUrbanForwardingEnabled={civicUrbanForwardingEnabled}
+            inboxAttention={attention.map((item: any) => ({
+              title: String(item.title ?? "Atualização disponível"),
+              summary: item.summary ? String(item.summary) : null,
+              actionUrl: String(item.action_url ?? "/comun/caixa-de-entrada"),
+            }))}
           />
         </ComunSection>
       ) : null}
@@ -681,26 +686,12 @@ function MinhaAreaAppV2({
       }}
     >
       <div className="comun-v2-page" data-comun-app-v2-page="my-area">
-        <header className="flex items-center gap-4">
-          <span className="grid size-14 shrink-0 place-items-center rounded-[var(--comun-radius-community)] bg-comun-yellow font-black">
-            {String(profile?.display_name ?? "Pessoa")
-              .split(/\s+/)
-              .map((part: string) => part[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase()}
-          </span>
-          <div>
-            <h1 className="comun-v2-title normal-case">Minha participação</h1>
-            <p className="mt-1 text-sm text-comun-black/60">
-              {profile?.display_name ?? "Identidade comunitária"} · área privada
-            </p>
-          </div>
+        <header className="mb-4 grid gap-1">
+          <h1 className="text-2xl font-black normal-case">
+            Minha participação
+          </h1>
+          <p className="text-sm text-comun-black/65">Continue de onde parou</p>
         </header>
-        <p className="mt-5 max-w-2xl text-comun-black/70">
-          Reencontre o que você registrou, as conversas em que participou e os
-          compromissos que assumiu.
-        </p>
         {walletEnabled ? (
           <ParticipationWalletPanel
             accountAvailable={accountAvailable}
@@ -716,16 +707,12 @@ function MinhaAreaAppV2({
               civicEnvironmentalForwardingEnabled
             }
             civicUrbanForwardingEnabled={civicUrbanForwardingEnabled}
+            inboxAttention={attention.map((item: any) => ({
+              title: String(item.title ?? "Atualização disponível"),
+              summary: item.summary ? String(item.summary) : null,
+              actionUrl: String(item.action_url ?? "/comun/caixa-de-entrada"),
+            }))}
           />
-        ) : null}
-        {attention.length ? (
-          <Link
-            href={withComunAppV2("/comun/caixa-de-entrada")}
-            className="surface-alert mt-4 flex min-h-12 items-center justify-between rounded-[var(--comun-radius-card)] border border-comun-black/20 px-4 font-black"
-          >
-            <span>Continuar de onde parei</span>
-            <span aria-hidden="true">→</span>
-          </Link>
         ) : null}
         <nav
           aria-label="Seções de Minha participação"
@@ -1403,9 +1390,18 @@ function WalletOnlyPage({
 }) {
   return (
     <ComunShell
-      appBar={{ title: "Minha Participação", contextLabel: "Carteira" }}
+      appBar={{
+        title: "Minha participação",
+        contextLabel: "Continue de onde parou",
+      }}
     >
       <div className="comun-v2-page" data-comun-app-v2-page="wallet-only">
+        <header className="mb-4 grid gap-1">
+          <h1 className="text-2xl font-black normal-case">
+            Minha participação
+          </h1>
+          <p className="text-sm text-comun-black/65">Continue de onde parou</p>
+        </header>
         <ParticipationWalletPanel
           standalone
           stmuAssistedEnabled={stmuAssistedEnabled}

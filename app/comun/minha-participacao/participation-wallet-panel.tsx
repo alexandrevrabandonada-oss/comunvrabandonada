@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { ComunStmuMultichannelPanel } from "./comun-stmu-multichannel-panel";
 import { ComunStmuAssistedPanel } from "./comun-stmu-assisted-panel";
 import { ComunEssentialServicesPanel } from "./comun-essential-services-panel";
@@ -52,6 +53,18 @@ function statusLabel(item: WalletItem) {
   );
 }
 
+function isSafetyPriority(item: WalletItem) {
+  return (
+    item.metadata?.immediateDanger === true ||
+    ["urgent", "emergency"].includes(String(item.metadata?.urgency ?? "")) ||
+    item.category === "child_protection"
+  );
+}
+
+function itemDate(item: WalletItem) {
+  return new Date(item.updated_at).toLocaleDateString("pt-BR");
+}
+
 export function ParticipationWalletPanel({
   standalone = false,
   accountAvailable = false,
@@ -63,6 +76,7 @@ export function ParticipationWalletPanel({
   childProtectionChannelOnlyEnabled = false,
   civicEnvironmentalForwardingEnabled = false,
   civicUrbanForwardingEnabled = false,
+  inboxAttention = [],
 }: {
   standalone?: boolean;
   accountAvailable?: boolean;
@@ -74,6 +88,11 @@ export function ParticipationWalletPanel({
   childProtectionChannelOnlyEnabled?: boolean;
   civicEnvironmentalForwardingEnabled?: boolean;
   civicUrbanForwardingEnabled?: boolean;
+  inboxAttention?: Array<{
+    title: string;
+    summary: string | null;
+    actionUrl: string;
+  }>;
 }) {
   const [items, setItems] = useState<WalletItem[]>([]);
   const [present, setPresent] = useState(false);
@@ -83,6 +102,8 @@ export function ParticipationWalletPanel({
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [accountLinked, setAccountLinked] = useState(false);
+  const [openItemId, setOpenItemId] = useState<string | null>(null);
+  const itemRefs = useRef<Record<string, HTMLElement | null>>({});
 
   async function refresh() {
     const response = await fetch("/api/comun/participation-wallet", {
@@ -251,44 +272,179 @@ export function ParticipationWalletPanel({
     URL.revokeObjectURL(link.href);
   }
 
-  const grouped = [
+  const resolvedItems = useMemo(
+    () =>
+      items.map((item) => {
+        const relataAction =
+          item.item_type === "relata_report"
+            ? resolveWalletRelataAction({
+                category: item.category,
+                presentationState: item.presentation_state,
+                actionRequired: item.action_required,
+                metadata: item.metadata ?? {},
+                featureFlags: {
+                  stmuAssistedEnabled,
+                  stmuMultichannelEnabled,
+                  essentialServicesEnabled,
+                  essentialForwardingEnabled,
+                  sensitiveForwardingEnabled,
+                  childProtectionChannelOnlyEnabled,
+                  civicForwardingEnabled:
+                    civicEnvironmentalForwardingEnabled ||
+                    civicUrbanForwardingEnabled,
+                },
+              })
+            : null;
+        return { item, relataAction };
+      }),
     [
-      "Meus relatos",
-      items.filter((item) => item.item_type === "relata_report"),
+      items,
+      stmuAssistedEnabled,
+      stmuMultichannelEnabled,
+      essentialServicesEnabled,
+      essentialForwardingEnabled,
+      sensitiveForwardingEnabled,
+      childProtectionChannelOnlyEnabled,
+      civicEnvironmentalForwardingEnabled,
+      civicUrbanForwardingEnabled,
     ],
-    [
-      "Observações",
-      items.filter((item) => item.item_type === "bus_observation"),
-    ],
-    [
-      "Casos acompanhados",
-      items.filter((item) =>
-        ["collective_case_follow", "community_confirmation"].includes(
-          item.item_type,
-        ),
-      ),
-    ],
-    [
-      "Protocolos acompanhados",
-      items.filter((item) => item.item_type === "legacy_report_follow"),
-    ],
-  ] as const;
+  );
+  const orderedItems = useMemo(
+    () =>
+      [...resolvedItems].sort((a, b) => {
+        const safetyDelta =
+          Number(isSafetyPriority(b.item)) - Number(isSafetyPriority(a.item));
+        if (safetyDelta) return safetyDelta;
+        const actionDelta =
+          Number(Boolean(b.item.action_required || b.relataAction?.nextStep)) -
+          Number(Boolean(a.item.action_required || a.relataAction?.nextStep));
+        if (actionDelta) return actionDelta;
+        return (
+          new Date(b.item.updated_at).getTime() -
+          new Date(a.item.updated_at).getTime()
+        );
+      }),
+    [resolvedItems],
+  );
+  const attentionItems = orderedItems.filter(
+    ({ item, relataAction }) =>
+      isSafetyPriority(item) ||
+      Boolean(item.action_required) ||
+      Boolean(relataAction?.nextStep),
+  );
+  const primaryAttention = attentionItems[0] ?? null;
+  const remainingAttentionCount =
+    attentionItems.length + inboxAttention.length - 1;
+
+  function openItem(itemId: string) {
+    setOpenItemId(itemId);
+    window.requestAnimationFrame(() => itemRefs.current[itemId]?.focus());
+  }
 
   return (
     <section
       className={`grid gap-4 ${standalone ? "mx-auto w-full max-w-2xl" : "mt-6"}`}
       data-comun-participation-wallet="true"
-      aria-labelledby="wallet-title"
+      aria-label="Meus registros"
     >
-      <header className="grid gap-2">
-        <p className="comun-v2-eyebrow">Minha participação</p>
-        <h2 id="wallet-title" className="text-2xl font-black normal-case">
-          Meus registros
+      {recoveryCode ? (
+        <div className="grid gap-2 border-2 border-comun-black bg-[#f8f2e6] p-4">
+          <p className="text-lg font-black">Guardar código de recuperação</p>
+          <p className="text-sm">
+            Ele permite recuperar seus registros em outro aparelho.
+          </p>
+          <p className="break-all font-mono text-lg font-black tracking-wider">
+            {recoveryCode}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void navigator.clipboard?.writeText(recoveryCode)}
+              className="min-h-11 border-2 border-comun-black bg-comun-yellow px-3 font-black"
+            >
+              Copiar código
+            </button>
+            <button
+              type="button"
+              onClick={saveRecoveryCode}
+              className="min-h-11 border-2 border-comun-black bg-white px-3 font-black"
+            >
+              Salvar arquivo
+            </button>
+          </div>
+        </div>
+      ) : null}
+      <section className="grid gap-3" aria-labelledby="attention-title">
+        <h2 id="attention-title" className="text-xl font-black normal-case">
+          Precisa de você
         </h2>
-        <p className="text-sm leading-6">
-          Relatos e acompanhamentos guardados neste aparelho.
-        </p>
-      </header>
+        {primaryAttention ? (
+          <article className="surface-alert grid gap-3 rounded-[var(--comun-radius-card)] border-2 border-comun-black p-4">
+            <p className="text-xs font-black uppercase">
+              {primaryAttention.relataAction?.categoryLabel ??
+                primaryAttention.item.title_template}
+            </p>
+            <p className="font-black">
+              {isSafetyPriority(primaryAttention.item)
+                ? (primaryAttention.relataAction?.nextStep ??
+                  "Confira agora a orientação de segurança.")
+                : (primaryAttention.relataAction?.nextStep ??
+                  primaryAttention.item.action_required)}
+            </p>
+            <button
+              type="button"
+              data-primary-action="true"
+              onClick={() => openItem(primaryAttention.item.item_id)}
+              className="min-h-11 w-fit border-2 border-comun-black bg-comun-yellow px-4 py-2 font-black"
+            >
+              Continuar
+            </button>
+            {remainingAttentionCount > 0 ? (
+              <Link
+                className="text-sm font-black underline"
+                href={
+                  inboxAttention.length
+                    ? "/comun/caixa-de-entrada"
+                    : "#meus-registros"
+                }
+              >
+                Mais {remainingAttentionCount}{" "}
+                {remainingAttentionCount === 1 ? "item pede" : "itens pedem"}{" "}
+                atenção
+              </Link>
+            ) : null}
+          </article>
+        ) : inboxAttention[0] ? (
+          <article className="surface-alert grid gap-3 rounded-[var(--comun-radius-card)] border-2 border-comun-black p-4">
+            <p className="text-xs font-black uppercase">Atualização</p>
+            <p className="font-black">{inboxAttention[0].title}</p>
+            {inboxAttention[0].summary ? (
+              <p className="text-sm">{inboxAttention[0].summary}</p>
+            ) : null}
+            <Link
+              href={inboxAttention[0].actionUrl}
+              data-primary-action="true"
+              className="inline-flex min-h-11 w-fit items-center border-2 border-comun-black bg-comun-yellow px-4 py-2 font-black"
+            >
+              Continuar
+            </Link>
+            {inboxAttention.length > 1 ? (
+              <Link
+                className="text-sm font-black underline"
+                href="/comun/caixa-de-entrada"
+              >
+                Mais {inboxAttention.length - 1}{" "}
+                {inboxAttention.length === 2 ? "item pede" : "itens pedem"}{" "}
+                atenção
+              </Link>
+            ) : null}
+          </article>
+        ) : (
+          <p className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4 text-sm">
+            Nada precisa da sua atenção agora.
+          </p>
+        )}
+      </section>
       {!present ? (
         <div className="grid gap-3 border-2 border-comun-black bg-comun-yellow p-4 text-comun-black">
           <p className="font-black">
@@ -327,230 +483,185 @@ export function ParticipationWalletPanel({
           </button>
         </div>
       ) : null}
-      {accountAvailable && present ? (
-        <div className="grid gap-2 border-2 border-comun-black/20 bg-white p-4 text-sm">
-          <p className="font-black">Conta e Carteira</p>
-          <p>
-            O vínculo é opcional e só acontece quando você pedir. A Carteira
-            continua recuperável pelo código se o vínculo for removido.
-          </p>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() =>
-              void (accountLinked ? unlinkAccount() : linkAccount())
-            }
-            className="min-h-11 w-fit border-2 border-comun-black bg-comun-yellow px-3 font-black"
+      {present ? (
+        <section
+          id="meus-registros"
+          className="grid gap-3"
+          aria-labelledby="records-title"
+        >
+          <h2
+            id="wallet-records-title"
+            className="text-xl font-black normal-case"
           >
-            {accountLinked
-              ? "Remover vínculo com minha conta"
-              : "Vincular esta carteira à minha conta"}
-          </button>
-        </div>
-      ) : null}
-      {recoveryCode ? (
-        <div className="grid gap-2 border-2 border-comun-black bg-[#f8f2e6] p-4">
-          <p className="text-lg font-black">Guardar código de recuperação</p>
-          <p className="text-sm">
-            Ele permite recuperar seus registros em outro aparelho.
-          </p>
-          <p className="break-all font-mono text-lg font-black tracking-wider">
-            {recoveryCode}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => void navigator.clipboard?.writeText(recoveryCode)}
-              className="min-h-11 border-2 border-comun-black bg-comun-yellow px-3 font-black"
-            >
-              Copiar código
-            </button>
-            <button
-              type="button"
-              onClick={saveRecoveryCode}
-              className="min-h-11 border-2 border-comun-black bg-white px-3 font-black"
-            >
-              Salvar arquivo
-            </button>
-          </div>
-        </div>
-      ) : null}
-      {present
-        ? grouped.map(([title, group]) =>
-            group.length ? (
-              <div key={title} className="grid gap-2">
-                <h3 className="font-black normal-case">{title}</h3>
-                {group.map((item) => {
-                  const relataAction =
-                    item.item_type === "relata_report"
-                      ? resolveWalletRelataAction({
-                          category: item.category,
-                          presentationState: item.presentation_state,
-                          actionRequired: item.action_required,
-                          metadata: item.metadata ?? {},
-                          featureFlags: {
-                            stmuAssistedEnabled,
-                            stmuMultichannelEnabled,
-                            essentialServicesEnabled,
-                            essentialForwardingEnabled,
-                            sensitiveForwardingEnabled,
-                            childProtectionChannelOnlyEnabled,
-                            civicForwardingEnabled:
-                              civicEnvironmentalForwardingEnabled ||
-                              civicUrbanForwardingEnabled,
-                          },
-                        })
-                      : null;
-                  const experience =
-                    item.item_type === "relata_report"
-                      ? resolveComunForwardingExperience({
-                          category: item.category,
-                          urgency:
-                            typeof item.metadata?.urgency === "string"
-                              ? item.metadata.urgency
-                              : null,
-                          metadata: item.metadata ?? {},
-                          essentialForwardingEnabled:
-                            essentialServicesEnabled &&
-                            essentialForwardingEnabled,
-                          sensitiveForwardingEnabled,
-                          civicForwardingEnabled:
-                            item.category === "waste_or_debris" ||
-                            item.category === "smoke_or_environmental_trace" ||
-                            item.category === "environmental_pollution"
-                              ? civicEnvironmentalForwardingEnabled
-                              : civicUrbanForwardingEnabled,
-                        })
-                      : null;
-                  return (
-                    <article
-                      key={item.item_id}
-                      data-wallet-item-id={item.item_id}
-                      className={`grid gap-2 border-2 bg-white p-4 ${
-                        relataAction?.nextStep
-                          ? "border-comun-black"
-                          : "border-comun-black/30"
-                      }`}
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="text-xs font-black uppercase">
-                          {relataAction?.statusOverride ?? statusLabel(item)}
-                        </span>
-                        {item.protocol_masked ? (
-                          <span className="font-mono text-xs">
-                            {item.protocol_masked}
-                          </span>
-                        ) : null}
-                      </div>
-                      <h4 className="font-black normal-case">
-                        {item.title_template}
-                      </h4>
-                      <p className="text-sm text-comun-black/70">
-                        {relataAction?.categoryLabel ?? item.title_template} ·
-                        atualizado em{" "}
-                        {new Date(item.updated_at).toLocaleDateString("pt-BR")}
-                      </p>
-                      {relataAction?.detailLabel ? (
-                        <p className="text-sm font-bold">
-                          {relataAction.detailLabel}
-                        </p>
-                      ) : null}
-                      {relataAction?.stateMessage ? (
-                        <p className="text-sm font-bold text-comun-black/80">
-                          {relataAction.stateMessage}
-                        </p>
-                      ) : null}
-                      <div className="flex flex-wrap gap-3">
-                        <button
-                          type="button"
-                          onClick={() => removeItem(item.item_id)}
-                          className="min-h-11 font-black underline"
-                        >
-                          Arquivar ou retirar
-                        </button>
-                      </div>
-                      {relataAction?.nextStep ? (
-                        <div className="border-l-4 border-comun-yellow bg-[#f8f2e6] p-3 text-sm">
-                          <p className="font-black">Próximo passo</p>
-                          <p>{relataAction.nextStep}</p>
-                        </div>
-                      ) : null}
-                      {relataAction?.availabilityMessage ? (
-                        <p className="border-t-2 pt-3 text-sm font-bold">
-                          {relataAction.availabilityMessage}
-                        </p>
-                      ) : null}
-                      {experience ? (
-                        <section
-                          className="grid gap-1 border-t-2 pt-3"
-                          aria-label="Próximo caminho"
-                        >
-                          <p className="text-xs font-black uppercase">
-                            Como resolver isso
-                          </p>
-                          <p className="font-black">{experience.headline}</p>
-                          <p className="text-sm">{experience.explanation}</p>
-                          {experience.privacyNote ? (
-                            <p className="text-xs font-bold">
-                              {experience.privacyNote}
-                            </p>
-                          ) : null}
-                          {experience.escalationNote ? (
-                            <p className="text-xs">
-                              {experience.escalationNote}
-                            </p>
-                          ) : null}
-                        </section>
-                      ) : null}
-                      {item.item_type === "relata_report" &&
-                      isComunPublicProjectionOptInCategory(item.category) &&
-                      !["withdrawn", "Retirado"].includes(
-                        item.presentation_state,
-                      ) ? (
-                        <PublicProjectionConsentPanel
-                          walletItemId={item.item_id}
-                        />
-                      ) : null}
-                      {relataAction?.route === "bus" ? (
-                        relataAction.showStmuAssisted ? (
-                          <ComunStmuAssistedPanel walletItemId={item.item_id} />
-                        ) : relataAction.showStmuMultichannel ? (
-                          <ComunStmuMultichannelPanel
-                            relataCaseId={item.item_id}
-                          />
-                        ) : null
-                      ) : relataAction?.route === "essential_service" ? (
-                        relataAction.showEssentialServices ? (
-                          <ComunEssentialServicesPanel
-                            walletItemId={item.item_id}
-                          />
-                        ) : null
-                      ) : relataAction?.route === "sensitive_service" &&
-                        relataAction.showSensitiveForwarding &&
-                        isSensitiveForwardingCategory(item.category) ? (
-                        <ComunSensitiveForwardingPanel
-                          walletItemId={item.item_id}
-                          category={item.category}
-                        />
-                      ) : null}
-                      {experience?.mode === "civic_assisted" &&
-                      (item.category === "waste_or_debris" ||
+            Meus registros
+          </h2>
+          {orderedItems.map(({ item, relataAction }) => {
+            const experience =
+              item.item_type === "relata_report"
+                ? resolveComunForwardingExperience({
+                    category: item.category,
+                    urgency:
+                      typeof item.metadata?.urgency === "string"
+                        ? item.metadata.urgency
+                        : null,
+                    metadata: item.metadata ?? {},
+                    essentialForwardingEnabled:
+                      essentialServicesEnabled && essentialForwardingEnabled,
+                    sensitiveForwardingEnabled,
+                    civicForwardingEnabled:
+                      item.category === "waste_or_debris" ||
                       item.category === "smoke_or_environmental_trace" ||
                       item.category === "environmental_pollution"
                         ? civicEnvironmentalForwardingEnabled
-                        : civicUrbanForwardingEnabled) &&
-                      isCivicAssistedCategory(item.category) ? (
-                        <ComunCivicForwardingPanel
-                          walletItemId={item.item_id}
-                        />
+                        : civicUrbanForwardingEnabled,
+                  })
+                : null;
+            const open = openItemId === item.item_id;
+            return (
+              <article
+                key={item.item_id}
+                data-wallet-item-id={item.item_id}
+                ref={(node) => {
+                  itemRefs.current[item.item_id] = node;
+                }}
+                tabIndex={-1}
+                className="surface-paper grid gap-2 rounded-[var(--comun-radius-card)] border border-comun-black/25 p-4 focus:outline focus:outline-2 focus:outline-offset-2"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-black uppercase">
+                    {relataAction?.statusOverride ?? statusLabel(item)}
+                  </span>
+                  <time className="text-xs" dateTime={item.updated_at}>
+                    {itemDate(item)}
+                  </time>
+                </div>
+                <h3 className="font-black normal-case">
+                  {relataAction?.categoryLabel ?? item.title_template}
+                </h3>
+                {relataAction?.detailLabel ? (
+                  <p className="text-sm font-bold">
+                    {relataAction.detailLabel}
+                  </p>
+                ) : null}
+                {relataAction?.stateMessage ? (
+                  <p className="text-sm font-bold text-comun-black/80">
+                    {relataAction.stateMessage}
+                  </p>
+                ) : null}
+                {relataAction?.nextStep ? (
+                  <div className="border-l-4 border-comun-yellow pl-3 text-sm">
+                    <p className="font-black">Próximo passo</p>
+                    <p>{relataAction.nextStep}</p>
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  aria-controls={`wallet-item-details-${item.item_id}`}
+                  onClick={() => setOpenItemId(open ? null : item.item_id)}
+                  className="min-h-11 w-fit font-black underline"
+                >
+                  {open
+                    ? "Fechar detalhes"
+                    : relataAction?.nextStep
+                      ? "Continuar"
+                      : "Ver detalhes"}
+                </button>
+                <div
+                  id={`wallet-item-details-${item.item_id}`}
+                  className={
+                    open
+                      ? "grid gap-3 border-t-2 border-comun-black/20 pt-3"
+                      : "hidden"
+                  }
+                >
+                  {item.protocol_masked ? (
+                    <p className="text-sm">
+                      <span className="font-bold">Protocolo:</span>{" "}
+                      <span className="font-mono">{item.protocol_masked}</span>
+                    </p>
+                  ) : null}
+                  <details>
+                    <summary className="min-h-11 cursor-pointer py-3 font-black underline">
+                      Opções do registro
+                    </summary>
+                    <div className="flex flex-wrap gap-3 pb-2">
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.item_id)}
+                        className="min-h-11 font-black underline"
+                      >
+                        Arquivar ou retirar
+                      </button>
+                    </div>
+                  </details>
+                  {relataAction?.availabilityMessage ? (
+                    <p className="border-t-2 pt-3 text-sm font-bold">
+                      {relataAction.availabilityMessage}
+                    </p>
+                  ) : null}
+                  {experience ? (
+                    <section
+                      className="grid gap-1 border-t-2 pt-3"
+                      aria-label="Próximo caminho"
+                    >
+                      <p className="text-xs font-black uppercase">
+                        Como resolver isso
+                      </p>
+                      <p className="font-black">{experience.headline}</p>
+                      <p className="text-sm">{experience.explanation}</p>
+                      {experience.privacyNote ? (
+                        <p className="text-xs font-bold">
+                          {experience.privacyNote}
+                        </p>
                       ) : null}
-                    </article>
-                  );
-                })}
-              </div>
-            ) : null,
-          )
-        : null}
+                      {experience.escalationNote ? (
+                        <p className="text-xs">{experience.escalationNote}</p>
+                      ) : null}
+                    </section>
+                  ) : null}
+                  {item.item_type === "relata_report" &&
+                  isComunPublicProjectionOptInCategory(item.category) &&
+                  !["withdrawn", "Retirado"].includes(
+                    item.presentation_state,
+                  ) ? (
+                    <PublicProjectionConsentPanel walletItemId={item.item_id} />
+                  ) : null}
+                  {relataAction?.route === "bus" ? (
+                    relataAction.showStmuAssisted ? (
+                      <ComunStmuAssistedPanel walletItemId={item.item_id} />
+                    ) : relataAction.showStmuMultichannel ? (
+                      <ComunStmuMultichannelPanel relataCaseId={item.item_id} />
+                    ) : null
+                  ) : relataAction?.route === "essential_service" ? (
+                    relataAction.showEssentialServices ? (
+                      <ComunEssentialServicesPanel
+                        walletItemId={item.item_id}
+                      />
+                    ) : null
+                  ) : relataAction?.route === "sensitive_service" &&
+                    relataAction.showSensitiveForwarding &&
+                    isSensitiveForwardingCategory(item.category) ? (
+                    <ComunSensitiveForwardingPanel
+                      walletItemId={item.item_id}
+                      category={item.category}
+                    />
+                  ) : null}
+                  {experience?.mode === "civic_assisted" &&
+                  (item.category === "waste_or_debris" ||
+                  item.category === "smoke_or_environmental_trace" ||
+                  item.category === "environmental_pollution"
+                    ? civicEnvironmentalForwardingEnabled
+                    : civicUrbanForwardingEnabled) &&
+                  isCivicAssistedCategory(item.category) ? (
+                    <ComunCivicForwardingPanel walletItemId={item.item_id} />
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
+        </section>
+      ) : null}
       {notice ? (
         <p
           role="status"
@@ -560,42 +671,59 @@ export function ParticipationWalletPanel({
         </p>
       ) : null}
       {present ? (
-        <div className="grid gap-2 border-t-2 border-comun-black/20 pt-4">
-          <h3 className="font-black normal-case">Protocolos oficiais</h3>
-          <p className="text-sm">
-            Quando um relato for encaminhado, o protocolo do órgão aparecerá
-            aqui. Nada é enviado por esta carteira.
-          </p>
-        </div>
+        <details className="border-t-2 border-comun-black/20 pt-2">
+          <summary className="min-h-11 cursor-pointer py-3 font-black">
+            Tenho um protocolo antigo
+          </summary>
+          <div className="grid gap-2 pb-3">
+            <p className="text-sm">
+              Adicione um registro antigo para acompanhá-lo aqui.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <input
+                value={legacyProtocol}
+                onChange={(event) =>
+                  setLegacyProtocol(event.target.value.toUpperCase())
+                }
+                className="min-h-11 min-w-0 flex-1 border-2 border-comun-black bg-white p-3 font-mono"
+                placeholder="COMUN-..."
+              />
+              <button
+                type="button"
+                disabled={busy || !legacyProtocol}
+                onClick={followLegacy}
+                className="min-h-11 border-2 border-comun-black bg-comun-yellow px-3 font-black"
+              >
+                Acompanhar
+              </button>
+            </div>
+          </div>
+        </details>
       ) : null}
-      {present ? (
-        <div className="grid gap-2 border-t-2 border-comun-black/20 pt-4">
-          <h3 className="font-black normal-case">
-            Acompanhar protocolo legado
-          </h3>
-          <p className="text-sm">
-            Ele aparecerá como “Protocolo acompanhado”, sem afirmar posse
-            privada.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <input
-              value={legacyProtocol}
-              onChange={(event) =>
-                setLegacyProtocol(event.target.value.toUpperCase())
-              }
-              className="min-h-11 min-w-0 flex-1 border-2 border-comun-black bg-white p-3 font-mono"
-              placeholder="COMUN-..."
-            />
+      {accountAvailable && present ? (
+        <details className="border-t-2 border-comun-black/20 pt-2">
+          <summary className="min-h-11 cursor-pointer py-3 font-black">
+            Conta e recuperação
+          </summary>
+          <div className="grid gap-2 pb-3 text-sm">
+            <p>
+              Vincule seus registros à conta ou mantenha a recuperação por
+              código.
+            </p>
             <button
               type="button"
-              disabled={busy || !legacyProtocol}
-              onClick={followLegacy}
-              className="min-h-11 border-2 border-comun-black bg-comun-yellow px-3 font-black"
+              disabled={busy}
+              onClick={() =>
+                void (accountLinked ? unlinkAccount() : linkAccount())
+              }
+              className="min-h-11 w-fit border-2 border-comun-black bg-comun-yellow px-3 font-black"
             >
-              Acompanhar
+              {accountLinked
+                ? "Remover vínculo com minha conta"
+                : "Vincular meus registros à minha conta"}
             </button>
           </div>
-        </div>
+        </details>
       ) : null}
       {present && !items.length ? (
         <p className="border-2 border-comun-black/20 bg-white p-4 text-sm">
@@ -603,17 +731,8 @@ export function ParticipationWalletPanel({
           acompanhados aparecerão aqui.
         </p>
       ) : null}
-      {notice ? (
-        <p
-          role="status"
-          className="border-l-4 border-comun-yellow bg-white p-3 text-sm font-bold"
-        >
-          {notice}
-        </p>
-      ) : null}
       <p className="text-xs text-comun-black/60">
-        Nenhum relato é encaminhado por esta tela. A Carteira é a proteção de
-        recuperação dos seus registros e não substitui o protocolo COMUN.
+        Nenhum relato é encaminhado por esta tela.
       </p>
     </section>
   );

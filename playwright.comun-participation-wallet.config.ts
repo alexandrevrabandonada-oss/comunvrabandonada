@@ -18,7 +18,11 @@ export default defineConfig({
   projects: viewports.map(([name, width, height]) => ({ name, use: { viewport: { width, height } } })),
   use: { baseURL, trace: "retain-on-failure" },
   webServer: {
-    command: "node scripts/comun-local-env.mjs run node scripts/comun-relata-test-server.mjs",
+    command: "node scripts/comun-relata-test-server.mjs",
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+      SUPABASE_SERVICE_ROLE_KEY: "local-mocked-wallet-contract-only",
+    },
     url: `${baseURL}/comun/minha-participacao`,
     reuseExistingServer: false,
     timeout: 120_000,
