@@ -12,6 +12,7 @@ const a5a2 = "supabase/migrations/20260824001340_comun_artwork_submission_privat
 const a3Followup = "supabase/migrations/20260825120000_comun_followup_escalation_continuity.sql";
 const b2a1 = "supabase/migrations/20260826150000_comun_denuncias_public_evidence_pauta_bridge.sql";
 const b2a2 = "supabase/migrations/20260827120000_comun_denuncias_private_collective_matching.sql";
+const entityConsent = "supabase/migrations/20260901000000_comun_relata_collective_entity_consent_foundation.sql";
 
 test("A3 culture migration is not applicable to historical observatory, social, solidarity or P6C-C gates", () => {
   for (const lane of ["48-2-a", "48-3-b0", "48-4-a0", "p6c-c"]) {
@@ -68,6 +69,12 @@ test("B2-A2 migration is not applicable to historical and non-owning lanes", () 
 
 test("B2-A2 migration is owned by its own lane", () => {
   assert.equal(classifyMigrationLane("culture-b2-a2", [b2a2]).mode, "candidate");
+});
+
+test("collective entity consent is known and non-applicable to historical lanes", () => {
+  for (const lane of ["48-2-a", "48-4-a4", "48-5-a0", "culture-b2-a1", "culture-b2-a2"]) {
+    assert.equal(classifyMigrationLane(lane, [entityConsent]).mode, "not_applicable");
+  }
 });
 
 test("lane-owned migration remains a candidate and does not become N/A", () => {
