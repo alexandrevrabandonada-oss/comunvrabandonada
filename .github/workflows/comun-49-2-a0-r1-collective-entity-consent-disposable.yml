@@ -1,0 +1,142 @@
+name: COMUN 49.2-A0-R1 disposable collective entity consent proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-a0-r1-collective-entity-consent-disposable.yml"
+      - "supabase/migrations/*_comun_relata_collective_entity_consent_foundation.sql"
+      - "lib/comun-collective-entity-consent*.ts"
+      - "scripts/49-2-a0-r1-collective-entity-consent-contract.node-test.mjs"
+      - "scripts/ci/classify-migration-lane*.mjs"
+
+permissions: { contents: read }
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: node --test scripts/49-2-a0-r1-collective-entity-consent-contract.node-test.mjs scripts/ci/classify-migration-lane.node-test.mjs
+      - run: npx vitest run lib/comun-collective-entity-consent.test.ts lib/comun-denuncias-map-readiness.test.ts
+
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.114.0 }
+      - name: Prove creation, revocation, isolation and RLS on a disposable database
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          db="$(supabase status -o env | sed -n 's/^DB_URL=//p' | tr -d '\"')"; test -n "$db"
+          psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
+          begin;
+          insert into auth.users(id,aud,role,email) values
+            ('49200000-0000-4000-8000-000000000001','authenticated','authenticated','entity-representative@example.invalid'),
+            ('49200000-0000-4000-8000-000000000002','authenticated','authenticated','entity-outsider@example.invalid');
+
+          do $$
+          declare
+            v_entity uuid;
+            v_entity_duplicate uuid;
+            v_consent uuid;
+            v_consent_duplicate uuid;
+          begin
+            select entity_id into v_entity
+              from public.comun_relata_collective_entity_create(
+                '49200000-0000-4000-8000-000000000101',
+                '49200000-0000-4000-8000-000000000001',
+                'Coletivo de teste descartavel',
+                'collective'
+              );
+            select entity_id into v_entity_duplicate
+              from public.comun_relata_collective_entity_create(
+                '49200000-0000-4000-8000-000000000101',
+                '49200000-0000-4000-8000-000000000001',
+                'Outro nome nao pode criar outra entidade',
+                'collective'
+              );
+            if v_entity is null or v_entity_duplicate <> v_entity then
+              raise exception 'creation idempotency failed';
+            end if;
+
+            select consent_id into v_consent
+              from public.comun_relata_collective_entity_consent_set(
+                '49200000-0000-4000-8000-000000000001',v_entity,true
+              );
+            select consent_id into v_consent_duplicate
+              from public.comun_relata_collective_entity_consent_set(
+                '49200000-0000-4000-8000-000000000001',v_entity,true
+              );
+            if v_consent is null or v_consent_duplicate <> v_consent
+              or (select count(*) from private.comun_relata_collective_entity_consents where entity_id=v_entity and active) <> 1 then
+              raise exception 'active consent idempotency failed';
+            end if;
+
+            begin
+              perform public.comun_relata_collective_entity_consent_set(
+                '49200000-0000-4000-8000-000000000002',v_entity,true
+              );
+              raise exception 'outsider consent unexpectedly accepted';
+            exception when insufficient_privilege then null;
+            end;
+
+            perform public.comun_relata_collective_entity_consent_set(
+              '49200000-0000-4000-8000-000000000001',v_entity,false
+            );
+            perform public.comun_relata_collective_entity_consent_set(
+              '49200000-0000-4000-8000-000000000001',v_entity,false
+            );
+            if exists(select 1 from private.comun_relata_collective_entity_consents where entity_id=v_entity and active)
+              or (select count(*) from private.comun_relata_collective_entity_events where entity_id=v_entity and event_type='consent_revoked') <> 1 then
+              raise exception 'revocation was not safe and idempotent';
+            end if;
+          end $$;
+
+          do $$
+          declare table_name text;
+          begin
+            foreach table_name in array array[
+              'private.comun_relata_collective_entities',
+              'private.comun_relata_collective_entity_representations',
+              'private.comun_relata_collective_entity_consents',
+              'private.comun_relata_collective_entity_events'
+            ] loop
+              if not (select relrowsecurity and relforcerowsecurity from pg_class where oid=table_name::regclass) then
+                raise exception 'RLS not forced for %', table_name;
+              end if;
+              if has_table_privilege('anon',table_name,'SELECT,INSERT,UPDATE,DELETE')
+                or has_table_privilege('authenticated',table_name,'SELECT,INSERT,UPDATE,DELETE') then
+                raise exception 'client table access open for %', table_name;
+              end if;
+            end loop;
+            if has_function_privilege('anon','public.comun_relata_collective_entity_create(uuid,uuid,text,text)','EXECUTE')
+              or has_function_privilege('authenticated','public.comun_relata_collective_entity_consent_set(uuid,uuid,boolean)','EXECUTE')
+              or not has_function_privilege('service_role','public.comun_relata_collective_entity_create(uuid,uuid,text,text)','EXECUTE') then
+              raise exception 'RPC grant boundary failed';
+            end if;
+            if exists(
+              select 1 from pg_constraint
+              where conrelid in (
+                'private.comun_relata_collective_entities'::regclass,
+                'private.comun_relata_collective_entity_representations'::regclass,
+                'private.comun_relata_collective_entity_consents'::regclass,
+                'private.comun_relata_collective_entity_events'::regclass
+              ) and confrelid = 'public.comun_relata_cases'::regclass
+            ) then
+              raise exception 'report grouping relationship introduced';
+            end if;
+          end $$;
+          rollback;
+          SQL
+          echo COMUN_49_2_A0_R1_COLLECTIVE_ENTITY_CONSENT_DISPOSABLE_GREEN >> "$GITHUB_STEP_SUMMARY"
+          echo productionBusinessWrites=0 >> "$GITHUB_STEP_SUMMARY"
+          echo publicMapEnabled=false >> "$GITHUB_STEP_SUMMARY"

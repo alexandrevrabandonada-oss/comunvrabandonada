@@ -26,6 +26,7 @@ export const MIGRATION_LANE_MANIFEST = Object.freeze({
   "20260826120000_comun_denuncias_public_projection_opt_in.sql": "culture-b1",
   "20260826150000_comun_denuncias_public_evidence_pauta_bridge.sql": "culture-b2-a1",
   "20260827120000_comun_denuncias_private_collective_matching.sql": "culture-b2-a2",
+  "20260901000000_comun_relata_collective_entity_consent_foundation.sql": "collective-entity-consent",
 });
 
 const NON_APPLICABLE_LANES = Object.freeze({
@@ -43,6 +44,12 @@ const NON_APPLICABLE_LANES = Object.freeze({
   "culture-b2-a1": new Set(["culture-b2-a2"]),
   "culture-b2-a2": new Set([])
 });
+
+// This foundation is additive and belongs to a new, explicitly isolated
+// domain. Historical migration gates must classify it as N/A, never unknown.
+for (const lanes of Object.values(NON_APPLICABLE_LANES)) {
+  lanes.add("collective-entity-consent");
+}
 
 function migrationBasename(file) {
   return file.replaceAll("\\", "/").split("/").at(-1);
