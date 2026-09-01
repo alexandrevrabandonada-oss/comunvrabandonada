@@ -209,7 +209,10 @@ alter table private.comun_relata_collective_entity_events force row level securi
 
 revoke all on schema private from public,anon,authenticated;
 grant usage on schema private to service_role;
-revoke all on table private.comun_relata_collective_entities,private.comun_relata_collective_entity_representations,private.comun_relata_collective_entity_consents,private.comun_relata_collective_entity_events from public,anon,authenticated;
+revoke all on table private.comun_relata_collective_entities from public,anon,authenticated;
+revoke all on table private.comun_relata_collective_entity_representations from public,anon,authenticated;
+revoke all on table private.comun_relata_collective_entity_consents from public,anon,authenticated;
+revoke all on table private.comun_relata_collective_entity_events from public,anon,authenticated;
 grant select,insert,update on table private.comun_relata_collective_entities,private.comun_relata_collective_entity_representations,private.comun_relata_collective_entity_consents to service_role;
 grant select,insert on table private.comun_relata_collective_entity_events to service_role;
 revoke all on function private.comun_relata_entity_event_append_only(),private.comun_relata_entity_assert_actor(uuid),private.comun_relata_entity_active_representation(uuid,uuid) from public,anon,authenticated;
