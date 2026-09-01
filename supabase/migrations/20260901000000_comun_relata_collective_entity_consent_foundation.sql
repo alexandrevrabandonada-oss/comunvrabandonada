@@ -138,7 +138,8 @@ begin
     insert into private.comun_relata_collective_entity_events(entity_id,actor_user_id,event_type)
       values(v_entity.id,p_actor_user_id,'entity_created');
   end if;
-  select * into v_representation from private.comun_relata_entity_active_representation(v_entity.id,p_actor_user_id);
+  select representation.* into v_representation
+    from private.comun_relata_entity_active_representation(v_entity.id,p_actor_user_id) representation;
   if not found then
     insert into private.comun_relata_collective_entity_representations(entity_id,user_id)
       values(v_entity.id,p_actor_user_id) returning * into v_representation;
@@ -164,7 +165,8 @@ begin
   end if;
   perform 1 from private.comun_relata_collective_entities where id=p_entity_id and state='active';
   if not found then raise exception using errcode='P0001', message='COMUN_RELATA_ENTITY_NOT_FOUND'; end if;
-  select * into v_representation from private.comun_relata_entity_active_representation(p_entity_id,p_actor_user_id);
+  select representation.* into v_representation
+    from private.comun_relata_entity_active_representation(p_entity_id,p_actor_user_id) representation;
   if not found then raise exception using errcode='42501', message='COMUN_RELATA_ENTITY_REPRESENTATION_REQUIRED'; end if;
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_entity_id::text,4921));
   if p_active then
