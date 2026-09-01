@@ -168,8 +168,8 @@ begin
   if not found then raise exception using errcode='42501', message='COMUN_RELATA_ENTITY_REPRESENTATION_REQUIRED'; end if;
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_entity_id::text,4921));
   if p_active then
-    select * into v_consent from private.comun_relata_collective_entity_consents
-      where entity_id=p_entity_id and consent_version='relata-collective-public-projection-v1' and active for update;
+    select * into v_consent from private.comun_relata_collective_entity_consents consent
+      where consent.entity_id=p_entity_id and consent.consent_version='relata-collective-public-projection-v1' and consent.active for update;
     if not found then
       insert into private.comun_relata_collective_entity_consents(
         entity_id,representation_id,consented_by_user_id,consent_version,active,declared_at
@@ -180,8 +180,8 @@ begin
       ) values(p_entity_id,v_representation.id,v_consent.id,p_actor_user_id,'consent_granted',v_consent.consent_version);
     end if;
   else
-    select * into v_consent from private.comun_relata_collective_entity_consents
-      where entity_id=p_entity_id and consent_version='relata-collective-public-projection-v1' and active for update;
+    select * into v_consent from private.comun_relata_collective_entity_consents consent
+      where consent.entity_id=p_entity_id and consent.consent_version='relata-collective-public-projection-v1' and consent.active for update;
     if found then
       update private.comun_relata_collective_entity_consents
          set active=false,revoked_at=v_now,revoked_by_user_id=p_actor_user_id
