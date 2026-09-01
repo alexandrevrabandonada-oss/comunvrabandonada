@@ -85,23 +85,28 @@ consentimento. Valores inválidos ou negativos são normalizados para zero.
 
 ## Blockers atuais
 
-Estado remoto agregado a preencher pelo check Production read-only desta PR.
-O baseline versionado mais recente determina:
+O diagnóstico Production read-only do commit `490d982ae7ddaf168cb5cd9a5decfde99be4a70e`
+confirmou, em uma transação read-only, os blockers:
 
 - `FEATURE_DISABLED`;
 - `NO_ELIGIBLE_COLLECTIVE`;
-- `NO_VALID_CONSENT` ou ausência de evidência agregada de consentimento real;
+- `NO_VALID_CONSENT`;
 - `NO_SPATIAL_CANDIDATE`;
 - `NO_PUBLIC_PROJECTION`;
-- `NO_ALLOWED_CATEGORY` na saída final.
+- `NO_ALLOWED_CATEGORY`.
+
+`INVALID_CLUSTER_POLICY` não está presente porque não há nenhuma projection row
+para validar. O job fixa sua própria leitura de feature como desabilitada para
+preservar o cloak; não lê nem altera a env de Production. O estado operacional
+da flag permanece OFF conforme a evidência R0.
 
 ## Coletivos reais
 
 O diagnóstico conta somente agregados. Um coletivo real exige estado ativo,
 dois ou mais membros ativos, confiança high e evento
-`auto_link_high_confidence`. A contagem remota corrente será obtida pelo job
-read-only; nenhuma identidade, UUID, protocolo, texto, coordenada ou hash é
-selecionado.
+`auto_link_high_confidence`. Production retornou `realCollectives=0` e
+`eligibleCollectives=0`. Nenhuma identidade, UUID, protocolo, texto,
+coordenada ou hash é selecionado.
 
 ## Consentimento
 
@@ -223,8 +228,12 @@ recompute em Production.
 
 ## Gates remotos
 
-PENDING no momento deste primeiro checkpoint. A PR não pode mergear antes de
-typecheck, lint, build, testes focais e diagnóstico Production read-only verdes.
+- diagnóstico Production read-only: GREEN (workflow run `33563228139`);
+- resultado agregado: `mapDataReady=false`, `transactionReadOnly=true`,
+  `piiRead=false`, `privateCoordinatesRead=false`, `businessWrites=0`;
+- typecheck, lint, build, testes focais e Preview: PENDING neste commit final.
+
+A PR não pode mergear antes desses gates restantes estarem verdes.
 
 ## Estado da rota `/comun/denuncias/mapa`
 
@@ -235,9 +244,22 @@ navegação nem abre a rota.
 
 ## Estado real de Production
 
-O baseline conhecido é `projectionRows=0`, `confirmationRows=0`, mapa OFF e
-nenhum coletivo real elegível. O workflow desta PR atualizará as contagens
-agregadas sem writes e sem PII; o relatório será reconciliado antes do merge.
+O workflow Production com binding não local e SHA exato confirmou:
+
+- `realCollectives=0`;
+- `eligibleCollectives=0`;
+- `activeConsents=0`;
+- `activeConfirmations=0`;
+- `spatialCandidates=0`;
+- `projectionRows=0`;
+- `activeProjectionRows=0`;
+- `allowedCategoryRows=0`;
+- `eligibleRows=0`;
+- `invalidClusterPolicyRows=0`.
+
+Não houve schema write, env write, business write, migration, flag change ou
+deploy manual. A ausência de dados reais elegíveis mantém o mapa fechado como
+previsto.
 
 ## Próximo tijolo recomendado
 
