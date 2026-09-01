@@ -263,6 +263,7 @@
     "test:fixtures:assert-clean": "node scripts/comun-local-env.mjs run node scripts/fixtures-comun.mjs assert-clean",
     "smoke:core-public-routes": "node scripts/smoke-comun-core-public-routes.mjs",
     "test:b0:public-map": "node --test scripts/48-6-b0-contract.node-test.mjs scripts/run-48-6-b0-production.node-test.mjs",
+    "test:49-1:map-readiness": "node --test scripts/diagnose-comun-denuncias-map-readiness.node-test.mjs && vitest run lib/comun-denuncias-map-readiness.test.ts lib/comun-relata-public-projection.test.ts lib/comun-denuncias-public-map-feature.test.ts",
     "test:b2-a2:contract": "node --test scripts/48-6-b2-a2-contract.node-test.mjs scripts/48-6-b2-a2-r1-secret-provisioning.node-test.mjs",
     "test:b2-a2:r4:metadata": "node --test scripts/48-6-b2-a2-r4-key-metadata-diagnostic.node-test.mjs",
     "test:b2-a2:r5:secrets": "node --test scripts/48-6-b2-a2-r5-sensitive-spatial-key.node-test.mjs scripts/assert-sanitized-artifact.node-test.mjs",

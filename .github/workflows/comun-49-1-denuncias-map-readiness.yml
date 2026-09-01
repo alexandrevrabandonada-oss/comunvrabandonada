@@ -1,0 +1,66 @@
+name: COMUN 49.1 Denuncias map data readiness
+
+on:
+  pull_request:
+    paths:
+      - "app/comun/denuncias/mapa/page.tsx"
+      - "lib/comun-denuncias-map-readiness*.ts"
+      - "lib/server/comun-denuncias-public-map-runtime.ts"
+      - "scripts/diagnose-comun-denuncias-map-readiness*"
+      - ".github/workflows/comun-49-1-denuncias-map-readiness.yml"
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: Exact merged main SHA to inspect read-only
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comun-49-1-denuncias-map-readiness
+  cancel-in-progress: false
+
+jobs:
+  production-readiness:
+    name: Aggregated read-only Production readiness
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Assert exact main and Production binding
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_DB_URL"
+          case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*|*::1*) exit 1;; esac
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${SUPABASE_SERVICE_ROLE_KEY:-}"
+          expected="${EXPECTED_MAIN_SHA:-${{ github.event.pull_request.head.sha }}}"
+          test "$(git rev-parse HEAD)" = "$expected"
+      - name: Inspect only aggregated readiness in a read-only transaction
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          COMUN_DENUNCIAS_PUBLIC_MAP_ENABLED: disabled
+        run: |
+          mkdir -p .ci-artifacts/comun-49-1-map-readiness
+          node --experimental-strip-types scripts/diagnose-comun-denuncias-map-readiness.mjs \
+            --output=.ci-artifacts/comun-49-1-map-readiness/readiness.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-49-1-map-readiness-${{ github.run_id }}
+          path: .ci-artifacts/comun-49-1-map-readiness/readiness.json
+          retention-days: 30
+          if-no-files-found: error
