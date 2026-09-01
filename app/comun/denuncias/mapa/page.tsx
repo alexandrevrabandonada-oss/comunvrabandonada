@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function DenunciasPublicMapPage() {
   if (!isComunDenunciasPublicMapEnabled()) notFound();
+  // The page receives only the final boolean; aggregate readiness details stay server-internal.
   const readiness = await getComunDenunciasPublicMapReadiness();
   if (!readiness.mapDataReady) notFound();
   return <ComunDenunciasPublicMap />;
