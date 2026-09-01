@@ -98,20 +98,6 @@ begin
 end;
 $$;
 
-create or replace function private.comun_relata_entity_active_representation(
-  p_entity_id uuid,p_actor_user_id uuid
-)
-returns private.comun_relata_collective_entity_representations
-language sql stable security definer set search_path=pg_catalog,private as $$
-  select representation.*
-    from private.comun_relata_collective_entity_representations representation
-   where representation.entity_id=p_entity_id
-     and representation.user_id=p_actor_user_id
-     and representation.status in ('declared','verified')
-   order by representation.declared_at desc
-   limit 1
-$$;
-
 create or replace function public.comun_relata_collective_entity_create(
   p_request_id uuid,p_actor_user_id uuid,p_public_name text,p_entity_type text
 )
@@ -139,7 +125,12 @@ begin
       values(v_entity.id,p_actor_user_id,'entity_created');
   end if;
   select representation.* into v_representation
-    from private.comun_relata_entity_active_representation(v_entity.id,p_actor_user_id) representation;
+    from private.comun_relata_collective_entity_representations representation
+   where representation.entity_id=v_entity.id
+     and representation.user_id=p_actor_user_id
+     and representation.status in ('declared','verified')
+   order by representation.declared_at desc
+   limit 1;
   if not found then
     insert into private.comun_relata_collective_entity_representations(entity_id,user_id)
       values(v_entity.id,p_actor_user_id) returning * into v_representation;
@@ -166,7 +157,12 @@ begin
   perform 1 from private.comun_relata_collective_entities where id=p_entity_id and state='active';
   if not found then raise exception using errcode='P0001', message='COMUN_RELATA_ENTITY_NOT_FOUND'; end if;
   select representation.* into v_representation
-    from private.comun_relata_entity_active_representation(p_entity_id,p_actor_user_id) representation;
+    from private.comun_relata_collective_entity_representations representation
+   where representation.entity_id=p_entity_id
+     and representation.user_id=p_actor_user_id
+     and representation.status in ('declared','verified')
+   order by representation.declared_at desc
+   limit 1;
   if not found then raise exception using errcode='42501', message='COMUN_RELATA_ENTITY_REPRESENTATION_REQUIRED'; end if;
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_entity_id::text,4921));
   if p_active then
@@ -217,8 +213,8 @@ revoke all on table private.comun_relata_collective_entity_consents from public,
 revoke all on table private.comun_relata_collective_entity_events from public,anon,authenticated;
 grant select,insert,update on table private.comun_relata_collective_entities,private.comun_relata_collective_entity_representations,private.comun_relata_collective_entity_consents to service_role;
 grant select,insert on table private.comun_relata_collective_entity_events to service_role;
-revoke all on function private.comun_relata_entity_event_append_only(),private.comun_relata_entity_assert_actor(uuid),private.comun_relata_entity_active_representation(uuid,uuid) from public,anon,authenticated;
-grant execute on function private.comun_relata_entity_event_append_only(),private.comun_relata_entity_assert_actor(uuid),private.comun_relata_entity_active_representation(uuid,uuid) to service_role;
+revoke all on function private.comun_relata_entity_event_append_only(),private.comun_relata_entity_assert_actor(uuid) from public,anon,authenticated;
+grant execute on function private.comun_relata_entity_event_append_only(),private.comun_relata_entity_assert_actor(uuid) to service_role;
 revoke all on function public.comun_relata_collective_entity_create(uuid,uuid,text,text),public.comun_relata_collective_entity_consent_set(uuid,uuid,boolean) from public,anon,authenticated;
 grant execute on function public.comun_relata_collective_entity_create(uuid,uuid,text,text),public.comun_relata_collective_entity_consent_set(uuid,uuid,boolean) to service_role;
 
