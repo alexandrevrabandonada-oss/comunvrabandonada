@@ -13,14 +13,17 @@ const retry = readFileSync(
 );
 
 describe("Core Journeys Chromium crash resilience", () => {
-  it("wraps only the production browser suites", () => {
+  it("wraps only the approved Chromium browser suites", () => {
     expect(workflow).toContain(
       "bash scripts/quality/run-with-chromium-crash-retry.sh npm run journeys:e2e",
     );
     expect(workflow).toContain(
       "bash scripts/quality/run-with-chromium-crash-retry.sh npm run journeys:quality-regression",
     );
-    expect(workflow.match(/run-with-chromium-crash-retry\.sh/g)).toHaveLength(2);
+    expect(workflow).toContain(
+      "bash scripts/quality/run-with-chromium-crash-retry.sh npm run test:e2e:app-shell-v2",
+    );
+    expect(workflow.match(/run-with-chromium-crash-retry\.sh/g)).toHaveLength(3);
   });
 
   it("retries once only for a Chromium SIGSEGV", () => {
