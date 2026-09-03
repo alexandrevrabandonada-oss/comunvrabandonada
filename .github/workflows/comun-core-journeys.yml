@@ -61,7 +61,7 @@ jobs:
       - name: E2E, cinco viewports e acessibilidade
         run: |
           npm run journeys:e2e
-          npm run test:e2e:app-shell-v2
+          bash scripts/quality/run-with-chromium-crash-retry.sh npm run test:e2e:app-shell-v2
       - name: Regressão focal de qualidade, PWA e performance
         run: npm run journeys:quality-regression
       - name: Regressão focal estática e build
