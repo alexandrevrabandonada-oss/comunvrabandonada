@@ -9,7 +9,8 @@ import {
   entityConsentAloneCanOpenPublicMap,
   isActiveCollectiveRepresentation,
   isNonRevokedCollectiveRepresentation,
-  isPublicationEligibleCollectiveRepresentation,
+  isVerifiedCollectiveRepresentation,
+  representationStateAloneCanAuthorizePublication,
 } from "./comun-collective-entity-consent";
 
 describe("collective entity consent foundation", () => {
@@ -42,18 +43,19 @@ describe("collective entity consent foundation", () => {
     ).toBe(COMUN_COLLECTIVE_ENTITY_CONSENT_NOTICE_SHA256);
   });
 
-  it("separates live representation from publication eligibility", () => {
+  it("keeps representation lifecycle states explicit", () => {
     expect(COMUN_COLLECTIVE_ENTITY_TYPES).toContain("association");
     expect(isNonRevokedCollectiveRepresentation("declared")).toBe(true);
     expect(isNonRevokedCollectiveRepresentation("verified")).toBe(true);
     expect(isNonRevokedCollectiveRepresentation("revoked")).toBe(false);
     expect(isActiveCollectiveRepresentation("declared")).toBe(true);
-    expect(isPublicationEligibleCollectiveRepresentation("declared")).toBe(
-      false,
-    );
-    expect(isPublicationEligibleCollectiveRepresentation("verified")).toBe(
-      true,
-    );
+  });
+
+  it("separates representation verification from publication authority", () => {
+    expect(isVerifiedCollectiveRepresentation("declared")).toBe(false);
+    expect(isVerifiedCollectiveRepresentation("verified")).toBe(true);
+    expect(isVerifiedCollectiveRepresentation("revoked")).toBe(false);
+    expect(representationStateAloneCanAuthorizePublication()).toBe(false);
   });
 
   it("does not make entity consent a map-readiness shortcut", () => {

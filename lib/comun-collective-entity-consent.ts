@@ -56,21 +56,23 @@ export function isNonRevokedCollectiveRepresentation(
   return state === "declared" || state === "verified";
 }
 
-/**
- * Kept as a lifecycle helper only. It must never be treated as publication
- * authority; use isPublicationEligibleCollectiveRepresentation where needed.
- */
+/** Kept as a lifecycle helper only, never as publication authority. */
 export function isActiveCollectiveRepresentation(
   state: ComunCollectiveRepresentationState,
 ) {
   return isNonRevokedCollectiveRepresentation(state);
 }
 
-/** Even verified representation is not public-map authority in this foundation. */
-export function isPublicationEligibleCollectiveRepresentation(
+/** Reports only whether the representation reached the technical verified state. */
+export function isVerifiedCollectiveRepresentation(
   state: ComunCollectiveRepresentationState,
 ) {
   return state === "verified";
+}
+
+/** No representation state alone grants publication authority in this foundation. */
+export function representationStateAloneCanAuthorizePublication() {
+  return false as const;
 }
 
 /** Entity consent is intentionally insufficient for public-map readiness. */
