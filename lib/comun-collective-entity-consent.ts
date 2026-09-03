@@ -2,17 +2,32 @@ export const COMUN_COLLECTIVE_ENTITY_CONSENT_VERSION =
   "relata-collective-public-projection-v1" as const;
 
 /**
+ * Scope deliberately excludes individual reports, evidence and any automatic
+ * publication. A later delivery must introduce its own authenticated route and
+ * legitimacy policy before this can be used by a runtime client.
+ */
+export const COMUN_COLLECTIVE_ENTITY_CONSENT_SCOPE =
+  "sanitized_entity_projection" as const;
+
+/**
+ * SHA-256 of the exact newline-joined notice below, pinned in the database
+ * alongside each consent and its audit events.
+ */
+export const COMUN_COLLECTIVE_ENTITY_CONSENT_NOTICE_SHA256 =
+  "0f980060c1372bb4e373645b3cfbcc62a69fedcc6bec3acb96c5fd215dc536ae" as const;
+
+/**
  * Contract text for a future, explicit collective-entity consent surface.
  * It is intentionally not a publication switch and does not reuse individual
  * report consent.
  */
 export const COMUN_COLLECTIVE_ENTITY_CONSENT_NOTICE = [
-  "A participa\u00e7\u00e3o da entidade \u00e9 volunt\u00e1ria e pode ser revogada a qualquer momento.",
-  "Esta autoriza\u00e7\u00e3o se refere apenas a uma futura proje\u00e7\u00e3o p\u00fablica sanitizada da entidade.",
-  "Ela n\u00e3o publica relatos individuais, evid\u00eancias, contatos, localiza\u00e7\u00f5es ou dados de outras pessoas.",
-  "O COMUN conserva o registro privado m\u00ednimo da declara\u00e7\u00e3o, da representa\u00e7\u00e3o e da revoga\u00e7\u00e3o para auditoria.",
-  "Consentimento da entidade n\u00e3o substitui o consentimento individual e n\u00e3o abre o mapa p\u00fablico.",
-  "Uma representa\u00e7\u00e3o apenas declarada nunca \u00e9 autoridade de publica\u00e7\u00e3o; qualquer proje\u00e7\u00e3o futura exigir\u00e1 regra pr\u00f3pria de legitimidade.",
+  "A participação da entidade é voluntária e pode ser revogada a qualquer momento.",
+  "Esta autorização se refere apenas a uma futura projeção pública sanitizada da entidade.",
+  "Ela não publica relatos individuais, evidências, contatos, localizações ou dados de outras pessoas.",
+  "O COMUN conserva o registro privado mínimo da declaração, da representação e da revogação para auditoria.",
+  "Consentimento da entidade não substitui o consentimento individual e não abre o mapa público.",
+  "Uma representação apenas declarada nunca é autoridade de publicação; qualquer projeção futura exigirá regra própria de legitimidade.",
 ] as const;
 
 export const COMUN_COLLECTIVE_ENTITY_TYPES = [
@@ -34,10 +49,28 @@ export type ComunCollectiveEntityType =
 export type ComunCollectiveRepresentationState =
   (typeof COMUN_COLLECTIVE_REPRESENTATION_STATES)[number];
 
-export function isActiveCollectiveRepresentation(
+/** A declared or verified representation is still live for consent revocation. */
+export function isNonRevokedCollectiveRepresentation(
   state: ComunCollectiveRepresentationState,
 ) {
   return state === "declared" || state === "verified";
+}
+
+/**
+ * Kept as a lifecycle helper only. It must never be treated as publication
+ * authority; use isPublicationEligibleCollectiveRepresentation where needed.
+ */
+export function isActiveCollectiveRepresentation(
+  state: ComunCollectiveRepresentationState,
+) {
+  return isNonRevokedCollectiveRepresentation(state);
+}
+
+/** Even verified representation is not public-map authority in this foundation. */
+export function isPublicationEligibleCollectiveRepresentation(
+  state: ComunCollectiveRepresentationState,
+) {
+  return state === "verified";
 }
 
 /** Entity consent is intentionally insufficient for public-map readiness. */
