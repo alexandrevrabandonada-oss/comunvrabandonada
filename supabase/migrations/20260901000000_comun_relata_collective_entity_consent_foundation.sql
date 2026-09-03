@@ -488,11 +488,13 @@ alter table private.comun_relata_collective_entity_events enable row level secur
 alter table private.comun_relata_collective_entity_events force row level security;
 
 revoke all on schema private from public,anon,authenticated;
-revoke all on table
-  private.comun_relata_collective_entities,
-  private.comun_relata_collective_entity_representations,
-  private.comun_relata_collective_entity_consents,
-  private.comun_relata_collective_entity_events
+revoke all on table private.comun_relata_collective_entities
+from public,anon,authenticated,service_role;
+revoke all on table private.comun_relata_collective_entity_representations
+from public,anon,authenticated,service_role;
+revoke all on table private.comun_relata_collective_entity_consents
+from public,anon,authenticated,service_role;
+revoke all on table private.comun_relata_collective_entity_events
 from public,anon,authenticated,service_role;
 revoke all on sequence private.comun_relata_collective_entity_events_id_seq
 from public,anon,authenticated,service_role;
