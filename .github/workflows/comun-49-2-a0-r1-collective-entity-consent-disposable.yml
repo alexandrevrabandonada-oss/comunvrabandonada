@@ -127,9 +127,23 @@ jobs:
               private.comun_relata_collective_entity_representations \
               private.comun_relata_collective_entity_consents \
               private.comun_relata_collective_entity_events; do
+              case "$table_name" in
+                private.comun_relata_collective_entities)
+                  update_statement="update ${table_name} set public_name=public_name where false"
+                  ;;
+                private.comun_relata_collective_entity_representations)
+                  update_statement="update ${table_name} set role=role where false"
+                  ;;
+                private.comun_relata_collective_entity_consents)
+                  update_statement="update ${table_name} set active=active where false"
+                  ;;
+                private.comun_relata_collective_entity_events)
+                  update_statement="update ${table_name} set event_type=event_type where false"
+                  ;;
+              esac
               expect_denied "$role_name" "select 1 from ${table_name} limit 1"
               expect_denied "$role_name" "insert into ${table_name} default values"
-              expect_denied "$role_name" "update ${table_name} set id=id where false"
+              expect_denied "$role_name" "$update_statement"
               expect_denied "$role_name" "delete from ${table_name} where false"
             done
             expect_denied "$role_name" "select * from private.comun_relata_collective_entity_create_internal('49200000-0000-4000-8000-000000000103','49200000-0000-4000-8000-000000000001','Sem superfície runtime','collective')"
