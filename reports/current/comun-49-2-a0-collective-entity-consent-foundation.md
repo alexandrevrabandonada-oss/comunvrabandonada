@@ -59,3 +59,31 @@ do mapa público.
    individual a partir deste consentimento coletivo.
 5. Criar uma decisão de projeção sanitizada separada, com revisão humana,
    minimização de dados e controles próprios. O mapa público permanece desligado.
+
+## Core Journeys failure triage
+
+- Run inicial: `33770844333`, job `100702071777`, head `2df1f1bc51642bed3e26bb7b0118c17cc6cd1ee3`.
+- Comando: `npm run test:e2e:app-shell-v2`, após `npm run journeys:e2e` passar 35/35.
+- Teste: `tests/app-shell-v2/app-shell-v2.spec.ts:238`, `reduced motion and forced colors retain state cues`, viewport `landscape-844x390`.
+- Evidência: 34/35 cenários passaram; não houve assertion funcional, retry interno ou timeout. Chromium headless shell encerrou com `Received signal 11 SEGV_MAPERR`; Playwright então reportou `browserContext.close: Test ended`. A etapa durou cerca de 2m29s e o teste anterior de Core Journeys completou 35/35 em 1.1m.
+- Relação com este PR: inexistente. O diff de `8db81d1` até o head contém migration privada, libs de contrato não carregadas pelo runtime/UI, testes, CI e relatório; não altera `app/`, `components/`, specs ou configs Playwright.
+- Reexecução focal: attempt 2 do mesmo run, mesmo SHA, Node e Chromium concluiu a etapa `E2E, cinco viewports e acessibilidade` verde. Classificação: `CHROMIUM_CRASH_FLAKE`.
+- Correção mínima: o segundo comando passou a usar `scripts/quality/run-with-chromium-crash-retry.sh`, padrão já usado pelo workflow pós-merge. Ele repete somente uma vez e somente quando o log contém `SIGSEGV`; assertions, timeouts e outras falhas continuam vermelhos.
+
+## R2 contract review readiness
+
+### auth.uid()
+
+R1 não expõe RPC nem rota de mutation. `p_actor_user_id` existe somente em primitives owner-only privadas e é documentado como atributo de auditoria, nunca prova de identidade de quem chama. R2 deve criar uma rota autenticada que derive o ator de `auth.uid()` no servidor, sem aceitar esse UUID do cliente. Não há blocker crítico em R1 porque ela não é utilizável por runtime.
+
+### Legitimidade
+
+`declared`, `verified` e `revoked` são estados distintos. Uma declaração não cria autoridade de publicação; nem `verified` liga mapa, projeção ou publicação. O consentimento é escopado a projeção sanitizada futura e não substitui consentimento individual. A política humana/evidencial de verificação permanece pendência explícita de R2.
+
+### Retenção
+
+Revogação e arquivamento preservam entidade, representação, consentimento e eventos por FKs restritivas e auditoria append-only, para provar transições e impedir reescrita histórica. R1 não fixa prazo legal, exportação ou exclusão; os dados potencialmente minimizáveis no futuro são nome público, identificadores de usuário, ator/auditoria e timestamps. Isso é um contrato técnico de preservação, não uma política jurídica completa, e precisa de decisão R2 antes de uso por pessoas.
+
+### Contestação
+
+Uma contestação pode ser modelada hoje ao revogar/inativar a representação: isso preserva a trilha, bloqueia novo consentimento ativo dessa representação e ainda permite a revogação de consentimento já dado pelo próprio consentidor ou por representação ativa. Não existe, por escolha de escopo, uma superfície segura para terceiro contestar, suspender provisoriamente ou adjudicar legitimidade. Esse fluxo de disputa é blocker explícito para R2, não para a fundação owner-only R1.
