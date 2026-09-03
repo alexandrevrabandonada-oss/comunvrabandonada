@@ -68,7 +68,9 @@ do mapa público.
 - Evidência: 34/35 cenários passaram; não houve assertion funcional, retry interno ou timeout. Chromium headless shell encerrou com `Received signal 11 SEGV_MAPERR`; Playwright então reportou `browserContext.close: Test ended`. A etapa durou cerca de 2m29s e o teste anterior de Core Journeys completou 35/35 em 1.1m.
 - Relação com este PR: inexistente. O diff de `8db81d1` até o head contém migration privada, libs de contrato não carregadas pelo runtime/UI, testes, CI e relatório; não altera `app/`, `components/`, specs ou configs Playwright.
 - Reexecução focal: attempt 2 do mesmo run, mesmo SHA, Node e Chromium concluiu a etapa `E2E, cinco viewports e acessibilidade` verde. Classificação: `CHROMIUM_CRASH_FLAKE`.
-- Correção mínima: o segundo comando passou a usar `scripts/quality/run-with-chromium-crash-retry.sh`, padrão já usado pelo workflow pós-merge. Ele repete somente uma vez e somente quando o log contém `SIGSEGV`; assertions, timeouts e outras falhas continuam vermelhos.
+- Correção mínima: o segundo comando passou a usar `scripts/quality/run-with-chromium-crash-retry.sh`, padrão já usado pelo workflow pós-merge. Ele repete somente uma vez e somente quando o log contém `SIGSEGV`; assertions, timeouts e outras falhas continuam vermelhos. A alteração está em `75e529b0`; o contrato de CI correspondente, que passou de dois para três usos explícitos do wrapper aprovado, está em `b0864d41`.
+- Evidência final de rerun: `COMUN Core Journeys Deliverability` run `33778184114`, no head `b0864d4148dae5eced23f4932702d7c052828189`, concluiu `success`: auditoria, E2E/a11y de cinco viewports, regressão de qualidade/PWA/performance, estática/build e whitespace ficaram verdes.
+- Status final da triagem: `CORE_JOURNEYS=GREEN`. O PR permanece DRAFT e não recebe `R1_TECHNICALLY_READY_FOR_REVIEW` enquanto `COST-02 / exact checkpoint Preview` não encontrar um Preview pronto para o SHA do checkpoint.
 
 ## R2 contract review readiness
 
