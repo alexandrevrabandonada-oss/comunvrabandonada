@@ -79,3 +79,13 @@ export function representationStateAloneCanAuthorizePublication() {
 export function entityConsentAloneCanOpenPublicMap() {
   return false as const;
 }
+
+/** Runtime consent from a declared representation is private recorded intent only. */
+export function declaredRepresentationConsentCanAuthorizePublication() {
+  return false as const;
+}
+
+/** There is no self-service promotion from declared to verified. */
+export function representationCanSelfVerify() {
+  return false as const;
+}
