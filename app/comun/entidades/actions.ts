@@ -9,7 +9,8 @@ import type { ComunCollectiveEntityType } from "@/lib/comun-collective-entity-co
 
 /**
  * These actions intentionally accept no user id. The database entry points
- * derive the actor from auth.uid(), after the server validates the session.
+ * obtain the actor only from the server-validated session before the
+ * service-only database bridge receives it as an audit attribute.
  */
 export async function createCollectiveEntityAction(input: {
   requestId: string;

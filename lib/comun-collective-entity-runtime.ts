@@ -1,6 +1,9 @@
 import "server-only";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  createServiceSupabaseClient,
+  createSupabaseServerClient,
+} from "@/lib/supabase/server";
 import {
   COMUN_COLLECTIVE_ENTITY_CONSENT_NOTICE,
   COMUN_COLLECTIVE_ENTITY_CONSENT_NOTICE_SHA256,
@@ -24,7 +27,9 @@ async function requireAuthenticatedRuntimeClient() {
   if (!supabase) throw new Error("COMUN_RELATA_ENTITY_RUNTIME_UNAVAILABLE");
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("COMUN_RELATA_ENTITY_AUTH_REQUIRED");
-  return supabase;
+  const service = createServiceSupabaseClient();
+  if (!service) throw new Error("COMUN_RELATA_ENTITY_RUNTIME_UNAVAILABLE");
+  return { service, userId: user.id };
 }
 
 export async function createOwnCollectiveEntity(input: {
@@ -32,9 +37,10 @@ export async function createOwnCollectiveEntity(input: {
   publicName: string;
   entityType: ComunCollectiveEntityType;
 }) {
-  const supabase = await requireAuthenticatedRuntimeClient();
-  const { data, error } = await supabase.rpc("comun_relata_collective_entity_runtime_create", {
+  const { service, userId } = await requireAuthenticatedRuntimeClient();
+  const { data, error } = await service.rpc("comun_relata_collective_entity_server_create", {
     p_request_id: input.requestId,
+    p_actor_user_id: userId,
     p_public_name: input.publicName,
     p_entity_type: input.entityType,
   });
@@ -43,8 +49,9 @@ export async function createOwnCollectiveEntity(input: {
 }
 
 export async function setOwnCollectiveEntityConsent(entityId: string, active: boolean) {
-  const supabase = await requireAuthenticatedRuntimeClient();
-  const { data, error } = await supabase.rpc("comun_relata_collective_entity_runtime_consent_set", {
+  const { service, userId } = await requireAuthenticatedRuntimeClient();
+  const { data, error } = await service.rpc("comun_relata_collective_entity_server_consent_set", {
+    p_actor_user_id: userId,
     p_entity_id: entityId,
     p_active: active,
   });
@@ -53,8 +60,9 @@ export async function setOwnCollectiveEntityConsent(entityId: string, active: bo
 }
 
 export async function revokeOwnCollectiveRepresentation(entityId: string) {
-  const supabase = await requireAuthenticatedRuntimeClient();
-  const { data, error } = await supabase.rpc("comun_relata_collective_entity_runtime_representation_revoke", {
+  const { service, userId } = await requireAuthenticatedRuntimeClient();
+  const { data, error } = await service.rpc("comun_relata_collective_entity_server_representation_revoke", {
+    p_actor_user_id: userId,
     p_entity_id: entityId,
   });
   if (error) throw error;
@@ -62,8 +70,10 @@ export async function revokeOwnCollectiveRepresentation(entityId: string) {
 }
 
 export async function listOwnCollectiveEntityStates(): Promise<ComunCollectiveEntityOwnState[]> {
-  const supabase = await requireAuthenticatedRuntimeClient();
-  const { data, error } = await supabase.rpc("comun_relata_collective_entity_runtime_list_own");
+  const { service, userId } = await requireAuthenticatedRuntimeClient();
+  const { data, error } = await service.rpc("comun_relata_collective_entity_server_list_own", {
+    p_actor_user_id: userId,
+  });
   if (error) throw error;
   return (data ?? []).map((row: any) => ({
     entityId: row.entity_id,

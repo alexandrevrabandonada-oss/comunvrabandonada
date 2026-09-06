@@ -11,11 +11,12 @@
 
 ## R2 boundary
 
-- Runtime actor is derived only with `auth.uid()` in authenticated database entry
-  points; client and server-action inputs carry no trusted user id.
-- The server action is a thin authenticated boundary. Private tables and R1
-  primitives remain inaccessible to `anon`, `authenticated` and `service_role`
-  directly.
+- Runtime actor is derived from the server-validated Supabase session
+  (`auth.getUser()`); client and server-action inputs carry no trusted user id.
+- The server action is the product boundary. Its four `SECURITY DEFINER`
+  bridges are executable only by the server-only `service_role` connection;
+  `anon` and `authenticated` cannot invoke them directly. Private tables and
+  R1 primitives remain inaccessible directly.
 - Create is idempotent through the R1 request id and creates a `declared`
   representation. The owner DTO exposes only that owner's entity state,
   representation state and consent state.
@@ -46,8 +47,8 @@
 
 - Focused consent unit and R2 auth-boundary contract are green locally.
 - `git diff --check` is green.
-- Local disposable Supabase/RLS validation is blocked because Docker Desktop is
-  unavailable; TLS verification remains enabled and the only retry used system CA.
+- Local disposable Supabase/RLS validation remains pending because Docker Desktop
+  is unavailable; TLS verification remains enabled and the only retry used system CA.
 - Global typecheck is currently blocked by pre-existing sparse-worktree missing
   files outside R2. No R2-specific TypeScript diagnostic was emitted.
 
