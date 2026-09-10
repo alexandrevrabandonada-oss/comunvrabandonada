@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import net from 'node:net';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -38,7 +39,10 @@ export function assertOwned(s = state()) {
   const result = JSON.parse(command('docker', ['inspect', `supabase_db_${s.id}`]));
   assert.equal(result[0].Config.Labels['com.supabase.cli.project'], s.id);
   const ports = result[0].NetworkSettings.Ports['5432/tcp'];
-  assert.ok(ports.some(p => p.HostPort === '56432'));
+  assert.ok(ports.some(p => p.HostPort === String(s.dbPort)));
+  const gateway = JSON.parse(command('docker', ['inspect', `supabase_kong_${s.id}`]))[0];
+  assert.equal(gateway.Config.Labels['com.supabase.cli.project'], s.id);
+  assert.ok(gateway.NetworkSettings.Ports['8000/tcp'].some(p => p.HostPort === String(s.apiPort)));
   return s;
 }
 export function localStatus(s = assertOwned()) {
@@ -46,11 +50,14 @@ export function localStatus(s = assertOwned()) {
   const env = Object.fromEntries(raw.split(/\r?\n/).filter(l => /^[A-Z_]+=/.test(l)).map(l => {
     const i = l.indexOf('='); return [l.slice(0, i), l.slice(i + 1).replace(/^"|"$/g, '')];
   }));
-  assert.match(env.API_URL, /^http:\/\/(127\.0\.0\.1|localhost):56431$/);
+  const apiUrl = new URL(env.API_URL);
+  assert.equal(apiUrl.protocol, 'http:');
+  assert.ok(['localhost', '127.0.0.1'].includes(apiUrl.hostname));
+  assert.equal(apiUrl.port, String(s.apiPort));
   const dbUrl = new URL(env.DB_URL);
   assert.ok(['postgres:', 'postgresql:'].includes(dbUrl.protocol));
   assert.ok(['localhost', '127.0.0.1'].includes(dbUrl.hostname));
-  assert.equal(dbUrl.port, '56432');
+  assert.equal(dbUrl.port, String(s.dbPort));
   assert.ok(env.ANON_KEY && env.SERVICE_ROLE_KEY);
   return env;
 }
@@ -70,9 +77,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     fs.writeFileSync(path.join(dir, '.owner'), id, { mode: 0o600 });
     let config = fs.readFileSync(path.join(root, 'supabase/config.toml'), 'utf8');
     config = config.replace(/^project_id = .*$/m, `project_id = "${id}"`)
-      .replace(/554(\d\d)/g, '564$1')
+      .replace(/554(\d\d)/g, '574$1')
       .replace(/(\[db.seed\][\s\S]*?)enabled = true/, '$1enabled = false')
-      .replace(/inspector_port = 8083/, 'inspector_port = 8183');
+      .replace(/inspector_port = 8083/, 'inspector_port = 8283');
     fs.writeFileSync(path.join(dir, 'supabase/config.toml'), config);
     const manifest = JSON.parse(fs.readFileSync(path.join(root, 'scripts/audit/radio-lab-migrations.json')));
     for (const item of manifest.files) {
@@ -80,13 +87,18 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), item.sha256);
       fs.writeFileSync(path.join(dir, 'supabase/migrations', path.basename(item.path)), bytes);
     }
-    fs.writeFileSync(statePath, JSON.stringify({ id, dir, configHash: crypto.createHash('sha256').update(config).digest('hex'), cli: '2.117.0' }, null, 2), { mode: 0o600 });
+    fs.writeFileSync(statePath, JSON.stringify({ id, dir, apiPort: 57431, dbPort: 57432, ports: [57430,57431,57432,57433,57434,57437,57439,8283], configHash: crypto.createHash('sha256').update(config).digest('hex'), cli: '2.117.0' }, null, 2), { mode: 0o600 });
     console.log(`PREPARED ${id}: ${manifest.files.length} pinned migrations; seeds disabled`);
   } else if (action === 'start') {
     const s = state();
     const host = command('docker', ['context', 'inspect', '--format', '{{.Endpoints.docker.Host}}']).trim();
     assert.match(host, /^(npipe:\/\/|unix:\/\/)/);
     assert.equal(command('docker', ['ps', '-aq', '--filter', `label=com.supabase.cli.project=${s.id}`]).trim(), '', 'Refuse existing stack');
+    for (const port of s.ports) await new Promise((resolve, reject) => {
+      const server = net.createServer();
+      server.once('error', reject);
+      server.listen(port, '0.0.0.0', () => server.close(resolve));
+    });
     assert.equal(cli(['--version']).trim(), s.cli);
     const log = fs.openSync(path.join(s.dir, `startup-${Date.now()}.private.log`), 'wx', 0o600);
     try { cli(['start', '--workdir', s.dir, '--exclude', 'studio,postgres-meta,edge-runtime,logflare,vector,supavisor,imgproxy,realtime'], { stdio: ['ignore', log, log], timeout: 300000 }); }
@@ -94,8 +106,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     assertOwned(s); localStatus(s);
     console.log('LAB_READY: owned local Auth/Postgres/Storage, no hosted configuration');
   } else if (action === 'stop') {
-    const s = assertOwned();
-    cli(['stop', '--workdir', s.dir, '--no-backup']);
+    const s = state();
+    assert.match(command('docker', ['context', 'inspect', '--format', '{{.Endpoints.docker.Host}}']).trim(), /^(npipe:\/\/|unix:\/\/)/);
+    const ids = command('docker', ['ps', '-aq', '--filter', `label=com.supabase.cli.project=${s.id}`]).trim().split(/\s+/).filter(Boolean);
+    for (const id of ids) assert.equal(JSON.parse(command('docker', ['inspect', id]))[0].Config.Labels['com.supabase.cli.project'], s.id);
+    if (ids.length) cli(['stop', '--workdir', s.dir, '--no-backup']);
     console.log('OWNED_LAB_STOPPED');
   } else throw new Error('Expected prepare, start or stop');
 }

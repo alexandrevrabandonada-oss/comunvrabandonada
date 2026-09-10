@@ -20,7 +20,7 @@ const guardedFetch = async (input, options) => {
   const url = new URL(typeof input === 'string' ? input : input.url ?? input.toString());
   assert.equal(url.protocol, 'http:');
   assert.ok(['localhost', '127.0.0.1'].includes(url.hostname));
-  assert.equal(url.port, '56431');
+  assert.equal(url.port, String(s.apiPort));
   assertOwned(s);
   return fetch(input, { ...options, redirect: 'error' });
 };
@@ -37,7 +37,7 @@ async function test(name, fn) {
   fs.writeFileSync(report, JSON.stringify({ sha: command('git', ['rev-parse', 'HEAD']).trim(), run, results }, null, 2));
 }
 // Each request owns a fresh TCP connection. No shared fetch pool or mocked route.
-function request(route, cookie = '', body = {}, headers = {}, dropAfterHeaders = false) {
+function request(route, cookie = '', body = {}, headers = {}, dropAfterHeaders = false, onRequest) {
   assertOwned(s);
   return new Promise((resolve, reject) => {
     const bytes = JSON.stringify(body);
@@ -48,7 +48,7 @@ function request(route, cookie = '', body = {}, headers = {}, dropAfterHeaders =
       response.on('end', () => { const text = Buffer.concat(chunks).toString(); let json; try { json = JSON.parse(text); } catch { json = {}; } resolve({ status: response.statusCode, json, text }); });
     });
     r.setTimeout(60000, () => r.destroy(new Error('Local HTTP timeout')));
-    r.on('error', reject); r.end(bytes);
+    r.on('error', reject); onRequest?.(r); r.end(bytes);
   });
 }
 async function actor(role) {
@@ -129,6 +129,27 @@ try {
     assert.equal(lost.responseLost, true); // TCP response body discarded after server sent its headers
     assert.equal((await request('/api/comun/admin/archive/confirm-upload', A.cookie, { assetId })).status, 200);
     assert.equal((await checked(db.from('comun_archive_assets').select('id').eq('id', assetId))).length, 1);
+  });
+  await test('timeout while confirmation waits for database commit can be retried', async () => {
+    assertOwned(s);
+    lock = new pg.Client({ connectionString: env.DB_URL }); await lock.connect();
+    await lock.query('begin'); await lock.query('select id from comun_archive_assets where id=$1 for update', [assetId]);
+    let socket;
+    const timed = request('/api/comun/admin/archive/confirm-upload', A.cookie, { assetId }, {}, false, r => { socket = r; });
+    const observed = timed.then(() => false, e => e.message === 'AUDIT_SYNTHETIC_TIMEOUT');
+    const deadline = Date.now() + 30000;
+    while (true) {
+      const waiting = await lock.query("select count(*)::int n from pg_stat_activity where wait_event_type='Lock' and query ilike '%comun_archive_assets%' and pid<>pg_backend_pid()");
+      if (waiting.rows[0].n >= 1) break;
+      if (Date.now() > deadline) throw new Error('Timeout case did not reach database barrier');
+      await new Promise(setImmediate);
+    }
+    socket.destroy(new Error('AUDIT_SYNTHETIC_TIMEOUT'));
+    assert.equal(await observed, true);
+    await lock.query('commit'); await lock.end(); lock = null;
+    assert.equal((await request('/api/comun/admin/archive/confirm-upload', A.cookie, { assetId })).status, 200);
+    assert.equal((await checked(db.from('comun_archive_assets').select('id').eq('id', assetId))).length, 1);
+    return 'Timeout was injected only after observing the real transaction blocked; no timing sleep';
   });
   await test('simultaneous confirmations: independent HTTP + deterministic database row barrier', async () => {
     // Ownership was established before obtaining this local connection.
@@ -233,9 +254,11 @@ try {
     for (const id of users) { await checked(db.from('comun_admin_users').delete().eq('user_id', id)); assert.equal((await db.auth.admin.deleteUser(id)).error, null); }
     return { syntheticItems: ids.length, syntheticUsers: users.length };
   });
-  if (app?.pid) {
-    if (process.platform === 'win32') command('taskkill', ['/PID', String(app.pid), '/T', '/F']);
-    else app.kill('SIGTERM');
+  if (app?.pid && app.exitCode === null) {
+    try {
+      if (process.platform === 'win32') command('taskkill', ['/PID', String(app.pid), '/T', '/F']);
+      else app.kill('SIGTERM');
+    } catch { results.push({ name: 'owned application process cleanup', status: 'FAIL' }); }
   }
   fs.closeSync(appLog);
   fs.writeFileSync(report, JSON.stringify({ sha: command('git', ['rev-parse', 'HEAD']).trim(), run, results }, null, 2));
