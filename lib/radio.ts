@@ -37,12 +37,12 @@ export function radioPublicationBlockers(x: {
   if (!x.title) b.push("title");
   if (!x.summary) b.push("summary");
   if (!x.program) b.push("program");
-  if (!x.duration) b.push("duration");
+  if (typeof x.duration !== "number" || !Number.isFinite(x.duration) || x.duration <= 0) b.push("duration");
   else if (x.duration > RADIO_V1_MEDIA_PROFILE.maxDurationSeconds)
     b.push("duration_limit");
   if (!x.publicAudio) b.push("public_audio");
   if (!x.credits) b.push("credits");
-  if (!x.consents?.length && x.consents !== undefined) b.push("voice_consent");
+  if (!x.consents?.length) b.push("voice_consent");
   if (
     x.consents?.some(
       (c) => c.consent_status !== "approved" || !c.allow_comun_audio,

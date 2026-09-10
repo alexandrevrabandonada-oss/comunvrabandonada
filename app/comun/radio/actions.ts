@@ -39,7 +39,7 @@ export async function submitRadioContribution(_: unknown, f: FormData) {
   return error ? { error: "Não foi possível enviar." } : { ok: true, protocol };
 }
 export async function createRadioProgram(f: FormData) {
-  const s = await requireComunAdmin(),
+  const s = await requireComunAdmin({ roles: ["admin", "editor"] }),
     db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco indisponível");
   const title = String(f.get("title") || "").trim(),
@@ -81,7 +81,7 @@ export async function createRadioProgram(f: FormData) {
   redirect(`/comun/admin/radio/programas`);
 }
 export async function createRadioEpisode(f: FormData) {
-  const s = await requireComunAdmin(),
+  const s = await requireComunAdmin({ roles: ["admin", "editor"] }),
     db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco indisponível");
   const title = String(f.get("title") || "").trim(),
@@ -129,19 +129,11 @@ export async function createRadioEpisode(f: FormData) {
   redirect(`/comun/admin/radio/episodios/${item.id}`);
 }
 export async function publishRadioEpisode(f: FormData) {
-  const s = await requireComunAdmin(),
+  const s = await requireComunAdmin({ roles: ["admin", "editor"] }),
     db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco indisponível");
   const id = String(f.get("id"));
-  const [
-    { data: e },
-    { data: assets },
-    { data: credits },
-    { data: consents },
-    { data: music },
-    { data: safety },
-    { data: transcript },
-  ] = await Promise.all([
+  const publicationChecks = await Promise.all([
     db
       .from("comun_radio_episodes")
       .select("*")
@@ -173,6 +165,18 @@ export async function publishRadioEpisode(f: FormData) {
       .limit(1)
       .maybeSingle(),
   ]);
+  if (publicationChecks.some((result) => result.error))
+    throw new Error("Não foi possível verificar os requisitos de publicação.");
+  const [
+    { data: e },
+    { data: assets },
+    { data: credits },
+    { data: consents },
+    { data: music },
+    { data: safety },
+    { data: transcript },
+  ] = publicationChecks;
+  if (!e) throw new Error("Episódio não encontrado.");
   const b = radioPublicationBlockers({
     title: e.title_public,
     summary: e.summary_public,
@@ -220,7 +224,7 @@ export async function publishRadioEpisode(f: FormData) {
   revalidatePath("/comun/radio");
 }
 export async function addRadioEditorialData(f: FormData) {
-  const s = await requireComunAdmin(),
+  const s = await requireComunAdmin({ roles: ["admin", "editor"] }),
     db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco indisponível");
   const id = String(f.get("id")),
@@ -285,7 +289,7 @@ export async function addRadioEditorialData(f: FormData) {
   revalidatePath(`/comun/admin/radio/episodios/${id}`);
 }
 export async function unpublishRadioEpisode(f: FormData) {
-  const s = await requireComunAdmin(),
+  const s = await requireComunAdmin({ roles: ["admin", "editor"] }),
     db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco indisponível");
   const id = String(f.get("id"));

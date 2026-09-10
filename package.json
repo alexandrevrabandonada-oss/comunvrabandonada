@@ -334,14 +334,14 @@
     "@supabase/supabase-js": "2.110.5",
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",
-    "maplibre-gl": "^5.14.0",
-    "next": "16.2.11",
+    "maplibre-gl": "6.4.1",
+    "next": "16.3.4",
     "pg": "^8.16.3",
     "pmtiles": "^4.3.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "server-only": "0.0.1",
-    "sharp": "0.35.3",
+    "sharp": "0.35.4",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -353,16 +353,16 @@
     "@types/react-dom": "19.2.3",
     "autoprefixer": "^10.4.20",
     "eslint": "9.39.1",
-    "eslint-config-next": "16.2.11",
+    "eslint-config-next": "16.3.4",
     "postcss": "8.5.25",
     "shpjs": "^6.2.0",
     "tailwindcss": "^3.4.15",
     "typescript": "^5.6.3",
-    "vitest": "4.1.10"
+    "vitest": "4.1.11"
   },
   "overrides": {
-    "brace-expansion": "1.1.16",
+    "brace-expansion": "1.1.18",
     "postcss": "8.5.25",
-    "sharp": "0.35.3"
+    "sharp": "0.35.4"
   }
 }

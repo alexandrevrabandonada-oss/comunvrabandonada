@@ -2,15 +2,16 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { classifyBuildImpact } from "./vercel-build-impact.mjs";
 
 const ignoreScript = "scripts/ci/vercel-ignore-build.mjs";
 
-test("Vercel ignores only docs and reports changes", () => {
-  const source = readFileSync(ignoreScript, "utf8");
-  assert.match(source, /file\.startsWith\("docs\/"\)/);
-  assert.match(source, /file\.startsWith\("reports\/"\)/);
-  assert.match(source, /process\.exit\(0\)/);
-  assert.match(source, /COMUN_VERCEL_BUILD_REQUIRED/);
+test("Vercel skips documentation previews but builds runtime and production", () => {
+  const input = { files: ["docs/guide.md", "reports/audit.md"], vercelEnv: "preview", commitRef: "codex/docs" };
+  assert.equal(classifyBuildImpact(input).decision, "IGNORE");
+  assert.equal(classifyBuildImpact({ ...input, files: [...input.files, "app/page.tsx"] }).decision, "BUILD");
+  assert.equal(classifyBuildImpact({ ...input, vercelEnv: "production" }).decision, "BUILD");
+  assert.equal(classifyBuildImpact({ ...input, diffAvailable: false }).decision, "BUILD");
 });
 
 test("COMUN Central updater never handles database credentials", () => {

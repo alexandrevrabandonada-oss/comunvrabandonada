@@ -19,29 +19,41 @@ export async function POST(request: Request) {
       { error: "Supabase nao configurado." },
       { status: 500 },
     );
-  const { data: asset } = await db
+  const { data: asset, error: lookupError } = await db
     .from("comun_archive_assets")
     .select(
       "id, archive_item_id, asset_role, bucket_scope, object_key, mime_type, size_bytes",
     )
     .eq("id", assetId)
     .maybeSingle();
+  if (lookupError)
+    return NextResponse.json(
+      { error: "Não foi possível consultar o upload. Tente novamente." },
+      { status: 503 },
+    );
   if (!asset)
     return NextResponse.json(
       { error: "Asset nao encontrado." },
       { status: 404 },
     );
   const scope = asset.bucket_scope as BucketScope;
+  let metadata;
   try {
-    const metadata = await getMediaStorage().getObjectMetadata(
-      scope,
-      asset.object_key,
+    metadata = await getMediaStorage().getObjectMetadata(scope, asset.object_key);
+  } catch {
+    return NextResponse.json(
+      { error: "Não foi possível consultar o arquivo. Tente novamente." },
+      { status: 503 },
     );
+  }
+  let validated = false;
+  try {
     if (!metadata) throw new Error("Objeto nao encontrado no storage.");
     if (metadata.contentType !== asset.mime_type)
       throw new Error("Content-Type real difere do upload autorizado.");
     if (metadata.contentLength !== Number(asset.size_bytes))
       throw new Error("Tamanho real difere do upload autorizado.");
+    validated = true;
     const updated = await db
       .from("comun_archive_assets")
       .update({
@@ -73,6 +85,11 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
+    if (validated)
+      return NextResponse.json(
+        { error: "O arquivo foi validado, mas a confirmação não foi salva. Tente novamente." },
+        { status: 503 },
+      );
     try {
       await getMediaStorage().deleteObject(scope, asset.object_key);
     } catch {}

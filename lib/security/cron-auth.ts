@@ -6,9 +6,10 @@ export function matchesCronSecret(actual: string) {
     process.env.CRON_SECRET_NEXT ?? "",
   ].filter(Boolean);
   if (!actual || candidates.length === 0) return false;
-  return candidates.some(
-    (candidate) =>
-      actual.length === candidate.length &&
-      timingSafeEqual(Buffer.from(actual), Buffer.from(candidate)),
-  );
+  const actualBytes = Buffer.from(actual);
+  return candidates.some((candidate) => {
+    const candidateBytes = Buffer.from(candidate);
+    return actualBytes.length === candidateBytes.length &&
+      timingSafeEqual(actualBytes, candidateBytes);
+  });
 }

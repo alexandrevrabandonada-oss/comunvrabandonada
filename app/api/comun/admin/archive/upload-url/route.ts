@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
+import { archiveBucketScope } from "@/lib/media-storage/scopes";
 import { getComunAdminSession } from "@/lib/admin-auth";
 import { logComunAdminAction } from "@/lib/admin-audit";
 import { getMediaStorage, publicMediaUrl } from "@/lib/media-storage";
@@ -170,7 +171,7 @@ export async function POST(request: Request) {
       .insert({
         archive_item_id: body.archiveItemId,
         asset_role: body.role,
-        bucket_scope: scope,
+        bucket_scope: archiveBucketScope(scope),
         object_key: `smoke/pending/${randomUUID()}`,
         public_url: null,
         original_filename: body.filename,

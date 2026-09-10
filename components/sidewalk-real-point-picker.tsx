@@ -39,11 +39,11 @@ export function SidewalkRealPointPicker({
         if (cancelled || !host.current) return;
         const protocol = new Protocol();
         try {
-          maplibre.default.addProtocol("pmtiles", protocol.tile);
+          maplibre.addProtocol("pmtiles", protocol.tile);
         } catch {
           // O protocolo pode já estar registrado por outro mapa na mesma página.
         }
-        const map = new maplibre.default.Map({
+        const map = new maplibre.Map({
           container: host.current,
           style: createSidewalkMapLibreStyle(realBasemapProvider),
           center: point ?? realBasemapProvider.center,
