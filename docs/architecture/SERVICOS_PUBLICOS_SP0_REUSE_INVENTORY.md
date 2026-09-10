@@ -1,6 +1,6 @@
 # Serviços Públicos e Controle Popular — reusable COMUN surfaces
 
-Related: #433 · Audit snapshot of `main` · No code or schema change.
+Related: #433 · Base snapshot `1387e1bcecdc4147bb5dad41aa7d541ec97b1497` · No code or schema change.
 
 ## Reuse map
 
@@ -44,6 +44,30 @@ Related: #433 · Audit snapshot of `main` · No code or schema change.
   claim visualization.
 
 SP-0 creates no route, menu item, API, map layer, search index or DTO.
+
+## Canonical ownership and the next bounded case
+
+InformationRequest is a reference to `comun_official_protocols`, and CaseFile
+references existing dossiers, review records and publication snapshots. No
+second request, response, deadline, review or publication workflow is proposed.
+An eventual extension must identify a concrete missing field and keep the
+canonical object's identity and authorization. A catalogued body/company is
+not an authenticated representative and confers neither consent nor editorial
+authority; PR #432 and its verification remain independent.
+
+The [minimal plan](SERVICOS_PUBLICOS_SP0_MINIMAL_MIGRATION_PLAN.md) replaces a
+large identity-first batch with a separately reviewed synthetic provenance case:
+claim revisions and N:N source-version citations from the start. The catalog and
+cross-domain junction lists remain provisional. Merenda is the first future
+editorial case; Cuidadores is later, subject to coverage/privacy review. Both
+belong in COMUN's existing civic cycle, without a second portal/map/form/protocol
+system. No example represents verified real-world evidence until its source
+document/version, page/locator, period and scope are recorded.
+
+The radio closure needs no SP tables. Neither its reported tests nor the evidence
+of another PR certifies this package. Future authorization tests must use distinct
+actors and populated synthetic data in local or Linux-runner ephemeral stacks,
+with grants, RLS and privileged application scopes proved separately.
 
 ## Reuse principles
 

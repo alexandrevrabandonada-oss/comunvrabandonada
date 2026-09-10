@@ -49,7 +49,9 @@ occurrence exists.
    from a reviewed claim or a reviewed editorial snapshot, never from raw
    intake, raw document text or a direct table join.
 2. **Source and claim are separate.** One source can support, qualify,
-   contradict or supersede several claims; a claim can have several sources.
+   contradict or supersede several claims. Each immutable claim revision has
+   a many-to-many association with immutable source versions, recording an
+   evidence role and page/section/excerpt locator for every association.
 3. **Identity is canonical and cautious.** Company identity uses normalized CNPJ
    when available, but keeps legal name, trade name, source-specific spelling
    and merge/split history. Uncertain identity remains uncertain.
@@ -77,6 +79,38 @@ occurrence exists.
     superseded by a corrective migration.
 
 ## Consequences
+
+### Independent dimensions and scope
+
+Evidence support (alleged, corroborated, contested, not confirmed), editorial
+review/publication, and administrative/judicial status are independent.
+The latter records authority, instance, outcome, appeal/reformation and finality
+only when verified in a cited source version. Editorial approval never creates
+legal finality. A contested claim may remain published as contested after review.
+
+Services, facilities and contracts form scoped relationships, not a rigid tree:
+one facility may host several services; one contract may cover several units or
+non-point territorial coverage. Responsibility and coverage links carry a period,
+source version and locator. Contract validity and last-known supplier do not
+prove current execution.
+
+InformationRequest reuses `comun_official_protocols`; CaseFile reuses existing
+dossiers, reviews and publication snapshots. Any future extension must document
+a missing field and reference the canonical object, never duplicate its workflow.
+Cataloguing a public body or company grants no representation, consent or
+editorial authority.
+
+The migration inventory is a provisional horizon, not approval for 24 tables.
+The next separately authorized proposal must demonstrate one synthetic claim
+revision with two source versions and its review boundary, with provenance from
+the start; see the [minimal plan](SERVICOS_PUBLICOS_SP0_MINIMAL_MIGRATION_PLAN.md).
+Merenda is the first future editorial case; Cuidadores comes later with coverage
+and privacy review. Neither requires a second portal, map, form or protocol system.
+Research-chat material is a lead, not a primary source. Examples remain explicitly
+synthetic until document/version, page or locator, period and scope are available.
+
+The radio audit is independent of SP tables. Its reported local results are not
+runtime certification for this documentary package or for Production.
 
 ### Positive
 

@@ -32,6 +32,9 @@ flowchart TD
 - **Collective-action boundary:** Pauta, Action, protocol and official sending
   retain their own review/authorization. SP facts may inform them but cannot
   trigger them.
+  Catalog entries for bodies/companies grant no representation, consent or
+  editorial authority. InformationRequest/CaseFile reuse canonical protocols and
+  dossiers with their existing review/publication boundaries.
 - **Map boundary:** only publicly sourced facility geometry can reach a map.
   No report/Relata point, inferred residence, workplace or small-cell aggregate
   crosses it.
@@ -89,6 +92,13 @@ flowchart TD
 
 - RLS/grant matrix: anon/authenticated cannot read or mutate base/case/source
   data; authorized service path can perform only scoped operations.
+  Use populated synthetic fixtures and distinct actors A/B, anonymous, ordinary,
+  scoped reviewer and out-of-scope reviewer. Check grants separately: a missing
+  GRANT or empty table does not demonstrate RLS. Service-role application scope
+  checks must precede privileged client creation and reject swapped identifiers.
+  Run on an owned local disposable stack or isolated Linux-runner ephemeral
+  stack with synthetic data and no remote Production credentials; cleanup only
+  owned fixtures/stack. No real remote service substitutes for unavailable Docker.
 - no-leak DTO/HTTP tests: prohibited fields never appear in HTML, JSON, search,
   metadata, sitemap, logs or error messages.
 - entity-resolution tests: duplicates and uncertain aliases do not silently
@@ -96,6 +106,8 @@ flowchart TD
 - claim lifecycle tests: corroborate, contest, correct, supersede and withdraw.
 - source-version tests: changed source creates a new version and flags dependent
   claims for review.
+  Prove N:N revision-to-source-version citations with role and locator, including
+  contradictory sources; do not mutate the citations of an older revision.
 - attribution tests: a company/contract link cannot be created without
   provenance and confidence.
 - map tests: only public facility geometry is emitted; no report/Relata
@@ -103,7 +115,25 @@ flowchart TD
 - non-automation tests: ingestion and alerts create no public claim, Pauta,
   Action, protocol send or representation.
 
-## Residual risks
+## Semantic adversarial cases
+
+| Input or shortcut | Required rejection or preserved distinction |
+| --- | --- |
+| Same bidding number/year from different issuers | Identity includes issuer/jurisdiction/modality and sourced process identity; no global-number merge. |
+| Administrative quantity presented as workers served | Preserve unit and period; quantity is not a count of people. |
+| ARP presented as money spent | Price registration is distinct from commitment, liquidation and payment. |
+| Valid contract or last-known supplier | Neither proves present execution; require dated execution evidence. |
+| Public PDF with signatures, contacts or minors | Review/redact; public availability does not authorize indiscriminate republication. |
+| Search returns no document | Record search date, locations and scope; “not located” is not nonexistence. |
+| Editorial approval presented as final judgment | Keep evidence, publication and procedural instance/outcome/finality independent; publish contested wording only as contested. |
+| One facility or contract forced into a single branch | Preserve multi-service/multiunit or non-point coverage, temporal responsibility and source provenance. |
+
+Research-chat assertions are leads, not primary sources. Until a document/version,
+locator, period and scope are recorded, examples are explicitly synthetic. The
+first future Merenda case and later Cuidadores coverage/privacy review add no
+portal, route or Production work in SP-0.
+
+## Remaining limitations
 
 SP-0 cannot resolve legal interpretation, incomplete transparency portals,
 source bias or the staffing cost of human review. The mitigation is disciplined

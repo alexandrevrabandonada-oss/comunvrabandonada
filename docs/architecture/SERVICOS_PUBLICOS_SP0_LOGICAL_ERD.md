@@ -5,26 +5,30 @@ Related: #433 · Design only · No database schema is introduced here.
 ## Reading this model
 
 Names below are logical entities, not approved physical table names. They
-describe the smallest future graph that preserves provenance and uncertainty.
+describe a provisional future graph that preserves provenance and uncertainty.
 Every entity needs stable UUID identity, `created_at`, `updated_at`, an
 import/editorial provenance field and a change/audit trail appropriate to its
 classification.
 
 ```mermaid
 erDiagram
-  PUBLIC_BODY ||--o{ PUBLIC_SERVICE : governs
-  PUBLIC_SERVICE ||--o{ PUBLIC_FACILITY : delivered_at
+  PUBLIC_BODY ||--o{ SERVICE_RESPONSIBILITY : responsible_party
+  PUBLIC_SERVICE ||--o{ SERVICE_RESPONSIBILITY : scoped_responsibility
+  PUBLIC_SERVICE ||--o{ FACILITY_SERVICE_SCOPE : delivered_through
+  PUBLIC_FACILITY ||--o{ FACILITY_SERVICE_SCOPE : hosts
   PUBLIC_BODY ||--o{ PROCUREMENT : conducts
   PROCUREMENT ||--o{ CONTRACT : results_in
   COMPANY ||--o{ CONTRACT : performs
   CONTRACT ||--o{ CONTRACT_AMENDMENT : changes
   CONTRACT ||--o{ PUBLIC_PAYMENT : receives
-  PUBLIC_SERVICE ||--o{ CONTRACT : procures_for
-  PUBLIC_FACILITY o|--o{ CONTRACT : serves
+  CONTRACT ||--o{ CONTRACT_COVERAGE : covers
+  PUBLIC_SERVICE ||--o{ CONTRACT_COVERAGE : service_scope
+  PUBLIC_FACILITY o|--o{ CONTRACT_COVERAGE : optional_unit
   CONTRACT ||--o{ WORK_POST : aggregates
 
   SOURCE_DOCUMENT ||--o{ SOURCE_DOCUMENT_VERSION : versioned_as
-  SOURCE_DOCUMENT ||--o{ EVIDENCE_CLAIM : supports_or_qualifies
+  SOURCE_DOCUMENT_VERSION ||--o{ CLAIM_REVISION_SOURCE : cited_version
+  CLAIM_REVISION ||--o{ CLAIM_REVISION_SOURCE : evidence_role_and_locator
   EVIDENCE_CLAIM ||--o{ CLAIM_REVISION : evolves_through
   EVIDENCE_CLAIM ||--o{ CLAIM_LINK : relates
   OCCURRENCE ||--o{ CLAIM_LINK : described_by
@@ -43,6 +47,18 @@ erDiagram
 The ERD is intentionally mediated by `CLAIM_LINK`: it prevents a source,
 occurrence, contract or company from silently implying a legal or factual
 relationship.
+
+`CLAIM_REVISION_SOURCE` is N:N: each association records source version, claim
+revision, role (`supports`, `contradicts`, `qualifies`, `supersedes`) and an exact
+page/section/excerpt locator. A revision may be drafted without support but cannot
+be published without reviewed citations. ClaimLink attribution cites these same
+versioned associations. Its subject edges denote alternative target types, not
+a requirement that every link reference all entity types.
+
+SERVICE_RESPONSIBILITY, FACILITY_SERVICE_SCOPE and CONTRACT_COVERAGE record
+valid-from/to, source version and locator. Several coverage rows can refer to one
+contract; facility is optional for territorial/non-point coverage, whose scope
+must be explicit. These are logical relations, not authorization for migrations.
 
 ## Canonical service graph
 
@@ -65,32 +81,32 @@ relationship.
 | SourceDocument | source URL/reference, issuer, publication date, retrieval time, hash, rights/access class | private/curatorial | Object bytes and signed URLs are separate from public metadata. |
 | SourceDocumentVersion | immutable hash, revision relation, extraction metadata | private/curatorial | A corrected document gets a new version; history is preserved. |
 | EvidenceClaim | normalized factual text, subject, temporal scope, evidence state, review state, public-safe wording | curatorial | Never encode an accusation as a boolean on Company or Contract. |
-| ClaimRevision | before/after semantic status, editor/reviewer, reason, timestamp | private/curatorial | Enables correction, retraction, clarification and supersession. |
+| ClaimRevision | immutable wording, independent evidence/editorial/procedural dimensions, editor/reviewer, reason, timestamp | private/curatorial | Enables correction, retraction, clarification and supersession. |
+| ClaimRevisionSource | claim revision, source version, evidence role, page/section/excerpt locator | private/curatorial | N:N association preserves conflicting and qualifying evidence without replacing citations. |
 | ClaimLink | claim, subject entity, relation type, confidence, supporting source | curatorial | Contract/service attribution is explicit and independently evidenced. |
 | Counterstatement | provenance, received date, response status, public-safe summary, linkage | private/curatorial | A counterstatement is not silently discarded or treated as a fact. |
 | Occurrence | category, period, affected aggregate, status, source relationship | private/curatorial | A report/complaint is one possible source, not an automatic occurrence. |
 | InspectionEvent | authority, event/date, measure/status, source | curatorial | Record notification, sanction and retention as distinct outcomes. |
-| InformationRequest | channel, request date, deadline, response/review status, public summary | private/curatorial | Reuse existing protocol flow where appropriate; no raw response on public DTO. |
-| CaseFile | editorial case identity, methodology, scope, review/publish state | curatorial | Groups evidence without changing source truth. |
+| InformationRequest | reference to canonical `comun_official_protocols`; justified extensions only | private/curatorial | Existing request/response workflow remains canonical; no raw response on public DTO. |
+| CaseFile | reference to canonical dossier, reviews and publication snapshots; methodology and scope | curatorial | Existing dossier workflow remains canonical; grouping does not change source truth. |
 
-## Claim state model
+## Independent claim dimensions
 
 ```mermaid
-stateDiagram-v2
-  [*] --> alleged
-  alleged --> corroborated: corroborative source
-  corroborated --> institutionally_recognized: official or judicial recognition
-  institutionally_recognized --> consolidated: editorial review
-  alleged --> not_confirmed: review completes without support
-  corroborated --> contested: counterstatement or conflict
-  institutionally_recognized --> superseded: decision reformed or source corrected
-  consolidated --> contested: material counterstatement
-  contested --> consolidated: review resolves with sources
-  contested --> superseded: correction or reformed decision
+flowchart TD
+  R["Immutable claim revision"] --> E["Evidence: alleged / corroborated / contested / not confirmed"]
+  R --> P["Editorial: draft / reviewed / published / withdrawn"]
+  R --> J["Procedure: authority / instance / outcome / appeal / finality"]
+  V["Cited source version and locator"] --> E
+  V --> J
+  H["Authorized human review"] --> P
 ```
 
-The state says what the evidence supports at a moment in time. It does not rank a
-company or declare a legal conclusion outside the source's own scope.
+The three dimensions coexist; none automatically advances another. Publication
+may preserve a contested conclusion explicitly as contested. Editorial review
+does not imply final judgment. Unknown finality stays unknown; a reformed
+decision creates a sourced revision without erasing the prior state. This model
+does not rank a company or infer a legal conclusion outside the source's scope.
 
 ## Existing COMUN joins
 
