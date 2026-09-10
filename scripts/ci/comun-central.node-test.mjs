@@ -9,8 +9,13 @@ const ignoreScript = "scripts/ci/vercel-ignore-build.mjs";
 test("Vercel skips documentation previews but builds runtime and production", () => {
   const input = { files: ["docs/guide.md", "reports/audit.md"], vercelEnv: "preview", commitRef: "codex/docs" };
   assert.equal(classifyBuildImpact(input).decision, "IGNORE");
-  assert.equal(classifyBuildImpact({ ...input, files: [...input.files, "app/page.tsx"] }).decision, "BUILD");
-  assert.equal(classifyBuildImpact({ ...input, vercelEnv: "production" }).decision, "BUILD");
+  const runtime = { ...input, files: [...input.files, "app/page.tsx"] };
+  assert.equal(classifyBuildImpact(runtime).decision, "IGNORE");
+  assert.equal(classifyBuildImpact({ ...runtime, commitMessage: "[comun-preview]" }).decision, "BUILD");
+  assert.equal(classifyBuildImpact({ ...runtime, vercelEnv: "production" }).decision, "BUILD");
+  assert.equal(classifyBuildImpact({ ...runtime, commitRef: "feature/runtime" }).decision, "BUILD");
+  assert.equal(classifyBuildImpact({ ...input, files: ["package.json"] }).decision, "BUILD");
+  assert.equal(classifyBuildImpact({ ...input, files: ["unclassified.file"] }).decision, "BUILD");
   assert.equal(classifyBuildImpact({ ...input, diffAvailable: false }).decision, "BUILD");
 });
 
