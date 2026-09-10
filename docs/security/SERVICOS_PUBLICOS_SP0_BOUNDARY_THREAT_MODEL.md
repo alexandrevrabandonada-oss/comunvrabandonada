@@ -1,7 +1,7 @@
 # Serviços Públicos e Controle Popular — boundary and threat model SP-0
 
 Related: #433 · Extends, without replacing,
-[`comun-security-data-threat-map.md`](./comun-security-data-threat-map.md).
+[`comun-security-data-threat-map.md`](../comun-security-data-threat-map.md).
 
 ## Trust boundaries
 
