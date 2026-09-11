@@ -253,6 +253,10 @@
     {
       "path": "supabase/migrations/20260730213205_radio_v1_free_storage_profile.sql",
       "sha256": "ea34fe5c05157a5aca083eefee7b837a2b6603c65d0f69485db49f49784d7247"
+    },
+    {
+      "path": "supabase/migrations/20260911114140_radio_upload_idempotency.sql",
+      "sha256": "833969809ca189eb60b5b948a54ae0d7872ef4fe7034dcba9eb9654c1bd1005a"
     }
   ]
 }
