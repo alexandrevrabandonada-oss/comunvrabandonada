@@ -58,6 +58,11 @@ export async function inspectPublicDocument(page, result, expectedText) {
     }
     return {
       text: text.join(" "),
+      headings: [...document.querySelectorAll('h1,h2,[role="heading"]')]
+        .filter((element) => visible(element) && !element.closest("nav,footer"))
+        .map(
+          (element) => element.getAttribute("aria-label") ?? element.innerText,
+        ),
       demoOrigin: !!document.querySelector(
         '[data-fixture="true"],[data-content-origin="synthetic"],[data-content-origin="demo"]',
       ),
@@ -66,10 +71,19 @@ export async function inspectPublicDocument(page, result, expectedText) {
   });
   const text = normalize(dom.text);
   const expected = normalize(expectedText);
-  const contractPresent =
-    text.includes(expected) ||
-    (result.path === "/comun/seguranca" &&
-      text.includes("como o comun protege relatos"));
+  // These editorial alternatives are present in the current page sources.
+  // A navigation label or a title in a script cannot establish page identity.
+  const editorialHeadings = {
+    "/comun": ["agora no territorio", "o que precisa de atencao"],
+    "/comun/acervo": ["memoria viva da cidade"],
+    "/comun/participar": ["como voce quer contribuir"],
+    "/comun/seguranca": ["como o comun protege relatos"],
+  };
+  const contractPresent = dom.headings.some((heading) =>
+    [expected, ...(editorialHeadings[result.path] ?? [])].some((meaning) =>
+      normalize(heading).includes(meaning),
+    ),
+  );
   // Only the exact existing explanatory sentence is exempt; other fixture text
   // and explicit synthetic origins still block. Attributes/CSS are not records.
   const editorial =

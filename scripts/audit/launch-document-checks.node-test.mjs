@@ -78,6 +78,26 @@ test("entities accents and editorial whitespace are decoded by browser", async (
     true,
   );
 });
+
+test("navigation and body keywords do not replace the page heading", async () => {
+  assert.equal(
+    (
+      await check(
+        '<nav>Comunidades</nav><h1>Outra página</h1><script>"Comunidades"</script>',
+      )
+    ).contractPresent,
+    false,
+  );
+  assert.equal(
+    (await check("<h1>Outra página</h1><p>Comunidades</p>")).contractPresent,
+    false,
+  );
+  assert.equal(
+    (await check("<h1>Memória viva da cidade</h1>", "/comun/acervo", "Acervo"))
+      .contractPresent,
+    true,
+  );
+});
 test("explicit synthetic origin is checked separately from visible text", async () => {
   const r = await check(
     '<h1>Comunidades</h1><div hidden data-fixture="true">x</div>',
