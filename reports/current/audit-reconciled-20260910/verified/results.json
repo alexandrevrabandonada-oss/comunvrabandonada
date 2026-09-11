@@ -1,0 +1,72 @@
+[
+  {
+    "name": "lint",
+    "sha": "0932178165e7d556ada31c56a3b20614757b22ab",
+    "command": "node node_modules/eslint/bin/eslint.js .",
+    "started": "2026-09-11T00:08:42.334Z",
+    "finished": "2026-09-11T00:09:34.650Z",
+    "exit": 0,
+    "status": "PASS",
+    "error": null
+  },
+  {
+    "name": "unit",
+    "sha": "0932178165e7d556ada31c56a3b20614757b22ab",
+    "command": "node node_modules/vitest/vitest.mjs run --exclude=tests/** --pool=threads --maxWorkers=1",
+    "started": "2026-09-11T00:09:34.651Z",
+    "finished": "2026-09-11T00:10:49.334Z",
+    "exit": 0,
+    "status": "PASS",
+    "error": null
+  },
+  {
+    "name": "ci",
+    "sha": "0932178165e7d556ada31c56a3b20614757b22ab",
+    "command": "node --test scripts/ci/comun-central.node-test.mjs scripts/ci/vercel-build-impact.node-test.mjs",
+    "started": "2026-09-11T00:10:49.334Z",
+    "finished": "2026-09-11T00:10:49.847Z",
+    "exit": 0,
+    "status": "PASS",
+    "error": null
+  },
+  {
+    "name": "ffmpeg",
+    "sha": "0932178165e7d556ada31c56a3b20614757b22ab",
+    "command": "node C:/Users/Micro/AppData/Local/npm-cache/_npx/fd45a72a545557e9/node_modules/tsx/dist/cli.mjs scripts/radio-storage-cycle.mjs",
+    "started": "2026-09-11T00:10:49.847Z",
+    "finished": "2026-09-11T00:10:52.483Z",
+    "exit": 0,
+    "status": "PASS",
+    "error": null
+  },
+  {
+    "name": "build",
+    "sha": "0932178165e7d556ada31c56a3b20614757b22ab",
+    "command": "node node_modules/next/dist/bin/next build",
+    "started": "2026-09-11T00:10:52.483Z",
+    "finished": "2026-09-11T00:11:52.905Z",
+    "exit": 0,
+    "status": "PASS",
+    "error": null
+  },
+  {
+    "name": "typecheck",
+    "sha": "0932178165e7d556ada31c56a3b20614757b22ab",
+    "command": "node node_modules/typescript/bin/tsc --noEmit",
+    "started": "2026-09-11T00:11:52.906Z",
+    "finished": "2026-09-11T00:12:34.967Z",
+    "exit": 0,
+    "status": "PASS",
+    "error": null
+  },
+  {
+    "name": "browser",
+    "sha": "0932178165e7d556ada31c56a3b20614757b22ab",
+    "command": "node node_modules/@playwright/test/cli.js test -c tmp/closure-browser.config.ts",
+    "started": "2026-09-11T00:12:34.968Z",
+    "finished": "2026-09-11T00:13:09.900Z",
+    "exit": 0,
+    "status": "PASS",
+    "error": null
+  }
+]

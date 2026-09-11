@@ -1,0 +1,20 @@
+{
+  "sha": "820a2e75223fff45933caae6e27196123d13f45b",
+  "results": [
+    {
+      "file": "docs/architecture/ADR-050-servicos-publicos-controle-popular-sp0.md",
+      "target": "docs/architecture/SERVICOS_PUBLICOS_SP0_MINIMAL_MIGRATION_PLAN.md",
+      "pass": true
+    },
+    {
+      "file": "docs/architecture/SERVICOS_PUBLICOS_SP0_REUSE_INVENTORY.md",
+      "target": "docs/architecture/SERVICOS_PUBLICOS_SP0_MINIMAL_MIGRATION_PLAN.md",
+      "pass": true
+    },
+    {
+      "file": "docs/security/SERVICOS_PUBLICOS_SP0_BOUNDARY_THREAT_MODEL.md",
+      "target": "docs/comun-security-data-threat-map.md",
+      "pass": true
+    }
+  ]
+}

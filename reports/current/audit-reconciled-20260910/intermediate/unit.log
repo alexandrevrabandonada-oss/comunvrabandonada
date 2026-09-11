@@ -1,0 +1,1232 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 D:/COMUN-AUDIT-RECONCILED-20260910
+
+ ✓ lib/comun-environment-public-health-equipment.test.ts (11 tests) 1094ms
+     ✓ keeps the active municipal/public filter exact and fail-closed  563ms
+ ✓ lib/comun-environment-territorial-base.test.ts (11 tests) 217ms
+ ✓ lib/comun-relata-evidence.test.ts (8 tests) 497ms
+     ✓ uses unique nonces and ciphertext while decrypting only server-side  411ms
+ ✓ lib/sidewalk-photos.test.ts (1 test) 67ms
+ ✓ lib/comun-observatory-sidewalk-adapter.test.ts (8 tests) 50ms
+ ✓ lib/sidewalk-submission-readiness.test.ts (10 tests) 36ms
+ ✓ lib/radio-storage-routes.test.ts (17 tests) 30ms
+ ✓ lib/comun-city-panorama.test.ts (5 tests) 669ms
+     ✓ derives descriptive facts from specialized public DTOs without a city score  651ms
+ ✓ lib/comun-relata-grouping-authority-route.test.ts (5 tests) 26ms
+ ✓ lib/archive/artwork-storage.test.ts (4 tests) 25ms
+ ✓ lib/comun-power-interruptions-aneel.test.ts (5 tests) 17ms
+ ✓ lib/radio-actions.test.ts (6 tests) 25ms
+ ✓ lib/sidewalk-vertical.test.ts (14 tests) 23ms
+ ✓ lib/comun-essential-power-interruption-observatory-contract.test.ts (3 tests) 14ms
+ ✓ lib/comun/pauta-module-registry.test.ts (6 tests) 16ms
+ ✓ lib/comun-environment-surface-water-quality.test.ts (7 tests) 16ms
+ ✓ lib/civic-intelligence/intents.test.ts (3 tests) 681ms
+     ✓ resolves the versioned high-confidence corpus without inventing routes  674ms
+ ✓ lib/comun-environment-public-social-assistance-equipment.test.ts (9 tests) 17ms
+ ✓ lib/comun-environment-hydrometeorology.test.ts (10 tests) 12ms
+ ✓ lib/comun-environment-public-equipment-contract.test.ts (11 tests) 13ms
+ ✓ lib/comun-wallet-relata-action.test.ts (26 tests) 13ms
+ ✓ lib/comun-pauta-cycle-memory.test.ts (10 tests) 11ms
+ ✓ lib/server/comun-denuncias-routing-guide.test.ts (5 tests) 13ms
+ ✓ lib/sidewalk-pilot-rules.test.ts (32 tests) 12ms
+ ✓ lib/comun-organization-bridges.test.ts (5 tests) 13ms
+ ✓ lib/comun-sidewalk-observatory-contract.test.ts (7 tests) 17ms
+ ✓ lib/comun-environmental-routing-v2.test.ts (12 tests) 14ms
+ ✓ lib/comun-shell-contract.test.ts (13 tests) 15ms
+ ✓ lib/comun-rodas-vivas.test.ts (17 tests) 15ms
+ ✓ lib/comun-transport-programmed-network.test.ts (7 tests) 14ms
+ ✓ lib/sidewalk-operational-diagnostic-route.test.ts (4 tests) 11ms
+ ✓ lib/comun-urban-routing-v3.test.ts (16 tests) 13ms
+ ✓ lib/comun-collective-actions-canonical.test.ts (15 tests) 12ms
+ ✓ lib/editorial-operation-personas.test.ts (17 tests) 11ms
+ ✓ lib/pauta-action-cycle.test.ts (9 tests) 11ms
+ ✓ lib/popular-map-rules.test.ts (6 tests) 27ms
+ ✓ lib/comun-solidarity-economy-experience.test.ts (8 tests) 9ms
+ ✓ lib/comun-solidarity-economy.test.ts (16 tests) 11ms
+ ✓ lib/comun-cultural-progressive-rights.contract.test.ts (30 tests) 13ms
+ ✓ lib/comun-water-data-contract.test.ts (7 tests) 12ms
+ ✓ lib/comun-culture-memory-architecture.test.ts (10 tests) 10ms
+ ✓ lib/comun-admin-navigation.test.ts (6 tests) 12ms
+ ✓ lib/comun-education-service-routing-v1.test.ts (14 tests) 13ms
+ ✓ lib/comun-essential-power-interruption-observatory.test.ts (5 tests) 30ms
+ ✓ lib/comun-health-service-routing-v1.test.ts (13 tests) 17ms
+ ✓ lib/comun-child-protection-routing-v1.test.ts (6 tests) 14ms
+ ✓ lib/comun-relata-routing.test.ts (9 tests) 13ms
+ ✓ lib/archive/oral-history-rules.test.ts (14 tests) 8ms
+ ✓ lib/comun-observatory-territorial-context-contract.test.ts (3 tests) 10ms
+ ✓ lib/archive/cultural-curation-worklist.test.ts (18 tests) 8ms
+ ✓ lib/comun-denuncias-public-opt-in.test.ts (6 tests) 12ms
+ ✓ lib/archive/first-real-cultural-cycle-contract.test.ts (4 tests) 6ms
+ ✓ lib/operational-adapters.test.ts (6 tests) 8ms
+ ✓ lib/archive/cultural-curation-readiness.test.ts (16 tests) 12ms
+ ✓ lib/comun-observatory-surface-water.test.ts (2 tests) 14ms
+ ✓ lib/comun-pauta-low-friction.test.ts (9 tests) 10ms
+ ✓ lib/observatory-rules.test.ts (8 tests) 10ms
+ ✓ lib/comun-denuncias-public-evidence.test.ts (3 tests) 17ms
+ ✓ lib/comun-city-panorama-contract.test.ts (3 tests) 11ms
+ ✓ lib/comun-p6b-b-contract.test.ts (5 tests) 746ms
+     ✓ preserves the paused human pilot contract  736ms
+ ✓ lib/comun-solidarity-economy-architecture.test.ts (10 tests) 14ms
+ ✓ lib/comun-p6c-b1-public-education-private-contract.test.ts (5 tests) 15ms
+ ❯ lib/comun-solidarity-organization-profile-contract.test.ts (10 tests | 2 failed) 42ms
+     ✓ extends only the A3 ledger and creates no business root 3ms
+     × keeps the RPC service-role-only with a safe search path 18ms
+     × revalidates A2/A1 in the database and protects cross-organization edits 13ms
+     ✓ updates only the four A6 fields plus technical updated_at 1ms
+     ✓ uses optimistic concurrency, idempotency and bounded actor rate limits 0ms
+     ✓ bounds private snapshots to the four allowed keys 1ms
+     ✓ separates prose safety from explicitly consented public contact 1ms
+     ✓ keeps private audit and identities outside the public DTO and UI 1ms
+     ✓ adds no economic or social propagation 1ms
+     ✓ uses one contextual route and no parallel dashboard 1ms
+ ✓ lib/comun-admin-platform-contract.test.ts (4 tests) 13ms
+ ✓ lib/comun-sidewalk-observatory.test.ts (8 tests) 12ms
+ ✓ lib/comun-solidarity-organization-profile.test.ts (6 tests) 9ms
+ ✓ lib/archive/music-curation-rules.test.ts (13 tests) 12ms
+ ✓ lib/comun-observatory-surface-water-contract.test.ts (2 tests) 11ms
+ ✓ lib/comun-sensitive-forwarding-feature.test.ts (5 tests) 9ms
+ ✓ lib/comun-stmu-multichannel-feature.test.ts (2 tests) 5ms
+ ✓ lib/community-return.test.ts (14 tests) 14ms
+ ✓ lib/comun-solidarity-economic-content-contract.test.ts (8 tests) 7ms
+ ✓ lib/sidewalk-pilot.test.ts (7 tests) 14ms
+ ✓ lib/radio.test.ts (7 tests) 11ms
+ ✓ lib/sidewalk-map-config.test.ts (6 tests) 17ms
+ ✓ lib/comun-p6c-a-sus-private-contract.test.ts (5 tests) 11ms
+ ✓ lib/comun-social-architecture.test.ts (7 tests) 9ms
+ ✓ lib/comun-pauta-low-friction-contract.test.ts (7 tests) 9ms
+ ✓ lib/comun-solidarity-organization-onboarding-contract.test.ts (12 tests) 12ms
+ ✓ lib/comun-observatory-feature.test.ts (10 tests) 11ms
+ ✓ lib/cultural-deliverability.test.ts (7 tests) 9ms
+ ✓ lib/comun-p6b-a-environmental-contract.test.ts (5 tests) 9ms
+ ✓ lib/media-storage/scopes.test.ts (3 tests) 9ms
+ ✓ lib/comun-solidarity-organization-governance-contract.test.ts (8 tests) 10ms
+ ✓ lib/media-storage/r2-waveform.test.ts (9 tests) 8ms
+ ✓ lib/archive/generic-publication-boundary.test.ts (15 tests) 14ms
+ ✓ lib/community-administration.test.ts (8 tests) 8ms
+ ✓ lib/comun-observatory.test.ts (10 tests) 9ms
+ ✓ lib/comun-essential-services-data-contract.test.ts (6 tests) 8ms
+ ✓ lib/comun-public-evidence.test.ts (4 tests) 11ms
+ ✓ lib/local-operational-performance.test.ts (4 tests) 8ms
+ ✓ lib/observation-campaign-rules.test.ts (3 tests) 7ms
+ ✓ lib/comun-p6c-b2-child-protection-private-contract.test.ts (4 tests) 9ms
+ ✓ lib/miniapp-contract.test.ts (6 tests) 7ms
+ ✓ lib/historical-photo.test.ts (6 tests) 8ms
+ ✓ lib/comun-denuncias-map-readiness.test.ts (7 tests) 9ms
+ ✓ lib/comun-transport-system-metrics.test.ts (5 tests) 8ms
+ ✓ lib/comun-observatory-territorial-context.test.ts (3 tests) 8ms
+ ✓ lib/comun-launch-program.test.ts (6 tests) 6ms
+ ✓ lib/comun-journey-context.test.ts (4 tests) 9ms
+ ✓ lib/comun-relata-channels.test.ts (5 tests) 7ms
+ ✓ lib/comun-cultural-progressive-rights.test.ts (10 tests) 7ms
+ ✓ lib/comun-bus-domain.test.ts (3 tests) 5ms
+ ✓ lib/media-storage/supabase-local.test.ts (3 tests) 9ms
+ ✓ lib/operational-surfaces.test.ts (2 tests) 9ms
+ ✓ lib/comun-power-continuity-aneel.test.ts (5 tests) 7ms
+ ✓ lib/comun-organization-bridges-contract.test.ts (5 tests) 7ms
+ ✓ lib/archive/photo-processing-rules.test.ts (6 tests) 7ms
+ ✓ lib/comun-p6c-c-sensitive-forwarding-contract.test.ts (4 tests) 12ms
+ ✓ lib/comun-relata-photo-first.test.ts (4 tests) 11ms
+ ✓ lib/comun-solidarity-organization-governance.test.ts (4 tests) 5ms
+ ❯ lib/comun-48-6-adoption-03-post-report-motorola.test.ts (4 tests | 1 failed) 18ms
+     × keeps the receipt summary to one primary next action 11ms
+     ✓ does not show education channels before a conscious network choice 1ms
+     ✓ keeps advanced guidance and evidence closed by default 1ms
+     ✓ does not change routing, channels, persistence, or schema 3ms
+ ✓ lib/radio-media-profile.test.ts (6 tests) 9ms
+ ✓ lib/comun-forwarding-experience.test.ts (22 tests) 11ms
+ ✓ lib/sidewalk-operational-release.test.ts (9 tests) 10ms
+ ✓ lib/comun-solidarity-private-connections.test.ts (13 tests) 10ms
+ ✓ lib/server/comun-health-institutional-channel-catalog.test.ts (3 tests) 9ms
+ ✓ lib/comun/canonical-editorial-pautas.test.ts (7 tests) 8ms
+ ✓ lib/volta-redonda-neighborhoods.test.ts (2 tests) 5ms
+ ✓ lib/community-google-auth.test.ts (6 tests) 7ms
+ ✓ lib/comun-cultural-specialized-provenance-a5-a1-contract.test.ts (5 tests) 5ms
+ ✓ lib/sidewalk-exact-consent-contract.test.ts (4 tests) 7ms
+ ✓ lib/experience-coherence.test.ts (3 tests) 7ms
+ ✓ lib/operational-queue.test.ts (4 tests) 10ms
+ ✓ lib/comun-sidewalk-p4-feature.test.ts (3 tests) 4ms
+ ✓ lib/comun-experience.test.ts (5 tests) 6ms
+ ✓ lib/comun-sidewalk-progressive-capture.test.ts (4 tests) 9ms
+ ✓ lib/comun-collective-entity-consent.test.ts (5 tests) 8ms
+ ✓ lib/archive/music-observability.test.ts (5 tests) 7ms
+ ✓ lib/central-hub-rules.test.ts (6 tests) 6ms
+ ✓ lib/admin-google-auth.test.ts (9 tests) 6ms
+ ✓ scripts/comun-local-reset-contract.test.mjs (7 tests) 7ms
+ ✓ lib/sidewalk-upload-cleanup.test.ts (4 tests) 7ms
+ ✓ lib/comun-bus-timetable.test.ts (3 tests) 6ms
+ ✓ lib/comun-solidarity-economic-content.test.ts (5 tests) 6ms
+ ✓ lib/sidewalk-operational-loop.test.ts (3 tests) 6ms
+ ✓ lib/comun-relata-evidence-feature.test.ts (6 tests) 10ms
+ ✓ lib/comun-layout-surface-contract.test.ts (2 tests) 6ms
+ ✓ lib/sidewalk-basemap-provider.test.ts (4 tests) 6ms
+ ✓ lib/comun-relata-preview.test.ts (2 tests) 7ms
+ ✓ lib/editorial-operation.test.ts (4 tests) 6ms
+ ✓ lib/community-experience.test.ts (4 tests) 7ms
+ ✓ lib/sidewalk-pressure-package.test.ts (2 tests) 6ms
+ ✓ lib/archive/oral-history-pilot-rules.test.ts (8 tests) 7ms
+ ✓ lib/security/cron-auth.test.ts (3 tests) 77ms
+ ✓ lib/comun-relata-persistence.test.ts (4 tests) 209ms
+ ❯ lib/comun-motorola-source-contract.test.ts (4 tests | 1 failed) 22ms
+     ✓ não devolve CTAs canônicos de Calçadas ao intake legado 3ms
+     ✓ não seleciona semanticamente um problema de ônibus por padrão 0ms
+     ✓ mantém Participar disponível pela entrada canônica de Pautas 0ms
+     × só inicia as navegações da Home depois do gesto da pessoa 16ms
+ ✓ lib/comun-relata-state.test.ts (2 tests) 4ms
+ ✓ lib/comun-fiscaliza-operational.test.ts (2 tests) 4ms
+ ✓ lib/archive/territorial-art.test.ts (4 tests) 5ms
+ ✓ lib/comun-participation-wallet-feature.test.ts (3 tests) 4ms
+ ✓ lib/comun-bus-p5-contract.test.ts (2 tests) 4ms
+ ✓ lib/media-storage/r2.test.ts (1 test) 5ms
+ ✓ lib/server/comun-environmental-channel-catalog.test.ts (2 tests) 5ms
+ ✓ lib/archive/cultural-curation-admin-contract.test.ts (2 tests) 4ms
+ ✓ lib/comun-denuncias-followup.test.ts (6 tests) 5ms
+ ✓ lib/public-content-readiness.test.ts (4 tests) 6ms
+ ✓ lib/archive/production-verification-rules.test.ts (4 tests) 9ms
+ ✓ lib/comun-solidarity-private-connections-contract.test.ts (7 tests) 7ms
+ ✓ lib/sidewalk-operations.test.ts (3 tests) 8ms
+ ✓ lib/comun-essential-services-feature.test.ts (3 tests) 5ms
+ ✓ lib/comun-relata-privacy.test.ts (4 tests) 7ms
+ ✓ lib/comun-cultural-handoff-a3-contract.test.ts (4 tests) 5ms
+ ✓ lib/comun-unified-relata-intake.test.ts (4 tests) 7ms
+ ✓ lib/operational-responsibility.test.ts (4 tests) 6ms
+ ✓ lib/editorial-operation-backup.test.ts (2 tests) 6ms
+ ✓ lib/comun-relata-public-projection.test.ts (5 tests) 10ms
+ ✓ lib/server/comun-sensitive-institutional-channel-catalog.test.ts (3 tests) 6ms
+ ✓ lib/archive-identification-rules.test.ts (4 tests) 6ms
+ ✓ lib/archive/local-music.test.ts (6 tests) 6ms
+ ✓ lib/comun-relata-evidence-cleanup.test.ts (1 test) 6ms
+ ✓ lib/comun-bus-p5-feature.test.ts (3 tests) 5ms
+ ✓ lib/media-storage/index.test.ts (6 tests) 6ms
+ ✓ lib/server/comun-education-institutional-channel-catalog.test.ts (2 tests) 5ms
+ ✓ lib/server/comun-child-protection-channel-catalog.test.ts (1 test) 5ms
+ ✓ lib/comun-sensitive-disclosure.test.ts (2 tests) 6ms
+ ✓ lib/sidewalk-maplibre-style.test.ts (1 test) 5ms
+ ✓ lib/community-auth-errors.test.ts (4 tests) 5ms
+ ✓ lib/operational-authorization.test.ts (4 tests) 4ms
+ ✓ lib/comun-p6a-operations.test.ts (4 tests) 5ms
+ ✓ lib/comun-civic-forwarding-feature.test.ts (3 tests) 6ms
+ ✓ lib/admin-access-state.test.ts (3 tests) 4ms
+ ✓ lib/sidewalk-submission-progress.test.ts (3 tests) 5ms
+ ✓ lib/comun-p5-operations.test.ts (4 tests) 6ms
+ ✓ lib/comun-urban-incidents-feature.test.ts (2 tests) 4ms
+ ✓ lib/comun-bus-feature.test.ts (2 tests) 4ms
+ ✓ lib/comun-sidewalk-p4-operations.test.ts (3 tests) 5ms
+ ❯ lib/comun-sidewalk-p4-migration.test.ts (4 tests | 1 failed) 13ms
+     ✓ keeps the private adapter force-RLS and server mediated 2ms
+     ✓ stores no duplicate private evidence in the adapter 0ms
+     ✓ publishes only an approximate geometry without a private geometry 0ms
+     × matches the immutable release manifest 9ms
+ ✓ lib/comun-cultural-private-materialization-a5-a2-contract.test.ts (5 tests) 5ms
+ ✓ lib/community-signup-continuity.test.ts (3 tests) 4ms
+ ✓ lib/server/comun-urban-incident-channel-catalog.test.ts (2 tests) 5ms
+ ✓ lib/comun-pautas-vivas-contract.test.ts (4 tests) 5ms
+ ✓ lib/collective-actions-admin.test.ts (3 tests) 6ms
+ ✓ lib/comun-protocol.test.ts (2 tests) 6ms
+ ✓ lib/comun-motorola-contract.test.ts (2 tests) 4ms
+ ✓ lib/comun-sidewalk-relata-connection.test.ts (2 tests) 4ms
+ ✓ lib/community-status.test.ts (2 tests) 4ms
+ ✓ lib/comun-entity-context.test.ts (2 tests) 7ms
+ ✓ lib/comun-cultural-handoff-contract.test.ts (6 tests) 5ms
+ ✓ lib/comun-core-journeys-workflow-contract.test.ts (3 tests) 6ms
+ ✓ lib/server/comun-institutional-channel-catalog.test.ts (2 tests) 4ms
+ ✓ lib/archive/worker-health.test.ts (2 tests) 4ms
+ ✓ lib/comun-48-6-a3-contract.test.ts (4 tests) 6ms
+ ✓ lib/comun-public-health-sensitive-feature.test.ts (2 tests) 5ms
+ ✓ lib/archive/public-gates.test.ts (3 tests) 5ms
+ ✓ lib/comun-solidarity-economy-contract.test.ts (3 tests) 5ms
+ ✓ lib/comun-sidewalk-public-location.test.ts (2 tests) 5ms
+ ✓ lib/comun-participation-wallet-runtime.test.ts (2 tests) 5ms
+ ✓ lib/comun-journey-status.test.ts (2 tests) 4ms
+ ✓ lib/community-authorization.test.ts (2 tests) 4ms
+ ✓ lib/collective-actions-release-contract.test.ts (3 tests) 5ms
+ ✓ lib/archive/cultural-curation-desk-contract.test.ts (3 tests) 4ms
+ ✓ lib/comun-relata-feature.test.ts (2 tests) 4ms
+ ✓ lib/supabase/middleware-admin-auth.test.ts (6 tests) 4ms
+ ✓ lib/quality-metric-origin.test.ts (3 tests) 4ms
+ ✓ lib/comun-pwa-manifest.test.ts (1 test) 4ms
+ ✓ lib/quality-performance.test.ts (3 tests) 5ms
+ ✓ lib/comun-b2-a1-contract.test.ts (2 tests) 4ms
+ ✓ lib/pilot-go-no-go.test.ts (3 tests) 4ms
+ ✓ lib/editorial-operation-incidents.test.ts (2 tests) 3ms
+ ✓ lib/member-inbox-context.test.ts (2 tests) 6ms
+ ✓ lib/editorial-operation-gate.test.ts (2 tests) 4ms
+ ✓ lib/comun-a1-migration-contract.test.ts (3 tests) 4ms
+ ✓ lib/comun-inbox-presentation.test.ts (2 tests) 4ms
+ ✓ lib/pilot-human-readiness.test.ts (2 tests) 3ms
+ ✓ lib/community-registration.test.ts (1 test) 3ms
+ ✓ lib/comun-capture-feature.test.ts (3 tests) 4ms
+ ✓ lib/comun-territory-profile.test.ts (3 tests) 4ms
+ ✓ lib/comun-forwarding-feature.test.ts (3 tests) 4ms
+ ✓ lib/comun-sidewalk-relata-feature.test.ts (2 tests) 4ms
+ ✓ lib/comun-relata-p3b-contract.test.ts (3 tests) 4ms
+ ✓ lib/civic-intelligence/readiness.test.ts (2 tests) 4ms
+ ✓ lib/comun-environmental-incidents-feature.test.ts (2 tests) 4ms
+ ✓ lib/comun-denuncias-public-map-feature.test.ts (2 tests) 4ms
+ ✓ lib/comun-canonical-routes.test.ts (2 tests) 6ms
+ ✓ lib/comun-stmu-whatsapp-feature.test.ts (2 tests) 3ms
+ ✓ lib/comun-pwa.test.ts (1 test) 4ms
+ ✓ lib/comun-public-education-sensitive-feature.test.ts (1 test) 4ms
+ ✓ lib/comun-child-protection-feature.test.ts (1 test) 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/comun-48-6-adoption-03-post-report-motorola.test.ts > COMUN 48.6 Adoption-03 post-report Motorola > keeps the receipt summary to one primary next action
+AssertionError: expected '\n' to contain 'onClick={showNextAction}'
+
+- Expected
++ Received
+
+- onClick={showNextAction}
++
++
+
+ ❯ lib/comun-48-6-adoption-03-post-report-motorola.test.ts:14:21
+     12|
+     13|     expect(capture).toContain('"summary" | "next_action"');
+     14|     expect(receipt).toContain('onClick={showNextAction}');
+       |                     ^
+     15|     expect(receipt).toContain(">\n                      Continuar\n   …
+     16|     expect(receipt.indexOf("Código de recuperação")).toBeLessThan(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  lib/comun-motorola-source-contract.test.ts > contratos de fonte do Motorola Pass > só inicia as navegações da Home depois do gesto da pessoa
+AssertionError: expected 'import Link from "next/link";\r\nimpo…' to contain 'href={withComunAppV2(COMUN_MOTOROLA_P…'
+
+- Expected
++ Received
+
+- href={withComunAppV2(COMUN_MOTOROLA_PRIMARY_ACTION.href)}
++ import Link from "next/link";
++ import {
++   Archive,
++   ArrowRight,
++   BusFront,
++   Eye,
++   History,
++   MapPinned,
++   Radio,
++   Users,
++ } from "lucide-react";
++ import {
++   ComunActionCard,
++   ComunMemoryCard,
++   ComunMiniappCard,
++   ComunPautaCard,
++   ComunResultCard,
++ } from "@/components/comun-cards";
++ import { withComunAppV2 } from "@/lib/comun-shell-contract";
++ import {
++   COMUN_MOTOROLA_PRIMARY_ACTION,
++   COMUN_MOTOROLA_SIDEWALK_CONTRIBUTION_HREF,
++ } from "@/lib/comun-motorola-contract";
++ import { COMUN_PUBLIC_EXPERIENCE_DOORS } from "@/lib/experience-coherence";
++
++ const doorIcons = {
++   report: MapPinned,
++   understand: Eye,
++   participate: Users,
++   my_participation: History,
++ } as const;
++
++ export function ComunAppV2Home({
++   center,
++   profile,
++   pautas = [],
++   actions = [],
++   results = [],
++   memory = [],
++   civicIntelligencePilot = false,
++ }: {
++   center?: any;
++   profile?: any;
++   pautas?: any[];
++   actions?: any[];
++   results?: any[];
++   memory?: any[];
++   civicIntelligencePilot?: boolean;
++ }) {
++   const attention = (center?.inbox ?? [])
++     .filter((item: any) => !item.read_at)
++     .sort((a: any, b: any) => priority(b.priority) - priority(a.priority));
++   const firstPauta = center?.memberships?.[0]?.pauta ?? pautas[0];
++   const firstAction = center?.actions?.[0] ?? actions[0];
++   const firstTask = center?.tasks?.[0];
++   const firstResult = center?.results?.[0] ?? results[0];
++   const firstMemory = memory[0];
++   const displayName = String(profile?.display_name ?? "")
++     .trim()
++     .split(/\s+/)[0];
++
++   return (
++     <div className="comun-v2-page" data-comun-app-v2-page="home">
++       <header className="pb-5 pt-1">
++         <p className="text-sm font-bold text-comun-black/60">
++           {center ? "Sua área começa pelo que pede ação" : "Exploração pública"}
++         </p>
++         <h1 className="comun-v2-title mt-2 normal-case">
++           {displayName
++             ? `Bom te ver, ${displayName}`
++             : "O que precisa de atenção?"}
++         </h1>
++       </header>
++
++       <Link
++         href={withComunAppV2(COMUN_MOTOROLA_PRIMARY_ACTION.href)}
+-         prefetch={false}
++         prefetch={false}
++         data-comun-motorola-primary-action="true"
++         data-comun-primary-action="true"
++         className="flex min-h-14 items-center justify-between gap-4 rounded-[var(--comun-radius-card)] border-2 border-comun-black bg-comun-yellow px-4 py-3 text-comun-black shadow-[4px_4px_0_#0b0b0a]"
++       >
++         <span>
++           <strong className="block text-xl leading-tight">
++             {COMUN_MOTOROLA_PRIMARY_ACTION.label}
++           </strong>
++           <small className="mt-1 block text-sm font-bold">
++             Conte o que aconteceu. Você não precisa saber quem é o responsável.
++           </small>
++         </span>
++         <ArrowRight className="shrink-0" aria-hidden="true" />
++       </Link>
++
++       <section aria-labelledby="home-next-paths" className="mt-6">
++         <h2 id="home-next-paths" className="comun-v2-section-title">
++           O que você quer fazer?
++         </h2>
++         <div className="mt-3 grid gap-3 sm:grid-cols-3">
++           {COMUN_PUBLIC_EXPERIENCE_DOORS.slice(1).map((door) => {
++             const Icon = doorIcons[door.id];
++             return (
++               <Link
++                 key={door.id}
++                 href={withComunAppV2(door.href)}
++                 prefetch={false}
++                 className="surface-paper flex min-h-24 items-start gap-3 rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2"
++               >
++                 <span className="grid size-10 shrink-0 place-items-center rounded-[var(--comun-radius-control)] bg-comun-black text-comun-paper">
++                   <Icon size={20} aria-hidden="true" />
++                 </span>
++                 <span>
++                   <strong className="block leading-tight">{door.label}</strong>
++                   <small className="mt-1 block text-comun-black/65">
++                     {door.description}
++                   </small>
++                 </span>
++               </Link>
++             );
++           })}
++         </div>
++       </section>
++
++       {civicIntelligencePilot ? (
++         <section
++           aria-labelledby="home-civic-search-v2"
++           className="surface-tool rounded-[var(--comun-radius-card)] border-2 border-comun-black p-4"
++         >
++           <h2 id="home-civic-search-v2" className="comun-v2-section-title">
++             O que você precisa encontrar?
++           </h2>
++           <p className="mt-2 text-sm text-comun-black/70">
++             Descreva uma necessidade comum. A busca leva a processos e rotas
++             públicas; não cria feed nem perfil de interesses.
++           </p>
++           <form
++             action="/comun/buscar"
++             className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]"
++           >
++             <label className="sr-only" htmlFor="home-civic-search-v2-input">
++               Necessidade ou assunto
++             </label>
++             <input
++               id="home-civic-search-v2-input"
++               name="q"
++               className="min-h-12 rounded-[var(--comun-radius-control)] border-2 border-comun-black bg-comun-paper px-3 text-comun-black"
++               placeholder="Ex.: não consigo passar com cadeira de rodas"
++             />
++             <button className="comun-v2-action">Buscar</button>
++           </form>
++         </section>
++       ) : null}
++
++       {center ? (
++         <section aria-labelledby="home-attention" className="mt-7">
++           <div className="mb-3 flex items-end justify-between gap-4">
++             <h2 id="home-attention" className="comun-v2-section-title">
++               Pede atenção
++             </h2>
++             <Link
++               href={withComunAppV2("/comun/caixa-de-entrada")}
++               className="inline-flex min-h-11 items-center text-sm font-black underline"
++             >
++               Ver Caixa
++             </Link>
++           </div>
++           {attention[0] ? (
++             <Link
++               href={withComunAppV2(attention[0].action_url)}
++               className="surface-alert flex min-h-24 items-center gap-4 rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
++             >
++               <span className="grid size-12 shrink-0 place-items-center rounded-full bg-comun-yellow text-xl font-black">
++                 !
++               </span>
++               <span className="min-w-0 flex-1">
++                 <strong className="block text-lg leading-tight">
++                   {attention[0].title}
++                 </strong>
++                 <small className="mt-1 block text-comun-black/70">
++                   {attention[0].summary}
++                 </small>
++               </span>
++               <ArrowRight className="shrink-0" aria-hidden="true" />
++             </Link>
++           ) : (
++             <div className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4">
++               <p className="font-black">Nenhum retorno urgente agora.</p>
++               <p className="mt-1 text-sm text-comun-black/65">
++                 Você pode explorar processos públicos sem criar um feed pessoal.
++               </p>
++             </div>
++           )}
++         </section>
++       ) : null}
++
++       {center ? (
++         <section aria-labelledby="home-next" className="mt-7">
++           <h2 id="home-next" className="comun-v2-section-title mb-3">
++             Próxima ação
++           </h2>
++           {attention[0] ? (
++             <ComunActionCard
++               href={withComunAppV2(attention[0].action_url)}
++               title={attention[0].title}
++               description={attention[0].summary}
++               action={attention[0].action_label ?? "Abrir pedido"}
++             />
++           ) : firstTask ? (
++             <ComunActionCard
++               href={withComunAppV2(
++                 firstTask.action_url ??
++                   "/comun/minha-participacao?secao=tarefas",
++               )}
++               title={firstTask.title}
++               description={
++                 firstTask.result_public ??
++                 "Confira responsabilidade, prazo e resultado esperado."
++               }
++               action="Abrir tarefa"
++             />
++           ) : firstAction ? (
++             <ComunActionCard
++               href={withComunAppV2(
++                 firstAction.action_url ?? `/comun/acoes/${firstAction.slug}`,
++               )}
++               title={firstAction.title}
++               description={
++                 firstAction.participation_public ??
++                 firstAction.objective_public ??
++                 "Confira o compromisso antes de participar."
++               }
++               action="Ver ação"
++             />
++           ) : null}
++         </section>
++       ) : null}
++
++       <section aria-labelledby="home-shortcuts" className="mt-8">
++         <h2 id="home-shortcuts" className="comun-v2-section-title mb-3">
++           Ferramentas para explorar
++         </h2>
++         <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
++           <Shortcut
++             href="/comun/calcadas"
++             label="Calçadas"
++             icon={<MapPinned />}
++           />
++           <Shortcut href="/comun/onibus" label="Ônibus" icon={<BusFront />} />
++           <Shortcut
++             href="/comun/comunidades"
++             label="Comunidades"
++             icon={<Users />}
++           />
++           <Shortcut href="/comun/acervo" label="Acervo" icon={<Archive />} />
++           <Shortcut href="/comun/radio" label="Rádio" icon={<Radio />} />
++         </div>
++       </section>
++
++       <section aria-labelledby="home-tracking" className="mt-8">
++         <h2 id="home-tracking" className="comun-v2-section-title mb-4">
++           Acompanhamentos
++         </h2>
++         <div className="grid gap-4 lg:grid-cols-2">
++           {firstPauta ? (
++             <ComunPautaCard
++               href={withComunAppV2(`/comun/pautas/${firstPauta.slug}`)}
++               title={firstPauta.title}
++               summary={
++                 firstPauta.public_synthesis ??
++                 firstPauta.summary ??
++                 "Processo em acompanhamento."
++               }
++               status={
++                 firstPauta.public_status ?? firstPauta.status ?? "Em andamento"
++               }
++               nextAction={firstPauta.next_step ?? "Acompanhar atualização"}
++             />
++           ) : null}
++           {firstAction ? (
++             <ComunActionCard
++               href={withComunAppV2(`/comun/acoes/${firstAction.slug}`)}
++               title={firstAction.title}
++               description={
++                 firstAction.participation_public ??
++                 firstAction.objective_public ??
++                 "Ação comunitária aberta."
++               }
++               action="Ver compromisso"
++             />
++           ) : null}
++           {firstResult ? (
++             <ComunResultCard
++               href={withComunAppV2("/comun/resultados")}
++               title={firstResult.title}
++               summary={
++                 firstResult.public_summary ??
++                 "Resultado publicado com contexto e verificação."
++               }
++             />
++           ) : null}
++           {firstMemory ? (
++             <ComunMemoryCard
++               href={withComunAppV2(`/comun/acervo/${firstMemory.slug}`)}
++               title={firstMemory.title}
++               summary={
++                 firstMemory.summary ?? "Memória ligada a um processo coletivo."
++               }
++             />
++           ) : null}
++         </div>
++       </section>
++
++       <section aria-labelledby="home-tool" className="mt-8">
++         <h2 id="home-tool" className="comun-v2-section-title mb-4">
++           Ferramenta em atividade
++         </h2>
++         <ComunMiniappCard
++           href={withComunAppV2("/comun/calcadas")}
++           contributionHref={withComunAppV2(
++             COMUN_MOTOROLA_SIDEWALK_CONTRIBUTION_HREF,
++           )}
++           title="Mapa das Calçadas"
++           objective="Registrar barreiras e acompanhar prioridades"
++           territory="Volta Redonda"
++           status="Registros publicados e revisados"
++           impact="Prioridades em acompanhamento"
++           action="Registrar um trecho"
++         />
++       </section>
++     </div>
++   );
++ }
++
++ function Shortcut({
++   href,
++   label,
++   icon,
++ }: {
++   href: string;
++   label: string;
++   icon: React.ReactNode;
++ }) {
++   return (
++     <Link
++       href={withComunAppV2(href)}
++       prefetch={false}
++       className="flex min-h-24 min-w-24 snap-start flex-col items-center justify-center gap-2 rounded-[var(--comun-radius-card)] border border-comun-black/20 bg-comun-paper p-3 text-center text-xs font-black"
++     >
++       <span className="grid size-10 place-items-center rounded-[var(--comun-radius-control)] bg-comun-black text-comun-paper [&>svg]:size-5">
++         {icon}
++       </span>
++       {label}
++     </Link>
++   );
++ }
++
++ function priority(value: string) {
++   return value === "urgent"
++     ? 4
++     : value === "attention"
++       ? 3
++       : value === "normal"
++         ? 2
++         : 1;
++ }
++
+
+ ❯ lib/comun-motorola-source-contract.test.ts:43:18
+     41|   it("só inicia as navegações da Home depois do gesto da pessoa", () =…
+     42|     const home = source("components/comun-app-v2-home.tsx");
+     43|     expect(home).toContain(
+       |                  ^
+     44|       "href={withComunAppV2(COMUN_MOTOROLA_PRIMARY_ACTION.href)}\n    …
+     45|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  lib/comun-sidewalk-p4-migration.test.ts > P4 sidewalk Relata migration > matches the immutable release manifest
+AssertionError: expected '6ed799985fe9270ae9a8406d043d566520c2f…' to be 'dea85d25769c31a83a2a1671af68cdc5e37b6…' // Object.is equality
+
+Expected: "dea85d25769c31a83a2a1671af68cdc5e37b6eb4077d807381c050b4fbc9cd44"
+Received: "6ed799985fe9270ae9a8406d043d566520c2f9c89002493393c37d7076d9c494"
+
+ ❯ lib/comun-sidewalk-p4-migration.test.ts:32:29
+     30|   it("matches the immutable release manifest", () => {
+     31|     const sha = createHash("sha256").update(readFileSync(migrationPath…
+     32|     expect(manifest.sha256).toBe(sha);
+       |                             ^
+     33|     expect(manifest.migrationSha256).toBe(sha);
+     34|     expect(manifest.remotePromotionAllowed).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  lib/comun-solidarity-organization-profile-contract.test.ts > COMUN 48.4-A6 database, route and privacy contract > keeps the RPC service-role-only with a safe search path
+AssertionError: expected 'alter table private.comun_solidarity_…' to contain 'security definer\nset search_path = p…'
+
+- Expected
++ Received
+
+- security definer
+- set search_path = pg_catalog
++ alter table private.comun_solidarity_economic_content_events
++   add column before_payload_private jsonb,
++   add column after_payload_private jsonb;
++
++ alter table private.comun_solidarity_economic_content_events
++   drop constraint comun_solidarity_economic_content_events_subject_type_check,
++   drop constraint comun_solidarity_economic_content_events_operation_check;
++
++ alter table private.comun_solidarity_economic_content_events
++   add constraint comun_solidarity_economic_content_events_subject_type_check
++     check (subject_type in ('offer', 'need', 'organization_profile')),
++   add constraint comun_solidarity_economic_content_events_operation_check
++     check (operation in (
++       'offer.create', 'offer.edit', 'offer.pause', 'offer.resume', 'offer.renew', 'offer.archive',
++       'need.create', 'need.edit', 'need.partially_met', 'need.met', 'need.cancel', 'need.reopen',
++       'organization_profile.edit'
++     )),
++   add constraint comun_solidarity_economic_content_events_before_payload_check check (
++     before_payload_private is null or (
++       jsonb_typeof(before_payload_private) = 'object'
++       and octet_length(before_payload_private::text) <= 8192
++       and before_payload_private - array[
++         'presentation_public', 'services_public', 'service_territory_public',
++         'public_contact_authorized'
++       ]::text[] = '{}'::jsonb
++     )
++   ),
++   add constraint comun_solidarity_economic_content_events_after_payload_check check (
++     after_payload_private is null or (
++       jsonb_typeof(after_payload_private) = 'object'
++       and octet_length(after_payload_private::text) <= 8192
++       and after_payload_private - array[
++         'presentation_public', 'services_public', 'service_territory_public',
++         'public_contact_authorized'
++       ]::text[] = '{}'::jsonb
++     )
++   );
++
++ comment on column private.comun_solidarity_economic_content_events.before_payload_private is
++   'Snapshot operacional privado limitado aos quatro campos cotidianos A6. Nunca integra DTO ou HTML público.';
++ comment on column private.comun_solidarity_economic_content_events.after_payload_private is
++   'Snapshot operacional privado limitado aos quatro campos cotidianos A6. Nunca integra DTO ou HTML público.';
++
++ create or replace function private.comun_solidarity_public_contact_is_safe(p_text text)
++ returns boolean
++ language sql
++ immutable
++ security invoker
++ set search_path = pg_catalog
++ as $$
++   select
++     coalesce(p_text, '') !~* '(^|[^[:alnum:]_])(cpf|rg|documento|senha|password|token|secret|chave[[:space:]]+privada|private[[:space:]]+key)([^[:alnum:]_]|$)'
++     and coalesce(p_text, '') !~ '[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}'
++     and coalesce(p_text, '') !~* '(endereço[[:space:]]+residencial|rua[[:space:]]+.+(casa|apto|apartamento|n[ºo]?\.?[[:space:]]*[0-9]+))'
++     and coalesce(p_text, '') !~* '(localhost|127\.0\.0\.1|[?&](token|key|secret|password)=|bearer[[:space:]]+[a-z0-9._~\-]+|eyJ[a-zA-Z0-9_\-]{12,}\.)'
++ $$;
++
++ revoke all on function private.comun_solidarity_public_contact_is_safe(text)
++   from public, anon, authenticated;
++ grant execute on function private.comun_solidarity_public_contact_is_safe(text)
++   to service_role;
++
++ create or replace function public.comun_update_solidarity_organization_profile_by_access_v1(
++   p_request_id uuid,
++   p_organization_territory_id uuid,
++   p_actor_user_id uuid,
++   p_expected_updated_at timestamptz,
++   p_presentation_public text,
++   p_services_public text[],
++   p_service_territory_public text,
++   p_public_contact_authorized text,
++   p_public_contact_confirmed boolean
++ )
++ returns table(
++   organization_territory_id uuid,
++   organization_updated_at timestamptz,
++   idempotent boolean
++ )
++ language plpgsql
++ security definer
++ set search_path = pg_catalog
++ as $$
++ declare
++   v_event private.comun_solidarity_economic_content_events%rowtype;
++   v_access_id uuid;
++   v_organization public.comun_territorial_organizations%rowtype;
++   v_now timestamptz := clock_timestamp();
++   v_presentation text;
++   v_services text[] := array[]::text[];
++   v_service_keys text[] := array[]::text[];
++   v_service text;
++   v_service_key text;
++   v_services_length integer := 0;
++   v_service_territory text;
++   v_public_contact text;
++   v_existing_public_contact text;
++   v_before jsonb;
++   v_after jsonb;
++ begin
++   if p_request_id is null or p_organization_territory_id is null
++     or p_actor_user_id is null or p_expected_updated_at is null then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_REQUEST_INVALID';
++   end if;
++
++   perform pg_catalog.pg_advisory_xact_lock(
++     pg_catalog.hashtextextended('comun-economic-request:' || p_request_id::text, 0)
++   );
++   select event.* into v_event
++   from private.comun_solidarity_economic_content_events event
++   where event.request_id = p_request_id;
++   if found then
++     if v_event.actor_member_user_id <> p_actor_user_id
++       or v_event.organization_territory_id <> p_organization_territory_id
++       or v_event.subject_type <> 'organization_profile'
++       or v_event.subject_id <> p_organization_territory_id
++       or v_event.operation <> 'organization_profile.edit' then
++       raise exception 'COMUN_SOLIDARITY_PROFILE_IDEMPOTENCY_CONFLICT';
++     end if;
++     select organization.updated_at into organization_updated_at
++     from public.comun_territorial_organizations organization
++     where organization.territory_id = p_organization_territory_id;
++     return query select p_organization_territory_id, organization_updated_at, true;
++     return;
++   end if;
++
++   v_access_id := private.comun_require_solidarity_economic_access(
++     p_organization_territory_id,
++     p_actor_user_id
++   );
++
++   if (select count(*) from private.comun_solidarity_economic_content_events event
++       where event.actor_member_user_id = p_actor_user_id
++         and event.operation = 'organization_profile.edit'
++         and event.occurred_at >= v_now - interval '10 minutes') >= 10
++     or (select count(*) from private.comun_solidarity_economic_content_events event
++       where event.actor_member_user_id = p_actor_user_id
++         and event.operation = 'organization_profile.edit'
++         and event.occurred_at >= v_now - interval '24 hours') >= 30 then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_RATE_LIMIT';
++   end if;
++
++   select organization.* into v_organization
++   from public.comun_territorial_organizations organization
++   where organization.territory_id = p_organization_territory_id
++   for update;
++   if not found then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_ORGANIZATION_INELIGIBLE';
++   end if;
++   if v_organization.updated_at <> p_expected_updated_at then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_CONFLICT';
++   end if;
++
++   v_presentation := nullif(pg_catalog.btrim(pg_catalog.replace(coalesce(p_presentation_public, ''), E'\r\n', E'\n')), '');
++   v_service_territory := nullif(pg_catalog.btrim(pg_catalog.regexp_replace(coalesce(p_service_territory_public, ''), '[[:space:]]+', ' ', 'g')), '');
++   v_public_contact := nullif(pg_catalog.btrim(pg_catalog.regexp_replace(coalesce(p_public_contact_authorized, ''), '[[:space:]]+', ' ', 'g')), '');
++
++   for v_service in
++     select pg_catalog.btrim(pg_catalog.regexp_replace(item, '[[:space:]]+', ' ', 'g'))
++     from pg_catalog.unnest(coalesce(p_services_public, array[]::text[])) with ordinality as source(item, position)
++     order by position
++   loop
++     if v_service = '' then continue; end if;
++     v_service_key := pg_catalog.lower(v_service);
++     if v_service_key = any(v_service_keys) then continue; end if;
++     if pg_catalog.char_length(v_service) not between 2 and 80 then
++       raise exception 'COMUN_SOLIDARITY_PROFILE_SERVICES_INVALID';
++     end if;
++     v_services := pg_catalog.array_append(v_services, v_service);
++     v_service_keys := pg_catalog.array_append(v_service_keys, v_service_key);
++     v_services_length := v_services_length + pg_catalog.char_length(v_service);
++   end loop;
++
++   if (v_presentation is not null and pg_catalog.char_length(v_presentation) not between 10 and 1200)
++     or pg_catalog.cardinality(v_services) > 12
++     or v_services_length > 600
++     or (v_service_territory is not null and pg_catalog.char_length(v_service_territory) > 300)
++     or (v_public_contact is not null and pg_catalog.char_length(v_public_contact) > 200) then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_FIELDS_INVALID';
++   end if;
++
++   if not private.comun_solidarity_economic_content_is_safe(
++     coalesce(v_presentation, '') || E'\n' ||
++     pg_catalog.array_to_string(v_services, E'\n') || E'\n' ||
++     coalesce(v_service_territory, '')
++   ) then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_PUBLIC_CONTENT_BLOCKED';
++   end if;
++   if v_public_contact is not null
++     and not private.comun_solidarity_public_contact_is_safe(v_public_contact) then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_PUBLIC_CONTACT_BLOCKED';
++   end if;
++
++   v_existing_public_contact := nullif(pg_catalog.btrim(coalesce(v_organization.public_contact_authorized, '')), '');
++   if v_public_contact is not null
++     and v_public_contact is distinct from v_existing_public_contact
++     and p_public_contact_confirmed is not true then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_PUBLIC_CONTACT_CONFIRMATION_REQUIRED';
++   end if;
++
++   v_before := pg_catalog.jsonb_build_object(
++     'presentation_public', v_organization.presentation_public,
++     'services_public', coalesce(v_organization.services_public, array[]::text[]),
++     'service_territory_public', v_organization.service_territory_public,
++     'public_contact_authorized', v_organization.public_contact_authorized
++   );
++
++   update public.comun_territorial_organizations organization
++   set presentation_public = v_presentation,
++       services_public = v_services,
++       service_territory_public = v_service_territory,
++       public_contact_authorized = v_public_contact,
++       updated_at = v_now
++   where organization.territory_id = p_organization_territory_id;
++
++   v_after := pg_catalog.jsonb_build_object(
++     'presentation_public', v_presentation,
++     'services_public', v_services,
++     'service_territory_public', v_service_territory,
++     'public_contact_authorized', v_public_contact
++   );
++
++   insert into private.comun_solidarity_economic_content_events(
++     request_id, organization_territory_id, actor_access_id, actor_member_user_id,
++     subject_type, subject_id, operation, from_state, to_state, occurred_at,
++     before_payload_private, after_payload_private
++   ) values (
++     p_request_id, p_organization_territory_id, v_access_id, p_actor_user_id,
++     'organization_profile', p_organization_territory_id,
++     'organization_profile.edit', 'current', 'updated', v_now, v_before, v_after
++   );
++
++   return query select p_organization_territory_id, v_now, false;
++ end;
++ $$;
++
++ comment on function public.comun_update_solidarity_organization_profile_by_access_v1(
++   uuid, uuid, uuid, timestamptz, text, text[], text, text, boolean
++ ) is
++   'Atualiza atomicamente somente os quatro campos cotidianos A6 por acesso revogável ativo. Não altera identidade, verificação, proveniência ou last_verified_at.';
++
++ revoke all on function public.comun_update_solidarity_organization_profile_by_access_v1(
++   uuid, uuid, uuid, timestamptz, text, text[], text, text, boolean
++ ) from public, anon, authenticated;
++ grant execute on function public.comun_update_solidarity_organization_profile_by_access_v1(
++   uuid, uuid, uuid, timestamptz, text, text[], text, text, boolean
++ ) to service_role;
++
+
+ ❯ lib/comun-solidarity-organization-profile-contract.test.ts:46:23
+     44|
+     45|   it("keeps the RPC service-role-only with a safe search path", () => {
+     46|     expect(migration).toContain("security definer\nset search_path = p…
+       |                       ^
+     47|     expect(migration).toContain(
+     48|       "revoke all on function public.comun_update_solidarity_organizat…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  lib/comun-solidarity-organization-profile-contract.test.ts > COMUN 48.4-A6 database, route and privacy contract > revalidates A2/A1 in the database and protects cross-organization edits
+AssertionError: expected 'alter table private.comun_solidarity_…' to contain 'private.comun_require_solidarity_econ…'
+
+- Expected
++ Received
+
+- private.comun_require_solidarity_economic_access(
+-     p_organization_territory_id,
+-     p_actor_user_id
++ alter table private.comun_solidarity_economic_content_events
++   add column before_payload_private jsonb,
++   add column after_payload_private jsonb;
++
++ alter table private.comun_solidarity_economic_content_events
++   drop constraint comun_solidarity_economic_content_events_subject_type_check,
++   drop constraint comun_solidarity_economic_content_events_operation_check;
++
++ alter table private.comun_solidarity_economic_content_events
++   add constraint comun_solidarity_economic_content_events_subject_type_check
++     check (subject_type in ('offer', 'need', 'organization_profile')),
++   add constraint comun_solidarity_economic_content_events_operation_check
++     check (operation in (
++       'offer.create', 'offer.edit', 'offer.pause', 'offer.resume', 'offer.renew', 'offer.archive',
++       'need.create', 'need.edit', 'need.partially_met', 'need.met', 'need.cancel', 'need.reopen',
++       'organization_profile.edit'
++     )),
++   add constraint comun_solidarity_economic_content_events_before_payload_check check (
++     before_payload_private is null or (
++       jsonb_typeof(before_payload_private) = 'object'
++       and octet_length(before_payload_private::text) <= 8192
++       and before_payload_private - array[
++         'presentation_public', 'services_public', 'service_territory_public',
++         'public_contact_authorized'
++       ]::text[] = '{}'::jsonb
++     )
++   ),
++   add constraint comun_solidarity_economic_content_events_after_payload_check check (
++     after_payload_private is null or (
++       jsonb_typeof(after_payload_private) = 'object'
++       and octet_length(after_payload_private::text) <= 8192
++       and after_payload_private - array[
++         'presentation_public', 'services_public', 'service_territory_public',
++         'public_contact_authorized'
++       ]::text[] = '{}'::jsonb
++     )
++   );
++
++ comment on column private.comun_solidarity_economic_content_events.before_payload_private is
++   'Snapshot operacional privado limitado aos quatro campos cotidianos A6. Nunca integra DTO ou HTML público.';
++ comment on column private.comun_solidarity_economic_content_events.after_payload_private is
++   'Snapshot operacional privado limitado aos quatro campos cotidianos A6. Nunca integra DTO ou HTML público.';
++
++ create or replace function private.comun_solidarity_public_contact_is_safe(p_text text)
++ returns boolean
++ language sql
++ immutable
++ security invoker
++ set search_path = pg_catalog
++ as $$
++   select
++     coalesce(p_text, '') !~* '(^|[^[:alnum:]_])(cpf|rg|documento|senha|password|token|secret|chave[[:space:]]+privada|private[[:space:]]+key)([^[:alnum:]_]|$)'
++     and coalesce(p_text, '') !~ '[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}'
++     and coalesce(p_text, '') !~* '(endereço[[:space:]]+residencial|rua[[:space:]]+.+(casa|apto|apartamento|n[ºo]?\.?[[:space:]]*[0-9]+))'
++     and coalesce(p_text, '') !~* '(localhost|127\.0\.0\.1|[?&](token|key|secret|password)=|bearer[[:space:]]+[a-z0-9._~\-]+|eyJ[a-zA-Z0-9_\-]{12,}\.)'
++ $$;
++
++ revoke all on function private.comun_solidarity_public_contact_is_safe(text)
++   from public, anon, authenticated;
++ grant execute on function private.comun_solidarity_public_contact_is_safe(text)
++   to service_role;
++
++ create or replace function public.comun_update_solidarity_organization_profile_by_access_v1(
++   p_request_id uuid,
++   p_organization_territory_id uuid,
++   p_actor_user_id uuid,
++   p_expected_updated_at timestamptz,
++   p_presentation_public text,
++   p_services_public text[],
++   p_service_territory_public text,
++   p_public_contact_authorized text,
++   p_public_contact_confirmed boolean
++ )
++ returns table(
++   organization_territory_id uuid,
++   organization_updated_at timestamptz,
++   idempotent boolean
++ )
++ language plpgsql
++ security definer
++ set search_path = pg_catalog
++ as $$
++ declare
++   v_event private.comun_solidarity_economic_content_events%rowtype;
++   v_access_id uuid;
++   v_organization public.comun_territorial_organizations%rowtype;
++   v_now timestamptz := clock_timestamp();
++   v_presentation text;
++   v_services text[] := array[]::text[];
++   v_service_keys text[] := array[]::text[];
++   v_service text;
++   v_service_key text;
++   v_services_length integer := 0;
++   v_service_territory text;
++   v_public_contact text;
++   v_existing_public_contact text;
++   v_before jsonb;
++   v_after jsonb;
++ begin
++   if p_request_id is null or p_organization_territory_id is null
++     or p_actor_user_id is null or p_expected_updated_at is null then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_REQUEST_INVALID';
++   end if;
++
++   perform pg_catalog.pg_advisory_xact_lock(
++     pg_catalog.hashtextextended('comun-economic-request:' || p_request_id::text, 0)
++   );
++   select event.* into v_event
++   from private.comun_solidarity_economic_content_events event
++   where event.request_id = p_request_id;
++   if found then
++     if v_event.actor_member_user_id <> p_actor_user_id
++       or v_event.organization_territory_id <> p_organization_territory_id
++       or v_event.subject_type <> 'organization_profile'
++       or v_event.subject_id <> p_organization_territory_id
++       or v_event.operation <> 'organization_profile.edit' then
++       raise exception 'COMUN_SOLIDARITY_PROFILE_IDEMPOTENCY_CONFLICT';
++     end if;
++     select organization.updated_at into organization_updated_at
++     from public.comun_territorial_organizations organization
++     where organization.territory_id = p_organization_territory_id;
++     return query select p_organization_territory_id, organization_updated_at, true;
++     return;
++   end if;
++
++   v_access_id := private.comun_require_solidarity_economic_access(
++     p_organization_territory_id,
++     p_actor_user_id
++   );
++
++   if (select count(*) from private.comun_solidarity_economic_content_events event
++       where event.actor_member_user_id = p_actor_user_id
++         and event.operation = 'organization_profile.edit'
++         and event.occurred_at >= v_now - interval '10 minutes') >= 10
++     or (select count(*) from private.comun_solidarity_economic_content_events event
++       where event.actor_member_user_id = p_actor_user_id
++         and event.operation = 'organization_profile.edit'
++         and event.occurred_at >= v_now - interval '24 hours') >= 30 then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_RATE_LIMIT';
++   end if;
++
++   select organization.* into v_organization
++   from public.comun_territorial_organizations organization
++   where organization.territory_id = p_organization_territory_id
++   for update;
++   if not found then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_ORGANIZATION_INELIGIBLE';
++   end if;
++   if v_organization.updated_at <> p_expected_updated_at then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_CONFLICT';
++   end if;
++
++   v_presentation := nullif(pg_catalog.btrim(pg_catalog.replace(coalesce(p_presentation_public, ''), E'\r\n', E'\n')), '');
++   v_service_territory := nullif(pg_catalog.btrim(pg_catalog.regexp_replace(coalesce(p_service_territory_public, ''), '[[:space:]]+', ' ', 'g')), '');
++   v_public_contact := nullif(pg_catalog.btrim(pg_catalog.regexp_replace(coalesce(p_public_contact_authorized, ''), '[[:space:]]+', ' ', 'g')), '');
++
++   for v_service in
++     select pg_catalog.btrim(pg_catalog.regexp_replace(item, '[[:space:]]+', ' ', 'g'))
++     from pg_catalog.unnest(coalesce(p_services_public, array[]::text[])) with ordinality as source(item, position)
++     order by position
++   loop
++     if v_service = '' then continue; end if;
++     v_service_key := pg_catalog.lower(v_service);
++     if v_service_key = any(v_service_keys) then continue; end if;
++     if pg_catalog.char_length(v_service) not between 2 and 80 then
++       raise exception 'COMUN_SOLIDARITY_PROFILE_SERVICES_INVALID';
++     end if;
++     v_services := pg_catalog.array_append(v_services, v_service);
++     v_service_keys := pg_catalog.array_append(v_service_keys, v_service_key);
++     v_services_length := v_services_length + pg_catalog.char_length(v_service);
++   end loop;
++
++   if (v_presentation is not null and pg_catalog.char_length(v_presentation) not between 10 and 1200)
++     or pg_catalog.cardinality(v_services) > 12
++     or v_services_length > 600
++     or (v_service_territory is not null and pg_catalog.char_length(v_service_territory) > 300)
++     or (v_public_contact is not null and pg_catalog.char_length(v_public_contact) > 200) then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_FIELDS_INVALID';
++   end if;
++
++   if not private.comun_solidarity_economic_content_is_safe(
++     coalesce(v_presentation, '') || E'\n' ||
++     pg_catalog.array_to_string(v_services, E'\n') || E'\n' ||
++     coalesce(v_service_territory, '')
++   ) then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_PUBLIC_CONTENT_BLOCKED';
++   end if;
++   if v_public_contact is not null
++     and not private.comun_solidarity_public_contact_is_safe(v_public_contact) then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_PUBLIC_CONTACT_BLOCKED';
++   end if;
++
++   v_existing_public_contact := nullif(pg_catalog.btrim(coalesce(v_organization.public_contact_authorized, '')), '');
++   if v_public_contact is not null
++     and v_public_contact is distinct from v_existing_public_contact
++     and p_public_contact_confirmed is not true then
++     raise exception 'COMUN_SOLIDARITY_PROFILE_PUBLIC_CONTACT_CONFIRMATION_REQUIRED';
++   end if;
++
++   v_before := pg_catalog.jsonb_build_object(
++     'presentation_public', v_organization.presentation_public,
++     'services_public', coalesce(v_organization.services_public, array[]::text[]),
++     'service_territory_public', v_organization.service_territory_public,
++     'public_contact_authorized', v_organization.public_contact_authorized
++   );
++
++   update public.comun_territorial_organizations organization
++   set presentation_public = v_presentation,
++       services_public = v_services,
++       service_territory_public = v_service_territory,
++       public_contact_authorized = v_public_contact,
++       updated_at = v_now
++   where organization.territory_id = p_organization_territory_id;
++
++   v_after := pg_catalog.jsonb_build_object(
++     'presentation_public', v_presentation,
++     'services_public', v_services,
++     'service_territory_public', v_service_territory,
++     'public_contact_authorized', v_public_contact
++   );
++
++   insert into private.comun_solidarity_economic_content_events(
++     request_id, organization_territory_id, actor_access_id, actor_member_user_id,
++     subject_type, subject_id, operation, from_state, to_state, occurred_at,
++     before_payload_private, after_payload_private
++   ) values (
++     p_request_id, p_organization_territory_id, v_access_id, p_actor_user_id,
++     'organization_profile', p_organization_territory_id,
++     'organization_profile.edit', 'current', 'updated', v_now, v_before, v_after
++   );
++
++   return query select p_organization_territory_id, v_now, false;
++ end;
++ $$;
++
++ comment on function public.comun_update_solidarity_organization_profile_by_access_v1(
++   uuid, uuid, uuid, timestamptz, text, text[], text, text, boolean
++ ) is
++   'Atualiza atomicamente somente os quatro campos cotidianos A6 por acesso revogável ativo. Não altera identidade, verificação, proveniência ou last_verified_at.';
++
++ revoke all on function public.comun_update_solidarity_organization_profile_by_access_v1(
++   uuid, uuid, uuid, timestamptz, text, text[], text, text, boolean
++ ) from public, anon, authenticated;
++ grant execute on function public.comun_update_solidarity_organization_profile_by_access_v1(
++   uuid, uuid, uuid, timestamptz, text, text[], text, text, boolean
++ ) to service_role;
++
+
+ ❯ lib/comun-solidarity-organization-profile-contract.test.ts:57:23
+     55|
+     56|   it("revalidates A2/A1 in the database and protects cross-organizatio…
+     57|     expect(migration).toContain(
+       |                       ^
+     58|       "private.comun_require_solidarity_economic_access(\n    p_organi…
+     59|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  4 failed | 235 passed (239)
+      Tests  5 failed | 1343 passed (1348)
+   Start at  21:03:48
+   Duration  68.07s (transform 4.98s, setup 0ms, import 18.47s, tests 6.33s, environment 32ms)

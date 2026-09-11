@@ -7,6 +7,10 @@ o harness; sua presença no pacote não significa integração aprovada.
 ## Pré-requisitos
 
 - Node 22.19.0 e dependências instaladas com `npm ci --ignore-scripts` do lockfile.
+- Faça o clone com `git -c core.autocrlf=false clone ...` e mantenha
+  `core.autocrlf=false` nesse clone. Migrations têm hashes dos bytes LF no Git;
+  testes contratuais também inspecionam esses bytes. Não converta SQL nem
+  regrave manifestos para acomodar CRLF.
 - Docker Linux local (observado: Engine 29.2.1), com memória livre para a stack e
   Next/FFmpeg. A execução Windows de origem esgotou memória virtual durante o
   bootstrap: não tratar esse limite como falha das políticas RLS.
@@ -104,3 +108,9 @@ node --test scripts/ci/comun-central.node-test.mjs scripts/ci/vercel-build-impac
 Neste host, o pool de forks esgotou memória; threads com um worker manteve todos
 os casos e passou. Não executar build/typecheck simultaneamente, pois compartilham
 tipos gerados. Não interpretar sucesso documental do PR #434 como prova deste pacote.
+
+O limite artificial de heap de 1536 MiB foi insuficiente para o TypeScript deste
+checkout. A repetição usa `NODE_OPTIONS=--max-old-space-size=4096`, com build e
+typecheck sequenciais. Reserve também disco para `.next` e Docker: espaço em outro
+volume para o checkout não muda o disco utilizado pelo Docker Desktop. Não remova
+dados ou pare stacks preexistentes para executar este harness.
