@@ -1,10 +1,53 @@
 import assert from "node:assert/strict";
 import { before, after, test } from "node:test";
 import { chromium } from "@playwright/test";
+import { createServer } from "node:http";
 import {
+  createReadOnlyRenderContext,
   inspectPublicDocument,
   inspectPublicAsset,
 } from "./launch-document-checks.mjs";
+
+test("rendered streaming content is measured while writes and other origins are blocked", async () => {
+  let foreignHits = 0;
+  const methods = [];
+  const foreign = createServer((req, res) => {
+    foreignHits++;
+    res.end("unexpected");
+  });
+  await new Promise((resolve) => foreign.listen(0, "127.0.0.1", resolve));
+  const other = `http://127.0.0.1:${foreign.address().port}`;
+  const html = `<h1 hidden id="stream">Comunidades</h1><script>document.getElementById('stream').hidden=false;Promise.allSettled([fetch('/write',{method:'POST'}),fetch('${other}/data')]).then(()=>document.body.dataset.done='yes')</script>`;
+  const owned = createServer((req, res) => {
+    methods.push(req.method);
+    res.setHeader("Content-Type", "text/html");
+    res.end(html);
+  });
+  await new Promise((resolve) => owned.listen(0, "127.0.0.1", resolve));
+  const origin = `http://127.0.0.1:${owned.address().port}`;
+  const context = await createReadOnlyRenderContext(browser, origin);
+  try {
+    const live = await context.newPage();
+    await live.goto(origin);
+    await live.waitForFunction(() => document.body.dataset.done === "yes");
+    const r = await inspectPublicDocument(
+      live,
+      { path: "/comun/comunidades", html },
+      "Comunidades",
+      { rendered: true },
+    );
+    assert.equal(r.contractPresent, true);
+    assert.equal(foreignHits, 0);
+    assert.ok(methods.length > 0);
+    assert.ok(methods.every((m) => m === "GET"));
+  } finally {
+    await context.close();
+    await Promise.all([
+      new Promise((r) => owned.close(r)),
+      new Promise((r) => foreign.close(r)),
+    ]);
+  }
+});
 let browser, page;
 const blockedRequests = [];
 before(async () => {

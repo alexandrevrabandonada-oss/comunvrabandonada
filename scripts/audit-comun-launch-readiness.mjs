@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { chromium } from "@playwright/test";
 import {
+  createReadOnlyRenderContext,
   inspectPublicDocument,
   inspectPublicAsset,
 } from "./audit/launch-document-checks.mjs";
@@ -76,19 +77,26 @@ async function readRoute(path) {
 
 const publicResults = [];
 const browser = await chromium.launch();
-const context = await browser.newContext({
-  javaScriptEnabled: false,
-  serviceWorkers: "block",
-});
-await context.route("**/*", (route) => route.abort());
+const context = await createReadOnlyRenderContext(browser, baseUrl);
 const page = await context.newPage();
 try {
   for (const [path, expectedText] of publicRoutes) {
     const result = await readRoute(path);
+    await page.goto(`${baseUrl}${path}`, { waitUntil: "load", timeout: 15000 });
+    await page.waitForFunction(
+      () =>
+        [...document.querySelectorAll("h1,h2")].some(
+          (heading) => heading.getClientRects().length > 0,
+        ),
+      undefined,
+      { timeout: 5000 },
+    );
     publicResults.push({
       path,
       status: result.status,
-      ...(await inspectPublicDocument(page, result, expectedText)),
+      ...(await inspectPublicDocument(page, result, expectedText, {
+        rendered: true,
+      })),
     });
   }
 } catch (error) {

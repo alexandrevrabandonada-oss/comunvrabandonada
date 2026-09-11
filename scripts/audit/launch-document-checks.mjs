@@ -25,8 +25,30 @@ const technicalExplanation = normalize(
   "Verificacoes tecnicas usam fixtures descartaveis, exigem acesso administrativo e nunca enviam segredos ou originais privados ao navegador.",
 );
 
-export async function inspectPublicDocument(page, result, expectedText) {
-  await page.setContent(result.html, { waitUntil: "domcontentloaded" });
+export async function createReadOnlyRenderContext(browser, baseUrl) {
+  const origin = new URL(baseUrl).origin;
+  const context = await browser.newContext({ serviceWorkers: "block" });
+  await context.route("**/*", (route) => {
+    const request = route.request();
+    if (
+      new URL(request.url()).origin !== origin ||
+      !["GET", "HEAD"].includes(request.method())
+    )
+      return route.abort();
+    return route.continue();
+  });
+  await context.routeWebSocket("**/*", (socket) => socket.close());
+  return context;
+}
+
+export async function inspectPublicDocument(
+  page,
+  result,
+  expectedText,
+  { rendered = false } = {},
+) {
+  if (!rendered)
+    await page.setContent(result.html, { waitUntil: "domcontentloaded" });
   const dom = await page.evaluate(() => {
     const visible = (element) => {
       for (let e = element; e; e = e.parentElement) {
@@ -119,8 +141,9 @@ export async function inspectPublicDocument(page, result, expectedText) {
     payloadLeaks,
     forbiddenMarkers: [...contentMarkers, ...originMarkers, ...payloadLeaks],
     provenanceVerified: false,
-    semanticScope:
-      "server HTML with page scripts and subresource network disabled; not a human session",
+    semanticScope: rendered
+      ? "rendered DOM; same-origin GET/HEAD only; not a human session"
+      : "static HTML with page scripts and subresource network disabled; not a human session",
   };
 }
 
