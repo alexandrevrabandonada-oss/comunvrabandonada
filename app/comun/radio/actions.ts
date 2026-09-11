@@ -199,27 +199,27 @@ export async function publishRadioEpisode(f: FormData) {
   });
   if (b.length)
     redirect(`/comun/admin/radio/episodios/${id}?bloqueios=${b.join(",")}`);
-  const now = new Date().toISOString();
-  await Promise.all([
-    db
-      .from("comun_radio_episodes")
-      .update({
-        publication_status: "published",
-        published_at: now,
-        transcript_status: "published",
-      })
-      .eq("archive_item_id", id),
-    db
-      .from("comun_archive_items")
-      .update({ status: "published", visibility: "public", published_at: now })
-      .eq("id", id),
-  ]);
+  const publication = await db.rpc("comun_publish_radio_episode", {
+    p_episode_id: id,
+    p_expected_updated_at: e.updated_at,
+  });
+  if (publication.error)
+    throw new Error("Não foi possível concluir a publicação.");
+  if (publication.data === "conflict")
+    throw new Error("A revisão mudou antes da publicação. Recarregue e revise novamente.");
+  const replayed = publication.data === "already_published";
   await logComunAdminAction({
     session: s,
-    action: "radio_episode_published",
+    action: replayed
+      ? "radio_episode_publish_replayed"
+      : "radio_episode_published",
     targetType: "community_radio_episode",
     targetId: id,
-    metadata: { status: "published", accessibility: "transcript_published" },
+    metadata: {
+      status: "published",
+      accessibility: "transcript_published",
+      outcome: replayed ? "idempotent_replay" : "published",
+    },
   });
   revalidatePath("/comun/radio");
 }

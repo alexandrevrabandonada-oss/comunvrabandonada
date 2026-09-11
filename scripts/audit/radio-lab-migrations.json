@@ -257,6 +257,10 @@
     {
       "path": "supabase/migrations/20260911114140_radio_upload_idempotency.sql",
       "sha256": "833969809ca189eb60b5b948a54ae0d7872ef4fe7034dcba9eb9654c1bd1005a"
+    },
+    {
+      "path": "supabase/migrations/20260911151743_radio_publication_claim.sql",
+      "sha256": "14533fe2623323eab553acfa618592118fceb43d83e46a4e806f85643e479dcd"
     }
   ]
 }

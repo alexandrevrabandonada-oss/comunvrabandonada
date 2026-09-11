@@ -36,6 +36,7 @@ describe("radio editorial authorization", () => {
     mocks.admin.mockResolvedValue({});
     const update = vi.fn();
     mocks.database.mockReturnValue({
+      rpc: vi.fn(),
       from: (table: string) => {
         const result = {
           data: table === "comun_radio_episodes" ? { title_public: "Episode" } : [],
