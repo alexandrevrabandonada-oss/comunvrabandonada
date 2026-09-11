@@ -1,13 +1,22 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { chromium } from "@playwright/test";
+import {
+  inspectPublicDocument,
+  inspectPublicAsset,
+} from "./audit/launch-document-checks.mjs";
 import {
   COMUN_V1_LAUNCH_PROGRAM,
   summarizeComunLaunchProgram,
 } from "../lib/comun-launch-program.ts";
 
-const baseUrl = String(
-  process.env.COMUN_PUBLIC_BASE_URL || "https://comunsocial.online",
-).replace(/\/$/, "");
+const baseUrl = String(process.env.COMUN_PUBLIC_BASE_URL || "").replace(
+  /\/$/,
+  "",
+);
+if (!baseUrl)
+  throw new Error("COMUN_PUBLIC_BASE_URL must be explicit; no hosted fallback");
+const auditOrigin = new URL(baseUrl).origin;
 const artifactDir = resolve(
   process.env.COMUN_ARTIFACT_DIR || ".ci-artifacts/comun-launch-readiness",
 );
@@ -28,27 +37,24 @@ const protectedRoutes = [
   "/comun/admin/organizacao",
   "/comun/admin/calcadas/operacao",
 ];
-const forbiddenPublicMarkers = [
-  "placeholder",
-  "conteúdo demonstrativo",
-  "registros demonstrativos",
-  "ambiente de demonstração",
-  "conteúdo sintético",
-  "fotografia smoke",
-  "teste controlado",
-  "foto privada de registro de calçada",
-  "imagem aguardando revisão de privacidade",
-  "fixture",
-  "lorem ipsum",
-  "página em construção",
-];
-
 async function readRoute(path) {
   try {
-    const response = await fetch(`${baseUrl}${path}`, {
-      headers: { "user-agent": "COMUN-launch-readiness/1.0" },
-      redirect: "follow",
-    });
+    let target = new URL(`${baseUrl}${path}`);
+    let response;
+    for (let redirects = 0; redirects <= 5; redirects++) {
+      if (target.origin !== auditOrigin)
+        throw new Error("Cross-origin redirect refused");
+      response = await fetch(target, {
+        headers: { "user-agent": "COMUN-launch-readiness/1.0" },
+        redirect: "manual",
+        signal: AbortSignal.timeout(15000),
+      });
+      if (![301, 302, 303, 307, 308].includes(response.status)) break;
+      const location = response.headers.get("location");
+      if (!location || redirects === 5)
+        throw new Error("Invalid redirect chain");
+      target = new URL(location, target);
+    }
     return {
       path,
       status: response.status,
@@ -69,17 +75,25 @@ async function readRoute(path) {
 }
 
 const publicResults = [];
-for (const [path, expectedText] of publicRoutes) {
-  const result = await readRoute(path);
-  const lowerHtml = result.html.toLowerCase();
-  publicResults.push({
-    path,
-    status: result.status,
-    contractPresent: result.html.includes(expectedText),
-    forbiddenMarkers: forbiddenPublicMarkers.filter((marker) =>
-      lowerHtml.includes(marker),
-    ),
-  });
+const browser = await chromium.launch();
+const context = await browser.newContext({
+  javaScriptEnabled: false,
+  serviceWorkers: "block",
+});
+await context.route("**/*", (route) => route.abort());
+const page = await context.newPage();
+try {
+  for (const [path, expectedText] of publicRoutes) {
+    const result = await readRoute(path);
+    publicResults.push({
+      path,
+      status: result.status,
+      ...(await inspectPublicDocument(page, result, expectedText)),
+    });
+  }
+} catch (error) {
+  await browser.close();
+  throw error;
 }
 
 const protectedResults = [];
@@ -96,6 +110,16 @@ const home = await readRoute("/comun");
 const manifest = await readRoute("/manifest.webmanifest");
 const robots = await readRoute("/robots.txt");
 const sitemap = await readRoute("/sitemap.xml");
+let assetChecks;
+try {
+  assetChecks = {
+    manifest: await inspectPublicAsset(page, "manifest", manifest, baseUrl),
+    robots: await inspectPublicAsset(page, "robots", robots, baseUrl),
+    sitemap: await inspectPublicAsset(page, "sitemap", sitemap, baseUrl),
+  };
+} finally {
+  await browser.close();
+}
 const securityHeaders = {
   hsts: Boolean(home.headers["strict-transport-security"]),
   noSniff: home.headers["x-content-type-options"] === "nosniff",
@@ -125,7 +149,7 @@ const assetBlockers = [
   ["manifest", manifest.status],
   ["robots", robots.status],
   ["sitemap", sitemap.status],
-].filter(([, status]) => status !== 200);
+].filter(([name, status]) => status !== 200 || !assetChecks[name].valid);
 const missingSecurityHeaders = Object.entries(securityHeaders)
   .filter(([, present]) => !present)
   .map(([name]) => name);
@@ -152,6 +176,10 @@ const artifact = {
   readyForFinalHumanGate,
   finalHumanGate: COMUN_V1_LAUNCH_PROGRAM.finalHumanGate,
   summary: program,
+  domainEvidence: {
+    source: "declared_program_status",
+    operationalEvidenceVerified: false,
+  },
   publicRoutes: publicResults,
   protectedRoutes: protectedResults,
   publicAssets: {
@@ -159,6 +187,7 @@ const artifact = {
     robots: robots.status,
     sitemap: sitemap.status,
   },
+  assetChecks,
   securityHeaders,
   findings,
   findingsCount: findings.length,
