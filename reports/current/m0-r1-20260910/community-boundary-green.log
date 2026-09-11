@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 D:/COMUN-M0-R1-20260910
+
+
+ Test Files  2 passed (2)
+      Tests  6 passed (6)
+   Start at  22:48:03
+   Duration  378ms (transform 33ms, setup 0ms, import 61ms, tests 11ms, environment 0ms)

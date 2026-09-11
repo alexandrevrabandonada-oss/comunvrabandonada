@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 1,
+  "auditedAt": "2026-09-11T01:44:17.961Z",
+  "baseUrl": "http://127.0.0.1:3136",
+  "programVersion": "2026.07",
+  "result": "COMUN_V1_DELIVERABILITY_AUDIT_BLOCKED",
+  "readyForFinalHumanGate": false,
+  "finalHumanGate": "launch_publicly",
+  "summary": {
+    "counts": {
+      "green": 4,
+      "inProgress": 1,
+      "blocked": 3,
+      "evidenceRequired": 2
+    },
+    "total": 10,
+    "readyForFinalHumanGate": false,
+    "remaining": 6
+  },
+  "domainEvidence": {
+    "source": "declared_program_status",
+    "operationalEvidenceVerified": false
+  },
+  "publicRoutes": [
+    {
+      "path": "/comun",
+      "status": 200,
+      "contractPresent": true,
+      "contentMarkers": [],
+      "originMarkers": [],
+      "payloadLeaks": [],
+      "forbiddenMarkers": [],
+      "provenanceVerified": false,
+      "semanticScope": "rendered DOM; same-origin GET/HEAD only; not a human session"
+    },
+    {
+      "path": "/comun/pautas",
+      "status": 200,
+      "contractPresent": true,
+      "contentMarkers": [],
+      "originMarkers": [],
+      "payloadLeaks": [],
+      "forbiddenMarkers": [],
+      "provenanceVerified": false,
+      "semanticScope": "rendered DOM; same-origin GET/HEAD only; not a human session"
+    },
+    {
+      "path": "/comun/comunidades",
+      "status": 200,
+      "contractPresent": true,
+      "contentMarkers": [
+        "fixture"
+      ],
+      "originMarkers": [],
+      "payloadLeaks": [],
+      "forbiddenMarkers": [
+        "fixture"
+      ],
+      "provenanceVerified": false,
+      "semanticScope": "rendered DOM; same-origin GET/HEAD only; not a human session"
+    },
+    {
+      "path": "/comun/participar",
+      "status": 200,
+      "contractPresent": true,
+      "contentMarkers": [],
+      "originMarkers": [],
+      "payloadLeaks": [],
+      "forbiddenMarkers": [],
+      "provenanceVerified": false,
+      "semanticScope": "rendered DOM; same-origin GET/HEAD only; not a human session"
+    },
+    {
+      "path": "/comun/calcadas",
+      "status": 200,
+      "contractPresent": true,
+      "contentMarkers": [],
+      "originMarkers": [],
+      "payloadLeaks": [],
+      "forbiddenMarkers": [],
+      "provenanceVerified": false,
+      "semanticScope": "rendered DOM; same-origin GET/HEAD only; not a human session"
+    },
+    {
+      "path": "/comun/acervo",
+      "status": 200,
+      "contractPresent": true,
+      "contentMarkers": [],
+      "originMarkers": [],
+      "payloadLeaks": [],
+      "forbiddenMarkers": [],
+      "provenanceVerified": false,
+      "semanticScope": "rendered DOM; same-origin GET/HEAD only; not a human session"
+    },
+    {
+      "path": "/comun/radio",
+      "status": 200,
+      "contractPresent": true,
+      "contentMarkers": [],
+      "originMarkers": [],
+      "payloadLeaks": [],
+      "forbiddenMarkers": [],
+      "provenanceVerified": false,
+      "semanticScope": "rendered DOM; same-origin GET/HEAD only; not a human session"
+    },
+    {
+      "path": "/comun/observatorios",
+      "status": 404,
+      "contractPresent": false,
+      "contentMarkers": [],
+      "originMarkers": [],
+      "payloadLeaks": [],
+      "forbiddenMarkers": [],
+      "provenanceVerified": false,
+      "semanticScope": "rendered DOM; same-origin GET/HEAD only; not a human session"
+    },
+    {
+      "path": "/comun/seguranca",
+      "status": 200,
+      "contractPresent": true,
+      "contentMarkers": [],
+      "originMarkers": [],
+      "payloadLeaks": [],
+      "forbiddenMarkers": [],
+      "provenanceVerified": false,
+      "semanticScope": "rendered DOM; same-origin GET/HEAD only; not a human session"
+    }
+  ],
+  "protectedRoutes": [
+    {
+      "path": "/comun/admin/lancamento",
+      "status": 200,
+      "redirectedToAdminLogin": true
+    },
+    {
+      "path": "/comun/admin/organizacao",
+      "status": 200,
+      "redirectedToAdminLogin": true
+    },
+    {
+      "path": "/comun/admin/calcadas/operacao",
+      "status": 200,
+      "redirectedToAdminLogin": true
+    }
+  ],
+  "publicAssets": {
+    "manifest": 200,
+    "robots": 404,
+    "sitemap": 404
+  },
+  "assetChecks": {
+    "manifest": {
+      "valid": true,
+      "reason": "manifest_shape"
+    },
+    "robots": {
+      "valid": false,
+      "reason": "http_status"
+    },
+    "sitemap": {
+      "valid": false,
+      "reason": "http_status"
+    }
+  },
+  "securityHeaders": {
+    "hsts": true,
+    "noSniff": true,
+    "frameDenied": true,
+    "referrerPolicy": true,
+    "contentSecurityPolicy": true
+  },
+  "findings": [
+    "public_route:/comun/comunidades",
+    "public_route:/comun/observatorios",
+    "public_asset:robots",
+    "public_asset:sitemap",
+    "launch_domain:miniapps:in_progress",
+    "launch_domain:archive_radio_art:evidence_required",
+    "launch_domain:security_resilience:blocked",
+    "launch_domain:quality_performance:evidence_required",
+    "launch_domain:content_governance:blocked",
+    "launch_domain:launch_rehearsal:blocked"
+  ],
+  "findingsCount": 10,
+  "containsCoordinates": false,
+  "containsPersonalData": false,
+  "containsUserIds": false,
+  "containsSecrets": false,
+  "writes": {
+    "database": "none",
+    "storage": "none",
+    "auth": "none",
+    "deployment": "none"
+  }
+}
