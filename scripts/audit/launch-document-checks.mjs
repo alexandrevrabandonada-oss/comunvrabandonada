@@ -1,5 +1,5 @@
-// Chromium is the repository's existing HTML/XML parser. The caller blocks network
-// and disables page scripts; returned evidence contains labels, never page payloads.
+// Reuse Chromium for static fixtures or same-origin read-only rendering.
+// Returned evidence contains labels, never page payloads or captured private text.
 const normalize = (value) =>
   String(value)
     .normalize("NFD")
