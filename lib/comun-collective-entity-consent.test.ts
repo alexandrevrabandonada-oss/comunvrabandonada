@@ -6,11 +6,13 @@ import {
   COMUN_COLLECTIVE_ENTITY_CONSENT_SCOPE,
   COMUN_COLLECTIVE_ENTITY_CONSENT_VERSION,
   COMUN_COLLECTIVE_ENTITY_TYPES,
+  declaredRepresentationConsentCanAuthorizePublication,
   entityConsentAloneCanOpenPublicMap,
   isActiveCollectiveRepresentation,
   isNonRevokedCollectiveRepresentation,
   isVerifiedCollectiveRepresentation,
   representationStateAloneCanAuthorizePublication,
+  representationCanSelfVerify,
 } from "./comun-collective-entity-consent";
 
 describe("collective entity consent foundation", () => {
@@ -60,5 +62,11 @@ describe("collective entity consent foundation", () => {
 
   it("does not make entity consent a map-readiness shortcut", () => {
     expect(entityConsentAloneCanOpenPublicMap()).toBe(false);
+  });
+
+  it("separates declared runtime consent and verification from publication authority", () => {
+    expect(declaredRepresentationConsentCanAuthorizePublication()).toBe(false);
+    expect(representationCanSelfVerify()).toBe(false);
+    expect(representationStateAloneCanAuthorizePublication()).toBe(false);
   });
 });
