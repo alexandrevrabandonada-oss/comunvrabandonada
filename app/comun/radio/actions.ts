@@ -158,7 +158,9 @@ export async function publishRadioEpisode(f: FormData) {
     throw new Error("Não foi possível concluir a publicação.");
   const outcome = (publication.data as { outcome: string }).outcome;
   if (outcome === "conflict" || outcome === "blocked")
-    throw new Error("A revisão mudou antes da publicação. Recarregue e revise novamente.");
+    throw new Error(
+      "A revisão mudou antes da publicação. Recarregue e revise novamente.",
+    );
   if (outcome !== "published" && outcome !== "already_published")
     throw new Error("A publicação não foi autorizada.");
   revalidatePath("/comun/radio");

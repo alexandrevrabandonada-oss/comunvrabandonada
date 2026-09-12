@@ -37,7 +37,12 @@ export function radioPublicationBlockers(x: {
   if (!x.title) b.push("title");
   if (!x.summary) b.push("summary");
   if (!x.program) b.push("program");
-  if (typeof x.duration !== "number" || !Number.isFinite(x.duration) || x.duration <= 0) b.push("duration");
+  if (
+    typeof x.duration !== "number" ||
+    !Number.isFinite(x.duration) ||
+    x.duration <= 0
+  )
+    b.push("duration");
   else if (x.duration > RADIO_V1_MEDIA_PROFILE.maxDurationSeconds)
     b.push("duration_limit");
   if (!x.publicAudio) b.push("public_audio");
