@@ -28,6 +28,7 @@ Em clone/worktree isolado, sem arquivos `.env*` além do exemplo rastreado:
 ```text
 node scripts/audit/radio-lab.mjs prepare
 node scripts/audit/radio-lab.mjs start
+node scripts/audit/radio-stale-review-integration.mjs
 node scripts/audit/radio-lab-integration.mjs
 node scripts/audit/radio-lab.mjs stop
 ```
@@ -45,7 +46,7 @@ desativados. Os ambientes de subprocessos usam uma allowlist de variáveis de SO
 sem herdar credenciais ou flags de projeto. A aplicação recebe apenas as chaves
 geradas pela stack própria, mantidas em memória.
 
-`radio-lab-migrations.json` enumera e fixa por SHA256 os 63 arquivos da cadeia
+`radio-lab-migrations.json` enumera e fixa por SHA256 os 66 arquivos da cadeia
 histórica até `20260723220112` e o perfil de buckets da rádio `20260730213205`.
 Não usa `supabase/local-migrations`, nem as 110 migrations indiscriminadamente.
 Na execução de origem essa cadeia foi percorrida sem erro SQL; o bootstrap

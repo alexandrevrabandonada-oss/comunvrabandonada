@@ -261,6 +261,10 @@
     {
       "path": "supabase/migrations/20260911151743_radio_publication_claim.sql",
       "sha256": "14533fe2623323eab553acfa618592118fceb43d83e46a4e806f85643e479dcd"
+    },
+    {
+      "path": "supabase/migrations/20260912161253_radio_editorial_revision_identity.sql",
+      "sha256": "93c25d0fcdea25a655b3418c17ca6102c5f125b4928e652a9d888dcbdeb3fdb7"
     }
   ]
 }

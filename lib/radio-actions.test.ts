@@ -32,29 +32,15 @@ describe("radio editorial authorization", () => {
     expect(mocks.database).not.toHaveBeenCalled();
   });
 
-  it("does not publish when a safety lookup fails", async () => {
-    mocks.admin.mockResolvedValue({});
-    const update = vi.fn();
-    mocks.database.mockReturnValue({
-      rpc: vi.fn(),
-      from: (table: string) => {
-        const result = {
-          data: table === "comun_radio_episodes" ? { title_public: "Episode" } : [],
-          error: table === "comun_radio_safety_reviews" ? { message: "unavailable" } : null,
-        };
-        const query = {
-          select: () => query,
-          eq: () => query,
-          single: () => query,
-          maybeSingle: () => query,
-          limit: () => query,
-          update,
-          then: (resolve: (value: typeof result) => unknown) => Promise.resolve(result).then(resolve),
-        };
-        return query;
-      },
-    });
+  it("does not commit when transactional review preparation fails", async () => {
+    mocks.admin.mockResolvedValue({ admin: { id: "admin-a" } });
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: { message: "unavailable" } });
+    mocks.database.mockReturnValue({ rpc });
     await expect(publishRadioEpisode(new FormData())).rejects.toThrow("verificar os requisitos");
-    expect(update).not.toHaveBeenCalled();
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc).toHaveBeenCalledWith("comun_prepare_radio_publication_review", {
+      p_episode_id: "null",
+      p_admin_id: "admin-a",
+    });
   });
 });
