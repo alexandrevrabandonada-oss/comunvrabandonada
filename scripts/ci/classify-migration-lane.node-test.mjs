@@ -30,16 +30,18 @@ const childProtection =
   "supabase/migrations/20260810171448_comun_child_protection_private_routing.sql";
 const radioEditorial =
   "supabase/migrations/20260912161253_radio_editorial_revision_identity.sql";
+const radioMigrations = [
+  "supabase/migrations/20260911114140_radio_upload_idempotency.sql",
+  "supabase/migrations/20260911151743_radio_publication_claim.sql",
+  radioEditorial,
+];
 
 test("radio editorial migration is not applicable to P6C preflight lanes", () => {
-  assert.equal(
-    classifyMigrationLane("p6c-b1", [radioEditorial]).mode,
-    "not_applicable",
-  );
-  assert.equal(
-    classifyMigrationLane("p6c-b2", [radioEditorial]).mode,
-    "not_applicable",
-  );
+  for (const lane of ["p6c-b1", "p6c-b2", "48-2-a", "48-4-a0", "48-5-a0"])
+    assert.equal(
+      classifyMigrationLane(lane, radioMigrations).mode,
+      "not_applicable",
+    );
 });
 
 test("each P6C migration remains a candidate in its own lane", () => {

@@ -36,6 +36,8 @@ export const MIGRATION_LANE_MANIFEST = Object.freeze({
     "culture-b2-a2",
   "20260901000000_comun_relata_collective_entity_consent_foundation.sql":
     "collective-entity-consent",
+  "20260911114140_radio_upload_idempotency.sql": "radio-editorial-revision",
+  "20260911151743_radio_publication_claim.sql": "radio-editorial-revision",
   "20260912161253_radio_editorial_revision_identity.sql":
     "radio-editorial-revision",
 });
