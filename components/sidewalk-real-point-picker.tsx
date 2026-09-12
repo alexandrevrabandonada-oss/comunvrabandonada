@@ -35,14 +35,18 @@ export function SidewalkRealPointPicker({
     if (!host.current || !realBasemapProvider.style.pmtilesUrl) return;
     let cancelled = false;
     Promise.all([import("maplibre-gl"), import("pmtiles")])
-      .then(([maplibre, { Protocol }]) => {
+      .then(async ([maplibre, { PMTiles, Protocol }]) => {
         if (cancelled || !host.current) return;
         const protocol = new Protocol();
+        const archive = new PMTiles(realBasemapProvider.style.pmtilesUrl!);
+        protocol.add(archive);
         try {
           maplibre.addProtocol("pmtiles", protocol.tile);
         } catch {
           // O protocolo pode já estar registrado por outro mapa na mesma página.
         }
+        await archive.getHeader();
+        if (cancelled || !host.current) return;
         const map = new maplibre.Map({
           container: host.current,
           style: createSidewalkMapLibreStyle(realBasemapProvider),
@@ -58,18 +62,19 @@ export function SidewalkRealPointPicker({
           interactive: false,
         });
         mapRef.current = map;
+        setReady(true);
         const updateMarker = () => {
           if (!point) return setMarkerPosition(null);
           const projected = map.project(point);
           setMarkerPosition({ x: projected.x, y: projected.y });
         };
-        map.on("load", () => {
-          setReady(true);
-          updateMarker();
-        });
+        map.on("load", updateMarker);
         map.on("move", updateMarker);
         map.on("resize", updateMarker);
-        map.on("error", () => setFailed(true));
+        map.on("error", () => {
+          setReady(false);
+          setFailed(true);
+        });
       })
       .catch(() => setFailed(true));
     return () => {
