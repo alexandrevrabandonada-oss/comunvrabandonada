@@ -1,5 +1,6 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
+import { archiveBucketScope } from "@/lib/media-storage/scopes";
 import { getComunAdminSession } from "@/lib/admin-auth";
 import { logComunAdminAction } from "@/lib/admin-audit";
 import { getMediaStorage, publicMediaUrl } from "@/lib/media-storage";
@@ -51,6 +52,8 @@ const PRIVATE_RADIO_ROLES = new Set([
   "radio_context_document",
 ]);
 const MAX_URLS_PER_10_MINUTES = 20;
+const digest = (value: string) =>
+  createHash("sha256").update(value).digest("hex");
 
 export async function POST(request: Request) {
   const session = await getComunAdminSession();
@@ -135,6 +138,61 @@ export async function POST(request: Request) {
       !["text/plain", "application/pdf"].includes(body.mimeType)
     )
       throw new Error("Fonte de transcricao deve ser TXT ou PDF.");
+    const extension = body.filename.split(".").pop()?.toLowerCase() ?? "";
+    const scope = PRIVATE_RADIO_ROLES.has(body.role)
+      ? "radio_private_original"
+      : body.role === "original" || PRIVATE_ORAL_ROLES.has(body.role)
+        ? "private_original"
+        : ("public_safe" as const);
+    const idempotencyKey = request.headers.get("idempotency-key")?.trim();
+    if (idempotencyKey && !/^[A-Za-z0-9_-]{12,160}$/.test(idempotencyKey))
+      throw new Error("Chave de idempotencia invalida.");
+    const keyHash = idempotencyKey
+      ? digest(`archive-upload-v1:${session.admin.id}:${idempotencyKey}`)
+      : null;
+    const payloadHash = keyHash
+      ? digest(
+          JSON.stringify({
+            archiveItemId: body.archiveItemId,
+            filename: body.filename,
+            mimeType: body.mimeType,
+            role: body.role,
+            sizeBytes: body.sizeBytes,
+          }),
+        )
+      : null;
+    if (keyHash) {
+      const existing = await db
+        .from("comun_archive_assets")
+        .select("id,object_key,idempotency_payload_hash")
+        .eq("requested_by_admin_id", session.admin.id)
+        .eq("idempotency_key_hash", keyHash)
+        .maybeSingle();
+      if (existing.error)
+        throw new Error("Nao foi possivel validar a idempotencia.");
+      if (existing.data) {
+        if (existing.data.idempotency_payload_hash !== payloadHash)
+          return NextResponse.json(
+            {
+              error:
+                "Chave de idempotencia reutilizada com conteudo diferente.",
+            },
+            { status: 409 },
+          );
+        const replay = await getMediaStorage().createUploadUrl({
+          scope,
+          key: existing.data.object_key,
+          contentType: body.mimeType,
+          sizeBytes: body.sizeBytes,
+        });
+        return NextResponse.json({
+          assetId: existing.data.id,
+          uploadUrl: replay.url,
+          expiresAt: replay.expiresAt,
+          idempotent: true,
+        });
+      }
+    }
     const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     const { count, error: rateLimitError } = await db
       .from("comun_admin_audit_log")
@@ -159,31 +217,39 @@ export async function POST(request: Request) {
         { status: 429 },
       );
     }
-    const extension = body.filename.split(".").pop()?.toLowerCase() ?? "";
-    const scope = PRIVATE_RADIO_ROLES.has(body.role)
-      ? "radio_private_original"
-      : body.role === "original" || PRIVATE_ORAL_ROLES.has(body.role)
-        ? "private_original"
-        : ("public_safe" as const);
+    const preparedKey = keyHash
+      ? `${scope === "radio_private_original" ? "radio-originals" : scope === "private_original" ? "originals" : "public"}/${body.archiveItemId}/${keyHash}.${extension}`
+      : `smoke/pending/${randomUUID()}`;
     const created = await db
       .from("comun_archive_assets")
       .insert({
         archive_item_id: body.archiveItemId,
         asset_role: body.role,
-        bucket_scope: scope,
-        object_key: `smoke/pending/${randomUUID()}`,
+        bucket_scope: archiveBucketScope(scope),
+        object_key: preparedKey,
         public_url: null,
         original_filename: body.filename,
         mime_type: body.mimeType,
         size_bytes: body.sizeBytes,
         review_status: "pending",
+        requested_by_admin_id: keyHash ? session.admin.id : null,
+        idempotency_key_hash: keyHash,
+        idempotency_payload_hash: payloadHash,
       })
       .select("id")
       .single();
-    if (created.error) throw new Error(created.error.message);
+    if (created.error) {
+      if (created.error.code === "23505" && keyHash)
+        return NextResponse.json(
+          { error: "Operacao idempotente simultanea em andamento." },
+          { status: 409 },
+        );
+      throw new Error(created.error.message);
+    }
     assetId = created.data.id;
-    const key =
-      scope === "radio_private_original"
+    const key = keyHash
+      ? preparedKey
+      : scope === "radio_private_original"
         ? `radio-originals/${body.archiveItemId}/${randomUUID()}.${extension}`
         : scope === "private_original"
           ? `originals/${body.archiveItemId}/${randomUUID()}.${extension}`

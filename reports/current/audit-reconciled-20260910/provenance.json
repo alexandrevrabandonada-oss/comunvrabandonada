@@ -1,0 +1,825 @@
+{
+  "observedAt": "2026-09-11T00:04:20.374Z",
+  "base": "1387e1bcecdc4147bb5dad41aa7d541ec97b1497",
+  "original": {
+    "head": "aa4e3b4bf745ba497b853c61f267319e8bb9f2f7",
+    "branch": "codex/48-2-d4b0-surface-water-raw",
+    "indexEmpty": true,
+    "statusUnchanged": true,
+    "status": [
+      "M .gitignore",
+      " M app/api/comun/admin/archive/confirm-upload/route.ts",
+      " M app/api/comun/admin/archive/upload-url/route.ts",
+      " M app/api/comun/admin/radio/process/route.ts",
+      " M app/api/internal/security/storage-restore/route.ts",
+      " M app/comun/acervo/historias-orais/contribuir/page.tsx",
+      " M app/comun/admin/acervo/contribuicoes/actions.ts",
+      " M app/comun/radio/actions.ts",
+      " M components/comun-sidewalk-observatory-map.tsx",
+      " M components/comun-territorial-health-map.tsx",
+      " M components/sidewalk-maplibre-map.tsx",
+      " M components/sidewalk-real-point-picker.tsx",
+      " M eslint.config.mjs",
+      " M lib/media-storage/fixture.ts",
+      " M lib/media-storage/r2.ts",
+      " M lib/media-storage/supabase-local.ts",
+      " M lib/radio.test.ts",
+      " M lib/radio.ts",
+      " M lib/security/cron-auth.ts",
+      " M next-env.d.ts",
+      " M package-lock.json",
+      " M package.json",
+      " M reports/current/comun-core-journeys-audit.json",
+      " M reports/current/comun-core-journeys-audit.md",
+      " M scripts/ci/comun-central.node-test.mjs",
+      " M scripts/ci/vercel-ignore-build.mjs",
+      " M scripts/smoke-comun-community-radio.mjs",
+      " M scripts/solo/solo-automation.node-test.mjs",
+      " M tests/tijolo-45-real-map/real-map.spec.ts",
+      " M tsconfig.json",
+      " M vitest.config.ts",
+      "?? lib/comun-cultural-progressive-rights.test.ts",
+      "?? lib/comun-cultural-progressive-rights.ts",
+      "?? lib/media-storage/scopes.test.ts",
+      "?? lib/media-storage/scopes.ts",
+      "?? lib/media-storage/supabase-local.test.ts",
+      "?? lib/radio-actions.test.ts",
+      "?? lib/radio-storage-routes.test.ts",
+      "?? lib/security/cron-auth.test.ts",
+      "?? reports/current/comun-project-audit-2026-09-10.md",
+      "?? reports/current/comun-reconciliacao-remota-backup-2026-07-25.md",
+      "?? reports/current/comun-sidewalk-first-contribution-review.json",
+      "?? reports/current/comun-sidewalk-first-contribution-review.md",
+      "?? reports/current/comun-tijolo-47-9d0-fechamento.json",
+      "?? reports/current/comun-tijolo-47-9d0-fechamento.md",
+      "?? reports/current/vercel-cost-01-preview-build-containment.md",
+      "?? scripts/ci/vercel-build-impact.mjs",
+      "?? scripts/ci/vercel-build-impact.node-test.mjs",
+      "?? scripts/radio-storage-cycle.mjs",
+      "?? scripts/solo/rehearse-sidewalk-operational-release.mjs"
+    ],
+    "files": [
+      {
+        "path": ".gitignore",
+        "expected": "067af70db4bff5e3b346bf6075bc16544c0a548b962ad019e0ccfbce821a140d",
+        "actual": "067af70db4bff5e3b346bf6075bc16544c0a548b962ad019e0ccfbce821a140d"
+      },
+      {
+        "path": "app/api/comun/admin/archive/confirm-upload/route.ts",
+        "expected": "4612ef1c7bb5939de2d7351fcbabbb62c5d2ea6266427b01b80bef3951a60c74",
+        "actual": "4612ef1c7bb5939de2d7351fcbabbb62c5d2ea6266427b01b80bef3951a60c74"
+      },
+      {
+        "path": "app/api/comun/admin/archive/upload-url/route.ts",
+        "expected": "45c3d7297438ee4372a437256b4c7fc9d64654edac74d037a85bbe7139c48acc",
+        "actual": "45c3d7297438ee4372a437256b4c7fc9d64654edac74d037a85bbe7139c48acc"
+      },
+      {
+        "path": "app/api/comun/admin/radio/process/route.ts",
+        "expected": "5b76da83bb9eba4134cb1238336583fa04e45c38f13a8eb88550d0fcb38e6041",
+        "actual": "5b76da83bb9eba4134cb1238336583fa04e45c38f13a8eb88550d0fcb38e6041"
+      },
+      {
+        "path": "app/api/internal/security/storage-restore/route.ts",
+        "expected": "3a37abdb0ac50f467d091f65ae22f338a0b4469286860f9c4e90293d76d1cc00",
+        "actual": "3a37abdb0ac50f467d091f65ae22f338a0b4469286860f9c4e90293d76d1cc00"
+      },
+      {
+        "path": "app/comun/acervo/historias-orais/contribuir/page.tsx",
+        "expected": "e3744752f8a289acf8550f61a93dac593f542b09e59c504265c8b0218cad890f",
+        "actual": "e3744752f8a289acf8550f61a93dac593f542b09e59c504265c8b0218cad890f"
+      },
+      {
+        "path": "app/comun/admin/acervo/contribuicoes/actions.ts",
+        "expected": "7a3ac853bc12dd954c1707d867f0951f045866ae8e884f4baa4580edf2e105fa",
+        "actual": "7a3ac853bc12dd954c1707d867f0951f045866ae8e884f4baa4580edf2e105fa"
+      },
+      {
+        "path": "app/comun/radio/actions.ts",
+        "expected": "340d4a6d6c8d848ef2f0ef8138fbace1faffff895d91b69ec95fd02c60f8a83a",
+        "actual": "340d4a6d6c8d848ef2f0ef8138fbace1faffff895d91b69ec95fd02c60f8a83a"
+      },
+      {
+        "path": "components/comun-sidewalk-observatory-map.tsx",
+        "expected": "6302425d0921f03d91dd06ff535abccf64612f13e9427799960108de5a939d6a",
+        "actual": "6302425d0921f03d91dd06ff535abccf64612f13e9427799960108de5a939d6a"
+      },
+      {
+        "path": "components/comun-territorial-health-map.tsx",
+        "expected": "ae18f6d6babdff1d1a08f2cd996f7172b71e39c29482c768f93061b9fd8cb509",
+        "actual": "ae18f6d6babdff1d1a08f2cd996f7172b71e39c29482c768f93061b9fd8cb509"
+      },
+      {
+        "path": "components/sidewalk-maplibre-map.tsx",
+        "expected": "bfba9393a2f88045613eaca169ecf33ec6463797c72046e8484acf763a07ab2e",
+        "actual": "bfba9393a2f88045613eaca169ecf33ec6463797c72046e8484acf763a07ab2e"
+      },
+      {
+        "path": "components/sidewalk-real-point-picker.tsx",
+        "expected": "3f56a3639ac455a6df2181916414ca1b68b45919c861896722791b912a797e38",
+        "actual": "3f56a3639ac455a6df2181916414ca1b68b45919c861896722791b912a797e38"
+      },
+      {
+        "path": "eslint.config.mjs",
+        "expected": "1e985f18ef6fe9aa12cdca31ebdee2ae31c131d575307647bf6bd3847538a31e",
+        "actual": "1e985f18ef6fe9aa12cdca31ebdee2ae31c131d575307647bf6bd3847538a31e"
+      },
+      {
+        "path": "lib/media-storage/fixture.ts",
+        "expected": "76b7a87209c1b545145198a53b8efa31997cd5256d6325f48aa0a2ece8086996",
+        "actual": "76b7a87209c1b545145198a53b8efa31997cd5256d6325f48aa0a2ece8086996"
+      },
+      {
+        "path": "lib/media-storage/r2.ts",
+        "expected": "34f07ab27fec558d73a83f43937d798bed8267514929c3f7c863499575676de2",
+        "actual": "34f07ab27fec558d73a83f43937d798bed8267514929c3f7c863499575676de2"
+      },
+      {
+        "path": "lib/media-storage/supabase-local.ts",
+        "expected": "403a38c6142f73a20e555f4cf0575a336cf5cfd717ddd85867189685330860f4",
+        "actual": "403a38c6142f73a20e555f4cf0575a336cf5cfd717ddd85867189685330860f4"
+      },
+      {
+        "path": "lib/radio.test.ts",
+        "expected": "cb8b5d5a0b077ff84237f063309a1a26c9cfb13d326a6f9fc07a0f0b4f291bf2",
+        "actual": "cb8b5d5a0b077ff84237f063309a1a26c9cfb13d326a6f9fc07a0f0b4f291bf2"
+      },
+      {
+        "path": "lib/radio.ts",
+        "expected": "8169c4a914a0a87757aa022628d7a104769d28db86b13f4daee6a5ff68cf78df",
+        "actual": "8169c4a914a0a87757aa022628d7a104769d28db86b13f4daee6a5ff68cf78df"
+      },
+      {
+        "path": "lib/security/cron-auth.ts",
+        "expected": "0274dff8c86d522114b33b542331cba2fa97cc87b33b9118a2cf36a749867547",
+        "actual": "0274dff8c86d522114b33b542331cba2fa97cc87b33b9118a2cf36a749867547"
+      },
+      {
+        "path": "next-env.d.ts",
+        "expected": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b",
+        "actual": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b"
+      },
+      {
+        "path": "package-lock.json",
+        "expected": "dd0e8e965e6191c314a66bfe6722f60595dcd0b6b0f405c55b0a143e75f173dc",
+        "actual": "dd0e8e965e6191c314a66bfe6722f60595dcd0b6b0f405c55b0a143e75f173dc"
+      },
+      {
+        "path": "package.json",
+        "expected": "18c13ac7fa7e24e24819b3bd02cbe726609e01aff57c7fc160ca5876e5105f24",
+        "actual": "18c13ac7fa7e24e24819b3bd02cbe726609e01aff57c7fc160ca5876e5105f24"
+      },
+      {
+        "path": "reports/current/comun-core-journeys-audit.json",
+        "expected": "debe2b6c5965424b1316973ae2524474e472715e033d345debbfedad005dc1d3",
+        "actual": "debe2b6c5965424b1316973ae2524474e472715e033d345debbfedad005dc1d3"
+      },
+      {
+        "path": "reports/current/comun-core-journeys-audit.md",
+        "expected": "4b140f2b9070c97dda91c481d8c8745992ba6b87c4908d941fc5f49e813f4c5f",
+        "actual": "4b140f2b9070c97dda91c481d8c8745992ba6b87c4908d941fc5f49e813f4c5f"
+      },
+      {
+        "path": "scripts/ci/comun-central.node-test.mjs",
+        "expected": "1447fbc3bd9c94a678f5b7f3a73fe97d439d9b3684bc6cb60957a0e4b0192dea",
+        "actual": "1447fbc3bd9c94a678f5b7f3a73fe97d439d9b3684bc6cb60957a0e4b0192dea"
+      },
+      {
+        "path": "scripts/ci/vercel-ignore-build.mjs",
+        "expected": "6e968e7777ca2f0a94b056d626f52c60ed75a3994c6ed3bf87a73caf2c70521b",
+        "actual": "6e968e7777ca2f0a94b056d626f52c60ed75a3994c6ed3bf87a73caf2c70521b"
+      },
+      {
+        "path": "scripts/smoke-comun-community-radio.mjs",
+        "expected": "6b8451716804ec382b323e7db5b021c0158b4273c54be8fdf6b67035037835be",
+        "actual": "6b8451716804ec382b323e7db5b021c0158b4273c54be8fdf6b67035037835be"
+      },
+      {
+        "path": "scripts/solo/solo-automation.node-test.mjs",
+        "expected": "ade11e60a46d0dbe2503e581b66f24005254e2ea4c5a4ba244dbc75dbc0872b7",
+        "actual": "ade11e60a46d0dbe2503e581b66f24005254e2ea4c5a4ba244dbc75dbc0872b7"
+      },
+      {
+        "path": "tests/tijolo-45-real-map/real-map.spec.ts",
+        "expected": "97c3bf1ed3d44c23299560b4628415e27471d8a92cebda88de0130fad692399c",
+        "actual": "97c3bf1ed3d44c23299560b4628415e27471d8a92cebda88de0130fad692399c"
+      },
+      {
+        "path": "tsconfig.json",
+        "expected": "5efa09e7f01d177f323ba9fa70085f2b0e5befd5133c49338959d63a037421d8",
+        "actual": "5efa09e7f01d177f323ba9fa70085f2b0e5befd5133c49338959d63a037421d8"
+      },
+      {
+        "path": "vitest.config.ts",
+        "expected": "0a844c5593ac357f1f50581828abd3515572e98cd634465caeb93b0b5f31bba1",
+        "actual": "0a844c5593ac357f1f50581828abd3515572e98cd634465caeb93b0b5f31bba1"
+      },
+      {
+        "path": "lib/comun-cultural-progressive-rights.test.ts",
+        "expected": "4d3bd301c2bc8e5fc18e66dd6ce98bfd064a09fdd8ef0df4b9fd56fa2dc89111",
+        "actual": "4d3bd301c2bc8e5fc18e66dd6ce98bfd064a09fdd8ef0df4b9fd56fa2dc89111"
+      },
+      {
+        "path": "lib/comun-cultural-progressive-rights.ts",
+        "expected": "36c8f485c456870ced9b32d652b4f812ab0f165024c2cef3b03957d5efe53fbd",
+        "actual": "36c8f485c456870ced9b32d652b4f812ab0f165024c2cef3b03957d5efe53fbd"
+      },
+      {
+        "path": "lib/media-storage/scopes.test.ts",
+        "expected": "01b556988193fd58ca6d8f193f82cc04b0a851d4a44cdd9717d90a9cfe337830",
+        "actual": "01b556988193fd58ca6d8f193f82cc04b0a851d4a44cdd9717d90a9cfe337830"
+      },
+      {
+        "path": "lib/media-storage/scopes.ts",
+        "expected": "02a37fff0cae0431e4dbed2640f5df2e7528f36602e9977feaf9cf2a1d0b03c5",
+        "actual": "02a37fff0cae0431e4dbed2640f5df2e7528f36602e9977feaf9cf2a1d0b03c5"
+      },
+      {
+        "path": "lib/media-storage/supabase-local.test.ts",
+        "expected": "d6fe0f259c6517d72f4a26473415af227f61a876392c4c2816a7366d2f6416cb",
+        "actual": "d6fe0f259c6517d72f4a26473415af227f61a876392c4c2816a7366d2f6416cb"
+      },
+      {
+        "path": "lib/radio-actions.test.ts",
+        "expected": "cf8694d6cfd21dbeef4327b8e02df157a50e64432177b6a755c103ff76bc1147",
+        "actual": "cf8694d6cfd21dbeef4327b8e02df157a50e64432177b6a755c103ff76bc1147"
+      },
+      {
+        "path": "lib/radio-storage-routes.test.ts",
+        "expected": "2694a8654e811b545bfc73e897a1442eeb8ae6e16b22a2e523957d63044560db",
+        "actual": "2694a8654e811b545bfc73e897a1442eeb8ae6e16b22a2e523957d63044560db"
+      },
+      {
+        "path": "lib/security/cron-auth.test.ts",
+        "expected": "ff8a22162789402b4365a0b6a9b2c1b48d196846ab5624f5202f9f6abe8a9965",
+        "actual": "ff8a22162789402b4365a0b6a9b2c1b48d196846ab5624f5202f9f6abe8a9965"
+      },
+      {
+        "path": "reports/current/comun-project-audit-2026-09-10.md",
+        "expected": "19a452d5e05297273d5f6b758cf93ee814fa9ec79db2e6ec337a42c146eb33cb",
+        "actual": "19a452d5e05297273d5f6b758cf93ee814fa9ec79db2e6ec337a42c146eb33cb"
+      },
+      {
+        "path": "reports/current/comun-reconciliacao-remota-backup-2026-07-25.md",
+        "expected": "6b12a7616cbacc3b1f9c5850f1602dd19c8991e4dd0c3cce4be7f011d3bd858e",
+        "actual": "6b12a7616cbacc3b1f9c5850f1602dd19c8991e4dd0c3cce4be7f011d3bd858e"
+      },
+      {
+        "path": "reports/current/comun-sidewalk-first-contribution-review.json",
+        "expected": "5f75064740b93e721892c8c5455fcfd5d260fdf136247967da53c325d4c1d6de",
+        "actual": "5f75064740b93e721892c8c5455fcfd5d260fdf136247967da53c325d4c1d6de"
+      },
+      {
+        "path": "reports/current/comun-sidewalk-first-contribution-review.md",
+        "expected": "64f3ab398f3b494e73c71bc3f31488492fe00e1d97e4a0464ed6bba99941d2df",
+        "actual": "64f3ab398f3b494e73c71bc3f31488492fe00e1d97e4a0464ed6bba99941d2df"
+      },
+      {
+        "path": "reports/current/comun-tijolo-47-9d0-fechamento.json",
+        "expected": "d50c3f0855f13ef88c31df50fabc9e9acb7e4ca136e7f1dfcee4c4ddb4bf4ba5",
+        "actual": "d50c3f0855f13ef88c31df50fabc9e9acb7e4ca136e7f1dfcee4c4ddb4bf4ba5"
+      },
+      {
+        "path": "reports/current/comun-tijolo-47-9d0-fechamento.md",
+        "expected": "506002099ede79ef5e6f767c293cb5b94144067fa642f69ce4df0db177673094",
+        "actual": "506002099ede79ef5e6f767c293cb5b94144067fa642f69ce4df0db177673094"
+      },
+      {
+        "path": "reports/current/vercel-cost-01-preview-build-containment.md",
+        "expected": "0c0f144dae88f44d6b3504f0446f8e207ff38a28e20833d82df370002577615d",
+        "actual": "0c0f144dae88f44d6b3504f0446f8e207ff38a28e20833d82df370002577615d"
+      },
+      {
+        "path": "scripts/ci/vercel-build-impact.mjs",
+        "expected": "d56973fedd5b05d36e6012a98baf18848f50fda50b661c4747c0c788bb5667ee",
+        "actual": "d56973fedd5b05d36e6012a98baf18848f50fda50b661c4747c0c788bb5667ee"
+      },
+      {
+        "path": "scripts/ci/vercel-build-impact.node-test.mjs",
+        "expected": "70f299e0762ce2a851184b1d3966e764510433f7ed87733876c6c3d51e91bdb7",
+        "actual": "70f299e0762ce2a851184b1d3966e764510433f7ed87733876c6c3d51e91bdb7"
+      },
+      {
+        "path": "scripts/radio-storage-cycle.mjs",
+        "expected": "ee38763e52021997cd3ecbe1f23d23e7e62e9f12612a54e588a0297857844106",
+        "actual": "ee38763e52021997cd3ecbe1f23d23e7e62e9f12612a54e588a0297857844106"
+      },
+      {
+        "path": "scripts/solo/rehearse-sidewalk-operational-release.mjs",
+        "expected": "371cd61ac5047bf479e32df3493319329f1a8603ad4c1355b14f0e11c33d42ad",
+        "actual": "371cd61ac5047bf479e32df3493319329f1a8603ad4c1355b14f0e11c33d42ad"
+      }
+    ],
+    "all50HashesPreserved": true
+  },
+  "commits": [
+    {
+      "ref": "797099b4",
+      "sha": "797099b41aa61ecb1bf575c7dfd066705f2ee11f",
+      "parents": [
+        "aa4e3b4bf745ba497b853c61f267319e8bb9f2f7"
+      ],
+      "tree": "fa3abc87e2724b17fb954683011905ea7a0565de",
+      "mergeBaseWithMain": "2f70b68532cbcd0dd62d3dba6f7cc3331447f4bc",
+      "files": [
+        "M\t.gitignore",
+        "M\tapp/api/comun/admin/archive/confirm-upload/route.ts",
+        "M\tapp/api/comun/admin/archive/upload-url/route.ts",
+        "M\tapp/api/comun/admin/radio/process/route.ts",
+        "M\tapp/api/internal/security/storage-restore/route.ts",
+        "M\tapp/comun/acervo/historias-orais/contribuir/page.tsx",
+        "M\tapp/comun/admin/acervo/contribuicoes/actions.ts",
+        "M\tapp/comun/radio/actions.ts",
+        "M\tcomponents/comun-sidewalk-observatory-map.tsx",
+        "M\tcomponents/comun-territorial-health-map.tsx",
+        "M\tcomponents/sidewalk-maplibre-map.tsx",
+        "M\tcomponents/sidewalk-real-point-picker.tsx",
+        "M\teslint.config.mjs",
+        "A\tlib/comun-cultural-progressive-rights.test.ts",
+        "A\tlib/comun-cultural-progressive-rights.ts",
+        "M\tlib/media-storage/fixture.ts",
+        "M\tlib/media-storage/r2.ts",
+        "A\tlib/media-storage/scopes.test.ts",
+        "A\tlib/media-storage/scopes.ts",
+        "A\tlib/media-storage/supabase-local.test.ts",
+        "M\tlib/media-storage/supabase-local.ts",
+        "A\tlib/radio-actions.test.ts",
+        "A\tlib/radio-storage-routes.test.ts",
+        "M\tlib/radio.test.ts",
+        "M\tlib/radio.ts",
+        "A\tlib/security/cron-auth.test.ts",
+        "M\tlib/security/cron-auth.ts",
+        "M\tnext-env.d.ts",
+        "M\tpackage-lock.json",
+        "M\tpackage.json",
+        "M\treports/current/comun-core-journeys-audit.json",
+        "M\treports/current/comun-core-journeys-audit.md",
+        "A\treports/current/comun-project-audit-2026-09-10.md",
+        "A\treports/current/comun-reconciliacao-remota-backup-2026-07-25.md",
+        "A\treports/current/comun-sidewalk-first-contribution-review.json",
+        "A\treports/current/comun-sidewalk-first-contribution-review.md",
+        "A\treports/current/comun-tijolo-47-9d0-fechamento.json",
+        "A\treports/current/comun-tijolo-47-9d0-fechamento.md",
+        "A\treports/current/vercel-cost-01-preview-build-containment.md",
+        "M\tscripts/ci/comun-central.node-test.mjs",
+        "A\tscripts/ci/vercel-build-impact.mjs",
+        "A\tscripts/ci/vercel-build-impact.node-test.mjs",
+        "M\tscripts/ci/vercel-ignore-build.mjs",
+        "A\tscripts/radio-storage-cycle.mjs",
+        "M\tscripts/smoke-comun-community-radio.mjs",
+        "A\tscripts/solo/rehearse-sidewalk-operational-release.mjs",
+        "M\tscripts/solo/solo-automation.node-test.mjs",
+        "M\ttests/tijolo-45-real-map/real-map.spec.ts",
+        "M\ttsconfig.json",
+        "M\tvitest.config.ts"
+      ]
+    },
+    {
+      "ref": "3d8dc82a",
+      "sha": "3d8dc82a6ba812f1dd79612de4148d579b9b5fcc",
+      "parents": [
+        "797099b41aa61ecb1bf575c7dfd066705f2ee11f"
+      ],
+      "tree": "09f942ba4c9dea85611a8c7670eb4d0fb6d98ca6",
+      "mergeBaseWithMain": "2f70b68532cbcd0dd62d3dba6f7cc3331447f4bc",
+      "files": [
+        "M\tapp/api/comun/admin/archive/confirm-upload/route.ts",
+        "M\tapp/api/comun/admin/radio/process/route.ts",
+        "A\tlib/media-storage/r2-waveform.test.ts",
+        "M\tlib/media-storage/r2.ts",
+        "M\tlib/radio-storage-routes.test.ts"
+      ]
+    },
+    {
+      "ref": "9c7eb605",
+      "sha": "9c7eb605b6238c8cd0656c7fff7802a7243ba937",
+      "parents": [
+        "1da865ab7305924b7b37d5fbc80d1d680f685fe6"
+      ],
+      "tree": "72a1e3bbeba2d453ca81cab42c33ffba490fe384",
+      "mergeBaseWithMain": "2f70b68532cbcd0dd62d3dba6f7cc3331447f4bc",
+      "files": [
+        "M\treports/current/comun-audit-evidence-20260910/envelope.json",
+        "M\treports/current/comun-audit-evidence-20260910/final-browser.log",
+        "M\treports/current/comun-audit-evidence-20260910/final-build.log",
+        "M\treports/current/comun-audit-evidence-20260910/final-ci-contracts.log",
+        "M\treports/current/comun-audit-evidence-20260910/final-ffmpeg.log",
+        "M\treports/current/comun-audit-evidence-20260910/final-lint.log",
+        "M\treports/current/comun-audit-evidence-20260910/final-types.log",
+        "M\treports/current/comun-audit-evidence-20260910/final-unit.log",
+        "M\treports/current/comun-audit-evidence-20260910/main-compatibility.log",
+        "M\treports/current/comun-audit-evidence-20260910/sp0-ci.json",
+        "M\treports/current/comun-audit-preservation-20260910.json"
+      ]
+    },
+    {
+      "ref": "820a2e75223fff45933caae6e27196123d13f45b",
+      "sha": "820a2e75223fff45933caae6e27196123d13f45b",
+      "parents": [
+        "94d7aba20e54390cbd056defafad0666c49ee3a7"
+      ],
+      "tree": "aed7a7bf6902685f618760241a27a9bd50c2bd1c",
+      "mergeBaseWithMain": "1387e1bcecdc4147bb5dad41aa7d541ec97b1497",
+      "files": [
+        "M\tdocs/security/SERVICOS_PUBLICOS_SP0_BOUNDARY_THREAT_MODEL.md"
+      ]
+    },
+    {
+      "ref": "1387e1bcecdc4147bb5dad41aa7d541ec97b1497",
+      "sha": "1387e1bcecdc4147bb5dad41aa7d541ec97b1497",
+      "parents": [
+        "ab37075309416d84852117202dbd209154fe438e"
+      ],
+      "tree": "078c9a9ac436b48079eaf9a4c5e9a8f3a0323e6a",
+      "mergeBaseWithMain": "1387e1bcecdc4147bb5dad41aa7d541ec97b1497",
+      "files": [
+        "M\tlib/comun-collective-entity-consent.test.ts",
+        "M\tlib/comun-collective-entity-consent.ts"
+      ]
+    },
+    {
+      "ref": "f30c4d57",
+      "sha": "f30c4d57d544b68111c0c7a9abf85bf099b8bb48",
+      "parents": [
+        "1387e1bcecdc4147bb5dad41aa7d541ec97b1497"
+      ],
+      "tree": "eeb8ebe80de70cb68de334df8eec20e15bc0c035",
+      "mergeBaseWithMain": "1387e1bcecdc4147bb5dad41aa7d541ec97b1497",
+      "files": [
+        "M\t.gitignore",
+        "M\tapp/api/comun/admin/archive/confirm-upload/route.ts",
+        "M\tapp/api/comun/admin/archive/upload-url/route.ts",
+        "M\tapp/api/comun/admin/radio/process/route.ts",
+        "M\tapp/api/internal/security/storage-restore/route.ts",
+        "M\tapp/comun/radio/actions.ts",
+        "M\tcomponents/comun-sidewalk-observatory-map.tsx",
+        "M\tcomponents/comun-territorial-health-map.tsx",
+        "M\tcomponents/sidewalk-maplibre-map.tsx",
+        "M\tcomponents/sidewalk-real-point-picker.tsx",
+        "M\teslint.config.mjs",
+        "M\tlib/comun-cultural-progressive-rights.contract.test.ts",
+        "M\tlib/comun-cultural-progressive-rights.ts",
+        "M\tlib/media-storage/fixture.ts",
+        "A\tlib/media-storage/r2-waveform.test.ts",
+        "M\tlib/media-storage/r2.ts",
+        "A\tlib/media-storage/scopes.test.ts",
+        "A\tlib/media-storage/scopes.ts",
+        "A\tlib/media-storage/supabase-local.test.ts",
+        "M\tlib/media-storage/supabase-local.ts",
+        "A\tlib/radio-actions.test.ts",
+        "A\tlib/radio-storage-routes.test.ts",
+        "M\tlib/radio.test.ts",
+        "M\tlib/radio.ts",
+        "A\tlib/security/cron-auth.test.ts",
+        "M\tlib/security/cron-auth.ts",
+        "M\tpackage-lock.json",
+        "M\tpackage.json",
+        "M\tscripts/ci/comun-central.node-test.mjs",
+        "A\tscripts/radio-storage-cycle.mjs",
+        "M\tscripts/smoke-comun-community-radio.mjs",
+        "M\ttests/tijolo-45-real-map/real-map.spec.ts",
+        "M\ttsconfig.json",
+        "M\tvitest.config.ts"
+      ]
+    },
+    {
+      "ref": "def3d747",
+      "sha": "def3d747fa4a8e53bd49e33d9c63225017734489",
+      "parents": [
+        "f30c4d57d544b68111c0c7a9abf85bf099b8bb48"
+      ],
+      "tree": "30214d57093fb718429cea9c93d12bb971698ad8",
+      "mergeBaseWithMain": "1387e1bcecdc4147bb5dad41aa7d541ec97b1497",
+      "files": [
+        "A\tscripts/audit/radio-lab-integration.mjs",
+        "A\tscripts/audit/radio-lab-migrations.json",
+        "A\tscripts/audit/radio-lab.mjs",
+        "M\tscripts/ci/comun-central.node-test.mjs"
+      ]
+    },
+    {
+      "ref": "09321781",
+      "sha": "0932178165e7d556ada31c56a3b20614757b22ab",
+      "parents": [
+        "def3d747fa4a8e53bd49e33d9c63225017734489"
+      ],
+      "tree": "e1d365d7060dc7ae2db2924cc3aff3588d0260c5",
+      "mergeBaseWithMain": "1387e1bcecdc4147bb5dad41aa7d541ec97b1497",
+      "files": [
+        "M\tnext-env.d.ts",
+        "A\tscripts/audit/README-radio-lab.md",
+        "M\tscripts/audit/radio-lab-integration.mjs",
+        "M\tscripts/audit/radio-lab.mjs"
+      ]
+    }
+  ],
+  "difference3dTo9c": [
+    "A\treports/current/comun-audit-closure-20260910.md",
+    "A\treports/current/comun-audit-evidence-20260910/browser-config.txt",
+    "A\treports/current/comun-audit-evidence-20260910/envelope.json",
+    "A\treports/current/comun-audit-evidence-20260910/final-browser.log",
+    "A\treports/current/comun-audit-evidence-20260910/final-build.log",
+    "A\treports/current/comun-audit-evidence-20260910/final-ci-contracts.log",
+    "A\treports/current/comun-audit-evidence-20260910/final-ffmpeg.log",
+    "A\treports/current/comun-audit-evidence-20260910/final-lint.log",
+    "A\treports/current/comun-audit-evidence-20260910/final-types.log",
+    "A\treports/current/comun-audit-evidence-20260910/final-unit.log",
+    "A\treports/current/comun-audit-evidence-20260910/main-compatibility.log",
+    "A\treports/current/comun-audit-evidence-20260910/sp0-ci.json",
+    "A\treports/current/comun-audit-preservation-20260910.json"
+  ],
+  "candidateChanges": [
+    "M\t.gitignore",
+    "M\tapp/api/comun/admin/archive/confirm-upload/route.ts",
+    "M\tapp/api/comun/admin/archive/upload-url/route.ts",
+    "M\tapp/api/comun/admin/radio/process/route.ts",
+    "M\tapp/api/internal/security/storage-restore/route.ts",
+    "M\tapp/comun/radio/actions.ts",
+    "M\tcomponents/comun-sidewalk-observatory-map.tsx",
+    "M\tcomponents/comun-territorial-health-map.tsx",
+    "M\tcomponents/sidewalk-maplibre-map.tsx",
+    "M\tcomponents/sidewalk-real-point-picker.tsx",
+    "M\teslint.config.mjs",
+    "M\tlib/comun-cultural-progressive-rights.contract.test.ts",
+    "M\tlib/comun-cultural-progressive-rights.ts",
+    "M\tlib/media-storage/fixture.ts",
+    "A\tlib/media-storage/r2-waveform.test.ts",
+    "M\tlib/media-storage/r2.ts",
+    "A\tlib/media-storage/scopes.test.ts",
+    "A\tlib/media-storage/scopes.ts",
+    "A\tlib/media-storage/supabase-local.test.ts",
+    "M\tlib/media-storage/supabase-local.ts",
+    "A\tlib/radio-actions.test.ts",
+    "A\tlib/radio-storage-routes.test.ts",
+    "M\tlib/radio.test.ts",
+    "M\tlib/radio.ts",
+    "A\tlib/security/cron-auth.test.ts",
+    "M\tlib/security/cron-auth.ts",
+    "M\tnext-env.d.ts",
+    "M\tpackage-lock.json",
+    "M\tpackage.json",
+    "A\tscripts/audit/README-radio-lab.md",
+    "A\tscripts/audit/radio-lab-integration.mjs",
+    "A\tscripts/audit/radio-lab-migrations.json",
+    "A\tscripts/audit/radio-lab.mjs",
+    "M\tscripts/ci/comun-central.node-test.mjs",
+    "A\tscripts/radio-storage-cycle.mjs",
+    "M\tscripts/smoke-comun-community-radio.mjs",
+    "M\ttests/tijolo-45-real-map/real-map.spec.ts",
+    "M\ttsconfig.json",
+    "M\tvitest.config.ts"
+  ],
+  "lockSha256": "8df46b260c8c5c44d4fb1fb664a001b68eb60f7e5cf3632a89ac7e72affc5d59",
+  "classification": [
+    {
+      "path": ".gitignore",
+      "sha256": "067AF70DB4BFF5E3B346BF6075BC16544C0A548B962AD019E0CCFBCE821A140D",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "app/api/comun/admin/archive/confirm-upload/route.ts",
+      "sha256": "4612EF1C7BB5939DE2D7351FCBABBB62C5D2EA6266427B01B80BEF3951A60C74",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "app/api/comun/admin/archive/upload-url/route.ts",
+      "sha256": "45C3D7297438EE4372A437256B4C7FC9D64654EDAC74D037A85BBE7139C48ACC",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "app/api/comun/admin/radio/process/route.ts",
+      "sha256": "5B76DA83BB9EBA4134CB1238336583FA04E45C38F13A8EB88550D0FCB38E6041",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "app/api/internal/security/storage-restore/route.ts",
+      "sha256": "3A37ABDB0AC50F467D091F65AE22F338A0B4469286860F9C4E90293D76D1CC00",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "app/comun/acervo/historias-orais/contribuir/page.tsx",
+      "sha256": "E3744752F8A289ACF8550F61A93DAC593F542B09E59C504265C8B0218CAD890F",
+      "provenance": "pre-existing"
+    },
+    {
+      "path": "app/comun/admin/acervo/contribuicoes/actions.ts",
+      "sha256": "7A3AC853BC12DD954C1707D867F0951F045866AE8E884F4BAA4580EDF2E105FA",
+      "provenance": "pre-existing"
+    },
+    {
+      "path": "app/comun/radio/actions.ts",
+      "sha256": "340D4A6D6C8D848EF2F0EF8138FBACE1FAFFFF895D91B69EC95FD02C60F8A83A",
+      "provenance": "mixed-preserved-unsplit"
+    },
+    {
+      "path": "components/comun-sidewalk-observatory-map.tsx",
+      "sha256": "6302425D0921F03D91DD06FF535ABCCF64612F13E9427799960108DE5A939D6A",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "components/comun-territorial-health-map.tsx",
+      "sha256": "AE18F6D6BABDFF1D1A08F2CD996F7172B71E39C29482C768F93061B9FD8CB509",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "components/sidewalk-maplibre-map.tsx",
+      "sha256": "BFBA9393A2F88045613EACA169ECF33EC6463797C72046E8484ACF763A07AB2E",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "components/sidewalk-real-point-picker.tsx",
+      "sha256": "3F56A3639AC455A6DF2181916414CA1B68B45919C861896722791B912A797E38",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "eslint.config.mjs",
+      "sha256": "1E985F18EF6FE9AA12CDCA31EBDEE2AE31C131D575307647BF6BD3847538A31E",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "lib/media-storage/fixture.ts",
+      "sha256": "76B7A87209C1B545145198A53B8EFA31997CD5256D6325F48AA0A2ECE8086996",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "lib/media-storage/r2.ts",
+      "sha256": "34F07AB27FEC558D73A83F43937D798BED8267514929C3F7C863499575676DE2",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "lib/media-storage/supabase-local.ts",
+      "sha256": "403A38C6142F73A20E555F4CF0575A336CF5CFD717DDD85867189685330860F4",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "lib/radio.test.ts",
+      "sha256": "CB8B5D5A0B077FF84237F063309A1A26C9CFB13D326A6F9FC07A0F0B4F291BF2",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "lib/radio.ts",
+      "sha256": "8169C4A914A0A87757AA022628D7A104769D28DB86B13F4DAEE6A5FF68CF78DF",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "lib/security/cron-auth.ts",
+      "sha256": "0274DFF8C86D522114B33B542331CBA2FA97CC87B33B9118A2CF36A749867547",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "next-env.d.ts",
+      "sha256": "1862AC4BBBC5192D4BF562161DF66EA547ED3E67173100656AB606AE9797DB2B",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "DD0E8E965E6191C314A66BFE6722F60595DCD0B6B0F405C55B0A143E75F173DC",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "package.json",
+      "sha256": "18C13AC7FA7E24E24819B3BD02CBE726609E01AFF57C7FC160CA5876E5105F24",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "reports/current/comun-core-journeys-audit.json",
+      "sha256": "DEBE2B6C5965424B1316973AE2524474E472715E033D345DEBBFEDAD005DC1D3",
+      "provenance": "pre-existing"
+    },
+    {
+      "path": "reports/current/comun-core-journeys-audit.md",
+      "sha256": "4B140F2B9070C97DDA91C481D8C8745992BA6B87C4908D941FC5F49E813F4C5F",
+      "provenance": "pre-existing"
+    },
+    {
+      "path": "scripts/ci/comun-central.node-test.mjs",
+      "sha256": "1447FBC3BD9C94A678F5B7F3A73FE97D439D9B3684BC6CB60957A0E4B0192DEA",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "scripts/ci/vercel-ignore-build.mjs",
+      "sha256": "6E968E7777CA2F0A94B056D626F52C60ED75A3994C6ED3BF87A73CAF2C70521B",
+      "provenance": "pre-existing"
+    },
+    {
+      "path": "scripts/smoke-comun-community-radio.mjs",
+      "sha256": "6B8451716804EC382B323E7DB5B021C0158B4273C54BE8FDF6B67035037835BE",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "scripts/solo/solo-automation.node-test.mjs",
+      "sha256": "ADE11E60A46D0DBE2503E581B66F24005254E2EA4C5A4BA244DBC75DBC0872B7",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "tests/tijolo-45-real-map/real-map.spec.ts",
+      "sha256": "97C3BF1ED3D44C23299560B4628415E27471D8A92CEBDA88DE0130FAD692399C",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "5EFA09E7F01D177F323BA9FA70085F2B0E5BEFD5133C49338959D63A037421D8",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "vitest.config.ts",
+      "sha256": "0A844C5593AC357F1F50581828ABD3515572E98CD634465CAEB93B0B5F31BBA1",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "lib/comun-cultural-progressive-rights.test.ts",
+      "sha256": "4D3BD301C2BC8E5FC18E66DD6CE98BFD064A09FDD8EF0DF4B9FD56FA2DC89111",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "lib/comun-cultural-progressive-rights.ts",
+      "sha256": "36C8F485C456870CED9B32D652B4F812AB0F165024C2CEF3B03957D5EFE53FBD",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "lib/media-storage/scopes.test.ts",
+      "sha256": "01B556988193FD58CA6D8F193F82CC04B0A851D4A44CDD9717D90A9CFE337830",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "lib/media-storage/scopes.ts",
+      "sha256": "02A37FFF0CAE0431E4DBED2640F5DF2E7528F36602E9977FEAF9CF2A1D0B03C5",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "lib/media-storage/supabase-local.test.ts",
+      "sha256": "D6FE0F259C6517D72F4A26473415AF227F61A876392C4C2816A7366D2F6416CB",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "lib/radio-actions.test.ts",
+      "sha256": "CF8694D6CFD21DBEEF4327B8E02DF157A50E64432177B6A755C103FF76BC1147",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "lib/radio-storage-routes.test.ts",
+      "sha256": "2694A8654E811B545BFC73E897A1442EEB8AE6E16B22A2E523957D63044560DB",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "lib/security/cron-auth.test.ts",
+      "sha256": "FF8A22162789402B4365A0B6A9B2C1B48D196846AB5624F5202F9F6ABE8A9965",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "reports/current/comun-project-audit-2026-09-10.md",
+      "sha256": "19A452D5E05297273D5F6B758CF93EE814FA9EC79DB2E6EC337A42C146EB33CB",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "reports/current/comun-reconciliacao-remota-backup-2026-07-25.md",
+      "sha256": "6B12A7616CBACC3B1F9C5850F1602DD19C8991E4DD0C3CCE4BE7F011D3BD858E",
+      "provenance": "pre-existing"
+    },
+    {
+      "path": "reports/current/comun-sidewalk-first-contribution-review.json",
+      "sha256": "5F75064740B93E721892C8C5455FCFD5D260FDF136247967DA53C325D4C1D6DE",
+      "provenance": "pre-existing"
+    },
+    {
+      "path": "reports/current/comun-sidewalk-first-contribution-review.md",
+      "sha256": "64F3AB398F3B494E73C71BC3F31488492FE00E1D97E4A0464ED6BBA99941D2DF",
+      "provenance": "pre-existing"
+    },
+    {
+      "path": "reports/current/comun-tijolo-47-9d0-fechamento.json",
+      "sha256": "D50C3F0855F13EF88C31DF50FABC9E9ACB7E4CA136E7F1DFCEE4C4DDB4BF4BA5",
+      "provenance": "pre-existing"
+    },
+    {
+      "path": "reports/current/comun-tijolo-47-9d0-fechamento.md",
+      "sha256": "506002099EDE79EF5E6F767C293CB5B94144067FA642F69CE4DF0DB177673094",
+      "provenance": "pre-existing"
+    },
+    {
+      "path": "reports/current/vercel-cost-01-preview-build-containment.md",
+      "sha256": "0C0F144DAE88F44D6B3504F0446F8E207FF38A28E20833D82DF370002577615D",
+      "provenance": "pre-existing"
+    },
+    {
+      "path": "scripts/ci/vercel-build-impact.mjs",
+      "sha256": "D56973FEDD5B05D36E6012A98BAF18848F50FDA50B661C4747C0C788BB5667EE",
+      "provenance": "pre-existing"
+    },
+    {
+      "path": "scripts/ci/vercel-build-impact.node-test.mjs",
+      "sha256": "70F299E0762CE2A851184B1D3966E764510433F7ED87733876C6C3D51E91BDB7",
+      "provenance": "pre-existing"
+    },
+    {
+      "path": "scripts/radio-storage-cycle.mjs",
+      "sha256": "EE38763E52021997CD3ECBE1F23D23E7E62E9F12612A54E588A0297857844106",
+      "provenance": "reported-audit"
+    },
+    {
+      "path": "scripts/solo/rehearse-sidewalk-operational-release.mjs",
+      "sha256": "371CD61AC5047BF479E32DF3493319329F1A8603AD4C1355B14F0E11C33D42AD",
+      "provenance": "pre-existing"
+    }
+  ]
+}

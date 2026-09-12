@@ -1,0 +1,11 @@
+REPRODUCED_CURRENT_BEHAVIOR baseline synthetic
+REPRODUCED_CURRENT_BEHAVIOR input placeholder false positive
+REPRODUCED_CURRENT_BEHAVIOR CSS placeholder false positive
+REPRODUCED_CURRENT_BEHAVIOR technical fixture explanation false positive
+REPRODUCED_CURRENT_BEHAVIOR valid editorial security heading rejected
+REPRODUCED_CURRENT_BEHAVIOR script-only contract false negative
+REPRODUCED_CURRENT_BEHAVIOR HTML entity contract false positive
+REPRODUCED_CURRENT_BEHAVIOR HTML robots accepted
+REPRODUCED_CURRENT_BEHAVIOR HTML sitemap accepted
+REPRODUCED_CURRENT_BEHAVIOR declared green without operational proof
+{"blob":"9b3f2c467a91cedeba2da31bd647f2f8a16b9759","cases":10,"network":"synthetic VM only","writes":"memory only","meaning":"Reproduction of original defects, not approval of corrected behavior or product"}

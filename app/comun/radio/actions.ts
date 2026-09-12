@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { getCommunitySession } from "@/lib/community-auth";
 import { requireComunAdmin } from "@/lib/admin-auth";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
-import { radioPublicationBlockers } from "@/lib/radio";
 import { logComunAdminAction } from "@/lib/admin-audit";
 export async function submitRadioContribution(_: unknown, f: FormData) {
   const db = createServiceSupabaseClient(),
@@ -39,7 +38,7 @@ export async function submitRadioContribution(_: unknown, f: FormData) {
   return error ? { error: "Não foi possível enviar." } : { ok: true, protocol };
 }
 export async function createRadioProgram(f: FormData) {
-  const s = await requireComunAdmin(),
+  const s = await requireComunAdmin({ roles: ["admin", "editor"] }),
     db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco indisponível");
   const title = String(f.get("title") || "").trim(),
@@ -81,7 +80,7 @@ export async function createRadioProgram(f: FormData) {
   redirect(`/comun/admin/radio/programas`);
 }
 export async function createRadioEpisode(f: FormData) {
-  const s = await requireComunAdmin(),
+  const s = await requireComunAdmin({ roles: ["admin", "editor"] }),
     db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco indisponível");
   const title = String(f.get("title") || "").trim(),
@@ -129,98 +128,45 @@ export async function createRadioEpisode(f: FormData) {
   redirect(`/comun/admin/radio/episodios/${item.id}`);
 }
 export async function publishRadioEpisode(f: FormData) {
-  const s = await requireComunAdmin(),
+  const s = await requireComunAdmin({ roles: ["admin", "editor"] }),
     db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco indisponível");
   const id = String(f.get("id"));
-  const [
-    { data: e },
-    { data: assets },
-    { data: credits },
-    { data: consents },
-    { data: music },
-    { data: safety },
-    { data: transcript },
-  ] = await Promise.all([
-    db
-      .from("comun_radio_episodes")
-      .select("*")
-      .eq("archive_item_id", id)
-      .single(),
-    db
-      .from("comun_archive_assets")
-      .select("asset_role,bucket_scope,review_status,public_url")
-      .eq("archive_item_id", id),
-    db.from("comun_radio_credits").select("id").eq("episode_item_id", id),
-    db
-      .from("comun_radio_voice_consents")
-      .select("consent_status,allow_comun_audio")
-      .eq("episode_item_id", id),
-    db
-      .from("comun_radio_music_uses")
-      .select("rights_status,allow_streaming")
-      .eq("episode_item_id", id),
-    db
-      .from("comun_radio_safety_reviews")
-      .select("minor_involved_private,reinforced_review_status")
-      .eq("episode_item_id", id)
-      .maybeSingle(),
-    db
-      .from("comun_radio_transcript_versions")
-      .select("id")
-      .eq("episode_item_id", id)
-      .eq("status", "published")
-      .limit(1)
-      .maybeSingle(),
-  ]);
-  const b = radioPublicationBlockers({
-    title: e.title_public,
-    summary: e.summary_public,
-    program: e.program_item_id,
-    duration: e.duration_seconds,
-    publicAudio: assets?.some(
-      (x) =>
-        x.asset_role === "radio_public_episode" &&
-        x.bucket_scope === "public_safe" &&
-        x.review_status === "approved" &&
-        Boolean(x.public_url),
-    ),
-    credits: credits?.length,
-    consents: consents ?? [],
-    music: music ?? [],
-    minor: safety?.minor_involved_private,
-    minorApproved: safety?.reinforced_review_status === "approved",
-    context: Boolean(e.pauta_id || e.territory_id || e.description_public),
-    transcriptStatus: transcript ? "published" : e.transcript_status,
+  const review = await db.rpc("comun_prepare_radio_publication_review", {
+    p_episode_id: id,
+    p_admin_id: s.admin.id,
   });
-  if (b.length)
-    redirect(`/comun/admin/radio/episodios/${id}?bloqueios=${b.join(",")}`);
-  const now = new Date().toISOString();
-  await Promise.all([
-    db
-      .from("comun_radio_episodes")
-      .update({
-        publication_status: "published",
-        published_at: now,
-        transcript_status: "published",
-      })
-      .eq("archive_item_id", id),
-    db
-      .from("comun_archive_items")
-      .update({ status: "published", visibility: "public", published_at: now })
-      .eq("id", id),
-  ]);
-  await logComunAdminAction({
-    session: s,
-    action: "radio_episode_published",
-    targetType: "community_radio_episode",
-    targetId: id,
-    metadata: { status: "published", accessibility: "transcript_published" },
+  if (review.error || !review.data)
+    throw new Error("Não foi possível verificar os requisitos de publicação.");
+  const reviewed = review.data as {
+    outcome: string;
+    identity?: string;
+    blockers?: string[];
+  };
+  if (reviewed.outcome === "blocked")
+    redirect(
+      `/comun/admin/radio/episodios/${id}?bloqueios=${(reviewed.blockers ?? []).join(",")}`,
+    );
+  if (reviewed.outcome !== "ready" || !reviewed.identity)
+    throw new Error("A revisão editorial não pôde ser preparada.");
+  const publication = await db.rpc("comun_commit_radio_publication", {
+    p_episode_id: id,
+    p_expected_identity: reviewed.identity,
+    p_admin_id: s.admin.id,
   });
+  if (publication.error || !publication.data)
+    throw new Error("Não foi possível concluir a publicação.");
+  const outcome = (publication.data as { outcome: string }).outcome;
+  if (outcome === "conflict" || outcome === "blocked")
+    throw new Error(
+      "A revisão mudou antes da publicação. Recarregue e revise novamente.",
+    );
+  if (outcome !== "published" && outcome !== "already_published")
+    throw new Error("A publicação não foi autorizada.");
   revalidatePath("/comun/radio");
 }
 export async function addRadioEditorialData(f: FormData) {
-  const s = await requireComunAdmin(),
+  const s = await requireComunAdmin({ roles: ["admin", "editor"] }),
     db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco indisponível");
   const id = String(f.get("id")),
@@ -285,7 +231,7 @@ export async function addRadioEditorialData(f: FormData) {
   revalidatePath(`/comun/admin/radio/episodios/${id}`);
 }
 export async function unpublishRadioEpisode(f: FormData) {
-  const s = await requireComunAdmin(),
+  const s = await requireComunAdmin({ roles: ["admin", "editor"] }),
     db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco indisponível");
   const id = String(f.get("id"));

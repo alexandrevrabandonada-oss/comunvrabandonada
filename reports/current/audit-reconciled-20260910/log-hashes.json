@@ -1,0 +1,74 @@
+[
+  {
+    "file": "verified/browser.log",
+    "originalSha256": "e11ee5c92eb948c02ad21e6569e63991d9b68e13dfffd25f8bfe2cdde0d11d3a",
+    "exportSha256": "e11ee5c92eb948c02ad21e6569e63991d9b68e13dfffd25f8bfe2cdde0d11d3a",
+    "transformation": "ANSI removed; LF; trailing whitespace trimmed; original preserved under tmp"
+  },
+  {
+    "file": "verified/build.log",
+    "originalSha256": "902050dad1f421e411d21cf4af9b154adc6a45f4243272e23e5369e0abda17f4",
+    "exportSha256": "e8894ac9395d32d081a06ae95ce1bbe1bac7c1f7721bbe468e135e2311734920",
+    "transformation": "ANSI removed; LF; trailing whitespace trimmed; original preserved under tmp"
+  },
+  {
+    "file": "verified/ci.log",
+    "originalSha256": "35df1b0b2d315e1491ae83f7822fba557ba9e3bea565657ed3b9b29e6a83b3ea",
+    "exportSha256": "35df1b0b2d315e1491ae83f7822fba557ba9e3bea565657ed3b9b29e6a83b3ea",
+    "transformation": "ANSI removed; LF; trailing whitespace trimmed; original preserved under tmp"
+  },
+  {
+    "file": "verified/ffmpeg.log",
+    "originalSha256": "3cf5659604d56d36f1de857148504a9fbdf9aee56ca486f11de5ec69557188d0",
+    "exportSha256": "3cf5659604d56d36f1de857148504a9fbdf9aee56ca486f11de5ec69557188d0",
+    "transformation": "ANSI removed; LF; trailing whitespace trimmed; original preserved under tmp"
+  },
+  {
+    "file": "verified/lint.log",
+    "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exportSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transformation": "ANSI removed; LF; trailing whitespace trimmed; original preserved under tmp"
+  },
+  {
+    "file": "verified/typecheck.log",
+    "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exportSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transformation": "ANSI removed; LF; trailing whitespace trimmed; original preserved under tmp"
+  },
+  {
+    "file": "verified/unit.log",
+    "originalSha256": "8c0cc6a764980285353f9c89712de3289ad551df9725e1d7b33f85a39baabdc7",
+    "exportSha256": "47d19b3b362caaf189a4892c9b2f2aba4a2196923c24c95b2108e6af8c228ff3",
+    "transformation": "ANSI removed; LF; trailing whitespace trimmed; original preserved under tmp"
+  },
+  {
+    "file": "intermediate/build.log",
+    "originalSha256": "b8737b886a102b7deb32dea5473c37678ec8936068a421bb52ea024270a5323a",
+    "exportSha256": "651efc5e63a8079e39014d7fbda2af8424df6bc46bd7838a3661a697bb538b11",
+    "transformation": "ANSI removed; LF; trailing whitespace trimmed; original preserved under tmp"
+  },
+  {
+    "file": "intermediate/ci.log",
+    "originalSha256": "7c68ce8e36a3de43b274a28a230c7ffac6b16a7fdc3855bca4e6c46c76a137de",
+    "exportSha256": "7c68ce8e36a3de43b274a28a230c7ffac6b16a7fdc3855bca4e6c46c76a137de",
+    "transformation": "ANSI removed; LF; trailing whitespace trimmed; original preserved under tmp"
+  },
+  {
+    "file": "intermediate/lint.log",
+    "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exportSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transformation": "ANSI removed; LF; trailing whitespace trimmed; original preserved under tmp"
+  },
+  {
+    "file": "intermediate/typecheck.log",
+    "originalSha256": "35cb729b93fb9f0796847931ef2a17c0bc1d8f6b18c704f1de9e4f68014353b6",
+    "exportSha256": "28861f7eddef5fa80e15e820685497ffdb00e7d3216bd7f9f15ef93b5a96d36b",
+    "transformation": "ANSI removed; LF; trailing whitespace trimmed; original preserved under tmp"
+  },
+  {
+    "file": "intermediate/unit.log",
+    "originalSha256": "45ad184d016cb38509ee16dce29548c31738e46a4216bf24c7217b7710910984",
+    "exportSha256": "011686686325723acce23433b93f09919a27d29ac1e80309629d4d96a355816b",
+    "transformation": "ANSI removed; LF; trailing whitespace trimmed; original preserved under tmp"
+  }
+]

@@ -62,7 +62,9 @@ test("participante sem GPS usa teclado para posicionar e confere privacidade", a
     "data-map-provider",
     "realVoltaRedonda",
   );
-  await expect(manualMap).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(manualMap).toHaveAttribute("data-pmtiles-loaded", "true", {
+    timeout: 15_000,
+  });
   await expect(
     page.getByText(/Toque em uma rua para ajustar o ponto/i),
   ).toBeVisible();

@@ -10,9 +10,20 @@ const workflowUrl = new URL(
 test("lane de PR é local e não injeta credenciais remotas", async () => {
   const workflow = await readFile(workflowUrl, "utf8");
   const verify =
-    workflow.match(/  verify:[\s\S]*?\n  remote-audit:/)?.[0] ?? "";
+    workflow.match(/  verify:[\s\S]*?\n  preview-browser:/)?.[0] ?? "";
   assert.doesNotMatch(verify, /\$\{\{\s*secrets\./);
   assert.match(verify, /COMUN_ARCHIVE_RADIO_ART_CONTRACT/);
+});
+
+test("navegador de Preview usa o SHA exato, bypass protegido e contagem dinâmica", async () => {
+  const workflow = await readFile(workflowUrl, "utf8");
+  const preview =
+    workflow.match(/  preview-browser:[\s\S]*?\n  remote-audit:/)?.[0] ?? "";
+  assert.match(preview, /github\.event\.pull_request\.head\.sha/);
+  assert.match(preview, /VERCEL_AUTOMATION_BYPASS_SECRET/);
+  assert.match(preview, /verify-playwright-complete\.mjs/);
+  assert.match(preview, /--list --reporter=json/);
+  assert.doesNotMatch(preview, /VERCEL_TOKEN|workflow_dispatch/);
 });
 
 test("preflight, postflight e inventário usam o mesmo auditor fixo read-only", async () => {

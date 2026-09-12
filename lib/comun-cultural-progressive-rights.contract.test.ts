@@ -37,7 +37,13 @@ describe("A4 specialized rights contract", () => {
   it("20. sends third-party radio material to review", () => expect(radio({ materialSource: "third_party_unverified" })?.state).toBe("rights_review_required"));
   it("21. does not infer radio unknown source", () => expect(radio({ materialSource: "unknown" })?.state).toBe("rights_review_required"));
   it("22. accepts explicit radio reuse license", () => expect(radio({ publicationScope: "comun_audio_and_reuse", reusePermission: "licensed_reuse", licenseCode: "cc_by_sa_4_0" })?.state).toBe("rights_declared"));
-  it("23. identifies public scope separately from reuse", () => { expect(hasExplicitPublicScope("comun_display")).toBe(true); expect(hasExplicitReuseScope("comun_display")).toBe(false); });
+  it("23. identifies public scope separately from reuse", () => {
+    expect(hasExplicitPublicScope("comun_display")).toBe(true);
+    expect(hasExplicitReuseScope("comun_display")).toBe(false);
+    expect(hasExplicitPublicScope("comun_audio")).toBe(true);
+    expect(hasExplicitReuseScope("comun_audio")).toBe(false);
+    expect(hasExplicitPublicScope("review_only")).toBe(false);
+  });
   it("24. does not promise publication in the A4 photo UI", () => expect(read("app/comun/acervo/contribuir/photo-submission-form.tsx")).toMatch(/Guardar não autoriza publicação/));
   it("25. keeps Music out of the A4 cultural selector", () => expect(read("app/comun/acervo/contribuir/cultural-intake-form.tsx")).not.toMatch(/value=\"music\"/));
   it("26. keeps the A4 flag opt-in", () => expect(read("lib/comun-cultural-progressive-rights.ts")).toMatch(/=== \"enabled\"/));

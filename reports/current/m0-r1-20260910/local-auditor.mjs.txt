@@ -1,0 +1,24 @@
+import fs from 'node:fs';
+import net from 'node:net';
+import path from 'node:path';
+import {spawn,execFileSync} from 'node:child_process';
+import assert from 'node:assert/strict';
+import {cleanEnv} from '../scripts/audit/radio-lab.mjs';
+const root=process.cwd(),base='http://127.0.0.1:3136';
+await new Promise((resolve,reject)=>{const s=net.createServer();s.once('error',reject);s.listen(3136,'127.0.0.1',()=>s.close(resolve));});
+const artifact=path.join(root,'tmp/local-http-final');fs.mkdirSync(artifact,{recursive:true});
+const env={...cleanEnv(),TEMP:path.join(root,'tmp'),TMP:path.join(root,'tmp'),NEXT_TELEMETRY_DISABLED:'1',NODE_OPTIONS:'--max-old-space-size=2048'};
+const fd=fs.openSync(path.join(artifact,'server.log'),'w');
+const server=spawn(process.execPath,['node_modules/next/dist/bin/next','start','--hostname','127.0.0.1','--port','3136'],{cwd:root,env,stdio:['ignore',fd,fd]});
+try {
+ let ready=false;for(let i=0;i<60;i++){if(server.exitCode!==null)throw Error('Owned server exited');try{const r=await fetch(base+'/comun',{redirect:'manual',signal:AbortSignal.timeout(1500)});if(r.status===200){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,500));}assert.ok(ready);
+ const result=await new Promise((resolve,reject)=>{const p=spawn(process.execPath,['--experimental-strip-types','scripts/audit-comun-launch-readiness.mjs'],{cwd:root,env:{...env,COMUN_PUBLIC_BASE_URL:base,COMUN_ARTIFACT_DIR:artifact},stdio:['ignore','pipe','pipe']});let stderr='';p.stdout.resume();p.stderr.on('data',b=>stderr+=b);p.on('error',reject);p.on('exit',exit=>resolve({exit,stderr}));});
+ const sha=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+ fs.writeFileSync(path.join(artifact,'execution.json'),JSON.stringify({sha,command:'node --experimental-strip-types scripts/audit-comun-launch-readiness.mjs',baseUrl:base,environment:'owned local Next start; no project credentials; parser network blocked',...result},null,2));
+ assert.equal(result.exit,0);
+ const audit=JSON.parse(fs.readFileSync(path.join(artifact,'comun-launch-readiness.json')));
+ console.log(JSON.stringify({sha,result:audit.result,findings:audit.findings,publicRoutes:audit.publicRoutes.map(r=>({path:r.path,status:r.status,contractPresent:r.contractPresent,markers:r.forbiddenMarkers}))}));
+}finally{
+ if(server.exitCode===null){if(process.platform==='win32'){try{execFileSync('taskkill',['/PID',String(server.pid),'/T','/F'],{stdio:'ignore'});}catch{}}else server.kill('SIGTERM');}
+ fs.closeSync(fd);
+}

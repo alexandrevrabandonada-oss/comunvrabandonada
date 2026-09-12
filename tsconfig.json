@@ -42,6 +42,13 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "node_modules.*",
+    ".codex-worktrees",
+    ".codex-remote-attachments",
+    ".ci-*",
+    "backups",
+    "output",
+    "tmp"
   ]
 }

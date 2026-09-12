@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     .digest("hex");
   if (
     !signingKey ||
-    signature.length !== expectedSignature.length ||
+    !/^[a-f0-9]{64}$/.test(signature) ||
     !timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))
   )
     return NextResponse.json(

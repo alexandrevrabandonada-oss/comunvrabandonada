@@ -42,7 +42,8 @@ function run(results) {
 const upstream502 = {
   status: 1,
   stdout: "",
-  stderr: 'Error status 502: {"message":"An invalid response was received from the upstream server"}',
+  stderr:
+    'Error status 502: {"message":"An invalid response was received from the upstream server"}',
 };
 
 test("returns local env on the first successful status call", () => {
@@ -53,10 +54,13 @@ test("returns local env on the first successful status call", () => {
 });
 
 test("retries an allowlisted 502 once and succeeds", () => {
-  const result = run([upstream502, { status: 0, stdout: sensitiveEnv, stderr: "" }]);
+  const result = run([
+    upstream502,
+    { status: 0, stdout: sensitiveEnv, stderr: "" },
+  ]);
   assert.equal(result.ok, true);
   assert.equal(result.calls, 2);
-  assert.deepEqual(result.delays, [2000]);
+  assert.deepEqual(result.delays, [500]);
   assert.deepEqual(result.diagnostics, [
     "COMUN_SUPABASE_LOCAL_STATUS_TRANSIENT_RETRY",
     "attempt=1",
@@ -69,33 +73,44 @@ test("exhausts only the bounded allowlisted transient status attempts", () => {
   assert.equal(result.ok, false);
   assert.equal(result.calls, MAX_ATTEMPTS);
   assert.equal(result.reason, "UPSTREAM_502");
-  assert.ok(result.diagnostics.includes("COMUN_SUPABASE_LOCAL_STATUS_TRANSIENT_EXHAUSTED"));
+  assert.ok(
+    result.diagnostics.includes(
+      "COMUN_SUPABASE_LOCAL_STATUS_TRANSIENT_EXHAUSTED",
+    ),
+  );
 });
 
-test("accepts a local status that recovers late within the bounded warm-up window", () => {
+test("accepts a local status that recovers on the final bounded attempt", () => {
   const result = run([
-    upstream502,
-    upstream502,
-    upstream502,
-    upstream502,
     upstream502,
     upstream502,
     { status: 0, stdout: sensitiveEnv, stderr: "" },
   ]);
   assert.equal(result.ok, true);
-  assert.equal(result.calls, 7);
-  assert.deepEqual(result.delays, [2000, 4000, 6000, MAX_BACKOFF_MS, MAX_BACKOFF_MS, MAX_BACKOFF_MS]);
+  assert.equal(result.calls, 3);
+  assert.deepEqual(result.delays, [500, MAX_BACKOFF_MS]);
 });
 
 test("continues retrying allowlisted 503 and 504 failures", () => {
   for (const failure of [
-    { status: 1, stdout: "", stderr: "Error status 503: service unavailable upstream" },
-    { status: 1, stdout: "", stderr: "Error status 504: upstream gateway timeout" },
+    {
+      status: 1,
+      stdout: "",
+      stderr: "Error status 503: service unavailable upstream",
+    },
+    {
+      status: 1,
+      stdout: "",
+      stderr: "Error status 504: upstream gateway timeout",
+    },
   ]) {
-    const result = run([failure, { status: 0, stdout: sensitiveEnv, stderr: "" }]);
+    const result = run([
+      failure,
+      { status: 0, stdout: sensitiveEnv, stderr: "" },
+    ]);
     assert.equal(result.ok, true, failure.stderr);
     assert.equal(result.calls, 2, failure.stderr);
-    assert.deepEqual(result.delays, [2000], failure.stderr);
+    assert.deepEqual(result.delays, [500], failure.stderr);
   }
 });
 
@@ -110,19 +125,28 @@ test("does not retry 401, SQL, malformed, or unknown failures", () => {
     assert.equal(result.calls, 1, failure.stderr);
     assert.equal(result.reason, "NON_TRANSIENT", failure.stderr);
   }
-  const malformed = run([{ status: 0, stdout: 'API_URL="http://127.0.0.1:54321"', stderr: "" }]);
+  const malformed = run([
+    { status: 0, stdout: 'API_URL="http://127.0.0.1:54321"', stderr: "" },
+  ]);
   assert.equal(malformed.ok, false);
   assert.equal(malformed.reason, "INVALID_OUTPUT");
 });
 
 test("only exact recognized upstream classes receive retry", () => {
-  assert.equal(classifyTransientStatusFailure(upstream502.stderr), "UPSTREAM_502");
   assert.equal(
-    classifyTransientStatusFailure("Error status 503: service unavailable upstream"),
+    classifyTransientStatusFailure(upstream502.stderr),
+    "UPSTREAM_502",
+  );
+  assert.equal(
+    classifyTransientStatusFailure(
+      "Error status 503: service unavailable upstream",
+    ),
     "UPSTREAM_503",
   );
   assert.equal(
-    classifyTransientStatusFailure("Error status 504: upstream gateway timeout"),
+    classifyTransientStatusFailure(
+      "Error status 504: upstream gateway timeout",
+    ),
     "UPSTREAM_504",
   );
   assert.equal(classifyTransientStatusFailure("network error"), null);
@@ -130,15 +154,28 @@ test("only exact recognized upstream classes receive retry", () => {
 });
 
 test("diagnostic markers never contain successful sensitive environment values", () => {
-  const result = run([upstream502, { status: 0, stdout: sensitiveEnv, stderr: "" }]);
+  const result = run([
+    upstream502,
+    { status: 0, stdout: sensitiveEnv, stderr: "" },
+  ]);
   assert.equal(result.diagnostics.join("\n").includes("anon-secret"), false);
-  assert.equal(result.diagnostics.join("\n").includes("service-role-secret"), false);
+  assert.equal(
+    result.diagnostics.join("\n").includes("service-role-secret"),
+    false,
+  );
   assert.equal(result.diagnostics.join("\n").includes("postgresql://"), false);
 });
 
 test("workflow uses the helper in every local status path and stays fail-closed", () => {
-  const workflow = readFileSync(".github/workflows/comun-quality-performance.yml", "utf8");
-  assert.equal((workflow.match(/node scripts\/ci\/read-supabase-local-env\.mjs/g) ?? []).length, 4);
+  const workflow = readFileSync(
+    ".github/workflows/comun-quality-performance.yml",
+    "utf8",
+  );
+  assert.equal(
+    (workflow.match(/node scripts\/ci\/read-supabase-local-env\.mjs/g) ?? [])
+      .length,
+    4,
+  );
   assert.equal(workflow.includes("supabase status -o env"), false);
   assert.equal(workflow.includes("continue-on-error: true"), false);
   assert.match(workflow, /supabase db reset --local --yes/);
@@ -150,9 +187,13 @@ test("workflow uses the helper in every local status path and stays fail-closed"
 });
 
 test("helper has valid Node syntax", () => {
-  const syntax = spawnSync(process.execPath, ["--check", "scripts/ci/read-supabase-local-env.mjs"], {
-    encoding: "utf8",
-  });
+  const syntax = spawnSync(
+    process.execPath,
+    ["--check", "scripts/ci/read-supabase-local-env.mjs"],
+    {
+      encoding: "utf8",
+    },
+  );
   assert.equal(syntax.status, 0, syntax.stderr);
 });
 

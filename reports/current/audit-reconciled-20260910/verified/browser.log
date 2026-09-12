@@ -1,0 +1,27 @@
+
+Running 23 tests using 1 worker
+
+[1/23] [map-mobile] › tests\tijolo-45-real-map\real-map.spec.ts:3:5 › usa o PMTiles real canônico por HTTP Range sem cartografia demo
+[2/23] [map-mobile] › tests\tijolo-45-real-map\real-map.spec.ts:50:5 › falha do PMTiles mantém a grade neutra e a lista, sem voltar à demo
+[3/23] [map-mobile] › tests\tijolo-45-real-map\real-map.spec.ts:74:5 › envio de calçada permanece pausado sem uma fixture sintética
+[4/23] [map-tablet] › tests\tijolo-45-real-map\real-map.spec.ts:3:5 › usa o PMTiles real canônico por HTTP Range sem cartografia demo
+[5/23] [map-tablet] › tests\tijolo-45-real-map\real-map.spec.ts:50:5 › falha do PMTiles mantém a grade neutra e a lista, sem voltar à demo
+[6/23] [map-tablet] › tests\tijolo-45-real-map\real-map.spec.ts:74:5 › envio de calçada permanece pausado sem uma fixture sintética
+[7/23] [map-desktop] › tests\tijolo-45-real-map\real-map.spec.ts:3:5 › usa o PMTiles real canônico por HTTP Range sem cartografia demo
+[8/23] [map-desktop] › tests\tijolo-45-real-map\real-map.spec.ts:50:5 › falha do PMTiles mantém a grade neutra e a lista, sem voltar à demo
+[9/23] [map-desktop] › tests\tijolo-45-real-map\real-map.spec.ts:74:5 › envio de calçada permanece pausado sem uma fixture sintética
+[10/23] [journey-mobile-390x844] › tests\core-journeys\core-journeys.spec.ts:26:5 › Participar abre Pautas em um passo e sem mutation
+[11/23] [journey-mobile-390x844] › tests\core-journeys\core-journeys.spec.ts:43:5 › autenticação preserva intenção e bloqueia returnTo externo ou expirado
+[12/23] [journey-mobile-390x844] › tests\core-journeys\core-journeys.spec.ts:81:5 › confirmação canônica oferece tracking, retorno claro e privacidade
+[13/23] [journey-mobile-390x844] › tests\core-journeys\core-journeys.spec.ts:99:5 › Explorar preserva recorte e oferece fallback semântico para filtro inválido
+[14/23] [journey-mobile-390x844] › tests\core-journeys\core-journeys.spec.ts:113:5 › Caixa protegida preserva experiência, origem e sessão expirada
+[15/23] [journey-mobile-390x844] › tests\core-journeys\core-journeys.spec.ts:132:5 › offline, reduced motion, reflow e PWA mantêm orientação
+[16/23] [journey-mobile-390x844] › tests\core-journeys\core-journeys.spec.ts:158:5 › @a11y roots e confirmação não têm violações sérias
+[17/23] [journey-tablet-768x1024] › tests\core-journeys\core-journeys.spec.ts:26:5 › Participar abre Pautas em um passo e sem mutation
+[18/23] [journey-tablet-768x1024] › tests\core-journeys\core-journeys.spec.ts:43:5 › autenticação preserva intenção e bloqueia returnTo externo ou expirado
+[19/23] [journey-tablet-768x1024] › tests\core-journeys\core-journeys.spec.ts:81:5 › confirmação canônica oferece tracking, retorno claro e privacidade
+[20/23] [journey-tablet-768x1024] › tests\core-journeys\core-journeys.spec.ts:99:5 › Explorar preserva recorte e oferece fallback semântico para filtro inválido
+[21/23] [journey-tablet-768x1024] › tests\core-journeys\core-journeys.spec.ts:113:5 › Caixa protegida preserva experiência, origem e sessão expirada
+[22/23] [journey-tablet-768x1024] › tests\core-journeys\core-journeys.spec.ts:132:5 › offline, reduced motion, reflow e PWA mantêm orientação
+[23/23] [journey-tablet-768x1024] › tests\core-journeys\core-journeys.spec.ts:158:5 › @a11y roots e confirmação não têm violações sérias
+  23 passed (34.0s)

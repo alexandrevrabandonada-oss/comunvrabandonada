@@ -74,7 +74,7 @@ export function decideRadioRights(input: {
 }
 
 export function hasExplicitPublicScope(scope: string) {
-  return displayScopes.has(scope) || reuseScopes.has(scope);
+  return displayScopes.has(scope) || scope === "comun_audio" || reuseScopes.has(scope);
 }
 
 export function hasExplicitReuseScope(scope: string) {

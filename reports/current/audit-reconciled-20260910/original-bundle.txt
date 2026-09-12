@@ -1,0 +1,8 @@
+SHA256 1dfe5984766accce03d736304b9c4c2ab4226218b829db091809d8bf7ca96b9b
+The bundle contains this ref:
+9c7eb605b6238c8cd0656c7fff7802a7243ba937 refs/heads/codex/audit-closure-20260910
+The bundle requires this ref:
+aa4e3b4bf745ba497b853c61f267319e8bb9f2f7
+The bundle uses this hash algorithm: sha1
+
+9c7eb605b6238c8cd0656c7fff7802a7243ba937 refs/heads/codex/audit-closure-20260910
