@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/comun-48-3-c1-preflight.yml"
+      - "scripts/ci/classify-migration-lane.mjs"
+      - "scripts/ci/classify-migration-lane.node-test.mjs"
       - "lib/comun-collective-actions-canonical*.ts"
       - "components/comun-collective-actions-canonical.tsx"
       - "app/comun/acoes/**"
@@ -31,8 +33,15 @@ jobs:
         run: |
           set -euo pipefail
           test -n "${SUPABASE_DB_URL:-}"
-          test -z "$(git diff --name-only origin/main...HEAD -- supabase/migrations)" || { echo COMUN_48_3_C1_BLOCKED_UNEXPECTED_MIGRATION; exit 1; }
           mkdir -p .ci-artifacts/48-3-c1-preflight
+          mapfile -t changed < <(git diff --name-only "${{ github.event.pull_request.base.sha }}"...HEAD -- supabase/migrations)
+          classification="$(node scripts/ci/classify-migration-lane.mjs --lane 48-3-c1 --files "${changed[@]}")"
+          migration_mode="$(sed -n 's/^COMUN_MIGRATION_LANE_MODE=//p' <<<"$classification")"
+          case "$migration_mode" in
+            none|not_applicable) ;;
+            candidate) echo COMUN_48_3_C1_BLOCKED_OWN_MIGRATION_WITHOUT_CONTRACT; exit 1 ;;
+            *) echo COMUN_48_3_C1_BLOCKED_MIGRATION_OWNERSHIP; exit 1 ;;
+          esac
           psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/48-3-c1-preflight/schema.json <<'SQL'
           begin read only;
           with canonical(name) as (values
@@ -86,7 +95,7 @@ jobs:
             throw new Error('COMUN_48_3_C1_BLOCKED_REMOTE_SCHEMA_DRIFT');
           }
           NODE
-      - name: Prove remote migration plan is empty
+      - name: Prove remote migration plan has no C1-owned migration
         shell: bash
         run: |
           set -euo pipefail
@@ -94,6 +103,17 @@ jobs:
           test "$(sha256sum "$external" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
           held="$RUNNER_TEMP/external.sql"; mv "$external" "$held"; trap 'mv "$held" "$external"' EXIT
           supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-3-c1-preflight/plan.txt 2>&1
-          ! grep -Eq '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-3-c1-preflight/plan.txt
-          echo migrationCount=0 >> "$GITHUB_STEP_SUMMARY"
-          echo COMUN_48_3_C1_REMOTE_PLAN_EMPTY_GREEN >> "$GITHUB_STEP_SUMMARY"
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-3-c1-preflight/plan.txt | sort -u || true)
+          foreign_count=0
+          for migration in "${planned[@]}"; do
+            classification="$(node scripts/ci/classify-migration-lane.mjs --lane 48-3-c1 --files "$migration")"
+            migration_mode="$(sed -n 's/^COMUN_MIGRATION_LANE_MODE=//p' <<<"$classification")"
+            case "$migration_mode" in
+              not_applicable) foreign_count=$((foreign_count + 1)) ;;
+              *) echo "COMUN_48_3_C1_BLOCKED_REMOTE_PLAN:$migration:$migration_mode"; exit 1 ;;
+            esac
+          done
+          echo domainMigrationCount=0 >> "$GITHUB_STEP_SUMMARY"
+          echo "foreignKnownPendingCount=$foreign_count" >> "$GITHUB_STEP_SUMMARY"
+          echo businessContentRead=false >> "$GITHUB_STEP_SUMMARY"
+          echo COMUN_48_3_C1_REMOTE_PLAN_OWNERSHIP_GREEN >> "$GITHUB_STEP_SUMMARY"

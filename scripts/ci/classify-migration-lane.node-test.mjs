@@ -35,6 +35,31 @@ const radioMigrations = [
   "supabase/migrations/20260911151743_radio_publication_claim.sql",
   radioEditorial,
 ];
+const lowFrictionPauta =
+  "supabase/migrations/20260814160000_comun_pauta_low_friction_creation.sql";
+
+test("historical C1, D1 and E3 lanes classify ownership fail-closed", () => {
+  for (const lane of ["48-3-c1", "48-3-d1", "48-3-e3"]) {
+    assert.equal(
+      classifyMigrationLane(lane, radioMigrations).mode,
+      "not_applicable",
+    );
+    assert.equal(classifyMigrationLane(lane, []).mode, "none");
+    assert.equal(
+      classifyMigrationLane(lane, ["20990101000000_unknown.sql"]).mode,
+      "blocked",
+    );
+  }
+  assert.equal(
+    classifyMigrationLane("48-3-e3", [lowFrictionPauta]).mode,
+    "candidate",
+  );
+  assert.equal(
+    classifyMigrationLane("48-3-e3", [lowFrictionPauta, ...radioMigrations])
+      .mode,
+    "blocked",
+  );
+});
 
 test("radio editorial migration is not applicable to P6C preflight lanes", () => {
   for (const lane of ["p6c-b1", "p6c-b2", "48-2-a", "48-4-a0", "48-5-a0"])

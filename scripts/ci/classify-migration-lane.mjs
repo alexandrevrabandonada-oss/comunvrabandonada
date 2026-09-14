@@ -10,6 +10,7 @@ export const MIGRATION_LANE_MANIFEST = Object.freeze({
   "20260810171448_comun_child_protection_private_routing.sql": "p6c-b2",
   "20260810194054_comun_sensitive_assisted_forwarding.sql": "p6c-c",
   "20260813124308_comun_pautas_vivas_public_evidence.sql": "48-3-a1",
+  "20260814160000_comun_pauta_low_friction_creation.sql": "48-3-e3",
   "20260815184529_comun_solidarity_offers.sql": "48-4-a0",
   "20260815223006_comun_solidarity_organization_access.sql": "48-4-a2",
   "20260816011500_comun_solidarity_economic_content_writes.sql": "48-4-a0",
@@ -43,6 +44,21 @@ export const MIGRATION_LANE_MANIFEST = Object.freeze({
 });
 
 const NON_APPLICABLE_LANES = Object.freeze({
+  "48-3-c1": new Set(
+    Object.values(MIGRATION_LANE_MANIFEST).filter(
+      (owner) => owner !== "48-3-c1",
+    ),
+  ),
+  "48-3-d1": new Set(
+    Object.values(MIGRATION_LANE_MANIFEST).filter(
+      (owner) => owner !== "48-3-d1",
+    ),
+  ),
+  "48-3-e3": new Set(
+    Object.values(MIGRATION_LANE_MANIFEST).filter(
+      (owner) => owner !== "48-3-e3",
+    ),
+  ),
   "p6c-b1": new Set(["radio-editorial-revision"]),
   "p6c-b2": new Set(["radio-editorial-revision"]),
   "48-2-a": new Set([
