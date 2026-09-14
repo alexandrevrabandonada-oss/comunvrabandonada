@@ -3,6 +3,14 @@
 !.env.example
 .next*/
 node_modules/
+node_modules.*/
+.codex-worktrees/
+.codex-remote-attachments/
+.ci-download*/
+.ci-p*/
+.playwright-cli/
+output/
+tmp/
 .ci-artifacts/
 .security-evidence/
 out/

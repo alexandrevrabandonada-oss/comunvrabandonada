@@ -13,6 +13,13 @@ export default defineConfig([
   globalIgnores([
     ".next*/**",
     "node_modules/**",
+    "node_modules.*/**",
+    ".codex-worktrees/**",
+    ".codex-remote-attachments/**",
+    ".ci-*/**",
+    ".playwright-cli/**",
+    "output/**",
+    "tmp/**",
     "backups/**",
     "coverage/**",
     "types/supabase.ts",

@@ -105,9 +105,15 @@ export function classifyBuildImpact({
     return { decision: "BUILD", reason: "empty-diff" };
   }
 
-  const unsafeFile = normalizedFiles.find(
+  const unsafeFiles = normalizedFiles.filter(
     (file) => !isSafeNoRuntimePath(file),
   );
+  // A runtime checkpoint exemption must never hide another file's BUILD rule.
+  // Sort only to make the reported reason deterministic, not to choose policy.
+  const unsafeFile =
+    unsafeFiles
+      .filter((file) => buildReason(file) !== "runtime-path-change")
+      .sort()[0] ?? unsafeFiles.sort()[0];
   if (unsafeFile) {
     const reason = buildReason(unsafeFile);
     if (
@@ -132,11 +138,7 @@ export function classifyBuildImpact({
   return { decision: "IGNORE", reason: "no-runtime-allowlist" };
 }
 
-export function changedFilesFromDiff({
-  base,
-  head,
-  spawn = defaultSpawn,
-}) {
+export function changedFilesFromDiff({ base, head, spawn = defaultSpawn }) {
   if (!base || !head) return { available: false, files: [] };
 
   const baseCheck = spawn("git", ["rev-parse", "--verify", `${base}^{commit}`]);

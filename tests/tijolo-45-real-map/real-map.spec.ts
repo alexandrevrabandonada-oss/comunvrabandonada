@@ -16,6 +16,7 @@ test("usa o PMTiles real canônico por HTTP Range sem cartografia demo", async (
   const response = await page.goto("/comun/calcadas", {
     waitUntil: "networkidle",
   });
+  await page.getByRole("button", { name: "Mapa", exact: true }).click();
   const rangeResponse = await page.request.get(
     "/maps/volta-redonda/volta-redonda.pmtiles",
     { headers: { Range: "bytes=0-127" } },
@@ -54,6 +55,7 @@ test("falha do PMTiles mantém a grade neutra e a lista, sem voltar à demo", as
   );
 
   const response = await page.goto("/comun/calcadas");
+  await page.getByRole("button", { name: "Mapa", exact: true }).click();
 
   expect(response?.status()).toBeLessThan(500);
   await expect(page.getByTestId("sidewalk-real-map-fallback")).toBeVisible();

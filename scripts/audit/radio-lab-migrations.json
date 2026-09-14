@@ -1,0 +1,270 @@
+{
+  "base": "1387e1bcecdc4147bb5dad41aa7d541ec97b1497",
+  "rationale": "Canonical historical chain through security hardening 20260723220112 plus radio-only bucket profile 20260730213205. No local-migrations or later experiments. Fresh-stack execution must pass; no remote schema inference.",
+  "files": [
+    {
+      "path": "supabase/migrations/202605070001_initial_comun.sql",
+      "sha256": "7e54733034ceb7f0d34cdbbbe21addc48b18993a8bbd0c2b64d5239867f3280e"
+    },
+    {
+      "path": "supabase/migrations/202605200001_admin_auth.sql",
+      "sha256": "23907f59b26a23a1a0be3364b8cf0e89bf8c636ebe1842ffccb5114a9c9e8fb8"
+    },
+    {
+      "path": "supabase/migrations/202605270002_protocol_follow_rate_limit.sql",
+      "sha256": "e0fdd9092b9f3e63e928149ee4c81819192c17da6bf8b22f296557f102296d65"
+    },
+    {
+      "path": "supabase/migrations/202605280001_quick_report_photo_location.sql",
+      "sha256": "625058c6340d22cac55dcba2669038d14aa8cd21b709ff5b7186c5a8afaed375"
+    },
+    {
+      "path": "supabase/migrations/202605310001_attachment_curation.sql",
+      "sha256": "8114ac9e4d8c8d44d45c67768c9c4cac10c47f96ed12a6a4edbe21adf19661f8"
+    },
+    {
+      "path": "supabase/migrations/202607070001_official_protocols.sql",
+      "sha256": "de1a799627ec0001ca5fc1882e4e30d9401b29a29d823650e15b62c8af5fdd3e"
+    },
+    {
+      "path": "supabase/migrations/20260707182045_pauta_spaces.sql",
+      "sha256": "5d795e1bc874674303ef17ce4c5acd9aa650107ecd68eb039a772f6916bb0917"
+    },
+    {
+      "path": "supabase/migrations/20260707191614_pauta_contribution_safety.sql",
+      "sha256": "3377d330d40cf7b7ab61150b943000cd10dac187f630b48b099ac7845c54a9cb"
+    },
+    {
+      "path": "supabase/migrations/20260707201244_pauta_editorial_quality.sql",
+      "sha256": "628fb1b6451fe098fdfb3637cec9ba135e1ff7074abc9fdab316f6d8daae10ea"
+    },
+    {
+      "path": "supabase/migrations/20260707203422_pauta_dossier_drafts.sql",
+      "sha256": "f364d9e807bb3821fac9ff265b6a87d102c517c8ba72d03c4498de7364dc9556"
+    },
+    {
+      "path": "supabase/migrations/20260707213246_pauta_dossier_publication_workflow.sql",
+      "sha256": "7e50c4ae55428bbd1aa21e11ec9ce10ac2c4e6e0bf507f1744ec9fc683f0e41e"
+    },
+    {
+      "path": "supabase/migrations/20260707232209_pauta_dossier_double_review.sql",
+      "sha256": "4ad8990176a43bf38db217598f1eb6b5aca553567cfac9af796692ff2c35e0f5"
+    },
+    {
+      "path": "supabase/migrations/20260708024032_pauta_dossier_review_ops.sql",
+      "sha256": "10446687d881e3c753ac6c27973977b29617f95c15781b479da76f242ca2c6c6"
+    },
+    {
+      "path": "supabase/migrations/20260708030426_admin_notifications.sql",
+      "sha256": "f42a3e40234bd710596f6f1ddd546a1fa82f45f7729dabe3db8ae2f499ae6443"
+    },
+    {
+      "path": "supabase/migrations/20260708031446_reviewer_identity_permissions.sql",
+      "sha256": "72c260221f6f2148e781f4d1870cbb2dfd378b58ca986f2d3ceb67c371f55767"
+    },
+    {
+      "path": "supabase/migrations/20260708140650_admin_team_management.sql",
+      "sha256": "c9641df43ee5f89ea6f7b6c22fe22f94802451c25e54895cd8e24032da4a1e05"
+    },
+    {
+      "path": "supabase/migrations/20260708141916_dossier_publication_snapshots.sql",
+      "sha256": "b49b8404701b83f84dc7c96f499827332fcda6ec0c5b4906aacdf97e522536e5"
+    },
+    {
+      "path": "supabase/migrations/20260708150335_public_dossier_page_metadata.sql",
+      "sha256": "53fbd309f9dc7b18b782c67c89efd90ff7ee01a1f52c29e220ae7922da0ef8f9"
+    },
+    {
+      "path": "supabase/migrations/20260708163526_public_dossier_features.sql",
+      "sha256": "3f43ca5c95c5da39410c507d09e24813c37292be14e96b48e476196e5c72f1dc"
+    },
+    {
+      "path": "supabase/migrations/20260708173035_harden_official_protocols_rls.sql",
+      "sha256": "c00c1290845b081978200372bceed78a8ebc24ba9258c34ed3cc935b75c73755"
+    },
+    {
+      "path": "supabase/migrations/20260708174621_harden_pauta_contributions_rls.sql",
+      "sha256": "d1cb2e752b7af6e298c49aada0755569493641ea7d645cb6567bfa887af42a80"
+    },
+    {
+      "path": "supabase/migrations/20260708175500_harden_internal_comun_rls_matrix.sql",
+      "sha256": "5546b0e7edfdfc7022993b1342c38bdcfc0ee5f4afde4896357f2236271d1045"
+    },
+    {
+      "path": "supabase/migrations/20260708181116_harden_pauta_synthesis_versions_rls.sql",
+      "sha256": "b253a7a4852b1cf90638cc0bfad3b9833ed0d588e34c59c2efcec9cd6da390fc"
+    },
+    {
+      "path": "supabase/migrations/20260708182545_restore_public_safe_api_grants.sql",
+      "sha256": "6dec989e102255e57c260a3521d2c9ee04f6c75e8f6b178dfe7c10ad2a421091"
+    },
+    {
+      "path": "supabase/migrations/20260708182643_restore_service_role_comun_table_grants.sql",
+      "sha256": "f48089a082c8d7b2517ee992b511091860a5a6cd1038347327b82b761924587d"
+    },
+    {
+      "path": "supabase/migrations/20260708182724_restore_public_reports_view_grants.sql",
+      "sha256": "b365a233fd2690c5608d7029dcd0f8669d51421aaf162c7f6cf1599b06870a98"
+    },
+    {
+      "path": "supabase/migrations/20260714144416_archive_foundation.sql",
+      "sha256": "a59294ccde130fbe72503ade6b49baf4872f18677f142b121eb77d691cbb9233"
+    },
+    {
+      "path": "supabase/migrations/20260714163643_archive_historical_photo_submissions.sql",
+      "sha256": "a9c35efe9ddb3374a7b73b6ada6ab3cddfa3485c7d85a85963dc2afcac52c2a8"
+    },
+    {
+      "path": "supabase/migrations/20260714171854_archive_production_verification_runs.sql",
+      "sha256": "c33aa00afa92afe1a5695bc1bcdefea5f1be56ddd356647559def3be07f8fd6e"
+    },
+    {
+      "path": "supabase/migrations/20260714174020_archive_photo_processing_queue.sql",
+      "sha256": "c1d95af7098b339db0e3eeb7e3ccfffeb0cf11a7e1dc6c6d232e7b7878d5421f"
+    },
+    {
+      "path": "supabase/migrations/20260714175818_archive_scheduler_heartbeats_alerts.sql",
+      "sha256": "1fb519b8fd7a5ff733ddd06341343e482ace8091bf6d50f0f5f7629a66929c01"
+    },
+    {
+      "path": "supabase/migrations/20260714185438_archive_local_music.sql",
+      "sha256": "9b5d8cc4521bd5a9213a00382a3464e0be44b9a15b55771f8f1a2a696b3ce306"
+    },
+    {
+      "path": "supabase/migrations/20260714213123_archive_music_curation.sql",
+      "sha256": "f4edb504d3143deafdd50f8f5f1683486f82c7a2f0be11e65f1018fb64efe534"
+    },
+    {
+      "path": "supabase/migrations/20260714220640_archive_music_observability.sql",
+      "sha256": "86f208609e7e3a7b7380ab4b6e24ccb4c659c929b1e1e81c20ca2ddbf34aa0b5"
+    },
+    {
+      "path": "supabase/migrations/20260714223658_archive_oral_history.sql",
+      "sha256": "74bc8952561d055a0dc6e56d2bcc4a637a5ca38e70d82ae55521a647d01884ba"
+    },
+    {
+      "path": "supabase/migrations/20260714231050_archive_oral_history_editorial_pilot.sql",
+      "sha256": "187d49b9ea59a4c41471db5b0b3021dea79dc6d3f2f11d67c86d8f636de231ba"
+    },
+    {
+      "path": "supabase/migrations/20260714235034_comun_central_hub.sql",
+      "sha256": "21b284eafcfcefeae456dd9a80d751d1c1ade3c84b95f8b3a5972528ecb93717"
+    },
+    {
+      "path": "supabase/migrations/20260715002809_comun_popular_map.sql",
+      "sha256": "309275cf7e559565716f5d7ec3a6706c09b7496bdd9bbc3708541ac735e61299"
+    },
+    {
+      "path": "supabase/migrations/20260715011302_comun_popular_observatories.sql",
+      "sha256": "1dfb12a92877194362b28672d4620d2b787b19cf90795a99b28f15c4b039a89c"
+    },
+    {
+      "path": "supabase/migrations/20260715021055_comun_observation_campaigns.sql",
+      "sha256": "d6364e6ce4af7d5feb0584e3c257d004c25e63af72c796ec3c995ab3c8501e29"
+    },
+    {
+      "path": "supabase/migrations/20260715025948_comun_field_access.sql",
+      "sha256": "1b7456323e7d678c5a1b5123beb6c8c746cb379fc5be891c3c3da60ac291c1e0"
+    },
+    {
+      "path": "supabase/migrations/20260715032613_comun_pauta_miniapps_circles.sql",
+      "sha256": "d8b47871e32e531b43448edb0bd4df49fdd0825e6695600ac0a03cca6638ff70"
+    },
+    {
+      "path": "supabase/migrations/20260715151922_comun_pauta_miniapps_relational_guards.sql",
+      "sha256": "a75fcefae5c32dc1dea537936d72a4e072ffab3d1329efb5447b719190f605bd"
+    },
+    {
+      "path": "supabase/migrations/20260715155802_comun_community_auth_profiles.sql",
+      "sha256": "fce97b30c4a5230fd66a2b41229d6ed7b49ceb65253100239ab60b770ab90acd"
+    },
+    {
+      "path": "supabase/migrations/20260715170058_comun_territorial_art_foundation.sql",
+      "sha256": "7a9dbe5c537777bf2138e110975c8d6515ee885f831652060419fe74f6627225"
+    },
+    {
+      "path": "supabase/migrations/20260715174723_artwork_storage_operations.sql",
+      "sha256": "2ebb2d5b4d3d73c6281a8938b95ba513845a644ee3a65c3c39670627292e90e0"
+    },
+    {
+      "path": "supabase/migrations/20260715185344_community_radio_foundation.sql",
+      "sha256": "5791d5cc2a6471a8b29803cc5e2231b28febf8cc47be7911db7a67ef57a0298c"
+    },
+    {
+      "path": "supabase/migrations/20260715192935_comun_central_experience_inbox.sql",
+      "sha256": "17ebccb3af31c13882355ee21976fbf6ca21cec272654a84361540facb40b6e9"
+    },
+    {
+      "path": "supabase/migrations/20260716000000_comun_sidewalk_vertical.sql",
+      "sha256": "4235c4a1b88b91731c891d1de33269ca602739502e1072414b3b45a8ecd66999"
+    },
+    {
+      "path": "supabase/migrations/20260716120000_comun_sidewalk_fk_fix.sql",
+      "sha256": "8a0d0470753ae32c87b3d083ceac554f8d98bed51bae71cc7e70f8c703d9f232"
+    },
+    {
+      "path": "supabase/migrations/20260717013709_editorial_operation.sql",
+      "sha256": "b1b1a8749486ad3fd8d940a1b00f1e0b327b36b55569a6db4fb2b304dd91a6f3"
+    },
+    {
+      "path": "supabase/migrations/20260717022301_operational_persona_roles.sql",
+      "sha256": "585b61a133ed4eb91180d81a7e5213ecd45e6388ccbd1be97ae5552defff362d"
+    },
+    {
+      "path": "supabase/migrations/20260718031145_operational_queue_pagination.sql",
+      "sha256": "67247bcac51f596fd6ebb3667f21468bd05425532357b96f85c48666c63a7f6c"
+    },
+    {
+      "path": "supabase/migrations/20260719180751_comun_sidewalk_member_first_participation.sql",
+      "sha256": "7a5f13c0ba230ee7e2a88f0c6b961835d664545b5852a3595a6e6c509619ee1d"
+    },
+    {
+      "path": "supabase/migrations/20260719202300_comun_persistent_communities.sql",
+      "sha256": "7d66420a27bc49833102256defc534c7c78c9f0f8a68b1b173b5067f16a99839"
+    },
+    {
+      "path": "supabase/migrations/20260720005353_comun_archive_identification_campaign.sql",
+      "sha256": "bf1e279c62cb90eb7e397110c2ae1191d34ce50d81087dc8632418d7582edfa8"
+    },
+    {
+      "path": "supabase/migrations/20260720161117_comun_sidewalk_real_map.sql",
+      "sha256": "ec1ffc3e561130ea3883e9fa97f6a08eed36773e9190632ce9ca7169c6e9acd9"
+    },
+    {
+      "path": "supabase/migrations/20260720185530_comun_sidewalk_forwardings.sql",
+      "sha256": "9f2dbce03473073245890d12c46c09c15453ce7f6bdd9fbe81d280de0f82d493"
+    },
+    {
+      "path": "supabase/migrations/20260721155914_comun_sidewalk_quick_capture.sql",
+      "sha256": "82c3ebde2de21f7cc057339cc9824e7eec052c742685dd97d486680a23745577"
+    },
+    {
+      "path": "supabase/migrations/20260721164415_comun_sidewalk_direct_private_upload.sql",
+      "sha256": "a587942afc60a793d3301c901af1d2821ebfc9a8aff054eafea626ca82567e35"
+    },
+    {
+      "path": "supabase/migrations/20260722003105_pr23_schema_security_hardening.sql",
+      "sha256": "b575c49e6642b81d8e2f749e37c806819e1181c5ff50ef6048d2a46476987110"
+    },
+    {
+      "path": "supabase/migrations/20260723220112_comun_canonical_security_hardening.sql",
+      "sha256": "8e97a8c1fbb45f4143894294cf52289795d4461e58b33c72034e0ccb1a0c5dae"
+    },
+    {
+      "path": "supabase/migrations/20260730213205_radio_v1_free_storage_profile.sql",
+      "sha256": "ea34fe5c05157a5aca083eefee7b837a2b6603c65d0f69485db49f49784d7247"
+    },
+    {
+      "path": "supabase/migrations/20260911114140_radio_upload_idempotency.sql",
+      "sha256": "833969809ca189eb60b5b948a54ae0d7872ef4fe7034dcba9eb9654c1bd1005a"
+    },
+    {
+      "path": "supabase/migrations/20260911151743_radio_publication_claim.sql",
+      "sha256": "14533fe2623323eab553acfa618592118fceb43d83e46a4e806f85643e479dcd"
+    },
+    {
+      "path": "supabase/migrations/20260912161253_radio_editorial_revision_identity.sql",
+      "sha256": "93c25d0fcdea25a655b3418c17ca6102c5f125b4928e652a9d888dcbdeb3fdb7"
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "checkedAt": "2026-09-11T01:50:10.729Z",
+  "base": "1387e1bcecdc4147bb5dad41aa7d541ec97b1497",
+  "source": "b1a36ddf105b16f0636ba3832d101916d864fe0c",
+  "candidate": "4001985e25e1858a056fcd6289d93d1149748e1a",
+  "originalFilesPreserved": true,
+  "originalFilesCount": 50,
+  "priorPackageHashesPreserved": true,
+  "originalHead": "aa4e3b4bf745ba497b853c61f267319e8bb9f2f7",
+  "sourceStatus": "",
+  "objects": [
+    {
+      "ref": "797099b4",
+      "sha": "797099b41aa61ecb1bf575c7dfd066705f2ee11f",
+      "parents": "aa4e3b4bf745ba497b853c61f267319e8bb9f2f7",
+      "tree": "fa3abc87e2724b17fb954683011905ea7a0565de",
+      "mergeBase": "2f70b68532cbcd0dd62d3dba6f7cc3331447f4bc"
+    },
+    {
+      "ref": "3d8dc82a",
+      "sha": "3d8dc82a6ba812f1dd79612de4148d579b9b5fcc",
+      "parents": "797099b41aa61ecb1bf575c7dfd066705f2ee11f",
+      "tree": "09f942ba4c9dea85611a8c7670eb4d0fb6d98ca6",
+      "mergeBase": "2f70b68532cbcd0dd62d3dba6f7cc3331447f4bc"
+    },
+    {
+      "ref": "9c7eb605",
+      "sha": "9c7eb605b6238c8cd0656c7fff7802a7243ba937",
+      "parents": "1da865ab7305924b7b37d5fbc80d1d680f685fe6",
+      "tree": "72a1e3bbeba2d453ca81cab42c33ffba490fe384",
+      "mergeBase": "2f70b68532cbcd0dd62d3dba6f7cc3331447f4bc"
+    },
+    {
+      "ref": "b1a36ddf105b16f0636ba3832d101916d864fe0c",
+      "sha": "b1a36ddf105b16f0636ba3832d101916d864fe0c",
+      "parents": "0932178165e7d556ada31c56a3b20614757b22ab",
+      "tree": "5f91f3f05a5ed235ffe9b2487301552c4d778ad4",
+      "mergeBase": "1387e1bcecdc4147bb5dad41aa7d541ec97b1497"
+    },
+    {
+      "ref": "4001985e25e1858a056fcd6289d93d1149748e1a",
+      "sha": "4001985e25e1858a056fcd6289d93d1149748e1a",
+      "parents": "c8e79ae8ceb9fcf66289247e741438aa3de70c99",
+      "tree": "70f6e8de6ca703cdaf1505dde09a353f29518529",
+      "mergeBase": "1387e1bcecdc4147bb5dad41aa7d541ec97b1497"
+    }
+  ],
+  "referenceAuditorBlob": "9b3f2c467a91cedeba2da31bd647f2f8a16b9759",
+  "originalAuditorBlob": "9b3f2c467a91cedeba2da31bd647f2f8a16b9759",
+  "referenceBuildClassifierBlob": "116466e7fc0dc9a59231d07178ca567aff99cbd9",
+  "originalBuildClassifierBlob": "116466e7fc0dc9a59231d07178ca567aff99cbd9",
+  "newFiles": [
+    "M\t.github/workflows/comun-launch-readiness.yml",
+    "A\tlib/community-experience-public-boundary.test.ts",
+    "M\tlib/community-experience.test.ts",
+    "M\tlib/community-experience.ts",
+    "M\tscripts/audit-comun-launch-readiness.mjs",
+    "A\tscripts/audit/launch-document-checks.mjs",
+    "A\tscripts/audit/launch-document-checks.node-test.mjs",
+    "A\tscripts/audit/reproduce-launch-auditor.mjs",
+    "M\tscripts/ci/vercel-build-impact.mjs",
+    "M\tscripts/ci/vercel-build-impact.node-test.mjs"
+  ],
+  "missingExternalPackage": [
+    "M0-CONVERGENCIA.json",
+    "M0-MATRIZ.md",
+    "plano diretor anexado",
+    "tests/reproduce-auditor.mjs",
+    "verify-package.py"
+  ],
+  "externalPackageVerification": "BLOCKED: package not located in provided paths; independent reproduction uses existing Git blob, not invented external files"
+}

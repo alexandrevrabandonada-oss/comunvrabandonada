@@ -18,6 +18,8 @@ on:
       - "lib/public-content-readiness.ts"
       - "lib/public-content-readiness.test.ts"
       - "scripts/audit-comun-launch-readiness.mjs"
+      - "scripts/audit/launch-document-checks.mjs"
+      - "scripts/audit/launch-document-checks.node-test.mjs"
   schedule:
     - cron: "41 10 * * *"
   workflow_dispatch:
@@ -46,6 +48,8 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: node --check scripts/audit-comun-launch-readiness.mjs
+      - uses: ./.github/actions/setup-playwright-browser
+      - run: node --test scripts/audit/launch-document-checks.node-test.mjs
       - run: >-
           npx prettier --check
           .github/workflows/comun-launch-readiness.yml
@@ -107,6 +111,7 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci --ignore-scripts
+      - uses: ./.github/actions/setup-playwright-browser
       - name: Audit public launch readiness without writes
         env:
           COMUN_PUBLIC_BASE_URL: https://comunsocial.online

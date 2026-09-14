@@ -109,7 +109,8 @@ jobs:
             scripts/repair-comun-cultural-remote-state.node-test.mjs \
             scripts/radio-v1-storage-migration.node-test.mjs \
             scripts/rehearse-comun-cultural-deliverability.node-test.mjs \
-            scripts/comun-cultural-deliverability-workflow.node-test.mjs
+            scripts/comun-cultural-deliverability-workflow.node-test.mjs \
+            scripts/ci/verify-playwright-complete.node-test.mjs
       - name: Existing cultural regressions
         run: |
           npx vitest run \
@@ -147,7 +148,10 @@ jobs:
             scripts/radio-v1-storage-migration.node-test.mjs \
             scripts/rehearse-comun-cultural-deliverability.mjs \
             scripts/rehearse-comun-cultural-deliverability.node-test.mjs \
-            scripts/comun-cultural-deliverability-workflow.node-test.mjs
+            scripts/comun-cultural-deliverability-workflow.node-test.mjs \
+            scripts/ci/verify-playwright-complete.mjs \
+            scripts/ci/verify-playwright-complete.node-test.mjs \
+            playwright.community-radio.config.ts
           git diff --check origin/main...HEAD
       - name: Assert local and read-only PR lane
         shell: bash
@@ -159,6 +163,68 @@ jobs:
           grep -q 'COMUN_ARCHIVE_RADIO_ART_CONTRACT' \
             .github/workflows/comun-cultural-deliverability.yml
           echo COMUN_ARCHIVE_RADIO_ART_CONTRACT_GREEN >> "$GITHUB_STEP_SUMMARY"
+
+  preview-browser:
+    name: BROWSER / COMUN_RADIO_PREVIEW_COMPLETE
+    needs: verify
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      deployments: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - uses: ./.github/actions/setup-playwright-browser
+      - id: preview
+        name: Discover exact protected Preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in {1..30}; do
+            deployment_id="$(gh api "repos/${{ github.repository }}/deployments?sha=$SHA&environment=Preview&per_page=20" --jq '[.[] | select(.sha == env.SHA and .environment == "Preview")][0].id // empty')"
+            if [[ -n "$deployment_id" ]]; then
+              deployment_url="$(gh api "repos/${{ github.repository }}/deployments/$deployment_id/statuses?per_page=20" --jq '[.[] | select(.state == "success" and .environment_url)][0].environment_url // empty')"
+              if [[ "$deployment_url" == https://*.vercel.app ]]; then
+                echo "url=$deployment_url" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+            fi
+            sleep 10
+          done
+          echo COMUN_RADIO_EXACT_PREVIEW_UNAVAILABLE
+          exit 1
+      - name: Run every canonical Radio browser test through protected Preview
+        env:
+          COMUN_BASE_URL: ${{ steps.preview.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_AUTOMATION_BYPASS_SECRET"
+          mkdir -p .ci-artifacts/radio-preview-browser
+          npx playwright test -c playwright.community-radio.config.ts --list --reporter=json >.ci-artifacts/radio-preview-browser/listed.json
+          npx playwright test -c playwright.community-radio.config.ts --reporter=json >.ci-artifacts/radio-preview-browser/results.json
+          node scripts/ci/verify-playwright-complete.mjs .ci-artifacts/radio-preview-browser/listed.json .ci-artifacts/radio-preview-browser/results.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-radio-preview-browser-${{ github.sha }}-${{ github.run_id }}
+          path: |
+            .ci-artifacts/radio-preview-browser/
+            test-results/
+          retention-days: 14
+          if-no-files-found: error
 
   remote-audit:
     name: AUDIT / COMUN_ARCHIVE_RADIO_ART_READ_ONLY

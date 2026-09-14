@@ -1,0 +1,58 @@
+[
+  {
+    "name": "lint",
+    "sha": "0932178165e7d556ada31c56a3b20614757b22ab",
+    "command": "node node_modules/eslint/bin/eslint.js .",
+    "started": "2026-09-11T00:03:04.172Z",
+    "finished": "2026-09-11T00:03:47.645Z",
+    "exit": 0,
+    "status": "PASS",
+    "error": null
+  },
+  {
+    "name": "unit",
+    "sha": "0932178165e7d556ada31c56a3b20614757b22ab",
+    "command": "node node_modules/vitest/vitest.mjs run --exclude=tests/** --pool=threads --maxWorkers=1",
+    "started": "2026-09-11T00:03:47.646Z",
+    "finished": "2026-09-11T00:04:56.817Z",
+    "exit": 1,
+    "status": "FAIL",
+    "error": null
+  },
+  {
+    "name": "ci",
+    "sha": "0932178165e7d556ada31c56a3b20614757b22ab",
+    "command": "node --test scripts/ci/comun-central.node-test.mjs scripts/ci/vercel-build-impact.node-test.mjs",
+    "started": "2026-09-11T00:04:56.818Z",
+    "finished": "2026-09-11T00:04:57.827Z",
+    "exit": 0,
+    "status": "PASS",
+    "error": null
+  },
+  {
+    "name": "build",
+    "sha": "0932178165e7d556ada31c56a3b20614757b22ab",
+    "command": "node node_modules/next/dist/bin/next build",
+    "started": "2026-09-11T00:04:57.828Z",
+    "finished": "2026-09-11T00:05:44.526Z",
+    "exit": 1,
+    "status": "FAIL",
+    "error": null
+  },
+  {
+    "name": "typecheck",
+    "sha": "0932178165e7d556ada31c56a3b20614757b22ab",
+    "command": "node node_modules/typescript/bin/tsc --noEmit",
+    "started": "2026-09-11T00:05:44.526Z",
+    "finished": "2026-09-11T00:06:11.728Z",
+    "exit": 134,
+    "status": "FAIL",
+    "error": null
+  },
+  {
+    "name": "browser",
+    "sha": "0932178165e7d556ada31c56a3b20614757b22ab",
+    "status": "NOT_RUN",
+    "reason": "Build incomplete"
+  }
+]

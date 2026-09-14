@@ -17,29 +17,66 @@ export async function POST(request: Request) {
     episodeId: string;
     assetId: string;
   };
-  const [{ data: asset }, { data: consents }, { data: music }] =
-    await Promise.all([
-      db
-        .from("comun_archive_assets")
-        .select(
-          "id,object_key,mime_type,original_filename,asset_role,bucket_scope",
-        )
-        .eq("id", assetId)
-        .eq("archive_item_id", episodeId)
-        .maybeSingle(),
-      db
-        .from("comun_radio_voice_consents")
-        .select("consent_status,allow_comun_audio")
-        .eq("episode_item_id", episodeId),
-      db
-        .from("comun_radio_music_uses")
-        .select("rights_status,allow_streaming")
-        .eq("episode_item_id", episodeId),
-    ]);
+  const checks = await Promise.all([
+    db
+      .from("comun_archive_assets")
+      .select(
+        "id,object_key,mime_type,original_filename,asset_role,bucket_scope",
+      )
+      .eq("id", assetId)
+      .eq("archive_item_id", episodeId)
+      .maybeSingle(),
+    db
+      .from("comun_radio_voice_consents")
+      .select("consent_status,allow_comun_audio")
+      .eq("episode_item_id", episodeId),
+    db
+      .from("comun_radio_music_uses")
+      .select("rights_status,allow_streaming")
+      .eq("episode_item_id", episodeId),
+    db
+      .from("comun_radio_safety_reviews")
+      .select("minor_involved_private,reinforced_review_status")
+      .eq("episode_item_id", episodeId)
+      .maybeSingle(),
+    db
+      .from("comun_radio_episodes")
+      .select("archive_item_id")
+      .eq("archive_item_id", episodeId)
+      .maybeSingle(),
+  ]);
+  if (checks.some((result) => result.error))
+    return NextResponse.json(
+      { error: "Não foi possível verificar os direitos do áudio." },
+      { status: 503 },
+    );
+  const [
+    { data: asset },
+    { data: consents },
+    { data: music },
+    { data: safety },
+    { data: episode },
+  ] = checks;
+  if (!episode)
+    return NextResponse.json(
+      { error: "Episódio não encontrado." },
+      { status: 404 },
+    );
+  if (
+    safety?.minor_involved_private &&
+    safety.reinforced_review_status !== "approved"
+  )
+    return NextResponse.json(
+      {
+        error:
+          "Revisão de proteção de menores ainda bloqueia a derivada pública.",
+      },
+      { status: 409 },
+    );
   if (
     !asset ||
     asset.asset_role !== "radio_private_original" ||
-    asset.bucket_scope !== "radio_private_original"
+    asset.bucket_scope !== "private_original"
   )
     return NextResponse.json(
       { error: "Original privado invalido." },
@@ -66,6 +103,22 @@ export async function POST(request: Request) {
       { error: "Direitos musicais ainda bloqueiam a derivada publica." },
       { status: 409 },
     );
+  const claim = await db.rpc("comun_claim_radio_processing", {
+    p_episode_id: episodeId,
+  });
+  if (claim.error)
+    return NextResponse.json(
+      { error: "Não foi possível reservar o processamento." },
+      { status: 503 },
+    );
+  if (claim.data !== true)
+    return NextResponse.json(
+      {
+        error:
+          "O episódio já está em processamento ou não aceita novas derivadas.",
+      },
+      { status: 409 },
+    );
   await logComunAdminAction({
     session,
     action: "radio_processing_started",
@@ -90,7 +143,7 @@ export async function POST(request: Request) {
       {
         archive_item_id: episodeId,
         asset_role: "radio_public_episode",
-        bucket_scope: "radio_public",
+        bucket_scope: "public_safe",
         object_key: result.audio.key,
         public_url: result.audio.url,
         original_filename: "episode.mp3",
@@ -102,7 +155,7 @@ export async function POST(request: Request) {
       {
         archive_item_id: episodeId,
         asset_role: "radio_waveform",
-        bucket_scope: "radio_public",
+        bucket_scope: "public_safe",
         object_key: result.waveform.key,
         public_url: result.waveform.url,
         original_filename: "waveform.json",
@@ -112,13 +165,25 @@ export async function POST(request: Request) {
       },
     ]);
     if (error) throw error;
-    await db
-      .from("comun_radio_episodes")
-      .update({
-        duration_seconds: result.meta.duration,
-        publication_status: "editorial_review",
-      })
-      .eq("archive_item_id", episodeId);
+    const finalized = await db.rpc("comun_finish_radio_processing", {
+      p_episode_id: episodeId,
+      p_duration: result.meta.duration,
+    });
+    if (finalized.error || finalized.data !== true) {
+      await db
+        .from("comun_archive_assets")
+        .delete()
+        .eq("archive_item_id", episodeId)
+        .in("asset_role", ["radio_public_episode", "radio_waveform"]);
+      await Promise.allSettled([
+        getMediaStorage().deleteObject("public_safe", result.audio.key),
+        getMediaStorage().deleteObject("public_safe", result.waveform.key),
+      ]);
+      return NextResponse.json(
+        { error: "O episódio foi retirado durante o processamento." },
+        { status: 409 },
+      );
+    }
     await logComunAdminAction({
       session,
       action: "radio_public_audio_generated",
@@ -135,6 +200,11 @@ export async function POST(request: Request) {
       durationSeconds: result.meta.duration,
     });
   } catch (error) {
+    await db
+      .from("comun_radio_episodes")
+      .update({ publication_status: "editorial_review" })
+      .eq("archive_item_id", episodeId)
+      .eq("publication_status", "audio_processing");
     await logComunAdminAction({
       session,
       action: "radio_processing_failed",

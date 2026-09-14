@@ -3,6 +3,12 @@ import { radioPublicationBlockers } from "./radio";
 import { inspectRadioAudio } from "./radio-audio";
 import { validatePautaModuleConfig } from "./comun/pauta-module-registry";
 describe("radio comunitaria", () => {
+  it("bloqueia duração negativa ou não finita e consentimento ausente", () => {
+    for (const duration of [-1, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(radioPublicationBlockers({ duration })).toContain("duration");
+    }
+    expect(radioPublicationBlockers({})).toContain("voice_consent");
+  });
   it("falha fechada sem audio, credito, consentimento, contexto e acessibilidade", () => {
     expect(
       radioPublicationBlockers({

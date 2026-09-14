@@ -29,8 +29,8 @@ export function ComunSidewalkObservatoryMap({
       .then(([maplibre, { Protocol }]) => {
         if (cancelled || !host.current) return;
         const protocol = new Protocol();
-        maplibre.default.addProtocol("pmtiles", protocol.tile);
-        const map = new maplibre.default.Map({
+        maplibre.addProtocol("pmtiles", protocol.tile);
+        const map = new maplibre.Map({
           container: host.current,
           style: createSidewalkMapLibreStyle(provider),
           center: provider.center,
@@ -45,11 +45,11 @@ export function ComunSidewalkObservatoryMap({
         });
         mapRef.current = map;
         map.addControl(
-          new maplibre.default.NavigationControl({ showCompass: false }),
+          new maplibre.NavigationControl({ showCompass: false }),
           "top-right",
         );
         map.addControl(
-          new maplibre.default.AttributionControl({
+          new maplibre.AttributionControl({
             compact: false,
             customAttribution: provider.attribution,
           }),
@@ -68,7 +68,7 @@ export function ComunSidewalkObservatoryMap({
             );
             marker.onclick = () => onSelect(observation);
             markers.current.push(
-              new maplibre.default.Marker({ element: marker })
+              new maplibre.Marker({ element: marker })
                 .setLngLat(point)
                 .addTo(map),
             );

@@ -135,7 +135,7 @@ jobs:
       - name: Supabase descartável
         run: |
           supabase start
-          supabase db reset --local --yes
+          bash scripts/ci/reset-supabase-local-verified.sh .ci-artifacts/p1-quality-a11y
       - run: npm run build
       - uses: ./.github/actions/setup-playwright-browser
       - name: Núcleo a11y com servidor isolado e monitorado
@@ -190,7 +190,7 @@ jobs:
           COMUN_RELEASE_MANIFEST: supabase/releases/20260724233256-comun-sidewalk-operational-hardening.json
         run: |
           supabase start
-          supabase db reset --local --yes
+          bash scripts/ci/reset-supabase-local-verified.sh .ci-artifacts/quality-performance
           node scripts/comun-local-env.mjs run node scripts/solo/apply-forward-only.mjs --adopt-local-validation-ledger
           npm run audit:rls-matrix
       - uses: ./.github/actions/setup-playwright-browser

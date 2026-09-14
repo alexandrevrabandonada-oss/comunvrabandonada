@@ -28,8 +28,8 @@ export function ComunTerritorialHealthMap({
       .then(([maplibre, { Protocol }]) => {
         if (cancelled || !host.current) return;
         const protocol = new Protocol();
-        maplibre.default.addProtocol("pmtiles", protocol.tile);
-        const map = new maplibre.default.Map({
+        maplibre.addProtocol("pmtiles", protocol.tile);
+        const map = new maplibre.Map({
           container: host.current,
           style: createSidewalkMapLibreStyle(provider),
           center: provider.center,
@@ -40,8 +40,8 @@ export function ComunTerritorialHealthMap({
           attributionControl: false,
         });
         mapRef.current = map;
-        map.addControl(new maplibre.default.NavigationControl({ showCompass: false }), "top-right");
-        map.addControl(new maplibre.default.AttributionControl({ compact: false, customAttribution: provider.attribution }));
+        map.addControl(new maplibre.NavigationControl({ showCompass: false }), "top-right");
+        map.addControl(new maplibre.AttributionControl({ compact: false, customAttribution: provider.attribution }));
         map.on("load", () => {
           for (const point of points) {
             const marker = document.createElement("button");
@@ -50,7 +50,7 @@ export function ComunTerritorialHealthMap({
             marker.textContent = "+";
             marker.setAttribute("aria-label", `Abrir equipamento público de Saúde: ${point.officialName}`);
             marker.onclick = () => onSelect(point.id);
-            markers.current.push(new maplibre.default.Marker({ element: marker })
+            markers.current.push(new maplibre.Marker({ element: marker })
               .setLngLat([point.point.longitude, point.point.latitude])
               .addTo(map));
           }

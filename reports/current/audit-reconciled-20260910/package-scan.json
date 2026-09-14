@@ -1,0 +1,14 @@
+{
+  "base": "1387e1bcecdc4147bb5dad41aa7d541ec97b1497",
+  "head": "0932178165e7d556ada31c56a3b20614757b22ab",
+  "status": "PASS",
+  "checkedCommits": [
+    "0932178165e7d556ada31c56a3b20614757b22ab",
+    "def3d747fa4a8e53bd49e33d9c63225017734489",
+    "f30c4d57d544b68111c0c7a9abf85bf099b8bb48"
+  ],
+  "uniqueHistoricalBlobs": 42,
+  "findings": [],
+  "forbiddenFiles": [],
+  "scope": "Pattern scan of every introduced historical blob plus current changed/untracked export files. No environment files or raw laboratory logs exported. Not a universal absence-of-secrets proof."
+}

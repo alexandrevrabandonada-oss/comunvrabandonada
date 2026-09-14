@@ -1,0 +1,196 @@
+TAP version 13
+# Subtest: Codex mixed impacts are order independent and stronger BUILD rules prevail
+not ok 1 - Codex mixed impacts are order independent and stronger BUILD rules prevail
+  ---
+  duration_ms: 4.5797
+  type: 'test'
+  location: 'D:\\COMUN-M0-R1-20260910\\scripts\\ci\\vercel-build-impact.node-test.mjs:13:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    package.json
+
+    'IGNORE' !== 'BUILD'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'BUILD'
+  actual: 'IGNORE'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///D:/COMUN-M0-R1-20260910/scripts/ci/vercel-build-impact.node-test.mjs:17:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: multiple hard impacts have deterministic decisions and reasons
+not ok 2 - multiple hard impacts have deterministic decisions and reasons
+  ---
+  duration_ms: 2.5172
+  type: 'test'
+  location: 'D:\\COMUN-M0-R1-20260910\\scripts\\ci\\vercel-build-impact.node-test.mjs:22:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+
+      {
+    +   decision: 'BUILD',
+    +   reason: 'dependency-or-build-config-change'
+    -   decision: 'IGNORE',
+    -   reason: 'codex-runtime-awaiting-preview-checkpoint'
+      }
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    decision: 'IGNORE'
+    reason: 'codex-runtime-awaiting-preview-checkpoint'
+  actual:
+    decision: 'BUILD'
+    reason: 'dependency-or-build-config-change'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///D:/COMUN-M0-R1-20260910/scripts/ci/vercel-build-impact.node-test.mjs:26:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: docs-only preview is ignored
+ok 3 - docs-only preview is ignored
+  ---
+  duration_ms: 0.2075
+  type: 'test'
+  ...
+# Subtest: reports-only preview is ignored
+ok 4 - reports-only preview is ignored
+  ---
+  duration_ms: 0.2242
+  type: 'test'
+  ...
+# Subtest: test-only preview is ignored
+ok 5 - test-only preview is ignored
+  ---
+  duration_ms: 0.1553
+  type: 'test'
+  ...
+# Subtest: workflow-only preview is ignored
+ok 6 - workflow-only preview is ignored
+  ---
+  duration_ms: 0.1274
+  type: 'test'
+  ...
+# Subtest: approved operational scripts are ignored
+ok 7 - approved operational scripts are ignored
+  ---
+  duration_ms: 0.1281
+  type: 'test'
+  ...
+# Subtest: runtime and release files require build
+ok 8 - runtime and release files require build
+  ---
+  duration_ms: 0.2332
+  type: 'test'
+  ...
+# Subtest: mixed no-runtime and runtime changes require build
+ok 9 - mixed no-runtime and runtime changes require build
+  ---
+  duration_ms: 0.327
+  type: 'test'
+  ...
+# Subtest: unknown files require build
+ok 10 - unknown files require build
+  ---
+  duration_ms: 0.3611
+  type: 'test'
+  ...
+# Subtest: diff failure requires build
+ok 11 - diff failure requires build
+  ---
+  duration_ms: 0.1749
+  type: 'test'
+  ...
+# Subtest: missing or unsupported Vercel environment requires build
+ok 12 - missing or unsupported Vercel environment requires build
+  ---
+  duration_ms: 0.1301
+  type: 'test'
+  ...
+# Subtest: production classifies safe-only diffs after impact analysis
+ok 13 - production classifies safe-only diffs after impact analysis
+  ---
+  duration_ms: 0.1086
+  type: 'test'
+  ...
+# Subtest: the ignore command itself always requires build
+ok 14 - the ignore command itself always requires build
+  ---
+  duration_ms: 0.0829
+  type: 'test'
+  ...
+# Subtest: git diff falls back closed on invalid revisions
+ok 15 - git diff falls back closed on invalid revisions
+  ---
+  duration_ms: 0.2288
+  type: 'test'
+  ...
+# Subtest: Codex runtime without checkpoint is ignored
+ok 16 - Codex runtime without checkpoint is ignored
+  ---
+  duration_ms: 0.1313
+  type: 'test'
+  ...
+# Subtest: Codex runtime checkpoint requires a Preview build
+ok 17 - Codex runtime checkpoint requires a Preview build
+  ---
+  duration_ms: 0.0959
+  type: 'test'
+  ...
+# Subtest: production and main classify by impact regardless of checkpoint
+ok 18 - production and main classify by impact regardless of checkpoint
+  ---
+  duration_ms: 0.1013
+  type: 'test'
+  ...
+# Subtest: codex migrations, dependencies, CI scripts, config and unknown stay BUILD
+ok 19 - codex migrations, dependencies, CI scripts, config and unknown stay BUILD
+  ---
+  duration_ms: 0.1112
+  type: 'test'
+  ...
+# Subtest: codex safe docs and tests remain IGNORE
+ok 20 - codex safe docs and tests remain IGNORE
+  ---
+  duration_ms: 0.0858
+  type: 'test'
+  ...
+# Subtest: runtime with unavailable commit message fails closed
+ok 21 - runtime with unavailable commit message fails closed
+  ---
+  duration_ms: 0.1415
+  type: 'test'
+  ...
+# Subtest: commit message lookup fails closed and preserves the message
+ok 22 - commit message lookup fails closed and preserves the message
+  ---
+  duration_ms: 0.1661
+  type: 'test'
+  ...
+# Subtest: cumulative diff retains docs and builds when runtime is accumulated
+ok 23 - cumulative diff retains docs and builds when runtime is accumulated
+  ---
+  duration_ms: 0.2358
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 21
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 331.667

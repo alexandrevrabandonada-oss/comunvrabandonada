@@ -1,0 +1,250 @@
+{
+  "base": "1387e1bcecdc4147bb5dad41aa7d541ec97b1497",
+  "sha": "0932178165e7d556ada31c56a3b20614757b22ab",
+  "exactDiffDecision": {
+    "decision": "BUILD",
+    "reason": "unknown-file-class"
+  },
+  "individualFiles": [
+    {
+      "file": ".gitignore",
+      "decision": "BUILD",
+      "reason": "unknown-file-class"
+    },
+    {
+      "file": "app/api/comun/admin/archive/confirm-upload/route.ts",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "app/api/comun/admin/archive/upload-url/route.ts",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "app/api/comun/admin/radio/process/route.ts",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "app/api/internal/security/storage-restore/route.ts",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "app/comun/radio/actions.ts",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "components/comun-sidewalk-observatory-map.tsx",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "components/comun-territorial-health-map.tsx",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "components/sidewalk-maplibre-map.tsx",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "components/sidewalk-real-point-picker.tsx",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "eslint.config.mjs",
+      "decision": "BUILD",
+      "reason": "dependency-or-build-config-change"
+    },
+    {
+      "file": "lib/comun-cultural-progressive-rights.contract.test.ts",
+      "decision": "IGNORE",
+      "reason": "no-runtime-allowlist"
+    },
+    {
+      "file": "lib/comun-cultural-progressive-rights.ts",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "lib/media-storage/fixture.ts",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "lib/media-storage/r2-waveform.test.ts",
+      "decision": "IGNORE",
+      "reason": "no-runtime-allowlist"
+    },
+    {
+      "file": "lib/media-storage/r2.ts",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "lib/media-storage/scopes.test.ts",
+      "decision": "IGNORE",
+      "reason": "no-runtime-allowlist"
+    },
+    {
+      "file": "lib/media-storage/scopes.ts",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "lib/media-storage/supabase-local.test.ts",
+      "decision": "IGNORE",
+      "reason": "no-runtime-allowlist"
+    },
+    {
+      "file": "lib/media-storage/supabase-local.ts",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "lib/radio-actions.test.ts",
+      "decision": "IGNORE",
+      "reason": "no-runtime-allowlist"
+    },
+    {
+      "file": "lib/radio-storage-routes.test.ts",
+      "decision": "IGNORE",
+      "reason": "no-runtime-allowlist"
+    },
+    {
+      "file": "lib/radio.test.ts",
+      "decision": "IGNORE",
+      "reason": "no-runtime-allowlist"
+    },
+    {
+      "file": "lib/radio.ts",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "lib/security/cron-auth.test.ts",
+      "decision": "IGNORE",
+      "reason": "no-runtime-allowlist"
+    },
+    {
+      "file": "lib/security/cron-auth.ts",
+      "decision": "IGNORE",
+      "reason": "codex-runtime-awaiting-preview-checkpoint"
+    },
+    {
+      "file": "next-env.d.ts",
+      "decision": "BUILD",
+      "reason": "unknown-file-class"
+    },
+    {
+      "file": "package-lock.json",
+      "decision": "BUILD",
+      "reason": "dependency-or-build-config-change"
+    },
+    {
+      "file": "package.json",
+      "decision": "BUILD",
+      "reason": "dependency-or-build-config-change"
+    },
+    {
+      "file": "scripts/audit/README-radio-lab.md",
+      "decision": "IGNORE",
+      "reason": "no-runtime-allowlist"
+    },
+    {
+      "file": "scripts/audit/radio-lab-integration.mjs",
+      "decision": "IGNORE",
+      "reason": "no-runtime-allowlist"
+    },
+    {
+      "file": "scripts/audit/radio-lab-migrations.json",
+      "decision": "IGNORE",
+      "reason": "no-runtime-allowlist"
+    },
+    {
+      "file": "scripts/audit/radio-lab.mjs",
+      "decision": "IGNORE",
+      "reason": "no-runtime-allowlist"
+    },
+    {
+      "file": "scripts/ci/comun-central.node-test.mjs",
+      "decision": "BUILD",
+      "reason": "build-script-change"
+    },
+    {
+      "file": "scripts/radio-storage-cycle.mjs",
+      "decision": "BUILD",
+      "reason": "unknown-file-class"
+    },
+    {
+      "file": "scripts/smoke-comun-community-radio.mjs",
+      "decision": "BUILD",
+      "reason": "unknown-file-class"
+    },
+    {
+      "file": "tests/tijolo-45-real-map/real-map.spec.ts",
+      "decision": "IGNORE",
+      "reason": "no-runtime-allowlist"
+    },
+    {
+      "file": "tsconfig.json",
+      "decision": "BUILD",
+      "reason": "dependency-or-build-config-change"
+    },
+    {
+      "file": "vitest.config.ts",
+      "decision": "BUILD",
+      "reason": "dependency-or-build-config-change"
+    }
+  ],
+  "sp0": {
+    "sha": "820a2e75223fff45933caae6e27196123d13f45b",
+    "files": [
+      "docs/architecture/ADR-050-servicos-publicos-controle-popular-sp0.md",
+      "docs/architecture/SERVICOS_PUBLICOS_SP0_LOGICAL_ERD.md",
+      "docs/architecture/SERVICOS_PUBLICOS_SP0_MINIMAL_MIGRATION_PLAN.md",
+      "docs/architecture/SERVICOS_PUBLICOS_SP0_REUSE_INVENTORY.md",
+      "docs/security/SERVICOS_PUBLICOS_SP0_BOUNDARY_THREAT_MODEL.md"
+    ],
+    "onlyFiveMarkdown": true,
+    "diffCheck": "",
+    "classifier": {
+      "decision": "IGNORE",
+      "reason": "no-runtime-allowlist"
+    },
+    "documents": [
+      {
+        "file": "docs/architecture/ADR-050-servicos-publicos-controle-popular-sp0.md",
+        "sha256": "c26b00d689846a8bccae2bf7078c55c5ed815347e7bf373d268201f8b2bac48c"
+      },
+      {
+        "file": "docs/architecture/SERVICOS_PUBLICOS_SP0_LOGICAL_ERD.md",
+        "sha256": "8ccdb865e4b1380f06173b553c0c1596cbc6881ba1e24754a68f5d40ba7c94c5"
+      },
+      {
+        "file": "docs/architecture/SERVICOS_PUBLICOS_SP0_MINIMAL_MIGRATION_PLAN.md",
+        "sha256": "a744adc0669968ba4b1f739c39c11d44a23c67cbb62b86e31cdfa929a7719e17"
+      },
+      {
+        "file": "docs/architecture/SERVICOS_PUBLICOS_SP0_REUSE_INVENTORY.md",
+        "sha256": "ea873e949dde6c5a1b2d4527d6991b793027fe21670e182a06dc6f12b538e167"
+      },
+      {
+        "file": "docs/security/SERVICOS_PUBLICOS_SP0_BOUNDARY_THREAT_MODEL.md",
+        "sha256": "1dfe267cbe02546b14fff445a0a358581fada2f41ef3235facaf36da0ee3ee60"
+      }
+    ]
+  },
+  "remoteWriteExecuted": false,
+  "liveVercelConfiguration": "NOT_INSPECTED",
+  "missingProof": [
+    "Remote integration/project settings and indirect triggers are not certified by local ignoreCommand.",
+    "Dependency/config changes require BUILD even without preview marker.",
+    "Future code transfer needs an independently verified channel that cannot create real Preview; no remote trial performed."
+  ]
+}

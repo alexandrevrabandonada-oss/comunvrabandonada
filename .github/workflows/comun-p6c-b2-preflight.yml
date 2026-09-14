@@ -32,6 +32,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - id: migrations
+        name: Classify changed migration ownership
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-artifacts/p6c-b2-preflight
+          mapfile -t changed < <(git diff --name-only "$PR_BASE_SHA"...HEAD -- supabase/migrations | sort)
+          node scripts/ci/classify-migration-lane.mjs --lane p6c-b2 --files "${changed[@]}" | tee .ci-artifacts/p6c-b2-preflight/migration-classification.env
+          source .ci-artifacts/p6c-b2-preflight/migration-classification.env
+          echo "mode=$COMUN_MIGRATION_LANE_MODE" >> "$GITHUB_OUTPUT"
       - uses: supabase/setup-cli@v1
         with:
           version: 2.113.0
@@ -131,6 +143,7 @@ jobs:
           if(required.some((key)=>s[key]!==true)||s.anonCreate||s.authenticatedCreate||s.anonTransition||s.authenticatedTransition||s.anonWalletAttach||s.authenticatedWalletAttach||s.anonReportsSelect||s.authenticatedReportsSelect||s.anonEventsSelect||s.authenticatedEventsSelect||s.anonClassificationEventsSelect||s.authenticatedClassificationEventsSelect||s.businessRowsRead!==false) throw new Error('COMUN_P6C_B2_BLOCKED_REMOTE_SCHEMA_DRIFT');
           NODE
       - name: Reconcile Calçadas and prove the bounded remote migration plan
+        if: steps.migrations.outputs.mode == 'candidate'
         shell: bash
         run: |
           set -euo pipefail
@@ -144,14 +157,19 @@ jobs:
           trap restore EXIT
           supabase migration list --db-url "$SUPABASE_DB_URL" >.ci-artifacts/p6c-b2-preflight/migration-list.txt 2>&1
           supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p6c-b2-preflight/dry-run.txt 2>&1
-          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+          mapfile -t changed < <(git diff --name-only "${{ github.event.pull_request.base.sha }}"...HEAD -- supabase/migrations | sort)
           mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p6c-b2-preflight/dry-run.txt | sort -u || true)
           test "${#planned[@]}" -eq "${#changed[@]}" || { echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
           for index in "${!planned[@]}"; do
             test "${planned[$index]}" = "$(basename "${changed[$index]}")" || { echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
           done
-          printf '%s\n' "{\"result\":\"COMUN_P6C_B2_REMOTE_PLAN_MATCHES_CURRENT_DIFF\",\"migrationCount\":${#planned[@]},\"businessRowsRead\":false}" >.ci-artifacts/p6c-b2-preflight/migration-plan.json
+          test "${#planned[@]}" -eq 1 || { echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
+          printf '%s\n' '{"result":"COMUN_P6C_B2_REMOTE_PLAN_EXACT_ONE","migrationCount":1,"businessRowsRead":false}' >.ci-artifacts/p6c-b2-preflight/migration-plan.json
           ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/p6c-b2-preflight/dry-run.txt
+      - name: Record non-applicable migration plan
+        if: steps.migrations.outputs.mode == 'not_applicable' || steps.migrations.outputs.mode == 'none'
+        shell: bash
+        run: printf '%s\n' '{"result":"COMUN_P6C_B2_MIGRATION_NOT_APPLICABLE","migrationCount":0,"businessRowsRead":false}' >.ci-artifacts/p6c-b2-preflight/migration-plan.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:

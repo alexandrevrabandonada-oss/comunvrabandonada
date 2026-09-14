@@ -19,10 +19,14 @@ const wave = readFileSync(
   "utf8",
 );
 
-test("C1 preflight is metadata-only and requires an empty migration plan", () => {
+test("C1 preflight is metadata-only and classifies migration ownership", () => {
   assert.match(preflight, /begin read only;/);
   assert.match(preflight, /businessContentRead', false/);
-  assert.match(preflight, /COMUN_48_3_C1_REMOTE_PLAN_EMPTY_GREEN/);
+  assert.match(preflight, /github\.event\.pull_request\.base\.sha/);
+  assert.match(preflight, /classify-migration-lane\.mjs --lane 48-3-c1/);
+  assert.match(preflight, /domainMigrationCount=0/);
+  assert.match(preflight, /foreignKnownPendingCount=/);
+  assert.match(preflight, /COMUN_48_3_C1_REMOTE_PLAN_OWNERSHIP_GREEN/);
   assert.match(preflight, /failedChecks=/);
   assert.match(preflight, /comun_mobilization_actions/);
   assert.doesNotMatch(preflight, /select\s+\*\s+from/i);
@@ -57,10 +61,19 @@ test("C1 rollout binds exact main, preserves prior routes, and rolls back fail c
   assert.match(wave, /COMUN_48_3_C1_WAVE1_CANONICAL_ACTIONS_PRODUCTION_GREEN/);
   assert.match(wave, /COMUN_COLLECTIVE_ACTIONS_V1/);
   assert.match(wave, /COMUN_COLLECTIVE_ACTIONS_DATABASE_URL/);
-  assert.match(activation, /SUPABASE_DB_URL:\s*\$\{\{ secrets\.SUPABASE_DB_URL \}\}/);
-  assert.match(wave, /env add COMUN_COLLECTIVE_ACTIONS_DATABASE_URL production --sensitive/);
+  assert.match(
+    activation,
+    /SUPABASE_DB_URL:\s*\$\{\{ secrets\.SUPABASE_DB_URL \}\}/,
+  );
+  assert.match(
+    wave,
+    /env add COMUN_COLLECTIVE_ACTIONS_DATABASE_URL production --sensitive/,
+  );
   assert.match(wave, /databaseUrlMaterialized=/);
-  assert.match(wave, /env rm COMUN_COLLECTIVE_ACTIONS_DATABASE_URL production --yes/);
+  assert.match(
+    wave,
+    /env rm COMUN_COLLECTIVE_ACTIONS_DATABASE_URL production --yes/,
+  );
   assert.match(wave, /parentFlagConfigured=/);
   assert.match(wave, /databaseUrlConfigured=/);
   assert.match(wave, /parentGateRuntimeReady=/);

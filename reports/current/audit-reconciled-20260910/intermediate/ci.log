@@ -1,0 +1,166 @@
+TAP version 13
+# Subtest: Vercel skips documentation previews but builds runtime and production
+ok 1 - Vercel skips documentation previews but builds runtime and production
+  ---
+  duration_ms: 3.7949
+  type: 'test'
+  ...
+# Subtest: COMUN Central updater never handles database credentials
+ok 2 - COMUN Central updater never handles database credentials
+  ---
+  duration_ms: 0.7946
+  type: 'test'
+  ...
+# Subtest: COMUN Central updater supports the COMUN RETRO process fields
+ok 3 - COMUN Central updater supports the COMUN RETRO process fields
+  ---
+  duration_ms: 0.5848
+  type: 'test'
+  ...
+# Subtest: COMUN Central updater supports an active process repair
+ok 4 - COMUN Central updater supports an active process repair
+  ---
+  duration_ms: 0.4415
+  type: 'test'
+  ...
+# Subtest: CI scripts have valid JavaScript syntax
+ok 5 - CI scripts have valid JavaScript syntax
+  ---
+  duration_ms: 302.1547
+  type: 'test'
+  ...
+# Subtest: docs-only preview is ignored
+ok 6 - docs-only preview is ignored
+  ---
+  duration_ms: 7.1293
+  type: 'test'
+  ...
+# Subtest: reports-only preview is ignored
+ok 7 - reports-only preview is ignored
+  ---
+  duration_ms: 0.3918
+  type: 'test'
+  ...
+# Subtest: test-only preview is ignored
+ok 8 - test-only preview is ignored
+  ---
+  duration_ms: 0.3149
+  type: 'test'
+  ...
+# Subtest: workflow-only preview is ignored
+ok 9 - workflow-only preview is ignored
+  ---
+  duration_ms: 0.2128
+  type: 'test'
+  ...
+# Subtest: approved operational scripts are ignored
+ok 10 - approved operational scripts are ignored
+  ---
+  duration_ms: 0.4718
+  type: 'test'
+  ...
+# Subtest: runtime and release files require build
+ok 11 - runtime and release files require build
+  ---
+  duration_ms: 0.9515
+  type: 'test'
+  ...
+# Subtest: mixed no-runtime and runtime changes require build
+ok 12 - mixed no-runtime and runtime changes require build
+  ---
+  duration_ms: 0.9483
+  type: 'test'
+  ...
+# Subtest: unknown files require build
+ok 13 - unknown files require build
+  ---
+  duration_ms: 0.5411
+  type: 'test'
+  ...
+# Subtest: diff failure requires build
+ok 14 - diff failure requires build
+  ---
+  duration_ms: 0.7085
+  type: 'test'
+  ...
+# Subtest: missing or unsupported Vercel environment requires build
+ok 15 - missing or unsupported Vercel environment requires build
+  ---
+  duration_ms: 0.6518
+  type: 'test'
+  ...
+# Subtest: production classifies safe-only diffs after impact analysis
+ok 16 - production classifies safe-only diffs after impact analysis
+  ---
+  duration_ms: 0.6478
+  type: 'test'
+  ...
+# Subtest: the ignore command itself always requires build
+ok 17 - the ignore command itself always requires build
+  ---
+  duration_ms: 0.2366
+  type: 'test'
+  ...
+# Subtest: git diff falls back closed on invalid revisions
+ok 18 - git diff falls back closed on invalid revisions
+  ---
+  duration_ms: 0.3968
+  type: 'test'
+  ...
+# Subtest: Codex runtime without checkpoint is ignored
+ok 19 - Codex runtime without checkpoint is ignored
+  ---
+  duration_ms: 0.2469
+  type: 'test'
+  ...
+# Subtest: Codex runtime checkpoint requires a Preview build
+ok 20 - Codex runtime checkpoint requires a Preview build
+  ---
+  duration_ms: 0.1777
+  type: 'test'
+  ...
+# Subtest: production and main classify by impact regardless of checkpoint
+ok 21 - production and main classify by impact regardless of checkpoint
+  ---
+  duration_ms: 1.1971
+  type: 'test'
+  ...
+# Subtest: codex migrations, dependencies, CI scripts, config and unknown stay BUILD
+ok 22 - codex migrations, dependencies, CI scripts, config and unknown stay BUILD
+  ---
+  duration_ms: 0.2846
+  type: 'test'
+  ...
+# Subtest: codex safe docs and tests remain IGNORE
+ok 23 - codex safe docs and tests remain IGNORE
+  ---
+  duration_ms: 0.1838
+  type: 'test'
+  ...
+# Subtest: runtime with unavailable commit message fails closed
+ok 24 - runtime with unavailable commit message fails closed
+  ---
+  duration_ms: 0.2859
+  type: 'test'
+  ...
+# Subtest: commit message lookup fails closed and preserves the message
+ok 25 - commit message lookup fails closed and preserves the message
+  ---
+  duration_ms: 0.2821
+  type: 'test'
+  ...
+# Subtest: cumulative diff retains docs and builds when runtime is accumulated
+ok 26 - cumulative diff retains docs and builds when runtime is accumulated
+  ---
+  duration_ms: 0.4019
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 613.5422

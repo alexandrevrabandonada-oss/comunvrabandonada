@@ -1,0 +1,38 @@
+▲ Next.js 16.3.4 (Turbopack)
+✓ Running next.config.mjs took 19ms
+- Experiments (use with caution):
+  · serverActions
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 15.3s
+  Running TypeScript ...
+
+<--- Last few GCs --->
+
+[28608:0000026638B09000]    26933 ms: Scavenge (interleaved) 1530.2 (1563.9) -> 1528.4 (1568.1) MB, pooled: 0 MB, 7.79 / 0.00 ms  (average mu = 0.369, current mu = 0.309) allocation failure;
+[28608:0000026638B09000]    27406 ms: Mark-Compact (reduce) 1532.5 (1568.4) -> 1530.1 (1563.6) MB, pooled: 0 MB, 357.17 / 0.00 ms  (+ 52.7 ms in 0 steps since start of marking, biggest step 0.0 ms, walltime since start of marking 438 ms) (average mu = 0.3
+
+<--- JS stacktrace --->
+
+FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 00007FF7BB857487 node::SetCppgcReference+16583
+ 2: 00007FF7BB7BB1B8 v8::base::CPU::num_virtual_address_bits+103032
+ 3: 00007FF7BC32C011 v8::Isolate::ReportExternalAllocationLimitReached+65
+ 4: 00007FF7BC318B96 v8::Function::Experimental_IsNopFunction+3302
+ 5: 00007FF7BC1754E0 v8::internal::StrongRootAllocatorBase::StrongRootAllocatorBase+33904
+ 6: 00007FF7BC171B6A v8::internal::StrongRootAllocatorBase::StrongRootAllocatorBase+19194
+ 7: 00007FF7BC18800C v8::Isolate::GetHeapProfiler+7692
+ 8: 00007FF7BC18888A v8::Isolate::GetHeapProfiler+9866
+ 9: 00007FF7BC193971 v8::Isolate::GetHeapProfiler+55153
+10: 00007FF7BC1A74EA v8::Isolate::GetHeapProfiler+135914
+11: 00007FF7BC1A77C3 v8::Isolate::GetHeapProfiler+136643
+12: 00007FF7BBF42B33 v8::MemorySpan<std::basic_string_view<char,std::char_traits<char> > const >::end+128899
+13: 00007FF7BBF43942 v8::MemorySpan<std::basic_string_view<char,std::char_traits<char> > const >::end+132498
+14: 00007FF7BBF43235 v8::MemorySpan<std::basic_string_view<char,std::char_traits<char> > const >::end+130693
+15: 00007FF7BBE7030E v8::base::AddressSpaceReservation::AddressSpaceReservation+364062
+16: 00007FF7BC3E74AE v8::PropertyDescriptor::writable+726206
+17: 00007FF7BC3AC768 v8::PropertyDescriptor::writable+485240
+18: 00007FF73D0A1591
+Failed to type check.

@@ -1,0 +1,184 @@
+[
+  {
+    "source": "tmp/final-verification/lint.log",
+    "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "export": "verified/lint.log",
+    "exportSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/final-verification/unit.log",
+    "rawSha256": "2703644a4924dbe3c207668b089bf97a42e0b37cc0a978e049fd99c2b1c612eb",
+    "export": "verified/unit.log",
+    "exportSha256": "1faa98fe14079626636eec2dcff9c235b36d259985c1abd49477556ce16a912f",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/final-verification/ci.log",
+    "rawSha256": "d52925b31af4d36fb9243ffc861d4a2be50c6e735a64df73fe542169c3c41f9f",
+    "export": "verified/ci.log",
+    "exportSha256": "d52925b31af4d36fb9243ffc861d4a2be50c6e735a64df73fe542169c3c41f9f",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/final-verification/ffmpeg.log",
+    "rawSha256": "3cf5659604d56d36f1de857148504a9fbdf9aee56ca486f11de5ec69557188d0",
+    "export": "verified/ffmpeg.log",
+    "exportSha256": "3cf5659604d56d36f1de857148504a9fbdf9aee56ca486f11de5ec69557188d0",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/final-verification/build.log",
+    "rawSha256": "bb2eeeba3c792587f4ab6a46a115a98899815d25b824851a1ba57af1960b8a66",
+    "export": "verified/build.log",
+    "exportSha256": "ff14d52db587718e9ff9af5b3e477365f29219da7a37786507d7c3098313f2e5",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/final-verification/typecheck.log",
+    "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "export": "verified/typecheck.log",
+    "exportSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/final-verification/browser.log",
+    "rawSha256": "b76182fa70463c597294a10a28e3a0c945409917b42b124096b26062d1cc8a4e",
+    "export": "verified/browser.log",
+    "exportSha256": "b76182fa70463c597294a10a28e3a0c945409917b42b124096b26062d1cc8a4e",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/final-verification/results.json",
+    "rawSha256": "502a50c0dfac467c9cd40b6bba836c7256f4f86b4c246663a99b8fc20f0beb87",
+    "export": "verified/results.json",
+    "exportSha256": "502a50c0dfac467c9cd40b6bba836c7256f4f86b4c246663a99b8fc20f0beb87",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/auditor-final-tests.log",
+    "rawSha256": "effa5d9d2a8e1f330c7feae6b4a7000bd5058518ab642c7db759ed6adad2634f",
+    "export": "auditor-final-tests.log",
+    "exportSha256": "8dcc6e1f8eac12bd65c8aeb39e418fabf5db487cb8b569d2616f72f0174d36ee",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/auditor-original-reproduction.log",
+    "rawSha256": "b138fcce74eb496722ee48702c5a7dacb7289a03625da00f7eb7d660fc656f76",
+    "export": "auditor-original-reproduction.log",
+    "exportSha256": "b138fcce74eb496722ee48702c5a7dacb7289a03625da00f7eb7d660fc656f76",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/build-impact-red.log",
+    "rawSha256": "fc608dd53f686967d085565bea9d8ce8b0db780c63846d65c48f6d446999403c",
+    "export": "build-impact-red.log",
+    "exportSha256": "dd511b88bdcf6914e15185632ee9b12c4131ba2b06e46641d39cd4c6a07e50c7",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/community-boundary-red.log",
+    "rawSha256": "b45db64e089dc84ce805d1fa6c4f7a65353b396cd8fed5290772e83c85f5ea5c",
+    "export": "community-boundary-red.log",
+    "exportSha256": "758b0646945108f6b9410636eb74bfde5e4def80fa6ea878ead86a043be5b0f9",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/community-boundary-green.log",
+    "rawSha256": "15114f7b61bffc3dd826be8bc6d3ca01162869519e03063cd7d254ca577784a8",
+    "export": "community-boundary-green.log",
+    "exportSha256": "bb0724f353ba42eab51073fa92c708476719ef539f37cb6843cc3a457d1901af",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/verified-evidence/browser.log",
+    "rawSha256": "b5e92493e89524463824f334582cb669c863e58cb258c24b35c03e6c45723c10",
+    "export": "browser-first-failure.log",
+    "exportSha256": "59e03e18cfc854093a80ae00b08ccb259d3abb7f4fc626f773b51f3ea7ebb03e",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/closure-browser.config.ts",
+    "rawSha256": "5d9442282a8d04d3c95465fc330d69eacfb247873fddb14feb4e5071c3c655d3",
+    "export": "browser-config.txt",
+    "exportSha256": "5d9442282a8d04d3c95465fc330d69eacfb247873fddb14feb4e5071c3c655d3",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/local-auditor.mjs",
+    "rawSha256": "4e8cb1583a1fe7c9418bb7de3485605a2b22a003b9d64afd95def3d022e26c26",
+    "export": "local-auditor.mjs.txt",
+    "exportSha256": "e7df07b7c3d8d5c4e210111fcf5ee9ea79c75bcc91dbdfe478baf3e4fd0912e1",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/verify-m0-final.mjs",
+    "rawSha256": "c8045ebcbd94960f5b53bdd31e3dd0d75013e9b80fe90edf8bb63840e26220a6",
+    "export": "verify-m0.mjs.txt",
+    "exportSha256": "c8045ebcbd94960f5b53bdd31e3dd0d75013e9b80fe90edf8bb63840e26220a6",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/local-http-final/comun-launch-readiness.json",
+    "rawSha256": "d07cef09bf35b3d8799cd8429a270b33f28299956958a78521e9427a91e218f8",
+    "export": "local-http-final/comun-launch-readiness.json",
+    "exportSha256": "d07cef09bf35b3d8799cd8429a270b33f28299956958a78521e9427a91e218f8",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/local-http-final/comun-launch-readiness.md",
+    "rawSha256": "4b0a40886557d49d57031572c93e569063e8c9e764771eed732a1e0636d92a4d",
+    "export": "local-http-final/comun-launch-readiness.md",
+    "exportSha256": "4b0a40886557d49d57031572c93e569063e8c9e764771eed732a1e0636d92a4d",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/local-http-final/execution.json",
+    "rawSha256": "6e5e01ac8c74a884e02519ee9fa75089e92219c6a1f4c2215de6d06eda011885",
+    "export": "local-http-final/execution.json",
+    "exportSha256": "1a8bc7889450733a20bfe742e3561b546e247d0403e4a4b6c853f887acb5717f",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/local-http-before-final/comun-launch-readiness.json",
+    "rawSha256": "f729377b7a7649b90c7c59e022ebc69d72c65ee842af3d0da10dfe1f1a7c68b4",
+    "export": "local-http-before-final/comun-launch-readiness.json",
+    "exportSha256": "f729377b7a7649b90c7c59e022ebc69d72c65ee842af3d0da10dfe1f1a7c68b4",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/local-http-before-final/comun-launch-readiness.md",
+    "rawSha256": "b1ff4b7569d3f683c77e4d4ca733e14e7f430835571595e18b8c8422fee7eaaf",
+    "export": "local-http-before-final/comun-launch-readiness.md",
+    "exportSha256": "b1ff4b7569d3f683c77e4d4ca733e14e7f430835571595e18b8c8422fee7eaaf",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/local-http-before-final/execution.json",
+    "rawSha256": "c732aa5bb060d9eda37243f3b155f8984035f1981b2c4518e015e3a9c545cd6a",
+    "export": "local-http-before-final/execution.json",
+    "exportSha256": "a585dfd5618413537245559baaf6bf2d5c797b4cb0d97f80e934dfb9b33e2adb",
+    "transform": "BOM/ANSI removed; LF; trailing whitespace removed; raw file retained"
+  },
+  {
+    "source": "tmp/npm-audit-main.json",
+    "rawSha256": "33e0b2be2aea7f0ac20e315079414e380c077fd114f0ed2a84ba5890e636b4af",
+    "export": "npm-audit-main.json",
+    "exportSha256": "f9f21dfffd8c4b5c97bae5572e38f4bab6391f45140d69d729d370cb7a954b6b",
+    "transform": "BOM removed; LF; original retained"
+  },
+  {
+    "source": "tmp/npm-audit-system-ca.json",
+    "rawSha256": "4fb4d4f6c51e8c26692ae44cb0ce9cea540388fe63367d21f0431f1adc2e1f15",
+    "export": "npm-audit-candidate.json",
+    "exportSha256": "ba35f763d56f80024b2e09bdbe0b13a4df10caf571f00eca3d31873f606afb59",
+    "transform": "BOM removed; LF; original retained"
+  },
+  {
+    "source": "tmp/npm-audit.json",
+    "rawSha256": "3b0ec0b7042d41a1a5cce76e3504af19861c6b06d2406afc397197ba98ecb558",
+    "export": "npm-audit-initial-error.json",
+    "exportSha256": "3b0ec0b7042d41a1a5cce76e3504af19861c6b06d2406afc397197ba98ecb558",
+    "transform": "BOM removed; LF; original retained"
+  }
+]

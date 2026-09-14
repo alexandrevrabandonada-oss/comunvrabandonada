@@ -87,20 +87,23 @@ function safeKey(key: string) {
 }
 
 export function validateMediaUpload(input: UploadUrlInput) {
-  if (!ALLOWED.has(input.contentType))
+  const radioWaveform = input.scope === "radio_public" &&
+    /^radio-public\/[^/]+\/waveform\.json$/.test(input.key) &&
+    input.contentType === "application/json";
+  if (!ALLOWED.has(input.contentType) && !radioWaveform)
     throw new Error("Tipo de arquivo nao permitido.");
   const ext = input.key.split(".").pop()?.toLowerCase() ?? "";
-  if (!EXTENSIONS[input.contentType]?.includes(ext))
+  if (!EXTENSIONS[input.contentType]?.includes(ext) && !radioWaveform)
     throw new Error("Extensao incompativel com o MIME informado.");
   const max =
-    input.contentType.startsWith("audio/")
+    radioWaveform ? 1024 * 1024 : input.contentType.startsWith("audio/")
       ? 500 * 1024 * 1024
       : input.contentType === "application/pdf"
       ? 50 * 1024 * 1024
       : input.key.includes("/cover/")
         ? 10 * 1024 * 1024
         : 25 * 1024 * 1024;
-  if (input.sizeBytes < 1 || input.sizeBytes > max)
+  if (!Number.isFinite(input.sizeBytes) || input.sizeBytes < 1 || input.sizeBytes > max)
     throw new Error("Arquivo excede o limite permitido.");
   if (
     input.scope === "private_original" &&
