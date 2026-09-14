@@ -25,7 +25,7 @@ const labels: Array<[RegExp, string, string, string]> = [
     "Volta Redonda · pauta vinculada",
     "/comun/pautas/calcadas-em-circulacao",
   ],
-  [/\/pautas\//, "Pauta", "Processo comunitário", "/comun/c/cidade"],
+  [/\/pautas\//, "Pauta", "Processo comunitário", "/comun/pautas"],
   [/\/c\//, "Comunidade", "Quem organiza", "/comun/territorios/volta-redonda"],
   [/\/territorios\//, "Território", "Onde acontece", "/comun/explorar"],
   [/\/caixa-de-entrada/, "Caixa", "Mudanças que pedem atenção", "/comun"],

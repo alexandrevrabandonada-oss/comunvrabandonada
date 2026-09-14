@@ -28,11 +28,6 @@ export default async function SidewalkMemoryPage({
                   href: "/comun/territorios/volta-redonda",
                 },
                 {
-                  kind: "comunidade",
-                  label: "Cidade",
-                  href: "/comun/c/cidade",
-                },
-                {
                   kind: "pauta",
                   label: "Calçadas em circulação",
                   href: `/comun/pautas/${slug}`,

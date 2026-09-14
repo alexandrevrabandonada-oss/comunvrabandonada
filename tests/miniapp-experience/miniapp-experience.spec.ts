@@ -30,7 +30,7 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
     page.getByRole("heading", { name: "Ferramenta desta pauta" }),
   ).toBeVisible();
   await screenshot(page, "pauta", testInfo.project.name);
-  await page.goto("/comun/c/cidade");
+  await page.goto("/comun/c/trabalho");
   await expect(
     page.locator('[data-comun-app-v2-page="community-home"]'),
   ).toBeVisible();
@@ -107,12 +107,20 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
     }),
   ).toBeVisible();
   await expect(page.getByText(/Memória fixture do ensaio local/)).toBeVisible();
+  await expect(
+    page.locator('a[href="/comun/territorios/volta-redonda"]'),
+  ).toHaveCount(2);
+  await expect(
+    page.locator(`a[href="/comun/pautas/${fixture.slug}"]`),
+  ).toHaveCount(2);
+  await expect(page.locator('a[href="/comun/calcadas"]')).toHaveCount(2);
+  await expect(page.locator('a[href="/comun/c/cidade"]')).toHaveCount(0);
   await screenshot(page, "memoria", testInfo.project.name);
   await page.goto("/comun/caixa-de-entrada");
   await expect(page.locator('[data-comun-app-v2-page="inbox"]')).toBeVisible();
   await expect(page.getByRole("heading", { name: "Caixa" })).toBeVisible();
   await screenshot(page, "inbox", testInfo.project.name);
-  await page.goto("/comun/c/cidade");
+  await page.goto("/comun/c/trabalho");
   await expect(
     page.locator('[data-comun-app-v2-page="community-home"]'),
   ).toBeVisible();
@@ -128,7 +136,7 @@ test("@a11y deep links preservam contexto sem bloqueios", async ({
     await readFile(".comun-sidewalk-pilot-slug", "utf8"),
   );
   for (const route of [
-    "/comun/c/cidade",
+    "/comun/c/trabalho",
     "/comun/pautas/calcadas-em-circulacao",
     "/comun/calcadas",
     `/comun/calcadas/registros/${fixture.recordSlug}`,
@@ -168,4 +176,14 @@ test("@a11y deep links preservam contexto sem bloqueios", async ({
       ),
     ).toBe(true);
   }
+});
+
+test("comunidade sintética não é exposta como página pública", async ({
+  page,
+}) => {
+  const response = await page.goto("/comun/c/cidade");
+  expect(response?.status()).toBe(404);
+  await expect(
+    page.locator('[data-comun-app-v2-page="community-home"]'),
+  ).toHaveCount(0);
 });

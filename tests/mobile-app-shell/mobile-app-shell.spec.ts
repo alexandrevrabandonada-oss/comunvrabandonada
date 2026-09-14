@@ -91,7 +91,7 @@ test("@a11y shell mobile não possui bloqueios ou overflow", async ({
     "/comun",
     "/comun/explorar",
     "/comun/territorios/volta-redonda",
-    "/comun/c/cidade",
+    "/comun/c/trabalho",
     "/comun/pautas/calcadas-em-circulacao",
     "/comun/calcadas",
     "/comun/calcadas/registros/demo-human-gate-s37-2-travessia",
