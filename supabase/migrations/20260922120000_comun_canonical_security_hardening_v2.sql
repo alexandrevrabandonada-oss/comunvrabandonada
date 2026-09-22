@@ -1,5 +1,13 @@
 begin;
 
+create temporary table comun_hardening_search_contract on commit drop as
+select p.oid, p.prorettype, p.provolatile, p.proparallel, p.proisstrict,
+       p.proowner, p.proacl, p.proargtypes, p.pronargdefaults,
+       (select pg_catalog.array_agg(t.oid order by t.oid)
+        from pg_catalog.pg_trigger t where t.tgfoid = p.oid) as trigger_oids
+from pg_catalog.pg_proc p
+where p.oid = 'public.comun_public_search_hybrid(text,text,uuid,uuid,extensions.vector,integer)'::pg_catalog.regprocedure;
+
 do $preflight$
 declare
   expected_identities constant text[] := array[
@@ -93,6 +101,17 @@ begin
   if actual_identities is distinct from expected_identities then
     raise exception 'COMUN_SECURITY_HARDENING_V2_PREFLIGHT_IDENTITY_MISMATCH';
   end if;
+  if not exists (
+    select 1 from pg_catalog.pg_proc p
+    where p.oid = 'public.comun_public_search_hybrid(text,text,uuid,uuid,extensions.vector,integer)'::pg_catalog.regprocedure
+      and p.proowner = 'postgres'::pg_catalog.regrole
+      and pg_catalog.has_function_privilege('service_role', p.oid, 'EXECUTE')
+      and not exists (select 1 from pg_catalog.aclexplode(coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))) a where a.grantee = 0 and a.privilege_type = 'EXECUTE')
+      and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      and not pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+  ) then
+    raise exception 'COMUN_SECURITY_HARDENING_V2_SEARCH_EXECUTE_PREFLIGHT_FAILED';
+  end if;
 end
 $preflight$;
 
@@ -132,7 +151,7 @@ alter function public.comun_participation_wallet_redeem(p_recovery_code_hash_hex
 alter function public.comun_participation_wallet_remove_item(p_token_hash_hex text, p_item_id uuid) set search_path = pg_catalog;
 alter function public.comun_participation_wallet_revoke_account(p_token_hash_hex text, p_user_id uuid) set search_path = pg_catalog;
 alter function public.comun_participation_wallet_rotate_recovery(p_token_hash_hex text, p_new_recovery_hash_hex text, p_new_token_hash_hex text) set search_path = pg_catalog;
-CREATE OR REPLACE FUNCTION public.comun_public_search_hybrid(p_query text, p_type text DEFAULT NULL::text, p_pauta_id uuid DEFAULT NULL::uuid, p_territory_id uuid DEFAULT NULL::uuid, p_query_embedding vector DEFAULT NULL::vector, p_limit integer DEFAULT 20)
+CREATE OR REPLACE FUNCTION public.comun_public_search_hybrid(p_query text, p_type text DEFAULT NULL::text, p_pauta_id uuid DEFAULT NULL::uuid, p_territory_id uuid DEFAULT NULL::uuid, p_query_embedding extensions.vector DEFAULT NULL::extensions.vector, p_limit integer DEFAULT 20)
  RETURNS TABLE(type text, title text, summary text, href text, origin text, updated_at timestamp with time zone, match_reason text)
  LANGUAGE sql
  STABLE SECURITY DEFINER
@@ -191,6 +210,12 @@ AS $function$
     r.source_date desc nulls last, r.title
   limit (select lim from input)
 $function$;
+revoke all on function public.comun_public_search_hybrid(
+  text, text, uuid, uuid, extensions.vector, integer
+) from public, anon, authenticated;
+grant execute on function public.comun_public_search_hybrid(
+  text, text, uuid, uuid, extensions.vector, integer
+) to service_role;
 alter function public.comun_record_quality_metric(p_metric_name text, p_route_class text, p_device_class text, p_app_version text, p_value_bucket integer, p_rating text) set search_path = pg_catalog;
 alter function public.comun_record_search_metric(p_search_kind text, p_outcome text, p_query_size_band text, p_latency_band text, p_confidence_band text, p_model_version text) set search_path = pg_catalog;
 alter function public.comun_relata_add_location(p_protocol text, p_receipt_secret text, p_origin text, p_accuracy_class text, p_captured_at timestamp with time zone, p_ciphertext bytea, p_nonce bytea, p_auth_tag bytea, p_key_version text, p_approximate_region text, p_approximation_level text, p_geographic_risk text) set search_path = pg_catalog;
@@ -322,6 +347,27 @@ begin
   );
   if hardened_count <> cardinality(expected_identities) or remaining_count <> 0 then
     raise exception 'COMUN_SECURITY_HARDENING_V2_POSTFLIGHT_FAILED';
+  end if;
+  if not exists (
+    select 1 from pg_catalog.pg_proc p
+    join pg_temp.comun_hardening_search_contract before on before.oid = p.oid
+    where p.oid = 'public.comun_public_search_hybrid(text,text,uuid,uuid,extensions.vector,integer)'::pg_catalog.regprocedure
+      and p.proowner = 'postgres'::pg_catalog.regrole
+      and p.prosecdef and p.proconfig = array['search_path=pg_catalog']
+      and (p.prorettype, p.provolatile, p.proparallel, p.proisstrict,
+           p.proowner, p.proacl, p.proargtypes, p.pronargdefaults)
+          is not distinct from
+          (before.prorettype, before.provolatile, before.proparallel, before.proisstrict,
+           before.proowner, before.proacl, before.proargtypes, before.pronargdefaults)
+      and (select pg_catalog.array_agg(t.oid order by t.oid)
+           from pg_catalog.pg_trigger t where t.tgfoid = p.oid)
+          is not distinct from before.trigger_oids
+      and pg_catalog.has_function_privilege('service_role', p.oid, 'EXECUTE')
+      and not exists (select 1 from pg_catalog.aclexplode(coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))) a where a.grantee = 0 and a.privilege_type = 'EXECUTE')
+      and not pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE')
+      and not pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE')
+  ) then
+    raise exception 'COMUN_SECURITY_HARDENING_V2_SEARCH_EXECUTE_POSTFLIGHT_FAILED';
   end if;
 end
 $postflight$;

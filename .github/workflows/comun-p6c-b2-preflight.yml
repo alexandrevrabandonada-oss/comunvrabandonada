@@ -13,6 +13,10 @@ on:
       - "lib/comun-wallet-**"
       - "lib/server/comun-child-protection-**"
       - "supabase/migrations/**"
+      - "scripts/ci/classify-migration-lane.mjs"
+      - "scripts/ci/classify-migration-lane.node-test.mjs"
+      - "scripts/ci/check-p6c-migration-plan.mjs"
+      - "scripts/ci/check-p6c-migration-plan.node-test.mjs"
   workflow_dispatch:
 
 permissions:
@@ -28,6 +32,7 @@ jobs:
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,8 +47,7 @@ jobs:
           test -n "${SUPABASE_DB_URL:-}"
           test -n "${SUPABASE_PROJECT_REF:-}"
           case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
-          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
-          test -z "$(git diff --name-only origin/main...HEAD -- supabase/migrations/20260810171448_comun_child_protection_private_routing.sql)"
+          node scripts/ci/check-p6c-migration-plan.mjs --lane p6c-b2 --base "$PR_BASE_SHA"
       - name: Inspect P6C-B2 schema metadata without business-row reads
         shell: bash
         run: |
@@ -144,13 +148,7 @@ jobs:
           trap restore EXIT
           supabase migration list --db-url "$SUPABASE_DB_URL" >.ci-artifacts/p6c-b2-preflight/migration-list.txt 2>&1
           supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p6c-b2-preflight/dry-run.txt 2>&1
-          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
-          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p6c-b2-preflight/dry-run.txt | sort -u || true)
-          test "${#planned[@]}" -eq "${#changed[@]}" || { echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
-          for index in "${!planned[@]}"; do
-            test "${planned[$index]}" = "$(basename "${changed[$index]}")" || { echo COMUN_P6C_B2_BLOCKED_UNEXPECTED_MIGRATION_PLAN; exit 1; }
-          done
-          printf '%s\n' "{\"result\":\"COMUN_P6C_B2_REMOTE_PLAN_MATCHES_CURRENT_DIFF\",\"migrationCount\":${#planned[@]},\"businessRowsRead\":false}" >.ci-artifacts/p6c-b2-preflight/migration-plan.json
+          node scripts/ci/check-p6c-migration-plan.mjs --lane p6c-b2 --base "$PR_BASE_SHA" --dry-run .ci-artifacts/p6c-b2-preflight/dry-run.txt --output .ci-artifacts/p6c-b2-preflight/migration-plan.json
           ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/p6c-b2-preflight/dry-run.txt
       - uses: actions/upload-artifact@v4
         if: always()

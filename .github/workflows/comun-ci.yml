@@ -63,6 +63,7 @@ jobs:
         run: |
           node --test scripts/ci/validate-security-definer-migrations.node-test.mjs
           node scripts/ci/validate-security-definer-migrations.mjs --base=origin/main
+          npm run db:privileges:lint
 
   p4-sidewalk-relata-e2e:
     name: COMUN P4 / sidewalk Relata review E2E
