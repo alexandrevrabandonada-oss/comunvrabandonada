@@ -44,6 +44,26 @@ permissions:
   pull-requests: write
 
 jobs:
+  security-definer-migrations:
+    name: SECURITY / changed SECURITY DEFINER migrations
+    if: >-
+      (github.event_name == 'pull_request' && github.event.action != 'closed') ||
+      github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+      - name: Refresh canonical main reference
+        run: git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+      - name: Validate changed SECURITY DEFINER functions fail closed
+        run: |
+          node --test scripts/ci/validate-security-definer-migrations.node-test.mjs
+          node scripts/ci/validate-security-definer-migrations.mjs --base=origin/main
+
   p4-sidewalk-relata-e2e:
     name: COMUN P4 / sidewalk Relata review E2E
     if: >-
@@ -1782,6 +1802,7 @@ jobs:
           node scripts/solo/schema-fingerprint.mjs --container="$container" > /tmp/comun-hash-1
           node scripts/db/test-collective-actions-local.mjs
           npm run audit:rls-matrix
+          npm run security:findings:zero:local
           node scripts/solo/schema-fingerprint.mjs --container="$container" > /tmp/comun-hash-2
           diff -u /tmp/comun-hash-1 /tmp/comun-hash-2
       - name: Build application for production-like suites

@@ -1,0 +1,22 @@
+{
+  "release": "20260922120000-canonical-security-hardening-v2",
+  "migration": "supabase/migrations/20260922120000_comun_canonical_security_hardening_v2.sql",
+  "migrationSha256": "202826c1b70cb5246f9fcabea00afb509ffc4938087f7303231807a76cb6c121",
+  "expectedPreFingerprint": "5e9bea5b30676f45d7049342a6ef1133b929e484fe841ae14a2fdbb2bd0cc5f9",
+  "expectedPostFingerprint": "4f0a3672fb5dbf31e25d87b7a90fe11f5a3e0d66a37fcbabd487c460d6cb4c94",
+  "destructiveSql": false,
+  "requiresPromotion": true,
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "releaseLedger": "public.comun_schema_releases",
+  "assertions": [
+    "all 74 enumerated SECURITY DEFINER functions have search_path=pg_catalog",
+    "owners, signatures, grants and trigger bindings are preserved; one body is schema-qualified without behavioral change",
+    "no business rows are read or written",
+    "replay revalidates the complete security gate"
+  ],
+  "changedObjects": [
+    "configuration of 74 enumerated public SECURITY DEFINER functions",
+    "public.comun_schema_releases"
+  ]
+}
