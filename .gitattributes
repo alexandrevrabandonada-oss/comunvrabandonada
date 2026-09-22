@@ -1,1 +1,1 @@
-supabase/migrations/*.sql text eol=lf
+supabase/migrations/20260922120000_comun_canonical_security_hardening_v2.sql text eol=lf
