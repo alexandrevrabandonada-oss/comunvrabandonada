@@ -1,7 +1,7 @@
 {
   "release": "20260922120000-canonical-security-hardening-v2",
   "migration": "supabase/migrations/20260922120000_comun_canonical_security_hardening_v2.sql",
-  "migrationSha256": "202826c1b70cb5246f9fcabea00afb509ffc4938087f7303231807a76cb6c121",
+  "migrationSha256": "783ae403f1f6d5bfe6041eae0b43e88c8ee3bb6cfd532c8ebd95d625f20f0411",
   "expectedPreFingerprint": "5e9bea5b30676f45d7049342a6ef1133b929e484fe841ae14a2fdbb2bd0cc5f9",
   "expectedPostFingerprint": "4f0a3672fb5dbf31e25d87b7a90fe11f5a3e0d66a37fcbabd487c460d6cb4c94",
   "destructiveSql": false,
