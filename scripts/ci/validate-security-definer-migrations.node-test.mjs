@@ -30,6 +30,15 @@ test("accepts fixed path with qualified relations and extension calls", () => {
   );
 });
 
+test("accepts AS on the same line after pg_catalog", () => {
+  assert.equal(
+    validateMigrationText(
+      "create function public.example() returns integer language sql security definer set search_path=pg_catalog as $$ select 1 $$;",
+    ),
+    1,
+  );
+});
+
 test("requires an explicit pg_catalog-only path", () => {
   assert.throws(
     () => validateMigrationText(functionSql("select 1", "pg_catalog, public")),

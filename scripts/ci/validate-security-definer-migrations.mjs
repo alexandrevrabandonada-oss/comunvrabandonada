@@ -59,22 +59,29 @@ export function validateSecurityDefinerStatement(
   statement,
   source = "migration.sql",
 ) {
-  if (!/^\s*create\s+(?:or\s+replace\s+)?function\b/i.test(statement))
+  const executable = statement.replace(
+    /^\s*(?:(?:--[^\n]*(?:\n|$))|(?:\/\*[\s\S]*?\*\/\s*))*/,
+    "",
+  );
+  if (!/^\s*create\s+(?:or\s+replace\s+)?function\b/i.test(executable))
     return false;
-  if (!/\bsecurity\s+definer\b/i.test(statement)) return false;
+  if (!/\bsecurity\s+definer\b/i.test(executable)) return false;
   const paths = [
-    ...statement.matchAll(/\bset\s+search_path\s*(?:=|to)\s*([^\n\r;]+)/gi),
+    ...executable.matchAll(/\bset\s+search_path\s*(?:=|to)\s*([^\n\r;]+)/gi),
   ];
   if (paths.length !== 1)
     marker("COMUN_SECURITY_DEFINER_SEARCH_PATH_REQUIRED", source);
-  const normalized = paths[0][1]
+  const pathValue = paths[0][1].split(
+    /\s+(?:as|language|immutable|stable|volatile|security|strict|parallel|cost|rows|support|transform|window|leakproof)\b/i,
+  )[0];
+  const normalized = pathValue
     .replace(/["']/g, "")
     .replace(/\s+/g, "")
     .toLowerCase();
   if (normalized !== "pg_catalog")
     marker("COMUN_SECURITY_DEFINER_SEARCH_PATH_UNSAFE", source);
 
-  const body = statement.match(
+  const body = executable.match(
     /\$[A-Za-z0-9_]*\$([\s\S]*)\$[A-Za-z0-9_]*\$/,
   )?.[1];
   if (body === undefined)
