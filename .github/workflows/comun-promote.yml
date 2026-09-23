@@ -190,7 +190,52 @@ jobs:
             exit "$status"
           fi
           printf '%s\n' "$output"
-      - name: Remote postflight, DB lint, RLS and cleanup dry-run
+      - name: PR437 postflight Production capture read-only
+        if: needs.authorize.outputs.pr == '437'
+        id: pr437_post_capture
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+        run: |
+          node scripts/solo/capture-promotion-fingerprint.mjs --output=canonical-postflight-capture.json
+          node scripts/solo/check-pr437-promotion-preflight.mjs \
+            --capture=canonical-postflight-capture.json \
+            --output="canonical-postflight-diff-${{ needs.authorize.outputs.sha }}.json"
+          node -e "const d=require('./canonical-postflight-diff-${{ needs.authorize.outputs.sha }}.json'); if(d.state!=='POST_ALREADY_APPLIED') process.exit(1)"
+          mkdir -p .pr437-production-capture
+          cp canonical-postflight-capture.json .pr437-production-capture/comun-pr437-promotion-fingerprint.json
+          echo "sha256=$(sha256sum canonical-postflight-capture.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+      - name: PR437 postflight disposable search proof
+        if: needs.authorize.outputs.pr == '437'
+        env:
+          COMUN_PRODUCTION_CAPTURE_SHA256: ${{ steps.pr437_post_capture.outputs.sha256 }}
+          COMUN_RUN_SHA: ${{ needs.authorize.outputs.sha }}
+        run: |
+          bash scripts/solo/run-pr437-disposable-proof.sh
+          node -e "const d=require('./.pr437-proof/comun-pr437-search-sync-remote-disposable-proof.json'); if(d.status!=='GREEN'||d.marker!=='SEARCH_SYNC_RUNTIME_CONTRACT_PROVED') process.exit(1); console.log(d.marker)"
+      - uses: actions/upload-artifact@v4
+        if: always() && needs.authorize.outputs.pr == '437'
+        with:
+          name: comun-pr437-promotion-postflight-${{ needs.authorize.outputs.sha }}
+          path: |
+            canonical-postflight-capture.json
+            canonical-postflight-diff-${{ needs.authorize.outputs.sha }}.json
+            .pr437-proof/comun-pr437-search-sync-remote-disposable-proof.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: PR437 schema reload and cleanup dry-run after proven postflight
+        if: needs.authorize.outputs.pr == '437'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          COMUN_SIDEWALK_CLEANUP_ALLOWED_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          docker run --rm postgres:17 psql "$SUPABASE_DB_URL" -X -v ON_ERROR_STOP=1 -c "notify pgrst, 'reload schema';"
+          node scripts/cleanup-comun-sidewalk-uploads.mjs --allow-non-local --project-ref="$SUPABASE_PROJECT_REF"
+      - name: Remote postflight, DB lint, schema reload and cleanup dry-run
+        if: needs.authorize.outputs.pr != '437'
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}

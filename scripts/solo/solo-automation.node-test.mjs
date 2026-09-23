@@ -133,6 +133,32 @@ test("remote lint uses the allowlisted database URL without an admin access toke
   assert.doesNotMatch(workflow, /SUPABASE_ACCESS_TOKEN/);
 });
 
+test("PR437 promotion postflight reuses read-only capture and disposable proof", () => {
+  const workflow = readFileSync(".github/workflows/comun-promote.yml", "utf8");
+  const capture = workflow
+    .split("      - name: PR437 postflight Production capture read-only")[1]
+    ?.split("      - name: PR437 postflight disposable search proof")[0];
+  const proof = workflow
+    .split("      - name: PR437 postflight disposable search proof")[1]
+    ?.split("      - uses: actions/upload-artifact@v4")[0];
+  const legacy = workflow
+    .split("      - name: Remote postflight, DB lint, schema reload and cleanup dry-run")[1]
+    ?.split("      - name: Validate immutable Vercel preview")[0];
+  assert.ok(capture);
+  assert.ok(proof);
+  assert.ok(legacy);
+  assert.match(capture, /if: needs\.authorize\.outputs\.pr == '437'/);
+  assert.match(capture, /PGOPTIONS: -c default_transaction_read_only=on/);
+  assert.match(capture, /POST_ALREADY_APPLIED/);
+  assert.match(proof, /run-pr437-disposable-proof\.sh/);
+  assert.match(proof, /SEARCH_SYNC_RUNTIME_CONTRACT_PROVED/);
+  assert.doesNotMatch(
+    proof,
+    /SUPABASE_DB_URL|run-production-db-lint-gate|supabase db lint|notify pgrst/i,
+  );
+  assert.match(legacy, /if: needs\.authorize\.outputs\.pr != '437'/);
+  assert.match(legacy, /run-production-db-lint-gate\.mjs/);
+});
 test("Vercel production validation uses GitHub integration and canonical alias", () => {
   const checkpoint = readFileSync("scripts/solo/create-checkpoint.mjs", "utf8");
   const monitor = readFileSync("scripts/solo/monitor-production.mjs", "utf8");
