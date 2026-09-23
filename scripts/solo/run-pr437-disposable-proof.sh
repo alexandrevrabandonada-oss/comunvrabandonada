@@ -2,9 +2,9 @@
 set -euo pipefail
 
 test -z "${SUPABASE_DB_URL+x}" || { echo COMUN_DISPOSABLE_PRODUCTION_SECRET_PRESENT; exit 1; }
-test "${COMUN_RUN_SHA:-}" =~ ^[a-f0-9]{40}$ || { echo COMUN_DISPOSABLE_RUN_SHA_INVALID; exit 1; }
-test "${GITHUB_RUN_ID:-}" =~ ^[0-9]+$ || { echo COMUN_DISPOSABLE_RUN_ID_INVALID; exit 1; }
-test "${COMUN_PRODUCTION_CAPTURE_SHA256:-}" =~ ^[a-f0-9]{64}$ || { echo COMUN_DISPOSABLE_CAPTURE_HASH_MISSING; exit 1; }
+[[ "${COMUN_RUN_SHA:-}" =~ ^[a-f0-9]{40}$ ]] || { echo COMUN_DISPOSABLE_RUN_SHA_INVALID; exit 1; }
+[[ "${GITHUB_RUN_ID:-}" =~ ^[0-9]+$ ]] || { echo COMUN_DISPOSABLE_RUN_ID_INVALID; exit 1; }
+[[ "${COMUN_PRODUCTION_CAPTURE_SHA256:-}" =~ ^[a-f0-9]{64}$ ]] || { echo COMUN_DISPOSABLE_CAPTURE_HASH_MISSING; exit 1; }
 
 fixture=tests/fixtures/pr437-post
 artifact=.pr437-proof
