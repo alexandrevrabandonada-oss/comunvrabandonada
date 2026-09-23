@@ -378,11 +378,12 @@ test("preview and production validate PMTiles Range in the correct domain order"
   const workflow = readFileSync(".github/workflows/comun-promote.yml", "utf8");
   const preview = readFileSync("scripts/solo/verify-preview.mjs", "utf8");
   const monitor = readFileSync("scripts/solo/monitor-production.mjs", "utf8");
-  assert.match(
-    preview,
-    /requiredChecks = \["FAST \/ COMUN_CI_GREEN", "FULL \/ COMUN_CI_GREEN", "Vercel"\]/,
-  );
-  assert.doesNotMatch(preview, /const failed = checks\.filter/);
+  assert.match(preview, /check\.name === "Vercel" && check\.state === "SUCCESS"/);
+  assert.match(preview, /actions\/workflows\/comun-ci\.yml\/runs/);
+  assert.match(preview, /run\.head_sha === process\.env\.SHA/);
+  assert.match(preview, /run\.conclusion === "success"/);
+  assert.match(preview, /SOLO_PREVIEW_CHECKS_NOT_GREEN:COMUN_CI/);
+  assert.doesNotMatch(preview, /FAST \/ COMUN_CI_GREEN|FULL \/ COMUN_CI_GREEN/);
   assert.match(preview, /deployments\?sha=\$\{process\.env\.SHA\}/);
   assert.match(preview, /statuses\.find/);
   assert.match(preview, /inspectDeployment/);

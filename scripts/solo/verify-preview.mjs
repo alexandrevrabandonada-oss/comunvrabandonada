@@ -105,12 +105,31 @@ function attestGithubDeployment(githubDeployment, successfulStatus) {
 let activeRoute = "inspect";
 try {
   const checks = JSON.parse(api(["pr", "checks", process.env.PR, "--json", "name,state,link"]));
-  const requiredChecks = ["FAST / COMUN_CI_GREEN", "FULL / COMUN_CI_GREEN", "Vercel"];
-  const missingOrFailed = requiredChecks.filter(
-    (name) => !checks.some((check) => check.name === name && check.state === "SUCCESS"),
+  const vercelGreen = checks.some(
+    (check) => check.name === "Vercel" && check.state === "SUCCESS",
   );
-  if (missingOrFailed.length) {
-    throw new Error(`SOLO_PREVIEW_CHECKS_NOT_GREEN:${missingOrFailed.join(",")}`);
+  if (!vercelGreen) throw new Error("SOLO_PREVIEW_CHECKS_NOT_GREEN:Vercel");
+
+  const ciRuns = JSON.parse(
+    api([
+      "api",
+      "-X",
+      "GET",
+      `repos/${repository}/actions/workflows/comun-ci.yml/runs`,
+      "-f",
+      `head_sha=${process.env.SHA}`,
+      "-f",
+      "status=completed",
+      "-f",
+      "per_page=20",
+    ]),
+  );
+  const canonicalCiGreen = (ciRuns.workflow_runs ?? []).some(
+    (run) =>
+      run.head_sha === process.env.SHA && run.conclusion === "success",
+  );
+  if (!canonicalCiGreen) {
+    throw new Error("SOLO_PREVIEW_CHECKS_NOT_GREEN:COMUN_CI");
   }
 
   const deployments = JSON.parse(
