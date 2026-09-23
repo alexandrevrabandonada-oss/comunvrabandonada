@@ -21,8 +21,6 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci --ignore-scripts
-      - uses: supabase/setup-cli@v1
-        with: { version: 2.109.1 }
       - name: Capture Production catalog fingerprints in a read-only transaction
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
@@ -39,12 +37,9 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: node scripts/solo/verify-search-sync-temp-table-lint.mjs --output=comun-pr437-search-pragma-lint.json
-      - name: Run strict full database lint gate
-        id: lint
-        continue-on-error: true
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: node scripts/solo/run-production-db-lint-gate.mjs --output=comun-pr437-strict-db-lint.json
+      - name: Record strict lint as blocked without transaction-local Production DDL
+        run: |
+          node -e "require('fs').writeFileSync('comun-pr437-strict-db-lint.json', JSON.stringify({scope:'COMUN_PR437_STRICT_DB_LINT_GATE',status:'BLOCKED',marker:'COMUN_DB_LINT_REQUIRES_TRANSACTIONAL_EXTENSION',historicalRun:35896837438},null,2)+'\n')"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -56,9 +51,10 @@ jobs:
             comun-pr437-strict-db-lint.json
           retention-days: 7
           if-no-files-found: warn
-      - name: Require pragma-aware and strict lint gates
+      - name: Require pragma-aware proof and explicit lint disposition
         if: always()
         env:
           PRAGMA_OUTCOME: ${{ steps.pragma.outcome }}
-          LINT_OUTCOME: ${{ steps.lint.outcome }}
-        run: test "$PRAGMA_OUTCOME" = success && test "$LINT_OUTCOME" = success
+        run: |
+          test "$PRAGMA_OUTCOME" = success
+          node -e "const d=require('./comun-pr437-strict-db-lint.json'); if(d.status!=='GREEN') process.exit(1)"

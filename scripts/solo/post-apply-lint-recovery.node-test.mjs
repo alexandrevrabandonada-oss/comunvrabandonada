@@ -239,4 +239,9 @@ test("recovery code keeps Production checkers read-only and preserves migration 
     "utf8",
   );
   assert.doesNotMatch(workflow, /workflow_dispatch|comun:promover/);
+  assert.doesNotMatch(
+    workflow,
+    /supabase\/setup-cli|run-production-db-lint-gate|supabase db lint|CREATE EXTENSION/i,
+  );
+  assert.match(workflow, /COMUN_DB_LINT_REQUIRES_TRANSACTIONAL_EXTENSION/);
 });
