@@ -6,6 +6,7 @@ import {
   buildDocuments,
   query as canonicalQuery,
 } from "../db/verify-canonical-baseline.mjs";
+import { inspectPragmaCatalog } from "./verify-search-sync-temp-table-lint.mjs";
 
 const connectionString = process.env.SUPABASE_DB_URL;
 const output = process.argv
@@ -15,12 +16,11 @@ if (!connectionString || !output)
   throw new Error("CAPTURE_CONNECTION_OR_OUTPUT_MISSING");
 
 const client = new pg.Client({ connectionString });
-const release = JSON.parse(
-  await readFile(
-    "supabase/releases/20260922120000-canonical-security-hardening-v2.json",
-    "utf8",
-  ),
+const manifestText = await readFile(
+  "supabase/releases/20260922120000-canonical-security-hardening-v2.json",
+  "utf8",
 );
+const release = JSON.parse(manifestText);
 await client.connect();
 try {
   await client.query("BEGIN READ ONLY");
@@ -29,6 +29,16 @@ try {
   );
   if (mode.rows[0]?.value !== "on")
     throw new Error("CAPTURE_TRANSACTION_NOT_READ_ONLY");
+  const extensionCatalog = await inspectPragmaCatalog(client);
+  const searchIdentity = await client.query(
+    String.raw`select l.lanname as language, p.prosecdef as security_definer,
+      p.proconfig as config, pg_get_userbyid(p.proowner) as owner,
+      regexp_replace(pg_get_functiondef(p.oid), '\s+', ' ', 'g') as definition
+      from pg_proc p join pg_language l on l.oid=p.prolang
+      where p.oid=to_regprocedure('public.comun_sync_public_search_projection()')`,
+  );
+  const search = searchIdentity.rows[0];
+  if (!search) throw new Error("CAPTURE_SEARCH_FUNCTION_MISSING");
   const runnerRows = await client.query(schemaFingerprintQuery);
   const normalized = runnerRows.rows
     .map((row) => Object.values(row)[0])
@@ -94,6 +104,30 @@ try {
     consentObjectCount: consentObjects.rows[0]?.count,
     releasePresent,
     releaseLedgerState,
+    postgresVersion: extensionCatalog.postgresVersion,
+    plpgsqlCheckCatalog: {
+      name: "plpgsql_check",
+      installed: extensionCatalog.installedExtension,
+      available: extensionCatalog.availableExtension,
+      versions: extensionCatalog.availableVersions,
+    },
+    searchFunction: {
+      identity: "public.comun_sync_public_search_projection()",
+      language: search.language,
+      owner: search.owner,
+      securityDefiner: search.security_definer,
+      config: search.config,
+      definitionSha256: createHash("sha256")
+        .update(search.definition)
+        .digest("hex"),
+    },
+    releaseIdentity: {
+      release: release.release,
+      migration: release.migration,
+      migrationSha256: release.migrationSha256,
+      manifestSha256: createHash("sha256").update(manifestText).digest("hex"),
+      expectedPostFingerprint: release.expectedPostFingerprint,
+    },
     publicRelations: canonical.canonical.relations
       .map((item) => item.name)
       .sort(),

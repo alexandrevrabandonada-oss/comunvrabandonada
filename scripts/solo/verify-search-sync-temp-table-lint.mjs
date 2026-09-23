@@ -24,6 +24,12 @@ export async function inspectPragmaCatalog(client) {
                                  'installedVersion', installed_version)
        from pg_available_extensions where name='plpgsql_check') as available_extension,
       coalesce((select jsonb_agg(jsonb_build_object(
+        'name', name, 'version', version, 'installed', installed,
+        'superuser', superuser, 'trusted', trusted,
+        'relocatable', relocatable) order by version)
+       from pg_available_extension_versions where name='plpgsql_check'),
+       '[]'::jsonb) as available_versions,
+      coalesce((select jsonb_agg(jsonb_build_object(
         'schema', n.nspname, 'signature', p.oid::regprocedure::text,
         'argumentTypes', pg_get_function_identity_arguments(p.oid),
         'argumentNames', coalesce(p.proargnames, array[]::text[]),
@@ -42,6 +48,7 @@ export async function inspectPragmaCatalog(client) {
     postgresVersion: row.postgres_version,
     installedExtension: row.installed_extension,
     availableExtension: row.available_extension,
+    availableVersions: row.available_versions,
     functions: row.functions,
   };
 }
