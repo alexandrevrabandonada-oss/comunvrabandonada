@@ -1,0 +1,33 @@
+name: COMUN PR437 Promotion Fingerprint
+
+on:
+  pull_request:
+    types: [synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    if: github.event.pull_request.number == 437 && github.head_ref == 'codex/security-hardening-v2'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Capture Production catalog fingerprints in a read-only transaction
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: node scripts/solo/capture-promotion-fingerprint.mjs --output=comun-pr437-promotion-fingerprint.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-pr437-promotion-fingerprint-${{ github.event.pull_request.head.sha }}
+          path: comun-pr437-promotion-fingerprint.json
+          retention-days: 7
+          if-no-files-found: error
