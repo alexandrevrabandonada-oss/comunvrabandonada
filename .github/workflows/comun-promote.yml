@@ -120,6 +120,23 @@ jobs:
           echo COMUN_SECRET_CONTRACT_OK
       - name: Validate forward-only SQL before any remote access
         run: npm run solo:sql:validate
+      - name: Canonical Production preflight
+        if: needs.authorize.outputs.pr == '437'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          APP_SHA: ${{ needs.authorize.outputs.sha }}
+        run: |
+          node scripts/solo/capture-promotion-fingerprint.mjs --output=canonical-preflight-capture.json
+          node scripts/solo/check-pr437-promotion-preflight.mjs \
+            --capture=canonical-preflight-capture.json \
+            --output="canonical-preflight-diff-${APP_SHA}.json"
+      - uses: actions/upload-artifact@v4
+        if: always() && needs.authorize.outputs.pr == '437'
+        with:
+          name: canonical-preflight-diff-${{ needs.authorize.outputs.sha }}
+          path: canonical-preflight-diff-${{ needs.authorize.outputs.sha }}.json
+          retention-days: 7
+          if-no-files-found: warn
       - name: Create sanitized pre-promotion checkpoint
         env:
           GH_TOKEN: ${{ github.token }}

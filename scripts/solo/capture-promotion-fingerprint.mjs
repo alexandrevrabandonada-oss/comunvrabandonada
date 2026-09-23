@@ -2,24 +2,49 @@ import { createHash } from "node:crypto";
 import { writeFile } from "node:fs/promises";
 import pg from "pg";
 import { schemaFingerprintQuery } from "./apply-forward-only.mjs";
-import { buildDocuments, query as canonicalQuery } from "../db/verify-canonical-baseline.mjs";
+import {
+  buildDocuments,
+  query as canonicalQuery,
+} from "../db/verify-canonical-baseline.mjs";
 
 const connectionString = process.env.SUPABASE_DB_URL;
-const output = process.argv.find((arg) => arg.startsWith("--output="))?.slice(9);
-if (!connectionString || !output) throw new Error("CAPTURE_CONNECTION_OR_OUTPUT_MISSING");
+const output = process.argv
+  .find((arg) => arg.startsWith("--output="))
+  ?.slice(9);
+if (!connectionString || !output)
+  throw new Error("CAPTURE_CONNECTION_OR_OUTPUT_MISSING");
 
 const client = new pg.Client({ connectionString });
 await client.connect();
 try {
   await client.query("BEGIN READ ONLY");
-  const mode = await client.query("select current_setting('transaction_read_only') as value");
-  if (mode.rows[0]?.value !== "on") throw new Error("CAPTURE_TRANSACTION_NOT_READ_ONLY");
+  const mode = await client.query(
+    "select current_setting('transaction_read_only') as value",
+  );
+  if (mode.rows[0]?.value !== "on")
+    throw new Error("CAPTURE_TRANSACTION_NOT_READ_ONLY");
   const runnerRows = await client.query(schemaFingerprintQuery);
-  const normalized = runnerRows.rows.map((row) => Object.values(row)[0]).join("\n").replace(/\r\n/g, "\n").trimEnd();
+  const normalized = runnerRows.rows
+    .map((row) => Object.values(row)[0])
+    .join("\n")
+    .replace(/\r\n/g, "\n")
+    .trimEnd();
   if (!normalized) throw new Error("CAPTURE_RUNNER_FINGERPRINT_EMPTY");
   const canonicalRows = await client.query(canonicalQuery);
   const raw = JSON.parse(Object.values(canonicalRows.rows[0] ?? {})[0]);
   const canonical = buildDocuments(raw).compact;
+  const consentObjects = await client.query(`
+    select
+      (select count(*)::int from pg_class c join pg_namespace n on n.oid=c.relnamespace
+       where n.nspname='private' and c.relname in (
+         'comun_relata_collective_entities', 'comun_relata_collective_entity_representations',
+         'comun_relata_collective_entity_consents', 'comun_relata_collective_entity_events'))
+      + (select count(*)::int from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+         where (n.nspname='public' and p.proname in (
+           'comun_relata_collective_entity_create', 'comun_relata_collective_entity_consent_set'))
+            or (n.nspname='private' and p.proname in (
+           'comun_relata_collective_entity_create_internal', 'comun_relata_collective_entity_consent_set_internal')))
+      as count`);
   const document = {
     scope: "COMUN_PR437_PROMOTION_FINGERPRINT_READ_ONLY",
     runnerAlgorithm: "sha256-postgres-public-catalog-v1",
@@ -28,10 +53,31 @@ try {
     canonicalAlgorithm: canonical.fingerprintAlgorithm,
     canonicalFingerprint: canonical.fingerprint,
     blockingFindings: canonical.security.blockingFindings.length,
-    findingRules: [...new Set(canonical.security.blockingFindings.map((item) => item.rule))].sort(),
+    findingRules: [
+      ...new Set(canonical.security.blockingFindings.map((item) => item.rule)),
+    ].sort(),
     migrationCount: canonical.canonical.migrations.length,
-    consentMigrationPresent: canonical.canonical.migrations.includes("20260901000000"),
-    legacyRelations: canonical.canonical.relations.filter((item) => ["comments", "communities", "knowledge_pages", "posts", "profiles", "project_links", "reactions_as_actions"].includes(item.name)).map((item) => item.name).sort(),
+    migrations: canonical.canonical.migrations,
+    consentMigrationPresent:
+      canonical.canonical.migrations.includes("20260901000000"),
+    consentObjectCount: consentObjects.rows[0]?.count,
+    publicRelations: canonical.canonical.relations
+      .map((item) => item.name)
+      .sort(),
+    legacyRelations: canonical.canonical.relations
+      .filter((item) =>
+        [
+          "comments",
+          "communities",
+          "knowledge_pages",
+          "posts",
+          "profiles",
+          "project_links",
+          "reactions_as_actions",
+        ].includes(item.name),
+      )
+      .map((item) => item.name)
+      .sort(),
   };
   await writeFile(output, `${JSON.stringify(document, null, 2)}\n`);
   await client.query("ROLLBACK");

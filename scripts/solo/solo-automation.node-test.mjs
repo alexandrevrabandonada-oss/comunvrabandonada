@@ -287,6 +287,7 @@ test("canonical workflows remain active and known additions are explicit", () =>
     "comun-p6c-c-activation.yml",
     "comun-p6c-c-preflight.yml",
     "comun-p6c-c-runtime-e2e.yml",
+    "comun-pr437-promotion-fingerprint.yml",
     "comun-pauta-action-cycle-audit.yml",
     "comun-pauta-action-cycle-deliverability.yml",
     "comun-pauta-action-cycle-promote.yml",
