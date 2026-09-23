@@ -82,10 +82,27 @@ function isCredentialFailure(error) {
   }));
 }
 
-function attestGithubDeployment(githubDeployment, successfulStatus) {
+function requireGithubPreviewAttestation(githubDeployment, successfulStatus) {
   const url = validatePreviewUrl(successfulStatus.environment_url);
+  if (
+    githubDeployment.sha !== process.env.SHA ||
+    githubDeployment.environment !== "Preview" ||
+    successfulStatus.state !== "success"
+  ) {
+    throw new Error("VERCEL_PROJECT_LINK_FAILED:github-preview-attestation");
+  }
   const appSlug = githubDeployment.performed_via_github_app?.slug ?? "";
-  if (appSlug && !/vercel/i.test(appSlug)) throw new Error("VERCEL_PROJECT_LINK_FAILED:github-app");
+  if (appSlug && !/vercel/i.test(appSlug)) {
+    throw new Error("VERCEL_PROJECT_LINK_FAILED:github-app");
+  }
+  return url;
+}
+
+function attestGithubDeployment(githubDeployment, successfulStatus) {
+  const url = requireGithubPreviewAttestation(
+    githubDeployment,
+    successfulStatus,
+  );
   artifact.deploymentId = `github-${githubDeployment.id}`;
   artifact.host = url.hostname;
   artifact.verificationMode = "github-deployment-attestation";
@@ -146,6 +163,7 @@ try {
     (status) => status.state === "success" && status.environment_url,
   );
   if (!successfulStatus) throw new Error("VERCEL_DEPLOYMENT_NOT_FOUND:not-ready");
+  requireGithubPreviewAttestation(githubDeployment, successfulStatus);
 
   let deployment = null;
   const token = process.env.VERCEL_TOKEN?.trim();
@@ -160,6 +178,7 @@ try {
         expectedTeamId: process.env.VERCEL_TEAM_ID,
         teamScope: null,
         token,
+        allowNullPreviewTarget: true,
       });
     } catch (error) {
       if (!isCredentialFailure(error)) throw error;

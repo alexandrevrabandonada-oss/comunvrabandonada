@@ -395,6 +395,11 @@ test("preview and production validate PMTiles Range in the correct domain order"
     /COMUN_VERCEL_PREVIEW_HTTP_DEFERRED_TO_PRODUCTION_SMOKE/,
   );
   assert.match(preview, /github-deployment-attestation/);
+  assert.match(preview, /requireGithubPreviewAttestation/);
+  assert.match(preview, /allowNullPreviewTarget: true/);
+  assert.match(previewClient, /allowNullPreviewTarget/);
+  assert.match(previewClient, /cli\.target !== "preview"/);
+  assert.match(previewClient, /remote\.target !== "preview"/);
   assert.doesNotMatch(workflow, /VERCEL_TOKEN\|S_VERCEL_TOKEN/);
   const previewClient = readFileSync(
     "scripts/solo/vercel-preview-client.mjs",
