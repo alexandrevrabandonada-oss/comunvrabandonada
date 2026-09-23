@@ -151,6 +151,16 @@ test("catalog inspection exposes only read-only capability and fails on malforme
     postgres_version: "17.6",
     installed_extension: null,
     available_extension: { defaultVersion: "2.7", installedVersion: null },
+    available_versions: [
+      {
+        name: "plpgsql_check",
+        version: "2.7",
+        installed: false,
+        superuser: true,
+        trusted: false,
+        relocatable: false,
+      },
+    ],
     functions: [],
   };
   assert.deepEqual(
@@ -160,6 +170,7 @@ test("catalog inspection exposes only read-only capability and fails on malforme
       postgresVersion: "17.6",
       installedExtension: null,
       availableExtension: expected.available_extension,
+    availableVersions: expected.available_versions,
       functions: [],
     },
   );
@@ -195,6 +206,7 @@ test("disposable proof rejects remote targets, changed function, missing temp ta
     rawFindingExact: true,
     rawFindingCount: 3,
     tempTablePresent: true,
+    tempTableColumnCount: 13,
     runtimeSqlState: null,
     checkerErrors: 0,
     negativeFixtureDetected: true,
@@ -211,6 +223,7 @@ test("disposable proof rejects remote targets, changed function, missing temp ta
     { rawFindingExact: false },
     { rawFindingCount: 0 },
     { tempTablePresent: false },
+    { tempTableColumnCount: 12 },
     { runtimeSqlState: "42P01" },
     { checkerErrors: 1 },
     { negativeFixtureDetected: false },
@@ -243,5 +256,11 @@ test("recovery code keeps Production checkers read-only and preserves migration 
     workflow,
     /supabase\/setup-cli|run-production-db-lint-gate|supabase db lint|CREATE EXTENSION/i,
   );
-  assert.match(workflow, /COMUN_DB_LINT_REQUIRES_TRANSACTIONAL_EXTENSION/);
+  const jobs = workflow.split("\n  disposable-proof:\n");
+  assert.equal(jobs.length, 2);
+  assert.match(jobs[0], /SUPABASE_DB_URL: \$\{\{ secrets\.SUPABASE_DB_URL \}\}/);
+  assert.match(jobs[0], /node scripts\/solo\/capture-promotion-fingerprint\.mjs/);
+  assert.doesNotMatch(jobs[1], /SUPABASE_DB_URL|secrets\.|CREATE EXTENSION|supabase db lint/i);
+  assert.match(jobs[1], /needs: production-capture/);
+  assert.match(jobs[1], /actions\/download-artifact@v4/);
 });

@@ -7,13 +7,18 @@ import {
   query as canonicalQuery,
 } from "../db/verify-canonical-baseline.mjs";
 import { inspectPragmaCatalog } from "./verify-search-sync-temp-table-lint.mjs";
+import { requireDisposableUrl } from "./prove-search-sync-local-temp-table.mjs";
 
-const connectionString = process.env.SUPABASE_DB_URL;
+const disposable = process.argv.includes("--disposable");
+const connectionString = disposable
+  ? process.env.COMUN_DISPOSABLE_DB_URL
+  : process.env.SUPABASE_DB_URL;
 const output = process.argv
   .find((arg) => arg.startsWith("--output="))
   ?.slice(9);
 if (!connectionString || !output)
   throw new Error("CAPTURE_CONNECTION_OR_OUTPUT_MISSING");
+if (disposable) requireDisposableUrl(connectionString);
 
 const client = new pg.Client({ connectionString });
 const manifestText = await readFile(
@@ -88,6 +93,7 @@ try {
   }
   const document = {
     scope: "COMUN_PR437_PROMOTION_FINGERPRINT_READ_ONLY",
+    target: disposable ? "DISPOSABLE" : "PRODUCTION",
     runnerAlgorithm: "sha256-postgres-public-catalog-v1",
     runnerFingerprint: createHash("sha256").update(normalized).digest("hex"),
     runnerRows: runnerRows.rows.length,

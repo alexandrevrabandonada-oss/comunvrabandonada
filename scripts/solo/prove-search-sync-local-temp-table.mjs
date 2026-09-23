@@ -1,9 +1,67 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import pg from "pg";
+import {
+  classifyVersionEquivalence,
+  loadReleaseContract,
+  requireDisposableCapture,
+  requireProductionCapture,
+  sha256,
+} from "./pr437-search-proof-contract.mjs";
 
 const FUNCTION = "public.comun_sync_public_search_projection()";
 const NEGATIVE = "public.comun_search_lint_negative_fixture";
+const TEMP_COLUMNS = [
+  "domain:text",
+  "source_type:text",
+  "source_key:text",
+  "source_version:text",
+  "canonical_route:text",
+  "title:text",
+  "summary:text",
+  "public_text:text",
+  "territory_id:uuid",
+  "pauta_id:uuid",
+  "process_state:text",
+  "source_date:timestamp with time zone",
+  "content_checksum:text",
+];
+
+export function requireRawFindings(rows, expected) {
+  if (
+    !Array.isArray(rows) ||
+    !Array.isArray(expected) ||
+    rows.length !== expected.length ||
+    rows.length !== 3
+  )
+    throw new Error("COMUN_SEARCH_LINT_RAW_FINDING_CHANGED");
+  const compact = rows.map((row) => ({
+    line: Number(row.lineno),
+    querySha256: sha256(
+      String(row.query ?? "")
+        .trim()
+        .replace(/\s+/g, " "),
+    ),
+  }));
+  if (
+    rows.some(
+      (row) =>
+        row.sqlstate !== "42P01" ||
+        row.message !== 'relation "comun_search_candidates" does not exist' ||
+        !String(row.query ?? "").includes("comun_search_candidates"),
+    ) ||
+    JSON.stringify(compact) !== JSON.stringify(expected)
+  )
+    throw new Error("COMUN_SEARCH_LINT_RAW_FINDING_CHANGED");
+  return compact;
+}
+
+export function requireTempColumns(rows) {
+  const actual = rows.map((row) => `${row.name}:${row.type}`);
+  if (JSON.stringify(actual) !== JSON.stringify(TEMP_COLUMNS))
+    throw new Error("COMUN_SEARCH_LINT_TEMP_TABLE_STRUCTURE_CHANGED");
+  return actual.length;
+}
 
 export function requireDisposableUrl(connectionString) {
   const url = new URL(connectionString);
@@ -23,8 +81,9 @@ export function validateLocalProof(proof) {
     proof.postgresVersion !== "17.6" ||
     !/^2\.[0-9]+$/.test(proof.plpgsqlCheckVersion ?? "") ||
     !proof.rawFindingExact ||
-    !(proof.rawFindingCount > 0) ||
+    proof.rawFindingCount !== 3 ||
     !proof.tempTablePresent ||
+    proof.tempTableColumnCount !== 13 ||
     proof.runtimeSqlState !== null ||
     proof.checkerErrors !== 0 ||
     !proof.negativeFixtureDetected ||
@@ -36,14 +95,41 @@ export function validateLocalProof(proof) {
   return proof;
 }
 
-export async function proveLocalTempTable({ connectionString, output }) {
+export async function proveLocalTempTable({
+  connectionString,
+  output,
+  productionCapture,
+  disposableCapture,
+  captureSha256,
+  fixture,
+  runSha,
+  runId,
+}) {
   requireDisposableUrl(connectionString);
-  if (!output) throw new Error("COMUN_SEARCH_LINT_OUTPUT_REQUIRED");
-  const reference = JSON.parse(
-    await readFile(
-      "reports/current/comun-pr437-production-preflight-reference.json",
-      "utf8",
-    ),
+  if (
+    !output ||
+    !productionCapture ||
+    !disposableCapture ||
+    !captureSha256 ||
+    !fixture ||
+    !runSha ||
+    !runId
+  )
+    throw new Error("COMUN_SEARCH_LINT_ARGUMENTS_MISSING");
+  const { reference, release, manifestSha256 } = await loadReleaseContract();
+  const productionBytes = await readFile(productionCapture);
+  if (sha256(productionBytes) !== captureSha256)
+    throw new Error("COMUN_SEARCH_LINT_PRODUCTION_ARTIFACT_HASH_MISMATCH");
+  const production = requireProductionCapture(
+    JSON.parse(productionBytes),
+    reference,
+    release,
+    manifestSha256,
+  );
+  const disposable = requireDisposableCapture(
+    JSON.parse(await readFile(disposableCapture, "utf8")),
+    production,
+    fixture,
   );
   const client = new pg.Client({ connectionString });
   await client.connect();
@@ -51,7 +137,22 @@ export async function proveLocalTempTable({ connectionString, output }) {
   const artifact = {
     scope: "COMUN_SEARCH_SYNC_DISPOSABLE_TEMP_TABLE_PROOF",
     status: "BLOCKED",
-    definitionSha256: reference.searchSyncDefinitionSha256,
+    productionCaptureSha256: captureSha256,
+    runSha,
+    runId,
+    productionPostgresVersion: production.postgresVersion,
+    productionAvailableVersions: production.plpgsqlCheckCatalog.versions.map(
+      (item) => item.version,
+    ),
+    productionDefinitionSha256: production.searchFunction.definitionSha256,
+    disposableDefinitionSha256: disposable.searchFunction.definitionSha256,
+    runnerFingerprint: disposable.runnerFingerprint,
+    canonicalFingerprint: disposable.canonicalFingerprint,
+    releaseLedgerState: disposable.releaseLedgerState,
+    migrationSha256: release.migrationSha256,
+    manifestSha256,
+    imageDigest: fixture.postgresImage,
+    imageTag: fixture.postgresImageTag,
     disposable: true,
   };
   try {
@@ -76,7 +177,7 @@ export async function proveLocalTempTable({ connectionString, output }) {
     const hash =
       normalized && createHash("sha256").update(normalized).digest("hex");
     artifact.definitionMatchesProduction =
-      hash === reference.searchSyncDefinitionSha256 &&
+      hash === production.searchFunction.definitionSha256 &&
       target?.owner === reference.searchSyncOwner &&
       target?.security_definer === true &&
       JSON.stringify(target?.config) ===
@@ -95,30 +196,36 @@ export async function proveLocalTempTable({ connectionString, output }) {
       await client.query("show server_version")
     ).rows[0].server_version;
     artifact.plpgsqlCheckVersion = extension.rows[0].version;
+    artifact.versionEquivalence = classifyVersionEquivalence(
+      production.plpgsqlCheckCatalog.available.defaultVersion,
+      artifact.plpgsqlCheckVersion,
+    );
+    if (
+      artifact.plpgsqlCheckVersion !== fixture.plpgsqlCheckCatalogVersion ||
+      artifact.versionEquivalence === "MISMATCH"
+    )
+      throw new Error("COMUN_SEARCH_LINT_EXTENSION_VERSION_MISMATCH");
     const raw = await client.query(
-      `select level, sqlstate, message from "${schema}".plpgsql_check_function_tb($1::regprocedure, fatal_errors=>false) where level='error'`,
+      `select lineno, sqlstate, message, query from "${schema}".plpgsql_check_function_tb($1::regprocedure, fatal_errors=>false) where level='error' order by lineno`,
       [FUNCTION],
     );
-    artifact.rawFindingExact =
-      raw.rows.length > 0 &&
-      raw.rows.every(
-        (row) =>
-          row.sqlstate === "42P01" &&
-          row.message === 'relation "comun_search_candidates" does not exist',
-      );
+    artifact.rawFindingContract = requireRawFindings(
+      raw.rows,
+      fixture.expectedRawFindings,
+    );
+    artifact.rawFindingExact = true;
     artifact.rawFindingCount = raw.rows.length;
-    if (!artifact.rawFindingExact)
-      throw new Error("COMUN_SEARCH_LINT_RAW_FINDING_CHANGED");
     artifact.runtimeSqlState = null;
     await client.query(`select * from ${FUNCTION}`);
     const temp = await client.query(
-      `select to_regclass('pg_temp.comun_search_candidates') is not null as present,
-        (select count(*)::int from pg_attribute
-         where attrelid=to_regclass('pg_temp.comun_search_candidates')
-           and attnum>0 and not attisdropped) as column_count`,
+      "select to_regclass('pg_temp.comun_search_candidates') is not null as present",
     );
-    artifact.tempTablePresent =
-      temp.rows[0]?.present === true && temp.rows[0]?.column_count === 13;
+    artifact.tempTablePresent = temp.rows[0]?.present === true;
+    const columns =
+      await client.query(`select attname as name, format_type(atttypid,atttypmod) as type
+      from pg_attribute where attrelid=to_regclass('pg_temp.comun_search_candidates')
+      and attnum>0 and not attisdropped order by attnum`);
+    artifact.tempTableColumnCount = requireTempColumns(columns.rows);
     const checked = await client.query(
       `select level from "${schema}".plpgsql_check_function_tb($1::regprocedure, fatal_errors=>false) where level='error'`,
       [FUNCTION],
@@ -148,6 +255,8 @@ export async function proveLocalTempTable({ connectionString, output }) {
         row.sqlstate === "42P01" &&
         row.message.includes("__comun_missing_relation_fixture"),
     );
+    if (!artifact.negativeFixtureDetected)
+      throw new Error("COMUN_SEARCH_LINT_NEGATIVE_CONTROL_FAILED");
     await client.query("ROLLBACK");
     transactionOpen = false;
     const after = (await client.query(countSql)).rows[0];
@@ -176,13 +285,25 @@ export async function proveLocalTempTable({ connectionString, output }) {
 }
 
 if (process.argv[1]?.endsWith("prove-search-sync-local-temp-table.mjs")) {
-  const output = process.argv
-    .find((arg) => arg.startsWith("--output="))
-    ?.slice(9);
+  const arg = (key) =>
+    process.argv
+      .find((value) => value.startsWith(`--${key}=`))
+      ?.slice(key.length + 3);
   try {
     await proveLocalTempTable({
-      connectionString: process.env.SUPABASE_DB_URL,
-      output,
+      connectionString: process.env.COMUN_DISPOSABLE_DB_URL,
+      output: arg("output"),
+      productionCapture: arg("production-capture"),
+      disposableCapture: arg("disposable-capture"),
+      captureSha256: arg("capture-sha256"),
+      fixture: JSON.parse(
+        await readFile(
+          "tests/fixtures/pr437-post/fixture-manifest.json",
+          "utf8",
+        ),
+      ),
+      runSha: arg("run-sha"),
+      runId: arg("run-id"),
     });
   } catch (error) {
     console.error(
