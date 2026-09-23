@@ -7,6 +7,12 @@ const IDENTIFIER = /^[a-z_][a-z0-9_]*$/;
 const HASH = /^[a-f0-9]{64}$/;
 export const API_UNAVAILABLE = "COMUN_SEARCH_LINT_PRAGMA_API_UNAVAILABLE";
 
+export function requireInstalledExtension(extension) {
+  if (!extension || !IDENTIFIER.test(extension.schema ?? ""))
+    throw new Error(API_UNAVAILABLE);
+  return extension;
+}
+
 export async function inspectPragmaCatalog(client) {
   const result = await client.query(`
     select current_setting('transaction_read_only') as read_only,
@@ -41,19 +47,23 @@ export async function inspectPragmaCatalog(client) {
 }
 
 export function selectPragmaApi(functions) {
-  const make = functions.find(
+  const makers = functions.filter(
     (item) =>
       item.name === "plpgsql_make_pragma" &&
       ["regprocedure", "text"].includes(item.firstArgument),
   );
-  const check = functions.find(
+  const checkers = functions.filter(
     (item) =>
       item.name === "plpgsql_check_function_tb" &&
       ["regprocedure", "text"].includes(item.firstArgument) &&
       item.arguments.includes("pragmas"),
   );
-  if (!make || !check) throw new Error(API_UNAVAILABLE);
-  return { makeType: make.firstArgument, checkType: check.firstArgument };
+  if (makers.length !== 1 || checkers.length !== 1)
+    throw new Error(API_UNAVAILABLE);
+  return {
+    makeType: makers[0].firstArgument,
+    checkType: checkers[0].firstArgument,
+  };
 }
 
 export async function verifySearchSync({ connectionString, output }) {
@@ -112,9 +122,7 @@ export async function verifySearchSync({ connectionString, output }) {
       select n.nspname as schema, e.extversion as version
       from pg_extension e join pg_namespace n on n.oid=e.extnamespace
       where e.extname='plpgsql_check'`);
-    const extension = extensions.rows[0];
-    if (!extension || !IDENTIFIER.test(extension.schema))
-      throw new Error(API_UNAVAILABLE);
+    const extension = requireInstalledExtension(extensions.rows[0]);
     const apiRows = await client.query(
       `
       select p.proname as name, p.proargtypes[0]::regtype::text as first_argument,
