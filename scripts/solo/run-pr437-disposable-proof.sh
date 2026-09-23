@@ -11,7 +11,7 @@ artifact=.pr437-proof
 capture=.pr437-production-capture/comun-pr437-promotion-fingerprint.json
 container="comun-pr437-proof-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT:-1}"
 database="comun_pr437_prodlike_post_${GITHUB_RUN_ID}"
-image='public.ecr.aws/supabase/postgres@sha256:8002645276dc3431d55a5049721a879e4d11c34177086dc0f13b61d98cff1e52'
+image='docker.io/supabase/postgres@sha256:8002645276dc3431d55a5049721a879e4d11c34177086dc0f13b61d98cff1e52'
 mkdir -p "$artifact"
 
 node scripts/solo/verify-pr437-production-capture.mjs \

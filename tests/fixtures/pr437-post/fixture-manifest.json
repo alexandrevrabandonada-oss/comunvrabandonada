@@ -1,7 +1,7 @@
 {
   "scope": "COMUN_PR437_POST_DISPOSABLE_FIXTURE",
   "source": "Synthetic local POST database from the accepted Hardening v2 release; schema-only dump plus technical migration/release ledger and synthetic bucket metadata",
-  "postgresImage": "public.ecr.aws/supabase/postgres@sha256:8002645276dc3431d55a5049721a879e4d11c34177086dc0f13b61d98cff1e52",
+  "postgresImage": "docker.io/supabase/postgres@sha256:8002645276dc3431d55a5049721a879e4d11c34177086dc0f13b61d98cff1e52",
   "postgresImageTag": "17.6.1.100",
   "postgresVersion": "17.6",
   "plpgsqlCheckCatalogVersion": "2.7",

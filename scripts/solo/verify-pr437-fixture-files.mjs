@@ -15,7 +15,7 @@ const files = Object.fromEntries(
 );
 requireFixtureFiles(fixture, files);
 if (
-  !/^public\.ecr\.aws\/supabase\/postgres@sha256:[a-f0-9]{64}$/.test(
+  !/^docker\.io\/supabase\/postgres@sha256:[a-f0-9]{64}$/.test(
     fixture.postgresImage,
   )
 )

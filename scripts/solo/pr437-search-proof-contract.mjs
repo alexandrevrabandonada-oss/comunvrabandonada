@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 const SHA = /^[a-f0-9]{64}$/;
 const TARGET = "public.comun_sync_public_search_projection()";
 export const PINNED_IMAGE =
-  "public.ecr.aws/supabase/postgres@sha256:8002645276dc3431d55a5049721a879e4d11c34177086dc0f13b61d98cff1e52";
+  "docker.io/supabase/postgres@sha256:8002645276dc3431d55a5049721a879e4d11c34177086dc0f13b61d98cff1e52";
 
 export function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
