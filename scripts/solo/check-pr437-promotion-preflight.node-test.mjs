@@ -14,19 +14,69 @@ const actual = {
   publicRelations: ["comments"],
   consentMigrationPresent: false,
   consentObjectCount: 0,
+  releasePresent: false,
+  releaseLedgerState: "ABSENT",
 };
 const reference = {
-  canonicalFingerprint: hash("b"),
-  expectedBlockingFindings: 74,
-  expectedFindingRules: ["DEFINER_SEARCH_PATH"],
+  preRunnerFingerprint: hash("a"),
+  preCanonicalFingerprint: hash("b"),
+  preBlockingFindings: 74,
+  preFindingRules: ["DEFINER_SEARCH_PATH"],
+  postRunnerFingerprint: hash("c"),
+  postCanonicalFingerprint: hash("d"),
+  postBlockingFindings: 0,
+  postFindingRules: [],
   migrations: ["202605070001"],
   legacyRelations: ["comments"],
   publicRelations: ["comments"],
 };
-const release = { expectedPreFingerprint: hash("a") };
+const release = {
+  expectedPreFingerprint: hash("a"),
+  expectedPostFingerprint: hash("c"),
+};
 
 test("exact read-only preflight match", () => {
-  assert.equal(comparePreflight(actual, reference, release).status, "PASS");
+  assert.equal(
+    comparePreflight(actual, reference, release).state,
+    "PRE_PENDING",
+  );
+});
+test("accepted POST release is recognized without another migration", () => {
+  const post = {
+    ...actual,
+    runnerFingerprint: hash("c"),
+    canonicalFingerprint: hash("d"),
+    blockingFindings: 0,
+    findingRules: [],
+    releasePresent: true,
+    releaseLedgerState: "PRESENT_ACCEPTED",
+  };
+  assert.equal(
+    comparePreflight(post, reference, release).state,
+    "POST_ALREADY_APPLIED",
+  );
+  for (const drift of [
+    { releasePresent: false, releaseLedgerState: "ABSENT" },
+    { blockingFindings: 1 },
+    { releaseLedgerState: "PRESENT_MISMATCH" },
+    { consentObjectCount: 1 },
+  ])
+    assert.equal(
+      comparePreflight({ ...post, ...drift }, reference, release).state,
+      "BLOCKED",
+    );
+  assert.equal(
+    comparePreflight(
+      {
+        ...actual,
+        releasePresent: true,
+        releaseLedgerState: "PRESENT_ACCEPTED",
+      },
+      reference,
+      release,
+    ).state,
+    "BLOCKED",
+  );
 });
 test("runner fingerprint mismatch blocks", () => {
   assert.equal(

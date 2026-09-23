@@ -115,7 +115,20 @@ test("promotion checkpoint is short-lived, sanitized and not a full backup", () 
 
 test("remote lint uses the allowlisted database URL without an admin access token", () => {
   const workflow = readFileSync(".github/workflows/comun-promote.yml", "utf8");
-  assert.match(workflow, /supabase db lint --db-url "\$SUPABASE_DB_URL"/);
+  const gate = readFileSync(
+    "scripts/solo/run-production-db-lint-gate.mjs",
+    "utf8",
+  );
+  assert.match(
+    workflow,
+    /SUPABASE_DB_URL: \$\{\{ secrets\.SUPABASE_DB_URL \}\}/,
+  );
+  assert.match(
+    workflow,
+    /node scripts\/solo\/run-production-db-lint-gate\.mjs/,
+  );
+  assert.match(gate, /"db",\s*"lint"/);
+  assert.match(gate, /"--db-url",\s*connectionString/);
   assert.match(workflow, /notify pgrst, 'reload schema'/);
   assert.doesNotMatch(workflow, /SUPABASE_ACCESS_TOKEN/);
 });

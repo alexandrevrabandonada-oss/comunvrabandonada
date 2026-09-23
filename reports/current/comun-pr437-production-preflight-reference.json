@@ -5,6 +5,14 @@
   "canonicalFingerprint": "4c4774d28908433d3cf9622fbda1e434f841e45202aa29077bfa6c5bb1d2afd6",
   "expectedBlockingFindings": 74,
   "expectedFindingRules": ["DEFINER_SEARCH_PATH"],
+  "preRunnerFingerprint": "db609afb6c7e6627a25b016460a2e1b02e7fb9f052fa1e440adeaed662b72460",
+  "preCanonicalFingerprint": "4c4774d28908433d3cf9622fbda1e434f841e45202aa29077bfa6c5bb1d2afd6",
+  "preBlockingFindings": 74,
+  "preFindingRules": ["DEFINER_SEARCH_PATH"],
+  "postRunnerFingerprint": "a5fbc31cbac2b54bd877e0221b70dd9a708d83f25ac0083393f1739d46d27d98",
+  "postCanonicalFingerprint": "cb3bea0cb9abc6534760533d9c52a6471981a3a9672db8780c1ae4294995b1ee",
+  "postBlockingFindings": 0,
+  "postFindingRules": [],
   "migrations": [
     "202605070001",
     "202605200001",
@@ -334,5 +342,7 @@
     "profiles",
     "project_links",
     "reactions_as_actions"
-  ]
+  ],
+  "searchSyncOwner": "postgres",
+  "searchSyncDefinitionSha256": "fe674d14ef920d1c5dcd7cc5ca57dbdf4f93ae4fe809f0548bc6d0bcb165c89b"
 }

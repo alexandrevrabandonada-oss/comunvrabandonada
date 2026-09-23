@@ -15,8 +15,12 @@ export function comparePreflight(actual, reference, release) {
     ![
       actual.runnerFingerprint,
       actual.canonicalFingerprint,
-      reference.canonicalFingerprint,
+      reference.preRunnerFingerprint,
+      reference.preCanonicalFingerprint,
+      reference.postRunnerFingerprint,
+      reference.postCanonicalFingerprint,
       release.expectedPreFingerprint,
+      release.expectedPostFingerprint,
     ].every((value) => SHA.test(value ?? ""))
   ) {
     throw new Error("PR437_PREFLIGHT_INVALID_FINGERPRINT");
@@ -52,12 +56,7 @@ export function comparePreflight(actual, reference, release) {
   const extraRelations = actualRelations.filter(
     (value) => !expectedRelations.includes(value),
   );
-  const matched =
-    actual.runnerFingerprint === release.expectedPreFingerprint &&
-    actual.canonicalFingerprint === reference.canonicalFingerprint &&
-    actual.blockingFindings === reference.expectedBlockingFindings &&
-    JSON.stringify(actual.findingRules) ===
-      JSON.stringify(reference.expectedFindingRules) &&
+  const commonMatched =
     !missingMigrations.length &&
     !extraMigrations.length &&
     !missingLegacyRelations.length &&
@@ -66,15 +65,46 @@ export function comparePreflight(actual, reference, release) {
     !extraRelations.length &&
     actual.consentMigrationPresent === false &&
     actual.consentObjectCount === 0;
+  const preMatched =
+    commonMatched &&
+    reference.preRunnerFingerprint === release.expectedPreFingerprint &&
+    actual.runnerFingerprint === release.expectedPreFingerprint &&
+    actual.canonicalFingerprint === reference.preCanonicalFingerprint &&
+    actual.blockingFindings === reference.preBlockingFindings &&
+    JSON.stringify(actual.findingRules) ===
+      JSON.stringify(reference.preFindingRules) &&
+    actual.releasePresent === false &&
+    actual.releaseLedgerState === "ABSENT";
+  const postMatched =
+    commonMatched &&
+    reference.postRunnerFingerprint === release.expectedPostFingerprint &&
+    actual.runnerFingerprint === release.expectedPostFingerprint &&
+    actual.canonicalFingerprint === reference.postCanonicalFingerprint &&
+    actual.blockingFindings === reference.postBlockingFindings &&
+    JSON.stringify(actual.findingRules) ===
+      JSON.stringify(reference.postFindingRules) &&
+    actual.releasePresent === true &&
+    actual.releaseLedgerState === "PRESENT_ACCEPTED";
+  const state = preMatched
+    ? "PRE_PENDING"
+    : postMatched
+      ? "POST_ALREADY_APPLIED"
+      : "BLOCKED";
   return {
     scope: "COMUN_PR437_PRODUCTION_PROMOTION_PREFLIGHT",
-    status: matched ? "PASS" : "BLOCKED",
+    status: state === "BLOCKED" ? "BLOCKED" : "PASS",
+    state,
     expectedPre: release.expectedPreFingerprint,
-    actualPre: actual.runnerFingerprint,
-    expectedCanonical: reference.canonicalFingerprint,
+    expectedPost: release.expectedPostFingerprint,
+    actualRunner: actual.runnerFingerprint,
+    expectedCanonicalPre: reference.preCanonicalFingerprint,
+    expectedCanonicalPost: reference.postCanonicalFingerprint,
     actualCanonical: actual.canonicalFingerprint,
+    releaseLedgerState: actual.releaseLedgerState,
+    releasePresent: actual.releasePresent,
     blockingFindingsCount: actual.blockingFindings,
-    expectedBlockingFindings: reference.expectedBlockingFindings,
+    preBlockingFindings: reference.preBlockingFindings,
+    postBlockingFindings: reference.postBlockingFindings,
     missingMigrations,
     extraMigrations,
     expectedLegacyRelations: expectedLegacy,
@@ -111,5 +141,5 @@ if (process.argv[1]?.endsWith("check-pr437-promotion-preflight.mjs")) {
   await writeFile(output, `${JSON.stringify(diagnostic, null, 2)}\n`);
   if (diagnostic.status !== "PASS")
     throw new Error("PR437_PRODUCTION_PREFLIGHT_MISMATCH");
-  console.log("PR437_PRODUCTION_PREFLIGHT_PASS_READ_ONLY");
+  console.log(`PR437_PRODUCTION_PREFLIGHT_${diagnostic.state}_READ_ONLY`);
 }

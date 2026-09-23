@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import pg from "pg";
 import { schemaFingerprintQuery } from "./apply-forward-only.mjs";
 import {
@@ -15,6 +15,12 @@ if (!connectionString || !output)
   throw new Error("CAPTURE_CONNECTION_OR_OUTPUT_MISSING");
 
 const client = new pg.Client({ connectionString });
+const release = JSON.parse(
+  await readFile(
+    "supabase/releases/20260922120000-canonical-security-hardening-v2.json",
+    "utf8",
+  ),
+);
 await client.connect();
 try {
   await client.query("BEGIN READ ONLY");
@@ -45,6 +51,31 @@ try {
             or (n.nspname='private' and p.proname in (
            'comun_relata_collective_entity_create_internal', 'comun_relata_collective_entity_consent_set_internal')))
       as count`);
+  const ledgerRelation = await client.query(
+    "select to_regclass('public.comun_schema_releases') is not null as present",
+  );
+  let releasePresent = false;
+  let releaseLedgerState = "ABSENT";
+  if (ledgerRelation.rows[0]?.present) {
+    const ledger = await client.query(
+      `select release, migration_path, migration_sha256, pre_fingerprint, post_fingerprint, status
+       from public.comun_schema_releases where release = $1`,
+      [release.release],
+    );
+    releasePresent = ledger.rows.length > 0;
+    if (releasePresent) {
+      const row = ledger.rows[0];
+      releaseLedgerState =
+        row.release === release.release &&
+        row.migration_path === release.migration &&
+        row.migration_sha256 === release.migrationSha256 &&
+        row.pre_fingerprint === release.expectedPreFingerprint &&
+        row.post_fingerprint === release.expectedPostFingerprint &&
+        row.status === "applied"
+          ? "PRESENT_ACCEPTED"
+          : "PRESENT_MISMATCH";
+    }
+  }
   const document = {
     scope: "COMUN_PR437_PROMOTION_FINGERPRINT_READ_ONLY",
     runnerAlgorithm: "sha256-postgres-public-catalog-v1",
@@ -61,6 +92,8 @@ try {
     consentMigrationPresent:
       canonical.canonical.migrations.includes("20260901000000"),
     consentObjectCount: consentObjects.rows[0]?.count,
+    releasePresent,
+    releaseLedgerState,
     publicRelations: canonical.canonical.relations
       .map((item) => item.name)
       .sort(),

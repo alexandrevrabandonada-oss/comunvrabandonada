@@ -21,13 +21,44 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci --ignore-scripts
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.109.1 }
       - name: Capture Production catalog fingerprints in a read-only transaction
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: node scripts/solo/capture-promotion-fingerprint.mjs --output=comun-pr437-promotion-fingerprint.json
+      - name: Require accepted POST state without writing Production
+        run: |
+          node scripts/solo/check-pr437-promotion-preflight.mjs \
+            --capture=comun-pr437-promotion-fingerprint.json \
+            --output=comun-pr437-post-apply-preflight.json
+          node -e "const d=require('./comun-pr437-post-apply-preflight.json'); if(d.state!=='POST_ALREADY_APPLIED') process.exit(1)"
+      - name: Verify temp-table finding with read-only pragmas
+        id: pragma
+        continue-on-error: true
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: node scripts/solo/verify-search-sync-temp-table-lint.mjs --output=comun-pr437-search-pragma-lint.json
+      - name: Run strict full database lint gate
+        id: lint
+        continue-on-error: true
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: node scripts/solo/run-production-db-lint-gate.mjs --output=comun-pr437-strict-db-lint.json
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: comun-pr437-promotion-fingerprint-${{ github.event.pull_request.head.sha }}
-          path: comun-pr437-promotion-fingerprint.json
+          name: comun-pr437-post-apply-readonly-${{ github.event.pull_request.head.sha }}
+          path: |
+            comun-pr437-promotion-fingerprint.json
+            comun-pr437-post-apply-preflight.json
+            comun-pr437-search-pragma-lint.json
+            comun-pr437-strict-db-lint.json
           retention-days: 7
-          if-no-files-found: error
+          if-no-files-found: warn
+      - name: Require pragma-aware and strict lint gates
+        if: always()
+        env:
+          PRAGMA_OUTCOME: ${{ steps.pragma.outcome }}
+          LINT_OUTCOME: ${{ steps.lint.outcome }}
+        run: test "$PRAGMA_OUTCOME" = success && test "$LINT_OUTCOME" = success
