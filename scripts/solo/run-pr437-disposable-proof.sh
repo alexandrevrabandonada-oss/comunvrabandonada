@@ -24,7 +24,8 @@ docker run -d --name "$container" -p 127.0.0.1:57532:5432 \
   -e POSTGRES_PASSWORD=postgres "$image" >"$artifact/container-id.txt"
 ready=0
 for attempt in $(seq 1 90); do
-  if docker exec "$container" pg_isready -U postgres >/dev/null 2>&1; then ready=1; break; fi
+  if docker logs "$container" 2>&1 | grep -F 'PostgreSQL init process complete; ready for start up.' >/dev/null \
+    && docker exec "$container" pg_isready -U postgres >/dev/null 2>&1; then ready=1; break; fi
   sleep 1
 done
 test "$ready" = 1 || { echo COMUN_DISPOSABLE_POSTGRES_START_FAILED; exit 1; }

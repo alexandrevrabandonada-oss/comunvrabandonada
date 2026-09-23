@@ -234,6 +234,7 @@ test("workflow isolates the Production secret and read-only capture", () => {
     "utf8",
   );
   assert.match(runner, /COMUN_DISPOSABLE_PRODUCTION_SECRET_PRESENT/);
+  assert.match(runner, /PostgreSQL init process complete; ready for start up\./);
   assert.doesNotMatch(runner, /secrets\./);
 });
 
