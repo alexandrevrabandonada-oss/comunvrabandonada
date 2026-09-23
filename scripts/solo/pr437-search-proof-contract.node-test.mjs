@@ -42,7 +42,16 @@ const makeProduction = () => ({
     name: "plpgsql_check",
     installed: null,
     available: { defaultVersion: "2.7", installedVersion: null },
-    versions: [{ name: "plpgsql_check", version: "2.7", installed: false }],
+    versions: [
+      {
+        name: "plpgsql_check",
+        version: "2.7",
+        installed: false,
+        superuser: true,
+        trusted: false,
+        relocatable: false,
+      },
+    ],
   },
   searchFunction: {
     identity: "public.comun_sync_public_search_projection()",
@@ -88,6 +97,10 @@ test("Production capture rejects missing versions, altered function and identity
   const production = checkedProduction();
   for (const [change, marker] of [
     [(p) => (p.plpgsqlCheckCatalog.versions = []), "EXTENSION_CATALOG_DRIFT"],
+    [
+      (p) => (p.plpgsqlCheckCatalog.versions[0].trusted = true),
+      "EXTENSION_CATALOG_DRIFT",
+    ],
     [
       (p) => (p.searchFunction.definitionSha256 = "0".repeat(64)),
       "FUNCTION_DRIFT",

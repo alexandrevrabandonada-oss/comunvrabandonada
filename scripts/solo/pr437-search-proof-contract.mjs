@@ -69,7 +69,10 @@ export function requireProductionCapture(
     catalog.versions.length !== 1 ||
     catalog.versions[0]?.name !== "plpgsql_check" ||
     catalog.versions[0]?.version !== "2.7" ||
-    catalog.versions[0]?.installed !== false
+    catalog.versions[0]?.installed !== false ||
+    catalog.versions[0]?.superuser !== true ||
+    catalog.versions[0]?.trusted !== false ||
+    catalog.versions[0]?.relocatable !== false
   )
     fail("COMUN_SEARCH_LINT_PRODUCTION_EXTENSION_CATALOG_DRIFT");
   return capture;
