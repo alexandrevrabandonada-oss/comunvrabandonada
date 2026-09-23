@@ -138,10 +138,11 @@ test("diagnostic markers never contain successful sensitive environment values",
 
 test("workflow uses the helper in every local status path and stays fail-closed", () => {
   const workflow = readFileSync(".github/workflows/comun-quality-performance.yml", "utf8");
-  assert.equal((workflow.match(/node scripts\/ci\/read-supabase-local-env\.mjs/g) ?? []).length, 4);
+  assert.equal((workflow.match(/node scripts\/ci\/read-supabase-local-env\.mjs/g) ?? []).length, 5);
   assert.equal(workflow.includes("supabase status -o env"), false);
   assert.equal(workflow.includes("continue-on-error: true"), false);
   assert.match(workflow, /supabase db reset --local --yes/);
+  assert.match(workflow, /Supabase descartável — start[\s\S]*?Supabase descartável — reset local[\s\S]*?Supabase descartável — health local[\s\S]*?Migration forward-only — ledger local[\s\S]*?Auditoria RLS — local/);
   assert.match(workflow, /p1t-territory-local-contract\.mjs/);
   assert.match(
     readFileSync("scripts/comun-local-env.mjs", "utf8"),
