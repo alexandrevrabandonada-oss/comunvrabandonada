@@ -9,3 +9,11 @@ The same local Supabase Postgres image used for the exact Production-like fixtur
 PR #437 remained open/draft and unmerged after the run. Preview validation, merge, deployment, and Production smoke were not executed. The `comun:promover` label was removed. Recovery code uses a PRE/POST state machine and strict one-finding lint gate; it cannot allow the known finding unless the pragma-aware checker returns zero errors on the same database.
 
 This recovery execution performs no Production writes, migration application, merge, or deploy. If Production lacks the required API, the terminal state is `SEARCH_SYNC_RUNTIME_CONTRACT_UNPROVEN`; do not resume promotion by waiving the lint gate.
+
+## Read-only API diagnosis, 2026-09-23
+
+The first synchronized recovery run, [35896837438](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/35896837438), at checkpoint `bd4c6f24d26a13d558146f7d75e375a28ddebb5e` proved `POST_ALREADY_APPLIED`, exact runner and canonical POST fingerprints, `PRESENT_ACCEPTED`, zero canonical findings, and absent consent migration. Its strict lint path reached the exact known temp-table finding, but the pragma-aware proof stopped at `COMUN_SEARCH_LINT_PRAGMA_API_UNAVAILABLE`. The artifact did not distinguish an absent extension from an incompatible overload.
+
+The tagged Supabase CLI 2.109.1 source (`apps/cli/src/legacy/commands/db/lint/lint.handler.ts`, `lint.lint-sql.ts`, and `SIDE_EFFECTS.md`) explains this: `db lint` runs `CREATE EXTENSION IF NOT EXISTS plpgsql_check`, checks functions, and rolls the transaction back. It can therefore lint through a transaction-local extension even when no extension remains installed. This is source inspection, not an assumption that Production has a persistent extension.
+
+The read-only checker now records PostgreSQL version, installed and available extension state, every relevant overload and its call privileges, and the transaction mode before it reports an unavailable API. No credential or function body is included. A further synchronized read-only run is needed to identify the exact Production catalog state.

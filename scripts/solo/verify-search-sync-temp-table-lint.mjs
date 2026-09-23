@@ -7,6 +7,39 @@ const IDENTIFIER = /^[a-z_][a-z0-9_]*$/;
 const HASH = /^[a-f0-9]{64}$/;
 export const API_UNAVAILABLE = "COMUN_SEARCH_LINT_PRAGMA_API_UNAVAILABLE";
 
+export async function inspectPragmaCatalog(client) {
+  const result = await client.query(`
+    select current_setting('transaction_read_only') as read_only,
+      current_setting('server_version') as postgres_version,
+      (select jsonb_build_object('schema', n.nspname, 'version', e.extversion)
+       from pg_extension e join pg_namespace n on n.oid=e.extnamespace
+       where e.extname='plpgsql_check') as installed_extension,
+      (select jsonb_build_object('defaultVersion', default_version,
+                                 'installedVersion', installed_version)
+       from pg_available_extensions where name='plpgsql_check') as available_extension,
+      coalesce((select jsonb_agg(jsonb_build_object(
+        'schema', n.nspname, 'signature', p.oid::regprocedure::text,
+        'argumentTypes', pg_get_function_identity_arguments(p.oid),
+        'argumentNames', coalesce(p.proargnames, array[]::text[]),
+        'returnType', pg_get_function_result(p.oid),
+        'schemaUsage', has_schema_privilege(current_user, n.oid, 'USAGE'),
+        'execute', has_function_privilege(current_user, p.oid, 'EXECUTE'))
+        order by n.nspname, p.oid::regprocedure::text)
+       from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+       where p.proname in ('plpgsql_make_pragma','plpgsql_check_function_tb')),
+       '[]'::jsonb) as functions`);
+  const row = result.rows[0];
+  if (row?.read_only !== "on")
+    throw new Error("COMUN_SEARCH_LINT_NOT_READ_ONLY");
+  return {
+    readOnly: true,
+    postgresVersion: row.postgres_version,
+    installedExtension: row.installed_extension,
+    availableExtension: row.available_extension,
+    functions: row.functions,
+  };
+}
+
 export function selectPragmaApi(functions) {
   const make = functions.find(
     (item) =>
@@ -40,6 +73,7 @@ export async function verifySearchSync({ connectionString, output }) {
   const client = new pg.Client({ connectionString });
   await client.connect();
   let transactionOpen = false;
+  let catalog;
   try {
     await client.query("BEGIN READ ONLY");
     transactionOpen = true;
@@ -48,6 +82,11 @@ export async function verifySearchSync({ connectionString, output }) {
     );
     if (mode.rows[0]?.value !== "on")
       throw new Error("COMUN_SEARCH_LINT_NOT_READ_ONLY");
+    try {
+      catalog = await inspectPragmaCatalog(client);
+    } catch {
+      throw new Error("COMUN_SEARCH_LINT_CATALOG_INTROSPECTION_FAILED");
+    }
     const identity = await client.query(
       String.raw`
       select l.lanname as language, p.prosecdef as security_definer,
@@ -147,6 +186,9 @@ export async function verifySearchSync({ connectionString, output }) {
     if (errors !== 0) throw new Error("COMUN_SEARCH_LINT_PRAGMA_ERRORS");
     console.log("COMUN_SEARCH_SYNC_PRAGMA_LINT_GREEN");
     return artifact;
+  } catch (error) {
+    if (catalog) error.details = { ...(error.details ?? {}), catalog };
+    throw error;
   } finally {
     if (transactionOpen) await client.query("ROLLBACK").catch(() => {});
     await client.end();
