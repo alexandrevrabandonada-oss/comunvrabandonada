@@ -28,11 +28,12 @@ concurrency:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   baseline-capture:
     if: github.event_name == 'workflow_dispatch' && inputs.capture_baseline
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -70,6 +71,8 @@ jobs:
 
   release-preflight:
     if: github.event_name == 'workflow_dispatch' && inputs.release_preflight
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -89,6 +92,9 @@ jobs:
 
   preview-preflight:
     if: github.event_name == 'workflow_dispatch' && inputs.preview_preflight
+    permissions:
+      contents: read
+      pull-requests: read
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -132,12 +138,22 @@ jobs:
 
   full-local:
     if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline && !inputs.release_preflight && !inputs.preview_preflight) || github.event.schedule == '17 3 * * *'
+    permissions:
+      actions: read
+      checks: read
+      contents: read
+      deployments: read
+      issues: write
+      pull-requests: write
     uses: ./.github/workflows/comun-ci.yml
     with:
       force_full: true
 
   production-health:
     if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline && !inputs.release_preflight && !inputs.preview_preflight) || github.event.schedule == '17 3 * * *'
+    permissions:
+      contents: read
+      issues: write
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -173,6 +189,8 @@ jobs:
 
   sidewalk-cleanup-dry-run:
     if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline && !inputs.release_preflight && !inputs.preview_preflight) || github.event.schedule == '17 3 * * *'
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -193,6 +211,7 @@ jobs:
 
   archive-worker:
     if: github.event.schedule == '7,22,37,52 * * * *'
+    permissions: {}
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     steps:
