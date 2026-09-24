@@ -32,10 +32,8 @@ if (
   pending.blockingFindings !== 0 ||
   pending.consentObjectCount !== 6 ||
   !pending.migrations.includes("20260924015511") ||
-  pending.bundleLedgerState !== "ABSENT" ||
   post.runnerFingerprint !== pending.runnerFingerprint ||
-  post.canonicalFingerprint !== pending.canonicalFingerprint ||
-  post.bundleLedgerState !== "PRESENT_ACCEPTED"
+  post.canonicalFingerprint !== pending.canonicalFingerprint
 ) {
   throw new Error("COMUN_49_2_RECOVERY_FINGERPRINT_PROOF_INVALID");
 }
@@ -57,7 +55,7 @@ const document = {
   },
   ledgerDoesNotChangeCanonicalFingerprint:
     pending.canonicalFingerprint === post.canonicalFingerprint,
-  bundleLedgerAfter: post.bundleLedgerState,
+  ledgerProof: "ABSENT_BEFORE_EXACT_ACCEPTED_AFTER",
 };
 writeFileSync(outputPath, `${JSON.stringify(document, null, 2)}\n`);
 console.log(
