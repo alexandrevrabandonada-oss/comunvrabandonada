@@ -60,10 +60,20 @@ done
 docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database" \
   -X -v ON_ERROR_STOP=1 -c 'revoke usage, create on schema private from postgres; revoke usage, create on schema public from postgres; revoke references on auth.users from postgres' \
   >"$artifact/executor-revoke.log"
+docker cp scripts/49-2-private-release/prove-private.sql "$container:/tmp/prove-private.sql"
+docker exec -e PGPASSWORD=postgres "$container" psql -U postgres -d "$database" \
+  -X -v ON_ERROR_STOP=1 -f /tmp/prove-private.sql >"$artifact/private-contract.log"
 node scripts/solo/capture-promotion-fingerprint.mjs --disposable \
   --output="$artifact/after.json" >/dev/null
 node scripts/49-2-private-release/derive-fingerprints.mjs \
   reports/current/comun-49-2-private-release-production-pre.json \
   "$artifact/before.json" "$artifact/partial-r1.json" "$artifact/after.json" \
   "$artifact/comun-49-2-private-release-derived.json"
+docker cp scripts/49-2-private-release/prove-ledger.sql "$container:/tmp/prove-ledger.sql"
+docker exec -e PGPASSWORD=postgres "$container" psql -U postgres -d "$database" \
+  -X -v ON_ERROR_STOP=1 -f /tmp/prove-ledger.sql >"$artifact/ledger-contract.log"
+node scripts/solo/capture-promotion-fingerprint.mjs --disposable \
+  --output="$artifact/after-ledger.json" >/dev/null
+node scripts/49-2-private-release/verify-ledger-fingerprint.mjs \
+  "$artifact/after.json" "$artifact/after-ledger.json"
 echo COMUN_49_2_PRIVATE_RELEASE_DISPOSABLE_PRE_POST_DERIVED
