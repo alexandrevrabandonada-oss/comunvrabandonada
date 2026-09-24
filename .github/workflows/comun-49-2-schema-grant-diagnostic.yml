@@ -1,0 +1,67 @@
+name: COMUN 49.2 schema grant diagnostic
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-schema-grant-diagnostic.yml"
+      - "scripts/49-2-private-release/capture-public-schema-grants.mjs"
+      - "scripts/49-2-private-release/compare-public-schema-grants.mjs"
+      - "scripts/49-2-private-release/derive-expected-schema-grants.sh"
+  issues:
+    types: [labeled]
+permissions: { contents: read, issues: read }
+jobs:
+  contract:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: node --check scripts/49-2-private-release/capture-public-schema-grants.mjs
+      - run: node --check scripts/49-2-private-release/compare-public-schema-grants.mjs
+      - run: git diff --check origin/main...HEAD
+  production:
+    if: github.event_name == 'issues' && github.event.label.name == 'comun:promover' && github.event.issue.title == 'COMUN 49.2 schema grant diagnostic'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+        run: node scripts/49-2-private-release/capture-public-schema-grants.mjs --output=.diag/actual.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: actual-schema-grants-${{ github.run_id }}
+          path: .diag/actual.json
+  expected:
+    if: github.event_name == 'issues' && github.event.label.name == 'comun:promover' && github.event.issue.title == 'COMUN 49.2 schema grant diagnostic'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: bash scripts/49-2-private-release/derive-expected-schema-grants.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: expected-schema-grants-${{ github.run_id }}
+          path: .ci-artifacts/comun-49-2-schema-grants/expected.json
+  compare:
+    if: github.event_name == 'issues' && github.event.label.name == 'comun:promover' && github.event.issue.title == 'COMUN 49.2 schema grant diagnostic'
+    needs: [production,expected]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { pattern: "*-schema-grants-*", path: .diag, merge-multiple: true }
+      - run: node scripts/49-2-private-release/compare-public-schema-grants.mjs .diag/expected.json .diag/actual.json .diag/diff.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: schema-grant-diff-${{ github.run_id }}
+          path: .diag/diff.json
