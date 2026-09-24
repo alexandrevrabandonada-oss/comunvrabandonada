@@ -58,8 +58,25 @@ if (
   partial.migrations.includes("20260924015511") ||
   partial.consentObjectCount !== 8 ||
   after.consentObjectCount !== 8
-)
+) {
+  console.error(JSON.stringify({
+    partial: {
+      blockingFindings: partial.blockingFindings,
+      findingRules: partial.findingRules,
+      consentMigrationPresent: partial.consentMigrationPresent,
+      consentObjectCount: partial.consentObjectCount,
+      r2Present: partial.migrations.includes("20260924015511"),
+    },
+    post: {
+      blockingFindings: after.blockingFindings,
+      findingRules: after.findingRules,
+      consentMigrationPresent: after.consentMigrationPresent,
+      consentObjectCount: after.consentObjectCount,
+      r2Present: after.migrations.includes("20260924015511"),
+    },
+  }));
   throw new Error("COMUN_49_2_DISPOSABLE_POST_INVALID");
+}
 
 const output = {
   scope: "COMUN_49_2_PRIVATE_RELEASE_DISPOSABLE_FINGERPRINTS",
