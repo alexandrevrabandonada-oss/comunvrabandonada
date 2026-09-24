@@ -1,6 +1,6 @@
 # COMUN 49.2 — release privada R1+R2
 
-Estado: **infraestrutura da release integrada; schema privado R1/R2 e ledger lógico do bundle ausentes em Production conforme captura read-only direta**. A promoção de schema continua não autorizada.
+Estado: **`COMUN_49_2_PRIVATE_SCHEMA_PRODUCTION_GREEN` — runtime privado R1+R2 instalado e ledger lógico aceito em Production; nenhuma projeção pública foi aberta**.
 
 ## Fase A: merge dormente
 
@@ -54,3 +54,38 @@ Antes de qualquer superfície pública, a contenção lógica de falha é manter
 ## Limite
 
 R3, candidate pipeline, projeção pública, mapa, publicação e qualquer migration Production continuam fora do escopo. A futura promoção de schema requer decisão humana separada depois da revisão deste PR.
+
+
+## Fase C: promoção privada Production concluída
+
+- A primeira tentativa autorizada aplicou somente R1 e parou fail-closed por
+  diferença canônica no PARTIAL_R1. O diagnóstico read-only isolou a diferença
+  a um único ACL benigno: `postgres:USAGE` no schema `public`, sem qualquer
+  grant extra a papéis expostos.
+- A prova descartável de recuperação run `36039303960` reproduziu exatamente
+  o PARTIAL_R1 real e derivou o POST correspondente com zero findings.
+- O recovery-only foi integrado em main no merge
+  `7c2c517eca061362ac6e7dda8d652c865b0b4f8e`.
+- A run Production `36067727062` classificou
+  `PARTIAL_R1_RECOVERY`, aplicou **somente R2**, registrou o ledger lógico e
+  terminou em `POST_RECOVERY`.
+- Fingerprint canônico final:
+  `ce98af56622652e9416ed4c535ed8f202a61c36641e2cec8c21d4433f66cbeff`.
+- Runner fingerprint final:
+  `7e957c3f154efe87f7104915a5b1e095cc77dc04d488bd4041b4c859f5db1b60`.
+- O postflight foi read-only, confirmou zero findings, quatro bridges
+  service_role-only, nenhuma relação pública coletiva e bundle ledger
+  `PRESENT_ACCEPTED`.
+- Artifact final:
+  `sha256:b1ad773a6a5d3e3c0af4d778e8f47f5f113296f117e4bd0b280a58cc9e4dedde`.
+- `r1Reapplied=false`; `r3Opened=false`.
+- O smoke público pós-recovery passou sem criar entidade, consentimento,
+  candidate, projeção ou mapa.
+
+Estado terminal desta fase:
+`COMUN_49_2_PRIVATE_SCHEMA_PRODUCTION_GREEN`.
+
+O próximo bloco do roadmap é prova funcional do runtime privado em Production.
+Qualquer canário que crie entidade/representação/consentimento deve ter gate
+próprio, porque o audit trail R1 é append-only. R3 continua fechado até esse
+bloco terminar.
