@@ -17,7 +17,14 @@ const derivedBytes = readFileSync(
 const executorPrivilegesBytes = readFileSync(
   "reports/current/comun-49-2-private-release-executor-privileges.json",
 );
-const pre = JSON.parse(preBytes);
+const pre = {
+  ...JSON.parse(preBytes),
+  captureMainSha: "aabd5b45e880f703651a0ac361269f67d0f10f2c",
+  captureRunId: "123456",
+  captureRunAttempt: 1,
+  bundleLedgerState: "ABSENT",
+  bundleLedgerRowCount: 0,
+};
 const derived = JSON.parse(derivedBytes);
 const executorPrivileges = JSON.parse(executorPrivilegesBytes);
 const migrationBytes = manifest.migrations.map(({ path }) =>
@@ -41,6 +48,10 @@ test("bundle binds the read-only Production PRE, disposable POST and both migrat
     { manifest: { ...manifest, migrationSetSha256: "0".repeat(64) } },
     { manifest: { ...manifest, destructiveSql: true } },
     { pre: { ...pre, transactionReadOnly: "off" } },
+    { pre: { ...pre, bundleLedgerState: undefined } },
+    { pre: { ...pre, bundleLedgerState: "PRESENT_ACCEPTED", bundleLedgerRowCount: 1 } },
+    { pre: { ...pre, bundleLedgerState: "PRESENT_MISMATCH", bundleLedgerRowCount: 1 } },
+    { pre: { ...pre, bundleLedgerState: "ABSENT", bundleLedgerRowCount: 1 } },
     { derived: { ...derived, post: { ...derived.post, blockingFindings: 1 } } },
     {
       migrationBytes: [

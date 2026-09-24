@@ -1,6 +1,6 @@
 # COMUN 49.2 — release privada R1+R2
 
-Estado: **pacote privado preparado para revisão; nenhuma migration R1/R2 foi aplicada em Production**.
+Estado: **infraestrutura da release integrada; schema privado R1/R2 e ledger lógico do bundle ausentes em Production conforme captura read-only direta**. A promoção de schema continua não autorizada.
 
 ## Fase A: merge dormente
 
@@ -18,7 +18,7 @@ Estado: **pacote privado preparado para revisão; nenhuma migration R1/R2 foi ap
 
 ## Pacote revisável
 
-- Draft PR #438, branch `codex/comun-49-2-private-collective-runtime-release`, base merge SHA acima.
+- PR #438 foi integrado por merge normal em `aabd5b45e880f703651a0ac361269f67d0f10f2c`, tree `ebaf1bf706a9f23f357ae8f7291cfccaaafecc95`. O deploy Git Production desse SHA ficou READY e os smokes canônico/público passaram.
 - Manifest: `supabase/release-bundles/20260924-comun-49-2-private-collective-runtime-r1-r2.json`. R1 SHA-256 `8795edb8fbd5359581294b7d0696cf8c3621b81dd5c994acb262d562bbad6b8d`; R2 SHA-256 `c2937990d38f6516f9e95c2a6fdbd77c11477450281a79b6efb3d0556f06958b`. As migrations existentes não foram editadas.
 - O bundle fixa a ordem R1 → R2, PRE/PARTIAL_R1/POST, zero findings esperados, ausência de SQL destrutivo e uma identidade lógica para o ledger `public.comun_schema_releases`. O hash do conjunto ordenado é `b07c45a827b32b6627bb880fab5b6c536a1784c06eb8c4a1a9e6cdb9a010041d`.
 - A state machine bloqueia estados divergentes, retoma R2 se R1 estiver exatamente comprovado, reconhece POST antes da gravação lógica do ledger e trata replay de POST sem reaplicar migrations.
@@ -31,7 +31,15 @@ Estado: **pacote privado preparado para revisão; nenhuma migration R1/R2 foi ap
 - Local: os 34 testes do promotion runner legado ficaram **BLOCKED** por Docker engine indisponível (`COMUN_TEST_POSTGRES_NETWORK_START_FAILED`), não contam como PASS local. Os mesmos 34 testes passaram no runner Linux da run `36023542045`.
 - Run R1 descartável `36023542323`: **PASS** para fundação privada, revogação e concorrência. Run R1+R2 `36023542065`: **PASS** com Auth local real, grants, isolamento A/B, revogação e concorrência. Ambas rodaram no SHA `7d8c8072bfa71dfef457aeb800fa7a8e75328245`; as migrations não mudaram desde então.
 - Run Production-like `36023542045` no mesmo SHA: **PASS** para PRE idêntico ao Production, PARTIAL_R1, POST, zero findings, quatro bridges públicas executáveis somente por `service_role`, ausência de projeção pública, ledger lógico e fingerprint estável após o ledger. Os 34 testes do promotion runner legado passaram; o executor forward-only independente concluiu `R1,R2,LEDGER`. Replay/retomada e bloqueio de divergência passaram nos testes de state machine.
-- COST-02/Preview do PR #438 ainda exige checkpoint `[comun-preview]` no SHA funcional final e GitHub Deployment Preview `success` do SHA exato.
+- COST-02/Preview do PR #438 passou no checkpoint `45403754e721a43a1ec8d5d70f8b4a094260c58d`; PR #438 foi integrado sem schema write.
+
+## Fechamento da lacuna do ledger lógico
+
+- A captura read-only [run 36029249563](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/36029249563), sobre main `aabd5b45e880f703651a0ac361269f67d0f10f2c`, fez SELECT explícito em `public.comun_schema_releases` filtrado pela release `20260924-comun-49-2-private-collective-runtime-r1-r2`, dentro de `begin read only` com `PGOPTIONS=-c default_transaction_read_only=on`. A consulta retornou **zero linhas**: `bundleLedgerState=ABSENT`. Nenhum DDL/DML foi executado.
+- [PRE pós-merge sanitizado](comun-49-2-private-release-production-pre-postmerge.json): SHA-256 `0287acb439a1c52fa6ff5bfb6ab55594d93dd2b97724b878b1f8bc27f01a575a`. Todos os campos já pinados no PRE anterior coincidem: R1/R2 migrations ausentes, quatro tabelas privadas e quatro bridges R2 ausentes, Hardening `PRESENT_ACCEPTED`, zero findings, PostgreSQL 17.6 e fingerprints `a5fbc31cbac2b54bd877e0221b70dd9a708d83f25ac0083393f1739d46d27d98` / `cb3bea0cb9abc6534760533d9c52a6471981a3a9672db8780c1ae4294995b1ee`. O artifact de privilégios manteve SHA-256 `abe126737f537bcbfedfd8e0b1f389b568600f15a0797414147de94c0af1bdf4`.
+- O validador lê `pre.bundleLedgerState` do novo artifact, compara todos os campos anteriores ao PRE de hash pinado e classifica `PRE` somente com `ABSENT`. `PRESENT_ACCEPTED` com R1/R2 ausentes, `PRESENT_MISMATCH` e qualquer formato inesperado bloqueiam. O manifest e seus hashes/fingerprints esperados permanecem inalterados.
+- [Prova descartável 36029575959](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/36029575959), SHA `dd8aaf364bd3fda2876238af76aa20f105f2e79b`: **PASS**, 18 testes focais da release, 34 testes do promotion runner, `BUNDLE_VALID:PRE` e reprodução PRE/PARTIAL_R1/POST com o ledger capturado. O job não recebe credencial Production.
+- Estado certificado pela captura: `COMUN_49_2_PRIVATE_RELEASE_MERGED_SCHEMA_STILL_ABSENT`. Isso não autoriza aplicar R1/R2, gravar ledger nem abrir R3. A primeira escrita de schema exige a decisão separada `COMUN_49_2_PRIVATE_SCHEMA_PROMOTION`.
 
 ## Sequência de promoção futura — não acionada
 

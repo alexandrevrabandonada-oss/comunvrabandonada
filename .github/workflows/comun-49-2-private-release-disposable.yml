@@ -9,7 +9,9 @@ permissions: { contents: read }
 
 jobs:
   disposable-pre-post:
-    if: github.head_ref == 'codex/comun-49-2-private-collective-runtime-release'
+    if: >-
+      github.head_ref == 'codex/comun-49-2-private-collective-runtime-release' ||
+      github.head_ref == 'codex/comun-49-2-readonly-ledger-capture'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
