@@ -5,8 +5,8 @@
   "productionPreCaptureSha256": "e8bff2fdae5e6ac49391757ef10fa24de759ef1903d9b7660c3790408117f015",
   "productionExecutorPrivilegesCaptureRun": "36022306227",
   "productionExecutorPrivilegesSha256": "9241d87f65be579d9263e02f24c0b15068fa3d0e605bcf55f3c246a148cc96aa",
-  "disposableProofRun": "36020596557",
-  "disposableProofArtifactSha256": "efd66e83d47c725aefee69f553e15ea8f840e2dcbb4bcbacf548a5ba0087ca66",
+  "disposableProofRun": "36022901212",
+  "disposableProofArtifactSha256": "4b91fddf75f4c1fae6cc6ccb051dd38546c39c6305035c8430f91afd50024470",
   "postgresVersion": "17.6",
   "migrations": [
     {
@@ -28,7 +28,7 @@
   "expectedPreCanonicalFingerprint": "cb3bea0cb9abc6534760533d9c52a6471981a3a9672db8780c1ae4294995b1ee",
   "expectedPreMigrationVersionsSha256": "ccd66f5d7f15fdc033950444512e83d7e28ec41cd4c808b5156d1797b3aa38b9",
   "expectedPartialR1Fingerprint": "a5fbc31cbac2b54bd877e0221b70dd9a708d83f25ac0083393f1739d46d27d98",
-  "expectedPartialR1CanonicalFingerprint": "77cc670bf77ecebed85ad30adc50143b2cca9d20ece6dd8cc207d6c1ac56e636",
+  "expectedPartialR1CanonicalFingerprint": "208786bc2f6b595831e0a073f3bf7aac97fea955ce47e454cfde7d7e2ddc2c59",
   "expectedPostFingerprint": "7e957c3f154efe87f7104915a5b1e095cc77dc04d488bd4041b4c859f5db1b60",
   "expectedPostCanonicalFingerprint": "34f99d5ca5c7d2d15df48586051b26baa179ba82b81c86f323e2a2fef2dae51b",
   "destructiveSql": false,

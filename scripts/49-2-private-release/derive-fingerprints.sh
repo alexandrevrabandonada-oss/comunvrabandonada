@@ -76,6 +76,11 @@ node scripts/49-2-private-release/derive-fingerprints.mjs \
   reports/current/comun-49-2-private-release-production-pre.json \
   "$artifact/before.json" "$artifact/partial-r1.json" "$artifact/after.json" \
   "$artifact/comun-49-2-private-release-derived.json"
+cmp -s reports/current/comun-49-2-private-release-disposable-derived.json \
+  "$artifact/comun-49-2-private-release-derived.json" || {
+  echo COMUN_49_2_PRIVATE_RELEASE_DISPOSABLE_FIXTURE_DRIFT
+  exit 1
+}
 docker cp scripts/49-2-private-release/prove-ledger.sql "$container:/tmp/prove-ledger.sql"
 docker exec -e PGPASSWORD=postgres "$container" psql -U postgres -d "$database" \
   -X -v ON_ERROR_STOP=1 -f /tmp/prove-ledger.sql >"$artifact/ledger-contract.log"

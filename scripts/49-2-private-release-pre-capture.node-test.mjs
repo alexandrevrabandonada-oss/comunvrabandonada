@@ -7,7 +7,7 @@ test("Production PRE capture uses trusted main code and read-only catalog querie
     ".github/workflows/comun-49-2-private-release-pre-capture.yml",
     "utf8",
   );
-  assert.match(workflow, /types: \[opened, synchronize\]/);
+  assert.match(workflow, /types: \[opened\]/);
   assert.match(workflow, /ref: 438cf7e7bb630b08ccac348d3e0859dda2c02692/);
   assert.match(workflow, /persist-credentials: false/);
   assert.equal((workflow.match(/SUPABASE_DB_URL:/g) ?? []).length, 1);

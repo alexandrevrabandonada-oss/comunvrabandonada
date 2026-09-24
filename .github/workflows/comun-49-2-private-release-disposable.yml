@@ -18,8 +18,11 @@ jobs:
         with: { node-version: 22, cache: npm }
       - run: npm ci --ignore-scripts
       - run: node --test scripts/49-2-private-release/*.node-test.mjs
+      - run: npm run test:promotion-runner
       - run: node scripts/49-2-private-release/validate-bundle.mjs
       - name: Derive PRE, PARTIAL_R1 and POST from the pinned Production-like fixture
+        env:
+          COMUN_49_2_RUNNER_REHEARSAL: "1"
         run: bash scripts/49-2-private-release/derive-fingerprints.sh
       - uses: actions/upload-artifact@v4
         with:
