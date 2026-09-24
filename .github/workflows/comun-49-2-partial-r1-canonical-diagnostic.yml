@@ -1,0 +1,117 @@
+name: COMUN 49.2 partial R1 canonical diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-partial-r1-canonical-diagnostic.yml"
+      - "scripts/49-2-private-release/capture-canonical-section-hashes.mjs"
+      - "scripts/49-2-private-release/capture-canonical-section-hashes.node-test.mjs"
+      - "scripts/49-2-private-release/compare-canonical-section-hashes.mjs"
+      - "scripts/49-2-private-release/derive-partial-r1-section-hashes.sh"
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  contract:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: node --check scripts/49-2-private-release/capture-canonical-section-hashes.mjs
+      - run: node --check scripts/49-2-private-release/compare-canonical-section-hashes.mjs
+      - run: node --test scripts/49-2-private-release/capture-canonical-section-hashes.node-test.mjs
+      - run: git diff --check origin/main...HEAD
+
+  production-readonly:
+    if: >-
+      github.event_name == 'issues' &&
+      github.event.label.name == 'comun:promover' &&
+      github.event.issue.title == 'COMUN 49.2 partial R1 canonical diagnostic'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Authorize exact main SHA
+        id: auth
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          AUTHOR_ASSOCIATION: ${{ github.event.issue.author_association }}
+          EVENT_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$AUTHOR_ASSOCIATION" = "OWNER"
+          expected_sha="$(printf '%s\n' "$ISSUE_BODY" | sed -nE 's/^expected_main_sha:[[:space:]]*([a-f0-9]{40})[[:space:]]*$/\1/p' | tail -1)"
+          test "$expected_sha" = "$EVENT_SHA"
+          echo "sha=$expected_sha" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.auth.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Capture Production canonical section hashes read-only
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+        run: |
+          node scripts/49-2-private-release/capture-canonical-section-hashes.mjs             --output=.ci-artifacts/comun-49-2-partial-r1-canonical/actual-production.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-partial-r1-production-${{ github.run_id }}
+          path: .ci-artifacts/comun-49-2-partial-r1-canonical/actual-production.json
+          if-no-files-found: error
+
+  disposable-expected:
+    if: >-
+      github.event_name == 'issues' &&
+      github.event.label.name == 'comun:promover' &&
+      github.event.issue.title == 'COMUN 49.2 partial R1 canonical diagnostic'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Derive expected PARTIAL_R1 section hashes without Production secrets
+        run: bash scripts/49-2-private-release/derive-partial-r1-section-hashes.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-partial-r1-expected-${{ github.run_id }}
+          path: .ci-artifacts/comun-49-2-partial-r1-canonical/expected-partial-r1.json
+          if-no-files-found: error
+
+  compare:
+    if: >-
+      github.event_name == 'issues' &&
+      github.event.label.name == 'comun:promover' &&
+      github.event.issue.title == 'COMUN 49.2 partial R1 canonical diagnostic'
+    needs: [production-readonly, disposable-expected]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: comun-49-2-partial-r1-*
+          path: .diag
+          merge-multiple: true
+      - name: Compare canonical sections
+        run: |
+          node scripts/49-2-private-release/compare-canonical-section-hashes.mjs             .diag/expected-partial-r1.json             .diag/actual-production.json             .diag/comparison.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-partial-r1-canonical-comparison-${{ github.run_id }}
+          path: .diag/comparison.json
+          if-no-files-found: error
+      - run: echo COMUN_49_2_PARTIAL_R1_CANONICAL_DIAGNOSTIC_CAPTURED >> "$GITHUB_STEP_SUMMARY"
