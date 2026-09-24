@@ -204,10 +204,6 @@ async function run() {
 
   if (mode === "preflight") {
     const { capture, classification } = await classify(adapter);
-    if (classification.state !== "PRE")
-      throw new Error(
-        `COMUN_49_2_PRIVATE_SCHEMA_PREFLIGHT_NOT_PRE:${classification.state}`,
-      );
     persist({
       scope: "COMUN_49_2_PRIVATE_SCHEMA_PROMOTION",
       mode,
@@ -224,10 +220,15 @@ async function run() {
 
   if (mode === "promote") {
     const before = await classify(adapter);
-    if (before.classification.state !== "PRE")
-      throw new Error(
-        `COMUN_49_2_PRIVATE_SCHEMA_PROMOTION_NOT_PRE:${before.classification.state}`,
-      );
+    const expectedActionsByState = {
+      PRE: ["R1", "R2", "LEDGER"],
+      PARTIAL_R1: ["R2", "LEDGER"],
+      POST_PENDING_LEDGER: ["LEDGER"],
+      POST: [],
+    };
+    const expectedActions = expectedActionsByState[before.classification.state];
+    if (!expectedActions)
+      throw new Error("COMUN_49_2_PRIVATE_SCHEMA_PROMOTION_STATE_INVALID");
 
     const result = await rehearsePrivateReleasePromotion({
       manifest,
@@ -238,7 +239,7 @@ async function run() {
     });
     if (
       result.state !== "POST" ||
-      JSON.stringify(result.actions) !== JSON.stringify(["R1", "R2", "LEDGER"])
+      JSON.stringify(result.actions) !== JSON.stringify(expectedActions)
     ) throw new Error("COMUN_49_2_PRIVATE_SCHEMA_PROMOTION_INCOMPLETE");
 
     const after = await classify(adapter);
