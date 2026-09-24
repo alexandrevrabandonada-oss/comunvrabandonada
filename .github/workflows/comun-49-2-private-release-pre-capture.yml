@@ -5,18 +5,23 @@ on:
     types: [opened]
     branches: [main]
     paths: [.github/workflows/comun-49-2-private-release-pre-capture.yml]
+  workflow_dispatch:
 
 permissions: { contents: read }
 
 jobs:
   production-pre-capture:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'codex/comun-49-2-private-collective-runtime-release'
+    if: >-
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       github.head_ref == 'codex/comun-49-2-readonly-ledger-capture') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 438cf7e7bb630b08ccac348d3e0859dda2c02692
+          ref: aabd5b45e880f703651a0ac361269f67d0f10f2c
           persist-credentials: false
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
@@ -61,27 +66,69 @@ jobs:
               from pg_namespace n where n.nspname='private';
             rollback;
           " > comun-49-2-executor-privileges.tsv
+          psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --quiet --set=ON_ERROR_STOP=1 -c "
+            begin read only;
+            select json_build_object(
+              'transactionReadOnly', current_setting('transaction_read_only'),
+              'rows', coalesce((select json_agg(json_build_object(
+                'release', release,
+                'migrationPath', migration_path,
+                'migrationSha256', migration_sha256,
+                'preFingerprint', pre_fingerprint,
+                'postFingerprint', post_fingerprint,
+                'status', status))
+                from public.comun_schema_releases
+                where release='20260924-comun-49-2-private-collective-runtime-r1-r2'), '[]'::json)
+            );
+            rollback;
+          " > comun-49-2-bundle-ledger-raw.json
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: candidate
+          persist-credentials: false
       - name: Validate and sanitize without Production credentials
+        env:
+          CAPTURE_MAIN_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
+          CAPTURE_RUN_ID: ${{ github.run_id }}
+          CAPTURE_RUN_ATTEMPT: ${{ github.run_attempt }}
         shell: bash
         run: |
           set -euo pipefail
-          node - <<'NODE'
-          const fs = require('node:fs');
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          import { classifyBundleLedgerRows } from './candidate/scripts/49-2-private-release/classify-bundle-ledger.mjs';
+          const manifest = JSON.parse(fs.readFileSync('supabase/release-bundles/20260924-comun-49-2-private-collective-runtime-r1-r2.json','utf8'));
+          const pinned = JSON.parse(fs.readFileSync('reports/current/comun-49-2-private-release-production-pre.json','utf8'));
           const capture = JSON.parse(fs.readFileSync('comun-49-2-production-pre.json','utf8'));
+          const ledgerRaw = fs.readFileSync('comun-49-2-bundle-ledger-raw.json','utf8').trim();
+          const ledgerLines = ledgerRaw.split('\n').filter(Boolean);
+          if (ledgerLines.length !== 1) throw Error('COMUN_49_2_BUNDLE_LEDGER_CAPTURE_INVALID');
+          const ledger = classifyBundleLedgerRows(JSON.parse(ledgerLines[0]),manifest);
           const line = fs.readFileSync('comun-49-2-collective-catalog.tsv','utf8').trim().split('\n').find(x => x.includes('|'));
           if (!line || !/^on\|\d+\|\d+\|\d+$/.test(line)) throw Error('COMUN_49_2_PRE_CATALOG_INVALID');
           const [transactionReadOnly,privateTableCount,r2BridgeCount,migrationCount] = line.split('|');
           if (capture.target !== 'PRODUCTION' || capture.blockingFindings !== 0 ||
               capture.releaseLedgerState !== 'PRESENT_ACCEPTED' ||
               capture.consentMigrationPresent !== false || capture.consentObjectCount !== 0 ||
-              privateTableCount !== '0' || r2BridgeCount !== '0' || migrationCount !== '0') {
+              privateTableCount !== '0' || r2BridgeCount !== '0' || migrationCount !== '0' ||
+              capture.runnerFingerprint !== manifest.expectedPreFingerprint ||
+              capture.canonicalFingerprint !== manifest.expectedPreCanonicalFingerprint ||
+              JSON.stringify(capture.migrations) !== JSON.stringify(pinned.migrations) ||
+              capture.postgresVersion !== pinned.postgresVersion ||
+              ledger.bundleLedgerState !== 'ABSENT') {
             throw Error('COMUN_49_2_PRIVATE_RELEASE_PRODUCTION_DRIFT');
           }
           const output = {
             scope:'COMUN_49_2_PRIVATE_RELEASE_PRODUCTION_PRE',
-            sourceSha:'438cf7e7bb630b08ccac348d3e0859dda2c02692',
+            sourceSha:manifest.sourceMainSha,
+            captureMainSha:process.env.CAPTURE_MAIN_SHA,
+            captureRunId:process.env.CAPTURE_RUN_ID,
+            captureRunAttempt:Number(process.env.CAPTURE_RUN_ATTEMPT),
             transactionReadOnly,privateTableCount:Number(privateTableCount),
             r2BridgeCount:Number(r2BridgeCount),migrationCount:Number(migrationCount),
+            bundleLedgerState:ledger.bundleLedgerState,
+            bundleLedgerRowCount:ledger.bundleLedgerRowCount,
             runnerFingerprint:capture.runnerFingerprint,
             canonicalFingerprint:capture.canonicalFingerprint,
             blockingFindings:capture.blockingFindings,
@@ -97,7 +144,7 @@ jobs:
           const [readOnly,connectionRole,privateSchemaOwner,privateUsage,privateCreate,publicCreate,authUsersReferences,migrationLedgerInsert,bundleLedgerInsert] = privilegeLine.split('|');
           fs.writeFileSync('comun-49-2-executor-privileges.json',JSON.stringify({
             scope:'COMUN_49_2_PRIVATE_RELEASE_EXECUTOR_PRIVILEGES_READ_ONLY',
-            sourceSha:'438cf7e7bb630b08ccac348d3e0859dda2c02692',
+            sourceSha:manifest.sourceMainSha,
             transactionReadOnly:readOnly,
             connectionRole,privateSchemaOwner,
             postgres:{privateUsage:privateUsage==='t',privateCreate:privateCreate==='t',

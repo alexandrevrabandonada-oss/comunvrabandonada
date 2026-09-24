@@ -9,6 +9,8 @@ const manifestPath =
   "supabase/release-bundles/20260924-comun-49-2-private-collective-runtime-r1-r2.json";
 const prePath =
   "reports/current/comun-49-2-private-release-production-pre.json";
+const postMergePrePath =
+  "reports/current/comun-49-2-private-release-production-pre-postmerge.json";
 const derivedPath =
   "reports/current/comun-49-2-private-release-disposable-derived.json";
 const hash = (value) => createHash("sha256").update(value).digest("hex");
@@ -25,6 +27,15 @@ export function validateBundle({
   executorPrivilegesBytes,
   migrationBytes,
 }) {
+  const pinnedPre = JSON.parse(preBytes);
+  const {
+    bundleLedgerState,
+    bundleLedgerRowCount,
+    captureMainSha,
+    captureRunId,
+    captureRunAttempt,
+    ...prePinnedFields
+  } = pre;
   if (
     manifest.destructiveSql !== false ||
     manifest.requiresPromotion !== true ||
@@ -32,6 +43,16 @@ export function validateBundle({
     manifest.releaseLedger?.relation !== "public.comun_schema_releases" ||
     manifest.releaseLedger?.status !== "applied" ||
     hash(preBytes) !== manifest.productionPreCaptureSha256 ||
+    JSON.stringify(prePinnedFields) !== JSON.stringify(pinnedPre) ||
+    !["ABSENT", "PRESENT_ACCEPTED", "PRESENT_MISMATCH"].includes(
+      bundleLedgerState,
+    ) ||
+    !Number.isInteger(bundleLedgerRowCount) ||
+    bundleLedgerRowCount !== (bundleLedgerState === "ABSENT" ? 0 : 1) ||
+    !/^[a-f0-9]{40}$/.test(captureMainSha ?? "") ||
+    !/^\d+$/.test(captureRunId ?? "") ||
+    !Number.isInteger(captureRunAttempt) ||
+    captureRunAttempt < 1 ||
     hash(derivedBytes) !== manifest.disposableProofArtifactSha256 ||
     hash(executorPrivilegesBytes) !==
       manifest.productionExecutorPrivilegesSha256 ||
@@ -126,7 +147,7 @@ export function validateBundle({
     blockingFindings: pre.blockingFindings,
     releaseLedgerState: pre.hardeningLedger,
     consentObjectCount: pre.privateTableCount,
-    bundleLedgerState: "ABSENT",
+    bundleLedgerState: pre.bundleLedgerState,
   };
   if (classifyPrivateRelease(capture, manifest, baseline).state !== "PRE")
     throw new Error("COMUN_49_2_PRIVATE_RELEASE_PRE_INVALID");
@@ -143,13 +164,14 @@ if (
 ) {
   const manifest = readJson(manifestPath);
   const preBytes = read(prePath);
+  const pre = readJson(postMergePrePath);
   const derivedBytes = read(derivedPath);
   const executorPrivilegesBytes = read(
     "reports/current/comun-49-2-private-release-executor-privileges.json",
   );
   const result = validateBundle({
     manifest,
-    pre: JSON.parse(preBytes),
+    pre,
     derived: JSON.parse(derivedBytes),
     executorPrivileges: JSON.parse(executorPrivilegesBytes),
     preBytes,

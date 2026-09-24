@@ -8,11 +8,16 @@ test("Production PRE capture uses trusted main code and read-only catalog querie
     "utf8",
   );
   assert.match(workflow, /types: \[opened\]/);
-  assert.match(workflow, /ref: 438cf7e7bb630b08ccac348d3e0859dda2c02692/);
+  assert.match(workflow, /ref: aabd5b45e880f703651a0ac361269f67d0f10f2c/);
   assert.match(workflow, /persist-credentials: false/);
   assert.equal((workflow.match(/SUPABASE_DB_URL:/g) ?? []).length, 1);
   assert.match(workflow, /PGOPTIONS: -c default_transaction_read_only=on/);
   assert.match(workflow, /begin read only;/);
+  assert.match(workflow, /where release='20260924-comun-49-2-private-collective-runtime-r1-r2'/);
+  assert.match(workflow, /classifyBundleLedgerRows\(JSON\.parse\(ledgerLines\[0\]\),manifest\)/);
+  assert.match(workflow, /bundleLedgerState:ledger\.bundleLedgerState/);
+  assert.match(workflow, /ledger\.bundleLedgerState !== 'ABSENT'/);
+  assert.match(workflow, /path: candidate[\s\S]*Validate and sanitize without Production credentials/);
   assert.match(workflow, /current_setting\('transaction_read_only'\)/);
   assert.match(workflow, /capture-promotion-fingerprint\.mjs/);
   assert.match(workflow, /COMUN_49_2_PRIVATE_RELEASE_PRODUCTION_DRIFT/);

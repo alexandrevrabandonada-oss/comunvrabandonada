@@ -57,6 +57,16 @@ test("private release state machine permits only the exact forward path", () => 
     state: "POST",
     action: "ALREADY_APPLIED",
   });
+  for (const inconsistent of [
+    { ...base, bundleLedgerState: "PRESENT_ACCEPTED" },
+    { ...base, bundleLedgerState: "PRESENT_MISMATCH" },
+    { ...post, bundleLedgerState: "PRESENT_MISMATCH" },
+  ]) {
+    assert.deepEqual(classifyPrivateRelease(inconsistent, manifest, baseline), {
+      state: "DIVERGED",
+      action: "BLOCK",
+    });
+  }
   for (const changed of [
     { ...base, runnerFingerprint: "drift" },
     { ...base, canonicalFingerprint: "drift" },
