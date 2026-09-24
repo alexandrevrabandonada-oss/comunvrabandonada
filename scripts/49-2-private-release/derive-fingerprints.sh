@@ -34,6 +34,12 @@ export COMUN_DISPOSABLE_DB_URL="postgresql://postgres:postgres@127.0.0.1:57532/$
 node scripts/solo/capture-promotion-fingerprint.mjs --disposable \
   --output="$artifact/before.json" >/dev/null
 
+# pg_dump's schema-only fixture omits the executor's CREATE grant on private.
+# Restore it only while applying the two migrations, then remove it before POST capture.
+docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database" \
+  -X -v ON_ERROR_STOP=1 -c 'grant usage, create on schema private to postgres' \
+  >"$artifact/executor-grant.log"
+
 for version in 20260901000000 20260924015511; do
   case "$version" in
     20260901000000) file=supabase/migrations/20260901000000_comun_relata_collective_entity_consent_foundation.sql ;;
@@ -42,7 +48,7 @@ for version in 20260901000000 20260924015511; do
   docker cp "$file" "$container:/tmp/$version.sql"
   docker exec -e PGPASSWORD=postgres "$container" psql -U postgres -d "$database" \
     -X -v ON_ERROR_STOP=1 -f "/tmp/$version.sql" >"$artifact/$version.log"
-  docker exec -e PGPASSWORD=postgres "$container" psql -U postgres -d "$database" \
+  docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database" \
     -X -v ON_ERROR_STOP=1 -c \
     "insert into supabase_migrations.schema_migrations(version) values ('$version')" \
     >"$artifact/$version-ledger.log"
@@ -51,6 +57,9 @@ for version in 20260901000000 20260924015511; do
       --output="$artifact/partial-r1.json" >/dev/null
   fi
 done
+docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database" \
+  -X -v ON_ERROR_STOP=1 -c 'revoke usage, create on schema private from postgres' \
+  >"$artifact/executor-revoke.log"
 node scripts/solo/capture-promotion-fingerprint.mjs --disposable \
   --output="$artifact/after.json" >/dev/null
 node scripts/49-2-private-release/derive-fingerprints.mjs \
