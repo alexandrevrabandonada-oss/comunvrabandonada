@@ -63,6 +63,7 @@ export function createPostgresAdapter({
         );
         if (mode.rows[0]?.value !== "on")
           throw new Error("COMUN_49_2_CAPTURE_NOT_READ_ONLY");
+        const version = await client.query("show server_version");
         const runnerRows = await client.query(schemaFingerprintQuery);
         const normalized = runnerRows.rows
           .map((row) => Object.values(row)[0])
@@ -126,6 +127,9 @@ export function createPostgresAdapter({
             : "PRESENT_MISMATCH";
         return {
           migrations: canonical.canonical.migrations,
+          postgresVersion: String(version.rows[0]?.server_version ?? "").match(
+            /^\d+\.\d+/,
+          )?.[0],
           runnerFingerprint: hash(normalized),
           canonicalFingerprint: canonical.fingerprint,
           blockingFindings: canonical.security.blockingFindings.length,

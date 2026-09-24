@@ -4,6 +4,7 @@ import test from "node:test";
 import { classifyPrivateRelease } from "./state-machine.mjs";
 
 const manifest = {
+  postgresVersion: "17.6",
   expectedPreFingerprint: "pre",
   expectedPreCanonicalFingerprint: "pre-c",
   expectedPartialR1Fingerprint: "partial",
@@ -16,6 +17,7 @@ const manifest = {
 };
 const baseline = { migrations: ["prior"] };
 const base = {
+  postgresVersion: "17.6",
   blockingFindings: 0,
   releaseLedgerState: "PRESENT_ACCEPTED",
   migrations: ["prior"],
@@ -64,6 +66,7 @@ test("private release state machine permits only the exact forward path", () => 
     { ...partial, runnerFingerprint: "drift" },
     { ...post, releaseLedgerState: "ABSENT" },
     { ...post, migrations: null },
+    { ...post, postgresVersion: "17.7" },
     { ...post, migrations: [...post.migrations, "unknown"] },
   ]) {
     assert.deepEqual(classifyPrivateRelease(changed, manifest, baseline), {

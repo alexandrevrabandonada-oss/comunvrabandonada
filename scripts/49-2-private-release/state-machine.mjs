@@ -18,6 +18,7 @@ export function classifyPrivateRelease(capture, manifest, baseline) {
   if (
     typeof capture?.runnerFingerprint !== "string" ||
     typeof capture?.canonicalFingerprint !== "string" ||
+    capture.postgresVersion !== manifest?.postgresVersion ||
     !Array.isArray(prior) ||
     priorHash !== manifest?.expectedPreMigrationVersionsSha256 ||
     capture.blockingFindings !== 0 ||

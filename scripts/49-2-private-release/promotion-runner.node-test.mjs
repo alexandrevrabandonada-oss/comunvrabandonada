@@ -5,6 +5,7 @@ import { rehearsePrivateReleasePromotion } from "./promotion-runner.mjs";
 
 const prior = ["prior"];
 const manifest = {
+  postgresVersion: "17.6",
   migrations: [{ version: "20260901000000" }, { version: "20260924015511" }],
   expectedPreMigrationVersionsSha256: createHash("sha256")
     .update(JSON.stringify(prior))
@@ -48,6 +49,7 @@ const states = [
   },
 ].map((capture) => ({
   ...capture,
+  postgresVersion: "17.6",
   blockingFindings: 0,
   releaseLedgerState: "PRESENT_ACCEPTED",
 }));

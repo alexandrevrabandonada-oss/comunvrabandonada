@@ -44,6 +44,8 @@ export function validateBundle({
     JSON.stringify(Object.keys(executorPrivileges.postgres ?? {}).sort()) !==
       JSON.stringify([
         "authUsersReferences",
+        "bundleLedgerInsert",
+        "migrationLedgerInsert",
         "privateCreate",
         "privateUsage",
         "publicCreate",
@@ -118,6 +120,7 @@ export function validateBundle({
   const baseline = { migrations: pre.migrations };
   const capture = {
     migrations: pre.migrations,
+    postgresVersion: pre.postgresVersion,
     runnerFingerprint: pre.runnerFingerprint,
     canonicalFingerprint: pre.canonicalFingerprint,
     blockingFindings: pre.blockingFindings,

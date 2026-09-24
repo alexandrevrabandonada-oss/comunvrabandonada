@@ -8,6 +8,8 @@
     "privateUsage": true,
     "privateCreate": true,
     "publicCreate": true,
-    "authUsersReferences": true
+    "authUsersReferences": true,
+    "migrationLedgerInsert": true,
+    "bundleLedgerInsert": true
   }
 }

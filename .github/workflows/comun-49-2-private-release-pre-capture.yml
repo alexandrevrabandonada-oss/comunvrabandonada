@@ -2,7 +2,7 @@ name: COMUN 49.2 private release Production PRE capture
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened]
     branches: [main]
     paths: [.github/workflows/comun-49-2-private-release-pre-capture.yml]
 
