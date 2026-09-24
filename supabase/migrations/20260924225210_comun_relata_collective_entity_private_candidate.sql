@@ -63,24 +63,27 @@ create trigger comun_relata_candidate_immutable
 create function private.comun_relata_candidate_invalidate_from_source()
 returns trigger language plpgsql security definer set search_path=pg_catalog as $$
 begin
-  if tg_table_name='comun_relata_collective_entity_consents'
-    and old.active and not new.active then
-    update private.comun_relata_collective_entity_candidates candidate
-       set candidate_state='invalidated', invalidated_at=pg_catalog.now(),
-           invalidation_reason='CONSENT_REVOKED'
-     where candidate.source_consent_id=new.id and candidate.candidate_state='pending_legitimacy';
-  elsif tg_table_name='comun_relata_collective_entity_representations'
-    and old.status in ('declared','verified') and new.status='revoked' then
-    update private.comun_relata_collective_entity_candidates candidate
-       set candidate_state='invalidated', invalidated_at=pg_catalog.now(),
-           invalidation_reason='REPRESENTATION_REVOKED'
-     where candidate.source_representation_id=new.id and candidate.candidate_state='pending_legitimacy';
-  elsif tg_table_name='comun_relata_collective_entities'
-    and old.state='active' and new.state='archived' then
-    update private.comun_relata_collective_entity_candidates candidate
-       set candidate_state='invalidated', invalidated_at=pg_catalog.now(),
-           invalidation_reason='ENTITY_ARCHIVED'
-     where candidate.entity_id=new.id and candidate.candidate_state='pending_legitimacy';
+  if tg_table_name='comun_relata_collective_entity_consents' then
+    if old.active and not new.active then
+      update private.comun_relata_collective_entity_candidates candidate
+         set candidate_state='invalidated', invalidated_at=pg_catalog.now(),
+             invalidation_reason='CONSENT_REVOKED'
+       where candidate.source_consent_id=new.id and candidate.candidate_state='pending_legitimacy';
+    end if;
+  elsif tg_table_name='comun_relata_collective_entity_representations' then
+    if old.status in ('declared','verified') and new.status='revoked' then
+      update private.comun_relata_collective_entity_candidates candidate
+         set candidate_state='invalidated', invalidated_at=pg_catalog.now(),
+             invalidation_reason='REPRESENTATION_REVOKED'
+       where candidate.source_representation_id=new.id and candidate.candidate_state='pending_legitimacy';
+    end if;
+  elsif tg_table_name='comun_relata_collective_entities' then
+    if old.state='active' and new.state='archived' then
+      update private.comun_relata_collective_entity_candidates candidate
+         set candidate_state='invalidated', invalidated_at=pg_catalog.now(),
+             invalidation_reason='ENTITY_ARCHIVED'
+       where candidate.entity_id=new.id and candidate.candidate_state='pending_legitimacy';
+    end if;
   end if;
   return new;
 end;

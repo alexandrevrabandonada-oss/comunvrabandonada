@@ -65,3 +65,22 @@ test("R3 browser action accepts handles only and disposable workflow has no Prod
   assert.match(workflow, /supabase db reset --local --yes/);
   assert.match(workflow, /assert-zero-security-findings/);
 });
+
+test("historical P6C preflights use canonical ownership before remote inspection", () => {
+  for (const lane of ["b1", "b2"]) {
+    const text = readFileSync(
+      `.github/workflows/comun-p6c-${lane}-preflight.yml`,
+      "utf8",
+    );
+    assert.match(text, /ownership:\s*\n/);
+    assert.match(
+      text,
+      new RegExp(`check-p6c-migration-plan\\.mjs --lane p6c-${lane}`),
+    );
+    assert.match(
+      text,
+      /needs: ownership\s*\n\s*if: needs\.ownership\.outputs\.mode == 'candidate'/,
+    );
+    assert.match(text, /candidate\|not_applicable\|none/);
+  }
+});

@@ -26,7 +26,27 @@ env:
   P6C_B2_MIGRATION: supabase/migrations/20260810171448_comun_child_protection_private_routing.sql
 
 jobs:
+  ownership:
+    runs-on: ubuntu-24.04
+    outputs:
+      mode: ${{ steps.classify.outputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - id: classify
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" != pull_request ]]; then
+            echo 'mode=candidate' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          mode="$(node scripts/ci/check-p6c-migration-plan.mjs --lane p6c-b1 --base '${{ github.event.pull_request.base.sha }}' | jq -r '.mode')"
+          case "$mode" in candidate|not_applicable|none) ;; *) exit 1 ;; esac
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
   preflight:
+    needs: ownership
+    if: needs.ownership.outputs.mode == 'candidate'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
