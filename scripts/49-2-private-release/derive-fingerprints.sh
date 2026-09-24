@@ -35,16 +35,25 @@ node scripts/solo/capture-promotion-fingerprint.mjs --disposable \
   --output="$artifact/before.json" >/dev/null
 
 # The schema-only fixture omits migration-executor privileges on managed schemas.
-# Restore them only for disposable application, then revoke before POST capture.
-docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database" \
-  -X -v ON_ERROR_STOP=1 -c 'grant usage, create on schema private to postgres; grant usage, create on schema public to postgres; grant references on auth.users to postgres' \
-  >"$artifact/executor-grant.log"
+# Restore them only within each disposable application interval. Both the
+# PARTIAL_R1 and POST fingerprints must be captured after restoring baseline ACLs.
+grant_executor() {
+  docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database" \
+    -X -v ON_ERROR_STOP=1 -c 'grant usage, create on schema private to postgres; grant usage, create on schema public to postgres; grant references on auth.users to postgres' \
+    >"$artifact/executor-grant.log"
+}
+revoke_executor() {
+  docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database" \
+    -X -v ON_ERROR_STOP=1 -c 'revoke usage, create on schema private from postgres; revoke usage, create on schema public from postgres; revoke references on auth.users from postgres' \
+    >"$artifact/executor-revoke.log"
+}
 
 for version in 20260901000000 20260924015511; do
   case "$version" in
     20260901000000) file=supabase/migrations/20260901000000_comun_relata_collective_entity_consent_foundation.sql ;;
     20260924015511) file=supabase/migrations/20260924015511_comun_relata_collective_entity_authenticated_runtime.sql ;;
   esac
+  grant_executor
   docker cp "$file" "$container:/tmp/$version.sql"
   docker exec -e PGPASSWORD=postgres "$container" psql -U postgres -d "$database" \
     -X -v ON_ERROR_STOP=1 -f "/tmp/$version.sql" >"$artifact/$version.log"
@@ -52,14 +61,12 @@ for version in 20260901000000 20260924015511; do
     -X -v ON_ERROR_STOP=1 -c \
     "insert into supabase_migrations.schema_migrations(version) values ('$version')" \
     >"$artifact/$version-ledger.log"
+  revoke_executor
   if [[ "$version" == 20260901000000 ]]; then
     node scripts/solo/capture-promotion-fingerprint.mjs --disposable \
       --output="$artifact/partial-r1.json" >/dev/null
   fi
 done
-docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database" \
-  -X -v ON_ERROR_STOP=1 -c 'revoke usage, create on schema private from postgres; revoke usage, create on schema public from postgres; revoke references on auth.users from postgres' \
-  >"$artifact/executor-revoke.log"
 docker cp scripts/49-2-private-release/prove-private.sql "$container:/tmp/prove-private.sql"
 docker exec -e PGPASSWORD=postgres "$container" psql -U postgres -d "$database" \
   -X -v ON_ERROR_STOP=1 -f /tmp/prove-private.sql >"$artifact/private-contract.log"
@@ -76,4 +83,17 @@ node scripts/solo/capture-promotion-fingerprint.mjs --disposable \
   --output="$artifact/after-ledger.json" >/dev/null
 node scripts/49-2-private-release/verify-ledger-fingerprint.mjs \
   "$artifact/after.json" "$artifact/after-ledger.json"
+
+if [[ "${COMUN_49_2_RUNNER_REHEARSAL:-0}" == 1 ]]; then
+  # Independently rehearse the resumable runner against a fresh copy of PRE.
+  runner_database="${database}2"
+  docker exec -e PGPASSWORD=postgres "$container" createdb -U supabase_admin "$runner_database"
+  for file in post-schema.sql technical-ledger.sql synthetic-buckets.sql restore-expression.sql; do
+    docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$runner_database" \
+      -X -v ON_ERROR_STOP=1 -f "/tmp/$file" >"$artifact/runner-${file%.sql}.log"
+  done
+  export COMUN_DISPOSABLE_DB_URL="postgresql://postgres:postgres@127.0.0.1:57532/$runner_database"
+  export COMUN_DISPOSABLE_ADMIN_DB_URL="postgresql://supabase_admin:postgres@127.0.0.1:57532/$runner_database"
+  node scripts/49-2-private-release/run-disposable-promotion.mjs
+fi
 echo COMUN_49_2_PRIVATE_RELEASE_DISPOSABLE_PRE_POST_DERIVED
