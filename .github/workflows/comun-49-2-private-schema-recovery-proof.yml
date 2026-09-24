@@ -1,0 +1,27 @@
+name: COMUN 49.2 private schema recovery proof
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-private-schema-recovery-proof.yml"
+      - "scripts/49-2-private-release/derive-recovery-fingerprints.sh"
+      - "scripts/49-2-private-release/derive-recovery-fingerprints.mjs"
+permissions: { contents: read }
+jobs:
+  proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: node --check scripts/49-2-private-release/derive-recovery-fingerprints.mjs
+      - run: bash scripts/49-2-private-release/derive-recovery-fingerprints.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-private-schema-recovery-fingerprints-${{ github.run_id }}
+          path: .ci-artifacts/comun-49-2-recovery-proof/recovery-fingerprints.json
+          if-no-files-found: error
+      - run: git diff --check origin/main...HEAD
