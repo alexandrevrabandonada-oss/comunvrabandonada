@@ -26,6 +26,34 @@ const entityConsent =
   "supabase/migrations/20260901000000_comun_relata_collective_entity_consent_foundation.sql";
 const entityAuthRuntime =
   "supabase/migrations/20260924015511_comun_relata_collective_entity_authenticated_runtime.sql";
+const entityPrivateCandidate =
+  "supabase/migrations/20260924225210_comun_relata_collective_entity_private_candidate.sql";
+
+test("R3 private candidate is explicit and N/A to historical lanes", () => {
+  assert.equal(
+    classifyMigrationLane("collective-entity-private-candidate", [
+      entityPrivateCandidate,
+    ]).mode,
+    "candidate",
+  );
+  for (const lane of [
+    "p6c-b1",
+    "p6c-b2",
+    "48-2-a",
+    "48-3-a1",
+    "48-4-a0",
+    "culture-b2-a2",
+  ]) {
+    assert.equal(
+      classifyMigrationLane(lane, [entityPrivateCandidate]).mode,
+      "not_applicable",
+    );
+  }
+  assert.equal(
+    classifyMigrationLane("48-2-a", ["future_candidate.sql"]).mode,
+    "blocked",
+  );
+});
 const hardening =
   "supabase/migrations/20260922120000_comun_canonical_security_hardening_v2.sql";
 const b1 =

@@ -7,6 +7,10 @@ import {
   COMUN_COLLECTIVE_ENTITY_CONSENT_VERSION,
   COMUN_COLLECTIVE_ENTITY_TYPES,
   declaredRepresentationConsentCanAuthorizePublication,
+  entityConsentAloneCanCreateCandidate,
+  candidateCanSelfPublish,
+  candidateCanOpenPublicMap,
+  candidateCanSelfVerify,
   entityConsentAloneCanOpenPublicMap,
   isActiveCollectiveRepresentation,
   isNonRevokedCollectiveRepresentation,
@@ -62,6 +66,10 @@ describe("collective entity consent foundation", () => {
 
   it("does not make entity consent a map-readiness shortcut", () => {
     expect(entityConsentAloneCanOpenPublicMap()).toBe(false);
+    expect(entityConsentAloneCanCreateCandidate()).toBe(false);
+    expect(candidateCanSelfPublish()).toBe(false);
+    expect(candidateCanOpenPublicMap()).toBe(false);
+    expect(candidateCanSelfVerify()).toBe(false);
   });
 
   it("separates declared runtime consent and verification from publication authority", () => {
