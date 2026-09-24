@@ -45,13 +45,15 @@ const adminQuery = async (sql) => {
 const applyMigration = async (migration) => {
   await adminQuery(`grant usage, create on schema private to postgres;
     grant usage, create on schema public to postgres;
-    grant references on auth.users to postgres;`);
+    grant references on auth.users to postgres;
+    grant insert on supabase_migrations.schema_migrations to postgres;`);
   try {
     await adapter.applyMigration(migration);
   } finally {
     await adminQuery(`revoke usage, create on schema private from postgres;
       revoke usage, create on schema public from postgres;
-      revoke references on auth.users from postgres;`);
+      revoke references on auth.users from postgres;
+      revoke insert on supabase_migrations.schema_migrations from postgres;`);
   }
 };
 const result = await rehearsePrivateReleasePromotion({

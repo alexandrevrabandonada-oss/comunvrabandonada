@@ -2,7 +2,7 @@ name: COMUN 49.2 private release Production PRE capture
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize]
     branches: [main]
     paths: [.github/workflows/comun-49-2-private-release-pre-capture.yml]
 
@@ -55,7 +55,9 @@ jobs:
               has_schema_privilege('postgres','private','USAGE'),
               has_schema_privilege('postgres','private','CREATE'),
               has_schema_privilege('postgres','public','CREATE'),
-              has_table_privilege('postgres','auth.users','REFERENCES')
+              has_table_privilege('postgres','auth.users','REFERENCES'),
+              has_table_privilege('postgres','supabase_migrations.schema_migrations','INSERT'),
+              has_table_privilege('postgres','public.comun_schema_releases','INSERT')
               from pg_namespace n where n.nspname='private';
             rollback;
           " > comun-49-2-executor-privileges.tsv
@@ -89,17 +91,18 @@ jobs:
           };
           fs.writeFileSync('comun-49-2-private-release-pre.json',JSON.stringify(output,null,2)+'\n');
           const privilegeLine = fs.readFileSync('comun-49-2-executor-privileges.tsv','utf8').trim().split('\n').find(x => x.includes('|'));
-          if (!privilegeLine || !/^on\|[a-z_][a-z0-9_]*\|[a-z_][a-z0-9_]*\|[tf]\|[tf]\|[tf]\|[tf]$/.test(privilegeLine)) {
+          if (!privilegeLine || !/^on\|[a-z_][a-z0-9_]*\|[a-z_][a-z0-9_]*\|[tf]\|[tf]\|[tf]\|[tf]\|[tf]\|[tf]$/.test(privilegeLine)) {
             throw Error('COMUN_49_2_EXECUTOR_PRIVILEGES_CAPTURE_INVALID');
           }
-          const [readOnly,connectionRole,privateSchemaOwner,privateUsage,privateCreate,publicCreate,authUsersReferences] = privilegeLine.split('|');
+          const [readOnly,connectionRole,privateSchemaOwner,privateUsage,privateCreate,publicCreate,authUsersReferences,migrationLedgerInsert,bundleLedgerInsert] = privilegeLine.split('|');
           fs.writeFileSync('comun-49-2-executor-privileges.json',JSON.stringify({
             scope:'COMUN_49_2_PRIVATE_RELEASE_EXECUTOR_PRIVILEGES_READ_ONLY',
             sourceSha:'438cf7e7bb630b08ccac348d3e0859dda2c02692',
             transactionReadOnly:readOnly,
             connectionRole,privateSchemaOwner,
             postgres:{privateUsage:privateUsage==='t',privateCreate:privateCreate==='t',
-              publicCreate:publicCreate==='t',authUsersReferences:authUsersReferences==='t'}
+              publicCreate:publicCreate==='t',authUsersReferences:authUsersReferences==='t',
+              migrationLedgerInsert:migrationLedgerInsert==='t',bundleLedgerInsert:bundleLedgerInsert==='t'}
           },null,2)+'\n');
           NODE
           if rg -i 'postgresql://|password|token|secret|@.*supabase\.co' comun-49-2-private-release-pre.json comun-49-2-executor-privileges.json; then

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import test from "node:test";
 import { validateBundle } from "./validate-bundle.mjs";
 
@@ -75,4 +75,17 @@ test("disposable logical ledger uses the bundle identity and exact fingerprints"
     manifest.expectedPostFingerprint,
   ])
     assert.ok(sql.includes(`'${value}'`), value);
+});
+
+test("private runtime exposes no entity page or public HTTP endpoint", () => {
+  assert.deepEqual(readdirSync("app/comun/entidades"), ["actions.ts"]);
+  for (const file of readdirSync("app/api", { recursive: true })) {
+    const path = String(file).replace(/\\/g, "/");
+    if (!/route\.tsx?$/.test(path)) continue;
+    const route = readFileSync(`app/api/${path}`, "utf8");
+    assert.doesNotMatch(
+      route,
+      /comun_relata_collective_entity_server_|comun-collective-entity-runtime/i,
+    );
+  }
 });
