@@ -2,7 +2,7 @@ name: COMUN 49.2 private release Production-like disposable proof
 
 on:
   pull_request:
-    types: [synchronize]
+    types: [opened, synchronize, reopened]
     branches: [main]
 
 permissions: { contents: read }
@@ -11,7 +11,7 @@ jobs:
   disposable-pre-post:
     if: >-
       github.head_ref == 'codex/comun-49-2-private-collective-runtime-release' ||
-      github.head_ref == 'codex/comun-49-2-readonly-ledger-capture'
+      github.head_ref == 'codex/comun-49-2-readonly-ledger-capture' ||\n      github.head_ref == 'codex/comun-49-2-partial-r1-fingerprint-fix'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
