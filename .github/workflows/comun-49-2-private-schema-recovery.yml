@@ -1,0 +1,127 @@
+name: COMUN 49.2 private schema recovery
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-private-schema-recovery.yml"
+      - "scripts/49-2-private-release/run-production-recovery.mjs"
+      - "scripts/49-2-private-release/recovery-state-machine.mjs"
+      - "scripts/49-2-private-release/recovery-state-machine.node-test.mjs"
+      - "scripts/49-2-private-release/recovery-runner.mjs"
+      - "scripts/49-2-private-release/recovery-runner.node-test.mjs"
+      - "scripts/49-2-private-release/postgres-adapter.mjs"
+      - "scripts/49-2-private-release/postgres-adapter.node-test.mjs"
+      - "reports/current/comun-49-2-private-schema-recovery-fingerprints.json"
+  issues:
+    types: [labeled]
+concurrency:
+  group: comun-49-2-private-schema-promotion
+  cancel-in-progress: false
+permissions:
+  contents: read
+  issues: read
+  actions: read
+jobs:
+  contract:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Prove recovery has no R1 application surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/49-2-private-release/run-production-recovery.mjs
+          node --test scripts/49-2-private-release/recovery-state-machine.node-test.mjs scripts/49-2-private-release/recovery-runner.node-test.mjs scripts/49-2-private-release/postgres-adapter.node-test.mjs
+          ! grep -q 'manifest\.migrations\[0\]' scripts/49-2-private-release/run-production-recovery.mjs
+          ! grep -q 'applyR1' scripts/49-2-private-release/recovery-runner.mjs
+          git diff --check origin/main...HEAD
+
+  recover:
+    if: github.event_name == 'issues' && github.event.label.name == 'comun:promover' && github.event.issue.title == 'COMUN 49.2 private schema recovery'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Authorize owner recovery and exact main SHA
+        id: auth
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          AUTHOR_ASSOCIATION: ${{ github.event.issue.author_association }}
+          EVENT_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$AUTHOR_ASSOCIATION" = "OWNER"
+          expected_sha="$(printf '%s\n' "$ISSUE_BODY" | sed -nE 's/^expected_main_sha:[[:space:]]*([a-f0-9]{40})[[:space:]]*$/\1/p' | tail -1)"
+          authorization="$(printf '%s\n' "$ISSUE_BODY" | sed -nE 's/^authorization:[[:space:]]*([A-Z0-9_]+)[[:space:]]*$/\1/p' | tail -1)"
+          test "$authorization" = "COMUN_49_2_PRODUCTION_SCHEMA_RECOVERY"
+          test "$expected_sha" = "$EVENT_SHA"
+          echo "sha=$expected_sha" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with: { ref: "${{ steps.auth.outputs.sha }}", fetch-depth: 0, persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Require immutable main and green canonical CI
+        env:
+          EXPECTED_SHA: ${{ steps.auth.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test "$(git ls-remote origin refs/heads/main | awk '{print $1}')" = "$EXPECTED_SHA"
+          gh api -X GET "repos/${{ github.repository }}/actions/workflows/comun-ci.yml/runs" -f head_sha="$EXPECTED_SHA" -f status=completed -f per_page=20 > /tmp/ci.json
+          node -e "const d=require('/tmp/ci.json'); if(!(d.workflow_runs||[]).some(r=>r.head_sha===process.env.EXPECTED_SHA&&r.conclusion==='success')) process.exit(1)"
+      - name: Revalidate recovery contracts
+        run: |
+          node scripts/49-2-private-release/validate-bundle.mjs
+          node --test scripts/49-2-private-release/recovery-state-machine.node-test.mjs scripts/49-2-private-release/recovery-runner.node-test.mjs scripts/49-2-private-release/postgres-adapter.node-test.mjs
+      - name: Fresh recovery preflight — read only
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+          COMUN_49_2_EXPECTED_MAIN_SHA: ${{ steps.auth.outputs.sha }}
+        run: node scripts/49-2-private-release/run-production-recovery.mjs --mode=preflight --expected-sha="${{ steps.auth.outputs.sha }}" --output=.ci-artifacts/49-2-recovery/preflight.json
+      - name: Resume from PARTIAL_R1 — R2 then ledger only
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          COMUN_49_2_EXPECTED_MAIN_SHA: ${{ steps.auth.outputs.sha }}
+          COMUN_49_2_SCHEMA_RECOVERY_AUTHORIZATION: COMUN_49_2_PRODUCTION_SCHEMA_RECOVERY
+        run: node scripts/49-2-private-release/run-production-recovery.mjs --mode=recover --expected-sha="${{ steps.auth.outputs.sha }}" --output=.ci-artifacts/49-2-recovery/recovery.json
+      - name: Exact recovery POST — read only
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+          COMUN_49_2_EXPECTED_MAIN_SHA: ${{ steps.auth.outputs.sha }}
+        run: node scripts/49-2-private-release/run-production-recovery.mjs --mode=postflight --expected-sha="${{ steps.auth.outputs.sha }}" --output=.ci-artifacts/49-2-recovery/postflight.json
+      - name: Public smoke — no collective mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          for route in /comun /comun/denuncias /comun/relatar /comun/minha-participacao; do
+            test "$(curl --silent --show-error --location --output /dev/null --write-out '%{http_code}' "https://comunsocial.online$route")" = 200
+          done
+      - name: Capture state on failure
+        if: failure()
+        continue-on-error: true
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+          COMUN_49_2_EXPECTED_MAIN_SHA: ${{ steps.auth.outputs.sha }}
+        run: node scripts/49-2-private-release/run-production-recovery.mjs --mode=inspect --expected-sha="${{ steps.auth.outputs.sha }}" --output=.ci-artifacts/49-2-recovery/failure-state.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-49-2-private-schema-recovery-${{ github.run_id }}
+          path: .ci-artifacts/49-2-recovery
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Mark recovered private schema green
+        if: success()
+        run: echo COMUN_49_2_PRIVATE_SCHEMA_PRODUCTION_GREEN >> "$GITHUB_STEP_SUMMARY"

@@ -29,7 +29,10 @@ export function createPostgresAdapter({
 }) {
   if (disposable) requireDisposableConnection(url);
   else if (
-    authorization?.kind !== "COMUN_49_2_PRODUCTION_SCHEMA_WRITE" ||
+    !new Set([
+      "COMUN_49_2_PRODUCTION_SCHEMA_WRITE",
+      "COMUN_49_2_PRODUCTION_SCHEMA_RECOVERY",
+    ]).has(authorization?.kind) ||
     !/^[a-f0-9]{40}$/.test(authorization.sha ?? "") ||
     authorization.sha !== process.env.GITHUB_SHA ||
     process.env.GITHUB_REF !== "refs/heads/main"
