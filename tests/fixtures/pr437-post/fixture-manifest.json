@@ -1,0 +1,39 @@
+{
+  "scope": "COMUN_PR437_POST_DISPOSABLE_FIXTURE",
+  "source": "Synthetic local POST database from the accepted Hardening v2 release; schema-only dump plus technical migration/release ledger and synthetic bucket metadata",
+  "postgresImage": "docker.io/supabase/postgres@sha256:8002645276dc3431d55a5049721a879e4d11c34177086dc0f13b61d98cff1e52",
+  "postgresImageTag": "17.6.1.100",
+  "postgresVersion": "17.6",
+  "plpgsqlCheckCatalogVersion": "2.7",
+  "files": {
+    "post-schema.sql": "ec7cfd4d19d61d2f1d767e0aea7af236d1a1d663b56be9a6d541c0cc4a301c3a",
+    "technical-ledger.sql": "d458817cba79eea8db407fa9c1c755cd14e25af507459ee88dd689e666a65331",
+    "synthetic-buckets.sql": "817d7464af77eca1b870224809206e339eee1c2e4d64982e37418946bb7690cc",
+    "restore-expression.sql": "87ebb721a99c7af6abd72c268f7d0749823bc8285a66c6afda4add447339e9d8"
+  },
+  "expectedRunnerFingerprint": "a5fbc31cbac2b54bd877e0221b70dd9a708d83f25ac0083393f1739d46d27d98",
+  "expectedCanonicalFingerprint": "cb3bea0cb9abc6534760533d9c52a6471981a3a9672db8780c1ae4294995b1ee",
+  "expectedSearchDefinitionSha256": "fe674d14ef920d1c5dcd7cc5ca57dbdf4f93ae4fe809f0548bc6d0bcb165c89b",
+  "productionHistoricalLint": {
+    "runId": "35891520337",
+    "function": "public.comun_sync_public_search_projection",
+    "sqlState": "42P01",
+    "message": "relation \"comun_search_candidates\" does not exist",
+    "line": 91,
+    "querySha256": "86ceb0c37b95b6c3bd8e7515c1138ddbadc01f38cb34da14dad1078a98c527d7"
+  },
+  "expectedRawFindings": [
+    {
+      "line": 91,
+      "querySha256": "86ceb0c37b95b6c3bd8e7515c1138ddbadc01f38cb34da14dad1078a98c527d7"
+    },
+    {
+      "line": 94,
+      "querySha256": "12ec0f1a090f3bf4440424413e14f8d426cba23e2990316ab4592c74b4d6500a"
+    },
+    {
+      "line": 121,
+      "querySha256": "84919a4f15ea985f51629f154d0ab7ba164d35186051763829dd5406922e07fa"
+    }
+  ]
+}

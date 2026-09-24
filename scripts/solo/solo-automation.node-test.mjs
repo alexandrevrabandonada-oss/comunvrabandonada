@@ -115,11 +115,50 @@ test("promotion checkpoint is short-lived, sanitized and not a full backup", () 
 
 test("remote lint uses the allowlisted database URL without an admin access token", () => {
   const workflow = readFileSync(".github/workflows/comun-promote.yml", "utf8");
-  assert.match(workflow, /supabase db lint --db-url "\$SUPABASE_DB_URL"/);
+  const gate = readFileSync(
+    "scripts/solo/run-production-db-lint-gate.mjs",
+    "utf8",
+  );
+  assert.match(
+    workflow,
+    /SUPABASE_DB_URL: \$\{\{ secrets\.SUPABASE_DB_URL \}\}/,
+  );
+  assert.match(
+    workflow,
+    /node scripts\/solo\/run-production-db-lint-gate\.mjs/,
+  );
+  assert.match(gate, /"db",\s*"lint"/);
+  assert.match(gate, /"--db-url",\s*connectionString/);
   assert.match(workflow, /notify pgrst, 'reload schema'/);
   assert.doesNotMatch(workflow, /SUPABASE_ACCESS_TOKEN/);
 });
 
+test("PR437 promotion postflight reuses read-only capture and disposable proof", () => {
+  const workflow = readFileSync(".github/workflows/comun-promote.yml", "utf8");
+  const capture = workflow
+    .split("      - name: PR437 postflight Production capture read-only")[1]
+    ?.split("      - name: PR437 postflight disposable search proof")[0];
+  const proof = workflow
+    .split("      - name: PR437 postflight disposable search proof")[1]
+    ?.split("      - uses: actions/upload-artifact@v4")[0];
+  const legacy = workflow
+    .split("      - name: Remote postflight, DB lint, schema reload and cleanup dry-run")[1]
+    ?.split("      - name: Validate immutable Vercel preview")[0];
+  assert.ok(capture);
+  assert.ok(proof);
+  assert.ok(legacy);
+  assert.match(capture, /if: needs\.authorize\.outputs\.pr == '437'/);
+  assert.match(capture, /PGOPTIONS: -c default_transaction_read_only=on/);
+  assert.match(capture, /POST_ALREADY_APPLIED/);
+  assert.match(proof, /run-pr437-disposable-proof\.sh/);
+  assert.match(proof, /SEARCH_SYNC_RUNTIME_CONTRACT_PROVED/);
+  assert.doesNotMatch(
+    proof,
+    /SUPABASE_DB_URL|run-production-db-lint-gate|supabase db lint|notify pgrst/i,
+  );
+  assert.match(legacy, /if: needs\.authorize\.outputs\.pr != '437'/);
+  assert.match(legacy, /run-production-db-lint-gate\.mjs/);
+});
 test("Vercel production validation uses GitHub integration and canonical alias", () => {
   const checkpoint = readFileSync("scripts/solo/create-checkpoint.mjs", "utf8");
   const monitor = readFileSync("scripts/solo/monitor-production.mjs", "utf8");
@@ -160,15 +199,134 @@ test("canonical workflows remain active and known additions are explicit", () =>
     "comun-sidewalk-remote-diagnostic.yml",
   ];
   const knownAdditional = new Set([
+    "comun-48-1b-r1c-external-ledger-planner-bridge.yml",
+    "comun-48-1c-pilot-prep.yml",
+    "comun-48-2-a-activation.yml",
+    "comun-48-2-a-remote-preflight.yml",
+    "comun-48-2-b-activation.yml",
+    "comun-48-2-c1-activation.yml",
+    "comun-48-2-c2-activation.yml",
+    "comun-48-2-d3c-activation.yml",
+    "comun-48-2-d4b-activation.yml",
+    "comun-48-2-e2-power-interruptions-activation.yml",
+    "comun-48-2-f-city-panorama-activation.yml",
+    "comun-48-3-a1-activation.yml",
+    "comun-48-3-a1-disposable.yml",
+    "comun-48-3-a1-preflight.yml",
+    "comun-48-3-b0-preflight.yml",
+    "comun-48-3-b1-activation.yml",
+    "comun-48-3-b1-disposable.yml",
+    "comun-48-3-b1-preflight.yml",
+    "comun-48-3-c1-activation.yml",
+    "comun-48-3-c1-disposable.yml",
+    "comun-48-3-c1-preflight.yml",
+    "comun-48-3-d1-activation.yml",
+    "comun-48-3-d1-disposable.yml",
+    "comun-48-3-d1-preflight.yml",
+    "comun-48-3-e2-disposable.yml",
+    "comun-48-3-e2-preflight.yml",
+    "comun-48-3-e3-activation.yml",
+    "comun-48-3-e3-disposable.yml",
+    "comun-48-3-e3-preflight.yml",
+    "comun-48-4-a0-solidarity-economy-preflight.yml",
+    "comun-48-4-a1-activation.yml",
+    "comun-48-4-a1-disposable.yml",
+    "comun-48-4-a1-preflight.yml",
+    "comun-48-4-a2-activation.yml",
+    "comun-48-4-a2-disposable.yml",
+    "comun-48-4-a2-preflight.yml",
+    "comun-48-4-a3-activation.yml",
+    "comun-48-4-a3-disposable.yml",
+    "comun-48-4-a3-preflight.yml",
+    "comun-48-4-a4-activation.yml",
+    "comun-48-4-a4-disposable.yml",
+    "comun-48-4-a4-preflight.yml",
+    "comun-48-4-a5-activation.yml",
+    "comun-48-4-a5-disposable.yml",
+    "comun-48-4-a5-preflight.yml",
+    "comun-48-4-a6-activation.yml",
+    "comun-48-4-a6-disposable.yml",
+    "comun-48-4-a6-preflight.yml",
+    "comun-48-4-a7-activation.yml",
+    "comun-48-4-a7-preflight.yml",
+    "comun-48-5-a0-culture-memory-radio-preflight.yml",
+    "comun-48-5-a2-r1-disposable.yml",
+    "comun-48-5-a3-disposable.yml",
+    "comun-48-5-a3-r2-d1-flag-drift.yml",
+    "comun-48-5-a3-rollout.yml",
+    "comun-48-5-a4-c0-post-activation.yml",
+    "comun-48-5-a4-disposable.yml",
+    "comun-48-5-a4-r2-d0-flag-bootstrap.yml",
+    "comun-48-5-a4-r2-d0-r1-env-repair.yml",
+    "comun-48-5-a4-r2-d0-r2-replacement.yml",
+    "comun-48-5-a4-r2-d0-r3-absent-recovery.yml",
+    "comun-48-5-a4-r2-e1-external-ledger.yml",
+    "comun-48-5-a4-r2-wave0.yml",
+    "comun-48-5-a4-r2-wave1.yml",
+    "comun-48-5-a5-a1-disposable.yml",
+    "comun-48-5-a5-a1-r1-production.yml",
+    "comun-48-5-a5-a2-artwork-disposable.yml",
+    "comun-48-5-a5-a2-r1-production.yml",
+    "comun-48-6-a1-disposable.yml",
+    "comun-48-6-a1-production.yml",
+    "comun-48-6-a3-disposable.yml",
+    "comun-48-6-a3-production.yml",
+    "comun-48-6-b0-disposable.yml",
+    "comun-48-6-b0-production.yml",
+    "comun-48-6-b0-remote-preflight.yml",
+    "comun-48-6-b1-disposable.yml",
+    "comun-48-6-b1-production.yml",
+    "comun-48-6-b2-a1-production.yml",
+    "comun-48-6-b2-a2-disposable.yml",
+    "comun-48-6-b2-a2-production.yml",
+    "comun-48-6-b2-a2-r1-secret-provisioning.yml",
+    "comun-48-6-b2-a2-r4-key-metadata-diagnostic.yml",
+    "comun-48-6-b2-a2-r5-sensitive-spatial-key.yml",
+    "comun-49-1-denuncias-map-readiness.yml",
+    "comun-49-2-a0-r1-collective-entity-consent-disposable.yml",
     "comun-civic-graph.yml",
     "comun-civic-intelligence.yml",
     "comun-communities-deliverability.yml",
     "comun-core-journeys.yml",
     "comun-cultural-deliverability.yml",
     "comun-experience-coherence.yml",
+    "comun-f2-c1-activation.yml",
+    "comun-f2-r1-production-proof.yml",
     "comun-full-surface-migration.yml",
     "comun-launch-readiness.yml",
     "comun-operations-deliverability.yml",
+    "comun-p1g-activation.yml",
+    "comun-p1g-preflight.yml",
+    "comun-p3b-f1-promotion.yml",
+    "comun-p3b-reactivation.yml",
+    "comun-p4-activation.yml",
+    "comun-p4-promotion.yml",
+    "comun-p5-activation.yml",
+    "comun-p5-promotion.yml",
+    "comun-p5-remote-preflight.yml",
+    "comun-p5-runtime-e2e.yml",
+    "comun-p6a-activation.yml",
+    "comun-p6a-promotion.yml",
+    "comun-p6a-remote-preflight.yml",
+    "comun-p6a-runtime-e2e.yml",
+    "comun-p6b-a-activation.yml",
+    "comun-p6b-a-runtime-e2e.yml",
+    "comun-p6b-b-activation.yml",
+    "comun-p6b-b-promotion.yml",
+    "comun-p6b-b-runtime-e2e.yml",
+    "comun-p6c-a-activation.yml",
+    "comun-p6c-a-preflight.yml",
+    "comun-p6c-a-runtime-e2e.yml",
+    "comun-p6c-b1-activation.yml",
+    "comun-p6c-b1-preflight.yml",
+    "comun-p6c-b1-runtime-e2e.yml",
+    "comun-p6c-b2-activation.yml",
+    "comun-p6c-b2-preflight.yml",
+    "comun-p6c-b2-runtime-e2e.yml",
+    "comun-p6c-c-activation.yml",
+    "comun-p6c-c-preflight.yml",
+    "comun-p6c-c-runtime-e2e.yml",
+    "comun-pr437-promotion-fingerprint.yml",
     "comun-pauta-action-cycle-audit.yml",
     "comun-pauta-action-cycle-deliverability.yml",
     "comun-pauta-action-cycle-promote.yml",
@@ -183,13 +341,19 @@ test("canonical workflows remain active and known additions are explicit", () =>
   ]);
   const active = readdirSync(".github/workflows").sort();
   assert.equal(new Set(active).size, active.length, "duplicate workflow names");
-  for (const workflow of required) assert.ok(active.includes(workflow), workflow);
+  for (const workflow of required)
+    assert.ok(active.includes(workflow), workflow);
   assert.deepEqual(
-    active.filter((workflow) => !required.includes(workflow) && !knownAdditional.has(workflow)),
+    active.filter(
+      (workflow) =>
+        !required.includes(workflow) && !knownAdditional.has(workflow),
+    ),
     [],
   );
   assert.deepEqual(
-    active.filter((workflow) => /(?:pr23|disabled|dangerous|legacy)/i.test(workflow)),
+    active.filter((workflow) =>
+      /(?:pr23|disabled|dangerous|legacy)/i.test(workflow),
+    ),
     [],
   );
   const archived = readdirSync(".github/workflows-disabled/pr23");
@@ -214,11 +378,12 @@ test("preview and production validate PMTiles Range in the correct domain order"
   const workflow = readFileSync(".github/workflows/comun-promote.yml", "utf8");
   const preview = readFileSync("scripts/solo/verify-preview.mjs", "utf8");
   const monitor = readFileSync("scripts/solo/monitor-production.mjs", "utf8");
-  assert.match(
-    preview,
-    /requiredChecks = \["FAST \/ COMUN_CI_GREEN", "FULL \/ COMUN_CI_GREEN", "Vercel"\]/,
-  );
-  assert.doesNotMatch(preview, /const failed = checks\.filter/);
+  assert.match(preview, /check\.name === "Vercel" && check\.state === "SUCCESS"/);
+  assert.match(preview, /actions\/workflows\/comun-ci\.yml\/runs/);
+  assert.match(preview, /run\.head_sha === process\.env\.SHA/);
+  assert.match(preview, /run\.conclusion === "success"/);
+  assert.match(preview, /SOLO_PREVIEW_CHECKS_NOT_GREEN:COMUN_CI/);
+  assert.doesNotMatch(preview, /FAST \/ COMUN_CI_GREEN|FULL \/ COMUN_CI_GREEN/);
   assert.match(preview, /deployments\?sha=\$\{process\.env\.SHA\}/);
   assert.match(preview, /statuses\.find/);
   assert.match(preview, /inspectDeployment/);
@@ -230,6 +395,11 @@ test("preview and production validate PMTiles Range in the correct domain order"
     /COMUN_VERCEL_PREVIEW_HTTP_DEFERRED_TO_PRODUCTION_SMOKE/,
   );
   assert.match(preview, /github-deployment-attestation/);
+  assert.match(preview, /requireGithubPreviewAttestation/);
+  assert.match(preview, /allowNullPreviewTarget: true/);
+  assert.match(previewClient, /allowNullPreviewTarget/);
+  assert.match(previewClient, /cli\.target !== "preview"/);
+  assert.match(previewClient, /remote\.target !== "preview"/);
   assert.doesNotMatch(workflow, /VERCEL_TOKEN\|S_VERCEL_TOKEN/);
   const previewClient = readFileSync(
     "scripts/solo/vercel-preview-client.mjs",
@@ -238,6 +408,7 @@ test("preview and production validate PMTiles Range in the correct domain order"
   assert.match(previewClient, /api\.vercel\.com\/v13\/deployments/);
   assert.match(previewClient, /VERCEL_CLI_VERSION = "50\.28\.0"/);
   assert.match(previewClient, /--deployment/);
+  assert.match(previewClient, /"curl",[\s\S]*"--yes",[\s\S]*"--deployment"/);
   assert.match(previewClient, /url\.href/);
   assert.match(monitor, /SOLO_PRODUCTION_PMTILES_RANGE_INVALID/);
   assert.match(monitor, /SOLO_PUBLIC_WWW_REDIRECT_INVALID/);

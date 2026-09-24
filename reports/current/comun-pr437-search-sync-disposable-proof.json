@@ -1,0 +1,18 @@
+{
+  "scope": "COMUN_SEARCH_SYNC_DISPOSABLE_TEMP_TABLE_PROOF",
+  "status": "GREEN",
+  "definitionSha256": "fe674d14ef920d1c5dcd7cc5ca57dbdf4f93ae4fe809f0548bc6d0bcb165c89b",
+  "disposable": true,
+  "definitionMatchesProduction": true,
+  "postgresVersion": "17.6",
+  "plpgsqlCheckVersion": "2.8",
+  "rawFindingExact": true,
+  "rawFindingCount": 3,
+  "runtimeSqlState": null,
+  "tempTablePresent": true,
+  "checkerErrors": 0,
+  "negativeFixtureDetected": true,
+  "countsRestored": true,
+  "tempTableRemoved": true,
+  "negativeFixtureRemoved": true
+}

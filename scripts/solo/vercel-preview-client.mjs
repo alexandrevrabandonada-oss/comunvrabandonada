@@ -154,6 +154,7 @@ export async function inspectDeployment({
   expectedTeamId,
   teamScope,
   token,
+  allowNullPreviewTarget = false,
   runCli = defaultRunCli,
   fetchImpl = fetch,
 }) {
@@ -179,7 +180,12 @@ export async function inspectDeployment({
   }
   if (cli.name !== CANONICAL_PROJECT_NAME) throw new Error("VERCEL_PROJECT_LINK_FAILED");
   if (cli.readyState !== "READY") throw new Error("VERCEL_DEPLOYMENT_NOT_FOUND:not-ready");
-  if (cli.target !== "preview") throw new Error("VERCEL_PROJECT_LINK_FAILED:not-preview");
+  if (
+    cli.target !== "preview" &&
+    !(allowNullPreviewTarget && cli.target == null)
+  ) {
+    throw new Error("VERCEL_PROJECT_LINK_FAILED:not-preview");
+  }
   if (validatePreviewUrl(`https://${cli.url}`).hostname !== url.hostname) {
     throw new Error("VERCEL_URL_FORMAT_FAILED:inspect-mismatch");
   }
@@ -203,7 +209,12 @@ export async function inspectDeployment({
   if ((remote.teamId ?? remote.ownerId) !== expectedTeamId) throw new Error("VERCEL_SCOPE_FAILED:team-id");
   if (remote.meta?.githubCommitSha !== expectedSha) throw new Error("VERCEL_PROJECT_LINK_FAILED:sha");
   if (remote.readyState !== "READY") throw new Error("VERCEL_DEPLOYMENT_NOT_FOUND:not-ready");
-  if (remote.target !== "preview") throw new Error("VERCEL_PROJECT_LINK_FAILED:not-preview");
+  if (
+    remote.target !== "preview" &&
+    !(allowNullPreviewTarget && remote.target == null)
+  ) {
+    throw new Error("VERCEL_PROJECT_LINK_FAILED:not-preview");
+  }
   return {
     deploymentId: cli.id,
     deploymentUrl: url.href.replace(/\/$/, ""),
@@ -214,6 +225,10 @@ export async function inspectDeployment({
     sha: remote.meta.githubCommitSha,
     readyState: remote.readyState,
     target: remote.target,
+    targetVerification:
+      remote.target === "preview"
+        ? "vercel-explicit-preview"
+        : "github-preview-attested",
   };
 }
 
@@ -245,6 +260,7 @@ export function requestPreview({
     const result = runCli([
       "curl",
       route,
+      "--yes",
       "--deployment",
       url.href,
       "--token",
@@ -260,6 +276,7 @@ export function requestPreview({
     const bodyText = body.subarray(0, Math.min(body.length, 8192)).toString("utf8");
     return {
       route,
+      parsed,
       ...parsed,
       bodyBytes: statSync(bodyPath).size,
       bodyLooksProtected: /authentication required|_vercel_sso|vercel login/i.test(bodyText),

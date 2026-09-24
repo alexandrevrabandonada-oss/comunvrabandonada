@@ -628,6 +628,26 @@ export function validateBlockingFindings(baseline, expectedBlockingFindings) {
   }
 }
 
+export function validateSecurityGate(baseline, release) {
+  validateBlockingFindings(baseline, release.expectedBlockingFindings);
+  if (
+    baseline.security.platformObservations.length &&
+    !release.platformObservationsAllowed
+  ) {
+    fail("SOLO_CANONICAL_PLATFORM_OBSERVATION_NOT_ALLOWED");
+  }
+}
+
+export function validateRecognizedLedgerSecurity(
+  baseline,
+  release,
+  ledgerState,
+) {
+  if (ledgerState === "PRESENT_ACCEPTED") {
+    validateSecurityGate(baseline, release);
+  }
+}
+
 export async function main(argv = process.argv.slice(2)) {
   validateAllowlist();
   const { release, migration } = loadRelease(argv);
@@ -653,8 +673,9 @@ export async function main(argv = process.argv.slice(2)) {
     ? captureScopedBaseline({ readOnly, release })
     : globalBefore;
   const readLedgerForState = (candidate) => readLedger(candidate, { readOnly });
-  const state = validateCurrentState(before, release, readLedgerForState);
   const beforeLedgerState = summarizeLedgerState(release, { readOnly });
+  validateRecognizedLedgerSecurity(globalBefore, release, beforeLedgerState);
+  const state = validateCurrentState(before, release, readLedgerForState);
 
   if (readOnlyPreflight) {
     await emitSecurityDiagnostic(
@@ -712,6 +733,7 @@ export async function main(argv = process.argv.slice(2)) {
       }),
       diagnosticOutput,
     );
+    validateSecurityGate(globalBefore, release);
     console.log(releaseMarker(release, "ALREADY_APPLIED"));
     return;
   }
@@ -741,13 +763,7 @@ select pg_catalog.set_config('comun.release_post_fingerprint', '${expectedPost(r
   if (after.fingerprint !== expectedPost(release)) {
     fail("SOLO_CANONICAL_POST_FINGERPRINT_MISMATCH");
   }
-  validateBlockingFindings(globalAfter, release.expectedBlockingFindings);
-  if (
-    globalAfter.security.platformObservations.length &&
-    !release.platformObservationsAllowed
-  ) {
-    fail("SOLO_CANONICAL_PLATFORM_OBSERVATION_NOT_ALLOWED");
-  }
+  validateSecurityGate(globalAfter, release);
   if (!acceptedLedgerValues(release).has(readLedger(release))) {
     fail("SOLO_CANONICAL_RELEASE_LEDGER_MISMATCH");
   }

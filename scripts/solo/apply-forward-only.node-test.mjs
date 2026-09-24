@@ -17,6 +17,8 @@ import {
   schemaFingerprintQuery,
   serializeSanitizedSecurityDiagnostic,
   validateBlockingFindings,
+  validateSecurityGate,
+  validateRecognizedLedgerSecurity,
   validatePreflightObjects,
   validateCurrentState,
 } from "./apply-forward-only.mjs";
@@ -146,6 +148,59 @@ test("platform observations remain separate from blocking findings", () => {
   assert.equal(
     diagnostic.before.platformObservations[0].detail,
     "managed platform default privileges observed",
+  );
+});
+
+test("the security gate rejects findings even for an already-applied release", () => {
+  assert.throws(
+    () =>
+      validateSecurityGate(
+        securityBaseline({ blockingFindings: [{ rule: "RLS_ENABLED" }] }),
+        { expectedBlockingFindings: 0, platformObservationsAllowed: true },
+      ),
+    marker("SOLO_CANONICAL_SECURITY_FINDINGS_REMAIN"),
+  );
+});
+
+test("the security gate preserves the platform-observation contract", () => {
+  const baseline = securityBaseline({
+    platformObservations: [{ rule: "SUPABASE_ADMIN_DEFAULT_PRIVILEGES" }],
+  });
+  assert.doesNotThrow(() =>
+    validateSecurityGate(baseline, {
+      expectedBlockingFindings: 0,
+      platformObservationsAllowed: true,
+    }),
+  );
+  assert.throws(
+    () =>
+      validateSecurityGate(baseline, {
+        expectedBlockingFindings: 0,
+        platformObservationsAllowed: false,
+      }),
+    marker("SOLO_CANONICAL_PLATFORM_OBSERVATION_NOT_ALLOWED"),
+  );
+});
+
+test("a recognized ledger revalidates security before fingerprint drift", () => {
+  const baseline = securityBaseline({
+    blockingFindings: [{ rule: "DEFINER_SEARCH_PATH" }],
+  });
+  assert.doesNotThrow(() =>
+    validateRecognizedLedgerSecurity(
+      baseline,
+      { expectedBlockingFindings: 0, platformObservationsAllowed: true },
+      "ABSENT",
+    ),
+  );
+  assert.throws(
+    () =>
+      validateRecognizedLedgerSecurity(
+        baseline,
+        { expectedBlockingFindings: 0, platformObservationsAllowed: true },
+        "PRESENT_ACCEPTED",
+      ),
+    marker("SOLO_CANONICAL_SECURITY_FINDINGS_REMAIN"),
   );
 });
 

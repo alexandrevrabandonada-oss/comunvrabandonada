@@ -24,20 +24,16 @@ const R2A_ATTACHMENT_RPC_FIX_RELEASE =
   "20260805201000-comun-production-pilot-attachment-rpc-fix";
 const R2A_WALLET_ACCOUNT_RPC_FIX_RELEASE =
   "20260805212659-comun-production-pilot-wallet-account-rpc-fix";
-const P1T_OPTIONAL_TERRITORY_RELEASE =
-  "20260806235454-comun-member-profile-optional-territory";
-const P3B_LOCATION_READD_RELEASE =
-  "20260808043000-comun-relata-location-readd-state-fix";
-const P4_SIDEWALK_RELATA_RELEASE = "20260808180246-comun-sidewalk-relata-real";
-const P5_BUS_STMU_RELEASE = "20260808220000-comun-bus-stmu-assisted";
-const P6A_ESSENTIAL_SERVICES_RELEASE =
-  "20260809133923-comun-essential-services-assisted";
-const P6B_B_URBAN_INCIDENTS_RELEASE =
-  "20260810045610-comun-flood-drainage-tree-categories";
-const P6C_B1_PUBLIC_EDUCATION_RELEASE =
-  "20260810155310-comun-public-education-sensitive-routing";
-const P6C_B2_CHILD_PROTECTION_RELEASE =
-  "20260810171448-comun-child-protection-private-routing";
+
+export function selectSingleChangedManifest(changed) {
+  if (changed.some((line) => /^[DR]/.test(line)))
+    marker("SOLO_RELEASE_MANIFEST_PATH_INVALID");
+  const manifests = changed
+    .map((line) => line.split(/\s+/).at(-1))
+    .filter((name) => name?.endsWith(".json"));
+  if (manifests.length !== 1) marker("SOLO_RELEASE_MANIFEST_COUNT_INVALID");
+  return manifests[0];
+}
 
 export function selectReleaseManifest(
   value = arg?.slice(19) ?? process.env.COMUN_RELEASE_MANIFEST,
@@ -52,13 +48,7 @@ export function selectReleaseManifest(
       .trim()
       .split(/\r?\n/)
       .filter(Boolean);
-    if (changed.some((line) => /^[DR]/.test(line)))
-      marker("SOLO_RELEASE_MANIFEST_PATH_INVALID");
-    const manifests = changed
-      .map((line) => line.split(/\s+/).at(-1))
-      .filter((name) => name?.endsWith(".json"));
-    if (manifests.length !== 1) marker("SOLO_RELEASE_MANIFEST_COUNT_INVALID");
-    value = manifests[0];
+    value = selectSingleChangedManifest(changed);
   }
   if (path.isAbsolute(value)) marker("SOLO_RELEASE_MANIFEST_PATH_INVALID");
   const absolute = path.resolve(value);
@@ -91,17 +81,7 @@ export function validateForwardOnlySqlText(release, migration) {
   const requiresLegacyGrantRepair =
     release.release === OPERATIONAL_HARDENING_RELEASE;
   const requiresSidewalkSummaryException =
-    release.release !== R2A_PRODUCTION_BUNDLE_RELEASE &&
-    release.release !== R2A_ATTACHMENT_RPC_FIX_RELEASE &&
-    release.release !== R2A_WALLET_ACCOUNT_RPC_FIX_RELEASE &&
-    release.release !== P1T_OPTIONAL_TERRITORY_RELEASE &&
-    release.release !== P3B_LOCATION_READD_RELEASE &&
-    release.release !== P4_SIDEWALK_RELATA_RELEASE &&
-    release.release !== P5_BUS_STMU_RELEASE &&
-    release.release !== P6A_ESSENTIAL_SERVICES_RELEASE &&
-    release.release !== P6B_B_URBAN_INCIDENTS_RELEASE &&
-    release.release !== P6C_B1_PUBLIC_EDUCATION_RELEASE &&
-    release.release !== P6C_B2_CHILD_PROTECTION_RELEASE;
+    release.release === OPERATIONAL_HARDENING_RELEASE;
   const allowedStatements = [
     ...(requiresSidewalkSummaryException
       ? [ALLOWED_PUBLIC_SUMMARY_NULLABILITY]

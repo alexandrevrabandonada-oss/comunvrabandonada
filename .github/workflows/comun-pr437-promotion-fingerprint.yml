@@ -1,0 +1,95 @@
+name: COMUN PR437 Promotion Fingerprint
+
+on:
+  pull_request:
+    types: [synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  production-capture:
+    if: github.event.pull_request.number == 437 && github.head_ref == 'codex/security-hardening-v2'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      capture_sha256: ${{ steps.hash.outputs.sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Capture Production catalog in a read-only transaction
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+        run: node scripts/solo/capture-promotion-fingerprint.mjs --output=comun-pr437-promotion-fingerprint.json
+      - name: Require accepted POST state and exact function/release identity
+        run: |
+          node scripts/solo/check-pr437-promotion-preflight.mjs \
+            --capture=comun-pr437-promotion-fingerprint.json \
+            --output=comun-pr437-post-apply-preflight.json
+          node -e "const d=require('./comun-pr437-post-apply-preflight.json'); if(d.state!=='POST_ALREADY_APPLIED') process.exit(1)"
+      - name: Hash the sanitized Production capture
+        id: hash
+        run: echo "sha256=$(sha256sum comun-pr437-promotion-fingerprint.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+      - name: Validate sanitized capture without a database connection
+        run: |
+          node scripts/solo/verify-pr437-production-capture.mjs \
+            --capture=comun-pr437-promotion-fingerprint.json \
+            --capture-sha256="${{ steps.hash.outputs.sha256 }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-pr437-production-capture-${{ github.event.pull_request.head.sha }}
+          path: |
+            comun-pr437-promotion-fingerprint.json
+            comun-pr437-post-apply-preflight.json
+          retention-days: 7
+          if-no-files-found: error
+
+  disposable-proof:
+    needs: production-capture
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - uses: actions/download-artifact@v4
+        with:
+          name: comun-pr437-production-capture-${{ github.event.pull_request.head.sha }}
+          path: .pr437-production-capture
+      - name: Reproduce the exact POST fixture and causal search lint proof
+        id: proof
+        continue-on-error: true
+        env:
+          COMUN_PRODUCTION_CAPTURE_SHA256: ${{ needs.production-capture.outputs.capture_sha256 }}
+          COMUN_RUN_SHA: ${{ github.event.pull_request.head.sha }}
+        run: bash scripts/solo/run-pr437-disposable-proof.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-pr437-search-sync-disposable-${{ github.event.pull_request.head.sha }}
+          path: |
+            .pr437-proof/disposable-before.json
+            .pr437-proof/disposable-proof.json
+            .pr437-proof/disposable-after.json
+            .pr437-proof/comun-pr437-search-sync-remote-disposable-proof.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Require complete disposable proof
+        if: always()
+        env:
+          PROOF_OUTCOME: ${{ steps.proof.outcome }}
+        run: test "$PROOF_OUTCOME" = success
