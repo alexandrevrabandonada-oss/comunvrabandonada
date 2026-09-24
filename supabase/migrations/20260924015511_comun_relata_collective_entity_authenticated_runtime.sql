@@ -74,6 +74,18 @@ as $$
 declare
 begin
   perform private.comun_relata_entity_assert_internal_actor(p_actor_user_id);
+  if p_entity_id is null then
+    raise exception using errcode = '22023', message = 'COMUN_RELATA_ENTITY_ID_REQUIRED';
+  end if;
+  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_entity_id::text,4921002));
+  if not p_active then
+    perform 1 from private.comun_relata_collective_entity_consents consent
+     where consent.entity_id = p_entity_id and consent.active
+       and consent.consented_by_user_id <> p_actor_user_id;
+    if found then
+      raise exception using errcode = '42501', message = 'COMUN_RELATA_ENTITY_REVOKE_FORBIDDEN';
+    end if;
+  end if;
 
   return query
     select *
@@ -102,11 +114,17 @@ begin
   if not found then
     raise exception using errcode = '42501', message = 'COMUN_RELATA_ENTITY_REPRESENTATION_REVOKE_FORBIDDEN';
   end if;
-  -- A revoked representation cannot leave a live consent behind. The R1
-  -- primitive keeps the original consenter's independent withdrawal right.
-  perform private.comun_relata_collective_entity_consent_set_internal(
-    p_actor_user_id, p_entity_id, false
-  );
+  -- The R1 primitive also permits an active representative to withdraw
+  -- another person's consent. This owner-only bridge withdraws only the
+  -- revoking person's active consent before changing representation state.
+  perform 1 from private.comun_relata_collective_entity_consents consent
+   where consent.entity_id = p_entity_id and consent.active
+     and consent.consented_by_user_id = p_actor_user_id;
+  if found then
+    perform private.comun_relata_collective_entity_consent_set_internal(
+      p_actor_user_id, p_entity_id, false
+    );
+  end if;
 
   update private.comun_relata_collective_entity_representations representation
      set status = 'revoked', revoked_at = pg_catalog.now(), revoked_by_user_id = p_actor_user_id
@@ -152,17 +170,23 @@ begin
       join private.comun_relata_collective_entity_representations representation
         on representation.entity_id = entity.id
        and representation.user_id = p_actor_user_id
-      left join lateral (
-        select consent_row.active
-          from private.comun_relata_collective_entity_consents consent_row
-         where consent_row.entity_id = entity.id
-           and consent_row.consented_by_user_id = p_actor_user_id
-         order by consent_row.declared_at desc, consent_row.id desc
-         limit 1
-      ) consent on true
+      left join private.comun_relata_collective_entity_consents consent
+        on consent.id = (
+          select consent_row.id
+            from private.comun_relata_collective_entity_consents consent_row
+           where consent_row.entity_id = entity.id
+             and consent_row.consented_by_user_id = p_actor_user_id
+           order by consent_row.declared_at desc, consent_row.id desc
+           limit 1
+        )
      order by entity.created_at desc, entity.id desc;
 end;
 $$;
+
+alter function public.comun_relata_collective_entity_server_create(uuid,uuid,text,text) owner to postgres;
+alter function public.comun_relata_collective_entity_server_consent_set(uuid,uuid,boolean) owner to postgres;
+alter function public.comun_relata_collective_entity_server_representation_revoke(uuid,uuid) owner to postgres;
+alter function public.comun_relata_collective_entity_server_list_own(uuid) owner to postgres;
 
 revoke all on function
   public.comun_relata_collective_entity_server_create(uuid,uuid,text,text),

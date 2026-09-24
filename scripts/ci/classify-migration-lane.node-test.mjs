@@ -24,12 +24,37 @@ const b2a2 =
   "supabase/migrations/20260827120000_comun_denuncias_private_collective_matching.sql";
 const entityConsent =
   "supabase/migrations/20260901000000_comun_relata_collective_entity_consent_foundation.sql";
+const entityAuthRuntime =
+  "supabase/migrations/20260924015511_comun_relata_collective_entity_authenticated_runtime.sql";
 const hardening =
   "supabase/migrations/20260922120000_comun_canonical_security_hardening_v2.sql";
 const b1 =
   "supabase/migrations/20260810155310_comun_public_education_sensitive_routing.sql";
 const b2 =
   "supabase/migrations/20260810171448_comun_child_protection_private_routing.sql";
+
+test("R2 authenticated runtime has explicit ownership and is N/A to historical lanes", () => {
+  for (const lane of [
+    "p6c-b1",
+    "p6c-b2",
+    "48-2-a",
+    "48-3-a1",
+    "48-4-a0",
+    "culture-b2-a2",
+  ]) {
+    const result = classifyMigrationLane(lane, [entityAuthRuntime]);
+    assert.equal(result.mode, "not_applicable", lane);
+    assert.equal(result.files[0].owner, "collective-entity-auth-runtime", lane);
+  }
+  assert.equal(
+    classifyMigrationLane("p6c-b1", [b1, entityAuthRuntime]).mode,
+    "blocked",
+  );
+  assert.equal(
+    classifyMigrationLane("p6c-b1", ["20260924015512_unknown.sql"]).mode,
+    "blocked",
+  );
+});
 
 test("historical P6C gates classify security hardening by canonical ownership", () => {
   for (const [lane, own] of [
