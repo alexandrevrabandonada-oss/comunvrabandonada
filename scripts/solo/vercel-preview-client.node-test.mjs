@@ -157,6 +157,7 @@ test("preview curl is non-interactive and stays pinned to the deployment URL", (
     },
   });
   assert.equal(response.status, 200);
+  assert.equal(response.parsed.status, 200);
   assert.ok(observedArgs.includes("--yes"));
   assert.equal(
     observedArgs[observedArgs.indexOf("--deployment") + 1],

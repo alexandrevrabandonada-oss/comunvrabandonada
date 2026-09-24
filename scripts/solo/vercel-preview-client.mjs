@@ -276,6 +276,7 @@ export function requestPreview({
     const bodyText = body.subarray(0, Math.min(body.length, 8192)).toString("utf8");
     return {
       route,
+      parsed,
       ...parsed,
       bodyBytes: statSync(bodyPath).size,
       bodyLooksProtected: /authentication required|_vercel_sso|vercel login/i.test(bodyText),

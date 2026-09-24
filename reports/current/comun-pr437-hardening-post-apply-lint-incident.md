@@ -87,3 +87,8 @@ Promotion run `35936282039` passed authorization, immutable CI, Production prefl
 
 The Preview probe is being made non-interactive by adding Vercel's `--yes` flag to `vercel curl` only. The deployment URL, token boundary, project/team/SHA checks, HTTP validation, PMTiles Range validation and failure handling remain unchanged. A focused test asserts that `--yes` is passed before the curl passthrough separator and that the request remains pinned to the exact deployment URL. Remote revalidation is required before promotion is attempted again.
 
+## Preview response-shape reconciliation, 2026-09-23
+
+Promotion run `35936967269` reached the exact READY Preview, validated SHA/project/team and the GitHub Preview attestation, then failed on the first authenticated `/comun` probe with `VERCEL_HTTP_RESPONSE_FAILED:unknown`. The HTTP wrapper returns parsed status/header fields flattened, while `validatePreviewResponse` expects the same object under a `parsed` key; the status was therefore discarded by the validator even though the request subprocess succeeded.
+
+The wrapper is being made backward-compatible by returning both `parsed` and the existing flattened fields. PMTiles validation keeps its current direct-field contract, while route validation receives the shape it already expects. No HTTP acceptance criterion, deployment identity check, protection check or Preview requirement is relaxed.
