@@ -53,3 +53,35 @@ schema-write authorization environment variable.
 Until that diagnostic establishes the real state, Production must be treated
 as `COMUN_49_2_PRIVATE_SCHEMA_PROMOTION_DIVERGED_AFTER_WRITE_ATTEMPT`.
 R3 remains closed.
+
+## PARTIAL_R1 fingerprint root cause
+
+Read-only recovery run `36034158387` proved that the first authorized
+Production attempt committed R1 and stopped before R2:
+
+- migration `20260901000000` present;
+- R2 migration absent;
+- `consentObjectCount=6`;
+- bundle ledger `ABSENT`;
+- Hardening `PRESENT_ACCEPTED`;
+- zero blocking findings;
+- runner fingerprint unchanged at the expected PRE/PARTIAL value;
+- Production canonical fingerprint
+  `221886f511268f0522d775222039ab15b3eebdcc0ee9555b7209bfabb2042c70`.
+
+Disposable A/B controls in runs `36034804425` and `36035143334` isolated
+the mismatch. The fixture already contained `postgres:USAGE` on schema
+`public`. Its executor shim granted `USAGE,CREATE` and later revoked both,
+silently removing that pre-existing `USAGE`. That changed only the canonical
+`schemaGrants` component and produced the stale PARTIAL_R1 fingerprint
+`208786bc...`.
+
+With the baseline ACL preserved, disposable PARTIAL_R1 is exactly the
+Production value `221886f5...`. The corrected disposable POST canonical
+fingerprint is
+`ce98af56622652e9416ed4c535ed8f202a61c36641e2cec8c21d4433f66cbeff`.
+
+The fix changes no R1/R2 migration bytes and no migration-set identity. It
+corrects the disposable privilege shim, the derived canonical fingerprints and
+the manifest state model. Production remains fail-closed in PARTIAL_R1 until
+the corrected full disposable proof and promotion-runner rehearsal pass.
