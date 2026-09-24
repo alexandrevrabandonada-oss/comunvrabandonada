@@ -1,0 +1,37 @@
+{
+  "scope": "COMUN_49_2_PRIVATE_RELEASE_DISPOSABLE_FINGERPRINTS",
+  "productionCaptureRun": "36018063341",
+  "productionCaptureSha256": "e8bff2fdae5e6ac49391757ef10fa24de759ef1903d9b7660c3790408117f015",
+  "sourceSha": "438cf7e7bb630b08ccac348d3e0859dda2c02692",
+  "fixture": "tests/fixtures/pr437-post",
+  "postgresVersion": "17.6",
+  "migrations": [
+    {
+      "order": 1,
+      "path": "supabase/migrations/20260901000000_comun_relata_collective_entity_consent_foundation.sql",
+      "sha256": "8795edb8fbd5359581294b7d0696cf8c3621b81dd5c994acb262d562bbad6b8d"
+    },
+    {
+      "order": 2,
+      "path": "supabase/migrations/20260924015511_comun_relata_collective_entity_authenticated_runtime.sql",
+      "sha256": "c2937990d38f6516f9e95c2a6fdbd77c11477450281a79b6efb3d0556f06958b"
+    }
+  ],
+  "pre": {
+    "runnerFingerprint": "a5fbc31cbac2b54bd877e0221b70dd9a708d83f25ac0083393f1739d46d27d98",
+    "canonicalFingerprint": "cb3bea0cb9abc6534760533d9c52a6471981a3a9672db8780c1ae4294995b1ee",
+    "blockingFindings": 0
+  },
+  "partialR1": {
+    "runnerFingerprint": "a5fbc31cbac2b54bd877e0221b70dd9a708d83f25ac0083393f1739d46d27d98",
+    "canonicalFingerprint": "208786bc2f6b595831e0a073f3bf7aac97fea955ce47e454cfde7d7e2ddc2c59",
+    "blockingFindings": 0,
+    "consentObjectCount": 6
+  },
+  "post": {
+    "runnerFingerprint": "7e957c3f154efe87f7104915a5b1e095cc77dc04d488bd4041b4c859f5db1b60",
+    "canonicalFingerprint": "34f99d5ca5c7d2d15df48586051b26baa179ba82b81c86f323e2a2fef2dae51b",
+    "blockingFindings": 0,
+    "consentObjectCount": 6
+  }
+}

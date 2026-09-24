@@ -11,6 +11,7 @@ on:
       - "scripts/49-2-a0-r1-collective-entity-consent-disposable.sql"
       - "scripts/ci/classify-migration-lane*.mjs"
       - "reports/current/comun-49-2-a0-collective-entity-consent-foundation.md"
+      - "supabase/release-bundles/20260924-comun-49-2-private-collective-runtime-r1-r2.json"
   workflow_dispatch:
 
 permissions: { contents: read }

@@ -1,0 +1,60 @@
+{
+  "release": "20260924-comun-49-2-private-collective-runtime-r1-r2",
+  "sourceMainSha": "438cf7e7bb630b08ccac348d3e0859dda2c02692",
+  "productionPreCaptureRun": "36018063341",
+  "productionPreCaptureSha256": "e8bff2fdae5e6ac49391757ef10fa24de759ef1903d9b7660c3790408117f015",
+  "productionExecutorPrivilegesCaptureRun": "36023542092",
+  "productionExecutorPrivilegesSha256": "abe126737f537bcbfedfd8e0b1f389b568600f15a0797414147de94c0af1bdf4",
+  "disposableProofRun": "36022901212",
+  "disposableProofArtifactSha256": "4b91fddf75f4c1fae6cc6ccb051dd38546c39c6305035c8430f91afd50024470",
+  "postgresVersion": "17.6",
+  "migrations": [
+    {
+      "order": 1,
+      "version": "20260901000000",
+      "path": "supabase/migrations/20260901000000_comun_relata_collective_entity_consent_foundation.sql",
+      "sha256": "8795edb8fbd5359581294b7d0696cf8c3621b81dd5c994acb262d562bbad6b8d"
+    },
+    {
+      "order": 2,
+      "version": "20260924015511",
+      "path": "supabase/migrations/20260924015511_comun_relata_collective_entity_authenticated_runtime.sql",
+      "sha256": "c2937990d38f6516f9e95c2a6fdbd77c11477450281a79b6efb3d0556f06958b"
+    }
+  ],
+  "migrationSetAlgorithm": "sha256-JSON.stringify([[path,sha256],...])",
+  "migrationSetSha256": "b07c45a827b32b6627bb880fab5b6c536a1784c06eb8c4a1a9e6cdb9a010041d",
+  "expectedPreFingerprint": "a5fbc31cbac2b54bd877e0221b70dd9a708d83f25ac0083393f1739d46d27d98",
+  "expectedPreCanonicalFingerprint": "cb3bea0cb9abc6534760533d9c52a6471981a3a9672db8780c1ae4294995b1ee",
+  "expectedPreMigrationVersionsSha256": "ccd66f5d7f15fdc033950444512e83d7e28ec41cd4c808b5156d1797b3aa38b9",
+  "expectedPartialR1Fingerprint": "a5fbc31cbac2b54bd877e0221b70dd9a708d83f25ac0083393f1739d46d27d98",
+  "expectedPartialR1CanonicalFingerprint": "208786bc2f6b595831e0a073f3bf7aac97fea955ce47e454cfde7d7e2ddc2c59",
+  "expectedPostFingerprint": "7e957c3f154efe87f7104915a5b1e095cc77dc04d488bd4041b4c859f5db1b60",
+  "expectedPostCanonicalFingerprint": "34f99d5ca5c7d2d15df48586051b26baa179ba82b81c86f323e2a2fef2dae51b",
+  "destructiveSql": false,
+  "requiresPromotion": true,
+  "expectedBlockingFindings": 0,
+  "releaseLedger": {
+    "relation": "public.comun_schema_releases",
+    "migrationPath": "bundle:supabase/release-bundles/20260924-comun-49-2-private-collective-runtime-r1-r2.json",
+    "migrationSha256": "b07c45a827b32b6627bb880fab5b6c536a1784c06eb8c4a1a9e6cdb9a010041d",
+    "status": "applied"
+  },
+  "changedObjects": [
+    "private.comun_relata_collective_entities",
+    "private.comun_relata_collective_entity_representations",
+    "private.comun_relata_collective_entity_consents",
+    "private.comun_relata_collective_entity_events",
+    "private R1 consent and audit primitives",
+    "four public R2 service_role-only SECURITY DEFINER bridges",
+    "public.comun_schema_releases logical bundle row"
+  ],
+  "assertions": [
+    "R1 and R2 apply in order; PARTIAL_R1 resumes with R2 only when fingerprint and migration ledger match",
+    "all four R2 bridges are owned by postgres with search_path=pg_catalog; PUBLIC, anon and authenticated have no EXECUTE",
+    "four R1 tables and primitives remain private with append-only audit",
+    "owner-only authenticated operations never create a public projection, candidate, map feature or publication",
+    "POST replay is read-only; DIVERGED blocks",
+    "Production schema remains unchanged until separate authorization"
+  ]
+}

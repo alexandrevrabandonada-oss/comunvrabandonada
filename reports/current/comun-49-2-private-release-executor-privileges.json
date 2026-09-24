@@ -1,0 +1,15 @@
+{
+  "scope": "COMUN_49_2_PRIVATE_RELEASE_EXECUTOR_PRIVILEGES_READ_ONLY",
+  "sourceSha": "438cf7e7bb630b08ccac348d3e0859dda2c02692",
+  "transactionReadOnly": "on",
+  "connectionRole": "postgres",
+  "privateSchemaOwner": "postgres",
+  "postgres": {
+    "privateUsage": true,
+    "privateCreate": true,
+    "publicCreate": true,
+    "authUsersReferences": true,
+    "migrationLedgerInsert": true,
+    "bundleLedgerInsert": true
+  }
+}

@@ -1,0 +1,121 @@
+name: COMUN 49.2 private release Production PRE capture
+
+on:
+  pull_request:
+    types: [opened]
+    branches: [main]
+    paths: [.github/workflows/comun-49-2-private-release-pre-capture.yml]
+
+permissions: { contents: read }
+
+jobs:
+  production-pre-capture:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'codex/comun-49-2-private-collective-runtime-release'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 438cf7e7bb630b08ccac348d3e0859dda2c02692
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Capture only Production catalog in read-only transactions
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/solo/capture-promotion-fingerprint.mjs --output=comun-49-2-production-pre.json
+          psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --quiet --set=ON_ERROR_STOP=1 -c "
+            begin read only;
+            select current_setting('transaction_read_only'),
+              (select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace
+                 where n.nspname='private' and c.relname in (
+                   'comun_relata_collective_entities',
+                   'comun_relata_collective_entity_representations',
+                   'comun_relata_collective_entity_consents',
+                   'comun_relata_collective_entity_events')),
+              (select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+                 where n.nspname='public' and p.proname in (
+                   'comun_relata_collective_entity_server_create',
+                   'comun_relata_collective_entity_server_consent_set',
+                   'comun_relata_collective_entity_server_representation_revoke',
+                   'comun_relata_collective_entity_server_list_own')),
+              (select count(*) from supabase_migrations.schema_migrations
+                 where version in ('20260901000000','20260924015511'));
+            rollback;
+          " > comun-49-2-collective-catalog.tsv
+          psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --quiet --set=ON_ERROR_STOP=1 -c "
+            begin read only;
+            select current_setting('transaction_read_only'), current_user,
+              pg_get_userbyid(n.nspowner),
+              has_schema_privilege('postgres','private','USAGE'),
+              has_schema_privilege('postgres','private','CREATE'),
+              has_schema_privilege('postgres','public','CREATE'),
+              has_table_privilege('postgres','auth.users','REFERENCES'),
+              has_table_privilege('postgres','supabase_migrations.schema_migrations','INSERT'),
+              has_table_privilege('postgres','public.comun_schema_releases','INSERT')
+              from pg_namespace n where n.nspname='private';
+            rollback;
+          " > comun-49-2-executor-privileges.tsv
+      - name: Validate and sanitize without Production credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const capture = JSON.parse(fs.readFileSync('comun-49-2-production-pre.json','utf8'));
+          const line = fs.readFileSync('comun-49-2-collective-catalog.tsv','utf8').trim().split('\n').find(x => x.includes('|'));
+          if (!line || !/^on\|\d+\|\d+\|\d+$/.test(line)) throw Error('COMUN_49_2_PRE_CATALOG_INVALID');
+          const [transactionReadOnly,privateTableCount,r2BridgeCount,migrationCount] = line.split('|');
+          if (capture.target !== 'PRODUCTION' || capture.blockingFindings !== 0 ||
+              capture.releaseLedgerState !== 'PRESENT_ACCEPTED' ||
+              capture.consentMigrationPresent !== false || capture.consentObjectCount !== 0 ||
+              privateTableCount !== '0' || r2BridgeCount !== '0' || migrationCount !== '0') {
+            throw Error('COMUN_49_2_PRIVATE_RELEASE_PRODUCTION_DRIFT');
+          }
+          const output = {
+            scope:'COMUN_49_2_PRIVATE_RELEASE_PRODUCTION_PRE',
+            sourceSha:'438cf7e7bb630b08ccac348d3e0859dda2c02692',
+            transactionReadOnly,privateTableCount:Number(privateTableCount),
+            r2BridgeCount:Number(r2BridgeCount),migrationCount:Number(migrationCount),
+            runnerFingerprint:capture.runnerFingerprint,
+            canonicalFingerprint:capture.canonicalFingerprint,
+            blockingFindings:capture.blockingFindings,
+            hardeningLedger:capture.releaseLedgerState,
+            migrations:capture.migrations,
+            postgresVersion:capture.postgresVersion
+          };
+          fs.writeFileSync('comun-49-2-private-release-pre.json',JSON.stringify(output,null,2)+'\n');
+          const privilegeLine = fs.readFileSync('comun-49-2-executor-privileges.tsv','utf8').trim().split('\n').find(x => x.includes('|'));
+          if (!privilegeLine || !/^on\|[a-z_][a-z0-9_]*\|[a-z_][a-z0-9_]*\|[tf]\|[tf]\|[tf]\|[tf]\|[tf]\|[tf]$/.test(privilegeLine)) {
+            throw Error('COMUN_49_2_EXECUTOR_PRIVILEGES_CAPTURE_INVALID');
+          }
+          const [readOnly,connectionRole,privateSchemaOwner,privateUsage,privateCreate,publicCreate,authUsersReferences,migrationLedgerInsert,bundleLedgerInsert] = privilegeLine.split('|');
+          fs.writeFileSync('comun-49-2-executor-privileges.json',JSON.stringify({
+            scope:'COMUN_49_2_PRIVATE_RELEASE_EXECUTOR_PRIVILEGES_READ_ONLY',
+            sourceSha:'438cf7e7bb630b08ccac348d3e0859dda2c02692',
+            transactionReadOnly:readOnly,
+            connectionRole,privateSchemaOwner,
+            postgres:{privateUsage:privateUsage==='t',privateCreate:privateCreate==='t',
+              publicCreate:publicCreate==='t',authUsersReferences:authUsersReferences==='t',
+              migrationLedgerInsert:migrationLedgerInsert==='t',bundleLedgerInsert:bundleLedgerInsert==='t'}
+          },null,2)+'\n');
+          NODE
+          if rg -i 'postgresql://|password|token|secret|@.*supabase\.co' comun-49-2-private-release-pre.json comun-49-2-executor-privileges.json; then
+            echo 'COMUN_49_2_PRE_ARTIFACT_UNSAFE' >&2
+            exit 1
+          fi
+          sha256sum comun-49-2-private-release-pre.json
+          sha256sum comun-49-2-executor-privileges.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-private-release-production-pre
+          path: |
+            comun-49-2-private-release-pre.json
+            comun-49-2-executor-privileges.json
+          if-no-files-found: error
+          retention-days: 7

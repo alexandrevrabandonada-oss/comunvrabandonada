@@ -287,6 +287,8 @@ test("canonical workflows remain active and known additions are explicit", () =>
     "comun-49-1-denuncias-map-readiness.yml",
     "comun-49-2-a0-r1-collective-entity-consent-disposable.yml",
     "comun-49-2-a0-r2-authenticated-representation-disposable.yml",
+    "comun-49-2-private-release-pre-capture.yml",
+    "comun-49-2-private-release-disposable.yml",
     "comun-civic-graph.yml",
     "comun-civic-intelligence.yml",
     "comun-communities-deliverability.yml",
