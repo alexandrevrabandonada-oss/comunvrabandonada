@@ -3,6 +3,8 @@
   "sourceMainSha": "438cf7e7bb630b08ccac348d3e0859dda2c02692",
   "productionPreCaptureRun": "36018063341",
   "productionPreCaptureSha256": "e8bff2fdae5e6ac49391757ef10fa24de759ef1903d9b7660c3790408117f015",
+  "productionExecutorPrivilegesCaptureRun": "36022306227",
+  "productionExecutorPrivilegesSha256": "9241d87f65be579d9263e02f24c0b15068fa3d0e605bcf55f3c246a148cc96aa",
   "disposableProofRun": "36020596557",
   "disposableProofArtifactSha256": "efd66e83d47c725aefee69f553e15ea8f840e2dcbb4bcbacf548a5ba0087ca66",
   "postgresVersion": "17.6",

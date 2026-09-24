@@ -14,8 +14,12 @@ const preBytes = readFileSync(
 const derivedBytes = readFileSync(
   "reports/current/comun-49-2-private-release-disposable-derived.json",
 );
+const executorPrivilegesBytes = readFileSync(
+  "reports/current/comun-49-2-private-release-executor-privileges.json",
+);
 const pre = JSON.parse(preBytes);
 const derived = JSON.parse(derivedBytes);
+const executorPrivileges = JSON.parse(executorPrivilegesBytes);
 const migrationBytes = manifest.migrations.map(({ path }) =>
   readFileSync(path),
 );
@@ -23,8 +27,10 @@ const proof = {
   manifest,
   pre,
   derived,
+  executorPrivileges,
   preBytes,
   derivedBytes,
+  executorPrivilegesBytes,
   migrationBytes,
 };
 
@@ -43,6 +49,12 @@ test("bundle binds the read-only Production PRE, disposable POST and both migrat
       ],
     },
     { derivedBytes: Buffer.from("{}") },
+    {
+      executorPrivileges: {
+        ...executorPrivileges,
+        postgres: { ...executorPrivileges.postgres, privateCreate: false },
+      },
+    },
   ])
     assert.throws(
       () => validateBundle({ ...proof, ...altered }),

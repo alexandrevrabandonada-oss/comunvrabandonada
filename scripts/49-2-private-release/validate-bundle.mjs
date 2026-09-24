@@ -19,8 +19,10 @@ export function validateBundle({
   manifest,
   pre,
   derived,
+  executorPrivileges,
   preBytes,
   derivedBytes,
+  executorPrivilegesBytes,
   migrationBytes,
 }) {
   if (
@@ -31,6 +33,24 @@ export function validateBundle({
     manifest.releaseLedger?.status !== "applied" ||
     hash(preBytes) !== manifest.productionPreCaptureSha256 ||
     hash(derivedBytes) !== manifest.disposableProofArtifactSha256 ||
+    hash(executorPrivilegesBytes) !==
+      manifest.productionExecutorPrivilegesSha256 ||
+    executorPrivileges.scope !==
+      "COMUN_49_2_PRIVATE_RELEASE_EXECUTOR_PRIVILEGES_READ_ONLY" ||
+    executorPrivileges.transactionReadOnly !== "on" ||
+    executorPrivileges.sourceSha !== manifest.sourceMainSha ||
+    executorPrivileges.connectionRole !== "postgres" ||
+    executorPrivileges.privateSchemaOwner !== "postgres" ||
+    JSON.stringify(Object.keys(executorPrivileges.postgres ?? {}).sort()) !==
+      JSON.stringify([
+        "authUsersReferences",
+        "privateCreate",
+        "privateUsage",
+        "publicCreate",
+      ]) ||
+    Object.values(executorPrivileges.postgres).some(
+      (value) => value !== true,
+    ) ||
     derived.productionCaptureSha256 !== manifest.productionPreCaptureSha256 ||
     derived.productionCaptureRun !== manifest.productionPreCaptureRun ||
     derived.sourceSha !== manifest.sourceMainSha ||
@@ -121,12 +141,17 @@ if (
   const manifest = readJson(manifestPath);
   const preBytes = read(prePath);
   const derivedBytes = read(derivedPath);
+  const executorPrivilegesBytes = read(
+    "reports/current/comun-49-2-private-release-executor-privileges.json",
+  );
   const result = validateBundle({
     manifest,
     pre: JSON.parse(preBytes),
     derived: JSON.parse(derivedBytes),
+    executorPrivileges: JSON.parse(executorPrivilegesBytes),
     preBytes,
     derivedBytes,
+    executorPrivilegesBytes,
     migrationBytes: manifest.migrations.map((entry) => read(entry.path)),
   });
   console.log(`COMUN_49_2_PRIVATE_RELEASE_BUNDLE_VALID:${result.state}`);
