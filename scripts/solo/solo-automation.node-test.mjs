@@ -408,6 +408,7 @@ test("preview and production validate PMTiles Range in the correct domain order"
   assert.match(previewClient, /api\.vercel\.com\/v13\/deployments/);
   assert.match(previewClient, /VERCEL_CLI_VERSION = "50\.28\.0"/);
   assert.match(previewClient, /--deployment/);
+  assert.match(previewClient, /"curl",[\s\S]*"--yes",[\s\S]*"--deployment"/);
   assert.match(previewClient, /url\.href/);
   assert.match(monitor, /SOLO_PRODUCTION_PMTILES_RANGE_INVALID/);
   assert.match(monitor, /SOLO_PUBLIC_WWW_REDIRECT_INVALID/);

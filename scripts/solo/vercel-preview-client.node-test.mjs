@@ -1,9 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { writeFileSync } from "node:fs";
 import {
   classifyVercelFailure,
   inspectDeployment,
   parseResponseHeaders,
+  requestPreview,
   sanitizePreviewArtifact,
   sanitizeVercelDiagnostic,
   validatePmtilesResponse,
@@ -131,6 +133,36 @@ test("attested null-target mode still rejects divergent project, team and SHA", 
     }),
     /sha/,
   );
+});
+
+test("preview curl is non-interactive and stays pinned to the deployment URL", () => {
+  let observedArgs = null;
+  const response = requestPreview({
+    route: "/comun",
+    deploymentUrl,
+    teamScope: null,
+    token: "vercel-test-token",
+    runCli: (args) => {
+      observedArgs = args;
+      const passthrough = args.indexOf("--");
+      const curlArgs = args.slice(passthrough + 1);
+      const bodyPath = curlArgs[curlArgs.indexOf("--output") + 1];
+      const headerPath = curlArgs[curlArgs.indexOf("--dump-header") + 1];
+      writeFileSync(bodyPath, "ok");
+      writeFileSync(
+        headerPath,
+        "HTTP/2 200 OK\r\nContent-Type: text/html\r\nContent-Length: 2\r\n\r\n",
+      );
+      return { status: 0, stdout: "", stderr: "" };
+    },
+  });
+  assert.equal(response.status, 200);
+  assert.ok(observedArgs.includes("--yes"));
+  assert.equal(
+    observedArgs[observedArgs.indexOf("--deployment") + 1],
+    `${deploymentUrl}/`,
+  );
+  assert.ok(observedArgs.indexOf("--yes") < observedArgs.indexOf("--"));
 });
 
 test("token is always removed from diagnostics", () => {

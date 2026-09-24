@@ -260,6 +260,7 @@ export function requestPreview({
     const result = runCli([
       "curl",
       route,
+      "--yes",
       "--deployment",
       url.href,
       "--token",

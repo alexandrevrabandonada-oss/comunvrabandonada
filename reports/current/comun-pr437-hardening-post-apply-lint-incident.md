@@ -81,3 +81,9 @@ Promotion run `35935439512` passed the corrected PR437 postflight path, includin
 
 The client is being tightened to accept a null Vercel target only when the caller has already validated the exact GitHub Preview deployment/status attestation. Explicit `production` remains rejected, and project ID, team ID, SHA, READY state and Vercel hostname checks remain mandatory. The default client behavior still rejects null targets; the allowance is opt-in only from the immutable Preview verifier after GitHub attestation. Remote revalidation is required before another promotion attempt.
 
+## Non-interactive Preview probe reconciliation, 2026-09-23
+
+Promotion run `35936282039` passed authorization, immutable CI, Production preflight, forward-only POST recognition, the read-only postflight capture, disposable `SEARCH_SYNC_RUNTIME_CONTRACT_PROVED`, schema reload and cleanup dry-run. The Preview verifier then successfully accepted the exact READY deployment and SHA under the GitHub Preview attestation, proving the null-target reconciliation worked. The subsequent authenticated route probe stopped before merge because pinned Vercel CLI `50.28.0` now requires explicit confirmation for `vercel curl`: `Command \`vercel curl\` requires confirmation. Use option "--yes" to confirm.`
+
+The Preview probe is being made non-interactive by adding Vercel's `--yes` flag to `vercel curl` only. The deployment URL, token boundary, project/team/SHA checks, HTTP validation, PMTiles Range validation and failure handling remain unchanged. A focused test asserts that `--yes` is passed before the curl passthrough separator and that the request remains pinned to the exact deployment URL. Remote revalidation is required before promotion is attempted again.
+
