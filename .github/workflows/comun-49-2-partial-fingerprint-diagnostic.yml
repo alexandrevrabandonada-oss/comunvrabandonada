@@ -85,6 +85,33 @@ jobs:
           docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$db_b"             -X -v ON_ERROR_STOP=1 -c             "insert into supabase_migrations.schema_migrations(version) values ('20260901000000')" >/dev/null
           capture "$db_b" version-only.json
 
+          docker cp supabase/migrations/20260901000000_comun_relata_collective_entity_consent_foundation.sql             "$container:/tmp/r1.sql"
+          docker cp supabase/migrations/20260924015511_comun_relata_collective_entity_authenticated_runtime.sql             "$container:/tmp/r2.sql"
+
+          grant_corrected() {
+            local db="$1"
+            docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$db"               -X -v ON_ERROR_STOP=1 -c               'grant usage, create on schema private to postgres;
+               grant create on schema public to postgres;
+               grant references on auth.users to postgres;' >/dev/null
+          }
+          revoke_corrected() {
+            local db="$1"
+            docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$db"               -X -v ON_ERROR_STOP=1 -c               'revoke usage, create on schema private from postgres;
+               revoke create on schema public from postgres;
+               revoke references on auth.users from postgres;' >/dev/null
+          }
+
+          grant_corrected "$db_b"
+          docker exec -e PGPASSWORD=postgres "$container" psql -U postgres -d "$db_b"             -X -v ON_ERROR_STOP=1 -f /tmp/r1.sql >/dev/null
+          revoke_corrected "$db_b"
+          capture "$db_b" corrected-partial-r1.json
+
+          grant_corrected "$db_b"
+          docker exec -e PGPASSWORD=postgres "$container" psql -U postgres -d "$db_b"             -X -v ON_ERROR_STOP=1 -f /tmp/r2.sql >/dev/null
+          docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$db_b"             -X -v ON_ERROR_STOP=1 -c             "insert into supabase_migrations.schema_migrations(version) values ('20260924015511')" >/dev/null
+          revoke_corrected "$db_b"
+          capture "$db_b" corrected-post.json
+
           ARTIFACT_DIR="$artifact" node --input-type=module - <<'NODE'
           import fs from "node:fs";
           const dir = process.env.ARTIFACT_DIR;
@@ -94,6 +121,8 @@ jobs:
           const cycle = read("after-cycle.json");
           const cycleVersion = read("cycle-plus-version.json");
           const versionOnly = read("version-only.json");
+          const correctedPartial = read("corrected-partial-r1.json");
+          const correctedPost = read("corrected-post.json");
           const componentDiff = (left, right) =>
             Object.keys(left.components).filter(
               (key) => left.components[key] !== right.components[key],
@@ -109,6 +138,8 @@ jobs:
             afterGrantRevokeCycle: cycle.fingerprint,
             cyclePlusR1Version: cycleVersion.fingerprint,
             r1VersionOnly: versionOnly.fingerprint,
+            correctedPartialR1: correctedPartial.fingerprint,
+            correctedPost: correctedPost.fingerprint,
             expectedPartialFromManifest:
               "208786bc2f6b595831e0a073f3bf7aac97fea955ce47e454cfde7d7e2ddc2c59",
             observedProductionPartial:
@@ -125,7 +156,8 @@ jobs:
               cycleVersion.fingerprint ===
                 "208786bc2f6b595831e0a073f3bf7aac97fea955ce47e454cfde7d7e2ddc2c59" &&
               versionOnly.fingerprint ===
-                "221886f511268f0522d775222039ab15b3eebdcc0ee9555b7209bfabb2042c70",
+                "221886f511268f0522d775222039ab15b3eebdcc0ee9555b7209bfabb2042c70" &&
+              correctedPartial.fingerprint === versionOnly.fingerprint,
           };
           fs.writeFileSync(
             `${dir}/diagnostic.json`,
