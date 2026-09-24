@@ -1,0 +1,120 @@
+name: COMUN 49.2 private schema promotion
+
+on:
+  issues:
+    types: [labeled]
+
+concurrency:
+  group: comun-49-2-private-schema-promotion
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  promote:
+    if: >-
+      github.event.label.name == 'comun:promover' &&
+      github.event.issue.title == 'COMUN 49.2 private schema promotion'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Authorize owner request and exact main SHA
+        id: auth
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          AUTHOR_ASSOCIATION: ${{ github.event.issue.author_association }}
+          EVENT_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$AUTHOR_ASSOCIATION" = "OWNER"
+          expected_sha="$(printf '%s\n' "$ISSUE_BODY" | sed -nE 's/^expected_main_sha:[[:space:]]*([a-f0-9]{40})[[:space:]]*$/\1/p' | tail -1)"
+          authorization="$(printf '%s\n' "$ISSUE_BODY" | sed -nE 's/^authorization:[[:space:]]*([A-Z0-9_]+)[[:space:]]*$/\1/p' | tail -1)"
+          test "$authorization" = "COMUN_49_2_PRODUCTION_SCHEMA_WRITE"
+          test "$expected_sha" = "$EVENT_SHA"
+          echo "sha=$expected_sha" >> "$GITHUB_OUTPUT"
+          echo COMUN_49_2_SCHEMA_WRITE_OWNER_AUTHORIZED
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.auth.outputs.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Require main to remain immutable
+        env:
+          EXPECTED_SHA: ${{ steps.auth.outputs.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          remote_main="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          test "$remote_main" = "$EXPECTED_SHA"
+          echo COMUN_49_2_MAIN_SHA_IMMUTABLE
+      - name: Revalidate bundle and promotion contracts
+        run: |
+          set -euo pipefail
+          node scripts/49-2-private-release/validate-bundle.mjs
+          node --test             scripts/49-2-private-release/state-machine.node-test.mjs             scripts/49-2-private-release/promotion-runner.node-test.mjs             scripts/49-2-private-release/validate-bundle.node-test.mjs             scripts/49-2-private-release/production-promotion-contract.node-test.mjs
+      - name: Fresh Production PRE — read only
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+          COMUN_49_2_EXPECTED_MAIN_SHA: ${{ steps.auth.outputs.sha }}
+        run: |
+          node scripts/49-2-private-release/run-production-promotion.mjs             --mode=preflight             --expected-sha="${{ steps.auth.outputs.sha }}"             --output=.ci-artifacts/comun-49-2-private-schema-promotion/preflight.json
+      - name: Apply private R1 + R2 bundle forward-only
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          COMUN_49_2_EXPECTED_MAIN_SHA: ${{ steps.auth.outputs.sha }}
+          COMUN_49_2_SCHEMA_WRITE_AUTHORIZATION: COMUN_49_2_PRODUCTION_SCHEMA_WRITE
+        run: |
+          node scripts/49-2-private-release/run-production-promotion.mjs             --mode=promote             --expected-sha="${{ steps.auth.outputs.sha }}"             --output=.ci-artifacts/comun-49-2-private-schema-promotion/promotion.json
+      - name: Recapture exact POST — read only
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+          COMUN_49_2_EXPECTED_MAIN_SHA: ${{ steps.auth.outputs.sha }}
+        run: |
+          node scripts/49-2-private-release/run-production-promotion.mjs             --mode=postflight             --expected-sha="${{ steps.auth.outputs.sha }}"             --output=.ci-artifacts/comun-49-2-private-schema-promotion/postflight.json
+      - name: Public application smoke — no collective mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          for route in /comun /comun/denuncias /comun/relatar /comun/minha-participacao; do
+            code="$(curl --silent --show-error --location --output /dev/null --write-out '%{http_code}' "https://comunsocial.online$route")"
+            test "$code" = 200
+          done
+          headers="$(mktemp)"
+          curl --silent --show-error --range 0-127 --dump-header "$headers" --output /dev/null             https://comunsocial.online/maps/volta-redonda/volta-redonda.pmtiles
+          grep -Eq '^HTTP/[^ ]+ 206' "$headers"
+          grep -Eiq '^content-range:[[:space:]]*bytes 0-127/[0-9]+' "$headers"
+          www_headers="$(mktemp)"
+          curl --silent --show-error --head --output /dev/null --dump-header "$www_headers"             https://www.comunsocial.online
+          grep -Eq '^HTTP/[^ ]+ 308' "$www_headers"
+          grep -Eiq '^location:[[:space:]]*https://comunsocial\.online(/|\r?$)' "$www_headers"
+          echo COMUN_49_2_PRIVATE_SCHEMA_PUBLIC_SMOKE_GREEN
+      - name: Capture recovery state on failure
+        if: failure()
+        continue-on-error: true
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+          COMUN_49_2_EXPECTED_MAIN_SHA: ${{ steps.auth.outputs.sha }}
+        run: |
+          node scripts/49-2-private-release/run-production-promotion.mjs             --mode=inspect             --expected-sha="${{ steps.auth.outputs.sha }}"             --output=.ci-artifacts/comun-49-2-private-schema-promotion/recovery-state.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-49-2-private-schema-promotion-${{ github.run_id }}
+          path: .ci-artifacts/comun-49-2-private-schema-promotion
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Mark private Production schema green
+        if: success()
+        run: echo COMUN_49_2_PRIVATE_SCHEMA_PRODUCTION_GREEN >> "$GITHUB_STEP_SUMMARY"
