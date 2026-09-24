@@ -58,3 +58,28 @@ test("49.2 workflow never opens R3 or mutates collective business data", () => {
   assert.match(runner, /publicProjectionCreated: false/);
   assert.match(runner, /r3Opened: false/);
 });
+
+test("49.2 inspect persists raw divergent state without write authorization", () => {
+  assert.match(
+    runner,
+    /if \(mode === "inspect"\)[\s\S]*const capture = await adapter\.capture\(\)[\s\S]*classifyPrivateRelease\(capture/,
+  );
+  assert.match(runner, /COMUN_49_2_PRIVATE_SCHEMA_INSPECT/);
+});
+
+test("49.2 recovery diagnostic is exact-main and read-only", () => {
+  const diagnostic = readFileSync(
+    ".github/workflows/comun-49-2-private-schema-diagnostic.yml",
+    "utf8",
+  );
+  assert.match(diagnostic, /COMUN 49\.2 private schema diagnostic/);
+  assert.match(diagnostic, /github\.event\.label\.name == 'comun:promover'/);
+  assert.match(diagnostic, /AUTHOR_ASSOCIATION.*OWNER/s);
+  assert.match(diagnostic, /git ls-remote origin refs\/heads\/main/);
+  assert.match(diagnostic, /PGOPTIONS: -c default_transaction_read_only=on/);
+  assert.match(diagnostic, /--mode=inspect/);
+  assert.doesNotMatch(
+    diagnostic,
+    /COMUN_49_2_SCHEMA_WRITE_AUTHORIZATION|--mode=promote/,
+  );
+});
