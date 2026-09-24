@@ -6,7 +6,7 @@
   "productionExecutorPrivilegesCaptureRun": "36023542092",
   "productionExecutorPrivilegesSha256": "abe126737f537bcbfedfd8e0b1f389b568600f15a0797414147de94c0af1bdf4",
   "disposableProofRun": "36022901212",
-  "disposableProofArtifactSha256": "4b91fddf75f4c1fae6cc6ccb051dd38546c39c6305035c8430f91afd50024470",
+  "disposableProofArtifactSha256": "85d9d12ee867f1718334943cf9998f6bb0ac2603c57b920a00a8eed4e2885418",
   "postgresVersion": "17.6",
   "migrations": [
     {
@@ -28,9 +28,9 @@
   "expectedPreCanonicalFingerprint": "cb3bea0cb9abc6534760533d9c52a6471981a3a9672db8780c1ae4294995b1ee",
   "expectedPreMigrationVersionsSha256": "ccd66f5d7f15fdc033950444512e83d7e28ec41cd4c808b5156d1797b3aa38b9",
   "expectedPartialR1Fingerprint": "a5fbc31cbac2b54bd877e0221b70dd9a708d83f25ac0083393f1739d46d27d98",
-  "expectedPartialR1CanonicalFingerprint": "208786bc2f6b595831e0a073f3bf7aac97fea955ce47e454cfde7d7e2ddc2c59",
+  "expectedPartialR1CanonicalFingerprint": "221886f511268f0522d775222039ab15b3eebdcc0ee9555b7209bfabb2042c70",
   "expectedPostFingerprint": "7e957c3f154efe87f7104915a5b1e095cc77dc04d488bd4041b4c859f5db1b60",
-  "expectedPostCanonicalFingerprint": "34f99d5ca5c7d2d15df48586051b26baa179ba82b81c86f323e2a2fef2dae51b",
+  "expectedPostCanonicalFingerprint": "ce98af56622652e9416ed4c535ed8f202a61c36641e2cec8c21d4433f66cbeff",
   "destructiveSql": false,
   "requiresPromotion": true,
   "expectedBlockingFindings": 0,
@@ -55,6 +55,7 @@
     "four R1 tables and primitives remain private with append-only audit",
     "owner-only authenticated operations never create a public projection, candidate, map feature or publication",
     "POST replay is read-only; DIVERGED blocks",
-    "Production schema remains unchanged until separate authorization"
-  ]
+    "Production schema changes only under explicit separate authorization; PARTIAL_R1 recovery remains fail-closed"
+  ],
+  "fingerprintCorrectionProofRun": "36035143334"
 }
