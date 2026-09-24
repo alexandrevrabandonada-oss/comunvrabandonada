@@ -8,7 +8,7 @@ test -z "${SUPABASE_SERVICE_ROLE_KEY+x}" || { echo COMUN_49_2_DISPOSABLE_PRODUCT
 artifact=.ci-artifacts/49-2-private-release
 fixture=tests/fixtures/pr437-post
 container="comun-49-2-private-${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}"
-database=comun_49_2_private_release
+database="comun_pr437_prodlike_post_${GITHUB_RUN_ID:-0}"
 image='docker.io/supabase/postgres@sha256:8002645276dc3431d55a5049721a879e4d11c34177086dc0f13b61d98cff1e52'
 mkdir -p "$artifact"
 cleanup() { docker rm -f "$container" >/dev/null 2>&1 || true; }
