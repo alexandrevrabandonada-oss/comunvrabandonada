@@ -183,9 +183,28 @@ async function run() {
     },
   });
 
-  if (mode === "inspect" || mode === "preflight") {
+  if (mode === "inspect") {
+    const capture = await adapter.capture();
+    const classification = classifyPrivateRelease(capture, manifest, {
+      migrations: baseline.migrations,
+    });
+    persist({
+      scope: "COMUN_49_2_PRIVATE_SCHEMA_PROMOTION",
+      mode,
+      sha: expectedSha,
+      state: classification.state,
+      action: classification.action,
+      capture,
+    });
+    console.log(
+      `COMUN_49_2_PRIVATE_SCHEMA_INSPECT:${classification.state}`,
+    );
+    return;
+  }
+
+  if (mode === "preflight") {
     const { capture, classification } = await classify(adapter);
-    if (mode === "preflight" && classification.state !== "PRE")
+    if (classification.state !== "PRE")
       throw new Error(
         `COMUN_49_2_PRIVATE_SCHEMA_PREFLIGHT_NOT_PRE:${classification.state}`,
       );
@@ -198,7 +217,7 @@ async function run() {
       capture,
     });
     console.log(
-      `COMUN_49_2_PRIVATE_SCHEMA_${mode.toUpperCase()}:${classification.state}`,
+      `COMUN_49_2_PRIVATE_SCHEMA_PREFLIGHT:${classification.state}`,
     );
     return;
   }

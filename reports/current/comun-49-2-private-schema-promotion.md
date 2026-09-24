@@ -29,3 +29,27 @@ exact migration bytes. R3 remains closed.
 
 The promotion itself is intentionally not triggered merely by merging this
 workflow. Triggering requires a separate owner-authored issue and label event.
+
+## First authorized Production attempt — recovery required
+
+Run `36032951992` was the first authorized 49.2 Production schema attempt on
+main `be31097d0a5fff262e395d92cbb8790e367b3129`. Owner authorization,
+immutable-main verification, bundle contracts and a fresh read-only PRE all
+passed. The PRE was exact and emitted
+`COMUN_49_2_PRIVATE_SCHEMA_PREFLIGHT:PRE`.
+
+The forward-only write step then stopped with
+`COMUN_49_2_PRIVATE_RELEASE_DIVERGED`. The promotion label was removed from
+issue #441 immediately after the failure; no retry is authorized from this
+state.
+
+The original recovery handler also classified before persisting the raw
+capture, so its artifact only records `DIVERGED`. Recovery therefore changes
+observability only: `inspect` now persists the sanitized raw capture even when
+the state machine returns DIVERGED. A separate issue-triggered diagnostic runs
+on the exact main SHA with `default_transaction_read_only=on`, without the
+schema-write authorization environment variable.
+
+Until that diagnostic establishes the real state, Production must be treated
+as `COMUN_49_2_PRIVATE_SCHEMA_PROMOTION_DIVERGED_AFTER_WRITE_ATTEMPT`.
+R3 remains closed.

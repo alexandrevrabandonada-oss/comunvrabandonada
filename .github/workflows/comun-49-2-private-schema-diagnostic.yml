@@ -1,0 +1,65 @@
+name: COMUN 49.2 private schema recovery diagnostic
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  inspect:
+    if: >-
+      github.event.label.name == 'comun:promover' &&
+      github.event.issue.title == 'COMUN 49.2 private schema diagnostic'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Authorize owner diagnostic and exact main SHA
+        id: auth
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          AUTHOR_ASSOCIATION: ${{ github.event.issue.author_association }}
+          EVENT_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$AUTHOR_ASSOCIATION" = "OWNER"
+          expected_sha="$(printf '%s\n' "$ISSUE_BODY" | sed -nE 's/^expected_main_sha:[[:space:]]*([a-f0-9]{40})[[:space:]]*$/\1/p' | tail -1)"
+          test "$expected_sha" = "$EVENT_SHA"
+          echo "sha=$expected_sha" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.auth.outputs.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Require main to remain immutable
+        env:
+          EXPECTED_SHA: ${{ steps.auth.outputs.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test "$(git ls-remote origin refs/heads/main | awk '{print $1}')" = "$EXPECTED_SHA"
+      - name: Capture raw 49.2 state read-only
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+          COMUN_49_2_EXPECTED_MAIN_SHA: ${{ steps.auth.outputs.sha }}
+        run: |
+          node scripts/49-2-private-release/run-production-promotion.mjs             --mode=inspect             --expected-sha="${{ steps.auth.outputs.sha }}"             --output=.ci-artifacts/comun-49-2-private-schema-diagnostic/state.json
+      - name: Upload diagnostic
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-private-schema-diagnostic-${{ github.run_id }}
+          path: .ci-artifacts/comun-49-2-private-schema-diagnostic/state.json
+          retention-days: 14
+          if-no-files-found: error
+      - name: Mark diagnostic captured
+        run: echo COMUN_49_2_PRIVATE_SCHEMA_DIAGNOSTIC_CAPTURED >> "$GITHUB_STEP_SUMMARY"
