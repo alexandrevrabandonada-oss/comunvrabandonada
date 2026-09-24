@@ -31,7 +31,7 @@ export function classifyPrivateRelease(capture, manifest) {
       migrationsPresent: [true, false],
       fingerprint: manifest?.expectedPartialR1Fingerprint,
       canonicalFingerprint: manifest?.expectedPartialR1CanonicalFingerprint,
-      consentObjectCount: 8,
+      consentObjectCount: 6,
     },
     {
       state: "POST",
@@ -39,7 +39,7 @@ export function classifyPrivateRelease(capture, manifest) {
       migrationsPresent: [true, true],
       fingerprint: manifest?.expectedPostFingerprint,
       canonicalFingerprint: manifest?.expectedPostCanonicalFingerprint,
-      consentObjectCount: 8,
+      consentObjectCount: 6,
     },
   ];
   for (const candidate of candidates) {

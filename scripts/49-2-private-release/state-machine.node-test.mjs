@@ -22,7 +22,7 @@ test("private release state machine permits only the exact forward path", () => 
   assert.deepEqual(classifyPrivateRelease(base, manifest), {
     state: "PRE", action: "APPLY_R1_R2",
   });
-  const partial = { ...base, migrations: [...base.migrations, "20260901000000"], runnerFingerprint: "partial", canonicalFingerprint: "partial-c", consentObjectCount: 8 };
+  const partial = { ...base, migrations: [...base.migrations, "20260901000000"], runnerFingerprint: "partial", canonicalFingerprint: "partial-c", consentObjectCount: 6 };
   assert.deepEqual(classifyPrivateRelease(partial, manifest), {
     state: "PARTIAL_R1", action: "APPLY_R2",
   });

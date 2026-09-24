@@ -56,8 +56,8 @@ if (
   after.consentMigrationPresent !== true ||
   !after.migrations.includes("20260924015511") ||
   partial.migrations.includes("20260924015511") ||
-  partial.consentObjectCount !== 8 ||
-  after.consentObjectCount !== 8
+  partial.consentObjectCount !== 6 ||
+  after.consentObjectCount !== 6
 ) {
   console.error(JSON.stringify({
     partial: {
