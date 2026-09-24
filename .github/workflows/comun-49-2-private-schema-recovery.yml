@@ -1,5 +1,17 @@
 name: COMUN 49.2 private schema recovery
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-private-schema-recovery.yml"
+      - "scripts/49-2-private-release/run-production-recovery.mjs"
+      - "scripts/49-2-private-release/recovery-state-machine.mjs"
+      - "scripts/49-2-private-release/recovery-state-machine.node-test.mjs"
+      - "scripts/49-2-private-release/recovery-runner.mjs"
+      - "scripts/49-2-private-release/recovery-runner.node-test.mjs"
+      - "scripts/49-2-private-release/postgres-adapter.mjs"
+      - "scripts/49-2-private-release/postgres-adapter.node-test.mjs"
+      - "reports/current/comun-49-2-private-schema-recovery-fingerprints.json"
   issues:
     types: [labeled]
 concurrency:
@@ -10,8 +22,28 @@ permissions:
   issues: read
   actions: read
 jobs:
+  contract:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Prove recovery has no R1 application surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/49-2-private-release/run-production-recovery.mjs
+          node --test scripts/49-2-private-release/recovery-state-machine.node-test.mjs scripts/49-2-private-release/recovery-runner.node-test.mjs scripts/49-2-private-release/postgres-adapter.node-test.mjs
+          ! grep -q 'manifest\.migrations\[0\]' scripts/49-2-private-release/run-production-recovery.mjs
+          ! grep -q 'applyR1' scripts/49-2-private-release/recovery-runner.mjs
+          git diff --check origin/main...HEAD
+
   recover:
-    if: github.event.label.name == 'comun:promover' && github.event.issue.title == 'COMUN 49.2 private schema recovery'
+    if: github.event_name == 'issues' && github.event.label.name == 'comun:promover' && github.event.issue.title == 'COMUN 49.2 private schema recovery'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
