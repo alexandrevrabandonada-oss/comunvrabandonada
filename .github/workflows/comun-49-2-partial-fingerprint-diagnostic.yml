@@ -1,0 +1,143 @@
+name: COMUN 49.2 PARTIAL_R1 fingerprint diagnostic
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-partial-fingerprint-diagnostic.yml"
+      - "scripts/49-2-private-release/capture-canonical-components.mjs"
+
+permissions:
+  contents: read
+
+jobs:
+  disposable-ab-control:
+    if: github.head_ref == 'codex/comun-49-2-partial-fingerprint-diagnostic'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Compare migration-only with executor grant-revoke cycle
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in SUPABASE_DB_URL SUPABASE_ACCESS_TOKEN SUPABASE_SERVICE_ROLE_KEY SUPABASE_URL; do
+            test -z "${!name:-}" || { echo "remote credential unexpectedly present" >&2; exit 1; }
+          done
+
+          artifact=.ci-artifacts/49-2-partial-fingerprint
+          fixture=tests/fixtures/pr437-post
+          container="comun-49-2-partial-diag-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          image='docker.io/supabase/postgres@sha256:8002645276dc3431d55a5049721a879e4d11c34177086dc0f13b61d98cff1e52'
+          db_a="comun_49_2_partial_diag_${GITHUB_RUN_ID}_a"
+          db_b="comun_49_2_partial_diag_${GITHUB_RUN_ID}_b"
+          mkdir -p "$artifact"
+          cleanup() { docker rm -f "$container" >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
+
+          docker run -d --name "$container" -p 127.0.0.1:57533:5432             -e POSTGRES_PASSWORD=postgres "$image" >/dev/null
+          ready=0
+          for attempt in $(seq 1 90); do
+            if docker logs "$container" 2>&1 | grep -F 'PostgreSQL init process complete; ready for start up.' >/dev/null               && docker exec "$container" pg_isready -U postgres >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          test "$ready" = 1 || { echo COMUN_49_2_PARTIAL_DIAG_POSTGRES_START_FAILED; exit 1; }
+
+          for db in "$db_a" "$db_b"; do
+            docker exec -e PGPASSWORD=postgres "$container" createdb -U supabase_admin "$db"
+          done
+          for file in post-schema.sql technical-ledger.sql synthetic-buckets.sql restore-expression.sql; do
+            docker cp "$fixture/$file" "$container:/tmp/$file"
+            for db in "$db_a" "$db_b"; do
+              docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$db"                 -X -v ON_ERROR_STOP=1 -f "/tmp/$file" >/dev/null
+            done
+          done
+
+          capture() {
+            local db="$1"
+            local out="$2"
+            COMUN_DIAG_DB_URL="postgresql://postgres:postgres@127.0.0.1:57533/$db"               node scripts/49-2-private-release/capture-canonical-components.mjs                 --output="$artifact/$out"
+          }
+
+          capture "$db_a" baseline-a.json
+          capture "$db_b" baseline-b.json
+
+          docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$db_a"             -X -v ON_ERROR_STOP=1 -c             'grant usage, create on schema private to postgres;
+             grant usage, create on schema public to postgres;
+             grant references on auth.users to postgres;
+             revoke usage, create on schema private from postgres;
+             revoke usage, create on schema public from postgres;
+             revoke references on auth.users from postgres;' >/dev/null
+          capture "$db_a" after-cycle.json
+
+          docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$db_a"             -X -v ON_ERROR_STOP=1 -c             "insert into supabase_migrations.schema_migrations(version) values ('20260901000000')" >/dev/null
+          capture "$db_a" cycle-plus-version.json
+
+          docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$db_b"             -X -v ON_ERROR_STOP=1 -c             "insert into supabase_migrations.schema_migrations(version) values ('20260901000000')" >/dev/null
+          capture "$db_b" version-only.json
+
+          ARTIFACT_DIR="$artifact" node --input-type=module - <<'NODE'
+          import fs from "node:fs";
+          const dir = process.env.ARTIFACT_DIR;
+          const read = (name) => JSON.parse(fs.readFileSync(`${dir}/${name}`, "utf8"));
+          const a = read("baseline-a.json");
+          const b = read("baseline-b.json");
+          const cycle = read("after-cycle.json");
+          const cycleVersion = read("cycle-plus-version.json");
+          const versionOnly = read("version-only.json");
+          const componentDiff = (left, right) =>
+            Object.keys(left.components).filter(
+              (key) => left.components[key] !== right.components[key],
+            );
+          if (
+            a.fingerprint !== "cb3bea0cb9abc6534760533d9c52a6471981a3a9672db8780c1ae4294995b1ee" ||
+            b.fingerprint !== a.fingerprint ||
+            [a,b,cycle,cycleVersion,versionOnly].some((x) => x.blockingFindings !== 0)
+          ) throw new Error("COMUN_49_2_PARTIAL_DIAG_BASELINE_INVALID");
+          const result = {
+            scope: "COMUN_49_2_PARTIAL_FINGERPRINT_AB_CONTROL",
+            baseline: a.fingerprint,
+            afterGrantRevokeCycle: cycle.fingerprint,
+            cyclePlusR1Version: cycleVersion.fingerprint,
+            r1VersionOnly: versionOnly.fingerprint,
+            expectedPartialFromManifest:
+              "208786bc2f6b595831e0a073f3bf7aac97fea955ce47e454cfde7d7e2ddc2c59",
+            observedProductionPartial:
+              "221886f511268f0522d775222039ab15b3eebdcc0ee9555b7209bfabb2042c70",
+            cycleChangedComponents: componentDiff(a, cycle),
+            cycleVsVersionOnlyChangedComponents: componentDiff(cycleVersion, versionOnly),
+            schemaGrants: {
+              before: a.schemaGrants,
+              afterCycle: cycle.schemaGrants,
+              cyclePlusVersion: cycleVersion.schemaGrants,
+              versionOnly: versionOnly.schemaGrants,
+            },
+            hypothesisConfirmed:
+              cycleVersion.fingerprint ===
+                "208786bc2f6b595831e0a073f3bf7aac97fea955ce47e454cfde7d7e2ddc2c59" &&
+              versionOnly.fingerprint ===
+                "221886f511268f0522d775222039ab15b3eebdcc0ee9555b7209bfabb2042c70",
+          };
+          fs.writeFileSync(
+            `${dir}/diagnostic.json`,
+            `${JSON.stringify(result, null, 2)}\n`,
+          );
+          console.log(
+            `COMUN_49_2_PARTIAL_FINGERPRINT_DIAGNOSTIC:${result.hypothesisConfirmed ? "CONFIRMED" : "UNRESOLVED"}`,
+          );
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-partial-fingerprint-diagnostic-${{ github.run_id }}
+          path: .ci-artifacts/49-2-partial-fingerprint/diagnostic.json
+          if-no-files-found: error
+          retention-days: 14
