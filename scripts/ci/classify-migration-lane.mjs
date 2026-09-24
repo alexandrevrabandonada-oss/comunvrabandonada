@@ -38,6 +38,8 @@ export const MIGRATION_LANE_MANIFEST = Object.freeze({
     "culture-b2-a2",
   "20260901000000_comun_relata_collective_entity_consent_foundation.sql":
     "collective-entity-consent",
+  "20260924015511_comun_relata_collective_entity_authenticated_runtime.sql":
+    "collective-entity-auth-runtime",
 });
 
 const NON_APPLICABLE_LANES = Object.freeze({
@@ -227,6 +229,7 @@ const NON_APPLICABLE_LANES = Object.freeze({
 // domain. Historical migration gates must classify it as N/A, never unknown.
 for (const lanes of Object.values(NON_APPLICABLE_LANES)) {
   lanes.add("collective-entity-consent");
+  lanes.add("collective-entity-auth-runtime");
   lanes.add("security-hardening-v2");
 }
 

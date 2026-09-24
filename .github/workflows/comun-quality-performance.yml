@@ -129,13 +129,13 @@ jobs:
           cache: npm
       - uses: supabase/setup-cli@v1
         with:
-          version: 2.111.0
+          version: 2.117.0
       - run: mkdir -p .ci-artifacts/p1-quality-a11y
       - run: npm ci --ignore-scripts
-      - name: Supabase descartável
-        run: |
-          supabase start
-          supabase db reset --local --yes
+      - name: Supabase descartável — start
+        run: supabase start
+      - name: Supabase descartável — reset local
+        run: supabase db reset --local --yes
       - run: npm run build
       - uses: ./.github/actions/setup-playwright-browser
       - name: Núcleo a11y com servidor isolado e monitorado

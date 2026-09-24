@@ -1,0 +1,124 @@
+name: COMUN 49.2-A0-R2 disposable authenticated representation proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-a0-r2-authenticated-representation-disposable.yml"
+      - "supabase/migrations/*_comun_relata_collective_entity_authenticated_runtime.sql"
+      - "lib/comun-collective-entity-runtime*.ts"
+      - "app/comun/entidades/actions.ts"
+      - "scripts/49-2-a0-r2-*"
+      - "scripts/ci/classify-migration-lane*.mjs"
+
+permissions: { contents: read }
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/49-2-a0-r2-authenticated-representation-contract.node-test.mjs scripts/ci/classify-migration-lane.node-test.mjs
+      - run: npx vitest run lib/comun-collective-entity-runtime.test.ts lib/comun-collective-entity-consent.test.ts
+      - run: node scripts/ci/validate-security-definer-migrations.mjs supabase/migrations/20260924015511_comun_relata_collective_entity_authenticated_runtime.sql
+
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.117.0 }
+      - run: npm ci --ignore-scripts
+      - name: R1 + R2 local Auth, Postgres, grants, owner isolation, revocation and concurrency
+        shell: bash
+        run: |
+          set -euo pipefail
+          for secret_name in SUPABASE_ACCESS_TOKEN SUPABASE_DB_URL SUPABASE_SERVICE_ROLE_KEY SUPABASE_URL; do
+            if [[ -n "${!secret_name:-}" ]]; then
+              echo "Unexpected remote Supabase credential: ${secret_name}" >&2
+              exit 1
+            fi
+          done
+          trap 'supabase stop --no-backup || true' EXIT
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          supabase db reset --local --yes
+          status="$(supabase status -o json)"
+          db="$(jq -r '.DB_URL' <<<"$status")"
+          export COMUN_R2_LOCAL_API_URL="$(jq -r '.API_URL' <<<"$status")"
+          export COMUN_R2_LOCAL_SERVICE_ROLE_KEY="$(jq -r '.SERVICE_ROLE_KEY' <<<"$status")"
+          case "$db" in
+            postgresql://*@127.0.0.1:*/*|postgresql://*@localhost:*/*) ;;
+            *) echo 'Refusing non-local database URL' >&2; exit 1 ;;
+          esac
+          psql "$db" -v ON_ERROR_STOP=1 \
+            -f scripts/49-2-a0-r1-collective-entity-consent-disposable.sql
+          users="$RUNNER_TEMP/comun-r2-auth-users.json"
+          node scripts/49-2-a0-r2-disposable-auth-users.mjs "$users"
+          actor_a="$(jq -r '.a' "$users")"
+          actor_b="$(jq -r '.b' "$users")"
+          psql "$db" -v ON_ERROR_STOP=1 -v actor_a="$actor_a" -v actor_b="$actor_b" \
+            -f scripts/49-2-a0-r2-authenticated-representation-disposable.sql
+          COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL="$db" \
+            node scripts/ci/assert-zero-security-findings.mjs
+
+          create_same_request() {
+            psql "$db" -v ON_ERROR_STOP=1 -v actor="$actor_a" <<'SQL'
+          begin;
+          set local role service_role;
+          select * from public.comun_relata_collective_entity_server_create(
+            '49200000-0000-4000-8000-000000000203', :'actor'::uuid,
+            'Coletivo concorrente', 'collective');
+          commit;
+          SQL
+          }
+          create_same_request & first_pid=$!
+          create_same_request & second_pid=$!
+          wait "$first_pid"
+          wait "$second_pid"
+          psql "$db" -v ON_ERROR_STOP=1 -v actor="$actor_a" <<'SQL'
+          do $$
+          declare v_entity uuid;
+          begin
+            select id into v_entity from private.comun_relata_collective_entities
+              where creation_request_id='49200000-0000-4000-8000-000000000203';
+            if v_entity is null
+              or (select count(*) from private.comun_relata_collective_entities
+                  where creation_request_id='49200000-0000-4000-8000-000000000203')<>1
+              or (select count(*) from private.comun_relata_collective_entity_representations
+                  where entity_id=v_entity)<>1
+              or (select count(*) from private.comun_relata_collective_entity_events
+                  where entity_id=v_entity and event_type='entity_created')<>1
+              or (select count(*) from private.comun_relata_collective_entity_events
+                  where entity_id=v_entity and event_type='representation_declared')<>1 then
+              raise exception 'R2 concurrent create duplicated logical effects';
+            end if;
+          end;
+          $$;
+          SQL
+          bridge_calls=(
+            "comun_relata_collective_entity_server_create('49200000-0000-4000-8000-000000000204','$actor_a','Denied','collective')"
+            "comun_relata_collective_entity_server_consent_set('$actor_a','$actor_a',true)"
+            "comun_relata_collective_entity_server_representation_revoke('$actor_a','$actor_a')"
+            "comun_relata_collective_entity_server_list_own('$actor_a')"
+          )
+          for role_name in anon authenticated; do
+            for bridge_call in "${bridge_calls[@]}"; do
+              if output="$(psql "$db" -v ON_ERROR_STOP=1 \
+                -c "begin; set local role $role_name; select * from public.$bridge_call; rollback;" 2>&1)"; then
+                echo "Direct bridge execution unexpectedly allowed: $role_name" >&2
+                exit 1
+              fi
+              if ! grep -q 'permission denied for function' <<<"$output"; then
+                echo "Unexpected bridge failure: $role_name" >&2
+                exit 1
+              fi
+            done
+          done
+          echo 'COMUN_49_2_A0_R2_DISPOSABLE_GREEN' >> "$GITHUB_STEP_SUMMARY"
