@@ -36,15 +36,15 @@ node scripts/solo/capture-promotion-fingerprint.mjs --disposable \
 
 # The schema-only fixture omits migration-executor privileges on managed schemas.
 # Restore them only within each disposable application interval. Both the
-# PARTIAL_R1 and POST fingerprints must be captured after restoring baseline ACLs.
+# PARTIAL_R1 and POST fingerprints must be captured after restoring baseline ACLs.\n# The baseline already grants postgres USAGE on public; only temporary CREATE may be revoked.
 grant_executor() {
   docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database" \
-    -X -v ON_ERROR_STOP=1 -c 'grant usage, create on schema private to postgres; grant usage, create on schema public to postgres; grant references on auth.users to postgres' \
+    -X -v ON_ERROR_STOP=1 -c 'grant usage, create on schema private to postgres; grant create on schema public to postgres; grant references on auth.users to postgres' \
     >"$artifact/executor-grant.log"
 }
 revoke_executor() {
   docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database" \
-    -X -v ON_ERROR_STOP=1 -c 'revoke usage, create on schema private from postgres; revoke usage, create on schema public from postgres; revoke references on auth.users from postgres' \
+    -X -v ON_ERROR_STOP=1 -c 'revoke usage, create on schema private from postgres; revoke create on schema public from postgres; revoke references on auth.users from postgres' \
     >"$artifact/executor-revoke.log"
 }
 
