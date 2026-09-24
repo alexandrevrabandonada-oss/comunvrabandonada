@@ -1,0 +1,27 @@
+name: COMUN 49.2 private release Production-like disposable proof
+
+on:
+  pull_request:
+    types: [synchronize]
+    branches: [main]
+
+permissions: { contents: read }
+
+jobs:
+  disposable-pre-post:
+    if: github.head_ref == 'codex/comun-49-2-private-collective-runtime-release'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Derive PRE, PARTIAL_R1 and POST from the pinned Production-like fixture
+        run: bash scripts/49-2-private-release/derive-fingerprints.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-private-release-disposable-derived
+          path: .ci-artifacts/49-2-private-release/comun-49-2-private-release-derived.json
+          if-no-files-found: error
+          retention-days: 7

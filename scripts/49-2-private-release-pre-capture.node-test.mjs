@@ -21,3 +21,24 @@ test("Production PRE capture uses trusted main code and read-only catalog querie
     /CREATE\s|ALTER\s|DROP\s|INSERT\s|UPDATE\s|DELETE\s|supabase db lint/i,
   );
 });
+
+test("disposable proof has no Production secret and uses the captured PRE", () => {
+  const workflow = readFileSync(
+    ".github/workflows/comun-49-2-private-release-disposable.yml",
+    "utf8",
+  );
+  const script = readFileSync(
+    "scripts/49-2-private-release/derive-fingerprints.sh",
+    "utf8",
+  );
+  assert.doesNotMatch(
+    workflow,
+    /secrets\.|SUPABASE_DB_URL|SUPABASE_ACCESS_TOKEN/,
+  );
+  assert.match(script, /COMUN_49_2_DISPOSABLE_PRODUCTION_SECRET_PRESENT/);
+  assert.match(script, /docker\.io\/supabase\/postgres@sha256:[a-f0-9]{64}/);
+  assert.match(
+    script,
+    /reports\/current\/comun-49-2-private-release-production-pre\.json/,
+  );
+});
