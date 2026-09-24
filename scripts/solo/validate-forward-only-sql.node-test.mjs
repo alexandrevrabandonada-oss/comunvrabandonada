@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { validateForwardOnlySqlText } from "./validate-forward-only-sql.mjs";
+import {
+  selectSingleChangedManifest,
+  validateForwardOnlySqlText,
+} from "./validate-forward-only-sql.mjs";
 
 const release = {
   release: "20260724233256-comun-sidewalk-operational-hardening",
@@ -23,19 +26,77 @@ commit;
 `;
 
 test("validator accepts only the documented baseline grant repair", () => {
-  assert.doesNotThrow(() => validateForwardOnlySqlText(release, allowedMigration));
+  assert.doesNotThrow(() =>
+    validateForwardOnlySqlText(release, allowedMigration),
+  );
+});
+
+test("operational hardening without its sidewalk statement fails", () => {
+  assert.throws(
+    () => validateForwardOnlySqlText(release, "begin; select 1; commit;"),
+    /SOLO_PUBLIC_SUMMARY_NULLABILITY_EXCEPTION_INVALID/,
+  );
+});
+
+test("a generic additive release does not require a sidewalk statement", () => {
+  assert.doesNotThrow(() =>
+    validateForwardOnlySqlText(
+      { ...release, release: "20260914130000-radio-release" },
+      "begin; create schema if not exists private; commit;",
+    ),
+  );
+});
+
+test("zero or two changed release manifests fail closed", () => {
+  assert.throws(
+    () => selectSingleChangedManifest([]),
+    /SOLO_RELEASE_MANIFEST_COUNT_INVALID/,
+  );
+  assert.throws(
+    () =>
+      selectSingleChangedManifest([
+        "A\tsupabase/releases/one.json",
+        "A\tsupabase/releases/two.json",
+      ]),
+    /SOLO_RELEASE_MANIFEST_COUNT_INVALID/,
+  );
+});
+
+test("migration requires exactly one begin/commit transaction", () => {
+  assert.throws(
+    () =>
+      validateForwardOnlySqlText(
+        { ...release, release: "20260914130000-radio-release" },
+        "create schema if not exists private;",
+      ),
+    /SOLO_CANONICAL_TRANSACTION_BOUNDARY_INVALID/,
+  );
 });
 
 test("validator rejects an additional destructive statement", () => {
   assert.throws(
-    () => validateForwardOnlySqlText(release, allowedMigration.replace("commit;", "drop table public.comun_reports; commit;")),
+    () =>
+      validateForwardOnlySqlText(
+        release,
+        allowedMigration.replace(
+          "commit;",
+          "drop table public.comun_reports; commit;",
+        ),
+      ),
     /SOLO_CANONICAL_RELEASE_DESTRUCTIVE_SQL/,
   );
 });
 
 test("validator rejects a broadened grant-repair allowlist", () => {
   assert.throws(
-    () => validateForwardOnlySqlText(release, allowedMigration.replace("public.comun_reports", "public.comun_reports, public.unrelated_table")),
+    () =>
+      validateForwardOnlySqlText(
+        release,
+        allowedMigration.replace(
+          "public.comun_reports",
+          "public.comun_reports, public.unrelated_table",
+        ),
+      ),
     /SOLO_LEGACY_GRANT_REPAIR_EXCEPTION_INVALID/,
   );
 });

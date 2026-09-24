@@ -97,6 +97,15 @@ export function classifyBuildImpact({
     return { decision: "BUILD", reason: "diff-unavailable" };
   }
 
+  if (vercelEnv === "preview" && isCodexBranch(commitRef)) {
+    if (!commitMessageAvailable) {
+      return { decision: "BUILD", reason: "commit-message-unavailable" };
+    }
+    if (hasPreviewCheckpoint(commitMessage)) {
+      return { decision: "BUILD", reason: "codex-preview-checkpoint" };
+    }
+  }
+
   const normalizedFiles = Array.isArray(files)
     ? files.map(normalizePath).filter(Boolean)
     : [];
@@ -105,9 +114,7 @@ export function classifyBuildImpact({
     return { decision: "BUILD", reason: "empty-diff" };
   }
 
-  const unsafeFile = normalizedFiles.find(
-    (file) => !isSafeNoRuntimePath(file),
-  );
+  const unsafeFile = normalizedFiles.find((file) => !isSafeNoRuntimePath(file));
   if (unsafeFile) {
     const reason = buildReason(unsafeFile);
     if (
@@ -115,12 +122,6 @@ export function classifyBuildImpact({
       isCodexBranch(commitRef) &&
       reason === "runtime-path-change"
     ) {
-      if (!commitMessageAvailable) {
-        return { decision: "BUILD", reason: "commit-message-unavailable" };
-      }
-      if (hasPreviewCheckpoint(commitMessage)) {
-        return { decision: "BUILD", reason: "codex-preview-checkpoint" };
-      }
       return {
         decision: "IGNORE",
         reason: "codex-runtime-awaiting-preview-checkpoint",
@@ -132,11 +133,7 @@ export function classifyBuildImpact({
   return { decision: "IGNORE", reason: "no-runtime-allowlist" };
 }
 
-export function changedFilesFromDiff({
-  base,
-  head,
-  spawn = defaultSpawn,
-}) {
+export function changedFilesFromDiff({ base, head, spawn = defaultSpawn }) {
   if (!base || !head) return { available: false, files: [] };
 
   const baseCheck = spawn("git", ["rev-parse", "--verify", `${base}^{commit}`]);

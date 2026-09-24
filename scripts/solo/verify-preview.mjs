@@ -82,10 +82,27 @@ function isCredentialFailure(error) {
   }));
 }
 
-function attestGithubDeployment(githubDeployment, successfulStatus) {
+function requireGithubPreviewAttestation(githubDeployment, successfulStatus) {
   const url = validatePreviewUrl(successfulStatus.environment_url);
+  if (
+    githubDeployment.sha !== process.env.SHA ||
+    githubDeployment.environment !== "Preview" ||
+    successfulStatus.state !== "success"
+  ) {
+    throw new Error("VERCEL_PROJECT_LINK_FAILED:github-preview-attestation");
+  }
   const appSlug = githubDeployment.performed_via_github_app?.slug ?? "";
-  if (appSlug && !/vercel/i.test(appSlug)) throw new Error("VERCEL_PROJECT_LINK_FAILED:github-app");
+  if (appSlug && !/vercel/i.test(appSlug)) {
+    throw new Error("VERCEL_PROJECT_LINK_FAILED:github-app");
+  }
+  return url;
+}
+
+function attestGithubDeployment(githubDeployment, successfulStatus) {
+  const url = requireGithubPreviewAttestation(
+    githubDeployment,
+    successfulStatus,
+  );
   artifact.deploymentId = `github-${githubDeployment.id}`;
   artifact.host = url.hostname;
   artifact.verificationMode = "github-deployment-attestation";
@@ -105,12 +122,31 @@ function attestGithubDeployment(githubDeployment, successfulStatus) {
 let activeRoute = "inspect";
 try {
   const checks = JSON.parse(api(["pr", "checks", process.env.PR, "--json", "name,state,link"]));
-  const requiredChecks = ["FAST / COMUN_CI_GREEN", "FULL / COMUN_CI_GREEN", "Vercel"];
-  const missingOrFailed = requiredChecks.filter(
-    (name) => !checks.some((check) => check.name === name && check.state === "SUCCESS"),
+  const vercelGreen = checks.some(
+    (check) => check.name === "Vercel" && check.state === "SUCCESS",
   );
-  if (missingOrFailed.length) {
-    throw new Error(`SOLO_PREVIEW_CHECKS_NOT_GREEN:${missingOrFailed.join(",")}`);
+  if (!vercelGreen) throw new Error("SOLO_PREVIEW_CHECKS_NOT_GREEN:Vercel");
+
+  const ciRuns = JSON.parse(
+    api([
+      "api",
+      "-X",
+      "GET",
+      `repos/${repository}/actions/workflows/comun-ci.yml/runs`,
+      "-f",
+      `head_sha=${process.env.SHA}`,
+      "-f",
+      "status=completed",
+      "-f",
+      "per_page=20",
+    ]),
+  );
+  const canonicalCiGreen = (ciRuns.workflow_runs ?? []).some(
+    (run) =>
+      run.head_sha === process.env.SHA && run.conclusion === "success",
+  );
+  if (!canonicalCiGreen) {
+    throw new Error("SOLO_PREVIEW_CHECKS_NOT_GREEN:COMUN_CI");
   }
 
   const deployments = JSON.parse(
@@ -127,6 +163,7 @@ try {
     (status) => status.state === "success" && status.environment_url,
   );
   if (!successfulStatus) throw new Error("VERCEL_DEPLOYMENT_NOT_FOUND:not-ready");
+  requireGithubPreviewAttestation(githubDeployment, successfulStatus);
 
   let deployment = null;
   const token = process.env.VERCEL_TOKEN?.trim();
@@ -141,6 +178,7 @@ try {
         expectedTeamId: process.env.VERCEL_TEAM_ID,
         teamScope: null,
         token,
+        allowNullPreviewTarget: true,
       });
     } catch (error) {
       if (!isCredentialFailure(error)) throw error;

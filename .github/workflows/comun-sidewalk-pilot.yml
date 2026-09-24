@@ -91,6 +91,10 @@ jobs:
           result=$(jq -r .result .ci-artifacts/sidewalk-pilot/comun-sidewalk-pilot.json)
           phase=$(jq -r .phase .ci-artifacts/sidewalk-pilot/comun-sidewalk-pilot.json)
           closeout=$(jq -r .closeout.status .ci-artifacts/sidewalk-pilot/comun-sidewalk-pilot.json)
+          if [ "$phase" = "closed" ]; then
+            echo COMUN_SIDEWALK_PILOT_CLOSED_NO_ISSUE_MUTATION >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           if [ "$closeout" = "eligible_for_closeout" ]; then
             exit 0
           fi

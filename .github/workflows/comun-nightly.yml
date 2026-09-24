@@ -28,11 +28,12 @@ concurrency:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   baseline-capture:
     if: github.event_name == 'workflow_dispatch' && inputs.capture_baseline
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -40,38 +41,38 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Capture sanitized database metadata
+      - name: Validate canonical serializer and sanitization
+        run: node --test scripts/db/verify-canonical-baseline.node-test.mjs
+      - name: Capture sanitized canonical Production baseline
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: node scripts/db/verify-canonical-baseline.mjs --capture --output=comun-remote-schema-detailed.json --compact-output=comun-remote-schema-baseline-candidate.json
+      - name: Capture sanitized security preflight
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: node scripts/db/capture-security-hardening-preflight.mjs --output=comun-security-hardening-preflight.json
+      - name: Validate capture size and sanitization
         run: |
-          node scripts/db/verify-canonical-baseline.mjs --capture --output=comun-remote-schema-detailed.json --compact-output=comun-remote-schema-baseline-candidate.json
-          node scripts/db/capture-security-hardening-preflight.mjs --output=comun-security-hardening-preflight.json
-          node --test scripts/db/verify-canonical-baseline.node-test.mjs
-          node scripts/db/project-security-hardening-baseline.mjs \
-            --source=comun-remote-schema-baseline-candidate.json \
-            --baseline-output=/tmp/comun-hardening-post-1.json \
-            --release-output=/tmp/comun-hardening-release-1.json
-          node scripts/db/project-security-hardening-baseline.mjs \
-            --source=comun-remote-schema-baseline-candidate.json \
-            --baseline-output=/tmp/comun-hardening-post-2.json \
-            --release-output=/tmp/comun-hardening-release-2.json
-          diff -u /tmp/comun-hardening-post-1.json /tmp/comun-hardening-post-2.json
-          cp /tmp/comun-hardening-post-1.json comun-security-hardening-expected-post.json
-          echo COMUN_SECURITY_HARDENING_SANITIZED_SNAPSHOT_2X_OK
           test "$(wc -c < comun-remote-schema-baseline-candidate.json)" -le 5242880
-      - uses: actions/upload-artifact@v4
+          node scripts/solo/assert-sanitized-canonical-capture.mjs \
+            comun-remote-schema-detailed.json \
+            comun-remote-schema-baseline-candidate.json \
+            comun-security-hardening-preflight.json
+      - name: Upload canonical Production baseline
+        uses: actions/upload-artifact@v4
         with:
           name: comun-remote-schema-baseline
           path: |
             comun-remote-schema-detailed.json
             comun-remote-schema-baseline-candidate.json
             comun-security-hardening-preflight.json
-            comun-security-hardening-expected-post.json
           if-no-files-found: error
           retention-days: 7
 
   release-preflight:
     if: github.event_name == 'workflow_dispatch' && inputs.release_preflight
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -91,6 +92,9 @@ jobs:
 
   preview-preflight:
     if: github.event_name == 'workflow_dispatch' && inputs.preview_preflight
+    permissions:
+      contents: read
+      pull-requests: read
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -134,12 +138,22 @@ jobs:
 
   full-local:
     if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline && !inputs.release_preflight && !inputs.preview_preflight) || github.event.schedule == '17 3 * * *'
+    permissions:
+      actions: read
+      checks: read
+      contents: read
+      deployments: read
+      issues: write
+      pull-requests: write
     uses: ./.github/workflows/comun-ci.yml
     with:
       force_full: true
 
   production-health:
     if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline && !inputs.release_preflight && !inputs.preview_preflight) || github.event.schedule == '17 3 * * *'
+    permissions:
+      contents: read
+      issues: write
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -174,7 +188,9 @@ jobs:
           exit 1
 
   sidewalk-cleanup-dry-run:
-    if: (github.event_name == 'workflow_dispatch' && !inputs.release_preflight && !inputs.preview_preflight) || github.event.schedule == '17 3 * * *'
+    if: (github.event_name == 'workflow_dispatch' && !inputs.capture_baseline && !inputs.release_preflight && !inputs.preview_preflight) || github.event.schedule == '17 3 * * *'
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -195,6 +211,7 @@ jobs:
 
   archive-worker:
     if: github.event.schedule == '7,22,37,52 * * * *'
+    permissions: {}
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     steps:

@@ -1,9 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { writeFileSync } from "node:fs";
 import {
   classifyVercelFailure,
   inspectDeployment,
   parseResponseHeaders,
+  requestPreview,
   sanitizePreviewArtifact,
   sanitizeVercelDiagnostic,
   validatePmtilesResponse,
@@ -38,6 +40,7 @@ const inspect = (overrides = {}) => inspectDeployment({
   expectedTeamId: teamId,
   teamScope: null,
   token: "vercel-test-token",
+  allowNullPreviewTarget: overrides.allowNullPreviewTarget ?? false,
   runCli: () => ({ status: 0, stdout: JSON.stringify({ ...cli, ...(overrides.cli ?? {}) }), stderr: "" }),
   fetchImpl: async () => ({
     ok: true,
@@ -75,6 +78,92 @@ test("READY is required", async () => {
 
 test("preview target is required", async () => {
   await assert.rejects(inspect({ cli: { target: "production" } }), /not-preview/);
+});
+
+test("null target is rejected without an exact GitHub Preview attestation", async () => {
+  await assert.rejects(
+    inspect({ cli: { target: null }, remote: { target: null } }),
+    /not-preview/,
+  );
+});
+
+test("null target is accepted only when exact GitHub Preview attestation is supplied", async () => {
+  const result = await inspect({
+    allowNullPreviewTarget: true,
+    cli: { target: null },
+    remote: { target: null },
+  });
+  assert.equal(result.target, null);
+  assert.equal(result.targetVerification, "github-preview-attested");
+});
+
+test("attested null-target mode still rejects Production", async () => {
+  await assert.rejects(
+    inspect({
+      allowNullPreviewTarget: true,
+      cli: { target: "production" },
+      remote: { target: "production" },
+    }),
+    /not-preview/,
+  );
+});
+
+test("attested null-target mode still rejects divergent project, team and SHA", async () => {
+  await assert.rejects(
+    inspect({
+      allowNullPreviewTarget: true,
+      cli: { target: null },
+      remote: { target: null, projectId: "prj_legacy" },
+    }),
+    /project-id/,
+  );
+  await assert.rejects(
+    inspect({
+      allowNullPreviewTarget: true,
+      cli: { target: null },
+      remote: { target: null, teamId: "team_legacy" },
+    }),
+    /team-id/,
+  );
+  await assert.rejects(
+    inspect({
+      allowNullPreviewTarget: true,
+      cli: { target: null },
+      remote: { target: null, meta: { githubCommitSha: "b".repeat(40) } },
+    }),
+    /sha/,
+  );
+});
+
+test("preview curl is non-interactive and stays pinned to the deployment URL", () => {
+  let observedArgs = null;
+  const response = requestPreview({
+    route: "/comun",
+    deploymentUrl,
+    teamScope: null,
+    token: "vercel-test-token",
+    runCli: (args) => {
+      observedArgs = args;
+      const passthrough = args.indexOf("--");
+      const curlArgs = args.slice(passthrough + 1);
+      const bodyPath = curlArgs[curlArgs.indexOf("--output") + 1];
+      const headerPath = curlArgs[curlArgs.indexOf("--dump-header") + 1];
+      writeFileSync(bodyPath, "ok");
+      writeFileSync(
+        headerPath,
+        "HTTP/2 200 OK\r\nContent-Type: text/html\r\nContent-Length: 2\r\n\r\n",
+      );
+      return { status: 0, stdout: "", stderr: "" };
+    },
+  });
+  assert.equal(response.status, 200);
+  assert.equal(response.parsed.status, 200);
+  assert.ok(observedArgs.includes("--yes"));
+  assert.equal(
+    observedArgs[observedArgs.indexOf("--deployment") + 1],
+    `${deploymentUrl}/`,
+  );
+  assert.ok(observedArgs.indexOf("--yes") < observedArgs.indexOf("--"));
 });
 
 test("token is always removed from diagnostics", () => {
