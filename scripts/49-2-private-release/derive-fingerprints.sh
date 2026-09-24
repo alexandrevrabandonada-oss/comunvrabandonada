@@ -34,10 +34,10 @@ export COMUN_DISPOSABLE_DB_URL="postgresql://postgres:postgres@127.0.0.1:57532/$
 node scripts/solo/capture-promotion-fingerprint.mjs --disposable \
   --output="$artifact/before.json" >/dev/null
 
-# pg_dump's schema-only fixture omits the executor's CREATE grant on private.
-# Restore it only while applying the two migrations, then remove it before POST capture.
+# The schema-only fixture omits migration-executor privileges on managed schemas.
+# Restore them only for disposable application, then revoke before POST capture.
 docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database" \
-  -X -v ON_ERROR_STOP=1 -c 'grant usage, create on schema private to postgres' \
+  -X -v ON_ERROR_STOP=1 -c 'grant usage, create on schema private to postgres; grant references on auth.users to postgres' \
   >"$artifact/executor-grant.log"
 
 for version in 20260901000000 20260924015511; do
@@ -58,7 +58,7 @@ for version in 20260901000000 20260924015511; do
   fi
 done
 docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database" \
-  -X -v ON_ERROR_STOP=1 -c 'revoke usage, create on schema private from postgres' \
+  -X -v ON_ERROR_STOP=1 -c 'revoke usage, create on schema private from postgres; revoke references on auth.users from postgres' \
   >"$artifact/executor-revoke.log"
 node scripts/solo/capture-promotion-fingerprint.mjs --disposable \
   --output="$artifact/after.json" >/dev/null
