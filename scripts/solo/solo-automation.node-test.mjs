@@ -142,7 +142,9 @@ test("PR437 promotion postflight reuses read-only capture and disposable proof",
     .split("      - name: PR437 postflight disposable search proof")[1]
     ?.split("      - uses: actions/upload-artifact@v4")[0];
   const legacy = workflow
-    .split("      - name: Remote postflight, DB lint, schema reload and cleanup dry-run")[1]
+    .split(
+      "      - name: Remote postflight, DB lint, schema reload and cleanup dry-run",
+    )[1]
     ?.split("      - name: Validate immutable Vercel preview")[0];
   assert.ok(capture);
   assert.ok(proof);
@@ -284,6 +286,7 @@ test("canonical workflows remain active and known additions are explicit", () =>
     "comun-48-6-b2-a2-r5-sensitive-spatial-key.yml",
     "comun-49-1-denuncias-map-readiness.yml",
     "comun-49-2-a0-r1-collective-entity-consent-disposable.yml",
+    "comun-49-2-a0-r2-authenticated-representation-disposable.yml",
     "comun-civic-graph.yml",
     "comun-civic-intelligence.yml",
     "comun-communities-deliverability.yml",
@@ -377,8 +380,15 @@ test("domain reconciliation is promotion-only and restores legacy aliases on fai
 test("preview and production validate PMTiles Range in the correct domain order", () => {
   const workflow = readFileSync(".github/workflows/comun-promote.yml", "utf8");
   const preview = readFileSync("scripts/solo/verify-preview.mjs", "utf8");
+  const previewClient = readFileSync(
+    "scripts/solo/vercel-preview-client.mjs",
+    "utf8",
+  );
   const monitor = readFileSync("scripts/solo/monitor-production.mjs", "utf8");
-  assert.match(preview, /check\.name === "Vercel" && check\.state === "SUCCESS"/);
+  assert.match(
+    preview,
+    /check\.name === "Vercel" && check\.state === "SUCCESS"/,
+  );
   assert.match(preview, /actions\/workflows\/comun-ci\.yml\/runs/);
   assert.match(preview, /run\.head_sha === process\.env\.SHA/);
   assert.match(preview, /run\.conclusion === "success"/);
@@ -401,10 +411,6 @@ test("preview and production validate PMTiles Range in the correct domain order"
   assert.match(previewClient, /cli\.target !== "preview"/);
   assert.match(previewClient, /remote\.target !== "preview"/);
   assert.doesNotMatch(workflow, /VERCEL_TOKEN\|S_VERCEL_TOKEN/);
-  const previewClient = readFileSync(
-    "scripts/solo/vercel-preview-client.mjs",
-    "utf8",
-  );
   assert.match(previewClient, /api\.vercel\.com\/v13\/deployments/);
   assert.match(previewClient, /VERCEL_CLI_VERSION = "50\.28\.0"/);
   assert.match(previewClient, /--deployment/);
