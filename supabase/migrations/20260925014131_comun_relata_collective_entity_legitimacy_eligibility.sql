@@ -46,6 +46,8 @@ create table private.comun_relata_collective_entity_candidate_reviews (
   reviewer_auth_user_id uuid not null
     references auth.users(id)
     on delete restrict,
+  reviewer_role text not null
+    check (reviewer_role in ('admin','factual_reviewer','editorial_reviewer')),
   created_at timestamptz not null default pg_catalog.now(),
   constraint comun_relata_candidate_review_basis_shape check (
     (
@@ -233,6 +235,7 @@ set search_path=pg_catalog
 as $$
 declare
   v_profile_id uuid;
+  v_reviewer_role text;
   v_reference text:=nullif(pg_catalog.btrim(coalesce(p_basis_reference_private,'')),'');
   v_candidate private.comun_relata_collective_entity_candidates%rowtype;
   v_existing private.comun_relata_collective_entity_candidate_reviews%rowtype;
@@ -258,6 +261,10 @@ begin
   v_profile_id:=private.comun_relata_candidate_reviewer_profile(
     p_reviewer_user_id
   );
+  select profile.role
+    into v_reviewer_role
+    from public.comun_admin_profiles profile
+   where profile.id=v_profile_id;
 
   perform pg_catalog.pg_advisory_xact_lock(
     pg_catalog.hashtextextended(p_request_id::text,4921005)
@@ -279,7 +286,8 @@ begin
        or v_existing.basis_kind<>p_basis_kind
        or v_existing.basis_reference_private is distinct from v_reference
        or v_existing.reviewer_profile_id<>v_profile_id
-       or v_existing.reviewer_auth_user_id<>p_reviewer_user_id then
+       or v_existing.reviewer_auth_user_id<>p_reviewer_user_id
+       or v_existing.reviewer_role<>v_reviewer_role then
       raise exception using errcode='22023',
         message='COMUN_RELATA_CANDIDATE_REVIEW_REQUEST_CONFLICT';
     end if;
@@ -316,10 +324,11 @@ begin
 
   insert into private.comun_relata_collective_entity_candidate_reviews(
     review_request_id,candidate_id,review_stage,decision,basis_kind,
-    basis_reference_private,reviewer_profile_id,reviewer_auth_user_id
+    basis_reference_private,reviewer_profile_id,reviewer_auth_user_id,
+    reviewer_role
   ) values(
     p_request_id,p_candidate_id,p_review_stage,p_decision,p_basis_kind,
-    v_reference,v_profile_id,p_reviewer_user_id
+    v_reference,v_profile_id,p_reviewer_user_id,v_reviewer_role
   );
 
   return query
