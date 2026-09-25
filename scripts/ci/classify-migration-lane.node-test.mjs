@@ -28,6 +28,31 @@ const entityAuthRuntime =
   "supabase/migrations/20260924015511_comun_relata_collective_entity_authenticated_runtime.sql";
 const entityPrivateCandidate =
   "supabase/migrations/20260924225210_comun_relata_collective_entity_private_candidate.sql";
+const entityLegitimacyEligibility =
+  "supabase/migrations/20260925014131_comun_relata_collective_entity_legitimacy_eligibility.sql";
+
+test("R4 legitimacy/eligibility is explicit and N/A to historical lanes", () => {
+  assert.equal(
+    classifyMigrationLane("collective-entity-legitimacy-eligibility", [
+      entityLegitimacyEligibility,
+    ]).mode,
+    "candidate",
+  );
+  for (const lane of [
+    "p6c-b1",
+    "p6c-b2",
+    "48-2-a",
+    "48-3-a1",
+    "48-4-a0",
+    "culture-b2-a2",
+    "collective-entity-private-candidate",
+  ]) {
+    assert.equal(
+      classifyMigrationLane(lane, [entityLegitimacyEligibility]).mode,
+      "not_applicable",
+    );
+  }
+});
 
 test("R3 private candidate is explicit and N/A to historical lanes", () => {
   assert.equal(
