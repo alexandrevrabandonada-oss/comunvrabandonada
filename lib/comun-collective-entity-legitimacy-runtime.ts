@@ -40,6 +40,7 @@ export type ComunCollectiveEntityEligibilityState =
   | "needs_evidence"
   | "contested"
   | "blocked"
+  | "needs_independent_review"
   | "eligible_for_projection_review"
   | "invalidated";
 
