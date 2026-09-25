@@ -50,6 +50,7 @@ Derived eligibility states:
 - `needs_evidence`;
 - `contested`;
 - `blocked`;
+- `needs_independent_review`;
 - `eligible_for_projection_review`;
 - `invalidated`.
 
@@ -72,6 +73,11 @@ active profile fail closed.
 A reviewer cannot review a candidate whose source representation belongs to
 the same auth user. Self-review is rejected by the database even if that user
 also has a reviewer profile.
+
+The two supported stages must also come from distinct reviewer profiles before
+the candidate becomes `eligible_for_projection_review`. If the same reviewer
+supports both stages, the derived result is `needs_independent_review`.
+This is a legitimacy safeguard, not a publication approval.
 
 ## Evidence boundary
 
@@ -150,6 +156,7 @@ It proves:
 - request replay is idempotent;
 - conflicting request replay blocks;
 - review UPDATE/DELETE block;
+- the same reviewer supporting both stages => needs_independent_review;
 - existence supported + representation needs evidence => needs_evidence;
 - later supported representation review => eligible_for_projection_review;
 - the R3 candidate remains pending_legitimacy;
