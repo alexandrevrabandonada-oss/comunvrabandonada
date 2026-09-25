@@ -55,7 +55,8 @@ Derived eligibility states:
 Reviewer identity is never accepted from browser input. The server obtains the
 authenticated user and passes it only internally to a service-role bridge.
 
-The database independently requires an active `comun_admin_profiles` profile
+The database independently requires both an active canonical
+`comun_admin_users` access row and an active `comun_admin_profiles` profile
 with role:
 
 - `admin`;
