@@ -109,43 +109,27 @@ jobs:
           race_needs_evidence & second=$!
           wait "$first"
           wait "$second"
-          psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
-          do $
-          declare
-            candidate uuid:=(select id
-              from private.comun_relata_collective_entity_candidates
-              where generation_request_id='49240000-0000-4000-8000-000000000131');
-            latest_decision text;
-            derived_decision text;
-          begin
+          latest_decision="$(psql "$db" -At -v ON_ERROR_STOP=1 -v candidate="$candidate_b" -c "
             select review.decision
-              into latest_decision
-              from private.comun_relata_collective_entity_candidate_reviews review
-             where review.candidate_id=candidate
-               and review.review_stage='representation_legitimacy'
-             order by review.review_order desc
-             limit 1;
-
+            from private.comun_relata_collective_entity_candidate_reviews review
+            where review.candidate_id=:'candidate'::uuid
+              and review.review_stage='representation_legitimacy'
+            order by review.review_order desc
+            limit 1
+          ")"
+          derived_decision="$(psql "$db" -At -v ON_ERROR_STOP=1 -v candidate="$candidate_b" -c "
             select snapshot.representation_legitimacy_state
-              into derived_decision
-              from private.comun_relata_candidate_legitimacy_snapshot(candidate) snapshot;
-
-            if latest_decision is distinct from derived_decision then
-              raise exception 'R4 concurrent review ordering diverged';
-            end if;
-
-            if (
-              select count(distinct review_order)
-              from private.comun_relata_collective_entity_candidate_reviews
-            ) <> (
-              select count(*)
-              from private.comun_relata_collective_entity_candidate_reviews
-            ) then
-              raise exception 'R4 review_order is not unique';
-            end if;
-          end;
-          $;
-          SQL
+            from private.comun_relata_candidate_legitimacy_snapshot(:'candidate'::uuid) snapshot
+          ")"
+          test "$latest_decision" = "$derived_decision"
+          total_reviews="$(psql "$db" -At -v ON_ERROR_STOP=1 -c "
+            select count(*) from private.comun_relata_collective_entity_candidate_reviews
+          ")"
+          distinct_orders="$(psql "$db" -At -v ON_ERROR_STOP=1 -c "
+            select count(distinct review_order)
+            from private.comun_relata_collective_entity_candidate_reviews
+          ")"
+          test "$total_reviews" = "$distinct_orders"
 
           COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL="$db"             node scripts/ci/assert-zero-security-findings.mjs
 
