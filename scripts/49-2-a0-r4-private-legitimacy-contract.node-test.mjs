@@ -25,6 +25,15 @@ test("R4 stores only private append-only review evidence", () => {
   assert.match(migration, /COMUN_RELATA_CANDIDATE_REVIEW_APPEND_ONLY/);
   assert.match(
     migration,
+    /review_order bigint generated always as identity unique/,
+  );
+  assert.match(migration, /order by review\.review_order desc/);
+  assert.doesNotMatch(
+    migration,
+    /order by review\.created_at desc,review\.id desc/,
+  );
+  assert.match(
+    migration,
     /review_stage in \('entity_existence','representation_legitimacy'\)/,
   );
   assert.match(

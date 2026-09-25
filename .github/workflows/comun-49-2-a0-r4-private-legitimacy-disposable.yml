@@ -71,6 +71,82 @@ jobs:
           actor_a="$(jq -r '.a' "$users")"
           actor_b="$(jq -r '.b' "$users")"
           psql "$db" -v ON_ERROR_STOP=1 -v actor_a="$actor_a" -v actor_b="$actor_b"             -f scripts/49-2-a0-r4-private-legitimacy-disposable.sql
+
+          # Independent connections race on the same candidate/stage. Advisory
+          # locking serializes writes; review_order must preserve the actual
+          # append order even when transaction timestamps overlap.
+          candidate_b="$(psql "$db" -At -v ON_ERROR_STOP=1 -c "select id from private.comun_relata_collective_entity_candidates where generation_request_id='49240000-0000-4000-8000-000000000131'")"
+          test -n "$candidate_b"
+          race_supported() {
+            psql "$db" -v ON_ERROR_STOP=1 -v candidate="$candidate_b" <<'SQL'
+          begin;
+          set local role service_role;
+          select * from public.comun_relata_collective_entity_server_candidate_review(
+            '49240000-0000-4000-8000-000000000150',
+            '49240000-0000-4000-8000-000000000001',
+            :'candidate'::uuid,
+            'representation_legitimacy','supported',
+            'public_source','https://example.invalid/r4-race-supported'
+          );
+          commit;
+          SQL
+          }
+          race_needs_evidence() {
+            psql "$db" -v ON_ERROR_STOP=1 -v candidate="$candidate_b" <<'SQL'
+          begin;
+          set local role service_role;
+          select * from public.comun_relata_collective_entity_server_candidate_review(
+            '49240000-0000-4000-8000-000000000151',
+            '49240000-0000-4000-8000-000000000002',
+            :'candidate'::uuid,
+            'representation_legitimacy','needs_evidence',
+            'insufficient_or_conflicting',null
+          );
+          commit;
+          SQL
+          }
+          race_supported & first=$!
+          race_needs_evidence & second=$!
+          wait "$first"
+          wait "$second"
+          psql "$db" -v ON_ERROR_STOP=1 <<'SQL'
+          do $
+          declare
+            candidate uuid:=(select id
+              from private.comun_relata_collective_entity_candidates
+              where generation_request_id='49240000-0000-4000-8000-000000000131');
+            latest_decision text;
+            derived_decision text;
+          begin
+            select review.decision
+              into latest_decision
+              from private.comun_relata_collective_entity_candidate_reviews review
+             where review.candidate_id=candidate
+               and review.review_stage='representation_legitimacy'
+             order by review.review_order desc
+             limit 1;
+
+            select snapshot.representation_legitimacy_state
+              into derived_decision
+              from private.comun_relata_candidate_legitimacy_snapshot(candidate) snapshot;
+
+            if latest_decision is distinct from derived_decision then
+              raise exception 'R4 concurrent review ordering diverged';
+            end if;
+
+            if (
+              select count(distinct review_order)
+              from private.comun_relata_collective_entity_candidate_reviews
+            ) <> (
+              select count(*)
+              from private.comun_relata_collective_entity_candidate_reviews
+            ) then
+              raise exception 'R4 review_order is not unique';
+            end if;
+          end;
+          $;
+          SQL
+
           COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL="$db"             node scripts/ci/assert-zero-security-findings.mjs
 
           for fn in             "comun_relata_collective_entity_server_candidate_review('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','entity_existence','needs_evidence','insufficient_or_conflicting',null)"             "comun_relata_collective_entity_server_candidate_review_queue('00000000-0000-0000-0000-000000000001')"             "comun_relata_entity_server_candidate_legitimacy_list_own('00000000-0000-0000-0000-000000000001')"; do

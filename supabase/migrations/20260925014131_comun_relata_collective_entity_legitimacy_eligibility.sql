@@ -18,6 +18,7 @@ $$;
 
 create table private.comun_relata_collective_entity_candidate_reviews (
   id uuid primary key default pg_catalog.gen_random_uuid(),
+  review_order bigint generated always as identity unique,
   review_request_id uuid not null unique,
   candidate_id uuid not null
     references private.comun_relata_collective_entity_candidates(id)
@@ -73,12 +74,12 @@ create table private.comun_relata_collective_entity_candidate_reviews (
 
 create index comun_relata_candidate_reviews_candidate_stage_idx
   on private.comun_relata_collective_entity_candidate_reviews(
-    candidate_id, review_stage, created_at desc, id desc
+    candidate_id, review_stage, review_order desc
   );
 
 create index comun_relata_candidate_reviews_reviewer_idx
   on private.comun_relata_collective_entity_candidate_reviews(
-    reviewer_profile_id, created_at desc
+    reviewer_profile_id, review_order desc
   );
 
 alter table private.comun_relata_collective_entity_candidate_reviews
@@ -161,7 +162,7 @@ as $$
       from private.comun_relata_collective_entity_candidate_reviews review
      where review.candidate_id=p_candidate_id
        and review.review_stage='entity_existence'
-     order by review.created_at desc,review.id desc
+     order by review.review_order desc
      limit 1
   ),
   representation_review as (
@@ -169,7 +170,7 @@ as $$
       from private.comun_relata_collective_entity_candidate_reviews review
      where review.candidate_id=p_candidate_id
        and review.review_stage='representation_legitimacy'
-     order by review.created_at desc,review.id desc
+     order by review.review_order desc
      limit 1
   )
   select
@@ -468,6 +469,8 @@ to service_role;
 
 comment on table private.comun_relata_collective_entity_candidate_reviews is
   'R4 append-only private legitimacy reviews. They never publish a candidate.';
+comment on column private.comun_relata_collective_entity_candidate_reviews.review_order is
+  'Monotonic append order used to derive the latest review deterministically under concurrency.';
 comment on function public.comun_relata_collective_entity_server_candidate_review(
   uuid,uuid,uuid,text,text,text,text
 ) is

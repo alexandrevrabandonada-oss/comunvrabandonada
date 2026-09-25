@@ -97,8 +97,10 @@ review evidence.
 ## Append-only and contestability
 
 Reviews cannot be updated or deleted. A later review is a new append-only
-record, preserving earlier decisions. Current state is derived from the latest
-review for each stage.
+record, preserving earlier decisions. Each row receives a monotonic private
+`review_order` identity and current state is derived from the greatest
+`review_order` for each stage, never from transaction-start timestamps or UUID
+ordering.
 
 This permits a later independent correction without destroying the history.
 R4 does not introduce a public accusation, public verification badge or public
@@ -156,6 +158,7 @@ It proves:
 - request replay is idempotent;
 - conflicting request replay blocks;
 - review UPDATE/DELETE block;
+- concurrent same-stage review writes serialize and the derived state follows the monotonic `review_order`;
 - the same reviewer supporting both stages => needs_independent_review;
 - existence supported + representation needs evidence => needs_evidence;
 - later supported representation review => eligible_for_projection_review;
