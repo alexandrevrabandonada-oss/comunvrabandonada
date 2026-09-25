@@ -113,6 +113,38 @@ describe("R4 private legitimacy runtime", () => {
     }]);
   });
 
+  it("keeps reviewer identity and evidence out of review result DTO", async () => {
+    auth.user = { id: "reviewer-a" };
+    auth.rpc.mockResolvedValueOnce({
+      data: [{
+        candidate_id: "c",
+        entity_existence_state: "supported",
+        representation_legitimacy_state: "supported",
+        eligibility_state: "eligible_for_projection_review",
+        reviewer_profile_id: "private",
+        reviewer_auth_user_id: "private",
+        basis_reference_private: "private",
+        source_representation_id: "private",
+      }],
+      error: null,
+    });
+    expect(
+      await reviewCollectiveEntityCandidate({
+        requestId: "r",
+        candidateId: "c",
+        reviewStage: "representation_legitimacy",
+        decision: "supported",
+        basisKind: "operational_confirmation",
+        basisReferencePrivate: "COMUN-R4-REFERENCE",
+      }),
+    ).toEqual({
+      candidateId: "c",
+      entityExistenceState: "supported",
+      representationLegitimacyState: "supported",
+      eligibilityState: "eligible_for_projection_review",
+    });
+  });
+
   it("keeps provenance and private evidence out of reviewer queue DTO", async () => {
     auth.user = { id: "reviewer-a" };
     auth.rpc.mockResolvedValueOnce({
