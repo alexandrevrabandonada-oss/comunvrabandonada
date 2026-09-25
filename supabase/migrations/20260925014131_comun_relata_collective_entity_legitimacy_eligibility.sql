@@ -156,6 +156,22 @@ stable
 security definer
 set search_path=pg_catalog
 as $$
+  with entity_review as (
+    select review.decision,review.reviewer_profile_id
+      from private.comun_relata_collective_entity_candidate_reviews review
+     where review.candidate_id=p_candidate_id
+       and review.review_stage='entity_existence'
+     order by review.created_at desc,review.id desc
+     limit 1
+  ),
+  representation_review as (
+    select review.decision,review.reviewer_profile_id
+      from private.comun_relata_collective_entity_candidate_reviews review
+     where review.candidate_id=p_candidate_id
+       and review.review_stage='representation_legitimacy'
+     order by review.created_at desc,review.id desc
+     limit 1
+  )
   select
     candidate.id,
     coalesce(entity_review.decision,'pending')::text,
@@ -200,22 +216,8 @@ as $$
     on consent.id=candidate.source_consent_id
    and consent.entity_id=candidate.entity_id
    and consent.representation_id=candidate.source_representation_id
-  left join lateral (
-    select review.decision,review.reviewer_profile_id
-      from private.comun_relata_collective_entity_candidate_reviews review
-     where review.candidate_id=candidate.id
-       and review.review_stage='entity_existence'
-     order by review.created_at desc,review.id desc
-     limit 1
-  ) entity_review on true
-  left join lateral (
-    select review.decision,review.reviewer_profile_id
-      from private.comun_relata_collective_entity_candidate_reviews review
-     where review.candidate_id=candidate.id
-       and review.review_stage='representation_legitimacy'
-     order by review.created_at desc,review.id desc
-     limit 1
-  ) representation_review on true
+  left join entity_review on true
+  left join representation_review on true
   where candidate.id=p_candidate_id;
 $$;
 
