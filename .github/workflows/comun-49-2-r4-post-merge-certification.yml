@@ -89,3 +89,29 @@ jobs:
           path: .ci-artifacts/comun-49-2-r4-release
           if-no-files-found: error
           retention-days: 14
+
+
+  public-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Canonical public smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          for route in /comun /comun/denuncias /comun/relatar /comun/minha-participacao; do
+            code="$(curl --silent --show-error --location --output /dev/null --write-out '%{http_code}' "https://comunsocial.online$route")"
+            test "$code" = 200
+          done
+
+          headers="$(mktemp)"
+          curl --silent --show-error --range 0-127 --dump-header "$headers" --output /dev/null             https://comunsocial.online/maps/volta-redonda/volta-redonda.pmtiles
+          grep -Eq '^HTTP/[^ ]+ 206' "$headers"
+          grep -Eiq '^content-range:[[:space:]]*bytes 0-127/[0-9]+' "$headers"
+
+          www_headers="$(mktemp)"
+          curl --silent --show-error --head --dump-header "$www_headers" --output /dev/null             https://www.comunsocial.online/comun
+          grep -Eq '^HTTP/[^ ]+ 308' "$www_headers"
+          grep -Eiq '^location:[[:space:]]*https://comunsocial\.online/comun([[:space:]]|$)' "$www_headers"
+
+          echo COMUN_49_2_R4_POST_MERGE_PUBLIC_SMOKE_GREEN >> "$GITHUB_STEP_SUMMARY"
