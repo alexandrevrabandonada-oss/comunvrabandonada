@@ -19,7 +19,7 @@ insert into public.comun_admin_profiles(
   auth_user_id,display_name,email,role,active
 ) values
   ('49240000-0000-4000-8000-000000000001','Factual R4','reviewer-factual@example.invalid','factual_reviewer',true),
-  ('49240000-0000-4000-8000-000000000002','Editorial R4','reviewer-editorial@example.invalid','editorial_reviewer',true),
+  ('49240000-0000-4000-8000-000000000002','Editor factual R4','reviewer-editorial@example.invalid','editor',true),
   ('49240000-0000-4000-8000-000000000003','Viewer R4','reviewer-viewer@example.invalid','viewer',true),
   (pg_catalog.current_setting('comun.r4.actor_a')::uuid,'Owner self reviewer','owner-self-review@example.invalid','factual_reviewer',true)
 on conflict (email) do update set
