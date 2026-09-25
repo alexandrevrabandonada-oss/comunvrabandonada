@@ -1,0 +1,47 @@
+{
+  "release": "20260924-comun-49-2-r3-private-candidate",
+  "sourceMainSha": "c47ee61bb2011dc5139f4b673e94c3557737c6cb",
+  "productionPreCaptureRun": "36076844244",
+  "productionPreCaptureSha256": "d66015931f09ea55f33c2305f1d892c9641eebf5f9c89e2ab3d9eb5f7fc10a8b",
+  "disposableProofRun": "36077121389",
+  "disposableProofArtifactSha256": "020e3325221e6aedd97d2ec864d76bf12bf982828bb04dce6277b03977daeabc",
+  "postgresVersion": "17.6",
+  "migrations": [
+    {
+      "order": 1,
+      "version": "20260924225210",
+      "path": "supabase/migrations/20260924225210_comun_relata_collective_entity_private_candidate.sql",
+      "sha256": "873d3a2f6a86ed0225cda1bef77841bc35247630a4708ba2bb2f7c041f7970af"
+    }
+  ],
+  "migrationSetAlgorithm": "sha256-JSON.stringify([[path,sha256],...])",
+  "migrationSetSha256": "b16573ccc85ebcba3a28fb433cc33c04fd3b61b2d80a25fe4df02a0ab1c4d536",
+  "expectedPreFingerprint": "7e957c3f154efe87f7104915a5b1e095cc77dc04d488bd4041b4c859f5db1b60",
+  "expectedPreCanonicalFingerprint": "ce98af56622652e9416ed4c535ed8f202a61c36641e2cec8c21d4433f66cbeff",
+  "expectedPostFingerprint": "5172b8ec626eaabd1efdb9c2273bd947867416ae92344d349f5600a0ced2ccd1",
+  "expectedPostCanonicalFingerprint": "c5ed6a190103697611314452f5829b12e47521945d373d33b73a355b1bd39f1e",
+  "expectedBlockingFindings": 0,
+  "destructiveSql": false,
+  "requiresPromotion": true,
+  "releaseLedger": {
+    "relation": "public.comun_schema_releases",
+    "migrationPath": "bundle:supabase/release-bundles/20260924-comun-49-2-r3-private-candidate.json",
+    "migrationSha256": "b16573ccc85ebcba3a28fb433cc33c04fd3b61b2d80a25fe4df02a0ab1c4d536",
+    "status": "applied"
+  },
+  "changedObjects": [
+    "private.comun_relata_collective_entity_candidates",
+    "private candidate indexes and immutable guard",
+    "three private candidate invalidation triggers",
+    "public.comun_relata_collective_entity_server_candidate_prepare service_role-only bridge",
+    "supabase_migrations.schema_migrations R3 version",
+    "public.comun_schema_releases R3 logical row"
+  ],
+  "assertions": [
+    "R3 is a single forward-only migration over accepted R1/R2",
+    "consent alone creates no candidate; explicit authenticated preparation starts pending_legitimacy",
+    "candidate provenance and snapshot stay private; no public projection or map effect",
+    "POST_PENDING_LEDGER records only the logical ledger after exact POST verification",
+    "DIVERGED blocks; Production schema remains unchanged until separate authorization"
+  ]
+}
