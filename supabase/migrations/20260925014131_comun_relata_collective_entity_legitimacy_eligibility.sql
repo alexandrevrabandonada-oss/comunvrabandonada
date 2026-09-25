@@ -47,7 +47,7 @@ create table private.comun_relata_collective_entity_candidate_reviews (
     references auth.users(id)
     on delete restrict,
   reviewer_role text not null
-    check (reviewer_role in ('admin','factual_reviewer','editorial_reviewer')),
+    check (reviewer_role in ('admin','editor','factual_reviewer')),
   created_at timestamptz not null default pg_catalog.now(),
   constraint comun_relata_candidate_review_basis_shape check (
     (
@@ -130,7 +130,7 @@ begin
      and admin_user.is_active
    where profile.auth_user_id=p_reviewer_user_id
      and profile.active
-     and profile.role in ('admin','factual_reviewer','editorial_reviewer')
+     and profile.role in ('admin','editor','factual_reviewer')
    limit 1;
 
   if v_profile_id is null then
