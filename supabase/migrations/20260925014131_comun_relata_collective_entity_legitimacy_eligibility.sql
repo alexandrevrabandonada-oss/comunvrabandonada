@@ -378,8 +378,7 @@ begin
       snapshot.representation_legitimacy_state,
       snapshot.eligibility_state
       from private.comun_relata_collective_entity_candidates candidate
-      cross join lateral
-        private.comun_relata_candidate_legitimacy_snapshot(candidate.id)
+      cross join private.comun_relata_candidate_legitimacy_snapshot(candidate.id)
         snapshot
      where candidate.candidate_state='pending_legitimacy'
      order by candidate.generated_at asc,candidate.id asc;
@@ -423,8 +422,7 @@ begin
       join private.comun_relata_collective_entity_representations representation
         on representation.id=candidate.source_representation_id
        and representation.user_id=p_actor_user_id
-      cross join lateral
-        private.comun_relata_candidate_legitimacy_snapshot(candidate.id)
+      cross join private.comun_relata_candidate_legitimacy_snapshot(candidate.id)
         snapshot
      order by candidate.generated_at desc,candidate.id desc;
 end;
