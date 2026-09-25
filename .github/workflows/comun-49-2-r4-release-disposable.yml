@@ -30,6 +30,10 @@ jobs:
           test -z "${SUPABASE_DB_URL+x}"
           test -z "${SUPABASE_ACCESS_TOKEN+x}"
           test -z "${SUPABASE_SERVICE_ROLE_KEY+x}"
+      - name: Validate immutable R4 release contract
+        run: |
+          node scripts/49-2-r4-release/validate-manifest.mjs
+          node --test scripts/49-2-r4-release/*.node-test.mjs
       - name: Reproduce Production PRE and derive R4 POST
         run: bash scripts/49-2-r4-release/derive-post.sh
       - uses: actions/upload-artifact@v4
