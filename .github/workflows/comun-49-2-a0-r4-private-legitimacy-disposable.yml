@@ -76,7 +76,7 @@ jobs:
           # locking serializes writes; review_order must preserve the actual
           # append order even when transaction timestamps overlap.
           candidate_b="$(psql "$db" -At -v ON_ERROR_STOP=1 -c "select id from private.comun_relata_collective_entity_candidates where generation_request_id='49240000-0000-4000-8000-000000000131'")"
-          test -n "$candidate_b"
+          [[ "$candidate_b" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]
           race_supported() {
             psql "$db" -v ON_ERROR_STOP=1 -v candidate="$candidate_b" <<'SQL'
           begin;
@@ -109,17 +109,17 @@ jobs:
           race_needs_evidence & second=$!
           wait "$first"
           wait "$second"
-          latest_decision="$(psql "$db" -At -v ON_ERROR_STOP=1 -v candidate="$candidate_b" -c "
+          latest_decision="$(psql "$db" -At -v ON_ERROR_STOP=1 -c "
             select review.decision
             from private.comun_relata_collective_entity_candidate_reviews review
-            where review.candidate_id=:'candidate'::uuid
+            where review.candidate_id='$candidate_b'::uuid
               and review.review_stage='representation_legitimacy'
             order by review.review_order desc
             limit 1
           ")"
-          derived_decision="$(psql "$db" -At -v ON_ERROR_STOP=1 -v candidate="$candidate_b" -c "
+          derived_decision="$(psql "$db" -At -v ON_ERROR_STOP=1 -c "
             select snapshot.representation_legitimacy_state
-            from private.comun_relata_candidate_legitimacy_snapshot(:'candidate'::uuid) snapshot
+            from private.comun_relata_candidate_legitimacy_snapshot('$candidate_b'::uuid) snapshot
           ")"
           test "$latest_decision" = "$derived_decision"
           total_reviews="$(psql "$db" -At -v ON_ERROR_STOP=1 -c "
