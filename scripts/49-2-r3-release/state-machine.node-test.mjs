@@ -3,8 +3,15 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { classifyR3Release } from "./state-machine.mjs";
 
-const manifest = JSON.parse(readFileSync("supabase/release-bundles/20260924-comun-49-2-r3-private-candidate.json", "utf8"));
-const baseline = JSON.parse(readFileSync("reports/current/comun-49-2-r3-production-pre.json", "utf8"));
+const manifest = JSON.parse(
+  readFileSync(
+    "supabase/release-bundles/20260924-comun-49-2-r3-private-candidate.json",
+    "utf8",
+  ),
+);
+const baseline = JSON.parse(
+  readFileSync("reports/current/comun-49-2-r3-production-pre.json", "utf8"),
+);
 const pre = {
   ...baseline,
   hardeningLedger: baseline.hardeningLedger,
@@ -23,18 +30,33 @@ const post = {
 };
 
 test("PRE exact applies only R3", () => {
-  assert.deepEqual(classifyR3Release(pre, manifest, baseline), { state: "PRE", action: "APPLY_R3" });
+  assert.deepEqual(classifyR3Release(pre, manifest, baseline), {
+    state: "PRE",
+    action: "APPLY_R3",
+  });
 });
 test("POST pending ledger records only ledger", () => {
-  assert.deepEqual(classifyR3Release(post, manifest, baseline), { state: "POST_PENDING_LEDGER", action: "VERIFY_AND_RECORD_LEDGER" });
+  assert.deepEqual(classifyR3Release(post, manifest, baseline), {
+    state: "POST_PENDING_LEDGER",
+    action: "VERIFY_AND_RECORD_LEDGER",
+  });
 });
 test("POST accepted is read-only replay", () => {
-  assert.deepEqual(classifyR3Release({ ...post, r3LedgerState: "PRESENT_ACCEPTED" }, manifest, baseline),
-    { state: "POST", action: "ALREADY_APPLIED" });
+  assert.deepEqual(
+    classifyR3Release(
+      { ...post, r3LedgerState: "PRESENT_ACCEPTED" },
+      manifest,
+      baseline,
+    ),
+    { state: "POST", action: "ALREADY_APPLIED" },
+  );
 });
 for (const [name, value] of Object.entries({
   missingMigration: { ...post, migrations: baseline.migrations },
-  unknownMigration: { ...post, migrations: [...post.migrations, "99999999999999"] },
+  unknownMigration: {
+    ...post,
+    migrations: [...post.migrations, "99999999999999"],
+  },
   ledgerMismatch: { ...post, r3LedgerState: "PRESENT_MISMATCH" },
   preWithLedger: { ...pre, r3LedgerState: "PRESENT_ACCEPTED" },
   missingTable: { ...post, candidateTablePresent: false },
@@ -45,6 +67,10 @@ for (const [name, value] of Object.entries({
   publicRelation: { ...post, publicCollectiveRelationCount: 1 },
   r12Drift: { ...post, r12Ledger: "PRESENT_MISMATCH" },
   hardeningDrift: { ...post, hardeningLedger: "PRESENT_MISMATCH" },
-})) test(`${name} blocks`, () => {
-  assert.deepEqual(classifyR3Release(value, manifest, baseline), { state: "DIVERGED", action: "BLOCK" });
-});
+}))
+  test(`${name} blocks`, () => {
+    assert.deepEqual(classifyR3Release(value, manifest, baseline), {
+      state: "DIVERGED",
+      action: "BLOCK",
+    });
+  });

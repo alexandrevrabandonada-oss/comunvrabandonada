@@ -16,15 +16,21 @@ const R12_MANIFEST =
   "supabase/release-bundles/20260924-comun-49-2-private-collective-runtime-r1-r2.json";
 const HARDENING_MANIFEST =
   "supabase/releases/20260922120000-canonical-security-hardening-v2.json";
-const output = process.argv.find((arg) => arg.startsWith("--output="))?.slice(9);
+const output = process.argv
+  .find((arg) => arg.startsWith("--output="))
+  ?.slice(9);
 const expectedSha = process.env.COMUN_R3_EXPECTED_MAIN_SHA;
 if (!output || !/^[a-f0-9]{40}$/.test(expectedSha ?? ""))
   throw new Error("COMUN_R3_CAPTURE_CONTEXT_INVALID");
 if (!process.env.SUPABASE_DB_URL)
   throw new Error("COMUN_R3_PRODUCTION_DB_URL_MISSING");
-if (execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim() !== expectedSha ||
-    process.env.GITHUB_BASE_REF !== "main" ||
-    process.env.GITHUB_HEAD_REF !== "codex/comun-49-2-r3-private-candidate-release")
+if (
+  execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim() !==
+    expectedSha ||
+  process.env.GITHUB_BASE_REF !== "main" ||
+  process.env.GITHUB_HEAD_REF !==
+    "codex/comun-49-2-r3-private-candidate-release"
+)
   throw new Error("COMUN_R3_CAPTURE_MAIN_SHA_MISMATCH");
 
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
@@ -34,18 +40,26 @@ const db = new pg.Client({ connectionString: process.env.SUPABASE_DB_URL });
 await db.connect();
 try {
   await db.query("BEGIN READ ONLY");
-  const mode = (await db.query("select current_setting('transaction_read_only') as value")).rows[0]?.value;
+  const mode = (
+    await db.query("select current_setting('transaction_read_only') as value")
+  ).rows[0]?.value;
   if (mode !== "on") throw new Error("COMUN_R3_CAPTURE_NOT_READ_ONLY");
-  const version = (await db.query("show server_version")).rows[0]?.server_version;
+  const version = (await db.query("show server_version")).rows[0]
+    ?.server_version;
   const runnerRows = await db.query(schemaFingerprintQuery);
   const normalized = runnerRows.rows
-    .map((row) => Object.values(row)[0]).join("\n")
-    .replace(/\r\n/g, "\n").trimEnd();
+    .map((row) => Object.values(row)[0])
+    .join("\n")
+    .replace(/\r\n/g, "\n")
+    .trimEnd();
   if (!normalized) throw new Error("COMUN_R3_RUNNER_FINGERPRINT_EMPTY");
   const canonicalRows = await db.query(canonicalQuery);
-  const canonical = buildDocuments(JSON.parse(Object.values(canonicalRows.rows[0] ?? {})[0])).compact;
+  const canonical = buildDocuments(
+    JSON.parse(Object.values(canonicalRows.rows[0] ?? {})[0]),
+  ).compact;
   const migrations = canonical.canonical.migrations;
-  const objects = (await db.query(`
+  const objects = (
+    await db.query(`
     select
       to_regclass('private.comun_relata_collective_entity_candidates') is not null as candidate_table,
       to_regprocedure('public.comun_relata_collective_entity_server_candidate_prepare(uuid,uuid,uuid)') is not null as candidate_bridge,
@@ -63,11 +77,23 @@ try {
          'comun_relata_candidate_entity_invalidate') and not t.tgisinternal) as r3_trigger_count,
       (select count(*)::int from pg_class c join pg_namespace n on n.oid=c.relnamespace
        where n.nspname='public' and c.relname like 'comun_relata_collective_entity%') as public_collective_relation_count
-  `)).rows[0];
-  const ledgerRows = (await db.query(`
+  `)
+  ).rows[0];
+  const ledgerRows = (
+    await db.query(
+      `
     select release,migration_path,migration_sha256,pre_fingerprint,post_fingerprint,status
     from public.comun_schema_releases where release = any($1::text[])
-  `, [[r12.release, hardening.release, "20260924-comun-49-2-r3-private-candidate"]])).rows;
+  `,
+      [
+        [
+          r12.release,
+          hardening.release,
+          "20260924-comun-49-2-r3-private-candidate",
+        ],
+      ],
+    )
+  ).rows;
   function ledgerState(release, expected) {
     const rows = ledgerRows.filter((row) => row.release === release);
     if (rows.length === 0) return "ABSENT";
@@ -77,7 +103,9 @@ try {
       row.migration_sha256 === expected.migrationSha256 &&
       row.pre_fingerprint === expected.preFingerprint &&
       row.post_fingerprint === expected.postFingerprint &&
-      row.status === "applied" ? "PRESENT_ACCEPTED" : "PRESENT_MISMATCH";
+      row.status === "applied"
+      ? "PRESENT_ACCEPTED"
+      : "PRESENT_MISMATCH";
   }
   const r12Ledger = ledgerState(r12.release, {
     path: r12.releaseLedger.migrationPath,
@@ -91,7 +119,9 @@ try {
     preFingerprint: hardening.expectedPreFingerprint,
     postFingerprint: hardening.expectedPostFingerprint,
   });
-  const r3LedgerRows = ledgerRows.filter((row) => row.release === "20260924-comun-49-2-r3-private-candidate");
+  const r3LedgerRows = ledgerRows.filter(
+    (row) => row.release === "20260924-comun-49-2-r3-private-candidate",
+  );
   const document = {
     scope: "COMUN_49_2_R3_PRODUCTION_PRE_READ_ONLY",
     sourceMainSha: expectedSha,
@@ -115,13 +145,20 @@ try {
     r3TriggerCount: objects.r3_trigger_count,
     publicCollectiveRelationCount: objects.public_collective_relation_count,
   };
-  if (!document.r1Present || !document.r2Present || document.r3Present ||
-      document.r12Ledger !== "PRESENT_ACCEPTED" ||
-      document.hardeningLedger !== "PRESENT_ACCEPTED" ||
-      document.r3LedgerState !== "ABSENT" ||
-      document.candidateTablePresent || document.candidateBridgePresent ||
-      document.r2BridgeCount !== 4 || document.r3TriggerCount !== 0 ||
-      document.publicCollectiveRelationCount !== 0 || document.blockingFindings !== 0)
+  if (
+    !document.r1Present ||
+    !document.r2Present ||
+    document.r3Present ||
+    document.r12Ledger !== "PRESENT_ACCEPTED" ||
+    document.hardeningLedger !== "PRESENT_ACCEPTED" ||
+    document.r3LedgerState !== "ABSENT" ||
+    document.candidateTablePresent ||
+    document.candidateBridgePresent ||
+    document.r2BridgeCount !== 4 ||
+    document.r3TriggerCount !== 0 ||
+    document.publicCollectiveRelationCount !== 0 ||
+    document.blockingFindings !== 0
+  )
     throw new Error("COMUN_49_2_R3_PRODUCTION_PRE_DIVERGED");
   mkdirSync(dirname(output), { recursive: true });
   writeFileSync(output, `${JSON.stringify(document, null, 2)}\n`);

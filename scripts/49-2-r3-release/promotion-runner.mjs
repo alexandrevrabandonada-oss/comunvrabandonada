@@ -1,11 +1,18 @@
 import { classifyR3Release } from "./state-machine.mjs";
 
-export async function promoteR3Release({ manifest, baseline, capture, applyMigration,
-  verifyPost, recordLedger }) {
+export async function promoteR3Release({
+  manifest,
+  baseline,
+  capture,
+  applyMigration,
+  verifyPost,
+  recordLedger,
+}) {
   const actions = [];
   const readState = async () => {
     const state = classifyR3Release(await capture(), manifest, baseline);
-    if (state.state === "DIVERGED") throw new Error("COMUN_49_2_R3_RELEASE_DIVERGED");
+    if (state.state === "DIVERGED")
+      throw new Error("COMUN_49_2_R3_RELEASE_DIVERGED");
     return state.state;
   };
   let state = await readState();
