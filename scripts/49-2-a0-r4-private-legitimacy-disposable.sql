@@ -8,6 +8,13 @@ insert into auth.users(id,aud,role,email) values
   ('49240000-0000-4000-8000-000000000003','authenticated','authenticated','reviewer-viewer@example.invalid')
 on conflict (id) do nothing;
 
+insert into public.comun_admin_users(user_id,email,role,is_active) values
+  ('49240000-0000-4000-8000-000000000001','reviewer-factual@example.invalid','viewer',true),
+  ('49240000-0000-4000-8000-000000000002','reviewer-editorial@example.invalid','viewer',true),
+  ('49240000-0000-4000-8000-000000000003','reviewer-viewer@example.invalid','viewer',true),
+  (pg_catalog.current_setting('comun.r4.actor_a')::uuid,'owner-self-review@example.invalid','viewer',true)
+on conflict (user_id) do update set is_active=excluded.is_active;
+
 insert into public.comun_admin_profiles(
   auth_user_id,display_name,email,role,active
 ) values
