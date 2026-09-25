@@ -12,6 +12,7 @@ on:
       - "scripts/ci/classify-migration-lane*.mjs"
       - "reports/current/comun-49-2-a0-collective-entity-consent-foundation.md"
       - "supabase/release-bundles/20260924-comun-49-2-private-collective-runtime-r1-r2.json"
+      - "supabase/release-bundles/20260924-comun-49-2-r3-private-candidate.json"
   workflow_dispatch:
 
 permissions: { contents: read }

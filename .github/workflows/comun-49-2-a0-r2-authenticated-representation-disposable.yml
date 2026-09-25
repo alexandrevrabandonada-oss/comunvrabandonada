@@ -11,6 +11,7 @@ on:
       - "scripts/49-2-a0-r2-*"
       - "scripts/ci/classify-migration-lane*.mjs"
       - "supabase/release-bundles/20260924-comun-49-2-private-collective-runtime-r1-r2.json"
+      - "supabase/release-bundles/20260924-comun-49-2-r3-private-candidate.json"
 
 permissions: { contents: read }
 
