@@ -2,7 +2,7 @@ name: COMUN 49.2 R4 post-merge read-only certification
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize]
     branches: [main]
     paths:
       - .github/workflows/comun-49-2-r4-post-merge-certification.yml
@@ -23,6 +23,11 @@ jobs:
         with:
           ref: ca819eef408e1c83df5505c2e0489fd51087e63b
           fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: candidate
           persist-credentials: false
       - uses: actions/setup-node@v4
         with: { node-version: 22.18.0, cache: npm }
