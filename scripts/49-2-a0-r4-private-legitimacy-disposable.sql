@@ -174,17 +174,34 @@ select * from public.comun_relata_collective_entity_server_candidate_review(
 );
 select * from public.comun_relata_collective_entity_server_candidate_review(
   '49240000-0000-4000-8000-000000000121',
-  '49240000-0000-4000-8000-000000000002',
+  '49240000-0000-4000-8000-000000000001',
   :'candidate_a'::uuid,
-  'representation_legitimacy','needs_evidence',
-  'insufficient_or_conflicting',null
+  'representation_legitimacy','supported',
+  'operational_confirmation','COMUN-R4-SAME-REVIEWER'
 );
 commit;
 
-do $$
+do $
 declare
   candidate uuid:=:'candidate_a'::uuid;
 begin
+  if not exists(
+    select 1 from private.comun_relata_candidate_legitimacy_snapshot(candidate)
+    where entity_existence_state='supported'
+      and representation_legitimacy_state='supported'
+      and eligibility_state='needs_independent_review'
+  ) then
+    raise exception 'R4 same-reviewer eligibility was not blocked';
+  end if;
+
+  perform public.comun_relata_collective_entity_server_candidate_review(
+    '49240000-0000-4000-8000-000000000123',
+    '49240000-0000-4000-8000-000000000002',
+    candidate,'representation_legitimacy','needs_evidence',
+    'insufficient_or_conflicting',null
+  );
+
+
   if (select count(*) from private.comun_relata_collective_entity_candidate_reviews
       where review_request_id='49240000-0000-4000-8000-000000000120')<>1 then
     raise exception 'R4 review idempotency failed';
@@ -232,7 +249,7 @@ $$;
 begin;
 set local role service_role;
 select * from public.comun_relata_collective_entity_server_candidate_review(
-  '49240000-0000-4000-8000-000000000122',
+  '49240000-0000-4000-8000-000000000124',
   '49240000-0000-4000-8000-000000000002',
   :'candidate_a'::uuid,
   'representation_legitimacy','supported',
