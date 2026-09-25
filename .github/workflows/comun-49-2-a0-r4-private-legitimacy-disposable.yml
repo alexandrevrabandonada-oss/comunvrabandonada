@@ -73,7 +73,7 @@ jobs:
           psql "$db" -v ON_ERROR_STOP=1 -v actor_a="$actor_a" -v actor_b="$actor_b"             -f scripts/49-2-a0-r4-private-legitimacy-disposable.sql
           COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL="$db"             node scripts/ci/assert-zero-security-findings.mjs
 
-          for fn in             "comun_relata_collective_entity_server_candidate_review('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','entity_existence','needs_evidence','insufficient_or_conflicting',null)"             "comun_relata_collective_entity_server_candidate_review_queue('00000000-0000-0000-0000-000000000001')"             "comun_relata_collective_entity_server_candidate_legitimacy_list_own('00000000-0000-0000-0000-000000000001')"; do
+          for fn in             "comun_relata_collective_entity_server_candidate_review('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','entity_existence','needs_evidence','insufficient_or_conflicting',null)"             "comun_relata_collective_entity_server_candidate_review_queue('00000000-0000-0000-0000-000000000001')"             "comun_relata_entity_server_candidate_legitimacy_list_own('00000000-0000-0000-0000-000000000001')"; do
             for role_name in anon authenticated; do
               if output="$(psql "$db" -v ON_ERROR_STOP=1 -c "begin; set local role $role_name; select * from public.$fn; rollback;" 2>&1)"; then
                 echo "R4 bridge directly executable by $role_name: $fn" >&2
