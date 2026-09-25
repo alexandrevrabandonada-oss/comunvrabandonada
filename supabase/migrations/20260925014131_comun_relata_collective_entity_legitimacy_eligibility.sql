@@ -182,6 +182,11 @@ as $$
         then 'needs_evidence'
       when entity_review.decision='supported'
         and representation_review.decision='supported'
+        and entity_review.reviewer_profile_id=
+          representation_review.reviewer_profile_id
+        then 'needs_independent_review'
+      when entity_review.decision='supported'
+        and representation_review.decision='supported'
         then 'eligible_for_projection_review'
       else 'pending_review'
     end::text
@@ -196,7 +201,7 @@ as $$
    and consent.entity_id=candidate.entity_id
    and consent.representation_id=candidate.source_representation_id
   left join lateral (
-    select review.decision
+    select review.decision,review.reviewer_profile_id
       from private.comun_relata_collective_entity_candidate_reviews review
      where review.candidate_id=candidate.id
        and review.review_stage='entity_existence'
@@ -204,7 +209,7 @@ as $$
      limit 1
   ) entity_review on true
   left join lateral (
-    select review.decision
+    select review.decision,review.reviewer_profile_id
       from private.comun_relata_collective_entity_candidate_reviews review
      where review.candidate_id=candidate.id
        and review.review_stage='representation_legitimacy'
