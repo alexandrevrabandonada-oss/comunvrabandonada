@@ -89,3 +89,20 @@ export function declaredRepresentationConsentCanAuthorizePublication() {
 export function representationCanSelfVerify() {
   return false as const;
 }
+
+/** Consent is private intent; candidate preparation is a separate owner action. */
+export function entityConsentAloneCanCreateCandidate() {
+  return false as const;
+}
+
+export function candidateCanSelfPublish() {
+  return false as const;
+}
+
+export function candidateCanOpenPublicMap() {
+  return false as const;
+}
+
+export function candidateCanSelfVerify() {
+  return false as const;
+}

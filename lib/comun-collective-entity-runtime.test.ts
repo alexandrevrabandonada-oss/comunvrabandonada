@@ -20,6 +20,8 @@ vi.mock("@/lib/supabase/server", () => ({
 import {
   createOwnCollectiveEntity,
   listOwnCollectiveEntityStates,
+  listOwnCollectiveEntityCandidates,
+  prepareOwnCollectiveEntityCandidate,
   revokeOwnCollectiveRepresentation,
   setOwnCollectiveEntityConsent,
 } from "./comun-collective-entity-runtime";
@@ -28,6 +30,87 @@ beforeEach(() => {
   auth.user = null;
   auth.rpc.mockReset().mockResolvedValue({ data: [], error: null });
   auth.serviceCreated.mockReset();
+});
+
+describe("R3 private candidate boundary", () => {
+  it("requires session auth before the service client for prepare and list", async () => {
+    await expect(
+      prepareOwnCollectiveEntityCandidate({ requestId: "r", entityId: "e" }),
+    ).rejects.toThrow("COMUN_RELATA_ENTITY_AUTH_REQUIRED");
+    await expect(listOwnCollectiveEntityCandidates()).rejects.toThrow(
+      "COMUN_RELATA_ENTITY_AUTH_REQUIRED",
+    );
+    expect(auth.serviceCreated).not.toHaveBeenCalled();
+  });
+
+  it("ignores forged browser identity and public snapshot fields", async () => {
+    auth.user = { id: "user-a" };
+    await prepareOwnCollectiveEntityCandidate({
+      requestId: "request-a",
+      entityId: "entity-a",
+      userId: "user-b",
+      publicName: "Forged",
+      candidateState: "verified",
+    } as never);
+    expect(auth.rpc).toHaveBeenCalledWith(
+      "comun_relata_collective_entity_server_candidate_prepare",
+      {
+        p_request_id: "request-a",
+        p_actor_user_id: "user-a",
+        p_entity_id: "entity-a",
+      },
+    );
+  });
+
+  it("returns only eight owner DTO fields despite private provenance in RPC response", async () => {
+    auth.user = { id: "user-a" };
+    auth.rpc.mockResolvedValueOnce({
+      data: [
+        {
+          candidate_id: "c",
+          entity_id: "e",
+          public_name: "Coletivo",
+          entity_type: "collective",
+          candidate_state: "pending_legitimacy",
+          generated_at: "2026-09-24T00:00:00Z",
+          invalidated_at: null,
+          invalidation_reason: null,
+          source_representation_id: "secret",
+          source_consent_id: "secret",
+          user_id: "other",
+          email: "private@example.invalid",
+          phone: "secret",
+          protocol: "secret",
+          report: "secret",
+          case_id: "secret",
+          latitude: 1,
+          longitude: 1,
+          address: "secret",
+          attachment: "secret",
+          object_key: "secret",
+          free_text: "secret",
+          notes: "secret",
+        },
+      ],
+      error: null,
+    });
+    expect(await listOwnCollectiveEntityCandidates()).toEqual([
+      {
+        candidateId: "c",
+        entityId: "e",
+        publicName: "Coletivo",
+        entityType: "collective",
+        candidateState: "pending_legitimacy",
+        generatedAt: "2026-09-24T00:00:00Z",
+        invalidatedAt: null,
+        invalidationReason: null,
+      },
+    ]);
+    expect(auth.rpc).toHaveBeenCalledWith(
+      "comun_relata_collective_entity_server_candidate_prepare",
+      { p_request_id: null, p_actor_user_id: "user-a", p_entity_id: null },
+    );
+  });
 });
 
 describe("R2 server-validated identity boundary", () => {

@@ -40,6 +40,8 @@ export const MIGRATION_LANE_MANIFEST = Object.freeze({
     "collective-entity-consent",
   "20260924015511_comun_relata_collective_entity_authenticated_runtime.sql":
     "collective-entity-auth-runtime",
+  "20260924225210_comun_relata_collective_entity_private_candidate.sql":
+    "collective-entity-private-candidate",
 });
 
 const NON_APPLICABLE_LANES = Object.freeze({
@@ -223,6 +225,11 @@ const NON_APPLICABLE_LANES = Object.freeze({
   ]),
   "culture-b2-a1": new Set(["culture-b2-a2"]),
   "culture-b2-a2": new Set([]),
+  "collective-entity-private-candidate": new Set(
+    Object.values(MIGRATION_LANE_MANIFEST).filter(
+      (owner) => owner !== "collective-entity-private-candidate",
+    ),
+  ),
 });
 
 // This foundation is additive and belongs to a new, explicitly isolated
@@ -230,6 +237,7 @@ const NON_APPLICABLE_LANES = Object.freeze({
 for (const lanes of Object.values(NON_APPLICABLE_LANES)) {
   lanes.add("collective-entity-consent");
   lanes.add("collective-entity-auth-runtime");
+  lanes.add("collective-entity-private-candidate");
   lanes.add("security-hardening-v2");
 }
 

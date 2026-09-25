@@ -2,6 +2,7 @@
 
 import {
   createOwnCollectiveEntity,
+  prepareOwnCollectiveEntityCandidate,
   revokeOwnCollectiveRepresentation,
   setOwnCollectiveEntityConsent,
 } from "@/lib/comun-collective-entity-runtime";
@@ -29,4 +30,11 @@ export async function setCollectiveEntityConsentAction(
 
 export async function revokeCollectiveRepresentationAction(entityId: string) {
   return revokeOwnCollectiveRepresentation(entityId);
+}
+
+export async function prepareOwnCollectiveEntityCandidateAction(input: {
+  entityId: string;
+  requestId: string;
+}) {
+  return prepareOwnCollectiveEntityCandidate(input);
 }
