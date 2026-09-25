@@ -26,6 +26,9 @@ R4 creates one private append-only table:
 
 `private.comun_relata_collective_entity_candidate_reviews`.
 
+Each review snapshots the active reviewer profile, auth user and reviewer role
+privately so a later permission change cannot rewrite historical authority.
+
 A review has exactly two stages:
 
 - `entity_existence`;
