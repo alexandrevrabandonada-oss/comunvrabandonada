@@ -1,0 +1,38 @@
+{
+  "scope": "COMUN_49_2_R4_PRIVATE_RELEASE_DISPOSABLE_POST",
+  "productionCaptureRun": "36194962629",
+  "productionCaptureSha256": "6f93ff5704762897289984dd8bb3a842630928dbea6f0d33df61d339308a286d",
+  "sourceMainSha": "7e72a4f943bd882d09119a8e068fb94456048ac4",
+  "fixture": "tests/fixtures/pr437-post plus R1/R2 recovery ACL plus accepted R3",
+  "image": "docker.io/supabase/postgres@sha256:8002645276dc3431d55a5049721a879e4d11c34177086dc0f13b61d98cff1e52",
+  "postgresVersion": "17.6",
+  "migrationPath": "supabase/migrations/20260925014131_comun_relata_collective_entity_legitimacy_eligibility.sql",
+  "migrationSha256": "d5e2a7a47689728671c8065ed51f5749bfed4114faca99a4d3e6903ecadacf5c",
+  "pre": {
+    "runnerFingerprint": "5172b8ec626eaabd1efdb9c2273bd947867416ae92344d349f5600a0ced2ccd1",
+    "canonicalFingerprint": "c5ed6a190103697611314452f5829b12e47521945d373d33b73a355b1bd39f1e",
+    "blockingFindings": 0
+  },
+  "post": {
+    "runnerFingerprint": "1a0f10d58073a0677c67bfdd82f58fadfd47be95b1efcc3d0dffd24457093e2c",
+    "canonicalFingerprint": "9ed1bb21d0e26797b7b0021fd1e1efd11b313dffeae7cf1b39c0cd95cbc31706",
+    "blockingFindings": 0
+  },
+  "structure": {
+    "status": "COMUN_49_2_R4_PRIVATE_LEGITIMACY_NO_PUBLIC_EFFECT",
+    "transactionReadOnly": "on",
+    "reviewTableRls": true,
+    "reviewTableForceRls": true,
+    "reviewColumnCount": 12,
+    "reviewOrderIdentity": "a",
+    "reviewOrderUnique": true,
+    "appendOnlyTrigger": true,
+    "publicBridgeCount": 3,
+    "publicBridgesServiceOnly": true,
+    "privateHelperCount": 3,
+    "privateHelpersUnexposed": true,
+    "publicLegitimacyRelations": 0,
+    "reviewRows": 0,
+    "r4MigrationRows": 1
+  }
+}
