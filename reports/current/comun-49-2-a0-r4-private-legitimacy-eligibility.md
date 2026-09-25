@@ -66,7 +66,7 @@ with role:
 - `factual_reviewer`;
 - `editorial_reviewer`.
 
-`viewer`, ordinary `editor`, `publisher` and users without an allowed
+`viewer`, `editorial_reviewer`, `publisher` and users without an allowed
 active profile fail closed.
 
 A reviewer cannot review a candidate whose source representation belongs to
