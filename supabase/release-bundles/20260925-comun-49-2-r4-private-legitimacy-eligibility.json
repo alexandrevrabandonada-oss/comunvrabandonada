@@ -1,0 +1,48 @@
+{
+  "release": "20260925-comun-49-2-r4-private-legitimacy-eligibility",
+  "sourceMainSha": "7e72a4f943bd882d09119a8e068fb94456048ac4",
+  "productionPreCaptureRun": "36194962629",
+  "productionPreCaptureSha256": "6f93ff5704762897289984dd8bb3a842630928dbea6f0d33df61d339308a286d",
+  "disposableProofRun": "36195239684",
+  "disposableProofArtifactSha256": "33e20a00fede303d9d48a23750a22a4b3c02c26086b9b4644e84cad12cfe975a",
+  "postgresVersion": "17.6",
+  "migrations": [
+    {
+      "order": 1,
+      "version": "20260925014131",
+      "path": "supabase/migrations/20260925014131_comun_relata_collective_entity_legitimacy_eligibility.sql",
+      "sha256": "d5e2a7a47689728671c8065ed51f5749bfed4114faca99a4d3e6903ecadacf5c"
+    }
+  ],
+  "migrationSetAlgorithm": "sha256-JSON.stringify([[path,sha256],...])",
+  "migrationSetSha256": "95bb689c46052745e1610105615f6905845686d7ef6b39c38174a72e25289e46",
+  "expectedPreFingerprint": "5172b8ec626eaabd1efdb9c2273bd947867416ae92344d349f5600a0ced2ccd1",
+  "expectedPreCanonicalFingerprint": "c5ed6a190103697611314452f5829b12e47521945d373d33b73a355b1bd39f1e",
+  "expectedPostFingerprint": "1a0f10d58073a0677c67bfdd82f58fadfd47be95b1efcc3d0dffd24457093e2c",
+  "expectedPostCanonicalFingerprint": "9ed1bb21d0e26797b7b0021fd1e1efd11b313dffeae7cf1b39c0cd95cbc31706",
+  "expectedBlockingFindings": 0,
+  "destructiveSql": false,
+  "requiresPromotion": true,
+  "releaseLedger": {
+    "relation": "public.comun_schema_releases",
+    "migrationPath": "bundle:supabase/release-bundles/20260925-comun-49-2-r4-private-legitimacy-eligibility.json",
+    "migrationSha256": "95bb689c46052745e1610105615f6905845686d7ef6b39c38174a72e25289e46",
+    "status": "applied"
+  },
+  "changedObjects": [
+    "private.comun_relata_collective_entity_candidate_reviews",
+    "monotonic review_order identity, private indexes and append-only trigger",
+    "three private SECURITY DEFINER helper functions",
+    "three public service_role-only R4 bridges",
+    "supabase_migrations.schema_migrations R4 version",
+    "public.comun_schema_releases R4 logical row"
+  ],
+  "assertions": [
+    "R4 is one forward-only migration over accepted R1/R2/R3",
+    "review authority remains private and browser identity cannot choose reviewer",
+    "two supported stages require distinct reviewer profiles before eligible_for_projection_review",
+    "R4 never mutates R3 candidate state, publishes a projection or opens a map",
+    "POST_PENDING_LEDGER records only the logical ledger after exact structural POST verification",
+    "DIVERGED blocks and replay from POST performs zero writes"
+  ]
+}
