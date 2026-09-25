@@ -63,8 +63,8 @@ The database independently requires both an active canonical
 with role:
 
 - `admin`;
-- `factual_reviewer`;
-- `editorial_reviewer`.
+- `editor`;
+- `factual_reviewer`.
 
 `viewer`, `editorial_reviewer`, `publisher` and users without an allowed
 active profile fail closed.
