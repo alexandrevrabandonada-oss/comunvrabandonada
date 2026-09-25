@@ -181,7 +181,7 @@ select * from public.comun_relata_collective_entity_server_candidate_review(
 );
 commit;
 
-do $
+do $$
 declare
   candidate uuid:=(select id
     from private.comun_relata_collective_entity_candidates
@@ -259,7 +259,7 @@ select * from public.comun_relata_collective_entity_server_candidate_review(
 );
 commit;
 
-do $
+do $$
 declare
   candidate uuid:=(select id
     from private.comun_relata_collective_entity_candidates
@@ -310,7 +310,7 @@ select * from public.comun_relata_collective_entity_server_candidate_review(
 );
 commit;
 
-do $
+do $$
 declare
   candidate uuid:=(select id
     from private.comun_relata_collective_entity_candidates
@@ -335,7 +335,7 @@ select * from public.comun_relata_collective_entity_server_consent_set(
 );
 commit;
 
-do $
+do $$
 declare
   candidate uuid:=(select id
     from private.comun_relata_collective_entity_candidates
