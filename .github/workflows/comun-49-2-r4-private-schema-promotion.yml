@@ -1,0 +1,106 @@
+name: COMUN 49.2 R4 private legitimacy schema promotion
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: read
+  actions: read
+
+concurrency:
+  group: comun-49-2-r4-private-schema-promotion
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    if: >-
+      github.event.label.name == 'comun:promover' &&
+      github.event.issue.title == 'COMUN 49.2 R4 private legitimacy schema promotion'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Authorize owner, R4-only write, and exact main SHA
+        id: auth
+        shell: bash
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          AUTHOR_ASSOCIATION: ${{ github.event.issue.author_association }}
+          EVENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$AUTHOR_ASSOCIATION" = OWNER
+          authorization="$(printf '%s\n' "$ISSUE_BODY" | sed -nE 's/^authorization:[[:space:]]*([^[:space:]]+)[[:space:]]*$/\1/p' | tail -1)"
+          expected_sha="$(printf '%s\n' "$ISSUE_BODY" | sed -nE 's/^expected_main_sha:[[:space:]]*([a-f0-9]{40})[[:space:]]*$/\1/p' | tail -1)"
+          test "$authorization" = COMUN_49_2_R4_PRODUCTION_SCHEMA_WRITE
+          test "$expected_sha" = "$EVENT_SHA"
+          echo "sha=$expected_sha" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.auth.outputs.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Require immutable main and canonical CI success
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ steps.auth.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$EXPECTED_SHA"
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$EXPECTED_SHA&per_page=100"             --jq '.workflow_runs[] | select(.name == "COMUN CI" and .head_sha == "'"$EXPECTED_SHA"'" and .conclusion == "success") | .id'             | grep -Eq '^[0-9]+$'
+      - name: Validate immutable R4 release contract
+        run: |
+          node scripts/49-2-r4-release/validate-manifest.mjs
+          node --test scripts/49-2-r4-release/*.node-test.mjs
+      - name: Fresh read-only PRE or resumable POST inspection
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+        run: |
+          node scripts/49-2-r4-release/run-production-promotion.mjs             --mode=preflight --expected-sha="${{ steps.auth.outputs.sha }}"             --output=.ci-artifacts/comun-49-2-r4-promotion/preflight.json
+      - name: Promote only authorized forward-only R4 release
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          COMUN_R4_SCHEMA_WRITE_AUTHORIZATION: COMUN_49_2_R4_PRODUCTION_SCHEMA_WRITE
+        run: |
+          node scripts/49-2-r4-release/run-production-promotion.mjs             --mode=promote --expected-sha="${{ steps.auth.outputs.sha }}"             --output=.ci-artifacts/comun-49-2-r4-promotion/promotion.json
+      - name: Exact read-only POST and structural security proof
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+        run: |
+          node scripts/49-2-r4-release/run-production-promotion.mjs             --mode=postflight --expected-sha="${{ steps.auth.outputs.sha }}"             --output=.ci-artifacts/comun-49-2-r4-promotion/postflight.json
+      - name: Public non-mutating smoke, no R4 review RPC
+        shell: bash
+        run: |
+          set -euo pipefail
+          for route in /comun /comun/denuncias /comun/relatar /comun/minha-participacao; do
+            code="$(curl --silent --show-error --location --output /dev/null --write-out '%{http_code}' "https://comunsocial.online$route")"
+            test "$code" = 200
+          done
+          headers="$(mktemp)"
+          curl --silent --show-error --range 0-127 --dump-header "$headers" --output /dev/null             https://comunsocial.online/maps/volta-redonda/volta-redonda.pmtiles
+          grep -Eq '^HTTP/[^ ]+ 206' "$headers"
+          grep -Eiq '^content-range:[[:space:]]*bytes 0-127/[0-9]+' "$headers"
+          echo COMUN_49_2_R4_PUBLIC_NON_MUTATING_SMOKE_GREEN
+      - name: Capture failure state read-only
+        if: failure()
+        continue-on-error: true
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+        run: |
+          node scripts/49-2-r4-release/run-production-promotion.mjs             --mode=inspect --expected-sha="${{ steps.auth.outputs.sha }}"             --output=.ci-artifacts/comun-49-2-r4-promotion/failure-state.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comun-49-2-r4-promotion-${{ github.run_id }}
+          path: .ci-artifacts/comun-49-2-r4-promotion
+          if-no-files-found: warn
+          retention-days: 14
