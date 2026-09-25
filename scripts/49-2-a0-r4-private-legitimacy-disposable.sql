@@ -181,7 +181,7 @@ select * from public.comun_relata_collective_entity_server_candidate_review(
 );
 commit;
 
-do $
+do $$
 declare
   candidate uuid:=:'candidate_a'::uuid;
 begin
