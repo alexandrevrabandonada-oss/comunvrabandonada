@@ -120,7 +120,7 @@ describe("R4 private legitimacy runtime", () => {
         candidate_id: "c",
         entity_existence_state: "supported",
         representation_legitimacy_state: "supported",
-        eligibility_state: "eligible_for_projection_review",
+        eligibility_state: "needs_independent_review",
         reviewer_profile_id: "private",
         reviewer_auth_user_id: "private",
         basis_reference_private: "private",
@@ -141,7 +141,7 @@ describe("R4 private legitimacy runtime", () => {
       candidateId: "c",
       entityExistenceState: "supported",
       representationLegitimacyState: "supported",
-      eligibilityState: "eligible_for_projection_review",
+      eligibilityState: "needs_independent_review",
     });
   });
 
