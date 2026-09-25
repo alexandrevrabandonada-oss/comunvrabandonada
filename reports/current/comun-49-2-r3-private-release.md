@@ -1,4 +1,4 @@
-# COMUN 49.2-A0-R3 — private candidate release preparation
+# COMUN 49.2-A0-R3 — private candidate Production release
 
 ## Dormant integration
 
@@ -47,3 +47,64 @@ That capture classified `PRE`: PostgreSQL 17.6, R1/R2 migration history present,
 The same run's credential-free disposable job used the merge SHA and reproduced PRE and POST fingerprints exactly. Its runner artifact SHA-256 is `26a3122b7058a14b026b873e9ee1ac42dc50f9a8805f8e9ef64c78f7da2780d8`: first pass actions `R3, LEDGER`, final state `POST`, replay actions empty. Its structural proof artifact SHA-256 is `21458943dc0f3559ba2b78e6087715736bd49f7e0e5d132709da98f91f91ccff`, confirming private RLS/FORCE RLS, twelve allowlisted columns, unique pending index, four triggers, postgres-owned service-role-only SECURITY DEFINER bridge, and zero public candidate relations. R3 negative controls and state-machine cases remain covered by the passed release contract checks on the reviewed SHA.
 
 No schema or business write was made in Production in this round. The R3 table remains absent, so no Production candidate rows exist; this run created no entity or consent rows. Terminal state: `COMUN_49_2_R3_RELEASE_MERGED_SCHEMA_STILL_ABSENT`. The separate `COMUN_49_2_R3_PRIVATE_SCHEMA_PROMOTION` gate has not been opened.
+
+
+## Production schema promotion — 2026-09-25
+
+State: `COMUN_49_2_R3_PRIVATE_SCHEMA_PRODUCTION_GREEN`.
+
+The owner-authorized promotion issue #456 was pinned to exact main
+`6ea3b4d86d66d99fc174b5b557286740470fc613` with authorization
+`COMUN_49_2_R3_PRODUCTION_SCHEMA_WRITE`. The promotion label was removed
+after success.
+
+Run `36082196817` completed successfully. The reviewed workflow emitted:
+
+- `COMUN_R3_PREFLIGHT_PRE`;
+- `COMUN_R3_PROMOTION_POST:R3,LEDGER`;
+- `COMUN_49_2_R3_PRIVATE_SCHEMA_PRODUCTION_GREEN`;
+- `COMUN_49_2_R3_PUBLIC_NON_MUTATING_SMOKE_GREEN`.
+
+The preflight was read-only and matched the pinned PRE exactly. The only schema
+migration applied was
+`20260924225210_comun_relata_collective_entity_private_candidate.sql`,
+SHA-256
+`873d3a2f6a86ed0225cda1bef77841bc35247630a4708ba2bb2f7c041f7970af`.
+The runner then verified exact POST before recording the logical R3 bundle
+ledger. Postflight was read-only.
+
+Final runner fingerprint:
+
+`5172b8ec626eaabd1efdb9c2273bd947867416ae92344d349f5600a0ced2ccd1`
+
+Final canonical fingerprint:
+
+`c5ed6a190103697611314452f5829b12e47521945d373d33b73a355b1bd39f1e`
+
+The promotion artifact ID is `10842243111`, digest
+`sha256:4149177db1b0529fa0b2165840c7baf3aa68de62f758913b8bc072acfbf4c10e`.
+
+The structural postflight confirmed the private candidate table with
+RLS/FORCE RLS, denied direct table access, the service-role-only
+`SECURITY DEFINER` prepare bridge, the unique pending-per-entity invariant,
+four triggers, accepted R3 logical ledger and zero public candidate relations.
+Canonical blocking findings remained zero.
+
+No candidate preparation RPC was called. The migration contains no top-level
+candidate seed; its only insert into
+`private.comun_relata_collective_entity_candidates` is inside the
+`comun_relata_collective_entity_server_candidate_prepare` function body.
+Therefore this promotion performed no intentional candidate/entity/consent
+business-data write.
+
+The public smoke remained non-mutating and passed the four canonical routes and
+PMTiles Range. No public projection, map effect, legitimacy decision or R4
+surface was opened.
+
+Terminal state:
+
+`COMUN_49_2_R3_PRIVATE_SCHEMA_PRODUCTION_GREEN`
+
+The next roadmap block is R4 legitimacy/eligibility. R4 remains a separate
+functional slice and must not make publication an automatic consequence of
+candidate existence.
