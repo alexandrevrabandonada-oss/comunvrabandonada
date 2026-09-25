@@ -152,7 +152,7 @@ export async function listOwnCollectiveEntityLegitimacyStates(): Promise<
 > {
   const { service, userId } = await requireAuthenticatedServiceClient();
   const { data, error } = await service.rpc(
-    "comun_relata_collective_entity_server_candidate_legitimacy_list_own",
+    "comun_relata_entity_server_candidate_legitimacy_list_own",
     { p_actor_user_id: userId },
   );
   if (error) throw error;
