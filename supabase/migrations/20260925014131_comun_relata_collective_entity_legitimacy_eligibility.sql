@@ -123,6 +123,9 @@ begin
   select profile.id
     into v_profile_id
     from public.comun_admin_profiles profile
+    join public.comun_admin_users admin_user
+      on admin_user.user_id=p_reviewer_user_id
+     and admin_user.is_active
    where profile.auth_user_id=p_reviewer_user_id
      and profile.active
      and profile.role in ('admin','factual_reviewer','editorial_reviewer')
