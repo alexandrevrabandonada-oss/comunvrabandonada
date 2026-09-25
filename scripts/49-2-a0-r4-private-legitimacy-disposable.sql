@@ -32,7 +32,7 @@ do $$
 declare
   review_sig text:='public.comun_relata_collective_entity_server_candidate_review(uuid,uuid,uuid,text,text,text,text)';
   queue_sig text:='public.comun_relata_collective_entity_server_candidate_review_queue(uuid)';
-  owner_sig text:='public.comun_relata_collective_entity_server_candidate_legitimacy_list_own(uuid)';
+  owner_sig text:='public.comun_relata_entity_server_candidate_legitimacy_list_own(uuid)';
 begin
   if pg_catalog.has_table_privilege(
        'service_role',
@@ -96,7 +96,7 @@ declare
 begin
   if not exists(
     select 1
-    from public.comun_relata_collective_entity_server_candidate_legitimacy_list_own(owner_a) state
+    from public.comun_relata_entity_server_candidate_legitimacy_list_own(owner_a) state
     where state.candidate_id=candidate
       and state.entity_existence_state='pending'
       and state.representation_legitimacy_state='pending'
@@ -106,7 +106,7 @@ begin
   end if;
   if exists(
     select 1
-    from public.comun_relata_collective_entity_server_candidate_legitimacy_list_own(owner_b)
+    from public.comun_relata_entity_server_candidate_legitimacy_list_own(owner_b)
     where candidate_id=candidate
   ) then
     raise exception 'R4 owner isolation failed';
@@ -181,9 +181,11 @@ select * from public.comun_relata_collective_entity_server_candidate_review(
 );
 commit;
 
-do $$
+do $
 declare
-  candidate uuid:=:'candidate_a'::uuid;
+  candidate uuid:=(select id
+    from private.comun_relata_collective_entity_candidates
+    where generation_request_id='49240000-0000-4000-8000-000000000102');
 begin
   if not exists(
     select 1 from private.comun_relata_candidate_legitimacy_snapshot(candidate)
@@ -257,11 +259,15 @@ select * from public.comun_relata_collective_entity_server_candidate_review(
 );
 commit;
 
-do $$
+do $
+declare
+  candidate uuid:=(select id
+    from private.comun_relata_collective_entity_candidates
+    where generation_request_id='49240000-0000-4000-8000-000000000102');
 begin
   if not exists(
     select 1
-    from private.comun_relata_candidate_legitimacy_snapshot(:'candidate_a'::uuid)
+    from private.comun_relata_candidate_legitimacy_snapshot(candidate)
     where entity_existence_state='supported'
       and representation_legitimacy_state='supported'
       and eligibility_state='eligible_for_projection_review'
@@ -270,7 +276,7 @@ begin
   end if;
   if not exists(
     select 1 from private.comun_relata_collective_entity_candidates
-    where id=:'candidate_a'::uuid and candidate_state='pending_legitimacy'
+    where id=candidate and candidate_state='pending_legitimacy'
   ) then
     raise exception 'R4 mutated R3 candidate state';
   end if;
@@ -304,11 +310,15 @@ select * from public.comun_relata_collective_entity_server_candidate_review(
 );
 commit;
 
-do $$
+do $
+declare
+  candidate uuid:=(select id
+    from private.comun_relata_collective_entity_candidates
+    where generation_request_id='49240000-0000-4000-8000-000000000131');
 begin
   if not exists(
     select 1
-    from private.comun_relata_candidate_legitimacy_snapshot(:'candidate_b'::uuid)
+    from private.comun_relata_candidate_legitimacy_snapshot(candidate)
     where entity_existence_state='contested'
       and eligibility_state='contested'
   ) then
@@ -325,14 +335,18 @@ select * from public.comun_relata_collective_entity_server_consent_set(
 );
 commit;
 
-do $$
+do $
+declare
+  candidate uuid:=(select id
+    from private.comun_relata_collective_entity_candidates
+    where generation_request_id='49240000-0000-4000-8000-000000000102');
 begin
   if not exists(
     select 1
-    from public.comun_relata_collective_entity_server_candidate_legitimacy_list_own(
+    from public.comun_relata_entity_server_candidate_legitimacy_list_own(
       pg_catalog.current_setting('comun.r4.actor_a')::uuid
     )
-    where candidate_id=:'candidate_a'::uuid
+    where candidate_id=candidate
       and candidate_state='invalidated'
       and eligibility_state='invalidated'
   ) then
@@ -343,7 +357,7 @@ begin
     perform public.comun_relata_collective_entity_server_candidate_review(
       '49240000-0000-4000-8000-000000000140',
       '49240000-0000-4000-8000-000000000001',
-      :'candidate_a'::uuid,
+      candidate,
       'entity_existence','supported','public_source',
       'https://example.invalid/after-invalidation'
     );
