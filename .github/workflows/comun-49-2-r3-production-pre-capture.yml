@@ -2,7 +2,7 @@ name: COMUN 49.2 R3 Production PRE read-only capture
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened]
     branches: [main]
     paths:
       - .github/workflows/comun-49-2-r3-production-pre-capture.yml
