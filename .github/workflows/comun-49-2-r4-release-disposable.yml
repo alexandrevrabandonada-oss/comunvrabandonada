@@ -7,6 +7,8 @@ on:
       - .github/workflows/comun-49-2-r4-release-disposable.yml
       - scripts/49-2-r4-release/**
       - reports/current/comun-49-2-r4-production-pre.json
+      - reports/current/comun-49-2-r4-release-disposable-derived.json
+      - supabase/release-bundles/20260925-comun-49-2-r4-private-legitimacy-eligibility.json
 
 permissions: { contents: read }
 
