@@ -127,7 +127,7 @@ authority.
 
 Owner-only:
 
-`comun_relata_collective_entity_server_candidate_legitimacy_list_own`.
+`comun_relata_entity_server_candidate_legitimacy_list_own`.
 
 Reviewer-only:
 
