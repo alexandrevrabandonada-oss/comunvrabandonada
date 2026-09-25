@@ -7,6 +7,7 @@ import {
   setOwnCollectiveEntityConsent,
 } from "@/lib/comun-collective-entity-runtime";
 import type { ComunCollectiveEntityType } from "@/lib/comun-collective-entity-consent";
+import { listOwnCollectiveEntityLegitimacyStates } from "@/lib/comun-collective-entity-legitimacy-runtime";
 
 /**
  * These actions intentionally accept no user id. The database entry points
@@ -37,4 +38,9 @@ export async function prepareOwnCollectiveEntityCandidateAction(input: {
   requestId: string;
 }) {
   return prepareOwnCollectiveEntityCandidate(input);
+}
+
+
+export async function listOwnCollectiveEntityLegitimacyAction() {
+  return listOwnCollectiveEntityLegitimacyStates();
 }
