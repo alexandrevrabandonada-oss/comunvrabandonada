@@ -106,3 +106,19 @@ export function candidateCanOpenPublicMap() {
 export function candidateCanSelfVerify() {
   return false as const;
 }
+
+
+/** R4 review is private governance evidence, never publication authority. */
+export function candidateLegitimacyReviewCanPublish() {
+  return false as const;
+}
+
+/** R4 eligibility means only readiness for a later projection review. */
+export function candidateEligibilityForProjectionReviewCanPublish() {
+  return false as const;
+}
+
+/** R4 eligibility never opens a public map. */
+export function candidateEligibilityCanOpenPublicMap() {
+  return false as const;
+}
