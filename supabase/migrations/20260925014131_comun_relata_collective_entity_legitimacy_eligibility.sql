@@ -9,7 +9,7 @@ begin
      or to_regclass('private.comun_relata_collective_entity_candidate_reviews') is not null
      or to_regprocedure('public.comun_relata_collective_entity_server_candidate_review(uuid,uuid,uuid,text,text,text,text)') is not null
      or to_regprocedure('public.comun_relata_collective_entity_server_candidate_review_queue(uuid)') is not null
-     or to_regprocedure('public.comun_relata_collective_entity_server_candidate_legitimacy_list_own(uuid)') is not null then
+     or to_regprocedure('public.comun_relata_entity_server_candidate_legitimacy_list_own(uuid)') is not null then
     raise exception using errcode='P0001',
       message='COMUN_49_2_R4_LEGITIMACY_SCHEMA_DRIFT';
   end if;
@@ -383,7 +383,7 @@ begin
 end;
 $$;
 
-create function public.comun_relata_collective_entity_server_candidate_legitimacy_list_own(
+create function public.comun_relata_entity_server_candidate_legitimacy_list_own(
   p_actor_user_id uuid
 )
 returns table(
@@ -439,7 +439,7 @@ alter function public.comun_relata_collective_entity_server_candidate_review(
 alter function public.comun_relata_collective_entity_server_candidate_review_queue(
   uuid
 ) owner to postgres;
-alter function public.comun_relata_collective_entity_server_candidate_legitimacy_list_own(
+alter function public.comun_relata_entity_server_candidate_legitimacy_list_own(
   uuid
 ) owner to postgres;
 
@@ -454,7 +454,7 @@ revoke all on function
     uuid,uuid,uuid,text,text,text,text
   ),
   public.comun_relata_collective_entity_server_candidate_review_queue(uuid),
-  public.comun_relata_collective_entity_server_candidate_legitimacy_list_own(uuid)
+  public.comun_relata_entity_server_candidate_legitimacy_list_own(uuid)
 from public,anon,authenticated;
 
 grant execute on function
@@ -462,7 +462,7 @@ grant execute on function
     uuid,uuid,uuid,text,text,text,text
   ),
   public.comun_relata_collective_entity_server_candidate_review_queue(uuid),
-  public.comun_relata_collective_entity_server_candidate_legitimacy_list_own(uuid)
+  public.comun_relata_entity_server_candidate_legitimacy_list_own(uuid)
 to service_role;
 
 comment on table private.comun_relata_collective_entity_candidate_reviews is
@@ -473,7 +473,7 @@ comment on function public.comun_relata_collective_entity_server_candidate_revie
   'R4 service-only review bridge. Reviewer identity comes from the authenticated server session and self-review is forbidden.';
 comment on function public.comun_relata_collective_entity_server_candidate_review_queue(uuid) is
   'R4 service-only private queue. It exposes sanitized candidate snapshots and derived review states only.';
-comment on function public.comun_relata_collective_entity_server_candidate_legitimacy_list_own(uuid) is
+comment on function public.comun_relata_entity_server_candidate_legitimacy_list_own(uuid) is
   'R4 owner-only private status bridge. Eligibility means only eligible_for_projection_review and is not publication authority.';
 
 commit;
