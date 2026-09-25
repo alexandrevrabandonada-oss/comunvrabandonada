@@ -291,7 +291,8 @@ begin
        or v_existing.review_stage<>p_review_stage
        or v_existing.decision<>p_decision
        or v_existing.basis_kind<>p_basis_kind
-       or v_existing.basis_reference_private is distinct from v_reference
+       or pg_catalog.coalesce(v_existing.basis_reference_private,'')<>
+          pg_catalog.coalesce(v_reference,'')
        or v_existing.reviewer_profile_id<>v_profile_id
        or v_existing.reviewer_auth_user_id<>p_reviewer_user_id
        or v_existing.reviewer_role<>v_reviewer_role then
