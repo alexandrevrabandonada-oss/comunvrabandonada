@@ -1,0 +1,81 @@
+name: COMUN 49.2-A0-R4 private legitimacy disposable proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-a0-r4-private-legitimacy-disposable.yml"
+      - "supabase/migrations/*_comun_relata_collective_entity_legitimacy_eligibility.sql"
+      - "lib/comun-collective-entity-legitimacy-runtime*.ts"
+      - "lib/comun-collective-entity-consent*.ts"
+      - "app/comun/entidades/actions.ts"
+      - "app/comun/admin/entidades/actions.ts"
+      - "scripts/49-2-a0-r4-*"
+      - "scripts/ci/classify-migration-lane*.mjs"
+
+permissions: { contents: read }
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/ci/classify-migration-lane.node-test.mjs scripts/49-2-a0-r4-private-legitimacy-contract.node-test.mjs
+      - run: npx vitest run lib/comun-collective-entity-legitimacy-runtime.test.ts lib/comun-collective-entity-consent.test.ts
+      - run: node scripts/ci/validate-security-definer-migrations.mjs supabase/migrations/20260925014131_comun_relata_collective_entity_legitimacy_eligibility.sql
+      - run: npm run db:privileges:lint
+      - run: git diff --check origin/main...HEAD
+
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.117.0 }
+      - run: npm ci --ignore-scripts
+      - name: R1 + R2 + R3 + R4 private legitimacy and eligibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          for secret_name in SUPABASE_ACCESS_TOKEN SUPABASE_DB_URL SUPABASE_SERVICE_ROLE_KEY SUPABASE_URL; do
+            if [[ -n "${!secret_name:-}" ]]; then
+              echo "Unexpected remote Supabase credential: ${secret_name}" >&2
+              exit 1
+            fi
+          done
+          trap 'supabase stop --no-backup || true' EXIT
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          supabase db reset --local --yes
+          status="$(supabase status -o json)"
+          db="$(jq -r '.DB_URL' <<<"$status")"
+          export COMUN_R2_LOCAL_API_URL="$(jq -r '.API_URL' <<<"$status")"
+          export COMUN_R2_LOCAL_SERVICE_ROLE_KEY="$(jq -r '.SERVICE_ROLE_KEY' <<<"$status")"
+          case "$db" in
+            postgresql://*@127.0.0.1:*/*|postgresql://*@localhost:*/*) ;;
+            *) echo 'Refusing non-local database URL' >&2; exit 1 ;;
+          esac
+          users="$RUNNER_TEMP/comun-r4-auth-users.json"
+          node scripts/49-2-a0-r2-disposable-auth-users.mjs "$users"
+          actor_a="$(jq -r '.a' "$users")"
+          actor_b="$(jq -r '.b' "$users")"
+          psql "$db" -v ON_ERROR_STOP=1 -v actor_a="$actor_a" -v actor_b="$actor_b"             -f scripts/49-2-a0-r4-private-legitimacy-disposable.sql
+          COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL="$db"             node scripts/ci/assert-zero-security-findings.mjs
+
+          for fn in             "comun_relata_collective_entity_server_candidate_review('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','entity_existence','needs_evidence','insufficient_or_conflicting',null)"             "comun_relata_collective_entity_server_candidate_review_queue('00000000-0000-0000-0000-000000000001')"             "comun_relata_collective_entity_server_candidate_legitimacy_list_own('00000000-0000-0000-0000-000000000001')"; do
+            for role_name in anon authenticated; do
+              if output="$(psql "$db" -v ON_ERROR_STOP=1 -c "begin; set local role $role_name; select * from public.$fn; rollback;" 2>&1)"; then
+                echo "R4 bridge directly executable by $role_name: $fn" >&2
+                exit 1
+              fi
+              grep -q 'permission denied for function' <<<"$output"
+            done
+          done
+          echo 'COMUN_49_2_A0_R4_DISPOSABLE_GREEN' >> "$GITHUB_STEP_SUMMARY"
