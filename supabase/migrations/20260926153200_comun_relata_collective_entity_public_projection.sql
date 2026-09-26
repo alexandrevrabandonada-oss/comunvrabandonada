@@ -337,14 +337,14 @@ begin
     1,2000
   );
 
-  delete from public.comun_relata_collective_entity_public_projections
-   where projection_id=v_registry.projection_id;
+  delete from public.comun_relata_collective_entity_public_projections as public_projection
+   where public_projection.projection_id=v_registry.projection_id;
 
-  update private.comun_relata_collective_entity_projection_registry
+  update private.comun_relata_collective_entity_projection_registry as projection_registry
      set state='withdrawn',
          withdrawn_at=pg_catalog.now(),
          withdrawal_reason=v_reason
-   where candidate_id=p_candidate_id;
+   where projection_registry.candidate_id=p_candidate_id;
 
   insert into private.comun_relata_collective_entity_projection_events(
     candidate_id,projection_id,event_type,reason_private
@@ -610,13 +610,13 @@ begin
       );
     else
       v_projection_id:=v_registry.projection_id;
-      update private.comun_relata_collective_entity_projection_registry
+      update private.comun_relata_collective_entity_projection_registry as projection_registry
          set state='active',
              published_at=v_now,
              last_decision_request_id=p_request_id,
              withdrawn_at=null,
              withdrawal_reason=null
-       where candidate_id=p_candidate_id;
+       where projection_registry.candidate_id=p_candidate_id;
     end if;
 
     insert into public.comun_relata_collective_entity_public_projections(
@@ -634,15 +634,15 @@ begin
     );
   elsif p_decision='withdrawn' then
     v_projection_id:=v_registry.projection_id;
-    delete from public.comun_relata_collective_entity_public_projections
-     where projection_id=v_projection_id;
+    delete from public.comun_relata_collective_entity_public_projections as public_projection
+     where public_projection.projection_id=v_projection_id;
 
-    update private.comun_relata_collective_entity_projection_registry
+    update private.comun_relata_collective_entity_projection_registry as projection_registry
        set state='withdrawn',
            last_decision_request_id=p_request_id,
            withdrawn_at=v_now,
            withdrawal_reason=v_note
-     where candidate_id=p_candidate_id;
+     where projection_registry.candidate_id=p_candidate_id;
 
     insert into private.comun_relata_collective_entity_projection_events(
       candidate_id,projection_id,event_type,decision_request_id,
