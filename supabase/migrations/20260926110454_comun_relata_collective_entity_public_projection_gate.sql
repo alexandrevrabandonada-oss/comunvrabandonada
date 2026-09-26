@@ -337,25 +337,25 @@ begin
   return query
     select candidate.id,candidate.public_name,candidate.entity_type,
       candidate.generated_at,
-      coalesce(latest_decision.decision,'pending')::text,
-      coalesce(projection.projection_state,'not_published')::text
-      from private.comun_relata_collective_entity_candidates candidate
-      cross join private.comun_relata_candidate_legitimacy_snapshot(candidate.id)
-        snapshot
-      left join lateral (
-        select decision.decision
-          from private.comun_relata_collective_entity_projection_decisions decision
-         where decision.candidate_id=candidate.id
-         order by decision.decision_order desc
+      coalesce((
+        select projection_decision.decision
+          from private.comun_relata_collective_entity_projection_decisions
+            projection_decision
+         where projection_decision.candidate_id=candidate.id
+         order by projection_decision.decision_order desc
          limit 1
-      ) latest_decision on true
-      left join lateral (
+      ),'pending')::text,
+      coalesce((
         select public_projection.projection_state
-          from public.comun_relata_collective_entity_public_projections public_projection
+          from public.comun_relata_collective_entity_public_projections
+            public_projection
          where public_projection.candidate_id=candidate.id
          order by public_projection.published_at desc,public_projection.id desc
          limit 1
-      ) projection on true
+      ),'not_published')::text
+      from private.comun_relata_collective_entity_candidates candidate
+      cross join private.comun_relata_candidate_legitimacy_snapshot(candidate.id)
+        snapshot
      where candidate.candidate_state='pending_legitimacy'
        and snapshot.eligibility_state='eligible_for_projection_review'
      order by candidate.generated_at asc,candidate.id asc;
