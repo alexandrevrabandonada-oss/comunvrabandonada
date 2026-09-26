@@ -7,6 +7,11 @@ import {
   type ComunCollectiveEntityReviewDecision,
   type ComunCollectiveEntityReviewStage,
 } from "@/lib/comun-collective-entity-legitimacy-runtime";
+import {
+  decideCollectiveEntityProjection,
+  listCollectiveEntityProjectionReviewQueue,
+  type ComunCollectiveEntityProjectionDecision,
+} from "@/lib/comun-collective-entity-projection-runtime";
 
 /**
  * Reviewer identity is intentionally absent from action input. The runtime
@@ -26,4 +31,23 @@ export async function reviewCollectiveEntityCandidateAction(input: {
   basisReferencePrivate?: string | null;
 }) {
   return reviewCollectiveEntityCandidate(input);
+}
+
+
+/**
+ * Publication authority is also server-derived. Browser input can choose only
+ * the candidate, decision and private note; the runtime/database resolve the
+ * authenticated publisher profile and enforce separation from R4 reviewers.
+ */
+export async function listCollectiveEntityProjectionReviewQueueAction() {
+  return listCollectiveEntityProjectionReviewQueue();
+}
+
+export async function decideCollectiveEntityProjectionAction(input: {
+  requestId: string;
+  candidateId: string;
+  decision: ComunCollectiveEntityProjectionDecision;
+  notePrivate?: string | null;
+}) {
+  return decideCollectiveEntityProjection(input);
 }
