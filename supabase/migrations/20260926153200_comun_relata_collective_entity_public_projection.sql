@@ -170,11 +170,12 @@ alter table private.comun_relata_collective_entity_projection_events
 alter table private.comun_relata_collective_entity_projection_events
   force row level security;
 
-revoke all on table
-  private.comun_relata_collective_entity_projection_decisions,
-  private.comun_relata_collective_entity_projection_registry,
-  private.comun_relata_collective_entity_projection_events
-from public,anon,authenticated,service_role;
+revoke all on table private.comun_relata_collective_entity_projection_decisions
+  from public,anon,authenticated,service_role;
+revoke all on table private.comun_relata_collective_entity_projection_registry
+  from public,anon,authenticated,service_role;
+revoke all on table private.comun_relata_collective_entity_projection_events
+  from public,anon,authenticated,service_role;
 
 create table public.comun_relata_collective_entity_public_projections (
   projection_id uuid primary key,
