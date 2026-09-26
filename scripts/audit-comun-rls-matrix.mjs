@@ -1218,6 +1218,15 @@ const classifications = {
     expected:
       "Sem leitura direta; API server-only devolve apenas estado seguro do próprio recibo.",
   },
+  comun_relata_collective_entity_public_projections: {
+    decision: "service_role_only",
+    purpose:
+      "Projeção sanitizada R5 de entidades coletivas aprovada por publisher.",
+    sensitive:
+      "IDs internos de candidato/entidade, decisão de ativação e estado de supressão permanecem sem leitura direta.",
+    expected:
+      "Sem grants diretos para anon/authenticated/service_role; leitura pública ocorre somente pela bridge server-side sanitizada.",
+  },
   comun_relata_case_memberships: {
     decision: "service_role_only",
     localOnly: true,

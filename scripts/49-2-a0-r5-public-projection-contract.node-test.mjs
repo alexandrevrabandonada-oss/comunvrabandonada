@@ -16,6 +16,7 @@ const workflow = readFileSync(
   "utf8",
 );
 const classifier = readFileSync("scripts/ci/classify-migration-lane.mjs", "utf8");
+const rlsMatrixAudit = readFileSync("scripts/audit-comun-rls-matrix.mjs", "utf8");
 
 test("R5 creates a separate append-only publisher decision gate", () => {
   assert.match(
@@ -96,4 +97,16 @@ test("R5 disposable proof is local-only and migration ownership is explicit", ()
     /20260926110454_comun_relata_collective_entity_public_projection_gate\.sql/,
   );
   assert.match(classifier, /collective-entity-public-projection-gate/);
+});
+
+
+test("R5 public projection is explicitly classified as server-only in the canonical RLS matrix", () => {
+  assert.match(
+    rlsMatrixAudit,
+    /comun_relata_collective_entity_public_projections:\s*\{\s*decision: "service_role_only"/,
+  );
+  assert.match(
+    rlsMatrixAudit,
+    /Sem grants diretos para anon\/authenticated\/service_role/,
+  );
 });
