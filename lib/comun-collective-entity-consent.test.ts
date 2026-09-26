@@ -20,6 +20,8 @@ import {
   isVerifiedCollectiveRepresentation,
   representationStateAloneCanAuthorizePublication,
   representationCanSelfVerify,
+  publicEntityProjectionCanOpenPublicMap,
+  publicEntityProjectionCarriesReportAuthority,
 } from "./comun-collective-entity-consent";
 
 describe("collective entity consent foundation", () => {
@@ -76,6 +78,8 @@ describe("collective entity consent foundation", () => {
     expect(candidateLegitimacyReviewCanPublish()).toBe(false);
     expect(candidateEligibilityForProjectionReviewCanPublish()).toBe(false);
     expect(candidateEligibilityCanOpenPublicMap()).toBe(false);
+    expect(publicEntityProjectionCanOpenPublicMap()).toBe(false);
+    expect(publicEntityProjectionCarriesReportAuthority()).toBe(false);
   });
 
   it("separates declared runtime consent and verification from publication authority", () => {
