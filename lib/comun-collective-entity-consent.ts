@@ -122,3 +122,14 @@ export function candidateEligibilityForProjectionReviewCanPublish() {
 export function candidateEligibilityCanOpenPublicMap() {
   return false as const;
 }
+
+
+/** R5 public entity projection is not a map publication and carries no map authority. */
+export function publicEntityProjectionCanOpenPublicMap() {
+  return false as const;
+}
+
+/** R5 entity projection never publishes or authorizes individual reports. */
+export function publicEntityProjectionCarriesReportAuthority() {
+  return false as const;
+}
