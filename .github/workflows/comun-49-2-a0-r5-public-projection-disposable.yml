@@ -15,7 +15,7 @@ on:
 permissions: { contents: read }
 
 concurrency:
-  group: comun-49-2-a0-r5-\${{ github.event.pull_request.number || github.ref }}
+  group: comun-49-2-a0-r5-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -49,8 +49,8 @@ jobs:
         run: |
           set -euo pipefail
           for secret_name in SUPABASE_ACCESS_TOKEN SUPABASE_DB_URL SUPABASE_SERVICE_ROLE_KEY SUPABASE_URL; do
-            if [[ -n "\${!secret_name:-}" ]]; then
-              echo "Unexpected remote Supabase credential: \${secret_name}" >&2
+            if [[ -n "${!secret_name:-}" ]]; then
+              echo "Unexpected remote Supabase credential: ${secret_name}" >&2
               exit 1
             fi
           done
