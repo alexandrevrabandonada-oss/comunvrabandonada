@@ -122,3 +122,19 @@ export function candidateEligibilityForProjectionReviewCanPublish() {
 export function candidateEligibilityCanOpenPublicMap() {
   return false as const;
 }
+
+
+/** R5 publication decision is entity-only and never map authority. */
+export function candidateProjectionDecisionCanOpenPublicMap() {
+  return false as const;
+}
+
+/** A sanitized R5 entity projection still cannot open the incident map. */
+export function sanitizedCollectiveEntityProjectionCanOpenPublicMap() {
+  return false as const;
+}
+
+/** R5 cannot mutate the independent future map eligibility gate. */
+export function collectiveEntityProjectionCanSetFutureMapEligibility() {
+  return false as const;
+}
