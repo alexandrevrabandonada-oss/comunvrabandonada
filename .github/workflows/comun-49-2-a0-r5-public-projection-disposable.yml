@@ -1,0 +1,110 @@
+name: COMUN 49.2-A0-R5 public projection disposable proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-a0-r5-public-projection-disposable.yml"
+      - "supabase/migrations/*_comun_relata_collective_entity_public_projection.sql"
+      - "lib/comun-collective-entity-projection-runtime*.ts"
+      - "lib/comun-collective-entity-consent*.ts"
+      - "app/comun/entidades/actions.ts"
+      - "app/comun/admin/entidades/actions.ts"
+      - "scripts/49-2-a0-r5-*"
+      - "scripts/ci/classify-migration-lane*.mjs"
+
+permissions: { contents: read }
+
+concurrency:
+  group: comun-49-2-a0-r5-\${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/ci/classify-migration-lane.node-test.mjs scripts/49-2-a0-r5-public-projection-contract.node-test.mjs
+      - run: npx vitest run lib/comun-collective-entity-projection-runtime.test.ts lib/comun-collective-entity-consent.test.ts
+      - run: node scripts/ci/validate-security-definer-migrations.mjs supabase/migrations/20260926153200_comun_relata_collective_entity_public_projection.sql
+      - run: npm run db:privileges:lint
+      - run: git diff --check origin/main...HEAD
+
+  disposable-supabase:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.117.0 }
+      - run: npm ci --ignore-scripts
+      - name: R1 + R2 + R3 + R4 + R5 public projection
+        shell: bash
+        run: |
+          set -euo pipefail
+          for secret_name in SUPABASE_ACCESS_TOKEN SUPABASE_DB_URL SUPABASE_SERVICE_ROLE_KEY SUPABASE_URL; do
+            if [[ -n "\${!secret_name:-}" ]]; then
+              echo "Unexpected remote Supabase credential: \${secret_name}" >&2
+              exit 1
+            fi
+          done
+
+          trap 'supabase stop --no-backup || true' EXIT
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          supabase db reset --local --yes
+          status="$(supabase status -o json)"
+          db="$(jq -r '.DB_URL' <<<"$status")"
+          export COMUN_R2_LOCAL_API_URL="$(jq -r '.API_URL' <<<"$status")"
+          export COMUN_R2_LOCAL_SERVICE_ROLE_KEY="$(jq -r '.SERVICE_ROLE_KEY' <<<"$status")"
+
+          case "$db" in
+            postgresql://*@127.0.0.1:*/*|postgresql://*@localhost:*/*) ;;
+            *) echo 'Refusing non-local database URL' >&2; exit 1 ;;
+          esac
+
+          users="$RUNNER_TEMP/comun-r5-auth-users.json"
+          node scripts/49-2-a0-r2-disposable-auth-users.mjs "$users"
+          actor_a="$(jq -r '.a' "$users")"
+          actor_b="$(jq -r '.b' "$users")"
+
+          psql "$db" -v ON_ERROR_STOP=1 \
+            -v actor_a="$actor_a" -v actor_b="$actor_b" \
+            -f scripts/49-2-a0-r5-public-projection-disposable.sql
+
+          COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL="$db" \
+            node scripts/ci/assert-zero-security-findings.mjs
+
+          for fn in \
+            "comun_relata_collective_entity_server_projection_review_queue('00000000-0000-0000-0000-000000000001')" \
+            "comun_relata_collective_entity_server_projection_decide('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','approved',null)" \
+            "comun_relata_entity_server_projection_list_own('00000000-0000-0000-0000-000000000001')"; do
+            for role_name in anon authenticated; do
+              if output="$(psql "$db" -v ON_ERROR_STOP=1 -c "begin; set local role $role_name; select * from public.$fn; rollback;" 2>&1)"; then
+                echo "R5 bridge directly executable by $role_name: $fn" >&2
+                exit 1
+              fi
+              grep -q 'permission denied for function' <<<"$output"
+            done
+          done
+
+          projection_columns="$(psql "$db" -At -v ON_ERROR_STOP=1 -c "
+            select string_agg(column_name,',' order by ordinal_position)
+            from information_schema.columns
+            where table_schema='public'
+              and table_name='comun_relata_collective_entity_public_projections'
+          ")"
+          test "$projection_columns" = "projection_id,public_name,entity_type,published_at"
+
+          public_rows="$(psql "$db" -At -v ON_ERROR_STOP=1 -c "
+            select count(*) from public.comun_relata_collective_entity_public_projections
+          ")"
+          test "$public_rows" = "0"
+
+          echo 'COMUN_49_2_A0_R5_DISPOSABLE_GREEN' >> "$GITHUB_STEP_SUMMARY"
