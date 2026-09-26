@@ -623,11 +623,7 @@ begin
       projection_id,public_name,entity_type,published_at
     ) values(
       v_projection_id,v_candidate.public_name,v_candidate.entity_type,v_now
-    )
-    on conflict (projection_id) do update
-      set public_name=excluded.public_name,
-          entity_type=excluded.entity_type,
-          published_at=excluded.published_at;
+    );
 
     insert into private.comun_relata_collective_entity_projection_events(
       candidate_id,projection_id,event_type,decision_request_id,
