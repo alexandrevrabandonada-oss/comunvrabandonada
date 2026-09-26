@@ -11,6 +11,10 @@ const workflow = fs.readFileSync(
   ".github/workflows/comun-49-2-a0-r2-authenticated-representation-disposable.yml",
   "utf8",
 );
+const disposable = fs.readFileSync(
+  "scripts/49-2-a0-r2-authenticated-representation-disposable.sql",
+  "utf8",
+);
 
 test("R2 keeps database bridges server-only and browser identity out of actions", () => {
   assert.match(migration, /p_actor_user_id uuid/g);
@@ -63,5 +67,21 @@ test("R2 disposable workflow has no Production credential or remote migration pa
   assert.match(
     workflow,
     /49-2-a0-r2-authenticated-representation-disposable\.sql/,
+  );
+});
+
+
+test("R2 disposable remains valid when later R3-R5 schemas are installed", () => {
+  assert.doesNotMatch(
+    disposable,
+    /pg_class[\s\S]*R2 public side effect appeared/i,
+  );
+  assert.match(
+    disposable,
+    /private\.comun_relata_collective_entity_candidates[\s\S]*R2 consent alone created candidate/i,
+  );
+  assert.match(
+    disposable,
+    /public\.comun_relata_collective_entity_public_projections[\s\S]*R2 flow created public projection/i,
   );
 });
