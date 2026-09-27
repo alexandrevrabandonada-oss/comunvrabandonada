@@ -1,0 +1,59 @@
+{
+  "release": "20260927-comun-49-2-r5-public-projection-gate",
+  "sourceMainSha": "ef5048ffe270b8b76c8d13e305339b2cc693117d",
+  "productionPreCaptureRun": "36288696034",
+  "productionPreCaptureSha256": "7a4c91f2576bc020ed3adaf734e7fce93954432e03d73104cd94e5ba605b8a8d",
+  "productionPreCaptureRawSha256": "436040a0fd5b93ff94ac05fd599d28efae546e68b3f7ace3cae8a2568ade7b90",
+  "productionPreCaptureArtifactDigest": "sha256:03cc76c21041ab2349c9b65212f69ef1ebf63ca6cc19bee08b36d92efdbef834",
+  "disposableProofRun": "36289232456",
+  "disposableProofDerivedSha256": "7cc01993a1c069c7b7c997bc4587414e863bd5c676f3531bcedaacee0d62bbd2",
+  "disposableProofArtifactDigest": "sha256:64d06a964307a3c613f56069bba0f7a16f49d56429fb5f8f36329fb7b7005265",
+  "postgresVersion": "17.6",
+  "migrations": [
+    {
+      "order": 1,
+      "version": "20260926110454",
+      "path": "supabase/migrations/20260926110454_comun_relata_collective_entity_public_projection_gate.sql",
+      "sha256": "4882f10a27a6a38263465498b2b15ce7d127c8c8bee58f2929dbe068834dc409"
+    }
+  ],
+  "migrationSetAlgorithm": "sha256-JSON.stringify([[path,sha256],...])",
+  "migrationSetSha256": "b6805edd57d2fc8cdf2a84d63a035c80665403c2aa757952822710c3e2d590fe",
+  "expectedPreFingerprint": "1a0f10d58073a0677c67bfdd82f58fadfd47be95b1efcc3d0dffd24457093e2c",
+  "expectedPreCanonicalFingerprint": "9ed1bb21d0e26797b7b0021fd1e1efd11b313dffeae7cf1b39c0cd95cbc31706",
+  "expectedPostFingerprint": "ccb89095e56cad37b6b0e8459eee4eee9c130abd709b78940a85578a302c317f",
+  "expectedPostCanonicalFingerprint": "160face699d0b22b88b0434a6393cedf587ce0ccf1f8338dd8765ec56f6fab4a",
+  "expectedBlockingFindings": 0,
+  "destructiveSql": false,
+  "requiresPromotion": true,
+  "releaseLedger": {
+    "relation": "public.comun_schema_releases",
+    "migrationPath": "bundle:supabase/release-bundles/20260927-comun-49-2-r5-public-projection-gate.json",
+    "migrationSha256": "b6805edd57d2fc8cdf2a84d63a035c80665403c2aa757952822710c3e2d590fe",
+    "status": "applied"
+  },
+  "changedObjects": [
+    "private.comun_relata_collective_entity_projection_decisions",
+    "public.comun_relata_collective_entity_public_projections with RLS and FORCE RLS and zero direct table grants",
+    "append-only decision trigger and guarded projection state transitions",
+    "two fail-closed suppression triggers",
+    "six private postgres-owned SECURITY DEFINER helpers",
+    "three public postgres-owned service-role-only SECURITY DEFINER bridges",
+    "supabase_migrations.schema_migrations R5 version",
+    "public.comun_schema_releases R5 logical row"
+  ],
+  "assertions": [
+    "R5 is one forward-only migration over accepted R1/R2/R3/R4 and Hardening",
+    "R4 eligible_for_projection_review is necessary but never publication authority by itself",
+    "publisher identity is server-derived and only an active dedicated publisher may decide",
+    "any active same-entity representative is forbidden from self-publication",
+    "projection decisions are append-only and idempotent by decision_request_id",
+    "publication rechecks live R4 eligibility and the live R1/R3 source chain",
+    "later contestation, loss of evidence, blocking or source invalidation suppresses the projection",
+    "restoring legitimacy never republishes automatically; a fresh publish decision is required",
+    "R5 creates no decision or projection business rows during schema promotion",
+    "R5 does not read or write future_map_eligibility and does not open the public map",
+    "POST_PENDING_LEDGER permits only exact structural verification followed by one logical ledger row",
+    "replay from POST performs zero schema or business writes"
+  ]
+}
