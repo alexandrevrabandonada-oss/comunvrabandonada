@@ -28,6 +28,10 @@ test("R5 creates a separate append-only publisher decision gate", () => {
   assert.match(migration, /profile\.role='publisher'/);
   assert.match(migration, /COMUN_RELATA_PROJECTION_DECISION_APPEND_ONLY/);
   assert.match(migration, /COMUN_RELATA_PROJECTION_SELF_PUBLISH_FORBIDDEN/);
+  assert.match(
+    migration,
+    /representation\.entity_id=v_candidate\.entity_id[\s\S]*representation\.user_id=p_publisher_user_id[\s\S]*representation\.status in \('declared','verified'\)/,
+  );
   assert.match(migration, /eligible_for_projection_review/);
 });
 
@@ -109,4 +113,14 @@ test("R5 public projection is explicitly classified as server-only in the canoni
     rlsMatrixAudit,
     /Sem grants diretos para anon\/authenticated\/service_role/,
   );
+});
+
+
+test("R5 disposable blocks a second active representative from publishing the same entity", () => {
+  const disposable = readFileSync(
+    "scripts/49-2-a0-r5-public-projection-disposable.sql",
+    "utf8",
+  );
+  assert.match(disposable, /R5 second active representative self-published/);
+  assert.match(disposable, /Another active representative cannot publish this entity/);
 });

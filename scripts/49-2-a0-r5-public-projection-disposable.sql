@@ -12,7 +12,8 @@ insert into public.comun_admin_users(user_id,email,role,is_active) values
   ('49250000-0000-4000-8000-000000000001','r5-reviewer-factual@example.invalid','viewer',true),
   ('49250000-0000-4000-8000-000000000002','r5-reviewer-editor@example.invalid','viewer',true),
   ('49250000-0000-4000-8000-000000000003','r5-publisher@example.invalid','viewer',true),
-  (pg_catalog.current_setting('comun.r5.actor_a')::uuid,'r5-owner-publisher@example.invalid','viewer',true)
+  (pg_catalog.current_setting('comun.r5.actor_a')::uuid,'r5-owner-publisher@example.invalid','viewer',true),
+  (pg_catalog.current_setting('comun.r5.actor_b')::uuid,'r5-second-representative-publisher@example.invalid','viewer',true)
 on conflict (user_id) do update set is_active=excluded.is_active;
 
 insert into public.comun_admin_profiles(
@@ -21,7 +22,8 @@ insert into public.comun_admin_profiles(
   ('49250000-0000-4000-8000-000000000001','R5 factual reviewer','r5-reviewer-factual@example.invalid','factual_reviewer',true),
   ('49250000-0000-4000-8000-000000000002','R5 editor reviewer','r5-reviewer-editor@example.invalid','editor',true),
   ('49250000-0000-4000-8000-000000000003','R5 publisher','r5-publisher@example.invalid','publisher',true),
-  (pg_catalog.current_setting('comun.r5.actor_a')::uuid,'R5 owner publisher','r5-owner-publisher@example.invalid','publisher',true)
+  (pg_catalog.current_setting('comun.r5.actor_a')::uuid,'R5 owner publisher','r5-owner-publisher@example.invalid','publisher',true),
+  (pg_catalog.current_setting('comun.r5.actor_b')::uuid,'R5 second representative publisher','r5-second-representative-publisher@example.invalid','publisher',true)
 on conflict (email) do update set
   auth_user_id=excluded.auth_user_id,
   display_name=excluded.display_name,
@@ -100,6 +102,20 @@ select * from public.comun_relata_collective_entity_server_candidate_review(
   'representation_legitimacy','supported',
   'operational_confirmation','COMUN-R5-REPRESENTATION'
 );
+with new_representation as (
+  insert into private.comun_relata_collective_entity_representations(
+    entity_id,user_id
+  ) values(
+    :'entity_r5'::uuid,
+    pg_catalog.current_setting('comun.r5.actor_b')::uuid
+  )
+  returning id,entity_id,user_id
+)
+insert into private.comun_relata_collective_entity_events(
+  entity_id,representation_id,actor_user_id,event_type
+)
+select entity_id,id,user_id,'representation_declared'
+  from new_representation;
 commit;
 
 do $$
@@ -147,8 +163,19 @@ begin
   exception when insufficient_privilege then
     if sqlerrm<>'COMUN_RELATA_PROJECTION_SELF_PUBLISH_FORBIDDEN' then raise; end if;
   end;
+
+  begin
+    perform public.comun_relata_collective_entity_server_projection_decide(
+      '49250000-0000-4000-8000-000000000122',
+      pg_catalog.current_setting('comun.r5.actor_b')::uuid,
+      candidate,'publish','Another active representative cannot publish this entity.'
+    );
+    raise exception 'R5 second active representative self-published';
+  exception when insufficient_privilege then
+    if sqlerrm<>'COMUN_RELATA_PROJECTION_SELF_PUBLISH_FORBIDDEN' then raise; end if;
+  end;
 end;
-$$;
+$;
 
 begin;
 set local role service_role;

@@ -20,8 +20,9 @@ R4 factual review roles remain \`admin\`, \`editor\` and
 \`publisher\` profile, backed by an active \`comun_admin_users\` access row.
 
 The publisher identity comes from the authenticated server session and is not a
-browser input. The database also rejects a publisher whose auth user owns the
-candidate's source representation.
+browser input. The database rejects any publisher who still has an active
+`declared` or `verified` representation of the candidate's entity, even when
+another representative created the candidate.
 
 ## Decision history
 

@@ -466,8 +466,9 @@ begin
   if exists (
     select 1
       from private.comun_relata_collective_entity_representations representation
-     where representation.id=v_candidate.source_representation_id
+     where representation.entity_id=v_candidate.entity_id
        and representation.user_id=p_publisher_user_id
+       and representation.status in ('declared','verified')
   ) then
     raise exception using errcode='42501',
       message='COMUN_RELATA_PROJECTION_SELF_PUBLISH_FORBIDDEN';
@@ -617,7 +618,7 @@ comment on table public.comun_relata_collective_entity_public_projections is
 comment on function public.comun_relata_collective_entity_server_projection_review_queue(uuid) is
   'R5 publisher-only queue. It exposes only sanitized candidates already eligible for projection review.';
 comment on function public.comun_relata_collective_entity_server_projection_decide(uuid,uuid,uuid,text,text) is
-  'R5 publisher-only decision bridge. Publisher identity is server-derived; self-publication is forbidden.';
+  'R5 publisher-only decision bridge. Publisher identity is server-derived; any active representative of the entity is forbidden from publishing it.';
 comment on function public.comun_relata_collective_entity_server_public_projection_list() is
   'R5 server-only sanitized public-ready projection list. It returns no candidate, entity, reviewer, consent, evidence, report or location identifiers.';
 
