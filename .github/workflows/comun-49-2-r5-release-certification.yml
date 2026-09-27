@@ -1,0 +1,75 @@
+name: COMUN 49.2 R5 post-merge Production PRE certification
+
+on:
+  pull_request:
+    types: [opened]
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-r5-release-certification.yml"
+      - "scripts/49-2-r5-release/capture-production-pre.mjs"
+  workflow_dispatch:
+
+permissions: { contents: read }
+
+jobs:
+  production-pre-read-only:
+    if: >-
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       github.head_ref == 'codex/comun-49-2-r5-release-certification') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Require exact merged main base
+        shell: bash
+        env:
+          EXPECTED_MAIN_SHA: ef5048ffe270b8b76c8d13e305339b2cc693117d
+        run: |
+          set -euo pipefail
+          test "${{ github.event.pull_request.base.sha || github.sha }}" = "$EXPECTED_MAIN_SHA"
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$EXPECTED_MAIN_SHA"
+      - name: Capture Production catalog in read-only transaction
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+          COMUN_R5_EXPECTED_MAIN_SHA: ef5048ffe270b8b76c8d13e305339b2cc693117d
+        run: |
+          node scripts/49-2-r5-release/capture-production-pre.mjs --output=.ci-artifacts/r5-production-pre.json
+      - name: Sanitize and hash capture
+        shell: bash
+        run: |
+          set -euo pipefail
+          if rg -i 'postgresql://|password|token|secret|@.*supabase\.co' .ci-artifacts/r5-production-pre.json; then
+            echo 'COMUN_R5_CERT_ARTIFACT_UNSAFE' >&2
+            exit 1
+          fi
+          sha256sum .ci-artifacts/r5-production-pre.json | tee .ci-artifacts/r5-production-pre.sha256
+      - name: Public non-mutating smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(curl -sS -o /dev/null -w '%{http_code}' https://comunsocial.online/comun)" = "200"
+          test "$(curl -sS -o /dev/null -w '%{http_code}' https://comunsocial.online/comun/denuncias)" = "200"
+          test "$(curl -sS -o /dev/null -w '%{http_code}' https://comunsocial.online/comun/relatar)" = "200"
+          test "$(curl -sS -o /dev/null -w '%{http_code}' https://comunsocial.online/comun/minha-participacao)" = "200"
+          range="$(curl -sSI -H 'Range: bytes=0-15' https://comunsocial.online/comun/denuncias/volta-redonda.pmtiles | head -1 | awk '{print $2}')"
+          test "$range" = "206"
+          www="$(curl -sSI https://www.comunsocial.online/comun | head -1 | awk '{print $2}')"
+          test "$www" = "308"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-r5-production-pre-${{ github.run_id }}
+          path: |
+            .ci-artifacts/r5-production-pre.json
+            .ci-artifacts/r5-production-pre.sha256
+          if-no-files-found: error
+          retention-days: 7
