@@ -116,7 +116,12 @@ apply_migration 20260926110454 supabase/migrations/20260926110454_comun_relata_c
 
 node scripts/49-2-r5-release/capture-disposable.mjs   --mode=post --output="$artifact/post.json"
 
-COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL="$COMUN_DISPOSABLE_DB_URL"   node scripts/ci/assert-zero-security-findings.mjs
+node --input-type=module - "$artifact/post.json" <<'NODE'
+import fs from 'node:fs';
+const post=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+if(post.blockingFindings!==0) throw Error('COMUN_R5_ZERO_SECURITY_FINDINGS_REQUIRED');
+console.log('COMUN_ZERO_SECURITY_FINDINGS_OK fingerprint='+post.canonicalFingerprint);
+NODE
 
 migration='supabase/migrations/20260926110454_comun_relata_collective_entity_public_projection_gate.sql'
 migration_sha="$(sha256sum "$migration" | awk '{print $1}')"
