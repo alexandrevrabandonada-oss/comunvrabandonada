@@ -7,6 +7,11 @@ import {
   type ComunCollectiveEntityReviewDecision,
   type ComunCollectiveEntityReviewStage,
 } from "@/lib/comun-collective-entity-legitimacy-runtime";
+import {
+  decideCollectiveEntityProjection,
+  listCollectiveEntityProjectionReviewQueue,
+  type ComunCollectiveEntityProjectionDecision,
+} from "@/lib/comun-collective-entity-projection-runtime";
 
 /**
  * Reviewer identity is intentionally absent from action input. The runtime
@@ -26,4 +31,23 @@ export async function reviewCollectiveEntityCandidateAction(input: {
   basisReferencePrivate?: string | null;
 }) {
   return reviewCollectiveEntityCandidate(input);
+}
+
+
+/**
+ * R5 publisher identity is intentionally absent from action input. The server
+ * derives it from auth.getUser(); the database independently requires the
+ * dedicated publisher role and rejects self-publication.
+ */
+export async function listCollectiveEntityProjectionReviewQueueAction() {
+  return listCollectiveEntityProjectionReviewQueue();
+}
+
+export async function decideCollectiveEntityProjectionAction(input: {
+  requestId: string;
+  candidateId: string;
+  decision: ComunCollectiveEntityProjectionDecision;
+  rationalePrivate: string;
+}) {
+  return decideCollectiveEntityProjection(input);
 }

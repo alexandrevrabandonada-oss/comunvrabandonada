@@ -14,6 +14,9 @@ import {
   candidateLegitimacyReviewCanPublish,
   candidateEligibilityForProjectionReviewCanPublish,
   candidateEligibilityCanOpenPublicMap,
+  candidateProjectionDecisionCanOpenPublicMap,
+  sanitizedCollectiveEntityProjectionCanOpenPublicMap,
+  collectiveEntityProjectionCanSetFutureMapEligibility,
   entityConsentAloneCanOpenPublicMap,
   isActiveCollectiveRepresentation,
   isNonRevokedCollectiveRepresentation,
@@ -76,6 +79,9 @@ describe("collective entity consent foundation", () => {
     expect(candidateLegitimacyReviewCanPublish()).toBe(false);
     expect(candidateEligibilityForProjectionReviewCanPublish()).toBe(false);
     expect(candidateEligibilityCanOpenPublicMap()).toBe(false);
+    expect(candidateProjectionDecisionCanOpenPublicMap()).toBe(false);
+    expect(sanitizedCollectiveEntityProjectionCanOpenPublicMap()).toBe(false);
+    expect(collectiveEntityProjectionCanSetFutureMapEligibility()).toBe(false);
   });
 
   it("separates declared runtime consent and verification from publication authority", () => {

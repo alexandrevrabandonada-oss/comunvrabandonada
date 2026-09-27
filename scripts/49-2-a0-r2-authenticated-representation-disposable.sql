@@ -75,6 +75,7 @@ declare
   eb uuid:=pg_catalog.current_setting('comun.r2.entity_b')::uuid;
   v_count integer;
   v_candidate_exists boolean;
+  v_projection_exists boolean;
 begin
   if ea<>pg_catalog.current_setting('comun.r2.replay_a')::uuid then
     raise exception 'R2 request replay changed entity';
@@ -109,16 +110,18 @@ begin
     raise exception 'cross-actor representation revoke accepted';
   exception when insufficient_privilege then null;
   end;
-  if exists(select 1 from pg_catalog.pg_class c
-      join pg_catalog.pg_namespace n on n.oid=c.relnamespace
-      where n.nspname='public' and (c.relname like '%collective%candidate%'
-        or c.relname like '%collective%map_feature%')) then
-    raise exception 'R2 public side effect appeared';
-  end if;
+  -- Later R3-R5 schemas may legitimately exist after a full local reset.
+  -- R2's invariant is behavioral: its owner/consent flow must not create
+  -- candidate or projection rows in those later surfaces.
   if pg_catalog.to_regclass('private.comun_relata_collective_entity_candidates') is not null then
     execute 'select exists(select 1 from private.comun_relata_collective_entity_candidates)'
       into v_candidate_exists;
     if v_candidate_exists then raise exception 'R2 consent alone created candidate'; end if;
+  end if;
+  if pg_catalog.to_regclass('public.comun_relata_collective_entity_public_projections') is not null then
+    execute 'select exists(select 1 from public.comun_relata_collective_entity_public_projections)'
+      into v_projection_exists;
+    if v_projection_exists then raise exception 'R2 flow created public projection'; end if;
   end if;
 end;
 $$;
