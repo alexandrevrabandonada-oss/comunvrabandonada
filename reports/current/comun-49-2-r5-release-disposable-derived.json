@@ -1,0 +1,20 @@
+{
+  "scope": "COMUN_49_2_R5_RELEASE_DERIVED",
+  "migrationSha256": "4882f10a27a6a38263465498b2b15ce7d127c8c8bee58f2929dbe068834dc409",
+  "migrationSetSha256": "b6805edd57d2fc8cdf2a84d63a035c80665403c2aa757952822710c3e2d590fe",
+  "expectedPreFingerprint": "1a0f10d58073a0677c67bfdd82f58fadfd47be95b1efcc3d0dffd24457093e2c",
+  "expectedPreCanonicalFingerprint": "9ed1bb21d0e26797b7b0021fd1e1efd11b313dffeae7cf1b39c0cd95cbc31706",
+  "expectedPostFingerprint": "ccb89095e56cad37b6b0e8459eee4eee9c130abd709b78940a85578a302c317f",
+  "expectedPostCanonicalFingerprint": "160face699d0b22b88b0434a6393cedf587ce0ccf1f8338dd8765ec56f6fab4a",
+  "postgresVersion": "17.6",
+  "blockingFindings": 0,
+  "decisionRows": 0,
+  "projectionRows": 0,
+  "bridgeCount": 3,
+  "helperCount": 6,
+  "triggerCount": 4,
+  "productionPreCaptureRun": "36288696034",
+  "productionPreCaptureArtifactDigest": "sha256:03cc76c21041ab2349c9b65212f69ef1ebf63ca6cc19bee08b36d92efdbef834",
+  "disposableProofRun": "36289232456",
+  "disposableProofArtifactDigest": "sha256:64d06a964307a3c613f56069bba0f7a16f49d56429fb5f8f36329fb7b7005265"
+}
