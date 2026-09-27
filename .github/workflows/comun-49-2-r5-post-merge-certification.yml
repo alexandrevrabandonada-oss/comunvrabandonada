@@ -1,0 +1,70 @@
+name: COMUN 49.2 R5 post-merge Production PRE certification
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-r5-post-merge-certification.yml"
+      - "scripts/49-2-r5-release/capture-post-merge-production-pre.mjs"
+
+permissions: { contents: read }
+
+jobs:
+  production-pre-read-only:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'codex/comun-49-2-r5-post-merge-certification' &&
+      github.event.pull_request.base.sha == 'a8c9e4494d90c3e63561d1d79e304d1236217547'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Require exact merged release main
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ github.event.pull_request.base.sha }}" = "a8c9e4494d90c3e63561d1d79e304d1236217547"
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "a8c9e4494d90c3e63561d1d79e304d1236217547"
+      - name: Capture Production R5 PRE in read-only transaction
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+          COMUN_R5_EXPECTED_MAIN_SHA: a8c9e4494d90c3e63561d1d79e304d1236217547
+        run: |
+          node scripts/49-2-r5-release/capture-post-merge-production-pre.mjs \
+            --output=.ci-artifacts/r5-post-merge-production-pre.json
+      - name: Sanitize and hash capture
+        shell: bash
+        run: |
+          set -euo pipefail
+          if rg -i 'postgresql://|password|token|secret|@.*supabase\.co' .ci-artifacts/r5-post-merge-production-pre.json; then
+            echo 'COMUN_R5_POST_MERGE_CERT_ARTIFACT_UNSAFE' >&2
+            exit 1
+          fi
+          sha256sum .ci-artifacts/r5-post-merge-production-pre.json | tee .ci-artifacts/r5-post-merge-production-pre.sha256
+      - name: Public non-mutating smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(curl -sS -o /dev/null -w '%{http_code}' https://comunsocial.online/comun)" = "200"
+          test "$(curl -sS -o /dev/null -w '%{http_code}' https://comunsocial.online/comun/denuncias)" = "200"
+          test "$(curl -sS -o /dev/null -w '%{http_code}' https://comunsocial.online/comun/relatar)" = "200"
+          test "$(curl -sS -o /dev/null -w '%{http_code}' https://comunsocial.online/comun/minha-participacao)" = "200"
+          test "$(curl -sSI -H 'Range: bytes=0-15' https://comunsocial.online/comun/denuncias/volta-redonda.pmtiles | head -1 | awk '{print $2}')" = "206"
+          test "$(curl -sSI https://www.comunsocial.online/comun | head -1 | awk '{print $2}')" = "308"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-r5-post-merge-pre-${{ github.run_id }}
+          path: |
+            .ci-artifacts/r5-post-merge-production-pre.json
+            .ci-artifacts/r5-post-merge-production-pre.sha256
+          if-no-files-found: error
+          retention-days: 7
