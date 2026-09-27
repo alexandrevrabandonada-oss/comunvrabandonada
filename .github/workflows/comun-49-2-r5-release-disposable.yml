@@ -11,7 +11,7 @@ on:
 permissions: { contents: read }
 jobs:
   release:
-    if: github.head_ref == 'codex/comun-49-2-r5-release'
+    if: startsWith(github.head_ref, 'codex/comun-49-2-r5-')
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -31,7 +31,7 @@ jobs:
       - name: Validate immutable R5 release
         run: |
           node scripts/49-2-r5-release/validate-manifest.mjs
-          node --test scripts/49-2-r5-release/release-contract.node-test.mjs
+          node --test scripts/49-2-r5-release/*.node-test.mjs
       - name: Reproduce exact Production PRE and derive exact R5 POST
         run: bash scripts/49-2-r5-release/derive-post.sh
       - name: Require derived fingerprints to match pinned evidence

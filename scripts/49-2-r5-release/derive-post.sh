@@ -157,3 +157,49 @@ NODE
 sha256sum "$artifact/derived.json" | tee "$artifact/derived.sha256"
 sha256sum "$migration" | tee "$artifact/migration.sha256"
 echo COMUN_49_2_R5_RELEASE_DISPOSABLE_DERIVED
+
+
+# Rehearse the exact forward-only promotion runner on a second fresh PRE.
+database="comun_r5_promotion_${GITHUB_RUN_ID:-0}"
+docker exec -e PGPASSWORD=postgres "$container" createdb -U supabase_admin "$database"
+for file in post-schema.sql technical-ledger.sql synthetic-buckets.sql restore-expression.sql; do
+  docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database" \
+    -X -v ON_ERROR_STOP=1 -f "/tmp/$file" >"$artifact/runner-${file%.sql}.log"
+done
+export COMUN_DISPOSABLE_DB_URL="postgresql://postgres:postgres@127.0.0.1:58532/$database"
+export COMUN_DISPOSABLE_ADMIN_DB_URL="postgresql://supabase_admin:postgres@127.0.0.1:58532/$database"
+
+apply_migration 20260901000000 supabase/migrations/20260901000000_comun_relata_collective_entity_consent_foundation.sql
+docker exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database" \
+  -X -v ON_ERROR_STOP=1 -c 'grant usage on schema public to postgres' >/dev/null
+apply_migration 20260924015511 supabase/migrations/20260924015511_comun_relata_collective_entity_authenticated_runtime.sql
+docker exec -e PGPASSWORD=postgres "$container" psql -U postgres -d "$database" \
+  -X -v ON_ERROR_STOP=1 -f /tmp/prove-ledger.sql >"$artifact/runner-r12-ledger.log"
+apply_migration 20260924225210 supabase/migrations/20260924225210_comun_relata_collective_entity_private_candidate.sql
+docker exec -e PGPASSWORD=postgres "$container" psql -U postgres -d "$database" -X -v ON_ERROR_STOP=1 -c "
+  insert into public.comun_schema_releases
+    (release,migration_path,migration_sha256,pre_fingerprint,post_fingerprint,status)
+  values (
+    '20260924-comun-49-2-r3-private-candidate',
+    'bundle:supabase/release-bundles/20260924-comun-49-2-r3-private-candidate.json',
+    'b16573ccc85ebcba3a28fb433cc33c04fd3b61b2d80a25fe4df02a0ab1c4d536',
+    '7e957c3f154efe87f7104915a5b1e095cc77dc04d488bd4041b4c859f5db1b60',
+    '5172b8ec626eaabd1efdb9c2273bd947867416ae92344d349f5600a0ced2ccd1',
+    'applied'
+  );" >"$artifact/runner-r3-ledger.log"
+apply_migration 20260925014131 supabase/migrations/20260925014131_comun_relata_collective_entity_legitimacy_eligibility.sql
+docker exec -e PGPASSWORD=postgres "$container" psql -U postgres -d "$database" -X -v ON_ERROR_STOP=1 -c "
+  insert into public.comun_schema_releases
+    (release,migration_path,migration_sha256,pre_fingerprint,post_fingerprint,status)
+  values (
+    '20260925-comun-49-2-r4-private-legitimacy-eligibility',
+    'bundle:supabase/release-bundles/20260925-comun-49-2-r4-private-legitimacy-eligibility.json',
+    '95bb689c46052745e1610105615f6905845686d7ef6b39c38174a72e25289e46',
+    '5172b8ec626eaabd1efdb9c2273bd947867416ae92344d349f5600a0ced2ccd1',
+    '1a0f10d58073a0677c67bfdd82f58fadfd47be95b1efcc3d0dffd24457093e2c',
+    'applied'
+  );" >"$artifact/runner-r4-ledger.log"
+
+node scripts/49-2-r5-release/run-disposable-promotion.mjs \
+  --output="$artifact/runner.json"
+echo COMUN_49_2_R5_RELEASE_FORWARD_ONLY_GREEN
