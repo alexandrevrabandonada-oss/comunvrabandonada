@@ -24,86 +24,18 @@ jobs:
       - uses: supabase/setup-cli@v1
         with: { version: 2.117.0 }
       - run: npm ci --ignore-scripts
-      - name: Derive exact PRE and POST locally
+      - name: Derive exact PRE and POST from Production-like fixture
         shell: bash
-        run: |
-          set -euo pipefail
-          for name in SUPABASE_ACCESS_TOKEN SUPABASE_DB_URL SUPABASE_SERVICE_ROLE_KEY SUPABASE_URL; do
-            test -z "${!name:-}"
-          done
-          trap 'supabase stop --no-backup || true' EXIT
-
-          migration='supabase/migrations/20260926110454_comun_relata_collective_entity_public_projection_gate.sql'
-          held="$RUNNER_TEMP/$(basename "$migration")"
-          mv "$migration" "$held"
-
-          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
-          supabase db reset --local --yes
-          status="$(supabase status -o json)"
-          db="$(jq -r '.DB_URL' <<<"$status")"
-          case "$db" in
-            postgresql://*@127.0.0.1:*/*|postgresql://*@localhost:*/*) ;;
-            *) echo 'Refusing non-local DB' >&2; exit 1 ;;
-          esac
-          export COMUN_DISPOSABLE_DB_URL="$db"
-
-          node scripts/49-2-r5-release/capture-disposable.mjs             --mode=pre --output=.ci-artifacts/r5-disposable-pre.json
-
-          node --input-type=module - <<'NODE'
-          import fs from 'node:fs';
-          const actual=JSON.parse(fs.readFileSync('.ci-artifacts/r5-disposable-pre.json','utf8'));
-          const expected=JSON.parse(fs.readFileSync('reports/current/comun-49-2-r5-production-pre.json','utf8'));
-          if(actual.postgresVersion!==expected.postgresVersion ||
-             actual.runnerFingerprint!==expected.runnerFingerprint ||
-             actual.canonicalFingerprint!==expected.canonicalFingerprint ||
-             actual.blockingFindings!==0)
-            throw Error('COMUN_R5_DISPOSABLE_PRE_NOT_PRODUCTION_EQUIVALENT');
-          NODE
-
-          mv "$held" "$migration"
-          psql "$db" -v ON_ERROR_STOP=1 -f "$migration"
-          psql "$db" -v ON_ERROR_STOP=1             -c "insert into supabase_migrations.schema_migrations(version) values ('20260926110454')"
-
-          node scripts/49-2-r5-release/capture-disposable.mjs             --mode=post --output=.ci-artifacts/r5-disposable-post.json
-          COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL="$db"             node scripts/ci/assert-zero-security-findings.mjs
-
-          migration_sha="$(sha256sum "$migration" | awk '{print $1}')"
-          migration_set="$(node --input-type=module - "$migration" "$migration_sha" <<'NODE'
-          import {createHash} from 'node:crypto';
-          const [, , path,sha]=process.argv;
-          process.stdout.write(createHash('sha256').update(JSON.stringify([[path,sha]])).digest('hex'));
-          NODE
-          )"
-          node --input-type=module - "$migration_sha" "$migration_set" <<'NODE'
-          import fs from 'node:fs';
-          const [, , migrationSha256,migrationSetSha256]=process.argv;
-          const pre=JSON.parse(fs.readFileSync('.ci-artifacts/r5-disposable-pre.json','utf8'));
-          const post=JSON.parse(fs.readFileSync('.ci-artifacts/r5-disposable-post.json','utf8'));
-          fs.writeFileSync('.ci-artifacts/r5-derived.json',JSON.stringify({
-            scope:'COMUN_49_2_R5_RELEASE_DERIVED',
-            migrationSha256,migrationSetSha256,
-            expectedPreFingerprint:pre.runnerFingerprint,
-            expectedPreCanonicalFingerprint:pre.canonicalFingerprint,
-            expectedPostFingerprint:post.runnerFingerprint,
-            expectedPostCanonicalFingerprint:post.canonicalFingerprint,
-            postgresVersion:post.postgresVersion,
-            blockingFindings:post.blockingFindings,
-            decisionRows:post.decisionRows,
-            projectionRows:post.projectionRows,
-            bridgeCount:post.bridgeCount,
-            helperCount:post.helperCount,
-            triggerCount:post.triggerCount
-          },null,2)+'\n');
-          NODE
-          sha256sum .ci-artifacts/r5-derived.json | tee .ci-artifacts/r5-derived.sha256
+        run: bash scripts/49-2-r5-release/derive-post.sh
       - run: node --test scripts/49-2-a0-r5-public-projection-contract.node-test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: comun-49-2-r5-release-derived-${{ github.run_id }}
           path: |
-            .ci-artifacts/r5-disposable-pre.json
-            .ci-artifacts/r5-disposable-post.json
-            .ci-artifacts/r5-derived.json
-            .ci-artifacts/r5-derived.sha256
+            .ci-artifacts/comun-49-2-r5-release/pre.json
+            .ci-artifacts/comun-49-2-r5-release/post.json
+            .ci-artifacts/comun-49-2-r5-release/derived.json
+            .ci-artifacts/comun-49-2-r5-release/derived.sha256
+            .ci-artifacts/comun-49-2-r5-release/migration.sha256
           if-no-files-found: error
           retention-days: 7
