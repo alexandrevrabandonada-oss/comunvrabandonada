@@ -35,8 +35,11 @@ if (!process.env.SUPABASE_DB_URL)
 const head = execFileSync("git", ["rev-parse", "HEAD"], {
   encoding: "utf8",
 }).trim();
+const mergeBase = execFileSync("git", ["merge-base", expectedMainSha, head], {
+  encoding: "utf8",
+}).trim();
 if (
-  head !== expectedMainSha ||
+  mergeBase !== expectedMainSha ||
   process.env.GITHUB_BASE_REF !== "main" ||
   process.env.GITHUB_HEAD_REF !== "codex/comun-49-2-r5-release-certification"
 )
