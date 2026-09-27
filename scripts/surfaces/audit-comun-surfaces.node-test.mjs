@@ -16,7 +16,8 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   // A0 adds /comun/denuncias as a public semantic door over Relata.
   // B0 adds /comun/denuncias/mapa as the canonical, flag-cloaked public map surface.
   // B2-A1 adds the public problem detail surface over the existing map.
-  assert.equal(summary.total, 229);
+  // R5 adds one publisher-only collective-entity projection desk.
+  assert.equal(summary.total, 230);
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
     "admin",
@@ -32,7 +33,7 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   assert.ok(routes.every((route) => route.wave >= 1 && route.wave <= 4));
   assert.equal(summary.legacy_rendered, 0);
   assert.equal(summary.p0_p1, 0);
-  assert.equal(summary.admin_wave3, 83);
+  assert.equal(summary.admin_wave3, 84);
   assert.equal(summary.admin_wave4, 12);
   assert.equal(summary.unknown_routes, 0);
   assert.equal(summary.structural_incompatibilities, 0);
@@ -42,7 +43,7 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
 test("admin civic and editorial routes inherit navigation and table contracts", async () => {
   const { routes } = await auditComunSurfaces({ write: false });
   const wave3 = routes.filter((route) => route.wave === 3);
-  assert.equal(wave3.length, 83);
+  assert.equal(wave3.length, 84);
   assert.ok(wave3.every((route) => route.shell_mode === "admin"));
   assert.ok(wave3.every((route) => route.contextual_app_bar));
   assert.ok(wave3.every((route) => route.preserves_filters_or_return));
