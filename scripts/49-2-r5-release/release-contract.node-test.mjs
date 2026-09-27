@@ -24,6 +24,8 @@ test("state machine recognizes exact PRE and exact POST_PENDING_LEDGER only",()=
  const b={...baseline,migrationHistoryCount:2,migrationHistorySha256:createHash("sha256").update(JSON.stringify(base)).digest("hex")};
  const pre={postgresVersion:"17.6",blockingFindings:0,migrations:base,r5Present:false,
   runnerFingerprint:manifest.expectedPreFingerprint,canonicalFingerprint:manifest.expectedPreCanonicalFingerprint,
+  r12Ledger:"PRESENT_ACCEPTED",r3Ledger:"PRESENT_ACCEPTED",r4Ledger:"PRESENT_ACCEPTED",
+  hardeningLedger:"PRESENT_ACCEPTED",r5Ledger:"ABSENT",
   decisionTablePresent:false,projectionTablePresent:false,bridgeCount:0,helperCount:0,triggerCount:0};
  assert.deepEqual(classifyR5Release(pre,manifest,b),{state:"PRE",action:"APPLY_R5"});
  const post={...pre,migrations:[...base,"20260926110454"],r5Present:true,
