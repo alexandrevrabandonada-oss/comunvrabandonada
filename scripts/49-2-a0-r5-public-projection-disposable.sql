@@ -180,7 +180,7 @@ begin
     if sqlerrm<>'COMUN_RELATA_PROJECTION_SELF_PUBLISH_FORBIDDEN' then raise; end if;
   end;
 end;
-$;
+$$;
 
 begin;
 set local role service_role;
