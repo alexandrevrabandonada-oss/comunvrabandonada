@@ -59,6 +59,7 @@ const ADMIN_GROUPS: readonly AdminGroup[] = [
       ["Alertas", "/comun/admin/alertas"],
       ["Dossiês públicos", "/comun/dossies"],
       ["Revisões de dossiês", "/comun/admin/dossies/revisoes"],
+      ["Entidades coletivas", "/comun/admin/entidades"],
       ["Notificações", "/comun/admin/notificacoes"],
     ],
   },

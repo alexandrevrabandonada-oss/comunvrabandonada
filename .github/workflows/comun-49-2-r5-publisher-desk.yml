@@ -1,0 +1,33 @@
+name: COMUN 49.2 R5 publisher desk contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/comun/admin/entidades/**"
+      - "components/comun-admin-shell-client.tsx"
+      - "lib/comun-surface-migration.ts"
+      - "lib/comun-collective-entity-projection-runtime*.ts"
+      - "scripts/49-2-a0-r5-publisher-desk-contract.node-test.mjs"
+      - ".github/workflows/comun-49-2-r5-publisher-desk.yml"
+
+permissions: { contents: read }
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Publisher desk contract
+        run: node --test scripts/49-2-a0-r5-publisher-desk-contract.node-test.mjs
+      - name: R5 runtime authority and DTO tests
+        run: npx vitest run lib/comun-collective-entity-projection-runtime.test.ts
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
