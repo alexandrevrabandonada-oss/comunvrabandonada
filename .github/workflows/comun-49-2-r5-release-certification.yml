@@ -2,7 +2,7 @@ name: COMUN 49.2 R5 post-merge Production PRE certification
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize]
     branches: [main]
     paths:
       - ".github/workflows/comun-49-2-r5-release-certification.yml"
