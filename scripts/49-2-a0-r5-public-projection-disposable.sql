@@ -102,6 +102,12 @@ select * from public.comun_relata_collective_entity_server_candidate_review(
   'representation_legitimacy','supported',
   'operational_confirmation','COMUN-R5-REPRESENTATION'
 );
+commit;
+
+-- Fixture-only setup as postgres: R2 deliberately exposes no bridge for adding
+-- a second representative to an existing entity. Keep the production contract
+-- closed while proving that R5 rejects any active representative, not only the
+-- candidate's source representative.
 with new_representation as (
   insert into private.comun_relata_collective_entity_representations(
     entity_id,user_id
@@ -116,7 +122,6 @@ insert into private.comun_relata_collective_entity_events(
 )
 select entity_id,id,user_id,'representation_declared'
   from new_representation;
-commit;
 
 do $$
 declare
