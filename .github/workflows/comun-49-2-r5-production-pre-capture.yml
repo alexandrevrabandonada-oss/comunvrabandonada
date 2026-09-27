@@ -1,0 +1,61 @@
+name: COMUN 49.2 R5 Production PRE read-only capture
+
+on:
+  pull_request:
+    types: [opened]
+    branches: [main]
+    paths:
+      - .github/workflows/comun-49-2-r5-production-pre-capture.yml
+      - scripts/49-2-r5-release/capture-production-pre.mjs
+
+permissions: { contents: read }
+
+jobs:
+  production-pre-capture:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'codex/comun-49-2-r5-public-projection-release' &&
+      github.event.pull_request.base.sha == 'ef5048ffe270b8b76c8d13e305339b2cc693117d'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ef5048ffe270b8b76c8d13e305339b2cc693117d
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: candidate
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - name: Confirm immutable main source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = ef5048ffe270b8b76c8d13e305339b2cc693117d
+          test "$(git ls-remote https://github.com/alexandrevrabandonada-oss/comunvrabandonada.git refs/heads/main | cut -f1)" = ef5048ffe270b8b76c8d13e305339b2cc693117d
+      - name: Capture Production R5 PRE in read-only transaction
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+          COMUN_R5_EXPECTED_MAIN_SHA: ef5048ffe270b8b76c8d13e305339b2cc693117d
+        run: node candidate/scripts/49-2-r5-release/capture-production-pre.mjs --output=.ci-artifacts/comun-49-2-r5-production-pre.json
+      - name: Validate sanitized artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s .ci-artifacts/comun-49-2-r5-production-pre.json
+          if rg -i 'postgresql://|password|token|secret|@.*supabase\.co' .ci-artifacts/comun-49-2-r5-production-pre.json; then
+            echo COMUN_R5_PRE_ARTIFACT_UNSAFE >&2
+            exit 1
+          fi
+          sha256sum .ci-artifacts/comun-49-2-r5-production-pre.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-r5-production-pre-${{ github.run_id }}
+          path: .ci-artifacts/comun-49-2-r5-production-pre.json
+          if-no-files-found: error
+          retention-days: 14
