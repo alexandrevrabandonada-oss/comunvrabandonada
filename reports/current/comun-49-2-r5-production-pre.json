@@ -21,5 +21,7 @@
   "r5DecisionTablePresent": false,
   "r5ProjectionTablePresent": false,
   "r5BridgeCount": 0,
-  "r5TriggerCount": 0
+  "r5TriggerCount": 0,
+  "migrationHistoryCount": 112,
+  "migrationHistorySha256": "df043121c8be2e5a70fe064dc00ca019f11a06d4e4dbd7a49c79f2970121ffbf"
 }
