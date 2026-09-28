@@ -1,0 +1,63 @@
+name: COMUN 49.2 R5 live readiness read-only
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-r5-live-readiness.yml"
+      - "scripts/49-2-r5-release/capture-live-readiness.mjs"
+
+permissions: { contents: read }
+
+jobs:
+  readiness:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'codex/comun-49-2-r5-live-readiness' &&
+      github.event.pull_request.base.sha == '7127a6cc008853d620238d51e14f94ea231495f0'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Require exact main
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ github.event.pull_request.base.sha }}" = "7127a6cc008853d620238d51e14f94ea231495f0"
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "7127a6cc008853d620238d51e14f94ea231495f0"
+      - name: Capture aggregate R5 live readiness
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+          COMUN_R5_EXPECTED_MAIN_SHA: 7127a6cc008853d620238d51e14f94ea231495f0
+        run: |
+          node scripts/49-2-r5-release/capture-live-readiness.mjs \
+            --output=.ci-artifacts/r5-live-readiness.json
+      - name: Prove sanitized aggregate-only artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          if rg -i 'postgresql://|password|token|secret|@.*supabase\.co|public_name|auth_user_id|candidate_id|entity_id|representation_id|consent_id' \
+            .ci-artifacts/r5-live-readiness.json; then
+            echo COMUN_R5_LIVE_READINESS_ARTIFACT_UNSAFE >&2
+            exit 1
+          fi
+          sha256sum .ci-artifacts/r5-live-readiness.json | tee .ci-artifacts/r5-live-readiness.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-r5-live-readiness-${{ github.run_id }}
+          path: |
+            .ci-artifacts/r5-live-readiness.json
+            .ci-artifacts/r5-live-readiness.sha256
+          if-no-files-found: error
+          retention-days: 7
