@@ -1,6 +1,6 @@
 # COMUN 49.2-A0-R5 — public projection gate
 
-State: **functional R5 under review; Production untouched**.
+State: **R5 schema promoted in Production; zero decision/projection rows at promotion; publisher desk under review**.
 
 ## Objective
 
@@ -80,12 +80,11 @@ The public map remains a later, separately authorized gate.
 
 ## Production boundary
 
-This PR contains no Production promotion workflow and authorizes no Production
-schema or business write.
+The R5 schema was promoted independently and auditably at checkpoint
+\`COMUN_49_2_R5_PRIVATE_SCHEMA_PROMOTED_MAP_CLOSED\`. Promotion created zero
+decision rows and zero projection rows.
 
-The development proof is local disposable Supabase only and rejects the
-presence of remote Supabase credentials.
+The publisher-desk slice does not perform an automated Production business
+write. A real decision remains an explicit authenticated publisher action.
 
-Expected terminal development state:
-
-\`COMUN_49_2_A0_R5_PUBLIC_PROJECTION_GATE_READY_FOR_REVIEW_MAP_CLOSED\`.
+The public map remains independently closed.
