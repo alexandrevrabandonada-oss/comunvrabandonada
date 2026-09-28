@@ -29,11 +29,18 @@ test("consent and representation revocation require explicit confirmation", () =
 
 test("candidate preparation is explicit and separate from consent", () => {
   assert.match(ownerPage, /prepareCollectiveEntityCandidateFormAction/);
-  assert.match(ownerActions, /prepareOwnCollectiveEntityCandidate/);
-  assert.doesNotMatch(
-    ownerActions,
-    /setOwnCollectiveEntityConsent[\s\S]{0,500}prepareOwnCollectiveEntityCandidate/,
-  );
+  const consentAction =
+    ownerActions.match(
+      /export async function setCollectiveEntityConsentFormAction[\s\S]*?\n}/,
+    )?.[0] ?? "";
+  const prepareAction =
+    ownerActions.match(
+      /export async function prepareCollectiveEntityCandidateFormAction[\s\S]*?\n}/,
+    )?.[0] ?? "";
+  assert.match(consentAction, /setOwnCollectiveEntityConsent/);
+  assert.doesNotMatch(consentAction, /prepareOwnCollectiveEntityCandidate/);
+  assert.match(prepareAction, /prepareOwnCollectiveEntityCandidate/);
+  assert.doesNotMatch(prepareAction, /setOwnCollectiveEntityConsent/);
   assert.match(ownerPage, /Enviar para revisão de legitimidade/);
 });
 
