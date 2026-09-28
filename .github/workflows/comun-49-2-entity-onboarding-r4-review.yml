@@ -1,0 +1,33 @@
+name: COMUN 49.2 entity onboarding and R4 review contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/comun/entidades/**"
+      - "app/comun/admin/entidades/**"
+      - "components/comun-navigation.tsx"
+      - "components/comun-admin-shell-client.tsx"
+      - "scripts/49-2-entity-onboarding-r4-review-contract.node-test.mjs"
+      - "scripts/experience/audit-comun-experience-coherence.node-test.mjs"
+      - "scripts/surfaces/audit-comun-surfaces.node-test.mjs"
+      - ".github/workflows/comun-49-2-entity-onboarding-r4-review.yml"
+
+permissions: { contents: read }
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/49-2-entity-onboarding-r4-review-contract.node-test.mjs
+      - run: npx vitest run lib/comun-collective-entity-runtime.test.ts lib/comun-collective-entity-legitimacy-runtime.test.ts lib/comun-collective-entity-consent.test.ts
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run surfaces:test
+      - run: npm run experience:coherence:test
