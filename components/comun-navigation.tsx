@@ -29,6 +29,7 @@ const primaryNav = [
 
 const memberNav = [
   ["Caixa de entrada", "/comun/caixa-de-entrada"],
+  ["Entidades", "/comun/entidades"],
   ["Conta", "/comun/conta"],
 ] as const;
 

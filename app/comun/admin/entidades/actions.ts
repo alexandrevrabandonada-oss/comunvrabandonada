@@ -5,6 +5,9 @@ import { redirect } from "next/navigation";
 import { requireComunAdminRole } from "@/lib/admin-auth";
 
 import {
+  COMUN_COLLECTIVE_ENTITY_REVIEW_BASIS,
+  COMUN_COLLECTIVE_ENTITY_REVIEW_DECISIONS,
+  COMUN_COLLECTIVE_ENTITY_REVIEW_STAGES,
   listCollectiveEntityLegitimacyReviewQueue,
   reviewCollectiveEntityCandidate,
   type ComunCollectiveEntityReviewBasis,
@@ -127,5 +130,94 @@ export async function decideCollectiveEntityProjectionFormAction(
   revalidatePath("/comun/admin/entidades");
   redirect(
     `/comun/admin/entidades?resultado=${result.decision}&estado=${result.projectionState}`,
+  );
+}
+
+
+function safeLegitimacyReviewError(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  if (message.includes("COMUN_RELATA_CANDIDATE_SELF_REVIEW_FORBIDDEN"))
+    return "autorevisao-bloqueada";
+  if (
+    message.includes("COMUN_RELATA_CANDIDATE_REVIEWER_FORBIDDEN") ||
+    message.includes("COMUN_RELATA_CANDIDATE_REVIEWER_REQUIRED")
+  )
+    return "revisor-invalido";
+  if (message.includes("COMUN_RELATA_CANDIDATE_REVIEW_UNAVAILABLE"))
+    return "candidato-indisponivel";
+  if (message.includes("COMUN_RELATA_CANDIDATE_REVIEW_REQUEST_CONFLICT"))
+    return "requisicao-conflitante";
+  return "falha-segura";
+}
+
+export async function reviewCollectiveEntityCandidateFormAction(
+  formData: FormData,
+) {
+  await requireComunAdminRole(["admin", "editor", "factual_reviewer"]);
+
+  const requestId = String(formData.get("request_id") ?? "").trim();
+  const candidateId = String(formData.get("candidate_id") ?? "").trim();
+  const reviewStage = String(formData.get("review_stage") ?? "").trim();
+  const decision = String(formData.get("decision") ?? "").trim();
+  const basisKind = String(formData.get("basis_kind") ?? "").trim();
+  const basisReferencePrivate =
+    String(formData.get("basis_reference_private") ?? "").trim() || null;
+
+  const referenceRequired =
+    decision === "supported" ||
+    decision === "contested" ||
+    decision === "unsupported";
+  const basisShapeValid =
+    (decision === "supported" && basisKind !== "insufficient_or_conflicting") ||
+    (decision === "needs_evidence" &&
+      basisKind === "insufficient_or_conflicting") ||
+    (decision === "contested" &&
+      basisKind === "insufficient_or_conflicting") ||
+    decision === "unsupported";
+
+  if (
+    !UUID_PATTERN.test(requestId) ||
+    !UUID_PATTERN.test(candidateId) ||
+    !COMUN_COLLECTIVE_ENTITY_REVIEW_STAGES.includes(
+      reviewStage as ComunCollectiveEntityReviewStage,
+    ) ||
+    !COMUN_COLLECTIVE_ENTITY_REVIEW_DECISIONS.includes(
+      decision as ComunCollectiveEntityReviewDecision,
+    ) ||
+    !COMUN_COLLECTIVE_ENTITY_REVIEW_BASIS.includes(
+      basisKind as ComunCollectiveEntityReviewBasis,
+    ) ||
+    !basisShapeValid ||
+    (referenceRequired && !basisReferencePrivate) ||
+    (basisReferencePrivate !== null &&
+      (basisReferencePrivate.length < 3 ||
+        basisReferencePrivate.length > 1000))
+  ) {
+    redirect("/comun/admin/entidades/revisao?erro=entrada-invalida");
+  }
+
+  let result;
+  try {
+    result = await reviewCollectiveEntityCandidate({
+      requestId,
+      candidateId,
+      reviewStage: reviewStage as ComunCollectiveEntityReviewStage,
+      decision: decision as ComunCollectiveEntityReviewDecision,
+      basisKind: basisKind as ComunCollectiveEntityReviewBasis,
+      basisReferencePrivate,
+    });
+  } catch (error) {
+    redirect(
+      `/comun/admin/entidades/revisao?erro=${safeLegitimacyReviewError(error)}`,
+    );
+  }
+
+  if (!result)
+    redirect("/comun/admin/entidades/revisao?erro=resultado-ausente");
+
+  revalidatePath("/comun/admin/entidades/revisao");
+  revalidatePath("/comun/admin/entidades");
+  redirect(
+    `/comun/admin/entidades/revisao?resultado=revisao-registrada&estado=${result.eligibilityState}`,
   );
 }
