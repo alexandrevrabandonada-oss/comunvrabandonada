@@ -37,6 +37,25 @@ test("guided linking cannot grant admin or editor and requires explicit confirma
   assert.match(page, /name="confirm_operational_access"/);
 });
 
+test("guided linking preserves specific conflict errors outside redirect catch paths", () => {
+  assert.match(
+    specialistActions,
+    /SPECIALIST_PROFILE_ALREADY_EXISTS_DIFFERENT/,
+  );
+  assert.match(
+    specialistActions,
+    /SPECIALIST_ADMIN_ACCESS_ALREADY_EXISTS/,
+  );
+  assert.match(
+    specialistActions,
+    /SPECIALIST_PROFILE_ALREADY_EXISTS_DIFFERENT"[\s\S]*redirectError\("perfil-existente"\)/,
+  );
+  assert.match(
+    specialistActions,
+    /SPECIALIST_ADMIN_ACCESS_ALREADY_EXISTS"[\s\S]*redirectError\("acesso-admin-existente"\)/,
+  );
+});
+
 test("specialist profile is established before base admin access is activated", () => {
   const body =
     specialistActions.match(
