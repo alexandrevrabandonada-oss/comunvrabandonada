@@ -25,6 +25,11 @@ import {
   profileLabel,
 } from "@/lib/admin-profiles";
 import type { PautaDossierReviewPriority } from "@/lib/types";
+import {
+  COMUN_ENTITY_REVIEWER_PROFILE_ROLES,
+  getCollectiveEntityRoleReadiness,
+  isActiveAdminAccessUser,
+} from "@/lib/admin-role-readiness";
 import { checkProtocolLookupRateLimit } from "@/lib/rate-limit";
 import {
   createOrUpdateOfficialProtocolDraftForReport,
@@ -2408,6 +2413,38 @@ export async function upsertAdminProfileAction(formData: FormData) {
     throw new Error(
       "Nao e permitido remover ou desativar o ultimo admin ativo.",
     );
+  }
+
+  const currentOperationalReviewer =
+    Boolean(current?.active) &&
+    Boolean(current?.auth_user_id) &&
+    COMUN_ENTITY_REVIEWER_PROFILE_ROLES.includes(current?.role as any) &&
+    (await isActiveAdminAccessUser(current?.auth_user_id));
+  const keepsReviewerCapacity =
+    active &&
+    COMUN_ENTITY_REVIEWER_PROFILE_ROLES.includes(role as any) &&
+    !clearAuthLink &&
+    (!authUserIdInput || authUserIdInput === current?.auth_user_id);
+
+  if (currentOperationalReviewer && !keepsReviewerCapacity) {
+    const readiness = await getCollectiveEntityRoleReadiness();
+    if (readiness.reviewerCapable <= 2) {
+      await logComunAdminAction({
+        session,
+        action: "admin_collective_entity_reviewer_capacity_protected",
+        targetType: "admin_profile",
+        targetId: profileId,
+        metadata: {
+          reviewer_capable_before: readiness.reviewerCapable,
+          attempted_role: role,
+          attempted_active: active,
+          attempted_clear_auth_link: clearAuthLink,
+        },
+      });
+      throw new Error(
+        "Mantenha pelo menos dois revisores R4 operacionais. Adicione outra identidade antes de remover este revisor.",
+      );
+    }
   }
 
   const payload = {
