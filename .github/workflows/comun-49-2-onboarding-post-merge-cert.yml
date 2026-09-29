@@ -1,0 +1,91 @@
+name: COMUN 49.2 entity onboarding post-merge certification
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-onboarding-post-merge-cert.yml"
+      - "scripts/49-2-r5-release/capture-onboarding-post-merge.mjs"
+
+permissions: { contents: read }
+
+jobs:
+  certify:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'codex/comun-49-2-onboarding-post-merge-cert' &&
+      github.event.pull_request.base.sha == '369630e5c9b7e784635e59c036a06291697f3fad'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Require exact merged main
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ github.event.pull_request.base.sha }}" = "369630e5c9b7e784635e59c036a06291697f3fad"
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "369630e5c9b7e784635e59c036a06291697f3fad"
+      - name: Read-only Production zero-business-row certification
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+          COMUN_49_2_EXPECTED_MAIN_SHA: 369630e5c9b7e784635e59c036a06291697f3fad
+        run: |
+          node scripts/49-2-r5-release/capture-onboarding-post-merge.mjs \
+            --output=.ci-artifacts/entity-onboarding-post-merge.json
+      - name: Member onboarding must fail closed without session
+        shell: bash
+        run: |
+          set -euo pipefail
+          result="$(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' \
+            https://comunsocial.online/comun/entidades)"
+          status="${result%% *}"
+          location="${result#* }"
+          case "$status" in 303|307|308) ;; *) echo "Unexpected member status: $result" >&2; exit 1 ;; esac
+          case "$location" in
+            https://comunsocial.online/comun/entrar*|https://www.comunsocial.online/comun/entrar*) ;;
+            *) echo "Unexpected member redirect: $result" >&2; exit 1 ;;
+          esac
+          echo COMUN_49_2_MEMBER_ONBOARDING_UNAUTHENTICATED_FAIL_CLOSED
+      - name: R4 reviewer desk must fail closed without admin session
+        shell: bash
+        run: |
+          set -euo pipefail
+          result="$(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' \
+            https://comunsocial.online/comun/admin/entidades/revisao)"
+          status="${result%% *}"
+          location="${result#* }"
+          case "$status" in 303|307|308) ;; *) echo "Unexpected admin status: $result" >&2; exit 1 ;; esac
+          case "$location" in
+            https://comunsocial.online/comun/admin/login*|https://www.comunsocial.online/comun/admin/login*) ;;
+            *) echo "Unexpected admin redirect: $result" >&2; exit 1 ;;
+          esac
+          echo COMUN_49_2_R4_REVIEW_UNAUTHENTICATED_FAIL_CLOSED
+      - name: Sanitize and hash evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          if rg -i 'postgresql://|password|token|secret|@.*supabase\.co|public_name|auth_user_id|candidate_id|entity_id|representation_id|consent_id|reviewer_' \
+            .ci-artifacts/entity-onboarding-post-merge.json; then
+            echo COMUN_49_2_ONBOARDING_POST_MERGE_ARTIFACT_UNSAFE >&2
+            exit 1
+          fi
+          sha256sum .ci-artifacts/entity-onboarding-post-merge.json | tee .ci-artifacts/entity-onboarding-post-merge.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-onboarding-post-merge-${{ github.run_id }}
+          path: |
+            .ci-artifacts/entity-onboarding-post-merge.json
+            .ci-artifacts/entity-onboarding-post-merge.sha256
+          if-no-files-found: error
+          retention-days: 7
