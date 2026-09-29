@@ -1,0 +1,89 @@
+name: COMUN 49.2 onboarding + R4 post-merge certification
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-upstream-post-merge-cert.yml"
+      - "scripts/49-2-r5-release/capture-upstream-post-merge.mjs"
+
+permissions: { contents: read }
+
+jobs:
+  certify:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'codex/comun-49-2-upstream-post-merge-cert' &&
+      github.event.pull_request.base.sha == '369630e5c9b7e784635e59c036a06291697f3fad'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Require exact deployed main
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ github.event.pull_request.base.sha }}" = "369630e5c9b7e784635e59c036a06291697f3fad"
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "369630e5c9b7e784635e59c036a06291697f3fad"
+      - name: Read-only Production business-row certification
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+          COMUN_EXPECTED_MAIN_SHA: 369630e5c9b7e784635e59c036a06291697f3fad
+        run: |
+          node scripts/49-2-r5-release/capture-upstream-post-merge.mjs \
+            --output=.ci-artifacts/comun-49-2-upstream-post-merge.json
+      - name: Unauthenticated onboarding and reviewer desks fail closed
+        shell: bash
+        run: |
+          set -euo pipefail
+          check_redirect() {
+            local url="$1"
+            local expected="$2"
+            local headers
+            headers="$(mktemp)"
+            curl -sS -o /dev/null -D "$headers" "$url"
+            local status location
+            status="$(awk 'NR==1 {print $2}' "$headers")"
+            location="$(awk 'tolower($1)=="location:" {print $2; exit}' "$headers" | tr -d '\r')"
+            case "$status" in
+              302|303|307|308) ;;
+              *) echo "Unexpected status for $url: $status" >&2; exit 1 ;;
+            esac
+            case "$location" in
+              "$expected"*|"https://comunsocial.online$expected"*|"https://www.comunsocial.online$expected"*) ;;
+              *) echo "Unexpected redirect for $url: $location" >&2; exit 1 ;;
+            esac
+          }
+          check_redirect https://comunsocial.online/comun/entidades /comun/entrar
+          check_redirect https://comunsocial.online/comun/admin/entidades/revisao /comun/admin/login
+          echo COMUN_49_2_UPSTREAM_UNAUTHENTICATED_FAIL_CLOSED
+      - name: Sanitize and hash evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          if rg -i 'postgresql://|password|token|secret|@.*supabase\.co|public_name|auth_user_id|candidate_id|entity_id|representation_id|consent_id' \
+            .ci-artifacts/comun-49-2-upstream-post-merge.json; then
+            echo COMUN_49_2_UPSTREAM_CERT_ARTIFACT_UNSAFE >&2
+            exit 1
+          fi
+          sha256sum .ci-artifacts/comun-49-2-upstream-post-merge.json \
+            | tee .ci-artifacts/comun-49-2-upstream-post-merge.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-upstream-post-merge-${{ github.run_id }}
+          path: |
+            .ci-artifacts/comun-49-2-upstream-post-merge.json
+            .ci-artifacts/comun-49-2-upstream-post-merge.sha256
+          if-no-files-found: error
+          retention-days: 7
