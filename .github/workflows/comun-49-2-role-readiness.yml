@@ -1,0 +1,62 @@
+name: COMUN 49.2 role readiness read-only
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-49-2-role-readiness.yml"
+      - "scripts/49-2-role-readiness.mjs"
+
+permissions: { contents: read }
+
+jobs:
+  readiness:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'codex/comun-49-2-role-readiness' &&
+      github.event.pull_request.base.sha == '369630e5c9b7e784635e59c036a06291697f3fad'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Require exact main
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ github.event.pull_request.base.sha }}" = "369630e5c9b7e784635e59c036a06291697f3fad"
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "369630e5c9b7e784635e59c036a06291697f3fad"
+      - name: Capture aggregate admin-role readiness
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+          COMUN_49_2_EXPECTED_MAIN_SHA: 369630e5c9b7e784635e59c036a06291697f3fad
+        run: |
+          node scripts/49-2-role-readiness.mjs \
+            --output=.ci-artifacts/comun-49-2-role-readiness.json
+      - name: Sanitize and hash evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          if rg -i 'postgresql://|password|token|secret|@.*supabase\.co|auth_user_id|email|display_name|user_id|profile_id' \
+            .ci-artifacts/comun-49-2-role-readiness.json; then
+            echo COMUN_49_2_ROLE_READINESS_ARTIFACT_UNSAFE >&2
+            exit 1
+          fi
+          sha256sum .ci-artifacts/comun-49-2-role-readiness.json | tee .ci-artifacts/comun-49-2-role-readiness.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-role-readiness-${{ github.run_id }}
+          path: |
+            .ci-artifacts/comun-49-2-role-readiness.json
+            .ci-artifacts/comun-49-2-role-readiness.sha256
+          if-no-files-found: error
+          retention-days: 7
