@@ -99,7 +99,7 @@ async function ensureSpecialistProfile(service: ServiceClient, input: {
       existing.email !== input.email ||
       existing.role !== input.role
     ) {
-      redirectError("perfil-existente");
+      throw new Error("SPECIALIST_PROFILE_ALREADY_EXISTS_DIFFERENT");
     }
     if (!existing.active) {
       const { error } = await service
@@ -138,7 +138,7 @@ async function ensureBaseAdminAccess(service: ServiceClient, input: {
       existing.email !== input.email ||
       existing.role !== "viewer"
     ) {
-      redirectError("acesso-admin-existente");
+      throw new Error("SPECIALIST_ADMIN_ACCESS_ALREADY_EXISTS");
     }
     if (!existing.is_active) {
       const { error } = await service
@@ -227,13 +227,20 @@ export async function provisionExistingSpecialistRoleAction(formData: FormData) 
       email,
     });
   } catch (error) {
-    if (
-      error instanceof Error &&
-      ["PROFILE_IDENTITY_CONFLICT", "ADMIN_ACCESS_IDENTITY_CONFLICT"].includes(
-        error.message,
-      )
-    ) {
-      redirectError("identidade-conflitante");
+    if (error instanceof Error) {
+      if (
+        ["PROFILE_IDENTITY_CONFLICT", "ADMIN_ACCESS_IDENTITY_CONFLICT"].includes(
+          error.message,
+        )
+      ) {
+        redirectError("identidade-conflitante");
+      }
+      if (error.message === "SPECIALIST_PROFILE_ALREADY_EXISTS_DIFFERENT") {
+        redirectError("perfil-existente");
+      }
+      if (error.message === "SPECIALIST_ADMIN_ACCESS_ALREADY_EXISTS") {
+        redirectError("acesso-admin-existente");
+      }
     }
     redirectError("falha-provisionamento");
   }
