@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { publicSidewalkProblemLabels } from "@/lib/comun-public-labels";
 import { notFound } from "next/navigation";
 import {
   MiniAppExperienceShell,
@@ -110,7 +111,7 @@ export default async function Page({
               />
               <FactRow
                 label="Problemas"
-                value={r.categories.join(" · ") || "Não informado"}
+                value={publicSidewalkProblemLabels(r.categories) || "Não informado"}
               />
               <FactRow
                 label="Última observação"

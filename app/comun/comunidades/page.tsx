@@ -4,9 +4,14 @@ import { ComunShell, Section } from "@/components/comun-shell";
 import { listCommunities } from "@/lib/comun-data";
 import {
   filterCommunityExperiences,
+  communityStateLabel,
+  communitiesWithOpenActions,
   listCommunityExperiences,
 } from "@/lib/community-experience";
 import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
+
+import { listPublicCollectiveActionsCanonical } from "@/lib/comun-collective-actions-canonical";
+import { getCollectiveActionsRelease } from "@/lib/collective-actions-release";
 
 export const dynamic = "force-dynamic";
 type Params = {
@@ -23,16 +28,24 @@ export default async function CommunitiesPage({
   searchParams: Promise<Params>;
 }) {
   const params = await searchParams;
-  const [communities, experiences] = await Promise.all([
+  const [communities, release] = await Promise.all([
     listCommunities(),
-    Promise.resolve(listCommunityExperiences()),
+    getCollectiveActionsRelease(),
   ]);
+  const experiences = listCommunityExperiences();
+  const actions = release.enabled
+    ? await listPublicCollectiveActionsCanonical()
+    : [];
+  const availableSlugs = new Set(
+    communities.map((community) => community.slug),
+  );
   const filtered = filterCommunityExperiences(
-    experiences,
+    experiences.filter((experience) => availableSlugs.has(experience.slug)),
     params.q ?? "",
     params.tipo ?? "",
     params.tema ?? "",
     params.acao === "aberta",
+    communitiesWithOpenActions(actions),
   );
   const bySlug = new Map(
     communities.map((community) => [community.slug, community]),
@@ -64,13 +77,7 @@ export default async function CommunitiesPage({
                   purpose={experience.purpose}
                   territory={experience.territory}
                   themes={experience.themes}
-                  relationship={
-                    experience.state === "monitoring"
-                      ? "Você acompanha"
-                      : experience.state === "organizing"
-                        ? "Em organização"
-                        : "Em escuta"
-                  }
+                  relationship={communityStateLabel(experience.state)}
                   nextAction={experience.nextAction}
                   activity={
                     experience.nextActivity
@@ -123,7 +130,7 @@ export default async function CommunitiesPage({
                     {experience.kind === "territorial"
                       ? "Territorial"
                       : "Temática"}{" "}
-                    · {experience.state}
+                    · {communityStateLabel(experience.state)}
                   </span>
                 </div>
                 <h2 className="mt-4 text-2xl font-black">{community.name}</h2>

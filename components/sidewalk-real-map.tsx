@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- derivada local revisada; evita proxy externo */
 import Link from "next/link";
+import { publicSidewalkProblemLabels } from "@/lib/comun-public-labels";
 import dynamic from "next/dynamic";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -519,7 +520,9 @@ function RecordList({ records }: { records: PublicSidewalkRecord[] }) {
             {forwarding[record.forwarding_status] ?? record.forwarding_status}
           </p>
           <h2 className="mt-1 text-xl font-black">{record.name}</h2>
-          <p className="mt-2 text-sm">{record.categories.join(" · ")}</p>
+          <p className="mt-2 text-sm">
+            {publicSidewalkProblemLabels(record.categories)}
+          </p>
           <p className="text-sm">
             {record.approximate_location ||
               record.neighborhood ||
@@ -581,7 +584,9 @@ function RecordSheet({
       <dl className="mt-4 grid gap-2 text-sm">
         <Detail
           label="Problemas"
-          value={record.categories.join(" · ") || "Não informado"}
+          value={
+            publicSidewalkProblemLabels(record.categories) || "Não informado"
+          }
         />
         <Detail label="Verificação" value={record.verification_status} />
         <Detail

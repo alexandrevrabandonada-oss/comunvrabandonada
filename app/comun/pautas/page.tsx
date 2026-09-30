@@ -1,3 +1,4 @@
+import { publicPautaStatusLabel } from "@/lib/comun-public-labels";
 import Link from "next/link";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { listPublicPautaSpaces } from "@/lib/pauta-spaces";
@@ -47,7 +48,12 @@ export default async function PautaSpacesPage({
       );
     }
     const spaces = await listPublicPautaSpaces();
-    return <PautasVivasIndex spaces={spaces} creationEnabled={isComunPautaLowFrictionCreationEnabled()} />;
+    return (
+      <PautasVivasIndex
+        spaces={spaces}
+        creationEnabled={isComunPautaLowFrictionCreationEnabled()}
+      />
+    );
   }
 
   const spaces = await listPublicPautaSpaces();
@@ -178,14 +184,4 @@ export default async function PautaSpacesPage({
   );
 }
 
-function statusLabel(value: string) {
-  const labels: Record<string, string> = {
-    observing: "Observando",
-    organizing: "Organizando",
-    drafting: "Sintetizando",
-    pressuring: "Cobrando",
-    resolved: "Resolvida",
-    unresolved: "Nao resolvida",
-  };
-  return labels[value] ?? value;
-}
+const statusLabel = publicPautaStatusLabel;

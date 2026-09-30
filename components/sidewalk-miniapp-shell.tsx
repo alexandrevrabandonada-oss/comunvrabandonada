@@ -1,5 +1,7 @@
 "use client";
 
+import { publicPautaStatusLabel } from "@/lib/comun-public-labels";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { MapPinned } from "lucide-react";
@@ -147,7 +149,10 @@ export function MiniAppExperienceShell({
             />
             <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
               <span>
-                <strong>Status:</strong> {status}
+                <strong>Estado:</strong>{" "}
+                {status
+                  ? publicPautaStatusLabel(status)
+                  : "Estado não informado"}
               </span>
               <Link
                 href={withComunAppV2(

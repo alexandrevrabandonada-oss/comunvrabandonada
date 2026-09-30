@@ -1,3 +1,4 @@
+import { publicPautaStatusLabel } from "@/lib/comun-public-labels";
 import Link from "next/link";
 import {
   Archive,
@@ -268,9 +269,9 @@ export function ComunAppV2Home({
                 firstPauta.summary ??
                 "Processo em acompanhamento."
               }
-              status={
-                firstPauta.public_status ?? firstPauta.status ?? "Em andamento"
-              }
+              status={publicPautaStatusLabel(
+                firstPauta.public_status ?? firstPauta.status ?? "",
+              )}
               nextAction={firstPauta.next_step ?? "Acompanhar atualização"}
             />
           ) : null}
