@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "scripts/ci/readonly-reconciled-migration-plan*"
       - ".github/workflows/comun-48-3-c1-preflight.yml"
       - "lib/comun-collective-actions-canonical*.ts"
       - "components/comun-collective-actions-canonical.tsx"
@@ -90,10 +91,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          external=supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
-          test "$(sha256sum "$external" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
-          held="$RUNNER_TEMP/external.sql"; mv "$external" "$held"; trap 'mv "$held" "$external"' EXIT
-          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-3-c1-preflight/plan.txt 2>&1
-          ! grep -Eq '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-3-c1-preflight/plan.txt
+          node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs
+          node scripts/ci/readonly-reconciled-migration-plan.mjs .ci-artifacts/48-3-c1-preflight/plan.txt
           echo migrationCount=0 >> "$GITHUB_STEP_SUMMARY"
           echo COMUN_48_3_C1_REMOTE_PLAN_EMPTY_GREEN >> "$GITHUB_STEP_SUMMARY"
