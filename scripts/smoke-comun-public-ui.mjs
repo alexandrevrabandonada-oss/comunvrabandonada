@@ -71,7 +71,8 @@ const checks = [
   },
   {
     path: "/comun/c/trabalho",
-    required: ["Acompanhar ou solicitar entrada", "Próxima atividade"],
+    required: ["Acompanhar ou solicitar entrada", "Próxima ação"],
+    forbidden: ["Roda de escuta: trabalho e cuidado", "23 jul · 19h"],
   },
   {
     path: "/comun/pautas/falta-profissionais-escolas",
