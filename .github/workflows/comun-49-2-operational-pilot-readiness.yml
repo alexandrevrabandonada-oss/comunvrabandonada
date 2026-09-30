@@ -1,0 +1,42 @@
+name: COMUN 49.2 operational pilot read-only readiness
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/49-2-operational-pilot/**"
+      - "reports/current/comun-49-2-operational-pilot.md"
+      - ".github/workflows/comun-49-2-operational-pilot-readiness.yml"
+  workflow_dispatch:
+
+permissions: { contents: read }
+
+jobs:
+  readiness:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0 }
+      - name: Validate fail-closed readiness classification
+        run: node --test scripts/49-2-operational-pilot/readiness.node-test.mjs
+      - name: Capture only private aggregate counts in Production read-only
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGOPTIONS: -c default_transaction_read_only=on
+          PILOT_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          mkdir -p .ci-artifacts/49-2-operational-pilot
+          node scripts/49-2-operational-pilot/readiness.mjs .ci-artifacts/49-2-operational-pilot/readiness.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comun-49-2-operational-pilot-${{ github.run_id }}
+          path: .ci-artifacts/49-2-operational-pilot/readiness.json
+          retention-days: 30
+          if-no-files-found: error
