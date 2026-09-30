@@ -1,0 +1,30 @@
+name: COMUN 49.2 specialist role linking contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/comun/admin/equipe/**"
+      - "app/actions.ts"
+      - "lib/admin-role-readiness.ts"
+      - "scripts/49-2-specialist-role-linking-contract.node-test.mjs"
+      - ".github/workflows/comun-49-2-specialist-role-linking.yml"
+
+permissions: { contents: read }
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/49-2-specialist-role-linking-contract.node-test.mjs
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: git diff --check origin/main...HEAD
