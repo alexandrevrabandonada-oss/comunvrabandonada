@@ -17,6 +17,11 @@ const pautaStatuses: Record<string, string> = {
   drafting: "Sintetizando",
   pressuring: "Cobrando",
   unresolved: "Não resolvida",
+  receiving_reports: "Recebendo relatos",
+  checking: "Em verificação",
+  became_post: "Publicação produzida",
+  preparing_dossier: "Preparando dossiê",
+  forwarded: "Encaminhada",
 };
 
 export function publicPautaStatusLabel(value: string) {

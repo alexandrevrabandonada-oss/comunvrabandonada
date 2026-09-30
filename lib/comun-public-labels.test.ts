@@ -7,6 +7,8 @@ import {
 describe("public vocabulary", () => {
   it("renders the observed pauta state in Portuguese", () => {
     expect(publicPautaStatusLabel("investigating")).toBe("Em investigação");
+    expect(publicPautaStatusLabel("receiving_reports")).toBe("Recebendo relatos");
+    expect(publicPautaStatusLabel("preparing_dossier")).toBe("Preparando dossiê");
     expect(publicPautaStatusLabel("unrecognized_internal_state")).toBe(
       "Estado não informado",
     );

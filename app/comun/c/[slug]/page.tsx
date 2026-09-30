@@ -17,6 +17,7 @@ import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
 import { withComunJourneyContext } from "@/lib/comun-journey-context";
 import { communityLoginHref } from "@/lib/community-return";
 import { ComunRelationRail } from "@/components/comun-relational";
+import { publicPautaStatusLabel } from "@/lib/comun-public-labels";
 import {
   entityReference,
   type EntityRelation,
@@ -523,7 +524,7 @@ function CommunityAppV2({
                 href={withComunAppV2(`/comun/pautas/${issue.slug}`)}
                 title={issue.title}
                 summary={issue.summary}
-                status={issue.status}
+                status={publicPautaStatusLabel(issue.status)}
                 nextAction={issue.nextSteps}
               />
             ))}
