@@ -27,6 +27,10 @@ const disposable = readFileSync(
   join(root, ".github/workflows/comun-48-3-e2-disposable.yml"),
   "utf8",
 );
+const reconciledPlan = readFileSync(
+  join(root, "scripts/ci/readonly-reconciled-migration-plan.mjs"),
+  "utf8",
+);
 
 describe("COMUN 48.3-E2 integration contract", () => {
   it("uses one exact batched evidence relation without search or fuzzy matching", () => {
@@ -71,8 +75,10 @@ describe("COMUN 48.3-E2 integration contract", () => {
     expect(preflight).toContain("begin read only;");
     expect(preflight).toContain("businessContentRead=false");
     expect(preflight).toContain("migrationCount=0");
-    expect(preflight).toContain("supabase db push");
-    expect(preflight).toContain("--dry-run");
+    expect(preflight).toContain("node scripts/ci/readonly-reconciled-migration-plan.mjs");
+    expect(reconciledPlan).toContain("validateHardeningLedger(manifest, rows)");
+    expect(reconciledPlan).toContain("'supabase', ['db', 'push'");
+    expect(reconciledPlan).toContain("'--dry-run'");
     expect(preflight).not.toMatch(/--include-all|migration repair|db reset/i);
     expect(disposable).toContain("begin;");
     expect(disposable).toContain("rollback;");

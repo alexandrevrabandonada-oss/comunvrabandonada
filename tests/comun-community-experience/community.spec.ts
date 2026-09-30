@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 test("descoberta filtra por território e ação", async ({ page }) => {
-  await page.goto("/comun/comunidades");
+  await page.goto("/comun/comunidades?experiencia=legacy");
   await expect(
     page.getByRole("heading", { name: "Comunidades" }),
   ).toBeVisible();
@@ -13,12 +13,15 @@ test("descoberta filtra por território e ação", async ({ page }) => {
   await expect(page.getByText(/comunidades encontradas/)).toBeVisible();
   await expect(
     page.getByRole("link", { name: /Cidade Abandonada/ }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText(/Nenhuma comunidade com esses filtros/),
   ).toBeVisible();
 });
 test("comunidade mostra propósito ação e pauta sem duplicação", async ({
   page,
 }) => {
-  await page.goto("/comun/c/cidade");
+  await page.goto("/comun/c/cidade?experiencia=legacy");
   await expect(
     page.getByRole("heading", { name: "Cidade Abandonada" }),
   ).toBeVisible();
@@ -26,7 +29,7 @@ test("comunidade mostra propósito ação e pauta sem duplicação", async ({
     page.getByRole("heading", { name: "Por que existimos" }),
   ).toBeVisible();
   await expect(
-    page.getByText(/Registrar um trecho fictício de calçada/),
+    page.getByText(/Esta experiência de comunidade está em preparação/),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Pauta prioritária" }),
@@ -39,25 +42,27 @@ test("comunidade mostra propósito ação e pauta sem duplicação", async ({
   ).toEqual([]);
 });
 test("roda grupo governança e cultura têm consequência", async ({ page }) => {
-  await page.goto("/comun/c/trabalho");
+  await page.goto("/comun/c/trabalho?experiencia=legacy");
   for (const name of [
-    "Roda e atividade",
     "Como participar",
-    "Grupos de trabalho",
     "Resultados, cultura e memória",
     "Memória e governança",
   ])
     await expect(page.getByRole("heading", { name })).toBeVisible();
-  await expect(page.getByText(/Decisão após síntese/)).toBeVisible();
+  await expect(page.getByText(/Decisão após síntese/)).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Roda e atividade" }),
+  ).toHaveCount(0);
   await expect(
     page.locator("#conteudo").getByRole("link", { name: "Arte" }),
   ).toHaveAttribute("href", "/comun/acervo/arte");
 });
-test("agenda local produz arquivo ICS", async ({ request }) => {
+test("agenda não oferece evento sintético como atividade real", async ({
+  request,
+}) => {
   const response = await request.get("/comun/c/cidade/agenda");
-  expect(response.ok()).toBeTruthy();
-  expect(response.headers()["content-type"]).toContain("text/calendar");
-  expect(await response.text()).toContain("BEGIN:VEVENT");
+  expect(response.status()).toBe(404);
+  expect(await response.text()).not.toContain("BEGIN:VEVENT");
 });
 test("acompanhar preserva retorno e exige sessão", async ({ page }) => {
   await page.goto("/comun/c/cidade");

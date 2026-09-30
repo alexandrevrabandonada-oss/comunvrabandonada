@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "scripts/ci/readonly-reconciled-migration-plan*"
       - ".github/workflows/comun-48-3-a1-*.yml"
       - "app/comun/pautas/**"
       - "components/comun-pauta-*.tsx"
@@ -300,13 +301,18 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .ci-artifacts/48-3-a1-preflight
-          external="supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql"
-          test "$(sha256sum "$external" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
-          held="$RUNNER_TEMP/comun-a1-external-ledger.sql"
-          mv "$external" "$held"
-          restore() { test ! -e "$held" || mv "$held" "$external"; }
-          trap restore EXIT
-          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-3-a1-preflight/dry-run.txt 2>&1
+          if [ "$A1_PREFLIGHT_MODE" = promoted ]; then
+            node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs
+            node scripts/ci/readonly-reconciled-migration-plan.mjs .ci-artifacts/48-3-a1-preflight/dry-run.txt
+          else
+            external="supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql"
+            test "$(sha256sum "$external" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+            held="$RUNNER_TEMP/comun-a1-external-ledger.sql"
+            mv "$external" "$held"
+            restore() { test ! -e "$held" || mv "$held" "$external"; }
+            trap restore EXIT
+            supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-3-a1-preflight/dry-run.txt 2>&1
+          fi
           mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-3-a1-preflight/dry-run.txt | sort -u || true)
           if [ "$A1_PREFLIGHT_MODE" = candidate ]; then
             mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
@@ -320,8 +326,10 @@ jobs:
           fi
           ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/48-3-a1-preflight/dry-run.txt
           printf '{"result":"%s","migrationCount":%s,"businessContentRead":false}\n' "$result" "${#planned[@]}" >.ci-artifacts/48-3-a1-preflight/migration-plan.json
-          restore
-          trap - EXIT
+          if [ "$A1_PREFLIGHT_MODE" = candidate ]; then
+            restore
+            trap - EXIT
+          fi
 
       - uses: actions/upload-artifact@v4
         if: always()

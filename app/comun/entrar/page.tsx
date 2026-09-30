@@ -168,7 +168,7 @@ export default async function Entrar({
               formulário não ficam na URL.
             </p>
             <Link
-              href={withComunExperience(returnTo, experience)}
+              href={withComunExperience("/comun", experience)}
               className="mt-5 inline-block font-black uppercase text-comun-yellow underline"
             >
               Continuar explorando sem entrar
@@ -194,7 +194,7 @@ function AuthReturnContext({ returnTo }: { returnTo: string }) {
         formulário não ficam na URL.
       </p>
       <Link
-        href={withComunExperience(returnTo, COMUN_APP_V2_EXPERIENCE)}
+        href={withComunExperience("/comun", COMUN_APP_V2_EXPERIENCE)}
         className="comun-text-action mt-3 inline-flex min-h-11 items-center font-black underline"
       >
         Continuar explorando sem entrar

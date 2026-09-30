@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "scripts/ci/readonly-reconciled-migration-plan*"
       - ".github/workflows/comun-48-3-e3-*.yml"
       - "app/comun/pautas/**"
       - "components/comun-pauta*.tsx"
@@ -70,12 +71,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          external=supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
-          test "$(sha256sum "$external" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
-          held="$RUNNER_TEMP/external.sql"; mv "$external" "$held"; trap 'mv "$held" "$external"' EXIT
-          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-3-e3-preflight/plan.txt 2>&1
-          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-3-e3-preflight/plan.txt | sort -u || true)
           mode="$(cat .ci-artifacts/48-3-e3-preflight/mode)"
+          if [ "$mode" = promoted ]; then
+            node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs
+            node scripts/ci/readonly-reconciled-migration-plan.mjs .ci-artifacts/48-3-e3-preflight/plan.txt
+          else
+            external=supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql
+            test "$(sha256sum "$external" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
+            held="$RUNNER_TEMP/external.sql"; mv "$external" "$held"; trap 'mv "$held" "$external"' EXIT
+            supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-3-e3-preflight/plan.txt 2>&1
+          fi
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-3-e3-preflight/plan.txt | sort -u || true)
           if [ "$mode" = candidate ]; then
             test "${#planned[@]}" -eq 1
             test "${planned[0]}" = 20260814160000_comun_pauta_low_friction_creation.sql
