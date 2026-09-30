@@ -95,11 +95,31 @@ async function ensureSpecialistProfile(service: ServiceClient, input: {
   const existing = await findExistingProfile(service, input);
   if (existing) {
     if (
-      existing.auth_user_id !== input.userId ||
       existing.email !== input.email ||
-      existing.role !== input.role
+      existing.role !== input.role ||
+      (existing.auth_user_id !== null && existing.auth_user_id !== input.userId)
     ) {
       throw new Error("SPECIALIST_PROFILE_ALREADY_EXISTS_DIFFERENT");
+    }
+    if (existing.auth_user_id === null) {
+      // An admin may have prepared an unbound specialist profile first. Bind
+      // it only after the exact email has resolved to this existing Auth user,
+      // while the conditional UPDATE prevents racing or replacing another link.
+      const { data, error } = await service
+        .from("comun_admin_profiles")
+        .update({
+          auth_user_id: input.userId,
+          active: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id)
+        .eq("email", input.email)
+        .eq("role", input.role)
+        .is("auth_user_id", null)
+        .select("id")
+        .maybeSingle();
+      if (error || !data?.id) throw new Error("SPECIALIST_PROFILE_BINDING_FAILED");
+      return existing.id as string;
     }
     if (!existing.active) {
       const { error } = await service

@@ -56,6 +56,14 @@ test("guided linking preserves specific conflict errors outside redirect catch p
   );
 });
 
+test("guided linking binds an exact-email, same-role unbound profile with an atomic null guard", () => {
+  assert.match(specialistActions, /existing\.email !== input\.email/);
+  assert.match(specialistActions, /existing\.role !== input\.role/);
+  assert.match(specialistActions, /existing\.auth_user_id !== null && existing\.auth_user_id !== input\.userId/);
+  assert.match(specialistActions, /auth_user_id: input\.userId,[\s\S]*?\.eq\("email", input\.email\)[\s\S]*?\.eq\("role", input\.role\)[\s\S]*?\.is\("auth_user_id", null\)/);
+  assert.match(specialistActions, /SPECIALIST_PROFILE_BINDING_FAILED/);
+});
+
 test("specialist profile is established before base admin access is activated", () => {
   const body =
     specialistActions.match(
