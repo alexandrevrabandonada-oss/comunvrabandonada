@@ -14,6 +14,7 @@ on:
       - "lib/community-google-auth*"
       - "lib/community-return*"
       - "scripts/solo/*p1g*"
+      - "scripts/ci/readonly-reconciled-migration-plan*"
       - "tests/google-auth-local/**"
       - "playwright.google-auth-local.config.ts"
   workflow_dispatch:
@@ -143,16 +144,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
-          held="$RUNNER_TEMP/comun-p1g-external-ledger.sql"
-          mv "$EXTERNAL_MIGRATION" "$held"
-          restore() {
-            test ! -e "$held" || mv "$held" "$EXTERNAL_MIGRATION"
-            test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
-          }
-          trap restore EXIT
-          supabase migration list --db-url "$SUPABASE_DB_URL" >.ci-artifacts/p1g-preflight/migration-list.txt 2>&1
-          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p1g-preflight/dry-run.txt 2>&1
+          node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs
+          node scripts/ci/readonly-reconciled-migration-plan.mjs .ci-artifacts/p1g-preflight/dry-run.txt
           mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p1g-preflight/dry-run.txt | sort -u || true)
           test "${#planned[@]}" -eq 0 || { echo COMUN_P1G_BLOCKED_UNEXPECTED_REMOTE_MIGRATION_PLAN; exit 1; }
           ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/p1g-preflight/dry-run.txt
