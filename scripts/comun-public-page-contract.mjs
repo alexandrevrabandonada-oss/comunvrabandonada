@@ -149,6 +149,7 @@ export function inspectPublicPage(result, headings) {
     knownPolicyExplanation: knownPolicy,
     inspection: "server_html_structure",
     contentProvenance: "not_verified_by_html",
-    browserConfirmationRequired: /id=["']S:|\$RC\(/.test(html),
+    browserConfirmationRequired:
+      !contractPresent || /id=["']S:|\$RC\(/.test(html),
   };
 }

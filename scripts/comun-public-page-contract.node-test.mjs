@@ -86,4 +86,8 @@ test("server HTML does not assert content provenance or browser confirmation", (
   assert.equal(result.contentProvenance, "not_verified_by_html");
   assert.equal(result.inspection, "server_html_structure");
   assert.equal(result.browserConfirmationRequired, true);
+  assert.equal(
+    inspect("<script>Atenção</script>").browserConfirmationRequired,
+    true,
+  );
 });
