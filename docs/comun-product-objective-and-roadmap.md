@@ -1,5 +1,7 @@
 # Objetivo final e roadmap auditado do COMUN
 
+Atualização de produção mais recente: `f083370088b9a938bdf658e29d95bb6320c5caef`, em 02/10/2026, após integrar os PRs #485, #487 e #486. A reconciliação inicial e os achados intermediários abaixo são históricos; veja o fechamento de dependências ao final. A V1 continua incompleta.
+
 Data da reconciliação: 2026-10-02. Base de código: `3fee4feb29b390e659e95fbef7d280d9fac6dfac`.
 
 ## Produto que queremos entregar
@@ -96,3 +98,16 @@ A run Quality [36958777230](https://github.com/alexandrevrabandonada-oss/comunvr
 A run preflight [36958777361](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/36958777361) produziu artefato com todos os checks de schema/RLS verdadeiros e leitura de conteúdo de negócio falsa, mas bloqueou a comparação de metadados. O verificador antigo comparava a migração externa de Hardening com o histórico normal. A proposta reconhece somente essa versão local após validar release, caminho, hash, fingerprints e estado applied pelo contrato estrito já usado nas outras lanes. Migração desconhecida, pendência normal, schema/RLS inválido ou ledger ausente continuam bloqueando. A comparação remota desconhecida permanece intacta.
 
 Onze testes locais de planner/workflows passaram, incluindo execução do passo real com substitutos de psql/git que exigem transação read-only. A validação remota das duas correções e a integração do PR continuam pendentes. Nenhum domínio foi promovido.
+
+## Fechamento de dependências e limites atuais — 02/10/2026
+
+O [PR #486](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/486) foi integrado após todos os workflows aplicáveis passarem. O deploy de produção ficou READY no SHA acima, e o endpoint de versão confirmou esse SHA. Os assets servidos são idênticos aos da versão instalada MapLibre 6.11.2. A versão 5.14.0 com achado crítico foi substituída. O lockfile candidato auditado retornou zero achados; isso não fecha segurança, resiliência ou lançamento.
+
+| Frente                         | Evidência atual                                                                                                                                | Pendência preservada                                                                                                                            |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dependências e distribuição    | Quatro rotas principais 200; PMTiles Range 206; worker/shared 200, MIME JavaScript e hashes corretos; www 308                                  | Quality pós-merge passou; repetição de coerência ainda em execução                                                                              |
+| Quatro consumidores de mapas   | 14 casos de renderização de produção passaram; filtros, seleção e listas alternativas cobertos; fixtures do Observatório existem somente em CI | Navegador remoto ainda mostra mapa indisponível; causa não comprovada; dispositivos físicos/WebGL2, fluxo real de Relatar e adapter/ledger real |
+| Coerência e PWA                | 154 casos de coerência passaram; certificação PWA anterior passou na única repetição, sem aumentar limites nem remover critérios               | Causa do timeout inicial não estabelecida; tecnologia assistiva, segunda plataforma e zoom de 200%                                              |
+| Recuperação, conteúdo e ensaio | Critérios existentes preservados                                                                                                               | Cópia durável/restore medidos, conteúdo autorizado, piloto e ensaio integrado com pessoas reais                                                 |
+
+A lista pública de Calçadas permaneceu utilizável após voltar do mapa indisponível e apresentou um registro com localização protegida. Um registro não comprova cobertura da cidade nem conclusão do piloto. A certificação pós-merge atual é a run [37067289731](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/37067289731), concluída com sucesso. CI do merge, jornadas principais e grafo cívico também passaram; a repetição pós-merge de coerência ainda estava em execução no momento deste registro. Provas por versão e limitações estão em [comun-maplibre-security-migration.md](comun-maplibre-security-migration.md). Nenhum domínio foi promovido, nenhum conteúdo foi inventado e nenhuma configuração remota de acesso ou lançamento foi alterada.
