@@ -56,7 +56,7 @@ export function ComunCollectionPage({
   rail?: EntityRelation[];
 }) {
   return (
-    <main
+    <div
       className="comun-v2-page"
       data-comun-app-v2-page={`${kind}-collection`}
     >
@@ -70,7 +70,7 @@ export function ComunCollectionPage({
         <ComunRelationRail relations={rail} title="Continue pelo processo" />
       ) : null}
       <div className="mt-7">{children}</div>
-    </main>
+    </div>
   );
 }
 

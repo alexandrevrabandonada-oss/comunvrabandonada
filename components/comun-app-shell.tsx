@@ -60,7 +60,7 @@ export function ComunAppShell({
         {showSyntheticNotice ? <SyntheticNotice /> : null}
         <DesktopHeader />
         <ComunMobileAppBar {...appBar} />
-        <main id="conteudo" className="pb-24 lg:pb-0">
+        <main id="conteudo" tabIndex={-1} className="pb-24 lg:pb-0">
           {children}
         </main>
         <InstitutionalFooter />
@@ -95,6 +95,7 @@ export function ComunAppShell({
       <ComunPwaRuntime inlineConnectionStatus />
       <main
         id="conteudo"
+        tabIndex={-1}
         className="comun-app-shell-v2__content"
         data-bottom-navigation={showBottomNavigation ? "present" : "absent"}
       >

@@ -47,7 +47,7 @@ export default async function Collection({
           backDestination: "/comun/acervo/colecoes",
         }}
       >
-        <main
+        <div
           className="comun-v2-page comun-v2-page--reading comun-relational-page"
           data-comun-app-v2-page="archive-collection"
         >
@@ -83,7 +83,7 @@ export default async function Collection({
               />
             )}
           </ComunRelatedSection>
-        </main>
+        </div>
       </ComunShell>
     );
   }

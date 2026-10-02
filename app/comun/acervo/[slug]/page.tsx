@@ -91,7 +91,7 @@ export default async function ArchiveItemPage(props: {
           backDestination: "/comun/acervo",
         }}
       >
-        <main
+        <div
           className="comun-v2-page comun-v2-page--reading comun-relational-page"
           data-comun-app-v2-page="archive-item"
         >
@@ -167,7 +167,7 @@ export default async function ArchiveItemPage(props: {
           >
             Corrigir ou solicitar retirada
           </Link>
-        </main>
+        </div>
       </ComunShell>
     );
   }
