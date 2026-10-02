@@ -105,7 +105,7 @@ export default async function ProgramPage({
           backDestination: "/comun/radio",
         }}
       >
-        <main
+        <div
           className="comun-v2-page"
           data-comun-app-v2-page="radio-program-detail"
         >
@@ -147,7 +147,7 @@ export default async function ProgramPage({
               />
             )}
           </ComunRelatedSection>
-        </main>
+        </div>
       </ComunShell>
     );
   }

@@ -75,7 +75,7 @@ export default async function Page({
           backDestination: "/comun/acervo/musica",
         }}
       >
-        <main className="comun-v2-page" data-comun-app-v2-page="music-detail">
+        <div className="comun-v2-page" data-comun-app-v2-page="music-detail">
           <ComunEntityHeader context={context} />
           <ComunRelationRail relations={relations} />
           <div className="mt-8 grid gap-6 md:grid-cols-[minmax(220px,320px)_1fr]">
@@ -162,7 +162,7 @@ export default async function Page({
               ))}
             </div>
           </ComunRelatedSection>
-        </main>
+        </div>
       </ComunShell>
     );
   }

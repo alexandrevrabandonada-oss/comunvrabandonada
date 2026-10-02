@@ -104,7 +104,7 @@ export default async function EpisodePage({
           backDestination: "/comun/radio",
         }}
       >
-        <main
+        <div
           className="comun-v2-page comun-v2-page--reading comun-relational-page"
           data-comun-app-v2-page="radio-episode"
         >
@@ -200,7 +200,7 @@ export default async function EpisodePage({
           >
             Correção, consentimento e retirada
           </Link>
-        </main>
+        </div>
       </ComunShell>
     );
   }

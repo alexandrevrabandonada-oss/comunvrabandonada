@@ -98,7 +98,7 @@ export default async function Page({
           backDestination: "/comun/acervo/identificar",
         }}
       >
-        <main
+        <div
           className="comun-v2-page"
           data-comun-app-v2-page="identification-detail"
         >
@@ -192,7 +192,7 @@ export default async function Page({
               />
             )}
           </ComunRelatedSection>
-        </main>
+        </div>
       </ComunShell>
     );
   }
