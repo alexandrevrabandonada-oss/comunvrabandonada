@@ -79,6 +79,11 @@ test("official health points load, select and filter in the production build", a
   await expect(marker).toBeVisible();
   const label = await marker.getAttribute("aria-label");
   const name = label!.replace("Abrir equipamento público de Saúde: ", "");
+  // Nearby official coordinates can overlap at city zoom; filter before selecting.
+  await page
+    .getByRole("textbox", { name: "Buscar pelo nome", exact: true })
+    .fill(name);
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(1);
   await marker.click();
   await expect(
     page.getByText("Equipamento selecionado", { exact: true }),
@@ -112,4 +117,21 @@ test("health archive failure preserves the official textual list", async ({
     page.getByRole("heading", { name: "Lista textual de Saúde", exact: true }),
   ).toBeVisible();
   await expect(page.locator("main ol li").first()).toBeVisible();
+  const details = page
+    .getByRole("button", { name: /^Ver detalhes de / })
+    .first();
+  const label = await details.getAttribute("aria-label");
+  await details.press("Enter");
+  await expect(
+    page.getByRole("heading", {
+      name: label!.replace("Ver detalhes de ", ""),
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("region", {
+      name: "Detalhes do equipamento selecionado",
+      exact: true,
+    }),
+  ).toBeFocused();
 });
