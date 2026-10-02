@@ -29,10 +29,12 @@ export function SidewalkMapLibreMap({
     Promise.all([import("maplibre-gl"), import("pmtiles")])
       .then(([maplibre, { Protocol }]) => {
         if (cancelled || !host.current) return;
+        host.current.setAttribute("data-pmtiles-loaded", "false");
+        maplibre.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
         const protocol = new Protocol();
-        maplibre.default.addProtocol("pmtiles", protocol.tile);
+        maplibre.addProtocol("pmtiles", protocol.tile);
         const style = createSidewalkMapLibreStyle(provider);
-        const map = new maplibre.default.Map({
+        const map = new maplibre.Map({
           container: host.current,
           style,
           center: provider.center,
@@ -44,13 +46,14 @@ export function SidewalkMapLibreMap({
             [provider.bounds[2], provider.bounds[3]],
           ],
           attributionControl: false,
+          zoomLevelsToOverscale: undefined,
         });
         mapRef.current = map;
         map.addControl(
-          new maplibre.default.NavigationControl({ showCompass: false }),
+          new maplibre.NavigationControl({ showCompass: false }),
           "top-right",
         );
-        const geolocate = new maplibre.default.GeolocateControl({
+        const geolocate = new maplibre.GeolocateControl({
           positionOptions: { enableHighAccuracy: true },
           trackUserLocation: false,
           showAccuracyCircle: true,
@@ -67,12 +70,14 @@ export function SidewalkMapLibreMap({
           geolocateButton.title = "Usar minha localização aproximada";
         }
         map.addControl(
-          new maplibre.default.AttributionControl({
+          new maplibre.AttributionControl({
             compact: false,
             customAttribution: provider.attribution,
           }),
         );
         map.on("load", () => {
+          if (cancelled) return;
+          host.current?.setAttribute("data-pmtiles-loaded", "true");
           for (const record of records) {
             const point = pointCoordinates(record);
             if (!point) continue;
@@ -83,9 +88,7 @@ export function SidewalkMapLibreMap({
             el.textContent = "!";
             el.onclick = () => onSelect(record);
             markers.current.push(
-              new maplibre.default.Marker({ element: el })
-                .setLngLat(point)
-                .addTo(map),
+              new maplibre.Marker({ element: el }).setLngLat(point).addTo(map),
             );
           }
         });
@@ -128,6 +131,7 @@ export function SidewalkMapLibreMap({
       className="min-h-[58vh] w-full lg:min-h-[64vh]"
       aria-label="Mapa real de Volta Redonda com registros públicos de calçadas"
       data-map-provider={provider.id}
+      data-pmtiles-loaded="false"
     />
   );
 }

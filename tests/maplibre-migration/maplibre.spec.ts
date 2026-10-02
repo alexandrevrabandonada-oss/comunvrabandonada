@@ -1,0 +1,277 @@
+import { expect, test } from "@playwright/test";
+
+const archive = "/maps/volta-redonda/volta-redonda.pmtiles";
+const mapName = "Mapa real de Volta Redonda com registros públicos de calçadas";
+
+const observatoryMapName =
+  "Mapa de pontos de calçadas revisados e publicados com localização aproximada";
+
+test("observatory component keeps map, selected detail and list consistent with filters", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/maplibre-observatory-test");
+  const map = page.getByRole("region", {
+    name: observatoryMapName,
+    exact: true,
+  });
+  const list = page.getByRole("region", {
+    name: "Pontos mostrados",
+    exact: true,
+  });
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(map.locator(".maplibregl-canvas")).toBeVisible();
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(2);
+  await expect(list.getByRole("listitem")).toHaveCount(2);
+  await expect(map).toContainText("OpenStreetMap");
+  await page
+    .getByRole("combobox", { name: "Condição", exact: true })
+    .selectOption("bad");
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(1);
+  await expect(list.getByRole("listitem")).toHaveCount(1);
+  await map
+    .getByRole("button", {
+      name: "Abrir ponto revisado com condição Ruim",
+      exact: true,
+    })
+    .press("Enter");
+  await expect(
+    page.getByText("Ponto revisado selecionado", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("combobox", { name: "Condição", exact: true })
+    .selectOption("terrible");
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(0);
+  await expect(
+    page.getByText("Ponto revisado selecionado", { exact: true }),
+  ).toHaveCount(0);
+  await expect(list).toContainText(
+    "Nenhum ponto revisado corresponde aos filtros selecionados.",
+  );
+  await page
+    .getByRole("button", { name: "Limpar filtros", exact: true })
+    .click();
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(2);
+  await expect(list.getByRole("listitem")).toHaveCount(2);
+  expect(errors).toEqual([]);
+});
+
+test("observatory archive failure preserves the same filtered textual points", async ({
+  page,
+}) => {
+  await page.route(`**${archive}`, (route) => route.abort("failed"));
+  await page.goto("/maplibre-observatory-test");
+  await expect(
+    page.getByText("Mapa-base temporariamente indisponível.", { exact: true }),
+  ).toBeVisible();
+  const list = page.getByRole("region", {
+    name: "Pontos mostrados",
+    exact: true,
+  });
+  await expect(list.getByRole("listitem")).toHaveCount(2);
+  await page
+    .getByRole("combobox", { name: "Condição", exact: true })
+    .selectOption("bad");
+  await expect(list.getByRole("listitem")).toHaveCount(1);
+  await expect(list.getByRole("listitem")).toContainText("Ruim");
+  await expect(list.getByRole("listitem")).not.toContainText(/-44\.|-22\./);
+});
+
+test("picker keeps the latest point through movement, resize and clearing", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/maplibre-picker-test");
+  const map = page.getByRole("button", {
+    name: "Mapa para confirmar ou ajustar o ponto",
+    exact: true,
+  });
+  const marker = map.getByTestId("point-picker-marker");
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(map.locator(".maplibregl-canvas")).toBeVisible();
+  await expect(marker).toHaveCount(0);
+
+  const expectCentered = async () => {
+    // Wait for the real easeTo animation to finish. A stale null/previous point
+    // either removes the marker or leaves it away from the selected center.
+    await page.waitForTimeout(500); // The component's easeTo duration is 350 ms.
+    await expect
+      .poll(async () => {
+        if ((await marker.count()) !== 1) return false;
+        return marker.evaluate((element) => {
+          const parent = element.parentElement!.getBoundingClientRect();
+          return (
+            Math.abs(
+              parseFloat((element as HTMLElement).style.left) -
+                parent.width / 2,
+            ) < 3 &&
+            Math.abs(
+              parseFloat((element as HTMLElement).style.top) -
+                parent.height / 2,
+            ) < 3
+          );
+        });
+      })
+      .toBe(true);
+  };
+  await map.press("Enter");
+  await expectCentered();
+  const initialPoint = await page
+    .getByLabel("Selected test coordinate")
+    .textContent();
+  await map.press("Shift+ArrowRight");
+  await expect(page.getByLabel("Selected test coordinate")).not.toHaveText(
+    initialPoint!,
+  );
+  await expectCentered();
+  const size = page.viewportSize()!;
+  await page.setViewportSize({ width: size.width - 40, height: size.height });
+  await expectCentered();
+  await map.click({ position: { x: 80, y: 80 } });
+  await expectCentered();
+  await page
+    .getByRole("button", { name: "Clear test coordinate", exact: true })
+    .click();
+  await expect(marker).toHaveCount(0);
+  await page.setViewportSize(size);
+  await expect(marker).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test("production build loads real PMTiles and returns from list to map", async ({
+  page,
+}, testInfo) => {
+  const errors: string[] = [];
+  const ranges: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
+  page.on("request", (request) => {
+    if (request.url().endsWith(archive))
+      ranges.push(request.headers().range ?? "");
+  });
+  const response = await page.goto("/comun/calcadas?vista=mapa");
+  expect(response?.status()).toBe(200);
+  const map = page.getByRole("region", { name: mapName, exact: true });
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(map.locator(".maplibregl-canvas")).toBeVisible();
+  await expect(page.getByTestId("sidewalk-real-map-fallback")).toHaveCount(0);
+  await map.locator(".maplibregl-ctrl-zoom-in").click();
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  expect(ranges.some((range) => range.startsWith("bytes="))).toBe(true);
+  const partial = await page.request.get(archive, {
+    headers: { Range: "bytes=0-127" },
+  });
+  expect(partial.status()).toBe(206);
+  expect(partial.headers()["content-range"]).toMatch(/^bytes 0-127\//);
+  expect((await partial.body()).byteLength).toBe(128);
+  await page.screenshot({
+    path: testInfo.outputPath("loaded-map.png"),
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "Lista", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Lista", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(map).toHaveCount(0);
+  await page.getByRole("button", { name: "Mapa", exact: true }).click();
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(map.locator(".maplibregl-canvas")).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("failed archive leaves a usable list instead of synthetic cartography", async ({
+  page,
+}) => {
+  await page.route(`**${archive}`, (route) => route.abort("failed"));
+  await page.goto("/comun/calcadas?vista=mapa");
+  await expect(page.getByTestId("sidewalk-real-map-fallback")).toBeVisible();
+  await page.getByRole("button", { name: "Lista", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Lista", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("sidewalk-real-map-fallback")).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText("Cartografia sintética");
+});
+
+test("official health points load, select and filter in the production build", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  const response = await page.goto("/comun/observatorios/territorio");
+  expect(response?.status()).toBe(200);
+  const map = page.getByRole("region", {
+    name: "Mapa de equipamentos públicos de Saúde com coordenadas oficiais",
+    exact: true,
+  });
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(map.locator(".maplibregl-canvas")).toBeVisible();
+  const marker = map
+    .getByRole("button", { name: /^Abrir equipamento público de Saúde:/ })
+    .first();
+  await expect(marker).toBeVisible();
+  const label = await marker.getAttribute("aria-label");
+  const name = label!.replace("Abrir equipamento público de Saúde: ", "");
+  // Nearby official coordinates can overlap at city zoom; filter before selecting.
+  await page
+    .getByRole("textbox", { name: "Buscar pelo nome", exact: true })
+    .fill(name);
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(1);
+  await marker.click();
+  await expect(
+    page.getByText("Equipamento selecionado", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
+  await page
+    .getByRole("textbox", { name: "Buscar pelo nome", exact: true })
+    .fill("SEM_CORRESPONDENCIA_QA_LOCAL");
+  await expect(
+    page.getByText("Mostrando 0 equipamento(s) público(s) de Saúde.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(0);
+  await expect(
+    page.getByText("Equipamento selecionado", { exact: true }),
+  ).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test("health archive failure preserves the official textual list", async ({
+  page,
+}) => {
+  await page.route(`**${archive}`, (route) => route.abort("failed"));
+  await page.goto("/comun/observatorios/territorio");
+  await expect(
+    page.getByText("Mapa-base temporariamente indisponível.", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Lista textual de Saúde", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator("main ol li").first()).toBeVisible();
+  const details = page
+    .getByRole("button", { name: /^Ver detalhes de / })
+    .first();
+  const label = await details.getAttribute("aria-label");
+  await details.press("Enter");
+  await expect(
+    page.getByRole("heading", {
+      name: label!.replace("Ver detalhes de ", ""),
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("region", {
+      name: "Detalhes do equipamento selecionado",
+      exact: true,
+    }),
+  ).toBeFocused();
+});

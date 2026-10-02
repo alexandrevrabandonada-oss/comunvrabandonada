@@ -23,14 +23,17 @@ export function ComunSidewalkObservatoryMap({
   const [failed, setFailed] = useState(!provider.enabled);
 
   useEffect(() => {
-    if (!host.current || !provider.enabled || !provider.style.pmtilesUrl) return;
+    if (!host.current || !provider.enabled || !provider.style.pmtilesUrl)
+      return;
     let cancelled = false;
+    host.current.setAttribute("data-pmtiles-loaded", "false");
     Promise.all([import("maplibre-gl"), import("pmtiles")])
       .then(([maplibre, { Protocol }]) => {
         if (cancelled || !host.current) return;
+        maplibre.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
         const protocol = new Protocol();
-        maplibre.default.addProtocol("pmtiles", protocol.tile);
-        const map = new maplibre.default.Map({
+        maplibre.addProtocol("pmtiles", protocol.tile);
+        const map = new maplibre.Map({
           container: host.current,
           style: createSidewalkMapLibreStyle(provider),
           center: provider.center,
@@ -42,19 +45,21 @@ export function ComunSidewalkObservatoryMap({
             [provider.bounds[2], provider.bounds[3]],
           ],
           attributionControl: false,
+          zoomLevelsToOverscale: undefined,
         });
         mapRef.current = map;
         map.addControl(
-          new maplibre.default.NavigationControl({ showCompass: false }),
+          new maplibre.NavigationControl({ showCompass: false }),
           "top-right",
         );
         map.addControl(
-          new maplibre.default.AttributionControl({
+          new maplibre.AttributionControl({
             compact: false,
             customAttribution: provider.attribution,
           }),
         );
         map.on("load", () => {
+          if (cancelled) return;
           for (const observation of observations) {
             const point = observation.geography.geometry?.coordinates;
             if (!point) continue;
@@ -68,11 +73,12 @@ export function ComunSidewalkObservatoryMap({
             );
             marker.onclick = () => onSelect(observation);
             markers.current.push(
-              new maplibre.default.Marker({ element: marker })
+              new maplibre.Marker({ element: marker })
                 .setLngLat(point)
                 .addTo(map),
             );
           }
+          host.current?.setAttribute("data-pmtiles-loaded", "true");
         });
         map.on("error", () => setFailed(true));
       })
@@ -110,6 +116,7 @@ export function ComunSidewalkObservatoryMap({
       aria-label="Mapa de pontos de calçadas revisados e publicados com localização aproximada"
       className="min-h-[22rem] w-full border-2 border-comun-black sm:min-h-[30rem]"
       data-map-provider={provider.id}
+      data-pmtiles-loaded="false"
     />
   );
 }
