@@ -67,3 +67,22 @@ Para cada lacuna registrar domínio, versão/SHA, observação, causa, correçã
 O auditor estrutural usa `parse5`, verifica HTTP/content-type e título no conteúdo principal exposto pelo HTML, preserva inspeção do payload completo e classifica somente sintaxe conhecida de `placeholder` e a explicação estática revisada da página de segurança. Não comprova CSS computado, hidratação, direitos autorais ou operação humana. Achados de streaming exigem observação do navegador. Nesta continuação, Segurança foi confirmada em navegador no domínio canônico: título correto, um h1, um main, destino do salto ao conteúdo presente e explicação estática de fixtures renderizada. Não houve erro de aplicação capturado; o único erro observado veio da extensão do navegador. Isso confirma a limitação da inspeção exclusiva do HTML servidor, sem comprovar procedência de dados ou todos os fluxos. Resultados não promovem automaticamente estados dos domínios.
 
 Esta reconciliação é a base para fechar lacunas; não declara auditoria completa de todas as 232 páginas, 70 APIs, permissões autenticadas ou dados privados. Essas superfícies devem ter cobertura relacionada às jornadas V1 e aos contratos de autorização antes de qualquer afirmação de conclusão total.
+
+## Continuação da auditoria renderizada — 2026-10-02
+
+Produção `cdda931e1080f18601e923f9eaa91968fe916ba3`, deploy `dpl_7MnfTpiBfVUdw26HY2WJkLEqhiCu`, READY, aliases canônicos e nenhum aliasError.
+
+| Rota          | Resultado observado em navegador desktop                                                        | Lacuna                                                                                 |
+| ------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Início        | Um h1, um main e conteúdo real renderizado                                                      | Nenhuma falha estrutural neste recorte                                                 |
+| Comunidades   | Um h1, um main, nenhum marcador sintético visível consultado                                    | Payload de servidor ainda exige classificação; não há prova de todos os dados          |
+| Participar    | Um h1, um main e opções renderizadas                                                            | Envio e devolutiva ainda precisam de prova de jornada                                  |
+| Calçadas      | Carregamento transitório concluído; um h1, um main, um registro público e localização protegida | O número público não mede participação do piloto; amostra e fechamento ainda pendentes |
+| Acervo        | Um h1, um main, sem main aninhado                                                               | Direitos e publicações editoriais ainda exigem prova                                   |
+| Rádio         | Um h1 e um main                                                                                 | Conteúdo editorial real ainda pendente                                                 |
+| Observatórios | Um h1, dois main, sendo um aninhado                                                             | Remover main interno do hub; incluir regressão de landmark e salto ao conteúdo         |
+| Segurança     | Um h1, um main e explicação legítima de fixtures                                                | Não inferir vazamento dessa explicação; HTML servidor não comprova a tela renderizada  |
+
+A inspeção não encontrou overlays de framework ou erros de aplicação nas páginas consultadas; logs capturados continham somente erros da extensão de metadados do navegador. Confirmação de estrutura não equivale a verificação de todos os controles, autorização autenticada, responsividade ou dispositivos físicos.
+
+A correção proposta em Observatórios troca somente o elemento de agrupamento interno por div, preservando classes e conteúdo, e mantém o main da shell como único marco principal. A regressão percorre a página e verifica foco após o salto ao conteúdo e regras axe de landmarks.
