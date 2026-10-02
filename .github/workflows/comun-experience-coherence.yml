@@ -81,6 +81,9 @@ jobs:
           fi
       - uses: ./.github/actions/setup-playwright-browser
       - run: npm run test:e2e:experience-coherence
+        env:
+          COMUN_OBSERVATORIES_FOUNDATION_ENABLED: enabled
+          COMUN_OBSERVATORY_SIDEWALK_ADAPTER_ENABLED: disabled
       - run: npm run build
       - name: Stop disposable local stack
         if: always()

@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 const routes = [
+  "/comun/observatorios",
   "/comun/acervo",
   "/comun/acervo/colecoes",
   "/comun/acervo/identificar",

@@ -7,9 +7,10 @@ import type { SidewalkCoverageState } from "@/lib/comun-sidewalk-observatory";
 
 function formatDate(value: string | null) {
   if (!value) return "Ainda sem data de atualização";
-  return new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(
-    new Date(value),
-  );
+  return new Intl.DateTimeFormat("pt-BR", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(value));
 }
 
 const freshnessLabels = {
@@ -74,7 +75,7 @@ export function ObservatoryHub({
   sidewalkCoverageState: SidewalkCoverageState | null;
 }) {
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
       <header className="max-w-3xl">
         <p className="text-xs font-black uppercase text-comun-yellow">
           Leitura pública
@@ -91,10 +92,10 @@ export function ObservatoryHub({
         aria-label="Observatórios disponíveis"
       >
         {observatories.map((item) => {
-          const available = item.status === "available" && Boolean(item.publicRoute);
+          const available =
+            item.status === "available" && Boolean(item.publicRoute);
           const sidewalk = item.id === "sidewalks";
-          const partial =
-            sidewalkCoverageState === "partial_due_to_safety_cap";
+          const partial = sidewalkCoverageState === "partial_due_to_safety_cap";
           return (
             <article
               key={item.id}
@@ -105,7 +106,9 @@ export function ObservatoryHub({
               >
                 {available ? "Disponível" : "Em preparação"}
               </p>
-              <h2 className="mt-2 text-2xl font-black uppercase">{item.label}</h2>
+              <h2 className="mt-2 text-2xl font-black uppercase">
+                {item.label}
+              </h2>
               <p className="mt-2 text-comun-black/75">{item.description}</p>
               {sidewalk && available && sidewalkCount !== null ? (
                 <p className="mt-4 text-sm font-bold">
@@ -132,7 +135,10 @@ export function ObservatoryHub({
         className="mt-8 max-w-3xl border-l-4 border-comun-yellow pl-4 text-sm text-comun-paper/80"
         aria-labelledby="observatory-methodology"
       >
-        <h2 id="observatory-methodology" className="font-black uppercase text-comun-paper">
+        <h2
+          id="observatory-methodology"
+          className="font-black uppercase text-comun-paper"
+        >
           Como funciona este Observatório
         </h2>
         <p className="mt-2">
@@ -142,7 +148,7 @@ export function ObservatoryHub({
           não entram nesta área.
         </p>
       </section>
-    </main>
+    </div>
   );
 }
 
