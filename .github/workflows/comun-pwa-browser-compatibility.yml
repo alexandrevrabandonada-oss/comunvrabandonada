@@ -1,0 +1,35 @@
+name: COMUN PWA browser compatibility
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "playwright.comun-pwa-experience.config.ts"
+      - "tests/comun-pwa-experience/**"
+      - ".github/workflows/comun-pwa-browser-compatibility.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comun-pwa-browser-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pwa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      COMUN_BASE_URL: https://comunsocial.online
+      PLAYWRIGHT_SKIP_WEBSERVER: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - uses: ./.github/actions/setup-playwright-browser
+      - name: Run unchanged PWA criteria with full Chromium
+        run: npm run quality:pwa
