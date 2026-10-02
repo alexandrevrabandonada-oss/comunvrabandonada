@@ -6,17 +6,17 @@ O `npm audit --json` do lockfile integrado pelo PR #484 encontrou 11 pacotes sin
 
 Atualizações compatíveis propostas neste pacote:
 
-| Pacote | Antes | Depois | Uso / validação |
-| --- | --- | --- | --- |
-| Next.js / eslint-config-next | 16.2.11 | 16.3.8 | Framework e lint; compilação de produção e gates de Preview |
-| sharp / override | 0.35.3 | 0.35.4 | Processamento de imagens do Acervo, Arte e relatos; testes existentes de imagens e derivadas |
-| Vitest | 4.1.10 | 4.1.11 | Ferramenta de testes; atualiza também o mocker |
-| brace-expansion / override | 1.1.16 | 1.1.21 | Cadeia transitiva de ferramentas |
-| baseline-browser-mapping | Lockfile anterior | 2.11.27 | Resolução compatível, sem trocar dependência direta |
-| browserslist | Lockfile anterior | 4.29.3 | Resolução compatível |
-| js-yaml | Lockfile anterior | 4.3.2 | Resolução compatível |
-| nanoid | Lockfile anterior | 3.3.19 | Resolução compatível da linha 3 |
-| postcss-selector-parser | Lockfile anterior | 6.1.4 | Resolução compatível da linha 6 |
+| Pacote                       | Antes             | Depois  | Uso / validação                                                                              |
+| ---------------------------- | ----------------- | ------- | -------------------------------------------------------------------------------------------- |
+| Next.js / eslint-config-next | 16.2.11           | 16.3.8  | Framework e lint; compilação de produção e gates de Preview                                  |
+| sharp / override             | 0.35.3            | 0.35.4  | Processamento de imagens do Acervo, Arte e relatos; testes existentes de imagens e derivadas |
+| Vitest                       | 4.1.10            | 4.1.11  | Ferramenta de testes; atualiza também o mocker                                               |
+| brace-expansion / override   | 1.1.16            | 1.1.21  | Cadeia transitiva de ferramentas                                                             |
+| baseline-browser-mapping     | Lockfile anterior | 2.11.27 | Resolução compatível, sem trocar dependência direta                                          |
+| browserslist                 | Lockfile anterior | 4.29.3  | Resolução compatível                                                                         |
+| js-yaml                      | Lockfile anterior | 4.3.2   | Resolução compatível                                                                         |
+| nanoid                       | Lockfile anterior | 3.3.19  | Resolução compatível da linha 3                                                              |
+| postcss-selector-parser      | Lockfile anterior | 6.1.4   | Resolução compatível da linha 6                                                              |
 
 Após `npm install --ignore-scripts` e atualização direcionada dos transitivos, o audit local passou a **1 crítico, 0 altos, 0 moderados e 0 baixos**. O achado residual é MapLibre GL 5.14.0. O exit code 1 do audit continua esperado e não foi transformado em um resultado verde.
 
