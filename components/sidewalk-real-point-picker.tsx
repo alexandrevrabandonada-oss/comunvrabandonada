@@ -24,12 +24,17 @@ export function SidewalkRealPointPicker({
 }) {
   const host = useRef<HTMLDivElement>(null),
     mapRef = useRef<MapLibreMap | null>(null),
+    pointRef = useRef(point),
     [markerPosition, setMarkerPosition] = useState<{
       x: number;
       y: number;
     } | null>(null),
     [failed, setFailed] = useState(false),
     [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    pointRef.current = point;
+  }, [point]);
 
   useEffect(() => {
     if (!host.current || !realBasemapProvider.style.pmtilesUrl) return;
@@ -47,8 +52,8 @@ export function SidewalkRealPointPicker({
         const map = new maplibre.Map({
           container: host.current,
           style: createSidewalkMapLibreStyle(realBasemapProvider),
-          center: point ?? realBasemapProvider.center,
-          zoom: point ? 16 : 12,
+          center: pointRef.current ?? realBasemapProvider.center,
+          zoom: pointRef.current ? 16 : 12,
           minZoom: realBasemapProvider.minZoom,
           maxZoom: realBasemapProvider.maxZoom,
           maxBounds: [
@@ -61,8 +66,9 @@ export function SidewalkRealPointPicker({
         });
         mapRef.current = map;
         const updateMarker = () => {
-          if (!point) return setMarkerPosition(null);
-          const projected = map.project(point);
+          const currentPoint = pointRef.current;
+          if (!currentPoint) return setMarkerPosition(null);
+          const projected = map.project(currentPoint);
           setMarkerPosition({ x: projected.x, y: projected.y });
         };
         map.on("load", () => {
@@ -79,8 +85,7 @@ export function SidewalkRealPointPicker({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-    // A instância é criada uma única vez; atualizações de ponto são tratadas abaixo.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // A instância é criada uma única vez; os eventos leem a referência atual.
   }, []);
 
   useEffect(() => {
@@ -150,7 +155,7 @@ export function SidewalkRealPointPicker({
             aproximada.
           </span>
         ) : null}
-        {markerPosition ? (
+        {point && markerPosition ? (
           <>
             <span
               className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-blue-700 bg-blue-300/25"
@@ -162,6 +167,7 @@ export function SidewalkRealPointPicker({
               }}
             />
             <span
+              data-testid="point-picker-marker"
               className="pointer-events-none absolute grid size-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 bg-comun-yellow"
               style={{ left: markerPosition.x, top: markerPosition.y }}
             >

@@ -45,6 +45,8 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run test:maplibre-assets
+      - name: Install picker fixture only in disposable CI build
+        run: install -D tests/maplibre-migration/fixtures/point-picker-page.tsx app/maplibre-picker-test/page.tsx
       - run: npm run build
       - uses: ./.github/actions/setup-playwright-browser
       - name: Verify production rendering and archive failure

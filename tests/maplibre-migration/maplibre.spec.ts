@@ -3,6 +3,68 @@ import { expect, test } from "@playwright/test";
 const archive = "/maps/volta-redonda/volta-redonda.pmtiles";
 const mapName = "Mapa real de Volta Redonda com registros públicos de calçadas";
 
+test("picker keeps the latest point through movement, resize and clearing", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/maplibre-picker-test");
+  const map = page.getByRole("button", {
+    name: "Mapa para confirmar ou ajustar o ponto",
+    exact: true,
+  });
+  const marker = map.getByTestId("point-picker-marker");
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(map.locator(".maplibregl-canvas")).toBeVisible();
+  await expect(marker).toHaveCount(0);
+
+  const expectCentered = async () => {
+    // Wait for the real easeTo animation to finish. A stale null/previous point
+    // either removes the marker or leaves it away from the selected center.
+    await page.waitForTimeout(500); // The component's easeTo duration is 350 ms.
+    await expect
+      .poll(async () => {
+        if ((await marker.count()) !== 1) return false;
+        return marker.evaluate((element) => {
+          const parent = element.parentElement!.getBoundingClientRect();
+          return (
+            Math.abs(
+              parseFloat((element as HTMLElement).style.left) -
+                parent.width / 2,
+            ) < 3 &&
+            Math.abs(
+              parseFloat((element as HTMLElement).style.top) -
+                parent.height / 2,
+            ) < 3
+          );
+        });
+      })
+      .toBe(true);
+  };
+  await map.press("Enter");
+  await expectCentered();
+  const initialPoint = await page
+    .getByLabel("Selected test coordinate")
+    .textContent();
+  await map.press("Shift+ArrowRight");
+  await expect(page.getByLabel("Selected test coordinate")).not.toHaveText(
+    initialPoint!,
+  );
+  await expectCentered();
+  const size = page.viewportSize()!;
+  await page.setViewportSize({ width: size.width - 40, height: size.height });
+  await expectCentered();
+  await map.click({ position: { x: 80, y: 80 } });
+  await expectCentered();
+  await page
+    .getByRole("button", { name: "Clear test coordinate", exact: true })
+    .click();
+  await expect(marker).toHaveCount(0);
+  await page.setViewportSize(size);
+  await expect(marker).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
 test("production build loads real PMTiles and returns from list to map", async ({
   page,
 }, testInfo) => {
