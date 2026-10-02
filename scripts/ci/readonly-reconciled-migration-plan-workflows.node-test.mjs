@@ -13,8 +13,9 @@ const row = { release: manifest.release, migration_path: manifest.migration,
   migration_sha256: manifest.migrationSha256, pre_fingerprint: manifest.expectedPreFingerprint,
   post_fingerprint: manifest.expectedPostFingerprint, status: 'applied' };
 
-for (const lane of ['a1', 'c1', 'd1', 'e2', 'e3']) {
-  const workflow = parse(readFileSync(`.github/workflows/comun-48-3-${lane}-preflight.yml`, 'utf8'));
+for (const lane of ['a1', 'c1', 'd1', 'e2', 'e3', 'a7']) {
+  const prefix = lane === 'a7' ? '48-4' : '48-3';
+  const workflow = parse(readFileSync(`.github/workflows/comun-${prefix}-${lane}-preflight.yml`, 'utf8'));
   const steps = Object.values(workflow.jobs).flatMap(job => job.steps);
   const plan = steps.find(step => step.name?.startsWith('Prove') && step.run?.includes('readonly-reconciled-migration-plan.mjs'));
   test(`${lane}: promoted plan accepts the exact ledger and blocks drift without changing migrations`, () => {
@@ -29,7 +30,7 @@ for (const lane of ['a1', 'c1', 'd1', 'e2', 'e3']) {
         cpSync(path, join(root, path));
       }
       const bin = join(root, 'bin'); mkdirSync(bin);
-      const artifact = join(root, `.ci-artifacts/48-3-${lane}-preflight`);
+      const artifact = join(root, `.ci-artifacts/${prefix}-${lane}-preflight`);
       mkdirSync(artifact, { recursive: true });
       writeFileSync(join(artifact, 'mode'), 'promoted');
       // Stubs enforce the actual child-process contract; no database is contacted.
