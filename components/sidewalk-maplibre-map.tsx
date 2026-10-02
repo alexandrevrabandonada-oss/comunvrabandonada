@@ -29,6 +29,7 @@ export function SidewalkMapLibreMap({
     Promise.all([import("maplibre-gl"), import("pmtiles")])
       .then(([maplibre, { Protocol }]) => {
         if (cancelled || !host.current) return;
+        host.current.setAttribute("data-pmtiles-loaded", "false");
         maplibre.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
         const protocol = new Protocol();
         maplibre.addProtocol("pmtiles", protocol.tile);
@@ -75,6 +76,8 @@ export function SidewalkMapLibreMap({
           }),
         );
         map.on("load", () => {
+          if (cancelled) return;
+          host.current?.setAttribute("data-pmtiles-loaded", "true");
           for (const record of records) {
             const point = pointCoordinates(record);
             if (!point) continue;
@@ -128,6 +131,7 @@ export function SidewalkMapLibreMap({
       className="min-h-[58vh] w-full lg:min-h-[64vh]"
       aria-label="Mapa real de Volta Redonda com registros públicos de calçadas"
       data-map-provider={provider.id}
+      data-pmtiles-loaded="false"
     />
   );
 }

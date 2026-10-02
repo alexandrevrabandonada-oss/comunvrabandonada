@@ -1,0 +1,53 @@
+name: COMUN MapLibre production rendering
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/comun/calcadas/**"
+      - "components/sidewalk-real-map.tsx"
+      - "components/sidewalk-maplibre-map.tsx"
+      - "components/sidewalk-real-point-picker.tsx"
+      - "components/comun-sidewalk-observatory-map.tsx"
+      - "components/comun-territorial-health-map.tsx"
+      - "lib/sidewalk-maplibre-style.ts"
+      - "lib/sidewalk-basemap-provider.ts"
+      - "public/maps/**"
+      - "package*.json"
+      - "scripts/copy-maplibre-worker*"
+      - "tests/maplibre-migration/**"
+      - "playwright.maplibre-migration.config.ts"
+      - ".github/workflows/comun-maplibre-migration.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: comun-maplibre-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  rendering:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run test:maplibre-assets
+      - run: npm run build
+      - uses: ./.github/actions/setup-playwright-browser
+      - name: Verify production rendering and archive failure
+        run: npx playwright test -c playwright.maplibre-migration.config.ts
+      - name: Keep browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-maplibre-rendering-${{ github.run_id }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 14

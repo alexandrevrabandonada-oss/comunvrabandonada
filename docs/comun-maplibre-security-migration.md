@@ -34,3 +34,13 @@ Isso é evidência local e não certifica renderização, aparelho físico ou pr
 | Regressão                      | CI e Preview do head exato verdes; desktop e viewport móvel; logs sem erro de aplicação        |
 
 Não usar produção para inventar relatos, publicar pontos de teste ou obter consentimentos. Não promover o domínio de segurança/resiliência somente porque o audit de dependências zerou: backup durável, recuperação, ensaio humano e demais critérios permanecem pendentes.
+
+## Verificação de 02/10/2026: bloqueio de renderização
+
+No navegador remoto, o Preview `9b7ea3fcd2a0f81e221e073859f4cf4424ecb06d` e a produção `2cb86380259ebb0cd5484bcc903d92df8bf498cb` mostraram “Mapa-base indisponível” em Calçadas. A lista equivalente carregou um registro público. Isso não estabelece regressão da migração nem comprova incompatibilidade de GPU; a causa continua indeterminada porque os handlers atuais descartam o erro. A validação do estilo pelo `validateStyleMin` instalado retornou zero erros.
+
+O worker e o módulo compartilhado responderam HTTP 200 com MIME JavaScript no Preview. O PMTiles público de produção respondeu HTTP 206, `Content-Range: bytes 0-127/10147678`, com 128 bytes. O pedido direto ao Preview encontrou proteção de autenticação, portanto não há prova HTTP Range autenticada nesse ambiente. A Feirinha teve título correto no Preview legado; isso não substitui a jornada A7 com o núcleo público habilitado.
+
+A suíte antiga de mapa real estava condicionada à branch histórica `codex/tijolo-45-1-mapa-real-volta-redonda`. A nova lane `COMUN MapLibre production rendering` usa `next start` após build, sem credenciais ou conteúdo editorial inventado. Exige o evento real de carregamento do mapa, canvas visível, pedido PMTiles, resposta parcial 206, ida e volta entre mapa e lista, ausência de erro de aplicação e alternativa textual quando o arquivo é bloqueado. Roda em desktop e viewport móvel; não representa aparelho físico. O resultado dessa lane ainda precisa passar. Os demais três consumidores continuam exigindo revisão específica.
+
+A limpeza de `.next/dev` antes do build da lane de coerência elimina tipos temporários deixados pelo servidor de testes. A jornada A7 passa a exigir o título Feirinha antes da auditoria de acessibilidade; falha persistente de título continua bloqueando o teste. Não houve remoção de critérios de acessibilidade. A migração permanece em draft até renderização comprovada.
