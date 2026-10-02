@@ -26,6 +26,7 @@ export function ComunSidewalkObservatoryMap({
     if (!host.current || !provider.enabled || !provider.style.pmtilesUrl)
       return;
     let cancelled = false;
+    host.current.setAttribute("data-pmtiles-loaded", "false");
     Promise.all([import("maplibre-gl"), import("pmtiles")])
       .then(([maplibre, { Protocol }]) => {
         if (cancelled || !host.current) return;
@@ -58,6 +59,7 @@ export function ComunSidewalkObservatoryMap({
           }),
         );
         map.on("load", () => {
+          if (cancelled) return;
           for (const observation of observations) {
             const point = observation.geography.geometry?.coordinates;
             if (!point) continue;
@@ -76,6 +78,7 @@ export function ComunSidewalkObservatoryMap({
                 .addTo(map),
             );
           }
+          host.current?.setAttribute("data-pmtiles-loaded", "true");
         });
         map.on("error", () => setFailed(true));
       })
@@ -113,6 +116,7 @@ export function ComunSidewalkObservatoryMap({
       aria-label="Mapa de pontos de calçadas revisados e publicados com localização aproximada"
       className="min-h-[22rem] w-full border-2 border-comun-black sm:min-h-[30rem]"
       data-map-provider={provider.id}
+      data-pmtiles-loaded="false"
     />
   );
 }

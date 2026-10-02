@@ -3,6 +3,84 @@ import { expect, test } from "@playwright/test";
 const archive = "/maps/volta-redonda/volta-redonda.pmtiles";
 const mapName = "Mapa real de Volta Redonda com registros públicos de calçadas";
 
+const observatoryMapName =
+  "Mapa de pontos de calçadas revisados e publicados com localização aproximada";
+
+test("observatory component keeps map, selected detail and list consistent with filters", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/maplibre-observatory-test");
+  const map = page.getByRole("region", {
+    name: observatoryMapName,
+    exact: true,
+  });
+  const list = page.getByRole("region", {
+    name: "Pontos mostrados",
+    exact: true,
+  });
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(map.locator(".maplibregl-canvas")).toBeVisible();
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(2);
+  await expect(list.getByRole("listitem")).toHaveCount(2);
+  await expect(map).toContainText("OpenStreetMap");
+  await page
+    .getByRole("combobox", { name: "Condição", exact: true })
+    .selectOption("bad");
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(1);
+  await expect(list.getByRole("listitem")).toHaveCount(1);
+  await map
+    .getByRole("button", {
+      name: "Abrir ponto revisado com condição Ruim",
+      exact: true,
+    })
+    .press("Enter");
+  await expect(
+    page.getByText("Ponto revisado selecionado", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("combobox", { name: "Condição", exact: true })
+    .selectOption("terrible");
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(0);
+  await expect(
+    page.getByText("Ponto revisado selecionado", { exact: true }),
+  ).toHaveCount(0);
+  await expect(list).toContainText(
+    "Nenhum ponto revisado corresponde aos filtros selecionados.",
+  );
+  await page
+    .getByRole("button", { name: "Limpar filtros", exact: true })
+    .click();
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(2);
+  await expect(list.getByRole("listitem")).toHaveCount(2);
+  expect(errors).toEqual([]);
+});
+
+test("observatory archive failure preserves the same filtered textual points", async ({
+  page,
+}) => {
+  await page.route(`**${archive}`, (route) => route.abort("failed"));
+  await page.goto("/maplibre-observatory-test");
+  await expect(
+    page.getByText("Mapa-base temporariamente indisponível.", { exact: true }),
+  ).toBeVisible();
+  const list = page.getByRole("region", {
+    name: "Pontos mostrados",
+    exact: true,
+  });
+  await expect(list.getByRole("listitem")).toHaveCount(2);
+  await page
+    .getByRole("combobox", { name: "Condição", exact: true })
+    .selectOption("bad");
+  await expect(list.getByRole("listitem")).toHaveCount(1);
+  await expect(list.getByRole("listitem")).toContainText("Ruim");
+  await expect(list.getByRole("listitem")).not.toContainText(/-44\.|-22\./);
+});
+
 test("picker keeps the latest point through movement, resize and clearing", async ({
   page,
 }) => {
