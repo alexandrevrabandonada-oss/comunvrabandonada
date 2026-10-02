@@ -12,6 +12,11 @@ import {
   summarizeComunLaunchProgram,
 } from "../lib/comun-launch-program.ts";
 
+import {
+  PUBLIC_PAGE_CONTRACTS,
+  inspectPublicPage,
+} from "./comun-public-page-contract.mjs";
+
 const baseUrl = String(
   process.env.COMUN_PUBLIC_BASE_URL || "https://comunsocial.online",
 ).replace(/\/$/, "");
@@ -19,42 +24,17 @@ const artifactDir = resolve(
   process.env.COMUN_ARTIFACT_DIR || ".ci-artifacts/comun-launch-readiness",
 );
 
-const publicRoutes = [
-  ["/comun", "COMUN"],
-  ["/comun/pautas", "Pautas"],
-  ["/comun/comunidades", "Comunidades"],
-  ["/comun/participar", "Participar"],
-  ["/comun/calcadas", "Mapa comunitário"],
-  ["/comun/acervo", "Acervo"],
-  ["/comun/radio", "Rádio"],
-  ["/comun/observatorios", "Observatórios"],
-  ["/comun/seguranca", "Segurança"],
-];
 const protectedRoutes = [
   "/comun/admin/lancamento",
   "/comun/admin/organizacao",
   "/comun/admin/calcadas/operacao",
 ];
-const forbiddenPublicMarkers = [
-  "placeholder",
-  "conteúdo demonstrativo",
-  "registros demonstrativos",
-  "ambiente de demonstração",
-  "conteúdo sintético",
-  "fotografia smoke",
-  "teste controlado",
-  "foto privada de registro de calçada",
-  "imagem aguardando revisão de privacidade",
-  "fixture",
-  "lorem ipsum",
-  "página em construção",
-];
-
 async function readRoute(path) {
   try {
     const response = await fetch(`${baseUrl}${path}`, {
       headers: { "user-agent": "COMUN-launch-readiness/1.0" },
       redirect: "follow",
+      signal: AbortSignal.timeout(15000),
     });
     return {
       path,
@@ -76,16 +56,20 @@ async function readRoute(path) {
 }
 
 const publicResults = [];
-for (const [path, expectedText] of publicRoutes) {
+for (const [path, headings] of PUBLIC_PAGE_CONTRACTS) {
   const result = await readRoute(path);
-  const lowerHtml = result.html.toLowerCase();
+  const contract = inspectPublicPage(result, headings);
   publicResults.push({
     path,
     status: result.status,
-    contractPresent: result.html.includes(expectedText),
-    forbiddenMarkers: forbiddenPublicMarkers.filter((marker) =>
-      lowerHtml.includes(marker),
-    ),
+    contractPresent: contract.contractPresent,
+    forbiddenMarkers: [
+      ...new Set([
+        ...contract.visibleMarkers,
+        ...contract.unresolvedPayloadMarkers,
+      ]),
+    ],
+    contract,
   });
 }
 
@@ -119,12 +103,7 @@ const securityHeaders = {
 };
 
 const program = summarizeComunLaunchProgram();
-const routeBlockers = publicResults.filter(
-  (route) =>
-    route.status !== 200 ||
-    !route.contractPresent ||
-    route.forbiddenMarkers.length > 0,
-);
+const routeBlockers = publicResults.filter((route) => !route.contract.valid);
 const protectionBlockers = protectedResults.filter(
   (route) => !route.redirectedToAdminLogin,
 );
@@ -154,7 +133,9 @@ const findings = [
 const readyForFinalHumanGate =
   program.readyForFinalHumanGate && findings.length === 0;
 const artifact = {
-  schemaVersion: 1,
+  schemaVersion: 2,
+  domainEvidenceSource: "declared_program_states",
+  coverage: "nine_public_routes_three_anonymous_admin_redirects_assets_headers",
   auditedAt: new Date().toISOString(),
   baseUrl: new URL(baseUrl).origin,
   programVersion: COMUN_V1_LAUNCH_PROGRAM.version,
@@ -206,6 +187,8 @@ const markdown = `# Entregabilidade V1 do COMUN
 - Headers de segurança ausentes: **${missingSecurityHeaders.length}**
 
 ## Fronteira
+
+Estados dos domínios vêm do programa declarado; HTML não comprova direitos editoriais, testes humanos ou recuperação. A inspeção estrutural de nove rotas não cobre todas as páginas e APIs.
 
 Auditoria exclusivamente read-only. O artifact não contém coordenadas, dados pessoais, IDs de usuários, secrets ou caminhos privados.
 `;

@@ -137,9 +137,10 @@ async function auditGate({ noindex = true, allGreen = true } = {}) {
   const code = `
     const { COMUN_V1_LAUNCH_PROGRAM } = await import('./lib/comun-launch-program.ts');
     if (${allGreen}) for (const domain of COMUN_V1_LAUNCH_PROGRAM.domains) domain.status = 'green';
+    const { PUBLIC_PAGE_CONTRACTS } = await import('./scripts/comun-public-page-contract.mjs');
     globalThis.fetch = async (url) => {
       const path = new URL(url).pathname;
-      let text = '<main>COMUN Pautas Comunidades Participar Mapa comunitário Acervo Rádio Observatórios Segurança</main>';
+      let text = '<main><h1>' + (PUBLIC_PAGE_CONTRACTS.find(([route]) => route === path)?.[1][0] || 'Entrada') + '</h1></main>';
       const headers = new Headers({
         'content-type': 'text/html', 'strict-transport-security': 'max-age=31536000',
         'x-content-type-options': 'nosniff', 'x-frame-options': 'DENY',

@@ -19,6 +19,8 @@ on:
       - "lib/public-content-readiness.test.ts"
       - "scripts/audit-comun-launch-readiness.mjs"
       - "scripts/comun-launch-assets*"
+      - "scripts/comun-public-page-contract*"
+      - "docs/comun-product-objective-and-roadmap.md"
       - "lib/comun-indexing-policy.ts"
       - "app/robots.ts"
       - "app/sitemap.ts"
@@ -54,7 +56,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: node --check scripts/audit-comun-launch-readiness.mjs
-      - run: node --experimental-strip-types --test scripts/comun-launch-assets.node-test.mjs
+      - run: node --experimental-strip-types --test scripts/comun-launch-assets.node-test.mjs scripts/comun-public-page-contract.node-test.mjs
       - run: >-
           npx prettier --check
           .github/workflows/comun-launch-readiness.yml
@@ -71,6 +73,9 @@ jobs:
           lib/public-content-readiness.ts
           lib/public-content-readiness.test.ts
           scripts/audit-comun-launch-readiness.mjs
+          scripts/comun-public-page-contract.mjs
+          scripts/comun-public-page-contract.node-test.mjs
+          docs/comun-product-objective-and-roadmap.md
           scripts/comun-launch-assets.mjs
           scripts/comun-launch-assets.node-test.mjs
           lib/comun-indexing-policy.ts
