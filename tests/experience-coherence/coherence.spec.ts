@@ -104,6 +104,7 @@ test("@a11y A7 mantém Feirinha dentro de Participar e preserva descoberta públ
   );
   await expectAtMostOnePrimaryAction(page);
   await expectNoOverflow(page);
+  await expect(page).toHaveTitle(/Feirinha/);
   const audit = await new AxeBuilder({ page }).analyze();
   expect(
     audit.violations.filter((item) =>

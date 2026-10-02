@@ -84,6 +84,8 @@ jobs:
         env:
           COMUN_OBSERVATORIES_FOUNDATION_ENABLED: enabled
           COMUN_OBSERVATORY_SIDEWALK_ADAPTER_ENABLED: disabled
+      - name: Remove disposable dev-generated types before production build
+        run: node -e "require('node:fs').rmSync('.next/dev',{recursive:true,force:true})"
       - run: npm run build
       - name: Stop disposable local stack
         if: always()
