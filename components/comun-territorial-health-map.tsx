@@ -28,6 +28,7 @@ export function ComunTerritorialHealthMap({
     Promise.all([import("maplibre-gl"), import("pmtiles")])
       .then(([maplibre, { Protocol }]) => {
         if (cancelled || !host.current) return;
+        host.current.setAttribute("data-pmtiles-loaded", "false");
         maplibre.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
         const protocol = new Protocol();
         maplibre.addProtocol("pmtiles", protocol.tile);
@@ -57,6 +58,8 @@ export function ComunTerritorialHealthMap({
           }),
         );
         map.on("load", () => {
+          if (cancelled) return;
+          host.current?.setAttribute("data-pmtiles-loaded", "true");
           for (const point of points) {
             const marker = document.createElement("button");
             marker.type = "button";
@@ -105,6 +108,7 @@ export function ComunTerritorialHealthMap({
       aria-label="Mapa de equipamentos públicos de Saúde com coordenadas oficiais"
       className="min-h-[22rem] w-full border-2 border-comun-black sm:min-h-[30rem]"
       data-map-provider={provider.id}
+      data-pmtiles-loaded="false"
     />
   );
 }

@@ -44,3 +44,11 @@ O worker e o módulo compartilhado responderam HTTP 200 com MIME JavaScript no P
 A suíte antiga de mapa real estava condicionada à branch histórica `codex/tijolo-45-1-mapa-real-volta-redonda`. A nova lane `COMUN MapLibre production rendering` usa `next start` após build, sem credenciais ou conteúdo editorial inventado. Exige o evento real de carregamento do mapa, canvas visível, pedido PMTiles, resposta parcial 206, ida e volta entre mapa e lista, ausência de erro de aplicação e alternativa textual quando o arquivo é bloqueado. Roda em desktop e viewport móvel; não representa aparelho físico. O resultado dessa lane ainda precisa passar. Os demais três consumidores continuam exigindo revisão específica.
 
 A limpeza de `.next/dev` antes do build da lane de coerência elimina tipos temporários deixados pelo servidor de testes. A jornada A7 passa a exigir o título Feirinha antes da auditoria de acessibilidade; falha persistente de título continua bloqueando o teste. Não houve remoção de critérios de acessibilidade. A migração permanece em draft até renderização comprovada.
+
+## Continuação: Saúde/Território
+
+O pacote R6 foi integrado no PR #485 após todos os workflows aplicáveis passarem, no merge `958a6c81d16645168835bcff3e26e2eb0ede8382`. A lane de renderização do candidato `7c7de28ad9769c9a183581cdbf27f430e7fec49f` passou quatro testes de Calçadas em 18,1 segundos (run `37050370455`). Não elimina a divergência observada no navegador remoto.
+
+A lane passa a habilitar somente no ambiente descartável de CI as flags de Observatórios e contexto territorial. Não altera configuração de Preview/produção. Os testes usam o snapshot oficial já versionado de Saúde, exigem carregamento, seleção de equipamento pelo marcador, remoção de marcadores após filtro sem correspondência e permanência da lista oficial quando o PMTiles falha. Os novos casos precisam passar no novo head.
+
+A revisão do seletor de ponto identificou que o callback de movimento captura o ponto inicial da montagem. Após mudança de ponto, o efeito reposiciona o marcador, mas um evento posterior de movimento pode voltar a usar o ponto antigo ou nulo. É uma hipótese fundamentada no código, ainda pendente de reprodução renderizada e correção validada. Não foi declarada como lacuna fechada. Observatório de Calçadas e aparelho físico também permanecem pendentes.

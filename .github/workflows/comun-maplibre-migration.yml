@@ -12,6 +12,9 @@ on:
       - "components/comun-territorial-health-map.tsx"
       - "lib/sidewalk-maplibre-style.ts"
       - "lib/sidewalk-basemap-provider.ts"
+      - "lib/comun-observatory-territorial-context*"
+      - "components/comun-territorial-context.tsx"
+      - "app/comun/observatorios/territorio/**"
       - "public/maps/**"
       - "package*.json"
       - "scripts/copy-maplibre-worker*"
@@ -31,6 +34,9 @@ jobs:
   rendering:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
+    env:
+      COMUN_OBSERVATORIES_FOUNDATION_ENABLED: enabled
+      COMUN_OBSERVATORY_TERRITORIAL_CONTEXT_ENABLED: enabled
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
