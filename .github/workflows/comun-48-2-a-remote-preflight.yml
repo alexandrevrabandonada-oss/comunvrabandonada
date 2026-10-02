@@ -12,6 +12,8 @@ on:
       - "lib/comun-observatory-*.ts"
       - "reports/current/comun-48-2-a-observatory-foundation.md"
       - "scripts/ci/classify-migration-lane.mjs"
+      - "scripts/ci/readonly-reconciled-migration-plan*"
+      - "tests/ci/readonly-observatory-migration-metadata.node-test.mjs"
   workflow_dispatch:
 
 permissions:
@@ -33,6 +35,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
 
       - name: Validate bounded scope and configured transport
         shell: bash
@@ -108,14 +114,29 @@ jobs:
           rollback;
           SQL
 
-          node - <<'NODE'
-          const fs = require('node:fs');
+          psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >"$RUNNER_TEMP/comun-48-2-a/hardening-ledger.json" <<'SQL'
+          begin read only;
+          select coalesce(json_agg(row_to_json(r)), '[]'::json) from
+          (select release,migration_path,migration_sha256,pre_fingerprint,post_fingerprint,status
+           from public.comun_schema_releases
+           where release='20260922120000-canonical-security-hardening-v2') r;
+          rollback;
+          SQL
+
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          import { validateHardeningLedger } from './scripts/ci/readonly-reconciled-migration-plan.mjs';
+          const manifest = JSON.parse(fs.readFileSync('supabase/releases/20260922120000-canonical-security-hardening-v2.json', 'utf8'));
+          const ledger = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/comun-48-2-a/hardening-ledger.json', 'utf8'));
+          validateHardeningLedger(manifest, ledger);
           const schema = JSON.parse(fs.readFileSync('.ci-artifacts/48-2-a-preflight/schema.json', 'utf8'));
           const read = (file) => fs.readFileSync(file, 'utf8').trim().split('\n').filter(Boolean);
-          const pending = read(process.env.RUNNER_TEMP + '/comun-48-2-a/pending-normal-migrations.txt');
+          // Only the exact externally applied release with a validated ledger is reconciled.
+          const externalVersion = manifest.migration.split('/').at(-1).split('_')[0];
+          const pending = read(process.env.RUNNER_TEMP + '/comun-48-2-a/pending-normal-migrations.txt').filter(version => version !== externalVersion);
           const unknown = read(process.env.RUNNER_TEMP + '/comun-48-2-a/unknown-remote-migrations.txt');
-          const observatoryMigrations = require('node:child_process')
-            .execFileSync('git', ['diff', '--name-only', 'origin/main...HEAD', '--', 'supabase/migrations'], { encoding: 'utf8' })
+          const observatoryMigrations = execFileSync('git', ['diff', '--name-only', 'origin/main...HEAD', '--', 'supabase/migrations'], { encoding: 'utf8' })
             .trim().split('\n').filter(Boolean);
           const required = ['dbTransportAvailable', 'psqlReadOnlyAvailable', 'p4ProjectionPresent', 'p4ProjectionRlsEnabled', 'p4PublicGeometryPresent', 'p6cCApplied', 'transactionReadOnly'];
           if (required.some((key) => schema[key] !== true) || schema.businessRowsRead !== false || pending.length || unknown.length || observatoryMigrations.length) {
@@ -127,6 +148,7 @@ jobs:
             supabaseCliDryRunAvailable: false,
             linkedCliAvailable: false,
             migrationProofAvailable: true,
+            exactExternalHardeningLedgerAccepted: true,
             pendingNormalMigrations: [],
             unknownRemoteMigrations: [],
             observatoryMigrations: [],

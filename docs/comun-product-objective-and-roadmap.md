@@ -86,3 +86,13 @@ Produção `cdda931e1080f18601e923f9eaa91968fe916ba3`, deploy `dpl_7MnfTpiBfVUdw
 A inspeção não encontrou overlays de framework ou erros de aplicação nas páginas consultadas; logs capturados continham somente erros da extensão de metadados do navegador. Confirmação de estrutura não equivale a verificação de todos os controles, autorização autenticada, responsividade ou dispositivos físicos.
 
 A correção proposta em Observatórios troca somente o elemento de agrupamento interno por div, preservando classes e conteúdo, e mantém o main da shell como único marco principal. A regressão percorre a página e verifica foco após o salto ao conteúdo e regras axe de landmarks.
+
+## Reconciliação dos checks — 2026-10-02, continuação
+
+No head `3dcaf37842d13defdccdfd7758f5e5654b4dd864`, a run [36958777277](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/36958777277) de Coerência passou, incluindo a regressão de Observatórios no ambiente local descartável. Isso é prova automatizada, não teste físico nem observação visual da funcionalidade no Preview desativado.
+
+A run Quality [36958777230](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/36958777230) falhou nos sete viewports de Observatórios com HTTP 404: seu segundo ponto de entrada do teste não recebia a flag local. A correção limita FOUNDATION enabled e adapter disabled ao passo E2E local também nessa bateria. Nenhuma flag do serviço publicado é alterada.
+
+A run preflight [36958777361](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/36958777361) produziu artefato com todos os checks de schema/RLS verdadeiros e leitura de conteúdo de negócio falsa, mas bloqueou a comparação de metadados. O verificador antigo comparava a migração externa de Hardening com o histórico normal. A proposta reconhece somente essa versão local após validar release, caminho, hash, fingerprints e estado applied pelo contrato estrito já usado nas outras lanes. Migração desconhecida, pendência normal, schema/RLS inválido ou ledger ausente continuam bloqueando. A comparação remota desconhecida permanece intacta.
+
+Onze testes locais de planner/workflows passaram, incluindo execução do passo real com substitutos de psql/git que exigem transação read-only. A validação remota das duas correções e a integração do PR continuam pendentes. Nenhum domínio foi promovido.

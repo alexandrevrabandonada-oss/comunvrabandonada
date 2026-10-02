@@ -219,7 +219,12 @@ jobs:
           free -h
           df -h . /dev/shm
           npm run quality:network
+      - name: Verify strict read-only observatory metadata reconciliation
+        run: node --test tests/ci/readonly-observatory-migration-metadata.node-test.mjs
       - name: Jornadas integrais e regressões dos domínios existentes
+        env:
+          COMUN_OBSERVATORIES_FOUNDATION_ENABLED: enabled
+          COMUN_OBSERVATORY_SIDEWALK_ADAPTER_ENABLED: disabled
         run: |
           npm run test:e2e:comun-integral-experience
           npm run test:e2e:experience-coherence
