@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   description: "Relatos, debates e memoria coletiva da cidade.",
   manifest: "/manifest.webmanifest",
   applicationName: "COMUN",
+  robots: { index: false, follow: true },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

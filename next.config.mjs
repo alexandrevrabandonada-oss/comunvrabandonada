@@ -72,6 +72,7 @@ const nextConfig = {
       {
         source: "/:path*",
         headers: [
+          { key: "X-Robots-Tag", value: "noindex, noarchive" },
           { key: "Content-Security-Policy-Report-Only", value: cspReportOnly },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
