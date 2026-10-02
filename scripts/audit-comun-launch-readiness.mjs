@@ -1,6 +1,13 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import {
+  inspectManifest,
+  inspectPilotRobots,
+  inspectPilotSitemap,
+  hasPilotNoindexHeader,
+} from "./comun-launch-assets.mjs";
+import { COMUN_INDEXING_POLICY } from "../lib/comun-indexing-policy.ts";
+import {
   COMUN_V1_LAUNCH_PROGRAM,
   summarizeComunLaunchProgram,
 } from "../lib/comun-launch-program.ts";
@@ -121,15 +128,20 @@ const routeBlockers = publicResults.filter(
 const protectionBlockers = protectedResults.filter(
   (route) => !route.redirectedToAdminLogin,
 );
-const assetBlockers = [
-  ["manifest", manifest.status],
-  ["robots", robots.status],
-  ["sitemap", sitemap.status],
-].filter(([, status]) => status !== 200);
+const publicAssetContracts = {
+  manifest: inspectManifest(manifest),
+  robots: inspectPilotRobots(robots),
+  sitemap: inspectPilotSitemap(sitemap),
+};
+const assetBlockers = Object.entries(publicAssetContracts).filter(
+  ([, contract]) => !contract.valid,
+);
+const pilotNoindexConfirmed = hasPilotNoindexHeader(home.headers);
 const missingSecurityHeaders = Object.entries(securityHeaders)
   .filter(([, present]) => !present)
   .map(([name]) => name);
 const findings = [
+  ...(pilotNoindexConfirmed ? [] : ["indexing_policy:missing_pilot_noindex"]),
   ...routeBlockers.map((route) => `public_route:${route.path}`),
   ...protectionBlockers.map((route) => `protected_route:${route.path}`),
   ...assetBlockers.map(([name]) => `public_asset:${name}`),
@@ -159,6 +171,9 @@ const artifact = {
     robots: robots.status,
     sitemap: sitemap.status,
   },
+  publicAssetContracts,
+  indexingPolicy: COMUN_INDEXING_POLICY,
+  pilotNoindexConfirmed,
   securityHeaders,
   findings,
   findingsCount: findings.length,

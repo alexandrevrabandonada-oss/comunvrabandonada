@@ -18,6 +18,14 @@ on:
       - "lib/public-content-readiness.ts"
       - "lib/public-content-readiness.test.ts"
       - "scripts/audit-comun-launch-readiness.mjs"
+      - "scripts/comun-launch-assets*"
+      - "lib/comun-indexing-policy.ts"
+      - "app/robots.ts"
+      - "app/sitemap.ts"
+      - "app/layout.tsx"
+      - "next.config.mjs"
+      - "docs/comun-indexing-policy.md"
+      - "docs/comun-product-gap-resolution.md"
   schedule:
     - cron: "41 10 * * *"
   workflow_dispatch:
@@ -46,6 +54,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: node --check scripts/audit-comun-launch-readiness.mjs
+      - run: node --experimental-strip-types --test scripts/comun-launch-assets.node-test.mjs
       - run: >-
           npx prettier --check
           .github/workflows/comun-launch-readiness.yml
@@ -62,6 +71,14 @@ jobs:
           lib/public-content-readiness.ts
           lib/public-content-readiness.test.ts
           scripts/audit-comun-launch-readiness.mjs
+          scripts/comun-launch-assets.mjs
+          scripts/comun-launch-assets.node-test.mjs
+          lib/comun-indexing-policy.ts
+          app/robots.ts
+          app/sitemap.ts
+          app/layout.tsx
+          docs/comun-indexing-policy.md
+          docs/comun-product-gap-resolution.md
       - run: >-
           npx vitest run
           lib/comun-launch-program.test.ts
