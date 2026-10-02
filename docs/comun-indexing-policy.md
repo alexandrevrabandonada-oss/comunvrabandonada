@@ -27,8 +27,11 @@ um sitemap externo ou XML com URLs é rejeitado no contrato de piloto.
 
 O artifact registra `publicAssetContracts`, `indexingPolicy` e
 `pilotNoindexConfirmed`, sem copiar corpos, queries ou URLs privadas.
-`launch_indexing:pilot_noindex` permanece finding de preparação; os assets
-presentes não tornam o produto pronto para lançamento.
+O `pilot_noindex` é a política esperada antes da autorização terminal, e não
+um blocker para chegar ao gate humano. Sua ausência continua sendo um finding
+de segurança da preparação. Os assets presentes não promovem os domínios nem
+autorizam o lançamento: depois da aprovação de `launch_publicly`, uma entrega
+separada deve reconciliar a indexação e o conteúdo publicável.
 
 Referências: [Next.js robots](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots),
 [Next.js sitemap](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap),

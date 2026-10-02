@@ -12,8 +12,8 @@ documento, por um build verde ou pela presença de código.
   ações abertas por fonte canônica, vocabulário público e preflights históricos
   somente de leitura. Qualidade, jornadas e grafo pós-publicação passaram.
 - #481, head `430f8ec`, corrige o caminho restante de `public_status` nas Pautas
-  Vivas e cabeçalhos. Preview READY, prova de renderização atual/legacy e CI
-  principal passaram. A integração depende da conclusão dos checks ampliados.
+  Vivas e cabeçalhos. Todos os checks aplicáveis passaram; integrado em
+  `404d05c`. A confirmação de Production e os checks pós-merge seguem separados.
 - O pacote de indexação implementa robots, sitemap vazio e noindex durante a
   preparação, e deixa o auditor validar os corpos. Ainda exige revisão,
   integração e prova HTTP no SHA publicado para fechar os dois 404 em produção.

@@ -142,7 +142,6 @@ const missingSecurityHeaders = Object.entries(securityHeaders)
   .map(([name]) => name);
 const findings = [
   ...(pilotNoindexConfirmed ? [] : ["indexing_policy:missing_pilot_noindex"]),
-  "launch_indexing:pilot_noindex",
   ...routeBlockers.map((route) => `public_route:${route.path}`),
   ...protectionBlockers.map((route) => `protected_route:${route.path}`),
   ...assetBlockers.map(([name]) => `public_asset:${name}`),

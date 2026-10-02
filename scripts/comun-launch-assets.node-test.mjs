@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { execFile } from "node:child_process";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { promisify } from "node:util";
 import {
   hasPilotNoindexHeader,
   inspectManifest,
@@ -122,5 +127,69 @@ test("robots exclusions alone do not constitute noindex", () => {
   assert.equal(
     hasPilotNoindexHeader({ "x-robots-tag": "noindex, noarchive" }),
     true,
+  );
+});
+
+async function auditGate({ noindex = true, allGreen = true } = {}) {
+  const dir = await mkdtemp(join(tmpdir(), "comun-indexing-gate-"));
+  // Only this disposable child process uses an all-green program and HTTP doubles.
+  // No application files, domain evidence, deployment or database are changed.
+  const code = `
+    const { COMUN_V1_LAUNCH_PROGRAM } = await import('./lib/comun-launch-program.ts');
+    if (${allGreen}) for (const domain of COMUN_V1_LAUNCH_PROGRAM.domains) domain.status = 'green';
+    globalThis.fetch = async (url) => {
+      const path = new URL(url).pathname;
+      let text = '<main>COMUN Pautas Comunidades Participar Mapa comunitário Acervo Rádio Observatórios Segurança</main>';
+      const headers = new Headers({
+        'content-type': 'text/html', 'strict-transport-security': 'max-age=31536000',
+        'x-content-type-options': 'nosniff', 'x-frame-options': 'DENY',
+        'referrer-policy': 'strict-origin-when-cross-origin',
+        'content-security-policy': "frame-ancestors 'none'",
+        ...(${noindex} ? {'x-robots-tag': 'noindex, noarchive'} : {})
+      });
+      if (path === '/robots.txt') { text = ${JSON.stringify(robotsBody)}; headers.set('content-type', 'text/plain'); }
+      if (path === '/sitemap.xml') { text = ${JSON.stringify(xml)}; headers.set('content-type', 'application/xml'); }
+      if (path === '/manifest.webmanifest') { text = JSON.stringify({name:'COMUN',start_url:'/comun',icons:[{src:'/icons/comun-192.png'}]}); headers.set('content-type', 'application/manifest+json'); }
+      return { status: 200, url: path.startsWith('/comun/admin/') ? 'https://test.example/comun/admin/login' : url, headers, text: async () => text };
+    };
+    await import('./scripts/audit-comun-launch-readiness.mjs');
+  `;
+  try {
+    const { stdout } = await promisify(execFile)(
+      process.execPath,
+      ["--experimental-strip-types", "--input-type=module", "-e", code],
+      {
+        cwd: new URL("../", import.meta.url),
+        env: {
+          ...process.env,
+          COMUN_PUBLIC_BASE_URL: "https://test.example",
+          COMUN_ARTIFACT_DIR: dir,
+        },
+      },
+    );
+    return JSON.parse(stdout);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+}
+
+test("pilot noindex permits reaching the final human gate without authorizing launch", async () => {
+  const artifact = await auditGate();
+  assert.equal(artifact.readyForFinalHumanGate, true);
+  assert.equal(artifact.finalHumanGate, "launch_publicly");
+  assert.equal(artifact.indexingPolicy, "pilot_noindex");
+  assert.equal(artifact.pilotNoindexConfirmed, true);
+  assert.deepEqual(artifact.findings, []);
+  assert.equal(artifact.writes.deployment, "none");
+});
+
+test("missing noindex and actual unfinished domains still block the final gate", async () => {
+  const missing = await auditGate({ noindex: false });
+  assert.equal(missing.readyForFinalHumanGate, false);
+  assert.ok(missing.findings.includes("indexing_policy:missing_pilot_noindex"));
+  const actual = await auditGate({ allGreen: false });
+  assert.equal(actual.readyForFinalHumanGate, false);
+  assert.ok(
+    actual.findings.some((value) => value.startsWith("launch_domain:")),
   );
 });
