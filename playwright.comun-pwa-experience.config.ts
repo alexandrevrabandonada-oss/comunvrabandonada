@@ -6,6 +6,8 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   use: {
+    // Use full Chromium headless instead of the shell that crashed in CI.
+    channel: "chromium",
     baseURL: process.env.COMUN_BASE_URL ?? "http://127.0.0.1:3015",
     trace: "retain-on-failure",
   },
