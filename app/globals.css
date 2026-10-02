@@ -40,7 +40,8 @@
 .map-coverage,
 .coverage-badge,
 .action-connection,
-main > section {
+main > section,
+div.comun-v2-page[data-comun-app-v2-page] > section {
   max-width: 72rem;
   margin-left: auto;
   margin-right: auto;

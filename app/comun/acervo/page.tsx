@@ -462,7 +462,7 @@ function ArchiveAppV2({
         backDestination: "/comun/explorar",
       }}
     >
-      <main
+      <div
         className="comun-v2-page comun-relational-page"
         data-comun-app-v2-page="archive-entry"
       >
@@ -555,7 +555,7 @@ function ArchiveAppV2({
         >
           Direitos, correção e retirada
         </Link>
-      </main>
+      </div>
     </ComunShell>
   );
 }

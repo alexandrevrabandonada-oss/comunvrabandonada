@@ -100,7 +100,7 @@ export default async function Page({
           backDestination: "/comun/acervo/historias-orais",
         }}
       >
-        <main
+        <div
           className="comun-v2-page"
           data-comun-app-v2-page="oral-history-detail"
         >
@@ -170,7 +170,7 @@ export default async function Page({
           >
             Correção, restrição ou retirada
           </Link>
-        </main>
+        </div>
       </ComunShell>
     );
   }
