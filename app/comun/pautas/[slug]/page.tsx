@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { publicPautaStateLabel } from "@/lib/comun-public-labels";
 import { notFound } from "next/navigation";
 import { submitPautaContribution } from "@/app/actions";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
@@ -405,7 +406,7 @@ export default async function PautaPage(props: {
       id: space.id,
       slug: space.slug,
       title: space.title,
-      state: details.public_status ?? statusLabel(space.status),
+      state: publicPautaStateLabel(space.status, details.public_status),
       summary: space.summary ?? "Pauta em organização coletiva.",
       territory: territory
         ? entityReference("territory", territory.slug, territory.name)
@@ -573,7 +574,7 @@ export default async function PautaPage(props: {
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
             <div>
               <p className="text-xs font-black uppercase text-comun-yellow">
-                {details.public_status ?? statusLabel(space.status)} /{" "}
+                {publicPautaStateLabel(space.status, details.public_status)} /{" "}
                 {community?.name ?? space.community ?? "comunidade aberta"}
               </p>
               <h1 className="comun-prose mt-3 text-3xl font-black uppercase text-comun-yellow min-[390px]:text-4xl">
@@ -1236,16 +1237,4 @@ function EmptyState({ text }: { text: string }) {
       {text}
     </p>
   );
-}
-
-function statusLabel(value: string) {
-  const labels: Record<string, string> = {
-    observing: "Observando",
-    organizing: "Organizando",
-    drafting: "Sintetizando",
-    pressuring: "Cobrando",
-    resolved: "Resolvida",
-    unresolved: "Nao resolvida",
-  };
-  return labels[value] ?? value;
 }

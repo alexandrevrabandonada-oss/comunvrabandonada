@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { publicPautaStateLabel } from "@/lib/comun-public-labels";
 import { ComunShell, PrimaryLink, Section } from "./comun-shell";
 import type {
   PublicPautaSpace,
@@ -30,7 +31,12 @@ export function PautasVivasIndex({
   creationEnabled?: boolean;
 }) {
   if (evidenceFilter) {
-    return <EvidenceFilteredPautasIndex filter={evidenceFilter} creationEnabled={creationEnabled} />;
+    return (
+      <EvidenceFilteredPautasIndex
+        filter={evidenceFilter}
+        creationEnabled={creationEnabled}
+      />
+    );
   }
   const ordered = [...spaces].sort(
     (a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at),
@@ -177,7 +183,7 @@ function EvidenceFilteredPautasIndex({
                 className="paper-panel flex flex-col border-2 border-comun-black p-5"
               >
                 <p className="text-xs font-black uppercase text-comun-asphalt/70">
-                  {pauta.publicStatus}
+                  {publicPautaStateLabel("", pauta.publicStatus)}
                 </p>
                 <h2 className="comun-prose mt-2 text-xl font-black uppercase">
                   {pauta.title}
@@ -300,8 +306,14 @@ export function PautaVivaDetail({
           <ComunPautaCreationDraftClear />
           <div className="border-2 border-comun-yellow bg-comun-black p-4 text-comun-paper">
             <p className="font-black">Pauta criada.</p>
-            <p className="mt-1 text-sm">Você já está acompanhando esta pauta.</p>
-            {creationFeedback.evidenceAdded ? <p className="mt-1 text-sm">A evidência pública foi adicionada como contexto.</p> : null}
+            <p className="mt-1 text-sm">
+              Você já está acompanhando esta pauta.
+            </p>
+            {creationFeedback.evidenceAdded ? (
+              <p className="mt-1 text-sm">
+                A evidência pública foi adicionada como contexto.
+              </p>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -539,21 +551,7 @@ function primaryQuestion(space: PublicPautaSpace) {
   return space.problem_public ?? space.summary ?? space.title;
 }
 function publicState(space: PublicPautaSpace) {
-  return space.public_status || statusLabel(space.status);
-}
-function statusLabel(value: string) {
-  return (
-    (
-      {
-        observing: "Observando",
-        organizing: "Organizando",
-        drafting: "Sintetizando",
-        pressuring: "Cobrando",
-        resolved: "Resolvida",
-        unresolved: "Não resolvida",
-      } as Record<string, string>
-    )[value] ?? value
-  );
+  return publicPautaStateLabel(space.status, space.public_status);
 }
 function Empty({ text }: { text: string }) {
   return (

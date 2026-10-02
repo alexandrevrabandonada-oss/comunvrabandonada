@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { publicPautaStateLabel } from "@/lib/comun-public-labels";
 import {
   CalendarDays,
   CircleDot,
@@ -169,7 +170,9 @@ export function PautaAppShell({
           <dl className="mt-6 grid gap-3 sm:grid-cols-3">
             <div>
               <dt className="text-xs font-black uppercase">Etapa atual</dt>
-              <dd>{space.public_status || space.status}</dd>
+              <dd>
+                {publicPautaStateLabel(space.status, space.public_status)}
+              </dd>
             </div>
             <div>
               <dt className="text-xs font-black uppercase">Pergunta central</dt>
