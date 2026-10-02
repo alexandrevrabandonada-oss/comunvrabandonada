@@ -25,7 +25,22 @@ const pautaStatuses: Record<string, string> = {
 };
 
 export function publicPautaStatusLabel(value: string) {
-  return pautaStatuses[value] ?? "Estado não informado";
+  return Object.hasOwn(pautaStatuses, value)
+    ? pautaStatuses[value]
+    : "Estado não informado";
+}
+
+export function publicPautaStateLabel(
+  status: string,
+  editorialState?: string | null,
+) {
+  const value = editorialState?.trim();
+  if (!value) return publicPautaStatusLabel(status);
+  if (Object.hasOwn(pautaStatuses, value)) return publicPautaStatusLabel(value);
+  // Preserve editorial wording, but do not expose an unknown snake_case code.
+  if (/^[a-z][a-z0-9]*(?:_[a-z0-9]+)+$/.test(value))
+    return "Estado não informado";
+  return value;
 }
 
 const sidewalkProblems: Record<string, string> = {

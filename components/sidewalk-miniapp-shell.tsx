@@ -1,6 +1,6 @@
 "use client";
 
-import { publicPautaStatusLabel } from "@/lib/comun-public-labels";
+import { publicPautaStateLabel } from "@/lib/comun-public-labels";
 
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -151,7 +151,7 @@ export function MiniAppExperienceShell({
               <span>
                 <strong>Estado:</strong>{" "}
                 {status
-                  ? publicPautaStatusLabel(status)
+                  ? publicPautaStateLabel("", status)
                   : "Estado não informado"}
               </span>
               <Link
