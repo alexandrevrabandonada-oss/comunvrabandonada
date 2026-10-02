@@ -29,10 +29,11 @@ export function SidewalkMapLibreMap({
     Promise.all([import("maplibre-gl"), import("pmtiles")])
       .then(([maplibre, { Protocol }]) => {
         if (cancelled || !host.current) return;
+        maplibre.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
         const protocol = new Protocol();
-        maplibre.default.addProtocol("pmtiles", protocol.tile);
+        maplibre.addProtocol("pmtiles", protocol.tile);
         const style = createSidewalkMapLibreStyle(provider);
-        const map = new maplibre.default.Map({
+        const map = new maplibre.Map({
           container: host.current,
           style,
           center: provider.center,
@@ -44,13 +45,14 @@ export function SidewalkMapLibreMap({
             [provider.bounds[2], provider.bounds[3]],
           ],
           attributionControl: false,
+          zoomLevelsToOverscale: undefined,
         });
         mapRef.current = map;
         map.addControl(
-          new maplibre.default.NavigationControl({ showCompass: false }),
+          new maplibre.NavigationControl({ showCompass: false }),
           "top-right",
         );
-        const geolocate = new maplibre.default.GeolocateControl({
+        const geolocate = new maplibre.GeolocateControl({
           positionOptions: { enableHighAccuracy: true },
           trackUserLocation: false,
           showAccuracyCircle: true,
@@ -67,7 +69,7 @@ export function SidewalkMapLibreMap({
           geolocateButton.title = "Usar minha localização aproximada";
         }
         map.addControl(
-          new maplibre.default.AttributionControl({
+          new maplibre.AttributionControl({
             compact: false,
             customAttribution: provider.attribution,
           }),
@@ -83,9 +85,7 @@ export function SidewalkMapLibreMap({
             el.textContent = "!";
             el.onclick = () => onSelect(record);
             markers.current.push(
-              new maplibre.default.Marker({ element: el })
-                .setLngLat(point)
-                .addTo(map),
+              new maplibre.Marker({ element: el }).setLngLat(point).addTo(map),
             );
           }
         });

@@ -37,13 +37,14 @@ export function SidewalkRealPointPicker({
     Promise.all([import("maplibre-gl"), import("pmtiles")])
       .then(([maplibre, { Protocol }]) => {
         if (cancelled || !host.current) return;
+        maplibre.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
         const protocol = new Protocol();
         try {
-          maplibre.default.addProtocol("pmtiles", protocol.tile);
+          maplibre.addProtocol("pmtiles", protocol.tile);
         } catch {
           // O protocolo pode já estar registrado por outro mapa na mesma página.
         }
-        const map = new maplibre.default.Map({
+        const map = new maplibre.Map({
           container: host.current,
           style: createSidewalkMapLibreStyle(realBasemapProvider),
           center: point ?? realBasemapProvider.center,
@@ -55,6 +56,7 @@ export function SidewalkRealPointPicker({
             [realBasemapProvider.bounds[2], realBasemapProvider.bounds[3]],
           ],
           attributionControl: false,
+          zoomLevelsToOverscale: undefined,
           interactive: false,
         });
         mapRef.current = map;

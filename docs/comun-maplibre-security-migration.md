@@ -1,0 +1,36 @@
+# MapLibre: correção de segurança e migração 5 → 6
+
+Data: 02/10/2026. Candidato R7, dependente do pacote R6 / PR #485.
+
+## Problema e alcance
+
+MapLibre 5.14.0 aparece como crítico no [GHSA-jrc7-96c5-q579](https://github.com/advisories/GHSA-jrc7-96c5-q579). A correção upstream está na linha 6, a partir de 6.4.1. O candidato fixa 6.11.2 no manifest e lockfile, sem ignorar o aviso.
+
+A busca completa de imports encontrou quatro consumidores: mapa público de Calçadas, Observatório de Calçadas, mapa de equipamentos de Saúde/Território e seletor de ponto de relato. A análise R6 descrevia somente os três mapas de leitura; o seletor também deve receber a migração.
+
+## Adaptação
+
+- Os imports dinâmicos continuam no cliente e em paralelo com PMTiles; as chamadas passam a usar exports nomeados do módulo, pois o export padrão foi removido.
+- Cada consumidor configura o worker de mesma origem antes de criar o mapa.
+- `predev` e `prebuild` copiam **worker e módulo compartilhado** do pacote instalado para `public/maplibre`. Os arquivos gerados são ignorados no Git. O build falha se algum arquivo estiver ausente. Não depende de `postinstall`, que é pulado no `npm ci --ignore-scripts` usado pela CI.
+- `zoomLevelsToOverscale: undefined` conserva o comportamento anterior de overscaling em vez de adotar o novo padrão da linha 6.
+- As listas textuais e os estados de indisponibilidade existentes são preservados. WebGL2 passou a ser obrigatório; ausência de GPU compatível deve manter a alternativa textual. Aparelhos físicos ainda precisam de prova.
+
+Referências primárias: [guia de migração](https://maplibre.org/maplibre-gl-js/docs/guides/v5-to-v6-migration-guide/) e [instalação oficial com Next/Turbopack](https://maplibre.org/maplibre-gl-js/docs/). A URL de asset gerada automaticamente pelo bundler não é suficiente: sem o módulo compartilhado ao lado do worker, o mapa pode montar sem carregar tiles.
+
+## Evidência e critérios de saída
+
+O audit local do lockfile candidato retornou zero achados. Os 1.326 testes existentes em 237 arquivos passaram. O teste Node de distribuição verifica que o worker importa seu módulo relativo e que ambos os arquivos copiados são idênticos aos da versão instalada. Build de produção passou após a troca de exports e configuração de worker; lint e typecheck também são exigidos.
+
+Isso é evidência local e não certifica renderização, aparelho físico ou produção. A revisão deve confirmar, antes de integrar:
+
+| Fluxo                          | Evidência necessária                                                                           |
+| ------------------------------ | ---------------------------------------------------------------------------------------------- |
+| Calçadas: lista → mapa → lista | Canvas com tiles reais, Range PMTiles 206, zoom e alternativa textual                          |
+| Observatório de Calçadas       | Pontos revisados, seleção, atribuições e lista textual sem dados privados                      |
+| Território/Saúde               | Equipamentos públicos, seleção e alternativa textual                                           |
+| Seletor de ponto               | Carregamento do PMTiles, ajuste por teclado, projeção do ponto e comportamento sem GPU         |
+| Distribuição                   | Worker e shared module HTTP 200 com MIME JavaScript, mesma versão, sem erro de import relativo |
+| Regressão                      | CI e Preview do head exato verdes; desktop e viewport móvel; logs sem erro de aplicação        |
+
+Não usar produção para inventar relatos, publicar pontos de teste ou obter consentimentos. Não promover o domínio de segurança/resiliência somente porque o audit de dependências zerou: backup durável, recuperação, ensaio humano e demais critérios permanecem pendentes.

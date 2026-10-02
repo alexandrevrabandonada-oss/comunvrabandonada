@@ -27,3 +27,6 @@ reports/generated/
 .local/
 .vercel
 .env*.local
+
+# MapLibre worker and shared module are copied from the locked package.
+/public/maplibre/

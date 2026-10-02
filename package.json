@@ -328,7 +328,10 @@
     "verify:rc-local": "node scripts/verify-comun-rc-local.mjs",
     "db:types": "npx supabase gen types typescript --project-id \"$SUPABASE_PROJECT_ID\" > types/supabase.ts",
     "db:push": "npx supabase db push",
-    "seed": "npx supabase db reset"
+    "seed": "npx supabase db reset",
+    "predev": "node scripts/copy-maplibre-worker.mjs",
+    "prebuild": "node scripts/copy-maplibre-worker.mjs",
+    "test:maplibre-assets": "node --test scripts/copy-maplibre-worker.node-test.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1086.0",
@@ -337,7 +340,7 @@
     "@supabase/supabase-js": "2.110.5",
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",
-    "maplibre-gl": "^5.14.0",
+    "maplibre-gl": "6.11.2",
     "next": "16.3.8",
     "pg": "^8.16.3",
     "pmtiles": "^4.3.0",

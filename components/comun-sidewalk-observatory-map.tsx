@@ -23,14 +23,16 @@ export function ComunSidewalkObservatoryMap({
   const [failed, setFailed] = useState(!provider.enabled);
 
   useEffect(() => {
-    if (!host.current || !provider.enabled || !provider.style.pmtilesUrl) return;
+    if (!host.current || !provider.enabled || !provider.style.pmtilesUrl)
+      return;
     let cancelled = false;
     Promise.all([import("maplibre-gl"), import("pmtiles")])
       .then(([maplibre, { Protocol }]) => {
         if (cancelled || !host.current) return;
+        maplibre.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
         const protocol = new Protocol();
-        maplibre.default.addProtocol("pmtiles", protocol.tile);
-        const map = new maplibre.default.Map({
+        maplibre.addProtocol("pmtiles", protocol.tile);
+        const map = new maplibre.Map({
           container: host.current,
           style: createSidewalkMapLibreStyle(provider),
           center: provider.center,
@@ -42,14 +44,15 @@ export function ComunSidewalkObservatoryMap({
             [provider.bounds[2], provider.bounds[3]],
           ],
           attributionControl: false,
+          zoomLevelsToOverscale: undefined,
         });
         mapRef.current = map;
         map.addControl(
-          new maplibre.default.NavigationControl({ showCompass: false }),
+          new maplibre.NavigationControl({ showCompass: false }),
           "top-right",
         );
         map.addControl(
-          new maplibre.default.AttributionControl({
+          new maplibre.AttributionControl({
             compact: false,
             customAttribution: provider.attribution,
           }),
@@ -68,7 +71,7 @@ export function ComunSidewalkObservatoryMap({
             );
             marker.onclick = () => onSelect(observation);
             markers.current.push(
-              new maplibre.default.Marker({ element: marker })
+              new maplibre.Marker({ element: marker })
                 .setLngLat(point)
                 .addTo(map),
             );
