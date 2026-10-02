@@ -6,13 +6,13 @@ export default defineConfig({
   workers: 1,
   reporter: "line",
   use: {
-    baseURL: "http://127.0.0.1:3107",
+    baseURL: "http://localhost:3107",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
   webServer: {
-    command: "npm run start -- --hostname 127.0.0.1 --port 3107",
-    url: "http://127.0.0.1:3107/comun/calcadas",
+    command: "npm run start -- --hostname localhost --port 3107",
+    url: "http://localhost:3107/comun/calcadas",
     reuseExistingServer: false,
     timeout: 120_000,
   },
