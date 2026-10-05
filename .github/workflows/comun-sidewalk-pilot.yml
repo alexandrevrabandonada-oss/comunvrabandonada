@@ -9,10 +9,13 @@ on:
       - "components/admin-shell.tsx"
       - "lib/sidewalk-pilot.ts"
       - "lib/sidewalk-pilot.test.ts"
+      - "lib/sidewalk-pilot-read-contract.ts"
+      - "lib/sidewalk-pilot-page.test.ts"
       - "lib/miniapp-contract.ts"
       - "lib/miniapp-contract.test.ts"
       - "lib/sidewalk-miniapp-definition.ts"
       - "scripts/report-comun-sidewalk-pilot.mjs"
+      - "scripts/sidewalk-pilot-read-contract*"
   schedule:
     - cron: "17 12 * * *"
   workflow_dispatch:
@@ -41,8 +44,10 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: node --check scripts/report-comun-sidewalk-pilot.mjs
+      - run: node --experimental-strip-types --test scripts/sidewalk-pilot-read-contract.node-test.mjs
+      - run: npx prettier --check lib/sidewalk-pilot-read-contract.ts lib/sidewalk-pilot-page.test.ts scripts/sidewalk-pilot-read-contract.node-test.mjs
       - run: npx prettier --check .github/workflows/comun-sidewalk-pilot.yml app/comun/admin/calcadas/piloto/page.tsx components/admin-shell.tsx lib/miniapp-contract.ts lib/miniapp-contract.test.ts lib/sidewalk-miniapp-definition.ts lib/sidewalk-pilot.ts lib/sidewalk-pilot.test.ts scripts/report-comun-sidewalk-pilot.mjs
-      - run: npx vitest run lib/miniapp-contract.test.ts lib/sidewalk-pilot.test.ts
+      - run: npx vitest run lib/miniapp-contract.test.ts lib/sidewalk-pilot.test.ts lib/sidewalk-pilot-page.test.ts
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build

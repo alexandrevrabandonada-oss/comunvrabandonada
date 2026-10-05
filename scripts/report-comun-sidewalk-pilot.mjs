@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
+import { assertCompletePilotRead } from "../lib/sidewalk-pilot-read-contract.ts";
 import {
   SIDEWALK_PILOT,
   classifySidewalkPilotCloseout,
@@ -11,11 +12,12 @@ const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!url || !key) throw new Error("SIDEWALK_PILOT_CONFIGURATION_MISSING");
 
 const db = createClient(url, key, { auth: { persistSession: false } });
-const [uploadsResult, recordsResult, photosResult] = await Promise.all([
+const [uploadsResult, recordsResult] = await Promise.all([
   db
     .from("comun_sidewalk_uploads")
     .select(
       "member_user_id,status,confirmation_state,failure_code,created_at,record_id",
+      { count: "exact" },
     )
     .gte("created_at", SIDEWALK_PILOT.startAt)
     .lt("created_at", SIDEWALK_PILOT.endAt)
@@ -25,67 +27,79 @@ const [uploadsResult, recordsResult, photosResult] = await Promise.all([
     .from("comun_sidewalk_records")
     .select(
       "id,status,visibility,forwarding_status,verification_status,created_at,updated_at,inferred_neighborhood",
+      { count: "exact" },
     )
     .gte("created_at", SIDEWALK_PILOT.startAt)
     .lt("created_at", SIDEWALK_PILOT.endAt)
     .order("created_at", { ascending: false })
     .limit(1000),
-  db
-    .from("comun_sidewalk_record_photos")
-    .select("record_id,review_status,is_public")
-    .limit(1000),
 ]);
 
-if (uploadsResult.error || recordsResult.error || photosResult.error)
-  throw new Error("SIDEWALK_PILOT_READ_FAILED");
+for (const result of [uploadsResult, recordsResult])
+  assertCompletePilotRead(result);
 
 const recordIds = (recordsResult.data ?? []).map((row) => row.id);
-const [prioritiesResult, linksResult, observationsResult, incidentsResult] =
-  await Promise.all([
-    recordIds.length
-      ? db
-          .from("comun_sidewalk_priorities")
-          .select("id,record_id,status")
-          .in("record_id", recordIds)
-          .limit(2000)
-      : Promise.resolve({ data: [], error: null }),
-    recordIds.length
-      ? db
-          .from("comun_sidewalk_record_links")
-          .select("record_id,target_type")
-          .in("record_id", recordIds)
-          .limit(5000)
-      : Promise.resolve({ data: [], error: null }),
-    recordIds.length
-      ? db
-          .from("comun_sidewalk_observations")
-          .select("record_id,observation_type,status")
-          .in("record_id", recordIds)
-          .limit(5000)
-      : Promise.resolve({ data: [], error: null }),
-    db
-      .from("comun_admin_alerts")
-      .select("severity,status,source_type,alert_type")
-      .in("status", ["open", "acknowledged"])
-      .limit(1000),
-  ]);
+const [
+  photosResult,
+  prioritiesResult,
+  linksResult,
+  observationsResult,
+  incidentsResult,
+] = await Promise.all([
+  recordIds.length
+    ? db
+        .from("comun_sidewalk_record_photos")
+        .select("record_id,review_status,is_public", { count: "exact" })
+        .in("record_id", recordIds)
+        .limit(1000)
+    : Promise.resolve({ data: [], error: null, count: 0 }),
+  recordIds.length
+    ? db
+        .from("comun_sidewalk_priorities")
+        .select("id,record_id,status", { count: "exact" })
+        .in("record_id", recordIds)
+        .limit(2000)
+    : Promise.resolve({ data: [], error: null, count: 0 }),
+  recordIds.length
+    ? db
+        .from("comun_sidewalk_record_links")
+        .select("record_id,target_type", { count: "exact" })
+        .in("record_id", recordIds)
+        .limit(5000)
+    : Promise.resolve({ data: [], error: null, count: 0 }),
+  recordIds.length
+    ? db
+        .from("comun_sidewalk_observations")
+        .select("record_id,observation_type,status", { count: "exact" })
+        .in("record_id", recordIds)
+        .limit(5000)
+    : Promise.resolve({ data: [], error: null, count: 0 }),
+  db
+    .from("comun_admin_alerts")
+    .select("severity,status,source_type,alert_type", { count: "exact" })
+    .in("status", ["open", "acknowledged"])
+    .limit(1000),
+]);
 for (const query of [
+  photosResult,
   prioritiesResult,
   linksResult,
   observationsResult,
   incidentsResult,
 ]) {
-  if (query.error) throw new Error("SIDEWALK_PILOT_READ_FAILED");
+  assertCompletePilotRead(query);
 }
 const priorityIds = (prioritiesResult.data ?? []).map((row) => row.id);
 const forwardingsResult = priorityIds.length
   ? await db
       .from("comun_sidewalk_forwardings")
-      .select("priority_id,state,action_id,protocol_id,result_id,memory_id")
+      .select("priority_id,state,action_id,protocol_id,result_id,memory_id", {
+        count: "exact",
+      })
       .in("priority_id", priorityIds)
       .limit(2000)
-  : { data: [], error: null };
-if (forwardingsResult.error) throw new Error("SIDEWALK_PILOT_READ_FAILED");
+  : { data: [], error: null, count: 0 };
+assertCompletePilotRead(forwardingsResult);
 const incidents = (incidentsResult.data ?? [])
   .filter(
     (row) =>
@@ -109,6 +123,10 @@ const generatedAt = new Date().toISOString();
 const result = {
   cycleId: "sidewalk-territorial-pilot-20260730-46-2",
   generatedAt,
+  readContract: {
+    completeness: "exact_count_matches_returned_rows",
+    consistency: "independent_queries_not_transactional_snapshot",
+  },
   result: closeout.result,
   phase: summary.phase,
   closeout,

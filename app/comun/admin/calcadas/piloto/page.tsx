@@ -7,6 +7,7 @@ import {
   summarizeSidewalkPilot,
 } from "@/lib/sidewalk-pilot";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { assertCompletePilotRead } from "@/lib/sidewalk-pilot-read-contract";
 
 export const dynamic = "force-dynamic";
 
@@ -21,11 +22,12 @@ export default async function SidewalkPilotPage() {
   const db = createServiceSupabaseClient();
   if (!db) throw new Error("Banco operacional indisponível.");
 
-  const [uploadsResult, recordsResult, photosResult] = await Promise.all([
+  const [uploadsResult, recordsResult] = await Promise.all([
     db
       .from("comun_sidewalk_uploads")
       .select(
         "member_user_id,status,confirmation_state,failure_code,created_at,record_id",
+        { count: "exact" },
       )
       .gte("created_at", SIDEWALK_PILOT.startAt)
       .lt("created_at", SIDEWALK_PILOT.endAt)
@@ -35,19 +37,35 @@ export default async function SidewalkPilotPage() {
       .from("comun_sidewalk_records")
       .select(
         "id,status,visibility,created_at,updated_at,inferred_neighborhood",
+        { count: "exact" },
       )
       .gte("created_at", SIDEWALK_PILOT.startAt)
       .lt("created_at", SIDEWALK_PILOT.endAt)
       .order("created_at", { ascending: false })
       .limit(1000),
-    db
-      .from("comun_sidewalk_record_photos")
-      .select("record_id,review_status,is_public")
-      .limit(1000),
   ]);
 
-  if (uploadsResult.error || recordsResult.error || photosResult.error)
+  if (uploadsResult.error || recordsResult.error)
     throw new Error("Não foi possível calcular o piloto territorial.");
+  try {
+    for (const result of [uploadsResult, recordsResult])
+      assertCompletePilotRead(result);
+  } catch {
+    return <IncompletePilotPanel adminEmail={session.admin.email} />;
+  }
+  const recordIds = (recordsResult.data ?? []).map((row) => row.id);
+  const photosResult = recordIds.length
+    ? await db
+        .from("comun_sidewalk_record_photos")
+        .select("record_id,review_status,is_public", { count: "exact" })
+        .in("record_id", recordIds)
+        .limit(1000)
+    : { data: [], error: null, count: 0 };
+  try {
+    assertCompletePilotRead(photosResult);
+  } catch {
+    return <IncompletePilotPanel adminEmail={session.admin.email} />;
+  }
 
   const summary = summarizeSidewalkPilot({
     uploads: (uploadsResult.data ?? []) as any[],
@@ -229,6 +247,22 @@ export default async function SidewalkPilotPage() {
           </ul>
         </section>
       ) : null}
+    </AdminShell>
+  );
+}
+
+function IncompletePilotPanel({ adminEmail }: { adminEmail: string }) {
+  return (
+    <AdminShell adminEmail={adminEmail}>
+      <h1 className="text-3xl font-black uppercase">Piloto das calçadas</h1>
+      <p role="alert" className="mt-5 border-2 border-comun-yellow p-5">
+        A leitura da amostra não foi concluída. Nenhuma métrica foi calculada
+        nesta consulta. A equipe precisa conferir a integridade da leitura antes
+        de avaliar os resultados do piloto.
+      </p>
+      <Link className="btn mt-5" href="/comun/admin/calcadas/operacao">
+        Voltar à operação
+      </Link>
     </AdminShell>
   );
 }
