@@ -1,6 +1,10 @@
 import { ComunShell, Section } from "@/components/comun-shell";
 import { PrimaryLink } from "@/components/comun-shell";
 
+// The shell reads query parameters. Request rendering keeps this safety
+// explanation in the server HTML instead of a client-only Suspense fallback.
+export const dynamic = "force-dynamic";
+
 const items = [
   "Voce pode relatar sem se identificar publicamente.",
   "Contato e opcional e nunca aparece em pagina publica.",
