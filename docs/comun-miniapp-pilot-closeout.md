@@ -28,6 +28,17 @@ amostra real suficiente.
 
 ## Resultados
 
+O relatório e o painel exigem contagem exata compatível com as linhas recebidas.
+As fotos são consultadas somente para os registros da janela original. Se a
+API truncar uma consulta ou omitir a contagem, o cálculo bloqueia com
+`SIDEWALK_PILOT_SAMPLE_INCOMPLETE`; não usar o último artifact como prova de uma
+nova execução bem-sucedida. Os limites de leitura continuam vigentes e podem
+exigir um trabalho separado de paginação quando a amostra crescer.
+
+A confirmação de completude vale por consulta. As leituras de tabelas distintas
+não formam um snapshot transacional; o envelope declara essa limitação. Isso
+não comprova amostra real suficiente, revisão de campo ou recuperação durável.
+
 - `eligible_for_closeout`: janela ainda ativa; procedimento pronto.
 - `attention`: acompanhamento operacional necessário.
 - `blocked`: janela fechada sem evidência real suficiente ou com blocker.
