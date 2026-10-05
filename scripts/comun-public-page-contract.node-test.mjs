@@ -3,6 +3,7 @@ import test from "node:test";
 import { readFile } from "node:fs/promises";
 import {
   inspectPublicPage,
+  PUBLIC_PAGE_CONTRACTS,
   SECURITY_TEST_POLICY,
 } from "./comun-public-page-contract.mjs";
 const inspect = (html, extra = {}) =>
@@ -17,6 +18,68 @@ const inspect = (html, extra = {}) =>
     ["Atenção"],
   );
 const page = (body = "") => `<main><h1>Atenção</h1>${body}</main>`;
+const streamedPage = (body = page(), completion = '$RC("B:0","S:0")') =>
+  `<!doctype html><html><body><!--$?--><template id="B:0"></template><p>Carregando experiência…</p><!--/$--><div hidden id="S:0">${body}</div><script>${completion}</script></body></html>`;
+
+test("four delta routes accept completed React Suspense headings inside main", () => {
+  for (const path of [
+    "/comun",
+    "/comun/participar",
+    "/comun/radio",
+    "/comun/observatorios",
+  ]) {
+    const [, headings] = PUBLIC_PAGE_CONTRACTS.find(
+      ([route]) => route === path,
+    );
+    const result = inspectPublicPage(
+      {
+        path,
+        status: 200,
+        headers: { "content-type": "text/html" },
+        html: streamedPage(`<main><h1>${headings[0]}</h1></main>`),
+      },
+      headings,
+    );
+    assert.equal(result.valid, true, path);
+    assert.equal(result.completedStreamBoundaries, 1);
+    assert.equal(result.browserConfirmationRequired, true);
+  }
+});
+
+test("stream completion never waives missing, wrong or genuinely hidden headings", () => {
+  for (const html of [
+    streamedPage(page(), ""),
+    streamedPage(page(), '$RC("B:9","S:0")'),
+    streamedPage(page(), '$RC("B:0","S:9")'),
+    streamedPage(page(), 'const payload = \'$RC("B:0","S:0")\''),
+    streamedPage(page()).replace("<!--/$-->", ""),
+    streamedPage(page())
+      .replace("<body>", "<body><div hidden>")
+      .replace("</body>", "</div></body>"),
+    streamedPage("<h1>Atenção</h1>"),
+    streamedPage("<main><h1>Outra página</h1></main>"),
+    streamedPage("<main hidden><h1>Atenção</h1></main>"),
+    streamedPage('<main><h1 aria-hidden="true">Atenção</h1></main>'),
+  ])
+    assert.equal(inspect(html).contractPresent, false, html);
+});
+
+test("completed stream retains full payload scan and visible marker checks", () => {
+  for (const body of [
+    "<p>fixture</p>",
+    "<div hidden>fixture</div>",
+    '<script>{"value":"fixture"}</script>',
+  ]) {
+    const result = inspect(streamedPage(page(body)));
+    assert.equal(result.contractPresent, true);
+    assert.equal(result.valid, false);
+    assert.deepEqual(result.unresolvedPayloadMarkers, ["fixture"]);
+  }
+  assert.deepEqual(
+    inspect(streamedPage(page("<p>fixture</p>"))).visibleMarkers,
+    ["fixture"],
+  );
+});
 test("heading must occur in exposed main, with normalized accents and casing", () => {
   assert.equal(inspect("<main><h1> ATENCAO </h1></main>").valid, true);
   for (const html of [

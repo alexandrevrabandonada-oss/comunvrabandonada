@@ -64,9 +64,79 @@ function semanticText(node) {
   );
 }
 
+// React streams completed Suspense content into hidden S:n containers, then
+// $RC moves their children into the B:n boundary. Inspect that final structure,
+// without evaluating response JavaScript or accepting arbitrary hidden content.
+function completeStreamedBoundaries(document) {
+  const ids = new Map();
+  const scripts = [];
+  function collect(node) {
+    const id = attr(node, "id");
+    if (id) ids.set(id, ids.has(id) ? null : node);
+    if (node.tagName === "script" && !attr(node, "src") && !attr(node, "type"))
+      scripts.push(node);
+    for (const child of node.childNodes || []) collect(child);
+  }
+  collect(document);
+  let completed = 0;
+  for (const script of scripts) {
+    const code = (script.childNodes || [])
+      .map((node) => node.value || "")
+      .join("");
+    // Only a standalone completion statement, never a string in a JSON/RSC
+    // payload. Unknown transport shapes remain blocked for browser review.
+    const call = /(?:^|;)\s*\$RC\("(B:\d+)","(S:\d+)"\)\s*;?\s*$/.exec(code);
+    if (!call) continue;
+    const boundary = ids.get(call[1]);
+    const segment = ids.get(call[2]);
+    if (
+      boundary?.tagName !== "template" ||
+      segment?.tagName !== "div" ||
+      attr(segment, "hidden") === undefined ||
+      !segment.parentNode
+    )
+      continue;
+    const parent = boundary.parentNode;
+    if (!parent) continue;
+    const start = parent.childNodes.indexOf(boundary);
+    const opening = parent.childNodes[start - 1];
+    if (opening?.nodeName !== "#comment" || opening.data !== "$?") continue;
+    let depth = 0;
+    let end = -1;
+    for (let index = start + 1; index < parent.childNodes.length; index++) {
+      const node = parent.childNodes[index];
+      if (node.nodeName !== "#comment") continue;
+      if (["$", "$?", "$!"].includes(node.data)) depth++;
+      if (node.data === "/$") {
+        if (depth === 0) {
+          end = index;
+          break;
+        }
+        depth--;
+      }
+    }
+    if (end === -1) continue;
+    const children = segment.childNodes;
+    for (const child of children) child.parentNode = parent;
+    parent.childNodes.splice(start, end - start, ...children);
+    opening.data = "$";
+    segment.parentNode.childNodes.splice(
+      segment.parentNode.childNodes.indexOf(segment),
+      1,
+    );
+    segment.childNodes = [];
+    completed++;
+  }
+  return completed;
+}
+
 export function inspectPublicPage(result, headings) {
   const html = String(result.html || "");
   const document = parse(html);
+  // Preserve the original parsed payload for the independent leak scan below.
+  const semanticDocument = parse(html);
+  const completedStreamBoundaries =
+    completeStreamedBoundaries(semanticDocument);
   const mainNodes = [],
     headingNodes = [];
   function walk(node, inMain = false) {
@@ -77,7 +147,7 @@ export function inspectPublicPage(result, headings) {
     if (main && node.tagName === "h1") headingNodes.push(node);
     for (const child of node.childNodes || []) walk(child, main);
   }
-  walk(document);
+  walk(semanticDocument);
   const text = mainNodes.map(semanticText).join(" ");
   const knownPolicy =
     result.path === "/comun/seguranca" &&
@@ -147,7 +217,10 @@ export function inspectPublicPage(result, headings) {
     payloadMarkers: matches(html),
     unresolvedPayloadMarkers,
     knownPolicyExplanation: knownPolicy,
-    inspection: "server_html_structure",
+    inspection: completedStreamBoundaries
+      ? "server_html_completed_stream_structure"
+      : "server_html_structure",
+    completedStreamBoundaries,
     contentProvenance: "not_verified_by_html",
     browserConfirmationRequired:
       !contractPresent || /id=["']S:|\$RC\(/.test(html),
