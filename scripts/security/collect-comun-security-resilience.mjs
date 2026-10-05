@@ -50,23 +50,23 @@ try {
     "COMUN_SECURITY_RESILIENCE_BLOCKED_PROVIDER_CAPABILITY";
   const databaseEvidence = evidenceByFile.get("30-database-restore.json");
   const storageEvidence = evidenceByFile.get("35-storage-restore.json");
-  const result = providerBlocked
-    ? "COMUN_SECURITY_RESILIENCE_BLOCKED_PROVIDER_CAPABILITY"
-    : allGreen
-      ? remote
-        ? RESULT.green
-        : RESULT.ready
-      : "COMUN_SECURITY_RESILIENCE_BLOCKED_INCOMPLETE_EVIDENCE";
+  // The only supported provider envelope records a blocker. A missing,
+  // malformed or unknown envelope cannot establish durable recovery capacity.
+  const result =
+    !allGreen || !providerBlocked
+      ? "COMUN_SECURITY_RESILIENCE_BLOCKED_INCOMPLETE_EVIDENCE"
+      : "COMUN_SECURITY_RESILIENCE_BLOCKED_PROVIDER_CAPABILITY";
   await writeEvidence("99-security-resilience.json", {
     domain: "security_resilience",
     result,
     checks,
+    providerCapabilityEvidence: providerBlocked
+      ? "recorded_blocker"
+      : "missing_or_invalid",
     evidenceScope: remote ? "remote_and_isolated" : "local_implementation",
     remoteBackup:
       remote && allGreen
-        ? providerBlocked
-          ? "ephemeral_verified_but_no_durable_recovery_point"
-          : "verified"
+        ? "ephemeral_verified_but_no_durable_recovery_point"
         : "pending",
     isolatedDatabaseRestore: remote && allGreen ? "verified" : "pending",
     isolatedStorageRestore: remote && allGreen ? "verified" : "pending",
@@ -77,10 +77,10 @@ try {
         measured: remote
           ? "ephemeral_snapshot_at_run"
           : "local_synthetic_snapshot",
-        margin: providerBlocked ? "none" : "within_target_if_scheduled",
+        margin: "none",
         blocker: providerBlocked
-          ? "durable_recovery_point_unavailable_on_current_plan"
-          : "none",
+          ? "durable_recovery_point_not_proven"
+          : "current_provider_capacity_not_verified",
       },
       {
         surface: "storage_rpo",
@@ -130,8 +130,10 @@ try {
         target: "8_hours",
         measured:
           databaseEvidence?.rpoRto?.fullRecoveryRtoMeasured || "not_measured",
-        margin: remote && allGreen ? "within_target" : "pending",
-        blocker: providerBlocked ? "durable_source_backup_missing" : "none",
+        margin: remote && allGreen ? "isolated_rehearsal_only" : "pending",
+        blocker: providerBlocked
+          ? "durable_source_backup_missing"
+          : "current_provider_capacity_not_verified",
       },
     ],
     launchPublicly: "not_invoked",
@@ -144,7 +146,7 @@ try {
     ],
   });
   console.log(result);
-  if (!allGreen) process.exitCode = 1;
+  if (!allGreen || !providerBlocked) process.exitCode = 1;
 } catch (error) {
   await writeFailureEvidence("aggregate", error);
   console.error(sanitizedError(error));

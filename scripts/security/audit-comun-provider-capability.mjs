@@ -14,13 +14,21 @@ try {
   assert.match(checkpoint, /plano Free/i);
   await writeEvidence("70-provider-capability.json", {
     result: "COMUN_SECURITY_RESILIENCE_BLOCKED_PROVIDER_CAPABILITY",
-    observedPlan: "free",
-    observedFrom: "remote_storage_capability_checkpoint",
+    observedPlan: "not_verified_currently",
+    observedFrom: "historical_remote_storage_capability_checkpoint",
+    currentProviderCapacityVerified: false,
+    historicalObservation: {
+      plan: "free",
+      source: "reports/current/comun-tijolo-47-6a-remote-state-checkpoint.md",
+      mergeSha: "6126f2ce2dde3c6f39be91301c86e380027b96f5",
+      observedAt: "not_recorded",
+      scope: "storage_file_size_limit",
+    },
     database: {
-      automaticBackups: "unavailable_on_current_plan",
-      pitr: "unavailable_on_current_plan",
+      automaticBackups: "not_verified_currently",
+      pitr: "not_verified_currently",
       manualLogicalBackup: "available_on_demand",
-      durableRecoveryPointInsideCurrentContract: "missing",
+      durableRecoveryPointInsideCurrentContract: "not_proven",
     },
     storage: {
       includedInDatabaseBackup: false,
@@ -32,14 +40,14 @@ try {
       providerRecovery: "dashboard_or_provider_capability",
       applicationProfiles: "covered_by_public_schema_backup",
       sessions: "invalidate_and_reauthenticate",
-      providerInternalRecoveryPoint:
-        "coupled_to_unavailable_database_backup_capability",
+      providerInternalRecoveryPoint: "not_verified_currently",
     },
     rpo: {
       databaseTarget: "24_hours",
       measured: "on_demand_only",
       margin: "none",
-      blocker: "no_durable_automatic_recovery_point",
+      blocker:
+        "current_provider_capacity_and_durable_recovery_point_not_proven",
     },
     financialPlanChanged: false,
     sources: [

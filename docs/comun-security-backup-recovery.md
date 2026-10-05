@@ -48,6 +48,16 @@ o plano atual não oferecer uma capacidade necessária, o resultado é
 `COMUN_SECURITY_RESILIENCE_BLOCKED_PROVIDER_CAPABILITY`; nenhum plano
 financeiro é alterado automaticamente.
 
+A geração de um envelope novo não renova a observação do contrato do provedor.
+O checkpoint 47.6A registra historicamente o plano Free e o limite de arquivo
+do Storage; ele não comprova o plano atual, backups disponíveis, PITR ou uma
+restauração de Auth. A auditoria marca essas capacidades atuais como não
+verificadas e mantém a referência histórica separada. O coletor aceita apenas
+o contrato de capacidade bloqueada atualmente implementado: arquivo ausente,
+JSON inválido ou resultado desconhecido bloqueiam a agregação com erro. Oito
+ensaios verdes podem comprovar recuperação isolada, mas não promovem backup
+efêmero a ponto de recuperação durável nem liberam o domínio de segurança.
+
 ## Procedimento remoto
 
 1. confirmar SHA, project ref allowlisted e origem somente leitura;
