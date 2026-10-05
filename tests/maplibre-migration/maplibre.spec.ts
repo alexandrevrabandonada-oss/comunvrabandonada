@@ -225,6 +225,12 @@ test("unsupported WebGL reports a fixed category and preserves the list", async 
   const fallback = page.getByTestId("sidewalk-real-map-fallback");
   await expect(fallback).toBeVisible();
   await expect(fallback).toHaveAttribute("data-map-failure", "gpu_context");
+  await expect(fallback).toContainText(
+    "O mapa não pôde ser exibido neste navegador.",
+  );
+  await expect(fallback).toContainText(
+    "Use a lista para consultar os mesmos registros.",
+  );
   await expect(fallback).not.toContainText(/WebGL|GPUInitializationError/);
   await page.getByRole("button", { name: "Lista", exact: true }).click();
   await expect(

@@ -135,10 +135,15 @@ export function SidewalkMapLibreMap({
         }}
       >
         <div className="max-w-sm border-2 border-comun-black bg-white p-5 shadow-[3px_3px_0_#0b0b0a]">
-          <strong>Mapa-base indisponível.</strong>
+          <strong>
+            {failure === "gpu_context"
+              ? "O mapa não pôde ser exibido neste navegador."
+              : "Mapa-base indisponível."}
+          </strong>
           <p className="mt-2 text-sm">
-            A lista de registros continua disponível. Tente novamente mais
-            tarde.
+            {failure === "gpu_context"
+              ? "Use a lista para consultar os mesmos registros."
+              : "A lista de registros continua disponível. Tente novamente mais tarde."}
           </p>
         </div>
       </div>
