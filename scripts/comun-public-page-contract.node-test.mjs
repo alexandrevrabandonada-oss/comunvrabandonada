@@ -21,6 +21,72 @@ const page = (body = "") => `<main><h1>Atenção</h1>${body}</main>`;
 const streamedPage = (body = page(), completion = '$RC("B:0","S:0")') =>
   `<!doctype html><html><body><!--$?--><template id="B:0"></template><p>Carregando experiência…</p><!--/$--><div hidden id="S:0">${body}</div><script>${completion}</script></body></html>`;
 
+test("React segment insertion completes content inside the streamed main", () => {
+  const html =
+    streamedPage('<main><template id="P:1"></template></main>') +
+    '<div hidden id="S:1"><h1>Atenção</h1></div><script>$RS("S:1","P:1")</script>';
+  const result = inspect(html);
+  assert.equal(result.valid, true);
+  assert.equal(result.completedStreamSegments, 1);
+  for (const broken of [
+    html.replace('$RS("S:1","P:1")', ""),
+    html.replace('$RS("S:1","P:1")', '$RS("S:9","P:1")'),
+    html.replace('$RS("S:1","P:1")', '$RS("S:1","P:9")'),
+    html.replace('$RS("S:1","P:1")', 'const fake = \'$RS("S:1","P:1")\''),
+    html.replace('<template id="P:1"></template>', '<div id="P:1"></div>'),
+    html + '<template id="P:1"></template>',
+    html.replace("<h1>Atenção</h1>", "<h1 hidden>Atenção</h1>"),
+  ])
+    assert.equal(inspect(broken).contractPresent, false);
+  assert.equal(
+    inspect(html.replace("<h1>Atenção</h1>", "<h1>Atenção</h1><p>fixture</p>"))
+      .valid,
+    false,
+  );
+  assert.equal(
+    inspect(
+      html.replace(
+        '<template id="P:1"></template>',
+        '<div hidden><template id="P:1"></template></div>',
+      ),
+    ).contractPresent,
+    false,
+  );
+});
+
+test("RSC style syntax is classified without excluding data markers", () => {
+  const transport = (value) =>
+    `<script>self.__next_f.push(${JSON.stringify([1, JSON.stringify(value)])})</script>`;
+  assert.equal(
+    inspect(
+      page() +
+        transport({
+          className: "placeholder:text-comun-paper/50",
+          placeholder: "Buscar",
+        }),
+    ).valid,
+    true,
+  );
+  for (const value of [
+    { className: "placeholder:text-comun-paper/50", value: "fixture" },
+    { className: "placeholder:text-comun-paper/50", value: "placeholder" },
+    { placeholder: "fixture" },
+    { value: "placeholder:text-comun-paper/50" },
+    { value: "fixt\\u0075re" },
+  ])
+    assert.equal(inspect(page() + transport(value)).valid, false);
+  assert.equal(
+    inspect(page("<p>placeholder:text-comun-paper/50</p>")).valid,
+    false,
+  );
+  assert.equal(
+    inspect(
+      page() + '<script>self.__next_f.push([1,"invalid placeholder"])</script>',
+    ).valid,
+    false,
+  );
+});
+
 test("four delta routes accept completed React Suspense headings inside main", () => {
   for (const path of [
     "/comun",

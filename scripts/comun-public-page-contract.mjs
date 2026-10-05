@@ -79,10 +79,43 @@ function completeStreamedBoundaries(document) {
   }
   collect(document);
   let completed = 0;
+  let completedSegments = 0;
   for (const script of scripts) {
     const code = (script.childNodes || [])
       .map((node) => node.value || "")
       .join("");
+    const insertion = /(?:^|;)\s*\$RS\("(S:\d+)","(P:\d+)"\)\s*;?\s*$/.exec(
+      code,
+    );
+    if (insertion) {
+      const segment = ids.get(insertion[1]);
+      const target = ids.get(insertion[2]);
+      if (
+        segment?.tagName === "div" &&
+        attr(segment, "hidden") !== undefined &&
+        target?.tagName === "template" &&
+        segment.parentNode &&
+        target.parentNode &&
+        // A segment cannot be inserted into itself or one of its children.
+        !isAncestor(segment, target)
+      ) {
+        const parent = target.parentNode;
+        const children = segment.childNodes;
+        for (const child of children) child.parentNode = parent;
+        parent.childNodes.splice(
+          parent.childNodes.indexOf(target),
+          1,
+          ...children,
+        );
+        segment.parentNode.childNodes.splice(
+          segment.parentNode.childNodes.indexOf(segment),
+          1,
+        );
+        segment.childNodes = [];
+        completedSegments++;
+      }
+      continue;
+    }
     // Only a standalone completion statement, never a string in a JSON/RSC
     // payload. Unknown transport shapes remain blocked for browser review.
     const call = /(?:^|;)\s*\$RC\("(B:\d+)","(S:\d+)"\)\s*;?\s*$/.exec(code);
@@ -127,7 +160,38 @@ function completeStreamedBoundaries(document) {
     segment.childNodes = [];
     completed++;
   }
-  return completed;
+  return { completed, completedSegments };
+}
+
+function isAncestor(ancestor, node) {
+  for (let parent = node; parent; parent = parent.parentNode)
+    if (parent === ancestor) return true;
+  return false;
+}
+
+// Decode only the known RSC transport, without evaluating JavaScript. CSS
+// variants are syntax only inside className; marker-bearing values elsewhere
+// remain subject to the full payload scan, including hidden/script data.
+function classifyScriptSyntax(code) {
+  const push = /^self\.__next_f\.push\((\[.*\])\)\s*;?$/s.exec(code);
+  if (!push) return code;
+  try {
+    const data = JSON.parse(push[1]);
+    if (data.length !== 2 || data[0] !== 1 || typeof data[1] !== "string")
+      return code;
+    return data[1].replace(
+      /("className"\s*:\s*)("(?:[^"\\]|\\.)*")/g,
+      (_, key, value) => {
+        const classes = JSON.parse(value).replace(
+          /\bplaceholder:/gi,
+          "css-state:",
+        );
+        return key + JSON.stringify(classes);
+      },
+    );
+  } catch {
+    return code;
+  }
 }
 
 export function inspectPublicPage(result, headings) {
@@ -135,8 +199,10 @@ export function inspectPublicPage(result, headings) {
   const document = parse(html);
   // Preserve the original parsed payload for the independent leak scan below.
   const semanticDocument = parse(html);
-  const completedStreamBoundaries =
-    completeStreamedBoundaries(semanticDocument);
+  const {
+    completed: completedStreamBoundaries,
+    completedSegments: completedStreamSegments,
+  } = completeStreamedBoundaries(semanticDocument);
   const mainNodes = [],
     headingNodes = [];
   function walk(node, inMain = false) {
@@ -160,12 +226,21 @@ export function inspectPublicPage(result, headings) {
   // payloads. Only syntax tokens (not attribute values) and exact reviewed
   // policy copy are classified as known explanations.
   let payload = html
+    .replace(
+      /<script\b([^>]*)>([\s\S]*?)<\/script>/gi,
+      (whole, attributes, code) =>
+        /\b(?:src|type)\s*=/i.test(attributes)
+          ? whole
+          : `<script${attributes}>${classifyScriptSyntax(code)}</script>`,
+    )
+    .replace(/\bclass\s*=\s*(["'])(.*?)\1/gi, (whole) =>
+      whole.replace(/\bplaceholder:/gi, "css-state:"),
+    )
     .replace(/\bplaceholder\s*=/gi, "input-hint=")
-    .replace(/(?:\\?\")placeholder(?:\\?\")\s*:/gi, '"input-hint":')
-    .replace(/\bplaceholder:/gi, "css-state:");
+    .replace(/(?:\\?\")placeholder(?:\\?\")\s*:/gi, '"input-hint":');
   if (knownPolicy) payload = payload.replaceAll(SECURITY_TEST_POLICY, "");
   // Escaping a marker in JSON must not hide a data leak from this scan.
-  payload = payload.replace(/\\u([0-9a-f]{4})/gi, (_, hex) =>
+  payload = payload.replace(/\\+u([0-9a-f]{4})/gi, (_, hex) =>
     String.fromCharCode(Number.parseInt(hex, 16)),
   );
   // Decode HTML entities in text, comments and attribute values, including
@@ -173,6 +248,18 @@ export function inspectPublicPage(result, headings) {
   // the raw response scan above still checks it.
   const decodedValues = [];
   function collect(node) {
+    if (
+      node.tagName === "script" &&
+      !attr(node, "src") &&
+      !attr(node, "type")
+    ) {
+      decodedValues.push(
+        classifyScriptSyntax(
+          (node.childNodes || []).map((child) => child.value || "").join(""),
+        ),
+      );
+      return;
+    }
     if (node.value || node.data) decodedValues.push(node.value || node.data);
     for (const item of node.attrs || []) {
       if (!["class", "style"].includes(item.name))
@@ -184,7 +271,10 @@ export function inspectPublicPage(result, headings) {
   collect(document);
   let decodedPayload = decodedValues
     .join(" ")
-    .replace(/(?:\\?\")placeholder(?:\\?\")\s*:/gi, '"input-hint":');
+    .replace(/(?:\\?\")placeholder(?:\\?\")\s*:/gi, '"input-hint":')
+    .replace(/\\+u([0-9a-f]{4})/gi, (_, hex) =>
+      String.fromCharCode(Number.parseInt(hex, 16)),
+    );
   if (knownPolicy)
     decodedPayload = decodedPayload.replaceAll(SECURITY_TEST_POLICY, "");
   const reasons = [];
@@ -221,8 +311,9 @@ export function inspectPublicPage(result, headings) {
       ? "server_html_completed_stream_structure"
       : "server_html_structure",
     completedStreamBoundaries,
+    completedStreamSegments,
     contentProvenance: "not_verified_by_html",
     browserConfirmationRequired:
-      !contractPresent || /id=["']S:|\$RC\(/.test(html),
+      !contractPresent || /id=["']S:|\$R[CS]\(/.test(html),
   };
 }
