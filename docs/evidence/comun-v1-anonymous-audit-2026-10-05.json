@@ -1,0 +1,269 @@
+{
+  "schemaVersion": 2,
+  "domainEvidenceSource": "declared_program_states",
+  "coverage": "nine_public_routes_three_anonymous_admin_redirects_assets_headers",
+  "auditedAt": "2026-10-05T22:39:46.340Z",
+  "baseUrl": "https://comunsocial.online",
+  "programVersion": "2026.07",
+  "result": "COMUN_V1_DELIVERABILITY_AUDIT_BLOCKED",
+  "readyForFinalHumanGate": false,
+  "finalHumanGate": "launch_publicly",
+  "summary": {
+    "counts": {
+      "green": 4,
+      "inProgress": 1,
+      "blocked": 3,
+      "evidenceRequired": 2
+    },
+    "total": 10,
+    "readyForFinalHumanGate": false,
+    "remaining": 6
+  },
+  "publicRoutes": [
+    {
+      "path": "/comun",
+      "status": 200,
+      "contractPresent": true,
+      "forbiddenMarkers": [],
+      "contract": {
+        "contractPresent": true,
+        "valid": true,
+        "reasons": [],
+        "visibleMarkers": [],
+        "payloadMarkers": [],
+        "unresolvedPayloadMarkers": [],
+        "knownPolicyExplanation": false,
+        "inspection": "server_html_completed_stream_structure",
+        "completedStreamBoundaries": 1,
+        "completedStreamSegments": 1,
+        "contentProvenance": "not_verified_by_html",
+        "browserConfirmationRequired": true
+      }
+    },
+    {
+      "path": "/comun/pautas",
+      "status": 200,
+      "contractPresent": true,
+      "forbiddenMarkers": [],
+      "contract": {
+        "contractPresent": true,
+        "valid": true,
+        "reasons": [],
+        "visibleMarkers": [],
+        "payloadMarkers": [],
+        "unresolvedPayloadMarkers": [],
+        "knownPolicyExplanation": false,
+        "inspection": "server_html_structure",
+        "completedStreamBoundaries": 0,
+        "completedStreamSegments": 0,
+        "contentProvenance": "not_verified_by_html",
+        "browserConfirmationRequired": false
+      }
+    },
+    {
+      "path": "/comun/comunidades",
+      "status": 200,
+      "contractPresent": true,
+      "forbiddenMarkers": [],
+      "contract": {
+        "contractPresent": true,
+        "valid": true,
+        "reasons": [],
+        "visibleMarkers": [],
+        "payloadMarkers": ["placeholder"],
+        "unresolvedPayloadMarkers": [],
+        "knownPolicyExplanation": false,
+        "inspection": "server_html_completed_stream_structure",
+        "completedStreamBoundaries": 1,
+        "completedStreamSegments": 0,
+        "contentProvenance": "not_verified_by_html",
+        "browserConfirmationRequired": true
+      }
+    },
+    {
+      "path": "/comun/participar",
+      "status": 200,
+      "contractPresent": true,
+      "forbiddenMarkers": [],
+      "contract": {
+        "contractPresent": true,
+        "valid": true,
+        "reasons": [],
+        "visibleMarkers": [],
+        "payloadMarkers": [],
+        "unresolvedPayloadMarkers": [],
+        "knownPolicyExplanation": false,
+        "inspection": "server_html_completed_stream_structure",
+        "completedStreamBoundaries": 1,
+        "completedStreamSegments": 0,
+        "contentProvenance": "not_verified_by_html",
+        "browserConfirmationRequired": true
+      }
+    },
+    {
+      "path": "/comun/calcadas",
+      "status": 200,
+      "contractPresent": true,
+      "forbiddenMarkers": [],
+      "contract": {
+        "contractPresent": true,
+        "valid": true,
+        "reasons": [],
+        "visibleMarkers": [],
+        "payloadMarkers": ["placeholder"],
+        "unresolvedPayloadMarkers": [],
+        "knownPolicyExplanation": false,
+        "inspection": "server_html_completed_stream_structure",
+        "completedStreamBoundaries": 1,
+        "completedStreamSegments": 1,
+        "contentProvenance": "not_verified_by_html",
+        "browserConfirmationRequired": true
+      }
+    },
+    {
+      "path": "/comun/acervo",
+      "status": 200,
+      "contractPresent": true,
+      "forbiddenMarkers": [],
+      "contract": {
+        "contractPresent": true,
+        "valid": true,
+        "reasons": [],
+        "visibleMarkers": [],
+        "payloadMarkers": ["placeholder"],
+        "unresolvedPayloadMarkers": [],
+        "knownPolicyExplanation": false,
+        "inspection": "server_html_completed_stream_structure",
+        "completedStreamBoundaries": 1,
+        "completedStreamSegments": 0,
+        "contentProvenance": "not_verified_by_html",
+        "browserConfirmationRequired": true
+      }
+    },
+    {
+      "path": "/comun/radio",
+      "status": 200,
+      "contractPresent": true,
+      "forbiddenMarkers": [],
+      "contract": {
+        "contractPresent": true,
+        "valid": true,
+        "reasons": [],
+        "visibleMarkers": [],
+        "payloadMarkers": [],
+        "unresolvedPayloadMarkers": [],
+        "knownPolicyExplanation": false,
+        "inspection": "server_html_completed_stream_structure",
+        "completedStreamBoundaries": 1,
+        "completedStreamSegments": 0,
+        "contentProvenance": "not_verified_by_html",
+        "browserConfirmationRequired": true
+      }
+    },
+    {
+      "path": "/comun/observatorios",
+      "status": 200,
+      "contractPresent": true,
+      "forbiddenMarkers": [],
+      "contract": {
+        "contractPresent": true,
+        "valid": true,
+        "reasons": [],
+        "visibleMarkers": [],
+        "payloadMarkers": [],
+        "unresolvedPayloadMarkers": [],
+        "knownPolicyExplanation": false,
+        "inspection": "server_html_completed_stream_structure",
+        "completedStreamBoundaries": 1,
+        "completedStreamSegments": 0,
+        "contentProvenance": "not_verified_by_html",
+        "browserConfirmationRequired": true
+      }
+    },
+    {
+      "path": "/comun/seguranca",
+      "status": 200,
+      "contractPresent": true,
+      "forbiddenMarkers": [],
+      "contract": {
+        "contractPresent": true,
+        "valid": true,
+        "reasons": [],
+        "visibleMarkers": [],
+        "payloadMarkers": ["fixture"],
+        "unresolvedPayloadMarkers": [],
+        "knownPolicyExplanation": true,
+        "inspection": "server_html_completed_stream_structure",
+        "completedStreamBoundaries": 1,
+        "completedStreamSegments": 0,
+        "contentProvenance": "not_verified_by_html",
+        "browserConfirmationRequired": true
+      }
+    }
+  ],
+  "protectedRoutes": [
+    {
+      "path": "/comun/admin/lancamento",
+      "status": 200,
+      "redirectedToAdminLogin": true
+    },
+    {
+      "path": "/comun/admin/organizacao",
+      "status": 200,
+      "redirectedToAdminLogin": true
+    },
+    {
+      "path": "/comun/admin/calcadas/operacao",
+      "status": 200,
+      "redirectedToAdminLogin": true
+    }
+  ],
+  "publicAssets": {
+    "manifest": 200,
+    "robots": 200,
+    "sitemap": 200
+  },
+  "publicAssetContracts": {
+    "manifest": {
+      "valid": true,
+      "reasons": []
+    },
+    "robots": {
+      "valid": true,
+      "reasons": []
+    },
+    "sitemap": {
+      "valid": true,
+      "reasons": [],
+      "submittedUrls": 0
+    }
+  },
+  "indexingPolicy": "pilot_noindex",
+  "pilotNoindexConfirmed": true,
+  "securityHeaders": {
+    "hsts": true,
+    "noSniff": true,
+    "frameDenied": true,
+    "referrerPolicy": true,
+    "contentSecurityPolicy": true
+  },
+  "findings": [
+    "launch_domain:miniapps:in_progress",
+    "launch_domain:archive_radio_art:evidence_required",
+    "launch_domain:security_resilience:blocked",
+    "launch_domain:quality_performance:evidence_required",
+    "launch_domain:content_governance:blocked",
+    "launch_domain:launch_rehearsal:blocked"
+  ],
+  "findingsCount": 6,
+  "containsCoordinates": false,
+  "containsPersonalData": false,
+  "containsUserIds": false,
+  "containsSecrets": false,
+  "writes": {
+    "database": "none",
+    "storage": "none",
+    "auth": "none",
+    "deployment": "none"
+  }
+}

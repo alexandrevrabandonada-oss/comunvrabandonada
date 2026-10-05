@@ -78,3 +78,39 @@ próprias; fallback técnico não comprova execução da capacidade principal.
 Nenhum achado da #95 foi encerrado. Nenhum domínio foi promovido e
 `launch_publicly` permanece separado. Núcleos, ciclo estratégico e formação
 da rede são evolução posterior; não aumentam o escopo deste fechamento V1.
+
+## Reconciliação anônima em produção — 22:39 UTC
+
+As PRs #490 e #492 foram integradas. O domínio `comunsocial.online` estava
+`READY` no merge SHA `d95318a5e35faa45545225d4c893d976335f4d16` antes e depois
+da auditoria de 05/10/2026 às `22:39:46.340Z`. O auditor, seus contratos e os
+estados do programa usados localmente são idênticos aos arquivos desse SHA.
+
+O [envelope sanitizado](evidence/comun-v1-anonymous-audit-2026-10-05.json)
+registra nove rotas públicas com HTTP 200 e contrato válido: Home, Pautas,
+Comunidades, Participar, Calçadas, Acervo, Rádio, Observatórios e Segurança.
+As três rotas administrativas auditadas redirecionaram o acesso anônimo para
+`/comun/admin/login`, incluindo `/comun/admin/calcadas/operacao`. Manifest,
+robots, sitemap, cinco headers de segurança e `noindex` do piloto passaram.
+Nenhum timeout foi registrado nessa execução.
+
+A coleta foi por HTTP anônimo direto, sem bearer, cookie ou link de bypass.
+A integração Vercel foi rejeitada pela revisão automática por poder criar
+um bypass temporário; não foi reutilizada para a coleta. Os checks da PR #492
+passaram no head exato `6011b9e8`, e o navegador confirmou um único `main` e
+o H1 esperado na produção. Conteúdo em streaming continua exigindo confirmação
+no navegador; HTML válido não certifica procedência, direitos, acessibilidade
+assistiva ou operação administrativa autenticada.
+
+Os quatro achados de rota do checkpoint original não se reproduziram. O
+resultado continua `COMUN_V1_DELIVERABILITY_AUDIT_BLOCKED`, agora com seis
+achados, todos dos estados declarados do programa: miniapps, Acervo/Rádio/Arte,
+segurança/recuperação, qualidade, governança e ensaio integrado. A leitura não
+promoveu domínios, não encerrou #95 e não executou `launch_publicly`.
+
+Separadamente, os patches finais de mapa (#491), Segurança (#492) e integridade
+do piloto (#493) se combinam sem conflito na árvore local
+`46953cd28b8a23050b0d70c63ce3dae5efbddc1b`. Build de produção e 1.330 testes
+unitários em 238 arquivos passaram nessa combinação. No momento da coleta,
+#491 e #493 ainda aguardavam qualidade geral nos próprios SHAs; essa árvore
+local não era o deployment de produção.
