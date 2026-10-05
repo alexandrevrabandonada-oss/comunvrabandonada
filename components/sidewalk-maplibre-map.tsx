@@ -21,14 +21,31 @@ export function SidewalkMapLibreMap({
   const host = useRef<HTMLDivElement>(null),
     mapRef = useRef<MapLibreMap | null>(null),
     markers = useRef<MapLibreMarker[]>([]),
-    [failed, setFailed] = useState(!provider.enabled);
+    [failure, setFailure] = useState<
+      | "provider_disabled"
+      | "dependency"
+      | "initialization"
+      | "render"
+      | "gpu_context"
+      | null
+    >(provider.enabled ? null : "provider_disabled");
   useEffect(() => {
     if (!host.current || !provider.enabled || !provider.style.pmtilesUrl)
       return;
     let cancelled = false;
+    let stage: "dependency" | "initialization" | "render" = "dependency";
+    let isGpuError = (_error: unknown) => false;
+    // Publish only a fixed category. Error messages can include URLs, tokens
+    // or locations and must never be attached to the DOM or sent as telemetry.
+    const fail = (error: unknown) => {
+      if (!cancelled) setFailure(isGpuError(error) ? "gpu_context" : stage);
+    };
     Promise.all([import("maplibre-gl"), import("pmtiles")])
       .then(([maplibre, { Protocol }]) => {
         if (cancelled || !host.current) return;
+        stage = "initialization";
+        isGpuError = (error) =>
+          error instanceof maplibre.GPUInitializationError;
         host.current.setAttribute("data-pmtiles-loaded", "false");
         maplibre.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
         const protocol = new Protocol();
@@ -49,6 +66,7 @@ export function SidewalkMapLibreMap({
           zoomLevelsToOverscale: undefined,
         });
         mapRef.current = map;
+        stage = "render";
         map.addControl(
           new maplibre.NavigationControl({ showCompass: false }),
           "top-right",
@@ -92,9 +110,9 @@ export function SidewalkMapLibreMap({
             );
           }
         });
-        map.on("error", () => setFailed(true));
+        map.on("error", (event) => fail(event.error));
       })
-      .catch(() => setFailed(true));
+      .catch(fail);
     return () => {
       cancelled = true;
       markers.current.forEach((marker) => marker.remove());
@@ -103,11 +121,12 @@ export function SidewalkMapLibreMap({
       mapRef.current = null;
     };
   }, [provider, records, onSelect]);
-  if (failed)
+  if (failure)
     return (
       <div
         role="status"
         data-testid="sidewalk-real-map-fallback"
+        data-map-failure={failure}
         className="grid min-h-[58vh] place-items-center bg-[#ecebe5] p-8 text-center"
         style={{
           backgroundImage:

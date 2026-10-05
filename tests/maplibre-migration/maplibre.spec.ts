@@ -192,12 +192,45 @@ test("failed archive leaves a usable list instead of synthetic cartography", asy
   await page.route(`**${archive}`, (route) => route.abort("failed"));
   await page.goto("/comun/calcadas?vista=mapa");
   await expect(page.getByTestId("sidewalk-real-map-fallback")).toBeVisible();
+  await expect(page.getByTestId("sidewalk-real-map-fallback")).toHaveAttribute(
+    "data-map-failure",
+    "render",
+  );
   await page.getByRole("button", { name: "Lista", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Lista", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("sidewalk-real-map-fallback")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText("Cartografia sintética");
+});
+
+test("unsupported WebGL reports a fixed category and preserves the list", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+      configurable: true,
+      value: function (
+        this: HTMLCanvasElement,
+        contextId: string,
+        ...args: unknown[]
+      ) {
+        if (contextId === "webgl2") return null;
+        return Reflect.apply(getContext, this, [contextId, ...args]);
+      },
+    });
+  });
+  await page.goto("/comun/calcadas?vista=mapa");
+  const fallback = page.getByTestId("sidewalk-real-map-fallback");
+  await expect(fallback).toBeVisible();
+  await expect(fallback).toHaveAttribute("data-map-failure", "gpu_context");
+  await expect(fallback).not.toContainText(/WebGL|GPUInitializationError/);
+  await page.getByRole("button", { name: "Lista", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Lista", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(fallback).toHaveCount(0);
 });
 
 test("official health points load, select and filter in the production build", async ({
