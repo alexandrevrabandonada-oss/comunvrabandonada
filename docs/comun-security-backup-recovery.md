@@ -89,9 +89,13 @@ sucesso. Registra objetos sintéticos antes de tentar upload/validação e
 registra o item do banco antes de criar os assets relacionados, permitindo
 limpeza em falhas intermediárias. Erros retornados pelo delete no banco ou
 pelo lote S3 são tratados como falhas. O marcador de limpeza é
-`COMUN_STORAGE_RESTORE_CLEANUP_FAILED`. Esse recorte cobre os scripts em
-`scripts/security`; o endpoint de ensaio no runtime mantém seu contrato
-separado. Esses controles não comprovam cópia
+`COMUN_STORAGE_RESTORE_CLEANUP_FAILED`. O ensaio no runtime também bloqueia com
+`COMUN_STORAGE_RUNTIME_CLEANUP_FAILED` quando qualquer etapa de limpeza
+falha: verifica ausência dos objetos, inspeciona o erro retornado pelo banco
+e tenta limpar o workspace mesmo após outra falha. O item é registrado para
+limpeza imediatamente após a inserção, antes de criar assets. Testes com
+provedores simulados cobrem esses caminhos e não substituem ensaio real de
+R2/Auth. Esses controles não comprovam cópia
 durável, restauração de Auth ou capacidade do provedor.
 
 ## Transição de credencial do scheduler

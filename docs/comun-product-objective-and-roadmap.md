@@ -26,7 +26,10 @@ publica o envelope verde somente depois de limpar o ambiente temporário,
 tenta todas as etapas de limpeza e bloqueia em falha. No script de Storage,
 fixtures são registradas para limpeza antes do upload/validação e erros
 retornados por exclusão no banco ou S3 bloqueiam. A suíte de segurança inclui
-falhas injetadas de cada etapa de limpeza e de gravação da evidência. Isso fecha uma lacuna de
+falhas injetadas de cada etapa de limpeza e de gravação da evidência. O
+ensaio no runtime também passa a verificar ausência de objetos, bloquear
+erros de limpeza e rastrear o item antes da inserção dos assets; seus testes
+executam a função completa com banco/Storage simulados. Isso fecha uma lacuna de
 confiabilidade do instrumento; não comprova restore remoto, cópia durável ou
 recuperação de Auth e não promove o domínio 47.8. Integração e CI do candidato
 continuam pendentes.
