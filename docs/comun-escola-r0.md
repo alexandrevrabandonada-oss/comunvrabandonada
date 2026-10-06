@@ -76,9 +76,14 @@ migração da Escola, mas não certifica o schema canônico completo, cookies SS
 ou contas Supabase reais. A política de retenção está em
 `docs/comun-retention-exclusion.md`.
 
-Na verificação de 6 de outubro, o commit inicial teve Preview Vercel pronto,
-e o job principal de tipos/lint/topologia passou. O gate COST-02 falhou com
+Na verificação de 6 de outubro, o job principal de tipos/lint/topologia passou.
+O status Vercel inicial correspondia a um deploy ignorado, não a um Preview pronto. O gate COST-02 falhou com
 `checkpoint-missing`: o próximo checkpoint inclui o marcador `[comun-preview]`
 exigido pelo repositório. Os projetos Supabase acessíveis pelo conector não
 contêm as tabelas canônicas do COMUN; a aplicação remota da migração continua
 pendente até que o ambiente correspondente esteja disponível.
+
+O workflow `COMUN Escola contract` do commit
+`c702b7f89180de00a3192361220a23d46b407d4f` concluiu com sucesso no GitHub
+Actions: dez testes de domínio/API e o contrato SQL em PostgreSQL 17 real.
+Run: https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/37478587480.
