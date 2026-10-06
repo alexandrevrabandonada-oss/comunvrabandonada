@@ -13,12 +13,14 @@ const row = { release: manifest.release, migration_path: manifest.migration,
   migration_sha256: manifest.migrationSha256, pre_fingerprint: manifest.expectedPreFingerprint,
   post_fingerprint: manifest.expectedPostFingerprint, status: 'applied' };
 
-for (const lane of ['a1', 'c1', 'd1', 'e2', 'e3', 'a7']) {
-  const prefix = lane === 'a7' ? '48-4' : '48-3';
+for (const [prefix, lane] of [
+  ...['a1', 'c1', 'd1', 'e2', 'e3'].map(lane => ['48-3', lane]),
+  ...['a1', 'a3', 'a6', 'a7'].map(lane => ['48-4', lane]),
+]) {
   const workflow = parse(readFileSync(`.github/workflows/comun-${prefix}-${lane}-preflight.yml`, 'utf8'));
   const steps = Object.values(workflow.jobs).flatMap(job => job.steps);
   const plan = steps.find(step => step.name?.startsWith('Prove') && step.run?.includes('readonly-reconciled-migration-plan.mjs'));
-  test(`${lane}: promoted plan accepts the exact ledger and blocks drift without changing migrations`, () => {
+  test(`${prefix}-${lane}: promoted plan accepts the exact ledger and blocks drift without changing migrations`, () => {
     assert.ok(plan);
     assert.ok(workflow.on.pull_request.paths.includes('scripts/ci/readonly-reconciled-migration-plan*'));
     const root = mkdtempSync(join(tmpdir(), 'comun-workflow-plan-'));

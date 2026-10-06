@@ -111,3 +111,27 @@ recursos como `public_read_safe`, e inscrições, progresso e práticas como
 `owner_read`, de acordo com os grants e policies existentes na migração.
 Nenhuma permissão SQL foi ampliada. Migração remota, flag e escopo
 `local_candidate` permanecem inalterados.
+
+### Continuação dos gates globais
+
+O erro genérico de Security Resilience foi reproduzido em checkout com
+`fetch-depth: 2`: `git log -30 -p` gerou 57.432.463 bytes por causa das raízes
+sintéticas do histórico raso, ultrapassando o buffer de 50 MiB (`ENOBUFS`).
+Após completar o mesmo histórico, o diff teve 357.105 bytes e o auditor
+original passou. Os jobs local e remoto agora usam `fetch-depth: 0`; padrões,
+janela de 30 commits e buffer de segurança foram preservados. Um contrato de
+workflow impede a reintrodução do checkout raso nesses dois jobs.
+
+Os preflights 48.4-A1/A3/A6 usam o reconciliador já existente somente no
+estado `promoted`. Ele exige checksum e fingerprints exatos e uma entrada
+`applied` no ledger, lida em transação read-only, antes de reconciliar os
+arquivos locais já comprovadamente aplicados. O plano ainda deve terminar
+vazio com marcador de sucesso; migrações desconhecidas, ledger ausente ou
+divergente continuam bloqueados. O caminho `candidate` mantém seu plano
+estrito original. Não há reparo de histórico nem aplicação remota.
+
+Os testes de execução dos workflows cobrem os três novos consumidores,
+incluindo ledger ausente, status pendente, migração desconhecida e saída
+vazia; também verificam restauração dos arquivos. A formatação dos dois
+`LearningEntry` de Minha participação foi corrigida após o gate de jornadas
+chegar à etapa de Prettier.

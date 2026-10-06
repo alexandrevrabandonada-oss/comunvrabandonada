@@ -204,6 +204,26 @@ test("workflow nunca publica dump, env ou object keys", async () => {
   }
 });
 
+test("secret history gates receive full history in local and remote jobs", async () => {
+  const workflow = await readFile(
+    ".github/workflows/comun-security-resilience.yml",
+    "utf8",
+  );
+  for (const job of ["pr-lane", "remote-full"]) {
+    const block = workflow
+      .split(`\n  ${job}:`)[1]
+      ?.split(/\n  [a-z][a-z-]+:/)[0];
+    assert.ok(block, job);
+    assert.match(
+      block,
+      /uses: actions\/checkout@v4\s+with:[\s\S]*?fetch-depth: 0/,
+      job,
+    );
+    assert.match(block, /npm run security:secrets/, job);
+    assert.doesNotMatch(block, /fetch-depth: [1-9]/, job);
+  }
+});
+
 test("backup recupera o schema privado quando ele existe", async () => {
   const rehearsal = await readFile(
     "scripts/security/rehearse-comun-database-restore.mjs",

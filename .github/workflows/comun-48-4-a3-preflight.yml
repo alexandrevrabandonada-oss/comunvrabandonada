@@ -11,6 +11,7 @@ on:
       - "lib/server/comun-solidarity-economic-content.ts"
       - "supabase/migrations/*_comun_solidarity_economic_content_writes.sql"
       - "reports/current/comun-48-4-a3-authorized-economic-content-writes.md"
+      - "scripts/ci/readonly-reconciled-migration-plan*"
 
 permissions: { contents: read }
 
@@ -57,14 +58,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
-          held="$RUNNER_TEMP/external.sql"; mv "$EXTERNAL_MIGRATION" "$held"; trap 'mv "$held" "$EXTERNAL_MIGRATION"' EXIT
-          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-4-a3-preflight/plan.txt 2>&1
-          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-4-a3-preflight/plan.txt | sort -u || true)
-          if [ "$(cat .ci-artifacts/48-4-a3-preflight/mode)" = candidate ]; then
-            test "${#planned[@]}" -eq 1 && test "${planned[0]}" = "$(basename "$MIGRATION")"
-          else test "${#planned[@]}" -eq 0; fi
-          ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/48-4-a3-preflight/plan.txt
+          if [ "$(cat .ci-artifacts/48-4-a3-preflight/mode)" = promoted ]; then
+            node scripts/ci/readonly-reconciled-migration-plan.mjs .ci-artifacts/48-4-a3-preflight/plan.txt
+            planned=()
+          else
+            test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
+            held="$RUNNER_TEMP/external.sql"; mv "$EXTERNAL_MIGRATION" "$held"; trap 'mv "$held" "$EXTERNAL_MIGRATION"' EXIT
+            supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-4-a3-preflight/plan.txt 2>&1
+            mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-4-a3-preflight/plan.txt | sort -u || true)
+            if [ "$(cat .ci-artifacts/48-4-a3-preflight/mode)" = candidate ]; then
+              test "${#planned[@]}" -eq 1 && test "${planned[0]}" = "$(basename "$MIGRATION")"
+            else test "${#planned[@]}" -eq 0; fi
+            ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/48-4-a3-preflight/plan.txt
+          fi
           echo "migrationCount=${#planned[@]}" >> "$GITHUB_STEP_SUMMARY"
           echo businessContentRead=false >> "$GITHUB_STEP_SUMMARY"
           echo COMUN_48_4_A3_REMOTE_PREFLIGHT_GREEN >> "$GITHUB_STEP_SUMMARY"

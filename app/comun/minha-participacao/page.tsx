@@ -692,7 +692,7 @@ function MinhaAreaAppV2({
           <h1 className="text-2xl font-black normal-case">
             Minha participação
           </h1>
-        <LearningEntry />
+          <LearningEntry />
           <p className="text-sm text-comun-black/65">Continue de onde parou</p>
         </header>
         {walletEnabled ? (
@@ -1404,7 +1404,7 @@ function WalletOnlyPage({
           <h1 className="text-2xl font-black normal-case">
             Minha participação
           </h1>
-        <LearningEntry />
+          <LearningEntry />
           <p className="text-sm text-comun-black/65">Continue de onde parou</p>
         </header>
         <ParticipationWalletPanel
