@@ -500,3 +500,78 @@ test("Calçadas applies the latest filter when the initial map load finishes", a
     release();
   }
 });
+
+test("Calçadas moves keyboard focus into the opened record sheet", async ({
+  page,
+}) => {
+  await page.goto("/maplibre-real-map-test?vista=mapa");
+  const marker = page.getByRole("button", {
+    name: "Abrir Trecho sintético A",
+    exact: true,
+  });
+  await marker.press("Enter");
+  const sheet = page.getByRole("complementary", {
+    name: "Ficha do registro",
+    exact: true,
+  });
+  await expect(sheet).toBeFocused();
+  await sheet.press("Tab");
+  await expect(
+    sheet.getByRole("button", { name: "Fechar ficha", exact: true }),
+  ).toBeFocused();
+});
+
+test("Calçadas closes a sheet with Escape and restores the current marker after a DTO update", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/maplibre-real-map-test?vista=mapa");
+  await page
+    .getByRole("button", { name: "Abrir Trecho sintético A", exact: true })
+    .press("Enter");
+  const sheet = page.getByRole("complementary", {
+    name: "Ficha do registro",
+    exact: true,
+  });
+  await page
+    .getByRole("button", { name: "Atualizar registro sintético", exact: true })
+    .press("Enter");
+  await expect(sheet).toContainText("Resumo sintético atualizado");
+  await sheet
+    .getByRole("button", { name: "Fechar ficha", exact: true })
+    .press("Escape");
+  await expect(sheet).toHaveCount(0);
+  await expect(
+    page.getByRole("button", {
+      name: "Abrir Trecho sintético atualizado",
+      exact: true,
+    }),
+  ).toBeFocused();
+  expect(errors).toEqual([]);
+});
+
+test("Calçadas restores focus after explicit close without stealing it from filters", async ({
+  page,
+}) => {
+  await page.goto("/maplibre-real-map-test?vista=mapa");
+  const marker = page.getByRole("button", {
+    name: "Abrir Trecho sintético A",
+    exact: true,
+  });
+  const sheet = page.getByRole("complementary", {
+    name: "Ficha do registro",
+    exact: true,
+  });
+  await marker.press("Enter");
+  await sheet
+    .getByRole("button", { name: "Fechar ficha", exact: true })
+    .press("Enter");
+  await expect(sheet).toHaveCount(0);
+  await expect(marker).toBeFocused();
+  await marker.press("Enter");
+  const filter = page.getByRole("button", { name: "Péssima", exact: true });
+  await filter.press("Enter");
+  await expect(sheet).toHaveCount(0);
+  await expect(filter).toBeFocused();
+});
