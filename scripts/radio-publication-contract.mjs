@@ -31,17 +31,21 @@ const actor = randomUUID(),
   viewer = randomUUID();
 const checks = [];
 const service = new pg.Client({ connectionString: url.href });
+let stage = "connect";
 try {
   await admin.connect();
   if (fullSchema) {
+    stage = "schema_guard";
     const marker = await admin.query(
-      "select scope from public.comun_radio_contract_fixture_guard",
+      "select shobj_description(oid,'pg_database') as scope from pg_database where datname=current_database()",
     );
     assert.deepEqual(marker.rows, [{ scope: "full_local_chain_schema_only" }]);
+    stage = "auth_fixture";
     await admin.query(
       "insert into auth.users(id,email) values($1,'editor@example.invalid'),($2,'viewer@example.invalid')",
       [actor, viewer],
     );
+    stage = "admin_fixture";
     await admin.query(
       "insert into public.comun_admin_users(id,user_id,email,role,is_active) values($1,$1,'editor@example.invalid','editor',true),($2,$2,'viewer@example.invalid','viewer',true)",
       [actor, viewer],
@@ -98,7 +102,9 @@ try {
     ),
     "utf8",
   );
+  stage = "candidate_sql";
   await admin.query(contract);
+  stage = "service_connection";
   await service.connect();
   await service.query("set role service_role");
 
@@ -152,6 +158,7 @@ try {
     ).rows[0].value;
   }
   async function check(name, run) {
+    stage = name;
     await run();
     checks.push(name);
   }
@@ -413,6 +420,7 @@ try {
     JSON.stringify({
       status: "failed",
       completedChecks: checks.length,
+      stage,
       code: identifier(error.code),
       table: identifier(error.table),
       column: identifier(error.column),

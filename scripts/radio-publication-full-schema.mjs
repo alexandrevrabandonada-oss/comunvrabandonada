@@ -65,8 +65,13 @@ try {
     "0",
     "refusing existing contract database",
   );
+  const owner = sql(
+    "postgres",
+    "select pg_get_userbyid(datdba) from pg_database where datname='postgres'",
+  );
+  assert.match(owner, /^[A-Za-z_][A-Za-z0-9_]{0,62}$/);
   phase = "create_database";
-  sql("postgres", `create database ${database}`);
+  sql("postgres", `create database ${database} owner "${owner}"`);
   created = true;
   phase = "schema_export";
   const schema = docker([
@@ -100,7 +105,7 @@ try {
   );
   sql(
     database,
-    "create table public.comun_radio_contract_fixture_guard(scope text not null);insert into public.comun_radio_contract_fixture_guard values('full_local_chain_schema_only')",
+    `comment on database ${database} is 'full_local_chain_schema_only'`,
   );
   phase = "local_connection";
   const local = readSupabaseLocalEnv();
@@ -139,6 +144,7 @@ try {
     ...JSON.parse(output),
     migrationCount: files.length,
     migrationChainSha256: digest.digest("hex"),
+    databaseOwnerPreserved: true,
     productionSchemaVerified: false,
   };
 } catch (error) {
