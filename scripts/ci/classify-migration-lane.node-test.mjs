@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { spawnSync } from "node:child_process";
+import { readFileSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { load as parse } from "js-yaml";
 import { classifyMigrationLane } from "./classify-migration-lane.mjs";
 
 const learning = "supabase/migrations/20261006134804_comun_learning_r0.sql";
@@ -330,4 +335,41 @@ test("mixed lanes fail closed instead of being silently ignored", () => {
 
 test("no migration change is represented separately from N/A", () => {
   assert.equal(classifyMigrationLane("48-5-a0", []).mode, "none");
+});
+
+// Zero-migration lanes keep every former rejection except the exact Escola entry.
+test("zero-migration historical gates accept only explicitly unrelated Escola R0", () => {
+  for (const lane of ["48-3-b1", "48-3-c1", "48-3-d1", "p1g"]) {
+    assert.equal(classifyMigrationLane(lane, []).mode, "none");
+    assert.equal(classifyMigrationLane(lane, [learning]).mode, "not_applicable");
+    for (const file of ["20990101000000_unknown.sql", pauta, hardening]) {
+      assert.equal(classifyMigrationLane(lane, [file]).mode, "blocked");
+      assert.equal(classifyMigrationLane(lane, [learning, file]).mode, "blocked");
+    }
+  }
+});
+
+test("zero-migration workflow ownership steps block unknown and mixed migrations", () => {
+  const root = mkdtempSync(join(tmpdir(), "comun-zero-lane-"));
+  try {
+    writeFileSync(join(root, "git"), `#!/usr/bin/env node
+if (JSON.stringify(process.argv.slice(2)) !== JSON.stringify(['diff','--name-only','origin/main...HEAD','--','supabase/migrations'])) process.exit(90);
+process.stdout.write(process.env.TEST_CHANGED);
+`, { mode: 0o755 });
+    for (const lane of ["48-3-b1", "48-3-c1", "48-3-d1", "p1g"]) {
+      const workflow = parse(readFileSync(`.github/workflows/comun-${lane}-preflight.yml`, "utf8"));
+      const steps = Object.values(workflow.jobs).flatMap(job => job.steps);
+      const step = steps.find(step => step.name === "Classify changed migration ownership");
+      assert.ok(step);
+      assert.ok(workflow.on.pull_request.paths.includes("scripts/ci/classify-migration-lane*"));
+      for (const [files, pass] of [[[], true], [[learning], true], [[pauta], false],
+        [["20990101000000_unknown.sql"], false], [[learning, pauta], false],
+        [[learning, "20990101000000_unknown.sql"], false]]) {
+        const result = spawnSync("bash", ["-c", step.run], { encoding: "utf8",
+          env: { ...process.env, PATH: `${root}:${process.env.PATH}`, RUNNER_TEMP: root,
+            TEST_CHANGED: files.join("\n") } });
+        assert.equal(result.status === 0, pass, `${lane}: ${result.stderr}`);
+      }
+    }
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });

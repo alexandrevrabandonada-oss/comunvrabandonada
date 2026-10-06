@@ -270,12 +270,18 @@ for (const [lane, owners] of Object.entries(NON_APPLICABLE_LANES)) {
   if (lane !== "learning-r0") owners.add("learning-r0");
 }
 
+// These historical lanes own no migration. Only the exact Escola R0 entry
+// is unrelated; other known migrations retain the existing fail-closed gate.
+const ZERO_MIGRATION_LANES = new Set(["48-3-b1", "48-3-c1", "48-3-d1", "p1g"]);
+
 function migrationBasename(file) {
   return file.replaceAll("\\", "/").split("/").at(-1);
 }
 
 export function classifyMigrationLane(lane, files) {
-  if (!NON_APPLICABLE_LANES[lane]) throw new Error(`unknown lane: ${lane}`);
+  const nonApplicableOwners = ZERO_MIGRATION_LANES.has(lane)
+    ? new Set(["learning-r0"]) : NON_APPLICABLE_LANES[lane];
+  if (!nonApplicableOwners) throw new Error(`unknown lane: ${lane}`);
   const normalized = files.map(migrationBasename).filter(Boolean);
   if (normalized.length === 0) return { mode: "none", lane, files: [] };
 
@@ -297,7 +303,7 @@ export function classifyMigrationLane(lane, files) {
   if (owners.size === 1 && owners.has(lane)) {
     return { mode: "candidate", lane, files: classifications };
   }
-  if ([...owners].every((owner) => NON_APPLICABLE_LANES[lane].has(owner))) {
+  if ([...owners].every((owner) => nonApplicableOwners.has(owner))) {
     return { mode: "not_applicable", lane, files: classifications };
   }
   return {

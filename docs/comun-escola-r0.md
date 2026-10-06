@@ -135,3 +135,17 @@ incluindo ledger ausente, status pendente, migração desconhecida e saída
 vazia; também verificam restauração dos arquivos. A formatação dos dois
 `LearningEntry` de Minha participação foi corrigida após o gate de jornadas
 chegar à etapa de Prettier.
+
+#### Captura de dry-run e gates históricos sem migração
+
+A CI confirmou o scanner de segredos passando com histórico completo. Os preflights
+aceitaram o ledger exato do hardening, mas o helper descartava stderr do CLI: agora
+captura os dois streams, exige exit code zero e rejeita qualquer migração pendente
+ou ausência da mensagem de sucesso. Contratos exercitam sucesso em stdout/stderr,
+plano desconhecido nos dois streams e exit code não zero mesmo com mensagem de sucesso.
+
+48.3-B1/C1/D1 e P1G ainda exigiam zero arquivos SQL em todo o PR. Agora consultam
+ownership e aceitam somente ausência de migração ou a entrada exata da Escola R0
+como outra lane. Migrações desconhecidas, de outras lanes antigas e combinações
+continuam bloqueadas. Os checks de metadata, credenciais e plano remoto vazio
+continuam obrigatórios. Nenhuma migração remota ou flag foi aplicada.

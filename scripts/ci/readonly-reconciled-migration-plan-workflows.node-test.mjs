@@ -14,7 +14,7 @@ const row = { release: manifest.release, migration_path: manifest.migration,
   post_fingerprint: manifest.expectedPostFingerprint, status: 'applied' };
 
 for (const [prefix, lane] of [
-  ...['a1', 'c1', 'd1', 'e2', 'e3'].map(lane => ['48-3', lane]),
+  ...['a1', 'b1', 'c1', 'd1', 'e2', 'e3'].map(lane => ['48-3', lane]),
   ...['a1', 'a3', 'a6', 'a7'].map(lane => ['48-4', lane]),
 ]) {
   const workflow = parse(readFileSync(`.github/workflows/comun-${prefix}-${lane}-preflight.yml`, 'utf8'));
@@ -45,10 +45,14 @@ console.log(process.env.TEST_LEDGER);
 const fs=require('node:fs');
 if(JSON.stringify(process.argv.slice(2))!==JSON.stringify(['db','push','--db-url','postgresql://test.invalid/test','--dry-run'])) process.exit(92);
 if(${JSON.stringify(migrations)}.some(p=>fs.existsSync(p))) process.exit(93);
-console.log(process.env.TEST_PLAN);
+(process.env.TEST_PLAN_STREAM === 'stderr' ? process.stderr : process.stdout).write(process.env.TEST_PLAN);
+process.exit(Number(process.env.TEST_PLAN_STATUS || 0));
 `, { mode: 0o755 });
       for (const scenario of [
         { ledger: [row], output: 'Remote database is up to date.', pass: true },
+        { ledger: [row], output: 'Remote database is up to date.', stream: 'stderr', pass: true },
+        { ledger: [row], output: 'Remote database is up to date.', status: 1, pass: false },
+        { ledger: [row], output: 'Remote database is up to date.\n20990101000000_unknown.sql', stream: 'stderr', pass: false },
         { ledger: [], output: 'Remote database is up to date.', pass: false },
         { ledger: [{ ...row, status: 'pending' }], output: 'Remote database is up to date.', pass: false },
         { ledger: [row], output: 'Remote database is up to date.\n20990101000000_unknown.sql', pass: false },
@@ -57,7 +61,8 @@ console.log(process.env.TEST_PLAN);
         const result = spawnSync('bash', ['-c', plan.run], { cwd: root, encoding: 'utf8',
           env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, SUPABASE_DB_URL: 'postgresql://test.invalid/test',
             A1_PREFLIGHT_MODE: 'promoted', RUNNER_TEMP: root, GITHUB_STEP_SUMMARY: join(root, 'summary'),
-            TEST_LEDGER: JSON.stringify(scenario.ledger), TEST_PLAN: scenario.output } });
+            TEST_LEDGER: JSON.stringify(scenario.ledger), TEST_PLAN: scenario.output,
+            TEST_PLAN_STREAM: scenario.stream || 'stdout', TEST_PLAN_STATUS: String(scenario.status || 0) } });
         assert.equal(result.status === 0, scenario.pass, result.stderr);
         for (const path of migrations) assert.deepEqual(readFileSync(join(root, path)), readFileSync(path));
       }

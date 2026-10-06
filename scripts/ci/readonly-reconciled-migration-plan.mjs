@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, renameSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -69,11 +69,12 @@ rollback;`;
   } catch { throw new Error('HARDENING_READONLY_LEDGER_CAPTURE_FAILED'); }
   validateHardeningLedger(manifest, rows);
   withHeldFiles([sidewalkPath, hardeningPath], () => {
-    let plan;
-    try {
-      plan = execFileSync('supabase', ['db', 'push', '--db-url', process.env.SUPABASE_DB_URL, '--dry-run'],
-        { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
-    } catch { throw new Error('REMOTE_MIGRATION_DRY_RUN_FAILED'); }
+    const result = spawnSync('supabase', ['db', 'push', '--db-url', process.env.SUPABASE_DB_URL, '--dry-run'],
+      { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    if (result.error || result.signal || result.status !== 0)
+      throw new Error('REMOTE_MIGRATION_DRY_RUN_FAILED');
+    // Supabase CLI emits dry-run status messages on stderr as well as stdout.
+    const plan = `${result.stdout}\n${result.stderr}`;
     assertEmptyPlan(plan);
     writeFileSync(output, plan);
   });
