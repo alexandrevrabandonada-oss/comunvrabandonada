@@ -12,6 +12,7 @@ on:
       - "supabase/migrations/*_comun_solidarity_offers.sql"
       - "reports/current/comun-48-4-a1-solidarity-economy-public-core.md"
       - "scripts/ci/readonly-reconciled-migration-plan*"
+      - "scripts/ci/classify-migration-lane*"
   workflow_dispatch:
 
 permissions: { contents: read }
@@ -29,6 +30,15 @@ jobs:
         with: { fetch-depth: 0 }
       - uses: supabase/setup-cli@v1
         with: { version: 2.113.0 }
+      - name: Classify changed migration ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+          node scripts/ci/classify-migration-lane.mjs --lane 48-4-a1 --files "${changed[@]}" | tee "$RUNNER_TEMP/48-4-a1-ownership.txt"
+          grep -Eq '^COMUN_MIGRATION_LANE_MODE=(none|candidate|not_applicable)$' "$RUNNER_TEMP/48-4-a1-ownership.txt"
+          cat "$RUNNER_TEMP/48-4-a1-ownership.txt" >> "$GITHUB_ENV"
+
       - name: Inspect economic metadata without business content
         shell: bash
         run: |
@@ -61,6 +71,7 @@ jobs:
           fs.writeFileSync('.ci-artifacts/48-4-a1-preflight/mode',s.offerTablePresent?'promoted':'candidate');
           NODE
       - name: Prove exact migration plan
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail

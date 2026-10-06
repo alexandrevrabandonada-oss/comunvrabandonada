@@ -35,6 +35,7 @@ jobs:
           mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
           node scripts/ci/classify-migration-lane.mjs --lane 48-3-c1 --files "${changed[@]}" | tee "$RUNNER_TEMP/48-3-c1-ownership.txt"
           grep -Eq '^COMUN_MIGRATION_LANE_MODE=(none|not_applicable)$' "$RUNNER_TEMP/48-3-c1-ownership.txt"
+          cat "$RUNNER_TEMP/48-3-c1-ownership.txt" >> "$GITHUB_ENV"
 
       - name: Verify zero migration and metadata-only schema contract
         shell: bash
@@ -96,6 +97,7 @@ jobs:
           }
           NODE
       - name: Prove remote migration plan is empty
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail

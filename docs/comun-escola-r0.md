@@ -149,3 +149,11 @@ ownership e aceitam somente ausência de migração ou a entrada exata da Escola
 como outra lane. Migrações desconhecidas, de outras lanes antigas e combinações
 continuam bloqueadas. Os checks de metadata, credenciais e plano remoto vazio
 continuam obrigatórios. Nenhuma migração remota ou flag foi aplicada.
+
+O diagnóstico completo confirmou que o único plano pendente era a própria Escola
+R0, ainda não aplicada. Os gates históricos 48.3-B1/C1/D1/E3, 48.4-A1/A3/A6 e P1G
+agora seguem o padrão N/A existente: somente o plano remoto da lane é N/A quando
+a única mudança SQL é a entrada exata da Escola. Metadata continua obrigatória;
+sem mudança SQL ou para o candidato exato da lane, o plano estrito permanece.
+Misturas e migrações desconhecidas bloqueiam antes de qualquer skip. A validação
+da migração da Escola continua no contrato PostgreSQL dedicado e descartável.

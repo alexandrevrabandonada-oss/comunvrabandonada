@@ -339,7 +339,7 @@ test("no migration change is represented separately from N/A", () => {
 
 // Zero-migration lanes keep every former rejection except the exact Escola entry.
 test("zero-migration historical gates accept only explicitly unrelated Escola R0", () => {
-  for (const lane of ["48-3-b1", "48-3-c1", "48-3-d1", "p1g"]) {
+  for (const lane of ["48-3-b1", "48-3-c1", "48-3-d1", "48-3-e3", "p1g"]) {
     assert.equal(classifyMigrationLane(lane, []).mode, "none");
     assert.equal(classifyMigrationLane(lane, [learning]).mode, "not_applicable");
     for (const file of ["20990101000000_unknown.sql", pauta, hardening]) {
@@ -356,7 +356,7 @@ test("zero-migration workflow ownership steps block unknown and mixed migrations
 if (JSON.stringify(process.argv.slice(2)) !== JSON.stringify(['diff','--name-only','origin/main...HEAD','--','supabase/migrations'])) process.exit(90);
 process.stdout.write(process.env.TEST_CHANGED);
 `, { mode: 0o755 });
-    for (const lane of ["48-3-b1", "48-3-c1", "48-3-d1", "p1g"]) {
+    for (const lane of ["48-3-b1", "48-3-c1", "48-3-d1", "48-3-e3", "p1g"]) {
       const workflow = parse(readFileSync(`.github/workflows/comun-${lane}-preflight.yml`, "utf8"));
       const steps = Object.values(workflow.jobs).flatMap(job => job.steps);
       const step = steps.find(step => step.name === "Classify changed migration ownership");
@@ -366,10 +366,37 @@ process.stdout.write(process.env.TEST_CHANGED);
         [["20990101000000_unknown.sql"], false], [[learning, pauta], false],
         [[learning, "20990101000000_unknown.sql"], false]]) {
         const result = spawnSync("bash", ["-c", step.run], { encoding: "utf8",
-          env: { ...process.env, PATH: `${root}:${process.env.PATH}`, RUNNER_TEMP: root,
+          env: { ...process.env, PATH: `${root}:${process.env.PATH}`, RUNNER_TEMP: root, GITHUB_ENV: join(root, "env"),
             TEST_CHANGED: files.join("\n") } });
         assert.equal(result.status === 0, pass, `${lane}: ${result.stderr}`);
       }
     }
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("solidarity candidate gates only accept their exact migration or isolated Escola", () => {
+  for (const [lane, own] of [
+    ["48-3-e3", "20260814160000_comun_pauta_low_friction_creation.sql"],
+    ["48-4-a1", "20260815184529_comun_solidarity_offers.sql"],
+    ["48-4-a3", "20260816011500_comun_solidarity_economic_content_writes.sql"],
+    ["48-4-a6", "20260817012247_comun_solidarity_organization_profile_self_management.sql"],
+  ]) {
+    assert.equal(classifyMigrationLane(lane, [own]).mode, "candidate");
+    assert.equal(classifyMigrationLane(lane, [learning]).mode, "not_applicable");
+    for (const files of [[learning, own], ["20990101000000_unknown.sql"], [pauta], [hardening]])
+      assert.equal(classifyMigrationLane(lane, files).mode, "blocked");
+  }
+});
+
+test("N/A plans retain mandatory metadata and candidate/unchanged plan gates", () => {
+  for (const lane of ["48-3-b1", "48-3-c1", "48-3-d1", "48-3-e3", "p1g", "48-4-a1", "48-4-a3", "48-4-a6"]) {
+    const workflow = parse(readFileSync(`.github/workflows/comun-${lane}-preflight.yml`, "utf8"));
+    const steps = Object.values(workflow.jobs).flatMap(job => job.steps);
+    const plan = steps.find(step => step.run?.includes("node scripts/ci/readonly-reconciled-migration-plan.mjs"));
+    assert.equal(plan.if, "env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'", lane);
+    const metadata = steps.filter(step => step.run?.includes("begin read only;"));
+    assert.ok(metadata.length, lane);
+    for (const step of metadata) assert.equal(step.if, undefined, lane);
+    assert.match(steps.find(step => step.name === "Classify changed migration ownership").run, /GITHUB_ENV/);
+  }
 });
