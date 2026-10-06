@@ -9,15 +9,15 @@
   "migrations": [
     {
       "path": "supabase/migrations/20261006134804_comun_learning_r0.sql",
-      "sha256": "4461db1852d66205048ff2d4ecae659c5a56496dd98374a50a104f91d85571bc"
+      "sha256": "5036a833b1b681487204349f8ebc58690228a2f5aa932943a81f60df1d3b6ba7"
     }
   ],
   "expectedObjects": 10,
   "expectedRlsObjects": 6,
   "migration": "supabase/migrations/20261006134804_comun_learning_r0.sql",
   "path": "supabase/migrations/20261006134804_comun_learning_r0.sql",
-  "migrationSha256": "4461db1852d66205048ff2d4ecae659c5a56496dd98374a50a104f91d85571bc",
-  "sha256": "4461db1852d66205048ff2d4ecae659c5a56496dd98374a50a104f91d85571bc",
+  "migrationSha256": "5036a833b1b681487204349f8ebc58690228a2f5aa932943a81f60df1d3b6ba7",
+  "sha256": "5036a833b1b681487204349f8ebc58690228a2f5aa932943a81f60df1d3b6ba7",
   "remotePromotionAllowed": false,
   "scope": "local_candidate",
   "dataMutation": false,

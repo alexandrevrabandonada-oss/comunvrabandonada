@@ -104,7 +104,7 @@ begin
  if not exists(select 1 from public.comun_pauta_memberships pm join public.comun_pauta_spaces ps on ps.id=pm.pauta_id
    where pm.member_user_id=p_user_id and pm.pauta_id=p_pauta_id and pm.status='active' and ps.status <> 'archived') then
    raise exception 'learning_pauta_access'; end if;
- if p_task_id is not null and not exists(select 1 from public.comun_pauta_tasks where id=p_task_id and pauta_id=p_pauta_id) then raise exception 'learning_task_access'; end if;
+ if p_task_id is not null and not exists(select 1 from public.comun_pauta_tasks where id=p_task_id and pauta_id=p_pauta_id and status <> 'archived') then raise exception 'learning_task_access'; end if;
  insert into public.comun_learning_practice_links(user_id,mission_id,pauta_id,task_id,reflection)
  values(p_user_id,p_mission_id,p_pauta_id,p_task_id,btrim(p_reflection))
  on conflict(user_id,mission_id) do update set pauta_id=excluded.pauta_id,task_id=excluded.task_id,reflection=excluded.reflection,

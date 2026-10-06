@@ -52,3 +52,33 @@ O ensaio de navegador utiliza Chromium com a interface real e uma API de teste l
 ## Próximas entregas
 
 Primeira turma e encontros reais; editor editorial; referências tipadas aos demais objetos; revisão espaçada; tutor; competências com evidências; formação de formadores e offline. Nenhum destes aparece como funcionalidade pronta nesta versão.
+
+## Contrato repetível e CI
+
+O workflow `COMUN Escola contract` executa os dez testes de API/domínio e a
+migração em PostgreSQL 17 descartável, sem segredos de produção. Ele testa
+o catálogo do SQL contra o JSON da aplicação, gravações como `service_role`,
+RLS entre duas contas, respostas inválidas, revisão otimista, vínculo suspenso,
+tarefa arquivada, revisão/reenvio e limpeza explícita anterior à exclusão Auth.
+Todo DDL e fixtures são desfeitos com `ROLLBACK`, inclusive em falha.
+
+Reprodução com uma instância PostgreSQL vazia e descartável:
+
+```bash
+COMUN_LEARNING_DISPOSABLE_DATABASE=true \
+COMUN_LEARNING_TEST_DATABASE_URL=postgres://postgres:senha@127.0.0.1:5432/escola_test \
+node scripts/learning/test-database.mjs
+```
+
+O runner rejeita hosts remotos e qualquer banco que não seja `escola_test`.
+As dependências de pauta e Auth são fixtures mínimas: este ensaio valida a
+migração da Escola, mas não certifica o schema canônico completo, cookies SSR
+ou contas Supabase reais. A política de retenção está em
+`docs/comun-retention-exclusion.md`.
+
+Na verificação de 6 de outubro, o commit inicial teve Preview Vercel pronto,
+e o job principal de tipos/lint/topologia passou. O gate COST-02 falhou com
+`checkpoint-missing`: o próximo checkpoint inclui o marcador `[comun-preview]`
+exigido pelo repositório. Os projetos Supabase acessíveis pelo conector não
+contêm as tabelas canônicas do COMUN; a aplicação remota da migração continua
+pendente até que o ambiente correspondente esteja disponível.
