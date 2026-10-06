@@ -20,7 +20,7 @@ export default defineConfig({
     name,
     use: { viewport: { width, height } },
   })),
-  use: { baseURL, trace: "retain-on-failure" },
+  use: { baseURL, channel: "chromium", trace: "retain-on-failure" },
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined
     : {
