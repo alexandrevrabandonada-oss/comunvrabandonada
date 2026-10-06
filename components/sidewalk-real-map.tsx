@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { publicSidewalkProblemLabels } from "@/lib/comun-public-labels";
 import dynamic from "next/dynamic";
-import { useCallback, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   CheckCircle2,
@@ -192,10 +199,15 @@ export function SidewalkRealMap({
     { label: "Sem calçada", key: "problem", value: "inexistente" },
     { label: "Resolvida", key: "forwarding", value: "resolved" },
   ] as const;
-  const selectRecord = useCallback(
-    (record: PublicSidewalkRecord) => setSelectedId(record.id),
-    [],
-  );
+  const selectRecord = useCallback((record: PublicSidewalkRecord) => {
+    setSelectedId(record.id);
+    // Selecting an already open record does not mount a new sheet.
+    const sheet = mapRef.current?.querySelector<HTMLElement>(
+      "[data-sidewalk-record-sheet]",
+    );
+    if (sheet?.dataset.sidewalkRecordId === record.id)
+      sheet.focus({ preventScroll: true });
+  }, []);
   return (
     <div className="grid gap-3">
       <div className="grid gap-2 lg:grid-cols-[minmax(16rem,1fr)_auto]">
@@ -340,6 +352,7 @@ export function SidewalkRealMap({
       {view === "map" ? (
         <div
           ref={mapRef}
+          tabIndex={-1}
           onPointerDown={(event) => {
             if (
               provider.kind === "pmtiles" ||
@@ -390,6 +403,9 @@ export function SidewalkRealMap({
                   return (
                     <button
                       key={cluster.id}
+                      data-sidewalk-record-id={
+                        cluster.records.length === 1 ? single.id : undefined
+                      }
                       aria-label={
                         cluster.records.length > 1
                           ? `Ampliar grupo com ${cluster.records.length} registros`
@@ -442,6 +458,7 @@ export function SidewalkRealMap({
             <RecordSheet
               record={selected}
               onClose={() => setSelectedId(null)}
+              mapContainer={mapRef}
             />
           ) : null}
           <Link
@@ -551,17 +568,60 @@ function RecordList({ records }: { records: PublicSidewalkRecord[] }) {
 function RecordSheet({
   record,
   onClose,
+  mapContainer,
 }: {
   record: PublicSidewalkRecord;
   onClose: () => void;
+  mapContainer: RefObject<HTMLDivElement | null>;
 }) {
+  const sheetRef = useRef<HTMLElement>(null);
+  const recordId = record.id;
+  useEffect(() => {
+    const sheet = sheetRef.current;
+    const container = mapContainer.current;
+    sheet?.focus({ preventScroll: true });
+    return () => {
+      // This is a non-modal sheet: filters and view controls stay available.
+      // If a background update removes the selected record, keep focus on
+      // the surviving map container. A removed marker cannot be a target.
+      // Never steal focus from a filter or view control used outside the sheet.
+      if (
+        document.activeElement !== document.body &&
+        !sheet?.contains(document.activeElement)
+      )
+        return;
+      if (container?.isConnected) container.focus({ preventScroll: true });
+    };
+  }, [recordId, mapContainer]);
+  const closeSheet = () => {
+    // DTO updates replace marker elements; return to the current point.
+    const container = mapContainer.current;
+    const marker = Array.from(
+      container?.querySelectorAll<HTMLButtonElement>(
+        "button[data-sidewalk-record-id]",
+      ) ?? [],
+    ).find((button) => button.dataset.sidewalkRecordId === recordId);
+    (marker ?? container)?.focus({ preventScroll: true });
+    onClose();
+  };
   return (
     <aside
+      ref={sheetRef}
+      tabIndex={-1}
+      data-sidewalk-record-sheet
+      data-sidewalk-record-id={recordId}
       aria-label="Ficha do registro"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+          closeSheet();
+        }
+      }}
       className="fixed inset-x-0 bottom-0 z-50 max-h-[78vh] overflow-auto border-2 border-comun-black bg-[#f4f1e8] p-5 shadow-2xl lg:absolute lg:inset-y-0 lg:left-auto lg:right-0 lg:w-[25rem]"
     >
       <button
-        onClick={onClose}
+        onClick={closeSheet}
         aria-label="Fechar ficha"
         className="float-right grid size-11 place-items-center"
       >
