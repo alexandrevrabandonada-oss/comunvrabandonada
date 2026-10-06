@@ -37,12 +37,18 @@ export function radioPublicationBlockers(x: {
   if (!x.title) b.push("title");
   if (!x.summary) b.push("summary");
   if (!x.program) b.push("program");
-  if (!x.duration) b.push("duration");
+  if (
+    typeof x.duration !== "number" ||
+    !Number.isFinite(x.duration) ||
+    !Number.isInteger(x.duration) ||
+    x.duration <= 0
+  )
+    b.push("duration");
   else if (x.duration > RADIO_V1_MEDIA_PROFILE.maxDurationSeconds)
     b.push("duration_limit");
   if (!x.publicAudio) b.push("public_audio");
   if (!x.credits) b.push("credits");
-  if (!x.consents?.length && x.consents !== undefined) b.push("voice_consent");
+  if (!x.consents?.length) b.push("voice_consent");
   if (
     x.consents?.some(
       (c) => c.consent_status !== "approved" || !c.allow_comun_audio,
@@ -94,12 +100,7 @@ export async function listPublicRadio() {
   const episodeIds = (episodes ?? [])
     .map((episode: any) => episode.archive_item_id)
     .filter(Boolean);
-  const [
-    { data: roots },
-    { data: consents },
-    { data: music },
-    { data: safety },
-  ] = episodeIds.length
+  const eligibilityResults = episodeIds.length
     ? await Promise.all([
         db
           .from("comun_archive_items")
@@ -120,7 +121,21 @@ export async function listPublicRadio() {
           .select("episode_item_id,reinforced_review_status")
           .in("episode_item_id", episodeIds),
       ])
-    : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }];
+    : [
+        { data: [], error: null },
+        { data: [], error: null },
+        { data: [], error: null },
+        { data: [], error: null },
+      ];
+  const eligibilityUnavailable = eligibilityResults.some(
+    (result) => result.error,
+  );
+  const [
+    { data: roots },
+    { data: consents },
+    { data: music },
+    { data: safety },
+  ] = eligibilityResults;
   const rootById = new Map((roots ?? []).map((x: any) => [x.id, x]));
   const consentById = new Map<string, any[]>();
   for (const row of consents ?? [])
@@ -138,6 +153,7 @@ export async function listPublicRadio() {
     (safety ?? []).map((x: any) => [x.episode_item_id, x]),
   );
   const eligibleEpisode = (episode: any) =>
+    !eligibilityUnavailable &&
     resolvePublicRadioEpisodeEligibility({
       root: rootById.get(episode.archive_item_id),
       publicationStatus: episode.publication_status ?? "published",
@@ -248,12 +264,7 @@ export async function getPublicEpisode(slug: string) {
       .eq("episode_item_id", e.archive_item_id)
       .order("position"),
   ]);
-  const [
-    { data: root },
-    { data: consents },
-    { data: musicUses },
-    { data: safety },
-  ] = await Promise.all([
+  const eligibilityResults = await Promise.all([
     db
       .from("comun_archive_items")
       .select("status,visibility,published_at")
@@ -273,6 +284,13 @@ export async function getPublicEpisode(slug: string) {
       .eq("episode_item_id", e.archive_item_id)
       .maybeSingle(),
   ]);
+  if (eligibilityResults.some((result) => result.error)) return null;
+  const [
+    { data: root },
+    { data: consents },
+    { data: musicUses },
+    { data: safety },
+  ] = eligibilityResults;
   if (
     !resolvePublicRadioEpisodeEligibility({
       root,
