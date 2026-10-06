@@ -74,7 +74,7 @@ efêmero a ponto de recuperação durável nem liberam o domínio de segurança.
 Nunca restaurar sobre produção. Um restore real do projeto Supabase continua
 sendo ação destrutiva e exige gate específico.
 
-### Integridade do fechamento do ensaio de banco
+### Integridade do fechamento dos scripts de ensaio
 
 O resultado verde do ensaio de banco só é gravado depois da remoção do
 contêiner descartável e do diretório que contém o dump. Uma falha de limpeza
@@ -82,7 +82,16 @@ bloqueia a publicação da evidência verde, retorna código de saída não zero
 registra `COMUN_DATABASE_RESTORE_CLEANUP_FAILED`, sem revelar caminhos ou
 mensagens do provedor. Todas as remoções são tentadas mesmo quando uma falha.
 O envelope verde anterior é removido no início de uma nova execução para não
-ser reutilizado como resultado atual. Esses controles não comprovam cópia
+ser reutilizado como resultado atual.
+
+O script de Storage também espera a remoção do workspace antes de publicar
+sucesso. Registra objetos sintéticos antes de tentar upload/validação e
+registra o item do banco antes de criar os assets relacionados, permitindo
+limpeza em falhas intermediárias. Erros retornados pelo delete no banco ou
+pelo lote S3 são tratados como falhas. O marcador de limpeza é
+`COMUN_STORAGE_RESTORE_CLEANUP_FAILED`. Esse recorte cobre os scripts em
+`scripts/security`; o endpoint de ensaio no runtime mantém seu contrato
+separado. Esses controles não comprovam cópia
 durável, restauração de Auth ou capacidade do provedor.
 
 ## Transição de credencial do scheduler

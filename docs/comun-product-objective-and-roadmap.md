@@ -20,11 +20,13 @@ O produto está no fechamento técnico e operacional da V1, antes do ensaio inte
 
 ### Candidato de recuperação sem amostra humana — 06/10/2026
 
-A inspeção do ensaio de banco identificou publicação de sucesso anterior à
-limpeza, com falhas de remoção do contêiner ignoradas. O candidato passa a
-publicar o envelope verde somente depois de limpar contêiner e dump, tenta
-todas as remoções e bloqueia em falha. A suíte de segurança inclui falhas
-injetadas de cada remoção e de gravação da evidência. Isso fecha uma lacuna de
+A inspeção dos scripts de ensaio de banco e Storage identificou publicação
+de sucesso anterior à limpeza e erros de remoção ignorados. O candidato
+publica o envelope verde somente depois de limpar o ambiente temporário,
+tenta todas as etapas de limpeza e bloqueia em falha. No script de Storage,
+fixtures são registradas para limpeza antes do upload/validação e erros
+retornados por exclusão no banco ou S3 bloqueiam. A suíte de segurança inclui
+falhas injetadas de cada etapa de limpeza e de gravação da evidência. Isso fecha uma lacuna de
 confiabilidade do instrumento; não comprova restore remoto, cópia durável ou
 recuperação de Auth e não promove o domínio 47.8. Integração e CI do candidato
 continuam pendentes.

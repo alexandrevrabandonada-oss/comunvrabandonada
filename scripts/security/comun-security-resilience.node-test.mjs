@@ -370,3 +370,22 @@ test("evidence write failure propagates after cleanup", async () => {
   );
   assert.equal(cleaned, true);
 });
+
+for (const failedStep of [0, 1, 2]) {
+  test(`Storage cleanup failure ${failedStep} blocks green and attempts objects, database and workspace`, async () => {
+    const events = [];
+    await assert.rejects(
+      finalizeRestoreEvidence({
+        cleanupMarker: "COMUN_STORAGE_RESTORE_CLEANUP_FAILED",
+        cleanup: [0, 1, 2].map((step) => async () => {
+          events.push(step);
+          if (step === failedStep) throw new Error("private-storage-sentinel");
+        }),
+        evidence: { result: RESULT.storageRestore },
+        publish: async () => events.push("published"),
+      }),
+      { message: "COMUN_STORAGE_RESTORE_CLEANUP_FAILED" },
+    );
+    assert.deepEqual(events, [0, 1, 2]);
+  });
+}
