@@ -1,3 +1,4 @@
+import { LearningEntry } from "@/components/learning/entry";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ComunShell, PrimaryLink } from "@/components/comun-shell";
@@ -242,6 +243,7 @@ export default async function MinhaAreaPage({
         <h1 className="text-4xl font-black uppercase text-comun-yellow sm:text-6xl">
           Minha participação
         </h1>
+        <LearningEntry />
         <div className="mt-5 flex items-center gap-4 border-y-2 border-comun-paper/20 py-4">
           <span className="grid size-12 place-items-center rounded-lg bg-comun-yellow font-black text-comun-black">
             {String(profile?.display_name ?? "Pessoa")
@@ -690,6 +692,7 @@ function MinhaAreaAppV2({
           <h1 className="text-2xl font-black normal-case">
             Minha participação
           </h1>
+        <LearningEntry />
           <p className="text-sm text-comun-black/65">Continue de onde parou</p>
         </header>
         {walletEnabled ? (
@@ -1329,6 +1332,7 @@ function CollectiveActionsPreviewParticipation() {
         <h1 className="text-4xl font-black uppercase text-comun-yellow">
           Minha participação
         </h1>
+        <LearningEntry />
         <p className="mt-3 text-comun-paper/75">
           Demonstração de Preview com participação sintética e sem dados
           pessoais.
@@ -1400,6 +1404,7 @@ function WalletOnlyPage({
           <h1 className="text-2xl font-black normal-case">
             Minha participação
           </h1>
+        <LearningEntry />
           <p className="text-sm text-comun-black/65">Continue de onde parou</p>
         </header>
         <ParticipationWalletPanel

@@ -129,6 +129,7 @@ const FAMILY_LABELS: Record<string, string> = {
   cooperativas: "Cooperativas",
   dossies: "Dossiês",
   entidades: "Entidades coletivas",
+  escola: "Escola",
   mapa: "Mapa",
   observatorios: "Observatórios",
   pautas: "Pautas",

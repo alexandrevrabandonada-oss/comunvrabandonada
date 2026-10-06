@@ -1,0 +1,27 @@
+{
+  "release": "20261006134804-comun-learning-r0",
+  "releaseLedger": "public.comun_schema_releases",
+  "destructiveSql": false,
+  "requiresPromotion": true,
+  "expectedBlockingFindings": 0,
+  "platformObservationsAllowed": true,
+  "featureFlag": "COMUN_LEARNING_R0_ENABLED",
+  "migrations": [
+    {
+      "path": "supabase/migrations/20261006134804_comun_learning_r0.sql",
+      "sha256": "4461db1852d66205048ff2d4ecae659c5a56496dd98374a50a104f91d85571bc"
+    }
+  ],
+  "expectedObjects": 10,
+  "expectedRlsObjects": 6,
+  "migration": "supabase/migrations/20261006134804_comun_learning_r0.sql",
+  "path": "supabase/migrations/20261006134804_comun_learning_r0.sql",
+  "migrationSha256": "4461db1852d66205048ff2d4ecae659c5a56496dd98374a50a104f91d85571bc",
+  "sha256": "4461db1852d66205048ff2d4ecae659c5a56496dd98374a50a104f91d85571bc",
+  "remotePromotionAllowed": false,
+  "scope": "local_candidate",
+  "dataMutation": false,
+  "technicalBackfill": null,
+  "publicProjection": false,
+  "externalForwarding": false
+}

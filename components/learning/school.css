@@ -1,0 +1,272 @@
+.school {
+  --school-paper: #f3f0e8;
+  --school-charcoal: #171717;
+  --school-yellow: #f2c230;
+  background: var(--school-charcoal);
+  color: var(--school-paper);
+  font-size: 1.125rem;
+  line-height: 1.65;
+  min-height: 75vh;
+}
+.school a,
+.school button,
+.school input,
+.school textarea,
+.school select {
+  font-size: inherit;
+}
+.school button,
+.school a,
+.school select,
+.school textarea {
+  touch-action: manipulation;
+}
+.school :focus-visible {
+  outline: 3px solid var(--school-yellow);
+  outline-offset: 5px;
+}
+.school-header {
+  max-width: 72rem;
+  margin: auto;
+  padding: 1.5rem clamp(1rem, 4vw, 3rem) 0;
+}
+.school-back {
+  font-size: 1rem !important;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+.school-brand {
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin: 0.75rem 0 1rem;
+}
+.school-header nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  border-bottom: 1px solid #8a8a8a;
+}
+.school-header nav a {
+  padding: 0.75rem 1rem;
+  min-height: 3rem;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.school-header nav a[aria-current] {
+  background: var(--school-yellow);
+  color: var(--school-charcoal);
+}
+.school-body {
+  max-width: 52rem;
+  padding: 2rem clamp(1rem, 4vw, 3rem) 4rem;
+  margin: auto;
+  overflow-wrap: anywhere;
+}
+.school h1 {
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 900;
+  line-height: 1.15;
+  margin: 0 0 1.5rem;
+  letter-spacing: -0.025em;
+}
+.school h2 {
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  font-weight: 800;
+  line-height: 1.25;
+  margin: 0 0 1rem;
+}
+.school h3 {
+  font-weight: 800;
+  margin: 1.25rem 0 0.5rem;
+}
+.school p {
+  margin: 0.5rem 0 1rem;
+}
+.school-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 3rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--school-yellow);
+  color: var(--school-charcoal);
+  border: 2px solid var(--school-yellow);
+  font-weight: 800;
+  line-height: 1.4;
+  cursor: pointer;
+  text-decoration: none !important;
+  margin: 1rem 0;
+  max-width: 100%;
+}
+.school button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.school-secondary {
+  background: transparent;
+  color: var(--school-paper);
+  border-color: var(--school-paper);
+}
+.school-link {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  margin: 0.5rem 1rem 0.5rem 0;
+  color: var(--school-yellow);
+  font-weight: 700;
+}
+.school-notice {
+  padding: 1rem;
+  border-left: 4px solid var(--school-yellow);
+  background: #252525;
+  margin: 1rem 0 1.5rem;
+}
+.school-notice a {
+  text-decoration: underline;
+}
+.school-next {
+  padding: 1.5rem 0 1rem;
+  border-top: 5px solid var(--school-yellow);
+}
+.school-next > p:first-child {
+  font-weight: 700;
+  color: var(--school-yellow);
+}
+.school-section {
+  padding: 2rem 0;
+  border-top: 1px solid #8a8a8a;
+  margin-top: 2rem;
+  scroll-margin-top: 8rem;
+}
+.school-shortcuts {
+  display: grid;
+  gap: 0;
+}
+.school-shortcuts a {
+  padding: 1rem 0;
+  border-bottom: 1px solid #555;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  min-height: 3rem;
+}
+.school-mission-list {
+  list-style: none;
+  padding: 0;
+}
+.school-mission-list li {
+  border-bottom: 1px solid #555;
+}
+.school-mission-list a {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem 0;
+  text-decoration: none;
+}
+.school-mission-list a > span:last-child {
+  font-size: 1rem;
+  color: var(--school-yellow);
+}
+.school-meta {
+  font-size: 1rem !important;
+  color: #d4d1c9;
+}
+.school fieldset {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+}
+.school legend {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.55;
+}
+.school-answers {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+.school-answer {
+  display: block;
+  text-align: left;
+  border: 2px solid #8a8a8a;
+  padding: 1rem;
+  color: var(--school-paper);
+  background: transparent;
+  cursor: pointer;
+  line-height: 1.5;
+  min-height: 3.5rem;
+}
+.school-answer:hover:not(:disabled) {
+  border-color: var(--school-yellow);
+  background: #252525;
+}
+.school-feedback {
+  padding: 1.25rem;
+  border-left: 4px solid var(--school-yellow);
+  background: #252525;
+  margin: 1rem 0;
+}
+.school-feedback h3 {
+  margin-top: 0;
+}
+.school-practice-form {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+.school label {
+  display: block;
+  font-weight: 700;
+}
+.school textarea,
+.school select {
+  width: 100%;
+  min-width: 0;
+  background: var(--school-paper);
+  color: var(--school-charcoal);
+  border: 2px solid #8a8a8a;
+  border-radius: 0;
+  padding: 0.75rem;
+  line-height: 1.5;
+}
+.school progress {
+  display: block;
+  width: 100%;
+  height: 1rem;
+  margin: 0.5rem 0 1.5rem;
+  accent-color: var(--school-yellow);
+}
+.school ol:not(.school-mission-list),
+.school ul {
+  padding-left: 1.5rem;
+}
+.school li {
+  margin: 0.5rem 0;
+}
+.school-section a:not(.school-button) {
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+@media (max-width: 480px) {
+  .school-mission-list a {
+    display: block;
+  }
+  .school-mission-list a > span {
+    display: block;
+  }
+  .school-header nav a {
+    padding: 0.65rem 0.75rem;
+  }
+  .school-body {
+    padding-top: 1.5rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .school * {
+    scroll-behavior: auto;
+  }
+}
