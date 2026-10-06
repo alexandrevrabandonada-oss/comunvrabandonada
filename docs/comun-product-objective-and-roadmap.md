@@ -147,6 +147,8 @@ As frentes abaixo não alteram o gate de lançamento da V1. Contratos, documenta
 
 O contrato candidato do piloto está em [comun-factory-pilot-contract.md](comun-factory-pilot-contract.md). O Caso FC é projeção técnica: trabalho real de design, protótipo, teste, fabricação ou instalação exige Tarefa canônica. R2/R3 exigem evidência de teste para instalação; R3 exige aprovação qualificada para fabricar/instalar; R4 fica bloqueado no fluxo comunitário comum.
 
+**49-D1.1 — Playbook e evidência do piloto.** Os dez desafios iniciais e o ritual operacional estão em [comun-factory-pilot-playbook.md](comun-factory-pilot-playbook.md). O avaliador `comun-factory-pilot-evaluation.ts` separa o gate D1 mínimo do FC-MVP-25 e nunca converte fixtures em execução real. D1 mínimo exige 10 casos iniciados, 5 resolvidos, ao menos um caso de não fabricação, ao menos uma revisão real e registros consistentes de custo e versão.
+
 **49-D2 — Extensão mínima orientada por evidência.** Só depois do piloto, considerar estado técnico do caso, versões/BOM e rastreabilidade. Nunca duplicar Pauta, Ação, Tarefa, Resultado, Comunidade, competência, progresso da Escola ou identidade.
 
 **49-D3 — Operação física.** Máquinas, filas, materiais, manutenção, instalações, falhas e segurança. Dados de máquina não viram reputação social.
