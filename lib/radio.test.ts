@@ -3,6 +3,33 @@ import { radioPublicationBlockers } from "./radio";
 import { inspectRadioAudio } from "./radio-audio";
 import { validatePautaModuleConfig } from "./comun/pauta-module-registry";
 describe("radio comunitaria", () => {
+  const ready = {
+    title: "T",
+    summary: "R",
+    program: "p",
+    duration: 30,
+    publicAudio: true,
+    credits: 1,
+    consents: [{ consent_status: "approved", allow_comun_audio: true }],
+    context: true,
+    transcriptStatus: "published",
+  };
+  it.each([undefined, 0, -1, NaN, Infinity, -Infinity, 1.5])(
+    "bloqueia duração inválida %s",
+    (duration) => {
+      expect(radioPublicationBlockers({ ...ready, duration })).toEqual([
+        "duration",
+      ]);
+    },
+  );
+  it.each([undefined, []])("bloqueia consentimento ausente %s", (consents) => {
+    expect(radioPublicationBlockers({ ...ready, consents })).toEqual([
+      "voice_consent",
+    ]);
+  });
+  it.each([1, 1800])("aceita duração válida no limite %s", (duration) => {
+    expect(radioPublicationBlockers({ ...ready, duration })).toEqual([]);
+  });
   it("falha fechada sem audio, credito, consentimento, contexto e acessibilidade", () => {
     expect(
       radioPublicationBlockers({

@@ -1,6 +1,6 @@
 # Objetivo final e roadmap auditado do COMUN
 
-Base de produção conferida em 06/10/2026: `4c896f50007c5d0f20783beb40d61a16f265c6cc`, após o PR #502. A reconciliação de 02/10 e os achados intermediários abaixo são históricos. A V1 continua incompleta; a situação atual e a fila sem amostra humana estão na seção seguinte.
+Base de produção conferida em 06/10/2026: `e4bac1ab378a5ddac4d180426e1cd586e4b3b57b`, após os PRs #504 e #505. A reconciliação de 02/10 e os achados intermediários abaixo são históricos. A V1 continua incompleta; a situação atual e a fila sem amostra humana estão na seção seguinte.
 
 ## Posição geral e fila sem amostra humana — 06/10/2026
 
@@ -25,11 +25,17 @@ O produto está no fechamento técnico e operacional da V1, antes do ensaio inte
 - PR #502: filtros mobile recebem foco, Escape/fechamento devolvem ao acionador e Limpar devolve à busca preservando lista/mapa. CI do candidato: 45 casos MapLibre aprovados e um skip de desktop explícito. Pós-merge: 35 jornadas públicas, cinco testes de acessibilidade, 30 PWA e nove de performance passaram; 95 checks do merge terminaram em success/skipped.
 - Viewports de CI não substituem Android/iOS físicos ou tecnologia assistiva. Essas provas não promovem os seis domínios abertos nem autorizam `launch_publicly`.
 
-### Correção candidata nesta rodada
+### Fechamento de filtros e estabilidade de navegador — integrado
 
 O filtro de Calçadas derivava o relógio da maior `last_observed_at`: um conjunto inteiro de registros antigos continuava parecendo recente. A correção usa o instante fornecido pelo servidor ao carregar a página e mantém a referência estável durante os filtros, sem divergência entre HTML e hidratação. Recarregar a página renova o instante. Os recortes são inclusivos de zero a 30/90/365 dias, excluem datas futuras, ausentes ou inválidas quando o período está ativo e não alteram os dados nem a janela do piloto. Sem período, todos os registros continuam elegíveis para os demais filtros. A suíte de navegador usa datas fixas apenas no build descartável de CI.
 
-A existência desta correção no documento não comprova merge ou deployment: conferir o PR e seu SHA antes de declarar publicação. Os PRs #503, #436 e #434 também não contam como entregas integradas nesta base.
+PR #504 integrado: recortes de calendário corrigidos; 49 casos MapLibre passaram, com um skip explícito de desktop. PR #505 integrado: Chromium completo nas provas do grafo cívico; os 40 casos de produção passaram após o merge. Produção conferida no SHA da base acima, com os 86 checks concluídos em success/skipped. Os PRs #503, #436 e #434 continuam candidatos, sem contar como entregas integradas.
+
+### Rádio — salvaguardas candidatas na base atual
+
+A revisão da PR #436 identificou um recorte independente de migração: restringir as cinco ações editoriais a admin/editor, exigir consentimentos presentes e duração inteira positiva dentro do limite existente, e interromper a publicação quando qualquer uma das sete consultas editoriais falha ou o episódio não existe. O candidato preserva o contrato atual de banco; ainda requer checks e integração para contar como entrega.
+
+Este recorte não resolve a concorrência entre revisão e commit nem a possibilidade de gravações parciais. A identidade editorial transacional da PR #436 ainda precisa ser reconciliada e comprovada em banco descartável, seguida de validação no schema canônico antes de ativar o novo caminho. Direitos e consentimentos reais permanecem uma dependência distinta dos testes automatizados.
 
 Data da reconciliação: 2026-10-02. Base de código: `3fee4feb29b390e659e95fbef7d280d9fac6dfac`.
 
