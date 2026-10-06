@@ -20,6 +20,12 @@ assert.equal(
   "/comun_radio_contract",
   "dedicated contract database required",
 );
+const fullSchema =
+  process.env.COMUN_RADIO_CONTRACT_SCHEMA === "full_local_chain";
+assert.ok(
+  !process.env.COMUN_RADIO_CONTRACT_SCHEMA || fullSchema,
+  "unknown contract schema mode",
+);
 const admin = new pg.Client({ connectionString: url.href });
 await admin.connect();
 const actor = randomUUID(),
@@ -27,11 +33,25 @@ const actor = randomUUID(),
 const checks = [];
 const service = new pg.Client({ connectionString: url.href });
 try {
-  const existing = await admin.query(
-    "select count(*)::int n from pg_tables where schemaname='public'",
-  );
-  assert.equal(existing.rows[0].n, 0, "refusing nonempty database");
-  await admin.query(`
+  if (fullSchema) {
+    const marker = await admin.query(
+      "select scope from public.comun_radio_contract_fixture_guard",
+    );
+    assert.deepEqual(marker.rows, [{ scope: "full_local_chain_schema_only" }]);
+    await admin.query(
+      "insert into auth.users(id,email) values($1,'editor@example.invalid'),($2,'viewer@example.invalid')",
+      [actor, viewer],
+    );
+    await admin.query(
+      "insert into public.comun_admin_users(id,user_id,email,role,is_active) values($1,$1,'editor@example.invalid','editor',true),($2,$2,'viewer@example.invalid','viewer',true)",
+      [actor, viewer],
+    );
+  } else {
+    const existing = await admin.query(
+      "select count(*)::int n from pg_tables where schemaname='public'",
+    );
+    assert.equal(existing.rows[0].n, 0, "refusing nonempty database");
+    await admin.query(`
     create schema extensions;
     create extension pgcrypto with schema extensions;
     do $$ begin
@@ -49,27 +69,28 @@ try {
     create table public.comun_admin_audit_log(id bigint generated always as identity primary key,admin_user_id uuid,admin_email text,action text,target_type text,target_id uuid,metadata jsonb);
     create function public.set_updated_at() returns trigger language plpgsql as $$ begin new.updated_at=now();return new;end $$;
   `);
-  // Real canonical Radio tables, constraints, indexes, triggers, grants and RLS.
-  // The archive/Auth/FK dependencies above are deliberately minimal fixtures.
-  const foundation = readFileSync(
-    new URL(
-      "../supabase/migrations/20260715185344_community_radio_foundation.sql",
-      import.meta.url,
-    ),
-    "utf8",
-  );
-  await admin.query(
-    foundation.slice(
-      foundation.indexOf("create table public.comun_radio_programs"),
-    ),
-  );
-  await admin.query(
-    "grant usage on schema public,extensions to service_role;grant select,insert,update,delete on all tables in schema public to service_role;grant usage,select on all sequences in schema public to service_role",
-  );
-  await admin.query(
-    "insert into public.comun_admin_users values($1,'editor@example.invalid','editor',true),($2,'viewer@example.invalid','viewer',true)",
-    [actor, viewer],
-  );
+    // Real canonical Radio tables, constraints, indexes, triggers, grants and RLS.
+    // The archive/Auth/FK dependencies above are deliberately minimal fixtures.
+    const foundation = readFileSync(
+      new URL(
+        "../supabase/migrations/20260715185344_community_radio_foundation.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    );
+    await admin.query(
+      foundation.slice(
+        foundation.indexOf("create table public.comun_radio_programs"),
+      ),
+    );
+    await admin.query(
+      "grant usage on schema public,extensions to service_role;grant select,insert,update,delete on all tables in schema public to service_role;grant usage,select on all sequences in schema public to service_role",
+    );
+    await admin.query(
+      "insert into public.comun_admin_users(id,email,role,is_active) values($1,'editor@example.invalid','editor',true),($2,'viewer@example.invalid','viewer',true)",
+      [actor, viewer],
+    );
+  }
   const contract = readFileSync(
     new URL(
       "../supabase/reconciliation/radio-publication/01-editorial-identity.sql",
@@ -85,7 +106,9 @@ try {
     const episode = randomUUID(),
       program = randomUUID();
     await admin.query(
-      "insert into public.comun_archive_items(id,item_type) values($1,'community_radio_program'),($2,'community_radio_episode')",
+      fullSchema
+        ? "insert into public.comun_archive_items(id,item_type,slug,title) values($1::uuid,'community_radio_program',($1::uuid)::text,'Program'),($2::uuid,'community_radio_episode',($2::uuid)::text,'Episode')"
+        : "insert into public.comun_archive_items(id,item_type) values($1,'community_radio_program'),($2,'community_radio_episode')",
       [program, episode],
     );
     await admin.query(
@@ -93,7 +116,9 @@ try {
       [episode, program],
     );
     await admin.query(
-      "insert into public.comun_archive_assets(archive_item_id,asset_role,bucket_scope,review_status,rights_status,public_url) values($1,'radio_public_episode','public_safe','approved','licensed','https://example.invalid/audio.mp3')",
+      fullSchema
+        ? "insert into public.comun_archive_assets(archive_item_id,asset_role,bucket_scope,review_status,rights_status,public_url,object_key) values($1::uuid,'radio_public_episode','public_safe','approved','licensed','https://example.invalid/audio.mp3',($1::uuid)::text)"
+        : "insert into public.comun_archive_assets(archive_item_id,asset_role,bucket_scope,review_status,rights_status,public_url) values($1,'radio_public_episode','public_safe','approved','licensed','https://example.invalid/audio.mp3')",
       [episode],
     );
     await admin.query(
@@ -133,9 +158,20 @@ try {
 
   await check("invoker and private execution permissions", async () => {
     const functions = await admin.query(
-      "select proname,prosecdef,proconfig from pg_proc where proname like 'comun_%radio%' and pronamespace in ('public'::regnamespace,'private'::regnamespace)",
+      "select proname,prosecdef,proconfig from pg_proc where proname = any($1::text[]) and pronamespace in ('public'::regnamespace,'private'::regnamespace)",
+      [
+        [
+          "comun_radio_editorial_snapshot",
+          "comun_radio_editorial_identity",
+          "comun_radio_publication_blockers",
+          "comun_lock_radio_editorial_composition",
+          "comun_prepare_radio_publication_review",
+          "comun_commit_radio_publication",
+          "comun_publish_radio_episode",
+        ],
+      ],
     );
-    assert.ok(functions.rows.length >= 7);
+    assert.equal(functions.rows.length, 7);
     for (const row of functions.rows) {
       assert.equal(row.prosecdef, false);
       assert.deepEqual(row.proconfig, ["search_path=pg_catalog"]);
@@ -362,7 +398,9 @@ try {
     JSON.stringify({
       status: "passed",
       checks: checks.length,
-      scope: "disposable_postgresql_minimal_dependencies",
+      scope: fullSchema
+        ? "disposable_supabase_full_local_migration_chain"
+        : "disposable_postgresql_minimal_dependencies",
       names: checks,
     }),
   );
