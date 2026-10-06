@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import {
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -89,6 +90,21 @@ export function SidewalkRealMap({
     [pan, setPan] = useState({ x: 0, y: 0 }),
     [selectedId, setSelectedId] = useState<string | null>(null),
     [advanced, setAdvanced] = useState(false);
+  const filtersId = useId();
+  const filtersRef = useRef<HTMLFieldSetElement>(null);
+  const filtersTriggerRef = useRef<HTMLButtonElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const closeFilters = useCallback(() => {
+    setAdvanced(false);
+    filtersTriggerRef.current?.focus({ preventScroll: true });
+  }, []);
+  useEffect(() => {
+    const panel = filtersRef.current;
+    // The desktop disclosure stays inline. Only the fixed mobile panel needs
+    // focus on entry; filter/data updates must not take focus from its controls.
+    if (advanced && panel && getComputedStyle(panel).position === "fixed")
+      panel.focus();
+  }, [advanced]);
   const filters = useMemo<Filters>(
     () => ({
       q: params.get("q") ?? "",
@@ -188,6 +204,9 @@ export function SidewalkRealMap({
       period: "",
     };
     sync(next);
+    // Limpar disappears once the URL has no filters; keep the keyboard user
+    // at the surviving search field instead of losing focus to the document.
+    searchRef.current?.focus({ preventScroll: true });
   };
   const changeView = (next: "map" | "list") => {
     sync(filters, next);
@@ -218,6 +237,7 @@ export function SidewalkRealMap({
             size={18}
           />
           <input
+            ref={searchRef}
             value={filters.q}
             onChange={(event) => change("q", event.target.value)}
             placeholder="Buscar rua, trecho ou bairro"
@@ -264,7 +284,9 @@ export function SidewalkRealMap({
           </button>
         ))}
         <button
+          ref={filtersTriggerRef}
           aria-expanded={advanced}
+          aria-controls={advanced ? filtersId : undefined}
           onClick={() => setAdvanced((value) => !value)}
           className="inline-flex min-h-10 items-center gap-2 border-2 border-comun-black bg-white px-3 text-sm font-bold"
         >
@@ -280,12 +302,24 @@ export function SidewalkRealMap({
         ) : null}
       </div>
       {advanced ? (
-        <fieldset className="fixed inset-x-0 bottom-0 z-50 grid max-h-[75vh] gap-3 overflow-auto border-2 border-comun-black bg-white p-4 pb-24 shadow-2xl sm:grid-cols-3 md:static md:max-h-none md:pb-4 md:shadow-none">
+        <fieldset
+          ref={filtersRef}
+          id={filtersId}
+          tabIndex={-1}
+          onKeyDown={(event) => {
+            if (event.key === "Escape" && !event.defaultPrevented) {
+              event.preventDefault();
+              event.stopPropagation();
+              closeFilters();
+            }
+          }}
+          className="fixed inset-x-0 bottom-0 z-50 grid max-h-[75vh] gap-3 overflow-auto border-2 border-comun-black bg-white p-4 pb-24 shadow-2xl focus-visible:outline-4 focus-visible:outline-comun-yellow sm:grid-cols-3 md:static md:max-h-none md:pb-4 md:shadow-none"
+        >
           <legend className="px-2 font-bold">Filtros completos</legend>
           <button
             type="button"
             aria-label="Fechar filtros"
-            onClick={() => setAdvanced(false)}
+            onClick={closeFilters}
             className="absolute right-3 top-2 grid size-10 place-items-center md:hidden"
           >
             <X />
