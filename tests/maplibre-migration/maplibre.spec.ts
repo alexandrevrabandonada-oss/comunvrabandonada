@@ -314,3 +314,69 @@ test("health archive failure preserves the official textual list", async ({
     }),
   ).toBeFocused();
 });
+
+test("Calçadas restores URL filters and view after same-page navigation and history", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/comun/calcadas?condicao=bad&vista=mapa");
+  const bad = page.getByRole("button", { name: "Ruim", exact: true });
+  const list = page.getByRole("button", { name: "Lista", exact: true });
+  const map = page.getByRole("button", { name: "Mapa", exact: true });
+  await expect(bad).toHaveAttribute("aria-pressed", "true");
+  await expect(map).toHaveAttribute("aria-pressed", "true");
+  await list.click();
+  await expect(page).toHaveURL(/condicao=bad&vista=lista$/);
+  await expect(list).toHaveAttribute("aria-pressed", "true");
+
+  await page
+    .getByRole("navigation", {
+      name: "Navegação do Mapa das Calçadas",
+      exact: true,
+    })
+    .getByRole("link", { name: "Mapa", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/comun\/calcadas$/);
+  await expect(bad).toHaveAttribute("aria-pressed", "false");
+  await expect(list).toHaveAttribute("aria-pressed", "true");
+  await page.goBack();
+  await expect(page).toHaveURL(/condicao=bad&vista=lista$/);
+  await expect(bad).toHaveAttribute("aria-pressed", "true");
+  await expect(list).toHaveAttribute("aria-pressed", "true");
+  await page.goForward();
+  await expect(page).toHaveURL(/\/comun\/calcadas$/);
+  await expect(bad).toHaveAttribute("aria-pressed", "false");
+  await bad.click();
+  await map.click();
+  await expect(page).toHaveURL(/condicao=bad&vista=mapa$/);
+  await page.reload();
+  await expect(bad).toHaveAttribute("aria-pressed", "true");
+  await expect(map).toHaveAttribute("aria-pressed", "true");
+  expect(errors).toEqual([]);
+});
+
+test("Calçadas keeps rapid search input, view and clear filters in the URL", async ({
+  page,
+}) => {
+  await page.goto("/comun/calcadas?vista=lista");
+  const search = page.getByRole("textbox", {
+    name: "Buscar rua, trecho ou bairro",
+    exact: true,
+  });
+  await search.pressSequentially("Centro de Volta Redonda");
+  await expect(search).toHaveValue("Centro de Volta Redonda");
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get("q"))
+    .toBe("Centro de Volta Redonda");
+  await page.getByRole("button", { name: "Mapa", exact: true }).click();
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get("q"))
+    .toBe("Centro de Volta Redonda");
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get("vista"))
+    .toBe("mapa");
+  await page.getByRole("button", { name: "Limpar", exact: true }).click();
+  await expect(search).toHaveValue("");
+  await expect(page).toHaveURL(/\?vista=mapa$/);
+});
