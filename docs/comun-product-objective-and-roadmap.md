@@ -18,6 +18,17 @@ O produto está no fechamento técnico e operacional da V1, antes do ensaio inte
 | Escola COMUN R0                                  | PR #503 aberto, head `a8dbe550583526eae631deafa3c574fbcfb18993` na consulta; 24 micro-missões candidatas, progresso privado, flag desligada        | Finalizar checks globais e validar integração no schema canônico antes de ativar                                             | Ambiente COMUN identificado e revisão humana do material; testes locais não comprovam ativação                                                               |
 | Serviços Públicos                                | PR documental #434 aberto; expansão fora do fechamento V1                                                                                          | Revisar arquitetura e limites da proposta separadamente                                                                      | Decisão de escopo posterior; sem expansão automática                                                                                                         |
 
+### Candidato de recuperação sem amostra humana — 06/10/2026
+
+A inspeção do ensaio de banco identificou publicação de sucesso anterior à
+limpeza, com falhas de remoção do contêiner ignoradas. O candidato passa a
+publicar o envelope verde somente depois de limpar contêiner e dump, tenta
+todas as remoções e bloqueia em falha. A suíte de segurança inclui falhas
+injetadas de cada remoção e de gravação da evidência. Isso fecha uma lacuna de
+confiabilidade do instrumento; não comprova restore remoto, cópia durável ou
+recuperação de Auth e não promove o domínio 47.8. Integração e CI do candidato
+continuam pendentes.
+
 ### Evidência técnica já integrada
 
 - PR #500: navegação por teclado da ficha de Calçadas e isolamento dos tipos gerados pelo build de desenvolvimento.

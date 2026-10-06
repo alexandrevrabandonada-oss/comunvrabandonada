@@ -74,6 +74,17 @@ efêmero a ponto de recuperação durável nem liberam o domínio de segurança.
 Nunca restaurar sobre produção. Um restore real do projeto Supabase continua
 sendo ação destrutiva e exige gate específico.
 
+### Integridade do fechamento do ensaio de banco
+
+O resultado verde do ensaio de banco só é gravado depois da remoção do
+contêiner descartável e do diretório que contém o dump. Uma falha de limpeza
+bloqueia a publicação da evidência verde, retorna código de saída não zero e
+registra `COMUN_DATABASE_RESTORE_CLEANUP_FAILED`, sem revelar caminhos ou
+mensagens do provedor. Todas as remoções são tentadas mesmo quando uma falha.
+O envelope verde anterior é removido no início de uma nova execução para não
+ser reutilizado como resultado atual. Esses controles não comprovam cópia
+durável, restauração de Auth ou capacidade do provedor.
+
 ## Transição de credencial do scheduler
 
 Uma divergência entre o bearer guardado no GitHub e o runtime não autoriza
