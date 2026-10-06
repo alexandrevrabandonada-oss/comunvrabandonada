@@ -500,3 +500,118 @@ test("Calçadas applies the latest filter when the initial map load finishes", a
     release();
   }
 });
+
+test("Calçadas moves keyboard focus into the opened record sheet", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/maplibre-real-map-test?vista=mapa");
+  const marker = page.getByRole("button", {
+    name: "Abrir Trecho sintético A",
+    exact: true,
+  });
+  await marker.press("Enter");
+  const sheet = page.getByRole("complementary", {
+    name: "Ficha do registro",
+    exact: true,
+  });
+  await expect(sheet).toBeFocused();
+  await sheet.press("Tab");
+  await expect(
+    sheet.getByRole("button", { name: "Fechar ficha", exact: true }),
+  ).toBeFocused();
+  await marker.press("Enter");
+  await expect(sheet).toBeFocused();
+  await page.screenshot({
+    path: testInfo.outputPath("focused-record-sheet.png"),
+    fullPage: false,
+  });
+});
+
+test("Calçadas closes a sheet with Escape and restores the current marker after a DTO update", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/maplibre-real-map-test?vista=mapa");
+  await page
+    .getByRole("button", { name: "Abrir Trecho sintético A", exact: true })
+    .press("Enter");
+  const sheet = page.getByRole("complementary", {
+    name: "Ficha do registro",
+    exact: true,
+  });
+  await page
+    .getByRole("button", { name: "Atualizar registro sintético", exact: true })
+    .press("Enter");
+  await expect(sheet).toContainText("Resumo sintético atualizado");
+  await sheet
+    .getByRole("button", { name: "Fechar ficha", exact: true })
+    .press("Escape");
+  await expect(sheet).toHaveCount(0);
+  await expect(
+    page.getByRole("button", {
+      name: "Abrir Trecho sintético atualizado",
+      exact: true,
+    }),
+  ).toBeFocused();
+  expect(errors).toEqual([]);
+});
+
+test("Calçadas restores focus after explicit close without stealing it from filters", async ({
+  page,
+}) => {
+  await page.goto("/maplibre-real-map-test?vista=mapa");
+  const marker = page.getByRole("button", {
+    name: "Abrir Trecho sintético A",
+    exact: true,
+  });
+  const sheet = page.getByRole("complementary", {
+    name: "Ficha do registro",
+    exact: true,
+  });
+  await marker.press("Enter");
+  await sheet
+    .getByRole("button", { name: "Fechar ficha", exact: true })
+    .press("Enter");
+  await expect(sheet).toHaveCount(0);
+  await expect(marker).toBeFocused();
+  await marker.press("Enter");
+  const filter = page.getByRole("button", { name: "Péssima", exact: true });
+  await filter.press("Enter");
+  await expect(sheet).toHaveCount(0);
+  await expect(filter).toBeFocused();
+  await page
+    .getByRole("button", { name: "Limpar", exact: true })
+    .press("Enter");
+  await marker.press("Enter");
+  const list = page.getByRole("button", { name: "Lista", exact: true });
+  await list.press("Enter");
+  await expect(sheet).toHaveCount(0);
+  await expect(list).toBeFocused();
+});
+
+test("Calçadas keeps focus on the map when a background DTO removal closes its focused sheet", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/maplibre-real-map-test?vista=mapa");
+  const map = page.getByRole("region", { name: mapName, exact: true });
+  await page
+    .getByRole("button", { name: "Abrir Trecho sintético A", exact: true })
+    .press("Enter");
+  const sheet = page.getByRole("complementary", {
+    name: "Ficha do registro",
+    exact: true,
+  });
+  await expect(sheet).toBeFocused();
+  // Simulate a new DTO arriving without a user focus change; the button is
+  // solely a disposable fixture control, not a production data mutation.
+  await page
+    .getByRole("button", { name: "Remover registro sintético", exact: true })
+    .dispatchEvent("click");
+  await expect(sheet).toHaveCount(0);
+  await expect(map.locator("..")).toBeFocused();
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(1);
+  expect(errors).toEqual([]);
+});

@@ -125,6 +125,7 @@ export function SidewalkMapLibreMap({
       el.type = "button";
       el.className = "sidewalk-map-marker";
       el.setAttribute("aria-label", `Abrir ${record.name}`);
+      el.dataset.sidewalkRecordId = record.id;
       el.textContent = "!";
       el.onclick = () => onSelect(record);
       nextMarkers.push(

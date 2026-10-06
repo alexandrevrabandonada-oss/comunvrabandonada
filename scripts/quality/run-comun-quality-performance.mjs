@@ -1,4 +1,17 @@
 import { execFileSync } from "node:child_process";
+import { rmSync } from "node:fs";
+
+const distDir = process.env.COMUN_NEXT_DIST_DIR || ".next";
+if (distDir !== ".next" && !/^\.next-[a-z0-9-]+$/i.test(distDir)) {
+  throw new Error(
+    "COMUN_NEXT_DIST_DIR deve ser um diretório .next- interno e seguro",
+  );
+}
+
+// Earlier Playwright suites generate development types that tsconfig also includes.
+// Discard that disposable output before checking the production build, keeping
+// production route types and all application TypeScript checks enabled.
+rmSync(`${distDir}/dev`, { recursive: true, force: true });
 
 const onWindows = process.platform === "win32";
 const run = (command, args, extraEnv = {}) =>
