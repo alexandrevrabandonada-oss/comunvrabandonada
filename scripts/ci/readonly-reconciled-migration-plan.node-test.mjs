@@ -33,3 +33,8 @@ test('unknown pending migrations and unsuccessful or empty output fail closed', 
   for (const plan of ['', 'Connecting to remote database...', 'Remote database is up to date.\n20990101000000_unknown.sql', '--include-all', 'migration repair', 'db reset', 'seed'])
     assert.throws(() => assertEmptyPlan(plan));
 });
+
+test('blocked plan diagnostics contain only pending filenames, never connection data', () => {
+  assert.throws(() => assertEmptyPlan('postgresql://private:secret@example.invalid/test\n20990101000000_unknown.sql'),
+    { message: 'REMOTE_MIGRATION_PLAN_NOT_EMPTY:20990101000000_unknown.sql' });
+});

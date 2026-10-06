@@ -43,8 +43,10 @@ export function withHeldFiles(files, operation) {
 }
 
 export function assertEmptyPlan(plan) {
-  if (/20\d{12}_[a-z0-9_]+\.sql|--include-all|migration repair|db reset|seed/.test(plan))
-    throw new Error('REMOTE_MIGRATION_PLAN_NOT_EMPTY');
+  const pending = [...new Set(plan.match(/20\d{12}_[a-z0-9_]+\.sql/g) || [])];
+  if (pending.length || /--include-all|migration repair|db reset|seed/.test(plan))
+    // Report only allowlisted filenames, never raw CLI output or connection data.
+    throw new Error(`REMOTE_MIGRATION_PLAN_NOT_EMPTY:${pending.join(',') || 'forbidden-operation'}`);
   if (!/Remote database is up to date\./.test(plan))
     throw new Error('REMOTE_MIGRATION_PLAN_SUCCESS_MARKER_MISSING');
 }
