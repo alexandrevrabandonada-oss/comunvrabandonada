@@ -1,1 +1,15 @@
-import{readFile}from"node:fs/promises";import{resolve}from"node:path";if(process.env.VERCEL||process.env.SUPABASE_PROJECT_ID||process.env.R2_ENDPOINT)throw new Error("Ambiente remoto bloqueado");let human=false;try{const rows=JSON.parse(await readFile(resolve(".local","comun","pilot-human-readiness.json"),"utf8"));human=Array.isArray(rows)&&rows.length>=8&&rows.every(x=>x.primary_confirmed===true&&x.substitute_confirmed===true&&x.coverage_window_confirmed===true&&x.escalation_channel_confirmed===true&&x.training_confirmed===true&&x.access_reviewed===true)}catch{}if(!human)console.log("NO_GO_HUMAN_READINESS");else console.log("NO_GO_REMOTE_REVIEW");console.log("NO_AUTOMATIC_PROMOTION");
+import { readPilotHumanReadiness } from "./comun-pilot-human-readiness-contract.mjs";
+
+if (
+  process.env.VERCEL ||
+  process.env.SUPABASE_PROJECT_ID ||
+  process.env.R2_ENDPOINT
+) {
+  throw new Error("Ambiente remoto bloqueado");
+}
+console.log(
+  (await readPilotHumanReadiness())
+    ? "NO_GO_REMOTE_REVIEW"
+    : "NO_GO_HUMAN_READINESS",
+);
+console.log("NO_AUTOMATIC_PROMOTION");

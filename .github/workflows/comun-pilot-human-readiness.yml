@@ -1,0 +1,27 @@
+name: COMUN Pilot Human Readiness Contract
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/comun-pilot-human-readiness.yml"
+      - "scripts/check-comun-pilot-human-readiness.mjs"
+      - "scripts/comun-pilot-go-no-go-local.mjs"
+      - "scripts/comun-pilot-human-readiness*.mjs"
+      - "docs/comun-escala-primeiro-piloto.md"
+      - "docs/templates/comun-escala-piloto.template.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  human-readiness-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+      - name: Test local human declarations with synthetic files
+        run: node --test scripts/comun-pilot-human-readiness.node-test.mjs
