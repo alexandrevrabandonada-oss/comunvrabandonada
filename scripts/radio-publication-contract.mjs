@@ -215,8 +215,16 @@ try {
       "delete from public.comun_radio_transcript_versions where episode_item_id=$1",
       "transcript",
     ],
-    ["pending safety without minor", "insert into public.comun_radio_safety_reviews(episode_item_id,reinforced_review_status) values($1,'pending')", "minor_safety"],
-    ["minor without reinforced approval", "insert into public.comun_radio_safety_reviews(episode_item_id,minor_involved_private) values($1,true)", "minor_safety"],
+    [
+      "pending safety without minor",
+      "insert into public.comun_radio_safety_reviews(episode_item_id,reinforced_review_status) values($1,'pending')",
+      "minor_safety",
+    ],
+    [
+      "minor without reinforced approval",
+      "insert into public.comun_radio_safety_reviews(episode_item_id,minor_involved_private) values($1,true)",
+      "minor_safety",
+    ],
   ])
     await check(name, async () => {
       const episode = await fixture();
