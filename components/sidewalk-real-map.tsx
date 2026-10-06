@@ -93,6 +93,7 @@ export function SidewalkRealMap({
   const filtersId = useId();
   const filtersRef = useRef<HTMLFieldSetElement>(null);
   const filtersTriggerRef = useRef<HTMLButtonElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const closeFilters = useCallback(() => {
     setAdvanced(false);
     filtersTriggerRef.current?.focus({ preventScroll: true });
@@ -203,6 +204,9 @@ export function SidewalkRealMap({
       period: "",
     };
     sync(next);
+    // Limpar disappears once the URL has no filters; keep the keyboard user
+    // at the surviving search field instead of losing focus to the document.
+    searchRef.current?.focus({ preventScroll: true });
   };
   const changeView = (next: "map" | "list") => {
     sync(filters, next);
@@ -233,6 +237,7 @@ export function SidewalkRealMap({
             size={18}
           />
           <input
+            ref={searchRef}
             value={filters.q}
             onChange={(event) => change("q", event.target.value)}
             placeholder="Buscar rua, trecho ou bairro"
