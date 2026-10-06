@@ -7,6 +7,30 @@ const observatoryMapName =
   "Mapa de pontos de calçadas revisados e publicados com localização aproximada";
 
 for (const view of ["lista", "mapa"]) {
+  test(`Calçadas period uses calendar time in ${view}`, async ({ page }) => {
+    // The disposable fixture is observed Sep 1, loaded Oct 6: 35 days old.
+    await page.goto(`/maplibre-real-map-test?vista=${view}`);
+    await page
+      .getByRole("button", { name: "Mais filtros", exact: true })
+      .click();
+    const period = page.getByRole("combobox", { name: "Período", exact: true });
+    await period.selectOption("30");
+    await expect(
+      page.getByText("0 registro(s)", { exact: true }),
+    ).toBeVisible();
+    await expect(page).toHaveURL(
+      new RegExp(`vista=${view}.*periodo=30|periodo=30.*vista=${view}`),
+    );
+    await period.selectOption("90");
+    await expect(
+      page.getByText("2 registro(s)", { exact: true }),
+    ).toBeVisible();
+    await period.selectOption("");
+    await expect(
+      page.getByText("2 registro(s)", { exact: true }),
+    ).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`\\?vista=${view}$`));
+  });
   test(`Calçadas clearing filters returns keyboard focus to search in ${view}`, async ({
     page,
   }) => {

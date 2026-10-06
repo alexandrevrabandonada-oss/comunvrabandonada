@@ -95,6 +95,7 @@ export async function getSidewalkMiniapp() {
       }) as PublicSidewalkRecord,
   );
   return {
+    loadedAt: Date.now(),
     pauta,
     records: safeRecords,
     priorities: priorities.data ?? [],

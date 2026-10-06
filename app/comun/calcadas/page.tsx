@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function Page() {
   const provider = resolveSidewalkBasemapProvider(),
     data = await getSidewalkMiniapp();
+  const referenceTime = data?.loadedAt ?? 0;
   if (!data)
     return (
       <MiniAppExperienceShell
@@ -29,7 +30,11 @@ export default async function Page() {
               concluída.
             </p>
           </div>
-          <SidewalkRealMap records={[]} provider={provider} />
+          <SidewalkRealMap
+            records={[]}
+            provider={provider}
+            referenceTime={referenceTime}
+          />
           <div className="mt-4">
             <CoverageNotice>
               Nenhum registro público foi carregado neste ambiente. Isso não
@@ -61,7 +66,11 @@ export default async function Page() {
             Base cartográfica real · contribuições revisadas
           </p>
         </div>
-        <SidewalkRealMap records={data.records} provider={provider} />
+        <SidewalkRealMap
+          records={data.records}
+          provider={provider}
+          referenceTime={referenceTime}
+        />
         <div className="mt-4">
           <CoverageNotice>
             Esta cobertura reúne contribuições recebidas e revisadas. Não
