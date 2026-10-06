@@ -31,6 +31,7 @@ import {
   VOLTA_REDONDA_MAP,
 } from "@/lib/sidewalk-map-config";
 import type { SidewalkBasemapProvider } from "@/lib/sidewalk-basemap-provider";
+import { matchesSidewalkPeriod } from "@/lib/sidewalk-period-filter";
 
 const SidewalkMapLibreMap = dynamic(
   () =>
@@ -75,9 +76,11 @@ type Filters = {
 export function SidewalkRealMap({
   records,
   provider,
+  referenceTime,
 }: {
   records: PublicSidewalkRecord[];
   provider: SidewalkBasemapProvider;
+  referenceTime: number;
 }) {
   const params = useSearchParams(),
     pathname = usePathname(),
@@ -117,18 +120,6 @@ export function SidewalkRealMap({
     }),
     [params],
   );
-  const referenceTime = useMemo(
-    () =>
-      Math.max(
-        0,
-        ...records.map((record) =>
-          record.last_observed_at
-            ? new Date(record.last_observed_at).getTime()
-            : 0,
-        ),
-      ),
-    [records],
-  );
   const neighborhoods = useMemo(
     () =>
       [
@@ -154,13 +145,11 @@ export function SidewalkRealMap({
           (!filters.forwarding || x.forwarding_status === filters.forwarding) &&
           (!filters.verification ||
             x.verification_status === filters.verification) &&
-          (!filters.period ||
-            Boolean(
-              x.last_observed_at &&
-              new Date(x.last_observed_at).getTime() >=
-                referenceTime -
-                  Number.parseInt(filters.period, 10) * 24 * 60 * 60 * 1000,
-            ))
+          matchesSidewalkPeriod(
+            x.last_observed_at,
+            filters.period,
+            referenceTime,
+          )
         );
       }),
     [records, filters, referenceTime],

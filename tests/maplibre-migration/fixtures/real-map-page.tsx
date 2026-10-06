@@ -68,7 +68,11 @@ export default function RealMapFixture() {
         Remover registro sintético
       </button>
       <Suspense fallback={<p>Carregando fixture local</p>}>
-        <SidewalkRealMap records={records} provider={realBasemapProvider} />
+        <SidewalkRealMap
+          records={records}
+          provider={realBasemapProvider}
+          referenceTime={Date.parse("2026-10-06T00:00:00.000Z")}
+        />
       </Suspense>
     </div>
   );
