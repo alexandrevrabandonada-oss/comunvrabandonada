@@ -21,6 +21,8 @@ export function SidewalkMapLibreMap({
   const host = useRef<HTMLDivElement>(null),
     mapRef = useRef<MapLibreMap | null>(null),
     markers = useRef<MapLibreMarker[]>([]),
+    markerType = useRef<typeof import("maplibre-gl").Marker | null>(null),
+    [readyMap, setReadyMap] = useState<MapLibreMap | null>(null),
     [failure, setFailure] = useState<
       | "provider_disabled"
       | "dependency"
@@ -66,6 +68,7 @@ export function SidewalkMapLibreMap({
           zoomLevelsToOverscale: undefined,
         });
         mapRef.current = map;
+        markerType.current = maplibre.Marker;
         stage = "render";
         map.addControl(
           new maplibre.NavigationControl({ showCompass: false }),
@@ -96,19 +99,7 @@ export function SidewalkMapLibreMap({
         map.on("load", () => {
           if (cancelled) return;
           host.current?.setAttribute("data-pmtiles-loaded", "true");
-          for (const record of records) {
-            const point = pointCoordinates(record);
-            if (!point) continue;
-            const el = document.createElement("button");
-            el.type = "button";
-            el.className = "sidewalk-map-marker";
-            el.setAttribute("aria-label", `Abrir ${record.name}`);
-            el.textContent = "!";
-            el.onclick = () => onSelect(record);
-            markers.current.push(
-              new maplibre.Marker({ element: el }).setLngLat(point).addTo(map),
-            );
-          }
+          setReadyMap(map);
         });
         map.on("error", (event) => fail(event.error));
       })
@@ -120,7 +111,32 @@ export function SidewalkMapLibreMap({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [provider, records, onSelect]);
+  }, [provider]);
+  useEffect(() => {
+    const Marker = markerType.current;
+    if (!readyMap || readyMap !== mapRef.current || !Marker || failure) return;
+    // Reconcile only the points. Filters/public data must not replace the map
+    // instance, camera, controls or already loaded base cartography.
+    const nextMarkers: MapLibreMarker[] = [];
+    for (const record of records) {
+      const point = pointCoordinates(record);
+      if (!point) continue;
+      const el = document.createElement("button");
+      el.type = "button";
+      el.className = "sidewalk-map-marker";
+      el.setAttribute("aria-label", `Abrir ${record.name}`);
+      el.textContent = "!";
+      el.onclick = () => onSelect(record);
+      nextMarkers.push(
+        new Marker({ element: el }).setLngLat(point).addTo(readyMap),
+      );
+    }
+    markers.current = nextMarkers;
+    return () => {
+      nextMarkers.forEach((marker) => marker.remove());
+      if (markers.current === nextMarkers) markers.current = [];
+    };
+  }, [readyMap, records, onSelect, failure]);
   if (failure)
     return (
       <div

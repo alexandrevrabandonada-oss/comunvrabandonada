@@ -410,6 +410,8 @@ test("Calçadas closes an excluded selection and does not reopen it when filters
 test("Calçadas preserves its loaded map when records and filters change", async ({
   page,
 }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/maplibre-real-map-test?vista=mapa");
   const map = page.getByRole("region", { name: mapName, exact: true });
   await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
@@ -420,6 +422,12 @@ test("Calçadas preserves its loaded map when records and filters change", async
   await page.getByRole("button", { name: "Limpar", exact: true }).click();
   await expect(map.locator(".sidewalk-map-marker")).toHaveCount(2);
   expect(await canvas!.evaluate((element) => element.isConnected)).toBe(true);
+  await page.getByRole("button", { name: "Lista", exact: true }).click();
+  expect(await canvas!.evaluate((element) => element.isConnected)).toBe(false);
+  await page.getByRole("button", { name: "Mapa", exact: true }).click();
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(2);
+  expect(errors).toEqual([]);
 });
 
 test("Calçadas shows current selected record data and closes removed records", async ({
@@ -455,4 +463,40 @@ test("Calçadas shows current selected record data and closes removed records", 
   await expect(sheet).toHaveCount(0);
   await expect(map.locator(".sidewalk-map-marker")).toHaveCount(1);
   expect(errors).toEqual([]);
+});
+
+test("Calçadas applies the latest filter when the initial map load finishes", async ({
+  page,
+}) => {
+  let release: () => void = () => {};
+  const allowed = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route(`**${archive}`, async (route) => {
+    await allowed;
+    await route.continue();
+  });
+  try {
+    await page.goto("/maplibre-real-map-test?vista=mapa");
+    const map = page.getByRole("region", { name: mapName, exact: true });
+    await expect(map).toHaveAttribute("data-pmtiles-loaded", "false");
+    await page.getByRole("button", { name: "Ruim", exact: true }).click();
+    release();
+    await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+    await expect(map.locator(".sidewalk-map-marker")).toHaveCount(1);
+    await expect(
+      map.getByRole("button", {
+        name: "Abrir Trecho sintético A",
+        exact: true,
+      }),
+    ).toHaveCount(1);
+    await expect(
+      map.getByRole("button", {
+        name: "Abrir Trecho sintético B",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+  } finally {
+    release();
+  }
 });

@@ -80,7 +80,7 @@ export function SidewalkRealMap({
   const view = params.get("vista") === "mapa" ? "map" : "list";
   const [zoom, setZoom] = useState(1),
     [pan, setPan] = useState({ x: 0, y: 0 }),
-    [selected, setSelected] = useState<PublicSidewalkRecord | null>(null),
+    [selectedId, setSelectedId] = useState<string | null>(null),
     [advanced, setAdvanced] = useState(false);
   const filters = useMemo<Filters>(
     () => ({
@@ -142,6 +142,10 @@ export function SidewalkRealMap({
       }),
     [records, filters, referenceTime],
   );
+  const selected = visible.find((record) => record.id === selectedId) ?? null;
+  // Invalidate the user's selection as soon as filters/data exclude it. Keeping
+  // only the ID also makes an open sheet use the current public DTO.
+  if (selectedId !== null && selected === null) setSelectedId(null);
   const clusters = useMemo(
     () => clusterSidewalkRecords(visible, zoom),
     [visible, zoom],
@@ -189,7 +193,7 @@ export function SidewalkRealMap({
     { label: "Resolvida", key: "forwarding", value: "resolved" },
   ] as const;
   const selectRecord = useCallback(
-    (record: PublicSidewalkRecord) => setSelected(record),
+    (record: PublicSidewalkRecord) => setSelectedId(record.id),
     [],
   );
   return (
@@ -394,7 +398,7 @@ export function SidewalkRealMap({
                       onClick={() =>
                         cluster.records.length > 1
                           ? setZoom((value) => Math.min(2.5, value + 0.5))
-                          : setSelected(single)
+                          : selectRecord(single)
                       }
                       className={`pointer-events-auto absolute grid min-h-11 min-w-11 -translate-x-1/2 -translate-y-1/2 place-items-center border-2 border-comun-black px-2 font-black shadow-[2px_2px_0_#0b0b0a] ${selected?.id === single.id ? "scale-110 bg-white" : "bg-comun-yellow"}`}
                       style={{
@@ -435,7 +439,10 @@ export function SidewalkRealMap({
             </>
           )}
           {selected ? (
-            <RecordSheet record={selected} onClose={() => setSelected(null)} />
+            <RecordSheet
+              record={selected}
+              onClose={() => setSelectedId(null)}
+            />
           ) : null}
           <Link
             href="/comun/calcadas/contribuir"
