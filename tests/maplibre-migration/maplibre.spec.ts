@@ -380,3 +380,79 @@ test("Calçadas keeps rapid search input, view and clear filters in the URL", as
   await expect(search).toHaveValue("");
   await expect(page).toHaveURL(/\?vista=mapa$/);
 });
+
+test("Calçadas closes an excluded selection and does not reopen it when filters clear", async ({
+  page,
+}) => {
+  await page.goto("/maplibre-real-map-test?vista=mapa");
+  const map = page.getByRole("region", { name: mapName, exact: true });
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await map
+    .getByRole("button", { name: "Abrir Trecho sintético A", exact: true })
+    .press("Enter");
+  const sheet = page.getByRole("complementary", {
+    name: "Ficha do registro",
+    exact: true,
+  });
+  await expect(sheet).toContainText("Resumo sintético original");
+  await page
+    .getByRole("button", { name: "Péssima", exact: true })
+    .press("Enter");
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(0);
+  await expect(sheet).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Limpar", exact: true })
+    .press("Enter");
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(2);
+  await expect(sheet).toHaveCount(0);
+});
+
+test("Calçadas preserves its loaded map when records and filters change", async ({
+  page,
+}) => {
+  await page.goto("/maplibre-real-map-test?vista=mapa");
+  const map = page.getByRole("region", { name: mapName, exact: true });
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  const canvas = await map.locator(".maplibregl-canvas").elementHandle();
+  await page.getByRole("button", { name: "Ruim", exact: true }).click();
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(1);
+  expect(await canvas!.evaluate((element) => element.isConnected)).toBe(true);
+  await page.getByRole("button", { name: "Limpar", exact: true }).click();
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(2);
+  expect(await canvas!.evaluate((element) => element.isConnected)).toBe(true);
+});
+
+test("Calçadas shows current selected record data and closes removed records", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/maplibre-real-map-test?vista=mapa");
+  const map = page.getByRole("region", { name: mapName, exact: true });
+  await expect(map).toHaveAttribute("data-pmtiles-loaded", "true");
+  await map
+    .getByRole("button", { name: "Abrir Trecho sintético A", exact: true })
+    .press("Enter");
+  const sheet = page.getByRole("complementary", {
+    name: "Ficha do registro",
+    exact: true,
+  });
+  await expect(sheet).toContainText("Resumo sintético original");
+  await page
+    .getByRole("button", { name: "Atualizar registro sintético", exact: true })
+    .press("Enter");
+  await expect(sheet).toContainText("Resumo sintético atualizado");
+  await expect(sheet).toContainText("Trecho sintético atualizado");
+  await expect(
+    map.getByRole("button", {
+      name: "Abrir Trecho sintético atualizado",
+      exact: true,
+    }),
+  ).toHaveCount(1);
+  await page
+    .getByRole("button", { name: "Remover registro sintético", exact: true })
+    .press("Enter");
+  await expect(sheet).toHaveCount(0);
+  await expect(map.locator(".sidewalk-map-marker")).toHaveCount(1);
+  expect(errors).toEqual([]);
+});
