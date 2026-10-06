@@ -6,6 +6,52 @@ const mapName = "Mapa real de Volta Redonda com registros públicos de calçadas
 const observatoryMapName =
   "Mapa de pontos de calçadas revisados e publicados com localização aproximada";
 
+test("Calçadas full filters preserve keyboard focus when opened and dismissed", async ({ page }) => {
+  await page.goto("/maplibre-real-map-test?vista=lista");
+  const trigger = page.getByRole("button", { name: "Mais filtros", exact: true });
+  await trigger.press("Enter");
+  const filters = page.getByRole("group", { name: "Filtros completos", exact: true });
+  await expect(filters).toBeVisible();
+  if (page.viewportSize()!.width < 768) {
+    await expect(filters).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("button", { name: "Fechar filtros", exact: true })).toBeFocused();
+  } else {
+    await expect(trigger).toBeFocused();
+    await trigger.press("Tab");
+    await expect(page.getByRole("combobox", { name: "Condição", exact: true })).toBeFocused();
+  }
+  await page.getByRole("combobox", { name: "Condição", exact: true }).press("Escape");
+  await expect(filters).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+});
+
+test("Calçadas mobile close button returns to filters trigger without clearing choices", async ({ page }) => {
+  test.skip(page.viewportSize()!.width >= 768, "Close button is mobile only; desktop uses the disclosure trigger.");
+  await page.goto("/maplibre-real-map-test?vista=lista");
+  const trigger = page.getByRole("button", { name: "Mais filtros", exact: true });
+  await trigger.press("Enter");
+  await page.getByRole("combobox", { name: "Condição", exact: true }).selectOption("bad");
+  await page.getByRole("button", { name: "Fechar filtros", exact: true }).press("Enter");
+  await expect(trigger).toBeFocused();
+  await expect(page).toHaveURL(/condicao=bad/);
+  await trigger.press("Enter");
+  await expect(page.getByRole("combobox", { name: "Condição", exact: true })).toHaveValue("bad");
+});
+
+test("Calçadas filters do not capture Escape or steal focus outside the panel", async ({ page }) => {
+  await page.goto("/maplibre-real-map-test?vista=lista");
+  const trigger = page.getByRole("button", { name: "Mais filtros", exact: true });
+  await trigger.press("Enter");
+  const search = page.getByRole("textbox", { name: "Buscar rua, trecho ou bairro", exact: true });
+  await search.press("Escape");
+  await expect(page.getByRole("group", { name: "Filtros completos", exact: true })).toBeVisible();
+  await expect(search).toBeFocused();
+  await search.fill("test");
+  await expect(search).toBeFocused();
+});
+
 test("observatory component keeps map, selected detail and list consistent with filters", async ({
   page,
 }) => {
