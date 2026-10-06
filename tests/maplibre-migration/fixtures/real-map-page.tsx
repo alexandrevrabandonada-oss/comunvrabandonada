@@ -37,7 +37,9 @@ const initialRecords: PublicSidewalkRecord[] = [
 export default function RealMapFixture() {
   const [records, setRecords] = useState(initialRecords);
   return (
-    <>
+    // Match the foreground/background supplied by MiniAppExperienceShell.
+    // This fixture bypasses that shell and must not inherit the dark body.
+    <div className="min-h-screen bg-[#f4f1e8] text-comun-black">
       <p role="note">LOCAL TEST FIXTURE — NOT EDITORIAL CONTENT</p>
       <button
         onClick={() =>
@@ -68,6 +70,6 @@ export default function RealMapFixture() {
       <Suspense fallback={<p>Carregando fixture local</p>}>
         <SidewalkRealMap records={records} provider={realBasemapProvider} />
       </Suspense>
-    </>
+    </div>
   );
 }
