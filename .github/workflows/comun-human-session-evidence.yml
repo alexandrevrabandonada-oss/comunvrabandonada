@@ -1,0 +1,24 @@
+name: COMUN Human Session Evidence Contract
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/comun-human-session-evidence.yml"
+      - "scripts/human-gate/**"
+      - "docs/comun-roteiro-revisao-humana-experiencia.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  human-session-evidence-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+      - name: Test session reporting with synthetic files
+        run: node --test scripts/human-gate/summarize-session.node-test.mjs
