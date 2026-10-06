@@ -33,7 +33,7 @@ PR #504 integrado: recortes de calendário corrigidos; 49 casos MapLibre passara
 
 ### Rádio — salvaguardas candidatas na base atual
 
-A revisão da PR #436 identificou um recorte independente de migração: restringir as cinco ações editoriais a admin/editor, exigir consentimentos presentes e duração inteira positiva dentro do limite existente, e interromper a publicação quando qualquer uma das sete consultas editoriais falha ou o episódio não existe. O candidato preserva o contrato atual de banco; ainda requer checks e integração para contar como entrega.
+A revisão da PR #436 identificou um recorte independente de migração: restringir as cinco ações editoriais a admin/editor, exigir consentimentos presentes e duração inteira positiva dentro do limite existente, e interromper a publicação quando qualquer uma das sete consultas editoriais falha ou o episódio não existe. Lista e detalhe públicos também ocultam episódios quando a consulta de raiz, consentimentos, direitos musicais ou revisão de segurança falha, preservando episódios elegíveis quando as consultas respondem. O candidato preserva o contrato atual de banco; ainda requer checks e integração para contar como entrega.
 
 Este recorte não resolve a concorrência entre revisão e commit nem a possibilidade de gravações parciais. A identidade editorial transacional da PR #436 ainda precisa ser reconciliada e comprovada em banco descartável, seguida de validação no schema canônico antes de ativar o novo caminho. Direitos e consentimentos reais permanecem uma dependência distinta dos testes automatizados.
 
