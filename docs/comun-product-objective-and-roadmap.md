@@ -16,6 +16,7 @@ O produto está no fechamento técnico e operacional da V1, antes do ensaio inte
 | Conteúdo e governança, 47.10                     | Revisão editorial e equipe operacional ainda não comprovadas                                                                                                   | Manter ajuda, fluxos de revisão, retenção e critérios de evidência consistentes com o comportamento real                     | Pessoas responsáveis, substitutos, direitos e prazos confirmados                                                                                             |
 | Ensaio e lançamento, 47.11                       | Ensaio integrado incompleto; gate integral fechado                                                                                                             | Preparar instrumentos de coleta, verificações sanitizadas e pacote por versão                                                | Três sessões reais, estabilidade medida e decisão final                                                                                                      |
 | Escola COMUN R0                                  | PR #503 aberto, head `a8dbe550583526eae631deafa3c574fbcfb18993` na consulta; 24 micro-missões candidatas, progresso privado, flag desligada                    | Finalizar checks globais e validar integração no schema canônico antes de ativar                                             | Ambiente COMUN identificado e revisão humana do material; testes locais não comprovam ativação                                                               |
+| Fábrica COMUN 49-D                               | Frente pós-V1 aceita; integração canônica documentada, sem rota, flag, schema ou ativação própria nesta base                                                  | Preservar Escola, comunidades, Pautas/Ações/Tarefas, Minha Participação e Observatórios como raízes; preparar piloto manual   | Escola R0 estabilizada para prática; competências compartilhadas antes de perfil público; demanda real antes de qualquer schema fabril                          |
 | Serviços Públicos                                | PR documental #434 aberto; expansão fora do fechamento V1                                                                                                      | Revisar arquitetura e limites da proposta separadamente                                                                      | Decisão de escopo posterior; sem expansão automática                                                                                                         |
 
 ### Evidência técnica já integrada
@@ -82,6 +83,40 @@ Inteligência cívica e coerência da experiência atravessam esses domínios. A
 | 8 — lançamento              | Apresentar resultado ao gate existente `launch_publicly`                                                                    | Decisão humana final; só depois reconciliar indexação e comunicação de lançamento                                                                      |
 
 Correções técnicas podem avançar em paralelo. A ordem acima expressa dependências de evidência, sem inventar datas ou disponibilidade da equipe. Não cria gates intermediários adicionais.
+
+## Roadmap pós-V1 canônico — organização, Escola e Fábrica
+
+As frentes abaixo não alteram o gate de lançamento da V1. Trabalho de contrato, documentação e protótipo isolado pode avançar em paralelo, mas ativação pública, migrations e novos domínios de dados respeitam as dependências explícitas.
+
+| Bloco | Entrega | Reuso obrigatório | Critério para avançar |
+| --- | --- | --- | --- |
+| 49-A — Núcleos permanentes | Tornar explícita a organização durável de pessoas por responsabilidade, sem transformar grupo de trabalho temporário em estrutura permanente | comunidades, memberships, papéis auditáveis, Minha Participação | núcleo real operando com responsáveis e revisão; nenhuma autorização derivada de texto livre de `scope` |
+| 49-B — Ciclo estratégico | Objetivos, hipóteses, revisão e aprendizagem política ligados ao ciclo pauta → ação → resultado → memória | Pautas, Rodas, Ações, Tarefas, Resultados e Memória | um ciclo real completo sem duplicar ação, tarefa ou resultado |
+| 49-C — Escola COMUN | Formação prática progressiva; R0 atual é a primeira implementação técnica | Auth comunitária, Pauta/Tarefa, Minha Participação, revisão editorial | R0 integrado e ensaiado; depois competências com evidência, mentoria/formador-aprendiz e extensões tipadas |
+| 49-D — Fábrica COMUN | Converter problemas reais em prática, projeto, protótipo, teste, solução aberta e capacidade comunitária | Escola, perfis/Minha Participação, comunidades, grupos, Pautas, Ações, Tarefas, Observatórios e Memória | piloto prova demanda e reuso antes de schema fabril; nenhuma segunda hierarquia social ou educacional |
+
+### 49-D — sequência da Fábrica COMUN
+
+**49-D0 — Contrato canônico e experiência.** A Fábrica é um módulo do COMUN, não um segundo sistema. Entrada pública futura: “Tenho um problema”, “Quero fazer” e “Quero aprender”. Nenhuma dessas portas cria automaticamente uma nova raiz social. O contrato detalhado está em [comun-fabrica-canonical-integration.md](comun-fabrica-canonical-integration.md).
+
+**49-D1 — Piloto operacional sem novo schema fabril.** Executar casos reais usando Pauta/Tarefa/Ação e Escola onde couber; registrar manualmente custo, risco, versões e resultado. Gate mínimo: 10 casos iniciados, 5 resolvidos e documentação suficiente para descobrir quais metadados fabris realmente não cabem nas estruturas existentes. O checkpoint ampliado permanece FC-MVP-25: 25 casos, 15 resolvidos, 5 projetos abertos, 3 operadores autônomos, 1 escola, 1 projeto de acessibilidade, 1 tecnologia ambiental e 1 solução reutilizada.
+
+**49-D2 — Extensão mínima orientada por evidência.** Somente após o piloto, considerar estruturas especializadas para estado técnico do caso, versões de projeto/BOM e rastreabilidade. Essas estruturas devem apontar para objetos canônicos e nunca duplicar Pauta, Ação, Tarefa, Resultado, Comunidade, progresso da Escola ou identidade.
+
+**49-D3 — Operação física.** Máquinas, filas, materiais, manutenção, instalações, falhas e segurança. Dados operacionais de máquina não viram reputação social; risco técnico possui gate humano próprio.
+
+**49-D4 — Rede distribuída.** Nós parceiros e capacidades externas, replicação de soluções e encaminhamento para quem consegue fabricar. Só promover depois de existir demanda que justifique coordenação multi-nó.
+
+### Contrato de integração da Fábrica
+
+- **Escola:** cursos/trilhas da Fábrica usam o catálogo e o progresso compartilhados da Escola; não existe “curso da Fábrica” em banco paralelo. A prática real pode apontar para trabalho canônico e, quando necessário, para evidência fabril tipada posterior.
+- **Perfis e competências:** competência é evidência derivada de prática revisada e participação em trabalho real, privada por padrão. Não criar ranking, XP público ou autoatribuição como prova de capacidade. Exposição pública exige escolha explícita.
+- **Comunidades:** `comun_communities`, memberships e grupos existentes continuam sendo a organização social. Projetos da Fábrica podem pertencer a uma comunidade; equipe temporária usa grupo/tarefa. Um futuro Núcleo Fábrica pertence ao 49-A, não a uma tabela social nova.
+- **Pautas, Ações e Tarefas:** o problema coletivo continua em Pauta; execução concreta continua em Ação/Tarefa. “Caso FC” é, no máximo, especialização operacional para fabricação e não substitui esses objetos.
+- **Observatórios:** podem detectar demanda e receber resultados medidos. A Fábrica fabrica instrumento ou intervenção; não passa a ser dona do dataset ambiental, urbano ou de serviço público.
+- **Memória/Acervo:** resultado, falha, versão e aprendizagem retornam ao ciclo de memória. Arquivos técnicos abertos podem ter projeção pública própria, mas direitos, retenção e publicação seguem os contratos existentes.
+- **Minha Participação:** é o centro pessoal para missões, práticas, tarefas e projetos assumidos; não criar dashboard pessoal concorrente.
+- **Segurança:** peças de risco, máquinas e instalações têm revisão humana e limites de responsabilidade. A Fábrica não usa gamificação para empurrar alguém a executar trabalho inseguro.
 
 ## Pendências que exigem fatos externos ao código
 
