@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
+import { readSupabaseLocalEnv } from "./ci/read-supabase-local-env.mjs";
 
 // Own only the dedicated contract database in the exact local CLI container.
 // Neither remote URLs nor container discovery are accepted here.
@@ -101,6 +102,17 @@ try {
     database,
     "create table public.comun_radio_contract_fixture_guard(scope text not null);insert into public.comun_radio_contract_fixture_guard values('full_local_chain_schema_only')",
   );
+  phase = "local_connection";
+  const local = readSupabaseLocalEnv();
+  assert.ok(local.ok, "local CLI status required");
+  const connection = new URL(
+    local.output.match(/^DB_URL="([^"\r\n]+)"$/m)?.[1] ?? "http://missing",
+  );
+  assert.ok(["postgres:", "postgresql:"].includes(connection.protocol));
+  assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(connection.hostname));
+  assert.equal(connection.port, port);
+  assert.equal(connection.pathname, "/postgres");
+  connection.pathname = `/${database}`;
   phase = "publication_contract";
   const output = execFileSync(
     process.execPath,
@@ -112,7 +124,7 @@ try {
       env: {
         ...process.env,
         COMUN_RADIO_CONTRACT_SCHEMA: "full_local_chain",
-        COMUN_RADIO_CONTRACT_DATABASE_URL: `postgresql://postgres:postgres@127.0.0.1:${port}/${database}`,
+        COMUN_RADIO_CONTRACT_DATABASE_URL: connection.href,
       },
     },
   );

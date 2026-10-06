@@ -27,12 +27,12 @@ assert.ok(
   "unknown contract schema mode",
 );
 const admin = new pg.Client({ connectionString: url.href });
-await admin.connect();
 const actor = randomUUID(),
   viewer = randomUUID();
 const checks = [];
 const service = new pg.Client({ connectionString: url.href });
 try {
+  await admin.connect();
   if (fullSchema) {
     const marker = await admin.query(
       "select scope from public.comun_radio_contract_fixture_guard",
