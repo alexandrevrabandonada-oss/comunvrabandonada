@@ -101,6 +101,7 @@ As frentes abaixo não alteram o gate de lançamento da V1. Contratos, documenta
 | 49-B — Ciclo estratégico | Objetivos, hipóteses, revisão e aprendizagem ligados ao ciclo pauta → ação → resultado → memória | Pautas, Rodas, Ações, Tarefas, Resultados e Memória | um ciclo real completo sem duplicar ação, tarefa ou resultado |
 | 49-C — Escola COMUN | Formação prática progressiva; R0 é a primeira implementação técnica | Auth, Pauta/Tarefa, Minha Participação e revisão editorial | R0 integrado e ensaiado; extensões posteriores não quebram progresso já concluído |
 | 49-C1 — Competências com Evidência | Transformar prática revisada e trabalho real em afirmações escopadas de capacidade | Escola, Tarefas/Ações e Minha Participação | competência privada por padrão, revisão independente, zero promoção por curso concluído e zero ranking |
+| 49-C2 — Experiência de competências | Apresentar estados, privacidade, publicação e matching dentro de Minha Participação | 49-C1 + Minha Participação | view model sanitizado, atenção priorizada, publicação e matching separados; conexão real só após schema/RLS |
 | 49-D — Fábrica COMUN | Converter problemas reais em prática, protótipo, solução aberta e capacidade comunitária | 49-C/49-C1, comunidades, Pautas, Ações, Tarefas, Observatórios e Memória | piloto prova demanda e reuso antes de schema fabril; nenhuma segunda hierarquia social ou educacional |
 
 ### 49-C1 — Competências com Evidência
@@ -114,6 +115,16 @@ As frentes abaixo não alteram o gate de lançamento da V1. Contratos, documenta
 **Mentoria e operação de máquina:** não são promoções automáticas de nível. Exigem contrato/gate próprio, especialmente quando houver segurança física.
 
 **Schema:** nenhum schema 49-C1 entra antes da estabilização da Escola R0. O código desta frente fixa somente o contrato puro de validação/projeção, permitindo testar as invariantes antes da migration.
+
+### 49-C2 — Experiência em Minha Participação
+
+**Estados:** construindo evidência → aguardando revisão → demonstrada → precisa revisar → arquivada. O sistema prioriza atenção, não prestígio.
+
+**Controles separados:** visibilidade pública e uso privado para sugestões de tarefas são consentimentos distintos. Uma competência pode permanecer privada e ainda ser usada para matching, ou ser pública sem aceitar sugestões.
+
+**Privacidade:** o view model não transporta reviewer, sourceId, reflexão, tarefa/pauta privada ou nota de revisão. O componente preparado em `components/comun-competency-panel.tsx` recebe apenas projeção sanitizada.
+
+**Ativação:** o painel não é conectado ainda à superfície real. Isso só ocorre depois de schema/RLS, loader owner-only, mutations auditáveis e feature flag OFF-by-default. O contrato está em [comun-competency-experience.md](comun-competency-experience.md).
 
 ### 49-D — sequência da Fábrica COMUN
 
