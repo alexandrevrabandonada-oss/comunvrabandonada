@@ -165,7 +165,7 @@ try {
 
   await check("invoker and private execution permissions", async () => {
     const functions = await admin.query(
-      "select proname,prosecdef,proconfig from pg_proc where proname = any($1::text[]) and pronamespace in ('public'::regnamespace,'private'::regnamespace)",
+      "select proname,prosecdef,proconfig,provolatile from pg_proc where proname = any($1::text[]) and pronamespace in ('public'::regnamespace,'private'::regnamespace)",
       [
         [
           "comun_radio_editorial_snapshot",
@@ -182,6 +182,9 @@ try {
     for (const row of functions.rows) {
       assert.equal(row.prosecdef, false);
       assert.deepEqual(row.proconfig, ["search_path=pg_catalog"]);
+      if (row.proname === "comun_prepare_radio_publication_review") {
+        assert.equal(row.provolatile, "s");
+      }
     }
     for (const role of ["anon", "authenticated"]) {
       const permissions = await admin.query(
@@ -195,6 +198,27 @@ try {
     const episode = await fixture();
     assert.equal((await prepare(episode, viewer)).outcome, "denied");
     assert.equal((await prepare(episode)).outcome, "ready");
+  });
+  await check("editor revoked after review is denied at commit", async () => {
+    const episode = await fixture();
+    const review = await prepare(episode);
+    try {
+      await admin.query(
+        "update public.comun_admin_users set is_active=false where id=$1",
+        [actor],
+      );
+      assert.equal((await commit(episode, review.identity)).outcome, "denied");
+      const state = await admin.query(
+        "select publication_status from public.comun_radio_episodes where archive_item_id=$1",
+        [episode],
+      );
+      assert.equal(state.rows[0].publication_status, "editorial_review");
+    } finally {
+      await admin.query(
+        "update public.comun_admin_users set is_active=true where id=$1",
+        [actor],
+      );
+    }
   });
   await check(
     "successful atomic publication and idempotent replay",
@@ -413,64 +437,74 @@ try {
     "comun_radio_editorial_versions",
   ].sort();
   for (const phase of ["prepare", "commit"]) {
-    await check(
-      `${phase} global lock impact and transaction release`,
-      async () => {
-        const episode = await fixture();
-        const unrelated = await fixture();
-        const review = await prepare(episode);
-        const holder = new pg.Client({ connectionString: url.href });
-        const writer = new pg.Client({ connectionString: url.href });
-        const reader = new pg.Client({ connectionString: url.href });
-        let pending;
-        try {
-          await holder.connect();
-          await writer.connect();
-          await reader.connect();
-          for (const client of [holder, writer, reader]) {
-            await client.query("set role service_role");
-            await client.query("set statement_timeout='10s'");
-          }
-          await holder.query("begin");
-          const result =
-            phase === "prepare"
-              ? (
-                  await holder.query(
-                    "select public.comun_prepare_radio_publication_review($1,$2) value",
-                    [episode, actor],
-                  )
-                ).rows[0].value
-              : await commit(episode, review.identity, holder);
-          assert.equal(
-            result.outcome,
-            phase === "prepare" ? "ready" : "published",
-          );
-          const locks = await admin.query(
-            "select c.relname from pg_locks l join pg_class c on c.oid=l.relation join pg_namespace n on n.oid=c.relnamespace where l.pid=$1 and l.granted and l.mode='ShareRowExclusiveLock' and n.nspname='public' order by c.relname",
-            [holder.processID],
-          );
-          assert.deepEqual(
-            locks.rows.map((row) => row.relname),
-            compositionTables,
-          );
+    await check(`${phase} lock scope and transaction release`, async () => {
+      const episode = await fixture();
+      const unrelated = await fixture();
+      const review = await prepare(episode);
+      const holder = new pg.Client({ connectionString: url.href });
+      const writer = new pg.Client({ connectionString: url.href });
+      const reader = new pg.Client({ connectionString: url.href });
+      let pending;
+      try {
+        await holder.connect();
+        await writer.connect();
+        await reader.connect();
+        for (const client of [holder, writer, reader]) {
+          await client.query("set role service_role");
+          await client.query("set statement_timeout='10s'");
+        }
+        await holder.query("begin");
+        const result =
+          phase === "prepare"
+            ? (
+                await holder.query(
+                  "select public.comun_prepare_radio_publication_review($1,$2) value",
+                  [episode, actor],
+                )
+              ).rows[0].value
+            : await commit(episode, review.identity, holder);
+        assert.equal(
+          result.outcome,
+          phase === "prepare" ? "ready" : "published",
+        );
+        const locks = await admin.query(
+          "select c.relname from pg_locks l join pg_class c on c.oid=l.relation join pg_namespace n on n.oid=c.relnamespace where l.pid=$1 and l.granted and l.mode='ShareRowExclusiveLock' and n.nspname='public' order by c.relname",
+          [holder.processID],
+        );
+        assert.deepEqual(
+          locks.rows.map((row) => row.relname),
+          phase === "prepare" ? [] : compositionTables,
+        );
 
-          // This is an ordinary database read, not a public RLS authorization test.
-          await reader.query("set lock_timeout='1s'");
-          const readable = await reader.query(
-            "select id from public.comun_archive_items where id=$1",
+        // This is an ordinary database read, not a public RLS authorization test.
+        await reader.query("set lock_timeout='1s'");
+        const readable = await reader.query(
+          "select id from public.comun_archive_items where id=$1",
+          [unrelated],
+        );
+        assert.equal(readable.rowCount, 1);
+        await writer.query("set lock_timeout='5s'");
+        pending = writer
+          .query(
+            "update public.comun_archive_items set title=title where id=$1",
             [unrelated],
+          )
+          .then(
+            (value) => ({ value }),
+            (error) => ({ error }),
           );
-          assert.equal(readable.rowCount, 1);
-          await writer.query("set lock_timeout='5s'");
-          pending = writer
-            .query(
-              "update public.comun_archive_items set title=title where id=$1",
-              [unrelated],
-            )
-            .then(
-              (value) => ({ value }),
-              (error) => ({ error }),
-            );
+        if (phase === "prepare") {
+          // Completion while holder is still open proves preparation does not
+          // serialize other archive writes. Mutate reviewed data as well:
+          // the later commit must reject the now-obsolete identity.
+          const completed = await pending;
+          assert.ifError(completed.error);
+          assert.equal(completed.value.rowCount, 1);
+          await writer.query(
+            "update public.comun_archive_assets set rights_status='pending' where archive_item_id=$1",
+            [episode],
+          );
+        } else {
           const deadline = Date.now() + 3000;
           let blockedByHolder = false;
           while (Date.now() < deadline) {
@@ -488,33 +522,44 @@ try {
             blockedByHolder,
             "unrelated archive write must wait for this transaction",
           );
-          await holder.query("commit");
-          const completed = await pending;
-          assert.ifError(completed.error);
-          assert.equal(completed.value.rowCount, 1);
-          const remaining = await admin.query(
-            "select count(*)::int n from pg_locks where pid=$1 and mode='ShareRowExclusiveLock'",
-            [holder.processID],
+        }
+        await holder.query("commit");
+        const completed = await pending;
+        assert.ifError(completed.error);
+        assert.equal(completed.value.rowCount, 1);
+        const remaining = await admin.query(
+          "select count(*)::int n from pg_locks where pid=$1 and mode='ShareRowExclusiveLock'",
+          [holder.processID],
+        );
+        assert.equal(remaining.rows[0].n, 0);
+        if (phase === "prepare") {
+          assert.equal(
+            (await commit(episode, result.identity)).outcome,
+            "conflict",
           );
-          assert.equal(remaining.rows[0].n, 0);
+          const state = await admin.query(
+            "select publication_status from public.comun_radio_episodes where archive_item_id=$1",
+            [episode],
+          );
+          assert.equal(state.rows[0].publication_status, "editorial_review");
+        }
+      } finally {
+        // Release the blocker before waiting for the writer, including on failure.
+        try {
+          await holder.query("rollback");
         } finally {
-          // Release the blocker before waiting for the writer, including on failure.
-          try {
-            await holder.query("rollback");
-          } finally {
-            if (pending) await pending;
-            const closed = await Promise.allSettled([
-              holder.end(),
-              writer.end(),
-              reader.end(),
-            ]);
-            for (const result of closed) {
-              if (result.status === "rejected") throw result.reason;
-            }
+          if (pending) await pending;
+          const closed = await Promise.allSettled([
+            holder.end(),
+            writer.end(),
+            reader.end(),
+          ]);
+          for (const result of closed) {
+            if (result.status === "rejected") throw result.reason;
           }
         }
-      },
-    );
+      }
+    });
   }
   console.log(
     JSON.stringify({
@@ -525,10 +570,14 @@ try {
         : "disposable_postgresql_minimal_dependencies",
       names: checks,
       lockImpact: {
-        scope: "global_composition_tables",
+        scope: "commit_global_composition_tables",
         tableCount: compositionTables.length,
-        phases: ["prepare", "commit"],
-        unrelatedArchiveWrites: "blocked_until_transaction_end",
+        preparation: {
+          globalCompositionLocks: 0,
+          unrelatedArchiveWrites: "available",
+          staleIdentityAtCommit: "rejected",
+        },
+        commit: { unrelatedArchiveWrites: "blocked_until_transaction_end" },
         ordinaryReads: "available",
         locksAfterTransaction: "released",
         productionLatencyMeasured: false,

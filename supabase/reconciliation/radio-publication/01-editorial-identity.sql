@@ -151,14 +151,15 @@ end $$;
 
 create or replace function public.comun_prepare_radio_publication_review(
   p_episode_id uuid, p_admin_id uuid
-) returns jsonb language plpgsql security invoker
+) returns jsonb language plpgsql stable security invoker
 set search_path = pg_catalog
 as $$
 declare v_admin public.comun_admin_users%rowtype; v_identity text; v_blockers text[];
 begin
-  select * into v_admin from public.comun_admin_users where id=p_admin_id and is_active for share;
+  select * into v_admin from public.comun_admin_users where id=p_admin_id and is_active;
   if not found or v_admin.role not in ('admin','editor') then return jsonb_build_object('outcome','denied'); end if;
-  perform private.comun_lock_radio_editorial_composition();
+  -- Advisory review only: STABLE uses the calling query's consistent snapshot.
+  -- Publication always rechecks authorization, identity and blockers under locks.
   v_identity := private.comun_radio_editorial_identity(p_episode_id);
   if v_identity is null then return jsonb_build_object('outcome','conflict'); end if;
   v_blockers := private.comun_radio_publication_blockers(p_episode_id);
