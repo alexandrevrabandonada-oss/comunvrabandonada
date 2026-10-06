@@ -39,7 +39,7 @@ try {
       if not exists(select 1 from pg_roles where rolname='authenticated') then create role authenticated nologin; end if;
       if not exists(select 1 from pg_roles where rolname='service_role') then create role service_role nologin bypassrls; end if;
     end $$;
-    create table public.comun_archive_items(id uuid primary key default gen_random_uuid(),item_type text not null,status text not null default 'draft',visibility text not null default 'private',published_at timestamptz);
+    create table public.comun_archive_items(id uuid primary key default gen_random_uuid(),item_type text not null,title text,status text not null default 'draft',visibility text not null default 'private',published_at timestamptz);
     create table public.comun_archive_assets(id uuid primary key default gen_random_uuid(),archive_item_id uuid references public.comun_archive_items,asset_role text,bucket_scope text,review_status text,rights_status text,public_url text);
     create table public.comun_archive_agents(id uuid primary key);
     create table public.comun_hub_territories(id uuid primary key);
@@ -262,6 +262,18 @@ try {
     [
       "episode",
       "update public.comun_radio_episodes set summary_public='Changed summary' where archive_item_id=$1",
+    ],
+    [
+      "episode slug",
+      "update public.comun_radio_episodes set slug_public='changed-'||slug_public where archive_item_id=$1",
+    ],
+    [
+      "episode download permission",
+      "update public.comun_radio_episodes set allow_download=true where archive_item_id=$1",
+    ],
+    [
+      "archive root title",
+      "update public.comun_archive_items set title='Changed archive title' where id=$1",
     ],
   ])
     await check(`concurrent stale ${name}`, async () => {

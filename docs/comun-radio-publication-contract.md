@@ -2,7 +2,7 @@
 
 Este recorte reconcilia a identidade editorial da PR #436 com a base da PR #506. O SQL permanece em `supabase/reconciliation/radio-publication`, fora de migrations e sem chamada pela aplicação. Ele não comprova instalação ou ativação no schema canônico.
 
-O digest cobre episódio, asset, direitos, consentimentos, créditos, música, revisão de segurança e conteúdo da transcrição. O commit serializa as tabelas participantes, recalcula o digest e o checklist, rejeita revisão obsoleta com auditoria e grava episódio, raiz pública, versão editorial e auditoria na mesma transação. Falha em qualquer escrita deve reverter a publicação inteira.
+O digest cobre os campos públicos do episódio (incluindo endereço e opção de download), raiz do Acervo e metadados de todos os assets vinculados, direitos, consentimentos, créditos, música, revisão de segurança e conteúdo da transcrição. O commit serializa as tabelas participantes, recalcula o digest e o checklist, rejeita revisão obsoleta com auditoria e grava episódio, raiz pública, versão editorial e auditoria na mesma transação. Falha em qualquer escrita deve reverter a publicação inteira.
 
 Diferenças do candidato histórico:
 
@@ -14,4 +14,4 @@ A prova usa PostgreSQL 17 descartável, com as tabelas, constraints, índices, t
 
 Execução: definir `COMUN_RADIO_CONTRACT_DATABASE_URL` para o banco local descartável e executar `node scripts/radio-publication-contract.mjs`. Não usar uma conexão do ambiente canônico.
 
-Restam antes de ativação: validação na cadeia canônica completa, revisão de impacto dos locks globais, geração da migration forward-only, plano/checks de ownership, verificação do alvo e implantação de schema e aplicação compatíveis. Nenhuma amostra humana é necessária para essas provas técnicas; direitos, consentimentos e curadoria reais permanecem requisitos editoriais distintos.
+Restam antes de ativação: validação na cadeia canônica completa, revisão de impacto dos locks globais, geração da migration forward-only, plano/checks de ownership, verificação do alvo e implantação de schema e aplicação compatíveis. O digest representa os metadados revisados no banco; não comprova imutabilidade dos bytes ou revogação de URLs no storage. Nenhuma amostra humana é necessária para essas provas técnicas; direitos, consentimentos e curadoria reais permanecem requisitos editoriais distintos.

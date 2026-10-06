@@ -13,6 +13,14 @@ as $$
     'episode', jsonb_build_object(
       'archive_item_id', e.archive_item_id,
       'program_item_id', e.program_item_id,
+      'slug_public', e.slug_public,
+      'season_number', e.season_number,
+      'episode_number', e.episode_number,
+      'recorded_at', e.recorded_at,
+      'action_id', e.action_id,
+      'cover_artwork_item_id', e.cover_artwork_item_id,
+      'sensitivity_level', e.sensitivity_level,
+      'allow_download', e.allow_download,
       'title_public', e.title_public,
       'summary_public', e.summary_public,
       'description_public', e.description_public,
@@ -21,17 +29,11 @@ as $$
       'pauta_id', e.pauta_id,
       'transcript_status', e.transcript_status
     ),
-    'archive_item', jsonb_build_object('id', i.id, 'item_type', i.item_type),
+    'archive_item', to_jsonb(i) - 'created_at' - 'updated_at' - 'published_at' - 'status' - 'visibility',
     'assets', coalesce((
-      select jsonb_agg(jsonb_build_object(
-        'id', a.id, 'asset_role', a.asset_role,
-        'bucket_scope', a.bucket_scope, 'review_status', a.review_status,
-        'rights_status', a.rights_status,
-        'public_url', a.public_url
-      ) order by a.id)
+      select jsonb_agg((to_jsonb(a) - 'created_at' - 'updated_at') order by a.id)
       from public.comun_archive_assets a
       where a.archive_item_id = p_episode_id
-        and a.asset_role = 'radio_public_episode'
     ), '[]'::jsonb),
     'credits', coalesce((
       select jsonb_agg(jsonb_build_object(
