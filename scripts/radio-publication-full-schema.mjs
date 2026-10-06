@@ -141,7 +141,21 @@ try {
     migrationChainSha256: digest.digest("hex"),
     productionSchemaVerified: false,
   };
-} catch {
+} catch (error) {
+  if (phase === "publication_contract") {
+    for (const line of String(error.stderr ?? "").split(/\r?\n/)) {
+      try {
+        const detail = JSON.parse(line);
+        if (
+          detail.status === "failed" &&
+          Number.isInteger(detail.completedChecks)
+        )
+          process.stderr.write(`${JSON.stringify(detail)}\n`);
+      } catch {
+        // Never forward raw subprocess output or SQL to the evidence envelope.
+      }
+    }
+  }
   process.stderr.write(
     `COMUN_RADIO_FULL_SCHEMA_CONTRACT_FAILED phase=${phase}\n`,
   );
