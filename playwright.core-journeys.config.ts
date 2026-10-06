@@ -20,7 +20,9 @@ export default defineConfig({
     name,
     use: { viewport: { width, height } },
   })),
-  use: { baseURL, trace: "retain-on-failure" },
+  // Use the full Chromium binary installed by setup-playwright-browser.
+  // The separate headless shell has crashed before browser.newContext in CI.
+  use: { baseURL, channel: "chromium", trace: "retain-on-failure" },
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined
     : {
