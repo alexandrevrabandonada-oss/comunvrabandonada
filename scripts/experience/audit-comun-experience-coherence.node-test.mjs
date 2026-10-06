@@ -20,7 +20,10 @@ test("contrato de coerência cobre rotas, pilotos, tokens e roadmap", async () =
   // Includes the future sanitized problem detail; it remains cloaked while the Production map flag is OFF.
   // Includes the publisher-only R5 collective-entity projection desk.
   // Includes member entity onboarding and the R4 reviewer desk.
-  assert.equal(report.routeInventory.totalPages, 232);
+  // Escola R0 adds six learner pages (Hoje, Trilhas, Missão, Prática,
+  // Materiais, Progresso) and one private admin desk. All seven are required
+  // by the audit even while COMUN_LEARNING_R0_ENABLED remains disabled.
+  assert.equal(report.routeInventory.totalPages, 239);
   assert.equal(report.routeInventory.missingRequiredRoutes, 0);
   assert.equal(report.routeInventory.knownCompatibleRedirects, 1);
   assert.deepEqual(report.pilots.levels, [0, 1, 2]);

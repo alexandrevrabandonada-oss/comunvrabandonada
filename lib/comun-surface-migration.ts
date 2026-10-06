@@ -104,6 +104,7 @@ const ADMIN_CIVIC_PREFIXES = [
   "/comun/admin/curadoria",
   "/comun/admin/dossies",
   "/comun/admin/entidades",
+  "/comun/admin/escola",
   "/comun/admin/notificacoes",
   "/comun/admin/observatorios",
   "/comun/admin/pautas",

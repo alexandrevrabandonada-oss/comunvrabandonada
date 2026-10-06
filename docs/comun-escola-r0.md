@@ -87,3 +87,27 @@ O workflow `COMUN Escola contract` do commit
 `c702b7f89180de00a3192361220a23d46b407d4f` concluiu com sucesso no GitHub
 Actions: dez testes de domínio/API e o contrato SQL em PostgreSQL 17 real.
 Run: https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/37478587480.
+
+### Integração com os gates globais — 6 de outubro de 2026
+
+A migração `20261006134804_comun_learning_r0.sql` pertence explicitamente
+à lane `learning-r0`. Ela adiciona seis tabelas e funções próprias, com
+referências a Auth/Pautas, sem alterar tabelas desses domínios. Os gates
+históricos a classificam como `not_applicable`; a própria lane a classifica
+como `candidate`. Arquivos desconhecidos e candidatos misturados a outras
+lanes continuam bloqueados. O contrato SQL da Escola permanece obrigatório.
+
+O delta de inventário foi conferido contra a base do PR: 232 páginas anteriores,
+nenhuma removida e sete adicionadas: `/comun/escola`, `/comun/escola/trilhas`,
+`/comun/escola/missao/[slug]`, `/comun/escola/pratica`, `/comun/escola/materiais`,
+`/comun/escola/progresso` e `/comun/admin/escola`. O contrato de coerência exige
+agora essas sete rotas, além de manter contagem exata de 239, ausência de
+findings, redirects, pilotos e ensaio humano obrigatório.
+
+Na matriz de superfícies, a fila de revisão pertence à administração
+cívica/editorial (Onda 3), e não à administração sistêmica (Onda 4): 86 e 12
+páginas, respectivamente. A matriz RLS classifica programas, unidades e
+recursos como `public_read_safe`, e inscrições, progresso e práticas como
+`owner_read`, de acordo com os grants e policies existentes na migração.
+Nenhuma permissão SQL foi ampliada. Migração remota, flag e escopo
+`local_candidate` permanecem inalterados.

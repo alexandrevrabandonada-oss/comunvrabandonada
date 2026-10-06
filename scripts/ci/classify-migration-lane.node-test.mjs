@@ -2,6 +2,64 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { classifyMigrationLane } from "./classify-migration-lane.mjs";
 
+const learning = "supabase/migrations/20261006134804_comun_learning_r0.sql";
+
+test("Escola R0 has explicit ownership and is N/A to every historical gate", () => {
+  assert.deepEqual(classifyMigrationLane("learning-r0", [learning]), {
+    mode: "candidate",
+    lane: "learning-r0",
+    files: [
+      { file: "20261006134804_comun_learning_r0.sql", owner: "learning-r0" },
+    ],
+  });
+  for (const lane of [
+    "p6c-b1",
+    "p6c-b2",
+    "p6c-c",
+    "48-2-a",
+    "48-3-a1",
+    "48-3-b0",
+    "48-3-e2",
+    "48-4-a0",
+    "48-4-a2",
+    "48-4-a4",
+    "48-4-a5",
+    "48-4-a7",
+    "48-5-a0",
+    "culture-b2-a1",
+    "culture-b2-a2",
+    "collective-entity-private-candidate",
+    "collective-entity-legitimacy-eligibility",
+    "collective-entity-public-projection-gate",
+  ]) {
+    const result = classifyMigrationLane(lane, [learning]);
+    assert.equal(result.mode, "not_applicable", lane);
+    assert.equal(result.files[0].owner, "learning-r0", lane);
+    assert.equal(
+      classifyMigrationLane(lane, [
+        learning,
+        "20261006134805_comun_learning_r1.sql",
+      ]).mode,
+      "blocked",
+      lane,
+    );
+  }
+  assert.equal(
+    classifyMigrationLane("p6c-b1", [
+      learning,
+      "20260810155310_comun_public_education_sensitive_routing.sql",
+    ]).mode,
+    "blocked",
+  );
+  assert.equal(
+    classifyMigrationLane("learning-r0", [
+      learning,
+      "20260813124308_comun_pautas_vivas_public_evidence.sql",
+    ]).mode,
+    "blocked",
+  );
+});
+
 const a3 =
   "supabase/migrations/20260818120000_comun_cultural_specialized_handoff.sql";
 const pauta =

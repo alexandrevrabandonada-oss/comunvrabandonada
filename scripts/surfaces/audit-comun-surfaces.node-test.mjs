@@ -18,7 +18,8 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   // B2-A1 adds the public problem detail surface over the existing map.
   // R5 adds one publisher-only collective-entity projection desk.
   // The operational chain adds member onboarding plus one R4 reviewer desk.
-  assert.equal(summary.total, 232);
+  // Escola R0 adds six learner pages and one civic/editorial review desk.
+  assert.equal(summary.total, 239);
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
     "admin",
@@ -34,7 +35,7 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   assert.ok(routes.every((route) => route.wave >= 1 && route.wave <= 4));
   assert.equal(summary.legacy_rendered, 0);
   assert.equal(summary.p0_p1, 0);
-  assert.equal(summary.admin_wave3, 85);
+  assert.equal(summary.admin_wave3, 86);
   assert.equal(summary.admin_wave4, 12);
   assert.equal(summary.unknown_routes, 0);
   assert.equal(summary.structural_incompatibilities, 0);
@@ -44,7 +45,7 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
 test("admin civic and editorial routes inherit navigation and table contracts", async () => {
   const { routes } = await auditComunSurfaces({ write: false });
   const wave3 = routes.filter((route) => route.wave === 3);
-  assert.equal(wave3.length, 85);
+  assert.equal(wave3.length, 86);
   assert.ok(wave3.every((route) => route.shell_mode === "admin"));
   assert.ok(wave3.every((route) => route.contextual_app_bar));
   assert.ok(wave3.every((route) => route.preserves_filters_or_return));
@@ -72,6 +73,18 @@ test("admin systemic routes use the canonical level-zero platform contract", asy
 test("keeps roots, nested routes, immersive tools and admin surfaces distinct", async () => {
   const { routes } = await auditComunSurfaces({ write: false });
   const byRoute = new Map(routes.map((route) => [route.route, route]));
+  for (const route of [
+    "/comun/escola",
+    "/comun/escola/trilhas",
+    "/comun/escola/missao/[slug]",
+    "/comun/escola/pratica",
+    "/comun/escola/materiais",
+    "/comun/escola/progresso",
+  ]) {
+    assert.equal(byRoute.get(route)?.shell_mode, "member_nested", route);
+  }
+  assert.equal(byRoute.get("/comun/admin/escola")?.shell_mode, "admin");
+  assert.equal(byRoute.get("/comun/admin/escola")?.wave, 3);
   assert.equal(byRoute.get("/comun")?.shell_mode, "member_root");
   assert.equal(byRoute.get("/comun/explorar")?.shell_mode, "member_root");
   assert.equal(
