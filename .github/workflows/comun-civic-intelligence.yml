@@ -128,9 +128,12 @@ jobs:
           npm run test:unit
           npm run audit:rls-matrix
           npm run security:test
+          # Browser suites leave disposable development route types. Rebuild
+          # production types before tsc, keeping all application checks enabled.
+          node -e "require('node:fs').rmSync('.next/dev',{recursive:true,force:true})"
+          npm run build
           npm run typecheck
           npm run lint
-          npm run build
           npx prettier --check app/comun/buscar/page.tsx components/civic-intelligence lib/civic-intelligence scripts/civic-intelligence docs/comun-civic-intelligence*.md tests/civic-intelligence playwright.civic-intelligence.config.ts .github/workflows/comun-civic-intelligence.yml
           git diff --check
       - name: Stop and erase disposable services
