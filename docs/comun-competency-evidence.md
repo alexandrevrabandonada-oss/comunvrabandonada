@@ -200,7 +200,29 @@ Exemplos futuros:
 
 Segurança de máquina é uma autorização separada.
 
-## 12. Contrato de código desta entrega
+## 12. Primeiro catálogo cívico candidato
+
+O contrato inclui um catálogo R0 pequeno e editorial em `lib/comun-competency-catalog.ts`.
+
+Ele não cria credenciais. Apenas mapeia práticas **validadas** da Escola R0 para evidências candidatas:
+
+- Formulação de problema e objetivo;
+- Investigação e uso responsável de evidências;
+- Escuta e facilitação comunitária;
+- Construção e revisão de ciclo estratégico.
+
+Exemplo:
+
+```text
+prática "adicionar-evidencia" validada
+→ candidata a sustentar "Investigação e uso responsável de evidências"
+→ revisão da claim ainda é necessária
+→ não há promoção automática
+```
+
+Missão concluída sem prática validada produz zero evidências candidatas.
+
+## 13. Contrato de código desta entrega
 
 `lib/comun-competency-evidence.ts` fixa invariantes puras:
 
@@ -212,7 +234,7 @@ Segurança de máquina é uma autorização separada.
 
 Isso permite testar a arquitetura antes de existir schema.
 
-## 13. Gate de schema
+## 14. Gate de schema
 
 Só criar migration depois de:
 
