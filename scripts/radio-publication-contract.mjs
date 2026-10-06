@@ -64,7 +64,7 @@ try {
       if not exists(select 1 from pg_roles where rolname='service_role') then create role service_role nologin bypassrls; end if;
     end $$;
     create table public.comun_archive_items(id uuid primary key default gen_random_uuid(),item_type text not null,title text,status text not null default 'draft',visibility text not null default 'private',published_at timestamptz);
-    create table public.comun_archive_assets(id uuid primary key default gen_random_uuid(),archive_item_id uuid references public.comun_archive_items,asset_role text,bucket_scope text,review_status text,rights_status text,public_url text);
+    create table public.comun_archive_assets(id uuid primary key default gen_random_uuid(),archive_item_id uuid references public.comun_archive_items,asset_role text,bucket_scope text,review_status text,rights_status text check(rights_status is null or rights_status in ('public_domain','permission_granted','licensed','external_link_only','restricted','unknown')),public_url text);
     create table public.comun_archive_agents(id uuid primary key);
     create table public.comun_hub_territories(id uuid primary key);
     create table public.comun_pauta_spaces(id uuid primary key);
@@ -181,7 +181,12 @@ try {
     assert.equal(functions.rows.length, 7);
     for (const row of functions.rows) {
       assert.equal(row.prosecdef, false);
-      assert.deepEqual(row.proconfig, ["search_path=pg_catalog"]);
+      assert.deepEqual(
+        row.proconfig,
+        row.proname === "comun_lock_radio_editorial_composition"
+          ? ["search_path=pg_catalog", "lock_timeout=1500ms"]
+          : ["search_path=pg_catalog"],
+      );
       if (row.proname === "comun_prepare_radio_publication_review") {
         assert.equal(row.provolatile, "s");
       }
@@ -425,6 +430,91 @@ try {
       assert.equal(audit.rows[0].n, 0);
     },
   );
+  await check(
+    "composition contention returns busy without writes and permits retry",
+    async () => {
+      const episode = await fixture();
+      const review = await prepare(episode);
+      const blocker = new pg.Client({ connectionString: url.href });
+      const publisher = new pg.Client({ connectionString: url.href });
+      try {
+        await blocker.connect();
+        await publisher.connect();
+        await blocker.query("begin");
+        // Block the fourth composition table so the RPC must release the first
+        // three locks it already acquired when its bounded wait expires.
+        await blocker.query(
+          "update public.comun_radio_credits set public_credit=public_credit where episode_item_id=$1",
+          [episode],
+        );
+        await publisher.query("set role service_role");
+        await publisher.query("set lock_timeout='8s'");
+        await publisher.query("set statement_timeout='10s'");
+        await publisher.query("begin");
+        assert.deepEqual(await commit(episode, review.identity, publisher), {
+          outcome: "busy",
+        });
+        const state = (
+          await admin.query(
+            "select e.publication_status,i.status,i.visibility from public.comun_radio_episodes e join public.comun_archive_items i on i.id=e.archive_item_id where i.id=$1",
+            [episode],
+          )
+        ).rows[0];
+        assert.deepEqual(state, {
+          publication_status: "editorial_review",
+          status: "draft",
+          visibility: "private",
+        });
+        const writes = (
+          await admin.query(
+            "select (select count(*)::int from public.comun_radio_editorial_versions where episode_item_id=$1) versions,(select count(*)::int from public.comun_admin_audit_log where target_id=$1) audit",
+            [episode],
+          )
+        ).rows[0];
+        assert.deepEqual(writes, { versions: 0, audit: 0 });
+        const locks = await admin.query(
+          "select count(*)::int n from pg_locks where pid=$1 and mode='ShareRowExclusiveLock'",
+          [publisher.processID],
+        );
+        assert.equal(
+          locks.rows[0].n,
+          0,
+          "partial composition locks must be released before outer transaction ends",
+        );
+        assert.equal(
+          (await publisher.query("show lock_timeout")).rows[0].lock_timeout,
+          "8s",
+        );
+        assert.equal(
+          (await publisher.query("select 1 as usable")).rows[0].usable,
+          1,
+        );
+        await blocker.query("rollback");
+        assert.equal(
+          (await commit(episode, review.identity, publisher)).outcome,
+          "published",
+        );
+        await publisher.query("commit");
+        const versions = await admin.query(
+          "select count(*)::int n from public.comun_radio_editorial_versions where episode_item_id=$1",
+          [episode],
+        );
+        assert.equal(versions.rows[0].n, 1);
+      } finally {
+        const released = await Promise.allSettled([
+          blocker.query("rollback"),
+          publisher.query("rollback"),
+        ]);
+        const closed = await Promise.allSettled([
+          blocker.end(),
+          publisher.end(),
+        ]);
+        for (const result of [...released, ...closed]) {
+          if (result.status === "rejected") throw result.reason;
+        }
+      }
+    },
+  );
   const compositionTables = [
     "comun_archive_items",
     "comun_radio_episodes",
@@ -501,7 +591,7 @@ try {
           assert.ifError(completed.error);
           assert.equal(completed.value.rowCount, 1);
           await writer.query(
-            "update public.comun_archive_assets set rights_status='pending' where archive_item_id=$1",
+            "update public.comun_archive_assets set rights_status='unknown' where archive_item_id=$1",
             [episode],
           );
         } else {
@@ -577,7 +667,13 @@ try {
           unrelatedArchiveWrites: "available",
           staleIdentityAtCommit: "rejected",
         },
-        commit: { unrelatedArchiveWrites: "blocked_until_transaction_end" },
+        commit: {
+          unrelatedArchiveWrites: "blocked_until_transaction_end",
+          perCompositionLockTimeoutMs: 1500,
+          contentionOutcome: "busy_without_publication_writes",
+          partialLocksAfterTimeout: "released",
+          retryAfterContention: "published",
+        },
         ordinaryReads: "available",
         locksAfterTransaction: "released",
         productionLatencyMeasured: false,

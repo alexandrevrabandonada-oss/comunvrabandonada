@@ -137,6 +137,7 @@ $$;
 create or replace function private.comun_lock_radio_editorial_composition()
 returns void language plpgsql volatile security invoker
 set search_path = pg_catalog
+set lock_timeout = '1500ms'
 as $$ begin
   lock table public.comun_archive_items in share row exclusive mode;
   lock table public.comun_radio_episodes in share row exclusive mode;
@@ -178,7 +179,13 @@ declare
 begin
   select * into v_admin from public.comun_admin_users where id=p_admin_id and is_active for share;
   if not found or v_admin.role not in ('admin','editor') then return jsonb_build_object('outcome','denied'); end if;
-  perform private.comun_lock_radio_editorial_composition();
+  begin
+    perform private.comun_lock_radio_editorial_composition();
+  exception when lock_not_available then
+    -- The subtransaction releases partial composition locks. No publication
+    -- writes have happened; permission errors and deadlocks still propagate.
+    return jsonb_build_object('outcome','busy');
+  end;
   select e.publication_status,i.status,i.visibility into v_episode_status,v_item_status,v_item_visibility
   from public.comun_radio_episodes e join public.comun_archive_items i on i.id=e.archive_item_id
   where e.archive_item_id=p_episode_id;
