@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { SidewalkRealMap } from "@/components/sidewalk-real-map";
 import { realBasemapProvider } from "@/lib/sidewalk-basemap-provider";
 import type { PublicSidewalkRecord } from "@/lib/sidewalk-map-config";
@@ -65,7 +65,9 @@ export default function RealMapFixture() {
       >
         Remover registro sintético
       </button>
-      <SidewalkRealMap records={records} provider={realBasemapProvider} />
+      <Suspense fallback={<p>Carregando fixture local</p>}>
+        <SidewalkRealMap records={records} provider={realBasemapProvider} />
+      </Suspense>
     </>
   );
 }
