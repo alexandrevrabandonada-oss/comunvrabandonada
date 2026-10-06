@@ -149,6 +149,8 @@ O contrato candidato do piloto está em [comun-factory-pilot-contract.md](comun-
 
 **49-D1.1 — Playbook e evidência do piloto.** Os dez desafios iniciais e o ritual operacional estão em [comun-factory-pilot-playbook.md](comun-factory-pilot-playbook.md). O avaliador `comun-factory-pilot-evaluation.ts` separa o gate D1 mínimo do FC-MVP-25 e nunca converte fixtures em execução real. D1 mínimo exige 10 casos iniciados, 5 resolvidos, ao menos um caso de não fabricação, ao menos uma revisão real e registros consistentes de custo e versão.
 
+**49-D1.2 — Entrada e triagem.** A Fábrica não cria segundo intake cívico. Problema da cidade segue para o Relata; reparo/objeto ou pedido de protótipo entra em triagem privada; aprendizagem retorna à Escola; componente crítico exige encaminhamento qualificado. Nenhuma entrada persiste Caso FC automaticamente. Ver [comun-factory-intake-routing.md](comun-factory-intake-routing.md).
+
 **49-D2 — Extensão mínima orientada por evidência.** Só depois do piloto, considerar estado técnico do caso, versões/BOM e rastreabilidade. Nunca duplicar Pauta, Ação, Tarefa, Resultado, Comunidade, competência, progresso da Escola ou identidade.
 
 **49-D3 — Operação física.** Máquinas, filas, materiais, manutenção, instalações, falhas e segurança. Dados de máquina não viram reputação social.
