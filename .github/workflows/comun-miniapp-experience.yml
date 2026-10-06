@@ -11,6 +11,7 @@ on:
       - "tests/sidewalk-pilot/**"
       - "tests/comun-integral-experience/global-*.mjs"
       - "playwright.miniapp-experience.config.ts"
+      - "scripts/quality/run-miniapp-experience.mjs"
       - ".github/workflows/comun-miniapp-experience.yml"
   push:
     branches: [main]
@@ -19,6 +20,7 @@ on:
       - "lib/sidewalk-miniapp*"
       - "tests/miniapp-experience/**"
       - "playwright.miniapp-experience.config.ts"
+      - "scripts/quality/run-miniapp-experience.mjs"
       - ".github/workflows/comun-miniapp-experience.yml"
 
 permissions:
@@ -51,6 +53,8 @@ jobs:
       - uses: ./.github/actions/setup-playwright-browser
       - run: supabase start
       - run: supabase db reset --local --yes
+      - name: Run preceding PWA suite with shared default build directory
+        run: npm run test:e2e:comun-pwa-experience -- --project=360x800
       - name: Public journey and accessibility in five viewports
         run: npm run test:e2e:comun-miniapp-experience
       - name: Cleanup disposable services
