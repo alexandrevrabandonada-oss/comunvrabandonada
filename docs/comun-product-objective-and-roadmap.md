@@ -151,6 +151,8 @@ O contrato candidato do piloto está em [comun-factory-pilot-contract.md](comun-
 
 **49-D1.2 — Entrada e triagem.** A Fábrica não cria segundo intake cívico. Problema da cidade segue para o Relata; reparo/objeto ou pedido de protótipo entra em triagem privada; aprendizagem retorna à Escola; componente crítico exige encaminhamento qualificado. Nenhuma entrada persiste Caso FC automaticamente. Ver [comun-factory-intake-routing.md](comun-factory-intake-routing.md).
 
+**49-D1.3 — Autorização de máquinas.** Competência demonstrada não libera equipamento automaticamente. Uso exige briefing de segurança, autorização humana escopada e vigente e compatibilidade com o risco do Caso FC. R3 força supervisão qualificada; R4 fica bloqueado. Ver [comun-factory-machine-authorization.md](comun-factory-machine-authorization.md).
+
 **49-D2 — Extensão mínima orientada por evidência.** Só depois do piloto, considerar estado técnico do caso, versões/BOM e rastreabilidade. Nunca duplicar Pauta, Ação, Tarefa, Resultado, Comunidade, competência, progresso da Escola ou identidade.
 
 **49-D3 — Operação física.** Máquinas, filas, materiais, manutenção, instalações, falhas e segurança. Dados de máquina não viram reputação social.
