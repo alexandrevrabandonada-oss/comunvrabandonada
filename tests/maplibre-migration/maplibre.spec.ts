@@ -6,6 +6,20 @@ const mapName = "Mapa real de Volta Redonda com registros públicos de calçadas
 const observatoryMapName =
   "Mapa de pontos de calçadas revisados e publicados com localização aproximada";
 
+for (const view of ["lista", "mapa"]) {
+  test(`Calçadas clearing filters returns keyboard focus to search in ${view}`, async ({ page }) => {
+    await page.goto(`/maplibre-real-map-test?vista=${view}`);
+    await page.getByRole("button", { name: "Péssima", exact: true }).press("Enter");
+    await expect(page.getByText("0 registro(s)", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Limpar", exact: true }).press("Enter");
+    await expect(page.getByRole("textbox", { name: "Buscar rua, trecho ou bairro", exact: true })).toBeFocused();
+    await expect(page).toHaveURL(new RegExp(`\\?vista=${view}$`));
+    await expect(page.getByText("2 registro(s)", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Péssima", exact: true })).toHaveAttribute("aria-pressed", "false");
+    await expect(page.getByRole("button", { name: "Limpar", exact: true })).toHaveCount(0);
+  });
+}
+
 test("Calçadas full filters preserve keyboard focus when opened and dismissed", async ({
   page,
 }, testInfo) => {
