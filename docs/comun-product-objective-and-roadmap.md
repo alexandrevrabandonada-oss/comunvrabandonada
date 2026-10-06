@@ -16,6 +16,8 @@ O produto está no fechamento técnico e operacional da V1, antes do ensaio inte
 | Conteúdo e governança, 47.10                     | Revisão editorial e equipe operacional ainda não comprovadas                                                                                                   | Manter ajuda, fluxos de revisão, retenção e critérios de evidência consistentes com o comportamento real                     | Pessoas responsáveis, substitutos, direitos e prazos confirmados                                                                                             |
 | Ensaio e lançamento, 47.11                       | Ensaio integrado incompleto; gate integral fechado                                                                                                             | Preparar instrumentos de coleta, verificações sanitizadas e pacote por versão                                                | Três sessões reais, estabilidade medida e decisão final                                                                                                      |
 | Escola COMUN R0                                  | PR #503 aberto, head `a8dbe550583526eae631deafa3c574fbcfb18993` na consulta; 24 micro-missões candidatas, progresso privado, flag desligada                    | Finalizar checks globais e validar integração no schema canônico antes de ativar                                             | Ambiente COMUN identificado e revisão humana do material; testes locais não comprovam ativação                                                               |
+| Competências com Evidência 49-C1                | Contrato candidato nesta frente; sem migration, perfil público ou matching ativo                                                                               | Fixar privacidade, evidência mínima, revisão independente e projeções antes do schema                                         | Escola R0 estabilizada; prática revisada real e critérios de competência aprovados                                                                           |
+| Fábrica COMUN 49-D                              | Frente pós-V1; integração canônica proposta sem rota, flag, schema ou ativação própria                                                                          | Reusar Escola, Minha Participação, comunidades, Pautas/Ações/Tarefas, Observatórios e Memória; preparar piloto                | 49-C1 compartilhado antes de perfil/matching; demanda real antes de schema fabril                                                                             |
 | Serviços Públicos                                | PR documental #434 aberto; expansão fora do fechamento V1                                                                                                      | Revisar arquitetura e limites da proposta separadamente                                                                      | Decisão de escopo posterior; sem expansão automática                                                                                                         |
 
 ### Evidência técnica já integrada
@@ -88,6 +90,42 @@ Inteligência cívica e coerência da experiência atravessam esses domínios. A
 | 8 — lançamento              | Apresentar resultado ao gate existente `launch_publicly`                                                                    | Decisão humana final; só depois reconciliar indexação e comunicação de lançamento                                                                      |
 
 Correções técnicas podem avançar em paralelo. A ordem acima expressa dependências de evidência, sem inventar datas ou disponibilidade da equipe. Não cria gates intermediários adicionais.
+
+## Roadmap pós-V1 canônico — organização, Escola, competências e Fábrica
+
+As frentes abaixo não alteram o gate de lançamento da V1. Contratos, documentação e protótipos isolados podem avançar em paralelo; ativação pública, migrations e novos domínios de dados respeitam as dependências explícitas.
+
+| Bloco | Entrega | Reuso obrigatório | Critério para avançar |
+| --- | --- | --- | --- |
+| 49-A — Núcleos permanentes | Organização durável de pessoas por responsabilidade, sem transformar grupo temporário em estrutura permanente | comunidades, memberships, papéis auditáveis, Minha Participação | núcleo real operando com responsáveis e revisão; autorização não deriva de texto livre |
+| 49-B — Ciclo estratégico | Objetivos, hipóteses, revisão e aprendizagem ligados ao ciclo pauta → ação → resultado → memória | Pautas, Rodas, Ações, Tarefas, Resultados e Memória | um ciclo real completo sem duplicar ação, tarefa ou resultado |
+| 49-C — Escola COMUN | Formação prática progressiva; R0 é a primeira implementação técnica | Auth, Pauta/Tarefa, Minha Participação e revisão editorial | R0 integrado e ensaiado; extensões posteriores não quebram progresso já concluído |
+| 49-C1 — Competências com Evidência | Transformar prática revisada e trabalho real em afirmações escopadas de capacidade | Escola, Tarefas/Ações e Minha Participação | competência privada por padrão, revisão independente, zero promoção por curso concluído e zero ranking |
+| 49-D — Fábrica COMUN | Converter problemas reais em prática, protótipo, solução aberta e capacidade comunitária | 49-C/49-C1, comunidades, Pautas, Ações, Tarefas, Observatórios e Memória | piloto prova demanda e reuso antes de schema fabril; nenhuma segunda hierarquia social ou educacional |
+
+### 49-C1 — Competências com Evidência
+
+**Decisão:** concluir conteúdo não cria competência. Uma afirmação de competência só pode ser demonstrada com evidência revisada, escopo explícito e revisão independente da própria pessoa. O contrato detalhado está em [comun-competency-evidence.md](comun-competency-evidence.md).
+
+**Privacidade:** competência fica privada em Minha Participação por padrão. Publicação é opt-in separada e nunca expõe automaticamente reviewer, links privados, volume de trabalho, localização, disponibilidade ou histórico bruto.
+
+**Matching:** uma pessoa pode autorizar o uso privado de competência demonstrada para receber sugestões de tarefas. Sugestão não cria atribuição, papel, autorização administrativa ou habilitação profissional.
+
+**Mentoria e operação de máquina:** não são promoções automáticas de nível. Exigem contrato/gate próprio, especialmente quando houver segurança física.
+
+**Schema:** nenhum schema 49-C1 entra antes da estabilização da Escola R0. O código desta frente fixa somente o contrato puro de validação/projeção, permitindo testar as invariantes antes da migration.
+
+### 49-D — sequência da Fábrica COMUN
+
+**49-D0 — Contrato canônico e experiência.** A Fábrica é um módulo do COMUN, não um segundo sistema. Entrada pública futura: “Tenho um problema”, “Quero fazer” e “Quero aprender”. O contrato detalhado está em [comun-fabrica-canonical-integration.md](comun-fabrica-canonical-integration.md).
+
+**49-D1 — Piloto sem novo schema fabril.** Executar casos reais usando Pauta/Tarefa/Ação e Escola; registrar manualmente custo, risco, versões e resultado. Gate mínimo: 10 casos iniciados, 5 resolvidos e lacunas de dados demonstradas. Checkpoint ampliado FC-MVP-25: 25 casos, 15 resolvidos, 5 projetos abertos, 3 operadores autônomos, 5 pessoas em formação, 1 escola, 1 projeto de acessibilidade, 1 tecnologia ambiental e 1 solução reutilizada.
+
+**49-D2 — Extensão mínima orientada por evidência.** Somente após o piloto, considerar estado técnico do caso, versões/BOM e rastreabilidade. Nunca duplicar Pauta, Ação, Tarefa, Resultado, Comunidade, competência, progresso da Escola ou identidade.
+
+**49-D3 — Operação física.** Máquinas, filas, materiais, manutenção, instalações, falhas e segurança. Dados de máquina não viram reputação social.
+
+**49-D4 — Rede distribuída.** Nós parceiros e capacidades externas, replicação e encaminhamento. Só promover quando existir demanda real multi-nó.
 
 ## Pendências que exigem fatos externos ao código
 
