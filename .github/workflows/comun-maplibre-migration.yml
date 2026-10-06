@@ -50,6 +50,8 @@ jobs:
         run: install -D tests/maplibre-migration/fixtures/point-picker-page.tsx app/maplibre-picker-test/page.tsx
       - name: Install observatory fixture only in disposable CI build
         run: install -D tests/maplibre-migration/fixtures/observatory-page.tsx app/maplibre-observatory-test/page.tsx
+      - name: Install real map fixture only in disposable CI build
+        run: install -D tests/maplibre-migration/fixtures/real-map-page.tsx app/maplibre-real-map-test/page.tsx
       - run: npm run build
       - uses: ./.github/actions/setup-playwright-browser
       - name: Verify production rendering and archive failure
