@@ -89,7 +89,7 @@ try {
       [program, episode],
     );
     await admin.query(
-      "insert into public.comun_radio_episodes(archive_item_id,program_item_id,title_public,slug_public,summary_public,description_public,duration_seconds,publication_status,transcript_status) values($1,$2,'Episode',$1::text,'Summary','Context',30,'editorial_review','published')",
+      "insert into public.comun_radio_episodes(archive_item_id,program_item_id,title_public,slug_public,summary_public,description_public,duration_seconds,publication_status,transcript_status) values($1::uuid,$2::uuid,'Episode',($1::uuid)::text,'Summary','Context',30,'editorial_review','published')",
       [episode, program],
     );
     await admin.query(
@@ -215,6 +215,8 @@ try {
       "delete from public.comun_radio_transcript_versions where episode_item_id=$1",
       "transcript",
     ],
+    ["pending safety without minor", "insert into public.comun_radio_safety_reviews(episode_item_id,reinforced_review_status) values($1,'pending')", "minor_safety"],
+    ["minor without reinforced approval", "insert into public.comun_radio_safety_reviews(episode_item_id,minor_involved_private) values($1,true)", "minor_safety"],
   ])
     await check(name, async () => {
       const episode = await fixture();

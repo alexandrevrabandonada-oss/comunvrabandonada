@@ -125,7 +125,7 @@ as $$
         or c.withdrawal_requested_at is not null or c.withdrawal_completed_at is not null))
       then 'voice_consent' end,
     case when exists (select 1 from public.comun_radio_music_uses m where m.episode_item_id=p_episode_id and (m.rights_status not in ('approved','public_domain_verified') or not m.allow_streaming)) then 'music_rights' end,
-    case when exists (select 1 from public.comun_radio_safety_reviews s where s.episode_item_id=p_episode_id and s.minor_involved_private and s.reinforced_review_status<>'approved') then 'minor_safety' end,
+    case when exists (select 1 from public.comun_radio_safety_reviews s where s.episode_item_id=p_episode_id and (s.reinforced_review_status not in ('not_required','approved') or (s.minor_involved_private and s.reinforced_review_status<>'approved'))) then 'minor_safety' end,
     case when e.pauta_id is null and e.territory_id is null and nullif(btrim(e.description_public), '') is null then 'context' end,
     case when not exists (select 1 from public.comun_radio_transcript_versions t where t.episode_item_id=p_episode_id and t.status='published') then 'transcript' end
   ], null)
