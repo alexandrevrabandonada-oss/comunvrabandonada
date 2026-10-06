@@ -2,7 +2,7 @@ name: COMUN Radio publication contract
 
 on:
   pull_request:
-    branches: [main, codex/radio-editorial-guards-current]
+    branches: [main]
     paths:
       - "supabase/reconciliation/radio-publication/**"
       - "supabase/migrations/20260715185344_community_radio_foundation.sql"
