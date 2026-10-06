@@ -66,6 +66,11 @@ test("Calçadas mobile close button returns to filters trigger without clearing 
     exact: true,
   });
   await trigger.press("Enter");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("combobox", { name: "Condição", exact: true }),
+  ).toBeFocused();
   await page
     .getByRole("combobox", { name: "Condição", exact: true })
     .selectOption("bad");
