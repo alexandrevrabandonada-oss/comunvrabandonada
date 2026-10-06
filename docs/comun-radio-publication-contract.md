@@ -18,12 +18,14 @@ A segunda lane proposta aplica todas as migrations presentes no checkout em Supa
 
 Execução da segunda lane: após `supabase start` e `supabase db reset --local --yes`, executar `node scripts/radio-publication-full-schema.mjs`. O runner usa apenas o container identificado por `supabase/config.toml`, recusa banco de contrato preexistente e não recebe URL remota.
 
-## Alcance dos locks — prova adicional proposta
+## Alcance dos locks — prova adicional
 
 O candidato usa `SHARE ROW EXCLUSIVE` em nove tabelas, inclusive `comun_archive_items` e `comun_archive_assets`, tanto na preparação como no commit. Esse modo é global à tabela, conflita com escritas em outras linhas e permanece até o fim da transação; leituras comuns são compatíveis. Referência: [PostgreSQL 17 — Explicit Locking](https://www.postgresql.org/docs/17/explicit-locking.html).
 
 Dois controles adicionais executam cada RPC em transação explícita com conexões separadas. Conferem as nove relações em `pg_locks`, leem outro item, observam em `pg_blocking_pids` que uma escrita nesse outro item espera pela transação da Rádio e verificam que ela conclui depois do commit, sem os locks globais remanescentes. As consultas usam timeouts; a limpeza solta o bloqueador antes de aguardar a escrita. Essas leituras usam `service_role` e não constituem prova de autorização pública por RLS.
 
-A prova adicional ainda aguarda execução positiva no CI. Quando passar, o envelope registrará o raio de bloqueio; isso não mede latência de produção nem libera ativação. A conclusão estrutural exige uma mitigação técnica: reduzir o alcance da serialização mantendo proteção contra alterações e inclusões concorrentes, ou demonstrar um limite operacional seguro de espera e duração da transação. Não se deve manter a transação aberta durante revisão humana.
+No head `e5c4930d263b5914e27c441418eb64ea04aade22`, os 24 controles passaram nas duas lanes do [run 37543417885](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/37543417885). O artifact completo `11449772328` foi inspecionado: contém `lockImpact` com nove tabelas, escrita não relacionada bloqueada até o fim da transação, leituras comuns disponíveis e locks liberados. Preservou o proprietário, aplicou as mesmas 115 migrations/hash acima e removeu o banco exclusivo. O SHA-256 do ZIP confere com o GitHub: `ad7bd76a54955e1a196d23221a9881549c9788a449f35f380313faa5e11a3a1f`.
+
+Isso não mede latência de produção nem libera ativação: `productionLatencyMeasured=false` e `productionActivationReady=false`. A conclusão estrutural exige uma mitigação técnica: reduzir o alcance da serialização mantendo proteção contra alterações e inclusões concorrentes, ou demonstrar um limite operacional seguro de espera e duração da transação. Não se deve manter a transação aberta durante revisão humana.
 
 Restam antes de ativação: validação na cadeia canônica completa, mitigação e medição de contenção dos locks globais, geração da migration forward-only, plano/checks de ownership, verificação do alvo e implantação de schema e aplicação compatíveis. O digest representa os metadados revisados no banco; não comprova imutabilidade dos bytes ou revogação de URLs no storage. Nenhuma amostra humana é necessária para essas provas técnicas; direitos, consentimentos e curadoria reais permanecem requisitos editoriais distintos.
