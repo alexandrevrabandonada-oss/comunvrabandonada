@@ -404,6 +404,22 @@ try {
       names: checks,
     }),
   );
+} catch (error) {
+  const identifier = (value) =>
+    typeof value === "string" && /^[A-Za-z0-9_]{1,100}$/.test(value)
+      ? value
+      : undefined;
+  console.error(
+    JSON.stringify({
+      status: "failed",
+      completedChecks: checks.length,
+      code: identifier(error.code),
+      table: identifier(error.table),
+      column: identifier(error.column),
+      constraint: identifier(error.constraint),
+    }),
+  );
+  process.exitCode = 1;
 } finally {
   await service.end();
   // Database and any test roles are owned by the disposable runner, never production.
