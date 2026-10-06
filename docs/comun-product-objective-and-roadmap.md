@@ -105,6 +105,8 @@ As frentes abaixo não alteram o gate de lançamento da V1. Contratos, documenta
 
 **49-C2 — Experiência de competências.** Apresenta estados, privacidade, publicação e matching dentro de Minha Participação. Reutiliza 49-C1 e Minha Participação. Avança com view model sanitizado, atenção priorizada e publicação e matching separados; conexão real somente após schema e RLS.
 
+**49-C3 — Sugestões privadas de tarefas.** Usa competências demonstradas com consentimento de matching para sugerir tarefas canônicas em ações elegíveis. Não atribui pessoas, não cria ranking e não copia tarefas. Avança somente com requisitos de competência explícitos, capacidade preservada e aceite pelo fluxo canônico.
+
 **49-D — Fábrica COMUN.** Converte problemas reais em prática, protótipo, solução aberta e capacidade comunitária. Reutiliza 49-C, 49-C1, 49-C2, comunidades, Pautas, Ações, Tarefas, Observatórios e Memória. Avança quando o piloto provar demanda e reuso antes de qualquer schema fabril, sem criar segunda hierarquia social ou educacional.
 
 ### 49-C1 — Competências com Evidência
@@ -126,6 +128,16 @@ As frentes abaixo não alteram o gate de lançamento da V1. Contratos, documenta
 **Privacidade:** o view model não transporta reviewer, sourceId, reflexão, tarefa/pauta privada ou nota de revisão. O componente preparado em `components/comun-competency-panel.tsx` recebe somente projeção sanitizada.
 
 **Ativação:** o painel ainda não é conectado à superfície real. Isso só ocorre depois de schema/RLS, loader owner-only, mutations auditáveis e feature flag OFF-by-default. Ver [comun-competency-experience.md](comun-competency-experience.md).
+
+### 49-C3 — Sugestões privadas de tarefas
+
+**Regra:** matching produz sugestão, nunca assignment. A pessoa continua assumindo a tarefa pelo fluxo canônico de Ações.
+
+**Escopo inicial:** somente tarefas abertas/em andamento, com vaga, não vencidas, dentro de ações elegíveis e com requisitos de competência explicitamente revisados.
+
+**Privacidade:** perfil público não é requisito; matching privado exige opt-in. A projeção de sugestão não contém userId, reviewer, sourceId ou evidência privada.
+
+**Persistência:** requisitos de competência por tarefa continuam fora do banco até 49-C1/C2 estarem integrados e existir autoria/RLS definidos. Ver [comun-competency-task-suggestions.md](comun-competency-task-suggestions.md).
 
 ### 49-D — Fábrica COMUN
 
