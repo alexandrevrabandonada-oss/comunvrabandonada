@@ -4,7 +4,7 @@ import Link from "next/link";
 import { publicSidewalkProblemLabels } from "@/lib/comun-public-labels";
 import dynamic from "next/dynamic";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   CheckCircle2,
   ChevronDown,
@@ -72,28 +72,28 @@ export function SidewalkRealMap({
   provider: SidewalkBasemapProvider;
 }) {
   const params = useSearchParams(),
-    router = useRouter(),
     pathname = usePathname(),
     mapRef = useRef<HTMLDivElement>(null),
     drag = useRef<{ x: number; y: number; panX: number; panY: number } | null>(
       null,
     );
-  const [view, setView] = useState<"map" | "list">(
-      params.get("vista") === "mapa" ? "map" : "list",
-    ),
-    [zoom, setZoom] = useState(1),
+  const view = params.get("vista") === "mapa" ? "map" : "list";
+  const [zoom, setZoom] = useState(1),
     [pan, setPan] = useState({ x: 0, y: 0 }),
     [selected, setSelected] = useState<PublicSidewalkRecord | null>(null),
     [advanced, setAdvanced] = useState(false);
-  const [filters, setFilters] = useState<Filters>({
-    q: params.get("q") ?? "",
-    condition: params.get("condicao") ?? "",
-    problem: params.get("problema") ?? "",
-    neighborhood: params.get("bairro") ?? "",
-    forwarding: params.get("estado") ?? "",
-    verification: params.get("verificacao") ?? "",
-    period: params.get("periodo") ?? "",
-  });
+  const filters = useMemo<Filters>(
+    () => ({
+      q: params.get("q") ?? "",
+      condition: params.get("condicao") ?? "",
+      problem: params.get("problema") ?? "",
+      neighborhood: params.get("bairro") ?? "",
+      forwarding: params.get("estado") ?? "",
+      verification: params.get("verificacao") ?? "",
+      period: params.get("periodo") ?? "",
+    }),
+    [params],
+  );
   const referenceTime = useMemo(
     () =>
       Math.max(
@@ -160,14 +160,12 @@ export function SidewalkRealMap({
       if (value) q.set(key, value);
     });
     q.set("vista", nextView === "map" ? "mapa" : "lista");
-    router.replace(`${pathname}${q.size ? `?${q}` : ""}`, { scroll: false });
+    // These filters only affect the client-side public records. Next integrates
+    // native history updates with useSearchParams, including back/forward.
+    window.history.replaceState(null, "", `${pathname}?${q}`);
   };
   const change = (key: keyof Filters, value: string) =>
-    setFilters((current) => {
-      const next = { ...current, [key]: value };
-      sync(next);
-      return next;
-    });
+    sync({ ...filters, [key]: value });
   const clear = () => {
     const next = {
       q: "",
@@ -178,11 +176,9 @@ export function SidewalkRealMap({
       verification: "",
       period: "",
     };
-    setFilters(next);
     sync(next);
   };
   const changeView = (next: "map" | "list") => {
-    setView(next);
     sync(filters, next);
   };
   const quick = [
