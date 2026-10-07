@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { load } from "js-yaml";
+import { NextRequest } from "next/server.js";
 import {
   disposableContext,
   assertOwnedContainers,
@@ -16,6 +17,16 @@ const env = {
   COMUN_LEARNING_LOCAL_ANON_KEY: "local-only",
   COMUN_LEARNING_LOCAL_SERVICE_KEY: "local-only-service",
 };
+test("application requests use Next's canonical localhost origin without relaxing origin validation", () => {
+  assert.equal(
+    new NextRequest("http://127.0.0.1:3017/api/comun/escola").nextUrl.origin,
+    "http://localhost:3017",
+  );
+  assert.equal(
+    new NextRequest("http://localhost:3017/api/comun/escola").nextUrl.origin,
+    "http://localhost:3017",
+  );
+});
 test("execution context accepts only explicit loopback ports and isolated run ID", () => {
   assert.equal(disposableContext(env).project, "escola-proof-123-2");
   for (const change of [

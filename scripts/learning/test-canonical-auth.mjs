@@ -34,7 +34,9 @@ const admin = createClient(context.api, context.service, {
 });
 const db = new pg.Client({ connectionString: context.database });
 const blocker = new pg.Client({ connectionString: context.database });
-const origin = "http://127.0.0.1:3017";
+// NextURL normalizes loopback literals to localhost. Use the canonical local
+// application URL, including its Origin header; keep Supabase on pinned 127.0.0.1.
+const origin = "http://localhost:3017";
 const run = randomUUID();
 const identities = [];
 const checks = [];

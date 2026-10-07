@@ -41,7 +41,7 @@ tokens, connection string ou reflexão privada.
 
 ## Evidências e limites
 
-Os três testes locais de boundary e dez testes existentes de domínio/API
+Os testes locais de boundary e dez testes existentes de domínio/API
 passaram durante a preparação. A integração real ainda é **NOT_RUN** enquanto
 não houver conclusão verde do job e artifact no SHA candidato. Nenhum mock
 ou teste estático pode substituir esse resultado.
@@ -60,3 +60,22 @@ Reprodução: em runner Linux descartável, executar os passos `canonical-auth`
 de `.github/workflows/comun-learning.yml`. Destinos hospedados e execução com
 credenciais Production são recusados. Não executar este harness sobre um banco
 compartilhado nem substituir os guards para obter verde.
+
+## Primeiro diagnóstico remoto
+
+Run `37644190621`, SHA `0f3bde1027db5da37ed6926a30fc3b0ed31eef51`:
+start/reset canônicos e criação/login Auth reais passaram; o POST anônimo
+retornou 403 porque o harness usava Origin 127.0.0.1, enquanto NextURL normaliza
+loopback para localhost. O teste agora usa a URL canônica localhost também no
+header Origin. Um teste contra o NextRequest real prova essa normalização.
+A checagem de origem da aplicação continua byte a byte inalterada.
+
+Esse attempt é FAIL, não prova RLS/concorrência; os gates posteriores são
+NOT_RUN. O Solo local também encontrou 16 workflows já existentes ausentes
+do inventário explícito. Foram cadastrados individualmente, preservando a
+rejeição de qualquer workflow desconhecido. Não foi criada permissão genérica.
+
+Após a correção do harness: quatro testes boundary, `npm run solo:test`
+(113/113) e `npm run test:unit` (1.340/240 arquivos) passaram. O comando unit
+oficial exclui as suítes Playwright; estas seguem nos respectivos runners de
+navegador, sem contar descoberta acidental por outro runner como falha do produto.
