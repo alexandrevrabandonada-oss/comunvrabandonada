@@ -13,6 +13,15 @@ entra por Participar ou Ajuda e retorna a Participar. Liga pergunta, fonte e
 contribuição a Busca, Pautas e Ações existentes; não cria inscrição, progresso
 educacional ou tarefa. A contagem de 189 acima é a leitura histórica de agosto.
 
+Continuidade candidata 49-E2: registros existentes em Minha participação abrem
+orientação pelo estado registrado (registro, acompanhamento ou devolutiva) e
+retornam à mesma carteira. Somente essa fase pública allowlisted e a experiência
+atravessam a URL; IDs, protocolos e payload privado permanecem na carteira.
+Retomar não cria tarefa nem envio. Loading, indisponibilidade e resposta inválida
+não são apresentados como carteira vazia. A orientação e a busca têm fallback
+de conteúdo público servido para consulta sem JavaScript; painéis privados não
+ativam esse fallback. Escola #503 não está integrada nem ativada nesta entrega.
+
 | rota/família                                    | nome público             | público         | propósito e fonte canônica            | entrada principal / ação principal      | retorno e estado                   | duplicações / deep links                               | decisão                     |
 | ----------------------------------------------- | ------------------------ | --------------- | ------------------------------------- | --------------------------------------- | ---------------------------------- | ------------------------------------------------------ | --------------------------- |
 | `/comun`                                        | Início                   | público         | orientar e priorizar; hubs públicos   | logo / explorar território              | navegação global; estado editorial | raiz `/` é entrada institucional                       | manter + piloto N2          |

@@ -10,7 +10,7 @@ Essa conexão existia distribuída em frentes do roadmap, mas não estava explí
 
 | Trilha | Papel no produto inteiro | Estado do trabalho sem amostra humana |
 |---|---|---|
-| **49-E0 — COMUN ONE PRODUCT CONTRACT** | Gramática comum, superfície pública, compartilhamento, busca, privacidade, continuidade e fricção | Contrato e dez testes focais aprovados localmente; prova renderizada bloqueada pela falta do Chromium; adoção em todas as rotas ainda pendente |
+| **49-E0 — COMUN ONE PRODUCT CONTRACT** | Gramática comum, superfície pública, compartilhamento, busca, privacidade, continuidade e fricção | Contrato e testes focais aprovados localmente; prova renderizada ampliada no 49-E2 abaixo; adoção em todas as rotas ainda pendente |
 | **49-M — Organização política permanente** | Vincula APS, VR Abandonada e aliadas a núcleos, decisões, tarefas, formação, ação institucional, prestação de contas e sucessão | Arquitetura e limites registrados; governança, pessoas e responsabilidades reais exigem validação da organização |
 | **50 — COMUN UNO** | Ensaio da experiência completa, inclusive a relação com estrutura e ação política | Etapa final; depende de jornadas com pessoas, dispositivos e operação reais |
 
@@ -79,6 +79,65 @@ esperados no HTML servido. Os três testes de navegador foram preparados para
 a suíte existente, mas a tentativa local parou no lançamento: Chromium ausente.
 HTML servidor não comprova contraste, foco, overflow ou interação renderizada.
 
+### Implementação candidata 49-E2 — orientação e retomada privada
+
+Continuação do PR #520 sobre `74cc0ed1779f5432496c3f852ce92bed3524a3a1`,
+preservando seu head inicial `af47674945bed9d9c10a2e499319f61027161683`.
+Candidato funcional `1a46d5550a4ddd98ed467c322dcf1c6e480d4946`, tree
+`fc4dd7095c2098aaf86f5c3db75fb53d0c5fa6c0`. Os comandos e limites da prova
+estão em [evidência 49-E2](../reports/current/comun-49-e2-participation-continuity.md).
+A árvore original com trabalho preexistente não foi modificada; a entrega foi
+feita em worktree isolada. Continua candidata, sem merge, ativação ou lançamento.
+
+Minha participação retoma um registro real da carteira existente e oferece
+orientação conforme seu estado: registrar com cuidado, acompanhar sem confundir
+envio com resultado, ou conferir o que a resposta mudou. O material público
+retorna aos registros privados e oferece contribuição voluntária em Ações.
+Nenhum progresso, tarefa, vínculo, envio, notificação ou resultado é criado
+ao abrir essa jornada. A carteira continua sendo a autoridade do registro.
+Somente uma fase pública allowlisted e `experiencia=legacy` atravessam a URL;
+IDs, protocolos e conteúdo privado não são repassados à orientação.
+
+Carregamento, falha HTTP e resposta inválida agora são estados distintos de
+carteira vazia, com recuperação explícita. Registro retirado não recebe convite
+para retomar. A inspeção renderizada demonstrou e corrigiu contraste no modo
+legacy. A orientação sem JavaScript expôs outra falha: a shell permanecia no
+fallback de carregamento. Orientação e Busca optam agora por conteúdo público
+servido no fallback; nenhum painel privado ativa essa opção. O formulário da
+busca pública também foi exercitado com JavaScript desabilitado.
+
+Escola #503 foi consultada em `a8dbe550583526eae631deafa3c574fbcfb18993`:
+draft aberto, checks concluídos sem falha/pending na consulta, flag desligada.
+O progresso privado e a próxima micro-missão já existem na sua proposta, mas
+não estão integrados em main. Dependências: validar a migração no schema
+canônico completo, integrar a entrega, revisar materiais e autorizar ativação.
+Não se oferece uma rota da Escola indisponível nem se duplica seu progresso.
+Competências #510 (`d1affda48ed9dcf7ae6ea4fbeaf9e920c74de5e6`) e Fábrica
+#514 (`dbf70931d15903ab820de224a017c6f3689e2124`) também continuam abertas;
+seus PRs/Previews não certificam disponibilidade integrada.
+
+Provas locais: 1.407 testes unitários, 50 focais, dois de coerência, quatro de
+classificação de superfícies, 113 Solo, TypeScript, ESLint e build passaram.
+Navegador Chromium: 12 casos de continuidade (360×800 e 1366×768) e seis de
+Participar/orientação, incluindo consulta e busca sem JavaScript, passaram.
+Axe não encontrou findings serious/critical nas superfícies avaliadas.
+A carteira usa respostas interceptadas e exclusivamente sintéticas: os testes
+provam UI, foco, retorno, reload, estados e ausência de chamadas de escrita,
+não persistência, sessão Auth, RLS ou uso real em Production. A suíte pública
+usa a aplicação local. Essa prova não substitui ensaio humano nem dispositivo
+físico. O workflow dedicado preserva esses casos sem secrets Production.
+
+O Solo revelou inventário desatualizado de 16 workflows já integrados; a mesma
+falha foi reproduzida no main limpo `74cc0ed1`. Foram registrados somente esses
+nomes conferidos no histórico e o novo workflow de UI; qualquer nome desconhecido
+continua rejeitado. Nenhum workflow existente foi ativado ou executado por isso.
+
+Próxima frente concreta: reconciliar a Escola com o schema canônico e integrar
+seu progresso privado existente a Minha participação quando seu código estiver
+integrado e a ativação for autorizada. Em paralelo, convites em detalhes de
+ações/pautas podem usar a orientação pública sem atribuir compromisso.
+`pilot_noindex`, gates V1, amostra humana e governança permanecem preservados.
+
 O produto está no fechamento técnico e operacional da V1, antes do ensaio integrado e do lançamento integral. Quatro domínios estão declarados verdes e seis continuam abertos; isso não representa 40% de conclusão. A visão futura e as entregas candidatas devem ser acompanhadas separadamente do que está integrado em produção.
 
 | Camada                                           | Situação conferida                                                                                                                                 | Próximo trabalho sem amostra humana                                                                                          | Dependência preservada                                                                                                                                       |
@@ -90,7 +149,7 @@ O produto está no fechamento técnico e operacional da V1, antes do ensaio inte
 | Coerência, busca e qualidade, 47.9A/B/C          | CI do #502 passou; busca lexical preservada; embeddings reais continuam bloqueados por capacidade do provedor                                      | Regressões, semântica de filtros, estados vazios, fallback e contratos automatizados                                         | Dispositivos físicos, tecnologia assistiva, compreensão humana; credencial do provedor para embeddings                                                       |
 | Conteúdo e governança, 47.10                     | Revisão editorial e equipe operacional ainda não comprovadas                                                                                       | Manter ajuda, fluxos de revisão, retenção e critérios de evidência consistentes com o comportamento real                     | Pessoas responsáveis, substitutos, direitos e prazos confirmados                                                                                             |
 | Ensaio e lançamento, 47.11                       | Ensaio integrado incompleto; gate integral fechado                                                                                                 | Preparar instrumentos de coleta, verificações sanitizadas e pacote por versão                                                | Três sessões reais, estabilidade medida e decisão final                                                                                                      |
-| Escola COMUN R0                                  | PR #503 aberto, head `a8dbe550583526eae631deafa3c574fbcfb18993` na consulta; 24 micro-missões candidatas, progresso privado, flag desligada        | Finalizar checks globais e validar integração no schema canônico antes de ativar                                             | Ambiente COMUN identificado e revisão humana do material; testes locais não comprovam ativação                                                               |
+| Escola COMUN R0                                  | PR #503 aberto, head `a8dbe550583526eae631deafa3c574fbcfb18993` na consulta; 24 micro-missões candidatas, progresso privado, flag desligada        | Checks concluídos; validar integração no schema canônico e ativação separada                                             | Ambiente COMUN identificado e revisão humana do material; testes locais não comprovam ativação                                                               |
 | Serviços Públicos                                | PR documental #434 aberto; expansão fora do fechamento V1                                                                                          | Revisar arquitetura e limites da proposta separadamente                                                                      | Decisão de escopo posterior; sem expansão automática                                                                                                         |
 
 ### Evidência técnica já integrada
