@@ -228,6 +228,79 @@ try {
       );
     }
   });
+  for (const isolation of ["repeatable read", "serializable"]) {
+    await check(
+      `${isolation} transaction snapshots cannot publish stale composition`,
+      async () => {
+        const episode = await fixture();
+        const publisher = new pg.Client({ connectionString: url.href });
+        try {
+          await publisher.connect();
+          await publisher.query("set role service_role");
+          await publisher.query("set statement_timeout='5s'");
+          // Constants only; establish a transaction-wide snapshot via review.
+          await publisher.query(`begin isolation level ${isolation}`);
+          const review = (
+            await publisher.query(
+              "select public.comun_prepare_radio_publication_review($1,$2) value",
+              [episode, actor],
+            )
+          ).rows[0].value;
+          assert.equal(review.outcome, "ready");
+          await admin.query(
+            "update public.comun_radio_credits set public_credit='Changed after transaction snapshot' where episode_item_id=$1",
+            [episode],
+          );
+          assert.notEqual((await prepare(episode)).identity, review.identity);
+          assert.deepEqual(await commit(episode, review.identity, publisher), {
+            outcome: "conflict",
+            reason: "unsupported_isolation",
+          });
+          const locks = await admin.query(
+            "select count(*)::int n from pg_locks where pid=$1 and mode='ShareRowExclusiveLock'",
+            [publisher.processID],
+          );
+          assert.equal(locks.rows[0].n, 0);
+          const state = (
+            await publisher.query(
+              "select e.publication_status,i.status,i.visibility,(select count(*)::int from public.comun_radio_editorial_versions where episode_item_id=$1) versions,(select count(*)::int from public.comun_admin_audit_log where target_id=$1) audit from public.comun_radio_episodes e join public.comun_archive_items i on i.id=e.archive_item_id where i.id=$1",
+              [episode],
+            )
+          ).rows[0];
+          assert.deepEqual(state, {
+            publication_status: "editorial_review",
+            status: "draft",
+            visibility: "private",
+            versions: 0,
+            audit: 0,
+          });
+          await publisher.query("commit");
+          // Ordinary READ COMMITTED still rejects the stale review, then permits
+          // exactly one publication after a fresh review of the changed credit.
+          assert.equal(
+            (await commit(episode, review.identity)).outcome,
+            "conflict",
+          );
+          const refreshed = await prepare(episode);
+          assert.equal(
+            (await commit(episode, refreshed.identity)).outcome,
+            "published",
+          );
+          const versions = await admin.query(
+            "select count(*)::int n from public.comun_radio_editorial_versions where episode_item_id=$1",
+            [episode],
+          );
+          assert.equal(versions.rows[0].n, 1);
+        } finally {
+          try {
+            await publisher.query("rollback");
+          } finally {
+            await publisher.end();
+          }
+        }
+      },
+    );
+  }
   await check(
     "successful atomic publication and idempotent replay",
     async () => {
@@ -871,6 +944,8 @@ try {
         },
         ordinaryReads: "available",
         locksAfterTransaction: "released",
+        requiredCommitIsolation: "read committed",
+        transactionSnapshotIsolation: "rejected_without_publication_writes",
         productionLatencyMeasured: false,
         productionActivationReady: false,
       },

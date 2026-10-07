@@ -178,6 +178,11 @@ declare
   v_episode_status text; v_item_status text; v_item_visibility text;
   v_now timestamptz := clock_timestamp(); v_version bigint; v_snapshot jsonb;
 begin
+  -- Composition locks protect only a fresh statement snapshot. A caller using
+  -- a transaction-wide snapshot can otherwise publish obsolete reviewed data.
+  if current_setting('transaction_isolation') <> 'read committed' then
+    return jsonb_build_object('outcome','conflict','reason','unsupported_isolation');
+  end if;
   begin
     select * into v_admin from public.comun_admin_users where id=p_admin_id and is_active for share nowait;
     if not found or v_admin.role not in ('admin','editor') then return jsonb_build_object('outcome','denied'); end if;
