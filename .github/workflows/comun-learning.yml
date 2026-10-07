@@ -65,7 +65,8 @@ jobs:
         with:
           version: 2.117.0
       - run: npm ci --ignore-scripts
-      - run: node --test scripts/learning/disposable-boundary.node-test.mjs
+      - run: node --test scripts/learning/disposable-boundary.node-test.mjs scripts/learning/browser-resume-proof.node-test.mjs
+      - uses: ./.github/actions/setup-playwright-browser
       - name: Isolated project identity for this execution
         env:
           COMUN_LEARNING_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
@@ -99,7 +100,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: escola-canonical-auth-proof-${{ github.sha }}
-          path: reports/local/escola-canonical-auth-proof.json
+          path: |
+            reports/local/escola-canonical-auth-proof.json
+            reports/local/escola-auth-390.png
+            reports/local/escola-auth-1366.png
           if-no-files-found: error
       - name: Destroy only this disposable stack
         if: always()

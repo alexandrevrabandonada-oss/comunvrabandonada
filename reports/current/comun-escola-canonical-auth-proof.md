@@ -88,3 +88,21 @@ de vínculo aceita `paused`, diferentemente do status de perfil. Corrigido
 somente o fixture, com regressão contra a definição da tabela na migration.
 O attempt permanece FAIL; os gates posteriores não são certificados. Nenhum
 runtime ou schema foi alterado para acomodar o teste.
+
+## Prova HTTP fechada e próxima lacuna
+
+Run `37646923297` passou para o head `9c345fce`. O checkout realmente testado
+é o merge sintético GitHub `18ee3d9a2a7236d7af1069d74d3f5bf8079007e9`, tree
+`ecd032116f4c9cb2d28a6bc5e3cc9e97a1399574`, pais main `74cc0ed1` e `9c345fce`.
+Escola, Auth, cliente Supabase, migrations e harness são byte a byte iguais ao
+head; outros domínios do merge não são declarados equivalentes. Checker:
+zero findings, fingerprint `b5fcd36efcbd6aaba177ce75bcce6e38286c870deacea27948339d23966f4144`.
+Artifact `11494628587`, SHA-256
+`9d79e80c952356ebe9a8fe294006d82b911cc1b2db3e21287a55a40317ede814`.
+
+A prova seguinte acrescenta navegador real com as mesmas contas Auth: Hoje →
+Continuar → etapa persistida → reload, A/B em 390/1366px. Sem interceptação
+de API ou storageState/traces de sessão. Browser plugin não disponível;
+fallback usa Playwright pinado do projeto e Chromium completo. Capturas
+mostram somente o catálogo/etapa das fixtures sintéticas; não contêm reflexão,
+email, token ou IDs Auth. Essa etapa permanece NOT_RUN até o novo artifact.

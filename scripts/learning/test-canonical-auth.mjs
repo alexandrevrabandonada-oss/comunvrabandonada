@@ -6,6 +6,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import pg from "pg";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
+import { proveBrowserResume } from "./browser-resume-proof.mjs";
 import {
   disposableContext,
   assertOwnedContainers,
@@ -41,6 +42,7 @@ const origin = "http://localhost:3017";
 const run = randomUUID();
 const identities = [];
 const checks = [];
+let browserProof;
 let server;
 let locked = false;
 
@@ -327,6 +329,17 @@ try {
   assert.equal((await apiOk(b)).progress[0].step, 1);
   checks.push("barrier-independent-concurrency-stale-replay-and-read-recovery");
 
+  browserProof = await proveBrowserResume({
+    actors: [
+      { cookie: a.cookie, label: "a", step: 2, revision: 2 },
+      { cookie: b.cookie, label: "b", step: 1, revision: 1 },
+    ],
+    mission,
+    origin,
+    directory: new URL("reports/local/", root),
+  });
+  checks.push("real-browser-owner-resume-mobile-desktop-and-reload");
+
   const pauta = randomUUID();
   const task = randomUUID();
   context.pauta = pauta;
@@ -459,6 +472,7 @@ const receipt = {
   auth: "REAL_LOCAL_SUPABASE",
   api: "REAL_NEXT_ROUTE_SSR_COOKIES",
   checks,
+  browserProof,
   cleanup: "EXACT_SYNTHETIC_IDS_REMOVED",
   productionWrites: 0,
   limitations: [
