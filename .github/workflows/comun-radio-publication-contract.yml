@@ -5,14 +5,17 @@ on:
     branches: [main]
     paths:
       - "supabase/reconciliation/radio-publication/**"
-      - "supabase/migrations/20260715185344_community_radio_foundation.sql"
-      - "scripts/radio-publication-contract.mjs"
+      - "scripts/radio-publication*.mjs"
+      - "supabase/migrations/**"
+      - "supabase/config.toml"
       - ".github/workflows/comun-radio-publication-contract.yml"
   push:
     branches: [main]
     paths:
       - "supabase/reconciliation/radio-publication/**"
-      - "scripts/radio-publication-contract.mjs"
+      - "scripts/radio-publication*.mjs"
+      - "supabase/migrations/**"
+      - "supabase/config.toml"
       - ".github/workflows/comun-radio-publication-contract.yml"
 
 permissions:
@@ -52,5 +55,36 @@ jobs:
         run: node scripts/radio-publication-contract.mjs
       - name: Formatting and lint
         run: |
-          npx prettier@3.9.6 --check scripts/radio-publication-contract.mjs .github/workflows/comun-radio-publication-contract.yml docs/comun-radio-publication-contract.md
-          npx eslint scripts/radio-publication-contract.mjs
+          npx prettier@3.9.6 --check scripts/radio-publication*.mjs .github/workflows/comun-radio-publication-contract.yml docs/comun-radio-publication-contract.md
+          npx eslint scripts/radio-publication*.mjs
+
+  full-local-chain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.19.0"
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.117.0
+      - run: npm ci --ignore-scripts
+      - name: Start disposable Supabase
+        run: supabase start
+      - name: Apply checked-out local migration chain
+        run: supabase db reset --local --yes
+      - name: Verify full schema publication contract and cleanup
+        run: |
+          mkdir -p .ci-artifacts/radio-publication
+          node scripts/radio-publication-full-schema.mjs > .ci-artifacts/radio-publication/full-local-chain.json
+      - name: Destroy disposable services
+        if: always()
+        run: supabase stop --no-backup
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: comun-radio-full-local-chain-${{ github.sha }}-${{ github.run_id }}
+          path: .ci-artifacts/radio-publication/full-local-chain.json
+          retention-days: 14

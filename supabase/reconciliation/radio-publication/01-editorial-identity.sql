@@ -137,6 +137,7 @@ $$;
 create or replace function private.comun_lock_radio_editorial_composition()
 returns void language plpgsql volatile security invoker
 set search_path = pg_catalog
+set lock_timeout = '1500ms'
 as $$ begin
   lock table public.comun_archive_items in share row exclusive mode;
   lock table public.comun_radio_episodes in share row exclusive mode;
@@ -151,14 +152,15 @@ end $$;
 
 create or replace function public.comun_prepare_radio_publication_review(
   p_episode_id uuid, p_admin_id uuid
-) returns jsonb language plpgsql security invoker
+) returns jsonb language plpgsql stable security invoker
 set search_path = pg_catalog
 as $$
 declare v_admin public.comun_admin_users%rowtype; v_identity text; v_blockers text[];
 begin
-  select * into v_admin from public.comun_admin_users where id=p_admin_id and is_active for share;
+  select * into v_admin from public.comun_admin_users where id=p_admin_id and is_active;
   if not found or v_admin.role not in ('admin','editor') then return jsonb_build_object('outcome','denied'); end if;
-  perform private.comun_lock_radio_editorial_composition();
+  -- Advisory review only: STABLE uses the calling query's consistent snapshot.
+  -- Publication always rechecks authorization, identity and blockers under locks.
   v_identity := private.comun_radio_editorial_identity(p_episode_id);
   if v_identity is null then return jsonb_build_object('outcome','conflict'); end if;
   v_blockers := private.comun_radio_publication_blockers(p_episode_id);
@@ -169,15 +171,27 @@ create or replace function public.comun_commit_radio_publication(
   p_episode_id uuid, p_expected_identity text, p_admin_id uuid
 ) returns jsonb language plpgsql security invoker
 set search_path = pg_catalog
+set lock_timeout = '1500ms'
 as $$
 declare
-  v_admin public.comun_admin_users%rowtype; v_identity text; v_blockers text[];
+  v_admin record; v_identity text; v_blockers text[];
   v_episode_status text; v_item_status text; v_item_visibility text;
   v_now timestamptz := clock_timestamp(); v_version bigint; v_snapshot jsonb;
 begin
-  select * into v_admin from public.comun_admin_users where id=p_admin_id and is_active for share;
-  if not found or v_admin.role not in ('admin','editor') then return jsonb_build_object('outcome','denied'); end if;
-  perform private.comun_lock_radio_editorial_composition();
+  -- Composition locks protect only a fresh statement snapshot. A caller using
+  -- a transaction-wide snapshot can otherwise publish obsolete reviewed data.
+  if current_setting('transaction_isolation') <> 'read committed' then
+    return jsonb_build_object('outcome','conflict','reason','unsupported_isolation');
+  end if;
+  begin
+    select * into v_admin from public.comun_admin_users where id=p_admin_id and is_active for share nowait;
+    if not found or v_admin.role not in ('admin','editor') then return jsonb_build_object('outcome','denied'); end if;
+    perform private.comun_lock_radio_editorial_composition();
+  exception when lock_not_available then
+    -- The subtransaction releases authorization and partial composition locks. No publication
+    -- writes have happened; permission errors and deadlocks still propagate.
+    return jsonb_build_object('outcome','busy');
+  end;
   select e.publication_status,i.status,i.visibility into v_episode_status,v_item_status,v_item_visibility
   from public.comun_radio_episodes e join public.comun_archive_items i on i.id=e.archive_item_id
   where e.archive_item_id=p_episode_id;
