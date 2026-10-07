@@ -274,7 +274,7 @@ export function ComunShareButton({
   title: string;
   className?: string;
 }) {
-  const [shareStatus, setShareStatus] = useState("");
+  const [shareStatus, setShareStatus] = useState<"" | "copied" | "failed">("");
   const share = async () => {
     setShareStatus("");
     const payload = buildComunPageSharePayload({
@@ -285,8 +285,9 @@ export function ComunShareButton({
       pageDescription: document.querySelector<HTMLMetaElement>(
         'meta[property="og:description"]',
       )?.content,
-      canonicalHref:
-        document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href,
+      canonicalHref: document.querySelector<HTMLLinkElement>(
+        'link[rel="canonical"]',
+      )?.href,
       currentHref: window.location.href,
     });
     const result = await shareOrCopy(payload, {
@@ -301,9 +302,7 @@ export function ComunShareButton({
       },
     });
 
-    if (result === "copied") setShareStatus("Link copiado.");
-    if (result === "failed")
-      setShareStatus("Não foi possível compartilhar o link.");
+    if (result === "copied" || result === "failed") setShareStatus(result);
   };
   return (
     <button
@@ -317,10 +316,17 @@ export function ComunShareButton({
         : shareStatus === "failed"
           ? "Falha no link"
           : "Compartilhar"}
-      <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+      <span
+        className="sr-only"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         {shareStatus === "failed"
           ? "Não foi possível compartilhar o link."
-          : shareStatus}
+          : shareStatus === "copied"
+            ? "Link copiado."
+            : ""}
       </span>
     </button>
   );

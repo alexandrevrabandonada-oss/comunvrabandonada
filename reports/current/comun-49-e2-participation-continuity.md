@@ -158,3 +158,34 @@ Nenhum comando, aplicação, workflow ou regra de autorização foi alterado
 nesta correção. Repetição completa local: 243 arquivos, 1.407 testes PASS;
 ESLint, Prettier e diff-check dos arquivos afetados PASS. A conferência remota
 continua no novo checkpoint; o PR permanece draft enquanto houver pendências.
+
+### PWA — autoridade do candidato e confirmação visível
+
+No checkpoint `c4811dd8d4384c6bf26f42e0f4468b39046c6ee8`, o workflow de
+coerência completo passou na run `37561736954`. A lane PWA `37561737044`
+falhou porque seu COMUN_BASE_URL fixo apontava para Production, que não contém
+o compartilhamento deste draft. A lane agora executa a árvore checkout em
+loopback, sem secrets, com um contrato estrutural que impede a troca do destino,
+o bypass do webServer e continue-on-error. O smoke pós-merge separado não mudou.
+
+Reprodução local também provou uma corrida no teste: count() antes da renderização
+selecionava um menu ausente no desktop. Agora espera-se um dos dois controles
+visíveis antes de escolher o caminho, sem sleep/retry ou aumento de timeout.
+Após essa correção, a regressão exigindo o texto visual falhou com Expected
+"Link copiado", Received "Compartilhar". O estado guardava uma frase enquanto
+o render comparava códigos copied/failed. Correção focal: código de estado tipado
+e mensagem acessível separada. O teste exige confirmação visual e aria-live;
+controle negativo de native share e clipboard falhos proíbe falso sucesso.
+
+O contrato territorial da run `37561737059`, job `112602044452`, falhou com
+502 após reset do Supabase descartável, antes de completar o apply territorial.
+Nenhuma falha SQL/funcional foi demonstrada; não se alterou domínio nem retry
+por esse incidente. A repetição acompanha o próximo checkpoint funcional.
+
+PASS local nesta árvore: 45 casos PWA em cinco larguras (360, 390, 768, 1024
+e 1366), zero retries; confirmação visível e aria-live, erro sem falso sucesso,
+manifest, cache privado, offline e limpeza de caches. Capturas mobile/desktop
+inspecionadas; zero pageerrors nos dois fluxos de cópia. 1.407 unitários/243
+arquivos, 113 Solo, contrato estrutural da lane PWA, TypeScript, ESLint completo,
+build, Prettier técnico e diff-check PASS. Esta é prova local/sintética;
+não representa merge, lançamento, Auth/RLS da Escola ou escrita Production.

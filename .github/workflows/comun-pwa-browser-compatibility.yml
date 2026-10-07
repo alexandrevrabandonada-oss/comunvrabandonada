@@ -4,9 +4,13 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "components/comun-pwa-runtime.tsx"
+      - "components/comun-mobile-app-bar.tsx"
+      - "lib/comun-one-product-contract*"
       - "playwright.comun-pwa-experience.config.ts"
       - "tests/comun-pwa-experience/**"
       - ".github/workflows/comun-pwa-browser-compatibility.yml"
+      - "scripts/ci/comun-pwa-candidate-workflow.node-test.mjs"
   workflow_dispatch:
 
 permissions:
@@ -21,15 +25,25 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
-      COMUN_BASE_URL: https://comunsocial.online
-      PLAYWRIGHT_SKIP_WEBSERVER: "1"
+      COMUN_BASE_URL: http://127.0.0.1:3015
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: synthetic-local-key
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22.18.0
           cache: npm
       - run: npm ci --ignore-scripts
+      - run: node --test scripts/ci/comun-pwa-candidate-workflow.node-test.mjs
       - uses: ./.github/actions/setup-playwright-browser
-      - name: Run unchanged PWA criteria with full Chromium
+      - name: Run candidate PWA criteria with full Chromium
         run: npm run quality:pwa
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: candidate-pwa-browser-evidence
+          path: test-results/
+          retention-days: 7
