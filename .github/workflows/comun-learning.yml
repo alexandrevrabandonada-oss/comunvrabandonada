@@ -3,15 +3,15 @@ name: COMUN Escola contract
 on:
   pull_request:
     paths:
-      - 'app/**/escola/**'
-      - 'components/learning/**'
-      - 'lib/learning/**'
-      - 'scripts/learning/**'
-      - 'supabase/migrations/*comun_learning*'
-      - 'supabase/releases/*comun-learning*'
-      - '.github/workflows/comun-learning.yml'
-      - 'package.json'
-      - 'package-lock.json'
+      - "app/**/escola/**"
+      - "components/learning/**"
+      - "lib/learning/**"
+      - "scripts/learning/**"
+      - "supabase/migrations/*comun_learning*"
+      - "supabase/releases/*comun-learning*"
+      - ".github/workflows/comun-learning.yml"
+      - "package.json"
+      - "package-lock.json"
   workflow_dispatch:
 
 permissions:
@@ -46,4 +46,61 @@ jobs:
       - run: node scripts/learning/test-database.mjs
         env:
           COMUN_LEARNING_TEST_DATABASE_URL: postgres://postgres:escola-disposable-only@127.0.0.1:5432/escola_test
-          COMUN_LEARNING_DISPOSABLE_DATABASE: 'true'
+          COMUN_LEARNING_DISPOSABLE_DATABASE: "true"
+
+  canonical-auth:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.117.0
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/learning/disposable-boundary.node-test.mjs
+      - name: Isolated project identity for this execution
+        env:
+          COMUN_LEARNING_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          python3 - <<'PY'
+          import os, re
+          from pathlib import Path
+          run = os.environ['COMUN_LEARNING_RUN_ID']
+          assert re.fullmatch(r'\d+-\d+', run)
+          file = Path('supabase/config.toml')
+          text = file.read_text()
+          assert text.count('project_id = "COMUM_VR_ABANDONADA"') == 1
+          file.write_text(text.replace('project_id = "COMUM_VR_ABANDONADA"', f'project_id = "escola-proof-{run}"'))
+          PY
+      - name: Supabase canonical local start
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+      - name: Canonical migration chain including candidate School
+        run: supabase db reset --local --yes
+      - name: Real Auth, SSR API, owner isolation and synchronized concurrency
+        env:
+          COMUN_LEARNING_DISPOSABLE_AUTH: "true"
+          COMUN_LEARNING_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: node scripts/learning/run-canonical-auth.mjs
+      - name: Canonical security findings
+        env:
+          COMUN_LEARNING_DISPOSABLE_AUTH: "true"
+          COMUN_LEARNING_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: node scripts/learning/check-canonical-security.mjs
+      - name: Sanitized proof
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: escola-canonical-auth-proof-${{ github.sha }}
+          path: reports/local/escola-canonical-auth-proof.json
+          if-no-files-found: error
+      - name: Destroy only this disposable stack
+        if: always()
+        run: supabase stop --no-backup
