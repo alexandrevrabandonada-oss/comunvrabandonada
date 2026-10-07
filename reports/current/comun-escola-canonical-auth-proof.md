@@ -114,3 +114,11 @@ e navegação, DOMContentLoaded seguido de API/heading real e timeout total
 de oito minutos para o passo. Nenhuma asserção de sessão/progresso foi removida.
 Os failures globais de dpkg lock e reset local 502 foram rerodados somente
 nos jobs falhos, sem alterar código; resultados pertencem ao SHA dessas runs.
+
+Run `37650884928`/head `923c699a`: FAIL pelo timeout de oito minutos.
+Marcadores provaram Today e retomada autenticados em 390px/A; a última etapa
+foi `reload-navigation`. Nenhuma prova de reload, desktop ou limpeza desse
+attempt é inferida. A próxima tentativa usa build compilado + next start,
+mantendo os endpoints/cookies/asserções reais. Deadline externo de navegação
+e encerramento falha fechado, além dos timeouts internos do Playwright.
+Não se atribui esse comportamento ao código de produto sem reprodução isolada.

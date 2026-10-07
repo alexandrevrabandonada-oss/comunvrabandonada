@@ -91,6 +91,7 @@ async function request(actor, input, requestOrigin = origin) {
     },
     body: input ? JSON.stringify(input) : undefined,
     redirect: "error",
+    signal: AbortSignal.timeout(20000),
   });
   assert.equal(response.headers.get("cache-control"), "private, no-store");
   return { status: response.status, body: await response.json() };
@@ -162,7 +163,7 @@ try {
     process.execPath,
     [
       "node_modules/next/dist/bin/next",
-      "dev",
+      "start",
       "--hostname",
       "127.0.0.1",
       "--port",

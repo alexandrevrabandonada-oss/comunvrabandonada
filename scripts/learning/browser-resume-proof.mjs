@@ -3,6 +3,23 @@ import { mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { chromium, expect } from "@playwright/test";
 
+export async function bounded(operation, label, milliseconds = 60000) {
+  let timer;
+  try {
+    return await Promise.race([
+      operation,
+      new Promise((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error(`COMUN_LEARNING_BROWSER_TIMEOUT:${label}`)),
+          milliseconds,
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export function sessionCookies(header, origin) {
   assert.equal(origin, "http://localhost:3017");
   return header.split("; ").map((entry) => {
@@ -104,7 +121,10 @@ export async function proveBrowserResume({
           ).toBeVisible();
           response = snapshot();
           mark("reload-navigation");
-          await page.reload({ waitUntil: "domcontentloaded" });
+          await bounded(
+            page.reload({ waitUntil: "domcontentloaded" }),
+            "reload-navigation",
+          );
           await verify(await response);
           mark("reload-authenticated");
           await expect(
@@ -126,12 +146,12 @@ export async function proveBrowserResume({
           mark("passed");
           cases += 1;
         } finally {
-          await context.close();
+          await bounded(context.close(), "context-cleanup", 10000);
         }
       }
     }
   } finally {
-    await browser.close();
+    await bounded(browser.close(), "browser-cleanup", 10000);
   }
   assert.equal(cases, 4);
   return {

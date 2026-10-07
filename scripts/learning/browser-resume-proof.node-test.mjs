@@ -1,7 +1,23 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { sessionCookies } from "./browser-resume-proof.mjs";
+import { sessionCookies, bounded } from "./browser-resume-proof.mjs";
+
+test("browser controller fails closed when a navigation never settles", async () => {
+  assert.equal(await bounded(Promise.resolve("ready"), "fixture", 50), "ready");
+  await assert.rejects(
+    bounded(new Promise(() => {}), "fixture-hang", 20),
+    /COMUN_LEARNING_BROWSER_TIMEOUT:fixture-hang/,
+  );
+  await assert.rejects(
+    bounded(
+      Promise.reject(new Error("actual-navigation-failure")),
+      "fixture",
+      50,
+    ),
+    /actual-navigation-failure/,
+  );
+});
 
 test("SSR cookie chunks preserve padding and remain restricted to the local app", () => {
   assert.deepEqual(
