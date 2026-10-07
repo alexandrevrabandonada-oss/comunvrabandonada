@@ -8,11 +8,11 @@ O roadmap passa a tratar o COMUN também como infraestrutura para uma estrutura 
 
 Essa conexão existia distribuída em frentes do roadmap, mas não estava explícita como objetivo integrador nem como contrato de produto. O novo [49-E0 — contrato de produto único](comun-one-product-contract-49-e0.md) fixa os princípios e inclui a camada **49-M — Organização política permanente**. O E0 é um candidato em implementação; não altera o estado da V1, a autorização de lançamento nem a indexação atual.
 
-| Trilha | Papel no produto inteiro | Estado do trabalho sem amostra humana |
-|---|---|---|
-| **49-E0 — COMUN ONE PRODUCT CONTRACT** | Gramática comum, superfície pública, compartilhamento, busca, privacidade, continuidade e fricção | Contrato e testes focais aprovados localmente; prova renderizada ampliada no 49-E2 abaixo; adoção em todas as rotas ainda pendente |
-| **49-M — Organização política permanente** | Vincula APS, VR Abandonada e aliadas a núcleos, decisões, tarefas, formação, ação institucional, prestação de contas e sucessão | Arquitetura e limites registrados; governança, pessoas e responsabilidades reais exigem validação da organização |
-| **50 — COMUN UNO** | Ensaio da experiência completa, inclusive a relação com estrutura e ação política | Etapa final; depende de jornadas com pessoas, dispositivos e operação reais |
+| Trilha                                     | Papel no produto inteiro                                                                                                        | Estado do trabalho sem amostra humana                                                                                              |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **49-E0 — COMUN ONE PRODUCT CONTRACT**     | Gramática comum, superfície pública, compartilhamento, busca, privacidade, continuidade e fricção                               | Contrato e testes focais aprovados localmente; prova renderizada ampliada no 49-E2 abaixo; adoção em todas as rotas ainda pendente |
+| **49-M — Organização política permanente** | Vincula APS, VR Abandonada e aliadas a núcleos, decisões, tarefas, formação, ação institucional, prestação de contas e sucessão | Arquitetura e limites registrados; governança, pessoas e responsabilidades reais exigem validação da organização                   |
+| **50 — COMUN UNO**                         | Ensaio da experiência completa, inclusive a relação com estrutura e ação política                                               | Etapa final; depende de jornadas com pessoas, dispositivos e operação reais                                                        |
 
 ## Produto e estrutura política permanente
 
@@ -31,12 +31,12 @@ resolver uma necessidade sem se vincular; pode contribuir pontualmente; ou
 construir continuidade num núcleo. Convites são contextuais e responsabilidades
 dependem de aceite explícito.
 
-| Entrega | Relação com o roadmap | Prova necessária |
-|---|---|---|
-| Inventário de entradas, utilidade e convites | 49-E0 / 49-E | Rotas e barreiras reais; funções públicas preservadas sem adesão |
-| Orientação → prática → devolutiva → retomada | 49-C / 49-F | Materiais e registros conectados; formação não atribui tarefa nem função automaticamente |
-| Núcleo → decisão → tarefa → ação → resultado → substituição | 49-A / 49-B / 49-M | Responsáveis e vínculos concretos; memória e continuidade com substitutos |
-| Jornadas de uso pontual, contribuição e organização | 50 COMUN UNO | Provas técnicas e ensaio humano dos três caminhos, incluindo saída e retorno |
+| Entrega                                                     | Relação com o roadmap | Prova necessária                                                                         |
+| ----------------------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------- |
+| Inventário de entradas, utilidade e convites                | 49-E0 / 49-E          | Rotas e barreiras reais; funções públicas preservadas sem adesão                         |
+| Orientação → prática → devolutiva → retomada                | 49-C / 49-F           | Materiais e registros conectados; formação não atribui tarefa nem função automaticamente |
+| Núcleo → decisão → tarefa → ação → resultado → substituição | 49-A / 49-B / 49-M    | Responsáveis e vínculos concretos; memória e continuidade com substitutos                |
+| Jornadas de uso pontual, contribuição e organização         | 50 COMUN UNO          | Provas técnicas e ensaio humano dos três caminhos, incluindo saída e retorno             |
 
 VR Abandonada comunica e mobiliza; APS e aliadas dão base associativa e
 capacidade de execução; COMUN conecta conhecimento, formação e continuidade;
@@ -149,7 +149,7 @@ O produto está no fechamento técnico e operacional da V1, antes do ensaio inte
 | Coerência, busca e qualidade, 47.9A/B/C          | CI do #502 passou; busca lexical preservada; embeddings reais continuam bloqueados por capacidade do provedor                                      | Regressões, semântica de filtros, estados vazios, fallback e contratos automatizados                                         | Dispositivos físicos, tecnologia assistiva, compreensão humana; credencial do provedor para embeddings                                                       |
 | Conteúdo e governança, 47.10                     | Revisão editorial e equipe operacional ainda não comprovadas                                                                                       | Manter ajuda, fluxos de revisão, retenção e critérios de evidência consistentes com o comportamento real                     | Pessoas responsáveis, substitutos, direitos e prazos confirmados                                                                                             |
 | Ensaio e lançamento, 47.11                       | Ensaio integrado incompleto; gate integral fechado                                                                                                 | Preparar instrumentos de coleta, verificações sanitizadas e pacote por versão                                                | Três sessões reais, estabilidade medida e decisão final                                                                                                      |
-| Escola COMUN R0                                  | PR #503 aberto, head `a8dbe550583526eae631deafa3c574fbcfb18993` na consulta; 24 micro-missões candidatas, progresso privado, flag desligada        | Checks concluídos; validar integração no schema canônico e ativação separada                                             | Ambiente COMUN identificado e revisão humana do material; testes locais não comprovam ativação                                                               |
+| Escola COMUN R0                                  | PR #503 aberto, head `a8dbe550583526eae631deafa3c574fbcfb18993` na consulta; 24 micro-missões candidatas, progresso privado, flag desligada        | Checks concluídos; validar integração no schema canônico e ativação separada                                                 | Ambiente COMUN identificado e revisão humana do material; testes locais não comprovam ativação                                                               |
 | Serviços Públicos                                | PR documental #434 aberto; expansão fora do fechamento V1                                                                                          | Revisar arquitetura e limites da proposta separadamente                                                                      | Decisão de escopo posterior; sem expansão automática                                                                                                         |
 
 ### Evidência técnica já integrada

@@ -67,6 +67,25 @@ correção, os seis casos passaram com servidor próprio. Nenhum retry foi adici
 
 ## Entrega e operação
 
+Primeiro checkpoint `ab06c1d86ef8aa1bbc8cea07823642572207beae`: Preview Git
+`dpl_H82gGSbZonFT5DqF3GDA2ZWVEUbR` READY e GitHub Deployment `6899813907`
+no SHA exato, environment Preview, status success, URL HTTPS `.vercel.app`.
+Um checkpoint documental subsequente corrige somente Prettier do roadmap e
+registra os blockers abaixo; seu Preview precisa de validação própria.
+
+Gates globais não verdes: preflights A2/A4/A5 e P6C-C falharam antes de qualquer
+prova de produto. Artifacts das runs `37559796309`, `37559796275`, `37559796294`
+e `37559796222` mostram o dry-run recusando
+`20260922120000_comun_canonical_security_hardening_v2.sql` como arquivo anterior
+à última migration remota. Isso requer reconciliação do planner com a release
+externa aceita, em frente separada; não autoriza `include-all`, reparo de history
+ou replay remoto. Nenhuma migration changed nesta entrega. Não se classificam
+esses failures como skipped nem como PASS.
+
+A run Launch Readiness `37559796257` encontrou somente Prettier no roadmap:
+correção documental aplicada e revalidada com Prettier 3.9.9. Resultados das
+demais suítes ainda em execução não são presumidos. O PR permanece draft.
+
 O workflow `comun-participation-continuity.yml` usa conteúdo sintético e não
 recebe secrets Production. Checkpoint/Preview e checks remotos pertencem ao SHA
 da revisão, registrados no PR. Resultado local não é transferido para deployment
