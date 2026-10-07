@@ -275,6 +275,12 @@ export function ComunShareButton({
   className?: string;
 }) {
   const [shareStatus, setShareStatus] = useState<"" | "copied" | "failed">("");
+  const label =
+    shareStatus === "copied"
+      ? "Link copiado"
+      : shareStatus === "failed"
+        ? "Falha no link"
+        : "Compartilhar";
   const share = async () => {
     setShareStatus("");
     const payload = buildComunPageSharePayload({
@@ -308,14 +314,14 @@ export function ComunShareButton({
     <button
       type="button"
       onClick={share}
-      aria-label="Compartilhar esta página"
+      aria-label={
+        shareStatus
+          ? `${label}. Compartilhar esta página`
+          : "Compartilhar esta página"
+      }
       className={className}
     >
-      {shareStatus === "copied"
-        ? "Link copiado"
-        : shareStatus === "failed"
-          ? "Falha no link"
-          : "Compartilhar"}
+      {label}
       <span
         className="sr-only"
         role="status"

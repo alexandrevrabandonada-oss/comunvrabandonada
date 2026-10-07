@@ -2,9 +2,9 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 async function openShareButton(page: Page) {
-  const shareButton = page.locator(
-    'button[aria-label="Compartilhar esta página"]:visible',
-  );
+  const shareButton = page
+    .getByRole("button", { name: /Compartilhar esta página$/ })
+    .filter({ visible: true });
   const overflow = page.locator('summary[aria-label="Mais ações"]:visible');
   // Await the rendered control before deciding between desktop and mobile.
   await expect(shareButton.or(overflow).first()).toBeVisible();
@@ -129,12 +129,19 @@ test("copy fallback gives a clear confirmation when native sharing is unavailabl
     )
     .toBe("Link copiado");
   await expect(shareButton.getByRole("status")).toHaveText("Link copiado.");
+  await expect(shareButton).toHaveAccessibleName(
+    "Link copiado. Compartilhar esta página",
+  );
   const copiedUrl = await page.evaluate(
     () => (window as Window & { __comunCopiedUrl?: string }).__comunCopiedUrl,
   );
   expect(copiedUrl).toBeTruthy();
   expect(copiedUrl).not.toContain("utm_source");
   expect(copiedUrl).not.toContain("#");
+  const labelAudit = await new AxeBuilder({ page })
+    .withRules(["label-content-name-mismatch"])
+    .analyze();
+  expect(labelAudit.violations).toEqual([]);
 });
 
 test("failed native sharing and clipboard announce failure without confirming copy", async ({
@@ -164,6 +171,13 @@ test("failed native sharing and clipboard announce failure without confirming co
     "Não foi possível compartilhar o link.",
   );
   await expect(shareButton).not.toContainText("Link copiado");
+  await expect(shareButton).toHaveAccessibleName(
+    "Falha no link. Compartilhar esta página",
+  );
+  const labelAudit = await new AxeBuilder({ page })
+    .withRules(["label-content-name-mismatch"])
+    .analyze();
+  expect(labelAudit.violations).toEqual([]);
 });
 
 test("fallback offline explica limites sem simular envio", async ({ page }) => {

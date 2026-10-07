@@ -212,3 +212,31 @@ texto, teclado, Axe, alias, opt-in, erro/rate limit e privacy boundary mantidos.
 TypeScript, ESLint, Prettier e diff-check dos arquivos afetados PASS.
 O servidor local usa somente destinos loopback e o fallback público existente;
 isto não substitui a prova de provider/RLS no Supabase descartável remoto.
+
+### Confirmação de cópia — nome acessível
+
+No runtime de `eeeb87bc4302a8e5f0ee3ef4f6f558686c6358da`, a inspeção após
+copiar demonstrou um finding Axe serious `label-content-name-mismatch`.
+O botão mostrava "Link copiado", mas o aria-label permanecia "Compartilhar
+esta página". A regressão falhou em Chromium desktop, com trace preservado
+fora do repositório. A correção usa o mesmo label para o texto visível e o
+prefixo do nome acessível, preservando a descrição da ação. Estados de cópia
+e falha exigem nomes exatos e zero findings nessa regra; não há allowance
+nem desativação de critérios. Não muda URL/payload, clipboard, auth ou schema.
+
+A repetição global da mesma regra apontou também o atalho mobile existente:
+texto "Relatar", aria-label "Vi um problema". O nome acessível agora inclui
+"Relatar. Vi um problema", mantendo constantes do contrato, texto visual,
+destino e gesto de navegação. Não se limitou a regra para esconder esse nó;
+as varreduras após cópia/falha continuam cobrindo a página inteira.
+Revisão React: label derivado durante render, sem estado duplicado/efeito,
+novas dependências, listeners ou alterações de fetch. A primeira repetição
+teve 39/45 enquanto o defeito mobile estava presente; não é contada como PASS.
+
+Depois das duas correções, PASS local: 45/45 PWA, cinco larguras, zero retries,
+incluindo a regra global label-content-name-mismatch após cópia e falha;
+1.407 unitários em 243 arquivos, TypeScript, ESLint completo, build,
+Prettier dos arquivos técnicos e git diff --check. O checkpoint seguinte
+contém somente os dois componentes, essas regressões e este registro.
+Migration, manifest, schema e flags não foram alterados. Os resultados
+remotos de eeeb87bc são históricos; a nova árvore exige checks e Preview próprios.
