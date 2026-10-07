@@ -240,3 +240,29 @@ Prettier dos arquivos técnicos e git diff --check. O checkpoint seguinte
 contém somente os dois componentes, essas regressões e este registro.
 Migration, manifest, schema e flags não foram alterados. Os resultados
 remotos de eeeb87bc são históricos; a nova árvore exige checks e Preview próprios.
+
+### Central — mesmo transporte de streaming, contrato visível preservado
+
+A Quality `37567163424` em `e81c13f771e64c8e8a3f9f4227fe9fcb4f80c8a5`
+passou 10 integrais, 175 de coerência, 112 a11y, 45 PWA e 18 mobile antes
+de falhar em dois dos 55 casos da Central: getByText global encontrou duas
+instâncias do status da Busca. Os outros 53 casos passaram. Esta run é FAIL,
+não flake ignorado nem aprovação integral. O restante não executado é NOT_RUN.
+
+A reprodução local sem JavaScript repetiu as duas falhas (768/1024), com
+traces sintéticos preservados fora do repositório. Inspeção independente
+comprovou um main acessível, um status visível e a outra instância dentro de
+hidden S:0 nas duas larguras. O teste passa a exigir exatamente um main e um
+status visível dentro dele, mantendo resultados públicos e ausência de
+popularidade; sem first(), sleeps, retry ou alteração de runtime.
+
+PASS local: dois casos sem JavaScript corrigidos e 50 casos funcionais/a11y
+da Central em cinco larguras, zero retries. Os cinco casos locais de captura
+visual foram excluídos para preservar screenshots já rastreados; são NOT_RUN
+localmente, não PASS. O workflow remoto conserva a suíte completa de 55.
+Os 1.407 unitários/243 arquivos passaram novamente. A aplicação, helpers,
+workflows e migrations são byte-identical a e81c13f7; o delta é somente
+esse teste e este registro, e a repetição remota será ligada ao novo checkpoint.
+TypeScript, ESLint completo, Prettier do teste e git diff --check PASS após
+essa correção. A evidência de build anterior refere-se à aplicação idêntica;
+não se declara uma compilação adicional que não foi executada.
