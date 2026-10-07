@@ -189,3 +189,26 @@ inspecionadas; zero pageerrors nos dois fluxos de cópia. 1.407 unitários/243
 arquivos, 113 Solo, contrato estrutural da lane PWA, TypeScript, ESLint completo,
 build, Prettier técnico e diff-check PASS. Esta é prova local/sintética;
 não representa merge, lançamento, Auth/RLS da Escola ou escrita Production.
+
+### Busca — seletor do conteúdo acessível
+
+A run `37563494501` no head `8d85fa7c6a23026b3c8efad0337016cc745938eb`
+falhou em quatro asserts de navegador por dois matches globais do status/vazio.
+A reprodução local sem JavaScript encontrou exatamente um main acessível e
+dois nós de status: um visível e outro não renderizado dentro do ancestral
+hidden `S:0`, transporte de streaming do Next. Com JavaScript, o estado
+estabilizado possui apenas um nó. O teste agora exige um único main acessível
+e um único status/vazio visível dentro dele. Não usa first() para esconder
+duplicação de UI nem remove verificações de texto, teclado, Axe, rate limit,
+alias, opt-in ou privacy boundary. Nenhum runtime/SQL/workflow mudou aqui.
+
+O 502 territorial anterior encerrou-se na repetição da run `37563494658`:
+o job COMUN Territory / local-only contract passou no mesmo código de domínio,
+sem alteração de retry. Trata-se de falha transitória do laboratório nessa
+evidência, não de certificação irrestrita da infraestrutura.
+
+PASS local: os 15 cenários de Busca em cinco larguras, com os controles de
+texto, teclado, Axe, alias, opt-in, erro/rate limit e privacy boundary mantidos.
+TypeScript, ESLint, Prettier e diff-check dos arquivos afetados PASS.
+O servidor local usa somente destinos loopback e o fallback público existente;
+isto não substitui a prova de provider/RLS no Supabase descartável remoto.
