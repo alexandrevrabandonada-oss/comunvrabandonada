@@ -162,7 +162,11 @@ test("invalid response fails closed instead of claiming a new wallet", async ({
     route.fulfill({ json: { items: [] } }),
   );
   await page.goto("/comun/minha-participacao");
-  await expect(page.getByRole("alert")).toBeVisible();
+  const wallet = page.locator("[data-comun-participation-wallet]");
+  await expect(wallet.getByRole("alert")).toBeVisible();
+  await expect(wallet.getByRole("alert")).toContainText(
+    "Não foi possível consultar seus registros",
+  );
   await expect(
     page.getByRole("button", { name: "Começar meus registros" }),
   ).toHaveCount(0);

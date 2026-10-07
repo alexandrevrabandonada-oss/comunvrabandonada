@@ -132,3 +132,19 @@ permanece stopped; Ubuntu funciona. Não foi feito reset/factory reset, remoçã
 recursiva, limpeza de volumes ou alteração do settings-store. Requisito mínimo:
 recuperar a inicialização do Docker e tornar a API Linux responsiva. Até isso,
 Auth/Postgres da Escola não recebe PASS e não usa banco hospedado como substituto.
+
+### Resultado remoto do reconciliador
+
+No SHA `be68783e249840114544b6d687d040782bc4f508`, os cinco preflights reais
+passaram: A1 run `37561034654`, A2 `37561034836`, A4 `37561034782`, A5
+`37561034788` e P6C-C `37561034690`. Preview Git exato READY,
+GitHub Preview Deployment `6899994457` success e COST-02 local checkpoint-fresh.
+Esses resultados não significam promoção de schema ou certificação global.
+
+A UI da run `37561034849` terminou com 11/12: o caso de resposta inválida usava
+getByRole(alert) na página inteira e encontrou também **next-route-announcer**.
+O log comprovou que o alerta correto da carteira estava presente. Correção focal:
+selecionar o alerta dentro da carteira e exigir a mensagem de indisponibilidade.
+Nenhum retry, timeout ou comportamento de aplicação foi alterado. Repetição local
+completa: 12/12 PASS, zero retries. A nova revisão remota é vinculada ao novo head
+no corpo do PR, sem transferir a falha anterior para PASS.
