@@ -148,3 +148,13 @@ selecionar o alerta dentro da carteira e exigir a mensagem de indisponibilidade.
 Nenhum retry, timeout ou comportamento de aplicação foi alterado. Repetição local
 completa: 12/12 PASS, zero retries. A nova revisão remota é vinculada ao novo head
 no corpo do PR, sem transferir a falha anterior para PASS.
+
+Na run `37561385804`, head `49329c37888b5b1f00471328e869e27b20d7d406`,
+o contrato 48.3-E2 falhou porque comparava a formatação antiga do comando
+Supabase (aspas simples/linha única) com o helper formatado pelo Prettier.
+O teste agora inspeciona a AST e exige exatamente um spawnSync, executável
+Supabase e os cinco argumentos, incluindo --dry-run e a origem da URL.
+Nenhum comando, aplicação, workflow ou regra de autorização foi alterado
+nesta correção. Repetição completa local: 243 arquivos, 1.407 testes PASS;
+ESLint, Prettier e diff-check dos arquivos afetados PASS. A conferência remota
+continua no novo checkpoint; o PR permanece draft enquanto houver pendências.
