@@ -1,0 +1,38 @@
+name: COMUN public search disclosure contract
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "lib/unified-search*"
+      - "lib/comun-canonical-routes*"
+      - ".github/workflows/comun-public-search-contract.yml"
+  push:
+    branches: [main]
+    paths:
+      - "lib/unified-search*"
+      - "lib/comun-canonical-routes*"
+      - ".github/workflows/comun-public-search-contract.yml"
+permissions:
+  contents: read
+concurrency:
+  group: public-search-contract-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.19.0"
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Public filters, partial failures and map fallback
+        run: npx vitest run lib/unified-search.test.ts
+      - name: Formatting and lint
+        run: |
+          npx prettier@3.9.6 --check lib/unified-search.ts lib/unified-search.test.ts .github/workflows/comun-public-search-contract.yml
+          npx eslint lib/unified-search.ts lib/unified-search.test.ts
+      - name: TypeScript
+        run: npm run typecheck
