@@ -174,7 +174,7 @@ set search_path = pg_catalog
 set lock_timeout = '1500ms'
 as $$
 declare
-  v_admin public.comun_admin_users%rowtype; v_identity text; v_blockers text[];
+  v_admin record; v_identity text; v_blockers text[];
   v_episode_status text; v_item_status text; v_item_visibility text;
   v_now timestamptz := clock_timestamp(); v_version bigint; v_snapshot jsonb;
 begin
