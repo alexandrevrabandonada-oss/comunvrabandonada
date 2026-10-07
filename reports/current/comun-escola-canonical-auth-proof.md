@@ -122,3 +122,36 @@ attempt é inferida. A próxima tentativa usa build compilado + next start,
 mantendo os endpoints/cookies/asserções reais. Deadline externo de navegação
 e encerramento falha fechado, além dos timeouts internos do Playwright.
 Não se atribui esse comportamento ao código de produto sem reprodução isolada.
+
+## Prova fechada e continuidade em Minha participação — 07/10/2026
+
+Run `37653193110` passou no head `3e465262fb60b935c7ff770da0503db58165fda8`,
+tree `a013e01835b527f9854abd1c74efc4ebde0f031a`. Checkout realmente testado:
+merge `f86eddc08193f8170b20ca914b0d2b79f0237929`, tree
+`dc4ea0014278137e200ddb63569b11695d8b6e2e`, pais main74cc0ed1 + head3e465262.
+Escola/Auth/schema/harness equivalentes; não o repositório inteiro.
+Artifact `11497483017`, JSON SHA-256
+`321c468103bf8c0d63d66c374e438253cb0201a6ec6321445e4169ce0d84026e`:
+oito grupos passaram, inclusive Hoje → Continuar → etapa persistida → reload,
+A/B em 390/1366px. Limpeza concluída; zero canonical findings com o mesmo
+fingerprint. Next compilado resolveu o executor, sem provar causa raiz do dev.
+Local no mesmo head: 1.340 unitários/240 arquivos, Solo113 e oito focais PASS.
+Preview Git exato READY, deployment GitHub6915390833 success, COST-02 checkpoint-fresh.
+
+O elo seguinte muda somente a entrada da Escola em Minha participação:
+resumo server-only da sessão validada e snapshot owner existente, usando o
+seletor canônico nextMission. Atividade iniciada tem título/etapa e link direto;
+prática por registrar e prática em revisão ficam distintas. Vazio não afirma
+formação iniciada. Falha de consulta oferece recarga sem tratar indisponibilidade
+como vazio. Sem JavaScript, o resumo continua no HTML autenticado.
+
+Não há novo modelo, RPC, migration, permissão, inscrição, tarefa, vínculo,
+notificação ou gravação ao navegar. IDs pessoais, reflexão, notas e vínculos
+Pauta não entram no resumo ou URLs. cache do React é somente por request, sem
+armazenamento privado compartilhado entre pessoas. Flag continua off; não há
+feature activation nem Production write.
+
+A prova de 3e465262 não certifica essa alteração nova. O harness passa a exigir
+também Minha participação → resumo real A/B → Retomar → etapa correta antes
+da jornada/reload existente, no build compilado. A nova prova permanece PENDING
+até artifact do SHA/tree novo. Checks gerais e revisão humana são gates separados.

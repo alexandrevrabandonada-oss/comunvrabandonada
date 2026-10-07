@@ -42,7 +42,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npx vitest run lib/learning/core.test.ts app/api/comun/escola/route.test.ts
+      - run: npx vitest run lib/learning/core.test.ts lib/learning/continuity.test.ts components/learning/entry.test.tsx app/api/comun/escola/route.test.ts
       - run: node scripts/learning/test-database.mjs
         env:
           COMUN_LEARNING_TEST_DATABASE_URL: postgres://postgres:escola-disposable-only@127.0.0.1:5432/escola_test

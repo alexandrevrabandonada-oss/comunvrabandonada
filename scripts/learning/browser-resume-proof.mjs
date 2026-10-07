@@ -87,7 +87,37 @@ export async function proveBrowserResume({
             assert.equal(progress.step, actor.step);
             assert.equal(progress.revision, actor.revision);
           }
+          mark("participation-navigation");
+          await bounded(
+            page.goto(`${origin}/comun/minha-participacao`, {
+              waitUntil: "domcontentloaded",
+            }),
+            "participation-navigation",
+          );
+          const formation = page.getByRole("region", {
+            name: "Sua formação",
+            exact: true,
+          });
+          await expect(
+            formation.getByText(
+              `${mission.title} · Etapa ${actor.step + 1} de 6`,
+              { exact: true },
+            ),
+          ).toBeVisible();
           let response = snapshot();
+          await formation
+            .getByRole("link", { name: "Retomar atividade", exact: true })
+            .click();
+          await verify(await response);
+          mark("participation-resume-authenticated");
+          await expect(
+            page.getByRole("heading", {
+              name:
+                actor.step === 2 ? "Entenda a ferramenta" : "Teste sua leitura",
+              exact: true,
+            }),
+          ).toBeVisible();
+          response = snapshot();
           mark("today-navigation");
           await page.goto(`${origin}/comun/escola`, {
             waitUntil: "domcontentloaded",
@@ -161,5 +191,6 @@ export async function proveBrowserResume({
     auth: "REAL_SSR_COOKIES",
     reload: "PERSISTED_DATABASE_STATE",
     screenshots: 2,
+    participation: "REAL_OWNER_SERVER_SUMMARY_AND_DIRECT_RESUME",
   };
 }

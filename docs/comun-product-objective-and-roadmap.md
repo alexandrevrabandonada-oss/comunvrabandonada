@@ -1,5 +1,30 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Continuidade candidata da Escola — 07/10/2026
+
+PR #503 permanece separado do PR #520 e ainda não significa integração ou
+ativação. A prova Auth/Postgres/navegador passou na run `37653193110` para
+`3e465262fb60b935c7ff770da0503db58165fda8`: A/B, dados privados não vazios,
+concorrência sincronizada, retomada e reload móvel/desktop, limpeza sintética e
+zero findings. O SHA/tree efetivamente testado, equivalência limitada e hash do
+artifact estão em [prova canônica](../reports/current/comun-escola-canonical-auth-proof.md).
+
+A próxima alteração candidata conecta Minha participação à atividade realmente
+iniciada: sessão server-side, snapshot owner e seletor existentes, título/etapa
+mínimos e destino público do catálogo. Prática pendente de envio, revisão,
+ausência de atividade e indisponibilidade têm estados distintos. Não há segundo
+modelo de formação, progresso ou tarefa; abrir a jornada não cria vínculo,
+inscrição, responsabilidade ou resultado. Reflexões/notas/IDs pessoais não são
+repassados à orientação ou URLs. O resumo permanece disponível sem JavaScript.
+
+A prova anterior não valida essa mudança nova: o novo checkpoint deve executar
+Minha participação → resumo A/B → retomada → etapa persistida/reload em stack
+descartável. Até o artifact correspondente, esta ampliação é PENDING.
+Flags, migrations e Production permanecem inalterados. Competências #510 e
+Fábrica #514 seguem dependências abertas, não capacidades presumidamente ativas.
+Revisão editorial/ensaio humano e decisões de integração/ativação são gates
+separados; nenhuma maturidade de domínio é promovida automaticamente.
+
 Atualização de produção mais recente: `f083370088b9a938bdf658e29d95bb6320c5caef`, em 02/10/2026, após integrar os PRs #485, #487 e #486. A reconciliação inicial e os achados intermediários abaixo são históricos; veja o fechamento de dependências ao final. A V1 continua incompleta.
 
 Data da reconciliação: 2026-10-02. Base de código: `3fee4feb29b390e659e95fbef7d280d9fac6dfac`.
