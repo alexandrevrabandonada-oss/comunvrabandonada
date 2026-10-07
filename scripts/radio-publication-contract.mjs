@@ -431,6 +431,97 @@ try {
     },
   );
   await check(
+    "authorization row contention returns busy and committed revocation denies retry",
+    async () => {
+      const episode = await fixture();
+      const review = await prepare(episode);
+      const blocker = new pg.Client({ connectionString: url.href });
+      const publisher = new pg.Client({ connectionString: url.href });
+      try {
+        await blocker.connect();
+        await publisher.connect();
+        await blocker.query("set statement_timeout='5s'");
+        await publisher.query("set role service_role");
+        // A blocking implementation would time out instead of returning busy.
+        await publisher.query("set statement_timeout='2s'");
+        await publisher.query("begin");
+        await blocker.query("begin");
+        await blocker.query(
+          "update public.comun_admin_users set is_active=false where id=$1",
+          [actor],
+        );
+        assert.deepEqual(await commit(episode, review.identity, publisher), {
+          outcome: "busy",
+        });
+        const state = (
+          await admin.query(
+            "select e.publication_status,i.status,i.visibility,(select count(*)::int from public.comun_radio_editorial_versions where episode_item_id=$1) versions,(select count(*)::int from public.comun_admin_audit_log where target_id=$1) audit from public.comun_radio_episodes e join public.comun_archive_items i on i.id=e.archive_item_id where i.id=$1",
+            [episode],
+          )
+        ).rows[0];
+        assert.deepEqual(state, {
+          publication_status: "editorial_review",
+          status: "draft",
+          visibility: "private",
+          versions: 0,
+          audit: 0,
+        });
+        await blocker.query("rollback");
+        assert.equal(
+          (await commit(episode, review.identity, publisher)).outcome,
+          "published",
+        );
+        await publisher.query("commit");
+        const revokedEpisode = await fixture();
+        const revokedReview = await prepare(revokedEpisode);
+        await blocker.query("begin");
+        await blocker.query(
+          "update public.comun_admin_users set is_active=false where id=$1",
+          [actor],
+        );
+        assert.deepEqual(
+          await commit(revokedEpisode, revokedReview.identity, publisher),
+          {
+            outcome: "busy",
+          },
+        );
+        await blocker.query("commit");
+        assert.deepEqual(
+          await commit(revokedEpisode, revokedReview.identity, publisher),
+          {
+            outcome: "denied",
+          },
+        );
+        const denied = (
+          await admin.query(
+            "select publication_status,(select count(*)::int from public.comun_admin_audit_log where target_id=$1) audit from public.comun_radio_episodes where archive_item_id=$1",
+            [revokedEpisode],
+          )
+        ).rows[0];
+        assert.deepEqual(denied, {
+          publication_status: "editorial_review",
+          audit: 0,
+        });
+      } finally {
+        const released = await Promise.allSettled([
+          blocker.query("rollback"),
+          publisher.query("rollback"),
+        ]);
+        const closed = await Promise.allSettled([
+          blocker.end(),
+          publisher.end(),
+        ]);
+        await admin.query(
+          "update public.comun_admin_users set is_active=true where id=$1",
+          [actor],
+        );
+        for (const result of [...released, ...closed]) {
+          if (result.status === "rejected") throw result.reason;
+        }
+      }
+    },
+  );
+  await check(
     "composition contention returns busy without writes and permits retry",
     async () => {
       const episode = await fixture();
@@ -488,6 +579,12 @@ try {
         assert.equal(
           (await publisher.query("select 1 as usable")).rows[0].usable,
           1,
+        );
+        // Authorization must also be released while the publisher's outer
+        // transaction is still open, so an editor can be revoked immediately.
+        await blocker.query(
+          "select id from public.comun_admin_users where id=$1 for update nowait",
+          [actor],
         );
         await blocker.query("rollback");
         assert.equal(
@@ -669,6 +766,9 @@ try {
         },
         commit: {
           unrelatedArchiveWrites: "blocked_until_transaction_end",
+          authorizationRowContention: "busy_without_waiting",
+          authorizationAfterCommittedRevocation: "denied",
+          authorizationLockAfterCompositionTimeout: "released",
           perCompositionLockTimeoutMs: 1500,
           contentionOutcome: "busy_without_publication_writes",
           partialLocksAfterTimeout: "released",

@@ -177,12 +177,12 @@ declare
   v_episode_status text; v_item_status text; v_item_visibility text;
   v_now timestamptz := clock_timestamp(); v_version bigint; v_snapshot jsonb;
 begin
-  select * into v_admin from public.comun_admin_users where id=p_admin_id and is_active for share;
-  if not found or v_admin.role not in ('admin','editor') then return jsonb_build_object('outcome','denied'); end if;
   begin
+    select * into v_admin from public.comun_admin_users where id=p_admin_id and is_active for share nowait;
+    if not found or v_admin.role not in ('admin','editor') then return jsonb_build_object('outcome','denied'); end if;
     perform private.comun_lock_radio_editorial_composition();
   exception when lock_not_available then
-    -- The subtransaction releases partial composition locks. No publication
+    -- The subtransaction releases authorization and partial composition locks. No publication
     -- writes have happened; permission errors and deadlocks still propagate.
     return jsonb_build_object('outcome','busy');
   end;
