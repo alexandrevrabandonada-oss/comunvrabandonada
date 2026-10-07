@@ -1,0 +1,56 @@
+name: COMUN Radio publication contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/reconciliation/radio-publication/**"
+      - "supabase/migrations/20260715185344_community_radio_foundation.sql"
+      - "scripts/radio-publication-contract.mjs"
+      - ".github/workflows/comun-radio-publication-contract.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/reconciliation/radio-publication/**"
+      - "scripts/radio-publication-contract.mjs"
+      - ".github/workflows/comun-radio-publication-contract.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: radio-publication-contract-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17.10
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable-contract-only
+          POSTGRES_DB: comun_radio_contract
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.19.0"
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: PostgreSQL transaction, stale review and permissions
+        env:
+          COMUN_RADIO_CONTRACT_DATABASE_URL: postgresql://postgres:disposable-contract-only@127.0.0.1:5432/comun_radio_contract
+        run: node scripts/radio-publication-contract.mjs
+      - name: Formatting and lint
+        run: |
+          npx prettier@3.9.6 --check scripts/radio-publication-contract.mjs .github/workflows/comun-radio-publication-contract.yml docs/comun-radio-publication-contract.md
+          npx eslint scripts/radio-publication-contract.mjs

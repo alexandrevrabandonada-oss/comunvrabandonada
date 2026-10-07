@@ -1,31 +1,43 @@
 # Objetivo final e roadmap auditado do COMUN
 
-## Continuidade candidata da Escola — 07/10/2026
+Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99dd450`, após os PRs #504, #505 e #506. A reconciliação de 02/10 e os achados intermediários abaixo são históricos. A V1 continua incompleta; a situação atual e a fila sem amostra humana estão na seção seguinte.
 
-PR #503 permanece separado do PR #520 e ainda não significa integração ou
-ativação. A prova Auth/Postgres/navegador passou na run `37653193110` para
-`3e465262fb60b935c7ff770da0503db58165fda8`: A/B, dados privados não vazios,
-concorrência sincronizada, retomada e reload móvel/desktop, limpeza sintética e
-zero findings. O SHA/tree efetivamente testado, equivalência limitada e hash do
-artifact estão em [prova canônica](../reports/current/comun-escola-canonical-auth-proof.md).
+## Posição geral e fila sem amostra humana — 06/10/2026
 
-A próxima alteração candidata conecta Minha participação à atividade realmente
-iniciada: sessão server-side, snapshot owner e seletor existentes, título/etapa
-mínimos e destino público do catálogo. Prática pendente de envio, revisão,
-ausência de atividade e indisponibilidade têm estados distintos. Não há segundo
-modelo de formação, progresso ou tarefa; abrir a jornada não cria vínculo,
-inscrição, responsabilidade ou resultado. Reflexões/notas/IDs pessoais não são
-repassados à orientação ou URLs. O resumo permanece disponível sem JavaScript.
+O produto está no fechamento técnico e operacional da V1, antes do ensaio integrado e do lançamento integral. Quatro domínios estão declarados verdes e seis continuam abertos; isso não representa 40% de conclusão. A visão futura e as entregas candidatas devem ser acompanhadas separadamente do que está integrado em produção.
 
-A prova anterior não valida essa mudança nova: o novo checkpoint deve executar
-Minha participação → resumo A/B → retomada → etapa persistida/reload em stack
-descartável. Até o artifact correspondente, esta ampliação é PENDING.
-Flags, migrations e Production permanecem inalterados. Competências #510 e
-Fábrica #514 seguem dependências abertas, não capacidades presumidamente ativas.
-Revisão editorial/ensaio humano e decisões de integração/ativação são gates
-separados; nenhuma maturidade de domínio é promovida automaticamente.
+| Camada                                           | Situação conferida                                                                                                                                 | Próximo trabalho sem amostra humana                                                                                          | Dependência preservada                                                                                                                                       |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Núcleo, identidade, ciclo pauta–ação e operações | Quatro domínios declarados verdes; critérios e provas históricas mantidos                                                                          | Regressões, permissões e contratos da versão candidata                                                                       | Validação do ciclo integrado com pessoas reais                                                                                                               |
+| Miniapps / Calçadas, 47.5                        | Motor disponível; foco e filtros corrigidos; recortes temporais integrados no #504, com 49 casos MapLibre aprovados e um skip de desktop           | Manter regressões de lista/mapa, recortes temporais e datas inválidas                                                        | Fechamento do piloto com janela e denominadores originais                                                                                                    |
+| Memória, rádio e arte, 47.6                      | Salvaguardas da Rádio integradas no #506; contrato transacional reconciliado no #507, com 22 verificações em PostgreSQL descartável, ainda inativo | Validar contrato no schema canônico completo, medir locks e preparar migração e integração da aplicação antes de ativar      | Direitos, consentimentos e curadoria reais                                                                                                                   |
+| Segurança e recuperação, 47.8/47.8A              | Controles internos e contratos não comprovam cópia durável ou restore                                                                              | Verificar ferramentas e procedimentos de exportação/restauração em ambiente descartável; separar capacidades não comprovadas | Acesso ao ambiente correto, capacidade contratada e cópia independente; não é uma dependência de amostra humana, mas também não se resolve apenas com código |
+| Coerência, busca e qualidade, 47.9A/B/C          | CI do #502 passou; busca lexical preservada; embeddings reais continuam bloqueados por capacidade do provedor                                      | Regressões, semântica de filtros, estados vazios, fallback e contratos automatizados                                         | Dispositivos físicos, tecnologia assistiva, compreensão humana; credencial do provedor para embeddings                                                       |
+| Conteúdo e governança, 47.10                     | Revisão editorial e equipe operacional ainda não comprovadas                                                                                       | Manter ajuda, fluxos de revisão, retenção e critérios de evidência consistentes com o comportamento real                     | Pessoas responsáveis, substitutos, direitos e prazos confirmados                                                                                             |
+| Ensaio e lançamento, 47.11                       | Ensaio integrado incompleto; gate integral fechado                                                                                                 | Preparar instrumentos de coleta, verificações sanitizadas e pacote por versão                                                | Três sessões reais, estabilidade medida e decisão final                                                                                                      |
+| Escola COMUN R0                                  | PR #503 aberto, head `a8dbe550583526eae631deafa3c574fbcfb18993` na consulta; 24 micro-missões candidatas, progresso privado, flag desligada        | Finalizar checks globais e validar integração no schema canônico antes de ativar                                             | Ambiente COMUN identificado e revisão humana do material; testes locais não comprovam ativação                                                               |
+| Serviços Públicos                                | PR documental #434 aberto; expansão fora do fechamento V1                                                                                          | Revisar arquitetura e limites da proposta separadamente                                                                      | Decisão de escopo posterior; sem expansão automática                                                                                                         |
 
-Atualização de produção mais recente: `f083370088b9a938bdf658e29d95bb6320c5caef`, em 02/10/2026, após integrar os PRs #485, #487 e #486. A reconciliação inicial e os achados intermediários abaixo são históricos; veja o fechamento de dependências ao final. A V1 continua incompleta.
+### Evidência técnica já integrada
+
+- PR #500: navegação por teclado da ficha de Calçadas e isolamento dos tipos gerados pelo build de desenvolvimento.
+- PR #501: jornadas centrais usam o Chromium completo; o problema de criação do contexto headless foi corrigido. O timeout anterior de Participar → Pautas teve causa não isolada e não foi atribuído a esse crash.
+- PR #502: filtros mobile recebem foco, Escape/fechamento devolvem ao acionador e Limpar devolve à busca preservando lista/mapa. CI do candidato: 45 casos MapLibre aprovados e um skip de desktop explícito. Pós-merge: 35 jornadas públicas, cinco testes de acessibilidade, 30 PWA e nove de performance passaram; 95 checks do merge terminaram em success/skipped.
+- Viewports de CI não substituem Android/iOS físicos ou tecnologia assistiva. Essas provas não promovem os seis domínios abertos nem autorizam `launch_publicly`.
+
+### Fechamento de filtros e estabilidade de navegador — integrado
+
+O filtro de Calçadas derivava o relógio da maior `last_observed_at`: um conjunto inteiro de registros antigos continuava parecendo recente. A correção usa o instante fornecido pelo servidor ao carregar a página e mantém a referência estável durante os filtros, sem divergência entre HTML e hidratação. Recarregar a página renova o instante. Os recortes são inclusivos de zero a 30/90/365 dias, excluem datas futuras, ausentes ou inválidas quando o período está ativo e não alteram os dados nem a janela do piloto. Sem período, todos os registros continuam elegíveis para os demais filtros. A suíte de navegador usa datas fixas apenas no build descartável de CI.
+
+PR #504 integrado: recortes de calendário corrigidos; 49 casos MapLibre passaram, com um skip explícito de desktop. PR #505 integrado: Chromium completo nas provas do grafo cívico; os 40 casos de produção passaram após o merge. Na base histórica `e4bac1ab378a5ddac4d180426e1cd586e4b3b57b`, os 86 checks terminaram em success/skipped. Os PRs #503, #436 e #434 continuam candidatos, sem contar como entregas integradas.
+
+### Rádio — salvaguardas integradas e contrato transacional comprovado
+
+O PR #506 restringe as cinco ações editoriais a admin/editor, exige consentimentos presentes e duração inteira positiva dentro do limite existente e interrompe a publicação quando qualquer uma das sete consultas editoriais falha ou o episódio não existe. Lista e detalhe públicos ocultam episódios quando a consulta de raiz, consentimentos, direitos musicais ou revisão de segurança falha. O contrato atual de banco foi preservado. Os 117 checks do head testado terminaram em success/skipped; 1.383 testes unitários e 24 casos de navegador da Rádio passaram. O merge manteve a árvore testada. Deploy de produção READY e endpoint de versão confirmaram a base acima.
+
+Esse recorte ainda não resolve a concorrência entre revisão e commit nem gravações parciais. O PR #507 reconcilia a identidade editorial da PR #436 em SQL fora das migrações, sem chamada pela aplicação. Em PostgreSQL 17.10 descartável, 22 verificações passaram: permissões, publicação e repetição idempotente, oito bloqueios editoriais, dez alterações concorrentes e rollback após falha injetada. O digest cobre metadados editoriais e assets relacionados; não comprova imutabilidade dos bytes armazenados ou revogação de URLs.
+
+Antes de ativar o contrato, faltam validar a cadeia canônica completa, avaliar os locks, identificar o ambiente COMUN autorizado e preparar migração e integração da aplicação. Esse acesso é uma dependência de ambiente, não de amostra humana. Direitos, consentimentos e curadoria reais permanecem distintos dos testes automatizados. O contrato não promove os seis domínios abertos nem autoriza `launch_publicly`.
 
 Data da reconciliação: 2026-10-02. Base de código: `3fee4feb29b390e659e95fbef7d280d9fac6dfac`.
 
@@ -136,3 +148,28 @@ O [PR #486](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/
 | Recuperação, conteúdo e ensaio | Critérios existentes preservados                                                                                                               | Cópia durável/restore medidos, conteúdo autorizado, piloto e ensaio integrado com pessoas reais                                                 |
 
 A lista pública de Calçadas permaneceu utilizável após voltar do mapa indisponível e apresentou um registro com localização protegida. Um registro não comprova cobertura da cidade nem conclusão do piloto. A certificação pós-merge atual é a run [37067289731](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/37067289731), concluída com sucesso. CI do merge, jornadas principais e grafo cívico também passaram; a repetição pós-merge de coerência ainda estava em execução no momento deste registro. Provas por versão e limitações estão em [comun-maplibre-security-migration.md](comun-maplibre-security-migration.md). Nenhum domínio foi promovido, nenhum conteúdo foi inventado e nenhuma configuração remota de acesso ou lançamento foi alterada.
+
+## Continuidade candidata da Escola — 07/10/2026
+
+PR #503 permanece separado do PR #520 e ainda não significa integração ou
+ativação. A prova Auth/Postgres/navegador passou na run `37653193110` para
+`3e465262fb60b935c7ff770da0503db58165fda8`: A/B, dados privados não vazios,
+concorrência sincronizada, retomada e reload móvel/desktop, limpeza sintética e
+zero findings. O SHA/tree efetivamente testado, equivalência limitada e hash do
+artifact estão em [prova canônica](../reports/current/comun-escola-canonical-auth-proof.md).
+
+A próxima alteração candidata conecta Minha participação à atividade realmente
+iniciada: sessão server-side, snapshot owner e seletor existentes, título/etapa
+mínimos e destino público do catálogo. Prática pendente de envio, revisão,
+ausência de atividade e indisponibilidade têm estados distintos. Não há segundo
+modelo de formação, progresso ou tarefa; abrir a jornada não cria vínculo,
+inscrição, responsabilidade ou resultado. Reflexões/notas/IDs pessoais não são
+repassados à orientação ou URLs. O resumo permanece disponível sem JavaScript.
+
+A prova anterior não valida essa mudança nova: o novo checkpoint deve executar
+Minha participação → resumo A/B → retomada → etapa persistida/reload em stack
+descartável. Até o artifact correspondente, esta ampliação é PENDING.
+Flags, migrations e Production permanecem inalterados. Competências #510 e
+Fábrica #514 seguem dependências abertas, não capacidades presumidamente ativas.
+Revisão editorial/ensaio humano e decisões de integração/ativação são gates
+separados; nenhuma maturidade de domínio é promovida automaticamente.
