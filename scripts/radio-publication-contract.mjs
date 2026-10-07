@@ -423,6 +423,22 @@ try {
       "archive root title",
       "update public.comun_archive_items set title='Changed archive title' where id=$1",
     ],
+    [
+      "additional pending consent",
+      "insert into public.comun_radio_voice_consents(episode_item_id,consent_status,allow_comun_audio) values($1,'pending',false)",
+    ],
+    [
+      "additional credit",
+      "insert into public.comun_radio_credits(episode_item_id,credit_role,public_credit) values($1,'guest','Added after review')",
+    ],
+    [
+      "deleted consent",
+      "delete from public.comun_radio_voice_consents where episode_item_id=$1",
+    ],
+    [
+      "deleted transcript",
+      "delete from public.comun_radio_transcript_versions where episode_item_id=$1",
+    ],
   ])
     await check(`concurrent stale ${name}`, async () => {
       const episode = await fixture(),
@@ -454,10 +470,15 @@ try {
         await mutator.query("commit");
         assert.equal((await pending).outcome, "conflict");
         const state = await admin.query(
-          "select publication_status from public.comun_radio_episodes where archive_item_id=$1",
+          "select e.publication_status,i.status,i.visibility,(select count(*)::int from public.comun_radio_editorial_versions where episode_item_id=$1) versions from public.comun_radio_episodes e join public.comun_archive_items i on i.id=e.archive_item_id where i.id=$1",
           [episode],
         );
-        assert.equal(state.rows[0].publication_status, "editorial_review");
+        assert.deepEqual(state.rows[0], {
+          publication_status: "editorial_review",
+          status: "draft",
+          visibility: "private",
+          versions: 0,
+        });
         const audit = await admin.query(
           "select count(*)::int n from public.comun_admin_audit_log where target_id=$1 and action='radio_episode_publish_stale'",
           [episode],
@@ -470,6 +491,82 @@ try {
         await publisher.end();
       }
     });
+  await check(
+    "simultaneous publication yields one version and an idempotent replay",
+    async () => {
+      const episode = await fixture();
+      const review = await prepare(episode);
+      const first = new pg.Client({ connectionString: url.href });
+      const second = new pg.Client({ connectionString: url.href });
+      let pending;
+      try {
+        await first.connect();
+        await second.connect();
+        for (const client of [first, second]) {
+          await client.query("set role service_role");
+          await client.query("set statement_timeout='5s'");
+        }
+        await first.query("begin");
+        const published = await commit(episode, review.identity, first);
+        assert.equal(published.outcome, "published");
+        pending = commit(episode, review.identity, second).then(
+          (value) => ({ value }),
+          (error) => ({ error }),
+        );
+        const deadline = Date.now() + 5000;
+        let blocked = false;
+        while (Date.now() < deadline) {
+          const state = await admin.query(
+            "select $2::int=any(pg_blocking_pids($1::int)) as blocked",
+            [second.processID, first.processID],
+          );
+          if (state.rows[0].blocked) {
+            blocked = true;
+            break;
+          }
+          await new Promise(setImmediate);
+        }
+        assert.ok(
+          blocked,
+          "second publisher must wait for the first transaction",
+        );
+        await first.query("commit");
+        const replay = await pending;
+        assert.ifError(replay.error);
+        assert.equal(replay.value.outcome, "already_published");
+        assert.equal(replay.value.identity, published.identity);
+        const state = (
+          await admin.query(
+            "select e.publication_status,i.status,i.visibility,(select count(*)::int from public.comun_radio_editorial_versions where episode_item_id=$1) versions,(select count(*)::int from public.comun_admin_audit_log where target_id=$1 and action='radio_episode_published') published,(select count(*)::int from public.comun_admin_audit_log where target_id=$1 and action='radio_episode_publish_replayed') replayed from public.comun_radio_episodes e join public.comun_archive_items i on i.id=e.archive_item_id where i.id=$1",
+            [episode],
+          )
+        ).rows[0];
+        assert.deepEqual(state, {
+          publication_status: "published",
+          status: "published",
+          visibility: "public",
+          versions: 1,
+          published: 1,
+          replayed: 1,
+        });
+        const locks = await admin.query(
+          "select count(*)::int n from pg_locks where pid=any($1::int[]) and mode='ShareRowExclusiveLock'",
+          [[first.processID, second.processID]],
+        );
+        assert.equal(locks.rows[0].n, 0);
+      } finally {
+        // Release the first publisher before awaiting the second on failure.
+        try {
+          await first.query("rollback");
+        } finally {
+          if (pending) await pending;
+          const closed = await Promise.allSettled([first.end(), second.end()]);
+          for (const result of closed)
+            if (result.status === "rejected") throw result.reason;
+        }
+      }
+    },
+  );
   await check(
     "failure after episode update rolls back every publication write",
     async () => {
@@ -944,6 +1041,9 @@ try {
         },
         ordinaryReads: "available",
         locksAfterTransaction: "released",
+        concurrentCompositionChanges:
+          "updates_inserts_and_deletes_rejected_as_stale",
+        simultaneousPublication: "one_version_and_idempotent_replay",
         requiredCommitIsolation: "read committed",
         transactionSnapshotIsolation: "rejected_without_publication_writes",
         productionLatencyMeasured: false,
