@@ -6,12 +6,16 @@ on:
       - "lib/unified-search*"
       - "lib/comun-canonical-routes*"
       - ".github/workflows/comun-public-search-contract.yml"
+      - "tests/integration/public-search/**"
+      - "scripts/ci/public-search/**"
   push:
     branches: [main]
     paths:
       - "lib/unified-search*"
       - "lib/comun-canonical-routes*"
       - ".github/workflows/comun-public-search-contract.yml"
+      - "tests/integration/public-search/**"
+      - "scripts/ci/public-search/**"
 permissions:
   contents: read
 concurrency:
@@ -32,7 +36,66 @@ jobs:
         run: npx vitest run lib/unified-search.test.ts
       - name: Formatting and lint
         run: |
-          npx prettier@3.9.6 --check lib/unified-search.ts lib/unified-search.test.ts .github/workflows/comun-public-search-contract.yml
-          npx eslint lib/unified-search.ts lib/unified-search.test.ts
+          npx prettier@3.9.6 --check lib/unified-search.ts lib/unified-search.test.ts tests/integration/public-search/*.ts tests/integration/public-search/*.mts scripts/ci/public-search/*.mjs .github/workflows/comun-public-search-contract.yml
+          npx eslint lib/unified-search.ts lib/unified-search.test.ts tests/integration/public-search/disclosure.integration.ts scripts/ci/public-search/*.mjs
       - name: TypeScript
         run: npm run typecheck
+  disposable-integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.19.0"
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.113.0
+      - name: Start fresh local Supabase without repository migrations or seed
+        shell: bash
+        run: |
+          set -euo pipefail
+          workdir="$RUNNER_TEMP/public-search-supabase"
+          mkdir -p "$workdir"
+          echo "SEARCH_SUPABASE_WORKDIR=$workdir" >> "$GITHUB_ENV"
+          supabase init --help > /dev/null
+          supabase start --help > /dev/null
+          supabase stop --help > /dev/null
+          supabase init --workdir "$workdir"
+          sed -i 's/^project_id = .*/project_id = "public-search-${{ github.run_id }}"/' "$workdir/supabase/config.toml"
+          supabase start --workdir "$workdir" -x studio,imgproxy,edge-runtime,logflare,vector,supavisor > "$RUNNER_TEMP/public-search-start.log" 2>&1
+      - name: Prepare synthetic fixture with local server-side service_role
+        run: node scripts/ci/public-search/prepare.mjs
+      - name: Real PostgREST integration
+        run: |
+          mkdir -p .ci-artifacts/public-search
+          npx vitest run --config tests/integration/public-search/vitest.config.mts --reporter=default --reporter=json --outputFile=.ci-artifacts/public-search/current.json
+      - name: Negative control against pre-fix implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin 74cc0ed1779f5432496c3f852ce92bed3524a3a1
+          cp lib/unified-search.ts "$RUNNER_TEMP/public-search-current.ts"
+          trap 'cp "$RUNNER_TEMP/public-search-current.ts" lib/unified-search.ts' EXIT
+          git show 74cc0ed1779f5432496c3f852ce92bed3524a3a1:lib/unified-search.ts > lib/unified-search.ts
+          if npx vitest run --config tests/integration/public-search/vitest.config.mts --reporter=default --reporter=json --outputFile=.ci-artifacts/public-search/baseline.json; then
+            echo "Pre-fix implementation unexpectedly passed"
+            exit 1
+          fi
+          node scripts/ci/public-search/assert-negative-control.mjs
+          echo "COMUN_PUBLIC_SEARCH_DISPOSABLE_INTEGRATION_GREEN: current 25 passed; pre-fix 13 failed, 12 passed; loopback only, service_role preserved" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload synthetic test evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-search-disposable-${{ github.sha }}
+          path: .ci-artifacts/public-search/*.json
+          if-no-files-found: ignore
+      - name: Remove disposable containers and volumes
+        if: always()
+        run: |
+          if [ -n "${SEARCH_SUPABASE_WORKDIR:-}" ]; then
+            supabase stop --workdir "$SEARCH_SUPABASE_WORKDIR" --no-backup > /dev/null 2>&1
+          fi
