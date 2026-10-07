@@ -6,6 +6,7 @@ import { NextRequest } from "next/server.js";
 import {
   disposableContext,
   assertOwnedContainers,
+  INACTIVE_MEMBERSHIP_STATE,
 } from "./disposable-boundary.mjs";
 
 const env = {
@@ -17,6 +18,30 @@ const env = {
   COMUN_LEARNING_LOCAL_ANON_KEY: "local-only",
   COMUN_LEARNING_LOCAL_SERVICE_KEY: "local-only-service",
 };
+test("inactive membership fixture obeys the canonical Pauta schema rather than the minimal stub", () => {
+  const migration = readFileSync(
+    new URL(
+      "../../supabase/migrations/20260715032613_comun_pauta_miniapps_circles.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+  const definition = migration.match(
+    /create table public\.comun_pauta_memberships\([^;]+;/,
+  )?.[0];
+  assert.ok(definition);
+  const states = [
+    ...definition
+      .match(/check\(status in\(([^)]+)\)\)/)[1]
+      .matchAll(/'([^']+)'/g),
+  ].map((match) => match[1]);
+  assert.ok(states.includes(INACTIVE_MEMBERSHIP_STATE));
+  assert.notEqual(INACTIVE_MEMBERSHIP_STATE, "active");
+  assert.ok(
+    !states.includes("suspended"),
+    "profile status is not a membership status",
+  );
+});
 test("application requests use Next's canonical localhost origin without relaxing origin validation", () => {
   assert.equal(
     new NextRequest("http://127.0.0.1:3017/api/comun/escola").nextUrl.origin,

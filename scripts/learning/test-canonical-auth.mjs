@@ -9,6 +9,7 @@ import { createServerClient } from "@supabase/ssr";
 import {
   disposableContext,
   assertOwnedContainers,
+  INACTIVE_MEMBERSHIP_STATE,
 } from "./disposable-boundary.mjs";
 
 // This script never accepts a project URL or a Production credential. Every
@@ -363,8 +364,8 @@ try {
   assert.equal((await apiOk(a)).practices.length, 1);
   assert.equal((await apiOk(b)).practices.length, 0);
   await write(
-    "update public.comun_pauta_memberships set status='suspended' where pauta_id=$1 and member_user_id=$2",
-    [pauta, a.id],
+    "update public.comun_pauta_memberships set status=$3 where pauta_id=$1 and member_user_id=$2",
+    [pauta, a.id, INACTIVE_MEMBERSHIP_STATE],
   );
   assert.equal((await request(a, practice)).status, 400);
   await write(

@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 
+// Membership and profile statuses are different existing contracts.
+export const INACTIVE_MEMBERSHIP_STATE = "paused";
+
 export function disposableContext(env) {
   assert.equal(
     env.COMUN_LEARNING_DISPOSABLE_AUTH,

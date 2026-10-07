@@ -79,3 +79,12 @@ Após a correção do harness: quatro testes boundary, `npm run solo:test`
 (113/113) e `npm run test:unit` (1.340/240 arquivos) passaram. O comando unit
 oficial exclui as suítes Playwright; estas seguem nos respectivos runners de
 navegador, sem contar descoberta acidental por outro runner como falha do produto.
+
+Run `37645448876`, SHA `351c37deb9eda663908a53efcb43556fc2990255`:
+o harness chegou à prática após sessão real, RLS A/B, negação de writes/RPC
+diretos e duas requisições independentes sincronizadas. Depois falhou com
+SQLSTATE 23514 ao tentar `membership.status='suspended'`: o contrato canônico
+de vínculo aceita `paused`, diferentemente do status de perfil. Corrigido
+somente o fixture, com regressão contra a definição da tabela na migration.
+O attempt permanece FAIL; os gates posteriores não são certificados. Nenhum
+runtime ou schema foi alterado para acomodar o teste.
