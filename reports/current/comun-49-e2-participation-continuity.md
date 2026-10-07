@@ -6,8 +6,10 @@ Entrega candidata no PR #520; não integrada nem ativada. Base consultada:
 
 Candidato funcional: `1a46d5550a4ddd98ed467c322dcf1c6e480d4946`.
 Tree: `fc4dd7095c2098aaf86f5c3db75fb53d0c5fa6c0`.
-Um checkpoint posterior altera somente documentação; a equivalência funcional
-deve ser verificada com `git diff --name-only 1a46d555..HEAD`.
+Os checkpoints até `11127473e5bba612826a9b87e7bfd08d06923c4c` alteram somente
+documentação. A continuação abaixo acrescenta correção de CI; o runtime de UI
+continua idêntico a `1a46d555` e deve ser comparado por arquivos, sem transferir
+resultados dos scripts de CI antigos para os novos.
 
 ## Comportamento e limites
 
@@ -79,7 +81,7 @@ e `37559796222` mostram o dry-run recusando
 `20260922120000_comun_canonical_security_hardening_v2.sql` como arquivo anterior
 à última migration remota. Isso requer reconciliação do planner com a release
 externa aceita, em frente separada; não autoriza `include-all`, reparo de history
-ou replay remoto. Nenhuma migration changed nesta entrega. Não se classificam
+ou replay remoto. Nenhuma migration mudou nesta entrega. Não se classificam
 esses failures como skipped nem como PASS.
 
 A run Launch Readiness `37559796257` encontrou somente Prettier no roadmap:
@@ -95,3 +97,38 @@ schema write, business write ou alteração de flag Production nesta rodada.
 Próxima frente: integrar os modelos de progresso da Escola quando #503 estiver
 reconciliado e aprovado; manter orientação pública e convites voluntários nos
 fluxos existentes enquanto essa dependência continua aberta.
+
+## Continuação — preflights históricos
+
+Os cinco consumers A1/A2/A4/A5/P6C-C passam a usar o reconciliador existente
+quando o estado é promoted, ou sem mudança SQL no P6C-C. Candidate permanece
+no caminho anterior, com plano exato e restauração. Metadata/RLS anteriores
+continuam obrigatórios; nenhuma lane é dispensada. O helper exige a linha única
+accepted do Hardening e hashes/fingerprints imutáveis antes de isolar temporariamente
+somente os dois arquivos já aplicados. Arquivo SQL pendente desconhecido bloqueia.
+
+Reutiliza-se a correção stdout/stderr de Escola #503 no SHA `a8dbe550583526eae631deafa3c574fbcfb18993`, sem portar runtime, migration ou progresso.
+Cada child process recebe `PGOPTIONS=-c default_transaction_read_only=on`;
+a consulta tem BEGIN READ ONLY/ROLLBACK. Exit nonzero, sinal ou saída sem marcador
+de sucesso bloqueiam, mesmo que outra stream contenha texto de sucesso.
+
+PASS local: 15 testes Linux (quatro do helper e execução do passo real de onze
+workflows), cobrindo ledger ausente/divergente, stdout/stderr, plano desconhecido,
+saída vazia, erro de processo e restauração byte-identical. Stubs são prova do
+contrato de processo, não prova de banco. 113 Solo, ESLint e Prettier dos arquivos
+afetados, checks Node e diff-check passaram. Migration/manifest/release bundles
+permanecem sem diff. A prova read-only real fica para os mesmos gates remotos.
+
+Ubuntu WSL foi usado com Node 22.19.0 temporário, pacote verificado contra
+SHASUMS256 oficial: `c0649af18e6a24f6fe5535a3e86b341dd49a8e71117c8b68bde973ef834f16f2`.
+Não houve uso de credencial Production nesses testes locais.
+
+BLOCKED — executor Docker local da Escola: Docker Desktop 4.61.0 foi iniciado,
+mas o backend reporta falha no Inference manager ao remover o socket dockerInference.
+O socket é um reparse point de tamanho zero inacessível ao sistema. A tentativa
+reversível de renomeá-lo para preservação falhou; o serviço Windows está parado
+e não pôde ser aberto por Start-Service nesta sessão. A distro docker-desktop
+permanece stopped; Ubuntu funciona. Não foi feito reset/factory reset, remoção
+recursiva, limpeza de volumes ou alteração do settings-store. Requisito mínimo:
+recuperar a inicialização do Docker e tornar a API Linux responsiva. Até isso,
+Auth/Postgres da Escola não recebe PASS e não usa banco hospedado como substituto.

@@ -24,6 +24,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npx playwright install --with-deps chromium
       - run: npx vitest run lib/comun-practice-guidance.test.ts
+      - run: node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs scripts/ci/readonly-reconciled-migration-plan-workflows.node-test.mjs
       - run: npx playwright test -c playwright.participation-continuity.config.ts
       - run: npx playwright test -c playwright.experience-coherence.config.ts tests/experience-coherence/participation-paths.spec.ts --project=360x800 --project=1366x768
       - uses: actions/upload-artifact@v4
