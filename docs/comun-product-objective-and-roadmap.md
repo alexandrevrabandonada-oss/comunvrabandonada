@@ -22,6 +22,33 @@ O objetivo do COMUN é apoiar uma organização popular que aprenda, escolha pri
 
 ## Próxima estrutura do roadmap integral
 
+### Diretriz incorporada — movimento social moderno
+
+O COMUN combina ferramenta pública, participação voluntária e organização com
+formação permanente. **Usar, participar e organizar** são caminhos com valor
+próprio, não categorias de pessoas ou uma progressão obrigatória. A pessoa pode
+resolver uma necessidade sem se vincular; pode contribuir pontualmente; ou
+construir continuidade num núcleo. Convites são contextuais e responsabilidades
+dependem de aceite explícito.
+
+| Entrega | Relação com o roadmap | Prova necessária |
+|---|---|---|
+| Inventário de entradas, utilidade e convites | 49-E0 / 49-E | Rotas e barreiras reais; funções públicas preservadas sem adesão |
+| Orientação → prática → devolutiva → retomada | 49-C / 49-F | Materiais e registros conectados; formação não atribui tarefa nem função automaticamente |
+| Núcleo → decisão → tarefa → ação → resultado → substituição | 49-A / 49-B / 49-M | Responsáveis e vínculos concretos; memória e continuidade com substitutos |
+| Jornadas de uso pontual, contribuição e organização | 50 COMUN UNO | Provas técnicas e ensaio humano dos três caminhos, incluindo saída e retorno |
+
+VR Abandonada comunica e mobiliza; APS e aliadas dão base associativa e
+capacidade de execução; COMUN conecta conhecimento, formação e continuidade;
+atuação institucional encaminha demandas e devolve resultados à rede. São
+papéis previstos no desenho, com responsabilidades reais ainda a confirmar.
+O [contrato 49-E0](comun-one-product-contract-49-e0.md) detalha os critérios.
+
+Esta diretriz está registrada na arquitetura candidata. Não significa que
+convites, integrações ou núcleos já estejam implementados. O próximo trabalho
+é inventariar as superfícies existentes antes de expandir telas ou cadastros.
+Maturidade exige capacidade coletiva continuada, além das métricas de acesso.
+
 O fechamento da V1 permanece prioritário e não se confunde com a visão futura. Depois dele, os tijolos 49-A a 49-L podem avançar em paralelo sob o contrato 49-E0: núcleos permanentes; ciclo estratégico; Escola e competências; Fábrica; Reflexo COMUN; continuidade; inteligência cívica; distribuição; páginas de referência e SEO; serviços e controle popular; observatórios; plataforma física/digital. A trilha 49-M integra essas capacidades à organização permanente. O 50 COMUN UNO fecha com coerência integral de jornadas, módulos, canais, estratégia organizativa, acessibilidade, privacidade, compartilhamento, SEO e operação.
 
 O [contrato 49-E0](comun-one-product-contract-49-e0.md) descreve as relações entre os tijolos, a jornada político-organizativa, os limites de privacidade e os critérios de saída. Suas metas de baixa fricção e experiência humana permanecem metas até serem ensaiadas.

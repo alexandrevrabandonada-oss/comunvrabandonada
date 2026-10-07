@@ -25,6 +25,76 @@ monitorar, pressionar, pontuar ou microsegmentar pessoas.
 
 ## Jornada político-organizativa
 
+### Movimento social moderno: usar, participar e organizar
+
+O COMUN deve permitir uma forma de movimento social moderno, com ferramenta
+pública útil, organização coletiva e formação permanente. A pessoa pode usar
+somente a ferramenta ou escolher vínculos mais duradouros. Cada caminho entrega
+valor próprio; nenhum funciona como requisito de adesão ao seguinte.
+
+| Caminho | Valor imediato | Continuidade disponível |
+|---|---|---|
+| **Usar** | Consultar fontes, entender, relatar, acompanhar e compartilhar | Salvar ou seguir o assunto, quando quiser |
+| **Participar** | Contribuir numa atividade, aprender uma prática ou ajudar numa ação | Retomar a prática ou assumir uma tarefa delimitada voluntariamente |
+| **Organizar** | Construir prioridades, integrar um núcleo e distribuir responsabilidades | Avaliar resultados, formar outras pessoas e transmitir responsabilidades |
+
+Esses caminhos são intenções de uso, não classes de pessoas nem níveis de
+prestígio. A pessoa pode alternar entre eles, encerrar um vínculo e continuar
+usando a ferramenta. Consultar conteúdo público e usar as funções disponíveis
+não exige associação, formação prévia, concordância política ou ingresso num
+núcleo. Restrições de acesso seguem a necessidade concreta de cada operação.
+
+O convite para participar aparece no contexto de uma necessidade ou ação:
+explica contribuição, tempo esperado, apoio, responsável e resultado possível.
+A tarefa só é assumida com aceite explícito; seguir uma pauta, concluir uma
+formação ou usar o serviço não inscreve a pessoa numa organização.
+
+Formação permanente liga **necessidade → orientação curta → prática →
+devolutiva → nova capacidade**. Por exemplo, cobrar uma resposta pública pode
+levar a uma orientação, à preparação de um pedido, ao acompanhamento do
+protocolo e, por escolha da pessoa, ao apoio a outras pessoas. Materiais ficam
+acessíveis para consulta, mesmo fora de uma trilha. Progresso educacional não
+atribui automaticamente função, autoridade ou vínculo.
+
+### Relação entre as estruturas
+
+| Estrutura | Papel previsto no desenho | Devolutiva necessária |
+|---|---|---|
+| **VR Abandonada** | Comunicação pública, leitura do território e mobilização | Fontes, contexto e caminho para entender ou contribuir |
+| **APS e associações aliadas** | Base associativa, encontros, formação e execução de projetos | Responsáveis, condições de participação e prestação de contas |
+| **COMUN** | Infraestrutura comum de conhecimento, participação, formação e continuidade | Estado compreensível, próximos passos e memória acessível |
+| **Atuação institucional** | Encaminhamento de demandas e construção de iniciativas públicas | Instrumento usado, prazo, resposta, resultado e limites de atribuição |
+
+Os papéis acima orientam a arquitetura; não declaram convênio, representação
+jurídica, equipe ou operação já existentes. Responsabilidades e limites de
+cada entidade precisam constar no ciclo concreto.
+
+### Sequência de implementação e prova
+
+1. **49-E0 / 49-E — entradas e convites:** mapear intenções nas superfícies
+   existentes; garantir utilidade independente e convite contextual sem adesão
+   automática. Primeiro produzir inventário de rotas, ações e barreiras.
+2. **49-C / 49-F — formação na prática:** ligar orientação, material, prática
+   e retorno pessoal; distinguir conteúdo disponível de formação ativa e
+   de tarefa assumida.
+3. **49-A / 49-B / 49-M — capacidade coletiva:** conectar tarefa, responsável,
+   núcleo, decisão, ação, resultado e substituição, reutilizando entidades
+   existentes antes de criar novos cadastros.
+4. **50 — prova integral:** verificar tanto a jornada de quem usa somente a
+   ferramenta quanto a de quem participa e a de quem organiza. Encerrar um
+   vínculo deve preservar as funções a que a pessoa continua tendo acesso.
+
+Sem amostra humana é possível conferir rotas, autorização, aceite explícito,
+persistência e retomada, relação entre registros e ausência de atribuição
+automática. Facilidade percebida, qualidade pedagógica, funcionamento de núcleos
+e continuidade real permanecem pendentes de observação e operação.
+
+O critério organizativo de maturidade é a capacidade de acolher gente nova,
+formar pessoas, distribuir responsabilidades, devolver resultados e continuar
+um ciclo com substitutos. Quantidade de cadastros, acessos ou aulas concluídas
+não comprova essa capacidade. O desenho deve permitir que o trabalho continue
+sem depender de Alexandre ou de qualquer coordenador para cada movimento.
+
 ```text
 percepção do território
   → evidência e interpretação
@@ -181,6 +251,8 @@ exige gesto de sacudir, atalho proprietário ou permissão sensorial.
 - política `pilot_noindex`, sitemap vazio, permissões e gates de lançamento
   permanecem inalterados;
 - o roadmap registra a estrutura política permanente como objetivo central;
+- os caminhos usar, participar e organizar têm valor independente e não geram
+  associação, tarefa ou responsabilidade automática;
 - nenhuma alegação de facilidade de uso, compreensão ou eficiência humana é
   feita sem ensaio.
 
