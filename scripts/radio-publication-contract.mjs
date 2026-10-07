@@ -183,7 +183,10 @@ try {
       assert.equal(row.prosecdef, false);
       assert.deepEqual(
         row.proconfig,
-        row.proname === "comun_lock_radio_editorial_composition"
+        [
+          "comun_lock_radio_editorial_composition",
+          "comun_commit_radio_publication",
+        ].includes(row.proname)
           ? ["search_path=pg_catalog", "lock_timeout=1500ms"]
           : ["search_path=pg_catalog"],
       );
@@ -430,6 +433,95 @@ try {
       assert.equal(audit.rows[0].n, 0);
     },
   );
+  for (const [phase, table] of [
+    ["authorization", "comun_admin_users"],
+    ["final audit", "comun_admin_audit_log"],
+  ]) {
+    await check(
+      `${phase} table contention is bounded and leaves no publication writes`,
+      async () => {
+        const episode = await fixture();
+        const review = await prepare(episode);
+        const blocker = new pg.Client({ connectionString: url.href });
+        const publisher = new pg.Client({ connectionString: url.href });
+        try {
+          await blocker.connect();
+          await publisher.connect();
+          await blocker.query("begin");
+          // Table names come only from the two constants above.
+          await blocker.query(
+            `lock table public.${table} in access exclusive mode`,
+          );
+          await publisher.query("set role service_role");
+          await publisher.query("set lock_timeout='8s'");
+          await publisher.query("set statement_timeout='5s'");
+          if (phase === "authorization") {
+            await publisher.query("begin");
+            assert.deepEqual(
+              await commit(episode, review.identity, publisher),
+              { outcome: "busy" },
+            );
+          } else {
+            // An implicit transaction must undo the episode, archive root and
+            // editorial version already written before reaching the audit table.
+            // Do not convert a late failure to busy with partial writes retained.
+            await assert.rejects(commit(episode, review.identity, publisher), {
+              code: "55P03",
+            });
+          }
+          assert.equal(
+            (await publisher.query("show lock_timeout")).rows[0].lock_timeout,
+            "8s",
+          );
+          assert.equal(
+            (await publisher.query("select 1 as usable")).rows[0].usable,
+            1,
+          );
+          const locks = await admin.query(
+            "select count(*)::int n from pg_locks where pid=$1 and mode='ShareRowExclusiveLock'",
+            [publisher.processID],
+          );
+          assert.equal(locks.rows[0].n, 0);
+          await blocker.query("rollback");
+          const state = (
+            await admin.query(
+              "select e.publication_status,i.status,i.visibility,(select count(*)::int from public.comun_radio_editorial_versions where episode_item_id=$1) versions,(select count(*)::int from public.comun_admin_audit_log where target_id=$1) audit from public.comun_radio_episodes e join public.comun_archive_items i on i.id=e.archive_item_id where i.id=$1",
+              [episode],
+            )
+          ).rows[0];
+          assert.deepEqual(state, {
+            publication_status: "editorial_review",
+            status: "draft",
+            visibility: "private",
+            versions: 0,
+            audit: 0,
+          });
+          assert.equal(
+            (await commit(episode, review.identity, publisher)).outcome,
+            "published",
+          );
+          if (phase === "authorization") await publisher.query("commit");
+          const versions = await admin.query(
+            "select count(*)::int n from public.comun_radio_editorial_versions where episode_item_id=$1",
+            [episode],
+          );
+          assert.equal(versions.rows[0].n, 1);
+        } finally {
+          const released = await Promise.allSettled([
+            blocker.query("rollback"),
+            publisher.query("rollback"),
+          ]);
+          const closed = await Promise.allSettled([
+            blocker.end(),
+            publisher.end(),
+          ]);
+          for (const result of [...released, ...closed]) {
+            if (result.status === "rejected") throw result.reason;
+          }
+        }
+      },
+    );
+  }
   await check(
     "authorization row contention returns busy and committed revocation denies retry",
     async () => {
@@ -769,6 +861,9 @@ try {
           authorizationRowContention: "busy_without_waiting",
           authorizationAfterCommittedRevocation: "denied",
           authorizationLockAfterCompositionTimeout: "released",
+          perCommitLockTimeoutMs: 1500,
+          authorizationTableContention: "busy_without_publication_writes",
+          finalAuditContention: "error_with_atomic_rollback",
           perCompositionLockTimeoutMs: 1500,
           contentionOutcome: "busy_without_publication_writes",
           partialLocksAfterTimeout: "released",

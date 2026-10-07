@@ -171,6 +171,7 @@ create or replace function public.comun_commit_radio_publication(
   p_episode_id uuid, p_expected_identity text, p_admin_id uuid
 ) returns jsonb language plpgsql security invoker
 set search_path = pg_catalog
+set lock_timeout = '1500ms'
 as $$
 declare
   v_admin public.comun_admin_users%rowtype; v_identity text; v_blockers text[];
