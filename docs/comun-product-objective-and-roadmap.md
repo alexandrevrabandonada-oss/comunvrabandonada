@@ -55,6 +55,30 @@ O [contrato 49-E0](comun-one-product-contract-49-e0.md) descreve as relações e
 
 ## Posição geral e fila sem amostra humana — 06/10/2026
 
+### Implementação candidata 49-E1 — entradas e primeira prática
+
+Participar oferece três caminhos independentes: buscar um assunto, conhecer
+ações e conhecer comunidades. O componente serve às experiências canônica e
+legacy. O convite explica que explorar não gera inscrição nem tarefa.
+Participar e Ajuda abrem a orientação pública `/comun/ajuda/primeira-acao`:
+escolher pergunta → conferir fontes → escolher contribuição → voltar ao que
+mudou. Os destinos são rotas já existentes; não há gravação de progresso,
+vínculo, atribuição, nova permissão ou ativação da Escola.
+
+Esta entrega implementa navegação e orientação inicial, não o ciclo formativo
+completo. Progresso privado da Escola, relações entre prática e tarefa, convites
+em detalhes de pautas/ações e operação de núcleos continuam pendentes. A prova
+de navegador deve verificar acesso anônimo, retorno, preservação da experiência,
+acessibilidade, viewport móvel e consulta sem JavaScript; contratos locais não
+substituem essa prova nem ensaio humano.
+
+Validação local: TypeScript, ESLint, dez testes do contrato público, dois de
+coerência e quatro de classificação de superfícies passaram. As duas páginas,
+nas experiências canônica e legacy, responderam HTTP 200 com um h1 e os links
+esperados no HTML servido. Os três testes de navegador foram preparados para
+a suíte existente, mas a tentativa local parou no lançamento: Chromium ausente.
+HTML servidor não comprova contraste, foco, overflow ou interação renderizada.
+
 O produto está no fechamento técnico e operacional da V1, antes do ensaio integrado e do lançamento integral. Quatro domínios estão declarados verdes e seis continuam abertos; isso não representa 40% de conclusão. A visão futura e as entregas candidatas devem ser acompanhadas separadamente do que está integrado em produção.
 
 | Camada                                           | Situação conferida                                                                                                                                 | Próximo trabalho sem amostra humana                                                                                          | Dependência preservada                                                                                                                                       |

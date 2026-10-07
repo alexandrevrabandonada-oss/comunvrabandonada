@@ -7,6 +7,12 @@ links atuais. Nenhuma rota é retirada neste tijolo.
 
 Legenda de público: público, pessoal autenticado ou administrativo autorizado.
 
+Atualização candidata em 06/10/2026: o inventário passa de 232 para 233 páginas
+com `/comun/ajuda/primeira-acao`. A orientação é pública e somente de leitura,
+entra por Participar ou Ajuda e retorna a Participar. Liga pergunta, fonte e
+contribuição a Busca, Pautas e Ações existentes; não cria inscrição, progresso
+educacional ou tarefa. A contagem de 189 acima é a leitura histórica de agosto.
+
 | rota/família                                    | nome público             | público         | propósito e fonte canônica            | entrada principal / ação principal      | retorno e estado                   | duplicações / deep links                               | decisão                     |
 | ----------------------------------------------- | ------------------------ | --------------- | ------------------------------------- | --------------------------------------- | ---------------------------------- | ------------------------------------------------------ | --------------------------- |
 | `/comun`                                        | Início                   | público         | orientar e priorizar; hubs públicos   | logo / explorar território              | navegação global; estado editorial | raiz `/` é entrada institucional                       | manter + piloto N2          |

@@ -18,7 +18,8 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   // B2-A1 adds the public problem detail surface over the existing map.
   // R5 adds one publisher-only collective-entity projection desk.
   // The operational chain adds member onboarding plus one R4 reviewer desk.
-  assert.equal(summary.total, 232);
+  // Includes the public, read-only first-action learning guide.
+  assert.equal(summary.total, 233);
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
     "admin",
@@ -73,6 +74,10 @@ test("keeps roots, nested routes, immersive tools and admin surfaces distinct", 
   const { routes } = await auditComunSurfaces({ write: false });
   const byRoute = new Map(routes.map((route) => [route.route, route]));
   assert.equal(byRoute.get("/comun")?.shell_mode, "member_root");
+  assert.equal(
+    byRoute.get("/comun/ajuda/primeira-acao")?.shell_mode,
+    "institutional",
+  );
   assert.equal(byRoute.get("/comun/explorar")?.shell_mode, "member_root");
   assert.equal(
     byRoute.get("/comun/cooperativas/[slug]")?.shell_mode,
