@@ -338,6 +338,7 @@ try {
     origin,
     directory: new URL("reports/local/", root),
   });
+  console.log("COMUN_LEARNING_BROWSER_RESUME_PASS");
   checks.push("real-browser-owner-resume-mobile-desktop-and-reload");
 
   const pauta = randomUUID();
@@ -405,6 +406,7 @@ try {
   assert.ok(funcs.every((f) => !f.prosecdef && !f.a && !f.b && f.s));
   checks.push("exact-four-invoker-routines-service-only");
 } finally {
+  console.log("COMUN_LEARNING_DISPOSABLE_STAGE=cleanup");
   if (locked) await blocker.query("rollback");
   if (server) server.kill("SIGTERM");
   // Only UUIDs obtained from this run's Auth createUser responses are cleaned.
@@ -457,6 +459,7 @@ try {
   }
   await blocker.end();
   await db.end();
+  console.log("COMUN_LEARNING_DISPOSABLE_STAGE=cleanup-complete");
 }
 
 const directory = new URL("reports/local/", root);

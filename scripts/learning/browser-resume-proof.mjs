@@ -23,7 +23,11 @@ export async function proveBrowserResume({
   directory,
 }) {
   mkdirSync(directory, { recursive: true });
-  const browser = await chromium.launch({ channel: "chromium" });
+  console.log("COMUN_LEARNING_BROWSER_STAGE=launch");
+  const browser = await chromium.launch({
+    channel: "chromium",
+    timeout: 30000,
+  });
   let cases = 0;
   try {
     for (const width of [390, 1366]) {
@@ -34,6 +38,12 @@ export async function proveBrowserResume({
         try {
           await context.addCookies(sessionCookies(actor.cookie, origin));
           const page = await context.newPage();
+          page.setDefaultTimeout(20000);
+          page.setDefaultNavigationTimeout(60000);
+          const mark = (name) =>
+            console.log(
+              `COMUN_LEARNING_BROWSER_STAGE=${width}:${actor.label}:${name}`,
+            );
           const errors = [];
           page.on("pageerror", (error) => errors.push(error.name));
           const snapshot = () =>
@@ -41,7 +51,7 @@ export async function proveBrowserResume({
               (response) =>
                 new URL(response.url()).pathname === "/api/comun/escola" &&
                 response.request().method() === "GET",
-              { timeout: 90000 },
+              { timeout: 60000 },
             );
           async function verify(response) {
             assert.equal(
@@ -61,8 +71,12 @@ export async function proveBrowserResume({
             assert.equal(progress.revision, actor.revision);
           }
           let response = snapshot();
-          await page.goto(`${origin}/comun/escola`, { timeout: 90000 });
+          mark("today-navigation");
+          await page.goto(`${origin}/comun/escola`, {
+            waitUntil: "domcontentloaded",
+          });
           await verify(await response);
+          mark("today-authenticated");
           const next = page.getByRole("region", { name: "Próxima atividade" });
           await expect(
             next.getByRole("heading", {
@@ -74,10 +88,12 @@ export async function proveBrowserResume({
             next.getByText("Continue de onde parou", { exact: true }),
           ).toBeVisible();
           response = snapshot();
+          mark("resume-navigation");
           await next
             .getByRole("link", { name: "Continuar", exact: true })
             .click();
           await verify(await response);
+          mark("resume-authenticated");
           await expect(
             page.getByRole("heading", { name: mission.title, exact: true }),
           ).toBeVisible();
@@ -87,8 +103,10 @@ export async function proveBrowserResume({
             page.getByRole("heading", { name: stage, exact: true }),
           ).toBeVisible();
           response = snapshot();
-          await page.reload();
+          mark("reload-navigation");
+          await page.reload({ waitUntil: "domcontentloaded" });
           await verify(await response);
+          mark("reload-authenticated");
           await expect(
             page.getByRole("heading", { name: stage, exact: true }),
           ).toBeVisible();
@@ -103,7 +121,9 @@ export async function proveBrowserResume({
               path: fileURLToPath(
                 new URL(`escola-auth-${width}.png`, directory),
               ),
+              timeout: 30000,
             });
+          mark("passed");
           cases += 1;
         } finally {
           await context.close();

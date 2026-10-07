@@ -106,3 +106,11 @@ de API ou storageState/traces de sessão. Browser plugin não disponível;
 fallback usa Playwright pinado do projeto e Chromium completo. Capturas
 mostram somente o catálogo/etapa das fixtures sintéticas; não contêm reflexão,
 email, token ou IDs Auth. Essa etapa permanece NOT_RUN até o novo artifact.
+
+Run `37648640253`/head `0c4dae36`: interrompida após mais de nove minutos
+na etapa do navegador, sem marcador que localizasse a parada. CANCELLED,
+nunca PASS. Acrescentados marcadores sanitizados de etapa, limites de screenshot
+e navegação, DOMContentLoaded seguido de API/heading real e timeout total
+de oito minutos para o passo. Nenhuma asserção de sessão/progresso foi removida.
+Os failures globais de dpkg lock e reset local 502 foram rerodados somente
+nos jobs falhos, sem alterar código; resultados pertencem ao SHA dessas runs.

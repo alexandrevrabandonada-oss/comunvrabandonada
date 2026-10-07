@@ -86,6 +86,7 @@ jobs:
       - name: Canonical migration chain including candidate School
         run: supabase db reset --local --yes
       - name: Real Auth, SSR API, owner isolation and synchronized concurrency
+        timeout-minutes: 8
         env:
           COMUN_LEARNING_DISPOSABLE_AUTH: "true"
           COMUN_LEARNING_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
