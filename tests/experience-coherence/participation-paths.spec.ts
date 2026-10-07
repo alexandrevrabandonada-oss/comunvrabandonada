@@ -70,18 +70,29 @@ test("Orientação prática funciona sem JavaScript e abre a busca pública", as
   });
   try {
     const page = await context.newPage();
-    await page.goto("/comun/ajuda/primeira-acao");
+    await page.goto("/comun/ajuda/primeira-acao?etapa=acompanhamento");
     await expect(
       page.getByRole("heading", {
         name: "Do assunto à primeira ação",
         exact: true,
       }),
     ).toBeVisible();
+    await expect(
+      page.locator('[data-comun-practice-guidance="acompanhamento"]:visible'),
+    ).toBeVisible();
     await page
       .getByRole("link", { name: "Pesquisar meu assunto", exact: true })
       .click();
     await expect(page).toHaveURL(/\/comun\/buscar$/);
-    await expect(page.locator("h1")).toHaveCount(1);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await page
+      .getByRole("textbox", { name: "Termo de busca" })
+      .fill("calçadas");
+    await page.getByRole("button", { name: "Buscar", exact: true }).click();
+    await expect(page).toHaveURL(/q=cal%C3%A7adas/);
+    await expect(
+      page.getByRole("heading", { name: "Buscar no COMUN", exact: true }),
+    ).toBeVisible();
   } finally {
     await context.close();
   }

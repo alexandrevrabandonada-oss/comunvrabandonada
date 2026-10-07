@@ -60,7 +60,7 @@ export default async function Page({
     ),
     durationMs = search.durationMs;
   return (
-    <ComunShell>
+    <ComunShell publicReadOnlyFallback>
       <ComunSection>
         <ComunBreadcrumbs
           items={[{ label: "Início", href: "/comun" }, { label: "Buscar" }]}

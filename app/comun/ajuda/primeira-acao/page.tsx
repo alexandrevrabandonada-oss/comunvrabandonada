@@ -2,6 +2,10 @@ import Link from "next/link";
 import { ComunShell } from "@/components/comun-shell";
 import { ComunBreadcrumbs, ComunSection } from "@/components/comun-ui";
 import { isComunAppV2, withComunAppV2 } from "@/lib/comun-experience";
+import {
+  participationGuidance,
+  resolveParticipationGuidanceStage,
+} from "@/lib/comun-practice-guidance";
 
 export const metadata = { title: "Do assunto à primeira ação | COMUN" };
 
@@ -39,9 +43,11 @@ export default async function FirstActionPage({
   const params = await searchParams;
   const appV2 = isComunAppV2(params.experiencia);
   const href = (path: string) => withComunAppV2(path, appV2);
+  const stage = resolveParticipationGuidanceStage(params.etapa);
+  const guidance = participationGuidance[stage ?? "registro"];
 
   return (
-    <ComunShell>
+    <ComunShell publicReadOnlyFallback>
       <ComunSection>
         <ComunBreadcrumbs
           items={[
@@ -85,6 +91,32 @@ export default async function FirstActionPage({
             </li>
           ))}
         </ol>
+        <section
+          className="mt-6 border-l-4 border-comun-yellow p-4"
+          aria-labelledby="practice-guidance-title"
+          data-comun-practice-guidance={stage ?? "registro"}
+        >
+          <h2 id="practice-guidance-title" className="text-xl font-black">
+            {guidance.title}
+          </h2>
+          <p className="mt-2 max-w-3xl">{guidance.summary}</p>
+          <ul className="mt-3 max-w-3xl list-disc space-y-2 pl-5">
+            {guidance.checks.map((check) => (
+              <li key={check}>{check}</li>
+            ))}
+          </ul>
+          <p className="mt-3 text-sm">
+            Consultar este material não registra uma formação concluída nem
+            assume uma tarefa.
+          </p>
+          <Link
+            href={href(guidance.href)}
+            prefetch={false}
+            className="mt-3 inline-flex min-h-11 items-center font-black underline"
+          >
+            {guidance.action}
+          </Link>
+        </section>
         <section className="mt-6" aria-labelledby="first-action-return">
           <h2 id="first-action-return" className="text-xl font-black">
             Depois, volte ao que mudou
