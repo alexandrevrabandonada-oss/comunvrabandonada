@@ -214,6 +214,7 @@ test("canonical workflows remain active and known additions are explicit", () =>
     "comun-49-2-specialist-role-linking.yml",
     "comun-human-session-evidence.yml",
     "comun-learning.yml",
+    "comun-radio-publication-contract.yml",
     "comun-maplibre-migration.yml",
     "comun-pilot-human-readiness.yml",
     "comun-pwa-browser-compatibility.yml",
