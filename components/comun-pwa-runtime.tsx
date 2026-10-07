@@ -13,6 +13,10 @@ import {
   COMUN_LEGACY_EXPERIENCE,
   withComunExperience,
 } from "@/lib/comun-experience";
+import {
+  buildComunPageSharePayload,
+  shareOrCopy,
+} from "@/lib/comun-one-product-contract";
 
 type InstallEvent = Event & {
   prompt: () => Promise<void>;
@@ -263,35 +267,60 @@ export function ComunPwaRuntime({
   );
 }
 
-export function ComunShareButton({ title }: { title: string }) {
-  const [copied, setCopied] = useState(false);
+export function ComunShareButton({
+  title,
+  className = "min-h-11 border-2 border-comun-yellow px-3 text-xs font-black uppercase text-comun-yellow",
+}: {
+  title: string;
+  className?: string;
+}) {
+  const [shareStatus, setShareStatus] = useState("");
   const share = async () => {
-    const data = {
-      title,
-      text: `Veja no COMUN: ${title}`,
-      url: window.location.href,
-    };
-    if (navigator.share) {
-      try {
-        await navigator.share(data);
-        return;
-      } catch {
-        return;
-      }
-    }
-    await navigator.clipboard.writeText(data.url);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2500);
+    setShareStatus("");
+    const payload = buildComunPageSharePayload({
+      fallbackTitle: title,
+      pageTitle:
+        document.querySelector<HTMLMetaElement>('meta[property="og:title"]')
+          ?.content || document.querySelector("main h1")?.textContent,
+      pageDescription: document.querySelector<HTMLMetaElement>(
+        'meta[property="og:description"]',
+      )?.content,
+      canonicalHref:
+        document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href,
+      currentHref: window.location.href,
+    });
+    const result = await shareOrCopy(payload, {
+      nativeShare:
+        typeof navigator.share === "function"
+          ? (data) => navigator.share(data)
+          : null,
+      copy: async (url) => {
+        if (!navigator.clipboard?.writeText)
+          throw new Error("Clipboard API unavailable");
+        await navigator.clipboard.writeText(url);
+      },
+    });
+
+    if (result === "copied") setShareStatus("Link copiado.");
+    if (result === "failed")
+      setShareStatus("Não foi possível compartilhar o link.");
   };
   return (
     <button
       type="button"
       onClick={share}
-      className="min-h-11 border-2 border-comun-yellow px-3 text-xs font-black uppercase text-comun-yellow"
+      aria-label="Compartilhar esta página"
+      className={className}
     >
-      Compartilhar
-      <span className="sr-only" aria-live="polite">
-        {copied ? " Link copiado" : ""}
+      {shareStatus === "copied"
+        ? "Link copiado"
+        : shareStatus === "failed"
+          ? "Falha no link"
+          : "Compartilhar"}
+      <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {shareStatus === "failed"
+          ? "Não foi possível compartilhar o link."
+          : shareStatus}
       </span>
     </button>
   );

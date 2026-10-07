@@ -49,6 +49,76 @@ test("shell registra service worker e não tem violações Axe graves", async ({
   ).toEqual([]);
 });
 
+test("share sheet receives a page link without query strings or fragments", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: async (payload: { title: string; text: string; url: string }) => {
+        (window as Window & { __comunSharePayload?: typeof payload }).__comunSharePayload =
+          payload;
+      },
+    });
+  });
+  await page.goto("/comun/pautas?utm_source=private#top");
+
+  const shareButton = page.locator(
+    'button[aria-label="Compartilhar esta página"]:visible',
+  );
+  if (!(await shareButton.count()))
+    await page.getByRole("button", { name: "Mais ações" }).click();
+  await shareButton.click();
+
+  const payload = await page.evaluate(
+    () =>
+      (window as Window & {
+        __comunSharePayload?: { title: string; text: string; url: string };
+      }).__comunSharePayload,
+  );
+  expect(payload?.url).toMatch(/\/comun\/pautas$/);
+  expect(payload?.url).not.toContain("utm_source");
+  expect(payload?.url).not.toContain("#");
+  expect(payload?.title).toBeTruthy();
+});
+
+test("copy fallback gives a clear confirmation when native sharing is unavailable", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: undefined,
+    });
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (value: string) => {
+          (window as Window & { __comunCopiedUrl?: string }).__comunCopiedUrl =
+            value;
+        },
+      },
+    });
+  });
+  await page.goto("/comun?utm_source=private#top");
+
+  const shareButton = page.locator(
+    'button[aria-label="Compartilhar esta página"]:visible',
+  );
+  if (!(await shareButton.count()))
+    await page.getByRole("button", { name: "Mais ações" }).click();
+  await shareButton.click();
+
+  await expect(shareButton).toContainText("Link copiado");
+  await expect(shareButton.getByRole("status")).toHaveText("Link copiado.");
+  const copiedUrl = await page.evaluate(
+    () => (window as Window & { __comunCopiedUrl?: string }).__comunCopiedUrl,
+  );
+  expect(copiedUrl).toBeTruthy();
+  expect(copiedUrl).not.toContain("utm_source");
+  expect(copiedUrl).not.toContain("#");
+});
+
 test("fallback offline explica limites sem simular envio", async ({ page }) => {
   await page.goto("/comun/offline");
   await expect(

@@ -2,6 +2,30 @@
 
 Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99dd450`, após os PRs #504, #505 e #506. A reconciliação de 02/10 e os achados intermediários abaixo são históricos. A V1 continua incompleta; a situação atual e a fila sem amostra humana estão na seção seguinte.
 
+## Atualização transversal do produto — 06/10/2026
+
+O roadmap passa a tratar o COMUN também como infraestrutura para uma estrutura política permanente ligada à APS, à VR Abandonada e a organizações aliadas. Núcleos, estratégia, formação, competências, fábrica, Minha Participação, inteligência cívica, observatórios e ação institucional formam um ciclo organizativo: evidência → prioridade coletiva → formação e responsabilidade voluntária → ação → devolutiva → memória e renovação de capacidades.
+
+Essa conexão existia distribuída em frentes do roadmap, mas não estava explícita como objetivo integrador nem como contrato de produto. O novo [49-E0 — contrato de produto único](comun-one-product-contract-49-e0.md) fixa os princípios e inclui a camada **49-M — Organização política permanente**. O E0 é um candidato em implementação; não altera o estado da V1, a autorização de lançamento nem a indexação atual.
+
+| Trilha | Papel no produto inteiro | Estado do trabalho sem amostra humana |
+|---|---|---|
+| **49-E0 — COMUN ONE PRODUCT CONTRACT** | Gramática comum, superfície pública, compartilhamento, busca, privacidade, continuidade e fricção | Contrato e dez testes focais aprovados localmente; prova renderizada bloqueada pela falta do Chromium; adoção em todas as rotas ainda pendente |
+| **49-M — Organização política permanente** | Vincula APS, VR Abandonada e aliadas a núcleos, decisões, tarefas, formação, ação institucional, prestação de contas e sucessão | Arquitetura e limites registrados; governança, pessoas e responsabilidades reais exigem validação da organização |
+| **50 — COMUN UNO** | Ensaio da experiência completa, inclusive a relação com estrutura e ação política | Etapa final; depende de jornadas com pessoas, dispositivos e operação reais |
+
+## Produto e estrutura política permanente
+
+O objetivo do COMUN é apoiar uma organização popular que aprenda, escolha prioridades, forme pessoas, atue no território e nas instituições, avalie consequências e transmita capacidade para novas lideranças. A associação e a VR Abandonada são parte da estrutura política do projeto; o COMUN é sua infraestrutura comum e também uma porta pública de conhecimento, participação e prestação de contas. O aplicativo não substitui a organização nem decide sua linha política.
+
+“Máquina política” fica definida como capacidade coletiva organizada e durável: vínculo voluntário, responsabilidade clara, formação prática, decisão rastreável, trabalho público, resultados conferíveis e sucessão. O produto não converte participação em pontuação, não monitora militantes e não usa dados políticos para microsegmentação ou pressão.
+
+## Próxima estrutura do roadmap integral
+
+O fechamento da V1 permanece prioritário e não se confunde com a visão futura. Depois dele, os tijolos 49-A a 49-L podem avançar em paralelo sob o contrato 49-E0: núcleos permanentes; ciclo estratégico; Escola e competências; Fábrica; Reflexo COMUN; continuidade; inteligência cívica; distribuição; páginas de referência e SEO; serviços e controle popular; observatórios; plataforma física/digital. A trilha 49-M integra essas capacidades à organização permanente. O 50 COMUN UNO fecha com coerência integral de jornadas, módulos, canais, estratégia organizativa, acessibilidade, privacidade, compartilhamento, SEO e operação.
+
+O [contrato 49-E0](comun-one-product-contract-49-e0.md) descreve as relações entre os tijolos, a jornada político-organizativa, os limites de privacidade e os critérios de saída. Suas metas de baixa fricção e experiência humana permanecem metas até serem ensaiadas.
+
 ## Posição geral e fila sem amostra humana — 06/10/2026
 
 O produto está no fechamento técnico e operacional da V1, antes do ensaio integrado e do lançamento integral. Quatro domínios estão declarados verdes e seis continuam abertos; isso não representa 40% de conclusão. A visão futura e as entregas candidatas devem ser acompanhadas separadamente do que está integrado em produção.
