@@ -19,7 +19,8 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   // R5 adds one publisher-only collective-entity projection desk.
   // The operational chain adds member onboarding plus one R4 reviewer desk.
   // Escola R0 adds six learner pages and one civic/editorial review desk.
-  assert.equal(summary.total, 240);
+  // O COMUN Editais R0 acrescenta uma rota administrativa feature-flagged à Onda 4.
+  assert.equal(summary.total, 241);
   // Also includes the public read-only first-action guide from #520.
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
@@ -37,7 +38,7 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   assert.equal(summary.legacy_rendered, 0);
   assert.equal(summary.p0_p1, 0);
   assert.equal(summary.admin_wave3, 86);
-  assert.equal(summary.admin_wave4, 12);
+  assert.equal(summary.admin_wave4, 13);
   assert.equal(summary.unknown_routes, 0);
   assert.equal(summary.structural_incompatibilities, 0);
   assert.equal(summary.generic_admin_app_bars, 0);
@@ -61,8 +62,9 @@ test("admin civic and editorial routes inherit navigation and table contracts", 
 test("admin systemic routes use the canonical level-zero platform contract", async () => {
   const { routes } = await auditComunSurfaces({ write: false });
   const wave4 = routes.filter((route) => route.wave === 4);
-  assert.equal(wave4.length, 12);
+  assert.equal(wave4.length, 13);
   assert.ok(wave4.every((route) => route.shell_mode === "admin"));
+  assert.ok(wave4.some((route) => route.route === "/comun/admin/organizacao/editais"));
   assert.ok(wave4.every((route) => route.platform_domain));
   assert.ok(wave4.every((route) => route.platform_access));
   assert.ok(wave4.every((route) => route.platform_shell));
