@@ -11,11 +11,12 @@ import {
 } from "./operational-surfaces";
 
 describe("contrato canônico da administração sistêmica", () => {
-  it("classifica as doze rotas da Onda 4 sem combinação de shell incoerente", () => {
-    expect(COMUN_ADMIN_PLATFORM_ROUTES).toHaveLength(12);
+  it("classifica as treze rotas da Onda 4 sem combinação de shell incoerente", () => {
+    expect(COMUN_ADMIN_PLATFORM_ROUTES).toHaveLength(13);
     expect(
       new Set(COMUN_ADMIN_PLATFORM_ROUTES.map(({ route }) => route)).size,
-    ).toBe(12);
+    ).toBe(13);
+    expect(resolveComunAdminPlatformRoute("/comun/admin/organizacao/editais")?.access).toBe("admin_session");
     for (const route of COMUN_ADMIN_PLATFORM_ROUTES) {
       expect(route.memberBottomNavigation).toBe(false);
       expect(route.preservesAppV2Flag).toBe(true);
