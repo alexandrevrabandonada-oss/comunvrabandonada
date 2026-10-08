@@ -1,0 +1,45 @@
+name: COMUN Escola release review package
+on:
+  pull_request:
+    paths:
+      - "scripts/learning/release-review*"
+      - "supabase/releases/*comun-learning*"
+      - "supabase/migrations/*comun_learning*"
+      - "lib/learning/catalog.json"
+      - ".github/workflows/comun-learning-release-review.yml"
+permissions:
+  contents: read
+jobs:
+  package-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: escola_release_review_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: release-review-disposable-only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/learning/release-review.node-test.mjs
+      - run: node scripts/learning/release-review.mjs
+      - run: node scripts/learning/release-review.postgres-proof.mjs
+        env:
+          COMUN_LEARNING_REVIEW_TEST_URL: postgres://postgres:release-review-disposable-only@127.0.0.1:5432/escola_release_review_test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: escola-release-review-${{ github.sha }}
+          path: .ci-artifacts/learning-release-review/package.json
+          if-no-files-found: error
