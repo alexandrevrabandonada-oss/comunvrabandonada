@@ -23,7 +23,8 @@ test("contrato de coerência cobre rotas, pilotos, tokens e roadmap", async () =
   // Escola R0 adds six learner pages (Hoje, Trilhas, Missão, Prática,
   // Materiais, Progresso) and one private admin desk. All seven are required
   // by the audit even while COMUN_LEARNING_R0_ENABLED remains disabled.
-  assert.equal(report.routeInventory.totalPages, 240);
+  // Inclui a bancada administrativa R0 de Editais, protegida por feature flag.
+  assert.equal(report.routeInventory.totalPages, 241);
   // Also includes the public read-only first-action guide from #520.
   assert.equal(report.routeInventory.missingRequiredRoutes, 0);
   assert.equal(report.routeInventory.knownCompatibleRedirects, 1);
