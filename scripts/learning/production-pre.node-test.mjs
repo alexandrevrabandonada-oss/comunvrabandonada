@@ -246,3 +246,24 @@ test("ledger comparison does not infer absence from table/history state", () => 
     "PRESENT_ACCEPTED",
   );
 });
+test("disposable receives only this run artifact, never Production credentials", () => {
+  const source = readFileSync(
+    ".github/workflows/comun-learning-production-pre.yml",
+    "utf8",
+  );
+  const job = source.split("  production-like-disposable:")[1];
+  assert.ok(job);
+  assert.doesNotMatch(
+    job,
+    /secrets\.|SUPABASE_DB_URL|SUPABASE_ACCESS_TOKEN|SUPABASE_SERVICE_ROLE_KEY/,
+  );
+  assert.match(job, /needs: read-only-capture/);
+  assert.match(job, /escola-production-pre-\$\{\{ github.sha \}\}/);
+  const fixture = readFileSync(
+    "scripts/learning/production-like-fixture.sh",
+    "utf8",
+  );
+  assert.match(fixture, /postgres@sha256:[a-f0-9]{64}/);
+  assert.match(fixture, /owned_exec\(\) \{ owned; docker exec/);
+  assert.match(fixture, /127\.0\.0\.1:55432:5432/);
+});

@@ -131,7 +131,9 @@ export function requireAtomicConnection(db, env = process.env) {
   assert.ok(
     target?.host === "127.0.0.1" &&
       Number(target.port) === 55432 &&
-      target.database === "postgres" &&
+      (target.database === "postgres" ||
+        target.database ===
+          `comun_learning_prodlike_${env.COMUN_LEARNING_RUN_ID.replace("-", "_")}`) &&
       target.user === "postgres",
     "LEARNING_ATOMIC_LOCAL_DESTINATION_REQUIRED",
   );

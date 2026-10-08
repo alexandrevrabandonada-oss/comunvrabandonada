@@ -109,3 +109,25 @@ test("remote credentials are rejected even with loopback identity", () => {
     ),
   );
 });
+test("production-like database is bound to this exact disposable run", () => {
+  requireAtomicConnection(
+    {
+      connectionParameters: {
+        ...local,
+        database: "comun_learning_prodlike_123_1",
+      },
+    },
+    confirmation,
+  );
+  assert.throws(() =>
+    requireAtomicConnection(
+      {
+        connectionParameters: {
+          ...local,
+          database: "comun_learning_prodlike_124_1",
+        },
+      },
+      confirmation,
+    ),
+  );
+});
