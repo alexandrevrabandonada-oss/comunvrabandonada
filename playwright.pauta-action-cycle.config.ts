@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests",
-  testMatch: "pauta-action-cycle.spec.ts",
+  testMatch: ["pauta-action-cycle.spec.ts", "public-sharing.spec.ts"],
   fullyParallel: false,
   workers: 1,
   use: {
@@ -18,6 +18,7 @@ export default defineConfig({
       VERCEL_ENV: "preview",
       COMUN_COLLECTIVE_ACTIONS_PREVIEW_FIXTURES: "enabled",
       COMUN_LEARNING_R0_ENABLED: "disabled",
+      COMUN_NEXT_DIST_DIR: ".next-pauta-action-cycle",
     },
   },
   projects: [

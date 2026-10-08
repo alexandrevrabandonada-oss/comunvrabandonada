@@ -267,22 +267,35 @@ export function ComunPwaRuntime({
   );
 }
 
-export function ComunShareButton({
+type ShareButtonProps = { title: string; className?: string };
+export function ComunShareButton(props: ShareButtonProps) {
+  const pathname = usePathname();
+  return <ComunShareControl key={pathname} pathname={pathname} {...props} />;
+}
+function ComunShareControl({
   title,
+  pathname,
   className = "min-h-11 border-2 border-comun-yellow px-3 text-xs font-black uppercase text-comun-yellow",
-}: {
-  title: string;
-  className?: string;
-}) {
-  const [shareStatus, setShareStatus] = useState<"" | "copied" | "failed">("");
-  const label =
-    shareStatus === "copied"
-      ? "Link copiado"
-      : shareStatus === "failed"
-        ? "Falha no link"
-        : "Compartilhar";
+}: ShareButtonProps & { pathname: string }) {
+  const [status, setStatus] = useState("");
+  const [busy, setBusy] = useState(false);
+  const pending = useRef(false);
+  const [manualUrl, setManualUrl] = useState<string | null>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (manualUrl) {
+      dialog.current?.showModal();
+      input.current?.focus();
+      input.current?.select();
+    }
+  }, [manualUrl]);
   const share = async () => {
-    setShareStatus("");
+    if (pending.current) return;
+    pending.current = true;
+    setBusy(true);
+    setStatus("");
     const payload = buildComunPageSharePayload({
       fallbackTitle: title,
       pageTitle:
@@ -295,46 +308,99 @@ export function ComunShareButton({
         'link[rel="canonical"]',
       )?.href,
       currentHref: window.location.href,
+      projectionStatus:
+        document.querySelector<HTMLMetaElement>('meta[name="comun:share"]')
+          ?.content ?? "unproven",
     });
-    const result = await shareOrCopy(payload, {
-      nativeShare:
-        typeof navigator.share === "function"
-          ? (data) => navigator.share(data)
-          : null,
-      copy: async (url) => {
-        if (!navigator.clipboard?.writeText)
-          throw new Error("Clipboard API unavailable");
-        await navigator.clipboard.writeText(url);
-      },
-    });
-
-    if (result === "copied" || result === "failed") setShareStatus(result);
+    try {
+      const result = await shareOrCopy(payload, {
+        nativeShare:
+          typeof navigator.share === "function"
+            ? (data) => navigator.share(data)
+            : null,
+        copy: async (url) => {
+          if (!navigator.clipboard?.writeText)
+            throw new Error("Clipboard API unavailable");
+          await navigator.clipboard.writeText(url);
+        },
+      });
+      // Navigation while the OS sheet was open must not update another page.
+      if (window.location.pathname !== pathname) return;
+      if (result === "failed") setManualUrl(payload.url);
+      setStatus(
+        result === "copied"
+          ? "Link copiado."
+          : result === "cancelled"
+            ? "Compartilhamento cancelado. A página continua aberta."
+            : result === "shared"
+              ? "Compartilhamento concluído no dispositivo."
+              : "Cópia automática indisponível. Copie o link manualmente.",
+      );
+    } finally {
+      pending.current = false;
+      setBusy(false);
+    }
   };
   return (
-    <button
-      type="button"
-      onClick={share}
-      aria-label={
-        shareStatus
-          ? `${label}. Compartilhar esta página`
-          : "Compartilhar esta página"
-      }
-      className={className}
-    >
-      {label}
+    <>
+      <button
+        ref={button}
+        type="button"
+        onClick={share}
+        disabled={busy}
+        aria-busy={busy}
+        aria-label="Compartilhar esta página"
+        className={className}
+      >
+        {busy
+          ? "Abrindo opções…"
+          : status === "Link copiado."
+            ? "Link copiado"
+            : "Compartilhar"}
+      </button>
       <span
         className="sr-only"
         role="status"
         aria-live="polite"
         aria-atomic="true"
       >
-        {shareStatus === "failed"
-          ? "Não foi possível compartilhar o link."
-          : shareStatus === "copied"
-            ? "Link copiado."
-            : ""}
+        {status}
       </span>
-    </button>
+      {manualUrl ? (
+        <dialog
+          ref={dialog}
+          aria-label="Copiar link manualmente"
+          className="m-auto w-[min(92vw,32rem)] border-2 border-comun-yellow bg-comun-black p-5 text-comun-paper backdrop:bg-black/70"
+          onClose={() => {
+            setManualUrl(null);
+            button.current?.focus();
+          }}
+        >
+          <h2 className="text-xl font-black">Copiar link manualmente</h2>
+          <p className="mt-3">
+            A cópia automática não está disponível neste navegador. Selecione e
+            copie o link abaixo para compartilhar onde preferir.
+          </p>
+          <label className="mt-4 block">
+            Link público
+            <input
+              ref={input}
+              readOnly
+              value={manualUrl}
+              className="mt-2 block min-h-11 w-full border border-comun-yellow bg-comun-black p-2 text-comun-paper"
+              onFocus={(event) => event.currentTarget.select()}
+            />
+          </label>
+          <button
+            type="button"
+            className="mt-4 min-h-11 border-2 border-comun-yellow px-4 font-bold"
+            onClick={() => dialog.current?.close()}
+          >
+            Voltar à página
+          </button>
+        </dialog>
+      ) : null}
+    </>
   );
 }
 

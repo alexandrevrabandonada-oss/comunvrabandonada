@@ -1,3 +1,7 @@
+import {
+  getPublicPautaSpaceBySlug,
+  pautaMetadata,
+} from "@/lib/comun-public-sharing";
 import { ComunPracticeGuidance } from "@/components/comun-practice-guidance";
 import Link from "next/link";
 import { publicPautaStateLabel } from "@/lib/comun-public-labels";
@@ -6,7 +10,6 @@ import { submitPautaContribution } from "@/app/actions";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
 import { getCommunity, getIssue } from "@/lib/comun-data";
 import {
-  getPublicPautaSpaceBySlug,
   listApprovedPautaContributions,
   listPublicPautaEvidence,
   listPublicPautaTasks,
@@ -1252,4 +1255,12 @@ function EmptyState({ text }: { text: string }) {
       {text}
     </p>
   );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  return pautaMetadata((await params).slug);
 }

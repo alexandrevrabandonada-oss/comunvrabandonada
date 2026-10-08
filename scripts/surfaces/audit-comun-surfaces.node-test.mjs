@@ -20,7 +20,8 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   // The operational chain adds member onboarding plus one R4 reviewer desk.
   // Escola R0 adds six learner pages and one civic/editorial review desk.
   // Public catalog excerpts add one institutional consultation route.
-  assert.equal(summary.total, 241);
+  // Includes the public material and stable, public-only result detail.
+  assert.equal(summary.total, 242);
   // Also includes the public read-only first-action guide from #520.
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [

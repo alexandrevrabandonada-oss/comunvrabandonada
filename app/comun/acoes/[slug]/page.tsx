@@ -1,3 +1,7 @@
+import {
+  getPublicCollectiveAction,
+  actionMetadata,
+} from "@/lib/comun-public-sharing";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ComunShell, Section } from "@/components/comun-shell";
@@ -6,7 +10,6 @@ import {
   releaseCollectiveActionTask,
   updateCollectiveActionParticipation,
 } from "@/app/comun/acoes/actions";
-import { getPublicCollectiveAction } from "@/lib/collective-actions";
 import {
   collectiveActionStatusLabels,
   collectiveActionTypeLabels,
@@ -647,4 +650,12 @@ function Cell({ label, value }: { label: string; value: string }) {
       <p className="mt-1">{value}</p>
     </div>
   );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  return actionMetadata((await params).slug);
 }

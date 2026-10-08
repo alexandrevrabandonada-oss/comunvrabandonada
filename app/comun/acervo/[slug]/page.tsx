@@ -1,8 +1,12 @@
+import {
+  getPublicArchiveItem,
+  archiveMetadata,
+} from "@/lib/comun-public-sharing";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, permanentRedirect } from "next/navigation";
 import { ComunShell, Section } from "@/components/comun-shell";
-import { archiveDate, getPublicArchiveItem } from "@/lib/archive";
+import { archiveDate } from "@/lib/archive";
 import { MemorySuggestionForm } from "./memory-suggestion-form";
 import { getPublicArchiveEntityRelations } from "@/lib/central-hub";
 import { ComunContextTrail } from "@/components/comun-context-trail";
@@ -323,4 +327,12 @@ function Row({
       <dd className="mt-1 text-comun-paper/80">{value}</dd>
     </div>
   ) : null;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  return archiveMetadata((await params).slug);
 }

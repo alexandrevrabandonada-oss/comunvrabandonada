@@ -1,3 +1,7 @@
+import {
+  getPublicPracticeMaterial,
+  materialMetadata,
+} from "@/lib/comun-public-sharing";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -9,24 +13,14 @@ import {
   resolveParticipationGuidanceStage,
 } from "@/lib/comun-practice-guidance";
 import { isLearningEnabled, missionHref } from "@/lib/learning/core";
-import {
-  getPublicPracticeMaterial,
-  materialsForGuidance,
-} from "@/lib/learning/public-practice-materials";
+import { materialsForGuidance } from "@/lib/learning/public-practice-materials";
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const material = getPublicPracticeMaterial((await params).slug);
-  return {
-    title: material
-      ? `${material.title} | COMUN`
-      : "Material de consulta | COMUN",
-    description: material?.concept,
-    robots: { index: false, follow: true },
-  };
+  return materialMetadata((await params).slug);
 }
 
 export default async function PracticeMaterialPage({
