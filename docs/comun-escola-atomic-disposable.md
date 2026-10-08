@@ -1,5 +1,14 @@
 # Escola — ensaio atômico em schema canônico descartável
 
+Atualização 08/10/2026: #532 acrescenta captura read-only e ensaio equivalente
+ao PRE Production R5, separados em jobs sem transferência de credenciais.
+A run 37857277943 passou: PRE público/privado equivalente, rollback em três
+etapas, aplicação única, ledger atômico, POST e replay recusado. Contexto do
+leitor/search_path também é reproduzido. O ensaio canônico original passou em 37857277963. Evidências, hashes e limitações estão em
+[revisão atual](../reports/current/comun-escola-production-pre-and-atomic-review.md).
+Não houve promoção; manifest/migration são imutáveis e backup do provedor não
+está provado. O texto abaixo preserva o checkpoint histórico.
+
 Esta entrega prepara e ensaia um instalador **somente descartável**. Não inclui
 comando de promoção remota, não altera manifesto ou migration, e não autoriza
 escrita de schema Production. Base: #525 integrado em `092a4afa`.

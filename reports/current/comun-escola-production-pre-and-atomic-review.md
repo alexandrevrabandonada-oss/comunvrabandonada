@@ -1,5 +1,42 @@
 # Escola R0 — PRE atual e equivalência descartável
 
+## Resultado real do candidato funcional
+
+`COMUN_LEARNING_PRODUCTION_LIKE_ATOMIC_DISPOSABLE_GREEN`, run
+[37857277943](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/37857277943),
+candidato `05c6216d4f97983649dd11a2f4665ca34942974f`.
+O CI executou merge sintético `c2d17db232ab8833cd3a618c0215271ee0e11bd0`;
+sua tree `9754dd5fe11768cadf9e051b961b8f53e60b10aa` é idêntica à do candidato,
+conferida por `git rev-parse` nos dois objetos.
+
+Captura final 11584502750, JSON SHA-256
+`4e248ba07d6c739a0d53dc322479ea6c7aabc5d9e08b27d581932117077ce97b`.
+Prova 11585006121, JSON SHA-256
+`b95e2ca460f70ff92484f18c44afb384a1920b6dbcea0de8f9877c64412cdccd`.
+Os PRE fingerprints permaneceram iguais aos registrados abaixo; ledgers
+aceitos, ausência da Escola, zero findings e catálogo privado estável.
+
+PASS real: equivalência PRE, falhas após schema/history/ledger com PRE intacto,
+aplicação única e registro atômico, POST, recusa de replay, catálogo privado
+inalterado e zero findings. POST canônico derivado
+`d32721d3fb6df9203ff8aa6af00cddab64cf9bb948e47e9e4f799f328b0625ad`;
+runner `1e78dfc1986015c57615f24766caf099df9459d33644971d3b1a08f53e45af66`.
+Seed real: 28 unidades, quatro recursos; enrollments/progress/practices zero.
+O ensaio de schema local completo também passou na run 37857277963.
+Auth/API/RLS da run 37857277950 é uma prova separada; consultar seu resultado,
+sem converter pendência em PASS.
+
+O fingerprint depende também do contexto de catálogo. Reader, session user e
+search_path Production foram capturados; o laboratório reproduz reader e
+search_path exatos. Concessões de execução ficam somente na transação local;
+SET LOCAL ROLE preserva a identidade de leitura após COMMIT/ROLLBACK.
+
+Pacote sanitizado: [comun-escola-production-like-derived.json](comun-escola-production-like-derived.json).
+Ele referencia evidências e hashes; não é manifest executável nem autorização
+de escrita. Production segue PRE, Escola/ledger ausentes, zero schema/business
+writes nesta rodada. Backup do provedor e plano pós-COMMIT continuam bloqueios
+separados, assim como a autorização explícita de futura promoção.
+
 ## Escopo de 08/10/2026
 
 PR #532, base main `4bf839d61a6eb77965c1efa0a4ebbbe307cfdd21`.
