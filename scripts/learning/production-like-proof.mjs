@@ -58,6 +58,10 @@ const privateSnapshot = async () =>
   (await db.query(privateCatalogSql)).rows[0].value;
 try {
   await db.connect();
+  // information_schema visibility depends on current_user. Match the captured
+  // postgres reader; administrator remains only the guarded transaction owner.
+  owned();
+  await db.query("set role postgres");
   const r5 = JSON.parse(
     await readFile(
       "supabase/release-bundles/20260927-comun-49-2-r5-public-projection-gate.json",

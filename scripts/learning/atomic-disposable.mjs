@@ -166,7 +166,7 @@ export async function installAtomicDisposable(db, expectedPre, failAt = null) {
     const privilegeWindow = db.connectionParameters.user === "supabase_admin";
     if (privilegeWindow) {
       await db.query(
-        "grant create on schema public to postgres; grant references on auth.users to postgres; grant insert on supabase_migrations.schema_migrations to postgres; set local role postgres",
+        "reset role; grant create on schema public to postgres; grant references on auth.users to postgres; grant insert on supabase_migrations.schema_migrations to postgres; set local role postgres",
       );
     }
     await db.query(sql);
