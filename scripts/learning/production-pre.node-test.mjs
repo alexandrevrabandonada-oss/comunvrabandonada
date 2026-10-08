@@ -33,6 +33,7 @@ const input = () => {
     },
     scope: {
       readOnly: "on",
+      currentUser: "postgres",
       database: "postgres",
       serverVersion: "17.6.1",
       p4ProjectionPresent: true,
@@ -158,6 +159,7 @@ test("wrong database or read/write transaction fails closed", () => {
   for (const change of [
     (i) => (i.scope.readOnly = "off"),
     (i) => (i.scope.database = "other"),
+    (i) => (i.scope.currentUser = "supabase_admin"),
   ]) {
     const i = input();
     change(i);

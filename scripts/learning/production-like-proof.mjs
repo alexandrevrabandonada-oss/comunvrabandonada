@@ -62,6 +62,10 @@ try {
   // postgres reader; administrator remains only the guarded transaction owner.
   owned();
   await db.query("set role postgres");
+  assert.equal(
+    (await db.query("select current_user as role")).rows[0].role,
+    capture.scope.currentUser,
+  );
   const r5 = JSON.parse(
     await readFile(
       "supabase/release-bundles/20260927-comun-49-2-r5-public-projection-gate.json",
@@ -144,6 +148,18 @@ try {
   owned();
   sameSnapshot(await captureAtomicSnapshot(db), post);
   assert.deepEqual(await privateSnapshot(), capture.privateCatalog);
+  const counts = (
+    await db.query(
+      "select (select count(*)::int from public.comun_learning_units) units,(select count(*)::int from public.comun_learning_resources) resources,(select count(*)::int from public.comun_learning_enrollments) enrollments,(select count(*)::int from public.comun_learning_progress) progress,(select count(*)::int from public.comun_learning_practice_links) practices",
+    )
+  ).rows[0];
+  assert.deepEqual(counts, {
+    units: 28,
+    resources: 4,
+    enrollments: 0,
+    progress: 0,
+    practices: 0,
+  });
   const proof = {
     status: "COMUN_LEARNING_PRODUCTION_LIKE_ATOMIC_DISPOSABLE_GREEN",
     sourceSha: capture.sourceSha,
@@ -176,6 +192,9 @@ try {
     preLedgerSha256: digest(pre.ledger),
     postLedgerSha256: digest(post.ledger),
     privateCatalogUnchanged: true,
+    catalogReader: capture.scope.currentUser,
+    syntheticCounts: counts,
+    blockingFindings: post.compact.security.blockingFindings.length,
     rollbackStages: ["schema", "history", "ledger"],
     replayRefused: true,
     remotePromotionAllowed: false,
