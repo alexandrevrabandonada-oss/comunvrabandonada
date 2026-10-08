@@ -1,11 +1,40 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
+import {
+  getSidewalkMiniapp,
+  getSidewalkMiniappRecord,
+} from "../../lib/sidewalk-miniapp";
+import { getPublicSidewalkMemoryDetail } from "../../lib/sidewalk-pauta";
 const screenshot = (page: any, name: string, project: string) =>
   page.screenshot({
     path: `test-results/evidence/sprint-38-${name}-${project}.png`,
     fullPage: true,
   });
+
+test.beforeAll(async () => {
+  const fixture = JSON.parse(
+    await readFile(".comun-sidewalk-pilot-slug", "utf8"),
+  );
+  const record = await getSidewalkMiniappRecord(fixture.recordSlug);
+  expect(
+    record?.record.name,
+    "public fixture must be readable before UI checks",
+  ).toBe("Trecho de calçada quebrada — E2E");
+  const memory = await getPublicSidewalkMemoryDetail(
+    fixture.slug,
+    fixture.memorySlug,
+  );
+  expect(
+    memory?.title,
+    "public memory fixture must be readable before UI checks",
+  ).toBe("O que aprendemos sobre as calçadas neste ciclo de teste?");
+  const miniapp = await getSidewalkMiniapp();
+  expect(
+    miniapp?.pauta.slug,
+    "canonical miniapp context must be available",
+  ).toBe("calcadas-em-circulacao");
+});
 
 test("jornada integrada não prende a pessoa no miniapp", async ({
   page,
@@ -67,7 +96,10 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
     page.getByRole("button", { name: "Lista", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
   await screenshot(page, "lista", testInfo.project.name);
-  await page.goto(`/comun/calcadas/registros/${fixture.recordSlug}`);
+  const recordResponse = await page.goto(
+    `/comun/calcadas/registros/${fixture.recordSlug}`,
+  );
+  expect(recordResponse?.status(), "public record HTTP response").toBe(200);
   await expect(
     page.getByRole("heading", { name: "Trecho de calçada quebrada — E2E" }),
   ).toBeVisible();
@@ -98,9 +130,10 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
     page.getByRole("heading", { name: "Resultados e memória", exact: true }),
   ).toBeVisible();
   await screenshot(page, "resultado", testInfo.project.name);
-  await page.goto(
+  const memoryResponse = await page.goto(
     `/comun/pautas/${fixture.slug}/memoria/${fixture.memorySlug}`,
   );
+  expect(memoryResponse?.status(), "public memory HTTP response").toBe(200);
   await expect(
     page.getByRole("heading", {
       name: "O que aprendemos sobre as calçadas neste ciclo de teste?",
@@ -137,7 +170,10 @@ test("@a11y deep links preservam contexto sem bloqueios", async ({
     "/comun/calcadas/resultados",
     `/comun/pautas/${fixture.slug}/memoria/${fixture.memorySlug}`,
   ]) {
-    await page.goto(route);
+    const response = await page.goto(route);
+    expect(response?.status(), `public deep link HTTP response: ${route}`).toBe(
+      200,
+    );
     if ((testInfo.project.use.viewport?.width ?? 1366) < 1024) {
       await expect(
         page.locator('[data-comun-app-bar="contextual-v2"]'),

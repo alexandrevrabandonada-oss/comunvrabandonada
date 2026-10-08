@@ -1,3 +1,32 @@
+## Reconciliação com isolamento do miniapp — 08/10/2026
+
+Base main `1e6602c3cf9c87e93365f088e04148e81f574531` incorporada por merge
+normal sobre o candidato `922e5d82`. #518 integrado, sem dependência do #516:
+servidor/porta/build próprios e recusa de reutilização. Runtime da memória,
+leitor público e asserções visuais permanecem. O diagnóstico acrescenta leitura
+real da memória fixture e HTTP 200, sem aceitar ausência como sucesso.
+
+O candidato anterior terminou com 39 success, 87 skipped e sete failures,
+incluindo os dez casos miniapp na pr-lane Quality `113449356818`. A causa exata
+não foi reproduzida; não chamar de flake nem atribuir à Escola sem prova.
+SQL/navegador locais NOT_RUN; CI focal PWA → miniapp precisa comprovar o novo
+SHA. PASS anterior não é transferido. Os seis gates remotos da Escola e a
+capacidade de recuperação do provedor continuam abertos.
+
+Quality pós-merge #528 `113492802723` exigiu o SHA `f95299fa` e falhou após
+30 tentativas com `COMUN_QUALITY_EXPECTED_SHA_NOT_DEPLOYED`. Vercel success
+não certificou esse endpoint. Sem migration, flags, indexação ou promoção;
+#523 permanece draft. As seções seguintes são checkpoints históricos.
+
+Validação local desta reconciliação: 56 testes Node passaram, incluindo três
+contratos do runner (URL/porta/build isolados, argumentos e propagação de
+falha), 22 de seleção Quality e 31 da preparação da Escola. TypeScript,
+ESLint focal, Prettier e diff-check verdes. Playwright descobriu os dez casos
+em cinco viewports; descoberta não é execução. YAML e ordem PWA → miniapp
+conferidos; app/components/lib/supabase idênticos ao pai `922e5d82`.
+
+---
+
 ## Reconciliação com a base integrada — 08/10/2026
 
 Base incorporada por merge normal: `6a3c39a3f30df166e4e581152ccef104a28a7536`

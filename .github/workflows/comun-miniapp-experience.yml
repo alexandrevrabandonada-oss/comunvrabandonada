@@ -1,0 +1,66 @@
+name: COMUN Miniapp experience
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/comun/calcadas/**"
+      - "components/sidewalk-miniapp-shell.tsx"
+      - "lib/sidewalk-miniapp*"
+      - "tests/miniapp-experience/**"
+      - "tests/sidewalk-pilot/**"
+      - "tests/comun-integral-experience/global-*.mjs"
+      - "playwright.miniapp-experience.config.ts"
+      - "scripts/quality/run-miniapp-experience.mjs"
+      - "scripts/quality/run-miniapp-experience.node-test.mjs"
+      - ".github/workflows/comun-miniapp-experience.yml"
+  push:
+    branches: [main]
+    paths:
+      - "app/comun/calcadas/**"
+      - "lib/sidewalk-miniapp*"
+      - "tests/miniapp-experience/**"
+      - "playwright.miniapp-experience.config.ts"
+      - "scripts/quality/run-miniapp-experience.mjs"
+      - "scripts/quality/run-miniapp-experience.node-test.mjs"
+      - ".github/workflows/comun-miniapp-experience.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: miniapp-experience-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  miniapp:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      COMUN_TERRITORY_PROFILE_ENABLED: disabled
+      COMUN_TERRITORY_CATALOG_LOCAL: disabled
+      COMMUNITY_REGISTRATION_MODE: open
+      COMUN_OBSERVATORIES_FOUNDATION_ENABLED: enabled
+      COMUN_OBSERVATORY_SIDEWALK_ADAPTER_ENABLED: disabled
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.19.0"
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.111.0
+      - name: Isolated runner contract
+        run: node --test scripts/quality/run-miniapp-experience.node-test.mjs
+      - run: npm ci --ignore-scripts
+      - uses: ./.github/actions/setup-playwright-browser
+      - run: supabase start
+      - run: supabase db reset --local --yes
+      - name: Run preceding PWA suite with shared default build directory
+        run: npm run test:e2e:comun-pwa-experience -- --project=360x800
+      - name: Public journey and accessibility in five viewports
+        run: npm run test:e2e:comun-miniapp-experience
+      - name: Cleanup disposable services
+        if: always()
+        run: supabase stop --no-backup

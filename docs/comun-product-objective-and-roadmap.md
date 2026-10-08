@@ -4,6 +4,81 @@ Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99
 
 ## Atualização transversal do produto — 06/10/2026
 
+### Isolamento integrado e nova reconciliação — 08/10/2026
+
+Base incorporada: `1e6602c3cf9c87e93365f088e04148e81f574531`.
+#528 e #529 estão integrados; #518 entrou por merge normal, com 41 checks
+success, 114 skipped, zero falhas ou pendências e Vercel success no candidato.
+Entrega servidor/porta/build próprios para o miniapp, sem reutilização de
+servidor; não muda página, leitor público, permissões ou schema.
+
+O candidato anterior #523 `922e5d82` concluiu com 39 success, 87 skipped e
+7 failure. Seis gates remotos continuam dependentes da Escola; Quality
+`113449356818` também falhou em dez casos do miniapp, na memória da jornada.
+A causa exata não foi reproduzida. O isolamento já tinha prova positiva no
+#518, mas ela não certifica esta nova reconciliação. O teste passa a verificar
+também o leitor real da memória fixture e HTTP 200 antes da expectativa visual.
+
+Quality pós-merge #528 `113492802723` falhou no preflight:
+`COMUN_QUALITY_EXPECTED_SHA_NOT_DEPLOYED` após 30 tentativas. Seu classificador
+exigiu corretamente o SHA exato `f95299fa`; a certificação Production continua
+bloqueada, sem dispensar preflight ou reaproveitar Vercel success como prova.
+
+Este checkpoint incorpora main por merge normal, mantendo runtime, migration,
+manifesto e flags do #523. O novo SHA precisa de prova focal PWA → miniapp,
+Preview exato e seus próprios checks. SQL/navegador locais NOT_RUN: Docker
+indisponível. Nenhum skipped é PASS. O #523 permanece draft; não há promoção
+da Escola, abertura de indexação ou certificação da V1.
+
+### Checkpoint integrado e fila de revisão — 08/10/2026
+
+Consulta deste checkpoint: `main` em
+`eb317e76f9d259c4436e4a791e6215d153ab7c99`. Código integrado não significa
+schema promovido, flag ativada ou jornada pública certificada. A V1 permanece
+incompleta; os checkpoints seguintes desta página são históricos.
+
+| Tijolo                                                                                                         | Evidência confirmada                                                                | Estado e limite                                                                              |
+| -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| [#522 — Quality read-only](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/522)            | Merge `2d21df3d`; inspeção read-only verde no pós-merge                             | Integrado; a run falhou depois no seletor antigo de busca                                    |
+| [#526 — Revisão da Escola](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/526)            | Merge `6a3c39a3`; revisão imutável e prova PostgreSQL descartável                   | Integrado; não autoriza promoção remota                                                      |
+| [#525 — Seletor visível de busca](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/525)     | Merge `092a4afa`; 10 checks do candidato verdes, 35 skipped                         | Integrado; Quality pós-merge falhou por SHA sem build                                        |
+| [#527 — Ensaio atômico da Escola](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/527)     | Merge `eb317e76`; 10 checks verdes, 75 skipped; SQL canônico descartável verde      | Integrado; pós-merge 4 verdes/73 skipped e Vercel success; não prova recuperação do provedor |
+| [#528 — Escopo pós-merge do Quality](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/528)  | Candidato `986b3851`; 46 testes locais e Preview/COST-02 verdes                     | Draft; laboratório completo de Quality ainda em execução nesta consulta                      |
+| [#523 — Coerência e compartilhamento](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/523) | Candidato reconciliado `922e5d82`; runtime preservado frente ao checkpoint anterior | Draft; gates remotos dependem da Escola; não transferir PASS entre SHAs                      |
+
+Skipped não é PASS. O #525 alterou somente testes, delta ignorado pelo
+classificador de build em Production. Quality job `113451932296` falhou após
+30 tentativas com `COMUN_QUALITY_EXPECTED_SHA_NOT_DEPLOYED`. A falha permanece
+registrada. O #528 reutiliza a classificação do build para declarar somente
+deltas explicitamente sem runtime como não aplicáveis; mudanças de runtime,
+schema, dependências, arquivos desconhecidos e diffs indisponíveis continuam
+exigindo deploy do SHA exato. Não há certificação de Production por exclusão.
+
+O [ensaio atômico canônico descartável da Escola](comun-escola-atomic-disposable.md)
+comprovou rollback após schema, histórico e ledger, instalação única com POST e
+ledger exatos, outros domínios preservados no escopo canônico v2 e replay
+recusado. Não cobre integralmente schemas privados nem recuperação após COMMIT
+no provedor. O manifesto permanece `remotePromotionAllowed=false` e a
+preparação mantém `promotionReady=false`.
+
+Fila de avanço, em ordem:
+
+1. Concluir os checks do #528; integrar por merge normal somente se verdes;
+   verificar o pós-merge e o SHA servido quando o delta exige build.
+2. Identificar e allowlistar o ambiente canônico da Escola; capturar baseline
+   e ledger em read-only, conferir PRE/POST e capacidade real de recuperação.
+   As provas descartáveis já integradas não substituem essas evidências.
+3. Revisar um pacote concreto de schema antes da autorização específica de
+   promoção; o caminho automático de Quality permanece sem escrita de schema.
+4. Reconciliar #523 com a base integrada, revalidar os gates do próprio SHA,
+   integrar o candidato verde e conferir deploy. Sem amostra humana, priorizar
+   coerência, projeção pública dos observatórios, compartilhamento e SEO;
+   convites e dados privados continuam respeitando autorização.
+5. Depois das provas técnicas, ensaiar recebimento/retorno com pessoas e
+   dispositivos reais. Isso continua pendente e não é substituído por CI.
+
+### Sequência de integração — 08/10/2026
+
 ### Base integrada e reconciliação do candidato — 08/10/2026
 
 O #522 está integrado em `2d21df3de4da10851840529a639944ee22141377`.
