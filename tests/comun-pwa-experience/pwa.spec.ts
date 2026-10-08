@@ -1,5 +1,17 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+async function openShareButton(page: Page) {
+  const shareButton = page
+    .getByRole("button", { name: /Compartilhar esta página$/ })
+    .filter({ visible: true });
+  const overflow = page.locator('summary[aria-label="Mais ações"]:visible');
+  // Await the rendered control before deciding between desktop and mobile.
+  await expect(shareButton.or(overflow).first()).toBeVisible();
+  if (!(await shareButton.isVisible())) await overflow.click();
+  await expect(shareButton).toBeVisible();
+  return shareButton;
+}
 
 test("manifest válido, escopo e atalhos seguros", async ({ request }) => {
   const response = await request.get("/manifest.webmanifest");
@@ -47,6 +59,125 @@ test("shell registra service worker e não tem violações Axe graves", async ({
       ["serious", "critical"].includes(item.impact ?? ""),
     ),
   ).toEqual([]);
+});
+
+test("share sheet receives a page link without query strings or fragments", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: async (payload: { title: string; text: string; url: string }) => {
+        (
+          window as Window & { __comunSharePayload?: typeof payload }
+        ).__comunSharePayload = payload;
+      },
+    });
+  });
+  await page.goto("/comun/pautas?utm_source=private#top");
+
+  const shareButton = await openShareButton(page);
+  await shareButton.click();
+
+  const payload = await page.evaluate(
+    () =>
+      (
+        window as Window & {
+          __comunSharePayload?: { title: string; text: string; url: string };
+        }
+      ).__comunSharePayload,
+  );
+  expect(payload?.url).toMatch(/\/comun\/pautas$/);
+  expect(payload?.url).not.toContain("utm_source");
+  expect(payload?.url).not.toContain("#");
+  expect(payload?.title).toBeTruthy();
+});
+
+test("copy fallback gives a clear confirmation when native sharing is unavailable", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: undefined,
+    });
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (value: string) => {
+          (window as Window & { __comunCopiedUrl?: string }).__comunCopiedUrl =
+            value;
+        },
+      },
+    });
+  });
+  await page.goto("/comun?utm_source=private#top");
+
+  const shareButton = await openShareButton(page);
+  await shareButton.click();
+
+  await expect(shareButton).toContainText("Link copiado");
+  await expect
+    .poll(() =>
+      shareButton.evaluate((button) =>
+        [...button.childNodes]
+          .filter((node) => node.nodeType === Node.TEXT_NODE)
+          .map((node) => node.textContent)
+          .join("")
+          .trim(),
+      ),
+    )
+    .toBe("Link copiado");
+  await expect(shareButton.getByRole("status")).toHaveText("Link copiado.");
+  await expect(shareButton).toHaveAccessibleName(
+    "Link copiado. Compartilhar esta página",
+  );
+  const copiedUrl = await page.evaluate(
+    () => (window as Window & { __comunCopiedUrl?: string }).__comunCopiedUrl,
+  );
+  expect(copiedUrl).toBeTruthy();
+  expect(copiedUrl).not.toContain("utm_source");
+  expect(copiedUrl).not.toContain("#");
+  const labelAudit = await new AxeBuilder({ page })
+    .withRules(["label-content-name-mismatch"])
+    .analyze();
+  expect(labelAudit.violations).toEqual([]);
+});
+
+test("failed native sharing and clipboard announce failure without confirming copy", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: async () => {
+        throw new Error("synthetic native sharing failure");
+      },
+    });
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async () => {
+          throw new Error("synthetic clipboard failure");
+        },
+      },
+    });
+  });
+  await page.goto("/comun");
+  const shareButton = await openShareButton(page);
+  await shareButton.click();
+  await expect(shareButton).toContainText("Falha no link");
+  await expect(shareButton.getByRole("status")).toHaveText(
+    "Não foi possível compartilhar o link.",
+  );
+  await expect(shareButton).not.toContainText("Link copiado");
+  await expect(shareButton).toHaveAccessibleName(
+    "Falha no link. Compartilhar esta página",
+  );
+  const labelAudit = await new AxeBuilder({ page })
+    .withRules(["label-content-name-mismatch"])
+    .analyze();
+  expect(labelAudit.violations).toEqual([]);
 });
 
 test("fallback offline explica limites sem simular envio", async ({ page }) => {

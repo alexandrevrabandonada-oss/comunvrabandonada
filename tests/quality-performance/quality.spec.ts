@@ -99,10 +99,17 @@ test("@network busca preserva fallback quando enriquecimento falha", async ({
   await expect(
     page.getByRole("heading", { name: "Buscar no COMUN" }),
   ).toBeVisible();
-  await expect(page.getByTestId("civic-search-status")).toContainText(
-    /resultados iniciais preservados/i,
-  );
-  await expect(page.getByText(/buscando relações/i)).toHaveCount(0);
+  const main = page.getByRole("main");
+  await expect(main).toHaveCount(1);
+  const status = main
+    .getByTestId("civic-search-status")
+    .filter({ visible: true });
+  await expect(status).toHaveCount(1);
+  await expect(status).toHaveAttribute("role", "status");
+  await expect(status).toContainText(/resultados iniciais preservados/i);
+  await expect(
+    main.getByText(/buscando relações/i).filter({ visible: true }),
+  ).toHaveCount(0);
 });
 
 test("@network conexão lenta mantém conteúdo útil e recuperação", async ({

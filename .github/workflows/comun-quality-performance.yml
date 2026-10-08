@@ -9,6 +9,8 @@ on:
       - "lib/**"
       - "public/sw.js"
       - "scripts/quality/**"
+      - "scripts/ci/vercel-build-impact.mjs"
+      - "scripts/ci/vercel-build-impact.node-test.mjs"
       - "scripts/quality/run-isolated-a11y.mjs"
       - "scripts/ci/read-supabase-local-env.mjs"
       - "scripts/ci/read-supabase-local-env.node-test.mjs"
@@ -33,6 +35,8 @@ on:
       - "lib/**"
       - "public/sw.js"
       - "scripts/quality/**"
+      - "scripts/ci/vercel-build-impact.mjs"
+      - "scripts/ci/vercel-build-impact.node-test.mjs"
       - "scripts/quality/run-isolated-a11y.mjs"
       - "scripts/ci/read-supabase-local-env.mjs"
       - "scripts/ci/read-supabase-local-env.node-test.mjs"
@@ -92,6 +96,7 @@ jobs:
       - uses: ./.github/actions/setup-playwright-browser
       - name: Rede degradada em Chromium low-Android isolado
         run: |
+          node --test scripts/quality/classify-post-merge-impact.node-test.mjs
           npm run quality:network:runner-test
           free -h
           df -h . /dev/shm
@@ -410,16 +415,34 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  post-merge:
+  post-merge-impact:
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'full')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      run_remote: ${{ steps.impact.outputs.run_remote }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+      - name: Contrato de classificação conservadora
+        run: node --test scripts/quality/classify-post-merge-impact.node-test.mjs
+      - name: Classificar escopo remoto sem certificar Production
+        id: impact
+        run: node scripts/quality/classify-post-merge-impact.mjs
+
+  post-merge:
+    needs: post-merge-impact
+    if: needs.post-merge-impact.outputs.run_remote == 'true' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'full'))
     runs-on: ubuntu-24.04
     timeout-minutes: 110
     env:
       COMUN_BASE_URL: https://comunsocial.online
       PLAYWRIGHT_SKIP_WEBSERVER: "1"
-      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-      COMUN_QUALITY_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
       COMUN_EXPECTED_SHA: ${{ github.sha }}
       COMUN_QUALITY_NETWORK_SHA: ${{ github.sha }}
       COMUN_QUALITY_ENFORCE_BUDGETS: "1"
@@ -446,8 +469,13 @@ jobs:
           done
           echo "COMUN_QUALITY_EXPECTED_SHA_NOT_DEPLOYED"
           exit 1
-      - name: Transporte focal de observabilidade agregada
-        run: node scripts/quality/apply-comun-quality-remote.mjs
+      - name: Verificação de schema estritamente read-only
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          COMUN_QUALITY_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+          PGOPTIONS: -c default_transaction_read_only=on
+        run: node scripts/quality/verify-comun-quality-remote.mjs
       - name: 2. PWA
         run: npm run quality:pwa
       - name: 3. Acessibilidade sintética

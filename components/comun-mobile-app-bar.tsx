@@ -11,6 +11,7 @@ import {
   parseComunJourneyContext,
   resolveComunJourneyReturn,
 } from "@/lib/comun-journey-context";
+import { ComunShareButton } from "./comun-pwa-runtime";
 
 const labels: Array<[RegExp, string, string, string]> = [
   [
@@ -140,6 +141,12 @@ export function ComunMobileAppBar({
                 {action.label}
               </Link>
             ))}
+            <div className="mt-1 border-t border-comun-black/20 pt-1">
+              <ComunShareButton
+                title={title}
+                className="min-h-11 w-full px-3 py-3 text-left font-bold text-comun-black"
+              />
+            </div>
           </div>
         </details>
       </div>

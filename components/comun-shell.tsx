@@ -9,22 +9,31 @@ export function ComunShell({
   showSyntheticNotice,
   inboxBadge,
   appBar,
+  publicReadOnlyFallback = false,
 }: {
   children: ReactNode;
   showSyntheticNotice?: boolean;
   inboxBadge?: number | string | null;
   appBar?: Omit<ComunMobileAppBarProps, "experienceV2">;
+  // Opt-in only for public server-rendered content, never private panels.
+  publicReadOnlyFallback?: boolean;
 }) {
   return (
     <Suspense
       fallback={
-        <div
-          role="status"
-          aria-live="polite"
-          className="min-h-screen bg-comun-paper px-4 py-6 text-sm font-bold text-comun-black"
-        >
-          Carregando experiência…
-        </div>
+        publicReadOnlyFallback ? (
+          <main id="conteudo" className="min-h-screen">
+            {children}
+          </main>
+        ) : (
+          <div
+            role="status"
+            aria-live="polite"
+            className="min-h-screen bg-comun-paper px-4 py-6 text-sm font-bold text-comun-black"
+          >
+            Carregando experiência…
+          </div>
+        )
       }
     >
       <ComunAppShell

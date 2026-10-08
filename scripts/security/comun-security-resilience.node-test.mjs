@@ -1,4 +1,9 @@
 import assert from "node:assert/strict";
+import {
+  assertSignedUrlExpiry,
+  REHEARSAL_SIGNED_URL_SECONDS,
+  REHEARSAL_EXPIRY_WAIT_MS,
+} from "./assert-signed-url-expiry.mjs";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -204,6 +209,26 @@ test("workflow nunca publica dump, env ou object keys", async () => {
   }
 });
 
+test("secret history gates receive full history in local and remote jobs", async () => {
+  const workflow = await readFile(
+    ".github/workflows/comun-security-resilience.yml",
+    "utf8",
+  );
+  for (const job of ["pr-lane", "remote-full"]) {
+    const block = workflow
+      .split(`\n  ${job}:`)[1]
+      ?.split(/\n  [a-z][a-z-]+:/)[0];
+    assert.ok(block, job);
+    assert.match(
+      block,
+      /uses: actions\/checkout@v4\s+with:[\s\S]*?fetch-depth: 0/,
+      job,
+    );
+    assert.match(block, /npm run security:secrets/, job);
+    assert.doesNotMatch(block, /fetch-depth: [1-9]/, job);
+  }
+});
+
 test("backup recupera o schema privado quando ele existe", async () => {
   const rehearsal = await readFile(
     "scripts/security/rehearse-comun-database-restore.mjs",
@@ -308,4 +333,73 @@ test("roadmap 47.9A e 47.9B permanece separado", async () => {
   const scope = await readFile("docs/comun-v1-launch-scope.md", "utf8");
   assert.match(scope, /47\.9A/);
   assert.match(scope, /47\.9B/);
+});
+
+test("expiry rehearsal observes the same URL active despite simulated two-second latency", async () => {
+  let elapsed = 0;
+  let expiresAt;
+  const requests = [];
+  await assertSignedUrlExpiry(
+    async (seconds) => {
+      assert.equal(seconds, REHEARSAL_SIGNED_URL_SECONDS);
+      expiresAt = seconds * 1000;
+      return "https://fixture.invalid/synthetic-object";
+    },
+    {
+      request: async (url, options) => {
+        elapsed += 2000;
+        requests.push(url);
+        assert.equal(options.redirect, "manual");
+        return { status: elapsed < expiresAt ? 200 : 403 };
+      },
+      wait: async (milliseconds) => {
+        assert.equal(milliseconds, REHEARSAL_EXPIRY_WAIT_MS);
+        elapsed += milliseconds;
+      },
+    },
+  );
+  assert.equal(requests.length, 2);
+  assert.equal(requests[0], requests[1]);
+  assert.ok(elapsed > expiresAt);
+});
+
+test("expiry rehearsal still rejects URLs already inactive", async () => {
+  let waited = false;
+  await assert.rejects(
+    assertSignedUrlExpiry(async () => "synthetic-url", {
+      request: async () => ({ status: 403 }),
+      wait: async () => {
+        waited = true;
+      },
+    }),
+    /COMUN_STORAGE_SIGNED_URL_NOT_ACTIVE/,
+  );
+  assert.equal(waited, false);
+});
+
+test("expiry rehearsal still rejects URLs accessible after expiry", async () => {
+  await assert.rejects(
+    assertSignedUrlExpiry(async () => "synthetic-url", {
+      request: async () => ({ status: 200 }),
+      wait: async () => {},
+    }),
+    /COMUN_STORAGE_SIGNED_URL_NOT_EXPIRED/,
+  );
+});
+
+test("signing and network failures cannot certify expiry", async () => {
+  await assert.rejects(
+    assertSignedUrlExpiry(async () => {
+      throw new Error("signing failed");
+    }),
+    /signing failed/,
+  );
+  await assert.rejects(
+    assertSignedUrlExpiry(async () => "synthetic-url", {
+      request: async () => {
+        throw new Error("network failed");
+      },
+    }),
+    /network failed/,
+  );
 });

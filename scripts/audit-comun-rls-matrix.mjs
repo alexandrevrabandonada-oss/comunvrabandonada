@@ -6,6 +6,42 @@ import path from "node:path";
 const rootDir = process.cwd();
 
 const classifications = {
+  comun_learning_programs: {
+    decision: "public_read_safe",
+    purpose: "Programa e versão editorial da Escola COMUN.",
+    sensitive: "Sem progresso ou identidade de participantes.",
+    expected: "Leitura pública do catálogo; escrita somente service_role.",
+  },
+  comun_learning_units: {
+    decision: "public_read_safe",
+    purpose: "Trilhas, micro-missões e desafios do catálogo editorial.",
+    sensitive: "Sem respostas ou reflexões pessoais.",
+    expected: "Leitura pública do conteúdo; escrita somente service_role.",
+  },
+  comun_learning_resources: {
+    decision: "public_read_safe",
+    purpose: "Materiais e kits editoriais da Escola.",
+    sensitive: "Sem mochila ou dados pessoais.",
+    expected: "Leitura pública dos materiais; escrita somente service_role.",
+  },
+  comun_learning_enrollments: {
+    decision: "owner_read",
+    purpose: "Inscrição e materiais guardados pela pessoa na Escola.",
+    sensitive: "Identidade, datas e mochila pessoal.",
+    expected: "SELECT somente do titular via auth.uid(); mutações server-only.",
+  },
+  comun_learning_progress: {
+    decision: "owner_read",
+    purpose: "Progresso privado de estudo e prática por missão.",
+    sensitive: "Respostas, etapa, revisão e datas pessoais.",
+    expected: "SELECT somente do titular via auth.uid(); mutações server-only.",
+  },
+  comun_learning_practice_links: {
+    decision: "owner_read",
+    purpose: "Prática vinculada a pauta/tarefa existente e revisão editorial.",
+    sensitive: "Reflexão, identidade, vínculos, parecer e revisor.",
+    expected: "Titular lê a própria prática; revisão autorizada pelo servidor.",
+  },
   comun_community_memberships: {
     decision: "owner_read",
     purpose: "Vínculo e preferências da pessoa na comunidade.",

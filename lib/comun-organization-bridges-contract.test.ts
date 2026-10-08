@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import ts from "typescript";
 
 const root = process.cwd();
 const bridge = readFileSync(
@@ -35,9 +36,9 @@ const reconciledPlan = readFileSync(
 describe("COMUN 48.3-E2 integration contract", () => {
   it("uses one exact batched evidence relation without search or fuzzy matching", () => {
     expect(bridge).toContain('.in("public_evidence_ref_id", refs)');
-    expect(bridge.match(/\.from\("comun_pauta_evidence_items"\)/g)).toHaveLength(
-      1,
-    );
+    expect(
+      bridge.match(/\.from\("comun_pauta_evidence_items"\)/g),
+    ).toHaveLength(1);
     expect(bridge).toContain('.eq("source_type", "public_evidence")');
     expect(bridge).toContain('.eq("status", "approved")');
     expect(bridge).toContain('.eq("sensitivity", "public_safe")');
@@ -47,7 +48,9 @@ describe("COMUN 48.3-E2 integration contract", () => {
   });
 
   it("keeps the bridge read-only and preserves the explicit attach helper", () => {
-    expect(bridge).not.toMatch(/\.insert\(|\.update\(|\.delete\(|\.upsert\(|\.rpc\(/);
+    expect(bridge).not.toMatch(
+      /\.insert\(|\.update\(|\.delete\(|\.upsert\(|\.rpc\(/,
+    );
     expect(bridge).not.toContain("attachPublicEvidenceToPauta");
     expect(panorama).not.toContain("Criar pauta");
     expect(pautas).not.toContain("Criar pauta");
@@ -60,9 +63,13 @@ describe("COMUN 48.3-E2 integration contract", () => {
     expect(panorama.match(/data-comun-primary-action/g)).toHaveLength(1);
     expect(pautasPage).toContain("params.evidencia");
     expect(pautas).toContain("Pautas relacionadas a esta evidência");
-    expect(pautas.match(/Ver fonte no COMUN/g)?.length).toBeGreaterThanOrEqual(2);
+    expect(pautas.match(/Ver fonte no COMUN/g)?.length).toBeGreaterThanOrEqual(
+      2,
+    );
     expect(pautas).toContain("Esta referência pública não está disponível.");
-    expect(pautas).toContain("Ainda não há pauta pública ligada a esta evidência.");
+    expect(pautas).toContain(
+      "Ainda não há pauta pública ligada a esta evidência.",
+    );
   });
 
   it("keeps Relata and private markers outside the bridge", () => {
@@ -75,10 +82,46 @@ describe("COMUN 48.3-E2 integration contract", () => {
     expect(preflight).toContain("begin read only;");
     expect(preflight).toContain("businessContentRead=false");
     expect(preflight).toContain("migrationCount=0");
-    expect(preflight).toContain("node scripts/ci/readonly-reconciled-migration-plan.mjs");
+    expect(preflight).toContain(
+      "node scripts/ci/readonly-reconciled-migration-plan.mjs",
+    );
     expect(reconciledPlan).toContain("validateHardeningLedger(manifest, rows)");
-    expect(reconciledPlan).toContain("'supabase', ['db', 'push'");
-    expect(reconciledPlan).toContain("'--dry-run'");
+    const source = ts.createSourceFile(
+      "readonly-reconciled-migration-plan.mjs",
+      reconciledPlan,
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.JS,
+    );
+    const commands: ts.CallExpression[] = [];
+    const visit = (node: ts.Node) => {
+      if (
+        ts.isCallExpression(node) &&
+        ts.isIdentifier(node.expression) &&
+        node.expression.text === "spawnSync"
+      ) {
+        commands.push(node);
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(source);
+    expect(commands).toHaveLength(1);
+    const [command, args] = commands[0].arguments;
+    expect(ts.isStringLiteral(command) && command.text).toBe("supabase");
+    expect(ts.isArrayLiteralExpression(args)).toBe(true);
+    if (!ts.isArrayLiteralExpression(args))
+      throw new Error("CLI_ARGS_REQUIRED");
+    expect(
+      args.elements.map((arg) =>
+        ts.isStringLiteral(arg) ? arg.text : arg.getText(source),
+      ),
+    ).toEqual([
+      "db",
+      "push",
+      "--db-url",
+      "process.env.SUPABASE_DB_URL",
+      "--dry-run",
+    ]);
     expect(preflight).not.toMatch(/--include-all|migration repair|db reset/i);
     expect(disposable).toContain("begin;");
     expect(disposable).toContain("rollback;");

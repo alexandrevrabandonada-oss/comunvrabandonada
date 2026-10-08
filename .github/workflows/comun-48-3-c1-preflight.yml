@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "scripts/ci/readonly-reconciled-migration-plan*"
+      - "scripts/ci/classify-migration-lane*"
       - ".github/workflows/comun-48-3-c1-preflight.yml"
       - "lib/comun-collective-actions-canonical*.ts"
       - "components/comun-collective-actions-canonical.tsx"
@@ -27,12 +28,20 @@ jobs:
         with: { fetch-depth: 0 }
       - uses: supabase/setup-cli@v1
         with: { version: 2.113.0 }
+      - name: Classify changed migration ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+          node scripts/ci/classify-migration-lane.mjs --lane 48-3-c1 --files "${changed[@]}" | tee "$RUNNER_TEMP/48-3-c1-ownership.txt"
+          grep -Eq '^COMUN_MIGRATION_LANE_MODE=(none|not_applicable)$' "$RUNNER_TEMP/48-3-c1-ownership.txt"
+          cat "$RUNNER_TEMP/48-3-c1-ownership.txt" >> "$GITHUB_ENV"
+
       - name: Verify zero migration and metadata-only schema contract
         shell: bash
         run: |
           set -euo pipefail
           test -n "${SUPABASE_DB_URL:-}"
-          test -z "$(git diff --name-only origin/main...HEAD -- supabase/migrations)" || { echo COMUN_48_3_C1_BLOCKED_UNEXPECTED_MIGRATION; exit 1; }
           mkdir -p .ci-artifacts/48-3-c1-preflight
           psql "$SUPABASE_DB_URL" -qXAt -v ON_ERROR_STOP=1 >.ci-artifacts/48-3-c1-preflight/schema.json <<'SQL'
           begin read only;
@@ -88,6 +97,7 @@ jobs:
           }
           NODE
       - name: Prove remote migration plan is empty
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail

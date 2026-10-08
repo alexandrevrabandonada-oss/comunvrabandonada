@@ -6,7 +6,7 @@ import { isComunSolidarityOrganizationGovernanceEnabled } from "@/lib/comun-soli
 import { isComunSolidarityOrganizationOnboardingEnabled } from "@/lib/comun-solidarity-organization-onboarding";
 import { listPublicMapData } from "@/lib/popular-map";
 import { getPublicSolidarityEconomyDirectory } from "@/lib/server/comun-solidarity-economy-directory";
-import { Card, CTA, Hero, Metrics } from "../reciclagem/page";
+import { Card, CTA, Hero, Metrics } from "@/components/popular-map-cards";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Feirinha | COMUN VR Abandonada" };
