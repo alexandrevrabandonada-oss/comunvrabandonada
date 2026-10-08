@@ -8,6 +8,7 @@ import {
   connectionOptions,
   scopeSql,
   privateCatalogSql,
+  migrationVersion,
 } from "./production-pre.mjs";
 import { validateRemoteTarget } from "../security/comun-security-contract.mjs";
 
@@ -57,6 +58,19 @@ const input = () => {
     },
   };
 };
+test("migration inventory preserves historical 12-digit versions", () => {
+  assert.equal(migrationVersion("202605070001_foundation.sql"), "202605070001");
+  assert.equal(migrationVersion("20261006134804_school.sql"), "20261006134804");
+  assert.equal(migrationVersion("README.md"), undefined);
+});
+test("existing historical reconciliation requires the exact accepted baseline", () => {
+  const i = input();
+  i.localVersions.push("20260724233256", "20260922120000");
+  assert.deepEqual(classifyPre(i).reasons, []);
+  assert.deepEqual(classifyPre(i).actionablePending, ["20261006134804"]);
+  i.snapshot.compact.fingerprint = "different";
+  assert.ok(classifyPre(i).reasons.includes("BASELINE_FINGERPRINT_DRIFT"));
+});
 test("exact accepted baseline and absent School captures PRE without granting promotion", () => {
   const result = classifyPre(input());
   assert.deepEqual(result.reasons, []);

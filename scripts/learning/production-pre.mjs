@@ -10,6 +10,7 @@ import { metadataSql, classifyMetadata } from "./release-review.mjs";
 export const digest = (value) =>
   createHash("sha256").update(JSON.stringify(value)).digest("hex");
 export const connectionOptions = "-c default_transaction_read_only=on";
+export const migrationVersion = (path) => /^(\d+)_.*\.sql$/.exec(path)?.[1];
 export const manifests = [
   "supabase/releases/20260922120000-canonical-security-hardening-v2.json",
   "supabase/release-bundles/20260924-comun-49-2-private-collective-runtime-r1-r2.json",
@@ -36,28 +37,40 @@ export const privateCatalogSql = `select json_build_object(
  'relations',coalesce((select json_agg(json_build_object('name',c.relname,'kind',c.relkind,
    'owner',pg_get_userbyid(c.relowner),'rls',c.relrowsecurity,'forceRls',c.relforcerowsecurity,'acl',c.relacl::text) order by c.relname)
    from pg_catalog.pg_class c join pg_catalog.pg_namespace n on n.oid=c.relnamespace
-   where n.nspname='private' and c.relname like 'comun_relata_collective_entity%' and c.relkind in ('r','p','S')), '[]'::json),
+   where n.nspname='private' and c.relname like 'comun_relata_collective_entit%' and c.relkind in ('r','p','S')), '[]'::json),
  'columns',coalesce((select json_agg(json_build_object('table',c.relname,'name',a.attname,
    'type',pg_catalog.format_type(a.atttypid,a.atttypmod),'notNull',a.attnotnull,'identity',a.attidentity,
    'default',pg_catalog.pg_get_expr(d.adbin,d.adrelid)) order by c.relname,a.attnum)
    from pg_catalog.pg_attribute a join pg_catalog.pg_class c on c.oid=a.attrelid
    join pg_catalog.pg_namespace n on n.oid=c.relnamespace left join pg_catalog.pg_attrdef d on d.adrelid=c.oid and d.adnum=a.attnum
-   where n.nspname='private' and c.relname like 'comun_relata_collective_entity%' and a.attnum>0 and not a.attisdropped), '[]'::json),
+   where n.nspname='private' and c.relname like 'comun_relata_collective_entit%' and a.attnum>0 and not a.attisdropped), '[]'::json),
  'constraints',coalesce((select json_agg(json_build_object('table',c.relname,'name',x.conname,
    'definition',pg_catalog.pg_get_constraintdef(x.oid)) order by c.relname,x.conname)
    from pg_catalog.pg_constraint x join pg_catalog.pg_class c on c.oid=x.conrelid join pg_catalog.pg_namespace n on n.oid=c.relnamespace
-   where n.nspname='private' and c.relname like 'comun_relata_collective_entity%'), '[]'::json),
+   where n.nspname='private' and c.relname like 'comun_relata_collective_entit%'), '[]'::json),
+ 'indexes',coalesce((select json_agg(json_build_object('table',c.relname,'name',i.relname,
+   'definition',pg_catalog.pg_get_indexdef(x.indexrelid)) order by c.relname,i.relname)
+   from pg_catalog.pg_index x join pg_catalog.pg_class c on c.oid=x.indrelid
+   join pg_catalog.pg_class i on i.oid=x.indexrelid join pg_catalog.pg_namespace n on n.oid=c.relnamespace
+   where n.nspname='private' and c.relname like 'comun_relata_collective_entit%'), '[]'::json),
+ 'policies',coalesce((select json_agg(json_build_object('table',c.relname,'name',p.polname,
+   'command',p.polcmd,'permissive',p.polpermissive,'roles',p.polroles,
+   'using',pg_catalog.pg_get_expr(p.polqual,p.polrelid),
+   'check',pg_catalog.pg_get_expr(p.polwithcheck,p.polrelid)) order by c.relname,p.polname)
+   from pg_catalog.pg_policy p join pg_catalog.pg_class c on c.oid=p.polrelid
+   join pg_catalog.pg_namespace n on n.oid=c.relnamespace
+   where n.nspname='private' and c.relname like 'comun_relata_collective_entit%'), '[]'::json),
  'functions',coalesce((select json_agg(json_build_object('name',p.proname,
    'arguments',pg_catalog.pg_get_function_identity_arguments(p.oid),'owner',pg_get_userbyid(p.proowner),
    'securityDefiner',p.prosecdef,'config',p.proconfig,'acl',p.proacl::text,
    'definition',regexp_replace(pg_catalog.pg_get_functiondef(p.oid),'\\s+',' ','g')) order by p.proname,pg_catalog.pg_get_function_identity_arguments(p.oid))
    from pg_catalog.pg_proc p join pg_catalog.pg_namespace n on n.oid=p.pronamespace
-   where n.nspname='private' and (p.proname like 'comun_relata_collective_entity%' or p.proname like 'comun_relata_projection_%'
+   where n.nspname='private' and (p.proname like 'comun_relata_collective_entit%' or p.proname like 'comun_relata_entity_%' or p.proname like 'comun_relata_projection_%'
      or p.proname='comun_relata_candidate_publisher_profile')), '[]'::json),
  'triggers',coalesce((select json_agg(json_build_object('table',c.relname,'name',t.tgname,
    'definition',pg_catalog.pg_get_triggerdef(t.oid)) order by c.relname,t.tgname)
    from pg_catalog.pg_trigger t join pg_catalog.pg_class c on c.oid=t.tgrelid join pg_catalog.pg_namespace n on n.oid=c.relnamespace
-   where n.nspname='private' and c.relname like 'comun_relata_collective_entity%' and not t.tgisinternal), '[]'::json)
+   where n.nspname='private' and c.relname like 'comun_relata_collective_entit%' and not t.tgisinternal), '[]'::json)
 ) as value`;
 
 export function ledgerStates(rows, releases) {
@@ -102,9 +115,15 @@ export function classifyPre({
   const pending = localVersions.filter(
     (v) => !snapshot.compact.canonical.migrations.includes(v),
   );
-  const external = releases[0].migration.split("/").at(-1).split("_")[0];
+  // Same two externally reconciled files as readonly-reconciled-migration-plan.
+  // Their omission is accepted only with the exact R5 POST fingerprint and all
+  // accepted ledgers above; retain the raw difference in the artifact.
+  const historicalPending = ["20260724233256", "20260922120000"];
+  const actionablePending = pending.filter(
+    (v) => !historicalPending.includes(v),
+  );
   const unknown = snapshot.compact.canonical.migrations.filter(
-    (v) => !localVersions.includes(v) && v !== external,
+    (v) => !localVersions.includes(v),
   );
   const schoolLedger = snapshot.ledger.filter(
     (r) => r.release === "20261006134804-comun-learning-r0",
@@ -137,7 +156,7 @@ export function classifyPre({
   if (snapshot.compact.security.blockingFindings.length)
     reasons.push("CANONICAL_SECURITY_FINDINGS");
   if (
-    JSON.stringify(pending) !== JSON.stringify(["20261006134804"]) ||
+    JSON.stringify(actionablePending) !== JSON.stringify(["20261006134804"]) ||
     unknown.length
   )
     reasons.push("MIGRATION_HISTORY_DRIFT");
@@ -150,6 +169,8 @@ export function classifyPre({
     ledgers,
     schoolLedgerState: schoolLedger.length ? "PRESENT_BLOCKED" : "ABSENT",
     pending,
+    actionablePending,
+    historicalPending: pending.filter((v) => historicalPending.includes(v)),
     unknown,
     failedObjects,
     promotionReady: false,
@@ -206,8 +227,8 @@ async function main() {
   );
   const { readdir } = await import("node:fs/promises");
   const localVersions = (await readdir("supabase/migrations"))
-    .filter((p) => /^\d{14}_.*\.sql$/.test(p))
-    .map((p) => p.slice(0, 14))
+    .map(migrationVersion)
+    .filter(Boolean)
     .sort();
   const { default: pg } = await import("pg");
   const db = new pg.Client({
