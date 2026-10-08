@@ -140,6 +140,35 @@ console.log(sql.includes('public.comun_schema_releases') ? process.env.TEST_LEDG
         },
       });
       assert.equal(result.status === 0, scenario.pass, result.stderr);
+      if (JSON.stringify(scenario.ledger) === JSON.stringify([row])) {
+        const diagnostic = JSON.parse(
+          readFileSync(
+            join(root, ".ci-artifacts/48-2-a-preflight/drift-diagnostic.json"),
+            "utf8",
+          ),
+        );
+        assert.equal(
+          diagnostic.businessRowsRead,
+          scenario.schema.businessRowsRead,
+        );
+        assert.equal(diagnostic.exactExternalHardeningLedgerAccepted, true);
+        assert.deepEqual(
+          diagnostic.unknownRemoteMigrations,
+          scenario.versions.includes("20990101000000")
+            ? ["20990101000000"]
+            : [],
+        );
+        assert.deepEqual(
+          diagnostic.pendingNormalMigrations,
+          scenario.versions === "" ? [normal] : [],
+        );
+        assert.deepEqual(
+          diagnostic.failedSchemaControls,
+          scenario.schema.p4ProjectionRlsEnabled === false
+            ? ["p4ProjectionRlsEnabled"]
+            : [],
+        );
+      }
       for (const path of migrations)
         assert.deepEqual(readFileSync(join(root, path)), readFileSync(path));
     }
@@ -170,4 +199,17 @@ test("both coherence entry points enable the public registry only in their local
       undefined,
     );
   }
+});
+
+test("48.2-A diagnostic remains read-only and does not turn pending or unknown migrations into success", () => {
+  assert.equal(
+    observatoryStep.env.PGOPTIONS,
+    "-c default_transaction_read_only=on",
+  );
+  assert.match(
+    observatoryStep.run,
+    /pending.length \|\| unknown.length \|\| observatoryMigrations.length/,
+  );
+  assert.match(observatoryStep.run, /drift-diagnostic\.json/);
+  assert.match(observatoryStep.run, /DIAGNOSTIC_FORMAT_INVALID/);
 });
