@@ -709,3 +709,11 @@ Skipped e pending não contam como PASS. O registro seguinte é histórico.
 A busca unificada usa `service_role`. A leitura de territórios não filtrava `visibility=public`, e a leitura de obras filtrava apenas o estado da obra, sem exigir raiz publicada/pública no Acervo. O candidato acrescenta esses filtros. As onze fontes descartam dados parciais quando sua resposta inclui erro; fontes saudáveis e fallback do mapa continuam disponíveis.
 
 Quinze testes da função completa usam respostas de banco simuladas. Na base `74cc0ed1779f5432496c3f852ce92bed3524a3a1`, doze falharam: filtros ausentes e dados parciais consumidos nas onze fontes. Após a correção, os quinze passaram. Isso comprova a regressão e os contratos da consulta, não a ausência de vazamento histórico ou a equivalência de produção. Não houve leitura de dados privados do ambiente canônico. A semântica real dos filtros relacionais ainda deve ser conferida em Supabase descartável e no ambiente autorizado. Não é uma auditoria completa de autorização de todas as fontes de busca.
+
+# Passada de continuidade pública e PRE da Escola — 08/10/2026
+
+Main confirmado em `4bf839d61a6eb77965c1efa0a4ebbbe307cfdd21`: #519 e #531 integrados, deployment Git Production READY e endpoint público de versão no mesmo SHA; quatro smokes públicos 200. O #523 foi reconciliado com essa base sem conflitos e mantém os gates próprios.
+
+49-H/49-I: fontes de INEA e ANEEL passam a ter metadados coerentes com a projeção pública e caminhos explícitos de retorno, inclusive para quem recebeu um link direto. Prova de navegador automatizada própria foi adicionada; não equivale a aparelho físico ou aprovação humana.
+
+Escola: #532 captura identidade allowlisted, catálogos, histórico e ledgers em transação read-only. A captura de `0408c591` (run 37855395017, artefato 11583906100) confirmou os cinco ledgers aceitos, zero findings, fingerprints R5 intactos e Escola ausente. Somente `20261006134804` é pendência acionável; as duas omissões históricas permanecem explicitamente registradas pela reconciliação canônica existente. O ensaio Production-like exige equivalência pública e privada antes de aplicar a migration somente em banco descartável. Promoção, flags e capacidade de backup do provedor continuam sem certificação/autorização nesta rodada.

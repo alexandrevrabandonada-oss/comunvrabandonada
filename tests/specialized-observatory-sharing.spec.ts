@@ -13,6 +13,60 @@ for (const [path, title, publisher] of [
     "ANEEL",
   ],
 ]) {
+  test(`${publisher}: direct sources link explains evidence and returns without session data`, async ({
+    page,
+  }) => {
+    const response = await page.goto(
+      `${path}/fontes?token=SYNTHETIC_SESSION#origem`,
+    );
+    if (process.env.COMUN_TEST_OBSERVATORY_DISABLED === "1") {
+      expect(response?.status()).toBe(404);
+      await expect(
+        page.locator('meta[name="comun:share"][content="public"]'),
+      ).toHaveCount(0);
+      return;
+    }
+    expect(response?.status()).toBe(200);
+    const sourceTitle = `Fontes e metodologia — ${title}`;
+    await expect(
+      page.getByRole("heading", { level: 1, name: sourceTitle, exact: true }),
+    ).toBeVisible();
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+      "content",
+      sourceTitle,
+    );
+    await expect(
+      page.locator('meta[property="og:description"]'),
+    ).toHaveAttribute(
+      "content",
+      await page.locator("[data-comun-public-summary]").innerText(),
+    );
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      `https://comunsocial.online${path}/fontes`,
+    );
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      /noindex/,
+    );
+    const nav = page.getByRole("navigation", { name: "Navegação das fontes" });
+    const back = nav.getByRole("link", { name: "Voltar ao observatório" });
+    await expect(back).toHaveAttribute("href", path);
+    await back.focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(new RegExp(`${path}$`));
+    await expect(
+      page.getByRole("heading", { level: 1, name: title, exact: true }),
+    ).toBeVisible();
+    await page.goBack();
+    expect(page.url()).toContain("token=SYNTHETIC_SESSION");
+    await expect(nav).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  });
   test(`${publisher}: received direct link, public context, copy and return`, async ({
     page,
     context,
@@ -102,7 +156,7 @@ for (const [path, title, publisher] of [
     await expect(evidence).toContainText(publisher);
     await expect(evidence).toContainText("Volta Redonda");
     await page.screenshot({
-      path: `D:/COMUN-49H-QA/specialized-initial-${publisher}-${page.viewportSize()?.width}.png`,
+      path: test.info().outputPath(`specialized-initial-${publisher}.png`),
       fullPage: false,
     });
     await evidence
@@ -141,7 +195,7 @@ for (const [path, title, publisher] of [
       ),
     ).toBe(true);
     await page.screenshot({
-      path: `D:/COMUN-49H-QA/specialized-${publisher}-${page.viewportSize()?.width}.png`,
+      path: test.info().outputPath(`specialized-${publisher}.png`),
       fullPage: false,
     });
     expect(errors).toEqual([]);

@@ -469,3 +469,11 @@ não substitui Linux remoto nem prova PostgreSQL/RLS. Quality `37801807033`
 ainda executava reset local na consulta; nenhum rerun foi solicitado. A migration
 Escola permanece bloqueante. O próximo checkpoint inclui somente correção do
 teste e este registro, e solicita um novo Preview exato.
+
+# Continuidade das fontes — 08/10/2026
+
+Base reconciliada com main `4bf839d61a6eb77965c1efa0a4ebbbe307cfdd21`, sem reescrever o histórico do #523. Nas fontes de INEA e ANEEL, abertura direta agora mostra título e resumo da mesma projeção autorizada usada nos metadados. A URL canônica aponta à página de fontes, sem parâmetros. Links acessíveis permitem voltar ao observatório ou ao hub sem exigir histórico do navegador. O botão Voltar do navegador conserva o contexto local; a navegação explícita não transporta tokens.
+
+PASS local: 17 testes de projeção/compartilhamento e TypeScript. A primeira tentativa de navegador falhou por junction fora da raiz Turbopack; após instalação própria, a segunda foi interrompida por esgotamento da memória virtual do host. Essas tentativas não certificam a jornada. A nova lane `COMUN public distribution browser contract` executa as duas superfícies em Chromium desktop e viewport móvel, sem secrets ou banco Production. Resultado remoto permanece pendente até a run do novo SHA terminar.
+
+Não houve ativação de flags, abertura de indexação ou escrita Production. `pilot_noindex` permanece. Safari, Firefox, aparelhos físicos e ensaio humano: NOT_RUN. O #523 continua draft enquanto os seis preflights da Escola estiverem bloqueados; o PR #532 prepara captura e ensaio separado, não autoriza promoção do schema.

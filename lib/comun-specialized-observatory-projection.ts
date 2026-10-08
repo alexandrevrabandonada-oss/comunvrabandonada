@@ -72,3 +72,9 @@ export function specializedObservatoryMetadata(
       : null,
   ).metadata;
 }
+
+export function observatorySourcesProjection(
+  projection: ObservatoryEvidenceProjection,
+) {
+  return { ...projection, title: `Fontes e metodologia — ${projection.title}` };
+}
