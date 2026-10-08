@@ -4,6 +4,43 @@ Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99
 
 ## Atualização transversal do produto — 06/10/2026
 
+### Continuação verificada — 08/10/2026
+
+Base reconsultada: `2c5d974d3ddf1b2c027d85b156a3f8a5ae4618f1`, merge
+do #521. Os PRs #520 e #503 foram incorporados nessa integração; descrições
+anteriores de candidato/draft abaixo são históricas. Código integrado não
+comprova ativação de flags, disponibilidade de schema ou ensaio humano.
+
+O #522, head `bf9eb8ab912ce9442e18e3ec50d2e01dba09a2de`, continua
+draft e independente: substitui o transporte automático de Quality por
+verificação read-only, sem migration/reload. O relatório vincula 39 checks
+success e 65 skipped ao candidato; skipped não conta como aprovação.
+A revisão do diff confirma conexão/transação read-only, rollback, credencial
+restrita ao passo e ausência de reparo automático. A correção não está em main.
+
+**49-E3 — orientação dentro da ação, candidata:** detalhes públicos de ações
+abertas/ativas oferecem uma orientação expansível antes da participação.
+Aguardando resultado/concluída oferece critérios para conferir o que mudou,
+sem tratar conclusão como solução comprovada. Estados não públicos ou
+desconhecidos não recebem convite. O mesmo componente atende detalhe canônico,
+V2 e legacy, usa apenas fase pública allowlisted no link do material existente
+e não recebe identidade, slug, protocolo ou texto privado.
+
+Consultar ou expandir o material não escreve progresso, inscrição ou tarefa.
+O aprendizado começa dentro da própria ação; a orientação completa permanece
+pública. A Escola existente não é duplicada nem ativada por esta entrega.
+
+Validação local do E3: 38 testes focais, dois de coerência, quatro de
+classificação de superfícies, ESLint, TypeScript e diff-check passaram. HTML
+servido com fixtures sintéticas no detalhe canônico respondeu 200 em seis
+combinações (aberta/aguardando resultado/concluída × canônica/legacy), com uma
+orientação adequada, link allowlisted e nenhum controle de escrita dentro dela.
+Doze casos de navegador foram preparados na suíte existente para desktop e
+celular, incluindo teclado, material e retorno. Execução renderizada NOT_RUN:
+Chromium não instalado. HTML não comprova foco, contraste ou interação.
+Próxima frente: ampliar orientação contextual a pautas e conectar materiais
+às práticas disponíveis da Escola, respeitando ativação e progresso existentes.
+
 O roadmap passa a tratar o COMUN também como infraestrutura para uma estrutura política permanente ligada à APS, à VR Abandonada e a organizações aliadas. Núcleos, estratégia, formação, competências, fábrica, Minha Participação, inteligência cívica, observatórios e ação institucional formam um ciclo organizativo: evidência → prioridade coletiva → formação e responsabilidade voluntária → ação → devolutiva → memória e renovação de capacidades.
 
 Essa conexão existia distribuída em frentes do roadmap, mas não estava explícita como objetivo integrador nem como contrato de produto. O novo [49-E0 — contrato de produto único](comun-one-product-contract-49-e0.md) fixa os princípios e inclui a camada **49-M — Organização política permanente**. O E0 é um candidato em implementação; não altera o estado da V1, a autorização de lançamento nem a indexação atual.

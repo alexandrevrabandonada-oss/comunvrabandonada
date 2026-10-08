@@ -2,6 +2,30 @@ import { withComunAppV2 } from "./comun-experience";
 
 // Public learning material, not a second progress or task system.
 export const participationGuidance = {
+  participacao: {
+    title: "Antes de participar desta ação",
+    summary:
+      "Escolha uma contribuição que caiba no seu tempo e nas suas condições.",
+    checks: [
+      "Confira o objetivo, o local ou canal e o tempo esperado.",
+      "Veja quem orienta a atividade e qual apoio está disponível; se faltar informação, peça esclarecimento antes de assumir.",
+      "Uma tarefa só é sua depois de você confirmar no fluxo correspondente. Consultar esta orientação não inscreve você.",
+    ],
+    href: "/comun/acoes",
+    action: "Conhecer ações e condições",
+  },
+  resultado: {
+    title: "O que esta ação mudou?",
+    summary:
+      "A conclusão de uma atividade não comprova, por si só, que o problema foi resolvido.",
+    checks: [
+      "Compare o objetivo com o resultado informado e confira fontes e datas.",
+      "Distinga atividade realizada, resposta recebida e mudança demonstrada. Se faltar evidência, mantenha essa lacuna visível.",
+      "Consulte os aprendizados e próximos passos publicados antes de decidir contribuir novamente.",
+    ],
+    href: "/comun/resultados",
+    action: "Consultar resultados públicos",
+  },
   registro: {
     title: "Registrar uma observação com cuidado",
     summary: "Separe o que você observou do que ainda precisa confirmar.",
@@ -40,6 +64,16 @@ export const participationGuidance = {
 } as const;
 
 export type ParticipationGuidanceStage = keyof typeof participationGuidance;
+
+// Only states already exposed by public action readers receive guidance.
+export function guidanceStageForPublicAction(
+  status: unknown,
+): ParticipationGuidanceStage | null {
+  if (status === "open" || status === "active") return "participacao";
+  if (status === "awaiting_result" || status === "completed")
+    return "resultado";
+  return null;
+}
 
 export function resolveParticipationGuidanceStage(
   value: unknown,

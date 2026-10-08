@@ -34,6 +34,7 @@ import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
 import { isComunCollectiveActionsCanonicalExperienceEnabled } from "@/lib/comun-collective-actions-canonical-feature";
 import { projectPublicCollectiveActionDetail } from "@/lib/comun-collective-actions-canonical";
 import { CollectiveActionCanonicalDetail } from "@/components/comun-collective-actions-canonical";
+import { ComunActionPracticeGuidance } from "@/components/comun-action-practice-guidance";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +68,7 @@ export default async function CollectiveActionDetailPage({
         action={canonicalAction}
         acknowledgement={canonicalAcknowledgement(query.confirmacao)}
         previewFixtures={previewFixtures}
+        appV2={appV2}
       />
     );
   }
@@ -120,6 +122,7 @@ export default async function CollectiveActionDetailPage({
         </div>
       </Section>
       <Section>
+        <ComunActionPracticeGuidance status={action.status} appV2={false} />
         <h2 className="text-2xl font-black uppercase text-comun-yellow">
           Entrar na ação
         </h2>
@@ -512,6 +515,7 @@ function ActionDetailV2({
         />
         <ComunEntityHeader context={context} />
         <ComunRelationRail relations={relations} />
+        <ComunActionPracticeGuidance status={action.status} />
         <ComunRelatedSection
           title="Participar desta ação"
           summary="Sua participação não cria perfil público nem expõe contato, localização ou observações privadas."
