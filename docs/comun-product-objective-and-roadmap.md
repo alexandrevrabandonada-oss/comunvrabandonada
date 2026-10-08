@@ -4,6 +4,50 @@ Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99
 
 ## Atualização transversal do produto — 06/10/2026
 
+### Storage integrado e prova focal do candidato — 08/10/2026
+
+O #530 foi integrado por merge normal em main `3530f8aa4a25e7ff0ad2654d36826f92279fc9df`,
+com árvore idêntica à revisada `d9a9aba52d1ae5aab8da322d54c7178e566b18dc`.
+O candidato teve seis checks success, 74 skipped, zero falhas ou pendências;
+Preview exato e COST-02 passaram. Security `113511732962` comprovou perda e
+restore reais de banco e Storage em Supabase descartável, observação do mesmo
+link ativo e expirado e limpeza. Os 21 testes Node passaram. A janela de
+15 segundos pertence somente ao ensaio, sem alterar links do aplicativo.
+
+Production READY `dpl_Zf9r6tzd3SbTouNG437zzupSLPYf` e endpoint público
+`/api/comun/quality-status` responderam com o SHA `3530f8aa`. Este delta não
+corresponde aos paths push do Quality; não houve Quality pós-merge neste SHA.
+A prova Quality remota `113503800860` da base `1e6602c` permanece histórica,
+não é transferida. Não exigir ou declarar uma run que não foi acionada.
+Aguardar deploy exato e checks pós-merge aplicáveis antes do próximo merge;
+quando Quality for acionado, aguardar também sua conclusão.
+
+O #523 `df98a5f8` passou na prova focal própria `113505675688`: nove casos
+PWA e dez miniapp, com leitura real, HTTP 200 e limpeza. Security
+`113505674820` falhou no ensaio antigo de um segundo; a hipótese de latência
+não foi comprovada como causa. Esta reconciliação incorpora #530 por merge
+normal, preservando app, components, lib, migrations, manifesto e flags do
+candidato. A aprovação de #530 não certifica este novo candidato; ele precisa
+de Security, Preview e demais checks próprios antes de integrar.
+
+Seis preflights remotos continuam dependentes da migration da Escola.
+`COMUN_SECURITY_RESILIENCE_BLOCKED_PROVIDER_CAPABILITY` continua bloqueado:
+restore sintético não comprova backup durável ou recuperação do provedor.
+O conector Supabase da sessão negou acesso direto ao projeto COMUN; os
+workflows existentes não foram considerados sem acesso por essa razão.
+Nenhuma promoção de schema, flag, indexação ou certificação V1 foi feita.
+Validação da reconciliação local: 24 testes Node (21 Security e três do
+runner miniapp), TypeScript, ESLint focal, Prettier e diff-check passaram.
+O runtime app/components/lib/supabase é idêntico ao pai `df98a5f8`. Quality
+`113505675916` desse pai concluiu SUCCESS, com jornadas, smokes, build e
+limpeza. Marcador `COMUN_QUALITY_AUTOMATED_CONTRACT_GREEN`; aparelhos reais
+e ensaio humano continuam NOT_RUN. Snapshot final do pai: 40 success,
+88 skipped, sete failures (seis Escola e o ensaio antigo de Storage), zero
+pendências. A reconciliação é publicada após essa conclusão, sem rerun
+manual nem transferência de PASS. O novo SHA exige seus próprios gates. Checks pós-merge #530: quatro success, 73 skipped, zero
+falhas ou pendências na consulta. Skipped e pending não contam como PASS.
+As seções seguintes são históricas.
+
 ### Isolamento integrado e nova reconciliação — 08/10/2026
 
 Base incorporada: `1e6602c3cf9c87e93365f088e04148e81f574531`.
