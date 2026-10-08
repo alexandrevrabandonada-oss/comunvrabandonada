@@ -3,6 +3,7 @@ import test from "node:test";
 import { spawnSync } from "node:child_process";
 import {
   readFileSync,
+  existsSync,
   writeFileSync,
   mkdirSync,
   mkdtempSync,
@@ -125,6 +126,12 @@ console.log(sql.includes('public.comun_schema_releases') ? process.env.TEST_LEDG
         pass: false,
       },
     ]) {
+      // Each negative case owns its artifact; never read a previous scenario's proof.
+      const diagnosticPath = join(
+        root,
+        ".ci-artifacts/48-2-a-preflight/drift-diagnostic.json",
+      );
+      rmSync(diagnosticPath, { force: true });
       const result = spawnSync("bash", ["-c", observatoryStep.run], {
         cwd: root,
         encoding: "utf8",
@@ -140,7 +147,10 @@ console.log(sql.includes('public.comun_schema_releases') ? process.env.TEST_LEDG
         },
       });
       assert.equal(result.status === 0, scenario.pass, result.stderr);
-      if (JSON.stringify(scenario.ledger) === JSON.stringify([row])) {
+      if (scenario.versions === "") {
+        // The shell rejects an empty history before the diagnostic SQL/Node phase.
+        assert.equal(existsSync(diagnosticPath), false);
+      } else if (JSON.stringify(scenario.ledger) === JSON.stringify([row])) {
         const diagnostic = JSON.parse(
           readFileSync(
             join(root, ".ci-artifacts/48-2-a-preflight/drift-diagnostic.json"),
@@ -212,4 +222,93 @@ test("48.2-A diagnostic remains read-only and does not turn pending or unknown m
   );
   assert.match(observatoryStep.run, /drift-diagnostic\.json/);
   assert.match(observatoryStep.run, /DIAGNOSTIC_FORMAT_INVALID/);
+});
+
+test("portable Node gate preserves sanitized pending, unknown and schema failures", () => {
+  const nodeBody = observatoryStep.run.match(
+    /node --input-type=module - <<'NODE'\n([\s\S]+?)\nNODE/,
+  )[1];
+  const childImport = "import { execFileSync } from 'node:child_process';";
+  assert.ok(nodeBody.includes(childImport));
+  // Only Git discovery is mocked; execute the actual workflow classifier body.
+  const code = nodeBody.replace(
+    childImport,
+    "const execFileSync = () => process.env.TEST_CHANGED || '';",
+  );
+  for (const scenario of [
+    { pending: [], unknown: [], pass: true },
+    { pending: ["20261006134804"], unknown: [], pass: false },
+    { pending: [], unknown: ["20990101000000"], pass: false },
+    { pending: [], unknown: [], badSchema: true, pass: false },
+    { pending: [], unknown: [], businessRowsRead: true, pass: false },
+    {
+      pending: [],
+      unknown: [],
+      changed: "supabase/migrations/20990101000000_unknown.sql",
+      pass: false,
+    },
+  ]) {
+    const root = mkdtempSync(join(tmpdir(), "comun-diagnostic-portable-"));
+    try {
+      for (const path of [
+        manifestPath,
+        "scripts/ci/readonly-reconciled-migration-plan.mjs",
+      ]) {
+        mkdirSync(dirname(join(root, path)), { recursive: true });
+        cpSync(path, join(root, path));
+      }
+      const dir = join(root, "comun-48-2-a");
+      const artifacts = join(root, ".ci-artifacts/48-2-a-preflight");
+      mkdirSync(dir);
+      mkdirSync(artifacts, { recursive: true });
+      const schema = Object.fromEntries(
+        [
+          "dbTransportAvailable",
+          "psqlReadOnlyAvailable",
+          "p4ProjectionPresent",
+          "p4ProjectionRlsEnabled",
+          "p4PublicGeometryPresent",
+          "p6cCApplied",
+          "transactionReadOnly",
+        ].map((key) => [key, true]),
+      );
+      schema.businessRowsRead = scenario.businessRowsRead ?? false;
+      if (scenario.badSchema) schema.p4ProjectionRlsEnabled = false;
+      writeFileSync(join(artifacts, "schema.json"), JSON.stringify(schema));
+      writeFileSync(join(dir, "hardening-ledger.json"), JSON.stringify([row]));
+      writeFileSync(
+        join(dir, "pending-normal-migrations.txt"),
+        scenario.pending.join("\n"),
+      );
+      writeFileSync(
+        join(dir, "unknown-remote-migrations.txt"),
+        scenario.unknown.join("\n"),
+      );
+      const result = spawnSync(process.execPath, ["--input-type=module", "-"], {
+        cwd: root,
+        input: code,
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          RUNNER_TEMP: root,
+          TEST_CHANGED: scenario.changed || "",
+        },
+      });
+      assert.equal(result.status === 0, scenario.pass, result.stderr);
+      const diagnostic = JSON.parse(
+        readFileSync(join(artifacts, "drift-diagnostic.json"), "utf8"),
+      );
+      assert.deepEqual(diagnostic.pendingNormalMigrations, scenario.pending);
+      assert.deepEqual(diagnostic.unknownRemoteMigrations, scenario.unknown);
+      assert.equal(
+        existsSync(join(artifacts, "migration-proof.json")),
+        scenario.pass,
+      );
+      if (!scenario.pass)
+        assert.match(result.stderr, /COMUN_48_2_A_BLOCKED_REMOTE_SCHEMA_DRIFT/);
+    } finally {
+      assert.ok(root.startsWith(join(tmpdir(), "comun-diagnostic-portable-")));
+      rmSync(root, { recursive: true, force: true });
+    }
+  }
 });

@@ -10,7 +10,10 @@ for (const experience of ["", "?experiencia=legacy"]) {
       '[data-comun-pauta-practice-guidance="pauta"]',
     );
     await expect(guidance).toHaveCount(1);
-    await guidance.locator("summary").focus();
+    const summary = guidance.locator("summary");
+    await expect(summary).toBeVisible();
+    await summary.focus();
+    await expect(summary).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(guidance).toHaveAttribute("open", "");
     await expect(guidance).toContainText("Você pode apenas acompanhar");
@@ -92,7 +95,9 @@ for (const experience of ["", "?experiencia=legacy"]) {
       );
       await expect(guidance).toHaveCount(1);
       const summary = guidance.locator("summary");
+      await expect(summary).toBeVisible();
       await summary.focus();
+      await expect(summary).toBeFocused();
       await page.keyboard.press("Enter");
       await expect(guidance).toHaveAttribute("open", "");
       await expect(guidance.locator(":scope > ul > li")).toHaveCount(3);
