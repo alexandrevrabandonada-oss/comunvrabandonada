@@ -264,7 +264,9 @@ jobs:
           npm run civic-intelligence:test
           npm run security:test
           npm run test:unit
-          node -e "require('node:fs').rmSync('.next/dev',{recursive:true,force:true})"
+          node --test scripts/quality/clean-disposable-dev-types.node-test.mjs
+          node scripts/quality/clean-disposable-dev-types.mjs
+          npx next typegen
           npm run typecheck
           npm run lint
           npm run build
