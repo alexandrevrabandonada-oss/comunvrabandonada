@@ -38,6 +38,17 @@ orientação adequada, link allowlisted e nenhum controle de escrita dentro dela
 Doze casos de navegador foram preparados na suíte existente para desktop e
 celular, incluindo teclado, material e retorno. Execução renderizada NOT_RUN:
 Chromium não instalado. HTML não comprova foco, contraste ou interação.
+
+Revisão do CI do #523: o primeiro head não incluiu o marcador de checkpoint
+`[comun-preview]`, necessário para acionar o Preview exato. O teste de fallback
+da busca encontrou duas cópias do status no DOM; o seletor foi alinhado ao
+padrão da suíte Central, exigindo um único status visível dentro do `main`.
+A execução renderizada da correção e o Preview do novo head ainda precisam
+ser comprovados pelo CI.
+
+O preflight remoto read-only continua bloqueado por
+`20261006134804_comun_learning_r0.sql` pendente. Esse bloqueio é preservado:
+esta entrega não aplica a migração nem a exclui do plano exigido pelo gate.
 Próxima frente: ampliar orientação contextual a pautas e conectar materiais
 às práticas disponíveis da Escola, respeitando ativação e progresso existentes.
 
