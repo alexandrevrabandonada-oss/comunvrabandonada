@@ -297,3 +297,30 @@ O checkpoint seguinte altera somente roadmap/relatório e solicita Preview pelo
 mecanismo Git existente. Preview, checks e seus artifacts exatos ficam no corpo
 do #523 e no manifesto externo de prova, sem outro commit só para registrar o
 próprio SHA. O PR permanece draft enquanto houver bloqueios aplicáveis.
+
+### Reconciliação do checkpoint `13beb078`
+
+O Preview Git `dpl_BXtprBej18W6KF4rkiqs1Pp528A2` ficou READY para
+`13beb078c6c2b61bc87998d85c7ad3fccb7d3352`; GitHub Deployment `6939835496`,
+`environment=Preview`, status `success`, URL HTTPS Vercel. COST-02 passou na
+run `37801806979`. Essas provas pertencem a esse checkpoint, não ao seguinte.
+
+O CI de coerência `37801807231` encontrou uma falha de teste introduzida pela
+formatação do componente: a frase obrigatória sobre ausência de tempo real
+foi quebrada em duas linhas no JSX. O texto permanece renderizado. O teste
+agora normaliza whitespace antes de exigir a mesma frase; não remove requisito
+nem altera produto, snapshot ou fingerprint. A suíte remota anterior registrou
+1.479 PASS / 1 FAIL; não é uma execução verde.
+
+A execução local completa inicialmente encontrou cinco falhas adicionais de
+checkout CRLF em quatro contratos preexistentes. Os arquivos correspondentes
+foram restaurados byte a byte dos blobs Git, inclusive duas migrations, sem
+alteração de conteúdo versionado. A nova execução passou: 1.480 testes / 251 arquivos, zero skipped. O log está no pacote
+externo de evidências; não se alteraram expectativas para acomodar hashes.
+
+O harness POSIX do diagnóstico passou em quatro testes por uma cópia externa
+adaptada para Git Bash/Windows e transporte de Git simulado equivalente. Isso
+não substitui Linux remoto nem prova PostgreSQL/RLS. Quality `37801807033`
+ainda executava reset local na consulta; nenhum rerun foi solicitado. A migration
+Escola permanece bloqueante. O próximo checkpoint inclui somente correção do
+teste e este registro, e solicita um novo Preview exato.
