@@ -146,11 +146,9 @@ for (const [path, title, publisher] of [
     });
     expect(errors).toEqual([]);
     expect(writes).toEqual([]);
-    test
-      .info()
-      .annotations.push({
-        type: "technical-telemetry",
-        description: `uninspected beacon bodies: ${opaqueTechnicalMetrics}; business writes: 0`,
-      });
+    test.info().annotations.push({
+      type: "technical-telemetry",
+      description: `uninspected beacon bodies: ${opaqueTechnicalMetrics}; business writes: 0`,
+    });
   });
 }
