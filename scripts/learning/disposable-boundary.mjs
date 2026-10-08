@@ -4,6 +4,20 @@ import { execFileSync } from "node:child_process";
 // Membership and profile statuses are different existing contracts.
 export const INACTIVE_MEMBERSHIP_STATE = "paused";
 
+// CLI 2.117.0 resolves the same pinned image through ECR, then official GHCR.
+// https://github.com/supabase/cli/blob/v2.117.0/apps/cli-go/internal/utils/docker.go
+// Keep repository and tag exact; an arbitrary image in either registry is unsafe.
+const ownedImages = {
+  db: new Set([
+    "public.ecr.aws/supabase/postgres:17.6.1.167",
+    "ghcr.io/supabase/postgres:17.6.1.167",
+  ]),
+  kong: new Set([
+    "public.ecr.aws/supabase/kong:2.8.1",
+    "ghcr.io/supabase/kong:2.8.1",
+  ]),
+};
+
 export function disposableContext(env) {
   assert.equal(
     env.COMUN_LEARNING_DISPOSABLE_AUTH,
@@ -64,10 +78,10 @@ export function assertOwnedContainers(
       ports?.some((port) => port.HostPort === hostPort),
       "unexpected port mapping",
     );
-    assert.match(
-      container.Config.Image,
-      /^public\.ecr\.aws\/supabase\//,
-      "unexpected image lineage",
+    assert.equal(
+      ownedImages[kind].has(container.Config.Image),
+      true,
+      "unexpected pinned image lineage",
     );
   }
 }

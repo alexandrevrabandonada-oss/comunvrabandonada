@@ -88,7 +88,11 @@ function container(name) {
   return {
     Name: `/${name}`,
     State: { Running: true },
-    Config: { Image: "public.ecr.aws/supabase/fixture:pinned" },
+    Config: {
+      Image: name.includes("supabase_db_")
+        ? "public.ecr.aws/supabase/postgres:17.6.1.167"
+        : "public.ecr.aws/supabase/kong:2.8.1",
+    },
     NetworkSettings: {
       Ports: {
         "5432/tcp": [{ HostPort: "55432" }],
@@ -117,6 +121,51 @@ test("a loopback URL alone never authorizes writes to an unrelated Docker stack"
     assert.throws(() =>
       assertOwnedContainers(context, (name) => {
         const c = container(name);
+        mutate(c);
+        return c;
+      }),
+    );
+});
+test("CLI's official GHCR fallback accepts only the exact owned service images", () => {
+  const context = disposableContext(env);
+  assert.doesNotThrow(() =>
+    assertOwnedContainers(context, (name) => {
+      const c = container(name);
+      c.Config.Image = c.Config.Image.replace("public.ecr.aws/", "ghcr.io/");
+      return c;
+    }),
+  );
+  for (const image of [
+    "ghcr.io/supabase/postgres:latest",
+    "ghcr.io/supabase/postgres:17.6.1.158",
+    "public.ecr.aws/supabase/postgres:17.6.1.158",
+    "ghcr.io/other/postgres:17.6.1.167",
+    "ghcr.io/supabase/postgres:17.6.1.167-extra",
+    "ghcr.io/supabase/kong:2.8.1",
+    "public.ecr.aws/supabase/fixture:pinned",
+  ])
+    assert.throws(() =>
+      assertOwnedContainers(context, (name) => {
+        const c = container(name);
+        c.Config.Image = image;
+        return c;
+      }),
+    );
+  for (const mutate of [
+    (c) => {
+      c.Name = "/supabase_db_foreign";
+    },
+    (c) => {
+      c.State.Running = false;
+    },
+    (c) => {
+      c.NetworkSettings.Ports = {};
+    },
+  ])
+    assert.throws(() =>
+      assertOwnedContainers(context, (name) => {
+        const c = container(name);
+        c.Config.Image = c.Config.Image.replace("public.ecr.aws/", "ghcr.io/");
         mutate(c);
         return c;
       }),

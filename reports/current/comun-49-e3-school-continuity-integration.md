@@ -83,3 +83,22 @@ Sem amostra humana não declarar facilidade percebida, qualidade pedagógica,
 operação de núcleos, governança ou resultado real. Ensaio humano/editorial e
 jornada privada completa sem JavaScript: NOT_RUN. Competências/Fábrica não
 presumidas integradas. PR draft até gates e revisão; ativação é decisão separada.
+
+## Finding remoto: registry do guard — 08/10/2026 UTC
+
+Checkpoint8c99, run37708670513, canonical-auth job113089080522: falhou ANTES da
+prova Auth por unexpected image lineage. CLI2.117.0 usou o fallback oficial
+GHCR: ghcr.io/supabase/postgres:17.6.1.167, após retries ECR. School mínimo passou;
+checker/proof artifact skipped, não PASS. A stack remota foi destruída no finally.
+
+A [fonte oficial da CLI pinada](https://github.com/supabase/cli/blob/v2.117.0/apps/cli-go/internal/utils/docker.go)
+resolve ECR e GHCR com o mesmo nome/tag. Correção focal somente no harness:
+allowlist de quatro referências exatas, postgres17.6.1.167 e kong2.8.1, nos dois
+registries oficiais. Não é afirmação de equivalência binária por digest. Não
+aceitar outro namespace, versão, latest, sufixo ou imagem de serviço trocado.
+O prefixo amplo ECR anterior foi substituído por referências exatas. Nome de
+container, running, portas, run/project ID, loopback e recusa de secrets continuam
+obrigatórios antes de cada write. Nove boundary/controller PASS, incluindo
+fallback legítimo e controles negativos; Prettier/diff-check PASS.
+Nenhuma mudança em API, Auth de produto, SQL, grants, RLS, manifest ou flags.
+Nova run completa exigida no novo head. Preview8c99 não certifica o novo SHA.
