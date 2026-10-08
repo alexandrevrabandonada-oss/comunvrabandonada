@@ -78,6 +78,26 @@ try {
     ],
   );
   const pre = await captureAtomicSnapshot(db);
+  // The historical schema fixture intentionally carries only the v2 ledger.
+  // Restore missing technical release rows from this run's sanitized capture,
+  // never business data. Existing rows are never overwritten or deleted.
+  for (const row of capture.snapshot.ledger) {
+    if (pre.ledger.some((r) => r.release === row.release)) continue;
+    owned();
+    await db.query(
+      "insert into public.comun_schema_releases(release,migration_path,migration_sha256,pre_fingerprint,post_fingerprint,status) values($1,$2,$3,$4,$5,$6)",
+      [
+        row.release,
+        row.migration_path,
+        row.migration_sha256,
+        row.pre_fingerprint,
+        row.post_fingerprint,
+        row.status,
+      ],
+    );
+  }
+  const restoredPre = await captureAtomicSnapshot(db);
+  pre.ledger = restoredPre.ledger;
   sameSnapshot(pre, capture.snapshot);
   assert.equal(
     (await db.query("show server_version")).rows[0].server_version,
