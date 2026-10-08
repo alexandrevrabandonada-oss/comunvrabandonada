@@ -1,3 +1,38 @@
+## Busca integrada e higiene dos tipos gerados — 08/10/2026
+
+O #519 foi integrado em main `e8850cbc9d7615283225516d5ab7eb654bdea545`,
+com árvore revisada preservada. Production READY e endpoint público no SHA
+exato; 18 checks pós-merge success, 79 skipped, zero falhas/pendências.
+Quality remoto `113533464845` passou read-only, e a integração PostgREST
+voltou a passar em main. Não certifica operação pública V1 ou aparelhos reais.
+
+O candidato #523 `00153352` passou nas jornadas, mas Quality `113523175532`
+falhou depois com TS1109/TS1128 no arquivo gerado
+`.next-miniapp-experience/dev/types/validator.ts`. A rotina antiga retirava
+somente `.next/dev`, deixando o output dev isolado na seleção do TypeScript.
+O conteúdo gerado inválido foi identificado pelo log; sua origem exata não
+foi reproduzida. Não atribuir a código da aplicação nem declarar flake.
+
+A correção retira somente os dois outputs dev conhecidos, após encerramento
+dos testes de navegador, preserva os tipos de produção e fontes, e executa
+`next typegen` canônico antes do mesmo `tsc --noEmit`, lint e build. Não altera
+`ignoreBuildErrors`, strict ou globais de exclusão. Três provas com o compilador
+TypeScript real demonstram falha por validator dev inválido, recuperação após
+limpeza e preservação de erros de aplicação e de tipos de rotas de produção.
+
+Esta reconciliação incorpora main por merge normal: os filtros de busca e a
+prova PostgREST já integrados são preservados. Páginas, projeção contextual,
+compartilhamento, migration, manifesto e flags do candidato permanecem.
+O novo SHA exige seus próprios checks; as provas anteriores são históricas.
+
+Os 502 nos resets descartáveis de Território `113523175153` e ciclo político
+`113523176640` passaram em uma reexecução isolada cada, sem mudança de código
+(jobs `113536308032` e `113532923911`). As falhas originais permanecem no
+histórico. Seis gates remotos continuam dependentes da Escola; recuperação do
+provedor continua bloqueada. Nenhuma migration Production, flag ou indexação.
+
+---
+
 ## Storage integrado e prova focal do candidato — 08/10/2026
 
 O #530 foi integrado por merge normal em main `3530f8aa4a25e7ff0ad2654d36826f92279fc9df`,
