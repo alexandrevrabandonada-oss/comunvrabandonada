@@ -4,6 +4,34 @@ Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99
 
 ## Atualização transversal do produto — 06/10/2026
 
+### Sequência de integração — 08/10/2026
+
+Primeiro tijolo integrado: #522, merge normal
+`2d21df3de4da10851840529a639944ee22141377`, árvore idêntica ao candidato
+read-only revisado. O caminho automático de Quality deixa de transportar schema.
+Na consulta desta preparação, o deploy Vercel informou success e os checks
+pós-merge ainda executavam; certificação completa não presumida. Quality
+`37811285564` confirmou inspeção de schema read-only verde e falhou depois no
+seletor antigo da busca (cópia oculta de streaming). Integrar a correção focal
+já validada no #523 antes de considerar a base certificada.
+
+O #523 permanece draft em `ec849235b1fa33dd4dad959a4748b6ddff438bfd`.
+Quality e Civic Intelligence concluíram success; consulta completa: 49 success,
+6 failure, 87 skipped, nenhuma pendência. As seis falhas seguem bloqueadas pela
+release da Escola; skipped não é aprovação. As descrições anteriores de #522
+draft e Quality pendente abaixo são históricas.
+
+O próximo pacote separado é a [revisão da release Escola](comun-escola-release-review.md):
+bytes/catálogo imutáveis, captura preliminar read-only e prova PostgreSQL
+descartável. Publicar a ferramenta não promove schema. O manifest permanece
+local_candidate e remotePromotionAllowed=false. Baseline completo, transporte
+atômico, POST e recuperação ainda precisam de prova antes de uma promoção.
+
+Ordem: certificar #522 → integrar preparação da Escola → revisar/promover schema
+em etapa própria → revalidar seis gates → integrar #523 → certificar deploy.
+Ativação e ensaio humano seguem depois. Novas frentes de produto devem usar
+essa base integrada, preservando as dependências e a distinção código/schema/flag.
+
 O roadmap passa a tratar o COMUN também como infraestrutura para uma estrutura política permanente ligada à APS, à VR Abandonada e a organizações aliadas. Núcleos, estratégia, formação, competências, fábrica, Minha Participação, inteligência cívica, observatórios e ação institucional formam um ciclo organizativo: evidência → prioridade coletiva → formação e responsabilidade voluntária → ação → devolutiva → memória e renovação de capacidades.
 
 Essa conexão existia distribuída em frentes do roadmap, mas não estava explícita como objetivo integrador nem como contrato de produto. O novo [49-E0 — contrato de produto único](comun-one-product-contract-49-e0.md) fixa os princípios e inclui a camada **49-M — Organização política permanente**. O E0 é um candidato em implementação; não altera o estado da V1, a autorização de lançamento nem a indexação atual.
