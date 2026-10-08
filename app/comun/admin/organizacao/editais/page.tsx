@@ -14,7 +14,7 @@ export default async function Page() {
 
   return (
     <AdminShell adminEmail={session.admin.email}>
-      <main className="max-w-5xl">
+      <div className="max-w-5xl">
         <Link className="text-sm font-bold underline" href="/comun/admin/organizacao">
           Voltar à Sala de Organização
         </Link>
@@ -25,7 +25,7 @@ export default async function Page() {
           a leitura integral do edital e das retificações.
         </p>
         <EditaisR0Workbench />
-      </main>
+      </div>
     </AdminShell>
   );
 }
