@@ -224,7 +224,7 @@
     "civic-intelligence:sync:local": "npm run civic:search:sync:local",
     "civic-intelligence:rehearsal:local": "npm run civic:search:rehearsal:local",
     "civic-intelligence:perf": "npm run civic:search:performance:local",
-    "quality:test": "node --test scripts/quality/audit-comun-quality.node-test.mjs scripts/quality/run-comun-quality-performance.node-test.mjs && vitest run lib/quality-performance.test.ts lib/comun-pwa.test.ts",
+    "quality:test": "node --test scripts/quality/audit-comun-quality.node-test.mjs scripts/quality/run-comun-quality-performance.node-test.mjs scripts/quality/verify-comun-quality-remote.node-test.mjs && vitest run lib/quality-performance.test.ts lib/comun-pwa.test.ts",
     "quality:a11y": "playwright test -c playwright.quality-performance.config.ts --grep @a11y",
     "quality:pwa": "playwright test -c playwright.comun-pwa-experience.config.ts",
     "quality:performance": "node scripts/quality/run-comun-quality-performance.mjs",
