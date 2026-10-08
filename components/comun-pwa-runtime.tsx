@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   COMUN_INSTALL_DISMISS_KEY,
   COMUN_LAST_SAFE_ROUTE_KEY,
@@ -277,6 +277,7 @@ function ComunShareControl({
   pathname,
   className = "min-h-11 border-2 border-comun-yellow px-3 text-xs font-black uppercase text-comun-yellow",
 }: ShareButtonProps & { pathname: string }) {
+  const statusId = useId();
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
@@ -349,7 +350,14 @@ function ComunShareControl({
         onClick={share}
         disabled={busy}
         aria-busy={busy}
-        aria-label="Compartilhar esta página"
+        aria-label={
+          status === "Link copiado."
+            ? "Link copiado. Compartilhar esta página"
+            : busy
+              ? "Abrindo opções. Compartilhar esta página"
+              : "Compartilhar esta página"
+        }
+        aria-describedby={statusId}
         className={className}
       >
         {busy
@@ -359,6 +367,7 @@ function ComunShareControl({
             : "Compartilhar"}
       </button>
       <span
+        id={statusId}
         className="sr-only"
         role="status"
         aria-live="polite"
@@ -370,6 +379,7 @@ function ComunShareControl({
         <dialog
           ref={dialog}
           aria-label="Copiar link manualmente"
+          aria-describedby={`${statusId}-manual`}
           className="m-auto w-[min(92vw,32rem)] border-2 border-comun-yellow bg-comun-black p-5 text-comun-paper backdrop:bg-black/70"
           onClose={() => {
             setManualUrl(null);
@@ -377,7 +387,7 @@ function ComunShareControl({
           }}
         >
           <h2 className="text-xl font-black">Copiar link manualmente</h2>
-          <p className="mt-3">
+          <p id={`${statusId}-manual`} className="mt-3">
             A cópia automática não está disponível neste navegador. Selecione e
             copie o link abaixo para compartilhar onde preferir.
           </p>

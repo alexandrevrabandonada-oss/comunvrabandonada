@@ -5,7 +5,7 @@ const path = "/comun/pautas/calcadas-em-circulacao";
 const canonical = `https://comunsocial.online${path}`;
 const shareButton = (page: import("@playwright/test").Page) =>
   page
-    .getByRole("button", { name: "Compartilhar esta página", exact: true })
+    .getByRole("button", { name: /Compartilhar esta página$/ })
     .filter({ visible: true })
     .first();
 

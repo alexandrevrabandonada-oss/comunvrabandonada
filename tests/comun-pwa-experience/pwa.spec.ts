@@ -128,7 +128,9 @@ test("copy fallback gives a clear confirmation when native sharing is unavailabl
       ),
     )
     .toBe("Link copiado");
-  await expect(shareButton.getByRole("status")).toHaveText("Link copiado.");
+  await expect(
+    page.locator('[role="status"]').filter({ hasText: /^Link copiado\.$/ }),
+  ).toHaveText("Link copiado.");
   await expect(shareButton).toHaveAccessibleName(
     "Link copiado. Compartilhar esta página",
   );
@@ -166,14 +168,26 @@ test("failed native sharing and clipboard announce failure without confirming co
   await page.goto("/comun");
   const shareButton = await openShareButton(page);
   await shareButton.click();
-  await expect(shareButton).toContainText("Falha no link");
-  await expect(shareButton.getByRole("status")).toHaveText(
-    "Não foi possível compartilhar o link.",
+  const dialog = page.getByRole("dialog", { name: "Copiar link manualmente" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByLabel("Link público")).toBeFocused();
+  await expect(dialog.getByLabel("Link público")).toHaveValue(/\/comun$/);
+  await expect(dialog.getByLabel("Link público")).toHaveAttribute(
+    "readonly",
+    "",
   );
-  await expect(shareButton).not.toContainText("Link copiado");
-  await expect(shareButton).toHaveAccessibleName(
-    "Falha no link. Compartilhar esta página",
-  );
+  await expect(
+    page
+      .locator('[role="status"]')
+      .filter({ hasText: /^Cópia automática indisponível/ }),
+  ).toHaveText("Cópia automática indisponível. Copie o link manualmente.");
+  await expect(
+    page.locator("button").filter({ hasText: /^Link copiado$/ }),
+  ).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(shareButton).toBeFocused();
+  await expect(shareButton).toHaveAccessibleName("Compartilhar esta página");
   const labelAudit = await new AxeBuilder({ page })
     .withRules(["label-content-name-mismatch"])
     .analyze();
