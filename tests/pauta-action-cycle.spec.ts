@@ -1,6 +1,37 @@
 import { expect, test } from "@playwright/test";
 
 for (const experience of ["", "?experiencia=legacy"]) {
+  test(`orientação na pauta${experience}: fontes, consulta e retorno`, async ({
+    page,
+  }) => {
+    const path = `/comun/pautas/calcadas-em-circulacao${experience}`;
+    await page.goto(path);
+    const guidance = page.locator(
+      '[data-comun-pauta-practice-guidance="pauta"]',
+    );
+    await expect(guidance).toHaveCount(1);
+    await guidance.locator("summary").focus();
+    await page.keyboard.press("Enter");
+    await expect(guidance).toHaveAttribute("open", "");
+    await expect(guidance).toContainText("Você pode apenas acompanhar");
+    await expect(guidance.locator("form, input, button")).toHaveCount(0);
+    const destination = `/comun/ajuda/primeira-acao?etapa=pauta${experience ? "&experiencia=legacy" : ""}`;
+    const link = guidance.getByRole("link", {
+      name: "Abrir orientação completa",
+      exact: true,
+    });
+    await expect(link).toHaveAttribute("href", destination);
+    await link.click();
+    await expect(page).toHaveURL(destination);
+    await expect(
+      page.locator('[data-comun-practice-guidance="pauta"]:visible'),
+    ).toContainText("fontes e as datas");
+    await page.goBack();
+    await expect(page).toHaveURL(path);
+    await expect(
+      page.locator('[data-comun-pauta-practice-guidance="pauta"]'),
+    ).toHaveCount(1);
+  });
   for (const [slug, stage] of [
     ["mutirao-caminho-seguro", "participacao"],
     ["encaminhamento-iluminacao", "resultado"],

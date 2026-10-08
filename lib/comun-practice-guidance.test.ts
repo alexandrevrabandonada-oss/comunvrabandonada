@@ -43,6 +43,10 @@ describe("public practice context", () => {
     expect(resolveParticipationGuidanceStage(value)).toBeNull();
   });
   it("passes only public context and experience in links", () => {
+    expect(resolveParticipationGuidanceStage("pauta")).toBe("pauta");
+    expect(participationGuidanceHref("pauta", false)).toBe(
+      "/comun/ajuda/primeira-acao?etapa=pauta&experiencia=legacy",
+    );
     expect(participationGuidanceHref("acompanhamento")).toBe(
       "/comun/ajuda/primeira-acao?etapa=acompanhamento",
     );

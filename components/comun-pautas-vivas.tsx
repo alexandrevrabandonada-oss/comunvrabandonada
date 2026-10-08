@@ -1,3 +1,4 @@
+import { ComunPracticeGuidance } from "@/components/comun-practice-guidance";
 import Link from "next/link";
 import { publicPautaStateLabel } from "@/lib/comun-public-labels";
 import { ComunShell, PrimaryLink, Section } from "./comun-shell";
@@ -236,6 +237,7 @@ function EvidenceFilteredPautasIndex({
 }
 
 export function PautaVivaDetail({
+  appV2 = true,
   space,
   evidence,
   tasks,
@@ -249,6 +251,7 @@ export function PautaVivaDetail({
   cycleMemoryEnabled = false,
   creationFeedback,
 }: {
+  appV2?: boolean;
   space: PublicPautaSpace;
   evidence: readonly PublicPautaEvidenceItem[];
   tasks: readonly PublicPautaTask[];
@@ -327,6 +330,7 @@ export function PautaVivaDetail({
         <h2 className="comun-prose mt-5 max-w-4xl text-xl font-black text-comun-paper">
           {primaryQuestion(space)}
         </h2>
+        <ComunPracticeGuidance stage="pauta" context="pauta" appV2={appV2} />
         <div className="mt-6 max-w-4xl border-l-4 border-comun-yellow pl-4">
           <p className="text-xs font-black uppercase text-comun-paper/60">
             Próximo passo

@@ -49,6 +49,28 @@ ser comprovados pelo CI.
 O preflight remoto read-only continua bloqueado por
 `20261006134804_comun_learning_r0.sql` pendente. Esse bloqueio é preservado:
 esta entrega não aplica a migração nem a exclui do plano exigido pelo gate.
+
+Continuação autônoma do E3: a orientação também acompanha o detalhe de pauta
+(Pauta Viva, miniapp V2/legacy, detalhe V2/legacy e fallback editorial antigo).
+O material orienta conferir pessoas afetadas, fontes, datas, lacunas e condições
+da contribuição, preservando a possibilidade de apenas acompanhar. Pautas e
+ações reutilizam um componente de servidor com expansão nativa, sem estado
+privado, consulta adicional ou gravação. O link transporta somente `etapa=pauta`
+e a experiência; nenhum slug ou identificador individual é transportado.
+
+Validação desta ampliação: 38 testes focais, ESLint, TypeScript e diff-check
+passaram. HTML servido sem credenciais respondeu 200 nas quatro combinações
+do fallback editorial de calçadas (Pauta Viva ligada/desligada × V2/legacy),
+com uma orientação, link esperado e nenhum formulário/input/botão dentro dela.
+Quatro novos casos de navegador (V2/legacy × desktop/celular) cobrem teclado,
+material e retorno; a suíte lista 20 casos. Execução renderizada local NOT_RUN
+por ausência de Chromium; os demais ramos foram revisados estaticamente.
+
+No head anterior `deb15b00d84d4b9f0aae7bfaf34ddb28083b8f16`, network-lane,
+COST-02/Preview exato e ciclo público/mobile/teclado passaram. Esses resultados
+não certificam a ampliação posterior. Além da migração pendente, Civic
+Intelligence encontrou sintaxe inválida em `.next/dev/types/validator.ts`
+gerado durante o ensaio; essa falha de CI permanece para tratamento separado.
 Próxima frente: ampliar orientação contextual a pautas e conectar materiais
 às práticas disponíveis da Escola, respeitando ativação e progresso existentes.
 

@@ -2,6 +2,18 @@ import { withComunAppV2 } from "./comun-experience";
 
 // Public learning material, not a second progress or task system.
 export const participationGuidance = {
+  pauta: {
+    title: "Como ler e contribuir com esta pauta",
+    summary:
+      "Conheça o problema e o que já está documentado antes de escolher uma contribuição.",
+    checks: [
+      "Confira quem é afetado, as fontes e as datas. Separe observação, proposta e resultado comprovado.",
+      "Veja o próximo passo e as lacunas publicadas. Se algo não estiver confirmado, mantenha a dúvida explícita e preserve dados pessoais.",
+      "Você pode apenas acompanhar. Para contribuir, confira as condições no fluxo correspondente; ler esta pauta não inscreve você nem assume uma tarefa.",
+    ],
+    href: "/comun/pautas",
+    action: "Consultar pautas e fontes",
+  },
   participacao: {
     title: "Antes de participar desta ação",
     summary:
