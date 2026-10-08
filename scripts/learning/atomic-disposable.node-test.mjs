@@ -131,3 +131,21 @@ test("production-like database is bound to this exact disposable run", () => {
     ),
   );
 });
+test("fixture administrator is allowed only on the exact run database", () => {
+  requireAtomicConnection(
+    {
+      connectionParameters: {
+        ...local,
+        user: "supabase_admin",
+        database: "comun_learning_prodlike_123_1",
+      },
+    },
+    confirmation,
+  );
+  assert.throws(() =>
+    requireAtomicConnection(
+      { connectionParameters: { ...local, user: "supabase_admin" } },
+      confirmation,
+    ),
+  );
+});

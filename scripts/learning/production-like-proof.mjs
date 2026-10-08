@@ -108,14 +108,6 @@ try {
     capture.privateCatalog,
     "LEARNING_PRIVATE_PRE_FIXTURE_DRIFT",
   );
-  // Temporary local executor rights, absent from the release itself. Restore
-  // them before the final equivalence capture, including on injected failure.
-  owned();
-  await admin.query(
-    "grant create on schema public to postgres; grant insert on supabase_migrations.schema_migrations to postgres",
-  );
-  const executablePre = await captureAtomicSnapshot(db);
-  sameSnapshot(executablePre, pre);
   for (const stage of ["schema", "history", "ledger"]) {
     owned();
     await assert.rejects(
@@ -148,9 +140,6 @@ try {
   );
   sameSnapshot(await captureAtomicSnapshot(db), post);
   owned();
-  await admin.query(
-    "revoke create on schema public from postgres; revoke insert on supabase_migrations.schema_migrations from postgres",
-  );
   sameSnapshot(await captureAtomicSnapshot(db), post);
   assert.deepEqual(await privateSnapshot(), capture.privateCatalog);
   const proof = {

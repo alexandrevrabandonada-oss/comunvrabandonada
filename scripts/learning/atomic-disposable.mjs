@@ -134,7 +134,10 @@ export function requireAtomicConnection(db, env = process.env) {
       (target.database === "postgres" ||
         target.database ===
           `comun_learning_prodlike_${env.COMUN_LEARNING_RUN_ID.replace("-", "_")}`) &&
-      target.user === "postgres",
+      (target.user === "postgres" ||
+        (target.user === "supabase_admin" &&
+          target.database ===
+            `comun_learning_prodlike_${env.COMUN_LEARNING_RUN_ID.replace("-", "_")}`)),
     "LEARNING_ATOMIC_LOCAL_DESTINATION_REQUIRED",
   );
   for (const key of [
@@ -157,6 +160,15 @@ export async function installAtomicDisposable(db, expectedPre, failAt = null) {
     const pre = await readAtomicSnapshot(db);
     requireAbsent(pre);
     sameSnapshot(pre, expectedPre);
+    // Pinned Supabase image: lend executor rights only inside this disposable
+    // transaction. Install as postgres, restore ACLs before fingerprinting.
+    // Rollback at any stage restores the original privileges as well.
+    const privilegeWindow = db.connectionParameters.user === "supabase_admin";
+    if (privilegeWindow) {
+      await db.query(
+        "grant create on schema public to postgres; grant references on auth.users to postgres; grant insert on supabase_migrations.schema_migrations to postgres; set local role postgres",
+      );
+    }
     await db.query(sql);
     if (failAt === "schema")
       throw new Error("LEARNING_DISPOSABLE_INJECTED_SCHEMA_FAILURE");
@@ -166,6 +178,11 @@ export async function installAtomicDisposable(db, expectedPre, failAt = null) {
     );
     if (failAt === "history")
       throw new Error("LEARNING_DISPOSABLE_INJECTED_HISTORY_FAILURE");
+    if (privilegeWindow) {
+      await db.query(
+        "reset role; revoke create on schema public from postgres; revoke references on auth.users from postgres; revoke insert on supabase_migrations.schema_migrations from postgres; set local role postgres",
+      );
+    }
     const post = await readAtomicSnapshot(db);
     assert.deepEqual(
       outsideSchool(post.compact.canonical),
