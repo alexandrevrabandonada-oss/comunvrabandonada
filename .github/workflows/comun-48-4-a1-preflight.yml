@@ -76,18 +76,19 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$(cat .ci-artifacts/48-4-a1-preflight/mode)" = promoted ]; then
+            node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs
             node scripts/ci/readonly-reconciled-migration-plan.mjs .ci-artifacts/48-4-a1-preflight/plan.txt
-            planned=()
           else
+            test "$(cat .ci-artifacts/48-4-a1-preflight/mode)" = candidate
             test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
             held="$RUNNER_TEMP/external.sql"; mv "$EXTERNAL_MIGRATION" "$held"; trap 'mv "$held" "$EXTERNAL_MIGRATION"' EXIT
             supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-4-a1-preflight/plan.txt 2>&1
-            mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-4-a1-preflight/plan.txt | sort -u || true)
-            if [ "$(cat .ci-artifacts/48-4-a1-preflight/mode)" = candidate ]; then
-              test "${#planned[@]}" -eq 1 && test "${planned[0]}" = "$(basename "$MIGRATION")"
-            else test "${#planned[@]}" -eq 0; fi
-            ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/48-4-a1-preflight/plan.txt
           fi
+          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-4-a1-preflight/plan.txt | sort -u || true)
+          if [ "$(cat .ci-artifacts/48-4-a1-preflight/mode)" = candidate ]; then
+            test "${#planned[@]}" -eq 1 && test "${planned[0]}" = "$(basename "$MIGRATION")"
+          else test "${#planned[@]}" -eq 0; fi
+          ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/48-4-a1-preflight/plan.txt
           echo "migrationCount=${#planned[@]}" >> "$GITHUB_STEP_SUMMARY"
           echo businessContentRead=false >> "$GITHUB_STEP_SUMMARY"
           echo COMUN_48_4_A1_REMOTE_PREFLIGHT_GREEN >> "$GITHUB_STEP_SUMMARY"

@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "scripts/ci/readonly-reconciled-migration-plan*"
       - ".github/workflows/comun-p6c-c-preflight.yml"
       - "app/api/comun/sensitive-forwarding/**"
       - "app/comun/minha-participacao/**"
@@ -116,16 +117,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
-          held="$RUNNER_TEMP/comun-p6cc-external-ledger.sql"
-          mv "$EXTERNAL_MIGRATION" "$held"
-          restore() {
-            test ! -e "$held" || mv "$held" "$EXTERNAL_MIGRATION"
+          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+          if [ "${COMUN_MIGRATION_LANE_MODE:-}" = none ] && test "${#changed[@]}" -eq 0; then
+            node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs
+            node scripts/ci/readonly-reconciled-migration-plan.mjs .ci-artifacts/p6c-c-preflight/dry-run.txt
+          else
             test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
-          }
-          trap restore EXIT
-          supabase migration list --db-url "$SUPABASE_DB_URL" >.ci-artifacts/p6c-c-preflight/migration-list.txt 2>&1
-          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p6c-c-preflight/dry-run.txt 2>&1
+            held="$RUNNER_TEMP/comun-p6cc-external-ledger.sql"
+            mv "$EXTERNAL_MIGRATION" "$held"
+            restore() {
+              test ! -e "$held" || mv "$held" "$EXTERNAL_MIGRATION"
+              test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"
+            }
+            trap restore EXIT
+            supabase migration list --db-url "$SUPABASE_DB_URL" >.ci-artifacts/p6c-c-preflight/migration-list.txt 2>&1
+            supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/p6c-c-preflight/dry-run.txt 2>&1
+          fi
           mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
           mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p6c-c-preflight/dry-run.txt | sort -u || true)
           if test "${#changed[@]}" -eq 0; then

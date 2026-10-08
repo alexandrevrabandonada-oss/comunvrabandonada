@@ -138,6 +138,7 @@ export default async function MinhaAreaPage({
     if (!optionalCommunitySession?.user)
       return (
         <WalletOnlyPage
+          appV2={appV2}
           stmuAssistedEnabled={stmuAssistedEnabled}
           stmuMultichannelEnabled={stmuMultichannelEnabled}
           essentialServicesEnabled={essentialServicesEnabled}
@@ -291,6 +292,7 @@ export default async function MinhaAreaPage({
       {walletEnabled ? (
         <ComunSection>
           <ParticipationWalletPanel
+            appV2={false}
             accountAvailable={Boolean(optionalCommunitySession?.user)}
             stmuAssistedEnabled={stmuAssistedEnabled}
             stmuMultichannelEnabled={stmuMultichannelEnabled}
@@ -1374,6 +1376,7 @@ function CollectiveActionsPreviewParticipation() {
 }
 
 function WalletOnlyPage({
+  appV2,
   stmuAssistedEnabled,
   stmuMultichannelEnabled,
   essentialServicesEnabled,
@@ -1383,6 +1386,7 @@ function WalletOnlyPage({
   civicEnvironmentalForwardingEnabled,
   civicUrbanForwardingEnabled,
 }: {
+  appV2: boolean;
   stmuAssistedEnabled: boolean;
   stmuMultichannelEnabled: boolean;
   essentialServicesEnabled: boolean;
@@ -1399,7 +1403,10 @@ function WalletOnlyPage({
         contextLabel: "Continue de onde parou",
       }}
     >
-      <div className="comun-v2-page" data-comun-app-v2-page="wallet-only">
+      <div
+        className={`comun-v2-page ${appV2 ? "" : "bg-comun-paper p-4 text-comun-black"}`}
+        data-comun-app-v2-page="wallet-only"
+      >
         <header className="mb-4 grid gap-1">
           <h1 className="text-2xl font-black normal-case">
             Minha participação
@@ -1408,6 +1415,7 @@ function WalletOnlyPage({
           <p className="text-sm text-comun-black/65">Continue de onde parou</p>
         </header>
         <ParticipationWalletPanel
+          appV2={appV2}
           standalone
           stmuAssistedEnabled={stmuAssistedEnabled}
           stmuMultichannelEnabled={stmuMultichannelEnabled}

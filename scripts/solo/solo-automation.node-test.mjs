@@ -201,6 +201,7 @@ test("canonical workflows remain active and known additions are explicit", () =>
     "comun-sidewalk-remote-diagnostic.yml",
   ];
   const knownAdditional = new Set([
+    "comun-participation-continuity.yml",
     "comun-49-2-a0-r4-private-legitimacy-disposable.yml",
     "comun-49-2-a0-r5-public-projection-disposable.yml",
     "comun-49-2-entity-onboarding-r4-review.yml",

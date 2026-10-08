@@ -65,6 +65,7 @@ const AUTH_TITLES: Record<string, string> = {
 
 const INSTITUTIONAL_TITLES: Record<string, string> = {
   "/comun/ajuda": "Ajuda",
+  "/comun/ajuda/primeira-acao": "Primeira ação",
   "/comun/seguranca": "Segurança e privacidade",
   "/comun/territorio-tomado": "Sobre o COMUN",
   "/comun/offline": "Acesso offline",
@@ -196,6 +197,7 @@ function titleFor(route: string, family: string) {
 }
 
 function parentFor(route: string, shellMode: ComunShellMode) {
+  if (route === "/comun/ajuda/primeira-acao") return "/comun/participar";
   if (shellMode === "admin") {
     const segments = routeSegments(route);
     return segments.length <= 3

@@ -35,6 +35,7 @@ const requiredRoutes = [
   "/comun/arte",
   "/comun/seguranca",
   "/comun/ajuda",
+  "/comun/ajuda/primeira-acao",
   "/comun/entrar",
   "/comun/minha-participacao",
   "/comun/escola",
@@ -217,6 +218,14 @@ const experienceMatrix = [
     "Que outras superfícies existem?",
     "Abrir destino",
     "/comun",
+    false,
+  ],
+  [
+    "/comun/ajuda/primeira-acao",
+    "aprender na prática",
+    "Como passar de um assunto a uma contribuição?",
+    "Pesquisar meu assunto",
+    "/comun/participar",
     false,
   ],
 ].map(

@@ -1,13 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  Bell,
-  CirclePlus,
-  Compass,
-  Home,
-  UserRound,
-} from "lucide-react";
+import { Bell, CirclePlus, Compass, Home, UserRound } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { ParticipateSheet } from "./comun-experience-controls";
@@ -180,7 +174,7 @@ export function ComunMobileNavigation({
           <Link
             href={withComunAppV2(COMUN_MOTOROLA_PRIMARY_ACTION.href, true)}
             prefetch={false}
-            aria-label={COMUN_MOTOROLA_PRIMARY_ACTION.accessibleLabel}
+            aria-label={`${COMUN_MOTOROLA_PRIMARY_ACTION.mobileLabel}. ${COMUN_MOTOROLA_PRIMARY_ACTION.accessibleLabel}`}
             className="relative flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-center text-[10px] font-black leading-tight text-comun-yellow"
           >
             <span className="grid size-10 place-items-center rounded-full bg-comun-yellow text-comun-black shadow-[0_0_0_3px_#0b0b0a]">

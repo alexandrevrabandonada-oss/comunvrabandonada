@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "scripts/ci/readonly-reconciled-migration-plan*"
       - ".github/workflows/comun-48-4-a4-*.yml"
       - "app/comun/cooperativas/**"
       - "app/comun/admin/organizacao/**"
@@ -75,9 +76,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
-          held="$RUNNER_TEMP/external.sql"; mv "$EXTERNAL_MIGRATION" "$held"; trap 'mv "$held" "$EXTERNAL_MIGRATION"' EXIT
-          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-4-a4-preflight/plan.txt 2>&1
+          if [ "$(cat .ci-artifacts/48-4-a4-preflight/mode)" = promoted ]; then
+            node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs
+            node scripts/ci/readonly-reconciled-migration-plan.mjs .ci-artifacts/48-4-a4-preflight/plan.txt
+          else
+            test "$(cat .ci-artifacts/48-4-a4-preflight/mode)" = candidate
+            test "$(sha256sum "$EXTERNAL_MIGRATION" | awk '{print $1}')" = 6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be
+            held="$RUNNER_TEMP/external.sql"; mv "$EXTERNAL_MIGRATION" "$held"; trap 'mv "$held" "$EXTERNAL_MIGRATION"' EXIT
+            supabase db push --db-url "$SUPABASE_DB_URL" --dry-run >.ci-artifacts/48-4-a4-preflight/plan.txt 2>&1
+          fi
           mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-4-a4-preflight/plan.txt | sort -u || true)
           if [ "$(cat .ci-artifacts/48-4-a4-preflight/mode)" = candidate ]; then
             test "${#planned[@]}" -eq 1 && test "${planned[0]}" = "$(basename "$MIGRATION")"
