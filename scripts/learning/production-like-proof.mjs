@@ -46,20 +46,18 @@ for (const [section, value] of Object.entries(
   capture.snapshot.compact.canonical,
 ))
   assert.equal(digest(value), capture.canonicalSectionHashes[section]);
-const db = new pg.Client({ connectionString: env.COMUN_DISPOSABLE_DB_URL });
-requireAtomicConnection(db);
-owned();
-const admin = new pg.Client({
+const db = new pg.Client({
   connectionString: env.COMUN_DISPOSABLE_DB_URL.replace(
     "postgres:postgres@",
     "supabase_admin:postgres@",
   ),
 });
+requireAtomicConnection(db);
+owned();
 const privateSnapshot = async () =>
   (await db.query(privateCatalogSql)).rows[0].value;
 try {
   await db.connect();
-  await admin.connect();
   const r5 = JSON.parse(
     await readFile(
       "supabase/release-bundles/20260927-comun-49-2-r5-public-projection-gate.json",
@@ -190,5 +188,4 @@ try {
   console.log(proof.status);
 } finally {
   await db.end();
-  await admin.end();
 }
