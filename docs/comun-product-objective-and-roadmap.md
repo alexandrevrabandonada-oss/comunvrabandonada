@@ -382,3 +382,30 @@ Flags, migrations e Production permanecem inalterados. Competências #510 e
 Fábrica #514 seguem dependências abertas, não capacidades presumidamente ativas.
 Revisão editorial/ensaio humano e decisões de integração/ativação são gates
 separados; nenhuma maturidade de domínio é promovida automaticamente.
+
+## Busca pública — candidato reconciliado com a base integrada — 08/10/2026
+
+O #519 incorpora main `3530f8aa` por merge normal, sem rebase/force. O pai
+`7dfa3b29` terminou com 23 checks success, 80 skipped e uma falha Security
+`112793364913`: restore de banco verde, mas
+`COMUN_STORAGE_SIGNED_URL_NOT_ACTIVE` no ensaio antigo de um segundo.
+A base incorpora #518, #528 e #530; a janela do ensaio foi corrigida e passou
+em Supabase descartável no #530. Essa aprovação não é PASS deste candidato.
+
+A implementação de busca e sua prova de integração são idênticas ao pai.
+A run focal `37621724132` comprovou 15 contratos e 25 casos PostgREST reais:
+visibilidade pública do território, publicação da obra e da raiz do Acervo,
+descarte de resposta parcial em onze fontes e fallback do mapa. O controle
+anterior produziu 13 falhas esperadas e 12 aprovações. São evidências do pai;
+esta reconciliação exige novos checks próprios antes de merge. A fixture
+local reduzida não certifica RLS completo nem ausência de vazamento histórico.
+
+O PR continua draft. Nenhuma query canônica, migration Production, flag,
+indexação ou alteração de recuperação do provedor foi executada.
+Skipped e pending não contam como PASS. O registro seguinte é histórico.
+
+## Busca pública — correção candidata de exposição
+
+A busca unificada usa `service_role`. A leitura de territórios não filtrava `visibility=public`, e a leitura de obras filtrava apenas o estado da obra, sem exigir raiz publicada/pública no Acervo. O candidato acrescenta esses filtros. As onze fontes descartam dados parciais quando sua resposta inclui erro; fontes saudáveis e fallback do mapa continuam disponíveis.
+
+Quinze testes da função completa usam respostas de banco simuladas. Na base `74cc0ed1779f5432496c3f852ce92bed3524a3a1`, doze falharam: filtros ausentes e dados parciais consumidos nas onze fontes. Após a correção, os quinze passaram. Isso comprova a regressão e os contratos da consulta, não a ausência de vazamento histórico ou a equivalência de produção. Não houve leitura de dados privados do ambiente canônico. A semântica real dos filtros relacionais ainda deve ser conferida em Supabase descartável e no ambiente autorizado. Não é uma auditoria completa de autorização de todas as fontes de busca.
