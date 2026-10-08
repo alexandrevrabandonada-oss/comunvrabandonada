@@ -4,6 +4,52 @@ Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99
 
 ## Atualização transversal do produto — 06/10/2026
 
+### 49-H/49-I — distribuição pública candidata — 08/10/2026
+
+Base reconsultada: `2c5d974d3ddf1b2c027d85b156a3f8a5ae4618f1`.
+A continuação do draft #523 integra orientação/material e compartilhamento,
+sem merge ou disponibilidade presumida em Production. Candidato funcional:
+`14e1db5e0ddd89430d3def9d2a7a7d0e18339034`, tree
+`133cfe2dd38c62446ffee5e0215b8420be7f46c0`.
+
+A pessoa pode compartilhar a pauta ou material com título, resumo e endereço
+canônico da leitura pública autorizada. O comando existente usa compartilhamento
+nativo, cópia e alternativa manual acessível; cancelar não copia nem anuncia
+sucesso. Query, fragmento, protocolos e contexto privado não são distribuídos.
+Resultados passam a ter endereço estável, sem perder identidade na cópia.
+Metadados dos detalhes genéricos de pauta, ação, resultado, dossiê, Acervo,
+observatório e material reutilizam a consulta pública da página, por requisição.
+Conteúdo retirado/privado ou não confirmado não ganha publicidade por metadados.
+O fallback conservador compartilha somente o início do COMUN. `pilot_noindex`
+permanece; nenhuma flag, migration ou autorização de publicação foi alterada.
+
+Provas locais no candidato: 1.473 unitários, 113 solo, 44 contratos
+COST-01/COST-02/inventário e 32 casos de navegador desktop/celular passaram.
+Clipboard API real, teclado, foco/Escape, manual, ausência de escrita observada,
+material e retorno foram exercitados. Cancelamento/falha nativos usam injeção
+nas APIs do SO: não certificam folha nativa, apps terceiros ou dispositivo real.
+axe do diálogo passou. Os sete leitores não tiveram RLS novo certificado;
+mocks não substituem Auth/Postgres. Os detalhes especializados e o link recebido
+em aparelhos reais continuam lacunas de distribuição e ensaio humano.
+
+O inventário correto é 242 páginas; a divergência anterior `241 !== 240`
+foi corrigida sem remover contratos. O erro histórico de tipos dev de Next
+foi confirmado no log da run `37778556477`, não confundido com a contagem
+falha da run `37786184099`. Esta suíte usa saída dev própria para não misturar
+tipos gerados com o build. O build/TypeScript atual deve ter evidência própria.
+
+Bloqueios preservados: migration da Escola `20261006134804` pendente no
+preflight remoto; #522 continua OPEN/draft e seu transporte Quality read-only
+não está em main. Docker rate limit interrompeu a prova anterior do ciclo antes
+de RLS. Preview exato e checks remotos do novo checkpoint são registrados no
+PR e no [relatório da entrega](../reports/current/comun-49-hi-public-sharing.md),
+sem transportar resultados entre SHAs. Nenhuma capacidade da V1 é promovida.
+
+Próxima entrega prioritária: fechar a revisão desta jornada pública e adotar a
+mesma projeção nos observatórios especializados; depois ensaiar o compartilhamento
+recebido e a retomada com pessoas/aparelhos reais. Escola, responsabilidades,
+governança e lançamento não são presumidos pelo sucesso técnico.
+
 ### Continuação verificada — 08/10/2026
 
 Base reconsultada: `2c5d974d3ddf1b2c027d85b156a3f8a5ae4618f1`, merge
