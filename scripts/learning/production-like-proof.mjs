@@ -62,6 +62,10 @@ try {
   // postgres reader; administrator remains only the guarded transaction owner.
   owned();
   await db.query("set role postgres");
+  assert.equal(typeof capture.scope.searchPath, "string");
+  await db.query("select set_config('search_path',$1,false)", [
+    capture.scope.searchPath,
+  ]);
   assert.equal(
     (await db.query("select current_user as role")).rows[0].role,
     capture.scope.currentUser,
@@ -104,6 +108,40 @@ try {
   }
   const restoredPre = await captureAtomicSnapshot(db);
   pre.ledger = restoredPre.ledger;
+  await mkdir(".ci-artifacts/learning-production-like", { recursive: true });
+  const identity = (
+    await db.query(
+      "select current_user as current_user,session_user as session_user,current_setting('search_path') as search_path",
+    )
+  ).rows[0];
+  await writeFile(
+    ".ci-artifacts/learning-production-like/pre-equivalence.json",
+    JSON.stringify(
+      {
+        identity,
+        productionIdentity: capture.scope,
+        expectedCanonical: capture.snapshot.compact.fingerprint,
+        actualCanonical: pre.compact.fingerprint,
+        sections: Object.fromEntries(
+          Object.entries(pre.compact.canonical).map(([key, value]) => [
+            key,
+            {
+              expected: capture.canonicalSectionHashes[key],
+              actual: digest(value),
+              ...(digest(value) !== capture.canonicalSectionHashes[key]
+                ? {
+                    expectedRows: capture.snapshot.compact.canonical[key],
+                    actualRows: value,
+                  }
+                : {}),
+            },
+          ]),
+        ),
+      },
+      null,
+      2,
+    ) + "\n",
+  );
   sameSnapshot(pre, capture.snapshot);
   assert.equal(
     (await db.query("show server_version")).rows[0].server_version,

@@ -23,6 +23,7 @@ export const manifests = [
 export const scopeSql = `select json_build_object(
   'database', current_database(), 'serverVersion', current_setting('server_version'),
   'readOnly', current_setting('transaction_read_only'), 'currentUser', current_user,
+  'sessionUser', session_user, 'searchPath', current_setting('search_path'),
   'p4ProjectionPresent', to_regclass('public.comun_sidewalk_records') is not null,
   'p4ProjectionRlsEnabled', coalesce((select relrowsecurity from pg_catalog.pg_class
     where oid=to_regclass('public.comun_sidewalk_records')),false),
