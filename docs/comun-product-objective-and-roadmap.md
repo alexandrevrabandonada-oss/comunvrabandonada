@@ -4,32 +4,52 @@ Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99
 
 ## Atualização transversal do produto — 06/10/2026
 
-### Correção integrada e ensaio atômico da Escola — 08/10/2026
+### Checkpoint integrado e fila de revisão — 08/10/2026
 
-O #525 foi integrado por merge normal em
-`092a4afa965c6427f1b1980a0d87e9e483af8d06`. Os 10 checks do candidato
-passaram (35 skipped, sem falhas ou pendências); skipped não é PASS. O merge
-altera somente o teste de fallback da busca. Vercel informou success; Quality
-pós-merge está em execução e ainda não certifica a base.
+Consulta deste checkpoint: `main` em
+`eb317e76f9d259c4436e4a791e6215d153ab7c99`. Código integrado não significa
+schema promovido, flag ativada ou jornada pública certificada. A V1 permanece
+incompleta; os checkpoints seguintes desta página são históricos.
 
-O #526 já está integrado: revisão imutável/read-only da Escola, com prova
-PostgreSQL descartável. O #523 foi reconciliado com essa base no candidato
-`922e5d8246786a826635d9b3b71af824e18965ab`, sem rebase e sem mudar runtime,
-migration ou flags. Seus novos checks seguem em execução e os gates da Escola
-continuam bloqueados. Não reutilizar o PASS de ec849235 para o novo candidato.
+| Tijolo                                                                                                         | Evidência confirmada                                                                | Estado e limite                                                                              |
+| -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| [#522 — Quality read-only](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/522)            | Merge `2d21df3d`; inspeção read-only verde no pós-merge                             | Integrado; a run falhou depois no seletor antigo de busca                                    |
+| [#526 — Revisão da Escola](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/526)            | Merge `6a3c39a3`; revisão imutável e prova PostgreSQL descartável                   | Integrado; não autoriza promoção remota                                                      |
+| [#525 — Seletor visível de busca](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/525)     | Merge `092a4afa`; 10 checks do candidato verdes, 35 skipped                         | Integrado; Quality pós-merge falhou por SHA sem build                                        |
+| [#527 — Ensaio atômico da Escola](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/527)     | Merge `eb317e76`; 10 checks verdes, 75 skipped; SQL canônico descartável verde      | Integrado; pós-merge 4 verdes/73 skipped e Vercel success; não prova recuperação do provedor |
+| [#528 — Escopo pós-merge do Quality](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/528)  | Candidato `986b3851`; 46 testes locais e Preview/COST-02 verdes                     | Draft; laboratório completo de Quality ainda em execução nesta consulta                      |
+| [#523 — Coerência e compartilhamento](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/523) | Candidato reconciliado `922e5d82`; runtime preservado frente ao checkpoint anterior | Draft; gates remotos dependem da Escola; não transferir PASS entre SHAs                      |
 
-A próxima preparação é o [ensaio atômico canônico descartável da Escola](comun-escola-atomic-disposable.md):
-rollback após schema, histórico e ledger, instalação única, POST e replay
-recusado. O harness passou 16 testes locais; SQL canônico ainda depende do
-próprio CI. Não há comando de promoção remoto e o manifesto permanece
-`remotePromotionAllowed=false`. O escopo é o baseline canônico v2 existente,
-não prova integral de schemas privados ou capacidade de recuperação do provedor.
+Skipped não é PASS. O #525 alterou somente testes, delta ignorado pelo
+classificador de build em Production. Quality job `113451932296` falhou após
+30 tentativas com `COMUN_QUALITY_EXPECTED_SHA_NOT_DEPLOYED`. A falha permanece
+registrada. O #528 reutiliza a classificação do build para declarar somente
+deltas explicitamente sem runtime como não aplicáveis; mudanças de runtime,
+schema, dependências, arquivos desconhecidos e diffs indisponíveis continuam
+exigindo deploy do SHA exato. Não há certificação de Production por exclusão.
 
-Ordem restante: certificar Quality da base → conferir ensaio descartável →
-capturar baseline Production identificado em read-only → revisar PRE/POST e
-recuperação real → autorizar separadamente schema → revalidar preflights do
-#523 → integrar candidato verde → certificar deploy. Ativação e ensaio humano
-seguem separados. As seções abaixo registram os checkpoints anteriores.
+O [ensaio atômico canônico descartável da Escola](comun-escola-atomic-disposable.md)
+comprovou rollback após schema, histórico e ledger, instalação única com POST e
+ledger exatos, outros domínios preservados no escopo canônico v2 e replay
+recusado. Não cobre integralmente schemas privados nem recuperação após COMMIT
+no provedor. O manifesto permanece `remotePromotionAllowed=false` e a
+preparação mantém `promotionReady=false`.
+
+Fila de avanço, em ordem:
+
+1. Concluir os checks do #528; integrar por merge normal somente se verdes;
+   verificar o pós-merge e o SHA servido quando o delta exige build.
+2. Identificar e allowlistar o ambiente canônico da Escola; capturar baseline
+   e ledger em read-only, conferir PRE/POST e capacidade real de recuperação.
+   As provas descartáveis já integradas não substituem essas evidências.
+3. Revisar um pacote concreto de schema antes da autorização específica de
+   promoção; o caminho automático de Quality permanece sem escrita de schema.
+4. Reconciliar #523 com a base integrada, revalidar os gates do próprio SHA,
+   integrar o candidato verde e conferir deploy. Sem amostra humana, priorizar
+   coerência, projeção pública dos observatórios, compartilhamento e SEO;
+   convites e dados privados continuam respeitando autorização.
+5. Depois das provas técnicas, ensaiar recebimento/retorno com pessoas e
+   dispositivos reais. Isso continua pendente e não é substituído por CI.
 
 ### Sequência de integração — 08/10/2026
 
