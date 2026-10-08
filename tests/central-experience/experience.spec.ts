@@ -60,7 +60,13 @@ test("área pessoal exige sessão", async ({ page }) => {
 
 test("busca preserva origem e não usa popularidade", async ({ page }) => {
   await page.goto("/comun/buscar?q=territorio");
-  await expect(page.getByText(/resultados públicos/)).toBeVisible();
+  const main = page.getByRole("main");
+  await expect(main).toHaveCount(1);
+  const status = main
+    .getByTestId("civic-search-status")
+    .filter({ visible: true });
+  await expect(status).toHaveCount(1);
+  await expect(status).toContainText(/resultados públicos/);
   await expect(page.locator("body")).not.toContainText(
     /curtidas|seguidores|popularidade:/i,
   );

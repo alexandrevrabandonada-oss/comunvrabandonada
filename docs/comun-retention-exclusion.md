@@ -18,6 +18,7 @@ revisão; este documento não inventa prazo legal.
 | Dado sintético         | privado e marcado           | duração do ensaio                                        | namespace isolado                        | no `finally`                                                      | somente contagem e resultado                    |
 | Backup efêmero         | altamente sensível          | duração do job                                           | diretório 0700/arquivo 0600              | no `finally`, inclusive em falha                                  | envelope agregado                               |
 | Sessão                 | altamente sensível          | validade técnica do Auth                                 | revogação em incidente                   | invalidação/reautenticação                                        | não exportar                                    |
+| Escola: progresso, mochila e reflexão | privado por conta | enquanto a inscrição servir à formação ou uma revisão estiver pendente | suspensão/desativação bloqueia a API | pedido elegível: apagar vínculos de prática, progresso e inscrição, nessa ordem, antes de excluir Auth | catálogo público permanece; reflexão não vira artifact |
 | Pedido de retirada     | privado/P1                  | até conclusão e revisão                                  | conteúdo sai da superfície pública       | exclusão conforme escopo autorizado                               | trilha sanitizada da retirada                   |
 
 ## Contrato de automação
@@ -28,6 +29,13 @@ fixtures/temporários/backups efêmeros e expiração natural de signed URLs.
 Dados reais não são apagados automaticamente neste tijolo. Exclusão real exige
 regra explícita, elegibilidade, releitura imediatamente antes, contenção,
 evidência sanitizada, operação idempotente e gate quando irreversível.
+
+Na Escola, as chaves estrangeiras usam `RESTRICT` para impedir que a exclusão
+de uma conta ou pauta apague silenciosamente reflexões e revisões. Desativar
+a conta bloqueia o percurso autenticado; excluir os registros é uma operação
+separada. O contrato descartável em `scripts/learning/test-database.mjs` verifica
+a ordem de limpeza com dados sintéticos e desfaz toda a transação. Ele não
+executa pedidos de exclusão reais nem substitui a validação do fluxo de Auth.
 
 Despublicar, anonimizar, retirar uma derivada e apagar o original são operações
 diferentes. O pedido precisa declarar qual delas é necessária.

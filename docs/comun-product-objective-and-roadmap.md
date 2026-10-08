@@ -2,7 +2,141 @@
 
 Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99dd450`, após os PRs #504, #505 e #506. A reconciliação de 02/10 e os achados intermediários abaixo são históricos. A V1 continua incompleta; a situação atual e a fila sem amostra humana estão na seção seguinte.
 
+## Atualização transversal do produto — 06/10/2026
+
+O roadmap passa a tratar o COMUN também como infraestrutura para uma estrutura política permanente ligada à APS, à VR Abandonada e a organizações aliadas. Núcleos, estratégia, formação, competências, fábrica, Minha Participação, inteligência cívica, observatórios e ação institucional formam um ciclo organizativo: evidência → prioridade coletiva → formação e responsabilidade voluntária → ação → devolutiva → memória e renovação de capacidades.
+
+Essa conexão existia distribuída em frentes do roadmap, mas não estava explícita como objetivo integrador nem como contrato de produto. O novo [49-E0 — contrato de produto único](comun-one-product-contract-49-e0.md) fixa os princípios e inclui a camada **49-M — Organização política permanente**. O E0 é um candidato em implementação; não altera o estado da V1, a autorização de lançamento nem a indexação atual.
+
+| Trilha                                     | Papel no produto inteiro                                                                                                        | Estado do trabalho sem amostra humana                                                                                              |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **49-E0 — COMUN ONE PRODUCT CONTRACT**     | Gramática comum, superfície pública, compartilhamento, busca, privacidade, continuidade e fricção                               | Contrato e testes focais aprovados localmente; prova renderizada ampliada no 49-E2 abaixo; adoção em todas as rotas ainda pendente |
+| **49-M — Organização política permanente** | Vincula APS, VR Abandonada e aliadas a núcleos, decisões, tarefas, formação, ação institucional, prestação de contas e sucessão | Arquitetura e limites registrados; governança, pessoas e responsabilidades reais exigem validação da organização                   |
+| **50 — COMUN UNO**                         | Ensaio da experiência completa, inclusive a relação com estrutura e ação política                                               | Etapa final; depende de jornadas com pessoas, dispositivos e operação reais                                                        |
+
+## Produto e estrutura política permanente
+
+O objetivo do COMUN é apoiar uma organização popular que aprenda, escolha prioridades, forme pessoas, atue no território e nas instituições, avalie consequências e transmita capacidade para novas lideranças. A associação e a VR Abandonada são parte da estrutura política do projeto; o COMUN é sua infraestrutura comum e também uma porta pública de conhecimento, participação e prestação de contas. O aplicativo não substitui a organização nem decide sua linha política.
+
+“Máquina política” fica definida como capacidade coletiva organizada e durável: vínculo voluntário, responsabilidade clara, formação prática, decisão rastreável, trabalho público, resultados conferíveis e sucessão. O produto não converte participação em pontuação, não monitora militantes e não usa dados políticos para microsegmentação ou pressão.
+
+## Próxima estrutura do roadmap integral
+
+### Diretriz incorporada — movimento social moderno
+
+O COMUN combina ferramenta pública, participação voluntária e organização com
+formação permanente. **Usar, participar e organizar** são caminhos com valor
+próprio, não categorias de pessoas ou uma progressão obrigatória. A pessoa pode
+resolver uma necessidade sem se vincular; pode contribuir pontualmente; ou
+construir continuidade num núcleo. Convites são contextuais e responsabilidades
+dependem de aceite explícito.
+
+| Entrega                                                     | Relação com o roadmap | Prova necessária                                                                         |
+| ----------------------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------- |
+| Inventário de entradas, utilidade e convites                | 49-E0 / 49-E          | Rotas e barreiras reais; funções públicas preservadas sem adesão                         |
+| Orientação → prática → devolutiva → retomada                | 49-C / 49-F           | Materiais e registros conectados; formação não atribui tarefa nem função automaticamente |
+| Núcleo → decisão → tarefa → ação → resultado → substituição | 49-A / 49-B / 49-M    | Responsáveis e vínculos concretos; memória e continuidade com substitutos                |
+| Jornadas de uso pontual, contribuição e organização         | 50 COMUN UNO          | Provas técnicas e ensaio humano dos três caminhos, incluindo saída e retorno             |
+
+VR Abandonada comunica e mobiliza; APS e aliadas dão base associativa e
+capacidade de execução; COMUN conecta conhecimento, formação e continuidade;
+atuação institucional encaminha demandas e devolve resultados à rede. São
+papéis previstos no desenho, com responsabilidades reais ainda a confirmar.
+O [contrato 49-E0](comun-one-product-contract-49-e0.md) detalha os critérios.
+
+Esta diretriz está registrada na arquitetura candidata. Não significa que
+convites, integrações ou núcleos já estejam implementados. O próximo trabalho
+é inventariar as superfícies existentes antes de expandir telas ou cadastros.
+Maturidade exige capacidade coletiva continuada, além das métricas de acesso.
+
+O fechamento da V1 permanece prioritário e não se confunde com a visão futura. Depois dele, os tijolos 49-A a 49-L podem avançar em paralelo sob o contrato 49-E0: núcleos permanentes; ciclo estratégico; Escola e competências; Fábrica; Reflexo COMUN; continuidade; inteligência cívica; distribuição; páginas de referência e SEO; serviços e controle popular; observatórios; plataforma física/digital. A trilha 49-M integra essas capacidades à organização permanente. O 50 COMUN UNO fecha com coerência integral de jornadas, módulos, canais, estratégia organizativa, acessibilidade, privacidade, compartilhamento, SEO e operação.
+
+O [contrato 49-E0](comun-one-product-contract-49-e0.md) descreve as relações entre os tijolos, a jornada político-organizativa, os limites de privacidade e os critérios de saída. Suas metas de baixa fricção e experiência humana permanecem metas até serem ensaiadas.
+
 ## Posição geral e fila sem amostra humana — 06/10/2026
+
+### Implementação candidata 49-E1 — entradas e primeira prática
+
+Participar oferece três caminhos independentes: buscar um assunto, conhecer
+ações e conhecer comunidades. O componente serve às experiências canônica e
+legacy. O convite explica que explorar não gera inscrição nem tarefa.
+Participar e Ajuda abrem a orientação pública `/comun/ajuda/primeira-acao`:
+escolher pergunta → conferir fontes → escolher contribuição → voltar ao que
+mudou. Os destinos são rotas já existentes; não há gravação de progresso,
+vínculo, atribuição, nova permissão ou ativação da Escola.
+
+Esta entrega implementa navegação e orientação inicial, não o ciclo formativo
+completo. Progresso privado da Escola, relações entre prática e tarefa, convites
+em detalhes de pautas/ações e operação de núcleos continuam pendentes. A prova
+de navegador deve verificar acesso anônimo, retorno, preservação da experiência,
+acessibilidade, viewport móvel e consulta sem JavaScript; contratos locais não
+substituem essa prova nem ensaio humano.
+
+Validação local: TypeScript, ESLint, dez testes do contrato público, dois de
+coerência e quatro de classificação de superfícies passaram. As duas páginas,
+nas experiências canônica e legacy, responderam HTTP 200 com um h1 e os links
+esperados no HTML servido. Os três testes de navegador foram preparados para
+a suíte existente, mas a tentativa local parou no lançamento: Chromium ausente.
+HTML servidor não comprova contraste, foco, overflow ou interação renderizada.
+
+### Implementação candidata 49-E2 — orientação e retomada privada
+
+Continuação do PR #520 sobre `74cc0ed1779f5432496c3f852ce92bed3524a3a1`,
+preservando seu head inicial `af47674945bed9d9c10a2e499319f61027161683`.
+Candidato funcional `1a46d5550a4ddd98ed467c322dcf1c6e480d4946`, tree
+`fc4dd7095c2098aaf86f5c3db75fb53d0c5fa6c0`. Os comandos e limites da prova
+estão em [evidência 49-E2](../reports/current/comun-49-e2-participation-continuity.md).
+A árvore original com trabalho preexistente não foi modificada; a entrega foi
+feita em worktree isolada. Continua candidata, sem merge, ativação ou lançamento.
+
+Minha participação retoma um registro real da carteira existente e oferece
+orientação conforme seu estado: registrar com cuidado, acompanhar sem confundir
+envio com resultado, ou conferir o que a resposta mudou. O material público
+retorna aos registros privados e oferece contribuição voluntária em Ações.
+Nenhum progresso, tarefa, vínculo, envio, notificação ou resultado é criado
+ao abrir essa jornada. A carteira continua sendo a autoridade do registro.
+Somente uma fase pública allowlisted e `experiencia=legacy` atravessam a URL;
+IDs, protocolos e conteúdo privado não são repassados à orientação.
+
+Carregamento, falha HTTP e resposta inválida agora são estados distintos de
+carteira vazia, com recuperação explícita. Registro retirado não recebe convite
+para retomar. A inspeção renderizada demonstrou e corrigiu contraste no modo
+legacy. A orientação sem JavaScript expôs outra falha: a shell permanecia no
+fallback de carregamento. Orientação e Busca optam agora por conteúdo público
+servido no fallback; nenhum painel privado ativa essa opção. O formulário da
+busca pública também foi exercitado com JavaScript desabilitado.
+
+Escola #503 foi consultada em `a8dbe550583526eae631deafa3c574fbcfb18993`:
+draft aberto, checks concluídos sem falha/pending na consulta, flag desligada.
+O progresso privado e a próxima micro-missão já existem na sua proposta, mas
+não estão integrados em main. Dependências: validar a migração no schema
+canônico completo, integrar a entrega, revisar materiais e autorizar ativação.
+Não se oferece uma rota da Escola indisponível nem se duplica seu progresso.
+Competências #510 (`d1affda48ed9dcf7ae6ea4fbeaf9e920c74de5e6`) e Fábrica
+#514 (`dbf70931d15903ab820de224a017c6f3689e2124`) também continuam abertas;
+seus PRs/Previews não certificam disponibilidade integrada.
+
+Provas locais: 1.407 testes unitários, 50 focais, dois de coerência, quatro de
+classificação de superfícies, 113 Solo, TypeScript, ESLint e build passaram.
+Navegador Chromium: 12 casos de continuidade (360×800 e 1366×768) e seis de
+Participar/orientação, incluindo consulta e busca sem JavaScript, passaram.
+Axe não encontrou findings serious/critical nas superfícies avaliadas.
+A carteira usa respostas interceptadas e exclusivamente sintéticas: os testes
+provam UI, foco, retorno, reload, estados e ausência de chamadas de escrita,
+não persistência, sessão Auth, RLS ou uso real em Production. A suíte pública
+usa a aplicação local. Essa prova não substitui ensaio humano nem dispositivo
+físico. O workflow dedicado preserva esses casos sem secrets Production.
+
+O Solo revelou inventário desatualizado de 16 workflows já integrados; a mesma
+falha foi reproduzida no main limpo `74cc0ed1`. Foram registrados somente esses
+nomes conferidos no histórico e o novo workflow de UI; qualquer nome desconhecido
+continua rejeitado. Nenhum workflow existente foi ativado ou executado por isso.
+
+Próxima frente concreta: reconciliar a Escola com o schema canônico e integrar
+seu progresso privado existente a Minha participação quando seu código estiver
+integrado e a ativação for autorizada. Em paralelo, convites em detalhes de
+ações/pautas podem usar a orientação pública sem atribuir compromisso.
+`pilot_noindex`, gates V1, amostra humana e governança permanecem preservados.
 
 O produto está no fechamento técnico e operacional da V1, antes do ensaio integrado e do lançamento integral. Quatro domínios estão declarados verdes e seis continuam abertos; isso não representa 40% de conclusão. A visão futura e as entregas candidatas devem ser acompanhadas separadamente do que está integrado em produção.
 
@@ -15,7 +149,7 @@ O produto está no fechamento técnico e operacional da V1, antes do ensaio inte
 | Coerência, busca e qualidade, 47.9A/B/C          | CI do #502 passou; busca lexical preservada; embeddings reais continuam bloqueados por capacidade do provedor                                      | Regressões, semântica de filtros, estados vazios, fallback e contratos automatizados                                         | Dispositivos físicos, tecnologia assistiva, compreensão humana; credencial do provedor para embeddings                                                       |
 | Conteúdo e governança, 47.10                     | Revisão editorial e equipe operacional ainda não comprovadas                                                                                       | Manter ajuda, fluxos de revisão, retenção e critérios de evidência consistentes com o comportamento real                     | Pessoas responsáveis, substitutos, direitos e prazos confirmados                                                                                             |
 | Ensaio e lançamento, 47.11                       | Ensaio integrado incompleto; gate integral fechado                                                                                                 | Preparar instrumentos de coleta, verificações sanitizadas e pacote por versão                                                | Três sessões reais, estabilidade medida e decisão final                                                                                                      |
-| Escola COMUN R0                                  | PR #503 aberto, head `a8dbe550583526eae631deafa3c574fbcfb18993` na consulta; 24 micro-missões candidatas, progresso privado, flag desligada        | Finalizar checks globais e validar integração no schema canônico antes de ativar                                             | Ambiente COMUN identificado e revisão humana do material; testes locais não comprovam ativação                                                               |
+| Escola COMUN R0                                  | PR #503 aberto, head `a8dbe550583526eae631deafa3c574fbcfb18993` na consulta; 24 micro-missões candidatas, progresso privado, flag desligada        | Checks concluídos; validar integração no schema canônico e ativação separada                                                 | Ambiente COMUN identificado e revisão humana do material; testes locais não comprovam ativação                                                               |
 | Serviços Públicos                                | PR documental #434 aberto; expansão fora do fechamento V1                                                                                          | Revisar arquitetura e limites da proposta separadamente                                                                      | Decisão de escopo posterior; sem expansão automática                                                                                                         |
 
 ### Evidência técnica já integrada
@@ -148,3 +282,28 @@ O [PR #486](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/
 | Recuperação, conteúdo e ensaio | Critérios existentes preservados                                                                                                               | Cópia durável/restore medidos, conteúdo autorizado, piloto e ensaio integrado com pessoas reais                                                 |
 
 A lista pública de Calçadas permaneceu utilizável após voltar do mapa indisponível e apresentou um registro com localização protegida. Um registro não comprova cobertura da cidade nem conclusão do piloto. A certificação pós-merge atual é a run [37067289731](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/37067289731), concluída com sucesso. CI do merge, jornadas principais e grafo cívico também passaram; a repetição pós-merge de coerência ainda estava em execução no momento deste registro. Provas por versão e limitações estão em [comun-maplibre-security-migration.md](comun-maplibre-security-migration.md). Nenhum domínio foi promovido, nenhum conteúdo foi inventado e nenhuma configuração remota de acesso ou lançamento foi alterada.
+
+## Continuidade candidata da Escola — 07/10/2026
+
+PR #503 permanece separado do PR #520 e ainda não significa integração ou
+ativação. A prova Auth/Postgres/navegador passou na run `37653193110` para
+`3e465262fb60b935c7ff770da0503db58165fda8`: A/B, dados privados não vazios,
+concorrência sincronizada, retomada e reload móvel/desktop, limpeza sintética e
+zero findings. O SHA/tree efetivamente testado, equivalência limitada e hash do
+artifact estão em [prova canônica](../reports/current/comun-escola-canonical-auth-proof.md).
+
+A próxima alteração candidata conecta Minha participação à atividade realmente
+iniciada: sessão server-side, snapshot owner e seletor existentes, título/etapa
+mínimos e destino público do catálogo. Prática pendente de envio, revisão,
+ausência de atividade e indisponibilidade têm estados distintos. Não há segundo
+modelo de formação, progresso ou tarefa; abrir a jornada não cria vínculo,
+inscrição, responsabilidade ou resultado. Reflexões/notas/IDs pessoais não são
+repassados à orientação ou URLs. O resumo permanece disponível sem JavaScript.
+
+A prova anterior não valida essa mudança nova: o novo checkpoint deve executar
+Minha participação → resumo A/B → retomada → etapa persistida/reload em stack
+descartável. Até o artifact correspondente, esta ampliação é PENDING.
+Flags, migrations e Production permanecem inalterados. Competências #510 e
+Fábrica #514 seguem dependências abertas, não capacidades presumidamente ativas.
+Revisão editorial/ensaio humano e decisões de integração/ativação são gates
+separados; nenhuma maturidade de domínio é promovida automaticamente.

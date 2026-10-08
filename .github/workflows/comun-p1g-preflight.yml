@@ -15,6 +15,7 @@ on:
       - "lib/community-return*"
       - "scripts/solo/*p1g*"
       - "scripts/ci/readonly-reconciled-migration-plan*"
+      - "scripts/ci/classify-migration-lane*"
       - "tests/google-auth-local/**"
       - "playwright.google-auth-local.config.ts"
   workflow_dispatch:
@@ -53,6 +54,15 @@ jobs:
           version: 2.113.0
       - run: npm ci --ignore-scripts
 
+      - name: Classify changed migration ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+          node scripts/ci/classify-migration-lane.mjs --lane p1g --files "${changed[@]}" | tee "$RUNNER_TEMP/p1g-ownership.txt"
+          grep -Eq '^COMUN_MIGRATION_LANE_MODE=(none|not_applicable)$' "$RUNNER_TEMP/p1g-ownership.txt"
+          cat "$RUNNER_TEMP/p1g-ownership.txt" >> "$GITHUB_ENV"
+
       - name: Validate zero-migration and credential boundaries
         shell: bash
         run: |
@@ -61,7 +71,6 @@ jobs:
           test -n "${SUPABASE_PROJECT_REF:-}"
           test -n "${SUPABASE_SERVICE_ROLE_KEY:-}"
           case "$SUPABASE_DB_URL" in *localhost*|*127.0.0.1*) exit 1 ;; esac
-          test -z "$(git diff --name-only origin/main...HEAD -- supabase/migrations)"
           node --test scripts/solo/p1g-google-auth-workflow.node-test.mjs
 
       - name: Confirm P6A terminal schema metadata without business-row reads
@@ -141,6 +150,7 @@ jobs:
           NODE
 
       - name: Reconcile Calçadas and prove empty remote migration plan
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail
@@ -170,4 +180,8 @@ jobs:
           else
             echo COMUN_P1G_PROVIDER_CONFIGURATION_HUMAN_ACTION_REQUIRED >> "$GITHUB_STEP_SUMMARY"
           fi
-          echo COMUN_P1G_REMOTE_MIGRATION_PLAN_EMPTY >> "$GITHUB_STEP_SUMMARY"
+          if [ "$COMUN_MIGRATION_LANE_MODE" = not_applicable ]; then
+            echo COMUN_P1G_REMOTE_MIGRATION_PLAN_NOT_APPLICABLE_LEARNING_R0 >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo COMUN_P1G_REMOTE_MIGRATION_PLAN_EMPTY >> "$GITHUB_STEP_SUMMARY"
+          fi

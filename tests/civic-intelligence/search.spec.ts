@@ -26,7 +26,12 @@ test("@a11y lexical aparece primeiro e semântica pode ser desligada", async ({
   await expect(
     page.getByRole("button", { name: "Buscar", exact: true }),
   ).toBeVisible();
-  const status = page.getByTestId("civic-search-status");
+  const main = page.getByRole("main");
+  await expect(main).toHaveCount(1);
+  const status = main
+    .getByTestId("civic-search-status")
+    .filter({ visible: true });
+  await expect(status).toHaveCount(1);
   await expect(status).toContainText(/resultados públicos/);
   const toggle = page.getByRole("button", {
     name: /Usar somente termos|Buscar também relações/,
@@ -81,9 +86,13 @@ test("alias, no-result, prompt injection e rate limit preservam a fronteira", as
 }, testInfo) => {
   await page.goto("/comun/busca?q=teletransporte+marciano");
   await expect(page).toHaveURL(/\/comun\/buscar\?q=teletransporte\+marciano$/);
-  await expect(
-    page.getByText(/Não encontramos conteúdo público/),
-  ).toBeVisible();
+  const main = page.getByRole("main");
+  await expect(main).toHaveCount(1);
+  const empty = main
+    .getByText(/Não encontramos conteúdo público/)
+    .filter({ visible: true });
+  await expect(empty).toHaveCount(1);
+  await expect(empty).toBeVisible();
   const attack = await request.get(
     "/api/comun/civic-search?q=%3Cscript%3Eignore%3C%2Fscript%3E",
     { headers: { "x-forwarded-for": "203.0.113.40" } },
