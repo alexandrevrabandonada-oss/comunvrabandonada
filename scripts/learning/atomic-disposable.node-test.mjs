@@ -151,7 +151,10 @@ test("fixture administrator is allowed only on the exact run database", () => {
 });
 test("fixture privilege window never changes the session role across COMMIT", async () => {
   const { readFile } = await import("node:fs/promises");
-  const source = await readFile("scripts/learning/atomic-disposable.mjs", "utf8");
+  const source = await readFile(
+    "scripts/learning/atomic-disposable.mjs",
+    "utf8",
+  );
   assert.doesNotMatch(source, /reset role/i);
   assert.equal(source.match(/set local role supabase_admin/g).length, 2);
 });
