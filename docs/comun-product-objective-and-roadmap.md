@@ -4,6 +4,42 @@ Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99
 
 ## Atualização transversal do produto — 06/10/2026
 
+### 49-H/49-I — rios, energia e bloqueios reconciliados — 08/10/2026
+
+Continuação do draft #523, funcional `15a31d79d8ddd179a79e9c6f552f6730c43def3b`,
+sobre main `2c5d974d3ddf1b2c027d85b156a3f8a5ae4618f1`.
+Rios/INEA e energia/ANEEL passam a usar a mesma leitura pública autorizada e
+projeção allowlisted para página, metadados e compartilhamento. Fonte, período,
+território, data e limites acompanham o link; não se inventa atualidade,
+potabilidade ou pessoas afetadas. Fontes/metodologia e retorno são acessíveis;
+flags, privacidade e pilot_noindex permanecem. Contraste corrigido somente
+nessas superfícies, após captura de navegador demonstrar texto ilegível.
+
+O 48.2-A agora preserva diagnóstico sanitizado antes de bloquear. Run
+`37799177976`: somente `20261006134804` pendente, zero unknown e zero controles
+de schema falhando; Hardening aceito, read-only confirmado. Os cinco preflights
+48.3 apontam a mesma Escola. A pendência continua bloqueio, sem fingerprints,
+expectativas ou migration alterados. Plano de release separado no relatório.
+
+Patch read-only revisado do #522 portado via cherry-pick `59fecd59`; #522 segue
+draft e não integrado em main. Quality antigo `37793676320` passou sem rerun.
+O novo teste de diagnóstico revelou reutilização de artifact entre fixtures na
+run intermediária `37799177341`; isolamento corrigido, sem dispensar negativos.
+Prova portátil da classificação passou; shell Linux depende do novo CI.
+
+Provas desta rodada: 32 Vitest focais, 21 Node Quality, três Node de diagnóstico,
+36 casos focais de navegador e quatro negativos de flag; depois da correção
+visual, os quatro especializados foram repetidos com axe do cabeçalho. Build,
+TypeScript, lint e formatação passaram. Docker local não respondeu em 15 s;
+nenhuma limpeza/restart alheio foi tentado. Provas completas e limites no
+[relatório](../reports/current/comun-49-hi-public-sharing.md).
+
+Ainda faltam transporte, território, panorama e demais detalhes especializados,
+recebimento em apps terceiros, aparelhos reais, Safari/Firefox e ensaio humano.
+Próxima entrega: resolver o gate separado da Escola e rever esta adoção, então
+seguir pelas próximas superfícies publicadas. Mais adoção técnica não certifica
+operação pública, responsáveis, validação editorial nem conclusão da V1.
+
 ### 49-H/49-I — distribuição pública candidata — 08/10/2026
 
 Base reconsultada: `2c5d974d3ddf1b2c027d85b156a3f8a5ae4618f1`.

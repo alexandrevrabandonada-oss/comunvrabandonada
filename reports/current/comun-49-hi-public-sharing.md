@@ -151,3 +151,149 @@ Depois, ensaiar o link recebido e o retorno em aparelhos reais com pessoas,
 antes de declarar distribuição universal ou sucesso de participação. Schema
 da Escola, operação editorial, Quality automático e lançamento são decisões e
 provas separadas. Mais rotas não encerram a V1 nem comprovam utilidade humana.
+
+## Continuação — observatórios especializados e diagnóstico de schema
+
+Base reconsultada: main `2c5d974d3ddf1b2c027d85b156a3f8a5ae4618f1`.
+O #523 continuou draft em `a21ba56340409d30fd2cd94b6eac0718544b3f3b`.
+Quality `37793676320` terminou SUCCESS antes de qualquer repetição; não houve
+rerun. O inventário final daquele SHA foi 41 PASS, seis FAIL e 75 SKIPPED;
+skipped não foi contado como aprovação.
+
+Os seis failures foram separados por log: A1 `37793676549`, C1
+`37793676602`, D1 `37793676779`, E2 `37793676924` e E3 `37793676446`
+bloquearam por `REMOTE_MIGRATION_PLAN_NOT_EMPTY:20261006134804_comun_learning_r0.sql`.
+48.2-A `37793676629` usava marcador genérico e não preservava as listas.
+Nenhuma regressão funcional foi demonstrada por esses seis failures.
+A falha inicial de bootstrap descartável em Security tinha passado na única
+repetição do mesmo SHA; não se inventou sua causa SQL não preservada.
+
+### Diagnóstico 48.2-A comprovado
+
+Correção de observabilidade em `a9b67cff658bee9d8c78ee3af3cf5a6e3e8cbe76`:
+artifact sanitizado antes do throw, somente versões/paths allowlisted,
+PGOPTIONS read-only adicional, sem alterar a decisão fail-closed.
+Run `37799177976`, artifact `11560037842`, `drift-diagnostic.json` SHA-256
+`24f33392bf2347b1bd28bd235ff0627bd497467071c64fc9b2d345865c620278`:
+
+- pendingNormalMigrations: `["20261006134804"]`;
+- unknownRemoteMigrations: `[]`;
+- observatoryMigrations: `[]`;
+- failedSchemaControls: `[]`;
+- businessRowsRead: false;
+- exactExternalHardeningLedgerAccepted: true;
+- transactionReadOnly: true.
+
+Assim, o drift desse gate é exclusivamente a pendência da Escola, não alteração
+de fingerprint nem defeito de schema do observatório. Continua BLOCKED; não
+houve exclusão de pendência, repair, reload, migration ou escrita Production.
+Os testes preservam bloqueio para versão desconhecida, pending e schema inválido.
+
+### Dependência #522
+
+#522 permanece OPEN/draft em `bf9eb8ab912ce9442e18e3ec50d2e01dba09a2de`;
+não está em main. Patch revisado e portado com `cherry-pick -x` para
+`59fecd59` nesta branch. O caminho automático pós-merge chamava transportador
+capaz de schema write/reload. Agora consulta metadados com BEGIN READ ONLY,
+conexão default_transaction_read_only e rollback; credencial restrita ao passo.
+Migration/manifest byte-idênticos. 21 testes focais passaram; prova PostgreSQL
+anterior do patch é reutilizada apenas para os arquivos idênticos, não como
+ensaio de todas as mudanças desta rodada. Nenhum job pós-merge foi executado.
+
+### Entrega de produto
+
+Rios (INEA) e energia (ANEEL) usam uma leitura pública por requisição para
+página e metadados, respeitando as flags existentes antes da projeção. Um
+adapter allowlisted deriva título, resumo, território, período, data da
+verificação/consulta, fontes e limitações dos DTOs públicos existentes.
+Não copia filtros, sessão ou dados de relatos. O compartilhamento existente
+usa essa mesma descrição/canonical, preservando noindex. Nada é anunciado
+como tempo real, potabilidade, ano completo ou contagem de pessoas únicas.
+
+A página oferece fontes/metodologia e retorno aos observatórios; Back preserva
+contexto local, mas o link distribuído não leva query/fragmento. Flag fechada
+retorna 404 sem snapshot ou metadados públicos. Nenhum snapshot, parser,
+proveniência oficial, grant ou regra de publicação foi alterado.
+
+A revisão visual identificou texto preto sobre o fundo escuro público. A
+correção declara superfície de leitura clara somente nesses dois componentes;
+a prova axe inclui agora o cabeçalho completo. Não houve redesign global.
+
+### Plano revisável para a Escola — não executado
+
+A release existente `supabase/releases/20261006134804-comun-learning-r0.json`
+é local_candidate, remotePromotionAllowed=false e requiresPromotion=true.
+Migration SHA-256 rastreado permanece
+`5036a833b1b681487204349f8ebc58690228a2f5aa932943a81f60df1d3b6ba7`.
+Não basta transformar o flag em enabled ou dispensar os preflights.
+
+Uma rodada separada deve revisar o pacote de release, capturar baseline/ledger
+read-only, demonstrar forward-only e controles Auth/RLS/owner isolation em
+laboratório, definir contenção e obter autorização explícita antes de qualquer
+escrita de schema. Schema instalado e ativação de produto são gates distintos.
+Revisão editorial e responsabilidades reais não foram presumidas. Não houve
+reload, mudança do manifest, atualização de fingerprints ou aplicação aqui.
+
+### Provas e limites desta rodada
+
+Resultados, SHA funcional final e checkpoint são registrados abaixo e no corpo
+do PR. Os ensaios usam snapshots oficiais públicos já disponíveis em repositório
+com URLs/tokens sintéticos; fixtures sintéticas unitárias verificam no-leak,
+fonte privada rejeitada e data ausente explícita. Não são dados pessoais reais.
+Não se certifica RLS por mocks nem operação Production pelo navegador local.
+
+O teste anterior tentava Enter antes de o summary estar visível/focado; a
+instrumentação registrou BODY recebendo a tecla. O ensaio agora exige ambos
+antes de Enter, sem sleep, retry ou redução da asserção. Logs negativos foram
+preservados. Telemetria agregada existente pode emitir POST técnico; o payload disponível é
+conferido por allowlist exata sem sessão. Beacons cujo corpo o Chromium não
+expõe são registrados como telemetria não inspecionada, não como prova de payload. A prova exige zero ações
+ou mutações de negócio e credenciais remotas vazias no processo local; não
+alega zero tráfego HTTP. Compartilhar não cria contribuição, vínculo ou tarefa.
+
+Docker local: timeout objetivo de resposta do engine em 15 s. Nenhum restart
+ou limpeza de containers alheios foi tentado. C: sem espaço exigiu TEMP/cache
+em D: e dependências próprias na cópia isolada; Turbopack recusara a junction
+fora da raiz. Sem alteração de produto para contornar essas falhas. O checkout
+original e os artifacts anteriores foram preservados.
+
+Aparelhos reais, Safari/Firefox, tecnologia assistiva real, folha nativa do SO,
+recebimento em apps terceiros e ensaio humano: NOT_RUN. Observatórios de
+transporte, território, panorama e demais detalhes especializados continuam
+fora desta adoção focal. V1 e operação pública não estão certificadas.
+
+Quality intermediário `37799177341` falhou no novo teste do diagnóstico:
+a fixture negativa de histórico vazio lia o artifact do cenário anterior,
+porque o shell bloqueia antes de gerar outro. Corrigiu-se o isolamento de
+cada cenário e passou-se a exigir ausência de artifact nessa falha antecipada.
+O bloqueio de histórico vazio e desconhecido não mudou; não foi erro de produto
+nem dispensa de schema. Validação Linux final deve ser julgada pelo novo SHA.
+
+### Candidato funcional desta continuação
+
+SHA: `15a31d79d8ddd179a79e9c6f552f6730c43def3b`.
+
+- PASS: 32 Vitest focais (projeção comum, snapshots de rios/energia, privacidade,
+  autorização negativa por flag/fonte e data ausente).
+- PASS: 21 Node do patch read-only Quality; três Node de coerência, diagnóstico
+  e execução portátil do classifier (seis cenários positivos/negativos internos).
+- PASS: 36 casos de navegador na suíte focal antes da última correção visual;
+  após ela, os quatro casos especializados foram reexecutados e passaram,
+  inclusive axe do cabeçalho, Clipboard API real, mobile/desktop, fontes e Back.
+  Os outros 32 casos têm código funcional inalterado pela correção de contraste.
+- PASS: quatro casos de indisponibilidade com foundation desabilitada (404,
+  nenhum metadado público ou heading anunciado). A última correção visual não
+  altera esse reader/gate.
+- PASS: build de produção final, TypeScript, ESLint completo e focal, Prettier
+  dos arquivos alterados e git diff --check.
+- NOT_RUN local: harness POSIX completo do workflow e PostgreSQL descartável
+  do #522 nesta rodada (Docker sem resposta). A prova portátil não substitui
+  o shell Linux nem o banco; ambos têm evidências anteriores e novo CI em curso.
+- NOT_RUN: navegador remoto protegido, aparelhos reais, Safari/Firefox, ensaio
+  humano, integração de destinatário externo e tecnologia assistiva real.
+
+A fonte do diagnóstico, asserts negativos, runtime e tests estão nesse SHA.
+O checkpoint seguinte altera somente roadmap/relatório e solicita Preview pelo
+mecanismo Git existente. Preview, checks e seus artifacts exatos ficam no corpo
+do #523 e no manifesto externo de prova, sem outro commit só para registrar o
+próprio SHA. O PR permanece draft enquanto houver bloqueios aplicáveis.
