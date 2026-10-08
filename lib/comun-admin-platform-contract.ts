@@ -109,6 +109,7 @@ const ROUTES: readonly ComunAdminPlatformRouteContract[] = [
   ...[
     "/comun/admin/organizacao",
     "/comun/admin/organizacao/calendario",
+    "/comun/admin/organizacao/editais",
     "/comun/admin/organizacao/entrada",
     "/comun/admin/organizacao/entrada/vincular",
   ].map((route): ComunAdminPlatformRouteContract => ({
