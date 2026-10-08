@@ -1,0 +1,57 @@
+name: COMUN Escola Production read-only PRE
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/learning/production-pre*"
+      - "scripts/learning/production-like-*"
+      - "scripts/learning/atomic-disposable*"
+      - ".github/workflows/comun-learning-production-pre.yml"
+permissions: { contents: read }
+jobs:
+  read-only-capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/learning/production-pre.node-test.mjs
+      - name: Allowlisted catalog-only capture, never schema promotion
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          COMUN_LEARNING_REVIEW_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}
+          PGOPTIONS: -c default_transaction_read_only=on
+        run: node scripts/learning/production-pre.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: escola-production-pre-${{ github.sha }}
+          path: .ci-artifacts/learning-production-pre/capture.json
+          if-no-files-found: error
+          retention-days: 14
+  production-like-disposable:
+    needs: read-only-capture
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - uses: actions/download-artifact@v4
+        with:
+          name: escola-production-pre-${{ github.sha }}
+          path: .ci-artifacts/learning-production-pre
+      - run: bash scripts/learning/production-like-fixture.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: escola-production-like-${{ github.sha }}
+          path: .ci-artifacts/learning-production-like
+          if-no-files-found: error
+          retention-days: 14
