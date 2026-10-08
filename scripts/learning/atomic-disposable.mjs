@@ -166,7 +166,7 @@ export async function installAtomicDisposable(db, expectedPre, failAt = null) {
     const privilegeWindow = db.connectionParameters.user === "supabase_admin";
     if (privilegeWindow) {
       await db.query(
-        "reset role; grant create on schema public to postgres; grant references on auth.users to postgres; grant insert on supabase_migrations.schema_migrations to postgres; set local role postgres",
+        "set local role supabase_admin; grant create on schema public to postgres; grant references on auth.users to postgres; grant insert on supabase_migrations.schema_migrations to postgres; set local role postgres",
       );
     }
     await db.query(sql);
@@ -180,7 +180,7 @@ export async function installAtomicDisposable(db, expectedPre, failAt = null) {
       throw new Error("LEARNING_DISPOSABLE_INJECTED_HISTORY_FAILURE");
     if (privilegeWindow) {
       await db.query(
-        "reset role; revoke create on schema public from postgres; revoke references on auth.users from postgres; revoke insert on supabase_migrations.schema_migrations from postgres; set local role postgres",
+        "set local role supabase_admin; revoke create on schema public from postgres; revoke references on auth.users from postgres; revoke insert on supabase_migrations.schema_migrations from postgres; set local role postgres",
       );
     }
     const post = await readAtomicSnapshot(db);
