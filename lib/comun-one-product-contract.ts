@@ -14,8 +14,7 @@ export const COMUN_PUBLIC_SCHEMA_TYPES = [
   "CreativeWork",
 ] as const;
 
-export type ComunPublicSchemaType =
-  (typeof COMUN_PUBLIC_SCHEMA_TYPES)[number];
+export type ComunPublicSchemaType = (typeof COMUN_PUBLIC_SCHEMA_TYPES)[number];
 
 export type ComunPublicSurfaceV1 = {
   schemaVersion: 1;
@@ -69,11 +68,25 @@ type ProjectionOptions = {
 const PRIVATE_PATHS = COMUN_PRIVATE_CRAWL_PATHS.map((path) =>
   path.replace(/\/$/, ""),
 );
+const SHARE_PRIVATE_PATHS = [
+  ...PRIVATE_PATHS,
+  "/comun/acompanhar/",
+  "/comun/relatar",
+  "/comun/criar-conta",
+  "/comun/onboarding",
+  "/comun/escola",
+  "/comun/pautas/nova",
+  "/comun/acervo/historias-orais/contribuir",
+];
 const VALID_DATE = /^\d{4}-\d{2}-\d{2}(?:T[^\s]+(?:Z|[+-]\d{2}:\d{2}))?$/;
 
 function cleanText(value: unknown, limit: number): string {
   return typeof value === "string"
-    ? value.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, limit)
+    ? value
+        .replace(/[\u0000-\u001f\u007f]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, limit)
     : "";
 }
 
@@ -86,13 +99,71 @@ function isValidDate(value: unknown): value is string {
 }
 
 export function isComunPublicPath(pathname: string): boolean {
-  if (!/^\/comun(?:\/|$)/.test(pathname) || pathname.includes("\\"))
+  if (!/^\/comun(?:\/|$)/.test(pathname) || /[%\\]/.test(pathname))
     return false;
   const normalized = pathname.replace(/\/$/, "") || "/";
-  return !PRIVATE_PATHS.some(
+  return !SHARE_PRIVATE_PATHS.some(
     (privatePath) =>
-      normalized === privatePath || normalized.startsWith(`${privatePath}/`),
+      normalized === privatePath.replace(/\/$/, "") ||
+      normalized.startsWith(`${privatePath.replace(/\/$/, "")}/`),
   );
+}
+
+// Adapter for an already authorized public reader. Missing dates never become
+// invented publication dates, JSON-LD or indexing permission.
+export function projectComunPublicSummary(
+  surface: Pick<
+    ComunPublicSurfaceV1,
+    "title" | "summary" | "canonicalPath" | "publication" | "privacy"
+  > | null,
+): { share: ComunSharePayload | null; metadata: Metadata } {
+  const path = surface && toComunCanonicalPath(surface.canonicalPath);
+  const title = cleanText(surface?.title, 120);
+  const summary = cleanText(surface?.summary, 500);
+  if (
+    !surface ||
+    surface.publication !== "published" ||
+    surface.privacy !== "public" ||
+    !path ||
+    title.length < 3 ||
+    summary.length < 20
+  )
+    return {
+      share: null,
+      metadata: {
+        title: "Conteúdo indisponível | COMUN",
+        description: "",
+        robots: { index: false, follow: false },
+        openGraph: { title: "COMUN", description: "", images: [] },
+        twitter: { title: "COMUN", description: "", images: [] },
+        other: { "comun:share": "blocked" },
+      },
+    };
+  const url = publicSurfaceUrl(path);
+  const image = publicSurfaceImage();
+  return {
+    share: { title, text: summary, url },
+    metadata: {
+      title,
+      description: summary,
+      alternates: { canonical: url },
+      robots: { index: false, follow: true },
+      openGraph: {
+        type: "website",
+        title,
+        description: summary,
+        url,
+        images: [image],
+      },
+      twitter: {
+        card: "summary",
+        title,
+        description: summary,
+        images: [image],
+      },
+      other: { "comun:share": "public" },
+    },
+  };
 }
 
 export function toComunCanonicalPath(value: string): string | null {
@@ -291,12 +362,12 @@ export function projectComunPublicSurface(
   const canonicalUrl = canonicalPath ? publicSurfaceUrl(canonicalPath) : null;
   const indexable = Boolean(
     shareable &&
-      canonicalUrl &&
-      surface.indexingAuthorization === "approved" &&
-      surface.sources.length > 0 &&
-      findings.length === 0 &&
-      options.launchPublicly === true &&
-      (options.indexingPolicy ?? COMUN_INDEXING_POLICY) === "indexing_open",
+    canonicalUrl &&
+    surface.indexingAuthorization === "approved" &&
+    surface.sources.length > 0 &&
+    findings.length === 0 &&
+    options.launchPublicly === true &&
+    (options.indexingPolicy ?? COMUN_INDEXING_POLICY) === "indexing_open",
   );
 
   if (!shareable || !canonicalUrl) {
@@ -343,7 +414,8 @@ export function projectComunPublicSurface(
         images: [image],
       },
     },
-    jsonLd: findings.length === 0 ? makeJsonLd(surface, canonicalUrl, image) : null,
+    jsonLd:
+      findings.length === 0 ? makeJsonLd(surface, canonicalUrl, image) : null,
   };
 }
 
@@ -353,8 +425,16 @@ export function buildComunPageSharePayload(input: {
   pageDescription?: string | null;
   canonicalHref?: string | null;
   currentHref: string;
+  projectionStatus?: string | null;
 }): ComunSharePayload {
-  const fallbackTitle = cleanText(input.fallbackTitle, 120) || "COMUN";
+  // Mobile headers can contain private object titles. Only product branding may
+  // survive a fallback to the public home, never the current private context.
+  const requestedFallback = cleanText(input.fallbackTitle, 120);
+  const fallbackTitle = ["COMUN", "COMUN VR Abandonada"].includes(
+    requestedFallback,
+  )
+    ? requestedFallback
+    : "COMUN";
   let current: URL;
   try {
     current = new URL(input.currentHref);
@@ -377,7 +457,15 @@ export function buildComunPageSharePayload(input: {
     : null;
   const path = canonical?.pathname || current.pathname;
   const safePath =
-    isComunPublicPath(current.pathname) && isComunPublicPath(path)
+    input.projectionStatus !== "blocked" &&
+    (input.projectionStatus !== "public" ||
+      canonical?.pathname === current.pathname) &&
+    (input.projectionStatus !== "unproven" ||
+      /^\/comun(?:\/(?:pautas|acoes|resultados|acervo|observatorios|ajuda|explorar|participar))?\/?$/.test(
+        current.pathname,
+      )) &&
+    isComunPublicPath(current.pathname) &&
+    isComunPublicPath(path)
       ? path
       : "/comun";
   const isLocal = ["localhost", "127.0.0.1", "::1"].includes(

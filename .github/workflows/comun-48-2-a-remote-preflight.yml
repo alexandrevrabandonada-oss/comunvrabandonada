@@ -58,6 +58,8 @@ jobs:
 
       - name: Reconcile remote migration metadata in a read-only transaction
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
+        env:
+          PGOPTIONS: -c default_transaction_read_only=on
         shell: bash
         run: |
           set -euo pipefail
@@ -139,6 +141,20 @@ jobs:
           const observatoryMigrations = execFileSync('git', ['diff', '--name-only', 'origin/main...HEAD', '--', 'supabase/migrations'], { encoding: 'utf8' })
             .trim().split('\n').filter(Boolean);
           const required = ['dbTransportAvailable', 'psqlReadOnlyAvailable', 'p4ProjectionPresent', 'p4ProjectionRlsEnabled', 'p4PublicGeometryPresent', 'p6cCApplied', 'transactionReadOnly'];
+          // Preserve only allowlisted migration versions/paths, never raw SQL/URLs.
+          if (![...pending, ...unknown].every(version => /^[0-9]{14}$/.test(version)) ||
+              !observatoryMigrations.every(path => /^supabase\/migrations\/[0-9]{14}_[a-z0-9_]+\.sql$/.test(path))) {
+            throw new Error('COMUN_48_2_A_DIAGNOSTIC_FORMAT_INVALID');
+          }
+          fs.writeFileSync('.ci-artifacts/48-2-a-preflight/drift-diagnostic.json', JSON.stringify({
+            pendingNormalMigrations: pending,
+            unknownRemoteMigrations: unknown,
+            observatoryMigrations,
+            failedSchemaControls: required.filter(key => schema[key] !== true),
+            businessRowsRead: schema.businessRowsRead,
+            exactExternalHardeningLedgerAccepted: true,
+            transactionReadOnly: schema.transactionReadOnly === true
+          }) + '\n');
           if (required.some((key) => schema[key] !== true) || schema.businessRowsRead !== false || pending.length || unknown.length || observatoryMigrations.length) {
             throw new Error('COMUN_48_2_A_BLOCKED_REMOTE_SCHEMA_DRIFT');
           }

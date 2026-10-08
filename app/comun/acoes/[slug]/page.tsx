@@ -1,3 +1,7 @@
+import {
+  getPublicCollectiveAction,
+  actionMetadata,
+} from "@/lib/comun-public-sharing";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ComunShell, Section } from "@/components/comun-shell";
@@ -6,7 +10,6 @@ import {
   releaseCollectiveActionTask,
   updateCollectiveActionParticipation,
 } from "@/app/comun/acoes/actions";
-import { getPublicCollectiveAction } from "@/lib/collective-actions";
 import {
   collectiveActionStatusLabels,
   collectiveActionTypeLabels,
@@ -34,6 +37,7 @@ import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
 import { isComunCollectiveActionsCanonicalExperienceEnabled } from "@/lib/comun-collective-actions-canonical-feature";
 import { projectPublicCollectiveActionDetail } from "@/lib/comun-collective-actions-canonical";
 import { CollectiveActionCanonicalDetail } from "@/components/comun-collective-actions-canonical";
+import { ComunActionPracticeGuidance } from "@/components/comun-action-practice-guidance";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +71,7 @@ export default async function CollectiveActionDetailPage({
         action={canonicalAction}
         acknowledgement={canonicalAcknowledgement(query.confirmacao)}
         previewFixtures={previewFixtures}
+        appV2={appV2}
       />
     );
   }
@@ -120,6 +125,7 @@ export default async function CollectiveActionDetailPage({
         </div>
       </Section>
       <Section>
+        <ComunActionPracticeGuidance status={action.status} appV2={false} />
         <h2 className="text-2xl font-black uppercase text-comun-yellow">
           Entrar na ação
         </h2>
@@ -512,6 +518,7 @@ function ActionDetailV2({
         />
         <ComunEntityHeader context={context} />
         <ComunRelationRail relations={relations} />
+        <ComunActionPracticeGuidance status={action.status} />
         <ComunRelatedSection
           title="Participar desta ação"
           summary="Sua participação não cria perfil público nem expõe contato, localização ou observações privadas."
@@ -643,4 +650,12 @@ function Cell({ label, value }: { label: string; value: string }) {
       <p className="mt-1">{value}</p>
     </div>
   );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  return actionMetadata((await params).slug);
 }

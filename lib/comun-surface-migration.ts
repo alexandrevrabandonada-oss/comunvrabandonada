@@ -66,6 +66,7 @@ const AUTH_TITLES: Record<string, string> = {
 const INSTITUTIONAL_TITLES: Record<string, string> = {
   "/comun/ajuda": "Ajuda",
   "/comun/ajuda/primeira-acao": "Primeira ação",
+  "/comun/ajuda/praticas/[slug]": "Material de consulta",
   "/comun/seguranca": "Segurança e privacidade",
   "/comun/territorio-tomado": "Sobre o COMUN",
   "/comun/offline": "Acesso offline",
@@ -197,6 +198,8 @@ function titleFor(route: string, family: string) {
 }
 
 function parentFor(route: string, shellMode: ComunShellMode) {
+  if (startsWithRoute(route, "/comun/ajuda/praticas"))
+    return "/comun/ajuda/primeira-acao";
   if (route === "/comun/ajuda/primeira-acao") return "/comun/participar";
   if (shellMode === "admin") {
     const segments = routeSegments(route);
@@ -208,8 +211,7 @@ function parentFor(route: string, shellMode: ComunShellMode) {
   const segments = routeSegments(route);
   if (route === "/comun/pautas") return "/comun";
   if (route === "/comun/acoes") return "/comun/pautas";
-  if (route === "/comun/observatorios")
-    return "/comun/observatorios/panorama";
+  if (route === "/comun/observatorios") return "/comun/observatorios/panorama";
   if (segments.length <= 2) return "/comun/explorar";
   if (segments[1] === "c") return "/comun/comunidades";
   if (segments[1] === "pautas" && segments[3] === "rodas")
@@ -237,7 +239,10 @@ function resolveModeAndWave(route: string): {
   wave: 1 | 2 | 3 | 4;
 } {
   if (AUTH_TITLES[route]) return { shellMode: "auth", wave: 2 };
-  if (INSTITUTIONAL_TITLES[route])
+  if (
+    INSTITUTIONAL_TITLES[route] ||
+    startsWithRoute(route, "/comun/ajuda/praticas")
+  )
     return { shellMode: "institutional", wave: 2 };
   if (route.startsWith("/comun/admin")) {
     const wave = ADMIN_CIVIC_PREFIXES.some((prefix) =>

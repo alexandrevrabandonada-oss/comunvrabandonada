@@ -4,6 +4,109 @@ Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99
 
 ## Atualização transversal do produto — 06/10/2026
 
+### Busca integrada e higiene dos tipos gerados — 08/10/2026
+
+O #519 foi integrado em main `e8850cbc9d7615283225516d5ab7eb654bdea545`,
+com árvore revisada preservada. Production READY e endpoint público no SHA
+exato; 18 checks pós-merge success, 79 skipped, zero falhas/pendências.
+Quality remoto `113533464845` passou read-only, e a integração PostgREST
+voltou a passar em main. Não certifica operação pública V1 ou aparelhos reais.
+
+O candidato #523 `00153352` passou nas jornadas, mas Quality `113523175532`
+falhou depois com TS1109/TS1128 no arquivo gerado
+`.next-miniapp-experience/dev/types/validator.ts`. A rotina antiga retirava
+somente `.next/dev`, deixando o output dev isolado na seleção do TypeScript.
+O conteúdo gerado inválido foi identificado pelo log; sua origem exata não
+foi reproduzida. Não atribuir a código da aplicação nem declarar flake.
+
+A correção retira somente os dois outputs dev conhecidos, após encerramento
+dos testes de navegador, preserva os tipos de produção e fontes, e executa
+`next typegen` canônico antes do mesmo `tsc --noEmit`, lint e build. Não altera
+`ignoreBuildErrors`, strict ou globais de exclusão. Três provas com o compilador
+TypeScript real demonstram falha por validator dev inválido, recuperação após
+limpeza e preservação de erros de aplicação e de tipos de rotas de produção.
+
+Esta reconciliação incorpora main por merge normal: os filtros de busca e a
+prova PostgREST já integrados são preservados. Páginas, projeção contextual,
+compartilhamento, migration, manifesto e flags do candidato permanecem.
+O novo SHA exige seus próprios checks; as provas anteriores são históricas.
+
+Os 502 nos resets descartáveis de Território `113523175153` e ciclo político
+`113523176640` passaram em uma reexecução isolada cada, sem mudança de código
+(jobs `113536308032` e `113532923911`). As falhas originais permanecem no
+histórico. Seis gates remotos continuam dependentes da Escola; recuperação do
+provedor continua bloqueada. Nenhuma migration Production, flag ou indexação.
+
+### Storage integrado e prova focal do candidato — 08/10/2026
+
+O #530 foi integrado por merge normal em main `3530f8aa4a25e7ff0ad2654d36826f92279fc9df`,
+com árvore idêntica à revisada `d9a9aba52d1ae5aab8da322d54c7178e566b18dc`.
+O candidato teve seis checks success, 74 skipped, zero falhas ou pendências;
+Preview exato e COST-02 passaram. Security `113511732962` comprovou perda e
+restore reais de banco e Storage em Supabase descartável, observação do mesmo
+link ativo e expirado e limpeza. Os 21 testes Node passaram. A janela de
+15 segundos pertence somente ao ensaio, sem alterar links do aplicativo.
+
+Production READY `dpl_Zf9r6tzd3SbTouNG437zzupSLPYf` e endpoint público
+`/api/comun/quality-status` responderam com o SHA `3530f8aa`. Este delta não
+corresponde aos paths push do Quality; não houve Quality pós-merge neste SHA.
+A prova Quality remota `113503800860` da base `1e6602c` permanece histórica,
+não é transferida. Não exigir ou declarar uma run que não foi acionada.
+Aguardar deploy exato e checks pós-merge aplicáveis antes do próximo merge;
+quando Quality for acionado, aguardar também sua conclusão.
+
+O #523 `df98a5f8` passou na prova focal própria `113505675688`: nove casos
+PWA e dez miniapp, com leitura real, HTTP 200 e limpeza. Security
+`113505674820` falhou no ensaio antigo de um segundo; a hipótese de latência
+não foi comprovada como causa. Esta reconciliação incorpora #530 por merge
+normal, preservando app, components, lib, migrations, manifesto e flags do
+candidato. A aprovação de #530 não certifica este novo candidato; ele precisa
+de Security, Preview e demais checks próprios antes de integrar.
+
+Seis preflights remotos continuam dependentes da migration da Escola.
+`COMUN_SECURITY_RESILIENCE_BLOCKED_PROVIDER_CAPABILITY` continua bloqueado:
+restore sintético não comprova backup durável ou recuperação do provedor.
+O conector Supabase da sessão negou acesso direto ao projeto COMUN; os
+workflows existentes não foram considerados sem acesso por essa razão.
+Nenhuma promoção de schema, flag, indexação ou certificação V1 foi feita.
+Validação da reconciliação local: 24 testes Node (21 Security e três do
+runner miniapp), TypeScript, ESLint focal, Prettier e diff-check passaram.
+O runtime app/components/lib/supabase é idêntico ao pai `df98a5f8`. Quality
+`113505675916` desse pai concluiu SUCCESS, com jornadas, smokes, build e
+limpeza. Marcador `COMUN_QUALITY_AUTOMATED_CONTRACT_GREEN`; aparelhos reais
+e ensaio humano continuam NOT_RUN. Snapshot final do pai: 40 success,
+88 skipped, sete failures (seis Escola e o ensaio antigo de Storage), zero
+pendências. A reconciliação é publicada após essa conclusão, sem rerun
+manual nem transferência de PASS. O novo SHA exige seus próprios gates. Checks pós-merge #530: quatro success, 73 skipped, zero
+falhas ou pendências na consulta. Skipped e pending não contam como PASS.
+As seções seguintes são históricas.
+
+### Isolamento integrado e nova reconciliação — 08/10/2026
+
+Base incorporada: `1e6602c3cf9c87e93365f088e04148e81f574531`.
+#528 e #529 estão integrados; #518 entrou por merge normal, com 41 checks
+success, 114 skipped, zero falhas ou pendências e Vercel success no candidato.
+Entrega servidor/porta/build próprios para o miniapp, sem reutilização de
+servidor; não muda página, leitor público, permissões ou schema.
+
+O candidato anterior #523 `922e5d82` concluiu com 39 success, 87 skipped e
+7 failure. Seis gates remotos continuam dependentes da Escola; Quality
+`113449356818` também falhou em dez casos do miniapp, na memória da jornada.
+A causa exata não foi reproduzida. O isolamento já tinha prova positiva no
+#518, mas ela não certifica esta nova reconciliação. O teste passa a verificar
+também o leitor real da memória fixture e HTTP 200 antes da expectativa visual.
+
+Quality pós-merge #528 `113492802723` falhou no preflight:
+`COMUN_QUALITY_EXPECTED_SHA_NOT_DEPLOYED` após 30 tentativas. Seu classificador
+exigiu corretamente o SHA exato `f95299fa`; a certificação Production continua
+bloqueada, sem dispensar preflight ou reaproveitar Vercel success como prova.
+
+Este checkpoint incorpora main por merge normal, mantendo runtime, migration,
+manifesto e flags do #523. O novo SHA precisa de prova focal PWA → miniapp,
+Preview exato e seus próprios checks. SQL/navegador locais NOT_RUN: Docker
+indisponível. Nenhum skipped é PASS. O #523 permanece draft; não há promoção
+da Escola, abertura de indexação ou certificação da V1.
+
 ### Checkpoint integrado e fila de revisão — 08/10/2026
 
 Consulta deste checkpoint: `main` em
@@ -53,31 +156,228 @@ Fila de avanço, em ordem:
 
 ### Sequência de integração — 08/10/2026
 
-Primeiro tijolo integrado: #522, merge normal
-`2d21df3de4da10851840529a639944ee22141377`, árvore idêntica ao candidato
-read-only revisado. O caminho automático de Quality deixa de transportar schema.
-Na consulta desta preparação, o deploy Vercel informou success e os checks
-pós-merge ainda executavam; certificação completa não presumida. Quality
-`37811285564` confirmou inspeção de schema read-only verde e falhou depois no
-seletor antigo da busca (cópia oculta de streaming). Integrar a correção focal
-já validada no #523 antes de considerar a base certificada.
+### Base integrada e reconciliação do candidato — 08/10/2026
 
-O #523 permanece draft em `ec849235b1fa33dd4dad959a4748b6ddff438bfd`.
-Quality e Civic Intelligence concluíram success; consulta completa: 49 success,
-6 failure, 87 skipped, nenhuma pendência. As seis falhas seguem bloqueadas pela
-release da Escola; skipped não é aprovação. As descrições anteriores de #522
-draft e Quality pendente abaixo são históricas.
+O #522 está integrado em `2d21df3de4da10851840529a639944ee22141377`.
+O #526 entrou por merge normal em `6a3c39a3f30df166e4e581152ccef104a28a7536`,
+com árvore idêntica à candidata: 10 checks success, 78 skipped, zero falhas ou
+pendências antes do merge. Passaram 15 testes Node, PostgreSQL 17 descartável
+e COST-02 no checkpoint exato. Vercel do merge informou success; a consulta
+pós-merge registrou 4 success, 73 skipped, zero falhas ou pendências.
+Skipped não é aprovação e estes resultados não certificam operação pública.
 
-O próximo pacote separado é a [revisão da release Escola](comun-escola-release-review.md):
-bytes/catálogo imutáveis, captura preliminar read-only e prova PostgreSQL
-descartável. Publicar a ferramenta não promove schema. O manifest permanece
-local_candidate e remotePromotionAllowed=false. Baseline completo, transporte
-atômico, POST e recuperação ainda precisam de prova antes de uma promoção.
+A [revisão da release Escola](comun-escola-release-review.md) está em main:
+bytes/catálogo imutáveis, captura preliminar read-only e prova descartável.
+O manifesto permanece `local_candidate`, `remotePromotionAllowed=false`.
+Baseline completo, transporte atômico, POST e recuperação ainda precisam de
+prova. Nenhuma migration, flag ou abertura de indexação foi executada.
 
-Ordem: certificar #522 → integrar preparação da Escola → revisar/promover schema
-em etapa própria → revalidar seis gates → integrar #523 → certificar deploy.
-Ativação e ensaio humano seguem depois. Novas frentes de produto devem usar
-essa base integrada, preservando as dependências e a distinção código/schema/flag.
+O Quality pós-merge do #522 confirmou schema read-only verde e falhou depois
+no seletor antigo da busca (cópia oculta de streaming). O #525 separa a correção
+já presente neste candidato. No checkpoint `1c17f4e`, rede e os demais checks
+concluídos passaram; a última pr-lane de Quality ainda está em execução nesta
+reconciliação. A certificação da base continua dependente desse resultado e do
+pós-merge da correção, sem presumir aprovação por evidência de outro SHA.
+
+O #523 recebe a base integrada por merge normal, preservando a implementação
+de orientação, projeção pública e compartilhamento. O conflito do roadmap foi
+resolvido conservando os registros de produto abaixo e distinguindo históricos
+da situação atual. O delta desta reconciliação acrescenta as ferramentas já
+integradas do #526 e documentação; não muda runtime, testes de produto,
+migration, manifesto ou flags. As provas antigas de `ec849235` permanecem
+históricas: 49 success, 6 failure, 87 skipped, zero pendências. O novo candidato
+precisa de Preview e checks próprios; os seis gates da Escola continuam
+bloqueados até a promoção revisada, sem mudar fingerprints para fazê-los passar.
+
+Ordem restante: fechar #525/base → baseline read-only e pacote atômico/POST/
+recuperação da Escola → autorização específica de schema → revalidar os seis
+gates no candidato reconciliado → integrar #523 se verde → certificar deploy.
+Ativação e ensaio humano seguem depois. As seções seguintes documentam as
+entregas candidatas e checkpoints anteriores; estados antigos de #522 draft,
+Escola ainda sem ferramentas ou Quality pendente não substituem esta atualização.
+
+### 49-H/49-I — rios, energia e bloqueios reconciliados — 08/10/2026
+
+Continuação do draft #523, funcional `15a31d79d8ddd179a79e9c6f552f6730c43def3b`,
+sobre main `2c5d974d3ddf1b2c027d85b156a3f8a5ae4618f1`.
+Rios/INEA e energia/ANEEL passam a usar a mesma leitura pública autorizada e
+projeção allowlisted para página, metadados e compartilhamento. Fonte, período,
+território, data e limites acompanham o link; não se inventa atualidade,
+potabilidade ou pessoas afetadas. Fontes/metodologia e retorno são acessíveis;
+flags, privacidade e pilot_noindex permanecem. Contraste corrigido somente
+nessas superfícies, após captura de navegador demonstrar texto ilegível.
+
+O 48.2-A agora preserva diagnóstico sanitizado antes de bloquear. Run
+`37799177976`: somente `20261006134804` pendente, zero unknown e zero controles
+de schema falhando; Hardening aceito, read-only confirmado. Os cinco preflights
+48.3 apontam a mesma Escola. A pendência continua bloqueio, sem fingerprints,
+expectativas ou migration alterados. Plano de release separado no relatório.
+
+Patch read-only revisado do #522 portado via cherry-pick `59fecd59`; #522 segue
+draft e não integrado em main. Quality antigo `37793676320` passou sem rerun.
+O novo teste de diagnóstico revelou reutilização de artifact entre fixtures na
+run intermediária `37799177341`; isolamento corrigido, sem dispensar negativos.
+Prova portátil da classificação passou; shell Linux depende do novo CI.
+
+Provas desta rodada: 32 Vitest focais, 21 Node Quality, três Node de diagnóstico,
+36 casos focais de navegador e quatro negativos de flag; depois da correção
+visual, os quatro especializados foram repetidos com axe do cabeçalho. Build,
+TypeScript, lint e formatação passaram. Docker local não respondeu em 15 s;
+nenhuma limpeza/restart alheio foi tentado. Provas completas e limites no
+[relatório](../reports/current/comun-49-hi-public-sharing.md).
+
+Ainda faltam transporte, território, panorama e demais detalhes especializados,
+recebimento em apps terceiros, aparelhos reais, Safari/Firefox e ensaio humano.
+Próxima entrega: resolver o gate separado da Escola e rever esta adoção, então
+seguir pelas próximas superfícies publicadas. Mais adoção técnica não certifica
+operação pública, responsáveis, validação editorial nem conclusão da V1.
+
+### 49-H/49-I — distribuição pública candidata — 08/10/2026
+
+Base reconsultada: `2c5d974d3ddf1b2c027d85b156a3f8a5ae4618f1`.
+A continuação do draft #523 integra orientação/material e compartilhamento,
+sem merge ou disponibilidade presumida em Production. Candidato funcional:
+`f2cb25fa56a639f79cd4d228e483922fa922db67`, tree
+`e41a7164b205ac4dc7982ae7c26efde67b0b2929`.
+
+A pessoa pode compartilhar a pauta ou material com título, resumo e endereço
+canônico da leitura pública autorizada. O comando existente usa compartilhamento
+nativo, cópia e alternativa manual acessível; cancelar não copia nem anuncia
+sucesso. Query, fragmento, protocolos e contexto privado não são distribuídos.
+Resultados passam a ter endereço estável, sem perder identidade na cópia.
+Metadados dos detalhes genéricos de pauta, ação, resultado, dossiê, Acervo,
+observatório e material reutilizam a consulta pública da página, por requisição.
+Conteúdo retirado/privado ou não confirmado não ganha publicidade por metadados.
+O fallback conservador compartilha somente o início do COMUN. `pilot_noindex`
+permanece; nenhuma flag, migration ou autorização de publicação foi alterada.
+
+Provas locais no candidato: 1.473 unitários, 113 solo, 44 contratos
+COST-01/COST-02/inventário, 32 casos de jornada pública e 45 PWA em cinco
+viewports passaram. ESLint, TypeScript, build e formatação passaram.
+Clipboard API real, teclado, foco/Escape, manual, ausência de escrita observada,
+material e retorno foram exercitados. Cancelamento/falha nativos usam injeção
+nas APIs do SO: não certificam folha nativa, apps terceiros ou dispositivo real.
+axe do diálogo passou. A revisão remota encontrou expectativas antigas de
+falha/status e uma lacuna no nome acessível após copiar. O candidato final
+preserva correspondência entre nome/rótulo e exige recuperação manual nos
+testes PWA, sem desligar regras. Os sete leitores não tiveram RLS novo certificado;
+mocks não substituem Auth/Postgres. Os detalhes especializados e o link recebido
+em aparelhos reais continuam lacunas de distribuição e ensaio humano.
+
+O inventário correto é 242 páginas; a divergência anterior `241 !== 240`
+foi corrigida sem remover contratos. O erro histórico de tipos dev de Next
+foi confirmado no log da run `37778556477`, não confundido com a contagem
+falha da run `37786184099`. Esta suíte usa saída dev própria para não misturar
+tipos gerados com o build. O build/TypeScript atual passou, com evidência própria.
+
+Bloqueios preservados: migration da Escola `20261006134804` pendente no
+preflight remoto; #522 continua OPEN/draft e seu transporte Quality read-only
+não está em main. Docker rate limit interrompeu a prova anterior do ciclo antes
+de RLS. Preview exato e checks remotos do novo checkpoint são registrados no
+PR e no [relatório da entrega](../reports/current/comun-49-hi-public-sharing.md),
+sem transportar resultados entre SHAs. Nenhuma capacidade da V1 é promovida.
+
+Próxima entrega prioritária: fechar a revisão desta jornada pública e adotar a
+mesma projeção nos observatórios especializados; depois ensaiar o compartilhamento
+recebido e a retomada com pessoas/aparelhos reais. Escola, responsabilidades,
+governança e lançamento não são presumidos pelo sucesso técnico.
+
+### Continuação verificada — 08/10/2026
+
+Base reconsultada: `2c5d974d3ddf1b2c027d85b156a3f8a5ae4618f1`, merge
+do #521. Os PRs #520 e #503 foram incorporados nessa integração; descrições
+anteriores de candidato/draft abaixo são históricas. Código integrado não
+comprova ativação de flags, disponibilidade de schema ou ensaio humano.
+
+O #522, head `bf9eb8ab912ce9442e18e3ec50d2e01dba09a2de`, continua
+draft e independente: substitui o transporte automático de Quality por
+verificação read-only, sem migration/reload. O relatório vincula 39 checks
+success e 65 skipped ao candidato; skipped não conta como aprovação.
+A revisão do diff confirma conexão/transação read-only, rollback, credencial
+restrita ao passo e ausência de reparo automático. A correção não está em main.
+
+**49-E3 — orientação dentro da ação, candidata:** detalhes públicos de ações
+abertas/ativas oferecem uma orientação expansível antes da participação.
+Aguardando resultado/concluída oferece critérios para conferir o que mudou,
+sem tratar conclusão como solução comprovada. Estados não públicos ou
+desconhecidos não recebem convite. O mesmo componente atende detalhe canônico,
+V2 e legacy, usa apenas fase pública allowlisted no link do material existente
+e não recebe identidade, slug, protocolo ou texto privado.
+
+Consultar ou expandir o material não escreve progresso, inscrição ou tarefa.
+O aprendizado começa dentro da própria ação; a orientação completa permanece
+pública. A Escola existente não é duplicada nem ativada por esta entrega.
+
+Validação local do E3: 38 testes focais, dois de coerência, quatro de
+classificação de superfícies, ESLint, TypeScript e diff-check passaram. HTML
+servido com fixtures sintéticas no detalhe canônico respondeu 200 em seis
+combinações (aberta/aguardando resultado/concluída × canônica/legacy), com uma
+orientação adequada, link allowlisted e nenhum controle de escrita dentro dela.
+Doze casos de navegador foram preparados na suíte existente para desktop e
+celular, incluindo teclado, material e retorno. Execução renderizada NOT_RUN:
+Chromium não instalado. HTML não comprova foco, contraste ou interação.
+
+Revisão do CI do #523: o primeiro head não incluiu o marcador de checkpoint
+`[comun-preview]`, necessário para acionar o Preview exato. O teste de fallback
+da busca encontrou duas cópias do status no DOM; o seletor foi alinhado ao
+padrão da suíte Central, exigindo um único status visível dentro do `main`.
+A execução renderizada da correção e o Preview do novo head ainda precisam
+ser comprovados pelo CI.
+
+O preflight remoto read-only continua bloqueado por
+`20261006134804_comun_learning_r0.sql` pendente. Esse bloqueio é preservado:
+esta entrega não aplica a migração nem a exclui do plano exigido pelo gate.
+
+Continuação autônoma do E3: a orientação também acompanha o detalhe de pauta
+(Pauta Viva, miniapp V2/legacy, detalhe V2/legacy e fallback editorial antigo).
+O material orienta conferir pessoas afetadas, fontes, datas, lacunas e condições
+da contribuição, preservando a possibilidade de apenas acompanhar. Pautas e
+ações reutilizam um componente de servidor com expansão nativa, sem estado
+privado, consulta adicional ou gravação. O link transporta somente `etapa=pauta`
+e a experiência; nenhum slug ou identificador individual é transportado.
+
+Validação desta ampliação: 38 testes focais, ESLint, TypeScript e diff-check
+passaram. HTML servido sem credenciais respondeu 200 nas quatro combinações
+do fallback editorial de calçadas (Pauta Viva ligada/desligada × V2/legacy),
+com uma orientação, link esperado e nenhum formulário/input/botão dentro dela.
+Quatro novos casos de navegador (V2/legacy × desktop/celular) cobrem teclado,
+material e retorno; a suíte lista 20 casos. Execução renderizada local NOT_RUN
+por ausência de Chromium; os demais ramos foram revisados estaticamente.
+
+No head anterior `deb15b00d84d4b9f0aae7bfaf34ddb28083b8f16`, network-lane,
+COST-02/Preview exato e ciclo público/mobile/teclado passaram. Esses resultados
+não certificam a ampliação posterior. Além da migração pendente, Civic
+Intelligence encontrou sintaxe inválida em `.next/dev/types/validator.ts`
+gerado durante o ensaio; essa falha de CI permanece para tratamento separado.
+**49-E3 / 49-C — consulta e formação conectadas, candidata:** cada uma das seis
+etapas de orientação oferece dois materiais relevantes, projetados diretamente
+do catálogo da Escola. `/comun/ajuda/praticas/[slug]` publica apenas título,
+conceito, aplicação e procedência editorial de materiais allowlisted. Questões,
+respostas, progresso e registros de prática ficam no fluxo existente da Escola.
+A consulta pública não exige cadastro ou schema; o link para a atividade
+interativa aparece somente com a flag da Escola já habilitada. Esta entrega
+não liga essa flag, não aplica a migração nem comprova disponibilidade remota.
+Pauta/ação → material → orientação preserva a fase pública e a experiência,
+sem transportar identificador da pauta, pessoa, tarefa ou protocolo.
+
+Validação da conexão: 41 testes focais (projeção pública, fases e núcleo da
+Escola), quatro de classificação de superfícies, ESLint, TypeScript e diff-check
+passaram. O inventário passou a reconhecer 241 rotas, com o material classificado
+como institucional público, sem exigência de conta. O HTML servido sem
+credenciais passou em oito combinações de dois materiais × V2/legacy × Escola
+ligada/desligada: HTTP 200, um artigo fora da marcação oculta de streaming,
+retorno esperado, nenhum formulário/input/botão no artigo e `noindex` preservado.
+O link da Escola ficou ausente quando desligada e presente quando ligada.
+HTML não comprova renderização, foco ou ausência de requisições no navegador.
+Quatro casos novos de navegador conferem consulta, retorno e ausência de
+consultas à API da Escola/server actions; a suíte lista 24 casos. Execução
+renderizada local NOT_RUN por ausência de Chromium; CI/Preview do novo head
+precisam de comprovação própria.
+
+Próxima frente de produto: distribuição e compartilhamento coerentes das
+superfícies públicas autorizadas (49-H/49-I), preservando `pilot_noindex`,
+publicação/privacidade e a continuidade já existente. A ativação da Escola e
+o progresso privado permanecem no seu fluxo e nos seus gates.
 
 O roadmap passa a tratar o COMUN também como infraestrutura para uma estrutura política permanente ligada à APS, à VR Abandonada e a organizações aliadas. Núcleos, estratégia, formação, competências, fábrica, Minha Participação, inteligência cívica, observatórios e ação institucional formam um ciclo organizativo: evidência → prioridade coletiva → formação e responsabilidade voluntária → ação → devolutiva → memória e renovação de capacidades.
 
@@ -409,3 +709,11 @@ Skipped e pending não contam como PASS. O registro seguinte é histórico.
 A busca unificada usa `service_role`. A leitura de territórios não filtrava `visibility=public`, e a leitura de obras filtrava apenas o estado da obra, sem exigir raiz publicada/pública no Acervo. O candidato acrescenta esses filtros. As onze fontes descartam dados parciais quando sua resposta inclui erro; fontes saudáveis e fallback do mapa continuam disponíveis.
 
 Quinze testes da função completa usam respostas de banco simuladas. Na base `74cc0ed1779f5432496c3f852ce92bed3524a3a1`, doze falharam: filtros ausentes e dados parciais consumidos nas onze fontes. Após a correção, os quinze passaram. Isso comprova a regressão e os contratos da consulta, não a ausência de vazamento histórico ou a equivalência de produção. Não houve leitura de dados privados do ambiente canônico. A semântica real dos filtros relacionais ainda deve ser conferida em Supabase descartável e no ambiente autorizado. Não é uma auditoria completa de autorização de todas as fontes de busca.
+
+# Passada de continuidade pública e PRE da Escola — 08/10/2026
+
+Main confirmado em `4bf839d61a6eb77965c1efa0a4ebbbe307cfdd21`: #519 e #531 integrados, deployment Git Production READY e endpoint público de versão no mesmo SHA; quatro smokes públicos 200. O #523 foi reconciliado com essa base sem conflitos e mantém os gates próprios.
+
+49-H/49-I: fontes de INEA e ANEEL passam a ter metadados coerentes com a projeção pública e caminhos explícitos de retorno, inclusive para quem recebeu um link direto. Prova de navegador automatizada própria foi adicionada; não equivale a aparelho físico ou aprovação humana.
+
+Escola: #532 captura identidade allowlisted, catálogos, histórico e ledgers em transação read-only. A captura de `0408c591` (run 37855395017, artefato 11583906100) confirmou os cinco ledgers aceitos, zero findings, fingerprints R5 intactos e Escola ausente. Somente `20261006134804` é pendência acionável; as duas omissões históricas permanecem explicitamente registradas pela reconciliação canônica existente. O ensaio Production-like exige equivalência pública e privada antes de aplicar a migration somente em banco descartável. Promoção, flags e capacidade de backup do provedor continuam sem certificação/autorização nesta rodada.

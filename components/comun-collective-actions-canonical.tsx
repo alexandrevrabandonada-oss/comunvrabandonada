@@ -5,6 +5,7 @@ import {
   updateCollectiveActionParticipation,
 } from "@/app/comun/acoes/actions";
 import { ComunShell, Section } from "@/components/comun-shell";
+import { ComunActionPracticeGuidance } from "@/components/comun-action-practice-guidance";
 import {
   collectiveActionStatusLabels,
   collectiveActionTypeLabels,
@@ -200,10 +201,12 @@ export function CollectiveActionCanonicalDetail({
   action,
   acknowledgement,
   previewFixtures,
+  appV2 = true,
 }: {
   action: PublicCollectiveActionDetailV1;
   acknowledgement?: string;
   previewFixtures: boolean;
+  appV2?: boolean;
 }) {
   const participable = action.status === "open" || action.status === "active";
   const completed = action.status === "completed";
@@ -254,6 +257,7 @@ export function CollectiveActionCanonicalDetail({
         <p className="comun-prose mt-3 max-w-3xl text-comun-paper/80">
           {action.summary}
         </p>
+        <ComunActionPracticeGuidance status={action.status} appV2={appV2} />
       </Section>
 
       {acknowledgement ? (
