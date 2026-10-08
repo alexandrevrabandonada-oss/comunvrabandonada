@@ -4,6 +4,33 @@ Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99
 
 ## Atualização transversal do produto — 06/10/2026
 
+### Correção integrada e ensaio atômico da Escola — 08/10/2026
+
+O #525 foi integrado por merge normal em
+`092a4afa965c6427f1b1980a0d87e9e483af8d06`. Os 10 checks do candidato
+passaram (35 skipped, sem falhas ou pendências); skipped não é PASS. O merge
+altera somente o teste de fallback da busca. Vercel informou success; Quality
+pós-merge está em execução e ainda não certifica a base.
+
+O #526 já está integrado: revisão imutável/read-only da Escola, com prova
+PostgreSQL descartável. O #523 foi reconciliado com essa base no candidato
+`922e5d8246786a826635d9b3b71af824e18965ab`, sem rebase e sem mudar runtime,
+migration ou flags. Seus novos checks seguem em execução e os gates da Escola
+continuam bloqueados. Não reutilizar o PASS de ec849235 para o novo candidato.
+
+A próxima preparação é o [ensaio atômico canônico descartável da Escola](comun-escola-atomic-disposable.md):
+rollback após schema, histórico e ledger, instalação única, POST e replay
+recusado. O harness passou 16 testes locais; SQL canônico ainda depende do
+próprio CI. Não há comando de promoção remoto e o manifesto permanece
+`remotePromotionAllowed=false`. O escopo é o baseline canônico v2 existente,
+não prova integral de schemas privados ou capacidade de recuperação do provedor.
+
+Ordem restante: certificar Quality da base → conferir ensaio descartável →
+capturar baseline Production identificado em read-only → revisar PRE/POST e
+recuperação real → autorizar separadamente schema → revalidar preflights do
+#523 → integrar candidato verde → certificar deploy. Ativação e ensaio humano
+seguem separados. As seções abaixo registram os checkpoints anteriores.
+
 ### Sequência de integração — 08/10/2026
 
 Primeiro tijolo integrado: #522, merge normal
