@@ -329,3 +329,83 @@ test("roadmap 47.9A e 47.9B permanece separado", async () => {
   assert.match(scope, /47\.9A/);
   assert.match(scope, /47\.9B/);
 });
+
+import { finalizeRestoreEvidence } from "./finalize-restore-evidence.mjs";
+
+test("restore success follows all cleanup steps", async () => {
+  const events = [];
+  await finalizeRestoreEvidence({
+    cleanup: [
+      async () => events.push("container"),
+      async () => events.push("dump"),
+    ],
+    evidence: { result: RESULT.databaseRestore },
+    publish: async () => events.push("published"),
+  });
+  assert.deepEqual(events, ["container", "dump", "published"]);
+});
+
+for (const failedStep of [0, 1]) {
+  test(`cleanup failure ${failedStep} blocks success and attempts all removals`, async () => {
+    const events = [];
+    await assert.rejects(
+      finalizeRestoreEvidence({
+        cleanup: [0, 1].map((step) => async () => {
+          events.push(step);
+          if (step === failedStep) throw new Error("private-secret-sentinel");
+        }),
+        evidence: { result: RESULT.databaseRestore },
+        publish: async () => events.push("published"),
+      }),
+      { message: "COMUN_DATABASE_RESTORE_CLEANUP_FAILED" },
+    );
+    assert.deepEqual(events, [0, 1]);
+  });
+}
+
+test("failed restore is cleaned without publishing success", async () => {
+  const events = [];
+  await finalizeRestoreEvidence({
+    cleanup: [async () => events.push("cleaned")],
+    publish: async () => events.push("published"),
+  });
+  assert.deepEqual(events, ["cleaned"]);
+});
+
+test("evidence write failure propagates after cleanup", async () => {
+  let cleaned = false;
+  await assert.rejects(
+    finalizeRestoreEvidence({
+      cleanup: [
+        async () => {
+          cleaned = true;
+        },
+      ],
+      evidence: { result: RESULT.databaseRestore },
+      publish: async () => {
+        throw new Error("write failed");
+      },
+    }),
+    /write failed/,
+  );
+  assert.equal(cleaned, true);
+});
+
+for (const failedStep of [0, 1, 2]) {
+  test(`Storage cleanup failure ${failedStep} blocks green and attempts objects, database and workspace`, async () => {
+    const events = [];
+    await assert.rejects(
+      finalizeRestoreEvidence({
+        cleanupMarker: "COMUN_STORAGE_RESTORE_CLEANUP_FAILED",
+        cleanup: [0, 1, 2].map((step) => async () => {
+          events.push(step);
+          if (step === failedStep) throw new Error("private-storage-sentinel");
+        }),
+        evidence: { result: RESULT.storageRestore },
+        publish: async () => events.push("published"),
+      }),
+      { message: "COMUN_STORAGE_RESTORE_CLEANUP_FAILED" },
+    );
+    assert.deepEqual(events, [0, 1, 2]);
+  });
+}

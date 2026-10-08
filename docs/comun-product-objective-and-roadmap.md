@@ -152,6 +152,22 @@ O produto está no fechamento técnico e operacional da V1, antes do ensaio inte
 | Escola COMUN R0                                  | PR #503 aberto, head `a8dbe550583526eae631deafa3c574fbcfb18993` na consulta; 24 micro-missões candidatas, progresso privado, flag desligada        | Checks concluídos; validar integração no schema canônico e ativação separada                                                 | Ambiente COMUN identificado e revisão humana do material; testes locais não comprovam ativação                                                               |
 | Serviços Públicos                                | PR documental #434 aberto; expansão fora do fechamento V1                                                                                          | Revisar arquitetura e limites da proposta separadamente                                                                      | Decisão de escopo posterior; sem expansão automática                                                                                                         |
 
+### Candidato de recuperação sem amostra humana — 06/10/2026
+
+A inspeção dos scripts de ensaio de banco e Storage identificou publicação
+de sucesso anterior à limpeza e erros de remoção ignorados. O candidato
+publica o envelope verde somente depois de limpar o ambiente temporário,
+tenta todas as etapas de limpeza e bloqueia em falha. No script de Storage,
+fixtures são registradas para limpeza antes do upload/validação e erros
+retornados por exclusão no banco ou S3 bloqueiam. A suíte de segurança inclui
+falhas injetadas de cada etapa de limpeza e de gravação da evidência. O
+ensaio no runtime também passa a verificar ausência de objetos, bloquear
+erros de limpeza e rastrear o item antes da inserção dos assets; seus testes
+executam a função completa com banco/Storage simulados. Isso fecha uma lacuna de
+confiabilidade do instrumento; não comprova restore remoto, cópia durável ou
+recuperação de Auth e não promove o domínio 47.8. Integração e CI do candidato
+continuam pendentes.
+
 ### Evidência técnica já integrada
 
 - PR #500: navegação por teclado da ficha de Calçadas e isolamento dos tipos gerados pelo build de desenvolvimento.

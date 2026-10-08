@@ -20,12 +20,15 @@ import {
   checksum,
   durationBand,
   envelopeDigest,
+  evidenceDir,
   sanitizedError,
   sizeBand,
   syntheticTag,
   writeEvidence,
   writeFailureEvidence,
 } from "./comun-security-contract.mjs";
+
+import { finalizeRestoreEvidence } from "./finalize-restore-evidence.mjs";
 
 const local = process.argv.includes("--local");
 const startedAt = Date.now();
@@ -35,10 +38,12 @@ const restorePrefix = `security-rehearsal/${tag}/isolated-restore`;
 let tempDir;
 let archiveItemId;
 let provider;
+let pendingEvidence;
 let sourceKeys = [];
 let restoreKeys = [];
 
 try {
+  await rm(path.join(evidenceDir, "35-storage-restore.json"), { force: true });
   await loadRestrictedEnvironment();
   tempDir = await mkdtemp(path.join(os.tmpdir(), "comun-storage-backup-"));
   const supabase = createSupabaseClient();
@@ -48,8 +53,8 @@ try {
 
   for (const fixture of fixtures) {
     const key = `${sourcePrefix}/${fixture.name}`;
-    await provider.put(fixture.scope, key, fixture.body, fixture.mime);
     sourceKeys.push([fixture.scope, key]);
+    await provider.put(fixture.scope, key, fixture.body, fixture.mime);
   }
 
   archiveItemId = await createSyntheticRelations(supabase, fixtures);
@@ -71,13 +76,13 @@ try {
   sourceKeys = [];
   for (const [index, backup] of backedUp.entries()) {
     const key = `${restorePrefix}/${backup.fixture.name}`;
+    restoreKeys.push([backup.fixture.scope, key]);
     await provider.put(
       backup.fixture.scope,
       key,
       backup.body,
       backup.fixture.mime,
     );
-    restoreKeys.push([backup.fixture.scope, key]);
     const restored = await provider.get(backup.fixture.scope, key);
     assert.equal(checksum(restored.body), backup.checksum);
     assert.equal(
@@ -120,7 +125,7 @@ try {
     archiveItemId = undefined;
   }
 
-  await writeEvidence("35-storage-restore.json", {
+  pendingEvidence = {
     result: RESULT.storageRestore,
     provider: provider.name,
     physicalBackup: {
@@ -159,28 +164,45 @@ try {
       storageRpoObserved: "snapshot_at_rehearsal_start",
       isolatedStorageRecoveryRto: durationBand(Date.now() - startedAt),
     },
-  });
-  console.log(RESULT.storageRestore);
+  };
 } catch (error) {
   await writeFailureEvidence("storage_restore", error);
   console.error(sanitizedError(error));
   process.exitCode = 1;
 } finally {
-  if (provider) {
-    try {
-      await provider.remove([...sourceKeys, ...restoreKeys]);
-    } catch {}
+  try {
+    await finalizeRestoreEvidence({
+      cleanupMarker: "COMUN_STORAGE_RESTORE_CLEANUP_FAILED",
+      cleanup: [
+        async () => {
+          if (provider && (sourceKeys.length || restoreKeys.length))
+            await provider.remove([...sourceKeys, ...restoreKeys]);
+        },
+        async () => {
+          if (archiveItemId) {
+            const supabase = createSupabaseClient();
+            const { error } = await supabase
+              .from("comun_archive_items")
+              .delete()
+              .eq("id", archiveItemId);
+            if (error) throw new Error("COMUN_STORAGE_RELATION_CLEANUP_FAILED");
+          }
+        },
+        async () => {
+          if (tempDir) await rm(tempDir, { recursive: true, force: true });
+        },
+      ],
+      evidence: pendingEvidence,
+      publish: async (evidence) => {
+        await writeEvidence("35-storage-restore.json", evidence);
+        console.log(RESULT.storageRestore);
+      },
+    });
+  } catch (error) {
+    await writeFailureEvidence("storage_restore", error);
+    console.error(sanitizedError(error));
+    process.exitCode = 1;
   }
-  if (archiveItemId) {
-    try {
-      const supabase = createSupabaseClient();
-      await supabase
-        .from("comun_archive_items")
-        .delete()
-        .eq("id", archiveItemId);
-    } catch {}
-  }
-  if (tempDir) await rm(tempDir, { recursive: true, force: true });
 }
 
 async function loadRestrictedEnvironment() {
@@ -322,7 +344,7 @@ function r2Provider() {
       for (const scope of new Set(rows.map(([itemScope]) => itemScope))) {
         const keys = rows.filter(([itemScope]) => itemScope === scope);
         if (!keys.length) continue;
-        await client.send(
+        const removed = await client.send(
           new DeleteObjectsCommand({
             Bucket: bucket(scope),
             Delete: {
@@ -331,6 +353,8 @@ function r2Provider() {
             },
           }),
         );
+        if (removed.Errors?.length)
+          throw new Error("COMUN_STORAGE_REMOVE_FAILED");
       }
     },
     async publicStatus(scope, key) {
@@ -557,6 +581,7 @@ async function createSyntheticRelations(supabase, fixtures) {
     .select("id")
     .single();
   if (itemError) throw new Error("COMUN_STORAGE_RELATION_ITEM_FAILED");
+  archiveItemId = item.id;
   const rows = fixtures.map((fixture, index) => ({
     archive_item_id: item.id,
     asset_role: fixture.visibility === "public" ? "public_version" : "original",

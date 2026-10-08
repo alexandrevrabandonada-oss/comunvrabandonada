@@ -9,6 +9,7 @@ import {
   checksum,
   durationBand,
   envelopeDigest,
+  evidenceDir,
   sanitizedError,
   sizeBand,
   syntheticTag,
@@ -16,6 +17,8 @@ import {
   writeEvidence,
   writeFailureEvidence,
 } from "./comun-security-contract.mjs";
+
+import { finalizeRestoreEvidence } from "./finalize-restore-evidence.mjs";
 
 const local = process.argv.includes("--local");
 const applicationSmokeRequested = process.argv.includes("--application-smoke");
@@ -38,7 +41,12 @@ let dumpPath;
 
 async function main() {
   let recoveryPhase = "preflight";
+  let pendingEvidence;
+  let containerAttempted = false;
   try {
+    await rm(path.join(evidenceDir, "30-database-restore.json"), {
+      force: true,
+    });
     const sourceUrl = local ? localDatabaseUrl() : process.env.SUPABASE_DB_URL;
     if (!local) {
       validateRemoteTarget({
@@ -86,10 +94,7 @@ async function main() {
     ).map((value) => JSON.parse(value));
 
     recoveryPhase = "backup_create";
-    const backupSchemas = [
-      ...sourceApplicationSchemas,
-      "supabase_migrations",
-    ];
+    const backupSchemas = [...sourceApplicationSchemas, "supabase_migrations"];
     const schemaFlags = backupSchemas
       .map((schema) => `--schema=${schema}`)
       .join(" ");
@@ -131,6 +136,7 @@ async function main() {
     );
 
     recoveryPhase = "isolated_database_start";
+    containerAttempted = true;
     dockerRun([
       "run",
       "--detach",
@@ -244,7 +250,7 @@ async function main() {
       sizeBand: sizeBand(dumpStats.size),
       durationBand: durationBand(finishedAt - startedAt),
     };
-    await writeEvidence("30-database-restore.json", {
+    pendingEvidence = {
       result: RESULT.databaseRestore,
       source: local ? "local_disposable" : "remote_allowlisted",
       backup: {
@@ -285,8 +291,7 @@ async function main() {
         dumpDestroyed: true,
         privateManifestDestroyed: true,
       },
-    });
-    console.log(RESULT.databaseRestore);
+    };
   } catch (error) {
     const originalMarker = sanitizedError(error);
     const recordedError =
@@ -305,9 +310,26 @@ async function main() {
     process.exitCode = 1;
   } finally {
     try {
-      dockerRun(["rm", "--force", container]);
-    } catch {}
-    if (tempDir) await rm(tempDir, { recursive: true, force: true });
+      await finalizeRestoreEvidence({
+        cleanup: [
+          async () => {
+            if (containerAttempted) dockerRun(["rm", "--force", container]);
+          },
+          async () => {
+            if (tempDir) await rm(tempDir, { recursive: true, force: true });
+          },
+        ],
+        evidence: pendingEvidence,
+        publish: async (evidence) => {
+          await writeEvidence("30-database-restore.json", evidence);
+          console.log(RESULT.databaseRestore);
+        },
+      });
+    } catch (error) {
+      await writeFailureEvidence("database_restore", error);
+      console.error(sanitizedError(error));
+      process.exitCode = 1;
+    }
   }
 }
 

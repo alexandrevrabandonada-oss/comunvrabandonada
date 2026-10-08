@@ -51,7 +51,10 @@ export async function runRuntimeStorageRestoreRehearsal(attemptId: string) {
     scope === "public"
       ? process.env.R2_BUCKET_PUBLIC!
       : process.env.R2_BUCKET_ORIGINALS!;
-  const tag = attemptId.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 64);
+  const tag = attemptId
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "")
+    .slice(0, 64);
   const sourcePrefix = `security-rehearsal/${tag}/source`;
   const restorePrefix = `security-rehearsal/${tag}/isolated-restore`;
   const fixtures: Fixture[] = [
@@ -114,20 +117,18 @@ export async function runRuntimeStorageRestoreRehearsal(attemptId: string) {
       tag,
       fixtures,
       sourceObjects,
+      (id) => {
+        archiveItemId = id;
+      },
     );
     await removeObjects(client, bucket, sourceObjects);
     await assertObjectsMissing(client, bucket, sourceObjects);
 
     for (const [index, item] of fixtures.entries()) {
-      await putVerified(
-        client,
-        bucket(item.scope),
-        restoreObjects[index].key,
-        {
-          ...item,
-          body: backedUp[index].body,
-        },
-      );
+      await putVerified(client, bucket(item.scope), restoreObjects[index].key, {
+        ...item,
+        body: backedUp[index].body,
+      });
       const restored = await getObject(
         client,
         bucket(item.scope),
@@ -216,17 +217,34 @@ export async function runRuntimeStorageRestoreRehearsal(attemptId: string) {
       },
     };
   } finally {
-    await removeObjects(client, bucket, syntheticObjects).catch(() => {});
-    if (archiveItemId) {
+    let cleanupFailed = false;
+    for (const cleanup of [
+      async () => {
+        await removeObjects(client, bucket, syntheticObjects);
+        await assertObjectsMissing(client, bucket, syntheticObjects);
+      },
+      async () => {
+        if (archiveItemId) {
+          const { error } = await database
+            .from("comun_archive_items")
+            .delete()
+            .eq("id", archiveItemId);
+          if (error)
+            throw new Error("COMUN_STORAGE_RUNTIME_RELATION_CLEANUP_FAILED");
+        }
+      },
+      async () => {
+        if (temporaryDirectory)
+          await rm(temporaryDirectory, { recursive: true, force: true });
+      },
+    ]) {
       try {
-        await database
-          .from("comun_archive_items")
-          .delete()
-          .eq("id", archiveItemId);
-      } catch {}
+        await cleanup();
+      } catch {
+        cleanupFailed = true;
+      }
     }
-    if (temporaryDirectory)
-      await rm(temporaryDirectory, { recursive: true, force: true });
+    if (cleanupFailed) throw new Error("COMUN_STORAGE_RUNTIME_CLEANUP_FAILED");
   }
 }
 
@@ -424,6 +442,7 @@ async function createRelations(
   tag: string,
   fixtures: Fixture[],
   objects: Array<{ key: string }>,
+  registerItem: (id: string) => void,
 ) {
   const { data: item, error: itemError } = await database
     .from("comun_archive_items")
@@ -438,6 +457,7 @@ async function createRelations(
     .single();
   if (itemError || !item)
     throw new Error("COMUN_STORAGE_RUNTIME_RELATION_ITEM_FAILED");
+  registerItem(item.id as string);
   const { error } = await database.from("comun_archive_assets").insert(
     fixtures.map((fixture, index) => ({
       archive_item_id: item.id,
@@ -455,10 +475,7 @@ async function createRelations(
       review_status: "pending",
     })),
   );
-  if (error) {
-    await database.from("comun_archive_items").delete().eq("id", item.id);
-    throw new Error("COMUN_STORAGE_RUNTIME_RELATION_ASSET_FAILED");
-  }
+  if (error) throw new Error("COMUN_STORAGE_RUNTIME_RELATION_ASSET_FAILED");
   return item.id as string;
 }
 
