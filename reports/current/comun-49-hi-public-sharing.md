@@ -1,3 +1,38 @@
+## Reconciliação com a base integrada — 08/10/2026
+
+Base incorporada por merge normal: `6a3c39a3f30df166e4e581152ccef104a28a7536`
+(#526), sobre o pai candidato `ec849235b1fa33dd4dad959a4748b6ddff438bfd`.
+O novo checkpoint e sua árvore estão registrados no PR #523. Esta atualização
+resolve o conflito do roadmap, conserva os registros das entregas e acrescenta
+as ferramentas read-only de revisão da Escola já integradas em main.
+
+O diff contra o pai candidato não altera app, components, lib, tests ou
+supabase. Página, metadados, compartilhamento, migration, manifesto e flags
+permanecem iguais. Não houve rebase ou reescrita do histórico.
+
+PASS local da reconciliação: 17 testes Node (15 revisão da Escola e dois
+contratos de coerência), execução offline do pacote, formatação e diff-check.
+As provas de navegador, Auth e PostgreSQL dos checkpoints anteriores são
+históricas; nenhum resultado foi transferido como aprovação do novo SHA.
+SQL/browsers locais NOT_RUN nesta atualização. O novo checkpoint solicita
+Preview e checks próprios com `[comun-preview]`.
+
+#522 e #526 estão integrados. O #526 passou 10 checks e PostgreSQL 17 descartável
+antes do merge; no merge, Vercel success e 4 checks success, 73 skipped, zero
+falhas ou pendências na consulta. Isso não certifica Quality da base: a correção
+#525 ainda aguarda sua última pr-lane nesta atualização. Skipped não é PASS.
+
+Os seis gates da Escola continuam bloqueados pela migration `20261006134804`.
+O manifesto segue `remotePromotionAllowed=false`; este merge incorpora apenas
+ferramentas, sem promover schema. Antes de integrar #523: concluir #525/base,
+baseline canônico read-only, transporte atômico/POST e recuperação revisados,
+autorização específica de escrita e revalidação dos seis gates. Não há nova
+migration, flag, indexação ou certificação de operação pública/V1.
+
+As seções seguintes são evidências e estados dos checkpoints anteriores.
+
+---
+
 # 49-H/49-I — compartilhamento público com contexto
 
 Data: 08/10/2026. Entrega candidata, sem merge, alteração de flags, indexação,

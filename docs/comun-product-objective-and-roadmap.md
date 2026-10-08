@@ -4,6 +4,46 @@ Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99
 
 ## Atualização transversal do produto — 06/10/2026
 
+### Base integrada e reconciliação do candidato — 08/10/2026
+
+O #522 está integrado em `2d21df3de4da10851840529a639944ee22141377`.
+O #526 entrou por merge normal em `6a3c39a3f30df166e4e581152ccef104a28a7536`,
+com árvore idêntica à candidata: 10 checks success, 78 skipped, zero falhas ou
+pendências antes do merge. Passaram 15 testes Node, PostgreSQL 17 descartável
+e COST-02 no checkpoint exato. Vercel do merge informou success; a consulta
+pós-merge registrou 4 success, 73 skipped, zero falhas ou pendências.
+Skipped não é aprovação e estes resultados não certificam operação pública.
+
+A [revisão da release Escola](comun-escola-release-review.md) está em main:
+bytes/catálogo imutáveis, captura preliminar read-only e prova descartável.
+O manifesto permanece `local_candidate`, `remotePromotionAllowed=false`.
+Baseline completo, transporte atômico, POST e recuperação ainda precisam de
+prova. Nenhuma migration, flag ou abertura de indexação foi executada.
+
+O Quality pós-merge do #522 confirmou schema read-only verde e falhou depois
+no seletor antigo da busca (cópia oculta de streaming). O #525 separa a correção
+já presente neste candidato. No checkpoint `1c17f4e`, rede e os demais checks
+concluídos passaram; a última pr-lane de Quality ainda está em execução nesta
+reconciliação. A certificação da base continua dependente desse resultado e do
+pós-merge da correção, sem presumir aprovação por evidência de outro SHA.
+
+O #523 recebe a base integrada por merge normal, preservando a implementação
+de orientação, projeção pública e compartilhamento. O conflito do roadmap foi
+resolvido conservando os registros de produto abaixo e distinguindo históricos
+da situação atual. O delta desta reconciliação acrescenta as ferramentas já
+integradas do #526 e documentação; não muda runtime, testes de produto,
+migration, manifesto ou flags. As provas antigas de `ec849235` permanecem
+históricas: 49 success, 6 failure, 87 skipped, zero pendências. O novo candidato
+precisa de Preview e checks próprios; os seis gates da Escola continuam
+bloqueados até a promoção revisada, sem mudar fingerprints para fazê-los passar.
+
+Ordem restante: fechar #525/base → baseline read-only e pacote atômico/POST/
+recuperação da Escola → autorização específica de schema → revalidar os seis
+gates no candidato reconciliado → integrar #523 se verde → certificar deploy.
+Ativação e ensaio humano seguem depois. As seções seguintes documentam as
+entregas candidatas e checkpoints anteriores; estados antigos de #522 draft,
+Escola ainda sem ferramentas ou Quality pendente não substituem esta atualização.
+
 ### 49-H/49-I — rios, energia e bloqueios reconciliados — 08/10/2026
 
 Continuação do draft #523, funcional `15a31d79d8ddd179a79e9c6f552f6730c43def3b`,
