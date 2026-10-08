@@ -14,14 +14,16 @@ progresso, responsabilidade ou participação.
 - Trabalho isolado sobre esse head; publicação por avanço normal no mesmo
   draft #523. Os workflows relevantes aceitam PR contra main, não PR dependente
   contra branch Codex. Não incorpora o reparo independente de Quality #522.
-- Candidato funcional: `14e1db5e0ddd89430d3def9d2a7a7d0e18339034`.
-  Tree: `133cfe2dd38c62446ffee5e0215b8420be7f46c0`.
+- Candidato funcional: `f2cb25fa56a639f79cd4d228e483922fa922db67`.
+  Tree: `e41a7164b205ac4dc7982ae7c26efde67b0b2929`.
 - #522 reconsultado: OPEN, não merged, head
   `bf9eb8ab912ce9442e18e3ec50d2e01dba09a2de`. Seu reparo read-only não está em
   main; o caminho automático pós-merge de Quality não está certificado como
   corrigido em main.
 - Árvore original com mudanças preexistentes preservada. Trabalho isolado em
-  `D:/COMUN-49H-PUBLIC-SHARING`; a tentativa inicial em C: ficou preservada após
+  `D:/COMUN-49H-PUBLIC-SHARING`; publicação final pelo clone independente
+  `D:/COMUN-49H-PUBLISH`, com SHA/tree idênticos, após C: impedir escrita
+  do índice compartilhado do worktree. A tentativa inicial em C: ficou preservada após
   ENOSPC. Dependências próprias instaladas em D:, sem limpar outros trabalhos.
 
 ## Auditoria da jornada e entrega
@@ -40,7 +42,7 @@ progresso, responsabilidade ou participação.
 O compartilhamento existente foi ampliado: API nativa quando disponível,
 Clipboard API como alternativa e diálogo com link selecionável se ambas
 falharem. Cancelamento não copia nem declara sucesso. O diálogo aceita teclado,
-Escape e devolve foco; o comando preserva URL/contexto e reinicia seu estado na
+Escape e devolve foco; nome acessível acompanha o rótulo visível após a cópia; o comando preserva URL/contexto e reinicia seu estado na
 mudança de página. No celular, permanece no menu existente “Mais ações”.
 
 Título, resumo e URL vêm da projeção pública que alimenta metadata. Campos
@@ -60,7 +62,8 @@ de publicação retirada.
 ## Evidências locais e seus limites
 
 No candidato funcional acima: 1.473 unitários em 250 arquivos, 113 solo,
-44 contratos COST-01/COST-02/inventário e 32 casos de navegador passaram.
+44 contratos COST-01/COST-02/inventário, 32 casos da jornada pública e
+45 casos PWA em cinco viewports passaram no candidato funcional final.
 ESLint, TypeScript e build de produção passaram. Prettier e diff-check são verificados no
 checkpoint documental; o diff deste para o funcional deve conter somente os
 dois documentos desta entrega. O pacote local de evidências vincula comandos,
@@ -107,6 +110,38 @@ nenhuma certificação nova de RLS é atribuída aos unitários/navegador.
   verde (`37784926033`), mas isso não certifica este candidato. Nesta entrega
   o dev server desta suíte tem saída `.next-pauta-action-cycle`; não há reparo
   amplo de CI. Build/TypeScript novos devem ser julgados separadamente.
+
+## Correção demonstrada na revisão remota
+
+O primeiro checkpoint `65227dc4f79e817d4bcb40e25d1a937bba2c8ff1`
+teve Preview Git READY (`dpl_Gme2TAA3s2ozrwK1KcR7U9XRtj4C`), GitHub
+Deployment Preview `6937990569` success e COST-02 success na run
+`37790928713`. Esses resultados pertencem a esse SHA, não ao checkpoint final.
+
+Core `37790929262` e PWA `37790929030` falharam em dez casos: os testes
+esperavam status aninhado no botão e a mensagem antiga “Falha no link”.
+Além de atualizar o teste para a recuperação manual exigida, corrigiu-se o
+nome acessível: “Link copiado” visual agora também integra o nome acessível.
+O status é associado por aria-describedby; o diálogo tem descrição própria.
+Nenhuma regra axe foi desligada. No candidato final, os 45 casos PWA passaram,
+inclusive nome/rótulo, foco, ausência de sucesso falso e regras axe.
+
+Os cinco preflights 48.3 do primeiro checkpoint confirmaram a mesma migration
+School pendente (A1 `37790929153`, C1 `37790929161`, D1 `37790928971`,
+E2 `37790929121`, E3 `37790929279`). 48.2-A `37790929210` bloqueou com
+`COMUN_48_2_A_BLOCKED_REMOTE_SCHEMA_DRIFT`. Seu artifact contém todos os sete
+invariantes de schema/read-only verdadeiros e businessRowsRead=false, mas não
+preserva as listas pending/unknown da comparação. Não se atribui essa falha
+exclusivamente à School sem essa evidência, nem se altera o gate para passar.
+Civic Intelligence `37790929019` passou, sem reprodução do validator antigo.
+
+O checkpoint final solicita novo Preview exato pelo mesmo mecanismo Git. Sua
+validação e a classificação final de checks ficam no corpo do PR e no pacote
+local de evidência, para não criar outro SHA apenas para registrar seu próprio
+Preview. Não há ready-for-review enquanto bloqueios aplicáveis persistirem.
+A navegação direta ao primeiro Preview recebeu a proteção Vercel; HTTP 200 da
+tela de login não foi contado como aplicação funcionando. Navegador remoto
+protegido: NOT_RUN. Nenhuma proteção foi desativada.
 
 ## Próximo passo de produto
 
