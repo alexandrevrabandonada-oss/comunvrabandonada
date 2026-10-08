@@ -71,8 +71,35 @@ COST-02/Preview exato e ciclo público/mobile/teclado passaram. Esses resultados
 não certificam a ampliação posterior. Além da migração pendente, Civic
 Intelligence encontrou sintaxe inválida em `.next/dev/types/validator.ts`
 gerado durante o ensaio; essa falha de CI permanece para tratamento separado.
-Próxima frente: ampliar orientação contextual a pautas e conectar materiais
-às práticas disponíveis da Escola, respeitando ativação e progresso existentes.
+**49-E3 / 49-C — consulta e formação conectadas, candidata:** cada uma das seis
+etapas de orientação oferece dois materiais relevantes, projetados diretamente
+do catálogo da Escola. `/comun/ajuda/praticas/[slug]` publica apenas título,
+conceito, aplicação e procedência editorial de materiais allowlisted. Questões,
+respostas, progresso e registros de prática ficam no fluxo existente da Escola.
+A consulta pública não exige cadastro ou schema; o link para a atividade
+interativa aparece somente com a flag da Escola já habilitada. Esta entrega
+não liga essa flag, não aplica a migração nem comprova disponibilidade remota.
+Pauta/ação → material → orientação preserva a fase pública e a experiência,
+sem transportar identificador da pauta, pessoa, tarefa ou protocolo.
+
+Validação da conexão: 41 testes focais (projeção pública, fases e núcleo da
+Escola), quatro de classificação de superfícies, ESLint, TypeScript e diff-check
+passaram. O inventário passou a reconhecer 241 rotas, com o material classificado
+como institucional público, sem exigência de conta. O HTML servido sem
+credenciais passou em oito combinações de dois materiais × V2/legacy × Escola
+ligada/desligada: HTTP 200, um artigo fora da marcação oculta de streaming,
+retorno esperado, nenhum formulário/input/botão no artigo e `noindex` preservado.
+O link da Escola ficou ausente quando desligada e presente quando ligada.
+HTML não comprova renderização, foco ou ausência de requisições no navegador.
+Quatro casos novos de navegador conferem consulta, retorno e ausência de
+consultas à API da Escola/server actions; a suíte lista 24 casos. Execução
+renderizada local NOT_RUN por ausência de Chromium; CI/Preview do novo head
+precisam de comprovação própria.
+
+Próxima frente de produto: distribuição e compartilhamento coerentes das
+superfícies públicas autorizadas (49-H/49-I), preservando `pilot_noindex`,
+publicação/privacidade e a continuidade já existente. A ativação da Escola e
+o progresso privado permanecem no seu fluxo e nos seus gates.
 
 O roadmap passa a tratar o COMUN também como infraestrutura para uma estrutura política permanente ligada à APS, à VR Abandonada e a organizações aliadas. Núcleos, estratégia, formação, competências, fábrica, Minha Participação, inteligência cívica, observatórios e ação institucional formam um ciclo organizativo: evidência → prioridade coletiva → formação e responsabilidade voluntária → ação → devolutiva → memória e renovação de capacidades.
 

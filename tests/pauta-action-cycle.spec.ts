@@ -32,6 +32,52 @@ for (const experience of ["", "?experiencia=legacy"]) {
       page.locator('[data-comun-pauta-practice-guidance="pauta"]'),
     ).toHaveCount(1);
   });
+  test(`material público sem cadastro${experience}: consultar e voltar`, async ({
+    page,
+  }) => {
+    const writes: string[] = [];
+    page.on("request", (request) => {
+      if (
+        new URL(request.url()).pathname.startsWith("/api/comun/escola") ||
+        request.headers()["next-action"]
+      )
+        writes.push(request.url());
+    });
+    await page.goto(`/comun/pautas/calcadas-em-circulacao${experience}`);
+    const guidance = page.locator(
+      '[data-comun-pauta-practice-guidance="pauta"]',
+    );
+    await guidance.locator("summary").click();
+    await guidance
+      .getByRole("link", { name: "Evidência ou suposição?", exact: true })
+      .click();
+    const material = page
+      .locator('[data-comun-public-practice-material="evidencia-ou-suposicao"]')
+      .filter({ visible: true });
+    await expect(material).toHaveCount(1);
+    await expect(material).toBeVisible();
+    await expect(
+      material.getByRole("heading", { name: "Como aplicar na prática" }),
+    ).toBeVisible();
+    await expect(material.locator("form, input, button")).toHaveCount(0);
+    await expect(
+      material.getByRole("link", { name: "Abrir atividade na Escola" }),
+    ).toHaveCount(0);
+    const returnHref = `/comun/ajuda/primeira-acao?etapa=pauta${experience ? "&experiencia=legacy" : ""}`;
+    const returnLink = material.getByRole("link", {
+      name: "Voltar à orientação",
+      exact: true,
+    });
+    await expect(returnLink).toHaveAttribute("href", returnHref);
+    await returnLink.click();
+    await expect(page).toHaveURL(returnHref);
+    await page.goBack();
+    await page.goBack();
+    await expect(page).toHaveURL(
+      `/comun/pautas/calcadas-em-circulacao${experience}`,
+    );
+    expect(writes).toEqual([]);
+  });
   for (const [slug, stage] of [
     ["mutirao-caminho-seguro", "participacao"],
     ["encaminhamento-iluminacao", "resultado"],
@@ -49,7 +95,7 @@ for (const experience of ["", "?experiencia=legacy"]) {
       await summary.focus();
       await page.keyboard.press("Enter");
       await expect(guidance).toHaveAttribute("open", "");
-      await expect(guidance.locator("li")).toHaveCount(3);
+      await expect(guidance.locator(":scope > ul > li")).toHaveCount(3);
       await expect(guidance.locator("form, input, button")).toHaveCount(0);
       const link = guidance.getByRole("link", {
         name: "Abrir orientação completa",

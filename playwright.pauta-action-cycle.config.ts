@@ -17,6 +17,7 @@ export default defineConfig({
       ...process.env,
       VERCEL_ENV: "preview",
       COMUN_COLLECTIVE_ACTIONS_PREVIEW_FIXTURES: "enabled",
+      COMUN_LEARNING_R0_ENABLED: "disabled",
     },
   },
   projects: [

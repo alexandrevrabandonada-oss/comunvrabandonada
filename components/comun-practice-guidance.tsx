@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ComunPracticeMaterialLinks } from "@/components/comun-practice-material-links";
 import {
   participationGuidance,
   participationGuidanceHref,
@@ -35,6 +36,7 @@ export function ComunPracticeGuidance({
           <li key={check}>{check}</li>
         ))}
       </ul>
+      <ComunPracticeMaterialLinks stage={stage} appV2={appV2} />
       <Link
         href={participationGuidanceHref(stage, appV2)}
         prefetch={false}
