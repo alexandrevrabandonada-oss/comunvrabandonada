@@ -8,6 +8,7 @@ import {
   requireControlledConnection,
 } from "./controlled-transaction.mjs";
 import { digest } from "./production-pre.mjs";
+import { load } from "js-yaml";
 
 const scope = {
   currentUser: "postgres",
@@ -130,4 +131,34 @@ test("rehearsal preserves the manifest and never lends privileges", async () => 
     /COMMIT_OUTCOME_UNKNOWN_REQUIRE_READ_ONLY_RECONCILIATION/,
   );
   assert.match(source, /ROLLBACK_UNCONFIRMED/);
+});
+test("controlled remote rehearsal receives only sanitized same-run capture, no Production secret", async () => {
+  const workflow = load(
+    await readFile(
+      ".github/workflows/comun-learning-production-pre.yml",
+      "utf8",
+    ),
+  );
+  const job = workflow.jobs["controlled-disposable"];
+  assert.equal(job.needs, "read-only-capture");
+  assert.doesNotMatch(
+    JSON.stringify(job),
+    /secrets\.|SUPABASE_DB_URL|SUPABASE_ACCESS_TOKEN|SUPABASE_SERVICE_ROLE_KEY|NODE_EXTRA_CA_CERTS/,
+  );
+  assert.equal(
+    job.steps.find((s) => s.uses === "actions/download-artifact@v4").with.name,
+    "escola-production-pre-${{ github.sha }}",
+  );
+  assert.equal(
+    job.steps.find(
+      (s) =>
+        s.name === "Controlled transaction rehearsal, isolated from Production",
+    ).env.COMUN_LEARNING_CONTROLLED_REHEARSAL,
+    "true",
+  );
+  assert.ok(
+    workflow.on.pull_request.paths.includes(
+      "scripts/learning/controlled-transaction*",
+    ),
+  );
 });
