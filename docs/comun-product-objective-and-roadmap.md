@@ -2,6 +2,17 @@
 
 ## Recuperação da Escola — escopo separado, 08/10/2026
 
+Revisão do #534: preparação elegível para integração após gates do SHA, sem
+autorizar recuperação real. O crash foi reduzido a uma função que retorna 1:
+na mesma biblioteca/PG17.6, hint_roles=anon reproduz signal 11; hint_roles vazio
+retorna 42501. Finding permanece aberto e separado do restore PASS.
+Caso mínimo e configuração/logs sanitizados preservados no pacote.
+Novo gate externo: clone físico pode iniciar cron/webhooks/wrappers ao concluir;
+isolamento não decorre do nome do projeto. Destino nominal proposto, tarifas,
+autorização em etapas e campos ainda pendentes estão no
+[pacote de decisão real](../reports/current/comun-escola-real-recovery-decision.md).
+Sem upgrade, cópia privada, restore ou alteração Production nesta revisão.
+
 #533 integrado e certificado em main `2151826f`. #523 continua draft em
 `cf0e8e41`: Quality PASS e seis preflights de schema bloqueados.
 A sessão do projeto correto foi disponibilizada em outro perfil Chrome;

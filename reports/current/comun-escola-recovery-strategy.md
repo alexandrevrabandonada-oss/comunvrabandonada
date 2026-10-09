@@ -145,7 +145,7 @@ Senha de role não exportada: provisionamento de login no destino é etapa separ
 Controles: archive adulterado rejeitado; roles ausentes fazem restore falhar
 atomicamente; restore não sobrescreve destino não vazio; DB dump não materializa
 arquivo Storage; restauração separada do arquivo confere seu hash. Comparação
-de schema (só normaliza marcadores aleatórios pg_dump), hashes de todas as tabelas,
+de schema (normaliza marcadores aleatórios e ordenação de conjuntos de roles/default ACLs), hashes de todas as tabelas,
 roles/memberships; A/B, anon, negação de RPC/escrita direta, trigger e RPC reais
 no PostgreSQL restaurado. Não são mocks de banco. Login/Storage API e ensaio
 humano continuam NOT_RUN neste ensaio de recuperação.
@@ -249,3 +249,61 @@ as provas anteriores permanecem vinculadas aos seus SHAs, sem certificação nov
 
 Estado: `SYNTHETIC_DB_RESTORE_PROVED_REAL_RELEASE_UNPROVEN`.
 Recomendação e operação real pendente permanecem como descritas acima.
+
+## Revisão integral e decisão de integração do #534
+
+O head original `af6a356e` foi conferido contra main `2151826f`: somente harness
+sintético, unidades sem secrets, roadmap e evidências/documentação. Nenhuma
+migration, manifest, produto, flag ou configuração de publicação alterados.
+Os hashes do harness e envelope foram conferidos; a prova é da fixture e usa
+supabase_admin superuser, não prova exportação nem restore do projeto real.
+A comparação não ensaia large objects/estado não vazio de sequences, serviços
+Auth/Storage, collation em outra plataforma ou configurações fora do dump.
+
+Proteção observada: pasta externa com herança de ACL desativada e somente o
+operador Windows com FullControl. AES-GCM/DPAPI e recusa de adulteração cobertos;
+o harness exige pasta protegida previamente, não cria um cofre independente.
+Diagnósticos plaintext contêm exclusivamente a fixture sintética. Não são
+permitidos para dados reais; nenhum backup/chave/log bruto está no diff.
+O workflow executa apenas sete unidades e não recebe secrets, faz dump remoto
+ou upload de arquivos. A árvore original permanece com suas 50 entradas locais.
+
+Critério de merge: apenas preparação e ensaio seguro, sem liberação da Escola.
+As provas originais permanecem vinculadas a `4bc3e33b` e ao hash do harness;
+esta atualização acrescenta somente documentação e caso SQL sintético mínimo.
+Revalidar checks e Preview do novo SHA antes do merge normal autorizado.
+
+## Crash separado — reprodução mínima e diferença causal
+
+Caso mínimo preservado em `tests/fixtures/learning-recovery-crash/`: função
+PLpgSQL retorna 1, EXECUTE revogado, SET LOCAL ROLE anon e chamada. Sem tabelas,
+migration Escola, seed, dados ou RLS. Reprodução default: backend signal 11.
+Mesma instância sem supautils na conexão diagnóstica: negação SQLSTATE 42501.
+
+Controle no cluster vazio com o mesmo PG17.6 e biblioteca por hash: supautils
+carregado/hint_roles vazio => 42501; restart com hint_roles=anon => signal 11;
+restart com hint_roles vazio => 42501. Não foi necessário código da Escola.
+Evidência sanitizada: `comun-escola-crash-review.json`. Configuração padrão e
+configuração limpa estão separadas; a prova de restore não fecha este finding.
+O comportamento coincide com [issue primária 214](https://github.com/supabase/supautils/issues/214),
+mas não alegamos fix upstream, versão de source commit ou confirmação Production.
+Nenhuma biblioteca/GUC/permissão Production alterada. Estado REPRODUCED_OPEN_NOT_FIXED.
+
+## Nova condição obrigatória para o clone gerenciado
+
+A [documentação atual](https://supabase.com/docs/guides/platform/clone-project)
+informa que extensões com efeitos externos começam a executar ao finalizar o
+restore físico, sem opção de exclusão/pausa durante a restauração. Portanto,
+nome novo, mesma região e restrições de entrada não comprovam isolamento.
+Antes de qualquer clone: inventário read-only sanitizado de cron ativo, webhooks,
+wrappers e outros destinos externos, e prova de contenção antes da primeira
+execução. Se não houver ausência comprovada ou isolamento fornecido pelo provedor,
+clone gerenciado fica BLOCKED; não se resolve pausando jobs em Production.
+Nesse caso, avaliar restore lógico offline com serviços desativados, mantendo
+Vault/chave raiz e cobertura integral como bloqueios próprios.
+
+O pacote concreto de autorização, destino nominal proposto, custos públicos,
+responsabilidades e critérios estão em `comun-escola-real-recovery-decision.md`.
+O preço final do console e a disponibilidade de um backup físico efetivo não
+estão demonstrados. Não solicitar autorização de clone como se esses gates
+já estivessem satisfeitos. Nenhum upgrade ou cópia privada foi executado.
