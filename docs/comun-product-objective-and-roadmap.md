@@ -490,3 +490,27 @@ preservando verify-full/hostname. Até integração e certificação, esses cami
 não estão certificados. Não houve migration, mudança de flag ou dispensa dos
 seis preflights do #523. Evidências e limites:
 [revisão da captura e TLS](../reports/current/comun-escola-real-capture-and-tls-review.md).
+
+# Evidência adicional Escola — 09/10/2026
+
+A correção TLS #535 foi integrada em `041f6b17`, com deploy Git READY e sete
+smokes GET/SHA servido PASS. A certificação pós-merge permanece BLOCKED por CA
+ausente nos dois scripts CI read-only e duas falhas remotas de navegação em
+Core Journeys. Patch focal de CA preparado separadamente; nenhum gate dispensado.
+
+Recuperação real parcial avançou: 278 tabelas restauradas offline, 2.582 arquivos
+Storage cifrados/restaurados como bytes e cópia privada no Drive verificada; API
+Auth leu os seis usuários restaurados e login sintético/recusas/cleanup passaram
+na segunda cópia offline. Storage API v1.80.2 pinned restaurou/leu todos os 2.582
+objetos e recusou 863 acessos anônimos privados; metadata/history inalterados.
+O bloqueio inicial da imagem 0067 e uma interrupção do executor foram preservados;
+uma retomada limitada comprovou o resultado posterior. Custódia independente da
+chave, CHECK canônico e configuração externa
+continuam BLOCKED/NOT_RUN conforme
+`reports/current/comun-escola-readonly-ci-ca-recovery.md`. Migration Escola
+Production não executada; #523 draft e seis preflights preservados. Não declarar
+liberação, recuperação integral ou conclusão da V1.
+
+## Recuperação em disco E: — 09/10/2026
+
+Dois exports cifrados da cópia anterior foram verificados e restaurados em containers novos offline. PG17.6: 278 tabelas, 6 auth users, fingerprint do restore anterior idêntico, zero findings; Storage: 2582 arquivos/357014118 bytes e size+MD5 conferidos. Comparação integral com o PRE capturado isolou um CHECK reagrupado e oito ACLs owner implícitas: parser 17.6 provou a mesma árvore semântica, com três controles negativos, e os direitos efetivos conferem. Fingerprints brutos continuam distintos; gates Production não foram alterados. Nova chave preservada em Drive privado separado dos ciphertexts E:, readback/descriptografia dos dois exports sem DPAPI PASS. Não é nova captura Production nem prova integral de API/configuração na nova cópia. Crash supautils e configurações externas permanecem abertos; seis preflights #523 preservados. #536 head 98963025 tem Core/Civic/Experience/Full Surface PR verdes; MapLibre 37959856195 tem 49 PASS/1 FAIL no retorno Lista → Mapa, causa UNPROVEN; Quality em execução. Certificação pós-merge permanece pendente. Preparada CA restrita à captura PRE da Escola, com 71 testes Node PASS. Evidências e limites: [relatório CI/recuperação](../reports/current/comun-escola-readonly-ci-ca-recovery.md). Autorização de migration recebida; execução ainda NOT_RUN até cumprir requisitos. Escola não liberada; zero migration Production nesta retomada.
