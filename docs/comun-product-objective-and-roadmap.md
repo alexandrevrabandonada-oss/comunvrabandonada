@@ -534,3 +534,26 @@ PR #536 integrado em `eb2cb0156adf223d608e222677cccc00bf84e071` após 42 SUCCESS
 Ensaio controlado local provado em `c4f4facafa1674352bd5b93d5c660b3bd4f45b3c`: verificações de catálogo privado e privilégios antes do COMMIT, rollback schema/history/ledger/drift, replay recusado e resposta perdida do COMMIT reconciliada read-only, sem retry de escrita. Nova lane descartável sem secrets Production preparada para repetir essa prova no novo SHA. Evidências e limites em `reports/current/comun-escola-controlled-rehearsal.md`.
 
 Próximo passo: concluir checks pós-merge e do candidato; recuperar acesso PostgreSQL protegido e renovar/ensaiar backup real antes de qualquer schema write. Executor remoto não certificado; migration Escola NOT_RUN; seis preflights do #523 preservados. Recuperação completa, flags, indexação e operação pública continuam não certificadas.
+
+## V1 — fechamento dirigido dos seis domínios, 09/10/2026
+
+Base `400b17b` (#538 integrado). Auditoria original 37964329098 e nova leitura
+HTTP às 20:50 BRT mantêm seis domínios sem fechamento: miniapps, cultura,
+segurança/recuperação, qualidade, conteúdo/governança e ensaio. O SHA público
+foi confirmado separadamente. Estados declarados não comprovam recuperação,
+direitos editoriais ou sessões humanas. Correção candidata separa prontidão
+declarada de prontidão verificada e falha fechado até existir verificador
+revisado; mantém a contagem atual de seis, sem promover domínio ou lançamento.
+A janela original de Calçadas terminou em agosto; não é reiniciada.
+
+A recuperação tem provas parciais reais de banco/Auth/Storage e custódia/mapping
+registrados; não repetir trabalho concluído nem concluir recuperação integral
+a partir disso. #538 certifica código/deploy, não migration Production ou
+recuperação completa. #518/#519 integrados são reutilizados; #516/#517/#523
+abertos não são entregas de main. Correção de segurança candidata atualiza
+somente a família sharp para 0.35.5, preservando outros upgrades para triagem
+separada. Sem alteração de schema, flags, indexação ou custos.
+
+Matriz por domínio, provas, próximos passos e limites:
+[fechamento dirigido](../reports/current/comun-v1-six-domain-closeout-20261009.md).
+`pilot_noindex`, seis preflights Escola e `launch_publicly` preservados.

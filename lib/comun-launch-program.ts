@@ -193,11 +193,21 @@ export function summarizeComunLaunchProgram(
   return {
     counts,
     total: domains.length,
-    readyForFinalHumanGate:
+    declaredReadyForFinalHumanGate:
+      domains.length === COMUN_V1_LAUNCH_PROGRAM.domains.length &&
+      COMUN_V1_LAUNCH_PROGRAM.domains.every(
+        (required) =>
+          domains.filter((domain) => domain.id === required.id).length === 1,
+      ) &&
       counts.green === domains.length &&
       counts.blocked === 0 &&
       counts.evidenceRequired === 0 &&
       counts.inProgress === 0,
+    // Counts are declarations, not verification of recovery, editorial rights,
+    // pilot metrics or human sessions. A reviewed verifier is still required.
+    // There is deliberately no caller-supplied boolean that unlocks this gate.
+    domainEvidenceVerification: "not_performed" as const,
+    readyForFinalHumanGate: false,
     remaining: counts.blocked + counts.evidenceRequired + counts.inProgress,
   };
 }
