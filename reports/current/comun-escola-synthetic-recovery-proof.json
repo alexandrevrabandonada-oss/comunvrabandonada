@@ -1,0 +1,65 @@
+{
+  "status": "SYNTHETIC_DB_RESTORE_PROVED_REAL_RELEASE_UNPROVEN",
+  "run": "school-1791508382175-eac69380",
+  "baseSha": "4bc3e33bdb1cee4458e37abe4c9c7d37f1217bc0",
+  "harnessSha256": "0e241945d1de0d1dba900288f00062d313dde9cc9ecdf526a66fcf65f6747a12",
+  "image": "docker.io/supabase/postgres@sha256:8002645276dc3431d55a5049721a879e4d11c34177086dc0f13b61d98cff1e52",
+  "syntheticOnly": true,
+  "productionReads": 0,
+  "productionWrites": 0,
+  "syntheticFixtureExpressionReparsedBeforeBaseline": true,
+  "databaseSettings": {
+    "encoding": "UTF8",
+    "collate": "en_US.UTF-8",
+    "ctype": "en_US.UTF-8",
+    "provider": "i",
+    "locale": "en-US"
+  },
+  "phase": "RESTORE",
+  "sourceRawSchemaSha256": "e2dcfceb3cfc33009703462d9d65f201b69cb789f0d156f8ed305151e4da083d",
+  "backupHashes": {
+    "database": {
+      "plaintextSha256": "afc62cda83653ab586ba2b010bbe69ae25d189ba301876a87e91da04fd5e156f",
+      "ciphertextSha256": "b83f8709fccbe0ced69b58727ff12a17d612534f6e9dff7cfb308c8203b084f6",
+      "bytes": 1874082
+    },
+    "roles": {
+      "plaintextSha256": "c19a1d1f512e4949f2f84bff45572278a5f687d8c79583d92ed2a413fb9576de",
+      "ciphertextSha256": "41ce8951707556fc723dc2d99cb1490e0a7c03ffd81891115edea53f5b93ca4c",
+      "bytes": 5426
+    },
+    "storage": {
+      "plaintextSha256": "fda4c669d5c22dd0fb0d22686c1f517cf1eb167668de001ee371a100fc04d142",
+      "ciphertextSha256": "af57cd8605bf672c4780cf369fbdeec0f9406647a4eaad80e83173759e0b11c7",
+      "bytes": 42
+    }
+  },
+  "tamperRejected": true,
+  "sourceDestroyedBeforeRestore": true,
+  "missingRolesRejectedAtomically": true,
+  "bootstrapRoleIdentityMatched": true,
+  "restoredRawSchemaSha256": "f67c6fb1bd048b1c4455178adb6bf844f486e1fde2ec85befaa90103379a667a",
+  "databaseDumpDoesNotRestoreStorageFiles": true,
+  "nonemptyTargetRefused": true,
+  "databaseRestore": "PASS",
+  "sourceDirectRpc": "NOT_RUN_IN_RESTORE_PHASE",
+  "postgresVersion": "pg_dump (PostgreSQL) 17.6",
+  "tablesCompared": 278,
+  "catalogSha256": "7f95b825ac3fabc439d1492f2e04ef368fb09dbca17b3050eef22e3fb0d42294",
+  "dataManifestSha256": "95e339214b10c2a7f65c0c7005d4a842db7e8b867bf08008b6046e01582e01c8",
+  "rolesSha256": "1c10cf569c4bd5b7946c751ebd88ddf59e21093540a279e3b957f230572d0bf6",
+  "membersSha256": "6115e6730caeb2d3d95205c7ad5eff8b39384ad857b474493222eca91635d20b",
+  "ownerIsolation": true,
+  "directRpcGrantsDenied": true,
+  "triggerRestored": true,
+  "historyLedgerIncluded": true,
+  "storageBytesRestoredSeparately": true,
+  "elapsedSeconds": 86,
+  "authLoginService": "NOT_RUN",
+  "storageApiService": "NOT_RUN",
+  "realProjectRestore": "BLOCKED_NO_DATA_COPY_AUTHORIZATION_OR_APPROVED_DESTINATION",
+  "vaultKeyRecovery": "NOT_RUN",
+  "offsiteAndKeyEscrow": "NOT_RUN",
+  "restoredDirectRpc": "PASS",
+  "ownedContainersRemaining": 0
+}

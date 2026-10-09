@@ -1,5 +1,47 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Recuperação da Escola — escopo separado, 08/10/2026
+
+Revisão do #534: preparação elegível para integração após gates do SHA, sem
+autorizar recuperação real. O crash foi reduzido a uma função que retorna 1:
+na mesma biblioteca/PG17.6, hint_roles=anon reproduz signal 11; hint_roles vazio
+retorna 42501. Finding permanece aberto e separado do restore PASS.
+Caso mínimo e configuração/logs sanitizados preservados no pacote.
+Novo gate externo: clone físico pode iniciar cron/webhooks/wrappers ao concluir;
+isolamento não decorre do nome do projeto. Destino nominal proposto, tarifas,
+autorização em etapas e campos ainda pendentes estão no
+[pacote de decisão real](../reports/current/comun-escola-real-recovery-decision.md).
+Sem upgrade, cópia privada, restore ou alteração Production nesta revisão.
+
+#533 integrado e certificado em main `2151826f`. #523 continua draft em
+`cf0e8e41`: Quality PASS e seis preflights de schema bloqueados.
+A sessão do projeto correto foi disponibilizada em outro perfil Chrome;
+identidade confirmada pelo hash do PRE. O painel Free não oferece backups,
+PITR ou restore gerenciado em novo projeto nas condições atuais. A limitação
+histórica de acesso ao dashboard está resolvida; recuperação real ainda não.
+
+Esta passada compara backup lógico independente e Pro/recuperação gerenciada,
+prepara captura protegida e ensaio sintético em cluster vazio. Cobertura DB,
+Auth, Storage metadata/bytes e configurações externas são tratadas separadamente.
+Uma falha de backend signal 11 em chamada não autorizada foi reproduzida somente
+na imagem descartável pinada; não foi testada nem inferida em Production.
+Ela continua finding aberto, sem alteração de grants para obter verde.
+Resultados, limites, retenção proposta e operação real pendente estão em
+[estratégia de recuperação](../reports/current/comun-escola-recovery-strategy.md).
+
+PASS sintético em `4bc3e33b`: restauração após destruição da origem, 278 tabelas,
+catálogo/dados/roles/grants/memberships, histórico/ledger, RLS A/B, negação de RPC
+no cluster restaurado e arquivo separado. Evidência sanitizada e 80 focais PASS.
+O crash anterior da instância padrão da imagem permanece FAIL separado.
+Auth/Storage API, Vault, off-site/escrow e restore real não estão certificados.
+Recomendação para decisão: Pro + backup físico diário efetivo + restore em novo
+projeto, com lógico como segunda linha; sem contratação ou upgrade nesta rodada.
+
+Próximo gate: comprovar snapshot recuperável real e restore isolado, com destino,
+tratamento dos dados e responsáveis aprovados; depois autorização específica de
+schema. Sem upgrade, migration Production, flags, abertura de indexação ou
+certificação da V1 nesta passada.
+
 ## Fechamento exclusivo da Escola e #523 — 08/10/2026
 
 #532 integrado em `636e3e1d`, Production Git READY no SHA exato, sem schema
