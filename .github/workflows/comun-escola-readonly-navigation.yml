@@ -1,0 +1,42 @@
+name: COMUN Escola read-only navigation diagnosis
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-escola-readonly-navigation.yml"
+      - "scripts/journeys/escola-readonly-navigation.mjs"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: escola-readonly-navigation-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  public-readonly-diagnosis:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - uses: ./.github/actions/setup-playwright-browser
+      - name: Syntax and formatting
+        run: |
+          node --check scripts/journeys/escola-readonly-navigation.mjs
+          npx prettier --check scripts/journeys/escola-readonly-navigation.mjs .github/workflows/comun-escola-readonly-navigation.yml
+      - name: Public navigation with writes refused
+        run: node scripts/journeys/escola-readonly-navigation.mjs
+      - name: Sanitized diagnostic only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: escola-readonly-navigation-${{ github.run_id }}
+          path: .ci-artifacts/escola-readonly-navigation/*.json
+          if-no-files-found: error
+          retention-days: 7
