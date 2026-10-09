@@ -39,6 +39,28 @@ export function owned(info, run) {
 export function requireEmptyTarget(tableCount) {
   assert.equal(tableCount, 0, "RECOVERY_NONEMPTY_TARGET_REFUSED");
 }
+export function localeOptions(settings) {
+  assert.ok(
+    ["c", "i"].includes(settings.provider),
+    "RECOVERY_UNSUPPORTED_LOCALE_PROVIDER",
+  );
+  const args = [
+    "--encoding",
+    settings.encoding,
+    "--lc-collate",
+    settings.collate,
+    "--lc-ctype",
+    settings.ctype,
+  ];
+  if (settings.provider === "i") {
+    assert.ok(
+      typeof settings.locale === "string" && settings.locale.length > 0,
+      "RECOVERY_ICU_LOCALE_REQUIRED",
+    );
+    args.push("--locale-provider=icu", "--icu-locale", settings.locale);
+  } else args.push("--locale-provider=libc");
+  return args;
+}
 export function seal(bytes, key) {
   const nonce = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", key, nonce);
@@ -312,16 +334,12 @@ export async function runRecovery(output) {
       JSON.parse(
         sql(
           name,
-          `select json_build_object('encoding',pg_encoding_to_char(encoding),'collate',datcollate,'ctype',datctype,'provider',datlocprovider) from pg_database where datname=current_database();`,
+          `select json_build_object('encoding',pg_encoding_to_char(encoding),'collate',datcollate,'ctype',datctype,'provider',datlocprovider,'locale',coalesce(to_jsonb(d)->>'datlocale',to_jsonb(d)->>'daticulocale')) from pg_database d where datname=current_database();`,
           targetMode,
         ),
       );
     const sourceDatabaseSettings = databaseSettings(source);
-    assert.equal(
-      sourceDatabaseSettings.provider,
-      "c",
-      "RECOVERY_UNSUPPORTED_LOCALE_PROVIDER",
-    );
+    const targetLocaleOptions = localeOptions(sourceDatabaseSettings);
     record.databaseSettings = sourceDatabaseSettings;
     const snapshot = (name, targetMode = false) => {
       const args = targetMode
@@ -568,12 +586,7 @@ export async function runRecovery(output) {
       "supabase_admin",
       "-T",
       "template0",
-      "--encoding",
-      sourceDatabaseSettings.encoding,
-      "--lc-collate",
-      sourceDatabaseSettings.collate,
-      "--lc-ctype",
-      sourceDatabaseSettings.ctype,
+      ...targetLocaleOptions,
       "recovery_target",
     ]);
     const targetTableCount = () =>

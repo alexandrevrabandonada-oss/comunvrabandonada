@@ -11,7 +11,35 @@ import {
   unseal,
   requireEmptyTarget,
   normalizeDump,
+  localeOptions,
 } from "./recovery-disposable.mjs";
+
+test("restore preserves ICU/libc locale and fails on unknown or incomplete provider", () => {
+  const base = { encoding: "UTF8", collate: "C.UTF-8", ctype: "C.UTF-8" };
+  assert.deepEqual(localeOptions({ ...base, provider: "i", locale: "en-US" }), [
+    "--encoding",
+    "UTF8",
+    "--lc-collate",
+    "C.UTF-8",
+    "--lc-ctype",
+    "C.UTF-8",
+    "--locale-provider=icu",
+    "--icu-locale",
+    "en-US",
+  ]);
+  assert.equal(
+    localeOptions({ ...base, provider: "c" }).at(-1),
+    "--locale-provider=libc",
+  );
+  assert.throws(
+    () => localeOptions({ ...base, provider: "i" }),
+    /ICU_LOCALE_REQUIRED/,
+  );
+  assert.throws(
+    () => localeOptions({ ...base, provider: "unknown" }),
+    /UNSUPPORTED_LOCALE_PROVIDER/,
+  );
+});
 
 test("dump comparison normalizes set ordering, never permissions or expressions", () => {
   const a =
