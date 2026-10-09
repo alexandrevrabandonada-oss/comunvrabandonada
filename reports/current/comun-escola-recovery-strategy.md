@@ -203,3 +203,49 @@ de canonicalização; seis testes específicos PASS depois da correção do harn
 A tentativa anterior sem dependências teve 64 PASS e dois arquivos BLOCKED por
 @playwright/test/js-yaml ausentes; não foi contabilizada como suite verde.
 Prova SQL final e estado de restauração devem constar no complemento abaixo.
+
+## Prova final descartável — PASS limitado à fixture
+
+Execução: `school-1791508382175-eac69380`, commit funcional
+`4bc3e33bdb1cee4458e37abe4c9c7d37f1217bc0`.
+Harness SHA-256: `0e241945d1de0d1dba900288f00062d313dde9cc9ecdf526a66fcf65f6747a12`.
+Evidência sanitizada: `comun-escola-synthetic-recovery-proof.json`, SHA-256
+`340856c6c7f94f659a7475fba5153bd4acaeefe131dff308a641f0b91b34f528`.
+O complemento documental não transfere provas para código diferente.
+
+| Prova                                                                             | Resultado                                                                 |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| PostgreSQL 17.6, imagem por digest, network none, sem portas                      | PASS                                                                      |
+| Locale ICU en-US / en_US.UTF-8 / UTF8 preservado                                  | PASS                                                                      |
+| Backup cifrado reaberto após destruição da origem                                 | PASS                                                                      |
+| Corrupção recusada / roles faltantes rollback / destino não vazio recusado        | PASS                                                                      |
+| 278 tabelas: dados, catálogo, owners/grants/policies/funções/triggers             | PASS                                                                      |
+| Roles e memberships incluindo grantor; histórico e ledger                         | PASS                                                                      |
+| A/B só próprios; anon sem privado; escrita direta negada                          | PASS                                                                      |
+| RPC anon/authenticated negada no cluster restaurado; service_role e trigger reais | PASS                                                                      |
+| Storage DB não restaura bytes; arquivo sintético separado restaurado por hash     | PASS                                                                      |
+| Containers próprios restantes = 0; ACL exclusiva do operador                      | PASS                                                                      |
+| 80 testes focais, ESLint, node --check, Prettier e diff-check                     | PASS                                                                      |
+| Crash signal 11 na instância padrão da imagem de origem                           | FAIL, reproduzido anteriormente; não encerrado pela prova do cluster novo |
+| Auth login/Storage API/Vault/off-site/key escrow/volume real                      | NOT_RUN                                                                   |
+| Backup e restauração do projeto real                                              | BLOCKED, sem destino e autorização específica de cópia                    |
+
+Catálogo canonicalizado: `7f95b825ac3fabc439d1492f2e04ef368fb09dbca17b3050eef22e3fb0d42294`.
+Manifesto de dados: `95e339214b10c2a7f65c0c7005d4a842db7e8b867bf08008b6046e01582e01c8`.
+Tempo observado 86s; não é RTO Production. A pasta privada externa guarda apenas
+backups/logs/diagnósticos sintéticos; nenhum deles entra no Git. Só o envelope
+sanitizado acima é publicado. DPAPI/ACL foram verificados no laboratório;
+perda do PC e custódia independente não foram ensaiadas.
+
+A tentativa `school-1791508300895-effae543` recusou corretamente provider ICU
+não suportado pelo harness anterior; não foi PASS. O script final preserva ICU
+e possui regressão explícita para provider desconhecido/locale ausente.
+
+Migration e manifest continuam nos hashes aceitos, sem diff. Não houve leitura
+SQL, dump de dados ou escrita Production nesta passada. #523 confirmado draft,
+45 SUCCESS / 88 SKIPPED / seis FAILURE, sem pending; skipped não é PASS.
+Full build/unit/navegador não repetidos: nenhum runtime/frontend/migration mudou;
+as provas anteriores permanecem vinculadas aos seus SHAs, sem certificação nova.
+
+Estado: `SYNTHETIC_DB_RESTORE_PROVED_REAL_RELEASE_UNPROVEN`.
+Recomendação e operação real pendente permanecem como descritas acima.

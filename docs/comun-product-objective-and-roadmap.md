@@ -18,6 +18,14 @@ Ela continua finding aberto, sem alteração de grants para obter verde.
 Resultados, limites, retenção proposta e operação real pendente estão em
 [estratégia de recuperação](../reports/current/comun-escola-recovery-strategy.md).
 
+PASS sintético em `4bc3e33b`: restauração após destruição da origem, 278 tabelas,
+catálogo/dados/roles/grants/memberships, histórico/ledger, RLS A/B, negação de RPC
+no cluster restaurado e arquivo separado. Evidência sanitizada e 80 focais PASS.
+O crash anterior da instância padrão da imagem permanece FAIL separado.
+Auth/Storage API, Vault, off-site/escrow e restore real não estão certificados.
+Recomendação para decisão: Pro + backup físico diário efetivo + restore em novo
+projeto, com lógico como segunda linha; sem contratação ou upgrade nesta rodada.
+
 Próximo gate: comprovar snapshot recuperável real e restore isolado, com destino,
 tratamento dos dados e responsáveis aprovados; depois autorização específica de
 schema. Sem upgrade, migration Production, flags, abertura de indexação ou
