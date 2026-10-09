@@ -490,3 +490,23 @@ preservando verify-full/hostname. Até integração e certificação, esses cami
 não estão certificados. Não houve migration, mudança de flag ou dispensa dos
 seis preflights do #523. Evidências e limites:
 [revisão da captura e TLS](../reports/current/comun-escola-real-capture-and-tls-review.md).
+
+# Evidência adicional Escola — 09/10/2026
+
+A correção TLS #535 foi integrada em `041f6b17`, com deploy Git READY e sete
+smokes GET/SHA servido PASS. A certificação pós-merge permanece BLOCKED por CA
+ausente nos dois scripts CI read-only e duas falhas remotas de navegação em
+Core Journeys. Patch focal de CA preparado separadamente; nenhum gate dispensado.
+
+Recuperação real parcial avançou: 278 tabelas restauradas offline, 2.582 arquivos
+Storage cifrados/restaurados como bytes e cópia privada no Drive verificada; API
+Auth leu os seis usuários restaurados e login sintético/recusas/cleanup passaram
+na segunda cópia offline. Storage API v1.80.2 pinned restaurou/leu todos os 2.582
+objetos e recusou 863 acessos anônimos privados; metadata/history inalterados.
+O bloqueio inicial da imagem 0067 e uma interrupção do executor foram preservados;
+uma retomada limitada comprovou o resultado posterior. Custódia independente da
+chave, CHECK canônico e configuração externa
+continuam BLOCKED/NOT_RUN conforme
+`reports/current/comun-escola-readonly-ci-ca-recovery.md`. Migration Escola
+Production não executada; #523 draft e seis preflights preservados. Não declarar
+liberação, recuperação integral ou conclusão da V1.
