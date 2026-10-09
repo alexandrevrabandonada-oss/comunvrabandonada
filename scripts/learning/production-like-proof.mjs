@@ -314,7 +314,10 @@ try {
   assert.equal(added[0].post_fingerprint, post.runner);
   owned();
   await assert.rejects(
-    () => install(db, post, null, contract),
+    () =>
+      controlled
+        ? install(db, post, null, contract)
+        : installAtomicDisposable(db, post),
     /LEARNING_REPLAY_OR_PARTIAL_BLOCKED/,
   );
   sameSnapshot(await captureAtomicSnapshot(db), post);

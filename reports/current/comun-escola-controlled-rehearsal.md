@@ -38,6 +38,8 @@ Dois problemas de preparação foram preservados: tentativa inicial recusada por
 
 O novo job `controlled-disposable` recebe apenas a captura sanitizada da mesma run, sem secrets Production, e repete a prova com SHA/tree registrados. Não substitui a prova do executor original nem uma restauração real completa.
 
+Run remota inicial `37972859834`, job original `113963882366`, falhou no harness de replay: o adapter introduzido passou contrato PRE junto do snapshot POST, gerando `LEARNING_RELEASE_CANONICAL_DIVERGED` em vez de exercitar a recusa de replay original. O POST observado era exatamente o aprovado; não foi drift de schema. A correção preserva a assinatura original de replay sem contrato para essa lane, mantendo o contrato completo na lane controlada. A run falha permanece registrada e exige nova prova das duas lanes no SHA corrigido.
+
 ## Limites e interrupção
 
 Migration SHA256 `5036a833b1b681487204349f8ebc58690228a2f5aa932943a81f60df1d3b6ba7`; manifest SHA256 `3b598bc6b3ea3dfe462ba205b6747016aace52de87c87dec332ecbb1a567d4de`: inalterados. `remotePromotionAllowed=false` permanece. Nenhum fingerprint foi recalculado para acomodar drift.
