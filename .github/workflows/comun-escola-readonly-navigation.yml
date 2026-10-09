@@ -24,12 +24,14 @@ jobs:
         with:
           node-version: 22.19.0
           cache: npm
+      - name: Diagnostic envelope before dependency installation
+        run: node -e "const fs=require('node:fs');fs.mkdirSync('.ci-artifacts/escola-readonly-navigation',{recursive:true});fs.writeFileSync('.ci-artifacts/escola-readonly-navigation/envelope.json',JSON.stringify({status:'NOT_RUN',containsPrivateData:false,credentialsProvided:false}))"
       - run: npm ci --ignore-scripts
       - uses: ./.github/actions/setup-playwright-browser
       - name: Syntax and formatting
         run: |
           node --check scripts/journeys/escola-readonly-navigation.mjs
-          npx prettier --check scripts/journeys/escola-readonly-navigation.mjs .github/workflows/comun-escola-readonly-navigation.yml
+          npx --yes prettier@3.9.6 --check scripts/journeys/escola-readonly-navigation.mjs .github/workflows/comun-escola-readonly-navigation.yml
       - name: Public navigation with writes refused
         run: node scripts/journeys/escola-readonly-navigation.mjs
       - name: Sanitized diagnostic only

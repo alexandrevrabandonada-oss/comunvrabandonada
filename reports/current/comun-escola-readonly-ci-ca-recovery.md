@@ -119,3 +119,53 @@ continuam byte-identical aos blobs Git aceitos. Nenhum upgrade ou recurso pago.
 
 Não realizar outra integração enquanto a certificação pós-merge estiver bloqueada.
 Este pacote fica draft/revisável. Escola não liberada; V1 não concluída.
+
+## Retomada e diagnóstico focal — 09/10/2026
+
+PASS no checkpoint `e70ab6af8cf90be5f289dc54100562130c409c5d`: 19 workflows
+pull_request completed/success. COST-02 run `37882458922`, job `113664971668`,
+registrou `COMUN_COST_02_PASS:checkpoint-fresh`. Preview Git
+`dpl_GWz6Ps6YodWanEYaq6Tshep9soeG` READY com metadata do SHA exato; nenhum erro
+de alias. Quality `37882459121`, Civic `37882459020` e Core PR `37882459127`
+verdes. Seus jobs pós-merge SKIPPED não certificam main nem encerram a falha
+Core `37880515686` (33 PASS/2 FAIL).
+
+O executor voltou a responder após abrir nova sessão no Codex e usar cmd. A
+unidade D: está indisponível nesta sessão: sem filesystem, tamanho zero; os
+worktrees, provas privadas e chave DPAPI anteriores não podem ser acessados.
+Não remontamos, formatamos ou recriamos essa unidade. Busca limitada em pastas
+de trabalho de C:, sem ler conteúdo dos arquivos, não encontrou a chave. Isso
+não prova perda definitiva. Requisito externo: reconectar a origem ou informar
+a cópia preservada; nunca enviar a chave/senha ao chat.
+
+Cópia isolada da branch criada em C:, preservando a árvore original. A
+instalação ampla foi interrompida após diagnóstico de espaço limitado; apenas
+node_modules incompleto criado nesta execução foi removido, com caminho e
+ausência de symlink verificados. Nenhum arquivo preexistente foi limpo.
+
+Novo harness no commit `49f82ef5ed8268b9eff1e4718a0bd456de14bead` usa CI existente
+para navegar no main servido exato `041f6b17`, sem credenciais Production,
+contextos novos, service workers bloqueados e todas as requisições fora de
+GET/HEAD recusadas. Preserva timeout original de cinco segundos. Essa diferença
+de isolamento é explícita: o diagnóstico não substitui o gate pós-merge.
+Artefatos contêm somente contagens, tempos, estados e SHAs; nenhuma sessão,
+cookie, screenshot privado ou payload de banco.
+
+Primeira run do harness `37943118942`, job `113862338934`: FAIL na formatação,
+antes do navegador; jornada NOT_RUN. O candidato seguinte formata o arquivo,
+fixa Prettier 3.9.6 e cria envelope NOT_RUN antes das dependências para preservar
+diagnósticos de setup. Não amplia timeout nem transforma falha funcional em
+sucesso. Syntax/Prettier/diff-check locais são gates focais; nova execução remota
+continua independente.
+
+Supabase MCP recusou `get_project` por falta de permissão. Não tentamos SQL por
+esse conector sem identidade comprovada, nem enviamos backups/chaves ao CI.
+Backup cifrado no Drive permanece evidência histórica válida de ciphertext;
+restauração independente atual está BLOCKED sem a chave. CHECK/configuração
+externa e crash supautils permanecem abertos. Migration Escola NOT_RUN; nenhum
+gate, fingerprint, flag ou expectativa foi relaxado.
+
+PostgreSQL documenta que `pg_get_constraintdef` reconstrói SQL a partir do
+catálogo, sem preservar necessariamente o texto original. Isso sustenta a
+hipótese de deparse, mas não prova por si só equivalência do restore real:
+[documentação PostgreSQL 17](https://www.postgresql.org/docs/17/functions-info.html).

@@ -65,7 +65,9 @@ try {
       const started = Date.now();
       await link.click();
       await expect(page).toHaveURL(/\/comun\/pautas/, { timeout: 5000 });
-      await expect(page.getByRole("heading", { name: /pautas/i })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: /pautas/i }),
+      ).toBeVisible();
       await expect(page.getByRole("dialog")).toHaveCount(0);
       record.result = "PASS";
       record.navigationMs = Date.now() - started;
