@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "status": "RECOVERY_SUBCONTRACTS_PROVED_RELEASE_STILL_BLOCKED",
+  "productionWrites": 0,
+  "referenceHead": "98963025d79c4ef198a394b74bc797f90c93d518",
+  "referenceMain": "041f6b17a49286249fb8290428b7422695a87937",
+  "restoreEquivalence": {
+    "status": "RECOVERY_CHECK_PARSED_STRUCTURE_AND_EFFECTIVE_ACL_PROVED",
+    "sourceCaptureSha256": "4e248ba07d6c739a0d53dc322479ea6c7aabc5d9e08b27d581932117077ce97b",
+    "rawFingerprintsRemainDifferent": true,
+    "productionPreFingerprint": "160face699d0b22b88b0434a6393cedf587ce0ccf1f8338dd8765ec56f6fab4a",
+    "restoredRawFingerprint": "0d7331bb46ce494c748c813215f5c4bfcdd564cce1fab4c4e86b7af4acf86de2",
+    "canonicalDifferentConstraints": 1,
+    "privateEffectiveAclMatches": 8,
+    "parser": "17.6",
+    "parsedTreeSha256": "48e1903d94cf855c4219b57c5479f2b8c2131c09c5a8feedb0576e2deddd26ee",
+    "onlyParserSourceLocationsIgnored": true,
+    "negativeControlDetected": true,
+    "rollback": "CONFIRMED_COMMAND_SUCCESS",
+    "productionWrites": 0,
+    "productionFingerprintGateChanged": false,
+    "scope": "RESTORE_EQUIVALENCE_ONLY_NOT_PROMOTION_AUTHORITY",
+    "negativeControls": {
+      "cardinality": true,
+      "allowedValue": true,
+      "nullPredicate": true
+    }
+  },
+  "independentKeyCustody": {
+    "status": "PASS",
+    "keyReadback": "PRIVATE_DRIVE_OWNER_ONLY",
+    "windowsDpapiUsedForVerification": false,
+    "ciphertextsLocation": "LOCAL_E_ONLY",
+    "keyLocation": "PRIVATE_DRIVE_SEPARATE_FROM_CIPHERTEXT",
+    "archives": [
+      {
+        "archive": "comun-escola-real-restore-20261009t0240",
+        "ciphertextSha256": "4f7963bcdb0ca15f710efcd4f710f8b5c0e50699dab837f043e64ae16f8c5efc",
+        "status": "PASS_AES_GCM_AND_BOTH_HASHES"
+      },
+      {
+        "archive": "comun-escola-real-storage-v1802-proof-20261009",
+        "ciphertextSha256": "f321a5c5dc43176bccb76beb4e3e47ae13022181ebdb77a57f1593b8158c83db",
+        "status": "PASS_AES_GCM_AND_BOTH_HASHES"
+      }
+    ],
+    "limitations": [
+      "Local disk durability and Drive account availability remain operational responsibilities",
+      "This validates encrypted archive recovery, not fresh Production backup or application restore"
+    ]
+  },
+  "reproduction": {
+    "privateLocalRoot": "E:/COMUN-ESCOLA-RECOVERY-20261009",
+    "commands": [
+      "node compare-restored-capture.mjs",
+      "node prove-check-equivalence.mjs",
+      "node tools/verify-independent-custody.cjs"
+    ],
+    "scripts": [
+      {
+        "path": "compare-restored-capture.mjs",
+        "sha256": "ff01def7e3aa2d1bed7d741512ee69fb045e9fc71a643dcae74a0eed89d36b58"
+      },
+      {
+        "path": "prove-check-equivalence.mjs",
+        "sha256": "34fa6db77a40d2b9f8854539467d8c02af165d7dc4dc043d26d935c11ec76803"
+      },
+      {
+        "path": "tools/verify-independent-custody.cjs",
+        "sha256": "beabffb379e1e02b0658b6f51b83a38366551a0be9cf268cf5f6531e3b2d9712"
+      }
+    ],
+    "custodyPrerequisite": "Owner-only private Drive download of the 32-byte recovery key; never put key or signed URL in Git, logs or public artifacts",
+    "originalsPreserved": true
+  },
+  "remaining": {
+    "providerPhysicalRecovery": "NOT_AVAILABLE_FREE_PLAN",
+    "supautilsCrash": "REPRODUCED_OPEN_NOT_FIXED",
+    "externalOAuthSmtpConfiguration": "NOT_RUN",
+    "newImportAuthStorageApi": "NOT_RUN",
+    "newImportStoragePerObjectMapping": "NOT_RUN",
+    "freshProductionPre": "NOT_RUN_THIS_CHECKPOINT",
+    "productionExecutor": "BLOCKED_NO_REVIEWED_PRODUCTION_EXECUTOR",
+    "schoolMigrationProduction": "NOT_RUN",
+    "schoolSixPreflights": "BLOCKED_SCHEMA_ABSENT",
+    "maplibre": {
+      "status": "FAIL",
+      "run": 37959856195,
+      "job": 113919628841,
+      "artifactId": 11631337854,
+      "artifactSha256": "599cc61b527c452fc4ee5e08d61915a23b3b05aa56f14fe0f7d1b363f5927099",
+      "case": "production build loads real PMTiles and returns from list to map",
+      "passed": 49,
+      "failed": 1,
+      "cause": "UNPROVEN",
+      "observed": "Map loaded initially; after list-to-map remount it entered unavailable fallback. Recorded PMTiles requests returned 206. Failure happened during browser test, not before test setup."
+    }
+  }
+}

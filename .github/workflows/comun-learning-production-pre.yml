@@ -21,6 +21,7 @@ jobs:
       - run: node --test scripts/learning/production-pre.node-test.mjs scripts/learning/atomic-disposable.node-test.mjs scripts/learning/release-review.node-test.mjs
       - name: Allowlisted catalog-only capture, never schema promotion
         env:
+          NODE_EXTRA_CA_CERTS: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           COMUN_LEARNING_REVIEW_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}

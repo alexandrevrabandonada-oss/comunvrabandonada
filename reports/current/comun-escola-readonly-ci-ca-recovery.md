@@ -189,3 +189,58 @@ Storage importado: 2582 arquivos / 357014118 bytes; multiset size+MD5 igual à m
 Candidato funcional #536: 3a20c5874663603b3ab01734238f63607f37c39b. Diagnóstico remoto 37957915619/job 113913030743: cinco casos PASS, zero browser errors e escritas executadas; served SHA 041f6b17. GITHUB_SHA registra merge-ref de teste 98b210bc1fe0dc2649cb7c2a702c75f55c71241a, separado do head. OriginalPostmergeGateCertified=false: diagnóstico não substitui a falha original. Preview Git dpl_HTGeMLwT2uA9Rd5ruoFKd3zJws3f READY, SHA/branch exatos, target null/aliasError null; COST-02 37957915355/job 113913030986 checkpoint-fresh. Cinco Node CA + 14 Vitest TLS PASS no clone E:.
 
 Civic Intelligence 37957915383 falhou antes dos testes em npm ci/ECONNRESET: uma única reexecução dos failed jobs foi solicitada, sem alteração de código ou workflow_dispatch. Quality permanece pendente atrás da run 37956953605 em execução. Não classificar o conjunto como verde antes de terminar. #536 permanece draft; nenhum merge adicional. Seis preflights #523, migrations, manifest, flags e indexação preservados. Escola não liberada.
+
+## Equivalência do restore e custódia independente — 09/10/2026
+
+PASS delimitado: artifact PRE da run 37857277943, ID 11584502750, foi
+baixado novamente e seu capture.json confirmou SHA-256
+4e248ba07d6c739a0d53dc322479ea6c7aabc5d9e08b27d581932117077ce97b.
+Comparação integral dos catálogos canonical/private com a nova cópia isolada
+encontrou apenas um CHECK canônico reagrupado e oito ACLs privadas.
+O CHECK comun_solidarity_offers_modalities_check original e restaurado produzem
+a mesma árvore conbin no parser PostgreSQL 17.6, ignorando somente offsets de
+localização do SQL. SHA-256 da árvore: 48e1903d94cf855c4219b57c5479f2b8c2131c09c5a8feedb0576e2deddd26ee.
+Três controles negativos (cardinalidade, valor permitido e predicado NULL)
+produziram árvores diferentes. Tabelas/constraints de ensaio foram temporárias,
+com ROLLBACK confirmado no banco isolado. As oito ACLs correspondem a ACL
+explícita do owner versus acldefault implícita: direitos efetivos e todos os
+demais atributos das relações iguais.
+
+Isso prova a diferença específica do round-trip; não altera fingerprint,
+snapshot ou validator de promoção. PRE Production 160face699d0b22b88b0434a6393cedf587ce0ccf1f8338dd8765ec56f6fab4a
+e fingerprint bruto restaurado 0d7331bb46ce494c748c813215f5c4bfcdd564cce1fab4c4e86b7af4acf86de2
+continuam distintos. Não aceitar o fingerprint restaurado como PRE de Production.
+
+PASS delimitado: nova chave de recuperação preservada no Drive privado do
+proprietário, separada dos novos ciphertexts mantidos somente em E:.
+Readback confirmou 32 bytes e permissão única owner, sem compartilhamento.
+Os dois exports foram descriptografados em streaming e verificaram tag GCM,
+hash plaintext e ciphertext usando a chave baixada, sem DPAPI nesta prova.
+Temporários da chave em claro e URL assinada local foram removidos. A nova
+chave não recupera os antigos ciphertexts de D:/Drive. Disponibilidade futura
+da conta Drive e durabilidade do disco E: continuam dependências operacionais;
+essa custódia não é backup físico gerenciado nem prova de recuperação integral.
+
+FAIL novo no head 98963025d79c4ef198a394b74bc797f90c93d518:
+MapLibre run 37959856195/job 113919628841, 49 PASS/1 FAIL. O mapa carregou;
+após Lista → Mapa, a região ficou indisponível. Trace e screenshot preservados;
+requests PMTiles registrados retornam 206. A falha ocorreu dentro do teste,
+portanto não classificar como erro de setup ou flake encerrado. Causa UNPROVEN.
+Core PR, Civic, Experience e Full Surface nesse head passaram; Quality
+37959855990 ainda em execução na consulta. SKIPPED não contado como PASS.
+
+Preparada extensão mínima da CA pública ao passo de captura PRE da Escola.
+Secret continua exclusivo desse passo; PGOPTIONS e REPEATABLE READ READ ONLY
+mantidos; job descartável não recebe secret nem CA de Production.
+71 testes Node PASS, zero skipped. Primeira execução local: três FAIL por CRLF
+do checkout Windows no manifest pinado; o blob Git já possuía o hash aceito.
+Restaurados somente os bytes exatos dos dois blobs imutáveis no clone isolado;
+nenhuma alteração Git de migration/manifest, expectativa ou hash.
+
+Evidência sanitizada e hashes dos helpers privados reproduzíveis:
+[comun-escola-e-recovery-subcontracts.json](comun-escola-e-recovery-subcontracts.json).
+Crash supautils permanece aberto; configuração externa e API/mapping da nova
+cópia NOT_RUN. Nova captura PRE e executor Production revisado continuam
+necessários. Autorização de migration recebida nesta rodada; execução continua
+NOT_RUN porque os requisitos técnicos não foram dispensados. Zero DDL/DML
+Production; seis preflights obrigatórios, flags e indexação inalterados.

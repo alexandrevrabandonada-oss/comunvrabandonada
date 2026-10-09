@@ -19,6 +19,11 @@ const cases = [
     "consistency",
     "Contagens agregadas somente leitura",
   ],
+  [
+    ".github/workflows/comun-learning-production-pre.yml",
+    "read-only-capture",
+    "Allowlisted catalog-only capture, never schema promotion",
+  ],
 ];
 
 test("the checked-in public CA is the same pinned certificate as the server-only client", () => {
@@ -78,5 +83,24 @@ test("Civic keeps required remote verification and a read-only transaction", () 
   assert.match(
     read("scripts/civic-graph/audit-comun-civic-graph-consistency.mjs"),
     /begin transaction read only/,
+  );
+});
+
+test("School capture keeps read-only options and isolates the disposable job from Production", () => {
+  const w = load(read(cases[2][0]));
+  const step = w.jobs["read-only-capture"].steps.find(
+    (s) => s.name === cases[2][2],
+  );
+  assert.equal(step.run, "node scripts/learning/production-pre.mjs");
+  assert.equal(step.env.PGOPTIONS, "-c default_transaction_read_only=on");
+  assert.equal(step.env.SUPABASE_DB_URL, "${{ secrets.SUPABASE_DB_URL }}");
+  assert.match(
+    read("scripts/learning/production-pre.mjs"),
+    /REPEATABLE READ READ ONLY/,
+  );
+  const disposable = JSON.stringify(w.jobs["production-like-disposable"]);
+  assert.doesNotMatch(
+    disposable,
+    /secrets\.|SUPABASE_DB_URL|NODE_EXTRA_CA_CERTS/,
   );
 });
