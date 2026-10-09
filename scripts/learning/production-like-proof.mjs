@@ -55,7 +55,7 @@ for (const [section, value] of Object.entries(
   capture.snapshot.compact.canonical,
 ))
   assert.equal(digest(value), capture.canonicalSectionHashes[section]);
-const db = new pg.Client({
+let db = new pg.Client({
   connectionString: env.COMUN_DISPOSABLE_DB_URL.replace(
     "postgres:postgres@",
     "supabase_admin:postgres@",
@@ -98,6 +98,13 @@ try {
   await db.query(
     "grant references on auth.users to postgres; grant insert on supabase_migrations.schema_migrations to postgres",
   );
+  // End bootstrap authority. The release transaction must authenticate as the
+  // same postgres principal captured on Production, not an admin SET ROLE.
+  await db.end();
+  db = new pg.Client({ connectionString: env.COMUN_DISPOSABLE_DB_URL });
+  requireAtomicConnection(db);
+  owned();
+  await db.connect();
   // information_schema visibility depends on current_user. Match the captured
   // postgres reader; administrator remains only the guarded transaction owner.
   owned();
@@ -154,6 +161,12 @@ try {
       "select current_user as current_user,session_user as session_user,current_setting('search_path') as search_path",
     )
   ).rows[0];
+  assert.equal(
+    identity.session_user,
+    capture.scope.sessionUser,
+    "LEARNING_EXECUTOR_SESSION_IDENTITY_MISMATCH",
+  );
+  assert.equal(db.connectionParameters.user, "postgres");
   await writeFile(
     ".ci-artifacts/learning-production-like/pre-equivalence.json",
     JSON.stringify(
@@ -324,6 +337,8 @@ try {
     ledgerDriftRejectedAndPreRestored: true,
     executorCapabilities: preCapabilities,
     executorPrivilegesRestored: true,
+    executorSessionUser: identity.session_user,
+    releaseUsesBootstrapAdministrator: false,
     executorDatabaseOwner: capture.scope.databaseOwner,
     publicSchemaOwner: capture.scope.publicSchemaOwner,
     remotePromotionAllowed: false,

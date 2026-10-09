@@ -107,6 +107,13 @@ Security do candidato obsoleto foi cancelado, nunca contado como PASS.
 Este checkpoint atualiza apenas documentação/evidências sobre o funcional
 775f86e9. Seus gates remotos próprios continuam necessários antes de merge.
 
+Reforço final de prova: o bootstrap encerra a conexão administrativa antes da
+release; uma conexão nova autentica diretamente como `postgres`. O gate exige
+`session_user` igual ao capturado, além de current_user/capacidades/owners.
+A transação da Escola não pode depender de um administrador que apenas fez
+SET ROLE. Este reforço requer nova prova real no seu SHA; a run 37863202153
+permanece histórica e não certifica a mudança por presunção.
+
 ## Procedimento exato e condições de interrupção
 
 Reprodução autorizada: workflow `comun-learning-production-pre.yml` no PR,
