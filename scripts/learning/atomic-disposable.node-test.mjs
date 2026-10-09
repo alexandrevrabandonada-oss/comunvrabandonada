@@ -6,6 +6,8 @@ import {
   requireAbsent,
   sameSnapshot,
   requireAtomicConnection,
+  requireReleaseFingerprint,
+  executorPrivilegePlan,
 } from "./atomic-disposable.mjs";
 
 const pre = () => ({
@@ -17,6 +19,76 @@ const pre = () => ({
   runner: "runner-pre",
   ledger: [],
 });
+
+const contract = {
+  preCanonical: "a".repeat(64),
+  preRunner: "b".repeat(64),
+  postCanonical: "c".repeat(64),
+  postRunner: "d".repeat(64),
+};
+test("fixture privilege borrowing never revokes pre-existing executor rights", () => {
+  const existing = {
+    createPublic: true,
+    referencesAuthUsers: true,
+    insertMigrationHistory: true,
+  };
+  assert.deepEqual(executorPrivilegePlan(existing), []);
+  assert.deepEqual(
+    executorPrivilegePlan({ ...existing, referencesAuthUsers: false }),
+    ["references on auth.users"],
+  );
+  assert.equal(
+    executorPrivilegePlan({
+      createPublic: false,
+      referencesAuthUsers: false,
+      insertMigrationHistory: false,
+    }).length,
+    3,
+  );
+  assert.throws(
+    () => executorPrivilegePlan({}),
+    /LEARNING_EXECUTOR_CAPABILITIES_INVALID/,
+  );
+});
+for (const phase of ["pre", "post"]) {
+  test(`reviewed ${phase} fingerprints accept only the exact pair`, () => {
+    const snapshot = {
+      compact: { fingerprint: contract[`${phase}Canonical`] },
+      runner: contract[`${phase}Runner`],
+    };
+    requireReleaseFingerprint(snapshot, contract, phase);
+    assert.throws(
+      () =>
+        requireReleaseFingerprint(
+          { ...snapshot, compact: { fingerprint: "e".repeat(64) } },
+          contract,
+          phase,
+        ),
+      /LEARNING_RELEASE_CANONICAL_DIVERGED/,
+    );
+    assert.throws(
+      () =>
+        requireReleaseFingerprint(
+          { ...snapshot, runner: "e".repeat(64) },
+          contract,
+          phase,
+        ),
+      /LEARNING_RELEASE_RUNNER_DIVERGED/,
+    );
+  });
+  test(`missing or malformed ${phase} contract fails closed`, () => {
+    for (const bad of [
+      null,
+      {},
+      { ...contract, [`${phase}Canonical`]: "" },
+      { ...contract, [`${phase}Runner`]: "unreviewed" },
+    ])
+      assert.throws(
+        () => requireReleaseFingerprint(pre(), bad, phase),
+        /LEARNING_RELEASE_CONTRACT_INVALID/,
+      );
+  });
+}
 test("pinned package removes only its outer transaction and remains blocked remotely", async () => {
   const { sql, packet } = await loadAtomicPackage();
   assert.equal(packet.remotePromotionAllowed, false);

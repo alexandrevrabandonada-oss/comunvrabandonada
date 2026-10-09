@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import pg from "pg";
-import { digest, privateCatalogSql } from "./production-pre.mjs";
+import { digest, privateCatalogSql, scopeSql } from "./production-pre.mjs";
 import {
   captureAtomicSnapshot,
   installAtomicDisposable,
@@ -31,6 +31,15 @@ const captureBytes = await readFile(
   ".ci-artifacts/learning-production-pre/capture.json",
 );
 const capture = JSON.parse(captureBytes);
+// Previously reviewed derivation, never recalculate expectations from this run.
+const contract = JSON.parse(
+  await readFile(
+    "reports/current/comun-escola-production-like-derived.json",
+    "utf8",
+  ),
+);
+assert.equal(contract.migrationSha256, migrationHash);
+assert.equal(contract.remotePromotionAllowed, false);
 assert.equal(
   capture.status,
   "COMUN_LEARNING_PRE_CAPTURED_AWAITING_DISPOSABLE_EQUIVALENCE",
@@ -46,7 +55,7 @@ for (const [section, value] of Object.entries(
   capture.snapshot.compact.canonical,
 ))
   assert.equal(digest(value), capture.canonicalSectionHashes[section]);
-const db = new pg.Client({
+let db = new pg.Client({
   connectionString: env.COMUN_DISPOSABLE_DB_URL.replace(
     "postgres:postgres@",
     "supabase_admin:postgres@",
@@ -56,7 +65,45 @@ requireAtomicConnection(db);
 owned();
 const privateSnapshot = async () =>
   (await db.query(privateCatalogSql)).rows[0].value;
+const capabilities = async () =>
+  (await db.query(scopeSql)).rows[0].value.executorCapabilities;
 try {
+  await db.connect();
+  assert.equal(
+    capture.scope.databaseOwner,
+    "postgres",
+    "LEARNING_DATABASE_OWNER_UNREVIEWED",
+  );
+  assert.equal(
+    capture.scope.publicSchemaOwner,
+    "pg_database_owner",
+    "LEARNING_PUBLIC_SCHEMA_OWNER_UNREVIEWED",
+  );
+  // The historical dump/bootstrap intentionally removes these executor grants.
+  // Reproduce only the four positive capabilities captured on Production.
+  // This changes the owned synthetic fixture, never Production permissions.
+  assert.deepEqual(
+    capture.scope.executorCapabilities,
+    {
+      role: "postgres",
+      superuser: false,
+      createPublic: true,
+      referencesAuthUsers: true,
+      insertMigrationHistory: true,
+      insertReleaseLedger: true,
+    },
+    "LEARNING_PRODUCTION_EXECUTOR_CAPABILITIES_UNREVIEWED",
+  );
+  owned();
+  await db.query(
+    "grant references on auth.users to postgres; grant insert on supabase_migrations.schema_migrations to postgres",
+  );
+  // End bootstrap authority. The release transaction must authenticate as the
+  // same postgres principal captured on Production, not an admin SET ROLE.
+  await db.end();
+  db = new pg.Client({ connectionString: env.COMUN_DISPOSABLE_DB_URL });
+  requireAtomicConnection(db);
+  owned();
   await db.connect();
   // information_schema visibility depends on current_user. Match the captured
   // postgres reader; administrator remains only the guarded transaction owner.
@@ -114,6 +161,12 @@ try {
       "select current_user as current_user,session_user as session_user,current_setting('search_path') as search_path",
     )
   ).rows[0];
+  assert.equal(
+    identity.session_user,
+    capture.scope.sessionUser,
+    "LEARNING_EXECUTOR_SESSION_IDENTITY_MISMATCH",
+  );
+  assert.equal(db.connectionParameters.user, "postgres");
   await writeFile(
     ".ci-artifacts/learning-production-like/pre-equivalence.json",
     JSON.stringify(
@@ -143,6 +196,15 @@ try {
     ) + "\n",
   );
   sameSnapshot(pre, capture.snapshot);
+  const localScope = (await db.query(scopeSql)).rows[0].value;
+  assert.equal(localScope.databaseOwner, capture.scope.databaseOwner);
+  assert.equal(localScope.publicSchemaOwner, capture.scope.publicSchemaOwner);
+  const preCapabilities = await capabilities();
+  assert.deepEqual(
+    preCapabilities,
+    capture.scope.executorCapabilities,
+    "LEARNING_EXECUTOR_CAPABILITY_PRE_DRIFT",
+  );
   assert.equal(
     (await db.query("show server_version")).rows[0].server_version,
     capture.scope.serverVersion,
@@ -155,14 +217,43 @@ try {
   for (const stage of ["schema", "history", "ledger"]) {
     owned();
     await assert.rejects(
-      () => installAtomicDisposable(db, pre, stage),
+      () => installAtomicDisposable(db, pre, stage, contract),
       /LEARNING_DISPOSABLE_INJECTED_/,
     );
     sameSnapshot(await captureAtomicSnapshot(db), pre);
     assert.deepEqual(await privateSnapshot(), capture.privateCatalog);
+    assert.deepEqual(
+      await capabilities(),
+      preCapabilities,
+      "LEARNING_EXECUTOR_PRIVILEGES_NOT_RESTORED",
+    );
   }
   owned();
-  const expectedPost = await installAtomicDisposable(db, pre);
+  await assert.rejects(
+    () => installAtomicDisposable(db, pre, "post-drift", contract),
+    /LEARNING_RELEASE_CANONICAL_DIVERGED/,
+  );
+  sameSnapshot(await captureAtomicSnapshot(db), pre);
+  assert.deepEqual(await privateSnapshot(), capture.privateCatalog);
+  assert.deepEqual(
+    await capabilities(),
+    preCapabilities,
+    "LEARNING_EXECUTOR_PRIVILEGES_NOT_RESTORED",
+  );
+  owned();
+  await assert.rejects(
+    () => installAtomicDisposable(db, pre, "ledger-drift", contract),
+    /LEARNING_ATOMIC_LEDGER_DIVERGED/,
+  );
+  sameSnapshot(await captureAtomicSnapshot(db), pre);
+  assert.deepEqual(await privateSnapshot(), capture.privateCatalog);
+  assert.deepEqual(
+    await capabilities(),
+    preCapabilities,
+    "LEARNING_EXECUTOR_PRIVILEGES_NOT_RESTORED",
+  );
+  owned();
+  const expectedPost = await installAtomicDisposable(db, pre, null, contract);
   const post = await captureAtomicSnapshot(db);
   assert.equal(post.compact.fingerprint, expectedPost.compact.fingerprint);
   assert.equal(post.runner, expectedPost.runner);
@@ -186,6 +277,11 @@ try {
   owned();
   sameSnapshot(await captureAtomicSnapshot(db), post);
   assert.deepEqual(await privateSnapshot(), capture.privateCatalog);
+  assert.deepEqual(
+    await capabilities(),
+    preCapabilities,
+    "LEARNING_EXECUTOR_PRIVILEGES_NOT_RESTORED",
+  );
   const counts = (
     await db.query(
       "select (select count(*)::int from public.comun_learning_units) units,(select count(*)::int from public.comun_learning_resources) resources,(select count(*)::int from public.comun_learning_enrollments) enrollments,(select count(*)::int from public.comun_learning_progress) progress,(select count(*)::int from public.comun_learning_practice_links) practices",
@@ -235,6 +331,16 @@ try {
     blockingFindings: post.compact.security.blockingFindings.length,
     rollbackStages: ["schema", "history", "ledger"],
     replayRefused: true,
+    approvedPostEnforcedBeforeCommit: true,
+    postDriftRejectedAndPreRestored: true,
+    ledgerVerifiedBeforeCommit: true,
+    ledgerDriftRejectedAndPreRestored: true,
+    executorCapabilities: preCapabilities,
+    executorPrivilegesRestored: true,
+    executorSessionUser: identity.session_user,
+    releaseUsesBootstrapAdministrator: false,
+    executorDatabaseOwner: capture.scope.databaseOwner,
+    publicSchemaOwner: capture.scope.publicSchemaOwner,
     remotePromotionAllowed: false,
     promotionReady: false,
     providerBackupProved: false,

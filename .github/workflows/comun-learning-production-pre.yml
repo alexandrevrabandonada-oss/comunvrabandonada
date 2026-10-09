@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22.18.0, cache: npm }
       - run: npm ci --ignore-scripts
-      - run: node --test scripts/learning/production-pre.node-test.mjs
+      - run: node --test scripts/learning/production-pre.node-test.mjs scripts/learning/atomic-disposable.node-test.mjs scripts/learning/release-review.node-test.mjs
       - name: Allowlisted catalog-only capture, never schema promotion
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
