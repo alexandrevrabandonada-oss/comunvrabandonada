@@ -1,5 +1,28 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Recuperação da Escola — escopo separado, 08/10/2026
+
+#533 integrado e certificado em main `2151826f`. #523 continua draft em
+`cf0e8e41`: Quality PASS e seis preflights de schema bloqueados.
+A sessão do projeto correto foi disponibilizada em outro perfil Chrome;
+identidade confirmada pelo hash do PRE. O painel Free não oferece backups,
+PITR ou restore gerenciado em novo projeto nas condições atuais. A limitação
+histórica de acesso ao dashboard está resolvida; recuperação real ainda não.
+
+Esta passada compara backup lógico independente e Pro/recuperação gerenciada,
+prepara captura protegida e ensaio sintético em cluster vazio. Cobertura DB,
+Auth, Storage metadata/bytes e configurações externas são tratadas separadamente.
+Uma falha de backend signal 11 em chamada não autorizada foi reproduzida somente
+na imagem descartável pinada; não foi testada nem inferida em Production.
+Ela continua finding aberto, sem alteração de grants para obter verde.
+Resultados, limites, retenção proposta e operação real pendente estão em
+[estratégia de recuperação](../reports/current/comun-escola-recovery-strategy.md).
+
+Próximo gate: comprovar snapshot recuperável real e restore isolado, com destino,
+tratamento dos dados e responsáveis aprovados; depois autorização específica de
+schema. Sem upgrade, migration Production, flags, abertura de indexação ou
+certificação da V1 nesta passada.
+
 ## Fechamento exclusivo da Escola e #523 — 08/10/2026
 
 #532 integrado em `636e3e1d`, Production Git READY no SHA exato, sem schema
