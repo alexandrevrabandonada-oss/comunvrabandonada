@@ -51,7 +51,7 @@ Contrato derivado, sem alterar manifest:
 | PRE    | `160face699d0b22b88b0434a6393cedf587ce0ccf1f8338dd8765ec56f6fab4a` | `ccb89095e56cad37b6b0e8459eee4eee9c130abd709b78940a85578a302c317f` |
 | POST   | `d32721d3fb6df9203ff8aa6af00cddab64cf9bb948e47e9e4f799f328b0625ad` | `1e78dfc1986015c57615f24766caf099df9459d33644971d3b1a08f53e45af66` |
 
-## Correção focal do executor — prova remota pendente
+## Correção focal do executor — PASS no candidato funcional
 
 Finding demonstrado por revisão do fluxo: #532 derivava POST e verificava
 estrutura/isolamento, mas não exigia o par POST aprovado antes do COMMIT.
@@ -68,9 +68,21 @@ O laboratório compara essas capacidades com a captura e exige restauração
 após cada rollback e COMMIT. A janela de privilégios permanece somente local;
 nenhum GRANT/REVOKE remoto ou novo comando de promoção foi introduzido.
 
-PASS local: 64 testes Node, zero skips, antes do commit funcional. A prova SQL
-real dos controles novos deve ser registrada pelo SHA/run próprios; ainda
-NOT_RUN no momento deste registro inicial. Não substituir por mocks.
+PASS local: 64 testes Node, zero skips. PASS SQL real do funcional
+`775f86e9d82203d97ed6064842b817e2fa492589`, run
+[37863202153](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/37863202153).
+Fonte CI `05828f4e52f0054f0e86fafa406199d9885a8eac`, tree
+`6a8bb4b138aa19e7445bb423af51bc6dfa03dc4d`, idêntica à do funcional.
+Capture artifact 11587690204, SHA-256
+`14a754e3916f71e28594d2c8929796b868ba3a4079bb75be48e0381ca79f86be`;
+proof artifact 11586742840, SHA-256
+`00b142c90c310ec8d492d42f04782996da23ff0832efc85fda7d0d737644f00b`.
+Captura/ensaio ligados pelo hash; PRE/POST são exatamente os da tabela acima.
+Controles SQL `postDriftRejectedAndPreRestored` e
+`ledgerDriftRejectedAndPreRestored` verdadeiros, assim como
+`approvedPostEnforcedBeforeCommit`, `ledgerVerifiedBeforeCommit` e
+`executorPrivilegesRestored`. Aplicação única, três falhas pré-COMMIT e replay
+recusado permaneceram verdes. Isso não é prova de backup do provedor.
 
 A captura nova da run 37862599756 (artifact 11586895819) comprovou que o leitor
 Production `postgres` já tem CREATE public, REFERENCES auth.users e INSERT
@@ -79,7 +91,21 @@ O gate novo bloqueou corretamente `20c1d0ef`: a fixture histórica removia os
 três primeiros direitos (`LEARNING_EXECUTOR_CAPABILITY_PRE_DRIFT`). A correção
 reproduz esses direitos já existentes somente no banco sintético e conserva
 o fingerprint esperado. O helper agora empresta/revoga apenas direitos ausentes,
-preservando os preexistentes. O novo SHA precisa de sua própria prova real.
+preservando os preexistentes.
+
+O segundo controle também bloqueou `f97a8f18` (run 37862857319): apenas uma
+ACL extra CREATE para postgres divergira do catálogo aprovado. Artifact
+11586956211 identifica exatamente `schemaGrants`, sem atualizar expectativa.
+A captura seguinte confirmou diretamente database owner `postgres` e public
+schema owner `pg_database_owner`: o direito efetivo vem dessa propriedade.
+A fixture agora usa esse owner, sem adicionar a ACL pública divergente.
+REFERENCES/INSERT são reproduzidos somente localmente; capacidades/owners e
+catálogo inteiro precisam continuar iguais à captura. A prova 37863202153
+passou esse contrato. As tentativas anteriores continuam FAIL no histórico;
+Security do candidato obsoleto foi cancelado, nunca contado como PASS.
+
+Este checkpoint atualiza apenas documentação/evidências sobre o funcional
+775f86e9. Seus gates remotos próprios continuam necessários antes de merge.
 
 ## Procedimento exato e condições de interrupção
 
@@ -147,6 +173,11 @@ pelo executor Production, operador de recuperação e revisor da release:
 **não designados nesta rodada (BLOCKED)**; não inferir nomes ou aprovação.
 Autorização recebida cobre preparação/testes e merges independentes com gates
 verdes; não cobre migration Production.
+
+Capacidades de catálogo do leitor: PASS na captura atual. Aplicação remota e
+teste do executor em Production: NOT_RUN, conforme limite desta rodada.
+O único executor de escrita liberado por este código continua descartável;
+o manifest permanece fechado, e a preparação não autoriza contorná-lo.
 
 #523 permanece draft no SHA `cf0e8e41a084e073a728cca269a0dbc38683bfe1`.
 Quality 37856326546 attempt 1: pr-lane/a11y/network/P1T PASS; Território local

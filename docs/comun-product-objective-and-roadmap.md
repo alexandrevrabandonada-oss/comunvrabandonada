@@ -11,7 +11,11 @@ O candidato permanece draft, com funcionalidades estáveis.
 A revisão focal #533 exige POST e ledger aprovados antes do COMMIT, controles
 SQL negativos e preservação de privilégios no laboratório. A captura confirmou
 os direitos existentes do leitor Production; a fixture foi corrigida para
-reproduzi-los sem mudar o destino real. Provas do novo SHA ainda são próprias.
+reproduzi-los sem mudar o destino real. Prova SQL funcional `775f86e9`, run
+37863202153 PASS: POST/ledger divergentes abortam e preservam PRE, privilégios
+preexistentes preservados, aplicação única e replay recusado. Os fingerprints
+PRE/POST revisados permaneceram intactos. Checkpoints posteriores exigem gates
+próprios, sem transportar aprovações por presunção.
 Backup/ponto recuperável/acesso ao restore do COMUN permanecem BLOCKED, pois
 o conector não expõe o projeto e o dashboard está sem sessão. Restore isolado
 do provedor NOT_RUN. Responsáveis humanos ainda não designados; nenhuma
