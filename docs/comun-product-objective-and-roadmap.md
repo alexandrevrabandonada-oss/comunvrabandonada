@@ -366,6 +366,54 @@ Inteligência cívica e coerência da experiência atravessam esses domínios. A
 
 Correções técnicas podem avançar em paralelo. A ordem acima expressa dependências de evidência, sem inventar datas ou disponibilidade da equipe. Não cria gates intermediários adicionais.
 
+## Roadmap pós-V1 canônico — organização, Escola, competências e Fábrica
+
+As frentes abaixo não alteram o gate de lançamento da V1. Contratos, documentação e protótipos isolados podem avançar em paralelo; ativação pública, migrations e novos domínios de dados respeitam as dependências explícitas.
+
+**49-A — Núcleos permanentes.** Organização durável de pessoas por responsabilidade, reutilizando comunidades, memberships, papéis auditáveis e Minha Participação. Avança quando houver núcleo real operando com responsáveis e revisão, sem derivar autorização de texto livre.
+
+**49-B — Ciclo estratégico.** Objetivos, hipóteses, revisão e aprendizagem ligados ao ciclo pauta → ação → resultado → memória. Reutiliza Pautas, Rodas, Ações, Tarefas, Resultados e Memória. Avança quando existir um ciclo real completo sem duplicar ação, tarefa ou resultado.
+
+**49-C — Escola COMUN.** Formação prática progressiva; R0 é a primeira implementação técnica. Reutiliza Auth, Pauta/Tarefa, Minha Participação e revisão editorial. Avança quando R0 estiver integrado e ensaiado sem quebrar progresso concluído.
+
+**49-C1 — Competências com Evidência.** Transforma prática revisada e trabalho real em afirmações escopadas de capacidade. Reutiliza Escola, Tarefas/Ações e Minha Participação. Avança com competência privada por padrão, revisão independente, zero promoção por curso concluído e zero ranking.
+
+**49-C2 — Experiência de competências.** Apresenta estados, privacidade, publicação e matching dentro de Minha Participação. Reutiliza 49-C1 e Minha Participação. Avança com view model sanitizado, atenção priorizada e publicação e matching separados; conexão real somente após schema e RLS.
+
+**49-D — Fábrica COMUN.** Converte problemas reais em prática, protótipo, solução aberta e capacidade comunitária. Reutiliza 49-C, 49-C1, 49-C2, comunidades, Pautas, Ações, Tarefas, Observatórios e Memória. Avança quando o piloto provar demanda e reuso antes de qualquer schema fabril, sem criar segunda hierarquia social ou educacional.
+
+### 49-C1 — Competências com Evidência
+
+**Decisão:** concluir conteúdo não cria competência. Uma afirmação de competência só pode ser demonstrada com evidência revisada, escopo explícito e revisão independente da própria pessoa. O contrato detalhado está em [comun-competency-evidence.md](comun-competency-evidence.md).
+
+**Privacidade:** competência fica privada em Minha Participação por padrão. Publicação é opt-in separada e nunca expõe automaticamente reviewer, links privados, volume de trabalho, localização, disponibilidade ou histórico bruto.
+
+**Matching:** a pessoa pode autorizar o uso privado de competência demonstrada para receber sugestões de tarefas. Sugestão não cria atribuição, papel, autorização administrativa ou habilitação profissional.
+
+**Catálogo inicial:** práticas validadas da Escola podem gerar evidências candidatas para Formulação de problema e objetivo, Investigação/evidências, Escuta/facilitação e Ciclo estratégico. A claim continua exigindo sua própria revisão.
+
+### 49-C2 — Experiência em Minha Participação
+
+**Estados:** construindo evidência → aguardando revisão → demonstrada → precisa revisar → arquivada. Itens que exigem ação aparecem primeiro; a superfície não funciona como vitrine de prestígio.
+
+**Controles separados:** visibilidade pública e uso privado para sugestões de tarefas são consentimentos distintos.
+
+**Privacidade:** o view model não transporta reviewer, sourceId, reflexão, tarefa/pauta privada ou nota de revisão. O componente preparado em `components/comun-competency-panel.tsx` recebe somente projeção sanitizada.
+
+**Ativação:** o painel ainda não é conectado à superfície real. Isso só ocorre depois de schema/RLS, loader owner-only, mutations auditáveis e feature flag OFF-by-default. Ver [comun-competency-experience.md](comun-competency-experience.md).
+
+### 49-D — Fábrica COMUN
+
+**49-D0 — Contrato canônico.** A Fábrica é módulo do COMUN, não segundo sistema. Entrada futura: “Tenho um problema”, “Quero fazer” e “Quero aprender”. Ver [comun-fabrica-canonical-integration.md](comun-fabrica-canonical-integration.md).
+
+**49-D1 — Piloto sem novo schema fabril.** Executar casos reais usando Pauta/Tarefa/Ação e Escola; registrar manualmente custo, risco, versões e resultado. Gate mínimo: 10 casos iniciados, 5 resolvidos e lacunas de dados demonstradas. Checkpoint ampliado FC-MVP-25: 25 casos, 15 resolvidos, 5 projetos abertos, 3 operadores autônomos, 5 pessoas em formação, 1 escola, 1 projeto de acessibilidade, 1 tecnologia ambiental e 1 solução reutilizada.
+
+**49-D2 — Extensão mínima orientada por evidência.** Só depois do piloto, considerar estado técnico do caso, versões/BOM e rastreabilidade. Nunca duplicar Pauta, Ação, Tarefa, Resultado, Comunidade, competência, progresso da Escola ou identidade.
+
+**49-D3 — Operação física.** Máquinas, filas, materiais, manutenção, instalações, falhas e segurança. Dados de máquina não viram reputação social.
+
+**49-D4 — Rede distribuída.** Nós parceiros e capacidades externas, replicação e encaminhamento. Só promover quando existir demanda real multi-nó.
+
 ## Pendências que exigem fatos externos ao código
 
 O relatório histórico do piloto em `reports/current/comun-tijolo-47-5-miniapps-pilot-closeout.json` contém métricas zeradas de uma execução antiga. Não descreve a utilização atual. A janela terminou em 2026-08-06: passagem do tempo não encerra o piloto nem autoriza alterar denominadores.
