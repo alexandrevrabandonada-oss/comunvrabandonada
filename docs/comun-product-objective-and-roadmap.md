@@ -518,3 +518,11 @@ Dois exports cifrados da cópia anterior foram verificados e restaurados em cont
 ### Escola — recuperação em E: e gates preservados, 09/10/2026
 
 No candidato #536 ce0566d9, captura PRE e ensaio atômico 37962260855 passaram na mesma run, com hash da captura vinculado à prova. Custódia independente da chave e mapping de 2582 objetos restaurados passaram; CHECK/ACLs têm equivalência delimitada, sem mudar fingerprints Production. Biblioteca supautils oficial corrigida passou recusas no laboratório/restauração; imagem antiga continua afetada. Bundle reproduziu SHA/tree fora do produtor; 71 testes no consumidor passaram. Inventário: 41 SUCCESS, 82 SKIPPED separados e Quality ainda em execução na consulta. Autorização da migration recebida; acesso protegido PostgreSQL, configuração externa, renovação do backup de negócio e entrada Production controlada ainda bloqueiam aplicação. Seis preflights #523 preservados; zero escrita Production, flags/indexação intactas. Avisos npm preexistentes foram registrados separadamente, sem atualização automática. Escola não liberada. Este complemento documental não transfere provas para um SHA funcional diferente.
+
+# Atualização Escola — ensaio controlado, 2026-10-09
+
+PR #536 integrado em `eb2cb0156adf223d608e222677cccc00bf84e071` após 42 SUCCESS / 82 SKIPPED / zero failures/pending. Deploy Git READY, SHA servido confirmado, smokes GET, Quality/Civic/Core pós-merge PASS; Experience ainda pendente na captura. Nenhuma outra integração até certificar o pós-merge aplicável.
+
+Ensaio controlado local provado em `c4f4facafa1674352bd5b93d5c660b3bd4f45b3c`: verificações de catálogo privado e privilégios antes do COMMIT, rollback schema/history/ledger/drift, replay recusado e resposta perdida do COMMIT reconciliada read-only, sem retry de escrita. Nova lane descartável sem secrets Production preparada para repetir essa prova no novo SHA. Evidências e limites em `reports/current/comun-escola-controlled-rehearsal.md`.
+
+Próximo passo: concluir checks pós-merge e do candidato; recuperar acesso PostgreSQL protegido e renovar/ensaiar backup real antes de qualquer schema write. Executor remoto não certificado; migration Escola NOT_RUN; seis preflights do #523 preservados. Recuperação completa, flags, indexação e operação pública continuam não certificadas.
