@@ -224,6 +224,7 @@ export async function captureProductionPre(db, inputs) {
       schemaWrites: 0,
       ledgerWrites: 0,
       rollback: "CONFIRMED",
+      capturedAt: new Date().toISOString(),
     };
   } finally {
     await db.query("ROLLBACK");
