@@ -244,3 +244,82 @@ cópia NOT_RUN. Nova captura PRE e executor Production revisado continuam
 necessários. Autorização de migration recebida nesta rodada; execução continua
 NOT_RUN porque os requisitos técnicos não foram dispensados. Zero DDL/DML
 Production; seis preflights obrigatórios, flags e indexação inalterados.
+
+## Complemento de provas — fonte ce0566d9, sem nova execução Production
+
+09/10/2026. PR [#536](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/536),
+draft, head `ce0566d9f68d11899e8d0b341efbc541329bb349`, tree
+`cac8b2bcf92ebb8838c3a9725ad6c3a808b8d856`. Base main observado:
+`041f6b17a49286249fb8290428b7422695a87937`. Árvore original C: preservada.
+
+| Resultado                           | Estado             | Prova e limite                                                                                                                                                                                                                        |
+| ----------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Captura Production PRE              | PASS               | Run [37962260855](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/37962260855), READ ONLY/ROLLBACK; canonical/private/ledger iguais ao PRE aceito; Escola ausente, cinco releases aceitas, zero findings. |
+| Aplicação atômica                   | PASS em disposable | Mesma run, vinculada ao SHA256 da captura; falhas schema/history/ledger e POST/ledger divergentes recusadas antes do COMMIT; aplicação única e replay recusado. Não é executor remoto.                                                |
+| Banco real preservado/restaurado    | PASS parcial       | Dois exports AES-GCM e nova cópia offline; PG17.6, 278 tabelas, seis auth users; catálogo restaurado preservado. Ponto do dump: 02:39:42 UTC, não é backup atual.                                                                     |
+| Storage restaurado                  | PASS por objeto    | 2582 arquivos/357014118 bytes; bucket/name/version exatos, size/MD5 iguais, zero órfãos. API na nova cópia NOT_RUN.                                                                                                                   |
+| CHECK e ACLs                        | PASS delimitado    | Mesma árvore conbin para um CHECK reagrupado, três negativos detectados; oito ACLs com direitos efetivos iguais. Fingerprints brutos continuam distintos; gate Production intacto.                                                    |
+| Custódia independente da chave nova | PASS               | Drive privado owner-only, fora dos novos ciphertexts E:; readback verificou ambos os exports sem DPAPI. Não recupera os backups antigos cuja chave ficou em D:.                                                                       |
+| Crash padrão original               | FAIL preservado    | Imagem antiga e caso mínimo mantidos; não encerrado com PASS de outro ambiente.                                                                                                                                                       |
+| Biblioteca supautils corrigida      | PASS delimitado    | Oficial v3.2.3 pinned: matriz sintética e recusas na cópia restaurada retornaram 42501/backend vivo, zero drift. Imagem oficial nova completa e APIs completas NOT_RUN. Sem upgrade Production.                                       |
+| Bundle de código                    | PASS               | Importado fora do produtor; seis commits/11 arquivos; SHA/tree iguais; nenhum backup ou chave incluído.                                                                                                                               |
+| Testes no consumidor                | PASS               | Node22.19, npm ci --ignore-scripts, 71 PASS/0 FAIL/0 SKIPPED. Falha de setup anterior sem js-yaml preservada.                                                                                                                         |
+| Preview/COST-02                     | PASS no head exato | Vercel Git dpl_7kxSMEoBHPZnCAiRmWgmXp4FhAo6 READY; run37962260806/job113927776651 checkpoint-fresh.                                                                                                                                   |
+| Inventário completo de checks       | PENDING            | 41 SUCCESS/82 SKIPPED/1 in_progress, nenhum failure na consulta registrada em remote-checks-ce0566d9.json; Quality37962260835. SKIPPED não contado como PASS.                                                                         |
+| #523                                | BLOCKED            | Draft/cf0e8e41; seis preflights continuam failure por dependência do schema Escola. Nenhum dispensado.                                                                                                                                |
+| Credencial do executor              | BLOCKED            | Cópia protegida anterior em D: indisponível; nenhuma URL PostgreSQL no processo/.env das árvores verificadas; busca limitada em E: não encontrou a credencial.                                                                        |
+| Configuração externa                | NOT_RUN            | OAuth/SMTP/configurações não são restauradas por um dump do banco; navegador ainda Debugger unattached depois da reconexão informada.                                                                                                 |
+| Executor Production                 | BLOCKED            | Entrada remota separada ainda não implementada/revisada; plano de operação/interrupção preparado. O manifest local e guard do laboratório não foram alterados.                                                                        |
+| Migration Production                | NOT_RUN            | Autorização humana recebida; requisitos técnicos continuam obrigatórios. Zero schema/history/ledger/business writes Production.                                                                                                       |
+
+## Identidades e hashes
+
+Captura PRE `capture.json`:
+`476c715e9500aeb7e166e1926602c873eaff164568dff2cb255d2858ff0a4a51`.
+Source merge-ref `bd911680dfbf32b35060208a2e0f339ab99b81f2`, tree igual ao head real,
+não confundido com ele. Artefatos PRE11632715962 e disposable11632171692.
+
+Bundle `pr536-ce0566d9-review.bundle`:
+`3cf7341481a11673baf71ed3392b17243afd1f65b4e2ad410fa7af768addeb3c`, 23619 bytes.
+Pré-requisito: base041f6b17. Reproduzir em repositório novo: obter a base exata
+por leitura, executar git config core.autocrlf false **antes** do checkout,
+git bundle verify, fetch do bundle, checkout head exato e npm ci --ignore-scripts.
+O primeiro consumidor converteu os dois arquivos pinados para CRLF; somente os
+blobs Git aceitos foram restaurados. Hashes confirmados antes dos 71 testes.
+
+Migration `20261006134804_comun_learning_r0.sql`:
+`5036a833b1b681487204349f8ebc58690228a2f5aa932943a81f60df1d3b6ba7`.
+Manifest:
+`3b598bc6b3ea3dfe462ba205b6747016aace52de87c87dec332ecbb1a567d4de`.
+Ambos byte-identical e ausentes do diff do PR. Nenhuma expectativa recalculada.
+
+MapLibre anterior 37959856195: 49 PASS/1 FAIL de retorno Lista → Mapa, PMTiles206;
+causa UNPROVEN. No head atual 37962260652 SUCCESS, sem mudança do código do mapa.
+Quality anterior37959855990 SUCCESS; não transferido ao head atual. O diagnóstico
+read-only de navegação não substitui os dois failures Core pós-merge originais.
+
+## Dependências: finding separado, sem alegar exploração
+
+npm audit observou 12 avisos (10 high/2 moderate/0 critical) no lock exatamente
+igual ao main, SHA2565a1b1c1a59d368641576581a88fb5346c76352b3b2ea0c2baeb765569562ca09.
+Nenhuma dependência foi alterada neste candidato. Não confundir zero canonical
+security findings do banco com ausência de advisories de dependências.
+
+O aviso publicado pelo mantenedor de [sharp](https://github.com/advisories/GHSA-wq5f-xc86-pv6w)
+inclui a versão0.35.4 instalada e aponta0.35.5 como corrigida. A exploração depende
+de condições de runtime; não executamos exploit nem comprovamos exploração em
+Production. Detalhes preservados em consumer-dependency-audit-proof.json; nenhuma
+atualização automática, downgrade do Next ou migração Tailwind para obter verde.
+
+## Próximo passo concreto
+
+Restabelecer acesso protegido PostgreSQL e acesso read-only às configurações,
+renovar a cópia privada de negócio, finalizar Quality e a integração/certificação
+da correção CA, depois revisar/provar a entrada controlada de execução remota.
+As operações exatas e interrupções estão em PRODUCTION-EXECUTION-PLAN.md.
+Essa ordem mantém a migration única, POST obrigatório antes de COMMIT e os seis
+preflights obrigatórios depois da aplicação. Não restaura sobre Production.
+
+Estado: **RECOVERY_SUBCONTRACTS_VERIFIED_PRODUCTION_MIGRATION_BLOCKED**.
+Recuperação integral não certificada, Escola não liberada, V1 não concluída.
+Sem recurso pago, alteração de flags ou abertura de indexação.
