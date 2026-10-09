@@ -30,7 +30,7 @@ for attempt in $(seq 1 90); do
 done
 test "$ready" = 1 || { echo COMUN_R5_DISPOSABLE_POSTGRES_START_FAILED; exit 1; }
 
-owned_exec -e PGPASSWORD=postgres "$container" createdb -U supabase_admin "$database"
+owned_exec -e PGPASSWORD=postgres "$container" createdb -U supabase_admin -O postgres "$database"
 for file in post-schema.sql technical-ledger.sql synthetic-buckets.sql restore-expression.sql; do
   owned_copy "$fixture/$file" "$container:/tmp/$file"
   owned_exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database"     -X -v ON_ERROR_STOP=1 -f "/tmp/$file" >"$artifact/${file%.sql}.log"

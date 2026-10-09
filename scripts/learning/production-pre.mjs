@@ -24,6 +24,8 @@ export const scopeSql = `select json_build_object(
   'database', current_database(), 'serverVersion', current_setting('server_version'),
   'readOnly', current_setting('transaction_read_only'), 'currentUser', current_user,
   'sessionUser', session_user, 'searchPath', current_setting('search_path'),
+  'databaseOwner',(select pg_catalog.pg_get_userbyid(datdba) from pg_catalog.pg_database where datname=current_database()),
+  'publicSchemaOwner',(select pg_catalog.pg_get_userbyid(nspowner) from pg_catalog.pg_namespace where nspname='public'),
   'executorCapabilities', json_build_object(
     'role',current_user,
     'superuser',(select rolsuper from pg_catalog.pg_roles where rolname=current_user),

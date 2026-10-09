@@ -69,6 +69,16 @@ const capabilities = async () =>
   (await db.query(scopeSql)).rows[0].value.executorCapabilities;
 try {
   await db.connect();
+  assert.equal(
+    capture.scope.databaseOwner,
+    "postgres",
+    "LEARNING_DATABASE_OWNER_UNREVIEWED",
+  );
+  assert.equal(
+    capture.scope.publicSchemaOwner,
+    "pg_database_owner",
+    "LEARNING_PUBLIC_SCHEMA_OWNER_UNREVIEWED",
+  );
   // The historical dump/bootstrap intentionally removes these executor grants.
   // Reproduce only the four positive capabilities captured on Production.
   // This changes the owned synthetic fixture, never Production permissions.
@@ -86,7 +96,7 @@ try {
   );
   owned();
   await db.query(
-    "grant create on schema public to postgres; grant references on auth.users to postgres; grant insert on supabase_migrations.schema_migrations to postgres",
+    "grant references on auth.users to postgres; grant insert on supabase_migrations.schema_migrations to postgres",
   );
   // information_schema visibility depends on current_user. Match the captured
   // postgres reader; administrator remains only the guarded transaction owner.
@@ -173,6 +183,9 @@ try {
     ) + "\n",
   );
   sameSnapshot(pre, capture.snapshot);
+  const localScope = (await db.query(scopeSql)).rows[0].value;
+  assert.equal(localScope.databaseOwner, capture.scope.databaseOwner);
+  assert.equal(localScope.publicSchemaOwner, capture.scope.publicSchemaOwner);
   const preCapabilities = await capabilities();
   assert.deepEqual(
     preCapabilities,
@@ -311,6 +324,8 @@ try {
     ledgerDriftRejectedAndPreRestored: true,
     executorCapabilities: preCapabilities,
     executorPrivilegesRestored: true,
+    executorDatabaseOwner: capture.scope.databaseOwner,
+    publicSchemaOwner: capture.scope.publicSchemaOwner,
     remotePromotionAllowed: false,
     promotionReady: false,
     providerBackupProved: false,
