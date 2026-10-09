@@ -6,6 +6,7 @@ import {
   requireAbsent,
   sameSnapshot,
   requireAtomicConnection,
+  requireReleaseFingerprint,
 } from "./atomic-disposable.mjs";
 
 const pre = () => ({
@@ -17,6 +18,52 @@ const pre = () => ({
   runner: "runner-pre",
   ledger: [],
 });
+
+const contract = {
+  preCanonical: "a".repeat(64),
+  preRunner: "b".repeat(64),
+  postCanonical: "c".repeat(64),
+  postRunner: "d".repeat(64),
+};
+for (const phase of ["pre", "post"]) {
+  test(`reviewed ${phase} fingerprints accept only the exact pair`, () => {
+    const snapshot = {
+      compact: { fingerprint: contract[`${phase}Canonical`] },
+      runner: contract[`${phase}Runner`],
+    };
+    requireReleaseFingerprint(snapshot, contract, phase);
+    assert.throws(
+      () =>
+        requireReleaseFingerprint(
+          { ...snapshot, compact: { fingerprint: "e".repeat(64) } },
+          contract,
+          phase,
+        ),
+      /LEARNING_RELEASE_CANONICAL_DIVERGED/,
+    );
+    assert.throws(
+      () =>
+        requireReleaseFingerprint(
+          { ...snapshot, runner: "e".repeat(64) },
+          contract,
+          phase,
+        ),
+      /LEARNING_RELEASE_RUNNER_DIVERGED/,
+    );
+  });
+  test(`missing or malformed ${phase} contract fails closed`, () => {
+    for (const bad of [
+      null,
+      {},
+      { ...contract, [`${phase}Canonical`]: "" },
+      { ...contract, [`${phase}Runner`]: "unreviewed" },
+    ])
+      assert.throws(
+        () => requireReleaseFingerprint(pre(), bad, phase),
+        /LEARNING_RELEASE_CONTRACT_INVALID/,
+      );
+  });
+}
 test("pinned package removes only its outer transaction and remains blocked remotely", async () => {
   const { sql, packet } = await loadAtomicPackage();
   assert.equal(packet.remotePromotionAllowed, false);

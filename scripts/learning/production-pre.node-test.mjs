@@ -215,7 +215,12 @@ test("rollback failure prevents a successful capture", async () => {
 test("catalog scope contains no private/business row reads or extension execution", () => {
   for (const sql of [scopeSql, privateCatalogSql]) {
     assert.doesNotMatch(
-      sql,
+      // CREATE/INSERT here are literal privilege names in catalog reads,
+      // never executable statements. Strip only these exact read-only calls.
+      sql.replace(
+        /pg_catalog\.has_(?:schema|table)_privilege\(current_user,'[^']+','(?:CREATE|INSERT|REFERENCES)'\)/g,
+        "CATALOG_PRIVILEGE_READ",
+      ),
       /\b(insert|update|delete|create|alter|drop|load)\b/i,
     );
     assert.doesNotMatch(
@@ -223,6 +228,15 @@ test("catalog scope contains no private/business row reads or extension executio
       /from\s+(?:private\.|auth\.users|public\.comun_learning_)/i,
     );
   }
+});
+test("executor capability inspection reads catalog privileges without granting them", () => {
+  assert.match(scopeSql, /'executorCapabilities'/);
+  assert.equal(
+    (scopeSql.match(/pg_catalog\.has_(?:schema|table)_privilege/g) ?? [])
+      .length,
+    4,
+  );
+  assert.doesNotMatch(scopeSql, /\b(?:grant|revoke|set role)\b/i);
 });
 test("capture workflow contains secrets only on the bounded read-only step", () => {
   const source = readFileSync(

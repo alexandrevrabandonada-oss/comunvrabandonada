@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import pg from "pg";
-import { digest, privateCatalogSql } from "./production-pre.mjs";
+import { digest, privateCatalogSql, scopeSql } from "./production-pre.mjs";
 import {
   captureAtomicSnapshot,
   installAtomicDisposable,
@@ -31,6 +31,15 @@ const captureBytes = await readFile(
   ".ci-artifacts/learning-production-pre/capture.json",
 );
 const capture = JSON.parse(captureBytes);
+// Previously reviewed derivation, never recalculate expectations from this run.
+const contract = JSON.parse(
+  await readFile(
+    "reports/current/comun-escola-production-like-derived.json",
+    "utf8",
+  ),
+);
+assert.equal(contract.migrationSha256, migrationHash);
+assert.equal(contract.remotePromotionAllowed, false);
 assert.equal(
   capture.status,
   "COMUN_LEARNING_PRE_CAPTURED_AWAITING_DISPOSABLE_EQUIVALENCE",
@@ -56,6 +65,8 @@ requireAtomicConnection(db);
 owned();
 const privateSnapshot = async () =>
   (await db.query(privateCatalogSql)).rows[0].value;
+const capabilities = async () =>
+  (await db.query(scopeSql)).rows[0].value.executorCapabilities;
 try {
   await db.connect();
   // information_schema visibility depends on current_user. Match the captured
@@ -143,6 +154,12 @@ try {
     ) + "\n",
   );
   sameSnapshot(pre, capture.snapshot);
+  const preCapabilities = await capabilities();
+  assert.deepEqual(
+    preCapabilities,
+    capture.scope.executorCapabilities,
+    "LEARNING_EXECUTOR_CAPABILITY_PRE_DRIFT",
+  );
   assert.equal(
     (await db.query("show server_version")).rows[0].server_version,
     capture.scope.serverVersion,
@@ -155,14 +172,43 @@ try {
   for (const stage of ["schema", "history", "ledger"]) {
     owned();
     await assert.rejects(
-      () => installAtomicDisposable(db, pre, stage),
+      () => installAtomicDisposable(db, pre, stage, contract),
       /LEARNING_DISPOSABLE_INJECTED_/,
     );
     sameSnapshot(await captureAtomicSnapshot(db), pre);
     assert.deepEqual(await privateSnapshot(), capture.privateCatalog);
+    assert.deepEqual(
+      await capabilities(),
+      preCapabilities,
+      "LEARNING_EXECUTOR_PRIVILEGES_NOT_RESTORED",
+    );
   }
   owned();
-  const expectedPost = await installAtomicDisposable(db, pre);
+  await assert.rejects(
+    () => installAtomicDisposable(db, pre, "post-drift", contract),
+    /LEARNING_RELEASE_CANONICAL_DIVERGED/,
+  );
+  sameSnapshot(await captureAtomicSnapshot(db), pre);
+  assert.deepEqual(await privateSnapshot(), capture.privateCatalog);
+  assert.deepEqual(
+    await capabilities(),
+    preCapabilities,
+    "LEARNING_EXECUTOR_PRIVILEGES_NOT_RESTORED",
+  );
+  owned();
+  await assert.rejects(
+    () => installAtomicDisposable(db, pre, "ledger-drift", contract),
+    /LEARNING_ATOMIC_LEDGER_DIVERGED/,
+  );
+  sameSnapshot(await captureAtomicSnapshot(db), pre);
+  assert.deepEqual(await privateSnapshot(), capture.privateCatalog);
+  assert.deepEqual(
+    await capabilities(),
+    preCapabilities,
+    "LEARNING_EXECUTOR_PRIVILEGES_NOT_RESTORED",
+  );
+  owned();
+  const expectedPost = await installAtomicDisposable(db, pre, null, contract);
   const post = await captureAtomicSnapshot(db);
   assert.equal(post.compact.fingerprint, expectedPost.compact.fingerprint);
   assert.equal(post.runner, expectedPost.runner);
@@ -186,6 +232,11 @@ try {
   owned();
   sameSnapshot(await captureAtomicSnapshot(db), post);
   assert.deepEqual(await privateSnapshot(), capture.privateCatalog);
+  assert.deepEqual(
+    await capabilities(),
+    preCapabilities,
+    "LEARNING_EXECUTOR_PRIVILEGES_NOT_RESTORED",
+  );
   const counts = (
     await db.query(
       "select (select count(*)::int from public.comun_learning_units) units,(select count(*)::int from public.comun_learning_resources) resources,(select count(*)::int from public.comun_learning_enrollments) enrollments,(select count(*)::int from public.comun_learning_progress) progress,(select count(*)::int from public.comun_learning_practice_links) practices",
@@ -235,6 +286,12 @@ try {
     blockingFindings: post.compact.security.blockingFindings.length,
     rollbackStages: ["schema", "history", "ledger"],
     replayRefused: true,
+    approvedPostEnforcedBeforeCommit: true,
+    postDriftRejectedAndPreRestored: true,
+    ledgerVerifiedBeforeCommit: true,
+    ledgerDriftRejectedAndPreRestored: true,
+    executorCapabilities: preCapabilities,
+    executorPrivilegesRestored: true,
     remotePromotionAllowed: false,
     promotionReady: false,
     providerBackupProved: false,
