@@ -109,8 +109,9 @@ postflight sem resíduos. Nenhum e-mail externo foi enviado e o gate
 
 O Tijolo 47.5 extraiu o contrato executável do motor de miniapps e conectou o
 Mapa das Calçadas à definição canônica. A janela territorial
-`calcadas-vr-piloto-01` permanece ativa até `2026-08-06T03:00:00.000Z`; por
-isso `miniapps` continua `in_progress`. O estado técnico é
+`calcadas-vr-piloto-01` terminou em `2026-08-06T03:00:00.000Z`;
+`miniapps` continua `in_progress` por falta de fechamento comprovado, não
+por uma janela ainda ativa. Não reiniciar janela, metas ou contadores. O estado técnico é
 `COMUN_MINIAPPS_READY_FOR_PILOT_CLOSEOUT`, sem promoção antecipada e sem acionar
 `launch_publicly`.
 

@@ -174,13 +174,18 @@ async function auditGate({ noindex = true, allGreen = true } = {}) {
   }
 }
 
-test("pilot noindex permits reaching the final human gate without authorizing launch", async () => {
+test("pilot noindex and ten green declarations cannot replace domain evidence", async () => {
   const artifact = await auditGate();
-  assert.equal(artifact.readyForFinalHumanGate, true);
+  assert.equal(artifact.readyForFinalHumanGate, false);
+  assert.equal(artifact.summary.declaredReadyForFinalHumanGate, true);
+  assert.equal(artifact.domainEvidenceVerification, "not_performed");
+  assert.equal(artifact.result, "COMUN_V1_DELIVERABILITY_AUDIT_BLOCKED");
   assert.equal(artifact.finalHumanGate, "launch_publicly");
   assert.equal(artifact.indexingPolicy, "pilot_noindex");
   assert.equal(artifact.pilotNoindexConfirmed, true);
-  assert.deepEqual(artifact.findings, []);
+  assert.deepEqual(artifact.findings, [
+    "launch_evidence:domain_verification_not_performed",
+  ]);
   assert.equal(artifact.writes.deployment, "none");
 });
 
@@ -193,4 +198,7 @@ test("missing noindex and actual unfinished domains still block the final gate",
   assert.ok(
     actual.findings.some((value) => value.startsWith("launch_domain:")),
   );
+  assert.equal(actual.findingsCount, 6);
+  assert.equal(actual.summary.remaining, 6);
+  assert.equal(actual.domainEvidenceSource, "declared_program_states");
 });
