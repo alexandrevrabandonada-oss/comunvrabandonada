@@ -510,3 +510,7 @@ continuam BLOCKED/NOT_RUN conforme
 `reports/current/comun-escola-readonly-ci-ca-recovery.md`. Migration Escola
 Production não executada; #523 draft e seis preflights preservados. Não declarar
 liberação, recuperação integral ou conclusão da V1.
+
+## Recuperação em disco E: — 09/10/2026
+
+Dois exports cifrados da cópia anterior foram verificados e restaurados em containers novos offline. PG17.6: 278 tabelas, 6 auth users, fingerprint do restore anterior idêntico, zero findings; Storage: 2582 arquivos/357014118 bytes e size+MD5 conferidos. Não é nova captura Production nem prova de API na nova cópia. CHECK contra PRE Production, custódia independente da nova chave DPAPI, crash supautils e configurações externas continuam abertos. Seis preflights #523 preservados. #536 3a20c587 tem diagnóstico remoto read-only, Preview Git e COST-02 PASS; Quality pendente e Civic/ECONNRESET em reexecução dirigida. Não substitui o gate pós-merge original. Evidências e limites: [relatório CI/recuperação](../reports/current/comun-escola-readonly-ci-ca-recovery.md). Escola não liberada; zero migration Production nesta retomada.
