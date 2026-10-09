@@ -6,6 +6,7 @@ on:
       - "scripts/learning/production-pre*"
       - "scripts/learning/production-like-*"
       - "scripts/learning/atomic-disposable*"
+      - "scripts/learning/controlled-transaction*"
       - ".github/workflows/comun-learning-production-pre.yml"
 permissions: { contents: read }
 jobs:
@@ -32,6 +33,32 @@ jobs:
         with:
           name: escola-production-pre-${{ github.sha }}
           path: .ci-artifacts/learning-production-pre/capture.json
+          if-no-files-found: error
+          retention-days: 14
+  controlled-disposable:
+    needs: read-only-capture
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/learning/controlled-transaction.node-test.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          name: escola-production-pre-${{ github.sha }}
+          path: .ci-artifacts/learning-production-pre
+      - name: Controlled transaction rehearsal, isolated from Production
+        env:
+          COMUN_LEARNING_CONTROLLED_REHEARSAL: "true"
+        run: bash scripts/learning/production-like-fixture.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: escola-controlled-disposable-${{ github.sha }}
+          path: .ci-artifacts/learning-production-like
           if-no-files-found: error
           retention-days: 14
   production-like-disposable:

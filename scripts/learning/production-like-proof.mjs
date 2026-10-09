@@ -10,11 +10,21 @@ import {
   requireAtomicConnection,
 } from "./atomic-disposable.mjs";
 import { migrationHash } from "./release-review.mjs";
+import {
+  installControlledRehearsal,
+  requireControlledConnection,
+} from "./controlled-transaction.mjs";
 
 const image =
   "docker.io/supabase/postgres@sha256:8002645276dc3431d55a5049721a879e4d11c34177086dc0f13b61d98cff1e52";
 const env = process.env;
 const container = env.COMUN_LEARNING_PRODLIKE_CONTAINER;
+const localPort =
+  env.COMUN_LEARNING_CONTROLLED_REHEARSAL === "true" ? "55443" : "55432";
+const requireConnection =
+  env.COMUN_LEARNING_CONTROLLED_REHEARSAL === "true"
+    ? requireControlledConnection
+    : requireAtomicConnection;
 const owned = () => {
   const item = JSON.parse(
     execFileSync("docker", ["inspect", container], { encoding: "utf8" }),
@@ -25,12 +35,17 @@ const owned = () => {
     env.COMUN_LEARNING_RUN_ID,
   );
   assert.equal(item.NetworkSettings.Ports["5432/tcp"][0].HostIp, "127.0.0.1");
-  assert.equal(item.NetworkSettings.Ports["5432/tcp"][0].HostPort, "55432");
+  assert.equal(item.NetworkSettings.Ports["5432/tcp"][0].HostPort, localPort);
 };
 const captureBytes = await readFile(
   ".ci-artifacts/learning-production-pre/capture.json",
 );
 const capture = JSON.parse(captureBytes);
+const controlled = env.COMUN_LEARNING_CONTROLLED_REHEARSAL === "true";
+const install = controlled
+  ? (db, _pre, stage, contract) =>
+      installControlledRehearsal(db, capture, contract, stage)
+  : installAtomicDisposable;
 // Previously reviewed derivation, never recalculate expectations from this run.
 const contract = JSON.parse(
   await readFile(
@@ -61,7 +76,7 @@ let db = new pg.Client({
     "supabase_admin:postgres@",
   ),
 });
-requireAtomicConnection(db);
+requireConnection(db);
 owned();
 const privateSnapshot = async () =>
   (await db.query(privateCatalogSql)).rows[0].value;
@@ -102,7 +117,7 @@ try {
   // same postgres principal captured on Production, not an admin SET ROLE.
   await db.end();
   db = new pg.Client({ connectionString: env.COMUN_DISPOSABLE_DB_URL });
-  requireAtomicConnection(db);
+  requireConnection(db);
   owned();
   await db.connect();
   // information_schema visibility depends on current_user. Match the captured
@@ -217,7 +232,7 @@ try {
   for (const stage of ["schema", "history", "ledger"]) {
     owned();
     await assert.rejects(
-      () => installAtomicDisposable(db, pre, stage, contract),
+      () => install(db, pre, stage, contract),
       /LEARNING_DISPOSABLE_INJECTED_/,
     );
     sameSnapshot(await captureAtomicSnapshot(db), pre);
@@ -230,7 +245,7 @@ try {
   }
   owned();
   await assert.rejects(
-    () => installAtomicDisposable(db, pre, "post-drift", contract),
+    () => install(db, pre, "post-drift", contract),
     /LEARNING_RELEASE_CANONICAL_DIVERGED/,
   );
   sameSnapshot(await captureAtomicSnapshot(db), pre);
@@ -242,7 +257,7 @@ try {
   );
   owned();
   await assert.rejects(
-    () => installAtomicDisposable(db, pre, "ledger-drift", contract),
+    () => install(db, pre, "ledger-drift", contract),
     /LEARNING_ATOMIC_LEDGER_DIVERGED/,
   );
   sameSnapshot(await captureAtomicSnapshot(db), pre);
@@ -253,7 +268,36 @@ try {
     "LEARNING_EXECUTOR_PRIVILEGES_NOT_RESTORED",
   );
   owned();
-  const expectedPost = await installAtomicDisposable(db, pre, null, contract);
+  if (controlled) {
+    owned();
+    await assert.rejects(
+      () => install(db, pre, "private-drift", contract),
+      /LEARNING_CONTROLLED_PRIVATE_POST_DRIFT/,
+    );
+    sameSnapshot(await captureAtomicSnapshot(db), pre);
+    assert.deepEqual(await privateSnapshot(), capture.privateCatalog);
+  }
+  let expectedPost;
+  if (controlled) {
+    const lostCommitResponse = {
+      connectionParameters: db.connectionParameters,
+      query: async (...args) => {
+        const result = await db.query(...args);
+        if (args[0] === "COMMIT")
+          throw new Error("SYNTHETIC_COMMIT_RESPONSE_LOST");
+        return result;
+      },
+    };
+    await assert.rejects(
+      () => install(lostCommitResponse, pre, null, contract),
+      /LEARNING_CONTROLLED_COMMIT_OUTCOME_UNKNOWN_REQUIRE_READ_ONLY_RECONCILIATION/,
+    );
+    expectedPost = await captureAtomicSnapshot(db);
+    assert.equal(expectedPost.compact.fingerprint, contract.postCanonical);
+    assert.equal(expectedPost.runner, contract.postRunner);
+  } else {
+    expectedPost = await install(db, pre, null, contract);
+  }
   const post = await captureAtomicSnapshot(db);
   assert.equal(post.compact.fingerprint, expectedPost.compact.fingerprint);
   assert.equal(post.runner, expectedPost.runner);
@@ -270,7 +314,10 @@ try {
   assert.equal(added[0].post_fingerprint, post.runner);
   owned();
   await assert.rejects(
-    () => installAtomicDisposable(db, post),
+    () =>
+      controlled
+        ? install(db, post, null, contract)
+        : installAtomicDisposable(db, post),
     /LEARNING_REPLAY_OR_PARTIAL_BLOCKED/,
   );
   sameSnapshot(await captureAtomicSnapshot(db), post);
@@ -296,6 +343,19 @@ try {
   });
   const proof = {
     status: "COMUN_LEARNING_PRODUCTION_LIKE_ATOMIC_DISPOSABLE_GREEN",
+    controlledRehearsal: controlled,
+    privateCatalogVerifiedBeforeCommit: controlled,
+    privateDriftRejectedAndPreRestored: controlled,
+    productionEntryImplemented: false,
+    executionEnvironment:
+      env.GITHUB_ACTIONS === "true" ? "GITHUB_ACTIONS" : "LOCAL",
+    lostCommitResponseReconciledReadOnly: controlled,
+    testedSourceSha: execFileSync("git", ["rev-parse", "HEAD"], {
+      encoding: "utf8",
+    }).trim(),
+    testedSourceTree: execFileSync("git", ["rev-parse", "HEAD^{tree}"], {
+      encoding: "utf8",
+    }).trim(),
     sourceSha: capture.sourceSha,
     sourceTree: capture.sourceTree,
     run: env.GITHUB_RUN_ID,
