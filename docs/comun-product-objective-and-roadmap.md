@@ -1,5 +1,25 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Fechamento exclusivo da Escola e #523 — 08/10/2026
+
+#532 integrado em `636e3e1d`, Production Git READY no SHA exato, sem schema
+write. Captura/read-only e equivalência PRE/POST auditadas por artifact/hash.
+Quality de #523 `cf0e8e41` terminou verde após uma única reexecução dirigida
+do 502 de Território, sem código; os seis preflights Escola continuam FAILURE.
+O candidato permanece draft, com funcionalidades estáveis.
+
+A revisão focal #533 exige POST e ledger aprovados antes do COMMIT, controles
+SQL negativos e preservação de privilégios no laboratório. A captura confirmou
+os direitos existentes do leitor Production; a fixture foi corrigida para
+reproduzi-los sem mudar o destino real. Provas do novo SHA ainda são próprias.
+Backup/ponto recuperável/acesso ao restore do COMUN permanecem BLOCKED, pois
+o conector não expõe o projeto e o dashboard está sem sessão. Restore isolado
+do provedor NOT_RUN. Responsáveis humanos ainda não designados; nenhuma
+autorização de migration, flag ou indexação foi inferida. Próximo gate: fechar
+recuperação/executor e autorizar separadamente a liberação da Escola. Evidências
+e procedimento em [fechamento controlado](../reports/current/comun-escola-controlled-release-closure.md).
+Não declara V1 concluída nem libera merge de #523 sem seus seis gates.
+
 Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99dd450`, após os PRs #504, #505 e #506. A reconciliação de 02/10 e os achados intermediários abaixo são históricos. A V1 continua incompleta; a situação atual e a fila sem amostra humana estão na seção seguinte.
 
 ## Atualização transversal do produto — 06/10/2026

@@ -169,6 +169,24 @@ export function requireAtomicConnection(db, env = process.env) {
 }
 
 // Disposable rehearsal only. No CLI for remote promotion; no remote manifest change.
+export function executorPrivilegePlan(capabilities) {
+  const rights = [
+    ["createPublic", "create on schema public"],
+    ["referencesAuthUsers", "references on auth.users"],
+    [
+      "insertMigrationHistory",
+      "insert on supabase_migrations.schema_migrations",
+    ],
+  ];
+  for (const [key] of rights)
+    assert.equal(
+      typeof capabilities?.[key],
+      "boolean",
+      "LEARNING_EXECUTOR_CAPABILITIES_INVALID",
+    );
+  return rights.filter(([key]) => !capabilities[key]).map(([, right]) => right);
+}
+
 export async function installAtomicDisposable(
   db,
   expectedPre,
@@ -202,9 +220,18 @@ export async function installAtomicDisposable(
     // transaction. Install as postgres, restore ACLs before fingerprinting.
     // Rollback at any stage restores the original privileges as well.
     const privilegeWindow = db.connectionParameters.user === "supabase_admin";
-    if (privilegeWindow) {
+    const borrowed = privilegeWindow
+      ? executorPrivilegePlan(
+          (
+            await db.query(
+              "select pg_catalog.has_schema_privilege(current_user,'public','CREATE') as \"createPublic\", pg_catalog.has_table_privilege(current_user,'auth.users','REFERENCES') as \"referencesAuthUsers\", pg_catalog.has_table_privilege(current_user,'supabase_migrations.schema_migrations','INSERT') as \"insertMigrationHistory\"",
+            )
+          ).rows[0],
+        )
+      : [];
+    if (borrowed.length) {
       await db.query(
-        "set local role supabase_admin; grant create on schema public to postgres; grant references on auth.users to postgres; grant insert on supabase_migrations.schema_migrations to postgres; set local role postgres",
+        `set local role supabase_admin; ${borrowed.map((right) => `grant ${right} to postgres;`).join(" ")} set local role postgres`,
       );
     }
     await db.query(sql);
@@ -216,9 +243,9 @@ export async function installAtomicDisposable(
     );
     if (failAt === "history")
       throw new Error("LEARNING_DISPOSABLE_INJECTED_HISTORY_FAILURE");
-    if (privilegeWindow) {
+    if (borrowed.length) {
       await db.query(
-        "set local role supabase_admin; revoke create on schema public from postgres; revoke references on auth.users from postgres; revoke insert on supabase_migrations.schema_migrations from postgres; set local role postgres",
+        `set local role supabase_admin; ${borrowed.map((right) => `revoke ${right} from postgres;`).join(" ")} set local role postgres`,
       );
     }
     const post = await readAtomicSnapshot(db);

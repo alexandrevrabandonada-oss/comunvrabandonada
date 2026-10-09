@@ -7,6 +7,7 @@ import {
   sameSnapshot,
   requireAtomicConnection,
   requireReleaseFingerprint,
+  executorPrivilegePlan,
 } from "./atomic-disposable.mjs";
 
 const pre = () => ({
@@ -25,6 +26,30 @@ const contract = {
   postCanonical: "c".repeat(64),
   postRunner: "d".repeat(64),
 };
+test("fixture privilege borrowing never revokes pre-existing executor rights", () => {
+  const existing = {
+    createPublic: true,
+    referencesAuthUsers: true,
+    insertMigrationHistory: true,
+  };
+  assert.deepEqual(executorPrivilegePlan(existing), []);
+  assert.deepEqual(
+    executorPrivilegePlan({ ...existing, referencesAuthUsers: false }),
+    ["references on auth.users"],
+  );
+  assert.equal(
+    executorPrivilegePlan({
+      createPublic: false,
+      referencesAuthUsers: false,
+      insertMigrationHistory: false,
+    }).length,
+    3,
+  );
+  assert.throws(
+    () => executorPrivilegePlan({}),
+    /LEARNING_EXECUTOR_CAPABILITIES_INVALID/,
+  );
+});
 for (const phase of ["pre", "post"]) {
   test(`reviewed ${phase} fingerprints accept only the exact pair`, () => {
     const snapshot = {

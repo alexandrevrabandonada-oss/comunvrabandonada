@@ -68,9 +68,18 @@ O laboratório compara essas capacidades com a captura e exige restauração
 após cada rollback e COMMIT. A janela de privilégios permanece somente local;
 nenhum GRANT/REVOKE remoto ou novo comando de promoção foi introduzido.
 
-PASS local: 63 testes Node, zero skips, antes do commit funcional. A prova SQL
+PASS local: 64 testes Node, zero skips, antes do commit funcional. A prova SQL
 real dos controles novos deve ser registrada pelo SHA/run próprios; ainda
 NOT_RUN no momento deste registro inicial. Não substituir por mocks.
+
+A captura nova da run 37862599756 (artifact 11586895819) comprovou que o leitor
+Production `postgres` já tem CREATE public, REFERENCES auth.users e INSERT
+history/ledger, sem superuser. Nenhum privilégio foi concedido em Production.
+O gate novo bloqueou corretamente `20c1d0ef`: a fixture histórica removia os
+três primeiros direitos (`LEARNING_EXECUTOR_CAPABILITY_PRE_DRIFT`). A correção
+reproduz esses direitos já existentes somente no banco sintético e conserva
+o fingerprint esperado. O helper agora empresta/revoga apenas direitos ausentes,
+preservando os preexistentes. O novo SHA precisa de sua própria prova real.
 
 ## Procedimento exato e condições de interrupção
 
@@ -142,7 +151,11 @@ verdes; não cobre migration Production.
 #523 permanece draft no SHA `cf0e8e41a084e073a728cca269a0dbc38683bfe1`.
 Quality 37856326546 attempt 1: pr-lane/a11y/network/P1T PASS; Território local
 502 antes dos testes. Uma única reexecução dirigida foi iniciada, job
-113600054616, attempt 2, sem alteração de código. Resultado ainda pendente.
+113600054616, attempt 2, sem alteração de código. PASS com marcador
+`COMUN_TERRITORY_PROFILE_LOCAL_ONLY_GREEN`, artifact 11586945944. Quality
+completo SUCCESS; inventário cf0: 45 SUCCESS, 88 SKIPPED, seis FAILURE, sem
+pending. O 502 original é flake transitório de infraestrutura, não regressão
+do candidato. Não foi adicionado retry ao produto ou ao helper.
 Seis preflights Escola continuam FAILURE, não dispensados. Preview exato e
 COST-02 anteriores permanecem válidos somente para cf0. Merge de #523 exige
 resolver schema sob autorização separada, reconciliar main e validar o SHA

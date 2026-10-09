@@ -69,6 +69,25 @@ const capabilities = async () =>
   (await db.query(scopeSql)).rows[0].value.executorCapabilities;
 try {
   await db.connect();
+  // The historical dump/bootstrap intentionally removes these executor grants.
+  // Reproduce only the four positive capabilities captured on Production.
+  // This changes the owned synthetic fixture, never Production permissions.
+  assert.deepEqual(
+    capture.scope.executorCapabilities,
+    {
+      role: "postgres",
+      superuser: false,
+      createPublic: true,
+      referencesAuthUsers: true,
+      insertMigrationHistory: true,
+      insertReleaseLedger: true,
+    },
+    "LEARNING_PRODUCTION_EXECUTOR_CAPABILITIES_UNREVIEWED",
+  );
+  owned();
+  await db.query(
+    "grant create on schema public to postgres; grant references on auth.users to postgres; grant insert on supabase_migrations.schema_migrations to postgres",
+  );
   // information_schema visibility depends on current_user. Match the captured
   // postgres reader; administrator remains only the guarded transaction owner.
   owned();
