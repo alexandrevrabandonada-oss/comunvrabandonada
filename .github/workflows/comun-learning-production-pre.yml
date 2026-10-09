@@ -7,6 +7,8 @@ on:
       - "scripts/learning/production-like-*"
       - "scripts/learning/atomic-disposable*"
       - "scripts/learning/controlled-transaction*"
+      - "scripts/learning/transaction-core*"
+      - "scripts/learning/production-entry*"
       - ".github/workflows/comun-learning-production-pre.yml"
 permissions: { contents: read }
 jobs:
@@ -45,7 +47,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22.18.0, cache: npm }
       - run: npm ci --ignore-scripts
-      - run: node --test scripts/learning/controlled-transaction.node-test.mjs
+      - run: node --test scripts/learning/controlled-transaction.node-test.mjs scripts/learning/production-entry.node-test.mjs
       - uses: actions/download-artifact@v4
         with:
           name: escola-production-pre-${{ github.sha }}

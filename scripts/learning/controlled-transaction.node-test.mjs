@@ -118,19 +118,17 @@ test("rehearsal preserves the manifest and never lends privileges", async () => 
     "scripts/learning/controlled-transaction.mjs",
     "utf8",
   );
+  const core = await readFile("scripts/learning/transaction-core.mjs", "utf8");
   assert.doesNotMatch(
-    source,
+    source + core,
     /\bgrant\s|\brevoke\s|set local role|SUPABASE_DB_URL|process\.argv|remotePromotionAllowed\s*=/i,
   );
   assert.ok(
-    source.indexOf("LEARNING_CONTROLLED_PRIVATE_POST_DRIFT") <
-      source.indexOf("commitStarted = true"),
+    core.indexOf("LEARNING_CONTROLLED_PRIVATE_POST_DRIFT") <
+      core.indexOf("commitStarted = true"),
   );
-  assert.match(
-    source,
-    /COMMIT_OUTCOME_UNKNOWN_REQUIRE_READ_ONLY_RECONCILIATION/,
-  );
-  assert.match(source, /ROLLBACK_UNCONFIRMED/);
+  assert.match(core, /COMMIT_OUTCOME_UNKNOWN_REQUIRE_READ_ONLY_RECONCILIATION/);
+  assert.match(core, /ROLLBACK_UNCONFIRMED/);
 });
 test("controlled remote rehearsal receives only sanitized same-run capture, no Production secret", async () => {
   const workflow = load(

@@ -521,6 +521,14 @@ No candidato #536 ce0566d9, captura PRE e ensaio atômico 37962260855 passaram n
 
 # Atualização Escola — ensaio controlado, 2026-10-09
 
+Complemento posterior: #537 integrado em `c4dfd5a7`, mesma tree do candidato;
+deploy Git READY, SHA servido exato, smokes e CI atual aplicável passaram. Entrada
+Production separada em preparação, com recuperação real e acesso protegido ainda
+bloqueados. D: voltou NTFS/Healthy, sem prova de integridade de cada arquivo e sem
+credencial esperada localizada; execução permanece em E:. Nenhuma migration
+Production aplicada e os seis preflights #523 permanecem obrigatórios. Evidências
+e limites: [entrada Production](../reports/current/comun-escola-production-entry-preparation.md).
+
 PR #536 integrado em `eb2cb0156adf223d608e222677cccc00bf84e071` após 42 SUCCESS / 82 SKIPPED / zero failures/pending. Deploy Git READY, SHA servido confirmado, smokes GET, Quality/Civic/Core pós-merge PASS; Experience ainda pendente na captura. Nenhuma outra integração até certificar o pós-merge aplicável.
 
 Ensaio controlado local provado em `c4f4facafa1674352bd5b93d5c660b3bd4f45b3c`: verificações de catálogo privado e privilégios antes do COMMIT, rollback schema/history/ledger/drift, replay recusado e resposta perdida do COMMIT reconciliada read-only, sem retry de escrita. Nova lane descartável sem secrets Production preparada para repetir essa prova no novo SHA. Evidências e limites em `reports/current/comun-escola-controlled-rehearsal.md`.
