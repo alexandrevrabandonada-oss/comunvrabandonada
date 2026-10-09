@@ -48,31 +48,42 @@ try {
     });
     const record = { project: name, result: "NOT_RUN" };
     evidence.cases.push(record);
+    let stage = "served-sha";
     try {
       const status = await page.request.get(base + "/api/comun/quality-status");
       assert.equal(status.status(), 200);
       evidence.servedSha = (await status.json()).version;
       assert.equal(evidence.servedSha, expected, "SERVED_SHA_DRIFT");
+      stage = "public-page";
       await page.goto(base + "/comun?experiencia=app-v2");
       const link = page.getByRole("link", {
         name: /participar do que está acontecendo/i,
       });
       assert.equal(
         await link.getAttribute("href"),
-        "/comun/pautas?experiencia=app-v2",
+        "/comun/pautas",
         "PARTICIPAR_LINK_CONTRACT_DRIFT",
       );
       const started = Date.now();
+      stage = "link-click";
       await link.click();
+      stage = "navigation";
       await expect(page).toHaveURL(/\/comun\/pautas/, { timeout: 5000 });
+      stage = "heading";
       await expect(
         page.getByRole("heading", { name: /pautas/i }),
       ).toBeVisible();
       await expect(page.getByRole("dialog")).toHaveCount(0);
       record.result = "PASS";
       record.navigationMs = Date.now() - started;
-    } catch {
+    } catch (error) {
       record.result = "FAIL";
+      record.failedStage = stage;
+      record.errorKind = /strict mode violation/.test(error.message)
+        ? "STRICT_MODE_VIOLATION"
+        : /Timeout|timed out/.test(error.message)
+          ? "TIMEOUT"
+          : "ASSERTION_OR_BROWSER_FAILURE";
       record.marker =
         evidence.servedSha !== expected
           ? "SERVED_SHA_DRIFT"

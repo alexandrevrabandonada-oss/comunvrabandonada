@@ -169,3 +169,13 @@ PostgreSQL documenta que `pg_get_constraintdef` reconstrói SQL a partir do
 catálogo, sem preservar necessariamente o texto original. Isso sustenta a
 hipótese de deparse, mas não prova por si só equivalência do restore real:
 [documentação PostgreSQL 17](https://www.postgresql.org/docs/17/functions-info.html).
+
+## Retomada em E: — 09/10/2026
+
+A unidade E: foi autorizada e a pasta de recuperação recebeu ACL exclusiva do usuário Windows. A árvore original C: e os containers anteriores foram preservados. Dois exports de containers parados, sem mounts/portas, foram criptografados com AES-256-GCM e verificados por descriptografia, tag e hash do plaintext. Banco: ciphertext SHA-256 4f7963bcdb0ca15f710efcd4f710f8b5c0e50699dab837f043e64ae16f8c5efc (1.546.809.892 bytes). Storage: f321a5c5dc43176bccb76beb4e3e47ae13022181ebdb77a57f1593b8158c83db (1.299.296.804 bytes). Os arquivos privados permanecem fora do Git. Essa preservação não é nova captura Production nem certificação de restore. A nova chave DPAPI não recupera a chave antiga ausente em D:; custódia independente permanece BLOCKED.
+
+No checkpoint ec882ef05340060c3c4db9bfe9a268ce0c4614d0, a run 37956953532 ultrapassou setup/formatação e falhou na navegação. A reprodução local identificou uma asserção introduzida no diagnóstico: o href esperado incluía experiencia=app-v2, enquanto o código de main e o link servido usam /comun/pautas. O gate original não exige esse parâmetro. Corrigido somente o diagnóstico e adicionados estágio/categoria sanitizados de falha; timeout, navegação, heading e ausência de diálogo permanecem.
+
+Diagnóstico local Chromium na árvore modificada: cinco contextos frescos PASS; viewport efetivo 1280×800 em todos, conforme override do teste original; served SHA 041f6b17a49286249fb8290428b7422695a87937; dez requisições não GET/HEAD recusadas; zero requests de escrita executadas e zero browser errors. Artefato sanitizado SHA-256 24cf3506afa97f60d4ced7aa334dbc3daece477b587e769e01b952ec28c85500. Este resultado não certifica aparelhos móveis reais, PWA ou a run pós-merge original: service workers foram bloqueados para interceptação de escrita e originalPostmergeGateCertified=false. Prova remota da correção ainda PENDING.
+
+Migration e manifest Escola, seis preflights, flags e indexação permanecem inalterados. Zero migration/DDL/DML Production nesta retomada. Recuperação integral e liberação da Escola continuam BLOCKED.
