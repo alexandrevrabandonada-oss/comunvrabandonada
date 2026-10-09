@@ -10,12 +10,21 @@ import {
   requireAtomicConnection,
 } from "./atomic-disposable.mjs";
 import { migrationHash } from "./release-review.mjs";
-import { installControlledRehearsal } from "./controlled-transaction.mjs";
+import {
+  installControlledRehearsal,
+  requireControlledConnection,
+} from "./controlled-transaction.mjs";
 
 const image =
   "docker.io/supabase/postgres@sha256:8002645276dc3431d55a5049721a879e4d11c34177086dc0f13b61d98cff1e52";
 const env = process.env;
 const container = env.COMUN_LEARNING_PRODLIKE_CONTAINER;
+const localPort =
+  env.COMUN_LEARNING_CONTROLLED_REHEARSAL === "true" ? "55443" : "55432";
+const requireConnection =
+  env.COMUN_LEARNING_CONTROLLED_REHEARSAL === "true"
+    ? requireControlledConnection
+    : requireAtomicConnection;
 const owned = () => {
   const item = JSON.parse(
     execFileSync("docker", ["inspect", container], { encoding: "utf8" }),
@@ -26,7 +35,7 @@ const owned = () => {
     env.COMUN_LEARNING_RUN_ID,
   );
   assert.equal(item.NetworkSettings.Ports["5432/tcp"][0].HostIp, "127.0.0.1");
-  assert.equal(item.NetworkSettings.Ports["5432/tcp"][0].HostPort, "55432");
+  assert.equal(item.NetworkSettings.Ports["5432/tcp"][0].HostPort, localPort);
 };
 const captureBytes = await readFile(
   ".ci-artifacts/learning-production-pre/capture.json",
@@ -67,7 +76,7 @@ let db = new pg.Client({
     "supabase_admin:postgres@",
   ),
 });
-requireAtomicConnection(db);
+requireConnection(db);
 owned();
 const privateSnapshot = async () =>
   (await db.query(privateCatalogSql)).rows[0].value;
@@ -108,7 +117,7 @@ try {
   // same postgres principal captured on Production, not an admin SET ROLE.
   await db.end();
   db = new pg.Client({ connectionString: env.COMUN_DISPOSABLE_DB_URL });
-  requireAtomicConnection(db);
+  requireConnection(db);
   owned();
   await db.connect();
   // information_schema visibility depends on current_user. Match the captured
@@ -335,6 +344,8 @@ try {
     privateCatalogVerifiedBeforeCommit: controlled,
     privateDriftRejectedAndPreRestored: controlled,
     productionEntryImplemented: false,
+    executionEnvironment:
+      env.GITHUB_ACTIONS === "true" ? "GITHUB_ACTIONS" : "LOCAL",
     lostCommitResponseReconciledReadOnly: controlled,
     testedSourceSha: execFileSync("git", ["rev-parse", "HEAD"], {
       encoding: "utf8",

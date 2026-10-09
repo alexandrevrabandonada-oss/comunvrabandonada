@@ -10,6 +10,8 @@ fixture=tests/fixtures/pr437-post
 container="comun-school-release-${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}"
 database="comun_learning_prodlike_${GITHUB_RUN_ID:-0}_${GITHUB_RUN_ATTEMPT:-1}"
 image='docker.io/supabase/postgres@sha256:8002645276dc3431d55a5049721a879e4d11c34177086dc0f13b61d98cff1e52'
+port=55432
+if [ "${COMUN_LEARNING_CONTROLLED_REHEARSAL:-false}" = true ]; then port=55443; fi
 mkdir -p "$artifact"
 trap 'if owned >/dev/null 2>&1; then docker rm -f "$container" >/dev/null; fi' EXIT
 
@@ -19,7 +21,11 @@ owned() {
 }
 owned_exec() { owned; docker exec "$@"; }
 owned_copy() { owned; docker cp "$@"; }
-docker run -d --label "comun.learning.run=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" --name "$container" -p 127.0.0.1:55432:5432   -e POSTGRES_PASSWORD=postgres "$image" >/dev/null
+if [ "$port" = 55443 ]; then
+  docker run -d --label "comun.learning.run=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" --name "$container" -p 127.0.0.1:55443:5432 -e POSTGRES_PASSWORD=postgres "$image" >/dev/null
+else
+  docker run -d --label "comun.learning.run=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" --name "$container" -p 127.0.0.1:55432:5432 -e POSTGRES_PASSWORD=postgres "$image" >/dev/null
+fi
 ready=0
 for attempt in $(seq 1 90); do
   if docker logs "$container" 2>&1 | grep -F 'PostgreSQL init process complete; ready for start up.' >/dev/null     && owned_exec "$container" pg_isready -U postgres >/dev/null 2>&1; then
@@ -36,7 +42,7 @@ for file in post-schema.sql technical-ledger.sql synthetic-buckets.sql restore-e
   owned_exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database"     -X -v ON_ERROR_STOP=1 -f "/tmp/$file" >"$artifact/${file%.sql}.log"
 done
 
-export COMUN_DISPOSABLE_DB_URL="postgresql://postgres:postgres@127.0.0.1:55432/$database"
+export COMUN_DISPOSABLE_DB_URL="postgresql://postgres:postgres@127.0.0.1:$port/$database"
 
 grant_executor() {
   owned_exec -e PGPASSWORD=postgres "$container" psql -U supabase_admin -d "$database"     -X -v ON_ERROR_STOP=1 -c 'grant usage, create on schema private to postgres;

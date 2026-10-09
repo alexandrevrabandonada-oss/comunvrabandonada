@@ -5,6 +5,7 @@ import {
   expectedCapabilities,
   requireExecutorScope,
   installControlledRehearsal,
+  requireControlledConnection,
 } from "./controlled-transaction.mjs";
 import { digest } from "./production-pre.mjs";
 
@@ -17,6 +18,38 @@ const scope = {
   searchPath: "public",
   executorCapabilities: expectedCapabilities,
 };
+test("dedicated local port/run accepts only its own lab, no Production secrets", () => {
+  const env = {
+    COMUN_LEARNING_CONTROLLED_REHEARSAL: "true",
+    COMUN_LEARNING_DISPOSABLE_AUTH: "true",
+    COMUN_LEARNING_RUN_ID: "123-1",
+  };
+  const connectionParameters = {
+    host: "127.0.0.1",
+    port: 55443,
+    database: "comun_learning_prodlike_123_1",
+    user: "postgres",
+  };
+  requireControlledConnection({ connectionParameters }, env);
+  for (const change of [
+    { port: 55432 },
+    { host: "remote.supabase.co" },
+    { database: "comun_learning_prodlike_124_1" },
+    { user: "service_role" },
+  ])
+    assert.throws(() =>
+      requireControlledConnection(
+        { connectionParameters: { ...connectionParameters, ...change } },
+        env,
+      ),
+    );
+  assert.throws(() =>
+    requireControlledConnection(
+      { connectionParameters },
+      { ...env, SUPABASE_DB_URL: "remote" },
+    ),
+  );
+});
 test("exact session and existing executor capabilities accepted", () =>
   requireExecutorScope(scope, scope));
 for (const key of Object.keys(expectedCapabilities))
