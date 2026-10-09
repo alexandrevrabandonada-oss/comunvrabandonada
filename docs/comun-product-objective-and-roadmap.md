@@ -475,3 +475,18 @@ Skipped e pending não contam como PASS. O registro seguinte é histórico.
 A busca unificada usa `service_role`. A leitura de territórios não filtrava `visibility=public`, e a leitura de obras filtrava apenas o estado da obra, sem exigir raiz publicada/pública no Acervo. O candidato acrescenta esses filtros. As onze fontes descartam dados parciais quando sua resposta inclui erro; fontes saudáveis e fallback do mapa continuam disponíveis.
 
 Quinze testes da função completa usam respostas de banco simuladas. Na base `74cc0ed1779f5432496c3f852ce92bed3524a3a1`, doze falharam: filtros ausentes e dados parciais consumidos nas onze fontes. Após a correção, os quinze passaram. Isso comprova a regressão e os contratos da consulta, não a ausência de vazamento histórico ou a equivalência de produção. Não houve leitura de dados privados do ambiente canônico. A semântica real dos filtros relacionais ainda deve ser conferida em Supabase descartável e no ambiente autorizado. Não é uma auditoria completa de autorização de todas as fontes de busca.
+
+## Escola: captura real e lacuna de recuperação — 08/10/2026
+
+A senha do banco foi renovada pelo usuário; a conexão read-only foi comprovada.
+O banco real e roles sem senhas foram capturados em arquivos locais cifrados,
+reabertos e ensaiados em cluster offline. O restore exigiu suplemento de bootstrap
+GraphQL capturado da origem. Os dados COPY e sequences conferem; equivalência
+integral do schema, Auth/Storage/Vault e custódia independente continuam BLOCKED.
+Isso não é liberação da Escola nem prova integral de recuperação do projeto.
+
+A correção candidata dos dois leitores de release carrega a CA pública Supabase
+preservando verify-full/hostname. Até integração e certificação, esses caminhos
+não estão certificados. Não houve migration, mudança de flag ou dispensa dos
+seis preflights do #523. Evidências e limites:
+[revisão da captura e TLS](../reports/current/comun-escola-real-capture-and-tls-review.md).
