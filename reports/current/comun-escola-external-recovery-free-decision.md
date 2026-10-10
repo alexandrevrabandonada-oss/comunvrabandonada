@@ -104,3 +104,21 @@ login/callback/troca de código continuam NOT_RUN. Essa prova representativa nã
 substitui replay exato da credencial Production ou recuperação externa integral.
 Docker indisponível foi recuperado pelo comando oficial; containers do ensaio
 foram removidos. Sem custos, alterações Supabase ou migration Production.
+
+Continuação: login Google autorizado no cliente separado passou callback/troca de
+código, sessão real verificada por `/user` e logout, com zero sessões ao final.
+Primeiro 504 preservado; uma retomada limitada passou, sem provar causa exata do
+timeout. Prova representativa e identidade do ensaio cifrada; containers removidos.
+Não equivale a replay da credencial Production. Falta provar o envio externo pelo
+Auth e confirmar seu convite localmente. Recebeu autorização específica para mais
+uma mensagem, executada no ensaio registrado abaixo; o único envio SMTP direto autorizado anteriormente já foi consumido.
+Recuperação externa integral ainda não certificada; migration NOT_RUN.
+
+Convite adicional especificamente autorizado foi enviado uma única vez pelo Auth
+do laboratório vazio via relay Brevo e recebido no Gmail. Confirmação local e
+logout PASS; nenhum acesso ao backup real/Production, containers removidos.
+Assunto textual mascarado limita fidelidade: suplemento visual read-only resolveu
+o valor original, sem repetir envio. SMTP substituto não é replay do gerenciado;
+outros cinco fluxos externos NOT_RUN. Recuperação integral NOT_CERTIFIED, backup
+expirado, migration NOT_RUN e seis preflights intactos. Evidências e limites no
+relatório atualizado.

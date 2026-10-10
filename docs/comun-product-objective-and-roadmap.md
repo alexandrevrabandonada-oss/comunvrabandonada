@@ -575,3 +575,21 @@ pelo comando oficial; Auth vazio pinned passou discovery/redirect com esse clien
 Login/callback/troca de código NOT_RUN; ensaio representativo não equivale a replay
 da credencial Production. Recuperação externa integral permanece BLOCKED, sem
 recibo/permit, migration ou alterações Supabase. Seis preflights preservados.
+
+Às 20:23 BRT, login Google especificamente autorizado no laboratório vazio passou
+callback/troca de código, `/user` e logout; uma identidade de ensaio, zero sessões
+ao final. Primeiro 504 preservado e causa exata não comprovada; uma retomada com
+fluxo novo passou. Dump privado cifrado e containers removidos. Cliente separado
+é prova representativa, não replay Production. Próximo gate preparado: convite
+Auth com template capturado → Brevo → Gmail → confirmação local, autorizado
+e executado no ensaio registrado abaixo. Recuperação integral ainda BLOCKED, recibo
+não emitido, migration NOT_RUN e seis preflights preservados.
+
+Convite adicional especificamente autorizado foi enviado uma única vez pelo Auth
+do laboratório vazio via relay Brevo e recebido no Gmail. Confirmação local e
+logout PASS; nenhum acesso ao backup real/Production, containers removidos.
+Assunto textual mascarado limita fidelidade: suplemento visual read-only resolveu
+o valor original, sem repetir envio. SMTP substituto não é replay do gerenciado;
+outros cinco fluxos externos NOT_RUN. Recuperação integral NOT_CERTIFIED, backup
+expirado, migration NOT_RUN e seis preflights intactos. Evidências e limites no
+relatório atualizado.

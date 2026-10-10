@@ -291,3 +291,66 @@ callback e troca de código NOT_RUN. Cliente separado é prova representativa,
 não replay da credencial Production. Recuperação externa integral permanece
 BLOCKED; não emitir recibo/permit. Backup requer renovação após fechar lacunas.
 Zero DDL/DML Production; migration NOT_RUN e seis preflights preservados.
+
+### Login Google isolado efetivamente concluído — 10/10/2026, 20:23 BRT
+
+Autorizado especificamente um login do titular no cliente exclusivo do laboratório.
+Callback/frontend foram publicados somente em `127.0.0.1`, sem porta de banco,
+mounts, acesso Production ou cópia do backup real. Controle negativo recusou
+token inválido com HTTP400, mantendo zero users/sessions.
+
+A primeira callback retornou `504 / request_timeout`; logs privados cifrados e
+diagnóstico foram preservados. Banco confirmou zero users/identities/sessions
+depois da falha. Consultas externas públicas e controle com código sintético
+novo responderam; não provaram a causa exata do timeout. Houve uma única retomada
+do mesmo ensaio, com fluxo novo, sem replay do código anterior.
+
+PASS posterior: callback Google e troca de código, `/user` HTTP200 com identidade
+Google/e-mail confirmado, logout HTTP204, exatamente uma identidade de teste e
+zero sessões após logout. Tokens não foram persistidos no relatório/Git. Dump
+Auth privado do ensaio cifrado/readback PASS; os três containers próprios foram
+removidos. Prova `google-interactive-lab-1791674104826/completed-proof.json`,
+SHA-256 `5a53eed72d3a05ed249be911fd93c058ab2c8ee6bdfa390766fb7eed09c8d96a`.
+O timeout anterior não foi apagado nem classificado como defeito corrigido em
+Production. Cliente separado permanece prova representativa, não replay da
+credencial Production; configuração externa integral continua NOT_CERTIFIED.
+
+Próximo gate: Auth descartável → SMTP Brevo → Gmail → confirmação local usando
+o template capturado. Revisão do convite confirmou uma variável de confirmação e
+nenhuma URL Production fixa. Envio adicional foi autorizado especificamente e executado conforme a prova abaixo;
+a autorização da mensagem SMTP direta anterior permanece consumida.
+Não renovar backup nem emitir recibo/permit como substituto dessas provas.
+Migration NOT_RUN, zero DDL/DML Production, seis preflights preservados.
+
+### Convite Auth → Brevo → Gmail → confirmação local — 10/10/2026, 20:40 BRT
+
+PASS do caminho executado em PostgreSQL/Auth pinned vazio, sem volumes, portas
+publicadas, dados restaurados ou acesso ao banco Production. Convite Auth HTTP200,
+corpo capturado renderizado e URL exclusivamente loopback. Relay Brevo TLS1.3
+aceitou exatamente uma mensagem (250); Gmail confirmou Message-ID e texto na
+caixa de entrada. Verificação local HTTP303, /user HTTP200, e-mail confirmado,
+logout HTTP204, um usuário e zero sessões finais. Auth/MIME cifrados com readback;
+containers próprios removidos. Não houve segundo envio externo.
+
+Prova privada: auth-brevo-invite-1791675568683/proof.json, SHA-256
+557f454244173c85bfe84f85e6cc43437830ad69c7ad128a9044959d84752afc.
+Recebimento sanitizado: gmail-receipt-sanitized.json, SHA-256
+83e409aeca686e27dc67be71c0ce4dcd30b6e19e7a4fc011ea8712be94a71381.
+
+Falhas de preparação preservadas: pipe Docker Desktop sem resposta; engine Linux
+alternativo respondeu 29.2.1. CLI start expirava apesar de State.Running: o harness
+reconciliou somente seus containers identificados, depois exigiu health Auth.
+Nenhum banco restaurado foi reiniciado. Uma geração local anterior bloqueou antes
+de enviar porque Auth não forneceu Message-ID; relay acrescentou somente esse
+header ao envio final. A geração local falha não conta como entrega externa.
+
+Limite material: assunto da captura textual era a máscara <redacted>, usada no
+ensaio. Screenshot Source posterior confirmou visualmente You have been invited;
+suplemento preservado, sem Save e sem sobrescrever a captura antiga. O PASS não
+certifica fidelidade do assunto Source. Brevo reescreveu remetente; autenticação
+SPF/DKIM/DMARC refere-se ao provedor. Não seguir links/pixels de tracking.
+SMTP gerenciado Source não foi reproduzido: esta é prova de substituto independente.
+Outros cinco fluxos de template continuam NOT_RUN externamente. Cliente Google
+separado é representativo, sem replay da credencial Source. Recuperação externa
+integral NOT_CERTIFIED, backup expirado, recibo/permit não emitidos. Migration
+NOT_RUN, zero DDL/DML Production e seis preflights preservados.
