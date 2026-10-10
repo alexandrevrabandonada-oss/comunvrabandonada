@@ -1,5 +1,71 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Recuperação da Escola — escopo separado, 08/10/2026
+
+Revisão do #534: preparação elegível para integração após gates do SHA, sem
+autorizar recuperação real. O crash foi reduzido a uma função que retorna 1:
+na mesma biblioteca/PG17.6, hint_roles=anon reproduz signal 11; hint_roles vazio
+retorna 42501. Finding permanece aberto e separado do restore PASS.
+Caso mínimo e configuração/logs sanitizados preservados no pacote.
+Novo gate externo: clone físico pode iniciar cron/webhooks/wrappers ao concluir;
+isolamento não decorre do nome do projeto. Destino nominal proposto, tarifas,
+autorização em etapas e campos ainda pendentes estão no
+[pacote de decisão real](../reports/current/comun-escola-real-recovery-decision.md).
+Sem upgrade, cópia privada, restore ou alteração Production nesta revisão.
+
+#533 integrado e certificado em main `2151826f`. #523 continua draft em
+`cf0e8e41`: Quality PASS e seis preflights de schema bloqueados.
+A sessão do projeto correto foi disponibilizada em outro perfil Chrome;
+identidade confirmada pelo hash do PRE. O painel Free não oferece backups,
+PITR ou restore gerenciado em novo projeto nas condições atuais. A limitação
+histórica de acesso ao dashboard está resolvida; recuperação real ainda não.
+
+Esta passada compara backup lógico independente e Pro/recuperação gerenciada,
+prepara captura protegida e ensaio sintético em cluster vazio. Cobertura DB,
+Auth, Storage metadata/bytes e configurações externas são tratadas separadamente.
+Uma falha de backend signal 11 em chamada não autorizada foi reproduzida somente
+na imagem descartável pinada; não foi testada nem inferida em Production.
+Ela continua finding aberto, sem alteração de grants para obter verde.
+Resultados, limites, retenção proposta e operação real pendente estão em
+[estratégia de recuperação](../reports/current/comun-escola-recovery-strategy.md).
+
+PASS sintético em `4bc3e33b`: restauração após destruição da origem, 278 tabelas,
+catálogo/dados/roles/grants/memberships, histórico/ledger, RLS A/B, negação de RPC
+no cluster restaurado e arquivo separado. Evidência sanitizada e 80 focais PASS.
+O crash anterior da instância padrão da imagem permanece FAIL separado.
+Auth/Storage API, Vault, off-site/escrow e restore real não estão certificados.
+Recomendação para decisão: Pro + backup físico diário efetivo + restore em novo
+projeto, com lógico como segunda linha; sem contratação ou upgrade nesta rodada.
+
+Próximo gate: comprovar snapshot recuperável real e restore isolado, com destino,
+tratamento dos dados e responsáveis aprovados; depois autorização específica de
+schema. Sem upgrade, migration Production, flags, abertura de indexação ou
+certificação da V1 nesta passada.
+
+## Fechamento exclusivo da Escola e #523 — 08/10/2026
+
+#532 integrado em `636e3e1d`, Production Git READY no SHA exato, sem schema
+write. Captura/read-only e equivalência PRE/POST auditadas por artifact/hash.
+Quality de #523 `cf0e8e41` terminou verde após uma única reexecução dirigida
+do 502 de Território, sem código; os seis preflights Escola continuam FAILURE.
+O candidato permanece draft, com funcionalidades estáveis.
+
+A revisão focal #533 exige POST e ledger aprovados antes do COMMIT, controles
+SQL negativos e preservação de privilégios no laboratório. A captura confirmou
+os direitos existentes do leitor Production; a fixture foi corrigida para
+reproduzi-los sem mudar o destino real. Prova SQL funcional `775f86e9`, run
+37863202153 PASS: POST/ledger divergentes abortam e preservam PRE, privilégios
+preexistentes preservados, aplicação única e replay recusado. Os fingerprints
+PRE/POST revisados permaneceram intactos. Checkpoints posteriores exigem gates
+próprios, sem transportar aprovações por presunção.
+Backup/ponto recuperável/acesso ao restore do COMUN permanecem BLOCKED, pois
+o conector não expõe o projeto e o dashboard está sem sessão. Restore isolado
+do provedor NOT_RUN. Responsáveis humanos ainda não designados; nenhuma
+autorização de migration, flag ou indexação foi inferida. Próximo gate: fechar
+recuperação/executor e autorizar separadamente a liberação da Escola. Evidências
+e procedimento em [fechamento controlado](../reports/current/comun-escola-controlled-release-closure.md).
+Não declara V1 concluída nem libera merge de #523 sem seus seis gates.
+
 Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99dd450`, após os PRs #504, #505 e #506. A reconciliação de 02/10 e os achados intermediários abaixo são históricos. A V1 continua incompleta; a situação atual e a fila sem amostra humana estão na seção seguinte.
 
 ## Atualização transversal do produto — 06/10/2026
@@ -717,3 +783,72 @@ Main confirmado em `4bf839d61a6eb77965c1efa0a4ebbbe307cfdd21`: #519 e #531 integ
 49-H/49-I: fontes de INEA e ANEEL passam a ter metadados coerentes com a projeção pública e caminhos explícitos de retorno, inclusive para quem recebeu um link direto. Prova de navegador automatizada própria foi adicionada; não equivale a aparelho físico ou aprovação humana.
 
 Escola: #532 captura identidade allowlisted, catálogos, histórico e ledgers em transação read-only. A captura de `0408c591` (run 37855395017, artefato 11583906100) confirmou os cinco ledgers aceitos, zero findings, fingerprints R5 intactos e Escola ausente. Somente `20261006134804` é pendência acionável; as duas omissões históricas permanecem explicitamente registradas pela reconciliação canônica existente. O ensaio Production-like exige equivalência pública e privada antes de aplicar a migration somente em banco descartável. Promoção, flags e capacidade de backup do provedor continuam sem certificação/autorização nesta rodada.
+## Escola: captura real e lacuna de recuperação — 08/10/2026
+
+A senha do banco foi renovada pelo usuário; a conexão read-only foi comprovada.
+O banco real e roles sem senhas foram capturados em arquivos locais cifrados,
+reabertos e ensaiados em cluster offline. O restore exigiu suplemento de bootstrap
+GraphQL capturado da origem. Os dados COPY e sequences conferem; equivalência
+integral do schema, Auth/Storage/Vault e custódia independente continuam BLOCKED.
+Isso não é liberação da Escola nem prova integral de recuperação do projeto.
+
+A correção candidata dos dois leitores de release carrega a CA pública Supabase
+preservando verify-full/hostname. Até integração e certificação, esses caminhos
+não estão certificados. Não houve migration, mudança de flag ou dispensa dos
+seis preflights do #523. Evidências e limites:
+[revisão da captura e TLS](../reports/current/comun-escola-real-capture-and-tls-review.md).
+
+# Evidência adicional Escola — 09/10/2026
+
+A correção TLS #535 foi integrada em `041f6b17`, com deploy Git READY e sete
+smokes GET/SHA servido PASS. A certificação pós-merge permanece BLOCKED por CA
+ausente nos dois scripts CI read-only e duas falhas remotas de navegação em
+Core Journeys. Patch focal de CA preparado separadamente; nenhum gate dispensado.
+
+Recuperação real parcial avançou: 278 tabelas restauradas offline, 2.582 arquivos
+Storage cifrados/restaurados como bytes e cópia privada no Drive verificada; API
+Auth leu os seis usuários restaurados e login sintético/recusas/cleanup passaram
+na segunda cópia offline. Storage API v1.80.2 pinned restaurou/leu todos os 2.582
+objetos e recusou 863 acessos anônimos privados; metadata/history inalterados.
+O bloqueio inicial da imagem 0067 e uma interrupção do executor foram preservados;
+uma retomada limitada comprovou o resultado posterior. Custódia independente da
+chave, CHECK canônico e configuração externa
+continuam BLOCKED/NOT_RUN conforme
+`reports/current/comun-escola-readonly-ci-ca-recovery.md`. Migration Escola
+Production não executada; #523 draft e seis preflights preservados. Não declarar
+liberação, recuperação integral ou conclusão da V1.
+
+## Recuperação em disco E: — 09/10/2026
+
+Dois exports cifrados da cópia anterior foram verificados e restaurados em containers novos offline. PG17.6: 278 tabelas, 6 auth users, fingerprint do restore anterior idêntico, zero findings; Storage: 2582 arquivos/357014118 bytes e size+MD5 conferidos. Comparação integral com o PRE capturado isolou um CHECK reagrupado e oito ACLs owner implícitas: parser 17.6 provou a mesma árvore semântica, com três controles negativos, e os direitos efetivos conferem. Fingerprints brutos continuam distintos; gates Production não foram alterados. Nova chave preservada em Drive privado separado dos ciphertexts E:, readback/descriptografia dos dois exports sem DPAPI PASS. Não é nova captura Production nem prova integral de API/configuração na nova cópia. Crash supautils e configurações externas permanecem abertos; seis preflights #523 preservados. #536 head 98963025 tem Core/Civic/Experience/Full Surface PR verdes; MapLibre 37959856195 tem 49 PASS/1 FAIL no retorno Lista → Mapa, causa UNPROVEN; Quality em execução. Certificação pós-merge permanece pendente. Preparada CA restrita à captura PRE da Escola, com 71 testes Node PASS. Evidências e limites: [relatório CI/recuperação](../reports/current/comun-escola-readonly-ci-ca-recovery.md). Autorização de migration recebida; execução ainda NOT_RUN até cumprir requisitos. Escola não liberada; zero migration Production nesta retomada.
+
+### Escola — recuperação em E: e gates preservados, 09/10/2026
+
+No candidato #536 ce0566d9, captura PRE e ensaio atômico 37962260855 passaram na mesma run, com hash da captura vinculado à prova. Custódia independente da chave e mapping de 2582 objetos restaurados passaram; CHECK/ACLs têm equivalência delimitada, sem mudar fingerprints Production. Biblioteca supautils oficial corrigida passou recusas no laboratório/restauração; imagem antiga continua afetada. Bundle reproduziu SHA/tree fora do produtor; 71 testes no consumidor passaram. Inventário: 41 SUCCESS, 82 SKIPPED separados e Quality ainda em execução na consulta. Autorização da migration recebida; acesso protegido PostgreSQL, configuração externa, renovação do backup de negócio e entrada Production controlada ainda bloqueiam aplicação. Seis preflights #523 preservados; zero escrita Production, flags/indexação intactas. Avisos npm preexistentes foram registrados separadamente, sem atualização automática. Escola não liberada. Este complemento documental não transfere provas para um SHA funcional diferente.
+
+# Atualização Escola — ensaio controlado, 2026-10-09
+
+Complemento posterior: #537 integrado em `c4dfd5a7`, mesma tree do candidato;
+deploy Git READY, SHA servido exato, smokes e CI atual aplicável passaram. Entrada
+Production separada em preparação, com recuperação real e acesso protegido ainda
+bloqueados. D: voltou NTFS/Healthy, sem prova de integridade de cada arquivo e sem
+credencial esperada localizada; execução permanece em E:. Nenhuma migration
+Production aplicada e os seis preflights #523 permanecem obrigatórios. Evidências
+e limites: [entrada Production](../reports/current/comun-escola-production-entry-preparation.md).
+
+PR #536 integrado em `eb2cb0156adf223d608e222677cccc00bf84e071` após 42 SUCCESS / 82 SKIPPED / zero failures/pending. Deploy Git READY, SHA servido confirmado, smokes GET, Quality/Civic/Core pós-merge PASS; Experience ainda pendente na captura. Nenhuma outra integração até certificar o pós-merge aplicável.
+
+Ensaio controlado local provado em `c4f4facafa1674352bd5b93d5c660b3bd4f45b3c`: verificações de catálogo privado e privilégios antes do COMMIT, rollback schema/history/ledger/drift, replay recusado e resposta perdida do COMMIT reconciliada read-only, sem retry de escrita. Nova lane descartável sem secrets Production preparada para repetir essa prova no novo SHA. Evidências e limites em `reports/current/comun-escola-controlled-rehearsal.md`.
+
+Próximo passo: concluir checks pós-merge e do candidato; recuperar acesso PostgreSQL protegido e renovar/ensaiar backup real antes de qualquer schema write. Executor remoto não certificado; migration Escola NOT_RUN; seis preflights do #523 preservados. Recuperação completa, flags, indexação e operação pública continuam não certificadas.
+
+
+## Reconciliação do candidato público #523 — 10/10/2026
+
+Main consultado diretamente em 400b17b350a00de913b6e802586c890c1e2999d9.
+Head anterior cf0e8e41a084e073a728cca269a0dbc38683bfe1 preservado.
+Merge local isolado de main: único conflito no roadmap, resolvido preservando
+as duas sequências históricas e seus limites. Nenhuma nova funcionalidade,
+migration Production, flag, indexação ou integração em main nesta reconciliação.
+Seis preflights ainda bloqueados pela Escola; certificação do produto permanece
+pendente. Provas do SHA anterior não foram transferidas ao candidato novo.

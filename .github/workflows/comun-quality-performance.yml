@@ -473,6 +473,7 @@ jobs:
           exit 1
       - name: Verificação de schema estritamente read-only
         env:
+          NODE_EXTRA_CA_CERTS: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           COMUN_QUALITY_ALLOWED_PROJECT_REFS: ${{ secrets.SUPABASE_PROJECT_REF }}

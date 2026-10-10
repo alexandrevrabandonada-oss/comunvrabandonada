@@ -121,6 +121,25 @@ export function sameSnapshot(actual, expected) {
   assert.deepEqual(actual.ledger, expected.ledger);
 }
 
+export function requireReleaseFingerprint(snapshot, contract, phase) {
+  for (const key of [`${phase}Canonical`, `${phase}Runner`])
+    assert.match(
+      contract?.[key] ?? "",
+      /^[a-f0-9]{64}$/,
+      "LEARNING_RELEASE_CONTRACT_INVALID",
+    );
+  assert.equal(
+    snapshot.compact.fingerprint,
+    contract[`${phase}Canonical`],
+    "LEARNING_RELEASE_CANONICAL_DIVERGED",
+  );
+  assert.equal(
+    snapshot.runner,
+    contract[`${phase}Runner`],
+    "LEARNING_RELEASE_RUNNER_DIVERGED",
+  );
+}
+
 export function requireAtomicConnection(db, env = process.env) {
   const target = db.connectionParameters;
   assert.ok(
@@ -131,8 +150,13 @@ export function requireAtomicConnection(db, env = process.env) {
   assert.ok(
     target?.host === "127.0.0.1" &&
       Number(target.port) === 55432 &&
-      target.database === "postgres" &&
-      target.user === "postgres",
+      (target.database === "postgres" ||
+        target.database ===
+          `comun_learning_prodlike_${env.COMUN_LEARNING_RUN_ID.replace("-", "_")}`) &&
+      (target.user === "postgres" ||
+        (target.user === "supabase_admin" &&
+          target.database ===
+            `comun_learning_prodlike_${env.COMUN_LEARNING_RUN_ID.replace("-", "_")}`)),
     "LEARNING_ATOMIC_LOCAL_DESTINATION_REQUIRED",
   );
   for (const key of [
@@ -145,9 +169,46 @@ export function requireAtomicConnection(db, env = process.env) {
 }
 
 // Disposable rehearsal only. No CLI for remote promotion; no remote manifest change.
-export async function installAtomicDisposable(db, expectedPre, failAt = null) {
+export function executorPrivilegePlan(capabilities) {
+  const rights = [
+    ["createPublic", "create on schema public"],
+    ["referencesAuthUsers", "references on auth.users"],
+    [
+      "insertMigrationHistory",
+      "insert on supabase_migrations.schema_migrations",
+    ],
+  ];
+  for (const [key] of rights)
+    assert.equal(
+      typeof capabilities?.[key],
+      "boolean",
+      "LEARNING_EXECUTOR_CAPABILITIES_INVALID",
+    );
+  return rights.filter(([key]) => !capabilities[key]).map(([, right]) => right);
+}
+
+export async function installAtomicDisposable(
+  db,
+  expectedPre,
+  failAt = null,
+  contract = null,
+) {
   requireAtomicConnection(db);
-  assert.ok([null, "schema", "history", "ledger"].includes(failAt));
+  assert.ok(
+    [
+      null,
+      "schema",
+      "history",
+      "ledger",
+      "post-drift",
+      "ledger-drift",
+    ].includes(failAt),
+  );
+  if (contract) requireReleaseFingerprint(expectedPre, contract, "pre");
+  assert.ok(
+    failAt !== "post-drift" || contract,
+    "LEARNING_DRIFT_CONTROL_REQUIRES_CONTRACT",
+  );
   const { sql, packet } = await loadAtomicPackage();
   await db.query("BEGIN ISOLATION LEVEL SERIALIZABLE");
   try {
@@ -155,6 +216,24 @@ export async function installAtomicDisposable(db, expectedPre, failAt = null) {
     const pre = await readAtomicSnapshot(db);
     requireAbsent(pre);
     sameSnapshot(pre, expectedPre);
+    // Pinned Supabase image: lend executor rights only inside this disposable
+    // transaction. Install as postgres, restore ACLs before fingerprinting.
+    // Rollback at any stage restores the original privileges as well.
+    const privilegeWindow = db.connectionParameters.user === "supabase_admin";
+    const borrowed = privilegeWindow
+      ? executorPrivilegePlan(
+          (
+            await db.query(
+              "select pg_catalog.has_schema_privilege(current_user,'public','CREATE') as \"createPublic\", pg_catalog.has_table_privilege(current_user,'auth.users','REFERENCES') as \"referencesAuthUsers\", pg_catalog.has_table_privilege(current_user,'supabase_migrations.schema_migrations','INSERT') as \"insertMigrationHistory\"",
+            )
+          ).rows[0],
+        )
+      : [];
+    if (borrowed.length) {
+      await db.query(
+        `set local role supabase_admin; ${borrowed.map((right) => `grant ${right} to postgres;`).join(" ")} set local role postgres`,
+      );
+    }
     await db.query(sql);
     if (failAt === "schema")
       throw new Error("LEARNING_DISPOSABLE_INJECTED_SCHEMA_FAILURE");
@@ -164,7 +243,21 @@ export async function installAtomicDisposable(db, expectedPre, failAt = null) {
     );
     if (failAt === "history")
       throw new Error("LEARNING_DISPOSABLE_INJECTED_HISTORY_FAILURE");
+    if (borrowed.length) {
+      await db.query(
+        `set local role supabase_admin; ${borrowed.map((right) => `revoke ${right} from postgres;`).join(" ")} set local role postgres`,
+      );
+    }
     const post = await readAtomicSnapshot(db);
+    if (failAt === "post-drift") {
+      // Fixed synthetic fault, reachable only through the guarded local executor.
+      await db.query(
+        "alter table public.comun_learning_units add column synthetic_release_drift boolean",
+      );
+      requireReleaseFingerprint(await readAtomicSnapshot(db), contract, "post");
+      throw new Error("LEARNING_POST_DRIFT_CONTROL_NOT_DETECTED");
+    }
+    if (contract) requireReleaseFingerprint(post, contract, "post");
     assert.deepEqual(
       outsideSchool(post.compact.canonical),
       outsideSchool(pre.compact.canonical),
@@ -187,6 +280,33 @@ export async function installAtomicDisposable(db, expectedPre, failAt = null) {
     );
     if (failAt === "ledger")
       throw new Error("LEARNING_DISPOSABLE_INJECTED_LEDGER_FAILURE");
+    if (failAt === "ledger-drift")
+      await db.query(
+        "update public.comun_schema_releases set post_fingerprint=$1 where release=$2",
+        ["0".repeat(64), release],
+      );
+    const final = await readAtomicSnapshot(db);
+    assert.equal(
+      final.compact.fingerprint,
+      post.compact.fingerprint,
+      "LEARNING_LEDGER_CHANGED_SCHEMA",
+    );
+    assert.equal(final.runner, post.runner, "LEARNING_LEDGER_CHANGED_SCHEMA");
+    assert.deepEqual(
+      final.ledger,
+      [
+        ...pre.ledger,
+        {
+          release,
+          migration_path: migrationPath,
+          migration_sha256: packet.migrationSha256,
+          pre_fingerprint: pre.runner,
+          post_fingerprint: post.runner,
+          status: "applied",
+        },
+      ].sort((a, b) => a.release.localeCompare(b.release)),
+      "LEARNING_ATOMIC_LEDGER_DIVERGED",
+    );
     await db.query("COMMIT");
     return post;
   } catch (error) {
