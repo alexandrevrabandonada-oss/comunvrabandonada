@@ -567,3 +567,11 @@ bloqueado pela exigência de duas etapas; login/callback não provados. Recupera
 externa integral BLOCKED, backup precisa renovação antes da entrada controlada,
 recibo/permit não emitidos. Migration NOT_RUN; seis preflights #523 preservados.
 Provas sanitizadas e limites no [relatório atual](../reports/current/comun-escola-fresh-real-recovery-20261010.md).
+
+Continuação às 20:12 BRT: titular ativou duas etapas e acesso Google PASS. Cliente
+Production consultado e preservado; novo cliente exclusivo do laboratório criado
+com autorização específica, credencial cifrada/readback PASS. Docker recuperado
+pelo comando oficial; Auth vazio pinned passou discovery/redirect com esse cliente.
+Login/callback/troca de código NOT_RUN; ensaio representativo não equivale a replay
+da credencial Production. Recuperação externa integral permanece BLOCKED, sem
+recibo/permit, migration ou alterações Supabase. Seis preflights preservados.

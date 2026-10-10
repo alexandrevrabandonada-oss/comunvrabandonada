@@ -262,3 +262,32 @@ permit não emitidos. Migration NOT_RUN, zero DDL/DML Production, seis preflight
 preservados. Runtime continua `73d28606230bd5642d47d81293c60ec5ffc35ce3`;
 base main `400b17b350a00de913b6e802586c890c1e2999d9`. O ensaio de entrega
 não certifica recuperação integral, liberação da Escola ou operação pública.
+
+### Acesso Google resolvido e cliente separado — 10/10/2026, 20:12 BRT
+
+Após ativação de duas etapas pelo titular, o console Google Cloud liberou o
+acesso. Consulta read-only confirmou que o cliente Production corresponde ao
+client ID da captura cifrada e autoriza somente sua callback Supabase. Callback
+local ausente; nenhum campo do cliente Production foi alterado.
+
+Com autorização específica posterior, foi criado somente o cliente Web
+`COMUN Escola Recovery Lab 20261010`, com callback
+`http://127.0.0.1:9997/callback` e sem origens JavaScript. Credencial cifrada
+em E:, fora do Git; readback autenticado PASS. Ciphertext SHA-256
+`d801563acbb61f7d3fe94c6c3216c57bee46c01c700279633d577cc7cd36c114`.
+Não houve contratação ou modificação de configuração Supabase.
+
+Docker inicialmente estava indisponível: pipe do engine Linux ausente. Início
+pelo comando oficial recuperou engine 29.2.1; a primeira falha foi preservada.
+O ensaio posterior iniciou PostgreSQL 17.6/Auth v2.196.0 pinned em banco vazio,
+sem portas publicadas, e provou discovery/redirect HTTP302 com o novo client ID,
+state presente e ausência de secret na URL. Prova privada
+`google-separated-lab-1791673790890/proof.json`, SHA-256
+`9432210502dde6b9633565ddc5df70338b3b31d5011c91ad9fdb207cf6b255a5`.
+Containers desse ensaio removidos; nenhum dado do backup real foi copiado.
+
+PASS de acesso ao console, custódia da nova credencial e redirect. Login humano,
+callback e troca de código NOT_RUN. Cliente separado é prova representativa,
+não replay da credencial Production. Recuperação externa integral permanece
+BLOCKED; não emitir recibo/permit. Backup requer renovação após fechar lacunas.
+Zero DDL/DML Production; migration NOT_RUN e seis preflights preservados.

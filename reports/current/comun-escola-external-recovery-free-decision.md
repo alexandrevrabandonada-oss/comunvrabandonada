@@ -95,3 +95,12 @@ reescrito e pixel inserido pelo provedor foram registrados, sem acesso ao pixel.
 Não declarar configuração externa integral recuperável. Google Cloud ainda exige
 verificação em duas etapas antes de permitir acesso ao contrato de callback.
 Nenhuma contratação, alteração Production ou migration nesta continuação.
+
+Atualização posterior: duas etapas ativadas pelo titular resolveram o acesso
+Google. O cliente Production foi apenas consultado; sua callback local não existe.
+Após autorização específica, cliente exclusivo do laboratório foi criado e
+cifrado. Auth vazio com essa credencial passou discovery/redirect real, mas
+login/callback/troca de código continuam NOT_RUN. Essa prova representativa não
+substitui replay exato da credencial Production ou recuperação externa integral.
+Docker indisponível foi recuperado pelo comando oficial; containers do ensaio
+foram removidos. Sem custos, alterações Supabase ou migration Production.
