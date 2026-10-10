@@ -74,3 +74,10 @@ Os labels de sessões, providers e políticas de e-mail foram recapturados em
 modo read-only, sem Save. Replay parcial não libera o recibo. Conta externa/termos,
 destino autorizado e controle de callback continuam decisões/acessos separados,
 mesmo em plano gratuito. Não alterar Production para facilitar o laboratório.
+
+Atualização: os três números foram obtidos autonomamente por leitura visual da UI,
+com imagens cifradas e suplemento separado: 6, 2/h, 6. Não dependem mais de resposta
+humana. O novo ensaio iniciou Auth com os 16 parâmetros, incluindo AAL1 15m, e
+repetiu redirect Google real. Isso não certifica entrega SMTP externa, aprovação
+da callback ou todos os comportamentos da configuração. O restante do plano e as
+recusas do executor permanecem intactos.

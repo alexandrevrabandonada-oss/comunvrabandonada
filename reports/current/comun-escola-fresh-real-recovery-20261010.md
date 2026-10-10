@@ -200,3 +200,35 @@ callback/login Google no destino nominal. Backup anterior expirado para o execut
 O assessor automático recusa gerar recibo/permit enquanto essas lacunas persistem.
 Nenhuma migration, schema write, business write, contratação ou configuração
 Production nesta continuação; seis preflights #523 preservados.
+
+### Suplemento posterior — parâmetros resolvidos por leitura visual
+
+Sem esperar intervenção, a leitura visual do navegador confirmou os três números
+que o extrator DOM mascarou: mínimo de senha 6, limite de e-mail 2/h, OTP de MFA
+telefone 6. Também confirmou a proteção AAL1 por 15 minutos; telefone permanece
+desabilitado. Navegação/foco de controles não editou valores; Save ficou
+desabilitado. Não foi lida, alterada ou inferida uma senha de usuário.
+
+As três imagens foram cifradas e tiveram readback autenticado. O suplemento
+`auth-visual-numeric-supplement-1791602693236.json`, SHA-256
+`0d8dacfb172ed81720641de0c0c9f20c3a3c10aeadb7c5a6eecf5e8904e93edb`,
+resolve a lacuna dos parâmetros sem sobrescrever capturas originais. O descritor
+registrou que os bytes recebidos do navegador são JPEG, embora o envelope inicial
+tenha sido rotulado PNG; ciphertexts e hashes foram preservados. Prova de leitura
+e composição dos 16 parâmetros numéricos:
+`visual-config-supplement-proof-1791602924782.json`, SHA-256
+`88ae4ba494d117efe75b7788a9357994a6393437966fd4d36183a425c301c941`.
+
+O laboratório vazio foi repetido com esses 16 parâmetros. Auth iniciou e o
+redirect Google passou novamente. Timeout zero foi representado por duração
+ilimitada/unset, conforme o contrato; AAL1 foi configurado como 15m. Zero usuários
+reais, zero dados do backup e nenhuma porta publicada. Prova
+`google-empty-lab-1791603014514/proof.json`. Escopo: valores fornecidos ao runtime,
+startup e settings/redirect; não prova comportamento individual de todos os
+parâmetros. Containers temporários removidos.
+
+`CONFIG_CAPTURE_VALUES_REDACTED` foi resolvido para os três números por suplemento
+com origem própria; não apagar o finding/capturas anteriores. Continua faltando
+certificar recuperação externa completa, SMTP independente/entrega e callback/login
+no destino nominal. Não emitir recibo/permit a partir de startup ou redirect.
+Backup ainda precisará ser renovado após fechar esses requisitos. Migration NOT_RUN.

@@ -551,3 +551,10 @@ aprovado e entrega externa continuam NOT_RUN. Auditoria preservou 16 artifacts e
 recapturados read-only, sem salvar Source; nenhum default substituiu os números.
 Finding `CONFIG_CAPTURE_VALUES_REDACTED` impede replay completo. SMTP independente,
 configuração externa e renovação do backup continuam bloqueantes; migration NOT_RUN.
+
+Suplemento posterior resolveu autonomamente os três parâmetros pela UI visual,
+com imagens cifradas, sem alterar valores ou capturas antigas. Laboratório vazio
+iniciou Auth com os 16 parâmetros e AAL1 15m; redirect Google real novamente PASS.
+O finding dos números mascarados está resolvido por suplemento, mas entrega SMTP,
+callback/login nominal e recuperação externa completa continuam não certificados.
+Nenhuma migration ou configuração Production alterada.
