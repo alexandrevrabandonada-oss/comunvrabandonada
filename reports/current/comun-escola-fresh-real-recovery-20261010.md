@@ -232,3 +232,33 @@ com origem própria; não apagar o finding/capturas anteriores. Continua faltand
 certificar recuperação externa completa, SMTP independente/entrega e callback/login
 no destino nominal. Não emitir recibo/permit a partir de startup ou redirect.
 Backup ainda precisará ser renovado após fechar esses requisitos. Migration NOT_RUN.
+
+### Entrega externa única — 10/10/2026, 22:53 UTC
+
+Com autorização específica para exatamente uma mensagem sintética ao próprio
+titular, o SMTP Brevo aceitou o envio por TLS 1.3 autenticado. O Gmail recebeu
+exatamente a mensagem esperada na caixa de entrada: assunto, Message-ID e texto
+conferiram. PASS de entrega externa; nenhuma repetição autorizada ou executada.
+Chave SMTP cifrada no disco privado, fora do Git; marcador de uso único preservado.
+
+Prova SMTP sanitizada: `brevo-single-delivery-1791672730752.json`, SHA-256
+`2414f6d032514e1fee37d7af393e42970ca582c5a625a32e2f4cb5427bc838a5`.
+Prova de recebimento: `brevo-gmail-delivery-proof-1791672795919.json`, SHA-256
+`be92a6d9cf8cd0f13792281e99cefdfe76fa1320771d5a0a57070b52728b7ad6`.
+Artifacts privados em E:, sem credenciais ou conteúdo pessoal neste relatório.
+Esta prova exercitou SMTP diretamente, não a entrega pelo runtime Auth restaurado:
+esse caminho permanece NOT_RUN. Não transfere o PASS do convite SMTP loopback.
+
+O provedor reescreveu o remetente para seu domínio, manteve Reply-To e converteu
+a mensagem em HTML com pixel de abertura. SPF/DKIM/DMARC passaram para os domínios
+do provedor; isso não prova autenticação de domínio próprio. O pixel não foi
+acessado pela ferramenta. A configuração para mensagens de autenticação ainda
+não está certificada. A nova consulta ao Google Cloud continua bloqueada pela
+exigência de verificação em duas etapas da conta; nenhum login/callback foi
+provado e nenhuma configuração foi alterada.
+
+Recuperação externa integral BLOCKED, backup anterior fora da janela, recibo e
+permit não emitidos. Migration NOT_RUN, zero DDL/DML Production, seis preflights
+preservados. Runtime continua `73d28606230bd5642d47d81293c60ec5ffc35ce3`;
+base main `400b17b350a00de913b6e802586c890c1e2999d9`. O ensaio de entrega
+não certifica recuperação integral, liberação da Escola ou operação pública.

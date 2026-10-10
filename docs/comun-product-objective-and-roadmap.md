@@ -558,3 +558,12 @@ iniciou Auth com os 16 parâmetros e AAL1 15m; redirect Google real novamente PA
 O finding dos números mascarados está resolvido por suplemento, mas entrega SMTP,
 callback/login nominal e recuperação externa completa continuam não certificados.
 Nenhuma migration ou configuração Production alterada.
+
+Em 10/10 às 22:53 UTC, uma única mensagem sintética autorizada passou SMTP Brevo
+e chegou à caixa de entrada Gmail, com identidade/texto conferidos. Entrega direta
+PASS; entrega pelo Auth restaurado NOT_RUN. Remetente reescrito e pixel do provedor
+impedem inferir configuração de autenticação certificada. Google Cloud continua
+bloqueado pela exigência de duas etapas; login/callback não provados. Recuperação
+externa integral BLOCKED, backup precisa renovação antes da entrada controlada,
+recibo/permit não emitidos. Migration NOT_RUN; seis preflights #523 preservados.
+Provas sanitizadas e limites no [relatório atual](../reports/current/comun-escola-fresh-real-recovery-20261010.md).

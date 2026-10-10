@@ -81,3 +81,17 @@ humana. O novo ensaio iniciou Auth com os 16 parâmetros, incluindo AAL1 15m, e
 repetiu redirect Google real. Isso não certifica entrega SMTP externa, aprovação
 da callback ou todos os comportamentos da configuração. O restante do plano e as
 recusas do executor permanecem intactos.
+
+## Entrega externa efetivamente executada
+
+Em 10/10/2026 às 22:53 UTC, a única mensagem sintética especificamente autorizada
+foi aceita pela Brevo e recebida no Gmail do titular. Identidade da mensagem e
+texto conferiram; zero dados de usuários ou tokens Production no envio. Nenhum
+novo envio está autorizado por essa prova. Evidências e hashes no
+[relatório atualizado](comun-escola-fresh-real-recovery-20261010.md).
+
+Entrega SMTP direta PASS; entrega pelo Auth restaurado NOT_RUN. Remetente
+reescrito e pixel inserido pelo provedor foram registrados, sem acesso ao pixel.
+Não declarar configuração externa integral recuperável. Google Cloud ainda exige
+verificação em duas etapas antes de permitir acesso ao contrato de callback.
+Nenhuma contratação, alteração Production ou migration nesta continuação.
