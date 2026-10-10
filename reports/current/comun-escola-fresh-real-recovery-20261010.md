@@ -112,3 +112,50 @@ autorização existente, somente com todos os gates satisfeitos; recapturar POST
 então executar os seis preflights reais de #523. Os seis continuam bloqueantes.
 
 Escola não liberada. V1 não concluída. Nenhum upgrade/restauração sobre Production.
+
+## Continuação — envio local real e decisão gratuita preparada
+
+PASS: seis templates capturados foram restaurados no laboratório. O Auth pinned
+v2.196.0 renderizou o convite e enviou uma mensagem pelo protocolo SMTP real para
+um receptor exclusivamente loopback, sem relay ou internet. As variáveis foram
+preenchidas, a URL de confirmação existia e CAPTCHA permaneceu obrigatório.
+Não houve envio externo nem reprodução do SMTP gerenciado. Prova
+`external-recovery-1791597136159/proof.json`, SHA-256
+`af404fa269d58ac5d7e171616bfbc1a91ff881705580e89c5b3faf77ace4fbb1`.
+Isso não dá PASS aos outros cinco fluxos de envio: os seis templates tiveram
+readback exato, mas somente convite foi enviado neste ensaio.
+
+O ensaio combinado falhou ao exigir redirecionamento Google. Esse resultado
+continua FAIL/BLOCKED; não foi transformado em sucesso pelo ensaio SMTP separado.
+O namespace não tem rede e `getent hosts accounts.google.com` saiu com código 2.
+O [provider oficial pinned](https://github.com/supabase/auth/blob/v2.196.0/internal/api/provider/google.go)
+consulta discovery OIDC antes de criar o redirect. A restrição de rede explica
+uma dependência não satisfeita; não foi capturado o status HTTP específico nem
+provada causalidade completa da falha do endpoint. Login real permanece NOT_RUN.
+Não abrir a rede do banco restaurado ou usar mock como prova do Google.
+
+As três fixtures deixadas pelas tentativas combinadas foram removidas somente
+por e-mail/UUID sintéticos exatos, com eventos correspondentes. O ensaio SMTP
+separado removeu sua própria fixture e dois eventos. Depois, **todas as 27 tabelas
+Auth** voltaram aos counts/hashes originais do snapshot cifrado. Prova
+`auth-config-cleanup-snapshot-proof.json`, SHA-256
+`3371bdc64a8048460730a81450537d215c14ac6b819b4b70a1a9414fda01bd34`.
+Containers temporários com configuração privada foram encerrados/removidos;
+arquivo cifrado, banco restaurado e tentativas anteriores preservados.
+
+Conexão read-only voltou a passar em `2026-10-10T01:55:19.523Z`, PG17.6 e TLS
+autenticado. Isso prova transporte, não renova o snapshot nem sua idade. O ponto
+de recuperação de `00:41:54.632Z` agora ultrapassou uma hora e não pode liberar
+o executor. Renovar somente após concluir os demais requisitos; sem alterar o RPO.
+
+#523 reconsultado: OPEN/draft, head `cf0e8e41a084e073a728cca269a0dbc38683bfe1`,
+CONFLICTING; 45 SUCCESS, 76 SKIPPED, seis FAILURE, zero pending na consulta atual.
+Quality permanece SUCCESS. Nenhum rerun dos seis preflights foi solicitado.
+O número atual de SKIPPED não foi convertido em PASS nem substituído por contagem
+histórica. Antes de integrar produto, resolver schema e reconciliar a base final.
+
+24 testes do contrato de entrada Production passaram novamente, zero skips;
+isso comprova guardas/recusas, não recuperação real completa. Migration/manifest
+e fingerprints permanecem fixos. Recibo e autorização interna de uso único não
+foram emitidos. Plano concreto sem contratação:
+[recuperação externa gratuita](comun-escola-external-recovery-free-decision.md).
