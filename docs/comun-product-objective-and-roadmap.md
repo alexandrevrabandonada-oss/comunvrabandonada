@@ -542,3 +542,12 @@ Preparação #538 integrada/certificada em main `400b17b350a00de913b6e802586c890
 Configuração externa completa continua BLOCKED: capturas cifradas e readback não equivalem à entrega externa de e-mail ou login Google real; o SMTP gerenciado não acompanha o dump. Crash original supautils permanece aberto. A nova captura PRE mantém fingerprints, cinco ledgers aceitos, Escola ausente e zero findings. Nenhum recibo completo foi emitido; migration permanece NOT_RUN e os seis preflights #523 continuam bloqueantes. Próximo elo: fechar recuperação externa, revisar recibo real e renovar os pontos temporais exigidos antes da aplicação única autorizada. Não contratar plano nem alterar flags/indexação. Evidências e limites: [recuperação real atualizada](../reports/current/comun-escola-fresh-real-recovery-20261010.md).
 
 Continuação: seis templates restaurados e convite enviado pelo Auth real a SMTP loopback PASS; entrega externa NOT_RUN. Tentativa OAuth combinada falhou e permanece separada, com discovery externo indisponível no namespace sem rede. Fixtures removidas; todas as 27 tabelas Auth conferem com o snapshot original. 24 testes de entrada passaram, sem alterar controles. #523 continua draft/CONFLICTING, cf0e8e41, 45 SUCCESS/76 SKIPPED/seis FAILURE na consulta atual; Quality SUCCESS. Backup de 00:41Z excedeu uma hora e deverá ser renovado antes de escrita. [Decisão gratuita de recuperação externa](../reports/current/comun-escola-external-recovery-free-decision.md) preparada sem contratação ou alteração Production. Migration ainda NOT_RUN.
+
+Passada autônoma seguinte: redirect Google HTTP302 passou com discovery real em
+laboratório vazio, sem dados do backup e sem abrir a rede do restore. Login/callback
+aprovado e entrega externa continuam NOT_RUN. Auditoria preservou 16 artifacts e
+17 capturas cifradas; identificou três parâmetros numéricos capturados como
+`<redacted>` (mínimo de senha, limite de e-mail, OTP de MFA telefone). Labels foram
+recapturados read-only, sem salvar Source; nenhum default substituiu os números.
+Finding `CONFIG_CAPTURE_VALUES_REDACTED` impede replay completo. SMTP independente,
+configuração externa e renovação do backup continuam bloqueantes; migration NOT_RUN.

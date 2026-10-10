@@ -58,3 +58,19 @@ uso único, nunca `db push` global. Resposta de COMMIT desconhecida exige reconc
 read-only, não retry. Depois, POST e seis preflights reais do #523.
 
 Até lá: **migration NOT_RUN, seis preflights preservados, Escola não liberada**.
+
+## Provas adicionais e requisito de captura fiel
+
+O redirect Google agora passou em laboratório vazio com discovery real e HTTP302;
+não exige contratar serviço para esta prova. Não comprova login/callback aprovado.
+Rede do banco real restaurado permaneceu fechada. Antes do replay completo, obter
+os três parâmetros numéricos cuja captura veio como `<redacted>`: mínimo de senha,
+limite de envio de e-mail e tamanho do OTP de MFA por telefone. São parâmetros,
+não senhas nem códigos OTP. Não trocar credenciais, editar Source, inferir defaults
+ou aceitar placeholder como valor válido. Capturas originais são preservadas;
+correções devem ser suplementos com origem/tempo/evidência próprios.
+
+Os labels de sessões, providers e políticas de e-mail foram recapturados em
+modo read-only, sem Save. Replay parcial não libera o recibo. Conta externa/termos,
+destino autorizado e controle de callback continuam decisões/acessos separados,
+mesmo em plano gratuito. Não alterar Production para facilitar o laboratório.

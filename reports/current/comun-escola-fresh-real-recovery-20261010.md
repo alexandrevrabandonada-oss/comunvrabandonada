@@ -159,3 +159,44 @@ isso comprova guardas/recusas, não recuperação real completa. Migration/manif
 e fingerprints permanecem fixos. Recibo e autorização interna de uso único não
 foram emitidos. Plano concreto sem contratação:
 [recuperação externa gratuita](comun-escola-external-recovery-free-decision.md).
+
+## Continuação autônoma — redirect Google e captura incompleta
+
+O laboratório novo não recebeu dados do backup real. Usou PostgreSQL 17.6 e
+Auth v2.196.0 pinned, sem portas publicadas, e somente configuração capturada
+Google/hCaptcha. O bootstrap inicial falhou com SQLSTATE 42501 no schema public:
+faltava `search_path=auth` do papel `supabase_auth_admin`, já existente no restore.
+Foi corrigido o setup vazio, sem conceder CREATE em public. Depois, o Auth iniciou,
+mas `/authorize` retornou 400. O contrato pinned exige redirect URI explícita;
+configurada apenas a callback loopback do laboratório, o endpoint retornou 302.
+Não atribuir retrospectivamente o status HTTP das tentativas antigas a esta prova.
+
+PASS: discovery real do Google, client capturado correspondente, state presente,
+escopo de e-mail e ausência de client secret na URL. Zero auth users no banco novo;
+nenhum login seguido, token trocado ou alteração no console Google. A callback
+loopback não foi certificada como aceita pelo provider. Nenhuma rede do banco
+real restaurado foi aberta. Prova `google-empty-lab-1791601735260/proof.json`, SHA-256
+`632c87ea45999c34516b297db213768f0a21dc6e01effba9c5ef2f277b5a4c6c`.
+Containers temporários foram removidos; falhas e logs cifrados preservados.
+
+Auditoria automatizada confirmou íntegros os 16 artifacts selados originais e
+readback autenticado das 17 capturas cifradas. Isso prova preservação, não
+completude. Ao auditar os valores para replay, foram encontrados placeholders
+`<redacted>` em `PASSWORD_MIN_LENGTH`, `RATE_LIMIT_EMAIL_SENT` e
+`MFA_PHONE_OTP_LENGTH`. Nova captura semântica read-only resolveu labels dos
+switches, mas continuou sem esses três números. MFA por telefone está desabilitado;
+isso não autoriza inventar sua configuração. Google/hCaptcha não são placeholders;
+validação de formato não equivale a validação de credencial pelo provider.
+
+Finding: **CONFIG_CAPTURE_VALUES_REDACTED**. A API pública de Auth foi consultada
+por GET, sem service role ou sessão: Google habilitado e confirmação requerida;
+ela não fornece os parâmetros numéricos faltantes. Nenhum default foi injetado.
+Auditoria `config-replay-value-audit-1791602154021.json`, SHA-256
+`c3367df8853c0b44d34499c31476df21336c93f0e91f9f7faced0370d5133c74`.
+Fonte semântica cifrada e originais permanecem privados em E:.
+
+Continuam BLOCKED: replay externo completo, SMTP independente/entrega externa e
+callback/login Google no destino nominal. Backup anterior expirado para o executor.
+O assessor automático recusa gerar recibo/permit enquanto essas lacunas persistem.
+Nenhuma migration, schema write, business write, contratação ou configuração
+Production nesta continuação; seis preflights #523 preservados.
