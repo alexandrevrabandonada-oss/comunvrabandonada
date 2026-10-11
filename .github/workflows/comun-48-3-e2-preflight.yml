@@ -121,6 +121,10 @@ jobs:
       - name: Prove remote migration plan is empty
         if: steps.migration-scope.outputs.skip != 'true'
         shell: bash
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         run: |
           set -euo pipefail
           node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs

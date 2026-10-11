@@ -42,7 +42,11 @@ for (const name of libpqPreflights) {
     for (const job of Object.values(workflow.jobs)) {
       assert.equal(job.env?.PGSSLROOTCERT, undefined);
       for (const step of job.steps ?? []) {
-        if (!/\bpsql\b/.test(step.run ?? "")) {
+        const direct = /\bpsql\b/.test(step.run ?? "");
+        const planner = (step.run ?? "").includes(
+          "readonly-reconciled-migration-plan.mjs",
+        );
+        if (!direct && !planner) {
           assert.equal(step.env?.PGSSLROOTCERT, undefined);
           continue;
         }
@@ -53,12 +57,18 @@ for (const name of libpqPreflights) {
           step.env?.PGOPTIONS,
           "-c default_transaction_read_only=on",
         );
-        assert.match(step.run, /begin read only;/i);
-        assert.match(step.run, /rollback;/i);
+        const sqlSource = direct
+          ? step.run
+          : read("scripts/ci/readonly-reconciled-migration-plan.mjs");
+        assert.match(sqlSource, /begin read only;/i);
+        assert.match(sqlSource, /rollback;/i);
         assert.doesNotMatch(step.run, /sslmode=(?:disable|prefer|allow)/);
       }
     }
-    assert.equal(selected, 1);
+    assert.equal(
+      selected,
+      name === "comun-48-2-a-remote-preflight.yml" ? 1 : 2,
+    );
   });
 }
 

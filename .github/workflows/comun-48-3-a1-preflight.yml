@@ -302,6 +302,10 @@ jobs:
       - name: Prove the remote plan contains exactly the A1 migration
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         run: |
           set -euo pipefail
           mkdir -p .ci-artifacts/48-3-a1-preflight

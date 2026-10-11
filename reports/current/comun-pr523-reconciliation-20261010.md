@@ -84,3 +84,21 @@ escopo dos passos, verify-full, transação/rollback read-only e matriz negativa
 remoto. Demais provas cbfca278 não são novas execuções: o delta adicional contém
 somente seis workflows, teste de CA e documentação, sem alteração de app/runtime,
 package-lock, migration ou manifest. Novo checkpoint exige Preview/checks próprios.
+
+### Autenticação e planner read-only
+
+No head 6b46956f, primeira tentativa falhou por credencial CI recusada, após TLS.
+A conexão já protegida no E: foi validada no mesmo projeto/host com TLS autorizado,
+PostgreSQL 17.6 e `BEGIN READ ONLY`/rollback. Secret GitHub existente
+`SUPABASE_DB_URL` atualizado por stdin, sem plaintext em disco/log/argv, sem reset
+de senha ou concessão de acesso adicional. Nenhum DDL/DML executado.
+
+Uma única reexecução failed-only dos seis preflights manteve o SHA e preservou
+attempt 1. Attempt 2 de 48.2-A `38097609588` chegou à consulta e bloqueou por
+`COMUN_48_2_A_BLOCKED_REMOTE_SCHEMA_DRIFT`; autenticação/TLS não são mais sua causa.
+A1/E3 bloquearam no planner: este chama psql indiretamente e o passo também
+precisa da CA. A correção seguinte aplica a mesma CA/verify-full/read-only somente
+aos cinco passos do planner, mantendo query/ledger/fingerprints inalterados.
+21 contratos focais PASS, zero SKIPPED, incluindo chamada indireta e controles
+negativos do planner. Não repetir reruns equivalentes; novo SHA deve provar seu
+próprio transporte, schema e Preview. Nenhuma migration foi aplicada para obter verde.

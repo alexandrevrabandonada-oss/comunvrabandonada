@@ -84,6 +84,10 @@ jobs:
       - name: Prove exact migration plan
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         run: |
           set -euo pipefail
           mode="$(cat .ci-artifacts/48-3-e3-preflight/mode)"
