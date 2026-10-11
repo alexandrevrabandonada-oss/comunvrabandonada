@@ -593,3 +593,13 @@ o valor original, sem repetir envio. SMTP substituto não é replay do gerenciad
 outros cinco fluxos externos NOT_RUN. Recuperação integral NOT_CERTIFIED, backup
 expirado, migration NOT_RUN e seis preflights intactos. Evidências e limites no
 relatório atualizado.
+
+Continuação de 10/10: CI do #540 terminou 8 SUCCESS/34 SKIPPED; não é liberação
+da Escola. Guard de captura passou 13 testes e recusou assuntos mascarados em
+convite/mudança de e-mail. MIME recebido comprovou reescrita do link Auth pelo
+tracking Brevo; a confirmação local usou o link original. Recuperação externa
+integral permanece NOT_CERTIFIED. Sessão do dashboard expirada bloqueia recaptura
+do assunto restante. Resolver fidelidade e contratos externos antes de renovar
+backup, emitir permit ou executar a única migration autorizada condicionalmente.
+Em paralelo, #523 foi reconciliado com main em worktree isolada; seu novo
+checkpoint exige gates próprios. Sem nova funcionalidade, flags ou indexação.

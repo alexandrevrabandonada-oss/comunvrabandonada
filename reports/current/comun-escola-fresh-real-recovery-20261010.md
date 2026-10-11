@@ -354,3 +354,32 @@ Outros cinco fluxos de template continuam NOT_RUN externamente. Cliente Google
 separado é representativo, sem replay da credencial Source. Recuperação externa
 integral NOT_CERTIFIED, backup expirado, recibo/permit não emitidos. Migration
 NOT_RUN, zero DDL/DML Production e seis preflights preservados.
+
+### Fechamento das verificações externas e do CI — 10/10/2026
+
+PR #540 no head `663c249e6efb1ed7a4be6ca4210c1602aabc134c` terminou
+com 8 SUCCESS e 34 SKIPPED, zero failures/pending. Quality
+`38095983129` passou. SKIPPED não certifica recuperação real ou schema.
+
+Guard privado de valores capturados passou 13 testes: rejeita máscaras,
+ausência de conteúdo e injeção no assunto antes de criar containers ou enviar
+mensagens. Auditoria das seis capturas encontrou assuntos mascarados em convite
+e mudança de e-mail. O convite possui suplemento visual comprovado; o assunto de
+mudança de e-mail ainda exige recaptura. Os outros quatro valores legíveis não
+constituem provas de execução dos respectivos fluxos. A sessão do dashboard
+expirou durante a recaptura read-only; nenhuma configuração foi salva.
+
+Inspeção offline do MIME recebido confirmou dois pixels de abertura e um link
+de clique do provedor `sendibt3.com`. O link original de Auth foi substituído.
+A confirmação HTTP303 anterior utilizou a URL original exclusivamente local,
+não o link reescrito recebido. Entrega PASS e confirmação original PASS permanecem
+válidos; confirmação do link recebido NOT_RUN, fidelidade do transporte BLOCKED.
+Nenhum link/pixel foi acessado e nenhuma mensagem adicional foi enviada.
+Evidência privada sanitizada: `auth-invite-delivered-link-contract-20261010.json`.
+A documentação oficial de templates do Supabase alerta que tracking reescreve
+links incompatíveis com Auth: https://supabase.com/docs/guides/auth/auth-email-templates.
+
+Próximo requisito é comprovar um transporte SMTP sem reescrita de links e concluir
+os contratos externos faltantes. Não aceitar headers não documentados como prova.
+Recuperação externa integral continua NOT_CERTIFIED; não emitir recibo/permit,
+não renovar captura apenas para encobrir lacunas e não aplicar migration.
