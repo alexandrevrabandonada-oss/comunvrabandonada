@@ -39,6 +39,10 @@ jobs:
 
       - name: Inspect canonical metadata without business content
         shell: bash
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         run: |
           set -euo pipefail
           test -n "${SUPABASE_DB_URL:-}"

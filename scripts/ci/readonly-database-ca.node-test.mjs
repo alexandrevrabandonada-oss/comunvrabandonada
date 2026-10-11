@@ -26,6 +26,42 @@ const cases = [
   ],
 ];
 
+const libpqPreflights = [
+  "comun-48-2-a-remote-preflight.yml",
+  "comun-48-3-a1-preflight.yml",
+  "comun-48-3-c1-preflight.yml",
+  "comun-48-3-d1-preflight.yml",
+  "comun-48-3-e2-preflight.yml",
+  "comun-48-3-e3-preflight.yml",
+];
+for (const name of libpqPreflights) {
+  test(`${name}: libpq CA and verify-full apply only to read-only SQL`, () => {
+    const workflow = load(read(`.github/workflows/${name}`));
+    assert.equal(workflow.env?.PGSSLROOTCERT, undefined);
+    let selected = 0;
+    for (const job of Object.values(workflow.jobs)) {
+      assert.equal(job.env?.PGSSLROOTCERT, undefined);
+      for (const step of job.steps ?? []) {
+        if (!/\bpsql\b/.test(step.run ?? "")) {
+          assert.equal(step.env?.PGSSLROOTCERT, undefined);
+          continue;
+        }
+        selected++;
+        assert.equal(step.env?.PGSSLROOTCERT, extraCa);
+        assert.equal(step.env?.PGSSLMODE, "verify-full");
+        assert.equal(
+          step.env?.PGOPTIONS,
+          "-c default_transaction_read_only=on",
+        );
+        assert.match(step.run, /begin read only;/i);
+        assert.match(step.run, /rollback;/i);
+        assert.doesNotMatch(step.run, /sslmode=(?:disable|prefer|allow)/);
+      }
+    }
+    assert.equal(selected, 1);
+  });
+}
+
 test("the checked-in public CA is the same pinned certificate as the server-only client", () => {
   const cert = new X509Certificate(read(caPath));
   const source = read("lib/supabase-database-tls.ts");

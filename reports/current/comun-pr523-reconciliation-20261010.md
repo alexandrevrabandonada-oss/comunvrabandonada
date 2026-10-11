@@ -60,3 +60,27 @@ Isso é uma frente de manutenção existente a revisar separadamente; não aplic
 Migration Escola e manifest inalterados. Recuperação externa integral continua
 NOT_CERTIFIED, backup expirado e nenhum permit de schema emitido. Zero escrita
 Production, sem flags, indexação ou merge final. V1 e Escola não certificadas.
+
+## Finding remoto posterior ao checkpoint cbfca278
+
+O Preview Git/Vercel do SHA `cbfca27861dcfac98be20a425a1acef92edbc096`
+ficou READY (`dpl_CbZugpZZnxFhKJbE4TDsqBSqJ7RR`). Não substituir a autoridade
+GitHub Deployment/COST-02 por esse sinal isolado.
+
+Runs 48.2-A `38097416835` e 48.3-A1 `38097416868` falharam antes da consulta
+efetiva: libpq não encontrou `/home/runner/.postgresql/root.crt`. Portanto os
+novos failures não comprovam schema drift; a causa imediata é o contrato TLS do
+executor. O bloqueio conhecido da release Escola continua separado.
+
+Correção nas seis lanes: fornecer `PGSSLROOTCERT` apontando à CA pública pinned
+já versionada, `PGSSLMODE=verify-full` e `PGOPTIONS` read-only somente no passo
+psql. Queries, fingerprints, manifests, permissões e condições de aprovação
+inalterados. Nenhuma CA foi instalada em Production; nenhuma validação TLS foi
+desabilitada. Os jobs sem psql não recebem essa configuração.
+
+17 contratos focais PASS, zero SKIPPED: CA pinned/idêntica ao cliente server-only,
+escopo dos passos, verify-full, transação/rollback read-only e matriz negativa do
+48.2-A. Essa é prova de contrato local; a conexão TLS real exige o próximo SHA
+remoto. Demais provas cbfca278 não são novas execuções: o delta adicional contém
+somente seis workflows, teste de CA e documentação, sem alteração de app/runtime,
+package-lock, migration ou manifest. Novo checkpoint exige Preview/checks próprios.
