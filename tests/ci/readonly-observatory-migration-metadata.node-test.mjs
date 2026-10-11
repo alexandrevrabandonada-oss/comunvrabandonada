@@ -3,6 +3,7 @@ import test from "node:test";
 import { spawnSync } from "node:child_process";
 import {
   readFileSync,
+  existsSync,
   writeFileSync,
   mkdirSync,
   mkdtempSync,
@@ -10,7 +11,8 @@ import {
   rmSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, dirname } from "node:path";
+import { join, dirname, delimiter } from "node:path";
+import { pathToFileURL } from "node:url";
 import { load as parse } from "js-yaml";
 
 const manifestPath =
@@ -71,6 +73,24 @@ console.log(sql.includes('public.comun_schema_releases') ? process.env.TEST_LEDG
       "#!/usr/bin/env node\nconsole.log(process.env.TEST_CHANGED);\n",
       { mode: 0o755 },
     );
+    // Windows execFileSync resolves git.exe rather than an extensionless shell stub.
+    // Preserve the same exact mocked read-only Git call in native Node processes.
+    const gitPreload = join(root, "git-fixture.mjs");
+    if (process.platform === "win32") {
+      writeFileSync(
+        gitPreload,
+        `import cp from 'node:child_process';
+import assert from 'node:assert/strict';
+import {syncBuiltinESMExports} from 'node:module';
+const original=cp.execFileSync;
+cp.execFileSync=(command,args,options)=>{
+  if(command!=='git') return original(command,args,options);
+  assert.deepEqual(args,['diff','--name-only','origin/main...HEAD','--','supabase/migrations']);
+  return (process.env.TEST_CHANGED||'')+'\\n';
+};
+syncBuiltinESMExports();`,
+      );
+    }
     const schema = Object.fromEntries(
       [
         "dbTransportAvailable",
@@ -125,26 +145,77 @@ console.log(sql.includes('public.comun_schema_releases') ? process.env.TEST_LEDG
         pass: false,
       },
     ]) {
-      const result = spawnSync("bash", ["-c", observatoryStep.run], {
-        cwd: root,
-        encoding: "utf8",
-        env: {
-          ...process.env,
-          PATH: `${bin}:${process.env.PATH}`,
-          RUNNER_TEMP: root,
-          SUPABASE_DB_URL: "postgresql://test.invalid/test",
-          TEST_LEDGER: JSON.stringify(scenario.ledger),
-          TEST_SCHEMA: JSON.stringify(scenario.schema),
-          TEST_VERSIONS: scenario.versions,
-          TEST_CHANGED: scenario.changed || "",
+      // Each negative case owns its artifact; never read a previous scenario's proof.
+      const diagnosticPath = join(
+        root,
+        ".ci-artifacts/48-2-a-preflight/drift-diagnostic.json",
+      );
+      rmSync(diagnosticPath, { force: true });
+      const result = spawnSync(
+        process.env.COMUN_TEST_BASH ?? "bash",
+        ["-c", observatoryStep.run],
+        {
+          cwd: root,
+          encoding: "utf8",
+          env: {
+            ...process.env,
+            PATH: `${bin}${delimiter}${process.env.PATH}`,
+            RUNNER_TEMP: root,
+            ...(process.platform === "win32"
+              ? { NODE_OPTIONS: `--import=${pathToFileURL(gitPreload).href}` }
+              : {}),
+            SUPABASE_DB_URL: "postgresql://test.invalid/test",
+            TEST_LEDGER: JSON.stringify(scenario.ledger),
+            TEST_SCHEMA: JSON.stringify(scenario.schema),
+            TEST_VERSIONS: scenario.versions,
+            TEST_CHANGED: scenario.changed || "",
+          },
         },
-      });
+      );
       assert.equal(result.status === 0, scenario.pass, result.stderr);
+      if (scenario.versions === "") {
+        // The shell rejects an empty history before the diagnostic SQL/Node phase.
+        assert.equal(existsSync(diagnosticPath), false);
+      } else if (JSON.stringify(scenario.ledger) === JSON.stringify([row])) {
+        const diagnostic = JSON.parse(
+          readFileSync(
+            join(root, ".ci-artifacts/48-2-a-preflight/drift-diagnostic.json"),
+            "utf8",
+          ),
+        );
+        assert.equal(
+          diagnostic.businessRowsRead,
+          scenario.schema.businessRowsRead,
+        );
+        assert.equal(diagnostic.exactExternalHardeningLedgerAccepted, true);
+        assert.deepEqual(
+          diagnostic.unknownRemoteMigrations,
+          scenario.versions.includes("20990101000000")
+            ? ["20990101000000"]
+            : [],
+        );
+        assert.deepEqual(
+          diagnostic.pendingNormalMigrations,
+          scenario.versions === "" ? [normal] : [],
+        );
+        assert.deepEqual(
+          diagnostic.failedSchemaControls,
+          scenario.schema.p4ProjectionRlsEnabled === false
+            ? ["p4ProjectionRlsEnabled"]
+            : [],
+        );
+      }
       for (const path of migrations)
         assert.deepEqual(readFileSync(join(root, path)), readFileSync(path));
     }
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    assert.ok(root.startsWith(join(tmpdir(), "comun-observatory-plan-")));
+    rmSync(root, {
+      recursive: true,
+      force: true,
+      maxRetries: 3,
+      retryDelay: 100,
+    });
   }
 });
 
@@ -169,5 +240,107 @@ test("both coherence entry points enable the public registry only in their local
       workflow.env?.COMUN_OBSERVATORIES_FOUNDATION_ENABLED,
       undefined,
     );
+  }
+});
+
+test("48.2-A diagnostic remains read-only and does not turn pending or unknown migrations into success", () => {
+  assert.equal(
+    observatoryStep.env.PGOPTIONS,
+    "-c default_transaction_read_only=on",
+  );
+  assert.match(
+    observatoryStep.run,
+    /pending.length \|\| unknown.length \|\| observatoryMigrations.length/,
+  );
+  assert.match(observatoryStep.run, /drift-diagnostic\.json/);
+  assert.match(observatoryStep.run, /DIAGNOSTIC_FORMAT_INVALID/);
+});
+
+test("portable Node gate preserves sanitized pending, unknown and schema failures", () => {
+  const nodeBody = observatoryStep.run.match(
+    /node --input-type=module - <<'NODE'\n([\s\S]+?)\nNODE/,
+  )[1];
+  const childImport = "import { execFileSync } from 'node:child_process';";
+  assert.ok(nodeBody.includes(childImport));
+  // Only Git discovery is mocked; execute the actual workflow classifier body.
+  const code = nodeBody.replace(
+    childImport,
+    "const execFileSync = () => process.env.TEST_CHANGED || '';",
+  );
+  for (const scenario of [
+    { pending: [], unknown: [], pass: true },
+    { pending: ["20261006134804"], unknown: [], pass: false },
+    { pending: [], unknown: ["20990101000000"], pass: false },
+    { pending: [], unknown: [], badSchema: true, pass: false },
+    { pending: [], unknown: [], businessRowsRead: true, pass: false },
+    {
+      pending: [],
+      unknown: [],
+      changed: "supabase/migrations/20990101000000_unknown.sql",
+      pass: false,
+    },
+  ]) {
+    const root = mkdtempSync(join(tmpdir(), "comun-diagnostic-portable-"));
+    try {
+      for (const path of [
+        manifestPath,
+        "scripts/ci/readonly-reconciled-migration-plan.mjs",
+      ]) {
+        mkdirSync(dirname(join(root, path)), { recursive: true });
+        cpSync(path, join(root, path));
+      }
+      const dir = join(root, "comun-48-2-a");
+      const artifacts = join(root, ".ci-artifacts/48-2-a-preflight");
+      mkdirSync(dir);
+      mkdirSync(artifacts, { recursive: true });
+      const schema = Object.fromEntries(
+        [
+          "dbTransportAvailable",
+          "psqlReadOnlyAvailable",
+          "p4ProjectionPresent",
+          "p4ProjectionRlsEnabled",
+          "p4PublicGeometryPresent",
+          "p6cCApplied",
+          "transactionReadOnly",
+        ].map((key) => [key, true]),
+      );
+      schema.businessRowsRead = scenario.businessRowsRead ?? false;
+      if (scenario.badSchema) schema.p4ProjectionRlsEnabled = false;
+      writeFileSync(join(artifacts, "schema.json"), JSON.stringify(schema));
+      writeFileSync(join(dir, "hardening-ledger.json"), JSON.stringify([row]));
+      writeFileSync(
+        join(dir, "pending-normal-migrations.txt"),
+        scenario.pending.join("\n"),
+      );
+      writeFileSync(
+        join(dir, "unknown-remote-migrations.txt"),
+        scenario.unknown.join("\n"),
+      );
+      const result = spawnSync(process.execPath, ["--input-type=module", "-"], {
+        cwd: root,
+        input: code,
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          RUNNER_TEMP: root,
+          TEST_CHANGED: scenario.changed || "",
+        },
+      });
+      assert.equal(result.status === 0, scenario.pass, result.stderr);
+      const diagnostic = JSON.parse(
+        readFileSync(join(artifacts, "drift-diagnostic.json"), "utf8"),
+      );
+      assert.deepEqual(diagnostic.pendingNormalMigrations, scenario.pending);
+      assert.deepEqual(diagnostic.unknownRemoteMigrations, scenario.unknown);
+      assert.equal(
+        existsSync(join(artifacts, "migration-proof.json")),
+        scenario.pass,
+      );
+      if (!scenario.pass)
+        assert.match(result.stderr, /COMUN_48_2_A_BLOCKED_REMOTE_SCHEMA_DRIFT/);
+    } finally {
+      assert.ok(root.startsWith(join(tmpdir(), "comun-diagnostic-portable-")));
+      rmSync(root, { recursive: true, force: true });
+    }
   }
 });

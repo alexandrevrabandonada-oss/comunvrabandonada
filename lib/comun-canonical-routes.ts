@@ -8,7 +8,7 @@ export const comunCanonicalRoutes = {
   sidewalkPriority: (id?: string | null) =>
     `/comun/calcadas/prioridades${id ? `?prioridade=${encodeURIComponent(id)}` : ""}`,
   result: (slug?: string | null) =>
-    `/comun/resultados${slug ? `?resultado=${encodeURIComponent(slug)}` : ""}`,
+    `/comun/resultados${slug ? `/${encodeURIComponent(slug)}` : ""}`,
   sidewalkMemory: (pautaSlug: string, memorySlug: string) =>
     `/comun/pautas/${pautaSlug}/memoria/${memorySlug}`,
   inbox: () => "/comun/caixa-de-entrada",

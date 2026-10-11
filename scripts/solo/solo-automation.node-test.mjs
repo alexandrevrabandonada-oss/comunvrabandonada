@@ -201,6 +201,15 @@ test("canonical workflows remain active and known additions are explicit", () =>
     "comun-sidewalk-remote-diagnostic.yml",
   ];
   const knownAdditional = new Set([
+    // Reviewed Escola recovery and public-sharing lanes; unknown additions still fail.
+    "comun-escola-readonly-navigation.yml",
+    "comun-learning-atomic-disposable.yml",
+    "comun-learning-production-pre.yml",
+    "comun-learning-recovery-contracts.yml",
+    "comun-learning-release-review.yml",
+    "comun-miniapp-experience.yml",
+    "comun-public-distribution.yml",
+    "comun-public-search-contract.yml",
     "comun-participation-continuity.yml",
     "comun-49-2-a0-r4-private-legitimacy-disposable.yml",
     "comun-49-2-a0-r5-public-projection-disposable.yml",

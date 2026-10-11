@@ -1,3 +1,4 @@
+import { ComunPracticeGuidance } from "@/components/comun-practice-guidance";
 import Link from "next/link";
 import { publicPautaStateLabel } from "@/lib/comun-public-labels";
 import {
@@ -167,6 +168,7 @@ export function PautaAppShell({
             {space.title}
           </h1>
           <p className="mt-5 max-w-3xl text-lg font-medium">{space.summary}</p>
+          <ComunPracticeGuidance stage="pauta" context="pauta" appV2={false} />
           <dl className="mt-6 grid gap-3 sm:grid-cols-3">
             <div>
               <dt className="text-xs font-black uppercase">Etapa atual</dt>
@@ -362,6 +364,7 @@ function PautaAppShellV2({
           </header>
         )}
 
+        <ComunPracticeGuidance stage="pauta" context="pauta" />
         <section
           className="mt-7 border-l-4 border-comun-yellow pl-4"
           aria-labelledby="pauta-now"

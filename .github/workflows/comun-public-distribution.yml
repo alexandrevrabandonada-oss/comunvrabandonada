@@ -1,0 +1,31 @@
+name: COMUN public distribution browser contract
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/comun/observatorios/**"
+      - "lib/comun-specialized-observatory-projection*"
+      - "components/comun-pwa-runtime.tsx"
+      - "tests/specialized-observatory-sharing.spec.ts"
+      - "playwright.public-distribution.config.ts"
+      - ".github/workflows/comun-public-distribution.yml"
+permissions: { contents: read }
+jobs:
+  public-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - uses: ./.github/actions/setup-playwright-browser
+      - run: npx playwright test -c playwright.public-distribution.config.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-distribution-${{ github.sha }}
+          path: test-results
+          if-no-files-found: warn
+          retention-days: 14

@@ -26,6 +26,52 @@ const cases = [
   ],
 ];
 
+const libpqPreflights = [
+  "comun-48-2-a-remote-preflight.yml",
+  "comun-48-3-a1-preflight.yml",
+  "comun-48-3-c1-preflight.yml",
+  "comun-48-3-d1-preflight.yml",
+  "comun-48-3-e2-preflight.yml",
+  "comun-48-3-e3-preflight.yml",
+];
+for (const name of libpqPreflights) {
+  test(`${name}: libpq CA and verify-full apply only to read-only SQL`, () => {
+    const workflow = load(read(`.github/workflows/${name}`));
+    assert.equal(workflow.env?.PGSSLROOTCERT, undefined);
+    let selected = 0;
+    for (const job of Object.values(workflow.jobs)) {
+      assert.equal(job.env?.PGSSLROOTCERT, undefined);
+      for (const step of job.steps ?? []) {
+        const direct = /\bpsql\b/.test(step.run ?? "");
+        const planner = (step.run ?? "").includes(
+          "readonly-reconciled-migration-plan.mjs",
+        );
+        if (!direct && !planner) {
+          assert.equal(step.env?.PGSSLROOTCERT, undefined);
+          continue;
+        }
+        selected++;
+        assert.equal(step.env?.PGSSLROOTCERT, extraCa);
+        assert.equal(step.env?.PGSSLMODE, "verify-full");
+        assert.equal(
+          step.env?.PGOPTIONS,
+          "-c default_transaction_read_only=on",
+        );
+        const sqlSource = direct
+          ? step.run
+          : read("scripts/ci/readonly-reconciled-migration-plan.mjs");
+        assert.match(sqlSource, /begin read only;/i);
+        assert.match(sqlSource, /rollback;/i);
+        assert.doesNotMatch(step.run, /sslmode=(?:disable|prefer|allow)/);
+      }
+    }
+    assert.equal(
+      selected,
+      name === "comun-48-2-a-remote-preflight.yml" ? 1 : 2,
+    );
+  });
+}
+
 test("the checked-in public CA is the same pinned certificate as the server-only client", () => {
   const cert = new X509Certificate(read(caPath));
   const source = read("lib/supabase-database-tls.ts");

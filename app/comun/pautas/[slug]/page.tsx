@@ -1,3 +1,8 @@
+import {
+  getPublicPautaSpaceBySlug,
+  pautaMetadata,
+} from "@/lib/comun-public-sharing";
+import { ComunPracticeGuidance } from "@/components/comun-practice-guidance";
 import Link from "next/link";
 import { publicPautaStateLabel } from "@/lib/comun-public-labels";
 import { notFound } from "next/navigation";
@@ -5,7 +10,6 @@ import { submitPautaContribution } from "@/app/actions";
 import { ComunShell, PrimaryLink, Section } from "@/components/comun-shell";
 import { getCommunity, getIssue } from "@/lib/comun-data";
 import {
-  getPublicPautaSpaceBySlug,
   listApprovedPautaContributions,
   listPublicPautaEvidence,
   listPublicPautaTasks,
@@ -88,7 +92,11 @@ export default async function PautaPage(props: {
   const space = await getPublicPautaSpaceBySlug(params.slug);
   if (!space)
     return (
-      <LegacyIssuePage slug={params.slug} experiencePilot={experiencePilot} />
+      <LegacyIssuePage
+        slug={params.slug}
+        experiencePilot={experiencePilot}
+        appV2={appV2}
+      />
     );
 
   if (isComunPautasVivasCoreEnabled()) {
@@ -145,6 +153,7 @@ export default async function PautaPage(props: {
       : null;
     return (
       <PautaVivaDetail
+        appV2={appV2}
         space={space}
         evidence={evidence}
         tasks={tasks}
@@ -460,6 +469,7 @@ export default async function PautaPage(props: {
           />
           <ComunEntityHeader context={entityContext} />
           <ComunRelationRail relations={relations} />
+          <ComunPracticeGuidance stage="pauta" context="pauta" appV2={appV2} />
           <section className="mt-8" aria-labelledby="pauta-v2-counts">
             <h2 id="pauta-v2-counts" className="comun-v2-section-title">
               Nesta pauta
@@ -583,6 +593,11 @@ export default async function PautaPage(props: {
               <p className="comun-prose mt-4 max-w-3xl text-comun-paper/78">
                 {space.summary ?? "Pauta em organizacao coletiva."}
               </p>
+              <ComunPracticeGuidance
+                stage="pauta"
+                context="pauta"
+                appV2={appV2}
+              />
               {space.next_step ? (
                 <p className="mt-4 border-2 border-comun-yellow bg-comun-black p-4 text-sm font-bold text-comun-paper">
                   Proximo passo: {space.next_step}
@@ -1067,9 +1082,11 @@ export default async function PautaPage(props: {
 async function LegacyIssuePage({
   slug,
   experiencePilot,
+  appV2,
 }: {
   slug: string;
   experiencePilot: boolean;
+  appV2: boolean;
 }) {
   const issue = await getIssue(slug);
   if (!issue) notFound();
@@ -1097,6 +1114,7 @@ async function LegacyIssuePage({
           <p className="comun-prose mt-4 max-w-3xl text-comun-paper/80">
             {issue.summary}
           </p>
+          <ComunPracticeGuidance stage="pauta" context="pauta" appV2={appV2} />
           <p className="mt-3 text-sm text-comun-paper/60">
             Comunidade relacionada: {community?.name ?? "-"}
           </p>
@@ -1237,4 +1255,12 @@ function EmptyState({ text }: { text: string }) {
       {text}
     </p>
   );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  return pautaMetadata((await params).slug);
 }

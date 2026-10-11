@@ -39,6 +39,10 @@ jobs:
 
       - name: Verify zero migration and metadata-only schema contract
         shell: bash
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         run: |
           set -euo pipefail
           test -n "${SUPABASE_DB_URL:-}"
@@ -99,6 +103,10 @@ jobs:
       - name: Prove remote migration plan is empty
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         run: |
           set -euo pipefail
           node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs

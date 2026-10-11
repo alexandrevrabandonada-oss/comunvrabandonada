@@ -5,6 +5,7 @@ import {
   getSidewalkMiniapp,
   getSidewalkMiniappRecord,
 } from "../../lib/sidewalk-miniapp";
+import { getPublicSidewalkMemoryDetail } from "../../lib/sidewalk-pauta";
 const screenshot = (page: any, name: string, project: string) =>
   page.screenshot({
     path: `test-results/evidence/sprint-38-${name}-${project}.png`,
@@ -20,6 +21,14 @@ test.beforeAll(async () => {
     record?.record.name,
     "public fixture must be readable before UI checks",
   ).toBe("Trecho de calçada quebrada — E2E");
+  const memory = await getPublicSidewalkMemoryDetail(
+    fixture.slug,
+    fixture.memorySlug,
+  );
+  expect(
+    memory?.title,
+    "public memory fixture must be readable before UI checks",
+  ).toBe("O que aprendemos sobre as calçadas neste ciclo de teste?");
   const miniapp = await getSidewalkMiniapp();
   expect(
     miniapp?.pauta.slug,
@@ -121,9 +130,10 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
     page.getByRole("heading", { name: "Resultados e memória", exact: true }),
   ).toBeVisible();
   await screenshot(page, "resultado", testInfo.project.name);
-  await page.goto(
+  const memoryResponse = await page.goto(
     `/comun/pautas/${fixture.slug}/memoria/${fixture.memorySlug}`,
   );
+  expect(memoryResponse?.status(), "public memory HTTP response").toBe(200);
   await expect(
     page.getByRole("heading", {
       name: "O que aprendemos sobre as calçadas neste ciclo de teste?",

@@ -1,0 +1,93 @@
+{
+  "baselineMain": "400b17b350a00de913b6e802586c890c1e2999d9",
+  "originalRemoteHead": "cf0e8e41a084e073a728cca269a0dbc38683bfe1",
+  "mergeCommit": "d371bc6c247bcb6600e6e81c11652bbdb20a13dc",
+  "node": "v22.19.0",
+  "gitBash": "C:/Program Files/Git/bin/bash.exe",
+  "files": {
+    "scripts/quality/run-miniapp-experience.node-test.mjs": "fd553cd49d6bcf59fe04a85b18c71674737ac55183dd3f05433f516b0ac6e91f",
+    "tests/ci/readonly-observatory-migration-metadata.node-test.mjs": "4a269de06fd503f377e095598e09e0e9af4544b738f7e9502075d2c0be6a63e5",
+    "scripts/solo/solo-automation.node-test.mjs": "bfd9e6c3de61cb3ed9458c206bd407df85da2bce3638c58279cb151dc8e0851d",
+    "package.json": "e68a6d45d0b6fbd5e7d4b133b1056cfd7b40381dd0a1f7fefa400753a24cead1",
+    "package-lock.json": "5a1b1c1a59d368641576581a88fb5346c76352b3b2ea0c2baeb765569562ca09",
+    "supabase/migrations/20261006134804_comun_learning_r0.sql": "5036a833b1b681487204349f8ebc58690228a2f5aa932943a81f60df1d3b6ba7",
+    "supabase/releases/20261006134804-comun-learning-r0.json": "3b598bc6b3ea3dfe462ba205b6747016aace52de87c87dec332ecbb1a567d4de"
+  },
+  "tests": [
+    {
+      "name": "unit",
+      "status": "PASS",
+      "count": 1509,
+      "logSha256": "24133cad8a6313f974e6b657abcc9fd634683715bd5a2795516898b5051b8fde",
+      "privateLogBasename": "product-523-unit-final.log"
+    },
+    {
+      "name": "node-cost-and-windows",
+      "status": "PASS",
+      "count": 45,
+      "logSha256": "60a3d2028042cf3de54a2551aa160258dbef705bec74195b3418e80e1a0dd7d1",
+      "privateLogBasename": "product-523-node-final.log"
+    },
+    {
+      "name": "solo",
+      "status": "PASS",
+      "count": 113,
+      "logSha256": "1e3ed2488ed1586ede4d7dc6367bf7971db33832d30bb37fce44d5610e410ac7",
+      "privateLogBasename": "product-523-solo-fixed.log"
+    },
+    {
+      "name": "build",
+      "status": "PASS",
+      "logSha256": "33c9a1ab37eafa0181d76ebebe95dcbca4cb3df56b6a5256ffc19b0819b2af25",
+      "privateLogBasename": "product-523-build-final.log"
+    },
+    {
+      "name": "typecheck",
+      "status": "PASS",
+      "logSha256": "58ed80c0b5eaa5921d4339db2d21a17d536f8aca5accf3cf90d81c83de01d716",
+      "privateLogBasename": "product-523-typecheck-final.log"
+    },
+    {
+      "name": "lint",
+      "status": "PASS",
+      "logSha256": "c0e2fbedd5b54572872c0f4c7a19c53b9b104b38f00d2224f96cb14a8cee6248",
+      "privateLogBasename": "product-523-lint-final.log"
+    },
+    {
+      "name": "privileges",
+      "status": "PASS",
+      "logSha256": "265d022fa0b98d5a005c5c9e6c3b7a10bef2a4f17fd93718c79f63bae98c683a",
+      "privateLogBasename": "product-523-privileges.log"
+    },
+    {
+      "name": "sql-core",
+      "status": "PASS",
+      "logSha256": "f955d870bfa2c3f6a1a4098cc4c3aff9d134181fb2d1ef29c5722ead1b20fa1a",
+      "privateLogBasename": "product-523-sql-core.log"
+    },
+    {
+      "name": "sql-attachment",
+      "status": "PASS",
+      "logSha256": "327133fb36f9cf26c956fe722ce4239efcb67f4ed968692a4c11002cbf82e25f",
+      "privateLogBasename": "product-523-sql-attachment.log"
+    },
+    {
+      "name": "sql-wallet",
+      "status": "PASS",
+      "logSha256": "6dcfd066711eb46159232bf0f46675eccc73ee3ac1b15384b10f2dd720d3200a",
+      "privateLogBasename": "product-523-sql-wallet.log"
+    },
+    {
+      "name": "dependency-audit",
+      "status": "FAIL",
+      "count": 12,
+      "logSha256": "99c203ac61d06ef2690dba4668300eaa5ad7d8dad313d24a07c1a45b53deb4af",
+      "privateLogBasename": "product-523-dependency-audit.json"
+    }
+  ],
+  "skippedCountInPassingNodeSuites": 0,
+  "productionSchemaWrites": 0,
+  "publicEvidenceContainsPrivateData": false,
+  "remoteChecks": "PENDING_NEW_CHECKPOINT",
+  "browserThisContinuation": "NOT_RUN"
+}

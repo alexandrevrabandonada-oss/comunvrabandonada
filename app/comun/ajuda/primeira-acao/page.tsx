@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ComunPracticeMaterialLinks } from "@/components/comun-practice-material-links";
 import { ComunShell } from "@/components/comun-shell";
 import { ComunBreadcrumbs, ComunSection } from "@/components/comun-ui";
 import { isComunAppV2, withComunAppV2 } from "@/lib/comun-experience";
@@ -109,6 +110,10 @@ export default async function FirstActionPage({
             Consultar este material não registra uma formação concluída nem
             assume uma tarefa.
           </p>
+          <ComunPracticeMaterialLinks
+            stage={stage ?? "registro"}
+            appV2={appV2}
+          />
           <Link
             href={href(guidance.href)}
             prefetch={false}

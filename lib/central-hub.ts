@@ -218,7 +218,9 @@ export async function getPublicResult(slug: string) {
     .maybeSingle();
   if (
     !data ||
-    ((data as any).pauta && (data as any).pauta.visibility !== "public")
+    ((data as any).pauta && (data as any).pauta.visibility !== "public") ||
+    ((data as any).action && (data as any).action.visibility !== "public") ||
+    ((data as any).territory && (data as any).territory.visibility !== "public")
   )
     return null;
   const { data: memory } = await c
