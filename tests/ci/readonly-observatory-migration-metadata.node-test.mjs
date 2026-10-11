@@ -11,7 +11,8 @@ import {
   rmSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, dirname } from "node:path";
+import { join, dirname, delimiter } from "node:path";
+import { pathToFileURL } from "node:url";
 import { load as parse } from "js-yaml";
 
 const manifestPath =
@@ -72,6 +73,24 @@ console.log(sql.includes('public.comun_schema_releases') ? process.env.TEST_LEDG
       "#!/usr/bin/env node\nconsole.log(process.env.TEST_CHANGED);\n",
       { mode: 0o755 },
     );
+    // Windows execFileSync resolves git.exe rather than an extensionless shell stub.
+    // Preserve the same exact mocked read-only Git call in native Node processes.
+    const gitPreload = join(root, "git-fixture.mjs");
+    if (process.platform === "win32") {
+      writeFileSync(
+        gitPreload,
+        `import cp from 'node:child_process';
+import assert from 'node:assert/strict';
+import {syncBuiltinESMExports} from 'node:module';
+const original=cp.execFileSync;
+cp.execFileSync=(command,args,options)=>{
+  if(command!=='git') return original(command,args,options);
+  assert.deepEqual(args,['diff','--name-only','origin/main...HEAD','--','supabase/migrations']);
+  return (process.env.TEST_CHANGED||'')+'\\n';
+};
+syncBuiltinESMExports();`,
+      );
+    }
     const schema = Object.fromEntries(
       [
         "dbTransportAvailable",
@@ -132,20 +151,27 @@ console.log(sql.includes('public.comun_schema_releases') ? process.env.TEST_LEDG
         ".ci-artifacts/48-2-a-preflight/drift-diagnostic.json",
       );
       rmSync(diagnosticPath, { force: true });
-      const result = spawnSync("bash", ["-c", observatoryStep.run], {
-        cwd: root,
-        encoding: "utf8",
-        env: {
-          ...process.env,
-          PATH: `${bin}:${process.env.PATH}`,
-          RUNNER_TEMP: root,
-          SUPABASE_DB_URL: "postgresql://test.invalid/test",
-          TEST_LEDGER: JSON.stringify(scenario.ledger),
-          TEST_SCHEMA: JSON.stringify(scenario.schema),
-          TEST_VERSIONS: scenario.versions,
-          TEST_CHANGED: scenario.changed || "",
+      const result = spawnSync(
+        process.env.COMUN_TEST_BASH ?? "bash",
+        ["-c", observatoryStep.run],
+        {
+          cwd: root,
+          encoding: "utf8",
+          env: {
+            ...process.env,
+            PATH: `${bin}${delimiter}${process.env.PATH}`,
+            RUNNER_TEMP: root,
+            ...(process.platform === "win32"
+              ? { NODE_OPTIONS: `--import=${pathToFileURL(gitPreload).href}` }
+              : {}),
+            SUPABASE_DB_URL: "postgresql://test.invalid/test",
+            TEST_LEDGER: JSON.stringify(scenario.ledger),
+            TEST_SCHEMA: JSON.stringify(scenario.schema),
+            TEST_VERSIONS: scenario.versions,
+            TEST_CHANGED: scenario.changed || "",
+          },
         },
-      });
+      );
       assert.equal(result.status === 0, scenario.pass, result.stderr);
       if (scenario.versions === "") {
         // The shell rejects an empty history before the diagnostic SQL/Node phase.
@@ -183,7 +209,13 @@ console.log(sql.includes('public.comun_schema_releases') ? process.env.TEST_LEDG
         assert.deepEqual(readFileSync(join(root, path)), readFileSync(path));
     }
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    assert.ok(root.startsWith(join(tmpdir(), "comun-observatory-plan-")));
+    rmSync(root, {
+      recursive: true,
+      force: true,
+      maxRetries: 3,
+      retryDelay: 100,
+    });
   }
 });
 

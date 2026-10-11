@@ -4,6 +4,7 @@ import { mkdtempSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { test } from "node:test";
+import { pathToFileURL } from "node:url";
 
 function invoke({ baseUrl, code = "0", signal, error = false } = {}) {
   const directory = mkdtempSync(join(tmpdir(), "comun-miniapp-runner-"));
@@ -48,7 +49,7 @@ function invoke({ baseUrl, code = "0", signal, error = false } = {}) {
       process.execPath,
       [
         "--import",
-        preload,
+        pathToFileURL(preload).href,
         resolve("scripts/quality/run-miniapp-experience.mjs"),
         "--project=mobile-360",
         "--grep",

@@ -783,6 +783,7 @@ Main confirmado em `4bf839d61a6eb77965c1efa0a4ebbbe307cfdd21`: #519 e #531 integ
 49-H/49-I: fontes de INEA e ANEEL passam a ter metadados coerentes com a projeção pública e caminhos explícitos de retorno, inclusive para quem recebeu um link direto. Prova de navegador automatizada própria foi adicionada; não equivale a aparelho físico ou aprovação humana.
 
 Escola: #532 captura identidade allowlisted, catálogos, histórico e ledgers em transação read-only. A captura de `0408c591` (run 37855395017, artefato 11583906100) confirmou os cinco ledgers aceitos, zero findings, fingerprints R5 intactos e Escola ausente. Somente `20261006134804` é pendência acionável; as duas omissões históricas permanecem explicitamente registradas pela reconciliação canônica existente. O ensaio Production-like exige equivalência pública e privada antes de aplicar a migration somente em banco descartável. Promoção, flags e capacidade de backup do provedor continuam sem certificação/autorização nesta rodada.
+
 ## Escola: captura real e lacuna de recuperação — 08/10/2026
 
 A senha do banco foi renovada pelo usuário; a conexão read-only foi comprovada.
@@ -841,7 +842,6 @@ PR #536 integrado em `eb2cb0156adf223d608e222677cccc00bf84e071` após 42 SUCCESS
 Ensaio controlado local provado em `c4f4facafa1674352bd5b93d5c660b3bd4f45b3c`: verificações de catálogo privado e privilégios antes do COMMIT, rollback schema/history/ledger/drift, replay recusado e resposta perdida do COMMIT reconciliada read-only, sem retry de escrita. Nova lane descartável sem secrets Production preparada para repetir essa prova no novo SHA. Evidências e limites em `reports/current/comun-escola-controlled-rehearsal.md`.
 
 Próximo passo: concluir checks pós-merge e do candidato; recuperar acesso PostgreSQL protegido e renovar/ensaiar backup real antes de qualquer schema write. Executor remoto não certificado; migration Escola NOT_RUN; seis preflights do #523 preservados. Recuperação completa, flags, indexação e operação pública continuam não certificadas.
-
 
 ## Reconciliação do candidato público #523 — 10/10/2026
 
