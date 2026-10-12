@@ -7,14 +7,22 @@
   "candidates": {
     "recovery": {
       "pr": 540,
-      "sha": "82b6591d3b3e85384bd9257b71e5436d31771b1e",
-      "tree": "e3a4b837e7867dfaabc5a48f5ad6d913bf44d1ab",
-      "state": "DRAFT_RECOVERY_INCOMPLETE"
+      "sha": "f8b8b1d158c1e1f08d7e70ac49e01efa932ee9d3",
+      "tree": "8354b8c9bc92158c187a8da7b06bbeeaaebbfe8a",
+      "state": "DRAFT_RECOVERY_INCOMPLETE",
+      "shaScope": "Local functional; checkpoint may change documentation only. No remote PASS transferred from 82b6591d."
     },
     "product": {
       "pr": 523,
       "sha": "6c52ec9cac39b7185ef3bbb0ba2201ce19053a98",
       "state": "DRAFT_SIX_SCHEMA_PREFLIGHTS_BLOCKED"
+    },
+    "continuity": {
+      "pr": 541,
+      "sha": "bf1b5f98da5ee8386a40f2f1feae39c41ba34fbc",
+      "tree": "6aa5bf692965685f0ae1cdab72264d227566e4d7",
+      "functionalSha": "42f7ddd6a55b0203def07dd0136b3634526c8b07",
+      "state": "DRAFT_LOCAL_PASS_REMOTE_PENDING"
     }
   },
   "validEvidence": [
@@ -42,6 +50,18 @@
       "result": "PASS",
       "proofSha256": "c4238c632ce8edf44f71ad83203c7ad19c4b7675add94aa4b21ea1b0a55ab7e3",
       "limits": "Not five other Auth flows, browser click or complete external recovery."
+    },
+    {
+      "scope": "Bounded Auth batch preparation; no send",
+      "sha": "f8b8b1d158c1e1f08d7e70ac49e01efa932ee9d3",
+      "result": "PASS_LOCAL_33",
+      "limits": "Five new synthetic guard contracts plus unchanged 28; not external Auth flows. Reproduced unquoted-anchor regression fixed."
+    },
+    {
+      "scope": "Clipboard continuity actual React/CSS in Chromium",
+      "sha": "42f7ddd6a55b0203def07dd0136b3634526c8b07",
+      "result": "PASS_LOCAL_5",
+      "limits": "Synthetic text and controlled clipboard. Build/TypeScript/focal ESLint PASS; no RLS/human/device proof."
     }
   ],
   "authorization": {
@@ -101,7 +121,7 @@
       "detail": "Real devices, Safari/Firefox and human journey remain NOT_RUN; do not add these as new migration gates."
     }
   ],
-  "nextExecutableAction": "Prepare bounded five-flow Auth battery and independent clipboard-denial fallback on main; reuse exact accepted evidence.",
+  "nextExecutableAction": "Follow #541 exact checks/Preview; integrate only if all applicable gates pass. Auth batch awaits unambiguous Source Subject and local real-flow generation before external send.",
   "holderDecisions": [
     "Clarify whether ok was a literal Source Subject or acknowledgement; no inferred default"
   ],
