@@ -85,6 +85,11 @@ export function prepareRecoveryBatch(messages) {
       "AUTH_BATCH_HTML_REJECTED",
     );
     const links = [...html.matchAll(/<a\b[^>]*\bhref\s*=\s*(["'])(.*?)\1/gi)];
+    assert.equal(
+      (html.match(/<a\b/gi) ?? []).length,
+      links.length,
+      "AUTH_BATCH_UNREVIEWED_ANCHOR_REJECTED",
+    );
     if (expectedUrl !== null) {
       assert.equal(expectedCode, null, "AUTH_BATCH_MIXED_TOKEN_REJECTED");
       assert.equal(links.length, 1, "AUTH_BATCH_LINK_COUNT_REJECTED");

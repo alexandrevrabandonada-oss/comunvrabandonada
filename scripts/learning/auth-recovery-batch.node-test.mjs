@@ -69,6 +69,16 @@ test("tracking, Production URL and mutated token fail closed", () => {
       prepareRecoveryBatch([
         {
           ...link("signup"),
+          html: link("signup").html + "<a href=javascript:alert(1)>Extra</a>",
+        },
+      ]),
+    /UNREVIEWED_ANCHOR_REJECTED/,
+  );
+  assert.throws(
+    () =>
+      prepareRecoveryBatch([
+        {
+          ...link("signup"),
           html:
             link("signup").html + '<img src="https://tracking.example/pixel">',
         },
