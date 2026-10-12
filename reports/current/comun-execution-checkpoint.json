@@ -1,8 +1,8 @@
 {
   "format": "COMUN_EXECUTION_CHECKPOINT_V1",
   "updatedOn": "2026-10-12",
-  "objective": "Fechar recuperação da Escola sem dispensar gates; entregar continuidade independente na ouvidoria.",
-  "completion": "Entrega independente testada e revisável; Escola somente após recibo real completo, backup <=1h e PRE <=5min.",
+  "objective": "Concluir o lote Auth externo já autorizado e preparar a janela da única migration Escola; sem nova integração de produto.",
+  "completion": "Cinco fluxos externos comprovados, backup real fresco/restauração isolada <=1h e PRE <=5min com permit válido; migration somente após todos os requisitos.",
   "mainObserved": "8bb8cd9de9afe68293de82c6b7ca97ba4730d01f",
   "candidates": {
     "recovery": {
@@ -16,7 +16,9 @@
     "product": {
       "pr": 523,
       "sha": "6c52ec9cac39b7185ef3bbb0ba2201ce19053a98",
-      "state": "DRAFT_SIX_SCHEMA_PREFLIGHTS_BLOCKED"
+      "state": "DRAFT_SIX_SCHEMA_PREFLIGHTS_BLOCKED",
+      "baseRecorded": "400b17b350a00de913b6e802586c890c1e2999d9",
+      "baseStatus": "HISTORICAL_NOT_CURRENT_MAIN; no reconciliation or merge this round"
     },
     "continuity": {
       "pr": 541,
@@ -102,6 +104,22 @@
       "qualityRun": "38264701423",
       "civicRun": "38264701196",
       "sha": "8bb8cd9de9afe68293de82c6b7ca97ba4730d01f"
+    },
+    {
+      "proofSha256": "2e43798cf352a3d19077dbc9ab92589b66f456da8956cfe827a393fbe37c0f57",
+      "subjectSha256": "c2736949b6fef7a5b5ae9670024e3d81800152e8f454785a83a31f74cca570d1",
+      "limits": "Human transcription, not live API recapture; original masked envelope preserved; not Auth/external delivery PASS",
+      "subject": "Confirm Email Change",
+      "scope": "Change-email Source exact Subject plus preserved body capture",
+      "result": "PASS_HUMAN_READ_SOURCE",
+      "bodySha256": "8d8e026d8a9412631b39bb08bd40426d4a7bd383777946a5356e9685d72a3df6"
+    },
+    {
+      "results": "Both HTTP 400/captcha_failed; zero SMTP connections/users/sessions; owned lab cleaned",
+      "result": "PASS_NEGATIVE_ONLY",
+      "scope": "New recover/otp missing-CAPTCHA negative controls in owned synthetic Auth v2.196.0",
+      "limits": "Not positive CAPTCHA or any of the five external flows. Initial local Docker start timeout preserved; running state reconciled, no blind repeated start.",
+      "proofSha256": "3d8ed491864c8a4a7bc21c87f7fc121aedb5a534c80d9967d0afd36f26c3aa1d"
     }
   ],
   "authorization": {
@@ -150,7 +168,7 @@
     {
       "gate": "External recovery",
       "state": "BLOCKED",
-      "detail": "Change-email Source Subject missing; five flows unproved; connector session is not exported recovery credential; CAPTCHA positive proof missing."
+      "detail": "Exact change-email Subject resolved by human Source read; four other captured templates reused with identical hashes. Five positive flows NOT_RUN: signup/recover/otp need valid human CAPTCHA; email change and reauthentication need authenticated synthetic A/final B. No admin generate_link substitute; batch 0/6."
     },
     {
       "gate": "Durable real recovery",
@@ -168,9 +186,9 @@
       "detail": "Real devices, Safari/Firefox and human journey remain NOT_RUN; do not add these as new migration gates."
     }
   ],
-  "nextExecutableAction": "School: complete faithful Source change-email Subject and prepare five local Auth flows before consuming authorized 0/6 Gmail batch. Keep #542 unmerged; renew backup only after external requirements are ready.",
+  "nextExecutableAction": "Prepare an interactive owned CAPTCHA-enabled lab using captured Source configuration and exact five templates including the human Subject supplement; obtain valid human challenges, generate/inspect actual MIME locally, then execute only approved Gmail items once each. Keep #542/#523 unmerged; no backup renewal until external proof complete.",
   "holderDecisions": [
-    "Clarify whether ok was a literal Source Subject or acknowledgement; no inferred default"
+    "Human CAPTCHA completion in the isolated lab is still required; never send CAPTCHA tokens in chat or automate solving. Exact Source Subject already provided, do not ask again."
   ],
   "doNotRepeat": [
     "Approved tests without relevant change",
@@ -199,5 +217,62 @@
     "originalEventCause": "UNPROVEN",
     "historicalFailures": "PRESERVED",
     "nextMerge": "SUSPENDED_INCLUDING_542"
+  },
+  "authBatchReadiness": {
+    "restore": "NOT_RUN_FRESH",
+    "sourceSubject": "PASS_HUMAN_READ_SOURCE",
+    "managementAccess": "NO_EXISTING_MANAGEMENT_TOKEN; denied dashboard/MCP channels not retried",
+    "manifestSha256": "485f90bedaabc0889643fcaf49293e2eac2162f8998eb5c3f1f4745a9719cf7b",
+    "externalMessages": 0,
+    "preflights": [
+      {
+        "historicalResult": "FAIL_SCHEMA_PENDING",
+        "run": "38098093550",
+        "lane": "48.2-A",
+        "thisRound": "NOT_RUN"
+      },
+      {
+        "historicalResult": "FAIL_SCHEMA_PENDING",
+        "run": "38098093692",
+        "lane": "48.3-A1",
+        "thisRound": "NOT_RUN"
+      },
+      {
+        "historicalResult": "FAIL_SCHEMA_PENDING",
+        "run": "38098093685",
+        "lane": "48.3-C1",
+        "thisRound": "NOT_RUN"
+      },
+      {
+        "historicalResult": "FAIL_SCHEMA_PENDING",
+        "run": "38098093548",
+        "lane": "48.3-D1",
+        "thisRound": "NOT_RUN"
+      },
+      {
+        "historicalResult": "FAIL_SCHEMA_PENDING",
+        "run": "38098093628",
+        "lane": "48.3-E2",
+        "thisRound": "NOT_RUN"
+      },
+      {
+        "historicalResult": "FAIL_SCHEMA_PENDING",
+        "run": "38098093616",
+        "lane": "48.3-E3",
+        "thisRound": "NOT_RUN"
+      }
+    ],
+    "state": "BLOCKED_VALID_HUMAN_CAPTCHA_AND_AUTHENTICATED_FLOW_PREPARATION",
+    "backup": "NOT_RENEWED",
+    "migration": "NOT_RUN",
+    "flowResults": {
+      "recovery": "NOT_RUN",
+      "signup": "NOT_RUN",
+      "emailChange": "NOT_RUN",
+      "reauthentication": "NOT_RUN",
+      "magiclink": "NOT_RUN"
+    },
+    "officialReadOnlyConfigPath": "GET /v1/projects/nvmdszymrtacfehdynpg/config/auth",
+    "authorizations": "Six-message batch and conditional sole migration preserved; no new cost or resource subscription"
   }
 }
