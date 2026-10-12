@@ -24,7 +24,9 @@ anexo, envio Production, custo ou reenvio automático.
 Máximo total: **6 mensagens**, cinco operações, cada operação uma única vez.
 Uma política que gere menos mensagens não autoriza usar o saldo. Qualquer mensagem
 extra, destinatário diferente ou template divergente bloqueia antes do transporte.
-Este lote ainda não foi autorizado; convites anteriores consumidos não o cobrem.
+O titular autorizou explicitamente este lote em 12/10/2026; zero mensagens usadas.
+Convites anteriores consumidos não o cobrem. A resposta “ok” sobre Subject é
+ambígua e não foi tomada como valor Source. Clarificação não secreta pendente.
 
 ## Preparação antes de qualquer envio
 
@@ -33,8 +35,11 @@ Este lote ainda não foi autorizado; convites anteriores consumidos não o cobre
 2. Reproduzir os cinco fluxos primeiro no receptor local, contar MIME reais e
    confirmar política de mudança de e-mail. Manter CAPTCHA Source: negação sem
    token não prova aprovação; não usar admin generate_link como substituto.
-3. Adaptador deve suportar explicitamente mensagens com link e código OTP. O
-   adaptador atual de convite não suporta OTP e não será usado silenciosamente.
+3. `scripts/learning/auth-recovery-batch.mjs` prepara links e códigos OTP com
+   allowlist nominal, limite por fluxo e recusa de duplicação/assunto mascarado,
+   tracking/token alterado. Cinco contratos sintéticos locais PASS, zero skipped.
+   Isso não gera mensagens no Auth nem prova os cinco fluxos externos. O adaptador
+   de convite não será usado silenciosamente para OTP.
 4. Conferir assunto/body/hash, destinatários, tipo de fluxo, ausência de tracking
    e identidade exclusivamente sintética. Token fica cifrado; nunca Git/artifact público.
 5. Criar marcador persistente exclusivo por mensagem antes de chamar o conector.

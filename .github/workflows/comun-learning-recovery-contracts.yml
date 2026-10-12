@@ -6,6 +6,7 @@ on:
       - "scripts/learning/recovery-disposable*"
       - "scripts/learning/brevo-lab-relay*"
       - "scripts/learning/gmail-lab-payload*"
+      - "scripts/learning/auth-recovery-batch*"
       - ".github/workflows/comun-learning-recovery-contracts.yml"
 permissions: { contents: read }
 jobs:
@@ -17,6 +18,6 @@ jobs:
         with: { persist-credentials: false }
       - uses: actions/setup-node@v4
         with: { node-version: 22.18.0 }
-      - run: node --test scripts/learning/recovery-disposable.node-test.mjs scripts/learning/brevo-lab-relay.node-test.mjs scripts/learning/gmail-lab-payload.node-test.mjs
+      - run: node --test scripts/learning/recovery-disposable.node-test.mjs scripts/learning/brevo-lab-relay.node-test.mjs scripts/learning/gmail-lab-payload.node-test.mjs scripts/learning/auth-recovery-batch.node-test.mjs
       # SQL recovery is a separate local Windows/DPAPI proof, not this unit job.
       # No backup upload, Production secret, migration or remote capture here.
