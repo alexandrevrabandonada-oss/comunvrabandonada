@@ -3,14 +3,15 @@
   "updatedOn": "2026-10-12",
   "objective": "Fechar recuperação da Escola sem dispensar gates; entregar continuidade independente na ouvidoria.",
   "completion": "Entrega independente testada e revisável; Escola somente após recibo real completo, backup <=1h e PRE <=5min.",
-  "mainObserved": "400b17b350a00de913b6e802586c890c1e2999d9",
+  "mainObserved": "1169159158e1978d08930416800f394f1558192f",
   "candidates": {
     "recovery": {
       "pr": 540,
       "sha": "f8b8b1d158c1e1f08d7e70ac49e01efa932ee9d3",
       "tree": "8354b8c9bc92158c187a8da7b06bbeeaaebbfe8a",
-      "state": "DRAFT_RECOVERY_INCOMPLETE",
-      "shaScope": "Local functional; checkpoint may change documentation only. No remote PASS transferred from 82b6591d."
+      "state": "PREPARATION_MERGED_REAL_RECOVERY_BLOCKED",
+      "shaScope": "Local functional; checkpoint may change documentation only. No remote PASS transferred from 82b6591d.",
+      "mergeSha": "1169159158e1978d08930416800f394f1558192f"
     },
     "product": {
       "pr": 523,
@@ -19,10 +20,10 @@
     },
     "continuity": {
       "pr": 541,
-      "sha": "bf1b5f98da5ee8386a40f2f1feae39c41ba34fbc",
-      "tree": "6aa5bf692965685f0ae1cdab72264d227566e4d7",
-      "functionalSha": "42f7ddd6a55b0203def07dd0136b3634526c8b07",
-      "state": "DRAFT_LOCAL_PASS_REMOTE_PENDING"
+      "sha": "8203227ca2b192f1c81102d8a3bc1b9e93aa8f79",
+      "tree": "1575ecef93da51a950b1dab56e2e8982a8955fb6",
+      "functionalSha": "39198b1cc1de5ccae7fe4b55d58e21fd47c8ef03",
+      "state": "DRAFT_STALE_COPY_FIXED_LOCAL_6_PASS_REMOTE_PENDING"
     }
   },
   "validEvidence": [
@@ -121,7 +122,7 @@
       "detail": "Real devices, Safari/Firefox and human journey remain NOT_RUN; do not add these as new migration gates."
     }
   ],
-  "nextExecutableAction": "Follow #541 exact checks/Preview; integrate only if all applicable gates pass. Auth batch awaits unambiguous Source Subject and local real-flow generation before external send.",
+  "nextExecutableAction": "Certify #540 post-merge deploy before next integration; follow #541 new exact gates. Subject and local real-flow generation still required before 0/6 authorized sends.",
   "holderDecisions": [
     "Clarify whether ok was a literal Source Subject or acknowledgement; no inferred default"
   ],
