@@ -99,5 +99,49 @@ configuração Vercel, flags ou schema alterados para esconder a falha.
 Bundle SHA-256 `ed3108c759cf304f0c49535717886dfa7df513c885fcd9a06989b52ac8b141ea`:
 importação independente PASS, SHA/tree/fsck conferidos; exige main `11691591` e
 ancestral `400b17b3`. Evidências privadas preservadas no E:, sem dados/segredos Git.
-Preparação #540 integrada/certificada; produto #541 integrado, disponibilidade
-Production do novo código ainda não certificada. Escola NOT_RELEASED; V1 aberta.
+Preparação #540 integrada/certificada. O bloqueio de entrega acima foi resolvido
+na recuperação descrita abaixo; seus logs e certificado original foram preservados.
+Escola NOT_RELEASED; V1 aberta.
+
+## Recuperação da entrega — 12/10/2026
+
+PASS: criação única via `POST /v13/deployments`, usando a conexão Git existente,
+repo `1232408732`, ref `main`, SHA fixado
+`8bb8cd9de9afe68293de82c6b7ca97ba4730d01f`. Projeto
+`prj_BNUDaIwZKzt7IQ1PZUjo8c6Ljc3X`, equipe `team_LBVwyK8FQMO7tA3hzVXXeumF`,
+target Production. Escopo autorizado pela solicitação de recuperação desse merge.
+Sem upload de arquivos locais, alteração de settings/aliases ou promoção de Preview.
+Não houve commit para provocar deployment nem novo merge; #542 continua draft.
+
+Deployment `dpl_6daX3fUqtDnrDqnSjStvzuuMxiD6` READY, gitSource e metadata com SHA
+exato, aliases atribuídos automaticamente e aliasError null. GitHub deployment
+`7017454178`, Production success, URL
+`https://comunvrabandonada-l7tk6ynha-alexandrevrabandonada-oss-projects.vercel.app`.
+Esse registro foi emitido pela integração, não criado manualmente no GitHub.
+`GET /api/comun/quality-status` confirmou SHA completo; quatro smokes públicos 200
+e www → apex 308. A causa da ausência do evento automático original permanece
+UNPROVEN; a recuperação por API com fonte Git não prova sua entrega original.
+
+Somente após READY e SHA servido foram reexecutados os failed jobs das runs:
+
+| Prova                   | Run         | Attempt | Resultado | Jobs success / skipped |
+| ----------------------- | ----------- | ------- | --------- | ---------------------- |
+| Quality pós-merge       | 38264701423 | 2       | PASS      | 2 / 5                  |
+| Core Journeys pós-merge | 38264701160 | 2       | PASS      | 1 / 1                  |
+| Civic Graph pós-merge   | 38264701196 | 2       | PASS      | 9 / 0                  |
+
+Zero blocking jobs. Attempts 1 continuam FAIL histórico por SHA não servido;
+nenhuma alteração de código entre tentativas. Skipped não é PASS. CI/coerência
+pós-merge anteriores permanecem válidos; evento deployment_status também produziu
+CI `38269641845` SUCCESS. Ensaios automatizados não substituem aparelhos reais,
+Safari/Firefox ou validação humana, que permanecem NOT_RUN.
+
+Certificado sanitizado privado: `postmerge-541-recovered-certificate.json`, SHA-256
+`84f1df6598f3f8aa6b2c50492b334a97b17acf43a6d0dad6d675159865e9a56d`.
+Vincula árvore `8f3c6d672bb38614b0c13f30ff0c6d88e9a733da`, deployment, smokes,
+inventários das attempts 2 e provas históricas preservadas.
+
+Estado: **COMUN_PR541_PRODUCTION_DELIVERY_POSTMERGE_CERTIFIED**. Main preservada.
+Nenhuma migration, flag ou indexação alterada. Retomada da Escola pelo checkpoint:
+#523 draft, seis preflights obrigatórios; lote autorizado 0/6; Subject Source e
+cinco fluxos BLOCKED/NOT_RUN; backup fresco NOT_RUN até concluir requisitos externos.

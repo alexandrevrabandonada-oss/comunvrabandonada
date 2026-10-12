@@ -23,7 +23,7 @@
       "sha": "e46a495f8bdeee7d15d108540273a50c6a1c1d3c",
       "tree": "8f3c6d672bb38614b0c13f30ff0c6d88e9a733da",
       "functionalSha": "39198b1cc1de5ccae7fe4b55d58e21fd47c8ef03",
-      "state": "MERGED_GIT_DEPLOYMENT_UNPROVEN",
+      "state": "MERGED_PRODUCTION_DELIVERY_POSTMERGE_CERTIFIED",
       "mergeSha": "8bb8cd9de9afe68293de82c6b7ca97ba4730d01f"
     }
   },
@@ -89,6 +89,19 @@
       "run": "38264701564",
       "result": "PASS",
       "limits": "Does not certify new SHA served by Production"
+    },
+    {
+      "limits": "API request from existing Git connection, not proof of original automatic event delivery. Attempts 1 preserved; skipped not PASS; human/real devices remain NOT_RUN.",
+      "attempt": 2,
+      "deployment": "dpl_6daX3fUqtDnrDqnSjStvzuuMxiD6",
+      "coreRun": "38264701160",
+      "githubDeployment": "7017454178",
+      "result": "PASS",
+      "proofSha256": "84f1df6598f3f8aa6b2c50492b334a97b17acf43a6d0dad6d675159865e9a56d",
+      "scope": "Merge #541 exact Production delivery and automated postmerge certification",
+      "qualityRun": "38264701423",
+      "civicRun": "38264701196",
+      "sha": "8bb8cd9de9afe68293de82c6b7ca97ba4730d01f"
     }
   ],
   "authorization": {
@@ -119,6 +132,13 @@
         "alexandrevrabandonada+comun-escola-lab-b@gmail.com"
       ],
       "limits": "1 signup, 1 recovery, 1 magic-link/OTP, up to 2 email-change, 1 reauthentication. No retry after accepted/uncertain outcome. Only after local assertions and faithful templates."
+    },
+    "deliveryRecovery541": {
+      "schemaWriteAuthorized": false,
+      "scope": "One supported Git-source request exact SHA, same project/team/Production/settings",
+      "consumed": 1,
+      "source": "Latest human request: recover exact merge #541 delivery in existing Vercel COMUN Production project",
+      "deploymentId": "dpl_6daX3fUqtDnrDqnSjStvzuuMxiD6"
     }
   },
   "dependencies": [
@@ -148,7 +168,7 @@
       "detail": "Real devices, Safari/Firefox and human journey remain NOT_RUN; do not add these as new migration gates."
     }
   ],
-  "nextExecutableAction": "Recover Git-linked deployment of 8bb8cd9d; verify exact READY/GitHub/served SHA before rerunning failed post-merge jobs. No next integration before certification. Auth batch still needs faithful Source Subject and local real-flow generation.",
+  "nextExecutableAction": "School: complete faithful Source change-email Subject and prepare five local Auth flows before consuming authorized 0/6 Gmail batch. Keep #542 unmerged; renew backup only after external requirements are ready.",
   "holderDecisions": [
     "Clarify whether ok was a literal Source Subject or acknowledgement; no inferred default"
   ],
@@ -167,18 +187,17 @@
   },
   "resumeRule": "Read this file first. Reconsult only mutable remote state; invalidate proof only for relevant diff, expired temporal gate or contradictory evidence. Update at a material transition, not per command.",
   "postmergeBlocker": {
-    "state": "GIT_DEPLOYMENT_UNPROVEN",
+    "state": "RESOLVED_EXACT_SHA_SERVED_AND_POSTMERGE_GREEN",
     "expectedSha": "8bb8cd9de9afe68293de82c6b7ca97ba4730d01f",
-    "servedSha": "1169159158e1978d08930416800f394f1558192f",
-    "deploymentCount": 0,
-    "ciRun": "38264701169",
-    "ci": "SUCCESS",
-    "qualityRun": "38264701423",
-    "quality": "FAIL_EXPECTED_SHA_NOT_DEPLOYED",
-    "otherFailedRuns": ["38264701160", "38264701196"],
-    "coherenceRun": "38264701564",
-    "coherence": "SUCCESS_DISPOSABLE_NOT_PRODUCTION_DEPLOYMENT",
-    "cause": "UNPROVEN_GIT_EVENT_DELIVERY",
-    "manualDeploy": "NOT_RUN"
+    "servedSha": "8bb8cd9de9afe68293de82c6b7ca97ba4730d01f",
+    "deploymentId": "dpl_6daX3fUqtDnrDqnSjStvzuuMxiD6",
+    "githubDeploymentId": "7017454178",
+    "creation": "ONE_SUPPORTED_API_REQUEST_GIT_SOURCE_EXACT_SHA",
+    "quality": "SUCCESS_ATTEMPT_2",
+    "core": "SUCCESS_ATTEMPT_2",
+    "civic": "SUCCESS_ATTEMPT_2",
+    "originalEventCause": "UNPROVEN",
+    "historicalFailures": "PRESERVED",
+    "nextMerge": "SUSPENDED_INCLUDING_542"
   }
 }
