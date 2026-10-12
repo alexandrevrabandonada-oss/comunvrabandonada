@@ -5,6 +5,7 @@ import { ComunCopyTextButton } from "@/components/comun-copy-text-button";
 export function CopyOfficialTextButton({ text }: { text: string }) {
   return (
     <ComunCopyTextButton
+      key={text}
       text={text}
       label="Copiar texto"
       copiedLabel="Texto copiado"

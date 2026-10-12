@@ -6,6 +6,7 @@ export function CopyProtocolButton({ protocol }: { protocol: string }) {
   return (
     <div className="flex flex-col gap-2 sm:items-end">
       <ComunCopyTextButton
+        key={protocol}
         text={protocol}
         label="Copiar protocolo"
         copiedLabel="Protocolo copiado"

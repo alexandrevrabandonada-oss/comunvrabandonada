@@ -40,7 +40,7 @@ before(async () => {
   );
   await writeFile(
     path.join(fixture, "entry.tsx"),
-    `import React from 'react'; import {createRoot} from 'react-dom/client'; import {CopyOfficialTextButton} from '@/app/comun/acompanhar/[protocol]/ouvidoria/copy-official-text-button'; import {CopyProtocolButton} from '@/app/comun/relatar/confirmacao/copy-protocol-button'; import './style.css'; createRoot(document.getElementById('root')!).render(<main className="bg-white p-4 text-comun-black"><h1>Encaminhamento sintético</h1><CopyOfficialTextButton text={${JSON.stringify(text)}}/><CopyProtocolButton protocol="SYNTHETIC-123"/></main>);`,
+    `import React from 'react'; import {createRoot} from 'react-dom/client'; import {CopyOfficialTextButton} from '@/app/comun/acompanhar/[protocol]/ouvidoria/copy-official-text-button'; import {CopyProtocolButton} from '@/app/comun/relatar/confirmacao/copy-protocol-button'; import './style.css'; const root=createRoot(document.getElementById('root')!); const render=(protocol='SYNTHETIC-123')=>root.render(<main data-protocol={protocol} className="bg-white p-4 text-comun-black"><h1>Encaminhamento sintético</h1><CopyOfficialTextButton text={${JSON.stringify(text)}}/><CopyProtocolButton protocol={protocol}/></main>); window.changeSyntheticProtocol=()=>render('SYNTHETIC-456'); render();`,
   );
   server = await createServer({
     configFile: false,
@@ -245,6 +245,38 @@ test("mobile protocol fallback preserves handle and fits viewport", async () => 
     );
     assert.deepEqual(errors, []);
     assert.deepEqual(mutations, []);
+  } finally {
+    await context.close();
+  }
+});
+
+test("changed protocol never inherits the previous copied confirmation", async () => {
+  const { page, context } = await pageFor("success");
+  try {
+    await page
+      .getByRole("button", { name: "Copiar protocolo", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Protocolo copiado", exact: true })
+      .waitFor();
+    await page.evaluate(() => window.changeSyntheticProtocol());
+    await page.waitForFunction(
+      () =>
+        document.querySelector("main")?.dataset.protocol === "SYNTHETIC-456",
+    );
+    assert.equal(
+      await page
+        .getByRole("button", { name: "Protocolo copiado", exact: true })
+        .count(),
+      0,
+    );
+    await page
+      .getByRole("button", { name: "Copiar protocolo", exact: true })
+      .click();
+    assert.deepEqual(await page.evaluate(() => window.copyCalls), [
+      "SYNTHETIC-123",
+      "SYNTHETIC-456",
+    ]);
   } finally {
     await context.close();
   }
