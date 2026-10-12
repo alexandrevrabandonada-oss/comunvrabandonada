@@ -618,3 +618,13 @@ sem secrets Production. Assunto change-email Source, demais fluxos e recuperaç�
 integral continuam bloqueados/não executados;
 backup expirado, permit não emitido, migration NOT_RUN e seis preflights preservados.
 Evidências e limites no [relatório de recuperação](../reports/current/comun-escola-fresh-real-recovery-20261010.md).
+
+Autocorreção do transporte — 11/10: changelog Brevo esclarece que false anonimiza
+métricas, sem desligar tracking; não repetir SMTP/API nem atribuir bug ao provedor
+sem prova. #540/4cbab9ed terminou 11 SUCCESS e 78 SKIPPED, zero failure/pending.
+Adaptador do Gmail já conectado preparado sem conta/credencial/scope novo, com
+21 testes focais PASS. Convite Gmail único especificamente autorizado passou
+recebimento, link exato sem tracking e confirmação real desse link no Auth local,
+logout e zero sessões. Laboratório cifrado/limpo; 93 contratos locais passaram.
+Isso não equivale a recuperação durável integral da configuração. Migration permanece
+NOT_RUN até fechar recibo integral, backup renovado e PRE fresco.

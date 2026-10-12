@@ -450,3 +450,43 @@ Migration e manifest mantêm respectivamente SHA-256
 `3b598bc6b3ea3dfe462ba205b6747016aace52de87c87dec332ecbb1a567d4de`.
 Production SMTP/configuração, flags e indexação inalterados. Seis preflights
 continuam bloqueantes; #523 permanece separado e draft.
+
+### Autocorreção do contrato Brevo e alternativa existente — 11/10/2026
+
+Revisão dirigida encontrou o changelog oficial de 21/07: false anonimiza o evento
+de abertura, não desliga tracking. Minha interpretação anterior foi incorreta.
+Os MIME preservados continuam provando incompatibilidade com o requisito, mas
+não um bug comprovado da Brevo. Não repetir ensaio equivalente ou pedir outra chave.
+Fonte: https://developers.brevo.com/changelog/2026/7/21.
+
+#540 no SHA 4cbab9ed terminou com 11 SUCCESS, 78 SKIPPED e zero failure/pending.
+O Preview exato e COST-02 passaram. Isso não certifica configuração externa.
+
+Preparado adaptador puro para o conector Gmail existente: HTML/assunto do Auth,
+destinatário nominal único, sem anexos/cc/bcc, sem nova conta, credencial ou scope.
+21 testes focais PASS (18 do contrato e três do adaptador), zero skipped; não
+confundir com prova de recebimento. Depois da preparação o titular autorizou
+exatamente um convite Gmail de laboratório. Recebimento confirmado por INBOX e
+Message-ID; um link idêntico ao gerado pelo Auth e zero imagens de tracking.
+**PASS funcional:** o link RECEBIDO foi validado no laboratório antes de qualquer
+consumo pelo link original: HTTP303, usuário HTTP200/e-mail confirmado, logout
+HTTP204 e zero sessões. Containers próprios removidos após arquivo Auth cifrado.
+Prova privada SHA-256 `c4238c632ce8edf44f71ad83203c7ad19c4b7675add94aa4b21ea1b0a55ab7e3`;
+MIME cifrado SHA-256 `b4d957d558e2f4cf8347cbdd65b11727531c621ffec546193d9f3f2cdc9f9bc4`.
+Scope DECODED_MESSAGE_CONTRACT_ONLY no JSON identifica a parcela do guard; os
+campos receivedLinkValidated/verifyHttp/userHttp/logoutHttp descrevem a prova
+runtime adicional. BrowserVerification NOT_RUN, sem claim de clique humano.
+
+Esse PASS encerra o subcontrato de convite recebido por transporte alternativo;
+conector operacional não é credencial exportada nem recuperação integral. Fonte:
+https://developers.google.com/workspace/gmail/api/guides/sending.
+
+Recaptura Source change-email ainda bloqueada pelo canal de automação do perfil
+correto: tentativa dirigida expirou. Acesso do titular a nika e acesso PostgreSQL
+já foram resolvidos; não pedir novo reset/login nem trocar projeto. Não inferir
+assunto default. Outros cinco fluxos externos NOT_RUN, backup expirado, permit
+NOT_ISSUED e migration NOT_RUN. Seis preflights/flags/indexação intactos.
+
+Depois da implementação Gmail, a suíte local afetada totaliza 93 PASS/zero skipped.
+Nenhum envio adicional, retry ou alteração no serviço integrado Source. Não
+transferir o PASS desse convite aos cinco fluxos restantes ou ao backup real novo.

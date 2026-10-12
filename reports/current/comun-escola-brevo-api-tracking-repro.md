@@ -31,18 +31,26 @@ a divergência antes de confirmação. Sem acesso ao redirect/pixels e sem retry
 - Laboratório removido após arquivamento cifrado, zero sessões. Zero escritas
   Production, custos contratados ou alterações no SMTP Source.
 
-A documentação descreve false como ausência de tracking:
+A documentação de ajuda usada inicialmente descrevia false como ausência de tracking:
 [contrato de consentimento](https://help.brevo.com/hc/en-us/articles/37113920427922-About-email-tracking-pixels-and-the-CNIL-recommendation-in-Brevo).
 A [referência API](https://developers.brevo.com/reference/send-transac-email)
 confirma endpoint/autenticação, mas o aceite do payload não demonstra que cada
-propriedade foi aplicada. A causa interna não está comprovada.
+propriedade foi aplicada. Revisão posterior do
+[changelog oficial de 21/07/2026](https://developers.brevo.com/changelog/2026/7/21)
+esclarece que false anonimiza o evento de abertura, ainda contado em agregado.
+Minha interpretação inicial de false como desativação foi incorreta. Não classificar
+o comportamento observado como bug comprovado da Brevo: o transporte não satisfaz
+o requisito do laboratório, e a propriedade não promete eliminar pixels/redirects.
 
 ## Requisito externo delimitado
 
-Obter confirmação técnica do mecanismo efetivamente suportado nesta conta para
-preservar o link Auth sem tracking, incluindo eventuais requisitos de ativação
-e o schema API aceito. Depois preparar um ensaio distinto revisado, com nova
-autorização nominal. Este documento é reprodução para revisão, não mensagem
+Não repetir o mesmo teste SMTP/API ou solicitar outra chave Brevo para esse campo.
+Preparar alternativa explícita pelo conector Gmail já existente, sem novos scopes,
+conta, senha ou alteração do transporte Production. O adaptador preserva o HTML
+Auth e limita o destinatário nominal; entrega e ausência de reescrita precisam
+ser demonstradas, não presumidas. Novo envio requer autorização nominal própria.
+Um conector disponível não é uma credencial exportada nem comprova sua recuperação
+durável. Este documento é reprodução para revisão, não mensagem
 enviada ao suporte. Não ignorar o finding, inventar header, repetir tentativa
 equivalente ou trocar provedor silenciosamente.
 
