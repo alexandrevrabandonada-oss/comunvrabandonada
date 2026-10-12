@@ -1,0 +1,24 @@
+name: COMUN clipboard recovery accessibility
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "components/comun-copy-text-button.tsx"
+      - "app/comun/acompanhar/**/copy-official-text-button.tsx"
+      - "app/comun/relatar/confirmacao/copy-protocol-button.tsx"
+      - "scripts/product/copy-text-browser.node-test.mjs"
+      - ".github/workflows/comun-copy-text-accessibility.yml"
+permissions: { contents: read }
+jobs:
+  chromium-synthetic-components:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: node --test scripts/product/copy-text-browser.node-test.mjs
+      # Synthetic clipboard only; no Supabase, Production secrets or mutation.
