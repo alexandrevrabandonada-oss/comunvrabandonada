@@ -603,3 +603,18 @@ do assunto restante. Resolver fidelidade e contratos externos antes de renovar
 backup, emitir permit ou executar a única migration autorizada condicionalmente.
 Em paralelo, #523 foi reconciliado com main em worktree isolada; seu novo
 checkpoint exige gates próprios. Sem nova funcionalidade, flags ou indexação.
+
+Preparação API de recuperação — 11/10: o segundo MIME SMTP recebido ainda prova
+reescrita Auth após configuração salva. Implementado relay API exclusivo do
+laboratório com tracking false, destinatário único, aprovação vinculada ao link e
+marcador persistente sem retry após resultado incerto. 90 testes locais PASS,
+zero skipped; isso não substitui entrega externa. Chave API exclusiva autorizada,
+cifrada e validada read-only no plano Free, sem mudança de transporte Production.
+Convite API único especificamente autorizado foi aceito e recebido, mas também
+teve link reescrito e duas imagens: FAIL de fidelidade externa, confirmação do
+link recebido NOT_RUN e nenhum reenvio. Laboratório arquivado/limpo, zero sessões.
+18 contratos adicionais passaram em Linux sem rede; CI inclui o novo adaptador,
+sem secrets Production. Assunto change-email Source, demais fluxos e recuperação
+integral continuam bloqueados/não executados;
+backup expirado, permit não emitido, migration NOT_RUN e seis preflights preservados.
+Evidências e limites no [relatório de recuperação](../reports/current/comun-escola-fresh-real-recovery-20261010.md).

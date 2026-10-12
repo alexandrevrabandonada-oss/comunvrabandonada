@@ -383,3 +383,70 @@ Próximo requisito é comprovar um transporte SMTP sem reescrita de links e conc
 os contratos externos faltantes. Não aceitar headers não documentados como prova.
 Recuperação externa integral continua NOT_CERTIFIED; não emitir recibo/permit,
 não renovar captura apenas para encobrir lacunas e não aplicar migration.
+
+### Relay API isolado — 11/10/2026
+
+Novo ensaio SMTP especificamente autorizado confirmou entrega, mas o MIME ainda
+teve link sendibt3.com e duas imagens após salvar consentimento por contato Sim /
+desconhecido Não. Prova MIME privada sanitizada SHA-256
+`923fa27712d227d382dbc4548bea48417b80aaced612d776329b99842eb591b5`.
+Isso reproduz `AUTH_DELIVERY_LINK_REWRITTEN`; não prova sua causa interna no provedor.
+
+Implementado adaptador exclusivo de laboratório em `scripts/learning/brevo-lab-relay.mjs`:
+MIME Auth single-part HTML/UTF-8/quoted-printable revisado, destinatário único,
+URL loopback, sem pixels, campos extras ou anexos. API fixa com
+`contactPixelTrackingConsent:false`, TLS padrão validado, redirect recusado e
+timeout de 15 segundos. Aprovação nominal vinculada aos hashes do assunto/link;
+marcador persistente criado exclusivamente antes do POST. Aceite, erro, timeout
+e resposta inválida consomem a tentativa; não há retry automático. Não existe CLI,
+listener exposto, descoberta de credenciais ou chamada desse módulo no produto.
+Formato multipart, assunto MIME encoded e fluxo OTP sem link são explicitamente
+não suportados nesta primeira etapa; não afirmar cobertura dos seis fluxos.
+
+PASS local: 90 testes Node, zero skipped, incluindo 18 do relay e contratos
+existentes de recibo, recuperação e executor transacional. Cliente HTTP controlado
+nesses testes comprova somente o contrato local, não a entrega externa.
+Adaptador offline também aceitou o MIME Auth real do laboratório anterior com
+link inalterado; token anterior já consumido, nenhum reenvio. Isso não é recuperação
+real nem novo ensaio funcional completo.
+
+Titular autorizou uma chave API exclusiva. Criação confirmada na Brevo, sem chave
+MCP; menor opção selecionada: sete dias. Lista posterior mostra vencimento em
+19/10/2026, enquanto o formulário indicava 18/10; guard local adota o corte mais
+conservador de 18/10. Credencial RSA-OAEP/AES-GCM cifrada no E:, readback e GET
+`/v3/account` HTTP200 na conta correta. Plano Free, 299 créditos observados; não é
+garantia de quota futura. Cipher SHA-256
+`a52390b9409149280f377aad0d2b8695cd54ab47848126c87d63efce1070fd28`.
+Nenhuma credencial/backup/MIME privado está no Git ou artifact público.
+
+Novo convite gerado somente no Auth vazio pinned. Titular autorizou exatamente um
+envio via API ao próprio endereço nominal; HTTP201 e recebimento Gmail confirmados.
+**FAIL de fidelidade externa:** mesmo com `contactPixelTrackingConsent:false`,
+o MIME recebido contém link sendibt2.com e duas imagens. Verificador bloqueou com
+`AUTH_DELIVERY_LINK_REWRITTEN` antes de consumir o token. Confirmação do link recebido
+NOT_RUN; não acessar redirect/pixels nem repetir mensagem. Causa interna no provedor
+UNPROVEN; comportamento incompatível com o requisito reproduzido pela API.
+Prova privada sanitizada SHA-256
+`f41f77da688dbe0840fa5d5b0674eee5e32a45253ad69dca4abf9f08a64b869e`;
+MIME cifrado SHA-256
+`5523e5e484681189cc37e344bd68cd83313c437fc5b218ac73bc3f2b4cb2f9a7`.
+Auth arquivado cifrado, zero sessões antes da limpeza; três containers próprios
+removidos. API substituta não é replay do SMTP integrado Source.
+
+PASS adicional: 18 contratos no Linux descartável pinned, sem rede, credenciais
+Production ou envio. Primeiro verificador do harness não reconheceu o reporter
+default; exigir TAP explicitamente corrigiu somente o parser da prova, sem mudar
+testes/expectativas. Não confundir esse ensaio com entrega API verde. Workflow
+existente de contratos recebe os novos testes, sem secrets ou permissões novas.
+
+BLOCKED: o próximo requisito é evidência de transporte que preserve o link Auth.
+Não efetuar outra tentativa com o mesmo contrato/configuração nem trocar provedor
+automaticamente. Assunto Source change-email ainda BLOCKED_CAPTURE; outros cinco
+fluxos externos NOT_RUN. Recibo integral não emitido, backup expirado e migration
+NOT_RUN. Não renovar backup ou emitir permit com base em entrega parcial.
+
+Migration e manifest mantêm respectivamente SHA-256
+`5036a833b1b681487204349f8ebc58690228a2f5aa932943a81f60df1d3b6ba7` e
+`3b598bc6b3ea3dfe462ba205b6747016aace52de87c87dec332ecbb1a567d4de`.
+Production SMTP/configuração, flags e indexação inalterados. Seis preflights
+continuam bloqueantes; #523 permanece separado e draft.
