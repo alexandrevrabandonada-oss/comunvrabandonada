@@ -80,7 +80,8 @@ para esse SHA; domínio ainda serve `11691591`, cujo deploy foi certificado.
 Quality pós-merge `38264701423` FAIL com
 `COMUN_QUALITY_EXPECTED_SHA_NOT_DEPLOYED`. Core Journeys `38264701160` e Civic
 Graph `38264701196` também falharam ao aguardar o SHA exato, conforme seus logs.
-Coerência pós-merge ainda em execução na captura do fechamento; não contar PASS.
+Coerência pós-merge `38264701564` posteriormente SUCCESS no disposable; não
+substitui a disponibilidade do novo SHA em Production.
 
 Projeto/repositório/main corretos, createDeployments enabled; classificador do
 diff real exige BUILD/runtime-path-change. Sem deployment cancelado que prove

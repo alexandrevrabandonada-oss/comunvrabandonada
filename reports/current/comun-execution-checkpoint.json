@@ -82,6 +82,13 @@
       "coherenceRun": "38259617491",
       "coherenceAttempt": 2,
       "limits": "Same-code directed reruns resolved local reset 502; not new main Production deployment proof."
+    },
+    {
+      "scope": "Main post-merge coherence disposable",
+      "sha": "8bb8cd9de9afe68293de82c6b7ca97ba4730d01f",
+      "run": "38264701564",
+      "result": "PASS",
+      "limits": "Does not certify new SHA served by Production"
     }
   ],
   "authorization": {
@@ -170,7 +177,7 @@
     "quality": "FAIL_EXPECTED_SHA_NOT_DEPLOYED",
     "otherFailedRuns": ["38264701160", "38264701196"],
     "coherenceRun": "38264701564",
-    "coherence": "IN_PROGRESS_AT_CAPTURE",
+    "coherence": "SUCCESS_DISPOSABLE_NOT_PRODUCTION_DEPLOYMENT",
     "cause": "UNPROVEN_GIT_EVENT_DELIVERY",
     "manualDeploy": "NOT_RUN"
   }
