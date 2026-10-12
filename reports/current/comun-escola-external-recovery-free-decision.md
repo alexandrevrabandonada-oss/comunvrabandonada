@@ -1,0 +1,124 @@
+# Escola — recuperação externa sem plano pago
+
+Decisão preparada, não executada. Custo realizado nesta rodada: zero contratação.
+SMTP do laboratório passou; entrega externa, Google real e configuração externa
+completa continuam NOT_RUN/BLOCKED. Production não será reconfigurada para este
+ensaio. O acesso PostgreSQL já está resolvido; não pedir outra troca de senha.
+
+## Opções atuais verificadas
+
+| Opção                   | Oferta oficial consultada em 10/10/2026 UTC                               | Requisitos ainda não provados                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Brevo Free              | US$0/mês, 300 envios/dia, sem cartão, e-mail transacional incluído        | Conta aprovada, remetente/domínio autorizado, acesso SMTP e limites efetivos da conta                                  |
+| Resend Free             | Plano gratuito, limite 100/dia, SMTP e três domínios no comparativo atual | Conta, chave e domínio verificado; não assumir quota mensal a partir de post antigo                                    |
+| SMTP integrado Supabase | Serviço gerenciado já existente                                           | Não é exportado com o dump; restrição a endereços autorizados e limites próprios; não ensaiado no destino independente |
+
+Fontes: [Brevo Free](https://help.brevo.com/hc/en-us/articles/208589409-About-Brevo-s-pricing-plans),
+[Resend pricing](https://resend.com/pricing), [Resend SMTP](https://resend.com/docs/send-with-smtp),
+[Supabase SMTP](https://supabase.com/docs/guides/auth/auth-smtp).
+Não cadastrar cartão, permitir cobrança por excedente, escolher add-on ou
+contratar domínio novo. Revalidar a oferta e restrições na conta antes do ensaio.
+Plano gratuito não garante entrega, SLA ou inexistência de limite operacional.
+
+## Operação mínima que ainda precisa de acesso e autorização específicos
+
+1. Identificar uma conta SMTP existente ou escolher uma conta Free. O titular
+   conclui criação/termos e eventual confirmação. Remetente e destinatário do teste
+   precisam ser nominais e autorizados; não inferir da lista de usuários restaurada.
+   Nenhuma lista de contatos, backup ou dado de usuários será enviado ao provedor.
+2. Guardar credencial SMTP pelo canal local cifrado em E:, nunca no chat, Git ou
+   artifacts públicos. Para Resend, a documentação informa `smtp.resend.com`,
+   usuário `resend`, porta 465 TLS ou 587 STARTTLS e chave como senha. Para Brevo,
+   capturar parâmetros da própria conta. Verificar TLS e escopo antes de enviar.
+3. Preparar uma mensagem sintética única em destino de teste independente,
+   sem contas reais do backup, session tokens, OTPs reais ou links válidos de
+   Production. Exigir autorização específica para esse envio ao destinatário
+   nominal. Capturar aceitação SMTP e recebimento separadamente; aceitação SMTP
+   não é comprovação de entrega. Sem retries automáticos que dupliquem mensagem.
+4. Provar separadamente a configuração OAuth em um cliente de ensaio isolado.
+   Consulta pública de discovery não comprova login/callback. Não ampliar rede
+   do banco restaurado, alterar redirects Source, DNS ou exigir CAPTCHA humano
+   sem delimitar operação/destino. Se o ensaio pedir login humano, registrá-lo
+   como tal; não inventar aprovação ou responsável.
+
+Nenhuma alteração SMTP, de providers, redirects, DNS, flags ou indexação de
+Production está incluída nesse plano. Não usar senha Google/OAuth secret como
+credencial SMTP. O plano não resolve automaticamente custódia/acesso ao domínio
+ou recuperação de toda a infraestrutura externa. Registrar lacunas restantes.
+
+## Retomada da migration já autorizada
+
+Depois das provas externas aplicáveis, revisar a cobertura do recibo real completo
+contra artifacts preservados. Não escrever `externalConfigurationRecoverable=true`
+com base apenas no receptor local. Capturar/ensaiar um backup novo dentro da
+janela de uma hora; preservar a custódia independente. Recapturar PRE em até cinco
+minutos, conferir main/tree, TLS, hashes, catálogo, cinco ledgers e Escola ausente.
+Só então executar exclusivamente `20261006134804` pelo motor transacional de
+uso único, nunca `db push` global. Resposta de COMMIT desconhecida exige reconciliação
+read-only, não retry. Depois, POST e seis preflights reais do #523.
+
+Até lá: **migration NOT_RUN, seis preflights preservados, Escola não liberada**.
+
+## Provas adicionais e requisito de captura fiel
+
+O redirect Google agora passou em laboratório vazio com discovery real e HTTP302;
+não exige contratar serviço para esta prova. Não comprova login/callback aprovado.
+Rede do banco real restaurado permaneceu fechada. Antes do replay completo, obter
+os três parâmetros numéricos cuja captura veio como `<redacted>`: mínimo de senha,
+limite de envio de e-mail e tamanho do OTP de MFA por telefone. São parâmetros,
+não senhas nem códigos OTP. Não trocar credenciais, editar Source, inferir defaults
+ou aceitar placeholder como valor válido. Capturas originais são preservadas;
+correções devem ser suplementos com origem/tempo/evidência próprios.
+
+Os labels de sessões, providers e políticas de e-mail foram recapturados em
+modo read-only, sem Save. Replay parcial não libera o recibo. Conta externa/termos,
+destino autorizado e controle de callback continuam decisões/acessos separados,
+mesmo em plano gratuito. Não alterar Production para facilitar o laboratório.
+
+Atualização: os três números foram obtidos autonomamente por leitura visual da UI,
+com imagens cifradas e suplemento separado: 6, 2/h, 6. Não dependem mais de resposta
+humana. O novo ensaio iniciou Auth com os 16 parâmetros, incluindo AAL1 15m, e
+repetiu redirect Google real. Isso não certifica entrega SMTP externa, aprovação
+da callback ou todos os comportamentos da configuração. O restante do plano e as
+recusas do executor permanecem intactos.
+
+## Entrega externa efetivamente executada
+
+Em 10/10/2026 às 22:53 UTC, a única mensagem sintética especificamente autorizada
+foi aceita pela Brevo e recebida no Gmail do titular. Identidade da mensagem e
+texto conferiram; zero dados de usuários ou tokens Production no envio. Nenhum
+novo envio está autorizado por essa prova. Evidências e hashes no
+[relatório atualizado](comun-escola-fresh-real-recovery-20261010.md).
+
+Entrega SMTP direta PASS; entrega pelo Auth restaurado NOT_RUN. Remetente
+reescrito e pixel inserido pelo provedor foram registrados, sem acesso ao pixel.
+Não declarar configuração externa integral recuperável. Google Cloud ainda exige
+verificação em duas etapas antes de permitir acesso ao contrato de callback.
+Nenhuma contratação, alteração Production ou migration nesta continuação.
+
+Atualização posterior: duas etapas ativadas pelo titular resolveram o acesso
+Google. O cliente Production foi apenas consultado; sua callback local não existe.
+Após autorização específica, cliente exclusivo do laboratório foi criado e
+cifrado. Auth vazio com essa credencial passou discovery/redirect real, mas
+login/callback/troca de código continuam NOT_RUN. Essa prova representativa não
+substitui replay exato da credencial Production ou recuperação externa integral.
+Docker indisponível foi recuperado pelo comando oficial; containers do ensaio
+foram removidos. Sem custos, alterações Supabase ou migration Production.
+
+Continuação: login Google autorizado no cliente separado passou callback/troca de
+código, sessão real verificada por `/user` e logout, com zero sessões ao final.
+Primeiro 504 preservado; uma retomada limitada passou, sem provar causa exata do
+timeout. Prova representativa e identidade do ensaio cifrada; containers removidos.
+Não equivale a replay da credencial Production. Falta provar o envio externo pelo
+Auth e confirmar seu convite localmente. Recebeu autorização específica para mais
+uma mensagem, executada no ensaio registrado abaixo; o único envio SMTP direto autorizado anteriormente já foi consumido.
+Recuperação externa integral ainda não certificada; migration NOT_RUN.
+
+Convite adicional especificamente autorizado foi enviado uma única vez pelo Auth
+do laboratório vazio via relay Brevo e recebido no Gmail. Confirmação local e
+logout PASS; nenhum acesso ao backup real/Production, containers removidos.
+Assunto textual mascarado limita fidelidade: suplemento visual read-only resolveu
+o valor original, sem repetir envio. SMTP substituto não é replay do gerenciado;
+outros cinco fluxos externos NOT_RUN. Recuperação integral NOT_CERTIFIED, backup
+expirado, migration NOT_RUN e seis preflights intactos. Evidências e limites no
+relatório atualizado.

@@ -534,3 +534,97 @@ PR #536 integrado em `eb2cb0156adf223d608e222677cccc00bf84e071` após 42 SUCCESS
 Ensaio controlado local provado em `c4f4facafa1674352bd5b93d5c660b3bd4f45b3c`: verificações de catálogo privado e privilégios antes do COMMIT, rollback schema/history/ledger/drift, replay recusado e resposta perdida do COMMIT reconciliada read-only, sem retry de escrita. Nova lane descartável sem secrets Production preparada para repetir essa prova no novo SHA. Evidências e limites em `reports/current/comun-escola-controlled-rehearsal.md`.
 
 Próximo passo: concluir checks pós-merge e do candidato; recuperar acesso PostgreSQL protegido e renovar/ensaiar backup real antes de qualquer schema write. Executor remoto não certificado; migration Escola NOT_RUN; seis preflights do #523 preservados. Recuperação completa, flags, indexação e operação pública continuam não certificadas.
+
+## Escola — novo backup real e restauração isolada, 10/10/2026 UTC
+
+Preparação #538 integrada/certificada em main `400b17b350a00de913b6e802586c890c1e2999d9`, tree igual ao funcional `73d28606`. Acesso protegido E: passou com TLS autenticado; o 28P01 anterior não permanece bloqueante. Novo snapshot real read-only foi cifrado, restaurado e conferido em 278 tabelas, com diferença de collation delimitada. Roles/owners/versões de extensão conferiram. Auth sintético, proteção Google/hCaptcha offline e Storage API/2.582 objetos tiveram provas separadas vinculadas aos respectivos containers. Custódia independente da chave passou no novo backup. Nenhuma escrita Production.
+
+Configuração externa completa continua BLOCKED: capturas cifradas e readback não equivalem à entrega externa de e-mail ou login Google real; o SMTP gerenciado não acompanha o dump. Crash original supautils permanece aberto. A nova captura PRE mantém fingerprints, cinco ledgers aceitos, Escola ausente e zero findings. Nenhum recibo completo foi emitido; migration permanece NOT_RUN e os seis preflights #523 continuam bloqueantes. Próximo elo: fechar recuperação externa, revisar recibo real e renovar os pontos temporais exigidos antes da aplicação única autorizada. Não contratar plano nem alterar flags/indexação. Evidências e limites: [recuperação real atualizada](../reports/current/comun-escola-fresh-real-recovery-20261010.md).
+
+Continuação: seis templates restaurados e convite enviado pelo Auth real a SMTP loopback PASS; entrega externa NOT_RUN. Tentativa OAuth combinada falhou e permanece separada, com discovery externo indisponível no namespace sem rede. Fixtures removidas; todas as 27 tabelas Auth conferem com o snapshot original. 24 testes de entrada passaram, sem alterar controles. #523 continua draft/CONFLICTING, cf0e8e41, 45 SUCCESS/76 SKIPPED/seis FAILURE na consulta atual; Quality SUCCESS. Backup de 00:41Z excedeu uma hora e deverá ser renovado antes de escrita. [Decisão gratuita de recuperação externa](../reports/current/comun-escola-external-recovery-free-decision.md) preparada sem contratação ou alteração Production. Migration ainda NOT_RUN.
+
+Passada autônoma seguinte: redirect Google HTTP302 passou com discovery real em
+laboratório vazio, sem dados do backup e sem abrir a rede do restore. Login/callback
+aprovado e entrega externa continuam NOT_RUN. Auditoria preservou 16 artifacts e
+17 capturas cifradas; identificou três parâmetros numéricos capturados como
+`<redacted>` (mínimo de senha, limite de e-mail, OTP de MFA telefone). Labels foram
+recapturados read-only, sem salvar Source; nenhum default substituiu os números.
+Finding `CONFIG_CAPTURE_VALUES_REDACTED` impede replay completo. SMTP independente,
+configuração externa e renovação do backup continuam bloqueantes; migration NOT_RUN.
+
+Suplemento posterior resolveu autonomamente os três parâmetros pela UI visual,
+com imagens cifradas, sem alterar valores ou capturas antigas. Laboratório vazio
+iniciou Auth com os 16 parâmetros e AAL1 15m; redirect Google real novamente PASS.
+O finding dos números mascarados está resolvido por suplemento, mas entrega SMTP,
+callback/login nominal e recuperação externa completa continuam não certificados.
+Nenhuma migration ou configuração Production alterada.
+
+Em 10/10 às 22:53 UTC, uma única mensagem sintética autorizada passou SMTP Brevo
+e chegou à caixa de entrada Gmail, com identidade/texto conferidos. Entrega direta
+PASS; entrega pelo Auth restaurado NOT_RUN. Remetente reescrito e pixel do provedor
+impedem inferir configuração de autenticação certificada. Google Cloud continua
+bloqueado pela exigência de duas etapas; login/callback não provados. Recuperação
+externa integral BLOCKED, backup precisa renovação antes da entrada controlada,
+recibo/permit não emitidos. Migration NOT_RUN; seis preflights #523 preservados.
+Provas sanitizadas e limites no [relatório atual](../reports/current/comun-escola-fresh-real-recovery-20261010.md).
+
+Continuação às 20:12 BRT: titular ativou duas etapas e acesso Google PASS. Cliente
+Production consultado e preservado; novo cliente exclusivo do laboratório criado
+com autorização específica, credencial cifrada/readback PASS. Docker recuperado
+pelo comando oficial; Auth vazio pinned passou discovery/redirect com esse cliente.
+Login/callback/troca de código NOT_RUN; ensaio representativo não equivale a replay
+da credencial Production. Recuperação externa integral permanece BLOCKED, sem
+recibo/permit, migration ou alterações Supabase. Seis preflights preservados.
+
+Às 20:23 BRT, login Google especificamente autorizado no laboratório vazio passou
+callback/troca de código, `/user` e logout; uma identidade de ensaio, zero sessões
+ao final. Primeiro 504 preservado e causa exata não comprovada; uma retomada com
+fluxo novo passou. Dump privado cifrado e containers removidos. Cliente separado
+é prova representativa, não replay Production. Próximo gate preparado: convite
+Auth com template capturado → Brevo → Gmail → confirmação local, autorizado
+e executado no ensaio registrado abaixo. Recuperação integral ainda BLOCKED, recibo
+não emitido, migration NOT_RUN e seis preflights preservados.
+
+Convite adicional especificamente autorizado foi enviado uma única vez pelo Auth
+do laboratório vazio via relay Brevo e recebido no Gmail. Confirmação local e
+logout PASS; nenhum acesso ao backup real/Production, containers removidos.
+Assunto textual mascarado limita fidelidade: suplemento visual read-only resolveu
+o valor original, sem repetir envio. SMTP substituto não é replay do gerenciado;
+outros cinco fluxos externos NOT_RUN. Recuperação integral NOT_CERTIFIED, backup
+expirado, migration NOT_RUN e seis preflights intactos. Evidências e limites no
+relatório atualizado.
+
+Continuação de 10/10: CI do #540 terminou 8 SUCCESS/34 SKIPPED; não é liberação
+da Escola. Guard de captura passou 13 testes e recusou assuntos mascarados em
+convite/mudança de e-mail. MIME recebido comprovou reescrita do link Auth pelo
+tracking Brevo; a confirmação local usou o link original. Recuperação externa
+integral permanece NOT_CERTIFIED. Sessão do dashboard expirada bloqueia recaptura
+do assunto restante. Resolver fidelidade e contratos externos antes de renovar
+backup, emitir permit ou executar a única migration autorizada condicionalmente.
+Em paralelo, #523 foi reconciliado com main em worktree isolada; seu novo
+checkpoint exige gates próprios. Sem nova funcionalidade, flags ou indexação.
+
+Preparação API de recuperação — 11/10: o segundo MIME SMTP recebido ainda prova
+reescrita Auth após configuração salva. Implementado relay API exclusivo do
+laboratório com tracking false, destinatário único, aprovação vinculada ao link e
+marcador persistente sem retry após resultado incerto. 90 testes locais PASS,
+zero skipped; isso não substitui entrega externa. Chave API exclusiva autorizada,
+cifrada e validada read-only no plano Free, sem mudança de transporte Production.
+Convite API único especificamente autorizado foi aceito e recebido, mas também
+teve link reescrito e duas imagens: FAIL de fidelidade externa, confirmação do
+link recebido NOT_RUN e nenhum reenvio. Laboratório arquivado/limpo, zero sessões.
+18 contratos adicionais passaram em Linux sem rede; CI inclui o novo adaptador,
+sem secrets Production. Assunto change-email Source, demais fluxos e recuperação
+integral continuam bloqueados/não executados;
+backup expirado, permit não emitido, migration NOT_RUN e seis preflights preservados.
+Evidências e limites no [relatório de recuperação](../reports/current/comun-escola-fresh-real-recovery-20261010.md).
+
+Autocorreção do transporte — 11/10: changelog Brevo esclarece que false anonimiza
+métricas, sem desligar tracking; não repetir SMTP/API nem atribuir bug ao provedor
+sem prova. #540/4cbab9ed terminou 11 SUCCESS e 78 SKIPPED, zero failure/pending.
+Adaptador do Gmail já conectado preparado sem conta/credencial/scope novo, com
+21 testes focais PASS. Convite Gmail único especificamente autorizado passou
+recebimento, link exato sem tracking e confirmação real desse link no Auth local,
+logout e zero sessões. Laboratório cifrado/limpo; 93 contratos locais passaram.
+Isso não equivale a recuperação durável integral da configuração. Migration permanece
+NOT_RUN até fechar recibo integral, backup renovado e PRE fresco.

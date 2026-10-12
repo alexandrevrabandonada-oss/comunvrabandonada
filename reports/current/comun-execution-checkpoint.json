@@ -1,0 +1,142 @@
+{
+  "format": "COMUN_EXECUTION_CHECKPOINT_V1",
+  "updatedOn": "2026-10-12",
+  "objective": "Fechar recuperação da Escola sem dispensar gates; entregar continuidade independente na ouvidoria.",
+  "completion": "Entrega independente testada e revisável; Escola somente após recibo real completo, backup <=1h e PRE <=5min.",
+  "mainObserved": "400b17b350a00de913b6e802586c890c1e2999d9",
+  "candidates": {
+    "recovery": {
+      "pr": 540,
+      "sha": "f8b8b1d158c1e1f08d7e70ac49e01efa932ee9d3",
+      "tree": "8354b8c9bc92158c187a8da7b06bbeeaaebbfe8a",
+      "state": "DRAFT_RECOVERY_INCOMPLETE",
+      "shaScope": "Local functional; checkpoint may change documentation only. No remote PASS transferred from 82b6591d."
+    },
+    "product": {
+      "pr": 523,
+      "sha": "6c52ec9cac39b7185ef3bbb0ba2201ce19053a98",
+      "state": "DRAFT_SIX_SCHEMA_PREFLIGHTS_BLOCKED"
+    },
+    "continuity": {
+      "pr": 541,
+      "sha": "bf1b5f98da5ee8386a40f2f1feae39c41ba34fbc",
+      "tree": "6aa5bf692965685f0ae1cdab72264d227566e4d7",
+      "functionalSha": "42f7ddd6a55b0203def07dd0136b3634526c8b07",
+      "state": "DRAFT_LOCAL_PASS_REMOTE_PENDING"
+    }
+  },
+  "validEvidence": [
+    {
+      "scope": "recovery CI exact SHA",
+      "sha": "82b6591d3b3e85384bd9257b71e5436d31771b1e",
+      "qualityRun": "38193201577",
+      "contractsRun": "38193201525",
+      "result": "PASS",
+      "inventory": {
+        "success": 11,
+        "skipped": 66,
+        "blocking": 0
+      },
+      "sanitizedInventorySha256": "11cfc461acfcaba84167d7e5ff0fe43288ee01c5381876480069383f8fa1b62f"
+    },
+    {
+      "scope": "exact Preview",
+      "sha": "82b6591d3b3e85384bd9257b71e5436d31771b1e",
+      "deployment": "7004752859",
+      "result": "PASS"
+    },
+    {
+      "scope": "one Gmail lab invitation: received link, HTTP confirmation, logout, zero sessions",
+      "result": "PASS",
+      "proofSha256": "c4238c632ce8edf44f71ad83203c7ad19c4b7675add94aa4b21ea1b0a55ab7e3",
+      "limits": "Not five other Auth flows, browser click or complete external recovery."
+    },
+    {
+      "scope": "Bounded Auth batch preparation; no send",
+      "sha": "f8b8b1d158c1e1f08d7e70ac49e01efa932ee9d3",
+      "result": "PASS_LOCAL_33",
+      "limits": "Five new synthetic guard contracts plus unchanged 28; not external Auth flows. Reproduced unquoted-anchor regression fixed."
+    },
+    {
+      "scope": "Clipboard continuity actual React/CSS in Chromium",
+      "sha": "42f7ddd6a55b0203def07dd0136b3634526c8b07",
+      "result": "PASS_LOCAL_5",
+      "limits": "Synthetic text and controlled clipboard. Build/TypeScript/focal ESLint PASS; no RLS/human/device proof."
+    }
+  ],
+  "authorization": {
+    "schoolMigration": {
+      "state": "EXISTING_CONDITIONAL_AUTHORIZATION",
+      "source": "Human request: PLEASE IMPLEMENT THIS PLAN / Fechar a recuperação e executar somente a migration da Escola, followed by execution requests",
+      "migration": "20261006134804_comun_learning_r0.sql",
+      "migrationSha256": "5036a833b1b681487204349f8ebc58690228a2f5aa932943a81f60df1d3b6ba7",
+      "manifestSha256": "3b598bc6b3ea3dfe462ba205b6747016aace52de87c87dec332ecbb1a567d4de",
+      "conditions": "All ten existing executor requirements; fresh real recovery and PRE; reviewed immutable package; one-use transaction; uncertain COMMIT reconciled read-only."
+    },
+    "routine": "Local synthetic tests, protected E: backups and isolated restores, normal commits/pushes; reviewed normal merges only after applicable gates and one post-merge certification at a time.",
+    "consumed": [
+      "Brevo SMTP lab invitations",
+      "one Brevo API lab invitation",
+      "one Gmail lab invitation",
+      "creation of lab-only Brevo API key",
+      "creation of lab-only Google OAuth client"
+    ],
+    "notAuthorizedByConsumedOperations": "Messages beyond the separately authorized six-message batch; paid resources; flags/indexation; additional migrations.",
+    "authBatch": {
+      "state": "EXPLICIT_HUMAN_REPLY_AUTHORIZED",
+      "maxMessages": 6,
+      "used": 0,
+      "transport": "EXISTING_GMAIL_CONNECTOR",
+      "recipients": [
+        "alexandrevrabandonada+comun-escola-lab-a@gmail.com",
+        "alexandrevrabandonada+comun-escola-lab-b@gmail.com"
+      ],
+      "limits": "1 signup, 1 recovery, 1 magic-link/OTP, up to 2 email-change, 1 reauthentication. No retry after accepted/uncertain outcome. Only after local assertions and faithful templates."
+    }
+  },
+  "dependencies": [
+    {
+      "gate": "Migration safety",
+      "state": "PASS_PREPARATION",
+      "detail": "Immutable hashes, destination/TLS checks, one-use atomic executor and fail-closed receipt; temporal proofs must be refreshed only at final execution."
+    },
+    {
+      "gate": "External recovery",
+      "state": "BLOCKED",
+      "detail": "Change-email Source Subject missing; five flows unproved; connector session is not exported recovery credential; CAPTCHA positive proof missing."
+    },
+    {
+      "gate": "Durable real recovery",
+      "state": "BLOCKED_STALE",
+      "detail": "Old real backup expired. Renew only after external proof, then restore and compare coverage within one hour."
+    },
+    {
+      "gate": "School activation",
+      "state": "BLOCKED_SCHEMA",
+      "detail": "Six actual preflights of #523 mandatory; no flag change authorized."
+    },
+    {
+      "gate": "Full launch",
+      "state": "NOT_CERTIFIED",
+      "detail": "Real devices, Safari/Firefox and human journey remain NOT_RUN; do not add these as new migration gates."
+    }
+  ],
+  "nextExecutableAction": "Follow #541 exact checks/Preview; integrate only if all applicable gates pass. Auth batch awaits unambiguous Source Subject and local real-flow generation before external send.",
+  "holderDecisions": [
+    "Clarify whether ok was a literal Source Subject or acknowledgement; no inferred default"
+  ],
+  "doNotRepeat": [
+    "Approved tests without relevant change",
+    "Expired PRE recapture before recovery ready",
+    "Brevo tracking attempts with same settings",
+    "Failed dashboard/browser channels without material change",
+    "Consumed external invitations"
+  ],
+  "production": {
+    "migration": "NOT_RUN",
+    "permit": "NOT_ISSUED",
+    "schemaWritesThisRound": 0,
+    "businessWritesThisRound": 0
+  },
+  "resumeRule": "Read this file first. Reconsult only mutable remote state; invalidate proof only for relevant diff, expired temporal gate or contradictory evidence. Update at a material transition, not per command."
+}
