@@ -61,3 +61,42 @@ o novo checkpoint. #541 permanece draft até seus próprios gates.
 #540 integrado como preparação em `11691591`: não certifica recuperação real,
 não aplica schema e preserva lote Auth autorizado 0/6. Assunto Source de mudança
 de e-mail ainda requer valor fiel; “ok” não foi assumido como conteúdo.
+
+## Fechamento remoto e pós-merge
+
+Head revisado `e46a495f`: 37 SUCCESS, 83 SKIPPED, zero failure/pending.
+Workflow Chromium `38259617336`: seis PASS/zero skipped. Preview Git Vercel
+`dpl_9sVZWwGp2VQGzuWmDYXar577FQ23` READY, GitHub deployment `7015885973`
+Preview success e COST-02 SUCCESS. Quality `38259617608` attempt 2 SUCCESS;
+reexecutado somente P1T após 502 pós-reset anterior aos gates. Bateria principal
+da attempt 1 preservada. Coerência `38259617491` attempt 2 SUCCESS após 502 no
+reset. Mesmo SHA entre tentativas, sem correção fictícia de produto ou retry novo.
+
+Merge normal #541: `8bb8cd9de9afe68293de82c6b7ca97ba4730d01f`, 14:40:58 UTC,
+tree `8f3c6d672bb38614b0c13f30ff0c6d88e9a733da`, idêntica ao head revisado.
+CI pós-merge `38264701169` SUCCESS. Deploy deste merge **BLOCKED/UNPROVEN**:
+consultas autenticadas Vercel CLI/conector e GitHub não localizaram deployment
+para esse SHA; domínio ainda serve `11691591`, cujo deploy foi certificado.
+Quality pós-merge `38264701423` FAIL com
+`COMUN_QUALITY_EXPECTED_SHA_NOT_DEPLOYED`. Core Journeys `38264701160` e Civic
+Graph `38264701196` também falharam ao aguardar o SHA exato, conforme seus logs.
+Coerência pós-merge ainda em execução na captura do fechamento; não contar PASS.
+
+Projeto/repositório/main corretos, createDeployments enabled; classificador do
+diff real exige BUILD/runtime-path-change. Sem deployment cancelado que prove
+ignoreCommand. Eventos consultados no projeto não explicaram a ausência;
+endpoint GitHub installation exige autenticação App indisponível (401).
+**Causa da falta de entrega do evento Git não comprovada**; não chamar isso de
+regressão da aplicação, sucesso de deploy ou quota sem evidência.
+
+Próxima ação: inspecionar/recuperar a entrega Git→Vercel desse merge exato por
+interface suportada; conferir Git source/SHA/READY, GitHub Production success e
+SHA servido antes de reexecutar os jobs pós-merge que falharam. Não repetir o CI
+enquanto o domínio permanecer no SHA anterior. Nenhum deploy manual, reconnect,
+configuração Vercel, flags ou schema alterados para esconder a falha.
+
+Bundle SHA-256 `ed3108c759cf304f0c49535717886dfa7df513c885fcd9a06989b52ac8b141ea`:
+importação independente PASS, SHA/tree/fsck conferidos; exige main `11691591` e
+ancestral `400b17b3`. Evidências privadas preservadas no E:, sem dados/segredos Git.
+Preparação #540 integrada/certificada; produto #541 integrado, disponibilidade
+Production do novo código ainda não certificada. Escola NOT_RELEASED; V1 aberta.

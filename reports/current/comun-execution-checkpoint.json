@@ -3,13 +3,13 @@
   "updatedOn": "2026-10-12",
   "objective": "Fechar recuperação da Escola sem dispensar gates; entregar continuidade independente na ouvidoria.",
   "completion": "Entrega independente testada e revisável; Escola somente após recibo real completo, backup <=1h e PRE <=5min.",
-  "mainObserved": "1169159158e1978d08930416800f394f1558192f",
+  "mainObserved": "8bb8cd9de9afe68293de82c6b7ca97ba4730d01f",
   "candidates": {
     "recovery": {
       "pr": 540,
       "sha": "f8b8b1d158c1e1f08d7e70ac49e01efa932ee9d3",
       "tree": "8354b8c9bc92158c187a8da7b06bbeeaaebbfe8a",
-      "state": "PREPARATION_MERGED_REAL_RECOVERY_BLOCKED",
+      "state": "PREPARATION_MERGED_POSTMERGE_CERTIFIED_REAL_RECOVERY_BLOCKED",
       "shaScope": "Local functional; checkpoint may change documentation only. No remote PASS transferred from 82b6591d.",
       "mergeSha": "1169159158e1978d08930416800f394f1558192f"
     },
@@ -20,10 +20,11 @@
     },
     "continuity": {
       "pr": 541,
-      "sha": "8203227ca2b192f1c81102d8a3bc1b9e93aa8f79",
-      "tree": "1575ecef93da51a950b1dab56e2e8982a8955fb6",
+      "sha": "e46a495f8bdeee7d15d108540273a50c6a1c1d3c",
+      "tree": "8f3c6d672bb38614b0c13f30ff0c6d88e9a733da",
       "functionalSha": "39198b1cc1de5ccae7fe4b55d58e21fd47c8ef03",
-      "state": "DRAFT_STALE_COPY_FIXED_LOCAL_6_PASS_REMOTE_PENDING"
+      "state": "MERGED_GIT_DEPLOYMENT_UNPROVEN",
+      "mergeSha": "8bb8cd9de9afe68293de82c6b7ca97ba4730d01f"
     }
   },
   "validEvidence": [
@@ -63,6 +64,24 @@
       "sha": "42f7ddd6a55b0203def07dd0136b3634526c8b07",
       "result": "PASS_LOCAL_5",
       "limits": "Synthetic text and controlled clipboard. Build/TypeScript/focal ESLint PASS; no RLS/human/device proof."
+    },
+    {
+      "scope": "Recovery preparation post-merge; not complete recovery",
+      "sha": "1169159158e1978d08930416800f394f1558192f",
+      "result": "PASS_CI_GIT_DEPLOY_SERVED_SHA_PUBLIC_GET_SMOKES",
+      "proofSha256": "527b84e10abcb109039d90530e7aec51b3a7bf7de77bab6ac304a2df5f420f99"
+    },
+    {
+      "scope": "Continuity candidate exact remote gates and Preview",
+      "sha": "e46a495f8bdeee7d15d108540273a50c6a1c1d3c",
+      "result": "PASS_37_SUCCESS_83_SKIPPED",
+      "browserRun": "38259617336",
+      "browser": "6_PASS_0_SKIP",
+      "qualityRun": "38259617608",
+      "qualityAttempt": 2,
+      "coherenceRun": "38259617491",
+      "coherenceAttempt": 2,
+      "limits": "Same-code directed reruns resolved local reset 502; not new main Production deployment proof."
     }
   ],
   "authorization": {
@@ -122,7 +141,7 @@
       "detail": "Real devices, Safari/Firefox and human journey remain NOT_RUN; do not add these as new migration gates."
     }
   ],
-  "nextExecutableAction": "Certify #540 post-merge deploy before next integration; follow #541 new exact gates. Subject and local real-flow generation still required before 0/6 authorized sends.",
+  "nextExecutableAction": "Recover Git-linked deployment of 8bb8cd9d; verify exact READY/GitHub/served SHA before rerunning failed post-merge jobs. No next integration before certification. Auth batch still needs faithful Source Subject and local real-flow generation.",
   "holderDecisions": [
     "Clarify whether ok was a literal Source Subject or acknowledgement; no inferred default"
   ],
@@ -139,5 +158,20 @@
     "schemaWritesThisRound": 0,
     "businessWritesThisRound": 0
   },
-  "resumeRule": "Read this file first. Reconsult only mutable remote state; invalidate proof only for relevant diff, expired temporal gate or contradictory evidence. Update at a material transition, not per command."
+  "resumeRule": "Read this file first. Reconsult only mutable remote state; invalidate proof only for relevant diff, expired temporal gate or contradictory evidence. Update at a material transition, not per command.",
+  "postmergeBlocker": {
+    "state": "GIT_DEPLOYMENT_UNPROVEN",
+    "expectedSha": "8bb8cd9de9afe68293de82c6b7ca97ba4730d01f",
+    "servedSha": "1169159158e1978d08930416800f394f1558192f",
+    "deploymentCount": 0,
+    "ciRun": "38264701169",
+    "ci": "SUCCESS",
+    "qualityRun": "38264701423",
+    "quality": "FAIL_EXPECTED_SHA_NOT_DEPLOYED",
+    "otherFailedRuns": ["38264701160", "38264701196"],
+    "coherenceRun": "38264701564",
+    "coherence": "IN_PROGRESS_AT_CAPTURE",
+    "cause": "UNPROVEN_GIT_EVENT_DELIVERY",
+    "manualDeploy": "NOT_RUN"
+  }
 }

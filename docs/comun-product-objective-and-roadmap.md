@@ -1,5 +1,16 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Fechamento da rodada — 12/10/2026
+
+#540 integrado/certificado em `11691591`; recuperação real continua BLOCKED.
+#541 integrado em `8bb8cd9d` após 37 SUCCESS/83 SKIPPED, seis testes Chromium
+e Preview exato. Novo finding: deploy Git do merge ausente; Production serve
+`11691591` e três lanes pós-merge recusaram o SHA antigo. Produto integrado
+não equivale a disponibilidade certificada. Não há próxima integração antes
+de fechar esse finding. Relatório e checkpoint registram provas e ação executável.
+Lote Auth aprovado permanece 0/6; Subject Source e cinco fluxos ainda pendentes.
+Nenhuma migration, flag ou indexação alterada; Escola não liberada.
+
 ## Continuidade independente — 12/10/2026
 
 Candidato funcional `42f7ddd6`: cópia de texto da ouvidoria e protocolo agora
