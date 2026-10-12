@@ -133,7 +133,8 @@ e-mail conforme Source, isolamento cruzado e limpeza continuam sob o coordenador
 privado. Esses contratos reais **não foram executados** sem CAPTCHA válido.
 
 Estados desta passada: controles negativos anteriores **PASS reutilizado**, sem
-repetição; testes focais/interface bloqueada **PASS**; CAPTCHA humano positivo,
+repetição, no escopo original hCaptcha (não certificam uma stack Turnstile);
+testes focais/interface bloqueada **PASS**; CAPTCHA humano positivo,
 cinco fluxos SMTP/sessões/isolamento/limpeza **NOT_RUN**. Bloqueio acionável:
 **LAB_REAL_KEYS_REQUIRED** (par exclusivo existente não localizado); recibo da
 stack/host ainda não emitido. Nenhum novo gate foi acrescentado ao executor da migration.

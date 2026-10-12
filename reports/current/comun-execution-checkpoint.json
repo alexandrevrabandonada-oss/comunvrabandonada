@@ -1,8 +1,8 @@
 {
   "format": "COMUN_EXECUTION_CHECKPOINT_V1",
   "updatedOn": "2026-10-12",
-  "objective": "Concluir o lote Auth externo já autorizado e preparar a janela da única migration Escola; sem nova integração de produto.",
-  "completion": "Cinco fluxos externos comprovados, backup real fresco/restauração isolada <=1h e PRE <=5min com permit válido; migration somente após todos os requisitos.",
+  "objective": "Preparar interface local isolada para CAPTCHA humano real; sem Gmail, backup, permit, migration ou integração.",
+  "completion": "Interface preparada e testes focais executados, com CAPTCHA positivo MANUAL_PASS somente após desafio humano real; requisito de chave/hostname ausente delimitado.",
   "mainObserved": "8bb8cd9de9afe68293de82c6b7ca97ba4730d01f",
   "candidates": {
     "recovery": {
@@ -120,6 +120,14 @@
       "scope": "New recover/otp missing-CAPTCHA negative controls in owned synthetic Auth v2.196.0",
       "limits": "Not positive CAPTCHA or any of the five external flows. Initial local Docker start timeout preserved; running state reconciled, no blind repeated start.",
       "proofSha256": "3d8ed491864c8a4a7bc21c87f7fc121aedb5a534c80d9967d0afd36f26c3aa1d"
+    },
+    {
+      "scope": "Interactive CAPTCHA interface preparation, no Auth/external approval",
+      "sha": "1e10f3b10d9a4bba5fe1a4217b1d1356dc0189cf",
+      "tree": "f4e9c77207541ffd1707b4324c802430ee82ba8f",
+      "result": "PASS_LOCAL_30_AND_BLOCKED_CHROMIUM_UI",
+      "proofSha256": "7a43ba0b8d5cf1b28abf30bf610e98e1bb678c182878b9166722e7d814908c3a",
+      "limits": "Real keys/host acceptance missing. Positive human CAPTCHA and five local SMTP flows NOT_RUN. No Gmail, backup, permit or migration."
     }
   ],
   "authorization": {
@@ -168,7 +176,7 @@
     {
       "gate": "External recovery",
       "state": "BLOCKED",
-      "detail": "Exact change-email Subject resolved by human Source read; four other captured templates reused with identical hashes. Five positive flows NOT_RUN: signup/recover/otp need valid human CAPTCHA; email change and reauthentication need authenticated synthetic A/final B. No admin generate_link substitute; batch 0/6."
+      "detail": "Source Subject resolved and original capture preserved. Interactive harness prepared; no lab-exclusive CAPTCHA pair located. Human CAPTCHA and five SMTP/Auth flows NOT_RUN, Gmail batch 0/6. No Source/Production credentials substituted."
     },
     {
       "gate": "Durable real recovery",
@@ -186,9 +194,10 @@
       "detail": "Real devices, Safari/Firefox and human journey remain NOT_RUN; do not add these as new migration gates."
     }
   ],
-  "nextExecutableAction": "Prepare an interactive owned CAPTCHA-enabled lab using captured Source configuration and exact five templates including the human Subject supplement; obtain valid human challenges, generate/inspect actual MIME locally, then execute only approved Gmail items once each. Keep #542/#523 unmerged; no backup renewal until external proof complete.",
+  "nextExecutableAction": "Localizar somente configuração CAPTCHA já existente e exclusiva do laboratório, por canal privado, sem compartilhar credenciais no chat. Depois preparar stack própria pinned/SMTP local, conferir templates/política e emitir recibo privado. Não copiar segredo Production, criar configuração remota nem enviar Gmail nesta passada.",
   "holderDecisions": [
-    "Human CAPTCHA completion in the isolated lab is still required; never send CAPTCHA tokens in chat or automate solving. Exact Source Subject already provided, do not ask again."
+    "Disponibilizar o caminho protegido do par CAPTCHA já existente e exclusivo do laboratório, incluindo hostname já aceito pelo provedor. Se esse par não existir, a criação remota exige escopo separado; não foi realizada.",
+    "Depois das chaves/configuração, completar desafio humano real. Subject Source já resolvido, não perguntar novamente."
   ],
   "doNotRepeat": [
     "Approved tests without relevant change",
@@ -262,7 +271,7 @@
         "thisRound": "NOT_RUN"
       }
     ],
-    "state": "BLOCKED_VALID_HUMAN_CAPTCHA_AND_AUTHENTICATED_FLOW_PREPARATION",
+    "state": "BLOCKED_LAB_EXCLUSIVE_REAL_CAPTCHA_KEYS",
     "backup": "NOT_RENEWED",
     "migration": "NOT_RUN",
     "flowResults": {
@@ -274,5 +283,37 @@
     },
     "officialReadOnlyConfigPath": "GET /v1/projects/nvmdszymrtacfehdynpg/config/auth",
     "authorizations": "Six-message batch and conditional sole migration preserved; no new cost or resource subscription"
+  },
+  "interactiveCaptchaLab": {
+    "functionalSha": "1e10f3b10d9a4bba5fe1a4217b1d1356dc0189cf",
+    "tree": "f4e9c77207541ffd1707b4324c802430ee82ba8f",
+    "preparation": "PASS_INTERFACE_ONLY",
+    "state": "BLOCKED_LAB_EXCLUSIVE_REAL_KEYS_NOT_LOCATED",
+    "url": "http://127.0.0.1:9996",
+    "provider": "turnstile",
+    "proofSha256": "7a43ba0b8d5cf1b28abf30bf610e98e1bb678c182878b9166722e7d814908c3a",
+    "fileSha256": {
+      "auth-interactive-lab.mjs": "7eb84ff6675eda11b2f87914063acb3e566ac1652902d877daee25364fbe71eb",
+      "auth-interactive-lab-client.mjs": "9ebcfc802af95cc477bb729555cf52c7e9ef68cf2bb4ee8c583899153cdbbfb3",
+      "auth-interactive-lab.html": "84dd6d2b574503c3832209880f02f32c06240ec283d6d9ad20bb4c4536adec81",
+      "auth-interactive-lab.node-test.mjs": "20490c9b7409fcfdf25f3810f8fd942ec7d35cbb7ac8876e1b9389c743656cca"
+    },
+    "tests": "PASS_30_FOCAL_0_SKIPPED",
+    "browser": "PASS_CHROMIUM_BLOCKED_DESKTOP_MOBILE_KEYBOARD_ZERO_AUTH_REQUESTS",
+    "eslint": "PASS_FOCAL",
+    "prettier": "PASS",
+    "negativeCaptcha": "PASS_REUSED_PRIOR_HCAPTCHA_SCOPE_ONLY",
+    "positiveCaptcha": "NOT_RUN",
+    "localSmtpFlows": "NOT_RUN",
+    "isolation": "NOT_RUN",
+    "cleanup": "NOT_RUN_NO_STACK_CREATED",
+    "keys": "ABSENT_IN_INSPECTED_LAB_CONFIG_AND_ENV; Production keys not used",
+    "stackReceipt": "NOT_ISSUED; inspect owned pinned stack/configuration after lab keys available",
+    "providerHostAcceptance": "NOT_RUN; named host supported only with existing exclusive loopback resolution",
+    "externalMessages": 0,
+    "gmailBatchUsed": 0,
+    "productionWrites": 0,
+    "sourceConfigWrites": 0,
+    "limits": "No real provider challenge loaded. Prior hCaptcha missing-token negatives retain their original scope, not Turnstile certification. Browser/mocks/HTML do not certify CAPTCHA, Auth, MIME, RLS or recovery. No migration permit; existing executor gates unchanged."
   }
 }
