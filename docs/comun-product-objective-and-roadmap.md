@@ -1,5 +1,20 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Continuidade independente — 12/10/2026
+
+Candidato funcional `42f7ddd6`: cópia de texto da ouvidoria e protocolo agora
+oferece alternativa manual selecionável quando o navegador recusa clipboard,
+sem falso sucesso, envio automático ou perda de contexto. Cinco cenários Chromium,
+teclado/foco, celular e Axe passaram em componentes reais com fixtures sintéticas;
+build/TypeScript/ESLint focais passaram. Preview e integração ainda exigem gates
+próprios. [Provas e limites](../reports/current/comun-copy-continuity.md).
+
+A recuperação da Escola retoma pelo checkpoint versionado do #540, sem repetir
+provas válidas: convite Gmail recebido/confirmado PASS; bateria restante de até
+seis mensagens autorizada, ainda sem envios e bloqueada pela captura fiel Source.
+#523 permanece separado e seus seis preflights continuam obrigatórios. Sem schema
+write, flags ou indexação; não declarar Escola liberada ou V1 concluída.
+
 ## Recuperação da Escola — escopo separado, 08/10/2026
 
 Revisão do #534: preparação elegível para integração após gates do SHA, sem
