@@ -24,7 +24,11 @@
       "qualityRun": "38193201577",
       "contractsRun": "38193201525",
       "result": "PASS",
-      "inventory": { "success": 11, "skipped": 66, "blocking": 0 },
+      "inventory": {
+        "success": 11,
+        "skipped": 66,
+        "blocking": 0
+      },
       "sanitizedInventorySha256": "11cfc461acfcaba84167d7e5ff0fe43288ee01c5381876480069383f8fa1b62f"
     },
     {
@@ -57,7 +61,18 @@
       "creation of lab-only Brevo API key",
       "creation of lab-only Google OAuth client"
     ],
-    "notAuthorizedByConsumedOperations": "Additional external messages or replays; paid resources; flags/indexation; additional migrations."
+    "notAuthorizedByConsumedOperations": "Messages beyond the separately authorized six-message batch; paid resources; flags/indexation; additional migrations.",
+    "authBatch": {
+      "state": "EXPLICIT_HUMAN_REPLY_AUTHORIZED",
+      "maxMessages": 6,
+      "used": 0,
+      "transport": "EXISTING_GMAIL_CONNECTOR",
+      "recipients": [
+        "alexandrevrabandonada+comun-escola-lab-a@gmail.com",
+        "alexandrevrabandonada+comun-escola-lab-b@gmail.com"
+      ],
+      "limits": "1 signup, 1 recovery, 1 magic-link/OTP, up to 2 email-change, 1 reauthentication. No retry after accepted/uncertain outcome. Only after local assertions and faithful templates."
+    }
   },
   "dependencies": [
     {
@@ -88,8 +103,7 @@
   ],
   "nextExecutableAction": "Prepare bounded five-flow Auth battery and independent clipboard-denial fallback on main; reuse exact accepted evidence.",
   "holderDecisions": [
-    "Read exact non-secret Source Subject once; no reset/login/configuration change",
-    "Approve one bounded external batch after reviewing docs/comun-escola-auth-recovery-batch.md"
+    "Clarify whether ok was a literal Source Subject or acknowledgement; no inferred default"
   ],
   "doNotRepeat": [
     "Approved tests without relevant change",
