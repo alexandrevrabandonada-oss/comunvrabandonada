@@ -82,3 +82,7 @@ bloco Bash literal conhecido, mantendo o job sem instalação de dependências;
 a falha anterior permanece registrada.
 Os 20 contratos A7 passaram novamente com a mesma chamada node --test do job,
 sem parser YAML ou instalação npm.
+
+A run V1 `38451660368` do SHA `ee9a0d13` passou o build e recusou
+`git diff --check` por linha vazia extra no EOF do teste A7. A formatação foi
+corrigida e o diff local verificado; o finding anterior não é contado como PASS.

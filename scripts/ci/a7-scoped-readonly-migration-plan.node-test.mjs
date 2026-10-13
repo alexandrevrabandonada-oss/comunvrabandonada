@@ -90,4 +90,3 @@ test("A7 blocked diagnostics never include private connection data", () => {
     { message: "REMOTE_MIGRATION_PLAN_NOT_EMPTY:20990101000000_unknown.sql" },
   );
 });
-
