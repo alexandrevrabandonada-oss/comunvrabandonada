@@ -112,7 +112,7 @@ test("A7 psql steps use the pinned public CA with verified TLS and read-only def
   assert.equal(job.env.PGSSLROOTCERT, undefined);
   const names = [
     "Prove zero migration and inspect metadata read-only",
-    "Prove remote migration plan remains empty",
+    "Prove A7-scoped remote migration plan",
   ];
   for (const name of names) {
     const step = job.steps.find((s) => s.name === name);
@@ -133,4 +133,11 @@ test("A7 psql steps use the pinned public CA with verified TLS and read-only def
     /begin read only;/,
   );
   assert.match(job.steps.find((s) => s.name === names[0]).run, /rollback;/);
+  const planStep = job.steps.find((s) => s.name === names[1]);
+  assert.match(planStep.run, /a7-scoped-readonly-migration-plan\.mjs/);
+  assert.match(
+    planStep.run,
+    /unrelatedPendingMigration=20261006134804_comun_learning_r0\.sql/,
+  );
+  assert.doesNotMatch(planStep.run, /migrationCount=0/);
 });
