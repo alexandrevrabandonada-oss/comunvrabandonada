@@ -40,3 +40,22 @@ Não transferir PASS do candidato para o merge.
 
 #542 e #523 draft preservados. Sem segredos, Auth, backups, migrations, dados
 Production, flags ou indexação. Este candidato não encerra V1 nem certifica organização real.
+
+## Findings remotos e correção focal
+
+Primeiro candidato `feb59076c577155c189f9f1691b4d5fce13fcd84`:
+Preview GitHub `7041071824` success no SHA exato. Duas falhas preservadas:
+
+- Run `38412577669`, A7: psql recusou antes da consulta por falta de root.crt.
+  Os dois passos read-only passam a usar a CA pública pinned existente por
+  PGSSLROOTCERT, com verify-full e default_transaction_read_only=on. Não muda
+  query, fingerprint, pendência ou requisito; nenhuma verificação TLS relaxada.
+- Run `38412577071`: 9 testes browser passaram e o novo teste contou Web Vitals
+  preexistentes como escrita de participação. O ensaio recebe somente quality-metrics
+  num sink local e exige os seis campos allowlisted não pessoais. Toda outra escrita
+  API continua bloqueante; não altera o transporte/telemetria do produto.
+
+Teste adicional dos workflows de migration plan no Windows: 14 FAIL na limpeza
+EBUSY de diretórios temporários, 12 PASS na execução conjunta de 26 contratos.
+Não contado como verde; testes Linux remotos continuam obrigatórios. Nenhuma
+expectativa do planner foi relaxada nem o erro encoberto.

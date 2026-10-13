@@ -44,6 +44,10 @@ jobs:
           node scripts/ci/classify-migration-lane.mjs --lane 48-4-a7 --files "${changed[@]}" | tee .ci-artifacts/48-4-a7-preflight/migration-classification.env
           cat .ci-artifacts/48-4-a7-preflight/migration-classification.env >> "$GITHUB_ENV"
       - name: Prove zero migration and inspect metadata read-only
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
@@ -77,6 +81,10 @@ jobs:
           if(state.businessContentRead!==false)throw new Error('COMUN_48_4_A7_BLOCKED_BUSINESS_CONTENT_READ');
           NODE
       - name: Prove remote migration plan remains empty
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |

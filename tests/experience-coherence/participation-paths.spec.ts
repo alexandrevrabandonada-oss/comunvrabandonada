@@ -115,7 +115,8 @@ for (const experience of ["", "?experiencia=legacy"]) {
     page.on("request", (request) => {
       if (
         !["GET", "HEAD"].includes(request.method()) &&
-        new URL(request.url()).pathname.startsWith("/api/comun")
+        new URL(request.url()).pathname.startsWith("/api/comun") &&
+        new URL(request.url()).pathname !== "/api/comun/quality-metrics"
       )
         writes.push(request.url());
     });
