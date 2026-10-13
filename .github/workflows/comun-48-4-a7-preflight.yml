@@ -13,6 +13,7 @@ on:
       - "playwright.experience-coherence.config.ts"
       - "scripts/economy/run-48-4-a7-production.sh"
       - "scripts/ci/readonly-reconciled-migration-plan*"
+      - "scripts/ci/a7-scoped-readonly-migration-plan*"
       - "reports/current/comun-48-4-a7-*"
 
 permissions: { contents: read }
@@ -43,7 +44,16 @@ jobs:
           mapfile -t changed < <(git diff --name-only "$PR_BASE_SHA"...HEAD -- supabase/migrations)
           node scripts/ci/classify-migration-lane.mjs --lane 48-4-a7 --files "${changed[@]}" | tee .ci-artifacts/48-4-a7-preflight/migration-classification.env
           cat .ci-artifacts/48-4-a7-preflight/migration-classification.env >> "$GITHUB_ENV"
+      - name: Prove A7 scoped-plan contracts without a remote database
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test scripts/ci/a7-scoped-readonly-migration-plan.node-test.mjs scripts/ci/a7-scoped-readonly-migration-plan-workflow.node-test.mjs
       - name: Prove zero migration and inspect metadata read-only
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
@@ -76,19 +86,99 @@ jobs:
           for(const [key,value] of Object.entries(state))if(key!=='businessContentRead'&&value!==true)throw new Error(`COMUN_48_4_A7_BLOCKED_REMOTE_SCHEMA_DRIFT:${key}`);
           if(state.businessContentRead!==false)throw new Error('COMUN_48_4_A7_BLOCKED_BUSINESS_CONTENT_READ');
           NODE
-      - name: Prove remote migration plan remains empty
+      - name: Prove A7-scoped remote migration plan
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail
           node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs
-          node scripts/ci/readonly-reconciled-migration-plan.mjs .ci-artifacts/48-4-a7-preflight/plan.txt
-          mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-4-a7-preflight/plan.txt|sort -u||true)
-          test "${#planned[@]}" -eq 0
-          ! grep -Eq -- '--include-all|migration repair|db reset|seed' .ci-artifacts/48-4-a7-preflight/plan.txt
-          echo migrationCount=0 >>"$GITHUB_STEP_SUMMARY"
-          echo businessContentRead=false >>"$GITHUB_STEP_SUMMARY"
-          echo COMUN_48_4_A7_REMOTE_PREFLIGHT_GREEN >>"$GITHUB_STEP_SUMMARY"
+          node --input-type=module - <<'NODE'
+          import { createHash } from "node:crypto";
+          import { execFileSync, spawnSync } from "node:child_process";
+          import { readFileSync, writeFileSync, appendFileSync } from "node:fs";
+          import {
+            assertEmptyPlan,
+            validateHardeningLedger,
+            withHeldFiles,
+          } from "./scripts/ci/readonly-reconciled-migration-plan.mjs";
+          const output = ".ci-artifacts/48-4-a7-preflight/plan.txt";
+          const hardeningPath = "supabase/migrations/20260922120000_comun_canonical_security_hardening_v2.sql";
+          const sidewalkPath = "supabase/migrations/20260724233256_comun_sidewalk_operational_hardening.sql";
+          const pins = [
+            [hardeningPath, "59351a1736ca21683f6307e78b12fa9362697d8772c0a8c807ab7c387f1da279"],
+            [sidewalkPath, "6a2e69dcc66f760fa1828bb43249079e8db474ad8b175d3af6aa7c97ec05b1be"],
+          ];
+          const checkPins = () => {
+            for (const [path, sha] of pins)
+              if (createHash("sha256").update(readFileSync(path)).digest("hex") !== sha)
+                throw new Error("EXTERNAL_MIGRATION_BYTES_INVALID");
+          };
+          if (!process.env.SUPABASE_DB_URL || !process.env.GITHUB_STEP_SUMMARY)
+            throw new Error("READONLY_PLAN_INPUT_REQUIRED");
+          const env = { ...process.env, PGOPTIONS: "-c default_transaction_read_only=on" };
+          checkPins();
+          const manifest = JSON.parse(readFileSync("supabase/releases/20260922120000-canonical-security-hardening-v2.json", "utf8"));
+          const sql = `begin read only;
+          select coalesce(json_agg(row_to_json(r)), '[]'::json) from
+          (select release,migration_path,migration_sha256,pre_fingerprint,post_fingerprint,status
+           from public.comun_schema_releases
+           where release='20260922120000-canonical-security-hardening-v2') r;
+          rollback;`;
+          let rows;
+          try {
+            rows = JSON.parse(execFileSync(
+              "psql",
+              [process.env.SUPABASE_DB_URL, "-qXAt", "-v", "ON_ERROR_STOP=1"],
+              { input: sql, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"], env },
+            ));
+          } catch {
+            throw new Error("HARDENING_READONLY_LEDGER_CAPTURE_FAILED");
+          }
+          validateHardeningLedger(manifest, rows);
+          const plan = withHeldFiles([sidewalkPath, hardeningPath], () => {
+            const result = spawnSync(
+              "supabase",
+              ["db", "push", "--db-url", process.env.SUPABASE_DB_URL, "--dry-run"],
+              { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"], env },
+            );
+            if (result.error || result.signal || result.status !== 0)
+              throw new Error("REMOTE_MIGRATION_DRY_RUN_FAILED");
+            return `${result.stdout}\n${result.stderr}`;
+          });
+          checkPins();
+          let state = { state: "empty", pending: [] };
+          if (plan.includes("20261006134804_comun_learning_r0.sql")) {
+            const { assertA7MigrationPlan } = await import("./scripts/ci/a7-scoped-readonly-migration-plan.mjs");
+            state = assertA7MigrationPlan(plan, {
+              migrationBytes: readFileSync("supabase/migrations/20261006134804_comun_learning_r0.sql"),
+              manifestBytes: readFileSync("supabase/releases/20261006134804-comun-learning-r0.json"),
+            });
+          } else {
+            if (/\.sql\b/i.test(plan))
+              throw new Error("REMOTE_MIGRATION_PLAN_UNKNOWN_SQL");
+            assertEmptyPlan(plan);
+          }
+          writeFileSync(output, plan);
+          const lines = [
+            `remoteMigrationPlan=${state.state}`,
+            "a7OwnedPendingMigrations=0",
+            "businessContentRead=false",
+            ...(state.pending.length
+              ? ["unrelatedPendingMigration=20261006134804_comun_learning_r0.sql"]
+              : ["remotePendingMigrationCount=0"]),
+            "COMUN_48_4_A7_REMOTE_PREFLIGHT_GREEN",
+          ];
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
+          console.log(
+            state.pending.length
+              ? "COMUN_A7_READONLY_PLAN_ONE_UNRELATED_SCHOOL_R0_PENDING"
+              : "COMUN_A7_READONLY_PLAN_EMPTY",
+          );
+          NODE
       - uses: actions/upload-artifact@v4
         if: always()
         with:

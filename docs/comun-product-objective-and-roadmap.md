@@ -691,3 +691,27 @@ recebimento, link exato sem tracking e confirmação real desse link no Auth loc
 logout e zero sessões. Laboratório cifrado/limpo; 93 contratos locais passaram.
 Isso não equivale a recuperação durável integral da configuração. Migration permanece
 NOT_RUN até fechar recibo integral, backup renovado e PRE fresco.
+
+### 49-E3 — porta de entrada e organização disponível (13/10/2026)
+
+Implementação #544 sobre main `b9c78c2c5c0affc5ee452010da0185747534eae9`.
+Home canônica, home legacy pública e Participar reutilizam os três caminhos:
+usar fontes/busca, participar de ações existentes e aprender a organizar.
+Organizar leva à orientação pública existente, depois a comunidades, com retorno
+pelo navegador e endereço público favoritado. Não há armazenamento de identidade,
+progresso, inscrição, tarefa ou responsabilidade nesta navegação.
+
+A orientação informa o limite real desta entrada: não cria nem administra núcleos.
+É um passo 49-E0/E em direção a 49-M, não implementação de governança ou operação
+de núcleos. Formação permanente completa e responsabilidades reais continuam
+pendentes. A Escola #523 e recuperação #542 permanecem independentes e bloqueadas;
+nenhuma migration, flag ou indexação foi alterada.
+
+Provas e estados: [relatório 49-E3](../reports/current/comun-49-e3-entry-paths.md).
+
+O preflight A7 mantém a inspeção de metadados e ledger somente leitura. Sua
+validação específica reconhece apenas a única migration Escola R0 já classificada
+como fora do escopo A7, com SQL e manifest fixados por hash. O plano registra essa
+pendência; bytes alterados, duplicatas, migrations adicionais, saída inválida ou
+operações de escrita bloqueiam. Os planners compartilhados mantêm seu contrato
+anterior. A liberação da Escola continua dependendo dos gates próprios.

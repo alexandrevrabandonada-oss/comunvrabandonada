@@ -104,3 +104,40 @@ test("School capture keeps read-only options and isolates the disposable job fro
     /secrets\.|SUPABASE_DB_URL|NODE_EXTRA_CA_CERTS/,
   );
 });
+
+test("A7 psql steps use the pinned public CA with verified TLS and read-only defaults", () => {
+  const workflow = load(read(".github/workflows/comun-48-4-a7-preflight.yml"));
+  assert.equal(workflow.env?.PGSSLROOTCERT, undefined);
+  const job = workflow.jobs["zero-schema-metadata-only"];
+  assert.equal(job.env.PGSSLROOTCERT, undefined);
+  const names = [
+    "Prove zero migration and inspect metadata read-only",
+    "Prove A7-scoped remote migration plan",
+  ];
+  for (const name of names) {
+    const step = job.steps.find((s) => s.name === name);
+    assert.ok(step);
+    assert.equal(step.env.PGSSLROOTCERT, extraCa);
+    assert.equal(step.env.PGSSLMODE, "verify-full");
+    assert.equal(step.env.PGOPTIONS, "-c default_transaction_read_only=on");
+    assert.doesNotMatch(
+      step.run,
+      /sslmode=(disable|allow|prefer|require)|NODE_TLS_REJECT_UNAUTHORIZED/,
+    );
+  }
+  for (const step of job.steps.filter((s) => !names.includes(s.name))) {
+    assert.equal(step.env?.PGSSLROOTCERT, undefined);
+  }
+  assert.match(
+    job.steps.find((s) => s.name === names[0]).run,
+    /begin read only;/,
+  );
+  assert.match(job.steps.find((s) => s.name === names[0]).run, /rollback;/);
+  const planStep = job.steps.find((s) => s.name === names[1]);
+  assert.match(planStep.run, /a7-scoped-readonly-migration-plan\.mjs/);
+  assert.match(
+    planStep.run,
+    /unrelatedPendingMigration=20261006134804_comun_learning_r0\.sql/,
+  );
+  assert.doesNotMatch(planStep.run, /migrationCount=0/);
+});

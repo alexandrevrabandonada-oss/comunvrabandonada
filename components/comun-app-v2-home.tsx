@@ -1,3 +1,4 @@
+import { ComunParticipationPaths } from "@/components/comun-participation-paths";
 import { publicPautaStatusLabel } from "@/lib/comun-public-labels";
 import Link from "next/link";
 import {
@@ -119,6 +120,8 @@ export function ComunAppV2Home({
           })}
         </div>
       </section>
+
+      <ComunParticipationPaths appV2={true} />
 
       {civicIntelligencePilot ? (
         <section
