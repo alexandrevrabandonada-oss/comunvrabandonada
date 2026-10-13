@@ -1,4 +1,5 @@
-// Preview checkpoint: contract-only capability, no runtime activation.\nexport const COMUN_COMPETENCY_EVIDENCE_VERSION =
+// Preview checkpoint: contract-only capability, no runtime activation.
+export const COMUN_COMPETENCY_EVIDENCE_VERSION =
   "comun-competency-evidence-v0" as const;
 
 export const COMUN_COMPETENCY_EVIDENCE_SOURCE_KINDS = [
