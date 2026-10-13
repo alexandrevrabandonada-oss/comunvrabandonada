@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>COMUN — laboratório Auth isolado</title>
+    <style>
+      body {
+        font: 17px/1.5 system-ui;
+        margin: 0;
+        background: #f4f6f5;
+        color: #182c24;
+      }
+      main {
+        max-width: 760px;
+        margin: auto;
+        padding: 24px;
+      }
+      section {
+        background: white;
+        padding: 20px;
+        margin: 20px 0;
+        border: 1px solid #c5d5cb;
+        border-radius: 12px;
+      }
+      button,
+      input,
+      select {
+        font: inherit;
+        padding: 12px;
+        margin: 6px 0;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+      button {
+        display: block;
+        min-height: 44px;
+      }
+      button:disabled {
+        color: #515b56;
+      }
+      :focus-visible {
+        outline: 3px solid #167051;
+        outline-offset: 3px;
+      }
+      label {
+        display: block;
+      }
+      p,
+      li {
+        overflow-wrap: anywhere;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Laboratório Auth isolado</h1>
+      <p>
+        SMTP local. Nenhum Gmail, backup, permit ou migration. Production
+        permanece inalterada.
+      </p>
+      <section aria-labelledby="readiness">
+        <h2 id="readiness">Preparação</h2>
+        <p id="status" role="status">Verificando os controles locais…</p>
+        <ul id="blockers"></ul>
+        <p>Subject Source confirmado: <strong>Confirm Email Change</strong>.</p>
+        <p>
+          CAPTCHA positivo: <strong>NOT_RUN</strong>. Só uma interação humana
+          real e a aceitação pelo Auth podem produzir MANUAL_PASS.
+        </p>
+      </section>
+      <section aria-labelledby="challenge">
+        <h2 id="challenge">Desafio humano</h2>
+        <p>
+          Não abra DevTools, grave a tela nem capture screenshots durante o
+          desafio. A resposta não será exibida ou armazenada pelo harness.
+        </p>
+        <div id="widget"></div>
+        <button id="reset" disabled>Solicitar novo desafio manualmente</button>
+      </section>
+      <section aria-labelledby="flows">
+        <h2 id="flows">Cinco fluxos sintéticos</h2>
+        <p>
+          Uma tentativa por operação. Resposta incerta bloqueia repetição até
+          reconciliação privada. Conferir MIME local antes de confirmar o link
+          ou código recebido.
+        </p>
+        <label for="password"
+          >Senha exclusiva da identidade sintética (cadastro)</label
+        >
+        <input
+          id="password"
+          type="password"
+          autocomplete="off"
+          minlength="12"
+        />
+        <button data-flow="signup" disabled>1. Cadastrar A</button>
+        <button data-flow="recovery" disabled>2. Recuperar A</button>
+        <button data-flow="magiclink" disabled>3. Magic link / OTP de A</button>
+        <button data-flow="email_change" disabled>
+          4. Mudar e-mail de A para B
+        </button>
+        <button data-flow="reauthentication" disabled>5. Reautenticar B</button>
+        <p>
+          Política Source de mudança de e-mail deve estar comprovada no recibo
+          privado do laboratório. O harness não a reduz.
+        </p>
+      </section>
+      <section aria-labelledby="session">
+        <h2 id="session">Confirmação e sessão local</h2>
+        <label for="type"
+          >Tipo do código recebido e conferido no SMTP local</label
+        >
+        <select id="type">
+          <option value="signup">Cadastro A</option>
+          <option value="recovery">Recuperação A</option>
+          <option value="magiclink">Magic link A</option>
+          <option value="email_change">Mudança de e-mail</option>
+        </select>
+        <label for="code">Código recebido (não o token CAPTCHA)</label>
+        <input
+          id="code"
+          type="password"
+          autocomplete="off"
+          inputmode="numeric"
+        />
+        <button id="verify" disabled>Confirmar código local conferido</button>
+        <button id="logout" disabled>Encerrar sessão local</button>
+        <p>
+          Confirmação por link e controles cruzados continuam sob o coordenador
+          privado; não são certificados por esta interface.
+        </p>
+      </section>
+    </main>
+    <script type="module" src="/client.mjs"></script>
+  </body>
+</html>

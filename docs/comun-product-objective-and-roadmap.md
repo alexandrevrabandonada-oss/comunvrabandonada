@@ -1,5 +1,18 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Fechamento da rodada — 12/10/2026
+
+#540 integrado/certificado em `11691591`; recuperação real continua BLOCKED.
+#541 integrado em `8bb8cd9d` após 37 SUCCESS/83 SKIPPED, seis testes Chromium
+e Preview exato. Entrega recuperada pela API suportada com fonte Git fixada no
+SHA completo, no mesmo projeto/equipe/Production: `dpl_6daX3fUqtDnrDqnSjStvzuuMxiD6`
+READY; GitHub Production `7017454178` success; endpoint público serve `8bb8cd9d`.
+Quality `38264701423`, Core Journeys `38264701160` e Civic Graph `38264701196`
+SUCCESS na attempt 2; falhas originais por SHA antigo preservadas. Causa do evento
+automático original continua UNPROVEN. #542 permanece draft/sem merge.
+Lote Auth aprovado permanece 0/6; Subject Source e cinco fluxos ainda pendentes.
+Nenhuma migration, flag ou indexação alterada; Escola não liberada.
+
 ## Continuidade independente — 12/10/2026
 
 Candidato funcional `42f7ddd6`: cópia de texto da ouvidoria e protocolo agora
