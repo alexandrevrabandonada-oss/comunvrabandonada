@@ -1,0 +1,64 @@
+name: COMUN Escola atomic canonical disposable
+on:
+  pull_request:
+    paths:
+      - "scripts/learning/atomic-*"
+      - "scripts/learning/release-review*"
+      - "supabase/migrations/*comun_learning*"
+      - "supabase/releases/*comun-learning*"
+      - ".github/workflows/comun-learning-atomic-disposable.yml"
+permissions:
+  contents: read
+jobs:
+  atomic-canonical:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      COMUN_LEARNING_DISPOSABLE_AUTH: "true"
+      COMUN_LEARNING_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.117.0
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/learning/atomic-disposable.node-test.mjs scripts/learning/release-review.node-test.mjs
+      - name: Prepare reviewed canonical PRE in this disposable checkout
+        run: |
+          node scripts/learning/release-review.mjs
+          python3 - <<'PY'
+          import os, re
+          from pathlib import Path
+          run = os.environ['COMUN_LEARNING_RUN_ID']
+          assert re.fullmatch(r'\d+-\d+', run)
+          config = Path('supabase/config.toml')
+          text = config.read_text()
+          assert text.count('project_id = "COMUM_VR_ABANDONADA"') == 1
+          config.write_text(text.replace('project_id = "COMUM_VR_ABANDONADA"', f'project_id = "escola-proof-{run}"'))
+          # Only the pinned School SQL is excluded from this untracked CI PRE.
+          # Exact bytes were validated above and the installer reads this path.
+          source = Path('supabase/migrations/20261006134804_comun_learning_r0.sql')
+          source.rename('supabase/escola-atomic-reviewed.sql')
+          PY
+      - name: Start this isolated local stack and install canonical PRE
+        run: |
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+          supabase db reset --local --yes
+          mv supabase/escola-atomic-reviewed.sql supabase/migrations/20261006134804_comun_learning_r0.sql
+      - name: PRE rollback at three stages, atomic POST and replay refusal
+        run: node scripts/learning/atomic-disposable-proof.mjs
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: escola-atomic-proof-${{ github.sha }}
+          path: .ci-artifacts/learning-atomic/proof.json
+          if-no-files-found: error
+      - name: Destroy only this disposable stack
+        if: always()
+        run: supabase stop --no-backup

@@ -6,6 +6,8 @@ import process from "node:process";
 // listed here is unknown and must block the historical gate until its owner is
 // recorded. It is not safe to infer ownership from a future filename.
 export const MIGRATION_LANE_MANIFEST = Object.freeze({
+  "20261006134804_comun_learning_r0.sql": "learning-r0",
+  "20260814160000_comun_pauta_low_friction_creation.sql": "48-3-e3",
   "20260810155310_comun_public_education_sensitive_routing.sql": "p6c-b1",
   "20260810171448_comun_child_protection_private_routing.sql": "p6c-b2",
   "20260922120000_comun_canonical_security_hardening_v2.sql":
@@ -49,6 +51,11 @@ export const MIGRATION_LANE_MANIFEST = Object.freeze({
 });
 
 const NON_APPLICABLE_LANES = Object.freeze({
+  "learning-r0": new Set(
+    Object.values(MIGRATION_LANE_MANIFEST).filter(
+      (owner) => owner !== "learning-r0",
+    ),
+  ),
   "p6c-b1": new Set(["security-hardening-v2"]),
   "p6c-b2": new Set(["security-hardening-v2"]),
   "48-2-a": new Set([
@@ -257,12 +264,32 @@ for (const lanes of Object.values(NON_APPLICABLE_LANES)) {
   lanes.add("security-hardening-v2");
 }
 
+// Escola R0 only adds its own tables/functions and references existing
+// Pautas/Auth tables. Its dedicated PostgreSQL contract owns validation;
+// historical lanes must not treat it as their migration candidate.
+for (const [lane, owners] of Object.entries(NON_APPLICABLE_LANES)) {
+  if (lane !== "learning-r0") owners.add("learning-r0");
+}
+
+// These historical lanes own no migration. Only the exact Escola R0 entry
+// is unrelated; other known migrations retain the existing fail-closed gate.
+const ZERO_MIGRATION_LANES = new Set(["48-3-b1", "48-3-c1", "48-3-d1", "p1g"]);
+
+const SCOPED_CANDIDATE_MIGRATIONS = Object.freeze({
+  "48-3-e3": "20260814160000_comun_pauta_low_friction_creation.sql",
+  "48-4-a1": "20260815184529_comun_solidarity_offers.sql",
+  "48-4-a3": "20260816011500_comun_solidarity_economic_content_writes.sql",
+  "48-4-a6": "20260817012247_comun_solidarity_organization_profile_self_management.sql",
+});
+
 function migrationBasename(file) {
   return file.replaceAll("\\", "/").split("/").at(-1);
 }
 
 export function classifyMigrationLane(lane, files) {
-  if (!NON_APPLICABLE_LANES[lane]) throw new Error(`unknown lane: ${lane}`);
+  const nonApplicableOwners = (ZERO_MIGRATION_LANES.has(lane) || SCOPED_CANDIDATE_MIGRATIONS[lane])
+    ? new Set(["learning-r0"]) : NON_APPLICABLE_LANES[lane];
+  if (!nonApplicableOwners) throw new Error(`unknown lane: ${lane}`);
   const normalized = files.map(migrationBasename).filter(Boolean);
   if (normalized.length === 0) return { mode: "none", lane, files: [] };
 
@@ -281,10 +308,11 @@ export function classifyMigrationLane(lane, files) {
   }
 
   const owners = new Set(classifications.map((entry) => entry.owner));
-  if (owners.size === 1 && owners.has(lane)) {
+  if ((owners.size === 1 && owners.has(lane)) ||
+      (normalized.length === 1 && normalized[0] === SCOPED_CANDIDATE_MIGRATIONS[lane])) {
     return { mode: "candidate", lane, files: classifications };
   }
-  if ([...owners].every((owner) => NON_APPLICABLE_LANES[lane].has(owner))) {
+  if ([...owners].every((owner) => nonApplicableOwners.has(owner))) {
     return { mode: "not_applicable", lane, files: classifications };
   }
   return {

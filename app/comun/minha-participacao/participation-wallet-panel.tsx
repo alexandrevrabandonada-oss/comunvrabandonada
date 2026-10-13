@@ -13,6 +13,12 @@ import { isCivicAssistedCategory } from "@/lib/comun-civic-forwarding-feature";
 import { ComunCivicForwardingPanel } from "./comun-civic-forwarding-panel";
 import { PublicProjectionConsentPanel } from "./public-projection-consent-panel";
 import { isComunPublicProjectionOptInCategory } from "@/lib/comun-denuncias-public-opt-in";
+import { withComunAppV2 } from "@/lib/comun-experience";
+import {
+  guidanceStageForRecord,
+  participationGuidance,
+  participationGuidanceHref,
+} from "@/lib/comun-practice-guidance";
 
 type WalletItem = {
   item_id: string;
@@ -67,6 +73,7 @@ function itemDate(item: WalletItem) {
 
 export function ParticipationWalletPanel({
   standalone = false,
+  appV2 = true,
   accountAvailable = false,
   stmuAssistedEnabled = false,
   stmuMultichannelEnabled = false,
@@ -79,6 +86,7 @@ export function ParticipationWalletPanel({
   inboxAttention = [],
 }: {
   standalone?: boolean;
+  appV2?: boolean;
   accountAvailable?: boolean;
   stmuAssistedEnabled?: boolean;
   stmuMultichannelEnabled?: boolean;
@@ -95,6 +103,9 @@ export function ParticipationWalletPanel({
   }>;
 }) {
   const [items, setItems] = useState<WalletItem[]>([]);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
   const [present, setPresent] = useState(false);
   const [recoveryCode, setRecoveryCode] = useState<string | null>(null);
   const [recoveryInput, setRecoveryInput] = useState("");
@@ -105,23 +116,52 @@ export function ParticipationWalletPanel({
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   const itemRefs = useRef<Record<string, HTMLElement | null>>({});
 
-  async function refresh() {
-    const response = await fetch("/api/comun/participation-wallet", {
-      cache: "no-store",
-    });
-    if (!response.ok) return;
-    const value = (await response.json()) as {
-      wallet: { present: boolean } | null;
-      items: WalletItem[];
-    };
-    setPresent(Boolean(value.wallet?.present));
-    setItems(Array.isArray(value.items) ? value.items : []);
+  async function refresh(signal?: AbortSignal) {
+    setLoadState("loading");
+    try {
+      const response = await fetch("/api/comun/participation-wallet", {
+        cache: "no-store",
+        signal,
+      });
+      if (!response.ok) throw new Error("wallet_unavailable");
+      const value = (await response.json()) as {
+        wallet: { present: boolean } | null;
+        items: WalletItem[];
+      };
+      if (
+        !Array.isArray(value.items) ||
+        (value.wallet !== null && value.wallet?.present !== true) ||
+        (value.wallet === null && value.items.length !== 0) ||
+        !value.items.every(
+          (item) =>
+            item &&
+            typeof item.item_id === "string" &&
+            typeof item.item_type === "string" &&
+            typeof item.title_template === "string" &&
+            typeof item.presentation_state === "string" &&
+            typeof item.updated_at === "string" &&
+            Number.isFinite(Date.parse(item.updated_at)) &&
+            item.metadata &&
+            typeof item.metadata === "object" &&
+            !Array.isArray(item.metadata),
+        )
+      )
+        throw new Error("wallet_response_invalid");
+      if (signal?.aborted) return;
+      setPresent(Boolean(value.wallet?.present));
+      setItems(value.items);
+      setLoadState("ready");
+    } catch {
+      if (!signal?.aborted) setLoadState("error");
+    }
   }
 
   // Hydrate from the server-owned wallet cookie once when the panel mounts.
   useEffect(() => {
+    const controller = new AbortController();
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    void refresh();
+    void refresh(controller.signal);
+    return () => controller.abort();
   }, []);
 
   async function createWallet() {
@@ -333,6 +373,9 @@ export function ParticipationWalletPanel({
       Boolean(relataAction?.nextStep),
   );
   const primaryAttention = attentionItems[0] ?? null;
+  const resumableRecord = orderedItems.find(({ item }) =>
+    guidanceStageForRecord(item.presentation_state),
+  );
   const remainingAttentionCount =
     attentionItems.length + inboxAttention.length - 1;
 
@@ -341,9 +384,45 @@ export function ParticipationWalletPanel({
     window.requestAnimationFrame(() => itemRefs.current[itemId]?.focus());
   }
 
+  if (loadState !== "ready")
+    return (
+      <section
+        className="grid gap-3 bg-comun-paper p-4 text-comun-black"
+        aria-label="Meus registros"
+        data-comun-participation-wallet="true"
+        aria-busy={loadState === "loading"}
+      >
+        <p role={loadState === "error" ? "alert" : "status"}>
+          {loadState === "loading"
+            ? "Consultando seus registros…"
+            : "Não foi possível consultar seus registros agora. Tente novamente para conferir o estado atual."}
+        </p>
+        {loadState === "error" ? (
+          <button
+            type="button"
+            className="min-h-11 w-fit font-black underline"
+            onClick={() => void refresh()}
+          >
+            Tentar novamente
+          </button>
+        ) : null}
+        <Link
+          href={participationGuidanceHref("registro", appV2)}
+          prefetch={false}
+          className="inline-flex min-h-11 items-center font-black underline"
+        >
+          Consultar orientação pública
+        </Link>
+        <noscript>
+          Para consultar registros privados nesta tela, ative JavaScript. A
+          orientação pública continua disponível.
+        </noscript>
+      </section>
+    );
+
   return (
     <section
-      className={`grid gap-4 ${standalone ? "mx-auto w-full max-w-2xl" : "mt-6"}`}
+      className={`grid gap-4 ${standalone ? "mx-auto w-full max-w-2xl" : "mt-6"} ${appV2 ? "" : "bg-comun-paper p-4 text-comun-black"}`}
       data-comun-participation-wallet="true"
       aria-label="Meus registros"
     >
@@ -439,6 +518,24 @@ export function ParticipationWalletPanel({
               </Link>
             ) : null}
           </article>
+        ) : resumableRecord ? (
+          <div
+            className="surface-paper grid gap-2 rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
+            data-comun-resume-record="true"
+          >
+            <p className="font-black">Continue de onde parou</p>
+            <p className="text-sm">
+              Seus registros guardados continuam aqui. Abrir um registro não
+              envia dados nem assume uma tarefa.
+            </p>
+            <button
+              type="button"
+              className="min-h-11 w-fit font-black underline"
+              onClick={() => openItem(resumableRecord.item.item_id)}
+            >
+              Retomar meu registro
+            </button>
+          </div>
         ) : (
           <p className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4 text-sm">
             Nada precisa da sua atenção agora.
@@ -487,7 +584,7 @@ export function ParticipationWalletPanel({
         <section
           id="meus-registros"
           className="grid gap-3"
-          aria-labelledby="records-title"
+          aria-labelledby="wallet-records-title"
         >
           <h2
             id="wallet-records-title"
@@ -496,6 +593,9 @@ export function ParticipationWalletPanel({
             Meus registros
           </h2>
           {orderedItems.map(({ item, relataAction }) => {
+            const guidanceStage = guidanceStageForRecord(
+              item.presentation_state,
+            );
             const experience =
               item.item_type === "relata_report"
                 ? resolveComunForwardingExperience({
@@ -575,6 +675,16 @@ export function ParticipationWalletPanel({
                       : "hidden"
                   }
                 >
+                  {guidanceStage ? (
+                    <Link
+                      prefetch={false}
+                      href={participationGuidanceHref(guidanceStage, appV2)}
+                      className="inline-flex min-h-11 items-center font-black underline"
+                      data-comun-record-guidance="true"
+                    >
+                      {participationGuidance[guidanceStage].title}
+                    </Link>
+                  ) : null}
                   {item.protocol_masked ? (
                     <p className="text-sm">
                       <span className="font-bold">Protocolo:</span>{" "}
@@ -726,11 +836,27 @@ export function ParticipationWalletPanel({
         </details>
       ) : null}
       {present && !items.length ? (
-        <p className="border-2 border-comun-black/20 bg-white p-4 text-sm">
-          Você ainda não tem registros. Relatos novos, observações e casos
-          acompanhados aparecerão aqui.
-        </p>
+        <div className="border-2 border-comun-black/20 bg-white p-4 text-sm">
+          <p>
+            Você ainda não tem registros. Relatos novos, observações e casos
+            acompanhados aparecerão aqui.
+          </p>
+          <Link
+            prefetch={false}
+            href={participationGuidanceHref("registro", appV2)}
+            className="inline-flex min-h-11 items-center font-black underline"
+          >
+            Escolher uma primeira prática
+          </Link>
+        </div>
       ) : null}
+      <Link
+        href={withComunAppV2("/comun/acoes", appV2)}
+        prefetch={false}
+        className="inline-flex min-h-11 items-center text-sm font-black underline"
+      >
+        Se quiser contribuir, conheça ações e condições
+      </Link>
       <p className="text-xs text-comun-black/60">
         Nenhum relato é encaminhado por esta tela.
       </p>

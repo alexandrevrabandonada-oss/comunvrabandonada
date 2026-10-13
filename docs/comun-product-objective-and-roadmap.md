@@ -1,8 +1,298 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Continuidade independente — 12/10/2026
+
+Candidato funcional `42f7ddd6`: cópia de texto da ouvidoria e protocolo agora
+oferece alternativa manual selecionável quando o navegador recusa clipboard,
+sem falso sucesso, envio automático ou perda de contexto. Cinco cenários Chromium,
+teclado/foco, celular e Axe passaram em componentes reais com fixtures sintéticas;
+build/TypeScript/ESLint focais passaram. Preview e integração ainda exigem gates
+próprios. [Provas e limites](../reports/current/comun-copy-continuity.md).
+
+A recuperação da Escola retoma pelo checkpoint versionado do #540, sem repetir
+provas válidas: convite Gmail recebido/confirmado PASS; bateria restante de até
+seis mensagens autorizada, ainda sem envios e bloqueada pela captura fiel Source.
+#523 permanece separado e seus seis preflights continuam obrigatórios. Sem schema
+write, flags ou indexação; não declarar Escola liberada ou V1 concluída.
+
+## Recuperação da Escola — escopo separado, 08/10/2026
+
+Revisão do #534: preparação elegível para integração após gates do SHA, sem
+autorizar recuperação real. O crash foi reduzido a uma função que retorna 1:
+na mesma biblioteca/PG17.6, hint_roles=anon reproduz signal 11; hint_roles vazio
+retorna 42501. Finding permanece aberto e separado do restore PASS.
+Caso mínimo e configuração/logs sanitizados preservados no pacote.
+Novo gate externo: clone físico pode iniciar cron/webhooks/wrappers ao concluir;
+isolamento não decorre do nome do projeto. Destino nominal proposto, tarifas,
+autorização em etapas e campos ainda pendentes estão no
+[pacote de decisão real](../reports/current/comun-escola-real-recovery-decision.md).
+Sem upgrade, cópia privada, restore ou alteração Production nesta revisão.
+
+#533 integrado e certificado em main `2151826f`. #523 continua draft em
+`cf0e8e41`: Quality PASS e seis preflights de schema bloqueados.
+A sessão do projeto correto foi disponibilizada em outro perfil Chrome;
+identidade confirmada pelo hash do PRE. O painel Free não oferece backups,
+PITR ou restore gerenciado em novo projeto nas condições atuais. A limitação
+histórica de acesso ao dashboard está resolvida; recuperação real ainda não.
+
+Esta passada compara backup lógico independente e Pro/recuperação gerenciada,
+prepara captura protegida e ensaio sintético em cluster vazio. Cobertura DB,
+Auth, Storage metadata/bytes e configurações externas são tratadas separadamente.
+Uma falha de backend signal 11 em chamada não autorizada foi reproduzida somente
+na imagem descartável pinada; não foi testada nem inferida em Production.
+Ela continua finding aberto, sem alteração de grants para obter verde.
+Resultados, limites, retenção proposta e operação real pendente estão em
+[estratégia de recuperação](../reports/current/comun-escola-recovery-strategy.md).
+
+PASS sintético em `4bc3e33b`: restauração após destruição da origem, 278 tabelas,
+catálogo/dados/roles/grants/memberships, histórico/ledger, RLS A/B, negação de RPC
+no cluster restaurado e arquivo separado. Evidência sanitizada e 80 focais PASS.
+O crash anterior da instância padrão da imagem permanece FAIL separado.
+Auth/Storage API, Vault, off-site/escrow e restore real não estão certificados.
+Recomendação para decisão: Pro + backup físico diário efetivo + restore em novo
+projeto, com lógico como segunda linha; sem contratação ou upgrade nesta rodada.
+
+Próximo gate: comprovar snapshot recuperável real e restore isolado, com destino,
+tratamento dos dados e responsáveis aprovados; depois autorização específica de
+schema. Sem upgrade, migration Production, flags, abertura de indexação ou
+certificação da V1 nesta passada.
+
+## Fechamento exclusivo da Escola e #523 — 08/10/2026
+
+#532 integrado em `636e3e1d`, Production Git READY no SHA exato, sem schema
+write. Captura/read-only e equivalência PRE/POST auditadas por artifact/hash.
+Quality de #523 `cf0e8e41` terminou verde após uma única reexecução dirigida
+do 502 de Território, sem código; os seis preflights Escola continuam FAILURE.
+O candidato permanece draft, com funcionalidades estáveis.
+
+A revisão focal #533 exige POST e ledger aprovados antes do COMMIT, controles
+SQL negativos e preservação de privilégios no laboratório. A captura confirmou
+os direitos existentes do leitor Production; a fixture foi corrigida para
+reproduzi-los sem mudar o destino real. Prova SQL funcional `775f86e9`, run
+37863202153 PASS: POST/ledger divergentes abortam e preservam PRE, privilégios
+preexistentes preservados, aplicação única e replay recusado. Os fingerprints
+PRE/POST revisados permaneceram intactos. Checkpoints posteriores exigem gates
+próprios, sem transportar aprovações por presunção.
+Backup/ponto recuperável/acesso ao restore do COMUN permanecem BLOCKED, pois
+o conector não expõe o projeto e o dashboard está sem sessão. Restore isolado
+do provedor NOT_RUN. Responsáveis humanos ainda não designados; nenhuma
+autorização de migration, flag ou indexação foi inferida. Próximo gate: fechar
+recuperação/executor e autorizar separadamente a liberação da Escola. Evidências
+e procedimento em [fechamento controlado](../reports/current/comun-escola-controlled-release-closure.md).
+Não declara V1 concluída nem libera merge de #523 sem seus seis gates.
+
 Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99dd450`, após os PRs #504, #505 e #506. A reconciliação de 02/10 e os achados intermediários abaixo são históricos. A V1 continua incompleta; a situação atual e a fila sem amostra humana estão na seção seguinte.
 
+## Atualização transversal do produto — 06/10/2026
+
+### Checkpoint integrado e fila de revisão — 08/10/2026
+
+Consulta deste checkpoint: `main` em
+`eb317e76f9d259c4436e4a791e6215d153ab7c99`. Código integrado não significa
+schema promovido, flag ativada ou jornada pública certificada. A V1 permanece
+incompleta; os checkpoints seguintes desta página são históricos.
+
+| Tijolo                                                                                                         | Evidência confirmada                                                                | Estado e limite                                                                              |
+| -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| [#522 — Quality read-only](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/522)            | Merge `2d21df3d`; inspeção read-only verde no pós-merge                             | Integrado; a run falhou depois no seletor antigo de busca                                    |
+| [#526 — Revisão da Escola](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/526)            | Merge `6a3c39a3`; revisão imutável e prova PostgreSQL descartável                   | Integrado; não autoriza promoção remota                                                      |
+| [#525 — Seletor visível de busca](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/525)     | Merge `092a4afa`; 10 checks do candidato verdes, 35 skipped                         | Integrado; Quality pós-merge falhou por SHA sem build                                        |
+| [#527 — Ensaio atômico da Escola](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/527)     | Merge `eb317e76`; 10 checks verdes, 75 skipped; SQL canônico descartável verde      | Integrado; pós-merge 4 verdes/73 skipped e Vercel success; não prova recuperação do provedor |
+| [#528 — Escopo pós-merge do Quality](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/528)  | Candidato `986b3851`; 46 testes locais e Preview/COST-02 verdes                     | Draft; laboratório completo de Quality ainda em execução nesta consulta                      |
+| [#523 — Coerência e compartilhamento](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/523) | Candidato reconciliado `922e5d82`; runtime preservado frente ao checkpoint anterior | Draft; gates remotos dependem da Escola; não transferir PASS entre SHAs                      |
+
+Skipped não é PASS. O #525 alterou somente testes, delta ignorado pelo
+classificador de build em Production. Quality job `113451932296` falhou após
+30 tentativas com `COMUN_QUALITY_EXPECTED_SHA_NOT_DEPLOYED`. A falha permanece
+registrada. O #528 reutiliza a classificação do build para declarar somente
+deltas explicitamente sem runtime como não aplicáveis; mudanças de runtime,
+schema, dependências, arquivos desconhecidos e diffs indisponíveis continuam
+exigindo deploy do SHA exato. Não há certificação de Production por exclusão.
+
+O [ensaio atômico canônico descartável da Escola](comun-escola-atomic-disposable.md)
+comprovou rollback após schema, histórico e ledger, instalação única com POST e
+ledger exatos, outros domínios preservados no escopo canônico v2 e replay
+recusado. Não cobre integralmente schemas privados nem recuperação após COMMIT
+no provedor. O manifesto permanece `remotePromotionAllowed=false` e a
+preparação mantém `promotionReady=false`.
+
+Fila de avanço, em ordem:
+
+1. Concluir os checks do #528; integrar por merge normal somente se verdes;
+   verificar o pós-merge e o SHA servido quando o delta exige build.
+2. Identificar e allowlistar o ambiente canônico da Escola; capturar baseline
+   e ledger em read-only, conferir PRE/POST e capacidade real de recuperação.
+   As provas descartáveis já integradas não substituem essas evidências.
+3. Revisar um pacote concreto de schema antes da autorização específica de
+   promoção; o caminho automático de Quality permanece sem escrita de schema.
+4. Reconciliar #523 com a base integrada, revalidar os gates do próprio SHA,
+   integrar o candidato verde e conferir deploy. Sem amostra humana, priorizar
+   coerência, projeção pública dos observatórios, compartilhamento e SEO;
+   convites e dados privados continuam respeitando autorização.
+5. Depois das provas técnicas, ensaiar recebimento/retorno com pessoas e
+   dispositivos reais. Isso continua pendente e não é substituído por CI.
+
+### Sequência de integração — 08/10/2026
+
+Primeiro tijolo integrado: #522, merge normal
+`2d21df3de4da10851840529a639944ee22141377`, árvore idêntica ao candidato
+read-only revisado. O caminho automático de Quality deixa de transportar schema.
+Na consulta desta preparação, o deploy Vercel informou success e os checks
+pós-merge ainda executavam; certificação completa não presumida. Quality
+`37811285564` confirmou inspeção de schema read-only verde e falhou depois no
+seletor antigo da busca (cópia oculta de streaming). Integrar a correção focal
+já validada no #523 antes de considerar a base certificada.
+
+O #523 permanece draft em `ec849235b1fa33dd4dad959a4748b6ddff438bfd`.
+Quality e Civic Intelligence concluíram success; consulta completa: 49 success,
+6 failure, 87 skipped, nenhuma pendência. As seis falhas seguem bloqueadas pela
+release da Escola; skipped não é aprovação. As descrições anteriores de #522
+draft e Quality pendente abaixo são históricas.
+
+O próximo pacote separado é a [revisão da release Escola](comun-escola-release-review.md):
+bytes/catálogo imutáveis, captura preliminar read-only e prova PostgreSQL
+descartável. Publicar a ferramenta não promove schema. O manifest permanece
+local_candidate e remotePromotionAllowed=false. Baseline completo, transporte
+atômico, POST e recuperação ainda precisam de prova antes de uma promoção.
+
+Ordem: certificar #522 → integrar preparação da Escola → revisar/promover schema
+em etapa própria → revalidar seis gates → integrar #523 → certificar deploy.
+Ativação e ensaio humano seguem depois. Novas frentes de produto devem usar
+essa base integrada, preservando as dependências e a distinção código/schema/flag.
+
+O roadmap passa a tratar o COMUN também como infraestrutura para uma estrutura política permanente ligada à APS, à VR Abandonada e a organizações aliadas. Núcleos, estratégia, formação, competências, fábrica, Minha Participação, inteligência cívica, observatórios e ação institucional formam um ciclo organizativo: evidência → prioridade coletiva → formação e responsabilidade voluntária → ação → devolutiva → memória e renovação de capacidades.
+
+Essa conexão existia distribuída em frentes do roadmap, mas não estava explícita como objetivo integrador nem como contrato de produto. O novo [49-E0 — contrato de produto único](comun-one-product-contract-49-e0.md) fixa os princípios e inclui a camada **49-M — Organização política permanente**. O E0 é um candidato em implementação; não altera o estado da V1, a autorização de lançamento nem a indexação atual.
+
+| Trilha                                     | Papel no produto inteiro                                                                                                        | Estado do trabalho sem amostra humana                                                                                              |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **49-E0 — COMUN ONE PRODUCT CONTRACT**     | Gramática comum, superfície pública, compartilhamento, busca, privacidade, continuidade e fricção                               | Contrato e testes focais aprovados localmente; prova renderizada ampliada no 49-E2 abaixo; adoção em todas as rotas ainda pendente |
+| **49-M — Organização política permanente** | Vincula APS, VR Abandonada e aliadas a núcleos, decisões, tarefas, formação, ação institucional, prestação de contas e sucessão | Arquitetura e limites registrados; governança, pessoas e responsabilidades reais exigem validação da organização                   |
+| **50 — COMUN UNO**                         | Ensaio da experiência completa, inclusive a relação com estrutura e ação política                                               | Etapa final; depende de jornadas com pessoas, dispositivos e operação reais                                                        |
+
+## Produto e estrutura política permanente
+
+O objetivo do COMUN é apoiar uma organização popular que aprenda, escolha prioridades, forme pessoas, atue no território e nas instituições, avalie consequências e transmita capacidade para novas lideranças. A associação e a VR Abandonada são parte da estrutura política do projeto; o COMUN é sua infraestrutura comum e também uma porta pública de conhecimento, participação e prestação de contas. O aplicativo não substitui a organização nem decide sua linha política.
+
+“Máquina política” fica definida como capacidade coletiva organizada e durável: vínculo voluntário, responsabilidade clara, formação prática, decisão rastreável, trabalho público, resultados conferíveis e sucessão. O produto não converte participação em pontuação, não monitora militantes e não usa dados políticos para microsegmentação ou pressão.
+
+## Próxima estrutura do roadmap integral
+
+### Diretriz incorporada — movimento social moderno
+
+O COMUN combina ferramenta pública, participação voluntária e organização com
+formação permanente. **Usar, participar e organizar** são caminhos com valor
+próprio, não categorias de pessoas ou uma progressão obrigatória. A pessoa pode
+resolver uma necessidade sem se vincular; pode contribuir pontualmente; ou
+construir continuidade num núcleo. Convites são contextuais e responsabilidades
+dependem de aceite explícito.
+
+| Entrega                                                     | Relação com o roadmap | Prova necessária                                                                         |
+| ----------------------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------- |
+| Inventário de entradas, utilidade e convites                | 49-E0 / 49-E          | Rotas e barreiras reais; funções públicas preservadas sem adesão                         |
+| Orientação → prática → devolutiva → retomada                | 49-C / 49-F           | Materiais e registros conectados; formação não atribui tarefa nem função automaticamente |
+| Núcleo → decisão → tarefa → ação → resultado → substituição | 49-A / 49-B / 49-M    | Responsáveis e vínculos concretos; memória e continuidade com substitutos                |
+| Jornadas de uso pontual, contribuição e organização         | 50 COMUN UNO          | Provas técnicas e ensaio humano dos três caminhos, incluindo saída e retorno             |
+
+VR Abandonada comunica e mobiliza; APS e aliadas dão base associativa e
+capacidade de execução; COMUN conecta conhecimento, formação e continuidade;
+atuação institucional encaminha demandas e devolve resultados à rede. São
+papéis previstos no desenho, com responsabilidades reais ainda a confirmar.
+O [contrato 49-E0](comun-one-product-contract-49-e0.md) detalha os critérios.
+
+Esta diretriz está registrada na arquitetura candidata. Não significa que
+convites, integrações ou núcleos já estejam implementados. O próximo trabalho
+é inventariar as superfícies existentes antes de expandir telas ou cadastros.
+Maturidade exige capacidade coletiva continuada, além das métricas de acesso.
+
+O fechamento da V1 permanece prioritário e não se confunde com a visão futura. Depois dele, os tijolos 49-A a 49-L podem avançar em paralelo sob o contrato 49-E0: núcleos permanentes; ciclo estratégico; Escola e competências; Fábrica; Reflexo COMUN; continuidade; inteligência cívica; distribuição; páginas de referência e SEO; serviços e controle popular; observatórios; plataforma física/digital. A trilha 49-M integra essas capacidades à organização permanente. O 50 COMUN UNO fecha com coerência integral de jornadas, módulos, canais, estratégia organizativa, acessibilidade, privacidade, compartilhamento, SEO e operação.
+
+O [contrato 49-E0](comun-one-product-contract-49-e0.md) descreve as relações entre os tijolos, a jornada político-organizativa, os limites de privacidade e os critérios de saída. Suas metas de baixa fricção e experiência humana permanecem metas até serem ensaiadas.
+
 ## Posição geral e fila sem amostra humana — 06/10/2026
+
+### Implementação candidata 49-E1 — entradas e primeira prática
+
+Participar oferece três caminhos independentes: buscar um assunto, conhecer
+ações e conhecer comunidades. O componente serve às experiências canônica e
+legacy. O convite explica que explorar não gera inscrição nem tarefa.
+Participar e Ajuda abrem a orientação pública `/comun/ajuda/primeira-acao`:
+escolher pergunta → conferir fontes → escolher contribuição → voltar ao que
+mudou. Os destinos são rotas já existentes; não há gravação de progresso,
+vínculo, atribuição, nova permissão ou ativação da Escola.
+
+Esta entrega implementa navegação e orientação inicial, não o ciclo formativo
+completo. Progresso privado da Escola, relações entre prática e tarefa, convites
+em detalhes de pautas/ações e operação de núcleos continuam pendentes. A prova
+de navegador deve verificar acesso anônimo, retorno, preservação da experiência,
+acessibilidade, viewport móvel e consulta sem JavaScript; contratos locais não
+substituem essa prova nem ensaio humano.
+
+Validação local: TypeScript, ESLint, dez testes do contrato público, dois de
+coerência e quatro de classificação de superfícies passaram. As duas páginas,
+nas experiências canônica e legacy, responderam HTTP 200 com um h1 e os links
+esperados no HTML servido. Os três testes de navegador foram preparados para
+a suíte existente, mas a tentativa local parou no lançamento: Chromium ausente.
+HTML servidor não comprova contraste, foco, overflow ou interação renderizada.
+
+### Implementação candidata 49-E2 — orientação e retomada privada
+
+Continuação do PR #520 sobre `74cc0ed1779f5432496c3f852ce92bed3524a3a1`,
+preservando seu head inicial `af47674945bed9d9c10a2e499319f61027161683`.
+Candidato funcional `1a46d5550a4ddd98ed467c322dcf1c6e480d4946`, tree
+`fc4dd7095c2098aaf86f5c3db75fb53d0c5fa6c0`. Os comandos e limites da prova
+estão em [evidência 49-E2](../reports/current/comun-49-e2-participation-continuity.md).
+A árvore original com trabalho preexistente não foi modificada; a entrega foi
+feita em worktree isolada. Continua candidata, sem merge, ativação ou lançamento.
+
+Minha participação retoma um registro real da carteira existente e oferece
+orientação conforme seu estado: registrar com cuidado, acompanhar sem confundir
+envio com resultado, ou conferir o que a resposta mudou. O material público
+retorna aos registros privados e oferece contribuição voluntária em Ações.
+Nenhum progresso, tarefa, vínculo, envio, notificação ou resultado é criado
+ao abrir essa jornada. A carteira continua sendo a autoridade do registro.
+Somente uma fase pública allowlisted e `experiencia=legacy` atravessam a URL;
+IDs, protocolos e conteúdo privado não são repassados à orientação.
+
+Carregamento, falha HTTP e resposta inválida agora são estados distintos de
+carteira vazia, com recuperação explícita. Registro retirado não recebe convite
+para retomar. A inspeção renderizada demonstrou e corrigiu contraste no modo
+legacy. A orientação sem JavaScript expôs outra falha: a shell permanecia no
+fallback de carregamento. Orientação e Busca optam agora por conteúdo público
+servido no fallback; nenhum painel privado ativa essa opção. O formulário da
+busca pública também foi exercitado com JavaScript desabilitado.
+
+Escola #503 foi consultada em `a8dbe550583526eae631deafa3c574fbcfb18993`:
+draft aberto, checks concluídos sem falha/pending na consulta, flag desligada.
+O progresso privado e a próxima micro-missão já existem na sua proposta, mas
+não estão integrados em main. Dependências: validar a migração no schema
+canônico completo, integrar a entrega, revisar materiais e autorizar ativação.
+Não se oferece uma rota da Escola indisponível nem se duplica seu progresso.
+Competências #510 (`d1affda48ed9dcf7ae6ea4fbeaf9e920c74de5e6`) e Fábrica
+#514 (`dbf70931d15903ab820de224a017c6f3689e2124`) também continuam abertas;
+seus PRs/Previews não certificam disponibilidade integrada.
+
+Provas locais: 1.407 testes unitários, 50 focais, dois de coerência, quatro de
+classificação de superfícies, 113 Solo, TypeScript, ESLint e build passaram.
+Navegador Chromium: 12 casos de continuidade (360×800 e 1366×768) e seis de
+Participar/orientação, incluindo consulta e busca sem JavaScript, passaram.
+Axe não encontrou findings serious/critical nas superfícies avaliadas.
+A carteira usa respostas interceptadas e exclusivamente sintéticas: os testes
+provam UI, foco, retorno, reload, estados e ausência de chamadas de escrita,
+não persistência, sessão Auth, RLS ou uso real em Production. A suíte pública
+usa a aplicação local. Essa prova não substitui ensaio humano nem dispositivo
+físico. O workflow dedicado preserva esses casos sem secrets Production.
+
+O Solo revelou inventário desatualizado de 16 workflows já integrados; a mesma
+falha foi reproduzida no main limpo `74cc0ed1`. Foram registrados somente esses
+nomes conferidos no histórico e o novo workflow de UI; qualquer nome desconhecido
+continua rejeitado. Nenhum workflow existente foi ativado ou executado por isso.
+
+Próxima frente concreta: reconciliar a Escola com o schema canônico e integrar
+seu progresso privado existente a Minha participação quando seu código estiver
+integrado e a ativação for autorizada. Em paralelo, convites em detalhes de
+ações/pautas podem usar a orientação pública sem atribuir compromisso.
+`pilot_noindex`, gates V1, amostra humana e governança permanecem preservados.
 
 O produto está no fechamento técnico e operacional da V1, antes do ensaio integrado e do lançamento integral. Quatro domínios estão declarados verdes e seis continuam abertos; isso não representa 40% de conclusão. A visão futura e as entregas candidatas devem ser acompanhadas separadamente do que está integrado em produção.
 
@@ -15,7 +305,7 @@ O produto está no fechamento técnico e operacional da V1, antes do ensaio inte
 | Coerência, busca e qualidade, 47.9A/B/C          | CI do #502 passou; busca lexical preservada; embeddings reais continuam bloqueados por capacidade do provedor                                      | Regressões, semântica de filtros, estados vazios, fallback e contratos automatizados                                         | Dispositivos físicos, tecnologia assistiva, compreensão humana; credencial do provedor para embeddings                                                       |
 | Conteúdo e governança, 47.10                     | Revisão editorial e equipe operacional ainda não comprovadas                                                                                       | Manter ajuda, fluxos de revisão, retenção e critérios de evidência consistentes com o comportamento real                     | Pessoas responsáveis, substitutos, direitos e prazos confirmados                                                                                             |
 | Ensaio e lançamento, 47.11                       | Ensaio integrado incompleto; gate integral fechado                                                                                                 | Preparar instrumentos de coleta, verificações sanitizadas e pacote por versão                                                | Três sessões reais, estabilidade medida e decisão final                                                                                                      |
-| Escola COMUN R0                                  | PR #503 aberto, head `a8dbe550583526eae631deafa3c574fbcfb18993` na consulta; 24 micro-missões candidatas, progresso privado, flag desligada        | Finalizar checks globais e validar integração no schema canônico antes de ativar                                             | Ambiente COMUN identificado e revisão humana do material; testes locais não comprovam ativação                                                               |
+| Escola COMUN R0                                  | PR #503 aberto, head `a8dbe550583526eae631deafa3c574fbcfb18993` na consulta; 24 micro-missões candidatas, progresso privado, flag desligada        | Checks concluídos; validar integração no schema canônico e ativação separada                                                 | Ambiente COMUN identificado e revisão humana do material; testes locais não comprovam ativação                                                               |
 | Serviços Públicos                                | PR documental #434 aberto; expansão fora do fechamento V1                                                                                          | Revisar arquitetura e limites da proposta separadamente                                                                      | Decisão de escopo posterior; sem expansão automática                                                                                                         |
 
 ### Evidência técnica já integrada
@@ -196,3 +486,208 @@ O [PR #486](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/
 | Recuperação, conteúdo e ensaio | Critérios existentes preservados                                                                                                               | Cópia durável/restore medidos, conteúdo autorizado, piloto e ensaio integrado com pessoas reais                                                 |
 
 A lista pública de Calçadas permaneceu utilizável após voltar do mapa indisponível e apresentou um registro com localização protegida. Um registro não comprova cobertura da cidade nem conclusão do piloto. A certificação pós-merge atual é a run [37067289731](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/37067289731), concluída com sucesso. CI do merge, jornadas principais e grafo cívico também passaram; a repetição pós-merge de coerência ainda estava em execução no momento deste registro. Provas por versão e limitações estão em [comun-maplibre-security-migration.md](comun-maplibre-security-migration.md). Nenhum domínio foi promovido, nenhum conteúdo foi inventado e nenhuma configuração remota de acesso ou lançamento foi alterada.
+
+## Continuidade candidata da Escola — 07/10/2026
+
+PR #503 permanece separado do PR #520 e ainda não significa integração ou
+ativação. A prova Auth/Postgres/navegador passou na run `37653193110` para
+`3e465262fb60b935c7ff770da0503db58165fda8`: A/B, dados privados não vazios,
+concorrência sincronizada, retomada e reload móvel/desktop, limpeza sintética e
+zero findings. O SHA/tree efetivamente testado, equivalência limitada e hash do
+artifact estão em [prova canônica](../reports/current/comun-escola-canonical-auth-proof.md).
+
+A próxima alteração candidata conecta Minha participação à atividade realmente
+iniciada: sessão server-side, snapshot owner e seletor existentes, título/etapa
+mínimos e destino público do catálogo. Prática pendente de envio, revisão,
+ausência de atividade e indisponibilidade têm estados distintos. Não há segundo
+modelo de formação, progresso ou tarefa; abrir a jornada não cria vínculo,
+inscrição, responsabilidade ou resultado. Reflexões/notas/IDs pessoais não são
+repassados à orientação ou URLs. O resumo permanece disponível sem JavaScript.
+
+A prova anterior não valida essa mudança nova: o novo checkpoint deve executar
+Minha participação → resumo A/B → retomada → etapa persistida/reload em stack
+descartável. Até o artifact correspondente, esta ampliação é PENDING.
+Flags, migrations e Production permanecem inalterados. Competências #510 e
+Fábrica #514 seguem dependências abertas, não capacidades presumidamente ativas.
+Revisão editorial/ensaio humano e decisões de integração/ativação são gates
+separados; nenhuma maturidade de domínio é promovida automaticamente.
+
+## Busca pública — candidato reconciliado com a base integrada — 08/10/2026
+
+O #519 incorpora main `3530f8aa` por merge normal, sem rebase/force. O pai
+`7dfa3b29` terminou com 23 checks success, 80 skipped e uma falha Security
+`112793364913`: restore de banco verde, mas
+`COMUN_STORAGE_SIGNED_URL_NOT_ACTIVE` no ensaio antigo de um segundo.
+A base incorpora #518, #528 e #530; a janela do ensaio foi corrigida e passou
+em Supabase descartável no #530. Essa aprovação não é PASS deste candidato.
+
+A implementação de busca e sua prova de integração são idênticas ao pai.
+A run focal `37621724132` comprovou 15 contratos e 25 casos PostgREST reais:
+visibilidade pública do território, publicação da obra e da raiz do Acervo,
+descarte de resposta parcial em onze fontes e fallback do mapa. O controle
+anterior produziu 13 falhas esperadas e 12 aprovações. São evidências do pai;
+esta reconciliação exige novos checks próprios antes de merge. A fixture
+local reduzida não certifica RLS completo nem ausência de vazamento histórico.
+
+O PR continua draft. Nenhuma query canônica, migration Production, flag,
+indexação ou alteração de recuperação do provedor foi executada.
+Skipped e pending não contam como PASS. O registro seguinte é histórico.
+
+## Busca pública — correção candidata de exposição
+
+A busca unificada usa `service_role`. A leitura de territórios não filtrava `visibility=public`, e a leitura de obras filtrava apenas o estado da obra, sem exigir raiz publicada/pública no Acervo. O candidato acrescenta esses filtros. As onze fontes descartam dados parciais quando sua resposta inclui erro; fontes saudáveis e fallback do mapa continuam disponíveis.
+
+Quinze testes da função completa usam respostas de banco simuladas. Na base `74cc0ed1779f5432496c3f852ce92bed3524a3a1`, doze falharam: filtros ausentes e dados parciais consumidos nas onze fontes. Após a correção, os quinze passaram. Isso comprova a regressão e os contratos da consulta, não a ausência de vazamento histórico ou a equivalência de produção. Não houve leitura de dados privados do ambiente canônico. A semântica real dos filtros relacionais ainda deve ser conferida em Supabase descartável e no ambiente autorizado. Não é uma auditoria completa de autorização de todas as fontes de busca.
+
+## Escola: captura real e lacuna de recuperação — 08/10/2026
+
+A senha do banco foi renovada pelo usuário; a conexão read-only foi comprovada.
+O banco real e roles sem senhas foram capturados em arquivos locais cifrados,
+reabertos e ensaiados em cluster offline. O restore exigiu suplemento de bootstrap
+GraphQL capturado da origem. Os dados COPY e sequences conferem; equivalência
+integral do schema, Auth/Storage/Vault e custódia independente continuam BLOCKED.
+Isso não é liberação da Escola nem prova integral de recuperação do projeto.
+
+A correção candidata dos dois leitores de release carrega a CA pública Supabase
+preservando verify-full/hostname. Até integração e certificação, esses caminhos
+não estão certificados. Não houve migration, mudança de flag ou dispensa dos
+seis preflights do #523. Evidências e limites:
+[revisão da captura e TLS](../reports/current/comun-escola-real-capture-and-tls-review.md).
+
+# Evidência adicional Escola — 09/10/2026
+
+A correção TLS #535 foi integrada em `041f6b17`, com deploy Git READY e sete
+smokes GET/SHA servido PASS. A certificação pós-merge permanece BLOCKED por CA
+ausente nos dois scripts CI read-only e duas falhas remotas de navegação em
+Core Journeys. Patch focal de CA preparado separadamente; nenhum gate dispensado.
+
+Recuperação real parcial avançou: 278 tabelas restauradas offline, 2.582 arquivos
+Storage cifrados/restaurados como bytes e cópia privada no Drive verificada; API
+Auth leu os seis usuários restaurados e login sintético/recusas/cleanup passaram
+na segunda cópia offline. Storage API v1.80.2 pinned restaurou/leu todos os 2.582
+objetos e recusou 863 acessos anônimos privados; metadata/history inalterados.
+O bloqueio inicial da imagem 0067 e uma interrupção do executor foram preservados;
+uma retomada limitada comprovou o resultado posterior. Custódia independente da
+chave, CHECK canônico e configuração externa
+continuam BLOCKED/NOT_RUN conforme
+`reports/current/comun-escola-readonly-ci-ca-recovery.md`. Migration Escola
+Production não executada; #523 draft e seis preflights preservados. Não declarar
+liberação, recuperação integral ou conclusão da V1.
+
+## Recuperação em disco E: — 09/10/2026
+
+Dois exports cifrados da cópia anterior foram verificados e restaurados em containers novos offline. PG17.6: 278 tabelas, 6 auth users, fingerprint do restore anterior idêntico, zero findings; Storage: 2582 arquivos/357014118 bytes e size+MD5 conferidos. Comparação integral com o PRE capturado isolou um CHECK reagrupado e oito ACLs owner implícitas: parser 17.6 provou a mesma árvore semântica, com três controles negativos, e os direitos efetivos conferem. Fingerprints brutos continuam distintos; gates Production não foram alterados. Nova chave preservada em Drive privado separado dos ciphertexts E:, readback/descriptografia dos dois exports sem DPAPI PASS. Não é nova captura Production nem prova integral de API/configuração na nova cópia. Crash supautils e configurações externas permanecem abertos; seis preflights #523 preservados. #536 head 98963025 tem Core/Civic/Experience/Full Surface PR verdes; MapLibre 37959856195 tem 49 PASS/1 FAIL no retorno Lista → Mapa, causa UNPROVEN; Quality em execução. Certificação pós-merge permanece pendente. Preparada CA restrita à captura PRE da Escola, com 71 testes Node PASS. Evidências e limites: [relatório CI/recuperação](../reports/current/comun-escola-readonly-ci-ca-recovery.md). Autorização de migration recebida; execução ainda NOT_RUN até cumprir requisitos. Escola não liberada; zero migration Production nesta retomada.
+
+### Escola — recuperação em E: e gates preservados, 09/10/2026
+
+No candidato #536 ce0566d9, captura PRE e ensaio atômico 37962260855 passaram na mesma run, com hash da captura vinculado à prova. Custódia independente da chave e mapping de 2582 objetos restaurados passaram; CHECK/ACLs têm equivalência delimitada, sem mudar fingerprints Production. Biblioteca supautils oficial corrigida passou recusas no laboratório/restauração; imagem antiga continua afetada. Bundle reproduziu SHA/tree fora do produtor; 71 testes no consumidor passaram. Inventário: 41 SUCCESS, 82 SKIPPED separados e Quality ainda em execução na consulta. Autorização da migration recebida; acesso protegido PostgreSQL, configuração externa, renovação do backup de negócio e entrada Production controlada ainda bloqueiam aplicação. Seis preflights #523 preservados; zero escrita Production, flags/indexação intactas. Avisos npm preexistentes foram registrados separadamente, sem atualização automática. Escola não liberada. Este complemento documental não transfere provas para um SHA funcional diferente.
+
+# Atualização Escola — ensaio controlado, 2026-10-09
+
+Complemento posterior: #537 integrado em `c4dfd5a7`, mesma tree do candidato;
+deploy Git READY, SHA servido exato, smokes e CI atual aplicável passaram. Entrada
+Production separada em preparação, com recuperação real e acesso protegido ainda
+bloqueados. D: voltou NTFS/Healthy, sem prova de integridade de cada arquivo e sem
+credencial esperada localizada; execução permanece em E:. Nenhuma migration
+Production aplicada e os seis preflights #523 permanecem obrigatórios. Evidências
+e limites: [entrada Production](../reports/current/comun-escola-production-entry-preparation.md).
+
+PR #536 integrado em `eb2cb0156adf223d608e222677cccc00bf84e071` após 42 SUCCESS / 82 SKIPPED / zero failures/pending. Deploy Git READY, SHA servido confirmado, smokes GET, Quality/Civic/Core pós-merge PASS; Experience ainda pendente na captura. Nenhuma outra integração até certificar o pós-merge aplicável.
+
+Ensaio controlado local provado em `c4f4facafa1674352bd5b93d5c660b3bd4f45b3c`: verificações de catálogo privado e privilégios antes do COMMIT, rollback schema/history/ledger/drift, replay recusado e resposta perdida do COMMIT reconciliada read-only, sem retry de escrita. Nova lane descartável sem secrets Production preparada para repetir essa prova no novo SHA. Evidências e limites em `reports/current/comun-escola-controlled-rehearsal.md`.
+
+Próximo passo: concluir checks pós-merge e do candidato; recuperar acesso PostgreSQL protegido e renovar/ensaiar backup real antes de qualquer schema write. Executor remoto não certificado; migration Escola NOT_RUN; seis preflights do #523 preservados. Recuperação completa, flags, indexação e operação pública continuam não certificadas.
+
+## Escola — novo backup real e restauração isolada, 10/10/2026 UTC
+
+Preparação #538 integrada/certificada em main `400b17b350a00de913b6e802586c890c1e2999d9`, tree igual ao funcional `73d28606`. Acesso protegido E: passou com TLS autenticado; o 28P01 anterior não permanece bloqueante. Novo snapshot real read-only foi cifrado, restaurado e conferido em 278 tabelas, com diferença de collation delimitada. Roles/owners/versões de extensão conferiram. Auth sintético, proteção Google/hCaptcha offline e Storage API/2.582 objetos tiveram provas separadas vinculadas aos respectivos containers. Custódia independente da chave passou no novo backup. Nenhuma escrita Production.
+
+Configuração externa completa continua BLOCKED: capturas cifradas e readback não equivalem à entrega externa de e-mail ou login Google real; o SMTP gerenciado não acompanha o dump. Crash original supautils permanece aberto. A nova captura PRE mantém fingerprints, cinco ledgers aceitos, Escola ausente e zero findings. Nenhum recibo completo foi emitido; migration permanece NOT_RUN e os seis preflights #523 continuam bloqueantes. Próximo elo: fechar recuperação externa, revisar recibo real e renovar os pontos temporais exigidos antes da aplicação única autorizada. Não contratar plano nem alterar flags/indexação. Evidências e limites: [recuperação real atualizada](../reports/current/comun-escola-fresh-real-recovery-20261010.md).
+
+Continuação: seis templates restaurados e convite enviado pelo Auth real a SMTP loopback PASS; entrega externa NOT_RUN. Tentativa OAuth combinada falhou e permanece separada, com discovery externo indisponível no namespace sem rede. Fixtures removidas; todas as 27 tabelas Auth conferem com o snapshot original. 24 testes de entrada passaram, sem alterar controles. #523 continua draft/CONFLICTING, cf0e8e41, 45 SUCCESS/76 SKIPPED/seis FAILURE na consulta atual; Quality SUCCESS. Backup de 00:41Z excedeu uma hora e deverá ser renovado antes de escrita. [Decisão gratuita de recuperação externa](../reports/current/comun-escola-external-recovery-free-decision.md) preparada sem contratação ou alteração Production. Migration ainda NOT_RUN.
+
+Passada autônoma seguinte: redirect Google HTTP302 passou com discovery real em
+laboratório vazio, sem dados do backup e sem abrir a rede do restore. Login/callback
+aprovado e entrega externa continuam NOT_RUN. Auditoria preservou 16 artifacts e
+17 capturas cifradas; identificou três parâmetros numéricos capturados como
+`<redacted>` (mínimo de senha, limite de e-mail, OTP de MFA telefone). Labels foram
+recapturados read-only, sem salvar Source; nenhum default substituiu os números.
+Finding `CONFIG_CAPTURE_VALUES_REDACTED` impede replay completo. SMTP independente,
+configuração externa e renovação do backup continuam bloqueantes; migration NOT_RUN.
+
+Suplemento posterior resolveu autonomamente os três parâmetros pela UI visual,
+com imagens cifradas, sem alterar valores ou capturas antigas. Laboratório vazio
+iniciou Auth com os 16 parâmetros e AAL1 15m; redirect Google real novamente PASS.
+O finding dos números mascarados está resolvido por suplemento, mas entrega SMTP,
+callback/login nominal e recuperação externa completa continuam não certificados.
+Nenhuma migration ou configuração Production alterada.
+
+Em 10/10 às 22:53 UTC, uma única mensagem sintética autorizada passou SMTP Brevo
+e chegou à caixa de entrada Gmail, com identidade/texto conferidos. Entrega direta
+PASS; entrega pelo Auth restaurado NOT_RUN. Remetente reescrito e pixel do provedor
+impedem inferir configuração de autenticação certificada. Google Cloud continua
+bloqueado pela exigência de duas etapas; login/callback não provados. Recuperação
+externa integral BLOCKED, backup precisa renovação antes da entrada controlada,
+recibo/permit não emitidos. Migration NOT_RUN; seis preflights #523 preservados.
+Provas sanitizadas e limites no [relatório atual](../reports/current/comun-escola-fresh-real-recovery-20261010.md).
+
+Continuação às 20:12 BRT: titular ativou duas etapas e acesso Google PASS. Cliente
+Production consultado e preservado; novo cliente exclusivo do laboratório criado
+com autorização específica, credencial cifrada/readback PASS. Docker recuperado
+pelo comando oficial; Auth vazio pinned passou discovery/redirect com esse cliente.
+Login/callback/troca de código NOT_RUN; ensaio representativo não equivale a replay
+da credencial Production. Recuperação externa integral permanece BLOCKED, sem
+recibo/permit, migration ou alterações Supabase. Seis preflights preservados.
+
+Às 20:23 BRT, login Google especificamente autorizado no laboratório vazio passou
+callback/troca de código, `/user` e logout; uma identidade de ensaio, zero sessões
+ao final. Primeiro 504 preservado e causa exata não comprovada; uma retomada com
+fluxo novo passou. Dump privado cifrado e containers removidos. Cliente separado
+é prova representativa, não replay Production. Próximo gate preparado: convite
+Auth com template capturado → Brevo → Gmail → confirmação local, autorizado
+e executado no ensaio registrado abaixo. Recuperação integral ainda BLOCKED, recibo
+não emitido, migration NOT_RUN e seis preflights preservados.
+
+Convite adicional especificamente autorizado foi enviado uma única vez pelo Auth
+do laboratório vazio via relay Brevo e recebido no Gmail. Confirmação local e
+logout PASS; nenhum acesso ao backup real/Production, containers removidos.
+Assunto textual mascarado limita fidelidade: suplemento visual read-only resolveu
+o valor original, sem repetir envio. SMTP substituto não é replay do gerenciado;
+outros cinco fluxos externos NOT_RUN. Recuperação integral NOT_CERTIFIED, backup
+expirado, migration NOT_RUN e seis preflights intactos. Evidências e limites no
+relatório atualizado.
+
+Continuação de 10/10: CI do #540 terminou 8 SUCCESS/34 SKIPPED; não é liberação
+da Escola. Guard de captura passou 13 testes e recusou assuntos mascarados em
+convite/mudança de e-mail. MIME recebido comprovou reescrita do link Auth pelo
+tracking Brevo; a confirmação local usou o link original. Recuperação externa
+integral permanece NOT_CERTIFIED. Sessão do dashboard expirada bloqueia recaptura
+do assunto restante. Resolver fidelidade e contratos externos antes de renovar
+backup, emitir permit ou executar a única migration autorizada condicionalmente.
+Em paralelo, #523 foi reconciliado com main em worktree isolada; seu novo
+checkpoint exige gates próprios. Sem nova funcionalidade, flags ou indexação.
+
+Preparação API de recuperação — 11/10: o segundo MIME SMTP recebido ainda prova
+reescrita Auth após configuração salva. Implementado relay API exclusivo do
+laboratório com tracking false, destinatário único, aprovação vinculada ao link e
+marcador persistente sem retry após resultado incerto. 90 testes locais PASS,
+zero skipped; isso não substitui entrega externa. Chave API exclusiva autorizada,
+cifrada e validada read-only no plano Free, sem mudança de transporte Production.
+Convite API único especificamente autorizado foi aceito e recebido, mas também
+teve link reescrito e duas imagens: FAIL de fidelidade externa, confirmação do
+link recebido NOT_RUN e nenhum reenvio. Laboratório arquivado/limpo, zero sessões.
+18 contratos adicionais passaram em Linux sem rede; CI inclui o novo adaptador,
+sem secrets Production. Assunto change-email Source, demais fluxos e recuperação
+integral continuam bloqueados/não executados;
+backup expirado, permit não emitido, migration NOT_RUN e seis preflights preservados.
+Evidências e limites no [relatório de recuperação](../reports/current/comun-escola-fresh-real-recovery-20261010.md).
+
+Autocorreção do transporte — 11/10: changelog Brevo esclarece que false anonimiza
+métricas, sem desligar tracking; não repetir SMTP/API nem atribuir bug ao provedor
+sem prova. #540/4cbab9ed terminou 11 SUCCESS e 78 SKIPPED, zero failure/pending.
+Adaptador do Gmail já conectado preparado sem conta/credencial/scope novo, com
+21 testes focais PASS. Convite Gmail único especificamente autorizado passou
+recebimento, link exato sem tracking e confirmação real desse link no Auth local,
+logout e zero sessões. Laboratório cifrado/limpo; 93 contratos locais passaram.
+Isso não equivale a recuperação durável integral da configuração. Migration permanece
+NOT_RUN até fechar recibo integral, backup renovado e PRE fresco.

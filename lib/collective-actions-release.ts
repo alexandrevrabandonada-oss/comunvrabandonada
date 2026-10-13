@@ -1,4 +1,5 @@
 import "server-only";
+import { verifiedSupabaseDatabaseConfig } from "./supabase-database-tls";
 
 import { Client } from "pg";
 import {
@@ -20,7 +21,7 @@ async function readReleaseState() {
       pautaActionCyclePresent: false,
     };
   const client = new Client({
-    connectionString,
+    ...verifiedSupabaseDatabaseConfig(connectionString),
     connectionTimeoutMillis: 1_500,
     query_timeout: 1_500,
   });

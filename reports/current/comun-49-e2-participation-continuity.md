@@ -1,0 +1,268 @@
+# 49-E2 — orientação pública e continuidade privada
+
+Entrega candidata no PR #520; não integrada nem ativada. Base consultada:
+`74cc0ed1779f5432496c3f852ce92bed3524a3a1`. Head preservado do PR:
+`af47674945bed9d9c10a2e499319f61027161683`.
+
+Candidato funcional: `1a46d5550a4ddd98ed467c322dcf1c6e480d4946`.
+Tree: `fc4dd7095c2098aaf86f5c3db75fb53d0c5fa6c0`.
+Os checkpoints até `11127473e5bba612826a9b87e7bfd08d06923c4c` alteram somente
+documentação. A continuação abaixo acrescenta correção de CI; o runtime de UI
+continua idêntico a `1a46d555` e deve ser comparado por arquivos, sem transferir
+resultados dos scripts de CI antigos para os novos.
+
+## Comportamento e limites
+
+A carteira existente retoma registros, oferece orientação conforme o estado e
+volta aos registros sem colocar handles ou conteúdo privado na URL pública.
+Loading, erro e conteúdo inválido não viram vazio. Registros retirados não
+geram convite para retomada. Consentimentos, permissões, schema, storage e API
+de escrita permanecem no contrato existente. A orientação e a busca usam um
+fallback público opt-in para permanecer consultáveis sem JavaScript; nenhuma
+superfície privada ativa esse fallback.
+
+Escola #503 continua draft/flag off no head `a8dbe550583526eae631deafa3c574fbcfb18993`.
+Não houve cópia de seu progresso nem link para uma formação ainda indisponível.
+Integração canônica, revisão editorial e ativação permanecem dependências.
+Competências e Fábrica continuam entregas abertas, distintas de funcionalidade
+integrada. Governança, facilidade percebida e ensaio humano não foram simulados.
+
+## Prova local
+
+Node 22.19.0, npm 10.9.3, dependências do lockfile; Chromium instalado pelo
+Playwright do repositório. Testes executados na árvore funcional acima.
+
+| Comando                                                                                                                                                        | Resultado                   | Alcance                                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `npm run test:unit`                                                                                                                                            | PASS — 1.407 / 243 arquivos | Suite completa; repetida após correção da shell                                                                         |
+| `npx vitest run lib/comun-practice-guidance.test.ts lib/comun-one-product-contract.test.ts lib/comun-wallet-relata-action.test.ts`                             | PASS — 50                   | Fases públicas allowlisted, contratos existentes                                                                        |
+| `npm run solo:test`                                                                                                                                            | PASS — 113, zero skipped    | Inventário explícito e controles existentes                                                                             |
+| `npm run typecheck`                                                                                                                                            | PASS                        | Tipos; build também verifica a árvore final                                                                             |
+| `npm run lint`                                                                                                                                                 | PASS                        | ESLint completo; arquivos modificados rechecados depois                                                                 |
+| `npm run build`                                                                                                                                                | PASS                        | Compilação otimizada e geração de páginas                                                                               |
+| `npx playwright test -c playwright.participation-continuity.config.ts`                                                                                         | PASS — 12, zero retries     | Carteira sintética: leitura, foco, retorno, reload, vazio, erro, retry, resposta inválida, retirada; 360×800 e 1366×768 |
+| `npx playwright test -c playwright.experience-coherence.config.ts tests/experience-coherence/participation-paths.spec.ts --project=360x800 --project=1366x768` | PASS — 6, zero retries      | Público canônico/legacy; orientação e formulário da busca sem JavaScript                                                |
+| Prettier dos arquivos alterados e `git diff --check`                                                                                                           | PASS                        | Formatação e whitespace                                                                                                 |
+
+Dois testes Node de coerência e quatro de classificação de superfícies também
+passaram. Axe: zero findings serious/critical nas superfícies avaliadas; não
+equivale a certificação universal de acessibilidade.
+
+Os 12 casos da carteira interceptam respostas com uma fixture sintética e
+contam chamadas de escrita: zero. Não provam identidade Auth, RLS ou persistência
+do backend. O reload relê a fixture; não certifica recuperação real de dados.
+Os seis casos públicos exercitam a aplicação local. Screenshots sintéticos
+mobile/desktop foram inspecionados fora do repositório. Dispositivos físicos,
+tecnologia assistiva, percepção de fricção e ensaio humano permanecem NOT_RUN.
+
+## Findings corrigidos
+
+1. Falha de leitura era indistinguível de carteira vazia: estados explícitos e retry.
+2. Contraste inadequado na carteira legacy: fundo e texto corrigidos, axe repetido.
+3. Shell prendia conteúdo público no loading sem JavaScript: fallback público opt-in.
+4. Inventário Solo desatualizado: 16 nomes já em main, reproduzidos na base limpa
+   `74cc0ed1`, registrados explicitamente. Arquivo desconhecido segue bloqueado.
+
+Uma tentativa da suíte pública perdeu o servidor compartilhado; não foi contada
+como PASS. Repetição independente expôs a falha sem JavaScript e, depois da
+correção, os seis casos passaram com servidor próprio. Nenhum retry foi adicionado.
+
+## Entrega e operação
+
+Primeiro checkpoint `ab06c1d86ef8aa1bbc8cea07823642572207beae`: Preview Git
+`dpl_H82gGSbZonFT5DqF3GDA2ZWVEUbR` READY e GitHub Deployment `6899813907`
+no SHA exato, environment Preview, status success, URL HTTPS `.vercel.app`.
+Um checkpoint documental subsequente corrige somente Prettier do roadmap e
+registra os blockers abaixo; seu Preview precisa de validação própria.
+
+Gates globais não verdes: preflights A2/A4/A5 e P6C-C falharam antes de qualquer
+prova de produto. Artifacts das runs `37559796309`, `37559796275`, `37559796294`
+e `37559796222` mostram o dry-run recusando
+`20260922120000_comun_canonical_security_hardening_v2.sql` como arquivo anterior
+à última migration remota. Isso requer reconciliação do planner com a release
+externa aceita, em frente separada; não autoriza `include-all`, reparo de history
+ou replay remoto. Nenhuma migration mudou nesta entrega. Não se classificam
+esses failures como skipped nem como PASS.
+
+A run Launch Readiness `37559796257` encontrou somente Prettier no roadmap:
+correção documental aplicada e revalidada com Prettier 3.9.9. Resultados das
+demais suítes ainda em execução não são presumidos. O PR permanece draft.
+
+O workflow `comun-participation-continuity.yml` usa conteúdo sintético e não
+recebe secrets Production. Checkpoint/Preview e checks remotos pertencem ao SHA
+da revisão, registrados no PR. Resultado local não é transferido para deployment
+ou Production. `pilot_noindex` permanece; zero merge, migration activation,
+schema write, business write ou alteração de flag Production nesta rodada.
+
+Próxima frente: integrar os modelos de progresso da Escola quando #503 estiver
+reconciliado e aprovado; manter orientação pública e convites voluntários nos
+fluxos existentes enquanto essa dependência continua aberta.
+
+## Continuação — preflights históricos
+
+Os cinco consumers A1/A2/A4/A5/P6C-C passam a usar o reconciliador existente
+quando o estado é promoted, ou sem mudança SQL no P6C-C. Candidate permanece
+no caminho anterior, com plano exato e restauração. Metadata/RLS anteriores
+continuam obrigatórios; nenhuma lane é dispensada. O helper exige a linha única
+accepted do Hardening e hashes/fingerprints imutáveis antes de isolar temporariamente
+somente os dois arquivos já aplicados. Arquivo SQL pendente desconhecido bloqueia.
+
+Reutiliza-se a correção stdout/stderr de Escola #503 no SHA `a8dbe550583526eae631deafa3c574fbcfb18993`, sem portar runtime, migration ou progresso.
+Cada child process recebe `PGOPTIONS=-c default_transaction_read_only=on`;
+a consulta tem BEGIN READ ONLY/ROLLBACK. Exit nonzero, sinal ou saída sem marcador
+de sucesso bloqueiam, mesmo que outra stream contenha texto de sucesso.
+
+PASS local: 15 testes Linux (quatro do helper e execução do passo real de onze
+workflows), cobrindo ledger ausente/divergente, stdout/stderr, plano desconhecido,
+saída vazia, erro de processo e restauração byte-identical. Stubs são prova do
+contrato de processo, não prova de banco. 113 Solo, ESLint e Prettier dos arquivos
+afetados, checks Node e diff-check passaram. Migration/manifest/release bundles
+permanecem sem diff. A prova read-only real fica para os mesmos gates remotos.
+
+Ubuntu WSL foi usado com Node 22.19.0 temporário, pacote verificado contra
+SHASUMS256 oficial: `c0649af18e6a24f6fe5535a3e86b341dd49a8e71117c8b68bde973ef834f16f2`.
+Não houve uso de credencial Production nesses testes locais.
+
+BLOCKED — executor Docker local da Escola: Docker Desktop 4.61.0 foi iniciado,
+mas o backend reporta falha no Inference manager ao remover o socket dockerInference.
+O socket é um reparse point de tamanho zero inacessível ao sistema. A tentativa
+reversível de renomeá-lo para preservação falhou; o serviço Windows está parado
+e não pôde ser aberto por Start-Service nesta sessão. A distro docker-desktop
+permanece stopped; Ubuntu funciona. Não foi feito reset/factory reset, remoção
+recursiva, limpeza de volumes ou alteração do settings-store. Requisito mínimo:
+recuperar a inicialização do Docker e tornar a API Linux responsiva. Até isso,
+Auth/Postgres da Escola não recebe PASS e não usa banco hospedado como substituto.
+
+### Resultado remoto do reconciliador
+
+No SHA `be68783e249840114544b6d687d040782bc4f508`, os cinco preflights reais
+passaram: A1 run `37561034654`, A2 `37561034836`, A4 `37561034782`, A5
+`37561034788` e P6C-C `37561034690`. Preview Git exato READY,
+GitHub Preview Deployment `6899994457` success e COST-02 local checkpoint-fresh.
+Esses resultados não significam promoção de schema ou certificação global.
+
+A UI da run `37561034849` terminou com 11/12: o caso de resposta inválida usava
+getByRole(alert) na página inteira e encontrou também **next-route-announcer**.
+O log comprovou que o alerta correto da carteira estava presente. Correção focal:
+selecionar o alerta dentro da carteira e exigir a mensagem de indisponibilidade.
+Nenhum retry, timeout ou comportamento de aplicação foi alterado. Repetição local
+completa: 12/12 PASS, zero retries. A nova revisão remota é vinculada ao novo head
+no corpo do PR, sem transferir a falha anterior para PASS.
+
+Na run `37561385804`, head `49329c37888b5b1f00471328e869e27b20d7d406`,
+o contrato 48.3-E2 falhou porque comparava a formatação antiga do comando
+Supabase (aspas simples/linha única) com o helper formatado pelo Prettier.
+O teste agora inspeciona a AST e exige exatamente um spawnSync, executável
+Supabase e os cinco argumentos, incluindo --dry-run e a origem da URL.
+Nenhum comando, aplicação, workflow ou regra de autorização foi alterado
+nesta correção. Repetição completa local: 243 arquivos, 1.407 testes PASS;
+ESLint, Prettier e diff-check dos arquivos afetados PASS. A conferência remota
+continua no novo checkpoint; o PR permanece draft enquanto houver pendências.
+
+### PWA — autoridade do candidato e confirmação visível
+
+No checkpoint `c4811dd8d4384c6bf26f42e0f4468b39046c6ee8`, o workflow de
+coerência completo passou na run `37561736954`. A lane PWA `37561737044`
+falhou porque seu COMUN_BASE_URL fixo apontava para Production, que não contém
+o compartilhamento deste draft. A lane agora executa a árvore checkout em
+loopback, sem secrets, com um contrato estrutural que impede a troca do destino,
+o bypass do webServer e continue-on-error. O smoke pós-merge separado não mudou.
+
+Reprodução local também provou uma corrida no teste: count() antes da renderização
+selecionava um menu ausente no desktop. Agora espera-se um dos dois controles
+visíveis antes de escolher o caminho, sem sleep/retry ou aumento de timeout.
+Após essa correção, a regressão exigindo o texto visual falhou com Expected
+"Link copiado", Received "Compartilhar". O estado guardava uma frase enquanto
+o render comparava códigos copied/failed. Correção focal: código de estado tipado
+e mensagem acessível separada. O teste exige confirmação visual e aria-live;
+controle negativo de native share e clipboard falhos proíbe falso sucesso.
+
+O contrato territorial da run `37561737059`, job `112602044452`, falhou com
+502 após reset do Supabase descartável, antes de completar o apply territorial.
+Nenhuma falha SQL/funcional foi demonstrada; não se alterou domínio nem retry
+por esse incidente. A repetição acompanha o próximo checkpoint funcional.
+
+PASS local nesta árvore: 45 casos PWA em cinco larguras (360, 390, 768, 1024
+e 1366), zero retries; confirmação visível e aria-live, erro sem falso sucesso,
+manifest, cache privado, offline e limpeza de caches. Capturas mobile/desktop
+inspecionadas; zero pageerrors nos dois fluxos de cópia. 1.407 unitários/243
+arquivos, 113 Solo, contrato estrutural da lane PWA, TypeScript, ESLint completo,
+build, Prettier técnico e diff-check PASS. Esta é prova local/sintética;
+não representa merge, lançamento, Auth/RLS da Escola ou escrita Production.
+
+### Busca — seletor do conteúdo acessível
+
+A run `37563494501` no head `8d85fa7c6a23026b3c8efad0337016cc745938eb`
+falhou em quatro asserts de navegador por dois matches globais do status/vazio.
+A reprodução local sem JavaScript encontrou exatamente um main acessível e
+dois nós de status: um visível e outro não renderizado dentro do ancestral
+hidden `S:0`, transporte de streaming do Next. Com JavaScript, o estado
+estabilizado possui apenas um nó. O teste agora exige um único main acessível
+e um único status/vazio visível dentro dele. Não usa first() para esconder
+duplicação de UI nem remove verificações de texto, teclado, Axe, rate limit,
+alias, opt-in ou privacy boundary. Nenhum runtime/SQL/workflow mudou aqui.
+
+O 502 territorial anterior encerrou-se na repetição da run `37563494658`:
+o job COMUN Territory / local-only contract passou no mesmo código de domínio,
+sem alteração de retry. Trata-se de falha transitória do laboratório nessa
+evidência, não de certificação irrestrita da infraestrutura.
+
+PASS local: os 15 cenários de Busca em cinco larguras, com os controles de
+texto, teclado, Axe, alias, opt-in, erro/rate limit e privacy boundary mantidos.
+TypeScript, ESLint, Prettier e diff-check dos arquivos afetados PASS.
+O servidor local usa somente destinos loopback e o fallback público existente;
+isto não substitui a prova de provider/RLS no Supabase descartável remoto.
+
+### Confirmação de cópia — nome acessível
+
+No runtime de `eeeb87bc4302a8e5f0ee3ef4f6f558686c6358da`, a inspeção após
+copiar demonstrou um finding Axe serious `label-content-name-mismatch`.
+O botão mostrava "Link copiado", mas o aria-label permanecia "Compartilhar
+esta página". A regressão falhou em Chromium desktop, com trace preservado
+fora do repositório. A correção usa o mesmo label para o texto visível e o
+prefixo do nome acessível, preservando a descrição da ação. Estados de cópia
+e falha exigem nomes exatos e zero findings nessa regra; não há allowance
+nem desativação de critérios. Não muda URL/payload, clipboard, auth ou schema.
+
+A repetição global da mesma regra apontou também o atalho mobile existente:
+texto "Relatar", aria-label "Vi um problema". O nome acessível agora inclui
+"Relatar. Vi um problema", mantendo constantes do contrato, texto visual,
+destino e gesto de navegação. Não se limitou a regra para esconder esse nó;
+as varreduras após cópia/falha continuam cobrindo a página inteira.
+Revisão React: label derivado durante render, sem estado duplicado/efeito,
+novas dependências, listeners ou alterações de fetch. A primeira repetição
+teve 39/45 enquanto o defeito mobile estava presente; não é contada como PASS.
+
+Depois das duas correções, PASS local: 45/45 PWA, cinco larguras, zero retries,
+incluindo a regra global label-content-name-mismatch após cópia e falha;
+1.407 unitários em 243 arquivos, TypeScript, ESLint completo, build,
+Prettier dos arquivos técnicos e git diff --check. O checkpoint seguinte
+contém somente os dois componentes, essas regressões e este registro.
+Migration, manifest, schema e flags não foram alterados. Os resultados
+remotos de eeeb87bc são históricos; a nova árvore exige checks e Preview próprios.
+
+### Central — mesmo transporte de streaming, contrato visível preservado
+
+A Quality `37567163424` em `e81c13f771e64c8e8a3f9f4227fe9fcb4f80c8a5`
+passou 10 integrais, 175 de coerência, 112 a11y, 45 PWA e 18 mobile antes
+de falhar em dois dos 55 casos da Central: getByText global encontrou duas
+instâncias do status da Busca. Os outros 53 casos passaram. Esta run é FAIL,
+não flake ignorado nem aprovação integral. O restante não executado é NOT_RUN.
+
+A reprodução local sem JavaScript repetiu as duas falhas (768/1024), com
+traces sintéticos preservados fora do repositório. Inspeção independente
+comprovou um main acessível, um status visível e a outra instância dentro de
+hidden S:0 nas duas larguras. O teste passa a exigir exatamente um main e um
+status visível dentro dele, mantendo resultados públicos e ausência de
+popularidade; sem first(), sleeps, retry ou alteração de runtime.
+
+PASS local: dois casos sem JavaScript corrigidos e 50 casos funcionais/a11y
+da Central em cinco larguras, zero retries. Os cinco casos locais de captura
+visual foram excluídos para preservar screenshots já rastreados; são NOT_RUN
+localmente, não PASS. O workflow remoto conserva a suíte completa de 55.
+Os 1.407 unitários/243 arquivos passaram novamente. A aplicação, helpers,
+workflows e migrations são byte-identical a e81c13f7; o delta é somente
+esse teste e este registro, e a repetição remota será ligada ao novo checkpoint.
+TypeScript, ESLint completo, Prettier do teste e git diff --check PASS após
+essa correção. A evidência de build anterior refere-se à aplicação idêntica;
+não se declara uma compilação adicional que não foi executada.

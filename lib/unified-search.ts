@@ -66,6 +66,7 @@ export async function unifiedPublicSearch(
     db
       .from("comun_hub_territories")
       .select("id,slug,name,public_summary,updated_at")
+      .eq("visibility", "public")
       .neq("status", "archived")
       .or(`name.ilike.${like},public_summary.ilike.${like}`)
       .limit(12),
@@ -100,6 +101,8 @@ export async function unifiedPublicSearch(
         "title_public,description_public,updated_at,archive:comun_archive_items!inner(slug,status,visibility)",
       )
       .eq("publication_status", "published")
+      .eq("archive.status", "published")
+      .eq("archive.visibility", "public")
       .or(`title_public.ilike.${like},description_public.ilike.${like}`)
       .limit(12),
     db
@@ -131,7 +134,7 @@ export async function unifiedPublicSearch(
           : 40;
   let rows: SearchResult[] = [
     ...toolResults,
-    ...(communities.data ?? []).map((x: any) => ({
+    ...(communities.error ? [] : (communities.data ?? [])).map((x: any) => ({
       type: "comunidade",
       title: x.name,
       summary: x.short_description,
@@ -140,7 +143,7 @@ export async function unifiedPublicSearch(
       origin: "Comunidade",
       score: score(x.name),
     })),
-    ...(pautas.data ?? []).map((x: any) => ({
+    ...(pautas.error ? [] : (pautas.data ?? [])).map((x: any) => ({
       type: "pauta",
       title: x.title,
       summary: x.summary,
@@ -149,7 +152,7 @@ export async function unifiedPublicSearch(
       origin: "Pauta",
       score: score(x.title, x.id),
     })),
-    ...(territories.data ?? []).map((x: any) => ({
+    ...(territories.error ? [] : (territories.data ?? [])).map((x: any) => ({
       type: "território",
       title: x.name,
       summary: x.public_summary,
@@ -158,7 +161,7 @@ export async function unifiedPublicSearch(
       origin: "Território",
       score: score(x.name),
     })),
-    ...(actions.data ?? []).map((x: any) => ({
+    ...(actions.error ? [] : (actions.data ?? [])).map((x: any) => ({
       type: "ação",
       title: x.title,
       summary: x.objective_public,
@@ -167,7 +170,7 @@ export async function unifiedPublicSearch(
       origin: "Ação",
       score: score(x.title, x.pauta_id),
     })),
-    ...(results.data ?? []).map((x: any) => ({
+    ...(results.error ? [] : (results.data ?? [])).map((x: any) => ({
       type: "resultado",
       title: x.title,
       summary: x.public_summary,
@@ -176,7 +179,7 @@ export async function unifiedPublicSearch(
       origin: "Resultado",
       score: score(x.title, x.pauta_id),
     })),
-    ...(dossiers.data ?? []).map((x: any) => ({
+    ...(dossiers.error ? [] : (dossiers.data ?? [])).map((x: any) => ({
       type: "documento",
       title: x.public_title,
       summary: x.public_summary,
@@ -185,7 +188,7 @@ export async function unifiedPublicSearch(
       origin: "Dossiê",
       score: score(x.public_title),
     })),
-    ...(archive.data ?? []).map((x: any) => ({
+    ...(archive.error ? [] : (archive.data ?? [])).map((x: any) => ({
       type: "memória",
       title: x.title,
       summary: x.summary,
@@ -194,7 +197,7 @@ export async function unifiedPublicSearch(
       origin: `Acervo · ${x.item_type}`,
       score: score(x.title),
     })),
-    ...(art.data ?? []).map((x: any) => ({
+    ...(art.error ? [] : (art.data ?? [])).map((x: any) => ({
       type: "obra",
       title: x.title_public,
       summary: x.description_public,
@@ -203,7 +206,7 @@ export async function unifiedPublicSearch(
       origin: "Arte dos Territórios",
       score: score(x.title_public),
     })),
-    ...(programs.data ?? []).map((x: any) => ({
+    ...(programs.error ? [] : (programs.data ?? [])).map((x: any) => ({
       type: "programa",
       title: x.title_public,
       summary: x.description_public,
@@ -212,7 +215,7 @@ export async function unifiedPublicSearch(
       origin: "Rádio",
       score: score(x.title_public),
     })),
-    ...(episodes.data ?? []).map((x: any) => ({
+    ...(episodes.error ? [] : (episodes.data ?? [])).map((x: any) => ({
       type: "episódio",
       title: x.title_public,
       summary: x.summary_public,
@@ -221,7 +224,7 @@ export async function unifiedPublicSearch(
       origin: "Rádio",
       score: score(x.title_public, x.pauta_id),
     })),
-    ...(collections.data ?? []).map((x: any) => ({
+    ...(collections.error ? [] : (collections.data ?? [])).map((x: any) => ({
       type: "coleção",
       title: x.title,
       summary: x.description,

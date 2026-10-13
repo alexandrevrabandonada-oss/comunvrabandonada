@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { assertSignedUrlExpiry } from "./assert-signed-url-expiry.mjs";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { statfsSync } from "node:fs";
@@ -346,18 +347,13 @@ function r2Provider() {
       }).then((response) => response.status);
     },
     async assertSignedUrlExpiry(scope, key) {
-      const signedUrl = await getSignedUrl(
-        client,
-        new GetObjectCommand({ Bucket: bucket(scope), Key: key }),
-        { expiresIn: 1 },
+      await assertSignedUrlExpiry((seconds) =>
+        getSignedUrl(
+          client,
+          new GetObjectCommand({ Bucket: bucket(scope), Key: key }),
+          { expiresIn: seconds },
+        ),
       );
-      const active = await fetch(signedUrl, { redirect: "manual" });
-      if (active.status !== 200)
-        throw new Error("COMUN_STORAGE_SIGNED_URL_NOT_ACTIVE");
-      await new Promise((resolve) => setTimeout(resolve, 3_000));
-      const expired = await fetch(signedUrl, { redirect: "manual" });
-      if (expired.status === 200)
-        throw new Error("COMUN_STORAGE_SIGNED_URL_NOT_EXPIRED");
     },
   };
 }
@@ -412,17 +408,15 @@ async function supabaseProvider(supabase) {
       );
     },
     async assertSignedUrlExpiry(scope, key) {
-      const { data, error } = await supabase.storage
-        .from(bucket(scope))
-        .createSignedUrl(key, 1);
-      if (error) throw new Error("COMUN_STORAGE_SIGNED_URL_CREATE_FAILED");
-      const active = await fetch(data.signedUrl, { redirect: "manual" });
-      if (active.status !== 200)
-        throw new Error("COMUN_STORAGE_SIGNED_URL_NOT_ACTIVE");
-      await new Promise((resolve) => setTimeout(resolve, 3_000));
-      const expired = await fetch(data.signedUrl, { redirect: "manual" });
-      if (expired.status === 200)
-        throw new Error("COMUN_STORAGE_SIGNED_URL_NOT_EXPIRED");
+      await assertSignedUrlExpiry(async (seconds) => {
+        const { data, error } = await supabase.storage
+          .from(bucket(scope))
+          .createSignedUrl(key, seconds);
+        if (error || !data?.signedUrl) {
+          throw new Error("COMUN_STORAGE_SIGNED_URL_CREATE_FAILED");
+        }
+        return data.signedUrl;
+      });
     },
   };
 }
