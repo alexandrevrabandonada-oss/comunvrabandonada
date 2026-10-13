@@ -12,7 +12,6 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
-import { load } from "js-yaml";
 
 const manifestPath =
   "supabase/releases/20260922120000-canonical-security-hardening-v2.json";
@@ -36,17 +35,35 @@ const row = {
 const learningPlan =
   "DRY RUN: migrations will *not* be pushed to the database.\n" +
   "Would push these migrations:\n20261006134804_comun_learning_r0.sql";
-const workflow = load(
-  readFileSync(".github/workflows/comun-48-4-a7-preflight.yml", "utf8"),
+// The A7 runner intentionally installs no npm packages. Extract only its
+// known, indented literal Bash block and fail if that contract changes.
+const source = readFileSync(
+  ".github/workflows/comun-48-4-a7-preflight.yml",
+  "utf8",
 );
-const step = workflow.jobs["zero-schema-metadata-only"].steps.find(
-  (candidate) => candidate.name === "Prove A7-scoped remote migration plan",
+const stepStart = source.indexOf(
+  "      - name: Prove A7-scoped remote migration plan\n",
 );
-assert.ok(step);
+assert.ok(stepStart >= 0);
+const stepEnd = source.indexOf("\n      - ", stepStart + 1);
+assert.ok(stepEnd > stepStart);
+const block = source.slice(stepStart, stepEnd);
+const runMarker = "        run: |\n";
+const runStart = block.indexOf(runMarker);
+assert.ok(runStart >= 0);
+const step = {
+  run: block
+    .slice(runStart + runMarker.length)
+    .split("\n")
+    .map((line) => {
+      if (!line) return "";
+      assert.ok(line.startsWith("          "));
+      return line.slice(10);
+    })
+    .join("\n"),
+};
 assert.ok(
-  workflow.on.pull_request.paths.includes(
-    "scripts/ci/a7-scoped-readonly-migration-plan*",
-  ),
+  source.includes('      - "scripts/ci/a7-scoped-readonly-migration-plan*"'),
 );
 
 const scenarios = [

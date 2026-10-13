@@ -73,3 +73,12 @@ NOT_RUN. Não existe prova de RLS nova, pois esta entrada não altera runtime,
 política ou escrita. #523/#542 continuam independentes. Sem migration nova,
 repair de histórico, Auth, segredo, backup, dado Production, flag ou indexação.
 Esta entrega não encerra V1 nem certifica organização real.
+
+
+A run A7 `38451165090` do SHA `a90c8d65` passou os cinco contratos do
+validador e falhou no loader do ensaio por `ERR_MODULE_NOT_FOUND: js-yaml`.
+A consulta remota não foi executada. O ensaio passou a extrair diretamente o
+bloco Bash literal conhecido, mantendo o job sem instalação de dependências;
+a falha anterior permanece registrada.
+Os 20 contratos A7 passaram novamente com a mesma chamada node --test do job,
+sem parser YAML ou instalação npm.
