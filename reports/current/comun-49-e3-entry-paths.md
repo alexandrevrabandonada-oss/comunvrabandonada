@@ -47,7 +47,7 @@ testes permanecem byte-identical à main, preservando o contrato das outras fren
 
 ## Provas
 
-- PASS local: 5 contratos do validador A7 e 15 cenários do passo Bash real com
+- PASS local: 5 contratos do validador A7 e 17 cenários do passo Bash real com
   executores descartáveis de psql/CLI, sem banco remoto. Incluem stdout/stderr,
   School pendente explícita, ledger ausente/drift, exit não zero, duplicidade,
   migration adicional, bytes alterados, saída inválida e validador ausente.
@@ -86,3 +86,10 @@ sem parser YAML ou instalação npm.
 A run V1 `38451660368` do SHA `ee9a0d13` passou o build e recusou
 `git diff --check` por linha vazia extra no EOF do teste A7. A formatação foi
 corrigida e o diff local verificado; o finding anterior não é contado como PASS.
+
+A revisão final incluiu nomes legados e não canônicos no bloqueio de qualquer
+SQL adicional. A saída contraditória “up to date” acompanhada de um arquivo legado
+também é recusada. Diagnósticos do validador específico mostram somente a contagem
+de arquivos, sem reproduzir nomes desconhecidos ou dados de conexão.
+PASS local final: 22 contratos A7, reexecução focal do workflow histórico A7 e
+git diff --check. Os outros 13 workflows mantêm os arquivos anteriormente testados.

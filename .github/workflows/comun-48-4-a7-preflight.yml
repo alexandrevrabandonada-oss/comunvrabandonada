@@ -158,6 +158,8 @@ jobs:
               manifestBytes: readFileSync("supabase/releases/20261006134804-comun-learning-r0.json"),
             });
           } else {
+            if (/\.sql\b/i.test(plan))
+              throw new Error("REMOTE_MIGRATION_PLAN_UNKNOWN_SQL");
             assertEmptyPlan(plan);
           }
           writeFileSync(output, plan);

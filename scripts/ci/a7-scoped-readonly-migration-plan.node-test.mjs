@@ -50,6 +50,9 @@ test("A7 rejects unknown, additional, duplicated, contradictory and malformed pl
     "Would push these migrations:\n" + learningName,
     learningPlan + "\n" + learningName,
     learningPlan + "\n20990101000000_unknown.sql",
+    learningPlan + "\n001_legacy.sql",
+    learningPlan + "\nnoncanonical.sql",
+    learningPlan + "\n001_legacy.SQL",
     learningPlan.replace(learningName, "20260815184529_comun_solidarity_offers.sql"),
     learningPlan + "\nRemote database is up to date.",
     learningPlan + "\n--include-all",
@@ -87,6 +90,6 @@ test("A7 blocked diagnostics never include private connection data", () => {
         "postgresql://private:secret@example.invalid/test\n20990101000000_unknown.sql",
         learningBytes,
       ),
-    { message: "REMOTE_MIGRATION_PLAN_NOT_EMPTY:20990101000000_unknown.sql" },
+    { message: "REMOTE_MIGRATION_PLAN_NOT_ACCEPTED:pending-count=1" },
   );
 });

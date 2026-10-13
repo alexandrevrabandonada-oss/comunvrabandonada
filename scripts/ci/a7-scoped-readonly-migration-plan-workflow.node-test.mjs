@@ -81,6 +81,16 @@ const scenarios = [
     stream: "stderr",
     pass: true,
   },
+  {
+    name: "additional legacy migration",
+    output: learningPlan + "\n001_legacy.sql",
+    pass: false,
+  },
+  {
+    name: "legacy hidden by success marker",
+    output: "Remote database is up to date.\n001_legacy.sql",
+    pass: false,
+  },
   { name: "failed CLI", output: learningPlan, exit: 7, pass: false },
   { name: "missing ledger", output: learningPlan, ledger: [], pass: false },
   {

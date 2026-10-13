@@ -36,12 +36,12 @@ export function validateDeferredLearningR0({ migrationBytes, manifestBytes }) {
 
 export function assertA7MigrationPlan(plan, deferredBytes = {}) {
   // Do not deduplicate: an ambiguous or duplicated plan must fail closed.
-  const pending = [...plan.matchAll(/20\d{12}_[a-z0-9_]+\.sql/g)].map(
+  const pending = [...plan.matchAll(/[A-Za-z0-9][A-Za-z0-9_.-]*\.sql(?![A-Za-z0-9_.-])/gi)].map(
     ([filename]) => filename,
   );
   if (/--include-all|migration repair|db reset|seed/.test(plan))
     throw new Error(
-      `REMOTE_MIGRATION_PLAN_NOT_ACCEPTED:${pending.join(",") || "forbidden-operation"}`,
+      "REMOTE_MIGRATION_PLAN_FORBIDDEN_OPERATION",
     );
   if (pending.length === 0) {
     assertEmptyPlan(plan);
@@ -52,7 +52,7 @@ export function assertA7MigrationPlan(plan, deferredBytes = {}) {
     pending[0] !== learningName ||
     /Remote database is up to date\./.test(plan)
   )
-    throw new Error(`REMOTE_MIGRATION_PLAN_NOT_EMPTY:${pending.join(",")}`);
+    throw new Error(`REMOTE_MIGRATION_PLAN_NOT_ACCEPTED:pending-count=${pending.length}`);
   if (
     !plan.includes("DRY RUN: migrations will *not* be pushed to the database.") ||
     !/Would push (?:these migrations:|migration )/.test(plan)
