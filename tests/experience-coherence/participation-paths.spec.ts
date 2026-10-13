@@ -22,6 +22,15 @@ for (const experience of ["", "?experiencia=legacy"]) {
         paths.getByRole("link", { name: label, exact: true }),
       ).toHaveAttribute("href", `${href}${experience}`);
     }
+    await expect(
+      paths.getByRole("link", { name: "Aprender a organizar", exact: true }),
+    ).toHaveAttribute(
+      "href",
+      `/comun/ajuda/primeira-acao${experience}#organizar`,
+    );
+    await expect(paths).toContainText(
+      "Criar ou administrar um núcleo não está disponível",
+    );
     await paths
       .getByRole("link", { name: "Não sei por onde começar", exact: true })
       .click();
@@ -97,3 +106,45 @@ test("Orientação prática funciona sem JavaScript e abre a busca pública", as
     await context.close();
   }
 });
+
+for (const experience of ["", "?experiencia=legacy"]) {
+  test(`Home -> organização pública -> comunidades -> retorno ${experience || "canônica"}`, async ({
+    page,
+  }) => {
+    const writes: string[] = [];
+    page.on("request", (request) => {
+      if (
+        !["GET", "HEAD"].includes(request.method()) &&
+        new URL(request.url()).pathname.startsWith("/api/comun")
+      )
+        writes.push(request.url());
+    });
+    await page.goto(`/comun${experience}`);
+    const paths = page.locator("[data-comun-participation-paths]");
+    await expect(paths).toBeVisible();
+    await paths
+      .getByRole("link", { name: "Aprender a organizar", exact: true })
+      .focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(
+      `/comun/ajuda/primeira-acao${experience}#organizar`,
+    );
+    await expect(page.locator("#organizar")).toContainText(
+      "não permite criar ou administrar núcleos",
+    );
+    expect(Array.from(new URL(page.url()).searchParams.keys())).toEqual(
+      experience ? ["experiencia"] : [],
+    );
+    await page
+      .getByRole("link", {
+        name: "Consultar comunidades e formas de ajudar",
+        exact: true,
+      })
+      .click();
+    await expect(page).toHaveURL(`/comun/comunidades${experience}`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await page.goBack();
+    await expect(page.locator("#organizar")).toBeVisible();
+    expect(writes).toEqual([]);
+  });
+}

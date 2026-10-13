@@ -117,6 +117,39 @@ export default async function FirstActionPage({
             {guidance.action}
           </Link>
         </section>
+        <section
+          id="organizar"
+          className="mt-6 scroll-mt-24"
+          aria-labelledby="organize-next-step"
+        >
+          <h2 id="organize-next-step" className="text-xl font-black">
+            Aprender a organizar, com um próximo passo possível
+          </h2>
+          <p className="mt-3 max-w-3xl">
+            Use as perguntas acima numa conversa: qual necessidade está
+            documentada, que contribuição é possível e como voltar ao resultado?
+            Consulte uma comunidade existente e suas condições antes de escolher
+            ajudar.
+          </p>
+          <p className="mt-3 max-w-3xl">
+            Esta entrada não permite criar ou administrar núcleos. A orientação
+            pode ser consultada novamente, sem matrícula ou progresso da Escola.
+            Abrir uma comunidade não atribui função, responsabilidade ou
+            vínculo.
+          </p>
+          <Link
+            href={href("/comun/comunidades")}
+            prefetch={false}
+            className="mt-3 inline-flex min-h-11 items-center font-black underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+          >
+            Consultar comunidades e formas de ajudar
+          </Link>
+          <p className="mt-3 text-sm">
+            Para retomar, guarde este endereço nos favoritos do navegador. O
+            link contém apenas uma orientação pública, sem dados da sua
+            participação.
+          </p>
+        </section>
         <section className="mt-6" aria-labelledby="first-action-return">
           <h2 id="first-action-return" className="text-xl font-black">
             Depois, volte ao que mudou

@@ -4,14 +4,14 @@ import { withComunAppV2 } from "@/lib/comun-experience";
 const paths = [
   {
     id: "use",
-    title: "Quero entender um assunto",
+    title: "Usar: entender um assunto",
     description: "Consulte pautas, fontes e informações públicas no seu tempo.",
     href: "/comun/buscar",
     action: "Buscar um assunto",
   },
   {
     id: "participate",
-    title: "Quero ajudar numa ação",
+    title: "Participar: ajudar numa ação",
     description:
       "Veja o objetivo e as condições de uma atividade antes de decidir participar.",
     href: "/comun/acoes",
@@ -19,11 +19,11 @@ const paths = [
   },
   {
     id: "organize",
-    title: "Quero construir junto",
+    title: "Organizar: aprender e construir junto",
     description:
-      "Conheça comunidades, seus propósitos e as formas de contribuir.",
-    href: "/comun/comunidades",
-    action: "Conhecer comunidades",
+      "Consulte a orientação pública e conheça comunidades existentes. Criar ou administrar um núcleo não está disponível nesta entrada.",
+    href: "/comun/ajuda/primeira-acao#organizar",
+    action: "Aprender a organizar",
   },
 ] as const;
 
@@ -52,7 +52,8 @@ export function ComunParticipationPaths({ appV2 }: { appV2: boolean }) {
         }
       >
         Pode consultar, ajudar numa atividade ou construir um vínculo. Não
-        precisa se associar para explorar.
+        precisa se associar para explorar. Cada caminho tem valor próprio; não
+        são etapas obrigatórias.
       </p>
       <div className="mt-4 grid gap-3 md:grid-cols-3">
         {paths.map((path) => (
@@ -74,6 +75,15 @@ export function ComunParticipationPaths({ appV2 }: { appV2: boolean }) {
             >
               {path.action}
             </Link>
+            {path.id === "organize" ? (
+              <Link
+                href={withComunAppV2("/comun/comunidades", appV2)}
+                prefetch={false}
+                className="mt-2 inline-flex min-h-11 items-center font-black underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+              >
+                Conhecer comunidades
+              </Link>
+            ) : null}
           </article>
         ))}
       </div>
