@@ -19,7 +19,17 @@ os modos. O fallback mostra somente os mesmos filhos públicos renderizados no
 servidor. A shell aceita uma classe opcional somente para o fallback público;
 a lista canônica define fundo claro e texto escuro para preservar contraste
 sem a shell hidratada. Nenhum painel privado opta pelo fallback. Os quatro
-casos que falharam permanecem obrigatórios, agora também com Axe sem JavaScript.
+casos que falharam permanecem obrigatórios. Navegação usa JavaScript desativado;
+Axe audita separadamente o fallback sem hidratação com scripts da aplicação
+bloqueados, pois o próprio auditor exige runtime JavaScript.
+
+O segundo candidato `99a2f420`, run `38500382319`, preserva quatro FAIL: o
+canônico expôs nome acessível duplicado devido ao label por ID repetido no
+streaming/fallback; legacy completou a navegação, mas o auditor Axe não concluiu
+no contexto sem JavaScript. O label agora envolve diretamente o input, sem ID
+duplicado. A auditoria mantém os mesmos critérios, em contexto separado com
+scripts da aplicação bloqueados. Não há aumento de timeout, exclusão de regra
+ou dispensa da navegação real sem JavaScript.
 
 Quatro verificações locais do HTML HTTP (lista/vazia, canônica/legacy) passaram
 no primeiro candidato; não provaram o conteúdo visível no navegador sem JavaScript,

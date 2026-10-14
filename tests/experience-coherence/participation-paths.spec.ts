@@ -63,12 +63,32 @@ for (const experience of ["", "?experiencia=legacy"]) {
           ),
         ).toBe(true);
         if (!javaScriptEnabled) {
-          const audit = await new AxeBuilder({ page }).analyze();
-          expect(
-            audit.violations.filter((violation) =>
-              ["serious", "critical"].includes(violation.impact ?? ""),
-            ),
-          ).toEqual([]);
+          // Axe needs a JavaScript runtime. Keep application scripts blocked
+          // in a separate context so it audits the unhydrated public fallback.
+          const auditContext = await browser.newContext({ baseURL });
+          try {
+            await auditContext.route("**/*", (route) =>
+              route.request().resourceType() === "script"
+                ? route.abort()
+                : route.continue(),
+            );
+            const auditPage = await auditContext.newPage();
+            await auditPage.goto(`/comun/comunidades${experience}`);
+            await expect(
+              auditPage.getByRole("textbox", {
+                name: "Buscar comunidade",
+                exact: true,
+              }),
+            ).toBeVisible();
+            const audit = await new AxeBuilder({ page: auditPage }).analyze();
+            expect(
+              audit.violations.filter((violation) =>
+                ["serious", "critical"].includes(violation.impact ?? ""),
+              ),
+            ).toEqual([]);
+          } finally {
+            await auditContext.close();
+          }
         }
       } finally {
         await context.close();

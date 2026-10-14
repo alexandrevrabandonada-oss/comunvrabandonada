@@ -191,16 +191,15 @@ function CommunityFilters({
   return (
     <form className="mt-6" aria-label="Filtros de comunidades">
       <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-        <label className="sr-only" htmlFor="community-v2-q">
-          Buscar comunidade
+        <label className="grid">
+          <span className="sr-only">Buscar comunidade</span>
+          <input
+            name="q"
+            defaultValue={params.q}
+            placeholder="Nome, propósito ou território"
+            className="min-h-12 rounded-[var(--comun-radius-control)] border-2 border-comun-black bg-comun-black px-4 text-comun-paper placeholder:text-comun-paper/55"
+          />
         </label>
-        <input
-          id="community-v2-q"
-          name="q"
-          defaultValue={params.q}
-          placeholder="Nome, propósito ou território"
-          className="min-h-12 rounded-[var(--comun-radius-control)] border-2 border-comun-black bg-comun-black px-4 text-comun-paper placeholder:text-comun-paper/55"
-        />
         <button className="comun-v2-action">Buscar</button>
       </div>
       <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
