@@ -5,13 +5,19 @@ type DraftStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
 export function readPautaSessionDraft(getStorage: () => DraftStorage) {
   try {
-    return { available: true, text: (getStorage().getItem(PAUTA_DRAFT_KEY) ?? "").slice(0, 500) };
+    return {
+      available: true,
+      text: (getStorage().getItem(PAUTA_DRAFT_KEY) ?? "").slice(0, 500),
+    };
   } catch {
     return { available: false, text: "" };
   }
 }
 
-export function writePautaSessionDraft(getStorage: () => DraftStorage, text: string) {
+export function writePautaSessionDraft(
+  getStorage: () => DraftStorage,
+  text: string,
+) {
   try {
     const storage = getStorage();
     if (text) {
@@ -37,7 +43,10 @@ export function readPautaDraftRevision(getStorage: () => DraftStorage) {
   }
 }
 
-export function clearPautaDraftRevision(getStorage: () => DraftStorage, revision: string) {
+export function clearPautaDraftRevision(
+  getStorage: () => DraftStorage,
+  revision: string,
+) {
   if (!revision) return false;
   try {
     const storage = getStorage();

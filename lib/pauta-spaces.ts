@@ -225,7 +225,9 @@ export async function listAdminPautaSpaces() {
     .order("updated_at", { ascending: false });
 
   if (error || !data) return [];
-  return Promise.all((data as PautaSpace[]).map((space) => withPautaStats(space, "admin")));
+  return Promise.all(
+    (data as PautaSpace[]).map((space) => withPautaStats(space, "admin")),
+  );
 }
 
 export async function getAdminPautaSpace(id: string) {
@@ -245,7 +247,10 @@ export async function getAdminPautaSpace(id: string) {
   return withPautaStats(data as PautaSpace, "admin");
 }
 
-export async function listApprovedPautaContributions(pautaId: string, limit?: number) {
+export async function listApprovedPautaContributions(
+  pautaId: string,
+  limit?: number,
+) {
   const supabase = createServiceSupabaseClient();
   if (!supabase) return [] as PublicPautaContribution[];
 
@@ -631,12 +636,17 @@ export function slugifyPauta(value: string) {
   );
 }
 
-async function withPautaStats(space: PautaSpace, scope: "public" | "admin" = "public"): Promise<PublicPautaSpace> {
+async function withPautaStats(
+  space: PautaSpace,
+  scope: "public" | "admin" = "public",
+): Promise<PublicPautaSpace> {
   const [reports, protocols, contributions, tasks] = await Promise.all([
     listSafePautaReports(space),
     listSafePautaOfficialProtocols(space),
     listAdminPautaContributions(space.id),
-    scope === "admin" ? listAdminPautaTasks(space.id) : listPublicPautaTasks(space.id),
+    scope === "admin"
+      ? listAdminPautaTasks(space.id)
+      : listPublicPautaTasks(space.id),
   ]);
 
   return {

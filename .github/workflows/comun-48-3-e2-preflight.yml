@@ -53,6 +53,10 @@ jobs:
           esac
       - name: Verify metadata-only exact evidence relation contract
         if: steps.migration-scope.outputs.skip != 'true'
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         shell: bash
         run: |
           set -euo pipefail
@@ -116,6 +120,10 @@ jobs:
           echo COMUN_48_3_E2_REMOTE_METADATA_GREEN >> "$GITHUB_STEP_SUMMARY"
       - name: Prove remote migration plan is empty
         if: steps.migration-scope.outputs.skip != 'true'
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         shell: bash
         run: |
           set -euo pipefail

@@ -135,7 +135,9 @@ test("Pautas permite escrever antes do login e preserva a intenção sem auto-su
   await expectNoOverflow(page);
 });
 
-test("rascunho de pauta conserva a última edição após recarregar e respeita texto apagado", async ({ page }) => {
+test("rascunho de pauta conserva a última edição após recarregar e respeita texto apagado", async ({
+  page,
+}) => {
   await page.goto("/comun/pautas/nova");
   const question = page.getByLabel("O que você quer entender ou mudar?");
   await question.fill("Como organizar uma atividade no bairro?");
@@ -150,12 +152,16 @@ test("rascunho de pauta conserva a última edição após recarregar e respeita 
   await expectNoOverflow(page);
 });
 
-test("storage recusado preserva texto na tela e oferece saída explícita", async ({ page }) => {
+test("storage recusado preserva texto na tela e oferece saída explícita", async ({
+  page,
+}) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.addInitScript(() => {
     Object.defineProperty(window, "sessionStorage", {
-      get() { throw new DOMException("Storage denied", "SecurityError"); },
+      get() {
+        throw new DOMException("Storage denied", "SecurityError");
+      },
     });
   });
   await page.goto("/comun/pautas/nova");
@@ -165,7 +171,11 @@ test("storage recusado preserva texto na tela e oferece saída explícita", asyn
   await expect(page).toHaveURL(/\/comun\/pautas\/nova$/);
   await expect(question).toHaveValue("Como organizar uma atividade no bairro?");
   await expect(page.getByRole("alert")).toContainText("Copie sua questão");
-  await expect(page.getByRole("link", { name: "Já copiei o texto; entrar sem restaurá-lo" })).toHaveAttribute("href", /\/comun\/entrar\?/);
+  await expect(
+    page.getByRole("link", {
+      name: "Já copiei o texto; entrar sem restaurá-lo",
+    }),
+  ).toHaveAttribute("href", /\/comun\/entrar\?/);
   expect(errors).toEqual([]);
   await expectNoOverflow(page);
 });

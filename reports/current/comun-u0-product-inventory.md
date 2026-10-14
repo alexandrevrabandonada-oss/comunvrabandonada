@@ -471,3 +471,16 @@ E2E: 21 casos descobertos, zero executado neste ambiente. Chromium não instalou
 Sem alteração de migrations, manifestos, dependências, lockfile, flags, indexação ou configuração remota. Não há certificação de banco, mitigação já implantada nem V1 concluída. Proteção da referência de prática na aplicação não é atomicidade no banco. Conteúdo de observatório/Feirinha e restante das 46 famílias continuam no inventário, não foram declarados funcionalmente auditados.
 
 Próxima sequência única: publicar candidato draft com essas evidências → inspecionar checks do SHA → tratar falhas aplicáveis sem dispensar gates → obter prova de navegador em ambiente disponível → seguir auditoria U0 do ciclo de organização/Feirinha. Não iniciar novos módulos enquanto o pacote aguarda fechamento.
+
+
+## U0.2 — publicação e retorno do CI
+
+PR draft **#546**, primeiro head `685de5ca4b33c2b8ca52a1128bb87a4e0ea10c88`, árvore `69676fb3576d5cb74e3c42c8aeb9e175ffa3e5e8` idêntica ao candidato local. Git HTTPS sem credencial; publicação realizada pela conexão GitHub existente, sem solicitar/expor chave. Branch remota não foi integrada.
+
+Primeira leitura remota identificou: A7 aprovado; verificações A1/C1/D1/E2/E3 falharam antes da captura por falta de `/home/runner/.postgresql/root.crt`; não é evidência de drift de schema. Launch Readiness e Experience Coherence falharam por Prettier nos arquivos alterados. COST-02 recusou ausência de marcador `[comun-preview]`. Falhas originais preservadas, sem reclassificação como PASS.
+
+Ajuste focal dos cinco preflights: CA pública já pinada no repositório, `PGSSLMODE=verify-full` e default read-only somente nos passos de consulta/plano. SQL, predicados, grants, classificação de migrations e recusa de pendências permanecem intactos. Sem inclusão de segredo ou ambiente global de CA. Testes locais confirmam 10 passos protegidos e dry-run mantido. O escopo final inclui estes cinco workflows; a descrição anterior de nenhum workflow alterado refere-se ao primeiro candidato.
+
+Formatação corrigida com Prettier 3.9.10 sem modificar dependências/lockfile. Próximo commit usa o marcador existente de Preview; isso solicita um build verificável do SHA, não substitui a prova exigida pelo gate. Resultado do próximo head deve ser consultado novamente.
+
+Validação adicional: 34 contratos Node de CA/planner/checkpoint PASS. Nova suíte após formatação PASS: 1.486 testes em 255 arquivos. Sem novo runtime desde a compilação aprovada; alterações seguintes são formatação, transporte de leitura e evidência. E2E e atomicidade SQL continuam pendentes.

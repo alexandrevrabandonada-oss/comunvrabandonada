@@ -8,6 +8,7 @@ const read = (path) =>
   readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 const caPath = "scripts/security/supabase-prod-ca-2021.crt";
 const extraCa = "${{ github.workspace }}/" + caPath;
+const historicalPreflights = ["a1", "c1", "d1", "e2", "e3"];
 const cases = [
   [
     ".github/workflows/comun-quality-performance.yml",
@@ -141,3 +142,41 @@ test("A7 psql steps use the pinned public CA with verified TLS and read-only def
   );
   assert.doesNotMatch(planStep.run, /migrationCount=0/);
 });
+
+for (const lane of historicalPreflights) {
+  test(`${lane}: historical preflight transports stay verified and read-only`, () => {
+    const workflow = load(
+      read(`.github/workflows/comun-48-3-${lane}-preflight.yml`),
+    );
+    assert.equal(workflow.env?.PGSSLROOTCERT, undefined);
+    let protectedSteps = 0;
+    for (const job of Object.values(workflow.jobs)) {
+      assert.equal(job.env?.PGSSLROOTCERT, undefined);
+      for (const step of job.steps ?? []) {
+        const databaseStep =
+          /psql "\$SUPABASE_DB_URL"|node scripts\/ci\/readonly-reconciled-migration-plan\.mjs|supabase db push --db-url/.test(
+            step.run ?? "",
+          );
+        if (!databaseStep) {
+          assert.equal(step.env?.PGSSLROOTCERT, undefined);
+          continue;
+        }
+        protectedSteps++;
+        assert.equal(step.env.PGSSLROOTCERT, extraCa);
+        assert.equal(step.env.PGSSLMODE, "verify-full");
+        assert.equal(step.env.PGOPTIONS, "-c default_transaction_read_only=on");
+        assert.doesNotMatch(
+          step.run,
+          /sslmode=(disable|allow|prefer|require)|NODE_TLS_REJECT_UNAUTHORIZED|supabase\s+(?:migration\s+repair|db\s+reset)\b/,
+        );
+        if (step.run.includes('psql "$SUPABASE_DB_URL"')) {
+          assert.match(step.run, /begin read only;/i);
+          assert.match(step.run, /rollback;/i);
+        }
+        if (step.run.includes("supabase db push --db-url"))
+          assert.match(step.run, /--dry-run/);
+      }
+    }
+    assert.equal(protectedSteps, 2);
+  });
+}
