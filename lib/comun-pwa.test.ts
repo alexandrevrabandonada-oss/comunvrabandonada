@@ -47,7 +47,7 @@ describe("optional PWA storage", () => {
 
   it("fails closed if the storage getter or methods throw", () => {
     const denied = () => {
-      throw new Error("Storage denied");
+      throw new DOMException("Storage denied", "SecurityError");
     };
     expect(readComunOptionalStorage(denied, "route")).toEqual({
       available: false,
