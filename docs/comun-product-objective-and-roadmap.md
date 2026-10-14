@@ -10,6 +10,11 @@ preparados; execução local BLOCKED por download Chromium inválido, CI/Preview
 PENDING. Não é entrega Production nem conclusão de 49-M/V1. Evidências:
 [continuidade 49-E4](../reports/current/comun-49-e4-community-continuity.md).
 
+O primeiro candidato remoto `ddbb4118` revelou bloqueio real sem JavaScript:
+quatro casos falharam com a shell presa no carregamento. Correção opta pelo
+fallback público existente apenas na lista de comunidades, sem mudar painéis
+privados. Falhas preservadas; novos gates do SHA corrigido PENDING.
+
 ## Continuidade independente — 12/10/2026
 
 Candidato funcional `42f7ddd6`: cópia de texto da ouvidoria e protocolo agora

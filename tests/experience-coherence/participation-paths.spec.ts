@@ -62,6 +62,14 @@ for (const experience of ["", "?experiencia=legacy"]) {
               document.documentElement.clientWidth,
           ),
         ).toBe(true);
+        if (!javaScriptEnabled) {
+          const audit = await new AxeBuilder({ page }).analyze();
+          expect(
+            audit.violations.filter((violation) =>
+              ["serious", "critical"].includes(violation.impact ?? ""),
+            ),
+          ).toEqual([]);
+        }
       } finally {
         await context.close();
       }

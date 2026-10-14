@@ -10,6 +10,7 @@ export function ComunShell({
   inboxBadge,
   appBar,
   publicReadOnlyFallback = false,
+  publicReadOnlyFallbackClassName = "",
 }: {
   children: ReactNode;
   showSyntheticNotice?: boolean;
@@ -17,12 +18,16 @@ export function ComunShell({
   appBar?: Omit<ComunMobileAppBarProps, "experienceV2">;
   // Opt-in only for public server-rendered content, never private panels.
   publicReadOnlyFallback?: boolean;
+  publicReadOnlyFallbackClassName?: string;
 }) {
   return (
     <Suspense
       fallback={
         publicReadOnlyFallback ? (
-          <main id="conteudo" className="min-h-screen">
+          <main
+            id="conteudo"
+            className={`min-h-screen ${publicReadOnlyFallbackClassName}`}
+          >
             {children}
           </main>
         ) : (

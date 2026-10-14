@@ -52,7 +52,10 @@ export default async function CommunitiesPage({
   );
   if (isComunAppV2(params.experiencia))
     return (
-      <ComunShell>
+      <ComunShell
+        publicReadOnlyFallback
+        publicReadOnlyFallbackClassName="bg-comun-paper text-comun-black"
+      >
         <div className="comun-v2-page" data-comun-app-v2-page="communities">
           <header>
             <p className="comun-v2-eyebrow text-comun-rust">
@@ -95,7 +98,7 @@ export default async function CommunitiesPage({
     );
 
   return (
-    <ComunShell>
+    <ComunShell publicReadOnlyFallback>
       <Section>
         <p className="text-xs font-black uppercase text-comun-yellow">
           Comunidades vivas · descobrir sem cadastro

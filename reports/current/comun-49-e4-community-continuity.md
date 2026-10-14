@@ -9,6 +9,22 @@ formulário e abrir um cartão. Esses três caminhos agora preservam a experiên
 pelo helper existente e por um campo oculto GET. Não há nova capacidade de
 organização, vínculo, progresso ou escrita de dados.
 
+O primeiro candidato remoto `ddbb4118` falhou em quatro casos sem JavaScript
+na lane focal `38499390773`: snapshot visível limitado a “Carregando experiência…”,
+timeout no preenchimento. Quatorze casos da mesma execução passaram. Esta falha
+é de produto, não de infraestrutura, e permanece registrada.
+
+A lista pública agora opta pelo `publicReadOnlyFallback` existente em ambos
+os modos. O fallback mostra somente os mesmos filhos públicos renderizados no
+servidor. A shell aceita uma classe opcional somente para o fallback público;
+a lista canônica define fundo claro e texto escuro para preservar contraste
+sem a shell hidratada. Nenhum painel privado opta pelo fallback. Os quatro
+casos que falharam permanecem obrigatórios, agora também com Axe sem JavaScript.
+
+Quatro verificações locais do HTML HTTP (lista/vazia, canônica/legacy) passaram
+no primeiro candidato; não provaram o conteúdo visível no navegador sem JavaScript,
+pois o streaming pode conter conteúdo oculto. A prova de navegador é obrigatória.
+
 ## Evidências locais
 
 - PASS: ESLint focal, TypeScript, build Next.js e nove testes existentes dos
@@ -20,8 +36,8 @@ organização, vínculo, progresso ou escrita de dados.
 - NOT_RUN: execução visual local, screenshots, aparelhos reais e leitores
   de tela humanos. Browser plugin not available; Playwright foi escolhido
   para validação, mas não pôde iniciar navegador local.
-- PENDING: Preview do SHA candidato e gates remotos; nenhuma aprovação de #544
-  foi transferida para este candidato.
+- PENDING: novo Preview e gates remotos após correção do fallback; resultados
+  do candidato anterior não são aprovação do novo SHA.
 
 Os casos novos exercitam submit por teclado, resultado vazio, limpar e contratos
 dos links para comunidades, nos modos canônico/legacy com e sem JavaScript.
