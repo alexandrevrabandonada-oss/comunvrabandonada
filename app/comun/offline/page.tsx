@@ -2,11 +2,22 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ComunShell, Section } from "@/components/comun-shell";
-import { COMUN_LAST_SAFE_ROUTE_KEY } from "@/lib/comun-pwa";
+import {
+  COMUN_LAST_SAFE_ROUTE_KEY,
+  readComunOptionalStorage,
+} from "@/lib/comun-pwa";
 
 export default function OfflinePage() {
   const [lastRoute, setLastRoute] = useState("/comun");
-  useEffect(() => { queueMicrotask(() => setLastRoute(sessionStorage.getItem(COMUN_LAST_SAFE_ROUTE_KEY) || "/comun")); }, []);
+  useEffect(() => {
+    queueMicrotask(() => {
+      const lastSafe = readComunOptionalStorage(
+        () => window.sessionStorage,
+        COMUN_LAST_SAFE_ROUTE_KEY,
+      );
+      setLastRoute(lastSafe.value || "/comun");
+    });
+  }, []);
   return <ComunShell><Section><div role="status" className="max-w-3xl border-2 border-comun-yellow bg-comun-paper p-6 text-comun-black">
     <p className="text-xs font-black uppercase">Disponível offline</p><h1 className="mt-2 text-4xl font-black uppercase">Sem conexão agora.</h1>
     <p className="mt-3">Você ainda pode consultar páginas públicas já disponíveis neste aparelho. Protocolos recentes, Minha participação e qualquer envio precisam de conexão para confirmação.</p>
