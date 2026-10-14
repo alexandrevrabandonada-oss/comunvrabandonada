@@ -872,7 +872,6 @@ Estados admitidos: `HIPÓTESE`, `PRINCÍPIO DECIDIDO`, `PLANEJADO`,
 - **Decisão contestável.** Mudanças futuras podem revisar princípios,
   desde que registrem a razão, o impacto e o que foi substituído.
 
-
 ### Checkpoint de execução e contrato da primeira conexão — 14/10/2026
 
 Consulta direta ao GitHub nesta passada: #548 e #545 abertos, prontos para
