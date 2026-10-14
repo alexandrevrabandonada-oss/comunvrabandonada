@@ -7,6 +7,9 @@ import {
   COMUN_INSTALL_DISMISS_KEY,
   COMUN_LAST_SAFE_ROUTE_KEY,
   isSafeComunRoute,
+  readComunOptionalStorage,
+  removeComunOptionalStorage,
+  writeComunOptionalStorage,
 } from "@/lib/comun-pwa";
 import {
   COMUN_APP_V2_EXPERIENCE,
@@ -64,7 +67,11 @@ export function ComunPwaRuntime({
     });
     if (isSafeComunRoute(path)) {
       const safeRoute = withComunExperience(path, experience);
-      sessionStorage.setItem(COMUN_LAST_SAFE_ROUTE_KEY, safeRoute);
+      writeComunOptionalStorage(
+        () => window.sessionStorage,
+        COMUN_LAST_SAFE_ROUTE_KEY,
+        safeRoute,
+      );
     }
   }, [experience, path]);
 
@@ -100,13 +107,20 @@ export function ComunPwaRuntime({
     const beforeInstall = (event: Event) => {
       event.preventDefault();
       setInstallEvent(event as InstallEvent);
-      const dismissedAt = Number(
-        localStorage.getItem(COMUN_INSTALL_DISMISS_KEY) || 0,
+      const dismissed = readComunOptionalStorage(
+        () => window.localStorage,
+        COMUN_INSTALL_DISMISS_KEY,
       );
-      const valueSeen = Number(
-        sessionStorage.getItem("comun:surfaces-seen") || 0,
+      const seen = readComunOptionalStorage(
+        () => window.sessionStorage,
+        "comun:surfaces-seen",
       );
-      if (Date.now() - dismissedAt > 30 * 86400000 && valueSeen >= 1)
+      if (
+        dismissed.available &&
+        seen.available &&
+        Date.now() - Number(dismissed.value || 0) > 30 * 86400000 &&
+        Number(seen.value || 0) >= 1
+      )
         setShowInstall(true);
     };
     window.addEventListener("beforeinstallprompt", beforeInstall);
@@ -128,10 +142,16 @@ export function ComunPwaRuntime({
         })
         .catch(() => undefined);
     }
-    sessionStorage.setItem(
+    const surfacesSeen = readComunOptionalStorage(
+      () => window.sessionStorage,
       "comun:surfaces-seen",
-      String(Number(sessionStorage.getItem("comun:surfaces-seen") || 0) + 1),
     );
+    if (surfacesSeen.available)
+      writeComunOptionalStorage(
+        () => window.sessionStorage,
+        "comun:surfaces-seen",
+        String(Number(surfacesSeen.value || 0) + 1),
+      );
     return () => {
       window.removeEventListener("online", online);
       window.removeEventListener("offline", offline);
@@ -141,7 +161,11 @@ export function ComunPwaRuntime({
   }, []);
 
   const dismissInstall = () => {
-    localStorage.setItem(COMUN_INSTALL_DISMISS_KEY, String(Date.now()));
+    writeComunOptionalStorage(
+      () => window.localStorage,
+      COMUN_INSTALL_DISMISS_KEY,
+      String(Date.now()),
+    );
     setShowInstall(false);
   };
   const install = async () => {
@@ -343,7 +367,10 @@ export function ComunLogoutCleanup() {
     <button
       type="submit"
       onClick={() => {
-        sessionStorage.removeItem(COMUN_LAST_SAFE_ROUTE_KEY);
+        removeComunOptionalStorage(
+          () => window.sessionStorage,
+          COMUN_LAST_SAFE_ROUTE_KEY,
+        );
         navigator.serviceWorker?.controller?.postMessage({
           type: "CLEAR_CONTENT_CACHES",
         });
