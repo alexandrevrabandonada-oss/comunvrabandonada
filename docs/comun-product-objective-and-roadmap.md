@@ -715,3 +715,64 @@ como fora do escopo A7, com SQL e manifest fixados por hash. O plano registra es
 pendência; bytes alterados, duplicatas, migrations adicionais, saída inválida ou
 operações de escrita bloqueiam. Os planners compartilhados mantêm seu contrato
 anterior. A liberação da Escola continua dependendo dos gates próprios.
+
+## Consolidação canônica — rede social, convivência e atratividade (14/10/2026)
+
+> Este registro integra ao **roadmap único** as conclusões de concepção do COMUN discutidas em outubro de 2026. Não abre outro roadmap, não altera a ordem dos gates V1/49/50, não declara funcionalidades prontas e não autoriza merge, migration, flags, indexação ou lançamento. Diferenciar sempre **princípio de produto**, **hipótese a validar**, **capacidade existente** e **entrega certificada**.
+
+### Tese de produto e critérios inegociáveis
+
+**O COMUN é uma infraestrutura digital de convivência, descoberta, cultura, reciprocidade, conhecimento e organização coletiva.** Não é apenas uma plataforma de campanhas, denúncias ou gestão cívica, tampouco uma cópia do feed comercial. Sua utilidade e sua atratividade devem existir também para quem não deseja atuar politicamente. O propósito é ampliar possibilidades da vida, não maximizar tempo de tela nem converter lazer em militância.
+
+1. **Direito de simplesmente estar.** Conversar, criar, guardar, explorar, divertir-se ou não participar são escolhas legítimas. Não exigir produtividade social, sequência diária, cadastro prematuro ou compromisso político.
+2. **Autonomia e fricção mínima.** Conteúdo público útil sem login; pedir identificação somente quando a operação realmente exigir. Nenhum fluxo deve depender de conhecer a arquitetura interna, ser rápido apenas na primeira tela ou afirmar persistência não comprovada.
+3. **Expressão sem placar humano.** Permitir criações, perfis e acompanhamento de autores, sem comprar alcance, ranquear pessoas por seguidores, exigir viralização ou transformar popularidade em poder deliberativo.
+4. **Convivência e organização distintas, interoperáveis.** Conversas livres, construção coletiva de conhecimento e decisões formais têm competências, direitos e procedimentos diferentes. A praça não deve se tornar assembleia obrigatória.
+5. **Segurança e direitos antes de crescimento.** Privacidade, acessibilidade, proteção de dados sensíveis, recurso de moderação, autoria, consentimento, saída e portabilidade são critérios de aceitação, não diferenciais de marketing.
+
+### Mapa de decisões e hipóteses — reaproveitar módulos existentes
+
+| Dimensão | Direção canônica | Natureza e cautela |
+| --- | --- | --- |
+| Entrada e experiência inicial | Oferecer descoberta prazerosa, utilidade cotidiana, troca e participação, sem remover o atalho de relato urgente. Uma visita curta pode terminar satisfatoriamente. | Hipótese de reorganização visual; 49-E3 já fornece caminhos cívicos, não valida prazer social. |
+| Descoberta e recomendação | Evoluir exploração pública por interesses declarados, cronologia opcional e diversidade, sem perfilamento sensível, compra de alcance ou feed infinito obrigatório. Preservar escolha e explicabilidade. | Auditar primeiro fontes públicas e permissões; recomendação algorítmica sofisticada não é pré-requisito. |
+| Convivência espontânea | Permitir expressão cultural, humor, fotografias, conversas e vínculos sem vincular tudo a pautas ou tarefas. | Hipótese de produto; não presumir rede social espontânea implementada. |
+| Feirinha popular | Reutilizar ofertas, necessidades, organizações e conexões privadas existentes. Reduzir o caminho do cartão até 'Tenho interesse' / 'Posso ajudar', com flags e autorização respeitadas. Avaliar depois publicações por moradores individuais. | Há base de Feirinha organizacional; interação popular geral e jornada completa ainda precisam de prova real. |
+| Cultura e prazer | Dar visibilidade a Acervo, Rádio, Arte, história local, jogos leves, coleções e criações, valorizados por si, nunca como isca para mobilização. | Curadoria, licenças, fontes reais, conteúdo suficiente e desempenho são gates. |
+| Praça e jardim | Combinar novidades e conversas passageiras com conteúdos duráveis, coleções, memória revisável e descoberta transversal. | Não criar sistema novo de coleções sem auditar salvar/publicar/Acervo existentes. |
+| Identidade e vínculos | Pessoa com apresentação controlável, pseudônimo/contextos distintos quando seguro, comunidades e papéis de representação separados. Possibilidade de acompanhar pessoas, assuntos, lugares e iniciativas. | Não misturar vínculo público, autorização deliberativa e dado sensível. |
+| Reconhecimento e confiança | Agradecimentos e sinais contextuais de transação/colaboração; sem score global de pessoas, reputação política nem privilégio de voto por seguidores. | Sempre permitir correção/contestação e evitar avaliações como prova universal de honestidade. |
+| Conversa e inteligência coletiva | Expressão livre com opções progressivas (experiência, pergunta, fonte, proposta). Preservar originais, conflitos, fontes, revisões, propostas, responsáveis e resultados. | Não obrigar classificação nem converter contagem de reação em decisão; IA auxilia, não arbitra fatos ou consensos. |
+| Territórios e segurança | Proximidade voluntária/geral, nunca endereço residencial obrigatório; separar canais de denúncia sensível de convivência comum. | Pseudônimo não garante anonimato forte; acesso e retenção devem ser auditados. |
+| Governança e moderação | Regras comuns, competência local delimitada, transparência, recursos e redução progressiva da concentração técnica/institucional; comunidade não pode votar para retirar direitos fundamentais. | Governança participativa não substitui resposta técnica a incidente nem validação social. |
+| Sustentabilidade | Participação básica gratuita; vedar comercialização de dados, anúncios comportamentais e compra de autoridade. Examinar contribuições, serviços opcionais, financiamento diversificado e remuneração operacional. | Separar contas da associação, recursos vinculados, contratos e dados protegidos; não assumir receita sem demanda. |
+| Crescimento orgânico | Priorizar densidade de relações em território/assunto, utilidade individual desde o primeiro acesso, primeiro vínculo completo e compartilhamento externo de conteúdos públicos úteis. | Não fabricar usuários, interações, eventos, avaliações ou conteúdo; não forçar convites nem abrir grupos vazios por categoria. |
+| Design e acessibilidade | Base Zen Brutalista coerente e acessível, com apresentações adequadas a leitura, cultura, Feirinha e denúncias. Teclado, leitor de tela, contraste, zoom e baixo desempenho são obrigatórios. | A identidade gráfica das campanhas não deve impor sensação permanente de urgência a todo o aplicativo. |
+| Dados e IA | Minimização, finalidade específica, transparência de fontes e do trabalho automatizado, direito de corrigir; não encaminhar dados privados a serviços externos sem salvaguardas adequadas. | Não inferir opiniões ou filiações, não apresentar síntese da IA como verdade/consenso e não criar observabilidade invasiva. |
+
+### Execução no roadmap existente — uma etapa de cada vez
+
+**Ordem sugerida, sujeita aos gates e à auditoria U0–U8 já estabelecida no #546; estes itens não são novo eixo de releases:**
+
+1. **Integridade da base e desbloqueios já existentes.** Concluir a revisão de privacidade/continuidade, diferenciar falhas próprias dos PRs e migração pendente da Escola. Nenhuma dispensa de gate, push de schema ou merge implícito.
+2. **U0: inventário e experiência solitária.** Verificar no código e no ambiente disponível como pessoa sem conta encontra conteúdo público real e útil; checar estados vazios, autoria, datas, licenças, navegação e retorno. Nunca inventar movimento social.
+3. **Primeiro vínculo completo na Feirinha.** Auditar todas as flags, rotas e permissões; tratar falhas de armazenamento de rascunho, contato e consentimento; permitir chamada direta do item apenas quando a rota real está habilitada; validar fluxo de oferta/necessidade a acompanhamento.
+4. **Descoberta transversal mínima.** Selecionar conteúdos públicos publicados e elegíveis de Acervo, Rádio, Feirinha, comunidades e informações territoriais; mostrar exemplos reais, com diversidade e links contextuais, sem novo feed infinito, ranking ou schema antecipado.
+5. **Convivência, identidade e memória.** Auditar recursos atuais de publicação, conversa, perfis, salvar e histórico. Acrescentar somente lacunas demonstradas. Separar claramente conversa, interpretação coletiva e deliberação vinculante.
+6. **Coleções, criação e cultura.** Validar valor individual de guardar/revisitar e possibilidade de criação compartilhada; preservar autoria e permissões. Jogos e gamificação somente por prazer/uso demonstrado, nunca obrigação ou pontos cívicos.
+7. **Autonomia comunitária e sustentabilidade.** Implementar progressivamente governança, portabilidade, custo operacional e prestação de contas quando houver requisitos reais; financiamento não compra visibilidade nem decisão.
+8. **Integração e aferição 50 COMUN UNO.** Ensaiar todos os caminhos do mesmo produto com acessibilidade, segurança, operação e conteúdo reais. Não converter checks automatizados em prova de confiança, pertencimento ou adoção humana.
+
+**Critério transversal de aceite:** verificar valor para uma pessoa sozinha, interação completa entre duas pessoas, descoberta/compartilhamento público seguro, retorno contextual, autonomia dos espaços e ausência de pressão artificial para permanecer online. Medir tarefas concluídas, reciprocidade, resultados externos, diversidade das oportunidades, acessibilidade e concentração de visibilidade; tempo de sessão não é objetivo máximo. Instrumentar de forma agregada e mínima. Validação humana permanece pendente até acontecer.
+
+### Relação com os PRs e limites conhecidos em 14/10/2026
+
+- [#544](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/544) integrou os três caminhos públicos de entrada. Isso não confirma uma experiência social/cultural atrativa.
+- [#545](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/545) trata continuidade de navegação de comunidades. Preservar seus gates, sem duplicar solução.
+- [#546](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/546) reúne inventário U0 e revisão de continuidade/privacidade. É a trilha de auditoria já aberta; não presumir que mudanças candidatas estão em produção.
+- [#547](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/547) apresentou correção isolada de acesso a storage pelo shell/PWA com testes. Na conferência desta atualização constava **fechado sem merge**; portanto não considerar a correção entregue na main. Reconciliar sua disposição antes de planejar reuso/reabertura.
+- A migration da Escola `20261006134804_comun_learning_r0.sql` permanece bloqueio separado. Este registro é exclusivamente documental, sem autorização para alterar schema, flags, indexação ou abrir piloto.
+
+### Regra antidesvio
+
+**Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.
