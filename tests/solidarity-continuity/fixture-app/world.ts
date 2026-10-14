@@ -57,6 +57,7 @@ const globalWorld = globalThis as typeof globalThis & {
   __socD08?: {
     rows: Row[];
     logouts: number;
+    logoutFails: boolean;
     signins: number;
     published: boolean;
     eligible: boolean;
@@ -67,6 +68,7 @@ export const world = () =>
   (globalWorld.__socD08 ??= {
     rows: [],
     logouts: 0,
+    logoutFails: false,
     signins: 0,
     published: true,
     eligible: true,

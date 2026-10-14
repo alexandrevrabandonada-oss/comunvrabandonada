@@ -59,6 +59,8 @@ export async function createSupabaseServerClient() {
       },
       async signOut() {
         world().logouts++;
+        if (world().logoutFails)
+          return { error: { message: "synthetic Auth unavailable" } };
         store.delete("soc-d08-user");
         return { error: null };
       },

@@ -73,3 +73,9 @@ Gates de main que não executarem por base/escopo são NOT_RUN, não PASS. Só r
 para main após resolver a dependência e reexecutar os gates aplicáveis no SHA exato.
 Não fazer merge com pendências, não aplicar a migration da Escola para destravar este candidato.
 Nenhum schema, Auth/Source, backup, dado Production, flag ou indexação foi alterado.
+
+Finding adicional reproduzido: logoutCommunity redirecionava para Entrar mesmo
+quando signOut retornava error. Regressão real executada e falhou antes da correção
+(1 FAIL, 17 casos não selecionados). Correção focal: erro/exception retorna a Conta
+com saída não confirmada; sucesso mantém a saída existente. Sem alterar scope ou
+configuração do Auth. Ensaio de navegador inclui Sair, falha e segunda tentativa real.

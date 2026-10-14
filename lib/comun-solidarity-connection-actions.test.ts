@@ -197,3 +197,12 @@ describe("SOC-D08 real actions with controlled Auth/RPC dependencies", () => {
     expect(mocks.signOut).toHaveBeenCalledTimes(1);
   });
 });
+
+it("does not claim logout when the real action receives an Auth transport failure", async () => {
+  mocks.signOut.mockResolvedValue({
+    error: { message: "synthetic unavailable" },
+  });
+  await expect(logoutCommunity()).rejects.toThrow(
+    "REDIRECT:/comun/conta?status=saida-nao-confirmada",
+  );
+});

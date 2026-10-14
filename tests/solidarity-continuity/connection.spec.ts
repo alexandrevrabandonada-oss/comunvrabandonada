@@ -442,3 +442,22 @@ test("legacy form keeps readable contrast and keyboard controls", async ({
     ),
   ).toBe(true);
 });
+
+test("Sair failure stays explicit and permits another actual logout attempt", async ({
+  page,
+  request,
+}) => {
+  await login(page);
+  await save(page);
+  await request.post("/lab-state", { data: { logoutFails: true } });
+  await page.goto("/comun/conta");
+  await page.getByRole("button", { name: "Sair", exact: true }).click();
+  await expect(page).toHaveURL("/comun/conta?status=saida-nao-confirmada");
+  await expect(page.getByRole("alert")).toContainText(
+    "Não foi possível confirmar a saída",
+  );
+  await request.post("/lab-state", { data: { logoutFails: false } });
+  await page.getByRole("button", { name: "Sair", exact: true }).click();
+  await expect(page).toHaveURL("/comun/entrar");
+  expect((await (await request.get("/lab-state")).json()).logouts).toBe(2);
+});

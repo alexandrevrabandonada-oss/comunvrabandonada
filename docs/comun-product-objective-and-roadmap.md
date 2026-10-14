@@ -983,3 +983,9 @@ sair ou concluir envio, sem promessa de apagamento quando o storage é recusado.
 Nenhuma tabela, migration, grant, RLS, flag ou indexação foi modificada.
 Próximo incremento único após esta jornada: descoberta pública contextual de
 conteúdos reais publicados dos módulos existentes, sem feed infinito ou catálogo paralelo.
+
+SOC-D08, saída honesta: finding reproduzido na action de logout — resposta Auth
+com erro era tratada como sucesso. Candidato passa a mostrar saída não confirmada
+na Conta, sem mudar escopo de signOut ou configuração Auth; retry depende do clique
+explícito. Critério: Sair real com sucesso limpa/encerra; erro mantém aviso e opção
+de nova tentativa, sem anunciar sessão encerrada. Ainda candidato, não integrado.

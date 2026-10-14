@@ -37,7 +37,7 @@ export default async function Page({
         })}
       />
     );
-  if (route === "comun/conta") return <Account />;
+  if (route === "comun/conta") return <Account searchParams={searchParams} />;
   if (route === "comun/entrar") return <Login searchParams={searchParams} />;
   if (route === "comun/minha-participacao") {
     const { user } = await requireCommunitySession();

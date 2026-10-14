@@ -14,10 +14,12 @@ export async function POST(request: Request) {
   if (body.reset) {
     w.rows = [];
     w.logouts = 0;
+    w.logoutFails = false;
     w.published = true;
     w.eligible = true;
   }
   if (typeof body.published === "boolean") w.published = body.published;
   if (typeof body.eligible === "boolean") w.eligible = body.eligible;
+  if (typeof body.logoutFails === "boolean") w.logoutFails = body.logoutFails;
   return Response.json({ ok: true });
 }
