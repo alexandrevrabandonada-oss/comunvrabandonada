@@ -4,7 +4,7 @@
 
 ## Estado atual da auditoria integral — U0.2
 
-**Uma fila, uma entrega principal:** revisar e fechar o PR draft #546 / pacote `codex/comun-product-audit-20261014` antes de iniciar novas implementações. Esta seção é o ponto de retomada; os registros abaixo preservam decisões e evidências históricas. A proposta de sequência consolida prioridades, sem revogar gates vigentes.
+**Uma fila, uma entrega principal:** #546 permanece estacionado nos cinco preflights da Escola. Por instrução explícita de 14/10, preparar SOC-D08 em candidato derivado e delimitado, sem duplicar correções nem integrar enquanto houver gates bloqueados. Esta seção é o ponto de retomada; os registros abaixo preservam decisões e evidências históricas. A proposta de sequência consolida prioridades, sem revogar gates vigentes.
 
 **Produto:** rede comunitária de vida cotidiana, ajuda mútua, organização de base, Feirinha (venda/troca/doação), ferramentas por pauta, observatórios, formação/Fábrica, cultura e memória. Todas compartilham busca, território, privacidade, continuidade e distribuição. Não é necessário transformar toda interação em pauta. Execução solo, sem orçamento adicional e sem participantes de teste disponíveis neste momento.
 
@@ -942,3 +942,44 @@ por este checkpoint; compreensão e atratividade humanas continuam pendentes.
 ### Regra antidesvio
 
 **Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.
+
+
+### SOC-D08 — decisão de execução (14/10/2026)
+
+Estado: `CANDIDATO EM PR` nesta branch; não integrado nem disponível por este registro.
+Base escolhida: #546 `d39656f4732f4c873e2236186f7b5e6713f1c211`, descendente
+ da main `8b0ba0d2c90295a6579e8e8808a9e765583e86c9`. Dependência explícita
+ das proteções de storage/PWA preservadas no #546; não duplicá-las. Os cinco
+ preflights da Escola permanecem bloqueantes e o #546 estacionado.
+
+**Retenção decidida antes da implementação:** somente mensagem e chave técnica
+ de idempotência, em sessionStorage, por no máximo 30 minutos desde o salvamento
+ explícito. Item e escopo opaco da conta/login validado no servidor delimitam a
+ recuperação. Nunca guardar contato ou consentimento. Não há auto-save nem
+ restauração automática; conteúdo potencialmente sensível exige escolha a cada
+ salvamento/retomada. Expiração é conferida ao ler/recuperar; descarte tentado
+ também em envio concluído, saída e incompatibilidade. Falha de remoção não pode
+ tornar um rascunho incompatível visível. Não prometer apagamento físico quando
+ o navegador negar acesso; a conta/login diferente continua impedida de recuperar.
+
+**Compromisso de menor escopo:** antes do login a mensagem fica só em memória.
+ A pessoa pode selecioná-la para copiar manualmente antes de entrar. Não vincular
+ rascunho anônimo à primeira conta que fizer login e não transportar texto ou
+ contato na URL. Depois de autenticar, preencher contato e consentimento atuais.
+ Isso reduz a recuperação anônima para proteger contra troca de identidade.
+
+Critérios: storage recusado não quebra digitação; retomada exige item/conta/login
+ compatíveis e escolha explícita; contato vazio e consentimento desmarcado;
+ logout real e troca de conta não recuperam texto anterior; servidor/RPC revalidam
+ publicação, organização e permissões antes da escrita. Nenhuma tabela/flag nova.
+
+
+Prova da decisão SOC-D08: [relatório focal](../reports/current/comun-soc-d08-private-connection-continuity.md).
+O cenário de banco reutiliza literalmente o A5 canônico; a prova Auth descartável
+é separada da simulação de transporte usada pelo navegador. Testes sintéticos não
+certificam Auth real, RLS ou uso humano. A validade do rascunho é de 30 minutos;
+remoção física depende de acesso ao navegador e é tentada ao ler, descartar,
+sair ou concluir envio, sem promessa de apagamento quando o storage é recusado.
+Nenhuma tabela, migration, grant, RLS, flag ou indexação foi modificada.
+Próximo incremento único após esta jornada: descoberta pública contextual de
+conteúdos reais publicados dos módulos existentes, sem feed infinito ou catálogo paralelo.
