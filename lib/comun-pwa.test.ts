@@ -34,9 +34,12 @@ describe("optional PWA storage", () => {
       available: true,
       value: null,
     });
-    expect(
-      writeComunOptionalStorage(resolve, "route", "/comun/acervo"),
-    ).toBe(true);
+    const routeWritten = writeComunOptionalStorage(
+      resolve,
+      "route",
+      "/comun/acervo",
+    );
+    expect(routeWritten).toBe(true);
     expect(readComunOptionalStorage(resolve, "route")).toEqual({
       available: true,
       value: "/comun/acervo",
@@ -67,10 +70,14 @@ describe("optional PWA storage", () => {
         throw new Error("Storage denied");
       },
     });
-    expect(readComunOptionalStorage(throwingStore, "route").available).toBe(false);
-    expect(
-      writeComunOptionalStorage(throwingStore, "route", "/comun"),
-    ).toBe(false);
+    const deniedRead = readComunOptionalStorage(throwingStore, "route");
+    const deniedWrite = writeComunOptionalStorage(
+      throwingStore,
+      "route",
+      "/comun",
+    );
+    expect(deniedRead.available).toBe(false);
+    expect(deniedWrite).toBe(false);
     expect(removeComunOptionalStorage(throwingStore, "route")).toBe(false);
   });
 });
