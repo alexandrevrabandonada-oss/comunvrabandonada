@@ -16,21 +16,14 @@ test("PWA shell stays usable when browser storage is denied", async ({ page }) =
   });
 
   await page.goto("/comun/pautas/nova");
-  await expect(
-    page.getByRole("heading", { name: "Começar uma pauta" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Entrar e continuar" }),
-  ).toBeVisible();
+  const heading = page.getByRole("heading", { name: "Começar uma pauta" });
+  await expect(heading).toBeVisible();
+  const button = page.getByRole("button", { name: "Entrar e continuar" });
+  await expect(button).toBeVisible();
 
   await page.goto("/comun/offline");
-  await expect(
-    page.getByRole("heading", { name: "Sem conexão agora." }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: "Voltar à última página segura" }),
-  ).toHaveAttribute("href", "/comun");
-  expect(errors.filter((message) => message.includes("Storage denied"))).toEqual(
-    [],
-  );
+  await expect(page.locator("h1")).toHaveText("Sem conexão agora.");
+  const fallback = page.getByRole("link", { name: /última página segura/ });
+  await expect(fallback).toHaveAttribute("href", "/comun");
+  expect(errors).toEqual([]);
 });
