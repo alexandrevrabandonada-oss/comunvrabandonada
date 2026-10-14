@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { load } from "js-yaml";
+import { createRequire } from "node:module";
+const { load } = createRequire(import.meta.url)("js-yaml") as {
+  load(source: string): unknown;
+};
 const read = (path: string) => readFileSync(path, "utf8");
 describe("SOC-D08 isolation and scope", () => {
   it("runs both proof domains at the exact head with no external credentials/secrets", () => {
