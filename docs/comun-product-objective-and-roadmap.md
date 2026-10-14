@@ -2,6 +2,25 @@
 
 > **Atualização transversal (14/10/2026):** [Consolidação de rede social, convivência, atratividade e sustentabilidade](#consolidação-canônica--rede-social-convivência-e-atratividade-14102026). Esta seção integra decisões e hipóteses ao roadmap único; não significa implementação nem lançamento.
 
+## Estado atual da auditoria integral — U0.2
+
+**Uma fila, uma entrega principal:** revisar e fechar o PR draft #546 / pacote `codex/comun-product-audit-20261014` antes de iniciar novas implementações. Esta seção é o ponto de retomada; os registros abaixo preservam decisões e evidências históricas. A proposta de sequência consolida prioridades, sem revogar gates vigentes.
+
+**Produto:** rede comunitária de vida cotidiana, ajuda mútua, organização de base, Feirinha (venda/troca/doação), ferramentas por pauta, observatórios, formação/Fábrica, cultura e memória. Todas compartilham busca, território, privacidade, continuidade e distribuição. Não é necessário transformar toda interação em pauta. Execução solo, sem orçamento adicional e sem participantes de teste disponíveis neste momento.
+
+| Estado               | Resultado / próximo passo                                                                                                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Inventário estático  | 240 páginas / 46 famílias; 52 arquivos de ações / 187 exports async. Não certifica funcionamento ou disponibilidade                                                                        |
+| Correções candidatas | Rascunho por aba com revisão para limpeza segura; tarefas públicas e contagens sem internas; controles administrativos explícitos; seleção e referência de prática protegidas na aplicação |
+| Verificação          | 1.486 unitários, lint completo, TypeScript e seis contratos de superfícies/coerência PASS; build final PASS                                                                                |
+| Bloqueio             | Browser E2E: Chromium indisponível (download truncado); 21 casos descobertos não contam como executados                                                                                    |
+| Escola               | Migration/manifest pinados intactos; ativação e atomicidade de referências no banco seguem pendentes                                                                                       |
+| Item ativo           | PR draft #546 publicado; conferir novo checkpoint Preview, transporte TLS e gates do SHA                                                                                                   |
+
+Fontes e limites estão no [checkpoint U0](../reports/current/comun-u0-product-inventory.md). O índice de ações não cobre automaticamente endpoints, `app/actions.ts` ou dependências transitivas; o arquivo central foi examinado apenas no rastreio focal.
+
+Sequência única de produto: consolidar → operação solo/coerência → organização de base → Feirinha → ferramentas/observatórios → formação/cultura → distribuição → ensaio solo → uso comunitário. Segurança, recuperação e acessibilidade acompanham cada etapa. Migrations, flags, indexação e configurações dos provedores não foram alteradas neste pacote. O retorno do CI motivou ajuste focal de CA pinada nos cinco preflights históricos, mantendo verificação TLS, leitura e todos os gates.
+
 ## Continuidade independente — 12/10/2026
 
 Candidato funcional `42f7ddd6`: cópia de texto da ouvidoria e protocolo agora

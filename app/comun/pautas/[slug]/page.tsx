@@ -159,6 +159,7 @@ export default async function PautaPage(props: {
         creationFeedback={{
           created: searchParams.pauta === "criada",
           evidenceAdded: searchParams.evidencia === "adicionada",
+          draftRevision: searchParams.rascunho,
         }}
       />
     );

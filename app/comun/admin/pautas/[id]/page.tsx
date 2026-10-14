@@ -534,6 +534,11 @@ export default async function AdminPautaSpaceDetailPage(props: {
 
       <section className="mt-6">
         <h2 className="text-xl font-black uppercase">Tarefas</h2>
+        <p className="mt-2 text-sm">
+          Confira a visibilidade antes de salvar. Use Interna para preparar o
+          trabalho da equipe. O responsável informado aqui é uma referência de
+          planejamento, não um aceite automático da pessoa.
+        </p>
         <form
           action={upsertPautaTaskAction}
           className="mt-3 grid gap-3 border-2 border-comun-black bg-white p-4 md:grid-cols-2"
@@ -598,16 +603,19 @@ export default async function AdminPautaSpaceDetailPage(props: {
               <input type="hidden" name="task_id" value={task.id} />
               <input
                 name="title"
+                aria-label={`Título da tarefa: ${task.title}`}
                 defaultValue={task.title}
                 className="min-h-10 border-2 border-comun-black px-2"
               />
               <input
                 name="description"
+                aria-label={`Descrição da tarefa: ${task.title}`}
                 defaultValue={task.description ?? ""}
                 className="min-h-10 border-2 border-comun-black px-2"
               />
               <select
                 name="status"
+                aria-label={`Situação da tarefa: ${task.title}`}
                 defaultValue={task.status}
                 className="min-h-10 border-2 border-comun-black px-2"
               >
@@ -619,6 +627,7 @@ export default async function AdminPautaSpaceDetailPage(props: {
               </select>
               <select
                 name="priority"
+                aria-label={`Prioridade da tarefa: ${task.title}`}
                 defaultValue={task.priority}
                 className="min-h-10 border-2 border-comun-black px-2"
               >
@@ -631,7 +640,18 @@ export default async function AdminPautaSpaceDetailPage(props: {
                 name="required_skill"
                 value={task.required_skill ?? ""}
               />
-              <input type="hidden" name="visibility" value={task.visibility} />
+              <label className="grid gap-1 text-sm font-bold">
+                Visibilidade
+                <select
+                  name="visibility"
+                  defaultValue={task.visibility}
+                  className="min-h-11 border-2 border-comun-black px-2"
+                >
+                  <option value="public">Pública</option>
+                  <option value="internal">Interna</option>
+                  <option value="archived">Arquivada</option>
+                </select>
+              </label>
               <input
                 type="hidden"
                 name="accepts_volunteers"
@@ -647,11 +667,14 @@ export default async function AdminPautaSpaceDetailPage(props: {
                 name="result_public"
                 value={task.result_public ?? ""}
               />
-              <input
-                type="hidden"
-                name="owner_alias"
-                value={task.owner_alias ?? ""}
-              />
+              <label className="grid gap-1 text-sm font-bold">
+                Responsável de referência
+                <input
+                  name="owner_alias"
+                  defaultValue={task.owner_alias ?? ""}
+                  className="min-h-11 border-2 border-comun-black px-2"
+                />
+              </label>
               <input type="hidden" name="due_at" value={task.due_at ?? ""} />
               <input
                 type="hidden"

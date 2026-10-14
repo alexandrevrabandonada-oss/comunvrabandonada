@@ -260,7 +260,11 @@ export function PautaVivaDetail({
   collectiveActionsEnabled?: boolean;
   cycleMemory?: PublicPautaCycleMemoryV1 | null;
   cycleMemoryEnabled?: boolean;
-  creationFeedback?: { created: boolean; evidenceAdded: boolean };
+  creationFeedback?: {
+    created: boolean;
+    evidenceAdded: boolean;
+    draftRevision?: string;
+  };
 }) {
   const openRodas = rodas.filter((roda) => roda.status === "open");
   const hasOpenRoda = openRodas.length > 0;
@@ -303,7 +307,9 @@ export function PautaVivaDetail({
       </div>
       {creationFeedback?.created ? (
         <div className="mx-auto mt-4 max-w-7xl px-4" role="status">
-          <ComunPautaCreationDraftClear />
+          <ComunPautaCreationDraftClear
+            revision={creationFeedback.draftRevision}
+          />
           <div className="border-2 border-comun-yellow bg-comun-black p-4 text-comun-paper">
             <p className="font-black">Pauta criada.</p>
             <p className="mt-1 text-sm">
