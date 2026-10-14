@@ -103,14 +103,31 @@ test("alias, no-result, prompt injection e rate limit preservam a fronteira", as
   );
   if (testInfo.project.name === "390x844") {
     const statuses = [];
-    for (let index = 0; index < 35; index += 1)
-      statuses.push(
-        (
-          await request.get(`/api/comun/civic-search?q=calcadas&n=${index}`, {
-            headers: { "x-forwarded-for": "203.0.113.41" },
-          })
-        ).status(),
+    const sequenceStarted = performance.now();
+    for (let index = 0; index < 35; index += 1) {
+      const started = performance.now();
+      console.log(
+        JSON.stringify({
+          diagnostic: "civic-rate-request-start",
+          sample: index,
+          elapsedMs: Math.round(started - sequenceStarted),
+        }),
       );
+      const response = await request.get(
+        `/api/comun/civic-search?q=calcadas&n=${index}`,
+        { headers: { "x-forwarded-for": "203.0.113.41" } },
+      );
+      statuses.push(response.status());
+      console.log(
+        JSON.stringify({
+          diagnostic: "civic-rate-request-complete",
+          sample: index,
+          status: response.status(),
+          durationMs: Math.round(performance.now() - started),
+          elapsedMs: Math.round(performance.now() - sequenceStarted),
+        }),
+      );
+    }
     expect(statuses).toContain(429);
   }
 });
