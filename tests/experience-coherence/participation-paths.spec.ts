@@ -43,9 +43,14 @@ for (const experience of ["", "?experiencia=legacy"]) {
           page.getByRole("textbox", { name: "Buscar comunidade", exact: true }),
         ).toHaveValue("");
         const communityLinks = page.locator('main a[href^="/comun/c/"]');
-        expect(await communityLinks.count()).toBeGreaterThan(0);
-        for (const link of await communityLinks.all()) {
-          const url = new URL((await link.getAttribute("href"))!, baseURL);
+        await expect(communityLinks.first()).toBeVisible();
+        const communityHrefs = await communityLinks.evaluateAll((links) =>
+          links.map((link) => link.getAttribute("href")),
+        );
+        expect(communityHrefs.length).toBeGreaterThan(0);
+        for (const href of communityHrefs) {
+          expect(href).not.toBeNull();
+          const url = new URL(href!, baseURL);
           expect(url.searchParams.get("experiencia")).toBe(
             experience ? "legacy" : null,
           );
