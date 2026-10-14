@@ -785,7 +785,7 @@ anterior. A liberação da Escola continua dependendo dos gates próprios.
 - [#544](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/544) integrou os três caminhos públicos de entrada. Isso não confirma uma experiência social/cultural atrativa.
 - [#545](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/545) trata continuidade de navegação de comunidades. Preservar seus gates, sem duplicar solução.
 - [#546](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/546) reúne inventário U0 e revisão de continuidade/privacidade. É a trilha de auditoria já aberta; não presumir que mudanças candidatas estão em produção.
-- [#547](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/547) apresentou correção isolada de acesso a storage pelo shell/PWA com testes. Na conferência desta atualização constava **fechado sem merge**; portanto não considerar a correção entregue na main. Reconciliar sua disposição antes de planejar reuso/reabertura.
+- [#547](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/547) foi fechado sem merge como substituído pelo #546. Seus cinco arquivos foram preservados naquele candidato. O #546 é a única frente de integração da correção; não reabrir trabalho concorrente nem considerar a solução integrada à main.
 - A migration da Escola `20261006134804_comun_learning_r0.sql` permanece bloqueio separado. Este registro é exclusivamente documental, sem autorização para alterar schema, flags, indexação ou abrir piloto.
 
 ### Últimas decisões estruturais para encerrar a fase conceitual aberta
@@ -871,6 +871,55 @@ Estados admitidos: `HIPÓTESE`, `PRINCÍPIO DECIDIDO`, `PLANEJADO`,
   podem complementar, mas o ponto de entrada e as prioridades ficam aqui.
 - **Decisão contestável.** Mudanças futuras podem revisar princípios,
   desde que registrem a razão, o impacto e o que foi substituído.
+
+
+### Checkpoint de execução e contrato da primeira conexão — 14/10/2026
+
+Consulta direta ao GitHub nesta passada: #548 e #545 abertos, prontos para
+revisão; #546 draft; #547 fechado como substituído. Nenhum deles integrado.
+Os seis workflows retornados para #548 em `d074c768` concluíram: quatro
+SUCCESS e dois SKIPPED. Este inventário não substitui regras/check-runs
+completos nem certificação pós-merge.
+
+No #546, `415d916e`, Experience Coherence concluiu SUCCESS. Quality
+`38593422354`, job `115957725094`, passou nas jornadas integrais,
+smokes, acessibilidade, PWA, performance e regressões estáticas; falhou
+na formatação de `lib/comun-pwa.test.ts`. A asserção foi formatada no
+candidato `acfad9ab`, sem alterar seu comportamento. Todos os gates do
+novo SHA precisam de resultado próprio; não transportar aprovações.
+Os cinco preflights da Escola permanecem bloqueios separados.
+
+**SOC-D08 — Rascunho de conexão não autoriza compartilhar contato.**
+Estado: `PRINCÍPIO DECIDIDO`; implementação e validação pendentes na
+jornada existente da Feirinha. Razão: recuperar texto deve facilitar a
+continuidade sem confundir a identidade atual com quem escreveu antes.
+Reutilizar formulário, Auth, action e Minha Participação existentes.
+
+- Não persistir nem restaurar contato ou consentimento no rascunho.
+  Exigir contato informado e consentimento explícito na submissão atual.
+- Restaurar mensagem somente por escolha explícita e quando sua origem
+  puder ser vinculada com segurança à jornada e à identidade compatível.
+  Mensagens também podem conter dados pessoais: não tratá-las como públicas.
+- Definir prazo e descarte verificáveis antes da implementação; limpar
+  rascunhos incompatíveis, antigos e o formato legado. A saída pela interface
+  real deve impedir que outra conta receba o rascunho da conta anterior.
+- Falha de storage mantém texto em memória enquanto a página estiver aberta,
+  informa a ausência de persistência e não bloqueia navegação ou submissão.
+- Retomar após Auth exige nova validação de item, organização e autorização.
+  Conexão enviada, aceita ou recusada não prova compra, reserva ou entrega.
+
+Critérios mínimos antes de ampliar os cartões públicos: storage recusado;
+retorno Auth; duas identidades sintéticas no mesmo navegador e item;
+logout pela interface/action reais; outro item; item despublicado;
+submissão duplicada; aceite, recusa e retirada segundo permissões.
+Não filtrar pageerror nem substituir logout por mensagem direta ao worker.
+Provas sintéticas não equivalem a troca real entre moradores.
+
+**Próximo incremento único:** concluir a certificação do #546 no SHA novo
+ou preservar o bloqueio exato; depois implementar esta continuidade da
+Feirinha antes das chamadas diretas dos cartões. Descoberta cultural segue
+na sequência já registrada. Nenhuma migration, flag ou indexação autorizada
+por este checkpoint; compreensão e atratividade humanas continuam pendentes.
 
 ### Regra antidesvio
 
