@@ -54,7 +54,7 @@ describe("E3 database and server boundary", () => {
   });
 
   it("preserves the pre-auth draft locally without auto-submit", () => {
-    expect(form).toContain("sessionStorage.setItem(DRAFT_KEY, question)");
+    expect(form).toContain("writePautaSessionDraft(() => window.sessionStorage, question)");
     expect(form).toContain("window.location.assign(loginHref)");
     expect(form).not.toContain("requestSubmit");
     expect(form).not.toContain("localStorage");

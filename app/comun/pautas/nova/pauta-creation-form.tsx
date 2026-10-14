@@ -8,7 +8,7 @@ import {
   initialCreatePautaState,
 } from "./actions";
 
-const DRAFT_KEY = "comun:pauta-low-friction-draft:v1";
+import { readPautaDraftRevision, readPautaSessionDraft, writePautaSessionDraft } from "@/lib/comun-pauta-session-draft";
 
 export function PautaCreationForm({
   authenticated,
@@ -23,11 +23,18 @@ export function PautaCreationForm({
   const [question, setQuestion] = useState("");
   const [keepEvidence, setKeepEvidence] = useState(Boolean(evidence));
   const questionRef = useRef<HTMLTextAreaElement>(null);
+  const editedRef = useRef(false);
+  const [storageUnavailable, setStorageUnavailable] = useState(false);
+  const [draftRevision, setDraftRevision] = useState("");
 
   useEffect(() => {
-    const draft = sessionStorage.getItem(DRAFT_KEY);
-    if (!draft) return;
-    const timeout = window.setTimeout(() => setQuestion(draft.slice(0, 500)), 0);
+    const draft = readPautaSessionDraft(() => window.sessionStorage);
+    const timeout = window.setTimeout(() => {
+      if (editedRef.current) return;
+      setStorageUnavailable(!draft.available);
+      if (draft.text) setQuestion(draft.text);
+      setDraftRevision(readPautaDraftRevision(() => window.sessionStorage));
+    }, 0);
     return () => window.clearTimeout(timeout);
   }, []);
   useEffect(() => {
@@ -37,12 +44,19 @@ export function PautaCreationForm({
   function preserveBeforeAuth(event: React.FormEvent<HTMLFormElement>) {
     if (authenticated) return;
     event.preventDefault();
-    sessionStorage.setItem(DRAFT_KEY, question);
+    if (!writePautaSessionDraft(() => window.sessionStorage, question)) {
+      setStorageUnavailable(true);
+      return;
+    }
     window.location.assign(loginHref);
   }
 
   function restartReview() {
-    sessionStorage.setItem(DRAFT_KEY, question);
+    if (!writePautaSessionDraft(() => window.sessionStorage, question)) {
+      setStorageUnavailable(true);
+      questionRef.current?.focus();
+      return;
+    }
     window.location.reload();
   }
 
@@ -55,7 +69,13 @@ export function PautaCreationForm({
           id="pauta-question"
           name="question"
           value={question}
-          onChange={(event) => setQuestion(event.target.value)}
+          onChange={(event) => {
+            editedRef.current = true;
+            const text = event.target.value;
+            setQuestion(text);
+            setStorageUnavailable(!writePautaSessionDraft(() => window.sessionStorage, text));
+            setDraftRevision(readPautaDraftRevision(() => window.sessionStorage));
+          }}
           minLength={12}
           maxLength={500}
           rows={6}
@@ -70,6 +90,15 @@ export function PautaCreationForm({
         <p id="pauta-privacy-hint">A pauta será pública. Não inclua nomes, contatos, CPF ou detalhes privados.</p>
         <p id="pauta-question-count" aria-live="polite" className="shrink-0">{question.length}/500</p>
       </div>
+
+      <input type="hidden" name="draft_revision" value={draftRevision} />
+
+      {storageUnavailable ? (
+        <div role="alert" className="border-l-4 border-comun-red bg-white p-3 text-sm text-comun-asphalt">
+          <p>Não foi possível guardar o texto nesta aba. Copie sua questão antes de sair ou recarregar.</p>
+          {!authenticated ? <Link href={loginHref} className="mt-2 inline-flex min-h-11 items-center font-black underline">Já copiei o texto; entrar sem restaurá-lo</Link> : null}
+        </div>
+      ) : <p className="text-sm text-comun-paper/65">O texto é guardado durante a edição nesta aba. Não é um rascunho salvo na sua conta.</p>}
 
       {evidence ? (
         <section className="paper-panel border-2 border-comun-black p-4 text-comun-asphalt" aria-labelledby="pauta-evidence-title">
@@ -110,7 +139,7 @@ export function PautaCreationForm({
           {pending ? "Criando pauta…" : authenticated ? "Criar pauta" : "Entrar e continuar"}
         </button>
       ) : null}
-      {!authenticated ? <p className="text-sm text-comun-paper/65">Você escreve primeiro. A conta só é pedida ao confirmar, e o texto fica neste aparelho.</p> : null}
+      {!authenticated ? <p className="text-sm text-comun-paper/65">Você escreve primeiro. A conta só é pedida ao confirmar.</p> : null}
     </form>
   );
 }

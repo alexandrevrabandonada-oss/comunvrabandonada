@@ -29,6 +29,8 @@ beforeEach(() => {
     progress: [],
     practices: [],
     savedResources: [],
+    pautas: [],
+    tasks: [],
   });
   mocks.rpc.mockResolvedValue({ data: {}, error: null });
 });
@@ -124,5 +126,32 @@ describe("private learning boundary", () => {
     );
     expect(res.status).toBe(503);
     expect(await res.text()).not.toContain("secret");
+  });
+
+  it.each(["missing-pauta", "hidden-task", "other-pauta-task"])("rejects manual practice references: %s", async (scenario) => {
+    const taskId = "00000000-0000-4000-8000-000000000002";
+    mocks.snapshot.mockResolvedValue({
+      pautas: scenario === "missing-pauta" ? [] : [{ id: uid }],
+      tasks: scenario === "other-pauta-task" ? [{ id: taskId, pauta_id: "another-pauta" }] : [],
+    });
+    const res = await POST(request({ event: "practice", missionId: "o-que-e-um-problema", pautaId: uid, taskId, reflection: "Uma reflexão suficientemente longa sobre a prática." }));
+    expect(res.status).toBe(400);
+    expect(mocks.snapshot).toHaveBeenCalledWith(uid);
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
+  it.each([null, "00000000-0000-4000-8000-000000000002"])("accepts an available pauta with optional authorized task %s", async (taskId) => {
+    mocks.snapshot.mockResolvedValue({ pautas: [{ id: uid }], tasks: taskId ? [{ id: taskId, pauta_id: uid }] : [] });
+    const res = await POST(request({ event: "practice", missionId: "o-que-e-um-problema", pautaId: uid, taskId, userId: "untrusted-user", reflection: "Uma reflexão suficientemente longa sobre a prática." }));
+    expect(res.status).toBe(200);
+    expect(mocks.rpc).toHaveBeenCalledWith("comun_learning_submit_practice", expect.objectContaining({ p_user_id: uid, p_pauta_id: uid, p_task_id: taskId }));
+  });
+
+  it("does not write when reference verification is unavailable", async () => {
+    mocks.snapshot.mockRejectedValue(new Error("private connection details"));
+    const res = await POST(request({ event: "practice", missionId: "o-que-e-um-problema", pautaId: uid, taskId: null, reflection: "Uma reflexão suficientemente longa sobre a prática." }));
+    expect(res.status).toBe(503);
+    expect(await res.text()).not.toContain("private connection");
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
 });

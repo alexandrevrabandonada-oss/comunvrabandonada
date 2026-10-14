@@ -111,5 +111,8 @@ export async function createLowFrictionPautaAction(
 
   revalidatePath("/comun/pautas");
   revalidatePath("/comun/minha-participacao");
-  redirect(`/comun/pautas/${result.pauta_slug}?pauta=criada${citation ? "&evidencia=adicionada" : ""}`);
+  const revision = String(formData.get("draft_revision") ?? "");
+  const draftReceipt = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(revision)
+    ? `&rascunho=${revision}` : "";
+  redirect(`/comun/pautas/${result.pauta_slug}?pauta=criada${citation ? "&evidencia=adicionada" : ""}${draftReceipt}`);
 }
