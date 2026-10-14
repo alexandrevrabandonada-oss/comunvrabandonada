@@ -1,5 +1,7 @@
 # Objetivo final e roadmap auditado do COMUN
 
+> **Atualização transversal (14/10/2026):** [Consolidação de rede social, convivência, atratividade e sustentabilidade](#consolidação-canônica--rede-social-convivência-e-atratividade-14102026). Esta seção integra decisões e hipóteses ao roadmap único; não significa implementação nem lançamento.
+
 ## Continuidade independente — 12/10/2026
 
 Candidato funcional `42f7ddd6`: cópia de texto da ouvidoria e protocolo agora
