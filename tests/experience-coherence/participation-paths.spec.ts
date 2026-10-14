@@ -2,6 +2,74 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 for (const experience of ["", "?experiencia=legacy"]) {
+  for (const javaScriptEnabled of [true, false]) {
+    test(`Comunidades preserva experiência ao filtrar e limpar ${experience || "canônica"} JS=${javaScriptEnabled}`, async ({
+      browser,
+      baseURL,
+    }) => {
+      const context = await browser.newContext({ baseURL, javaScriptEnabled });
+      try {
+        const page = await context.newPage();
+        await page.goto(`/comun/comunidades${experience}`);
+        const form = page.locator("form").filter({
+          has: page.getByRole("textbox", {
+            name: "Buscar comunidade",
+            exact: true,
+          }),
+        });
+        await form
+          .getByRole("textbox", { name: "Buscar comunidade", exact: true })
+          .fill("comunidade-inexistente-49e");
+        const submit = form.getByRole("button", {
+          name: experience ? "Filtrar" : "Buscar",
+          exact: true,
+        });
+        await submit.focus();
+        await page.keyboard.press("Enter");
+        await expect(
+          page.getByRole("heading", {
+            name: "Nenhuma comunidade com esses filtros",
+            exact: true,
+          }),
+        ).toBeVisible();
+        expect(new URL(page.url()).searchParams.get("experiencia")).toBe(
+          experience ? "legacy" : null,
+        );
+        await page
+          .getByRole("link", { name: "Limpar filtros", exact: true })
+          .click();
+        await expect(page).toHaveURL(`/comun/comunidades${experience}`);
+        await expect(
+          page.getByRole("textbox", { name: "Buscar comunidade", exact: true }),
+        ).toHaveValue("");
+        const communityLinks = page.locator('main a[href^="/comun/c/"]');
+        expect(await communityLinks.count()).toBeGreaterThan(0);
+        for (const link of await communityLinks.all()) {
+          const url = new URL((await link.getAttribute("href"))!, baseURL);
+          expect(url.searchParams.get("experiencia")).toBe(
+            experience ? "legacy" : null,
+          );
+        }
+        if (experience) {
+          await expect(
+            form.getByRole("link", { name: "Limpar", exact: true }),
+          ).toHaveAttribute("href", `/comun/comunidades${experience}`);
+        }
+        expect(
+          await page.evaluate(
+            () =>
+              document.documentElement.scrollWidth <=
+              document.documentElement.clientWidth,
+          ),
+        ).toBe(true);
+      } finally {
+        await context.close();
+      }
+    });
+  }
+}
+
+for (const experience of ["", "?experiencia=legacy"]) {
   const mode = experience ? "legacy" : "canônica";
 
   test(`@a11y Participar ${mode}: explorar e aprender sem entrar numa conta`, async ({

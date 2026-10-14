@@ -119,7 +119,7 @@ export default async function CommunitiesPage({
             return (
               <Link
                 key={community.slug}
-                href={`/comun/c/${community.slug}`}
+                href={withComunAppV2(`/comun/c/${community.slug}`, false)}
                 className="paper-panel flex min-h-[18rem] flex-col border-2 border-comun-black border-t-8 border-t-comun-yellow p-5 transition-transform hover:-translate-y-1"
               >
                 <div className="flex items-start justify-between gap-3">
@@ -308,6 +308,7 @@ function FilterLink({
 function LegacyFilters({ params }: { params: Params }) {
   return (
     <form className="mt-6 grid gap-3 border-y-2 border-comun-paper/25 py-5 md:grid-cols-[2fr_1fr_1fr_auto]">
+      <input type="hidden" name="experiencia" value="legacy" />
       <label className="grid gap-1 text-xs font-black uppercase">
         Buscar comunidade
         <input
@@ -349,7 +350,7 @@ function LegacyFilters({ params }: { params: Params }) {
           Filtrar
         </button>
         <Link
-          href="/comun/comunidades"
+          href={withComunAppV2("/comun/comunidades", false)}
           className="inline-flex min-h-12 items-center px-2 font-black underline"
         >
           Limpar
