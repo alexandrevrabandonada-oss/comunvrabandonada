@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("PWA shell stays usable when browser storage is denied", async ({ page }) => {
+test("PWA remains usable when storage is denied", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
 
