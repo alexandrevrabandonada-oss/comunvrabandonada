@@ -170,7 +170,12 @@ test("storage recusado preserva texto na tela e oferece saída explícita", asyn
   await page.getByRole("button", { name: "Entrar e continuar" }).click();
   await expect(page).toHaveURL(/\/comun\/pautas\/nova$/);
   await expect(question).toHaveValue("Como organizar uma atividade no bairro?");
-  await expect(page.getByRole("alert")).toContainText("Copie sua questão");
+  const recoveryAlert = page
+    .locator("form")
+    .filter({ has: question })
+    .getByRole("alert");
+  await expect(recoveryAlert).toHaveCount(1);
+  await expect(recoveryAlert).toContainText("Copie sua questão");
   await expect(
     page.getByRole("link", {
       name: "Já copiei o texto; entrar sem restaurá-lo",
