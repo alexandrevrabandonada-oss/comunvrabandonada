@@ -734,23 +734,36 @@ anterior. A liberação da Escola continua dependendo dos gates próprios.
 
 ### Mapa de decisões e hipóteses — reaproveitar módulos existentes
 
-| Dimensão | Direção canônica | Natureza e cautela |
-| --- | --- | --- |
-| Entrada e experiência inicial | Oferecer descoberta prazerosa, utilidade cotidiana, troca e participação, sem remover o atalho de relato urgente. Uma visita curta pode terminar satisfatoriamente. | Hipótese de reorganização visual; 49-E3 já fornece caminhos cívicos, não valida prazer social. |
-| Descoberta e recomendação | Evoluir exploração pública por interesses declarados, cronologia opcional e diversidade, sem perfilamento sensível, compra de alcance ou feed infinito obrigatório. Preservar escolha e explicabilidade. | Auditar primeiro fontes públicas e permissões; recomendação algorítmica sofisticada não é pré-requisito. |
-| Convivência espontânea | Permitir expressão cultural, humor, fotografias, conversas e vínculos sem vincular tudo a pautas ou tarefas. | Hipótese de produto; não presumir rede social espontânea implementada. |
-| Feirinha popular | Reutilizar ofertas, necessidades, organizações e conexões privadas existentes. Reduzir o caminho do cartão até 'Tenho interesse' / 'Posso ajudar', com flags e autorização respeitadas. Avaliar depois publicações por moradores individuais. | Há base de Feirinha organizacional; interação popular geral e jornada completa ainda precisam de prova real. |
-| Cultura e prazer | Dar visibilidade a Acervo, Rádio, Arte, história local, jogos leves, coleções e criações, valorizados por si, nunca como isca para mobilização. | Curadoria, licenças, fontes reais, conteúdo suficiente e desempenho são gates. |
-| Praça e jardim | Combinar novidades e conversas passageiras com conteúdos duráveis, coleções, memória revisável e descoberta transversal. | Não criar sistema novo de coleções sem auditar salvar/publicar/Acervo existentes. |
-| Identidade e vínculos | Pessoa com apresentação controlável, pseudônimo/contextos distintos quando seguro, comunidades e papéis de representação separados. Possibilidade de acompanhar pessoas, assuntos, lugares e iniciativas. | Não misturar vínculo público, autorização deliberativa e dado sensível. |
-| Reconhecimento e confiança | Agradecimentos e sinais contextuais de transação/colaboração; sem score global de pessoas, reputação política nem privilégio de voto por seguidores. | Sempre permitir correção/contestação e evitar avaliações como prova universal de honestidade. |
-| Conversa e inteligência coletiva | Expressão livre com opções progressivas (experiência, pergunta, fonte, proposta). Preservar originais, conflitos, fontes, revisões, propostas, responsáveis e resultados. | Não obrigar classificação nem converter contagem de reação em decisão; IA auxilia, não arbitra fatos ou consensos. |
-| Territórios e segurança | Proximidade voluntária/geral, nunca endereço residencial obrigatório; separar canais de denúncia sensível de convivência comum. | Pseudônimo não garante anonimato forte; acesso e retenção devem ser auditados. |
-| Governança e moderação | Regras comuns, competência local delimitada, transparência, recursos e redução progressiva da concentração técnica/institucional; comunidade não pode votar para retirar direitos fundamentais. | Governança participativa não substitui resposta técnica a incidente nem validação social. |
-| Sustentabilidade | Participação básica gratuita; vedar comercialização de dados, anúncios comportamentais e compra de autoridade. Examinar contribuições, serviços opcionais, financiamento diversificado e remuneração operacional. | Separar contas da associação, recursos vinculados, contratos e dados protegidos; não assumir receita sem demanda. |
-| Crescimento orgânico | Priorizar densidade de relações em território/assunto, utilidade individual desde o primeiro acesso, primeiro vínculo completo e compartilhamento externo de conteúdos públicos úteis. | Não fabricar usuários, interações, eventos, avaliações ou conteúdo; não forçar convites nem abrir grupos vazios por categoria. |
-| Design e acessibilidade | Base Zen Brutalista coerente e acessível, com apresentações adequadas a leitura, cultura, Feirinha e denúncias. Teclado, leitor de tela, contraste, zoom e baixo desempenho são obrigatórios. | A identidade gráfica das campanhas não deve impor sensação permanente de urgência a todo o aplicativo. |
-| Dados e IA | Minimização, finalidade específica, transparência de fontes e do trabalho automatizado, direito de corrigir; não encaminhar dados privados a serviços externos sem salvaguardas adequadas. | Não inferir opiniões ou filiações, não apresentar síntese da IA como verdade/consenso e não criar observabilidade invasiva. |
+- **Entrada e experiência inicial.** Oferecer descoberta prazerosa, utilidade cotidiana, troca e participação, sem remover o atalho de relato urgente. Uma visita curta pode terminar satisfatoriamente.
+  - **Estado e cautela:** Hipótese de reorganização visual; 49-E3 já fornece caminhos cívicos, não valida prazer social.
+- **Descoberta e recomendação.** Evoluir exploração pública por interesses declarados, cronologia opcional e diversidade, sem perfilamento sensível, compra de alcance ou feed infinito obrigatório. Preservar escolha e explicabilidade.
+  - **Estado e cautela:** Auditar primeiro fontes públicas e permissões; recomendação algorítmica sofisticada não é pré-requisito.
+- **Convivência espontânea.** Permitir expressão cultural, humor, fotografias, conversas e vínculos sem vincular tudo a pautas ou tarefas.
+  - **Estado e cautela:** Hipótese de produto; não presumir rede social espontânea implementada.
+- **Feirinha popular.** Reutilizar ofertas, necessidades, organizações e conexões privadas existentes. Reduzir o caminho do cartão até 'Tenho interesse' / 'Posso ajudar', com flags e autorização respeitadas. Avaliar depois publicações por moradores individuais.
+  - **Estado e cautela:** Há base de Feirinha organizacional; interação popular geral e jornada completa ainda precisam de prova real.
+- **Cultura e prazer.** Dar visibilidade a Acervo, Rádio, Arte, história local, jogos leves, coleções e criações, valorizados por si, nunca como isca para mobilização.
+  - **Estado e cautela:** Curadoria, licenças, fontes reais, conteúdo suficiente e desempenho são gates.
+- **Praça e jardim.** Combinar novidades e conversas passageiras com conteúdos duráveis, coleções, memória revisável e descoberta transversal.
+  - **Estado e cautela:** Não criar sistema novo de coleções sem auditar salvar/publicar/Acervo existentes.
+- **Identidade e vínculos.** Pessoa com apresentação controlável, pseudônimo/contextos distintos quando seguro, comunidades e papéis de representação separados. Possibilidade de acompanhar pessoas, assuntos, lugares e iniciativas.
+  - **Estado e cautela:** Não misturar vínculo público, autorização deliberativa e dado sensível.
+- **Reconhecimento e confiança.** Agradecimentos e sinais contextuais de transação/colaboração; sem score global de pessoas, reputação política nem privilégio de voto por seguidores.
+  - **Estado e cautela:** Sempre permitir correção/contestação e evitar avaliações como prova universal de honestidade.
+- **Conversa e inteligência coletiva.** Expressão livre com opções progressivas (experiência, pergunta, fonte, proposta). Preservar originais, conflitos, fontes, revisões, propostas, responsáveis e resultados.
+  - **Estado e cautela:** Não obrigar classificação nem converter contagem de reação em decisão; IA auxilia, não arbitra fatos ou consensos.
+- **Territórios e segurança.** Proximidade voluntária/geral, nunca endereço residencial obrigatório; separar canais de denúncia sensível de convivência comum.
+  - **Estado e cautela:** Pseudônimo não garante anonimato forte; acesso e retenção devem ser auditados.
+- **Governança e moderação.** Regras comuns, competência local delimitada, transparência, recursos e redução progressiva da concentração técnica/institucional; comunidade não pode votar para retirar direitos fundamentais.
+  - **Estado e cautela:** Governança participativa não substitui resposta técnica a incidente nem validação social.
+- **Sustentabilidade.** Participação básica gratuita; vedar comercialização de dados, anúncios comportamentais e compra de autoridade. Examinar contribuições, serviços opcionais, financiamento diversificado e remuneração operacional.
+  - **Estado e cautela:** Separar contas da associação, recursos vinculados, contratos e dados protegidos; não assumir receita sem demanda.
+- **Crescimento orgânico.** Priorizar densidade de relações em território/assunto, utilidade individual desde o primeiro acesso, primeiro vínculo completo e compartilhamento externo de conteúdos públicos úteis.
+  - **Estado e cautela:** Não fabricar usuários, interações, eventos, avaliações ou conteúdo; não forçar convites nem abrir grupos vazios por categoria.
+- **Design e acessibilidade.** Base Zen Brutalista coerente e acessível, com apresentações adequadas a leitura, cultura, Feirinha e denúncias. Teclado, leitor de tela, contraste, zoom e baixo desempenho são obrigatórios.
+  - **Estado e cautela:** A identidade gráfica das campanhas não deve impor sensação permanente de urgência a todo o aplicativo.
+- **Dados e IA.** Minimização, finalidade específica, transparência de fontes e do trabalho automatizado, direito de corrigir; não encaminhar dados privados a serviços externos sem salvaguardas adequadas.
+  - **Estado e cautela:** Não inferir opiniões ou filiações, não apresentar síntese da IA como verdade/consenso e não criar observabilidade invasiva.
 
 ### Execução no roadmap existente — uma etapa de cada vez
 
@@ -774,6 +787,90 @@ anterior. A liberação da Escola continua dependendo dos gates próprios.
 - [#546](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/546) reúne inventário U0 e revisão de continuidade/privacidade. É a trilha de auditoria já aberta; não presumir que mudanças candidatas estão em produção.
 - [#547](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/547) apresentou correção isolada de acesso a storage pelo shell/PWA com testes. Na conferência desta atualização constava **fechado sem merge**; portanto não considerar a correção entregue na main. Reconciliar sua disposição antes de planejar reuso/reabertura.
 - A migration da Escola `20261006134804_comun_learning_r0.sql` permanece bloqueio separado. Este registro é exclusivamente documental, sem autorização para alterar schema, flags, indexação ou abrir piloto.
+
+### Últimas decisões estruturais para encerrar a fase conceitual aberta
+
+Este bloco registra decisões de **arquitetura de experiência**, não comprova
+implantação. A descoberta concreta no código prevalece sobre pressupostos.
+Novas ideias devem ser vinculadas a estes identificadores e não virar um
+backlog paralelo. Após esta consolidação, voltar à execução sequencial.
+
+- **SOC-D01 — Relação mínima completa, antes de um feed social.** A unidade
+  central da experiência não é a postagem nem a organização: é uma interação
+  voluntária que pode começar em conteúdo, pessoa, objeto, tema ou lugar,
+  receber uma resposta e alcançar um desfecho compreensível. Deve existir
+  valor mesmo sem reciprocidade, quando a interação não pede resposta.
+  **Decidido como critério de produto; modelo de dados e UI a auditar.**
+  Prova inicial: uma pessoa sozinha consegue descobrir algo útil; duas pessoas
+  conseguem realizar uma troca ou conversa com retorno e encerramento.
+- **SOC-D02 — Direito à ausência, ao silêncio e à saída.** Não criar mecanismos
+  para punir inatividade, produzir culpa, forçar convites, exigir presença
+  contínua, disparar notificações excessivas ou tornar o feed interminável por
+  padrão. A pessoa controla assuntos, notificações e vínculos; exportação,
+  exclusão e revogação respeitam retenção legítima, segurança e direitos de
+  terceiros. **Princípio decidido; contratos de produto e lei a verificar.**
+  Prova: sair da jornada, voltar depois e silenciar um espaço não devem causar
+  perda indevida de conteúdo ou direitos.
+- **SOC-D03 — Conflitos, danos e confiança operacional.** Antes de abrir troca
+  entre desconhecidos e espaços públicos amplos, definir o menor circuito de
+  denúncia de abuso, bloqueio/silenciamento, análise responsável, sanções
+  proporcionais, recurso e registro auditável. Abranger assédio, perseguição,
+  discriminação, golpes em trocas, divulgação de endereço e abuso de poder
+  local; prever limites da moderação voluntária e segurança de menores.
+  Não oferecer mediação obrigatória entre vítimas e possíveis agressores.
+  **Diretriz decidida; capacidade operacional e regras detalhadas pendentes.**
+  Prova: pessoa pode se proteger e contestar decisões sem expor dados privados.
+- **SOC-D04 — Vida fora da tela e circulação sem aprisionamento.** O objetivo
+  não é substituir todos os grupos de WhatsApp, redes sociais e encontros
+  existentes. Páginas públicas autorizadas devem circular em links claros,
+  com contexto, direitos, datas e acessibilidade. Encontros e iniciativas
+  podem ter resultado presencial sem exigir que as pessoas voltem ao COMUN
+  para provar participação. **Decidido como critério transversal.**
+  Prova: link recebido fora do COMUN funciona sem login indevido, e a pessoa
+  consegue concluir sua finalidade sem ser empurrada para outra tarefa.
+- **SOC-D05 — Disciplina contra proliferação de funcionalidades.** Antes de
+  aprovar qualquer recurso novo, demonstrar: necessidade cotidiana concreta,
+  reuso ou lacuna comprovada nos módulos existentes, percurso mínimo de
+  ponta a ponta, ausência de exposição de dados, acessibilidade, custos de
+  manutenção/moderação, caminho de saída e teste verificável. Preferir remover
+  fricção a criar módulo. O que falhar nesses critérios fica como hipótese,
+  não como compromisso de entrega nem nova migration. **Regra decidida.**
+  Prova: a proposta especifica qual experiência real melhora e o que não será
+  construído.
+- **SOC-D06 — Origem, autoria e preservação de conteúdo.** Toda descoberta
+  editorial, acervo, evento e oferta deve distinguir fonte, autor, data,
+  atualidade, licença/consentimento e condição de publicação; conteúdo
+  comunitário e dado científico não possuem o mesmo tipo de validação.
+  Criação coletiva preserva crédito, versões e possibilidade de contestação.
+  **Princípio decidido; mecanismos específicos a auditar.**
+  Prova: um conteúdo pode ser entendido, atribuído, corrigido ou retirado
+  sem falsificar o histórico.
+- **SOC-D07 — Critério de sucesso e parada.** Uma hipótese social só vira
+  funcionalidade prioritária quando melhora uma experiência identificável
+  sem piorar segurança, compreensão ou autonomia. Para o próximo ciclo,
+  concentrar-se em: valor sem conta, primeira relação completa, descoberta
+  pública contextual e operação sustentável. Evitar novas especulações de
+  interface até registrar evidência técnica ou humana relevante.
+  **Prioridade de execução decidida, não resultado de pesquisa de usuários.**
+
+### Protocolo permanente de registro de decisões
+
+Cada nova conversa sobre o COMUN que produza decisão relevante deve atualizar
+**este mesmo arquivo** (ou o PR que o modifica até a integração), registrando
+identificador estável, data, escopo, hipótese ou decisão, razão e contrapartida,
+módulo reutilizado, critério verificável, risco/limite e estado do trabalho.
+Estados admitidos: `HIPÓTESE`, `PRINCÍPIO DECIDIDO`, `PLANEJADO`,
+`CANDIDATO EM PR`, `INTEGRADO`, `PRODUÇÃO VERIFICADA` e
+`VALIDAÇÃO HUMANA`; jamais tratá-los como equivalentes.
+
+- **Decidir não é implementar.** Não marcar código ou experiência como pronta
+  porque esta documentação mudou.
+- **PR aberto não é roadmap integrado na main.** Até merge certificado,
+  comunicar explicitamente que o conteúdo está proposto na branch.
+- **Não multiplicar documentos concorrentes.** Relatórios/ADRs de evidência
+  podem complementar, mas o ponto de entrada e as prioridades ficam aqui.
+- **Decisão contestável.** Mudanças futuras podem revisar princípios,
+  desde que registrem a razão, o impacto e o que foi substituído.
 
 ### Regra antidesvio
 
