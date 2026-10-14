@@ -52,7 +52,10 @@ export default async function CommunitiesPage({
   );
   if (isComunAppV2(params.experiencia))
     return (
-      <ComunShell>
+      <ComunShell
+        publicReadOnlyFallback
+        publicReadOnlyFallbackClassName="bg-comun-paper text-comun-black"
+      >
         <div className="comun-v2-page" data-comun-app-v2-page="communities">
           <header>
             <p className="comun-v2-eyebrow text-comun-rust">
@@ -95,7 +98,7 @@ export default async function CommunitiesPage({
     );
 
   return (
-    <ComunShell>
+    <ComunShell publicReadOnlyFallback>
       <Section>
         <p className="text-xs font-black uppercase text-comun-yellow">
           Comunidades vivas · descobrir sem cadastro
@@ -119,7 +122,7 @@ export default async function CommunitiesPage({
             return (
               <Link
                 key={community.slug}
-                href={`/comun/c/${community.slug}`}
+                href={withComunAppV2(`/comun/c/${community.slug}`, false)}
                 className="paper-panel flex min-h-[18rem] flex-col border-2 border-comun-black border-t-8 border-t-comun-yellow p-5 transition-transform hover:-translate-y-1"
               >
                 <div className="flex items-start justify-between gap-3">
@@ -188,16 +191,15 @@ function CommunityFilters({
   return (
     <form className="mt-6" aria-label="Filtros de comunidades">
       <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-        <label className="sr-only" htmlFor="community-v2-q">
-          Buscar comunidade
+        <label className="grid">
+          <span className="sr-only">Buscar comunidade</span>
+          <input
+            name="q"
+            defaultValue={params.q}
+            placeholder="Nome, propósito ou território"
+            className="min-h-12 rounded-[var(--comun-radius-control)] border-2 border-comun-black bg-comun-black px-4 text-comun-paper placeholder:text-comun-paper/55"
+          />
         </label>
-        <input
-          id="community-v2-q"
-          name="q"
-          defaultValue={params.q}
-          placeholder="Nome, propósito ou território"
-          className="min-h-12 rounded-[var(--comun-radius-control)] border-2 border-comun-black bg-comun-black px-4 text-comun-paper placeholder:text-comun-paper/55"
-        />
         <button className="comun-v2-action">Buscar</button>
       </div>
       <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -308,6 +310,7 @@ function FilterLink({
 function LegacyFilters({ params }: { params: Params }) {
   return (
     <form className="mt-6 grid gap-3 border-y-2 border-comun-paper/25 py-5 md:grid-cols-[2fr_1fr_1fr_auto]">
+      <input type="hidden" name="experiencia" value="legacy" />
       <label className="grid gap-1 text-xs font-black uppercase">
         Buscar comunidade
         <input
@@ -349,7 +352,7 @@ function LegacyFilters({ params }: { params: Params }) {
           Filtrar
         </button>
         <Link
-          href="/comun/comunidades"
+          href={withComunAppV2("/comun/comunidades", false)}
           className="inline-flex min-h-12 items-center px-2 font-black underline"
         >
           Limpar
