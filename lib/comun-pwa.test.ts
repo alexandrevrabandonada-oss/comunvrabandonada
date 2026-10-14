@@ -67,9 +67,7 @@ describe("optional PWA storage", () => {
         throw new Error("Storage denied");
       },
     });
-    expect(readComunOptionalStorage(throwingStore, "route").available).toBe(
-      false,
-    );
+    expect(readComunOptionalStorage(throwingStore, "route").available).toBe(false);
     expect(
       writeComunOptionalStorage(throwingStore, "route", "/comun"),
     ).toBe(false);
