@@ -1153,6 +1153,94 @@ moderar, manter convite privado e seleção manual de poucos
 jogos, sem criar superfície pública de submissão.
 Não construir hospedagem executável no mesmo domínio.
 
+**SOC-D09.F — Auditoria de reaproveitamento da curadoria
+cultural (15/10/2026).**
+Estado: `AUDITORIA DE CÓDIGO`; implicações arquiteturais
+`PRINCÍPIO DECIDIDO`; integração técnica `NÃO IMPLEMENTADA`.
+
+A mesa existente `/comun/admin/curadoria` agrega filas
+específicas de `comun_archive_submissions` (foto/documento),
+`comun_archive_artwork_submissions` (arte),
+`comun_archive_oral_history_suggestions` (história oral)
+e `comun_radio_contributions` (rádio).
+O tipo `CulturalSpecialization` e o projetor de
+`lib/archive/cultural-curation-worklist.ts` possuem
+essas quatro especializações; nenhuma é "jogo".
+
+Reaproveitáveis conceitualmente e após testes:
+- Separação de contribuição privada, revisão de direitos,
+  avaliação de risco, preparação editorial e publicação
+  explicitamente autorizada.
+- Fila com status, visibilidade do próximo passo, motivos
+  de bloqueio, responsabilidades e possibilidade de retirada.
+- Contratos `lib/editorial-operation.ts`, critérios de
+  autoria e direitos de `docs/acervo-artistas-locais.md`
+  e proteção de contatos/sanitização de `docs/operacao-comun.md`.
+- Princípios de limites de envio e protocolo de recebimento
+  sem promessa de publicação vistos no Acervo.
+
+**Não reaproveitar sem adaptação e revisão:**
+- `/api/comun/archive/submissions` recebe fotografia e
+  requer um envelope de upload, direitos e vínculo ao
+  acervo fotográfico; um link de jogo não é uma fotografia.
+- `/api/comun/archive/suggestions` complementa um item
+  de Acervo já publicado; não cria um jogo candidato.
+- O fluxo save-first de contribuição cultural possui
+  intenções pré-definidas e flag própria; a opção
+  genérica "não sei" não pode converter silenciosamente
+  uma submissão em jogo nem aprovar link executável.
+- A fila `/comun/admin/curadoria` não pode exibir
+  contribuições de jogos sem fonte autorizada, estados,
+  papéis e auditoria específicos. Reutilizar componentes
+  de UI é diferente de compartilhar tabelas ou grants.
+
+**Menor caminho honesto sem migration:**
+1. Certificar primeiro o catálogo #551 e sua navegação,
+   preservando bloqueios de CI/ambiente.
+2. Convidar manualmente poucos desenvolvedores com
+   critérios públicos, por canais existentes e controlados;
+   não dizer "envie seu jogo" com um botão inoperante.
+3. Curar somente metadados públicos e links de destinos
+   externos avaliados, com autoria/licença, adequação
+   etária, avisos de privacidade/monetização e processo
+   claro de retirada. Não usar contas ou contatos pessoais
+   de outras fontes sem finalidade compatível.
+4. Quando existir capacidade de curadoria e necessidade
+   observada, propor **um único fluxo** de indicação de
+   jogo com rascunho privado, protocolo, avaliação e
+   resultado comunicável. Antes de migrations, provar
+   que as abstrações editoriais existentes podem ser
+   reutilizadas sem compartilhar schemas indevidos.
+5. Manter jogos comunitários independentes de
+   verificação de identidade civil pública, de
+   posição política e de exigência de código aberto.
+
+**Checklist de revisão futura para publicador humano:**
+direito autoral e assets; link de origem íntegro;
+demonstração efetivamente carregável; privacidade
+e rastreadores do destino; acessibilidade e controles;
+classificação de conteúdo e menores; monetização
+informada; risco de fraude/malware; canal de retirada;
+conflito de interesse na curadoria. Aprovação editorial
+não equivale a auditoria de segurança universal nem
+endosso sobre afirmações narrativas do jogo.
+
+**SOC-D09.G — Evidência dos PRs, sem perder o bloqueio.**
+Na consulta de 15/10/2026, o PR documental #550 havia
+passado seus checks mas seguia aberto; o PR de entrada
+#551 estava em draft. O #551 possuía três checks falhos:
+`remote-read-only-preflight` (ausência de certificado CA),
+`COMUN Quality / isolated a11y` (limitação de pulls
+Docker seguida de porta local ocupada) e `pr-lane`
+(erro HTTP 502 do Supabase local após reset descartável).
+Isso não é comprovação de falha funcional da nova
+rota, mas **impede certificação do PR**. Não desligar
+TLS, não falsear resultado, não contornar QA. Os
+demais checks aprovados valem apenas para seus
+próprios escopos e SHA.
+Quando os estados mudarem, atualizar este registro
+com evidence link e SHA, sem reescrever a história.
+
 **Relações canônicas:** SOC-D01 (experiência e relação),
 SOC-D02 (ausência e saída), SOC-D03 (segurança),
 SOC-D05 (anti-proliferação), SOC-D06 (autoria),
