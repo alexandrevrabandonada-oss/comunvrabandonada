@@ -32,7 +32,9 @@ test("@a11y Jogos oferece beta real sem carregar Unity no COMUN", async ({
   );
   await expect(play).toHaveAttribute("target", "_blank");
   await expect(play).toHaveAttribute("rel", /noopener noreferrer/);
-  await expect(page.locator("[data-comun-games-catalog] iframe")).toHaveCount(0);
+  await expect(
+    page.locator("[data-comun-games-catalog] iframe"),
+  ).toHaveCount(0);
   expect(externalRequests).toEqual([]);
 
   await expect(
@@ -53,7 +55,7 @@ test("@a11y Jogos oferece beta real sem carregar Unity no COMUN", async ({
   ).toEqual([]);
 });
 
-test("Explorar mantém o recorte Jogos e o retorno na experiência App V2", async ({
+test("Explorar preserva Jogos na experiência App V2", async ({
   page,
 }) => {
   await page.goto("/comun/explorar?experiencia=app-v2&categoria=jogos");
