@@ -1,3 +1,4 @@
+import { mkdirSync, copyFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -16,6 +17,19 @@ for (const name of [
 const mode = process.argv[2];
 if (!["build", "start"].includes(mode))
   throw new Error("FIXTURE_BUILD_OR_START_ONLY");
+if (mode === "build") {
+  const target = fileURLToPath(
+    new URL("./fixture-app/public/", import.meta.url),
+  );
+  mkdirSync(`${target}/icons`, { recursive: true });
+  for (const asset of [
+    "sw.js",
+    "icons/comun-192.png",
+    "icons/comun-512.png",
+    "icons/comun-maskable-512.png",
+  ])
+    copyFileSync(`${root}/public/${asset}`, `${target}/${asset}`);
+}
 const child = spawn(
   process.execPath,
   [

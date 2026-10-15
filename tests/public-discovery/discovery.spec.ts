@@ -12,6 +12,13 @@ test("real Explorar page exposes three public sources without account or writes"
 }) => {
   const errors: string[] = [];
   const writes: string[] = [];
+  const httpErrors: number[] = [];
+  page.on("console", (m) => {
+    if (m.type() === "error") errors.push(m.text());
+  });
+  page.on("response", (r) => {
+    if (r.status() >= 400) httpErrors.push(r.status());
+  });
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("request", (r) => {
     if (!["GET", "HEAD"].includes(r.method())) writes.push(r.method());
@@ -45,6 +52,7 @@ test("real Explorar page exposes three public sources without account or writes"
   await expect(rail).toBeVisible();
   expect(writes).toEqual([]);
   expect(errors).toEqual([]);
+  expect(httpErrors).toEqual([]);
 });
 test("successful empty sources preserve existing category navigation", async ({
   context,

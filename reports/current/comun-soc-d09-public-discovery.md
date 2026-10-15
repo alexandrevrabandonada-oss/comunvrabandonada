@@ -107,3 +107,27 @@ Abrir PR draft contra main com checkpoint explícito, executar job real descart�
 consultar checks e Preview do SHA exato. Resolver defeitos demonstrados nesta frente;
 não integrar enquanto gates aplicáveis bloqueados. Depois, próximo incremento único
 é continuidade da busca/filtros, sem outra pilha dependente da Escola.
+
+## Fechamento do harness
+
+No checkpoint `1f711e318542e3e7062537d6fdf5617bf0df7e77`, a run SOC-D09
+[38756092261](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38756092261)
+concluiu browser e real-auth-postgres SUCCESS. Quality
+[38756091478](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38756091478)
+concluiu cinco jobs SUCCESS e dois pós-merge SKIPPED. GitHub Preview deployment
+`7096131617` possui SHA exato e status success; COST-02 SUCCESS. Isso não dispensa
+os preflights TLS que continuam bloqueantes.
+
+A revisão acrescentou captura de console.error e HTTP >=400 no percurso feliz.
+Essa asserção demonstrou recursos ausentes na fixture (SW/Acervo usado pelo retorno).
+O build do laboratório agora copia somente os quatro assets públicos allowlisted
+SW/ícones do próprio checkout e reutiliza as páginas reais offline/Acervo/manifest.
+Nada é copiado de configuração privada. Assets gerados ficam ignorados no Git.
+O teste mantém a asserção estrita, sem filtrar 404: 12/12 PASS local (14,6s),
+TypeScript e ESLint focal PASS. Esse delta é somente harness; nenhum leitor,
+contrato de direitos, página do produto ou prova real Auth/Postgres mudou.
+
+Hash SHA-256 do JSON dessa bateria reforçada: `02f43f2b75535b7dac03c19f474e308c49f36f607a5717621da164856d333f0a`.
+O novo checkpoint explícito exige sua própria execução remota/Preview; consultar
+inventário final no corpo do PR #552. Manter draft e sem merge enquanto houver
+falhas ou pendências aplicáveis. Nenhuma certificação editorial/Production/humana.
