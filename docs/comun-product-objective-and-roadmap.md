@@ -1253,8 +1253,8 @@ de schema, flags, Production ou indexação autorizada.
 
 ### SOC-D09.H — Encaixe definitivo de Jogos na arquitetura COMUN
 
-**Decisão em 15/10/2026:** Jogos é uma **experiência cultural e social
-transversal**, não um novo produto, uma escola disfarçada nem um catálogo de
+**Decisão em 15/10/2026:** Jogos é uma **experiência cultural e social**
+transversal, não um novo produto, uma escola disfarçada nem um catálogo de
 executáveis. Existe para divertir, criar, descobrir pessoas e obras, por livre
 iniciativa de jogadores e autores. A finalidade cultural independe da adesão
 política e da produção de dados para a rede. Estado: `PRINCÍPIO DECIDIDO`;
@@ -1315,11 +1315,11 @@ porque o link foi aprovado editorialmente.
 1. **Fechamento técnico existente:** preservar prioridade de integridade,
    privacidade, Feirinha e bloqueios certificados da Escola; #550 é
    documentação e #551 permanece separado e bloqueado até gates completos.
-2. **Caso de referência:** demonstrar em Preview a jornada `Explorar →
-   Jogos → Cidade em Disputa → Jogar → Retornar`, com teste de mobile,
-   ausência de pré-carregamento, acessibilidade básica, memória/autoria
-   verificáveis e convite sem login. Não afirmar sucesso humano com
-   teste automatizado.
+2. **Caso de referência:** demonstrar em Preview a jornada completa:
+   `Explorar → Jogos → Cidade em Disputa → Jogar → Retornar`.
+   Testar mobile, ausência de pré-carregamento, acessibilidade básica,
+   memória/autoria verificáveis e convite sem login. Não afirmar
+   sucesso humano com teste automatizado.
 3. **Catálogo editorial mínimo:** selecionar poucos jogos realmente
    acessíveis por link, manualmente, com diversidade de estilos,
    autoria e condições de publicação revisadas. Validar capacidade
