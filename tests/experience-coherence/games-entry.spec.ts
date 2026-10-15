@@ -6,17 +6,19 @@ test("@a11y Jogos oferece beta real sem carregar Unity no COMUN", async ({
 }) => {
   const externalRequests: string[] = [];
   page.on("request", (request) => {
+    const hostname = new URL(request.url()).hostname;
     if (
-      /(?:^|\\.)alexandrevrabandonada\\.online$/.test(
-        new URL(request.url()).hostname,
-      )
+      hostname === "alexandrevrabandonada.online" ||
+      hostname.endsWith(".alexandrevrabandonada.online")
     ) {
       externalRequests.push(request.url());
     }
   });
 
   await page.goto("/comun/jogos");
-  await expect(page.getByRole("heading", { name: "Jogos", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Jogos", exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "VR: Cidade em Disputa" }),
   ).toBeVisible();
