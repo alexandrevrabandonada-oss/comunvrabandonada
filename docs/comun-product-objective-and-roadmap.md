@@ -924,7 +924,6 @@ por este checkpoint; compreensão e atratividade humanas continuam pendentes.
 
 **Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.
 
-
 ### SOC-D09 — Descoberta pública limitada, com disponibilidade verificável (2026-10-15)
 
 **Decisão:** implementar no Explorar existente “Para conhecer com calma”, até dois
@@ -965,3 +964,10 @@ independente: CAPTCHA humano exclusivo, cinco fluxos externos, recuperação fre
 validada e seis preflights não dispensados. A indisponibilidade do Docker local não
 é prova de integração. Próximo incremento único: continuidade da busca/filtros
 públicos, após revisão desta entrega; não abrir outra pilha dependente do schema.
+
+**SOC-D09 / verificação remota inicial:** PR #552 draft, run 38755178014 em
+`3ad8bcb8`: browser e Auth/Postgres real SUCCESS. A prova visual foi refinada
+importando o CSS v2 completo e repetindo 12/12 localmente; margem original do
+produto preservada. Os preflights 48.2-A/48.4-A1–A6 desta execução bloquearam por
+CA TLS ausente no runner antes do schema; não confundir com a pendência conhecida
+da Escola nem enfraquecer verify-full. CI global ainda não aprovado; sem merge.

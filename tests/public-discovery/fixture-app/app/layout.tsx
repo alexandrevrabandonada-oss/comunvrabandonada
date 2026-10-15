@@ -1,4 +1,5 @@
 import "@/app/globals.css";
+import "@/app/comun-app-v2.css";
 export const metadata = {
   title: "COMUN — laboratório sintético SOC-D09",
   robots: { index: false, follow: false },

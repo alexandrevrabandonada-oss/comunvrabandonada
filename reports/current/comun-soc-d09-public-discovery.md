@@ -11,8 +11,8 @@ Explorar apresenta até dois itens por fonte pública elegível (máximo seis), 
 crédito/fonte, contexto quando disponível, data qualificada e direitos. Não exige
 conta ou tarefa. Vazio omite a categoria; falha isolada não apaga as outras fontes.
 Detalhe revalida publicação; links de retorno carregam somente contexto público.
-Retirada mostra indisponibilidade e saída. Corrigida margem negativa dos filtros
-que produzia overflow real de 16px. Nenhuma publicação, schema, flag ou indexação.
+Retirada mostra indisponibilidade e saída. A inspeção final preservou a margem dos filtros existente: com o CSS completo
+da aplicação não há overflow. A falha de 16px pertencia à fixture incompleta. Nenhuma publicação, schema, flag ou indexação.
 
 Acervo/Rádio agora preservam erros no limite de consulta em leitores com estado,
 mantendo adaptadores legados. Feirinha reutiliza a projeção `available/unavailable`
@@ -49,13 +49,13 @@ A revisão SOC-D08 anterior não é aprovação humana independente.
 | NOT_RUN local | Auth/Postgres real SOC-D09                                      | job isolado preparado; navegador acima não substitui esta prova                                                                                                 |
 | NOT_RUN       | aparelhos reais, Safari/Firefox, leitor de tela e ensaio humano | não executados                                                                                                                                                  |
 
-Resultado JSON do navegador SHA-256: `b389dda0505904b82b9efcdb92b660afa43d8c4a99eb0fbab8bebfb7e33e968b`. Artefato permanece
+Resultado JSON do navegador SHA-256: `3feb17451ba4efd2ad162c0d6e8d39801608255fe1fbda9ae08b66dff0a57293`. Artefato permanece
 local em `test-results/public-discovery`, sem dados reais. Browser plugin não
-available nesta sessão: Playwright foi o caminho disponível. Versões: Node22.19.0,
+disponível nesta sessão: Playwright foi o caminho disponível. Versões: Node22.19.0,
 Vitest4.1.11, Playwright1.64.1/Chromium156.0.8078.4rev1248.
 Falhas iniciais preservadas na execução: browser ainda não instalado, transporte
 controlado sem método `is`, cenário que derrubava dependência compartilhada e o
-overflow real. Instalado runner fixado, corrigida fixture e produto; nenhum timeout
+CSS incompleto da fixture. Instalado runner fixado, corrigida a fixture; nenhum timeout
 ampliado ou erro funcional filtrado para obter verde.
 
 ## Automação e limites
@@ -73,6 +73,33 @@ A amostra pública real anterior não confirmou itens editoriais elegíveis: nã
 inventamos conteúdo para preencher esta seção. Preview não é disponibilidade em
 Production. Escola continua estacionada: CAPTCHA exclusivo/humano, cinco fluxos
 externos, backup/restauração frescos e seis preflights não dispensados.
+
+## Evidência remota e autocorreção
+
+Em `3ad8bcb80bd29577bb1b20e642d4353c3bea1c10`, run
+[38755178014](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38755178014):
+`browser=SUCCESS` e `real-auth-postgres=SUCCESS`. O teste real comprovou sessões
+Auth distintas A/B, RPC server-only recusada para anônimo/A/B com 42501, cinco
+fixtures Acervo via Postgres, leitor real via PostgREST e limpeza de usuários/itens
+com contagem zero. Não é prova de mídia/Storage ou RLS de todos os domínios.
+
+A inspeção visual detectou CSS v2 ausente na fixture: importado o mesmo CSS do
+layout do produto. Reproduzida a margem original com o CSS completo, não houve
+overflow (390/390); a suposta correção de margem do produto foi retirada. Os
+12 cenários passaram novamente localmente com o CSS completo (11,8s); nenhum
+cenário foi removido. O resultado
+anterior não certifica fidelidade visual completa.
+
+Falha de formatação demonstrada em Launch Readiness da run `38755177349`:
+Prettier3.9.10 apontou somente linha vazia extra no roadmap; removida. Não se
+altera expectativa ou gate. Preflights seguem independentes: nesta rodada, 48.2-A e 48.4-A1/A2/A3/A4/A5/A6
+falharam antes de consultar schema porque `sslmode=verify-full` não encontrou
+`/home/runner/.postgresql/root.crt`. Runs 38755177869, 38755177363, 38755177887,
+38755177942, 38755177455, 38755177846 e 38755178109. Não atribuir essas falhas
+novas à migration da Escola: a pendência da Escola continua no checkpoint anterior,
+mas essas execuções não chegaram a comprová-la. Não reduzir TLS nem alterar secrets.
+Próximo passo de infraestrutura é disponibilizar a CA confiável pelo caminho
+protegido existente antes da consulta; essa captura não certificou schema remoto.
 
 ## Próxima ação
 

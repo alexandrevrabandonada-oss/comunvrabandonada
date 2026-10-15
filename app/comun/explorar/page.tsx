@@ -211,7 +211,7 @@ function ExploreAppV2({
 
         <nav
           aria-label="Filtros principais"
-          className="mt-4 flex max-w-full gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           <FilterChip label="Tudo" value="tudo" active={category === "tudo"} />
           {availableCategories.slice(0, 5).map(([title, , , value]) => (
