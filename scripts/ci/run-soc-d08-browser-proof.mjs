@@ -76,7 +76,10 @@ export async function main() {
     runSha: sha,
     samples: [{ phase: "before", ...snapshot() }],
   };
-  const log = createWriteStream(`${directory}/native-browser.log`);
+  // Playwright clears outputDir at startup; keep the open log outside it.
+  const nativeDirectory = ".ci-artifacts/soc-d08-native";
+  mkdirSync(nativeDirectory, { recursive: true });
+  const log = createWriteStream(`${nativeDirectory}/native-browser.log`);
   const child = spawn(
     process.execPath,
     [

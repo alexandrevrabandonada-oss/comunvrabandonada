@@ -40,7 +40,7 @@ jobs:
         with:
           {
             name: soc-d08-synthetic-ui,
-            path: test-results/solidarity-continuity,
+            path: "test-results/solidarity-continuity\n.ci-artifacts/soc-d08-native",
             retention-days: 7,
           }
   real-disposable-auth-postgres:
