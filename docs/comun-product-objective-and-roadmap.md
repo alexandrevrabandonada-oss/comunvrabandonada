@@ -963,3 +963,24 @@ de foco ao alternar semântica e expectativa legada de preservar snapshot na fal
 de rede. Controle agora mantém foco; teste de rede exige indisponibilidade, zero
 resultado obsoleto e retry. 18 browser locais PASS no diff corrigido, sem remover
 os casos anteriores. CI e Preview do novo commit exigem certificação própria.
+
+### Execução permanente por ciclos — 15/10/2026
+
+Decisão operacional, sem alterar a estratégia: cada ciclo iniciado pelo orquestrador
+lê este roadmap e `reports/current/comun-execution-checkpoint.json`, reconcilia o
+estado vivo, escolhe uma entrega elegível, implementa a menor solução suficiente,
+valida regressões e registra provas/commits antes de reavaliar a fila. Não cria
+outro roadmap, timer ou processo residente. Máximo de uma entrega por ciclo e duas
+tentativas equivalentes de correção por finding; bloqueio externo ou limite exige
+estado recuperável, não falsa conclusão global. Estes limites regulam a execução,
+não substituem critérios de aceitação.
+
+Retomada #553 no head `f2aaea03`: browser/Auth-Postgres run 38795799390 e CA contract
+38795799146 PASS; COST-02 do contrato vigente PASS. Sem reviews; draft mantido.
+Preflights alcançam os bloqueios de schema depois da correção TLS; não repetir
+provas aprovadas nem tratar skipped/pending como PASS. Quality/Civic ainda exigem
+resultado próprio. Próxima ação: concluir sua classificação e só então reavaliar
+uma entrega independente. Escola #542: Source Subject já resolvido; falta o par
+Turnstile exclusivo do laboratório, CAPTCHA humano e cinco fluxos. Gmail 0/6;
+backup só após esses requisitos. Não procurar segredos nem renovar provas temporais
+neste ciclo. Nenhum merge, schema write, deployment Production, flag ou gasto.

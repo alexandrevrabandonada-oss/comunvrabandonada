@@ -1,9 +1,9 @@
 {
   "format": "COMUN_EXECUTION_CHECKPOINT_V1",
-  "updatedOn": "2026-10-12",
-  "objective": "Fechar recuperação da Escola sem dispensar gates; entregar continuidade independente na ouvidoria.",
-  "completion": "Entrega independente testada e revisável; Escola somente após recibo real completo, backup <=1h e PRE <=5min.",
-  "mainObserved": "1169159158e1978d08930416800f394f1558192f",
+  "updatedOn": "2026-10-15",
+  "objective": "Executar o roadmap canônico por ciclos verificáveis; prioridade atual: certificar busca/filtros/retorno #553 sem dispensar Escola.",
+  "completion": "Conclusão de cada tarefa exige evidência no SHA correspondente; conclusão global somente com os critérios do roadmap demonstrados.",
+  "mainObserved": "8b0ba0d2c90295a6579e8e8808a9e765583e86c9",
   "candidates": {
     "recovery": {
       "pr": 540,
@@ -23,7 +23,79 @@
       "sha": "8203227ca2b192f1c81102d8a3bc1b9e93aa8f79",
       "tree": "1575ecef93da51a950b1dab56e2e8982a8955fb6",
       "functionalSha": "39198b1cc1de5ccae7fe4b55d58e21fd47c8ef03",
-      "state": "DRAFT_STALE_COPY_FIXED_LOCAL_6_PASS_REMOTE_PENDING"
+      "state": "HISTORICAL_MERGED_AND_POST_MERGE_CERTIFIED",
+      "mergeSha": "8bb8cd9de9afe68293de82c6b7ca97ba4730d01f"
+    },
+    "searchContext": {
+      "pr": 553,
+      "sha": "f2aaea03b2231673a3f3b9a5c39c828f3b425bd7",
+      "tree": "e9e416d9927eac080f53d46fe6c24a7f2176096c",
+      "base": "8b0ba0d2c90295a6579e8e8808a9e765583e86c9",
+      "state": "DRAFT_SCHEMA_PREFLIGHTS_BLOCKED_OTHER_CHECKS_RUNNING",
+      "review": "NO_REVIEWS_NOT_APPROVED",
+      "checkCountsObserved": {
+        "SUCCESS": 42,
+        "IN_PROGRESS": 7,
+        "SKIPPED": 74,
+        "FAILURE": 7
+      },
+      "observedAt": "2026-10-15T16:50:08-03:00",
+      "evidence": [
+        {
+          "run": "38795799390",
+          "scope": "18 browser controlled, 42 focused, 3 guards and real disposable Auth/Postgres A/B with cleanup",
+          "result": "PASS"
+        },
+        {
+          "run": "38795799146",
+          "scope": "read-only TLS CA contract, 21 tests",
+          "result": "PASS"
+        },
+        {
+          "run": "38795799666",
+          "job": "116631724555",
+          "scope": "COST-02 repository checkpoint contract",
+          "result": "PASS",
+          "limit": "Not certification of Production or independent exact-head Preview"
+        }
+      ],
+      "blockingChecks": [
+        {
+          "name": "remote-metadata-only",
+          "state": "FAILURE",
+          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799875/job/116631723637"
+        },
+        {
+          "name": "remote-metadata-only",
+          "state": "FAILURE",
+          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799742/job/116631723319"
+        },
+        {
+          "name": "remote-metadata-only",
+          "state": "FAILURE",
+          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799484/job/116631722244"
+        },
+        {
+          "name": "remote-metadata-only",
+          "state": "FAILURE",
+          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799332/job/116631721909"
+        },
+        {
+          "name": "remote-metadata-only",
+          "state": "FAILURE",
+          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799133/job/116631721644"
+        },
+        {
+          "name": "remote-metadata-only",
+          "state": "FAILURE",
+          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795798745/job/116631719779"
+        },
+        {
+          "name": "remote-read-only-preflight",
+          "state": "FAILURE",
+          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795798843/job/116631719912"
+        }
+      ]
     }
   },
   "validEvidence": [
@@ -72,9 +144,9 @@
       "migration": "20261006134804_comun_learning_r0.sql",
       "migrationSha256": "5036a833b1b681487204349f8ebc58690228a2f5aa932943a81f60df1d3b6ba7",
       "manifestSha256": "3b598bc6b3ea3dfe462ba205b6747016aace52de87c87dec332ecbb1a567d4de",
-      "conditions": "All ten existing executor requirements; fresh real recovery and PRE; reviewed immutable package; one-use transaction; uncertain COMMIT reconciled read-only."
+      "conditions": "All ten existing executor requirements; real backup and validated isolated restoration <=1h; PRE <=5min; reviewed immutable package; one-use atomic transaction; uncertain COMMIT reconciled read-only, no blind retry."
     },
-    "routine": "Local synthetic tests, protected E: backups and isolated restores, normal commits/pushes; reviewed normal merges only after applicable gates and one post-merge certification at a time.",
+    "routine": "Local/isolated reversible implementation, bounded tests, normal commits/pushes within task scope. Specific draft/no-merge restrictions of #523/#542/#552/#553 preserved; no automatic Production deployment, sensitive change or expense.",
     "consumed": [
       "Brevo SMTP lab invitations",
       "one Brevo API lab invitation",
@@ -104,7 +176,7 @@
     {
       "gate": "External recovery",
       "state": "BLOCKED",
-      "detail": "Change-email Source Subject missing; five flows unproved; connector session is not exported recovery credential; CAPTCHA positive proof missing."
+      "detail": "Source Subject resolved: Confirm Email Change, HUMAN_READ_SOURCE (#542). Lab-exclusive real Turnstile key pair not located; positive human CAPTCHA and five flows NOT_RUN. Gmail 0/6. No new secret search or send authorized by this checkpoint."
     },
     {
       "gate": "Durable real recovery",
@@ -122,9 +194,9 @@
       "detail": "Real devices, Safari/Firefox and human journey remain NOT_RUN; do not add these as new migration gates."
     }
   ],
-  "nextExecutableAction": "Certify #540 post-merge deploy before next integration; follow #541 new exact gates. Subject and local real-flow generation still required before 0/6 authorized sends.",
+  "nextExecutableAction": "Read current #553 exact head and finish Quality/Civic check classification; do not rerun successful evidence without relevant diff. Investigate only new functional failure; preserve seven School schema preflights. Then reevaluate the next independent roadmap item rather than create a parallel stack.",
   "holderDecisions": [
-    "Clarify whether ok was a literal Source Subject or acknowledgement; no inferred default"
+    "Somente quando a frente Escola for elegível: entrada local protegida do par laboratorial existente e interação CAPTCHA humana. Não solicitar valores no chat. Nenhuma decisão rotineira de implementação exigida."
   ],
   "doNotRepeat": [
     "Approved tests without relevant change",
@@ -139,5 +211,41 @@
     "schemaWritesThisRound": 0,
     "businessWritesThisRound": 0
   },
-  "resumeRule": "Read this file first. Reconsult only mutable remote state; invalidate proof only for relevant diff, expired temporal gate or contradictory evidence. Update at a material transition, not per command."
+  "resumeRule": "Read this file first. Reconsult only mutable remote state; invalidate proof only for relevant diff, expired temporal gate or contradictory evidence. Update at a material transition, not per command.",
+  "roadmapExecution": {
+    "canonicalRoadmap": "docs/comun-product-objective-and-roadmap.md",
+    "missionSource": "Human request: Missão permanente — Execução autônoma do roadmap, 15/10/2026",
+    "trigger": "ON_ORCHESTRATOR_CYCLE",
+    "residentProcessCreated": false,
+    "scheduledAutomationCreated": false,
+    "state": "WAITING_EXISTING_CI_WITH_EXTERNAL_SCHEMA_BLOCK",
+    "cycle": [
+      "READ_ROADMAP_AND_CHECKPOINT",
+      "RECONCILE_CODE_PRS_AND_EVIDENCE",
+      "SELECT_HIGHEST_PRIORITY_ELIGIBLE_TASK",
+      "IMPLEMENT_MINIMUM_SAFE_CHANGE",
+      "TEST_AND_INVESTIGATE",
+      "COMMIT_EVIDENCE_AND_STATE",
+      "REEVALUATE_DEPENDENCIES",
+      "YIELD_RECOVERABLE_STATE"
+    ],
+    "limits": {
+      "eligibleDeliverablesPerCycle": 1,
+      "equivalentCorrectiveAttemptsPerFinding": 2,
+      "automaticProductionWrites": 0,
+      "automaticMergesOfRestrictedDrafts": 0,
+      "newPaidResources": 0
+    },
+    "evidenceRule": "PASS only for executed proof in its recorded SHA/environment. SKIPPED/PENDING/NOT_RUN/FAIL remain separate. No Preview=Production inference. Reuse only unchanged relevant code/contracts with explicit scope; never rename CI success to another head.",
+    "stopRule": "External prerequisite, no eligible task or safety limit: record exact cause, next executable action and required decision, then yield. No global completion claim.",
+    "integrationRule": "Do not change strategic priorities or relax gates. Preserve current draft/no-merge restrictions. No deployments Production, destructive migration, sensitive change or expense without appropriate specific authorization.",
+    "resumeRule": "Next orchestrator cycle starts with this file and live mutable remote state. No new timer or permanent daemon is implied.",
+    "checkpointPublication": "Commit locally while existing CI runs. Do not push documentation-only updates just to rerun unchanged tests; reconcile and publish with the next material authorized change.",
+    "schoolSourceSubject": {
+      "value": "Confirm Email Change",
+      "evidence": "HUMAN_READ_SOURCE",
+      "reference": "PR #542 body, head 921351c36f0593c118508b66e108fb11ace0e2c7",
+      "askAgain": false
+    }
+  }
 }
