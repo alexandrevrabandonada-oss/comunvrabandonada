@@ -920,6 +920,118 @@ Feirinha antes das chamadas diretas dos cartões. Descoberta cultural segue
 na sequência já registrada. Nenhuma migration, flag ou indexação autorizada
 por este checkpoint; compreensão e atratividade humanas continuam pendentes.
 
+### SOC-D09 — Jogos no COMUN: brincar, criar e publicar em comunidade
+
+**Data:** 14/10/2026. **Estado:** `PRINCÍPIO DECIDIDO` para integrar
+jogos à experiência do COMUN; `HIPÓTESE/PLANEJADO` para interface,
+publicação de terceiros e arquitetura executável. Não implementado.
+
+**Decisão de produto:** reservar um destino reconhecível **Jogos**,
+integrado à descoberta cultural e aos perfis do mesmo COMUN, e não
+uma rede, login, moeda, reputação ou produto paralelo. O acesso deve
+oferecer diversão independente de ativismo ou de tarefas educativas.
+A entrada pode ter destaque próprio na navegação quando houver
+catálogo real e experiência jogável; não criar aba vazia.
+
+- **Primeiro jogo de referência: `Cidade em Disputa`.** RPG autoral
+  sobre Volta Redonda, não reduzido a propaganda eleitoral.
+  Respeitar três jornadas iniciais já definidas: **História de
+  Volta Redonda**, **Meio Ambiente** e **Política**. Priorizar
+  exploração, escolhas e consequências, preservando criatividade,
+  livre interpretação e prazer de jogar. Distinguir fonte científica
+  ou documental de ficção e hipótese; identificar artigos e datas
+  para afirmações factuais. Não exigir adesão ideológica nem
+  pontuar jogador por opiniões políticas. Inspirar-se em exploração
+  retrô sem reutilizar assets protegidos de jogos comerciais.
+  Projeto do RPG e eventual exportação para web exigem auditoria
+  própria; não presumir build web/mobile existente.
+- **Jogos com finalidades diversas.** Abranger narrativas, puzzles,
+  estratégia, humor, aventuras, jogos cooperativos e experiências
+  de curta duração. Não reduzir a aba a quizzes cívicos,
+  gamificação da militância ou missões da Escola.
+- **Integração social com baixo atrito.** Cada jogo pode ter página
+  pública com descrição, imagens autorizadas, créditos, autoria,
+  requisitos, idioma, acessibilidade, idade/conteúdo, fonte e
+  links de compartilhamento. Pessoas podem descobrir o criador,
+  conversar, guardar e divulgar se os recursos existentes
+  permitirem; o jogo permanece útil sem respostas ou cadastro.
+  Conquistas e progresso são privados por padrão; compartilhar
+  é opt-in, sem placar moral, pontuação cívica ou seguidores
+  convertidos em autoridade.
+- **Criação comunitária com autonomia.** Qualquer criador elegível
+  pode propor um jogo próprio, inclusive não educativo.
+  Publicação deve seguir processo de proposta/triagem,
+  demonstração verificável, revisão de autoria e direitos,
+  segurança e acessibilidade, decisão motivada, publicação,
+  denúncia e eventual retirada/recurso. Critérios públicos
+  protegem pluralidade estética e de ideias; não usar curadoria
+  para exigir alinhamento político.
+- **Segurança de código de terceiros: limite inegociável.**
+  Na fase inicial, aceitar apenas metadados, imagens permitidas
+  e link externo previamente revisado para jogo hospedado
+  pelo criador, deixando claro quando se sai do COMUN.
+  Não aceitar/executar uploads de HTML, JavaScript, ZIP,
+  binários, Unity WebGL ou outras aplicações arbitrárias no
+  mesmo domínio/ambiente privilegiado. Futuro embed/hosting
+  só após arquitetura de origem isolada, CSP, sandbox efetivo,
+  verificação de arquivos, limites de recursos, proibição
+  de acesso a sessão/cookies/identidade do COMUN,
+  revisão de dependências e mecanismos de desligamento.
+  Iframe isolado por si só não prova segurança.
+- **Privacidade e acesso.** Jogar conteúdo público sem cadastro
+  quando tecnicamente possível; nenhum rastreador de
+  terceiros oculto, monetização predatória, compras de
+  influência ou anúncios comportamentais. Não ceder dados
+  de membros a criadores. Controles mobile, teclado,
+  leitura alternativa para quem não consegue jogar,
+  opção de reduzir movimento/sons, baixo consumo de dados
+  e estados de carregamento/erro são critérios de qualidade.
+  Jogos com chat, multiplayer, menores ou pagamentos
+  requerem avaliação e regras próprias; não pertencem ao MVP.
+
+**Implantação incremental dentro de 49-E / U0–U8 / 50 COMUN UNO:**
+
+1. **Inventariar antes de construir.** Localizar jogos existentes
+   e suas licenças, builds e compatibilidade mobile/web.
+   A árvore `app/comun` não possuía rota `jogos` na consulta
+   de 14/10; não declarar o RPG ou outros jogos integrados.
+2. **Experiência piloto sem schema novo.** Prototipar página
+   `/comun/jogos` com 1 jogo real autorizado e jogável
+   ou demonstração efetiva claramente identificada, créditos,
+   condições de acesso e retorno ao COMUN. Reutilizar
+   navegação, descoberta, acervo e compartilhamento;
+   se não houver jogo elegível, manter a hipótese no roadmap
+   em vez de mostrar acervo fictício.
+3. **Curadoria comunitária controlada.** Validar pequena
+   seleção de jogos de terceiros por link, antes de permitir
+   submissão aberta. Medir demanda, moderação, qualidade,
+   custo operacional e capacidade de retirada.
+4. **Proposta de publicação.** Somente após critérios
+   comprovados, disponibilizar envio de metadados
+   e link de demonstração, com fila de revisão,
+   comunicação do estado e recurso; sem upload executável.
+5. **Evolução social e técnica.** Avaliar comentários,
+   coleções, colaboração criativa, jogar em grupo,
+   hospedagem isolada e ferramentas de criação apenas
+   diante de demanda real e testes de segurança.
+
+**Critério de aceite:** alguém consegue encontrar e iniciar
+um jogo real, entender quem o criou, jogá-lo com os
+controles disponíveis e retornar ao COMUN sem exposição
+indevida; um criador consegue submeter e acompanhar uma
+proposta sem abrir superfície para execução de código
+desconhecido. Reprovar experiência ruim em celular,
+conteúdo artificial, autoria falsa, ausência de moderação
+ou pressão para participar politicamente.
+
+**Relações canônicas:** SOC-D01 (experiência e relação),
+SOC-D02 (ausência e saída), SOC-D03 (segurança),
+SOC-D05 (anti-proliferação), SOC-D06 (autoria),
+SOC-D07 (evidência). Não interromper a prioridade atual
+de privacidade/continuidade da Feirinha, os PRs em curso,
+ou a migration pendente da Escola. Nenhuma alteração
+de schema, flags, Production ou indexação autorizada.
+
 ### Regra antidesvio
 
 **Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.
