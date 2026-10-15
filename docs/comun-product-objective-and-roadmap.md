@@ -1108,6 +1108,51 @@ nem confundir sucesso local com Produção ou prova humana.
 Este é um incremento de descoberta, não uma comunidade de
 criadores já operacional nem hospedagem de jogos.
 
+**SOC-D09.E — Contrato de publicação comunitária (15/10/2026).**
+Estado: `PRINCÍPIO DECIDIDO`; fluxo público e
+infraestrutura ainda `PLANEJADOS`.
+
+O criador conserva a autoria e os direitos sobre seu jogo;
+publicá-lo no catálogo do COMUN **não** implica cessão
+exclusiva, transferência de código, licenciamento aberto
+obrigatório ou acesso a dados dos participantes. A licença
+de divulgação necessária para título, descrição, imagens
+autorizadas, créditos e link é específica e revogável,
+respeitadas obrigações legítimas de auditoria/retenção.
+
+A proposta de jogo deve poder informar: nome e contato
+protegido do responsável; link externo de demonstração
+funcional; descrição, gênero e idioma; plataformas,
+controles e recursos de acessibilidade; licença de
+imagens/músicas e demais terceiros; conteúdo sensível/faixa
+etária indicada; publicidade, compras e coleta de dados
+existentes no destino; e canal para correção/retirada.
+Contato privado do criador não deve aparecer na vitrine.
+
+A curadoria é **prévia à exposição pública** e baseada em
+segurança, autenticidade de autoria, direitos, qualidade
+mínima de funcionamento, compatibilidade e regras claras.
+Ela não exige concordância política nem preferência
+estética institucional. Informar o motivo da recusa,
+permitir correções e recurso; não oferecer publicação
+automática, aprovação por popularidade ou prazo fictício.
+A moderação só poderá escalar quando houver capacidade
+humana de analisar e remover jogos com prontidão.
+
+Estados mínimos da futura proposta: `rascunho`,
+`enviada`, `em_revisao`, `ajustes_solicitados`,
+`aprovada`, `publicada`, `retirada` ou
+`recusada`. Estes estados são especificação conceitual,
+**não** tabelas ou endpoints autorizados.
+
+**Gate de continuidade:** antes de desenvolver formulário,
+reutilizar serviços de propostas/curadoria já existentes
+somente se oferecerem o mesmo contrato de privacidade,
+autoria, recurso e operação. Se não houver equipe para
+moderar, manter convite privado e seleção manual de poucos
+jogos, sem criar superfície pública de submissão.
+Não construir hospedagem executável no mesmo domínio.
+
 **Relações canônicas:** SOC-D01 (experiência e relação),
 SOC-D02 (ausência e saída), SOC-D03 (segurança),
 SOC-D05 (anti-proliferação), SOC-D06 (autoria),
