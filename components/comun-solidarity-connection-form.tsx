@@ -450,7 +450,7 @@ function ConnectionForm({
           ) : null}
         </div>
         <p role="status" className="mt-2">
-          {storageNotice}
+          {effectiveNotice}
         </p>
       </section>
       {authenticated ? (

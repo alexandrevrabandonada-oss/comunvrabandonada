@@ -145,6 +145,12 @@ test("denied storage getter preserves memory and has no false save", async ({
     });
   });
   await page.goto(offer);
+  // Explain the disabled control before the user has typed or tried to save.
+  await expect(
+    page.getByRole("status").filter({
+      hasText: "O armazenamento local não está disponível por completo",
+    }),
+  ).toBeVisible();
   await page.getByLabel("Sua mensagem para a organização").fill(message);
   await expect(
     page.getByRole("button", { name: "Salvar somente mensagem", exact: true }),
@@ -157,6 +163,52 @@ test("denied storage getter preserves memory and has no false save", async ({
       .getByRole("status")
       .filter({ hasText: "Alterações apenas em memória" }),
   ).toBeVisible();
+});
+
+test("legacy deletion denied is explained before typing without exposing legacy fields", async ({
+  page,
+}) => {
+  await login(page);
+  await page.evaluate((prefix) => {
+    sessionStorage.setItem(
+      `${prefix}v1:retained`,
+      JSON.stringify({
+        message: "Legacy synthetic private message",
+        contact: "legacy@example.invalid",
+        consent: true,
+      }),
+    );
+  }, prefix);
+  await page.addInitScript(() => {
+    Storage.prototype.removeItem = () => {
+      throw new DOMException("denied", "SecurityError");
+    };
+  });
+  await page.goto(offer);
+  await expect(
+    page.getByRole("status").filter({
+      hasText: "O armazenamento local não está disponível por completo",
+    }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Sua mensagem para a organização")).toHaveValue(
+    "",
+  );
+  await expect(
+    page.getByLabel("Contato protegido", { exact: true }),
+  ).toHaveValue("");
+  await expect(page.getByRole("checkbox")).not.toBeChecked();
+  await expect(
+    page.getByText("Legacy synthetic private message", { exact: true }),
+  ).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      (prefix) =>
+        Object.keys(sessionStorage).filter((key) =>
+          key.startsWith(`${prefix}v1:`),
+        ).length,
+      prefix,
+    ),
+  ).toBe(1);
 });
 
 test("failed write/removal stay honest and preserve typed message", async ({

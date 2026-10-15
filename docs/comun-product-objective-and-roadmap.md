@@ -1113,3 +1113,46 @@ Checks finais: 13 SUCCESS, 42 SKIPPED, 1 FAILURE (P1G/Escola), zero PENDING.
 PR #549 continua CANDIDATO EM PR/draft, dependente do #546, sem reviews; não
 INTEGRADO nem PRODUÇÃO VERIFICADA. Descoberta pública contextual permanece
 o próximo incremento único PLANEJADO, sem abertura de nova fila.
+
+### SOC-D08-R1 — revisão crítica da Feirinha (15/10/2026)
+
+**DECISÃO / CANDIDATO EM PR #549, não aprovação humana.** Head revisado
+5de169eb, base #546 d39656f4, main 8b0ba0d2; 13 SUCCESS/42 SKIPPED/1 FAILURE
+(P1G/Escola), zero pending. Achado P2 R549-F01: aviso de storage indisponível
+calculado, mas não exibido antes da digitação. Correção mínima renderiza o aviso
+já existente; regressão browser red antes e 6 casos green depois, inclusive
+remoção legada recusada sem revelar campos antigos. Sem mudança de auth/schema,
+retenção ou permissões. Novo commit exige seus próprios checks/Preview; não
+transportar as aprovações anteriores. A revisão separa componentes/actions reais
+com transporte controlado de Auth/Postgres real em prova distinta; não equivale
+a E2E único ou validação humana. [Revisão e fontes](../reports/current/comun-soc-d08-review-and-discovery.md).
+
+### SOC-D09 — descoberta pública contextual (15/10/2026)
+
+**DECIDIDO COMO PRÓXIMO INCREMENTO ÚNICO / PLANEJADO.** Motivo: encontrar algo
+apreciável/útil sem conta nem obrigação coletiva. Consequência: seção pequena
+“Para conhecer com calma” no Explorar existente, até 2 itens por categoria
+Acervo/Rádio/Feirinha, máximo 6, com contexto/fonte/data/direitos e retorno, sem
+feed, ranking ou schema novo. Cultura e oferta têm valor sem contrapartida.
+
+Inventário por GET público e código: Acervo e Rádio exibem vazio; nenhuma oferta
+individual elegível confirmada; ações/território em preparação. Quatro cartões
+de comunidades não provam operação: helper pode retornar seed em erro. Leitores
+que colapsam falha em vazio não são contrato suficiente para a nova seção.
+Não inventar conteúdo nem chamar estado vazio de banco sem registros.
+
+Dependências: amostra real publicamente elegível com proveniência suficiente,
+readers ready/empty/unavailable sem seed e revalidação dos detalhes. CTA da
+Feirinha depende de #549/#546; acesso cultural não é dependência automática da
+migration Escola. Critério: omitir categorias vazias, isolar falha por fonte,
+nenhum dado privado/rascunho/retirado, abrir e retornar em celular/teclado sem
+login/escrita automática, pilot_noindex e gates preservados. Sem amostra e com
+essas lacunas, fica especificação concreta, sem criar outra pilha de código.
+
+Bloqueio Escola conferido no #542/921351c3: Subject Confirm Email Change já
+resolvido; faltam configuração CAPTCHA real LAB_ONLY/hostname/recibo, desafio
+humano e cinco fluxos, Gmail 0/6; backup fresco/restore/permit ainda não prontos.
+Próxima ação é a rotina existente do #542 por canal protegido, não novo
+procedimento nem busca de secrets nesta passada. Integração elegível futura:
+Escola/preflights → #546 e certificação pós-merge → #549 reconciliado/gates/review
+com certificação própria. Nenhum gate dispensado ou merge realizado.
