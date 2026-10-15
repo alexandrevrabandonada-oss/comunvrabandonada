@@ -13,7 +13,7 @@ on:
       - ".github/workflows/comun-48-4-a5-preflight.yml"
       - ".github/workflows/comun-48-4-a6-preflight.yml"
       - "lib/supabase-database-tls.ts"
-      - "scripts/ci/readonly-database-ca.node-test.mjs"
+      - "tests/ci/readonly-database-ca.node-test.mjs"
       - "scripts/ci/readonly-reconciled-migration-plan*"
       - "scripts/security/supabase-prod-ca-2021.crt"
   workflow_dispatch:
@@ -30,4 +30,4 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22.19.0", cache: npm }
       - run: npm ci --ignore-scripts
-      - run: node --test scripts/ci/readonly-database-ca.node-test.mjs
+      - run: node --test tests/ci/readonly-database-ca.node-test.mjs
