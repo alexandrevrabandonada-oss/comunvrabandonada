@@ -14,6 +14,7 @@ on:
       - "scripts/economy/prove-soc-d08-disposable.mjs"
       - "scripts/ci/run-soc-d08-browser-proof*"
       - "scripts/ci/collect-soc-d08-native-stack*"
+      - "scripts/ci/probe-soc-d08-native-baseline.mjs"
       - ".github/workflows/comun-soc-d08-continuity.yml"
 permissions: { contents: read }
 jobs:
@@ -41,6 +42,11 @@ jobs:
           sudo apt-get install -y gdb
           install -d -m 700 "$RUNNER_TEMP/comun-soc-d08-cores"
           sudo sysctl -w "kernel.core_pattern=$RUNNER_TEMP/comun-soc-d08-cores/core.%p"
+      - name: Static HTML native control without product or Auth
+        env: { DEBUG: "pw:browser" }
+        run: |
+          ulimit -c 2097152
+          node scripts/ci/probe-soc-d08-native-baseline.mjs
       - name: Run unchanged browser scenarios with bounded core capture
         run: |
           ulimit -c 2097152
