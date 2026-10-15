@@ -22,6 +22,8 @@ import {
 } from "@/lib/comun-solidarity-private-connections";
 import {
   createSolidarityConnection,
+  solidarityConnectionFormIdentity,
+  solidarityConnectionDraftOwner,
   reviewSolidarityConnection,
   withdrawSolidarityConnection,
 } from "@/lib/server/comun-solidarity-private-connections";
@@ -81,6 +83,19 @@ export async function createSolidarityConnectionAction(
         message:
           "Entre na sua conta para enviar. Antes de sair, copie o texto se quiser levá-lo; não garantimos sua recuperação após entrar.",
         loginHref: communityLoginHref(returnTo),
+      };
+    // This is a stale-form check, never a client-selected actor/authorization.
+    if (
+      value(formData, "form_context") !==
+        solidarityConnectionFormIdentity(session.user) ||
+      value(formData, "login_context") !==
+        (solidarityConnectionDraftOwner(session.user) ?? "")
+    )
+      return {
+        state: "error",
+        sessionChanged: true,
+        message:
+          "Sua sessão mudou. Reabra este item antes de enviar e confirme novamente o contato e a autorização.",
       };
     if (
       [

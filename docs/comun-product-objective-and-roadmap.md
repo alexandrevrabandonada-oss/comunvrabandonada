@@ -4,18 +4,18 @@
 
 ## Estado atual da auditoria integral — U0.2
 
-**Uma fila, uma entrega principal:** #546 permanece estacionado nos cinco preflights da Escola. Por instrução explícita de 14/10, preparar SOC-D08 em candidato derivado e delimitado, sem duplicar correções nem integrar enquanto houver gates bloqueados. Esta seção é o ponto de retomada; os registros abaixo preservam decisões e evidências históricas. A proposta de sequência consolida prioridades, sem revogar gates vigentes.
+**Uma fila, uma entrega principal:** #546 permanece estacionado nos cinco preflights da Escola. Por instrução explícita de 14/10, SOC-D08 foi implementado no #549 draft, derivado e delimitado, sem duplicar correções nem integrar enquanto houver gates bloqueados. A revisão final demonstrou e corrigiu também troca de identidade entre abas; conferir as provas do último head no #549. Esta seção é o ponto de retomada; os registros abaixo preservam decisões e evidências históricas. A proposta de sequência consolida prioridades, sem revogar gates vigentes.
 
 **Produto:** rede comunitária de vida cotidiana, ajuda mútua, organização de base, Feirinha (venda/troca/doação), ferramentas por pauta, observatórios, formação/Fábrica, cultura e memória. Todas compartilham busca, território, privacidade, continuidade e distribuição. Não é necessário transformar toda interação em pauta. Execução solo, sem orçamento adicional e sem participantes de teste disponíveis neste momento.
 
-| Estado               | Resultado / próximo passo                                                                                                                                                                  |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Inventário estático  | 240 páginas / 46 famílias; 52 arquivos de ações / 187 exports async. Não certifica funcionamento ou disponibilidade                                                                        |
-| Correções candidatas | Rascunho por aba com revisão para limpeza segura; tarefas públicas e contagens sem internas; controles administrativos explícitos; seleção e referência de prática protegidas na aplicação |
-| Verificação          | 1.486 unitários, lint completo, TypeScript e seis contratos de superfícies/coerência PASS; build final PASS                                                                                |
-| Bloqueio             | Browser E2E: Chromium indisponível (download truncado); 21 casos descobertos não contam como executados                                                                                    |
-| Escola               | Migration/manifest pinados intactos; ativação e atomicidade de referências no banco seguem pendentes                                                                                       |
-| Item ativo           | PR draft #546 publicado; conferir novo checkpoint Preview, transporte TLS e gates do SHA                                                                                                   |
+| Estado               | Resultado / próximo passo                                                                                                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Inventário estático  | 240 páginas / 46 famílias; 52 arquivos de ações / 187 exports async. Não certifica funcionamento ou disponibilidade                                                                              |
+| Correções candidatas | Rascunho por aba com revisão para limpeza segura; tarefas públicas e contagens sem internas; controles administrativos explícitos; seleção e referência de prática protegidas na aplicação       |
+| Verificação          | Baseline U0 e contagens históricas no relatório vinculado; provas SOC-D08 discriminadas por SHA ao final desta seção canônica e no #549. Não transferir aprovações.                              |
+| Bloqueio             | #546: cinco preflights recusam 20261006134804 da Escola. SOC-D08 também alcança essa pendência no P1G. O antigo bloqueio de browser não se aplica às provas posteriores de Chromium registradas. |
+| Escola               | Migration/manifest pinados intactos; ativação e atomicidade de referências no banco seguem pendentes                                                                                             |
+| Item ativo           | #549 draft, SOC-D08: mensagem privada, sessão atual, Sair real e entrada pelos cards. Dependência explícita do #546; integração exige gates de main e schema resolvidos, sem bypass.             |
 
 Fontes e limites estão no [checkpoint U0](../reports/current/comun-u0-product-inventory.md). O índice de ações não cobre automaticamente endpoints, `app/actions.ts` ou dependências transitivas; o arquivo central foi examinado apenas no rastreio focal.
 
@@ -1017,3 +1017,27 @@ draft, dependente do #546). Integração, Production e validação humana não p
 Próxima ação executável: reconciliar runs/Preview do head na descrição do #549;
 integração exige dependência resolvida e gates de main no SHA exato. A próxima
 entrega de produto continua descoberta pública contextual, ainda PLANEJADA.
+
+SOC-D08 — correção adicional demonstrada na revisão final: a aba A mantinha texto
+de A após outra aba entrar como B (regressão de navegador reproduzida). Dois
+controles de action também falharam antes da correção: formulário de outra conta
+e de login anterior eram aceitos. O ator continua exclusivamente getUser; os
+handles opacos do formulário apenas recusam estado stale, não concedem autoridade.
+
+Decisão: notificações efêmeras entre formulários usam BroadcastChannel com
+apenas tipo e hashes opacos de conta/login, nunca mensagem/contato/consentimento.
+São sinais não confiáveis de invalidação, não outro sistema de Auth. Troca de
+contexto apaga memória e solicita refresh dos Server Components existentes.
+Perda de foco/visibilidade esconde os campos e exige nova resposta servidor antes
+de mostrá-los; mantém mensagem em memória somente no mesmo login, mas zera
+contato/consentimento. Falha da atualização permanece fechada com Reabrir item.
+Mesmo sem canal, o servidor recusa contexto obsoleto antes de qualquer RPC; a
+resposta esconde e limpa os campos. Não há polling, endpoint/tabela nova, storage
+de identidade ou mudança do Auth. O fallback de foco foi ensaiado com eventos
+sintéticos; isso não certifica troca de janela física, Safari ou Firefox.
+
+Prova local ampliada SOC-D08 entre abas: 48/48 cenários PASS, incluindo recusa
+de envio stale quando o canal é negado e preservação da mensagem no mesmo login.
+57 focais, TypeScript, ESLint e build de fixture PASS. Isso continua prova sintética
+renderizada, separada de Auth/Postgres real. Exigir runs/Preview do novo head no
+#549 antes de atribuir PASS remoto. Sem integração enquanto Escola/gates bloqueados.

@@ -536,3 +536,117 @@ for (const kind of ["offer", "need"] as const) {
     expect(page.url()).not.toContain("PRIVATE_SENTINEL");
   });
 }
+
+test("another tab changing identity cannot expose the previous tab message", async ({
+  page,
+}) => {
+  await login(page);
+  await save(page);
+  await page
+    .getByLabel("Contato protegido", { exact: true })
+    .fill("synthetic@example.invalid");
+  await page.getByRole("checkbox").check();
+  const second = await page.context().newPage();
+  const secondErrors: string[] = [];
+  second.on("pageerror", (error) => secondErrors.push(error.message));
+  try {
+    await login(second, "b");
+    await page.bringToFront();
+    await expect(
+      page.getByLabel("Sua mensagem para a organização"),
+    ).toHaveValue("");
+    await expect(
+      page.getByLabel("Contato protegido", { exact: true }),
+    ).toHaveValue("");
+    await expect(page.getByRole("checkbox")).not.toBeChecked();
+    expect(secondErrors).toEqual([]);
+  } finally {
+    await second.close();
+  }
+});
+
+test("another tab with the same validated login preserves the in-memory message", async ({
+  page,
+}) => {
+  await login(page);
+  await save(page);
+  const second = await page.context().newPage();
+  const secondErrors: string[] = [];
+  second.on("pageerror", (error) => secondErrors.push(error.message));
+  try {
+    await second.goto(offer);
+    await expect(
+      second.getByLabel("Sua mensagem para a organização"),
+    ).toHaveValue("");
+    await page.bringToFront();
+    await expect(
+      page.getByLabel("Sua mensagem para a organização"),
+    ).toHaveValue(message);
+    expect(secondErrors).toEqual([]);
+  } finally {
+    await second.close();
+  }
+});
+
+test("server rejects stale form when cross-tab notifications are denied", async ({
+  page,
+  request,
+}) => {
+  await page.addInitScript(() =>
+    Object.defineProperty(window, "BroadcastChannel", {
+      configurable: true,
+      value: class {
+        constructor() {
+          throw new DOMException("Unavailable", "SecurityError");
+        }
+      },
+    }),
+  );
+  await login(page);
+  await save(page);
+  await page
+    .getByLabel("Contato protegido", { exact: true })
+    .fill("synthetic@example.invalid");
+  await page.getByRole("checkbox").check();
+  const second = await page.context().newPage();
+  const secondErrors: string[] = [];
+  second.on("pageerror", (error) => secondErrors.push(error.message));
+  try {
+    await login(second, "b");
+    await page
+      .getByRole("button", { name: "Enviar interesse", exact: true })
+      .click();
+    await expect(
+      page.getByRole("alert").filter({ hasText: "Sua sessão mudou" }),
+    ).toBeVisible();
+    await expect(
+      page.getByLabel("Sua mensagem para a organização"),
+    ).toHaveCount(0);
+    expect((await (await request.get("/lab-state")).json()).rows).toBe(0);
+    expect(secondErrors).toEqual([]);
+  } finally {
+    await second.close();
+  }
+});
+test("synthetic window blur/focus fallback rechecks same login without restoring contact", async ({
+  page,
+}) => {
+  await login(page);
+  await save(page);
+  await page
+    .getByLabel("Contato protegido", { exact: true })
+    .fill("synthetic@example.invalid");
+  await page.getByRole("checkbox").check();
+  await page.evaluate(() => window.dispatchEvent(new Event("blur")));
+  await expect(page.getByLabel("Sua mensagem para a organização")).toHaveCount(
+    0,
+  );
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await expect(page.getByLabel("Sua mensagem para a organização")).toHaveValue(
+    message,
+  );
+  await expect(
+    page.getByLabel("Contato protegido", { exact: true }),
+  ).toHaveValue("");
+  await expect(page.getByRole("checkbox")).not.toBeChecked();
+});

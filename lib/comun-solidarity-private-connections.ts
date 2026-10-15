@@ -56,6 +56,7 @@ export type SolidarityConnectionActionState =
   | { state: "idle" }
   | {
       state: "error";
+      sessionChanged?: boolean;
       message: string;
       field?: "message" | "contact" | "consent";
     }

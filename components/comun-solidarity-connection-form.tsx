@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { ComunExperience } from "@/lib/comun-experience";
 import {
   useActionState,
@@ -64,6 +65,8 @@ function ConnectionForm({
   experience = "app-v2",
   fromDirectory = false,
 }: Props) {
+  const router = useRouter();
+  const [sessionCheck, setSessionCheck] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState(
     action,
     initialSolidarityConnectionActionState,
@@ -89,6 +92,8 @@ function ConnectionForm({
     organizationTerritoryId,
   };
   const success = state.state === "success";
+  const sessionChanged =
+    state.state === "error" && state.sessionChanged === true;
   const authenticated = Boolean(formIdentity);
 
   const [draftStore] = useState(() =>
@@ -111,7 +116,7 @@ function ConnectionForm({
   const [previousResult, setPreviousResult] = useState(state);
   if (previousResult !== state) {
     setPreviousResult(state);
-    if (success) {
+    if (success || sessionChanged) {
       setDraft({
         requestId: initialRequestId,
         message: "",
@@ -125,7 +130,7 @@ function ConnectionForm({
   }
 
   useEffect(() => {
-    if (success) draftStore.discard();
+    if (success || sessionChanged) draftStore.discard();
     if (state.state === "success" || state.state === "auth_required")
       feedbackRef.current?.focus();
     else if (state.state === "error") {
@@ -137,6 +142,7 @@ function ConnectionForm({
   }, [
     state,
     success,
+    sessionChanged,
     draftOwner,
     subjectKind,
     subjectId,
@@ -158,13 +164,68 @@ function ConnectionForm({
     const revalidateHistory = (event: PageTransitionEvent) => {
       if (event.persisted) window.location.reload();
     };
+    // Only opaque context notifications cross tabs; they grant no authority and carry no draft/contact.
+    const needsCheck = { current: false };
+    const pause = () => {
+      needsCheck.current = true;
+      setSessionCheck(initialRequestId);
+      setDraft((current) => ({ ...current, contact: "", consent: false }));
+    };
+    const resume = () => {
+      if (!needsCheck.current) return;
+      needsCheck.current = false;
+      router.refresh();
+    };
+    const visibility = () => {
+      if (document.visibilityState === "hidden") pause();
+      else resume();
+    };
+    let channel: BroadcastChannel | undefined;
+    try {
+      channel = new BroadcastChannel("comun:solidarity-form-context:v1");
+      channel.onmessage = (event: MessageEvent) => {
+        const data = event.data;
+        const opaque = (value: unknown) =>
+          value === null ||
+          (typeof value === "string" && /^[a-f0-9]{64}$/.test(value));
+        if (
+          !data ||
+          typeof data !== "object" ||
+          Object.keys(data).sort().join(",") !== "identity,login,type" ||
+          data.type !== "validated-form-context" ||
+          !opaque(data.identity) ||
+          !opaque(data.login)
+        )
+          return;
+        if (data.identity !== formIdentity || data.login !== draftOwner) {
+          clearPrivateInputs();
+          pause();
+          resume();
+        }
+      };
+      channel.postMessage({
+        type: "validated-form-context",
+        identity: formIdentity,
+        login: draftOwner,
+      });
+    } catch {
+      channel?.close();
+      channel = undefined;
+    }
+    window.addEventListener("blur", pause);
+    window.addEventListener("focus", resume);
+    document.addEventListener("visibilitychange", visibility);
     window.addEventListener("pagehide", clearPrivateInputs);
     window.addEventListener("pageshow", revalidateHistory);
     return () => {
+      channel?.close();
+      window.removeEventListener("blur", pause);
+      window.removeEventListener("focus", resume);
+      document.removeEventListener("visibilitychange", visibility);
       window.removeEventListener("pagehide", clearPrivateInputs);
       window.removeEventListener("pageshow", revalidateHistory);
     };
-  }, [draftStore]);
+  }, [draftStore, initialRequestId, draftOwner, formIdentity, router]);
 
   function recover() {
     const saved = readConnectionDraft(storage, context);
@@ -214,6 +275,28 @@ function ConnectionForm({
   const focusClass =
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4";
 
+  if (sessionCheck === initialRequestId || sessionChanged)
+    return (
+      <div
+        ref={feedbackRef}
+        tabIndex={-1}
+        role={sessionChanged ? "alert" : "status"}
+        className="border-2 border-comun-black bg-white p-5 text-comun-black"
+      >
+        <p>
+          {sessionChanged
+            ? "Sua sessão mudou. Reabra este item e confirme novamente o contato e a autorização antes de enviar."
+            : "Conferindo a sessão antes de mostrar a mensagem. Contato e autorização precisam ser confirmados novamente."}
+        </p>
+        <button
+          type="button"
+          className="mt-3 min-h-11 font-black underline"
+          onClick={() => window.location.reload()}
+        >
+          Reabrir este item
+        </button>
+      </div>
+    );
   if (success)
     return (
       <div
@@ -250,6 +333,8 @@ function ConnectionForm({
       className="grid gap-5 bg-comun-paper p-4 text-comun-black sm:p-6"
       aria-describedby={describedBy}
     >
+      <input type="hidden" name="form_context" value={formIdentity ?? ""} />
+      <input type="hidden" name="login_context" value={draftOwner ?? ""} />
       <input type="hidden" name="experiencia" value={experience} />
       <input
         type="hidden"

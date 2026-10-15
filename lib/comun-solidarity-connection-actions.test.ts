@@ -25,6 +25,9 @@ vi.mock("@/lib/server/comun-solidarity-organization-governance", () => ({
 }));
 vi.mock("@/lib/server/comun-solidarity-private-connections", () => ({
   createSolidarityConnection: mocks.create,
+  solidarityConnectionFormIdentity: (user: { id: string }) => `form:${user.id}`,
+  solidarityConnectionDraftOwner: (user: { last_sign_in_at?: string }) =>
+    user.last_sign_in_at ?? null,
   reviewSolidarityConnection: mocks.review,
   withdrawSolidarityConnection: mocks.withdraw,
 }));
@@ -47,6 +50,8 @@ const organization = "a5000000-0000-4000-8000-000000000011";
 function form() {
   const data = new FormData();
   for (const [key, value] of Object.entries({
+    form_context: `form:${actor}`,
+    login_context: "",
     subject_kind: "offer",
     subject_id: item,
     subject_slug: "oferta-lab",
@@ -224,5 +229,30 @@ it("login return retains only safe public journey context", async () => {
     "/comun/cooperativas/organizacao-lab/ofertas/oferta-lab/interesse?origem=feirinha&experiencia=legacy",
   );
   expect(result.loginHref).not.toContain("PRIVATE");
+  expect(mocks.create).not.toHaveBeenCalled();
+});
+
+it("rejects a form prepared for another account before creating a connection", async () => {
+  const data = form();
+  data.set("form_context", "form:previous-account");
+  const result = await createSolidarityConnectionAction(
+    { state: "idle" },
+    data,
+  );
+  expect(result.state).toBe("error");
+  expect(mocks.create).not.toHaveBeenCalled();
+});
+it("rejects a form prepared before the current login epoch", async () => {
+  mocks.session.mockResolvedValue({
+    user: { id: actor, last_sign_in_at: "new-login" },
+    profile: { status: "active" },
+  });
+  const data = form();
+  data.set("login_context", "previous-login");
+  const result = await createSolidarityConnectionAction(
+    { state: "idle" },
+    data,
+  );
+  expect(result.state).toBe("error");
   expect(mocks.create).not.toHaveBeenCalled();
 });

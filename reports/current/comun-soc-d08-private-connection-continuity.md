@@ -1,3 +1,7 @@
+> Checkpoint ativo: #549 draft, dependente do #546. Provas abaixo pertencem aos
+> SHAs indicados. A correção entre abas ao final substitui a premissa de fechamento
+> do 0256a6cf; resultados finais do novo SHA ficam na descrição atualizada do #549.
+
 # SOC-D08 — continuidade privada da Feirinha
 
 Estado: CANDIDATO EM PR, não integrado, não Production verificada e não validação humana.
@@ -143,3 +147,36 @@ Relatório é registro das provas nos respectivos SHAs, não certificação Prod
 Aparelhos reais, Safari/Firefox, leitor de tela humano, compreensão e operação
 Production continuam NOT_RUN. Descoberta contextual continua PLANEJADA, sem nova
 entrega concorrente. Sem merge, schema write, Auth/Source, flags ou indexação.
+
+## Finding material adicional — identidade entre abas
+
+Reprodução antes da correção: navegador mobile mostrou a mensagem A depois do
+login B em outra aba (1 FAIL); duas regressões de action esperavam error mas
+receberam success (2 FAIL, 19 não selecionados/SKIPPED, não contados como PASS).
+O head 0256a6cf tinha 40 cenários e seus demais ensaios verdes, mas não cobria isso.
+
+Correção focal: contexto opaco do formulário comparado no servidor com a sessão
+validada, incluindo época do login quando disponível. Não é parâmetro de ator.
+Mismatch encerra antes da RPC e o cliente limpa/esconde campos, sem gravação.
+BroadcastChannel envia só hashes opacos/tipo e sinaliza invalidação; payload é
+allowlisted, não contém texto/contato/consentimento e não é autoridade de Auth.
+Canal indisponível é tratado sem pageerror; blur/visibilidade mascaram o formulário
+e router.refresh reutiliza a leitura server-side existente. Novo request nonce
+servidor precisa chegar para reabrir; sem resposta continua fechado com alternativa
+manual. Mensagem no mesmo login permanece em memória; contato e consentimento
+precisam ser informados novamente. Sem polling ou sistema de identidade paralelo.
+
+Quatro cenários de duas abas passaram após a primeira correção (mesmo login e
+troca A/B, mobile/desktop). Acrescentados controle de canal recusado e recusa real
+da action sem escrita, além de fallback blur/focus por eventos sintéticos. Esse
+fallback não substitui ensaio de troca física de janelas nem prova Safari/Firefox.
+57 focais (quatro arquivos) PASS após a correção; TypeScript/build de fixture PASS.
+A suite renderizada ampliada tem 48 casos; exigir sua conclusão no novo candidato.
+
+Conclusão local da correção entre abas: 48/48 cenários PASS, zero skipped/flaky
+no JSON local; 57 focais PASS, TypeScript/ESLint e build da fixture PASS. Comandos
+seguem os já registrados, sem timeout aumentado nem filtros de pageerror. O novo
+SHA precisa de suas próprias provas remotas e Preview; a descrição do #549 contém
+as runs finais. O fechamento remoto de 0256a6cf (1.537 unitários, 40 browsers,
+Auth/Postgres e ensaios amplos PASS, exceto schema Escola) permanece histórico,
+não certificado para esta mudança adicional.
