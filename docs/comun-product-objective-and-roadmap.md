@@ -1092,3 +1092,13 @@ confirmada com diagnóstico passivo. Causa raiz ainda não demonstrada. Preview
 exato READY/Deployment success; COST-02 SKIPPED. Escola/P1G continua bloqueado
 pela migration pendente. Sem integração ou alteração Production. Evidência e
 hashes no relatório SOC-D08; próxima etapa é stack/core mínimo, não rerun cego.
+
+#### SOC-D08 — mitigação validada, integração ainda bloqueada
+
+Head remoto `5de169eb1c3b90f006a6b077a34879da691fc905`: atualização fixada
+do Playwright 1.61.1 para 1.64.1, sem mudança de runtime do produto, passou
+duas execuções Linux consecutivas de 50/50 e Auth/Postgres real. Stacks SIGTRAP
+anteriores preservados; causa interna não declarada resolvida. Preview exato
+READY e Deployment success; COST-02 SKIPPED. Full Surface admin com um rerun
+dirigido após colisão de porta e Security Resilience ainda pendentes. Escola
+continua bloqueando P1G/#546; #549 permanece draft, sem merge/Production.

@@ -324,3 +324,72 @@ com a mesma revisão e preservar um caso mínimo antes de propor mudança do bro
 ou produto. Não fazer outro rerun equivalente. Integração continua bloqueada;
 Production e Escola não foram alteradas. Este resultado documental fica local
 para não criar uma nova execução sem mudança material.
+
+### Mitigação verificada da queda nativa — 2026-10-14
+
+Head remoto `5de169eb1c3b90f006a6b077a34879da691fc905`, tree
+`525a29b31a344c68b0f3d08a7f2ed4b155174d14`.
+
+Diagnóstico preservado:
+
+- `819ac86c`, run 38665670508, UI 48 PASS/2 FAIL; dois cores SIGTRAP
+  resultaram em backtraces sem argumentos/locals. Artefato 11940579438 SHA256
+  `2072c67ad71dede6b662fff9de5e7f9c540d8169fa814eed68f5d75e73fa2ed5`.
+- `2fb57c26`, run 38666266967: controle HTML estático sem produto/Auth/rede
+  completou 100 contextos em Linux, mas suíte real teve 48 PASS/2 FAIL e
+  dois stacks SIGTRAP. Artefato 11942390422 SHA256
+  `460cba4da3fe17c603b05e7b680e49edf0d2e5d7be1077c8cbe003be9ea3f6b6`.
+- Frames Chromium sem nomes no binário capturado; a causa interna permanece
+  UNPROVEN. Raw cores ficaram somente no runner descartável, nunca no artifact.
+
+Correção da ferramenta: `@playwright/test`, `playwright`, `playwright-core`
+fixados em 1.64.1 (release oficial), Chromium 156.0.8078.4 revision 1248.
+Removida somente dependência opcional transitiva fsevents do Playwright.
+Nenhuma alteração no código da aplicação, cenários, assertions, retries,
+timeouts, pageerror, políticas ou migrações. Árvores de `app`, `components`,
+`lib` e `supabase` idênticas ao candidato funcional da6495f6 por hash Git.
+O ambiente local com node_modules compartilhado não foi modificado; validação
+da nova ferramenta é a instalação limpa do runner, não resultados locais antigos.
+
+Run [38666751320](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38666751320),
+mesmo SHA, duas execuções UI consecutivas PASS:
+
+- attempt 1 job 116200340664: 50 PASS, zero skipped/unexpected/flaky; 100
+  contextos estáticos PASS; saída de ambos os processos browser 0/signal null.
+- attempt 2 job 116201528160, única confirmação dirigida: 50 PASS, zero
+  skipped/unexpected/flaky; controle estático 100 PASS; saídas 0/signal null.
+- Auth/Postgres real PASS no SHA, reaproveitado na confirmação UI.
+- Unitários, typecheck, build da fixture e 3 testes Node do diagnóstico PASS.
+
+ZIPs fora do Git, conferidos contra digest GitHub:
+
+- UI attempt 1, 11942860130:
+  `92a8d58cf4b8a5b1d78ea44ee7273ac771fd942d234160c1bdf45a14b56c6ce1`.
+- UI attempt 2, 11942286418:
+  `ad90ba04e00e4bb712aa814a4dff65ccf024ed22cf42aef3b277c498d1033675`.
+- Auth/Postgres, 11942071086:
+  `b7be994e2f4943b9f4d800729e16cb4125ddd621454848d2d4d79f19b5dca55e`.
+
+Mitigação PASS nesta amostra; não alegar causa raiz Chromium resolvida nem
+universalidade. Histórico FAIL preservado. Sem upgrade de runtime do produto.
+
+Preview exato PASS: `dpl_GExTVbbpApibxZHRQEewu4T4g8pZ`, READY/source Git,
+target null, aliasError null, metadata SHA exato. GitHub Deployment 7081611910
+Preview/success:
+https://comunvrabandonada-5p6jz7odu-alexandrevrabandonada-oss-projects.vercel.app.
+COST-02 SKIPPED, não PASS.
+
+Finding independente Full Surface admin, run 38666751415 attempt 1:
+Supabase recusou start por `55432 address already in use`, antes de reset e
+testes. Log preservado em 5de169eb-admin-failure.txt fora do Git. Uma única
+reexecução dirigida foi solicitada; resultado ainda PENDING nesta atualização.
+Security Resilience também PENDING. Não transportar PASS do SHA anterior.
+
+P1G 38666751346 continua FAIL pela pendência
+`20261006134804_comun_learning_r0.sql`. Escola/#546 continuam BLOCKED, PR #549
+draft, sem integração. Nenhum merge, schema write, Production, flags ou
+indexação alterados. Próxima ação: fechar os jobs pendentes e resolver a
+dependência Escola por sua frente autorizada, sem dispensar preflight.
+
+Referência: https://github.com/microsoft/playwright/releases/tag/v1.64.1. Não
+se afirma que a release documenta correção upstream específica deste SIGTRAP.
