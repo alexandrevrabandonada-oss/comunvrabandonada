@@ -1,3 +1,4 @@
+import { DiscoveryReturn } from "@/components/comun-public-discovery";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ComunShell, Section } from "@/components/comun-shell";
@@ -21,7 +22,11 @@ export default async function EpisodePage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ experiencia?: string }>;
+  searchParams: Promise<{
+    experiencia?: string;
+    origem?: string;
+    categoria?: string;
+  }>;
 }) {
   const { slug } = await params;
   const episode: any = await getPublicEpisode(slug);
@@ -32,7 +37,8 @@ export default async function EpisodePage({
       asset.review_status === "approved" &&
       asset.public_url,
   );
-  const appV2 = isComunAppV2((await searchParams).experiencia);
+  const discoveryQuery = await searchParams;
+  const appV2 = isComunAppV2(discoveryQuery.experiencia);
   if (appV2) {
     const relations: EntityRelation[] = [
       ...(episode.territory
@@ -108,6 +114,7 @@ export default async function EpisodePage({
           className="comun-v2-page comun-v2-page--reading comun-relational-page"
           data-comun-app-v2-page="radio-episode"
         >
+          <DiscoveryReturn query={discoveryQuery} />
           <ComunContextTrail
             items={[
               {
@@ -207,6 +214,7 @@ export default async function EpisodePage({
   return (
     <ComunShell>
       <Section>
+        <DiscoveryReturn query={discoveryQuery} />
         <p className="text-xs font-black uppercase text-comun-yellow">
           {episode.comun_radio_programs?.title_public}
         </p>

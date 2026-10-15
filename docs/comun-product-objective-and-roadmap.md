@@ -923,3 +923,45 @@ por este checkpoint; compreensão e atratividade humanas continuam pendentes.
 ### Regra antidesvio
 
 **Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.
+
+
+### SOC-D09 — Descoberta pública limitada, com disponibilidade verificável (2026-10-15)
+
+**Decisão:** implementar no Explorar existente “Para conhecer com calma”, até dois
+itens de Acervo/Rádio/Feirinha e seis no total. Memória, escuta e trocas têm valor
+próprio; não exigem cadastro, militância ou tarefa. Não há feed, ranking, nova
+telemetria, schema ou publicação automática.
+
+**Motivo/consequência:** ausência de amostra editorial real não impede testar a
+implementação com dados sintéticos identificados no laboratório. Não se certifica
+vitrine disponível em Production. Categorias vazias são omitidas; sem itens a grade
+existente permanece. Falhas independentes são `unavailable`, não vazio legítimo.
+Os leitores capturam erro na consulta necessária, antes do adaptador legado que
+retorna arrays. Comunidades com fallback seed não são fonte desta seção.
+
+**Contrato:** leitores especializados, publicação, direitos, consentimentos e flags
+existentes permanecem autoridades. Acervo inicial limita-se a fotografia/documento;
+Rádio exige a elegibilidade existente; Feirinha exige organização elegível e prazo
+futuro. DTO explícito não carrega contatos, identidades ou originais. Links locais
+levam ao detalhe revalidado e transportam somente categoria/experiência e handle
+público. Retirada não autoriza acesso e oferece retorno. Snapshot não é autorização.
+
+**Estado:** candidato independente sobre main `8b0ba0d2`, sem dependência de #546
+ou #549. Somente o pin Playwright 1.64.1 foi transportado separadamente para
+reprodução do navegador. #545 permanece aberto; #546 e #549 estacionados pelos
+gates/dependências já documentados. Nenhuma integração nesta passada.
+
+**Critério verificável:** três estados nos limites de consulta; isolamento de fonte;
+allowlist/limites/URLs; páginas e componentes reais em navegador mobile/desktop;
+retirada entre lista e detalhe, acesso direto, teclado, axe e ausência de escrita;
+prova real Auth/Postgres em runner descartável próprio, distinta do transporte
+controlado do navegador. Evidências e comandos em
+`reports/current/comun-soc-d09-public-discovery.md` e
+`docs/comun-public-discovery-lab.md`.
+
+**Dependências/lacunas:** conteúdo real elegível e revisão editorial/humana não
+inventados; aparelhos reais/Safari/Firefox/ensaio humano NOT_RUN. Escola permanece
+independente: CAPTCHA humano exclusivo, cinco fluxos externos, recuperação fresca
+validada e seis preflights não dispensados. A indisponibilidade do Docker local não
+é prova de integração. Próximo incremento único: continuidade da busca/filtros
+públicos, após revisão desta entrega; não abrir outra pilha dependente do schema.

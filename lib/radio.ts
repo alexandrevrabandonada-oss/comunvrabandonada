@@ -1,3 +1,4 @@
+import type { PublicSourceState } from "@/lib/public-source-state";
 import { RADIO_V1_MEDIA_PROFILE } from "./radio-media-profile.mjs";
 import {
   isPublicArchiveAssetEligible,
@@ -69,34 +70,58 @@ export function radioPublicationBlockers(x: {
     b.push("transcript_status");
   return [...new Set(b)];
 }
+const unavailableRadio = () => ({
+  state: "unavailable" as PublicSourceState,
+  programs: [] as any[],
+  episodes: [] as any[],
+  schedule: [] as any[],
+});
+export async function readPublicRadio() {
+  try {
+    return await loadPublicRadio();
+  } catch {
+    return unavailableRadio();
+  }
+}
+/** Keeps the existing list shape; availability-aware callers use readPublicRadio. */
 export async function listPublicRadio() {
+  const result = await readPublicRadio();
+  return {
+    programs: result.programs,
+    episodes: result.episodes,
+    schedule: result.schedule,
+  };
+}
+async function loadPublicRadio() {
   const { createServiceSupabaseClient } = await import("@/lib/supabase/server");
   const db = createServiceSupabaseClient();
-  if (!db) return { programs: [], episodes: [], schedule: [] };
-  const [{ data: programs }, { data: episodes }, { data: schedule }] =
-    await Promise.all([
-      db
-        .from("comun_radio_programs")
-        .select(
-          "archive_item_id,title_public,slug_public,subtitle_public,description_public,format_type,frequency_public,territory:comun_hub_territories(slug,name,visibility,status),pauta:comun_pauta_spaces(slug,title,visibility,status)",
-        )
-        .eq("publication_status", "published")
-        .limit(24),
-      db
-        .from("comun_radio_episodes")
-        .select(
-          "archive_item_id,program_item_id,title_public,slug_public,summary_public,published_at,duration_seconds,transcript_status,territory:comun_hub_territories(slug,name,visibility,status),pauta:comun_pauta_spaces(slug,title,visibility,status),action:comun_mobilization_actions(slug,title,visibility,status),comun_archive_assets(asset_role,bucket_scope,public_url,rights_status,review_status)",
-        )
-        .eq("publication_status", "published")
-        .order("published_at", { ascending: false })
-        .limit(24),
-      db
-        .from("comun_radio_schedule_entries")
-        .select("id,title_public,starts_at,ends_at,schedule_type,public_note")
-        .eq("status", "published")
-        .order("starts_at")
-        .limit(30),
-    ]);
+  if (!db) return unavailableRadio();
+  const initial = await Promise.all([
+    db
+      .from("comun_radio_programs")
+      .select(
+        "archive_item_id,title_public,slug_public,subtitle_public,description_public,format_type,frequency_public,territory:comun_hub_territories(slug,name,visibility,status),pauta:comun_pauta_spaces(slug,title,visibility,status)",
+      )
+      .eq("publication_status", "published")
+      .limit(24),
+    db
+      .from("comun_radio_episodes")
+      .select(
+        "archive_item_id,program_item_id,title_public,slug_public,summary_public,published_at,duration_seconds,transcript_status,territory:comun_hub_territories(slug,name,visibility,status),pauta:comun_pauta_spaces(slug,title,visibility,status),action:comun_mobilization_actions(slug,title,visibility,status),comun_archive_assets(asset_role,bucket_scope,public_url,rights_status,review_status)",
+      )
+      .eq("publication_status", "published")
+      .order("published_at", { ascending: false })
+      .limit(24),
+    db
+      .from("comun_radio_schedule_entries")
+      .select("id,title_public,starts_at,ends_at,schedule_type,public_note")
+      .eq("status", "published")
+      .order("starts_at")
+      .limit(30),
+  ]);
+  if (initial.some((result) => result.error || !Array.isArray(result.data)))
+    return unavailableRadio();
+  const [{ data: programs }, { data: episodes }, { data: schedule }] = initial;
   const episodeIds = (episodes ?? [])
     .map((episode: any) => episode.archive_item_id)
     .filter(Boolean);
@@ -166,7 +191,7 @@ export async function listPublicRadio() {
       ),
       transcriptStatus: episode.transcript_status,
     });
-  return {
+  const result = {
     programs: (programs ?? []).filter(
       (program: any) =>
         (!program.territory || program.territory.visibility === "public") &&
@@ -187,6 +212,14 @@ export async function listPublicRadio() {
           (!episode.action || episode.action.visibility === "public"),
       ),
     schedule: schedule ?? [],
+  };
+  return {
+    state: (eligibilityUnavailable
+      ? "unavailable"
+      : Object.values(result).some((items) => items.length)
+        ? "ready"
+        : "empty") as PublicSourceState,
+    ...result,
   };
 }
 export async function getPublicEpisode(slug: string) {
