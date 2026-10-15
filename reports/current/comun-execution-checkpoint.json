@@ -31,15 +31,15 @@
       "sha": "f2aaea03b2231673a3f3b9a5c39c828f3b425bd7",
       "tree": "e9e416d9927eac080f53d46fe6c24a7f2176096c",
       "base": "8b0ba0d2c90295a6579e8e8808a9e765583e86c9",
-      "state": "DRAFT_SCHEMA_PREFLIGHTS_BLOCKED_OTHER_CHECKS_RUNNING",
+      "state": "DRAFT_SCHEMA_BLOCKED_NEW_A11Y_FINDING_QUALITY_PENDING",
       "review": "NO_REVIEWS_NOT_APPROVED",
       "checkCountsObserved": {
-        "SUCCESS": 42,
-        "IN_PROGRESS": 7,
+        "FAILURE": 8,
+        "IN_PROGRESS": 1,
         "SKIPPED": 74,
-        "FAILURE": 7
+        "SUCCESS": 47
       },
-      "observedAt": "2026-10-15T16:50:08-03:00",
+      "observedAt": "2026-10-15T16:59:19-03:00",
       "evidence": [
         {
           "run": "38795799390",
@@ -60,6 +60,11 @@
         }
       ],
       "blockingChecks": [
+        {
+          "name": "Experience coherence / READY_FOR_USABILITY_REHEARSAL",
+          "state": "FAILURE",
+          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799536/job/116631876941"
+        },
         {
           "name": "remote-metadata-only",
           "state": "FAILURE",
@@ -194,7 +199,7 @@
       "detail": "Real devices, Safari/Firefox and human journey remain NOT_RUN; do not add these as new migration gates."
     }
   ],
-  "nextExecutableAction": "Read current #553 exact head and finish Quality/Civic check classification; do not rerun successful evidence without relevant diff. Investigate only new functional failure; preserve seven School schema preflights. Then reevaluate the next independent roadmap item rather than create a parallel stack.",
+  "nextExecutableAction": "Restore local project scheduling access, then create exactly the requested hourly automation after verifying this pilot receipt. Product next: investigate document-title finding in Experience Coherence job 116631876941 without rerunning green suites; reconcile Quality/Civic final outcomes.",
   "holderDecisions": [
     "Somente quando a frente Escola for elegível: entrada local protegida do par laboratorial existente e interação CAPTCHA humana. Não solicitar valores no chat. Nenhuma decisão rotineira de implementação exigida."
   ],
@@ -218,7 +223,7 @@
     "trigger": "ON_ORCHESTRATOR_CYCLE",
     "residentProcessCreated": false,
     "scheduledAutomationCreated": false,
-    "state": "WAITING_EXISTING_CI_WITH_EXTERNAL_SCHEMA_BLOCK",
+    "state": "PILOT_PASS_SCHEDULER_PROJECT_BINDING_BLOCKED",
     "cycle": [
       "READ_ROADMAP_AND_CHECKPOINT",
       "RECONCILE_CODE_PRS_AND_EVIDENCE",
@@ -246,6 +251,47 @@
       "evidence": "HUMAN_READ_SOURCE",
       "reference": "PR #542 body, head 921351c36f0593c118508b66e108fb11ace0e2c7",
       "askAgain": false
-    }
+    },
+    "automationRequest": {
+      "name": "ComunVR — Execução Autônoma do Roadmap",
+      "cadence": "once per hour",
+      "execution": "ISOLATED_WORKTREE",
+      "status": "NOT_CREATED_NOT_ACTIVE",
+      "pilot": {
+        "result": "PASS_LOCAL_ISOLATION_AND_RECOVERY",
+        "baseCommit": "78c50928e5b42b7b9c0816c624bcf7e32dad5238",
+        "observedAt": "2026-10-15T16:59:19-03:00",
+        "checks": "No tests or CI rerun; live GitHub read; seven schema failures preserved; new document-title serious a11y finding identified."
+      },
+      "canonicalStateRef": "refs/comun/roadmap-execution",
+      "lockPath": "<git-common-dir>/comun-roadmap-cycle.lock",
+      "consolidation": "Commit descends from captured canonical ref; update-ref compare-and-swap required. Stale writer rejected. Never overwrite other worktrees or branch tips.",
+      "limits": {
+        "cycleBudgetMinutes": 25,
+        "parallelCycles": 1,
+        "deliverablesPerCycle": 1,
+        "correctiveAttemptsPerFinding": 2,
+        "materialCodePushesPerCycle": 1,
+        "unchangedFingerprintCyclesBeforeDiagnosticOnly": 3,
+        "newPaidResources": 0
+      },
+      "blockingInfrastructure": [
+        "LOCAL_COMUN_PROJECT_NOT_RETURNED_BY_LIST_PROJECTS",
+        "COMPUTER_USE_KERNEL_ASSET_PATH_UNAVAILABLE"
+      ],
+      "requiredIntervention": "Register/open the local Git repository in the desktop app so it is returned as a local project and can be selected with isolated-worktree execution. Restore desktop Computer Use kernel only if UI assistance is required. Do not create a cloud substitute.",
+      "preparedPrompt": "docs/comun-roadmap-hourly-automation.md"
+    },
+    "newFindings": [
+      {
+        "scope": "Experience Coherence",
+        "sha": "f2aaea03b2231673a3f3b9a5c39c828f3b425bd7",
+        "run": "38795799536",
+        "job": "116631876941",
+        "finding": "serious document-title: non-empty title missing, participation-paths 768x1024",
+        "state": "REMOTE_OBSERVED_NOT_LOCALLY_REPRODUCED",
+        "next": "Inspect route and readiness/metadata; do not weaken axe or assume flake."
+      }
+    ]
   }
 }
