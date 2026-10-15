@@ -949,3 +949,11 @@ certifica Auth/RLS nem conteúdo real. Comandos, evidências e limites em
 Dependências: #552 draft independente; Escola/#523/#542 preservados, sem migration
 nem dispensa dos preflights. Próximo bloqueio único: certificar gates remotos e
 Preview do novo SHA. Aparelhos reais e validação humana continuam NOT_RUN.
+
+Evidência do incremento de busca: #553 draft, funcional `ca4e7325`;
+46 focais/adjacentes, 16 browser local, 16 browser remoto e Auth/Postgres A/B
+com limpeza PASS (run 38792046636). Matriz disclosure/controle negativo PASS
+(run 38792046468). Preview Git/GitHub no SHA funcional comprovado. Não é integração,
+Production ou validação humana. Bloqueio observado em 48.2-A: CA TLS ausente no
+runner antes de SQL, separado da dependência Escola; não enfraquecer TLS ou gates.
+Checks posteriores à atualização documental exigem inventário próprio no PR.
