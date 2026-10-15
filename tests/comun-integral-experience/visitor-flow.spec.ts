@@ -534,7 +534,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
       exact: true,
     }),
   ).toBeVisible();
-  await expect(page.locator("main")).toContainText(
+  await expect(page.locator("#conteudo")).toContainText(
     "Este conteúdo pode ter sido retirado ou não estar disponível para consulta pública.",
   );
   await expect(
