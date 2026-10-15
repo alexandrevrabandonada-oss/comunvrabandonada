@@ -197,3 +197,74 @@ zero skipped/flaky no JSON. Mantidos casos anteriores, pageerror integral e
 timeouts originais. Unitários focais, ESLint e build da fixture PASS; exigir
 CI/Preview do novo head do #549. Permanecem NOT_RUN aparelhos reais, Safari/Firefox,
 leitor de tela humano, troca física de janelas e ensaio de compreensão.
+
+## Fechamento remoto — SHA congelado para revisão e diagnóstico
+
+Candidato remoto: `da6495f651c554346313aaf5dbad62738ecb1ac4`; tree
+`bc345bee2baea048d4e316fefe5a8903ad3bb541`. #549 permanece draft, base #546.
+Main preservada `8b0ba0d2c90295a6579e8e8808a9e765583e86c9` (ancestral comum
+do candidato e #546; zero behind, dez commits próprios da dependência).
+
+| Domínio                                      | Resultado       | Evidência no SHA remoto                                                                                                                          |
+| -------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Unitários                                    | PASS            | 1.540 testes / 260 arquivos, job 116190335668                                                                                                    |
+| Tipos/build/lint                             | PASS            | Job UI executou typecheck/build fixture; build produto webpack e ESLint locais; Full Surface 38663191391 e Security 38663191378 passaram         |
+| Navegador local                              | PASS            | 50/50 Chromium Windows, zero skipped/flaky; transporte controlado declarado                                                                      |
+| Navegador Linux                              | FAIL/BLOCKED    | Run 38663191350, attempts 1 e 2: cada qual 49 PASS / 1 FAIL por processo Chromium encerrado, em casos diferentes                                 |
+| Auth/Postgres real descartável               | PASS            | Mesmo SHA, job 116189006824, attempt 1; não repetido no rerun dirigido                                                                           |
+| Full Surface                                 | PASS            | Quatro jobs da run 38663191391, inclusive admin autenticado/acessibilidade                                                                       |
+| Security/resilience                          | PASS local-only | pr-lane da run 38663191378; não certifica recuperação ou Production                                                                              |
+| Preview                                      | PASS            | Vercel dpl_67VfmjRx2qczpyRyeNbHnHHZqXDo READY, source=git, target=null, SHA exato; GitHub Deployment 7081070341 Preview/success/HTTPS vercel.app |
+| COST-02                                      | SKIPPED         | COMUN CI main-only; não contar Preview manualmente conferido como execução do gate                                                               |
+| P1G/schema                                   | FAIL/BLOCKED    | Run 38663191329: REMOTE_MIGRATION_PLAN_NOT_EMPTY:20261006134804_comun_learning_r0.sql                                                            |
+| Integração/Production                        | NOT_RUN         | Sem merge, migration, Auth/Source, flags/indexação ou business writes nesta rodada                                                               |
+| Ensaio humano/aparelhos reais/Safari/Firefox | NOT_RUN         | Inclui troca física de janelas e leitor de tela humano                                                                                           |
+
+Inventário final GitHub: 9 SUCCESS, 42 SKIPPED, 2 FAILURE, zero pending.
+Não chamar PR de verde. A ausência de pageerror reportado não prova causa nativa:
+logs mostram Target page/context/browser closed; não há causa raiz comprovada
+(OOM, GPU, produto ou bug upstream). Nenhuma whitelist, filtro ou timeout ampliado.
+
+### Incidente Linux preservado
+
+- Attempt 1: último caso desktop, Sair em outra aba; Chromium fechou antes do clique.
+- Única reexecução dirigida autorizada/consumida: somente job UI, mesmo SHA, sem
+  alteração de código; Auth/Postgres PASS não foi repetido.
+- Attempt 2: caso mobile legacy/teclado; Chromium fechou antes de preencher campo.
+- Não executar terceira tentativa equivalente. Os dois artifacts e logs foram
+  preservados fora do Git em E:/COMUN-SOC-D08-QA-20261014/.
+- UI attempt 1 artifact 11940390208, SHA-256 ZIP
+  `12b386570f504985ca957be18637c49f03e40240c9118ac8a6d9191d327e4081`.
+- UI attempt 2 artifact 11939384970, SHA-256 ZIP
+  `0a070142870b23e04f14d6d56331e92588483eec8ea3d948e71d513b6f57eaee`.
+- Auth/Postgres artifact 11939976321, SHA-256 ZIP
+  `8d8a16913c9c507a7a53053f1c7a226dd449dd506b5eda4c54e74d8abcc359aa`.
+- Hashes dos ZIPs baixados conferem exatamente com os digests da API GitHub.
+
+### Próxima ação técnica delimitada
+
+Preparar captura nativa passiva em Linux Ubuntu 24.04 / Node 22.18.0, no mesmo
+SHA e browser pinado: DEBUG=pw:browser para registrar exit code/signal e
+estatísticas sanitizadas de memória/cgroup. Não mudar produto, timeouts ou
+asserções para explicar encerramento do processo sem evidência. O cenário
+completo reproduziu o encerramento duas vezes; os casos individuais abaixo são
+os menores casos observados, não um minimal reproducer isolado já comprovado.
+
+```sh
+# Clone descartável, nenhum .env/secret Production. Checkout fixado no SHA acima.
+npm ci --ignore-scripts
+npx playwright install --with-deps chromium
+node tests/solidarity-continuity/run-fixture.mjs build
+DEBUG=pw:browser npx playwright test -c playwright.solidarity-continuity.config.ts --project=mobile --grep 'legacy form keeps readable contrast'
+# Segundo caso observado: --project=desktop --grep 'Sair in another tab'
+```
+
+Esses comandos são preparação de diagnóstico com observabilidade adicional, não
+terceiro rerun executado nem prova de correção. Não usar credenciais hospedadas.
+A integração ainda exige resolver #546/Escola e revalidar os gates de main no
+SHA exato; próximo incremento de produto permanece somente PLANEJADO.
+
+Este fechamento documental é commit local somente, para preservar o SHA remoto
+reproduzido e evitar CI/Preview equivalentes adicionais. A descrição pública do
+#549 recebe o mesmo resultado. Não fazer push desse commit como tentativa de
+obter verde; retomar pelo diagnóstico nativo delimitado acima.

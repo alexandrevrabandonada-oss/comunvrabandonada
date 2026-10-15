@@ -1056,3 +1056,30 @@ zero skipped/flaky no JSON. Mantidos casos anteriores, pageerror integral e
 timeouts originais. Unitários focais, ESLint e build da fixture PASS; exigir
 CI/Preview do novo head do #549. Permanecem NOT_RUN aparelhos reais, Safari/Firefox,
 leitor de tela humano, troca física de janelas e ensaio de compreensão.
+
+### SOC-D08 — estado de encerramento da passada
+
+`CANDIDATO EM PR` #549, remoto `da6495f651c554346313aaf5dbad62738ecb1ac4`.
+Entrega funcional: cards → login → contato/consentimento atuais → enviar →
+acompanhar/aceitar/recusar/retirar, com privacidade do rascunho, troca de conta e
+Sair entre abas. Local 50/50 navegador PASS; 1.540 unitários, Auth/Postgres real
+descartável, Full Surface e Security local-only PASS no SHA remoto. Preview Git
+READY e GitHub Preview success exatos. Isso não é disponibilidade Production.
+
+Bloqueios: P1G recusa schema da Escola, preservando dependência #546; navegador
+Linux encerrou o processo em dois casos diferentes, attempts 1 e 2 da run
+38663191350, ambos 49 PASS/1 FAIL. Sem terceira reexecução equivalente. GitHub
+final: 9 SUCCESS, 42 SKIPPED, 2 FAILURE, zero pending. COST-02 SKIPPED, não PASS.
+Não integrar, ativar flags ou abrir indexação. Causa raiz do encerramento nativo
+ainda não demonstrada; diagnóstico passivo preparado no relatório, sem atribuir
+OOM/GPU/produto por suposição. Evidências e hashes ZIP preservados.
+
+Checkpoint documental local, não enviado para provocar outra CI. Próxima ação
+executável: captura de exit code/signal/memória no mesmo browser/ambiente Linux,
+com observabilidade adicional; não repetir auditoria geral ou provas Auth verdes.
+Decisão do titular: nenhuma tarefa rotineira solicitada nesta rodada. Schema da
+Escola continua frente separada, sem autorização operacional presumida por este
+checkpoint. A próxima entrega de produto continua descoberta pública contextual
+de conteúdos reais autorizados; não iniciada enquanto esta unidade permanece
+bloqueada. NOT_RUN: aparelhos reais, Safari/Firefox, leitor de tela humano, troca
+física de janelas e compreensão. Não declarar V1 concluída.
