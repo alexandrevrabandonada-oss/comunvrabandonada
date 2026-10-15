@@ -1,9 +1,9 @@
 {
   "format": "COMUN_EXECUTION_CHECKPOINT_V1",
-  "updatedOn": "2026-10-12",
-  "objective": "Fechar recuperação da Escola sem dispensar gates; entregar continuidade independente na ouvidoria.",
-  "completion": "Entrega independente testada e revisável; Escola somente após recibo real completo, backup <=1h e PRE <=5min.",
-  "mainObserved": "1169159158e1978d08930416800f394f1558192f",
+  "updatedOn": "2026-10-15",
+  "objective": "Executar o roadmap canônico por ciclos verificáveis; prioridade atual: certificar busca/filtros/retorno #553 sem dispensar Escola.",
+  "completion": "Conclusão de cada tarefa exige evidência no SHA correspondente; conclusão global somente com os critérios do roadmap demonstrados.",
+  "mainObserved": "8b0ba0d2c90295a6579e8e8808a9e765583e86c9",
   "candidates": {
     "recovery": {
       "pr": 540,
@@ -23,7 +23,150 @@
       "sha": "8203227ca2b192f1c81102d8a3bc1b9e93aa8f79",
       "tree": "1575ecef93da51a950b1dab56e2e8982a8955fb6",
       "functionalSha": "39198b1cc1de5ccae7fe4b55d58e21fd47c8ef03",
-      "state": "DRAFT_STALE_COPY_FIXED_LOCAL_6_PASS_REMOTE_PENDING"
+      "state": "HISTORICAL_MERGED_AND_POST_MERGE_CERTIFIED",
+      "mergeSha": "8bb8cd9de9afe68293de82c6b7ca97ba4730d01f"
+    },
+    "searchContext": {
+      "pr": 553,
+      "sha": "e4a183bcc932d4e3acb9e8de78074b6163813ade",
+      "tree": "597da7d831a12752f1d96659ed7f1a56e97e8fe2",
+      "base": "8b0ba0d2c90295a6579e8e8808a9e765583e86c9",
+      "state": "DRAFT_CI_PENDING_TITLE_OPEN_SCHEMA_REQUIRED",
+      "review": "NO_REVIEWS_NOT_APPROVED",
+      "checkCountsObserved": {
+        "QUEUED": 34,
+        "IN_PROGRESS": 19,
+        "SKIPPED": 47,
+        "SUCCESS": 2
+      },
+      "observedAt": "2026-10-15T21:22:32.843Z",
+      "evidence": [
+        {
+          "sha": "e4a183bcc932d4e3acb9e8de78074b6163813ade",
+          "scope": "Actual unavailable route in Chromium; no configured backend; 390x844 and 768x1024; exact heading/text/return href plus unchanged serious/critical axe",
+          "result": "PASS_LOCAL_2_VIEWPORTS",
+          "proofSha256": "39810c67dee4745459bd2d1ef87db28e5cbfeea32eb64c6a8e73a941af9a13dc",
+          "report": "reports/current/comun-roadmap-cycle-20261015T2113.json"
+        }
+      ],
+      "blockingChecks": [],
+      "requiredSchemaPreflights": {
+        "state": "REQUIRED_NOT_DISPENSED",
+        "observedOnSha": "f2aaea03b2231673a3f3b9a5c39c828f3b425bd7",
+        "checks": [
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799875/job/116631723637"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799742/job/116631723319"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799484/job/116631722244"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799332/job/116631721909"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799133/job/116631721644"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795798745/job/116631719779"
+          },
+          {
+            "name": "remote-read-only-preflight",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795798843/job/116631719912"
+          }
+        ]
+      },
+      "previousHeadEvidence": {
+        "pr": 553,
+        "sha": "f2aaea03b2231673a3f3b9a5c39c828f3b425bd7",
+        "tree": "e9e416d9927eac080f53d46fe6c24a7f2176096c",
+        "base": "8b0ba0d2c90295a6579e8e8808a9e765583e86c9",
+        "state": "DRAFT_SCHEMA_BLOCKED_NEW_A11Y_FINDING_QUALITY_PENDING",
+        "review": "NO_REVIEWS_NOT_APPROVED",
+        "checkCountsObserved": {
+          "FAILURE": 8,
+          "IN_PROGRESS": 1,
+          "SKIPPED": 74,
+          "SUCCESS": 47
+        },
+        "observedAt": "2026-10-15T16:59:19-03:00",
+        "evidence": [
+          {
+            "run": "38795799390",
+            "scope": "18 browser controlled, 42 focused, 3 guards and real disposable Auth/Postgres A/B with cleanup",
+            "result": "PASS"
+          },
+          {
+            "run": "38795799146",
+            "scope": "read-only TLS CA contract, 21 tests",
+            "result": "PASS"
+          },
+          {
+            "run": "38795799666",
+            "job": "116631724555",
+            "scope": "COST-02 repository checkpoint contract",
+            "result": "PASS",
+            "limit": "Not certification of Production or independent exact-head Preview"
+          }
+        ],
+        "blockingChecks": [
+          {
+            "name": "Experience coherence / READY_FOR_USABILITY_REHEARSAL",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799536/job/116631876941"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799875/job/116631723637"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799742/job/116631723319"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799484/job/116631722244"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799332/job/116631721909"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799133/job/116631721644"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795798745/job/116631719779"
+          },
+          {
+            "name": "remote-read-only-preflight",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795798843/job/116631719912"
+          }
+        ]
+      }
     }
   },
   "validEvidence": [
@@ -72,9 +215,9 @@
       "migration": "20261006134804_comun_learning_r0.sql",
       "migrationSha256": "5036a833b1b681487204349f8ebc58690228a2f5aa932943a81f60df1d3b6ba7",
       "manifestSha256": "3b598bc6b3ea3dfe462ba205b6747016aace52de87c87dec332ecbb1a567d4de",
-      "conditions": "All ten existing executor requirements; fresh real recovery and PRE; reviewed immutable package; one-use transaction; uncertain COMMIT reconciled read-only."
+      "conditions": "All ten existing executor requirements; real backup and validated isolated restoration <=1h; PRE <=5min; reviewed immutable package; one-use atomic transaction; uncertain COMMIT reconciled read-only, no blind retry."
     },
-    "routine": "Local synthetic tests, protected E: backups and isolated restores, normal commits/pushes; reviewed normal merges only after applicable gates and one post-merge certification at a time.",
+    "routine": "Local/isolated reversible implementation, bounded tests, normal commits/pushes within task scope. Specific draft/no-merge restrictions of #523/#542/#552/#553 preserved; no automatic Production deployment, sensitive change or expense.",
     "consumed": [
       "Brevo SMTP lab invitations",
       "one Brevo API lab invitation",
@@ -104,7 +247,7 @@
     {
       "gate": "External recovery",
       "state": "BLOCKED",
-      "detail": "Change-email Source Subject missing; five flows unproved; connector session is not exported recovery credential; CAPTCHA positive proof missing."
+      "detail": "Source Subject resolved: Confirm Email Change, HUMAN_READ_SOURCE (#542). Lab-exclusive real Turnstile key pair not located; positive human CAPTCHA and five flows NOT_RUN. Gmail 0/6. No new secret search or send authorized by this checkpoint."
     },
     {
       "gate": "Durable real recovery",
@@ -122,9 +265,9 @@
       "detail": "Real devices, Safari/Firefox and human journey remain NOT_RUN; do not add these as new migration gates."
     }
   ],
-  "nextExecutableAction": "Certify #540 post-merge deploy before next integration; follow #541 new exact gates. Subject and local real-flow generation still required before 0/6 authorized sends.",
+  "nextExecutableAction": "Read canonical ref/checkpoint and reconcile CI at e4a183bc; investigate only new or contradictory failures. document-title remains OPEN. Do not repeat approved unaffected tests.",
   "holderDecisions": [
-    "Clarify whether ok was a literal Source Subject or acknowledgement; no inferred default"
+    "Somente quando a frente Escola for elegível: entrada local protegida do par laboratorial existente e interação CAPTCHA humana. Não solicitar valores no chat. Nenhuma decisão rotineira de implementação exigida."
   ],
   "doNotRepeat": [
     "Approved tests without relevant change",
@@ -139,5 +282,131 @@
     "schemaWritesThisRound": 0,
     "businessWritesThisRound": 0
   },
-  "resumeRule": "Read this file first. Reconsult only mutable remote state; invalidate proof only for relevant diff, expired temporal gate or contradictory evidence. Update at a material transition, not per command."
+  "resumeRule": "Read this file first. Reconsult only mutable remote state; invalidate proof only for relevant diff, expired temporal gate or contradictory evidence. Update at a material transition, not per command.",
+  "roadmapExecution": {
+    "canonicalRoadmap": "docs/comun-product-objective-and-roadmap.md",
+    "missionSource": "Human request: Missão permanente — Execução autônoma do roadmap, 15/10/2026",
+    "trigger": "ON_ORCHESTRATOR_CYCLE",
+    "residentProcessCreated": false,
+    "scheduledAutomationCreated": true,
+    "state": "CYCLE_CONSOLIDATED_CI_PENDING",
+    "cycle": [
+      "READ_ROADMAP_AND_CHECKPOINT",
+      "RECONCILE_CODE_PRS_AND_EVIDENCE",
+      "SELECT_HIGHEST_PRIORITY_ELIGIBLE_TASK",
+      "IMPLEMENT_MINIMUM_SAFE_CHANGE",
+      "TEST_AND_INVESTIGATE",
+      "COMMIT_EVIDENCE_AND_STATE",
+      "REEVALUATE_DEPENDENCIES",
+      "YIELD_RECOVERABLE_STATE"
+    ],
+    "limits": {
+      "eligibleDeliverablesPerCycle": 1,
+      "equivalentCorrectiveAttemptsPerFinding": 2,
+      "automaticProductionWrites": 0,
+      "automaticMergesOfRestrictedDrafts": 0,
+      "newPaidResources": 0
+    },
+    "evidenceRule": "PASS only for executed proof in its recorded SHA/environment. SKIPPED/PENDING/NOT_RUN/FAIL remain separate. No Preview=Production inference. Reuse only unchanged relevant code/contracts with explicit scope; never rename CI success to another head.",
+    "stopRule": "External prerequisite, no eligible task or safety limit: record exact cause, next executable action and required decision, then yield. No global completion claim.",
+    "integrationRule": "Do not change strategic priorities or relax gates. Preserve current draft/no-merge restrictions. No deployments Production, destructive migration, sensitive change or expense without appropriate specific authorization.",
+    "resumeRule": "Next orchestrator cycle starts with this file and live mutable remote state. No new timer or permanent daemon is implied.",
+    "checkpointPublication": "Commit locally while existing CI runs. Do not push documentation-only updates just to rerun unchanged tests; reconcile and publish with the next material authorized change.",
+    "schoolSourceSubject": {
+      "value": "Confirm Email Change",
+      "evidence": "HUMAN_READ_SOURCE",
+      "reference": "PR #542 body, head 921351c36f0593c118508b66e108fb11ace0e2c7",
+      "askAgain": false
+    },
+    "automationRequest": {
+      "name": "ComunVR — Execução Autônoma do Roadmap",
+      "cadence": "once per hour",
+      "execution": "ISOLATED_WORKTREE",
+      "status": "ACTIVE",
+      "pilot": {
+        "result": "PASS_LOCAL_ISOLATION_AND_RECOVERY",
+        "baseCommit": "78c50928e5b42b7b9c0816c624bcf7e32dad5238",
+        "observedAt": "2026-10-15T16:59:19-03:00",
+        "checks": "No tests or CI rerun; live GitHub read; seven schema failures preserved; new document-title serious a11y finding identified."
+      },
+      "canonicalStateRef": "refs/comun/roadmap-execution",
+      "lockPath": "<git-common-dir>/comun-roadmap-cycle.lock",
+      "consolidation": "Commit descends from captured canonical ref; update-ref compare-and-swap required. Stale writer rejected. Never overwrite other worktrees or branch tips.",
+      "limits": {
+        "cycleBudgetMinutes": 25,
+        "parallelCycles": 1,
+        "deliverablesPerCycle": 1,
+        "correctiveAttemptsPerFinding": 2,
+        "materialCodePushesPerCycle": 1,
+        "unchangedFingerprintCyclesBeforeDiagnosticOnly": 3,
+        "newPaidResources": 0
+      },
+      "blockingInfrastructure": [],
+      "requiredIntervention": null,
+      "preparedPrompt": "docs/comun-roadmap-hourly-automation.md",
+      "automationId": "comunvr-execu-o-aut-noma-do-roadmap",
+      "projectId": "fcb5d1eb-7d51-4c73-aab3-fad5c68c0b50",
+      "schedulerExecutionEnvironment": "local",
+      "isolationMechanism": "Verified per-cycle Git worktree bootstrap; not native scheduler worktree setting.",
+      "configurationVerifiedAt": "2026-10-15T17:14:14-03:00",
+      "promptSha256": "b7bc90d748c43db0969617c636c544ac255788531332db16f72d6dedc3402099",
+      "bootstrapPilot": {
+        "result": "PASS",
+        "canonicalSha": "fef06bf74132d16a9eb42c0c292607d18b24b51c",
+        "worktree": "E:/COMUN-ROADMAP-CYCLES/pilot-45e55fcffa2648f18808251d583b45e7",
+        "projectUnchanged": true,
+        "sameGitCommonDir": true
+      }
+    },
+    "newFindings": [
+      {
+        "scope": "Experience Coherence",
+        "sha": "f2aaea03b2231673a3f3b9a5c39c828f3b425bd7",
+        "run": "38795799536",
+        "job": "116631876941",
+        "finding": "serious document-title: non-empty title missing, participation-paths 768x1024",
+        "state": "REMOTE_CONFIRMED_LOCAL_REPRODUCTION_INCONCLUSIVE",
+        "next": "Inspect route and readiness/metadata; do not weaken axe or assume flake.",
+        "localInvestigation": {
+          "state": "INCONCLUSIVE_NOT_REPRODUCED",
+          "attempts": 2,
+          "first": "45s test timeout during initial navigation/compilation",
+          "second": "5s URL assertion timeout after guide click; did not reach axe",
+          "assertionsOrTimeoutsWeakened": false
+        }
+      },
+      {
+        "scope": "Quality integral journey",
+        "sha": "f2aaea03b2231673a3f3b9a5c39c828f3b425bd7",
+        "run": "38795798795",
+        "job": "116634530881",
+        "finding": "document-title serious at acesso-negado in 390x844",
+        "state": "REMOTE_OBSERVED_OPEN"
+      },
+      {
+        "scope": "Quality unavailable route expectation",
+        "sha": "f2aaea03b2231673a3f3b9a5c39c828f3b425bd7",
+        "run": "38795798795",
+        "job": "116634530881",
+        "finding": "Obsolete 404 wording disagrees with actual unavailable h1",
+        "state": "FIX_PUSHED_CI_PENDING",
+        "fixSha": "e4a183bcc932d4e3acb9e8de78074b6163813ade"
+      }
+    ],
+    "lastCycle": {
+      "id": "20261015T2113Z-41e32265d35b",
+      "observedCanonicalSha": "9dfa6a10d0c1e6682500273e27a0bbf32444fbea",
+      "codeSha": "e4a183bcc932d4e3acb9e8de78074b6163813ade",
+      "observedAt": "2026-10-15T21:22:32.843Z",
+      "report": "reports/current/comun-roadmap-cycle-20261015T2113.json",
+      "reportSha256": "16ed3a9866dc3b8695f95ff4f0f8909c3c238870fb5721db66681e2854b323c1",
+      "fingerprint": "f2e9d696e33a70984a624aa034bdcc96b9d033e9c70478492437fd618ef185fc",
+      "previousFingerprint": null,
+      "unchangedFingerprintCycles": 0,
+      "diagnosticOnly": false,
+      "materialCodePushes": 1,
+      "worktree": "E:\\COMUN-ROADMAP-CYCLES\\20261015T2113Z-41e32265d35b",
+      "worktreeRetention": "PRESERVED_PENDING_CI_AND_TITLE_EVIDENCE"
+    }
+  }
 }

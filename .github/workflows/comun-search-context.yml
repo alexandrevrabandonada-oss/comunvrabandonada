@@ -1,0 +1,53 @@
+name: COMUN search context continuity
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/comun/buscar/**"
+      - "app/comun/not-found.tsx"
+      - "app/api/comun/civic-search/**"
+      - "components/civic-intelligence/**"
+      - "components/comun-app-shell.tsx"
+      - "lib/public-search-context*"
+      - "lib/unified-search*"
+      - "lib/civic-intelligence/**"
+      - "tests/search-context/**"
+      - "scripts/search-context/**"
+      - "playwright.search-context.config.ts"
+      - ".github/workflows/comun-search-context.yml"
+permissions: { contents: read }
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22.19.0", cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/search-context/lab-guard.node-test.mjs
+      - run: node node_modules/vitest/vitest.mjs run lib/public-search-context.test.ts lib/unified-search.test.ts lib/civic-intelligence/public-search-read.test.ts lib/public-search-actions.test.ts
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/search-context/run-fixture.mjs build
+      - run: npx playwright test -c playwright.search-context.config.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          {
+            name: search-context-controlled-browser,
+            path: test-results/search-context,
+            if-no-files-found: ignore,
+          }
+  real-auth-postgres:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22.19.0", cache: npm }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.117.0 }
+      - run: npm ci --ignore-scripts
+      - name: Owned disposable stack, real sessions, reader and cleanup proof
+        run: node scripts/search-context/run-owned-lab.mjs
+        env: { COMUN_SEARCH_CONTEXT_LAB: OWNED_EPHEMERAL_RUNNER }

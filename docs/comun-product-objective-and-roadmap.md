@@ -923,3 +923,64 @@ por este checkpoint; compreensão e atratividade humanas continuam pendentes.
 ### Regra antidesvio
 
 **Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.
+
+### Incremento ordenado — continuidade da busca pública — 15/10/2026
+
+Estado: `CANDIDATO EM PR`, não integrado. Decisão: preservar a intenção na busca
+existente `/comun/buscar`, no detalhe e no retorno. Base main `8b0ba0d2`, sem
+alterar ou depender do #552; não cria identificador SOC, outra busca ou feed.
+Reutiliza leitores híbrido/lexical, filtros públicos e shell existente. Consulta,
+tipo, pauta e território acompanham retorno local validado; retirada é reconsultada;
+falha parcial não vira vazio. Limpar filtros mantém consulta. Paginação/ordenação
+não existem nesta superfície e não foram inventadas.
+
+Privacidade: padrão existente de consulta pública em URL, com aviso. Formulários
+validam navegação POST antes do GET; padrões evidentes de contato, UUID e segredo
+são recusados, sem prometer detectar todo dado pessoal. Contextos usam slugs
+públicos, resolvidos no servidor. Sem storage de consulta ou telemetria nova.
+Entrada sensível digitada fora do formulário já pode ter chegado ao histórico ou
+provedor: a aplicação não pode apagá-la retroativamente.
+
+Critério: filtros → detalhe → retorno/histórico, foco, nova aba/link direto,
+retirada, vazio/falha total/parcial, teclado/axe e móvel. Navegador controlado não
+certifica Auth/RLS nem conteúdo real. Comandos, evidências e limites em
+`reports/current/comun-search-context-20261015.md`.
+
+Dependências: #552 draft independente; Escola/#523/#542 preservados, sem migration
+nem dispensa dos preflights. Próximo bloqueio único: certificar gates remotos e
+Preview do novo SHA. Aparelhos reais e validação humana continuam NOT_RUN.
+
+Evidência do incremento de busca: #553 draft, funcional `ca4e7325`;
+46 focais/adjacentes, 16 browser local, 16 browser remoto e Auth/Postgres A/B
+com limpeza PASS (run 38792046636). Matriz disclosure/controle negativo PASS
+(run 38792046468). Preview Git/GitHub no SHA funcional comprovado. Não é integração,
+Production ou validação humana. Bloqueio observado em 48.2-A: CA TLS ausente no
+runner antes de SQL, separado da dependência Escola; não enfraquecer TLS ou gates.
+Checks posteriores à atualização documental exigem inventário próprio no PR.
+
+Autocorreção de busca na mesma frente: logs de Civic/Quality demonstraram perda
+de foco ao alternar semântica e expectativa legada de preservar snapshot na falha
+de rede. Controle agora mantém foco; teste de rede exige indisponibilidade, zero
+resultado obsoleto e retry. 18 browser locais PASS no diff corrigido, sem remover
+os casos anteriores. CI e Preview do novo commit exigem certificação própria.
+
+### Execução permanente por ciclos — 15/10/2026
+
+Decisão operacional, sem alterar a estratégia: cada ciclo iniciado pelo orquestrador
+lê este roadmap e `reports/current/comun-execution-checkpoint.json`, reconcilia o
+estado vivo, escolhe uma entrega elegível, implementa a menor solução suficiente,
+valida regressões e registra provas/commits antes de reavaliar a fila. Não cria
+outro roadmap, timer ou processo residente. Máximo de uma entrega por ciclo e duas
+tentativas equivalentes de correção por finding; bloqueio externo ou limite exige
+estado recuperável, não falsa conclusão global. Estes limites regulam a execução,
+não substituem critérios de aceitação.
+
+Retomada #553 no head `f2aaea03`: browser/Auth-Postgres run 38795799390 e CA contract
+38795799146 PASS; COST-02 do contrato vigente PASS. Sem reviews; draft mantido.
+Preflights alcançam os bloqueios de schema depois da correção TLS; não repetir
+provas aprovadas nem tratar skipped/pending como PASS. Quality/Civic ainda exigem
+resultado próprio. Próxima ação: concluir sua classificação e só então reavaliar
+uma entrega independente. Escola #542: Source Subject já resolvido; falta o par
+Turnstile exclusivo do laboratório, CAPTCHA humano e cinco fluxos. Gmail 0/6;
+backup só após esses requisitos. Não procurar segredos nem renovar provas temporais
+neste ciclo. Nenhum merge, schema write, deployment Production, flag ou gasto.
