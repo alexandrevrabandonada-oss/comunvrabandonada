@@ -1105,3 +1105,11 @@ continua bloqueando P1G/#546; #549 permanece draft, sem merge/Production.
 
 Atualização SOC-D08: Security Resilience PASS no mesmo SHA 5de169eb; somente
 admin Full Surface segue PENDING. P1G/Escola continua FAIL/BLOCKED.
+
+Fechamento SOC-D08 no head remoto 5de169eb: Full Surface completo PASS,
+inclusive admin (35 testes, attempt 2 após colisão de porta; histórico e retry
+502 preservados). Merge ref tem tree idêntica ao head, conferida pela Git API.
+Checks finais: 13 SUCCESS, 42 SKIPPED, 1 FAILURE (P1G/Escola), zero PENDING.
+PR #549 continua CANDIDATO EM PR/draft, dependente do #546, sem reviews; não
+INTEGRADO nem PRODUÇÃO VERIFICADA. Descoberta pública contextual permanece
+o próximo incremento único PLANEJADO, sem abertura de nova fila.

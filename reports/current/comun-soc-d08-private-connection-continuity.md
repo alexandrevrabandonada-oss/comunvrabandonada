@@ -398,3 +398,45 @@ Atualização final da consulta: Security Resilience 38666751404 PASS (pr-lane);
 remote-full/prepare-cron-dual-key SKIPPED. Rerun admin job 116201817717 superou
 start e segue PENDING no reset. Checks: 12 SUCCESS, 42 SKIPPED, 1 FAILURE
 (P1G/Escola), 1 PENDING (admin). PR draft; head remoto preservado 5de169eb.
+
+### Fechamento dos checks remotos — 2026-10-14
+
+Consulta final do PR #549: head remoto permanece
+`5de169eb1c3b90f006a6b077a34879da691fc905`, draft, base #546
+`d39656f4732f4c873e2236186f7b5e6713f1c211`; zero reviews registrados.
+Main permanece `8b0ba0d2c90295a6579e8e8808a9e765583e86c9`.
+
+Admin Full Surface, run 38666751415 attempt 2, job 116201817717 PASS:
+35 testes aprovados. Primeiro attempt preservado: colisão 55432 antes dos
+testes. No rerun houve rate limit de pull de imagens e o retry único de reset
+502 já previsto pelo workflow; a execução efetivamente chegou ao teste e
+terminou verde. Nenhuma nova política de retry/timeout foi adicionada.
+Não classificar os erros de infraestrutura anteriores como testes aprovados.
+
+Full Surface usa checkout do merge ref
+`592bbf0b6912d3042db75671ddbe9245084ab015`, pais #546/head. GitHub Git API
+comprovou tree `525a29b31a344c68b0f3d08a7f2ed4b155174d14`, idêntica ao
+head 5de169eb: equivalência explícita, não transporte presumido de evidência.
+Todos os quatro jobs Full Surface PASS. Security Resilience pr-lane PASS;
+remote-full e prepare-cron-dual-key SKIPPED.
+
+Artifact admin 11942077518: SHA256
+`b98d2c14b772e1b54e75d4a1f72296ae1feaec03480c05fe084d657ef4da5c65`,
+ZIP local conferido contra digest GitHub. Log sanitizado local
+`5de169eb-admin-attempt2-pass.txt`, SHA256
+`aa79b643778db2f8dfaebc0eec1719511f3effa9991de10461af2634e7811969`
+Artefatos em diretório privado QA,
+fora do Git; nenhum dado de Production foi usado.
+
+Inventário final: **13 SUCCESS, 42 SKIPPED, 1 FAILURE, zero PENDING**.
+Única falha: P1G `REMOTE_MIGRATION_PLAN_NOT_EMPTY:`
+`20261006134804_comun_learning_r0.sql`. COST-02 SKIPPED continua sem equivaler
+a PASS; Preview exato foi validado diretamente como já registrado.
+
+Jornada SOC-D08 candidata comprovada no alcance automatizado; integração
+BLOCKED pela Escola/#546 e review ainda não obtido. Sem merge ou mudança
+Production. Validação humana, aparelhos reais/Safari/Firefox continuam NOT_RUN.
+Próximo incremento único: descoberta pública contextual, apenas PLANEJADO
+até a sequência permitir; nenhum novo incremento iniciado neste fechamento.
+O checkpoint documental permanece local para preservar o SHA remoto testado
+e evitar outra bateria equivalente. O corpo do PR publica o resultado final.
