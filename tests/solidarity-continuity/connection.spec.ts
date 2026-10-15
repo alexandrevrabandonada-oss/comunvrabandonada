@@ -650,3 +650,33 @@ test("synthetic window blur/focus fallback rechecks same login without restoring
   ).toHaveValue("");
   await expect(page.getByRole("checkbox")).not.toBeChecked();
 });
+
+test("Sair in another tab masks this form and clears its draft", async ({
+  page,
+  request,
+}) => {
+  await login(page);
+  await save(page);
+  const second = await page.context().newPage();
+  const secondErrors: string[] = [];
+  second.on("pageerror", (error) => secondErrors.push(error.message));
+  try {
+    await second.goto("/comun/conta");
+    await second.getByRole("button", { name: "Sair", exact: true }).click();
+    await expect(second).toHaveURL("/comun/entrar");
+    await expect(
+      page.getByLabel("Sua mensagem para a organização"),
+    ).toHaveCount(0);
+    expect(
+      await page.evaluate(
+        (p) =>
+          Object.keys(sessionStorage).filter((key) => key.startsWith(p)).length,
+        prefix,
+      ),
+    ).toBe(0);
+    expect((await (await request.get("/lab-state")).json()).logouts).toBe(1);
+    expect(secondErrors).toEqual([]);
+  } finally {
+    await second.close();
+  }
+});

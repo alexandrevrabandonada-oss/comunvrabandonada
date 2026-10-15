@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   clearSolidarityConnectionDrafts,
+  notifySolidarityConnectionLogout,
   createConnectionDraftStore,
   connectionDraftKey,
   discardLegacyConnectionDraft,
@@ -230,4 +231,36 @@ it("keeps denied storage unavailable when legacy cleanup also fails", () => {
   store.refresh();
   expect(store.getSnapshot()).toBe("unavailable");
   unsubscribe();
+});
+
+it("logout notification contains only its tag and safely handles a denied channel", () => {
+  const messages: unknown[] = [];
+  let closed = false;
+  vi.stubGlobal(
+    "BroadcastChannel",
+    class {
+      postMessage(value: unknown) {
+        messages.push(value);
+      }
+      close() {
+        closed = true;
+      }
+    },
+  );
+  try {
+    expect(notifySolidarityConnectionLogout()).toBe(true);
+    expect(messages).toEqual([{ type: "logout-requested" }]);
+    expect(closed).toBe(true);
+    vi.stubGlobal(
+      "BroadcastChannel",
+      class {
+        constructor() {
+          throw new Error("denied");
+        }
+      },
+    );
+    expect(notifySolidarityConnectionLogout()).toBe(false);
+  } finally {
+    vi.unstubAllGlobals();
+  }
 });

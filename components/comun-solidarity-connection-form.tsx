@@ -17,6 +17,8 @@ import {
 } from "@/lib/comun-solidarity-private-connections";
 import {
   createConnectionDraftStore,
+  clearSolidarityConnectionDrafts,
+  SOLIDARITY_SESSION_CHANNEL,
   readConnectionDraft,
   saveConnectionDraft,
   type ConnectionDraftContext,
@@ -66,6 +68,7 @@ function ConnectionForm({
   fromDirectory = false,
 }: Props) {
   const router = useRouter();
+  const [logoutNotice, setLogoutNotice] = useState(false);
   const [sessionCheck, setSessionCheck] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState(
     action,
@@ -166,13 +169,14 @@ function ConnectionForm({
     };
     // Only opaque context notifications cross tabs; they grant no authority and carry no draft/contact.
     const needsCheck = { current: false };
+    let logoutRequested = false;
     const pause = () => {
       needsCheck.current = true;
       setSessionCheck(initialRequestId);
       setDraft((current) => ({ ...current, contact: "", consent: false }));
     };
     const resume = () => {
-      if (!needsCheck.current) return;
+      if (!needsCheck.current || logoutRequested) return;
       needsCheck.current = false;
       router.refresh();
     };
@@ -182,9 +186,23 @@ function ConnectionForm({
     };
     let channel: BroadcastChannel | undefined;
     try {
-      channel = new BroadcastChannel("comun:solidarity-form-context:v1");
+      channel = new BroadcastChannel(SOLIDARITY_SESSION_CHANNEL);
       channel.onmessage = (event: MessageEvent) => {
         const data = event.data;
+        if (
+          data &&
+          typeof data === "object" &&
+          Object.keys(data).length === 1 &&
+          data.type === "logout-requested"
+        ) {
+          logoutRequested = true;
+          clearPrivateInputs();
+          clearSolidarityConnectionDrafts(storage);
+          setRecoveryDismissed(true);
+          setLogoutNotice(true);
+          pause();
+          return;
+        }
         const opaque = (value: unknown) =>
           value === null ||
           (typeof value === "string" && /^[a-f0-9]{64}$/.test(value));
@@ -275,7 +293,7 @@ function ConnectionForm({
   const focusClass =
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4";
 
-  if (sessionCheck === initialRequestId || sessionChanged)
+  if (sessionCheck === initialRequestId || sessionChanged || logoutNotice)
     return (
       <div
         ref={feedbackRef}
@@ -284,9 +302,11 @@ function ConnectionForm({
         className="border-2 border-comun-black bg-white p-5 text-comun-black"
       >
         <p>
-          {sessionChanged
-            ? "Sua sessão mudou. Reabra este item e confirme novamente o contato e a autorização antes de enviar."
-            : "Conferindo a sessão antes de mostrar a mensagem. Contato e autorização precisam ser confirmados novamente."}
+          {logoutNotice
+            ? "A saída foi solicitada em outra aba. Reabra este item para conferir a sessão atual."
+            : sessionChanged
+              ? "Sua sessão mudou. Reabra este item e confirme novamente o contato e a autorização antes de enviar."
+              : "Conferindo a sessão antes de mostrar a mensagem. Contato e autorização precisam ser confirmados novamente."}
         </p>
         <button
           type="button"

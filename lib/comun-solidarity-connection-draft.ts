@@ -211,3 +211,16 @@ export function createConnectionDraftStore(
     },
   };
 }
+
+export const SOLIDARITY_SESSION_CHANNEL = "comun:solidarity-form-context:v1";
+/** Notification only: never carries identity, tokens or private draft fields. */
+export function notifySolidarityConnectionLogout() {
+  try {
+    const channel = new BroadcastChannel(SOLIDARITY_SESSION_CHANNEL);
+    channel.postMessage({ type: "logout-requested" });
+    channel.close();
+    return true;
+  } catch {
+    return false;
+  }
+}

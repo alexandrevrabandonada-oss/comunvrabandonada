@@ -180,3 +180,20 @@ SHA precisa de suas próprias provas remotas e Preview; a descrição do #549 co
 as runs finais. O fechamento remoto de 0256a6cf (1.537 unitários, 40 browsers,
 Auth/Postgres e ensaios amplos PASS, exceto schema Escola) permanece histórico,
 não certificado para esta mudança adicional.
+
+Complemento do mesmo finding: Sair na Conta de outra aba também foi reproduzido
+como FAIL (o textarea antigo continuava no DOM). O onClick existente agora envia
+somente o marcador logout-requested no canal efêmero. Não afirma sucesso do Auth.
+O formulário receptor limpa memória, tenta limpar seus envelopes e permanece
+oculto até Reabrir este item; signOut continua na action real, com erro/retentativa
+explícitos já cobertos. Aviso de outra aba diz saída solicitada, não saída concluída.
+Se o canal for negado, o fallback de foco e a recusa server-side permanecem; não
+prometemos transporte universal nem apagamento físico com storage recusado.
+O teste novo usa Sair real em outra aba e verifica a action e o armazenamento
+da aba original; não usa mensagem direta ao service worker.
+
+Fechamento local do complemento Sair entre abas: 50/50 casos de navegador PASS,
+zero skipped/flaky no JSON. Mantidos casos anteriores, pageerror integral e
+timeouts originais. Unitários focais, ESLint e build da fixture PASS; exigir
+CI/Preview do novo head do #549. Permanecem NOT_RUN aparelhos reais, Safari/Firefox,
+leitor de tela humano, troca física de janelas e ensaio de compreensão.

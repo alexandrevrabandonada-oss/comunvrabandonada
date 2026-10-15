@@ -1041,3 +1041,18 @@ de envio stale quando o canal é negado e preservação da mensagem no mesmo log
 57 focais, TypeScript, ESLint e build de fixture PASS. Isso continua prova sintética
 renderizada, separada de Auth/Postgres real. Exigir runs/Preview do novo head no
 #549 antes de atribuir PASS remoto. Sem integração enquanto Escola/gates bloqueados.
+
+SOC-D08, Sair entre abas: regressão demonstrou que o logout real na Conta de
+outra aba não limpava o formulário original. A limpeza existente passa a emitir
+apenas logout-requested, sem identidade/segredo/draft. Receptor oculta e limpa
+memória, tenta descarte e exige Reabrir para ler a sessão atual; não presume que
+signOut teve sucesso. O fluxo de erro/retry da Conta permanece. Critério: Sair
+real em B não deixa textarea de A exposto; canal recusado continua sem quebrar
+a interface e o servidor não aceita formulário stale. Sem novas capacidades
+de Auth, grants, flags, schema ou operações Production.
+
+Fechamento local do complemento Sair entre abas: 50/50 casos de navegador PASS,
+zero skipped/flaky no JSON. Mantidos casos anteriores, pageerror integral e
+timeouts originais. Unitários focais, ESLint e build da fixture PASS; exigir
+CI/Preview do novo head do #549. Permanecem NOT_RUN aparelhos reais, Safari/Firefox,
+leitor de tela humano, troca física de janelas e ensaio de compreensão.
