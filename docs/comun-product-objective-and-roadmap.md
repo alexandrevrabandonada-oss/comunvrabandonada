@@ -1083,3 +1083,12 @@ checkpoint. A próxima entrega de produto continua descoberta pública contextua
 de conteúdos reais autorizados; não iniciada enquanto esta unidade permanece
 bloqueada. NOT_RUN: aparelhos reais, Safari/Firefox, leitor de tela humano, troca
 física de janelas e compreensão. Não declarar V1 concluída.
+
+#### SOC-D08 — diagnóstico de continuidade em Linux (2026-10-14)
+
+PR #549 draft, head `adc9815a633ca360f37f163a5450b9c07330609e`: transporte
+Auth/Postgres real PASS; 49/50 UI Linux PASS e 1 FAIL por saída nativa SIGTRAP,
+confirmada com diagnóstico passivo. Causa raiz ainda não demonstrada. Preview
+exato READY/Deployment success; COST-02 SKIPPED. Escola/P1G continua bloqueado
+pela migration pendente. Sem integração ou alteração Production. Evidência e
+hashes no relatório SOC-D08; próxima etapa é stack/core mínimo, não rerun cego.

@@ -281,3 +281,46 @@ A nova execução remota ainda está PENDING; as duas falhas anteriores permanec
 preservadas. A causa do fechamento nativo continua não demonstrada. O commit
 documental anterior agora acompanha uma mudança material de observabilidade,
 não um rerun equivalente. Escola/#546 continuam bloqueios independentes.
+
+### Resultado do diagnóstico nativo — head adc9815a
+
+SHA remoto: `adc9815a633ca360f37f163a5450b9c07330609e`; tree
+`15dfba5544a5b0e8fe7f62a49ca7ce11d518328c`.
+Run [38664949029](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38664949029):
+Auth/Postgres real PASS (job 116194633450); UI FAIL (job 116194633669),
+49 PASS, 1 FAIL, 0 skipped/flaky. A suíte unitária, typecheck e build da fixture
+passaram nesse SHA.
+
+Finding demonstrado: processo principal chromium_headless_shell revision 1228
+encerrou com `exitCode=null, signal=SIGTRAP` no cenário desktop de envio/replay/
+acompanhamento/revisão/retirada de oferta. Na execução instrumentada anterior
+`7ab40f4a`/38664907381, o mesmo sinal ocorreu no login do cenário de troca de
+identidade entre abas. Isso prova queda nativa, mas não demonstra causa raiz,
+nem um reproducer mínimo isolado. Não atribuir a GPU, OOM ou produto.
+
+Memória disponível amostrada: mínimo 14802960384 bytes; antes 15458070528,
+depois 15364608000, total 16766414848. Cgroup indisponível nesta captura:
+a ausência desses contadores não prova zero OOM. Sem stack nativo/core dump,
+a instrução que gerou SIGTRAP continua BLOCKED/UNPROVEN. Nenhum retry adicional,
+upgrade aleatório, mudança de timeout, skip ou filtro de pageerror foi usado.
+
+Artefatos privados locais em `E:/COMUN-SOC-D08-QA-20261014/` (ZIPs conferidos
+contra digest GitHub):
+
+- UI artifact 11940757000, SHA-256
+  `5533bb876975a3d04dcbb58868082aa9a1ecb85c43fce682c87b9e85f5b3df23`.
+- Auth/Postgres artifact 11940323512, SHA-256
+  `82ea3fb44e90e6c2d2f3aa347ebc5ce07bb8749207d577e1a0df8e67a2621bec`.
+
+Preview direto PASS: Vercel `dpl_34rFg9LAPRiZ6WBgwc4kUdaGmRLh`, READY,
+source Git, target null, SHA exato, aliasError null. GitHub Deployment
+7081327279: Preview/success, URL
+https://comunvrabandonada-71v0936qz-alexandrevrabandonada-oss-projects.vercel.app.
+COST-02 SKIPPED continua distinto dessa conferência. P1G 38664949013 FAIL pela
+mesma migration Escola pendente, sem bypass.
+
+Próxima ação técnica delimitada: capturar stack/core nativo em Linux descartável
+com a mesma revisão e preservar um caso mínimo antes de propor mudança do browser
+ou produto. Não fazer outro rerun equivalente. Integração continua bloqueada;
+Production e Escola não foram alteradas. Este resultado documental fica local
+para não criar uma nova execução sem mudança material.
