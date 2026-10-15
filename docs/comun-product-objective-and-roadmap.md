@@ -943,8 +943,10 @@ catálogo real e experiência jogável; não criar aba vazia.
   para afirmações factuais. Não exigir adesão ideológica nem
   pontuar jogador por opiniões políticas. Inspirar-se em exploração
   retrô sem reutilizar assets protegidos de jogos comerciais.
-  Projeto do RPG e eventual exportação para web exigem auditoria
-  própria; não presumir build web/mobile existente.
+  A beta web existente deve ser auditada e reutilizada, não refeita:
+  a distribuição e os limites de mobile não equivalem a integração
+  certificada no COMUN. Preservar distinção entre a build atual
+  e as três jornadas conceituais, sem anunciá-las como concluídas.
 - **Jogos com finalidades diversas.** Abranger narrativas, puzzles,
   estratégia, humor, aventuras, jogos cooperativos e experiências
   de curta duração. Não reduzir a aba a quizzes cívicos,
@@ -1023,6 +1025,67 @@ proposta sem abrir superfície para execução de código
 desconhecido. Reprovar experiência ruim em celular,
 conteúdo artificial, autoria falsa, ausência de moderação
 ou pressão para participar politicamente.
+
+**Evidência existente reconciliada (14/10/2026):**
+a beta pública do RPG já foi entregue fora do COMUN, na landing
+`landingmissao`, pelo
+[PR #36](https://github.com/alexandrevrabandonada-oss/landingmissao/pull/36)
+(merged). Entrada:
+[VR: Cidade em Disputa — Beta](https://www.alexandrevrabandonada.online/jogar/cidade-em-disputa).
+A aplicação carrega um runtime Unity/WebGL separado após o clique,
+pela origem `jogo.alexandrevrabandonada.online`, com manifesto de
+versão, controles mobile e desktop, feedback e save no navegador.
+O código da landing não comprova que o jogo já esteja dentro
+do COMUN nem que as jornadas História/Meio Ambiente/Política
+estejam completas. Ver
+[`docs/GAME_BETA_RELEASE.md`](https://github.com/alexandrevrabandonada-oss/landingmissao/blob/main/docs/GAME_BETA_RELEASE.md).
+Ensaios em viewports Chrome existem; aparelho físico e leitor de tela
+continuam sem certificação específica.
+
+**SOC-D09.A — Primeira experiência integrada, sem duplicar runtime.**
+Estado: `PLANEJADO`, sem implementação COMUN. Primeiro publicar
+na descoberta/aba Jogos um cartão de jogo **real**, com imagem
+autorizada, autoria, indicação de beta, objetivo, controles,
+compatibilidade, limitações e ação direta **Jogar**.
+No primeiro ciclo, a ação aponta à entrada pública já existente
+com link externo claro e retorno previsível ao COMUN; não duplicar
+o player em outra rota ou origem nem carregar WASM no feed inicial.
+Se houver uma futura incorporação, verificar CSP, origem,
+permissões, foco, fullscreen, performance, isolamento e
+persistência de save em dispositivos reais.
+Não pressupor transferência de saves entre hosts/domínios,
+não exigir login COMUN e não sincronizar escolhas narrativas
+ou inferências políticas com o perfil.
+
+**SOC-D09.B — Comunidade de criadores, não depósito de arquivos.**
+Estado: `PRINCÍPIO DECIDIDO` para experiência;
+`HIPÓTESE` para infraestrutura. A página de cada jogo mostra
+quem criou, autoria e licença, atualizações, suporte e formas
+de contato opcionais. O criador pode propor, revisar,
+despublicar e recorrer; pessoas podem descobrir e divulgar
+o projeto sem pontuação competitiva obrigatória. Divulgação
+editorial não é endosso da qualidade factual ou de segurança
+e nunca deve ser comprada.
+
+**SOC-D09.C — Ordem de investimento e critérios de promoção.**
+Estado: `PLANEJADO`. O primeiro jogo publicado serve como
+caso de teste técnico e de atratividade: descoberta pública
+sem conta; jogo abre a partir do celular; não baixa runtime
+antes da escolha explícita; retorno à plataforma; save
+preservado no mesmo host; aviso de saída externa e privacidade;
+créditos/licenças presentes; opção de feedback clara.
+Depois de uma jornada demonstrada, selecionar poucos
+jogos comunitários com curadoria. Não publicar formulário
+aberto de submissão de jogos, embutir código de terceiros,
+criar chat/multiplayer ou mover o save para a conta COMUN
+antes de testar necessidade, custos e segurança.
+
+**Distinção histórica:** o RPG Unity/WebGL já publicado
+não deve ser confundido automaticamente com propostas
+separadas de city-builder/RTS sobre Volta Redonda.
+Mecânicas de construção, multiplayer, política territorial
+ou conteúdo novo do RPG exigem evidência própria;
+não integrar projetos diferentes por similaridade de nome.
 
 **Relações canônicas:** SOC-D01 (experiência e relação),
 SOC-D02 (ausência e saída), SOC-D03 (segurança),
