@@ -47,10 +47,14 @@ export default async function GamesPage({
           >
             ← Voltar a Explorar
           </Link>
-          <p className="mt-5 text-xs font-black uppercase tracking-wider text-comun-yellow">
+          <p
+            className="mt-5 text-xs font-black uppercase tracking-wider text-comun-yellow"
+          >
             Jogar também é conviver
           </p>
-          <h1 className="mt-2 text-4xl font-black uppercase text-comun-paper sm:text-5xl">
+          <h1
+            className="mt-2 text-4xl font-black uppercase text-comun-paper sm:text-5xl"
+          >
             Jogos
           </h1>
           <p className="mt-3 max-w-3xl text-comun-paper/80">
@@ -111,7 +115,11 @@ export default async function GamesPage({
             className="mt-8 border border-comun-paper/40 p-5 sm:p-7"
           >
             <div className="flex items-center gap-3">
-              <UsersRound size={24} className="text-comun-yellow" aria-hidden="true" />
+              <UsersRound
+                size={24}
+                className="text-comun-yellow"
+                aria-hidden="true"
+              />
               <h2
                 id="community-games-title"
                 className="text-2xl font-black text-comun-paper"
