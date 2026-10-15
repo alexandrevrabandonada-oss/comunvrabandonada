@@ -268,3 +268,16 @@ Este fechamento documental é commit local somente, para preservar o SHA remoto
 reproduzido e evitar CI/Preview equivalentes adicionais. A descrição pública do
 #549 recebe o mesmo resultado. Não fazer push desse commit como tentativa de
 obter verde; retomar pelo diagnóstico nativo delimitado acima.
+
+### Retomada instrumentada — 2026-10-14
+
+A retomada acrescenta somente diagnóstico ao job sintético: `DEBUG=pw:browser`,
+saída nativa preservada e contadores numéricos de memória/cgroup antes, durante e
+depois. Não altera cenários, assertions, retries, timeouts ou versão do navegador.
+O processo recusa variáveis externas de Supabase e propaga falhas/sinais.
+
+PASS local: 3 testes Node do diagnóstico e 5 contratos de isolamento.
+A nova execução remota ainda está PENDING; as duas falhas anteriores permanecem
+preservadas. A causa do fechamento nativo continua não demonstrada. O commit
+documental anterior agora acompanha uma mudança material de observabilidade,
+não um rerun equivalente. Escola/#546 continuam bloqueios independentes.

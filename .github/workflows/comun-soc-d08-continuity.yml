@@ -12,6 +12,7 @@ on:
       - "tests/solidarity-continuity/**"
       - "playwright.solidarity-continuity.config.ts"
       - "scripts/economy/prove-soc-d08-disposable.mjs"
+      - "scripts/ci/run-soc-d08-browser-proof*"
       - ".github/workflows/comun-soc-d08-continuity.yml"
 permissions: { contents: read }
 jobs:
@@ -32,7 +33,8 @@ jobs:
       - run: npm run test:unit
       - run: npm run typecheck
       - run: node tests/solidarity-continuity/run-fixture.mjs build
-      - run: npx playwright test -c playwright.solidarity-continuity.config.ts
+      - run: node --test scripts/ci/run-soc-d08-browser-proof.node-test.mjs
+      - run: node scripts/ci/run-soc-d08-browser-proof.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
