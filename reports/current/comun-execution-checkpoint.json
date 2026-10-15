@@ -28,79 +28,145 @@
     },
     "searchContext": {
       "pr": 553,
-      "sha": "f2aaea03b2231673a3f3b9a5c39c828f3b425bd7",
-      "tree": "e9e416d9927eac080f53d46fe6c24a7f2176096c",
+      "sha": "e4a183bcc932d4e3acb9e8de78074b6163813ade",
+      "tree": "597da7d831a12752f1d96659ed7f1a56e97e8fe2",
       "base": "8b0ba0d2c90295a6579e8e8808a9e765583e86c9",
-      "state": "DRAFT_SCHEMA_BLOCKED_NEW_A11Y_FINDING_QUALITY_PENDING",
+      "state": "DRAFT_CI_PENDING_TITLE_OPEN_SCHEMA_REQUIRED",
       "review": "NO_REVIEWS_NOT_APPROVED",
       "checkCountsObserved": {
-        "FAILURE": 8,
-        "IN_PROGRESS": 1,
-        "SKIPPED": 74,
-        "SUCCESS": 47
+        "QUEUED": 34,
+        "IN_PROGRESS": 19,
+        "SKIPPED": 47,
+        "SUCCESS": 2
       },
-      "observedAt": "2026-10-15T16:59:19-03:00",
+      "observedAt": "2026-10-15T21:22:32.843Z",
       "evidence": [
         {
-          "run": "38795799390",
-          "scope": "18 browser controlled, 42 focused, 3 guards and real disposable Auth/Postgres A/B with cleanup",
-          "result": "PASS"
-        },
-        {
-          "run": "38795799146",
-          "scope": "read-only TLS CA contract, 21 tests",
-          "result": "PASS"
-        },
-        {
-          "run": "38795799666",
-          "job": "116631724555",
-          "scope": "COST-02 repository checkpoint contract",
-          "result": "PASS",
-          "limit": "Not certification of Production or independent exact-head Preview"
+          "sha": "e4a183bcc932d4e3acb9e8de78074b6163813ade",
+          "scope": "Actual unavailable route in Chromium; no configured backend; 390x844 and 768x1024; exact heading/text/return href plus unchanged serious/critical axe",
+          "result": "PASS_LOCAL_2_VIEWPORTS",
+          "proofSha256": "39810c67dee4745459bd2d1ef87db28e5cbfeea32eb64c6a8e73a941af9a13dc",
+          "report": "reports/current/comun-roadmap-cycle-20261015T2113.json"
         }
       ],
-      "blockingChecks": [
-        {
-          "name": "Experience coherence / READY_FOR_USABILITY_REHEARSAL",
-          "state": "FAILURE",
-          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799536/job/116631876941"
+      "blockingChecks": [],
+      "requiredSchemaPreflights": {
+        "state": "REQUIRED_NOT_DISPENSED",
+        "observedOnSha": "f2aaea03b2231673a3f3b9a5c39c828f3b425bd7",
+        "checks": [
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799875/job/116631723637"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799742/job/116631723319"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799484/job/116631722244"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799332/job/116631721909"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799133/job/116631721644"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795798745/job/116631719779"
+          },
+          {
+            "name": "remote-read-only-preflight",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795798843/job/116631719912"
+          }
+        ]
+      },
+      "previousHeadEvidence": {
+        "pr": 553,
+        "sha": "f2aaea03b2231673a3f3b9a5c39c828f3b425bd7",
+        "tree": "e9e416d9927eac080f53d46fe6c24a7f2176096c",
+        "base": "8b0ba0d2c90295a6579e8e8808a9e765583e86c9",
+        "state": "DRAFT_SCHEMA_BLOCKED_NEW_A11Y_FINDING_QUALITY_PENDING",
+        "review": "NO_REVIEWS_NOT_APPROVED",
+        "checkCountsObserved": {
+          "FAILURE": 8,
+          "IN_PROGRESS": 1,
+          "SKIPPED": 74,
+          "SUCCESS": 47
         },
-        {
-          "name": "remote-metadata-only",
-          "state": "FAILURE",
-          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799875/job/116631723637"
-        },
-        {
-          "name": "remote-metadata-only",
-          "state": "FAILURE",
-          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799742/job/116631723319"
-        },
-        {
-          "name": "remote-metadata-only",
-          "state": "FAILURE",
-          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799484/job/116631722244"
-        },
-        {
-          "name": "remote-metadata-only",
-          "state": "FAILURE",
-          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799332/job/116631721909"
-        },
-        {
-          "name": "remote-metadata-only",
-          "state": "FAILURE",
-          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799133/job/116631721644"
-        },
-        {
-          "name": "remote-metadata-only",
-          "state": "FAILURE",
-          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795798745/job/116631719779"
-        },
-        {
-          "name": "remote-read-only-preflight",
-          "state": "FAILURE",
-          "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795798843/job/116631719912"
-        }
-      ]
+        "observedAt": "2026-10-15T16:59:19-03:00",
+        "evidence": [
+          {
+            "run": "38795799390",
+            "scope": "18 browser controlled, 42 focused, 3 guards and real disposable Auth/Postgres A/B with cleanup",
+            "result": "PASS"
+          },
+          {
+            "run": "38795799146",
+            "scope": "read-only TLS CA contract, 21 tests",
+            "result": "PASS"
+          },
+          {
+            "run": "38795799666",
+            "job": "116631724555",
+            "scope": "COST-02 repository checkpoint contract",
+            "result": "PASS",
+            "limit": "Not certification of Production or independent exact-head Preview"
+          }
+        ],
+        "blockingChecks": [
+          {
+            "name": "Experience coherence / READY_FOR_USABILITY_REHEARSAL",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799536/job/116631876941"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799875/job/116631723637"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799742/job/116631723319"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799484/job/116631722244"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799332/job/116631721909"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799133/job/116631721644"
+          },
+          {
+            "name": "remote-metadata-only",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795798745/job/116631719779"
+          },
+          {
+            "name": "remote-read-only-preflight",
+            "state": "FAILURE",
+            "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795798843/job/116631719912"
+          }
+        ]
+      }
     }
   },
   "validEvidence": [
@@ -199,7 +265,7 @@
       "detail": "Real devices, Safari/Firefox and human journey remain NOT_RUN; do not add these as new migration gates."
     }
   ],
-  "nextExecutableAction": "On the next hourly cycle: acquire shared lock, create and verify isolated worktree, read canonical checkpoint; reconcile final Quality/Civic #553 and investigate only new findings, including document-title if still relevant.",
+  "nextExecutableAction": "Read canonical ref/checkpoint and reconcile CI at e4a183bc; investigate only new or contradictory failures. document-title remains OPEN. Do not repeat approved unaffected tests.",
   "holderDecisions": [
     "Somente quando a frente Escola for elegível: entrada local protegida do par laboratorial existente e interação CAPTCHA humana. Não solicitar valores no chat. Nenhuma decisão rotineira de implementação exigida."
   ],
@@ -223,7 +289,7 @@
     "trigger": "ON_ORCHESTRATOR_CYCLE",
     "residentProcessCreated": false,
     "scheduledAutomationCreated": true,
-    "state": "HOURLY_AUTOMATION_ACTIVE_WAITING_NEXT_CYCLE",
+    "state": "CYCLE_CONSOLIDATED_CI_PENDING",
     "cycle": [
       "READ_ROADMAP_AND_CHECKPOINT",
       "RECONCILE_CODE_PRS_AND_EVIDENCE",
@@ -299,9 +365,48 @@
         "run": "38795799536",
         "job": "116631876941",
         "finding": "serious document-title: non-empty title missing, participation-paths 768x1024",
-        "state": "REMOTE_OBSERVED_NOT_LOCALLY_REPRODUCED",
-        "next": "Inspect route and readiness/metadata; do not weaken axe or assume flake."
+        "state": "REMOTE_CONFIRMED_LOCAL_REPRODUCTION_INCONCLUSIVE",
+        "next": "Inspect route and readiness/metadata; do not weaken axe or assume flake.",
+        "localInvestigation": {
+          "state": "INCONCLUSIVE_NOT_REPRODUCED",
+          "attempts": 2,
+          "first": "45s test timeout during initial navigation/compilation",
+          "second": "5s URL assertion timeout after guide click; did not reach axe",
+          "assertionsOrTimeoutsWeakened": false
+        }
+      },
+      {
+        "scope": "Quality integral journey",
+        "sha": "f2aaea03b2231673a3f3b9a5c39c828f3b425bd7",
+        "run": "38795798795",
+        "job": "116634530881",
+        "finding": "document-title serious at acesso-negado in 390x844",
+        "state": "REMOTE_OBSERVED_OPEN"
+      },
+      {
+        "scope": "Quality unavailable route expectation",
+        "sha": "f2aaea03b2231673a3f3b9a5c39c828f3b425bd7",
+        "run": "38795798795",
+        "job": "116634530881",
+        "finding": "Obsolete 404 wording disagrees with actual unavailable h1",
+        "state": "FIX_PUSHED_CI_PENDING",
+        "fixSha": "e4a183bcc932d4e3acb9e8de78074b6163813ade"
       }
-    ]
+    ],
+    "lastCycle": {
+      "id": "20261015T2113Z-41e32265d35b",
+      "observedCanonicalSha": "9dfa6a10d0c1e6682500273e27a0bbf32444fbea",
+      "codeSha": "e4a183bcc932d4e3acb9e8de78074b6163813ade",
+      "observedAt": "2026-10-15T21:22:32.843Z",
+      "report": "reports/current/comun-roadmap-cycle-20261015T2113.json",
+      "reportSha256": "16ed3a9866dc3b8695f95ff4f0f8909c3c238870fb5721db66681e2854b323c1",
+      "fingerprint": "f2e9d696e33a70984a624aa034bdcc96b9d033e9c70478492437fd618ef185fc",
+      "previousFingerprint": null,
+      "unchangedFingerprintCycles": 0,
+      "diagnosticOnly": false,
+      "materialCodePushes": 1,
+      "worktree": "E:\\COMUN-ROADMAP-CYCLES\\20261015T2113Z-41e32265d35b",
+      "worktreeRetention": "PRESERVED_PENDING_CI_AND_TITLE_EVIDENCE"
+    }
   }
 }
