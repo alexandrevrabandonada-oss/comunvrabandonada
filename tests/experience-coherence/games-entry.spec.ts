@@ -60,13 +60,11 @@ test("Explorar preserva Jogos na experiência App V2", async ({
 }) => {
   await page.goto("/comun/explorar?experiencia=app-v2&categoria=jogos");
   const category = page.getByRole("link", { name: "Jogos" });
-  await expect(category).toHaveAttribute(
-    "href",
-    "/comun/jogos?experiencia=app-v2",
-  );
+  // App V2 emits canonical URLs without the explicit query parameter.
+  await expect(category).toHaveAttribute("href", "/comun/jogos");
   await category.click();
-  await expect(page).toHaveURL(/\/comun\/jogos\?experiencia=app-v2$/);
+  await expect(page).toHaveURL(/\/comun\/jogos$/);
   await expect(
     page.getByRole("link", { name: /Voltar a Explorar/ }),
-  ).toHaveAttribute("href", "/comun/explorar?experiencia=app-v2");
+  ).toHaveAttribute("href", "/comun/explorar");
 });
