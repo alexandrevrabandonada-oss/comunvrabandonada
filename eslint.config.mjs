@@ -12,6 +12,7 @@ export default defineConfig([
   },
   globalIgnores([
     ".next*/**",
+    "tests/solidarity-continuity/fixture-app/.next*/**",
     "node_modules/**",
     "backups/**",
     "coverage/**",

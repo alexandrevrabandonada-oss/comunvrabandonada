@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  clearSolidarityConnectionDrafts,
+  notifySolidarityConnectionLogout,
+} from "@/lib/comun-solidarity-connection-draft";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -371,6 +376,8 @@ export function ComunLogoutCleanup() {
           () => window.sessionStorage,
           COMUN_LAST_SAFE_ROUTE_KEY,
         );
+        clearSolidarityConnectionDrafts(() => window.sessionStorage);
+        notifySolidarityConnectionLogout();
         navigator.serviceWorker?.controller?.postMessage({
           type: "CLEAR_CONTENT_CACHES",
         });

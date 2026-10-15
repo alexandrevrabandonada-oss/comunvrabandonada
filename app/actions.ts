@@ -1224,8 +1224,15 @@ export async function signInCommunityWithGoogle(formData: FormData) {
 }
 
 export async function logoutCommunity() {
-  const supabase = await createSupabaseServerClient();
-  await supabase?.auth.signOut();
+  let failed = false;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const result = await supabase?.auth.signOut();
+    failed = Boolean(result?.error);
+  } catch {
+    failed = true;
+  }
+  if (failed) redirect("/comun/conta?status=saida-nao-confirmada");
   redirect("/comun/entrar");
 }
 
