@@ -199,7 +199,7 @@
       "detail": "Real devices, Safari/Firefox and human journey remain NOT_RUN; do not add these as new migration gates."
     }
   ],
-  "nextExecutableAction": "Restore local project scheduling access, then create exactly the requested hourly automation after verifying this pilot receipt. Product next: investigate document-title finding in Experience Coherence job 116631876941 without rerunning green suites; reconcile Quality/Civic final outcomes.",
+  "nextExecutableAction": "On the next hourly cycle: acquire shared lock, create and verify isolated worktree, read canonical checkpoint; reconcile final Quality/Civic #553 and investigate only new findings, including document-title if still relevant.",
   "holderDecisions": [
     "Somente quando a frente Escola for elegível: entrada local protegida do par laboratorial existente e interação CAPTCHA humana. Não solicitar valores no chat. Nenhuma decisão rotineira de implementação exigida."
   ],
@@ -222,8 +222,8 @@
     "missionSource": "Human request: Missão permanente — Execução autônoma do roadmap, 15/10/2026",
     "trigger": "ON_ORCHESTRATOR_CYCLE",
     "residentProcessCreated": false,
-    "scheduledAutomationCreated": false,
-    "state": "PILOT_PASS_SCHEDULER_PROJECT_BINDING_BLOCKED",
+    "scheduledAutomationCreated": true,
+    "state": "HOURLY_AUTOMATION_ACTIVE_WAITING_NEXT_CYCLE",
     "cycle": [
       "READ_ROADMAP_AND_CHECKPOINT",
       "RECONCILE_CODE_PRS_AND_EVIDENCE",
@@ -256,7 +256,7 @@
       "name": "ComunVR — Execução Autônoma do Roadmap",
       "cadence": "once per hour",
       "execution": "ISOLATED_WORKTREE",
-      "status": "NOT_CREATED_NOT_ACTIVE",
+      "status": "ACTIVE",
       "pilot": {
         "result": "PASS_LOCAL_ISOLATION_AND_RECOVERY",
         "baseCommit": "78c50928e5b42b7b9c0816c624bcf7e32dad5238",
@@ -275,12 +275,22 @@
         "unchangedFingerprintCyclesBeforeDiagnosticOnly": 3,
         "newPaidResources": 0
       },
-      "blockingInfrastructure": [
-        "LOCAL_COMUN_PROJECT_NOT_RETURNED_BY_LIST_PROJECTS",
-        "COMPUTER_USE_KERNEL_ASSET_PATH_UNAVAILABLE"
-      ],
-      "requiredIntervention": "Register/open the local Git repository in the desktop app so it is returned as a local project and can be selected with isolated-worktree execution. Restore desktop Computer Use kernel only if UI assistance is required. Do not create a cloud substitute.",
-      "preparedPrompt": "docs/comun-roadmap-hourly-automation.md"
+      "blockingInfrastructure": [],
+      "requiredIntervention": null,
+      "preparedPrompt": "docs/comun-roadmap-hourly-automation.md",
+      "automationId": "comunvr-execu-o-aut-noma-do-roadmap",
+      "projectId": "fcb5d1eb-7d51-4c73-aab3-fad5c68c0b50",
+      "schedulerExecutionEnvironment": "local",
+      "isolationMechanism": "Verified per-cycle Git worktree bootstrap; not native scheduler worktree setting.",
+      "configurationVerifiedAt": "2026-10-15T17:14:14-03:00",
+      "promptSha256": "b7bc90d748c43db0969617c636c544ac255788531332db16f72d6dedc3402099",
+      "bootstrapPilot": {
+        "result": "PASS",
+        "canonicalSha": "fef06bf74132d16a9eb42c0c292607d18b24b51c",
+        "worktree": "E:/COMUN-ROADMAP-CYCLES/pilot-45e55fcffa2648f18808251d583b45e7",
+        "projectUnchanged": true,
+        "sameGitCommonDir": true
+      }
     },
     "newFindings": [
       {
