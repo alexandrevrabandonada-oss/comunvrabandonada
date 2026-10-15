@@ -37,7 +37,9 @@ const MODALITY_LABELS = {
 
 export default async function Page({
   searchParams,
-}: { searchParams?: Promise<{ experiencia?: string }> }) {
+}: {
+  searchParams?: Promise<{ experiencia?: string }>;
+}) {
   const experience = resolveComunExperience((await searchParams)?.experiencia);
   if (!isComunSolidarityEconomyPublicCoreEnabled()) return <LegacyDirectory />;
   const directory = await getPublicSolidarityEconomyDirectory();

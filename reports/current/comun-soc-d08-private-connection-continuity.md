@@ -118,3 +118,28 @@ timeout. Quatro cenários de cards (oferta/necessidade, mobile/desktop) passaram
 Acrescentadas asserções Axe/overflow e ativação por teclado para a rodada final.
 Artifacts do domínio UI são exclusivamente sintéticos; screenshots públicas e JSON
 de resultados ficam em test-results, fora do Git. Não contêm transporte Auth real.
+
+## Checkpoint de fechamento local
+
+Candidato funcional `71c4d80305b7841d1005437e0e6f228ff573aa25`, tree
+`908e7f150bad5ca0eb28e09b2c1e15fe7d9edc6a`: 40/40 cenários Chromium
+Windows PASS, incluindo cards, teclado, Axe, celular, login, retorno, troca de
+conta e Sair real. `pageerror` sem filtros. Comando:
+`node node_modules/@playwright/test/cli.js test -c playwright.solidarity-continuity.config.ts`.
+47 focais em quatro arquivos, TypeScript e ESLint focal PASS. Seis contratos P1G PASS.
+A formatação final identificou assinatura da página ainda sem Prettier após ajuste
+de tipos; corrigida, mantendo o teste e o gate. Commit posterior só fecha formatação
+e este registro; comparar diff e não presumir equivalência de resultados remotos.
+
+P1G run 38660853963: TLS e captura do ledger passaram; recusa final demonstrada:
+`REMOTE_MIGRATION_PLAN_NOT_EMPTY:20261006134804_comun_learning_r0.sql`.
+Logo, a causa remanescente é schema da Escola, não regressão da Feirinha. Nenhum
+gate dispensado. #546 permanece com cinco failures históricos dessa dependência;
+#549 também não é integrável. Main revalidada continua `8b0ba0d2c90295a6579e8e8808a9e765583e86c9`.
+
+Run final funcional 38660853989, Preview exato e demais checks: verificar conclusão
+na descrição atualizada do #549; não transformar execução pendente em PASS.
+Relatório é registro das provas nos respectivos SHAs, não certificação Production.
+Aparelhos reais, Safari/Firefox, leitor de tela humano, compreensão e operação
+Production continuam NOT_RUN. Descoberta contextual continua PLANEJADA, sem nova
+entrega concorrente. Sem merge, schema write, Auth/Source, flags ou indexação.

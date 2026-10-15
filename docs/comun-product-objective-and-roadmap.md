@@ -1004,3 +1004,16 @@ do navegador permanece nativo. Critério novo: card → autenticação real da a
 com transporte controlado → formulário vazio de contato/consentimento → retorno
 à Feirinha no mesmo modo; completar no novo SHA antes de chamar PASS.
 Estado continua `CANDIDATO EM PR`; não integrar com dependência/gates bloqueados.
+
+SOC-D08 — fechamento local: #549, funcional `71c4d803`, 40/40 casos de navegador
+PASS com transporte controlado (Windows), 47 focais, TypeScript e ESLint focal
+PASS. Cards → login → retorno legacy sem query privada, contato ou consentimento
+restaurados; teclado/Axe/overflow cobertos. O formulário prévio já possuía prova
+real Auth/Postgres separada em `d1688c6e`; exigir conclusão da run do candidato
+posterior, não transferir esse PASS. P1G chegou ao mesmo bloqueio da Escola
+(run 38660853963, migration 20261006134804 pendente); TLS corrigido sem reduzir
+controles. Estado final desta implementação permanece `CANDIDATO EM PR` (#549
+draft, dependente do #546). Integração, Production e validação humana não provadas.
+Próxima ação executável: reconciliar runs/Preview do head na descrição do #549;
+integração exige dependência resolvida e gates de main no SHA exato. A próxima
+entrega de produto continua descoberta pública contextual, ainda PLANEJADA.
