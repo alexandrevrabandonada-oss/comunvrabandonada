@@ -393,3 +393,8 @@ dependência Escola por sua frente autorizada, sem dispensar preflight.
 
 Referência: https://github.com/microsoft/playwright/releases/tag/v1.64.1. Não
 se afirma que a release documenta correção upstream específica deste SIGTRAP.
+
+Atualização final da consulta: Security Resilience 38666751404 PASS (pr-lane);
+remote-full/prepare-cron-dual-key SKIPPED. Rerun admin job 116201817717 superou
+start e segue PENDING no reset. Checks: 12 SUCCESS, 42 SKIPPED, 1 FAILURE
+(P1G/Escola), 1 PENDING (admin). PR draft; head remoto preservado 5de169eb.

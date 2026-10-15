@@ -1102,3 +1102,6 @@ anteriores preservados; causa interna não declarada resolvida. Preview exato
 READY e Deployment success; COST-02 SKIPPED. Full Surface admin com um rerun
 dirigido após colisão de porta e Security Resilience ainda pendentes. Escola
 continua bloqueando P1G/#546; #549 permanece draft, sem merge/Production.
+
+Atualização SOC-D08: Security Resilience PASS no mesmo SHA 5de169eb; somente
+admin Full Surface segue PENDING. P1G/Escola continua FAIL/BLOCKED.
