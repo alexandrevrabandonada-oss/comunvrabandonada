@@ -923,3 +923,29 @@ por este checkpoint; compreensão e atratividade humanas continuam pendentes.
 ### Regra antidesvio
 
 **Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.
+
+### Incremento ordenado — continuidade da busca pública — 15/10/2026
+
+Estado: `CANDIDATO EM PR`, não integrado. Decisão: preservar a intenção na busca
+existente `/comun/buscar`, no detalhe e no retorno. Base main `8b0ba0d2`, sem
+alterar ou depender do #552; não cria identificador SOC, outra busca ou feed.
+Reutiliza leitores híbrido/lexical, filtros públicos e shell existente. Consulta,
+tipo, pauta e território acompanham retorno local validado; retirada é reconsultada;
+falha parcial não vira vazio. Limpar filtros mantém consulta. Paginação/ordenação
+não existem nesta superfície e não foram inventadas.
+
+Privacidade: padrão existente de consulta pública em URL, com aviso. Formulários
+validam navegação POST antes do GET; padrões evidentes de contato, UUID e segredo
+são recusados, sem prometer detectar todo dado pessoal. Contextos usam slugs
+públicos, resolvidos no servidor. Sem storage de consulta ou telemetria nova.
+Entrada sensível digitada fora do formulário já pode ter chegado ao histórico ou
+provedor: a aplicação não pode apagá-la retroativamente.
+
+Critério: filtros → detalhe → retorno/histórico, foco, nova aba/link direto,
+retirada, vazio/falha total/parcial, teclado/axe e móvel. Navegador controlado não
+certifica Auth/RLS nem conteúdo real. Comandos, evidências e limites em
+`reports/current/comun-search-context-20261015.md`.
+
+Dependências: #552 draft independente; Escola/#523/#542 preservados, sem migration
+nem dispensa dos preflights. Próximo bloqueio único: certificar gates remotos e
+Preview do novo SHA. Aparelhos reais e validação humana continuam NOT_RUN.
