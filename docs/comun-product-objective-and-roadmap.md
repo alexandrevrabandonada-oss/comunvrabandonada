@@ -1153,8 +1153,7 @@ moderar, manter convite privado e seleção manual de poucos
 jogos, sem criar superfície pública de submissão.
 Não construir hospedagem executável no mesmo domínio.
 
-**SOC-D09.F — Auditoria de reaproveitamento da curadoria
-cultural (15/10/2026).**
+**SOC-D09.F — Auditoria de reaproveitamento da curadoria cultural (15/10/2026).**
 Estado: `AUDITORIA DE CÓDIGO`; implicações arquiteturais
 `PRINCÍPIO DECIDIDO`; integração técnica `NÃO IMPLEMENTADA`.
 
