@@ -227,3 +227,35 @@ test("sensitive form submission never enters query URL, HTML or read request", a
     urls.some((u) => u.includes("example.invalid") || u.includes("example%")),
   ).toBe(false);
 });
+
+test("semantic navigation retains keyboard focus and network failure never revives SSR", async ({
+  page,
+}) => {
+  await page.goto("/comun/buscar?q=cultura&tipo=mem%C3%B3ria");
+  await ready(page);
+  const mode = page.getByRole("button", { name: "Usar somente termos" });
+  await mode.click();
+  await expect(page).toHaveURL(/semantic=0/);
+  const lexical = page.getByRole("button", { name: "Buscar também relações" });
+  await expect(lexical).toHaveAttribute("aria-pressed", "true");
+  await ready(page);
+  await expect(lexical).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.locator(":focus-visible")).toBeVisible();
+  await page.route("**/api/comun/civic-search**", (r) =>
+    r.fulfill({
+      status: 503,
+      contentType: "application/json",
+      body: '{"code":"fixture_unavailable"}',
+    }),
+  );
+  await page.reload();
+  await expect(
+    page.getByRole("status", { name: "Estado da busca pública" }),
+  ).toContainText("Busca indisponível");
+  await expect(result(page)).toHaveCount(0);
+  await page.unroute("**/api/comun/civic-search**");
+  await page.getByRole("button", { name: "Tentar novamente" }).click();
+  await ready(page);
+  await expect(result(page)).toBeVisible();
+});

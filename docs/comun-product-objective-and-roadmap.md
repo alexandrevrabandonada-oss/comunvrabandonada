@@ -957,3 +957,9 @@ com limpeza PASS (run 38792046636). Matriz disclosure/controle negativo PASS
 Production ou validação humana. Bloqueio observado em 48.2-A: CA TLS ausente no
 runner antes de SQL, separado da dependência Escola; não enfraquecer TLS ou gates.
 Checks posteriores à atualização documental exigem inventário próprio no PR.
+
+Autocorreção de busca na mesma frente: logs de Civic/Quality demonstraram perda
+de foco ao alternar semântica e expectativa legada de preservar snapshot na falha
+de rede. Controle agora mantém foco; teste de rede exige indisponibilidade, zero
+resultado obsoleto e retry. 18 browser locais PASS no diff corrigido, sem remover
+os casos anteriores. CI e Preview do novo commit exigem certificação própria.

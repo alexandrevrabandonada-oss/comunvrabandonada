@@ -154,7 +154,6 @@ export default async function Page({
           ) : null}
         </nav>
         <LiveSearchResults
-          key={searchHref(state)}
           searchState={state}
           initialAvailability={search.availability}
           query={q}

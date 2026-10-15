@@ -38,6 +38,8 @@ test("@a11y lexical aparece primeiro e semântica pode ser desligada", async ({
   });
   await expect(toggle).toBeVisible();
   await toggle.click();
+  await expect(page).toHaveURL(/semantic=0/);
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
   await expect(status).toContainText(
     /resultados iniciais|relações atualizadas|correspondência inicial/,
   );

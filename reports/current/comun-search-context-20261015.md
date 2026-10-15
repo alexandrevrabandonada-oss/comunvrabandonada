@@ -109,3 +109,17 @@ Production: NOT_INSPECTED, nenhuma operação. Escola/Auth/Source/backup intacto
 Aparelhos reais, Safari/Firefox e validação humana: NOT_RUN.
 Próximo bloqueio: certificar SHA publicado nos gates e laboratório remoto;
 bloqueio Escola permanece separado. Draft, sem merge/ready.
+
+## Autocorreção após logs remotos
+
+No funcional ca4e7325, Civic pr-lane job 116618803884 falhou em foco visível após
+alternar semântica (1024x768); Quality network job 116618804088 exigia texto legado
+“resultados iniciais preservados”. Não foram atribuídos à infraestrutura.
+Correção focal: manter a instância do controle na navegação e devolver foco após
+reconsulta, sem scroll forçado. A regressão de rede agora exige indisponibilidade
+explícita, zero links do snapshot e retry; não ressuscita SSR depois de falha.
+A suíte mantém os casos anteriores e acrescenta prova de retry/recuperação e foco.
+PASS local no diff corrigido: 18 browser (9 desktop/9 celular), tipos e lint fontes.
+Os PASS Auth/Postgres e disclosure anteriores continuam vinculados a ca4e7325;
+leitores, SQL, guards e harness real não mudaram, mas novos jobs terão resultados
+próprios. Preview e checks do novo commit ficam PENDING até avaliação por SHA.

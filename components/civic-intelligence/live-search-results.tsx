@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SearchResult } from "@/lib/unified-search";
 import type { CivicIntentMatch } from "@/lib/civic-intelligence/intents";
@@ -39,6 +39,8 @@ export function LiveSearchResults({
   initialAvailability?: SearchAvailability;
 }) {
   const router = useRouter();
+  const modeControl = useRef<HTMLButtonElement>(null);
+  const restoreModeFocus = useRef(false);
   const context = searchState ?? { q: query, tipo: type, pauta };
   const serialized = searchHref(context);
   const semantic = context.semantic !== "0";
@@ -120,6 +122,11 @@ export function LiveSearchResults({
   }, [query, serialized, semantic, version]);
   useEffect(() => {
     if (phase !== "ready") return;
+    if (restoreModeFocus.current) {
+      restoreModeFocus.current = false;
+      modeControl.current?.focus();
+      return;
+    }
     const id = location.hash.slice(1) || history.state?.comunSearchFocus;
     if (typeof id !== "string" || !/^resultado-[a-f0-9]{8}$/.test(id)) return;
     const element = document.getElementById(id);
@@ -178,13 +185,16 @@ export function LiveSearchResults({
         </p>
         <button
           type="button"
+          ref={modeControl}
           aria-pressed={!semantic}
           className="min-h-11 border-2 border-comun-paper px-3 font-bold"
-          onClick={() =>
+          onClick={() => {
+            restoreModeFocus.current = true;
             router.push(
               searchHref({ ...context, semantic: semantic ? "0" : undefined }),
-            )
-          }
+              { scroll: false },
+            );
+          }}
         >
           {semantic ? "Usar somente termos" : "Buscar também relações"}
         </button>
