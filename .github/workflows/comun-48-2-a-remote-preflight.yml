@@ -57,6 +57,10 @@ jobs:
           fi
 
       - name: Reconcile remote migration metadata in a read-only transaction
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |

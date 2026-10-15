@@ -39,6 +39,10 @@ jobs:
           cat "$RUNNER_TEMP/48-4-a6-ownership.txt" >> "$GITHUB_ENV"
 
       - name: Inspect only metadata, constraints and privileges
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         shell: bash
         run: |
           set -euo pipefail
@@ -68,6 +72,10 @@ jobs:
           fs.writeFileSync('.ci-artifacts/48-4-a6-preflight/mode',state.profileRpcPresent?'promoted':'candidate');
           NODE
       - name: Prove exactly one bounded migration plan
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |

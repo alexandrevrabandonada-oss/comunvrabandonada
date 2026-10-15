@@ -25,6 +25,8 @@ jobs:
         with: { node-version: 22, cache: npm }
       - run: npm ci --ignore-scripts
       - run: node --test scripts/discovery/lab-guard.node-test.mjs
+      - name: Verified TLS and unchanged read-only preflight contracts
+        run: node --test scripts/ci/readonly-database-ca.node-test.mjs scripts/ci/readonly-reconciled-migration-plan.node-test.mjs tests/ci/readonly-observatory-migration-metadata.node-test.mjs
       - run: node node_modules/vitest/vitest.mjs run lib/comun-public-discovery.test.ts lib/public-source-reads.test.ts lib/server/comun-public-discovery.test.ts lib/radio-public-reads.test.ts
       - run: npx playwright install --with-deps chromium
       - run: node tests/public-discovery/run-fixture.mjs build

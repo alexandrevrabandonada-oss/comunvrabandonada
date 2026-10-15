@@ -971,3 +971,13 @@ importando o CSS v2 completo e repetindo 12/12 localmente; margem original do
 produto preservada. Os preflights 48.2-A/48.4-A1–A6 desta execução bloquearam por
 CA TLS ausente no runner antes do schema; não confundir com a pendência conhecida
 da Escola nem enfraquecer verify-full. CI global ainda não aprovado; sem merge.
+
+**SOC-D09 / correção estreita de execução read-only:** os logs demonstraram
+CA padrão ausente em 48.2-A/48.4-A1–A6, antes de qualquer captura de schema.
+Reutilizar o certificado público já fixado pelo projeto/A7 em `PGSSLROOTCERT`,
+com `PGSSLMODE=verify-full` e `default_transaction_read_only=on`, somente nos
+13 passos que consultam metadados/plano. Nenhuma query, hash esperado, regra,
+secret, permissão ou migration muda. Testes fixam semanticamente o escopo e os
+hashes dos scripts originais de main. Estado: correção candidata no #552, commit
+separado da experiência; execução remota necessária. Isso não resolve nem dispensa
+a migration pendente da Escola. Sem outra pilha de PRs.

@@ -131,3 +131,30 @@ Hash SHA-256 do JSON dessa bateria reforçada: `02f43f2b75535b7dac03c19f474e308c
 O novo checkpoint explícito exige sua própria execução remota/Preview; consultar
 inventário final no corpo do PR #552. Manter draft e sem merge enquanto houver
 falhas ou pendências aplicáveis. Nenhuma certificação editorial/Production/humana.
+
+## Correção focal de CA já disponível
+
+A investigação independente localizou o certificado público versionado
+`scripts/security/supabase-prod-ca-2021.crt` e o padrão A7 já testado. Não falta
+uma nova credencial nem uma ação humana: sete workflows não o encaminhavam ao
+psql. Acrescentado somente em 13 passos read-only: `PGSSLROOTCERT` com esse arquivo,
+`PGSSLMODE=verify-full`, `PGOPTIONS=-c default_transaction_read_only=on`.
+Os 13 scripts de SQL/plano permanecem byte-idênticos aos de main `8b0ba0d2`,
+com hashes fixados pelo teste; nenhum predicate, ledger, fingerprint, secret,
+condicional de aplicabilidade, query ou expectativa foi relaxado. Nenhuma escrita
+Production é autorizada por isso. O certificado não foi substituído.
+
+PASS: 21 testes CA/escopo, quatro contratos de plano e teste de flags locais.
+FAIL local: o teste Bash completo de metadados (`tests/ci/readonly-observatory-migration-metadata.node-test.mjs`)
+terminou em EBUSY no cleanup temporário do Windows; preservado sem alteração.
+Não repetir tentativas equivalentes nem contar essa execução como PASS. O job
+Linux do SOC-D09 agora executa explicitamente o mesmo teste e os 25 contratos;
+aguardar o resultado remoto antes de certificar. Não ampliar timeout ou filtrar caso.
+
+Antes deste delta, o head `0cf5cfff455dd6439bc78f0b3872aa9fce5d1f8c` concluiu
+SOC-D09 [38784712318](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38784712318)
+com browser e Auth/Postgres SUCCESS. Preview Git `dpl_GkKttRURHQZ2Qi6mP1GEzFPKzDPT`
+READY, metadata SHA exato, GitHub deployment `7100796344` success e COST-02 SUCCESS.
+O novo commit contém apenas CA scoped, contratos e documentação, sem nova alteração
+de produto. O resultado dos preflights após a correção deve substituir somente a
+classificação técnica do transporte, nunca a prova/pendência da Escola.
