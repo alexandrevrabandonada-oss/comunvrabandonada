@@ -1087,6 +1087,27 @@ Mecânicas de construção, multiplayer, política territorial
 ou conteúdo novo do RPG exigem evidência própria;
 não integrar projetos diferentes por similaridade de nome.
 
+**SOC-D09.D — Candidato técnico de entrada pública (15/10/2026).**
+Estado: `CANDIDATO EM PR`, não integrado. O
+[PR #551](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/551)
+introduz a rota `/comun/jogos` e o cartão de uma beta real,
+acessível pelo Explorar legado e App V2 com retorno preservado.
+A ação de jogar abre a landing pública externa em nova aba,
+sem iframe, sem carregar Unity antes da escolha e sem
+transferência de dados de conta ou save pelo COMUN.
+Atualiza a matriz de superfícies para reconhecer a rota
+`public_web` e 241 páginas, preservando as outras regras
+e casos negativos. Ensaio de navegador avalia os viewports,
+contraste, foco, link/retorno e ausência de preload externo.
+
+**Gate:** o #551 depende deste contrato SOC-D09, dos
+workflows aplicáveis e de revisão antes de qualquer merge.
+Falhas de preflight remoto por CA, migration da Escola e
+bloqueios de #546/#549 continuam independentes; não dispensar
+nem confundir sucesso local com Produção ou prova humana.
+Este é um incremento de descoberta, não uma comunidade de
+criadores já operacional nem hospedagem de jogos.
+
 **Relações canônicas:** SOC-D01 (experiência e relação),
 SOC-D02 (ausência e saída), SOC-D03 (segurança),
 SOC-D05 (anti-proliferação), SOC-D06 (autoria),
