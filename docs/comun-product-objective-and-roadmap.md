@@ -1251,6 +1251,104 @@ de privacidade/continuidade da Feirinha, os PRs em curso,
 ou a migration pendente da Escola. Nenhuma alteração
 de schema, flags, Production ou indexação autorizada.
 
+### SOC-D09.H — Encaixe definitivo de Jogos na arquitetura COMUN
+
+**Decisão em 15/10/2026:** Jogos é uma **experiência cultural e social
+transversal**, não um novo produto, uma escola disfarçada nem um catálogo de
+executáveis. Existe para divertir, criar, descobrir pessoas e obras, por livre
+iniciativa de jogadores e autores. A finalidade cultural independe da adesão
+política e da produção de dados para a rede. Estado: `PRINCÍPIO DECIDIDO`;
+arquitetura de publicação de terceiros: `HIPÓTESE`; primeira rota do catálogo:
+`CANDIDATO EM PR #551`, não integrada.
+
+**Arquitetura de experiência e responsabilidades (sem duplicação):**
+
+- **Descobrir / Cultura:** principal porta para jogos publicados. A vitrine
+  `/comun/jogos` é destino específico, acessível a partir de Explorar e links
+  públicos; a primeira presença na navegação principal **não é obrigatória**
+  enquanto a experiência ainda for estreita. Promover um atalho principal
+  somente se houver conteúdo verdadeiro, continuidade e demanda observada.
+  Não criar página vazia nem alimentar a home com jogos fictícios.
+- **Jogos:** ficha pública da obra e lançamento explícito do jogo, com
+  créditos, estágio de desenvolvimento, requisitos e informação sobre saída
+  externa. Um jogo é um **conteúdo cultural interativo**, não é por si só
+  uma tarefa, denúncia, miniapp cívico, curso ou comunidade política.
+- **Pessoas / Comunidades:** descobrir o autor e, com consentimento, conversar,
+  compartilhar a experiência ou colaborar. Jogar não concede associação,
+  papel, competência, reputação cívica nem permissão administrativa.
+  Não criar segundo perfil social especializado para jogos.
+- **Escola / Fábrica:** oferecem aprendizagem de criação digital e
+  colaboração em projetos **por opção do criador**. Um curso não publica
+  jogo automaticamente; um jogo publicado não cria competência certificada.
+  Reutilizar apenas capacidades existentes e autorizadas.
+- **Acervo / Curadoria:** inspiração para direitos, proveniência, revisão,
+  retirada e recurso. Não inserir links de games nas tabelas de fotos,
+  arte e áudio como se fossem registros da mesma natureza. O editor de
+  jogos exigirá contrato específico antes de qualquer submissão pública.
+- **Miniapps:** permanecem ferramentas para necessidades práticas;
+  não se confundem com jogos, mesmo quando uma interação usa mecânicas
+  lúdicas. Não abrir motor universal de plugins por causa da aba Jogos.
+
+**Contrato de entrada em jogo (versão inicial):** abrir uma ficha sem login,
+informar beta/autoria/origem externa e acionar `Jogar` voluntariamente.
+Somente após esse ato a pessoa deixa o domínio COMUN e carrega o runtime
+externo. Não injetar SDK, sessão, pixel, token ou identificador de integrante
+do COMUN no jogo. Não transferir escolhas políticas, comportamento,
+salvamento local ou estatísticas individuais do RPG para o perfil social.
+Oferecer alternativa informativa de conteúdo quando a execução exigir
+hardware, dados, movimento ou controles não disponíveis. Não prometer
+que a abertura em nova aba preserva contexto de todos os navegadores:
+validar celular, foco e retorno.
+
+**Curadoria e pluralidade:** publicação aberta significa critérios
+transparentes e tratamento imparcial, **não** upload automático. O criador
+conserva seus direitos e pode solicitar retirada, correções e recurso.
+Jogo não precisa ensinar política, ser de código aberto ou concordar com o
+COMUN. Conteúdo de terceiros continua sob responsabilidade do publicador
+original; informações sobre monetização, trackers e faixa etária são
+visíveis antes do clique. Ao encontrar conteúdo possivelmente perigoso,
+não promovê-lo sem revisão. Não declarar jogos externos "seguros" apenas
+porque o link foi aprovado editorialmente.
+
+**Ritmo de execução, subordinado ao roadmap 49-E / U0–U8 / 50:**
+
+1. **Fechamento técnico existente:** preservar prioridade de integridade,
+   privacidade, Feirinha e bloqueios certificados da Escola; #550 é
+   documentação e #551 permanece separado e bloqueado até gates completos.
+2. **Caso de referência:** demonstrar em Preview a jornada `Explorar →
+   Jogos → Cidade em Disputa → Jogar → Retornar`, com teste de mobile,
+   ausência de pré-carregamento, acessibilidade básica, memória/autoria
+   verificáveis e convite sem login. Não afirmar sucesso humano com
+   teste automatizado.
+3. **Catálogo editorial mínimo:** selecionar poucos jogos realmente
+   acessíveis por link, manualmente, com diversidade de estilos,
+   autoria e condições de publicação revisadas. Validar capacidade
+   de checar links, reclamações e retiradas.
+4. **Criação comunitária:** só então ensaiar em operação o contrato
+   `SOC-D09.E/F` de proposta e revisão. Se o fluxo não puder ser
+   atendido, manter curadoria por convite em vez de abrir fila pública
+   sem acompanhamento.
+5. **Experiência coletiva avançada:** avaliar salvar, perfis de
+   criadores, comentários, multiplayer e eventual embed isolado
+   com evidência de valor, riscos e custo. Sem migrations especulativas,
+   feed infinito, gamificação da participação ou loja paralela.
+
+**Critérios de promoção:** a pessoa consegue jogar por prazer sem contribuir;
+o catálogo exibe somente obras autorizadas, com acessibilidade e autoria
+claras; os links não recebem dados do COMUN; decisões editoriais podem
+ser corrigidas e revertidas; a operação de curadoria tem responsável e
+capacidade real; custos de suporte não inviabilizam a Feirinha ou
+a organização de base. Se a primeira jornada não funcionar, **não**
+abrir o fluxo de publicações de terceiros nem colocar Jogos como
+prioridade máxima da navegação.
+
+**Decisão de não fazer agora:** não hospedar jogos arbitrários; não
+lançar loja, criador monetizado pela atenção, recompensas por convites,
+ranking público ou sincronização de progresso; não abrir submissões
+automáticas, chat infantil ou eventos multiplayer. Nenhuma destas
+exclusões impede pesquisa futura com nova evidência e revisão formal
+neste mesmo documento.
+
 ### Regra antidesvio
 
 **Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.
