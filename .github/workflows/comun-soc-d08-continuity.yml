@@ -13,6 +13,7 @@ on:
       - "playwright.solidarity-continuity.config.ts"
       - "scripts/economy/prove-soc-d08-disposable.mjs"
       - "scripts/ci/run-soc-d08-browser-proof*"
+      - "scripts/ci/collect-soc-d08-native-stack*"
       - ".github/workflows/comun-soc-d08-continuity.yml"
 permissions: { contents: read }
 jobs:
@@ -34,7 +35,19 @@ jobs:
       - run: npm run typecheck
       - run: node tests/solidarity-continuity/run-fixture.mjs build
       - run: node --test scripts/ci/run-soc-d08-browser-proof.node-test.mjs
-      - run: node scripts/ci/run-soc-d08-browser-proof.mjs
+      - name: Enable native crash evidence on the disposable runner
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gdb
+          install -d -m 700 "$RUNNER_TEMP/comun-soc-d08-cores"
+          sudo sysctl -w "kernel.core_pattern=$RUNNER_TEMP/comun-soc-d08-cores/core.%p"
+      - name: Run unchanged browser scenarios with bounded core capture
+        run: |
+          ulimit -c 2097152
+          node scripts/ci/run-soc-d08-browser-proof.mjs
+      - name: Extract native stack without memory or frame arguments
+        if: always()
+        run: node scripts/ci/collect-soc-d08-native-stack.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
