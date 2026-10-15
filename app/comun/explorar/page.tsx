@@ -18,6 +18,7 @@ type ExploreCategory = readonly [
     | "acervo"
     | "radio"
     | "arte"
+    | "jogos"
     | "observatorios"
   ),
 ];
@@ -66,6 +67,12 @@ const categories: readonly ExploreCategory[] = [
     "/comun/acervo/arte",
     "arte",
   ],
+  [
+    "Jogos",
+    "Descubra jogos autorais e comece a jogar por prazer.",
+    "/comun/jogos",
+    "jogos",
+  ],
 ] as const;
 
 const observatoriesCategory: ExploreCategory = [
@@ -91,6 +98,8 @@ const categorySurfaces: Record<ExploreCategory[3], string> = {
   radio:
     "surface-action rounded-[var(--comun-radius-cultural)] border-comun-black/25",
   arte: "surface-memory rounded-[var(--comun-radius-community)] border-comun-rust/40",
+  jogos:
+    "surface-action rounded-[var(--comun-radius-cultural)] border-comun-black/25",
   observatorios:
     "surface-result rounded-[var(--comun-radius-card)] border-comun-yellow/70",
 };
