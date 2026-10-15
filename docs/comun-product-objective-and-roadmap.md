@@ -1167,6 +1167,7 @@ O tipo `CulturalSpecialization` e o projetor de
 essas quatro especializações; nenhuma é "jogo".
 
 Reaproveitáveis conceitualmente e após testes:
+
 - Separação de contribuição privada, revisão de direitos,
   avaliação de risco, preparação editorial e publicação
   explicitamente autorizada.
@@ -1179,6 +1180,7 @@ Reaproveitáveis conceitualmente e após testes:
   sem promessa de publicação vistos no Acervo.
 
 **Não reaproveitar sem adaptação e revisão:**
+
 - `/api/comun/archive/submissions` recebe fotografia e
   requer um envelope de upload, direitos e vínculo ao
   acervo fotográfico; um link de jogo não é uma fotografia.
@@ -1194,6 +1196,7 @@ Reaproveitáveis conceitualmente e após testes:
   de UI é diferente de compartilhar tabelas ou grants.
 
 **Menor caminho honesto sem migration:**
+
 1. Certificar primeiro o catálogo #551 e sua navegação,
    preservando bloqueios de CI/ambiente.
 2. Convidar manualmente poucos desenvolvedores com
