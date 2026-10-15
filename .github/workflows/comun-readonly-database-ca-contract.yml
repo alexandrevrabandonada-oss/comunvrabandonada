@@ -1,0 +1,33 @@
+name: COMUN read-only database CA contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/comun-readonly-database-ca-contract.yml"
+      - ".github/workflows/comun-48-2-a-remote-preflight.yml"
+      - ".github/workflows/comun-48-4-a1-preflight.yml"
+      - ".github/workflows/comun-48-4-a2-preflight.yml"
+      - ".github/workflows/comun-48-4-a3-preflight.yml"
+      - ".github/workflows/comun-48-4-a4-preflight.yml"
+      - ".github/workflows/comun-48-4-a5-preflight.yml"
+      - ".github/workflows/comun-48-4-a6-preflight.yml"
+      - "lib/supabase-database-tls.ts"
+      - "scripts/ci/readonly-database-ca.node-test.mjs"
+      - "scripts/ci/readonly-reconciled-migration-plan*"
+      - "scripts/security/supabase-prod-ca-2021.crt"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  read-only-ca-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22.19.0", cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/ci/readonly-database-ca.node-test.mjs
