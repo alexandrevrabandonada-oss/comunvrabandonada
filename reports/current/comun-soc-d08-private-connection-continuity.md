@@ -79,3 +79,12 @@ quando signOut retornava error. Regressão real executada e falhou antes da corr
 (1 FAIL, 17 casos não selecionados). Correção focal: erro/exception retorna a Conta
 com saída não confirmada; sucesso mantém a saída existente. Sem alterar scope ou
 configuração do Auth. Ensaio de navegador inclui Sair, falha e segunda tentativa real.
+
+## Reconciliação remota intermediária
+
+- Run 38642070660 (b6487fa1): Auth/Postgres real descartável PASS; navegador 26 PASS / 8 FAIL.
+- Run 38642511839 (83769411): navegador 25 PASS / 11 FAIL, sem skipped. Preservado.
+- Falhas funcionais: getter recusado ficava como discard_failed e habilitava salvar; corrigido com regressão de store.
+- Fragilidade de teste: alert genérico encontrava também o anunciador Next; seletores agora delimitam o feedback real, sem filtrar pageerror.
+- Três encerramentos inesperados do Chromium completo no último ensaio; logs crashpad preservados fora do Git. Novo ensaio usa o headless shell padrão da mesma versão Playwright/Chromium fixada, sem timeout ampliado, retry automático ou casos removidos. Resultado ainda PENDING.
+- P1G run 38642511899: FAIL anterior à query de catálogo por root.crt ausente. Correção limitada à etapa SELECT: CA versionada, verify-full e default_transaction_read_only=on; sem mudar destino/expectativas. Contrato read-only recebe regressão.

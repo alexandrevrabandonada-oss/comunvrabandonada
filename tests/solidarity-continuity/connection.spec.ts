@@ -292,7 +292,9 @@ for (const unavailable of ["published", "eligible"]) {
     await login(page);
     await request.post("/lab-state", { data: { [unavailable]: false } });
     await submit(page);
-    await expect(page.getByRole("alert")).toContainText("não está disponível");
+    await expect(page.locator("#connection-feedback")).toContainText(
+      "não está disponível",
+    );
     expect((await (await request.get("/lab-state")).json()).rows).toBe(0);
   });
 }
@@ -453,9 +455,11 @@ test("Sair failure stays explicit and permits another actual logout attempt", as
   await page.goto("/comun/conta");
   await page.getByRole("button", { name: "Sair", exact: true }).click();
   await expect(page).toHaveURL("/comun/conta?status=saida-nao-confirmada");
-  await expect(page.getByRole("alert")).toContainText(
-    "Não foi possível confirmar a saída",
-  );
+  await expect(
+    page
+      .getByRole("alert")
+      .filter({ hasText: "Não foi possível confirmar a saída" }),
+  ).toContainText("Não foi possível confirmar a saída");
   await request.post("/lab-state", { data: { logoutFails: false } });
   await page.getByRole("button", { name: "Sair", exact: true }).click();
   await expect(page).toHaveURL("/comun/entrar");

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   clearSolidarityConnectionDrafts,
+  createConnectionDraftStore,
   connectionDraftKey,
   discardLegacyConnectionDraft,
   readConnectionDraft,
@@ -216,4 +217,17 @@ it("purges every legacy item without reading its content", () => {
   };
   expect(discardLegacyConnectionDraft(() => store)).toBe(true);
   expect([...values.keys()]).toEqual(["unrelated"]);
+});
+
+it("keeps denied storage unavailable when legacy cleanup also fails", () => {
+  const store = createConnectionDraftStore(() => {
+    throw new Error("denied");
+  }, context);
+  expect(store.getServerSnapshot()).toBe("checking");
+  expect(store.getSnapshot()).toBe("checking");
+  const unsubscribe = store.subscribe(() => {});
+  expect(store.getSnapshot()).toBe("unavailable");
+  store.refresh();
+  expect(store.getSnapshot()).toBe("unavailable");
+  unsubscribe();
 });

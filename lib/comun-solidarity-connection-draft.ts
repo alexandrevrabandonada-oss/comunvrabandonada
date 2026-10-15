@@ -182,7 +182,13 @@ export function createConnectionDraftStore(
   function refresh() {
     const legacyRemoved = discardLegacyConnectionDraft(resolve);
     const result = readConnectionDraft(resolve, context);
-    publish(legacyRemoved ? result.status : "discard_failed");
+    publish(
+      result.status === "unavailable"
+        ? "unavailable"
+        : legacyRemoved
+          ? result.status
+          : "discard_failed",
+    );
   }
   return {
     getServerSnapshot: () => "checking" as Status,

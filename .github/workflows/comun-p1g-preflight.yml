@@ -74,6 +74,10 @@ jobs:
           node --test scripts/solo/p1g-google-auth-workflow.node-test.mjs
 
       - name: Confirm P6A terminal schema metadata without business-row reads
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         shell: bash
         run: |
           set -euo pipefail

@@ -7,7 +7,6 @@ export default defineConfig({
   outputDir: "test-results/solidarity-continuity",
   timeout: 45_000,
   use: {
-    channel: "chromium",
     baseURL: "http://127.0.0.1:3148",
     trace: "retain-on-failure",
   },
