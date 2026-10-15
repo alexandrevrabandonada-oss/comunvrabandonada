@@ -111,3 +111,18 @@ test("P6A metadata TLS uses the repository CA only in its read-only step", () =>
     /rejectUnauthorized|sslmode=disable|sslmode=require/,
   );
 });
+
+test("migration-plan reconciliation inherits strict TLS without changing its empty-plan gate", () => {
+  const step = workflow
+    .split(
+      "- name: Reconcile Calçadas and prove empty remote migration plan",
+    )[1]
+    .split("- uses:")[0];
+  assert.match(
+    step,
+    /PGSSLROOTCERT:.*scripts\/security\/supabase-prod-ca-2021\.crt/,
+  );
+  assert.match(step, /PGSSLMODE: verify-full/);
+  assert.match(step, /PGOPTIONS: -c default_transaction_read_only=on/);
+  assert.match(step, /test "\$\{#planned\[@\]\}" -eq 0/);
+});

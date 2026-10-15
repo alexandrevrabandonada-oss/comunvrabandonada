@@ -88,3 +88,33 @@ configuração do Auth. Ensaio de navegador inclui Sair, falha e segunda tentati
 - Fragilidade de teste: alert genérico encontrava também o anunciador Next; seletores agora delimitam o feedback real, sem filtrar pageerror.
 - Três encerramentos inesperados do Chromium completo no último ensaio; logs crashpad preservados fora do Git. Novo ensaio usa o headless shell padrão da mesma versão Playwright/Chromium fixada, sem timeout ampliado, retry automático ou casos removidos. Resultado ainda PENDING.
 - P1G run 38642511899: FAIL anterior à query de catálogo por root.crt ausente. Correção limitada à etapa SELECT: CA versionada, verify-full e default_transaction_read_only=on; sem mudar destino/expectativas. Contrato read-only recebe regressão.
+
+## Formulário comprovado antes dos cards
+
+SHA `d1688c6eefacc440a9c76b6eabd81220d41e1f59`, run 38659830598: ambos os jobs PASS.
+Navegador Linux: 36/36 PASS; unit completo/typecheck/build da fixture PASS nessa run.
+Windows: os mesmos 36/36 PASS. Nenhum pageerror filtrado, caso removido, timeout
+aumentado ou retry para mascarar falhas. Chromium headless shell padrão eliminou
+os encerramentos observados no executável completo; não inferir que isso certifica
+o outro executável. Auth/Postgres usa seu domínio real separado e artifact sanitizado.
+
+Depois dessa prova foram adicionados os links dos cards públicos, sem catálogo,
+UI administrativa ou tabela nova. Necessidade sem organização não recebe CTA.
+Flags existentes e projeção pública continuam autoridades; servidor revalida
+novamente na escrita. Contexto allowlisted mantém modo legacy e retorno público,
+sem transportar dados privados. Formatação das duas páginas antigas amplia o diff
+textual; mudança semântica restrita aos links/contexto. Novos casos ainda exigem
+prova do candidato final.
+
+P1G: run 38659830499 passou a consulta P6A após TLS, mas o helper read-only de ledger
+na etapa seguinte também não recebia CA. Mesma configuração TLS estrita aplicada
+somente à segunda etapa read-only; gate de plano vazio preservado. Não dispensar
+a migration pendente da Escola caso o preflight passe a reportá-la.
+
+Novos casos locais de cards: a primeira execução encontrou duas falhas de seletor
+(botão anônimo chama Entrar antes de enviar, não Enviar interesse/Oferecer ajuda).
+Preservado o resultado; corrigido somente o seletor, sem alterar o produto ou ampliar
+timeout. Quatro cenários de cards (oferta/necessidade, mobile/desktop) passaram depois.
+Acrescentadas asserções Axe/overflow e ativação por teclado para a rodada final.
+Artifacts do domínio UI são exclusivamente sintéticos; screenshots públicas e JSON
+de resultados ficam em test-results, fora do Git. Não contêm transporte Auth real.

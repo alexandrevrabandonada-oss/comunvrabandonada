@@ -1,5 +1,10 @@
 "use server";
 
+import { solidarityConnectionHref } from "@/lib/comun-solidarity-connection-navigation";
+import {
+  resolveComunExperience,
+  withComunExperience,
+} from "@/lib/comun-experience";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -49,10 +54,13 @@ export async function createSolidarityConnectionAction(
       "organization_territory_id",
     );
     const requestId = value(formData, "request_id");
-    const returnTo =
-      subjectKind === "offer"
-        ? `/comun/cooperativas/${organizationSlug}/ofertas/${subjectSlug}/interesse`
-        : `/comun/cooperativas/${organizationSlug}/necessidades/${subjectSlug}/ajudar`;
+    const experience = resolveComunExperience(value(formData, "experiencia"));
+    const returnTo = solidarityConnectionHref(
+      subjectKind === "offer" ? "offer" : "need",
+      organizationSlug,
+      subjectSlug,
+      { experiencia: experience, origem: value(formData, "journey_origin") },
+    );
     if (
       !["offer", "need"].includes(subjectKind) ||
       !UUID.test(subjectId) ||
@@ -153,7 +161,10 @@ export async function createSolidarityConnectionAction(
     revalidatePath("/comun/minha-participacao");
     return {
       state: "success",
-      href: "/comun/minha-participacao?secao=acompanhando",
+      href: withComunExperience(
+        "/comun/minha-participacao?secao=acompanhando",
+        experience,
+      ),
       replayed: row.idempotent === true,
     };
   } catch (error) {

@@ -2,6 +2,10 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests/solidarity-continuity",
   testMatch: "*.spec.ts",
+  reporter: [
+    ["list"],
+    ["json", { outputFile: "test-results/solidarity-continuity/results.json" }],
+  ],
   workers: 1,
   fullyParallel: false,
   outputDir: "test-results/solidarity-continuity",

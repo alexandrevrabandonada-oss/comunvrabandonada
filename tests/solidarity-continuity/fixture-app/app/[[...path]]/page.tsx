@@ -1,3 +1,4 @@
+import Directory from "@/app/comun/cooperativas/page";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import OfferPage from "@/app/comun/cooperativas/[slug]/ofertas/[offerSlug]/interesse/page";
@@ -19,9 +20,12 @@ export default async function Page({
 }) {
   const { path = [] } = await params;
   const route = path.join("/");
+  if (route === "comun/cooperativas")
+    return <Directory searchParams={searchParams} />;
   if (route.endsWith("/interesse"))
     return (
       <OfferPage
+        searchParams={searchParams}
         params={Promise.resolve({
           slug: "organizacao-lab",
           offerSlug: "oferta-lab",
@@ -31,6 +35,7 @@ export default async function Page({
   if (route.endsWith("/ajudar"))
     return (
       <NeedPage
+        searchParams={searchParams}
         params={Promise.resolve({
           slug: "organizacao-lab",
           needSlug: "necessidade-lab",

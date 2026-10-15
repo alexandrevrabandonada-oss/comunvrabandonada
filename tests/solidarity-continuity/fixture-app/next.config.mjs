@@ -21,6 +21,10 @@ const config = {
   webpack(config, { webpack }) {
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(
+        /^@\/lib\/server\/comun-solidarity-economy-directory$/,
+        resolve(here, "projection.ts"),
+      ),
+      new webpack.NormalModuleReplacementPlugin(
         /^@\/lib\/supabase\/server$/,
         resolve(here, "transport.ts"),
       ),

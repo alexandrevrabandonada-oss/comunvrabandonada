@@ -34,7 +34,7 @@ jobs:
       - run: node tests/solidarity-continuity/run-fixture.mjs build
       - run: npx playwright test -c playwright.solidarity-continuity.config.ts
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
           {
             name: soc-d08-synthetic-ui,

@@ -8,3 +8,18 @@ export async function getMySolidarityOrganizationAccess() {
 export async function listSolidarityOrganizationGovernance() {
   return [];
 }
+
+export async function getPublicSolidarityEconomyDirectory() {
+  const detail = publicDetail();
+  return {
+    contractVersion: "synthetic",
+    sourceKind: "reviewed_public_data",
+    sourceState: "available",
+    coverageState: "complete_for_bounded_projection",
+    organizations: detail ? [detail.organization] : [],
+    offers: detail?.offers ?? [],
+    needs: detail?.needs ?? [],
+    limitations: ["Fixture sintética: não comprova operação pública."],
+    deferred: [],
+  };
+}

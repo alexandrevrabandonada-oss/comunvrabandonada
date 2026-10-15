@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ComunExperience } from "@/lib/comun-experience";
 import {
   useActionState,
   useEffect,
@@ -25,6 +26,8 @@ type Props = {
     state: SolidarityConnectionActionState,
     formData: FormData,
   ) => Promise<SolidarityConnectionActionState>;
+  experience?: ComunExperience;
+  fromDirectory?: boolean;
   draftOwner: string | null;
   formIdentity: string | null;
   subjectKind: "offer" | "need";
@@ -58,6 +61,8 @@ function ConnectionForm({
   organizationSlug,
   organizationTerritoryId,
   initialRequestId,
+  experience = "app-v2",
+  fromDirectory = false,
 }: Props) {
   const [state, formAction, pending] = useActionState(
     action,
@@ -245,6 +250,12 @@ function ConnectionForm({
       className="grid gap-5 bg-comun-paper p-4 text-comun-black sm:p-6"
       aria-describedby={describedBy}
     >
+      <input type="hidden" name="experiencia" value={experience} />
+      <input
+        type="hidden"
+        name="journey_origin"
+        value={fromDirectory ? "feirinha" : "organizacao"}
+      />
       <input type="hidden" name="request_id" value={draft.requestId} />
       <input type="hidden" name="subject_kind" value={subjectKind} />
       <input type="hidden" name="subject_id" value={subjectId} />

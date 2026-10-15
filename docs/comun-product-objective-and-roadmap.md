@@ -943,36 +943,34 @@ por este checkpoint; compreensão e atratividade humanas continuam pendentes.
 
 **Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.
 
-
 ### SOC-D08 — decisão de execução (14/10/2026)
 
 Estado: `CANDIDATO EM PR` nesta branch; não integrado nem disponível por este registro.
 Base escolhida: #546 `d39656f4732f4c873e2236186f7b5e6713f1c211`, descendente
- da main `8b0ba0d2c90295a6579e8e8808a9e765583e86c9`. Dependência explícita
- das proteções de storage/PWA preservadas no #546; não duplicá-las. Os cinco
- preflights da Escola permanecem bloqueantes e o #546 estacionado.
+da main `8b0ba0d2c90295a6579e8e8808a9e765583e86c9`. Dependência explícita
+das proteções de storage/PWA preservadas no #546; não duplicá-las. Os cinco
+preflights da Escola permanecem bloqueantes e o #546 estacionado.
 
 **Retenção decidida antes da implementação:** somente mensagem e chave técnica
- de idempotência, em sessionStorage, por no máximo 30 minutos desde o salvamento
- explícito. Item e escopo opaco da conta/login validado no servidor delimitam a
- recuperação. Nunca guardar contato ou consentimento. Não há auto-save nem
- restauração automática; conteúdo potencialmente sensível exige escolha a cada
- salvamento/retomada. Expiração é conferida ao ler/recuperar; descarte tentado
- também em envio concluído, saída e incompatibilidade. Falha de remoção não pode
- tornar um rascunho incompatível visível. Não prometer apagamento físico quando
- o navegador negar acesso; a conta/login diferente continua impedida de recuperar.
+de idempotência, em sessionStorage, por no máximo 30 minutos desde o salvamento
+explícito. Item e escopo opaco da conta/login validado no servidor delimitam a
+recuperação. Nunca guardar contato ou consentimento. Não há auto-save nem
+restauração automática; conteúdo potencialmente sensível exige escolha a cada
+salvamento/retomada. Expiração é conferida ao ler/recuperar; descarte tentado
+também em envio concluído, saída e incompatibilidade. Falha de remoção não pode
+tornar um rascunho incompatível visível. Não prometer apagamento físico quando
+o navegador negar acesso; a conta/login diferente continua impedida de recuperar.
 
 **Compromisso de menor escopo:** antes do login a mensagem fica só em memória.
- A pessoa pode selecioná-la para copiar manualmente antes de entrar. Não vincular
- rascunho anônimo à primeira conta que fizer login e não transportar texto ou
- contato na URL. Depois de autenticar, preencher contato e consentimento atuais.
- Isso reduz a recuperação anônima para proteger contra troca de identidade.
+A pessoa pode selecioná-la para copiar manualmente antes de entrar. Não vincular
+rascunho anônimo à primeira conta que fizer login e não transportar texto ou
+contato na URL. Depois de autenticar, preencher contato e consentimento atuais.
+Isso reduz a recuperação anônima para proteger contra troca de identidade.
 
 Critérios: storage recusado não quebra digitação; retomada exige item/conta/login
- compatíveis e escolha explícita; contato vazio e consentimento desmarcado;
- logout real e troca de conta não recuperam texto anterior; servidor/RPC revalidam
- publicação, organização e permissões antes da escrita. Nenhuma tabela/flag nova.
-
+compatíveis e escolha explícita; contato vazio e consentimento desmarcado;
+logout real e troca de conta não recuperam texto anterior; servidor/RPC revalidam
+publicação, organização e permissões antes da escrita. Nenhuma tabela/flag nova.
 
 Prova da decisão SOC-D08: [relatório focal](../reports/current/comun-soc-d08-private-connection-continuity.md).
 O cenário de banco reutiliza literalmente o A5 canônico; a prova Auth descartável
@@ -989,3 +987,20 @@ com erro era tratada como sucesso. Candidato passa a mostrar saída não confirm
 na Conta, sem mudar escopo de signOut ou configuração Auth; retry depende do clique
 explícito. Critério: Sair real com sucesso limpa/encerra; erro mantém aviso e opção
 de nova tentativa, sem anunciar sessão encerrada. Ainda candidato, não integrado.
+
+SOC-D08 — checkpoint de prova e acesso (14/10/2026): no #549 empilhado sobre #546,
+`d1688c6eefacc440a9c76b6eabd81220d41e1f59` passou os dois domínios da run
+38659830598: 36 cenários renderizados (celular/desktop) e Auth/Postgres reais
+descartáveis separados. A prova Windows também passou 36/36, sem filtros de
+pageerror. Não é operação Production nem validação humana. Após essa prova,
+o candidato acrescenta links dos cards públicos às ações existentes, apenas
+com A1/A2/A5 habilitados e organização presente na projeção pública.
+
+Decisão de continuidade pública: transportar somente origem `feirinha` e modo
+de experiência allowlisted; retorno direto disponível à listagem ou organização.
+Contato, mensagem, sessão e query arbitrária não entram na URL. O diretório atual
+não possui filtros implementados; não inventar filtros nesta entrega. O histórico
+do navegador permanece nativo. Critério novo: card → autenticação real da action
+com transporte controlado → formulário vazio de contato/consentimento → retorno
+à Feirinha no mesmo modo; completar no novo SHA antes de chamar PASS.
+Estado continua `CANDIDATO EM PR`; não integrar com dependência/gates bloqueados.

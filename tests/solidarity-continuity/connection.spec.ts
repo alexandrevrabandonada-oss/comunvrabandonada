@@ -465,3 +465,74 @@ test("Sair failure stays explicit and permits another actual logout attempt", as
   await expect(page).toHaveURL("/comun/entrar");
   expect((await (await request.get("/lab-state")).json()).logouts).toBe(2);
 });
+
+for (const kind of ["offer", "need"] as const) {
+  test(`public card -> ${kind} -> login -> safe contextual return`, async ({
+    page,
+  }, testInfo) => {
+    await page.goto(
+      "/comun/cooperativas?experiencia=legacy&token=PRIVATE_SENTINEL",
+    );
+    const card = page.getByRole("article").filter({
+      has: page.getByRole("heading", {
+        name:
+          kind === "offer"
+            ? "Oferta sintética de livros"
+            : "Ajuda sintética com livros",
+        exact: true,
+      }),
+    });
+    const link = card.getByRole("link", {
+      name: kind === "offer" ? /^Tenho interesse/ : /^Posso ajudar/,
+    });
+    const href = await link.getAttribute("href");
+    expect(href).toBe(
+      `${kind === "offer" ? offer : need}?origem=feirinha&experiencia=legacy`,
+    );
+    if (kind === "offer") {
+      const audit = await new AxeBuilder({ page }).analyze();
+      expect(
+        audit.violations.filter((v) =>
+          ["serious", "critical"].includes(v.impact ?? ""),
+        ),
+      ).toEqual([]);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: testInfo.outputPath("public-directory.png"),
+        fullPage: true,
+      });
+    }
+    await link.focus();
+    await page.keyboard.press("Enter");
+    await page.getByLabel("Sua mensagem para a organização").fill(message);
+    await page
+      .getByRole("button", {
+        name: "Entrar antes de enviar",
+        exact: true,
+      })
+      .click();
+    await page
+      .getByRole("link", { name: "Entrar para continuar", exact: true })
+      .click();
+    await page.getByLabel("E-mail", { exact: true }).fill("a@example.invalid");
+    await page
+      .getByLabel("Senha", { exact: true })
+      .fill("synthetic-only-password");
+    await page.getByRole("button", { name: "Entrar", exact: true }).click();
+    await expect(page).toHaveURL(href!);
+    await expect(
+      page.getByLabel("Sua mensagem para a organização"),
+    ).toHaveValue("");
+    await expect(
+      page.getByLabel("Contato protegido", { exact: true }),
+    ).toHaveValue("");
+    await expect(page.getByRole("checkbox")).not.toBeChecked();
+    await page.getByRole("link", { name: "Voltar à Feirinha" }).click();
+    await expect(page).toHaveURL("/comun/cooperativas?experiencia=legacy");
+    expect(page.url()).not.toContain("PRIVATE_SENTINEL");
+  });
+}

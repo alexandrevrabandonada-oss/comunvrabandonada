@@ -206,3 +206,23 @@ it("does not claim logout when the real action receives an Auth transport failur
     "REDIRECT:/comun/conta?status=saida-nao-confirmada",
   );
 });
+
+it("login return retains only safe public journey context", async () => {
+  mocks.session.mockResolvedValue(null);
+  const data = form();
+  data.set("experiencia", "legacy");
+  data.set("journey_origin", "feirinha");
+  data.set("returnTo", "https://evil.invalid?token=PRIVATE");
+  const result = await createSolidarityConnectionAction(
+    { state: "idle" },
+    data,
+  );
+  expect(result.state).toBe("auth_required");
+  if (result.state !== "auth_required") throw new Error("missing login");
+  const url = new URL(result.loginHref, "http://local");
+  expect(url.searchParams.get("returnTo")).toBe(
+    "/comun/cooperativas/organizacao-lab/ofertas/oferta-lab/interesse?origem=feirinha&experiencia=legacy",
+  );
+  expect(result.loginHref).not.toContain("PRIVATE");
+  expect(mocks.create).not.toHaveBeenCalled();
+});

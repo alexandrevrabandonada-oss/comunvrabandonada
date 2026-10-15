@@ -1,3 +1,5 @@
+import { solidarityJourneyReturnHref } from "@/lib/comun-solidarity-connection-navigation";
+import { resolveComunExperience } from "@/lib/comun-experience";
 import { getCommunitySession } from "@/lib/community-auth";
 import {
   solidarityConnectionDraftOwner,
@@ -16,7 +18,9 @@ export const dynamic = "force-dynamic";
 
 export default async function OfferInterestPage({
   params,
+  searchParams,
 }: {
+  searchParams?: Promise<{ experiencia?: string; origem?: string }>;
   params: Promise<{ slug: string; offerSlug: string }>;
 }) {
   if (!isComunSolidarityPrivateConnectionsEnabled()) notFound();
@@ -25,14 +29,21 @@ export default async function OfferInterestPage({
   const offer = detail?.offers.find((item) => item.slug === offerSlug);
   if (!detail || !offer) notFound();
   const session = await getCommunitySession();
+  const query = await searchParams;
+  const experience = resolveComunExperience(query?.experiencia);
+  const fromDirectory = query?.origem === "feirinha";
   return (
     <ComunShell>
       <header className="border-b-2 border-comun-black bg-comun-yellow px-4 py-8 text-comun-black sm:px-8">
         <Link
           className="text-sm font-black underline"
-          href={`/comun/cooperativas/${slug}`}
+          href={solidarityJourneyReturnHref(slug, {
+            experiencia: experience,
+            origem: fromDirectory ? "feirinha" : undefined,
+          })}
         >
-          ← {detail.organization.publicName}
+          ←{" "}
+          {fromDirectory ? "Voltar à Feirinha" : detail.organization.publicName}
         </Link>
         <p className="mt-5 text-xs font-black uppercase tracking-widest">
           Conexão privada e consentida
@@ -49,6 +60,8 @@ export default async function OfferInterestPage({
             visível para pessoas com acesso ativo se a conexão for aceita.
           </p>
           <SolidarityConnectionForm
+            experience={experience}
+            fromDirectory={fromDirectory}
             draftOwner={solidarityConnectionDraftOwner(session?.user)}
             formIdentity={solidarityConnectionFormIdentity(session?.user)}
             action={createSolidarityConnectionAction}
