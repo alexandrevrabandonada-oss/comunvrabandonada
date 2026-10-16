@@ -2,6 +2,100 @@
 
 > **Atualização transversal (14/10/2026):** [Consolidação de rede social, convivência, atratividade e sustentabilidade](#consolidação-canônica--rede-social-convivência-e-atratividade-14102026). Esta seção integra decisões e hipóteses ao roadmap único; não significa implementação nem lançamento.
 
+## Piloto UX da Home — descoberta familiar e conteúdo real (15/10/2026)
+
+**Estado: CANDIDATO EM PR; não integrado nem validado com pessoas.** Vinculado a
+SOC-D01 (valor sem reciprocidade), SOC-D05 (reutilizar antes de criar), SOC-D07
+(medir uma jornada real), SOC-D09 (descoberta cultural) e ao inventário U0. Este
+checkpoint é parte do roadmap único e não inicia outro programa de redesign.
+
+### Problema observado no código e hipótese
+
+A Home App V2 de `components/comun-app-v2-home.tsx` apresenta a entrada "Vi um
+problema", três portas de intenção ("O que você quer fazer?") e depois três
+cartões "Você escolhe como usar", antes de destacar uma pauta. A repetição exige
+interpretação de caminhos parecidos antes de oferecer conteúdo concreto.
+**Hipótese, não achado de ensaio humano:** reduzir entradas repetidas e
+antecipar um conteúdo público elegível melhora compreensão e vontade de explorar
+sem desorientar quem chega para relatar algo.
+
+### Incremento piloto estritamente delimitado
+
+1. **Home App V2:** manter "Vi um problema" como CTA primário, acrescentar
+   acesso explícito à busca pública, preservar três portas e substituí-las como
+   único grupo de escolha inicial; "Aprender a organizar" fica como link discreto,
+   sem duplicar a coleção completa de cartões. A coleção existente continua em
+   `/comun/participar` e na Home legacy para compatibilidade.
+2. **Conteúdo antes de catálogo:** antecipar uma pauta pública com
+   `source=remote`, quando houver, a partir do leitor existente. Se houver
+   somente o fallback editorial canônico de Calçadas, exibir essa origem e
+   esclarecer que ela não comprova participação nem resultados. Sem qualquer
+   item elegível, explicitar ausência e oferecer o catálogo; não fabricar
+   fotos, histórias, atividade, resultados ou contagens. Preservar em
+   Acompanhamentos a pauta pessoal distinta quando a pessoa estiver logada,
+   sem duplicar exatamente a mesma pauta.
+3. **Sem novos poderes:** nenhum novo endpoint, autenticação, tabela, migration,
+   feed, perfilamento, like, alteração de elegibilidade, ranking, telemetria,
+   permissão, jogo, publicação, mensagem ou mudança em Production.
+4. **Cuidado com conflito:** #553 também modifica este componente da Home
+   (form da Busca Viva) e o próprio roadmap. Reconciliar os commits depois da
+   conclusão de #553; não mesclar o piloto automaticamente. #550/#552 também
+   propõem mudanças documentais independentes no roadmap. Preservar as alterações
+   aprovadas ao reconciliar; #546/#549 e Escola seguem seus bloqueios próprios.
+
+### Critérios de aceitação e contraexemplos
+
+- Em `/comun` canônico, busca, relato e exploração continuam acessíveis,
+  há somente um grupo principal de escolhas de intenção e pauta real aparece
+  perto da entrada quando houver item elegível.
+- Em `?experiencia=legacy` e `/comun/participar`, a jornada de orientação
+  anterior e seus links persistem. Os links diretos/teclado continuam válidos.
+- Sem pautas publicáveis ou fallback editorial autorizado, a Home mostra
+  ausência, não uma pauta fictícia. Quando o fallback for usado, ele é
+  identificado como editorial, sem confundir com publicação remota. Nunca
+  expor dados privados ou contornar flags/editoria.
+- Regressões existentes de navegação, browser, WCAG/Axe, foco, mobile 320–390,
+  scroll, abertura/retorno e falta de conexão precisam passar no SHA exato.
+- Teste com pessoas novas deve verificar: localizar conteúdo útil sem login,
+  relatar um problema, encontrar organização, explicar a diferença entre
+  conhecer/participar e voltar ao item após navegar. Medir conclusão sem ajuda,
+  dúvidas expressas e disposição de voltar. Métrica de cliques isolada não
+  demonstra atratividade.
+
+### Ordem de evolução, sem expansão especulativa
+
+**P0** retirar redundância e apresentar a pauta real; **P1** validar descoberta
+transversal dos leitores públicos propostos em #552, linguagem, hierarquia e
+contraste da Home; **P1** ensaiar busca e retorno do #553; **P2** avaliar cultura,
+Feirinha e jogos com conteúdo real, autoria e direitos; **P2** experimentar
+conversa livre somente depois de fechar a primeira interação de ponta a ponta,
+moderação, saída e proteção de dados. Manter Zen Brutalista com três níveis de
+expressividade (calmo, contextual, cultural), acessibilidade e dispositivos
+populares. Não padronizar interfaces culturais com urgência de denúncia.
+
+**Prova inicial:** alteração isolada em branch, mais teste de continuidade;
+ainda sem testes executados neste registro. Não equivale a merge, Preview READY,
+disponibilidade pública ou validação humana. Próximo bloqueio: classificar CI do
+piloto e coordenar merge/rebase com #553 sem dispensar gates.
+
+### Checkpoint técnico do candidato — 16/10/2026
+
+Branch isolada `codex/comun-home-discovery-pilot-20261015`, PR #554
+draft. O primeiro head `5b9f7a1e` teve Experience Coherence e o
+contrato sintético de continuidade **SUCCESS**, mas Core Journeys falhou
+no Prettier do componente e COST-02 recusou ausência do marcador Preview.
+Essas falhas não são testes verdes. A correção de estilo foi aplicada, assim
+como um atributo público não sensível para distinguir o cartão `remote`,
+o destaque `editorial_fallback` e o estado `empty`. Um teste de navegação
+verifica as três possibilidades sem fabricar conteúdo.
+
+O commit com marcador de Preview apenas solicita o build canônico em Git
+e não comprova Vercel READY, deployment GitHub válido, CI verde, merge,
+atualização de Production ou usabilidade humana. Preservar o bloqueio se
+a CI ou o Preview não comprovarem o SHA exato. Conferir conflito funcional
+com #553 (submissão segura da Busca Viva) antes de integrar. Não substituir
+verificações de aparelhos reais por Playwright.
+
 ## Continuidade independente — 12/10/2026
 
 Candidato funcional `42f7ddd6`: cópia de texto da ouvidoria e protocolo agora

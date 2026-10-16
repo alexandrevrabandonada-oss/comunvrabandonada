@@ -122,8 +122,43 @@ for (const experience of ["", "?experiencia=legacy"]) {
     });
     await page.goto(`/comun${experience}`);
     const paths = page.locator("[data-comun-participation-paths]");
-    await expect(paths).toBeVisible();
-    await paths
+    if (experience) {
+      await expect(paths).toBeVisible();
+    } else {
+      await expect(paths).toHaveCount(0);
+      await expect(
+        page.getByRole("link", { name: "Buscar um assunto", exact: true }),
+      ).toHaveAttribute("href", "/comun/buscar");
+      const featured = page.locator("[data-comun-home-featured-source]");
+      await expect(
+        page.getByRole("heading", { name: "Uma pauta para conhecer" }),
+      ).toBeVisible();
+      const source = await featured.getAttribute(
+        "data-comun-home-featured-source",
+      );
+      expect(["remote", "editorial_fallback", "empty"]).toContain(source);
+      if (source === "editorial_fallback") {
+        await expect(featured).toContainText("Destaque editorial do COMUN");
+        await expect(featured.locator('[data-comun-card="pauta"]')).toHaveCount(
+          1,
+        );
+      } else if (source === "empty") {
+        await expect(featured).toContainText(
+          "Ainda não há uma pauta disponível neste destaque.",
+        );
+        await expect(featured.locator('[data-comun-card="pauta"]')).toHaveCount(
+          0,
+        );
+      } else {
+        await expect(featured.locator('[data-comun-card="pauta"]')).toHaveCount(
+          1,
+        );
+      }
+      await expect(
+        page.locator("[data-comun-motorola-primary-action]"),
+      ).toHaveAttribute("href", "/comun/relatar");
+    }
+    await (experience ? paths : page)
       .getByRole("link", { name: "Aprender a organizar", exact: true })
       .focus();
     await page.keyboard.press("Enter");
