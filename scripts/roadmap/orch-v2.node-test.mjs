@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { fingerprint, planCycle, recordFailure, observeInputs, notificationDecision,
   classifyPreview, reconcileExternalOutcome } from './orch-v2.mjs';
 const now='2026-10-16T16:00:00Z';
@@ -41,5 +42,5 @@ test('uncertain external side effects never retried blind',()=>assert.equal(reco
 test('authoritative remote reconciliation prevents duplication',()=>assert.equal(reconcileExternalOutcome({operationKind:'CODE_PUSH',outcome:'TIMEOUT',verifiedRemoteResult:'COMPLETED',idempotencyKey:'x'}).kind,'ALREADY_DONE'));
 test('protected action never permitted by reconciler',()=>assert.equal(reconcileExternalOutcome({operationKind:'REMOTE_MIGRATION',outcome:'UNKNOWN',verifiedRemoteResult:'COMPLETED',idempotencyKey:'x'}).kind,'BLOCK'));
 test('invalid state fails closed',()=>assert.throws(()=>planCycle({tasks:[task('a','INVALID')],now,lock}),/INVALID_TASK_STATUS/));
-test('CLI produces a read-only plan',()=>{const r=spawnSync(process.execPath,[new URL('./orch-v2-cli.mjs',import.meta.url).pathname],{encoding:'utf8',input:JSON.stringify({operation:'plan',args:{tasks:[task('a')],now,lock}})});assert.equal(r.status,0);assert.equal(JSON.parse(r.stdout).kind,'EXECUTE_ONE')});
-test('CLI cannot invoke unadvertised mutations',()=>{const r=spawnSync(process.execPath,[new URL('./orch-v2-cli.mjs',import.meta.url).pathname],{encoding:'utf8',input:'{"operation":"delete-lock","args":{}}'});assert.equal(r.status,2);assert.equal(r.stdout,'')});
+test('CLI produces a read-only plan',()=>{const r=spawnSync(process.execPath,[fileURLToPath(new URL('./orch-v2-cli.mjs',import.meta.url))],{encoding:'utf8',input:JSON.stringify({operation:'plan',args:{tasks:[task('a')],now,lock}})});assert.equal(r.status,0);assert.equal(JSON.parse(r.stdout).kind,'EXECUTE_ONE')});
+test('CLI cannot invoke unadvertised mutations',()=>{const r=spawnSync(process.execPath,[fileURLToPath(new URL('./orch-v2-cli.mjs',import.meta.url))],{encoding:'utf8',input:'{"operation":"delete-lock","args":{}}'});assert.equal(r.status,2);assert.equal(r.stdout,'')});
